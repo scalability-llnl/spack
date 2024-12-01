@@ -1,4 +1,4 @@
-# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,9 +15,13 @@ class ScineUtilities(CMakePackage):
     url = "https://github.com/qcscine/utilities/archive/refs/tags/6.0.0.tar.gz"
     git = "https://github.com/qcscine/utilities.git"
 
+    license("BSD-3-Clause")
+
     version("master", branch="master")
     version("6.0.0", sha256="e4387d5562b7442a8e31e4dfc028bacfeb6d12e39f2d8aa6effc6db380863b4a")
     version("5.0.0", sha256="a304c89d9a196fe304f38610dea6b066d74590c0d434e4bd09a9796340700465")
+
+    depends_on("cxx", type="build")  # generated
 
     resource(
         name="dev",
@@ -65,7 +69,7 @@ class ScineUtilities(CMakePackage):
         )
 
     def cmake_args(self):
-        args = [
+        return [
             self.define("SCINE_BUILD_TESTS", self.run_tests),
             self.define_from_variant("SCINE_BUILD_PYTHON_BINDINGS", "python"),
             self.define("SCINE_MARCH", ""),
@@ -75,7 +79,3 @@ class ScineUtilities(CMakePackage):
             self.define("BOOST_NO_SYSTEM_PATHS", True),
             self.define("Boost_NO_BOOST_CMAKE", True),
         ]
-        if "+python" in self.spec:
-            args.append(self.define("PYTHON_EXECUTABLE", self.spec["python"].command.path))
-
-        return args

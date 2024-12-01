@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,10 +15,17 @@ MACOS_VERSION = macos_version() if sys.platform == "darwin" else None
 class Graphviz(AutotoolsPackage):
     """Graph Visualization Software"""
 
-    homepage = "http://www.graphviz.org"
+    homepage = "https://www.graphviz.org"
     git = "https://gitlab.com/graphviz/graphviz.git"
     url = "https://gitlab.com/graphviz/graphviz/-/archive/2.46.0/graphviz-2.46.0.tar.bz2"
 
+    license("EPL-1.0")
+
+    version("12.1.0", sha256="ad2023c23935397d4b5a34c14682f8098d2f20d2144c63d20d05be372757fdb1")
+    version("11.0.0", sha256="95173d21922082b0b2649fb24c1dc4bbc1e39504a92903b88df39804778cbb9d")
+    version("10.0.1", sha256="eaa60fea2b3ad904e3bf6919710c1ba3207ce31b5d7da1687dd3b734de8736f6")
+    version("9.0.0", sha256="5c0a6e60761e2e0f6cbb8baca958b643a06b9bb74ed5a2e4937ee7dbb49dead3")
+    version("8.1.0", sha256="ce8911695752aa2c3929147e3dee016e58aa624d81d7c18dd16f895ae79460de")
     version("8.0.5", sha256="c1901fe52483fad55fbf893ccd59a3dcaedd53f0d50b5aebbbf3deaba93b674d")
     version("8.0.1", sha256="19928f09f759676578b50101420b24475eb35f712ffbe8a97254f64b20fdbd03")
     version("7.1.0", sha256="7943c3fa0c55c779f595259f3b9e41c7ea6ed92f0aca0d24df917f631322dc01")
@@ -34,12 +41,15 @@ class Graphviz(AutotoolsPackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # Language bindings
     language_bindings = ["java"]
 
     # Additional language bindings are nominally supported by GraphViz via SWIG
     # but are untested and need the proper dependencies added:
-    # language_bindings += ['sharp', 'go', 'guile', 'io', 'lua', 'ocaml',
+    # language_bindings += ['sharp', 'go', 'guile', 'io', 'lua',
     #                       'perl', 'php', 'python', 'r', 'ruby', 'tcl']
 
     for lang in language_bindings:
@@ -154,7 +164,7 @@ class Graphviz(AutotoolsPackage):
         # Set MACOSX_DEPLOYMENT_TARGET to 10.x due to old configure
         super().setup_build_environment(env)
 
-        if "+quartz" in self.spec:
+        if self.spec.satisfies("+quartz"):
             env.set("OBJC", self.compiler.cc)
 
     @when("%clang platform=darwin")
@@ -193,12 +203,13 @@ class Graphviz(AutotoolsPackage):
             "x",
         ]:
             args += self.with_or_without(var)
-        for var in ("expat", "java"):
-            if "+" + var in spec:
+
+        for var, when in [("expat", "@:8.0"), ("java", "@:")]:
+            if spec.satisfies("+" + var + when):
                 args.append("--with-{0}includedir={1}".format(var, spec[var].prefix.include))
                 args.append("--with-{0}libdir={1}".format(var, spec[var].prefix.lib))
 
-        if "+zlib" in spec:
+        if spec.satisfies("+zlib"):
             args.append("--with-zlibincludedir={}".format(spec["zlib-api"].prefix.include))
             args.append("--with-zliblibdir={}".format(spec["zlib-api"].prefix.lib))
 

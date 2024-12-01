@@ -1,9 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
+from spack.pkg.builtin.gromacs import CMakeBuilder as GromacsCMakeBuilder
 from spack.pkg.builtin.gromacs import Gromacs
 
 
@@ -14,11 +15,17 @@ class GromacsChainCoordinate(Gromacs):
     """
 
     homepage = "https://gitlab.com/cbjh/gromacs-chain-coordinate/-/blob/main/README.md"
-    url = "https://gitlab.com/cbjh/gromacs-chain-coordinate/-/archive/release-2021.chaincoord-0.2/gromacs-chain-coordinate-release-2021.chaincoord-0.2.tar.bz2"
+    url = "https://gitlab.com/cbjh/gromacs-chain-coordinate/-/archive/release-2021.chaincoord-0.3/gromacs-chain-coordinate-release-2021.chaincoord-0.3.tar.bz2"
     git = "https://gitlab.com/cbjh/gromacs-chain-coordinate.git"
     maintainers("w8jcik")
 
     version("main", branch="main")
+
+    version(
+        "2021.5-0.3",
+        sha256="64ec5f385445ae43dfec8c27198034c0ba641863ab856c8c29798a4c83016baa",
+        url="https://gitlab.com/cbjh/gromacs-chain-coordinate/-/archive/release-2021.chaincoord-0.3/gromacs-chain-coordinate-release-2021.chaincoord-0.3.tar.bz2",
+    )
 
     version(
         "2021.5-0.2",
@@ -56,3 +63,7 @@ class GromacsChainCoordinate(Gromacs):
                 self._if_make_target_execute("check")
             elif self.generator == "Ninja":
                 self._if_ninja_target_execute("check")
+
+
+class CMakeBuilder(GromacsCMakeBuilder):
+    pass

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,9 +15,9 @@ from html import escape
 import llnl.util.tty as tty
 from llnl.util.tty.colify import colify
 
-import spack.cmd.common.arguments as arguments
 import spack.deptypes as dt
 import spack.repo
+from spack.cmd.common import arguments
 from spack.version import VersionList
 
 description = "list and search available packages"
@@ -39,6 +39,16 @@ def setup_parser(subparser):
         "filter",
         nargs=argparse.REMAINDER,
         help="optional case-insensitive glob patterns to filter results",
+    )
+    subparser.add_argument(
+        "-r",
+        "--repo",
+        "-N",
+        "--namespace",
+        dest="repos",
+        action="append",
+        default=[],
+        help="only list packages from the specified repo/namespace",
     )
     subparser.add_argument(
         "-d",
@@ -282,9 +292,11 @@ def html(pkg_names, out):
                 out.write("<dd>\n")
                 out.write(
                     ", ".join(
-                        d
-                        if d not in pkg_names
-                        else '<a class="reference internal" href="#%s">%s</a>' % (d, d)
+                        (
+                            d
+                            if d not in pkg_names
+                            else '<a class="reference internal" href="#%s">%s</a>' % (d, d)
+                        )
                         for d in deps
                     )
                 )
@@ -307,7 +319,11 @@ def list(parser, args):
     formatter = formatters[args.format]
 
     # Retrieve the names of all the packages
-    pkgs = set(spack.repo.all_package_names(args.virtuals))
+    repos = [spack.repo.PATH]
+    if args.repos:
+        repos = [spack.repo.PATH.get_repo(name) for name in args.repos]
+    pkgs = set().union(*[set(repo.all_package_names(args.virtuals)) for repo in repos])
+
     # Filter the set appropriately
     sorted_packages = filter_by_name(pkgs, args)
 

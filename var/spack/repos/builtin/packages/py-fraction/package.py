@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyFraction(PythonPackage):
     pypi = "Fraction/Fraction-2.2.0.tar.gz"
 
     maintainers("LydDeb")
+
+    license("MIT")
 
     version("2.2.0", sha256="2c1179f20c8b749622935fe04db1c7f2987f011f2376bdad84c2a39c8e3d0fdb")
 

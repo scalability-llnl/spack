@@ -1,0 +1,88 @@
+From 085d965e11cda1830cf325e0d12db3faf61a94d0 Mon Sep 17 00:00:00 2001
+From: sreenivasa murthy kolam <sreenivasamurthy.kolam@amd.com>
+Date: Thu, 23 May 2024 05:49:34 +0000
+Subject: [PATCH] Add hipblas include dir in CMakeLists.txt and Modify the LLVM
+ Path in the Tensile code for Spack
+
+---
+ clients/gtest/CMakeLists.txt            | 1 +
+ library/CMakeLists.txt                  | 2 ++
+ tensilelite/Tensile/Common.py           | 7 ++++---
+ tensilelite/Tensile/Ops/gen_assembly.sh | 2 +-
+ 4 files changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/clients/gtest/CMakeLists.txt b/clients/gtest/CMakeLists.txt
+index 825bdca..f817e12 100644
+--- a/clients/gtest/CMakeLists.txt
++++ b/clients/gtest/CMakeLists.txt
+@@ -53,6 +53,7 @@ target_include_directories( hipblaslt-test
+     $<BUILD_INTERFACE:${BLAS_INCLUDE_DIR}>
+     $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}> # may be blank if not used
+     $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
++    $<BUILD_INTERFACE:${HIPBLAS_INCLUDE_DIRS}>
+ )
+ message("BLIS_INCLUDE_DIR=" ${BLIS_INCLUDE_DIR})
+ target_link_libraries( hipblaslt-test PRIVATE ${BLAS_LIBRARY} ${GTEST_BOTH_LIBRARIES} roc::hipblaslt )
+diff --git a/library/CMakeLists.txt b/library/CMakeLists.txt
+index 3252da0..1b8d628 100644
+--- a/library/CMakeLists.txt
++++ b/library/CMakeLists.txt
+@@ -72,6 +72,8 @@ include(src/CMakeLists.txt)
+ # Create hipBLASLt library
+ add_library(hipblaslt ${hipblaslt_source} ${hipblaslt_headers_public})
+ add_library(roc::hipblaslt ALIAS hipblaslt)
++target_include_directories( hipblaslt PRIVATE ${HIPBLAS_INCLUDE_DIRS} )
++target_include_directories( hipblaslt PRIVATE ${MSGPACK_DIR}/include )
+ 
+ # Target compile definitions
+ if(NOT BUILD_CUDA)
+diff --git a/tensilelite/Tensile/Common.py b/tensilelite/Tensile/Common.py
+index 8ee6373..52d6a97 100644
+--- a/tensilelite/Tensile/Common.py
++++ b/tensilelite/Tensile/Common.py
+@@ -273,6 +273,7 @@ globalParameters["LazyLibraryLoading"] = False # Load library and code object fi
+ globalParameters["UseUserArgs"] = False
+ 
+ globalParameters["RotatingBufferSize"] = 0 # Size in MB
++globalParameters["LLVMPath"] = os.environ.get("LLVM_PATH")
+ 
+ # Save a copy - since pytest doesn't re-run this initialization code and YAML files can override global settings - odd things can happen
+ defaultGlobalParameters = deepcopy(globalParameters)
+@@ -1488,10 +1489,10 @@ def assignGlobalParameters( config ):
+     if os.name == "nt":
+       globalParameters["AssemblerPath"] = locateExe(globalParameters["ROCmBinPath"], "clang++.exe")
+     else:
+-      globalParameters["AssemblerPath"] = locateExe(os.path.join(globalParameters["ROCmPath"], "llvm/bin"), "clang++")
++      globalParameters["AssemblerPath"] = locateExe(os.path.join(globalParameters["LLVMPath"], "bin"), "clang++")
+ 
+   globalParameters["ROCmSMIPath"] = locateExe(globalParameters["ROCmBinPath"], "rocm-smi")
+-  globalParameters["ROCmLdPath"]  = locateExe(os.path.join(globalParameters["ROCmPath"], "llvm/bin"), "ld.lld")
++  globalParameters["ROCmLdPath"]  = locateExe(os.path.join(globalParameters["LLVMPath"], "bin"), "ld.lld")
+ 
+   globalParameters["ExtractKernelPath"] = locateExe(os.path.join(globalParameters["ROCmPath"], "hip/bin"), "extractkernel")
+ 
+@@ -1501,7 +1502,7 @@ def assignGlobalParameters( config ):
+     if os.name == "nt":
+       globalParameters["ClangOffloadBundlerPath"] = locateExe(globalParameters["ROCmBinPath"], "clang-offload-bundler.exe")
+     else:
+-      globalParameters["ClangOffloadBundlerPath"] = locateExe(os.path.join(globalParameters["ROCmPath"], "llvm/bin"), "clang-offload-bundler")
++      globalParameters["ClangOffloadBundlerPath"] = locateExe(os.path.join(globalParameters["LLVMPath"], "bin"), "clang-offload-bundler")
+ 
+   if "ROCmAgentEnumeratorPath" in config:
+     globalParameters["ROCmAgentEnumeratorPath"] = config["ROCmAgentEnumeratorPath"]
+diff --git a/tensilelite/Tensile/Ops/gen_assembly.sh b/tensilelite/Tensile/Ops/gen_assembly.sh
+index 230c446..9f7dc6d 100644
+--- a/tensilelite/Tensile/Ops/gen_assembly.sh
++++ b/tensilelite/Tensile/Ops/gen_assembly.sh
+@@ -32,7 +32,7 @@ if ! [ -z ${ROCM_PATH+x} ]; then
+     rocm_path=${ROCM_PATH}
+ fi
+ 
+-toolchain=${rocm_path}/llvm/bin/clang++
++toolchain=${LLVM_PATH}/bin/clang++
+ 
+ . ${venv}/bin/activate
+ 
+-- 
+2.39.3
+

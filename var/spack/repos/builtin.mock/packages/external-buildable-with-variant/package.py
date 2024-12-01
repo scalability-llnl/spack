@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,4 +15,4 @@ class ExternalBuildableWithVariant(Package):
 
     variant("baz", default=False, description="nope")
 
-    depends_on("c@1.0", when="@0.9")
+    depends_on("pkg-c@1.0", when="@0.9")

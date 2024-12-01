@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -29,6 +29,8 @@ class RMzr(RPackage):
     version("2.14.0", commit="bf1154bc45101d95b5a67c66980856a779b84bd4")
     version("2.12.0", commit="f05eb27ae31c3d019cca10fc3b9ee513cbcdfc5a")
     version("2.10.0", commit="a6168b68e48c281e88de9647254a8db1e21df388")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r@4.0.0:", type=("build", "run"), when="@2.30.0:")
     depends_on("r-rcpp@0.10.1:", type=("build", "run"))

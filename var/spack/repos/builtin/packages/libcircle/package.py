@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -25,6 +25,8 @@ class Libcircle(AutotoolsPackage):
     version(
         "0.2.1-rc.1", sha256="5747f91cf4417023304dcc92fd07e3617ac712ca1eeb698880979bbca3f54865"
     )
+
+    depends_on("c", type="build")  # generated
 
     depends_on("mpi")
     depends_on("pkgconfig", type="build")

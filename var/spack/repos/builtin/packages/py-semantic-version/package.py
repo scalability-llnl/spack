@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PySemanticVersion(PythonPackage):
 
     homepage = "https://github.com/rbarrois/python-semanticversion"
     pypi = "semantic_version/semantic_version-2.8.2.tar.gz"
+
+    license("BSD-2-Clause")
 
     version("2.10.0", sha256="bdabb6d336998cbb378d4b9db3a4b56a1e3235701dc05ea2690d9a997ed5041c")
     version("2.9.0", sha256="abf54873553e5e07a6fd4d5f653b781f5ae41297a493666b59dcf214006a12b2")

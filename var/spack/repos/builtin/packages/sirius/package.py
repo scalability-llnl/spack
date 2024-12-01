@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,9 +18,16 @@ class Sirius(CMakePackage, CudaPackage, ROCmPackage):
 
     maintainers("simonpintarelli", "haampie", "dev-zero", "AdhocMan", "toxa81")
 
+    license("BSD-2-Clause")
+
     version("develop", branch="develop")
     version("master", branch="master")
 
+    version("7.6.1", sha256="16a114dc17e28697750585820e69718a96e6929f88406d266c75cf9a7cdbdaaa")
+    version("7.6.0", sha256="e424206fecb35bb2082b5c87f0865a9536040e984b88b041e6f7d531f8a65b20")
+    version("7.5.2", sha256="9ae01935578532c84f1d0d673dbbcdd490e26be22efa6c4acf7129f9dc1a0c60")
+    version("7.5.1", sha256="aadfa7976e90a109aeb1677042454388a8d1a50d75834d59c86c8aef06bc12e4")
+    version("7.5.0", sha256="c583f88ffc02e9acac24e786bc35c7c32066882d2f70a1e0c14b5780b510365d")
     version("7.4.3", sha256="015679a60a39fa750c5d1bd8fb1ce73945524bef561270d8a171ea2fd4687fec")
     version("7.4.0", sha256="f9360a695a1e786d8cb9d6702c82dd95144a530c4fa7e8115791c7d1e92b020b")
     version("7.3.2", sha256="a256508de6b344345c295ad8642dbb260c4753cd87cc3dd192605c33542955d7")
@@ -77,19 +84,16 @@ class Sirius(CMakePackage, CudaPackage, ROCmPackage):
         deprecated=True,
     )
 
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("shared", default=True, description="Build shared libraries")
     variant("openmp", default=True, description="Build with OpenMP support")
-    variant(
-        "boost_filesystem",
-        default=False,
-        description="Use Boost filesystem for self-consistent field method "
-        "mini-app. Only required when the compiler does not "
-        "support std::experimental::filesystem nor std::filesystem",
-    )
     variant("fortran", default=False, description="Build Fortran bindings")
     variant("python", default=False, description="Build Python bindings")
     variant("memory_pool", default=True, description="Build with memory pool")
     variant("elpa", default=False, description="Use ELPA")
+    variant("dlaf", default=False, when="@7.5.0:", description="Use DLA-Future")
     variant("vdwxc", default=False, description="Enable libvdwxc support")
     variant("scalapack", default=False, description="Enable scalapack support")
     variant("magma", default=False, description="Enable MAGMA support")
@@ -107,10 +111,21 @@ class Sirius(CMakePackage, CudaPackage, ROCmPackage):
     variant(
         "profiler", default=True, description="Use internal profiler to measure execution time"
     )
+    variant("nvtx", default=False, description="Use NVTX profiler")
+
+    with when("@7.6:"):
+        variant(
+            "pugixml",
+            default=False,
+            description="Enable direct reading of UPF v2 pseudopotentials",
+        )
+        conflicts("+tests~pugixml")
+    depends_on("pugixml", when="+pugixml")
 
     depends_on("cmake@3.23:", type="build")
     depends_on("mpi")
     depends_on("gsl")
+    depends_on("blas")
     depends_on("lapack")
     depends_on("fftw-api@3")
     depends_on("libxc@3.0.0:")
@@ -133,18 +148,20 @@ class Sirius(CMakePackage, CudaPackage, ROCmPackage):
     extends("python", when="+python")
 
     depends_on("magma", when="+magma")
-    depends_on("boost cxxstd=14 +filesystem", when="+boost_filesystem")
 
-    depends_on("spfft@0.9.13:", when="@7.0.1:")
-    depends_on("spfft+single_precision", when="+single_precision ^spfft")
-    depends_on("spfft+cuda", when="+cuda ^spfft")
-    depends_on("spfft+rocm", when="+rocm ^spfft")
-    depends_on("spfft+openmp", when="+openmp ^spfft")
+    with when("@7.0.1:"):
+        depends_on("spfft@0.9.13:")
+        depends_on("spfft+single_precision", when="+single_precision")
+        depends_on("spfft+cuda", when="+cuda")
+        depends_on("spfft+rocm", when="+rocm")
+        depends_on("spfft+openmp", when="+openmp")
 
-    depends_on("spla@1.1.0:", when="@7.0.2:")
-    depends_on("spla+cuda", when="+cuda ^spla")
-    depends_on("spla+rocm", when="+rocm ^spla")
-    depends_on("spla+openmp", when="+openmp ^spla")
+    with when("@7.0.2:"):
+        depends_on("spla@1.1.0:")
+        depends_on("spla+cuda", when="+cuda")
+        depends_on("spla+rocm", when="+rocm")
+        # spla removed the openmp option in 1.6.0
+        conflicts("^spla@:1.5~openmp", when="+openmp")
 
     depends_on("nlcglib", when="+nlcglib")
     depends_on("nlcglib+rocm", when="+nlcglib+rocm")
@@ -154,22 +171,44 @@ class Sirius(CMakePackage, CudaPackage, ROCmPackage):
 
     depends_on("scalapack", when="+scalapack")
 
+    with when("+dlaf"):
+        depends_on("dla-future@0.3.0:")
+        depends_on("dla-future +scalapack", when="+scalapack")
+        depends_on("dla-future +cuda", when="+cuda")
+        depends_on("dla-future +rocm", when="+rocm")
+
+        conflicts("^pika@:0.22.1", when="+cuda")
+        conflicts("^pika@:0.22.1", when="+rocm")
+
     depends_on("rocblas", when="+rocm")
     depends_on("rocsolver", when="@7.5.0: +rocm")
 
-    # FindHIP cmake script only works for < 4.1
-    depends_on("hip@:4.0", when="@:7.2.0 +rocm")
+    # FindHIP cmake script only works for < 4.1, but HIP 4.1 is not provided by spack anymore
+    conflicts("+rocm", when="@:7.2.0")
 
-    conflicts("+boost_filesystem", when="~apps")
     conflicts("^libxc@5.0.0")  # known to produce incorrect results
     conflicts("+single_precision", when="@:7.2.4")
     conflicts("+scalapack", when="^cray-libsci")
 
     # Propagate openmp to blas
-    depends_on("openblas threads=openmp", when="+openmp ^openblas")
-    depends_on("amdblis threads=openmp", when="+openmp ^amdblis")
-    depends_on("blis threads=openmp", when="+openmp ^blis")
-    depends_on("intel-mkl threads=openmp", when="+openmp ^intel-mkl")
+    depends_on("openblas threads=openmp", when="+openmp ^[virtuals=blas,lapack] openblas")
+    depends_on("amdblis threads=openmp", when="+openmp ^[virtuals=blas] amdblis")
+    depends_on("blis threads=openmp", when="+openmp ^[virtuals=blas] blis")
+    depends_on(
+        "intel-mkl threads=openmp", when="+openmp ^[virtuals=blas,lapack,fftw-api] intel-mkl"
+    )
+    depends_on(
+        "intel-oneapi-mkl threads=openmp",
+        when="+openmp ^[virtuals=blas,lapack,fftw-api] intel-oneapi-mkl",
+    )
+    depends_on(
+        "intel-oneapi-mkl+cluster",
+        when="+scalapack ^[virtuals=blas,lapack,fftw-api] intel-oneapi-mkl",
+    )
+
+    conflicts("intel-mkl", when="@develop")  # TODO: Change to @7.5.3
+    # MKLConfig.cmake introduced in 2021.3
+    conflicts("intel-oneapi-mkl@:2021.2", when="^intel-oneapi-mkl")
 
     depends_on("wannier90", when="@7.5.0: +wannier90")
     depends_on("wannier90+shared", when="@7.5.0: +wannier90+shared")
@@ -187,6 +226,7 @@ class Sirius(CMakePackage, CudaPackage, ROCmPackage):
         depends_on("umpire+rocm~device_alloc", when="+rocm")
 
     patch("mpi_datatypes.patch", when="@:7.2.6")
+    patch("fj.patch", when="@7.3.2: %fj")
 
     def cmake_args(self):
         spec = self.spec
@@ -203,15 +243,18 @@ class Sirius(CMakePackage, CudaPackage, ROCmPackage):
             self.define_from_variant(cm_label + "USE_VDWXC", "vdwxc"),
             self.define_from_variant(cm_label + "USE_MEMORY_POOL", "memory_pool"),
             self.define_from_variant(cm_label + "USE_SCALAPACK", "scalapack"),
+            self.define_from_variant(cm_label + "USE_DLAF", "dlaf"),
             self.define_from_variant(cm_label + "CREATE_FORTRAN_BINDINGS", "fortran"),
             self.define_from_variant(cm_label + "CREATE_PYTHON_MODULE", "python"),
             self.define_from_variant(cm_label + "USE_CUDA", "cuda"),
             self.define_from_variant(cm_label + "USE_ROCM", "rocm"),
             self.define_from_variant(cm_label + "BUILD_APPS", "apps"),
-            self.define_from_variant(cm_label + "BUILD_SHARED_LIBS", "shared"),
             self.define_from_variant(cm_label + "USE_FP32", "single_precision"),
             self.define_from_variant(cm_label + "USE_PROFILER", "profiler"),
+            self.define_from_variant(cm_label + "USE_NVTX", "nvtx"),
             self.define_from_variant(cm_label + "USE_WANNIER90", "wannier90"),
+            self.define_from_variant(cm_label + "USE_PUGIXML", "pugixml"),
+            self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
             self.define_from_variant("BUILD_TESTING", "tests"),
         ]
 
@@ -243,8 +286,42 @@ class Sirius(CMakePackage, CudaPackage, ROCmPackage):
         if "^cray-libsci" in spec:
             args.append(self.define(cm_label + "USE_CRAY_LIBSCI", "ON"))
 
-        if spec["blas"].name in ["intel-mkl", "intel-parallel-studio", "intel-oneapi-mkl"]:
+        if spec["blas"].name in INTEL_MATH_LIBRARIES:
             args.append(self.define(cm_label + "USE_MKL", "ON"))
+
+            if spec.satisfies("@develop"):  # TODO: Change to @7.5.3:
+                mkl_mapper = {
+                    "threading": {
+                        "none": "sequential",
+                        "openmp": "gnu_thread",
+                        "tbb": "tbb_thread",
+                    },
+                    "mpi": {"intel-mpi": "intelmpi", "mpich": "mpich", "openmpi": "openmpi"},
+                }
+
+                mkl_threads = mkl_mapper["threading"][
+                    spec["intel-oneapi-mkl"].variants["threads"].value
+                ]
+
+                mpi_provider = spec["mpi"].name
+                if mpi_provider in ["mpich", "cray-mpich", "mvapich", "mvapich2"]:
+                    mkl_mpi = mkl_mapper["mpi"]["mpich"]
+                else:
+                    mkl_mpi = mkl_mapper["mpi"][mpi_provider]
+
+                args.extend(
+                    [
+                        self.define("MKL_INTERFACE", "lp64"),
+                        self.define("MKL_THREADING", mkl_threads),
+                        self.define("MKL_MPI", mkl_mpi),
+                    ]
+                )
+
+                if "+scalapack" in self.spec:
+                    # options provided by `MKLConfig.cmake`
+                    args.extend(
+                        [self.define("ENABLE_BLACS", "On"), self.define("ENABLE_SCALAPACK", "On")]
+                    )
 
         if "+elpa" in spec:
             elpa_incdir = os.path.join(spec["elpa"].headers.directories[0], "elpa")
@@ -254,7 +331,7 @@ class Sirius(CMakePackage, CudaPackage, ROCmPackage):
             cuda_arch = spec.variants["cuda_arch"].value
             if cuda_arch[0] != "none":
                 # Make SIRIUS handle it
-                if "@6:7.4.3" in spec:
+                if "@:7.4.3" in spec:
                     args.append(self.define("CMAKE_CUDA_ARCH", ";".join(cuda_arch)))
                 else:
                     args.append(self.define("CMAKE_CUDA_ARCHITECTURES", ";".join(cuda_arch)))

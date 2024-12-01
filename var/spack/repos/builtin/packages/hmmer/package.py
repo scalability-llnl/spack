@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -25,6 +25,8 @@ class Hmmer(Package):
     version("2.3.2", sha256="d20e1779fcdff34ab4e986ea74a6c4ac5c5f01da2993b14e92c94d2f076828b4")
     version("2.3.1", sha256="3956d53af8de5bb99eec18cba0628e86924c6543639d290293b6677a9224ea3f")
 
+    depends_on("c", type="build")  # generated
+
     variant("mpi", default=True, description="Compile with MPI")
     variant("gsl", default=False, description="Compile with GSL")
 
@@ -39,10 +41,10 @@ class Hmmer(Package):
     def install(self, spec, prefix):
         configure_args = ["--prefix={0}".format(prefix)]
 
-        if "+gsl" in self.spec:
+        if self.spec.satisfies("+gsl"):
             configure_args.extend(["--with-gsl", "LIBS=-lgsl -lgslcblas"])
 
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             configure_args.append("--enable-mpi")
 
         configure(*configure_args)

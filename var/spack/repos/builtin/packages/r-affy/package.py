@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -25,6 +25,8 @@ class RAffy(RPackage):
     version("1.58.0", commit="4698231f45f225228f56c0708cd477ad450b4ee6")
     version("1.56.0", commit="d36a7b8f05b1ef60162d94e75037d45c48f88871")
     version("1.54.0", commit="a815f02906fcf491b28ed0a356d6fce95a6bd20e")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r@2.8.0:4.0", type=("build", "run"), when="@:1.68.0")
     depends_on("r-biocgenerics@0.1.12:", type=("build", "run"))

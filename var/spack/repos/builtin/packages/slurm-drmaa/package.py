@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,7 +10,7 @@ class SlurmDrmaa(AutotoolsPackage):
     """
     DRMAA for Slurm is an implementation of Open Grid Forum DRMAA 1.0 (Distributed
     Resource Management Application API) specification for submission and control of
-    jobs to SLURM.  Using DRMAA, grid applications builders, portal developers and
+    jobs to Slurm.  Using DRMAA, grid applications builders, portal developers and
     ISVs can use the same high-level API to link their software with different
     cluster/resource management systems.
     """
@@ -21,8 +21,12 @@ class SlurmDrmaa(AutotoolsPackage):
 
     maintainers("pwablito")
 
+    license("GPL-3.0-or-later")
+
     version("main", branch="main", submodules=True)
     version("1.1.2", sha256="5bfe25d501de83729df3c8c8f28535b9da3e99aea7738e259903abd6f1f5c836")
+
+    depends_on("c", type="build")  # generated
 
     # Remove this patch when it is merged into main:
     patch(

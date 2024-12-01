@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -9,10 +9,12 @@ from spack.package import *
 class Antimony(CMakePackage):
     """Human readable language for modifying sbml"""
 
-    homepage = "http://antimony.sourceforge.net/"
+    homepage = "https://antimony.sourceforge.net/"
     url = "antimony"
 
     maintainers("rblake-llnl")
+
+    license("BSD-3-Clause")
 
     version("2.8", sha256="7e3e38706c074b72e241ac56ef4ce23e87ef8c718c70f29b2207f1847c43770f")
     version("2.7", sha256="7ad181cac632282ae77ced09388dd92db87ea4683eed8c45f2b43861ae2acad4")

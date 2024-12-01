@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,7 @@ import pytest
 import llnl.util.filesystem as fs
 
 import spack
+import spack.main
 import spack.util.executable as ex
 from spack.hooks.sbang import filter_shebangs_in_directory
 
@@ -89,8 +90,8 @@ def test_which_with_slash_ignores_path(tmpdir, working_env):
         assert exe.path == path
 
 
-def test_which(tmpdir):
-    os.environ["PATH"] = str(tmpdir)
+def test_which(tmpdir, monkeypatch):
+    monkeypatch.setenv("PATH", str(tmpdir))
     assert ex.which("spack-test-exe") is None
 
     with pytest.raises(ex.CommandNotFoundError):

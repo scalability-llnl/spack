@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,9 @@ class FrontierClient(MakefilePackage):
     version("2_9_0", sha256="e58dba3f177c5b74609f244101a22a5c14d42bf019013fe2dba72c09f819c62a")
     version("2_8_21", sha256="7df9ba61c3e1778aca75c5da6e45ee4d00b5c061d3f7162208e2fbd2ec266a9e")
     version("2_8_20", sha256="81b0f45762d96a33f156e0238631a60eef910a176644e95c6c19a36824bef7e1")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("pacparser")
     depends_on("expat")

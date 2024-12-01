@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,13 +14,12 @@
 """
 import collections
 import collections.abc
-import copy
 import ctypes
 import enum
 import functools
 import io
 import re
-from typing import IO, List, Optional
+from typing import IO, Any, Callable, Dict, List, Optional, Union
 
 import ruamel.yaml
 from ruamel.yaml import comments, constructor, emitter, error, representer
@@ -233,8 +232,8 @@ def return_string_when_no_stream(func):
 @return_string_when_no_stream
 def dump(data, stream=None, default_flow_style=False):
     handler = ConfigYAML(yaml_type=YAMLType.GENERIC_YAML)
-    handler.default_flow_style = default_flow_style
-    handler.width = maxint
+    handler.yaml.default_flow_style = default_flow_style
+    handler.yaml.width = maxint
     return handler.dump(data, stream=stream)
 
 
@@ -296,8 +295,8 @@ class LineAnnotationEmitter(emitter.Emitter):
         if marked(self.event.value):
             self.saved = self.event.value
 
-    def write_line_break(self):
-        super().write_line_break()
+    def write_line_break(self, data=None):
+        super().write_line_break(data)
         if self.saved is None:
             _ANNOTATIONS.append(colorize("@K{---}"))
             return
@@ -400,20 +399,6 @@ class ConfigYAML:
         return result.getvalue()
 
 
-def deepcopy(data):
-    """Returns a deepcopy of the input YAML data."""
-    result = copy.deepcopy(data)
-
-    if isinstance(result, comments.CommentedMap):
-        # HACK to fully copy ruamel CommentedMap that doesn't provide copy
-        # method. Especially necessary for environments
-        extracted_comments = extract_comments(data)
-        if extracted_comments:
-            set_comments(result, data_comments=extracted_comments)
-
-    return result
-
-
 def load_config(str_or_file):
     """Load but modify the loader instance so that it will add __line__
     attributes to the returned object."""
@@ -491,6 +476,29 @@ def set_comments(data, *, data_comments):
 def name_mark(name):
     """Returns a mark with just a name"""
     return error.StringMark(name, None, None, None, None, None)
+
+
+def anchorify(data: Union[dict, list], identifier: Callable[[Any], str] = repr) -> None:
+    """Replace identical dict/list branches in tree with references to earlier instances. The YAML
+    serializer generate anchors for them, resulting in small yaml files."""
+    anchors: Dict[str, Union[dict, list]] = {}
+    stack: List[Union[dict, list]] = [data]
+
+    while stack:
+        item = stack.pop()
+
+        for key, value in item.items() if isinstance(item, dict) else enumerate(item):
+            if not isinstance(value, (dict, list)):
+                continue
+
+            id = identifier(value)
+            anchor = anchors.get(id)
+
+            if anchor is None:
+                anchors[id] = value
+                stack.append(value)
+            else:
+                item[key] = anchor  # replace with reference
 
 
 class SpackYAMLError(spack.error.SpackError):

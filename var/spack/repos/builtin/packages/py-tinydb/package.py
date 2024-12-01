@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyTinydb(PythonPackage):
 
     homepage = "https://tinydb.readthedocs.io"
     pypi = "tinydb/tinydb-4.7.0.tar.gz"
+
+    license("MIT")
 
     version("4.7.1", sha256="8955c239a79b8a6c8f637900152e2de38690848199d71d870c33c16405433ca5")
     version("4.7.0", sha256="357eb7383dee6915f17b00596ec6dd2a890f3117bf52be28a4c516aeee581100")

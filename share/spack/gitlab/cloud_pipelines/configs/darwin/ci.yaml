@@ -1,4 +1,4 @@
 ci:
   pipeline-gen:
   - build-job-remove:
-      image: macos-run-on-metal
+      image:: macos-run-on-metal

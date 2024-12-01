@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyGeomdl(PythonPackage):
 
     homepage = "https://pypi.org/project/geomdl"
     pypi = "geomdl/geomdl-5.3.1.tar.gz"
+
+    license("MIT")
 
     version("5.3.1", sha256="e81a31b4d5f111267b16045ba1d9539235a98b2cff5e4bad18f7ddcd4cb804c8")
 

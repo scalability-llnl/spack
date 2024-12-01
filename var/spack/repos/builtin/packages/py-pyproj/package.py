@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,8 +14,10 @@ class PyPyproj(PythonPackage):
     pypi = "pyproj/pyproj-2.2.0.tar.gz"
     git = "https://github.com/pyproj4/pyproj.git"
 
+    license("MIT")
     maintainers("citibeth", "adamjstewart")
 
+    version("3.7.0", sha256="bf658f4aaf815d9d03c8121650b6f0b8067265c36e31bc6660b98ef144d81813")
     version("3.6.1", sha256="44aa7c704c2b7d8fb3d483bbf75af6cb2350d30a63b144279a09b75fead501bf")
     version("3.6.0", sha256="a5b111865b3f0f8b77b3983f2fbe4dd6248fc09d3730295949977c8dcd988062")
     version("3.5.0", sha256="9859d1591c1863414d875ae0759e72c2cffc01ab989dc64137fbac572cc81bf6")
@@ -34,16 +36,23 @@ class PyPyproj(PythonPackage):
     version("2.1.3", sha256="99c52788b01a7bb9a88024bf4d40965c0a66a93d654600b5deacf644775f424d")
 
     # In pyproject.toml
-    depends_on("py-setuptools@61:", when="@3.4:", type="build")
-    depends_on("py-setuptools", type="build")
-    depends_on("py-cython@3:", when="@3.6.1:", type="build")
-    depends_on("py-cython@0.28.4:2", when="@2:3.6.0", type="build")
-    depends_on("python@3.9:", when="@3.6:", type=("build", "link", "run"))
-    depends_on("python@3.8:", when="@3.3:", type=("build", "link", "run"))
-    depends_on("py-certifi", when="@3:", type=("build", "run"))
+    with default_args(type="build"):
+        depends_on("py-setuptools@61:", when="@3.4:")
+        depends_on("py-setuptools")
+        depends_on("py-cython@3:", when="@3.6.1:")
+        depends_on("py-cython@0.28.4:2", when="@2:3.6.0")
+
+    with default_args(type=("build", "link", "run")):
+        depends_on("python@3.10:", when="@3.7:")
+        depends_on("python@3.9:", when="@3.6:")
+        depends_on("python@3.8:", when="@3.3:")
+
+    with default_args(type=("build", "run")):
+        depends_on("py-certifi", when="@3:")
 
     # In setup.py (PROJ_MIN_VERSION)
     # https://pyproj4.github.io/pyproj/stable/installation.html#installing-from-source
+    depends_on("proj@9.2:", when="@3.7:")
     depends_on("proj@9:", when="@3.5:")
     depends_on("proj@8.2:", when="@3.4")
     depends_on("proj@8.0:9.1", when="@3.3")
@@ -52,7 +61,6 @@ class PyPyproj(PythonPackage):
     depends_on("proj@6.2:7", when="@2.4:2.6")
     depends_on("proj@6.1:7", when="@2.2:2.3")
     depends_on("proj@6.0:7", when="@2.0:2.1")
-    depends_on("proj@:5.2", when="@:1.9")
     depends_on("proj")
 
     def setup_build_environment(self, env):

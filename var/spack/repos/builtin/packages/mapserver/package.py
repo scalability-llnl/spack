@@ -1,9 +1,7 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-import os
 
 from spack.package import *
 
@@ -17,8 +15,13 @@ class Mapserver(CMakePackage):
     homepage = "https://www.mapserver.org/"
     url = "https://download.osgeo.org/mapserver/mapserver-7.2.1.tar.gz"
 
+    license("MIT")
+
     version("8.0.1", sha256="79d23595ef95d61d3d728ae5e60850a3dbfbf58a46953b4fdc8e6e0ffe5748ba")
     version("7.2.1", sha256="9459a7057d5a85be66a41096a5d804f74665381186c37077c94b56e784db6102")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("python", default=False, description="Enable Python mapscript support")
     variant(
@@ -58,9 +61,7 @@ class Mapserver(CMakePackage):
         # prefix. This hack patches the CMakeLists.txt for the Python
         # bindings and hard-wires in the right destination. A bit ugly,
         # sorry, but I don't speak cmake.
-        pyversiondir = "python{0}".format(self.spec["python"].version.up_to(2))
-        sitepackages = os.path.join(self.spec.prefix.lib, pyversiondir, "site-packages")
-        filter_file(r"\${PYTHON_SITE_PACKAGES}", sitepackages, "mapscript/python/CMakeLists.txt")
+        filter_file(r"\${PYTHON_SITE_PACKAGES}", python_platlib, "mapscript/python/CMakeLists.txt")
 
     def cmake_args(self):
         args = []

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,10 @@ class Elmerfem(CMakePackage):
     version("devel", branch="devel")
     version("9.0", sha256="08c5bf261e87ff37456c1aa0372db3c83efabe4473ea3ea0b8ec66f5944d1aa0")
     version("8.4", sha256="cc3ce807d76798361592cc14952cdc3db1ad8f9bac038017514033ce9badc5b3")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("gui", default=False, description="Enable GUI support.")
     variant("mpi", default=True, description="Enable MPI support.")
@@ -53,7 +57,7 @@ class Elmerfem(CMakePackage):
 
         args = ["-DWITH_ElmerIce=ON", "-DWITH_CONTRIB=ON"]
 
-        if "+gui" in spec:
+        if spec.satisfies("+gui"):
             args.append("-DWITH_ELMERGUI:BOOL=TRUE")
             args.append("-DWITH_QT5:BOOL=TRUE")
             args.append("-DWITH_QWT:BOOL=TRUE")
@@ -61,7 +65,7 @@ class Elmerfem(CMakePackage):
         else:
             args.append("-DWITH_ELMERGUI:BOOL=FALSE")
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             args.append("-DWITH_MPI=ON")
         else:
             args.append("-DWITH_MPI=OFF")
@@ -69,40 +73,40 @@ class Elmerfem(CMakePackage):
         if self.spec.satisfies("^intel-mkl"):
             args.append("-DWITH_MKL:BOOL=TRUE")
 
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             args.append("-DWITH_OpenMP=ON")
         else:
             args.append("-DWITH_OpenMP=OFF")
 
-        if "+mumps" in spec:
+        if spec.satisfies("+mumps"):
             args.append("-DWITH_Mumps=ON")
         else:
             args.append("-DWITH_Mumps=OFF")
 
-        if "+hypre" in spec:
+        if spec.satisfies("+hypre"):
             args.append("-DWITH_Hypre=ON")
         else:
             args.append("-DWITH_Hypre=OFF")
 
-        if "+trilinos" in spec:
+        if spec.satisfies("+trilinos"):
             args.extend(["-DWITH_Trilinos=ON", "-DCMAKE_CXX_STANDARD=11"])
         else:
             args.append("-DWITH_Trilinos=OFF")
 
-        if "+lua" in spec:
+        if spec.satisfies("+lua"):
             args.extend(["-DWITH_LUA=ON", "-DUSE_SYSTEM_LUA=ON"])
-            if "%gcc" in spec:
+            if spec.satisfies("%gcc"):
                 args.append("-DCMAKE_Fortran_FLAGS=-ffree-line-length-none")
 
         else:
             args.append("-DWITH_LUA=OFF")
 
-        if "+zoltan" in spec:
+        if spec.satisfies("+zoltan"):
             args.extend(["-DWITH_Zoltan=ON", "-DUSE_SYSTEM_ZOLTAN=ON"])
         else:
             args.append("-DWITH_Zoltan=OFF")
 
-        if "+scatt2d" in spec:
+        if spec.satisfies("+scatt2d"):
             args.extend(
                 [
                     "-DWITH_ScatteredDataInterpolator=ON",
@@ -128,5 +132,5 @@ class Elmerfem(CMakePackage):
     def setup_run_environment(self, env):
         env.set("ELMER_HOME", self.prefix)
         env.set("ELMER_Fortran_COMPILER", self.compiler.fc)
-        if "+gui" in self.spec:
+        if self.spec.satisfies("+gui"):
             env.set("ELMERGUI_HOME", self.prefix.share.ElmerGUI)

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyModelIndex(PythonPackage):
 
     homepage = "https://github.com/paperswithcode/model-index"
     git = "https://github.com/paperswithcode/model-index.git"
+
+    license("MIT")
 
     version("0.1.11", commit="a39af5f8aaa2a90b8fc7180744a855282360067a")
 

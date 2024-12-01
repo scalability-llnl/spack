@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyQpsolvers(PythonPackage):
     pypi = "qpsolvers/qpsolvers-3.1.0.tar.gz"
 
     maintainers("meyersbs")
+
+    license("LGPL-3.0-only")
 
     version("3.2.0", sha256="770a2b40ff827e251a30df97e9d518fd4859621fc02a323c3b6407cf2fbf4f34")
     version("3.1.0", sha256="f6becafc4667236a67276fa0baee1697c904c37498c5161fa40c605209269b4d")

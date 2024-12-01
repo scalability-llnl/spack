@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,9 @@ class Openwsman(CMakePackage):
     version("2.6.11", sha256="895eaaae62925f9416766ea3e71a5368210e6cfe13b23e4e0422fa0e75c2541c")
     version("2.6.10", sha256="d3c624a03d7bc1835544ce1af56efd010f77cbee0c02b34e0755aa9c9b2c317b")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("python", default=True, description="Enable python")
 
     extends("python", when="+python")
@@ -31,13 +34,9 @@ class Openwsman(CMakePackage):
     def patch(self):
         """Change python install directory."""
         if self.spec.satisfies("+python"):
-            python_spec = self.spec["python"]
-            python_libdir = join_path(
-                self.spec.prefix.lib, "python" + str(python_spec.version.up_to(2)), "site-packages"
-            )
             filter_file(
                 "DESTINATION .*",
-                "DESTINATION {0} )".format(python_libdir),
+                "DESTINATION {0} )".format(python_platlib),
                 join_path("bindings", "python", "CMakeLists.txt"),
             )
 
@@ -55,7 +54,6 @@ class Openwsman(CMakePackage):
                 arg.extend([define("BUILD_PYTHON", False), define("BUILD_PYTHON3", True)])
             else:
                 arg.extend([define("BUILD_PYTHON", True), define("BUILD_PYTHON3", False)])
-            arg.append(define("PYTHON_EXECUTABLE", spec["python"].command.path))
         else:
             arg.extend([define("BUILD_PYTHON", False), define("BUILD_PYTHON3", False)])
         return arg

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,8 @@ class Miniaero(MakefilePackage):
     tags = ["proxy-app"]
 
     version("2016-11-11", commit="f46d135479a5be19ec5d146ccaf0e581aeff4596")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("kokkos-legacy")
 

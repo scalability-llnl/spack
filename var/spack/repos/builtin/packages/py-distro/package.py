@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyDistro(PythonPackage):
 
     homepage = "https://github.com/nir0s/distro"
     pypi = "distro/distro-1.5.0.tar.gz"
+
+    license("Apache-2.0")
 
     version("1.8.0", sha256="02e111d1dc6a50abb8eed6bf31c3e48ed8b0830d1ea2a1b78c61765c2513fdd8")
     version("1.7.0", sha256="151aeccf60c216402932b52e40ee477a939f8d58898927378a02abbe852c1c39")

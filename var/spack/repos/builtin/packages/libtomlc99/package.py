@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class Libtomlc99(Package):
 
     homepage = "https://github.com/cktan/tomlc99"
     git = "https://github.com/cktan/tomlc99.git"
+
+    license("MIT")
 
     # Since there is no official versioning, yet, just use the date and prefix
     # with '0.' to make switching to proper versioning easier later.
@@ -25,6 +27,8 @@ class Libtomlc99(Package):
     )
     # Does not build shared libraries.
     version("0.2019.03.06", commit="bd76f1276ee5f5df0eb064f1842af5ad1737cf1e")
+
+    depends_on("c", type="build")  # generated
 
     variant("debug", default=False, description="Build with debug enabled.")
 

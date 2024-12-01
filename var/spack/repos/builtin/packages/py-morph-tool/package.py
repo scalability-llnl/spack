@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyMorphTool(PythonPackage):
     homepage = "https://github.com/BlueBrain/morph-tool"
     git = "https://github.com/BlueBrain/morph-tool.git"
     pypi = "morph-tool/morph-tool-2.9.1.tar.gz"
+
+    license("LGPL-3.0-or-later")
 
     version("master", branch="master")
     version("2.9.1", sha256="305e9456c8047726588b23dfa070eb95ccbe5573e9fea3e0a83dc93eacdf61dc")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -9,38 +9,43 @@ import os.path
 import pytest
 
 import spack.binary_distribution as bd
-import spack.main
+import spack.mirror
 import spack.spec
-import spack.util.url
-
-install = spack.main.SpackCommand("install")
+from spack.installer import PackageInstaller
 
 pytestmark = pytest.mark.not_on_windows("does not run on windows")
 
 
-def test_build_tarball_overwrite(install_mockery, mock_fetch, monkeypatch, tmpdir):
-    with tmpdir.as_cwd():
-        spec = spack.spec.Spec("trivial-install-test-package").concretized()
-        install(str(spec))
+def test_build_tarball_overwrite(install_mockery, mock_fetch, monkeypatch, tmp_path):
+    spec = spack.spec.Spec("trivial-install-test-package").concretized()
+    PackageInstaller([spec.package], fake=True).install()
 
-        # Runs fine the first time, throws the second time
-        out_url = spack.util.url.path_to_file_url(str(tmpdir))
-        bd.push_or_raise(spec, out_url, bd.PushOptions(unsigned=True))
-        with pytest.raises(bd.NoOverwriteException):
-            bd.push_or_raise(spec, out_url, bd.PushOptions(unsigned=True))
+    specs = [spec]
 
-        # Should work fine with force=True
-        bd.push_or_raise(spec, out_url, bd.PushOptions(force=True, unsigned=True))
+    # populate cache, everything is new
+    mirror = spack.mirror.Mirror.from_local_path(str(tmp_path))
+    with bd.make_uploader(mirror) as uploader:
+        skipped = uploader.push_or_raise(specs)
+        assert not skipped
 
-        # Remove the tarball and try again.
-        # This must *also* throw, because of the existing .spec.json file
-        os.remove(
-            os.path.join(
-                bd.build_cache_prefix("."),
-                bd.tarball_directory_name(spec),
-                bd.tarball_name(spec, ".spack"),
-            )
-        )
+    # should skip all
+    with bd.make_uploader(mirror) as uploader:
+        skipped = uploader.push_or_raise(specs)
+        assert skipped == specs
 
-        with pytest.raises(bd.NoOverwriteException):
-            bd.push_or_raise(spec, out_url, bd.PushOptions(unsigned=True))
+    # with force=True none should be skipped
+    with bd.make_uploader(mirror, force=True) as uploader:
+        skipped = uploader.push_or_raise(specs)
+        assert not skipped
+
+    # Remove the tarball, which should cause push to push.
+    os.remove(
+        tmp_path
+        / bd.BUILD_CACHE_RELATIVE_PATH
+        / bd.tarball_directory_name(spec)
+        / bd.tarball_name(spec, ".spack")
+    )
+
+    with bd.make_uploader(mirror) as uploader:
+        skipped = uploader.push_or_raise(specs)
+        assert not skipped

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -23,6 +23,8 @@ class RMscoreutils(RPackage):
     version("1.10.0", commit="742c0c7143b1c32f75cc96b555e9f8cd265096c9")
     version("1.8.0", commit="8b7e2c31009276aad0b418ba5cdfc94d03e1973e")
     version("1.6.0", commit="9ed95b2d20dacaa83567fadd04349c81db9127ef")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r@3.6.0:", type=("build", "run"))
     depends_on("r-s4vectors", type=("build", "run"))

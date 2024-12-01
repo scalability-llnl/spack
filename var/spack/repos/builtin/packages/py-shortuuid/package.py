@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyShortuuid(PythonPackage):
 
     homepage = "https://github.com/skorokithakis/shortuuid"
     url = "https://github.com/skorokithakis/shortuuid/archive/v1.0.0.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("1.0.11", sha256="6ba28eece88d23389684585d73f3d883be3a76d6ab0c5d18ef34e5de2d500d0f")
     version("1.0.1", sha256="1253bdddf0d866e0bd8ea70989702772e09a78d5072b0490dfb6b3489750c157")

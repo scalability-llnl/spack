@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,6 +22,10 @@ class Crmc(CMakePackage):
     version("1.6.0", sha256="ae2ba5aa2a483d20aa60bef35080f555b365715d1a8fae54b473c275813345c1")
     version("1.5.7", sha256="ec7456c08b60a40665e9ff31d6029e0151b0cdf2ca98bd09a8b570b1e33f6053")
     version("1.5.6", sha256="a546a9352dcbdb8a1df3d63530eacf16f8b64a190e224b72afd434f78388a8a0")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("hepmc")
     depends_on("boost+filesystem+iostreams+system+program_options")

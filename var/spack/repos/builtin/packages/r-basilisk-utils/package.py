@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,8 @@ class RBasiliskUtils(RPackage):
     directly; they should be using the basilisk package instead."""
 
     bioc = "basilisk.utils"
+
+    license("GPL-3.0-only")
 
     version("1.12.0", commit="8314f9a72ecc0f20b180431aec93647320de8c2c")
 

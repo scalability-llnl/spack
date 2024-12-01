@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,7 +12,12 @@ class PyPeachpy(PythonPackage):
     homepage = "https://github.com/Maratyszcza/PeachPy"
     git = "https://github.com/Maratyszcza/PeachPy.git"
 
+    license("BSD-2-Clause")
+
     version("master", branch="master")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("py-setuptools", type="build")
     depends_on("py-opcodes@0.3.13:", type="build")

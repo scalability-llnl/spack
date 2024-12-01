@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyPyisemail(PythonPackage):
     pypi = "pyisemail/pyisemail-2.0.1.tar.gz"
 
     maintainers("meyersbs")
+
+    license("MIT")
 
     version("2.0.1", sha256="daf4b3fb2150a38f406b0aaba729e19fcd638a6d1c0549c25ff54c7b804618f8")
 

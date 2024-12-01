@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -29,6 +29,8 @@ class RGosemsim(RPackage):
     version("2.6.2", commit="2ffe78e89276e804306554965fc0799318ec56ed")
     version("2.4.1", commit="0656e845860d14e054670ffc246a1c53f699299c")
     version("2.2.0", commit="247434790e6c8cf99e5643f569390362b8c87c52")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r@3.3.2:", type=("build", "run"))
     depends_on("r@3.4.0:", type=("build", "run"), when="@2.8.0:")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,7 +13,10 @@ class Tkrzw(AutotoolsPackage):
     url = "https://dbmx.net/tkrzw/pkg/tkrzw-0.9.22.tar.gz"
     git = "https://github.com/estraier/tkrzw.git"
 
+    license("Apache-2.0")
+
     version("master", branch="master")
+    version("1.0.29", sha256="abaabd6fc89a19ed8a202ac3711bc3b0763d928bc3a8eeeea73a3679f7e7f790")
     version("0.9.44", sha256="088ac619fbf7fc22c110674b3f8fe8d8573a1d7088e5616b268fd9f68ba25650")
     version("0.9.43", sha256="60f7b579edb4f911ecaf35ff6c07f53b3d566424d8bf179b1991ade5071f0bbc")
     version("0.9.42", sha256="135fb404d5a1b0bcee717f8e648a6f5ff140ec30069fecfde3b380f611356535")
@@ -58,6 +61,9 @@ class Tkrzw(AutotoolsPackage):
     version("0.9.3", sha256="945b978402425de6f4cb156544ddf34d928b28100ff93d931816eec3b51be9aa")
     version("0.9.2", sha256="9040af148ab3f35c6f1d4c83f2eba8b68625dbd760f2c0537a9981dbc9bbc661")
     version("0.9.1", sha256="1062502f93d4a9b387372d89265a9ede1704c6bcadd9aac23f5fc8383e26045a")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "compression",

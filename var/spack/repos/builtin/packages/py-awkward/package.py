@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,7 +15,10 @@ class PyAwkward(PythonPackage):
 
     maintainers("vvolkl")
 
+    license("BSD-3-Clause")
+
     version("main", branch="main")
+    version("2.6.6", sha256="6eeb426ca41b51fe3c36fbe767b90259979b08c14e3562497a71195a447c8b3c")
     version("2.1.1", sha256="fda8e1634161b8b46b151c074ff0fc631fc0feaec2ec277c4b40a2095110b0dd")
     version("2.1.0", sha256="73f7a76a1fb43e2557befee54b1381f3e6d90636983cdc54da1c2bcb9ad4c1a8")
     version("2.0.10", sha256="8dae67afe50f5cf1677b4062f9b29dc7e6893420d0af5a0649364b117a3502af")
@@ -64,7 +67,8 @@ class PyAwkward(PythonPackage):
         ("@2.0.8", "@9"),
         ("@2.0.9", "@10"),
         ("@2.0.10", "@11"),
-        ("@2.1.0:", "@12"),
+        ("@2.1.0:2.1.1", "@12"),
+        ("@2.6.6:", "@35"),
     ]
     for _awkward, _awkward_cpp in _awkward_to_awkward_cpp_map:
         depends_on("py-awkward-cpp{}".format(_awkward_cpp), when=_awkward, type=("build", "run"))
@@ -72,9 +76,11 @@ class PyAwkward(PythonPackage):
     depends_on("python@2.7:2.8,3.5:", type=("build", "run"))
     depends_on("python@3.6:", when="@1.9:", type=("build", "run"))
     depends_on("python@3.7:", when="@1.10:", type=("build", "run"))
+    depends_on("python@3.8:", when="@2.3:", type=("build", "run"))
     depends_on("py-numpy@1.13.1:", when="@:1", type=("build", "run"))
     depends_on("py-numpy@1.14.5:", when="@2.0", type=("build", "run"))
     depends_on("py-numpy@1.17.0:", when="@2.1:", type=("build", "run"))
+    depends_on("py-numpy@1.18.0:", when="@2.3:", type=("build", "run"))
     depends_on("py-pybind11", type=("build", "link"))
     depends_on("py-importlib-resources", when="@2: ^python@:3.8", type=("build", "run"))
     depends_on("py-typing-extensions@4.1:", when="@2: ^python@:3.10", type=("build", "run"))

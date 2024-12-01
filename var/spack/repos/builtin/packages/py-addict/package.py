@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyAddict(PythonPackage):
 
     homepage = "https://github.com/mewwts/addict"
     url = "https://github.com/mewwts/addict/archive/v2.2.1.tar.gz"
+
+    license("MIT")
 
     version("2.2.1", sha256="398bba9e7fa25e2ce144c5c4b8ec6208e89b9445869403dfa88ab66ec110fa12")
 

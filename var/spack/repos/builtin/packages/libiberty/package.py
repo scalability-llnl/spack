@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,8 @@ class Libiberty(AutotoolsPackage, GNUMirrorPackage):
     gnu_mirror_path = "binutils/binutils-2.31.1.tar.xz"
     maintainers("mwkrentel")
 
+    license("LGPL-2.0-or-later")
+
     version("2.41", sha256="ae9a5789e23459e59606e6714723f2d3ffc31c03174191ef0d015bdf06007450")
     version("2.40", sha256="0f8a4c272d7f17f369ded10a4aca28b8e304828e95526da482b0ccc4dfc9d8e1")
     version("2.37", sha256="820d9724f020a3e69cb337893a0b63c2db161dadcb0e06fc11dc29eb1e84a32c")
@@ -34,6 +36,9 @@ class Libiberty(AutotoolsPackage, GNUMirrorPackage):
     version("2.30", sha256="6e46b8aeae2f727a36f0bd9505e405768a72218f1796f0d09757d45209871ae6")
     version("2.29.1", sha256="e7010a46969f9d3e53b650a518663f98a5dde3c3ae21b7d71e5e6803bc36b577")
     version("2.28.1", sha256="16328a906e55a3c633854beec8e9e255a639b366436470b4f6245eb0d2fde942")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("pic", default=False, description="Compile with position independent code.")
 
@@ -55,7 +60,7 @@ class Libiberty(AutotoolsPackage, GNUMirrorPackage):
         else:
             flags.append("-O2")
 
-        if "+pic" in self.spec:
+        if self.spec.satisfies("+pic"):
             flags.append(self.compiler.cc_pic_flag)
 
         return (None, None, flags)

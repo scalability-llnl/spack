@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,11 +10,12 @@ import pytest
 
 from llnl.util.filesystem import copy_tree
 
-import spack.cmd.install
+import spack.cmd.common.arguments
+import spack.cmd.test
 import spack.config
-import spack.package_base
+import spack.install_test
 import spack.paths
-import spack.store
+import spack.spec
 from spack.install_test import TestStatus
 from spack.main import SpackCommand
 
@@ -25,13 +26,7 @@ pytestmark = pytest.mark.not_on_windows("does not run on windows")
 
 
 def test_test_package_not_installed(
-    tmpdir,
-    mock_packages,
-    mock_archive,
-    mock_fetch,
-    config,
-    install_mockery_mutable_config,
-    mock_test_stage,
+    tmpdir, mock_packages, mock_archive, mock_fetch, install_mockery, mock_test_stage
 ):
     output = spack_test("run", "libdwarf")
 
@@ -54,7 +49,7 @@ def test_test_dirty_flag(arguments, expected):
 
 
 def test_test_dup_alias(
-    mock_test_stage, mock_packages, mock_archive, mock_fetch, install_mockery_mutable_config, capfd
+    mock_test_stage, mock_packages, mock_archive, mock_fetch, install_mockery, capfd
 ):
     """Ensure re-using an alias fails with suggestion to change."""
     install("libdwarf")
@@ -69,9 +64,7 @@ def test_test_dup_alias(
     assert "already exists" in out and "Try another alias" in out
 
 
-def test_test_output(
-    mock_test_stage, mock_packages, mock_archive, mock_fetch, install_mockery_mutable_config
-):
+def test_test_output(mock_test_stage, mock_packages, mock_archive, mock_fetch, install_mockery):
     """Ensure output printed from pkgs is captured by output redirection."""
     install("printing-package")
     spack_test("run", "--alias", "printpkg", "printing-package")
@@ -97,13 +90,7 @@ def test_test_output(
     "pkg_name,failure", [("test-error", "exited with status 1"), ("test-fail", "not callable")]
 )
 def test_test_output_fails(
-    mock_packages,
-    mock_archive,
-    mock_fetch,
-    install_mockery_mutable_config,
-    mock_test_stage,
-    pkg_name,
-    failure,
+    mock_packages, mock_archive, mock_fetch, install_mockery, mock_test_stage, pkg_name, failure
 ):
     """Confirm stand-alone test failure with expected outputs."""
     install(pkg_name)
@@ -117,9 +104,7 @@ def test_test_output_fails(
     assert "See test log for details" in out
 
 
-@pytest.mark.usefixtures(
-    "mock_packages", "mock_archive", "mock_fetch", "install_mockery_mutable_config"
-)
+@pytest.mark.usefixtures("mock_packages", "mock_archive", "mock_fetch", "install_mockery")
 @pytest.mark.parametrize(
     "pkg_name,msgs",
     [
@@ -153,13 +138,7 @@ def test_junit_output_with_failures(tmpdir, mock_test_stage, pkg_name, msgs):
 
 
 def test_cdash_output_test_error(
-    tmpdir,
-    mock_fetch,
-    install_mockery_mutable_config,
-    mock_packages,
-    mock_archive,
-    mock_test_stage,
-    capfd,
+    tmpdir, mock_fetch, install_mockery, mock_packages, mock_archive, mock_test_stage, capfd
 ):
     """Confirm stand-alone test error expected outputs in CDash reporting."""
     install("test-error")
@@ -179,12 +158,7 @@ def test_cdash_output_test_error(
 
 
 def test_cdash_upload_clean_test(
-    tmpdir,
-    mock_fetch,
-    install_mockery_mutable_config,
-    mock_packages,
-    mock_archive,
-    mock_test_stage,
+    tmpdir, mock_fetch, install_mockery, mock_packages, mock_archive, mock_test_stage
 ):
     install("printing-package")
     with tmpdir.as_cwd():
@@ -220,7 +194,11 @@ def test_test_list_all(mock_packages):
     assert set(pkgs) == set(
         [
             "fail-test-audit",
+            "fail-test-audit-deprecated",
+            "fail-test-audit-docstring",
+            "fail-test-audit-impl",
             "mpich",
+            "perl-extension",
             "printing-package",
             "py-extension1",
             "py-extension2",
@@ -232,7 +210,7 @@ def test_test_list_all(mock_packages):
     )
 
 
-def test_test_list(mock_packages, mock_archive, mock_fetch, install_mockery_mutable_config):
+def test_test_list(mock_packages, mock_archive, mock_fetch, install_mockery):
     pkg_with_tests = "printing-package"
     install(pkg_with_tests)
     output = spack_test("list")
@@ -298,7 +276,7 @@ def test_test_results_status(mock_packages, mock_test_stage, status):
 
 
 @pytest.mark.regression("35337")
-def test_report_filename_for_cdash(install_mockery_mutable_config, mock_fetch):
+def test_report_filename_for_cdash(install_mockery, mock_fetch):
     """Test that the temporary file used to write Testing.xml for CDash is not the upload URL"""
     name = "trivial"
     spec = spack.spec.Spec("trivial-smoke-test").concretized()
@@ -321,7 +299,7 @@ def test_report_filename_for_cdash(install_mockery_mutable_config, mock_fetch):
 
 
 def test_test_output_multiple_specs(
-    mock_test_stage, mock_packages, mock_archive, mock_fetch, install_mockery_mutable_config
+    mock_test_stage, mock_packages, mock_archive, mock_fetch, install_mockery
 ):
     """Ensure proper reporting for suite with skipped, failing, and passed tests."""
     install("test-error", "simple-standalone-test@0.9", "simple-standalone-test@1.0")

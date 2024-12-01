@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,11 +15,18 @@ class Keepassxc(CMakePackage):
 
     maintainers("cessenat")
 
+    license("GPL-2.0-only OR GPL-3.0-only")
+
     version("master", branch="master")
+    version("2.7.7", sha256="58fc45ae98e4b3ffb052103014f5b97a41fefd17102c7f56073934dd3a82ee67")
+    version("2.7.6", sha256="a58074509fa8e90f152c6247f73e75e126303081f55eedb4ea0cbb6fa980d670")
     version("2.7.1", sha256="6001ba626c35c316dbda6de35736f012a2264f95139fcb4a094b8eb49b15d3e7")
     version("2.7.0", sha256="83be76890904cd6703343fa097d68bcfdd99bb525cf518fa62a7df9293026aa7")
     version("2.6.6", sha256="3603b11ac39b289c47fac77fa150e05fd64b393d8cfdf5732dc3ef106650a4e2")
     version("2.6.4", sha256="e536e2a71c90fcf264eb831fb1a8b518ee1b03829828f862eeea748d3310f82b")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("autotype", default=False, description="enable auto-type")
     variant("docs", default=True, description="Build documentation")
@@ -63,6 +70,7 @@ class Keepassxc(CMakePackage):
             "-DCMAKE_INSTALL_DATADIR=%s" % join_path(spec.prefix, "share"),
         ]
         args.append(self.define_from_variant("WITH_XC_ALL", "autotype"))
+        args.append(self.define_from_variant("WITH_XC_AUTOTYPE", "autotype"))
         args.append(self.define_from_variant("WITH_XC_DOCS", "docs"))
 
         if spec.satisfies("platform=darwin"):

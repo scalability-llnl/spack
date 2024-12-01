@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,7 +10,7 @@ class Utf8cpp(Package):
     """A simple, portable and lightweight generic library for handling UTF-8
     encoded strings."""
 
-    homepage = "http://utfcpp.sourceforge.net/"
+    homepage = "https://utfcpp.sourceforge.net/"
 
     version("2.3.4", sha256="3373cebb25d88c662a2b960c4d585daf9ae7b396031ecd786e7bb31b15d010ef")
 

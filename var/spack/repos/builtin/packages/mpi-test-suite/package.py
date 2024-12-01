@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -24,7 +24,11 @@ class MpiTestSuite(AutotoolsPackage):
 
     maintainers("jcortial-safran")
 
+    license("BSD-3-Clause-Open-MPI")
+
     version("1.1.1", sha256="4cb7bdbdafa0855dab96d996f863b5d364c935e678c057ada3c8869c3666e926")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("automake@1.14:", type="build")

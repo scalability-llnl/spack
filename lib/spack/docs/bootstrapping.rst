@@ -1,4 +1,4 @@
-.. Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
    Spack Project Developers. See the top-level COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -87,7 +87,7 @@ You can check what is installed in the bootstrapping store at any time using:
 
 .. code-block:: console
 
-   % spack find -b
+   % spack -b find
    ==> Showing internal bootstrap store at "/Users/spack/.spack/bootstrap/store"
    ==> 11 installed packages
    -- darwin-catalina-x86_64 / apple-clang@12.0.0 ------------------
@@ -101,7 +101,7 @@ In case it is needed you can remove all the software in the current bootstrappin
    % spack clean -b
    ==> Removing bootstrapped software and configuration in "/Users/spack/.spack/bootstrap"
 
-   % spack find -b
+   % spack -b find
    ==> Showing internal bootstrap store at "/Users/spack/.spack/bootstrap/store"
    ==> 0 installed packages
 

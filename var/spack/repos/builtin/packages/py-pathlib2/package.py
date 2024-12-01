@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,6 +10,8 @@ class PyPathlib2(PythonPackage):
     """Backport of pathlib from python 3.4"""
 
     pypi = "pathlib2/pathlib2-2.3.2.tar.gz"
+
+    license("MIT")
 
     version(
         "2.3.7.post1", sha256="9fe0edad898b83c0c3e199c842b27ed216645d2e177757b2dd67384d4113c641"

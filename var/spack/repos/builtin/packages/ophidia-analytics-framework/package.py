@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,8 @@ class OphidiaAnalyticsFramework(AutotoolsPackage):
         sha256="565050b90ce1cefc59136c835a335ca7981fec792df7a1ee9309b24c05b275d6",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

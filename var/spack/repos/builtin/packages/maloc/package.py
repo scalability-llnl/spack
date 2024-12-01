@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,6 +22,9 @@ class Maloc(AutotoolsPackage):
     version("1.2", sha256="e6033195a054bad7527d360e52349a4d1eb876c681a58fa373f42fd1ab26962c")
     version("1.1", sha256="b5dd7923e84f13e7ed43304ed1062de24171c5a7a042a12b0d1e501d6eaedf58")
     version("1.0", sha256="23f3ea3215067fd8f1ba4c407375f387b5f1d11258f29508295e651828d32cb7")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("doc", default=False, description="Build documentation.")
 

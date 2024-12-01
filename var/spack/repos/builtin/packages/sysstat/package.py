@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,8 +15,20 @@ class Sysstat(AutotoolsPackage):
     homepage = "https://github.com/sysstat"
     url = "https://github.com/sysstat/sysstat/archive/v12.1.6.tar.gz"
 
-    version("12.4.5", sha256="4e35abdd9eaf766ecdab55786f459093f3e1c350db23e57a15561afda417ff0d")
-    version("12.2.0", sha256="614ab9fe8e7937a3edb7b2b6760792a3764ea3a7310ac540292dd0e3dfac86a6")
+    license("GPL-2.0-or-later")
+
+    version("12.7.6", sha256="dc77a08871f8e8813448ea31048833d4acbab7276dd9a456cd2526c008bd5301")
+    with default_args(deprecated=True):
+        # https://nvd.nist.gov/vuln/detail/CVE-2023-33204
+        # https://nvd.nist.gov/vuln/detail/CVE-2022-39377
+        version(
+            "12.4.5", sha256="4e35abdd9eaf766ecdab55786f459093f3e1c350db23e57a15561afda417ff0d"
+        )
+        version(
+            "12.2.0", sha256="614ab9fe8e7937a3edb7b2b6760792a3764ea3a7310ac540292dd0e3dfac86a6"
+        )
+
+    depends_on("c", type="build")  # generated
 
     depends_on("pkgconfig", type="build")
     depends_on("gettext")

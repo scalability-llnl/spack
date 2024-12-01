@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class RYapsa(RPackage):
     catalogue) are provided."""
 
     bioc = "YAPSA"
+
+    license("GPL-3.0-or-later")
 
     version("1.26.0", commit="eab6bbd7a44e1368c7827e4717439de445303868")
     version("1.24.0", commit="68d1c9c71af3ade4a44237ec2d3003688378f898")

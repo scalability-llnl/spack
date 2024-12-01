@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -8,7 +8,6 @@ import os
 import pytest
 
 import spack.build_environment
-import spack.repo
 import spack.spec
 from spack.package import build_system_flags, env_flags, inject_flags
 

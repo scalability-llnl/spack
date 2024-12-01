@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyNumpydoc(PythonPackage):
 
     homepage = "https://github.com/numpy/numpydoc"
     pypi = "numpydoc/numpydoc-0.6.0.tar.gz"
+
+    license("BSD-2-Clause")
 
     version("1.5.0", sha256="b0db7b75a32367a0e25c23b397842c65e344a1206524d16c8069f0a1c91b5f4c")
     version("1.1.0", sha256="c36fd6cb7ffdc9b4e165a43f67bf6271a7b024d0bb6b00ac468c9e2bfc76448e")

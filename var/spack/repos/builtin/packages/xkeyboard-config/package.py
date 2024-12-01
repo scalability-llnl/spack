@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class XkeyboardConfig(AutotoolsPackage, XorgPackage):
     homepage = "https://www.freedesktop.org/wiki/Software/XKeyboardConfig/"
     xorg_mirror_path = "data/xkeyboard-config/xkeyboard-config-2.18.tar.gz"
 
+    license("MIT")
+
     version("2.34", sha256="a5882238b4199ca90428aea102790aaa847e6e214653d956bf2abba3027107ba")
     version("2.18", sha256="d5c511319a3bd89dc40622a33b51ba41a2c2caad33ee2bfe502363fcc4c3817d")
 
@@ -22,7 +24,7 @@ class XkeyboardConfig(AutotoolsPackage, XorgPackage):
     depends_on("libxslt", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("intltool@0.30:", type="build")
-    depends_on("xproto@7.0.20:")
+    depends_on("xproto@7.0.20:", type="build")
 
     # TODO: missing dependencies
     # xgettext

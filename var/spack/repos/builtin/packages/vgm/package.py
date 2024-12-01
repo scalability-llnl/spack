@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,8 @@ class Vgm(CMakePackage):
 
     maintainer = ["wdconinc"]
 
+    license("GPL-3.0-or-later")
+
     version("master", branch="master")
     version("5-0", sha256="ab929df1aa9b0cda40451f5a98982c3328901865b33e30207ee9b9fe14331344")
     version("4-8", sha256="4fcd607b4f100fc00a65fec7a5803575daf9d4919d1808bbd6a30be263c001dd")
@@ -30,6 +32,8 @@ class Vgm(CMakePackage):
     version("4-01", sha256="43020f6497f18086c50e263555c2a21c6cfbba3044b1330c6f400357f040bbb1")
     version("4-00", sha256="c24de76f919dca7c92b3c9fce7a39142c6e61fd39f691d2e4df15fe413b5190d")
     version("3-06", sha256="41948869f2e4dcfa31f4bad42b938c25dd174660c427feb2f9effa9af5e59c7d")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3.8:", type="build")
     depends_on("clhep")

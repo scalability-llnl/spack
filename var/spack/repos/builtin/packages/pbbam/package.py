@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,6 +22,8 @@ class Pbbam(MesonPackage):
         url="https://github.com/PacificBiosciences/pbbam/archive/refs/tags/v2.1.0.tar.gz",
     )
     version("0.18.0", sha256="45286e5f7deb7ff629e0643c8a416155915aec7b85d54c60b5cdc07f4d7b234a")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("zlib-api")
     depends_on("boost@1.55.0:")

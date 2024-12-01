@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class RTwosamplemr(RPackage):
 
     homepage = "https://mrcieu.github.io/TwoSampleMR/"
     url = "https://github.com/MRCIEU/TwoSampleMR/archive/refs/tags/v0.5.6.tar.gz"
+
+    license("MIT")
 
     version("0.5.6", sha256="c63eb008ab7ed08a6f30ccbf0c299beb31b2f5835e5e2aa1b59c5e4fe284a30c")
 

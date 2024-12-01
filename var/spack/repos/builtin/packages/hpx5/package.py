@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -28,6 +28,9 @@ class Hpx5(AutotoolsPackage):
     version("2.2.0", sha256="e34c7513a287d517e67cce5aa3011474c48718e7860c3860ba1290c702be28a8")
     version("2.1.0", sha256="675826f669eeb3eab40947715af8c8495e2b3d299223372431dc01c1f7d5d616")
     version("2.0.0", sha256="0278728557b6684aeb86228f44d548ac809302f05a0b9c8b433cdd157629e384")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     # Don't second-guess what compiler we are using on Cray
     patch("configure.patch", when="@4.0.0")
@@ -81,24 +84,24 @@ class Hpx5(AutotoolsPackage):
             # '--with-papi=papi',   # currently disabled in HPX
         ]
 
-        if "+cxx11" in spec:
+        if spec.satisfies("+cxx11"):
             args += ["--enable-hpx++"]
 
-        if "+debug" in spec:
+        if spec.satisfies("+debug"):
             args += ["--enable-debug"]
 
-        if "+instrumentation" in spec:
+        if spec.satisfies("+instrumentation"):
             args += ["--enable-instrumentation"]
 
-        if "+mpi" in spec or "+photon" in spec:
+        if spec.satisfies("+mpi") or spec.satisfies("+photon"):
             # photon requires mpi
             args += ["--enable-mpi"]
             # Choose pkg-config name for MPI library
-            if "^openmpi" in spec:
+            if spec.satisfies("^openmpi"):
                 args += ["--with-mpi=ompi-cxx"]
-            elif "^mpich" in spec:
+            elif spec.satisfies("^mpich"):
                 args += ["--with-mpi=mpich"]
-            elif "^mvapich2" in spec:
+            elif spec.satisfies("^mvapich2"):
                 args += ["--with-mpi=mvapich2-cxx"]
             else:
                 args += ["--with-mpi=system"]
@@ -107,17 +110,17 @@ class Hpx5(AutotoolsPackage):
         # if '+metis' in spec:
         #     args += ['--with-metis=???']
 
-        if "+opencl" in spec:
+        if spec.satisfies("+opencl"):
             args += ["--enable-opencl"]
-            if "^pocl" in spec:
+            if spec.satisfies("^pocl"):
                 args += ["--with-opencl=pocl"]
             else:
                 args += ["--with-opencl=system"]
 
-        if "+photon" in spec:
+        if spec.satisfies("+photon"):
             args += ["--enable-photon"]
 
-        if "+pic" in spec:
+        if spec.satisfies("+pic"):
             args += ["--with-pic"]
 
         return args

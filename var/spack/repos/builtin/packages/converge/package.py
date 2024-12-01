@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -69,21 +69,13 @@ class Converge(Package):
 
     depends_on("mpi", when="+mpi")
 
-    # FIXME: Concretization is currently broken, so this causes:
-    #     $ spack spec converge
-    # to crash. You must explicitly state what MPI version you want:
-    #     $ spack spec converge@2.4.10 +mpi ^openmpi@:1.10
-    #
     # TODO: Add version ranges for other MPI libraries
-    depends_on("openmpi@1.10.0:1.10", when="@2.4.0:2.4+mpi^openmpi")
-    depends_on("openmpi@1.5:1.8", when="@2.2:2.3+mpi^openmpi")
-    depends_on("openmpi@:1.4", when="@:2.1+mpi^openmpi")
+    depends_on("openmpi@1.10.0:1.10", when="@2.4.0:2.4+mpi^[virtuals=mpi] openmpi")
+    depends_on("openmpi@1.5:1.8", when="@2.2:2.3+mpi^[virtuals=mpi] openmpi")
+    depends_on("openmpi@:1.4", when="@:2.1+mpi^[virtuals=mpi] openmpi")
 
-    # TODO: Add packages for hp-mpi and platform-mpi
-    # conflicts('^hp-mpi', when='@2.4:')
     conflicts("^intel-mpi", when="@:2.3")
     conflicts("^intel-parallel-studio+mpi", when="@:2.3")
-    # conflicts('^platform-mpi', when='@:2.1')
     conflicts("^spectrum-mpi")
 
     # Licensing
@@ -154,29 +146,29 @@ class Converge(Package):
         # The CONVERGE tarball comes with binaries for several MPI libraries.
         # Only install the binary that matches the MPI we are building with.
         with working_dir("l_x86_64/bin"):
-            if "~mpi" in spec:
+            if spec.satisfies("~mpi"):
                 converge = glob.glob("converge-*-serial*")
                 post_convert = glob.glob("post_convert_serial*")
-            elif "hp-mpi" in spec:
+            elif spec.satisfies("^hp-mpi"):
                 converge = glob.glob("converge-*-hpmpi*")
                 # No HP-MPI version of post_convert
                 post_convert = glob.glob("post_convert_serial*")
-            elif "intel-mpi" in spec or "intel-parallel-studio+mpi" in spec:
+            elif spec.satisfies("intel-mpi") or spec.satisfies("intel-parallel-studio+mpi"):
                 converge = glob.glob("converge-*-intel*")
                 # No Intel MPI version of post_convert
                 post_convert = glob.glob("post_convert_serial*")
-            elif "mpich" in spec:
+            elif spec.satisfies("^mpich"):
                 converge = glob.glob("converge-*-mpich*")
                 post_convert = glob.glob("post_convert_mpich*")
-            elif "mvapich2" in spec:
+            elif spec.satisfies("^mvapich2"):
                 converge = glob.glob("converge-*-mvapich*")
                 # MVAPICH2 hasn't been supported since CONVERGE
                 # came with a single serial post_convert
                 post_convert = glob.glob("post_convert")
-            elif "openmpi" in spec:
+            elif spec.satisfies("^openmpi"):
                 converge = glob.glob("converge-*-o*mpi*")
                 post_convert = glob.glob("post_convert_o*mpi*")
-            elif "platform-mpi" in spec:
+            elif spec.satisfies("^platform-mpi"):
                 converge = glob.glob("converge-*-pmpi*")
                 post_convert = glob.glob("post_convert_pmpi*")
             else:

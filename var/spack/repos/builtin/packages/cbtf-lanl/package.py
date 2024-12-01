@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,8 @@ class CbtfLanl(CMakePackage):
     version("1.9.4.1", branch="1.9.4.1")
     version("1.9.4", branch="1.9.4")
     version("1.9.3", branch="1.9.3")
+
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "build_type",

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,7 +12,11 @@ class Cdbfasta(MakefilePackage):
     homepage = "https://github.com/gpertea/cdbfasta"
     git = "https://github.com/gpertea/cdbfasta.git"
 
+    license("Artistic-2.0")
+
     version("2017-03-16", commit="b3e481fe02dfbc767a3842bcb1b687c60376a5e8")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("zlib-api")
 

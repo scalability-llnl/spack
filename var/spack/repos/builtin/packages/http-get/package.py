@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,8 @@ class HttpGet(MakefilePackage):
     version(
         "2018-05-23", sha256="f04e9d911fbc0cdb7c4ebe91dae1cc951ea14b657f48309c3952dcc938bb2e0d"
     )
+
+    depends_on("c", type="build")  # generated
 
     def url_for_version(self, version):
         ver = datetime.datetime.strptime(str(version), "%Y-%m-%d").date()

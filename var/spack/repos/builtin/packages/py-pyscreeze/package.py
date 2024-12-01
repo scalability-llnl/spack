@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyPyscreeze(PythonPackage):
 
     homepage = "https://github.com/asweigart/pyscreeze"
     pypi = "PyScreeze/PyScreeze-0.1.27.tar.gz"
+
+    license("MIT")
 
     version("0.1.27", sha256="cba2f264fe4b6c70510061cb2ba6e1da0e3bfecfdbe8a3b2cd6305a2afda9e6b")
 

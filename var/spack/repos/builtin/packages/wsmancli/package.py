@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,9 @@ class Wsmancli(AutotoolsPackage):
     version("2.6.0", sha256="766fef60d4c627d8b6129b3c9ae97d8676442bc6110b3a723610c54894365e0d")
     version("2.5.0", sha256="9e60e9b21d14328feadceeaf0c3c233d7ee701e7814010ede23367a9bd5efb33")
     version("2.3.2", sha256="b5ffd4c4cdbcde7cf8cf84be3a3c1b92d84ffb8b492e6008a83e090c760d6c2d")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

@@ -1,4 +1,4 @@
-# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class JediCmake(CMakePackage):
     git = "https://github.com/JCSDA/jedi-cmake.git"
 
     maintainers("climbfuji")
+
+    license("Apache-2.0")
 
     version("master", branch="master", no_cache=True)
     version("develop", branch="develop", no_cache=True)

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class Bulker(PythonPackage):
 
     homepage = "https://bulker.databio.org/"
     pypi = "bulker/bulker-0.7.3.tar.gz"
+
+    license("BSD-2-Clause")
 
     version("0.7.3", sha256="a7a3a97184d50d2247dc3b116f31f90c27435d9872c6845152ff46f5c4e39d50")
 

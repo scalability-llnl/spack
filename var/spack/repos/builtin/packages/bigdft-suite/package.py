@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,13 +15,16 @@ class BigdftSuite(BundlePackage):
     git = "https://gitlab.com/l_sim/bigdft-suite.git"
 
     version("develop", branch="devel")
+    version("1.9.5")
+    version("1.9.4")
+    # version("1.9.3") # bigdft-core broken
     version("1.9.2")
     version("1.9.1")
     version("1.9.0")
 
     depends_on("python@3.0:", type=("run"))
 
-    for vers in ["1.9.0", "1.9.1", "1.9.2", "develop"]:
+    for vers in ["1.9.0", "1.9.1", "1.9.2", "1.9.4", "1.9.5", "develop"]:
         depends_on("bigdft-futile@{0}".format(vers), when="@{0}".format(vers))
         depends_on("bigdft-psolver@{0}".format(vers), when="@{0}".format(vers))
         depends_on("bigdft-libabinit@{0}".format(vers), when="@{0}".format(vers))

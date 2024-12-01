@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyDataladMetalad(PythonPackage):
 
     homepage = "https://github.com/datalad/datalad-metalad/"
     pypi = "datalad_metalad/datalad_metalad-0.2.1.tar.gz"
+
+    license("MIT")
 
     version("0.4.17", sha256="8854d5b8bc8387eff27639510f10c3cffe9cd76be018512a5d451be9708242b9")
     version("0.4.5", sha256="db1a0675e3c67fe2d9093e7098b142534f49588dea5ee048ee962422a9927fbf")

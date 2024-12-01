@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -63,9 +63,7 @@ def test_single_file_verify_cmd(tmpdir):
     assert sorted(errors) == sorted(expected)
 
 
-def test_single_spec_verify_cmd(
-    tmpdir, mock_packages, mock_archive, mock_fetch, config, install_mockery
-):
+def test_single_spec_verify_cmd(tmpdir, mock_packages, mock_archive, mock_fetch, install_mockery):
     # Test the verify command interface to verify a single spec
     install("libelf")
     s = spack.spec.Spec("libelf").concretized()

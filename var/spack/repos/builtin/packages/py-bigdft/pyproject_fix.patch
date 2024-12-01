@@ -1,0 +1,9 @@
+--- a/PyBigDFT/pyproject.toml
++++ b/PyBigDFT/pyproject.toml
+@@ -33,3 +33,6 @@ viz = ["py3dmol", "matplotlib"]
+
+ [tool.hatch.build]
+ artifacts = ["*.xyz", "psppar*.yaml", "postprocess.yaml"]
++
++[tool.hatch.build.targets.wheel]
++packages = ["BigDFT"]

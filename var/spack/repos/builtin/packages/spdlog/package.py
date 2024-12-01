@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,10 @@ class Spdlog(CMakePackage):
     homepage = "https://github.com/gabime/spdlog"
     url = "https://github.com/gabime/spdlog/archive/v0.9.0.tar.gz"
 
+    license("MIT")
+
+    version("1.14.1", sha256="1586508029a7d0670dfcb2d97575dcdc242d3868a259742b69f100801ab4e16b")
+    version("1.13.0", sha256="534f2ee1a4dcbeb22249856edfb2be76a1cf4f708a20b0ac2ed090ee24cfdbc9")
     version("1.12.0", sha256="4dccf2d10f410c1e2feaff89966bfc49a1abb29ef6f08246335b110e001e09a9")
     version("1.11.0", sha256="ca5cae8d6cac15dae0ec63b21d6ad3530070650f68076f3a4a862ca293a858bb")
     version("1.10.0", sha256="697f91700237dbae2326b90469be32b876b2b44888302afbc7aceb68bcfe8224")
@@ -46,36 +50,34 @@ class Spdlog(CMakePackage):
     version("0.10.0", sha256="fbbc53c1cc09b93b4c3d76b683bbe9315e2efe3727701227374dce6aa4264075")
     version("0.9.0", sha256="bbbe5a855c8b309621352921d650449eb2f741d35d55ec50fb4d8122ddfb8f01")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=True, description="Build shared libraries (v1.4.0+)")
-    variant(
-        "fmt_external",
-        default=False,
-        description="Build using external fmt libraries instead of bundled one",
-    )
 
     depends_on("cmake@3.2:", when="@:1.7.0", type="build")
     depends_on("cmake@3.10:", when="@1.8.0:", type="build")
+    depends_on("cmake@3.11:", when="@1.13.0:", type="build")
 
-    depends_on("fmt@5.3:", when="+fmt_external")
-    depends_on("fmt@7:", when="@1.7: +fmt_external")
-    depends_on("fmt@8:", when="@1.9: +fmt_external")
-    depends_on("fmt@9:", when="@1.11: +fmt_external")
+    depends_on("fmt@5.3:")
+    depends_on("fmt@7:", when="@1.7:")
+    depends_on("fmt@8:", when="@1.9:")
+    depends_on("fmt@9:", when="@1.11:")
 
     # spdlog@1.11.0 with fmt@10  https://github.com/gabime/spdlog/pull/2694
     patch(
         "https://github.com/gabime/spdlog/commit/0ca574ae168820da0268b3ec7607ca7b33024d05.patch?full_index=1",
         sha256="31b22a9bfa6790fdabff186c0a9b0fd588439485f05cbef5e661231d15fec49b",
-        when="@1.11.0 +fmt_external ^fmt@10:",
+        when="@1.11.0 ^fmt@10:",
     )
 
     def cmake_args(self):
         args = []
 
-        if self.spec.version >= Version("1.4.0"):
+        if self.spec.satisfies("@1.4.0:"):
             args.extend(
                 [
                     self.define_from_variant("SPDLOG_BUILD_SHARED", "shared"),
-                    self.define_from_variant("SPDLOG_FMT_EXTERNAL", "fmt_external"),
+                    self.define("SPDLOG_FMT_EXTERNAL", True),
                     # tests and examples
                     self.define("SPDLOG_BUILD_TESTS", self.run_tests),
                     self.define("SPDLOG_BUILD_EXAMPLE", self.run_tests),

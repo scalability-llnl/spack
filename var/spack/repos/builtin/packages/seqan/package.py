@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,7 +16,11 @@ class Seqan(CMakePackage):
     homepage = "https://www.seqan.de"
     url = "https://github.com/seqan/seqan/archive/seqan-v2.4.0.tar.gz"
 
+    license("BSD-3-Clause")
+
     version("2.4.0", sha256="d7084d17729214003e84818e0280a16f223c8f1c6a30eeef040c27e0c0047bd7")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3.4.0:", type="build")
     depends_on("python@2.7.0:", type="build")

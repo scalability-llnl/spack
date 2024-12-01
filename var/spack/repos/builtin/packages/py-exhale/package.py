@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyExhale(PythonPackage):
     pypi = "exhale/exhale-0.3.6.tar.gz"
 
     maintainers("svenevs")
+
+    license("BSD-3-Clause")
 
     version("0.3.6", sha256="ab41be313e1236bd4386e4696fb35f37ce8103c2059cf8d1f083da5411bb74d7")
 

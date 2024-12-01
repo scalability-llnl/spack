@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,7 @@ padded_lines = [
     "==> [2021-06-23-15:59:05.020387] './configure' '--prefix=/Users/gamblin2/padding-log-test/opt/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_pla/darwin-bigsur-skylake/apple-clang-12.0.5/zlib-1.2.11-74mwnxgn6nujehpyyalhwizwojwn5zga",  # noqa: E501
     "/Users/gamblin2/Workspace/spack/lib/spack/env/clang/clang -dynamiclib -install_name /Users/gamblin2/padding-log-test/opt/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_pla/darwin-bigsur-skylake/apple-clang-12.0.5/zlib-1.2.11-74mwnxgn6nujehpyyalhwizwojwn5zga/lib/libz.1.dylib -compatibility_version 1 -current_version 1.2.11 -fPIC -O2 -fPIC -DHAVE_HIDDEN -o libz.1.2.11.dylib adler32.lo crc32.lo deflate.lo infback.lo inffast.lo inflate.lo inftrees.lo trees.lo zutil.lo compress.lo uncompr.lo gzclose.lo gzlib.lo gzread.lo gzwrite.lo  -lc",  # noqa: E501
     "rm -f /Users/gamblin2/padding-log-test/opt/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_pla/darwin-bigsur-skylake/apple-clang-12.0.5/zlib-1.2.11-74mwnxgn6nujehpyyalhwizwojwn5zga/lib/libz.a",  # noqa: E501
+    "rm -f /Users/gamblin2/padding-log-test/opt/__spack_path_placeholder__/__spack_path_placeholder___/darwin-bigsur-skylake/apple-clang-12.0.5/zlib-1.2.11-74mwnxgn6nujehpyyalhwizwojwn5zga/lib/libz.a",  # noqa: E501
 ]
 
 
@@ -26,6 +27,7 @@ fixed_lines = [
     "==> [2021-06-23-15:59:05.020387] './configure' '--prefix=/Users/gamblin2/padding-log-test/opt/[padded-to-512-chars]/darwin-bigsur-skylake/apple-clang-12.0.5/zlib-1.2.11-74mwnxgn6nujehpyyalhwizwojwn5zga",  # noqa: E501
     "/Users/gamblin2/Workspace/spack/lib/spack/env/clang/clang -dynamiclib -install_name /Users/gamblin2/padding-log-test/opt/[padded-to-512-chars]/darwin-bigsur-skylake/apple-clang-12.0.5/zlib-1.2.11-74mwnxgn6nujehpyyalhwizwojwn5zga/lib/libz.1.dylib -compatibility_version 1 -current_version 1.2.11 -fPIC -O2 -fPIC -DHAVE_HIDDEN -o libz.1.2.11.dylib adler32.lo crc32.lo deflate.lo infback.lo inffast.lo inflate.lo inftrees.lo trees.lo zutil.lo compress.lo uncompr.lo gzclose.lo gzlib.lo gzread.lo gzwrite.lo  -lc",  # noqa: E501
     "rm -f /Users/gamblin2/padding-log-test/opt/[padded-to-512-chars]/darwin-bigsur-skylake/apple-clang-12.0.5/zlib-1.2.11-74mwnxgn6nujehpyyalhwizwojwn5zga/lib/libz.a",  # noqa: E501
+    "rm -f /Users/gamblin2/padding-log-test/opt/[padded-to-91-chars]/darwin-bigsur-skylake/apple-clang-12.0.5/zlib-1.2.11-74mwnxgn6nujehpyyalhwizwojwn5zga/lib/libz.a",  # noqa: E501
 ]
 
 
@@ -106,6 +108,15 @@ class TestPathPadding:
         tty.msg("here is a long path: %s/with/a/suffix" % long_path)
         out, err = capfd.readouterr()
         assert padding_string not in out
+
+    def test_pad_on_path_sep_boundary(self):
+        """Ensure that padded paths do not end with path separator."""
+        pad_length = len(sup.SPACK_PATH_PADDING_CHARS)
+        padded_length = 128
+        remainder = padded_length % (pad_length + 1)
+        path = "a" * (remainder - 1)
+        result = sup.add_padding(path, padded_length)
+        assert 128 == len(result) and not result.endswith(os.path.sep)
 
 
 @pytest.mark.parametrize("debug", [1, 2])

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyAsn1crypto(PythonPackage):
 
     homepage = "https://github.com/wbond/asn1crypto"
     pypi = "asn1crypto/asn1crypto-0.22.0.tar.gz"
+
+    license("MIT")
 
     version("1.5.1", sha256="13ae38502be632115abf8a24cbe5f4da52e3b5231990aff31123c805306ccb9c")
     version("1.4.0", sha256="f4f6e119474e58e04a2b1af817eb585b4fd72bdd89b998624712b5c99be7641c")

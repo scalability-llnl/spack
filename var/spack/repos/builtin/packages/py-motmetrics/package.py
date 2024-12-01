@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyMotmetrics(PythonPackage):
 
     homepage = "https://github.com/cheind/py-motmetrics"
     pypi = "motmetrics/motmetrics-1.2.0.tar.gz"
+
+    license("MIT")
 
     version("1.2.0", sha256="7328d8468c948400b38fcc212f3e448bc1f2fdfc727e170d85a029e49f1cdbc6")
 

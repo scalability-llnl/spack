@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class Gchp(CMakePackage):
     git = "https://github.com/geoschem/GCHP.git"
     maintainers("lizziel", "laestrada")
 
+    license("MIT")
+
     version("13.4.0", commit="d8c6d4d8db1c5b0ba54d4893185d999a619afc58", submodules=True)
     version("13.3.4", commit="efb2346381648ffff04ce441d5d61d7fec0c53fe", submodules=True)
     version("13.2.1", commit="9dc2340cac684971fa961559a4dc3d8818326ab8", submodules=True)
@@ -26,6 +28,10 @@ class Gchp(CMakePackage):
     version("13.0.1", commit="f40a2476fda901eacf78c0972fdb6c20e5a06700", submodules=True)
     version("13.0.0", commit="1f5a5c5630c5d066ff8306cbb8b83e267ca7c265", submodules=True)
     version("dev", branch="dev", submodules=True)
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     patch("for_aarch64.patch", when="target=aarch64:")
 

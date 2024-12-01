@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class Hapcut2(MakefilePackage):
     git = "https://github.com/vibansal/HapCUT2.git"
     maintainers("snehring")
 
+    license("BSD-2-Clause")
+
     version("v1.3.1", commit="c6481d5fd0618dc3e82b2eb8c2b4835d9a4f6da7")
     version(
         "2017-07-10",
@@ -22,6 +24,8 @@ class Hapcut2(MakefilePackage):
         submodules=True,
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
 
     depends_on("htslib@1.3:")
     depends_on("curl")

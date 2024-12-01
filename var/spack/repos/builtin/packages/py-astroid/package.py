@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyAstroid(PythonPackage):
 
     homepage = "https://github.com/PyCQA/astroid"
     pypi = "astroid/astroid-2.8.3.tar.gz"
+
+    license("LGPL-2.1-or-later")
 
     version("2.14.2", sha256="a3cf9f02c53dd259144a7e8f3ccd75d67c9a8c716ef183e0c1f291bc5d7bb3cf")
     version("2.12.10", sha256="81f870105d892e73bf535da77a8261aa5bde838fa4ed12bb2f435291a098c581")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,7 @@ class PyCupy(PythonPackage, CudaPackage, ROCmPackage):
     homepage = "https://cupy.dev/"
     pypi = "cupy/cupy-8.0.0.tar.gz"
 
+    version("13.1.0", sha256="5caf62288481a27713384523623045380ff42e618be4245f478238ed1786f32d")
     version("12.1.0", sha256="f6d31989cdb2d96581da12822e28b102f29e254427195c2017eac327869b7320")
     version("12.0.0", sha256="61ddbbef73d50d606bd5087570645f3c91ec9176c2566784c1d486d6a3404545")
     version("11.6.0", sha256="53dbb840072bb32d4bfbaa6bfa072365a30c98b1fcd1f43e48969071ad98f1a7")
@@ -25,6 +26,8 @@ class PyCupy(PythonPackage, CudaPackage, ROCmPackage):
     version("11.4.0", sha256="03d52b2626e02a3a2b46d714c1cd03e702c8fe33915fcca6ed8de5c539964f49")
     version("11.3.0", sha256="d057cc2f73ecca06fae8b9c270d9e14116203abfd211a704810cc50a453b4c9e")
     version("11.2.0", sha256="c33361f117a347a63f6996ea97446d17f1c038f1a1f533e502464235076923e2")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("all", default=False, description="Enable optional py-scipy, optuna, and cython")
 
@@ -35,20 +38,25 @@ class PyCupy(PythonPackage, CudaPackage, ROCmPackage):
     depends_on("py-fastrlock@0.5:", type=("build", "run"))
     depends_on("py-numpy@1.20:1.25", when="@:11", type=("build", "run"))
     depends_on("py-numpy@1.20:1.26", when="@12:", type=("build", "run"))
+    depends_on("py-numpy@1.22:1.28", when="@13:", type=("build", "run"))
 
-    depends_on("py-scipy@1.6:1.12", when="+all", type=("build", "run"))
+    depends_on("py-scipy@1.6:1.12", when="@:12+all", type=("build", "run"))
+    depends_on("py-scipy@1.7:1.13", when="@13:+all", type=("build", "run"))
     depends_on("py-cython@0.29.22:2", when="+all", type=("build", "run"))
     depends_on("py-optuna@2:", when="+all", type=("build", "run"))
 
     # Based on https://github.com/cupy/cupy/releases
     depends_on("cuda@:11.9", when="@:11 +cuda")
-    depends_on("cuda@:12.1", when="@12: +cuda")
+    depends_on("cuda@:12.1", when="@12:12.1.0 +cuda")
+    depends_on("cuda@:12.4", when="@13: +cuda")
 
     for a in CudaPackage.cuda_arch_values:
         depends_on("nccl +cuda cuda_arch={0}".format(a), when="+cuda cuda_arch={0}".format(a))
 
-    depends_on("cudnn", when="+cuda")
-    depends_on("cutensor", when="+cuda")
+    depends_on("cudnn@8.8", when="@12.0.0: +cuda")
+    depends_on("cudnn@8.5", when="@11.2.0:11.6.0 +cuda")
+    depends_on("cutensor", when="@:12.1.0 +cuda")
+    depends_on("cutensor@2.0.1.2", when="@13.1: +cuda")
 
     for _arch in ROCmPackage.amdgpu_targets:
         arch_str = "amdgpu_target={0}".format(_arch)

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyFuzzywuzzy(PythonPackage):
 
     homepage = "https://github.com/seatgeek/fuzzywuzzy"
     pypi = "fuzzywuzzy/fuzzywuzzy-0.18.0.tar.gz"
+
+    license("GPL-2.0-only")
 
     version("0.18.0", sha256="45016e92264780e58972dca1b3d939ac864b78437422beecebb3095f8efd00e8")
 

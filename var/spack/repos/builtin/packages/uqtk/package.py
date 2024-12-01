@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,6 +21,10 @@ class Uqtk(CMakePackage):
     version("3.1.2", sha256="57ce0cea709777cbefb46f3bd86a0996a0ed5f50fc54cc297599df6e4bb9ab83")
     version("3.1.0", sha256="56ecd3d13bdd908d568e9560dc52cc0f66d7bdcdbe64ab2dd0147a7cf1734f97")
     version("3.0.4", sha256="0a72856438134bb571fd328d1d30ce3d0d7aead32eda9b7fb6e436a27d546d2e")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant(
         "python", default=True, description="Compile Python scripts and interface to C++ libraries"

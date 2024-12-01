@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,8 @@ class Mummer4(AutotoolsPackage):
     version(
         "4.0.0beta2", sha256="cece76e418bf9c294f348972e5b23a0230beeba7fd7d042d5584ce075ccd1b93"
     )
+
+    depends_on("cxx", type="build")  # generated
 
     conflicts("%gcc@:4.7")
 

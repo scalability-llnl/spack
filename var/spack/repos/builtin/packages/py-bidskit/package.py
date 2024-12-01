@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyBidskit(PythonPackage):
 
     homepage = "https://github.com/jmtyszka/bidskit"
     pypi = "bidskit/bidskit-2022.10.13.tar.gz"
+
+    license("MIT")
 
     version("2023.9.7", sha256="029d9aecbbcb2df733858ceb3e6d5dd5013c36e431e40fb522a580adc7b667a5")
     version("2023.2.16", sha256="b2e4e3246d43a6f00af6c0391ec8fecc59405241de1ea9ca68eb4d8128d62c7b")

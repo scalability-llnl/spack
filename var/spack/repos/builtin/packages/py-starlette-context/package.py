@@ -1,4 +1,4 @@
-# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyStarletteContext(PythonPackage):
 
     homepage = "https://github.com/tomwojcik/starlette-context"
     pypi = "starlette-context/starlette_context-0.3.5.tar.gz"
+
+    license("MIT")
 
     version("0.3.5", sha256="e6b9f905823860e9e36c013dbfcf770562f3b88bec21cb861fef2e0bd0615697")
 

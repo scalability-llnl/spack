@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,12 +11,23 @@ class Plink2(MakefilePackage):
     range of basic, large-scale analyses in a computationally efficient manner."""
 
     homepage = "https://www.cog-genomics.org/plink/2.0/"
-    git = "https://github.com/chrchang/plink-ng.git"
+    url = "https://github.com/chrchang/plink-ng/archive/refs/tags/v2.00a5.11.tar.gz"
+    list_url = "https://github.com/chrchang/plink-ng/tags"
 
-    version("2.00a4.3", tag="v2.00a4.3", commit="59fca48f6f8135886ff68962fbe31ae0c6413228")
+    maintainers("teaguesterling")
+
+    license("GPLv3", checked_by="teaguesterling")
+    # See: https://github.com/chrchang/plink-ng/blob/master/2.0/COPYING
+
+    version("2.00a5.11", sha256="8b664baa0b603f374123c32818ea2f053272840ba60e998d06cb864f3a6f1c38")
+    version("2.00a5.10", sha256="53d845c6a04f8fc701e6f58f6431654e36cbf6b79bff25099862d169a8199a45")
+    version("2.00a4.3", sha256="3cd1d26ac6dd1c451b42440f479789aa19d2b57642c118aac530a5ff1b0b4ce6")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("zlib-api")
-    depends_on("zlib@1.2.12:", when="^zlib")
+    depends_on("zlib@1.2.12:", when="^[virtuals=zlib-api] zlib")
     depends_on("zstd@1.5.2:")
     depends_on("libdeflate@1.10:")
     depends_on("blas")

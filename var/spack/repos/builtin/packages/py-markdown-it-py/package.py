@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyMarkdownItPy(PythonPackage):
     homepage = "https://github.com/executablebooks/markdown-it-py"
     git = "https://github.com/executablebooks/markdown-it-py"
     pypi = "markdown-it-py/markdown-it-py-1.1.0.tar.gz"
+
+    license("MIT")
 
     version("3.0.0", sha256="e3f60a94fa066dc52ec76661e37c851cb232d92f9886b15cb560aaada2df8feb")
     version("2.2.0", sha256="7c9a5e412688bc771c67432cbfebcdd686c93ce6484913dccf06cb5a0bea35a1")

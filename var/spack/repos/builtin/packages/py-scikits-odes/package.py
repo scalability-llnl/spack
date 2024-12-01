@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,9 @@ class PyScikitsOdes(PythonPackage):
     maintainers("omsai")
 
     version("2.7.0", sha256="a71e19e1485893754ae8c050668232fcc694f17b83602e75fbebf7bf9f975e1e")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("py-setuptools@:64.0.0", type="build")
 

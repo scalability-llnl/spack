@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,9 +18,13 @@ class Drishti(PythonPackage):
 
     maintainers("jeanbez", "sbyna")
 
+    license("BSD-3-Clause-LBNL")
+
     version("master", branch="master")
 
     version("0.4", sha256="bbbb272b4f6f44ae762f6cba28a2c589e15608691c559af0cc2f552590335d7b")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("darshan-util", type=("run"))
 

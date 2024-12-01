@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class PyAbslPy(PythonPackage):
     """
 
     pypi = "absl-py/absl-py-0.7.0.tar.gz"
+
+    license("Apache-2.0")
 
     version("1.4.0", sha256="d2c244d01048ba476e7c080bd2c6df5e141d211de80223460d5b3b8a2a58433d")
     version("1.2.0", sha256="f568809938c49abbda89826223c992b630afd23c638160ad7840cfe347710d97")

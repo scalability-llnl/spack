@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,8 @@ class PyOptuna(PythonPackage):
     pypi = "optuna/optuna-3.2.0.tar.gz"
 
     maintainers("elliottslaughter", "eugeneswalker")
+
+    license("MIT")
 
     version("3.2.0", sha256="683d8693643a761a41d251a6b8e13263b24acacf9fc46a9233d5f6aa3ce5c683")
 

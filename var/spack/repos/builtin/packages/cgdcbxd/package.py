@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,8 +14,12 @@ class Cgdcbxd(AutotoolsPackage):
     homepage = "https://github.com/jrfastab/cgdcbxd"
     url = "https://github.com/jrfastab/cgdcbxd/archive/v1.0.2.tar.gz"
 
+    license("GPL-2.0-only")
+
     version("1.0.2", sha256="ef626c60e27005d3cae1e19a60d0133be0d1f0a012b695f7f1f6ad5a2afa4166")
     version("1.0.1", sha256="663b87a5ab4a760e2446e479fec36f6300d53e6113af1408efc156325219900c")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

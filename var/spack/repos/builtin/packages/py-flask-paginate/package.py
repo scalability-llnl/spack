@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyFlaskPaginate(PythonPackage):
     pypi = "flask-paginate/flask-paginate-2022.1.8.tar.gz"
 
     maintainers("meyersbs")
+
+    license("BSD-3-Clause")
 
     version("2022.1.8", sha256="a32996ec07ca004c45b768b0d50829728ab8f3986c0650ef538e42852c7aeba2")
 

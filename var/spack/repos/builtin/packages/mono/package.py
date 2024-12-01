@@ -1,10 +1,9 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
-from spack.util.environment import is_system_path
 
 
 class Mono(AutotoolsPackage):
@@ -31,6 +30,8 @@ class Mono(AutotoolsPackage):
     depends_on("iconv")
     depends_on("perl", type=("build"))
     depends_on("python", type=("build"))
+
+    license("MIT")
 
     version(
         "6.12.0.122",
@@ -65,6 +66,10 @@ class Mono(AutotoolsPackage):
     version("5.0.1.1", sha256="48d6ae71d593cd01bf0f499de569359d45856cda325575e1bacb5fabaa7e9718")
     version("4.8.0.524", sha256="ca02614cfc9fe65e310631cd611d7b07d1ff205ce193006d4be0f9919c26bdcf")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     def patch(self):
         if "+patch-folder-path" in self.spec:
             before = 'return "/usr/share";'
@@ -75,8 +80,8 @@ class Mono(AutotoolsPackage):
 
     def configure_args(self):
         args = []
-        if self.spec["iconv"].name == "libc":
+        if self.spec["iconv"].name == "libiconv":
+            args.append(f"--with-libiconv-prefix={self.spec['iconv'].prefix}")
+        else:
             args.append("--without-libiconv-prefix")
-        elif not is_system_path(self.spec["iconv"].prefix):
-            args.append("--with-libiconv-prefix={p}".format(p=self.spec["iconv"].prefix))
         return args

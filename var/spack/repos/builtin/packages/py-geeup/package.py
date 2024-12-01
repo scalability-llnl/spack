@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyGeeup(PythonPackage):
 
     homepage = "https://github.com/samapriya/geeup"
     pypi = "geeup/geeup-0.2.4.tar.gz"
+
+    license("Apache-2.0")
 
     version("0.2.4", sha256="20f62306ea900d7fa28a97cc92204716212dc030c50a6ac8214772a61a1a83fe")
 

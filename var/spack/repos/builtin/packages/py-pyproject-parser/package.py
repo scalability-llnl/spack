@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyPyprojectParser(PythonPackage):
 
     homepage = "https://github.com/repo-helper/pyproject-parser"
     pypi = "pyproject_parser/pyproject-parser-0.9.1.tar.gz"
+
+    license("MIT")
 
     version("0.9.1", sha256="fa0b2ff78bc95788b08d00e1aafa66d3f7f3ab693f19d9c2e23e20000a69fd9b")
 

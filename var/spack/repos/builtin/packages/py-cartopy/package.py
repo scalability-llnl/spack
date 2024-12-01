@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,11 +10,15 @@ class PyCartopy(PythonPackage):
     """Cartopy - a cartographic python library with matplotlib support."""
 
     homepage = "https://scitools.org.uk/cartopy/docs/latest/"
-    pypi = "Cartopy/Cartopy-0.20.2.tar.gz"
-
-    maintainers("adamjstewart")
+    pypi = "Cartopy/cartopy-0.20.2.tar.gz"
     skip_modules = ["cartopy.tests"]
 
+    license("LGPL-3.0-or-later")
+    maintainers("adamjstewart")
+
+    version("0.24.1", sha256="01c910d5634c69a7efdec46e0a17d473d2328767f001d4dc0b5c4b48e585c8bd")
+    version("0.24.0", sha256="e044e0e0fa76bb7afde937bec541743dcbf6b6f23b933a21ebddcd20cfffb755")
+    version("0.23.0", sha256="231f37b35701f2ba31d94959cca75e6da04c2eea3a7f14ce1c75ee3b0eae7676")
     version("0.22.0", sha256="b300f90120931d43f11ef87c064ea1dacec1b59a4940aa76ebf82cf09548bb49")
     version("0.21.1", sha256="89d5649712c8582231c6e11825a04c85f6f0cee94dbb89e4db23eabca1cc250a")
     version("0.21.0", sha256="ce1d3a28a132e94c89ac33769a50f81f65634ab2bd40556317e15bd6cad1ce42")
@@ -29,6 +33,8 @@ class PyCartopy(PythonPackage):
     version("0.17.0", sha256="424bd9e9ddef6e48cbdee694ce589ec431be8591f15b6cb93cb2b333a29b2c61")
     version("0.16.0", sha256="f23dffa101f43dd91e866a49ebb5f5048be2a24ab8a921a5c07edabde746d9a4")
 
+    depends_on("cxx", type="build")
+
     variant("epsg", default=False, when="@:0.19", description="Add support for epsg.io")
     variant(
         "ows",
@@ -38,55 +44,77 @@ class PyCartopy(PythonPackage):
     variant("plotting", default=False, description="Add plotting functionality")
 
     # Based on wheel availability on PyPI
-    depends_on("python@3.9:3.11", when="@0.22:", type=("build", "link", "run"))
-    depends_on("python@3.8:3.11", when="@0.21", type=("build", "link", "run"))
-    depends_on("python@:3.11", when="@0.20", type=("build", "link", "run"))
-    depends_on("python@:3.10", when="@0.19", type=("build", "link", "run"))
-    depends_on("python@:3.9", when="@:0.18", type=("build", "link", "run"))
+    with default_args(type=("build", "link", "run")):
+        depends_on("python@3.10:3.13", when="@0.24.1:")
+        depends_on("python@3.10:3.12", when="@0.24.0")
+        depends_on("python@3.9:3.12", when="@0.23")
+        depends_on("python@3.9:3.11", when="@0.22")
+        depends_on("python@3.8:3.11", when="@0.21")
+        depends_on("python@:3.11", when="@0.20")
+        depends_on("python@:3.10", when="@0.19")
+        depends_on("python@:3.9", when="@:0.18")
 
-    # Required dependencies
-    depends_on("py-setuptools@40.6:", when="@0.19:", type="build")
-    depends_on("py-setuptools@0.7.2:", type="build")
-    depends_on("py-cython@0.29.24:", when="@0.22:", type="build")
-    depends_on("py-cython@0.29.13:", when="@0.20:", type="build")
-    depends_on("py-cython@0.29.2:", when="@0.19:", type="build")
-    depends_on("py-cython@0.28:", when="@0.18:", type="build")
-    depends_on("py-cython@0.15.1:", when="@0.17:", type="build")
-    depends_on("py-cython", type="build")
-    depends_on("py-setuptools-scm@7:", when="@0.20.3:", type="build")
-    depends_on("py-setuptools-scm", when="@0.19:", type="build")
-    depends_on("py-numpy@1.21:", when="@0.22:", type=("build", "link", "run"))
-    depends_on("py-numpy@1.18:", when="@0.20:", type=("build", "link", "run"))
-    depends_on("py-numpy@1.13.3:", when="@0.19:", type=("build", "link", "run"))
-    depends_on("py-numpy@1.10:", when="@0.17:", type=("build", "link", "run"))
-    depends_on("py-numpy@1.6:", type=("build", "link", "run"))
-    depends_on("py-matplotlib@3.4:", when="@0.22:", type=("build", "run"))
-    depends_on("py-matplotlib@3.1:", when="@0.21", type=("build", "run"))
-    # https://github.com/SciTools/cartopy/issues/2086
-    depends_on("py-matplotlib@3.1:3.5", when="@0.20", type=("build", "run"))
-    depends_on("py-shapely@1.7:", when="@0.22:", type=("build", "run"))
-    depends_on("py-shapely@1.6.4:", when="@0.21.1:0.21", type=("build", "run"))
-    depends_on("py-shapely@1.6.4:1", when="@0.20:0.21.0", type=("build", "run"))
-    depends_on("py-shapely@1.5.6:1", when="@:0.19", type=("build", "run"))
-    depends_on("py-packaging@20:", when="@0.22:", type=("build", "run"))
-    depends_on("py-pyshp@2.1:", when="@0.20:", type=("build", "run"))
-    depends_on("py-pyshp@2:", when="@0.19:", type=("build", "run"))
-    depends_on("py-pyshp@1.1.4:", type=("build", "run"))
-    depends_on("py-pyproj@3.1:", when="@0.22:", type=("build", "run"))
-    depends_on("py-pyproj@3:", when="@0.20:", type=("build", "run"))
+    with default_args(type="build"):
+        depends_on("py-setuptools@40.6:", when="@0.19:")
+        depends_on("py-setuptools@0.7.2:")
+        depends_on("py-cython@0.29.24:", when="@0.22:")
+        depends_on("py-cython@0.29.13:", when="@0.20:")
+        depends_on("py-cython@0.29.2:", when="@0.19:")
+        depends_on("py-cython@0.28:", when="@0.18:")
+        depends_on("py-cython@0.15.1:", when="@0.17:")
+        depends_on("py-cython")
+        depends_on("py-setuptools-scm@7:", when="@0.20.3:")
+        depends_on("py-setuptools-scm", when="@0.19:")
 
-    with when("+ows"):
-        depends_on("py-owslib@0.20:", when="@0.22:", type="run")
-        depends_on("py-owslib@0.18:", when="@0.20:", type="run")
-        depends_on("py-owslib@0.8.11:", type="run")
-        depends_on("pil@6.1:", when="@0.20:", type="run")
-        depends_on("pil@1.7.8:", type="run")
+    with default_args(type=("build", "link", "run")):
+        depends_on("py-numpy@1.23:", when="@0.24:")
+        depends_on("py-numpy@1.21:", when="@0.22:0.23")
+        depends_on("py-numpy@1.18:", when="@0.20:21")
+        depends_on("py-numpy@1.13.3:", when="@0.19")
+        depends_on("py-numpy@1.10:", when="@0.17:0.18")
+        depends_on("py-numpy@1.6:", when="@0.16")
+        # https://github.com/SciTools/cartopy/issues/2339
+        depends_on("py-numpy@:1", when="@:0.22")
 
-    with when("+plotting"):
-        depends_on("pil@6.1:", when="@0.20:", type="run")
-        depends_on("pil@1.7.8:", type="run")
-        depends_on("py-scipy@1.3.1:", when="@0.20:", type="run")
-        depends_on("py-scipy@0.10:", type="run")
+    with default_args(type=("build", "run")):
+        depends_on("py-matplotlib@3.6:", when="@0.24:")
+        depends_on("py-matplotlib@3.5:", when="@0.23:")
+        depends_on("py-matplotlib@3.4:", when="@0.22:")
+        depends_on("py-matplotlib@3.1:", when="@0.21")
+        # https://github.com/SciTools/cartopy/issues/2086
+        depends_on("py-matplotlib@3.1:3.5", when="@0.20")
+        depends_on("py-shapely@1.8:", when="@0.24:")
+        depends_on("py-shapely@1.7:", when="@0.22:")
+        depends_on("py-shapely@1.6.4:", when="@0.21.1:0.21")
+        depends_on("py-shapely@1.6.4:1", when="@0.20:0.21.0")
+        depends_on("py-shapely@1.5.6:1", when="@:0.19")
+        depends_on("py-packaging@21:", when="@0.24:")
+        depends_on("py-packaging@20:", when="@0.22:")
+        depends_on("py-pyshp@2.3:", when="@0.23:")
+        depends_on("py-pyshp@2.1:", when="@0.20:")
+        depends_on("py-pyshp@2:", when="@0.19:")
+        depends_on("py-pyshp@1.1.4:")
+        depends_on("py-pyproj@3.3.1:", when="@0.23:")
+        depends_on("py-pyproj@3.1:", when="@0.22:")
+        depends_on("py-pyproj@3:", when="@0.20:")
+
+    with default_args(type="run"):
+        with when("+ows"):
+            depends_on("py-owslib@0.27:", when="@0.24:")
+            depends_on("py-owslib@0.20:", when="@0.22:")
+            depends_on("py-owslib@0.18:", when="@0.20:")
+            depends_on("py-owslib@0.8.11:")
+            depends_on("pil@9.1:", when="@0.24:")
+            depends_on("pil@6.1:", when="@0.20:")
+            depends_on("pil@1.7.8:")
+
+        with when("+plotting"):
+            depends_on("pil@9.1:", when="@0.24:")
+            depends_on("pil@6.1:", when="@0.20:")
+            depends_on("pil@1.7.8:")
+            depends_on("py-scipy@1.9:", when="@0.24:")
+            depends_on("py-scipy@1.3.1:", when="@0.20:")
+            depends_on("py-scipy@0.10:")
 
     # Historical dependencies
     depends_on("py-setuptools-scm-git-archive", when="@0.19:0.20.2", type="build")
@@ -108,6 +136,14 @@ class PyCartopy(PythonPackage):
         depends_on("py-matplotlib@1.3:3.5", when="@0.16", type="run")
 
     patch("proj6.patch", when="@0.17.0")
+
+    def url_for_version(self, version):
+        url = "https://files.pythonhosted.org/packages/source/C/Cartopy/{}-{}.tar.gz"
+        if version >= Version("0.24"):
+            name = "cartopy"
+        else:
+            name = "Cartopy"
+        return url.format(name, version)
 
     def setup_build_environment(self, env):
         # Needed for `spack install --test=root py-cartopy`

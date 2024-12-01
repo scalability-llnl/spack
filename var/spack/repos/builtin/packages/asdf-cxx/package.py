@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class AsdfCxx(CMakePackage):
     url = "https://github.com/eschnett/asdf-cxx/archive/version/1.0.0.tar.gz"
 
     maintainers("eschnett")
+
+    license("MIT")
 
     version("7.2.1", sha256="40864f4f27d3ce8acb5169b57211ce6ac3805f0a6de9c1dfd5f994f4a5beccda")
     version("7.2.0", sha256="faded85d44288afb83f13634d2139adee07e06f7ea60960c6f2ef8d898c0aa09")
@@ -35,6 +37,8 @@ class AsdfCxx(CMakePackage):
     version("2.1.0", sha256="066c2c1033be41e10b874ceec1e87267fd792c40d46cbc768b05ba94cca234a1")
     version("1.1.0", sha256="3e23b9cd16254f5adbf878145e320f56b4d3ad75de23d2c761eb7f04150926c5")
     version("1.0.0", sha256="0b63594a1dec27cc85d25adbf900b6e936b5015f579b9b892b983151bec96775")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("python", default=True, description="Enable Python support")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class Mlst(Package):
 
     homepage = "https://github.com/tseemann/mlst"
     url = "https://github.com/tseemann/mlst/archive/refs/tags/v2.22.1.tar.gz"
+
+    license("GPL-2.0-only")
 
     version("2.23.0", sha256="35bdbde309ba25293c3cce417d82e79594b9f78365133062923dc3d629bd8846")
     version("2.22.1", sha256="a8f64d7cb961a8e422e96a19309ad8707f8792d9f755a9e5a1f5742986d19bca")

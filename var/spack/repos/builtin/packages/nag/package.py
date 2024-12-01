@@ -1,22 +1,25 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
-import re
 
-import llnl.util.tty as tty
-
-import spack.compiler
 from spack.package import *
 
 
-class Nag(Package):
+class Nag(Package, CompilerPackage):
     """The NAG Fortran Compiler."""
 
     homepage = "https://www.nag.com/nagware/np.asp"
     maintainers("skosukhin")
 
+    version("7.2.7203", sha256="775e2a10329bcf1c0ba35adb73d49db11b76698ede1f4ae070177216c9ee6e1e")
+    version(
+        "7.2.7200",
+        sha256="3c2179e073d6cf2aadaeaf9a6a5f3b7f1fdcfb85b99c6fb593445b28ddd44880",
+        url="file://{0}/npl6a72na_amd64.tgz".format(os.getcwd()),
+        deprecated=True,
+    )
     version("7.1.7125", sha256="738ed9ed943ebeb05d337cfdc603b9c88b8642b3d0cafea8d2872f36201adb37")
     version(
         "7.1.7101",
@@ -32,6 +35,8 @@ class Nag(Package):
         url="file://{0}/npl6a61na_amd64.tgz".format(os.getcwd()),
         deprecated=True,
     )
+
+    depends_on("fortran", type="build")  # generated
 
     # Licensing
     license_required = True
@@ -63,54 +68,10 @@ class Nag(Package):
         env.set("F77", self.prefix.bin.nagfor)
         env.set("FC", self.prefix.bin.nagfor)
 
-    executables = ["^nagfor$"]
-
-    @classmethod
-    def determine_version(cls, exe):
-        version_regex = re.compile(r"NAG Fortran Compiler Release ([0-9.]+)")
-        # NAG does not support a flag that would enable verbose output and
-        # compilation/linking at the same time (with either '-#' or '-dryrun'
-        # the compiler only prints the commands but does not run them).
-        # Therefore, the only thing we can do is to pass the '-v' argument to
-        # the underlying GCC. In order to get verbose output from the latter
-        # at both compile and linking stages, we need to call NAG with two
-        # additional flags: '-Wc,-v' and '-Wl,-v'. However, we return only
-        # '-Wl,-v' for the following reasons:
-        #   1) the interface of this method does not support multiple flags in
-        #      the return value and, at least currently, verbose output at the
-        #      linking stage has a higher priority for us;
-        #   2) NAG is usually mixed with GCC compiler, which also accepts
-        #      '-Wl,-v' and produces meaningful result with it: '-v' is passed
-        #      to the linker and the latter produces verbose output for the
-        #      linking stage ('-Wc,-v', however, would break the compilation
-        #      with a message from GCC that the flag is not recognized).
-        #
-        # This way, we at least enable the implicit rpath detection, which is
-        # based on compilation of a C file (see method
-        # spack.compiler._get_compiler_link_paths): in the case of a mixed
-        # NAG/GCC toolchain, the flag will be passed to g++ (e.g.
-        # 'g++ -Wl,-v ./main.c'), otherwise, the flag will be passed to nagfor
-        # (e.g. 'nagfor -Wl,-v ./main.c' - note that nagfor recognizes '.c'
-        # extension and treats the file accordingly). The list of detected
-        # rpaths will contain only GCC-related directories and rpaths to
-        # NAG-related directories are injected by nagfor anyway.
-        try:
-            output = spack.compiler.get_compiler_version_output(exe, "-Wl,-v")
-            match = version_regex.search(output)
-            if match:
-                return match.group(1)
-        except spack.util.executable.ProcessError:
-            pass
-        except Exception as e:
-            tty.debug(e)
-
-    @classmethod
-    def determine_variants(cls, exes, version_str):
-        compilers = {}
-        for exe in exes:
-            if "nagfor" in exe:
-                compilers["fortran"] = exe
-        return "", {"compilers": compilers}
+    compiler_languages = ["fortran"]
+    fortran_names = ["nagfor"]
+    compiler_version_regex = r"NAG Fortran Compiler Release (\d+).(\d+)\(.*\) Build (\d+)"
+    compiler_version_argument = "-V"
 
     @property
     def fortran(self):

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyBackportsLzma(PythonPackage):
     homepage = "https://github.com/peterjc/backports.lzma"
     url = "https://github.com/peterjc/backports.lzma/archive/backports.lzma.v0.0.14.tar.gz"
 
+    license("BSD-3-Clause")
+
     version("0.0.14", sha256="904854d152825b475ebf0f6074fa545474b4ef4eac833f2d9a565e2820dc3a2d")
     version("0.0.13", sha256="42c9d15fa16f691c07e3b325c90f7f9449811e9f7fc46bf4ad43c29bdbaf0b71")
     version("0.0.12", sha256="648592f13d34c7d10791cfb6ce1556cfa25f3657a24e349f266a87708f3af112")
@@ -23,6 +25,8 @@ class PyBackportsLzma(PythonPackage):
     version("0.0.7", sha256="f5de56b740ce47e03de02d5c4983e0e2f19b4f6b0bc4597af6369905177f62cd")
     version("0.0.6", sha256="8e70936641398a6814d70f6eae6399be2ae514578d38b7f9b15c277438bbd853")
     version("0.0.4", sha256="7c973edbd50c1467fed2247117e128a924d25404394a57e30d5b6c52cfcd342d")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("python@2.6:3.0,3.4:", type=("build", "run"))
     depends_on("py-setuptools", type="build")

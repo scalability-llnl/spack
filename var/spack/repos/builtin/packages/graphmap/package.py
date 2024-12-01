@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,7 +12,11 @@ class Graphmap(MakefilePackage):
     homepage = "https://github.com/isovic/graphmap"
     git = "https://github.com/isovic/graphmap.git"
 
+    license("MIT")
+
     version("0.3.0", commit="eb8c75d68b03be95464318afa69b645a59f8f6b7")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("zlib-api", type="link")
 

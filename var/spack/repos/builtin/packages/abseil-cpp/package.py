@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,20 @@ class AbseilCpp(CMakePackage):
     maintainers("jcftang")
     tags = ["windows"]
 
+    license("Apache-2.0", checked_by="wdconinc")
+
+    version(
+        "20240722.0", sha256="f50e5ac311a81382da7fa75b97310e4b9006474f9560ac46f54a9967f07d4ae3"
+    )
+    version(
+        "20240116.2", sha256="733726b8c3a6d39a4120d7e45ea8b41a434cdacde401cba500f14236c49b39dc"
+    )
+    version(
+        "20240116.1", sha256="3c743204df78366ad2eaf236d6631d83f6bc928d1705dd0000b872e53b73dc6a"
+    )
+    version(
+        "20230802.1", sha256="987ce98f02eefbaf930d6e38ab16aa05737234d7afbab2d5c4ea7adbe50c28ed"
+    )
     version(
         "20230125.3", sha256="5366d7e7fa7ba0d915014d387b66d0d002c03236448e1ba9ef98122c13b35c36"
     )
@@ -55,6 +69,15 @@ class AbseilCpp(CMakePackage):
     version("20181200", sha256="e2b53bfb685f5d4130b84c4f3050c81bf48c497614dc85d91dbd3ed9129bce6d")
     version("20180600", sha256="794d483dd9a19c43dc1fbbe284ce8956eb7f2600ef350dac4c602f9b4eb26e90")
 
+    depends_on("cxx", type="build")  # generated
+
+    # Avoid export of testonly target absl::test_allocator in CMake builds
+    patch(
+        "https://github.com/abseil/abseil-cpp/commit/779a3565ac6c5b69dd1ab9183e500a27633117d5.patch?full_index=1",
+        sha256="14ad7abbc20b10d57e00d0940e8338f69fd69f58d8285214848998e8687688cc",
+        when="@20240116",
+    )
+
     variant("shared", default=True, description="Build shared instead of static libraries")
 
     conflicts("+shared", when="@:20190808")
@@ -66,13 +89,20 @@ class AbseilCpp(CMakePackage):
         description="C++ standard used during compilation",
     )
 
-    depends_on("cmake@3.10:", when="@2023:", type="build")
-    depends_on("cmake@3.5:", when="@2019:", type="build")
+    depends_on("cmake@3.16:", when="@20240722:", type="build")
+    depends_on("cmake@3.10:", when="@20220907:", type="build")
+    depends_on("cmake@3.5:", when="@20190312:", type="build")
     depends_on("cmake@3.1:", type="build")
 
+    depends_on("googletest", type="build", when="@20220623:")
+
     def cmake_args(self):
+        run_tests = self.run_tests and self.spec.satisfies("@20220623:")
         return [
-            self.define("BUILD_TESTING", False),
+            self.define("BUILD_TESTING", run_tests),
+            self.define("ABSL_BUILD_TESTING", run_tests),
+            self.define("ABSL_USE_EXTERNAL_GOOGLETEST", run_tests),
+            self.define("ABSL_FIND_GOOGLETEST", run_tests),
             self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
             self.define_from_variant("CMAKE_CXX_STANDARD", "cxxstd"),
         ]

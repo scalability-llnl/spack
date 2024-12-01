@@ -1,0 +1,12 @@
+diff --color=auto --color=never -Naur a/CMake/3rdparty.cmake b/CMake/3rdparty.cmake
+--- a/CMake/3rdparty.cmake	2022-04-28 15:47:25
++++ b/CMake/3rdparty.cmake	2024-07-12 15:04:19
+@@ -38,7 +38,7 @@
+         message(STATUS "Info: DCMTK TIFF support will be enabled")
+         include_directories(${TIFF_INCLUDE_DIR} ${JPEG_INCLUDE_DIR})
+       endif()
+-      set(LIBTIFF_LIBS ${TIFF_LIBRARY} ${TIFF_EXTRA_LIBS_STATIC} ${JPEG_LIBRARY})
++      set(LIBTIFF_LIBS ${TIFF_LIBRARIES} ${TIFF_EXTRA_LIBS_STATIC} ${JPEG_LIBRARIES})
+     endif()
+   endif()
+ 

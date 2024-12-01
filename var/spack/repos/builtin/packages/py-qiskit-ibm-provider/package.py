@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyQiskitIbmProvider(PythonPackage):
 
     homepage = "https://github.com/Qiskit/qiskit-ibm-provider"
     pypi = "qiskit-ibm-provider/qiskit-ibm-provider-0.5.1.tar.gz"
+
+    license("Apache-2.0")
 
     version("0.5.1", sha256="0135d455d5fc4238efe1b852767c243fb995f003fbcac0bb836608426a0c0597")
 

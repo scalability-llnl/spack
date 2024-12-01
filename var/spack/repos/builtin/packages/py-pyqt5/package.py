@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,22 +15,11 @@ class PyPyqt5(SIPPackage):
     url = "https://files.pythonhosted.org/packages/source/P/PyQt5/PyQt5-5.15.9.tar.gz"
     list_url = "https://pypi.org/simple/PyQt5/"
 
+    license("GPL-3.0-only")
+
     version("5.15.9", sha256="dc41e8401a90dc3e2b692b411bd5492ab559ae27a27424eed4bd3915564ec4c0")
-    version(
-        "5.13.1",
-        sha256="54b7f456341b89eeb3930e786837762ea67f235e886512496c4152ebe106d4af",
-        deprecated=True,
-    )
-    version(
-        "5.13.0",
-        sha256="0cdbffe5135926527b61cc3692dd301cd0328dd87eeaf1313e610787c46faff9",
-        deprecated=True,
-    )
-    version(
-        "5.12.3",
-        sha256="0db0fa37debab147450f9e052286f7a530404e2aaddc438e97a7dcdf56292110",
-        deprecated=True,
-    )
+
+    depends_on("cxx", type="build")  # generated
 
     # pyproject.toml
     depends_on("py-sip@6.6.2:6", type="build")

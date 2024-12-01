@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PySanic(PythonPackage):
 
     homepage = "https://github.com/huge-success/sanic"
     pypi = "sanic/sanic-20.6.3.tar.gz"
+
+    license("MIT")
 
     version("20.6.3", sha256="30e83d9f677b609d6b8ccab7c9551ca7e9a5f19ac0579f5aa10199ab6d4138ed")
 

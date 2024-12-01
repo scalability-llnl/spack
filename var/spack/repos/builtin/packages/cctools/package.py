@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -31,6 +31,9 @@ class Cctools(AutotoolsPackage):
     version("7.1.0", sha256="84748245db10ff26c0c0a7b9fd3ec20fbbb849dd4aadc5e8531fd1671abe7a81")
     version("7.0.18", sha256="5b6f3c87ae68dd247534a5c073eb68cb1a60176a7f04d82699fbc05e649a91c2")
     version("6.1.1", sha256="97f073350c970d6157f80891b3bf6d4f3eedb5f031fea386dc33e22f22b8af9d")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("openssl")
     depends_on("perl+shared", type=("build", "run"))

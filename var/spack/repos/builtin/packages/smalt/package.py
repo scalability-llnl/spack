@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,4 +12,8 @@ class Smalt(AutotoolsPackage, SourceforgePackage):
     homepage = "https://www.sanger.ac.uk/science/tools/smalt-0"
     sourceforge_mirror_path = "smalt/smalt-0.7.6.tar.gz"
 
+    license("GPL-3.0-only")
+
     version("0.7.6", sha256="89ccdfe471edba3577b43de9ebfdaedb5cd6e26b02bf4000c554253433796b31")
+
+    depends_on("c", type="build")  # generated

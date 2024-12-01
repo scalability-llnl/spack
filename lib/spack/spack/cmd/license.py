@@ -1,8 +1,9 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import datetime
 import os
 import re
 from collections import defaultdict
@@ -26,15 +27,22 @@ apache2_mit_spdx = "(Apache-2.0 OR MIT)"
 licensed_files = [
     # spack scripts
     r"^bin/spack$",
+    r"^bin/spack\.bat$",
+    r"^bin/spack\.ps1$",
+    r"^bin/spack_pwsh\.ps1$",
+    r"^bin/sbang$",
     r"^bin/spack-python$",
+    r"^bin/haspywin\.py$",
     # all of spack core except unparse
+    r"^lib/spack/spack_installable/main\.py$",
     r"^lib/spack/spack/(?!(test/)?util/unparse).*\.py$",
     r"^lib/spack/spack/.*\.sh$",
     r"^lib/spack/spack/.*\.lp$",
     r"^lib/spack/llnl/.*\.py$",
     r"^lib/spack/env/cc$",
-    # special case this test data file, which has a license header
+    # special case some test data files that have license headers
     r"^lib/spack/spack/test/data/style/broken.dummy",
+    r"^lib/spack/spack/test/data/unparse/.*\.txt",
     # rst files in documentation
     r"^lib/spack/docs/(?!command_index|spack|llnl).*\.rst$",
     r"^lib/spack/docs/.*\.py$",
@@ -46,6 +54,7 @@ licensed_files = [
     r"^share/spack/.*\.bash$",
     r"^share/spack/.*\.csh$",
     r"^share/spack/.*\.fish$",
+    r"share/spack/setup-env\.ps1$",
     r"^share/spack/qa/run-[^/]*$",
     r"^share/spack/bash/spack-completion.in$",
     # action workflows
@@ -88,14 +97,14 @@ def list_files(args):
 OLD_LICENSE, SPDX_MISMATCH, GENERAL_MISMATCH = range(1, 4)
 
 #: Latest year that copyright applies. UPDATE THIS when bumping copyright.
-latest_year = 2023
+latest_year = datetime.date.today().year
 strict_date = r"Copyright 2013-%s" % latest_year
 
 #: regexes for valid license lines at tops of files
 license_line_regexes = [
     r"Copyright 2013-(%d|%d) Lawrence Livermore National Security, LLC and other"
     % (latest_year - 1, latest_year),  # allow a little leeway: current or last year
-    r"Spack Project Developers\. See the top-level COPYRIGHT file for details.",
+    r"(Spack|sbang) [Pp]roject [Dd]evelopers\. See the top-level COPYRIGHT file for details.",
     r"SPDX-License-Identifier: \(Apache-2\.0 OR MIT\)",
 ]
 
@@ -127,7 +136,7 @@ def _check_license(lines, path):
     found = []
 
     for line in lines:
-        line = re.sub(r"^[\s#\%\.]*", "", line)
+        line = re.sub(r"^[\s#\%\.\:]*", "", line)
         line = line.rstrip()
         for i, line_regex in enumerate(license_line_regexes):
             if re.match(line_regex, line):

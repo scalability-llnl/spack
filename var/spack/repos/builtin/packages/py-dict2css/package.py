@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyDict2css(PythonPackage):
     pypi = "dict2css/dict2css-0.3.0.tar.gz"
 
     maintainers("LydDeb")
+
+    license("MIT")
 
     version("0.3.0", sha256="1e8b1bf580dca2083198f88a60ec88c878a8829d760dfe45483ef80fe2905117")
 

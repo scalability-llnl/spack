@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,8 +14,12 @@ class Numdiff(AutotoolsPackage):
     homepage = "https://www.nongnu.org/numdiff"
     url = "https://nongnu.askapache.com/numdiff/numdiff-5.8.1.tar.gz"
 
+    license("GPL-3.0-only")
+
     version("5.9.0", sha256="87284a117944723eebbf077f857a0a114d818f8b5b54d289d59e73581194f5ef")
     version("5.8.1", sha256="99aebaadf63325f5658411c09c6dde60d2990c5f9a24a51a6851cb574a4af503")
+
+    depends_on("c", type="build")  # generated
 
     variant("nls", default=False, description="Enable Natural Language Support")
     variant("gmp", default=False, description="Use GNU Multiple Precision Arithmetic Library")

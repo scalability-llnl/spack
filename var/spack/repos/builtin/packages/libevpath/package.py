@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -23,6 +23,8 @@ class Libevpath(CMakePackage):
     version("4.2.1", sha256="c745946f2ecff65bfc80978c2038c37c3803076064cfd29ea3023d671c950770")
     version("4.1.2", sha256="2c0d5acc0e1c5aadd32d7147d2f0ce26220e3870e21c7d5429372d8f881e519e")
     version("4.1.1", sha256="cfc9587f98c1f057eb25712855d14311fd91d6284151eee7bd8936c4ff7ee001")
+
+    depends_on("c", type="build")  # generated
 
     variant("enet_transport", default=False, description="Build an ENET transport for EVpath")
 

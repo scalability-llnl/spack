@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class Pgdspider(Package):
 
     homepage = "http://www.cmpg.unibe.ch/software/PGDSpider"
     url = "http://www.cmpg.unibe.ch/software/PGDSpider/PGDSpider_2.1.1.2.zip"
+
+    license("BSD-3-Clause")
 
     version("2.1.1.5", sha256="8564427caf1f5c6200ba8f22a2bc2ef0fa87ae7c6571e4df3b8438cc00fa121c")
     version("2.1.1.2", sha256="a630ef9f3ef0c36be0d613867c5293378d77b52396ac701bc7b9ec5d3ba7f2e1")

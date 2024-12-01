@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -74,8 +74,8 @@ class Lhapdfsets(BundlePackage):
     @classmethod
     def determine_spec_details(cls, prefix, exes_in_prefix):
         path = os.environ.get("LHAPDF_DATA_PATH", None)
+        if not path:
+            return None
         # unfortunately the sets are not versioned -
         # just hardcode the current version and hope it is fine
-        s = Spec.from_detection("lhapdfsets@6.3.0")
-        s.external_path = path
-        return s if path else None
+        return Spec.from_detection("lhapdfsets@6.3.0", external_path=path)

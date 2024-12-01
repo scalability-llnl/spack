@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -8,9 +8,9 @@ import sys
 import llnl.util.tty as tty
 from llnl.util.tty.colify import colify
 
-import spack.cmd.common.arguments as arguments
 import spack.repo
 import spack.spec
+from spack.cmd.common import arguments
 from spack.version import infinity_versions, ver
 
 description = "list available versions of a package"
@@ -22,11 +22,6 @@ def setup_parser(subparser):
     output = subparser.add_mutually_exclusive_group()
     output.add_argument(
         "-s", "--safe", action="store_true", help="only list safe versions of the package"
-    )
-    output.add_argument(
-        "--safe-only",
-        action="store_true",
-        help="[deprecated] only list safe versions of the package",
     )
     output.add_argument(
         "-r", "--remote", action="store_true", help="only list remote versions of the package"
@@ -47,17 +42,13 @@ def versions(parser, args):
 
     safe_versions = pkg.versions
 
-    if args.safe_only:
-        tty.warn('"--safe-only" is deprecated. Use "--safe" instead.')
-        args.safe = args.safe_only
-
     if not (args.remote or args.new):
         if sys.stdout.isatty():
             tty.msg("Safe versions (already checksummed):")
 
         if not safe_versions:
             if sys.stdout.isatty():
-                tty.warn("Found no versions for {0}".format(pkg.name))
+                tty.warn(f"Found no versions for {pkg.name}")
                 tty.debug("Manually add versions to the package.")
         else:
             colify(sorted(safe_versions, reverse=True), indent=2)
@@ -83,12 +74,12 @@ def versions(parser, args):
     if not remote_versions:
         if sys.stdout.isatty():
             if not fetched_versions:
-                tty.warn("Found no versions for {0}".format(pkg.name))
+                tty.warn(f"Found no versions for {pkg.name}")
                 tty.debug(
                     "Check the list_url and list_depth attributes of "
                     "the package to help Spack find versions."
                 )
             else:
-                tty.warn("Found no unchecksummed versions for {0}".format(pkg.name))
+                tty.warn(f"Found no unchecksummed versions for {pkg.name}")
     else:
         colify(sorted(remote_versions, reverse=True), indent=2)

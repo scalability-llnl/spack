@@ -1,12 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import os
 import platform
 import re
-import tempfile
 
 from spack.package import *
 
@@ -21,25 +19,26 @@ class Texlive(AutotoolsPackage):
 
     homepage = "https://www.tug.org/texlive"
     url = "https://ftp.math.utah.edu/pub/tex/historic/systems/texlive/2020/texlive-20200406-source.tar.xz"
-    base_url = "http://ftp.math.utah.edu/pub/tex/historic/systems/texlive/{year}/texlive-{version}-{dist}.tar.xz"
-    list_url = "http://ftp.math.utah.edu/pub/tex/historic/systems/texlive"
+    base_url = "https://ftp.math.utah.edu/pub/tex/historic/systems/texlive/{year}/texlive-{version}-{dist}.tar.xz"
+    list_url = "https://ftp.math.utah.edu/pub/tex/historic/systems/texlive"
     list_depth = 1
 
-    # Below is the url for a binary distribution. This was originally how this
-    # was distributed in Spack, but should be considered deprecated. Note that
-    # the "live" version will pull down the packages so it requires an Internet
-    # connection at install time and the package versions could change over
-    # time. It is better to use a version built from tarballs, as defined with
-    # the "releases" below.
-    version(
-        "live",
-        sha256="e67edec49df6b7c4a987a7d5a9b31bcf41258220f9ac841c7a836080cd334fb5",
-        url="ftp://tug.org/historic/systems/texlive/2022/install-tl-unx.tar.gz",
-        deprecated=True,
-    )
+    license("GPL-2.0-or-later AND GPL-3.0-or-later", checked_by="tgamblin")
 
     # Add information for new versions below.
     releases = [
+        {
+            "version": "20240312",
+            "year": "2024",
+            "sha256_source": "7b6d87cf01661670fac45c93126bed97b9843139ed510f975d047ea938b6fe96",
+            "sha256_texmf": "c8eae2deaaf51e86d93baa6bbcc4e94c12aa06a0d92893df474cc7d2a012c7a7",
+        },
+        {
+            "version": "20230313",
+            "year": "2023",
+            "sha256_source": "3878aa0e1ed0301c053b0e2ee4e9ad999c441345f4882e79bdd1c8f4ce9e79b9",
+            "sha256_texmf": "4c4dc77a025acaad90fb6140db2802cdb7ca7a9a2332b5e3d66aa77c43a81253",
+        },
         {
             "version": "20220321",
             "year": "2022",
@@ -80,44 +79,32 @@ class Texlive(AutotoolsPackage):
             when="@{0}".format(release["version"]),
         )
 
-    # The following variant is only for the "live" binary installation.
-    # There does not seem to be a complete list of schemes.
-    # Examples include:
-    #   full scheme (everything)
-    #   medium scheme (small + more packages and languages)
-    #   small scheme (basic + xetex, metapost, a few languages)
-    #   basic scheme (plain and latex)
-    #   minimal scheme (plain only)
-    # See:
-    # https://www.tug.org/texlive/doc/texlive-en/texlive-en.html#x1-25025r6
-    variant(
-        "scheme",
-        default="small",
-        values=("minimal", "basic", "small", "medium", "full"),
-        description='Package subset to install, only meaningful for "live" ' "version",
-    )
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
-    depends_on("perl", type="build", when="@live")
-    depends_on("pkgconfig", when="@2019:", type="build")
+    depends_on("pkgconfig", type="build")
 
-    depends_on("cairo+X", when="@2019:")
-    depends_on("freetype", when="@2019:")
-    depends_on("ghostscript", when="@2019:")
-    depends_on("gmp", when="@2019:")
-    depends_on("harfbuzz+graphite2", when="@2019:")
-    depends_on("icu4c", when="@2019:")
-    depends_on("libgd", when="@2019:")
-    depends_on("libpaper", when="@2019:")
-    depends_on("libpng", when="@2019:")
-    depends_on("libxaw", when="@2019:")
-    depends_on("libxt", when="@2019:")
-    depends_on("mpfr", when="@2019:")
-    depends_on("perl", when="@2019:")
-    depends_on("pixman", when="@2019:")
-    depends_on("poppler@:0.84", when="@2019:")
-    depends_on("teckit", when="@2019:")
-    depends_on("zlib-api", when="@2019:")
-    depends_on("zziplib", when="@2019:")
+    depends_on("cairo+X")
+    depends_on("freetype")
+    depends_on("ghostscript")
+    depends_on("gmp")
+    depends_on("harfbuzz+graphite2")
+    depends_on("icu4c")
+    depends_on("libgd")
+    depends_on("libpaper")
+    depends_on("libpng")
+    depends_on("libxaw")
+    depends_on("libxt")
+    depends_on("mpfr")
+    depends_on("perl")
+    depends_on("pixman")
+    depends_on("poppler@:0.83", when="@:2019")
+    depends_on("poppler", when="@:2020")
+    depends_on("teckit")
+    depends_on("zlib-api")
+    depends_on("zziplib")
+    depends_on("lua-lpeg", when="@20240312:")
 
     build_directory = "spack-build"
 
@@ -125,7 +112,6 @@ class Texlive(AutotoolsPackage):
         tex_arch = "{0}-{1}".format(platform.machine(), platform.system().lower())
         return tex_arch
 
-    @when("@2019:")
     def configure_args(self):
         args = [
             "--bindir={0}".format(join_path(self.prefix.bin, self.tex_arch())),
@@ -156,73 +142,35 @@ class Texlive(AutotoolsPackage):
 
     @run_after("install")
     def setup_texlive(self):
-        if not self.spec.satisfies("@live"):
-            mkdirp(self.prefix.tlpkg.TeXLive)
-            install("texk/tests/TeXLive/*", self.prefix.tlpkg.TeXLive)
+        mkdirp(self.prefix.tlpkg.TeXLive)
+        install("texk/tests/TeXLive/*", self.prefix.tlpkg.TeXLive)
 
-            with working_dir("spack-build"):
-                make("texlinks")
+        with working_dir("spack-build"):
+            make("texlinks")
 
-            copy_tree("texlive-{0}-texmf".format(self.version.string), self.prefix)
+        copy_tree("texlive-{0}-texmf".format(self.version.string), self.prefix)
 
-            # Create and run setup utilities
-            fmtutil_sys = Executable(join_path(self.prefix.bin, self.tex_arch(), "fmtutil-sys"))
-            mktexlsr = Executable(join_path(self.prefix.bin, self.tex_arch(), "mktexlsr"))
+        # Create and run setup utilities
+        fmtutil_sys = Executable(join_path(self.prefix.bin, self.tex_arch(), "fmtutil-sys"))
+        mktexlsr = Executable(join_path(self.prefix.bin, self.tex_arch(), "mktexlsr"))
+        mktexlsr()
+        fmtutil_sys("--all")
+        if self.spec.satisfies("@:2023"):
             mtxrun = Executable(join_path(self.prefix.bin, self.tex_arch(), "mtxrun"))
-            mktexlsr()
-            fmtutil_sys("--all")
-            mtxrun("--generate")
-
         else:
-            pass
+            mtxrun_lua = join_path(
+                self.prefix, "texmf-dist", "scripts", "context", "lua", "mtxrun.lua"
+            )
+            chmod = which("chmod")
+            chmod("+x", mtxrun_lua)
+            mtxrun = Executable(mtxrun_lua)
+        mtxrun("--generate")
 
     def setup_build_environment(self, env):
         env.prepend_path("PATH", join_path(self.prefix.bin, self.tex_arch()))
 
     def setup_run_environment(self, env):
         env.prepend_path("PATH", join_path(self.prefix.bin, self.tex_arch()))
-
-    def setup_dependent_build_environment(self, env, dependent_spec):
-        self.setup_run_environment(env)
-
-    @when("@live")
-    def autoreconf(self, spec, prefix):
-        touch("configure")
-
-    @when("@live")
-    def configure(self, spec, prefix):
-        pass
-
-    @when("@live")
-    def build(self, spec, prefix):
-        pass
-
-    @when("@live")
-    def install(self, spec, prefix):
-        # The binary install needs a profile file to be present
-        tmp_profile = tempfile.NamedTemporaryFile()
-        tmp_profile.write("selected_scheme {0}".format(spec.variants["scheme"]).encode())
-
-        # Using texlive's mirror system leads to mysterious problems,
-        # in lieu of being able to specify a repository as a variant, hardwire
-        # a particular (slow, but central) one for now.
-        _repository = "https://ctan.math.washington.edu/tex-archive/systems/texlive/tlnet/"
-        env = os.environ
-        env["TEXLIVE_INSTALL_PREFIX"] = prefix
-        perl = which("perl")
-        scheme = spec.variants["scheme"].value
-        perl(
-            "./install-tl",
-            "-scheme",
-            scheme,
-            "-repository",
-            _repository,
-            "-portable",
-            "-profile",
-            tmp_profile.name,
-        )
-
-        tmp_profile.close()
 
     executables = [r"^tex$"]
 
@@ -231,15 +179,7 @@ class Texlive(AutotoolsPackage):
         # https://askubuntu.com/questions/100406/finding-the-tex-live-version
         # Thanks to @michaelkuhn that told how to reuse the package releases
         # variable.
-        # Added 3 older releases: 2018 (CentOS-8), 2017 (Ubuntu-18.04), 2013 (CentOS-7).
         releases = cls.releases
-        releases.extend(
-            [
-                {"version": "20180414", "year": "2018"},
-                {"version": "20170524", "year": "2017"},
-                {"version": "20130530", "year": "2013"},
-            ]
-        )
         # tex indicates the year only
         output = Executable(exe)("--version", output=str, error=str)
         match = re.search(r"TeX Live (\d+)", output)

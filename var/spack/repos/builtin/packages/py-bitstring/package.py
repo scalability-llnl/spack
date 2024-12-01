@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyBitstring(PythonPackage):
 
     homepage = "http://pythonhosted.org/bitstring"
     pypi = "bitstring/bitstring-3.1.6.tar.gz"
+
+    license("MIT")
 
     version("4.0.2", sha256="a391db8828ac4485dd5ce72c80b27ebac3e7b989631359959e310cd9729723b2")
     version("3.1.5", sha256="c163a86fcef377c314690051885d86b47419e3e1770990c212e16723c1c08faa")

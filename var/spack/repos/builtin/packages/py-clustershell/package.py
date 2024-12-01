@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyClustershell(PythonPackage):
 
     homepage = "https://cea-hpc.github.io/clustershell/"
     url = "https://github.com/cea-hpc/clustershell/archive/v1.8.4.tar.gz"
+
+    license("LGPL-2.1-or-later")
 
     version("1.8.4", sha256="763793f729bd1c275361717c540e01ad5fe536119eca92f14077c0995739b9d7")
     version("1.8.3", sha256="86b0d524e5e50c0a15faec01d8642f0ff12ba78d50b7e7b660261be5d53fed9c")

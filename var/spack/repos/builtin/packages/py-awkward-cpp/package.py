@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,9 @@ class PyAwkwardCpp(PythonPackage):
 
     maintainers("vvolkl", "wdconinc")
 
+    license("BSD-3-Clause")
+
+    version("35", sha256="1f8b112a597bd2438794e1a721a63aa61869fa9598a17ac6bd811ad6f6400d06")
     version("12", sha256="429f7fcc37a671afa67fe9680f2edc3a123d1c74d399e5889c654f9529f9f8f2")
     version("11", sha256="02d719a4da7487564b29b8e8b78925a32ac818b6f5572c2f55912b4e0e59c7a4")
     version("10", sha256="d1c856cb6ef5cf3d4f67506a7efc59239f595635865cc9f4ab18440b8bfb11c6")
@@ -28,11 +31,18 @@ class PyAwkwardCpp(PythonPackage):
     version("3", sha256="6070557762bd95d3642ad9c585609db51f899a1e79ce4f41568835efd7d6e066")
     version("2", sha256="5e63f43e3135f76db81e0924a74ecf4870f585c11a9f432568b377c04028868c")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python@3.7:", type=("build", "run"))
+    depends_on("python@3.8:", type=("build", "run"), when="@19:")
     depends_on("py-scikit-build-core@0.2.0:+pyproject", when="@11:", type="build")
     depends_on("py-pybind11", type=("build", "link"))
     depends_on("py-numpy@1.17.0:", when="@12:", type=("build", "run"))
+    depends_on("py-numpy@1.18.0:", when="@19:", type=("build", "run"))
 
     # older versions
     depends_on("py-numpy@1.14.5:", when="@:11", type=("build", "run"))
     depends_on("py-scikit-build-core@0.1.3:+pyproject", when="@:9", type="build")
+
+    # https://github.com/scikit-hep/awkward/issues/3132#issuecomment-2136042870
+    conflicts("%gcc@14:", when="@:33")

@@ -2,8 +2,11 @@ spack:
   view: false
   packages:
     all:
-      require: target=x86_64_v3
-      variants: ~rocm+cuda cuda_arch=80
+      require:
+      - target=x86_64_v3
+      - ~rocm
+      - +cuda
+      - cuda_arch=80
     llvm:
       # https://github.com/spack/spack/issues/27999
       require: ~cuda
@@ -22,13 +25,12 @@ spack:
     - py-jaxlib
 
     # Keras
-    - py-keras
+    - py-keras backend=tensorflow
+    - py-keras backend=jax
+    - py-keras backend=torch
     - py-keras-applications
     - py-keras-preprocessing
     - py-keras2onnx
-
-    # MXNet
-    - mxnet
 
     # PyTorch
     - py-botorch
@@ -52,7 +54,8 @@ spack:
     - py-torchfile
     - py-torchgeo
     - py-torchmetrics
-    - py-torchtext
+    # torchtext requires older pytorch, which requires older cuda, which doesn't support newer GCC
+    # - py-torchtext
     - py-torchvision
     - py-vector-quantize-pytorch
 
@@ -69,21 +72,19 @@ spack:
     # TensorFlow
     - py-tensorflow
     - py-tensorflow-datasets
-    - py-tensorflow-estimator
     - py-tensorflow-hub
     - py-tensorflow-metadata
     - py-tensorflow-probability
 
     # XGBoost
-    - py-xgboost
-    # - r-xgboost
-    - xgboost
+    # xgboost requires older cuda, which doesn't support newer GCC
+    # - py-xgboost
 
   ci:
     pipeline-gen:
     - build-job:
         image:
-          name: ghcr.io/spack/linux-ubuntu22.04-x86_64_v2:v2023-07-01
+          name: ghcr.io/spack/ubuntu-24.04:v2024-09-05-v2
           entrypoint: ['']
 
   cdash:

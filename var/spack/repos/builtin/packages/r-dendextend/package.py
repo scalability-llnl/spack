@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class RDendextend(RPackage):
     different 'dendrograms' to one another."""
 
     cran = "dendextend"
+
+    license("GPL-2.0-only OR GPL-3.0-only")
 
     version("1.17.1", sha256="87e96e119e7236b4f5df1c6f1b0d4d4e12aab606a2142e039f56d8ec71f9e521")
     version("1.16.0", sha256="ec2fd09c31a2a93292d87a9bd5bfc261840de941dfded79d6c2fe87116708466")

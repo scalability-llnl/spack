@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class Yade(CMakePackage):
 
     maintainers("lmagdanello")
 
+    license("GPL-2.0-only")
+
     version("2023.02a", sha256="f76b5a0aa7f202716efa94cd730e4bc442ffcb40a99caaf6e579ab8695efb0c1")
     version("2022.01a", sha256="3b76185b706aba6113d1e932c5b883cd772e8d8c6b4e5230a01f3370e2b6904c")
     version("2021.01a", sha256="3afab3380e8f5d185af7929213f63341445d6a5ee6bc21bbae102d8ffd93df1d")
@@ -23,6 +25,8 @@ class Yade(CMakePackage):
     version("2018.02a", sha256="629a83ab71e2f47f2a7a83fd2c18ab5ce5573bf239445be0d4ff34ce08c11263")
     version("2017.01a", sha256="cd35caa6b6a017ee82f894e7d6f0826fddc1d921aea04b5896d3f1da95cb649b")
     version("2016.06a", sha256="6e7374d2dcb7c90026be9229a6b30373f9d82fdefd3dc1f952aa6262924f2579")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake", type="build")
     depends_on("gcc@11.4:", type=("build", "run"))

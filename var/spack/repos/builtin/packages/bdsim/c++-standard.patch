@@ -1,0 +1,13 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 4750d9a..7b10b57 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -5,7 +5,7 @@ if (CMAKE_VERSION VERSION_LESS 3.9.0)
+   cmake_policy(SET CMP0042 OLD)
+ endif()
+ 
+-set(CMAKE_CXX_STANDARD 11)
++set(CMAKE_CXX_STANDARD 11 CACHE STRING "")
+ set(CMAKE_CXX_STANDARD_REQUIRED ON)
+ 
+ include(GenerateExportHeader)

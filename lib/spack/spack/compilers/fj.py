@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -9,18 +9,6 @@ import spack.compiler
 
 
 class Fj(spack.compiler.Compiler):
-    # Subclasses use possible names of C compiler
-    cc_names = ["fcc"]
-
-    # Subclasses use possible names of C++ compiler
-    cxx_names = ["FCC"]
-
-    # Subclasses use possible names of Fortran 77 compiler
-    f77_names = ["frt"]
-
-    # Subclasses use possible names of Fortran 90 compiler
-    fc_names = ["frt"]
-
     # Named wrapper links within build_env_path
     link_paths = {
         "cc": os.path.join("fj", "fcc"),

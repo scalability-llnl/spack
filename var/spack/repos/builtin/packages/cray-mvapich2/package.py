@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -26,27 +26,32 @@ class CrayMvapich2(Package):
 
     provides("mpi@3")
 
+    requires("platform=linux", msg="Cray MVAPICH2 is only available on Cray")
+
     def setup_run_environment(self, env):
+        if spack_cc is None:
+            return
+
         env.set("MPICC", spack_cc)
         env.set("MPICXX", spack_cxx)
         env.set("MPIF77", spack_fc)
         env.set("MPIF90", spack_fc)
 
     def setup_dependent_build_environment(self, env, dependent_spec):
-        self.setup_run_environment(env)
-
-        env.set("MPICH_CC", spack_cc)
-        env.set("MPICH_CXX", spack_cxx)
-        env.set("MPICH_F77", spack_f77)
-        env.set("MPICH_F90", spack_fc)
-        env.set("MPICH_FC", spack_fc)
+        dependent_module = dependent_spec.package.module
+        env.set("MPICH_CC", dependent_module.spack_cc)
+        env.set("MPICH_CXX", dependent_module.spack_cxx)
+        env.set("MPICH_F77", dependent_module.spack_f77)
+        env.set("MPICH_F90", dependent_module.spack_fc)
+        env.set("MPICH_FC", dependent_module.spack_fc)
 
     def setup_dependent_package(self, module, dependent_spec):
         spec = self.spec
-        spec.mpicc = spack_cc
-        spec.mpicxx = spack_cxx
-        spec.mpifc = spack_fc
-        spec.mpif77 = spack_f77
+        dependent_module = dependent_spec.package.module
+        spec.mpicc = dependent_module.spack_cc
+        spec.mpicxx = dependent_module.spack_cxx
+        spec.mpifc = dependent_module.spack_fc
+        spec.mpif77 = dependent_module.spack_f77
 
         spec.mpicxx_shared_libs = [
             join_path(self.prefix.lib, "libmpicxx.{0}".format(dso_suffix)),

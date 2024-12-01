@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,9 @@ class Hdf5VolLog(AutotoolsPackage):
     version("master-1.1", branch="master")
 
     version("1.4.0", tag="logvol.1.4.0", commit="786d2cc4da8b4a0827ee00b1b0ab3968ef942f99")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("hdf5@1.14.0:", when="@1.4.0:")
     depends_on("mpi")

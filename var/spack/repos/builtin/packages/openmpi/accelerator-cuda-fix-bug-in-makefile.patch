@@ -1,0 +1,33 @@
+From be28fa6421094fcd0c544a6d457c6d748670959a Mon Sep 17 00:00:00 2001
+From: Howard Pritchard <howardp@lanl.gov>
+Date: Mon, 13 Nov 2023 08:12:28 -0700
+Subject: [PATCH] accelerator/cuda: fix bug in makefile.am
+
+that prevents correct linkage of libcuda.so if it is in
+a non standard location.
+
+Related to https://github.com/spack/spack/pull/40913
+
+Signed-off-by: Howard Pritchard <howardp@lanl.gov>
+
+diff --git a/opal/mca/accelerator/cuda/Makefile.am b/opal/mca/accelerator/cuda/Makefile.am
+index 5646890b..2c533ece 100644
+--- a/opal/mca/accelerator/cuda/Makefile.am
++++ b/opal/mca/accelerator/cuda/Makefile.am
+@@ -34,11 +34,11 @@ mcacomponentdir = $(opallibdir)
+ mcacomponent_LTLIBRARIES = $(component_install)
+ 
+ mca_accelerator_cuda_la_SOURCES = $(sources)
+-mca_accelerator_cuda_la_LDFLAGS = -module -avoid-version
++mca_accelerator_cuda_la_LDFLAGS = -module -avoid-version $(accelerator_cuda_LDFLAGS)
+ mca_accelerator_cuda_la_LIBADD = $(top_builddir)/opal/lib@OPAL_LIB_NAME@.la \
+         $(accelerator_cuda_LIBS)
+ 
+ noinst_LTLIBRARIES = $(component_noinst)
+ libmca_accelerator_cuda_la_SOURCES =$(sources)
+-libmca_accelerator_cuda_la_LDFLAGS = -module -avoid-version
++libmca_accelerator_cuda_la_LDFLAGS = -module -avoid-version $(accelerator_cuda_LDFLAGS)
+ libmca_accelerator_cuda_la_LIBADD = $(accelerator_cuda_LIBS)
+-- 
+2.35.3
+

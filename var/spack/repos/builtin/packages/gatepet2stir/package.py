@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class Gatepet2stir(QMakePackage):
     url = "http://sourceforge.net/projects/gatepet2stir/files/GATE_PET_2_STIR_1_3_2.tar.gz"
 
     version("1.3.2", sha256="c53b990e47b5856d47466cff62763d0a3bfdc12538b6842cce45271badb7a387")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("gperftools")
     depends_on("ncurses")

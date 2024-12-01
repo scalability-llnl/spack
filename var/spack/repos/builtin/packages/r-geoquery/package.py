@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class RGeoquery(RPackage):
     GEOquery is the bridge between GEO and BioConductor."""
 
     bioc = "GEOquery"
+
+    license("MIT")
 
     version("2.68.0", commit="7995c579b068f98ebf3f1cd2cfd0575c3d73530c")
     version("2.66.0", commit="00a954e9f8223607b43cf112943ab575d03a0eb6")

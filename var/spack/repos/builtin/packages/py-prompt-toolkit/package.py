@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,9 @@ class PyPromptToolkit(PythonPackage):
     # dependency. Leave out of 'import_modules' to avoid unnecessary dependency.
     skip_modules = ["prompt_toolkit.contrib.ssh"]
 
+    license("BSD-3-Clause")
+
+    version("3.0.43", sha256="3527b7af26106cbc65a040bcc84839a3566ec1b051bb0bfe953631e704b0ff7d")
     version("3.0.38", sha256="23ac5d50538a9a38c8bde05fecb47d0b403ecd0662857a86f886f798563d5b9b")
     version("3.0.31", sha256="9ada952c9d1787f52ff6d5f3484d0b4df8952787c087edf6a1f7c2cb1ea88148")
     version("3.0.29", sha256="bd640f60e8cecd74f0dc249713d433ace2ddc62b65ee07f96d358e0b152b6ea7")

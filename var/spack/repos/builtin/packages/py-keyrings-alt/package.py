@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyKeyringsAlt(PythonPackage):
 
     homepage = "https://github.com/jaraco/keyrings.alt"
     pypi = "keyrings.alt/keyrings.alt-4.0.2.tar.gz"
+
+    license("MIT")
 
     version("4.2.0", sha256="2ba3d56441ba0637f5f9c096068f67010ac0453f9d0b626de2aa3019353b6431")
     version("4.1.0", sha256="52ccb61d6f16c10f32f30d38cceef7811ed48e086d73e3bae86f0854352c4ab2")

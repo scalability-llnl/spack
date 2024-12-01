@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -56,6 +56,6 @@ def test_build_systems(url_and_build_system):
     url, build_system = url_and_build_system
     with spack.stage.Stage(url) as stage:
         stage.fetch()
-        guesser = spack.cmd.create.BuildSystemGuesser()
-        guesser(stage, url)
+        guesser = spack.cmd.create.BuildSystemAndLanguageGuesser()
+        guesser(stage.archive_file, url)
         assert build_system == guesser.build_system

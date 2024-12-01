@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class RSomaticsignatures(RPackage):
     the matrix decomposition algorithms."""
 
     bioc = "SomaticSignatures"
+
+    license("MIT")
 
     version("2.36.0", commit="26ce72c1fc771f711796eccee0a24c1070d33066")
     version("2.34.0", commit="249b1ef7cef3c94cfb96cc8aa2a16e00c2bd5d1f")

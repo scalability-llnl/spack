@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,9 +15,15 @@ class Primer3(MakefilePackage):
     homepage = "https://primer3.org/"
     url = "https://github.com/primer3-org/primer3/archive/v2.3.7.tar.gz"
 
+    license("GPL-2.0-only")
+
     version("2.6.1", sha256="805cef7ef39607cd40f0f5bb8b32e35e20007153a0a55131dd430ce644c8fb9e")
     version("2.5.0", sha256="7581e2fa3228ef0ee1ffa427b2aa0a18fc635d561208327471daf59d1b804da0")
     version("2.3.7", sha256="f7ac3e64dc89b7c80882bf0f52c2c0a58572f5fdafd178680d4a7ae91b6c465b")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     build_directory = "src"
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyLibrosa(PythonPackage):
 
     homepage = "https://github.com/librosa/librosa"
     pypi = "librosa/librosa-0.7.2.tar.gz"
+
+    license("ISC")
 
     version("0.9.1", sha256="7ed5d6e3f4546e5e3c2840691f9ddc56878f914a35a50060df5fca2b26d4b614")
     version("0.7.2", sha256="656bbda80e98e6330db1ead79cd084b13a762284834d7603fcf7cf7c0dc65f3c")

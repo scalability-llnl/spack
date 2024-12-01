@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -24,6 +24,8 @@ class RLibpressio(RPackage):
     version("1.2", sha256="e5889abf6aabd14b25b5c11e8ecc42cfe56681b1e4f7ade9c9fc28de213981b4")
     version("1.1", sha256="b86a541e095b6e41b3548f6cd734c1ff50c70edda2806ed66b5205880fbfbb96")
     version("0.0.1", sha256="a508cf3ec1b06c417e0de0e1e4180f3175ead2e4ec23b374425fcf2abfaa1b88")
+
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "third_party", description="include support for 3rd party compressor modules", default=True

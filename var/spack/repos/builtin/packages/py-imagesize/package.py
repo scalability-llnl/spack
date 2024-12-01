@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyImagesize(PythonPackage):
 
     homepage = "https://github.com/shibukawa/imagesize_py"
     pypi = "imagesize/imagesize-0.7.1.tar.gz"
+
+    license("MIT")
 
     version("1.4.1", sha256="69150444affb9cb0d5cc5a92b3676f0b2fb7cd9ae39e947a5e11a36b4497cd4a")
     version("1.3.0", sha256="cd1750d452385ca327479d45b64d9c7729ecf0b3969a58148298c77092261f9d")

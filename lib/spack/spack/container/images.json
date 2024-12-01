@@ -12,32 +12,26 @@
       },
       "os_package_manager": "yum_amazon"
     },
-    "fedora:38": {
+    "fedora:40": {
       "bootstrap": {
-        "template": "container/fedora_38.dockerfile",
-        "image": "docker.io/fedora:38"
+        "template": "container/fedora.dockerfile",
+        "image": "docker.io/fedora:40"
       },
       "os_package_manager": "dnf",
-      "build": "spack/fedora38",
-      "build_tags": {
-        "develop": "latest"
-      },
+      "build": "spack/fedora40",
       "final": {
-        "image": "docker.io/fedora:38"
+        "image": "docker.io/fedora:40"
       }
     },
-    "fedora:37": {
+    "fedora:39": {
       "bootstrap": {
-        "template": "container/fedora_37.dockerfile",
-        "image": "docker.io/fedora:37"
+        "template": "container/fedora.dockerfile",
+        "image": "docker.io/fedora:39"
       },
       "os_package_manager": "dnf",
-      "build": "spack/fedora37",
-      "build_tags": {
-        "develop": "latest"
-      },
+      "build": "spack/fedora39",
       "final": {
-        "image": "docker.io/fedora:37"
+        "image": "docker.io/fedora:39"
       }
     },
     "rockylinux:9": {
@@ -47,9 +41,6 @@
       },
       "os_package_manager": "dnf_epel",
       "build": "spack/rockylinux9",
-      "build_tags": {
-        "develop": "latest"
-      },
       "final": {
         "image": "docker.io/rockylinux:9"
       }
@@ -61,9 +52,6 @@
       },
       "os_package_manager": "dnf_epel",
       "build": "spack/rockylinux8",
-      "build_tags": {
-        "develop": "latest"
-      },
       "final": {
         "image": "docker.io/rockylinux:8"
       }
@@ -71,53 +59,34 @@
     "almalinux:9": {
       "bootstrap": {
         "template": "container/almalinux_9.dockerfile",
-        "image": "quay.io/almalinux/almalinux:9"
+        "image": "quay.io/almalinuxorg/almalinux:9"
       },
       "os_package_manager": "dnf_epel",
       "build": "spack/almalinux9",
-      "build_tags": {
-        "develop": "latest"
-      },
       "final": {
-        "image": "quay.io/almalinux/almalinux:9"
+        "image": "quay.io/almalinuxorg/almalinux:9"
       }
     },
     "almalinux:8": {
       "bootstrap": {
         "template": "container/almalinux_8.dockerfile",
-        "image": "quay.io/almalinux/almalinux:8"
+        "image": "quay.io/almalinuxorg/almalinux:8"
       },
       "os_package_manager": "dnf_epel",
       "build": "spack/almalinux8",
-      "build_tags": {
-        "develop": "latest"
-      },
       "final": {
-        "image": "quay.io/almalinux/almalinux:8"
+        "image": "quay.io/almalinuxorg/almalinux:8"
       }
     },
-    "centos:stream": {
+    "centos:stream9": {
       "bootstrap": {
-        "template": "container/centos_stream.dockerfile",
-        "image": "quay.io/centos/centos:stream"
+        "template": "container/centos_stream9.dockerfile",
+        "image": "quay.io/centos/centos:stream9"
       },
       "os_package_manager": "dnf_epel",
-      "build": "spack/centos-stream",
+      "build": "spack/centos-stream9",
       "final": {
-        "image": "quay.io/centos/centos:stream"
-      },
-      "build_tags": {
-        "develop": "latest"
-      }
-    },
-    "centos:7": {
-      "bootstrap": {
-        "template": "container/centos_7.dockerfile"
-      },
-      "os_package_manager": "yum",
-      "build": "spack/centos7",
-      "build_tags": {
-        "develop": "latest"
+        "image": "quay.io/centos/centos:stream9"
       }
     },
     "opensuse/leap:15": {
@@ -126,9 +95,6 @@
       },
       "os_package_manager": "zypper",
       "build": "spack/leap15",
-      "build_tags": {
-        "develop": "latest"
-      },
       "final": {
         "image": "opensuse/leap:latest"
       }
@@ -143,35 +109,26 @@
       },
       "os_package_manager": "apt"
     },
+    "ubuntu:24.04": {
+      "bootstrap": {
+        "template": "container/ubuntu_2404.dockerfile"
+      },
+      "os_package_manager": "apt",
+      "build": "spack/ubuntu-noble"
+    },
     "ubuntu:22.04": {
       "bootstrap": {
         "template": "container/ubuntu_2204.dockerfile"
       },
       "os_package_manager": "apt",
-      "build": "spack/ubuntu-jammy",
-      "build_tags": {
-        "develop": "latest"
-      }
+      "build": "spack/ubuntu-jammy"
     },
     "ubuntu:20.04": {
       "bootstrap": {
         "template": "container/ubuntu_2004.dockerfile"
       },
       "build": "spack/ubuntu-focal",
-      "build_tags": {
-        "develop": "latest"
-      },
       "os_package_manager": "apt"
-    },
-    "ubuntu:18.04": {
-      "bootstrap": {
-        "template": "container/ubuntu_1804.dockerfile"
-      },
-      "os_package_manager": "apt",
-      "build": "spack/ubuntu-bionic",
-      "build_tags": {
-        "develop": "latest"
-      }
     }
   },
   "os_package_managers": {

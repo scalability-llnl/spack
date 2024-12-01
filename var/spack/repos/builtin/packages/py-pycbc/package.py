@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyPycbc(PythonPackage):
 
     homepage = "https://pycbc.org/"
     pypi = "PyCBC/PyCBC-1.14.1.tar.gz"
+
+    license("GPL-3.0-or-later")
 
     version("1.14.1", sha256="4b0a309cb6209837aaebbd691413a286dd7200ccf4b977ffed1462a65ac35dc0")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -813,10 +813,6 @@ class LockDowngradeError(LockError):
     def __init__(self, path):
         msg = "Cannot downgrade lock from write to read on file: %s" % path
         super().__init__(msg)
-
-
-class LockLimitError(LockError):
-    """Raised when exceed maximum attempts to acquire a lock."""
 
 
 class LockTimeoutError(LockError):

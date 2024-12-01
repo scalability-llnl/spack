@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,6 +22,8 @@ class PyYt(PythonPackage):
 
     maintainers("charmoniumq")
 
+    license("BSD-3-Clause")
+
     version("4.1.2", sha256="0ae03288b067721baad14c016f253dc791cd444a1f2dd5d804cf91da622a0c76")
     version("3.6.1", sha256="be454f9d05dcbe0623328b4df43a1bfd1f0925e516be97399710452931a19bb0")
     version("3.6.0", sha256="effb00536f19fd2bdc18f67dacd5550b82066a6adce5b928f27a01d7505109ec")
@@ -37,6 +39,9 @@ class PyYt(PythonPackage):
     version("3.3.0", sha256="537c67e85c8f5cc5530a1223a74d27eb7f11c459651903c3092c6a97b450d019")
     version("3.2.3", sha256="4d6ccf345d9fab965335c9faf8708c7eea79366b81d77f0f302808be3e82c0ed")
     version("3.2.2", sha256="78866f51e4751534ad60987000f149a8295952b99b37ca249d45e4d11095a5df")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("astropy", default=True, description="enable astropy support")
     variant("h5py", default=True, description="enable h5py support")
@@ -54,6 +59,8 @@ class PyYt(PythonPackage):
     depends_on("py-more-itertools@8.4:", when="@4.1.2:")
     depends_on("py-numpy@1.10.4:", type=("build", "run"))
     depends_on("py-numpy@1.14.5:", type=("build", "run"), when="@4.1.2:")
+    # https://github.com/yt-project/yt/pull/4859
+    depends_on("py-numpy@:1", when="@:4.3.0", type=("build", "run"))
     depends_on("py-packaging@20.9:", type=("build", "run"), when="@4.1.2:")
     # PIL/pillow and pyparsing dependency is handled by matplotlib
     depends_on("py-tomli-w@0.4:", type=("build", "run"), when="@4.1.2:")

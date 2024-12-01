@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyBeniget(PythonPackage):
 
     homepage = "https://github.com/serge-sans-paille/beniget/"
     pypi = "beniget/beniget-0.3.0.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("0.4.1", sha256="75554b3b8ad0553ce2f607627dad3d95c60c441189875b98e097528f8e23ac0c")
     version("0.4.0", sha256="72bbd47b1ae93690f5fb2ad3902ce1ae61dcd868ce6cfbf33e9bad71f9ed8749")

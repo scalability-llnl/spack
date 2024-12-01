@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class Wxparaver(AutotoolsPackage):
     homepage = "https://tools.bsc.es/paraver"
     url = "https://ftp.tools.bsc.es/wxparaver/wxparaver-4.9.2-src.tar.bz2"
 
+    license("LGPL-2.1-or-later")
+
     version("4.9.2", sha256="83289584040bcedf8cab1b2ae3545191c8bdef0e11ab62b06e54cbf111f2127a")
     version("4.9.1", sha256="e89fdf563d1fc73ed0018cf0e25b458b6617ec33325ed3fdbf06397c556f3a8e")
     version("4.9.0", sha256="1f9964d7987032d01a354327845bf53ae369be5d8acf7d4e85bec81699a6ddf6")
@@ -24,6 +26,9 @@ class Wxparaver(AutotoolsPackage):
     version("4.7.2", sha256="90107797d6af6fc3ebd9505445bb518d673edecbe5d08d1b7af01695d53241ae")
     version("4.7.1", sha256="8cbec0c5e0f8a849820f6682cbb0920ea234bb7f20d1483e38ea5d0b0ee045cd")
     version("4.7.0", sha256="81e02bcc1853455b13435172a4336ba85ba05020887d322c9678c97def03d76f")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("boost@1.36: +serialization")
     depends_on("wxwidgets@2.8:")  # NOTE: using external for this one is usually simpler

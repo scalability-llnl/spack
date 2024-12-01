@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class Bashtop(Package):
 
     homepage = "https://github.com/aristocratos/bashtop"
     url = "https://github.com/aristocratos/bashtop/archive/v0.8.17.tar.gz"
+
+    license("Apache-2.0")
 
     version("0.8.17", sha256="853a7143de533437cc1654b853bc89da54ff91c629820ac45b7c8708dababf1f")
     version("0.8.16", sha256="6249e5c678fdb0a2a87d6fa13b9fe1f6bd56f7dbcaba0066d2a5275a7f9a9355")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyAnndata(PythonPackage):
 
     homepage = "https://github.com/theislab/anndata"
     pypi = "anndata/anndata-0.8.0.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("0.8.0", sha256="94d2cc6f76c0317c0ac28564e3092b313b7ad19c737d66701961f3e620b9066e")
 

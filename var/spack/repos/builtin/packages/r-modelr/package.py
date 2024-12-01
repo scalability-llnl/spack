@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class RModelr(RPackage):
     pipeline of data manipulation and visualisation."""
 
     cran = "modelr"
+
+    license("GPL-3.0-only")
 
     version("0.1.11", sha256="94ebd506e9ccf3bf25318be6a182f8f89c3669a77b41864a0b9dbcc1d4337bd3")
     version("0.1.9", sha256="10e9fde89e4695bbab3de2490336f68805cc327807a809982231169963dfa9c9")

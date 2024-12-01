@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,6 +22,8 @@ class RBsseq(RPackage):
     version("1.24.4", commit="8fe7a035802055cf14783d2ab92af70c5d5800ed")
     version("1.22.0", commit="d4f7301dcd4a03431b0833302b5a79c6f1b186cc")
     version("1.20.0", commit="07e398bc38ba903881df9a5d0577cca15788e0cd")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r@3.5:", type=("build", "run"))
     depends_on("r@4.0:", type=("build", "run"), when="@1.26.0:")

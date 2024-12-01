@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,10 @@ class Fermisciencetools(Package):
     # which leads to failing in building it from source. Hopefully someone else
     # can figure it out and we can use the source distribution instead.
     version("11r5p3", sha256="2f4fc32a0b2e5c0f1ddb220a0560f67e66052b7907c72dba181908dc9269ffe8")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     def install(self, spec, prefix):
         install_tree("x86_64-unknown-linux-gnu-libc2.17", prefix)

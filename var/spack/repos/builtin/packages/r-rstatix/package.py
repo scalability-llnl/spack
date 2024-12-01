@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -25,6 +25,8 @@ class RRstatix(RPackage):
     normality and homogeneity of variances."""
 
     cran = "rstatix"
+
+    license("GPL-2.0-only")
 
     version("0.7.2", sha256="e0c6f5ab1d9c5d84713defabc5d149aad3d55944cffdb903cc128b694e5221a1")
     version("0.7.0", sha256="a5ae17dc32cc26fc5dcab9ff0a9747ce3786c9fe091699247ad8b9f823f2600c")

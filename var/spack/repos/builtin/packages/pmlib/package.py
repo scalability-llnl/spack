@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,8 +16,14 @@ class Pmlib(CMakePackage):
     homepage = "https://github.com/avr-aics-riken/PMlib"
     git = "https://github.com/avr-aics-riken/PMlib.git"
 
+    license("BSD-2-Clause")
+
     version("master", branch="master")
     version("6.4.1", commit="0a35f5bec8c12e532e5a1bdac8c32c659fd3ee11")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("mpi", default=True, description="Activate MPI support")
     variant("example", default=False, description="This option turns on compiling sample codes.")

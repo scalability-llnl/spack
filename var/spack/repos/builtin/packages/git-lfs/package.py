@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -24,6 +24,10 @@ class GitLfs(MakefilePackage):
 
     maintainers("sethrj")
 
+    license("MIT")
+
+    version("3.5.1", sha256="d682a12c0bc48d08d28834dd0d575c91d53dd6c6db63c45c2db7c3dd2fb69ea4")
+    version("3.4.1", sha256="2a36239d7968ae18e1ba2820dc664c4ef753f10bf424f98bccaf44d527f19a17")
     version("3.3.0", sha256="d5eeb9ee33188d3dd6a391f8a39b96d271f10295129789e5b3a1ac0e9f5114f5")
     version("3.1.2", sha256="5c9bc449068d0104ea124c25f596af16da85e7b5bf256bc544d8ce5f4fe231f2")
     version("2.13.3", sha256="f8bd7a06e61e47417eb54c3a0db809ea864a9322629b5544b78661edab17b950")
@@ -37,6 +41,10 @@ class GitLfs(MakefilePackage):
     version("2.7.0", sha256="1c829ddd163be2206a44edb366bd7f6d84c5afae3496687405ca9d2a5f3af07b")
     version("2.6.1", sha256="e17cd9d4e66d1116be32f7ddc7e660c7f8fabbf510bc01b01ec15a22dd934ead")
 
+    depends_on("go@1.21:", type="build", when="@3.5:")
+    depends_on("go@1.20:", type="build", when="@3.4:")
+    depends_on("go@1.19:", type="build", when="@3.3:")
+    depends_on("go@1.18:", type="build", when="@3.2:")
     depends_on("go@1.17:", type="build", when="@2.13:")
     depends_on("go@1.5:", type="build", when="@:2.12")
     depends_on("git@1.8.2:", type="run")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyBotorch(PythonPackage):
     pypi = "botorch/botorch-0.6.4.tar.gz"
 
     maintainers("adamjstewart", "meyersbs")
+
+    license("MIT")
 
     version("0.8.4", sha256="e2c17efa8fcda3c9353bbd14ba283ddf237d66151097c0af483bbaaaac61288b")
     version("0.8.3", sha256="e529f7adbb2b54f46125ae904682fc0f0d02ab8bdb9067ede521c379b355bf73")

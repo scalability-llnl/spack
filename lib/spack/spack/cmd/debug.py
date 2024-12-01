@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -6,17 +6,19 @@
 import os
 import platform
 import re
+import sys
 from datetime import datetime
 from glob import glob
 
 import llnl.util.tty as tty
 from llnl.util.filesystem import working_dir
 
-import spack.config
+import spack
 import spack.paths
 import spack.platforms
+import spack.spec
+import spack.store
 import spack.util.git
-from spack.main import get_version
 from spack.util.executable import which
 
 description = "debugging commands for troubleshooting Spack"
@@ -62,9 +64,10 @@ def create_db_tarball(args):
 
     base = os.path.basename(str(spack.store.STORE.root))
     transform_args = []
+    # Currently --transform and -s are not supported by Windows native tar
     if "GNU" in tar("--version", output=str):
         transform_args = ["--transform", "s/^%s/%s/" % (base, tarball_name)]
-    else:
+    elif sys.platform != "win32":
         transform_args = ["-s", "/^%s/%s/" % (base, tarball_name)]
 
     wd = os.path.dirname(str(spack.store.STORE.root))
@@ -87,10 +90,9 @@ def report(args):
     host_os = host_platform.operating_system("frontend")
     host_target = host_platform.target("frontend")
     architecture = spack.spec.ArchSpec((str(host_platform), str(host_os), str(host_target)))
-    print("* **Spack:**", get_version())
+    print("* **Spack:**", spack.get_version())
     print("* **Python:**", platform.python_version())
     print("* **Platform:**", architecture)
-    print("* **Concretizer:**", spack.config.get("config:concretizer"))
 
 
 def debug(parser, args):

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,8 +21,13 @@ class LdcBootstrap(CMakePackage):
     homepage = "https://dlang.org/"
     url = "https://github.com/ldc-developers/ldc/releases/download/v0.17.4/ldc-0.17.4-src.tar.gz"
 
+    license("LGPL-2.1-or-later")
+
     # This is the last version that does not require a D compiler to bootstrap
     version("0.17.4", sha256="48428afde380415640f3db4e38529345f3c8485b1913717995547f907534c1c3")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("llvm@3.7:")
     depends_on("zlib-api")

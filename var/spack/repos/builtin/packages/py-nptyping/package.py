@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyNptyping(PythonPackage):
     homepage = "https://github.com/ramonhagenaars/nptyping"
     url = "https://github.com/ramonhagenaars/nptyping/archive/v2.4.1.tar.gz"
     # avoid pypi for now: https://github.com/ramonhagenaars/nptyping/issues/98
+
+    license("MIT")
 
     version("2.4.1", sha256="1c1b2b08220d271f3e52dbf2bd9190e4dd15b3c04abfcf7a04ec533d3cc9fdab")
     version("1.4.1", sha256="bbcedb967f8be1302dffdd999eb531b99712c6914078294b4411758d5899b3b6")

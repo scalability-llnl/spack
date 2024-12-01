@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class OphidiaPrimitives(AutotoolsPackage):
     url = "https://github.com/OphidiaBigData/ophidia-primitives/archive/refs/tags/v1.7.1.tar.gz"
     maintainers("eldoo", "SoniaScard")
     version("1.7.1", sha256="efec5248dca8fb766abcd536344eefbe2e970fb551f03454a968e59e2df69116")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

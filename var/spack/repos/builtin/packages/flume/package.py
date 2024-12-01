@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,9 +18,12 @@ class Flume(Package):
     application.
     """
 
-    homepage = "https://cwiki.apache.org/FLUME"
+    homepage = "https://flume.apache.org"
     url = "https://www.apache.org/dist/flume/1.9.0/apache-flume-1.9.0-bin.tar.gz"
 
+    license("Apache-2.0", checked_by="wdconinc")
+
+    version("1.11.0", sha256="6eb7806076bdc3dcadb728275eeee7ba5cb12b63a2d981de3da9063008dba678")
     version("1.9.0", sha256="0373ed5abfd44dc4ab23d9a02251ffd7e3b32c02d83a03546e97ec15a7b23619")
     version("1.8.0", sha256="be1b554a5e23340ecc5e0b044215bf7828ff841f6eabe647b526d31add1ab5fa")
     version("1.7.0", sha256="b97254cf37c36b6e5045f764095d86fc6d9a8043dda169e950547fcae35681ec")

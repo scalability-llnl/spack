@@ -1,10 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
-from typing import IO, Optional, Tuple
+from typing import BinaryIO, Optional, Tuple
 
 import llnl.util.tty as tty
 from llnl.util.filesystem import BaseDirectoryVisitor, visit_directory_tree
@@ -18,7 +18,7 @@ def should_keep(path: bytes) -> bool:
     return path.startswith(b"$") or (os.path.isabs(path) and os.path.lexists(path))
 
 
-def _drop_redundant_rpaths(f: IO) -> Optional[Tuple[bytes, bytes]]:
+def _drop_redundant_rpaths(f: BinaryIO) -> Optional[Tuple[bytes, bytes]]:
     """Drop redundant entries from rpath.
 
     Args:
@@ -117,7 +117,7 @@ def post_install(spec, explicit=None):
         return
 
     # Only enable on platforms using ELF.
-    if not spec.satisfies("platform=linux") and not spec.satisfies("platform=cray"):
+    if not spec.satisfies("platform=linux"):
         return
 
     visit_directory_tree(spec.prefix, ElfFilesWithRPathVisitor())

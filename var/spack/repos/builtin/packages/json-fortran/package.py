@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class JsonFortran(CMakePackage):
     url = "https://github.com/jacobwilliams/json-fortran/archive/8.3.0.tar.gz"
     git = "https://github.com/jacobwilliams"
 
+    license("BSD-3-Clause")
+
     version("master", branch="master")
     version("8.3.0", sha256="5fe9ad709a726416cec986886503e0526419742e288c4e43f63c1c22026d1e8a")
     version("8.2.5", sha256="16eec827f64340c226ba9a8463f001901d469bc400a1e88b849f258f9ef0d100")
@@ -26,6 +28,8 @@ class JsonFortran(CMakePackage):
     version("7.1.0", sha256="e7aa1f6e09b25ebacb17188147380c3f8c0a254754cd24869c001745fcecc9e6")
     version("7.0.0", sha256="9b5b6235489b27d572bbc7620ed8e039fa9d4d14d41b1581b279be9db499f32c")
     version("6.11.0", sha256="0ce38236a0debcd775108684b835f9f92ca9d6594da714c0025014fe9f03eec3")
+
+    depends_on("fortran", type="build")  # generated
 
     depends_on("cmake@2.8.8:", type="build")
 

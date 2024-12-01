@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -45,18 +45,18 @@ class Essl(BundlePackage):
         spec = self.spec
         prefix = self.prefix
 
-        if "+ilp64" in spec:
+        if spec.satisfies("+ilp64"):
             essl_lib = ["libessl6464"]
         else:
             essl_lib = ["libessl"]
 
         if spec.satisfies("threads=openmp"):
             # ESSL SMP support requires XL or Clang OpenMP library
-            if "%xl" in spec or "%xl_r" in spec or "%clang" in spec:
-                if "+ilp64" in spec:
+            if spec.satisfies("%xl") or spec.satisfies("%xl_r") or spec.satisfies("%clang"):
+                if spec.satisfies("+ilp64"):
                     essl_lib = ["libesslsmp6464"]
                 else:
-                    if "+cuda" in spec:
+                    if spec.satisfies("+cuda"):
                         essl_lib = ["libesslsmpcuda"]
                     else:
                         essl_lib = ["libesslsmp"]

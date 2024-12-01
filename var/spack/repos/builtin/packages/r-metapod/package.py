@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,5 +22,7 @@ class RMetapod(RPackage):
     version("1.8.0", commit="6ac6999182d581ed579d2f7535e838b084f67b8d")
     version("1.6.0", commit="cfeaa959f5c6b2119df270f40af9c3ea718c4b00")
     version("1.4.0", commit="e71c2072e5b39f74599e279b28f4da7923b515fb")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r-rcpp", type=("build", "run"))

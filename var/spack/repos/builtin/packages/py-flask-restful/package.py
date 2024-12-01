@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyFlaskRestful(PythonPackage):
 
     homepage = "https://www.github.com/flask-restful/flask-restful/"
     pypi = "Flask-RESTful/Flask-RESTful-0.3.8.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("0.3.9", sha256="ccec650b835d48192138c85329ae03735e6ced58e9b2d9c2146d6c84c06fa53e")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,7 +14,11 @@ class Pangolin(CMakePackage):
     homepage = "https://github.com/stevenlovegrove/Pangolin"
     git = "https://github.com/stevenlovegrove/Pangolin.git"
 
+    license("MIT")
+
     version("master", branch="master")
+
+    depends_on("cxx", type="build")  # generated
 
     # Required dependencies
     depends_on("cmake@2.8.12:", type="build")

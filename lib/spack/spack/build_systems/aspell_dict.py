@@ -1,11 +1,12 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import os
+
 import llnl.util.filesystem as fs
 
 import spack.directives
-import spack.package_base
 import spack.util.executable
 
 from .autotools import AutotoolsBuilder, AutotoolsPackage
@@ -46,18 +47,12 @@ class AspellDictPackage(AutotoolsPackage):
     #: Override the default autotools builder
     AutotoolsBuilder = AspellBuilder
 
-    def view_destination(self, view):
-        aspell_spec = self.spec["aspell"]
-        if view.get_projection_for_spec(aspell_spec) != aspell_spec.prefix:
-            raise spack.package_base.ExtensionError(
-                "aspell does not support non-global extensions"
-            )
-        aspell = aspell_spec.command
-        return aspell("dump", "config", "dict-dir", output=str).strip()
-
-    def view_source(self):
-        return self.prefix.lib
-
     def patch(self):
-        fs.filter_file(r"^dictdir=.*$", "dictdir=/lib", "configure")
-        fs.filter_file(r"^datadir=.*$", "datadir=/lib", "configure")
+        aspell_spec = self.spec["aspell"]
+        aspell = aspell_spec.command
+        dictdir = aspell("dump", "config", "dict-dir", output=str).strip()
+        datadir = aspell("dump", "config", "data-dir", output=str).strip()
+        dictdir = os.path.relpath(dictdir, aspell_spec.prefix)
+        datadir = os.path.relpath(datadir, aspell_spec.prefix)
+        fs.filter_file(r"^dictdir=.*$", f"dictdir=/{dictdir}", "configure")
+        fs.filter_file(r"^datadir=.*$", f"datadir=/{datadir}", "configure")

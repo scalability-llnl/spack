@@ -1,0 +1,37 @@
+diff -Nur spack-src.org/blitz/bzconfig.h spack-src/blitz/bzconfig.h
+--- spack-src.org/blitz/bzconfig.h	2019-10-02 07:50:17.000000000 +0900
++++ spack-src/blitz/bzconfig.h	2023-05-25 15:13:47.000000000 +0900
+@@ -77,6 +77,10 @@
+ /* Pathscale pathCC compiler */
+ #include <blitz/pathscale/bzconfig.h>
+ 
++#elif defined(__FUJITSU)
++/* Fujitsu FCC compiler */
++#include <blitz/fujitsu/bzconfig.h>
++
+ #elif defined(__clang__)
+ /* clang compiler */
+ #include <blitz/llvm/bzconfig.h>
+@@ -93,10 +97,6 @@
+ /* KAI KCC compiler */
+ #include <blitz/kai/bzconfig.h>
+ 
+-#elif defined(__FUJITSU)
+-/* Fujitsu FCC compiler */
+-#include <blitz/fujitsu/bzconfig.h>
+-
+ /* Add other compilers here */
+ 
+ #else
+diff -Nur spack-src.org/m4/ac_compiler_specific_header.m4 spack-src/m4/ac_compiler_specific_header.m4
+--- spack-src.org/m4/ac_compiler_specific_header.m4	2019-10-02 07:50:17.000000000 +0900
++++ spack-src/m4/ac_compiler_specific_header.m4	2023-05-25 15:13:06.000000000 +0900
+@@ -21,7 +21,7 @@
+                                       [COMPILER_VENDOR="gnu"])],
+   [*KCC*],        [COMPILER_VENDOR="kai"],
+   [*pgCC*],       [COMPILER_VENDOR="pgi"],
+-dnl  [*FCC*],        [COMPILER_VENDOR="fujitsu"],
++  [*FCC*],        [COMPILER_VENDOR="fujitsu"],
+   [*pathCC*],     [COMPILER_VENDOR="pathscale"],
+   [*CC*],         [AS_CASE([$target],
+                       [*sgi*],      [COMPILER_VENDOR="sgi"],

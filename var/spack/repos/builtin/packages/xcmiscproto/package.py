@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,7 +12,7 @@ class Xcmiscproto(AutotoolsPackage, XorgPackage):
     This extension defines a protocol that provides Xlib two ways to query
     the server for available resource IDs."""
 
-    homepage = "https://cgit.freedesktop.org/xorg/proto/xcmiscproto"
+    homepage = "https://gitlab.freedesktop.org/xorg/proto/xcmiscproto"
     xorg_mirror_path = "proto/xcmiscproto-1.2.2.tar.gz"
 
     version("1.2.2", sha256="48013cfbe4bd5580925a854a43e2bccbb4c7a5a31128070644617b6dc7f8ef85")

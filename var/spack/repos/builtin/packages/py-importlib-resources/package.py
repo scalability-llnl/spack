@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyImportlibResources(PythonPackage):
 
     homepage = "https://github.com/python/importlib_resources"
     pypi = "importlib_resources/importlib_resources-1.0.2.tar.gz"
+
+    license("Apache-2.0")
 
     version("5.12.0", sha256="4be82589bf5c1d7999aedf2a45159d10cb3ca4f19b2271f8792bc8e6da7b22f6")
     version("5.9.0", sha256="5481e97fb45af8dcf2f798952625591c58fe599d0735d86b10f54de086a61681")

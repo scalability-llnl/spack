@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,9 +18,14 @@ class Scorpio(CMakePackage):
 
     maintainers("pbrady", "zjibben")
 
+    license("LGPL-3.0-only")
+
     version("develop", branch="truchas")
 
     version("2021-12-10", commit="b802f16877a6562ccdbeca8887910d3bd3e25cbb", preferred=True)
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("cmake@3.16:", type="build")
     depends_on("mpi")

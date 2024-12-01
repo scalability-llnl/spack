@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyNipype(PythonPackage):
 
     homepage = "https://github.com/nipy/nipype"
     pypi = "nipype/nipype-1.6.0.tar.gz"
+
+    license("Apache-2.0")
 
     version("1.8.6", sha256="977b1315e8f70f94163ec07e31e5571be83f2add6023141c5a06ac700126f8d1")
     version("1.8.5", sha256="e3842743fb660464dd29de73dcfc9ef66d273be10bcc64059ff21cd5ef1e9655")

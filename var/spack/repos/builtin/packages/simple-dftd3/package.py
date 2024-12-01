@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,10 +17,15 @@ class SimpleDftd3(MesonPackage):
 
     maintainers("awvwgk")
 
+    license("LGPL-3.0-or-later")
+
     version("main", branch="main")
     version("0.7.0", sha256="5390b20102474a3c37240f38226f3a54a809b34bcb910317bdd109b8c2865f4e")
     version("0.6.0", sha256="c057361565f570cb128489c70131487f71b6891a40e5292dfe37041596810dfe")
     version("0.5.1", sha256="0411fdaebe438f652a970cb232ae3199c4cc840366ed05fda4c38e634632040d")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("openmp", default=True, description="Use OpenMP parallelisation")
     variant("python", default=False, description="Build Python extension module")

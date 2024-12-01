@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -6,7 +6,6 @@
 import re
 
 from spack.package import *
-from spack.util.environment import is_system_path
 
 
 class Tar(AutotoolsPackage, GNUMirrorPackage):
@@ -20,12 +19,16 @@ class Tar(AutotoolsPackage, GNUMirrorPackage):
 
     tags = ["core-packages"]
 
+    license("GPL-3.0-or-later")
+
     version("1.34", sha256="03d908cf5768cfe6b7ad588c921c6ed21acabfb2b79b788d1330453507647aed")
     version("1.32", sha256="b59549594d91d84ee00c99cf2541a3330fed3a42c440503326dab767f2fbb96c")
     version("1.31", sha256="b471be6cb68fd13c4878297d856aebd50551646f4e3074906b1a74549c40d5a2")
     version("1.30", sha256="4725cc2c2f5a274b12b39d1f78b3545ec9ebb06a6e48e8845e1995ac8513b088")
     version("1.29", sha256="cae466e6e58c7292355e7080248f244db3a4cf755f33f4fa25ca7f9a7ed09af0")
     version("1.28", sha256="6a6b65bac00a127a508533c604d5bf1a3d40f82707d56f20cefd38a05e8237de")
+
+    depends_on("c", type="build")  # generated
 
     # A saner default than gzip?
     variant(
@@ -72,10 +75,10 @@ class Tar(AutotoolsPackage, GNUMirrorPackage):
             "--with-bzip2={0}".format(spec["bzip2"].prefix.bin.bzip2),
         ]
 
-        if spec["iconv"].name == "libc":
+        if spec["iconv"].name == "libiconv":
+            args.append(f"--with-libiconv-prefix={spec['iconv'].prefix}")
+        else:
             args.append("--without-libiconv-prefix")
-        elif not is_system_path(spec["iconv"].prefix):
-            args.append("--with-libiconv-prefix={0}".format(spec["iconv"].prefix))
 
         if "^zstd" in spec:
             args.append("--with-zstd={0}".format(spec["zstd"].prefix.bin.zstd))

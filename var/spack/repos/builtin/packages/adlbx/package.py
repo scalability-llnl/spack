@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,8 @@ class Adlbx(AutotoolsPackage):
     version("1.0.0", sha256="9d547b1d36e5af1b11c97d0b700c6cb1fec2661cf583553e22b090e3619caba7")
     version("0.9.2", sha256="524902d648001b689a98492402d754a607b8c1d0734699154063c1a4f3410d4a")
     version("0.9.1", sha256="8913493fe0c097ff13c721ab057514e5bdb55f6318d4e3512692ab739c3190b3")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("exmcutils@master", when="@master")
     depends_on("exmcutils@:0.5.7", when="@:0.9.2")

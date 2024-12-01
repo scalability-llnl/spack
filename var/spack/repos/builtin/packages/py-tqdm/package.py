@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,7 @@ class PyTqdm(PythonPackage):
     homepage = "https://github.com/tqdm/tqdm"
     pypi = "tqdm/tqdm-4.45.0.tar.gz"
 
+    version("4.66.3", sha256="23097a41eba115ba99ecae40d06444c15d1c0c698d527a01c6c8bd1c5d0647e5")
     version("4.66.1", sha256="d88e651f9db8d8551a62556d3cff9e3034274ca5d66e93197cf2490e2dcb69c7")
     version("4.65.0", sha256="1871fb68a86b8fb3b59ca4cdd3dcccbc7e6d613eeed31f4c332531977b89beb5")
     version("4.64.1", sha256="5f4f682a004951c1b450bc753c710e9280c5746ce6ffedee253ddbcbf54cf1e4")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class Gunrock(CMakePackage, CudaPackage):
 
     homepage = "https://gunrock.github.io/docs/"
     git = "https://github.com/gunrock/gunrock.git"
+
+    license("Apache-2.0")
 
     version("master", submodules=True)
     version("1.2", submodules=True, tag="v1.2", commit="5ee3df50c45f702eb247ef1abcea7a490b60b2ea")
@@ -30,6 +32,9 @@ class Gunrock(CMakePackage, CudaPackage):
     version("0.3", submodules=True, tag="v0.3", commit="0b146a70f52f699a2a50d1b1aa26b92c45e834d7")
     version("0.2", submodules=True, tag="v0.2", commit="f9d85343ee68c65567184d74021b9483cd142ea0")
     version("0.1", submodules=True, tag="v0.1", commit="4c00284f6b7d490a83fa7afe5cdff60923316448")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("cuda", default=True, description="Build with Cuda support")
 
@@ -158,5 +163,5 @@ See "spack info gunrock"',
         with working_dir(self.build_directory):
             install_tree("lib", prefix.lib)
             # bin dir is created only if tests/examples are built
-            if "+tests" in spec:
+            if spec.satisfies("+tests"):
                 install_tree("bin", prefix.bin)

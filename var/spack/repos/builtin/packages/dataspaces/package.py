@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,8 @@ class Dataspaces(AutotoolsPackage):
 
     homepage = "http://www.dataspaces.org"
     url = "https://dataspaces.rdi2.rutgers.edu/downloads/dataspaces-1.6.2.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("1.8.0", sha256="7f204bb3c03c2990f5a2d76a29185466b584793c63ada03e5e694627e6060605")
     version("1.6.2", sha256="3c43d551c1e8198a4ab269c83928e1dc6f8054e6d41ceaee45155d91a48cf9bf")
@@ -50,7 +52,7 @@ class Dataspaces(AutotoolsPackage):
 
         env.set("CFLAGS", self.compiler.cc_pic_flag)
 
-        if "%gcc@10:" in self.spec:
+        if self.spec.satisfies("%gcc@10:"):
             env.set("FCFLAGS", "-fallow-argument-mismatch")
 
     def configure_args(self):

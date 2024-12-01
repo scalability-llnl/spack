@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,9 +12,14 @@ class Tpm2Tss(AutotoolsPackage):
     homepage = "https://tpm2-software.github.io/"
     url = "https://github.com/tpm2-software/tpm2-tss/archive/3.0.0.tar.gz"
 
+    license("BSD-2-Clause")
+
+    version("4.1.1", sha256="da5b09d5a82d381f7bbd2e1d2db494213f7148659cfaf1b9e423b4df62f48504")
     version("3.0.0", sha256="e88e91aeee2e01ccc45596fb8afcc3b521a660dcebe5a6e1b14ea5e9e5c15cf5")
     version("2.4.2", sha256="1cec5e834a6a750b138cabcd100b3fcd12b16cd21fa4f9103739914743511f75")
     version("2.4.1", sha256="cc6f0691307f3c65d5a1375e2cd22508cc72850dbc70eb820b892f0b3d0cbea2")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

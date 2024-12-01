@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,7 +17,7 @@ class PyAbipy(PythonPackage):
     version("0.2.0", sha256="c72b796ba0f9ea4299eac3085bede092d2652e9e5e8074d3badd19ef7b600792")
 
     variant("gui", default=False, description="Build the GUI")
-    variant("ipython", default=False, when="0.2.0", description="Build IPython support")
+    variant("ipython", default=False, when="@0.2.0", description="Build IPython support")
 
     depends_on("py-setuptools", type="build")
     # in newer pip versions --install-option does not exist

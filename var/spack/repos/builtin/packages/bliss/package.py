@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class Bliss(Package):
 
     homepage = "http://www.tcs.hut.fi/Software/bliss/"
     url = "http://www.tcs.hut.fi/Software/bliss/bliss-0.73.zip"
+
+    license("LGPL-3.0-only")
 
     version("0.73", sha256="f57bf32804140cad58b1240b804e0dbd68f7e6bf67eba8e0c0fa3a62fd7f0f84")
 

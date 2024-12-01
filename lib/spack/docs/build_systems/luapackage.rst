@@ -1,4 +1,4 @@
-.. Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
    Spack Project Developers. See the top-level COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -88,7 +88,7 @@ override the ``luarocks_args`` method like so:
 .. code-block:: python
 
     def luarocks_args(self):
-        return ['flag1', 'flag2']
+        return ["flag1", "flag2"]
 
 One common use of this is to override warnings or flags for newer compilers, as in:
 

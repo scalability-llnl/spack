@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyPysam(PythonPackage):
     homepage = "https://github.com/pysam-developers/pysam"
     pypi = "pysam/pysam-0.14.1.tar.gz"
 
+    license("MIT")
+
     version("0.21.0", sha256="5c9645ddd87668e36ff0a1966391e26f9c403bf85b1bc06c53fe2fcd592da2ce")
     version("0.19.1", sha256="dee403cbdf232170c1e11cc24c76e7dd748fc672ad38eb0414f3b9d569b1448f")
     version("0.18.0", sha256="1d6d49a0b3c626fae410a93d4c80583a8b5ddaacc9b46a080b250dbcebd30a59")
@@ -21,6 +23,8 @@ class PyPysam(PythonPackage):
     version("0.15.1", sha256="658421124c2f3de1b7445e03ca8413df0077f67ea9980abdaab0d1b5f7a8936f")
     version("0.14.1", sha256="2e86f5228429d08975c8adb9030296699012a8deba8ba26cbfc09b374f792c97")
     version("0.7.7", sha256="c9f3018482eec99ee199dda3fdef2aa7424dde6574672a4c0d209a10985755cc")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("py-setuptools@59.0:", when="@0.21:", type="build")
     depends_on("py-setuptools", type="build")

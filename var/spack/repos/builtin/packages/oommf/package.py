@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -40,6 +40,8 @@ class Oommf(Package):
     url = "https://github.com/fangohr/oommf/archive/refs/tags/20a1_20180930_ext.tar.gz"
 
     maintainers("fangohr")
+
+    license("TCL")
 
     version(
         "20b0_20220930",
@@ -105,6 +107,9 @@ class Oommf(Package):
         sha256="363006f549bb63a39564fafc18b52342a14c1c3769c214467a39f72a0c0be36b",
         url="https://github.com/fangohr/oommf/archive/refs/tags/1.2b0_20160930b1.tar.gz",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("tk", type=("build", "link", "test", "run"))
     depends_on("tcl", type=("build", "test", "run"))

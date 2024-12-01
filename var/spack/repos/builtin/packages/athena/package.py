@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class Athena(AutotoolsPackage):
 
     version("master", branch="master")
     version("4.2", sha256="6334848d7f1325aa44859418feac8ce223b56793ae8907103000af5b27f50e7e")
+
+    depends_on("c", type="build")  # generated
 
     # PHYSICS "packages":
     variant(
@@ -183,7 +185,7 @@ class Athena(AutotoolsPackage):
 
         env.set("OPT", "-O3")
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             env.set("CC", spec["mpi"].mpicc)
             env.set("LDR", spec["mpi"].mpicc)
             env.set("MPILIB", spec["mpi"].libs.ld_flags)
@@ -192,7 +194,7 @@ class Athena(AutotoolsPackage):
             env.set("CC", spack_cc)
             env.set("LDR", spack_cc)
 
-        if "+fft" in spec:
+        if spec.satisfies("+fft"):
             env.set("FFTWLIB", spec["fftw"].libs.ld_flags)
             env.set("FFTWINC", spec["fftw"].headers.include_flags)
 
@@ -200,82 +202,82 @@ class Athena(AutotoolsPackage):
         spec = self.spec
         args = []
 
-        if "+conduction" in spec:
+        if spec.satisfies("+conduction"):
             args.append("--enable-conduction")
         else:
             args.append("--disable-conduction")
 
-        if "+resistivity" in spec:
+        if spec.satisfies("+resistivity"):
             args.append("--enable-resistivity")
         else:
             args.append("--disable-resistivity")
 
-        if "+special_relativity" in spec:
+        if spec.satisfies("+special_relativity"):
             args.append("--enable-special-relativity")
         else:
             args.append("--disable-special-relativity")
 
-        if "+viscosity" in spec:
+        if spec.satisfies("+viscosity"):
             args.append("--enable-viscosity")
         else:
             args.append("--disable-viscosity")
 
-        if "+single" in spec:
+        if spec.satisfies("+single"):
             args.append("--enable-single")
         else:
             args.append("--disable-single")
 
-        if "+ghost" in spec:
+        if spec.satisfies("+ghost"):
             args.append("--enable-ghost")
         else:
             args.append("--disable-ghost")
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             args.append("--enable-mpi")
         else:
             args.append("--disable-mpi")
 
-        if "+h_correction" in spec:
+        if spec.satisfies("+h_correction"):
             args.append("--enable-h-correction")
         else:
             args.append("--disable-h-correction")
 
-        if "+fft" in spec:
+        if spec.satisfies("+fft"):
             args.append("--enable-fft")
         else:
             args.append("--disable-fft")
 
-        if "+shearing_box" in spec:
+        if spec.satisfies("+shearing_box"):
             args.append("--enable-shearing-box")
         else:
             args.append("--disable-shearing-box")
 
-        if "+fargo" in spec:
+        if spec.satisfies("+fargo"):
             args.append("--enable-fargo")
         else:
             args.append("--disable-fargo")
 
-        if "+sts" in spec:
+        if spec.satisfies("+sts"):
             args.append("--enable-sts")
         else:
             args.append("--disable-sts")
 
-        if "+smr" in spec:
+        if spec.satisfies("+smr"):
             args.append("--enable-smr")
         else:
             args.append("--disable-smr")
 
-        if "+fofc" in spec:
+        if spec.satisfies("+fofc"):
             args.append("--enable-fofc")
         else:
             args.append("--disable-fofc")
 
-        if "+rotating_frame" in spec:
+        if spec.satisfies("+rotating_frame"):
             args.append("--enable-rotating_frame")
         else:
             args.append("--disable-rotating_frame")
 
-        if "+l1_inflow" in spec:
+        if spec.satisfies("+l1_inflow"):
             args.append("--enable-l1_inflow")
         else:
             args.append("--disable-l1_inflow")

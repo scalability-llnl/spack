@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -6,6 +6,7 @@ import collections
 import email.message
 import os
 import pickle
+import ssl
 import urllib.request
 
 import pytest
@@ -16,7 +17,6 @@ import spack.config
 import spack.mirror
 import spack.paths
 import spack.url
-import spack.util.path
 import spack.util.s3
 import spack.util.url as url_util
 import spack.util.web
@@ -36,6 +36,7 @@ page_3 = _create_url("3.html")
 page_4 = _create_url("4.html")
 
 root_with_fragment = _create_url("index_with_fragment.html")
+root_with_javascript = _create_url("index_with_javascript.html")
 
 
 @pytest.mark.parametrize(
@@ -144,6 +145,11 @@ def test_find_exotic_versions_of_archive_3():
 
 def test_find_versions_of_archive_with_fragment():
     versions = spack.url.find_versions_of_archive(root_tarball, root_with_fragment, list_depth=0)
+    assert Version("5.0.0") in versions
+
+
+def test_find_versions_of_archive_with_javascript():
+    versions = spack.url.find_versions_of_archive(root_tarball, root_with_javascript, list_depth=0)
     assert Version("5.0.0") in versions
 
 
@@ -363,3 +369,81 @@ def test_detailed_http_error_pickle(tmpdir):
     assert deserialized.reason == "Not Found"
     assert str(deserialized.info()) == str(headers)
     assert str(deserialized) == str(error)
+
+
+@pytest.fixture()
+def ssl_scrubbed_env(mutable_config, monkeypatch):
+    """clear out environment variables that could give false positives for SSL Cert tests"""
+    monkeypatch.delenv("SSL_CERT_FILE", raising=False)
+    monkeypatch.delenv("SSL_CERT_DIR", raising=False)
+    monkeypatch.delenv("CURL_CA_BUNDLE", raising=False)
+    spack.config.set("config:verify_ssl", True)
+
+
+@pytest.mark.parametrize(
+    "cert_path,cert_creator",
+    [
+        pytest.param(
+            lambda base_path: os.path.join(base_path, "mock_cert.crt"),
+            lambda cert_path: open(cert_path, "w").close(),
+            id="cert_file",
+        ),
+        pytest.param(
+            lambda base_path: os.path.join(base_path, "mock_cert"),
+            lambda cert_path: os.mkdir(cert_path),
+            id="cert_directory",
+        ),
+    ],
+)
+def test_ssl_urllib(
+    cert_path, cert_creator, tmpdir, ssl_scrubbed_env, mutable_config, monkeypatch
+):
+    """
+    create a proposed cert type and then verify that they exist inside ssl's checks
+    """
+    spack.config.set("config:url_fetch_method", "urllib")
+
+    def mock_verify_locations(self, cafile, capath, cadata):
+        """overwrite ssl's verification to simply check for valid file/path"""
+        assert cafile or capath
+        if cafile:
+            assert os.path.isfile(cafile)
+        if capath:
+            assert os.path.isdir(capath)
+
+    monkeypatch.setattr(ssl.SSLContext, "load_verify_locations", mock_verify_locations)
+
+    with tmpdir.as_cwd():
+        mock_cert = cert_path(tmpdir.strpath)
+        cert_creator(mock_cert)
+        spack.config.set("config:ssl_certs", mock_cert)
+
+        assert mock_cert == spack.config.get("config:ssl_certs", None)
+
+        ssl_context = spack.util.web.ssl_create_default_context()
+        assert ssl_context.verify_mode == ssl.CERT_REQUIRED
+
+
+@pytest.mark.parametrize("cert_exists", [True, False], ids=["exists", "missing"])
+def test_ssl_curl_cert_file(cert_exists, tmpdir, ssl_scrubbed_env, mutable_config, monkeypatch):
+    """
+    Assure that if a valid cert file is specified curl executes
+    with CURL_CA_BUNDLE in the env
+    """
+    spack.config.set("config:url_fetch_method", "curl")
+    with tmpdir.as_cwd():
+        mock_cert = str(tmpdir.join("mock_cert.crt"))
+        spack.config.set("config:ssl_certs", mock_cert)
+        if cert_exists:
+            open(mock_cert, "w").close()
+            assert os.path.isfile(mock_cert)
+        curl = spack.util.web.require_curl()
+
+        # arbitrary call to query the run env
+        dump_env = {}
+        curl("--help", output=str, _dump_env=dump_env)
+
+        if cert_exists:
+            assert dump_env["CURL_CA_BUNDLE"] == mock_cert
+        else:
+            assert "CURL_CA_BUNDLE" not in dump_env

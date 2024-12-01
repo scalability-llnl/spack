@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class Simul(Package):
     version("1.15", sha256="39a2458cd31c9266c58effd598611c610c5a2616ca6a7318f76830d203f3783f")
     version("1.14", sha256="cbc70881b2a03e9a5076dbdf82b6fdfa48351ab381e379935b9c7db0ee315c92")
     version("1.13", sha256="42a67258181fbf723cfe13d4d2dabc5aed0d0daa606b9d817108c354e37d1c64")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("mpi")
 

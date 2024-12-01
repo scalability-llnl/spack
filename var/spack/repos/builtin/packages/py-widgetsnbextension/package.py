@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,6 +10,8 @@ class PyWidgetsnbextension(PythonPackage):
     """IPython HTML widgets for Jupyter"""
 
     pypi = "widgetsnbextension/widgetsnbextension-1.2.6.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("4.0.3", sha256="34824864c062b0b3030ad78210db5ae6a3960dfb61d5b27562d6631774de0286")
     version("3.6.0", sha256="e84a7a9fcb9baf3d57106e184a7389a8f8eb935bf741a5eb9d60aa18cc029a80")

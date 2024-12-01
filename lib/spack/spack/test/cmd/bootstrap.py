@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,7 @@ import spack.config
 import spack.environment as ev
 import spack.main
 import spack.mirror
+import spack.spec
 
 _bootstrap = spack.main.SpackCommand("bootstrap")
 
@@ -169,7 +170,7 @@ def test_remove_and_add_a_source(mutable_config):
     assert not sources
 
     # Add it back and check we restored the initial state
-    _bootstrap("add", "github-actions", "$spack/share/spack/bootstrap/github-actions-v0.5")
+    _bootstrap("add", "github-actions", "$spack/share/spack/bootstrap/github-actions-v0.6")
     sources = spack.bootstrap.core.bootstrapping_sources()
     assert len(sources) == 1
 

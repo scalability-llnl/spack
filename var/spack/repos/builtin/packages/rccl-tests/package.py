@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,15 +10,19 @@ class RcclTests(MakefilePackage):
     """These tests check both the performance and the correctness of RCCL
     operations. They can be compiled against RCCL."""
 
-    homepage = "https://github.com/ROCmSoftwarePlatform/rccl-tests"
-    git = "https://github.com/ROCmSoftwarePlatform/rccl-tests.git"
-    url = "https://github.com/ROCmSoftwarePlatform/rccl-tests.git"
+    homepage = "https://github.com/ROCm/rccl-tests"
+    git = "https://github.com/ROCm/rccl-tests.git"
+    url = "https://github.com/ROCm/rccl-tests.git"
     tags = ["rocm"]
 
     maintainers("bvanessen")
 
+    license("BSD-3-Clause")
+
     version("develop", branch="develop", preferred=True)
     version("master", branch="master")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("mpi", default=True, description="with MPI support")
 

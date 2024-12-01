@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,7 @@ import uuid
 from typing import Callable, Dict, List, Optional, Pattern, Tuple
 from urllib.request import Request
 
+import spack.oci.oci
 from spack.oci.image import Digest
 from spack.oci.opener import OCIAuthHandler
 
@@ -150,7 +151,9 @@ class InMemoryOCIRegistry(DummyServer):
     A third option is to use the chunked upload, but this is not implemented here, because
     it's typically a major performance hit in upload speed, so we're not using it in Spack."""
 
-    def __init__(self, domain: str, allow_single_post: bool = True) -> None:
+    def __init__(
+        self, domain: str, allow_single_post: bool = True, tags_per_page: int = 100
+    ) -> None:
         super().__init__(domain)
         self.router.register("GET", r"/v2/", self.index)
         self.router.register("HEAD", r"/v2/(?P<name>.+)/blobs/(?P<digest>.+)", self.head_blob)
@@ -164,6 +167,9 @@ class InMemoryOCIRegistry(DummyServer):
         # If True, allow single POST upload, not all registries support this
         self.allow_single_post = allow_single_post
 
+        # How many tags are returned in a single request
+        self.tags_per_page = tags_per_page
+
         # Used for POST + PUT upload. This is a map from session ID to image name
         self.sessions: Dict[str, str] = {}
 
@@ -171,7 +177,7 @@ class InMemoryOCIRegistry(DummyServer):
         self.blobs: Dict[str, bytes] = {}
 
         # Map from (name, tag) to manifest
-        self.manifests: Dict[Tuple[str, str], Dict] = {}
+        self.manifests: Dict[Tuple[str, str], dict] = {}
 
     def index(self, req: Request):
         return MockHTTPResponse.with_json(200, "OK", body={})
@@ -225,15 +231,12 @@ class InMemoryOCIRegistry(DummyServer):
     def put_manifest(self, req: Request, name: str, ref: str):
         # In requests, Python runs header.capitalize().
         content_type = req.get_header("Content-type")
-        assert content_type in (
-            "application/vnd.oci.image.manifest.v1+json",
-            "application/vnd.oci.image.index.v1+json",
-        )
+        assert content_type in spack.oci.oci.all_content_type
 
         index_or_manifest = json.loads(self._require_data(req))
 
         # Verify that we have all blobs (layers for manifest, manifests for index)
-        if content_type == "application/vnd.oci.image.manifest.v1+json":
+        if content_type in spack.oci.oci.manifest_content_type:
             for layer in index_or_manifest["layers"]:
                 assert layer["digest"] in self.blobs, "Missing blob while uploading manifest"
 
@@ -282,10 +285,34 @@ class InMemoryOCIRegistry(DummyServer):
         return MockHTTPResponse(201, "Created", headers={"Location": f"/v2/{name}/blobs/{digest}"})
 
     def list_tags(self, req: Request, name: str):
+        # Paginate using Link headers, this was added to the spec in the following commit:
+        # https://github.com/opencontainers/distribution-spec/commit/2ed79d930ecec11dd755dc8190409a3b10f01ca9
+
         # List all tags, exclude digests.
-        tags = [_tag for _name, _tag in self.manifests.keys() if _name == name and ":" not in _tag]
-        tags.sort()
-        return MockHTTPResponse.with_json(200, "OK", body={"tags": tags})
+        all_tags = sorted(
+            _tag for _name, _tag in self.manifests.keys() if _name == name and ":" not in _tag
+        )
+
+        query = urllib.parse.parse_qs(urllib.parse.urlparse(req.full_url).query)
+
+        n = int(query["n"][0]) if "n" in query else self.tags_per_page
+
+        if "last" in query:
+            try:
+                offset = all_tags.index(query["last"][0]) + 1
+            except ValueError:
+                return MockHTTPResponse(404, "Not found")
+        else:
+            offset = 0
+
+        tags = all_tags[offset : offset + n]
+
+        if offset + n < len(all_tags):
+            headers = {"Link": f'</v2/{name}/tags/list?last={tags[-1]}&n={n}>; rel="next"'}
+        else:
+            headers = None
+
+        return MockHTTPResponse.with_json(200, "OK", headers=headers, body={"tags": tags})
 
 
 class DummyServerUrllibHandler(urllib.request.BaseHandler):

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyDeprecated(PythonPackage):
 
     homepage = "https://github.com/tantale/deprecated"
     pypi = "Deprecated/Deprecated-1.2.13.tar.gz"
+
+    license("MIT")
 
     version("1.2.13", sha256="43ac5335da90c31c24ba028af536a91d41d53f9e6901ddb021bcc572ce44e38d")
     version("1.2.7", sha256="408038ab5fdeca67554e8f6742d1521cd3cd0ee0ff9d47f29318a4f4da31c308")

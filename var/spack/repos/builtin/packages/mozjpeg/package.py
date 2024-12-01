@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,7 +16,12 @@ class Mozjpeg(CMakePackage):
 
     maintainers("RemiLacroix-IDRIS")
 
+    license("Zlib")
+
     version("4.1.1", sha256="66b1b8d6b55d263f35f27f55acaaa3234df2a401232de99b6d099e2bb0a9d196")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     provides("jpeg")
 

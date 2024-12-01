@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,8 +13,12 @@ class Libcroco(AutotoolsPackage):
     homepage = "https://developer.gnome.org/libcroco"
     url = "http://ftp.gnome.org/pub/gnome/sources/libcroco/0.6/libcroco-0.6.12.tar.xz"
 
+    license("LGPL-2.0-or-later")
+
     version("0.6.13", sha256="767ec234ae7aa684695b3a735548224888132e063f92db585759b422570621d4")
     version("0.6.12", sha256="ddc4b5546c9fb4280a5017e2707fbd4839034ed1aba5b7d4372212f34f84f860")
+
+    depends_on("c", type="build")  # generated
 
     variant("doc", default=False, description="Build documentation with gtk-doc")
 
@@ -28,7 +32,7 @@ class Libcroco(AutotoolsPackage):
 
     def configure_args(self):
         config_args = []
-        if "+doc" in self.spec:
+        if self.spec.satisfies("+doc"):
             config_args.extend(
                 [
                     "--enable-gtk-doc",

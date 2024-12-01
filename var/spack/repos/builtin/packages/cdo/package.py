@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,36 @@ class Cdo(AutotoolsPackage):
 
     maintainers("skosukhin", "Try2Code")
 
+    version(
+        "2.4.4",
+        sha256="49f50bd18dacd585e9518cfd4f55548f692426edfb3b27ddcd1c653eab53d063",
+        url="https://code.mpimet.mpg.de/attachments/download/29649/cdo-2.4.4.tar.gz",
+    )
+    version(
+        "2.4.3",
+        sha256="4a608b70ee1907b45e149ad44033bb47d35b7da96096553193bd362ca9d445eb",
+        url="https://code.mpimet.mpg.de/attachments/download/29616/cdo-2.4.3.tar.gz",
+    )
+    version(
+        "2.4.2",
+        sha256="4df1fe2b8f92f54c27eb9f399edfab40d9322005a6732ca1524ef5c1627ac4e7",
+        url="https://code.mpimet.mpg.de/attachments/download/29481/cdo-2.4.2.tar.gz",
+    )
+    version(
+        "2.4.1",
+        sha256="9144d82b8ab7e73f4cb7a94cc4b884f64dff1a0455c4eb6c93ce4b568007aabf",
+        url="https://code.mpimet.mpg.de/attachments/download/29421/cdo-2.4.1.tar.gz",
+    )
+    version(
+        "2.4.0",
+        sha256="a4790fb8cc07f353b11f9bbe49218b8e4be8e5ae56aade8420bad390510b4d2c",
+        url="https://code.mpimet.mpg.de/attachments/download/29313/cdo-2.4.0.tar.gz",
+    )
+    version(
+        "2.3.0",
+        sha256="10c878227baf718a6917837527d4426c2d0022cfac4457c65155b9c57f091f6b",
+        url="https://code.mpimet.mpg.de/attachments/download/29019/cdo-2.3.0.tar.gz",
+    )
     version(
         "2.2.2",
         sha256="419c77315244019af41a296c05066f474cccbf94debfaae9e2106da51bc7c937",
@@ -141,6 +171,24 @@ class Cdo(AutotoolsPackage):
         url="https://code.mpimet.mpg.de/attachments/download/12760/cdo-1.7.2.tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
+    # patches
+    # see https://code.mpimet.mpg.de/boards/1/topics/15594
+    patch(
+        "add_algorithm_header.patch",
+        when="@2.4.0:2.4.2 %gcc@14:",
+        sha256="0bc20d2fcb14d8e4010d4222297f259eb7b4220effd97555ed3f027e63cf8b30",
+    )
+    patch(
+        "add_algorithm_header_222.patch",
+        when="@2.2.2:2.3.0 %gcc@14:",
+        sha256="db0d9bd32bbee01d914c1dbebd751403e9c918fafd540fd6ecc6a2f27e0900cf",
+    )
+    conflicts("%gcc@14:", when="@:2.2.0", msg="Compilation with gcc@14: requires cdo@2.2.2:")
+
     variant("netcdf", default=True, description="Enable NetCDF support")
     variant(
         "grib2",
@@ -204,7 +252,7 @@ class Cdo(AutotoolsPackage):
             prefix = self.spec[spec_name].prefix
             return "yes" if is_system_path(prefix) else prefix
 
-        if "+netcdf" in self.spec:
+        if self.spec.satisfies("+netcdf"):
             config_args.append("--with-netcdf=" + yes_or_prefix("netcdf-c"))
             # We need to make sure that the libtool script of libcdi - the
             # internal library of CDO - finds the correct version of hdf5.
@@ -237,12 +285,12 @@ class Cdo(AutotoolsPackage):
             if self.spec.satisfies("@1.9:"):
                 config_args.append("--without-eccodes")
 
-        if "+external-grib1" in self.spec:
+        if self.spec.satisfies("+external-grib1"):
             config_args.append("--disable-cgribex")
         else:
             config_args.append("--enable-cgribex")
 
-        if "+szip" in self.spec:
+        if self.spec.satisfies("+szip"):
             config_args.append("--with-szlib=" + yes_or_prefix("szip"))
         else:
             config_args.append("--without-szlib")
@@ -253,7 +301,7 @@ class Cdo(AutotoolsPackage):
             "udunits2", activation_value=lambda x: yes_or_prefix("udunits")
         )
 
-        if "+libxml2" in self.spec:
+        if self.spec.satisfies("+libxml2"):
             libxml2_spec = self.spec["libxml2"]
             if is_system_path(libxml2_spec.prefix):
                 config_args.append("--with-libxml2=yes")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class RBibtex(RPackage):
     Utility to parse a bibtex file."""
 
     cran = "bibtex"
+
+    license("GPL-2.0-or-later")
 
     version("0.5.1", sha256="f3c1a0a4e666c4addd73ff13ce8ce073d73d10ebca36d333328ade8a0b493ed1")
     version("0.5.0", sha256="ec81b4ee5b43f2114afd18d266f4633451abe20013422eb03848f00924b79167")

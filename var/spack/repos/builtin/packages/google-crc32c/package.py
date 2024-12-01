@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,7 +14,12 @@ class GoogleCrc32c(CMakePackage):
 
     maintainers("marcusboden")
 
+    license("BSD-3-Clause")
+
     version("1.1.2", sha256="ac07840513072b7fcebda6e821068aa04889018f24e10e46181068fb214d7e56")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3.1:", type="build")
 

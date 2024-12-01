@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class Bsseeker2(Package):
 
     homepage = "http://pellegrini.mcdb.ucla.edu/BS_Seeker2"
     url = "https://github.com/BSSeeker/BSseeker2/archive/BSseeker2-v2.1.8.tar.gz"
+
+    license("MIT")
 
     version("2.1.8", sha256="34ebedce36a0fca9e22405d4c2c20bc978439d4a34d1d543657fbc53ff847934")
     version(

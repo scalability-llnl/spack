@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,10 @@ class MochiThallium(CMakePackage):
     maintainers("mdorier")
 
     version("main", branch="main")
+    version("0.11.3", sha256="d1ffd7ee1ccbcfb00f246cb29c5bc2560e59f8808609cbc19b7098aa8fc903c4")
+    version("0.11.2", sha256="4f1e57ca843b7592525c179dec73bfb603a27fbda4feaf028d636e05c1b38e36")
+    version("0.11.1", sha256="be99bec2309ce1945a777fba720175f409972cbf27b73388728a740d6406a040")
+    version("0.11.0", sha256="c216310fdef9281e1c7e3264c148c560d7f5edd15816d35866efcc543185b7ee")
     version("0.10.1", sha256="5a8dc1f1622f4186b02fbabd47a8a33ca6be3d07757010f3d63d30e9f74fec8c")
     version("0.10.0", sha256="5319e25a42deab7c639e980885fe3be717cda2c2c693a1906f5a6c79b31edef8")
     version("0.9.1", sha256="dee884d0e054c838807f9c17781acfa99b26e3be1cc527bf09ceaa997336b3e4")
@@ -43,6 +47,8 @@ class MochiThallium(CMakePackage):
     version("0.3.1", sha256="61403b1ba5f4d205408e6a7e04c785df6dea02f59fe9fa1742db05aa752cc8a0")
     version("0.3", sha256="4f9f78e52c1725f6ea5f933d7548bde36729dd9eff08f58fe7fe40682bc5f748")
 
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "cereal",
         default=True,
@@ -51,6 +57,7 @@ class MochiThallium(CMakePackage):
     )
 
     depends_on("pkgconfig", type=("build"))
+    depends_on("mochi-margo@0.12.0:", when="@0.11.2:")
     depends_on("mochi-margo@0.9.8:", when="@0.10.0:")
     depends_on("mochi-margo@0.7:", when="@0.7:")
     depends_on("mochi-margo@0.6:", when="@0.5:")

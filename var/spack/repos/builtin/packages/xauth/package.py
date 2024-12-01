@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,8 +10,10 @@ class Xauth(AutotoolsPackage, XorgPackage):
     """The xauth program is used to edit and display the authorization
     information used in connecting to the X server."""
 
-    homepage = "https://cgit.freedesktop.org/xorg/app/xauth"
+    homepage = "https://gitlab.freedesktop.org/xorg/app/xauth"
     xorg_mirror_path = "app/xauth-1.0.9.tar.gz"
+
+    license("custom")
 
     version("1.1.2", sha256="84d27a1023d8da524c134f424b312e53cb96e08871f96868aa20316bfcbbc054")
     version("1.1.1", sha256="0f558ef33e76843cf16a78cd3910ef8ec0809bea85d14e091c559dcec092c671")
@@ -19,12 +21,14 @@ class Xauth(AutotoolsPackage, XorgPackage):
     version("1.0.10", sha256="5196821221d824b9bc278fa6505c595acee1d374518a52217d9b64d3c63dedd0")
     version("1.0.9", sha256="0709070caf23ba2fb99536907b75be1fe31853999c62d3e87a6a8d26ba8a8cdb")
 
+    depends_on("c", type="build")
+
     depends_on("libx11")
     depends_on("libxau")
     depends_on("libxext")
     depends_on("libxmu")
 
-    depends_on("xproto@7.0.17:")
+    depends_on("xproto@7.0.17:", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")
 

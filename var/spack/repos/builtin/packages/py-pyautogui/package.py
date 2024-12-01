@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyPyautogui(PythonPackage):
 
     homepage = "https://pyautogui.readthedocs.io/en/latest/"
     pypi = "PyAutoGUI/PyAutoGUI-0.9.52.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("0.9.53", sha256="d31de8f712218d90be7fc98091fce1a12a3e9196e0c814eb9afd73bb2ec97035")
     version("0.9.52", sha256="a486cb6b818bcbcdf98b48d010c7cee964134fa394b756e8ce6e50d43b58ecc8")

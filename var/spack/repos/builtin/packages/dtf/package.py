@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,10 @@ class Dtf(AutotoolsPackage):
     git = "https://github.com/maneka07/DTF.git"
 
     version("master", branch="master")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("cxx", default=True, description="Build pnetcdf the C++ Interface")
     variant("fortran", default=True, description="Build pnetcdf the Fortran Interface")

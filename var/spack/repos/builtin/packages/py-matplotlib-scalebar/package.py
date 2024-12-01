@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyMatplotlibScalebar(PythonPackage):
     homepage = "https://github.com/ppinard/matplotlib-scalebar"
     pypi = "matplotlib-scalebar/matplotlib-scalebar-0.6.1.tar.gz"
     git = "https://github.com/ppinard/matplotlib-scalebar.git"
+
+    license("BSD-2-Clause")
 
     version("master", branch="master")
     version("0.8.1", sha256="14887af1093579c5e6afae51a0a1ecc3f715cdbc5c4d7ef59cdeec76ee6bb15d")

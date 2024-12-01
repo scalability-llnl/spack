@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -27,6 +27,8 @@ class Tempestremap(AutotoolsPackage):
     version("2.0.2", sha256="2347bf804d19d515cb630a76b87e6dc6edcc1a828ff8c0f2a8a28e77794bad13")
     version("2.0.1", sha256="a3f1bef8cc413a689d429ac56f2bcc2e1d282d99797c3375233de792a7448ece")
     version("2.0.0", sha256="5850e251a4ad04fc924452f49183e5e12c38725832a568e57fa424a844b8a000")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

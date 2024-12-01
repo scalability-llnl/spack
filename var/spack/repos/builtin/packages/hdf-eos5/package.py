@@ -1,9 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import sys
+from os import chmod
 
 from spack.package import *
 
@@ -77,14 +78,23 @@ class HdfEos5(AutotoolsPackage):
                 "version/checksum not found in version_list".format(version)
             )
 
+    @run_before("configure")
+    def fix_configure(self):
+        # spack patches the configure file unless autoconf is run,
+        # and this fails because configure has the wrong permissions (644)
+        if not self.force_autoreconf:
+            chmod(join_path(self.stage.source_path, "configure"), 0o755)
+
+        # The configure script as written really wants you to use h5cc. This causes
+        # problems because h5cc differs when HDF5 is built with autotools vs cmake,
+        # and we lose all nice flags from the Spack wrappers. These filter operations
+        # allow use to use the Spack wrappers again.
+        with keep_modification_time("configure"):
+            filter_file(r"$CC -show &> /dev/null", "true", "configure", string=True)
+            filter_file(r"CC=./$SZIP_CC", "", "configure", string=True)
+
     def configure_args(self):
         extra_args = []
-
-        # Package really wants h5cc to be used
-        if self.spec["mpi"]:
-            extra_args.append("CC={0}/bin/h5pcc -Df2cFortran".format(self.spec["hdf5"].prefix))
-        else:
-            extra_args.append("CC={0}/bin/h5cc -Df2cFortran".format(self.spec["hdf5"].prefix))
 
         # We always build PIC code
         extra_args.append("--with-pic")
@@ -97,9 +107,9 @@ class HdfEos5(AutotoolsPackage):
 
         # Provide config args for dependencies
         extra_args.append("--with-hdf5={0}".format(self.spec["hdf5"].prefix))
-        if "szip" in self.spec:
+        if self.spec.satisfies("^szip"):
             extra_args.append("--with-szlib={0}".format(self.spec["szip"].prefix))
-        if "zlib-api" in self.spec:
+        if self.spec.satisfies("^zlib-api"):
             extra_args.append("--with-zlib={0}".format(self.spec["zlib-api"].prefix))
 
         return extra_args

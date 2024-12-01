@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,8 +12,13 @@ class MincToolkit(CMakePackage):
     homepage = "https://github.com/BIC-MNI/minc-toolkit-v2"
     git = "https://github.com/BIC-MNI/minc-toolkit-v2.git"
 
+    license("GPL-3.0-only")
+
     version("1.9.18.2", commit="b98e4972bdac2b78e3c1e412d75c97e2e7c5f6b9", submodules=True)
     version("1.9.18.1", commit="38597c464b6e93eda680ab4a9e903366d53d7737", submodules=True)
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("shared", default=True, description="Build shared libraries")
     variant(

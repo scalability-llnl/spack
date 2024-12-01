@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -86,6 +86,13 @@ def test_url_strip_name_suffixes(url, version, expected):
             "0.20.1",
             59,
             "https://github.com/nextflow-io/nextflow/releases/download/v0.20.1/nextflow",
+        ),
+        (
+            "hpcviewer",
+            30,
+            "2024.02",
+            51,
+            "https://gitlab.com/hpctoolkit/hpcviewer/-/releases/2024.02/downloads/hpcviewer.tgz",
         ),
         # Version in stem
         ("zlib", 24, "1.2.10", 29, "http://zlib.net/fossils/zlib-1.2.10.tar.gz"),

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -25,7 +25,11 @@ class Libelf(AutotoolsPackage):
         "https://ftp.osuosl.org/pub/blfs/conglomeration/libelf/libelf-0.8.13.tar.gz",
     ]
 
+    license("LGPL-2.0-only")
+
     version("0.8.13", sha256="591a9b4ec81c1f2042a97aa60564e0cb79d041c52faa7416acb38bc95bd2c76d")
+
+    depends_on("c", type="build")  # generated
 
     provides("elf@0")
 
@@ -53,7 +57,7 @@ class Libelf(AutotoolsPackage):
 
     def flag_handler(self, name, flags):
         if name == "cflags":
-            if self.spec.satisfies("%clang@16:"):
+            if self.spec.satisfies("%clang@16:") or self.spec.satisfies("%gcc@14:"):
                 flags.append("-Wno-error=implicit-int")
                 flags.append("-Wno-error=implicit-function-declaration")
         return (flags, None, None)

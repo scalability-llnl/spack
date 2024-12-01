@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,10 +14,15 @@ class Lftp(AutotoolsPackage):
     homepage = "https://lftp.yar.ru/"
     url = "https://lftp.yar.ru/ftp/lftp-4.9.2.tar.gz"
 
+    license("GPL-3.0-or-later")
+
     version("4.9.2", sha256="a37589c61914073f53c5da0e68bd233b41802509d758a022000e1ae2076da733")
     version("4.8.1", sha256="6117866215cd889dab30ff73292cd1d35fe0e12a9af5cd76d093500d07ab65a3")
     version("4.7.7", sha256="7bce216050094a1146ed05bed8fe5b3518224764ffe98884a848d44dc76fff8f")
     version("4.6.4", sha256="791e783779d3d6b519d0c23155430b9785f2854023eb834c716f5ba78873b15a")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("expat")
     depends_on("gettext")
@@ -35,10 +40,10 @@ class Lftp(AutotoolsPackage):
             "--with-zlib={0}".format(self.spec["zlib-api"].prefix),
             "--disable-dependency-tracking",
         ]
-        if self.spec["iconv"].name == "libc":
-            args.append("--without-libiconv-prefix")
+        if self.spec["iconv"].name == "libiconv":
+            args.append(f"--with-libiconv-prefix={self.spec['iconv'].prefix}")
         elif not is_system_path(self.spec["iconv"].prefix):
-            args.append("--with-libiconv-prefix={0}".format(self.spec["iconv"].prefix))
+            args.append("--without-libiconv-prefix")
         if "intl" not in self.spec["gettext"].libs.names:
             args.append("--without-libintl-prefix")
         elif not is_system_path(self.spec["gettext"].prefix):

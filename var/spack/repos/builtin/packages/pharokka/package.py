@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class Pharokka(Package):
 
     homepage = "https://github.com/gbouras13/pharokka"
     url = "https://github.com/gbouras13/pharokka/archive/refs/tags/v1.1.0.tar.gz"
+
+    license("MIT")
 
     version("1.3.2", sha256="e12b20beada9c261f51dd37a9aa7afe83291363035dc53478c42fb67882900e1")
     version("1.1.0", sha256="57d546f501f201117f5d8037ac47c0d83ccd1ec518080145e8f28d3e9843fba6")

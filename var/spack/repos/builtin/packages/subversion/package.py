@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,6 +22,9 @@ class Subversion(AutotoolsPackage):
 
     tags = ["build-tools"]
 
+    # internal lz4, x509, and utf8proc code have different licenses.
+    license("Apache-2.0 AND BSD-3-Clause AND BSD-2-Clause AND MIT", checked_by="tgamblin")
+
     version("1.14.2", sha256="fd826afad03db7a580722839927dc664f3e93398fe88b66905732c8530971353")
     version("1.14.1", sha256="dee2796abaa1f5351e6cc2a60b1917beb8238af548b20d3e1ec22760ab2f0cad")
     version("1.14.0", sha256="ef3d1147535e41874c304fb5b9ea32745fbf5d7faecf2ce21d4115b567e937d0")
@@ -33,6 +36,9 @@ class Subversion(AutotoolsPackage):
     version("1.9.3", sha256="74cd21d2f8a2a54e4dbd2389fe1605a19dbda8ba88ffc4bb0edc9a66e143cc93")
     version("1.8.17", sha256="1b2cb9a0ca454035e55b114ee91c6433b9ede6c2893f2fb140939094d33919e4")
     version("1.8.13", sha256="17e8900a877ac9f0d5ef437c20df437fec4eb2c5cb9882609d2277e2312da52c")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("serf", default=True, description="Serf HTTP client library")
     variant("perl", default=False, description="Build with Perl bindings")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class PyFastai(PythonPackage):
 
     homepage = "https://github.com/fastai/fastai/tree/master/"
     pypi = "fastai/fastai-2.5.3.tar.gz"
+
+    license("Apache-2.0")
 
     version("2.5.3", sha256="0cae50617979b052f0ed7337800e6814ee346b792203cf48305709c935e8eeb7")
 

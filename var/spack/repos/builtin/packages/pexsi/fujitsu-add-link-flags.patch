@@ -1,0 +1,11 @@
+diff -Nur spack-src.org/fortran/CMakeLists.txt spack-src/fortran/CMakeLists.txt
+--- spack-src.org/fortran/CMakeLists.txt	2023-06-06 17:55:44.000000000 +0900
++++ spack-src/fortran/CMakeLists.txt	2023-06-06 15:50:05.000000000 +0900
+@@ -47,6 +47,7 @@
+ 
+ endmacro()
+ 
++set (CMAKE_EXE_LINKER_FLAGS "--linkfortran")
+ 
+ add_pexsi_f_example_exe( f_driver_ksdft                 )
+ add_pexsi_f_example_exe( f_driver_pselinv_real          )

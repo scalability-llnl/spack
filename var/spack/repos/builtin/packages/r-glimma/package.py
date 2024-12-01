@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class RGlimma(RPackage):
     information."""
 
     bioc = "Glimma"
+
+    license("LGPL-3.0-only")
 
     version("2.10.0", commit="ea1257614c5fca0cedf5805d5b9a21e8b7d15d18")
     version("2.8.0", commit="09cec82e9af9c6775192570f8c28f050c0df08ac")

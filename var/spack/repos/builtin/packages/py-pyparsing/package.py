@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,11 @@ class PyPyparsing(PythonPackage):
     homepage = "https://pyparsing-docs.readthedocs.io/en/latest/"
     pypi = "pyparsing/pyparsing-2.4.2.tar.gz"
 
+    license("MIT")
+
+    version("3.1.2", sha256="a1bac0ce561155ecc3ed78ca94d3c9378656ad4c94c1270de543f621420f94ad")
+    version("3.1.1", sha256="ede28a1a32462f5a9705e07aea48001a08f7cf81a021585011deba701581a0db")
+    version("3.1.0", sha256="edb662d6fe322d6e990b1594b5feaeadf806803359e3d4d42f11e295e588f0ea")
     version("3.0.9", sha256="2b020ecf7d21b687f219b71ecad3631f644a47f01403fa1d1036b0c6416d70fb")
     version("3.0.6", sha256="d9bdec0013ef1eb5a84ab39a3b3868911598afa494f5faa038647101504e2b81")
     version("2.4.7", sha256="c203ec8783bf771a155b207279b9bccb8dea02d8f0c9e5f8ead507bc3246ecc1")

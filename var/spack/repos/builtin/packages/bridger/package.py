@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,9 +15,14 @@ class Bridger(MakefilePackage, SourceforgePackage):
     homepage = "https://sourceforge.net/projects/rnaseqassembly/"
     sourceforge_mirror_path = "rnaseqassembly/Bridger_r2014-12-01.tar.gz"
 
+    license("GPL-2.0-only")
+
     version(
         "2014-12-01", sha256="8fbec8603ea8ad2162cbd0c658e4e0a4af6453bdb53310b4b7e0d112e40b5737"
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
     depends_on("boost + exception + filesystem + system + serialization + graph")
     depends_on("ncurses~termlib")
     depends_on("perl", type="run")

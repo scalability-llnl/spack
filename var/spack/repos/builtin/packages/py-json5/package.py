@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyJson5(PythonPackage):
 
     homepage = "https://github.com/dpranke/pyjson5"
     pypi = "json5/json5-0.9.4.tar.gz"
+
+    license("Apache-2.0")
 
     version("0.9.14", sha256="9ed66c3a6ca3510a976a9ef9b8c0787de24802724ab1860bc0153c7fdd589b02")
     version("0.9.10", sha256="ad9f048c5b5a4c3802524474ce40a622fae789860a86f10cc4f7e5f9cf9b46ab")

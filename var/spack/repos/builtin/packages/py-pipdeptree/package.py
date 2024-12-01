@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyPipdeptree(PythonPackage):
 
     homepage = "https://github.com/tox-dev/pipdeptree"
     pypi = "pipdeptree/pipdeptree-2.13.0.tar.gz"
+
+    license("MIT")
 
     version("2.13.0", sha256="ff71a48abd0b1ab810c23734b47de6ebd93270857d6665e21ed5ef6136fcba6e")
 

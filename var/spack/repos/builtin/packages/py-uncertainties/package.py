@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyUncertainties(PythonPackage):
 
     homepage = "https://uncertainties-python-package.readthedocs.io/en/latest/"
     pypi = "uncertainties/uncertainties-3.1.4.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("3.1.7", sha256="80111e0839f239c5b233cb4772017b483a0b7a1573a581b92ab7746a35e6faab")
     version("3.1.6", sha256="7c4db5aaafd227e95485b61fba5d235dc8133aeecd98f8fc1224c038ce063e2d")

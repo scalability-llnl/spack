@@ -1,4 +1,4 @@
-.. Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
+.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
    Spack Project Developers. See the top-level COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -142,7 +142,7 @@ Reputational Key
 ----------------
 
 The Reputational Key is the public facing key used to sign complete groups of
-development and release packages. Only one key pair exsits in this class of
+development and release packages. Only one key pair exists in this class of
 keys. In contrast to the Intermediate CI Key the Reputational Key *should* be
 used to verify package integrity. At the end of develop and release pipeline a
 final pipeline job pulls down all signed package metadata built by the pipeline,
@@ -272,7 +272,7 @@ Internal Implementation
 
 The technical implementation of the pipeline signing process includes components
 defined in Amazon Web Services, the Kubernetes cluster, at affilicated
-institutions, and the GitLab/GitLab Runner deployment. We present the techincal
+institutions, and the GitLab/GitLab Runner deployment. We present the technical
 implementation in two interdependent sections. The first addresses how secrets
 are managed through the lifecycle of a develop or release pipeline. The second
 section describes how Gitlab Runner and pipelines are configured and managed to
@@ -295,7 +295,7 @@ infrastructure.
 -----------------------
 
 Multiple intermediate CI signing keys exist, one Intermediate CI Key for jobs
-run in AWS, and one key for each affiliated institution (e.g. Univerity of
+run in AWS, and one key for each affiliated institution (e.g. University of
 Oregon). Here we describe how the Intermediate CI Key is managed in AWS:
 
 The Intermediate CI Key (including the Signing Intermediate CI Private Key is
@@ -305,7 +305,7 @@ contains an ASCII-armored export of just the *public* components of the
 Reputational Key. This secret also contains the *public* components of each of
 the affiliated institutions' Intermediate CI Key. These are potentially needed
 to verify dependent packages which may have been found in the public mirror or
-built by a protected job running on an affiliated institution's infrastrcuture
+built by a protected job running on an affiliated institution's infrastructure
 in an earlier stage of the pipeline.
 
 Procedurally the ``spack-intermediate-ci-signing-key`` secret is used in

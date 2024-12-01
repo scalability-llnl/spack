@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyOpenpyxl(PythonPackage):
 
     homepage = "https://openpyxl.readthedocs.org/"
     pypi = "openpyxl/openpyxl-3.1.2.tar.gz"
+
+    license("MIT")
 
     version("3.1.2", sha256="a6f5977418eff3b2d5500d54d9db50c8277a368436f4e4f8ddb1be3422870184")
     version("3.0.7", sha256="6456a3b472e1ef0facb1129f3c6ef00713cebf62e736cd7a75bcc3247432f251")

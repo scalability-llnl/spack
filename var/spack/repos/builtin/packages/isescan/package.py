@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,8 +13,12 @@ class Isescan(Package):
     homepage = "https://github.com/xiezhq/ISEScan"
     url = "https://github.com/xiezhq/ISEScan/archive/refs/tags/v1.7.2.1.tar.gz"
 
+    license("Apache-2.0")
+
     version("1.7.2.3", sha256="90ef6bc660e471347f65864bd3563f769ed4b79b1a932195f353c5e86351ab05")
     version("1.7.2.1", sha256="b971a3e86a8cddaa4bcd520ba9e75425bbe93190466f81a3791ae0cb4baf5e5d")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("python@3.3.3:", type="run")
     depends_on("py-numpy@1.8.0:", type="run")

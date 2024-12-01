@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class RConflicted(RPackage):
     conflict an error and forcing you to choose which function to use."""
 
     cran = "conflicted"
+
+    license("MIT")
 
     version("1.2.0", sha256="c99b86bb52da3e7d1f4d96d70c77304d0434db5bd906edd8d743e89ac9223088")
 

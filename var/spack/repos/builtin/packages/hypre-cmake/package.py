@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,7 +13,7 @@ class HypreCmake(CMakePackage, CudaPackage):
     features parallel multigrid methods for both structured and
     unstructured grid problems."""
 
-    homepage = "http://computing.llnl.gov/project/linear_solvers/software.php"
+    homepage = "https://computing.llnl.gov/project/linear_solvers/software.php"
     url = "https://github.com/hypre-space/hypre/archive/v2.14.0.tar.gz"
     git = "https://github.com/hypre-space/hypre.git"
 
@@ -21,8 +21,14 @@ class HypreCmake(CMakePackage, CudaPackage):
 
     test_requires_compiler = True
 
+    license("Apache-2.0")
+
     version("develop", branch="master")
     version("2.22.0", sha256="2c786eb5d3e722d8d7b40254f138bef4565b2d4724041e56a8fa073bda5cfbb5")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant(
         "shared",
@@ -50,11 +56,11 @@ class HypreCmake(CMakePackage, CudaPackage):
 
     def url_for_version(self, version):
         if version >= Version("2.12.0"):
-            url = "https://github.com/hypre-space/hypre/archive/v{0}.tar.gz"
+            url = f"https://github.com/hypre-space/hypre/archive/v{version}.tar.gz"
         else:
-            url = "http://computing.llnl.gov/project/linear_solvers/download/hypre-{0}.tar.gz"
+            url = f"https://computing.llnl.gov/project/linear_solvers/download/hypre-{version}.tar.gz"
 
-        return url.format(version)
+        return url
 
     root_cmakelists_dir = "src"
 
@@ -76,7 +82,7 @@ class HypreCmake(CMakePackage, CudaPackage):
         return args
 
     def setup_build_environment(self, env):
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             env.set("CUDA_HOME", self.spec["cuda"].prefix)
             env.set("CUDA_PATH", self.spec["cuda"].prefix)
             cuda_arch = self.spec.variants["cuda_arch"].value
@@ -84,44 +90,53 @@ class HypreCmake(CMakePackage, CudaPackage):
                 arch_sorted = list(sorted(cuda_arch, reverse=True))
                 env.set("HYPRE_CUDA_SM", arch_sorted[0])
             # In CUDA builds hypre currently doesn't handle flags correctly
-            env.append_flags("CXXFLAGS", "-O2" if "~debug" in self.spec else "-g")
+            env.append_flags("CXXFLAGS", "-O2" if self.spec.satisfies("~debug") else "-g")
 
     extra_install_tests = join_path("src", "examples")
 
     @run_after("install")
     def cache_test_sources(self):
-        self.cache_extra_test_sources(self.extra_install_tests)
+        if "+mpi" not in self.spec:
+            print("Package must be installed with +mpi to cache test sources")
+            return
+
+        cache_extra_test_sources(self, self.extra_install_tests)
+
+        # Customize the examples makefile before caching it
+        makefile = join_path(install_test_root(self), self.extra_install_tests, "Makefile")
+        filter_file(r"^HYPRE_DIR\s* =.*", f"HYPRE_DIR = {self.prefix}", makefile)
+        filter_file(r"^CC\s*=.*", "CC = " + self.spec["mpi"].mpicc, makefile)
+        filter_file(r"^F77\s*=.*", "F77 = " + self.spec["mpi"].mpif77, makefile)
+        filter_file(r"^CXX\s*=.*", "CXX = " + self.spec["mpi"].mpicxx, makefile)
+        filter_file(
+            r"^LIBS\s*=.*",
+            r"LIBS = -L$(HYPRE_DIR)/lib64 -lHYPRE -lm $(CUDA_LIBS) $(DOMP_LIBS)",
+            makefile,
+        )
 
     @property
     def _cached_tests_work_dir(self):
         """The working directory for cached test sources."""
         return join_path(self.test_suite.current_test_cache_dir, self.extra_install_tests)
 
-    def test(self):
-        """Perform smoke test on installed HYPRE package."""
+    def test_bigint(self):
+        """Perform smoke tests on installed HYPRE package."""
         if "+mpi" not in self.spec:
-            print("Skipping: HYPRE must be installed with +mpi to run tests")
-            return
+            raise SkipTest("Package must be installed with +mpi to run tests")
 
-        # Build copied and cached test examples
-        self.run_test(
-            "make",
-            ["HYPRE_DIR={0}".format(self.prefix), "bigint"],
-            purpose="test: building selected examples",
-            work_dir=self._cached_tests_work_dir,
-        )
+        # Build and run cached examples
+        with working_dir(self._cached_tests_work_dir):
+            make = which("make")
+            make("bigint")
 
-        # Run the examples built above
-        for exe in ["./ex5big", "./ex15big"]:
-            self.run_test(
-                exe,
-                [],
-                [],
-                installed=False,
-                purpose="test: ensuring {0} runs".format(exe),
-                skip_missing=True,
-                work_dir=self._cached_tests_work_dir,
-            )
+            for exe_name in ["ex5big", "ex15big"]:
+                with test_part(self, f"test_bigint_{exe_name}", purpose=f"Ensure {exe_name} runs"):
+
+                    program = which(exe_name)
+                    if program is None:
+                        raise SkipTest(f"{exe_name} does not exist in version {self.version}")
+
+                    program()
 
     @property
     def headers(self):
@@ -137,6 +152,6 @@ class HypreCmake(CMakePackage, CudaPackage):
         """Export the hypre library.
         Sample usage: spec['hypre'].libs.ld_flags
         """
-        is_shared = "+shared" in self.spec
+        is_shared = self.spec.satisfies("+shared")
         libs = find_libraries("libHYPRE", root=self.prefix, shared=is_shared, recursive=True)
         return libs or None

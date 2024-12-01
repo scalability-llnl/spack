@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,6 +22,7 @@ class Genie(Package):
     maintainers("davehadley")
 
     version("master", branch="master")
+    version("3.4.2", sha256="c5935aea86d2ba9897ab55bb581622c561575957d19e572691d3bc0833ed9512")
     version("3.0.6", sha256="ab56ea85d0c1d09029254365bfe75a1427effa717389753b9e0c1b6c2eaa5eaf")
     version("3.0.4", sha256="53f034618fef9f7f0e17d1c4ed72743e4bba590e824b795177a1a8a8486c861e")
     version("3.0.2", sha256="34d6c37017b2387c781aea7bc727a0aac0ef45d6b3f3982cc6f3fc82493f65c3")
@@ -43,6 +44,8 @@ class Genie(Package):
     version("2.9.0", sha256="8229beb73f65f5af86a77bf141acfbe4a8b68cba9d797aae083a929906f6f2a2")
     version("2.8.6", sha256="310dc8e0d17a65e6b9773e398250703a3a6f94ceafe94f599ae0f7b3fecf7e6c")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("root+pythia6")
     depends_on("pythia6")
     depends_on("lhapdf", when="@3:")
@@ -58,7 +61,11 @@ class Genie(Package):
     # GENIE Makefile's think that the spack compiler is invalid.
     # Disables this check.
     patch("genie_disable_gopt_with_compiler_check.patch", level=0, when="@2.11:")
-
+    patch(
+        "https://patch-diff.githubusercontent.com/raw/GENIE-MC/Generator/pull/376.patch?full_index=1",
+        sha256="7eca9bf44251cd99edd962483ca24c5072f8e2eee688f1e95b076425f2dc59f6",
+        when="@3.4.2",
+    )
     # Flags for GENIE"s optional but disabled by default features
     variant(
         "atmo", default=False, description="Enable GENIE Atmospheric neutrino event generation app"
@@ -88,11 +95,9 @@ class Genie(Package):
 
     def setup_build_environment(self, env):
         env.set("GENIE", self.stage.source_path)
-        return super().setup_build_environment(env)
 
     def setup_run_environment(self, env):
         env.set("GENIE", self.prefix)
-        return super().setup_run_environment(env)
 
     def install(self, spec, prefix):
         configure = Executable("./configure")
@@ -132,17 +137,17 @@ class Genie(Package):
                 "--with-lhapdf6-inc=" + spec["lhapdf"].prefix.include,
                 "--with-lhapdf6-lib=" + spec["lhapdf"].prefix.lib,
             ]
-        if "+vleextension" in self.spec:
+        if self.spec.satisfies("+vleextension"):
             args += ["--enable-vle-extension"]
-        if "+t2k" in self.spec:
+        if self.spec.satisfies("+t2k"):
             args += ["--enable-t2k"]
-        if "+fnal" in self.spec:
+        if self.spec.satisfies("+fnal"):
             args += ["--enable-fnal"]
-        if "+atmo" in self.spec:
+        if self.spec.satisfies("+atmo"):
             args += ["--enable-atmo"]
-        if "+nucleondecay" in self.spec:
+        if self.spec.satisfies("+nucleondecay"):
             args += ["--enable-nucleon-decay"]
-        if "+masterclass" in self.spec:
+        if self.spec.satisfies("+masterclass"):
             args += ["--enable-masterclass"]
         return args
 

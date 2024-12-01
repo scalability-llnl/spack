@@ -1,4 +1,4 @@
-# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,7 +12,11 @@ class PySphinxImmaterial(PythonPackage):
     homepage = "https://github.com/jbms/sphinx-immaterial"
     pypi = "sphinx_immaterial/sphinx_immaterial-0.11.2.tar.gz"
 
+    license("MIT")
+
     version("0.11.2", sha256="a1c8387ca8b4da282949e474647d06f3b2f7d12fe54e9e662b962771012bf257")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("python@3.8:", type=("build", "run"))
     depends_on("py-setuptools@42:", type="build")

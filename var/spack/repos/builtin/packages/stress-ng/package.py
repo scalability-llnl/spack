@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class StressNg(MakefilePackage):
 
     homepage = "https://kernel.ubuntu.com/~cking/stress-ng/"
     url = "https://kernel.ubuntu.com/~cking/tarballs/stress-ng/stress-ng-0.12.06.tar.xz"
+
+    license("GPL-2.0-or-later")
 
     version("0.12.06", sha256="75eb340266b1bbae944d8f9281af978bd5bc2c8085df97a098d5500d6f177296")
 

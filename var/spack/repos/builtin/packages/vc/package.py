@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,10 @@ class Vc(CMakePackage):
     git = "https://github.com/VcDevel/Vc.git"
     url = "https://github.com/VcDevel/Vc/archive/refs/tags/1.3.3.tar.gz"
 
+    license("BSD-3-Clause", checked_by="wdconinc")
+
+    version("1.4.5", sha256="eb734ef4827933fcd67d4c74aef54211b841c350a867c681c73003eb6d511a48")
+    version("1.4.4", sha256="5933108196be44c41613884cd56305df320263981fe6a49e648aebb3354d57f3")
     version("1.4.3", sha256="988ea0053f3fbf17544ca776a2749c097b3139089408b0286fa4e9e8513e037f")
     version("1.4.2", sha256="50d3f151e40b0718666935aa71d299d6370fafa67411f0a9e249fbce3e6e3952")
     version("1.4.1", sha256="7e8b57ed5ff9eb0835636203898c21302733973ff8eaede5134dd7cb87f915f6")
@@ -20,6 +24,10 @@ class Vc(CMakePackage):
     version("1.3.0", sha256="2309a19eea136e1f9d5629305b2686e226093e23fe5b27de3d6e3d6084991c3a")
     version("1.2.0", sha256="9cd7b6363bf40a89e8b1d2b39044b44a4ce3f1fd6672ef3fc45004198ba28a2b")
     version("1.1.0", sha256="281b4c6152fbda11a4b313a0a0ca18565ee049a86f35f672f1383967fef8f501")
+
+    depends_on("cxx", type="build")  # generated
+
+    depends_on("cmake@3.5:", type="build", when="@1.4.5:")
 
     @run_before("cmake")
     def fetch_additional_sources(self):

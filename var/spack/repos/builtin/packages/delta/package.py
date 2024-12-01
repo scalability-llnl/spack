@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class Delta(Package):
 
     homepage = "https://delta.io/"
     url = "https://github.com/delta-io/delta/archive/v0.7.0.tar.gz"
+
+    license("MIT")
 
     version("2.3.0", sha256="0c0ea5edb5e8f30fc56b5ab5c8fed50db93d75b047d8241fe1b2449858d9db1c")
     version("0.7.0", sha256="1fb01e36c1cf670f201c615e5fd7df88f72c27157b7d2780d146e21b266bdb64")

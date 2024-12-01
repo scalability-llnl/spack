@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyPytorchGradualWarmupLr(PythonPackage):
 
     homepage = "https://github.com/ildoonet/pytorch-gradual-warmup-lr"
     url = "https://github.com/ildoonet/pytorch-gradual-warmup-lr/archive/v0.3.2.tar.gz"
+
+    license("MIT")
 
     version("0.3.2", sha256="3ff3ccd0f5130a3c2ffe3bf7e43e7f85d599e0de3ccb42a1704809222e069a18")
     version("0.3.1", sha256="3070c7999dc8b6322089ed6a7fc375e1ef2661524097bf461016013b21177819")

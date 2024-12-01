@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class PyNbclient(PythonPackage):
     homepage = "https://jupyter.org/"
     pypi = "nbclient/nbclient-0.5.0.tar.gz"
     git = "https://github.com/jupyter/nbclient.git"
+
+    license("BSD-3-Clause")
 
     version("0.8.0", sha256="f9b179cd4b2d7bca965f900a2ebf0db4a12ebff2f36a711cb66861e4ae158e55")
     version("0.7.2", sha256="884a3f4a8c4fc24bb9302f263e0af47d97f0d01fe11ba714171b320c8ac09547")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyDemjson(PythonPackage):
 
     homepage = "http://deron.meranda.us/python/demjson/"
     pypi = "demjson/demjson-2.2.4.tar.gz"
+
+    license("LGPL-3.0-only")
 
     version("2.2.4", sha256="31de2038a0fdd9c4c11f8bf3b13fe77bc2a128307f965c8d5fb4dc6d6f6beb79")
     version("2.2.3", sha256="9fb0f3c02fe500104680af2889a64d1637b395aebdb37341ae2309d77854f40c")

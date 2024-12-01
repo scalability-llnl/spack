@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class RQuestionr(RPackage):
     dataset metadata handling, and several convenience functions."""
 
     cran = "questionr"
+
+    license("GPL-2.0-or-later")
 
     version("0.7.8", sha256="af72e59fe652c6063282a7e5b0f487993b9361cc9ed052a632d64a5a6db76ba9")
     version("0.7.7", sha256="ce24c40bd98dbeca615b9eb2a9cd2da26852821dc3840f8394eeecb0739dfd56")

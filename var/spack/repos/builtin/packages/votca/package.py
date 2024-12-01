@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,8 +20,14 @@ class Votca(CMakePackage):
     maintainers("junghans")
 
     version("master", branch="master")
+    version("2024.2", sha256="aa9ea3ad54dae31d3f68685d12f3bad4910ef3034a7f51c9ddd573b3856f4bc8")
+    version("2024.1", sha256="68669a7d09020f780d2633eb865c6c53e5fb38d155f80c9670ebf9d10d10bee6")
+    version("2024", sha256="7f342e857f4a6ba6d25937f63830afa3c32cbd906255c8d78aa6c500cfd418c8")
+    version("2023", sha256="6150a38c77379d05592a56ae4392a00c4636d02198bb06108a3dc739a45115f8")
     version("2022.1", sha256="358119b2645fe60f88ca621aed508c49fb61f88d29d3e3fa24b5b831ed4a66ec")
     version("2022", sha256="7991137098ff4511f4ca2c6f1b6c45f53d92d9f84e5c0d0e32fbc31768f73a83")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("mkl", default=False, description="Build with MKL support")
     variant(
@@ -37,7 +43,10 @@ class Votca(CMakePackage):
     depends_on("expat")
     depends_on("fftw-api@3")
     depends_on("eigen@3.3:")
-    depends_on("boost")
+    depends_on("boost+filesystem+system+regex+timer")
+    depends_on("boost@1.71:")
+    depends_on("boost@1.71:1.84", when="@=2024")
+    depends_on("boost@1.71:1.82", when="@:2023")
     depends_on("mkl", when="+mkl")
     depends_on("hdf5+cxx~mpi")
     depends_on("gromacs~mpi@5.1:")

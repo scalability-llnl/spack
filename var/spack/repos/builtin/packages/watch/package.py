@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,8 +16,12 @@ class Watch(AutotoolsPackage):
     homepage = "https://gitlab.com/procps-ng/procps"
     git = "https://gitlab.com/procps-ng/procps.git"
 
+    license("GPL-2.0-or-later")
+
     version("master", branch="master")
     version("3.3.15", tag="v3.3.15", commit="7bb949bcba13c107fa0f45d2d0298b1ad6b6d6cc")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

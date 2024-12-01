@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,7 +19,8 @@ class PyPygit2(PythonPackage):
     version("1.6.0", sha256="7aacea4e57011777f4774421228e5d0ddb9a6ddb87ac4b542346d17ab12a4d62")
     version("1.4.0", sha256="cbeb38ab1df9b5d8896548a11e63aae8a064763ab5f1eabe4475e6b8a78ee1c8")
     version("1.3.0", sha256="0be93f6a8d7cbf0cc79ae2f0afb1993fc055fc0018c27e2bd01ba143e51d4452")
-    version("0.28.2", sha256="4d8c3fbbf2e5793a9984681a94e6ac2f1bc91a92cbac762dbdfbea296b917f86")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("py-setuptools", type="build")
     # https://www.pygit2.org/install.html#version-numbers
@@ -29,14 +30,10 @@ class PyPygit2(PythonPackage):
     depends_on("libgit2@1.3", when="@1.7:1.8")
     depends_on("libgit2@1.1", when="@1.4:1.6")
     depends_on("libgit2@1.0", when="@1.2:1.3")
-    depends_on("libgit2@0.99:1.0", when="@1.1")
-    depends_on("libgit2@0.28", when="@0.28:1.0")
     depends_on("python@3.8:3.11", when="@1.11:1.12.1")
     depends_on("python@:3.10", when="@1.7:1.10")
     depends_on("python@:3.9", when="@1.4:1.6")
     depends_on("python@:3.8", when="@1.0:1.3")
-    depends_on("python@:3.7", when="@0.28")
-    depends_on("py-six", type=("build", "run"), when="@:0.28.2")
     depends_on("py-cffi@1.4.0:", when="@:1.5", type=("build", "run"))
     depends_on("py-cffi@1.6.0:", when="@1.6:1.7", type=("build", "run"))
     depends_on("py-cffi@1.9.1:", when="@1.8:", type=("build", "run"))

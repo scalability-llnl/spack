@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,10 +12,14 @@ class Lmbench(MakefilePackage):
     bandwidth. lmbench is intended to give system developers insight into
     basic costs of key operations."""
 
-    homepage = "http://lmbench.sourceforge.net/"
+    homepage = "https://lmbench.sourceforge.net/"
     git = "https://github.com/intel/lmbench.git"
 
+    license("GPL-2.0-only")
+
     version("master", branch="master")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("libtirpc")
 

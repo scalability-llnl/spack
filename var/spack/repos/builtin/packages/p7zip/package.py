@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,11 +11,16 @@ class P7zip(MakefilePackage):
     """A Unix port of the 7z file archiver"""
 
     maintainers("vmiheer")
-    homepage = "http://p7zip.sourceforge.net"
+    homepage = "https://p7zip.sourceforge.net"
+
+    license("DOC")
 
     version("17.05", sha256="d2788f892571058c08d27095c22154579dfefb807ebe357d145ab2ddddefb1a6")
     version("17.04", sha256="ea029a2e21d2d6ad0a156f6679bd66836204aa78148a4c5e498fe682e77127ef")
     version("16.02", sha256="5eb20ac0e2944f6cb9c2d51dd6c4518941c185347d4089ea89087ffdd6e2341f")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     patch(
         "gcc10.patch",

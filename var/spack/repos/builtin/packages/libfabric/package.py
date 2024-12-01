@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,7 +10,7 @@ import spack.platforms.cray
 from spack.package import *
 
 
-class Libfabric(AutotoolsPackage):
+class Libfabric(AutotoolsPackage, CudaPackage):
     """The Open Fabrics Interfaces (OFI) is a framework focused on exporting
     fabric communication services to applications."""
 
@@ -21,7 +21,16 @@ class Libfabric(AutotoolsPackage):
 
     executables = ["^fi_info$"]
 
+    license("GPL-2.0-or-later")
+
     version("main", branch="main")
+    version("1.22.0", sha256="485e6cafa66c9e4f6aa688d2c9526e274c47fda3a783cf1dd8f7c69a07e2d5fe")
+    version("1.21.1", sha256="54befa6697352f3179c79c4a79225ae71694f29eefad5d0d5a14b5444ff986dd")
+    version("1.21.0", sha256="0c1b7b830d9147f661e5d7f359250b85b5a9885c330464cd3b5e5d35b86551c7")
+    version("1.20.2", sha256="75b89252a0b8b3eae8e60f7098af1598445a99a99e8fc1ff458e2fd5d4ef8cde")
+    version("1.20.1", sha256="fd88d65c3139865d42a6eded24e121aadabd6373239cef42b76f28630d6eed76")
+    version("1.20.0", sha256="7fbbaeb0e15c7c4553c0ac5f54e4ef7aecaff8a669d4ba96fa04b0fc780b9ddc")
+    version("1.19.1", sha256="b8839e56d80470a917453a7d8ad9cb717f6683fee28cf93de5f3a056ed4f04c8")
     version("1.19.0", sha256="f14c764be9103e80c46223bde66e530e5954cb28b3835b57c8e728479603ef9e")
     version("1.18.2", sha256="64d7837853ca84d2a413fdd96534b6a81e6e777cc13866e28cf86cd0ccf1b93e")
     version("1.18.1", sha256="4615ae1e22009e59c72ae03c20adbdbd4a3dce95aeefbc86cc2bf1acc81c9e38")
@@ -57,6 +66,8 @@ class Libfabric(AutotoolsPackage):
     version("1.5.0", sha256="88a8ad6772f11d83e5b6f7152a908ffcb237af273a74a1bd1cb4202f577f1f23")
     version("1.4.2", sha256="5d027d7e4e34cb62508803e51d6bd2f477932ad68948996429df2bfff37ca2a5")
 
+    depends_on("c", type="build")  # generated
+
     fabrics = (
         conditional("cxi", when=spack.platforms.cray.slingshot_network()),
         "efa",
@@ -72,6 +83,7 @@ class Libfabric(AutotoolsPackage):
         "shm",
         "sockets",
         "tcp",
+        "ucx",
         "udp",
         "usnic",
         "verbs",
@@ -97,6 +109,8 @@ class Libfabric(AutotoolsPackage):
 
     variant("debug", default=False, description="Enable debugging")
 
+    variant("uring", default=False, when="@1.17.0:", description="Enable uring support")
+
     # For version 1.9.0:
     # headers: fix forward-declaration of enum fi_collective_op with C++
     patch(
@@ -114,8 +128,10 @@ class Libfabric(AutotoolsPackage):
     depends_on("opa-psm2", when="fabrics=psm2")
     depends_on("psm", when="fabrics=psm")
     depends_on("ucx", when="fabrics=mlx")
+    depends_on("ucx", when="@1.18.0: fabrics=ucx")
     depends_on("uuid", when="fabrics=opx")
     depends_on("numactl", when="fabrics=opx")
+    depends_on("liburing@2.1:", when="+uring")
 
     depends_on("m4", when="@main", type="build")
     depends_on("autoconf", when="@main", type="build")
@@ -124,6 +140,12 @@ class Libfabric(AutotoolsPackage):
 
     conflicts("@1.9.0", when="platform=darwin", msg="This distribution is missing critical files")
     conflicts("fabrics=opx", when="@:1.14.99")
+    conflicts(
+        "fabrics=opx",
+        when="@1.20.0",
+        msg="Libfabric 1.20.0 uses values in memory that are not correctly "
+        "set by OPX, resulting in undefined behavior.",
+    )
 
     flag_handler = build_system_flags
 
@@ -177,16 +199,22 @@ class Libfabric(AutotoolsPackage):
 
         args.extend(self.enable_or_disable("debug"))
 
-        if "+kdreg" in self.spec:
+        if self.spec.satisfies("+kdreg"):
             args.append("--with-kdreg=yes")
         else:
             args.append("--with-kdreg=no")
+
+        if self.spec.satisfies("+uring"):
+            args.append("--with-uring=yes")
 
         for fabric in [f if isinstance(f, str) else f[0].value for f in self.fabrics]:
             if "fabrics=" + fabric in self.spec:
                 args.append("--enable-{0}=yes".format(fabric))
             else:
                 args.append("--enable-{0}=no".format(fabric))
+
+        if self.spec.satisfies("+cuda"):
+            args.append(f"--with-cuda={self.spec['cuda'].prefix}")
 
         return args
 

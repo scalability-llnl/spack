@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyMkdocsAutorefs(PythonPackage):
 
     homepage = "https://mkdocstrings.github.io/autorefs/"
     pypi = "mkdocs-autorefs/mkdocs-autorefs-0.4.1.tar.gz"
+
+    license("ISC")
 
     version("0.4.1", sha256="70748a7bd025f9ecd6d6feeba8ba63f8e891a1af55f48e366d6d6e78493aba84")
 

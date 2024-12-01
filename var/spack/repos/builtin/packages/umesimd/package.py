@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -23,3 +23,5 @@ class Umesimd(CMakePackage):
     version("0.4.1", sha256="e05b9f886164826005c8db5d2240f22cb88593c05b4fe45c81aba4d1d57a9bfa")
     version("0.3.2", sha256="90399fa64489ca4d492a57a49582f5b827d4710a691f533822fd61edc346e8f6")
     version("0.3.1", sha256="9bab8b4c70e11dbdd864a09053225c74cfabb801739e09a314ddeb1d84a43f0a")
+
+    depends_on("cxx", type="build")  # generated

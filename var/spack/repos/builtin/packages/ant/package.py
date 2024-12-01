@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,9 @@ class Ant(Package):
     homepage = "https://ant.apache.org/"
     url = "https://archive.apache.org/dist/ant/source/apache-ant-1.9.7-src.tar.gz"
 
+    license("Apache-2.0")
+
+    version("1.10.14", sha256="9a5fe31f44d1eb62590cbe38e4fab25b25e2f68643b38a54b66498e0bf621b54")
     version("1.10.13", sha256="da006f4c888d41d0f3f213565e48aeff73e4d8a6196e494121d8da1e567a8406")
 
     # https://nvd.nist.gov/vuln/detail/CVE-2020-1945

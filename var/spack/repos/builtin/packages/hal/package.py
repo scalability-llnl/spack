@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,9 @@ class Hal(MakefilePackage):
     url = "https://github.com/ComparativeGenomicsToolkit/hal/archive/release-V2.1.tar.gz"
 
     version("2.1", sha256="540255be1af55abf390359fe034b82d7e61bdf6c3277df3cc01259cd450994e5")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     maintainers("ilbiondo")
 

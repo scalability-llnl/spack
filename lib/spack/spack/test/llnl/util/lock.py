@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,7 +18,7 @@ across nodes.  So, e.g., you can run the test like this::
     mpirun -n 7 spack test lock
 
 And it will test locking correctness among MPI processes.  Ideally, you
-want the MPI processes to span across multiple nodes, so, e.g., for SLURM
+want the MPI processes to span across multiple nodes, so, e.g., for Slurm
 you might do this::
 
     srun -N 7 -n 7 -m cyclic spack test lock

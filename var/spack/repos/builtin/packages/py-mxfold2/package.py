@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,7 +15,11 @@ class PyMxfold2(PythonPackage):
 
     maintainers("dorton21")
 
+    license("MIT")
+
     version("0.1.1", sha256="9f39c6ff4138212d1ad2639005f5c05ffb4df0f7e22f5e7ad49466a05aa047e5")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("python@3.7:", type=("build", "run"))
     depends_on("py-torch@1.7:~valgrind", type=("build", "run"))

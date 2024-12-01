@@ -1,0 +1,74 @@
+From 9be86942bfd8fd9a1c9436a7f87de5a52aa4cb7e Mon Sep 17 00:00:00 2001
+From: sreenivasa murthy kolam <sreenivasamurthy.kolam@amd.com>
+Date: Wed, 25 Oct 2023 07:33:45 +0000
+Subject: [PATCH] Remove-compiler-rt-linkage-for-host-for-5.7.0
+
+---
+ clr/hipamd/CMakeLists.txt       |  6 ++++--
+ clr/hipamd/hip-config-amd.cmake |  1 -
+ hipcc/bin/hipcc.pl              | 10 +++++++---
+ 3 files changed, 11 insertions(+), 6 deletions(-)
+
+diff --git a/clr/hipamd/CMakeLists.txt b/clr/hipamd/CMakeLists.txt
+index 272ebca..48f7686 100755
+--- a/clr/hipamd/CMakeLists.txt
++++ b/clr/hipamd/CMakeLists.txt
+@@ -402,8 +402,10 @@ if (NOT ${HIPCC_BIN_DIR} STREQUAL "")
+   install(PROGRAMS ${HIPCC_BIN_DIR}/hipcc.pl DESTINATION bin)
+   install(PROGRAMS ${HIPCC_BIN_DIR}/hipconfig.pl DESTINATION bin)
+   install(PROGRAMS ${HIPCC_BIN_DIR}/hipvars.pm DESTINATION bin)
+-  install(PROGRAMS ${HIPCC_BIN_DIR}/hipcc.bat DESTINATION bin)
+-  install(PROGRAMS ${HIPCC_BIN_DIR}/hipconfig.bat DESTINATION bin)
++  if(WIN32)
++    install(PROGRAMS ${HIPCC_BIN_DIR}/hipcc.bat DESTINATION bin)
++    install(PROGRAMS ${HIPCC_BIN_DIR}/hipconfig.bat DESTINATION bin)
++  endif()
+ endif()
+ 
+ #############################
+diff --git a/clr/hipamd/hip-config-amd.cmake b/clr/hipamd/hip-config-amd.cmake
+index 229bb0f..d685172 100755
+--- a/clr/hipamd/hip-config-amd.cmake
++++ b/clr/hipamd/hip-config-amd.cmake
+@@ -153,7 +153,6 @@ else()
+   # Add support for __fp16 and _Float16, explicitly link with compiler-rt
+   if( "${CLANGRT_BUILTINS_FETCH_EXIT_CODE}" STREQUAL "0" )
+     # CLANG_RT Builtins found Successfully Set interface link libraries property
+-    set_property(TARGET hip::host APPEND PROPERTY INTERFACE_LINK_LIBRARIES "${CLANGRT_BUILTINS}")
+     set_property(TARGET hip::device APPEND PROPERTY INTERFACE_LINK_LIBRARIES "${CLANGRT_BUILTINS}")
+   else()
+     message(STATUS "clangrt builtins lib not found: ${CLANGRT_BUILTINS_FETCH_EXIT_CODE}")
+diff --git a/hipcc/bin/hipcc.pl b/hipcc/bin/hipcc.pl
+index 56dcda2..c2e0cc9 100755
+--- a/hipcc/bin/hipcc.pl
++++ b/hipcc/bin/hipcc.pl
+@@ -155,11 +155,14 @@ if ($HIP_PLATFORM eq "amd") {
+     if($isWindows) {
+         $execExtension = ".exe";
+     }
+-    $HIPCC="$HIP_CLANG_PATH/clang++" . $execExtension;
++    # llvm_path is set inside the hip recipe
++    $LLVM_PATH= $ENV{'LLVM_PATH'};
++    $HIPCC="${LLVM_PATH}/bin/clang++" . $execExtension;
+ 
+     # If $HIPCC clang++ is not compiled, use clang instead
+     if ( ! -e $HIPCC ) {
+-        $HIPCC="$HIP_CLANG_PATH/clang" . $execExtension;
++        $LLVM_PATH= $ENV{'LLVM_PATH'};
++        $HIPCC="${LLVM_PATH}/bin/clang" . $execExtension;
+         $HIPLDFLAGS = "--driver-mode=g++";
+     }
+     # to avoid using dk linker or MSVC linker
+@@ -483,7 +486,8 @@ if($HIP_PLATFORM eq "amd"){
+             $targetsStr = $ENV{HCC_AMDGPU_TARGET};
+         } elsif (not $isWindows) {
+             # Else try using rocm_agent_enumerator
+-            $ROCM_AGENT_ENUM = "${ROCM_PATH}/bin/rocm_agent_enumerator";
++            $ROCMINFO_PATH = $ENV{'ROCMINFO_PATH'} // $ROCMINFO_PATH;
++            $ROCM_AGENT_ENUM = "${ROCMINFO_PATH}/bin/rocm_agent_enumerator";
+             $targetsStr = `${ROCM_AGENT_ENUM} -t GPU`;
+             $targetsStr =~ s/\n/,/g;
+         }
+-- 
+2.39.3
+

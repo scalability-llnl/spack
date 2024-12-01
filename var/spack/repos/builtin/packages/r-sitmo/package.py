@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,8 +21,12 @@ class RSitmo(RPackage):
 
     cran = "sitmo"
 
+    license("MIT")
+
     version("2.0.2", sha256="448ef8d56e36783354011845daf33f1efb83ea3b9685eea75eaf5134e24fa8c2")
     version("2.0.1", sha256="0c90d357af334d5c99c8956739dc12623ddd87dda5efa59f4a43f7393c87ed2a")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r@3.2.0:", type=("build", "run"))
     depends_on("r-rcpp@0.12.13:", type=("build", "run"))

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class SrcmlIdentifierGetterTool(CMakePackage):
     git = "https://github.com/SCANL/srcml_identifier_getter_tool.git"
 
     version("2022-10-17", commit="01394c247ae6f61cc5864a9697e72e3623d8e7fb", submodules=True)
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("libxml2")
     depends_on("zlib-api")

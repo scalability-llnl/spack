@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -79,4 +79,7 @@ class Dependency:
 
     def __repr__(self) -> str:
         types = dt.flag_to_chars(self.depflag)
-        return f"<Dependency: {self.pkg.name} -> {self.spec} [{types}]>"
+        if self.patches:
+            return f"<Dependency: {self.pkg.name} -> {self.spec} [{types}, {self.patches}]>"
+        else:
+            return f"<Dependency: {self.pkg.name} -> {self.spec} [{types}]>"

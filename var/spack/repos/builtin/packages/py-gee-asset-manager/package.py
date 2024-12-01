@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyGeeAssetManager(PythonPackage):
     homepage = "https://github.com/tracek/gee_asset_manager"
     url = "https://github.com/tracek/gee_asset_manager/archive/0.1.tar.gz"
     git = "https://github.com/tracek/gee_asset_manager.git"
+
+    license("Apache-2.0")
 
     version("master", branch="master")
     version("0.1", sha256="0d3345855352354d8b84188705a09a35c21af2b753cda5c688ffb2e3a454ee23")

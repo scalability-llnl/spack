@@ -1,0 +1,62 @@
+From: Afzal Patel <afzal.patel@amd.com>
+Date: Tue Jan  9 09:57:48 PST 2024
+Subject: [PATCH] changes-to-rpp-unit-tests
+Description: This patch makes changes to the CMakeLists.txt for the rpp unit tests.
+             It adds the directory which contains half.hpp and also modifies the method
+             the libjpegturbo library is linked.
+---
+diff git a/utilities/test_suite/HIP/CMakeLists.txt b/utilities/test_suite/HIP/CMakeLists.txt
+index 8f32a66..456999e 100644
+--- a/utilities/test_suite/HIP/CMakeLists.txt
++++ b/utilities/test_suite/HIP/CMakeLists.txt
+@@ -55,7 +55,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+ if(TurboJpeg_FOUND)
+     message("-- ${Green}${PROJECT_NAME} set to build with rpp and TurboJpeg${ColourReset}")
+     include_directories(${TurboJpeg_INCLUDE_DIRS})
+-    set(LINK_LIBRARY_LIST ${LINK_LIBRARY_LIST} ${TurboJpeg_LIBRARIES_DIR})
++    set(LINK_LIBRARY_LIST ${LINK_LIBRARY_LIST} ${TurboJpeg_LIBRARIES})
+ else()
+     message("-- ${Yellow}Error: TurboJpeg must be installed to install ${PROJECT_NAME} successfully!${ColourReset}")
+ endif()
+@@ -72,7 +72,7 @@ if (hip_FOUND AND OpenCV_FOUND)
+
+     add_executable(Tensor_hip Tensor_hip.cpp)
+     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGPU_SUPPORT=1 -DRPP_BACKEND_HIP=1 -std=gnu++14")
+-    target_link_libraries(Tensor_hip ${OpenCV_LIBS} -lturbojpeg -lrpp ${hip_LIBRARIES} pthread ${LINK_LIBRARY_LIST} hip::device)
++    target_link_libraries(Tensor_hip ${OpenCV_LIBS} -lrpp ${hip_LIBRARIES} pthread ${LINK_LIBRARY_LIST} hip::device)
+ else()
+     message("-- ${Yellow}Error: OpenCV and hip must be installed to install ${PROJECT_NAME} successfully!${ColourReset}")
+-endif()
+\ No newline at end of file
++endif()
+diff --git a/utilities/test_suite/HOST/CMakeLists.txt b/utilities/test_suite/HOST/CMakeLists.txt
+index bad0d60..5a8fd5c 100644
+--- a/utilities/test_suite/HOST/CMakeLists.txt
++++ b/utilities/test_suite/HOST/CMakeLists.txt
+@@ -50,10 +50,13 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS} -ggdb -O0")
+ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+ set(LINK_LIBRARY_LIST ${LINK_LIBRARY_LIST} OpenMP::OpenMP_CXX)
+
++find_path(HALF_INCLUDE_DIR half.hpp)
++include_directories(${HALF_INCLUDE_DIR})
++
+ if(TurboJpeg_FOUND)
+     message("-- ${Green}${PROJECT_NAME} set to build with rpp and TurboJpeg${ColourReset}")
+     include_directories(${TurboJpeg_INCLUDE_DIRS})
+-    set(LINK_LIBRARY_LIST ${LINK_LIBRARY_LIST} ${TurboJpeg_LIBRARIES_DIR})
++    set(LINK_LIBRARY_LIST ${LINK_LIBRARY_LIST} ${TurboJpeg_LIBRARIES})
+ else()
+     message("-- ${Yellow}Error: TurboJpeg must be installed to install ${PROJECT_NAME} successfully!${ColourReset}")
+ endif()
+@@ -67,8 +70,8 @@ if (OpenCV_FOUND)
+     add_executable(Tensor_host Tensor_host.cpp)
+
+     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++14")
+-    target_link_libraries(Tensor_host ${OpenCV_LIBS} -lturbojpeg -lrpp pthread ${LINK_LIBRARY_LIST})
++    target_link_libraries(Tensor_host ${OpenCV_LIBS} -lrpp pthread ${LINK_LIBRARY_LIST})
+
+ else()
+     message("-- ${Yellow}Error: OpenCV must be installed to install ${PROJECT_NAME} successfully!${ColourReset}")
+-endif()
+\ No newline at end of file
++endif()

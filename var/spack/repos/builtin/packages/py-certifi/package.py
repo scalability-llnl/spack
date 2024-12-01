@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyCertifi(PythonPackage):
 
     homepage = "https://github.com/certifi/python-certifi"
     pypi = "certifi/certifi-2020.6.20.tar.gz"
+
+    license("MPL-2.0")
 
     version("2023.7.22", sha256="539cc1d13202e33ca466e88b2807e29f4c13049d6d87031a3c110744495cb082")
     version("2023.5.7", sha256="0f0d56dc5a6ad56fd4ba36484d6cc34451e1c6548c61daad8c320169f91eddc7")

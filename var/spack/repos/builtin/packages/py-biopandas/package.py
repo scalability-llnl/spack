@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyBiopandas(PythonPackage):
     # Note that the source package on PyPi is broken as it
     # is missing the requirements.txt so we have to download
     # from github
+
+    license("BSD-3-Clause")
 
     version("0.2.5", branch="v0.2.5")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class RTibble(RPackage):
 
     cran = "tibble"
 
+    license("MIT")
+
     version("3.2.1", sha256="65a72d0c557fd6e7c510d150c935ed6ced5db7d05fc20236b370f11428372131")
     version("3.1.8", sha256="acf30e075d18d2f61de53ca20a13c502bb32abb8083089b0bb9172a0cb5cedea")
     version("3.1.7", sha256="e1a50891f476803526960b4c4d736a72e7d9c3d366946744a02d6347f591c872")
@@ -28,6 +30,8 @@ class RTibble(RPackage):
     version("1.3.4", sha256="a7eef7018a68fc07c17c583fb7821a08d6bc381f5961258bffaa6ef6b137760b")
     version("1.2", sha256="ed8a8bd0591223f742be80fd1cd8c4a9618d0f04011ec95c272b61ea45193104")
     version("1.1", sha256="10ea18890e5514faa4c2c05fa231a6e2bbb7689f3800850cead214306414c88e")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r@3.1.2:", type=("build", "run"))
     depends_on("r@3.1.0:", type=("build", "run"), when="@1.3.0:")

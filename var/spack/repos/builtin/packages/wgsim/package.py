@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,8 @@ class Wgsim(Package):
     git = "https://github.com/lh3/wgsim.git"
 
     version("2011.10.17", commit="a12da3375ff3b51a5594d4b6fa35591173ecc229")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("zlib-api")
 

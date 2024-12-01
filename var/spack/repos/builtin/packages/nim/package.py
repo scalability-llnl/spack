@@ -1,8 +1,7 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import os.path
 
 from spack.package import *
 
@@ -16,6 +15,9 @@ class Nim(Package):
     homepage = "https://nim-lang.org/"
     url = "https://nim-lang.org/download/nim-1.4.4.tar.xz"
 
+    license("MIT")
+
+    version("2.0.4", sha256="71526bd07439dc8e378fa1a6eb407eda1298f1f3d4df4476dca0e3ca3cbe3f09")
     version("1.9.3", sha256="d8de7515db767f853d9b44730f88ee113bfe9c38dcccd5afabc773e2e13bf87c")
     version("1.4.4", sha256="6d73729def143f72fc2491ca937a9cab86d2a8243bd845a5d1403169ad20660e")
     version("1.4.2", sha256="03a47583777dd81380a3407aa6a788c9aa8a67df4821025770c9ac4186291161")
@@ -36,22 +38,27 @@ class Nim(Package):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("pcre")
     depends_on("openssl")
 
     def patch(self):
-        install_sh_path = os.path.join(self.stage.source_path, "install.sh")
+        install_sh_path = join_path(self.stage.source_path, "install.sh")
         filter_file("1/nim", "1", install_sh_path)
 
     def install(self, spec, prefix):
         bash = which("bash")
         bash("./build.sh")
 
-        nim = Executable(os.path.join("bin", "nim"))
+        nim = Executable(join_path("bin", "nim"))
         nim("c", "koch")
 
         koch = Executable("./koch")
         koch("boot", "-d:release")
         koch("tools")
+        koch("nimble")
 
         bash("./install.sh", prefix)
+        install(join_path("bin", "nimble"), join_path(prefix, "bin"))

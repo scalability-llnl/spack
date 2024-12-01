@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -9,9 +9,9 @@ import pytest
 
 import llnl.util.filesystem as fs
 
-import spack.build_environment
 import spack.environment as ev
 import spack.error
+import spack.repo
 import spack.spec
 import spack.store
 from spack.main import SpackCommand
@@ -20,7 +20,7 @@ dev_build = SpackCommand("dev-build")
 install = SpackCommand("install")
 env = SpackCommand("env")
 
-pytestmark = pytest.mark.not_on_windows("does not run on windows")
+pytestmark = [pytest.mark.disable_clean_stage_check]
 
 
 def test_dev_build_basics(tmpdir, install_mockery):
@@ -93,7 +93,7 @@ def test_dev_build_until_last_phase(tmpdir, install_mockery):
     assert os.path.exists(str(tmpdir))
 
 
-def test_dev_build_before_until(tmpdir, install_mockery, capsys):
+def test_dev_build_before_until(tmpdir, install_mockery):
     spec = spack.spec.Spec(f"dev-build-test-install@0.0.0 dev_path={tmpdir}").concretized()
 
     with tmpdir.as_cwd():
@@ -122,21 +122,11 @@ def print_spack_cc(*args):
     print(os.environ.get("CC", ""))
 
 
-# `module unload cray-libsci` in test environment causes failure
-# It does not fail for actual installs
-# build_environment.py imports module directly, so we monkeypatch it there
-# rather than in module_cmd
-def mock_module_noop(*args):
-    pass
-
-
 def test_dev_build_drop_in(tmpdir, mock_packages, monkeypatch, install_mockery, working_env):
     monkeypatch.setattr(os, "execvp", print_spack_cc)
-    monkeypatch.setattr(spack.build_environment, "module", mock_module_noop)
-
     with tmpdir.as_cwd():
         output = dev_build("-b", "edit", "--drop-in", "sh", "dev-build-test-install@0.0.0")
-        assert "lib/spack/env" in output
+        assert os.path.join("lib", "spack", "env") in output
 
 
 def test_dev_build_fails_already_installed(tmpdir, install_mockery):
@@ -204,6 +194,44 @@ spack:
     dev-build-test-install:
       spec: dev-build-test-install@0.0.0
       path: {os.path.relpath(str(build_dir), start=str(envdir))}
+"""
+            )
+        env("create", "test", "./spack.yaml")
+        with ev.read("test"):
+            install()
+
+    assert spec.package.filename in os.listdir(spec.prefix)
+    with open(os.path.join(spec.prefix, spec.package.filename), "r") as f:
+        assert f.read() == spec.package.replacement_string
+
+
+def test_dev_build_env_with_vars(tmpdir, install_mockery, mutable_mock_env_path, monkeypatch):
+    """Test Spack does dev builds for packages in develop section of env (path with variables)."""
+    # setup dev-build-test-install package for dev build
+    build_dir = tmpdir.mkdir("build")
+    spec = spack.spec.Spec(f"dev-build-test-install@0.0.0 dev_path={build_dir}")
+    spec.concretize()
+
+    # store the build path in an environment variable that will be used in the environment
+    monkeypatch.setenv("CUSTOM_BUILD_PATH", build_dir)
+
+    with build_dir.as_cwd(), open(spec.package.filename, "w") as f:
+        f.write(spec.package.original_string)
+
+    # setup environment
+    envdir = tmpdir.mkdir("env")
+    with envdir.as_cwd():
+        with open("spack.yaml", "w") as f:
+            f.write(
+                """\
+spack:
+  specs:
+  - dev-build-test-install@0.0.0
+
+  develop:
+    dev-build-test-install:
+      spec: dev-build-test-install@0.0.0
+      path: $CUSTOM_BUILD_PATH
 """
             )
         env("create", "test", "./spack.yaml")

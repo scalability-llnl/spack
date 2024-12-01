@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class XorgGtest(AutotoolsPackage, XorgPackage):
     xorg_mirror_path = "test/xorg-gtest-0.7.1.tar.bz2"
 
     version("0.7.1", sha256="6cedc7904c698472783203bd686e777db120b808bb4052e451a822e437b72682")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("libx11")
     depends_on("libxi")

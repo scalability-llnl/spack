@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -30,6 +30,9 @@ class PyDistributed(PythonPackage):
         "distributed.diagnostics",
     ]
 
+    license("BSD-3-Clause")
+
+    version("2024.7.1", sha256="7bce7fa745163b55bdd67fd632b3edf57b31827640390b92d0ee3f73436429d3")
     version("2023.4.1", sha256="0140376338efdcf8db1d03f7c1fdbb5eab2a337b03e955d927c116824ee94ac5")
     version("2022.10.2", sha256="53f0a5bf6efab9a5ab3345cd913f6d3f3d4ea444ee2edbea331c7fef96fd67d0")
     version("2022.2.1", sha256="fb62a75af8ef33bbe1aa80a68c01a33a93c1cd5a332dd017ab44955bf7ecf65b")
@@ -55,6 +58,7 @@ class PyDistributed(PythonPackage):
     depends_on("py-packaging@20.0:", type=("build", "run"), when="@2022.2.1:")
     depends_on("py-psutil@5.0:", type=("build", "run"))
     depends_on("py-psutil@5.7.0:", type=("build", "run"), when="@2023.4.1:")
+    depends_on("py-psutil@5.7.2:", type=("build", "run"), when="@2024.7.1:")
     depends_on("py-sortedcontainers@:1,2.0.2:", type=("build", "run"))
     depends_on("py-sortedcontainers@2.0.5:", type=("build", "run"), when="@2023.4.1:")
     depends_on("py-tblib@1.6:", type=("build", "run"))
@@ -65,8 +69,10 @@ class PyDistributed(PythonPackage):
     depends_on("py-tornado@5:", type=("build", "run"), when="^python@:3.7")
     depends_on("py-tornado@6.0.3:", type=("build", "run"), when="^python@3.8:")
     depends_on("py-tornado@6.0.3:6.1", type=("build", "run"), when="@2022.10.2:")
+    depends_on("py-tornado@6.0.4:", type=("build", "run"), when="@2024.7.1:")
     depends_on("py-zict@0.1.3:", type=("build", "run"))
     depends_on("py-zict@2.2.0:", type=("build", "run"), when="@2023.4.1:")
+    depends_on("py-zict@3.0.0:", type=("build", "run"), when="@2024.7.1:")
     depends_on("py-pyyaml", type=("build", "run"))
     depends_on("py-pyyaml@5.3.1:", type=("build", "run"), when="@2023.4.1:")
     depends_on("py-urllib3", type=("build", "run"), when="@2022.10.2:")

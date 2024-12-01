@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,9 +15,13 @@ class Ipcalc(MakefilePackage):
     homepage = "https://gitlab.com/ipcalc/ipcalc"
     url = "https://github.com/nmav/ipcalc/archive/0.2.3.tar.gz"
 
+    license("GPL-2.0-or-later")
+
     version("0.2.3", sha256="c416f34d381a7333ad8aa8982fcfc88434818b3cc35a33b62a75c10f2a6af3c9")
     version("0.2.2", sha256="bf1b95eca219e564c85fa4233fe65342963cf3e8a303a7e10b4dd7269c864794")
     version("0.2.0", sha256="c965c1296172a6acc50d54dfe81f7e5d589f9762b5d9ae459eee00349675336b")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("geoip-api-c")
 

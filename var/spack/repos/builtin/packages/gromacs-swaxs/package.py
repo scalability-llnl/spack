@@ -1,9 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
+from spack.pkg.builtin.gromacs import CMakeBuilder as GromacsCMakeBuilder
 from spack.pkg.builtin.gromacs import Gromacs
 
 
@@ -11,9 +12,15 @@ class GromacsSwaxs(Gromacs):
     """Modified Gromacs for small-angle scattering calculations (SAXS/WAXS/SANS)"""
 
     homepage = "https://biophys.uni-saarland.de/swaxs.html"
-    url = "https://gitlab.com/cbjh/gromacs-swaxs/-/archive/release-2019.swaxs-0.1/gromacs-swaxs-release-2019.swaxs-0.1.tar.bz2"
+    url = "https://gitlab.com/cbjh/gromacs-swaxs/-/archive/release-2021.swaxs-0.5/gromacs-swaxs-release-2021.swaxs-0.5.tar.bz2"
     git = "https://gitlab.com/cbjh/gromacs-swaxs.git"
     maintainers("w8jcik")
+
+    version(
+        "2021.5-0.5",
+        sha256="7207f107dc6c4009a04a533e18545666d4f58c172b2b24d04442bb1a0f43ff44",
+        url="https://gitlab.com/cbjh/gromacs-swaxs/-/archive/release-2021.swaxs-0.5/gromacs-swaxs-release-2021.swaxs-0.5.tar.bz2",
+    )
 
     version(
         "2021.5-0.4",
@@ -151,3 +158,7 @@ class GromacsSwaxs(Gromacs):
         super().__init__(spec)
 
         self.remove_parent_versions()
+
+
+class CMakeBuilder(GromacsCMakeBuilder):
+    pass

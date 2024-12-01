@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,7 +16,6 @@ class Alpgen(CMakePackage, MakefilePackage):
     homepage = "http://mlm.home.cern.ch/mlm/alpgen/"
     url = "http://mlm.home.cern.ch/mlm/alpgen/V2.1/v214.tgz"
 
-    maintainers("iarspider")
     tags = ["hep"]
 
     version("2.1.4", sha256="2f43f7f526793fe5f81a3a3e1adeffe21b653a7f5851efc599ed69ea13985c5e")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class Fbgemm(CMakePackage):
     git = "https://github.com/pytorch/FBGEMM.git"
 
     maintainers("dskhudia")
+
+    license("BSD-3-Clause")
 
     version("master", branch="master", submodules=True)
     version(
@@ -53,6 +55,9 @@ class Fbgemm(CMakePackage):
     version(
         "2018-12-04", commit="0d5a159b944252e70a677236b570f291943e0543", submodules=True
     )  # py-torch@1.0.0
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     generator("ninja")
     depends_on("cmake@3.5:", type="build")

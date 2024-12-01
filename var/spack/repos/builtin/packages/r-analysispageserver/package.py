@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,9 @@ class RAnalysispageserver(RPackage):
     version("1.14.0", commit="620c0ea1e129ddd1a0866e2c9d7c3fcf06a8baf4")
     version("1.12.0", commit="146501974ef1938ee1ec4eb293ea7eeca331a0dc")
     version("1.10.0", commit="876c87073be116fa15a1afdd407e21152eb80d50")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r-log4r", type=("build", "run"))
     depends_on("r-rjson", type=("build", "run"))

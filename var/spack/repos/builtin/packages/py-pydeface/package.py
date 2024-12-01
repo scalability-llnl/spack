@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyPydeface(PythonPackage):
     homepage = "http://poldracklab.org/"
     pypi = "pydeface/pydeface-2.0.2.tar.gz"
     git = "https://github.com/poldracklab/pydeface"
+
+    license("MIT")
 
     version("2.0.2", sha256="662263072ccccff9929432568caf5c183075f7fbf8f9d5c170767c3202c78f36")
 

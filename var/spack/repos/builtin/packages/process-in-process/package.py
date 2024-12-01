@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,12 +22,16 @@ class ProcessInProcess(Package):
     conflicts("platform=darwin", msg="Darwin is not supported.")
     conflicts("platform=windows", msg="Windows is not supported.")
 
+    license("BSD-2-Clause-FreeBSD")
+
     # PiP version 1 is obsolete
     version("1", branch="pip-1", deprecated=True)
     # PiP version 2 is stable one
     version("2", branch="pip-2", preferred=True)
     # PiP version 3 is experimental and unstable yet
     version("3", branch="pip-3", deprecated=True)
+
+    depends_on("c", type="build")  # generated
 
     conflicts("%gcc@:3", when="os=centos7")
     conflicts("%gcc@5:", when="os=centos7")

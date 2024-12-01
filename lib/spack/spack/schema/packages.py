@@ -1,12 +1,17 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Schema for packages.yaml configuration files.
 
 .. literalinclude:: _spack_root/lib/spack/spack/schema/packages.py
-   :lines: 13-
+   :lines: 14-
 """
+from typing import Any, Dict
+
+import spack.schema.environment
+
+from .compilers import extra_rpaths, flags, implicit_rpaths
 
 permissions = {
     "type": "object",
@@ -53,6 +58,24 @@ requirements = {
     ]
 }
 
+prefer_and_conflict = {
+    "type": "array",
+    "items": {
+        "oneOf": [
+            {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "spec": {"type": "string"},
+                    "message": {"type": "string"},
+                    "when": {"type": "string"},
+                },
+            },
+            {"type": "string"},
+        ]
+    },
+}
+
 permissions = {
     "type": "object",
     "additionalProperties": False,
@@ -69,8 +92,10 @@ package_attributes = {
     "patternProperties": {r"\w+": {}},
 }
 
+REQUIREMENT_URL = "https://spack.readthedocs.io/en/latest/packages_yaml.html#package-requirements"
+
 #: Properties for inclusion in other schemas
-properties = {
+properties: Dict[str, Any] = {
     "packages": {
         "type": "object",
         "default": {},
@@ -82,7 +107,8 @@ properties = {
                 "additionalProperties": False,
                 "properties": {
                     "require": requirements,
-                    "version": {},  # Here only to warn users on ignored properties
+                    "prefer": prefer_and_conflict,
+                    "conflict": prefer_and_conflict,
                     "target": {
                         "type": "array",
                         "default": [],
@@ -113,14 +139,6 @@ properties = {
                     },
                     "variants": variants,
                 },
-                "deprecatedProperties": {
-                    "properties": ["version"],
-                    "message": "setting version preferences in the 'all' section of packages.yaml "
-                    "is deprecated and will be removed in v0.22\n\n\tThese preferences "
-                    "will be ignored by Spack. You can set them only in package specific sections "
-                    "of the same file.\n",
-                    "error": False,
-                },
             }
         },
         "patternProperties": {
@@ -130,20 +148,19 @@ properties = {
                 "additionalProperties": False,
                 "properties": {
                     "require": requirements,
+                    "prefer": prefer_and_conflict,
+                    "conflict": prefer_and_conflict,
                     "version": {
                         "type": "array",
                         "default": [],
                         # version strings
                         "items": {"anyOf": [{"type": "string"}, {"type": "number"}]},
                     },
-                    "target": {},  # Here only to warn users on ignored properties
-                    "compiler": {},  # Here only to warn users on ignored properties
                     "buildable": {"type": "boolean", "default": True},
                     "permissions": permissions,
                     # If 'get_full_repo' is promoted to a Package-level
                     # attribute, it could be useful to set it here
                     "package_attributes": package_attributes,
-                    "providers": {},  # Here only to warn users on ignored properties
                     "variants": variants,
                     "externals": {
                         "type": "array",
@@ -153,26 +170,32 @@ properties = {
                                 "spec": {"type": "string"},
                                 "prefix": {"type": "string"},
                                 "modules": {"type": "array", "items": {"type": "string"}},
-                                "extra_attributes": {"type": "object"},
+                                "extra_attributes": {
+                                    "type": "object",
+                                    "additionalProperties": True,
+                                    "properties": {
+                                        "compilers": {
+                                            "type": "object",
+                                            "patternProperties": {
+                                                r"(^\w[\w-]*)": {"type": "string"}
+                                            },
+                                        },
+                                        "environment": spack.schema.environment.definition,
+                                        "extra_rpaths": extra_rpaths,
+                                        "implicit_rpaths": implicit_rpaths,
+                                        "flags": flags,
+                                    },
+                                },
                             },
                             "additionalProperties": True,
                             "required": ["spec"],
                         },
                     },
                 },
-                "deprecatedProperties": {
-                    "properties": ["target", "compiler", "providers"],
-                    "message": "setting compiler, target or provider preferences in a package "
-                    "specific section of packages.yaml is deprecated, and will be removed in "
-                    "v0.22.\n\n\tThese preferences will be ignored by Spack. You "
-                    "can set them only in the 'all' section of the same file.\n",
-                    "error": False,
-                },
             }
         },
     }
 }
-
 
 #: Full schema with metadata
 schema = {

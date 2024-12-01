@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyClick(PythonPackage):
     homepage = "https://click.palletsprojects.com"
     pypi = "click/click-7.1.2.tar.gz"
     git = "https://github.com/pallets/click.git"
+
+    license("BSD-3-Clause")
 
     version("8.1.7", sha256="ca9853ad459e787e2192211578cc907e7594e294c7ccc834310722b41b9ca6de")
     version("8.1.3", sha256="7682dc8afb30297001674575ea00d1814d808d6a36af415a82bd481d37ba7b8e")

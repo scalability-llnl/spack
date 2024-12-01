@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyIlmbase(AutotoolsPackage):
     url = "https://github.com/AcademySoftwareFoundation/openexr/releases/download/v2.3.0/pyilmbase-2.3.0.tar.gz"
 
     version("2.3.0", sha256="9c898bb16e7bc916c82bebdf32c343c0f2878fc3eacbafa49937e78f2079a425")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("ilmbase")
     depends_on("boost+python")

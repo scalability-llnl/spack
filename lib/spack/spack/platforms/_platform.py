@@ -1,8 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from typing import Optional
+
+import archspec.cpu
 
 import llnl.util.lang
 
@@ -60,7 +62,7 @@ class Platform:
         self.operating_sys = {}
         self.name = name
 
-    def add_target(self, name, target):
+    def add_target(self, name: str, target: archspec.cpu.Microarchitecture) -> None:
         """Used by the platform specific subclass to list available targets.
         Raises an error if the platform specifies a name
         that is reserved by spack as an alias.
@@ -69,6 +71,10 @@ class Platform:
             msg = "{0} is a spack reserved alias and cannot be the name of a target"
             raise ValueError(msg.format(name))
         self.targets[name] = target
+
+    def _add_archspec_targets(self):
+        for name, microarchitecture in archspec.cpu.TARGETS.items():
+            self.add_target(name, microarchitecture)
 
     def target(self, name):
         """This is a getter method for the target dictionary

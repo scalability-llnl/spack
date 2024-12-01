@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -9,9 +9,12 @@ import sys
 
 import pytest
 
+import spack.binary_distribution
+import spack.cmd
+import spack.parser
 import spack.platforms.test
+import spack.repo
 import spack.spec
-import spack.variant
 from spack.parser import (
     UNIX_FILENAME,
     WINDOWS_FILENAME,
@@ -203,7 +206,8 @@ def specfile_for(default_mock_concretization):
             "mvapich_foo ^_openmpi@1.2:1.4,1.6%intel@12.1~qt_4 debug=2 ^stackwalker@8.1_1e",
         ),
         (
-            "mvapich_foo ^_openmpi@1.2:1.4,1.6%intel@12.1 cppflags=-O3 +debug~qt_4 ^stackwalker@8.1_1e",  # noqa: E501
+            "mvapich_foo ^_openmpi@1.2:1.4,1.6%intel@12.1 cppflags=-O3 +debug~qt_4 "
+            "^stackwalker@8.1_1e",
             [
                 Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="mvapich_foo"),
                 Token(TokenType.DEPENDENCY, value="^"),
@@ -217,7 +221,8 @@ def specfile_for(default_mock_concretization):
                 Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="stackwalker"),
                 Token(TokenType.VERSION, value="@8.1_1e"),
             ],
-            'mvapich_foo ^_openmpi@1.2:1.4,1.6%intel@12.1 cppflags="-O3" +debug~qt_4 ^stackwalker@8.1_1e',  # noqa: E501
+            "mvapich_foo ^_openmpi@1.2:1.4,1.6%intel@12.1 cppflags=-O3 +debug~qt_4 "
+            "^stackwalker@8.1_1e",
         ),
         # Specs containing YAML or JSON in the package name
         (
@@ -424,7 +429,7 @@ def specfile_for(default_mock_concretization):
         compiler_with_version_range("%gcc@10.1.0,12.2.1:"),
         compiler_with_version_range("%gcc@:8.4.3,10.2.1:12.1.0"),
         # Special key value arguments
-        ("dev_path=*", [Token(TokenType.KEY_VALUE_PAIR, value="dev_path=*")], "dev_path=*"),
+        ("dev_path=*", [Token(TokenType.KEY_VALUE_PAIR, value="dev_path=*")], "dev_path='*'"),
         (
             "dev_path=none",
             [Token(TokenType.KEY_VALUE_PAIR, value="dev_path=none")],
@@ -444,33 +449,28 @@ def specfile_for(default_mock_concretization):
         (
             "cflags=a=b=c",
             [Token(TokenType.KEY_VALUE_PAIR, value="cflags=a=b=c")],
-            'cflags="a=b=c"',
+            "cflags='a=b=c'",
         ),
         (
             "cflags=a=b=c",
             [Token(TokenType.KEY_VALUE_PAIR, value="cflags=a=b=c")],
-            'cflags="a=b=c"',
+            "cflags='a=b=c'",
         ),
         (
             "cflags=a=b=c+~",
             [Token(TokenType.KEY_VALUE_PAIR, value="cflags=a=b=c+~")],
-            'cflags="a=b=c+~"',
+            "cflags='a=b=c+~'",
         ),
         (
             "cflags=-Wl,a,b,c",
             [Token(TokenType.KEY_VALUE_PAIR, value="cflags=-Wl,a,b,c")],
-            'cflags="-Wl,a,b,c"',
+            "cflags=-Wl,a,b,c",
         ),
         # Multi quoted
         (
-            "cflags=''-Wl,a,b,c''",
-            [Token(TokenType.KEY_VALUE_PAIR, value="cflags=''-Wl,a,b,c''")],
-            'cflags="-Wl,a,b,c"',
-        ),
-        (
             'cflags=="-O3 -g"',
             [Token(TokenType.PROPAGATED_KEY_VALUE_PAIR, value='cflags=="-O3 -g"')],
-            'cflags=="-O3 -g"',
+            "cflags=='-O3 -g'",
         ),
         # Whitespace is allowed in version lists
         ("@1.2:1.4 , 1.6 ", [Token(TokenType.VERSION, value="@1.2:1.4 , 1.6")], "@1.2:1.4,1.6"),
@@ -483,22 +483,6 @@ def specfile_for(default_mock_concretization):
                 Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="b"),
             ],
             "a@1:",
-        ),
-        (
-            "@1.2:   develop   = foo",
-            [
-                Token(TokenType.VERSION, value="@1.2:"),
-                Token(TokenType.KEY_VALUE_PAIR, value="develop   = foo"),
-            ],
-            "@1.2: develop=foo",
-        ),
-        (
-            "@1.2:develop   = foo",
-            [
-                Token(TokenType.VERSION, value="@1.2:"),
-                Token(TokenType.KEY_VALUE_PAIR, value="develop   = foo"),
-            ],
-            "@1.2: develop=foo",
         ),
         (
             "% intel @ 12.1:12.6 + debug",
@@ -540,6 +524,23 @@ def specfile_for(default_mock_concretization):
             ],
             "^[virtuals=mpi] openmpi",
         ),
+        # Allow merging attributes, if deptypes match
+        (
+            "^[virtuals=mpi] openmpi+foo ^[virtuals=lapack] openmpi+bar",
+            [
+                Token(TokenType.START_EDGE_PROPERTIES, value="^["),
+                Token(TokenType.KEY_VALUE_PAIR, value="virtuals=mpi"),
+                Token(TokenType.END_EDGE_PROPERTIES, value="]"),
+                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="openmpi"),
+                Token(TokenType.BOOL_VARIANT, value="+foo"),
+                Token(TokenType.START_EDGE_PROPERTIES, value="^["),
+                Token(TokenType.KEY_VALUE_PAIR, value="virtuals=lapack"),
+                Token(TokenType.END_EDGE_PROPERTIES, value="]"),
+                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="openmpi"),
+                Token(TokenType.BOOL_VARIANT, value="+bar"),
+            ],
+            "^[virtuals=lapack,mpi] openmpi+bar+foo",
+        ),
         (
             "^[deptypes=link,build] zlib",
             [
@@ -551,12 +552,26 @@ def specfile_for(default_mock_concretization):
             "^[deptypes=build,link] zlib",
         ),
         (
-            "zlib@git.foo/bar",
+            "^[deptypes=link] zlib ^[deptypes=build] zlib",
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, "zlib"),
+                Token(TokenType.START_EDGE_PROPERTIES, value="^["),
+                Token(TokenType.KEY_VALUE_PAIR, value="deptypes=link"),
+                Token(TokenType.END_EDGE_PROPERTIES, value="]"),
+                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="zlib"),
+                Token(TokenType.START_EDGE_PROPERTIES, value="^["),
+                Token(TokenType.KEY_VALUE_PAIR, value="deptypes=build"),
+                Token(TokenType.END_EDGE_PROPERTIES, value="]"),
+                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="zlib"),
+            ],
+            "^[deptypes=link] zlib ^[deptypes=build] zlib",
+        ),
+        (
+            "git-test@git.foo/bar",
+            [
+                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, "git-test"),
                 Token(TokenType.GIT_VERSION, "@git.foo/bar"),
             ],
-            "zlib@git.foo/bar",
+            "git-test@git.foo/bar",
         ),
         # Variant propagation
         (
@@ -585,10 +600,10 @@ def specfile_for(default_mock_concretization):
         ),
     ],
 )
-def test_parse_single_spec(spec_str, tokens, expected_roundtrip):
+def test_parse_single_spec(spec_str, tokens, expected_roundtrip, mock_git_test_package):
     parser = SpecParser(spec_str)
-    assert parser.tokens() == tokens
-    assert str(parser.next_spec()) == expected_roundtrip
+    assert tokens == parser.tokens()
+    assert expected_roundtrip == str(parser.next_spec())
 
 
 @pytest.mark.parametrize(
@@ -655,19 +670,79 @@ def test_parse_multiple_specs(text, tokens, expected_specs):
 
 
 @pytest.mark.parametrize(
+    "args,expected",
+    [
+        # Test that CLI-quoted flags/variant values are preserved
+        (["zlib", "cflags=-O3 -g", "+bar", "baz"], "zlib cflags='-O3 -g' +bar baz"),
+        # Test that CLI-quoted propagated flags/variant values are preserved
+        (["zlib", "cflags==-O3 -g", "+bar", "baz"], "zlib cflags=='-O3 -g' +bar baz"),
+        # An entire string passed on the CLI with embedded quotes also works
+        (["zlib cflags='-O3 -g' +bar baz"], "zlib cflags='-O3 -g' +bar baz"),
+        # Entire string *without* quoted flags splits -O3/-g (-g interpreted as a variant)
+        (["zlib cflags=-O3 -g +bar baz"], "zlib cflags=-O3 +bar~g baz"),
+        # If the entirety of "-O3 -g +bar baz" is quoted on the CLI, it's all taken as flags
+        (["zlib", "cflags=-O3 -g +bar baz"], "zlib cflags='-O3 -g +bar baz'"),
+        # If the string doesn't start with key=, it needs internal quotes for flags
+        (["zlib", " cflags=-O3 -g +bar baz"], "zlib cflags=-O3 +bar~g baz"),
+        # Internal quotes for quoted CLI args are considered part of *one* arg
+        (["zlib", 'cflags="-O3 -g" +bar baz'], """zlib cflags='"-O3 -g" +bar baz'"""),
+        # Use double quotes if internal single quotes are present
+        (["zlib", "cflags='-O3 -g' +bar baz"], '''zlib cflags="'-O3 -g' +bar baz"'''),
+        # Use single quotes and escape single quotes with internal single and double quotes
+        (["zlib", "cflags='-O3 -g' \"+bar baz\""], 'zlib cflags="\'-O3 -g\' \\"+bar baz\\""'),
+        # Ensure that empty strings are handled correctly on CLI
+        (["zlib", "ldflags=", "+pic"], "zlib+pic"),
+        # These flags are assumed to be quoted by the shell, but the space doesn't matter because
+        # flags are space-separated.
+        (["zlib", "ldflags= +pic"], "zlib ldflags='+pic'"),
+        (["ldflags= +pic"], "ldflags='+pic'"),
+        # If the name is not a flag name, the space is preserved verbatim, because variant values
+        # are comma-separated.
+        (["zlib", "foo= +pic"], "zlib foo=' +pic'"),
+        (["foo= +pic"], "foo=' +pic'"),
+        # You can ensure no quotes are added parse_specs() by starting your string with space,
+        # but you still need to quote empty strings properly.
+        ([" ldflags= +pic"], SpecTokenizationError),
+        ([" ldflags=", "+pic"], SpecTokenizationError),
+        ([" ldflags='' +pic"], "+pic"),
+        ([" ldflags=''", "+pic"], "+pic"),
+        # Ensure that empty strings are handled properly in quoted strings
+        (["zlib ldflags='' +pic"], "zlib+pic"),
+        # Ensure that $ORIGIN is handled correctly
+        (["zlib", "ldflags=-Wl,-rpath=$ORIGIN/_libs"], "zlib ldflags='-Wl,-rpath=$ORIGIN/_libs'"),
+        # Ensure that passing escaped quotes on the CLI raises a tokenization error
+        (["zlib", '"-g', '-O2"'], SpecTokenizationError),
+    ],
+)
+def test_cli_spec_roundtrip(args, expected):
+    if isinstance(expected, type) and issubclass(expected, BaseException):
+        with pytest.raises(expected):
+            spack.cmd.parse_specs(args)
+        return
+
+    specs = spack.cmd.parse_specs(args)
+    output_string = " ".join(str(spec) for spec in specs)
+    assert expected == output_string
+
+
+@pytest.mark.parametrize(
     "text,expected_in_error",
     [
-        ("x@@1.2", "x@@1.2\n ^^^^^"),
-        ("y ^x@@1.2", "y ^x@@1.2\n   ^^^^^"),
-        ("x@1.2::", "x@1.2::\n      ^"),
-        ("x::", "x::\n ^^"),
+        ("x@@1.2", r"x@@1.2\n ^"),
+        ("y ^x@@1.2", r"y ^x@@1.2\n    ^"),
+        ("x@1.2::", r"x@1.2::\n      ^"),
+        ("x::", r"x::\n ^^"),
+        ("cflags=''-Wl,a,b,c''", r"cflags=''-Wl,a,b,c''\n            ^ ^ ^ ^^"),
+        ("@1.2:   develop   = foo", r"@1.2:   develop   = foo\n                  ^^"),
+        ("@1.2:develop   = foo", r"@1.2:develop   = foo\n               ^^"),
     ],
 )
 def test_error_reporting(text, expected_in_error):
     parser = SpecParser(text)
     with pytest.raises(SpecTokenizationError) as exc:
         parser.tokens()
-        assert expected_in_error in str(exc), parser.tokens()
+
+    assert expected_in_error in str(exc), parser.tokens()
 
 
 @pytest.mark.parametrize(
@@ -699,7 +774,7 @@ def test_spec_by_hash_tokens(text, tokens):
 @pytest.mark.db
 def test_spec_by_hash(database, monkeypatch, config):
     mpileaks = database.query_one("mpileaks ^zmpi")
-    b = spack.spec.Spec("b").concretized()
+    b = spack.spec.Spec("pkg-b").concretized()
     monkeypatch.setattr(spack.binary_distribution, "update_cache_and_get_specs", lambda: [b])
 
     hash_str = f"/{mpileaks.dag_hash()}"
@@ -791,12 +866,12 @@ def test_multiple_specs_with_hash(database, config):
 
 
 @pytest.mark.db
-def test_ambiguous_hash(mutable_database, default_mock_concretization, config):
+def test_ambiguous_hash(mutable_database):
     """Test that abstract hash ambiguity is delayed until concretization.
     In the past this ambiguity error would happen during parse time."""
 
     # This is a very sketchy as manually setting hashes easily breaks invariants
-    x1 = default_mock_concretization("a")
+    x1 = spack.spec.Spec("pkg-a").concretized()
     x2 = x1.copy()
     x1._hash = "xyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
     x1._process_hash = "xyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
@@ -805,8 +880,8 @@ def test_ambiguous_hash(mutable_database, default_mock_concretization, config):
 
     assert x1 != x2  # doesn't hold when only the dag hash is modified.
 
-    mutable_database.add(x1, directory_layout=None)
-    mutable_database.add(x2, directory_layout=None)
+    mutable_database.add(x1)
+    mutable_database.add(x2)
 
     # ambiguity in first hash character
     s1 = SpecParser("/x").next_spec()
@@ -814,7 +889,7 @@ def test_ambiguous_hash(mutable_database, default_mock_concretization, config):
         s1.lookup_hash()
 
     # ambiguity in first hash character AND spec name
-    s2 = SpecParser("a/x").next_spec()
+    s2 = SpecParser("pkg-a/x").next_spec()
     with pytest.raises(spack.spec.AmbiguousHashError):
         s2.lookup_hash()
 
@@ -892,64 +967,62 @@ def test_disambiguate_hash_by_spec(spec1, spec2, constraint, mock_packages, monk
 
 
 @pytest.mark.parametrize(
-    "text,exc_cls",
+    "text,match_string",
     [
         # Duplicate variants
-        ("x@1.2+debug+debug", spack.variant.DuplicateVariantError),
-        ("x ^y@1.2+debug debug=true", spack.variant.DuplicateVariantError),
-        ("x ^y@1.2 debug=false debug=true", spack.variant.DuplicateVariantError),
-        ("x ^y@1.2 debug=false ~debug", spack.variant.DuplicateVariantError),
+        ("x@1.2+debug+debug", "variant"),
+        ("x ^y@1.2+debug debug=true", "variant"),
+        ("x ^y@1.2 debug=false debug=true", "variant"),
+        ("x ^y@1.2 debug=false ~debug", "variant"),
         # Multiple versions
-        ("x@1.2@2.3", spack.spec.MultipleVersionError),
-        ("x@1.2:2.3@1.4", spack.spec.MultipleVersionError),
-        ("x@1.2@2.3:2.4", spack.spec.MultipleVersionError),
-        ("x@1.2@2.3,2.4", spack.spec.MultipleVersionError),
-        ("x@1.2 +foo~bar @2.3", spack.spec.MultipleVersionError),
-        ("x@1.2%y@1.2@2.3:2.4", spack.spec.MultipleVersionError),
+        ("x@1.2@2.3", "version"),
+        ("x@1.2:2.3@1.4", "version"),
+        ("x@1.2@2.3:2.4", "version"),
+        ("x@1.2@2.3,2.4", "version"),
+        ("x@1.2 +foo~bar @2.3", "version"),
+        ("x@1.2%y@1.2@2.3:2.4", "version"),
         # Duplicate dependency
-        ("x ^y@1 ^y@2", spack.spec.DuplicateDependencyError),
+        ("x ^y@1 ^y@2", "Cannot depend on incompatible specs"),
         # Duplicate compiler
-        ("x%intel%intel", spack.spec.DuplicateCompilerSpecError),
-        ("x%intel%gcc", spack.spec.DuplicateCompilerSpecError),
-        ("x%gcc%intel", spack.spec.DuplicateCompilerSpecError),
-        ("x ^y%intel%intel", spack.spec.DuplicateCompilerSpecError),
-        ("x ^y%intel%gcc", spack.spec.DuplicateCompilerSpecError),
-        ("x ^y%gcc%intel", spack.spec.DuplicateCompilerSpecError),
+        ("x%intel%intel", "compiler"),
+        ("x%intel%gcc", "compiler"),
+        ("x%gcc%intel", "compiler"),
+        ("x ^y%intel%intel", "compiler"),
+        ("x ^y%intel%gcc", "compiler"),
+        ("x ^y%gcc%intel", "compiler"),
         # Duplicate Architectures
-        (
-            "x arch=linux-rhel7-x86_64 arch=linux-rhel7-x86_64",
-            spack.spec.DuplicateArchitectureError,
-        ),
-        (
-            "x arch=linux-rhel7-x86_64 arch=linux-rhel7-ppc64le",
-            spack.spec.DuplicateArchitectureError,
-        ),
-        (
-            "x arch=linux-rhel7-ppc64le arch=linux-rhel7-x86_64",
-            spack.spec.DuplicateArchitectureError,
-        ),
-        (
-            "y ^x arch=linux-rhel7-x86_64 arch=linux-rhel7-x86_64",
-            spack.spec.DuplicateArchitectureError,
-        ),
-        (
-            "y ^x arch=linux-rhel7-x86_64 arch=linux-rhel7-ppc64le",
-            spack.spec.DuplicateArchitectureError,
-        ),
-        ("x os=fe os=fe", spack.spec.DuplicateArchitectureError),
-        ("x os=fe os=be", spack.spec.DuplicateArchitectureError),
-        ("x target=fe target=fe", spack.spec.DuplicateArchitectureError),
-        ("x target=fe target=be", spack.spec.DuplicateArchitectureError),
-        ("x platform=test platform=test", spack.spec.DuplicateArchitectureError),
-        ("x os=fe platform=test target=fe os=fe", spack.spec.DuplicateArchitectureError),
-        ("x target=be platform=test os=be os=fe", spack.spec.DuplicateArchitectureError),
-        ("^[@foo] zlib", spack.parser.SpecParsingError),
+        ("x arch=linux-rhel7-x86_64 arch=linux-rhel7-x86_64", "two architectures"),
+        ("x arch=linux-rhel7-x86_64 arch=linux-rhel7-ppc64le", "two architectures"),
+        ("x arch=linux-rhel7-ppc64le arch=linux-rhel7-x86_64", "two architectures"),
+        ("y ^x arch=linux-rhel7-x86_64 arch=linux-rhel7-x86_64", "two architectures"),
+        ("y ^x arch=linux-rhel7-x86_64 arch=linux-rhel7-ppc64le", "two architectures"),
+        ("x os=fe os=fe", "'os'"),
+        ("x os=fe os=be", "'os'"),
+        ("x target=fe target=fe", "'target'"),
+        ("x target=fe target=be", "'target'"),
+        ("x platform=test platform=test", "'platform'"),
+        # TODO: these two seem wrong: need to change how arch is initialized (should fail on os)
+        ("x os=fe platform=test target=fe os=fe", "'platform'"),
+        ("x target=be platform=test os=be os=fe", "'platform'"),
+        # Dependencies
+        ("^[@foo] zlib", "edge attributes"),
+        ("x ^[deptypes=link]foo ^[deptypes=run]foo", "conflicting dependency types"),
+        ("x ^[deptypes=build,link]foo ^[deptypes=link]foo", "conflicting dependency types"),
         # TODO: Remove this as soon as use variants are added and we can parse custom attributes
-        ("^[foo=bar] zlib", spack.parser.SpecParsingError),
+        ("^[foo=bar] zlib", "edge attributes"),
+        # Propagating reserved names generates a parse error
+        ("x namespace==foo.bar.baz", "Propagation"),
+        ("x arch==linux-rhel9-x86_64", "Propagation"),
+        ("x architecture==linux-rhel9-x86_64", "Propagation"),
+        ("x os==rhel9", "Propagation"),
+        ("x operating_system==rhel9", "Propagation"),
+        ("x target==x86_64", "Propagation"),
+        ("x dev_path==/foo/bar/baz", "Propagation"),
+        ("x patches==abcde12345,12345abcde", "Propagation"),
     ],
 )
-def test_error_conditions(text, exc_cls):
-    with pytest.raises(exc_cls):
+def test_error_conditions(text, match_string):
+    with pytest.raises(spack.parser.SpecParsingError, match=match_string):
         SpecParser(text).next_spec()
 
 

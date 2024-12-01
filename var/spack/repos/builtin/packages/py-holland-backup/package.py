@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyHollandBackup(PythonPackage):
 
     homepage = "https://hollandbackup.org/"
     url = "https://github.com/holland-backup/holland/archive/1.2.2.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("1.2.2", sha256="836337c243b2dff5ff6a3ce0b647f123ab24697a5de8ac8ae8b7839aa23dff68")
 

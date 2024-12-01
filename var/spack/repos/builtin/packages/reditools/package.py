@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,8 @@ class Reditools(PythonPackage):
 
     homepage = "https://github.com/BioinfoUNIBA/REDItools"
     git = "https://github.com/BioinfoUNIBA/REDItools.git"
+
+    license("MIT")
 
     version("1.3_2020-08-03", commit="2dc71277a25e667797c363d1fca22726249774a3")
     version("1.3_2020-03-20", commit="cf47f3d54f324aeb9650bcf8bfacf5a967762a55")

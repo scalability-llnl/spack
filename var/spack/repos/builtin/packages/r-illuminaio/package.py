@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -23,5 +23,7 @@ class RIlluminaio(RPackage):
     version("0.22.0", commit="dbd842340999569975ea593f47d70a729b3f68f2")
     version("0.20.0", commit="d226628133b2396be9e7a6bf043f0309bd70c4ec")
     version("0.18.0", commit="e6b8ab1f8eacb760aebdb4828e9cfbf07da06eda")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r-base64", type=("build", "run"))

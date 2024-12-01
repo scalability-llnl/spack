@@ -1,0 +1,26 @@
+diff --git a/ThirdParty/libproj/vtk_libproj.h.in b/ThirdParty/libproj/vtk_libproj.h.in
+index 00cd3599e3..3ce90dd198 100644
+--- a/ThirdParty/libproj/vtk_libproj.h.in
++++ b/ThirdParty/libproj/vtk_libproj.h.in
+@@ -26,6 +26,10 @@
+ #endif
+ 
+ #if VTK_MODULE_USE_EXTERNAL_vtklibproj
++# ifdef STRICT
++#  define _OLD_STRICT STRICT
++#  undef STRICT
++# endif
+ # if VTK_LibPROJ_MAJOR_VERSION >= 5
+ #  include <proj.h>
+ #  include <proj/io.hpp>
+@@ -35,6 +39,10 @@
+ #  include <projects.h>
+ # endif
+ # include <geodesic.h>
++# ifdef _OLD_STRICT
++#  define STRICT _OLD_STRICT
++#  undef _OLD_STRICT
++# endif
+ #else
+ # include <vtklibproj/src/proj.h>
+ # include <vtklibproj/src/geodesic.h>

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyCopulas(PythonPackage):
 
     homepage = "https://github.com/sdv-dev/Copulas"
     pypi = "copulas/copulas-0.6.0.tar.gz"
+
+    license("MIT")
 
     version("0.6.0", sha256="9de6cc738769db19794fc18e2f506a4b5ee17e6902519c0842a4698c0efb6749")
 

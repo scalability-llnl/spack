@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,7 +17,11 @@ class PySfepy(PythonPackage):
     url = "https://github.com/sfepy/sfepy/archive/release_2021.3.tar.gz"
     git = "https://github.com/sfepy/sfepy.git"
 
+    license("BSD-3-Clause")
+
     version("2021.3", sha256="b2a760b0f3277ac223ff25821a4156b48d06b3769e6a9a3bd0bffef5a43cbe17")
+
+    depends_on("c", type="build")  # generated
 
     variant("petsc", default=False, description="Enable PETSc support")
     variant("slepc", default=False, description="Enable SLEPc support")

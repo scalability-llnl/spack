@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyJsonpickle(PythonPackage):
 
     homepage = "https://github.com/jsonpickle/jsonpickle"
     pypi = "jsonpickle/jsonpickle-1.4.1.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("2.2.0", sha256="7b272918b0554182e53dc340ddd62d9b7f902fec7e7b05620c04f3ccef479a0e")
     version("2.0.0", sha256="0be49cba80ea6f87a168aa8168d717d00c6ca07ba83df3cec32d3b30bfe6fb9a")

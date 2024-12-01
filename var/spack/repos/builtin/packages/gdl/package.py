@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,10 @@ class Gdl(CMakePackage):
 
     version("0.9.9", sha256="ad5de3fec095a5c58b46338dcc7367d2565c093794ab1bbcf180bba1a712cf14")
     version("0.9.8", sha256="0e22df7314feaf18a76ae39ee57eea2ac8c3633bc095acbc25e1e07277d7c98b")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("graphicsmagick", default=False, description="Enable GraphicsMagick")
 
@@ -83,42 +87,42 @@ class Gdl(CMakePackage):
         # only version 6 of ImageMagick is supported (version 7 is packaged)
         args += ["-DMAGICK=OFF"]
 
-        if "+graphicsmagick" in self.spec:
+        if self.spec.satisfies("+graphicsmagick"):
             args += ["-DGRAPHICSMAGICK=ON"]
         else:
             args += ["-DGRAPHICSMAGICK=OFF"]
 
-        if "+hdf4" in self.spec:
+        if self.spec.satisfies("+hdf4"):
             args += ["-DHDF=ON"]
         else:
             args += ["-DHDF=OFF"]
 
-        if "+hdf5" in self.spec:
+        if self.spec.satisfies("+hdf5"):
             args += ["-DHDF5=ON"]
         else:
             args += ["-DHDF5=OFF"]
 
-        if "+openmp" in self.spec:
+        if self.spec.satisfies("+openmp"):
             args += ["-DOPENMP=ON"]
         else:
             args += ["-DOPENMP=OFF"]
 
-        if "+proj" in self.spec:
+        if self.spec.satisfies("+proj"):
             args += ["-DLIBPROJ4=ON", "-DLIBPROJ4DIR={0}".format(self.spec["proj"].prefix)]
         else:
             args += ["-DLIBPROJ4=OFF"]
 
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             args += ["-DPYTHON_MODULE=ON"]
         else:
             args += ["-DPYTHON_MODULE=OFF"]
 
-        if "+wx" in self.spec:
+        if self.spec.satisfies("+wx"):
             args += ["-DWXWIDGETS=ON"]
         else:
             args += ["-DWXWIDGETS=OFF"]
 
-        if "+x11" in self.spec:
+        if self.spec.satisfies("+x11"):
             args += ["-DX11=ON"]
         else:
             args += ["-DX11=OFF"]
@@ -127,7 +131,7 @@ class Gdl(CMakePackage):
 
     @run_after("install")
     def post_install(self):
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             # gdl installs the python module into prefix/lib/site-python
             # move it to the standard location
             src = os.path.join(self.spec.prefix.lib, "site-python")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,8 @@ class PyKosh(PythonPackage):
 
     # notify when the package is updated.
     maintainers("doutriaux1")
+
+    license("MIT")
 
     version("3.0.1", sha256="e0d97c93476930ccfe8ed892517439d555760d66d57f9a8e52459fb5910ba398")
     version("2.2", sha256="3c79c3b7e7b64018ec5987dd7148886a6c619a28cda6f84e61a57439c9f3d7a3")

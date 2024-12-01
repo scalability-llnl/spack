@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyAdal(PythonPackage):
 
     homepage = "https://github.com/AzureAD/azure-activedirectory-library-for-python"
     pypi = "adal/adal-1.2.4.tar.gz"
+
+    license("MIT")
 
     version("1.2.4", sha256="7a15d22b1ee7ce1be92441199958748982feba6b7dec35fbf60f9b607bad1bc0")
 

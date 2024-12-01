@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,13 +14,14 @@ class Cool(CMakePackage):
     git = "https://gitlab.cern.ch/lcgcool/cool.git"
 
     tags = ["hep"]
-    maintainers("iarspider")
 
     version("3.3.10", tag="COOL_3_3_10", commit="110b51c2b50af07cbe1f64a1c67ce9f737c4421d")
     version("3.3.7", tag="COOL_3_3_7", commit="6f9a29d903e51ecbb26bdc8a694a67db9f28e234")
     version("3.3.5", tag="COOL_3_3_5", commit="9af359de6a14350b9ab4cab572c638df73edfe84")
     version("3.3.4", tag="COOL_3_3_4", commit="c3f9f780e0949fc78277c05d21d06fd7ddc6ea48")
     version("3.3.3", tag="COOL_3_3_3", commit="42137f0ecd5028c41a46a99f0b95b56e105ef4e3")
+
+    depends_on("cxx", type="build")  # generated
 
     # Spack-specific patches:
     # * Create python/PyCool/_internal directory

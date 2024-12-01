@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyCoverage(PythonPackage):
     homepage = "https://github.com/nedbat/coveragepy"
     pypi = "coverage/coverage-4.5.4.tar.gz"
 
+    license("Apache-2.0")
+
     version("7.2.6", sha256="2025f913f2edb0272ef15d00b1f335ff8908c921c8eb2013536fcaf61f5a683d")
     version("6.4.4", sha256="e16c45b726acb780e1e6f88b286d3c10b3914ab03438f32117c4aa52d7f30d58")
     version("6.3.1", sha256="6c3f6158b02ac403868eea390930ae64e9a9a2a5bbfafefbb920d29258d9f2f8")
@@ -23,6 +25,8 @@ class PyCoverage(PythonPackage):
     version("4.5.3", sha256="9de60893fb447d1e797f6bf08fdf0dbcda0c1e34c1b06c92bd3a363c0ea8c609")
     version("4.3.4", sha256="eaaefe0f6aa33de5a65f48dd0040d7fe08cac9ac6c35a56d0a7db109c3e733df")
     version("4.0a6", sha256="85c7f3efceb3724ab066a3fcccc05b9b89afcaefa5b669a7e2222d31eac4728d")
+
+    depends_on("c", type="build")  # generated
 
     variant("toml", default=False, description="Enable pyproject.toml support")
 

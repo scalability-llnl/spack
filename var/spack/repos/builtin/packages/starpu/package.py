@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -30,6 +30,12 @@ class Starpu(AutotoolsPackage):
 
     maintainers("nfurmento", "sthibaul")
 
+    version("1.4.7", sha256="1eb3df551089153fe6e0b172ad95118434b4a81ea9eaa5a2c38725d0db53b13e")
+    version("1.4.6", sha256="579f38e150ab78c9ab299649d8649a043dbf49786e54acbf3dad90c160672cc7")
+    version("1.4.5", sha256="28f389b34df57a2a4e4743b40554b0f8d098ff2199e9eb8fbbe20aa377b64541")
+    version("1.4.4", sha256="37f37739911451bbea063cff52779114f76bc681ea8de3a2ab65fc517d0ea112")
+    version("1.4.3", sha256="848cce0a2fbaa75b104d9878da928e19b1c3bc9b978193081672ac882e63bbea")
+    version("1.4.2", sha256="6c1fce80593a96d599881c1e9697a10e2072195b1c4c64a99528192b6715ddd6")
     version("1.4.1", sha256="f023aa53da245a0f43944c3a13f63b4bfdf1324f3e66bf5cd367ce51e2044925")
     version("1.4.0", sha256="5058127761a0604606a852fd6d20b07040d5fbd9f798c5383e49f336b4eeaca1")
     version("1.3.11", sha256="580c6d98d49bacd2c666504c88890335d2689b6547d97f6a088d4ab4812df36e")
@@ -59,6 +65,11 @@ class Starpu(AutotoolsPackage):
     version("git-1.1", branch="starpu-1.1")
     version("git-1.2", branch="starpu-1.2")
     version("git-1.3", branch="starpu-1.3")
+    version("git-1.4", branch="starpu-1.4")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("shared", default=True, description="Build STARPU as a shared library")
     variant("fast", default=True, description="Disable runtime assertions")
@@ -80,6 +91,7 @@ class Starpu(AutotoolsPackage):
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")
+    depends_on("py-setuptools", type="build")
     depends_on("m4", type="build")
     depends_on("hwloc")
     depends_on("hwloc+cuda", when="+cuda")

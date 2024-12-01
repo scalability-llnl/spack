@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,9 @@ class RPhantompeakqualtools(RPackage):
     url = "https://github.com/kundajelab/phantompeakqualtools/raw/master/spp_1.14.tar.gz"
 
     version("1.14", sha256="d03be6163e82aed72298e54a92c181570f9975a395f57a69b21ac02b1001520b")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("boost@1.41.0:")
 

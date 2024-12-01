@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,8 @@ class Cgm(AutotoolsPackage):
     version("13.1.0", sha256="c81bead4b919bd0cea9dbc61b219e316718d940bd3dc70825c58efbf0a0acdc3")
     version("13.1", sha256="985aa6c5db4257999af6f2bdfcb24f2bce74191cdcd98e937700db7fd9f6b549")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("mpi", default=True, description="enable mpi support")
     variant("oce", default=False, description="enable oce geometry kernel")
     variant("debug", default=False, description="enable debug symbols")
@@ -31,7 +33,7 @@ class Cgm(AutotoolsPackage):
         spec = self.spec
         args = []
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             args.extend(
                 [
                     "--with-mpi",
@@ -42,15 +44,15 @@ class Cgm(AutotoolsPackage):
         else:
             args.append("--without-mpi")
 
-        if "+oce" in spec:
+        if spec.satisfies("+oce"):
             args.append("--with-occ={0}".format(spec["oce"].prefix))
         else:
             args.append("--without-occ")
 
-        if "+debug" in spec:
+        if spec.satisfies("+debug"):
             args.append("--enable-debug")
 
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             args.append("--enable-shared")
 
         return args

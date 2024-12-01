@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,7 +19,11 @@ class PyParticle(PythonPackage):
 
     tags = ["hep"]
 
+    license("BSD-3-Clause")
+
     version("master", branch="master")
+    version("0.24.0", sha256="8ab4b5dd4547ba2dae8354955a435210892a575dff46f323cac6cf40600b976a")
+    version("0.23.1", sha256="eee28b0e846bfea4dfd70e9ec5ffe3244613db08b6b6a9b773f55a4310752fab")
     version("0.23.0", sha256="d810f8fc27deb8e7fd64174017d9607d50522249c0973a0008e580f93db11750")
     version("0.22.1", sha256="dcb45025cf7cff901e2c94922d150e1103245c46f2671eae4193c5fa767cc56c")
     version("0.22.0", sha256="567bb3017cb7526f9c9ef4399e9ba5acbdb5b9ce93eb18e4da6479d3181c93a5")
@@ -39,13 +43,15 @@ class PyParticle(PythonPackage):
     depends_on("python@2.7:2.8,3.5:", when="@:0.19", type=("build", "run"))
     depends_on("python@3.6:", when="@0.20:", type=("build", "run"))
     depends_on("python@3.7:", when="@0.21:", type=("build", "run"))
+    depends_on("python@3.8:", when="@0.24:", type=("build", "run"))
     depends_on("py-setuptools", when="@:0.20", type="build")
     depends_on("py-setuptools-scm@3.4:+toml", when="@:0.20", type="build")
     depends_on("py-hatchling", when="@0.21:", type="build")
     depends_on("py-hatch-vcs", when="@0.21:", type="build")
     depends_on("py-importlib-resources@2:", when="@0.16: ^python@:3.8", type=("build", "run"))
-    depends_on("py-typing-extensions", when="@0.16: ^python@:3.7", type=("build", "run"))
-    depends_on("py-deprecated", when="@0.22.0:", type=("build", "run"))
+    depends_on("py-typing-extensions@4.5:", when="@0.23.1: ^python@:3.12", type=("build", "run"))
+    depends_on("py-typing-extensions", when="@0.16:0.23.0 ^python@:3.7", type=("build", "run"))
+    depends_on("py-deprecated", when="@0.22.0:0.23.0", type=("build", "run"))
 
     depends_on("py-attrs@19.2.0:", type=("build", "run"))
     depends_on("py-hepunits@1.2.0:", when="@:0.12", type=("build", "run"))

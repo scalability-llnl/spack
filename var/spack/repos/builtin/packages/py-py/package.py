@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyPy(PythonPackage):
 
     homepage = "https://py.readthedocs.io/en/latest/"
     pypi = "py/py-1.8.0.tar.gz"
+
+    license("MIT")
 
     version("1.11.0", sha256="51c75c4126074b472f746a24399ad32f6053d1b34b68d2fa41e558e6f4a98719")
     version("1.9.0", sha256="9ca6883ce56b4e8da7e79ac18787889fa5206c79dcc67fb065376cd2fe03f342")

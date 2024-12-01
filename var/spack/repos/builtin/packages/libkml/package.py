@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,7 +16,12 @@ class Libkml(CMakePackage):
     homepage = "https://github.com/libkml/libkml"
     url = "https://github.com/libkml/libkml/archive/1.3.0.tar.gz"
 
+    license("BSD-3-Clause")
+
     version("1.3.0", sha256="8892439e5570091965aaffe30b08631fdf7ca7f81f6495b4648f0950d7ea7963")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("java", default=False, description="Build java bindings")
     variant("python", default=False, description="Build python bindings")
@@ -47,12 +52,12 @@ class Libkml(CMakePackage):
 
         args = []
 
-        if "+java" in spec:
+        if spec.satisfies("+java"):
             args.append("-DWITH_JAVA:BOOL=ON")
         else:
             args.append("-DWITH_JAVA:BOOL=OFF")
 
-        if "+python" in spec:
+        if spec.satisfies("+python"):
             args.append("-DWITH_PYTHON:BOOL=ON")
         else:
             args.append("-DWITH_PYTHON:BOOL=OFF")

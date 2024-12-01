@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class RPacman(RPackage):
     functionality from lower level functions which can speed up workflow."""
 
     cran = "pacman"
+
+    license("GPL-2.0-only")
 
     version("0.5.1", sha256="9ec9a72a15eda5b8f727adc877a07c4b36f8372fe7ed80a1bc6c2068dab3ef7c")
     version("0.5.0", sha256="61294757212ab0aa0153219d7d031f58be6f30ead88d84859001d58caa76603d")

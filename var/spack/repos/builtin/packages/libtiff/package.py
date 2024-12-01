@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -38,20 +38,39 @@ class Libtiff(CMakePackage, AutotoolsPackage):
 
     maintainers("adamjstewart")
 
-    version("4.5.1", sha256="d7f38b6788e4a8f5da7940c5ac9424f494d8a79eba53d555f4a507167dca5e2b")
-    version("4.5.0", sha256="c7a1d9296649233979fa3eacffef3fa024d73d05d589cb622727b5b08c423464")
-    version("4.4.0", sha256="917223b37538959aca3b790d2d73aa6e626b688e02dcda272aec24c2f498abed")
-    version("4.3.0", sha256="0e46e5acb087ce7d1ac53cf4f56a09b221537fc86dfc5daaad1c2e89e1b37ac8")
-    version("4.2.0", sha256="eb0484e568ead8fa23b513e9b0041df7e327f4ee2d22db5a533929dfc19633cb")
-    version("4.1.0", sha256="5d29f32517dadb6dbcd1255ea5bbc93a2b54b94fbf83653b4d65c7d6775b8634")
-    version("4.0.10", sha256="2c52d11ccaf767457db0c46795d9c7d1a8d8f76f68b0b800a3dfe45786b996e4")
-    version("4.0.9", sha256="6e7bdeec2c310734e734d19aae3a71ebe37a4d842e0e23dbb1b8921c0026cfcd")
-    version("4.0.8", sha256="59d7a5a8ccd92059913f246877db95a2918e6c04fb9d43fd74e5c3390dac2910")
-    version("4.0.7", sha256="9f43a2cfb9589e5cecaa66e16bf87f814c945f22df7ba600d63aac4632c4f019")
-    version("4.0.6", sha256="4d57a50907b510e3049a4bba0d7888930fdfc16ce49f1bf693e5b6247370d68c")
-    version("4.0.5", sha256="e25eaa83ed7fab43ddd278b9b14d91a406a4b674cedc776adb95535f897f309c")
-    version("4.0.4", sha256="8cb1d90c96f61cdfc0bcf036acc251c9dbe6320334da941c7a83cfe1576ef890")
-    version("3.9.7", sha256="f5d64dd4ce61c55f5e9f6dc3920fbe5a41e02c2e607da7117a35eb5c320cef6a")
+    license("libtiff")
+
+    version("4.7.0", sha256="67160e3457365ab96c5b3286a0903aa6e78bdc44c4bc737d2e486bcecb6ba976")
+    with default_args(deprecated=True):
+        # https://nvd.nist.gov/vuln/detail/CVE-2024-7006
+        version("4.6.0", sha256="88b3979e6d5c7e32b50d7ec72fb15af724f6ab2cbf7e10880c360a77e4b5d99a")
+        version("4.5.1", sha256="d7f38b6788e4a8f5da7940c5ac9424f494d8a79eba53d555f4a507167dca5e2b")
+        version("4.5.0", sha256="c7a1d9296649233979fa3eacffef3fa024d73d05d589cb622727b5b08c423464")
+        version("4.4.0", sha256="917223b37538959aca3b790d2d73aa6e626b688e02dcda272aec24c2f498abed")
+        version("4.3.0", sha256="0e46e5acb087ce7d1ac53cf4f56a09b221537fc86dfc5daaad1c2e89e1b37ac8")
+        version("4.2.0", sha256="eb0484e568ead8fa23b513e9b0041df7e327f4ee2d22db5a533929dfc19633cb")
+        version("4.1.0", sha256="5d29f32517dadb6dbcd1255ea5bbc93a2b54b94fbf83653b4d65c7d6775b8634")
+        version(
+            "4.0.10", sha256="2c52d11ccaf767457db0c46795d9c7d1a8d8f76f68b0b800a3dfe45786b996e4"
+        )
+        version("4.0.9", sha256="6e7bdeec2c310734e734d19aae3a71ebe37a4d842e0e23dbb1b8921c0026cfcd")
+        version("4.0.8", sha256="59d7a5a8ccd92059913f246877db95a2918e6c04fb9d43fd74e5c3390dac2910")
+        version("4.0.7", sha256="9f43a2cfb9589e5cecaa66e16bf87f814c945f22df7ba600d63aac4632c4f019")
+        version("4.0.6", sha256="4d57a50907b510e3049a4bba0d7888930fdfc16ce49f1bf693e5b6247370d68c")
+        version("4.0.5", sha256="e25eaa83ed7fab43ddd278b9b14d91a406a4b674cedc776adb95535f897f309c")
+        version("4.0.4", sha256="8cb1d90c96f61cdfc0bcf036acc251c9dbe6320334da941c7a83cfe1576ef890")
+        version("3.9.7", sha256="f5d64dd4ce61c55f5e9f6dc3920fbe5a41e02c2e607da7117a35eb5c320cef6a")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
+    # GUI
+    variant(
+        "opengl",
+        default=False,
+        description="use OpenGL (required for tiffgt viewer)",
+        when="@4.5,4.7:",
+    )
 
     # Internal codecs
     variant("ccitt", default=True, description="support for CCITT Group 3 & 4 algorithms")
@@ -116,6 +135,7 @@ class CMakeBuilder(CMakeBuilder):
     def cmake_args(self):
         args = [self.define_from_variant(var) for var in VARIANTS]
         args.append("-Dsphinx=OFF")
+        args += [self.define_from_variant("tiff-opengl", "opengl")]
         args += [self.define_from_variant("BUILD_SHARED_LIBS", "shared")]
         args += [self.define_from_variant("CMAKE_POSITION_INDEPENDENT_CODE", "pic")]
 
@@ -133,6 +153,7 @@ class AutotoolsBuilder(AutotoolsBuilder):
 
         args.append("--disable-sphinx")
 
+        args.extend(self.enable_or_disable("opengl"))
         args.extend(self.enable_or_disable("shared"))
         args.extend(self.with_or_without("pic"))
 

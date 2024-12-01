@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -9,14 +9,13 @@ import platform
 
 import pytest
 
-import spack.config
+import spack
 import spack.platforms
-from spack.main import SpackCommand, get_version
+import spack.spec
+from spack.main import SpackCommand
 from spack.util.executable import which
 
 debug = SpackCommand("debug")
-
-pytestmark = pytest.mark.not_on_windows("does not run on windows")
 
 
 @pytest.mark.db
@@ -57,7 +56,6 @@ def test_report():
     host_target = host_platform.target("frontend")
     architecture = spack.spec.ArchSpec((str(host_platform), str(host_os), str(host_target)))
 
-    assert get_version() in out
+    assert spack.get_version() in out
     assert platform.python_version() in out
     assert str(architecture) in out
-    assert spack.config.get("config:concretizer") in out

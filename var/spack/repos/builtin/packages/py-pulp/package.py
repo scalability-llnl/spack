@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class PyPulp(PythonPackage):
     pypi = "PuLP/PuLP-2.6.0.tar.gz"
 
     maintainers("marcusboden")
+
+    license("MIT")
 
     version("2.6.0", sha256="4b4f7e1e954453e1b233720be23aea2f10ff068a835ac10c090a93d8e2eb2e8d")
 

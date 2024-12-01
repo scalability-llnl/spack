@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,6 +22,9 @@ class Mgardx(CMakePackage):
     variant("shared", description="build shared libraries", default=True)
 
     version("2022-01-27", commit="aabe9de1a331eaeb8eec41125dd45e30c1d03af4")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("sz-cpp")
     depends_on("pkgconfig")

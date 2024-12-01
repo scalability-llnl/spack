@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyPybids(PythonPackage):
 
     homepage = "https://github.com/bids-standard/pybids"
     pypi = "pybids/pybids-0.13.1.tar.gz"
+
+    license("MIT")
 
     version("0.16.3", sha256="10e279350c8d14ca602c0d4469a5e4bf7ff393e8643c831a546ae735b6b82cc3")
     version("0.16.1", sha256="1a6ab06d375f3b783e738826e6d220b2f4145419b4b02f4edbcc8cb7c9b2208a")

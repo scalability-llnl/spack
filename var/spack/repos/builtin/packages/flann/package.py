@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,12 +21,17 @@ class Flann(CMakePackage):
     homepage = "https://github.com/mariusmuja/flann"
     url = "https://github.com/mariusmuja/flann/archive/1.9.1.tar.gz"
 
+    license("BSD-3-Clause")
+
     version("1.9.2", sha256="e26829bb0017f317d9cc45ab83ddcb8b16d75ada1ae07157006c1e7d601c8824")
     version("1.9.1", sha256="b23b5f4e71139faa3bcb39e6bbcc76967fbaf308c4ee9d4f5bfbeceaa76cc5d3")
     version("1.8.5", sha256="59a9925dac0705b281496ae52b5dfd79d6b69316d37015e3d3b38c859bac4f2f")
     version("1.8.4", sha256="ed5843113150b3d6bc4c325fecb51337838a9fc09ad64bdb6aea79d6e610ee13")
     version("1.8.1", sha256="82ff80709ca25365bca3367e87ffb4e0395fab068487314d02271bc3034591c1")
     version("1.8.0", sha256="8a3eef79512870dec20b3a3e481e5e5e6da00d524b810a22ee186f13732f0fa1")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     def url_for_version(self, version):
         if version > Version("1.8.1"):
@@ -89,7 +94,7 @@ class Flann(CMakePackage):
             "src/python/CMakeLists.txt",
         )
         # Fix the install location so that spack activate works
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             filter_file("share/flann/python", python_platlib, "src/python/CMakeLists.txt")
         # Hack. Don't install setup.py
         filter_file("install( FILES", "# install( FILES", "src/python/CMakeLists.txt", string=True)
@@ -120,9 +125,5 @@ class Flann(CMakePackage):
 
         use_mpi = "ON" if "+mpi" in spec else "OFF"
         args.append("-DUSE_MPI:BOOL={0}".format(use_mpi))
-
-        # Configure the proper python executable
-        if "+python" in spec:
-            args.append("-DPYTHON_EXECUTABLE={0}".format(spec["python"].command.path))
 
         return args

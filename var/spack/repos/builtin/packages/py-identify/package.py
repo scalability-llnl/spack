@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyIdentify(PythonPackage):
 
     homepage = "https://github.com/pre-commit/identify"
     pypi = "identify/identify-1.4.7.tar.gz"
+
+    license("MIT")
 
     version("2.5.24", sha256="0aac67d5b4812498056d28a9a512a483f5085cc28640b02b258a59dac34301d4")
     version("2.5.5", sha256="322a5699daecf7c6fd60e68852f36f2ecbb6a36ff6e6e973e0d2bb6fca203ee6")

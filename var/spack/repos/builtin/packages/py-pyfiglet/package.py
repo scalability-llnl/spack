@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyPyfiglet(PythonPackage):
 
     homepage = "https://github.com/pwaller/pyfiglet"
     pypi = "pyfiglet/pyfiglet-0.7.tar.gz"
+
+    license("MIT")
 
     version("0.8.post1", sha256="c6c2321755d09267b438ec7b936825a4910fec696292139e664ca8670e103639")
     version("0.8.post0", sha256="2994451ea67c77cd97f81f52087ccae6921d78d9402920995419893a979b5ace")

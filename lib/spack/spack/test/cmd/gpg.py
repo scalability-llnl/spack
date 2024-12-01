@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -9,7 +9,6 @@ import pytest
 
 import llnl.util.filesystem as fs
 
-import spack.bootstrap
 import spack.util.executable
 import spack.util.gpg
 from spack.main import SpackCommand
@@ -43,7 +42,7 @@ def test_find_gpg(cmd_name, version, tmpdir, mock_gnupghome, monkeypatch):
                 f.write(TEMPLATE.format(version=version))
             fs.set_executable(fname)
 
-    monkeypatch.setitem(os.environ, "PATH", str(tmpdir))
+    monkeypatch.setenv("PATH", str(tmpdir))
     if version == "undetectable" or version.endswith("1.3.4"):
         with pytest.raises(spack.util.gpg.SpackGPGError):
             spack.util.gpg.init(force=True)
@@ -54,7 +53,7 @@ def test_find_gpg(cmd_name, version, tmpdir, mock_gnupghome, monkeypatch):
 
 
 def test_no_gpg_in_path(tmpdir, mock_gnupghome, monkeypatch, mutable_config):
-    monkeypatch.setitem(os.environ, "PATH", str(tmpdir))
+    monkeypatch.setenv("PATH", str(tmpdir))
     bootstrap("disable")
     with pytest.raises(RuntimeError):
         spack.util.gpg.init(force=True)

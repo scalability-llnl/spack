@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -26,6 +26,9 @@ class Swipl(CMakePackage):
 
     version("8.2.0", sha256="d8c9f3adb9cd997a5fed7b5f5dbfe971d2defda969b9066ada158e4202c09c3c")
     version("8.0.3", sha256="cee59c0a477c8166d722703f6e52f962028f3ac43a5f41240ecb45dbdbe2d6ae")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("gmp", default=True, description="bignum and rational number support")
     variant("xpce", default=True, description="GUI support")

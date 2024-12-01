@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -43,9 +43,13 @@ class GoogleCloudCli(Package):
         machine = targets[machine]
     ext = "zip" if system == "windows" else "tar.gz"
 
+    license("Apache-2.0")
+
     for ver in versions:
         if system in versions[ver] and machine in versions[ver][system]:
             version(ver, sha256=versions[ver][system][machine])
+
+    depends_on("c", type="build")  # generated
 
     depends_on("python", type=("build", "run"))
 
@@ -56,7 +60,7 @@ class GoogleCloudCli(Package):
         # https://cloud.google.com/sdk/gcloud/reference/topic/startup
         env.set("CLOUDSDK_PYTHON", self.spec["python"].command.path)
         # ~70 dependencies with no hints as to what versions are supported, just use bundled deps
-        env.set("CLOUDSDK_PYTHON_SITEPACKAGES", 0)
+        env.set("CLOUDSDK_PYTHON_SITEPACKAGES", "0")
 
     def setup_run_environment(self, env):
         self.setup_build_environment(env)

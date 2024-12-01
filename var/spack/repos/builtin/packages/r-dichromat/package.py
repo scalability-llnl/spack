@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class RDichromat(RPackage):
     different types of color-blindness."""
 
     cran = "dichromat"
+
+    license("GPL-2.0-only")
 
     version("2.0-0.1", sha256="a10578e9ad8a581bd8fe0d8a8370051f3cdcf12c7d282f3af2a18dacda566081")
     version("2.0-0", sha256="31151eaf36f70bdc1172da5ff5088ee51cc0a3db4ead59c7c38c25316d580dd1")

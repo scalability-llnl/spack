@@ -4,7 +4,7 @@
 ## {{ spec.short_spec }}
 ##
 {% if configure_options %}
-## Configure options: {{ configure_options }}
+## Configure options: {{ configure_options | wordwrap(8192 - 23, True, "\n##                    ", 0) }}
 ##
 {% endif %}
 

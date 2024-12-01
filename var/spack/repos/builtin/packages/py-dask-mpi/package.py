@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyDaskMpi(PythonPackage):
     pypi = "dask-mpi/dask-mpi-2.21.0.tar.gz"
 
     skip_modules = ["dask_mpi.tests"]
+
+    license("BSD-3-Clause")
 
     version("2022.4.0", sha256="0a04f1d7d35a06cdff506593330d4414ea242c9172498ce191f5742eac499e17")
     version("2.21.0", sha256="76e153fc8c58047d898970b33ede0ab1990bd4e69cc130c6627a96f11b12a1a7")

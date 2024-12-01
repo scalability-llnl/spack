@@ -1,0 +1,83 @@
+paths:
+- layout:
+  - executables:
+    - "bin/armclang"
+    - "bin/armclang++"
+    - "bin/armflang"
+    script: |
+      echo "Arm C/C++/Fortran Compiler version 19.0 (build number 73) (based on LLVM 7.0.2)"
+      echo "Target: aarch64--linux-gnu"
+      echo "Thread model: posix"
+      echo "InstalledDir:"
+      echo "/opt/arm/arm-hpc-compiler-19.0_Generic-AArch64_RHEL-7_aarch64-linux/bin"
+  platforms: [linux]
+  results:
+  - spec: acfl@19.0
+    extra_attributes:
+      compilers:
+        c: ".*/bin/armclang"
+        cxx: ".*/bin/armclang[+][+]"
+        fortran: ".*/bin/armflang"
+- layout:
+  - executables:
+    - "bin/armclang"
+    - "bin/armclang++"
+    script: |
+      echo "Arm C/C++/Fortran Compiler version 19.0 (build number 73) (based on LLVM 7.0.2)"
+      echo "Target: aarch64--linux-gnu"
+      echo "Thread model: posix"
+      echo "InstalledDir:"
+      echo "/opt/arm/arm-hpc-compiler-19.0_Generic-AArch64_RHEL-7_aarch64-linux/bin"
+  platforms: [linux]
+  results:
+  - spec: acfl@19.0
+    extra_attributes:
+      compilers:
+        c: ".*/bin/armclang"
+        cxx: ".*/bin/armclang[+][+]"
+- layout:
+  - executables:
+    - "bin/armclang"
+    - "bin/armclang++"
+    - "bin/armflang"
+    script: |
+      echo "Arm C/C++/Fortran Compiler version 19.3.1 (build number 75) (based on LLVM 7.0.2)"
+      echo "Target: aarch64--linux-gnu"
+      echo "Thread model: posix"
+      echo "InstalledDir:"
+      echo "/opt/arm/arm-hpc-compiler-19.3.5_Generic-AArch64_RHEL-7_aarch64-linux/bin"
+  - executables:
+    - "bin/armclang-18"
+    - "bin/armclang++-18"
+    - "bin/armflang-18"
+    script: |
+      echo "Arm C/C++/Fortran Compiler version 18.0 (build number 27) (based on LLVM 7.0.0)"
+      echo "Target: aarch64--linux-gnu"
+      echo "Thread model: posix"
+      echo "InstalledDir:"
+      echo "/opt/arm/arm-hpc-compiler-19_Generic-AArch64_RHEL-7_aarch64-linux/bin"
+  platforms: [linux]
+  results:
+  - spec: acfl@19.3.1
+    extra_attributes:
+      compilers:
+        c: ".*/bin/armclang$"
+        cxx: ".*/bin/armclang[+][+]$"
+        fortran: ".*/bin/armflang$"
+  - spec: acfl@18.0
+    extra_attributes:
+      compilers:
+        c: ".*/bin/armclang-18"
+        cxx: ".*/bin/armclang[+][+]-18"
+        fortran: ".*/bin/armflang-18"
+- layout: # does not detect upstream clang
+  - executables:
+    - "bin/clang"
+    - "bin/clang++"
+    script: |
+      echo "clang version 8.0.0 (tags/RELEASE_800/final"
+      echo "Target: x86_64-unknown-linux-gnu\n"
+      echo "Thread model: posix\n"
+      echo "InstalledDir: /usr/bin"
+  platforms: [linux]
+  results: []

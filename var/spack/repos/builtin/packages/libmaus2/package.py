@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,9 @@ class Libmaus2(AutotoolsPackage):
         sha256="40cec9bef2fb61d8df0a35cdf76c59a1d8389686d393805138c364d0c029f03c",
         url="https://gitlab.com/german.tischler/libmaus2/-/archive/2.0.767-release-20201123131410/libmaus2-2.0.767-release-20201123131410.tar.gz",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

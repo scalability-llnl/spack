@@ -46,7 +46,11 @@ def _make_parser() -> argparse.ArgumentParser:
 
 def cpu() -> int:
     """Run the `archspec cpu` subcommand."""
-    print(archspec.cpu.host())
+    try:
+        print(archspec.cpu.host())
+    except FileNotFoundError as exc:
+        print(exc)
+        return 1
     return 0
 
 

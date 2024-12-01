@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,8 @@ class SpiralPackageHcol(Package):
     # Although this package 'extends("spiral-software")' don't declare it as
     # such.  If this package is required spiral-software should be installed
     # with the +hcol variant active
+
+    license("BSD-2-Clause-FreeBSD")
 
     version("master", branch="master")
     version("1.0.0", sha256="18ae6f0a090de03723612a6c91ca17cf62971129540936d8c2738bd8f807a511")

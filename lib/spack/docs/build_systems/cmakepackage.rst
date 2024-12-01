@@ -1,4 +1,4 @@
-.. Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
    Spack Project Developers. See the top-level COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -82,7 +82,7 @@ class already contains:
 
 .. code-block:: python
 
-   depends_on('cmake', type='build')
+   depends_on("cmake", type="build")
 
 
 If you need to specify a particular version requirement, you can
@@ -90,7 +90,7 @@ override this in your package:
 
 .. code-block:: python
 
-   depends_on('cmake@2.8.12:', type='build')
+   depends_on("cmake@2.8.12:", type="build")
 
 
 ^^^^^^^^^^^^^^^^^^^
@@ -137,10 +137,10 @@ and without the :meth:`~spack.build_systems.cmake.CMakeBuilder.define` and
 
    def cmake_args(self):
        args = [
-           '-DWHATEVER:STRING=somevalue',
-           self.define('ENABLE_BROKEN_FEATURE', False),
-           self.define_from_variant('DETECT_HDF5', 'hdf5'),
-           self.define_from_variant('THREADS'), # True if +threads
+           "-DWHATEVER:STRING=somevalue",
+           self.define("ENABLE_BROKEN_FEATURE", False),
+           self.define_from_variant("DETECT_HDF5", "hdf5"),
+           self.define_from_variant("THREADS"), # True if +threads
        ]
 
        return args
@@ -151,10 +151,10 @@ and CMake simply ignores the empty command line argument. For example the follow
 
 .. code-block:: python
 
-   variant('example', default=True, when='@2.0:')
+   variant("example", default=True, when="@2.0:")
 
    def cmake_args(self):
-      return [self.define_from_variant('EXAMPLE', 'example')]
+      return [self.define_from_variant("EXAMPLE", "example")]
 
 will generate ``'cmake' '-DEXAMPLE=ON' ...`` when `@2.0: +example` is met, but will
 result in ``'cmake' '' ...`` when the spec version is below ``2.0``.
@@ -193,9 +193,9 @@ a variant to control this:
 
 .. code-block:: python
 
-   variant('build_type', default='RelWithDebInfo',
-           description='CMake build type',
-           values=('Debug', 'Release', 'RelWithDebInfo', 'MinSizeRel'))
+   variant("build_type", default="RelWithDebInfo",
+           description="CMake build type",
+           values=("Debug", "Release", "RelWithDebInfo", "MinSizeRel"))
 
 However, not every CMake package accepts all four of these options.
 Grep the ``CMakeLists.txt`` file to see if the default values are
@@ -205,9 +205,9 @@ package overrides the default variant with:
 
 .. code-block:: python
 
-   variant('build_type', default='DebugRelease',
-           description='The build type to build',
-           values=('Debug', 'Release', 'DebugRelease'))
+   variant("build_type", default="DebugRelease",
+           description="The build type to build",
+           values=("Debug", "Release", "DebugRelease"))
 
 For more information on ``CMAKE_BUILD_TYPE``, see:
 https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html
@@ -250,7 +250,7 @@ generator is Ninja. To switch to the Ninja generator, simply add:
 
 .. code-block:: python
 
-   generator = 'Ninja'
+   generator("ninja")
 
 
 ``CMakePackage`` defaults to "Unix Makefiles". If you switch to the
@@ -258,7 +258,7 @@ Ninja generator, make sure to add:
 
 .. code-block:: python
 
-   depends_on('ninja', type='build')
+   depends_on("ninja", type="build")
 
 to the package as well. Aside from that, you shouldn't need to do
 anything else. Spack will automatically detect that you are using
@@ -288,7 +288,7 @@ like so:
 
 .. code-block:: python
 
-   root_cmakelists_dir = 'src'
+   root_cmakelists_dir = "src"
 
 
 Note that this path is relative to the root of the extracted tarball,
@@ -304,7 +304,7 @@ different sub-directory, simply override ``build_directory`` like so:
 
 .. code-block:: python
 
-   build_directory = 'my-build'
+   build_directory = "my-build"
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 Build and install targets
@@ -324,8 +324,8 @@ library or build the documentation, you can add these like so:
 
 .. code-block:: python
 
-   build_targets = ['all', 'docs']
-   install_targets = ['install', 'docs']
+   build_targets = ["all", "docs"]
+   install_targets = ["install", "docs"]
 
 ^^^^^^^
 Testing

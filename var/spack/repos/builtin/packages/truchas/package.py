@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -24,8 +24,14 @@ class Truchas(CMakePackage):
     maintainers("pbrady", "zjibben")
 
     version("develop", branch="master")
+    version("24.07", sha256="42a2e2edfaa157786bd801e889477f08c6d168690a123a8bfa6d86c222bc54e6")
+    version("24.06", sha256="648c5c3f3c3c72fd359de91713af5feed1c1580268489c079511fa5ac2428519")
     version("23.06", sha256="a786caba5129d7e33ba42a06751d6c570bd3b9697e3404276a56216d27820c68")
     version("22.04.1", sha256="ed2000f27ee5c4bd3024063a374023878c61e8a3c76c37542fffd341d1226dc1")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # ------------------------------------------------------------ #
     # Variants
@@ -39,7 +45,8 @@ class Truchas(CMakePackage):
     # ------------------------------------------------------------ #
     # Build dependencies
     # ------------------------------------------------------------ #
-    depends_on("cmake@3.16:", type="build")
+    depends_on("cmake@3.20.2:", type="build")
+    depends_on("cmake@3.16:", when="@:24.05", type="build")
 
     # ------------------------------------------------------------ #
     # Test suite and restart utils
@@ -51,16 +58,25 @@ class Truchas(CMakePackage):
     # ------------------------------------------------------------ #
     # IO dependencies
     # ------------------------------------------------------------ #
-    depends_on("exodusii@2020-05-12: +mpi")
+    depends_on("exodusii@2023-11-27: +mpi", when="@24.06:")
+    depends_on("exodusii@2020-05-12: +mpi", when="@:24.05")
     depends_on("scorpio")
-    depends_on("petaca@22.03: +shared")
-    depends_on("petaca@22.03: +shared +std_name", when="+std_name")
+    depends_on("hdf5@1.14:", when="@24.06:")
+    depends_on("hdf5@1.10", when="@:24.05")
+    depends_on("netcdf-c@4.9:", when="@24.06:")
+    depends_on("netcdf-c@4.8", when="@:24.05")
+    depends_on("petaca@24.04: +shared", when="@24.06:")
+    depends_on("petaca@24.04: +shared +std_name", when="@24.06: +std_name")
+    depends_on("petaca@22.03: +shared", when="@:24.05")
+    depends_on("petaca@22.03: +shared +std_name", when="@:24.05 +std_name")
 
     # ------------------------------------------------------------ #
     # Partitioning
     # ------------------------------------------------------------ #
-    depends_on("chaco")
+    # Chaco dependency removed & metis required starting 24.06.
+    depends_on("chaco", when="@:24.05")
     depends_on("metis@5:", when="+metis")
+    requires("+metis", when="@24.06:", msg="Metis is required starting with Truchas 24.06")
 
     # ------------------------------------------------------------ #
     # Radiation
@@ -70,8 +86,9 @@ class Truchas(CMakePackage):
     # ------------------------------------------------------------ #
     # Solvers
     # ------------------------------------------------------------ #
-    depends_on("hypre@2.20: ~fortran")
-    depends_on("netlib-lapack")
+    depends_on("hypre@2.29: ~fortran", when="@24.06:")
+    depends_on("hypre@2.20:2.28 ~fortran", when="@:24.05")
+    depends_on("lapack")
 
     # ------------------------------------------------------------ #
     # Mapping

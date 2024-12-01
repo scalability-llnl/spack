@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyPooch(PythonPackage):
 
     homepage = "https://github.com/fatiando/pooch"
     pypi = "pooch/pooch-1.3.0.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("1.7.0", sha256="f174a1041b6447f0eef8860f76d17f60ed2f857dc0efa387a7f08228af05d998")
     version("1.5.2", sha256="5969b2f1defbdc405df932767e05e0b536e2771c27f1f95d7f260bc99bf13581")

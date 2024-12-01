@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class PyTopiaryAsr(PythonPackage):
     git = "https://github.com/harmslab/topiary.git"
 
     maintainers("snehring")
+
+    license("MIT")
 
     version("main", branch="main")
     version("0.9.9", sha256="5601fba92e7add33a3732482426b2c7ef46b0fccc4a4ea11357537e1b937903c")
@@ -45,7 +47,9 @@ class PyTopiaryAsr(PythonPackage):
     depends_on("raxml-ng@1.1:", type="run")
 
     depends_on("mpi", type="run")
-    depends_on("openmpi+legacylaunchers", type="run", when="^openmpi schedulers=slurm")
+    depends_on(
+        "openmpi+legacylaunchers", type="run", when="^[virtuals=mpi] openmpi schedulers=slurm"
+    )
 
     conflicts("^mpich")
 

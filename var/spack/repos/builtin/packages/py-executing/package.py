@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyExecuting(PythonPackage):
 
     homepage = "https://github.com/alexmojaki/executing"
     pypi = "executing/executing-0.8.2.tar.gz"
+
+    license("MIT")
 
     version("1.2.0", sha256="19da64c18d2d851112f09c287f8d3dbbdf725ab0e569077efb6cdcbd3497c107")
     version("1.1.0", sha256="2c2c07d1ec4b2d8f9676b25170f1d8445c0ee2eb78901afb075a4b8d83608c6a")

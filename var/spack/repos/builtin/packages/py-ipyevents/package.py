@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyIpyevents(PythonPackage):
 
     homepage = "https://github.com/mwcraig/ipyevents"
     pypi = "ipyevents/ipyevents-2.0.1.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("2.0.1", sha256="23eb2afab13d9056397f120a88051dd3beb067b698d08b33adffc9e077f019cb")
 

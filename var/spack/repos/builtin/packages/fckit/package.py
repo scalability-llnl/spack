@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,12 +18,17 @@ class Fckit(CMakePackage):
 
     maintainers("climbfuji")
 
+    license("Apache-2.0")
+
     version("master", branch="master")
     version("develop", branch="develop")
     version("0.11.0", sha256="846f5c369940c0a3d42cd12932f7d6155339e79218d149ebbfdd02e759dc86c5")
     version("0.10.1", sha256="9cde04fefa50624bf89068ab793cc2e9437c0cd1c271a41af7d54dbd37c306be")
     version("0.10.0", sha256="f16829f63a01cdef5e158ed2a51f6d4200b3fe6dce8f251af158141a1afe482b")
     version("0.9.5", sha256="183cd78e66d3283d9e6e8e9888d3145f453690a4509fb701b28d1ac6757db5de")
+
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("mpi")
     depends_on("python")
@@ -60,11 +65,10 @@ class Fckit(CMakePackage):
         args = [
             self.define_from_variant("ENABLE_ECKIT", "eckit"),
             self.define_from_variant("ENABLE_OMP", "openmp"),
-            "-DPYTHON_EXECUTABLE:FILEPATH=" + self.spec["python"].command.path,
             "-DFYPP_NO_LINE_NUMBERING=ON",
         ]
 
-        if "~shared" in self.spec:
+        if self.spec.satisfies("~shared"):
             args.append("-DBUILD_SHARED_LIBS=OFF")
 
         if "finalize_ddts=auto" not in self.spec:
@@ -73,7 +77,12 @@ class Fckit(CMakePackage):
             # See comment above (conflicts for finalize_ddts)
             args.append("-DENABLE_FINAL=OFF")
 
-        if self.spec.satisfies("%intel") or self.spec.satisfies("%gcc"):
+        if (
+            self.spec.satisfies("%intel")
+            or self.spec.satisfies("%oneapi")
+            or self.spec.satisfies("%gcc")
+            or self.spec.satisfies("%nvhpc")
+        ):
             cxxlib = "stdc++"
         elif self.spec.satisfies("%clang") or self.spec.satisfies("%apple-clang"):
             cxxlib = "c++"

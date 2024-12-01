@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,6 +22,8 @@ class Madis(MakefilePackage):
     maintainers("AlexanderRichert-NOAA")
 
     version("4.3", sha256="5d1ee9800c84e623dcf4271653aa66d17a744143e58354e70f8a0646cd6b246c")
+
+    depends_on("fortran", type="build")  # generated
 
     variant("pic", default=True, description="Build with position-independent code (PIC)")
     variant("pnetcdf", default=False, description="Build with parallel NetCDF")

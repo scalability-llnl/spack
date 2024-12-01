@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyConsolekit(PythonPackage):
 
     homepage = "https://github.com/domdfcoding/consolekit"
     pypi = "consolekit/consolekit-1.5.1.tar.gz"
+
+    license("MIT")
 
     version("1.5.1", sha256="55ea43e226863e1d618ec9b860c9842d84249d895c3376c03b158d8f3a335626")
 

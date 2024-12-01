@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,7 @@ import llnl.util.tty as tty
 import spack.config
 import spack.repo
 import spack.util.path
+from spack.cmd.common import arguments
 
 description = "manage package source repositories"
 section = "config"
@@ -19,7 +20,6 @@ level = "long"
 
 def setup_parser(subparser):
     sp = subparser.add_subparsers(metavar="SUBCOMMAND", dest="repo_command")
-    scopes = spack.config.scopes()
 
     # Create
     create_parser = sp.add_parser("create", help=repo_create.__doc__)
@@ -42,11 +42,7 @@ def setup_parser(subparser):
     # List
     list_parser = sp.add_parser("list", help=repo_list.__doc__)
     list_parser.add_argument(
-        "--scope",
-        choices=scopes,
-        metavar=spack.config.SCOPES_METAVAR,
-        default=spack.config.default_list_scope(),
-        help="configuration scope to read from",
+        "--scope", action=arguments.ConfigScope, help="configuration scope to read from"
     )
 
     # Add
@@ -54,9 +50,8 @@ def setup_parser(subparser):
     add_parser.add_argument("path", help="path to a Spack package repository directory")
     add_parser.add_argument(
         "--scope",
-        choices=scopes,
-        metavar=spack.config.SCOPES_METAVAR,
-        default=spack.config.default_modify_scope(),
+        action=arguments.ConfigScope,
+        default=lambda: spack.config.default_modify_scope(),
         help="configuration scope to modify",
     )
 
@@ -67,9 +62,8 @@ def setup_parser(subparser):
     )
     remove_parser.add_argument(
         "--scope",
-        choices=scopes,
-        metavar=spack.config.SCOPES_METAVAR,
-        default=spack.config.default_modify_scope(),
+        action=arguments.ConfigScope,
+        default=lambda: spack.config.default_modify_scope(),
         help="configuration scope to modify",
     )
 
@@ -97,7 +91,7 @@ def repo_add(args):
         tty.die("Not a Spack repository: %s" % path)
 
     # Make sure it's actually a spack repository by constructing it.
-    repo = spack.repo.Repo(canon_path)
+    repo = spack.repo.from_path(canon_path)
 
     # If that succeeds, finally add it to the configuration.
     repos = spack.config.get("repos", scope=args.scope)
@@ -130,7 +124,7 @@ def repo_remove(args):
     # If it is a namespace, remove corresponding repo
     for path in repos:
         try:
-            repo = spack.repo.Repo(path)
+            repo = spack.repo.from_path(path)
             if repo.namespace == namespace_or_path:
                 repos.remove(path)
                 spack.config.set("repos", repos, args.scope)
@@ -148,7 +142,7 @@ def repo_list(args):
     repos = []
     for r in roots:
         try:
-            repos.append(spack.repo.Repo(r))
+            repos.append(spack.repo.from_path(r))
         except spack.repo.RepoError:
             continue
 

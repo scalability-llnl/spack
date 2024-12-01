@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,7 +19,11 @@ class Cubist(MakefilePackage):
     homepage = "https://www.rulequest.com"
     url = "https://www.rulequest.com/GPL/Cubist.tgz"
 
+    license("GPL-3.0-only")
+
     version("2.07", sha256="f2b20807cd3275e775c42263a4efd3f50df6e495a8b6dc8989ea2d41b973ac1a")
+
+    depends_on("c", type="build")  # generated
 
     def edit(self, spec, prefix):
         makefile = FileFilter("Makefile")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,7 +19,12 @@ class PyGeopandas(PythonPackage):
 
     maintainers("adamjstewart")
 
+    license("BSD-3-Clause")
+
     version("master", branch="master")
+    version("1.0.1", sha256="b8bf70a5534588205b7a56646e2082fb1de9a03599651b3d80c99ea4c2ca08ab")
+    version("1.0.0", sha256="386d42c028047e2b0f09191d7859268304761c4711a247173a88891b6161f711")
+    version("0.14.3", sha256="748af035d4a068a4ae00cab384acb61d387685c833b0022e0729aa45216b23ac")
     version("0.11.1", sha256="f0f0c8d0423d30cf81de2056d853145c4362739350a7f8f2d72cc7409ef1eca1")
     version("0.11.0", sha256="562fe7dc19a6e0f61532d654c4752f7bf46e0714990c5844fe3de3f9c99cb873")
     version("0.10.2", sha256="efbf47e70732e25c3727222019c92b39b2e0a66ebe4fe379fbe1aa43a2a871db")
@@ -36,18 +41,30 @@ class PyGeopandas(PythonPackage):
     depends_on("python@3.6:", type=("build", "run"), when="@0.9:")
     depends_on("python@3.7:", type=("build", "run"), when="@0.10:")
     depends_on("python@3.8:", type=("build", "run"), when="@0.11:")
+    depends_on("python@3.9:", type=("build", "run"), when="@0.14:")
     depends_on("py-setuptools", type="build")
+    depends_on("py-setuptools@61.0.0:", type="build", when="@0.14:")
+    depends_on("py-numpy", type=("build", "run"))
+    depends_on("py-numpy@1.22:", type=("build", "run"), when="@0.14.4:")
+    # Only for versions 0.x.y - replaced by py-pyogrio
+    depends_on("py-fiona", type=("build", "run"), when="@:0.99")
+    depends_on("py-fiona@1.8:", type=("build", "run"), when="@0.9:0.99")
+    depends_on("py-fiona@1.8.21:", type=("build", "run"), when="@0.14:0.99")
+    # Only for versions 1.x.y - replaces py-fiona
+    depends_on("py-pyogrio@0.7.2:", type=("build", "run"), when="@1:")
+    depends_on("py-packaging", type=("build", "run"), when="@0.11:")
     depends_on("py-pandas", type=("build", "run"))
     depends_on("py-pandas@0.23.0:", type=("build", "run"), when="@0.6:")
     depends_on("py-pandas@0.24.0:", type=("build", "run"), when="@0.9:")
     depends_on("py-pandas@0.25.0:", type=("build", "run"), when="@0.10:")
     depends_on("py-pandas@1.0.0:", type=("build", "run"), when="@0.11:")
-    depends_on("py-shapely@:1", type=("build", "run"))
-    depends_on("py-shapely@1.6:1", type=("build", "run"), when="@0.9:0.10")
-    depends_on("py-shapely@1.7:1", type=("build", "run"), when="@0.11:")
-    depends_on("py-fiona", type=("build", "run"))
-    depends_on("py-fiona@1.8:", type=("build", "run"), when="@0.9:")
+    depends_on("py-pandas@1.4.0:", type=("build", "run"), when="@0.14:")
     depends_on("py-pyproj", type=("build", "run"))
     depends_on("py-pyproj@2.2.0:", type=("build", "run"), when="@0.7:")
     depends_on("py-pyproj@2.6.1.post1:", type=("build", "run"), when="@0.11:")
-    depends_on("py-packaging", type=("build", "run"), when="@0.11:")
+    depends_on("py-pyproj@3.3.0:", type=("build", "run"), when="@0.14:")
+    depends_on("py-shapely@:1", type=("build", "run"), when="@:0.99")
+    depends_on("py-shapely@1.6:1", type=("build", "run"), when="@0.9:0.10")
+    depends_on("py-shapely@1.7:1", type=("build", "run"), when="@0.11:0.99")
+    depends_on("py-shapely@1.8.0:", type=("build", "run"), when="@0.14:")
+    depends_on("py-shapely@2.0.0:", type=("build", "run"), when="@1:")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -47,7 +47,9 @@ class GitAnnex(Package):
     # - $ git annex whereis git-annex/linux/current/git-annex-standalone-arm64.tar.gz
     #     -> gives web url
 
-    skip_version_audit = ["platform=darwin"]
+    skip_version_audit = ["platform=darwin", "platform=windows"]
+
+    license("AGPL-3.0-or-later")
 
     if platform.system() == "Linux" and platform.machine() == "aarch64":
         # git-annex-standalone-arm64.tar.gz
@@ -122,7 +124,7 @@ class GitAnnex(Package):
     def install(self, spec, prefix):
         install_tree(".", prefix.bin)
 
-        if "~standalone" in spec:
+        if spec.satisfies("~standalone"):
             # use git provided by spack instead of the one in the package
             git_files = ["git", "git-receive-pack", "git-shell", "git-upload-pack"]
             for i in git_files:

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,7 +17,12 @@ class Swftools(AutotoolsPackage):
     homepage = "http://swftools.org"
     url = "http://swftools.org/swftools-0.9.2.tar.gz"
 
+    license("GPL-2.0-only")
+
     version("0.9.2", sha256="bf6891bfc6bf535a1a99a485478f7896ebacbe3bbf545ba551298080a26f01f1")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     patch("configure.patch")
     patch("swfs_Makefile.in.patch")

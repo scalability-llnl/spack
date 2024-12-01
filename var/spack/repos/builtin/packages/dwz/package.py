@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,8 +13,6 @@ class Dwz(MakefilePackage, SourcewarePackage):
     sourceware_mirror_path = "dwz/releases/dwz-0.14.tar.gz"
     git = "git://sourceware.org/git/dwz.git"
 
-    maintainers("iarspider")
-
     depends_on("elf")
 
     version("0.14-patches", branch="dwz-0.14-branch")
@@ -23,6 +21,9 @@ class Dwz(MakefilePackage, SourcewarePackage):
         sha256="33006eab875ff0a07f13fc885883c5bd9514d83ecea9f18bc46b5732dddf0d1f",
         preferred=True,
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     def install(self, spec, prefix):
         mkdirp(prefix.bin)

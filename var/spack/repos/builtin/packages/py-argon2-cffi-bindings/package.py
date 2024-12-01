@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,7 +12,11 @@ class PyArgon2CffiBindings(PythonPackage):
     homepage = "https://github.com/hynek/argon2-cffi-bindings"
     pypi = "argon2-cffi-bindings/argon2-cffi-bindings-21.2.0.tar.gz"
 
+    license("MIT")
+
     version("21.2.0", sha256="bb89ceffa6c791807d1305ceb77dbfacc5aa499891d2c55661c6459651fc39e3")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("python@3.6:", type=("build", "run"))
     depends_on("py-setuptools@45:", type="build")

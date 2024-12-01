@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -9,16 +9,21 @@ from spack.package import *
 
 
 class Elbencho(MakefilePackage):
-
     """
     Elbencho storage benchmark
     """
 
     homepage = "https://github.com/breuner/elbencho"
     url = "https://github.com/breuner/elbencho/archive/refs/tags/v3.0-1.tar.gz"
+    git = "https://github.com/breuner/elbencho.git"
 
     maintainers("ethanjjjjjjj")
 
+    license("GPL-3.0-only")
+
+    version("master", branch="master")
+
+    version("3.0-3", sha256="5769abcdaebefe2984ac3053fb6e91a54e1863d5ea8f72daea830e10b27c0eaf")
     version("3.0-1", sha256="19dad85e1fc74419dcdf740f11a47d3f6d566770a06e40976755a3404566c11d")
     version("2.2-5", sha256="4b598639452665a8b79c4c9d8a22ae63fb9b04057635a45e686aa3939ee255b4")
     version("2.2-3", sha256="0ae2d495d2863b84f21f55b7c526674fab1be723d0697087017946647f79d0e6")
@@ -27,6 +32,9 @@ class Elbencho(MakefilePackage):
     version("2.1-1", sha256="18be49f521df2fab4f16a1a9f00dd6104a25e5ea335ce8801bf07268ed9271a9")
     version("2.0-9", sha256="fe0f67fbb7dd7c743f8b3e0a92358f7393f2950da456474d4adb38690fab1878")
     version("2.0-7", sha256="a2e49cb2cf1ae99e46e9fa95b42ece250cb58fbadb4c393f9776b40204e8b2c0")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("s3", default=False, description="Enable support for s3 api")
     variant("cuda", default=True, description="Enable CUDA support", when="+cufile")
@@ -51,7 +59,7 @@ class Elbencho(MakefilePackage):
     depends_on("curl", when="+s3")
     depends_on("libarchive", when="+s3")
     depends_on("openssl", when="+s3")
-    depends_on("libuuid", when="+s3")
+    depends_on("uuid", when="+s3")
     depends_on("zlib", when="+s3")
     depends_on("cmake", when="+s3")
 
@@ -60,11 +68,11 @@ class Elbencho(MakefilePackage):
     def edit(self, spec, prefix):
         os.mkdir(prefix.bin)
         os.environ["INST_PATH"] = prefix.bin
-        if "+s3" in spec:
+        if spec.satisfies("+s3"):
             os.environ["S3_SUPPORT"] = "1"
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             os.environ["CUDA_SUPPORT"] = "1"
-        if "+cufile" in spec:
+        if spec.satisfies("+cufile"):
             os.environ["CUFILE_SUPPORT"] = "1"
         makefile = FileFilter("Makefile")
         makefile.filter(r"\s+/etc/bash_completion.d/", f" {prefix}/etc/bash_completion.d/")

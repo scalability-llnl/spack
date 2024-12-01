@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class Minigan(Package):
 
     homepage = "https://github.com/SandiaMLMiniApps/miniGAN"
     url = "https://github.com/SandiaMLMiniApps/miniGAN/archive/1.0.0.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("1.0.0", sha256="ef6d5def9c7040af520acc64b7a8b6c8ec4b7901721b11b0cb25a583ea0c8ae3")
 

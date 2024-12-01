@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyTensorboardx(PythonPackage):
 
     homepage = "https://github.com/lanpa/tensorboardX"
     pypi = "tensorboardx/tensorboardX-1.8.tar.gz"
+
+    license("MIT")
 
     version("2.6.2.2", sha256="c6476d7cd0d529b0b72f4acadb1269f9ed8b22f441e87a84f2a3b940bb87b666")
     version("2.5.1", sha256="ea85a3446f22ce8a917fe4fa4d8a7a96222ef84ac835267d038c34bb99f6d61b")

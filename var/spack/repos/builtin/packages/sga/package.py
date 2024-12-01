@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -23,6 +23,9 @@ class Sga(AutotoolsPackage):
     version("0.10.9", sha256="34573cb7423affd5e15c1175d9af69f7495b094b60ddfcbafd910fd703c25006")
     version("0.10.8", sha256="55c5e0e425e14902e83d68cfb8cee4c86ee186459e54113a484b2a1b06d223c8")
     version("0.10.3", sha256="c000823a58428d9db2979b30a571ad89aec78a8cb1af60bae1ce252dd4e8adac")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("zlib-api")
     depends_on("sparsehash")

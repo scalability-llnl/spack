@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -36,7 +36,7 @@ class PyCharm4py(PythonPackage):
     depends_on("py-setuptools", type="build")
     # in newer pip versions --install-option does not exist
     depends_on("py-pip@:23.0", type="build")
-    depends_on("py-cython", type="build")
+    depends_on("py-cython@:2", type="build")
     depends_on("py-cffi@1.7:", type="build")
     depends_on("py-numpy@1.10.0:", type=("build", "run"))
     depends_on("py-greenlet", type=("build", "run"))

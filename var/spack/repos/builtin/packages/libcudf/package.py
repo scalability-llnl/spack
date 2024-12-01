@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,7 +15,11 @@ class Libcudf(CMakePackage):
     homepage = "https://rapids.ai"
     url = "https://github.com/rapidsai/cudf/archive/v0.15.0.tar.gz"
 
+    license("Apache-2.0")
+
     version("0.15.0", sha256="2570636b72cce4c52f71e36307f51f630e2f9ea94a1abc018d40ce919ba990e4")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3.14:", type="build")
     depends_on("cuda@10.0:")

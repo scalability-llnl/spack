@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,21 @@ class Libpressio(CMakePackage, CudaPackage):
     tests_require_compiler = True
     version("master", branch="master")
     version("develop", branch="develop")
+    version("0.99.4", sha256="091e4bac2cedca5fb9495a22eee7be718c2d04d899d56c65fc088936884eac0e")
+    version("0.99.2", sha256="556d157097b2168fefde1fe3b5e2da06a952346357d46c55548d92c77d1da878")
+    version("0.99.1", sha256="c9b19deaac4df5eaeecd938fea4c1752d86474f453880c0ba984ceee6bf15d35")
+    version("0.99.0", sha256="b95916c4851a7ec952e5f29284e4f7477eaeff0e52a2e5b593481c72edf733d6")
+    version("0.98.1", sha256="5246271fdf2e4ba99eeadfccd6224b75bf3af278a812ded74ec9adc11f6cabba")
+    version("0.98.0", sha256="6b6507bf1489ff2cbeaf4c507d34e1015495c811730aa809e778f111213062db")
+    version("0.97.3", sha256="631111253ec4cfd3138773eaf8280921e220b0d260985da762f0a0152e5b1b17")
+    version("0.97.2", sha256="70d549ef457d5192c084fbf6304cb362d367786afe88d7b8db4eea263f9c7d43")
+    version("0.96.6", sha256="a8d3269f0f5289d46471a5b85e5cd32e370edb8df45d04f5e707e0a1f64eccd8")
+    version("0.96.5", sha256="7cca6f3f98dde2dbd1c9ff7462d09975f6a3630704bd01b6bef6163418a0521b")
+    version("0.96.4", sha256="7f012b01ce1a6c9f5897487089266de5b60659ed6b220eadba51d63613620404")
+    version("0.96.3", sha256="e8f4af028d34df2f3c8eb61cfc2f93fadab7a2e2d072a30ee6a085fb344a3be4")
+    version("0.96.2", sha256="2c904ec16900b67ab0188ea96d27fa4efca2c9efc1b214119451becaaeaa2d18")
+    version("0.96.1", sha256="2305d04b57c1b49ecd5a4bda117f1252a57529c98e6bd260bfe5166a4f4d4043")
+    version("0.96.0", sha256="42f563b70c4f77abffb430284f0c5bc9adba2666412ee4072d6f97da88f0c1a0")
     version("0.95.1", sha256="c2e4f81d1491781cd47f2baba64acfbba9a7d6203c9b01369f8b1a8f94e0bb2b")
     version("0.94.0", sha256="4250597cdd54043a7d5009ffc3feea3eac9496cdd38ea3f61f9727b7acd09add")
     version("0.93.0", sha256="1da5940aaf0190a810988dcd8f415b9c8db53bbbdfcb627d899921c89170d990")
@@ -159,6 +174,19 @@ class Libpressio(CMakePackage, CudaPackage):
     version("0.27.0", sha256="387ee5958de2d986095cda2aaf39d0bf319d02eaeeea2a565aea97e6a6f31f36")
     version("0.26.0", sha256="c451591d106d1671c9ddbb5c304979dd2d083e0616b2aeede62e7a6b568f828c")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
+    variant(
+        "pybind", default=False, description="build support for pybind metrics", when="@0.96.0:"
+    )
+    variant(
+        "openssl", default=False, description="build support for hashing options", when="@0.96.2:"
+    )
+    variant("szx", default=False, description="build support for SZx", when="@0.87.0:")
+    variant("blosc2", default=False, description="build support for blosc2", when="@0.98.0:")
+    variant("matio", default=False, description="build support for matio", when="@0.99.0:")
+    variant("clang", default=False, description="build migration tools", when="@0.99.0:")
     variant("blosc", default=False, description="support the blosc lossless compressors")
     variant("fpzip", default=False, description="support for the FPZIP lossy compressor")
     variant("hdf5", default=False, description="support reading and writing from hdf5 files")
@@ -206,6 +234,7 @@ class Libpressio(CMakePackage, CudaPackage):
     depends_on("boost", when="@:0.51.0+boost")
 
     depends_on("libstdcompat+boost", when="+boost")
+    depends_on("libstdcompat@0.0.16:", when="@0.93.0:")
     depends_on("libstdcompat@0.0.14:", when="@0.79.0:")
     depends_on("libstdcompat@0.0.13:", when="@0.73.0:")
     depends_on("libstdcompat@0.0.10:", when="@0.71.3:")
@@ -253,111 +282,122 @@ class Libpressio(CMakePackage, CudaPackage):
     depends_on("arc", when="+arc")
     depends_on("netcdf-c", when="+netcdf")
     depends_on("mgardx", when="+mgardx")
+    depends_on("szx@:1.1.0", when="@0.87.0:0.97.1 +szx")
+    depends_on("szx@1.1.1:", when="@0.97.2: +szx")
+    depends_on("openssl", when="+openssl")
+    depends_on("py-pybind11", when="+pybind")
+    depends_on("matio+shared@1.5.17:", when="+matio")
+    depends_on("llvm@17: +clang", when="+clang")
     conflicts(
         "^ mgard@2022-11-18",
         when="@:0.88.3+mgard",
         msg="mgard@2022-11-18 is not supported before 0.89.0",
     )
     conflicts(
-        "+mgardx", when="+szauto"
-    )  # SZ auto and MGARDx cause symbol conflicts with each other
+        "+mgardx", when="+szauto", msg="SZ auto and MGARDx cause symbol conflicts with each other"
+    )
     conflicts(
         "~json",
         when="@0.57.0:+remote",
         msg="JSON support required for remote after version 0.57.0",
     )
+    for cuda_compressor in ["cusz", "mgard", "zfp", "ndzip"]:
+        conflicts(
+            f"~cuda+{cuda_compressor} ^ {cuda_compressor}+cuda",
+            msg="compiling a CUDA compressor without a CUDA support makes no sense",
+        )
     depends_on("sz3", when="+sz3")
+    depends_on("sz3@3.1.8:", when="@0.98.1: +sz3")
     depends_on("bzip2", when="+bzip2")
     depends_on("qoz", when="+qoz")
-    depends_on("cusz", when="+cusz")
+    depends_on("cusz@0.6.0:", when="+cusz")
 
     extends("python", when="+python")
 
+    def lp_cxx_version(self):
+        try:
+            self.compiler.cxx20_flag
+            return "20"
+        except Exception:
+            pass
+        try:
+            self.compiler.cxx17_flag
+            return "17"
+        except Exception:
+            pass
+        try:
+            self.compiler.cxx14_flag
+            return "14"
+        except Exception:
+            pass
+        self.compiler.cxx11_flag
+        return "11"
+
     def cmake_args(self):
-        args = []
-        if "+python" in self.spec:
-            args.append("-DLIBPRESSIO_PYTHON_SITELIB={0}".format(python_platlib))
-            args.append("-DBUILD_PYTHON_WRAPPER=ON")
-            args.append("-DPython3_EXECUTABLE={0}".format(self.spec["python"].command))
-            if "+mpi" in self.spec:
-                args.append("-DLIBPRESSIO_HAS_MPI4PY=ON")
-        if "+hdf5" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_HDF=ON")
-            args.append("-DHDF5_ROOT=" + self.spec["hdf5"].prefix)
-        if "+sz" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_SZ=ON")
-        if "+szauto" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_SZ_AUTO=ON")
-        if "+zfp" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_ZFP=ON")
-        if "+fpzip" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_FPZIP=ON")
-        if "+blosc" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_BLOSC=ON")
-        if "+magick" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_MAGICK=ON")
-        if "+mgard" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_MGARD=ON")
-        if "+petsc" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_PETSC=ON")
-        if "+boost" in self.spec:
-            args.append("-DLIBPRESSIO_CXX_VERSION=11")
-        if "+mpi" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_MPI=ON")
-        if "+lua" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_LUA=ON")
-        if "+libdistributed" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_LIBDISTRIBUTED=ON")
-        if "+ftk" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_FTK=ON")
-        if "+bitgrooming" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_BIT_GROOMING=ON")
-        if "+digitrounding" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_DIGIT_ROUNDING=ON")
-        if "+openmp" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_OPENMP=ON")
-        if "+docs" in self.spec:
-            args.append("-DBUILD_DOCS=ON")
-            args.append("-DLIBPRESSIO_INSTALL_DOCS=ON")
-        if "+remote" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_REMOTELAUNCH=ON")
-        if "+json" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_JSON=ON")
-        if "+unix" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_LINUX=ON")
-        if "+ndzip" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_NDZIP=ON")
-        if "+arc" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_ARC=ON")
-        if "+netcdf" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_NETCDF=ON")
-        if "+sz3" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_SZ3=ON")
-        if "+cuda" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_CUFILE=ON")
-            args.append("-DLIBPRESSIO_HAS_CUDA=ON")
-        if "+mgardx" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_MGARDx=ON")
-        if "+bzip2" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_BZIP2=ON")
-        if "+qoz" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_QoZ=ON")
-        if "+cusz" in self.spec:
-            args.append("-DLIBPRESSIO_HAS_CUSZ=ON")
+        args = [
+            self.define_from_variant("LIBPRESSIO_HAS_SZ", "sz"),
+            self.define_from_variant("LIBPRESSIO_HAS_SZx", "szx"),
+            self.define_from_variant("LIBPRESSIO_HAS_OPENSSL", "openssl"),
+            self.define_from_variant("LIBPRESSIO_HAS_PYTHON_LAUNCH", "pybind"),
+            self.define_from_variant("LIBPRESSIO_HAS_BLOSC2", "blosc2"),
+            self.define_from_variant("LIBPRESSIO_HAS_MATLABIO", "matio"),
+            self.define_from_variant("BUILD_MIGRATION_TOOLS", "clang"),
+            self.define_from_variant("LIBPRESSIO_HAS_SZ_AUTO", "szauto"),
+            self.define_from_variant("LIBPRESSIO_HAS_ZFP", "zfp"),
+            self.define_from_variant("LIBPRESSIO_HAS_FPZIP", "fpzip"),
+            self.define_from_variant("LIBPRESSIO_HAS_BLOSC", "blosc"),
+            self.define_from_variant("LIBPRESSIO_HAS_MAGICK", "magick"),
+            self.define_from_variant("LIBPRESSIO_HAS_MGARD", "mgard"),
+            self.define_from_variant("LIBPRESSIO_HAS_PETSC", "petsc"),
+            self.define_from_variant("LIBPRESSIO_HAS_MPI", "mpi"),
+            self.define_from_variant("LIBPRESSIO_HAS_LUA", "lua"),
+            self.define_from_variant("LIBPRESSIO_HAS_LIBDISTRIBUTED", "libdistributed"),
+            self.define_from_variant("LIBPRESSIO_HAS_FTK", "ftk"),
+            self.define_from_variant("LIBPRESSIO_HAS_BIT_GROOMING", "bitgrooming"),
+            self.define_from_variant("LIBPRESSIO_HAS_DIGIT_ROUNDING", "digitrounding"),
+            self.define_from_variant("LIBPRESSIO_HAS_OPENMP", "openmp"),
+            self.define_from_variant("LIBPRESSIO_HAS_REMOTELAUNCH", "remote"),
+            self.define_from_variant("LIBPRESSIO_HAS_JSON", "json"),
+            self.define_from_variant("LIBPRESSIO_HAS_LINUX", "unix"),
+            self.define_from_variant("LIBPRESSIO_HAS_NDZIP", "ndzip"),
+            self.define_from_variant("LIBPRESSIO_HAS_ARC", "arc"),
+            self.define_from_variant("LIBPRESSIO_HAS_NETCDF", "netcdf"),
+            self.define_from_variant("LIBPRESSIO_HAS_SZ3", "sz3"),
+            self.define_from_variant("LIBPRESSIO_HAS_MGARDx", "mgardx"),
+            self.define_from_variant("LIBPRESSIO_HAS_BZIP2", "bzip2"),
+            self.define_from_variant("LIBPRESSIO_HAS_QoZ", "qoz"),
+            self.define_from_variant("LIBPRESSIO_HAS_CUSZ", "cusz"),
+            self.define_from_variant("LIBPRESSIO_HAS_CUFILE", "cuda"),
+            self.define_from_variant("LIBPRESSIO_HAS_CUDA", "cuda"),
+            self.define_from_variant("LIBPRESSIO_HAS_HDF", "hdf5"),
+            self.define_from_variant("BUILD_DOCS", "docs"),
+            self.define_from_variant("LIBPRESSIO_INSTALL_DOCS", "docs"),
+            self.define_from_variant("BUILD_PYTHON_WRAPPER", "python"),
+            self.define("LIBPRESSIO_HAS_MPI4PY", self.spec.satisfies("+python +mpi")),
+            self.define(
+                "LIBPRESSIO_BUILD_MODE", "FULL" if self.spec.satisfies("+core") else "CORE"
+            ),
+            self.define("BUILD_TESTING", self.run_tests),
+            # this flag was removed in 0.52.0, we should deprecate and remove this
+            self.define(
+                "LIBPRESSIO_CXX_VERSION",
+                "11" if self.spec.satisfies("+boost") else self.lp_cxx_version(),
+            ),
+        ]
+        # if cuda is backed by the shim, we need to set these linker flags to
+        # avoid downstream linker errors
         if self.spec.satisfies("+cusz +cuda"):
             args.append("-DCMAKE_EXE_LINKER_FLAGS=-Wl,--allow-shlib-undefined")
-        if "+core" in self.spec:
-            args.append("-DLIBPRESSIO_BUILD_MODE=FULL")
-        else:
-            args.append("-DLIBPRESSIO_BUILD_MODE=CORE")
-        if self.run_tests:
-            args.append("-DBUILD_TESTING=ON")
-        else:
-            args.append("-DBUILD_TESTING=OFF")
+        # libpressio needs to know where to install the python libraries
+        if self.spec.satisfies("+python"):
+            args.append(f"-DLIBPRESSIO_PYTHON_SITELIB={python_platlib}")
+        # help ensure that libpressio finds the correct HDF5 package
+        if self.spec.satisfies("+hdf5"):
+            args.append("-DHDF5_ROOT=" + self.spec["hdf5"].prefix)
         return args
 
     def setup_run_environment(self, env):
-        if "+hdf5" in self.spec and "+json" in self.spec:
+        if self.spec.satisfies("+hdf5") and self.spec.satisfies("+json"):
             env.prepend_path("HDF5_PLUGIN_PATH", self.prefix.lib64)
 
     @run_after("build")
@@ -367,36 +407,36 @@ class Libpressio(CMakePackage, CudaPackage):
 
     @run_after("build")
     def install_docs(self):
-        if "+docs" in self.spec:
+        if self.spec.satisfies("+docs"):
             with working_dir(self.build_directory):
                 make("docs")
 
     @run_after("install")
     def copy_test_sources(self):
-        if self.version < Version("0.88.3"):
+        if self.spec.satisfies("@:0.88.2"):
             return
         srcs = [
             join_path("test", "smoke_test", "smoke_test.cc"),
             join_path("test", "smoke_test", "CMakeLists.txt"),
         ]
-        self.cache_extra_test_sources(srcs)
+        cache_extra_test_sources(self, srcs)
 
-    def test(self):
-        if self.version < Version("0.88.3"):
-            return
+    def test_smoke(self):
+        """Run smoke test"""
+        # this works for cmake@3.14: which is required for this package
+        if self.spec.satisfies("@:0.88.2"):
+            raise SkipTest("Package must be installed as version @0.88.3 or later")
 
         args = self.cmake_args()
-        args.append(
-            "-S{}".format(join_path(self.test_suite.current_test_cache_dir, "test", "smoke_test"))
-        )
-        args.append(
-            "-DCMAKE_PREFIX_PATH={};{}".format(self.spec["libstdcompat"].prefix, self.prefix)
-        )
+        args.append(f"-S{join_path(self.test_suite.current_test_cache_dir, 'test', 'smoke_test')}")
+        args.append(f"-DCMAKE_PREFIX_PATH={self.spec['libstdcompat'].prefix};{self.prefix}")
 
-        self.run_test("cmake", args, purpose="cmake configuration works")
+        cmake = self.spec["cmake"].command
+        cmake(*args)
+        cmake("--build", ".")
 
-        # this works for cmake@3.14: which is required for this package
-        args = ["--build", "."]
-        self.run_test("cmake", args, purpose="cmake builds works")
+        exe = which("pressio_smoke_tests")
+        out = exe(output=str.split, error=str.split)
 
-        self.run_test("./pressio_smoke_tests", expected="all passed")
+        expected = "all passed"
+        assert expected in out

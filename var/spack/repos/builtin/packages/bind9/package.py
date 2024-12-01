@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,20 +11,24 @@ class Bind9(AutotoolsPackage):
     BIND 9 has evolved to be a very flexible, full-featured DNS system.
     """
 
-    homepage = "https://github.com/isc-projects/bind9"
-    url = "https://github.com/isc-projects/bind9/archive/v9_14_6.tar.gz"
+    homepage = "https://www.isc.org"
+    url = "https://downloads.isc.org/isc/bind9/9.18.28/bind-9.18.28.tar.xz"
+    list_url = "https://downloads.isc.org/isc/bind9/"
+    git = "https://gitlab.isc.org/isc-projects/bind9"
 
-    version("9_14_6", sha256="98be7a7b6d614b519f6c8d6ec7a8a39759ae9604d87228d9dc7c034471e5433e")
+    license("MPL-2.0", checked_by="wdconinc")
 
-    depends_on("libuv", type="link")
+    # Only even minor releases are stable
+    version("9.20.0", sha256="cc580998017b51f273964058e8cb3aa5482bc785243dea71e5556ec565a13347")
+    version("9.18.28", sha256="e7cce9a165f7b619eefc4832f0a8dc16b005d29e3890aed6008c506ea286a5e7")
+
     depends_on("pkgconfig", type="build")
-    depends_on("openssl", type="link")
-    depends_on("iconv", type="link")
+
+    depends_on("libuv@1.34,1.37:", type="link")
+    depends_on("openssl@1.1.1:", type="link")
+    depends_on("libcap", type="link")
+    depends_on("liburcu@0.14:", type="link", when="@9.20:")
 
     def configure_args(self):
-        args = [
-            "--without-python",
-            "--disable-linux-caps",
-            "--with-openssl={0}".format(self.spec["openssl"].prefix),
-        ]
+        args = ["--without-python", "--disable-doh"]
         return args

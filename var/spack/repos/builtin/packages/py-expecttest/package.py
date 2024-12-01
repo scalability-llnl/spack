@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyExpecttest(PythonPackage):
 
     homepage = "https://github.com/ezyang/expecttest"
     pypi = "expecttest/expecttest-0.1.6.tar.gz"
+
+    license("MIT")
 
     version("0.1.6", sha256="fd49563b6703b9c060a0bc946dfafc62bad74898867432192927eb1e5f9d8952")
 

@@ -1,0 +1,57 @@
+diff --git a/src/core/mpi_interface.cpp b/src/core/mpi_interface.cpp
+index e7f9f72..f602fb1 100644
+--- a/src/core/mpi_interface.cpp
++++ b/src/core/mpi_interface.cpp
+@@ -36,6 +36,30 @@ comm& comm::world() {
+   static comm _world{MPI_COMM_WORLD};
+   return _world;
+ }
++
++// Define type traits for MPI data types
++#define TYPE(t, mpi_t)                                                         \
++  const MPI_Datatype type_trait<t>::value { mpi_t }
++TYPE(double, MPI_DOUBLE);
++TYPE(int, MPI_INT);
++TYPE(unsigned int, MPI_UNSIGNED);
++TYPE(long double, MPI_LONG_DOUBLE);
++TYPE(long, MPI_LONG);
++TYPE(unsigned long, MPI_UNSIGNED_LONG);
++TYPE(::thrust::complex<double>, MPI_CXX_DOUBLE_COMPLEX);
++TYPE(::thrust::complex<long double>, MPI_CXX_LONG_DOUBLE_COMPLEX);
++TYPE(bool, MPI_CXX_BOOL);
++#undef TYPE
++
++// Define type traits for MPI operations
++#define OPERATION(op, mpi_op)                                                  \
++  const MPI_Op operation_trait<operation::op>::value { mpi_op }
++OPERATION(plus, MPI_SUM);
++OPERATION(min, MPI_MIN);
++OPERATION(max, MPI_MAX);
++OPERATION(times, MPI_PROD);
++#undef OPERATION
++
+ }  // namespace mpi_impl
+ #endif
+ 
+diff --git a/src/core/mpi_interface.hh b/src/core/mpi_interface.hh
+index b4cfc81..b53c826 100644
+--- a/src/core/mpi_interface.hh
++++ b/src/core/mpi_interface.hh
+@@ -149,7 +149,7 @@ struct type_trait;
+ #define TYPE(t, mpi_t)                                                         \
+   template <>                                                                  \
+   struct type_trait<t> {                                                       \
+-    static constexpr MPI_Datatype value = mpi_t;                               \
++    static const MPI_Datatype value;                                           \
+   }
+ TYPE(double, MPI_DOUBLE);
+ TYPE(int, MPI_INT);
+@@ -168,7 +168,7 @@ struct operation_trait;
+ #define OPERATION(op, mpi_op)                                                  \
+   template <>                                                                  \
+   struct operation_trait<operation::op> {                                      \
+-    static constexpr MPI_Op value = mpi_op;                                    \
++    static const MPI_Op value;                                                 \
+   }
+ OPERATION(plus, MPI_SUM);
+ OPERATION(min, MPI_MIN);

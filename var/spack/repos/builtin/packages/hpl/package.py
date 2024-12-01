@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,6 +22,8 @@ class Hpl(AutotoolsPackage):
 
     version("2.3", sha256="32c5c17d22330e6f2337b681aded51637fb6008d3f0eb7c277b163fadd612830")
     version("2.2", sha256="ac7534163a09e21a5fa763e4e16dfc119bc84043f6e6a807aba666518f8df440")
+
+    depends_on("c", type="build")  # generated
 
     variant("openmp", default=False, description="Enable OpenMP support")
 
@@ -48,7 +50,7 @@ class Hpl(AutotoolsPackage):
         config = []
 
         # OpenMP support
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             config.append("OMP_DEFS     = {0}".format(self.compiler.openmp_flag))
 
         config.extend(
@@ -103,27 +105,30 @@ class Hpl(AutotoolsPackage):
     def configure_args(self):
         filter_file(r"^libs10=.*", "libs10=%s" % self.spec["blas"].libs.ld_flags, "configure")
 
-        if "+openmp" in self.spec:
-            config = ["CFLAGS=-O3 " + self.compiler.openmp_flag]
-        else:
-            config = ["CFLAGS=-O3"]
+        cflags, ldflags = ["-O3"], []
+        if self.spec.satisfies("+openmp"):
+            cflags.append(self.compiler.openmp_flag)
 
         if (
             self.spec.satisfies("^intel-mkl")
             or self.spec.satisfies("^intel-oneapi-mkl")
             or self.spec.satisfies("^intel-parallel-studio+mkl")
         ):
-            config.append("LDFLAGS={0}".format(self.spec["blas"].libs.ld_flags))
+            ldflags.append(self.spec["blas"].libs.ld_flags)
 
-        if "%aocc" in self.spec:
-            amd_ldflags = " "
-            if "%aocc@3:" in self.spec:
-                amd_ldflags += "-lamdlibm -lm "
-            if "%aocc@4:" in self.spec:
-                amd_ldflags += "-lamdalloc "
-            config.append("LDFLAGS=" + amd_ldflags)
+        if self.spec.satisfies("%aocc"):
+            if self.spec.satisfies("%aocc@3:"):
+                ldflags.extend(["-lamdlibm", "-lm"])
+            if self.spec.satisfies("%aocc@4:"):
+                ldflags.append("-lamdalloc")
 
-        return config
+        if self.spec["blas"].name == "fujitsu-ssl2" and (
+            self.spec.satisfies("%fj") or self.spec.satisfies("%clang@17:")
+        ):
+            cflags.append("-SSL2BLAMP")
+            ldflags.append("-SSL2BLAMP")
+
+        return ["CFLAGS={0}".format(" ".join(cflags)), "LDFLAGS={0}".format(" ".join(ldflags))]
 
     @when("@:2.2")
     def install(self, spec, prefix):

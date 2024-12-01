@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyGrandalf(PythonPackage):
 
     homepage = "https://github.com/bdcht/grandalf"
     url = "https://github.com/bdcht/grandalf/archive/v0.7.tar.gz"
+
+    license("EPL-1.0")
 
     version("0.7", sha256="b3112299fe0a9123c088a16bf2f1b541d0d91199b77170a9739b569bd16a828e")
     version("0.6", sha256="928db4b90f7aff01e252a833951086b20d5958c00083411193c794de7bf59df2")

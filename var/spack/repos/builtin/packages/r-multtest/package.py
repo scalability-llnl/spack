@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -39,6 +39,8 @@ class RMulttest(RPackage):
     version("2.36.0", commit="babb15e8d110eb72300ad59cf7e53386237a4198")
     version("2.34.0", commit="6ef873e05e6c93ede54f3421424f56eda057cd54")
     version("2.32.0", commit="c5e890dfbffcc3a3f107303a24b6085614312f4a")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r@2.10:", type=("build", "run"))
     depends_on("r-biocgenerics", type=("build", "run"))

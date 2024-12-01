@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyLuigi(PythonPackage):
 
     homepage = "https://github.com/spotify/luigi"
     pypi = "luigi/luigi-2.8.3.tar.gz"
+
+    license("Apache-2.0")
 
     version("3.2.0", sha256="5ef267ebfbbd5747576821b6835e08e956e24055841dee0ef7b1319b4e9d4740")
     version("3.1.1", sha256="29961582db2704d8df4ec01f6b8f7f0d529cc8f27cff67733ccd809299771218")

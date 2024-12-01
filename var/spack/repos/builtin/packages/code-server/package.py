@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -51,6 +51,9 @@ class CodeServer(Package):
     version("3.1.1", sha256="5dd922d28b2e351c146081849d987fb1e439ee7d53b941434b2eecb2a194da71")
     version("3.1.0", sha256="5ef85c8f280ce781a176a8b77386b333efe892755a5c325a1782e4eac6016e59")
     version("3.0.2", sha256="04367cfeb23991f3dc3f1ef8e3dfe5e9d683bb50c9e1fa69e3c21757facfd7ee")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     def url_for_version(self, version):
         if version <= Version("3.2.0"):

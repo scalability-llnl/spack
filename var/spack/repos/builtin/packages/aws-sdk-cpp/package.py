@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class AwsSdkCpp(CMakePackage):
 
     homepage = "https://github.com/aws/aws-sdk-cpp"
     git = "https://github.com/aws/aws-sdk-cpp.git"
+
+    license("Apache-2.0")
 
     version(
         "1.11.144",
@@ -48,6 +50,9 @@ class AwsSdkCpp(CMakePackage):
         commit="4bf33aa0172704eb5fc1da8086686670711bd801",
         submodules=True,
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3.1:", type="build")
     depends_on("zlib-api")

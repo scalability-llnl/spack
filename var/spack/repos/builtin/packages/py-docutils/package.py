@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,8 +15,10 @@ class PyDocutils(PythonPackage):
     easy to read, easy to use, what-you-see-is-what-you-get plaintext
     markup language."""
 
-    homepage = "http://docutils.sourceforge.net/"
+    homepage = "https://docutils.sourceforge.net/"
     pypi = "docutils/docutils-0.15.2.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("0.20.1", sha256="f08a4e276c3a1583a86dce3e34aba3fe04d02bba2dd51ed16106244e8a923e3b")
     version("0.19", sha256="33995a6753c30b7f577febfc2c50411fec6aac7f7ffeb7c4cfe5991072dcf9e6")

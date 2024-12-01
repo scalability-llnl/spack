@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyClikit(PythonPackage):
 
     homepage = "https://github.com/sdispater/clikit"
     pypi = "clikit/clikit-0.6.2.tar.gz"
+
+    license("MIT")
 
     version("0.6.2", sha256="442ee5db9a14120635c5990bcdbfe7c03ada5898291f0c802f77be71569ded59")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyHyperlink(PythonPackage):
 
     homepage = "https://github.com/python-hyper/hyperlink"
     pypi = "hyperlink/hyperlink-21.0.0.tar.gz"
+
+    license("MIT")
 
     version("21.0.0", sha256="427af957daa58bc909471c6c40f74c5450fa123dd093fc53efd2e91d2705a56b")
 

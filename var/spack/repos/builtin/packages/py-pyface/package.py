@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyPyface(PythonPackage):
 
     homepage = "https://docs.enthought.com/pyface"
     pypi = "pyface/pyface-6.1.2.tar.gz"
+
+    license("EPL-1.0")
 
     version("7.3.0", sha256="a7031ec4cfff034affc822e47ff5e6c1a0272e576d79465cdbbe25f721740322")
     version("6.1.2", sha256="7c2ac3d5cbec85e8504b3b0b63e9307be12c6d710b46bae372ce6562d41f4fbc")

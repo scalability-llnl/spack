@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -6,6 +6,7 @@
 
 import pytest
 
+from spack.installer import PackageInstaller
 from spack.main import SpackCommand, SpackCommandError
 from spack.spec import Spec
 
@@ -15,16 +16,13 @@ extensions = SpackCommand("extensions")
 @pytest.fixture
 def python_database(mock_packages, mutable_database):
     specs = [Spec(s).concretized() for s in ["python", "py-extension1", "py-extension2"]]
-
-    for spec in specs:
-        spec.package.do_install(fake=True, explicit=True)
-
+    PackageInstaller([s.package for s in specs], explicit=True, fake=True).install()
     yield
 
 
 @pytest.mark.not_on_windows("All Fetchers Failed")
 @pytest.mark.db
-def test_extensions(mock_packages, python_database, config, capsys):
+def test_extensions(mock_packages, python_database, capsys):
     ext2 = Spec("py-extension2").concretized()
 
     def check_output(ni):
@@ -33,21 +31,23 @@ def test_extensions(mock_packages, python_database, config, capsys):
             packages = extensions("-s", "packages", "python")
             installed = extensions("-s", "installed", "python")
         assert "==> python@2.7.11" in output
-        assert "==> 2 extensions" in output
+        assert "==> 3 extensions" in output
         assert "py-extension1" in output
         assert "py-extension2" in output
+        assert "python-venv" in output
 
-        assert "==> 2 extensions" in packages
+        assert "==> 3 extensions" in packages
         assert "py-extension1" in packages
         assert "py-extension2" in packages
+        assert "python-venv" in packages
         assert "installed" not in packages
 
-        assert ("%s installed" % (ni if ni else "None")) in output
-        assert ("%s installed" % (ni if ni else "None")) in installed
+        assert f"{ni if ni else 'None'} installed" in output
+        assert f"{ni if ni else 'None'} installed" in installed
 
-    check_output(2)
+    check_output(3)
     ext2.package.do_uninstall(force=True)
-    check_output(1)
+    check_output(2)
 
 
 def test_extensions_no_arguments(mock_packages):

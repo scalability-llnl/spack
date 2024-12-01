@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,13 +14,24 @@ class PyNltk(PythonPackage):
     homepage = "https://www.nltk.org/"
     pypi = "nltk/nltk-3.5.zip"
 
+    license("Apache-2.0")
+
+    version("3.9.1", sha256="87d127bd3de4bd89a4f81265e5fa59cb1b199b27440175370f7417d2bc7ae868")
     version("3.8.1", sha256="1834da3d0682cba4f2cede2f9aad6b0fafb6461ba451db0efb6f9c39798d64d3")
     version("3.5", sha256="845365449cd8c5f9731f7cb9f8bd6fd0767553b9d53af9eb1b3abf7700936b35")
+
+    def url_for_version(self, version):
+        url = "https://pypi.io/packages/source/n/nltk/nltk-{0}.{1}"
+        extension = "zip"
+        if version >= Version("3.9.1"):
+            extension = "tar.gz"
+        return url.format(version.dotted, extension)
 
     maintainers("meyersbs")
 
     variant("data", default=False, description="Download the NLTK data")
 
+    depends_on("python@3.8:", when="@3.9.1:", type=("build", "run"))
     depends_on("python@3.7:", when="@3.8.1:", type=("build", "run"))
     depends_on("python@3.5:", type=("build", "run"))
     depends_on("py-setuptools", type="build")
@@ -51,10 +62,19 @@ class PyNltk(PythonPackage):
     resource(
         name="punkt",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/tokenizers/punkt.zip",
-        when="+data",
+        when="+data@:3.8.1",
         sha256="51c3078994aeaf650bfc8e028be4fb42b4a0d177d41c012b6a983979653660ec",
         destination="nltk_data/tokenizers",
         placement="punkt",
+    )
+
+    resource(
+        name="punkt_tab",
+        url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/tokenizers/punkt_tab.zip",
+        when="+data@3.8.2:",
+        sha256="c2b16c23d738effbdc5789d7aa601397c13ba2819bf922fb904687f3f16657ed",
+        destination="nltk_data/tokenizers",
+        placement="punkt_tab",
     )
 
     resource(

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,7 +18,12 @@ class Cleverleaf(CMakePackage):
     homepage = "https://uk-mac.github.io/CleverLeaf/"
     git = "https://github.com/UK-MAC/CleverLeaf_ref.git"
 
+    license("LGPL-3.0-or-later")
+
     version("develop", branch="develop")
+
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("samrai@3.8.0:")
     depends_on("hdf5+mpi")

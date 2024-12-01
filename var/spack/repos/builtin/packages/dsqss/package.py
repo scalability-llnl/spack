@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,7 +17,11 @@ class Dsqss(CMakePackage):
     homepage = "https://www.pasums.issp.u-tokyo.ac.jp/dsqss/en/"
     url = "https://github.com/issp-center-dev/dsqss/releases/download/v2.0.3/dsqss-v2.0.3.tar.gz"
 
+    license("GPL-3.0-or-later")
+
     version("2.0.3", sha256="11255dd1f1317fb4ac2d6ae95535f027d627d03f5470717cd277dd9ab94496e0")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("mpi", default=True, description="build mpi support")
 
@@ -56,7 +60,6 @@ class Dsqss(CMakePackage):
         copy(join_path(test01, "std.toml"), ".")
 
         # prepare
-        python = self.spec["python"].command
         opts = [self.spec.prefix.bin.dla_pre, "std.toml"]
         with test_part(self, "test_dla_pre", purpose="prepare dla"):
             python(*opts)

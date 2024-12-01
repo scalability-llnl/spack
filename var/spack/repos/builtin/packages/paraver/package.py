@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -31,6 +31,9 @@ class Paraver(Package):
         sha256="74b85bf9e6570001d372b376b58643526e349b1d2f1e7633ca38bb0800ecf929",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("boost@1.36: +serialization")
     depends_on("wxwidgets@2.8:")  # NOTE: using external for this one is usually simpler

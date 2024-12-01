@@ -1,0 +1,13 @@
+diff --git a/rocAL/rocAL/CMakeLists.txt b/rocAL/rocAL/CMakeLists.txt
+index 7ae8cb8..195f387 100644
+--- a/rocAL/rocAL/CMakeLists.txt
++++ b/rocAL/rocAL/CMakeLists.txt
+@@ -122,6 +122,8 @@ if(NOT Threads_FOUND)
+ endif()
+
+ if(${BUILD_ROCAL})
++    find_path(HALF_INCLUDE_DIR half.hpp)
++    include_directories(${HALF_INCLUDE_DIR})
+     # AMD OpenVX & VX_RPP
+     set(LINK_LIBRARY_LIST ${LINK_LIBRARY_LIST} openvx vx_rpp)
+     # AMD RPP

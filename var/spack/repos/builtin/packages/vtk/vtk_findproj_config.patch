@@ -1,0 +1,115 @@
+diff --git a/CMake/FindLibPROJ.cmake b/CMake/FindLibPROJ.cmake
+index e2344bb171..68061c05f5 100644
+--- a/CMake/FindLibPROJ.cmake
++++ b/CMake/FindLibPROJ.cmake
+@@ -1,42 +1,76 @@
+-find_path(LibPROJ_INCLUDE_DIR
+-  NAMES proj_api.h proj.h
+-  DOC "libproj include directories")
+-mark_as_advanced(LibPROJ_INCLUDE_DIR)
++# Mirror the expected configuration from a manual
++# detection of proj
++macro(setup_proj_conf PROJ_NAME)
++  set(_PROJ_FOUND TRUE)
++  set(LibPROJ_LIBRARY ${${PROJ_NAME}_LIBRARIES})
++  set(LibPROJ_LIBRARIES ${${PROJ_NAME}_LIBRARIES})
++  set(LibPROJ_INCLUDE_DIR ${${PROJ_NAME}_INCLUDE_DIRS})
++  set(LibPROJ_INCLUDE_DIRS ${${PROJ_NAME}_INCLUDE_DIRS})
++  set(LibPROJ_VERSION ${${PROJ_NAME}_VERSION})
++  string(REPLACE "." ";" _VERSION ${LibPROJ_VERSION})
++  list(GET _VERSION 0 LibPROJ_MAJOR_VERSION)
++  if(TARGET ${PROJ_NAME}::proj)
++    add_library(LibPROJ::LibPROJ ALIAS ${PROJ_NAME}::proj)
++  endif()
++endmacro()
+ 
+-find_library(LibPROJ_LIBRARY_RELEASE
+-  NAMES proj
+-  DOC "libproj release library")
+-mark_as_advanced(LibPROJ_LIBRARY_RELEASE)
++set(_PROJ_FOUND)
++# Try to find proj with installed proj-config.cmake
++if(NOT LibPROJ_FOUND AND NOT LibPROJ_NO_FIND_CONFIG_FILE)
++  # Try find proj4 to support legacy proj CMake config
++  find_package(PROJ4 QUIET NO_MODULE)
++  if(PROJ4_FOUND)
++    setup_proj_conf(PROJ4)
++  else()
++    # Try to find proj with modern target name
++    find_package(PROJ QUIET NO_MODULE)
++    if(PROJ_FOUND)
++      setup_proj_conf(PROJ)
++    endif()
++  endif()
++endif()
+ 
+-find_library(LibPROJ_LIBRARY_DEBUG
+-  NAMES projd
+-  DOC "libproj debug library")
+-mark_as_advanced(LibPROJ_LIBRARY_DEBUG)
++if(NOT _PROJ_FOUND)
++  find_path(LibPROJ_INCLUDE_DIR
++    NAMES proj_api.h proj.h
++    DOC "libproj include directories")
++  mark_as_advanced(LibPROJ_INCLUDE_DIR)
+ 
+-include(SelectLibraryConfigurations)
+-select_library_configurations(LibPROJ)
++  find_library(LibPROJ_LIBRARY_RELEASE
++    NAMES proj
++    DOC "libproj release library")
++  mark_as_advanced(LibPROJ_LIBRARY_RELEASE)
+ 
+-if (LibPROJ_INCLUDE_DIR)
+-  if (EXISTS "${LibPROJ_INCLUDE_DIR}/proj.h")
+-    file(STRINGS "${LibPROJ_INCLUDE_DIR}/proj.h" _libproj_version_lines REGEX "#define[ \t]+PROJ_VERSION_(MAJOR|MINOR|PATCH)")
+-    string(REGEX REPLACE ".*PROJ_VERSION_MAJOR *\([0-9]*\).*" "\\1" _libproj_version_major "${_libproj_version_lines}")
+-    string(REGEX REPLACE ".*PROJ_VERSION_MINOR *\([0-9]*\).*" "\\1" _libproj_version_minor "${_libproj_version_lines}")
+-    string(REGEX REPLACE ".*PROJ_VERSION_PATCH *\([0-9]*\).*" "\\1" _libproj_version_patch "${_libproj_version_lines}")
+-  else ()
+-    file(STRINGS "${LibPROJ_INCLUDE_DIR}/proj_api.h" _libproj_version_lines REGEX "#define[ \t]+PJ_VERSION")
+-    string(REGEX REPLACE ".*PJ_VERSION *\([0-9]*\).*" "\\1" _libproj_version "${_libproj_version_lines}")
+-    math(EXPR _libproj_version_major "${_libproj_version} / 100")
+-    math(EXPR _libproj_version_minor "(${_libproj_version} % 100) / 10")
+-    math(EXPR _libproj_version_patch "${_libproj_version} % 10")
++  find_library(LibPROJ_LIBRARY_DEBUG
++    NAMES projd
++    DOC "libproj debug library")
++  mark_as_advanced(LibPROJ_LIBRARY_DEBUG)
++
++  include(SelectLibraryConfigurations)
++  select_library_configurations(LibPROJ)
++
++  if (LibPROJ_INCLUDE_DIR)
++    if (EXISTS "${LibPROJ_INCLUDE_DIR}/proj.h")
++      file(STRINGS "${LibPROJ_INCLUDE_DIR}/proj.h" _libproj_version_lines REGEX "#define[ \t]+PROJ_VERSION_(MAJOR|MINOR|PATCH)")
++      string(REGEX REPLACE ".*PROJ_VERSION_MAJOR *\([0-9]*\).*" "\\1" _libproj_version_major "${_libproj_version_lines}")
++      string(REGEX REPLACE ".*PROJ_VERSION_MINOR *\([0-9]*\).*" "\\1" _libproj_version_minor "${_libproj_version_lines}")
++      string(REGEX REPLACE ".*PROJ_VERSION_PATCH *\([0-9]*\).*" "\\1" _libproj_version_patch "${_libproj_version_lines}")
++    else ()
++      file(STRINGS "${LibPROJ_INCLUDE_DIR}/proj_api.h" _libproj_version_lines REGEX "#define[ \t]+PJ_VERSION")
++      string(REGEX REPLACE ".*PJ_VERSION *\([0-9]*\).*" "\\1" _libproj_version "${_libproj_version_lines}")
++      math(EXPR _libproj_version_major "${_libproj_version} / 100")
++      math(EXPR _libproj_version_minor "(${_libproj_version} % 100) / 10")
++      math(EXPR _libproj_version_patch "${_libproj_version} % 10")
++    endif ()
++    set(LibPROJ_VERSION "${_libproj_version_major}.${_libproj_version_minor}.${_libproj_version_patch}")
++    set(LibPROJ_MAJOR_VERSION "${_libproj_version_major}")
++    unset(_libproj_version_major)
++    unset(_libproj_version_minor)
++    unset(_libproj_version_patch)
++    unset(_libproj_version)
++    unset(_libproj_version_lines)
+   endif ()
+-  set(LibPROJ_VERSION "${_libproj_version_major}.${_libproj_version_minor}.${_libproj_version_patch}")
+-  set(LibPROJ_MAJOR_VERSION "${_libproj_version_major}")
+-  unset(_libproj_version_major)
+-  unset(_libproj_version_minor)
+-  unset(_libproj_version_patch)
+-  unset(_libproj_version)
+-  unset(_libproj_version_lines)
+-endif ()
++endif()
+ 
+ include(FindPackageHandleStandardArgs)
+ find_package_handle_standard_args(LibPROJ

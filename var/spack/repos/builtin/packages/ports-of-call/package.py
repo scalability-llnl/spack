@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PortsOfCall(CMakePackage):
     git = "https://github.com/lanl/ports-of-call.git"
 
     maintainers("rbberger")
+
+    license("BSD-3-Clause")
 
     version("main", branch="main")
     version("1.5.2", sha256="73d16fe9236a9475010dbb01bf751c15bef01eb2e15bf92c8d9be2c0a606329f")
@@ -31,6 +33,9 @@ class PortsOfCall(CMakePackage):
         sha256="c47f7e24c82176b69229a2bcb23a6adcf274dc90ec77a452a36ccae0b12e6e39",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # todo: disable cmake default?
+    depends_on("cxx", type="build")
 
     variant(
         "portability_strategy",

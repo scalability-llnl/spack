@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -128,8 +128,8 @@ class ProviderIndex(_IndexBase):
         assert not self.repository.is_virtual_safe(spec.name), msg
 
         pkg_provided = self.repository.get_pkg_class(spec.name).provided
-        for provided_spec, provider_specs in pkg_provided.items():
-            for provider_spec_readonly in provider_specs:
+        for provider_spec_readonly, provided_specs in pkg_provided.items():
+            for provided_spec in provided_specs:
                 # TODO: fix this comment.
                 # We want satisfaction other than flags
                 provider_spec = provider_spec_readonly.copy()

@@ -1,0 +1,30 @@
+diff -Naur papi-7.0.1-orig/src/components/rocm/tests/Makefile papi-7.0.1/src/components/rocm/tests/Makefile
+--- papi-7.0.1-orig/src/components/rocm/tests/Makefile	2023-06-19 14:27:44.220943888 -0400
++++ papi-7.0.1/src/components/rocm/tests/Makefile	2023-06-20 19:09:56.564352488 -0400
+@@ -1,9 +1,9 @@
+ NAME = rocm
+ include ../../Makefile_comp_tests.target
+ PAPI_ROCM_ROOT ?= /opt/rocm
+-
+-CC       = $(PAPI_ROCM_ROOT)/hip/bin/hipcc
+-CXX      = $(PAPI_ROCM_ROOT)/hip/bin/hipcc
++HIP_PATH ?= $(PAPI_ROCM_ROOT)/hip 
++CC       = $(HIP_PATH)/bin/hipcc
++CXX      = $(HIP_PATH)/bin/hipcc
+ CPPFLAGS+= -I$(PAPI_ROCM_ROOT)/include          \
+            -I$(PAPI_ROCM_ROOT)/include/hip      \
+            -I$(PAPI_ROCM_ROOT)/include/hsa      \
+diff -Naur papi-7.0.1-orig/src/components/rocm_smi/tests/Makefile papi-7.0.1/src/components/rocm_smi/tests/Makefile
+--- papi-7.0.1-orig/src/components/rocm_smi/tests/Makefile	2023-06-19 14:27:44.220943888 -0400
++++ papi-7.0.1/src/components/rocm_smi/tests/Makefile	2023-06-20 19:10:49.383840816 -0400
+@@ -4,8 +4,8 @@
+ NAME=rocm_smi
+ include ../../Makefile_comp_tests.target
+ PAPI_ROCM_ROOT ?= /opt/rocm
+-HIP_PATH= ${PAPI_ROCM_ROOT}/hip
+-HIPCC=$(HIP_PATH)/bin/hipcc
++HIP_PATH ?= $(PAPI_ROCM_ROOT)/hip
++HIPCC = $(HIP_PATH)/bin/hipcc
+ 
+ INCLUDE += -I$(PAPI_ROCM_ROOT)/include
+ INCLUDE += -I$(PAPI_ROCM_ROOT)/include/rocm_smi

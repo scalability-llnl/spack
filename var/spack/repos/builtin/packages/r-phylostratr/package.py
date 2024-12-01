@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class RPhylostratr(RPackage):
 
     homepage = "https://github.com/arenasee/phylostratr"
     git = "https://github.com/arendsee/phylostratr.git"
+
+    license("GPL-3.0-or-later")
 
     version("20190323", commit="9f6d1ee2e93d973dabcfc72a44af9a032cb7ebbd")
 

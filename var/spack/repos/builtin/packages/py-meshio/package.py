@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyMeshio(PythonPackage):
 
     homepage = "https://github.com/nschloe/meshio"
     pypi = "meshio/meshio-5.0.0.tar.gz"
+
+    license("MIT")
 
     version("5.0.1", sha256="e283f40b5fb68fc5c232829c33c086789661438960762b22dc2823571a089a8b")
     version("5.0.0", sha256="f6327c06d6171d30e0991d3dcb048751035f9cfac1f19e2444971275fd971188")

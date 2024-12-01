@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -36,6 +36,9 @@ class FujitsuFftw(FftwBase):
     version("1.1.0", sha256="47b01a20846802041a9533a115f816b973cc9b15b3e827a2f0caffaae34a6c9d")
     version("1.0.0", sha256="b5931e352355d8d1ffeb215922f4b96de11b8585c423fceeaffbf3d5436f6f2f")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("shared", default=True, description="Builds a shared version of the library")
     variant("openmp", default=True, description="Enable OpenMP support")
     variant("debug", default=False, description="Builds a debug version of the library")
@@ -50,16 +53,7 @@ class FujitsuFftw(FftwBase):
         when="%fj",
         msg="ARM-SVE vector instructions only works in single or double precision",
     )
-    conflicts("%arm")
-    conflicts("%cce")
-    conflicts("%apple-clang")
-    conflicts("%clang")
-    conflicts("%gcc")
-    conflicts("%intel")
-    conflicts("%nag")
-    conflicts("%pgi")
-    conflicts("%xl")
-    conflicts("%xl_r")
+    requires("%fj")
 
     def autoreconf(self, spec, prefix):
         if spec.target != "a64fx":
@@ -84,23 +78,23 @@ class FujitsuFftw(FftwBase):
             "ac_cv_prog_f77_v=-###",
         ]
 
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             options.append("--enable-shared")
         else:
             options.append("--disable-shared")
 
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             options.append("--enable-openmp")
             options.append("OPENMP_CFLAGS=-Kopenmp")
         else:
             options.append("--disable-openmp")
 
-        if "+threads" in spec:
+        if spec.satisfies("+threads"):
             options.append("--enable-threads")
         else:
             options.append("--disable-threads")
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             options.append("--enable-mpi")
         else:
             options.append("--disable-mpi")

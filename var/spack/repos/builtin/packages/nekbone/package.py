@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class Nekbone(Package):
 
     tags = ["proxy-app", "ecp-proxy-app"]
 
+    license("mpich2")
+
     version("develop", branch="master")
     version(
         "17.0",
@@ -24,6 +26,9 @@ class Nekbone(Package):
         url="https://github.com/Nek5000/Nekbone/archive/v17.0.tar.gz",
         extension=".tar.gz",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # Variants
     variant("mpi", default=True, description="Build with MPI")

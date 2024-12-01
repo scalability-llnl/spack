@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class Mrcpp(CMakePackage):
 
     maintainers("robertodr", "stigrj", "ilfreddy")
 
+    license("LGPL-3.0-only")
+
     version("1.4.2", sha256="cc7a4200eb0383967d984e770a95e621e76c88b79c5e7443433f5e642aee035b")
     version("1.3.6", sha256="2502e71f086a8bb5ea635d0c6b86e7ff60220a45583e96a08b3cfe7c9db4cecf")
     version("1.3.5", sha256="3072cf60db6fa1e621bc6e6dfb6d35f9367a44d9d312a4b8c455894769140aed")
@@ -30,6 +32,8 @@ class Mrcpp(CMakePackage):
     version("1.0.2", sha256="d2b26f7d7b16fa67f16788119abc0f6c7562cb37ece9ba075c116463dcf19df3")
     version("1.0.1", sha256="b4d7120545da3531bc7aa0a4cb4eb579fdbe1f8e5d32b1fd1086976583e3e27c")
     version("1.0.0", sha256="0858146141d3a60232e8874380390f9e9fa0b1bd6e67099d5833704478213efd")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("openmp", default=True, description="Enable OpenMP support.")
 

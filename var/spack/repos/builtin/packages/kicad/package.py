@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,9 +16,14 @@ class Kicad(CMakePackage):
     url = "https://gitlab.com/kicad/code/kicad/-/archive/5.1.8/kicad-5.1.8.tar.gz"
     maintainers("aweits")
 
+    license("GPL-3.0-or-later")
+
     version("7.0.2", sha256="8df56648226061c91ddd1d2ca970c66190fc70c7ace23c99cc28c209713e4dfc")
     version("5.1.9", sha256="841be864b9dc5c761193c3ee9cbdbed6729952d7b38451aa8e1977bdfdb6081b")
     version("5.1.8", sha256="bf24f8ef427b4a989479b8e4af0b8ae5c54766755f12748e2e88a922c5344ca4")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("wxwidgets")
     depends_on("python@3:", type=("build", "run"))
@@ -125,6 +130,5 @@ class Kicad(CMakePackage):
         for ver, lib, checksum in self.resource_list:
             if self.spec.version == Version(ver):
                 with working_dir("kicad-{0}-{1}".format(lib, ver)):
-                    args = std_cmake_args
-                    cmake(*args)
+                    cmake(*self.std_cmake_args)
                     make("install")

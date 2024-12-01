@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -26,6 +26,8 @@ class RBiovizbase(RPackage):
     version("1.28.2", commit="43d09060028665a237b04bfeb9e2575782b08063")
     version("1.26.0", commit="640742f48384f01d117b70dc5c64737e97ae9b4b")
     version("1.24.0", commit="ae9cd2ff665b74a8f45ed9c1d17fc0a778b4af6c")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r@2.10:", type=("build", "run"))
     depends_on("r@3.5.0:", type=("build", "run"), when="@1.38.0:")

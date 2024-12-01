@@ -1,4 +1,4 @@
-# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,10 +12,20 @@ class Halide(CMakePackage, PythonExtension):
     homepage = "https://halide-lang.org/"
     url = "https://github.com/halide/Halide/archive/refs/tags/v14.0.0.tar.gz"
     git = "https://github.com/halide/Halide.git"
-    maintainers("wraith1995")
+
+    license("MIT")
+
+    maintainers("wraith1995", "alexreinking")
     version("main", branch="main")
+    version("18.0.0", sha256="1176b42a3e2374ab38555d9316c78e39b157044b5a8e765c748bf3afd2edb351")
+    version("17.0.2", sha256="5f3a43ba27b47d3dcbcee963faabf1d633d4151031e60b6ff7cc62472e5677a0")
+    version("17.0.1", sha256="beb18331d9e4b6f69943bcc75fb9d923a250ae689f09f6940a01636243289727")
+    version("17.0.0", sha256="7e5a526b4074887b528d25b0265ddfa92c0a6d8bfdfbbba536313ecddf352da3")
+    version("16.0.0", sha256="a0cccee762681ea697124b8172dd65595856d0fa5bd4d1af7933046b4a085b04")
     version("15.0.0", sha256="6680424f80c5731a85d977c06327096afe5af31da3667e91d4d36a25fabdda15")
     version("14.0.0", sha256="f9fc9765217cbd10e3a3e3883a60fc8f2dbbeaac634b45c789577a8a87999a01")
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
     variant(
         "build_type",
         default="Release",
@@ -55,8 +65,12 @@ class Halide(CMakePackage, PythonExtension):
 
     depends_on("cmake@3.22:", type="build")
     depends_on("llvm+clang+lld build_type=Release", type=("link", "run"))
-    depends_on("llvm@13.0.0:15", type=("link", "run"), when="@14.0.0")
-    depends_on("llvm@14.0.0:16", type=("link", "run"), when="@15.0.0:")
+    depends_on("llvm@14.0.0:14", type=("link", "run"), when="@14.0.0:14")
+    depends_on("llvm@15.0.0:15", type=("link", "run"), when="@15.0.0:15")
+    depends_on("llvm@16.0.0:16", type=("link", "run"), when="@16.0.0:16")
+    depends_on("llvm@17.0.0:17", type=("link", "run"), when="@17.0.0:17")
+    depends_on("llvm@17.0.0:18", type=("link", "run"), when="@18.0.0:18")
+
     for v in _values:
         depends_on(
             "llvm targets={0}".format(v), type=("link", "run"), when="targets={0}".format(v)
@@ -68,7 +82,8 @@ class Halide(CMakePackage, PythonExtension):
 
     depends_on("python@3.8:", type=("build", "link", "run"), when="+python")
     # See https://github.com/halide/Halide/blob/main/requirements.txt
-    depends_on("py-pybind11@2.6.2", type="build", when="+python")
+    depends_on("py-pybind11@2.6.2", type="build", when="@14.0.0:17+python")
+    depends_on("py-pybind11@2.10.4", type="build", when="@18.0.0:+python")
     depends_on("py-setuptools@43:", type="build", when="+python")
     depends_on("py-scikit-build", type="build", when="+python")
     depends_on("py-wheel", type="build", when="+python")
@@ -103,9 +118,8 @@ class Halide(CMakePackage, PythonExtension):
         for target in llvm_targets:
             args += [self.define("TARGET_{0}".format(target[0]), target[1])]
 
-        if "+python" in spec:
+        if spec.satisfies("+python"):
             args += [
-                self.define("Python3_EXECUTABLE", spec["python"].command.path),
                 self.define("PYBIND11_USE_FETCHCONTENT", False),
                 self.define("Halide_INSTALL_PYTHONDIR", python_platlib),
             ]

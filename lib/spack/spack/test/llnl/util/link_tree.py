@@ -1,9 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
+import pathlib
 import sys
 
 import pytest
@@ -339,3 +340,60 @@ def test_destination_merge_visitor_file_dir_clashes(tmpdir):
     visit_directory_tree(str(tmpdir.join("a")), DestinationMergeVisitor(b_to_a))
     assert b_to_a.fatal_conflicts
     assert b_to_a.fatal_conflicts[0].dst == "example"
+
+
+def test_source_merge_visitor_does_not_register_identical_file_conflicts(tmp_path: pathlib.Path):
+    """Tests whether the SourceMergeVisitor does not register identical file conflicts.
+    but instead registers the file that triggers the potential conflict."""
+    (tmp_path / "dir_bottom").mkdir()
+    (tmp_path / "dir_bottom" / "file").write_bytes(b"hello")
+
+    (tmp_path / "dir_top").mkdir()
+    (tmp_path / "dir_top" / "file").symlink_to(tmp_path / "dir_bottom" / "file")
+    (tmp_path / "dir_top" / "zzzz").write_bytes(b"hello")
+
+    visitor = SourceMergeVisitor()
+    visitor.set_projection(str(tmp_path / "view"))
+
+    visit_directory_tree(str(tmp_path / "dir_top"), visitor)
+
+    # After visiting the top dir, we should have `file` and `zzzz` listed, in that order. Using
+    # .items() to test order.
+    assert list(visitor.files.items()) == [
+        (str(tmp_path / "view" / "file"), (str(tmp_path / "dir_top"), "file")),
+        (str(tmp_path / "view" / "zzzz"), (str(tmp_path / "dir_top"), "zzzz")),
+    ]
+
+    # Then after visiting the bottom dir, the "conflict" should be resolved, and `file` should
+    # come from the bottom dir.
+    visit_directory_tree(str(tmp_path / "dir_bottom"), visitor)
+    assert not visitor.file_conflicts
+    assert list(visitor.files.items()) == [
+        (str(tmp_path / "view" / "zzzz"), (str(tmp_path / "dir_top"), "zzzz")),
+        (str(tmp_path / "view" / "file"), (str(tmp_path / "dir_bottom"), "file")),
+    ]
+
+
+def test_source_merge_visitor_does_deals_with_dangling_symlinks(tmp_path: pathlib.Path):
+    """When a file and a dangling symlink conflict, this should be handled like a file conflict."""
+    (tmp_path / "dir_a").mkdir()
+    os.symlink("non-existent", str(tmp_path / "dir_a" / "file"))
+
+    (tmp_path / "dir_b").mkdir()
+    (tmp_path / "dir_b" / "file").write_bytes(b"data")
+
+    visitor = SourceMergeVisitor()
+    visitor.set_projection(str(tmp_path / "view"))
+
+    visit_directory_tree(str(tmp_path / "dir_a"), visitor)
+    visit_directory_tree(str(tmp_path / "dir_b"), visitor)
+
+    # Check that a conflict was registered.
+    assert len(visitor.file_conflicts) == 1
+    conflict = visitor.file_conflicts[0]
+    assert conflict.src_a == str(tmp_path / "dir_a" / "file")
+    assert conflict.src_b == str(tmp_path / "dir_b" / "file")
+    assert conflict.dst == str(tmp_path / "view" / "file")
+
+    # The first file encountered should be listed.
+    assert visitor.files == {str(tmp_path / "view" / "file"): (str(tmp_path / "dir_a"), "file")}

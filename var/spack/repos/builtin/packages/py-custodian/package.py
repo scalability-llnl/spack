@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class PyCustodian(PythonPackage):
     pypi = "custodian/custodian-2022.5.26.tar.gz"
 
     maintainers("meyersbs")
+
+    license("MIT")
 
     version("2022.5.26", sha256="92bdafa578c75f976176492e7bf3eb83abde97f112725e2e421633fa8954c6ef")
 

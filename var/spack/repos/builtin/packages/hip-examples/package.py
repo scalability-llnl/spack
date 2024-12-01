@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,21 +11,29 @@ from spack.package import *
 class HipExamples(Package):
     """Examples for HIP"""
 
-    homepage = "https://github.com/ROCm-Developer-Tools/HIP-Examples/"
-    git = "https://github.com/ROCm-Developer-Tools/HIP-Examples.git"
-    url = "https://github.com/ROCm-Developer-Tools/HIP-Examples/archive/rocm-5.4.3.tar.gz"
+    homepage = "https://github.com/ROCm/HIP-Examples/"
+    git = "https://github.com/ROCm/HIP-Examples.git"
+    url = "https://github.com/ROCm/HIP-Examples/archive/rocm-5.4.3.tar.gz"
     tags = ["rocm"]
 
     maintainers("srekolam", "renjithravindrankannath", "afzpatel")
 
-    version("master", branch="master")
-
+    version("5.6.1", sha256="c1b5d30e387f869fae21170790ea3d604f7f0dba7771a9c096d9a5c2351dd001")
+    version("5.6.0", sha256="b751a0cac938248f7ea0fbeaa9df35688357b54ddd13359e2842a770b7923dfe")
+    version("5.5.1", sha256="c8522ef3f0804c85eef7e9efe2671f375b0d7f2100de85f55dcc2401efed6389")
+    version("5.5.0", sha256="bea8a4155bbfbdb3bc1f83c22e4bd1214b1b4e1840b58dc7d37704620de5b103")
     version("5.4.3", sha256="053b8b7892e2929e3f90bd978d8bb1c9801e4803eadd7d97fc6692ce60af1d47")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     patch("0001-add-inc-and-lib-paths-to-openmp-helloworld.patch")
     patch("0002-add-fpic-compile-to-add4.patch")
-    depends_on("hip")
-    depends_on("rocm-openmp-extras")
+
+    for ver in ["5.6.1", "5.6.0", "5.5.1", "5.5.0", "5.4.3"]:
+        depends_on("hip@" + ver, when="@" + ver)
+        depends_on("rocm-openmp-extras@" + ver, when="@" + ver)
 
     def install(self, spec, prefix):
         stage = os.getcwd()

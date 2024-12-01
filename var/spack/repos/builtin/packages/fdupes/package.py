@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,8 +15,12 @@ class Fdupes(AutotoolsPackage):
 
     maintainers("michaelkuhn")
 
+    license("MIT")
+
     version("2.2.1", sha256="846bb79ca3f0157856aa93ed50b49217feb68e1b35226193b6bc578be0c5698d")
     version("2.1.2", sha256="cd5cb53b6d898cf20f19b57b81114a5b263cc1149cd0da3104578b083b2837bd")
+
+    depends_on("c", type="build")  # generated
 
     variant("ncurses", default=True, description="ncurses support")
 

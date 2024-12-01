@@ -19,7 +19,6 @@ packages:
     - apple-clang
     - clang
     - gcc
-    - intel
     providers:
       elf: [libelf]
       fuse: [macfuse]
@@ -50,4 +49,4 @@ packages:
     # Apple bundles libuuid in libsystem_c version 1353.100.2,
     # although the version number used here isn't critical
     - spec: apple-libuuid@1353.100.2
-      prefix: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
+      prefix: /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk

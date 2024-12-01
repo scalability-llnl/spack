@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class UserspaceRcu(AutotoolsPackage):
     homepage = "https://liburcu.org/"
     url = "https://github.com/urcu/userspace-rcu/archive/v0.11.1.tar.gz"
 
+    license("LGPL-2.1-or-later")
+
     version("0.13.1", sha256="b810481f0c859a5859d82e23eddd2856b410802009f94663d64c330dc2f4403e")
     version("0.13.0", sha256="c457d17ec9dff7db0e90b103ef1a03737efdeaec13098af82f83a03091c835b5")
     version("0.12.3", sha256="a61b5aca001f70cb576505cc4869bd74a758484343466cc49cb1342c67028a54")
@@ -27,6 +29,8 @@ class UserspaceRcu(AutotoolsPackage):
     version("0.11.0", sha256="7834e4692565b491b9d2d258095d6c05089c9bae8a1bef280c338d15ba02e9ac")
     version("0.10.2", sha256="e117c416fced894e24720cc1b38247074a13020f19d6704b38e554cbcb993d06")
     version("0.9.6", sha256="4d9e4ca40c079e0b0e9f912a9092589b97fbaf80eb6537e9ae70d48c09472efa")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("m4", type="build")
     depends_on("autoconf", type="build")

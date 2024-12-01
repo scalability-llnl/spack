@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,7 +16,11 @@ class Igprof(CMakePackage):
     homepage = "https://igprof.org/"
     url = "https://github.com/igprof/igprof/archive/v5.9.16.tar.gz"
 
+    version("5.9.18", sha256="f3e378a358469cd269aa5cb3312adc4f5ca89b90c0de89dc070d803c6b68f7b5")
     version("5.9.16", sha256="cc977466b310f47bbc2967a0bb6ecd49d7437089598346e3f1d8aaf9a7555d96")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("libunwind")
 

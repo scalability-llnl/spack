@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,9 @@ class Cxxopts(CMakePackage):
     url = "https://github.com/jarro2783/cxxopts/archive/v2.2.0.tar.gz"
     maintainers("haampie")
 
+    license("MIT")
+
+    version("3.2.0", sha256="9f43fa972532e5df6c5fd5ad0f5bac606cdec541ccaf1732463d8070bbb7f03b")
     version("3.1.1", sha256="523175f792eb0ff04f9e653c90746c12655f10cb70f1d5e6d6d9491420298a08")
     version("3.0.0", sha256="36f41fa2a46b3c1466613b63f3fa73dc24d912bc90d667147f1e43215a8c6d00")
     version("2.2.1", sha256="984aa3c8917d649b14d7f6277104ce38dd142ce378a9198ec926f03302399681")
@@ -26,6 +29,8 @@ class Cxxopts(CMakePackage):
     version("1.4.2", sha256="8fc5e16e68ddf549465f8bec6b56adaccfab9d183093616ddd4d3e80115844cb")
     version("1.4.1", sha256="c5ccfe99bd3db0604d077c968b39a42d61333a64d171fe84d7037d6c0dcc996d")
     version("1.4.0", sha256="60d4a482ec603ef4efa2603978596716884b33e24d39af6ddca52b4a30f7107b")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("unicode", default=False, description="Enables unicode support using the ICU library.")
 

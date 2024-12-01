@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,8 +10,10 @@ class PyStackData(PythonPackage):
     """Extract data from python stack frames and tracebacks for informative
     displays."""
 
-    homepage = "http://github.com/alexmojaki/stack_data"
+    homepage = "https://github.com/alexmojaki/stack_data"
     pypi = "stack_data/stack_data-0.2.0.tar.gz"
+
+    license("MIT")
 
     version("0.6.2", sha256="32d2dd0376772d01b6cb9fc996f3c8b57a357089dec328ed4b6553d037eaf815")
     version("0.5.0", sha256="715c8855fbf5c43587b141e46cc9d9339cc0d1f8d6e0f98ed0d01c6cb974e29f")

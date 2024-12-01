@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyPyquaternion(PythonPackage):
 
     homepage = "https://kieranwynn.github.io/pyquaternion/"
     pypi = "pyquaternion/pyquaternion-0.9.5.tar.gz"
+
+    license("MIT")
 
     version("0.9.5", sha256="2d89d19259d62a8fbd25219eee7dacc1f6bb570becb70e1e883f622597c7d81d")
 

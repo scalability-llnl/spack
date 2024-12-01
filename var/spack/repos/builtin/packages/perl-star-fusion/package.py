@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PerlStarFusion(Package):
 
     homepage = "https://github.com/STAR-Fusion/STAR-Fusion"
     git = "https://github.com/STAR-Fusion/STAR-Fusion.git"
+
+    license("BSD-3-Clause")
 
     version("master", commit="8c5a541ab701debebb68e5c4ee9d6a03e03d65ca")
 

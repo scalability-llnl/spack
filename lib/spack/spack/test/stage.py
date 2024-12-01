@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,14 +15,16 @@ import sys
 import pytest
 
 from llnl.util.filesystem import getuid, mkdirp, partition_path, touch, working_dir
+from llnl.util.symlink import readlink
 
+import spack.config
 import spack.error
-import spack.paths
+import spack.fetch_strategy
 import spack.stage
 import spack.util.executable
 import spack.util.url as url_util
 from spack.resource import Resource
-from spack.stage import DIYStage, ResourceStage, Stage, StageComposite
+from spack.stage import DevelopStage, ResourceStage, Stage, StageComposite
 from spack.util.path import canonicalize_path
 
 # The following values are used for common fetch and stage mocking fixtures:
@@ -145,9 +147,8 @@ def check_destroy(stage, stage_name):
     assert not os.path.exists(stage_path)
 
     # tmp stage needs to remove tmp dir too.
-    if not stage.managed_by_spack:
-        target = os.path.realpath(stage_path)
-        assert not os.path.exists(target)
+    target = os.path.realpath(stage_path)
+    assert not os.path.exists(target)
 
 
 def check_setup(stage, stage_name, archive):
@@ -323,17 +324,11 @@ def failing_search_fn():
     return _mock
 
 
-@pytest.fixture
-def failing_fetch_strategy():
-    """Returns a fetch strategy that fails."""
-
-    class FailingFetchStrategy(spack.fetch_strategy.FetchStrategy):
-        def fetch(self):
-            raise spack.fetch_strategy.FailedDownloadError(
-                "<non-existent URL>", "This implementation of FetchStrategy always fails"
-            )
-
-    return FailingFetchStrategy()
+class FailingFetchStrategy(spack.fetch_strategy.FetchStrategy):
+    def fetch(self):
+        raise spack.fetch_strategy.FailedDownloadError(
+            "<non-existent URL>", "This implementation of FetchStrategy always fails"
+        )
 
 
 @pytest.fixture
@@ -444,12 +439,9 @@ class TestStage:
 
     @pytest.mark.disable_clean_stage_check
     def test_composite_stage_with_expand_resource(self, composite_stage_with_expanding_resource):
-        (
-            composite_stage,
-            root_stage,
-            resource_stage,
-            mock_resource,
-        ) = composite_stage_with_expanding_resource
+        (composite_stage, root_stage, resource_stage, mock_resource) = (
+            composite_stage_with_expanding_resource
+        )
 
         composite_stage.create()
         composite_stage.fetch()
@@ -474,12 +466,9 @@ class TestStage:
         directory.
         """
 
-        (
-            composite_stage,
-            root_stage,
-            resource_stage,
-            mock_resource,
-        ) = composite_stage_with_expanding_resource
+        (composite_stage, root_stage, resource_stage, mock_resource) = (
+            composite_stage_with_expanding_resource
+        )
 
         resource_stage.resource.placement = None
 
@@ -517,8 +506,8 @@ class TestStage:
             stage.fetch()
         check_destroy(stage, self.stage_name)
 
-    def test_no_search_mirror_only(self, failing_fetch_strategy, failing_search_fn):
-        stage = Stage(failing_fetch_strategy, name=self.stage_name, search_fn=failing_search_fn)
+    def test_no_search_mirror_only(self, failing_search_fn):
+        stage = Stage(FailingFetchStrategy(), name=self.stage_name, search_fn=failing_search_fn)
         with stage:
             try:
                 stage.fetch(mirror_only=True)
@@ -533,8 +522,8 @@ class TestStage:
             (None, "All fetchers failed"),
         ],
     )
-    def test_search_if_default_fails(self, failing_fetch_strategy, search_fn, err_msg, expected):
-        stage = Stage(failing_fetch_strategy, name=self.stage_name, search_fn=search_fn)
+    def test_search_if_default_fails(self, search_fn, err_msg, expected):
+        stage = Stage(FailingFetchStrategy(), name=self.stage_name, search_fn=search_fn)
 
         with stage:
             with pytest.raises(spack.error.FetchError, match=expected):
@@ -806,61 +795,74 @@ class TestStage:
         with Stage("file:///does-not-exist", path=testpath) as stage:
             assert stage.path == testpath
 
-    def test_diystage_path_none(self):
-        """Ensure DIYStage for path=None behaves as expected."""
-        with pytest.raises(ValueError):
-            DIYStage(None)
 
-    def test_diystage_path_invalid(self):
-        """Ensure DIYStage for an invalid path behaves as expected."""
-        with pytest.raises(spack.stage.StagePathError):
-            DIYStage("/path/does/not/exist")
+def _create_files_from_tree(base, tree):
+    for name, content in tree.items():
+        sub_base = os.path.join(base, name)
+        if isinstance(content, dict):
+            os.mkdir(sub_base)
+            _create_files_from_tree(sub_base, content)
+        else:
+            assert (content is None) or (isinstance(content, str))
+            with open(sub_base, "w") as f:
+                if content:
+                    f.write(content)
 
-    def test_diystage_path_valid(self, tmpdir):
-        """Ensure DIYStage for a valid path behaves as expected."""
-        path = str(tmpdir)
-        stage = DIYStage(path)
-        assert stage.path == path
-        assert stage.source_path == path
 
-        # Order doesn't really matter for DIYStage since they are
-        # basically NOOPs; however, call each since they are part
-        # of the normal stage usage and to ensure full test coverage.
-        stage.create()  # Only sets the flag value
-        assert stage.created
+def _create_tree_from_dir_recursive(path):
+    if os.path.islink(path):
+        return readlink(path)
+    elif os.path.isdir(path):
+        tree = {}
+        for name in os.listdir(path):
+            sub_path = os.path.join(path, name)
+            tree[name] = _create_tree_from_dir_recursive(sub_path)
+        return tree
+    else:
+        with open(path, "r") as f:
+            content = f.read() or None
+        return content
 
-        stage.cache_local()  # Only outputs a message
-        stage.fetch()  # Only outputs a message
-        stage.check()  # Only outputs a message
-        stage.expand_archive()  # Only outputs a message
 
-        assert stage.expanded  # The path/source_path does exist
+@pytest.fixture
+def develop_path(tmpdir):
+    dir_structure = {"a1": {"b1": None, "b2": "b1content"}, "a2": None}
+    srcdir = str(tmpdir.join("test-src"))
+    os.mkdir(srcdir)
+    _create_files_from_tree(srcdir, dir_structure)
+    yield dir_structure, srcdir
 
-        with pytest.raises(spack.stage.RestageError):
-            stage.restage()
 
-        stage.destroy()  # A no-op
-        assert stage.path == path  # Ensure can still access attributes
-        assert os.path.exists(stage.source_path)  # Ensure path still exists
+class TestDevelopStage:
+    def test_sanity_check_develop_path(self, develop_path):
+        _, srcdir = develop_path
+        with open(os.path.join(srcdir, "a1", "b2")) as f:
+            assert f.read() == "b1content"
 
-    def test_diystage_preserve_file(self, tmpdir):
-        """Ensure DIYStage preserves an existing file."""
-        # Write a file to the temporary directory
-        fn = tmpdir.join(_readme_fn)
-        fn.write(_readme_contents)
+        assert os.path.exists(os.path.join(srcdir, "a2"))
 
-        # Instantiate the DIYStage and ensure the above file is unchanged.
-        path = str(tmpdir)
-        stage = DIYStage(path)
-        assert os.path.isdir(path)
-        assert os.path.isfile(str(fn))
+    def test_develop_stage(self, develop_path, tmp_build_stage_dir):
+        """Check that (a) develop stages update the given
+        `dev_path` with a symlink that points to the stage dir and
+        (b) that destroying the stage does not destroy `dev_path`
+        """
+        devtree, srcdir = develop_path
+        stage = DevelopStage("test-stage", srcdir, reference_link="link-to-stage")
+        assert not os.path.exists(stage.reference_link)
+        stage.create()
+        assert os.path.exists(stage.reference_link)
+        srctree1 = _create_tree_from_dir_recursive(stage.source_path)
+        assert os.path.samefile(srctree1["link-to-stage"], stage.path)
+        del srctree1["link-to-stage"]
+        assert srctree1 == devtree
 
-        stage.create()  # Only sets the flag value
-
-        readmefn = str(fn)
-        assert os.path.isfile(readmefn)
-        with open(readmefn) as _file:
-            _file.read() == _readme_contents
+        stage.destroy()
+        assert not os.path.exists(stage.reference_link)
+        # Make sure destroying the stage doesn't change anything
+        # about the path
+        assert not os.path.exists(stage.path)
+        srctree2 = _create_tree_from_dir_recursive(srcdir)
+        assert srctree2 == devtree
 
 
 def test_stage_create_replace_path(tmp_build_stage_dir):

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyMlxtend(PythonPackage):
 
     homepage = "https://rasbt.github.io/mlxtend/"
     url = "https://github.com/rasbt/mlxtend/archive/v0.16.0.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("0.16.0", sha256="38789b36173630bf18e2244b035e7e6b44a87a0ae65cf04935cd2eecbf6595a1")
 

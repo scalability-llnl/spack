@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,7 +12,12 @@ class Wtdbg2(MakefilePackage):
     homepage = "https://github.com/ruanjue/wtdbg2"
     url = "https://github.com/ruanjue/wtdbg2/archive/v2.3.tar.gz"
 
+    license("GPL-3.0-only")
+
+    version("2.5", sha256="a2ffc8503d29f491a9a38ef63230d5b3c96db78377b5d25c91df511d0df06413")
     version("2.3", sha256="fb61d38a4c60a39b3b194e63b855141c05ddcbe71cf244ae613766a9b0a56621")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("zlib-api")
     depends_on("sse2neon", when="target=aarch64:")
@@ -25,4 +30,4 @@ class Wtdbg2(MakefilePackage):
             makefile.filter("-mpopcnt -msse4.2", "")
 
     def install(self, spec, prefix):
-        make("install", "BIN=%s" % prefix.bin)
+        make("install", f"BIN={prefix.bin}")

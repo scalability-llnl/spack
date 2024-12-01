@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,9 +18,15 @@ class Mutationpp(CMakePackage):
     homepage = "https://github.com/mutationpp/Mutationpp"
     url = "https://github.com/mutationpp/Mutationpp/archive/v0.3.1.tar.gz"
 
+    license("LGPL-3.0-only")
+
     version("1.0.5", sha256="319eca4e82a2469946344195373eabf28caaf6a39ddf3142b2337f47aa0835a8")
     version("1.0.0", sha256="928df99accd1a02706a57246edeef8ebbf3bd91bb40492258ee18b810a7e0194")
     version("0.3.1", sha256="a6da2816e145ac9fcfbd8920595b7f65ce7bc8df0bec572b32647720758cbe69")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("fortran", default=True, description="Enable Fortran interface")
     variant("data", default=True, description="Install default model data")

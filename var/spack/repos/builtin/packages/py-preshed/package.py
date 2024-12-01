@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyPreshed(PythonPackage):
 
     homepage = "https://github.com/explosion/preshed"
     pypi = "preshed/preshed-3.0.2.tar.gz"
+
+    license("MIT")
 
     version("3.0.8", sha256="6c74c70078809bfddda17be96483c41d06d717934b07cab7921011d81758b357")
     version("3.0.2", sha256="61d73468c97c1d6d5a048de0b01d5a6fd052123358aca4823cdb277e436436cb")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,7 @@ class Scorep(AutotoolsPackage):
     url = "https://perftools.pages.jsc.fz-juelich.de/cicd/scorep/tags/scorep-7.1/scorep-7.1.tar.gz"
     maintainers("wrwilliams")
 
+    version("8.4", sha256="7bbde9a0721d27cc6205baf13c1626833bcfbabb1f33b325a2d67976290f7f8a")
     version("8.3", sha256="76c914e6319221c059234597a3bc53da788ed679179ac99c147284dcefb1574a")
     # version 8.2 was immediately superseded before it hit Spack
     version("8.1", sha256="3a40b481fce610871ddf6bdfb88a6d06b9e5eb38c6080faac6d5e44990060a37")
@@ -67,6 +68,10 @@ class Scorep(AutotoolsPackage):
         sha256="dcfd42bd05f387748eeefbdf421cb3cd98ed905e009303d70b5f75b217fd1254",
         deprecated="true",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     def url_for_version(self, version):
         if version < Version("7.0"):
@@ -143,12 +148,22 @@ class Scorep(AutotoolsPackage):
     # does not work on macOS
     # https://github.com/spack/spack/issues/1609
     conflicts("platform=darwin")
+    # Score-P first has support for ROCm 6.x as of v8.4
+    conflicts("hip@6.0:", when="@1.0:8.3+hip")
 
     def find_libpath(self, libname, root):
         libs = find_libraries(libname, root, shared=True, recursive=True)
         if len(libs.directories) == 0:
             return None
         return libs.directories[0]
+
+    # handle any mapping of Spack compiler names to Score-P args
+    # this should continue to exist for backward compatibility
+    def clean_compiler(self, compiler):
+        renames = {"cce": "cray", "rocmcc": "amdclang"}
+        if compiler in renames:
+            return renames[compiler]
+        return compiler
 
     def configure_args(self):
         spec = self.spec
@@ -159,9 +174,9 @@ class Scorep(AutotoolsPackage):
             "--enable-shared",
         ]
 
-        cname = spec.compiler.name
-        if not spec.satisfies("platform=cray"):
-            config_args.append("--with-nocross-compiler-suite={0}".format(cname))
+        cname = self.clean_compiler(spec.compiler.name)
+
+        config_args.append("--with-nocross-compiler-suite={0}".format(cname))
 
         if self.version >= Version("4.0"):
             config_args.append("--with-cubew=%s" % spec["cubew"].prefix.bin)
@@ -186,8 +201,7 @@ class Scorep(AutotoolsPackage):
             config_args.append("--with-rocm=%s" % spec["hip"].prefix)
 
         config_args += self.with_or_without("shmem")
-        if not spec.satisfies("platform=cray"):
-            config_args += self.with_or_without("mpi")
+        config_args += self.with_or_without("mpi")
 
         if spec.satisfies("^intel-mpi"):
             config_args.append("--with-mpi=intel3")
@@ -197,11 +211,12 @@ class Scorep(AutotoolsPackage):
             or spec.satisfies("^cray-mpich")
         ):
             config_args.append("--with-mpi=mpich3")
-        elif spec.satisfies("^openmpi"):
+        elif spec.satisfies("^openmpi") or spec.satisfies("^hpcx-mpi"):
             config_args.append("--with-mpi=openmpi")
 
         if spec.satisfies("^binutils"):
-            config_args.append("--with-libbfd=%s" % spec["binutils"].prefix)
+            config_args.append("--with-libbfd-lib=%s" % spec["binutils"].prefix.lib)
+            config_args.append("--with-libbfd-include=%s" % spec["binutils"].prefix.include)
 
         config_args.extend(
             [

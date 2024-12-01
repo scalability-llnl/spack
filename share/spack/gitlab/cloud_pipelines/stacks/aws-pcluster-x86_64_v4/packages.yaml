@@ -1,0 +1,143 @@
+---  # x86_64_v4 packages (ice/skylake) & x86_64_v3 packages (zen2/3)
+packages:
+  cpio:
+    require:
+      - one_of:
+          - "cflags=-std=c18 target=x86_64_v4"
+          - "cflags=-std=c18 target=x86_64_v3"
+        when: "%intel"
+  gettext:
+    # Newer gettext cannot build with gcc@12 and old AL2 glibc headers
+    # Older gettext versions do not build correctly with oneapi.
+    require:
+      - one_of:
+          - '@:0.20'
+          - '%oneapi'
+  gromacs:
+    require:
+      - one_of:
+          - "+intel_provided_gcc ^intel-oneapi-mkl target=x86_64_v4"
+          - "+intel_provided_gcc ^intel-oneapi-mkl target=x86_64_v3"
+        when: "%intel"
+      - one_of:
+          - "+intel_provided_gcc target=x86_64_v4 ^intel-oneapi-mkl"
+          - "+intel_provided_gcc target=x86_64_v3 ^intel-oneapi-mkl"
+        when: "%oneapi"
+  intel-oneapi-compilers:
+    require: "intel-oneapi-compilers %gcc target=x86_64_v3"
+  intel-oneapi-mpi:
+    variants: +external-libfabric generic-names=True
+  lammps:
+    require:
+      - one_of:
+          - "lammps_sizes=bigbig +molecule +kspace +rigid +asphere +opt +openmp +openmp-package +intel fft=mkl ^intel-oneapi-mkl target=x86_64_v4"
+          - "lammps_sizes=bigbig +molecule +kspace +rigid +asphere +opt +openmp +openmp-package fft=mkl ^intel-oneapi-mkl target=x86_64_v3"
+        when: "%intel"
+      - one_of:
+          - "lammps_sizes=bigbig +molecule +kspace +rigid +asphere +opt +openmp +openmp-package +intel fft=mkl ^intel-oneapi-mkl target=x86_64_v4"
+          - "lammps_sizes=bigbig +molecule +kspace +rigid +asphere +opt +openmp +openmp-package fft=mkl ^intel-oneapi-mkl target=x86_64_v3"
+        when: "%oneapi"
+  libidn2:
+    require:
+      - one_of:
+          - "cflags=-std=c18 target=x86_64_v4"
+          - "cflags=-std=c18 target=x86_64_v3"
+        when: "%intel"
+  libfabric:
+    buildable: true
+    externals:
+      - prefix: /opt/amazon/efa/
+        spec: libfabric@${LIBFABRIC_VERSION}
+    require: ['fabrics=shm,efa']
+  libunistring:
+    require:
+      - one_of:
+          - "cflags=-std=c18 target=x86_64_v4"
+          - "cflags=-std=c18 target=x86_64_v3"
+        when: "%intel"
+  mpas-model:
+    require:
+      - one_of:
+          - "precision=single ^parallelio+pnetcdf target=x86_64_v4"
+          - "precision=single ^parallelio+pnetcdf target=x86_64_v3"
+        when: "%intel"
+      - one_of:
+          - "precision=single ^parallelio+pnetcdf target=x86_64_v4"
+          - "precision=single ^parallelio+pnetcdf target=x86_64_v3"
+        when: "%oneapi"
+  mpich:
+    require:
+      - one_of:
+          - "mpich pmi=pmi2 device=ch4 netmod=ofi +slurm target=x86_64_v4"
+          - "mpich pmi=pmi2 device=ch4 netmod=ofi +slurm target=x86_64_v3"
+  openfoam:
+    require:
+      - one_of:
+          - "openfoam %gcc ^scotch@6.0.9 target=x86_64_v4"
+          - "openfoam %gcc ^scotch@6.0.9 target=x86_64_v3"
+  openmpi:
+    variants: ~atomics ~cuda ~cxx ~cxx_exceptions ~internal-hwloc ~java +legacylaunchers ~lustre ~memchecker +pmi +romio ~singularity +vt +wrapper-rpath fabrics=ofi schedulers=slurm
+    require:
+      - one_of:
+          - "openmpi @4: target=x86_64_v4"
+          - "openmpi @4: target=x86_64_v3"
+  palace:
+    require:
+      - one_of:
+          - "palace ^fmt@9.1.0 target=x86_64_v4"
+          - "palace ^fmt@9.1.0 target=x86_64_v3"
+        when: "%oneapi"
+      - one_of:
+          - "palace ^fmt@9.1.0"
+        when: "%gcc"
+  pmix:
+    require:
+      - one_of:
+          - "pmix@3: target=x86_64_v4"
+          - "pmix@3: target=x86_64_v3"
+  quantum-espresso:
+    require:
+      - one_of:
+          - "quantum-espresso@6.6 ^intel-oneapi-mkl+cluster target=x86_64_v4"
+          - "quantum-espresso@6.6 ^intel-oneapi-mkl+cluster target=x86_64_v3"
+        when: "%intel"
+      - one_of:
+          - "quantum-espresso@6.6 ^intel-oneapi-mkl+cluster target=x86_64_v4"
+          - "quantum-espresso@6.6 ^intel-oneapi-mkl+cluster target=x86_64_v3"
+        when: "%oneapi"
+  slurm:
+    buildable: false
+    externals:
+      - prefix: ${SLURM_ROOT}
+        spec: slurm@${SLURM_VERSION} +pmix
+  wrf:
+    require:
+      - one_of:
+          - "wrf@4 build_type=dm+sm target=x86_64_v4"
+          - "wrf@4 build_type=dm+sm target=x86_64_v3"
+          - "wrf@4.2.2 +netcdf_classic fflags=\"-fp-model fast=2 -no-heap-arrays -no-prec-div -no-prec-sqrt -fno-common\" build_type=dm+sm target=x86_64_v3"
+        when: "%intel"
+      - one_of:
+          - "wrf@4 build_type=dm+sm target=x86_64_v4"
+          - "wrf@4 build_type=dm+sm target=x86_64_v3"
+          - "wrf@4.2.2 +netcdf_classic fflags=\"-fp-model fast=2 -no-heap-arrays -no-prec-div -no-prec-sqrt -fno-common\" build_type=dm+sm target=x86_64_v3"
+        when: "%oneapi"
+
+  all:
+    compiler: [oneapi, gcc]
+    permissions:
+      read: world
+      write: user
+    providers:
+      blas: [intel-oneapi-mkl]
+      daal: [intel-oneapi-dal]
+      fftw-api: [intel-oneapi-mkl]
+      ipp: [intel-oneapi-ipp]
+      lapack: [intel-oneapi-mkl]
+      mkl: [intel-oneapi-mkl]
+      mpi: [intel-oneapi-mpi, openmpi, mpich]
+      tbb: [intel-oneapi-tbb, intel-tbb]
+      scalapack: [intel-oneapi-mkl]
+
+
+

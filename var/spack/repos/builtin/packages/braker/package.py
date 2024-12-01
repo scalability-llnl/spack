@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class Braker(Package):
     homepage = "http://exon.gatech.edu/braker1.html"
     url = "https://github.com/Gaius-Augustus/BRAKER/archive/v2.1.4.tar.gz"
     list_url = "http://bioinf.uni-greifswald.de/augustus/binaries/old"
+
+    license("Artistic-1.0")
 
     version("2.1.6", sha256="eef3c4037364472988a010322cbd79b5171158f9c016f4383809adade4866c06")
     version("2.1.4", sha256="d48af5649cc879343046f9ddf180fe2c709b5810e0b78cf314bf298514d31d52")
@@ -61,8 +63,7 @@ class Braker(Package):
             pattern = "^#!.*/usr/bin/env perl"
             repl = "#!{0}".format(self.spec["perl"].command.path)
             files = glob.iglob("*.pl")
-            for file in files:
-                filter_file(pattern, repl, *files, backup=False)
+            filter_file(pattern, repl, *files, backup=False)
 
     def setup_run_environment(self, env):
         env.prepend_path("PERL5LIB", self.prefix.lib)

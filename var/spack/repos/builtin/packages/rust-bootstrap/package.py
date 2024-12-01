@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,11 +16,57 @@ class RustBootstrap(Package):
 
     maintainers("alecbcs")
 
+    skip_version_audit = ["platform=windows"]
+
     # List binary rust releases for multiple operating systems and architectures.
     # These binary versions are not intended to stay up-to-date. Instead we
     # should update these binary releases as bootstrapping requirements are
     # modified by new releases of Rust.
     rust_releases = {
+        "1.81.0": {
+            "darwin": {
+                "x86_64": "f74d8ad24cc3cbfb825da98a08d98319565e4d18ec2c3e9503bf0a33c81ba767",
+                "aarch64": "60a41dea4ae0f4006325745a6400e6fdc3e08ad3f924fac06f04c238cf23f4ec",
+            },
+            "linux": {
+                "x86_64": "4ca7c24e573dae2f382d8d266babfddc307155e1a0a4025f3bc11db58a6cab3e",
+                "aarch64": "ef4da9c1ecd56bbbb36f42793524cce3062e6a823ae22cb679a945c075c7755b",
+                "powerpc64le": "bf98b27de08a2fd5a2202a2b621b02bfde2a6fde397df2a735d018aeffcdc5e2",
+            },
+        },
+        "1.78.0": {
+            "darwin": {
+                "x86_64": "6c91ed3bd90253961fcb4a2991b8b22e042e2aaa9aba9f389f1e17008171d898",
+                "aarch64": "3be74c31ee8dc4f1d49e2f2888228de374138eaeca1876d0c1b1a61df6023b3b",
+            },
+            "linux": {
+                "x86_64": "1307747915e8bd925f4d5396ab2ae3d8d9c7fad564afbc358c081683d0f22e87",
+                "aarch64": "131eda738cd977fff2c912e5838e8e9b9c260ecddc1247c0fe5473bf09c594af",
+                "powerpc64le": "c5aedb12c552daa18072e386697205fb7b91cef1e8791fe6fb74834723851388",
+            },
+        },
+        "1.75.0": {
+            "darwin": {
+                "x86_64": "ad066e4dec7ae5948c4e7afe68e250c336a5ab3d655570bb119b3eba9cf22851",
+                "aarch64": "878ecf81e059507dd2ab256f59629a4fb00171035d2a2f5638cb582d999373b1",
+            },
+            "linux": {
+                "x86_64": "473978b6f8ff216389f9e89315211c6b683cf95a966196e7914b46e8cf0d74f6",
+                "aarch64": "30828cd904fcfb47f1ac43627c7033c903889ea4aca538f53dcafbb3744a9a73",
+                "powerpc64le": "2599cdfea5860b4efbceb7bca69845a96ac1c96aa50cf8261151e82280b397a0",
+            },
+        },
+        "1.73.0": {
+            "darwin": {
+                "x86_64": "ece9646bb153d4bc0f7f1443989de0cbcd8989a7d0bf3b7fb9956e1223954f0c",
+                "aarch64": "9c96e4c57328fb438ee2d87aa75970ce89b4426b49780ccb3c16af0d7c617cc6",
+            },
+            "linux": {
+                "x86_64": "aa4cf0b7e66a9f5b7c623d4b340bb1ac2864a5f2c2b981f39f796245dc84f2cb",
+                "aarch64": "e54d7d886ba413ae573151f668e76ea537f9a44406d3d29598269a4a536d12f6",
+                "powerpc64le": "8fa215ee3e274fb64364e7084613bc570369488fa22cf5bc8e0fe6dc810fe2b9",
+            },
+        },
         "1.70.0": {
             "darwin": {
                 "x86_64": "e5819fdbfc7f1a4d5d82cb4c3b7662250748450b45a585433bfb75648bc45547",
@@ -88,6 +134,9 @@ class RustBootstrap(Package):
             version(release, sha256=rust_releases[release][os][target])
 
     def url_for_version(self, version):
+        if self.os not in ("linux", "darwin"):
+            return None
+
         # Allow maintainers to checksum multiple architectures via
         # `spack checksum rust-bootstrap@1.70.0-darwin-aarch64`.
         match = re.search(r"(\S+)-(\S+)-(\S+)", str(version))
@@ -104,4 +153,5 @@ class RustBootstrap(Package):
 
     def install(self, spec, prefix):
         install_script = Executable("./install.sh")
-        install_script(f"--prefix={prefix}")
+        install_args = [f"--prefix={prefix}", "--without=rust-docs"]
+        install_script(" ".join(install_args))

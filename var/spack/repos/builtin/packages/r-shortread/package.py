@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -28,6 +28,9 @@ class RShortread(RPackage):
     version("1.38.0", commit="e9498f04b7b4bf0212bbb10ec7e3de2d7699f4bf")
     version("1.36.1", commit="176c34eddf4a416d30c69cb4ac197141ba42e66f")
     version("1.34.2", commit="25daac63b301df66a8ef6e98cc2977522c6786cd")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r-biocgenerics@0.22.1:", type=("build", "run"))
     depends_on("r-biocgenerics@0.23.3:", type=("build", "run"), when="@1.36.1:")

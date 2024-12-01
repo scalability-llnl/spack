@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -26,6 +26,11 @@ class Charmpp(Package):
 
     version("main", branch="main")
 
+    version(
+        "8.0.0",
+        sha256="e30fc1e921e5cbf3406e792d5b0ca5f211c5d8ffbfc56e56d5501d8118abcaf6",
+        url="https://github.com/charmplusplus/charm/archive/refs/tags/v8.0.0.tar.gz",
+    )
     version("7.0.0", sha256="9c247b421bb157bdf9bc0ced3e25738c7a1dc1f7ec57b7943a7faf97f7e4fb2e")
     version("6.10.2", sha256="7abb4cace8aebdfbb8006eac03eb766897c009cfb919da0d0a33f74c3b4e6deb")
     version("6.10.1", sha256="ab96198105daabbb8c8bdf370f87b0523521ce502c656cb6cd5b89f69a2c70a8")
@@ -39,6 +44,10 @@ class Charmpp(Package):
     version("6.6.1", sha256="2aa16fd3015dce0a0932ab5253578a72ddbcb889bc0d23584c42b28446915467")
     version("6.6.0", sha256="c916010f2d4cc2c6bd30ea19764839d0298fb56d1696d8ff08d9fa9a61dfb1c9")
     version("6.5.1", sha256="68aa43e2a6e476e116a7e80e385c25c6ac6497807348025505ba8bfa256ed34a")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # Support OpenMPI; see
     # <https://github.com/UIUC-PPL/charm/issues/1206>
@@ -57,6 +66,9 @@ class Charmpp(Package):
 
     # Ignore compiler warnings while configuring
     patch("strictpass.patch", when="@:6.8.2")
+
+    # Support Cray Shasta with ARM
+    patch("ofi-crayshasta-arm.patch", when="backend=ofi pmi=cray-pmi target=aarch64:")
 
     # Build targets
     # "target" is reserved, so we have to use something else.
@@ -86,7 +98,7 @@ class Charmpp(Package):
     variant(
         "pmi",
         default="none",
-        values=("none", "simplepmi", "slurmpmi", "slurmpmi2", "pmix"),
+        values=("none", "simplepmi", "slurmpmi", "slurmpmi2", "pmix", "cray-pmi"),
         description="The ucx/ofi/gni backends need PMI to run!",
     )
 
@@ -112,6 +124,7 @@ class Charmpp(Package):
     depends_on("cuda", when="+cuda")
 
     depends_on("ucx", when="backend=ucx")
+    depends_on("libfabric", when="backend=ofi")
     depends_on("slurm@:17-11-9-2", when="pmi=slurmpmi")
     depends_on("slurm@17-11-9-2:", when="pmi=slurmpmi2")
 
@@ -123,6 +136,7 @@ class Charmpp(Package):
     depends_on("mpi", when="pmi=simplepmi")
     depends_on("mpi", when="pmi=slurmpmi")
     depends_on("mpi", when="pmi=slurmpmi2")
+    depends_on("cray-mpich", when="pmi=cray-pmi")
 
     # Git versions of Charm++ require automake and autoconf
     depends_on("automake", when="@develop")
@@ -180,7 +194,6 @@ class Charmpp(Package):
             ("linux", "x86_64", "netlrts"): "netlrts-linux-x86_64",
             ("linux", "x86_64", "verbs"): "verbs-linux-x86_64",
             ("linux", "x86_64", "ofi"): "ofi-linux-x86_64",
-            ("linux", "x86_64", "ucx"): "ucx-linux-x86_64",
             ("linux", "ppc", "mpi"): "mpi-linux-ppc",
             ("linux", "ppc", "multicore"): "multicore-linux-ppc",
             ("linux", "ppc", "netlrts"): "netlrts-linux-ppc",
@@ -195,28 +208,55 @@ class Charmpp(Package):
             ("cnl", "x86_64", "mpi"): "mpi-crayxc",
         }
 
-        # Some versions were renamed/removed in 6.11
-        if self.spec.version < Version("6.11.0"):
-            versions.update({("linux", "i386", "mpi"): "mpi-linux"})
-            versions.update({("linux", "i386", "multicore"): "multicore-linux"})
-            versions.update({("linux", "i386", "netlrts"): "netlrts-linux"})
-            versions.update({("linux", "i386", "uth"): "uth-linux"})
+        if self.spec.satisfies("@6.10:"):
             versions.update(
                 {
+                    ("linux", "x86_64", "ucx"): "ucx-linux-x86_64",
+                    ("linux", "aarch64", "ucx"): "ucx-linux-arm8",
+                }
+            )
+
+        # Some versions were renamed/removed in 6.11
+        if self.spec.version < Version("6.11.0"):
+            versions.update(
+                {
+                    ("linux", "i386", "mpi"): "mpi-linux",
+                    ("linux", "i386", "multicore"): "multicore-linux",
+                    ("linux", "i386", "netlrts"): "netlrts-linux",
+                    ("linux", "i386", "uth"): "uth-linux",
                     ("linux", "arm", "multicore"): "multicore-arm7",
                     ("linux", "aarch64", "multicore"): "multicore-arm8",
                 }
             )
         else:
-            versions.update({("linux", "i386", "mpi"): "mpi-linux-i386"})
-            versions.update({("linux", "i386", "multicore"): "multicore-linux-i386"})
-            versions.update({("linux", "i386", "netlrts"): "netlrts-linux-i386"})
             versions.update(
                 {
+                    ("linux", "i386", "mpi"): "mpi-linux-i386",
+                    ("linux", "i386", "multicore"): "multicore-linux-i386",
+                    ("linux", "i386", "netlrts"): "netlrts-linux-i386",
                     ("linux", "arm", "multicore"): "multicore-linux-arm7",
                     ("linux", "aarch64", "multicore"): "multicore-linux-arm8",
                 }
             )
+
+        if self.spec.satisfies("@7:"):
+            versions.update(
+                {
+                    ("linux", "arm", "mpi"): "mpi-linux-arm7",
+                    ("linux", "aarch64", "mpi"): "mpi-linux-arm8",
+                    ("darwin", "arm", "multicore"): "multicore-darwin-arm8",
+                    ("darwin", "arm", "netlrts"): "netlrts-darwin-arm8",
+                    ("darwin", "arm", "mpi"): "mpi-darwin-arm8",
+                }
+            )
+
+            if self.spec.satisfies("backend=ofi pmi=cray-pmi"):
+                versions.update(
+                    {
+                        ("linux", "x86_64", "ofi"): "ofi-crayshasta",
+                        ("linux", "aarch64", "ofi"): "ofi-crayshasta",
+                    }
+                )
 
         if (plat, mach, comm) not in versions:
             raise InstallError(
@@ -237,7 +277,7 @@ class Charmpp(Package):
 
     def install(self, spec, prefix):
         if not ("backend=mpi" in self.spec) or not ("backend=netlrts" in self.spec):
-            if "+pthreads" in self.spec:
+            if self.spec.satisfies("+pthreads"):
                 raise InstallError(
                     "The pthreads option is only\
                                     available on the Netlrts and MPI \
@@ -249,7 +289,7 @@ class Charmpp(Package):
             or ("backend=ofi" in self.spec)
             or ("backend=gni" in self.spec)
         ):
-            if "pmi=none" in self.spec:
+            if self.spec.satisfies("pmi=none"):
                 raise InstallError(
                     "The UCX/OFI/GNI backends need \
                                     PMI to run. Please add pmi=... \
@@ -262,7 +302,7 @@ class Charmpp(Package):
             or ("pmi=slurmpmi" in self.spec)
             or ("pmi=slurmpmi2" in self.spec)
         ):
-            if "^openmpi" in self.spec:
+            if self.spec.satisfies("^openmpi"):
                 raise InstallError(
                     "To use any process management \
                                     interface other than PMIx, \
@@ -284,15 +324,15 @@ class Charmpp(Package):
         options.append("-j%d" % make_jobs)
         options.append("--destination=%s" % builddir)
 
-        if "pmi=slurmpmi" in spec:
+        if spec.satisfies("pmi=slurmpmi"):
             options.append("slurmpmi")
-        if "pmi=slurmpmi2" in spec:
+        if spec.satisfies("pmi=slurmpmi2"):
             options.append("slurmpmi2")
-        if "pmi=pmix" in spec:
+        if spec.satisfies("pmi=pmix"):
             options.append("ompipmix")
             options.extend(["--basedir=%s" % spec["openmpi"].prefix])
 
-        if "backend=mpi" in spec:
+        if spec.satisfies("backend=mpi"):
             # in intelmpi <prefix>/include and <prefix>/lib fails so --basedir
             # cannot be used
             options.extend(
@@ -302,9 +342,9 @@ class Charmpp(Package):
                 ["--libdir={0}".format(libdir) for libdir in spec["mpi"].libs.directories]
             )
 
-        if "backend=ucx" in spec:
+        if spec.satisfies("backend=ucx"):
             options.extend(["--basedir=%s" % spec["ucx"].prefix])
-        if "+papi" in spec:
+        if spec.satisfies("+papi"):
             options.extend(["papi", "--basedir=%s" % spec["papi"].prefix])
         if "+smp" in spec and "backend=multicore" not in spec:
             # The 'multicore' backend always uses SMP, so we don't have to
@@ -312,7 +352,7 @@ class Charmpp(Package):
             # of Charm++ v7.0.0 it is actually a build error to append 'smp'
             # with the 'multicore' backend.
             options.append("smp")
-        if "+tcp" in spec:
+        if spec.satisfies("+tcp"):
             if "backend=netlrts" not in spec:
                 # This is a Charm++ limitation; it would lead to a
                 # build error
@@ -320,19 +360,26 @@ class Charmpp(Package):
                     "The +tcp variant requires " "the backend=netlrts communication mechanism"
                 )
             options.append("tcp")
-        if "+omp" in spec:
+        if spec.satisfies("+omp"):
             options.append("omp")
-        if "+pthreads" in spec:
+        if spec.satisfies("+pthreads"):
             options.append("pthreads")
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             options.append("cuda")
 
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             options.append("--build-shared")
-        if "+production" in spec:
+        if spec.satisfies("+production"):
             options.append("--with-production")
-        if "+tracing" in spec:
+        if spec.satisfies("+tracing"):
             options.append("--enable-tracing")
+
+        # charmpp build was failing with clang based compilers for -DNETWORK=mpi as discussed in
+        # https://github.com/charmplusplus/charm/issues/3645
+        # Fix was suggested in https://github.com/charmplusplus/charm/pull/3646 and the same has
+        # been implemented in v8.0.0
+        if self.spec.satisfies("@8.0.0: %aocc"):
+            options.append("--disable-fortran")
 
         # Call "make" via the build script
         # Note: This builds Charm++ in the "tmp" subdirectory of the
@@ -394,4 +441,4 @@ class Charmpp(Package):
         self.spec.mpicxx = self.prefix.bin.ampicxx
         self.spec.mpifc = self.prefix.bin.ampif90
         self.spec.mpif77 = self.prefix.bin.ampif77
-        self.spec.charmarch = self.charmarch
+        self.spec.charmarch = self.charmarch + "-smp" if self.spec.satisfies("+smp") else ""

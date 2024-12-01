@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class RRngtools(RPackage):
     the way current RNG settings can be changed."""
 
     cran = "rngtools"
+
+    license("GPL-3.0-only")
 
     version("1.5.2", sha256="7f8c76ca4c7851b69a86e27be09b02ddc86357f0388659ef8787634682e8a74d")
     version("1.5", sha256="8274873b73f7acbe0ce007e62893bf4d369d2aab8768754a60da46b3f078f575")

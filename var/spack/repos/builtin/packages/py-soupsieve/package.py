@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,11 @@ class PySoupsieve(PythonPackage):
 
     homepage = "https://github.com/facelessuser/soupsieve"
     pypi = "soupsieve/soupsieve-1.9.3.tar.gz"
+
+    license("MIT")
+
+    # Circular dependency on beautifulsoup4
+    skip_modules = ["soupsieve"]
 
     version("2.4.1", sha256="89d12b2d5dfcd2c9e8c22326da9d9aa9cb3dfab0a83a024f05704076ee8d35ea")
     version(

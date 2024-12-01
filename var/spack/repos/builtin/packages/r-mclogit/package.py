@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,8 @@ class RMclogit(RPackage):
     the group sizes are small."""
 
     cran = "mclogit"
+
+    license("GPL-2.0-only")
 
     version("0.9.6", sha256="9adc5f6d8649960abe009c30d9b4c448ff7d174c455a594cbf104a33d5a36f69")
 

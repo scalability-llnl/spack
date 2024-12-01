@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,6 @@ class PyPdbfixer(PythonPackage):
     version("1.7", sha256="a0bef3c52a7bbe69a6aea5333f51f3e7d158339be5829aed19b0344bd66d4eea")
 
     depends_on("py-setuptools", type="build")
-    depends_on("openmm@7.1:7.5", type=("build", "run"), when="1.7")
+    depends_on("openmm@7.1:7.5", type=("build", "run"), when="@1.7")
     depends_on("openmm@7.6:", type=("build", "run"), when="@1.8:")
     depends_on("py-numpy", type=("build", "run"))

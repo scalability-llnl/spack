@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyFlattenDict(PythonPackage):
 
     homepage = "https://github.com/ianlini/flatten-dict"
     pypi = "flatten-dict/flatten-dict-0.3.0.tar.gz"
+
+    license("MIT")
 
     version("0.3.0", sha256="0ccc43f15c7c84c5ef387ad19254f6769a32d170313a1bcbf4ce582089313d7e")
 

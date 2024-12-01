@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,9 @@ class Libyogrt(AutotoolsPackage):
     homepage = "https://github.com/LLNL/libyogrt"
     url = "https://github.com/LLNL/libyogrt/releases/download/1.21/libyogrt-1.21.tar.gz"
 
+    license("LGPL-2.1-or-later")
+
+    version("1.35", sha256="a03b3d24da49af626351aaca9ab3eaff102ed41d5171f1bcb2ff26a561bd0cd6")
     version("1.33", sha256="797d20c49cdc4f6beae8660b4f41ba7ac13f7e93a0344b47f0bdc64f780d1398")
     version("1.27", sha256="c57ce60770b61aa20bc83fe34ff52b5e444964338df3786f282d0d9bcdd26138")
     version("1.24", sha256="36695030e72b24b1f22bfcfe42bfd1d3c87f9c0eea5e94ce0120782581ea522f")
@@ -26,6 +29,9 @@ class Libyogrt(AutotoolsPackage):
     version("1.20-4", sha256="0858a729068b272d4047d79f6a5187cdbd427bdfec64db4e143524b4789a06c5")
     version("1.20-3", sha256="61a8f28f452aef0e09d700dbaaffd91ae3855f7ac221c7ebe478a028df635e31")
     version("1.20-2", sha256="bf22a82ab3bfede780be3fb6c132cc354234f8d57d3cccd58fe594f074ed7f95")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # libyogrt supports the following schedulers:
     #     flux, lcrm, lsf, moab, slurm, AIX+slurm
@@ -55,7 +61,7 @@ class Libyogrt(AutotoolsPackage):
 
     def url_for_version(self, version):
         if version < Version("1.21"):
-            return "https://github.com/LLNL/libyogrt/archive/%s.tar.gz" % version
+            return f"https://github.com/LLNL/libyogrt/archive/{version}.tar.gz"
         else:
             return "https://github.com/LLNL/libyogrt/releases/download/{0}/libyogrt-{0}.tar.gz".format(
                 version
@@ -80,11 +86,11 @@ class Libyogrt(AutotoolsPackage):
             args.append("--with-lsf")
             args.append("LIBS=-llsf -lrt -lnsl")
         elif sched == "flux":
-            args.append("--with-flux=%s" % (self.spec["flux-core"].prefix))
+            args.append(f"--with-flux={self.spec['flux-core'].prefix}")
         elif sched != "system":
-            args.append("--with-%s=%s" % (sched, self.spec[sched].prefix))
+            args.append(f"--with-{sched}={self.spec[sched].prefix}")
 
-        if "+static" in self.spec:
+        if self.spec.satisfies("+static"):
             args.append("--enable-static=yes")
 
         return args
@@ -106,4 +112,4 @@ class Libyogrt(AutotoolsPackage):
 
         # create conf file to inform libyogrt about job scheduler
         with open(os.path.join(etcpath, "yogrt.conf"), "w+") as f:
-            f.write("backend=%s\n" % sched)
+            f.write(f"backend={sched}\n")

@@ -15,17 +15,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  prechecks:
-    needs: [ changes ]
-    uses: ./.github/workflows/valid-style.yml
-    with:
-      with_coverage: ${{ needs.changes.outputs.core }}
-  all-prechecks:
-    needs: [ prechecks ]
-    runs-on: ubuntu-latest
-    steps:
-    - name: Success
-      run: "true"
   # Check which files have been updated by the PR
   changes:
     runs-on: ubuntu-latest
@@ -35,12 +24,12 @@ jobs:
       core: ${{ steps.filter.outputs.core }}
       packages: ${{ steps.filter.outputs.packages }}
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # @v2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         if: ${{ github.event_name == 'push' }}
         with:
           fetch-depth: 0
             # For pull requests it's not necessary to checkout the code
-      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
         id: filter
         with:
           # See https://github.com/dorny/paths-filter/issues/56 for the syntax used below
@@ -52,6 +41,13 @@ jobs:
             - 'var/spack/repos/builtin/packages/clingo/**'
             - 'var/spack/repos/builtin/packages/python/**'
             - 'var/spack/repos/builtin/packages/re2c/**'
+            - 'var/spack/repos/builtin/packages/gnupg/**'
+            - 'var/spack/repos/builtin/packages/libassuan/**'
+            - 'var/spack/repos/builtin/packages/libgcrypt/**'
+            - 'var/spack/repos/builtin/packages/libgpg-error/**'
+            - 'var/spack/repos/builtin/packages/libksba/**'
+            - 'var/spack/repos/builtin/packages/npth/**'
+            - 'var/spack/repos/builtin/packages/pinentry/**'
             - 'lib/spack/**'
             - 'share/spack/**'
             - '.github/workflows/bootstrap.yml'
@@ -70,17 +66,54 @@ jobs:
     if: ${{ github.repository == 'spack/spack' && needs.changes.outputs.bootstrap == 'true' }}
     needs: [ prechecks, changes ]
     uses: ./.github/workflows/bootstrap.yml
+    secrets: inherit
+
   unit-tests:
     if: ${{ github.repository == 'spack/spack' && needs.changes.outputs.core == 'true' }}
     needs: [ prechecks, changes ]
     uses: ./.github/workflows/unit_tests.yaml
-  windows:
-    if: ${{ github.repository == 'spack/spack' && needs.changes.outputs.core == 'true' }}
+    secrets: inherit
+
+  prechecks:
+    needs: [ changes ]
+    uses: ./.github/workflows/valid-style.yml
+    secrets: inherit
+    with:
+      with_coverage: ${{ needs.changes.outputs.core }}
+
+  all-prechecks:
     needs: [ prechecks ]
-    uses: ./.github/workflows/windows_python.yml
-  all:
-    needs: [ windows, unit-tests, bootstrap ]
+    if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
     - name: Success
-      run: "true"
+      run: |
+        if [ "${{ needs.prechecks.result }}" == "failure" ] || [ "${{ needs.prechecks.result }}" == "canceled" ]; then
+          echo "Unit tests failed." 
+          exit 1
+        else
+          exit 0
+        fi
+
+  coverage:
+    needs: [ unit-tests, prechecks ]
+    uses: ./.github/workflows/coverage.yml
+    secrets: inherit
+
+  all:
+    needs: [ unit-tests, coverage, bootstrap ]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    # See https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/accessing-contextual-information-about-workflow-runs#needs-context
+    steps:
+    - name: Status summary
+      run: |
+        if [ "${{ needs.unit-tests.result }}" == "failure" ] || [ "${{ needs.unit-tests.result }}" == "canceled" ]; then
+          echo "Unit tests failed." 
+          exit 1
+        elif [ "${{ needs.bootstrap.result }}" == "failure" ] || [ "${{ needs.bootstrap.result }}" == "canceled" ]; then
+          echo "Bootstrap tests failed." 
+          exit 1
+        else
+          exit 0
+        fi

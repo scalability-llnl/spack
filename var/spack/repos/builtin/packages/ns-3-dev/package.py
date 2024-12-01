@@ -1,64 +1,46 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
 from spack.package import *
-from spack.pkg.builtin.boost import Boost
 
 
-class Ns3Dev(WafPackage):
-    """
-    ns-3 is a discrete-event network simulator,
-    targeted primarily for research and educational use
-    """
+class Ns3Dev(CMakePackage):
+    """ns-3 is a discrete-event network simulator"""
 
     homepage = "https://www.nsnam.org/"
     url = "https://gitlab.com/nsnam/ns-3-dev/-/archive/ns-3.30.1/ns-3-dev-ns-3.30.1.tar.bz2"
 
     maintainers("yee29")
 
-    version("3.34", sha256="a565d46a73ff7de68808535d93884f59a6ed7c9faa94de1248ed4f59fb6d5d3d")
-    version("3.33", sha256="0deb7da501fc19ba4818997c5aefd942be5ab1bbd3cfaa6ba28c07b387900275")
-    version("3.32", sha256="a0e425c16748f909e10dce63275898508cb4f521739ec00a038316c148b8c3ee")
-    version("3.31", sha256="41a18cd8bf0a8dffa1087535efa4921ec27b4ca02778646b9da8adb721296862")
-    version("3.30.1", sha256="e8b3849d83a224f42c0cd2b9e692ec961455aca23f36fb86fcf6bbed2b495a3d")
-    version("3.30", sha256="53cefcad74fec6cc332368a05ed1f8c1a29f86295cb44b6b0509c6d2d18d90d0")
-    version("3.29", sha256="0254341487891421e4c6040476c6634c4c2931d4f7c6b9617a6ae494c8ee6ffd")
-    version("3.28", sha256="5295e1f6e2ee1ff8cd92d3937c8b3266e0d5926adffc42c7fb0ea9ce549a91b7")
-    version("3.27", sha256="26233011654043822b8ede525a52f8532ed181997b609a606681a0d5c8d64a26")
+    license("GPL-2.0-or-later")
 
-    variant("helics", default=False, description="Enable Helics support in ns-3")
+    version("3.40", sha256="96526e7ae6cb746d02af0cad04f63daff926dad5d30a6fe0d3c7943989ba4e59")
+    version("3.37", sha256="d72defeeddbba14397cd4403565992d98cd7b7d9c680c22fee56022706878720")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("boost", default=True, description="Compile with Boost libraries")
 
-    # Build dependency
-    depends_on("helics", when="+helics")
+    depends_on("gsl")
+    depends_on("harfbuzz")
+    depends_on("libxml2")
+    depends_on("sqlite")
 
-    # TODO: replace this with an explicit list of components of Boost,
-    # for instance depends_on('boost +filesystem')
-    # See https://github.com/spack/spack/pull/22303 for reference
-    depends_on(Boost.with_default_variants, when="+boost")
+    depends_on("boost", when="+boost")
+
+    depends_on("ccache", type="run")
+
     depends_on("pkgconfig", type="build")
 
-    resource(
-        name="helics",
-        when="+helics",
-        git="https://github.com/GMLC-TDC/helics-ns3.git",
-        destination="contrib",
-        placement="helics",
-    )
-
-    def configure_args(self):
-        args = []
-
-        if "+boost" in self.spec:
-            args.extend(
-                [
-                    "--boost-includes={0}".format(self.spec["boost"].prefix.include),
-                    "--boost-libs={0}".format(self.spec["boost"].prefix.lib),
-                ]
-            )
-
-        if "+helics" in self.spec:
-            args.append("--with-helics={0}".format(self.spec["helics"].prefix))
-        return args
+    def cmake_args(self):
+        return [
+            self.define("NS3_COLORED_OUTPUT", True),
+            self.define("NS3_GTK3", False),
+            self.define("NS3_MPI", False),
+            self.define("NS3_PYTHON_BINDINGS", False),
+            self.define("NS3_FAST_LINKERS", False),
+            self.define("NS3_SQLITE", True),
+            self.define("CCACHE", self.spec["ccache"].prefix.bin.ccache),
+        ]

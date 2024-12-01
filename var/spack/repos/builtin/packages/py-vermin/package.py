@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,10 +11,13 @@ class PyVermin(PythonPackage):
     """Concurrently detect the minimum Python versions needed to run code."""
 
     homepage = "https://github.com/netromdk/vermin"
-    url = "https://github.com/netromdk/vermin/archive/v1.5.2.tar.gz"
+    url = "https://github.com/netromdk/vermin/archive/v1.6.0.tar.gz"
 
     maintainers("netromdk")
 
+    license("MIT")
+
+    version("1.6.0", sha256="31200b1e674e064c7473484372db2743f5abbf1409d994880486bca5bcf05bec")
     version("1.5.2", sha256="e4b6ca6f3e71b0d83a179dc4a4ba50682f60474cf8c948ba9f82e330f219ff4a")
     version("1.5.1", sha256="2d1c7601d054da9fa5c5eb6c817c714235f9d484b74011f7f86c98f0a25e93ea")
     version("1.5.0", sha256="77207385c9cea1f02053a8f2e7f2e8c945394cf37c44c70ce217cada077a2d17")

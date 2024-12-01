@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,10 @@ class Libnbc(AutotoolsPackage):
     homepage = "http://unixer.de/research/nbcoll/libnbc/"
     url = "http://unixer.de/research/nbcoll/libnbc/libNBC-1.1.1.tar.gz"
 
+    license("BSD-3-Clause-Open-MPI")
+
     version("1.1.1", sha256="63aa5f75f84c191da0688cb551ebd0e9e46928edfba350b2a534eb0c704dd9c3")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("mpi")

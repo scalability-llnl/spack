@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -30,7 +30,7 @@ class CosmoflowBenchmark(Package, CudaPackage):
     depends_on("py-tensorflow+cuda", when="+cuda", type=("build", "run"))
     depends_on("py-tensorflow~cuda~nccl", when="~cuda", type=("build", "run"))
     depends_on("py-torch+cuda", when="+cuda", type=("build", "run"))
-    depends_on("py-torch~cuda~cudnn~nccl", when="~cuda", type=("build", "run"))
+    depends_on("py-torch~cuda~nccl", when="~cuda", type=("build", "run"))
     depends_on("py-horovod tensor_ops=mpi", when="~cuda", type=("build", "run"))
 
     def install(self, spec, prefix):

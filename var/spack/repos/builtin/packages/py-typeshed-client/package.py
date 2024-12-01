@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyTypeshedClient(PythonPackage):
 
     homepage = "https://github.com/JelleZijlstra/typeshed_client"
     pypi = "typeshed-client/typeshed_client-2.1.0.tar.gz"
+
+    license("MIT")
 
     version("2.1.0", sha256="da1969ec48c342197ddec655c873100ece38fd93e6827a1e6377793a16526f28")
 

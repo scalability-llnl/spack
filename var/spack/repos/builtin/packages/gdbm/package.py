@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,9 @@ class Gdbm(AutotoolsPackage, GNUMirrorPackage):
     homepage = "https://www.gnu.org.ua/software/gdbm/gdbm.html"
     gnu_mirror_path = "gdbm/gdbm-1.13.tar.gz"
 
+    license("GPL-3.0-or-later")
+
+    version("1.24", sha256="695e9827fdf763513f133910bc7e6cfdb9187943a4fec943e57449723d2b8dbf")
     version("1.23", sha256="74b1081d21fff13ae4bd7c16e5d6e504a4c26f7cde1dca0d963a484174bbcacd")
     version("1.22", sha256="f366c823a6724af313b6bbe975b2809f9a157e5f6a43612a72949138d161d762")
     version("1.21", sha256="b0b7dbdefd798de7ddccdd8edf6693a30494f7789777838042991ef107339cc2")
@@ -28,6 +31,8 @@ class Gdbm(AutotoolsPackage, GNUMirrorPackage):
     version("1.10", sha256="23f8134c5b94bbfb06d756a6b78f074fba6e6028cf2fe01341d40b26db773441")
     version("1.9.1", sha256="6025852637772b0699f2294b5f14fd4a084bca3c8161d29d64d1f30d6d1a9aed")
     version("1.9", sha256="f85324d7de3777db167581fd5d3493d2daa3e85e195a8ae9afc05b34551b6e57")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("readline")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyKeyboard(PythonPackage):
 
     homepage = "https://github.com/boppreh/keyboard"
     pypi = "keyboard/keyboard-0.13.5.zip"
+
+    license("MIT")
 
     version("0.13.5", sha256="63ed83305955939ca5c9a73755e5cc43e8242263f5ad5fd3bb7e0b032f3d308b")
 

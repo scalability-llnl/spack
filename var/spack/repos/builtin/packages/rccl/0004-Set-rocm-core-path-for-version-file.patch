@@ -1,0 +1,13 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 5384287..ea6fd4b 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -121,7 +121,7 @@ message(STATUS "hipcc version:    ${hipcc_version_string}")
+ 
+ ## Check for ROCm version
+ execute_process(
+-  COMMAND         bash "-c" "cat ${ROCM_PATH}/.info/version"
++  COMMAND         bash "-c" "cat $ENV{ROCMCORE_PATH}/.info/version"
+   OUTPUT_VARIABLE rocm_version_string
+ )
+ string(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" rocm_version_matches ${rocm_version_string})

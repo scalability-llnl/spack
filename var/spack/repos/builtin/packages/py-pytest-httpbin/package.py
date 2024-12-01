@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyPytestHttpbin(PythonPackage):
 
     homepage = "https://github.com/kevin1024/pytest-httpbin"
     pypi = "pytest-httpbin/pytest-httpbin-1.0.0.tar.gz"
+
+    license("MIT")
 
     version("1.0.0", sha256="d8ce547f42423026550ed7765f6c6d50c033b43025e8592270a7abf970e19b72")
     version("0.2.3", sha256="c5b698dfa474ffc9caebcb35e34346b753eb226aea5c2e1b69fefedbcf161bf8")

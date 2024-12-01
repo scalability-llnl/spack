@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyPythonPicard(PythonPackage):
 
     homepage = "https://pierreablin.github.io/picard/"
     pypi = "python-picard/python-picard-0.6.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("0.6", sha256="dad377c9a50f9850f85841eba0ffb58ad557885ca93364bb73153f33210b52e2")
 

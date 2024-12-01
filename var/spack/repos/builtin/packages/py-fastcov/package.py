@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyFastcov(PythonPackage):
     pypi = "fastcov/fastcov-1.13.tar.gz"
 
     maintainers("haampie")
+
+    license("MIT")
 
     version("1.13", sha256="ec8a5271f90a2f8b894cb999e262c33e225ed6072d9a6ca38f636f88cc0543e8")
 

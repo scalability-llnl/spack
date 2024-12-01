@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class Bdii(MakefilePackage):
 
     homepage = "https://github.com/EGI-Foundation/bdii"
     url = "https://github.com/EGI-Foundation/bdii/archive/v5.2.25.tar.gz"
+
+    license("Apache-2.0")
 
     version("6.0.1", sha256="ac292559004881c4d5254517207a5da82d7a48af746194a380145dcedef507ce")
     version("5.2.25", sha256="6abc3ed872538a12dc470a1d30bf4ae1ca4d6302eb6b50370413940f9e9259ca")

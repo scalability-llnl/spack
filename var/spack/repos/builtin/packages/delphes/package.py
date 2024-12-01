@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,8 @@ class Delphes(CMakePackage):
     tags = ["hep"]
 
     maintainers("drbenmorgan", "vvolkl", "selvaggi")
+
+    license("CC-BY-SA-4.0")
 
     version("master", branch="master")
     version("3.5.0", sha256="37685b945ef43aab09217d70b0ac7f9c5d3c2c27cf3b3f8d64c4e6eb5c5fd9aa")
@@ -41,25 +43,18 @@ class Delphes(CMakePackage):
     version("3.0.6", sha256="9e225731d57d2a76d35886841f8eff121bb3a45560b16077bd8c351151581d88")
     version("3.0.5", sha256="ab64ec6d2476fbfa40562e7edb510a8ab4c4fe5be77a4353ebf315c2af181a80")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("pythia8", default=True, description="build with pythia8")
 
-    variant(
-        "cxxstd",
-        default="17",
-        values=("14", "17"),
-        multi=False,
-        description="Use the specified C++ standard when building.",
-    )
-
     depends_on("cmake", type="build")
-    depends_on("root cxxstd=14", when="cxxstd=14")
-    depends_on("root cxxstd=17", when="cxxstd=17")
+    depends_on("root")
     depends_on("pythia8", when="+pythia8")
 
     def cmake_args(self):
         args = []
-        # C++ Standard
-        args.append("-DCMAKE_CXX_STANDARD=%s" % self.spec.variants["cxxstd"].value)
+        args.append(f"-DCMAKE_CXX_STANDARD={self.spec['root'].variants['cxxstd'].value}")
         return args
 
     def setup_run_environment(self, env):

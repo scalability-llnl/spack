@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,8 +14,11 @@ class Thepeg(AutotoolsPackage):
 
     tags = ["hep"]
 
+    license("GPL-3.0-or-later")
+
     # The commented out versions exist, but may need patches
     # and/or recipe changes
+    version("2.3.0", sha256="ac35979ae89c29608ca92c156a49ff68aace7a5a12a0c92f0a01a833d2d34572")
     version("2.2.3", sha256="f21473197a761fc32917b08a8d24d2bfaf93ff57f3441fd605da99ac9de5d50b")
     version("2.2.2", sha256="97bf55d4391b0a070a3303d3845f8160afec403f1573dfb0e857709ad6262e3e")
     version("2.2.1", sha256="63abc7215e6ad45c11cf9dac013738e194cc38556a8368b850b70ab1b57ea58f")
@@ -37,6 +40,8 @@ class Thepeg(AutotoolsPackage):
     # version('1.9.1', sha256='8ec6d0669eba51e308be4e33aeb219999418170eae3aad93ec1491c942c2a4e9')
     version("1.9.0", sha256="3ee58e5e3a26184567df1b9a10ca70df228e86f322e72f018dd7d8d5a4700a5d")
     version("1.8.3", sha256="55ede3a3dd0bd07b90d0d49cf7ae28c18cd965780fdf53528508b97d57152fc7")
+
+    depends_on("cxx", type="build")  # generated
     # version('1.8.2', sha256='44ccd0d70e42bb6ecd801a51bade6c25b3953c56f33017402d4f52ee6492dffa')
     # version('1.8.1', sha256='84c2a212a681545cddd541dca191eb65d96f41df86c87480b6f4f7d4f9683562')
     # version('1.8.0', sha256='4b22fda1078f410b999a23a17f611c9ae3a7f0f4cee4e83dc82c9336b7adf037')

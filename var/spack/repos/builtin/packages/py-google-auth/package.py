@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,9 @@ class PyGoogleAuth(PythonPackage):
     homepage = "https://github.com/GoogleCloudPlatform/google-auth-library-python"
     pypi = "google-auth/google-auth-1.6.3.tar.gz"
 
+    license("Apache-2.0")
+
+    version("2.27.0", sha256="e863a56ccc2d8efa83df7a80272601e43487fa9a728a376205c86c26aaefa821")
     version("2.20.0", sha256="030af34138909ccde0fbce611afc178f1d65d32fbff281f25738b1fe1c6f3eaa")
     version("2.16.2", sha256="07e14f34ec288e3f33e00e2e3cc40c8942aa5d4ceac06256a28cd8e786591420")
     version("2.11.0", sha256="ed65ecf9f681832298e29328e1ef0a3676e3732b2e56f41532d45f70a22de0fb")
@@ -28,8 +31,9 @@ class PyGoogleAuth(PythonPackage):
     depends_on("py-pyasn1-modules@0.2.1:", type=("build", "run"))
     depends_on("py-rsa@3.1.4:4", when="@2.3:", type=("build", "run"))
     depends_on("py-rsa@3.1.4:", type=("build", "run"))
-    depends_on("py-six@1.9:", type=("build", "run"))
-    depends_on("py-urllib3@:1", when="@2.18:", type=("build", "run"))
+    depends_on("py-six@1.9:", when="@:2.22", type=("build", "run"))
+    depends_on("py-urllib3@2.0.5:", when="@2.23.1", type=("build", "run"))
+    depends_on("py-urllib3@:1", when="@2.18:2.23.0", type=("build", "run"))
 
     with when("+aiohttp"):
         depends_on("py-aiohttp@3.6.2:3", type=("build", "run"))

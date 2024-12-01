@@ -1,0 +1,31 @@
+paths:
+- layout:
+  - executables:
+    - "bin/xlc"
+    - "bin/xlc++"
+    - "bin/xlc_r"
+    - "bin/xlc++_r"
+    script: |
+      echo "IBM XL C/C++ for Linux, V16.1.1 (5725-C73, 5765-J13)"
+      echo "Version: 16.01.0001.0006"
+  - executables:
+    - "bin/xlf"
+    - "bin/xlf_r"
+    - "bin/xlcuf"
+    script: |
+      echo "IBM XL Fortran for Linux, V16.1.1 (5725-C73, 5765-J13)"
+      echo "Version: 16.01.0001.0006"
+  platforms: ["linux"]
+  results:
+  - spec: "xl~r@16.1"
+    extra_attributes:
+      compilers:
+        c: ".*/bin/xlc"
+        cxx: ".*/bin/xlc[+][+]"
+        fortran: ".*/bin/xlf"
+  - spec: "xl+r@16.1"
+    extra_attributes:
+      compilers:
+        c: ".*/bin/xlc_r"
+        cxx: ".*/bin/xlc[+][+]_r"
+        fortran: ".*/bin/xlf_r"

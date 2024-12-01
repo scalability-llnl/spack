@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyRuamelYaml(PythonPackage):
 
     homepage = "https://sourceforge.net/p/ruamel-yaml/code/ci/default/tree"
     pypi = "ruamel.yaml/ruamel.yaml-0.16.10.tar.gz"
+
+    license("MIT")
 
     version("0.17.32", sha256="ec939063761914e14542972a5cba6d33c23b0859ab6342f61cf070cfc600efc2")
     version("0.17.16", sha256="1a771fc92d3823682b7f0893ad56cb5a5c87c48e62b5399d6f42c8759a583b33")

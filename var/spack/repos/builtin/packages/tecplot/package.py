@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,11 @@ class Tecplot(Package):
 
     maintainers("LRWeber")
 
+    version(
+        "2024r1",
+        sha256="709022a5d5532d46a47cfa3bf0698a4ea8428c7a0dea2feb708a5add8091a8f0",
+        expand=False,
+    )
     version(
         "2023r1",
         sha256="58e7f4de875e65047f4edd684013d0ff538df6246f00c059458989f281be4c93",

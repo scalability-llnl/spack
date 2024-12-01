@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,12 +22,18 @@ class Ncurses(AutotoolsPackage, GNUMirrorPackage):
 
     executables = [r"^ncursesw?(?:\d+(?:\.\d+)*)?-config$"]
 
+    license("X11")
+
+    version("6.5", sha256="136d91bc269a9a5785e5f9e980bc76ab57428f604ce3e5a5a90cebc767971cc6")
     version("6.4", sha256="6931283d9ac87c5073f30b6290c4c75f21632bb4fc3603ac8100812bed248159")
     version("6.3", sha256="97fc51ac2b085d4cde31ef4d2c3122c21abc217e9090a43a30fc5ec21684e059")
     version("6.2", sha256="30306e0c76e0f9f1f0de987cf1c82a5c21e1ce6568b9227f7da5b71cbea86c9d")
     version("6.1", sha256="aa057eeeb4a14d470101eff4597d5833dcef5965331be3528c08d99cebaa0d17")
     version("6.0", sha256="f551c24b30ce8bfb6e96d9f59b42fbea30fa3a6123384172f9e7284bcf647260")
     version("5.9", sha256="9046298fb440324c9d4135ecea7879ffed8546dd1b58e59430ea07a4633f563b")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("symlinks", default=False, description="Enables symlinks. Needed on AFS filesystem.")
     variant(
@@ -49,9 +55,12 @@ class Ncurses(AutotoolsPackage, GNUMirrorPackage):
 
     depends_on("pkgconfig", type="build")
 
-    patch("patch_gcc_5.txt", when="@6.0%gcc@5.0:")
+    # avoid disallowed const_cast from T* to void* and use reinterpret_cast
+    # Ref: https://lists.gnu.org/archive/html/bug-ncurses/2014-08/msg00008.html
+    patch("0001-Fix-errors-in-type-conversion.patch", when="@:5")
     patch("sed_pgi.patch", when="@:6.0")
     patch("nvhpc_fix_preprocessor_flag.patch", when="@6.0:6.2%nvhpc")
+    patch("rxvt_unicode_6_4.patch", when="@6.1:")
 
     @classmethod
     def determine_version(cls, exe):
@@ -101,6 +110,16 @@ class Ncurses(AutotoolsPackage, GNUMirrorPackage):
             flags.append(self.compiler.cc_pic_flag)
         elif name == "cxxflags":
             flags.append(self.compiler.cxx_pic_flag)
+
+        # ncurses@:6.0 fails in definition of macro 'mouse_trafo' without -P
+        if self.spec.satisfies("@:6.0 %gcc@5.0:"):
+            if name == "cppflags":
+                flags.append("-P")
+
+        # ncurses@:6.0 uses dynamic exception specifications not allowed in c++17
+        if self.spec.satisfies("@:5"):
+            if name == "cxxflags":
+                flags.append(self.compiler.cxx14_flag)
 
         return (flags, None, None)
 

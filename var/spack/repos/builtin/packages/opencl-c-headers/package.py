@@ -1,21 +1,42 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
-import sys
-
 from spack.package import *
 
 
-class OpenclCHeaders(Package):
+class OpenclCHeaders(CMakePackage):
     """OpenCL (Open Computing Language) C header files"""
 
     homepage = "https://www.khronos.org/registry/OpenCL/"
     url = "https://github.com/KhronosGroup/OpenCL-Headers/archive/v2020.06.16.tar.gz"
     maintainers("lorddavidiii")
 
+    license("Apache-2.0")
+
+    version(
+        "2024.05.08", sha256="3c3dd236d35f4960028f4f58ce8d963fb63f3d50251d1e9854b76f1caab9a309"
+    )
+    version(
+        "2023.12.14", sha256="407d5e109a70ec1b6cd3380ce357c21e3d3651a91caae6d0d8e1719c69a1791d"
+    )
+    version(
+        "2023.04.17", sha256="0ce992f4167f958f68a37918dec6325be18f848dee29a4521c633aae3304915d"
+    )
+    version(
+        "2023.02.06", sha256="464d1b04a5e185739065b2d86e4cebf02c154c416d63e6067a5060d7c053c79a"
+    )
+    version(
+        "2022.09.30", sha256="0ae857ecb28af95a420c800b21ed2d0f437503e104f841ab8db249df5f4fbe5c"
+    )
+    version(
+        "2022.09.23", sha256="dfaded8acf44473e47e7829373c6bb5fba148dc36a38ccd6ef7b6c1ebb78ae68"
+    )
+    version(
+        "2022.05.18", sha256="88a1177853b279eaf574e2aafad26a84be1a6f615ab1b00c20d5af2ace95c42e"
+    )
     version(
         "2022.01.04", sha256="6e716e2b13fc8d363b40a165ca75021b102f9328e2b38f8054d7db5884de29c9"
     )
@@ -35,8 +56,8 @@ class OpenclCHeaders(Package):
         "2020.03.13", sha256="664bbe587e5a0a00aac267f645b7c413586e7bc56dca9ff3b00037050d06f476"
     )
 
-    def install(self, spec, prefix):
-        install_tree("CL", prefix.include.CL)
-        if sys.platform == "darwin":
-            ln = which("ln")
-            ln("-s", prefix.include.CL, prefix.include.OpenCL)
+    depends_on("c", type="build")  # generated
+
+    def cmake_args(self):
+        # Disable testing the headers. They definitely work.
+        return ["-DBUILD_TESTING=OFF"]

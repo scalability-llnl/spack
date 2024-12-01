@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,9 +14,12 @@ class Mimalloc(CMakePackage):
     git = "https://github.com/microsoft/mimalloc.git"
     maintainers("msimberg")
 
+    license("MIT")
+
     version("dev-slice", branch="dev-slice")
     version("dev", branch="dev")
     version("master", branch="master")
+    version("2.1.7", sha256="0eed39319f139afde8515010ff59baf24de9e47ea316a315398e8027d198202d")
     version("2.1.2", sha256="2b1bff6f717f9725c70bf8d79e4786da13de8a270059e4ba0bdd262ae7be46eb")
     version("2.1.1", sha256="38b9660d0d1b8a732160191609b64057d8ccc3811ab18b7607bc93ca63a6010f")
     version("2.1.0", sha256="86e5e53e38bace59a9eb20d27e7bd7c5f448cb246a887d4f99478fa4809731fc")
@@ -30,7 +33,11 @@ class Mimalloc(CMakePackage):
     version("1.7.7", sha256="0f6663be1e1764851bf9563fcf7a6b3330e23b933eb4737dd07e3289b87895fe")
     version("1.7.6", sha256="d74f86ada2329016068bc5a243268f1f555edd620b6a7d6ce89295e7d6cf18da")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     depends_on("cmake@3.0:", type="build")
+    conflicts("^cmake@:3.17", when="@2.1.7:")
 
     libs_values = ("shared", "static", "object")
     variant(

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,11 +15,15 @@ class Chatterbug(MakefilePackage):
 
     tags = ["proxy-app"]
 
-    homepage = "https://chatterbug.readthedocs.io"
-    git = "https://github.com/LLNL/chatterbug.git"
+    homepage = "https://github.com/hpcgroup/chatterbug"
+    git = "https://github.com/hpcgroup/chatterbug.git"
+
+    license("MIT")
 
     version("develop", branch="master")
     version("1.0", tag="v1.0", commit="ee1b13c634943dbe32ac22f5e2154b00eab8c574")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("scorep", default=False, description="Build with Score-P tracing")
 
@@ -35,13 +39,13 @@ class Chatterbug(MakefilePackage):
         return targets
 
     def build(self, spec, prefix):
-        if "+scorep" in spec:
+        if spec.satisfies("+scorep"):
             make("WITH_OTF2=YES")
         else:
             make()
 
     def install(self, spec, prefix):
-        if "+scorep" in spec:
+        if spec.satisfies("+scorep"):
             make("WITH_OTF2=YES", "PREFIX=" + spec.prefix, "install")
         else:
             make("PREFIX=" + spec.prefix, "install")
