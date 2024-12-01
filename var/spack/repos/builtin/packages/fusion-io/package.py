@@ -22,6 +22,9 @@ class FusionIo(CMakePackage):
     variant("python", default=True, description="Enable Python support")
     variant("trace", default=True, description="Build trace program")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
     depends_on("mpi")
     depends_on("hdf5")
     depends_on("cmake@3:", type="build")
@@ -32,14 +35,14 @@ class FusionIo(CMakePackage):
         spec = self.spec
 
         args = [
-            "-DCMAKE_C_COMPILER=%s" % spec["mpi"].mpicc,
-            "-DCMAKE_CXX_COMPILER=%s" % spec["mpi"].mpicxx,
-            "-DCMAKE_Fortran_COMPILER=%s" % spec["mpi"].mpifc,
+            self.define("CMAKE_C_COMPILER", spec["mpi"].mpicc),
+            self.define("CMAKE_CXX_COMPILER", spec["mpi"].mpicxx),
+            self.define("CMAKE_Fortran_COMPILER", spec["mpi"].mpifc),
             self.define_from_variant("FUSIONIO_ENABLE_TRACE", "trace"),
+            self.define_from_variant("FUSIONIO_ENABLE_PYTHON", "python"),
         ]
 
-        if self.spec.variants["python"].value:
-            args.extend(["-DFUSIONIO_ENABLE_PYTHON:BOOL=ON"])
+        if self.spec.satisfies("+python"):
             args.append(self.define("PYTHON_MODULE_INSTALL_PATH", python_platlib))
 
         return args
