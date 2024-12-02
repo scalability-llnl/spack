@@ -15,7 +15,7 @@ class Mivisionx(CMakePackage):
     git = "https://github.com/GPUOpen-ProfessionalCompute-Libraries/MIVisionX.git"
     url = "https://github.com/GPUOpen-ProfessionalCompute-Libraries/MIVisionX/archive/rocm-6.1.2.tar.gz"
 
-    maintainers("srekolam", "renjithravindrankannath")
+    maintainers("srekolam", "renjithravindrankannath", "afzpatel")
     tags = ["rocm"]
 
     def url_for_version(self, version):
@@ -211,7 +211,7 @@ class Mivisionx(CMakePackage):
         when="@5.3:",
     )
     depends_on("openssl")
-    depends_on("libjpeg-turbo@2.0.6+partial_decoder", type="build")
+    depends_on("libjpeg-turbo@2.0.6+partial_decoder", type="build", when="@:6.2.0")
     depends_on("rpp@1.2.0", when="@5.5:5.6")
     depends_on("lmdb", when="@5.5:")
     depends_on("py-setuptools", when="@5.6:")

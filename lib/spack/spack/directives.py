@@ -64,6 +64,7 @@ __all__ = [
     "DirectiveMeta",
     "DisableRedistribute",
     "version",
+    "conditional",
     "conflicts",
     "depends_on",
     "extends",
@@ -76,6 +77,7 @@ __all__ = [
     "build_system",
     "requires",
     "redistribute",
+    "can_splice",
 ]
 
 _patch_order_index = 0
@@ -504,6 +506,43 @@ def provides(*specs: SpecType, when: WhenType = None):
     return _execute_provides
 
 
+@directive("splice_specs")
+def can_splice(
+    target: SpecType, *, when: SpecType, match_variants: Union[None, str, List[str]] = None
+):
+    """Packages can declare whether they are ABI-compatible with another package
+    and thus can be spliced into concrete versions of that package.
+
+    Args:
+        target: The spec that the current package is ABI-compatible with.
+
+        when: An anonymous spec constraining current package for when it is
+            ABI-compatible with target.
+
+        match_variants: A list of variants that must match
+            between target spec and current package, with special value '*'
+            which matches all variants. Example: a variant is defined on both
+            packages called json, and they are ABI-compatible whenever they agree on
+            the json variant (regardless of whether it is turned on or off).  Note
+            that this cannot be applied to multi-valued variants and multi-valued
+            variants will be skipped by '*'.
+    """
+
+    def _execute_can_splice(pkg: "spack.package_base.PackageBase"):
+        when_spec = _make_when_spec(when)
+        if isinstance(match_variants, str) and match_variants != "*":
+            raise ValueError(
+                "* is the only valid string for match_variants "
+                "if looking to provide a single variant, use "
+                f"[{match_variants}] instead"
+            )
+        if when_spec is None:
+            return
+        pkg.splice_specs[when_spec] = (spack.spec.Spec(target), match_variants)
+
+    return _execute_can_splice
+
+
 @directive("patches")
 def patch(
     url_or_filename: str,
@@ -575,6 +614,15 @@ def patch(
         cur_patches.append(patch)
 
     return _execute_patch
+
+
+def conditional(*values: List[Any], when: Optional[WhenType] = None):
+    """Conditional values that can be used in variant declarations."""
+    # _make_when_spec returns None when the condition is statically false.
+    when = _make_when_spec(when)
+    return spack.variant.ConditionalVariantValues(
+        spack.variant.ConditionalValue(x, when=when) for x in values
+    )
 
 
 @directive("variants")

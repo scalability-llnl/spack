@@ -15,6 +15,8 @@ from llnl.path import Path, convert_to_platform_path
 from llnl.util.filesystem import HeaderList, LibraryList
 
 import spack.build_environment
+import spack.compiler
+import spack.compilers
 import spack.config
 import spack.deptypes as dt
 import spack.package_base

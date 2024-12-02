@@ -22,6 +22,7 @@ class PyRasterio(PythonPackage):
 
     version("main", branch="main")
     version("master", branch="master", deprecated=True)
+    version("1.4.2", sha256="1be35ccb4d998a4c48fa51bbee9e37927ecd9b9e954a2b2581b8f3e9bb165332")
     version("1.4.1", sha256="d750362bb792d2311f94803ff309baec48486ecba75c9b905ea9b1f5eb06ef9f")
     version("1.4.0", sha256="e0d2ff540a4e06016cca2fb46691a10afe71343ea998c50ad8247bb125542133")
     version("1.3.11", sha256="47aa70b4718ebc80d825bb7db3127577d74e31c53048ce215145c0baf530ece9")
@@ -83,3 +84,6 @@ class PyRasterio(PythonPackage):
     depends_on("gdal@2.4:3.3", when="@1.2.7:1.2")
     depends_on("gdal@2.3:3.2", when="@1.2.0:1.2.6")
     depends_on("gdal@1.11:3.2", when="@1.1.0:1.1")
+
+    # https://github.com/rasterio/rasterio/pull/3212
+    conflicts("^gdal@3.10:", when="@:1.4.1")

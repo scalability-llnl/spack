@@ -762,7 +762,7 @@ def test_disjoint_set_fluent_methods():
 @pytest.mark.regression("32694")
 @pytest.mark.parametrize("other", [True, False])
 def test_conditional_value_comparable_to_bool(other):
-    value = spack.variant.Value("98", when="@1.0")
+    value = spack.variant.ConditionalValue("98", when=Spec("@1.0"))
     comparison = value == other
     assert comparison is False
 

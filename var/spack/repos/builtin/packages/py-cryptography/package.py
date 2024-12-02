@@ -15,6 +15,7 @@ class PyCryptography(PythonPackage):
 
     license("Apache-2.0")
 
+    version("43.0.3", sha256="315b9001266a492a6ff443b61238f956b214dbec9910a081ba5b6646a055a805")
     version("42.0.8", sha256="8d09d05439ce7baa8e9e95b07ec5b6c886f548deb7e0f69ef25f64b3bce842f2")
     version("41.0.7", sha256="13f93ce9bea8016c253b34afc6bd6a75993e5c40672ed5405a9c832f0d4a00bc")
     version("41.0.3", sha256="6d192741113ef5e30d89dcb5b956ef4e1578f304708701b8b73d38e3e1461f34")
@@ -33,7 +34,6 @@ class PyCryptography(PythonPackage):
     version("1.8.1", sha256="323524312bb467565ebca7e50c8ae5e9674e544951d28a2904a50012a8828190")
 
     variant("idna", default=False, when="@2.5:3.0", description="Deprecated U-label support")
-    variant("rust_bootstrap", default=False, when="@3.4.3:", description="Use pre-compiled Rust")
 
     # distutils required in version <= 40
     depends_on("python@:3.11", when="@:40", type=("build", "run"))
@@ -42,15 +42,20 @@ class PyCryptography(PythonPackage):
     depends_on("py-setuptools@40.6:", when="@2.7:36", type="build")
     depends_on("py-setuptools@18.5:", when="@2.2:2.6", type="build")
     depends_on("py-setuptools@11.3:", when="@:2.1", type="build")
-    depends_on("py-setuptools-rust@1.7.0:", when="@42:", type=("build", "run"))
-    depends_on("py-setuptools-rust@0.11.4:", when="@3.4.2:", type="build")
-    depends_on("py-setuptools-rust@0.11.4:", when="@3.4:3.4.1", type=("build", "run"))
-    with when("~rust_bootstrap"):
-        depends_on("rust@1.56:", when="@41:", type="build")
-        depends_on("rust@1.48:", when="@38:", type="build")
-        depends_on("rust@1.41:", when="@3.4.5:", type="build")
-        depends_on("rust@1.45:", when="@3.4.3:3.4.4", type="build")
-    depends_on("rust-bootstrap", when="+rust_bootstrap", type="build")
+    with when("@43:"):
+        depends_on("py-maturin@1", type="build")
+        conflicts(
+            "^py-setuptools@74.0.0,74.1.0,74.1.1,74.1.2,74.1.3,75.0.0,75.1.0,75.2.0",
+            msg="some setuptools version are incompatible",
+        )
+    with when("@:42"):
+        depends_on("py-setuptools-rust@1.7.0:", when="@42", type=("build", "run"))
+        depends_on("py-setuptools-rust@0.11.4:", when="@3.4.2:", type="build")
+        depends_on("py-setuptools-rust@0.11.4:", when="@3.4:3.4.1", type=("build", "run"))
+    depends_on("rust@1.56:", when="@41:", type="build")
+    depends_on("rust@1.48:", when="@38:", type="build")
+    depends_on("rust@1.41:", when="@3.4.5:", type="build")
+    depends_on("rust@1.45:", when="@3.4.3:3.4.4", type="build")
     depends_on("pkgconfig", when="@40:", type="build")
 
     depends_on("py-cffi@1.12:", when="@3.3:", type=("build", "run"))

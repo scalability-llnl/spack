@@ -180,8 +180,9 @@ class Dealii(CMakePackage, CudaPackage):
     depends_on("arborx+trilinos", when="@9.3:+arborx+trilinos")
     depends_on("arpack-ng+mpi", when="+arpack+mpi")
     depends_on("assimp", when="@9.0:+assimp")
-    depends_on("cgal", when="@9.4:+cgal")
-    depends_on("cgal@5:", when="@9.5:+cgal")
+    # cgal 6 not yet supported: https://github.com/spack/spack/pull/47285#issuecomment-2455403447
+    depends_on("cgal@:5", when="@9.4:+cgal")
+    depends_on("cgal@5", when="@9.5:+cgal")
     depends_on("doxygen+graphviz", when="+doc")
     depends_on("graphviz", when="+doc")
     depends_on("ginkgo", when="@9.1:+ginkgo")
