@@ -73,6 +73,7 @@ class Tar(AutotoolsPackage, GNUMirrorPackage):
 
     def flag_handler(self, name, flags):
         if name == "ldflags" and self.spec.satisfies("@1.35"):
+            # https://savannah.gnu.org/bugs/?64441
             flags.append("-liconv")
         return (flags, None, None)
 
