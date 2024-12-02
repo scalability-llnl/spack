@@ -445,6 +445,29 @@ class Python(Package):
             r"^(.*)setup\.py(.*)((build)|(install))(.*)$", r"\1setup.py\2 --no-user-cfg \3\6"
         )
 
+        # disable building the nis module (there is no flag to disable it).
+        if self.spec.satisfies("@3.8:3.10"):
+            filter_file(
+                "if MS_WINDOWS or CYGWIN or HOST_PLATFORM == 'qnx6':",
+                "if True:",
+                "setup.py",
+                string=True,
+            )
+        elif self.spec.satisfies("@3.7"):
+            filter_file(
+                "if host_platform in {'win32', 'cygwin', 'qnx6'}:",
+                "if True:",
+                "setup.py",
+                string=True,
+            )
+        elif self.spec.satisfies("@3.6"):
+            filter_file(
+                "if (host_platform not in ['cygwin', 'qnx6'] and",
+                "if False and",
+                "setup.py",
+                string=True,
+            )
+
     def setup_build_environment(self, env):
         spec = self.spec
 
@@ -655,10 +678,9 @@ class Python(Package):
                 ]
             )
 
-        # nis was removed in Python 3.13, and we disable it for all versions as it does not seemed
-        # to be used in general. There is not --disable-nis flag, so set an internal variable to
-        # the same effect.
-        if spec.satisfies("@:3.12"):
+        # Disable the nis module in the configure script for Python 3.11 and 3.12. It is deleted
+        # in Python 3.13. See ``def patch`` for disabling the nis module in Python 3.10 and older.
+        if spec.satisfies("@3.11:3.12"):
             config_args.append("py_cv_module_nis=n/a")
 
         # https://docs.python.org/3.8/library/sqlite3.html#f1
