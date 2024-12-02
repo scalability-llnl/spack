@@ -6,7 +6,7 @@
 from spack.package import *
 
 
-class PyPySpy(Package):
+class PyPySpy(CargoPackage):
     """A Sampling Profiler for Python."""
 
     homepage = "https://github.com/benfred/py-spy"
@@ -21,10 +21,5 @@ class PyPySpy(Package):
     # TODO: uses cargo to download and build dozens of dependencies.
     # Need to figure out how to manage these with Spack once we have a
     # CargoPackage base class.
-    depends_on("rust", type="build")
     depends_on("unwind")
     depends_on("libunwind components=ptrace", when="^[virtuals=unwind] libunwind")
-
-    def install(self, spec, prefix):
-        cargo = which("cargo")
-        cargo("install", "--root", prefix, "--path", ".")
