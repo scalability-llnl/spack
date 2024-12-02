@@ -106,7 +106,12 @@ class Libxml2(AutotoolsPackage, CMakePackage, NMakePackage):
         sha256="5dc43fed02b443d2563a502a52caafe39477c06fc30b70f786d5ed3eb5aea88d",
         when="@2.9.11:2.9.14",
     )
-    build_system(conditional("nmake", when="platform=windows"), conditional("cmake", when="@2.11:"), "autotools", default="autotools")
+    build_system(
+        conditional("nmake", when="platform=windows"),
+        conditional("cmake", when="@2.11:"),
+        "autotools",
+        default="autotools",
+    )
 
     def flag_handler(self, name, flags):
         if name == "cflags" and self.spec.satisfies("+pic"):
@@ -267,7 +272,7 @@ class CMakeBuilder(AnyBuilder, cmake.CMakeBuilder):
             self.define_from_variant("LIBXML2_WITH_PYTHON", "python"),
             self.define("LIBXML2_WITH_LZMA", True),
             self.define("LIBXML2_WITH_ZLIB", True),
-            self.define("LIBXML2_WITH_TESTS", True)
+            self.define("LIBXML2_WITH_TESTS", True),
         ]
         return args
 
