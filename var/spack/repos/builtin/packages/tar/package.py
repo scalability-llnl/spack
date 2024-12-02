@@ -57,12 +57,13 @@ class Tar(AutotoolsPackage, GNUMirrorPackage):
 
     # The NVIDIA compilers do not currently support some GNU builtins.
     # Detect this case and use the fallback path.
-    patch("nvhpc-1.30.patch", when="@1.30:1.32 %nvhpc")
-    patch("nvhpc-1.34.patch", when="@1.34 %nvhpc")
-    # Workaround bug where __LONG_WIDTH__ is not defined
-    patch("nvhpc-long-width.patch", when="@1.34: %nvhpc")
-    # Newer versions are marked as conflict for now
-    conflicts("%nvhpc", "@1.35:", msg="NVHPC not yet supported for 1.35")
+    with when("%nvhpc"):
+        patch("nvhpc-1.30.patch", when="@1.30:1.32")
+        patch("nvhpc-1.34.patch", when="@1.34")
+        # Workaround bug where __LONG_WIDTH__ is not defined
+        patch("nvhpc-long-width.patch", when="@1.34:")
+        # Newer versions are marked as conflict for now
+        conflicts("@1.35:", msg="NVHPC not yet supported for 1.35")
 
     @classmethod
     def determine_version(cls, exe):
