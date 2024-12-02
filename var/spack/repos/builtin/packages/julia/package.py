@@ -250,6 +250,9 @@ class Julia(MakefilePackage):
     depends_on("zlib-api")
     depends_on("zlib +shared +pic +optimize", when="^[virtuals=zlib-api] zlib")
 
+    # https://github.com/JuliaLang/julia/pull/45649#issuecomment-1192377430
+    conflicts("%gcc@12:", when="@:1.7")
+
     # Patches for julia
     patch("julia-1.6-system-libwhich-and-p7zip-symlink.patch", when="@1.6.0:1.6")
     patch("use-add-rpath.patch", when="@:1.8.0")

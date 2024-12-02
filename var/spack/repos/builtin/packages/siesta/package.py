@@ -190,9 +190,6 @@ class Siesta(MakefilePackage, CMakePackage):
                                         spec["netcdf-fortran"].prefix
                                     )
                                 )
-                                libs_arg.append(
-                                    "-L{0}/lib -lhdf5_fortran -lhdf5".format(spec["hdf5"].prefix)
-                                )
 
                         if "+metis" in spec:
                             libs_arg.append("-L{0} -lmetis".format(self.spec["metis"].prefix.lib))

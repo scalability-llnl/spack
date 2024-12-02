@@ -41,7 +41,8 @@ class RoctracerDev(CMakePackage, ROCmPackage):
         version("5.3.3", sha256="f2cb1e6bb69ea1a628c04f984741f781ae1d8498dc58e15795bb03015f924d13")
         version("5.3.0", sha256="36f1da60863a113bb9fe2957949c661f00a702e249bb0523cda1fb755c053808")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("asan", default=False, description="Build with address-sanitizer enabled or disabled")
 
