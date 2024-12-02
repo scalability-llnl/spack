@@ -284,12 +284,6 @@ class Python(Package):
         # https://docs.python.org/3.10/whatsnew/3.10.html#build-changes
         depends_on("sqlite@3.7.15:", when="@3.10:+sqlite3")
         depends_on("gdbm", when="+dbm")  # alternatively ndbm or berkeley-db
-        # nis module was removed in Python 3.13 and could not be disabled prior to that
-        with when("@:3.12"):
-            depends_on("libnsl", when="platform=linux")
-            depends_on("libnsl", when="platform=freebsd")
-            depends_on("libtirpc", when="platform=linux")
-            depends_on("libtirpc", when="platform=freebsd")
         depends_on("zlib-api", when="+zlib")
         depends_on("bzip2", when="+bz2")
         depends_on("xz libs=shared", when="+lzma")
@@ -660,6 +654,12 @@ class Python(Package):
                     ),
                 ]
             )
+
+        # nis was removed in Python 3.13, and we disable it for all versions as it does not seemed
+        # to be used in general. There is not --disable-nis flag, so set an internal variable to
+        # the same effect.
+        if spec.satisfies("@:3.12"):
+            config_args.append("py_cv_module_nis=n/a")
 
         # https://docs.python.org/3.8/library/sqlite3.html#f1
         if spec.satisfies("+sqlite3 ^sqlite+dynamic_extensions"):
