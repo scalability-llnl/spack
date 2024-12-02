@@ -41,9 +41,9 @@ class Nwchem(Package):
         url="https://github.com/nwchemgit/nwchem/releases/download/v7.0.2-release/nwchem-7.0.2-release.revision-b9985dfa-srconly.2020-10-12.tar.bz2",
     )
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
 
     variant("openmp", default=False, description="Enables OpenMP support")
     variant("f90allocatable", default=False, description="Use F90 allocatable instead of MA")
@@ -247,3 +247,7 @@ class Nwchem(Package):
     def setup_run_environment(self, env):
         env.set("NWCHEM_BASIS_LIBRARY", join_path(self.prefix, "share/nwchem/libraries/"))
         env.set("NWCHEM_NWPW_LIBRARY", join_path(self.prefix, "share/nwchem/libraryps/"))
+
+    def setup_build_environment(self, env):
+        # https://src.fedoraproject.org/rpms/nwchem/blob/epel9/f/nwchem.spec#_259
+        env.set("NO_NWPWXC_VDW3A", "1")
