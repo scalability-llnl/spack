@@ -87,7 +87,7 @@ class Xz(MSBuildPackage, AutotoolsPackage, CMakePackage, SourceforgePackage):
     @property
     def libs(self):
         return find_libraries(
-            ["liblzma"],
+            ["liblzma", "lzma"],
             root=self.prefix,
             recursive=True,
             shared=self.spec.satisfies("libs=shared"),
