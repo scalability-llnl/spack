@@ -22,7 +22,7 @@ from spack.package import *
 from spack.util.prefix import Prefix
 
 
-def make_pyvenv_cfg(python_spec: "spack.spec.Spec", venv_prefix: str) -> str:
+def make_pyvenv_cfg(python_spec: Spec, venv_prefix: str) -> str:
     """Make a pyvenv_cfg file for a given (real) python command and venv prefix."""
     python_cmd = python_spec.command.path
     lines = [
