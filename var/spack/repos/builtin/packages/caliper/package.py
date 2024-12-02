@@ -147,6 +147,19 @@ class Caliper(CachedCMakePackage, CudaPackage, ROCmPackage):
             sys_type = env["SYS_TYPE"]
         return sys_type
 
+    @property
+    def cache_name(self):
+        hostname = socket.gethostname()
+        if "SYS_TYPE" in env:
+            hostname = hostname.rstrip("1234567890")
+        return "{0}-{1}-{2}@{3}-{4}.cmake".format(
+            hostname,
+            self._get_sys_type(self.spec),
+            self.spec.compiler.name,
+            self.spec.compiler.version,
+            self.spec.dag_hash(8),
+        )
+
     def initconfig_compiler_entries(self):
         spec = self.spec
         entries = super().initconfig_compiler_entries()

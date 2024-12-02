@@ -26,6 +26,18 @@ class Care(CachedCMakePackage, CudaPackage, ROCmPackage):
     version("develop", branch="develop", submodules=False)
     version("master", branch="master", submodules=False)
     version(
+        "0.14.1",
+        tag="v0.14.1",
+        commit="110c6e5766ead59b231e2b05deecd7567874e907",
+        submodules=False,
+    )
+    version(
+        "0.14.0",
+        tag="v0.14.0",
+        commit="2784188a067abac35747d58b5a5daa1b3852756b",
+        submodules=False,
+    )
+    version(
         "0.13.3",
         tag="v0.13.3",
         commit="93853696b452647278eae9311b835ad206236522",
@@ -250,6 +262,13 @@ class Care(CachedCMakePackage, CudaPackage, ROCmPackage):
         entries.append("#------------------{0}\n".format("-" * 60))
 
         entries.append(cmake_cache_string("CMAKE_BUILD_TYPE", spec.variants["build_type"].value))
+
+        # C++14
+        if spec.satisfies("@:0.14.1"):
+            entries.append(cmake_cache_string("BLT_CXX_STD", "c++14"))
+        # C++17
+        else:
+            entries.append(cmake_cache_string("BLT_CXX_STD", "c++17"))
 
         entries.append(cmake_cache_option("ENABLE_TESTS", spec.satisfies("+tests")))
         entries.append(cmake_cache_option("CARE_ENABLE_TESTS", spec.satisfies("+tests")))

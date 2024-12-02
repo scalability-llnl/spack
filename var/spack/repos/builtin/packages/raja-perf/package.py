@@ -250,7 +250,7 @@ class RajaPerf(CachedCMakePackage, CudaPackage, ROCmPackage):
         else:
             entries.append(cmake_cache_option("ENABLE_HIP", False))
 
-        entries.append(cmake_cache_option("ENABLE_OPENMP_TARGET", "+omptarget" in spec))
+        entries.append(cmake_cache_option("RAJA_ENABLE_TARGET_OPENMP", "+omptarget" in spec))
         if "+omptarget" in spec:
             if "%xl" in spec:
                 entries.append(
@@ -321,7 +321,7 @@ class RajaPerf(CachedCMakePackage, CudaPackage, ROCmPackage):
         entries.append(cmake_cache_option("BUILD_SHARED_LIBS", "+shared" in spec))
         entries.append(cmake_cache_option("ENABLE_OPENMP", "+openmp" in spec))
         entries.append(cmake_cache_option("RAJA_ENABLE_OPENMP_TASK", "+omptask" in spec))
-        entries.append(cmake_cache_option("ENABLE_SYCL", spec.satisfies("+sycl")))
+        entries.append(cmake_cache_option("RAJA_ENABLE_SYCL", spec.satisfies("+sycl")))
 
         # C++17
         if spec.satisfies("@2024.07.0:") and spec.satisfies("+sycl"):

@@ -106,7 +106,8 @@ class Camp(CMakePackage, CudaPackage, ROCmPackage):
 
         options.append(self.define_from_variant("ENABLE_HIP", "rocm"))
         if spec.satisfies("+rocm"):
-            options.append("-DHIP_ROOT_DIR={0}".format(spec["hip"].prefix))
+            rocm_root = dirname(spec["llvm-amdgpu"].prefix)
+            options.append("-DROCM_PATH={0}".format(rocm_root))
 
             archs = self.spec.variants["amdgpu_target"].value
             options.append("-DCMAKE_HIP_ARCHITECTURES={0}".format(archs))
