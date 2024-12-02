@@ -810,7 +810,6 @@ class AutotoolsBuilder(AutotoolsBuilder):
             if "+external-xdr" in hdf4 and hdf4["rpc"].name == "libtirpc":
                 args.append("LIBS=" + hdf4["rpc"].libs.link_flags)
 
-        deps = []
         if self.spec["proj"].satisfies("~shared"):
             pc = which("pkg-config")
             ldflags.append(pc("proj", "--static", "--libs-only-L", output=str).strip())
