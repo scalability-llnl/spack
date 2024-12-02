@@ -12,7 +12,7 @@ class PyFitter(PythonPackage):
     most probable distribution and the best parameters."""
 
     homepage = "https://github.com/cokelaer/fitter"
-    pypi = "fitter/fitter-1.7.1.tar.gz"
+    pypi = "fitter/fitter-1.6.0.tar.gz"
 
     maintainers("carsonwoods")
 
