@@ -61,7 +61,7 @@ class CargoBuilder(BuilderWithDefaults):
     @property
     def build_args(self):
         """Arguments for ``cargo build``."""
-        return ['-j', str(make_jobs)]
+        return ["-j", str(make_jobs)]
 
     @property
     def check_args(self):
