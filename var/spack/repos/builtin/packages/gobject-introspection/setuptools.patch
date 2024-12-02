@@ -1,0 +1,60 @@
+diff --git a/giscanner/ccompiler.py b/giscanner/ccompiler.py
+index 2f03fd85..8e7424b7 100644
+--- a/giscanner/ccompiler.py
++++ b/giscanner/ccompiler.py
+@@ -24,6 +24,7 @@ import subprocess
+ import tempfile
+ 
+ import sys
++import setuptools
+ import distutils
+ 
+ from distutils.unixccompiler import UnixCCompiler
+diff --git a/giscanner/msvccompiler.py b/giscanner/msvccompiler.py
+index e333a80f..5168930a 100644
+--- a/giscanner/msvccompiler.py
++++ b/giscanner/msvccompiler.py
+@@ -21,6 +21,7 @@
+ import os
+ from typing import Type
+ 
++import setuptools
+ from distutils.errors import DistutilsExecError, CompileError
+ from distutils.ccompiler import CCompiler, gen_preprocess_options, new_compiler
+ from distutils.dep_util import newer
+diff --git a/giscanner/scannermain.py b/giscanner/scannermain.py
+index 987df819..08cb432f 100644
+--- a/giscanner/scannermain.py
++++ b/giscanner/scannermain.py
+@@ -552,6 +552,7 @@ def scanner_main(args):
+     (options, args) = parser.parse_args(args)
+ 
+     if options.verbose:
++        import setuptools
+         import distutils
+         distutils.log.set_threshold(distutils.log.DEBUG)
+     if options.passthrough_gir:
+diff --git a/giscanner/utils.py b/giscanner/utils.py
+index 9840143c..6fbcbce4 100644
+--- a/giscanner/utils.py
++++ b/giscanner/utils.py
+@@ -382,6 +382,7 @@ def get_msvcr_overwrite():
+             return ['vcruntime140']
+ 
+ 
++import setuptools
+ import distutils.cygwinccompiler
+ orig_get_msvcr = distutils.cygwinccompiler.get_msvcr  # type: ignore
+ distutils.cygwinccompiler.get_msvcr = get_msvcr_overwrite  # type: ignore
+diff --git a/tests/scanner/test_ccompiler.py b/tests/scanner/test_ccompiler.py
+index 6c0674a1..248df21c 100644
+--- a/tests/scanner/test_ccompiler.py
++++ b/tests/scanner/test_ccompiler.py
+@@ -15,6 +15,7 @@
+ # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ # Boston, MA 02111-1307, USA.
+ 
++import setuptools
+ import distutils
+ import os
+ import shlex
