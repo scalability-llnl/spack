@@ -28,7 +28,7 @@ class Libseccomp(AutotoolsPackage, PythonExtension):
         extends("python")
         depends_on("py-cython", type="build")
         # https://github.com/seccomp/libseccomp/commit/afbde6ddaec7c58c3b281d43b0b287269ffca9bd
-        depends_on("python@:3.11", type=("run", "link", "build"), when="@:2.5.4")
+        depends_on("python@:3.11", type=("run", "link", "build"), when="@:2.5.5")
 
     def configure_args(self):
         return self.enable_or_disable("python", variant="python")
