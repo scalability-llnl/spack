@@ -124,6 +124,7 @@ packages:
         when: "%oneapi"
 
   all:
+    conflict: ["^gcc-runtime@7"]
     compiler: [oneapi, gcc]
     permissions:
       read: world
