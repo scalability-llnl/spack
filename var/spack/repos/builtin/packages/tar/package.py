@@ -31,9 +31,8 @@ class Tar(AutotoolsPackage, GNUMirrorPackage):
         version("1.29", sha256="cae466e6e58c7292355e7080248f244db3a4cf755f33f4fa25ca7f9a7ed09af0")
         version("1.28", sha256="6a6b65bac00a127a508533c604d5bf1a3d40f82707d56f20cefd38a05e8237de")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
-    # A saner default than gzip?
     variant(
         "zip",
         default="pigz",
@@ -41,7 +40,6 @@ class Tar(AutotoolsPackage, GNUMirrorPackage):
         description="Default compression program for tar -z",
     )
 
-    depends_on("gettext")
     depends_on("iconv")
 
     # Compression
@@ -73,34 +71,33 @@ class Tar(AutotoolsPackage, GNUMirrorPackage):
         return match.group(1) if match else None
 
     def flag_handler(self, name, flags):
-        if name == "ldflags":
-            if self.spec.satisfies("@1.35:"):
-                flags.extend(["-lintl", "-liconv"])
+        if name == "ldflags" and self.spec.satisfies("@1.35"):
+            flags.append("-liconv")
         return (flags, None, None)
 
     def configure_args(self):
-        spec = self.spec
         # Note: compression programs are passed by abs path,
         # so that tar can locate them when invoked without spack load.
         args = [
-            "--with-xz={0}".format(spec["xz"].prefix.bin.xz),
-            "--with-lzma={0}".format(spec["xz"].prefix.bin.lzma),
-            "--with-bzip2={0}".format(spec["bzip2"].prefix.bin.bzip2),
+            "--disable-nls",
+            f"--with-xz={self.spec['xz'].prefix.bin.xz}",
+            f"--with-lzma={self.spec['xz'].prefix.bin.lzma}",
+            f"--with-bzip2={self.spec['bzip2'].prefix.bin.bzip2}",
         ]
 
-        if spec["iconv"].name == "libiconv":
-            args.append(f"--with-libiconv-prefix={spec['iconv'].prefix}")
-        else:
-            args.append("--without-libiconv-prefix")
-
-        if "^zstd" in spec:
-            args.append("--with-zstd={0}".format(spec["zstd"].prefix.bin.zstd))
+        if self.spec.dependencies("zstd"):
+            args.append(f"--with-zstd={self.spec['zstd'].prefix.bin.zstd}")
 
         # Choose gzip/pigz
-        zip = spec.variants["zip"].value
+        zip = self.spec.variants["zip"].value
         if zip == "gzip":
-            gzip_path = spec["gzip"].prefix.bin.gzip
+            gzip_path = self.spec["gzip"].prefix.bin.gzip
         elif zip == "pigz":
-            gzip_path = spec["pigz"].prefix.bin.pigz
-        args.append("--with-gzip={}".format(gzip_path))
+            gzip_path = self.spec["pigz"].prefix.bin.pigz
+        args.append(f"--with-gzip={gzip_path}")
+
+        if self.spec["iconv"].name == "libiconv":
+            args.append(f"--with-libiconv-prefix={self.spec['iconv'].prefix}")
+        else:
+            args.append("--without-libiconv-prefix")
         return args
