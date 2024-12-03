@@ -46,9 +46,6 @@ class Eigen(CMakePackage, ROCmPackage):
 
     # TODO: https://eigen.tuxfamily.org/dox/TopicUsingBlasLapack.html
 
-    # Using fortran is optional up to v3.4.0, can be disabled in develop see EIGEN_BUILD_BLAS
-    # depends_on("fortran", type="build")  # generated
-
     # Older eigen releases haven't been tested with ROCm
     conflicts("+rocm @:3.4.0")
 
