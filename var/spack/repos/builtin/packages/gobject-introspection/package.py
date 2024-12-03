@@ -57,7 +57,7 @@ class GobjectIntrospection(MesonPackage, AutotoolsPackage):
     depends_on("libffi@:3.3", when="@:1.72")  # libffi 3.4 caused seg faults
     depends_on("python")
     with when("^python@3.12:"):
-        depends_on("py-setuptools")
+        depends_on("py-setuptools@48:")
         # https://gitlab.gnome.org/GNOME/gobject-introspection/-/merge_requests/490
         depends_on("py-setuptools@:73", when="@:1.81.0")
 
