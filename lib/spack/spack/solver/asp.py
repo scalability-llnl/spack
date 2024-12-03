@@ -1123,6 +1123,7 @@ class SpackSolverSetup:
     def __init__(self, tests: bool = False):
         # these are all initialized in setup()
         self.gen: "ProblemInstanceBuilder" = ProblemInstanceBuilder()
+        self.requirement_parser = RequirementParser(spack.config.CONFIG)
         self.possible_virtuals: Set[str] = set()
 
         self.assumptions: List[Tuple["clingo.Symbol", bool]] = []  # type: ignore[name-defined]
@@ -1309,8 +1310,7 @@ class SpackSolverSetup:
             self.gen.newline()
 
     def package_requirement_rules(self, pkg):
-        parser = RequirementParser(spack.config.CONFIG)
-        self.emit_facts_from_requirement_rules(parser.rules(pkg))
+        self.emit_facts_from_requirement_rules(self.requirement_parser.rules(pkg))
 
     def pkg_rules(self, pkg, tests):
         pkg = self.pkg_class(pkg)
@@ -1788,9 +1788,8 @@ class SpackSolverSetup:
 
     def provider_requirements(self):
         self.gen.h2("Requirements on virtual providers")
-        parser = RequirementParser(spack.config.CONFIG)
         for virtual_str in sorted(self.possible_virtuals):
-            rules = parser.rules_from_virtual(virtual_str)
+            rules = self.requirement_parser.rules_from_virtual(virtual_str)
             if rules:
                 self.emit_facts_from_requirement_rules(rules)
                 self.trigger_rules()
