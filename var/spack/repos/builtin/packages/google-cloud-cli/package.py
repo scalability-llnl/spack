@@ -58,7 +58,7 @@ versions = {
             "x86_64": "2a5199f04414df36e483c892d0e89cdc9e962266414ce7990cf2b59058b94e9b",
             "x86": "c04c39b6a7c82365f3c4a0d79ed60dbc6c5ce672970a87a70478bb7c55926852",
         },
-    }
+    },
 }
 
 targets = {"aarch64": "arm", "arm64": "arm", "amd64": "x86_64", "x86_64": "x86_64", "x86": "x86"}
