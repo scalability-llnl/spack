@@ -488,7 +488,7 @@ class Stage(LockableStagingDir):
             # Insert fetchers in the order that the URLs are provided.
             fetchers[:0] = (
                 fs.from_url_scheme(
-                    url_util.join(mirror.fetch_url, self.mirror_layout.path),
+                    url_util.join(mirror.fetch_url, *self.mirror_layout.path.split(os.sep)),
                     checksum=digest,
                     expand=expand,
                     extension=extension,
