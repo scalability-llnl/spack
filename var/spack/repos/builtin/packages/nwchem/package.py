@@ -104,6 +104,7 @@ class Nwchem(Package):
     depends_on("python@:3.9", type=("build", "link", "run"), when="@:7.0.2")
     depends_on("python@3", type=("build", "link", "run"), when="@7.2.0:")
 
+    depends_on("gmake", type="build")
     # for the dftd3 resource (bash is also required, not listed here)
     depends_on("tar", type="build")
     depends_on("patch", type="build")
