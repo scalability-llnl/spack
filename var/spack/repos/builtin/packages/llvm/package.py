@@ -121,7 +121,7 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
     version("5.0.0", sha256="1f1843315657a4371d8ca37f01265fa9aae17dbcf46d2d0a95c1fdb3c6a4bab6")
 
     # clang
-    variant("clang", default=False, description="Build the C/C++/Objective-C compiler frontend")
+    variant("clang", default=True, description="Build the C/C++/Objective-C compiler frontend")
 
     # flang
     variant(
@@ -227,18 +227,18 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
     # split_dwarf
     variant("split_dwarf", default=False, description="Build with split dwarf information")
 
-    # shared
+    # llvm_dylib
     variant(
-        "shared",
+        "llvm_dylib",
         default=True,
         description="Build a combined LLVM shared library with all components",
     )
 
-    # link_shared
+    # link_llvm_dylib
     variant(
-        "link_shared",
+        "link_llvm_dylib",
         default=False,
-        when="+shared",
+        when="+llvm_dylib",
         description="Link LLVM tools against the LLVM shared library",
     )
 
@@ -1029,8 +1029,8 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
         cmake_args.extend(
             [
                 define("BUILD_SHARED_LIBS", False),
-                from_variant("LLVM_BUILD_SHARED", "shared"),
-                from_variant("LLVM_LINK_SHARED", "link_shared"),
+                from_variant("LLVM_BUILD_LLVM_DYLIB", "llvm_dylib"),
+                from_variant("LLVM_LINK_LLVM_DYLIB", "link_llvm_dylib"),
                 from_variant("LLVM_USE_SPLIT_DWARF", "split_dwarf"),
                 # By default on Linux, libc++.so is a ldscript. CMake fails to add
                 # CMAKE_INSTALL_RPATH to it, which fails. Statically link libc++abi.a
