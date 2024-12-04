@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
+from llnl.util.filesystem import windows_sfn
 
 
 class PyMesonPython(PythonPackage):
@@ -54,3 +55,12 @@ class PyMesonPython(PythonPackage):
     # Historical dependencies
     depends_on("py-typing-extensions@3.7.4:", when="@0.12 ^python@:3.9", type=("build", "run"))
     depends_on("py-typing-extensions@3.7.4:", when="@:0.11 ^python@:3.7", type=("build", "run"))
+
+    def setup_dependent_build_environment(self, env, dependent_spec):
+        # The meson build system will incorrectly split the compiler path if it
+        # contains spaces (e.g. Program Files), so we need to tweak windows
+        # compiler path env vars to handle this by using the windows shortname
+        # syntax rather than the full path.
+        if self.spec.satisfies("platform=windows"):
+            env.set("CC", windows_sfn(self.compiler.cc))
+            env.set("CXX", windows_sfn(self.compiler.cxx))
