@@ -14,6 +14,8 @@ import archspec.cpu
 import llnl.util.tty as tty
 from llnl.util.lang import classproperty, memoized
 
+import spack
+import spack.compilers.error
 import spack.compilers.libraries
 import spack.config
 import spack.package_base
@@ -166,12 +168,13 @@ class CompilerPackage(spack.package_base.PackageBase):
     def standard_flag(self, *, language: str, standard: str) -> str:
         """Returns the flag used to enforce a given standard for a language"""
         if language not in self.supported_languages:
-            # FIXME (compiler as nodes): Use UnsupportedCompilerFlag ?
-            raise RuntimeError(f"{self.spec} does not provide the '{language}' language")
+            raise spack.compilers.error.UnsupportedCompilerFlag(
+                f"{self.spec} does not provide the '{language}' language"
+            )
         try:
             return self._standard_flag(language=language, standard=standard)
         except (KeyError, RuntimeError) as e:
-            raise RuntimeError(
+            raise spack.compilers.error.UnsupportedCompilerFlag(
                 f"{self.spec} does not provide the '{language}' standard {standard}"
             ) from e
 
@@ -303,18 +306,18 @@ def _compiler_output(
         version_argument: the argument used to extract version information
     """
     compiler = spack.util.executable.Executable(compiler_path)
-    compiler_invocation_args = {
-        "output": str,
-        "error": str,
-        "ignore_errors": ignore_errors,
-        "timeout": 120,
-        "fail_on_error": True,
-    }
-    if version_argument:
-        output = compiler(version_argument, **compiler_invocation_args)
-    else:
-        output = compiler(**compiler_invocation_args)
-    return output
+    if not version_argument:
+        return compiler(
+            output=str, error=str, ignore_errors=ignore_errors, timeout=120, fail_on_error=True
+        )
+    return compiler(
+        version_argument,
+        output=str,
+        error=str,
+        ignore_errors=ignore_errors,
+        timeout=120,
+        fail_on_error=True,
+    )
 
 
 def compiler_output(

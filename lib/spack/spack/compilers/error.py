@@ -13,10 +13,6 @@ class CompilerAccessError(SpackError):
 
 
 class UnsupportedCompilerFlag(SpackError):
-    def __init__(self, compiler, feature, flag_name, ver_string=None):
-        super().__init__(
-            f"{compiler.name} ({ver_string if ver_string else compiler.version}) does not support"
-            f" {feature} (as compiler.{flag_name}). If you think it should, please edit the "
-            f"compiler.{compiler.name} subclass to implement the {flag_name} property and submit "
-            f"a pull request or issue."
-        )
+    """Raised when a compiler does not support a flag type (e.g. a flag to enforce a
+    language standard).
+    """
