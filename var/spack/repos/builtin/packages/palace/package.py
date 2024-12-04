@@ -17,6 +17,7 @@ class Palace(CMakePackage):
     maintainers("sebastiangrimberg")
 
     version("develop", branch="main")
+    version("0.13.0", tag="v0.13.0", commit="a61c8cbe0cacf496cde3c62e93085fae0d6299ac")
     version("0.12.0", tag="v0.12.0", commit="8c192071206466638d5818048ee712e1fada386f")
     version("0.11.2", tag="v0.11.2", commit="6c3aa5f84a934a6ddd58022b2945a1bdb5fa329d")
 
