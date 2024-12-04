@@ -58,7 +58,6 @@ def build_environment(working_env):
     os.environ["SPACK_ENV_PATH"] = "test"
     os.environ["SPACK_DEBUG_LOG_DIR"] = "."
     os.environ["SPACK_DEBUG_LOG_ID"] = "foo-hashabc"
-    os.environ["SPACK_COMPILER_SPEC"] = "gcc@4.4.7"
     os.environ["SPACK_SHORT_SPEC"] = "foo@1.2 arch=linux-rhel6-x86_64 /hashabc"
 
     os.environ["SPACK_CC_RPATH_ARG"] = "-Wl,-rpath,"
@@ -84,7 +83,6 @@ def build_environment(working_env):
         "SPACK_PREFIX",
         "SPACK_ENV_PATH",
         "SPACK_DEBUG_LOG_DIR",
-        "SPACK_COMPILER_SPEC",
         "SPACK_SHORT_SPEC",
         "SPACK_CC_RPATH_ARG",
         "SPACK_CXX_RPATH_ARG",
