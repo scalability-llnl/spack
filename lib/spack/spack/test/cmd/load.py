@@ -221,7 +221,6 @@ def test_load_and_cache_shell_script(
         cached_file = f.read()
     assert shell_out == cached_file
 
-
 @pytest.mark.parametrize(
     "shell,set_command",
     (
@@ -236,39 +235,32 @@ def test_load_multiple_and_cache_shell_script(
     """TODO: Test does a thing"""
     mpileaks_spec = spack.spec.Spec("mpileaks")
     mpileaks_spec.concretize()
-
     install("mpileaks")
-    concrete_mpileaks = spack.spec.Spec("mpileaks").concretized()
 
-    # Load mpileaks
-    mpileaks_shell = load(shell, "mpileaks")
-
-    # Read the cached file
-    path_to_mpileaks_file = os.path.join(
-        mpileaks_spec.prefix, ".spack", f"{mpileaks_spec.name}_shell.{shell[2:]}"
-    )
-    with open(path_to_mpileaks_file, "r") as f:
-        mpileaks_cache = f.read()
-
-    assert mpileaks_shell == mpileaks_cache
-    old_mpileaks_cache = mpileaks_cache
-
-    # Unload mpileaks
-    os.environ["FOOBAR"] = "mpileaks"
-    os.environ[uenv.spack_loaded_hashes_var] = ("%s" + os.pathsep + "%s") % (
-        concrete_mpileaks.dag_hash(),
-        "garbage",
-    )
-
-    _ = unload(shell, "mpileaks")
+    zlib_spec = spack.spec.Spec("zlib")
+    zlib_spec.concretize()
+    install("zlib")
 
     # Load mpileaks & libelf
-    both_shell = load(shell, "mpileaks", "libelf")
+    both_shell = load(shell, "mpileaks", "zlib")
 
-    # Read the new cached file
+    # Read the mpileaks cached file
+    path_to_mpileaks_file = os.path.join(
+        mpileaks_spec.prefix, ".spack", f"{mpileaks_spec.name}_shell.{shell[2:]}"
+        )
     with open(path_to_mpileaks_file, "r") as f:
         mpileaks_cache = f.read()
 
-    # assert the new cached file equals the old cached file
-    assert old_mpileaks_cache == mpileaks_cache
-    assert both_shell != mpileaks_cache
+    # Read the mpileaks cached file
+    path_to_zlib_file = os.path.join(
+        zlib_spec.prefix, ".spack", f"{zlib_spec.name}_shell.{shell[2:]}"
+        )
+    with open(path_to_zlib_file, "r") as f:
+        zlib_cache = f.read()
+
+    # assert that there is no crosscontamination in the cached files
+    assert zlib_spec.prefix not in mpileaks_cache
+    assert mpileaks_spec.prefix not in zlib_cache
+
+    assert zlib_spec.prefix in both_shell
+    assert mpileaks_spec.prefix in both_shell

@@ -98,6 +98,8 @@ def load(parser, args):
         )
         return 1
 
+    # Check if spec's pkg.py file was changed (modification date - os.path.get_end_time?)
+
     with spack.store.STORE.db.read_transaction():
         env_mod = uenv.environment_modifications_for_specs(*specs)
         shell = args.shell if args.shell else os.environ.get("SPACK_SHELL")
