@@ -28,6 +28,7 @@ spack:
           - . /etc/profile.d/modules.sh
           - spack --version
           - spack arch
+          - export PATH=/home/software/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeh/linux-amzn2-aarch64/gcc-7.3.1/binutils-2.37-2yxz3xsjfmesxujxtlrgcctxlyilynmp/bin:$PATH
     - signing-job:
         before_script:
           # Do not distribute Intel & ARM binaries
