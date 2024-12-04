@@ -53,9 +53,12 @@ class PyIpykernel(PythonPackage):
     depends_on("py-hatchling@1.4:", when="@6.13.1:", type="build")
 
     with default_args(type=("build", "run")):
-        depends_on("python@3.8:", when="@6.22:")
-        # use of `imp` module
-        depends_on("python@:3.11", when="@:6.10")
+        depends_on("python@3.8:", when="@6.11:")
+        depends_on("python@3.8:3.11", when="@6:6.10")
+        depends_on("python@3.6:3.9", when="@5.5:5")
+        depends_on("python@3.5:3.8", when="@5.4")
+        depends_on("python@3.5:3.7", when="@5:5.3")
+        depends_on("python@3.4:3.5", when="@4")
 
         with when("@6:"):
             depends_on("py-debugpy@1.6.5:", when="@6.22:")
@@ -65,7 +68,8 @@ class PyIpykernel(PythonPackage):
             depends_on("py-matplotlib-inline@0.1:")
             depends_on("py-matplotlib-inline@:0.1", when="@:6.10")
 
-        depends_on("py-ipython@7.23.1:", when="@6:")
+        depends_on("py-ipython@7.23.1:", when="@6.5.1:")
+        depends_on("py-ipython@7.23.1:7", when="@6:6.5.0")
         depends_on("py-ipython@5:", when="@5:")
         depends_on("py-ipython@4:")
         depends_on("py-ipython@:7", when="@:6.5")
