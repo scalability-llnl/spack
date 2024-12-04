@@ -3,34 +3,15 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-# ----------------------------------------------------------------------------
-# If you submit this package back to Spack as a pull request,
-# please first remove this boilerplate and all FIXME comments.
-#
-# This is a template package file for Spack.  We've put "FIXME"
-# next to all the things you'll want to change. Once you've handled
-# them, you can save this file and test your package like this:
-#
-#     spack install py-trame
-#
-# You can edit this file again by typing:
-#
-#     spack edit py-trame
-#
-# See the Spack documentation for more information on packaging.
-# ----------------------------------------------------------------------------
-
 from spack.package import *
 
 
 class PyTrame(PythonPackage):
     """Trame lets you weave various components and technologies into a Web Application solely written in Python."""
 
-    # FIXME: Add a proper url for your package's homepage here.
     homepage = "http://pythonhosted.org/trame"
     pypi = "trame/trame-3.5.5.tar.gz"
-    # FIXME: Add a list of GitHub accounts to
-    # notify when the package is updated.
+
     maintainers("johnwparent")
 
     license("Apache-2.0", checked_by="johnwparent")
