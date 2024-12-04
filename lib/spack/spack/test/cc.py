@@ -156,7 +156,6 @@ def wrapper_environment(working_env):
         SPACK_ENV_PATH="test",
         SPACK_DEBUG_LOG_DIR=".",
         SPACK_DEBUG_LOG_ID="foo-hashabc",
-        SPACK_COMPILER_SPEC="gcc@4.4.7",
         SPACK_SHORT_SPEC="foo@1.2 arch=linux-rhel6-x86_64 /hashabc",
         SPACK_SYSTEM_DIRS=SYSTEM_DIR_CASE_ENTRY,
         SPACK_MANAGED_DIRS="/path/to/spack-1/opt/spack/*|/path/to/spack-2/opt/spack/*",

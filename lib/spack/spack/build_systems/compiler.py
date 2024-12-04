@@ -273,8 +273,6 @@ class CompilerPackage(spack.package_base.PackageBase):
             env.set("SPACK_DTAGS_TO_ADD", self.enable_new_dtags)
 
         spec = self.spec
-        env.set("SPACK_COMPILER_SPEC", spec.format("{name}{@version}{variants}{/hash:7}"))
-
         if spec.extra_attributes:
             extra_rpaths = spec.extra_attributes.get("extra_rpaths")
             if extra_rpaths:

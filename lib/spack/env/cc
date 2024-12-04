@@ -39,7 +39,6 @@ readonly params="\
 SPACK_ENV_PATH
 SPACK_DEBUG_LOG_DIR
 SPACK_DEBUG_LOG_ID
-SPACK_COMPILER_SPEC
 SPACK_LINKER_ARG
 SPACK_SHORT_SPEC
 SPACK_SYSTEM_DIRS
@@ -218,7 +217,6 @@ for param in $params; do
     if eval "test -z \"\${${param}:-}\""; then
         die "Spack compiler must be run from Spack! Input '$param' is missing."
     fi
-    # FIXME (compiler as nodes) add checks on whether `SPACK_XX_RPATH` is set if `SPACK_XX` is set
 done
 
 # eval this because SPACK_MANAGED_DIRS and SPACK_SYSTEM_DIRS are inputs we don't wanna loop over.
@@ -409,13 +407,6 @@ eval "rpath=\${SPACK_${comp}_RPATH_ARG:?${rpath}}"
 if [ "$SPACK_TEST_COMMAND" = "dump-mode" ]; then
     echo "$mode"
     exit
-fi
-
-# If, say, SPACK_CC is set but SPACK_FC is not, we want to know. Compilers do not
-# *have* to set up Fortran executables, so we need to tell the user when a build is
-# about to attempt to use them unsuccessfully.
-if [ -z "$command" ]; then
-    die "Compiler '$SPACK_COMPILER_SPEC' does not have a $language compiler configured."
 fi
 
 #
