@@ -26,7 +26,7 @@ packages:
   intel-oneapi-compilers:
     require: "intel-oneapi-compilers %gcc target=x86_64_v3"
   intel-oneapi-mpi:
-    variants: +external-libfabric generic-names=True
+    require: "+external-libfabric generic-names=True"
   lammps:
     require:
       - one_of:
