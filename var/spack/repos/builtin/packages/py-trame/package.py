@@ -7,7 +7,8 @@ from spack.package import *
 
 
 class PyTrame(PythonPackage):
-    """Trame lets you weave various components and technologies into a Web Application solely written in Python."""
+    """Trame lets you weave various components and technologies
+    into a Web Application solely written in Python."""
 
     homepage = "http://pythonhosted.org/trame"
     pypi = "trame/trame-3.5.5.tar.gz"
@@ -39,5 +40,5 @@ class PyTrame(PythonPackage):
     version("3.0.0", sha256="4a1b8988c3eef8523d56132ec641bf8490898e2b50ef379fa0d08ea37554425c")
 
     depends_on("py-setuptools@42:", type="build")
-    depends_on("py-trame-client", type=("build","run"))
-    depends_on("py-trame-server", type=("build","run"))
+    depends_on("py-trame-client", type=("build", "run"))
+    depends_on("py-trame-server", type=("build", "run"))

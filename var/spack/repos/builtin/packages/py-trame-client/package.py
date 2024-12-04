@@ -12,9 +12,7 @@ class PyTrameClient(PythonPackage):
     homepage = "https://github.com/Kitware/trame-client"
     pypi = "trame-client/trame-client-2.17.1.tar.gz"
 
-
     maintainers("johnwparent")
-
 
     license("Apache-2.0", checked_by="johnwparent")
 
