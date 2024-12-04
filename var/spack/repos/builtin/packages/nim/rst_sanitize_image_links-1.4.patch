@@ -1,0 +1,64 @@
+From 17522d6ae1444614be78b1002005513105f2893f Mon Sep 17 00:00:00 2001
+From: Andreas Rumpf <rumpf_a@web.de>
+Date: Fri, 10 Dec 2021 09:24:20 +0100
+Subject: [PATCH] fixes a possible 'javascript:' protocol exploit
+ [backport:1.0] (#19134)
+
+* fixes a possible 'javascript:' protocol exploit [backport:1.0]
+
+* add tests
+
+* Update tests/stdlib/trstgen.nim
+
+* add the same logic for hyperlinks
+
+* move the logic into a proc
+
+Co-authored-by: narimiran <narimiran@disroot.org>
+(cherry picked from commit 9338aa24977e84a33b9a7802eaff0777fcf4d9c3)
+---
+ lib/packages/docutils/rstgen.nim | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/lib/packages/docutils/rstgen.nim b/lib/packages/docutils/rstgen.nim
+index c70998edb..1db05e7c6 100644
+--- a/lib/packages/docutils/rstgen.nim
++++ b/lib/packages/docutils/rstgen.nim
+@@ -26,7 +26,7 @@
+ ## **Note:** Import ``packages/docutils/rstgen`` to use this module
+ 
+ import strutils, os, hashes, strtabs, rstast, rst, highlite, tables, sequtils,
+-  algorithm, parseutils
++  algorithm, parseutils, strscans
+ 
+ import ../../std/private/since
+ 
+@@ -786,6 +786,16 @@ proc renderOverline(d: PDoc, n: PRstNode, result: var string) =
+         rstnodeToRefname(n), tmp, $chr(n.level - 1 + ord('A'))])
+ 
+ 
++proc safeProtocol(linkStr: var string) =
++  var protocol = ""
++  if scanf(linkStr, "$w:", protocol):
++    # if it has a protocol at all, ensure that it's not 'javascript:' or worse:
++    if cmpIgnoreCase(protocol, "http") == 0 or cmpIgnoreCase(protocol, "https") == 0 or
++        cmpIgnoreCase(protocol, "ftp") == 0:
++      discard "it's fine"
++    else:
++      linkStr = ""
++
+ proc renderTocEntry(d: PDoc, e: TocEntry, result: var string) =
+   dispA(d.target, result,
+     "<li><a class=\"reference\" id=\"$1_toc\" href=\"#$1\">$2</a></li>\n",
+@@ -850,6 +860,8 @@ proc renderImage(d: PDoc, n: PRstNode, result: var string) =
+ 
+   # support for `:target:` links for images:
+   var target = esc(d.target, getFieldValue(n, "target").strip())
++  safeProtocol(target)
++
+   if target.len > 0:
+     # `htmlOut` needs to be of the following format for link to work for images:
+     # <a class="reference external" href="target"><img src=\"$1\"$2/></a>
+-- 
+2.46.0
+

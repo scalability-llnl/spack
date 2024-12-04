@@ -1,0 +1,37 @@
+From 89954f8b03b05970aea78c8fe1241138f5bbeae8 Mon Sep 17 00:00:00 2001
+From: Dominik Picheta <dominikpicheta@gmail.com>
+Date: Sat, 6 Feb 2021 17:29:14 +0000
+Subject: [PATCH] Fixes RCE reported by Consensys.
+
+---
+ dist/nimble/src/nimblepkg/download.nim | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/dist/nimble/src/nimblepkg/download.nim b/dist/nimble/src/nimblepkg/download.nim
+index 14398f5..ccbcbba 100644
+--- a/dist/nimble/src/nimblepkg/download.nim
++++ b/dist/nimble/src/nimblepkg/download.nim
+@@ -88,7 +88,7 @@ proc getTagsListRemote*(url: string, meth: DownloadMethod): seq[string] =
+   result = @[]
+   case meth
+   of DownloadMethod.git:
+-    var (output, exitCode) = doCmdEx("git ls-remote --tags " & url)
++    var (output, exitCode) = doCmdEx("git ls-remote --tags " & url.quoteShell())
+     if exitCode != QuitSuccess:
+       raise newException(OSError, "Unable to query remote tags for " & url &
+           ". Git returned: " & output)
+@@ -136,9 +136,9 @@ proc getHeadName*(meth: DownloadMethod): Version =
+ 
+ proc checkUrlType*(url: string): DownloadMethod =
+   ## Determines the download method based on the URL.
+-  if doCmdEx("git ls-remote " & url).exitCode == QuitSuccess:
++  if doCmdEx("git ls-remote " & url.quoteShell()).exitCode == QuitSuccess:
+     return DownloadMethod.git
+-  elif doCmdEx("hg identify " & url).exitCode == QuitSuccess:
++  elif doCmdEx("hg identify " & url.quoteShell()).exitCode == QuitSuccess:
+     return DownloadMethod.hg
+   else:
+     raise newException(NimbleError, "Unable to identify url: " & url)
+-- 
+2.46.0
+

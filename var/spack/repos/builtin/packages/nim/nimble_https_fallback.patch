@@ -1,0 +1,13 @@
+--- a/dist/nimble/src/nimblepkg/config.nim	2024-12-04 08:38:51.071991994 -0500
++++ b/dist/nimble/src/nimblepkg/config.nim	2024-12-04 08:37:58.222621619 -0500
+@@ -28,8 +28,8 @@
+   result.packageLists = initTable[string, PackageList]()
+   let defaultPkgList = PackageList(name: "Official", urls: @[
+     "https://github.com/nim-lang/packages/raw/master/packages.json",
+-    "http://irclogs.nim-lang.org/packages.json",
+-    "http://nim-lang.org/nimble/packages.json"
++    "https://irclogs.nim-lang.org/packages.json",
++    "https://nim-lang.org/nimble/packages.json"
+   ])
+   result.packageLists["official"] = defaultPkgList
+ 
