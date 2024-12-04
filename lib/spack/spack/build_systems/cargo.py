@@ -68,6 +68,9 @@ class CargoBuilder(BuilderWithDefaults):
         """Argument for ``cargo test`` during check phase"""
         return []
 
+    def setup_build_environment(self, env):
+        env.set("CARGO_HOME", self.stage.path)
+
     def build(self, pkg, spec, prefix):
         """Runs ``cargo install`` in the source directory"""
         with fs.working_dir(self.build_directory):
