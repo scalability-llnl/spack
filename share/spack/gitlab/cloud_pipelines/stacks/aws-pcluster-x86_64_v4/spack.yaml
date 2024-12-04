@@ -43,3 +43,33 @@ spack:
 
   cdash:
     build-group: AWS Packages
+
+  compilers:
+  - compiler:
+      environment: {}
+      extra_rpaths: []
+      flags: {}
+      modules: []
+      operating_system: amzn2
+      paths:
+        cc: /home/software/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeh/linux-amzn2-x86_64_v3/gcc-7.3.1/gcc-12.4.0-pttzchh7o54nhmycj4wgzw5mic6rk2nb/bin/gcc
+        cxx: /home/software/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeh/linux-amzn2-x86_64_v3/gcc-7.3.1/gcc-12.4.0-pttzchh7o54nhmycj4wgzw5mic6rk2nb/bin/g++
+        f77: /home/software/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeh/linux-amzn2-x86_64_v3/gcc-7.3.1/gcc-12.4.0-pttzchh7o54nhmycj4wgzw5mic6rk2nb/bin/gfortran
+        fc: /home/software/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeh/linux-amzn2-x86_64_v3/gcc-7.3.1/gcc-12.4.0-pttzchh7o54nhmycj4wgzw5mic6rk2nb/bin/gfortran
+      spec: gcc@=12.4.0
+      target: x86_64
+  - compiler:
+      environment: {}
+      extra_rpaths:
+      - /home/software/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeh/linux-amzn2-x86_64_v3/gcc-7.3.1/gcc-12.4.0-pttzchh7o54nhmycj4wgzw5mic6rk2nb/lib64
+      flags: {}
+      modules: []
+      operating_system: amzn2
+      paths:
+        cc: /home/software/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeh/linux-amzn2-x86_64_v3/gcc-12.4.0/intel-oneapi-compilers-2024.1.0-f5u3psfhbwscasajkn324igtupn3blop/compiler/2024.1/bin/icx
+        cxx: /home/software/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeh/linux-amzn2-x86_64_v3/gcc-12.4.0/intel-oneapi-compilers-2024.1.0-f5u3psfhbwscasajkn324igtupn3blop/compiler/2024.1/bin/icpx
+        f77: /home/software/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeh/linux-amzn2-x86_64_v3/gcc-12.4.0/intel-oneapi-compilers-2024.1.0-f5u3psfhbwscasajkn324igtupn3blop/compiler/2024.1/bin/ifx
+        fc: /home/software/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeh/linux-amzn2-x86_64_v3/gcc-12.4.0/intel-oneapi-compilers-2024.1.0-f5u3psfhbwscasajkn324igtupn3blop/compiler/2024.1/bin/ifx
+      spec: oneapi@=2024.1.0
+      target: x86_64
+

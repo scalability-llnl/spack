@@ -108,5 +108,5 @@ install_compilers() {
 }
 
 set_pcluster_defaults
-install_compilers
-patch_compilers_yaml
+# install_compilers
+# patch_compilers_yaml
