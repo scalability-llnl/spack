@@ -324,8 +324,6 @@ def run_isort(isort_cmd, file_list, args):
 
     packages_isort_args = (
         "--rm",
-        "spack",
-        "--rm",
         "spack.pkgkit",
         "--rm",
         "spack.package_defs",

@@ -22,7 +22,7 @@ from spack.package import *
 from spack.util.prefix import Prefix
 
 
-def make_pyvenv_cfg(python_spec: "spack.spec.Spec", venv_prefix: str) -> str:
+def make_pyvenv_cfg(python_spec: Spec, venv_prefix: str) -> str:
     """Make a pyvenv_cfg file for a given (real) python command and venv prefix."""
     python_cmd = python_spec.command.path
     lines = [
@@ -254,7 +254,6 @@ class Python(Package):
     variant("ssl", default=True, description="Build ssl module")
     variant("sqlite3", default=True, description="Build sqlite3 module")
     variant("dbm", default=True, description="Build dbm module")
-    variant("nis", default=False, description="Build nis module")
     variant("zlib", default=True, description="Build zlib module")
     variant("bz2", default=True, description="Build bz2 module")
     variant("lzma", default=True, description="Build lzma module")
@@ -285,7 +284,6 @@ class Python(Package):
         # https://docs.python.org/3.10/whatsnew/3.10.html#build-changes
         depends_on("sqlite@3.7.15:", when="@3.10:+sqlite3")
         depends_on("gdbm", when="+dbm")  # alternatively ndbm or berkeley-db
-        depends_on("libnsl", when="+nis")
         depends_on("zlib-api", when="+zlib")
         depends_on("bzip2", when="+bz2")
         depends_on("xz libs=shared", when="+lzma")
@@ -387,7 +385,6 @@ class Python(Package):
             "readline",
             "sqlite3",
             "dbm",
-            "nis",
             "zlib",
             "bz2",
             "lzma",
@@ -447,6 +444,29 @@ class Python(Package):
         ff.filter(
             r"^(.*)setup\.py(.*)((build)|(install))(.*)$", r"\1setup.py\2 --no-user-cfg \3\6"
         )
+
+        # disable building the nis module (there is no flag to disable it).
+        if self.spec.satisfies("@3.8:3.10"):
+            filter_file(
+                "if MS_WINDOWS or CYGWIN or HOST_PLATFORM == 'qnx6':",
+                "if True:",
+                "setup.py",
+                string=True,
+            )
+        elif self.spec.satisfies("@3.7"):
+            filter_file(
+                "if host_platform in {'win32', 'cygwin', 'qnx6'}:",
+                "if True:",
+                "setup.py",
+                string=True,
+            )
+        elif self.spec.satisfies("@3.6"):
+            filter_file(
+                "if (host_platform not in ['cygwin', 'qnx6'] and",
+                "if False and",
+                "setup.py",
+                string=True,
+            )
 
     def setup_build_environment(self, env):
         spec = self.spec
@@ -658,6 +678,11 @@ class Python(Package):
                 ]
             )
 
+        # Disable the nis module in the configure script for Python 3.11 and 3.12. It is deleted
+        # in Python 3.13. See ``def patch`` for disabling the nis module in Python 3.10 and older.
+        if spec.satisfies("@3.11:3.12"):
+            config_args.append("py_cv_module_nis=n/a")
+
         # https://docs.python.org/3.8/library/sqlite3.html#f1
         if spec.satisfies("+sqlite3 ^sqlite+dynamic_extensions"):
             config_args.append("--enable-loadable-sqlite-extensions")
@@ -786,10 +811,6 @@ class Python(Package):
             # Ensure that dbm module works
             if "+dbm" in spec:
                 self.command("-c", "import dbm")
-
-            # Ensure that nis module works
-            if "+nis" in spec:
-                self.command("-c", "import nis")
 
             # Ensure that zlib module works
             if "+zlib" in spec:

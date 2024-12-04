@@ -9,19 +9,22 @@ from spack.package import *
 class PyNugraph(PythonPackage):
     """Graph Neural Network for neutrino physics event reconstruction"""
 
-    pypi = "nugraph/nugraph-24.7.1.tar.gz"
+    homepage = "https://github.com/nugraph/nugraph"
+    git = "https://github.com/nugraph/nugraph"
+    url = "https://github.com/nugraph/nugraph/archive/v24.7.1.tar.gz"
+    build_directory = "nugraph"
 
     maintainers("vhewes")
 
     license("MIT", checked_by="vhewes")
 
-    version("24.7.1", sha256="e1449e4a37049cc774ad026d4f2db339eb60bb59109a11920bb65a4061915de8")
-    version("24.7.0", sha256="b95d93a1cbcd280a3529ce4782ef778b982d9d4edcc19f522442c38144895f65")
-    version("24.4.0", sha256="5f888d065819b1ec7c33e7f829ad65eb963db2cf109a5d31b4caef49c004f86f")
-    version("24.2.0", sha256="4765ea73b384e95a38a598499e77d805541e415049da9f6f46193f8bc281208a")
-    version("23.11.1", sha256="b160996fca9615b2c7e6ed02fb780af5edaa97f6cdafd45abdf65ea0c7a6f2ca")
-    version("23.11.0", sha256="a1e01a8c3143fc8db2cf8a3584d192a738d89eb865b1d52cd2994b24bd4175ec")
-    version("23.10.0", sha256="8a0219318c6bd6d0d240e419ef88cdedd7e944276f0cce430d9ece423e06f1b8")
+    version("main", branch="main")
+    version("24.7.1", sha256="a51c0576ab969c404024b734e5507712e5a9d1d29e14077fee121415779c78f0")
+    version("24.7.0", sha256="7e44fbc1eb75a9302d57cabfffd559ddaddb44d0b7198168cbacbeed5e11dd7e")
+    version("24.4.0", sha256="927da53b28630921d31ca3b71676ef392b9ff847796b76d593239c6af9276b4c")
+    version("24.2.0", sha256="6ff9204bc0817619e7317e7a0d7ddfbea1842b261938f1718c3949539c8719df")
+    version("23.11.0", sha256="db77e0c723caf4ac9fb5c41d250aee1d03e623e861c73120b23aff194902bf09")
+    version("23.10.0", sha256="ee36625d5215406a199420d8fa262b720c5d191c0346d2b4aaab6808b47e80ad")
 
     depends_on("py-flit-core", type="build")
 

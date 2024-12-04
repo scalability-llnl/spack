@@ -34,6 +34,13 @@ class Metis(CMakePackage, MakefilePackage):
     depends_on("c", type="build")
     depends_on("cxx", type="build")
 
+    variant(
+        "no_warning",
+        default=False,
+        description="Disable failed partition warning print on all ranks",
+    )
+    patch("no_warning.patch", when="@5:+no_warning")
+
     build_system(
         conditional("cmake", when="@5:"), conditional("makefile", when="@:4"), default="cmake"
     )
