@@ -577,9 +577,10 @@ class Result:
         serial_answers = []
         for answer in self.answers:
             serial_answer = answer[:2]
-            serial_answer = serial_answer + (
-                [{serial_node_arg(x): answer[2][x].to_dict()} for x in answer[2]],
-            )
+            serial_answer_dict = {}
+            for node, spec in answer[2].items():
+                serial_answer_dict[serial_node_arg(node)] = spec.to_dict()
+            serial_answer = serial_answer + (serial_answer_dict,)
             serial_answers.append(serial_answer)
         ret["answers"] = serial_answers
         ret["specs_by_input"] = {}
@@ -614,7 +615,7 @@ class Result:
         for answer in obj.get("answers", []):
             answers.append(
                 answer[:2]
-                + ([{_dict_to_node_argument(x): _dict_to_spec(answer[2][x])} for x in answer[2]])
+                + ([{_dict_to_node_argument(json.loads(x)): _dict_to_spec(answer[2][x])} for x in answer[2]])
             )
         result.answers = answers
         result._concrete_specs_by_input = {}
@@ -649,7 +650,7 @@ class ConcretizationCache:
         to produce a new Result object
         """
         cache_entry = json.loads(cache_path.read_text())
-        result_json = cache_entry["result"]
+        result_json = cache_entry["results"]
         return Result.from_dict(result_json)
 
     def _stats_from_cache(self, cache_path: pathlib.Path):
@@ -694,7 +695,7 @@ class ConcretizationCache:
                 if entry.exists():
                     entry.unlink()
                 if entry.parent.exists():
-                    entry.parent.unlink()
+                    entry.parent.rmdir()
 
     def store(self, problem: str, result: Result, statistics: List):
         """Creates entry in concretization cache for problem if none exists,
@@ -1810,12 +1811,12 @@ class SpackSolverSetup:
             self.gen.fact(fn.imposed_constraint(condition_id, *pred.args))
 
     def package_provider_rules(self, pkg):
-        for vpkg_name in pkg.provided_virtual_names():
+        for vpkg_name in sorted(pkg.provided_virtual_names()):
             if vpkg_name not in self.possible_virtuals:
                 continue
             self.gen.fact(fn.pkg_fact(pkg.name, fn.possible_provider(vpkg_name)))
 
-        for when, provided in pkg.provided.items():
+        for when, provided in sorted(pkg.provided.items()):
             for vpkg in provided:
                 if vpkg.name not in self.possible_virtuals:
                     continue
@@ -1827,7 +1828,7 @@ class SpackSolverSetup:
                 )
             self.gen.newline()
 
-        for when, sets_of_virtuals in pkg.provided_together.items():
+        for when, sets_of_virtuals in sorted(pkg.provided_together.items()):
             condition_id = self.condition(
                 when, required_name=pkg.name, msg="Virtuals are provided together"
             )
