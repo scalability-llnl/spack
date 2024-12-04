@@ -838,6 +838,7 @@ def create_mirror_from_package_object(pkg_obj, mirror_cache, mirror_stats):
             exception = None
             break
         except Exception as e:
+            pkg_obj.stage.destroy()
             exc_tuple = sys.exc_info()
             exception = e
         num_retries -= 1
