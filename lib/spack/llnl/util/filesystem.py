@@ -24,6 +24,7 @@ from typing import (
     Callable,
     Deque,
     Dict,
+    Generator,
     Iterable,
     List,
     Match,
@@ -2773,22 +2774,6 @@ def prefixes(path):
 
 
 @system_path_filter
-def md5sum(file):
-    """Compute the MD5 sum of a file.
-
-    Args:
-        file (str): file to be checksummed
-
-    Returns:
-        MD5 sum of the file's content
-    """
-    md5 = hashlib.md5()
-    with open(file, "rb") as f:
-        md5.update(f.read())
-    return md5.digest()
-
-
-@system_path_filter
 def remove_directory_contents(dir):
     """Remove all contents of a directory."""
     if os.path.exists(dir):
@@ -2836,6 +2821,25 @@ def temporary_dir(
             yield tmp_dir
     finally:
         remove_directory_contents(tmp_dir)
+
+
+@contextmanager
+def edit_in_place_through_temporary_file(file_path: str) -> Generator[str, None, None]:
+    """Context manager for modifying ``file_path`` in place, preserving its inode and hardlinks,
+    for functions or external tools that do not support in-place editing. Notice that this function
+    is unsafe in that it works with paths instead of a file descriptors, but this is by design,
+    since we assume the call site will create a new inode at the same path."""
+    tmp_fd, tmp_path = tempfile.mkstemp(
+        dir=os.path.dirname(file_path), prefix=f"{os.path.basename(file_path)}."
+    )
+    # windows cannot replace a file with open fds, so close since the call site needs to replace.
+    os.close(tmp_fd)
+    try:
+        shutil.copyfile(file_path, tmp_path, follow_symlinks=True)
+        yield tmp_path
+        shutil.copyfile(tmp_path, file_path, follow_symlinks=True)
+    finally:
+        os.unlink(tmp_path)
 
 
 def filesummary(path, print_bytes=16) -> Tuple[int, bytes]:

@@ -54,6 +54,7 @@ import spack.util.web
 import spack.variant
 from spack.error import InstallError, NoURLError, PackageError
 from spack.filesystem_view import YamlFilesystemView
+from spack.resource import Resource
 from spack.solver.version_order import concretization_version_order
 from spack.stage import DevelopStage, ResourceStage, Stage, StageComposite, compute_stage_name
 from spack.util.package_hash import package_hash
@@ -585,6 +586,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
     # Declare versions dictionary as placeholder for values.
     # This allows analysis tools to correctly interpret the class attributes.
     versions: dict
+    resources: Dict[spack.spec.Spec, List[Resource]]
     dependencies: Dict[spack.spec.Spec, Dict[str, spack.dependency.Dependency]]
     conflicts: Dict[spack.spec.Spec, List[Tuple[spack.spec.Spec, Optional[str]]]]
     requirements: Dict[
@@ -595,6 +597,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
     patches: Dict[spack.spec.Spec, List[spack.patch.Patch]]
     variants: Dict[spack.spec.Spec, Dict[str, spack.variant.Variant]]
     languages: Dict[spack.spec.Spec, Set[str]]
+    licenses: Dict[spack.spec.Spec, str]
     splice_specs: Dict[spack.spec.Spec, Tuple[spack.spec.Spec, Union[None, str, List[str]]]]
 
     #: Store whether a given Spec source/binary should not be redistributed.

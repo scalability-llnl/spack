@@ -693,19 +693,19 @@ def _ensure_all_packages_use_sha256_checksums(pkgs, error_cls):
                     return h, True
             return None, False
 
-        error_msg = "Package '{}' does not use sha256 checksum".format(pkg_name)
+        error_msg = f"Package '{pkg_name}' does not use sha256 checksum"
         details = []
         for v, args in pkg.versions.items():
             fetcher = spack.fetch_strategy.for_package_version(pkg, v)
             digest, is_bad = invalid_sha256_digest(fetcher)
             if is_bad:
-                details.append("{}@{} uses {}".format(pkg_name, v, digest))
+                details.append(f"{pkg_name}@{v} uses {digest}")
 
         for _, resources in pkg.resources.items():
             for resource in resources:
                 digest, is_bad = invalid_sha256_digest(resource.fetcher)
                 if is_bad:
-                    details.append("Resource in '{}' uses {}".format(pkg_name, digest))
+                    details.append(f"Resource in '{pkg_name}' uses {digest}")
         if details:
             errors.append(error_cls(error_msg, details))
 

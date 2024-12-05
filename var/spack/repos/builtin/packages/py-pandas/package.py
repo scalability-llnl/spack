@@ -73,6 +73,7 @@ class PyPandas(PythonPackage):
     variant("excel", when="@1.4:", default=False, description="Build with support for Excel")
 
     depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     with default_args(type="build"):
         depends_on("py-meson-python@0.13.1:", when="@2.1:")
