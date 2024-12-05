@@ -207,7 +207,7 @@ class Geant4(CMakePackage):
     # As released, 10.0.4 has inconsistently capitalised filenames
     # in the cmake files; this patch also enables cxxstd 14
     patch("geant4-10.0.4.patch", when="@10.0.4")
-    patch("columns.patch", when="@10.4")
+    patch("columns.patch", when="@10.4:")
     # As released, 10.03.03 has issues with respect to using external
     # CLHEP.
     patch("CLHEP-10.03.03.patch", level=1, when="@10.3")
