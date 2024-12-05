@@ -113,7 +113,3 @@ class Pism(CMakePackage):
             self.define_from_variant("Pism_INSTALL_EXAMPLES", "examples"),
             self.define_from_variant("Pism_USE_EVERYTRACE", "everytrace"),
         ]
-
-    def setup_run_environment(self, env):
-        env.set("PISM_PREFIX", self.prefix)
-        env.set("PISM_BIN", self.prefix.bin)
