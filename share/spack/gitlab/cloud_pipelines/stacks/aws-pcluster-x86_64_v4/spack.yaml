@@ -8,7 +8,7 @@ spack:
     # earliest oneapi version with fix does not run on AmazonLinux2, see https://github.com/spack/spack/pull/46457
     # - mpas-model %oneapi
     - openfoam %gcc
-    - palace ~libxsmm %oneapi ^superlu-dist%oneapi # hack: force fortran-rt provider through superlu-dist
+    - palace %oneapi ^superlu-dist%oneapi # hack: force fortran-rt provider through superlu-dist
     # TODO: Find out how to make +ipo cmake flag work.
     # - quantum-espresso %oneapi
     - openmpi %oneapi
