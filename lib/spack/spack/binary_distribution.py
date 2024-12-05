@@ -2334,7 +2334,9 @@ def relocate_package(spec):
             if not codesign:
                 return
             for binary in changed_files:
-                codesign("-fs-", binary)
+                # preserve the original inode by running codesign on a copy
+                with fsys.edit_in_place_through_temporary_file(binary) as tmp_binary:
+                    codesign("-fs-", tmp_binary)
 
     # If we are installing back to the same location
     # relocate the sbang location if the spack directory changed

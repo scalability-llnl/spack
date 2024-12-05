@@ -1249,3 +1249,14 @@ def test_find_input_types(tmp_path: pathlib.Path):
 
     with pytest.raises(TypeError):
         fs.find(1, "file.txt")  # type: ignore
+
+
+def test_edit_in_place_through_temporary_file(tmp_path):
+    (tmp_path / "example.txt").write_text("Hello")
+    current_ino = os.stat(tmp_path / "example.txt").st_ino
+    with fs.edit_in_place_through_temporary_file(tmp_path / "example.txt") as temporary:
+        os.unlink(temporary)
+        with open(temporary, "w") as f:
+            f.write("World")
+    assert (tmp_path / "example.txt").read_text() == "World"
+    assert os.stat(tmp_path / "example.txt").st_ino == current_ino

@@ -79,6 +79,7 @@ class PyTorchvision(PythonPackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")
     depends_on("cxx", type="build")
 
     desc = "Enable support for native encoding/decoding of {} formats in torchvision.io"
