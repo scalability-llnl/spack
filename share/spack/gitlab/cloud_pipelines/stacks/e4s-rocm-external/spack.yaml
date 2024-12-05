@@ -207,6 +207,11 @@ spack:
       externals:
       - spec: rocm-core@6.2.1
         prefix: /opt/rocm-6.2.1
+    rocm-openmp-extras:
+      buildable: false
+      externals:
+      - spec: rocm-openmp-extras@6.2.1
+        prefix: /opt/rocm-6.2.1
 
   specs:
   # ROCM NOARCH
