@@ -3,8 +3,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import os.path
-
 from spack.package import *
 
 
@@ -22,16 +20,9 @@ class Hp2p(AutotoolsPackage):
 
     version("4.1", sha256="e74fa1d442f4378a31f4b875760aaad98e23f6942f7de4cc1702ed9e95585c5e")
 
-    #depends_on("autoconf", type="build")
-    #depends_on("binutils", type="build")
-
     depends_on("mpi", type=("build", "link", "run"))
 
     def configure_args(self):
-      spec = self.spec
-      args = [
-          "CC={0}".format(spec["mpi"].mpicc),
-          "CXX={0}".format(spec["mpi"].mpicxx),
-      ]
-      return args
-
+        spec = self.spec
+        args = ["CC={0}".format(spec["mpi"].mpicc), "CXX={0}".format(spec["mpi"].mpicxx)]
+        return args
