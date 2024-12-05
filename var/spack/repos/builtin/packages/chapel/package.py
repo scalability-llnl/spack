@@ -70,8 +70,8 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
     depends_on("cxx", type="build")  # generated
 
     patch("fix_spack_cc_wrapper_in_cray_prgenv.patch", when="@2.0.0:")
-    patch("fix_chpl_shared_lib_path.patch", when="@:2.2")
-    patch("fix_chpl_shared_lib_path_2.3.patch", when="@2.3:")
+    patch("fix_chpl_shared_lib_path.patch", when="@2.1:2.2 +python-bindings")
+    patch("fix_chpl_shared_lib_path_2.3.patch", when="@2.2.1: +python-bindings")
     patch("fix_chpl_line_length.patch")
 
     launcher_names = (
@@ -596,6 +596,11 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
                     python("-m", "ensurepip", "--default-pip")
                     python("-m", "pip", "install", "tools/chapel-py")
 
+    def install(self, spec, prefix):
+        make("install")
+        if str(spec.version).lower() == "main":
+            install("CMakeLists.txt", join_path(prefix.share, "chapel"))
+
     def setup_chpl_platform(self, env):
         if self.spec.variants["host_platform"].value == "unset":
             if is_CrayEX():
@@ -750,8 +755,6 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
     def setup_build_environment(self, env):
         self.unset_chpl_env_vars(env)
         self.setup_env_vars(env)
-        chpl_lib = join_path(self.prefix.lib, "chapel", self._output_version_short, "compiler")
-        env.set("CHPL_SPACK_LIB_INSTALL", chpl_lib)
 
     def setup_run_environment(self, env):
         self.setup_env_vars(env)
@@ -763,11 +766,31 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
         )
         env.set("CHPL_HOME", chpl_home)
 
+    def get_main_version_from_cmakelists(self) -> str:
+        with open(join_path(self.build_directory, "CMakeLists.txt"), "r") as f:
+            # read CMakeLists.txt to get the CHPL_MAJOR_VERSION and CHPL_MINOR_VERSION
+            # and then construct the path from that
+            chpl_major_version = None
+            chpl_minor_version = None
+            chpl_patch_version = None
+            for line in f:
+                if "set(CHPL_MAJOR_VERSION" in line:
+                    chpl_major_version = line.split()[1].strip(')')
+                if "set(CHPL_MINOR_VERSION" in line:
+                    chpl_minor_version = line.split()[1].strip(')')
+                if "set(CHPL_PATCH_VERSION" in line:
+                    chpl_patch_version = line.split()[1].strip(')')
+                if chpl_major_version is not None and chpl_minor_version is not None and chpl_patch_version is not None:
+                    break
+        assert(chpl_major_version is not None and chpl_minor_version is not None and chpl_patch_version is not None)
+        chpl_version_string = "{}.{}.{}".format(chpl_major_version, chpl_minor_version, chpl_patch_version)
+        return chpl_version_string
+
     @property
     @llnl.util.lang.memoized
     def _output_version_long(self) -> str:
         if str(self.spec.version).lower() == "main":
-            return "2.3.0"
+            return self.get_main_version_from_cmakelists()
         spec_vers_str = str(self.spec.version.up_to(3))
         return spec_vers_str
 
@@ -775,7 +798,7 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
     @llnl.util.lang.memoized
     def _output_version_short(self) -> str:
         if str(self.spec.version).lower() == "main":
-            return "2.3"
+            return self.get_main_version_from_cmakelists()[-2]
         spec_vers_str = str(self.spec.version.up_to(2))
         return spec_vers_str
 
