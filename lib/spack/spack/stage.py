@@ -34,6 +34,7 @@ from llnl.util.tty.color import colorize
 import spack.caches
 import spack.config
 import spack.error
+import spack.mirrors.layout
 import spack.mirrors.utils
 import spack.resource
 import spack.spec
@@ -353,7 +354,7 @@ class Stage(LockableStagingDir):
         url_or_fetch_strategy,
         *,
         name=None,
-        mirror_paths: Optional["spack.mirrors.utils.MirrorLayout"] = None,
+        mirror_paths: Optional["spack.mirrors.layout.MirrorLayout"] = None,
         mirrors: Optional[Iterable["spack.mirrors.mirror.Mirror"]] = None,
         keep=False,
         path=None,

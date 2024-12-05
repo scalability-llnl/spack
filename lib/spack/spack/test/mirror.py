@@ -14,6 +14,7 @@ from llnl.util.symlink import resolve_link_target_relative_to_the_link
 import spack.caches
 import spack.config
 import spack.fetch_strategy
+import spack.mirrors.layout
 import spack.mirrors.mirror
 import spack.mirrors.utils
 import spack.patch
@@ -69,7 +70,9 @@ def check_mirror():
             for spec in specs:
                 fetcher = spec.package.fetcher
                 per_package_ref = os.path.join(spec.name, "-".join([spec.name, str(spec.version)]))
-                mirror_layout = spack.mirrors.utils.default_mirror_layout(fetcher, per_package_ref)
+                mirror_layout = spack.mirrors.layout.default_mirror_layout(
+                    fetcher, per_package_ref
+                )
                 expected_path = os.path.join(mirror_root, mirror_layout.path)
                 assert os.path.exists(expected_path)
 
@@ -212,7 +215,7 @@ def test_invalid_json_mirror_collection(invalid_json, error_message):
 def test_mirror_archive_paths_no_version(mock_packages, mock_archive):
     spec = Spec("trivial-install-test-package@=nonexistingversion").concretized()
     fetcher = spack.fetch_strategy.URLFetchStrategy(url=mock_archive.url)
-    spack.mirrors.utils.default_mirror_layout(fetcher, "per-package-ref", spec)
+    spack.mirrors.layout.default_mirror_layout(fetcher, "per-package-ref", spec)
 
 
 def test_mirror_with_url_patches(mock_packages, monkeypatch):
@@ -245,7 +248,9 @@ def test_mirror_with_url_patches(mock_packages, monkeypatch):
         monkeypatch.setattr(spack.fetch_strategy.URLFetchStrategy, "expand", successful_expand)
         monkeypatch.setattr(spack.patch, "apply_patch", successful_apply)
         monkeypatch.setattr(spack.caches.MirrorCache, "store", record_store)
-        monkeypatch.setattr(spack.mirrors.utils.DefaultLayout, "make_alias", successful_make_alias)
+        monkeypatch.setattr(
+            spack.mirrors.layout.DefaultLayout, "make_alias", successful_make_alias
+        )
 
         with spack.config.override("config:checksum", False):
             spack.mirrors.utils.create(mirror_root, list(spec.traverse()))
@@ -275,7 +280,7 @@ def test_mirror_layout_make_alias(tmpdir):
     alias = os.path.join("zlib", "zlib-1.2.11.tar.gz")
     path = os.path.join("_source-cache", "archive", "c3", "c3e5.tar.gz")
     cache = spack.caches.MirrorCache(root=str(tmpdir), skip_unstable_versions=False)
-    layout = spack.mirrors.utils.DefaultLayout(alias, path)
+    layout = spack.mirrors.layout.DefaultLayout(alias, path)
 
     cache.store(MockFetcher(), layout.path)
     layout.make_alias(cache.root)

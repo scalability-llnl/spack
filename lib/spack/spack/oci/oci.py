@@ -16,8 +16,8 @@ from urllib.request import Request
 import llnl.util.tty as tty
 
 import spack.fetch_strategy
+import spack.mirrors.layout
 import spack.mirrors.mirror
-import spack.mirrors.utils
 import spack.oci.opener
 import spack.stage
 import spack.util.url
@@ -387,7 +387,7 @@ def make_stage(
     # required by the spec.
     return spack.stage.Stage(
         fetch_strategy,
-        mirror_paths=spack.mirrors.utils.OCILayout(digest),
+        mirror_paths=spack.mirrors.layout.OCILayout(digest),
         name=digest.digest,
         keep=keep,
     )
