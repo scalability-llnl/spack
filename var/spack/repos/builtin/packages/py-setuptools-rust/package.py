@@ -34,7 +34,6 @@ class PySetuptoolsRust(PythonPackage):
     depends_on("rust", when="~rust_bootstrap", type="run")
     depends_on("rust-bootstrap", when="+rust_bootstrap", type="run")
     depends_on("py-tomli@1.2.1:", when="^python@:3.10", type=("build", "run"))
-    depends_on("rust", type="run")
 
     # Historical dependencies
     depends_on("py-typing-extensions@3.7.4.3:", when="@1.2.0:1.7.0", type=("build", "run"))

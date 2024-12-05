@@ -42,12 +42,13 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
     homepage = "https://www.tensorflow.org"
     url = "https://github.com/tensorflow/tensorflow/archive/v2.3.1.tar.gz"
     git = "https://github.com/tensorflow/tensorflow.git"
-
-    maintainers("adamjstewart", "aweits")
     import_modules = ["tensorflow"]
 
     license("Apache-2.0")
+    maintainers("adamjstewart", "aweits")
 
+    version("2.18.0", sha256="d7876f4bb0235cac60eb6316392a7c48676729860da1ab659fb440379ad5186d")
+    version("2.17.1", sha256="2d3cfb48510f92f3a52fb05b820481c6f066a342a9f5296fe26d72c4ea757700")
     version("2.17.0", sha256="9cc4d5773b8ee910079baaecb4086d0c28939f024dd74b33fc5e64779b6533dc")
     version("2.16.2", sha256="023849bf253080cb1e4f09386f5eb900492da2288274086ed6cfecd6d99da9eb")
     version("2.16.1", sha256="c729e56efc945c6df08efe5c9f5b8b89329c7c91b8f40ad2bb3e13900bd4876d")
@@ -123,14 +124,18 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
     version("2.2.1", sha256="e6a28e64236d729e598dbeaa02152219e67d0ac94d6ed22438606026a02e0f88")
     version("2.2.0", sha256="69cd836f87b8c53506c4f706f655d423270f5a563b76dc1cfa60fbc3184185a3")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("mkl", default=False, description="Build with MKL support")
     variant("jemalloc", default=False, description="Build with jemalloc as malloc support")
     variant("gcp", default=False, description="Build with Google Cloud Platform support")
-    variant("hdfs", default=False, description="Build with Hadoop File System support")
-    variant("aws", default=False, description="Build with Amazon AWS Platform support")
+    variant(
+        "hdfs", default=False, when="@:2.17", description="Build with Hadoop File System support"
+    )
+    variant(
+        "aws", default=False, when="@:2.17", description="Build with Amazon AWS Platform support"
+    )
     variant("xla", default=sys.platform != "darwin", description="Build with XLA JIT support")
     variant("gdr", default=False, description="Build with GDR support")
     variant("verbs", default=False, description="Build with libverbs support")
@@ -216,36 +221,13 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
         depends_on("py-google-pasta@0.2:0", when="@2.4:2.6")
         depends_on("py-google-pasta@0.1.8:", when="@2.2:2.3")
         depends_on("py-google-pasta@0.1.6:", when="@:2.1")
-        depends_on("py-h5py@3.10:", when="@2.16:")
-        depends_on("py-h5py@2.9:", when="@2.7:2.15")
-        depends_on("py-h5py@3.1", when="@2.5:2.6")
-        depends_on("py-h5py@2.10", when="@2.2:2.4")
-        depends_on("py-h5py@:2.10.0", when="@2.1.3:2.1")
-        # propagate the mpi variant setting for h5py/hdf5 to avoid unexpected crashes
-        depends_on("py-h5py+mpi", when="@2.1.3:+mpi")
-        depends_on("py-h5py~mpi", when="@2.1.3:~mpi")
-        depends_on("hdf5+mpi", when="@2.1.3:+mpi")
-        depends_on("hdf5~mpi", when="@2.1.3:~mpi")
         depends_on("py-libclang@13:", when="@2.9:")
         depends_on("py-libclang@9.0.1:", when="@2.7:2.8")
-        depends_on("py-ml-dtypes@0.3.1:0.4", when="@2.17:")
-        depends_on("py-ml-dtypes@0.3.1:0.3", when="@2.15.1:2.16")
-        depends_on("py-ml-dtypes@0.2", when="@2.15.0")
-        depends_on("py-ml-dtypes@0.2.0", when="@2.14")
-        depends_on("py-numpy@1.23.5:", when="@2.14:")
-        depends_on("py-numpy@1.22:1.24.3", when="@2.13:")
-        depends_on("py-numpy@1.22:1.23", when="@2.12")
-        depends_on("py-numpy@1.20:", when="@2.8:2.11")
-        depends_on("py-numpy@1.14.5:", when="@2.7")
-        depends_on("py-numpy@1.19.2:1.19", when="@2.4:2.6")
-        # https://github.com/tensorflow/tensorflow/issues/40688
-        depends_on("py-numpy@1.16.0:1.18", when="@:2.3")
-        # https://github.com/tensorflow/tensorflow/issues/67291
-        depends_on("py-numpy@:1")
         depends_on("py-opt-einsum@2.3.2:", when="@:2.3,2.7:")
         depends_on("py-opt-einsum@3.3", when="@2.4:2.6")
         depends_on("py-packaging", when="@2.9:")
-        depends_on("py-protobuf@3.20.3:4.20,4.21.6:4", when="@2.12:")
+        depends_on("py-protobuf@3.20.3:4.20,4.21.6:5", when="@2.18:")
+        depends_on("py-protobuf@3.20.3:4.20,4.21.6:4", when="@2.12:2.17")
         depends_on("py-protobuf@3.9.2:", when="@2.3:2.11")
         depends_on("py-protobuf@3.8.0:", when="@:2.2")
         # https://github.com/protocolbuffers/protobuf/issues/10051
@@ -278,12 +260,39 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
             depends_on("py-grpcio@1.32", when="@2.4")
             depends_on("py-grpcio@1.8.6:", when="@:2.3")
 
-        for minor_ver in range(2, 18):
+        for minor_ver in range(2, 19):
             depends_on("py-tensorboard@2.{}".format(minor_ver), when="@2.{}".format(minor_ver))
 
         # TODO: support circular run-time dependencies
-        # depends_on('py-tensorflow-estimator')
         # depends_on('py-keras')
+
+        depends_on("py-numpy@1.26:2.0", when="@2.18:")
+        depends_on("py-numpy@1.23.5:", when="@2.14:2.17")
+        depends_on("py-numpy@1.22:1.24.3", when="@2.13")
+        depends_on("py-numpy@1.22:1.23", when="@2.12")
+        depends_on("py-numpy@1.20:", when="@2.8:2.11")
+        depends_on("py-numpy@1.14.5:", when="@2.7")
+        depends_on("py-numpy@1.19.2:1.19", when="@2.4:2.6")
+        # https://github.com/tensorflow/tensorflow/issues/40688
+        depends_on("py-numpy@1.16.0:1.18", when="@:2.3")
+        # https://github.com/tensorflow/tensorflow/issues/67291
+        depends_on("py-numpy@:1", when="@:2.17")
+        depends_on("py-h5py@3.11:", when="@2.18:")
+        depends_on("py-h5py@3.10:", when="@2.16:")
+        depends_on("py-h5py@2.9:", when="@2.7:2.15")
+        depends_on("py-h5py@3.1", when="@2.5:2.6")
+        depends_on("py-h5py@2.10", when="@2.2:2.4")
+        depends_on("py-h5py@:2.10.0", when="@2.1.3:2.1")
+        # propagate the mpi variant setting for h5py/hdf5 to avoid unexpected crashes
+        depends_on("py-h5py+mpi", when="@2.1.3:+mpi")
+        depends_on("py-h5py~mpi", when="@2.1.3:~mpi")
+        depends_on("hdf5+mpi", when="@2.1.3:+mpi")
+        depends_on("hdf5~mpi", when="@2.1.3:~mpi")
+        depends_on("py-ml-dtypes@0.4", when="@2.18:")
+        depends_on("py-ml-dtypes@0.3.1:0.4", when="@2.17")
+        depends_on("py-ml-dtypes@0.3.1:0.3", when="@2.15.1:2.16")
+        depends_on("py-ml-dtypes@0.2", when="@2.15.0")
+        depends_on("py-ml-dtypes@0.2.0", when="@2.14")
 
         # Historical dependencies
         depends_on("py-jax@0.3.15:", when="@2.12")
@@ -425,7 +434,7 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
 
     # see https://github.com/tensorflow/tensorflow/issues/62490
     # and https://github.com/abseil/abseil-cpp/issues/1665
-    patch("absl_neon.patch", when="@2.16.1: target=aarch64:")
+    patch("absl_neon.patch", when="@2.16.1:2.17 target=aarch64:")
 
     # reverting change otherwise the c467913 commit patch won't apply
     patch(
@@ -588,6 +597,7 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
         # Do you wish to build TensorFlow with CUDA support?
         if "+cuda" in spec:
             env.set("TF_NEED_CUDA", "1")
+            env.set("CUDA_NVCC", "1")
 
             # Do you want to use clang as CUDA compiler?
             env.set("TF_CUDA_CLANG", "0")
@@ -649,6 +659,7 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
             # only supports compute capabilities >= 3.5
             capabilities = CudaPackage.compute_capabilities(spec.variants["cuda_arch"].value)
             env.set("TF_CUDA_COMPUTE_CAPABILITIES", ",".join(capabilities))
+            env.set("HERMETIC_CUDA_COMPUTE_CAPABILITIES", ",".join(capabilities))
         else:
             env.set("TF_NEED_CUDA", "0")
 
@@ -841,6 +852,8 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
 
         if "+cuda" in spec:
             args.append("--config=cuda")
+            if spec.satisfies("@2.18:"):
+                args.append("--config=cuda_wheel")
 
         if "+rocm" in spec:
             args.append("--config=rocm")

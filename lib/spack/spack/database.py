@@ -1336,7 +1336,7 @@ class Database:
         self._data[spec_key] = spec_rec
 
     @_autospec
-    def mark(self, spec: "spack.spec.Spec", key, value) -> None:
+    def mark(self, spec: "spack.spec.Spec", key: str, value: Any) -> None:
         """Mark an arbitrary record on a spec."""
         with self.write_transaction():
             return self._mark(spec, key, value)
@@ -1770,24 +1770,6 @@ class Database:
                 for rec in self._data.values()
                 if id(rec.spec) not in needed and rec.installed
             ]
-
-    def update_explicit(self, spec, explicit):
-        """
-        Update the spec's explicit state in the database.
-
-        Args:
-            spec (spack.spec.Spec): the spec whose install record is being updated
-            explicit (bool): ``True`` if the package was requested explicitly
-                by the user, ``False`` if it was pulled in as a dependency of
-                an explicit package.
-        """
-        rec = self.get_record(spec)
-        if explicit != rec.explicit:
-            with self.write_transaction():
-                message = "{s.name}@{s.version} : marking the package {0}"
-                status = "explicit" if explicit else "implicit"
-                tty.debug(message.format(status, s=spec))
-                rec.explicit = explicit
 
 
 class NoUpstreamVisitor:

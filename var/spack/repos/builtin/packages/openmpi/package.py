@@ -64,6 +64,9 @@ class Openmpi(AutotoolsPackage, CudaPackage):
         "5.0.0", sha256="9d845ca94bc1aeb445f83d98d238cd08f6ec7ad0f73b0f79ec1668dbfdacd613"
     )  # libmpi.so.40.40.0
     version(
+        "4.1.7", sha256="54a33cb7ad81ff0976f15a6cc8003c3922f0f3d8ceed14e1813ef3603f22cd34"
+    )  # libmpi.so.40.30.7
+    version(
         "4.1.6", sha256="f740994485516deb63b5311af122c265179f5328a0d857a567b85db00b11e415"
     )  # libmpi.so.40.30.6
     version(
@@ -449,33 +452,34 @@ class Openmpi(AutotoolsPackage, CudaPackage):
     patch("pmix_getline_pmix_version.patch", when="@5.0.0:5.0.3")
     patch("pmix_getline_pmix_version-prte.patch", when="@5.0.3")
 
+    FABRICS = (
+        "psm",
+        "psm2",
+        "verbs",
+        "mxm",
+        "ucx",
+        "ofi",
+        "fca",
+        "hcoll",
+        "ucc",
+        "xpmem",
+        "cma",
+        "knem",
+    )
+
     variant(
         "fabrics",
         values=disjoint_sets(
-            ("auto",),
-            (
-                "psm",
-                "psm2",
-                "verbs",
-                "mxm",
-                "ucx",
-                "ofi",
-                "fca",
-                "hcoll",
-                "ucc",
-                "xpmem",
-                "cma",
-                "knem",
-            ),  # shared memory transports
+            ("auto",), FABRICS  # shared memory transports
         ).with_non_feature_values("auto", "none"),
         description="List of fabrics that are enabled; " "'auto' lets openmpi determine",
     )
 
+    SCHEDULERS = ("alps", "lsf", "tm", "slurm", "sge", "loadleveler")
+
     variant(
         "schedulers",
-        values=disjoint_sets(
-            ("auto",), ("alps", "lsf", "tm", "slurm", "sge", "loadleveler")
-        ).with_non_feature_values("auto", "none"),
+        values=disjoint_sets(("auto",), SCHEDULERS).with_non_feature_values("auto", "none"),
         description="List of schedulers for which support is enabled; "
         "'auto' lets openmpi determine",
     )
@@ -821,24 +825,26 @@ with '-Wl,-commons,use_dylibs' and without
                     variants.append("~pmi")
 
             # fabrics
-            fabrics = get_options_from_variant(cls, "fabrics")
             used_fabrics = []
-            for fabric in fabrics:
+            for fabric in cls.FABRICS:
                 match = re.search(r"\bMCA (?:mtl|btl|pml): %s\b" % fabric, output)
                 if match:
                     used_fabrics.append(fabric)
             if used_fabrics:
                 variants.append("fabrics=" + ",".join(used_fabrics))
+            else:
+                variants.append("fabrics=none")
 
             # schedulers
-            schedulers = get_options_from_variant(cls, "schedulers")
             used_schedulers = []
-            for scheduler in schedulers:
+            for scheduler in cls.SCHEDULERS:
                 match = re.search(r"\bMCA (?:prrte|ras): %s\b" % scheduler, output)
                 if match:
                     used_schedulers.append(scheduler)
             if used_schedulers:
                 variants.append("schedulers=" + ",".join(used_schedulers))
+            else:
+                variants.append("schedulers=none")
 
             # Get the appropriate compiler
             match = re.search(r"\bC compiler absolute: (\S+)", output)
@@ -1010,7 +1016,6 @@ with '-Wl,-commons,use_dylibs' and without
         perl = which("perl")
         perl("autogen.pl")
         if spec.satisfies("+two_level_namespace platform=darwin"):
-            print("Re-applying configure patch for two_level_namespace on MacOS after autoreconf")
             filter_file(r"-flat_namespace", "-commons,use_dylibs", "configure")
 
     @when("@5.0.0:5.0.1")
@@ -1018,7 +1023,6 @@ with '-Wl,-commons,use_dylibs' and without
         perl = which("perl")
         perl("autogen.pl", "--force")
         if spec.satisfies("+two_level_namespace platform=darwin"):
-            print("Re-applying configure patch for two_level_namespace on MacOS after autoreconf")
             filter_file(r"-flat_namespace", "-commons,use_dylibs", "configure")
 
     def configure_args(self):
@@ -1433,12 +1437,3 @@ def is_enabled(text):
     if text in set(["t", "true", "enabled", "yes", "1"]):
         return True
     return False
-
-
-# This code gets all the fabric names from the variants list
-# Idea taken from the AutotoolsPackage source.
-def get_options_from_variant(self, name):
-    values = self.variants[name][0].values
-    if getattr(values, "feature_values", None):
-        values = values.feature_values
-    return values

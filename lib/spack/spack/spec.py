@@ -59,7 +59,7 @@ import platform
 import re
 import socket
 import warnings
-from typing import Any, Callable, Dict, List, Match, Optional, Set, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, Match, Optional, Set, Tuple, Union
 
 import archspec.cpu
 
@@ -877,8 +877,9 @@ class FlagMap(lang.HashableMap):
                 # Next, if any flags in other propagate, we force them to propagate in our case
                 shared = list(sorted(set(other[flag_type]) - extra_other))
                 for x, y in _shared_subset_pair_iterate(shared, sorted(self[flag_type])):
-                    if x.propagate:
-                        y.propagate = True
+                    if y.propagate is True and x.propagate is False:
+                        changed = True
+                        y.propagate = False
 
         # TODO: what happens if flag groups with a partial (but not complete)
         # intersection specify different behaviors for flag propagation?
@@ -933,6 +934,7 @@ class FlagMap(lang.HashableMap):
             def flags():
                 for flag in v:
                     yield flag
+                    yield flag.propagate
 
             yield flags
 
@@ -2199,6 +2201,18 @@ class Spec:
         if params:
             d["parameters"] = params
 
+        if params and not self.concrete:
+            flag_names = [
+                name
+                for name, flags in self.compiler_flags.items()
+                if any(x.propagate for x in flags)
+            ]
+            d["propagate"] = sorted(
+                itertools.chain(
+                    [v.name for v in self.variants.values() if v.propagate], flag_names
+                )
+            )
+
         if self.external:
             d["external"] = syaml.syaml_dict(
                 [
@@ -2371,16 +2385,10 @@ class Spec:
         spec is concrete, the full hash is added as well.  If 'build' is in
         the hash_type, the build hash is also added."""
         node = self.to_node_dict(hash)
+        # All specs have at least a DAG hash
         node[ht.dag_hash.name] = self.dag_hash()
 
-        # dag_hash is lazily computed -- but if we write a spec out, we want it
-        # to be included. This is effectively the last chance we get to compute
-        # it accurately.
-        if self.concrete:
-            # all specs have at least a DAG hash
-            node[ht.dag_hash.name] = self.dag_hash()
-
-        else:
+        if not self.concrete:
             node["concrete"] = False
 
         # we can also give them other hash types if we want
@@ -2820,7 +2828,7 @@ class Spec:
             msg += "    For each package listed, choose another spec\n"
             raise SpecDeprecatedError(msg)
 
-    def concretize(self, tests: Union[bool, List[str]] = False) -> None:
+    def concretize(self, tests: Union[bool, Iterable[str]] = False) -> None:
         """Concretize the current spec.
 
         Args:
@@ -2899,7 +2907,7 @@ class Spec:
             if (not value) and s.concrete and s.installed:
                 continue
             elif not value:
-                s.clear_cached_hashes()
+                s.clear_caches()
             s._mark_root_concrete(value)
 
     def _finalize_concretization(self):
@@ -2948,7 +2956,7 @@ class Spec:
         for spec in self.traverse():
             spec._cached_hash(ht.dag_hash)
 
-    def concretized(self, tests=False):
+    def concretized(self, tests: Union[bool, Iterable[str]] = False) -> "spack.spec.Spec":
         """This is a non-destructive version of concretize().
 
         First clones, then returns a concrete version of this package
@@ -3012,7 +3020,12 @@ class Spec:
         pkg_variants = pkg_cls.variant_names()
         # reserved names are variants that may be set on any package
         # but are not necessarily recorded by the package's class
-        not_existing = set(spec.variants) - (set(pkg_variants) | set(vt.reserved_names))
+        propagate_variants = [name for name, variant in spec.variants.items() if variant.propagate]
+
+        not_existing = set(spec.variants) - (
+            set(pkg_variants) | set(vt.reserved_names) | set(propagate_variants)
+        )
+
         if not_existing:
             raise vt.UnknownVariantError(
                 f"No such variant {not_existing} for spec: '{spec}'", list(not_existing)
@@ -3039,6 +3052,10 @@ class Spec:
                 raise spack.error.UnsatisfiableSpecError(self, other, "constrain a concrete spec")
 
         other = self._autospec(other)
+        if other.concrete and other.satisfies(self):
+            self._dup(other)
+            return True
+
         if other.abstract_hash:
             if not self.abstract_hash or other.abstract_hash.startswith(self.abstract_hash):
                 self.abstract_hash = other.abstract_hash
@@ -4239,7 +4256,7 @@ class Spec:
         for ancestor in ancestors_in_context:
             # Only set it if it hasn't been spliced before
             ancestor._build_spec = ancestor._build_spec or ancestor.copy()
-            ancestor.clear_cached_hashes(ignore=(ht.package_hash.attr,))
+            ancestor.clear_caches(ignore=(ht.package_hash.attr,))
             for edge in ancestor.edges_to_dependencies(depflag=dt.BUILD):
                 if edge.depflag & ~dt.BUILD:
                     edge.depflag &= ~dt.BUILD
@@ -4433,7 +4450,7 @@ class Spec:
 
         return spec
 
-    def clear_cached_hashes(self, ignore=()):
+    def clear_caches(self, ignore=()):
         """
         Clears all cached hashes in a Spec, while preserving other properties.
         """
@@ -4441,7 +4458,9 @@ class Spec:
             if h.attr not in ignore:
                 if hasattr(self, h.attr):
                     setattr(self, h.attr, None)
-        self._dunder_hash = None
+        for attr in ("_dunder_hash", "_prefix"):
+            if attr not in ignore:
+                setattr(self, attr, None)
 
     def __hash__(self):
         # If the spec is concrete, we leverage the process hash and just use
@@ -4517,8 +4536,69 @@ class VariantMap(lang.HashableMap):
         # Set the item
         super().__setitem__(vspec.name, vspec)
 
-    def satisfies(self, other):
-        return all(k in self and self[k].satisfies(other[k]) for k in other)
+    def partition_variants(self):
+        non_prop, prop = lang.stable_partition(self.values(), lambda x: not x.propagate)
+        # Just return the names
+        non_prop = [x.name for x in non_prop]
+        prop = [x.name for x in prop]
+        return non_prop, prop
+
+    def satisfies(self, other: "VariantMap") -> bool:
+        if self.spec.concrete:
+            return self._satisfies_when_self_concrete(other)
+        return self._satisfies_when_self_abstract(other)
+
+    def _satisfies_when_self_concrete(self, other: "VariantMap") -> bool:
+        non_propagating, propagating = other.partition_variants()
+        result = all(
+            name in self and self[name].satisfies(other[name]) for name in non_propagating
+        )
+        if not propagating:
+            return result
+
+        for node in self.spec.traverse():
+            if not all(
+                node.variants[name].satisfies(other[name])
+                for name in propagating
+                if name in node.variants
+            ):
+                return False
+        return result
+
+    def _satisfies_when_self_abstract(self, other: "VariantMap") -> bool:
+        other_non_propagating, other_propagating = other.partition_variants()
+        self_non_propagating, self_propagating = self.partition_variants()
+
+        # First check variants without propagation set
+        result = all(
+            name in self_non_propagating
+            and (self[name].propagate or self[name].satisfies(other[name]))
+            for name in other_non_propagating
+        )
+        if result is False or (not other_propagating and not self_propagating):
+            return result
+
+        # Check that self doesn't contradict variants propagated by other
+        if other_propagating:
+            for node in self.spec.traverse():
+                if not all(
+                    node.variants[name].satisfies(other[name])
+                    for name in other_propagating
+                    if name in node.variants
+                ):
+                    return False
+
+        # Check that other doesn't contradict variants propagated by self
+        if self_propagating:
+            for node in other.spec.traverse():
+                if not all(
+                    node.variants[name].satisfies(self[name])
+                    for name in self_propagating
+                    if name in node.variants
+                ):
+                    return False
+
+        return result
 
     def intersects(self, other):
         return all(self[k].intersects(other[k]) for k in other if k in self)
@@ -4731,13 +4811,17 @@ class SpecfileReaderBase:
         else:
             spec.compiler = None
 
+        propagated_names = node.get("propagate", [])
         for name, values in node.get("parameters", {}).items():
+            propagate = name in propagated_names
             if name in _valid_compiler_flags:
                 spec.compiler_flags[name] = []
                 for val in values:
-                    spec.compiler_flags.add_flag(name, val, False)
+                    spec.compiler_flags.add_flag(name, val, propagate)
             else:
-                spec.variants[name] = vt.MultiValuedVariant.from_node_dict(name, values)
+                spec.variants[name] = vt.MultiValuedVariant.from_node_dict(
+                    name, values, propagate=propagate
+                )
 
         spec.external_path = None
         spec.external_modules = None

@@ -14,6 +14,7 @@ class Benchmark(CMakePackage):
     git = "https://github.com/google/benchmark.git"
 
     license("Apache-2.0")
+    maintainers("stephenswat")
 
     # first properly installed CMake config packages in
     # 1.2.0 release: https://github.com/google/benchmark/issues/363
@@ -54,6 +55,9 @@ class Benchmark(CMakePackage):
         when="@1.5.4:",
         description="Enable performance counters provided by libpfm",
     )
+    variant(
+        "shared", default=True, sticky=True, description="Build the libraries as shared objects"
+    )
 
     depends_on("cmake@2.8.11:", type="build", when="@:1.1.0")
     depends_on("cmake@2.8.12:", type="build", when="@1.2.0:1.4")
@@ -64,6 +68,7 @@ class Benchmark(CMakePackage):
         # No need for testing for the install
         args = [
             self.define("BENCHMARK_ENABLE_TESTING", False),
+            self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
             self.define_from_variant("BENCHMARK_ENABLE_LIBPFM", "performance_counters"),
         ]
         return args

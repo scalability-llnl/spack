@@ -429,6 +429,8 @@ class Root(CMakePackage):
     # Incompatible variants
     if sys.platform == "darwin":
         conflicts("+opengl", when="~x ~aqua", msg="root+opengl requires X or Aqua")
+        # https://github.com/root-project/root/issues/7160
+        conflicts("+aqua", when="~opengl", msg="+aqua requires OpenGL to be enabled")
     else:
         conflicts("+opengl", when="~x", msg="root+opengl requires X")
     conflicts("+math", when="~gsl", msg="root+math requires GSL")
@@ -632,7 +634,7 @@ class Root(CMakePackage):
             define("builtin_freetype", False),
             define("builtin_ftgl", False),
             define("builtin_gl2ps", False),
-            define("builtin_glew", self.spec.satisfies("platform=darwin")),
+            define("builtin_glew", False),
             define("builtin_gsl", False),
             define("builtin_llvm", True),
             define("builtin_lz4", self.spec.satisfies("@6.12.02:6.12")),
