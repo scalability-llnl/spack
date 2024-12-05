@@ -60,10 +60,10 @@ class Nim(Package):
     depends_on("cxx", type="build")  # generated
 
     depends_on("gmake", type="build", when="@devel,0.20:")
-    depends_on("pcre", type="run")
-    depends_on("openssl", type="run")
-    depends_on("openssl@0:3", type="run", when="@0:1.6.10")
-    depends_on("sqlite@3:", type="run", when="+sqlite")
+    depends_on("pcre", type=("link", "run"))
+    depends_on("openssl", type=("link", "run"))
+    depends_on("openssl@0:3", type=("link", "run"), when="@0:1.6.10")
+    depends_on("sqlite@3:", type=("link", "run"), when="+sqlite")
 
     # CVE-2021-46872
     patch("rst_sanitize_image_links-1.4.patch", when="@1.4.0:1.4.10")
@@ -85,7 +85,7 @@ class Nim(Package):
 
     def patch(self):
         """Hardcode dependency dynamic library paths into
-        wrapper modules."""
+        wrapper modules using rpath."""
 
         def append_rpath(path, libdirs):
             """Add a pragma at the end of the file which passes
