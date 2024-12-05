@@ -54,7 +54,7 @@ class Nim(Package):
             "0.19.6", sha256="a09f0c58d29392434d4fd6d15d4059cf7e013ae948413cb9233b8233d67e3a29"
         )
 
-    variant("sqlite", default=True, when="@:2.0", description="Install SQLite for std/db_sqlite")
+    variant("sqlite", default=True, when="@0:2.0", description="Install SQLite for std/db_sqlite")
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
@@ -62,13 +62,13 @@ class Nim(Package):
     depends_on("gmake", type="build", when="@devel,0.20:")
     depends_on("pcre", type="run")
     depends_on("openssl", type="run")
-    depends_on("openssl@:3", type="run", when="@:1.6.10")
+    depends_on("openssl@0:3", type="run", when="@0:1.6.10")
     depends_on("sqlite@3:", type="run", when="+sqlite")
 
     patch("rst_sanitize_image_links-1.4.patch", when="@1.4.0:1.4.10")  # CVE-2021-46872
     patch("httpclient_ssl_default-1.4.patch", when="@1.4.0:1.4.4")  # CVE-2021-21374
-    patch("nimble_https_fallback.patch", when="@:1.2.10,1.4.0:1.4.4")  # CVE-2021-21373
-    patch("nimble_quote_doCmd.patch", when="@:1.2.10,1.4.0:1.4.4")  # CVE-2021-21372
+    patch("nimble_https_fallback.patch", when="@0:1.2.10,1.4.0:1.4.4")  # CVE-2021-21373
+    patch("nimble_quote_doCmd.patch", when="@0:1.2.10,1.4.0:1.4.4")  # CVE-2021-21372
 
     resource(
         name="csources_v2",
