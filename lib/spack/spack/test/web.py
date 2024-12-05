@@ -14,7 +14,6 @@ import pytest
 import llnl.util.tty as tty
 
 import spack.config
-import spack.mirror
 import spack.mirrors.mirror
 import spack.paths
 import spack.url

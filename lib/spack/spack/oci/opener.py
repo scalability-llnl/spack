@@ -20,7 +20,6 @@ from urllib.request import Request
 import llnl.util.lang
 
 import spack.config
-import spack.mirror
 import spack.mirrors.mirror
 import spack.parser
 import spack.util.web

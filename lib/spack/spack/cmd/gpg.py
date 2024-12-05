@@ -8,7 +8,6 @@ import os
 import tempfile
 
 import spack.binary_distribution
-import spack.mirror
 import spack.mirrors.mirror
 import spack.paths
 import spack.stage

@@ -9,7 +9,6 @@ import os.path
 import pytest
 
 import spack.binary_distribution as bd
-import spack.mirror
 import spack.mirrors.mirror
 import spack.spec
 from spack.installer import PackageInstaller

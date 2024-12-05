@@ -14,8 +14,8 @@ from llnl.util.symlink import resolve_link_target_relative_to_the_link
 import spack.caches
 import spack.config
 import spack.fetch_strategy
-import spack.mirror
 import spack.mirrors.mirror
+import spack.mirrors.utils
 import spack.patch
 import spack.stage
 import spack.util.executable
@@ -61,7 +61,7 @@ def check_mirror():
         with spack.config.override("mirrors", mirrors):
             with spack.config.override("config:checksum", False):
                 specs = [Spec(x).concretized() for x in repos]
-                spack.mirror.create(mirror_root, specs)
+                spack.mirrors.utils.create(mirror_root, specs)
 
             # Stage directory exists
             assert os.path.isdir(mirror_root)
@@ -69,7 +69,7 @@ def check_mirror():
             for spec in specs:
                 fetcher = spec.package.fetcher
                 per_package_ref = os.path.join(spec.name, "-".join([spec.name, str(spec.version)]))
-                mirror_layout = spack.mirror.default_mirror_layout(fetcher, per_package_ref)
+                mirror_layout = spack.mirrors.utils.default_mirror_layout(fetcher, per_package_ref)
                 expected_path = os.path.join(mirror_root, mirror_layout.path)
                 assert os.path.exists(expected_path)
 
@@ -212,7 +212,7 @@ def test_invalid_json_mirror_collection(invalid_json, error_message):
 def test_mirror_archive_paths_no_version(mock_packages, mock_archive):
     spec = Spec("trivial-install-test-package@=nonexistingversion").concretized()
     fetcher = spack.fetch_strategy.URLFetchStrategy(url=mock_archive.url)
-    spack.mirror.default_mirror_layout(fetcher, "per-package-ref", spec)
+    spack.mirrors.utils.default_mirror_layout(fetcher, "per-package-ref", spec)
 
 
 def test_mirror_with_url_patches(mock_packages, monkeypatch):
@@ -245,10 +245,10 @@ def test_mirror_with_url_patches(mock_packages, monkeypatch):
         monkeypatch.setattr(spack.fetch_strategy.URLFetchStrategy, "expand", successful_expand)
         monkeypatch.setattr(spack.patch, "apply_patch", successful_apply)
         monkeypatch.setattr(spack.caches.MirrorCache, "store", record_store)
-        monkeypatch.setattr(spack.mirror.DefaultLayout, "make_alias", successful_make_alias)
+        monkeypatch.setattr(spack.mirrors.utils.DefaultLayout, "make_alias", successful_make_alias)
 
         with spack.config.override("config:checksum", False):
-            spack.mirror.create(mirror_root, list(spec.traverse()))
+            spack.mirrors.utils.create(mirror_root, list(spec.traverse()))
 
         assert {
             "abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234",
@@ -275,7 +275,7 @@ def test_mirror_layout_make_alias(tmpdir):
     alias = os.path.join("zlib", "zlib-1.2.11.tar.gz")
     path = os.path.join("_source-cache", "archive", "c3", "c3e5.tar.gz")
     cache = spack.caches.MirrorCache(root=str(tmpdir), skip_unstable_versions=False)
-    layout = spack.mirror.DefaultLayout(alias, path)
+    layout = spack.mirrors.utils.DefaultLayout(alias, path)
 
     cache.store(MockFetcher(), layout.path)
     layout.make_alias(cache.root)
@@ -295,7 +295,7 @@ def test_mirror_layout_make_alias(tmpdir):
 )
 def test_get_all_versions(specs, expected_specs):
     specs = [Spec(s) for s in specs]
-    output_list = spack.mirror.get_all_versions(specs)
+    output_list = spack.mirrors.utils.get_all_versions(specs)
     output_list = [str(x) for x in output_list]
     # Compare sets since order is not important
     assert set(output_list) == set(expected_specs)

@@ -32,7 +32,6 @@ import spack.config
 import spack.fetch_strategy
 import spack.hooks.sbang as sbang
 import spack.main
-import spack.mirror
 import spack.mirrors.mirror
 import spack.paths
 import spack.spec

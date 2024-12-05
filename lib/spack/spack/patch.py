@@ -16,8 +16,8 @@ from llnl.url import allowed_archive
 import spack
 import spack.error
 import spack.fetch_strategy
-import spack.mirror
 import spack.mirrors.mirror
+import spack.mirrors.utils
 import spack.repo
 import spack.stage
 import spack.util.spack_json as sjson
@@ -330,7 +330,7 @@ class UrlPatch(Patch):
         name = "{0}-{1}".format(os.path.basename(self.url), fetch_digest[:7])
 
         per_package_ref = os.path.join(self.owner.split(".")[-1], name)
-        mirror_ref = spack.mirror.default_mirror_layout(fetcher, per_package_ref)
+        mirror_ref = spack.mirrors.utils.default_mirror_layout(fetcher, per_package_ref)
         self._stage = spack.stage.Stage(
             fetcher,
             name=f"{spack.stage.stage_prefix}patch-{fetch_digest}",

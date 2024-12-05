@@ -6,7 +6,6 @@
 import llnl.util.tty as tty
 
 import spack.binary_distribution as bindist
-import spack.mirror
 import spack.mirrors.mirror
 
 

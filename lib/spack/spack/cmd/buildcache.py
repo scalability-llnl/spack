@@ -21,7 +21,6 @@ import spack.config
 import spack.deptypes as dt
 import spack.environment as ev
 import spack.error
-import spack.mirror
 import spack.mirrors.mirror
 import spack.oci.oci
 import spack.spec

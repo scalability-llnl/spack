@@ -37,7 +37,6 @@ from llnl.util.lang import GroupedExceptionHandler
 import spack.binary_distribution
 import spack.config
 import spack.detection
-import spack.mirror
 import spack.mirrors.mirror
 import spack.platforms
 import spack.spec

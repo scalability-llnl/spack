@@ -20,7 +20,6 @@ import spack.cmd.buildcache as buildcache
 import spack.config as cfg
 import spack.environment as ev
 import spack.hash_types as ht
-import spack.mirror
 import spack.mirrors.mirror
 import spack.util.gpg as gpg_util
 import spack.util.timer as timer

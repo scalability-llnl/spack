@@ -37,8 +37,8 @@ import spack.concretize
 import spack.config as cfg
 import spack.error
 import spack.main
-import spack.mirror
 import spack.mirrors.mirror
+import spack.mirrors.utils
 import spack.paths
 import spack.repo
 import spack.spec
@@ -1344,7 +1344,7 @@ def remove_other_mirrors(mirrors_to_keep, scope=None):
             mirrors_to_remove.append(name)
 
     for mirror_name in mirrors_to_remove:
-        spack.mirror.remove(mirror_name, scope)
+        spack.mirrors.utils.remove(mirror_name, scope)
 
 
 def copy_files_to_artifacts(src, artifacts_dir):

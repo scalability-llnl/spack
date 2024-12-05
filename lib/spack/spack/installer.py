@@ -56,7 +56,6 @@ import spack.database
 import spack.deptypes as dt
 import spack.error
 import spack.hooks
-import spack.mirror
 import spack.mirrors.mirror
 import spack.package_base
 import spack.package_prefs as prefs

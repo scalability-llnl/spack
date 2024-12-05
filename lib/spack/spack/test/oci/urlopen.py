@@ -14,7 +14,6 @@ from urllib.request import Request
 
 import pytest
 
-import spack.mirror
 import spack.mirrors.mirror
 from spack.oci.image import Digest, ImageReference, default_config, default_manifest
 from spack.oci.oci import (

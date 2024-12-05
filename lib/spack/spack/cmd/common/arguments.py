@@ -14,8 +14,8 @@ import spack.cmd
 import spack.config
 import spack.deptypes as dt
 import spack.environment as ev
-import spack.mirror
 import spack.mirrors.mirror
+import spack.mirrors.utils
 import spack.reporters
 import spack.spec
 import spack.store
@@ -694,7 +694,7 @@ def mirror_name_or_url(m):
 
     # Otherwise, the named mirror is required to exist.
     try:
-        return spack.mirror.require_mirror_name(m)
+        return spack.mirrors.utils.require_mirror_name(m)
     except ValueError as e:
         raise argparse.ArgumentTypeError(f"{e}. Did you mean {os.path.join('.', m)}?") from e
 
@@ -715,6 +715,6 @@ def mirror_directory(path):
 
 def mirror_name(name):
     try:
-        return spack.mirror.require_mirror_name(name)
+        return spack.mirrors.utils.require_mirror_name(name)
     except ValueError as e:
         raise argparse.ArgumentTypeError(str(e)) from e

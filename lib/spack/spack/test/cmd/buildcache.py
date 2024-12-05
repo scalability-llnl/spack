@@ -16,7 +16,6 @@ import spack.cmd.buildcache
 import spack.environment as ev
 import spack.error
 import spack.main
-import spack.mirror
 import spack.mirrors.mirror
 import spack.spec
 import spack.util.url

@@ -40,7 +40,6 @@ import spack.error
 import spack.hash_types as ht
 import spack.hooks
 import spack.hooks.sbang
-import spack.mirror
 import spack.mirrors.mirror
 import spack.oci.image
 import spack.oci.oci
