@@ -65,10 +65,14 @@ class Nim(Package):
     depends_on("openssl@0:3", type="run", when="@0:1.6.10")
     depends_on("sqlite@3:", type="run", when="+sqlite")
 
-    patch("rst_sanitize_image_links-1.4.patch", when="@1.4.0:1.4.10")  # CVE-2021-46872
-    patch("httpclient_ssl_default-1.4.patch", when="@1.4.0:1.4.4")  # CVE-2021-21374
-    patch("nimble_https_fallback.patch", when="@0:1.2.10,1.4.0:1.4.4")  # CVE-2021-21373
-    patch("nimble_quote_doCmd.patch", when="@0:1.2.10,1.4.0:1.4.4")  # CVE-2021-21372
+    # CVE-2021-46872
+    patch("rst_sanitize_image_links-1.4.patch", when="@1.4.0:1.4.10")
+    # CVE-2021-21374, CVE-2021-29495
+    patch("httpclient_ssl_default-1.4.patch", when="@1.4.0:1.4.4")
+    # CVE-2021-21373
+    patch("nimble_https_fallback.patch", when="@0:1.2.10,1.4.0:1.4.4")
+    # CVE-2021-21372
+    patch("nimble_quote_doCmd.patch", when="@0:1.2.10,1.4.0:1.4.4")
 
     resource(
         name="csources_v2",
