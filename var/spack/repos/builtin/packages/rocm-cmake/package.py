@@ -16,11 +16,11 @@ class RocmCmake(CMakePackage):
     url = "https://github.com/ROCm/rocm-cmake/archive/rocm-6.1.2.tar.gz"
     tags = ["rocm"]
 
-    maintainers("srekolam", "renjithravindrankannath")
+    maintainers("srekolam", "renjithravindrankannath", "afzpatel")
 
     license("MIT")
 
-    version("master", branch="master")
+    version("master", branch="develop")
     version("6.2.1", sha256="5ea05ad58186ac9bac40ab083c1e769a36ecaed950f82e88863169a25bc6ac8f")
     version("6.2.0", sha256="7b6aaa1bb616669636aa2cd5dbc7fdb7cd05642a8dcc61138e0efb7d0dc7e1a3")
     version("6.1.2", sha256="0757bb90f25d6f1e6bc93bdd1e238f76bbaddf154d66f94f37e40c425dc6d259")

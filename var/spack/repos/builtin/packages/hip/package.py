@@ -27,7 +27,7 @@ class Hip(CMakePackage):
 
     license("MIT")
 
-    version("master", branch="master")
+    version("master", branch="amd-staging")
     version("6.2.1", sha256="a8b86666a59867cae67409c4a45e0b8f29a6328c9739e6512c2b5612376f30cf")
     version("6.2.0", sha256="7ca261eba79793427674bf2372c92ac5483cc0fac5278f8ad611de396fad8bee")
     version("6.1.2", sha256="9ba5f70a553b48b2cea25c7e16b97ad49320750c0152763b173b63b9f151e783")
