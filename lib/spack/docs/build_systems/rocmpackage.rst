@@ -1,4 +1,4 @@
-.. Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
    Spack Project Developers. See the top-level COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -81,28 +81,27 @@ class of your package.  For example, you can add it to your
     class MyRocmPackage(CMakePackage, ROCmPackage):
         ...
         # Ensure +rocm and amdgpu_targets are passed to dependencies
-        depends_on('mydeppackage', when='+rocm')
+        depends_on("mydeppackage", when="+rocm")
         for val in ROCmPackage.amdgpu_targets:
-            depends_on('mydeppackage amdgpu_target={0}'.format(val),
-                       when='amdgpu_target={0}'.format(val))
+            depends_on(f"mydeppackage amdgpu_target={val}",
+                       when=f"amdgpu_target={val}")
         ...
 
         def cmake_args(self):
             spec = self.spec
             args = []
             ...
-            if '+rocm' in spec:
+            if spec.satisfies("+rocm"):
                 # Set up the hip macros needed by the build
                 args.extend([
-                    '-DENABLE_HIP=ON',
-                    '-DHIP_ROOT_DIR={0}'.format(spec['hip'].prefix)])
-                rocm_archs = spec.variants['amdgpu_target'].value
-                if 'none' not in rocm_archs:
-                    args.append('-DHIP_HIPCC_FLAGS=--amdgpu-target={0}'
-                                .format(",".join(rocm_archs)))
+                    "-DENABLE_HIP=ON",
+                    f"-DHIP_ROOT_DIR={spec['hip'].prefix}"])
+                rocm_archs = spec.variants["amdgpu_target"].value
+                if "none" not in rocm_archs:
+                    args.append(f"-DHIP_HIPCC_FLAGS=--amdgpu-target={','.join(rocm_archs}")
             else:
                 # Ensure build with hip is disabled
-                args.append('-DENABLE_HIP=OFF')
+                args.append("-DENABLE_HIP=OFF")
             ...
             return args
         ...
@@ -114,7 +113,7 @@ build.
 
 This example also illustrates how to check for the ``rocm`` variant using
 ``self.spec`` and how to retrieve the ``amdgpu_target`` variant's value
-using ``self.spec.variants['amdgpu_target'].value``.
+using ``self.spec.variants["amdgpu_target"].value``.
 
 All five packages using ``ROCmPackage`` as of January 2021 also use the
 :ref:`CudaPackage <cudapackage>`. So it is worth looking at those packages

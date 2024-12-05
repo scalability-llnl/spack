@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class PacbioDazzDb(MakefilePackage):
     git = "https://github.com/PacificBiosciences/DAZZ_DB.git"
 
     version("2017-04-10", commit="f29d27d51f460563481cd227d17f4bdc5e288365")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("gmake", type="build")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,8 +16,12 @@ class Piranha(CMakePackage):
     url = "https://github.com/bluescarni/piranha/archive/v0.5.tar.gz"
     git = "https://github.com/bluescarni/piranha.git"
 
+    license("LGPL-3.0-or-later")
+
     version("develop", branch="master")
     version("0.5", sha256="34a89bda8208ff48cfb116efa7d53c09e8a9b3838af4bb96ba2e19e4930b3a58")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("python", default=True, description="Build the Python bindings")
 

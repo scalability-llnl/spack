@@ -1,0 +1,37 @@
+diff --git a/include/mod_mpi.h b/include/mod_mpi.h
+index 135a558..00b5382 100755
+--- a/include/mod_mpi.h
++++ b/include/mod_mpi.h
+@@ -316,8 +316,6 @@ extern char* ipm_mpi_op[MAXNUM_MPI_OPS];
+ #define IPM_MPI_2INTEGER                34
+ #define IPM_MPI_2REAL                   35
+ #define IPM_MPI_2DOUBLE_PRECISION       36
+-#define IPM_MPI_2COMPLEX                37
+-#define IPM_MPI_2DOUBLE_COMPLEX         38
+ 
+ extern char* ipm_mpi_type[MAXNUM_MPI_TYPES];
+ 
+@@ -380,8 +378,6 @@ extern char* ipm_mpi_type[MAXNUM_MPI_TYPES];
+     else if( mpitype==MPI_2INTEGER )          ipmtype=IPM_MPI_2INTEGER;	\
+     else if( mpitype==MPI_2REAL )             ipmtype=IPM_MPI_2REAL;		\
+     else if( mpitype==MPI_2DOUBLE_PRECISION ) ipmtype=IPM_MPI_2DOUBLE_PRECISION; \
+-    else if( mpitype==MPI_2COMPLEX )          ipmtype=IPM_MPI_2COMPLEX;	\
+-    else if( mpitype==MPI_2DOUBLE_COMPLEX )   ipmtype=IPM_MPI_2DOUBLE_COMPLEX;	\
+     else ipmtype=0;							\
+   }
+ 
+diff --git a/src/mod_mpi.c b/src/mod_mpi.c
+index 00ca4ab..d91e853 100755
+--- a/src/mod_mpi.c
++++ b/src/mod_mpi.c
+@@ -94,8 +94,6 @@ int mod_mpi_init(ipm_mod_t* mod, int flags)
+   ipm_mpi_type[IPM_MPI_2INTEGER] = "MPI_2INTEGER";
+   ipm_mpi_type[IPM_MPI_2REAL]    = "MPI_2REAL";
+   ipm_mpi_type[IPM_MPI_2DOUBLE_PRECISION] = "MPI_2DOUBLE_PRECISION";
+-  ipm_mpi_type[IPM_MPI_2COMPLEX]  = "MPI_2COMPLEX";
+-  ipm_mpi_type[IPM_MPI_2DOUBLE_COMPLEX] = "MPI_2DOUBLE_COMPLEX";
+ 
+   mod->state    = STATE_ACTIVE;
+   return IPM_OK;
+
+

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -28,3 +28,6 @@ class Heppdt(AutotoolsPackage):
         sha256="12a1b6ffdd626603fa3b4d70f44f6e95a36f8f3b6d4fd614bac14880467a2c2e",
         preferred=True,
     )
+
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated

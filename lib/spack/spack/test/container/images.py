@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -7,13 +7,14 @@ import os.path
 import pytest
 
 import spack.container
+import spack.container.images
 
 
 @pytest.mark.parametrize(
     "image,spack_version,expected",
     [
-        ("ubuntu:18.04", "develop", ("spack/ubuntu-bionic", "latest")),
-        ("ubuntu:18.04", "0.14.0", ("spack/ubuntu-bionic", "0.14.0")),
+        ("ubuntu:22.04", "develop", ("spack/ubuntu-jammy", "develop")),
+        ("ubuntu:22.04", "0.14.0", ("spack/ubuntu-jammy", "0.14.0")),
     ],
 )
 def test_build_info(image, spack_version, expected):
@@ -21,7 +22,7 @@ def test_build_info(image, spack_version, expected):
     assert output == expected
 
 
-@pytest.mark.parametrize("image", ["ubuntu:18.04"])
+@pytest.mark.parametrize("image", ["ubuntu:22.04"])
 def test_package_info(image):
     pkg_manager = spack.container.images.os_package_manager_for(image)
     update, install, clean = spack.container.images.commands_for(pkg_manager)

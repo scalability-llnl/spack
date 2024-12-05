@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,10 +12,12 @@ class KaksCalculator(MakefilePackage, SourceforgePackage):
     include as many features as needed for accurately capturing evolutionary
     information in protein-coding sequences."""
 
-    homepage = "https://sourceforge.net/projects/kakscalculator2"
+    homepage = "https://sourceforge.net/projects/kakscalculator2/"
     sourceforge_mirror_path = "kakscalculator2/KaKs_Calculator2.0.tar.gz"
 
     version("2.0", sha256="e2df719a2fecc549d8ddc4e6d8f5cfa4b248282dca319c1928eaf886d68ec3c5")
+
+    depends_on("cxx", type="build")  # generated
 
     build_directory = "src"
 

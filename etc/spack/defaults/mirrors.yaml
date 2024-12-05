@@ -1,2 +1,4 @@
 mirrors:
-  spack-public: https://mirror.spack.io
+  spack-public:
+    binary: false
+    url: https://mirror.spack.io

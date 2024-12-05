@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class Mesquite(AutotoolsPackage):
 
     homepage = "https://software.sandia.gov/mesquite"
     url = "https://software.sandia.gov/mesquite/mesquite-2.3.0.tar.gz"
+
+    license("LGPL-2.1-or-later")
 
     version("2.99", sha256="7d834dbcc3132d903dbecb59337dc5b47505b7fb579b68f1ce66e5df87106954")
     version("2.3.0", sha256="4ab4ceadfa596e16c00dbb0e8b830a9112fa1b73291ca07633ec379a39b8bb28")

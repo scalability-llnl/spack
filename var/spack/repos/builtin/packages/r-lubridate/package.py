@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,10 @@ class RLubridate(RPackage):
 
     cran = "lubridate"
 
+    license("GPL-2.0-or-later")
+
+    version("1.9.3", sha256="2b6e1406d231b0a14d60b99cc406d159fea5465a5694725ad25343f12cf37fff")
+    version("1.9.2", sha256="8976431a4affe989261cbaa5e09cd44bb42a3b16eed59a42c1698da34c6544a7")
     version("1.9.0", sha256="b936041f8a71894ef930cfff61b45833e0dd148b5b16697f4f541d25b31a903a")
     version("1.8.0", sha256="87d66efdb1f3d680db381d7e40a202d35645865a0542e2f270ef008a19002ba5")
     version("1.7.9.2", sha256="ee6a2d68faca51646477acd1898ba774bf2b6fd474a0abf351b16aa5e7a3db79")
@@ -33,5 +37,5 @@ class RLubridate(RPackage):
     depends_on("r-rcpp@0.12.13:", type=("build", "run"), when="@:1.7")
     depends_on("r-timechange@0.1.1:", type=("build", "run"), when="@1.9.0:")
     depends_on("r-stringr", type=("build", "run"), when="@:1.7.4")
-    depends_on("r-cpp11@0.2.7:", type=("build", "run"), when="@1.8:")
-    depends_on("r-cpp11", when="@:1.8.0")
+    depends_on("r-cpp11", type=("build", "run"), when="@:1.8.0")
+    depends_on("r-cpp11@0.2.7:", type=("build", "run"), when="@1.8.0")

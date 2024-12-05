@@ -1,0 +1,10 @@
+--- src/kmers.h	2018-01-04 03:52:20.000000000 +0000
++++ src/kmers.h.patched	2023-09-04 13:19:09.206573971 +0100
+@@ -17,6 +17,7 @@
+ #define KMERS_H
+ 
+ 
++#include <cstdint>
+ #include <string>
+ #include <vector>
+ #include <unordered_set>

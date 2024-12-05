@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,9 @@ class MongoCxxDriver(CMakePackage):
     url = "https://github.com/mongodb/mongo-cxx-driver/releases/download/r3.7.0/mongo-cxx-driver-r3.7.0.tar.gz"
     git = "https://github.com/mongodb/mongo-cxx-driver"
 
+    license("Apache-2.0")
+
+    version("3.10.1", sha256="0297d9d1a513f09438cc05254b14baa49edd1fa64a6ce5d7a80a1eb7677cf2be")
     version("3.7.0", sha256="fb2da11178db728f63147fe4b0c7509eb49b1b02c5cb55f9bee5f927e451a0c7")
     version("3.6.7", sha256="2c58005d4fe46f1973352fba821f7bb37e818cefc922377ce979a9fd1bff38ac")
     version("3.6.6", sha256="d5906b9e308a8a353a2ef92b699c9b27ae28ec6b34fdda94e15d2981b27e64ca")
@@ -34,10 +37,12 @@ class MongoCxxDriver(CMakePackage):
     version("3.2.1", sha256="d5e62797cbc48c6e5e18bc0a66c14556e78871d05db4bccc295074af51b8421e")
     version("3.2.0", sha256="e26edd44cf20bd6be91907403b6d63a065ce95df4c61565770147a46716aad8c")
 
+    depends_on("cxx", type="build")  # generated
+
+    depends_on("mongo-c-driver@1.9.2:")
+
     def url_for_version(self, version):
         git_archive = self.git + "/archive/refs/tags/r{version}.tar.gz"
         release_url = self.git + "/releases/download/r{version}/mongo-cxx-driver-r{version}.tar.gz"
-        template_url = release_url if version >= Version("3.6.0") else git_archive
+        template_url = release_url if self.spec.satisfies("@3.6.0:") else git_archive
         return template_url.format(version=version)
-
-    depends_on("mongo-c-driver@1.9.2:")

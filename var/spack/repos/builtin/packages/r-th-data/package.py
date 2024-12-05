@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,7 @@ class RThData(RPackage):
 
     cran = "TH.data"
 
+    version("1.1-2", sha256="47f94eb57b6fcef42efa30824c1356bf10529c4b94b0d0acdb787b434dddde73")
     version("1.1-1", sha256="edf3ab16b142f4c52d21fc64e41409ed138e5b3e142f2fae964b00f02d53dd7a")
     version("1.1-0", sha256="21b37e251da5635ae91668f64b4c6f6a7ccedbe1f01af769d30fb532af83113e")
     version("1.0-10", sha256="618a1c67a30536d54b1e48ba3af46a6edcd6c2abef17935b5d4ba526a43aff55")

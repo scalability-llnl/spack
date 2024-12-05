@@ -1,0 +1,45 @@
+From c4930c939cc1c8b4c6122b1e9530942ecd517fb2 Mon Sep 17 00:00:00 2001
+From: Afzal Patel <Afzal.Patel@amd.com>
+Date: Tue, 17 Sep 2024 19:33:51 +0000
+Subject: [PATCH] Find individual ROCm dependencies
+
+---
+ cmake/onnxruntime_providers_rocm.cmake | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/cmake/onnxruntime_providers_rocm.cmake b/cmake/onnxruntime_providers_rocm.cmake
+index b662682915..2e9574c04d 100644
+--- a/cmake/onnxruntime_providers_rocm.cmake
++++ b/cmake/onnxruntime_providers_rocm.cmake
+@@ -11,6 +11,12 @@
+   find_package(rocblas REQUIRED)
+   find_package(MIOpen REQUIRED)
+   find_package(hipfft REQUIRED)
++  find_package(rocrand REQUIRED)
++  find_package(hipsparse REQUIRED)
++  find_package(hipcub REQUIRED)
++  find_package(rocprim REQUIRED)
++  find_package(rocthrust REQUIRED)
++  find_package(hipblas REQUIRED)
+
+   # MIOpen version
+   if(NOT DEFINED ENV{MIOPEN_PATH})
+@@ -147,7 +153,14 @@
+       ${eigen_INCLUDE_DIRS}
+     PUBLIC
+       ${onnxruntime_ROCM_HOME}/include
+-      ${onnxruntime_ROCM_HOME}/include/roctracer)
++      ${onnxruntime_ROCM_HOME}/include/roctracer
++      ${HIPRAND_INCLUDE_DIR}
++      ${ROCRAND_INCLUDE_DIR}
++      ${HIPSPARSE_INCLUDE_DIR}
++      ${HIPCUB_INCLUDE_DIR}
++      ${ROCPRIM_INCLUDE_DIR}
++      ${ROCTHRUST_INCLUDE_DIR}
++      ${HIPBLAS_INCLUDE_DIR})
+
+   set_target_properties(onnxruntime_providers_rocm PROPERTIES LINKER_LANGUAGE CXX)
+   set_target_properties(onnxruntime_providers_rocm PROPERTIES FOLDER "ONNXRuntime")
+--
+2.43.5
+

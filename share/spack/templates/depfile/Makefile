@@ -1,4 +1,4 @@
-SPACK ?= spack
+SPACK ?= {{ spack_script }} -c config:install_status:false
 SPACK_INSTALL_FLAGS ?=
 
 # This variable can be used to add post install hooks
@@ -8,7 +8,7 @@ SPACK_INSTALL_FLAGS ?=
 
 {{ all_target }}: {{ env_target }}
 
-{{ env_target }}: {{ root_install_targets }}
+{{ env_target }}: {{ root_install_targets }} | {{ dirs_target }}
 	@touch $@
 
 {{ dirs_target }}:

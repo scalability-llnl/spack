@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -8,7 +8,39 @@ import os
 from spack.package import *
 
 
-class Dihydrogen(CMakePackage, CudaPackage, ROCmPackage):
+# This is a hack to get around some deficiencies in Hydrogen.
+def get_blas_entries(inspec):
+    entries = []
+    spec = inspec["hydrogen"]
+    if spec.satisfies("blas=openblas"):
+        entries.append(cmake_cache_option("DiHydrogen_USE_OpenBLAS", True))
+    elif "blas=mkl" in spec or spec.satisfies("^intel-mkl"):
+        entries.append(cmake_cache_option("DiHydrogen_USE_MKL", True))
+    elif "blas=essl" in spec or spec.satisfies("^essl"):
+        entries.append(cmake_cache_string("BLA_VENDOR", "IBMESSL"))
+        # IF IBM ESSL is used it needs help finding the proper LAPACK libraries
+        entries.append(
+            cmake_cache_string(
+                "LAPACK_LIBRARIES",
+                "%s;-llapack;-lblas"
+                % ";".join("-l{0}".format(lib) for lib in self.spec["essl"].libs.names),
+            )
+        )
+        entries.append(
+            cmake_cache_string(
+                "BLAS_LIBRARIES",
+                "%s;-lblas"
+                % ";".join("-l{0}".format(lib) for lib in self.spec["essl"].libs.names),
+            )
+        )
+    elif spec.satisfies("blas=accelerate"):
+        entries.append(cmake_cache_option("DiHydrogen_USE_ACCELERATE", True))
+    elif spec.satisfies("^netlib-lapack"):
+        entries.append(cmake_cache_string("BLA_VENDOR", "Generic"))
+    return entries
+
+
+class Dihydrogen(CachedCMakePackage, CudaPackage, ROCmPackage):
     """DiHydrogen is the second version of the Hydrogen fork of the
     well-known distributed linear algebra library,
     Elemental. DiHydrogen aims to be a basic distributed
@@ -20,117 +52,183 @@ class Dihydrogen(CMakePackage, CudaPackage, ROCmPackage):
     git = "https://github.com/LLNL/DiHydrogen.git"
     tags = ["ecp", "radiuss"]
 
-    maintainers("bvanessen")
+    maintainers("benson31", "bvanessen")
+
+    license("Apache-2.0")
 
     version("develop", branch="develop")
     version("master", branch="master")
 
-    version("0.2.1", sha256="11e2c0f8a94ffa22e816deff0357dde6f82cc8eac21b587c800a346afb5c49ac")
-    version("0.2.0", sha256="e1f597e80f93cf49a0cb2dbc079a1f348641178c49558b28438963bd4a0bdaa4")
-    version("0.1", sha256="171d4b8adda1e501c38177ec966e6f11f8980bf71345e5f6d87d0a988fef4c4e")
+    version("0.3.0", sha256="8dd143441a28e0c7662cd92694e9a4894b61fd48508ac1d77435f342bc226dcf")
 
-    variant("al", default=True, description="Builds with Aluminum communication library")
+    depends_on("cxx", type="build")  # generated
+
+    # Primary features
+
+    variant("dace", default=False, sticky=True, description="Enable DaCe backend.")
+
+    variant(
+        "distconv",
+        default=False,
+        sticky=True,
+        description="Enable (legacy) Distributed Convolution support.",
+    )
+
+    variant(
+        "nvshmem",
+        default=False,
+        sticky=True,
+        description="Enable support for NVSHMEM-based halo exchanges.",
+        when="+distconv",
+    )
+
+    variant(
+        "shared", default=True, sticky=True, description="Enables the build of shared libraries"
+    )
+
+    # Some features of developer interest
+
     variant(
         "developer",
         default=False,
         description="Enable extra warnings and force tests to be enabled.",
     )
-    variant("half", default=False, description="Enable FP16 support on the CPU.")
+
+    variant("ci", default=False, description="Use default options for CI builds")
+
     variant(
-        "distconv",
+        "coverage",
         default=False,
-        description="Support distributed convolutions: spatial, channel, " "filter.",
+        description="Decorate build with code coverage instrumentation options",
+        when="%gcc",
     )
-    variant("nvshmem", default=False, description="Builds with support for NVSHMEM")
-    variant("openmp", default=False, description="Enable CPU acceleration with OpenMP threads.")
-    variant("rocm", default=False, description="Enable ROCm/HIP language features.")
-    variant("shared", default=True, description="Enables the build of shared libraries")
-
-    # Variants related to BLAS
     variant(
-        "openmp_blas", default=False, description="Use OpenMP for threading in the BLAS library"
+        "coverage",
+        default=False,
+        description="Decorate build with code coverage instrumentation options",
+        when="%clang",
     )
-    variant("int64_blas", default=False, description="Use 64bit integers for BLAS.")
     variant(
-        "blas",
-        default="openblas",
-        values=("openblas", "mkl", "accelerate", "essl", "libsci"),
-        description="Enable the use of OpenBlas/MKL/Accelerate/ESSL/LibSci",
+        "coverage",
+        default=False,
+        description="Decorate build with code coverage instrumentation options",
+        when="%rocmcc",
     )
 
-    conflicts("~cuda", when="+nvshmem")
+    # Package conflicts and requirements
 
-    depends_on("mpi")
-    depends_on("catch2", type="test")
+    conflicts("+nvshmem", when="~cuda", msg="NVSHMEM requires CUDA support.")
 
-    # Specify the correct version of Aluminum
-    depends_on("aluminum@0.4.0:0.4", when="@0.1 +al")
-    depends_on("aluminum@0.5.0:0.5", when="@0.2.0 +al")
-    depends_on("aluminum@0.7.0:0.7", when="@0.2.1 +al")
-    depends_on("aluminum@0.7.0:", when="@:0.0,0.2.1: +al")
+    conflicts("+cuda", when="+rocm", msg="CUDA and ROCm are mutually exclusive.")
 
-    # Add Aluminum variants
-    depends_on("aluminum +cuda +nccl +cuda_rma", when="+al +cuda")
-    depends_on("aluminum +rocm +rccl", when="+al +rocm")
-    depends_on("aluminum +ht", when="+al +distconv")
+    requires(
+        "+cuda",
+        "+rocm",
+        when="+distconv",
+        policy="any_of",
+        msg="DistConv support requires CUDA or ROCm.",
+    )
 
-    for arch in CudaPackage.cuda_arch_values:
-        depends_on("aluminum cuda_arch=%s" % arch, when="+al +cuda cuda_arch=%s" % arch)
-        depends_on("nvshmem cuda_arch=%s" % arch, when="+nvshmem +cuda cuda_arch=%s" % arch)
+    # Dependencies
 
-    # variants +rocm and amdgpu_targets are not automatically passed to
-    # dependencies, so do it manually.
-    for val in ROCmPackage.amdgpu_targets:
-        depends_on("aluminum amdgpu_target=%s" % val, when="amdgpu_target=%s" % val)
+    depends_on("catch2@3.0.1:", type=("build", "test"), when="+developer")
+    depends_on("cmake@3.21.0:", type="build")
+    depends_on("cuda@11.0:", when="+cuda")
+    depends_on("spdlog@1.11.0:1.12.0", when="@:0.1,0.2:")
 
-    depends_on("roctracer-dev", when="+rocm +distconv")
+    with when("@0.3.0:"):
+        depends_on("hydrogen +al")
+        for arch in CudaPackage.cuda_arch_values:
+            depends_on(
+                "hydrogen +cuda cuda_arch={0}".format(arch),
+                when="+cuda cuda_arch={0}".format(arch),
+            )
 
-    depends_on("cudnn", when="+cuda")
-    depends_on("cub", when="^cuda@:10")
+        for val in ROCmPackage.amdgpu_targets:
+            depends_on(
+                "hydrogen amdgpu_target={0}".format(val),
+                when="+rocm amdgpu_target={0}".format(val),
+            )
 
-    # Note that #1712 forces us to enumerate the different blas variants
-    depends_on("openblas", when="blas=openblas")
-    depends_on("openblas +ilp64", when="blas=openblas +int64_blas")
-    depends_on("openblas threads=openmp", when="blas=openblas +openmp_blas")
+    with when("+distconv"):
+        depends_on("mpi")
 
-    depends_on("intel-mkl", when="blas=mkl")
-    depends_on("intel-mkl +ilp64", when="blas=mkl +int64_blas")
-    depends_on("intel-mkl threads=openmp", when="blas=mkl +openmp_blas")
+        # All this nonsense for one silly little package.
+        depends_on("aluminum@1.4.1:")
 
-    depends_on("veclibfort", when="blas=accelerate")
-    conflicts("blas=accelerate +openmp_blas")
+        # Add Aluminum variants
+        depends_on("aluminum +cuda +nccl", when="+distconv +cuda")
+        depends_on("aluminum +rocm +nccl", when="+distconv +rocm")
 
-    depends_on("essl", when="blas=essl")
-    depends_on("essl +ilp64", when="blas=essl +int64_blas")
-    depends_on("essl threads=openmp", when="blas=essl +openmp_blas")
-    depends_on("netlib-lapack +external-blas", when="blas=essl")
+        # TODO: Debug linker errors when NVSHMEM is built with UCX
+        depends_on("nvshmem +nccl~ucx", when="+nvshmem")
 
-    depends_on("cray-libsci", when="blas=libsci")
-    depends_on("cray-libsci +openmp", when="blas=libsci +openmp_blas")
+        # OMP support is only used in DistConv, and only Apple needs
+        # hand-holding with it.
+        depends_on("llvm-openmp", when="%apple-clang")
+        # FIXME: when="platform=darwin"??
 
-    # Distconv builds require cuda or rocm
-    conflicts("+distconv", when="~cuda ~rocm")
+        # CUDA/ROCm arch forwarding
 
-    conflicts("+distconv", when="+half")
-    conflicts("+rocm", when="+half")
+        for arch in CudaPackage.cuda_arch_values:
+            depends_on(
+                "aluminum +cuda cuda_arch={0}".format(arch),
+                when="+cuda cuda_arch={0}".format(arch),
+            )
 
-    depends_on("half", when="+half")
+            # This is a workaround for a bug in the Aluminum package,
+            # as it should be responsible for its own NCCL dependency.
+            # Rather than failing to concretize, we help it along.
+            depends_on(
+                "nccl cuda_arch={0}".format(arch),
+                when="+distconv +cuda cuda_arch={0}".format(arch),
+            )
 
-    generator("ninja")
-    depends_on("cmake@3.17.0:", type="build")
+            # NVSHMEM also needs arch forwarding
+            depends_on(
+                "nvshmem +cuda cuda_arch={0}".format(arch),
+                when="+nvshmem +cuda cuda_arch={0}".format(arch),
+            )
 
-    depends_on("spdlog", when="@:0.1,0.2:")
+        # Idenfity versions of cuda_arch that are too old from
+        # lib/spack/spack/build_systems/cuda.py. We require >=60.
+        illegal_cuda_arch_values = [
+            "10",
+            "11",
+            "12",
+            "13",
+            "20",
+            "21",
+            "30",
+            "32",
+            "35",
+            "37",
+            "50",
+            "52",
+            "53",
+        ]
+        for value in illegal_cuda_arch_values:
+            conflicts("cuda_arch=" + value)
 
-    depends_on("llvm-openmp", when="%apple-clang +openmp")
+        for val in ROCmPackage.amdgpu_targets:
+            depends_on(
+                "aluminum amdgpu_target={0}".format(val),
+                when="+rocm amdgpu_target={0}".format(val),
+            )
 
-    # TODO: Debug linker errors when NVSHMEM is built with UCX
-    depends_on("nvshmem +nccl~ucx", when="+nvshmem")
+        # CUDA-specific distconv dependencies
+        depends_on("cudnn", when="+cuda")
 
-    # Idenfity versions of cuda_arch that are too old
-    # from lib/spack/spack/build_systems/cuda.py
-    illegal_cuda_arch_values = ["10", "11", "12", "13", "20", "21"]
-    for value in illegal_cuda_arch_values:
-        conflicts("cuda_arch=" + value)
+        # ROCm-specific distconv dependencies
+        depends_on("hipcub", when="+rocm")
+        depends_on("miopen-hip", when="+rocm")
+        depends_on("roctracer-dev", when="+rocm")
+
+    with when("+ci+coverage"):
+        depends_on("lcov", type=("build", "run"))
+        depends_on("py-gcovr", type=("build", "run"))
+        # Technically it's not used in the build, but CMake sets up a
+        # target, so it needs to be found.
 
     @property
     def libs(self):
@@ -138,104 +236,120 @@ class Dihydrogen(CMakePackage, CudaPackage, ROCmPackage):
         return find_libraries("libH2Core", root=self.prefix, shared=shared, recursive=True)
 
     def cmake_args(self):
+        args = []
+        return args
+
+    def get_cuda_flags(self):
         spec = self.spec
+        args = []
+        if spec.satisfies("^cuda+allow-unsupported-compilers"):
+            args.append("-allow-unsupported-compiler")
 
-        args = [
-            "-DCMAKE_CXX_STANDARD=17",
-            "-DCMAKE_INSTALL_MESSAGE:STRING=LAZY",
-            "-DBUILD_SHARED_LIBS:BOOL=%s" % ("+shared" in spec),
-            "-DH2_ENABLE_ALUMINUM=%s" % ("+al" in spec),
-            "-DH2_ENABLE_CUDA=%s" % ("+cuda" in spec),
-            "-DH2_ENABLE_DISTCONV_LEGACY=%s" % ("+distconv" in spec),
-            "-DH2_ENABLE_OPENMP=%s" % ("+openmp" in spec),
-            "-DH2_ENABLE_FP16=%s" % ("+half" in spec),
-            "-DH2_DEVELOPER_BUILD=%s" % ("+developer" in spec),
-        ]
+        if spec.satisfies("%clang"):
+            for flag in spec.compiler_flags["cxxflags"]:
+                if "gcc-toolchain" in flag:
+                    args.append("-Xcompiler={0}".format(flag))
+        return args
 
-        if spec.version < Version("0.3"):
-            args.append("-DH2_ENABLE_HIP_ROCM=%s" % ("+rocm" in spec))
-        else:
-            args.append("-DH2_ENABLE_ROCM=%s" % ("+rocm" in spec))
+    def initconfig_compiler_entries(self):
+        spec = self.spec
+        entries = super(Dihydrogen, self).initconfig_compiler_entries()
 
-        if not spec.satisfies("^cmake@3.23.0"):
-            # There is a bug with using Ninja generator in this version
-            # of CMake
-            args.append("-DCMAKE_EXPORT_COMPILE_COMMANDS=ON")
+        # FIXME: Enforce this better in the actual CMake.
+        entries.append(cmake_cache_string("CMAKE_CXX_STANDARD", "17"))
+        entries.append(cmake_cache_option("BUILD_SHARED_LIBS", "+shared" in spec))
+        entries.append(cmake_cache_option("CMAKE_EXPORT_COMPILE_COMMANDS", True))
+        entries.append(cmake_cache_option("MPI_ASSUME_NO_BUILTIN_MPI", True))
 
-        if "+cuda" in spec:
-            if self.spec.satisfies("%clang"):
-                for flag in self.spec.compiler_flags["cxxflags"]:
-                    if "gcc-toolchain" in flag:
-                        args.append("-DCMAKE_CUDA_FLAGS=-Xcompiler={0}".format(flag))
-            if spec.satisfies("^cuda@11.0:"):
-                args.append("-DCMAKE_CUDA_STANDARD=17")
-            else:
-                args.append("-DCMAKE_CUDA_STANDARD=14")
-            archs = spec.variants["cuda_arch"].value
-            if archs != "none":
-                arch_str = ";".join(archs)
-                args.append("-DCMAKE_CUDA_ARCHITECTURES=%s" % arch_str)
-
-            if spec.satisfies("%cce") and spec.satisfies("^cuda+allow-unsupported-compilers"):
-                args.append("-DCMAKE_CUDA_FLAGS=-allow-unsupported-compiler")
-
-        if "+cuda" in spec:
-            args.append("-DcuDNN_DIR={0}".format(spec["cudnn"].prefix))
-
-        if spec.satisfies("^cuda@:10"):
-            if "+cuda" in spec or "+distconv" in spec:
-                args.append("-DCUB_DIR={0}".format(spec["cub"].prefix))
-
-        # Add support for OpenMP with external (Brew) clang
-        if spec.satisfies("%clang +openmp platform=darwin"):
+        if spec.satisfies("%clang +distconv platform=darwin"):
             clang = self.compiler.cc
             clang_bin = os.path.dirname(clang)
             clang_root = os.path.dirname(clang_bin)
-            args.extend(
-                [
-                    "-DOpenMP_CXX_FLAGS=-fopenmp=libomp",
-                    "-DOpenMP_CXX_LIB_NAMES=libomp",
-                    "-DOpenMP_libomp_LIBRARY={0}/lib/libomp.dylib".format(clang_root),
-                ]
-            )
-
-        if "+rocm" in spec:
-            args.extend(
-                [
-                    "-DCMAKE_CXX_FLAGS=-std=c++17",
-                    "-DHIP_ROOT_DIR={0}".format(spec["hip"].prefix),
-                    "-DHIP_CXX_COMPILER={0}".format(self.spec["hip"].hipcc),
-                ]
-            )
-            if "platform=cray" in spec:
-                args.extend(["-DMPI_ASSUME_NO_BUILTIN_MPI=ON"])
-            archs = self.spec.variants["amdgpu_target"].value
-            if archs != "none":
-                arch_str = ",".join(archs)
-                args.append(
-                    "-DHIP_HIPCC_FLAGS=--amdgpu-target={0}"
-                    " -g -fsized-deallocation -fPIC -std=c++17".format(arch_str)
+            entries.append(cmake_cache_string("OpenMP_CXX_FLAGS", "-fopenmp=libomp"))
+            entries.append(cmake_cache_string("OpenMP_CXX_LIB_NAMES", "libomp"))
+            entries.append(
+                cmake_cache_string(
+                    "OpenMP_libomp_LIBRARY", "{0}/lib/libomp.dylib".format(clang_root)
                 )
-                args.extend(
-                    [
-                        "-DCMAKE_HIP_ARCHITECTURES=%s" % arch_str,
-                        "-DAMDGPU_TARGETS=%s" % arch_str,
-                        "-DGPU_TARGETS=%s" % arch_str,
-                    ]
-                )
-
-        if self.spec.satisfies("^essl"):
-            # IF IBM ESSL is used it needs help finding the proper LAPACK libraries
-            args.extend(
-                [
-                    "-DLAPACK_LIBRARIES=%s;-llapack;-lblas"
-                    % ";".join("-l{0}".format(lib) for lib in self.spec["essl"].libs.names),
-                    "-DBLAS_LIBRARIES=%s;-lblas"
-                    % ";".join("-l{0}".format(lib) for lib in self.spec["essl"].libs.names),
-                ]
             )
 
-        return args
+        return entries
+
+    def initconfig_hardware_entries(self):
+        spec = self.spec
+        entries = super(Dihydrogen, self).initconfig_hardware_entries()
+
+        entries.append(cmake_cache_option("H2_ENABLE_CUDA", "+cuda" in spec))
+        if spec.satisfies("+cuda"):
+            entries.append(cmake_cache_string("CMAKE_CUDA_STANDARD", "17"))
+            if not spec.satisfies("cuda_arch=none"):
+                archs = spec.variants["cuda_arch"].value
+                arch_str = ";".join(archs)
+                entries.append(cmake_cache_string("CMAKE_CUDA_ARCHITECTURES", arch_str))
+
+            # FIXME: Should this use the "cuda_flags" function of the
+            # CudaPackage class or something? There might be other
+            # flags in play, and we need to be sure to get them all.
+            cuda_flags = self.get_cuda_flags()
+            if len(cuda_flags) > 0:
+                entries.append(cmake_cache_string("CMAKE_CUDA_FLAGS", " ".join(cuda_flags)))
+
+        enable_rocm_var = (
+            "H2_ENABLE_ROCM" if spec.version < Version("0.3") else "H2_ENABLE_HIP_ROCM"
+        )
+        entries.append(cmake_cache_option(enable_rocm_var, "+rocm" in spec))
+        if spec.satisfies("+rocm"):
+            entries.append(cmake_cache_string("CMAKE_HIP_STANDARD", "17"))
+            if not spec.satisfies("amdgpu_target=none"):
+                archs = self.spec.variants["amdgpu_target"].value
+                arch_str = ";".join(archs)
+                entries.append(cmake_cache_string("CMAKE_HIP_ARCHITECTURES", arch_str))
+                entries.append(cmake_cache_string("AMDGPU_TARGETS", arch_str))
+                entries.append(cmake_cache_string("GPU_TARGETS", arch_str))
+            entries.append(cmake_cache_path("HIP_ROOT_DIR", spec["hip"].prefix))
+
+        return entries
+
+    def initconfig_package_entries(self):
+        spec = self.spec
+        entries = super(Dihydrogen, self).initconfig_package_entries()
+
+        # Basic H2 options
+        entries.append(cmake_cache_option("H2_DEVELOPER_BUILD", "+developer" in spec))
+        entries.append(cmake_cache_option("H2_ENABLE_TESTS", "+developer" in spec))
+
+        entries.append(cmake_cache_option("H2_ENABLE_CODE_COVERAGE", "+coverage" in spec))
+        entries.append(cmake_cache_option("H2_CI_BUILD", "+ci" in spec))
+
+        entries.append(cmake_cache_option("H2_ENABLE_DACE", "+dace" in spec))
+
+        # DistConv options
+        entries.append(cmake_cache_option("H2_ENABLE_ALUMINUM", "+distconv" in spec))
+        entries.append(cmake_cache_option("H2_ENABLE_DISTCONV_LEGACY", "+distconv" in spec))
+        entries.append(cmake_cache_option("H2_ENABLE_OPENMP", "+distconv" in spec))
+
+        # Paths to stuff, just in case. CMAKE_PREFIX_PATH should catch
+        # all this, but this shouldn't hurt to have.
+        entries.append(cmake_cache_path("spdlog_ROOT", spec["spdlog"].prefix))
+
+        if spec.satisfies("+developer"):
+            entries.append(cmake_cache_path("Catch2_ROOT", spec["catch2"].prefix))
+
+        if spec.satisfies("+coverage"):
+            entries.append(cmake_cache_path("lcov_ROOT", spec["lcov"].prefix))
+            entries.append(cmake_cache_path("genhtml_ROOT", spec["lcov"].prefix))
+            if spec.satisfies("+ci"):
+                entries.append(cmake_cache_path("gcovr_ROOT", spec["py-gcovr"].prefix))
+
+        if spec.satisfies("+distconv"):
+            entries.append(cmake_cache_path("Aluminum_ROOT", spec["aluminum"].prefix))
+            if spec.satisfies("+cuda"):
+                entries.append(cmake_cache_path("cuDNN_ROOT", spec["cudnn"].prefix))
+
+        # Currently this is a hack for all Hydrogen versions. WIP to
+        # fix this at develop.
+        entries.extend(get_blas_entries(spec))
+        return entries
 
     def setup_build_environment(self, env):
         if self.spec.satisfies("%apple-clang +openmp"):

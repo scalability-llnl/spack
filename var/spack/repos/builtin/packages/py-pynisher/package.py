@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyPynisher(PythonPackage):
 
     homepage = "https://github.com/automl/pynisher"
     pypi = "pynisher/pynisher-0.6.4.tar.gz"
+
+    license("MIT")
 
     version("0.6.4", sha256="111d91aad471375c0509a912415ff90053ef909100facf412511383af107c124")
 

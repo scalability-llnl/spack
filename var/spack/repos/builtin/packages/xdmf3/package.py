@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,9 +16,15 @@ class Xdmf3(CMakePackage):
     homepage = "https://xdmf.org"
     git = "https://gitlab.kitware.com/xdmf/xdmf.git"
 
+    license("BSD-3-Clause")
+
     # There is no official release of XDMF and development has largely ceased,
     # but the current version, 3.x, is maintained on the master branch.
     version("2019-01-14", commit="8d9c98081d89ac77a132d56bc8bef53581db4078")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("shared", default=True, description="Enable shared libraries")
     variant("mpi", default=True, description="Enable MPI")
@@ -30,8 +36,10 @@ class Xdmf3(CMakePackage):
     # See https://github.com/spack/spack/pull/22303 for reference
     depends_on(Boost.with_default_variants)
     depends_on("mpi", when="+mpi")
-    depends_on("hdf5+mpi", when="+mpi")
-    depends_on("hdf5~mpi", when="~mpi")
+    depends_on("hdf5@1.10:+mpi", when="+mpi")
+    depends_on("hdf5@1.10:~mpi", when="~mpi")
+    # motivated by discussion in https://gitlab.kitware.com/xdmf/xdmf/-/issues/28
+    patch("fix_hdf5_hid_t.diff")
 
     def cmake_args(self):
         """Populate cmake arguments for XDMF."""
@@ -42,7 +50,7 @@ class Xdmf3(CMakePackage):
             "-DXDMF_BUILD_UTILS=ON",
             "-DXDMF_WRAP_JAVA=OFF",
             "-DXDMF_WRAP_PYTHON=OFF",
-            "-DXDMF_BUILD_TESTING=ON",
+            "-DXDMF_BUILD_TESTING=OFF",
         ]
 
         return cmake_args

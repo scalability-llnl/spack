@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class AdwaitaIconTheme(AutotoolsPackage):
 
     homepage = "https://gitlab.gnome.org/GNOME/adwaita-icon-theme"
     url = "https://ftp.gnome.org/pub/gnome/sources/adwaita-icon-theme/3.38/adwaita-icon-theme-3.38.0.tar.xz"
+
+    license("LGPL-3.0-or-later OR CC-BY-SA-3.0")
 
     version("3.38.0", sha256="6683a1aaf2430ccd9ea638dd4bfe1002bc92b412050c3dba20e480f979faaf97")
 

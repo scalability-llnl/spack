@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -40,3 +40,14 @@ def test_singularity_specific_properties(properties, expected, singularity_confi
     writer = writers.create(singularity_configuration)
     for name, value in expected.items():
         assert getattr(writer, name) == value
+
+
+@pytest.mark.regression("34629,18030")
+def test_not_stripping_all_symbols(singularity_configuration):
+    """Tests that we are not stripping all symbols, so that libraries can still be
+    used for linking.
+    """
+    singularity_configuration["spack"]["container"]["strip"] = True
+    content = writers.create(singularity_configuration)()
+    assert "xargs strip" in content
+    assert "xargs strip -s" not in content

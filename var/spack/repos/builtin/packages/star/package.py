@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -6,12 +6,18 @@
 from spack.package import *
 
 
-class Star(Package):
+class Star(MakefilePackage):
     """STAR is an ultrafast universal RNA-seq aligner."""
 
     homepage = "https://github.com/alexdobin/STAR"
     url = "https://github.com/alexdobin/STAR/archive/2.7.6a.tar.gz"
 
+    license("MIT")
+
+    version("2.7.11b", sha256="3f65305e4112bd154c7e22b333dcdaafc681f4a895048fa30fa7ae56cac408e7")
+    version("2.7.11a", sha256="542457b1a4fee73f27a581b1776e9f73ad2b4d7e790388b6dc71147bd039f99a")
+    version("2.7.10b", sha256="0d1b71de6c5be1c5d90b32130d2abcd5785a4fc7c1e9bf19cc391947f2dc46e5")
+    version("2.7.10a", sha256="af0df8fdc0e7a539b3ec6665dce9ac55c33598dfbc74d24df9dae7a309b0426a")
     version("2.7.6a", sha256="9320797c604673debea0fe8f2e3762db364915cc59755de1a0d87c8018f97d51")
     version("2.7.0e", sha256="2fc9d9103bd02811904d41e3a3d50e47c7de17cb55c3b4880ea5f39300a9ba0d")
     version("2.7.0d", sha256="7a757478868dc73fe7619bf6ea302dd642bd30e1c8c1fb4acdbe7fa151cf9fd1")
@@ -31,11 +37,31 @@ class Star(Package):
         url="https://github.com/alexdobin/STAR/archive/STAR_2.4.2a.tar.gz",
     )
 
-    depends_on("zlib")
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
+    depends_on("zlib-api")
+    # required for certain steps in the makefile
+    depends_on("xxd", type="build")
+
+    conflicts("zlib-ng")  # https://github.com/alexdobin/STAR/issues/2063
+
+    build_directory = "source"
+
+    def edit(self, spec, prefix):
+        if "avx2" not in spec.target:
+            env["CXXFLAGS_SIMD"] = ""
+
+    def build(self, spec, prefix):
+        # different make targets if we're compiling for Mac M1/2
+        with working_dir(self.build_directory):
+            if spec.satisfies("platform=darwin target=aarch64:"):
+                make("STARforMacStatic", "STARlongForMacStatic")
+            else:
+                make("STAR", "STARlong")
 
     def install(self, spec, prefix):
-        with working_dir("source"):
-            make("STAR", "STARlong")
-            mkdirp(prefix.bin)
+        mkdirp(prefix.bin)
+        with working_dir(self.build_directory):
             install("STAR", prefix.bin)
             install("STARlong", prefix.bin)

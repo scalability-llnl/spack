@@ -1,0 +1,42 @@
+From ae55be42bcc21d9ae1f57604b7c6faf9695f98ae Mon Sep 17 00:00:00 2001
+From: Sean Koyama <skoyama@anl.gov>
+Date: Thu, 23 Mar 2023 17:32:09 +0000
+Subject: [PATCH] Add CPATH and LIBRARY_PATHs to OpenCL search paths
+
+---
+ cmake/FindOpenCL.cmake | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/cmake/FindOpenCL.cmake b/cmake/FindOpenCL.cmake
+index a0dff56..e7d7873 100644
+--- a/cmake/FindOpenCL.cmake
++++ b/cmake/FindOpenCL.cmake
+@@ -64,6 +64,7 @@ else()
+     find_path(OpenCL_INCLUDE_DIR NAMES CL/cl.h OpenCL/cl.h
+         HINTS
+             ENV OpenCL_ROOT
++            ENV CPATH
+             ENV AMDAPPSDKROOT
+             ENV INTELOCLSDKROOT
+             ENV CUDA_PATH
+@@ -80,6 +81,8 @@ else()
+         find_library(OpenCL_LIBRARY NAMES OpenCL
+             HINTS
+                 ENV OpenCL_ROOT
++                ENV LIBRARY_PATH
++                ENV LD_LIBRARY_PATH
+                 ENV AMDAPPSDKROOT
+                 ENV INTELOCLSDKROOT
+                 ENV CUDA_PATH
+@@ -96,6 +99,8 @@ else()
+         find_library(OpenCL_LIBRARY NAMES OpenCL
+             HINTS
+                 ENV OpenCL_ROOT
++                ENV LIBRARY_PATH
++                ENV LD_LIBRARY_PATH
+                 ENV AMDAPPSDKROOT
+                 ENV INTELOCLSDKROOT
+                 ENV CUDA_PATH
+-- 
+2.34.1
+

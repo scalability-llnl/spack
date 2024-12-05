@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class Libtasn1(Package):
 
     homepage = "https://www.gnu.org/software/libtasn1/"
     url = "https://ftp.gnu.org/gnu/libtasn1/libtasn1-4.13.tar.gz"
+
+    license("LGPL-2.1-or-later")
 
     version("4.19.0", sha256="1613f0ac1cf484d6ec0ce3b8c06d56263cc7242f1c23b30d82d23de345a63f7a")
     version("4.13", sha256="7e528e8c317ddd156230c4e31d082cd13e7ddeb7a54824be82632209550c8cca")
@@ -26,6 +28,8 @@ class Libtasn1(Package):
     version("4.2", sha256="693b41cb36c2ac02d5990180b0712a79a591168e93d85f7fcbb75a0a0be4cdbb")
     version("4.1", sha256="60ee6571dcfa00cf55406404912274d6dc759cbaa80d666b89d819feeff5f301")
     version("4.0", sha256="41d044f7644bdd1c4f8a5c15ac1885ca1fcbf32f5f6dd4760a19278b979857fe")
+
+    depends_on("c", type="build")  # generated
 
     def install(self, spec, prefix):
         configure(

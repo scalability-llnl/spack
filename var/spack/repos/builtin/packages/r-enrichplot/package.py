@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,7 @@ class REnrichplot(RPackage):
 
     bioc = "enrichplot"
 
+    version("1.20.0", commit="ae72efe5f2ded561958f95bc8b1b41c0fc79840e")
     version("1.18.0", commit="61ea941784a1ed6cc604af1c1cc4532b8b5fcea7")
     version("1.16.2", commit="eeb21345288d96c116ac308649fa772d03760259")
     version("1.16.1", commit="cff77b622b2312be546714ec437aa4bc585bac87")
@@ -54,6 +55,4 @@ class REnrichplot(RPackage):
     depends_on("r-europepmc", type=("build", "run"), when="@1.2.0:1.4.0")
     depends_on("r-ggplotify", type=("build", "run"), when="@1.2.0:1.4.0")
     depends_on("r-gridextra", type=("build", "run"), when="@1.2.0:1.4.0")
-    depends_on("r-cowplot", type=("build", "run"))
-    depends_on("r-cowplot", when="@:1.16.1")
-    depends_on("r-cowplot", when="@:1.16.2")
+    depends_on("r-cowplot", type=("build", "run"), when="@:1.16.1")

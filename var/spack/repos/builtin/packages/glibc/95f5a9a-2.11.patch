@@ -1,0 +1,194 @@
+From 95f5a9a866695da4e038aa4e6ccbbfd5d9cf63b7 Mon Sep 17 00:00:00 2001
+From: Joseph Myers <joseph@codesourcery.com>
+Date: Tue, 3 Jul 2012 19:14:59 +0000
+Subject: [PATCH] Avoid use of libgcc_s and libgcc_eh when building glibc.
+
+diff --git a/Makeconfig b/Makeconfig
+index 47638b13c6..6384e22a72 100644
+--- a/Makeconfig
++++ b/Makeconfig
+@@ -423,7 +423,7 @@ endif
+ 
+ # Command for linking programs with the C library.
+ ifndef +link
+-+link = $(CC) -nostdlib -nostartfiles -o $@ \
+++link-before-libc = $(CC) -nostdlib -nostartfiles -o $@ \
+ 	      $(sysdep-LDFLAGS) $(config-LDFLAGS) $(LDFLAGS) $(LDFLAGS-$(@F)) \
+ 	      $(combreloc-LDFLAGS) $(relro-LDFLAGS) $(hashstyle-LDFLAGS) \
+ 	      $(addprefix $(csu-objpfx),$(start-installed-name)) \
+@@ -432,7 +432,10 @@ ifndef +link
+ 						     $(start-installed-name))\
+ 			   $(+preinit) $(link-extra-libs) \
+ 			   $(common-objpfx)libc% $(+postinit),$^) \
+-	      $(link-extra-libs) $(link-libc) $(+postctor) $(+postinit)
++	      $(link-extra-libs)
+++link-after-libc = $(+postctor) $(+postinit)
+++link = $(+link-before-libc) $(link-libc) $(+link-after-libc)
+++link-tests = $(+link-before-libc) $(link-libc-tests) $(+link-after-libc)
+ endif
+ # Command for linking PIE programs with the C library.
+ ifndef +link-pie
+@@ -449,7 +452,7 @@ ifndef +link-pie
+ endif
+ # Command for statically linking programs with the C library.
+ ifndef +link-static
+-+link-static = $(CC) -nostdlib -nostartfiles -static -o $@ \
+++link-static-before-libc = $(CC) -nostdlib -nostartfiles -static -o $@ \
+ 	      $(sysdep-LDFLAGS) $(LDFLAGS) $(LDFLAGS-$(@F))  \
+ 	      $(addprefix $(csu-objpfx),$(static-start-installed-name)) \
+ 	      $(+preinit) $(+prector) \
+@@ -457,7 +460,12 @@ ifndef +link-static
+ 						     $(start-installed-name))\
+ 			   $(+preinit) $(link-extra-libs-static) \
+ 			   $(common-objpfx)libc% $(+postinit),$^) \
+-	      $(link-extra-libs-static) $(link-libc-static) $(+postctor) $(+postinit)
++	      $(link-extra-libs-static) $(link-libc-static)
+++link-static-after-libc = $(+postctor) $(+postinit)
+++link-static = $(+link-static-before-libc) $(link-libc-static) \
++	      $(+link-static-after-libc)
+++link-static-tests = $(+link-static-before-libc) $(link-libc-static-tests) \
++	      $(+link-static-after-libc)
+ endif
+ # Command for statically linking bounded-pointer programs with the C library.
+ ifndef +link-bounded
+@@ -482,9 +490,11 @@ ifeq ($(elf),yes)
+ # We need the versioned name of libc.so in the deps of $(others) et al
+ # so that the symlink to libc.so is created before anything tries to
+ # run the linked programs.
+-link-libc = -Wl,-rpath-link=$(rpath-link) \
++link-libc-before-gnulib = -Wl,-rpath-link=$(rpath-link) \
+ 	    $(common-objpfx)libc.so$(libc.so-version) \
+-	    $(common-objpfx)$(patsubst %,$(libtype.oS),c) $(gnulib)
++	    $(common-objpfx)$(patsubst %,$(libtype.oS),c)
++link-libc = $(link-libc-before-gnulib) $(gnulib)
++link-libc-tests = $(link-libc-before-gnulib) $(gnulib-tests)
+ # This is how to find at build-time things that will be installed there.
+ rpath-dirs = math elf dlfcn nss nis rt resolv crypt
+ endif
+@@ -495,6 +505,7 @@ else
+ nssobjdir := $(patsubst ../$(subdir),.,$(common-objpfx)nss)
+ resolvobjdir := $(patsubst ../$(subdir),.,$(common-objpfx)resolv)
+ link-libc = $(common-objpfx)libc.a $(otherlibs) $(gnulib) $(common-objpfx)libc.a $(gnulib)
++link-libc-tests = $(common-objpfx)libc.a $(otherlibs) $(gnulib-tests) $(common-objpfx)libc.a $(gnulib-tests)
+ endif
+ endif
+ 
+@@ -523,6 +534,7 @@ endif
+ # The static libraries.
+ ifeq (yes,$(build-static))
+ link-libc-static = $(common-objpfx)libc.a $(static-gnulib) $(common-objpfx)libc.a
++link-libc-static-tests = $(common-objpfx)libc.a $(static-gnulib-tests) $(common-objpfx)libc.a
+ else
+ ifeq (yes,$(build-shared))
+ # We can try to link the programs with lib*_pic.a...
+@@ -542,8 +554,12 @@ ifneq ($(have-as-needed),yes)
+ else
+  libgcc_eh := -Wl,--as-needed -lgcc_s$(libgcc_s_suffix) $(libunwind) -Wl,--no-as-needed
+ endif
+-gnulib := -lgcc $(libgcc_eh)
+-static-gnulib := -lgcc -lgcc_eh $(libunwind)
++gnulib-arch =
++gnulib = -lgcc $(gnulib-arch)
++gnulib-tests := -lgcc $(libgcc_eh)
++static-gnulib-arch =
++static-gnulib = -lgcc $(static-gnulib-arch)
++static-gnulib-tests := -lgcc -lgcc_eh $(libunwind)
+ libc.so-gnulib := -lgcc
+ endif
+ ifeq ($(elf),yes)
+diff --git a/Rules b/Rules
+index 5ace24cee0..45eb7541dc 100644
+--- a/Rules
++++ b/Rules
+@@ -104,29 +104,52 @@ xtests: tests $(xtests:%=$(objpfx)%.out) $(xtests-bp.out)
+ endif
+ 
+ ifeq ($(build-programs),yes)
+-binaries-all = $(others) $(sysdep-others) $(tests) $(xtests) $(test-srcs)
+-binaries-static = $(others-static) $(tests-static) $(xtests-static)
++binaries-all-notests = $(others) $(sysdep-others)
++binaries-all-tests = $(tests) $(xtests) $(test-srcs)
++binaries-all = $(binaries-all-notests) $(binaries-all-tests)
++binaries-static-notests = $(others-static)
++binaries-static-tests = $(tests-static) $(xtests-static)
++binaries-static = $(binaries-static-notests) $(binaries-static-tests)
+ else
+-binaries-all = $(tests) $(xtests) $(test-srcs)
++binaries-all-notests =
++binaries-all-tests = $(tests) $(xtests) $(test-srcs)
++binaries-all = $(binaries-all-tests)
++binaries-static-notests =
++binaries-static-tests =
+ binaries-static =
+ endif
+ 
+-binaries-shared = $(filter-out $(binaries-static), $(binaries-all))
++binaries-shared-tests = $(filter-out $(binaries-static), $(binaries-all-tests))
++binaries-shared-notests = $(filter-out $(binaries-static), $(binaries-all-notests))
+ 
+-ifneq "$(strip $(binaries-shared))" ""
+-$(addprefix $(objpfx),$(binaries-shared)): %: %.o \
++ifneq "$(strip $(binaries-shared-notests))" ""
++$(addprefix $(objpfx),$(binaries-shared-notests)): %: %.o \
+   $(sort $(filter $(common-objpfx)lib%,$(link-libc))) \
+   $(addprefix $(csu-objpfx),start.o) $(+preinit) $(+postinit)
+ 	$(+link)
+ endif
+ 
+-ifneq "$(strip $(binaries-static))" ""
+-$(addprefix $(objpfx),$(binaries-static)): %: %.o \
++ifneq "$(strip $(binaries-shared-tests))" ""
++$(addprefix $(objpfx),$(binaries-shared-tests)): %: %.o \
++  $(sort $(filter $(common-objpfx)lib%,$(link-libc))) \
++  $(addprefix $(csu-objpfx),start.o) $(+preinit) $(+postinit)
++	$(+link-tests)
++endif
++
++ifneq "$(strip $(binaries-static-notests))" ""
++$(addprefix $(objpfx),$(binaries-static-notests)): %: %.o \
+   $(sort $(filter $(common-objpfx)lib%,$(link-libc-static))) \
+   $(addprefix $(csu-objpfx),start.o) $(+preinit) $(+postinit)
+ 	$(+link-static)
+ endif
+ 
++ifneq "$(strip $(binaries-static-tests))" ""
++$(addprefix $(objpfx),$(binaries-static-tests)): %: %.o \
++  $(sort $(filter $(common-objpfx)lib%,$(link-libc-static-tests))) \
++  $(addprefix $(csu-objpfx),start.o) $(+preinit) $(+postinit)
++	$(+link-static-tests)
++endif
++
+ ifeq ($(build-bounded),yes)
+ binaries-bounded = $(addsuffix -bp,$(tests) $(xtests) $(test-srcs))
+ $(addprefix $(objpfx),$(binaries-bounded)): %-bp: %.ob \
+diff --git a/elf/Makefile b/elf/Makefile
+index 34609a0f85..84709920e8 100644
+--- a/elf/Makefile
++++ b/elf/Makefile
+@@ -150,6 +150,8 @@ others		= sprof sln
+ install-bin	= sprof
+ others-static   = sln
+ install-rootsbin = sln
++sln-modules	:= static-stubs
++extra-objs	+= $(sln-modules:=.o)
+ 
+ ifeq (yes,$(use-ldconfig))
+ ifeq (yes,$(build-shared))
+@@ -157,7 +159,7 @@ others-static	+= ldconfig
+ others		+= ldconfig
+ install-rootsbin += ldconfig
+ 
+-ldconfig-modules := cache readlib xmalloc xstrdup chroot_canon
++ldconfig-modules := cache readlib xmalloc xstrdup chroot_canon static-stubs
+ extra-objs	+= $(ldconfig-modules:=.o)
+ 
+ # To find xmalloc.c and xstrdup.c
+@@ -448,6 +450,8 @@ $(objpfx)ldd: ldd.bash.in $(common-objpfx)soversions.mk \
+ 
+ $(objpfx)sprof: $(libdl)
+ 
++$(objpfx)sln: $(sln-modules:%=$(objpfx)%.o)
++
+ $(objpfx)ldconfig: $(ldconfig-modules:%=$(objpfx)%.o)
+ SYSCONF-FLAGS := -D'SYSCONFDIR="$(sysconfdir)"'
+ CFLAGS-ldconfig.c = $(SYSCONF-FLAGS) -D'LIBDIR="$(libdir)"' \

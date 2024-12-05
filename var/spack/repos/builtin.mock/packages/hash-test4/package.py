@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,7 +14,7 @@ class HashTest4(Package):
     homepage = "http://www.hashtest4.org"
     url = "http://www.hashtest1.org/downloads/hashtest4-1.1.tar.bz2"
 
-    version("1.1", "a" * 32)
+    version("1.1", md5="a" * 32)
 
     def install(self, spec, prefix):
         pass

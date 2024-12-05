@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,10 +12,23 @@ class Libsndfile(AutotoolsPackage):
     through one standard library interface. It is released in source code
     format under the Gnu Lesser General Public License."""
 
-    homepage = "http://www.mega-nerd.com/libsndfile/"
-    url = "http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.28.tar.gz"
+    homepage = "https://github.com/libsndfile/libsndfile"
+    url = (
+        "https://github.com/libsndfile/libsndfile/releases/download/1.2.2/libsndfile-1.2.2.tar.xz"
+    )
 
-    version("1.0.28", sha256="1ff33929f042fa333aed1e8923aa628c3ee9e1eb85512686c55092d1e5a9dfa9")
+    license("LGPL-2.1-or-later")
+
+    version("1.2.2", sha256="3799ca9924d3125038880367bf1468e53a1b7e3686a934f098b7e1d286cdb80e")
+    # https://nvd.nist.gov/vuln/detail/CVE-2022-33064
+    version(
+        "1.0.28",
+        sha256="1ff33929f042fa333aed1e8923aa628c3ee9e1eb85512686c55092d1e5a9dfa9",
+        deprecated=True,
+    )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("alsa", default=False, description="Use alsa in example programs")
     variant(
@@ -27,8 +40,17 @@ class Libsndfile(AutotoolsPackage):
     depends_on("alsa-lib", when="+alsa")
     depends_on("flac@1.3.1:", when="+external-libs")
     depends_on("libogg@1.1.3:", when="+external-libs")
+    depends_on("libogg@1.3.0:", when="@1.0.31: +external-libs")
     depends_on("libvorbis@1.2.3:", when="+external-libs")
     depends_on("sqlite@3.2:", when="+sqlite")
+
+    def url_for_version(self, version):
+        if self.spec.satisfies("@1.1:"):
+            return f"https://github.com/libsndfile/libsndfile/releases/download/{version}/libsndfile-{version}.tar.xz"
+        elif self.spec.satisfies("@1.0.29:"):
+            return f"https://github.com/libsndfile/libsndfile/releases/download/v{version}/libsndfile-{version}.tar.bz2"
+        else:
+            return f"http://www.mega-nerd.com/libsndfile/files/libsndfile-{version}.tar.gz"
 
     def configure_args(self):
         args = []

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,9 @@ class RBlob(RPackage):
 
     cran = "blob"
 
+    license("MIT")
+
+    version("1.2.4", sha256="d08922ebc4147d930fe4762b1b289935217308c6d3fcaa5ae028ce3f5cf2728f")
     version("1.2.3", sha256="2d88d683ee3d1b56b332b5c7769979b5d3994b5d9285ea634ec919576da3631b")
     version("1.2.2", sha256="4976053c65994c769a4c22b4553bea0bd9c623b3b991dbaf023d2a164770c7fa")
     version("1.2.1", sha256="ef54bc7a9646c1b73f4d2f60c869b4f1940bc3505874175114297ad7772d8bea")

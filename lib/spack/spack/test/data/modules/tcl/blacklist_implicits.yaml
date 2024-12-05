@@ -1,8 +1,0 @@
-# DEPRECATED: remove this in v0.20
-# See `exclude_implicits.yaml` for the new syntax
-enable:
-  - tcl
-tcl:
-  blacklist_implicits: true
-  all:
-    autoload: direct

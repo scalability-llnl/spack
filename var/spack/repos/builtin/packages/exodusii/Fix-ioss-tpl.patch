@@ -1,0 +1,25 @@
+From 4d3884f65a6a4df08ee8dd68ddaee5449f1dd378 Mon Sep 17 00:00:00 2001
+From: Greg Sjaardema <gsjaardema@gmail.com>
+Date: Tue, 26 Mar 2024 12:42:08 -0600
+Subject: [PATCH] Remove ioss as required library
+
+---
+ packages/seacas/cmake/Dependencies.cmake | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/packages/seacas/cmake/Dependencies.cmake b/packages/seacas/cmake/Dependencies.cmake
+index 3b1b3d6598..e75f5073f2 100644
+--- a/packages/seacas/cmake/Dependencies.cmake
++++ b/packages/seacas/cmake/Dependencies.cmake
+@@ -4,7 +4,7 @@ TRIBITS_PACKAGE_DEFINE_DEPENDENCIES(
+   Exodus_for  libraries/exodus_for    PT  OPTIONAL
+   ExoIIv2for32 libraries/exoIIv2for32 PT  OPTIONAL
+   Nemesis     libraries/nemesis       PT  OPTIONAL
+-  Ioss        libraries/ioss          PT  REQUIRED
++  Ioss        libraries/ioss          PT  OPTIONAL
+   Chaco       libraries/chaco         PT  OPTIONAL
+   Aprepro_lib libraries/aprepro_lib   PT  OPTIONAL
+   Supes       libraries/supes         PT  OPTIONAL
+-- 
+2.39.3 (Apple Git-145)
+

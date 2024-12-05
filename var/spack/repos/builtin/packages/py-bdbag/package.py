@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyBdbag(PythonPackage):
 
     homepage = "https://github.com/fair-research/bdbag/"
     pypi = "bdbag/bdbag-1.6.3.tar.gz"
+
+    license("Apache-2.0")
 
     version("1.6.3", sha256="1ad2e4956045cb3d43a6276391ad919e42a90a2443727dbc5b1ac6eeb6d6e3c9")
 

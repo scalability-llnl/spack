@@ -1,0 +1,45 @@
+spack:
+  view: false
+
+  definitions:
+  - apps:
+    - gromacs %oneapi
+    - lammps %oneapi
+    # earliest oneapi version with fix does not run on AmazonLinux2, see https://github.com/spack/spack/pull/46457
+    # - mpas-model %oneapi
+    - openfoam %gcc
+    - palace %oneapi ^superlu-dist%oneapi # hack: force fortran-rt provider through superlu-dist
+    # TODO: Find out how to make +ipo cmake flag work.
+    # - quantum-espresso %oneapi
+    - openmpi %oneapi
+    - wrf %oneapi
+
+  - targets:
+      - 'target=x86_64_v4'
+      - 'target=x86_64_v3'
+
+  specs:
+  - matrix:
+      - [$apps]
+      - [$targets]
+  ci:
+    pipeline-gen:
+    - build-job:
+        image: { "name": "ghcr.io/spack/pcluster-amazonlinux-2:v2024-10-07", "entrypoint": [""] }
+        before_script:
+        - - . "./share/spack/setup-env.sh"
+          - . /etc/profile.d/modules.sh
+          - spack --version
+          - spack arch
+        # Use gcc from pre-installed spack store
+        - - cp share/spack/gitlab/cloud_pipelines/configs/config.yaml etc/spack/
+          - /bin/bash "${SPACK_ROOT}/share/spack/gitlab/cloud_pipelines/scripts/pcluster/setup-pcluster.sh"
+          - rm etc/spack/config.yaml
+    - signing-job:
+        before_script:
+          # Do not distribute Intel & ARM binaries
+          - - for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/ | grep intel-oneapi | awk '{print $4}' | sed -e 's?^.*build_cache/??g'); do aws s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/$i; done
+            - for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/ | grep armpl | awk '{print $4}' | sed -e 's?^.*build_cache/??g'); do aws s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/$i; done
+
+  cdash:
+    build-group: AWS Packages

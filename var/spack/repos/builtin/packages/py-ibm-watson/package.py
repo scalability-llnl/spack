@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyIbmWatson(PythonPackage):
 
     homepage = "https://github.com/watson-developer-cloud/python-sdk"
     pypi = "ibm-watson/ibm-watson-5.1.0.tar.gz"
+
+    license("Apache-2.0")
 
     version("5.1.0", sha256="faea1e519f6d846a5ca9e03aefc9f894ff8da1eed9117ace6a6fa8f218ba0bc7")
 

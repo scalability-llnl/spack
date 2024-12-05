@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,18 +13,16 @@ class FujitsuMpi(Package):
 
     homepage = "https://www.fujitsu.com/us/"
 
-    conflicts("%arm")
-    conflicts("%cce")
-    conflicts("%apple-clang")
-    conflicts("%clang")
-    conflicts("%gcc")
-    conflicts("%intel")
-    conflicts("%nag")
-    conflicts("%pgi")
-    conflicts("%xl")
-    conflicts("%xl_r")
-
     provides("mpi@3.1:")
+    requires(
+        "%fj@4:",
+        "%clang@11:",
+        "%gcc@8:",
+        policy="one_of",
+        msg="currently only supports Fujitsu, Clang, or GCC compilers",
+    )
+
+    requires("platform=linux")
 
     def install(self, spec, prefix):
         raise InstallError("Fujitsu MPI is not installable; it is vendor supplied")
@@ -46,18 +44,43 @@ class FujitsuMpi(Package):
         return find_libraries(libraries, root=self.prefix, shared=True, recursive=True)
 
     def setup_dependent_package(self, module, dependent_spec):
-        self.spec.mpicc = self.prefix.bin.mpifcc
-        self.spec.mpicxx = self.prefix.bin.mpiFCC
-        self.spec.mpif77 = self.prefix.bin.mpifrt
-        self.spec.mpifc = self.prefix.bin.mpifrt
+        if self.spec.satisfies("%gcc"):
+            self.spec.mpicc = self.prefix.bin.mpicc
+            self.spec.mpicxx = self.prefix.bin.mpicxx
+            self.spec.mpif77 = self.prefix.bin.mpif77
+            self.spec.mpifc = self.prefix.bin.mpifort
+        else:
+            self.spec.mpicc = self.prefix.bin.mpifcc
+            self.spec.mpicxx = self.prefix.bin.mpiFCC
+            self.spec.mpif77 = self.prefix.bin.mpifrt
+            self.spec.mpifc = self.prefix.bin.mpifrt
 
     def setup_dependent_build_environment(self, env, dependent_spec):
-        self.setup_run_environment(env)
+        # Use the spack compiler wrappers under MPI
+        dependent_module = dependent_spec.package.module
+        env.set("OMPI_CC", dependent_module.spack_cc)
+        env.set("OMPI_CXX", dependent_module.spack_cxx)
+        env.set("OMPI_FC", dependent_module.spack_fc)
+        env.set("OMPI_F77", dependent_module.spack_f77)
+        if self.spec.satisfies("%gcc"):
+            env.set("MPI_C_COMPILER", self.prefix.bin.mpicc)
+            env.set("MPI_CXX_COMPILER", self.prefix.bin.mpicxx)
+            env.set("MPI_Fortran_COMPILER", self.prefix.bin.mpifort)
+        else:
+            env.set("MPI_C_COMPILER", self.prefix.bin.mpifcc)
+            env.set("MPI_CXX_COMPILER", self.prefix.bin.mpiFCC)
+            env.set("MPI_Fortran_COMPILER", self.prefix.bin.mpifrt)
 
     def setup_run_environment(self, env):
         # Because MPI are both compilers and runtimes, we set up the compilers
         # as part of run environment
-        env.set("MPICC", self.prefix.bin.mpifcc)
-        env.set("MPICXX", self.prefix.bin.mpiFCC)
-        env.set("MPIF77", self.prefix.bin.mpifrt)
-        env.set("MPIF90", self.prefix.bin.mpifrt)
+        if self.spec.satisfies("%gcc"):
+            env.set("MPICC", self.prefix.bin.mpicc)
+            env.set("MPICXX", self.prefix.bin.mpicxx)
+            env.set("MPIF77", self.prefix.bin.mpif77)
+            env.set("MPIF90", self.prefix.bin.mpifort)
+        else:
+            env.set("MPICC", self.prefix.bin.mpifcc)
+            env.set("MPICXX", self.prefix.bin.mpiFCC)
+            env.set("MPIF77", self.prefix.bin.mpifrt)
+            env.set("MPIF90", self.prefix.bin.mpifrt)

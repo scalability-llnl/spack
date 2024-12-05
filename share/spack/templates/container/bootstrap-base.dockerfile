@@ -1,4 +1,4 @@
-FROM {{ bootstrap.image }} as bootstrap
+FROM {{ bootstrap.image }} AS bootstrap
 
 {% block env_vars %}
 ENV SPACK_ROOT=/opt/spack \
@@ -23,7 +23,7 @@ RUN ln -s $SPACK_ROOT/share/spack/docker/entrypoint.bash \
 RUN mkdir -p /root/.spack \
  && cp $SPACK_ROOT/share/spack/docker/modules.yaml \
         /root/.spack/modules.yaml \
- && rm -rf /root/*.* /run/nologin $SPACK_ROOT/.git
+ && rm -rf /root/*.* /run/nologin
 
 # [WORKAROUND]
 # https://superuser.com/questions/1241548/
@@ -39,7 +39,9 @@ WORKDIR /root
 SHELL ["docker-shell"]
 
 # Creates the package cache
-RUN spack bootstrap now && spack spec hdf5+mpi
+RUN spack bootstrap now \
+    && spack bootstrap status --optional \
+    && spack spec hdf5+mpi
 
 ENTRYPOINT ["/bin/bash", "/opt/spack/share/spack/docker/entrypoint.bash"]
 CMD ["interactive-shell"]

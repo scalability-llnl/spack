@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,7 +11,7 @@ import spack.error
 
 __all__ = ["load", "dump", "SpackJSONError"]
 
-_json_dump_args = {"indent": 2, "separators": (",", ": ")}
+_json_dump_args = {"indent": None, "separators": (",", ":")}
 
 
 def load(stream: Any) -> Dict:
@@ -33,4 +33,4 @@ class SpackJSONError(spack.error.SpackError):
     """Raised when there are issues with JSON parsing."""
 
     def __init__(self, msg: str, json_error: BaseException):
-        super(SpackJSONError, self).__init__(msg, str(json_error))
+        super().__init__(msg, str(json_error))

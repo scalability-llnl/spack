@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,8 +19,14 @@ class Exciting(MakefilePackage):
     url = "https://exciting.wdfiles.com/local--files/nitrogen-14/exciting.nitrogen-14.tar.gz"
     git = "https://github.com/exciting/exciting.git"
 
+    license("LGPL-2.1-or-later")
+
     version("oxygen", branch="oxygen_release", preferred=True)
     version("14", sha256="a7feaffdc23881d6c0737d2f79f94d9bf073e85ea358a57196d7f7618a0a3eff")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # as-of-yet unpublished fix to version 14
     patch("dfgather.patch", when="@14", working_dir="src/src_xs", level=0)
@@ -39,23 +45,9 @@ class Exciting(MakefilePackage):
     depends_on("scalapack", when="+scalapack")
     # conflicts('%gcc@10:', msg='exciting cannot be built with GCC 10')
 
-    for __compiler in spack.compilers.supported_compilers():
-        if __compiler != "intel":
-            conflicts(
-                "%{0}".format(__compiler),
-                when="^mkl",
-                msg="Intel MKL only works with the Intel compiler",
-            )
-            conflicts(
-                "%{0}".format(__compiler),
-                when="^intel-mkl",
-                msg="Intel MKL only works with the Intel compiler",
-            )
-            conflicts(
-                "%{0}".format(__compiler),
-                when="^intel-mpi",
-                msg="Intel MPI only works with the Intel compiler",
-            )
+    requires("%intel", when="^mkl", msg="Intel MKL only works with the Intel compiler")
+    requires("%intel", when="^intel-mkl", msg="Intel MKL only works with the Intel compiler")
+    requires("%intel", when="^intel-mpi", msg="Intel MPI only works with the Intel compiler")
 
     def patch(self):
         """Fix bad logic in m_makespectrum.f90 for the Oxygen release"""
@@ -83,18 +75,18 @@ class Exciting(MakefilePackage):
         opts["LIB_ARP"] = "libarpack.a"
         opts["F90"] = spack_fc
         opts["F77"] = spack_f77
-        if "+omp" in spec:
+        if spec.satisfies("+omp"):
             opts["SMPF90_OPTS"] = self.compiler.openmp_flag + " -DUSEOMP"
             opts["SMPF77_OPTS"] = self.compiler.openmp_flag + " -DUSEOMP"
         else:
             opts["BUILDSMP"] = "false"
 
-        if "%intel" in spec:
+        if spec.satisfies("%intel"):
             opts["F90_OPTS"] += " -cpp -ip -unroll -scalar_rep "
             opts["CPP_ON_OPTS"] += " -DIFORT -DFFTW"
-        if "%gcc" in spec:
+        if spec.satisfies("%gcc"):
             opts["F90_OPTS"] += " -march=native -ffree-line-length-0"
-            if "%gcc@10:" in spec:
+            if spec.satisfies("%gcc@10:"):
                 # The INSTALL file says this will fix the GCC@10 issues
                 opts["F90_OPTS"] += " -fallow-argument-mismatch"
                 opts["F77_OPTS"] += " -fallow-argument-mismatch"
@@ -103,7 +95,7 @@ class Exciting(MakefilePackage):
             " ".join(["FCFLAGS = @FCFLAGS@", "-cpp", self.compiler.openmp_flag]),
             "src/libXC/src/Makefile.in",
         )
-        if "+mkl" in spec:
+        if spec.satisfies("+mkl"):
             opts["LIB_LPK"] = "-mkl=parallel"
             opts["INC_MKL"] = spec["mkl"].headers.include_flags
             opts["LIB_MKL"] = spec["mkl"].libs.ld_flags
@@ -117,17 +109,17 @@ class Exciting(MakefilePackage):
                 ]
             )
 
-        if "+omp" in spec:
+        if spec.satisfies("+omp"):
             opts["BUILDSMP"] = "true"
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             opts["BUILDMPI"] = "true"
             opts["MPIF90"] = spec["mpi"].mpifc
             opts["MPIF90_CPP_OPTS"] = "-DMPI -DMPIRHO -DMPISEC"
             opts["MPIF90_OPTS"] = " ".join(["$(F90_OPTS)", "$(CPP_ON_OPTS) " "$(MPIF90_CPP_OPTS)"])
             opts["MPIF90MT"] = "$(MPIF90)"
 
-            if "+omp" in spec:
+            if spec.satisfies("+omp"):
                 opts["BUILDMPISMP"] = "true"
                 opts["SMPF90_OPTS"] = self.compiler.openmp_flag + " -DUSEOMP"
                 opts["SMPF77_OPTS"] = opts["SMPF90_OPTS"]
@@ -135,7 +127,7 @@ class Exciting(MakefilePackage):
 
         else:
             opts["BUILDMPI"] = "false"
-        if "+scalapack" in spec:
+        if spec.satisfies("+scalapack"):
             opts["LIB_SCLPK"] = spec["scalapack"].libs.ld_flags
             opts["CPP_SCLPK"] = " -DSCAL "
             opts["MPI_LIBS"] = "$(LIB_SCLPK)"

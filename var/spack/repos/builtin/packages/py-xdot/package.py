@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -50,8 +50,7 @@ class PyXdot(PythonPackage):
             dst,
         )
         # regenerate the byte-compiled __init__.py
-        python3 = spec["python"].command
-        python3("-m", "compileall", dst)
+        python("-m", "compileall", dst)
 
     def setup_run_environment(self, env):
         spec = self.spec

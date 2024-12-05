@@ -1,0 +1,45 @@
+From 0a8fb7141a43b8e49609fb06f05fad5150a97c2a Mon Sep 17 00:00:00 2001
+From: pmqs <pmqs@cpan.org>
+Date: Fri, 9 Jun 2023 14:30:36 +0100
+Subject: [PATCH] Change storage of ZLIBNG_VER_STATUS from IV to PV
+ https://github.com/pmqs/Compress-Raw-Zlib/issues/24
+
+---
+ Makefile.PL |  1 -
+ Zlib.xs     | 11 +++++++++++
+ 2 files changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/Makefile.PL b/Makefile.PL
+index 299093b..5944918 100644
+--- a/cpan/Compress-Raw-Zlib/Makefile.PL
++++ b/cpan/Compress-Raw-Zlib/Makefile.PL
+@@ -201,7 +201,6 @@ my @names = qw(
+     ZLIBNG_VER_MAJOR
+     ZLIBNG_VER_MINOR
+     ZLIBNG_VER_REVISION
+-    ZLIBNG_VER_STATUS
+     ZLIBNG_VER_MODIFIED
+ );
+ 
+diff --git a/Zlib.xs b/Zlib.xs
+index c47c66d..2d4fc58 100644
+--- a/cpan/Compress-Raw-Zlib/Zlib.xs
++++ b/cpan/Compress-Raw-Zlib/Zlib.xs
+@@ -951,6 +951,17 @@ ZLIB_VERNUM()
+ uLong
+ Zip_zlibCompileFlags()
+ 
++const char*
++ZLIBNG_VER_STATUS()
++    CODE:
++#ifdef ZLIBNG_VER_STATUS
++        RETVAL = STRINGIFY(ZLIBNG_VER_STATUS);
++#else
++        RETVAL = "0";
++#endif
++    OUTPUT:
++        RETVAL
++
+ MODULE = Compress::Raw::Zlib	PACKAGE = Compress::Raw::Zlib	PREFIX = Zip_
+ 
+ #define Zip_adler32(buf, adler) CRZ_adler32(adler, buf, (uInt)len)

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,20 +15,33 @@ class Recola(CMakePackage):
 
     tags = ["hep"]
 
-    homepage = "https://recola.hepforge.org"
-    url = "https://recola.hepforge.org/downloads/?f=recola2-2.2.3.tar.gz"
+    homepage = "https://recola.gitlab.io/recola2/"
+    url = "https://gitlab.com/recola/recola2/-/archive/2.2.4/recola2-2.2.4.tar.gz"
 
     maintainers("vvolkl")
 
     variant("python", default=True, description="Build py-recola python bindings.")
 
-    version("2.2.4", sha256="16bdefb633d51842b4d32c39a43118d7052302cd63be456a473557e9b7e0316e")
-    version("2.2.3", sha256="db0f5e448ed603ac4073d4bbf36fd74f401a22876ad390c0d02c815a78106c5f")
+    license("GPL-3.0-or-later")
+
+    version("2.2.4", sha256="212ae6141bc5de38c50be3e0c6947a3b0752aeb463cf850c22cfed5e61b1a64b")
+    version("2.2.3", sha256="8dc25798960c272434fcde93817ed92aad82b2a7cf07438bb4deb5688d301086")
+    version("2.2.2", sha256="a64cf2b4aa213289dfab6e2255a77264f281cd0ac85f5e9770c82b815272c5c9")
+    version("2.2.0", sha256="a64cf2b4aa213289dfab6e2255a77264f281cd0ac85f5e9770c82b815272c5c9")
     version(
         "1.4.3",
         url="https://recola.hepforge.org/downloads/?f=recola-1.4.3.tar.gz",
         sha256="f6a7dce6e1f09821ba919524f786557984f216c001ab63e7793e8aa9a8560ceb",
     )
+    version(
+        "1.4.0",
+        url="https://recola.hepforge.org/downloads/?f=recola-1.4.0.tar.gz",
+        sha256="dc7db5ac9456dda2e6c03a63ad642066b0b5e4ceb8cae1f2a13ab33b35caaba8",
+    )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("collier")
     depends_on("recola-sm")

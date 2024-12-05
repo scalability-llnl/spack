@@ -1,0 +1,48 @@
+From 59859b8896e527bbd4a727beb798776d2716a8b3 Mon Sep 17 00:00:00 2001
+From: Harmen Stoppels <me@harmenstoppels.nl>
+Date: Thu, 10 Aug 2023 18:53:17 +0200
+Subject: [PATCH] version script
+
+---
+ libclingo/CMakeLists.txt | 12 ++++++++++++
+ libclingo/clingo.map     |  4 ++++
+ 2 files changed, 16 insertions(+)
+ create mode 100644 libclingo/clingo.map
+
+diff --git a/libclingo/CMakeLists.txt b/libclingo/CMakeLists.txt
+index 1d70ba56..0fd3bf49 100644
+--- a/libclingo/CMakeLists.txt
++++ b/libclingo/CMakeLists.txt
+@@ -58,6 +58,18 @@ target_include_directories(libclingo
+     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
+ target_compile_definitions(libclingo ${clingo_private_scope_} CLINGO_BUILD_LIBRARY)
+ 
++# Hide private symbols on Linux.
++include(CheckCSourceCompiles)
++file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/version.map" "{ global: f; local: *;};")
++set(CMAKE_REQUIRED_FLAGS_SAVE ${CMAKE_REQUIRED_FLAGS})
++set(CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS} "-Wl,--version-script='${CMAKE_CURRENT_BINARY_DIR}/version.map'")
++check_c_source_compiles("void f(void) {} int main(void) {return 0;}" HAVE_LD_VERSION_SCRIPT)
++set(CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS_SAVE})
++file(REMOVE "${CMAKE_CURRENT_BINARY_DIR}/version.map")
++if(HAVE_LD_VERSION_SCRIPT)
++set_target_properties(libclingo PROPERTIES LINK_FLAGS "-Wl,--version-script='${CMAKE_CURRENT_SOURCE_DIR}/clingo.map'")
++endif()
++
+ if (NOT CLINGO_BUILD_SHARED)
+     target_compile_definitions(libclingo PUBLIC CLINGO_NO_VISIBILITY)
+ endif()
+diff --git a/libclingo/clingo.map b/libclingo/clingo.map
+new file mode 100644
+index 00000000..a665456c
+--- /dev/null
++++ b/libclingo/clingo.map
+@@ -0,0 +1,4 @@
++{
++    global: clingo_*; gringo_*; g_clingo_*;
++    local: *;
++};
+\ No newline at end of file
+-- 
+2.39.2
+

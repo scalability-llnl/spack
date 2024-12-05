@@ -1,8 +1,4 @@
 ci:
   pipeline-gen:
   - build-job:
-      before_script:
-      - - curl -LfsS "https://github.com/JuliaBinaryWrappers/GNUMake_jll.jl/releases/download/GNUMake-v4.3.0+1/GNUMake.v4.3.0.aarch64-linux-gnu.tar.gz" -o gmake.tar.gz
-        - printf "2322c175fb092b426f9eb6c24ee22d94ffa6759c3d0c260b74d81abd8120122b gmake.tar.gz" | sha256sum --check --strict --quiet
-        - tar -xzf gmake.tar.gz -C /usr bin/make 2> /dev/null
       tags: ["aarch64"]

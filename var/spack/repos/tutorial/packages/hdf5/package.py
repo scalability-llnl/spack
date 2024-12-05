@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -104,7 +104,7 @@ class Hdf5(CMakePackage):
     if sys.platform != "darwin":
         depends_on("numactl", when="+mpi+fortran")
     depends_on("szip", when="+szip")
-    depends_on("zlib@1.1.2:")
+    depends_on("zlib-api")
 
     # The compiler wrappers (h5cc, h5fc, etc.) run 'pkg-config'.
     depends_on("pkgconfig", type="run")

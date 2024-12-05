@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,9 @@ class PyOauthlib(PythonPackage):
     homepage = "https://github.com/oauthlib/oauthlib"
     pypi = "oauthlib/oauthlib-3.1.0.tar.gz"
 
+    license("BSD-3-Clause")
+
+    version("3.2.2", sha256="9859c40929662bec5d64f34d01c99e093149682a3f38915dc0655d5a633dd918")
     version("3.2.1", sha256="1565237372795bf6ee3e5aba5e2a85bd5a65d0e2aa5c628b9a97b7d7a0da3721")
     version("3.1.1", sha256="8f0215fcc533dd8dd1bee6f4c412d4f0cd7297307d43ac61666389e3bc3198a3")
     version("3.1.0", sha256="bee41cc35fcca6e988463cacc3bcb8a96224f470ca547e697b604cc697b2f889")

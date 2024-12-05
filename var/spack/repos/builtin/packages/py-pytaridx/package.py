@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,7 +17,9 @@ class PyPytaridx(PythonPackage):
 
     maintainers("bhatiaharsh")
 
-    version("1.0.2", sha26="702c42ade13ae8688a56a8edfcd7e0e7512a489a22796c6cfdbcef677010ee47")
+    license("MIT")
+
+    version("1.0.2", sha256="702c42ade13ae8688a56a8edfcd7e0e7512a489a22796c6cfdbcef677010ee47")
     version("master", branch="master")
 
     depends_on("python@3:", type=("build", "run"))

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PySubmitit(PythonPackage):
 
     homepage = "https://github.com/facebookincubator/submitit"
     pypi = "submitit/submitit-1.3.3.tar.gz"
+
+    license("MIT")
 
     version("1.4.5", sha256="d12cbbfc98a8c1777c4f6e87f73f063dafdba15653bca2984223b038d41f8223")
     version("1.3.3", sha256="efaa77b2df9ea9ee02545478cbfc377853ddf8016bff59df6988bebcf51ffa7e")

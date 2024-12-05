@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,13 +17,16 @@ class Qucs(AutotoolsPackage):
     on a presentation page or window.
     """
 
-    homepage = "http://qucs.sourceforge.net/"
+    homepage = "https://qucs.sourceforge.net/"
     url = "https://sourceforge.net/projects/qucs/files/qucs/0.0.19/qucs-0.0.19.tar.gz"
     git = "https://git.code.sf.net/p/qucs/git"
 
     version("master", branch="master")
     version("0.0.19", sha256="45c6434fde24c533e63550675ac21cdbd3cc6cbba29b82a1dc3f36e7dd4b3b3e")
     version("0.0.18", sha256="3609a18b57485dc9f19886ac6694667f3251702175bd1cbbbea37981b2c482a7")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     # Can use external simulators:
     variant(

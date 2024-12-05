@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class PyPetastorm(PythonPackage):
     url = "https://github.com/uber/petastorm/archive/refs/tags/v0.11.4.tar.gz"
 
     maintainers("adamjstewart")
+
+    license("Apache-2.0")
 
     version("0.12.0", sha256="79b98b87a619f34ca96a3dd42670506ce9439d321b3aab356cdf7edac8ff5c5c")
     version("0.11.4", sha256="7090dfc86f110e641d95798bcc75f8b1ca14cd56ed3feef491baaa6849629e51")

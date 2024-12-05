@@ -1,9 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -15,7 +16,11 @@ class PyOrTools(CMakePackage):
     homepage = "https://developers.google.com/optimization/"
     url = "https://github.com/google/or-tools/archive/v7.8.tar.gz"
 
+    license("Apache-2.0")
+
     version("7.8", sha256="d93a9502b18af51902abd130ff5f23768fcf47e266e6d1f34b3586387aa2de68")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3.14:", type="build")
     depends_on("py-pip", type="build")
@@ -53,5 +58,4 @@ class PyOrTools(CMakePackage):
         with working_dir(self.build_directory):
             make("install")
         with working_dir(join_path(self.build_directory, "python")):
-            args = std_pip_args + ["--prefix=" + prefix, "."]
-            pip(*args)
+            pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")

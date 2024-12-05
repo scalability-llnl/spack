@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,7 @@ class RMinfi(RPackage):
 
     bioc = "minfi"
 
+    version("1.46.0", commit="1d063178fb27d577c260f8b7626b982c9a6585cc")
     version("1.44.0", commit="7c89fefc2e174d43ed9891b3f30b51ee19e916a6")
     version("1.42.0", commit="30fc7059460a9ec0be734fc26e608426ca9f5614")
     version("1.40.0", commit="17fa2b5d6cdbef6cbfb690242bd3f660731431f1")

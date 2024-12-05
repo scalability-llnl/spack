@@ -1,0 +1,12 @@
+diff --git a/openmp-helloworld/Makefile b/openmp-helloworld/Makefile
+index f048d26..3e0d5ac 100644
+--- a/openmp-helloworld/Makefile
++++ b/openmp-helloworld/Makefile
+@@ -6,6 +6,8 @@ endif
+ HIPCC=$(HIP_PATH)/bin/hipcc
+ CXX=$(HIPCC)
+ CXXFLAGS =-fopenmp
++CXXFLAGS += -I$(ROCM_OPENMP_EXTRAS_DIR)/include
++CXXFLAGS += -L$(ROCM_OPENMP_EXTRAS_DIR)/lib
+
+ SOURCES = openmp_helloworld.cpp

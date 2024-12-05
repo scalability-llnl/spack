@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,7 @@ class RFormatr(RPackage):
 
     cran = "formatR"
 
+    version("1.14", sha256="4ebaab2c3f8527871655246b62abd060bc75dae1cec7f962ca4752b8080f474c")
     version("1.12", sha256="8b52efbf43cbef25d837bb99a793a590c0958b753052c032b52304724e808c8b")
     version("1.11", sha256="bd81662d09cf363652761e63ba5969c71be4dd5ae6fc9098f440d6729254a30c")
     version("1.7", sha256="a366621b3ff5f8e86a499b6f87858ad47eefdace138341b1377ecc307a5e5ddb")

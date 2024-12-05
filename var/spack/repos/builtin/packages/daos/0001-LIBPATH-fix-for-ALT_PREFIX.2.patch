@@ -1,0 +1,42 @@
+From 08d0017f06695d4837f1c509ca39d61b32bdae2b Mon Sep 17 00:00:00 2001
+From: Sean Koyama <skoyama@anl.gov>
+Date: Mon, 6 Mar 2023 23:02:08 +0000
+Subject: [PATCH] LIBPATH fix for ALT_PREFIX
+
+---
+ site_scons/prereq_tools/base.py | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/site_scons/prereq_tools/base.py b/site_scons/prereq_tools/base.py
+index 4df1347be..da32d3dd1 100644
+--- a/site_scons/prereq_tools/base.py
++++ b/site_scons/prereq_tools/base.py
+@@ -1247,18 +1247,18 @@ class PreReqComponent():
+             ipath = os.path.join(path, "include")
+             if not os.path.exists(ipath):
+                 ipath = None
+-            lpath = None
++            lpaths = []
+             for lib in ['lib64', 'lib']:
+-                lpath = os.path.join(path, lib)
+-                if not os.path.exists(lpath):
+-                    lpath = None
+-            if ipath is None and lpath is None:
++                lp = os.path.join(path, lib)
++                if os.path.exists(lp):
++                    lpaths.append(lp)
++            if not ipath and not lpaths:
+                 continue
+             env = self.__env.Clone()
+             if ipath:
+                 env.AppendUnique(CPPPATH=[ipath])
+-            if lpath:
+-                env.AppendUnique(LIBPATH=[lpath])
++            if lpaths:
++                env.AppendUnique(LIBPATH=lpaths)
+             if not comp.has_missing_targets(env):
+                 self.__prebuilt_path[name] = path
+                 return path
+-- 
+2.34.1
+

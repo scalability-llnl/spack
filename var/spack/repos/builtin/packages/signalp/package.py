@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,7 +22,7 @@ class Signalp(Package):
     url = "file://{0}/signalp-4.1f.Linux.tar.gz".format(os.getcwd())
     manual_download = True
 
-    version("4.1f", "a9aeb66259202649c959846f3f4d9744")
+    version("4.1f", md5="a9aeb66259202649c959846f3f4d9744")
 
     depends_on("perl", type=("build", "run"))
     depends_on("gnuplot")

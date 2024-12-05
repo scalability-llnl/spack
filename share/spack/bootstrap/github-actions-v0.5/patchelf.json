@@ -1,0 +1,34 @@
+{
+  "verified": [
+    {
+      "binaries": [
+        [
+          "patchelf",
+          "4txke6ixd2zg2yzg33l3fqnjyassono7",
+          "102800775f789cc293e244899f39a22f0b7a19373305ef0497ca3189223123f3"
+        ]
+      ],
+      "spec": "patchelf@0.13: %gcc platform=linux target=aarch64"
+    },
+    {
+      "binaries": [
+        [
+          "patchelf",
+          "tnbgxc22uebqsiwrhchf3nieatuqlsrr",
+          "91cf0a9d4750c04575c5ed3bcdefc4754e1cf9d1cd1bf197eb1fe20ccaa869f1"
+        ]
+      ],
+      "spec": "patchelf@0.13: %gcc platform=linux target=ppc64le"
+    },
+    {
+      "binaries": [
+        [
+          "patchelf",
+          "afv7arjarb7nzmlh7c5slkfxykybuqce",
+          "73f4bde46b843c96521e3f5c31ab94756491404c1ad6429c9f61dbafbbfa6470"
+        ]
+      ],
+      "spec": "patchelf@0.13: %gcc platform=linux target=x86_64"
+    }
+  ]
+}

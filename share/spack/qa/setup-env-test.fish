@@ -1,6 +1,6 @@
 #!/usr/bin/env fish
 #
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -285,7 +285,7 @@ spt_succeeds which spack
 # create a fake mock package install and store its location for later
 title "Setup"
 echo "Creating a mock package installation"
-spack -m install --fake a
+spack -m install --fake shell-a
 
 # create a test environment for testing environment commands
 echo "Creating a mock environment"
@@ -300,7 +300,7 @@ function spt_cleanup -p %self
 
     title "Cleanup"
     echo "Removing test packages before exiting."
-    spack -m uninstall -yf b a
+    spack -m uninstall -yf shell-b shell-a
 
     echo
     echo "$__spt_success tests succeeded."
@@ -322,7 +322,7 @@ spt_contains "usage: spack " spack help --all
 title 'Testing `spack cd`'
 spt_contains "usage: spack cd " spack cd -h
 spt_contains "usage: spack cd " spack cd --help
-spt_contains "cd $b_install" spack cd -i b
+spt_contains "cd $b_install" spack cd -i shell-b
 
 title 'Testing `spack module`'
 spt_contains "usage: spack module " spack -m module -h
@@ -330,34 +330,33 @@ spt_contains "usage: spack module " spack -m module --help
 spt_contains "usage: spack module " spack -m module
 
 title 'Testing `spack load`'
-set _b_loc (spack -m location -i b)
+set _b_loc (spack -m location -i shell-b)
 set _b_bin $_b_loc"/bin"
-set _a_loc (spack -m location -i a)
+set _a_loc (spack -m location -i shell-a)
 set _a_bin $_a_loc"/bin"
 
-spt_contains "set -gx PATH $_b_bin" spack -m load --only package --fish b
-spt_succeeds spack -m load b
-set LIST_CONTENT (spack -m load b; spack load --list)
-spt_contains "b@" echo $LIST_CONTENT
-spt_does_not_contain "a@" echo $LIST_CONTENT
+spt_contains "set -gx PATH $_b_bin" spack -m load --fish shell-b
+spt_succeeds spack -m load shell-b
+set LIST_CONTENT (spack -m load shell-b; spack load --list)
+spt_contains "shell-b@" echo $LIST_CONTENT
+spt_does_not_contain "shell-a@" echo $LIST_CONTENT
 # test a variable MacOS clears and one it doesn't for recursive loads
-spt_contains "set -gx PATH $_a_bin:$_b_bin" spack -m load --fish a
-spt_succeeds spack -m load --only dependencies a
-spt_succeeds spack -m load --only package a
+
+spt_succeeds spack -m load shell-a
 spt_fails spack -m load d
 spt_contains "usage: spack load " spack -m load -h
 spt_contains "usage: spack load " spack -m load -h d
 spt_contains "usage: spack load " spack -m load --help
 
 title 'Testing `spack unload`'
-spack -m load b a  # setup
-# spt_contains "module unload $b_module" spack -m unload b
-spt_succeeds spack -m unload b
+spack -m load shell-b shell-a  # setup
+# spt_contains "module unload $b_module" spack -m unload shell-b
+spt_succeeds spack -m unload shell-b
 spt_succeeds spack -m unload --all
 spack -m unload --all # cleanup
 spt_fails spack -m unload -l
-# spt_contains "module unload -l --arg $b_module" spack -m unload -l --arg b
-spt_fails spack -m unload d
+# spt_contains "module unload -l --arg $b_module" spack -m unload -l --arg shell-b
+spt_fails spack -m unload shell-d
 spt_contains "usage: spack unload " spack -m unload -h
 spt_contains "usage: spack unload " spack -m unload -h d
 spt_contains "usage: spack unload " spack -m unload --help
@@ -372,7 +371,6 @@ spt_contains " spack env list " spack env list --help
 
 title 'Testing `spack env activate`'
 spt_contains "No such environment:" spack env activate no_such_environment
-spt_contains "env activate requires an environment " spack env activate
 spt_contains "usage: spack env activate " spack env activate -h
 spt_contains "usage: spack env activate " spack env activate --help
 
@@ -414,6 +412,11 @@ spack env activate spack_test_env
 spack env activate spack_test_2_env
 spt_contains 'spack_test_2_env' 'fish' '-c' 'echo $PATH'
 spt_does_not_contain 'spack_test_env' 'fish' '-c' 'echo $PATH'
+despacktivate
+
+echo "Testing default environment"
+spack env activate
+contains "In environment default" spack env status
 despacktivate
 
 echo "Correct error exit codes for activate and deactivate"

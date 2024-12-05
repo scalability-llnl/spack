@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -27,6 +27,8 @@ class Kahip(CMakePackage):
     git = "https://github.com/KaHIP/KaHIP.git"
     maintainers("ma595")
 
+    license("MIT")
+
     version("develop", branch="master")
     version("3.14", sha256="9da04f3b0ea53b50eae670d6014ff54c0df2cb40f6679b2f6a96840c1217f242")
     version("3.13", sha256="fae21778a4ce8e59ccb98e5cbb6c01f0af7e594657d21f6c0eb2c6e74398deb1")
@@ -38,6 +40,9 @@ class Kahip(CMakePackage):
         url="https://algo2.iti.kit.edu/schulz/software_releases/KaHIP_2.00.tar.gz",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "deterministic",
@@ -63,6 +68,8 @@ class Kahip(CMakePackage):
     # *) second is for files only present in 2.00
     patch("fix-sconstruct-for-py3.patch", when="@2:2.10 ^python@3:")
     patch("fix-sconstruct-for-py3-v2.00.patch", when="@2.00 ^python@3:")
+
+    patch("cstdint.patch", when="@3:")
 
     # 'when' decorators to override new CMake build approach (old build was SConstruct).
     @when("@:2.10")

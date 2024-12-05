@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,8 @@ class PyDhScikitOptimize(PythonPackage):
 
     homepage = "https://github.com/deephyper/scikit-optimize"
     pypi = "dh-scikit-optimize/dh-scikit-optimize-0.9.0.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("0.9.5", sha256="c2777839a536215ab40fc5db2242809ccffd5e5b23718e23d58ea76ff35a7543")
     version("0.9.4", sha256="9acfba4077fe45f3854a4af255763a3e8a396c05bd2a7c761a969171366b3840")

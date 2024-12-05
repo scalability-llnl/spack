@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,8 +17,12 @@ class Vim(AutotoolsPackage):
 
     homepage = "https://www.vim.org"
     url = "https://github.com/vim/vim/archive/v8.1.0338.tar.gz"
+
     maintainers("sethrj")
 
+    license("Vim")
+
+    version("9.1.0437", sha256="7024fbf8d0e8eec2eae21d279d487b60c58dc4ba3d42146388dc3743506d1fe6")
     version("9.0.0045", sha256="594a31e96e3eda07a358db305de939ca749693b4684de9e027bfa70311b1994d")
     version(
         "9.0.0000",
@@ -36,6 +40,9 @@ class Vim(AutotoolsPackage):
     version("8.0.0454", sha256="e1f683c4a0e3fa56fa02769bbca576e4960850b0ca8640514a7b114b88c27b89")
     version("8.0.0134", sha256="1b3e3e7d187eed55cbdb0a1dae6b8f3b885005fbae84222420877d7afa3b2310")
     version("7.4.2367", sha256="a9ae4031ccd73cc60e771e8bf9b3c8b7f10f63a67efce7f61cd694cd8d7cda5c")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     _features = ("huge", "big", "normal", "small", "tiny")
 

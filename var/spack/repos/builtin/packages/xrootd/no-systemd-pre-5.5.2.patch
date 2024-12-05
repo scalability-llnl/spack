@@ -1,0 +1,17 @@
+--- a/cmake/XRootDFindLibs.cmake	2021-07-29 12:22:48.000000000 +0000
++++ b/cmake/XRootDFindLibs.cmake	2021-10-25 18:26:07.308918231 +0000
+@@ -26,10 +26,10 @@
+   add_definitions( -DHAVE_XML2 )
+ endif()
+ 
+-find_package( Systemd )
+-if( SYSTEMD_FOUND )
+-  add_definitions( -DHAVE_SYSTEMD )
+-endif()
++#find_package( Systemd )
++#if( SYSTEMD_FOUND )
++#  add_definitions( -DHAVE_SYSTEMD )
++#endif()
+ 
+ find_package( CURL )
+ 

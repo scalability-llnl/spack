@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyFreezegun(PythonPackage):
 
     homepage = "https://github.com/spulec/freezegun"
     pypi = "freezegun/freezegun-0.3.12.tar.gz"
+
+    license("Apache-2.0")
 
     version("0.3.12", sha256="2a4d9c8cd3c04a201e20c313caf8b6338f1cfa4cda43f46a94cc4a9fd13ea5e7")
 

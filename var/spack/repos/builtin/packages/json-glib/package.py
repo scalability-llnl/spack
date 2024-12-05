@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class JsonGlib(MesonPackage):
     url = "https://ftp.gnome.org/pub/gnome/sources/json-glib/1.2/json-glib-1.2.8.tar.xz"
     list_url = "https://ftp.gnome.org/pub/gnome/sources/json-glib/"
     list_depth = 1
+
+    license("LGPL-2.1-or-later")
 
     version("1.6.6", sha256="96ec98be7a91f6dde33636720e3da2ff6ecbb90e76ccaa49497f31a6855a490e")
     version(

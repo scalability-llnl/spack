@@ -1,0 +1,36 @@
+diff --git a/src/clib/pio.h b/src/clib/pio.h
+index 0aea5a5f..767de18f 100644
+--- a/src/clib/pio.h
++++ b/src/clib/pio.h
+@@ -1267,9 +1267,8 @@ extern "C" {
+                                const long long *op);
+     int PIOc_put_vard_ulonglong(int ncid, int varid, int decompid, const PIO_Offset recnum,
+                                 const unsigned long long *op);
+-/* use this variable in the NETCDF library (introduced in v4.9.0) to determine if the following
+-   functions are available */
+-#ifdef NC_HAS_MULTIFILTERS
++
++#ifdef PIO_HAS_PAR_FILTERS
+   int PIOc_def_var_filter(int ncid, int varid,unsigned int id, size_t nparams, unsigned int *params);
+   int PIOc_inq_var_filter_ids(int ncid, int varid, size_t *nfiltersp, unsigned int *ids);
+   int PIOc_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t *nparamsp, unsigned int *params );
+diff --git a/src/ncint/ncintdispatch.c b/src/ncint/ncintdispatch.c
+index a77396bd..3dce9d2c 100644
+--- a/src/ncint/ncintdispatch.c
++++ b/src/ncint/ncintdispatch.c
+@@ -127,6 +127,7 @@ NC_Dispatch NCINT_dispatcher = {
+     NC_NOTNC4_def_var_filter,
+     NC_NOTNC4_set_var_chunk_cache,
+     NC_NOTNC4_get_var_chunk_cache,
++#ifdef PIO_HAS_PAR_FILTERS
+ #if NC_DISPATCH_VERSION == 2
+     PIO_NCINT_filter_actions,
+ #endif
+@@ -141,6 +142,7 @@ NC_Dispatch NCINT_dispatcher = {
+ #if NC_DISPATCH_VERSION >= 5
+     PIOc_inq_filter_avail,
+ #endif
++#endif
+ };
+ 
+ /**

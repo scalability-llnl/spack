@@ -1,0 +1,15 @@
+diff --git a/src/integration/pintool/Makefile.pin.in b/src/integration/pintool/Makefile.pin.in
+index ec95b7b..1b84423 100644
+--- a/src/integration/pintool/Makefile.pin.in
++++ b/src/integration/pintool/Makefile.pin.in
+@@ -4,7 +4,8 @@
+ #
+ ##############################################################
+ 
+-PIN_ROOT=$(shell dirname @PINTOOL_PIN@)
++PIN_ROOT_BIN=$(shell dirname @PINTOOL_PIN@)
++PIN_ROOT=$(shell dirname $(PIN_ROOT_BIN))
+ MAKE+=-f Makefile.pin
+ SRCDIR=@CMAKE_CURRENT_SOURCE_DIR@
+ CST_DEBUG_FLAGS=@PINTOOL_CFLAGS@
+

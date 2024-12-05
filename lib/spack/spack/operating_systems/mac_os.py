@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -142,6 +142,8 @@ class MacOs(OperatingSystem):
             "11": "bigsur",
             "12": "monterey",
             "13": "ventura",
+            "14": "sonoma",
+            "15": "sequoia",
         }
 
         version = macos_version()
@@ -152,7 +154,7 @@ class MacOs(OperatingSystem):
 
         mac_ver = str(version.up_to(part))
         name = mac_releases.get(mac_ver, "macos")
-        super(MacOs, self).__init__(name, mac_ver)
+        super().__init__(name, mac_ver)
 
     def __str__(self):
         return self.name

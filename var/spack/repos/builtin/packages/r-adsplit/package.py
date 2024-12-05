@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,7 @@ class RAdsplit(RPackage):
 
     bioc = "adSplit"
 
+    version("1.70.0", commit="a08a994215a459b856eae051c778e2b9144f52d9")
     version("1.68.0", commit="705977b5e1cb7dd69793cc673fa215baaba42af5")
     version("1.66.0", commit="64580a6f7a9bc6b16334267c90df48fbb839cc16")
     version("1.64.0", commit="32f150eb51c66b867301dceeb527de5b97f9f490")
@@ -25,6 +26,8 @@ class RAdsplit(RPackage):
     version("1.50.0", commit="a02e2c994e78ececd5a248575109c5ed36c969db")
     version("1.48.0", commit="57dfcd93b9232cf53f05c34179ecb759bb7aff46")
     version("1.46.0", commit="7e81a83f34d371447f491b3a146bf6851e260c7c")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r@2.1.0:", type=("build", "run"))
     depends_on("r-annotationdbi", type=("build", "run"))

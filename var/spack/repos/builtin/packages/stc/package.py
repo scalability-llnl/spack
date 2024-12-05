@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,7 +21,7 @@ class Stc(AutotoolsPackage):
     version("0.8.3", sha256="d61ca80137a955b12e84e41cb8a78ce1a58289241a2665076f12f835cf68d798")
     version("0.8.2", sha256="13f0f03fdfcca3e63d2d58d7e7dbdddc113d5b9826c9357ab0713b63e8e42c5e")
 
-    depends_on("java", type=("build", "run"))
+    depends_on("java@11", type=("build", "run"))
     depends_on("ant", type="build")
     depends_on("turbine", type=("build", "run"))
     depends_on("turbine@master", type=("build", "run"), when="@master")

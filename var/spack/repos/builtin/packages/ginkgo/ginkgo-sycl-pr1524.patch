@@ -1,0 +1,13 @@
+diff -ruN spack-src/dpcpp/components/cooperative_groups.dp.hpp spack-src-patched/dpcpp/components/cooperative_groups.dp.hpp
+--- spack-src/dpcpp/components/cooperative_groups.dp.hpp	2024-01-18 17:25:05.336926061 +0000
++++ spack-src-patched/dpcpp/components/cooperative_groups.dp.hpp	2024-01-18 17:26:50.649595478 +0000
+@@ -240,7 +240,8 @@
+     {
+         // todo: change it when OneAPI update the mask related api
+         return sycl::reduce_over_group(
+-            *this, (predicate != 0) ? mask_type(1) << data_.rank : mask_type(0),
++            static_cast<sycl::sub_group>(*this),
++            (predicate != 0) ? mask_type(1) << data_.rank : mask_type(0),
+             sycl::plus<mask_type>());
+     }
+ 

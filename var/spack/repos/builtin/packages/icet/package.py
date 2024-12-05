@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class Icet(CMakePackage):
 
     version("develop", branch="master")
     version("2.1.1", sha256="04cc5b7aa5b3ec95b255febdcfc2312e553ce3db5ca305526803d5737561ec32")
+
+    depends_on("c", type="build")  # generated
 
     variant("opengl", default=False, description="Use opengl")
     variant("shared", default=True, description="Enable shared library")

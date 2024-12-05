@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -8,9 +8,9 @@
 TODO: This needs to be updated? Especially the hashes under properties.
 
 .. literalinclude:: _spack_root/lib/spack/spack/schema/spec.py
-   :lines: 13-
+   :lines: 15-
 """
-
+from typing import Any, Dict
 
 target = {
     "oneOf": [
@@ -57,7 +57,7 @@ build_spec = {
 }
 
 #: Properties for inclusion in other schemas
-properties = {
+properties: Dict[str, Any] = {
     "spec": {
         "type": "object",
         "additionalProperties": False,

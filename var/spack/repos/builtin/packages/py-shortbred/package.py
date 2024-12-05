@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyShortbred(PythonPackage):
 
     homepage = "https://huttenhower.sph.harvard.edu/shortbred/"
     pypi = "shortbred/shortbred-0.9.5.tar.gz"
+
+    license("MIT")
 
     version("0.9.5", sha256="a6ac09b858f14e2c0b8622b122ec91e5d02d32c12429cad66626d7ef26df10d5")
 

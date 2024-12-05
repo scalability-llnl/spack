@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,9 @@ class RComplexheatmap(RPackage):
 
     bioc = "ComplexHeatmap"
 
+    license("MIT")
+
+    version("2.16.0", commit="01eb55ca9b783c6d99bdfe88aa131cc102bae5b3")
     version("2.14.0", commit="57fcaa040b08917c97fb66b963eb240d5fd5a8c7")
     version("2.12.1", commit="2c5fe70724219008174d4e6f83189cddbd895ec6")
     version("2.12.0", commit="8a5f060b06646f9d6a5032832ea72e3f183ca5d7")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,11 @@ class ROrgHsEgDb(RPackage):
     bioc = "org.Hs.eg.db"
     url = "https://www.bioconductor.org/packages/release/data/annotation/src/contrib/org.Hs.eg.db_3.4.1.tar.gz"
 
+    version(
+        "3.17.0",
+        url="https://www.bioconductor.org/packages/3.17/data/annotation/src/contrib/org.Hs.eg.db_3.17.0.tar.gz",
+        sha256="94714ea22b50d20523becbb665d9b27f2f147d3b1f77bc24ddcd3a245e201a0e",
+    )
     version(
         "3.16.0",
         url="https://www.bioconductor.org/packages/3.16/data/annotation/src/contrib/org.Hs.eg.db_3.16.0.tar.gz",
@@ -52,3 +57,5 @@ class ROrgHsEgDb(RPackage):
     depends_on("r-annotationdbi@1.51.3:", type=("build", "run"), when="@3.12.0:")
     depends_on("r-annotationdbi@1.55.1:", type=("build", "run"), when="@3.14.0:")
     depends_on("r-annotationdbi@1.57.1:", type=("build", "run"), when="@3.15.0:")
+    depends_on("r-annotationdbi@1.59.1:", type=("build", "run"), when="@3.16.0:")
+    depends_on("r-annotationdbi@1.61.0:", type=("build", "run"), when="@3.17.0:")

@@ -1,4 +1,4 @@
-.. Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
    Spack Project Developers. See the top-level COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -54,8 +54,8 @@ to terminate such build attempts with a suitable message:
 
 .. code-block:: python
 
-    conflicts('cuda_arch=none', when='+cuda',
-              msg='CUDA architecture is required')
+    conflicts("cuda_arch=none", when="+cuda",
+              msg="CUDA architecture is required")
 
 Similarly, if your software does not support all versions of the property,
 you could add ``conflicts`` to your package for those versions.  For example,
@@ -66,13 +66,13 @@ custom message should a user attempt such a build:
 .. code-block:: python
 
     unsupported_cuda_archs = [
-        '10', '11', '12', '13',
-        '20', '21',
-        '30', '32', '35', '37'
+        "10", "11", "12", "13",
+        "20", "21",
+        "30", "32", "35", "37"
     ]
     for value in unsupported_cuda_archs:
-        conflicts('cuda_arch={0}'.format(value), when='+cuda',
-                  msg='CUDA architecture {0} is not supported'.format(value))
+        conflicts(f"cuda_arch={value}", when="+cuda",
+                  msg=f"CUDA architecture {value} is not supported")
 
 ^^^^^^^
 Methods
@@ -107,16 +107,16 @@ class of your package.  For example, you can add it to your
             spec = self.spec
             args = []
             ...
-            if '+cuda' in spec:
+            if spec.satisfies("+cuda"):
                 # Set up the cuda macros needed by the build
-                args.append('-DWITH_CUDA=ON')
-                cuda_arch_list = spec.variants['cuda_arch'].value
+                args.append("-DWITH_CUDA=ON")
+                cuda_arch_list = spec.variants["cuda_arch"].value
                 cuda_arch = cuda_arch_list[0]
-                if cuda_arch != 'none':
-                    args.append('-DCUDA_FLAGS=-arch=sm_{0}'.format(cuda_arch))
+                if cuda_arch != "none":
+                    args.append(f"-DCUDA_FLAGS=-arch=sm_{cuda_arch}")
             else:
                 # Ensure build with cuda is disabled
-                args.append('-DWITH_CUDA=OFF')
+                args.append("-DWITH_CUDA=OFF")
             ...
             return args
 
@@ -125,7 +125,7 @@ You will need to customize options as needed for your build.
 
 This example also illustrates how to check for the ``cuda`` variant using
 ``self.spec`` and how to retrieve the ``cuda_arch`` variant's value, which
-is a list, using ``self.spec.variants['cuda_arch'].value``.
+is a list, using ``self.spec.variants["cuda_arch"].value``.
 
 With over 70 packages using ``CudaPackage`` as of January 2021 there are
 lots of examples to choose from to get more ideas for using this package.

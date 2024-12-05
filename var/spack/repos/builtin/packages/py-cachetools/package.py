@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyCachetools(PythonPackage):
 
     homepage = "https://github.com/tkem/cachetools"
     pypi = "cachetools/cachetools-3.1.1.tar.gz"
+
+    license("MIT")
 
     version("5.2.0", sha256="6a94c6402995a99c3970cc7e4884bb60b4a8639938157eeed436098bf9831757")
     version("4.2.4", sha256="89ea6f1b638d5a73a4f9226be57ac5e4f399d22770b92355f92dcb0f7f001693")

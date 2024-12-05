@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,7 +16,11 @@ class Nauty(AutotoolsPackage):
     homepage = "https://pallini.di.uniroma1.it/index.html"
     url = "https://pallini.di.uniroma1.it//nauty26r7.tar.gz"
 
+    license("Apache-2.0")
+
     version("2.6r7", sha256="97b5648de17645895cbd56a9a0b3e23cf01f5332c476d013ea459f1a0363cdc6")
+
+    depends_on("c", type="build")  # generated
 
     # Debian/ Fedora patches for @2.6r7:
     urls_for_patches = {
@@ -75,7 +79,7 @@ class Nauty(AutotoolsPackage):
     depends_on("libtool", type="build", when="@2.6r7")
     depends_on("pkgconfig", type="build")
     depends_on("help2man", type="build")
-    depends_on("zlib")
+    depends_on("zlib-api")
     depends_on("gmp")
 
     @property

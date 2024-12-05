@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PySseclient(PythonPackage):
 
     homepage = "https://github.com/btubbs/sseclient"
     pypi = "sseclient/sseclient-0.0.27.tar.gz"
+
+    license("MIT")
 
     version("0.0.27", sha256="b2fe534dcb33b1d3faad13d60c5a7c718e28f85987f2a034ecf5ec279918c11c")
 

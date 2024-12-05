@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class Ignite(Package):
 
     homepage = "https://ignite.apache.org/"
     url = "https://archive.apache.org/dist/ignite/2.6.0/apache-ignite-hadoop-2.6.0-bin.zip"
+
+    license("CC0-1.0")
 
     version("2.6.0", sha256="be40350f301a308a0ab09413a130d421730bf253d200e054b82a7d0c275c69f2")
     version("2.5.0", sha256="00bd35b6c50754325b966d50c7eee7067e0558f3d52b3dee27aff981b6da38be")

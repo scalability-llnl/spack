@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyVcfKit(PythonPackage):
 
     homepage = "https://github.com/AndersenLab/VCF-kit"
     url = "https://github.com/AndersenLab/VCF-kit/archive/0.1.6.tar.gz"
+
+    license("MIT")
 
     version("0.1.6", sha256="4865414ac9dc6996c0baeefadf1d528c28e6d0c3cc3dbdc28a2cdc6e06212428")
 

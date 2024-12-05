@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyPytestXdist(PythonPackage):
 
     homepage = "https://github.com/pytest-dev/pytest-xdist"
     pypi = "pytest-xdist/pytest-xdist-3.2.0.tar.gz"
+
+    license("MIT")
 
     version("3.2.0", sha256="fa10f95a2564cd91652f2d132725183c3b590d9fdcdec09d3677386ecf4c1ce9")
     version("1.30.0", sha256="5d1b1d4461518a6023d56dab62fb63670d6f7537f23e2708459a557329accf48")

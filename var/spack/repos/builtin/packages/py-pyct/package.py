@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyPyct(PythonPackage):
     pypi = "pyct/pyct-0.4.8.tar.gz"
 
     maintainers("vvolkl")
+
+    license("BSD-3-Clause")
 
     version("0.4.8", sha256="23d7525b5a1567535c093aea4b9c33809415aa5f018dd77f6eb738b1226df6f7")
 

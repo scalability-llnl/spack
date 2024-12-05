@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class Arrayfire(CMakePackage, CudaPackage):
     git = "https://github.com/arrayfire/arrayfire.git"
     maintainers("umar456")
 
+    license("FreeImage")
+
     version("master")
     version("3.8.1", commit="823e8e399fe8c120c6ec7ec75f09e6106b3074ca", tag="v3.8.1")
     version(
@@ -27,6 +29,9 @@ class Arrayfire(CMakePackage, CudaPackage):
         "3.7.0", commit="fbea2aeb6f7f2d277dcb0ab425a77bb18ed22291", submodules=True, tag="v3.7.0"
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("forge", default=False, description="Enable graphics library")
     variant("opencl", default=False, description="Enable OpenCL backend")
 
@@ -35,7 +40,10 @@ class Arrayfire(CMakePackage, CudaPackage):
     depends_on("blas")
     depends_on("cuda@7.5:", when="+cuda")
     depends_on("cudnn", when="+cuda")
-    depends_on("opencl +icd", when="+opencl")
+
+    depends_on("opencl", when="+opencl")
+    depends_on("pocl+icd", when="^[virtuals=opencl] pocl")
+
     # TODO add more opencl backends:
     # currently only Cuda backend is enabled
     # https://github.com/arrayfire/arrayfire/wiki/Build-Instructions-for-Linux#opencl-backend-dependencies
@@ -72,14 +80,14 @@ class Arrayfire(CMakePackage, CudaPackage):
             ]
         )
 
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             arch_list = [
                 "{}.{}".format(arch[:-1], arch[-1])
                 for arch in self.spec.variants["cuda_arch"].value
             ]
             args.append(self.define("CUDA_architecture_build_targets", arch_list))
 
-        if "^mkl" in self.spec:
+        if self.spec["blas"].name in INTEL_MATH_LIBRARIES:
             if self.version >= Version("3.8.0"):
                 args.append(self.define("AF_COMPUTE_LIBRARY", "Intel-MKL"))
             else:

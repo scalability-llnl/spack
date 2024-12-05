@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,7 +16,7 @@ class SentieonGenomics(Package):
 
     Please set the path to the sentieon license server with:
 
-    export SENTIEON_LICENSE=[FQDN]:[PORT]
+    export SENTIEON_LICENSE=<FQDN>:<PORT>
     """
 
     homepage = "https://www.sentieon.com/"
@@ -26,6 +26,9 @@ class SentieonGenomics(Package):
     url = "https://s3.amazonaws.com/sentieon-release/software/sentieon-genomics-201808.01.tar.gz"
     maintainers("snehring")
 
+    version("202308.02", sha256="a04b98c1b7c4e8916fdc45f15685d5fd83db56386ec2478eb5ea594170405bd5")
+    version("202308", sha256="d663067f46e499c23819e344cf548fdc362abbf94d3ef086a2e655c072ebe0d6")
+    version("202112.07", sha256="7178769bb5a9619840996356bda4660410fb6f228b2c0b86611bcb1c6bcfc2e1")
     version("202112.06", sha256="18306036f01c3d41dd7ae738b18ae76fd6b666f1172dd4696cd55b4a8465270d")
     version("202112.05", sha256="c97b14b0484a0c0025115ad7b911453af7bdcd09874c26cbc39fd0bc5588a306")
     version("202112.04", sha256="154732dc752476d984908e78b1fc5120d4f23028ee165cc4a451ecc1df0e0246")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,6 +10,8 @@ class Regcm(AutotoolsPackage):
     """RegCM, ICTP Regional Climate Model (https://ictp.it)."""
 
     homepage = "https://gforge.ictp.it/gf/project/regcm/"
+
+    license("AFL-1.1")
 
     version(
         "4.7.0",

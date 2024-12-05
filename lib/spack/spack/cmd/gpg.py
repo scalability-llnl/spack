@@ -1,17 +1,19 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import argparse
 import os
+import tempfile
 
 import spack.binary_distribution
-import spack.cmd.common.arguments as arguments
 import spack.mirror
 import spack.paths
+import spack.stage
 import spack.util.gpg
 import spack.util.url
+from spack.cmd.common import arguments
 
 description = "handle GPG actions for spack"
 section = "packaging"
@@ -68,7 +70,7 @@ def setup_parser(subparser):
         metavar="DEST",
         type=str,
         dest="secret",
-        help="export the private key to a file.",
+        help="export the private key to a file",
     )
     create.set_defaults(func=gpg_create)
 
@@ -86,7 +88,7 @@ def setup_parser(subparser):
     export = subparsers.add_parser("export", help=gpg_export.__doc__)
     export.add_argument("location", type=str, help="where to export keys")
     export.add_argument(
-        "keys", nargs="*", help="the keys to export; " "all public keys if unspecified"
+        "keys", nargs="*", help="the keys to export (all public keys if unspecified)"
     )
     export.add_argument("--secret", action="store_true", help="export secret keys")
     export.set_defaults(func=gpg_export)
@@ -99,29 +101,30 @@ def setup_parser(subparser):
         "--directory",
         metavar="directory",
         type=str,
-        help="local directory where keys will be published.",
+        help="local directory where keys will be published",
     )
     output.add_argument(
         "-m",
         "--mirror-name",
         metavar="mirror-name",
         type=str,
-        help="name of the mirror where " + "keys will be published.",
+        help="name of the mirror where keys will be published",
     )
     output.add_argument(
         "--mirror-url",
         metavar="mirror-url",
         type=str,
-        help="URL of the mirror where " + "keys will be published.",
+        help="URL of the mirror where keys will be published",
     )
     publish.add_argument(
+        "--update-index",
         "--rebuild-index",
         action="store_true",
         default=False,
-        help=("Regenerate buildcache key index " "after publishing key(s)"),
+        help="regenerate buildcache key index after publishing key(s)",
     )
     publish.add_argument(
-        "keys", nargs="*", help="the keys to publish; " "all public keys if unspecified"
+        "keys", nargs="*", help="keys to publish (all public keys if unspecified)"
     )
     publish.set_defaults(func=gpg_publish)
 
@@ -146,7 +149,7 @@ def gpg_create(args):
 
 
 def gpg_export(args):
-    """export a gpg key, optionally including secret key."""
+    """export a gpg key, optionally including secret key"""
     keys = args.keys
     if not keys:
         keys = spack.util.gpg.signing_keys()
@@ -168,7 +171,7 @@ def gpg_sign(args):
         elif not keys:
             raise RuntimeError("no signing keys are available")
         else:
-            raise RuntimeError("multiple signing keys are available; " "please choose one")
+            raise RuntimeError("multiple signing keys are available; please choose one")
     output = args.output
     if not output:
         output = args.spec[0] + ".asc"
@@ -216,13 +219,14 @@ def gpg_publish(args):
         url = spack.util.url.path_to_file_url(args.directory)
         mirror = spack.mirror.Mirror(url, url)
     elif args.mirror_name:
-        mirror = spack.mirror.MirrorCollection().lookup(args.mirror_name)
+        mirror = spack.mirror.MirrorCollection(binary=True).lookup(args.mirror_name)
     elif args.mirror_url:
         mirror = spack.mirror.Mirror(args.mirror_url, args.mirror_url)
 
-    spack.binary_distribution.push_keys(
-        mirror, keys=args.keys, regenerate_index=args.rebuild_index
-    )
+    with tempfile.TemporaryDirectory(dir=spack.stage.get_stage_root()) as tmpdir:
+        spack.binary_distribution._url_push_keys(
+            mirror, keys=args.keys, tmpdir=tmpdir, update_index=args.update_index
+        )
 
 
 def gpg(parser, args):

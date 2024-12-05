@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,7 +14,11 @@ class ArgpStandalone(AutotoolsPackage):
     homepage = "https://www.lysator.liu.se/~nisse/misc"
     url = "https://www.lysator.liu.se/~nisse/misc/argp-standalone-1.3.tar.gz"
 
+    license("LGPL-2.1-or-later")
+
     version("1.3", sha256="dec79694da1319acd2238ce95df57f3680fea2482096e483323fddf3d818d8be")
+
+    depends_on("c", type="build")  # generated
 
     # Homebrew (https://github.com/Homebrew/homebrew-core) patches
     # argp-standalone to work on Darwin; the patchfile below was taken

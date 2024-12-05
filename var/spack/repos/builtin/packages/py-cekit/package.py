@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyCekit(PythonPackage):
 
     homepage = "https://github.com/cekit/cekit/"
     url = "https://github.com/cekit/cekit/archive/3.7.0.tar.gz"
+
+    license("MIT")
 
     version("3.7.0", sha256="2a778b50427f1d7478d5cd54a5df97fb1b8d540892a1e70d7f9a9c7b878f89ca")
     version("3.6.0", sha256="d046f25b533ffa1602e3c53e58cc90108bd8fb1f8d0c4fae92f28cf71f81add0")

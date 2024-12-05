@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,12 +15,18 @@ class Asagi(CMakePackage):
     homepage = "https://github.com/TUM-I5/ASAGI"
     git = "https://github.com/TUM-I5/ASAGI.git"
 
+    license("LGPL-3.0-only")
+
     # fetching the package via git with submodules
     # is preferred to satisfy internal-dependencies
     version("1.0.1", commit="f633f96931ae00805f599078d5a1a6a830881554", submodules=True)
     # fetching the package via git with submodules
     # is preferred to satisfy internal-dependencies
     version("1.0", commit="f67250798b435c308b9a1e7516f916f7855534ec", submodules=True)
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant(
         "link_type",

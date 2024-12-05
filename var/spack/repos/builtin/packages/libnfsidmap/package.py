@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class Libnfsidmap(AutotoolsPackage):
 
     version("0-26", sha256="8c6d62285b528d673fcb8908fbe230ae82287b292d90925d014c6f367e8425ef")
     version("0-25", sha256="dbf844a2aa820d7275eca55c2e392d12453ab4020d37d532ea6beac47efc4725")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

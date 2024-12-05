@@ -8,7 +8,7 @@ import urllib.request
 import xml.etree.ElementTree
 from typing import Optional
 
-url = None  # type: Optional[str]
+url: Optional[str] = None
 url = "https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/index.xml"
 if url is not None:
     document = urllib.request.urlopen(url).read()

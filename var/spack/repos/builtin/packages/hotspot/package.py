@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class Hotspot(MakefilePackage):
     git = "https://github.com/uvahotspot/HotSpot.git"
 
     version("6.0", commit="a7a3286e368867c26381e0a23e36b3e273bdeda9")
+
+    depends_on("c", type="build")  # generated
 
     def install(self, spec, prefix):
         mkdir(prefix.bin)

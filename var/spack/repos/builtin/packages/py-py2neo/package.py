@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyPy2neo(PythonPackage):
 
     homepage = "https://py2neo.org/"
     pypi = "py2neo/py2neo-2.0.8.tar.gz"
+
+    license("Apache-2.0")
 
     version("4.3.0", sha256="a218ccb4b636e3850faa6b74ebad80f00600217172a57f745cf223d38a219222")
     version("2.0.8", sha256="06167f5a91a0d9b9b73431baacd876f2d507650a681fdce1fcf3b383a9b991c1")

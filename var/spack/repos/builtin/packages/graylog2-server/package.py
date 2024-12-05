@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class Graylog2Server(Package):
 
     homepage = "https://www.graylog.org/"
     url = "https://github.com/Graylog2/graylog2-server/archive/3.2.4.tar.gz"
+
+    license("GPL-3.0-or-later")
 
     version("3.2.4", sha256="d34cc9fd42b2ee0b872c0f644fe53ef9b2e9790029c5d2182f782f66f1e1d99d")
     version("3.2.3", sha256="6da5ba1da897a371a490a6ba7c9d017a479a22e3c16a39280a49e61f551280c0")

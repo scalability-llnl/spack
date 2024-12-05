@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class RRvcheck(RPackage):
     'Bioconductor' or 'Github')."""
 
     cran = "rvcheck"
+
+    license("Artistic-2.0")
 
     version("0.2.1", sha256="2ad9efd2af8d103e88bff0a01692f0e32515805f269152f2694eadbfe9947026")
     version("0.1.8", sha256="4ca5aa48fbf543e6171696ca7e1bff81e3112d06c919e88769b5c38a115b4718")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyBasisSetExchange(PythonPackage):
     url = "https://github.com/MolSSI-BSE/basis_set_exchange/archive/v0.8.12.tar.gz"
 
     maintainers("bennybp", "scemama")
+
+    license("BSD-3-Clause")
 
     version("0.8.12", sha256="41f0242e2c11392c511d3308c0345e14b0eb3344686d865bdfcb48257910fc0d")
     version("0.8.11", sha256="dbd4cf9382d97b79a3143c6b2086d1d24562bd13e0ab0d18fc0423b9ee877b9b")

@@ -27,12 +27,57 @@
 # And here's the CITATION.cff format:
 #
 cff-version: 1.2.0
+type: software
 message: "If you are referencing Spack in a publication, please cite the paper below."
+title: "The Spack Package Manager: Bringing Order to HPC Software Chaos"
+abstract: >-
+  Large HPC centers spend considerable time supporting software for thousands of users, but the
+  complexity of HPC software is quickly outpacing the capabilities of existing software management
+  tools. Scientific applications require specific versions of compilers, MPI, and other dependency
+  libraries, so using a single, standard software stack is infeasible. However, managing many
+  configurations is difficult because the configuration space is combinatorial in size. We
+  introduce Spack, a tool used at Lawrence Livermore National Laboratory to manage this complexity.
+  Spack provides a novel, re- cursive specification syntax to invoke parametric builds of packages
+  and dependencies. It allows any number of builds to coexist on the same system, and it ensures
+  that installed packages can find their dependencies, regardless of the environment. We show
+  through real-world use cases that Spack supports diverse and demanding applications, bringing
+  order to HPC software chaos.
 preferred-citation:
+  title: "The Spack Package Manager: Bringing Order to HPC Software Chaos"
   type: conference-paper
-  doi: "10.1145/2807591.2807623"
-  url: "https://github.com/spack/spack"
+  url: "https://tgamblin.github.io/pubs/spack-sc15.pdf"
   authors:
+    - family-names: "Gamblin"
+      given-names: "Todd"
+    - family-names: "LeGendre"
+      given-names: "Matthew"
+    - family-names: "Collette"
+      given-names: "Michael R."
+    - family-names: "Lee"
+      given-names: "Gregory L."
+    - family-names: "Moody"
+      given-names: "Adam"
+    - family-names: "de Supinski"
+      given-names: "Bronis R."
+    - family-names: "Futral"
+      given-names: "Scott"
+  conference:
+    name: "Supercomputing 2015 (SC’15)"
+    city: "Austin"
+    region: "Texas"
+    country: "US"
+    date-start: 2015-11-15
+    date-end: 2015-11-20
+  month: 11
+  year: 2015
+  identifiers:
+    - description: "The concept DOI of the work."
+      type: doi
+      value: 10.1145/2807591.2807623
+    - description: "The DOE Document Release Number of the work"
+      type: other
+      value: "LLNL-CONF-669890"
+authors:
   - family-names: "Gamblin"
     given-names: "Todd"
   - family-names: "LeGendre"
@@ -47,12 +92,3 @@ preferred-citation:
     given-names: "Bronis R."
   - family-names: "Futral"
     given-names: "Scott"
-  title: "The Spack Package Manager: Bringing Order to HPC Software Chaos"
-  conference:
-    name: "Supercomputing 2015 (SC’15)"
-    city: "Austin"
-    region: "Texas"
-    country: "USA"
-  month: November 15-20
-  year: 2015
-  notes: LLNL-CONF-669890

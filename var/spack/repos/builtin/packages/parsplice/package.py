@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,9 +19,13 @@ class Parsplice(CMakePackage):
 
     tags = ["ecp", "ecp-apps"]
 
+    license("Unlicense")
+
     version("develop", branch="master")
     version("multisplice", branch="multisplice")
     version("1.1", sha256="a011c4d14f66e7cdbc151cc74b5d40dfeae19ceea033ef48185d8f3b1bc2f86b")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3.1:", type="build")
     depends_on("berkeley-db")

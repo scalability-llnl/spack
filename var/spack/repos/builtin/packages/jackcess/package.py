@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,7 +10,7 @@ class Jackcess(Package):
     """Jackcess is a pure Java library for reading from and writing to
     MS Access databases (currently supporting versions 2000-2016)."""
 
-    homepage = "http://jackcess.sourceforge.net/"
+    homepage = "https://jackcess.sourceforge.net/"
     url = "https://sourceforge.net/projects/jackcess/files/jackcess/2.1.12/jackcess-2.1.12.jar"
 
     version(

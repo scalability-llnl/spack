@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyAboutTime(PythonPackage):
 
     homepage = "https://github.com/rsalmei/about-time"
     pypi = "about-time/about-time-4.1.0.tar.gz"
+
+    license("MIT")
 
     version("4.2.1", sha256="6a538862d33ce67d997429d14998310e1dbfda6cb7d9bbfbf799c4709847fece")
     version("4.1.0", sha256="963b1f3739b0c9732eb205031762b76f1291d89b5d0c8220a8d5b154e32ce650")

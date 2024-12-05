@@ -69,6 +69,12 @@ setenv("LMOD_{{ name|upper() }}_VERSION", "{{ version_part }}")
 depends_on("{{ module }}")
 {% endfor %}
 {% endblock %}
+{#  #}
+{% block conflict %}
+{% for name in conflicts %}
+conflict("{{ name }}")
+{% endfor %}
+{% endblock %}
 
 {% block environment %}
 {% for command_name, cmd in environment_modifications %}
@@ -84,6 +90,10 @@ setenv("{{ cmd.name }}", "{{ cmd.value }}")
 unsetenv("{{ cmd.name }}")
 {% endif %}
 {% endfor %}
+{# Make sure system man pages are enabled by appending trailing delimiter to MANPATH #}
+{% if has_manpath_modifications %}
+append_path("MANPATH", "", ":")
+{% endif %}
 {% endblock %}
 
 {% block footer %}

@@ -1,0 +1,248 @@
+https://raw.githubusercontent.com/xbmc/inputstream.rtmp/master/depends/common/librtmp/0003-openssl-1.1.patch
+See also https://github.com/xbmc/inputstream.rtmp/pull/46
+--- a/librtmp/dh.h
++++ b/librtmp/dh.h
+@@ -253,20 +253,42 @@
+   if (!dh)
+     goto failed;
+ 
++#if !defined(USE_OPENSSL) || !defined(OPENSSL_VERSION_NUMBER) || OPENSSL_VERSION_NUMBER < 0x10100000L
+   MP_new(dh->g);
+ 
+   if (!dh->g)
+     goto failed;
++#else
++  BIGNUM *g = NULL;
++  MP_new(g);
++  if (!g)
++    goto failed;
++#endif
+ 
++#if !defined(USE_OPENSSL) || !defined(OPENSSL_VERSION_NUMBER) || OPENSSL_VERSION_NUMBER < 0x10100000L
+   MP_gethex(dh->p, P1024, res);	/* prime P1024, see dhgroups.h */
++#else
++  BIGNUM* p = NULL;
++  DH_get0_pqg(dh, (BIGNUM const**)&p, NULL, NULL);
++  MP_gethex(p, P1024, res); /* prime P1024, see dhgroups.h */
++#endif
+   if (!res)
+     {
+       goto failed;
+     }
+ 
++#if !defined(USE_OPENSSL) || !defined(OPENSSL_VERSION_NUMBER) || OPENSSL_VERSION_NUMBER < 0x10100000L
+   MP_set_w(dh->g, 2);	/* base 2 */
++#else
++  MP_set_w(g, 2);   /* base 2 */
++  DH_set0_pqg(dh, p, NULL, g);
++#endif
+ 
++#if !defined(USE_OPENSSL) || !defined(OPENSSL_VERSION_NUMBER) || OPENSSL_VERSION_NUMBER < 0x10100000L
+   dh->length = nKeyBits;
++#else
++  DH_set_length(dh, nKeyBits);
++#endif
+   return dh;
+ 
+ failed:
+@@ -293,12 +315,24 @@
+       MP_gethex(q1, Q1024, res);
+       assert(res);
+ 
++#if !defined(USE_OPENSSL) || !defined(OPENSSL_VERSION_NUMBER) || OPENSSL_VERSION_NUMBER < 0x10100000L
+       res = isValidPublicKey(dh->pub_key, dh->p, q1);
++#else
++      BIGNUM const* pub_key = NULL;
++      BIGNUM const* p = NULL;
++      DH_get0_key(dh, &pub_key, NULL);
++      DH_get0_pqg(dh, &p, NULL, NULL);
++      res = isValidPublicKey((BIGNUM*)pub_key, (BIGNUM*)p, q1);
++#endif
+       if (!res)
+ 	{
++#if !defined(USE_OPENSSL) || !defined(OPENSSL_VERSION_NUMBER) || OPENSSL_VERSION_NUMBER < 0x10100000L
+ 	  MP_free(dh->pub_key);
+ 	  MP_free(dh->priv_key);
+ 	  dh->pub_key = dh->priv_key = 0;
++#else
++          DH_free(dh);
++#endif
+ 	}
+ 
+       MP_free(q1);
+@@ -314,15 +348,29 @@
+ DHGetPublicKey(MDH *dh, uint8_t *pubkey, size_t nPubkeyLen)
+ {
+   int len;
++#if !defined(USE_OPENSSL) || !defined(OPENSSL_VERSION_NUMBER) || OPENSSL_VERSION_NUMBER < 0x10100000L
+   if (!dh || !dh->pub_key)
++#else
++  BIGNUM const* pub_key = NULL;
++  DH_get0_key(dh, &pub_key, NULL);
++  if (!dh || !pub_key)
++#endif
+     return 0;
+ 
++#if !defined(USE_OPENSSL) || !defined(OPENSSL_VERSION_NUMBER) || OPENSSL_VERSION_NUMBER < 0x10100000L
+   len = MP_bytes(dh->pub_key);
++#else
++  len = MP_bytes(pub_key);
++#endif
+   if (len <= 0 || len > (int) nPubkeyLen)
+     return 0;
+ 
+   memset(pubkey, 0, nPubkeyLen);
++#if !defined(USE_OPENSSL) || !defined(OPENSSL_VERSION_NUMBER) || OPENSSL_VERSION_NUMBER < 0x10100000L
+   MP_setbin(dh->pub_key, pubkey + (nPubkeyLen - len), len);
++#else
++  MP_setbin(pub_key, pubkey + (nPubkeyLen - len), len);
++#endif
+   return 1;
+ }
+ 
+@@ -364,7 +412,13 @@
+   MP_gethex(q1, Q1024, len);
+   assert(len);
+ 
++#if !defined(USE_OPENSSL) || !defined(OPENSSL_VERSION_NUMBER) || OPENSSL_VERSION_NUMBER < 0x10100000L
+   if (isValidPublicKey(pubkeyBn, dh->p, q1))
++#else
++  BIGNUM const* p = NULL;
++  DH_get0_pqg(dh, &p, NULL, NULL);
++  if (isValidPublicKey(pubkeyBn, (BIGNUM*)p, q1))
++#endif
+     res = MDH_compute_key(secret, nPubkeyLen, pubkeyBn, dh);
+   else
+     res = -1;
+--- a/librtmp/handshake.h
++++ b/librtmp/handshake.h
+@@ -31,9 +31,9 @@
+ #define SHA256_DIGEST_LENGTH	32
+ #endif
+ #define HMAC_CTX	sha2_context
+-#define HMAC_setup(ctx, key, len)	sha2_hmac_starts(&ctx, (unsigned char *)key, len, 0)
+-#define HMAC_crunch(ctx, buf, len)	sha2_hmac_update(&ctx, buf, len)
+-#define HMAC_finish(ctx, dig, dlen)	dlen = SHA256_DIGEST_LENGTH; sha2_hmac_finish(&ctx, dig)
++#define HMAC_setup(ctx, key, len)	sha2_hmac_starts(ctx, (unsigned char *)key, len, 0)
++#define HMAC_crunch(ctx, buf, len)	sha2_hmac_update(ctx, buf, len)
++#define HMAC_finish(ctx, dig, dlen)	dlen = SHA256_DIGEST_LENGTH; sha2_hmac_finish(ctx, dig)
+ 
+ typedef arc4_context *	RC4_handle;
+ #define RC4_alloc(h)	*h = malloc(sizeof(arc4_context))
+@@ -50,9 +50,9 @@
+ #endif
+ #undef HMAC_CTX
+ #define HMAC_CTX	struct hmac_sha256_ctx
+-#define HMAC_setup(ctx, key, len)	hmac_sha256_set_key(&ctx, len, key)
+-#define HMAC_crunch(ctx, buf, len)	hmac_sha256_update(&ctx, len, buf)
+-#define HMAC_finish(ctx, dig, dlen)	dlen = SHA256_DIGEST_LENGTH; hmac_sha256_digest(&ctx, SHA256_DIGEST_LENGTH, dig)
++#define HMAC_setup(ctx, key, len)	hmac_sha256_set_key(ctx, len, key)
++#define HMAC_crunch(ctx, buf, len)	hmac_sha256_update(ctx, len, buf)
++#define HMAC_finish(ctx, dig, dlen)	dlen = SHA256_DIGEST_LENGTH; hmac_sha256_digest(ctx, SHA256_DIGEST_LENGTH, dig)
+ #define HMAC_close(ctx)
+ 
+ typedef struct arcfour_ctx*	RC4_handle;
+@@ -64,14 +64,23 @@
+ 
+ #else	/* USE_OPENSSL */
+ #include <openssl/sha.h>
++#include <openssl/ossl_typ.h>
+ #include <openssl/hmac.h>
+ #include <openssl/rc4.h>
+ #if OPENSSL_VERSION_NUMBER < 0x0090800 || !defined(SHA256_DIGEST_LENGTH)
+ #error Your OpenSSL is too old, need 0.9.8 or newer with SHA256
+ #endif
+-#define HMAC_setup(ctx, key, len)	HMAC_CTX_init(&ctx); HMAC_Init_ex(&ctx, key, len, EVP_sha256(), 0)
+-#define HMAC_crunch(ctx, buf, len)	HMAC_Update(&ctx, buf, len)
+-#define HMAC_finish(ctx, dig, dlen)	HMAC_Final(&ctx, dig, &dlen); HMAC_CTX_cleanup(&ctx)
++#if OPENSSL_VERSION_NUMBER < 0x10100000L
++#define HMAC_setup(ctx, key, len)	HMAC_CTX_init(ctx); HMAC_Init_ex(ctx, key, len, EVP_sha256(), 0)
++#else
++#define HMAC_setup(ctx, key, len)	ctx = HMAC_CTX_new(); HMAC_CTX_reset(ctx); HMAC_Init_ex(ctx, key, len, EVP_sha256(), 0)
++#endif
++#define HMAC_crunch(ctx, buf, len)	HMAC_Update(ctx, buf, len)
++#if OPENSSL_VERSION_NUMBER < 0x10100000L
++#define HMAC_finish(ctx, dig, dlen)	HMAC_Final(ctx, dig, &dlen); HMAC_CTX_cleanup(ctx)
++#else
++#define HMAC_finish(ctx, dig, dlen)     HMAC_Final(ctx, dig, &dlen); HMAC_CTX_free(ctx)
++#endif
+ 
+ typedef RC4_KEY *	RC4_handle;
+ #define RC4_alloc(h)	*h = malloc(sizeof(RC4_KEY))
+@@ -117,7 +126,7 @@
+ {
+   uint8_t digest[SHA256_DIGEST_LENGTH];
+   unsigned int digestLen = 0;
+-  HMAC_CTX ctx;
++  HMAC_CTX* ctx = NULL;
+ 
+   RC4_alloc(rc4keyIn);
+   RC4_alloc(rc4keyOut);
+@@ -266,7 +275,7 @@
+ 	   size_t keylen, uint8_t *digest)
+ {
+   unsigned int digestLen;
+-  HMAC_CTX ctx;
++  HMAC_CTX* ctx = NULL;
+ 
+   HMAC_setup(ctx, key, keylen);
+   HMAC_crunch(ctx, message, messageLen);
+--- a/librtmp/hashswf.c
++++ b/librtmp/hashswf.c
+@@ -37,9 +37,9 @@
+ #define SHA256_DIGEST_LENGTH	32
+ #endif
+ #define HMAC_CTX	sha2_context
+-#define HMAC_setup(ctx, key, len)	sha2_hmac_starts(&ctx, (unsigned char *)key, len, 0)
+-#define HMAC_crunch(ctx, buf, len)	sha2_hmac_update(&ctx, buf, len)
+-#define HMAC_finish(ctx, dig, dlen)	dlen = SHA256_DIGEST_LENGTH; sha2_hmac_finish(&ctx, dig)
++#define HMAC_setup(ctx, key, len)	sha2_hmac_starts(ctx, (unsigned char *)key, len, 0)
++#define HMAC_crunch(ctx, buf, len)	sha2_hmac_update(ctx, buf, len)
++#define HMAC_finish(ctx, dig, dlen)	dlen = SHA256_DIGEST_LENGTH; sha2_hmac_finish(ctx, dig)
+ #define HMAC_close(ctx)
+ #elif defined(USE_GNUTLS)
+ #include <nettle/hmac.h>
+@@ -48,19 +48,27 @@
+ #endif
+ #undef HMAC_CTX
+ #define HMAC_CTX	struct hmac_sha256_ctx
+-#define HMAC_setup(ctx, key, len)	hmac_sha256_set_key(&ctx, len, key)
+-#define HMAC_crunch(ctx, buf, len)	hmac_sha256_update(&ctx, len, buf)
+-#define HMAC_finish(ctx, dig, dlen)	dlen = SHA256_DIGEST_LENGTH; hmac_sha256_digest(&ctx, SHA256_DIGEST_LENGTH, dig)
++#define HMAC_setup(ctx, key, len)	hmac_sha256_set_key(ctx, len, key)
++#define HMAC_crunch(ctx, buf, len)	hmac_sha256_update(ctx, len, buf)
++#define HMAC_finish(ctx, dig, dlen)	dlen = SHA256_DIGEST_LENGTH; hmac_sha256_digest(ctx, SHA256_DIGEST_LENGTH, dig)
+ #define HMAC_close(ctx)
+ #else	/* USE_OPENSSL */
+ #include <openssl/ssl.h>
+ #include <openssl/sha.h>
+ #include <openssl/hmac.h>
+ #include <openssl/rc4.h>
+-#define HMAC_setup(ctx, key, len)	HMAC_CTX_init(&ctx); HMAC_Init_ex(&ctx, (unsigned char *)key, len, EVP_sha256(), 0)
+-#define HMAC_crunch(ctx, buf, len)	HMAC_Update(&ctx, (unsigned char *)buf, len)
+-#define HMAC_finish(ctx, dig, dlen)	HMAC_Final(&ctx, (unsigned char *)dig, &dlen);
+-#define HMAC_close(ctx)	HMAC_CTX_cleanup(&ctx)
++#if OPENSSL_VERSION_NUMBER < 0x10100000L
++#define HMAC_setup(ctx, key, len)	HMAC_CTX_init(ctx); HMAC_Init_ex(ctx, (unsigned char *)key, len, EVP_sha256(), 0)
++#else
++#define HMAC_setup(ctx, key, len)	ctx = HMAC_CTX_new(); HMAC_CTX_reset(ctx); HMAC_Init_ex(ctx, key, len, EVP_sha256(), 0)
++#endif
++#define HMAC_crunch(ctx, buf, len)	HMAC_Update(ctx, (unsigned char *)buf, len)
++#define HMAC_finish(ctx, dig, dlen)	HMAC_Final(ctx, (unsigned char *)dig, &dlen);
++#if OPENSSL_VERSION_NUMBER < 0x10100000L
++#define HMAC_close(ctx)	HMAC_CTX_cleanup(ctx)
++#else
++#define HMAC_close(ctx) HMAC_CTX_reset(ctx); HMAC_CTX_free(ctx)
++#endif
+ #endif
+ 
+ extern void RTMP_TLS_Init();
+@@ -289,7 +297,7 @@
+ struct info
+ {
+   z_stream *zs;
+-  HMAC_CTX ctx;
++  HMAC_CTX *ctx;
+   int first;
+   int zlib;
+   int size;

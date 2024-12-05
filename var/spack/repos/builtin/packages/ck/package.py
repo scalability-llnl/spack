@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class Ck(MavenPackage):
 
     homepage = "https://github.com/mauricioaniche/ck"
     url = "https://github.com/mauricioaniche/ck/archive/ck-0.6.2.tar.gz"
+
+    license("BSD-2-Clause AND Apache-2.0")
 
     version("0.6.2", sha256="ee16d209f05852230504dea1af39cdb1cfc8e9b56f4708ed1afcd5ce44af76eb")
     version("0.6.1", sha256="1db1fef7111bb485d5554d5927611761a102133a41b88e8fb20cd44494411ac4")

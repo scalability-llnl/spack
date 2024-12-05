@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class PpopenApplBemAt(MakefilePackage):
     git = "https://github.com/Post-Peta-Crest/ppOpenHPC.git"
 
     version("master", branch="ATA/BEM")
+
+    depends_on("fortran", type="build")  # generated
     # In OAT_bem-bb-fw-dense-0.1.0.f90 the 2 variables are defined.
     # But ame variables are already defined in include file DAT.h.
     # This patch is deleted the variables definitions

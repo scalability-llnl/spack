@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyCtgan(PythonPackage):
 
     homepage = "https://github.com/sdv-dev/CTGAN"
     pypi = "ctgan/ctgan-0.5.0.tar.gz"
+
+    license("MIT")
 
     version("0.5.0", sha256="b8a5dbf21dab2d2e2690013f13feb0922f5bad13440b15bc031ce9d58c7fb988")
 

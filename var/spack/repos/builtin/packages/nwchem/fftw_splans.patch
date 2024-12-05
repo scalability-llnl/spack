@@ -1,0 +1,643 @@
+From b4ec4ade1af434bc80470d6874aebf6fdcd12489 Mon Sep 17 00:00:00 2001
+From: Eric Bylaska <bylaska@gmail.com>
+Date: Thu, 8 Jun 2023 14:21:43 -0700
+Subject: [PATCH] changing old fortran interface for fftw to be sfftw for
+ single precision...EJB
+
+---
+ src/nwpw/nwpwlib/D3dB/D3dB-new.F   |  3 +-
+ src/nwpw/nwpwlib/D3dB/D3dBs-new.F  | 69 +++++++++++++++---------------
+ src/nwpw/nwpwlib/D3dB/D3dBs_pfft.F | 64 +++++++++++++--------------
+ src/nwpw/nwpwlib/D3dB/GNUmakefile  |  4 +-
+ 4 files changed, 72 insertions(+), 68 deletions(-)
+
+diff --git a/src/nwpw/nwpwlib/D3dB/D3dB-new.F b/src/nwpw/nwpwlib/D3dB/D3dB-new.F
+index fb00838d2c..2159707831 100644
+--- a/src/nwpw/nwpwlib/D3dB/D3dB-new.F
++++ b/src/nwpw/nwpwlib/D3dB/D3dB-new.F
+@@ -1183,7 +1183,8 @@ subroutine D3dB_fft_init(nb)
+       common    / D3dB_fft / tmpx,tmpy,tmpz
+ 
+ #ifdef FFTW3
+-#include "fftw3.fh"
++!#include "fftw3.fh"
++#include "fftw3.f"
+        integer Atest(2),nxh,nxhz,nxhy
+ #endif
+ 
+diff --git a/src/nwpw/nwpwlib/D3dB/D3dBs-new.F b/src/nwpw/nwpwlib/D3dB/D3dBs-new.F
+index 90127b7ff1..8ddfddad34 100644
+--- a/src/nwpw/nwpwlib/D3dB/D3dBs-new.F
++++ b/src/nwpw/nwpwlib/D3dB/D3dBs-new.F
+@@ -195,7 +195,8 @@ subroutine D3dBs_fft_init(nb)
+       common    / D3dBs_fft / tmpx,tmpy,tmpz
+ 
+ #ifdef FFTW3
+-#include "fftw3.fh"
++!#include "fftw3.fh"
++#include "fftw3.f"
+        integer Atest(2),nxh,nxhz,nxhy
+ #endif
+ 
+@@ -248,48 +249,48 @@ subroutine D3dBs_fft_init(nb)
+      >                       'Atest',Atest(2),Atest(1)))
+      >     call errquit('D3dBs_fft_init:out of heap memory',0,MA_ERR)
+ 
+-         call fftw_plan_many_dft(splans(1,nb),1,nz(nb),nxh,
++         call sfftw_plan_many_dft(splans(1,nb),1,nz(nb),nxh,
+      >                        scpl_mb(Atest(1)),nxhz,nxh,1,
+      >                        scpl_mb(Atest(1)),nxhz,nxh,1,
+      >                        ibackward,FFTW_EXHAUSTIVE)
+-         call fftw_plan_many_dft(splans(2,nb),1,ny(nb),nxh,
++         call sfftw_plan_many_dft(splans(2,nb),1,ny(nb),nxh,
+      >                        scpl_mb(Atest(1)),nxhy,nxh,1,
+      >                        scpl_mb(Atest(1)),nxhy,nxh,1, 
+      >                        ibackward,FFTW_EXHAUSTIVE)
+-         call fftw_plan_many_dft_c2r(splans(3,nb),1,nx(nb),
++         call sfftw_plan_many_dft_c2r(splans(3,nb),1,nx(nb),
+      >        ny(nb)*nq(nb),
+      >        scpl_mb(Atest(1)),nxh       *ny(nb)*nq(nb),1,nxh,
+      >        scpl_mb(Atest(1)),(nx(nb)+2)*ny(nb)*nq(nb),1,nx(nb)+2, 
+      >        FFTW_EXHAUSTIVE)
+ 
+-         call fftw_plan_many_dft_r2c(splans(4,nb),1,nx(nb),
++         call sfftw_plan_many_dft_r2c(splans(4,nb),1,nx(nb),
+      >        ny(nb)*nq(nb),
+      >        scpl_mb(Atest(1)),(nx(nb)+2)*ny(nb)*nq(nb),1,nx(nb)+2,
+      >        scpl_mb(Atest(1)),nxh       *ny(nb)*nq(nb),1,nxh,
+      >        FFTW_EXHAUSTIVE)
+-         call fftw_plan_many_dft(splans(5,nb),1,ny(nb),nxh,
++         call sfftw_plan_many_dft(splans(5,nb),1,ny(nb),nxh,
+      >                        scpl_mb(Atest(1)),nxhy,nxh,1,
+      >                        scpl_mb(Atest(1)),nxhy,nxh,1, 
+      >                        iforward,FFTW_EXHAUSTIVE)
+-         call fftw_plan_many_dft(splans(6,nb),1,nz(nb),nxh,
++         call sfftw_plan_many_dft(splans(6,nb),1,nz(nb),nxh,
+      >                        scpl_mb(Atest(1)),nxhz,nxh,1,
+      >                        scpl_mb(Atest(1)),nxhz,nxh,1,
+      >                        iforward,FFTW_EXHAUSTIVE)
+ 
+-         call fftw_plan_many_dft(splans(7,nb),1,nz(nb),1,
++         call sfftw_plan_many_dft(splans(7,nb),1,nz(nb),1,
+      >                        scpl_mb(Atest(1)),nxhz,nxh,1,
+      >                        scpl_mb(Atest(1)),nxhz,nxh,1,
+      >                        ibackward,FFTW_EXHAUSTIVE)
+-         call fftw_plan_many_dft(splans(8,nb),1,ny(nb),1,
++         call sfftw_plan_many_dft(splans(8,nb),1,ny(nb),1,
+      >                        scpl_mb(Atest(1)),nxhy,nxh,1,
+      >                        scpl_mb(Atest(1)),nxhy,nxh,1,
+      >                        ibackward,FFTW_EXHAUSTIVE)
+ 
+-          call fftw_plan_many_dft(splans(9,nb),1,ny(nb),1,
++          call sfftw_plan_many_dft(splans(9,nb),1,ny(nb),1,
+      >                        scpl_mb(Atest(1)),nxhy,nxh,1,
+      >                        scpl_mb(Atest(1)),nxhy,nxh,1,
+      >                        iforward,FFTW_EXHAUSTIVE)
+-          call fftw_plan_many_dft(splans(10,nb),1,nz(nb),1,
++          call sfftw_plan_many_dft(splans(10,nb),1,nz(nb),1,
+      >                        scpl_mb(Atest(1)),nxhz,nxh,1,
+      >                        scpl_mb(Atest(1)),nxhz,nxh,1,
+      >                        iforward,FFTW_EXHAUSTIVE)
+@@ -305,48 +306,48 @@ subroutine D3dBs_fft_init(nb)
+      >                         Atest(2),Atest(1)))
+      >     call errquit('D3dBs_fft_init:out of heap memory',0,MA_ERR)
+ 
+-         call fftw_plan_many_dft(splans(11,nb),1,nz(nb),nq3(nb),
++         call sfftw_plan_many_dft(splans(11,nb),1,nz(nb),nq3(nb),
+      >                        scpl_mb(Atest(1)),nz(nb)*nq3(nb),1,nz(nb),
+      >                        scpl_mb(Atest(1)),nz(nb)*nq3(nb),1,nz(nb),
+      >                        ibackward,FFTW_EXHAUSTIVE)
+-         call fftw_plan_many_dft(splans(12,nb),1,ny(nb),nq2(nb),
++         call sfftw_plan_many_dft(splans(12,nb),1,ny(nb),nq2(nb),
+      >                        scpl_mb(Atest(1)),ny(nb)*nq2(nb),1,ny(nb),
+      >                        scpl_mb(Atest(1)),ny(nb)*nq2(nb),1,ny(nb),
+      >                        ibackward,FFTW_EXHAUSTIVE)
+-         call fftw_plan_many_dft_c2r(splans(13,nb),1,nx(nb),
++         call sfftw_plan_many_dft_c2r(splans(13,nb),1,nx(nb),
+      >        nq1(nb),
+      >        scpl_mb(Atest(1)),nfft3d(nb),1,nxh,
+      >        scpl_mb(Atest(1)),n2ft3d(nb),1,(nx(nb)+2), 
+      >        FFTW_EXHAUSTIVE)
+-         call fftw_plan_many_dft_r2c(splans(14,nb),1,nx(nb),
++         call sfftw_plan_many_dft_r2c(splans(14,nb),1,nx(nb),
+      >        nq1(nb),
+      >        scpl_mb(Atest(1)),n2ft3d(nb),1,nx(nb)+2,
+      >        scpl_mb(Atest(1)),nfft3d(nb),1,nxh,
+      >        FFTW_EXHAUSTIVE)
+ 
+-         call fftw_plan_many_dft(splans(15,nb),1,ny(nb),nq2(nb),
++         call sfftw_plan_many_dft(splans(15,nb),1,ny(nb),nq2(nb),
+      >                        scpl_mb(Atest(1)),ny(nb)*nq2(nb),1,ny(nb),
+      >                        scpl_mb(Atest(1)),ny(nb)*nq2(nb),1,ny(nb),
+      >                        iforward,FFTW_EXHAUSTIVE)
+-         call fftw_plan_many_dft(splans(16,nb),1,nz(nb),nq3(nb),
++         call sfftw_plan_many_dft(splans(16,nb),1,nz(nb),nq3(nb),
+      >                        scpl_mb(Atest(1)),nz(nb)*nq3(nb),1,nz(nb),
+      >                        scpl_mb(Atest(1)),nz(nb)*nq3(nb),1,nz(nb),
+      >                        iforward,FFTW_EXHAUSTIVE)
+ 
+-         call fftw_plan_many_dft(splans(17,nb),1,nz(nb),1,
++         call sfftw_plan_many_dft(splans(17,nb),1,nz(nb),1,
+      >                        scpl_mb(Atest(1)),nz(nb),1,1,
+      >                        scpl_mb(Atest(1)),nz(nb),1,1,
+      >                        ibackward,FFTW_EXHAUSTIVE)
+-         call fftw_plan_many_dft(splans(18,nb),1,ny(nb),1,
++         call sfftw_plan_many_dft(splans(18,nb),1,ny(nb),1,
+      >                        scpl_mb(Atest(1)),ny(nb),1,1,
+      >                        scpl_mb(Atest(1)),ny(nb),1,1,
+      >                        ibackward,FFTW_EXHAUSTIVE)
+ 
+-          call fftw_plan_many_dft(splans(19,nb),1,ny(nb),1,
++          call sfftw_plan_many_dft(splans(19,nb),1,ny(nb),1,
+      >                        scpl_mb(Atest(1)),ny(nb),1,1,
+      >                        scpl_mb(Atest(1)),ny(nb),1,1,
+      >                        iforward,FFTW_EXHAUSTIVE)
+-          call fftw_plan_many_dft(splans(20,nb),1,nz(nb),1,
++          call sfftw_plan_many_dft(splans(20,nb),1,nz(nb),1,
+      >                        scpl_mb(Atest(1)),nz(nb),1,1,
+      >                        scpl_mb(Atest(1)),nz(nb),1,1,
+      >                        iforward,FFTW_EXHAUSTIVE)
+@@ -388,7 +389,7 @@ subroutine D3dBs_fft_end(nb)
+ 
+ #ifdef FFTW3
+       do i=1,nplans
+-         if (splans(i,nb).ne.0) call fftw_destroy_plan(splans(i,nb))
++         if (splans(i,nb).ne.0) call sfftw_destroy_plan(splans(i,nb))
+       end do
+ #endif
+ 
+@@ -497,7 +498,7 @@ subroutine D3dBs_cr_fft3b(nb,A)
+ #ifdef FFTW3
+       do q=1,nq(nb)
+         indx = 1+(q-1)*nxhz
+-        call fftw_execute_dft(pslans(1,nb),A(indx),A(indx))
++        call sfftw_execute_dft(splans(1,nb),A(indx),A(indx))
+       end do
+ #else
+       indx0 = 0
+@@ -536,7 +537,7 @@ subroutine D3dBs_cr_fft3b(nb,A)
+ #ifdef FFTW3
+       do q=1,nq(nb)
+          indx = 1+(q-1)*nxhy
+-         call fftw_execute_dft(splans(2,nb),A(indx),A(indx))
++         call sfftw_execute_dft(splans(2,nb),A(indx),A(indx))
+       end do
+ #else
+       indx0 = 0
+@@ -566,7 +567,7 @@ subroutine D3dBs_cr_fft3b(nb,A)
+ *     *********************************************************************
+ 
+ #ifdef FFTW3
+-      call fftw_execute_dft_c2r(splans(3,nb),A,A)
++      call sfftw_execute_dft_c2r(splans(3,nb),A,A)
+ 
+ #else
+ 
+@@ -595,7 +596,7 @@ subroutine D3dBs_cr_fft3b(nb,A)
+ *     *****************************************************
+ 
+ #ifdef FFTW3
+-      call fftw_execute_dft(splans(11,nb),A,A)
++      call sfftw_execute_dft(splans(11,nb),A,A)
+ 
+ #else
+ 
+@@ -615,7 +616,7 @@ subroutine D3dBs_cr_fft3b(nb,A)
+ *     ***   A(ny(nb),nz(nb),kx) <- fft1d^(-1)[A(ky,nz(nb),kx)]  ***
+ *     *************************************************************
+ #ifdef FFTW3
+-      call fftw_execute_dft(splans(12,nb),A,A)
++      call sfftw_execute_dft(splans(12,nb),A,A)
+ 
+ #else
+       offset=tid*(2*ny(nb)+15)
+@@ -634,7 +635,7 @@ subroutine D3dBs_cr_fft3b(nb,A)
+ *     *********************************************************************
+ 
+ #ifdef FFTW3
+-      call dfftw_execute_dft_c2r(splans(13,nb),A,A)
++      call sfftw_execute_dft_c2r(splans(13,nb),A,A)
+ 
+ #else
+       offset=tid*(2*nx(nb)+15)
+@@ -842,7 +843,7 @@ subroutine D3dBs_rc_fft3f(nb,A)
+ *     ***   A(kx,ny(nb),nz(nb)) <- fft1d[A(nx(nb),ny(nb),nz(nb))]  ***
+ *     ****************************************************************
+ #ifdef FFTW3
+-      call dfftw_execute_dft_r2c(splans(4,nb),A,A)
++      call sfftw_execute_dft_r2c(splans(4,nb),A,A)
+ 
+ #else
+       offset=tid*(2*nx(nb)+15)
+@@ -860,7 +861,7 @@ subroutine D3dBs_rc_fft3f(nb,A)
+ #ifdef FFTW3
+       do q=1,nq(nb)
+          indx = 1+(q-1)*nxhy
+-         call fftw_execute_dft(splans(5,nb),A(indx),A(indx))
++         call sfftw_execute_dft(splans(5,nb),A(indx),A(indx))
+       end do
+ 
+ #else
+@@ -902,7 +903,7 @@ subroutine D3dBs_rc_fft3f(nb,A)
+ #ifdef FFTW3
+       do q=1,nq(nb)
+          indx = 1+(q-1)*nxhz
+-         call fftw_execute_dft(splans(6,nb),A(indx),A(indx))
++         call sfftw_execute_dft(splans(6,nb),A(indx),A(indx))
+       end do
+ 
+ #else
+@@ -947,7 +948,7 @@ subroutine D3dBs_rc_fft3f(nb,A)
+ *     ***   A(kx,ny(nb),nz(nb)) <- fft1d[A(nx(nb),ny(nb),nz(nb))]  ***
+ *     ****************************************************************
+ #ifdef FFTW3
+-      call fftw_execute_dft_r2c(splans(14,nb),A,A)
++      call sfftw_execute_dft_r2c(splans(14,nb),A,A)
+ #else
+       offset=tid*(2*nx(nb)+15)
+       do i=tid+1,nq1(nb),nthr
+@@ -964,7 +965,7 @@ subroutine D3dBs_rc_fft3f(nb,A)
+ *     ***   A(ky,nz(nb),kx) <- fft1d[A(ny(nb),nz(nb),kx)]  ***
+ *     ********************************************
+ #ifdef FFTW3
+-      call fftw_execute_dft(splans(15,nb),A,A)
++      call sfftw_execute_dft(splans(15,nb),A,A)
+ 
+ #else
+       offset=tid*(2*ny(nb)+15)
+@@ -982,7 +983,7 @@ subroutine D3dBs_rc_fft3f(nb,A)
+ *     ***   A(kz,kx,ky) <- fft1d[A(nz(nb),kx,ky)]  ***
+ *     ************************************************
+ #ifdef FFTW3
+-      call fftw_execute_dft(splans(16,nb),A,A)
++      call sfftw_execute_dft(splans(16,nb),A,A)
+ #else
+       offset=tid*(2*nz(nb)+15)
+       do i=tid+1,nq3(nb),nthr
+diff --git a/src/nwpw/nwpwlib/D3dB/D3dBs_pfft.F b/src/nwpw/nwpwlib/D3dB/D3dBs_pfft.F
+index f8fbd77bf6..bdbc5c91ba 100644
+--- a/src/nwpw/nwpwlib/D3dB/D3dBs_pfft.F
++++ b/src/nwpw/nwpwlib/D3dB/D3dBs_pfft.F
+@@ -97,7 +97,7 @@ subroutine D3dBs_cr_pfft3b(nb,nbb,A)
+ 
+ #ifdef FFTW3
+          indx  = i + indx0
+-         call fftw_execute_dft(splans(7,nb),A(indx),A(indx))
++         call sfftw_execute_dft(splans(7,nb),A(indx),A(indx))
+ 
+ #else
+          indx  = i + indx0
+@@ -140,7 +140,7 @@ subroutine D3dBs_cr_pfft3b(nb,nbb,A)
+ 
+ #ifdef FFTW3
+          indx  = i + indx0
+-         call fftw_execute_dft(splans(8,nb),A(indx),A(indx))
++         call sfftw_execute_dft(splans(8,nb),A(indx),A(indx))
+ #else
+          indx  = i + indx0
+          indx1 = indx
+@@ -166,7 +166,7 @@ subroutine D3dBs_cr_pfft3b(nb,nbb,A)
+ *     *************************************************
+ 
+ #ifdef FFTW3
+-      call fftw_execute_dft_c2r(splans(3,nb),A,A)
++      call sfftw_execute_dft_c2r(splans(3,nb),A,A)
+ 
+ #else
+       call cshift1_sfftb(nx(nb),ny(nb),nq(nb),1,A)
+@@ -197,7 +197,7 @@ subroutine D3dBs_cr_pfft3b(nb,nbb,A)
+       indx = 1
+       do q=1,nq3(nb)
+          if (.not.log_mb(zero_row3(1,nbb)+q-1)) then
+-            call fftw_execute_dft(splans(17,nb),A(indx),A(indx))
++            call sfftw_execute_dft(splans(17,nb),A(indx),A(indx))
+          end if
+          indx = indx + nz(nb)
+       end do
+@@ -229,7 +229,7 @@ subroutine D3dBs_cr_pfft3b(nb,nbb,A)
+       indx = 1
+       do q=1,nq2(nb)
+          if (.not.log_mb(zero_row2(1,nbb)+q-1)) then
+-            call fftw_execute_dft(splans(18,nb),A(indx),A(indx))
++            call sfftw_execute_dft(splans(18,nb),A(indx),A(indx))
+          end if
+          indx = indx + ny(nb)
+       end do
+@@ -258,7 +258,7 @@ subroutine D3dBs_cr_pfft3b(nb,nbb,A)
+ *     *********************************************************************
+ 
+ #ifdef FFTW3
+-         call fftw_execute_dft_c2r(splans(13,nb),A,A)
++         call sfftw_execute_dft_c2r(splans(13,nb),A,A)
+ #else
+ 
+       !indx = 1
+@@ -368,7 +368,7 @@ subroutine D3dBs_rc_pfft3f(nb,nbb,A)
+ 
+ 
+ #ifdef FFTW3
+-      call dfftw_execute_dft_r2c(splans(4,nb),A,A)
++      call sfftw_execute_dft_r2c(splans(4,nb),A,A)
+ 
+ #else
+       indx = 1
+@@ -396,7 +396,7 @@ subroutine D3dBs_rc_pfft3f(nb,nbb,A)
+ 
+ #ifdef FFTW3
+           indx  = i + indx0
+-          call fftw_execute_dft(splans(9,nb),A(indx),A(indx))
++          call sfftw_execute_dft(splans(9,nb),A(indx),A(indx))
+ 
+ #else
+           indx  = i + indx0
+@@ -440,7 +440,7 @@ subroutine D3dBs_rc_pfft3f(nb,nbb,A)
+  
+ #ifdef FFTW3
+           indx  = i + indx0
+-          call fftw_execute_dft(splans(10,nb),A(indx),A(indx))
++          call sfftw_execute_dft(splans(10,nb),A(indx),A(indx))
+ 
+ #else
+           indx  = i + indx0
+@@ -480,7 +480,7 @@ subroutine D3dBs_rc_pfft3f(nb,nbb,A)
+ *     ********************************************
+ 
+ #ifdef FFTW3
+-          call fftw_execute_dft_r2c(splans(14,nb),A,A)
++          call sfftw_execute_dft_r2c(splans(14,nb),A,A)
+ 
+ #else
+       !indx = 1
+@@ -506,7 +506,7 @@ subroutine D3dBs_rc_pfft3f(nb,nbb,A)
+       indx = 1
+       do q=1,nq2(nb)
+          if (.not.log_mb(zero_row2(1,nbb)+q-1)) then
+-            call fftw_execute_dft(splans(19,nb),A(indx),A(indx))
++            call sfftw_execute_dft(splans(19,nb),A(indx),A(indx))
+          end if
+          indx = indx + ny(nb)
+       end do
+@@ -538,7 +538,7 @@ subroutine D3dBs_rc_pfft3f(nb,nbb,A)
+       indx = 1
+       do q=1,nq3(nb)
+          if (.not.log_mb(zero_row3(1,nbb)+q-1)) then
+-            call fftw_execute_dft(splans(20,nb),A(indx),A(indx))
++            call sfftw_execute_dft(splans(20,nb),A(indx),A(indx))
+          end if
+          indx = indx + nz(nb)
+       end do
+@@ -660,7 +660,7 @@ subroutine D3dBs_cr_mpfft3b(nb,nbb,m,A)
+ 
+ #ifdef FFTW3
+          indx = i+indx0+shift0
+-         call fftw_execute_dft(splans(7,nb),A(indx),A(indx))
++         call sfftw_execute_dft(splans(7,nb),A(indx),A(indx))
+ 
+ #else
+          indx  = i + indx0
+@@ -710,7 +710,7 @@ subroutine D3dBs_cr_mpfft3b(nb,nbb,m,A)
+ 
+ #ifdef FFTW3
+          indx = i+indx0+shift0
+-         call fftw_execute_dft(splans(8,nb),A(indx),A(indx))
++         call sfftw_execute_dft(splans(8,nb),A(indx),A(indx))
+ #else
+          indx  = i + indx0
+          indx1 = indx
+@@ -736,7 +736,7 @@ subroutine D3dBs_cr_mpfft3b(nb,nbb,m,A)
+ *     *********************************************************************
+ 
+ #ifdef FFTW3
+-      call fftw_execute_dft_c2r(splans(3,nb),A(shift0),A(shift0))
++      call sfftw_execute_dft_c2r(splans(3,nb),A(shift0),A(shift0))
+ 
+ #else
+       call cshift1_sfftb(nx(nb),ny(nb),nq(nb),1,A(shift))
+@@ -774,7 +774,7 @@ subroutine D3dBs_cr_mpfft3b(nb,nbb,m,A)
+          if (.not.log_mb(zero_row3(1,nbb)+q-1)) then
+ 
+ #ifdef FFTW3
+-         call fftw_execute_dft(splans(17,nb),
++         call sfftw_execute_dft(splans(17,nb),
+      >                         A(indx+shift0),A(indx+shift0))
+ #else
+          call scfftb(nz(nb),A(shift0+indx),scpl_mb(tmpz(1,nb)))
+@@ -798,7 +798,7 @@ subroutine D3dBs_cr_mpfft3b(nb,nbb,m,A)
+          if (.not.log_mb(zero_row2(1,nbb)+q-1)) then
+ 
+ #ifdef FFTW3
+-         call fftw_execute_dft(splans(18,nb),
++         call sfftw_execute_dft(splans(18,nb),
+      >                          A(indx+shift0),A(indx+shift0))
+ #else
+          call scfftb(ny(nb),A(shift0+indx),scpl_mb(tmpy(1,nb)))
+@@ -818,7 +818,7 @@ subroutine D3dBs_cr_mpfft3b(nb,nbb,m,A)
+ *     *********************************************************************
+ 
+ #ifdef FFTW3
+-      call fftw_execute_dft_c2r(splans(13,nb),A(shift0),A(shift0))
++      call sfftw_execute_dft_c2r(splans(13,nb),A(shift0),A(shift0))
+ 
+ #else
+       call cshift1_sfftb(nx(nb),nq1(nb),1,1,A(shift))
+@@ -903,7 +903,7 @@ subroutine D3dBs_pfftfx(nbb,A,tmp1,tmp2,request,reqcnt)
+       call nwpw_timing_start(31)
+ 
+ #ifdef FFTW3
+-      call dfftw_execute_dft_r2c(splans(4,id),A,A)
++      call sfftw_execute_dft_r2c(splans(4,id),A,A)
+ 
+ #else
+ 
+@@ -937,7 +937,7 @@ subroutine D3dBs_pfftfx(nbb,A,tmp1,tmp2,request,reqcnt)
+ 
+ 
+ #ifdef FFTW3
+-      call fftw_execute_dft_r2c(splans(14,id),A,A)
++      call sfftw_execute_dft_r2c(splans(14,id),A,A)
+ 
+ #else
+ 
+@@ -1030,7 +1030,7 @@ subroutine D3dBs_pfftfx0(nbb,tmp1,tmp2,request,reqcnt)
+       call nwpw_timing_start(31)
+ 
+ #ifdef FFTW3
+-      call fftw_execute_dft_r2c(splans(4,id),tmp1,tmp1)
++      call sfftw_execute_dft_r2c(splans(4,id),tmp1,tmp1)
+ 
+ #else
+ 
+@@ -1059,7 +1059,7 @@ subroutine D3dBs_pfftfx0(nbb,tmp1,tmp2,request,reqcnt)
+       call nwpw_timing_start(31)
+ 
+ #ifdef FFTW3
+-      call fftw_execute_dft_r2c(splans(14,id),tmp1,tmp1)
++      call sfftw_execute_dft_r2c(splans(14,id),tmp1,tmp1)
+ 
+ #else
+ 
+@@ -1154,7 +1154,7 @@ subroutine D3dBs_pfftfy(nbb,tmp1,tmp2,request,reqcnt)
+         indx2 = indx2 + 1
+         if (.not.log_mb(zero_row2(1,nbb)+indx2-1)) then
+           indx  = i + indx0
+-          call fftw_execute_dft(splans(9,1),tmp1(indx),tmp1(indx))
++          call sfftw_execute_dft(splans(9,1),tmp1(indx),tmp1(indx))
+         end if
+        end do
+        indx0 = indx0 + nxhy
+@@ -1214,7 +1214,7 @@ subroutine D3dBs_pfftfy(nbb,tmp1,tmp2,request,reqcnt)
+       indx = 1
+       do q=1,nq2(id)
+          if (.not.log_mb(zero_row2(1,nbb)+q-1)) then
+-         call fftw_execute_dft(splans(19,1),tmp1(indx),tmp1(indx))
++         call sfftw_execute_dft(splans(19,1),tmp1(indx),tmp1(indx))
+          end if
+          indx = indx + ny(id)
+       end do
+@@ -1333,7 +1333,7 @@ subroutine D3dBs_pfftfz(nbb,tmp1,tmp2,request,reqcnt)
+ 
+ #ifdef FFTW3
+           indx  = i + indx0
+-          call fftw_execute_dft(splans(10,1),tmp2(indx),tmp2(indx))
++          call sfftw_execute_dft(splans(10,1),tmp2(indx),tmp2(indx))
+ 
+ #else
+           indx  = i + indx0
+@@ -1374,7 +1374,7 @@ subroutine D3dBs_pfftfz(nbb,tmp1,tmp2,request,reqcnt)
+       indx = 1
+       do q=1,nq3(id)
+          if (.not.log_mb(zero_row3(1,nbb)+q-1)) then
+-            call fftw_execute_dft(splans(20,1),tmp2(indx),tmp2(indx))
++            call sfftw_execute_dft(splans(20,1),tmp2(indx),tmp2(indx))
+          end if
+          indx = indx + nz(id)
+       end do
+@@ -1605,7 +1605,7 @@ subroutine D3dBs_pfftbz(nbb,tmp1,tmp2,request,reqcnt)
+ 
+ #ifdef FFTW3
+          indx  = i + indx0
+-         call fftw_execute_dft(splans(7,1),tmp1(indx),tmp1(indx))
++         call sfftw_execute_dft(splans(7,1),tmp1(indx),tmp1(indx))
+ #else
+ 
+          indx  = i + indx0
+@@ -1652,7 +1652,7 @@ subroutine D3dBs_pfftbz(nbb,tmp1,tmp2,request,reqcnt)
+       indx = 1
+       do q=1,nq3(id)
+          if (.not.log_mb(zero_row3(1,nbb)+q-1)) then
+-            call fftw_execute_dft(splans(17,1),tmp1(indx),tmp1(indx))
++            call sfftw_execute_dft(splans(17,1),tmp1(indx),tmp1(indx))
+          end if
+          indx = indx + nz(id)
+       end do
+@@ -1768,7 +1768,7 @@ subroutine D3dBs_pfftby(nbb,tmp1,tmp2,request,reqcnt)
+ 
+ #ifdef FFTW3
+          indx  = i + indx0
+-         call fftw_execute_dft(splans(8,id),tmp2(indx),tmp2(indx))
++         call sfftw_execute_dft(splans(8,id),tmp2(indx),tmp2(indx))
+ 
+ #else
+          indx  = i + indx0
+@@ -1811,7 +1811,7 @@ subroutine D3dBs_pfftby(nbb,tmp1,tmp2,request,reqcnt)
+       indx = 1
+       do q=1,nq2(id)
+          if (.not.log_mb(zero_row2(1,nbb)+q-1)) then
+-            call fftw_execute_dft(splans(18,id),tmp2(indx),tmp2(indx))
++            call sfftw_execute_dft(splans(18,id),tmp2(indx),tmp2(indx))
+          end if
+          indx = indx + ny(id)
+       end do
+@@ -1912,7 +1912,7 @@ subroutine D3dBs_pfftbx(nbb,tmp1,tmp2,request,reqcnt)
+ 
+ 
+ #ifdef FFTW3
+-      call fftw_execute_dft_c2r(splans(3,id),tmp2,tmp2)
++      call sfftw_execute_dft_c2r(splans(3,id),tmp2,tmp2)
+ 
+ #else
+ #ifdef NUSE_OPENMP
+@@ -1956,7 +1956,7 @@ subroutine D3dBs_pfftbx(nbb,tmp1,tmp2,request,reqcnt)
+ *     *********************************************************************
+ 
+ #ifdef FFTW3
+-      call fftw_execute_dft_c2r(splans(13,id),tmp1,tmp1)
++      call sfftw_execute_dft_c2r(splans(13,id),tmp1,tmp1)
+ 
+ #else
+       indx = 1
+diff --git a/src/nwpw/nwpwlib/D3dB/GNUmakefile b/src/nwpw/nwpwlib/D3dB/GNUmakefile
+index df7b8b7068..ec1fa61c42 100644
+--- a/src/nwpw/nwpwlib/D3dB/GNUmakefile
++++ b/src/nwpw/nwpwlib/D3dB/GNUmakefile
+@@ -52,5 +52,7 @@ endif
+ 
+ ifeq ($(USE_FFTW3),y)
+   LIB_DEFINES += -DFFTW3
+-  LIB_INCLUDES += -I$(FFTW3_INCLUDE)
++  ifdef FFTW3_INCLUDE
++     LIB_INCLUDES += -I$(FFTW3_INCLUDE)
++  endif
+ endif
+From 376f86f96eb982e83f10514e9dcd994564f973b4 Mon Sep 17 00:00:00 2001
+From: Eric Bylaska <bylaska@gmail.com>
+Date: Thu, 8 Jun 2023 15:41:50 -0700
+Subject: [PATCH] Fixed singlet precision fftw3 linking.  In general, fftw3
+ should not be used by  most users, but it is included for perfmance testing
+ and cross checking...EJB
+
+---
+ src/config/makefile.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/config/makefile.h b/src/config/makefile.h
+index 1f2ff5c472..8b2b667bd9 100644
+--- a/src/config/makefile.h
++++ b/src/config/makefile.h
+@@ -3622,7 +3622,7 @@ endif
+ # FFTW3 library inclusion
+ ifdef USE_FFTW3
+     ifndef LIBFFTW3
+-        LIBFFTW3 = -lfftw3
++        LIBFFTW3 = -lfftw3 -lfftw3f
+     endif
+     ifdef FFTW3_LIB
+         CORE_LIBS += -L$(FFTW3_LIB)
+From c89fc9d1eca6689bce12564a63fdea95d962a123 Mon Sep 17 00:00:00 2001
+From: edoapra <edoardo.apra@gmail.com>
+Date: Thu, 8 Jun 2023 17:37:13 -0700
+Subject: [PATCH] fix for including system header fftw3.f
+
+---
+ src/nwpw/nwpwlib/D3dB/D3dB-new.F  | 3 +--
+ src/nwpw/nwpwlib/D3dB/D3dBs-new.F | 3 +--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/src/nwpw/nwpwlib/D3dB/D3dB-new.F b/src/nwpw/nwpwlib/D3dB/D3dB-new.F
+index 2159707831..6249f91710 100644
+--- a/src/nwpw/nwpwlib/D3dB/D3dB-new.F
++++ b/src/nwpw/nwpwlib/D3dB/D3dB-new.F
+@@ -1183,8 +1183,7 @@ subroutine D3dB_fft_init(nb)
+       common    / D3dB_fft / tmpx,tmpy,tmpz
+ 
+ #ifdef FFTW3
+-!#include "fftw3.fh"
+-#include "fftw3.f"
++#include <fftw3.f>
+        integer Atest(2),nxh,nxhz,nxhy
+ #endif
+ 
+diff --git a/src/nwpw/nwpwlib/D3dB/D3dBs-new.F b/src/nwpw/nwpwlib/D3dB/D3dBs-new.F
+index 8ddfddad34..4b71e4cf29 100644
+--- a/src/nwpw/nwpwlib/D3dB/D3dBs-new.F
++++ b/src/nwpw/nwpwlib/D3dB/D3dBs-new.F
+@@ -195,8 +195,7 @@ subroutine D3dBs_fft_init(nb)
+       common    / D3dBs_fft / tmpx,tmpy,tmpz
+ 
+ #ifdef FFTW3
+-!#include "fftw3.fh"
+-#include "fftw3.f"
++#include <fftw3.f>
+        integer Atest(2),nxh,nxhz,nxhy
+ #endif
+ 

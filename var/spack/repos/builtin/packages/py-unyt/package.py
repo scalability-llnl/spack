@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class PyUnyt(PythonPackage):
     git = "https://github.com/yt-project/unyt.git"
 
     maintainers("charmoniumq")
+
+    license("BSD-3-Clause")
 
     version("main", branch="main")
     version("2.9.2", sha256="8d4bf3dd3f7b4c29580728c0359caa17d62239673eeab436448d0777adeee5e1")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,7 +11,7 @@ package to enable optional features.
 """
 
 
-class Resource(object):
+class Resource:
     """Represents an optional resource to be fetched by a package.
 
     Aggregates a name, a fetcher, a destination and a placement.

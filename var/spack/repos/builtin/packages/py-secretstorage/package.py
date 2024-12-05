@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PySecretstorage(PythonPackage):
 
     homepage = "https://github.com/mitya57/secretstorage"
     pypi = "SecretStorage/SecretStorage-3.1.2.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("3.3.3", sha256="2403533ef369eca6d2ba81718576c5e0f564d5cca1b58f73a8b23e7d4eeebd77")
     version("3.3.1", sha256="fd666c51a6bf200643495a04abb261f83229dcb6fd8472ec393df7ffc8b6f195")

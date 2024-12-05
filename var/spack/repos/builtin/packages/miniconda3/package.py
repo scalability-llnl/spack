@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,6 +10,78 @@ from spack.package import *
 from spack.util.environment import EnvironmentModifications
 
 _versions = {
+    "24.7.1": {
+        "Linux-x86_64": (
+            "33442cd3813df33dcbb4a932b938ee95398be98344dff4c30f7e757cd2110e4f",
+            "https://repo.anaconda.com/miniconda/Miniconda3-py312_24.7.1-0-Linux-x86_64.sh",
+        )
+    },
+    "24.5.0": {
+        "Linux-x86_64": (
+            "4b3b3b1b99215e85fd73fb2c2d7ebf318ac942a457072de62d885056556eb83e",
+            "https://repo.anaconda.com/miniconda/Miniconda3-py312_24.5.0-0-Linux-x86_64.sh",
+        )
+    },
+    "24.4.0": {
+        "Linux-x86_64": (
+            "b6597785e6b071f1ca69cf7be6d0161015b96340b9a9e132215d5713408c3a7c",
+            "https://repo.anaconda.com/miniconda/Miniconda3-py312_24.4.0-0-Linux-x86_64.sh",
+        )
+    },
+    "24.3.0": {
+        "Linux-x86_64": (
+            "96a44849ff17e960eeb8877ecd9055246381c4d4f2d031263b63fa7e2e930af1",
+            "https://repo.anaconda.com/miniconda/Miniconda3-py312_24.3.0-0-Linux-x86_64.sh",
+        )
+    },
+    "24.1.2": {
+        "Linux-x86_64": (
+            "b978856ec3c826eb495b60e3fffe621f670c101150ebcbdeede4f961f22dc438",
+            "https://repo.anaconda.com/miniconda/Miniconda3-py312_24.1.2-0-Linux-x86_64.sh",
+        )
+    },
+    "23.11.0": {
+        "Linux-x86_64": (
+            "c9ae82568e9665b1105117b4b1e499607d2a920f0aea6f94410e417a0eff1b9c",
+            "https://repo.anaconda.com/miniconda/Miniconda3-py311_23.11.0-2-Linux-x86_64.sh",
+        )
+    },
+    "23.9.0": {
+        "Linux-x86_64": (
+            "43651393236cb8bb4219dcd429b3803a60f318e5507d8d84ca00dafa0c69f1bb",
+            "https://repo.anaconda.com/miniconda/Miniconda3-py311_23.9.0-0-Linux-x86_64.sh",
+        )
+    },
+    "23.5.2": {
+        "Linux-x86_64": (
+            "634d76df5e489c44ade4085552b97bebc786d49245ed1a830022b0b406de5817",
+            "https://repo.anaconda.com/miniconda/Miniconda3-py311_23.5.2-0-Linux-x86_64.sh",
+        )
+    },
+    "23.5.1": {
+        "Linux-x86_64": (
+            "333779c9cae3fe14735949a8dcb9657b9e55ada69e9c60f191c5d582b2deac20",
+            "https://repo.anaconda.com/miniconda/Miniconda3-py311_23.5.1-0-Linux-x86_64.sh",
+        )
+    },
+    "23.5.0": {
+        "Linux-x86_64": (
+            "61a5c087893f6210176045931b89ee6e8760c17abd9c862b2cab4c1b7d00f7c8",
+            "https://repo.anaconda.com/miniconda/Miniconda3-py311_23.5.0-3-Linux-x86_64.sh",
+        )
+    },
+    "23.3.1": {
+        "Linux-x86_64": (
+            "aef279d6baea7f67940f16aad17ebe5f6aac97487c7c03466ff01f4819e5a651",
+            "https://repo.anaconda.com/miniconda/Miniconda3-py310_23.3.1-0-Linux-x86_64.sh",
+        )
+    },
+    "23.1.0": {
+        "Linux-x86_64": (
+            "32d73e1bc33fda089d7cd9ef4c1be542616bd8e437d1f77afeeaf7afdb019787",
+            "https://repo.anaconda.com/miniconda/Miniconda3-py310_23.1.0-1-Linux-x86_64.sh",
+        )
+    },
     "22.11.1": {
         "Linux-x86_64": (
             "00938c3534750a0e4069499baf8f4e6dc1c2e471c86a59caa0dd03f4a9269db6",
@@ -86,7 +158,7 @@ _versions = {
 class Miniconda3(Package):
     """The minimalist bootstrap toolset for conda and Python3."""
 
-    homepage = "https://conda.io/miniconda.html"
+    homepage = "https://docs.anaconda.com/miniconda/"
 
     for ver, packages in _versions.items():
         key = "{0}-{1}".format(platform.system(), platform.machine())

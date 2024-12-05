@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyChartStudio(PythonPackage):
 
     homepage = "https://pypi.org/project/chart-studio/"
     pypi = "chart-studio/chart-studio-1.1.0.tar.gz"
+
+    license("MIT")
 
     version("1.1.0", sha256="a17283b62470306d77060b200f13f9749c807dd15613c113d36f8d057f5c7019")
 

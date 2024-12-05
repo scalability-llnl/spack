@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyEdamOntology(PythonPackage):
 
     homepage = "https://github.com/edamontology/edam-ontology.py"
     pypi = "edam-ontology/edam-ontology-1.25.2.tar.gz"
+
+    license("MIT")
 
     version("1.25.2", sha256="608c062ecb1ec260637645f73b4157d5abd47b19058a4ccca3bf292e373b8e06")
 

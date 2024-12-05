@@ -1,0 +1,55 @@
+diff --git a/samples/2_Cookbook/15_static_library/device_functions/hipMain2.cpp b/samples/2_Cookbook/15_static_library/device_functions/hipMain2.cpp
+index a3c3f8f..fafbf5a 100644
+--- a/samples/2_Cookbook/15_static_library/device_functions/hipMain2.cpp
++++ b/samples/2_Cookbook/15_static_library/device_functions/hipMain2.cpp
+@@ -23,8 +23,15 @@
+ #include <hip/hip_runtime.h>
+ #include <hip/hip_runtime_api.h>
+ #include <iostream>
++#include <stdexcept>
+
+-#define HIP_ASSERT(status) assert(status == hipSuccess)
++#define HIP_ASSERT(status)                                                                         \
++  {                                                                                                \
++    if ((status != hipSuccess)) {                                                                  \
++      std::cerr << "Failed in: " << __LINE__ << " on hip call: " #status << std::endl;             \
++      throw std::runtime_error("generic failure");                                                 \
++    }                                                                                              \
++  }
+ #define LEN 512
+
+ extern __device__ int square_me(int);
+diff --git a/samples/2_Cookbook/15_static_library/host_functions/CMakeLists.txt b/samples/2_Cookbook/15_static_library/host_functions/CMakeLists.txt
+index 3c7c306..8404ac5 100644
+--- a/samples/2_Cookbook/15_static_library/host_functions/CMakeLists.txt
++++ b/samples/2_Cookbook/15_static_library/host_functions/CMakeLists.txt
+@@ -37,7 +37,7 @@ endif()
+ add_library(HipOptLibrary STATIC ${CPP_SOURCES})
+
+ # Set-up the correct flags to generate the static library.
+-target_link_libraries(HipOptLibrary PRIVATE --emit-static-lib)
++target_link_options(HipOptLibrary PRIVATE --emit-static-lib)
+ target_include_directories(HipOptLibrary PRIVATE /opt/rocm/hsa/include)
+
+ # Create test executable that uses libHipOptLibrary.a
+diff --git a/samples/2_Cookbook/15_static_library/host_functions/hipOptLibrary.cpp b/samples/2_Cookbook/15_static_library/host_functions/hipOptLibrary.cpp
+index 68f5418..7e52ce3 100644
+--- a/samples/2_Cookbook/15_static_library/host_functions/hipOptLibrary.cpp
++++ b/samples/2_Cookbook/15_static_library/host_functions/hipOptLibrary.cpp
+@@ -23,8 +23,15 @@
+ #include <hip/hip_runtime.h>
+ #include <hip/hip_runtime_api.h>
+ #include <iostream>
++#include <stdexcept>
+
+-#define HIP_ASSERT(status) assert(status == hipSuccess)
++#define HIP_ASSERT(status)                                                                         \
++  {                                                                                                \
++    if ((status != hipSuccess)) {                                                                  \
++      std::cerr << "Failed in: " << __LINE__ << " on hip call: " #status << std::endl;             \
++      throw std::runtime_error("generic failure");                                                 \
++    }                                                                                              \
++  }
+ #define LEN 512
+
+ __global__ void copy(uint32_t* A, uint32_t* B) {

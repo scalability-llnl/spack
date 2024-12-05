@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,7 +15,12 @@ class Gegelati(CMakePackage):
     # notify when the package is updated.
     maintainers("lucascarvalhoroncoroni")
 
+    license("CECILL-C")
+
     version("1.2.0", sha256="039997c7d6cb394f910f6c40620165b32094e0c85c170be01eb74b55488a1d4c")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("sdl2")
     depends_on("doxygen")

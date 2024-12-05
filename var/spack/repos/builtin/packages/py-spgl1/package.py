@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,8 @@ class PySpgl1(PythonPackage):
     git = "https://github.com/drrelyea/spgl1.git"
 
     maintainers("archxlith")
+
+    license("LGPL-2.1-or-later")
 
     version("master", branch="master")
     version("0.0.2", sha256="a2a524724097bad18dd88a306dbcc99124c6c46ffcbb1a96d6ba6dd6fe2f7404")

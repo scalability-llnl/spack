@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -31,7 +31,7 @@ class GitUrlTopLevel(Package):
     # These resolve to URL fetchers
     version(
         "2.3",
-        "0000000000000000000000000000000000000000000000000000000000000023",
+        sha256="0000000000000000000000000000000000000000000000000000000000000023",
         url="https://www.example.com/foo2.3.tar.gz",
     )
     version(
@@ -40,7 +40,7 @@ class GitUrlTopLevel(Package):
         url="https://www.example.com/foo2.2.tar.gz",
     )
     version("2.1", sha256="0000000000000000000000000000000000000000000000000000000000000021")
-    version("2.0", "0000000000000000000000000000000000000000000000000000000000000020")
+    version("2.0", sha256="0000000000000000000000000000000000000000000000000000000000000020")
 
     # These result in a FetcherConflict b/c we can't tell what to use
     version(
@@ -55,4 +55,4 @@ class GitUrlTopLevel(Package):
         branch="releases/v1.2",
     )
     version("1.1", md5="00000000000000000000000000000011", tag="v1.1")
-    version("1.0", "00000000000000000000000000000011", tag="abc123")
+    version("1.0", md5="00000000000000000000000000000011", tag="abc123")

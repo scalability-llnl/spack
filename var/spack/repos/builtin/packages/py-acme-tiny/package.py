@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyAcmeTiny(PythonPackage):
 
     homepage = "https://github.com/diafygi/acme-tiny"
     git = "https://github.com/diafygi/acme-tiny.git"
+
+    license("MIT")
 
     version("master", branch="master")
     version("4.0.4", commit="5350420d35177eda733d85096433a24e55f8d00e")

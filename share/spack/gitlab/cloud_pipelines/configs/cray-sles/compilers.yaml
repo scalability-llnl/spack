@@ -1,0 +1,14 @@
+compilers:
+- compiler:
+    spec: gcc@=10.3.0
+    paths:
+      cc: /opt/cray/pe/gcc/10.3.0/bin/gcc
+      cxx: /opt/cray/pe/gcc/10.3.0/bin/g++
+      f77: /opt/cray/pe/gcc/10.3.0/bin/gfortran
+      fc: /opt/cray/pe/gcc/10.3.0/bin/gfortran
+    flags: {}
+    operating_system: sle_hpc15
+    target: x86_64
+    modules: [PrgEnv-gnu-amd]
+    environment: {}
+    extra_rpaths: []

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,9 @@ class RColourpicker(RPackage):
 
     cran = "colourpicker"
 
+    license("MIT")
+
+    version("1.3.0", sha256="c7f2618cd1ae1f7ac15aee072c648e6494dfff6714e13dc7cd1da993d1102510")
     version("1.2.0", sha256="bc2c80eee046219038baef9f8f213c9824d7fec7f893f6a1b881dd44b4a8638a")
     version("1.1.1", sha256="a0d09982b048b143e2c3438ccec039dd20d6f892fa0dedc9fdcb0d40de883ce0")
     version("1.1.0", sha256="2dfbb6262d187d3b17357ff9c22670ced3621feda5b2a2a500558478e4d551e2")

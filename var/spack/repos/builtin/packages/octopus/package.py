@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,11 +16,17 @@ class Octopus(AutotoolsPackage, CudaPackage):
     theory code."""
 
     homepage = "https://octopus-code.org/"
-    url = "https://octopus-code.org/down.php?file=6.0/octopus-6.0.tar.gz"
+    url = "https://octopus-code.org/download/6.0/octopus-6.0.tar.gz"
     git = "https://gitlab.com/octopus-code/octopus"
 
-    maintainers("fangohr", "RemiLacroix-IDRIS")
+    maintainers("fangohr", "RemiLacroix-IDRIS", "iamashwin99")
 
+    license("Apache-2.0")
+
+    version("14.1", sha256="6955f4020e69f038650a24509ff19ef35de4fd34e181539f92fa432db9b66ca7")
+    version("14.0", sha256="3cf6ef571ff97cc2c226016815d2ac4aa1e00ae3fb0cc693e0aff5620b80373e")
+    version("13.0", sha256="b4d0fd496c31a9c4aa4677360e631765049373131e61f396b00048235057aeb1")
+    version("12.2", sha256="e919e07703696eadb4ba59352d7a2678a9191b4586cb9da538661615e765a5a2")
     version("12.1", sha256="e2214e958f1e9631dbe6bf020c39f1fe4d71ab0b6118ea9bd8dc38f6d7a7959a")
     version("12.0", sha256="70beaf08573d394a766f10346a708219b355ad725642126065d12596afbc0dcc")
     version("11.4", sha256="73bb872bff8165ddd8efc5b891f767cb3fe575b5a4b518416c834450a4492da7")
@@ -38,14 +44,29 @@ class Octopus(AutotoolsPackage, CudaPackage):
 
     version("develop", branch="main")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("mpi", default=True, description="Build with MPI support")
     variant("scalapack", default=False, when="+mpi", description="Compile with Scalapack")
+    variant("berkeleygw", default=False, description="Compile with BerkeleyGW")
     variant("metis", default=False, description="Compile with METIS")
     variant("parmetis", default=False, when="+mpi", description="Compile with ParMETIS")
     variant("netcdf", default=False, description="Compile with Netcdf")
+    variant(
+        "sparskit",
+        default=False,
+        description="Compile with Sparskit - A Basic Tool Kit for Sparse Matrix Computations",
+    )
     variant("arpack", default=False, description="Compile with ARPACK")
     variant("cgal", default=False, description="Compile with CGAL library support")
     variant("pfft", default=False, when="+mpi", description="Compile with PFFT")
+    variant(
+        "nfft",
+        default=False,
+        description="Compile with NFFT - Nonequispaced Fast Fourier Transform library",
+    )
     # poke here refers to https://gitlab.e-cam2020.eu/esl/poke
     # variant('poke', default=False,
     #         description='Compile with poke (not available in spack yet)')
@@ -54,7 +75,14 @@ class Octopus(AutotoolsPackage, CudaPackage):
     variant("libvdwxc", default=False, description="Compile with libvdwxc")
     variant("libyaml", default=False, description="Compile with libyaml")
     variant("elpa", default=False, description="Compile with ELPA")
+    variant("etsf-io", default=False, description="Compile with etsf-io")
     variant("nlopt", default=False, description="Compile with nlopt")
+    variant(
+        "pnfft",
+        default=False,
+        when="+pfft",
+        description="Compile with PNFFT - Parallel Nonequispaced FFT library",
+    )
     variant("debug", default=False, description="Compile with debug flags")
 
     depends_on("autoconf", type="build", when="@develop")
@@ -73,31 +101,47 @@ class Octopus(AutotoolsPackage, CudaPackage):
     depends_on("libxc@2:4", when="@8:9")
     depends_on("libxc@5.1.0:", when="@10:")
     depends_on("libxc@5.1.0:", when="@develop")
+    depends_on("netcdf-fortran", when="+netcdf")  # NetCDF fortran lib without mpi variant
     with when("+mpi"):  # list all the parallel dependencies
         depends_on("fftw@3:+mpi+openmp", when="@8:9")  # FFT library
-        depends_on("fftw-api@3:+mpi+openmp", when="@10:")
+        depends_on("fftw-api@3:", when="@10:")
+        depends_on("fftw+mpi+openmp", when="^[virtuals=fftw-api] fftw")
         depends_on("libvdwxc+mpi", when="+libvdwxc")
         depends_on("arpack-ng+mpi", when="+arpack")
         depends_on("elpa+mpi", when="+elpa")
-        depends_on("netcdf-fortran ^netcdf-c+mpi", when="+netcdf")
+        depends_on("netcdf-c+mpi", when="+netcdf")  # Link dependency of NetCDF fortran lib
+        with when("+berkeleygw"):
+            # From octopus@14:, upstream switched support from BerkeleyGW@2.1 to @3.0:
+            # see https://gitlab.com/octopus-code/octopus/-/merge_requests/2257
+            # BerkeleyGW 2.1 is the last supported version until octopus@14
+            depends_on("berkeleygw@3:+mpi", when="@14:")
+            depends_on("berkeleygw@2.1+mpi", when="@:13")
 
     with when("~mpi"):  # list all the serial dependencies
         depends_on("fftw@3:+openmp~mpi", when="@8:9")  # FFT library
-        depends_on("fftw-api@3:+openmp~mpi", when="@10:")
+        depends_on("fftw-api@3:", when="@10:")
+        depends_on("fftw~mpi+openmp", when="^[virtuals=fftw-api] fftw")
         depends_on("libvdwxc~mpi", when="+libvdwxc")
         depends_on("arpack-ng~mpi", when="+arpack")
         depends_on("elpa~mpi", when="+elpa")
-        depends_on("netcdf-fortran ^netcdf-c~~mpi", when="+netcdf")
+        depends_on("netcdf-c~~mpi", when="+netcdf")  # Link dependency of NetCDF fortran lib
+        with when("+berkeleygw"):
+            depends_on("berkeleygw@3:~~mpi", when="@14:")
+            depends_on("berkeleygw@2.1~~mpi", when="@:13")
 
+    depends_on("etsf-io", when="+etsf-io")
     depends_on("py-numpy", when="+python")
     depends_on("py-mpi4py", when="+python")
     depends_on("metis@5:+int64", when="+metis")
     depends_on("parmetis+int64", when="+parmetis")
     depends_on("scalapack", when="+scalapack")
+    depends_on("sparskit", when="+sparskit")
     depends_on("cgal", when="+cgal")
     depends_on("pfft", when="+pfft")
+    depends_on("nfft@3.2.4", when="+nfft")
     depends_on("likwid", when="+likwid")
     depends_on("libyaml", when="+libyaml")
+    depends_on("pnfft", when="+pnfft")
     depends_on("nlopt", when="+nlopt")
 
     # optional dependencies:
@@ -132,7 +176,7 @@ class Octopus(AutotoolsPackage, CudaPackage):
 
         if "^fftw" in spec:
             args.append("--with-fftw-prefix=%s" % spec["fftw"].prefix)
-        elif "^mkl" in spec:
+        elif spec["fftw-api"].name in INTEL_MATH_LIBRARIES:
             # As of version 10.0, Octopus depends on fftw-api instead
             # of FFTW. If FFTW is not in the dependency tree, then
             # it ought to be MKL as it is currently the only providers
@@ -166,13 +210,16 @@ class Octopus(AutotoolsPackage, CudaPackage):
         if "+scalapack" in spec:
             args.extend(
                 [
-                    "--with-blacs=%s" % spec["scalapack"].libs,
-                    "--with-scalapack=%s" % spec["scalapack"].libs,
+                    f"--with-blacs={spec['scalapack'].libs.ld_flags}",
+                    f"--with-scalapack={spec['scalapack'].libs.ld_flags}",
                 ]
             )
 
         if "+cgal" in spec:
+            # Boost is a dependency of CGAL, and is not picked up by the configure script
+            # unless specified explicitly with `--with-boost` option.
             args.append("--with-cgal-prefix=%s" % spec["cgal"].prefix)
+            args.append("--with-boost=%s" % spec["boost"].prefix)
 
         if "+likwid" in spec:
             args.append("--with-likwid-prefix=%s" % spec["likwid"].prefix)
@@ -180,10 +227,15 @@ class Octopus(AutotoolsPackage, CudaPackage):
         if "+pfft" in spec:
             args.append("--with-pfft-prefix=%s" % spec["pfft"].prefix)
 
+        if "+nfft" in spec:
+            args.append("--with-nfft=%s" % spec["nfft"].prefix)
+
         # if '+poke' in spec:
         #     args.extend([
         #         '--with-poke-prefix=%s' % spec['poke'].prefix,
         #     ])
+        if "+pnfft" in spec:
+            args.append("--with-pnfft-prefix=%s" % spec["pnfft"].prefix)
 
         if "+libvdwxc" in spec:
             args.append("--with-libvdwxc-prefix=%s" % spec["libvdwxc"].prefix)
@@ -203,10 +255,16 @@ class Octopus(AutotoolsPackage, CudaPackage):
         if "+python" in spec:
             args.append("--enable-python")
 
-        # --with-etsf-io-prefix=
-        # --with-sparskit=${prefix}/lib/libskit.a
+        if "+sparskit" in spec:
+            args.append(
+                "--with-sparskit=%s" % os.path.join(self.spec["sparskit"].prefix.lib, "libskit.a")
+            )
+        if "+etsf-io" in spec:
+            args.append("--with-etsf-io-prefix=%s" % spec["etsf-io"].prefix)
         # --with-pfft-prefix=${prefix} --with-mpifftw-prefix=${prefix}
         # --with-berkeleygw-prefix=${prefix}
+        if "+berkeleygw" in spec:
+            args.append("--with-berkeleygw-prefix=%s" % spec["berkeleygw"].prefix)
 
         # When preprocessor expands macros (i.e. CFLAGS) defined as quoted
         # strings the result may be > 132 chars and is terminated.
@@ -219,68 +277,80 @@ class Octopus(AutotoolsPackage, CudaPackage):
             # In case of GCC version 10, we will have errors because of
             # argument mismatching. Need to provide a flag to turn this into a
             # warning and build sucessfully
+            # We can disable variable tracking at assignments introduced in GCC10
+            # for debug variant to decrease compile time.
 
-            fcflags = "FCFLAGS=-O2 -ffree-line-length-none"
-            fflags = "FFLAGS=O2 -ffree-line-length-none"
-            if spec.satisfies("%gcc@10:"):
-                gcc10_extra = "-fallow-argument-mismatch -fallow-invalid-boz"
-                args.append(fcflags + " " + gcc10_extra)
-                args.append(fflags + " " + gcc10_extra)
-            else:
-                args.append(fcflags)
-                args.append(fflags)
+            # Set optimization level for all flags
+            opt_level = "-O2"
+            fcflags = f"FCFLAGS={opt_level} -ffree-line-length-none"
+            cxxflags = f"CXXFLAGS={opt_level}"
+            cflags = f"CFLAGS={opt_level}"
+
+            # Add extra flags for gcc 10 or higher
+            gcc10_extra = (
+                "-fallow-argument-mismatch -fallow-invalid-boz"
+                if spec.satisfies("%gcc@10:")
+                else ""
+            )
+            # Add debug flag if needed
+            if spec.satisfies("+debug"):
+                fcflags += " -g"
+                cxxflags += " -g"
+                cflags += " -g"
+                gcc10_extra += (
+                    "-fno-var-tracking-assignments" if spec.satisfies("%gcc@10:") else ""
+                )
+
+            args.append(f"{fcflags} {gcc10_extra}")
+            args.append(f"{cxxflags} {gcc10_extra}")
+            args.append(f"{cflags} {gcc10_extra}")
+
+        # for octopus 14.1 and above autotools is deprecated in favour of cmake
+        # inorder to continue using autotools we pass `--enable-silent-deprecation`
+        if spec.satisfies("@14.1:"):
+            args.append("--enable-silent-deprecation")
+
+        # Disable flags
+        #
+        # disable gdlib explicitly to avoid
+        # autotools picking gdlib up from the system
+        args.append("--disable-gdlib")
 
         return args
 
     @run_after("install")
     @on_package_attributes(run_tests=True)
-    def smoke_tests_after_install(self):
+    def benchmark_tests_after_install(self):
         """Function stub to run tests after install if desired
         (for example through `spack install --test=root octopus`)
         """
-        self.smoke_tests()
+        self.test_version()
+        self.test_example()
+        self.test_he()
 
-    def test(self):
-        """Entry point for smoke tests run through `spack test run octopus`."""
-        self.smoke_tests()
-
-    def smoke_tests(self):
-        """Actual smoke tests for Octopus."""
-        #
-        # run "octopus --version"
-        #
-        exe = join_path(self.spec.prefix.bin, "octopus")
-        options = ["--version"]
-        purpose = "Check octopus can execute (--version)"
+    def test_version(self):
+        """Check octopus can execute (--version)"""
         # Example output:
         #
         # spack-v0.17.2$ octopus --version
         # octopus 11.3 (git commit )
-        expected = ["octopus "]
 
-        self.run_test(
-            exe,
-            options=options,
-            expected=expected,
-            status=[0],
-            installed=False,
-            purpose=purpose,
-            skip_missing=False,
-        )
+        exe = which(self.spec.prefix.bin.octopus)
+        out = exe("--version", output=str.split, error=str.split)
+        assert "octopus " in out
+
+    def test_recipe(self):
+        """run recipe example"""
 
         # Octopus expects a file with name `inp` in the current working
         # directory to read configuration information for a simulation run from
         # that file. We copy the relevant configuration file in a dedicated
-        # subfolder for each test.
+        # subfolder for the test.
         #
         # As we like to be able to run these tests also with the
         # `spack install --test=root` command, we cannot rely on
         # self.test_suite.current_test_data_dir, and need to copy the test
         # input files manually (see below).
-
-        #
-        # run recipe example
-        #
 
         expected = [
             "Running octopus",
@@ -289,24 +359,27 @@ class Octopus(AutotoolsPackage, CudaPackage):
             "recipe leads to an edible dish, " 'for it is clearly "system-dependent".',
             "Calculation ended on",
         ]
-        options = []
-        purpose = "Run Octopus recipe example"
+
         with working_dir("example-recipe", create=True):
             print("Current working directory (in example-recipe)")
             fs.copy(join_path(os.path.dirname(__file__), "test", "recipe.inp"), "inp")
-            self.run_test(
-                exe,
-                options=options,
-                expected=expected,
-                status=[0],
-                installed=False,
-                purpose=purpose,
-                skip_missing=False,
-            )
+            exe = which(self.spec.prefix.bin.octopus)
+            out = exe(output=str.split, error=str.split)
+            check_outputs(expected, out)
 
+    def test_he(self):
+        """run He example"""
+
+        # Octopus expects a file with name `inp` in the current working
+        # directory to read configuration information for a simulation run from
+        # that file. We copy the relevant configuration file in a dedicated
+        # subfolder for the test.
         #
-        # run He example
-        #
+        # As we like to be able to run these tests also with the
+        # `spack install --test=root` command, we cannot rely on
+        # self.test_suite.current_test_data_dir, and need to copy the test
+        # input files manually (see below).
+
         expected = [
             "Running octopus",
             "Info: Starting calculation mode.",
@@ -315,17 +388,10 @@ class Octopus(AutotoolsPackage, CudaPackage):
             "Info: Writing states.",
             "Calculation ended on",
         ]
-        options = []
-        purpose = "Run tiny calculation for He"
+
         with working_dir("example-he", create=True):
             print("Current working directory (in example-he)")
             fs.copy(join_path(os.path.dirname(__file__), "test", "he.inp"), "inp")
-            self.run_test(
-                exe,
-                options=options,
-                expected=expected,
-                status=[0],
-                installed=False,
-                purpose=purpose,
-                skip_missing=False,
-            )
+            exe = which(self.spec.prefix.bin.octopus)
+            out = exe(output=str.split, error=str.split)
+            check_outputs(expected, out)

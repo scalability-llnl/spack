@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyPlotnine(PythonPackage):
 
     homepage = "https://plotnine.readthedocs.io/en/stable"
     pypi = "plotnine/plotnine-0.8.0.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("0.9.0", sha256="0e89a93015f3c71d6844ac7aa9fb0da09b908f5f7dfa7dd5d68a5ca32b2ebcea")
     version("0.8.0", sha256="39de59edcc28106761b65238647d0b1f6212ea7f3a78f8be0b846616db969276")

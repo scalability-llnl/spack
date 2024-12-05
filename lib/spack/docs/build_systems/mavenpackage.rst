@@ -1,4 +1,4 @@
-.. Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
    Spack Project Developers. See the top-level COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -48,8 +48,8 @@ class automatically adds the following dependencies:
 
 .. code-block:: python
 
-   depends_on('java', type=('build', 'run'))
-   depends_on('maven', type='build')
+   depends_on("java", type=("build", "run"))
+   depends_on("maven", type="build")
 
 
 In the ``pom.xml`` file, you may see sections like:
@@ -72,8 +72,8 @@ should add:
 
 .. code-block:: python
 
-   depends_on('java@7:', type='build')
-   depends_on('maven@3.5.4:', type='build')
+   depends_on("java@7:", type="build")
+   depends_on("maven@3.5.4:", type="build")
 
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -88,9 +88,9 @@ the build phase. For example:
 
    def build_args(self):
        return [
-           '-Pdist,native',
-           '-Dtar',
-           '-Dmaven.javadoc.skip=true'
+           "-Pdist,native",
+           "-Dtar",
+           "-Dmaven.javadoc.skip=true"
        ]
 
 

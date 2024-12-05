@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,9 @@ class RGtrellis(RPackage):
 
     bioc = "gtrellis"
 
+    license("MIT")
+
+    version("1.32.0", commit="4c2361bde90a556aa5a585d45f056b3ddc806f9b")
     version("1.30.0", commit="da93b30ef812e231c47aa83da5c521f1801b3d14")
     version("1.28.0", commit="d770a7b3441e4003869c88cfd8e21fd6508b86c4")
     version("1.26.0", commit="f2c3121b31ad1b422e2cf503435d0590e903ff3f")

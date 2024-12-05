@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class PyGym(PythonPackage):
 
     homepage = "https://github.com/openai/gym"
     pypi = "gym/gym-0.18.0.tar.gz"
+
+    license("MIT")
 
     version("0.19.0", sha256="940069b983806e1ccc400fa6d47b4e34e462accf6a4fb0acb0a5e509ad0f502d")
     version("0.18.0", sha256="a0dcd25c1373f3938f4cb4565f74f434fba6faefb73a42d09c9dddd0c08af53e")

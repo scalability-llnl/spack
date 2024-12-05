@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,7 @@ class RVariantannotation(RPackage):
 
     bioc = "VariantAnnotation"
 
+    version("1.46.0", commit="80d43e024bead5afd48cb86910ba4670d8d37424")
     version("1.44.0", commit="2e7e0a3b7c1918c0d64170dc7c173a636d3764f4")
     version("1.42.1", commit="d1121696c76c189d6b4df9914806bf585a495845")
     version("1.40.0", commit="50ead7cb60cedf3c053853fab92d9f104f9f85bd")
@@ -23,6 +24,8 @@ class RVariantannotation(RPackage):
     version("1.26.1", commit="60ae67598cc3d7ed20ee6417920f8c209085faaf")
     version("1.24.5", commit="468d7f53fd743e04c9af853d58e871b4cc13a090")
     version("1.22.3", commit="3a91b6d4297aa416d5f056dec6f8925eb1a8eaee")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r@2.8.0:", type=("build", "run"))
     depends_on("r@4.0.0:", type=("build", "run"), when="@1.40.0:")

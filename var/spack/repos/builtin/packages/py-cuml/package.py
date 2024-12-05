@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,7 +14,11 @@ class PyCuml(PythonPackage):
     homepage = "https://github.com/rapidsai/cuml"
     url = "https://github.com/rapidsai/cuml/archive/v0.15.0.tar.gz"
 
+    license("Apache-2.0")
+
     version("0.15.0", sha256="5c9c656ae4eaa94a426e07d7385fd5ea0e5dc7abff806af2941aee10d4ca99c7")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("python@3.7:", type=("build", "run"))
     depends_on("py-setuptools", type="build")

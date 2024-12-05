@@ -1,0 +1,103 @@
+paths:
+- layout:
+  - executables:
+    - "bin/amdclang"
+    - "bin/amdclang++"
+    script: |
+      echo "AMD clang version 17.0.0 (https://github.com/RadeonOpenCompute/llvm-project roc-5.7.1 23382 f3e174a1d286158c06e4cc8276366b1d4bc0c914)"
+      echo "Target: x86_64-unknown-linux-gnu"
+      echo "Thread model: posix"
+      echo "InstalledDir: /opt/rocm-5.7.1/llvm/bin"
+      echo "Configuration file: /opt/rocm-5.7.1/llvm/bin/clang.cfg"
+  - executables:
+    - "bin/amdflang"
+    script: |
+      echo "AMD flang-classic version 17.0.0 (https://github.com/RadeonOpenCompute/llvm-project roc-5.7.1 23382 f3e174a1d286158c06e4cc8276366b1d4bc0c914)"
+      echo "Target: x86_64-unknown-linux-gnu"
+      echo "Thread model: posix"
+      echo "InstalledDir: /opt/rocm-5.7.1/llvm/bin"
+  platforms: [linux]
+  results:
+  - spec: llvm-amdgpu@5.7.1
+    extra_attributes:
+      compilers:
+        c: ".*/bin/amdclang"
+        cxx: ".*/bin/amdclang[+][+]"
+        fortran: ".*/bin/amdflang"
+
+- layout:
+  - executables:
+    - "bin/amdclang"
+    - "bin/amdclang++"
+    script: |
+      echo "AMD clang version 17.0.0 (https://github.com/RadeonOpenCompute/llvm-project roc-5.7.1 23382 f3e174a1d286158c06e4cc8276366b1d4bc0c914)"
+      echo "Target: x86_64-unknown-linux-gnu"
+      echo "Thread model: posix"
+      echo "InstalledDir: /opt/rocm-5.7.1/llvm/bin"
+      echo "Configuration file: /opt/rocm-5.7.1/llvm/bin/clang.cfg"
+  platforms: [linux]
+  results:
+  - spec: llvm-amdgpu@5.7.1
+    extra_attributes:
+      compilers:
+        c: ".*/bin/amdclang"
+        cxx: ".*/bin/amdclang[+][+]"
+
+- layout:
+  - executables:
+    - "bin/amdclang"
+    - "bin/amdclang++"
+    script: |
+      echo "AMD clang version 17.0.0 (https://github.com/RadeonOpenCompute/llvm-project roc-5.7.1 23382 f3e174a1d286158c06e4cc8276366b1d4bc0c914)"
+      echo "Target: x86_64-unknown-linux-gnu"
+      echo "Thread model: posix"
+      echo "InstalledDir: /opt/rocm-5.7.1/llvm/bin"
+      echo "Configuration file: /opt/rocm-5.7.1/llvm/bin/clang.cfg"
+  - executables:
+    - "bin/amdflang"
+    script: |
+      echo "AMD flang-classic version 17.0.0 (https://github.com/RadeonOpenCompute/llvm-project roc-5.7.1 23382 f3e174a1d286158c06e4cc8276366b1d4bc0c914)"
+      echo "Target: x86_64-unknown-linux-gnu"
+      echo "Thread model: posix"
+      echo "InstalledDir: /opt/rocm-5.7.1/llvm/bin"
+  - executables:
+    - "bin/amdclang-6"
+    - "bin/amdclang++-6"
+    script: |
+      echo "AMD clang version 17.0.0 (https://github.com/RadeonOpenCompute/llvm-project roc-6.0.2 24012 af27734ed982b52a9f1be0f035ac91726fc697e4)"
+      echo "Target: x86_64-unknown-linux-gnu"
+      echo "Thread model: posix"
+      echo "InstalledDir: /opt/rocm-6.0.2/llvm/bin"
+      echo "Configuration file: /opt/rocm-6.0.2/llvm/bin/clang.cfg"
+  - executables:
+    - "bin/amdflang-6"
+    script: |
+      echo "AMD flang-classic version 17.0.0 (https://github.com/RadeonOpenCompute/llvm-project roc-6.0.2 24012 af27734ed982b52a9f1be0f035ac91726fc697e4)"
+      echo "Target: x86_64-unknown-linux-gnu"
+      echo "Thread model: posix"
+      echo "InstalledDir: /opt/rocm-6.0.2/llvm/bin"
+  platforms: [linux]
+  results:
+  - spec: llvm-amdgpu@6.0.2
+    extra_attributes:
+      compilers:
+        c: ".*/bin/amdclang-6$"
+        cxx: ".*/bin/amdclang[+][+]-6$"
+        fortran: ".*/bin/amdflang-6$"
+  - spec: llvm-amdgpu@5.7.1
+    extra_attributes:
+      compilers:
+        c: ".*/bin/amdclang"
+        cxx: ".*/bin/amdclang[+][+]"
+        fortran: ".*/bin/amdflang"
+- layout: # does not detect upstream clang
+  - executables:
+    - "bin/clang"
+    - "bin/clang++"
+    script: |
+      echo "clang version 8.0.0 (tags/RELEASE_800/final"
+      echo "Target: x86_64-unknown-linux-gnu\n"
+      echo "Thread model: posix\n"
+      echo "InstalledDir: /usr/bin"
+  platforms: [linux]
+  results: []

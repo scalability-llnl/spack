@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -28,6 +28,8 @@ class KokkosKernelsLegacy(MakefilePackage):
         sha256="2c2289da3a41dafd97726e90507debafbb9f5e49ca5b0f5c8d1e044a5796f000",
         deprecated=True,
     )
+
+    depends_on("cxx", type="build")  # generated
 
     # make sure kokkos kernels version matches kokkos
     depends_on("kokkos-legacy@2.5.00", when="@2.5.00")

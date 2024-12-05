@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,8 @@ class Falcon(PythonPackage):
     git = "https://github.com/PacificBiosciences/FALCON.git"
 
     version("2017-05-30", commit="86cec6157291679095ea6080b0cde6561eccc041")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("py-setuptools", type="run")
     depends_on("py-pypeflow", type="run")

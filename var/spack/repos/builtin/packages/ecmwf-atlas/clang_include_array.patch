@@ -1,0 +1,11 @@
+--- a/src/atlas/grid/detail/partitioner/CubedSpherePartitioner.h	2022-01-12 08:44:07.000000000 -0700
++++ b/src/atlas/grid/detail/partitioner/CubedSpherePartitioner.h	2022-01-12 08:44:11.000000000 -0700
+@@ -11,7 +11,7 @@
+ #pragma once
+ 
+ #include <vector>
+-
++#include <array>
+ #include "atlas/grid/detail/partitioner/Partitioner.h"
+ 
+ namespace atlas {

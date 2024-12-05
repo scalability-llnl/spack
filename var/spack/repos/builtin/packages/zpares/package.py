@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class Zpares(MakefilePackage):
 
     homepage = "https://zpares.cs.tsukuba.ac.jp/"
     url = "http://zpares.cs.tsukuba.ac.jp/download/zpares_0.9.6a.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("0.9.6a", sha256="3c34257d249451b0b984abc985e296ebb73ae5331025f1b8ea08d50301c7cf9a")
 

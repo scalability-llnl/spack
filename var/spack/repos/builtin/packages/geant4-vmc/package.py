@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class Geant4Vmc(CMakePackage):
 
     maintainer = ["wdconinc"]
 
+    license("GPL-3.0-only")
+
     version("master", branch="master")
     version("6-1-p1", sha256="b3115cd891192ae6cb347737854ee01a22620498f005beb7644af12461ad8b9d")
     version("5-3", sha256="22f58530963988380509a7741ad6b3dde21806f3862fb55c11cc27f25d3d3c2d")
@@ -32,6 +34,8 @@ class Geant4Vmc(CMakePackage):
     version("4-0-p3", sha256="ec6699aa0deca903f143c593affec09832c33be736d9cddfa8d6f5cdfc3bc288")
     version("4-0-p2", sha256="cdd73c499cd296f13b6c0d37e161e7d94343f85617b2a7577ded8312248f9b9b")
     version("3-6-p6", sha256="e62a62ff7075ff9afb2ffe420610374f62136094a447bbbc5f739a2238ddb0f0")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3.3:", type="build")
     depends_on("geant4")

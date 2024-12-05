@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyPymc3(PythonPackage):
 
     homepage = "https://github.com/pymc-devs/pymc3"
     pypi = "pymc3/pymc3-3.8.tar.gz"
+
+    license("Apache-2.0")
 
     version("3.8", sha256="1bb2915e4a29877c681ead13932b0b7d276f7f496e9c3f09ba96b977c99caf00")
 

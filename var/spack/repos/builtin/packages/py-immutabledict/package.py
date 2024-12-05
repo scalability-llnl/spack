@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,6 +21,8 @@ class PyImmutabledict(PythonPackage):
 
     homepage = "https://github.com/corenting/immutabledict"
     pypi = "immutabledict/immutabledict-2.2.1.tar.gz"
+
+    license("MIT")
 
     version("2.2.1", sha256="1ddb0edf1bb6c70d0197eb90ce1fe2b2d58502334f5fdfde72d7c633d723ec3a")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,10 +11,10 @@ class OldExternal(Package):
     homepage = "https://www.example.com"
     url = "https://www.example.com/old-external.tar.gz"
 
-    version("1.2.0", "0123456789abcdef0123456789abcdef")
-    version("1.1.4", "0123456789abcdef0123456789abcdef")
-    version("1.1.3", "0123456789abcdef0123456789abcdef")
-    version("1.1.2", "0123456789abcdef0123456789abcdef")
-    version("1.1.1", "0123456789abcdef0123456789abcdef")
-    version("1.1.0", "0123456789abcdef0123456789abcdef")
-    version("1.0.0", "0123456789abcdef0123456789abcdef")
+    version("1.2.0", md5="0123456789abcdef0123456789abcdef")
+    version("1.1.4", md5="0123456789abcdef0123456789abcdef")
+    version("1.1.3", md5="0123456789abcdef0123456789abcdef")
+    version("1.1.2", md5="0123456789abcdef0123456789abcdef")
+    version("1.1.1", md5="0123456789abcdef0123456789abcdef")
+    version("1.1.0", md5="0123456789abcdef0123456789abcdef")
+    version("1.0.0", md5="0123456789abcdef0123456789abcdef")

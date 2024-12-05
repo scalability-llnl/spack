@@ -1,9 +1,8 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import re
-import sys
 
 import pytest
 
@@ -98,13 +97,9 @@ def test_url_list(mock_packages):
 def test_url_summary(mock_packages):
     """Test the URL summary command."""
     # test url_summary, the internal function that does the work
-    (
-        total_urls,
-        correct_names,
-        correct_versions,
-        name_count_dict,
-        version_count_dict,
-    ) = url_summary(None)
+    (total_urls, correct_names, correct_versions, name_count_dict, version_count_dict) = (
+        url_summary(None)
+    )
 
     assert 0 < correct_names <= sum(name_count_dict.values()) <= total_urls
     assert 0 < correct_versions <= sum(version_count_dict.values()) <= total_urls
@@ -121,7 +116,6 @@ def test_url_summary(mock_packages):
     assert out_correct_versions == correct_versions
 
 
-@pytest.mark.skipif(sys.platform.startswith("win"), reason="Unsupported on Windows for now")
 def test_url_stats(capfd, mock_packages):
     with capfd.disabled():
         output = url("stats")

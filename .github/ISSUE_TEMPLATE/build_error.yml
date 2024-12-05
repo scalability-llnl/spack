@@ -9,7 +9,7 @@ body:
         Thanks for taking the time to report this build failure. To proceed with the report please:
         1. Title the issue `Installation issue: <name-of-the-package>`.
         2. Provide the information required below.
-        
+
         We encourage you to try, as much as possible, to reduce your problem to the minimal example that still reproduces the issue. That would help us a lot in fixing it quickly and effectively!
   - type: textarea
     id: reproduce
@@ -29,7 +29,9 @@ body:
       description: |
         Please post the error message from spack inside the `<details>` tag below:
       value: |
-        <details><summary>Error message</summary><pre>
+        <details><summary>Error message</summary>
+
+        <pre>
         ...
         </pre></details>
     validations:
@@ -53,7 +55,7 @@ body:
         Please upload the following files:
         * **`spack-build-out.txt`**
         * **`spack-build-env.txt`**
-        
+
         They should be present in the stage directory of the failing build. Also upload any `config.log` or similar file if one exists.
   - type: markdown
     attributes:

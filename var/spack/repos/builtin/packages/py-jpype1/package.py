@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,9 @@ class PyJpype1(PythonPackage):
     version("0.6.2", sha256="99206412d80b9d5a81a7cc205267ca63554403eb57f13420302e2f39bfad7f25")
     version("0.6.1", sha256="0d366228b7b37b0266184161cc7ea1ce58f60199f6ec9451985149ea873774be")
     version("0.6.0", sha256="f5d783520cb4c30595c3bc509065e30fc292ec7cfb57045141eae77c518bcdb0")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("numpy", default=False, description="Build numpy extensions")
 

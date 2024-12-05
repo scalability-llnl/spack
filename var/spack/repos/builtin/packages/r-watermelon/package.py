@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,7 @@ class RWatermelon(RPackage):
 
     bioc = "wateRmelon"
 
+    version("2.6.0", commit="a46541ffcc08efebf08ea29cb214a45f51f5cb72")
     version("2.4.0", commit="31c15255511940b8b83d039c42ec89e43ceb0885")
     version("2.2.0", commit="6ec49efe98aef31d0789b31ab048eb46edec762c")
     version("2.0.0", commit="f6a331bdf50e0e5c94009fb67be873d996348ade")

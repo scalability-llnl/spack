@@ -1,4 +1,4 @@
-.. Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
    Spack Project Developers. See the top-level COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -25,8 +25,8 @@ use Spack to build packages with the tools.
 The Spack Python class ``IntelOneapiPackage`` is a base class that is
 used by ``IntelOneapiCompilers``, ``IntelOneapiMkl``,
 ``IntelOneapiTbb`` and other classes to implement the oneAPI
-packages. See the :ref:`package-list` for the full list of available
-oneAPI packages or use::
+packages. Search for ``oneAPI`` at `packages.spack.io <https://packages.spack.io>`_ for the full
+list of available oneAPI packages, or use::
 
   spack list -d oneAPI
 
@@ -53,18 +53,24 @@ Install the oneAPI compilers::
 
 Add the compilers to your ``compilers.yaml`` so spack can use them::
 
-  spack compiler add `spack location -i intel-oneapi-compilers`/compiler/latest/linux/bin/intel64
-  spack compiler add `spack location -i intel-oneapi-compilers`/compiler/latest/linux/bin
+  spack compiler add `spack location -i intel-oneapi-compilers`/compiler/latest/bin
 
 Verify that the compilers are available::
 
   spack compiler list
 
+Note that 2024 and later releases do not include ``icc``. Before 2024,
+the package layout was different::
+  
+  spack compiler add `spack location -i intel-oneapi-compilers`/compiler/latest/linux/bin/intel64
+  spack compiler add `spack location -i intel-oneapi-compilers`/compiler/latest/linux/bin
+
 The ``intel-oneapi-compilers`` package includes 2 families of
 compilers:
 
 * ``intel``: ``icc``, ``icpc``, ``ifort``. Intel's *classic*
-  compilers.
+  compilers. 2024 and later releases contain ``ifort``, but not
+  ``icc`` and ``icpc``.
 * ``oneapi``: ``icx``, ``icpx``, ``ifx``. Intel's new generation of
   compilers based on LLVM.
 
@@ -75,6 +81,55 @@ To build the ``patchelf`` Spack package with ``icc``, do::
 To build with with ``icx``, do ::
 
   spack install patchelf%oneapi
+
+
+Using oneAPI Spack environment
+-------------------------------
+
+In this example, we build lammps with ``icx`` using Spack environment for oneAPI packages created by Intel. The
+compilers are installed with Spack like in example above.
+
+Install the oneAPI compilers::
+
+  spack install intel-oneapi-compilers
+
+Add the compilers to your ``compilers.yaml`` so Spack can use them::
+
+  spack compiler add `spack location -i intel-oneapi-compilers`/compiler/latest/bin
+  spack compiler add `spack location -i intel-oneapi-compilers`/compiler/latest/bin
+
+Verify that the compilers are available::
+
+  spack compiler list
+
+Clone `spack-configs <https://github.com/spack/spack-configs>`_ repo and activate Intel oneAPI CPU environment::
+
+  git clone https://github.com/spack/spack-configs
+  spack env activate spack-configs/INTEL/CPU
+  spack concretize -f
+
+`Intel oneAPI CPU environment <https://github.com/spack/spack-configs/blob/main/INTEL/CPU/spack.yaml>`_  contains applications tested and validated by Intel, this list is constantly extended. And currently it supports:
+
+- `Devito <https://www.devitoproject.org/>`_
+- `GROMACS <https://www.gromacs.org/>`_
+- `HPCG <https://www.hpcg-benchmark.org/>`_
+- `HPL <https://netlib.org/benchmark/hpl/>`_
+- `LAMMPS <https://www.lammps.org/#gsc.tab=0>`_
+- `OpenFOAM <https://www.openfoam.com/>`_
+- `Quantum Espresso <https://www.quantum-espresso.org/>`_
+- `STREAM <https://www.cs.virginia.edu/stream/>`_
+- `WRF <https://github.com/wrf-model/WRF>`_
+
+To build lammps with oneAPI compiler from this environment just run::
+
+  spack install lammps
+
+Compiled binaries can be find using::
+
+  spack cd -i lammps
+
+You can do the same for all other applications from this environment.
+
 
 Using oneAPI MPI to Satisfy a Virtual Dependence
 ------------------------------------------------------
@@ -97,8 +152,7 @@ Compilers
 To use the compilers, add some information about the installation to
 ``compilers.yaml``. For most users, it is sufficient to do::
 
-  spack compiler add /opt/intel/oneapi/compiler/latest/linux/bin/intel64
-  spack compiler add /opt/intel/oneapi/compiler/latest/linux/bin
+  spack compiler add /opt/intel/oneapi/compiler/latest/bin
 
 Adapt the paths above if you did not install the tools in the default
 location. After adding the compilers, using them is the same
@@ -106,6 +160,12 @@ as if you had installed the ``intel-oneapi-compilers`` package.
 Another option is to manually add the configuration to
 ``compilers.yaml`` as described in :ref:`Compiler configuration
 <compiler-config>`.
+
+Before 2024, the directory structure was different::
+  
+  spack compiler add /opt/intel/oneapi/compiler/latest/linux/bin/intel64
+  spack compiler add /opt/intel/oneapi/compiler/latest/linux/bin
+
 
 Libraries
 ---------

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,9 @@ class Cub(Package):
     url = "https://github.com/NVIDIA/cub/archive/1.12.0.zip"
     git = "https://github.com/NVIDIA/cub.git"
 
+    license("BSD-3-Clause")
+
+    version("2.1.0", sha256="8ec47307f5e99379ac1cf6722cd5a24fc15b84b0f5361bebd453645a5e4bb34d")
     version("1.16.0", sha256="a9e327d46c82025d17ed3ab5a10da006bcdaef5dcbd294b332ef0a572f58445b")
     version("1.15.0", sha256="dcb75744650deb42e9123509482e0f84944c1dbd60d5cd909a416d953d3a6903")
     version("1.14.0", sha256="d83ac193b6acdb9281ca130fbe9590728c018c98f38916f903181b6f9410a829")

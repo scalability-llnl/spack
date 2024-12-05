@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,7 @@ class RClusterprofiler(RPackage):
 
     bioc = "clusterProfiler"
 
+    version("4.8.0", commit="35a69cf05855b01775658def2f3f26596902f5db")
     version("4.6.0", commit="2644118c36a3aa14408bc0c97ac20a545e40344d")
     version("4.4.4", commit="9fca9a45ca1793884d8dcfd0f077353dbf75df29")
     version("4.4.1", commit="daad11fb80be2dd9b825e0b484815a0a2b1592a4")
@@ -41,7 +42,7 @@ class RClusterprofiler(RPackage):
     depends_on("r-enrichplot@1.9.3:", type=("build", "run"), when="@3.18.0:")
     depends_on("r-go-db", type=("build", "run"))
     depends_on("r-gosemsim", type=("build", "run"))
-    depends_on("r-gosemsim@2.0.0:", type=("build", "run"), when="@3.4.4:3.6.0")
+    depends_on("r-gosemsim@2.0.0:", type=("build", "run"), when="@3.4.4:")
     depends_on("r-gson@0.0.7:", type=("build", "run"), when="@4.6.0:")
     depends_on("r-magrittr", type=("build", "run"))
     depends_on("r-plyr", type=("build", "run"))

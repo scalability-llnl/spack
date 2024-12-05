@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class Any2fasta(Package):
 
     homepage = "https://github.com/tseemann/any2fasta"
     url = "https://github.com/tseemann/any2fasta/archive/refs/tags/v0.4.2.tar.gz"
+
+    license("GPL-3.0-only")
 
     version("0.4.2", sha256="e4cb2ddccda6298f5b0aee0c10184a75307a08b584d2abbfbf0d59d37b197e73")
     version("0.2.3", sha256="197cd1e18adebe28b71a1448c5107804b7093b2aa83c4bcfd8edd3fc4ed485df")

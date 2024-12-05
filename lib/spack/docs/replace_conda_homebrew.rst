@@ -1,10 +1,10 @@
-.. Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
    Spack Project Developers. See the top-level COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 =====================================
-Using Spack to Replace Homebrew/Conda
+Spack for Homebrew/Conda Users
 =====================================
 
 Spack is an incredibly powerful package manager, designed for supercomputers
@@ -191,18 +191,18 @@ The ``--fresh`` flag tells Spack to use the latest version of every package
 where possible instead of trying to optimize for reuse of existing installed
 packages.
 
-The ``--force`` flag in addition tells Spack to overwrite its previous 
-concretization decisions, allowing you to choose a new version of Python. 
-If any of the new packages like Bash are already installed, ``spack install`` 
+The ``--force`` flag in addition tells Spack to overwrite its previous
+concretization decisions, allowing you to choose a new version of Python.
+If any of the new packages like Bash are already installed, ``spack install``
 won't re-install them, it will keep the symlinks in place.
 
 -----------------------------------
 Updating & Cleaning Up Old Packages
 -----------------------------------
 
-If you're looking to mimic the behavior of Homebrew, you may also want to 
-clean up out-of-date packages from your environment after an upgrade. To 
-upgrade your entire software stack within an environment and clean up old 
+If you're looking to mimic the behavior of Homebrew, you may also want to
+clean up out-of-date packages from your environment after an upgrade. To
+upgrade your entire software stack within an environment and clean up old
 package versions, simply run the following commands:
 
 .. code-block:: console
@@ -212,9 +212,9 @@ package versions, simply run the following commands:
    $ spack concretize --fresh --force
    $ spack install
    $ spack gc
-   
-Running ``spack mark -i --all`` tells Spack to mark all of the existing 
-packages within an environment as "implicitly" installed. This tells 
+
+Running ``spack mark -i --all`` tells Spack to mark all of the existing
+packages within an environment as "implicitly" installed. This tells
 spack's garbage collection system that these packages should be cleaned up.
 
 Don't worry however, this will not remove your entire environment.
@@ -223,8 +223,8 @@ a fresh concretization and will re-mark any packages that should remain
 installed as "explicitly" installed.
 
 **Note:** if you use multiple spack environments you should re-run ``spack install``
-in each of your environments prior to running ``spack gc`` to prevent spack 
-from uninstalling any shared packages that are no longer required by the 
+in each of your environments prior to running ``spack gc`` to prevent spack
+from uninstalling any shared packages that are no longer required by the
 environment you just upgraded.
 
 --------------

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyMkdocstrings(PythonPackage):
 
     homepage = "https://mkdocstrings.github.io/"
     pypi = "mkdocstrings/mkdocstrings-0.19.0.tar.gz"
+
+    license("ISC")
 
     version("0.19.0", sha256="efa34a67bad11229d532d89f6836a8a215937548623b64f3698a1df62e01cc3e")
 

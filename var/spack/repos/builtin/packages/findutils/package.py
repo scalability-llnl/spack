@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,9 +22,11 @@ class Findutils(AutotoolsPackage, GNUMirrorPackage):
         if version < Version("4.7.0"):
             self.gnu_mirror_path = "findutils/findutils-{0}.tar.gz".format(version)
 
-        return super(Findutils, self).url_for_version(version)
+        return super().url_for_version(version)
 
     executables = ["^find$"]
+
+    license("GPL-3.0-or-later")
 
     version("4.9.0", sha256="a2bfb8c09d436770edc59f50fa483e785b161a3b7b9d547573cb08065fd462fe")
     version("4.8.0", sha256="57127b7e97d91282c6ace556378d5455a9509898297e46e10443016ea1387164")
@@ -48,6 +50,8 @@ class Findutils(AutotoolsPackage, GNUMirrorPackage):
     version("4.2.15", sha256="5ede832e70c1691a59e6d5e5ebc2b843120d631b93cd60b905b2edeb078d3719")
     version("4.1.20", sha256="8c5dd50a5ca54367fa186f6294b81ec7a365e36d670d9feac62227cb513e63ab")
     version("4.1", sha256="487ecc0a6c8c90634a11158f360977e5ce0a9a6701502da6cb96a5a7ec143fac")
+
+    depends_on("c", type="build")  # generated
 
     # The NVIDIA compilers do not currently support some GNU builtins.
     # Detect this case and use the fallback path.

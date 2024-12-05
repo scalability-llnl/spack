@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,7 +21,7 @@ class SspaceLongread(Package):
     homepage = "https://www.baseclear.com/genomics/bioinformatics/basetools/SSPACE-longread"
     manual_download = True
 
-    version("1.1", "0bb5d8603d7ead4ff1596135a520cc26")
+    version("1.1", md5="0bb5d8603d7ead4ff1596135a520cc26")
 
     depends_on("perl", type=("build", "run"))
 

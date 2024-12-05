@@ -1,0 +1,31 @@
+--- fastqc.orig	2023-05-26 08:02:49.123718275 +0100
++++ fastqc	2023-05-26 08:12:19.980320240 +0100
+@@ -38,13 +38,21 @@
+ 	$delimiter = ';';
+ }
+ 
+-if ($ENV{CLASSPATH}) {
+-	$ENV{CLASSPATH} .= "$delimiter$RealBin$delimiter$RealBin/htsjdk.jar$delimiter$RealBin/jbzip2-0.9.jar$delimiter$RealBin/cisd-jhdf5.jar";
+-}
+-else {
+-	$ENV{CLASSPATH} = "$RealBin$delimiter$RealBin/htsjdk.jar$delimiter$RealBin/jbzip2-0.9.jar$delimiter$RealBin/cisd-jhdf5.jar";
+-}
+-
++# The lib dir is $RealBin/../lib
++# start with list of jars we need and prefix them with the lib dir
++# then stick CLASSPATH onto the front (empty or otherwise...)
++# then filter out anything that's empty (perhaps CLASSPATH...)
++# then join all the remainings bits with the delimiter.
++use File::Basename;
++use File::Spec::Functions;
++my $_lib = catfile(dirname($RealBin), 'lib');
++$ENV{CLASSPATH} =
++    join($delimiter,
++         grep {$_}
++             ($ENV{CLASSPATH},
++              $_lib,
++              map {"$_lib/$_"}
++                  qw(htsjdk.jar jbzip2-0.9.jar cisd-jhdf5.jar)));
+ 
+ # We need to find the java interpreter.  We'll start from the assumption that this
+ # is included in the path.

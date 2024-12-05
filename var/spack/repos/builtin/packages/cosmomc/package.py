@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,6 +22,9 @@ class Cosmomc(Package):
 
     version("2016.11", sha256="b83edbf043ff83a4dde9bc14c56a09737dbc41ffe247a8e9c9a26892ed8745ba")
     version("2016.06", sha256="23fa23eef40846c17d3740be63a7fefde13880cbb81545a44d14034277d9ffc0")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     def url_for_version(self, version):
         names = {"2016.11": "Nov2016", "2016.06": "June2016"}
@@ -63,7 +66,7 @@ class Cosmomc(Package):
             os.remove(clikdir)
         except OSError:
             pass
-        if "+planck" in spec:
+        if spec.satisfies("+planck"):
             os.symlink(join_path(os.environ["CLIK_DATA"], "plc_2.0"), clikdir)
         else:
             os.environ.pop("CLIK_DATA", "")
@@ -90,7 +93,7 @@ class Cosmomc(Package):
             raise InstallError("Only GCC and Intel compilers are supported")
 
         # Configure MPI
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             wantmpi = "BUILD=MPI"
             mpif90 = "MPIF90C=%s" % spec["mpi"].mpifc
         else:
@@ -135,7 +138,7 @@ class Cosmomc(Package):
             "test_planck.ini",
             "tests",
         ]
-        if "+python" in spec:
+        if spec.satisfies("+python"):
             entries += ["python"]
         for entry in entries:
             if os.path.isfile(entry):
@@ -168,7 +171,7 @@ class Cosmomc(Package):
 
         exe = spec["cosmomc"].command.path
         args = []
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             # Add mpirun prefix
             args = ["-np", "1", exe]
             exe = join_path(spec["mpi"].prefix.bin, "mpiexec")
@@ -178,6 +181,6 @@ class Cosmomc(Package):
                 os.symlink(join_path(prefix.share, "cosmomc", entry), entry)
             inifile = join_path(prefix.share, "cosmomc", "test.ini")
             cosmomc(*(args + [inifile]))
-            if "+planck" in spec:
+            if spec.satisfies("+planck"):
                 inifile = join_path(prefix.share, "cosmomc", "test_planck.ini")
                 cosmomc(*(args + [inifile]))

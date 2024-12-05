@@ -1,14 +1,4 @@
 ci:
   pipeline-gen:
-  - build-job:
-      script: |
-        - tmp="$(mktemp -d)"; export SPACK_USER_CONFIG_PATH="$tmp"; export SPACK_USER_CACHE_PATH="$tmp"
-        - . "./share/spack/setup-env.sh"
-        - spack --version
-        - spack arch
-        - cd ${SPACK_CONCRETE_ENV_DIR}
-        - spack env activate --without-view .
-        - spack config add "config:install_tree:projections:${SPACK_JOB_SPEC_PKG_NAME}:'morepadding/{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}'"
-        - mkdir -p ${SPACK_ARTIFACTS_ROOT}/user_data
-        - spack --color=always --backtrace ci rebuild > >(tee ${SPACK_ARTIFACTS_ROOT}/user_data/pipeline_out.txt) 2> >(tee ${SPACK_ARTIFACTS_ROOT}/user_data/pipeline_err.txt >&2)
-      tags: ["lambda"]
+  - build-job-remove:
+      image:: macos-run-on-metal

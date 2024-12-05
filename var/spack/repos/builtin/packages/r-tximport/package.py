@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,7 @@ class RTximport(RPackage):
 
     bioc = "tximport"
 
+    version("1.28.0", commit="9acd3640c034655ffba12044ed2982fab57d4fbb")
     version("1.26.0", commit="5ae7139edf9d3445210ea014026813fd030212a8")
     version("1.24.0", commit="58524f39bdd55299cfe80a726f99b714b724be20")
     version("1.22.0", commit="335213baee3492fbf6baaa8b4e067ac0ef384684")

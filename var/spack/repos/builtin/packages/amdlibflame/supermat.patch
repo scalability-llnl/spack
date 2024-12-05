@@ -1,0 +1,11 @@
+diff --git a/src/map/lapack2flamec/FLA_getrf.c b/src/map/lapack2flamec/FLA_getrf.c
+index af70857e..1ffc63a1 100644
+--- a/src/map/lapack2flamec/FLA_getrf.c
++++ b/src/map/lapack2flamec/FLA_getrf.c
+@@ -232,6 +232,7 @@ extern fla_context global_context;
+ 
+ #else /* FLA_ENABLE_SUPERMATRIX */
+ 
++#define LAPACK_getrf_body_s LAPACK_getrf_body
+ #define LAPACK_getrf_body_d LAPACK_getrf_body
+ #define LAPACK_getrf_body_z LAPACK_getrf_body

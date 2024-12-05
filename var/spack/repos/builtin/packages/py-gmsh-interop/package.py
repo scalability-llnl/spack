@@ -1,4 +1,4 @@
-# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyGmshInterop(PythonPackage):
     git = "https://github.com/inducer/gmsh_interop.git"
 
     maintainers("cgcgcg")
+
+    license("MIT")
 
     version("2021.1.1", sha256="5456903283327dfa57fd973bb463c5fbc1c98c8f7ad15327441acb75da10b5f1")
 

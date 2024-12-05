@@ -1,0 +1,12 @@
+diff --git a/general/kdtree.hpp b/general/kdtree.hpp
+index eebbdaa27..b35a33ea4 100644
+--- a/general/kdtree.hpp
++++ b/general/kdtree.hpp
+@@ -17,6 +17,7 @@
+ #include <fstream>
+ #include <iostream>
+ #include <cmath>
++#include <cstdint>
+ #include <tuple>
+ 
+ namespace mfem

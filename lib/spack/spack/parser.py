@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -6,7 +6,7 @@
 
 Here is the EBNF grammar for a spec::
 
-    spec          = [name] [node_options] { ^ node } |
+    spec          = [name] [node_options] { ^[edge_properties] node } |
                     [name] [node_options] hash |
                     filename
 
@@ -14,7 +14,8 @@ Here is the EBNF grammar for a spec::
                      [name] [node_options] hash |
                      filename
 
-    node_options  = [@(version_list|version_pair)] [%compiler] { variant }
+    node_options    = [@(version_list|version_pair)] [%compiler] { variant }
+    edge_properties = [ { bool_variant | key_value } ]
 
     hash          = / id
     filename      = (.|/|[a-zA-Z0-9-_]*/)([a-zA-Z0-9-_./]*)(.json|.yaml)
@@ -57,6 +58,7 @@ specs to avoid ambiguity.  Both are provided because ~ can cause shell
 expansion when it is the first character in an id typed on the command line.
 """
 import enum
+import json
 import pathlib
 import re
 import sys
@@ -64,19 +66,22 @@ from typing import Iterator, List, Match, Optional
 
 from llnl.util.tty import color
 
+import spack.deptypes
 import spack.error
 import spack.spec
-import spack.variant
 import spack.version
+from spack.error import SpecSyntaxError
 
 IS_WINDOWS = sys.platform == "win32"
 #: Valid name for specs and variants. Here we are not using
 #: the previous "w[\w.-]*" since that would match most
 #: characters that can be part of a word in any language
-IDENTIFIER = r"([a-zA-Z_0-9][a-zA-Z_0-9\-]*)"
-DOTTED_IDENTIFIER = rf"({IDENTIFIER}(\.{IDENTIFIER})+)"
-GIT_HASH = r"([A-Fa-f0-9]{40})"
-GIT_VERSION = rf"((git\.({DOTTED_IDENTIFIER}|{IDENTIFIER}))|({GIT_HASH}))"
+IDENTIFIER = r"(?:[a-zA-Z_0-9][a-zA-Z_0-9\-]*)"
+DOTTED_IDENTIFIER = rf"(?:{IDENTIFIER}(?:\.{IDENTIFIER})+)"
+GIT_HASH = r"(?:[A-Fa-f0-9]{40})"
+#: Git refs include branch names, and can contain "." and "/"
+GIT_REF = r"(?:[a-zA-Z_0-9][a-zA-Z_0-9./\-]*)"
+GIT_VERSION_PATTERN = rf"(?:(?:git\.(?:{GIT_REF}))|(?:{GIT_HASH}))"
 
 NAME = r"[a-zA-Z_0-9][a-zA-Z_0-9\-.]*"
 
@@ -85,19 +90,61 @@ HASH = r"[a-zA-Z_0-9]+"
 #: A filename starts either with a "." or a "/" or a "{name}/,
 # or on Windows, a drive letter followed by a colon and "\"
 # or "." or {name}\
-WINDOWS_FILENAME = r"(\.|[a-zA-Z0-9-_]*\\|[a-zA-Z]:\\)([a-zA-Z0-9-_\.\\]*)(\.json|\.yaml)"
-UNIX_FILENAME = r"(\.|\/|[a-zA-Z0-9-_]*\/)([a-zA-Z0-9-_\.\/]*)(\.json|\.yaml)"
+WINDOWS_FILENAME = r"(?:\.|[a-zA-Z0-9-_]*\\|[a-zA-Z]:\\)(?:[a-zA-Z0-9-_\.\\]*)(?:\.json|\.yaml)"
+UNIX_FILENAME = r"(?:\.|\/|[a-zA-Z0-9-_]*\/)(?:[a-zA-Z0-9-_\.\/]*)(?:\.json|\.yaml)"
 if not IS_WINDOWS:
     FILENAME = UNIX_FILENAME
 else:
     FILENAME = WINDOWS_FILENAME
 
-VALUE = r"([a-zA-Z_0-9\-+\*.,:=\~\/\\]+)"
-QUOTED_VALUE = r"[\"']+([a-zA-Z_0-9\-+\*.,:=\~\/\\\s]+)[\"']+"
+#: These are legal values that *can* be parsed bare, without quotes on the command line.
+VALUE = r"(?:[a-zA-Z_0-9\-+\*.,:=\~\/\\]+)"
 
-VERSION = r"([a-zA-Z0-9_][a-zA-Z_0-9\-\.]*\b)"
-VERSION_RANGE = rf"({VERSION}\s*:\s*{VERSION}(?!\s*=)|:\s*{VERSION}(?!\s*=)|{VERSION}\s*:|:)"
-VERSION_LIST = rf"({VERSION_RANGE}|{VERSION})(\s*[,]\s*({VERSION_RANGE}|{VERSION}))*"
+#: Variant/flag values that match this can be left unquoted in Spack output
+NO_QUOTES_NEEDED = re.compile(r"^[a-zA-Z0-9,/_.-]+$")
+
+#: Quoted values can be *anything* in between quotes, including escaped quotes.
+QUOTED_VALUE = r"(?:'(?:[^']|(?<=\\)')*'|\"(?:[^\"]|(?<=\\)\")*\")"
+
+VERSION = r"=?(?:[a-zA-Z0-9_][a-zA-Z_0-9\-\.]*\b)"
+VERSION_RANGE = rf"(?:(?:{VERSION})?:(?:{VERSION}(?!\s*=))?)"
+VERSION_LIST = rf"(?:{VERSION_RANGE}|{VERSION})(?:\s*,\s*(?:{VERSION_RANGE}|{VERSION}))*"
+
+#: Regex with groups to use for splitting (optionally propagated) key-value pairs
+SPLIT_KVP = re.compile(rf"^({NAME})(==?)(.*)$")
+
+#: Regex to strip quotes. Group 2 will be the unquoted string.
+STRIP_QUOTES = re.compile(r"^(['\"])(.*)\1$")
+
+
+def strip_quotes_and_unescape(string: str) -> str:
+    """Remove surrounding single or double quotes from string, if present."""
+    match = STRIP_QUOTES.match(string)
+    if not match:
+        return string
+
+    # replace any escaped quotes with bare quotes
+    quote, result = match.groups()
+    return result.replace(rf"\{quote}", quote)
+
+
+def quote_if_needed(value: str) -> str:
+    """Add quotes around the value if it requires quotes.
+
+    This will add quotes around the value unless it matches ``NO_QUOTES_NEEDED``.
+
+    This adds:
+    * single quotes by default
+    * double quotes around any value that contains single quotes
+
+    If double quotes are used, we json-escpae the string. That is, we escape ``\\``,
+    ``"``, and control codes.
+
+    """
+    if NO_QUOTES_NEEDED.match(value):
+        return value
+
+    return json.dumps(value) if "'" in value else f"'{value}'"
 
 
 class TokenBase(enum.Enum):
@@ -125,34 +172,37 @@ class TokenType(TokenBase):
     """
 
     # Dependency
-    DEPENDENCY = r"(\^)"
+    START_EDGE_PROPERTIES = r"(?:\^\[)"
+    END_EDGE_PROPERTIES = r"(?:\])"
+    DEPENDENCY = r"(?:\^)"
     # Version
-    VERSION_HASH_PAIR = rf"(@({GIT_VERSION})=({VERSION}))"
-    VERSION = rf"(@\s*({VERSION_LIST}))"
+    VERSION_HASH_PAIR = rf"(?:@(?:{GIT_VERSION_PATTERN})=(?:{VERSION}))"
+    GIT_VERSION = rf"@(?:{GIT_VERSION_PATTERN})"
+    VERSION = rf"(?:@\s*(?:{VERSION_LIST}))"
     # Variants
-    PROPAGATED_BOOL_VARIANT = rf"((\+\+|~~|--)\s*{NAME})"
-    BOOL_VARIANT = rf"([~+-]\s*{NAME})"
-    PROPAGATED_KEY_VALUE_PAIR = rf"({NAME}\s*==\s*({VALUE}|{QUOTED_VALUE}))"
-    KEY_VALUE_PAIR = rf"({NAME}\s*=\s*({VALUE}|{QUOTED_VALUE}))"
+    PROPAGATED_BOOL_VARIANT = rf"(?:(?:\+\+|~~|--)\s*{NAME})"
+    BOOL_VARIANT = rf"(?:[~+-]\s*{NAME})"
+    PROPAGATED_KEY_VALUE_PAIR = rf"(?:{NAME}==(?:{VALUE}|{QUOTED_VALUE}))"
+    KEY_VALUE_PAIR = rf"(?:{NAME}=(?:{VALUE}|{QUOTED_VALUE}))"
     # Compilers
-    COMPILER_AND_VERSION = rf"(%\s*({NAME})([\s]*)@\s*({VERSION_LIST}))"
-    COMPILER = rf"(%\s*({NAME}))"
+    COMPILER_AND_VERSION = rf"(?:%\s*(?:{NAME})(?:[\s]*)@\s*(?:{VERSION_LIST}))"
+    COMPILER = rf"(?:%\s*(?:{NAME}))"
     # FILENAME
-    FILENAME = rf"({FILENAME})"
+    FILENAME = rf"(?:{FILENAME})"
     # Package name
-    FULLY_QUALIFIED_PACKAGE_NAME = rf"({DOTTED_IDENTIFIER})"
-    UNQUALIFIED_PACKAGE_NAME = rf"({IDENTIFIER})"
+    FULLY_QUALIFIED_PACKAGE_NAME = rf"(?:{DOTTED_IDENTIFIER})"
+    UNQUALIFIED_PACKAGE_NAME = rf"(?:{IDENTIFIER})"
     # DAG hash
-    DAG_HASH = rf"(/({HASH}))"
+    DAG_HASH = rf"(?:/(?:{HASH}))"
     # White spaces
-    WS = r"(\s+)"
+    WS = r"(?:\s+)"
 
 
 class ErrorTokenType(TokenBase):
     """Enum with regexes for error analysis"""
 
     # Unexpected character
-    UNEXPECTED = r"(.[\s]*)"
+    UNEXPECTED = r"(?:.[\s]*)"
 
 
 class Token:
@@ -161,7 +211,7 @@ class Token:
     __slots__ = "kind", "value", "start", "end"
 
     def __init__(
-        self, kind: TokenType, value: str, start: Optional[int] = None, end: Optional[int] = None
+        self, kind: TokenBase, value: str, start: Optional[int] = None, end: Optional[int] = None
     ):
         self.kind = kind
         self.value = value
@@ -200,11 +250,15 @@ def tokenize(text: str) -> Iterator[Token]:
     scanner = ALL_TOKENS.scanner(text)  # type: ignore[attr-defined]
     match: Optional[Match] = None
     for match in iter(scanner.match, None):
+        # The following two assertions are to help mypy
+        msg = (
+            "unexpected value encountered during parsing. Please submit a bug report "
+            "at https://github.com/spack/spack/issues/new/choose"
+        )
+        assert match is not None, msg
+        assert match.lastgroup is not None, msg
         yield Token(
-            TokenType.__members__[match.lastgroup],  # type: ignore[attr-defined]
-            match.group(),  # type: ignore[attr-defined]
-            match.start(),  # type: ignore[attr-defined]
-            match.end(),  # type: ignore[attr-defined]
+            TokenType.__members__[match.lastgroup], match.group(), match.start(), match.end()
         )
 
     if match is None and not text:
@@ -241,6 +295,9 @@ class TokenContext:
             return True
         return False
 
+    def expect(self, *kinds: TokenType):
+        return self.next_token and self.next_token.kind in kinds
+
 
 class SpecParser:
     """Parse text into specs"""
@@ -257,7 +314,9 @@ class SpecParser:
         """
         return list(filter(lambda x: x.kind != TokenType.WS, tokenize(self.literal_str)))
 
-    def next_spec(self, initial_spec: Optional[spack.spec.Spec] = None) -> spack.spec.Spec:
+    def next_spec(
+        self, initial_spec: Optional["spack.spec.Spec"] = None
+    ) -> Optional["spack.spec.Spec"]:
         """Return the next spec parsed from text.
 
         Args:
@@ -267,46 +326,66 @@ class SpecParser:
         Return
             The spec that was parsed
         """
+        if not self.ctx.next_token:
+            return initial_spec
+
+        def add_dependency(dep, **edge_properties):
+            """wrapper around root_spec._add_dependency"""
+            try:
+                root_spec._add_dependency(dep, **edge_properties)
+            except spack.error.SpecError as e:
+                raise SpecParsingError(str(e), self.ctx.current_token, self.literal_str) from e
+
         initial_spec = initial_spec or spack.spec.Spec()
-        root_spec = SpecNodeParser(self.ctx).parse(initial_spec)
+        root_spec = SpecNodeParser(self.ctx, self.literal_str).parse(initial_spec)
         while True:
-            if self.ctx.accept(TokenType.DEPENDENCY):
-                dependency = SpecNodeParser(self.ctx).parse(spack.spec.Spec())
+            if self.ctx.accept(TokenType.START_EDGE_PROPERTIES):
+                edge_properties = EdgeAttributeParser(self.ctx, self.literal_str).parse()
+                edge_properties.setdefault("depflag", 0)
+                edge_properties.setdefault("virtuals", ())
+                dependency = self._parse_node(root_spec)
+                add_dependency(dependency, **edge_properties)
 
-                if dependency == spack.spec.Spec():
-                    msg = (
-                        "this dependency sigil needs to be followed by a package name "
-                        "or a node attribute (version, variant, etc.)"
-                    )
-                    raise SpecParsingError(msg, self.ctx.current_token, self.literal_str)
-
-                if root_spec.concrete:
-                    raise spack.spec.RedundantSpecError(root_spec, "^" + str(dependency))
-
-                root_spec._add_dependency(dependency, deptypes=())
+            elif self.ctx.accept(TokenType.DEPENDENCY):
+                dependency = self._parse_node(root_spec)
+                add_dependency(dependency, depflag=0, virtuals=())
 
             else:
                 break
 
         return root_spec
 
-    def all_specs(self) -> List[spack.spec.Spec]:
+    def _parse_node(self, root_spec):
+        dependency = SpecNodeParser(self.ctx, self.literal_str).parse()
+        if dependency is None:
+            msg = (
+                "the dependency sigil and any optional edge attributes must be followed by a "
+                "package name or a node attribute (version, variant, etc.)"
+            )
+            raise SpecParsingError(msg, self.ctx.current_token, self.literal_str)
+        if root_spec.concrete:
+            raise spack.spec.RedundantSpecError(root_spec, "^" + str(dependency))
+        return dependency
+
+    def all_specs(self) -> List["spack.spec.Spec"]:
         """Return all the specs that remain to be parsed"""
-        return list(iter(self.next_spec, spack.spec.Spec()))
+        return list(iter(self.next_spec, None))
 
 
 class SpecNodeParser:
     """Parse a single spec node from a stream of tokens"""
 
-    __slots__ = "ctx", "has_compiler", "has_version", "has_hash"
+    __slots__ = "ctx", "has_compiler", "has_version", "literal_str"
 
-    def __init__(self, ctx):
+    def __init__(self, ctx, literal_str):
         self.ctx = ctx
+        self.literal_str = literal_str
         self.has_compiler = False
         self.has_version = False
-        self.has_hash = False
 
-    def parse(self, initial_spec: spack.spec.Spec) -> spack.spec.Spec:
+    def parse(
+        self, initial_spec: Optional["spack.spec.Spec"] = None
+    ) -> Optional["spack.spec.Spec"]:
         """Parse a single spec node from a stream of tokens
 
         Args:
@@ -315,120 +394,103 @@ class SpecNodeParser:
         Return
             The object passed as argument
         """
-        import spack.environment  # Needed to retrieve by hash
+        if not self.ctx.next_token or self.ctx.expect(TokenType.DEPENDENCY):
+            return initial_spec
+
+        if initial_spec is None:
+            initial_spec = spack.spec.Spec()
 
         # If we start with a package name we have a named spec, we cannot
         # accept another package name afterwards in a node
         if self.ctx.accept(TokenType.UNQUALIFIED_PACKAGE_NAME):
             initial_spec.name = self.ctx.current_token.value
+
         elif self.ctx.accept(TokenType.FULLY_QUALIFIED_PACKAGE_NAME):
             parts = self.ctx.current_token.value.split(".")
             name = parts[-1]
             namespace = ".".join(parts[:-1])
             initial_spec.name = name
             initial_spec.namespace = namespace
+
         elif self.ctx.accept(TokenType.FILENAME):
             return FileParser(self.ctx).parse(initial_spec)
 
+        def raise_parsing_error(string: str, cause: Optional[Exception] = None):
+            """Raise a spec parsing error with token context."""
+            raise SpecParsingError(string, self.ctx.current_token, self.literal_str) from cause
+
+        def add_flag(name: str, value: str, propagate: bool):
+            """Wrapper around ``Spec._add_flag()`` that adds parser context to errors raised."""
+            try:
+                initial_spec._add_flag(name, value, propagate)
+            except Exception as e:
+                raise_parsing_error(str(e), e)
+
         while True:
             if self.ctx.accept(TokenType.COMPILER):
-                self.hash_not_parsed_or_raise(initial_spec, self.ctx.current_token.value)
                 if self.has_compiler:
-                    raise spack.spec.DuplicateCompilerSpecError(
-                        f"{initial_spec} cannot have multiple compilers"
-                    )
+                    raise_parsing_error("Spec cannot have multiple compilers")
 
                 compiler_name = self.ctx.current_token.value[1:]
                 initial_spec.compiler = spack.spec.CompilerSpec(compiler_name.strip(), ":")
                 self.has_compiler = True
+
             elif self.ctx.accept(TokenType.COMPILER_AND_VERSION):
-                self.hash_not_parsed_or_raise(initial_spec, self.ctx.current_token.value)
                 if self.has_compiler:
-                    raise spack.spec.DuplicateCompilerSpecError(
-                        f"{initial_spec} cannot have multiple compilers"
-                    )
+                    raise_parsing_error("Spec cannot have multiple compilers")
 
                 compiler_name, compiler_version = self.ctx.current_token.value[1:].split("@")
                 initial_spec.compiler = spack.spec.CompilerSpec(
                     compiler_name.strip(), compiler_version
                 )
                 self.has_compiler = True
-            elif self.ctx.accept(TokenType.VERSION) or self.ctx.accept(
-                TokenType.VERSION_HASH_PAIR
+
+            elif (
+                self.ctx.accept(TokenType.VERSION_HASH_PAIR)
+                or self.ctx.accept(TokenType.GIT_VERSION)
+                or self.ctx.accept(TokenType.VERSION)
             ):
-                self.hash_not_parsed_or_raise(initial_spec, self.ctx.current_token.value)
                 if self.has_version:
-                    raise spack.spec.MultipleVersionError(
-                        f"{initial_spec} cannot have multiple versions"
-                    )
+                    raise_parsing_error("Spec cannot have multiple versions")
 
-                version_list = spack.version.VersionList()
-                version_list.add(spack.version.from_string(self.ctx.current_token.value[1:]))
-                initial_spec.versions = version_list
-
-                # Add a git lookup method for GitVersions
-                if (
-                    initial_spec.name
-                    and initial_spec.versions.concrete
-                    and isinstance(initial_spec.version, spack.version.GitVersion)
-                ):
-                    initial_spec.version.generate_git_lookup(initial_spec.fullname)
-
+                initial_spec.versions = spack.version.VersionList(
+                    [spack.version.from_string(self.ctx.current_token.value[1:])]
+                )
+                initial_spec.attach_git_version_lookup()
                 self.has_version = True
+
             elif self.ctx.accept(TokenType.BOOL_VARIANT):
-                self.hash_not_parsed_or_raise(initial_spec, self.ctx.current_token.value)
                 variant_value = self.ctx.current_token.value[0] == "+"
-                initial_spec._add_flag(
-                    self.ctx.current_token.value[1:].strip(), variant_value, propagate=False
-                )
+                add_flag(self.ctx.current_token.value[1:].strip(), variant_value, propagate=False)
+
             elif self.ctx.accept(TokenType.PROPAGATED_BOOL_VARIANT):
-                self.hash_not_parsed_or_raise(initial_spec, self.ctx.current_token.value)
                 variant_value = self.ctx.current_token.value[0:2] == "++"
-                initial_spec._add_flag(
-                    self.ctx.current_token.value[2:].strip(), variant_value, propagate=True
-                )
+                add_flag(self.ctx.current_token.value[2:].strip(), variant_value, propagate=True)
+
             elif self.ctx.accept(TokenType.KEY_VALUE_PAIR):
-                self.hash_not_parsed_or_raise(initial_spec, self.ctx.current_token.value)
-                name, value = self.ctx.current_token.value.split("=", maxsplit=1)
-                name = name.strip("'\" ")
-                value = value.strip("'\" ")
-                initial_spec._add_flag(name, value, propagate=False)
+                match = SPLIT_KVP.match(self.ctx.current_token.value)
+                assert match, "SPLIT_KVP and KEY_VALUE_PAIR do not agree."
+
+                name, _, value = match.groups()
+                add_flag(name, strip_quotes_and_unescape(value), propagate=False)
+
             elif self.ctx.accept(TokenType.PROPAGATED_KEY_VALUE_PAIR):
-                self.hash_not_parsed_or_raise(initial_spec, self.ctx.current_token.value)
-                name, value = self.ctx.current_token.value.split("==", maxsplit=1)
-                name = name.strip("'\" ")
-                value = value.strip("'\" ")
-                initial_spec._add_flag(name, value, propagate=True)
-            elif not self.has_hash and self.ctx.accept(TokenType.DAG_HASH):
-                dag_hash = self.ctx.current_token.value[1:]
-                matches = []
-                if spack.environment.active_environment():
-                    matches = spack.environment.active_environment().get_by_hash(dag_hash)
-                if not matches:
-                    matches = spack.store.db.get_by_hash(dag_hash)
-                if not matches:
-                    raise spack.spec.NoSuchHashError(dag_hash)
+                match = SPLIT_KVP.match(self.ctx.current_token.value)
+                assert match, "SPLIT_KVP and PROPAGATED_KEY_VALUE_PAIR do not agree."
 
-                if len(matches) != 1:
-                    raise spack.spec.AmbiguousHashError(
-                        f"Multiple packages specify hash beginning '{dag_hash}'.", *matches
-                    )
-                spec_by_hash = matches[0]
-                if not spec_by_hash.satisfies(initial_spec):
-                    raise spack.spec.InvalidHashError(initial_spec, spec_by_hash.dag_hash())
-                initial_spec._dup(spec_by_hash)
+                name, _, value = match.groups()
+                add_flag(name, strip_quotes_and_unescape(value), propagate=True)
 
-                self.has_hash = True
+            elif self.ctx.expect(TokenType.DAG_HASH):
+                if initial_spec.abstract_hash:
+                    break
+                self.ctx.accept(TokenType.DAG_HASH)
+                initial_spec.abstract_hash = self.ctx.current_token.value[1:]
+
             else:
                 break
 
         return initial_spec
-
-    def hash_not_parsed_or_raise(self, spec, addition):
-        if not self.has_hash:
-            return
-
-        raise spack.spec.RedundantSpecError(spec, addition)
 
 
 class FileParser:
@@ -439,7 +501,7 @@ class FileParser:
     def __init__(self, ctx):
         self.ctx = ctx
 
-    def parse(self, initial_spec: spack.spec.Spec) -> spack.spec.Spec:
+    def parse(self, initial_spec: "spack.spec.Spec") -> "spack.spec.Spec":
         """Parse a spec tree from a specfile.
 
         Args:
@@ -462,7 +524,42 @@ class FileParser:
         return initial_spec
 
 
-def parse(text: str) -> List[spack.spec.Spec]:
+class EdgeAttributeParser:
+    __slots__ = "ctx", "literal_str"
+
+    def __init__(self, ctx, literal_str):
+        self.ctx = ctx
+        self.literal_str = literal_str
+
+    def parse(self):
+        attributes = {}
+        while True:
+            if self.ctx.accept(TokenType.KEY_VALUE_PAIR):
+                name, value = self.ctx.current_token.value.split("=", maxsplit=1)
+                name = name.strip("'\" ")
+                value = value.strip("'\" ").split(",")
+                attributes[name] = value
+                if name not in ("deptypes", "virtuals"):
+                    msg = (
+                        "the only edge attributes that are currently accepted "
+                        'are "deptypes" and "virtuals"'
+                    )
+                    raise SpecParsingError(msg, self.ctx.current_token, self.literal_str)
+            # TODO: Add code to accept bool variants here as soon as use variants are implemented
+            elif self.ctx.accept(TokenType.END_EDGE_PROPERTIES):
+                break
+            else:
+                msg = "unexpected token in edge attributes"
+                raise SpecParsingError(msg, self.ctx.next_token, self.literal_str)
+
+        # Turn deptypes=... to depflag representation
+        if "deptypes" in attributes:
+            deptype_string = attributes.pop("deptypes")
+            attributes["depflag"] = spack.deptypes.canonicalize(deptype_string)
+        return attributes
+
+
+def parse(text: str) -> List["spack.spec.Spec"]:
     """Parse text into a list of strings
 
     Args:
@@ -475,8 +572,8 @@ def parse(text: str) -> List[spack.spec.Spec]:
 
 
 def parse_one_or_raise(
-    text: str, initial_spec: Optional[spack.spec.Spec] = None
-) -> spack.spec.Spec:
+    text: str, initial_spec: Optional["spack.spec.Spec"] = None
+) -> "spack.spec.Spec":
     """Parse exactly one spec from text and return it, or raise
 
     Args:
@@ -496,11 +593,12 @@ def parse_one_or_raise(
             message += color.colorize(f"@*r{{{underline}}}")
         raise ValueError(message)
 
+    if result is None:
+        message = "a single spec was requested, but none was parsed:"
+        message += f"\n{text}"
+        raise ValueError(message)
+
     return result
-
-
-class SpecSyntaxError(Exception):
-    """Base class for Spec syntax errors"""
 
 
 class SpecTokenizationError(SpecSyntaxError):

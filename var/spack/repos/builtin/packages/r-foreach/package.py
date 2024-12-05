@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,8 @@ class RForeach(RPackage):
     executing the loop in parallel."""
 
     cran = "foreach"
+
+    license("Apache-2.0")
 
     version("1.5.2", sha256="56338d8753f9f68f262cf532fd8a6d0fe25a71a2ff0107f3ce378feb926bafe4")
     version("1.5.1", sha256="fb5ad69e295618c52b2ac7dff84a0771462870a97345374d43b3de2dc31a68e1")

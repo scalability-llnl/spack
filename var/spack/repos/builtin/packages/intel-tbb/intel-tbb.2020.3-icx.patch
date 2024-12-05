@@ -1,0 +1,21 @@
+diff --git a/build/linux.gcc.inc b/build/linux.gcc.inc
+index d820c15d..a20d52ba 100644
+--- a/build/linux.gcc.inc
++++ b/build/linux.gcc.inc
+@@ -54,14 +54,14 @@ endif
+ ifneq (,$(shell $(CONLY) -dumpfullversion -dumpversion | egrep  "^([5-9]|1[0-9])"))
+     # enable -Wsuggest-override via a pre-included header in order to limit to C++11 and above
+     INCLUDE_TEST_HEADERS = -include $(tbb_root)/src/test/harness_preload.h
+-    WARNING_SUPPRESS += -Wno-sized-deallocation
++    #WARNING_SUPPRESS += -Wno-sized-deallocation
+ endif
+ 
+ # gcc 6.0 and later have -flifetime-dse option that controls
+ # elimination of stores done outside the object lifetime
+ ifneq (,$(shell $(CONLY) -dumpfullversion -dumpversion | egrep  "^([6-9]|1[0-9])"))
+     # keep pre-contruction stores for zero initialization
+-    DSE_KEY = -flifetime-dse=1
++    #DSE_KEY = -flifetime-dse=1
+ endif
+ 
+ ifeq ($(cfg), release)

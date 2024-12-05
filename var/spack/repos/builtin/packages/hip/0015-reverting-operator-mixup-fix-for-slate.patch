@@ -1,0 +1,107 @@
+From 1d7f7eb9a52af2b83d3cb06bb4fe0f31eb47ce7f Mon Sep 17 00:00:00 2001
+From: Renjith Ravindran <Renjith.RavindranKannath@amd.com>
+Date: Wed, 27 Sep 2023 07:07:01 +0000
+Subject: [PATCH] Reverting operator mixup fix for slate
+
+---
+ .../include/hip/amd_detail/amd_hip_complex.h  | 17 ++++------
+ .../hip/amd_detail/amd_hip_vector_types.h     | 31 +++++++++++--------
+ 2 files changed, 24 insertions(+), 24 deletions(-)
+
+diff --git a/clr/hipamd/include/hip/amd_detail/amd_hip_complex.h b/clr/hipamd/include/hip/amd_detail/amd_hip_complex.h
+index 9d9dfd5..eba6eb5 100644
+--- a/clr/hipamd/include/hip/amd_detail/amd_hip_complex.h
++++ b/clr/hipamd/include/hip/amd_detail/amd_hip_complex.h
+@@ -106,20 +106,15 @@ THE SOFTWARE.
+         return lhs;                                                                                \
+     }
+ 
+-#define COMPLEX_MUL_PREOP_OVERLOAD(type)                                                            \
+-    __HOST_DEVICE__ static inline type& operator*=(type& lhs, const type& rhs) {                    \
+-        type temp{lhs};                                                                             \
+-        lhs.x = rhs.x * temp.x - rhs.y * temp.y;                                                    \
+-        lhs.y = rhs.y * temp.x + rhs.x * temp.y;                                                    \
+-        return lhs;                                                                                 \
++#define COMPLEX_MUL_PREOP_OVERLOAD(type)                                                           \
++    __HOST_DEVICE__ static inline type& operator*=(type& lhs, const type& rhs) {               \
++        lhs = lhs * rhs;                                                                           \
++        return lhs;                                                                                \
+     }
+ 
+ #define COMPLEX_DIV_PREOP_OVERLOAD(type)                                                           \
+-    __HOST_DEVICE__ static inline type& operator/=(type& lhs, const type& rhs) {                   \
+-        type temp;                                                                                 \
+-        temp.x = (lhs.x*rhs.x + lhs.y * rhs.y) / (rhs.x*rhs.x + rhs.y*rhs.y);                      \
+-        temp.y = (lhs.y * rhs.x - lhs.x * rhs.y) / (rhs.x*rhs.x + rhs.y*rhs.y);                    \
+-        lhs = temp;                                                                                \
++    __HOST_DEVICE__ static inline type& operator/=(type& lhs, const type& rhs) {               \
++        lhs = lhs / rhs;                                                                           \
+         return lhs;                                                                                \
+     }
+ 
+diff --git a/clr/hipamd/include/hip/amd_detail/amd_hip_vector_types.h b/clr/hipamd/include/hip/amd_detail/amd_hip_vector_types.h
+index 8215fb0..dfd3b39 100644
+--- a/clr/hipamd/include/hip/amd_detail/amd_hip_vector_types.h
++++ b/clr/hipamd/include/hip/amd_detail/amd_hip_vector_types.h
+@@ -544,13 +544,6 @@ template <typename __T> struct is_scalar : public integral_constant<bool, __is_s
+             data *= x.data;
+             return *this;
+         }
+-
+-        friend __HOST_DEVICE__ inline constexpr HIP_vector_type operator*(
+-        HIP_vector_type x, const HIP_vector_type& y) noexcept
+-        {
+-          return HIP_vector_type{ x } *= y;
+-        }
+-
+         template<
+             typename U,
+             typename std::enable_if<
+@@ -561,12 +554,6 @@ template <typename __T> struct is_scalar : public integral_constant<bool, __is_s
+             return *this *= HIP_vector_type{x};
+         }
+ 
+-        friend __HOST_DEVICE__ inline constexpr HIP_vector_type operator/(
+-        HIP_vector_type x, const HIP_vector_type& y) noexcept
+-        {
+-          return HIP_vector_type{ x } /= y;
+-        }
+-
+         __HOST_DEVICE__
+         HIP_vector_type& operator/=(const HIP_vector_type& x) noexcept
+         {
+@@ -722,6 +709,15 @@ template <typename __T> struct is_scalar : public integral_constant<bool, __is_s
+         return HIP_vector_type<T, n>{x} -= y;
+     }
+ 
++    template<typename T, unsigned int n>
++    __HOST_DEVICE__
++    inline
++    constexpr
++    HIP_vector_type<T, n> operator*(
++        const HIP_vector_type<T, n>& x, const HIP_vector_type<T, n>& y) noexcept
++    {
++        return HIP_vector_type<T, n>{x} *= y;
++    }
+     template<typename T, unsigned int n, typename U>
+     __HOST_DEVICE__
+     inline
+@@ -741,6 +737,15 @@ template <typename __T> struct is_scalar : public integral_constant<bool, __is_s
+         return HIP_vector_type<T, n>{x} *= y;
+     }
+ 
++    template<typename T, unsigned int n>
++    __HOST_DEVICE__
++    inline
++    constexpr
++    HIP_vector_type<T, n> operator/(
++        const HIP_vector_type<T, n>& x, const HIP_vector_type<T, n>& y) noexcept
++    {
++        return HIP_vector_type<T, n>{x} /= y;
++    }
+     template<typename T, unsigned int n, typename U>
+     __HOST_DEVICE__
+     inline
+-- 
+2.31.1
+

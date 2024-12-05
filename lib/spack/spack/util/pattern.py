@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -7,7 +7,7 @@ import functools
 import inspect
 
 
-class Delegate(object):
+class Delegate:
     def __init__(self, name, container):
         self.name = name
         self.container = container
@@ -69,7 +69,7 @@ def composite(interface=None, method_list=None, container=list):
         # Patch the behavior of each of the methods in the previous list.
         # This is done associating an instance of the descriptor below to
         # any method that needs to be patched.
-        class IterateOver(object):
+        class IterateOver:
             """Decorator used to patch methods in a composite.
 
             It iterates over all the items in the instance containing the
@@ -120,7 +120,7 @@ def composite(interface=None, method_list=None, container=list):
     return cls_decorator
 
 
-class Bunch(object):
+class Bunch:
     """Carries a bunch of named attributes (from Alex Martelli bunch)"""
 
     def __init__(self, **kwargs):
@@ -131,4 +131,4 @@ class Args(Bunch):
     """Subclass of Bunch to write argparse args more naturally."""
 
     def __init__(self, *flags, **kwargs):
-        super(Args, self).__init__(flags=tuple(flags), kwargs=kwargs)
+        super().__init__(flags=tuple(flags), kwargs=kwargs)

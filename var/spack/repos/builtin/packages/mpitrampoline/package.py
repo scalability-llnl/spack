@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,7 +16,12 @@ class Mpitrampoline(CMakePackage):
 
     maintainers("eschnett")
 
+    license("MIT")
+
     version("develop", branch="main")
+    version("5.3.1", sha256="8671370750587f212f059138abc6dcaa5a1079d3dbd9189dc21bf353611159eb")
+    version("5.3.0", sha256="c20a04fe72965d46f747d5e2c4e7854cfe0cc1b2db47c2484b06a7f24f86728f")
+    version("5.2.3", sha256="41ef0f5bc8bbf3497c4595e845cb15573dde1c9395a031b63a3f7e09673c8ce8")
     version("5.2.0", sha256="5f89c61f7b93d8f249ffc8de1abad7acab34c5f980e5d74915e4e041c461aeb4")
     version("5.1.0", sha256="b06de30ad9c6fb50b78326378c5d70885d247cc30226d26d2a42f137a3580f99")
     version("5.0.2", sha256="14e457f05d8dfbc330c9590220687d277dec154e6cb9e35859bad1d7d9993356")
@@ -54,6 +59,9 @@ class Mpitrampoline(CMakePackage):
     version("1.1.0", sha256="67fdb710d1ca49487593a9c023e94aa8ff0bec56de6005d1a437fca40833def9")
     version("1.0.1", sha256="4ce91b99fb6d2dab481b5e477b6b6a0709add48cf0f287afbbb440fdf3232500")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("shared", default=True, description="Build a shared version of the library")
 
     provides("mpi @3.1")
@@ -76,20 +84,20 @@ class Mpitrampoline(CMakePackage):
     def setup_run_environment(self, env):
         # Because MPI implementations provide compilers, they have to add to
         # their run environments the code to make the compilers available.
-        env.set("MPITRAMPOLINE_CC", self.compiler.cc_names[0])
-        env.set("MPITRAMPOLINE_CXX", self.compiler.cxx_names[0])
-        env.set("MPITRAMPOLINE_FC", self.compiler.fc_names[0])
+        env.set("MPITRAMPOLINE_CC", self.compiler.cc)
+        env.set("MPITRAMPOLINE_CXX", self.compiler.cxx)
+        env.set("MPITRAMPOLINE_FC", self.compiler.fc)
         env.set("MPICC", join_path(self.prefix.bin, "mpicc"))
         env.set("MPICXX", join_path(self.prefix.bin, "mpicxx"))
         env.set("MPIF77", join_path(self.prefix.bin, "mpifc"))
         env.set("MPIF90", join_path(self.prefix.bin, "mpifc"))
 
     def setup_dependent_build_environment(self, env, dependent_spec):
-        self.setup_run_environment(env)
+        dependent_module = dependent_spec.package.module
         # Use the Spack compiler wrappers under MPI
-        env.set("MPITRAMPOLINE_CC", spack_cc)
-        env.set("MPITRAMPOLINE_CXX", spack_cxx)
-        env.set("MPITRAMPOLINE_FC", spack_fc)
+        env.set("MPITRAMPOLINE_CC", dependent_module.spack_cc)
+        env.set("MPITRAMPOLINE_CXX", dependent_module.spack_cxx)
+        env.set("MPITRAMPOLINE_FC", dependent_module.spack_fc)
         fflags = []
         if (
             self.spec.satisfies("%apple-clang")

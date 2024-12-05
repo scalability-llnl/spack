@@ -1,0 +1,25 @@
+From 3edc823a73a020df7e674a9d5493a4b690798fa4 Mon Sep 17 00:00:00 2001
+From: sreenivasa murthy kolam <sreenivasamurthy.kolam@amd.com>
+Date: Tue, 9 May 2023 10:16:20 +0000
+Subject: [PATCH] restrict python2.7 usage for 5.5.0
+
+---
+ cmake/PythonModules.cmake | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/cmake/PythonModules.cmake b/cmake/PythonModules.cmake
+index b5818ce..b4bfbb3 100755
+--- a/cmake/PythonModules.cmake
++++ b/cmake/PythonModules.cmake
+@@ -76,7 +76,7 @@ function(py_add_module NAME)
+     )
+ 
+ endfunction()
+-set(PYTHON_SEARCH_VERSIONS 2.7 3.5 3.6 3.7 3.8 3.9 3.10)
++set(PYTHON_SEARCH_VERSIONS 3.5 3.6 3.7 3.8 3.9 3.10)
+ set(PYTHON_DISABLE_VERSIONS "" CACHE STRING "")
+ foreach(PYTHON_DISABLE_VERSION ${PYTHON_DISABLE_VERSIONS})
+     list(REMOVE_ITEM PYTHON_SEARCH_VERSIONS ${PYTHON_DISABLE_VERSION})
+-- 
+2.17.1
+

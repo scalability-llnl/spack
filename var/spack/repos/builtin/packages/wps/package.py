@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,15 +16,21 @@ class Wps(Package):
     url = "https://github.com/wrf-model/WPS/archive/v4.2.tar.gz"
     maintainers("MichaelLaufer")
 
+    version("4.5", sha256="3cb29107f85b81af05b7dd494e5d4a13cf1b33b87d7e2911a64a7abc59bf55f3")
     version("4.4", sha256="fe9c8d8a9a4abbf800b30e6cbb378604c6040e4536f5594b8e2dae43e942e2b3")
     version("4.3.1", sha256="db6da44a2ca68cc289e98ab388a53c27283eb4ed8e92edee268466543fdedb0e")
     version("4.3", sha256="1913cb24de549f029d65635feea27f3304a8f42ec025954a0887651fc89d1e9e")
     version("4.2", sha256="3e175d033355d3e7638be75bc7c0bc0de6da299ebd175a9bbc1b7a121acd0168")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # Serial variant recommended in WRF/WPS docs
     variant(
         "build_type",
         default="serial",
+        description="Build type",
         values=("serial", "serial_NO_GRIB2", "dmpar", "dmpar_NO_GRIB2"),
     )
 
@@ -33,7 +39,7 @@ class Wps(Package):
     patch("patches/4.2/arch.configure.defaults.patch", when="@4.2")
     patch("patches/4.2/configure.patch", when="@4.2:4.3.1")
     patch("patches/4.2/preamble.patch", when="@4.2:")
-    patch("patches/4.3/arch.configure.defaults.patch", when="@4.3:4.3.0")
+    patch("patches/4.3/arch.configure.defaults.patch", when="@=4.3")
     patch("patches/4.3.1/arch.configure.defaults.patch", when="@4.3.1")
     patch("patches/4.4/configure.patch", when="@4.4:")
 
@@ -89,7 +95,6 @@ class Wps(Package):
                 "dmpar": "19",
                 "dmpar_NO_GRIB2": "20",
             },
-            "pgi": {"serial": "5", "serial_NO_GRIB2": "6", "dmpar": "7", "dmpar_NO_GRIB2": "8"},
         }
 
         try:

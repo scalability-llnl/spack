@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyCffconvert(PythonPackage):
 
     homepage = "https://github.com/citation-file-format/cff-converter-python"
     pypi = "cffconvert/cffconvert-2.0.0.tar.gz"
+
+    license("Apache-2.0")
 
     version("2.0.0", sha256="b4379ee415c6637dc9e3e7ba196605cb3cedcea24613e4ea242c607d9e98eb50")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class PyPythonXlib(PythonPackage):
 
     homepage = "https://github.com/python-xlib/python-xlib"
     pypi = "python-xlib/python-xlib-0.30.tar.gz"
+
+    license("LGPL-2.1-or-later")
 
     version("0.30", sha256="74131418faf9e7b83178c71d9d80297fbbd678abe99ae9258f5a20cd027acb5f")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,7 +20,7 @@ class CmakeClient(CMakePackage):
     homepage = "https://www.example.com"
     url = "https://www.example.com/cmake-client-1.0.tar.gz"
 
-    version("1.0", "4cb3ff35b2472aae70f542116d616e63")
+    version("1.0", md5="4cb3ff35b2472aae70f542116d616e63")
 
     variant(
         "multi",
@@ -109,7 +109,7 @@ class CmakeClient(CMakePackage):
         print(cmake)
         print(cmake.exe)
         check(
-            cmake.exe[0].startswith(spec["cmake"].prefix.bin),
+            cmake.path.startswith(spec["cmake"].prefix.bin),
             "Wrong cmake was in environment: %s" % cmake,
         )
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class Trinotate(Package):
 
     homepage = "https://trinotate.github.io/"
     url = "https://github.com/Trinotate/Trinotate/archive/Trinotate-v3.1.1.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("3.2.2", sha256="1c41258a544cccb332f77b73f7397b457d5f3d7ce0038505369aeecc1e0650c2")
     version("3.1.1", sha256="f8af0fa5dbeaaf5a085132cd4ac4f4206b05cc4630f0a17a672c586691f03843")

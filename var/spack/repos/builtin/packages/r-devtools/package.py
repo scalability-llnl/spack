@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class RDevtools(RPackage):
     Collection of package development tools."""
 
     cran = "devtools"
+
+    license("MIT")
 
     version("2.4.5", sha256="38160ebd839acdec7ebf0699a085b4ab1ebd5500d3c57a9fa7ae484f1909904b")
     version("2.4.4", sha256="acd6759d269f30893eda173a738b1ce6537a11313c8e8e12e116452c4296934d")
@@ -104,23 +106,13 @@ class RDevtools(RPackage):
     depends_on("r-jsonlite@1.6.1:", type=("build", "run"), when="@2.3.0")
     depends_on("r-jsonlite@1.7.1:", type=("build", "run"), when="@2.3.2")
     depends_on("r-callr", type=("build", "run"), when="@2.0.0:")
-    depends_on("r-callr@3.4.3:", type=("build", "run"), when="@2.3.0:")
-    depends_on("r-callr@3.4.4:", type=("build", "run"), when="@2.3.2:")
-    depends_on("r-callr@3.4.4:", type=("build", "run"), when="@2.3.2:")
-    depends_on("r-callr@3.6.0:", type=("build", "run"), when="@2.4.3:")
-    depends_on("r-callr", when="@:2.4.3")
-    depends_on("r-callr", when="@:2.4.4")
-    depends_on("r-covr@3.5.0:", type=("build", "run"), when="@2.3.0:")
-    depends_on("r-covr@3.5.1:", type=("build", "run"), when="@2.3.2:")
-    depends_on("r-covr", when="@:2.4.3")
-    depends_on("r-covr", when="@:2.4.4")
-    depends_on("r-httr@0.4:", type=("build", "run"))
-    depends_on("r-httr@1.4.1:", type=("build", "run"), when="@2.3.0:")
-    depends_on("r-httr@1.4.2:", type=("build", "run"), when="@2.3.2:")
-    depends_on("r-httr", when="@:2.4.3")
-    depends_on("r-httr", when="@:2.4.4")
+    depends_on("r-callr@3.4.3:", type=("build", "run"), when="@2.3.0:2.4.3")
+    depends_on("r-callr@3.4.4:", type=("build", "run"), when="@2.3.2:2.4.3")
+    depends_on("r-callr@3.6.0:", type=("build", "run"), when="@2.4.3:2.4.3")
+    depends_on("r-covr@3.5.0:", type=("build", "run"), when="@2.3.0:2.3.2")
+    depends_on("r-covr@3.5.1:", type=("build", "run"), when="@2.3.2")
+    depends_on("r-httr@1.4.1:", type=("build", "run"), when="@2.3.0:2.4.3")
+    depends_on("r-httr@1.4.2:", type=("build", "run"), when="@2.3.2:2.4.3")
     depends_on("r-rstudioapi@0.7.0:", type=("build", "run"))
-    depends_on("r-rstudioapi@0.11:", type=("build", "run"), when="@2.3.0:")
-    depends_on("r-rstudioapi@0.13:", type=("build", "run"), when="@2.4.3:")
-    depends_on("r-rstudioapi", when="@:2.4.3")
-    depends_on("r-rstudioapi", when="@:2.4.4")
+    depends_on("r-rstudioapi@0.11:", type=("build", "run"), when="@2.3.0:2.4.3")
+    depends_on("r-rstudioapi@0.13:", type=("build", "run"), when="@2.4.3")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,8 @@ class DxtExplorer(PythonPackage):
 
     maintainers("jeanbez", "sbyna")
 
+    license("BSD-3-Clause-LBNL")
+
     version("develop", branch="develop")
 
     version("0.3", sha256="fb73947b737c327154d03eeb0744c86774263878b893b365094ce4af8ac60b8b")
@@ -26,5 +28,5 @@ class DxtExplorer(PythonPackage):
 
     depends_on("darshan-util", type=("run"))
 
-    depends_on("python@3.6:", type=("build", "run"))
+    depends_on("py-setuptools", type="build")
     depends_on("py-pandas", type=("build", "run"))

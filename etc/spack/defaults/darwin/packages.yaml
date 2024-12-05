@@ -19,12 +19,23 @@ packages:
     - apple-clang
     - clang
     - gcc
-    - intel
     providers:
       elf: [libelf]
       fuse: [macfuse]
+      gl: [apple-gl]
+      glu: [apple-glu]
       unwind: [apple-libunwind]
       uuid: [apple-libuuid]
+  apple-gl:
+    buildable: false
+    externals:
+    - spec: apple-gl@4.1.0
+      prefix: /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
+  apple-glu:
+    buildable: false
+    externals:
+    - spec: apple-glu@1.3.0
+      prefix: /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
   apple-libunwind:
     buildable: false
     externals:
@@ -38,4 +49,4 @@ packages:
     # Apple bundles libuuid in libsystem_c version 1353.100.2,
     # although the version number used here isn't critical
     - spec: apple-libuuid@1353.100.2
-      prefix: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
+      prefix: /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk

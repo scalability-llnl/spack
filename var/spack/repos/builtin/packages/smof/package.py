@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class Smof(Package):
 
     homepage = "https://github.com/incertae-sedis/smof"
     url = "https://github.com/incertae-sedis/smof/archive/2.13.1.tar.gz"
+
+    license("GPL-2.0-or-later")
 
     version("2.13.1", sha256="bae75703728c62398f2af58b142ab2555f9be2224e13ff108913607777ea2a2e")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,8 @@ class Xpmem(AutotoolsPackage):
 
     maintainers("skosukhin")
 
+    license("LGPL-2.1-or-later")
+
     version("master", branch="master")
 
     # Versions starting 2.6.4 are neither tagged nor released in the repo
@@ -32,6 +34,8 @@ class Xpmem(AutotoolsPackage):
     # Released versions:
     version("2.6.3", sha256="ee239a32269f33234cdbdb94db29c12287862934c0784328d34aff82a9fa8b54")
     version("2.6.2", sha256="2c1a93b4cb20ed73c2093435a7afec513e0e797aa1e49d4d964cc6bdae89d65b")
+
+    depends_on("c", type="build")  # generated
 
     variant("kernel-module", default=True, description="Enable building the kernel module")
 
@@ -64,13 +68,7 @@ class Xpmem(AutotoolsPackage):
     conflicts("+kernel-module", when="platform=darwin")
 
     # All compilers except for gcc are in conflict with +kernel-module:
-    for __compiler in spack.compilers.supported_compilers():
-        if __compiler != "gcc":
-            conflicts(
-                "+kernel-module",
-                when="%{0}".format(__compiler),
-                msg="Linux kernel module must be compiled with gcc",
-            )
+    requires("%gcc", when="+kernel-module", msg="Linux kernel module must be compiled with gcc")
 
     def autoreconf(self, spec, prefix):
         Executable("./autogen.sh")()

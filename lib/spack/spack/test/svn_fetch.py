@@ -1,28 +1,26 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
-import sys
 
 import pytest
 
 from llnl.util.filesystem import mkdirp, touch, working_dir
 
 import spack.config
-import spack.repo
 from spack.fetch_strategy import SvnFetchStrategy
 from spack.spec import Spec
 from spack.stage import Stage
 from spack.util.executable import which
-from spack.version import ver
+from spack.version import Version
 
 pytestmark = [
     pytest.mark.skipif(
         not which("svn") or not which("svnadmin"), reason="requires subversion to be installed"
     ),
-    pytest.mark.skipif(sys.platform == "win32", reason="does not run on windows"),
+    pytest.mark.not_on_windows("does not run on windows"),
 ]
 
 
@@ -44,7 +42,7 @@ def test_fetch(type_of_test, secure, mock_svn_repository, config, mutable_mock_r
 
     # Construct the package under test
     s = Spec("svn-test").concretized()
-    monkeypatch.setitem(s.package.versions, ver("svn"), t.args)
+    monkeypatch.setitem(s.package.versions, Version("svn"), t.args)
 
     # Enter the stage directory and check some properties
     with s.package.stage:

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyMido(PythonPackage):
 
     homepage = "https://mido.readthedocs.io/"
     url = "https://github.com/mido/mido/archive/1.2.9.tar.gz"
+
+    license("MIT")
 
     version("1.2.9", sha256="6d68d7514bb3320f505ba4d7e06006c4725c0b97f281126bc983f3f7eeed697a")
     version("1.2.8", sha256="4d26706430ea87dfcd950b19979d3edb97b2b113eb7e233c64290713cf7ec7b9")

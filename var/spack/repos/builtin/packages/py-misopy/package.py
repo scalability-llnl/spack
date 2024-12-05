@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyMisopy(PythonPackage):
     pypi = "misopy/misopy-0.5.4.tar.gz"
 
     version("0.5.4", sha256="377a28b0c254b1920ffdc2d89cf96c3a21cadf1cf148ee6d6ef7a88ada067dfc")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("py-setuptools", type="build")
     depends_on("python@2.6:", type=("build", "run"))

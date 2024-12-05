@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyAutogradGamma(PythonPackage):
 
     homepage = "https://github.com/CamDavidsonPilon/autograd-gamma"
     pypi = "autograd-gamma/autograd-gamma-0.4.3.tar.gz"
+
+    license("MIT")
 
     version("0.4.3", sha256="2cb570cbb8da61ede937ccc004d87d3924108f754b351a86cdd2ad31ace6cdf6")
 

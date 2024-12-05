@@ -1,13 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 """Tests for the `spack verify` command"""
 import os
-import sys
-
-import pytest
 
 import llnl.util.filesystem as fs
 
@@ -20,14 +17,12 @@ from spack.main import SpackCommand
 verify = SpackCommand("verify")
 install = SpackCommand("install")
 
-pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="does not run on windows")
-
 
 def test_single_file_verify_cmd(tmpdir):
     # Test the verify command interface to verifying a single file.
     filedir = os.path.join(str(tmpdir), "a", "b", "c", "d")
     filepath = os.path.join(filedir, "file")
-    metadir = os.path.join(str(tmpdir), spack.store.layout.metadata_dir)
+    metadir = os.path.join(str(tmpdir), spack.store.STORE.layout.metadata_dir)
 
     fs.mkdirp(filedir)
     fs.mkdirp(metadir)
@@ -37,7 +32,7 @@ def test_single_file_verify_cmd(tmpdir):
 
     data = spack.verify.create_manifest_entry(filepath)
 
-    manifest_file = os.path.join(metadir, spack.store.layout.manifest_file_name)
+    manifest_file = os.path.join(metadir, spack.store.STORE.layout.manifest_file_name)
 
     with open(manifest_file, "w") as f:
         sjson.dump({filepath: data}, f)
@@ -68,9 +63,7 @@ def test_single_file_verify_cmd(tmpdir):
     assert sorted(errors) == sorted(expected)
 
 
-def test_single_spec_verify_cmd(
-    tmpdir, mock_packages, mock_archive, mock_fetch, config, install_mockery
-):
+def test_single_spec_verify_cmd(tmpdir, mock_packages, mock_archive, mock_fetch, install_mockery):
     # Test the verify command interface to verify a single spec
     install("libelf")
     s = spack.spec.Spec("libelf").concretized()

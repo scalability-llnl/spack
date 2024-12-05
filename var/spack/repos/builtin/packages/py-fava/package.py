@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyFava(PythonPackage):
 
     homepage = "https://beancount.github.io/fava/"
     pypi = "fava/fava-1.18.tar.gz"
+
+    license("MIT")
 
     version("1.18", sha256="21336b695708497e6f00cab77135b174c51feb2713b657e0e208282960885bf5")
 

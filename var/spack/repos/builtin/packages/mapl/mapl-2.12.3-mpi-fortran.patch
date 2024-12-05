@@ -1,0 +1,11 @@
+--- a/CMakeLists.txt	2022-07-21 15:26:27.000000000 -0400
++++ b/CMakeLists.txt	2022-07-21 15:26:18.000000000 -0400
+@@ -102,6 +102,8 @@
+ 
+ ecbuild_declare_project()
+ 
++find_package(MPI REQUIRED C Fortran)
++
+ if (NOT Baselibs_FOUND)
+   find_package(NetCDF REQUIRED C Fortran)
+   add_definitions(-DHAS_NETCDF4)

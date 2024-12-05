@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,11 +15,16 @@ class Leveldb(CMakePackage):
     url = "https://github.com/google/leveldb/archive/1.22.tar.gz"
     git = "https://github.com/google/leveldb.git"
 
+    license("BSD-3-Clause")
+
     version("master", branch="master")
     version("1.23", sha256="9a37f8a6174f09bd622bc723b55881dc541cd50747cbd08831c2a82d620f6d76")
     version("1.22", sha256="55423cac9e3306f4a9502c738a001e4a339d1a38ffbee7572d4a07d5d63949b2")
     version("1.20", sha256="f5abe8b5b209c2f36560b75f32ce61412f39a2922f7045ae764a2c23335b6664")
     version("1.18", sha256="4aa1a7479bc567b95a59ac6fb79eba49f61884d6fd400f20b7af147d54c5cee5")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("shared", default=True, description="Build shared library")
 
@@ -65,15 +70,16 @@ class Leveldb(CMakePackage):
     def cmake_args(self):
         args = []
 
-        if "+shared" in self.spec:
+        if self.spec.satisfies("+shared"):
             args.append("-DBUILD_SHARED_LIBS=ON")
         else:
             args.append("-DBUILD_SHARED_LIBS=OFF")
 
-        # The tarball is missing the benchmark and test submodules
-        if self.spec.satisfies("@1.23:"):
-            args.append("-DLEVELDB_BUILD_BENCHMARKS=OFF")
-            args.append("-DLEVELDB_BUILD_TESTS=OFF")
+        # 1.23 tarball is missing the benchmark and test submodules
+        # and for older versions, some compilers fail to compile the
+        # benchmarks
+        args.append("-DLEVELDB_BUILD_BENCHMARKS=OFF")
+        args.append("-DLEVELDB_BUILD_TESTS=OFF")
 
         return args
 

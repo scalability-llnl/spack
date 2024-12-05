@@ -1,8 +1,9 @@
+Submodule VTK contains modified content
 diff --git a/VTK/CMake/FindFreetype.cmake b/VTK/CMake/FindFreetype.cmake
-index b4532735c2..f06d32327e 100644
+index b4532735c2..51671d4c3c 100644
 --- a/VTK/CMake/FindFreetype.cmake
 +++ b/VTK/CMake/FindFreetype.cmake
-@@ -63,6 +63,30 @@ directory of a Freetype installation.
+@@ -63,6 +63,32 @@ directory of a Freetype installation.
  # I'm going to attempt to cut out the middleman and hope
  # everything still works.
  
@@ -14,6 +15,8 @@ index b4532735c2..f06d32327e 100644
 +    get_target_property(freetype_location freetype LOCATION)
 +    if (freetype_library_type STREQUAL STATIC_LIBRARY)
 +      set(freetype_library_type STATIC)
++    elseif (freetype_library_type STREQUAL SHARED_LIBRARY)
++      set(freetype_library_type SHARED)
 +    endif()
 +    get_target_property(freetype_interface_include_directories freetype INTERFACE_INCLUDE_DIRECTORIES)
 +    get_target_property(freetype_interface_link_libraries freetype INTERFACE_LINK_LIBRARIES)

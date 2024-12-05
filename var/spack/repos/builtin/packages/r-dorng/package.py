@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,7 @@ class RDorng(RPackage):
 
     cran = "doRNG"
 
+    version("1.8.6", sha256="5032ade083f1f9841ac2e8d4426faa07f189c25c0c338fa155c5dadbe5507de2")
     version("1.8.2", sha256="33e9d45b91b0fde2e35e911b9758d0c376049121a98a1e4c73a1edfcff11cec9")
     version("1.7.1", sha256="27533d54464889d1c21301594137fc0f536574e3a413d61d7df9463ab12a67e9")
     version("1.6.6", sha256="939c2282c72c0b89fc7510f4bff901a4e99007dc006f46762c8f594c0ecbd876")

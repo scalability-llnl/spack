@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class Prank(Package):
     url = "http://wasabiapp.org/download/prank/prank.source.170427.tgz"
 
     version("170427", sha256="623eb5e9b5cb0be1f49c3bf715e5fabceb1059b21168437264bdcd5c587a8859")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("mafft")
     depends_on("exonerate")

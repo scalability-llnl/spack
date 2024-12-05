@@ -1,11 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-from __future__ import print_function
-
 import os.path
 import shutil
+import sys
 import tempfile
 
 import llnl.util.filesystem
@@ -16,13 +15,13 @@ import spack
 import spack.bootstrap
 import spack.bootstrap.config
 import spack.bootstrap.core
-import spack.cmd.common.arguments
 import spack.config
-import spack.main
 import spack.mirror
 import spack.spec
 import spack.stage
 import spack.util.path
+import spack.util.spack_yaml
+from spack.cmd.common import arguments
 
 description = "manage bootstrap configuration"
 section = "system"
@@ -69,13 +68,8 @@ SOURCE_METADATA = {
 
 
 def _add_scope_option(parser):
-    scopes = spack.config.scopes()
-    scopes_metavar = spack.config.scopes_metavar
     parser.add_argument(
-        "--scope",
-        choices=scopes,
-        metavar=scopes_metavar,
-        help="configuration scope to read/modify",
+        "--scope", action=arguments.ConfigScope, help="configuration scope to read/modify"
     )
 
 
@@ -108,7 +102,7 @@ def setup_parser(subparser):
     disable.add_argument("name", help="name of the source to be disabled", nargs="?", default=None)
 
     reset = sp.add_parser("reset", help="reset bootstrapping configuration to Spack defaults")
-    spack.cmd.common.arguments.add_common_arguments(reset, ["yes_to_all"])
+    arguments.add_common_arguments(reset, ["yes_to_all"])
 
     root = sp.add_parser("root", help="get/set the root bootstrap directory")
     _add_scope_option(root)
@@ -171,7 +165,7 @@ def _reset(args):
         if not ok_to_continue:
             raise RuntimeError("Aborting")
 
-    for scope in spack.config.config.file_scopes:
+    for scope in spack.config.CONFIG.writable_scopes:
         # The default scope should stay untouched
         if scope.name == "defaults":
             continue
@@ -188,7 +182,7 @@ def _reset(args):
         if os.path.exists(bootstrap_yaml):
             shutil.move(bootstrap_yaml, backup_file)
 
-        spack.config.config.clear_caches()
+        spack.config.CONFIG.clear_caches()
 
 
 def _root(args):
@@ -328,6 +322,7 @@ def _status(args):
     if missing:
         print(llnl.util.tty.color.colorize(legend))
         print()
+        sys.exit(1)
 
 
 def _add(args):

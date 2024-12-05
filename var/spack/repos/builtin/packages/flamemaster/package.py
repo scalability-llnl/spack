@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -242,7 +242,7 @@ class Flamemaster(CMakePackage):
         args.append("-DEIGEN_INTEGRATION:BOOL=%s" % ("ON" if "+eigen" in spec else "OFF"))
         args.append("-DINSTALL_EIGEN:BOOL=%s" % ("ON" if "+eigen" in spec else "OFF"))
 
-        if "^amdlibflame" in spec:
+        if spec.satisfies("[virtuals=lapack] ^amdlibflame"):
             args.append("-DBLA_VENDOR=FLAME")
 
         args.append("-DFLAMEMASTER_INSTALL_PREFIX:PATH={0}".format(spec.prefix))

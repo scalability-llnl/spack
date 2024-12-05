@@ -1,10 +1,9 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
-import sys
 
 import pytest
 
@@ -17,7 +16,7 @@ from spack.util.module_cmd import (
     path_from_modules,
 )
 
-pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="Tests fail on Windows")
+pytestmark = pytest.mark.not_on_windows("Tests fail on Windows")
 
 test_module_lines = [
     "prepend-path LD_LIBRARY_PATH /path/to/lib",
@@ -28,16 +27,13 @@ test_module_lines = [
 ]
 
 
-def test_module_function_change_env(tmpdir, working_env):
-    src_file = str(tmpdir.join("src_me"))
-    with open(src_file, "w") as f:
-        f.write("export TEST_MODULE_ENV_VAR=TEST_SUCCESS\n")
-
-    os.environ["NOT_AFFECTED"] = "NOT_AFFECTED"
-    module("load", src_file, module_template=". {0} 2>&1".format(src_file))
-
-    assert os.environ["TEST_MODULE_ENV_VAR"] == "TEST_SUCCESS"
-    assert os.environ["NOT_AFFECTED"] == "NOT_AFFECTED"
+def test_module_function_change_env(tmp_path):
+    environb = {b"TEST_MODULE_ENV_VAR": b"TEST_FAIL", b"NOT_AFFECTED": b"NOT_AFFECTED"}
+    src_file = tmp_path / "src_me"
+    src_file.write_text("export TEST_MODULE_ENV_VAR=TEST_SUCCESS\n")
+    module("load", str(src_file), module_template=f". {src_file} 2>&1", environb=environb)
+    assert environb[b"TEST_MODULE_ENV_VAR"] == b"TEST_SUCCESS"
+    assert environb[b"NOT_AFFECTED"] == b"NOT_AFFECTED"
 
 
 def test_module_function_no_change(tmpdir):

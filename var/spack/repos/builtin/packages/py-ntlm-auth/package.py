@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyNtlmAuth(PythonPackage):
 
     homepage = "https://github.com/jborean93/ntlm-auth"
     pypi = "ntlm-auth/ntlm-auth-1.5.0.tar.gz"
+
+    license("MIT")
 
     version("1.5.0", sha256="c9667d361dc09f6b3750283d503c689070ff7d89f2f6ff0d38088d5436ff8543")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class PyGpyopt(PythonPackage):
 
     homepage = "http://sheffieldml.github.io/GPyOpt/"
     pypi = "GPyOpt/GPyOpt-1.2.6.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("1.2.6", sha256="e714daa035bb529a6db23c53665a762a4ab3456b9329c19ad3b03983f94c9b2a")
 

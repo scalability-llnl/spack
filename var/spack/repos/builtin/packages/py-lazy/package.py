@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,6 +10,8 @@ class PyLazy(PythonPackage):
     """Lazy attributes for Python objects"""
 
     pypi = "lazy/lazy-1.2.zip"
+
+    license("BSD-2-Clause")
 
     version("1.5", sha256="cb3d8612aa895a48afe8f08860573ba8ef5ee4fdbe1b3cd606c5f50a16152186")
     version("1.4", sha256="2c6d27a5ab130fb85435320651a47403adcb37ecbcc501b0c6606391f65f5b43")

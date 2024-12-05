@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyLightningLite(PythonPackage):
     pypi = "lightning-lite/lightning-lite-1.8.0.tar.gz"
 
     maintainers("adamjstewart")
+
+    license("Apache-2.0")
 
     version("1.8.0", sha256="a71940409d3d1a5bb20f63716c86a745157ce30100f1c16600dfe33d9b657955")
 

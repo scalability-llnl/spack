@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,11 +16,19 @@ class Spark(Package):
     homepage = "https://spark.apache.org"
     url = "https://archive.apache.org/dist/spark/spark-2.0.0/spark-2.0.0-bin-without-hadoop.tgz"
 
+    maintainers("teaguesterling")
+
     variant("hadoop", default=False, description="Build with Hadoop")
 
     depends_on("java", type=("build", "run"))
     depends_on("hadoop", when="+hadoop", type=("build", "run"))
 
+    license("Apache-2.0")
+
+    version("3.5.1", sha256="5548c02625676fa97cb6b8072f131ed0b860a09d1e86be4e025d0cbfa869bc4a")
+    version("3.4.3", sha256="85caa74671d46640a2ecccc5248ef673842b507b9843aeebccd6891721b6673f")
+    version("3.3.4", sha256="793205ff45ce2cb4d91bb2c2724c14fb2a2a49754b93f36c60c4f47e100c2b10")
+    version("3.2.4", sha256="9a824ad6d73797d602027d650f515d8b68269ffa52a64ff15cfedf10d85fe049")
     version("3.1.1", sha256="2d16f527016993e69a7c801233e661a170e3099ae2d9b950f7457729d63062f4")
     version("3.0.2", sha256="1a904f9bfa44a1218cb440c99800dd2ae729249a73c63b3bb10e431ed5b58406")
     version("3.0.1", sha256="ddda310ac09e3f2da9c33ad278b1665fbad2411d8da127d0de86b90019e962dc")

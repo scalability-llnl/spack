@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,10 +14,14 @@ class Libsigcpp(AutotoolsPackage):
     list_url = "https://ftp.acc.umu.se/pub/GNOME/sources/libsigc++/"
     list_depth = 1
 
+    license("LGPL-3.0-only")
+
     version("2.99.12", sha256="d902ae277f5baf2d56025586e2153cc2f158472e382723c67f49049f7c6690a8")
     version("2.9.3", sha256="0bf9b301ad6198c550986c51150a646df198e8d1d235270c16486b0dda30097f")
     version("2.1.1", sha256="7a2bd0b521544b31051c476205a0e74ace53771ec1a939bfec3c297b50c9fd78")
     version("2.0.3", sha256="6ee6d5f164d8a34da33d2251cdb348b4f5769bf993ed8a6d4055bd47562f94a2")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("m4", when="@:2.9", type="build")
 

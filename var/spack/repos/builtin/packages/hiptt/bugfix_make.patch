@@ -1,0 +1,18 @@
+diff --git a/Makefile b/Makefile
+index 14a7aae..c7e39f2 100755
+--- a/Makefile
++++ b/Makefile
+@@ -93,11 +93,11 @@ CUDAROOT = $(subst /bin/,,$(dir $(shell which $(CUDAC))))
+ #CFLAGS = -I${CUDAROOT}/include -std=c++11 $(DEFS) $(OPTLEV) -fPIC -D__HIP_PLATFORM_NVCC__
+ CFLAGS = -I${CUDAROOT}/include -std=c++11 $(DEFS) $(OPTLEV) -fPIC -D__HIP_PLATFORM_HCC__ -D__HIP_ROCclr__
+ ifeq ($(CPU),x86_64)
+-CFLAGS += -march=native
++CFLAGS += -march=native -fPIC
+ endif
+ 
+ #CUDA_CFLAGS = -ccbin $(GPU_CC) -I${CUDAROOT}/include -std=c++11 $(OPTLEV) -Xptxas -dlcm=ca -lineinfo $(GENCODE_FLAGS) --resource-usage -Xcompiler -fPIC -D_FORCE_INLINES -x cu -Wno-deprecated-declarations
+-CUDA_CFLAGS = --amdgpu-target=gfx906,gfx908 -std=c++11 $(OPTLEV) -D_FORCE_INLINES
++CUDA_CFLAGS = --amdgpu-target=gfx906,gfx908,gfx90a -std=c++11 $(OPTLEV) -D_FORCE_INLINES -fPIC
+ 
+ ifeq ($(OS),osx)
+ CUDA_LFLAGS = -L$(CUDAROOT)/lib

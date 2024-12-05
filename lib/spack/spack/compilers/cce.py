@@ -1,45 +1,30 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
 
 from spack.compiler import Compiler, UnsupportedCompilerFlag
-from spack.version import ver
+from spack.version import Version
 
 
 class Cce(Compiler):
     """Cray compiler environment compiler."""
 
     def __init__(self, *args, **kwargs):
-        super(Cce, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # For old cray compilers on module based systems we replace
         # ``version_argument`` with the old value. Cannot be a property
         # as the new value is used in classmethods for path-based detection
         if not self.is_clang_based:
             self.version_argument = "-V"
 
-    # Subclasses use possible names of C compiler
-    cc_names = ["craycc", "cc"]
-
-    # Subclasses use possible names of C++ compiler
-    cxx_names = ["crayCC", "CC"]
-
-    # Subclasses use possible names of Fortran 77 compiler
-    f77_names = ["crayftn", "ftn"]
-
-    # Subclasses use possible names of Fortran 90 compiler
-    fc_names = ["crayftn", "ftn"]
-
     # MacPorts builds gcc versions with prefixes and -mp-X.Y suffixes.
     suffixes = [r"-mp-\d\.\d"]
 
-    PrgEnv = "PrgEnv-cray"
-    PrgEnv_compiler = "cce"
-
     @property
     def link_paths(self):
-        if any(self.PrgEnv in m for m in self.modules):
+        if any("PrgEnv-cray" in m for m in self.modules):
             # Old module-based interface to cray compilers
             return {
                 "cc": os.path.join("cce", "cc"),
@@ -58,7 +43,7 @@ class Cce(Compiler):
     @property
     def is_clang_based(self):
         version = self._real_version or self.version
-        return version >= ver("9.0") and "classic" not in str(version)
+        return version >= Version("9.0") and "classic" not in str(version)
 
     version_argument = "--version"
     version_regex = r"[Cc]ray (?:clang|C :|C\+\+ :|Fortran :) [Vv]ersion.*?(\d+(\.\d+)+)"
@@ -98,9 +83,9 @@ class Cce(Compiler):
     def c99_flag(self):
         if self.is_clang_based:
             return "-std=c99"
-        elif self.real_version >= ver("8.4"):
+        elif self.real_version >= Version("8.4"):
             return "-h std=c99,noconform,gnu"
-        elif self.real_version >= ver("8.1"):
+        elif self.real_version >= Version("8.1"):
             return "-h c99,noconform,gnu"
         raise UnsupportedCompilerFlag(self, "the C99 standard", "c99_flag", "< 8.1")
 
@@ -108,7 +93,7 @@ class Cce(Compiler):
     def c11_flag(self):
         if self.is_clang_based:
             return "-std=c11"
-        elif self.real_version >= ver("8.5"):
+        elif self.real_version >= Version("8.5"):
             return "-h std=c11,noconform,gnu"
         raise UnsupportedCompilerFlag(self, "the C11 standard", "c11_flag", "< 8.5")
 

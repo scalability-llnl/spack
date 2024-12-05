@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,7 @@ class REdger(RPackage):
 
     bioc = "edgeR"
 
+    version("3.42.0", commit="197b9a8ccc27016611b262c2c31ca22f991661c5")
     version("3.40.0", commit="0b25adcc6b3cb0a8c641964d1274536ee07ee162")
     version("3.38.4", commit="f5a3bb568a23b34146ac66329a95ee4785093536")
     version("3.38.1", commit="e58bf52f34ec451096f593126922ad7e5d517f7e")
@@ -29,6 +30,9 @@ class REdger(RPackage):
     version("3.22.5", commit="44461aa0412ef4a0d955730f365e44fc64fe1902")
     version("3.20.9", commit="acbcbbee939f399673678653678cd9cb4917c4dc")
     version("3.18.1", commit="101106f3fdd9e2c45d4a670c88f64c12e97a0495")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r@2.15.0:", type=("build", "run"))
     depends_on("r@3.6.0:", type=("build", "run"), when="@3.26.8:")

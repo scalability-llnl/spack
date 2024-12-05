@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyPanaroo(PythonPackage):
 
     homepage = "https://gtonkinhill.github.io/panaroo"
     url = "https://github.com/gtonkinhill/panaroo/archive/refs/tags/v1.2.10.tar.gz"
+
+    license("MIT")
 
     version("1.2.10", sha256="066e5cd96b59918fa4fcd2dc12c92a273457ee17e2fe55576657c793566e948e")
 

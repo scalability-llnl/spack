@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyFabric(PythonPackage):
 
     homepage = "http://fabfile.org/"
     pypi = "fabric/fabric-2.5.0.tar.gz"
+
+    license("BSD-2-Clause")
 
     version("2.5.0", sha256="24842d7d51556adcabd885ac3cf5e1df73fc622a1708bf3667bf5927576cdfa6")
 

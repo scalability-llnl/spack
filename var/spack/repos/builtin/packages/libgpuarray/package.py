@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -23,6 +23,8 @@ class Libgpuarray(CMakePackage):
     version("0.6.2", sha256="04756c6270c0ce3b91a9bf01be38c4fc743f5356acc18d9f807198021677bcc8")
     version("0.6.1", sha256="b2466311e0e3bacdf7a586bba0263f6d232bf9f8d785e91ddb447653741e6ea5")
     version("0.6.0", sha256="a58a0624e894475a4955aaea25e82261c69b4d22c8f15ec07041a4ba176d35af")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("cuda")
     depends_on("cmake@3:", type="build")

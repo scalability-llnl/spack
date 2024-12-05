@@ -21,7 +21,9 @@ body:
       description: |
         Please post the error message from spack inside the `<details>` tag below:
       value: |
-        <details><summary>Error message</summary><pre>
+        <details><summary>Error message</summary>
+
+        <pre>
         ...
         </pre></details>
     validations:

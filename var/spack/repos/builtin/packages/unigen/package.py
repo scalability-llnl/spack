@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,7 +20,11 @@ class Unigen(MakefilePackage):
 
     tags = ["hep"]
 
+    license("GPL-3.0-only")
+
     version("2.3", sha256="8783bcabbdf8c50dab6e93153cff9cfb267a9a9e61aef51bf1e17679ba42a717")
+
+    depends_on("cxx", type="build")  # generated
     patch("unigen-2.3.patch", level=0)
 
     depends_on("root", type=("build", "link"))

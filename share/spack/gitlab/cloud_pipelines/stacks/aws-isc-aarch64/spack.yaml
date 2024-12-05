@@ -4,24 +4,24 @@ spack:
     all:
       providers:
         blas:
-          - openblas
+        - openblas
         mkl:
-          - intel-oneapi-mkl
+        - intel-oneapi-mkl
         mpi:
-          - openmpi
-          - mpich
+        - openmpi
+        - mpich
       variants: +mpi
     tbb:
-      require: "intel-tbb"
+      require: intel-tbb
     binutils:
       variants: +ld +gold +headers +libiberty ~nls
       version:
-        - 2.36.1
+      - 2.36.1
     doxygen:
       version:
-        - 1.8.20
+      - 1.8.20
     elfutils:
-      variants: +bzip2 ~nls +xz
+      variants: ~nls
     hdf5:
       variants: +fortran +hl +shared
     libfabric:
@@ -29,8 +29,6 @@ spack:
     libunwind:
       variants: +pic +xz
     mesa:
-      variants: ~llvm
-    mesa18:
       variants: ~llvm
     mpich:
       variants: ~wrapperrpath netmod=ofi device=ch4
@@ -41,13 +39,17 @@ spack:
     openmpi:
       variants: fabrics=ofi +legacylaunchers
     openturns:
-      version: [1.18]
+      version:
+      - '1.18'
     relion:
       variants: ~mklfft
 #    texlive:
 #      version: [20210325]
     trilinos:
-      variants: +amesos +amesos2 +anasazi +aztec +belos +boost +epetra +epetraext +ifpack +ifpack2 +intrepid +intrepid2 +isorropia +kokkos +ml +minitensor +muelu +nox +piro +phalanx +rol +rythmos +sacado +stk +shards +shylu +stokhos +stratimikos +teko +tempus +tpetra +trilinoscouplings +zoltan +zoltan2 +superlu-dist gotype=long_long
+      variants: +amesos +amesos2 +anasazi +aztec +belos +boost +epetra +epetraext
+        +ifpack +ifpack2 +intrepid +intrepid2 +isorropia +kokkos +ml +minitensor +muelu
+        +nox +piro +phalanx +rol +rythmos +sacado +stk +shards +shylu +stokhos +stratimikos
+        +teko +tempus +tpetra +trilinoscouplings +zoltan +zoltan2 +superlu-dist gotype=long_long
     xz:
       variants: +pic
 
@@ -81,7 +83,7 @@ spack:
     - openfoam
     - osu-micro-benchmarks
     - parallel
-    - paraview
+    # - paraview
     - picard
     - quantum-espresso
     - raja
@@ -110,8 +112,8 @@ spack:
     - '%gcc@7.3.1'
 
   - target:
-    - 'target=aarch64'
-    - 'target=neoverse_n1'
+    - target=aarch64
+    - target=neoverse_n1
 
 
   specs:
@@ -131,13 +133,10 @@ spack:
     - - $compiler
     - - $target
 
-
-  mirrors: { "mirror": "s3://spack-binaries/develop/aws-isc-aarch64" }
-
   ci:
     pipeline-gen:
     - build-job:
-        image: { "name": "ghcr.io/spack/e4s-amazonlinux-2:v2023-03-09", "entrypoint": [""] }
+        image: {name: ghcr.io/spack/e4s-amazonlinux-2:v2023-03-09, entrypoint: ['']}
 
   cdash:
     build-group: AWS Packages

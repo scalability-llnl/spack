@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyGravity(PythonPackage):
 
     homepage = "https://github.com/galaxyproject/gravity"
     pypi = "gravity/gravity-0.13.6.tar.gz"
+
+    license("MIT")
 
     version("0.13.6", sha256="6fc2377e7c61b7db9406fb5b5c70bf72c571fb777f1313fc98787ef4cd007394")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,8 @@ class RCdcfluview(RPackage):
     data provided by the portal's underlying 'API'."""
 
     cran = "cdcfluview"
+
+    license("MIT")
 
     version("0.9.4", sha256="776a155c4f0cc678fde94a6d47cc2783ff5c199f26cce642461092e1b6311dad")
     version("0.9.2", sha256="f2080fc80c5e0241f8b657f5ac3a251ea89dfc26c1ab13bdfaed4d4e97495015")

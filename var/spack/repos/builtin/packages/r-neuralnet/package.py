@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,8 @@ class RNeuralnet(RPackage):
     implemented."""
 
     cran = "neuralnet"
+
+    license("GPL-2.0-or-later")
 
     version("1.44.2", sha256="5f66cd255db633322c0bd158b9320cac5ceff2d56f93e4864a0540f936028826")
 

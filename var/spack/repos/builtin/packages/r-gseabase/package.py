@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,7 @@ class RGseabase(RPackage):
 
     bioc = "GSEABase"
 
+    version("1.62.0", commit="fc20cbcd85da0202eb0f2316dcf63f6fb1372b3e")
     version("1.60.0", commit="aae4e52b50b076550967601f98031e952fb97765")
     version("1.58.0", commit="7de04442fb1ab63ffde29f4e3daf13ad32e90bdb")
     version("1.56.0", commit="ee7c3ca4ad0f1f3e9b9162db1515413802860ecc")

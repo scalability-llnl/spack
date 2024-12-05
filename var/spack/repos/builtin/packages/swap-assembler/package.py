@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class SwapAssembler(MakefilePackage):
     )
 
     version("0.4", sha256="45632e25578aacfbacd76df9697cbc798e09ac92284d9c9c07be15e0eb348e0d")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("mpich")
 

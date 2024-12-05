@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class Polypolish(Package):
 
     homepage = "https://github.com/rrwick/Polypolish"
     url = "https://github.com/rrwick/Polypolish/archive/refs/tags/v0.5.0.tar.gz"
+
+    license("GPL-3.0-or-later")
 
     version("0.5.0", sha256="183156093c03094290951f140010b3aef6222a672bf538e9136914178775fb1f")
 

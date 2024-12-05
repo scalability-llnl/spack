@@ -1,0 +1,200 @@
+From 9a2d334febe1cf62efd7bc857ea6fbd958a3cb11 Mon Sep 17 00:00:00 2001
+From: Vicente Bolea <vicente.bolea@gmail.com>
+Date: Mon, 3 Apr 2023 16:51:58 +0000
+Subject: [PATCH] Removed ADIOS2 deprecated functions invokation
+
+---
+ sensei/ADIOS2AnalysisAdaptor.cxx  | 10 ++++++----
+ sensei/ADIOS2AnalysisAdaptor.h    |  4 ----
+ sensei/ADIOS2DataAdaptor.cxx      |  8 --------
+ sensei/ADIOS2DataAdaptor.h        |  3 ---
+ sensei/ADIOS2Schema.cxx           |  6 +++++-
+ sensei/ADIOS2Schema.h             |  8 +-------
+ sensei/testing/testADIOS2Read.py  |  1 -
+ sensei/testing/testADIOS2Write.py |  1 -
+ 8 files changed, 12 insertions(+), 29 deletions(-)
+
+diff --git a/sensei/ADIOS2AnalysisAdaptor.cxx b/sensei/ADIOS2AnalysisAdaptor.cxx
+index 4358e4d..73cd408 100644
+--- a/sensei/ADIOS2AnalysisAdaptor.cxx
++++ b/sensei/ADIOS2AnalysisAdaptor.cxx
+@@ -46,7 +46,7 @@ senseiNewMacro(ADIOS2AnalysisAdaptor);
+ 
+ //----------------------------------------------------------------------------
+ ADIOS2AnalysisAdaptor::ADIOS2AnalysisAdaptor() :
+-    Schema(nullptr), FileName("sensei.bp"), DebugMode(0),
++    Schema(nullptr), FileName("sensei.bp"),
+     StepsPerFile(0), StepIndex(0), FileIndex(0)
+ {
+   this->Handles.io = nullptr;
+@@ -270,9 +270,6 @@ int ADIOS2AnalysisAdaptor::Initialize(pugi::xml_node &node)
+   if (!bufferMode.empty())
+     this->AddParameter("QueueFullPolicy", bufferMode);
+ 
+-  // turn on/off debug output
+-  this->SetDebugMode(node.attribute("debug_mode").as_int(0));
+-
+   // enable file series for file based engines
+   this->SetStepsPerFile(node.attribute("steps_per_file").as_int(0));
+ 
+@@ -329,8 +326,13 @@ int ADIOS2AnalysisAdaptor::InitializeADIOS2()
+     }
+ 
+   // initialize adios2
++#if ADIOS2_VERSION_MAJOR > 2 || (ADIOS2_VERSION_MAJOR == 2 && ADIOS2_VERSION_MINOR >= 9)
++  // adios2_init()'s signature changed in version 2.9.0
++  this->Adios = adios2_init(this->GetCommunicator());
++#else
+   this->Adios = adios2_init(this->GetCommunicator(),
+     adios2_debug_mode(this->DebugMode));
++#endif
+ 
+   if (this->Adios == nullptr)
+     {
+diff --git a/sensei/ADIOS2AnalysisAdaptor.h b/sensei/ADIOS2AnalysisAdaptor.h
+index 4919ddb..c5c6d2c 100644
+--- a/sensei/ADIOS2AnalysisAdaptor.h
++++ b/sensei/ADIOS2AnalysisAdaptor.h
+@@ -75,9 +75,6 @@ public:
+   void SetStepsPerFile(long steps)
+   { this->StepsPerFile = steps; }
+ 
+-  /// Enable/disable debugging output. The default value is 0.
+-  void SetDebugMode(int mode)
+-  { this->DebugMode = mode; }
+ 
+   /** Adds a set of sensei::DataRequirements, typically this will come from an XML
+    * configuratiopn file. Data requirements tell the adaptor what to fetch from
+@@ -146,7 +143,6 @@ protected:
+   senseiADIOS2::AdiosHandle Handles;
+   adios2_adios *Adios;
+   std::vector<std::pair<std::string,std::string>> Parameters;
+-  int DebugMode;
+   long StepsPerFile;
+   long StepIndex;
+   long FileIndex;
+diff --git a/sensei/ADIOS2DataAdaptor.cxx b/sensei/ADIOS2DataAdaptor.cxx
+index 5c0c036..bbb093e 100644
+--- a/sensei/ADIOS2DataAdaptor.cxx
++++ b/sensei/ADIOS2DataAdaptor.cxx
+@@ -56,12 +56,6 @@ void ADIOS2DataAdaptor::SetReadEngine(const std::string &engine)
+   this->Internals->Stream.SetReadEngine(engine);
+ }
+ 
+-//----------------------------------------------------------------------------
+-void ADIOS2DataAdaptor::SetDebugMode(int mode)
+-{
+-  this->Internals->Stream.SetDebugMode(mode);
+-}
+-
+ //----------------------------------------------------------------------------
+ void ADIOS2DataAdaptor::AddParameter(const std::string &name,
+   const std::string &value)
+@@ -96,8 +90,6 @@ int ADIOS2DataAdaptor::Initialize(pugi::xml_node &node)
+   if (node.attribute("timeout"))
+     this->AddParameter("OpenTimeoutSecs", node.attribute("timeout").value());
+ 
+-  this->SetDebugMode(node.attribute("debug_mode").as_int(0));
+-
+   pugi::xml_node params = node.child("engine_parameters");
+   if (params)
+     {
+diff --git a/sensei/ADIOS2DataAdaptor.h b/sensei/ADIOS2DataAdaptor.h
+index b0c2009..58be416 100644
+--- a/sensei/ADIOS2DataAdaptor.h
++++ b/sensei/ADIOS2DataAdaptor.h
+@@ -30,9 +30,6 @@ public:
+   // given to the write side analysis adaptor
+   void SetReadEngine(const std::string &readEngine);
+ 
+-  // enable/disable adios internal debug messages
+-  void SetDebugMode(int mode);
+-
+   // add name value pairs to pass into ADIOS after the
+   // engine has been created
+   void AddParameter(const std::string &name, const std::string &value);
+diff --git a/sensei/ADIOS2Schema.cxx b/sensei/ADIOS2Schema.cxx
+index b1263ca..7b66d19 100644
+--- a/sensei/ADIOS2Schema.cxx
++++ b/sensei/ADIOS2Schema.cxx
+@@ -422,7 +422,12 @@ int InputStream::Initialize(MPI_Comm comm)
+   sensei::TimeEvent<128> mark("senseiADIOS2::InputStream::Initialize");
+ 
+   // initialize adios2
++#if ADIOS2_VERSION_MAJOR > 2 || (ADIOS2_VERSION_MAJOR == 2 && ADIOS2_VERSION_MINOR >= 9)
++  // adios2_init()'s signature changed in version 2.9.0
++  this->Adios = adios2_init(comm);
++#else
+   this->Adios = adios2_init(comm, adios2_debug_mode(this->DebugMode));
++#endif
+   if (this->Adios == nullptr)
+     {
+     SENSEI_ERROR("adios2_init failed")
+@@ -651,7 +656,6 @@ int InputStream::Finalize()
+   this->Handles.engine = nullptr;
+   this->Handles.io = nullptr;
+   this->ReadEngine = "";
+-  this->DebugMode = 0;
+ 
+   return 0;
+ }
+diff --git a/sensei/ADIOS2Schema.h b/sensei/ADIOS2Schema.h
+index b8e5bfb..bc4f3bc 100644
+--- a/sensei/ADIOS2Schema.h
++++ b/sensei/ADIOS2Schema.h
+@@ -109,8 +109,7 @@ struct InputStream
+ {
+   InputStream() : Handles(), Adios(nullptr),
+     ReadEngine(""), FileName(""), FileSeries(0),
+-    StepsPerFile(0), FileIndex(0), StepIndex(0),
+-    DebugMode(0) {}
++    StepsPerFile(0), FileIndex(0), StepIndex(0) {}
+ 
+   // pass engine parameters to ADIOS2 in key value pairs
+   void AddParameter(const std::string &key, const std::string &value);
+@@ -120,10 +119,6 @@ struct InputStream
+   void SetReadEngine(const std::string &engine)
+   { this->ReadEngine = engine; }
+ 
+-  // set debug mode 0 off, 1 on
+-  void SetDebugMode(int mode)
+-  { this->DebugMode = mode; }
+-
+   /// @brief Set the filename.
+   /// Default value is "sensei.bp" which is suitable for use with streams or
+   /// transport engines such as SST. When writing files to disk using the BP4
+@@ -165,7 +160,6 @@ struct InputStream
+   int FileIndex;
+   int StepIndex;
+   std::vector<std::pair<std::string,std::string>> Parameters;
+-  int DebugMode;
+ };
+ 
+ }
+diff --git a/sensei/testing/testADIOS2Read.py b/sensei/testing/testADIOS2Read.py
+index b2fd8d2..916c28f 100644
+--- a/sensei/testing/testADIOS2Read.py
++++ b/sensei/testing/testADIOS2Read.py
+@@ -39,7 +39,6 @@ def read_data(engine, fileName, verbose):
+   da = ADIOS2DataAdaptor.New()
+   da.SetReadEngine(engine)
+   da.SetFileName(fileName)
+-  da.SetDebugMode(1)
+   da.SetPartitioner(BlockPartitioner.New())
+   da.OpenStream()
+   # process all time steps
+diff --git a/sensei/testing/testADIOS2Write.py b/sensei/testing/testADIOS2Write.py
+index d6f2f67..28a6631 100644
+--- a/sensei/testing/testADIOS2Write.py
++++ b/sensei/testing/testADIOS2Write.py
+@@ -155,7 +155,6 @@ def write_data(engine, file_name, steps_per_file, n_its):
+   aw.SetEngineName(engine)
+   aw.SetFileName(file_name)
+   aw.SetStepsPerFile(steps_per_file)
+-  aw.SetDebugMode(1)
+ 
+   # create the datasets
+   # the first mesh is an image
+-- 
+2.35.3
+

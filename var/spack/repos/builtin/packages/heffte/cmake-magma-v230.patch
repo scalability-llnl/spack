@@ -1,0 +1,13 @@
+diff --git a/cmake/HeffteConfig.cmake b/cmake/HeffteConfig.cmake
+index 8bbe907..df1cf86 100644
+--- a/cmake/HeffteConfig.cmake
++++ b/cmake/HeffteConfig.cmake
+@@ -51,7 +51,7 @@ if (@Heffte_ENABLE_MAGMA@ AND NOT TARGET Heffte::MAGMA)
+     set_target_properties(Heffte::MAGMA PROPERTIES INTERFACE_INCLUDE_DIRECTORIES @HeffteMAGMA_INCLUDES@)
+     if (@Heffte_ENABLE_CUDA@)
+         list(FILTER CUDA_CUBLAS_LIBRARIES EXCLUDE REGEX "-NOTFOUND$") # work-around CMake 3.10 + CUDA 10
+-        target_link_libraries(Heffte Heffte::MAGMA INTERFACE ${CUDA_CUBLAS_LIBRARIES})
++        target_link_libraries(Heffte::MAGMA INTERFACE ${CUDA_CUBLAS_LIBRARIES})
+     endif()
+     if (@Heffte_ENABLE_ROCM@)
+         find_package(rocblas REQUIRED)

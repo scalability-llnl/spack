@@ -1,0 +1,39 @@
+diff --git a/src/cmake/thirdparty/SetupRAJA.cmake b/src/cmake/thirdparty/SetupRAJA.cmake
+index 4026f98d..92c92635 100644
+--- a/src/cmake/thirdparty/SetupRAJA.cmake
++++ b/src/cmake/thirdparty/SetupRAJA.cmake
+@@ -12,9 +12,12 @@ set(_RAJA_SEARCH_PATH)
+ if(EXISTS ${RAJA_DIR}/share/raja/cmake)
+   # old install layout
+   set(_RAJA_SEARCH_PATH ${RAJA_DIR}/share/raja/cmake)
+-else()
++elseif(EXISTS ${RAJA_DIR}/lib/cmake/raja)
+   # new install layout
+   set(_RAJA_SEARCH_PATH ${RAJA_DIR}/lib/cmake/raja)
++else ()
++  # try RAJA_DIR itself
++  set(_RAJA_SEARCH_PATH ${RAJA_DIR})
+ endif()
+ 
+ message(STATUS "Looking for RAJA in: ${RAJA_DIR}")
+diff --git a/src/config/ascent_setup_deps.cmake b/src/config/ascent_setup_deps.cmake
+index 5839a03f..fd82b979 100644
+--- a/src/config/ascent_setup_deps.cmake
++++ b/src/config/ascent_setup_deps.cmake
+@@ -218,11 +218,14 @@ if(RAJA_DIR)
+     if(EXISTS ${RAJA_DIR}/share/raja/cmake)
+       # old install layout
+       set(_RAJA_SEARCH_PATH ${RAJA_DIR}/share/raja/cmake)
+-    else()
++    elseif(EXISTS ${RAJA_DIR}/lib/cmake/raja)
+       # new install layout
+       set(_RAJA_SEARCH_PATH ${RAJA_DIR}/lib/cmake/raja)
++    else ()
++      # try RAJA_DIR itself
++      set(_RAJA_SEARCH_PATH ${RAJA_DIR})
+     endif()
+-    
++
+     if(NOT EXISTS ${_RAJA_SEARCH_PATH})
+         message(FATAL_ERROR "Could not find RAJA CMake include file (${_RAJA_SEARCH_PATH})")
+     endif()

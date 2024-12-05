@@ -1,9 +1,7 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-import sys
 
 import pytest
 
@@ -11,15 +9,6 @@ from spack.main import SpackCommand
 from spack.version import Version
 
 versions = SpackCommand("versions")
-
-pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="does not run on windows")
-
-
-def test_safe_only_versions():
-    """Only test the safe versions of a package.
-    (Using the deprecated command line argument)
-    """
-    versions("--safe-only", "zlib")
 
 
 def test_safe_versions():

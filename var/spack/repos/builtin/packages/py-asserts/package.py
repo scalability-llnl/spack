@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyAsserts(PythonPackage):
 
     homepage = "https://github.com/srittau/python-asserts"
     url = "https://github.com/srittau/python-asserts/archive/v0.10.0.tar.gz"
+
+    license("MIT")
 
     version("0.10.0", sha256="3466cf32c36d97ee2802121438003693546f590be81095317d0d698066bb5df7")
     version("0.9.1", sha256="a73ea6b2ddc77364a5f0e13197f00662485944a6dd31c1f7555ff2f99c0f7319")

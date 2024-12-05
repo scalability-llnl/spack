@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -23,6 +23,7 @@ class RQvalue(RPackage):
 
     bioc = "qvalue"
 
+    version("2.32.0", commit="a6272dc68f9d91de63e04fae28476e4ec016ee89")
     version("2.30.0", commit="e8a4c22d035f860ee730aa7c5a4dbc7460afcedc")
     version("2.28.0", commit="aaa62d5ab5a960e0a626928abaf5b3a5c5f73374")
     version("2.26.0", commit="6d7410d4b8673bcf9065e054670c1fbcb917a27e")

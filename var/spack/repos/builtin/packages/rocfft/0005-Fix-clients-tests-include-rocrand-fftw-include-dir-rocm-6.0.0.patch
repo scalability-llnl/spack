@@ -1,0 +1,39 @@
+diff --git a/clients/tests/CMakeLists.txt b/clients/tests/CMakeLists.txt
+index d0b95b4..0339daa 100644
+--- a/clients/tests/CMakeLists.txt
++++ b/clients/tests/CMakeLists.txt
+@@ -64,6 +64,10 @@ if( NOT hiprand_FOUND )
+   find_package( hiprand REQUIRED )
+ endif()
+ 
++if( NOT rocrand_FOUND )
++  find_package( rocrand REQUIRED )
++endif()
++
+ include( ROCMInstallTargets )
+ 
+ set( rocfft-test_source
+@@ -109,6 +113,7 @@ option( BUILD_FFTW "Download and build FFTW" OFF )
+ # look for installed FFTW if we weren't asked to build it
+ if( NOT BUILD_FFTW )
+   find_package( FFTW 3.0 MODULE COMPONENTS FLOAT DOUBLE )
++  set( FFTW_INCLUDES ${FFTW_INCLUDE_DIRS} )
+ endif()
+ 
+ include( ExternalProject )
+@@ -174,6 +179,7 @@ endif()
+ 
+ set( rocfft-test_include_dirs
+   $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
++  $<BUILD_INTERFACE:${rocrand_INCLUDE_DIRS}>
+   $<BUILD_INTERFACE:${FFTW_INCLUDES}>
+   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/misc/include>
+   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/src/include>
+@@ -216,6 +222,7 @@ target_link_libraries( rocfft-test
+   hip::device
+   roc::rocfft
+   hip::hiprand
++  roc::rocrand
+   ${rocfft-test_link_libs}
+   )
+ 

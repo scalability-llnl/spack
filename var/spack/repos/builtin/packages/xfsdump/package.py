@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class Xfsdump(MakefilePackage):
     version("3.1.5", sha256="ba5bb91413ccb5a0eaffaa84f242baa08520a09f7b990b28bbd0d33a4390f7b6")
     version("3.1.4", sha256="a75d5c7dabd3dd4184008efcfd30d0c96b6ab318edaad9659ce180dfb9652b01")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("gettext")
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
@@ -25,8 +27,10 @@ class Xfsdump(MakefilePackage):
     depends_on("attr")
     depends_on("xfsprogs@:4.20.0")
 
-    def setup_build_environment(self, env):
-        env.append_flags("LDFLAGS", "-lintl")
+    def flag_handler(self, name, flags):
+        if name == "ldlibs" and "intl" in self.spec["gettext"].libs.names:
+            flags.append("-lintl")
+        return env_flags(name, flags)
 
     def build(self, spec, prefix):
         make(

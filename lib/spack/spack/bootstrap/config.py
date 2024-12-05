@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -7,12 +7,14 @@
 import contextlib
 import os.path
 import sys
+from typing import Any, Dict, Generator, MutableSequence, Sequence
 
 from llnl.util import tty
 
 import spack.compilers
 import spack.config
 import spack.environment
+import spack.modules
 import spack.paths
 import spack.platforms
 import spack.repo
@@ -24,12 +26,12 @@ import spack.util.path
 _REF_COUNT = 0
 
 
-def is_bootstrapping():
+def is_bootstrapping() -> bool:
     """Return True if we are in a bootstrapping context, False otherwise."""
     return _REF_COUNT > 0
 
 
-def spec_for_current_python():
+def spec_for_current_python() -> str:
     """For bootstrapping purposes we are just interested in the Python
     minor version (all patches are ABI compatible with the same minor).
 
@@ -41,14 +43,14 @@ def spec_for_current_python():
     return f"python@{version_str}"
 
 
-def root_path():
+def root_path() -> str:
     """Root of all the bootstrap related folders"""
     return spack.util.path.canonicalize_path(
         spack.config.get("bootstrap:root", spack.paths.default_user_bootstrap_path)
     )
 
 
-def store_path():
+def store_path() -> str:
     """Path to the store used for bootstrapped software"""
     enabled = spack.config.get("bootstrap:enable", True)
     if not enabled:
@@ -59,7 +61,7 @@ def store_path():
 
 
 @contextlib.contextmanager
-def spack_python_interpreter():
+def spack_python_interpreter() -> Generator:
     """Override the current configuration to set the interpreter under
     which Spack is currently running as the only Python external spec
     available.
@@ -76,18 +78,18 @@ def spack_python_interpreter():
         yield
 
 
-def _store_path():
+def _store_path() -> str:
     bootstrap_root_path = root_path()
     return spack.util.path.canonicalize_path(os.path.join(bootstrap_root_path, "store"))
 
 
-def _config_path():
+def _config_path() -> str:
     bootstrap_root_path = root_path()
     return spack.util.path.canonicalize_path(os.path.join(bootstrap_root_path, "config"))
 
 
 @contextlib.contextmanager
-def ensure_bootstrap_configuration():
+def ensure_bootstrap_configuration() -> Generator:
     """Swap the current configuration for the one used to bootstrap Spack.
 
     The context manager is reference counted to ensure we don't swap multiple
@@ -107,7 +109,7 @@ def ensure_bootstrap_configuration():
         _REF_COUNT -= 1
 
 
-def _read_and_sanitize_configuration():
+def _read_and_sanitize_configuration() -> Dict[str, Any]:
     """Read the user configuration that needs to be reused for bootstrapping
     and remove the entries that should not be copied over.
     """
@@ -120,16 +122,18 @@ def _read_and_sanitize_configuration():
     return user_configuration
 
 
-def _bootstrap_config_scopes():
+def _bootstrap_config_scopes() -> Sequence["spack.config.ConfigScope"]:
     tty.debug("[BOOTSTRAP CONFIG SCOPE] name=_builtin")
-    config_scopes = [spack.config.InternalConfigScope("_builtin", spack.config.config_defaults)]
-    configuration_paths = (spack.config.configuration_defaults_path, ("bootstrap", _config_path()))
+    config_scopes: MutableSequence["spack.config.ConfigScope"] = [
+        spack.config.InternalConfigScope("_builtin", spack.config.CONFIG_DEFAULTS)
+    ]
+    configuration_paths = (spack.config.CONFIGURATION_DEFAULTS_PATH, ("bootstrap", _config_path()))
     for name, path in configuration_paths:
         platform = spack.platforms.host().name
-        platform_scope = spack.config.ConfigScope(
-            "/".join([name, platform]), os.path.join(path, platform)
+        platform_scope = spack.config.DirectoryConfigScope(
+            f"{name}/{platform}", os.path.join(path, platform)
         )
-        generic_scope = spack.config.ConfigScope(name, path)
+        generic_scope = spack.config.DirectoryConfigScope(name, path)
         config_scopes.extend([generic_scope, platform_scope])
         msg = "[BOOTSTRAP CONFIG SCOPE] name={0}, path={1}"
         tty.debug(msg.format(generic_scope.name, generic_scope.path))
@@ -137,28 +141,27 @@ def _bootstrap_config_scopes():
     return config_scopes
 
 
-def _add_compilers_if_missing():
+def _add_compilers_if_missing() -> None:
     arch = spack.spec.ArchSpec.frontend_arch()
     if not spack.compilers.compilers_for_arch(arch):
-        new_compilers = spack.compilers.find_new_compilers()
-        if new_compilers:
-            spack.compilers.add_compilers_to_config(new_compilers, init_config=False)
+        spack.compilers.find_compilers()
 
 
 @contextlib.contextmanager
-def _ensure_bootstrap_configuration():
+def _ensure_bootstrap_configuration() -> Generator:
+    spack.store.ensure_singleton_created()
     bootstrap_store_path = store_path()
     user_configuration = _read_and_sanitize_configuration()
     with spack.environment.no_active_environment():
-        with spack.platforms.prevent_cray_detection(), spack.platforms.use_platform(
+        with spack.platforms.use_platform(
             spack.platforms.real_host()
-        ), spack.repo.use_repositories(spack.paths.packages_path), spack.store.use_store(
-            bootstrap_store_path
-        ):
+        ), spack.repo.use_repositories(spack.paths.packages_path):
             # Default configuration scopes excluding command line
             # and builtin but accounting for platform specific scopes
             config_scopes = _bootstrap_config_scopes()
-            with spack.config.use_configuration(*config_scopes):
+            with spack.config.use_configuration(*config_scopes), spack.store.use_store(
+                bootstrap_store_path, extra_data={"padded_length": 0}
+            ):
                 # We may need to compile code from sources, so ensure we
                 # have compilers for the current platform
                 _add_compilers_if_missing()

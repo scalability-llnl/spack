@@ -1,0 +1,56 @@
+From 520d86b859bd6640fbd7f22b6a326a3b040c3671 Mon Sep 17 00:00:00 2001
+From: sreenivasa murthy kolam <sreenivasamurthy.kolam@amd.com>
+Date: Thu, 23 Nov 2023 09:31:49 +0000
+Subject: [PATCH] update HIP_PATH deduction for 5.7.0
+
+---
+ clang/lib/Driver/ToolChains/AMDGPU.cpp | 20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
+
+diff --git a/clang/lib/Driver/ToolChains/AMDGPU.cpp b/clang/lib/Driver/ToolChains/AMDGPU.cpp
+index fe36646..8706f08 100644
+--- a/clang/lib/Driver/ToolChains/AMDGPU.cpp
++++ b/clang/lib/Driver/ToolChains/AMDGPU.cpp
+@@ -437,12 +437,13 @@ void RocmInstallationDetector::detectDeviceLibrary() {
+ void RocmInstallationDetector::detectHIPRuntime() {
+   SmallVector<Candidate, 4> HIPSearchDirs;
+   if (!HIPPathArg.empty())
+-    HIPSearchDirs.emplace_back(HIPPathArg.str(), /*StrictChecking=*/true);
++    HIPSearchDirs.emplace_back(HIPPathArg.str());
+   else if (std::optional<std::string> HIPPathEnv =
+                llvm::sys::Process::GetEnv("HIP_PATH")) {
+     if (!HIPPathEnv->empty())
+       HIPSearchDirs.emplace_back(std::move(*HIPPathEnv));
+-  } else
++  }
++  if (HIPSearchDirs.empty())
+     HIPSearchDirs.append(getInstallationPathCandidates());
+   auto &FS = D.getVFS();
+ 
+@@ -464,10 +465,21 @@ void RocmInstallationDetector::detectHIPRuntime() {
+     SharePath = InstallPath;
+     llvm::sys::path::append(SharePath, "share");
+ 
++    // Get parent of InstallPath and append "share"
++    SmallString<0> ParentSharePath = llvm::sys::path::parent_path(InstallPath);
++    llvm::sys::path::append(ParentSharePath, "share");
++
++    auto Append = [](SmallString<0> &path, const Twine &a, const Twine &b = "",
++                     const Twine &c = "", const Twine &d = "") {
++      SmallString<0> newpath = path;
++      llvm::sys::path::append(newpath, a, b, c, d);
++      return newpath;
++    };
+     // If HIP version file can be found and parsed, use HIP version from there.
+     for (const auto &VersionFilePath :
+-         {std::string(SharePath) + "/hip/version",
+-          std::string(BinPath) + "/.hipVersion"}) {
++         {Append(SharePath, "hip", "version"),
++          Append(ParentSharePath, "hip", "version"),
++          Append(BinPath, ".hipVersion")}) {
+       llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> VersionFile =
+           FS.getBufferForFile(VersionFilePath);
+       if (!VersionFile)
+-- 
+2.39.3
+

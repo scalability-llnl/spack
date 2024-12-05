@@ -1,9 +1,7 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-from __future__ import unicode_literals
 
 import contextlib
 import io
@@ -14,6 +12,7 @@ import textwrap
 import traceback
 from datetime import datetime
 from sys import platform as _platform
+from typing import Any, NoReturn
 
 if _platform != "win32":
     import fcntl
@@ -43,10 +42,6 @@ def is_verbose():
 
 def is_debug(level=1):
     return _debug >= level
-
-
-def is_stacktrace():
-    return _stacktrace
 
 
 def set_debug(level=0):
@@ -163,21 +158,22 @@ def get_timestamp(force=False):
         return ""
 
 
-def msg(message, *args, **kwargs):
+def msg(message: Any, *args: Any, newline: bool = True) -> None:
     if not msg_enabled():
         return
 
     if isinstance(message, Exception):
-        message = "%s: %s" % (message.__class__.__name__, str(message))
+        message = f"{message.__class__.__name__}: {message}"
+    else:
+        message = str(message)
 
-    newline = kwargs.get("newline", True)
     st_text = ""
     if _stacktrace:
         st_text = process_stacktrace(2)
-    if newline:
-        cprint("@*b{%s==>} %s%s" % (st_text, get_timestamp(), cescape(_output_filter(message))))
-    else:
-        cwrite("@*b{%s==>} %s%s" % (st_text, get_timestamp(), cescape(_output_filter(message))))
+
+    nl = "\n" if newline else ""
+    cwrite(f"@*b{{{st_text}==>}} {get_timestamp()}{cescape(_output_filter(message))}{nl}")
+
     for arg in args:
         print(indent + _output_filter(str(arg)))
 
@@ -212,6 +208,7 @@ def info(message, *args, **kwargs):
                 stream.write(line + "\n")
         else:
             stream.write(indent + _output_filter(str(arg)) + "\n")
+    stream.flush()
 
 
 def verbose(message, *args, **kwargs):
@@ -246,41 +243,10 @@ def warn(message, *args, **kwargs):
     info("Warning: " + str(message), *args, **kwargs)
 
 
-def die(message, *args, **kwargs):
+def die(message, *args, **kwargs) -> NoReturn:
     kwargs.setdefault("countback", 4)
     error(message, *args, **kwargs)
     sys.exit(1)
-
-
-def get_number(prompt, **kwargs):
-    default = kwargs.get("default", None)
-    abort = kwargs.get("abort", None)
-
-    if default is not None and abort is not None:
-        prompt += " (default is %s, %s to abort) " % (default, abort)
-    elif default is not None:
-        prompt += " (default is %s) " % default
-    elif abort is not None:
-        prompt += " (%s to abort) " % abort
-
-    number = None
-    while number is None:
-        msg(prompt, newline=False)
-        ans = input()
-        if ans == str(abort):
-            return None
-
-        if ans:
-            try:
-                number = int(ans)
-                if number < 1:
-                    msg("Please enter a valid number.")
-                    number = None
-            except ValueError:
-                msg("Please enter a valid number.")
-        elif default is not None:
-            number = default
-    return number
 
 
 def get_yes_or_no(prompt, **kwargs):

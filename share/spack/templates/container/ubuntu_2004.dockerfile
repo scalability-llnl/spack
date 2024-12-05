@@ -22,10 +22,13 @@ RUN apt-get -yqq update \
         iproute2 \
         locales \
         make \
+        mercurial \
+        subversion \
         python3 \
         python3-pip \
         python3-setuptools \
         unzip \
+        zstd \
  && locale-gen en_US.UTF-8 \
  && pip3 install boto3 \
  && rm -rf /var/lib/apt/lists/*

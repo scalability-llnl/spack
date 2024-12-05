@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,6 +22,8 @@ class Superchic(MakefilePackage):
     version("4.01", sha256="2d690e1cdb0fd0ee345028b0d823a76c8d93156aaa0c9cd1ecb5f18cde75acd6")
     version("3.06", sha256="17b4f56e85634f3c9708d5263772d7035fe4d7fb91a11bbffe889e0860efbd02")
     version("3.05", sha256="032f5c784f284ca02003a990234b099f61cd125791d56715680cd342e55c7da1")
+
+    depends_on("fortran", type="build")  # generated
 
     depends_on("lhapdf")
     depends_on("apfel", when="@4.01:")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyGlymur(PythonPackage):
 
     homepage = "https://github.com/quintusdias/glymur"
     pypi = "Glymur/Glymur-0.9.9.tar.gz"
+
+    license("MIT")
 
     version("0.9.9", sha256="25b8a6ac07892c98b4613f959295ada9ca5e76b27bfa25069ab0a8a5bb4048f4")
 

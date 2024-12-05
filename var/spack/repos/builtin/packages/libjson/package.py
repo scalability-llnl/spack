@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,8 @@ class Libjson(MakefilePackage):
     version("0.6", sha256="55a094343e8c0fafc2060b73ba5555022257cddf7ac173f6f6c439793a6119d5")
     version("0.5", sha256="d19e149118c01c4a1f4cd16be3ce54bfc97a7210b6f0d76a3f8ef75bf70e8acd")
     version("0.4", sha256="9b3ebbeb1940dbd8664524d27e66d991fedc00cca9f403f9aa9c2f28104ca81b")
+
+    depends_on("c", type="build")  # generated
 
     def edit(self, spec, prefix):
         filter_file("-o root -g root", "", "Makefile")

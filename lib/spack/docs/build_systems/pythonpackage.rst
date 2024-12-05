@@ -1,4 +1,4 @@
-.. Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
    Spack Project Developers. See the top-level COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -152,16 +152,16 @@ set. Once set, ``pypi`` will be used to define the ``homepage``,
 
 .. code-block:: python
 
-   homepage = 'https://pypi.org/project/setuptools/'
-   url      = 'https://pypi.org/packages/source/s/setuptools/setuptools-49.2.0.zip'
-   list_url = 'https://pypi.org/simple/setuptools/'
+   homepage = "https://pypi.org/project/setuptools/"
+   url      = "https://pypi.org/packages/source/s/setuptools/setuptools-49.2.0.zip"
+   list_url = "https://pypi.org/simple/setuptools/"
 
 
 is equivalent to:
 
 .. code-block:: python
 
-   pypi = 'setuptools/setuptools-49.2.0.zip'
+   pypi = "setuptools/setuptools-49.2.0.zip"
 
 
 If a package has a different homepage listed on PyPI, you can
@@ -208,7 +208,7 @@ dependencies to your package:
 
 .. code-block:: python
 
-   depends_on('py-setuptools@42:', type='build')
+   depends_on("py-setuptools@42:", type="build")
 
 
 Note that ``py-wheel`` is already listed as a build dependency in the
@@ -232,7 +232,7 @@ Look for dependencies under the following keys:
 * ``dependencies`` under ``[project]``
 
   These packages are required for building and installation. You can
-  add them with ``type=('build', 'run')``.
+  add them with ``type=("build", "run")``.
 
 * ``[project.optional-dependencies]``
 
@@ -279,12 +279,12 @@ distutils library, and has almost the exact same API. In addition to
 * ``setup_requires``
 
   These packages are usually only needed at build-time, so you can
-  add them with ``type='build'``.
+  add them with ``type="build"``.
 
 * ``install_requires``
 
   These packages are required for building and installation. You can
-  add them with ``type=('build', 'run')``.
+  add them with ``type=("build", "run")``.
 
 * ``extras_require``
 
@@ -296,7 +296,7 @@ distutils library, and has almost the exact same API. In addition to
 
   These are packages that are required to run the unit tests for the
   package. These dependencies can be specified using the
-  ``type='test'`` dependency type. However, the PyPI tarballs rarely
+  ``type="test"`` dependency type. However, the PyPI tarballs rarely
   contain unit tests, so there is usually no reason to add these.
 
 See https://setuptools.pypa.io/en/latest/userguide/dependency_management.html
@@ -321,7 +321,7 @@ older versions of flit may use the following keys:
 * ``requires`` under ``[tool.flit.metadata]``
 
   These packages are required for building and installation. You can
-  add them with ``type=('build', 'run')``.
+  add them with ``type=("build", "run")``.
 
 * ``[tool.flit.metadata.requires-extra]``
 
@@ -434,12 +434,12 @@ the BLAS/LAPACK library you want pkg-config to search for:
 
 .. code-block:: python
 
-   depends_on('py-pip@22.1:', type='build')
+   depends_on("py-pip@22.1:", type="build")
 
    def config_settings(self, spec, prefix):
        return {
-           'blas': spec['blas'].libs.names[0],
-           'lapack': spec['lapack'].libs.names[0],
+           "blas": spec["blas"].libs.names[0],
+           "lapack": spec["lapack"].libs.names[0],
        }
 
 
@@ -463,10 +463,10 @@ has an optional dependency on ``libyaml`` that can be enabled like so:
 
    def global_options(self, spec, prefix):
        options = []
-       if '+libyaml' in spec:
-           options.append('--with-libyaml')
+       if spec.satisfies("+libyaml"):
+           options.append("--with-libyaml")
        else:
-           options.append('--without-libyaml')
+           options.append("--without-libyaml")
        return options
 
 
@@ -492,10 +492,10 @@ allows you to specify the directories to search for ``libyaml``:
 
    def install_options(self, spec, prefix):
        options = []
-       if '+libyaml' in spec:
+       if spec.satisfies("+libyaml"):
            options.extend([
-               spec['libyaml'].libs.search_flags,
-               spec['libyaml'].headers.include_flags,
+               spec["libyaml"].libs.search_flags,
+               spec["libyaml"].headers.include_flags,
            ])
        return options
 
@@ -556,7 +556,7 @@ detected are wrong, you can provide the names yourself by overriding
 
 .. code-block:: python
 
-   import_modules = ['six']
+   import_modules = ["six"]
 
 
 Sometimes the list of module names to import depends on how the
@@ -571,9 +571,9 @@ This can be expressed like so:
 
    @property
    def import_modules(self):
-       modules = ['yaml']
-       if '+libyaml' in self.spec:
-           modules.append('yaml.cyaml')
+       modules = ["yaml"]
+       if self.spec.satisfies("+libyaml"):
+           modules.append("yaml.cyaml")
        return modules
 
 
@@ -586,14 +586,14 @@ Instead of defining the ``import_modules`` explicitly, only the subset
 of module names to be skipped can be defined by using ``skip_modules``.
 If a defined module has submodules, they are skipped as well, e.g.,
 in case the ``plotting`` modules should be excluded from the
-automatically detected ``import_modules`` ``['nilearn', 'nilearn.surface',
-'nilearn.plotting', 'nilearn.plotting.data']`` set:
+automatically detected ``import_modules`` ``["nilearn", "nilearn.surface",
+"nilearn.plotting", "nilearn.plotting.data"]`` set:
 
 .. code-block:: python
 
-        skip_modules = ['nilearn.plotting']
+        skip_modules = ["nilearn.plotting"]
 
-This will set ``import_modules`` to ``['nilearn', 'nilearn.surface']``
+This will set ``import_modules`` to ``["nilearn", "nilearn.surface"]``
 
 Import tests can be run during the installation using ``spack install
 --test=root`` or at any time after the installation using
@@ -612,11 +612,11 @@ after the ``install`` phase:
 
 .. code-block:: python
 
-   @run_after('install')
+   @run_after("install")
    @on_package_attributes(run_tests=True)
    def install_test(self):
-       with working_dir('spack-test', create=True):
-           python('-c', 'import numpy; numpy.test("full", verbose=2)')
+       with working_dir("spack-test", create=True):
+           python("-c", "import numpy; numpy.test('full', verbose=2)")
 
 
 when testing is enabled during the installation (i.e., ``spack install
@@ -638,7 +638,7 @@ provides Python bindings in a ``python`` directory, you can use:
 
 .. code-block:: python
 
-   build_directory = 'python'
+   build_directory = "python"
 
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -718,23 +718,45 @@ command-line tool, or C/C++/Fortran program with optional Python
 modules? The former should be prepended with ``py-``, while the
 latter should not.
 
-""""""""""""""""""""""
-extends vs. depends_on
-""""""""""""""""""""""
+""""""""""""""""""""""""""""""
+``extends`` vs. ``depends_on``
+""""""""""""""""""""""""""""""
 
-This is very similar to the naming dilemma above, with a slight twist.
 As mentioned in the :ref:`Packaging Guide <packaging_extensions>`,
 ``extends`` and ``depends_on`` are very similar, but ``extends`` ensures
 that the extension and extendee share the same prefix in views.
 This allows the user to import a Python module without
 having to add that module to ``PYTHONPATH``.
 
-When deciding between ``extends`` and ``depends_on``, the best rule of
-thumb is to check the installation prefix. If Python libraries are
-installed to ``<prefix>/lib/pythonX.Y/site-packages``, then you
-should use ``extends``. If Python libraries are installed elsewhere
-or the only files that get installed reside in ``<prefix>/bin``, then
-don't use ``extends``.
+Additionally, ``extends("python")`` adds a dependency on the package
+``python-venv``. This improves isolation from the system, whether
+it's during the build or at runtime: user and system site packages
+cannot accidentally be used by any package that ``extends("python")``.
+
+As a rule of thumb: if a package does not install any Python modules
+of its own, and merely puts a Python script in the ``bin`` directory,
+then there is no need for ``extends``. If the package installs modules
+in the ``site-packages`` directory, it requires ``extends``.
+
+"""""""""""""""""""""""""""""""""""""
+Executing ``python`` during the build
+"""""""""""""""""""""""""""""""""""""
+
+Whenever you need to execute a Python command or pass the path of the
+Python interpreter to the build system, it is best to use the global
+variable ``python`` directly. For example:
+
+.. code-block:: python
+
+    @run_before("install")
+    def recythonize(self):
+        python("setup.py", "clean")  # use the `python` global
+
+As mentioned in the previous section, ``extends("python")`` adds an
+automatic dependency on ``python-venv``, which is a virtual environment
+that guarantees build isolation. The ``python`` global always refers to
+the correct Python interpreter, whether the package uses ``extends("python")``
+or ``depends_on("python")``.
 
 ^^^^^^^^^^^^^^^^^^^^^
 Alternatives to Spack

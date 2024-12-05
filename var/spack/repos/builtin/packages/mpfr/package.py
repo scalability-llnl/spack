@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,11 @@ class Mpfr(AutotoolsPackage, GNUMirrorPackage):
     homepage = "https://www.mpfr.org/"
     gnu_mirror_path = "mpfr/mpfr-4.0.2.tar.bz2"
 
+    maintainers("cessenat")
+
+    license("LGPL-3.0-or-later")
+
+    version("4.2.1", sha256="b9df93635b20e4089c29623b19420c4ac848a1b29df1cfd59f26cab0d2666aa0")
     version("4.2.0", sha256="691db39178e36fc460c046591e4b0f2a52c8f2b3ee6d750cc2eab25f1eaa999d")
     version("4.1.1", sha256="85fdf11614cc08e3545386d6b9c8c9035e3db1e506211a45f4e108117fe3c951")
     version("4.1.0", sha256="feced2d430dd5a97805fa289fed3fc8ff2b094c02d05287fd6133e7f1f0ec926")
@@ -25,6 +30,8 @@ class Mpfr(AutotoolsPackage, GNUMirrorPackage):
     version("3.1.3", sha256="f63bb459157cacd223caac545cb816bcdb5a0de28b809e7748b82e9eb89b0afd")
     version("3.1.2", sha256="79c73f60af010a30a5c27a955a1d2d01ba095b72537dab0ecaad57f5a7bb1b6b")
 
+    depends_on("c", type="build")  # generated
+
     # mpir is a drop-in replacement for gmp
     depends_on("gmp@4.1:")  # 4.2.3 or higher is recommended
     depends_on("gmp@5.0:", when="@4.0.0:")  # https://www.mpfr.org/mpfr-4.0.0/
@@ -33,7 +40,7 @@ class Mpfr(AutotoolsPackage, GNUMirrorPackage):
     depends_on("automake", type="build")
     depends_on("libtool", type="build")
     depends_on("m4", type="build")
-    depends_on("autoconf-archive", when="@4.0.2:", type="build")
+    depends_on("autoconf-archive", when="@4.0.0:", type="build")
     depends_on("texinfo", when="@4.1.0:", type="build")
 
     variant(

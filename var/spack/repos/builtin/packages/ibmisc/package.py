@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,7 +15,12 @@ class Ibmisc(CMakePackage):
 
     maintainers("citibeth")
 
+    license("LGPL-3.0-only")
+
     version("0.1.0", sha256="38481a8680aad4b40eca6723b2898b344cf0ef891ebc3581f5e99fbe420fa0d8")
+
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("everytrace", default=False, description="Report errors through Everytrace")
     variant("proj", default=True, description="Compile utilities for PROJ.4 library")

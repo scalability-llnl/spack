@@ -1,0 +1,12 @@
+diff --git a/src/core/IO/Model.hpp b/src/core/IO/Model.hpp
+index 0eb6ce1..3a16942 100644
+--- a/src/core/IO/Model.hpp
++++ b/src/core/IO/Model.hpp
+@@ -6,6 +6,7 @@
+ 
+ #include <algorithm>
+ #include <unordered_map>
++#include <stdexcept>
+ extern "C" {
+ #include <pll.h>
+ #include <pllmod_algorithm.h>

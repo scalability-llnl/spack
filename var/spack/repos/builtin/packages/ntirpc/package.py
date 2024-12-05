@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class Ntirpc(CMakePackage):
     version("3.0", sha256="9a6b11c1aa3e7f5f1f491bca0275e759de5bed2d73c8a028af7b6aadb68ac795")
     version("1.8.0", sha256="3bb642dccc8f2506b57a03b5d3358654f59f47b33fddfaa5a7330df4cf336f9f")
     version("1.7.3", sha256="8713ef095efc44df426bbd2b260ad457e5335bf3008fb97f01b0775c8042e54b")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("libnsl")
     depends_on("userspace-rcu")

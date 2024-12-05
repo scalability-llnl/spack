@@ -1,0 +1,13 @@
+diff --git a/libs/pika/coroutines/include/pika/coroutines/detail/posix_utility.hpp b/libs/pika/coroutines/include/pika/coroutines/detail/posix_utility.hpp
+index 107fe781..be52d9c9 100644
+--- a/libs/pika/coroutines/include/pika/coroutines/detail/posix_utility.hpp
++++ b/libs/pika/coroutines/include/pika/coroutines/detail/posix_utility.hpp
+@@ -77,7 +77,7 @@ namespace pika::threads::coroutines::detail::posix {
+
+     inline void* alloc_stack(std::size_t size)
+     {
+-        void* real_stack = ::mmap(nullptr, size + EXEC_PAGESIZE, PROT_EXEC | PROT_READ | PROT_WRITE,
++        void* real_stack = ::mmap(nullptr, size + EXEC_PAGESIZE, PROT_READ | PROT_WRITE,
+ #  if defined(__APPLE__)
+             MAP_PRIVATE | MAP_ANON | MAP_NORESERVE,
+ #  elif defined(__FreeBSD__)

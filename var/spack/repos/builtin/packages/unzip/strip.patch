@@ -1,0 +1,11 @@
+--- spack-src/unix/configure	2024-08-23 14:21:34.822163922 +0200
++++ spack-src/unix/configure.patched	2024-08-23 14:27:24.862640828 +0200
+@@ -17,7 +17,7 @@
+ IZ_BZIP2=${3}
+ CFLAGS="${CFLAGS} -I. -DUNIX"
+ LFLAGS1=""
+-LFLAGS2="-s"
++LFLAGS2="-Wl,-s"
+ LN="ln -s"
+ 
+ CFLAGS_OPT=''

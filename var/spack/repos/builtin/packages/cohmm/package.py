@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,14 +21,16 @@ class Cohmm(MakefilePackage):
 
     version("develop", branch="sad")
 
+    depends_on("c", type="build")  # generated
+
     variant("openmp", default=True, description="Build with OpenMP Support")
     variant("gnuplot", default=False, description="Enable gnu plot Support")
     depends_on("gnuplot", when="+gnuplot")
 
     def edit(self, spec, prefix):
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             filter_file("DO_OPENMP = O.*", "DO_OPENMP = ON", "Makefile")
-        if "+gnuplot" in spec:
+        if spec.satisfies("+gnuplot"):
             filter_file("DO_GNUPLOT = O.*", "DO_GNUPLOT = ON", "Makefile")
 
     def install(self, spec, prefix):

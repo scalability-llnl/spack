@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyPyaml(PythonPackage):
 
     homepage = "https://github.com/mk-fg/pretty-yaml"
     pypi = "pyaml/pyaml-21.8.3.tar.gz"
+
+    license("WTFPL")
 
     version("21.8.3", sha256="a1636d63c476328a07213d0b7111bb63570f1ab8a3eddf60522630250c23d975")
 

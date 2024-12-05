@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class Jansi(MavenPackage):
 
     homepage = "https://fusesource.github.io/jansi/"
     url = "https://github.com/fusesource/jansi/archive/jansi-project-1.18.tar.gz"
+
+    license("Apache-2.0")
 
     version("1.18", sha256="73cd47ecf370a33c6e76afb5d9a8abf99489361d7bd191781dbd9b7efd082aa5")
     version("1.17.1", sha256="3d7280eb14edc82e480d66b225470ed6a1da5c5afa4faeab7804a1f15e53b2cd")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyPythonDateutil(PythonPackage):
 
     homepage = "https://dateutil.readthedocs.io/"
     pypi = "python-dateutil/python-dateutil-2.8.0.tar.gz"
+
+    license("Apache-2.0")
 
     version("2.8.2", sha256="0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86")
     version("2.8.1", sha256="73ebfe9dbf22e832286dafa60473e4cd239f8592f699aa5adaf10050e6e1823c")

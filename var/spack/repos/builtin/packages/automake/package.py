@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class Automake(AutotoolsPackage, GNUMirrorPackage):
     homepage = "https://www.gnu.org/software/automake/"
     gnu_mirror_path = "automake/automake-1.15.tar.gz"
 
+    license("GPL-2.0-or-later")
+
     version("1.16.5", sha256="07bd24ad08a64bc17250ce09ec56e921d6343903943e99ccf63bbf0705e34605")
     version("1.16.3", sha256="ce010788b51f64511a1e9bb2a1ec626037c6d0e7ede32c1c103611b9d3cba65f")
     version("1.16.2", sha256="b2f361094b410b4acbf4efba7337bdb786335ca09eb2518635a09fb7319ca5c1")
@@ -22,6 +24,8 @@ class Automake(AutotoolsPackage, GNUMirrorPackage):
     version("1.14.1", sha256="814c2333f350ce00034a1fe718e0e4239998ceea7b0aff67e9fd273ed6dfc23b")
     version("1.13.4", sha256="4c93abc0bff54b296f41f92dd3aa1e73e554265a6f719df465574983ef6f878c")
     version("1.11.6", sha256="53dbf1945401c43f4ce19c1971baecdbf8bc32e0f37fa3f49fe7b6992d0d2030")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("perl+threads", type=("build", "run"))
@@ -41,10 +45,10 @@ class Automake(AutotoolsPackage, GNUMirrorPackage):
     def patch(self):
         # The full perl shebang might be too long
         files_to_be_patched_fmt = "bin/{0}.in"
-        if "@:1.15.1" in self.spec:
+        if self.spec.satisfies("@:1.15.1"):
             files_to_be_patched_fmt = "t/wrap/{0}.in"
 
-        if "@1.16.3:" in self.spec:
+        if self.spec.satisfies("@1.16.3:"):
             shebang_string = "^#!@PERL@"
         else:
             shebang_string = "^#!@PERL@ -w"

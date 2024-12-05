@@ -1,27 +1,19 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import sys
 
 import pytest
 
 import spack.spec
 import spack.store
 
-pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="does not run on windows")
-
 
 @pytest.mark.parametrize("hash_length", [1, 2, 3, 4, 5, 9])
 @pytest.mark.usefixtures("mock_packages")
 def test_set_install_hash_length(hash_length, mutable_config, tmpdir):
     mutable_config.set("config:install_hash_length", hash_length)
-    mutable_config.set("config:install_tree", {"root": str(tmpdir)})
-    # The call below is to reinitialize the directory layout associated
-    # with the store according to the configuration changes above (i.e.
-    # with the shortened hash)
-    store = spack.store._store()
-    with spack.store.use_store(store):
+    with spack.store.use_store(str(tmpdir)):
         spec = spack.spec.Spec("libelf").concretized()
         prefix = spec.prefix
         hash_str = prefix.rsplit("-")[-1]
@@ -31,14 +23,7 @@ def test_set_install_hash_length(hash_length, mutable_config, tmpdir):
 @pytest.mark.usefixtures("mock_packages")
 def test_set_install_hash_length_upper_case(mutable_config, tmpdir):
     mutable_config.set("config:install_hash_length", 5)
-    mutable_config.set(
-        "config:install_tree", {"root": str(tmpdir), "projections": {"all": "{name}-{HASH}"}}
-    )
-    # The call below is to reinitialize the directory layout associated
-    # with the store according to the configuration changes above (i.e.
-    # with the shortened hash and projection)
-    store = spack.store._store()
-    with spack.store.use_store(store):
+    with spack.store.use_store(str(tmpdir), extra_data={"projections": {"all": "{name}-{HASH}"}}):
         spec = spack.spec.Spec("libelf").concretized()
         prefix = spec.prefix
         hash_str = prefix.rsplit("-")[-1]

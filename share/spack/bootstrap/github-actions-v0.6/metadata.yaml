@@ -1,0 +1,8 @@
+type: buildcache
+description: |
+  Buildcache generated from a public workflow using GitHub Actions hosted on GitHub Packages.
+  The sha256 checksum of binaries is checked before installation.
+info:
+  url: oci://ghcr.io/spack/bootstrap-buildcache-v1
+  homepage: https://github.com/spack/spack-bootstrap-mirrors
+  releases: https://github.com/spack/spack-bootstrap-mirrors/releases

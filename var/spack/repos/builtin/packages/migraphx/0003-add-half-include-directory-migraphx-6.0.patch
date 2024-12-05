@@ -1,0 +1,23 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index a76fb11..0f589d0 100755
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -57,7 +57,8 @@ else()
+ option(MIGRAPHX_ENABLE_PYTHON "Enable python bindings" ON)
+ endif()
+ 
+-find_path(HALF_INCLUDE_DIR half.hpp PATH_SUFFIXES half)
++find_path(HALF_INCLUDE_DIR half.hpp)
++
+ if (NOT HALF_INCLUDE_DIR)
+     message(FATAL_ERROR "Could not find half.hpp - Please check that the install path of half.hpp has been added to CMAKE_PREFIX_PATH")
+ else()
+@@ -278,7 +279,7 @@ if(BUILD_TESTING)
+     add_subdirectory(test)
+ endif()
+ add_subdirectory(tools)
+-
++target_include_directories(migraphx PUBLIC "${NLOHMANN_JSON_INCLUDE} ${HALF_INCLUDE_DIR}")
+ set(DEST_DIR ${CMAKE_BINARY_DIR})
+ file(GLOB backend_files ${CMAKE_SOURCE_DIR}/src/py/backend/*.py)
+ file(MAKE_DIRECTORY ${DEST_DIR}/lib/onnx_migraphx)

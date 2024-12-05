@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -23,13 +23,11 @@ class Gurobi(Package):
     homepage = "https://www.gurobi.com"
     manual_download = True
 
-    maintainers("glennpj")
-
     version("10.0.0", sha256="91a9ce1464f5f948809fcdfbdeb55f77698ed8a6d6cfa6985295424b6ece2bd4")
     version("9.5.2", sha256="95d8ca18b7f86116ba834a27fd6228c5b1708ae67927e7ea0e954c09374a2d0f")
     version("9.5.1", sha256="fa82859d33f08fb8aeb9da66b0fbd91718ed573c534f571aa52372c9deb891da")
     version("9.1.2", sha256="7f60bd675f79476bb2b32cd632aa1d470f8246f2b033b7652d8de86f6e7e429b")
-    version("7.5.2", "01f6dbb8d165838cca1664a1a14e4a85")
+    version("7.5.2", md5="01f6dbb8d165838cca1664a1a14e4a85")
 
     # Licensing
     license_required = True
@@ -59,5 +57,4 @@ class Gurobi(Package):
     @run_after("install")
     def gurobipy(self):
         with working_dir("linux64"):
-            python = which("python")
             python("setup.py", "install", "--prefix={0}".format(self.prefix))

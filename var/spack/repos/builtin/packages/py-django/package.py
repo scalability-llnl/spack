@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,19 +10,32 @@ class PyDjango(PythonPackage):
     """The Web framework for perfectionists with deadlines."""
 
     homepage = "https://www.djangoproject.com/"
-    url = "https://github.com/django/django/archive/3.0.5.tar.gz"
+    pypi = "Django/Django-5.0.1.tar.gz"
 
-    version("3.0.5", sha256="ef2d4f26414dc9598afce9c56cee4578313b88861cedfc5b3d9a71078e5cc79b")
-    version("3.0.4", sha256="99699643d83acfab51d3ad73c2c2904173e03a4f59fe24c3d494e4fafc0b679f")
-    version("3.0.3", sha256="d953c950f0c395db065c8bc39d20e87faded376632a3aacf889ae92d5adaac8b")
-    version("3.0.2", sha256="ca316b1179a16931ed872ce970aabefcf3d41fe0d4b1a8e1301ec59e1e0ab45b")
-    version("3.0.1", sha256="85349b9366364847264b2b707ffcff5a27a022afa29aac0e904ca672cbe5ee65")
-    version("2.2.12", sha256="ec490c67bd2780b4ec4f5355cd99fa2fa6007f81695dd45a9e8f7ccc5ff17772")
-    version("2.2.11", sha256="f4274181973f0f021cc00419cfa342f1a6f862406e766ae93e7fbba9d84c680c")
-    version("2.2.10", sha256="3741536cf122d6695e8575b2fcf67c18812751fd3143393ea75c01a277afdacc")
+    license("BSD-3-Clause", checked_by="wdconinc")
 
+    version("5.1.1", sha256="021ffb7fdab3d2d388bc8c7c2434eb9c1f6f4d09e6119010bbb1694dda286bc2")
+    version("5.0.9", sha256="6333870d342329b60174da3a60dbd302e533f3b0bb0971516750e974a99b5a39")
+    version("5.0.1", sha256="8c8659665bc6e3a44fefe1ab0a291e5a3fb3979f9a8230be29de975e57e8f854")
+    version("3.0.5", sha256="d4666c2edefa38c5ede0ec1655424c56dc47ceb04b6d8d62a7eac09db89545c1")
+    version("3.0.4", sha256="50b781f6cbeb98f673aa76ed8e572a019a45e52bdd4ad09001072dfd91ab07c8")
+    version("3.0.3", sha256="2f1ba1db8648484dd5c238fb62504777b7ad090c81c5f1fd8d5eb5ec21b5f283")
+    version("3.0.2", sha256="8c3575f81e11390893860d97e1e0154c47512f180ea55bd84ce8fa69ba8051ca")
+    version("3.0.1", sha256="315b11ea265dd15348d47f2cbb044ef71da2018f6e582fed875c889758e6f844")
+    version("2.2.12", sha256="69897097095f336d5aeef45b4103dceae51c00afa6d3ae198a2a18e519791b7a")
+    version("2.2.11", sha256="65e2387e6bde531d3bb803244a2b74e0253550a9612c64a60c8c5be267b30f50")
+    version("2.2.10", sha256="1226168be1b1c7efd0e66ee79b0e0b58b2caa7ed87717909cd8a57bb13a7079a")
+
+    depends_on("python@3.10:", when="@5:", type=("build", "run"))
+    depends_on("py-setuptools@61:69.2", when="@5.1:", type="build")
+    depends_on("py-setuptools@40.8:", when="@5:5.0", type="build")
     depends_on("py-setuptools", type="build")
-    depends_on("python@3.6:", type=("build", "run"))
-    depends_on("py-pytz", type=("build", "run"))
-    depends_on("py-sqlparse", type=("build", "run"))
+    depends_on("py-asgiref@3.8.1:3", when="@5.1:", type=("build", "run"))
+    depends_on("py-asgiref@3.7:3", when="@5:", type=("build", "run"))
     depends_on("py-asgiref", type=("build", "run"))
+    depends_on("py-sqlparse@0.3.1:", when="@5:", type=("build", "run"))
+    depends_on("py-sqlparse", type=("build", "run"))
+    depends_on("py-tzdata", when="@5: platform=windows", type=("build", "run"))
+
+    # Historical dependencies
+    depends_on("py-pytz", when="@:3", type=("build", "run"))

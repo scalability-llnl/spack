@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,8 @@ class RSqldf(RPackage):
     backends are supported."""
 
     cran = "sqldf"
+
+    license("GPL-2.0-only")
 
     version("0.4-11", sha256="cee979d4e8c67b4924655365d925a8d67104e62adf71741f645cdc5196de2260")
 

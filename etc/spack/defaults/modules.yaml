@@ -40,9 +40,8 @@ modules:
     roots:
      tcl:    $spack/share/spack/modules
      lmod:   $spack/share/spack/lmod
-    # What type of modules to use
-    enable:
-      - tcl
+    # What type of modules to use ("tcl" and/or "lmod")
+    enable: []
 
     tcl:
       all:

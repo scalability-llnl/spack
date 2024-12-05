@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyWatchdog(PythonPackage):
     homepage = "https://github.com/gorakhargosh/watchdog"
     pypi = "watchdog/watchdog-0.10.3.tar.gz"
 
+    license("Apache-2.0")
+
     version("2.1.6", sha256="a36e75df6c767cbf46f61a91c70b3ba71811dfa0aca4a324d9407a06a8b7a2e7")
     version("0.10.3", sha256="4214e1379d128b0588021880ccaf40317ee156d4603ac388b9adcf29165e0c04")
     version("0.10.2", sha256="c560efb643faed5ef28784b2245cf8874f939569717a4a12826a173ac644456b")
@@ -23,6 +25,8 @@ class PyWatchdog(PythonPackage):
     version("0.8.1", sha256="d6ec6be582b244834a888c8ccc2d451816184ab104b5454b5e5cd7649e8f671c")
     version("0.8.0", sha256="a86bb2d8b94bb4bf76fcc2ff36f741c0e511ec24c4d3a1059b47d49e377d64f5")
     version("0.7.1", sha256="54ca64fdf0a2fb23cecba6349f9587e62fd31840ae22a71898a65adb8c6b52f9")
+
+    depends_on("c", type="build")  # generated
 
     variant(
         "watchmedo",

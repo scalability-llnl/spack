@@ -1,0 +1,137 @@
+From ca583dffd4f0a9295b766f47cc747a407c3d3bc5 Mon Sep 17 00:00:00 2001
+From: Renjith Ravindran <Renjith.RavindranKannath@amd.com>
+Date: Fri, 28 Apr 2023 22:04:26 +0000
+Subject: [PATCH] Patch to handle file reorg change in tests directory
+
+---
+ samples/0_Intro/square/CMakeLists.txt                |  8 ++++++--
+ samples/0_Intro/square/Makefile                      |  2 +-
+ .../12_cmake_hip_add_executable/CMakeLists.txt       |  6 +++---
+ .../2_Cookbook/16_assembly_to_executable/Makefile    |  8 ++++----
+ samples/2_Cookbook/17_llvm_ir_to_executable/Makefile | 12 ++++++------
+ 5 files changed, 20 insertions(+), 16 deletions(-)
+
+diff --git a/samples/0_Intro/square/CMakeLists.txt b/samples/0_Intro/square/CMakeLists.txt
+index 104f828..1a82e51 100644
+--- a/samples/0_Intro/square/CMakeLists.txt
++++ b/samples/0_Intro/square/CMakeLists.txt
+@@ -28,11 +28,15 @@ if (NOT DEFINED ROCM_PATH )
+      set ( ROCM_PATH "/opt/rocm"  CACHE STRING "Default ROCM installation directory." )
+ endif ()
+ 
++if (NOT DEFINED HIPIFY_CLANG_PATH )
++     set(HIPIFY_CLANG_PATH $ENV{HIPIFY_CLANG_PATH} CACHE PATH "Path to which hipify-clang has been installed")
++endif ()
++
+ # Search for rocm in common locations
+ list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/hip ${ROCM_PATH})
+ 
+ # create square.cpp
+-execute_process(COMMAND sh -c "${ROCM_PATH}/hip/bin/hipify-perl ../square.cu > ../square.cpp")
++execute_process(COMMAND sh -c "${HIPIFY_CLANG_PATH}/bin/hipify-perl ../square.cu > ../square.cpp")
+ 
+ # Find hip
+ find_package(hip)
+@@ -45,4 +49,4 @@ set(CMAKE_CXX_LINKER   ${HIP_HIPCC_EXECUTABLE})
+ add_executable(square square.cpp)
+ 
+ # Link with HIP
+-target_link_libraries(square hip::host)
+\ No newline at end of file
++target_link_libraries(square hip::host)
+diff --git a/samples/0_Intro/square/Makefile b/samples/0_Intro/square/Makefile
+index 83a3732..bf204b6 100644
+--- a/samples/0_Intro/square/Makefile
++++ b/samples/0_Intro/square/Makefile
+@@ -38,7 +38,7 @@ all: square.out
+ 
+ # Step
+ square.cpp: square.cu
+-	$(HIP_PATH)/bin/hipify-perl square.cu > square.cpp
++	$(HIPIFY_CLANG_PATH)/bin/hipify-perl square.cu > square.cpp
+ 
+ square.out: $(SOURCES)
+ 	$(HIPCC) $(CXXFLAGS) $(SOURCES) -o $@
+diff --git a/samples/2_Cookbook/12_cmake_hip_add_executable/CMakeLists.txt b/samples/2_Cookbook/12_cmake_hip_add_executable/CMakeLists.txt
+index f1a8bf8..f400c04 100644
+--- a/samples/2_Cookbook/12_cmake_hip_add_executable/CMakeLists.txt
++++ b/samples/2_Cookbook/12_cmake_hip_add_executable/CMakeLists.txt
+@@ -25,12 +25,12 @@ endif ()
+ 
+ if(NOT DEFINED HIP_PATH)
+     if(NOT DEFINED ENV{HIP_PATH})
+-        set(HIP_PATH "${ROCM_PATH}/hip" CACHE PATH "Path to which HIP has been installed")
++        set(HIP_PATH "${ROCM_PATH}" CACHE PATH "Path to which HIP has been installed")
+     else()
+         set(HIP_PATH $ENV{HIP_PATH} CACHE PATH "Path to which HIP has been installed")
+     endif()
+ endif()
+-set(CMAKE_MODULE_PATH "${HIP_PATH}/cmake" ${CMAKE_MODULE_PATH})
++set(CMAKE_MODULE_PATH "${HIP_PATH}/hip/cmake" ${CMAKE_MODULE_PATH})
+ set(CMAKE_HIP_ARCHITECTURES OFF)
+ project(12_cmake)
+ 
+@@ -53,7 +53,7 @@ set_source_files_properties(${MY_SOURCE_FILES} PROPERTIES HIP_SOURCE_PROPERTY_FO
+ hip_add_executable(${MY_TARGET_NAME} ${MY_SOURCE_FILES} HIPCC_OPTIONS ${MY_HIPCC_OPTIONS} HCC_OPTIONS ${MY_HCC_OPTIONS} CLANG_OPTIONS ${MY_CLANG_OPTIONS} NVCC_OPTIONS ${MY_NVCC_OPTIONS})
+ 
+ # Search for rocm in common locations
+-list(APPEND CMAKE_PREFIX_PATH ${HIP_PATH} ${ROCM_PATH})
++list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/hip ${ROCM_PATH})
+ find_package(hip QUIET)
+ if(TARGET hip::host)
+     message(STATUS "Found hip::host at ${hip_DIR}")
+diff --git a/samples/2_Cookbook/16_assembly_to_executable/Makefile b/samples/2_Cookbook/16_assembly_to_executable/Makefile
+index b82ec8f..f57783b 100644
+--- a/samples/2_Cookbook/16_assembly_to_executable/Makefile
++++ b/samples/2_Cookbook/16_assembly_to_executable/Makefile
+@@ -21,15 +21,15 @@ ifeq ($(OS),Windows_NT)
+  $(error Makefile is not supported on windows platform. Please use cmake instead to build sample.)
+ endif
+ ROCM_PATH?= $(wildcard /opt/rocm/)
+-HIP_PATH?= $(wildcard $(ROCM_PATH)/hip)
++HIP_PATH?= $(ROCM_PATH)
+ ifeq (,$(HIP_PATH))
+ 	HIP_PATH=../../..
+ endif
+ 
+ HIPCC=$(HIP_PATH)/bin/hipcc
+-CLANG=$(HIP_PATH)/../llvm/bin/clang
+-LLVM_MC=$(HIP_PATH)/../llvm/bin/llvm-mc
+-CLANG_OFFLOAD_BUNDLER=$(HIP_PATH)/../llvm/bin/clang-offload-bundler
++CLANG=$(LLVM_PATH)/bin/clang
++LLVM_MC=$(LLVM_PATH)/bin/llvm-mc
++CLANG_OFFLOAD_BUNDLER=$(LLVM_PATH)/bin/clang-offload-bundler
+ 
+ SRCS=square.cpp
+ 
+diff --git a/samples/2_Cookbook/17_llvm_ir_to_executable/Makefile b/samples/2_Cookbook/17_llvm_ir_to_executable/Makefile
+index 835f4b2..0706f44 100644
+--- a/samples/2_Cookbook/17_llvm_ir_to_executable/Makefile
++++ b/samples/2_Cookbook/17_llvm_ir_to_executable/Makefile
+@@ -21,17 +21,17 @@ ifeq ($(OS),Windows_NT)
+  $(error Makefile is not supported on windows platform. Please use cmake instead to build sample.)
+ endif
+ ROCM_PATH?= $(wildcard /opt/rocm/)
+-HIP_PATH?= $(wildcard $(ROCM_PATH)/hip)
++HIP_PATH?= $(ROCM_PATH)
+ ifeq (,$(HIP_PATH))
+ 	HIP_PATH=../../..
+ endif
+ 
+ HIPCC=$(HIP_PATH)/bin/hipcc
+-CLANG=$(HIP_PATH)/../llvm/bin/clang
+-LLVM_MC=$(HIP_PATH)/../llvm/bin/llvm-mc
+-CLANG_OFFLOAD_BUNDLER=$(HIP_PATH)/../llvm/bin/clang-offload-bundler
+-LLVM_AS=$(HIP_PATH)/../llvm/bin/llvm-as
+-LLVM_DIS=$(HIP_PATH)/../llvm/bin/llvm-dis
++CLANG=$(LLVM_PATH)/bin/clang
++LLVM_MC=$(LLVM_PATH)/bin/llvm-mc
++CLANG_OFFLOAD_BUNDLER=$(LLVM_PATH)/bin/clang-offload-bundler
++LLVM_AS=$(LLVM_PATH)/bin/llvm-as
++LLVM_DIS=$(LLVM_PATH)/bin/llvm-dis
+ 
+ SRCS=square.cpp
+ 
+-- 
+2.31.1
+

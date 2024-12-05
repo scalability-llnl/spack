@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyOpenpmdValidator(PythonPackage):
     pypi = "openPMD-validator/openPMD-validator-1.1.0.3.tar.gz"
 
     maintainers("ax3l")
+
+    license("ISC")
 
     version("1.1.0.3", sha256="b2e57123c1dc09cdc121011d007e30fab82b3d21732d02e4f1ba919b24345810")
     version("1.1.0.2", sha256="6ac6e2860351d9940821ca6f3b44ab63629e0bd06f6984225c55830c3e58b83c")

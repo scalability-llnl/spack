@@ -1,0 +1,23 @@
+diff --git a/config/mkinc b/config/mkinc
+index e52bb64..6d96176 100755
+--- a/config/mkinc
++++ b/config/mkinc
+@@ -17,7 +17,7 @@ exec perl /tmp/visitperl$$ $0 ${1+"$@"}
+ unlink $0;
+ $0 = shift @ARGV;
+
+-#!/usr/bin/perl
++#!/usr/bin/env perl
+ #########################################################################
+ # Copyright (C) 1994-2016 Lawrence Livermore National Security, LLC.
+ # LLNL-CODE-425250.
+diff --git a/config/mklite b/config/mklite
+index f9394a9..274c867 100755
+--- a/config/mklite
++++ b/config/mklite
+@@ -1,4 +1,4 @@
+-#!/usr/bin/perl
++#!/usr/bin/env perl
+
+ #
+ # Tool to generate lite_pdb.h file from pdb.h and score.h headers.

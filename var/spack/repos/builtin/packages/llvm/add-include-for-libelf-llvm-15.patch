@@ -1,0 +1,26 @@
+From 5e149c3ec8118ad8f3d20a30ce5d3fbac4072515 Mon Sep 17 00:00:00 2001
+From: Harmen Stoppels <me@harmenstoppels.nl>
+Date: Wed, 23 Aug 2023 11:35:23 +0200
+Subject: [PATCH] Add corresponding -I for libelf.h
+
+Funnily enough, it's added to `include_directories` in multiple places,
+except where it's necessary.
+---
+ openmp/libomptarget/plugins/amdgpu/CMakeLists.txt | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt b/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt
+index 66bf680d15c7..6be12ab6d7f8 100644
+--- a/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt
++++ b/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt
+@@ -99,6 +99,7 @@ target_include_directories(
+   PRIVATE
+   ${LIBOMPTARGET_INCLUDE_DIR}
+   ${CMAKE_CURRENT_SOURCE_DIR}/impl
++  ${LIBOMPTARGET_DEP_LIBELF_INCLUDE_DIR}
+ )
+ 
+ 
+-- 
+2.39.2
+

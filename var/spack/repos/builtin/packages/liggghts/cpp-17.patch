@@ -1,0 +1,75 @@
+diff --git a/src/math_vector.h b/src/math_vector.h
+index 2b8704af..79c0cedd 100644
+--- a/src/math_vector.h
++++ b/src/math_vector.h
+@@ -94,7 +94,7 @@ inline void vec_neg(vector &dest) {                                // -a
+   dest[2] = -dest[2]; }
+ 
+ inline void vec_norm(vector &dest) {                                 // a/|a|
+-  register double f = sqrt(vec_dot(dest, dest));
++  double f = sqrt(vec_dot(dest, dest));
+   dest[0] /= f;
+   dest[1] /= f;
+   dest[2] /= f; }
+@@ -222,7 +222,7 @@ inline void form_subtr(shape &dest, form &src) {                // m_a-m_b
+   dest[3] -= src[3]; dest[4] -= src[4]; dest[5] -= src[5]; }
+ 
+ inline int form_inv(form &m_inv, form &m) {                        // m^-1
+-  register double det = form_det(m);
++  double det = form_det(m);
+   if (fzero(det)) return 0;
+   m_inv[0] = (m[1]*m[2]-m[3]*m[3])/det;
+   m_inv[1] = (m[0]*m[2]-m[4]*m[4])/det;
+@@ -377,7 +377,7 @@ inline void form4_unit(form4 &dest) {
+   dest[0] = dest[1] = dest[2] = dest[3] = 1.0; }
+ 
+ inline double form4_det(form4 &m) {
+-  register double f = m[6]*m[7]-m[5]*m[8];
++  double f = m[6]*m[7]-m[5]*m[8];
+   return m[0]*(
+       m[1]*(m[2]*m[3]-m[4]*m[4])+
+       m[5]*(2.0*m[4]*m[7]-m[2]*m[5])-m[3]*m[7]*m[7])+f*f+
+@@ -387,7 +387,7 @@ inline double form4_det(form4 &m) {
+         m[9]*(m[4]*m[4]-m[2]*m[3])); }
+ 
+ inline int form4_inv(form4 &m_inv, form4 &m) {
+-  register double det = form4_det(m);
++  double det = form4_det(m);
+   if (fzero(det)) return 0;
+   m_inv[0] = (m[1]*(m[2]*m[3]-m[4]*m[4])+
+       m[5]*(2.0*m[4]*m[7]-m[2]*m[5])-m[3]*m[7]*m[7])/det;
+diff --git a/src/pair.cpp b/src/pair.cpp
+index c0889f72..8c212715 100644
+--- a/src/pair.cpp
++++ b/src/pair.cpp
+@@ -566,7 +566,7 @@ void Pair::init_tables_disp(double cut_lj_global)
+     }
+     
+     rsq = rsq_lookup.f;
+-    register double x2 = g2*rsq, a2 = 1.0/x2;
++    double x2 = g2*rsq, a2 = 1.0/x2;
+     x2 = a2*exp(-x2);
+ 
+     rdisptable[i] = rsq_lookup.f;
+@@ -612,7 +612,7 @@ void Pair::init_tables_disp(double cut_lj_global)
+   if (rsq_lookup.f < (cut_lj_globalsq = cut_lj_global * cut_lj_global)) {
+     rsq_lookup.f = cut_lj_globalsq;
+     
+-    register double x2 = g2*rsq, a2 = 1.0/x2;
++    double x2 = g2*rsq, a2 = 1.0/x2;
+     x2 = a2*exp(-x2);
+     f_tmp = g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq;
+     e_tmp = g6*((a2+1.0)*a2+0.5)*x2;
+diff --git a/src/utils.h b/src/utils.h
+index fab00e9b..5a122627 100644
+--- a/src/utils.h
++++ b/src/utils.h
+@@ -67,7 +67,7 @@ namespace Utils {
+ 
+   inline std::string int_to_string(int a)
+   {
+-    return static_cast< std::ostringstream & >(( std::ostringstream() << std::dec << a ) ).str();
++    return static_cast< std::ostringstream & >(( std::ostringstream().flush() << std::dec << a ) ).str();
+   }
+ 
+   inline std::string double_to_string(double dbl)

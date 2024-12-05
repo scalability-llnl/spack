@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class Genesis(AutotoolsPackage, CudaPackage):
     url = "https://www.r-ccs.riken.jp/labs/cbrt/wp-content/uploads/2020/09/genesis-1.5.1.tar.bz2"
     git = "https://github.com/genesis-release-r-ccs/genesis-2.0.git"
 
+    license("LGPL-3.0-or-later")
+
     version(
         "1.6.0",
         sha256="d0185a5464ed4231f6ee81f6dcaa15935a99fa30b96658d2b7c25d7fbc5b38e9",
@@ -27,6 +29,9 @@ class Genesis(AutotoolsPackage, CudaPackage):
         sha256="62a453a573c36779484b4ffed2dfa56ea03dfe1308d631b33ef03f733259b3ac",
         url="https://www.r-ccs.riken.jp/labs/cbrt/wp-content/uploads/2020/09/genesis-1.5.1.tar.bz2",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     resource(
         when="@1.6.0",
@@ -79,7 +84,7 @@ class Genesis(AutotoolsPackage, CudaPackage):
         options.extend(self.enable_or_disable("openmp"))
         options.extend(self.enable_or_disable("single"))
         options.extend(self.enable_or_disable("hmdisk"))
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             options.append("--enable-gpu")
             options.append("--with-cuda=%s" % spec["cuda"].prefix)
         else:
@@ -94,7 +99,7 @@ class Genesis(AutotoolsPackage, CudaPackage):
         env.set("CC", self.spec["mpi"].mpicc, force=True)
         env.set("CXX", self.spec["mpi"].mpicxx, force=True)
         env.set("LAPACK_LIBS", self.spec["lapack"].libs.ld_flags)
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             cuda_arch = self.spec.variants["cuda_arch"].value
             cuda_gencode = " ".join(self.cuda_flags(cuda_arch))
             env.set("NVCCFLAGS", cuda_gencode)
@@ -112,4 +117,4 @@ class Genesis(AutotoolsPackage, CudaPackage):
     def cache_test_sources(self):
         """Copy test files after the package is installed for test()."""
         if self.spec.satisfies("@master"):
-            self.cache_extra_test_sources(["tests"])
+            cache_extra_test_sources(self, ["tests"])

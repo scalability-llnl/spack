@@ -1,0 +1,73 @@
+From 27672784304d4c944e2e3c7d526dfd77f021a113 Mon Sep 17 00:00:00 2001
+From: Howard Pritchard <howardp@lanl.gov>
+Date: Thu, 16 Nov 2023 07:05:01 -0700
+Subject: [PATCH] btlsmcuda: fix problem with makefile
+
+when libcuda.so is in a non-standard location.
+
+also fix rcache/gpusm and rcache/rgpsum
+
+Similar fix to that in #12065
+
+Signed-off-by: Howard Pritchard <howardp@lanl.gov>
+
+diff --git a/opal/mca/btl/smcuda/Makefile.am b/opal/mca/btl/smcuda/Makefile.am
+index f1a89df8..8ee37add 100644
+--- a/opal/mca/btl/smcuda/Makefile.am
++++ b/opal/mca/btl/smcuda/Makefile.am
+@@ -51,7 +51,7 @@ endif
+ mcacomponentdir = $(opallibdir)
+ mcacomponent_LTLIBRARIES = $(component_install)
+ mca_btl_smcuda_la_SOURCES = $(libmca_btl_smcuda_la_sources)
+-mca_btl_smcuda_la_LDFLAGS = -module -avoid-version
++mca_btl_smcuda_la_LDFLAGS = -module -avoid-version $(btl_smcuda_LDFLAGS)
+ mca_btl_smcuda_la_LIBADD = $(top_builddir)/opal/lib@OPAL_LIB_NAME@.la \
+     $(OPAL_TOP_BUILDDIR)/opal/mca/common/sm/lib@OPAL_LIB_NAME@mca_common_sm.la \
+     $(btl_smcuda_LIBS)
+@@ -59,6 +59,6 @@ mca_btl_smcuda_la_CPPFLAGS = $(btl_smcuda_CPPFLAGS)
+ 
+ noinst_LTLIBRARIES = $(component_noinst)
+ libmca_btl_smcuda_la_SOURCES = $(libmca_btl_smcuda_la_sources)
+-libmca_btl_smcuda_la_LDFLAGS = -module -avoid-version
++libmca_btl_smcuda_la_LDFLAGS = -module -avoid-version $(btl_smcuda_LDFLAGS)
+ libmca_btl_smcuda_la_CPPFLAGS = $(btl_smcuda_CPPFLAGS)
+ libmca_btl_smcuda_la_LIBADD = $(btl_smcuda_LIBS)
+diff --git a/opal/mca/rcache/gpusm/Makefile.am b/opal/mca/rcache/gpusm/Makefile.am
+index 5645e5ea..1ff63b35 100644
+--- a/opal/mca/rcache/gpusm/Makefile.am
++++ b/opal/mca/rcache/gpusm/Makefile.am
+@@ -48,11 +48,11 @@ endif
+ mcacomponentdir = $(opallibdir)
+ mcacomponent_LTLIBRARIES = $(component_install)
+ mca_rcache_gpusm_la_SOURCES = $(sources)
+-mca_rcache_gpusm_la_LDFLAGS = -module -avoid-version
++mca_rcache_gpusm_la_LDFLAGS = -module -avoid-version $(rcache_gpusm_LDFLAGS)
+ mca_rcache_gpusm_la_LIBADD = $(top_builddir)/opal/lib@OPAL_LIB_NAME@.la \
+ 	$(rcache_gpusm_LIBS)
+ 
+ noinst_LTLIBRARIES = $(component_noinst)
+ libmca_rcache_gpusm_la_SOURCES = $(sources)
+-libmca_rcache_gpusm_la_LDFLAGS = -module -avoid-version
++libmca_rcache_gpusm_la_LDFLAGS = -module -avoid-version $(rcache_gpusm_LDFLAGS)
+ libmca_rcache_gpusm_la_LIBADD = $(rcache_gpusm_LIBS)
+diff --git a/opal/mca/rcache/rgpusm/Makefile.am b/opal/mca/rcache/rgpusm/Makefile.am
+index 6d2fdbc3..dde81411 100644
+--- a/opal/mca/rcache/rgpusm/Makefile.am
++++ b/opal/mca/rcache/rgpusm/Makefile.am
+@@ -46,11 +46,11 @@ endif
+ mcacomponentdir = $(opallibdir)
+ mcacomponent_LTLIBRARIES = $(component_install)
+ mca_rcache_rgpusm_la_SOURCES = $(sources)
+-mca_rcache_rgpusm_la_LDFLAGS = -module -avoid-version
++mca_rcache_rgpusm_la_LDFLAGS = -module -avoid-version $(rcache_rgpusm_LDFLAGS)
+ mca_rcache_rgpusm_la_LIBADD = $(top_builddir)/opal/lib@OPAL_LIB_NAME@.la \
+ 	$(rcache_rgpusm_LIBS)
+ 
+ noinst_LTLIBRARIES = $(component_noinst)
+ libmca_rcache_rgpusm_la_SOURCES = $(sources)
+-libmca_rcache_rgpusm_la_LDFLAGS = -module -avoid-version
++libmca_rcache_rgpusm_la_LDFLAGS = -module -avoid-version $(rcache_rgpusm_LDFLAGS)
+ libmca_rcache_rgpusm_la_LIBADD = $(rcache_rgpusm_LIBS)
+-- 
+2.35.3
+

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,7 +21,11 @@ class Zstd(CMakePackage, MakefilePackage):
 
     maintainers("haampie")
 
+    license("BSD-3-Clause OR GPL-2.0-or-later")
+
     version("develop", branch="dev")
+    version("1.5.6", sha256="30f35f71c1203369dc979ecde0400ffea93c27391bfd2ac5a9715d2173d92ff7")
+    version("1.5.5", sha256="98e9c3d949d1b924e28e01eccb7deed865eefebf25c2f21c702e5cd5b63b85e1")
     version("1.5.4", sha256="35ad983197f8f8eb0c963877bf8be50490a0b3df54b4edeb8399ba8a8b2f60a4")
     version("1.5.2", sha256="f7de13462f7a82c29ab865820149e778cbfe01087b3a55b5332707abf9db4a6e")
     version("1.5.0", sha256="0d9ade222c64e912d6957b11c923e214e2e010a18f39bec102f572e693ba2867")
@@ -36,6 +40,9 @@ class Zstd(CMakePackage, MakefilePackage):
     version("1.3.8", sha256="90d902a1282cc4e197a8023b6d6e8d331c1fd1dfe60f7f8e4ee9da40da886dc3")
     version("1.3.0", sha256="0fdba643b438b7cbce700dcc0e7b3e3da6d829088c63757a5984930e2f70b348")
     version("1.1.2", sha256="980b8febb0118e22f6ed70d23b5b3e600995dbf7489c1f6d6122c1411cdda8d8")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("programs", default=False, description="Build executables")
     variant(
@@ -52,7 +59,9 @@ class Zstd(CMakePackage, MakefilePackage):
         description="Enable support for additional compression methods in programs",
     )
 
-    depends_on("zlib", when="compression=zlib")
+    depends_on("cmake@3.5:", type="build", when="build_system=cmake @1.5.6:")
+
+    depends_on("zlib-api", when="compression=zlib")
     depends_on("lz4", when="compression=lz4")
     depends_on("xz", when="compression=lzma")
 
@@ -60,7 +69,9 @@ class Zstd(CMakePackage, MakefilePackage):
     # (last tested: nvhpc@22.3)
     conflicts("+programs %nvhpc")
 
-    build_system("cmake", "makefile", default="cmake")
+    conflicts("platform=windows", when="@1.5.6")
+
+    build_system("cmake", "makefile", default="makefile")
 
 
 class CMakeBuilder(CMakeBuilder):
@@ -88,10 +99,10 @@ class CMakeBuilder(CMakeBuilder):
 
 
 class MakefileBuilder(MakefileBuilder):
-    def build(self, spec, prefix):
+    def build(self, pkg, spec, prefix):
         pass
 
-    def install(self, spec, prefix):
+    def install(self, pkg, spec, prefix):
         args = ["VERBOSE=1", "PREFIX=" + prefix]
 
         # Tested %nvhpc@22.3. No support for -MP

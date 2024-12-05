@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,7 @@ class RCner(RPackage):
 
     bioc = "CNEr"
 
+    version("1.36.0", commit="4f2feeb395cfc071ed97ba8b6327425dfd42d6b5")
     version("1.34.0", commit="878de98d18f6f959ad5e014ecd8165d3105d8b48")
     version("1.32.0", commit="1c92f3d7f3dccf76ab7d54f286117b09bc470b8f")
     version("1.30.0", commit="e682f2a7c8ebb561c872cf51a58ba36eed341187")
@@ -23,6 +24,8 @@ class RCner(RPackage):
     version("1.16.1", commit="a2bec4b98d5938709f959a69c151f553ef357941")
     version("1.14.0", commit="b8634d65c51728c815127e22b45eba7c9b9db897")
     version("1.12.1", commit="90d611f9cd19a73d0fe92ab03ef428519d64c017")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r@3.2.2:", type=("build", "run"))
     depends_on("r@3.4:", type=("build", "run"), when="@1.14.0:")
@@ -46,3 +49,4 @@ class RCner(RPackage):
     depends_on("r-go-db@3.3.0:", type=("build", "run"))
     depends_on("r-r-utils@2.3.0:", type=("build", "run"))
     depends_on("r-keggrest@1.14.0:", type=("build", "run"))
+    depends_on("zlib-api")

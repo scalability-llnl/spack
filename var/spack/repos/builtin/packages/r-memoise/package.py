@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class RMemoise(RPackage):
     same arguments it returns the pre-computed value."""
 
     cran = "memoise"
+
+    license("MIT")
 
     version("2.0.1", sha256="f85034ee98c8ca07fb3cd826142c1cd1e1e5747075a94c75a45783bbc4fe2deb")
     version("1.1.0", sha256="b276f9452a26aeb79e12dd7227fcc8712832781a42f92d70e86040da0573980c")

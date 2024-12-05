@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,10 +14,10 @@ class HashTest2(Package):
     homepage = "http://www.hashtest2.org"
     url = "http://www.hashtest1.org/downloads/hashtest2-1.1.tar.bz2"
 
-    version("1.1", "a" * 32)
-    version("1.2", "b" * 32)
-    version("1.3", "c" * 31 + "x")  # Source hash differs from hash-test1@1.3
-    version("1.4", "d" * 32)
+    version("1.1", md5="a" * 32)
+    version("1.2", md5="b" * 32)
+    version("1.3", md5="c" * 31 + "x")  # Source hash differs from hash-test1@1.3
+    version("1.4", md5="d" * 32)
 
     patch("patch1.patch", when="@1.1")
 

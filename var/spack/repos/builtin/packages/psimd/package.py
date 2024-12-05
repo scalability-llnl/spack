@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class Psimd(CMakePackage):
 
     homepage = "https://github.com/Maratyszcza/psimd"
     git = "https://github.com/Maratyszcza/psimd.git"
+
+    license("MIT")
 
     version("master", branch="master")
     version("2020-05-17", commit="072586a71b55b7f8c584153d223e95687148a900")  # py-torch@1.6:1.9

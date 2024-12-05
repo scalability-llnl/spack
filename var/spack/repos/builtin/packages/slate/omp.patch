@@ -1,0 +1,20 @@
+diff --git a/src/omptarget/device_util.hh b/src/omptarget/device_util.hh
+index e7aa15c3..3968878d 100644
+--- a/src/omptarget/device_util.hh
++++ b/src/omptarget/device_util.hh
+@@ -6,6 +6,8 @@
+ #ifndef SLATE_OMPTARGET_UTIL_HH
+ #define SLATE_OMPTARGET_UTIL_HH
+ 
++#ifdef SLATE_HAVE_OMPTARGET
++
+ #include <math.h>
+ 
+ namespace slate {
+@@ -157,4 +159,6 @@ inline double abs_val(std::complex<double> x)
+ } // namespace device
+ } // namespace slate
+ 
++#endif // SLATE_HAVE_OMPTARGET
++
+ #endif // SLATE_OMPTARGET_UTIL_HH

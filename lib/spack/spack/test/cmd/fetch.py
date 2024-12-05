@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -9,7 +9,9 @@ import spack.environment as ev
 from spack.main import SpackCommand, SpackCommandError
 
 # everything here uses the mock_env_path
-pytestmark = pytest.mark.usefixtures("mutable_mock_env_path", "config", "mutable_mock_repo")
+pytestmark = pytest.mark.usefixtures(
+    "mutable_mock_env_path", "mutable_config", "mutable_mock_repo"
+)
 
 
 @pytest.mark.disable_clean_stage_check
@@ -30,7 +32,7 @@ def test_fetch_single_spec(tmpdir, mock_archive, mock_stage, mock_fetch, install
 
 @pytest.mark.disable_clean_stage_check
 def test_fetch_multiple_specs(tmpdir, mock_archive, mock_stage, mock_fetch, install_mockery):
-    SpackCommand("fetch")("mpileaks", "gcc@10.2.0", "python")
+    SpackCommand("fetch")("mpileaks", "gcc@3.0", "python")
 
 
 def test_fetch_no_argument():

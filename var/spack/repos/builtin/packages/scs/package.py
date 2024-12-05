@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,7 +13,11 @@ class Scs(MakefilePackage):
     homepage = "https://github.com/cvxgrp/scs"
     url = "https://github.com/cvxgrp/scs/archive/2.1.1.tar.gz"
 
+    license("MIT")
+
     version("2.1.1", sha256="0e20b91e8caf744b84aa985ba4e98cc7235ee33612b2bad2bf31ea5ad4e07d93")
+
+    depends_on("c", type="build")  # generated
 
     variant("cuda", default=False, description="Build with Cuda support")
 

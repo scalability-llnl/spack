@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyPem(PythonPackage):
 
     homepage = "https://pem.readthedocs.io/en/stable/"
     url = "https://github.com/hynek/pem/archive/20.1.0.tar.gz"
+
+    license("MIT")
 
     version("20.1.0", sha256="140df7388f72bdf95d5a40e152cfda4fd62856b8320a9a808ffdc2bee37d5c36")
     version("19.3.0", sha256="22c526314db05559d5a6b0661aa6a21f26a1ad9f6f10a6ba2d386534ad12b175")

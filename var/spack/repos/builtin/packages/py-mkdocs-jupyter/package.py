@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyMkdocsJupyter(PythonPackage):
 
     homepage = "https://github.com/danielfrg/mkdocs-jupyter"
     pypi = "mkdocs-jupyter/mkdocs-jupyter-0.21.0.tar.gz"
+
+    license("Apache-2.0")
 
     version("0.21.0", sha256="c8c00ce44456e3cf50c5dc3fe0cb18fab6467fb5bafc2c0bfe1efff3e0a52470")
     version("0.20.1", sha256="3b6ef675ee2f22ad94047db7f84e212f5278529df659f7584b5a2b8662db39f6")

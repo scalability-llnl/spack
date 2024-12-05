@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,8 @@ class Libevent(AutotoolsPackage):
     url = "https://github.com/libevent/libevent/releases/download/release-2.1.8-stable/libevent-2.1.8-stable.tar.gz"
     list_url = "https://libevent.org/old-releases.html"
 
+    license("BSD-3-Clause")
+
     version("2.1.12", sha256="92e6de1be9ec176428fd2367677e61ceffc2ee1cb119035037a27d346b0403bb")
     version("2.1.11", sha256="a65bac6202ea8c5609fd5c7e480e6d25de467ea1917c08290c521752f147283d")
     version("2.1.10", sha256="e864af41a336bb11dab1a23f32993afe963c1f69618bd9292b89ecf6904845b0")
@@ -33,6 +35,8 @@ class Libevent(AutotoolsPackage):
     version("2.0.14", sha256="3c97a72cddd5bff63450efe7c646e15ad08dec32d5223b69cb10c2dc305812da")
     version("2.0.13", sha256="e2cc3b9f03e68ff878919b1cd031a210ba9ff376283d895161afcbc25aca00a9")
     version("2.0.12", sha256="ac0283f72e0f881e93ac3ae9497a20c78bd075c6c12506ad10e821aa1c29e5ab")
+
+    depends_on("c", type="build")  # generated
 
     variant(
         "openssl", default=True, description="Build with encryption enabled at the libevent level."
@@ -57,7 +61,7 @@ class Libevent(AutotoolsPackage):
     def configure_args(self):
         spec = self.spec
         configure_args = []
-        if "+openssl" in spec:
+        if spec.satisfies("+openssl"):
             configure_args.append("--enable-openssl")
         else:
             configure_args.append("--disable-openssl")

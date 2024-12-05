@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,6 +22,18 @@ class Slepc(Package, CudaPackage, ROCmPackage):
     test_requires_compiler = True
 
     version("main", branch="main")
+    version("3.22.2", sha256="b60e58b2fa5eb7db05ce5e3a585811b43b1cc7cf89c32266e37b05f0cefd8899")
+    version("3.22.1", sha256="badb5cb038d09dbf1cc8f34d194673ab011c69cc46888101955c786d21c8d8c9")
+    version("3.22.0", sha256="45eb4d085875b50108c91fd9168ed17bc9158cc3b1e530ac843b26d9981c3db0")
+    version("3.21.2", sha256="306fa649750509b3957b9f9311bff5dc1d20be5c5d494dd6472584c439b931f6")
+    version("3.21.1", sha256="beb33f0a15c3ce81744b15ad09ddf84dae70dbf3475c5ef032b8549ab87d6d8a")
+    version("3.21.0", sha256="782833f0caa6585509a837ccd470265c62a1bb56ba64e54c38bde6c63d92629e")
+    version("3.20.2", sha256="125258c87360e326675238eaeb21ce2fbb3f27f4eeb1c72062043931aea05493")
+    version("3.20.1", sha256="5a36b664895881d3858d0644f56bf7bb922bdab70d732fa11cbf6442fec11806")
+    version("3.20.0", sha256="780c50260a9bc9b72776cb920774800c73832370938f1d48c2ea5c66d31b7380")
+    version("3.19.2", sha256="ca7ed906795971fbe35f08ee251a26b86a4442a18609b878cba00835c9d62034")
+    version("3.19.1", sha256="280737e9ef762d7f0079ad3ad29913215c799ebf124651c723c1972f71fbc0db")
+    version("3.19.0", sha256="724f6610a2e38b1be7586fd494fe350b58f5aee1ca734bd85e783aa9d3daa8de")
     version("3.18.3", sha256="1b02bdf87c083749e81b3735aae7728098eaab78143b262b92c2ab164924c6f5")
     version("3.18.2", sha256="5bd90a755934e702ab1fdb3320b9fe75ab5fc28c93d364248ea86a372fbe6a62")
     version("3.18.1", sha256="f6e6e16d8399c3f94d187da9d4bfdfca160de50ebda7d63f6fa8ef417597e9b4")
@@ -51,6 +63,10 @@ class Slepc(Package, CudaPackage, ROCmPackage):
     version("3.11.1", sha256="4816070d4ecfeea6212c6944cee22dc7b4763df1eaf6ab7847cc5ac5132608fb")
     version("3.11.0", sha256="bf29043c311fe2c549a25e2b0835095723a3eebc1dff288a233b32913b5762a2")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("arpack", default=True, description="Enables Arpack wrappers")
     variant("blopex", default=False, description="Enables BLOPEX wrappers")
     variant("hpddm", default=False, description="Enables HPDDM wrappers")
@@ -60,14 +76,21 @@ class Slepc(Package, CudaPackage, ROCmPackage):
 
     # Cannot mix release and development versions of SLEPc and PETSc:
     depends_on("petsc@main", when="@main")
-    depends_on("petsc@3.18.0:3.18", when="@3.18.0:3.18")
-    depends_on("petsc@3.17.0:3.17", when="@3.17.0:3.17")
-    depends_on("petsc@3.16.0:3.16", when="@3.16.0:3.16")
-    depends_on("petsc@3.15.0:3.15", when="@3.15.0:3.15")
-    depends_on("petsc@3.14.0:3.14", when="@3.14.0:3.14")
-    depends_on("petsc@3.13.0:3.13", when="@3.13.0:3.13")
-    depends_on("petsc@3.12.0:3.12", when="@3.12.0:3.12")
-    depends_on("petsc@3.11.0:3.11", when="@3.11.0:3.11")
+    for ver in [
+        "3.22",
+        "3.21",
+        "3.20",
+        "3.19",
+        "3.18",
+        "3.17",
+        "3.16",
+        "3.15",
+        "3.14",
+        "3.13",
+        "3.12",
+        "3.11",
+    ]:
+        depends_on(f"petsc@{ver}", when=f"@{ver}")
     depends_on("petsc+cuda", when="+cuda")
     depends_on("arpack-ng~mpi", when="+arpack^petsc~mpi~int64")
     depends_on("arpack-ng+mpi", when="+arpack^petsc+mpi~int64")
@@ -180,48 +203,36 @@ class Slepc(Package, CudaPackage, ROCmPackage):
             join_path(self.stage.source_path, "make.log"),
         ]
 
-    def run_hello_test(self):
-        """Run stand alone test: hello"""
+    def test_hello(self):
+        """build and run hello"""
         test_dir = self.test_suite.current_test_data_dir
-
         if not os.path.exists(test_dir):
-            print("Skipping slepc test")
-            return
+            raise SkipTest(f"Test data directory ({test_dir}) is missing")
 
-        exe = "hello"
-        cc_exe = os.environ["CC"]
+        test_exe = "hello"
+        options = [
+            f"-I{self.prefix.include}",
+            "-L",
+            self.prefix.lib,
+            "-l",
+            "slepc",
+            "-L",
+            self.spec["petsc"].prefix.lib,
+            "-l",
+            "petsc",
+            "-L",
+            self.spec["mpi"].prefix.lib,
+            "-l",
+            "mpi",
+            "-o",
+            test_exe,
+            join_path(test_dir, f"{test_exe}.c"),
+        ]
 
-        self.run_test(
-            exe=cc_exe,
-            options=[
-                "-I{0}".format(self.prefix.include),
-                "-L",
-                self.prefix.lib,
-                "-l",
-                "slepc",
-                "-L",
-                self.spec["petsc"].prefix.lib,
-                "-l",
-                "petsc",
-                "-L",
-                self.spec["mpi"].prefix.lib,
-                "-l",
-                "mpi",
-                "-o",
-                exe,
-                join_path(test_dir, "hello.c"),
-            ],
-            purpose="test: compile {0} example".format(exe),
-            work_dir=test_dir,
-        )
+        cc = which(os.environ["CC"])
+        with working_dir(test_dir):
+            cc(*options)
 
-        self.run_test(
-            exe=exe,
-            options=[],
-            expected=["Hello world"],
-            purpose="test: run {0} example".format(exe),
-            work_dir=test_dir,
-        )
-
-    def test(self):
-        self.run_hello_test()
+            hello = which(test_exe)
+            out = hello(output=str.split, error=str.split)
+            assert "Hello world" in out

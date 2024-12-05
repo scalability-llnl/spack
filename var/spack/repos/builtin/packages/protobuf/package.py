@@ -1,11 +1,9 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import sys
-
-import spack.util.web
+import spack.url
 from spack.package import *
 
 
@@ -16,13 +14,25 @@ class Protobuf(CMakePackage):
     url = "https://github.com/protocolbuffers/protobuf/archive/v3.18.0.tar.gz"
     maintainers("hyoklee")
 
+    license("BSD-3-Clause")
+
+    version("3.28.2", sha256="1b6b6a7a7894f509f099c4469b5d4df525c2f3c9e4009e5b2db5b0f66cb8ee0e")
+    version("3.27.5", sha256="a4aa92d0a207298149bf553d9a3192f3562eb91740086f50fa52331e60fa480c")
+    version("3.26.1", sha256="f3c0830339eaa5036eba8ff8ce7fca5aa3088f7d616f7c3713d946f611ae92bf")
+    version("3.25.3", sha256="da82be8acc5347c7918ef806ebbb621b24988f7e1a19b32cd7fc73bc29b59186")
+    version("3.24.3", sha256="2c23dee0bdbc36bd43ee457083f8f5560265d0815cc1c56033de3932843262fe")
+    version("3.23.3", sha256="5e4b555f72a7e3f143a7aff7262292500bb02c49b174351684bb70fc7f2a6d33")
+    version("3.22.2", sha256="2118051b4fb3814d59d258533a4e35452934b1ddb41230261c9543384cbb4dfc")
     version("3.21.12", sha256="930c2c3b5ecc6c9c12615cf5ad93f1cd6e12d0aba862b572e076259970ac3a53")
+    version("3.21.9", sha256="1add10f9bd92775b91f326da259f243881e904dd509367d5031d4c782ba82810")
     version("3.21.7", sha256="ce2fbea3c78147a41b2a922485d283137845303e5e1b6cbd7ece94b96ade7031")
     version("3.21.5", sha256="d7d204a59fd0d2d2387bd362c2155289d5060f32122c4d1d922041b61191d522")
     version("3.21.4", sha256="85d42d4485f36f8cec3e475a3b9e841d7d78523cd775de3a86dba77081f4ca25")
     version("3.21.3", sha256="c29d8b4b79389463c546f98b15aa4391d4ed7ec459340c47bffe15db63eb9126")
     version("3.21.2", sha256="66e1156ac78290db81335c79d1fc5a54123ebb62a43eb2e5b42a44ca23087517")
     version("3.21.1", sha256="a295dd3b9551d3e2749a9969583dea110c6cdcc39d02088f7c7bb1100077e081")
+    version("3.20.3", sha256="9c0fd39c7a08dff543c643f0f4baf081988129a411b977a07c46221793605638")
+    version("3.20.2", sha256="88231778cffebf93bc905e76ea757fae0f2ef497cc00f64973e41f1acd4fc781")
     version("3.20.1", sha256="8b28fdd45bab62d15db232ec404248901842e5340299a57765e48abe8a80d930")
     version("3.20.0", sha256="b07772d38ab07e55eca4d50f4b53da2d998bb221575c60a4f81100242d4b4889")
     version("3.19.4", sha256="3bd7828aa5af4b13b99c191e8b1e884ebfa9ad371b0ce264605d347f135d2568")
@@ -70,6 +80,9 @@ class Protobuf(CMakePackage):
     version("3.1.0", sha256="fb2a314f4be897491bb2446697be693d489af645cb0e165a85e7e64e07eb134d")
     version("3.0.2", sha256="a0a265bcc9d4e98c87416e59c33afc37cede9fb277292523739417e449b18c1e")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     variant("shared", default=True, description="Enables the build of shared libraries")
     variant(
         "build_type",
@@ -78,7 +91,10 @@ class Protobuf(CMakePackage):
         values=("Debug", "Release", "RelWithDebInfo"),
     )
 
-    depends_on("zlib")
+    depends_on("abseil-cpp@20230125.3:", when="@3.22.5:")
+    # https://github.com/protocolbuffers/protobuf/issues/11828#issuecomment-1433557509
+    depends_on("abseil-cpp@20230125:", when="@3.22:")
+    depends_on("zlib-api")
 
     conflicts("%gcc@:4.6", when="@3.6.0:")  # Requires c++11
     conflicts("%gcc@:4.6", when="@3.2.0:3.3.0")  # Breaks
@@ -98,6 +114,31 @@ class Protobuf(CMakePackage):
         sha256="fa1abf042eddc1b3b43875dc018c651c90cd1c0c5299975a818a1610bee54ab8",
     )
 
+    # fix build on Centos 8, see also https://github.com/protocolbuffers/protobuf/issues/5144
+    patch(
+        "https://github.com/protocolbuffers/protobuf/commit/462964ed322503af52638d54c00a0a67d7133349.patch?full_index=1",
+        when="@3.4:3.21",
+        sha256="9b6dcfa30dd3ae0abb66ab0f252a4fc1e1cc82a9820d2bdb72da35c4f80c3603",
+    )
+
+    patch("msvc-abseil-target-namespace.patch", when="@3.22 %msvc")
+
+    # Misisng #include "absl/container/internal/layout.h"
+    # See https://github.com/protocolbuffers/protobuf/pull/14042
+    patch(
+        "https://github.com/protocolbuffers/protobuf/commit/e052928c94f5a9a6a6cbdb82e09ab4ee92b7815f.patch?full_index=1",
+        when="@3.22:3.24.3 ^abseil-cpp@20240116:",
+        sha256="20e3cc99a9513b256e219653abe1bfc7d6b6a5413e269676e3d442830f99a1af",
+    )
+
+    # Missing #include "absl/strings/str_cat.h"
+    # See https://github.com/protocolbuffers/protobuf/pull/14054
+    patch(
+        "https://github.com/protocolbuffers/protobuf/commit/38a24729ec94e6576a1425951c898ad0b91ad2d2.patch?full_index=1",
+        when="@3.22:3.24.3 ^abseil-cpp@20240116:",
+        sha256="c061356db31cdce29c8cdd98a3a8219ef048ebc2318d0dec26c1f2c5e5dae29b",
+    )
+
     def fetch_remote_versions(self, *args, **kwargs):
         """Ignore additional source artifacts uploaded with releases,
         only keep known versions
@@ -105,20 +146,29 @@ class Protobuf(CMakePackage):
         return dict(
             map(
                 lambda u: (u, self.url_for_version(u)),
-                spack.util.web.find_versions_of_archive(
-                    self.all_urls, self.list_url, self.list_depth
-                ),
+                spack.url.find_versions_of_archive(self.all_urls, self.list_url, self.list_depth),
             )
         )
 
     def cmake_args(self):
         args = [
-            "-DBUILD_SHARED_LIBS=%s" % int("+shared" in self.spec),
-            "-Dprotobuf_BUILD_TESTS:BOOL=OFF",
-            "-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON",
+            self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
+            self.define("protobuf_BUILD_TESTS", False),
+            self.define("CMAKE_POSITION_INDEPENDENT_CODE", True),
         ]
-        if sys.platform == "darwin":
-            args.extend(["-DCMAKE_MACOSX_RPATH=ON"])
+
+        if self.spec.satisfies("@3.22:"):
+            cxxstd = self.spec["abseil-cpp"].variants["cxxstd"].value
+            args.extend(
+                [
+                    self.define("protobuf_ABSL_PROVIDER", "package"),
+                    self.define("CMAKE_CXX_STANDARD", cxxstd),
+                ]
+            )
+
+        if self.spec.satisfies("platform=darwin"):
+            args.append(self.define("CMAKE_MACOSX_RPATH", True))
+
         return args
 
     @property

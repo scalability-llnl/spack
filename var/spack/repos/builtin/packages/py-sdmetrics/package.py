@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PySdmetrics(PythonPackage):
 
     homepage = "https://github.com/sdv-dev/SDMetrics"
     pypi = "sdmetrics/sdmetrics-0.4.1.tar.gz"
+
+    license("MIT")
 
     version("0.4.1", sha256="28df1cdd6988b3464306c1d189da19ee13a49023c53ca8b3db399fc9fd45fae8")
 

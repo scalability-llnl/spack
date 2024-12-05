@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,15 +11,21 @@ class Podman(Package):
 
     homepage = "https://podman.io"
     url = "https://github.com/containers/podman/archive/refs/tags/v4.3.1.tar.gz"
-    maintainers("bernhardkaindl")
+    maintainers("alecbcs")
 
+    license("Apache-2.0")
+
+    version("4.5.1", sha256="ee2c8b02b7fe301057f0382637b995a9c6c74e8d530692d6918e4c509ade6e39")
     version("4.3.1", sha256="455c29c4ee78cd6365e5d46e20dd31a5ce4e6e1752db6774253d76bd3ca78813")
     version("3.4.7", sha256="4af6606dd072fe946960680611ba65201be435b43edbfc5cc635b2a01a899e6e")
     version("3.4.2", sha256="b0c4f9a11eb500b1d440d5e51a6c0c632aa4ac458e2dc0362f50f999eb7fbf31")
 
+    depends_on("c", type="build")  # generated
+
     # See <https://github.com/containers/podman/issues/16996> for the
     # respective issue and the suggested patch
-    patch("markdown-utf8.diff", when="@4:")
+    # issue was fixed as of 4.4.0
+    patch("markdown-utf8.diff", when="@4:4.3.1")
 
     depends_on("go", type="build")
     depends_on("go-md2man", type="build")

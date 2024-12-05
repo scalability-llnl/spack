@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class LpSolve(Package):
     url = "https://sourceforge.net/projects/lpsolve/files/lpsolve/5.5.2.11/lp_solve_5.5.2.11_source.tar.gz"
 
     version("5.5.2.11", sha256="6d4abff5cc6aaa933ae8e6c17a226df0fc0b671c438f69715d41d09fe81f902f")
+
+    depends_on("c", type="build")  # generated
 
     def install(self, spec, prefix):
         with working_dir("lpsolve55"):

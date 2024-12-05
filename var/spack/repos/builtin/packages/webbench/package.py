@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,7 +12,11 @@ class Webbench(MakefilePackage):
     homepage = "http://home.tiscali.cz/~cz210552/webbench.html"
     git = "https://github.com/EZLippi/WebBench.git"
 
+    license("GPL-3.0-or-later")
+
     version("1.5", commit="b1acf3c01cc914729fe188dfc8ed761858028d4f")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("ntirpc")
 

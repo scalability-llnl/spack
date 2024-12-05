@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,6 +22,8 @@ class Casper(MakefilePackage):
         sha256="3005e165cebf8ce4e12815b7660a833e0733441b5c7e5ecbfdccef7414b0c914",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
 
     depends_on("jellyfish@2.2.3:")
     depends_on("boost+exception")

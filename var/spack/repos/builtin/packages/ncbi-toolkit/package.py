@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -37,6 +37,9 @@ class NcbiToolkit(AutotoolsPackage):
         url="ftp://ftp.ncbi.nih.gov/toolbox/ncbi_tools++/ARCHIVE/2018/Apr_2_2018/ncbi_cxx--21_0_0.tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("debug", default=False, description="Build debug versions of libs and apps")
 
     depends_on("boost@1.35.0:+test+log")
@@ -52,7 +55,7 @@ class NcbiToolkit(AutotoolsPackage):
     depends_on("pcre")
     depends_on("giflib")
     depends_on("sqlite@3.6.6:")
-    depends_on("zlib")
+    depends_on("zlib-api")
     depends_on("samtools")
     depends_on("bamtools")
     depends_on("berkeley-db")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,7 @@ class LibpthreadStubs(AutotoolsPackage, XorgPackage):
 
     maintainers("wdconinc")
 
+    version("0.5", sha256="593196cc746173d1e25cb54a93a87fd749952df68699aab7e02c085530e87747")
     version(
         "0.4",
         sha256="50d5686b79019ccea08bcbd7b02fe5a40634abcfd4146b6e75c6420cc170e9d9",

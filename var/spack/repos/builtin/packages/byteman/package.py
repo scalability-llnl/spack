@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class Byteman(MavenPackage):
 
     homepage = "https://www.jboss.org/byteman"
     url = "https://github.com/bytemanproject/byteman/archive/4.0.12.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("4.0.12", sha256="72fdc904d7b8df9e743fbb5ae84e51ffc81d32b6e0b0b80fc7ac165dd8c9c7c2")
     version("4.0.11", sha256="8e4af6019702c8b22f354962f35f197f9ba2c8699235aac77ebd9263ac12261b")

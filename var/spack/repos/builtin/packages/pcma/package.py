@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class Pcma(MakefilePackage):
     url = "http://prodata.swmed.edu/download/pub/PCMA/pcma.tar.gz"
 
     version("2.0", sha256="4b92d412126d393baa3ede501cafe9606ada9a66af6217d56befd6ec2e0c01ba")
+
+    depends_on("c", type="build")  # generated
 
     def edit(self, spec, prefix):
         makefile = FileFilter("makefile")

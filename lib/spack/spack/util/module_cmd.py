@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,6 +10,7 @@ parsing environment modules.
 import os
 import re
 import subprocess
+from typing import MutableMapping, Optional
 
 import llnl.util.tty as tty
 
@@ -21,8 +22,13 @@ module_change_commands = ["load", "swap", "unload", "purge", "use", "unuse"]
 awk_cmd = r"""awk 'BEGIN{for(name in ENVIRON)""" r"""printf("%s=%s%c", name, ENVIRON[name], 0)}'"""
 
 
-def module(*args, **kwargs):
-    module_cmd = kwargs.get("module_template", "module " + " ".join(args))
+def module(
+    *args,
+    module_template: Optional[str] = None,
+    environb: Optional[MutableMapping[bytes, bytes]] = None,
+):
+    module_cmd = module_template or ("module " + " ".join(args))
+    environb = environb or os.environb
 
     if args[0] in module_change_commands:
         # Suppress module output
@@ -33,10 +39,10 @@ def module(*args, **kwargs):
             stderr=subprocess.STDOUT,
             shell=True,
             executable="/bin/bash",
+            env=environb,
         )
 
-        # In Python 3, keys and values of `environ` are byte strings.
-        environ = {}
+        new_environb = {}
         output = module_p.communicate()[0]
 
         # Loop over each environment variable key=value byte string
@@ -45,11 +51,11 @@ def module(*args, **kwargs):
             parts = entry.split(b"=", 1)
             if len(parts) != 2:
                 continue
-            environ[parts[0]] = parts[1]
+            new_environb[parts[0]] = parts[1]
 
         # Update os.environ with new dict
-        os.environ.clear()
-        os.environb.update(environ)  # novermin
+        environb.clear()
+        environb.update(new_environb)  # novermin
 
     else:
         # Simply execute commands that don't change state and return output

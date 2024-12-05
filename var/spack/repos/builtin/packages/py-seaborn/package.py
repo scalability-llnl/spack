@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,9 @@ class PySeaborn(PythonPackage):
     homepage = "https://seaborn.pydata.org/"
     pypi = "seaborn/seaborn-0.7.1.tar.gz"
 
+    license("BSD-2-Clause")
+
+    version("0.13.2", sha256="93e60a40988f4d65e9f4885df477e2fdaff6b73a9ded434c1ab356dd57eefff7")
     version("0.12.2", sha256="374645f36509d0dcab895cba5b47daf0586f77bfe3b36c97c607db7da5be0139")
     version("0.12.0", sha256="893f17292d8baca616c1578ddb58eb25c72d622f54fc5ee329c8207dc9b57b23")
     version("0.11.2", sha256="cf45e9286d40826864be0e3c066f98536982baf701a7caa386511792d61ff4f6")
@@ -36,6 +39,8 @@ class PySeaborn(PythonPackage):
     depends_on("py-numpy@1.15:", when="@0.11:", type=("build", "run"))
     depends_on("py-numpy@1.9.3:", when="@0.9:", type=("build", "run"))
     depends_on("py-numpy", type=("build", "run"))
+    # https://github.com/mwaskom/seaborn/pull/3683
+    depends_on("py-numpy@:1", when="@:0.13.1", type=("build", "run"))
     depends_on("py-pandas@0.25:", when="@0.12:", type=("build", "run"))
     depends_on("py-pandas@0.23:", when="@0.11:", type=("build", "run"))
     depends_on("py-pandas@0.22:", when="@0.10:", type=("build", "run"))

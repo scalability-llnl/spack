@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class Hc(MakefilePackage):
 
     homepage = "https://geodynamics.org/cig/software/hc/"
     url = "https://geodynamics.org/cig/software/hc/hc-1.0.7.tar.gz"
+
+    license("GPL-2.0-only")
 
     version("1.0.7", sha256="7499ea76ac4739a9c0941bd57d124fb681fd387c8d716ebb358e6af3395103ed")
 

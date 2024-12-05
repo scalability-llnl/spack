@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class Hibench(MavenPackage):
 
     homepage = "https://github.com/Intel-bigdata/HiBench"
     url = "https://github.com/Intel-bigdata/HiBench/archive/HiBench-7.1.tar.gz"
+
+    license("Apache-2.0")
 
     version("7.1", sha256="96572a837d747fb6347f2b906fd5f7fb97a62095435326ccfee5e75777a5c210")
     version("7.0", sha256="89b01f3ad90b758f24afd5ea2bee997c3d700ce9244b8a2b544acc462ab0e847")

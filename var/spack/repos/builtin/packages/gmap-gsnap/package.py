@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,25 @@ class GmapGsnap(AutotoolsPackage):
     homepage = "http://research-pub.gene.com/gmap/"
     url = "http://research-pub.gene.com/gmap/src/gmap-gsnap-2017-06-16.tar.gz"
 
+    maintainers("snehring")
+
+    license("Apache-2.0")
+
+    version(
+        "2023-07-20", sha256="19e70eebd9b282d8596721812d071efed188b6d5000627b9948f0486f87fe68f"
+    )
+    version(
+        "2023-06-01", sha256="c7e6f6cf644e6f66f9f5a0811a49da8cc81f095a4bd7b7cef2ab10aa5b314430"
+    )
+    version(
+        "2023-04-28", sha256="6e73fab2e8043ebf735c43fe8460d2abd7c1398d1e796dc5b22ba68717f4160c"
+    )
+    version(
+        "2023-03-24", sha256="eec93a2a693c1bc5bf3026b39522f45e8a8aad6e8b8b4239a94aa17f37600762"
+    )
+    version(
+        "2023-02-17", sha256="d54abb6bc59da46823f5a1a9d94872a6b90468699112a6f375ddc7b91340db06"
+    )
     version(
         "2021-03-08", sha256="00de0e945b86bcbda50df94c68a61957f3783e232cce466fcd5f8d3a55398aa2"
     )
@@ -42,15 +61,24 @@ class GmapGsnap(AutotoolsPackage):
         "2014-12-28", sha256="108433f3e3ea89b8117c8bb36d396913225caf1261d46ce6d89709ff1b44025d"
     )
 
-    depends_on("zlib")
+    depends_on("c", type="build")  # generated
+
+    depends_on("zlib-api")
     depends_on("bzip2")
+    depends_on("perl", type="run")
+
+    requires("simd=arm", when="target=aarch64", msg="simd=arm is required when building on arm")
 
     variant(
         "simd",
         description="CPU support.",
-        values=("avx2", "sse42", "avx512", "sse2"),
+        values=(
+            conditional("avx2", "sse42", "avx512", "sse2", when="target=x86_64:"),
+            conditional("arm", when="@2023-02-17: target=aarch64:"),
+            conditional("avx512", "avx512bw", when="@2023-03-24: target=x86_64:"),
+        ),
         multi=True,
-        default="sse2",
+        default="avx2",
     )
 
     def configure(self, spec, prefix):
@@ -74,3 +102,6 @@ class GmapGsnap(AutotoolsPackage):
         for simd in spec.variants["simd"].value:
             with working_dir(simd):
                 make("install")
+
+    def setup_build_environment(self, env):
+        env.set("PERL", self.spec["perl"].prefix.bin.perl)

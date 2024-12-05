@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,9 @@ class RTibble(RPackage):
 
     cran = "tibble"
 
+    license("MIT")
+
+    version("3.2.1", sha256="65a72d0c557fd6e7c510d150c935ed6ced5db7d05fc20236b370f11428372131")
     version("3.1.8", sha256="acf30e075d18d2f61de53ca20a13c502bb32abb8083089b0bb9172a0cb5cedea")
     version("3.1.7", sha256="e1a50891f476803526960b4c4d736a72e7d9c3d366946744a02d6347f591c872")
     version("3.1.6", sha256="5b33d909f146ebad38e262f6a57cb91ab70bfe240c2af01004beec11b3898292")
@@ -28,8 +31,11 @@ class RTibble(RPackage):
     version("1.2", sha256="ed8a8bd0591223f742be80fd1cd8c4a9618d0f04011ec95c272b61ea45193104")
     version("1.1", sha256="10ea18890e5514faa4c2c05fa231a6e2bbb7689f3800850cead214306414c88e")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@3.1.2:", type=("build", "run"))
     depends_on("r@3.1.0:", type=("build", "run"), when="@1.3.0:")
+    depends_on("r@3.4.0:", type=("build", "run"), when="@3.2.1:")
     depends_on("r-fansi@0.4.0:", type=("build", "run"), when="@2.0.0:")
     depends_on("r-lifecycle@0.2.0:", type=("build", "run"), when="@3.0.5:")
     depends_on("r-lifecycle@1.0.0:", type=("build", "run"), when="@3.1.5:")
@@ -39,6 +45,7 @@ class RTibble(RPackage):
     depends_on("r-pillar@1.6.0:", type=("build", "run"), when="@3.1.0:")
     depends_on("r-pillar@1.6.2:", type=("build", "run"), when="@3.1.4:")
     depends_on("r-pillar@1.7.0:", type=("build", "run"), when="@3.1.7:")
+    depends_on("r-pillar@1.8.1:", type=("build", "run"), when="@3.2.1:")
     depends_on("r-pkgconfig", type=("build", "run"), when="@2.0.0:")
     depends_on("r-rlang@0.3.0:", type=("build", "run"), when="@1.3.1:")
     depends_on("r-rlang@0.4.3:", type=("build", "run"), when="@3.0.5:")
@@ -46,12 +53,12 @@ class RTibble(RPackage):
     depends_on("r-rlang@1.0.2:", type=("build", "run"), when="@3.1.8:")
     depends_on("r-vctrs@0.3.2:", type=("build", "run"), when="@3.0.5:")
     depends_on("r-vctrs@0.3.8:", type=("build", "run"), when="@3.1.2:")
+    depends_on("r-vctrs@0.4.2:", type=("build", "run"), when="@3.2.1:")
 
     depends_on("r-cli", type=("build", "run"), when="@1.4.2:3.0")
     depends_on("r-crayon@1.3.4:", type=("build", "run"), when="@1.4.1:3.0")
     depends_on("r-assertthat", type=("build", "run"), when="@:1.3.1")
     depends_on("r-lazyeval@0.1.10:", type=("build", "run"), when="@:1.3.0")
     depends_on("r-rcpp@0.12.3:", type=("build", "run"), when="@:1.3.4")
-    depends_on("r-ellipsis@0.2.0:", type=("build", "run"), when="@3.0.5:")
-    depends_on("r-ellipsis@0.3.2:", type=("build", "run"), when="@3.1.2:")
-    depends_on("r-ellipsis", when="@:3.1.7")
+    depends_on("r-ellipsis@0.2.0:", type=("build", "run"), when="@3.0.5:3.1.7")
+    depends_on("r-ellipsis@0.3.2:", type=("build", "run"), when="@3.1.2:3.1.7")

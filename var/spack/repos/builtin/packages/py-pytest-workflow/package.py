@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class PyPytestWorkflow(PythonPackage):
 
     homepage = "https://github.com/LUMC/pytest-workflow"
     pypi = "pytest-workflow/pytest-workflow-1.6.0.tar.gz"
+
+    license("AGPL-3.0-or-later")
 
     version("1.6.0", sha256="8fb9fb31a6132c783231afbbbb92941297a42713dcd459694b5efe4a13b8cba7")
 

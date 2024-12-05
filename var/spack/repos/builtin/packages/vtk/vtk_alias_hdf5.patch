@@ -1,0 +1,14 @@
+diff --git a/CMake/patches/99/FindHDF5.cmake b/CMake/patches/99/FindHDF5.cmake
+index b54877d519..adf5d84430 100644
+--- a/CMake/patches/99/FindHDF5.cmake
++++ b/CMake/patches/99/FindHDF5.cmake
+@@ -1150,6 +1150,9 @@ if (HDF5_FOUND)
+       endif ()
+     endif ()
+   endforeach ()
++  if(NOT TARGET "hdf5")
++    add_library(hdf5 ALIAS hdf5::hdf5)
++  endif()
+   unset(hdf5_lang)
+ 
+   if (HDF5_DIFF_EXECUTABLE AND NOT TARGET hdf5::h5diff)

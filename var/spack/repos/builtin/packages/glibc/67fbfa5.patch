@@ -1,0 +1,53 @@
+From 67fbfa5ca15f75774dcb3794aceb06aa42544c94 Mon Sep 17 00:00:00 2001
+From: Roland McGrath <roland@gnu.org>
+Date: Fri, 1 Feb 2008 00:20:11 +0000
+Subject: [PATCH] [BZ #5442]
+
+	* configure.in: Use -print-file-name if it yields a directory,
+	for each of include and include-fixed.
+	* configure: Regenerated.
+---
+ ChangeLog      | 5 +++++
+ configure      | 8 ++++++--
+ configure.in   | 8 ++++++--
+ nptl/ChangeLog | 4 ++++
+ 4 files changed, 21 insertions(+), 4 deletions(-)
+
+diff --git a/configure b/configure
+index 1f2cd4fc533..4b969787e3d 100755
+--- a/configure
++++ b/configure
+@@ -5065,8 +5065,12 @@ echo "$as_me: WARNING:
+ # header directory and add that to the list.  NOTE: Only does the right
+ # thing on a system that doesn't need fixincludes.  (Not presently a problem.)
+ if test -n "$sysheaders"; then
+-  ccheaders=`$CC -print-file-name=include`
+-  SYSINCLUDES="-nostdinc -isystem $ccheaders \
++  SYSINCLUDES=-nostdinc
++  for d in include include-fixed; do
++    i=`$CC -print-file-name="$d"` && test "x$i" != "x$d" &&
++    SYSINCLUDES="$SYSINCLUDES -isystem $i"
++  done
++  SYSINCLUDES="$SYSINCLUDES \
+ -isystem `echo $sysheaders | sed 's/:/ -isystem /g'`"
+   if test -n "$CXX"; then
+     cxxversion=`$CXX -dumpversion 2>&5` &&
+diff --git a/configure.in b/configure.in
+index 6ea1b26ff34..3098ebfd3d7 100644
+--- a/configure.in
++++ b/configure.in
+@@ -914,8 +914,12 @@ test -n "$aux_missing" && AC_MSG_WARN([
+ # header directory and add that to the list.  NOTE: Only does the right
+ # thing on a system that doesn't need fixincludes.  (Not presently a problem.)
+ if test -n "$sysheaders"; then
+-  ccheaders=`$CC -print-file-name=include`
+-  SYSINCLUDES="-nostdinc -isystem $ccheaders \
++  SYSINCLUDES=-nostdinc
++  for d in include include-fixed; do
++    i=`$CC -print-file-name="$d"` && test "x$i" != x && test "x$i" != "x$d" &&
++    SYSINCLUDES="$SYSINCLUDES -isystem $i"
++  done
++  SYSINCLUDES="$SYSINCLUDES \
+ -isystem `echo $sysheaders | sed 's/:/ -isystem /g'`"
+   if test -n "$CXX"; then
+     cxxversion=`$CXX -dumpversion 2>&AS_MESSAGE_LOG_FD` &&

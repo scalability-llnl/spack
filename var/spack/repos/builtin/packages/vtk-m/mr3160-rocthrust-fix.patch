@@ -1,0 +1,74 @@
+From c9ec6ae6a62b9bd257e727e999987ef31384e3ac Mon Sep 17 00:00:00 2001
+From: Vicente Adolfo Bolea Sanchez <vicente.bolea@kitware.com>
+Date: Thu, 30 Nov 2023 15:55:32 -0500
+Subject: [PATCH] kokkos: let link vtkm_cont to roc::rocthrust
+
+Also reorder the declarion of the option VTKm_ENABLE_KOKKOS_THRUST
+to be set before calling VTKmDeviceAdapters.
+---
+ CMake/VTKmDeviceAdapters.cmake           |  5 +----
+ CMakeLists.txt                           | 10 +++++-----
+ vtkm/cont/kokkos/internal/CMakeLists.txt |  3 +++
+ 3 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/CMake/VTKmDeviceAdapters.cmake b/CMake/VTKmDeviceAdapters.cmake
+index fb13d0bf85..7b8bf2df9b 100644
+--- a/CMake/VTKmDeviceAdapters.cmake
++++ b/CMake/VTKmDeviceAdapters.cmake
+@@ -360,10 +360,7 @@ if(VTKm_ENABLE_KOKKOS AND NOT TARGET vtkm_kokkos)
+ 
+     # Make sure rocthrust is available if requested
+     if(VTKm_ENABLE_KOKKOS_THRUST)
+-      find_package(rocthrust)
+-      if(NOT rocthrust_FOUND)
+-        message(FATAL_ERROR "rocthrust not found. Please set VTKm_ENABLE_KOKKOS_THRUST to OFF.")
+-      endif()
++      find_package(rocthrust REQUIRED CONFIG)
+     endif()
+   endif()
+ 
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 39a9b3bc09..d8204114c7 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -191,6 +191,11 @@ vtkm_option(VTKm_OVERRIDE_CTEST_TIMEOUT "Disable default ctest timeout" OFF)
+ # VTKm_ENABLE_MPI=ON.
+ cmake_dependent_option(VTKm_ENABLE_GPU_MPI "Enable GPU AWARE MPI support" OFF "VTKm_ENABLE_MPI" OFF)
+ 
++# By default: Set VTKm_ENABLE_KOKKOS_THRUST to ON if VTKm_ENABLE_KOKKOS is ON, otherwise
++# disable it (or if the user explicitly turns this option OFF)
++cmake_dependent_option(VTKm_ENABLE_KOKKOS_THRUST "Enable Kokkos thrust support (only valid with CUDA and HIP)"
++  ON "VTKm_ENABLE_KOKKOS;Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_HIP" OFF)
++
+ mark_as_advanced(
+   VTKm_ENABLE_LOGGING
+   VTKm_NO_ASSERT
+@@ -232,11 +237,6 @@ include(VTKmBuildType)
+ # Include the vtk-m wrappers
+ include(VTKmWrappers)
+ 
+-# By default: Set VTKm_ENABLE_KOKKOS_THRUST to ON if VTKm_ENABLE_KOKKOS is ON, otherwise
+-# disable it (or if the user explicitly turns this option OFF)
+-cmake_dependent_option(VTKm_ENABLE_KOKKOS_THRUST "Enable Kokkos thrust support (only valid with CUDA and HIP)"
+-  ON "VTKm_ENABLE_KOKKOS;Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_HIP" OFF)
+-
+ # Create vtkm_compiler_flags library. This is an interface library that
+ # holds all the C++ compiler flags that are needed for consumers and
+ # when building VTK-m.
+diff --git a/vtkm/cont/kokkos/internal/CMakeLists.txt b/vtkm/cont/kokkos/internal/CMakeLists.txt
+index 9f924b0f4b..9b731c9fdd 100644
+--- a/vtkm/cont/kokkos/internal/CMakeLists.txt
++++ b/vtkm/cont/kokkos/internal/CMakeLists.txt
+@@ -34,6 +34,9 @@ if (TARGET vtkm_kokkos)
+   elseif(TARGET vtkm_kokkos_hip)
+     set_source_files_properties(${sources} TARGET_DIRECTORY vtkm_cont PROPERTIES LANGUAGE HIP)
+     kokkos_compilation(SOURCE ${sources})
++    if (VTKm_ENABLE_KOKKOS_THRUST)
++      target_link_libraries(vtkm_cont INTERFACE roc::rocthrust)
++    endif()
+   endif()
+ 
+ else()
+-- 
+2.35.3
+

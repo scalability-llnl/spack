@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,12 +15,12 @@ class Armadillo(CMakePackage):
     homepage = "http://arma.sourceforge.net/"
     url = "http://sourceforge.net/projects/arma/files/armadillo-7.200.1.tar.xz"
 
-    version("8.100.1", "d9762d6f097e0451d0cfadfbda295e7c")
-    version("7.950.1", "c06eb38b12cae49cab0ce05f96147147")
-    version("7.900.1", "5ef71763bd429a3d481499878351f3be")
-    version("7.500.0", "7d316fdf3c3c7ea92b64704180ae315d")
-    version("7.200.2", "b21585372d67a8876117fd515d8cf0a2")
-    version("7.200.1", "ed86d6df0058979e107502e1fe3e469e")
+    version("8.100.1", md5="d9762d6f097e0451d0cfadfbda295e7c")
+    version("7.950.1", md5="c06eb38b12cae49cab0ce05f96147147")
+    version("7.900.1", md5="5ef71763bd429a3d481499878351f3be")
+    version("7.500.0", md5="7d316fdf3c3c7ea92b64704180ae315d")
+    version("7.200.2", md5="b21585372d67a8876117fd515d8cf0a2")
+    version("7.200.1", md5="ed86d6df0058979e107502e1fe3e469e")
 
     variant("hdf5", default=False, description="Include HDF5 support")
 

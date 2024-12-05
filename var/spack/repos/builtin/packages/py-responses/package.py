@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyResponses(PythonPackage):
     pypi = "responses/responses-0.13.3.tar.gz"
 
     maintainers("dorton21")
+
+    license("Apache-2.0")
 
     version("0.13.3", sha256="18a5b88eb24143adbf2b4100f328a2f5bfa72fbdacf12d97d41f07c26c45553d")
 

@@ -38,8 +38,6 @@ spack:
     - - $compiler
     - - $target
 
-  mirrors: { "mirror": "s3://spack-binaries/develop/radiuss-aws-aarch64" }
-
   ci:
     pipeline-gen:
     - build-job:

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyAvroPython3(PythonPackage):
 
     homepage = "https://github.com/apache/avro/tree/master/lang/py3"
     pypi = "avro-python3/avro-python3-1.10.0.tar.gz"
+
+    license("Apache-2.0")
 
     version("1.10.0", sha256="a455c215540b1fceb1823e2a918e94959b54cb363307c97869aa46b5b55bde05")
     version("1.9.1", sha256="daab2cea71b942a1eb57d700d4a729e9d6cd93284d4dd4d65a378b9f958aa0d2")

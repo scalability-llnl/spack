@@ -1,0 +1,14 @@
+*** a/VTK/ThirdParty/exodusII/vtkexodusII/src/ex_utils.c	2023-03-16 16:57:14.172102586 -0400
+--- b/VTK/ThirdParty/exodusII/vtkexodusII/src/ex_utils.c	2023-03-16 11:20:28.230116660 -0400
+***************
+*** 1770,1776 ****
+--- 1770,1778 ----
+          */
+  
+          /* const int NC_SZIP_EC = 4; */ /* Selects entropy coding method for szip. */
++ #ifndef NC_SZIP_NN
+          const int NC_SZIP_NN = 32;      /* Selects nearest neighbor coding method for szip. */
++ #endif
+          /* Even and between 4 and 32; typical values are 8, 10, 16, 32 */
+          const int SZIP_PIXELS_PER_BLOCK =
+              file->compression_level == 0 ? 32 : file->compression_level;

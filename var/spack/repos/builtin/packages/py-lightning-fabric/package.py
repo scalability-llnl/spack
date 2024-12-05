@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyLightningFabric(PythonPackage):
 
     homepage = "https://github.com/Lightning-AI/lightning"
     pypi = "lightning-fabric/lightning-fabric-2.0.0.tar.gz"
+
+    license("Apache-2.0")
 
     version("2.0.0", sha256="56ecf23e2857f76cc1ca4528cc314b884fed1541182d4e8b130e3c2efd39c896")
 

@@ -1,0 +1,12 @@
+diff --git a/core/web/pom.xml b/core/web/pom.xml
+index d595aea0e..362dd0326 100644
+--- a/core/web/pom.xml
++++ b/core/web/pom.xml
+@@ -247,6 +247,7 @@
+                         <artifactId>maven-war-plugin</artifactId>
+                         <version>${mvn.war.version}</version>
+                         <configuration>
++			    <classifier>interpo-protein-page</classifier>
+                             <warName>interpro-protein-page</warName>
+                             <webResources>
+                                 <resource>

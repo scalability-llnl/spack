@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyContextily(PythonPackage):
     pypi = "contextily/contextily-1.0.1.tar.gz"
 
     maintainers("adamjstewart")
+
+    license("BSD-3-Clause")
 
     version("1.0.1", sha256="f7dc25dbc8e01163be6cdeedb49a56da9cd0d586c838861f442ef2ee45eba9d4")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyCligj(PythonPackage):
 
     homepage = "https://github.com/mapbox/cligj"
     pypi = "cligj/cligj-0.7.2.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("0.7.2", sha256="a4bc13d623356b373c2c27c53dbd9c68cae5d526270bfa71f6c6fa69669c6b27")
     version("0.5.0", sha256="6c7d52d529a78712491974f975c33473f430c0f7beb18c0d7a402a743dcb460a")

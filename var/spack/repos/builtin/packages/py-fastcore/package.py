@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,8 @@ class PyFastcore(PythonPackage):
 
     homepage = "https://github.com/fastai/fastcore/tree/master/"
     pypi = "fastcore/fastcore-1.3.27.tar.gz"
+
+    license("Apache-2.0")
 
     version("1.3.27", sha256="0161f538d5b913932869a46bb90e98193eee79b8798b566272a394f7ef957243")
 

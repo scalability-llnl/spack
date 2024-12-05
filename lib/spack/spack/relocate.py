@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -6,8 +6,9 @@ import collections
 import itertools
 import os
 import re
-import shutil
+import sys
 from collections import OrderedDict
+from typing import List, Optional
 
 import macholib.mach_o
 import macholib.MachO
@@ -16,19 +17,15 @@ import llnl.util.filesystem as fs
 import llnl.util.lang
 import llnl.util.tty as tty
 from llnl.util.lang import memoized
-from llnl.util.symlink import symlink
+from llnl.util.symlink import readlink, symlink
 
-import spack.paths
-import spack.platforms
-import spack.repo
-import spack.spec
+import spack.error
 import spack.store
 import spack.util.elf as elf
 import spack.util.executable as executable
+import spack.util.filesystem as ssys
 
 from .relocate_text import BinaryFilePrefixReplacer, TextFilePrefixReplacer
-
-is_macos = str(spack.platforms.real_host()) == "darwin"
 
 
 class InstallRootStringError(spack.error.SpackError):
@@ -40,7 +37,7 @@ class InstallRootStringError(spack.error.SpackError):
             file_path (str): path of the binary
             root_path (str): original Spack's store root string
         """
-        super(InstallRootStringError, self).__init__(
+        super().__init__(
             "\n %s \ncontains string\n %s \n"
             "after replacing it in rpaths.\n"
             "Package should not be relocated.\n Use -a to override." % (file_path, root_path)
@@ -48,17 +45,15 @@ class InstallRootStringError(spack.error.SpackError):
 
 
 @memoized
-def _patchelf():
+def _patchelf() -> Optional[executable.Executable]:
     """Return the full path to the patchelf binary, if available, else None."""
     import spack.bootstrap
 
-    if is_macos:
+    if sys.platform == "darwin":
         return None
 
     with spack.bootstrap.ensure_bootstrap_configuration():
-        patchelf = spack.bootstrap.ensure_patchelf_in_path_or_raise()
-
-    return patchelf.path
+        return spack.bootstrap.ensure_patchelf_in_path_or_raise()
 
 
 def _elf_rpaths_for(path):
@@ -139,11 +134,6 @@ def _normalize_relative_paths(start_path, relative_paths):
     return normalized_paths
 
 
-def _placeholder(dirname):
-    """String of  of @'s with same length of the argument"""
-    return "@" * len(dirname)
-
-
 def _decode_macho_data(bytestring):
     return bytestring.rstrip(b"\x00").decode("ascii")
 
@@ -216,23 +206,33 @@ def macho_find_paths(orig_rpaths, deps, idpath, old_layout_root, prefix_to_prefi
     paths_to_paths dictionary which maps all of the old paths to new paths
     """
     paths_to_paths = dict()
+    # Sort from longest path to shortest, to ensure we try /foo/bar/baz before /foo/bar
+    prefix_iteration_order = sorted(prefix_to_prefix, key=len, reverse=True)
     for orig_rpath in orig_rpaths:
         if orig_rpath.startswith(old_layout_root):
-            for old_prefix, new_prefix in prefix_to_prefix.items():
+            for old_prefix in prefix_iteration_order:
+                new_prefix = prefix_to_prefix[old_prefix]
                 if orig_rpath.startswith(old_prefix):
                     new_rpath = re.sub(re.escape(old_prefix), new_prefix, orig_rpath)
                     paths_to_paths[orig_rpath] = new_rpath
+                    break
         else:
             paths_to_paths[orig_rpath] = orig_rpath
 
     if idpath:
-        for old_prefix, new_prefix in prefix_to_prefix.items():
+        for old_prefix in prefix_iteration_order:
+            new_prefix = prefix_to_prefix[old_prefix]
             if idpath.startswith(old_prefix):
                 paths_to_paths[idpath] = re.sub(re.escape(old_prefix), new_prefix, idpath)
+                break
+
     for dep in deps:
-        for old_prefix, new_prefix in prefix_to_prefix.items():
+        for old_prefix in prefix_iteration_order:
+            new_prefix = prefix_to_prefix[old_prefix]
             if dep.startswith(old_prefix):
                 paths_to_paths[dep] = re.sub(re.escape(old_prefix), new_prefix, dep)
+                break
+
         if dep.startswith("@"):
             paths_to_paths[dep] = dep
 
@@ -276,45 +276,19 @@ def modify_macho_object(cur_path, rpaths, deps, idpath, paths_to_paths):
 
     # Deduplicate and flatten
     args = list(itertools.chain.from_iterable(llnl.util.lang.dedupe(args)))
+    install_name_tool = executable.Executable("install_name_tool")
     if args:
-        args.append(str(cur_path))
-        install_name_tool = executable.Executable("install_name_tool")
-        install_name_tool(*args)
-
-    return
-
-
-def modify_object_macholib(cur_path, paths_to_paths):
-    """
-    This function is used when install machO buildcaches on linux by
-    rewriting mach-o loader commands for dependency library paths of
-    mach-o binaries and the id path for mach-o libraries.
-    Rewritting of rpaths is handled by replace_prefix_bin.
-    Inputs
-    mach-o binary to be modified
-    dictionary mapping paths in old install layout to new install layout
-    """
-
-    dll = macholib.MachO.MachO(cur_path)
-    dll.rewriteLoadCommands(paths_to_paths.get)
-
-    try:
-        f = open(dll.filename, "rb+")
-        for header in dll.headers:
-            f.seek(0)
-            dll.write(f)
-        f.seek(0, 2)
-        f.flush()
-        f.close()
-    except Exception:
-        pass
-
-    return
+        with fs.edit_in_place_through_temporary_file(cur_path) as temp_path:
+            install_name_tool(*args, temp_path)
 
 
 def macholib_get_paths(cur_path):
     """Get rpaths, dependent libraries, and library id of mach-o objects."""
-    headers = macholib.MachO.MachO(cur_path).headers
+    headers = []
+    try:
+        headers = macholib.MachO.MachO(cur_path).headers
+    except ValueError:
+        pass
     if not headers:
         tty.warn("Failed to read Mach-O headers: {0}".format(cur_path))
         commands = []
@@ -346,40 +320,34 @@ def macholib_get_paths(cur_path):
     return (rpaths, deps, ident)
 
 
-def _set_elf_rpaths(target, rpaths):
-    """Replace the original RPATH of the target with the paths passed
-    as arguments.
+def _set_elf_rpaths_and_interpreter(
+    target: str, rpaths: List[str], interpreter: Optional[str] = None
+) -> Optional[str]:
+    """Replace the original RPATH of the target with the paths passed as arguments.
 
     Args:
         target: target executable. Must be an ELF object.
         rpaths: paths to be set in the RPATH
+        interpreter: optionally set the interpreter
 
     Returns:
-        A string concatenating the stdout and stderr of the call
-        to ``patchelf`` if it was invoked
+        A string concatenating the stdout and stderr of the call to ``patchelf`` if it was invoked
     """
     # Join the paths using ':' as a separator
     rpaths_str = ":".join(rpaths)
 
-    # If we're relocating patchelf itself, make a copy and use it
-    bak_path = None
-    if target.endswith("/bin/patchelf"):
-        bak_path = target + ".bak"
-        shutil.copy(target, bak_path)
-
-    patchelf, output = executable.Executable(bak_path or _patchelf()), None
     try:
+        # TODO: error handling is not great here?
         # TODO: revisit the use of --force-rpath as it might be conditional
         # TODO: if we want to support setting RUNPATH from binary packages
-        patchelf_args = ["--force-rpath", "--set-rpath", rpaths_str, target]
-        output = patchelf(*patchelf_args, output=str, error=str)
+        args = ["--force-rpath", "--set-rpath", rpaths_str]
+        if interpreter:
+            args.extend(["--set-interpreter", interpreter])
+        args.append(target)
+        return _patchelf()(*args, output=str, error=str)
     except executable.ProcessError as e:
-        msg = "patchelf --force-rpath --set-rpath {0} failed with error {1}"
-        tty.warn(msg.format(target, e))
-    finally:
-        if bak_path and os.path.exists(bak_path):
-            os.remove(bak_path)
-    return output
+        tty.warn(str(e))
+        return None
 
 
 def needs_binary_relocation(m_type, m_subtype):
@@ -432,10 +400,7 @@ def relocate_macho_binaries(
             # normalized paths
             rel_to_orig = macho_make_paths_normal(orig_path_name, rpaths, deps, idpath)
             # replace the relativized paths with normalized paths
-            if is_macos:
-                modify_macho_object(path_name, rpaths, deps, idpath, rel_to_orig)
-            else:
-                modify_object_macholib(path_name, rel_to_orig)
+            modify_macho_object(path_name, rpaths, deps, idpath, rel_to_orig)
             # get the normalized paths in the mach-o binary
             rpaths, deps, idpath = macholib_get_paths(path_name)
             # get the mapping of paths in old prefix to path in new prefix
@@ -443,10 +408,7 @@ def relocate_macho_binaries(
                 rpaths, deps, idpath, old_layout_root, prefix_to_prefix
             )
             # replace the old paths with new paths
-            if is_macos:
-                modify_macho_object(path_name, rpaths, deps, idpath, paths_to_paths)
-            else:
-                modify_object_macholib(path_name, paths_to_paths)
+            modify_macho_object(path_name, rpaths, deps, idpath, paths_to_paths)
             # get the new normalized path in the mach-o binary
             rpaths, deps, idpath = macholib_get_paths(path_name)
             # get the mapping of paths to relative paths in the new prefix
@@ -454,10 +416,7 @@ def relocate_macho_binaries(
                 path_name, new_layout_root, rpaths, deps, idpath
             )
             # replace the new paths with relativized paths in the new prefix
-            if is_macos:
-                modify_macho_object(path_name, rpaths, deps, idpath, paths_to_paths)
-            else:
-                modify_object_macholib(path_name, paths_to_paths)
+            modify_macho_object(path_name, rpaths, deps, idpath, paths_to_paths)
         else:
             # get the paths in the old prefix
             rpaths, deps, idpath = macholib_get_paths(path_name)
@@ -466,10 +425,7 @@ def relocate_macho_binaries(
                 rpaths, deps, idpath, old_layout_root, prefix_to_prefix
             )
             # replace the old paths with new paths
-            if is_macos:
-                modify_macho_object(path_name, rpaths, deps, idpath, paths_to_paths)
-            else:
-                modify_object_macholib(path_name, paths_to_paths)
+            modify_macho_object(path_name, rpaths, deps, idpath, paths_to_paths)
 
 
 def _transform_rpaths(orig_rpaths, orig_root, new_prefixes):
@@ -516,10 +472,12 @@ def new_relocate_elf_binaries(binaries, prefix_to_prefix):
 
     for path in binaries:
         try:
-            elf.replace_rpath_in_place_or_raise(path, prefix_to_prefix)
-        except elf.ElfDynamicSectionUpdateFailed as e:
-            # Fall back to the old `patchelf --set-rpath` method.
-            _set_elf_rpaths(path, e.new.decode("utf-8").split(":"))
+            elf.substitute_rpath_and_pt_interp_in_place_or_raise(path, prefix_to_prefix)
+        except elf.ElfCStringUpdatesFailed as e:
+            # Fall back to `patchelf --set-rpath ... --set-interpreter ...`
+            rpaths = e.rpath.new_value.decode("utf-8").split(":") if e.rpath else []
+            interpreter = e.pt_interp.new_value.decode("utf-8") if e.pt_interp else None
+            _set_elf_rpaths_and_interpreter(path, rpaths=rpaths, interpreter=interpreter)
 
 
 def relocate_elf_binaries(
@@ -561,10 +519,10 @@ def relocate_elf_binaries(
             new_rpaths = _make_relative(new_binary, new_root, new_norm_rpaths)
             # check to see if relative rpaths are changed before rewriting
             if sorted(new_rpaths) != sorted(orig_rpaths):
-                _set_elf_rpaths(new_binary, new_rpaths)
+                _set_elf_rpaths_and_interpreter(new_binary, new_rpaths)
         else:
             new_rpaths = _transform_rpaths(orig_rpaths, orig_root, new_prefixes)
-            _set_elf_rpaths(new_binary, new_rpaths)
+            _set_elf_rpaths_and_interpreter(new_binary, new_rpaths)
 
 
 def make_link_relative(new_links, orig_links):
@@ -576,7 +534,7 @@ def make_link_relative(new_links, orig_links):
         orig_links (list): original links
     """
     for new_link, orig_link in zip(new_links, orig_links):
-        target = os.readlink(orig_link)
+        target = readlink(orig_link)
         relative_target = os.path.relpath(target, os.path.dirname(orig_link))
         os.unlink(new_link)
         symlink(relative_target, new_link)
@@ -586,7 +544,7 @@ def make_macho_binaries_relative(cur_path_names, orig_path_names, old_layout_roo
     """
     Replace old RPATHs with paths relative to old_dir in binary files
     """
-    if not is_macos:
+    if not sys.platform == "darwin":
         return
 
     for cur_path, orig_path in zip(cur_path_names, orig_path_names):
@@ -611,20 +569,7 @@ def make_elf_binaries_relative(new_binaries, orig_binaries, orig_layout_root):
         orig_rpaths = _elf_rpaths_for(new_binary)
         if orig_rpaths:
             new_rpaths = _make_relative(orig_binary, orig_layout_root, orig_rpaths)
-            _set_elf_rpaths(new_binary, new_rpaths)
-
-
-def ensure_binaries_are_relocatable(binaries):
-    """Raise an error if any binary in the list is not relocatable.
-
-    Args:
-        binaries (list): list of binaries to check
-
-    Raises:
-        InstallRootStringError: if the file is not relocatable
-    """
-    for binary in binaries:
-        ensure_binary_is_relocatable(binary)
+            _set_elf_rpaths_and_interpreter(new_binary, new_rpaths)
 
 
 def warn_if_link_cant_be_relocated(link, target):
@@ -637,7 +582,7 @@ def relocate_links(links, prefix_to_prefix):
     """Relocate links to a new install prefix."""
     regex = re.compile("|".join(re.escape(p) for p in prefix_to_prefix.keys()))
     for link in links:
-        old_target = os.readlink(link)
+        old_target = readlink(link)
         match = regex.match(old_target)
 
         # No match.
@@ -675,84 +620,7 @@ def relocate_text_bin(binaries, prefixes):
     Raises:
       spack.relocate_text.BinaryTextReplaceError: when the new path is longer than the old path
     """
-    BinaryFilePrefixReplacer.from_strings_or_bytes(prefixes).apply(binaries)
-
-
-def is_relocatable(spec):
-    """Returns True if an installed spec is relocatable.
-
-    Args:
-        spec (spack.spec.Spec): spec to be analyzed
-
-    Returns:
-        True if the binaries of an installed spec
-        are relocatable and False otherwise.
-
-    Raises:
-        ValueError: if the spec is not installed
-    """
-    if not spec.install_status():
-        raise ValueError("spec is not installed [{0}]".format(str(spec)))
-
-    if spec.external or spec.virtual:
-        tty.warn("external or virtual package %s is not relocatable" % spec.name)
-        return False
-
-    # Explore the installation prefix of the spec
-    for root, dirs, files in os.walk(spec.prefix, topdown=True):
-        dirs[:] = [d for d in dirs if d not in (".spack", "man")]
-        try:
-            abs_paths = (os.path.join(root, f) for f in files)
-            ensure_binaries_are_relocatable(filter(is_binary, abs_paths))
-        except InstallRootStringError:
-            return False
-
-    return True
-
-
-def ensure_binary_is_relocatable(filename, paths_to_relocate=None):
-    """Raises if any given or default absolute path is found in the
-    binary (apart from rpaths / load commands).
-
-    Args:
-        filename: absolute path of the file to be analyzed
-
-    Raises:
-        InstallRootStringError: if the binary contains an absolute path
-        ValueError: if the filename does not exist or the path is not absolute
-    """
-    paths_to_relocate = paths_to_relocate or [spack.store.layout.root, spack.paths.prefix]
-
-    if not os.path.exists(filename):
-        raise ValueError("{0} does not exist".format(filename))
-
-    if not os.path.isabs(filename):
-        raise ValueError("{0} is not an absolute path".format(filename))
-
-    strings = executable.Executable("strings")
-
-    # Remove the RPATHS from the strings in the executable
-    set_of_strings = set(strings(filename, output=str).split())
-
-    m_type, m_subtype = fs.mime_type(filename)
-    if m_type == "application":
-        tty.debug("{0},{1}".format(m_type, m_subtype), level=2)
-
-    if not is_macos:
-        if m_subtype == "x-executable" or m_subtype == "x-sharedlib":
-            rpaths = ":".join(_elf_rpaths_for(filename))
-            set_of_strings.discard(rpaths)
-    else:
-        if m_subtype == "x-mach-binary":
-            rpaths, deps, idpath = macholib_get_paths(filename)
-            set_of_strings.discard(set(rpaths))
-            set_of_strings.discard(set(deps))
-            if idpath is not None:
-                set_of_strings.discard(idpath)
-
-    for path_to_relocate in paths_to_relocate:
-        if any(path_to_relocate in x for x in set_of_strings):
-            raise InstallRootStringError(filename, path_to_relocate)
+    return BinaryFilePrefixReplacer.from_strings_or_bytes(prefixes).apply(binaries)
 
 
 def is_binary(filename):
@@ -764,7 +632,7 @@ def is_binary(filename):
     Returns:
         True or False
     """
-    m_type, _ = fs.mime_type(filename)
+    m_type, _ = ssys.mime_type(filename)
 
     msg = "[{0}] -> ".format(filename)
     if m_type == "application":
@@ -792,7 +660,7 @@ def fixup_macos_rpath(root, filename):
         True if fixups were applied, else False
     """
     abspath = os.path.join(root, filename)
-    if fs.mime_type(abspath) != ("application", "x-mach-binary"):
+    if ssys.mime_type(abspath) != ("application", "x-mach-binary"):
         return False
 
     # Get Mach-O header commands
@@ -808,7 +676,7 @@ def fixup_macos_rpath(root, filename):
     args = []
 
     # Check dependencies for non-rpath entries
-    spack_root = spack.store.layout.root
+    spack_root = spack.store.STORE.layout.root
     for name in deps:
         if name.startswith(spack_root):
             tty.debug("Spack-installed dependency for {0}: {1}".format(abspath, name))
@@ -850,8 +718,8 @@ def fixup_macos_rpath(root, filename):
         # No fixes needed
         return False
 
-    args.append(abspath)
-    executable.Executable("install_name_tool")(*args)
+    with fs.edit_in_place_through_temporary_file(abspath) as temp_path:
+        executable.Executable("install_name_tool")(*args, temp_path)
     return True
 
 

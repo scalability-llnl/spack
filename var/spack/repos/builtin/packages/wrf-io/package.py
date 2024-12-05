@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,10 +15,15 @@ class WrfIo(CMakePackage):
 
     homepage = "https://noaa-emc.github.io/NCEPLIBS-wrf_io"
     url = "https://github.com/NOAA-EMC/NCEPLIBS-wrf_io/archive/refs/tags/v1.2.0.tar.gz"
+    git = "https://github.com/NOAA-EMC/NCEPLIBS-wrf_io"
 
-    maintainers("t-brown", "AlexanderRichert-NOAA", "Hang-Lei-NOAA", "edwardhartnett")
+    maintainers("AlexanderRichert-NOAA", "Hang-Lei-NOAA", "edwardhartnett")
 
+    version("develop", branch="develop")
     version("1.2.0", sha256="000cf5294a2c68460085258186e1f36c86d3d0d9c433aa969a0f92736b745617")
+
+    depends_on("c", type="build")
+    depends_on("fortran", type="build")
 
     variant("openmp", default=False, description="Enable multithreading with OpenMP")
 

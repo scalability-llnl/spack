@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,7 +18,7 @@ archspec
 
 * Homepage: https://pypi.python.org/pypi/archspec
 * Usage: Labeling, comparison and detection of microarchitectures
-* Version: 0.2.0 (commit e44bad9c7b6defac73696f64078b2fe634719b62)
+* Version: 0.2.5 (commit 38ce485258ffc4fc6dd6688f8dc90cb269478c47)
 
 astunparse
 ----------------
@@ -101,10 +101,7 @@ ruamel.yaml
 * Usage: Used for config files. Ruamel is based on PyYAML but is more
   actively maintained and has more features, including round-tripping
   comments read from config files.
-* Version: 0.11.15 (last version supporting Python 2.6)
-* Note: This package has been slightly modified to improve Python 2.6
-  compatibility -- some ``{}`` format strings were replaced, and the
-  import for ``OrderedDict`` was tweaked.
+* Version: 0.17.21
 
 six
 ---

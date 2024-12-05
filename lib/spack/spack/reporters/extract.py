@@ -1,25 +1,30 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import os
 import re
 import xml.sax.saxutils
 from datetime import datetime
 
 import llnl.util.tty as tty
 
+from spack.install_test import TestStatus
+
 # The keys here represent the only recognized (ctest/cdash) status values
-completed = {"failed": "Completed", "passed": "Completed", "notrun": "No tests to run"}
+completed = {
+    "failed": "Completed",
+    "passed": "Completed",
+    "skipped": "Completed",
+    "notrun": "No tests to run",
+}
 
 log_regexp = re.compile(r"^==> \[([0-9:.\-]*)(?:, [0-9]*)?\] (.*)")
 returns_regexp = re.compile(r"\[([0-9 ,]*)\]")
 
-skip_msgs = ["Testing package", "Results for", "Detected the following"]
+skip_msgs = ["Testing package", "Results for", "Detected the following", "Warning:"]
 skip_regexps = [re.compile(r"{0}".format(msg)) for msg in skip_msgs]
 
-status_values = ["FAILED", "PASSED", "NO-TESTS"]
-status_regexps = [re.compile(r"^({0})".format(stat)) for stat in status_values]
+status_regexps = [re.compile(r"^({0})".format(str(stat))) for stat in TestStatus]
 
 
 def add_part_output(part, line):
@@ -36,15 +41,6 @@ def elapsed(current, previous):
     return diff.total_seconds()
 
 
-def expected_failure(line):
-    if not line:
-        return False
-
-    match = returns_regexp.search(line)
-    xfail = "0" not in match.group(0) if match else False
-    return xfail
-
-
 def new_part():
     return {
         "command": None,
@@ -54,16 +50,8 @@ def new_part():
         "name": None,
         "loglines": [],
         "output": None,
-        "status": "passed",
+        "status": None,
     }
-
-
-def part_name(source):
-    # TODO: Should be passed the package prefix and only remove it
-    elements = []
-    for e in source.replace("'", "").split(" "):
-        elements.append(os.path.basename(e) if os.sep in e else e)
-    return "_".join(elements)
 
 
 def process_part_end(part, curr_time, last_time):
@@ -73,10 +61,10 @@ def process_part_end(part, curr_time, last_time):
 
         stat = part["status"]
         if stat in completed:
-            if stat == "passed" and expected_failure(part["desc"]):
-                part["completed"] = "Expected to fail"
-            elif part["completed"] == "Unknown":
+            if part["completed"] == "Unknown":
                 part["completed"] = completed[stat]
+        elif stat is None or stat == "unknown":
+            part["status"] = "passed"
         part["output"] = "\n".join(part["loglines"])
 
 
@@ -96,16 +84,16 @@ def status(line):
         match = regex.search(line)
         if match:
             stat = match.group(0)
-            stat = "notrun" if stat == "NO-TESTS" else stat
+            stat = "notrun" if stat == "NO_TESTS" else stat
             return stat.lower()
 
 
 def extract_test_parts(default_name, outputs):
     parts = []
     part = {}
-    testdesc = ""
     last_time = None
     curr_time = None
+
     for line in outputs:
         line = line.strip()
         if not line:
@@ -115,12 +103,16 @@ def extract_test_parts(default_name, outputs):
         if skip(line):
             continue
 
-        # Skipped tests start with "Skipped" and end with "package"
+        # The spec was explicitly reported as skipped (e.g., installation
+        # failed, package known to have failing tests, won't test external
+        # package).
         if line.startswith("Skipped") and line.endswith("package"):
+            stat = "skipped"
             part = new_part()
             part["command"] = "Not Applicable"
-            part["completed"] = line
+            part["completed"] = completed[stat]
             part["elapsed"] = 0.0
+            part["loglines"].append(line)
             part["name"] = default_name
             part["status"] = "notrun"
             parts.append(part)
@@ -137,39 +129,44 @@ def extract_test_parts(default_name, outputs):
                 if msg.startswith("Installing"):
                     continue
 
-                # New command means the start of a new test part
-                if msg.startswith("'") and msg.endswith("'"):
+                # Terminate without further parsing if no more test messages
+                if "Completed testing" in msg:
+                    # Process last lingering part IF it didn't generate status
+                    process_part_end(part, curr_time, last_time)
+                    return parts
+
+                # New test parts start "test: <name>: <desc>".
+                if msg.startswith("test: "):
                     # Update the last part processed
                     process_part_end(part, curr_time, last_time)
 
                     part = new_part()
-                    part["command"] = msg
-                    part["name"] = part_name(msg)
+                    desc = msg.split(":")
+                    part["name"] = desc[1].strip()
+                    part["desc"] = ":".join(desc[2:]).strip()
                     parts.append(part)
 
-                    # Save off the optional test description if it was
-                    # tty.debuged *prior to* the command and reset
-                    if testdesc:
-                        part["desc"] = testdesc
-                        testdesc = ""
+                # There is no guarantee of a 1-to-1 mapping of a test part and
+                # a (single) command (or executable) since the introduction of
+                # PR 34236.
+                #
+                # Note that tests where the package does not save the output
+                # (e.g., output=str.split, error=str.split) will not have
+                # a command printed to the test log.
+                elif msg.startswith("'") and msg.endswith("'"):
+                    if part:
+                        if part["command"]:
+                            part["command"] += "; " + msg.replace("'", "")
+                        else:
+                            part["command"] = msg.replace("'", "")
+                    else:
+                        part = new_part()
+                        part["command"] = msg.replace("'", "")
 
                 else:
                     # Update the last part processed since a new log message
                     # means a non-test action
                     process_part_end(part, curr_time, last_time)
-
-                    if testdesc:
-                        # We had a test description but no command so treat
-                        # as a new part (e.g., some import tests)
-                        part = new_part()
-                        part["name"] = "_".join(testdesc.split())
-                        part["command"] = "unknown"
-                        part["desc"] = testdesc
-                        parts.append(part)
-                        process_part_end(part, curr_time, curr_time)
-
-                    # Assuming this is a description for the next test part
-                    testdesc = msg
 
             else:
                 tty.debug("Did not recognize test output '{0}'".format(line))
@@ -197,12 +194,14 @@ def extract_test_parts(default_name, outputs):
     # If no parts, create a skeleton to flag that the tests are not run
     if not parts:
         part = new_part()
-        stat = "notrun"
-        part["command"] = "Not Applicable"
+        stat = "failed" if outputs[0].startswith("Cannot open log") else "notrun"
+
+        part["command"] = "unknown"
         part["completed"] = completed[stat]
         part["elapsed"] = 0.0
         part["name"] = default_name
         part["status"] = stat
+        part["output"] = "\n".join(outputs)
         parts.append(part)
 
     return parts

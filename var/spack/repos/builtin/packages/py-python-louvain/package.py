@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyPythonLouvain(PythonPackage):
 
     homepage = "https://github.com/taynaud/python-louvain"
     pypi = "python-louvain/python-louvain-0.14.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("0.15", sha256="2a856edfbe29952a60a5538a84bb78cca18f6884a88b9325e85a11c8dd4917eb")
 

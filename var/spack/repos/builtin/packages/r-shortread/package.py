@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,7 @@ class RShortread(RPackage):
 
     bioc = "ShortRead"
 
+    version("1.58.0", commit="433d18266b141ddcc9dc590f5244163a04efebe3")
     version("1.56.0", commit="df25d0872d52aac3610998abda0d7bfd37298726")
     version("1.54.0", commit="a1082a335120860d019aa0065a975d41890351f7")
     version("1.52.0", commit="4d7304d7b5a0ca5c904c0b919d6c95599db72a39")
@@ -27,6 +28,9 @@ class RShortread(RPackage):
     version("1.38.0", commit="e9498f04b7b4bf0212bbb10ec7e3de2d7699f4bf")
     version("1.36.1", commit="176c34eddf4a416d30c69cb4ac197141ba42e66f")
     version("1.34.2", commit="25daac63b301df66a8ef6e98cc2977522c6786cd")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r-biocgenerics@0.22.1:", type=("build", "run"))
     depends_on("r-biocgenerics@0.23.3:", type=("build", "run"), when="@1.36.1:")
@@ -52,3 +56,4 @@ class RShortread(RPackage):
     depends_on("r-latticeextra", type=("build", "run"))
     depends_on("r-xvector", type=("build", "run"))
     depends_on("r-rhtslib", type=("build", "run"), when="@1.48.0:")
+    depends_on("zlib-api")

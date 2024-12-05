@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PySmmap(PythonPackage):
 
     homepage = "https://github.com/gitpython-developers/smmap"
     pypi = "smmap/smmap-3.0.4.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("5.0.0", sha256="c840e62059cd3be204b0c9c9f74be2c09d5648eddd4580d9314c3ecde0b30936")
     version("4.0.0", sha256="7e65386bd122d45405ddf795637b7f7d2b532e7e401d46bbe3fb49b9986d5182")

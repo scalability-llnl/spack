@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,8 +16,10 @@ class Libcuml(CMakePackage):
 
     version("0.15.0", sha256="5c9c656ae4eaa94a426e07d7385fd5ea0e5dc7abff806af2941aee10d4ca99c7")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.14:", type="build")
-    depends_on("zlib")
+    depends_on("zlib-api")
     depends_on("libcudf@0.8:")
     depends_on("cuda@9.2:")
     depends_on("blas")

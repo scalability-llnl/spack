@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,8 @@ class Corenlp(Package):
 
     homepage = "https://stanfordnlp.github.io/CoreNLP/index.html"
     url = "https://github.com/stanfordnlp/CoreNLP/archive/v4.0.0.tar.gz"
+
+    license("GPL-3.0-only")
 
     version("4.0.0", sha256="07195eed46dd39bdc364d3988da8ec6a5fc9fed8c17613cfe5a8b84d649c8f0f")
 

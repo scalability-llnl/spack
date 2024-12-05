@@ -1,4 +1,4 @@
-# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,7 +14,7 @@ class PyScinePuffin(PythonPackage):
     git = "https://github.com/qcscine/puffin.git"
 
     version("master", branch="master")
-    version("1.1.0", "1a15232b1b472c36349e5534e4fdf9dd90bc554926cb42fba37eee8e60be8c44")
+    version("1.1.0", sha256="1a15232b1b472c36349e5534e4fdf9dd90bc554926cb42fba37eee8e60be8c44")
 
     depends_on("python@3.6:", type=("build", "run"))
     depends_on("py-gitpython", type=("build", "run"))

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,7 +15,11 @@ class Pal(AutotoolsPackage):
     homepage = "https://github.com/Starlink/pal"
     url = "https://github.com/Starlink/pal/releases/download/v0.9.8/pal-0.9.8.tar.gz"
 
+    license("LGPL-3.0-only")
+
     version("0.9.8", sha256="191fde8c4f45d6807d4b011511344014966bb46e44029a4481d070cd5e7cc697")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("sofa-c")
     depends_on("erfa")

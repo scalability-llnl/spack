@@ -1,0 +1,10 @@
+enable:
+  - lmod
+lmod:
+  core_compilers:
+    - 'clang@3.3'
+  all:
+    autoload: none
+    conflict:
+      - '{name}'
+      - 'intel/14.0.1'

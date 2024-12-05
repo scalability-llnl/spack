@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyPathPy(PythonPackage):
 
     homepage = "https://github.com/jaraco/path.py"
     pypi = "path.py/path.py-12.0.1.tar.gz"
+
+    license("MIT")
 
     version("12.0.1", sha256="9f2169633403aa0423f6ec000e8701dd1819526c62465f5043952f92527fea0f")
     version("5.2", sha256="9916ae9aa603ce7e131e4ac76c25bcdbf6208f8fe5cc565a5022b85dc9d7022c")

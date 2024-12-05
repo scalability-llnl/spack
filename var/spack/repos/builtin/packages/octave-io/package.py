@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class OctaveIo(OctavePackage, SourceforgePackage):
 
     homepage = "https://octave.sourceforge.io/io/"
     sourceforge_mirror_path = "octave/io-2.6.3.tar.gz"
+
+    license("GPL-3.0-only")
 
     version("2.6.3", sha256="6bc63c6498d79cada01a6c4446f793536e0bb416ddec2a5201dd8d741d459e10")
     version("2.6.2", sha256="01dbf8885a8011e76c919e271727c1d44f625bf6b217948b79438039ba368ceb")

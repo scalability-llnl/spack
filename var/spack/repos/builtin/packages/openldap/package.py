@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,10 +19,16 @@ class Openldap(AutotoolsPackage):
     homepage = "https://www.openldap.org/"
     url = "https://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-2.6.0.tgz"
 
+    license("OLDAP-2.8")
+
+    version("2.6.8", sha256="48969323e94e3be3b03c6a132942dcba7ef8d545f2ad35401709019f696c3c4e")
     version("2.6.4", sha256="d51704e50178430c06cf3d8aa174da66badf559747a47d920bb54b2d4aa40991")
     version("2.6.0", sha256="b71c580eac573e9aba15d95f33dd4dd08f2ed4f0d7fc09e08ad4be7ed1e41a4f")
     version("2.4.49", sha256="e3b117944b4180f23befe87d0dcf47f29de775befbc469dcf4ac3dab3311e56e")
     version("2.4.48", sha256="d9523ffcab5cd14b709fcf3cb4d04e8bc76bb8970113255f372bc74954c6074d")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("client_only", default=True, description="Client only installation")
     variant("icu", default=False, description="Build with unicode support")
@@ -59,6 +65,11 @@ class Openldap(AutotoolsPackage):
     depends_on("groff", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("wiredtiger", when="@2.6.0:")
+    depends_on("findutils", type="build")
+    # see https://github.com/openldap/openldap/blob/OPENLDAP_REL_ENG_2_4_48/libraries/liblunicode/Makefile.in
+
+    # Newer C compilers (>= Clang 16 and >= GCC 14) reject some constructs removed in C99
+    conflicts("%gcc@14:", when="@:2.6.4", msg="Newer C compilers required 2.6.5 or newer")
 
     # Ref: https://www.linuxfromscratch.org/blfs/view/svn/server/openldap.html
     @when("+client_only")

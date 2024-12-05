@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyMkdocsMaterialExtensions(PythonPackage):
 
     homepage = "https://github.com/facelessuser/mkdocs-material-extensions"
     pypi = "mkdocs-material-extensions/mkdocs-material-extensions-1.0.3.tar.gz"
+
+    license("MIT")
 
     version("1.0.3", sha256="bfd24dfdef7b41c312ede42648f9eb83476ea168ec163b613f9abd12bbfddba2")
 

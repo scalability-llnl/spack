@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class Mrnet(AutotoolsPackage):
     git = "https://github.com/dyninst/mrnet.git"
     list_url = "http://ftp.cs.wisc.edu/paradyn/mrnet"
 
+    license("LGPL-2.1-or-later")
+
     version("master", branch="master")
     version("5.0.1-4", commit="2c5632aa27188de6866abc49bf1de70fb6b27af9")
     version("5.0.1-3", commit="7375ba5bb0df87c68e58ad15e9e5e351ae020c08")
@@ -22,6 +24,9 @@ class Mrnet(AutotoolsPackage):
     version("5.0.1", sha256="df0bab4c4c462d0c32df4fd97bf2546f32439f31ca96b54ebbbadd33dd6bc107")
     version("4.1.0", sha256="94758191ac46a9dbfea931a8e61167fe7e8a5f880caa418305c44f1d12af5e45")
     version("4.0.0", sha256="7207c6d493b3f17c386667cfefa81364c96b9c8b831c67442d218d77813c5d38")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("lwthreads", default=False, description="Also build the MRNet LW threadsafe libraries")
     parallel = False

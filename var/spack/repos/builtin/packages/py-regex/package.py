@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyRegex(PythonPackage):
 
     homepage = "https://github.com/mrabarnett/mrab-regex"
     pypi = "regex/regex-2020.11.13.tar.gz"
+
+    license("Apache-2.0")
 
     version("2022.8.17", sha256="5c77eab46f3a2b2cd8bbe06467df783543bf7396df431eb4a144cc4b89e9fb3c")
     version(
@@ -26,6 +28,8 @@ class PyRegex(PythonPackage):
     version(
         "2017.07.11", sha256="dbda8bdc31a1c85445f1a1b29d04abda46e5c690f8f933a9cc3a85a358969616"
     )
+
+    depends_on("c", type="build")  # generated
 
     depends_on("py-setuptools", type="build")
     depends_on("python@3.6:", when="@2022.8.17:", type=("build", "run"))

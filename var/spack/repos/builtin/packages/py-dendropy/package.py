@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class PyDendropy(PythonPackage):
 
     homepage = "https://www.dendropy.org"
     pypi = "dendropy/DendroPy-4.3.0.tar.gz"
+
+    license("CC-BY-NC-SA-4.0")
 
     version("4.5.2", sha256="3e5d2522170058ebc8d1ee63a7f2d25b915e34957dc02693ebfdc15f347a0101")
     version("4.3.0", sha256="bd5b35ce1a1c9253209b7b5f3939ac22beaa70e787f8129149b4f7ffe865d510")

@@ -1,0 +1,24 @@
+diff -ruN spack-src/test/ninja_test_hypre_parasails.c spack-src-patched/test/ninja_test_hypre_parasails.c
+--- spack-src/test/ninja_test_hypre_parasails.c	2017-04-25 12:24:43.000000000 -0700
++++ spack-src-patched/test/ninja_test_hypre_parasails.c	2023-06-28 07:41:49.676373145 -0700
+@@ -306,7 +306,7 @@
+ 
+ #define LEN (64)
+ float calibration = 1;
+-int a[LEN];
++static int a[LEN];
+ static void do_noise_work(float msec, int bool)
+ {
+ #ifdef ENABLE_NOISE
+diff -ruN spack-src/test/ninja_test_util.c spack-src-patched/test/ninja_test_util.c
+--- spack-src/test/ninja_test_util.c	2017-03-13 15:36:28.000000000 -0700
++++ spack-src-patched/test/ninja_test_util.c	2023-06-28 07:42:06.444492687 -0700
+@@ -31,7 +31,7 @@
+ 
+ #define LEN (2)
+ int lpusec;
+-int a[LEN];
++static int a[LEN];
+ static void do_noise_work(int loops)
+ { 
+   int i;

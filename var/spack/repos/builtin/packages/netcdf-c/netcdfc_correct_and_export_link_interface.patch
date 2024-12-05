@@ -1,0 +1,96 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index de95010c..25229f9c 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -664,6 +664,7 @@ ENDIF(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
+ # *
+ ##
+ SET(USE_HDF5 ${ENABLE_HDF5})
++SET(IMPORT_HDF5 "")
+ IF(USE_HDF5)
+ 
+   ##
+@@ -671,7 +672,6 @@ IF(USE_HDF5)
+   ##
+   SET(HDF5_VERSION_REQUIRED 1.8.10)
+ 
+-
+   ##
+   # Accommodate developers who have hdf5 libraries and
+   # headers on their system, but do not have a the hdf
+@@ -744,6 +744,9 @@ IF(USE_HDF5)
+     ELSE(MSVC)
+       FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
+     ENDIF(MSVC)
++    # Export HDF5 Dependency so consumers can properly use
++    # exported link interface
++    set(IMPORT_HDF5 "find_dependency(HDF5 COMPONENTS C HL)")
+ 
+     ##
+     # Next, check the HDF5 version. This will inform which
+@@ -1481,6 +1484,7 @@ ENDIF()
+ 
+ # Enable Parallel IO with netCDF-4/HDF5 files using HDF5 parallel I/O.
+ SET(STATUS_PARALLEL "OFF")
++set(IMPORT_MPI "")
+ OPTION(ENABLE_PARALLEL4 "Build netCDF-4 with parallel IO" "${HDF5_PARALLEL}")
+ IF(ENABLE_PARALLEL4 AND ENABLE_HDF5)
+   IF(NOT HDF5_PARALLEL)
+@@ -1502,6 +1506,7 @@ IF(ENABLE_PARALLEL4 AND ENABLE_HDF5)
+     FILE(COPY "${netCDF_BINARY_DIR}/tmp/run_par_tests.sh"
+       DESTINATION ${netCDF_BINARY_DIR}/h5_test
+       FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
++    set(IMPORT_MPI "find_dependency(MPI COMPONENTS C)")
+   ENDIF()
+ ENDIF()
+ 
+@@ -2652,6 +2657,8 @@ endif(DEFINED ENV{LIB_FUZZING_ENGINE})
+ # cmake should be able to find netcdf using find_package and find_library.
+ # The EXPORT call is paired with one in liblib.
+ set(ConfigPackageLocation ${CMAKE_INSTALL_LIBDIR}/cmake/netCDF)
++set(IMPORT_FIND_DEP "include(CMakeFindDependencyMacro)")
++
+ 
+ install(EXPORT netCDFTargets
+   DESTINATION ${ConfigPackageLocation}
+diff --git a/liblib/CMakeLists.txt b/liblib/CMakeLists.txt
+index e3eddc0f..0493cb9d 100644
+--- a/liblib/CMakeLists.txt
++++ b/liblib/CMakeLists.txt
+@@ -50,6 +50,7 @@ ADD_LIBRARY(netcdf nc_initialize.c ${LARGS} )
+ 
+ IF(MPI_C_INCLUDE_PATH)
+     target_include_directories(netcdf PUBLIC ${MPI_C_INCLUDE_PATH})
++    target_link_libraries(netcdf MPI::MPI_C)
+ ENDIF(MPI_C_INCLUDE_PATH)
+ 
+ IF(MOD_NETCDF_NAME)
+diff --git a/netCDFConfig.cmake.in b/netCDFConfig.cmake.in
+index 9d68eec5..eece09cb 100644
+--- a/netCDFConfig.cmake.in
++++ b/netCDFConfig.cmake.in
+@@ -14,6 +14,10 @@ set(netCDF_LIBRARIES netCDF::netcdf)
+ # include target information
+ include("${CMAKE_CURRENT_LIST_DIR}/netCDFTargets.cmake")
+ 
++@IMPORT_FIND_DEP@
++@IMPORT_MPI@
++@IMPORT_HDF5@
++
+ # Compiling Options
+ #
+ set(netCDF_C_COMPILER "@CC_VERSION@")
+diff --git a/plugins/CMakeLists.txt b/plugins/CMakeLists.txt
+index 65891d82..15567c8f 100644
+--- a/plugins/CMakeLists.txt
++++ b/plugins/CMakeLists.txt
+@@ -62,6 +62,9 @@ MACRO(buildplugin TARGET TARGETLIB)
+     set_target_properties(${TARGET} PROPERTIES LINK_FLAGS "/INCREMENTAL:NO /DEBUG /OPT:REF /OPT:ICF")
+     # Set file name & location
+     set_target_properties(${TARGET} PROPERTIES COMPILE_PDB_NAME ${TARGET} COMPILE_PDB_OUTPUT_DIR ${CMAKE_BINARY_DIR})
++    IF(MPI_C_INCLUDE_PATH)
++      target_include_directories(${TARGET} PRIVATE ${MPI_C_INCLUDE_PATH})
++    ENDIF(MPI_C_INCLUDE_PATH)
+   ENDIF()
+ ENDMACRO()
+ 

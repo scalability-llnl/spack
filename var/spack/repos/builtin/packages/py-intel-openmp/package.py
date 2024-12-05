@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -23,7 +23,6 @@ class PyIntelOpenmp(PythonPackage):
             "2021.1.2",
             url="https://pypi.io/packages/py2.py3/i/intel-openmp/intel_openmp-2021.1.2-py2.py3-none-manylinux1_x86_64.whl",
             sha256="8796797ecae99f39b27065e4a7f1f435e2ca08afba654ca57a77a2717f864dca",
-            expand=False,
         )
 
     if sys.platform.startswith("darwin"):
@@ -31,5 +30,4 @@ class PyIntelOpenmp(PythonPackage):
             "2021.1.2",
             url="https://pypi.io/packages/py2.py3/i/intel-openmp/intel_openmp-2021.1.2-py2.py3-none-macosx_10_15_x86_64.whl",
             sha256="2af893738b4b06cb0183746f2992169111031340b59c84a0fd4dec1ed66b80f2",
-            expand=False,
         )

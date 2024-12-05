@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,6 +10,8 @@ class PyPyprof2html(PythonPackage):
     """Python cProfile and hotshot profile's data to HTML Converter"""
 
     pypi = "pyprof2html/pyprof2html-0.3.1.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("0.3.1", sha256="db2d37e21d8c76f2fd25fb1ba9273c9b3ff4a98a327e37d943fed1ea225a6720")
 

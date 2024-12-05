@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class Libtree(MakefilePackage, CMakePackage):
     git = "https://github.com/haampie/libtree.git"
     url = "https://github.com/haampie/libtree/archive/refs/tags/v2.0.0.tar.gz"
     maintainers("haampie")
+
+    license("MIT")
 
     version("master", branch="master")
     version("3.1.1", sha256="6148436f54296945d22420254dd78e1829d60124bb2f5b9881320a6550f73f5c")
@@ -36,6 +38,8 @@ class Libtree(MakefilePackage, CMakePackage):
     version("1.0.4", sha256="b15a54b6f388b8bd8636e288fcb581029f1e65353660387b0096a554ad8e9e45")
     version("1.0.3", sha256="67ce886c191d50959a5727246cdb04af38872cd811c9ed4e3822f77a8f40b20b")
 
+    depends_on("c", type="build")  # generated
+
     build_system(
         conditional("cmake", when="@:2"), conditional("makefile", when="@3:"), default="makefile"
     )
@@ -54,12 +58,6 @@ class Libtree(MakefilePackage, CMakePackage):
     with when("build_system=cmake"):
         variant("chrpath", default=False, description="Use chrpath for deployment")
         variant("strip", default=False, description="Use binutils strip for deployment")
-        variant(
-            "build_type",
-            default="RelWithDebInfo",
-            description="CMake build type",
-            values=("Debug", "Release", "RelWithDebInfo", "MinSizeRel"),
-        )
         depends_on("googletest", type="test")
         depends_on("cmake@3:", type="build")
         depends_on("chrpath", when="+chrpath", type="run")

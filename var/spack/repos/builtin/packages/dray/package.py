@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -8,6 +8,7 @@ import socket
 
 import llnl.util.tty as tty
 
+from spack.build_systems.cmake import CMakeBuilder
 from spack.package import *
 
 
@@ -43,16 +44,22 @@ class Dray(Package, CudaPackage):
 
     maintainers("cyrush")
 
-    version("develop", branch="develop", submodules="True")
-    version("0.1.8", sha256="ae78ca6a5a31f06f6400a4a1ff6fc1d75347c8b41027a80662179f5b877eee30")
-    version("0.1.7", sha256="11ea794c1a24d7ed0d76bad7209d62bafc033ec40a2ea3a00e68fe598c6aa46d")
-    version("0.1.6", sha256="43f39039599e3493cbbaeaf5621b611bef301ff504bed6e32c98f30bb2179e92")
-    version("0.1.5", sha256="aaf0975561a8e7910b9353e2dc30bd78abf9f01c306ec042422b7da223d3a8b8")
-    version("0.1.4", sha256="e763a3aa537b23486a4788f9d68db0a3eb545f6a2e617cd7c8a876682ca2d0a0")
-    version("0.1.3", sha256="b2f624a072463189997343b1ed911cc34c9bb1b6c7f0c3e48efeb40c05dd0d92")
-    version("0.1.2", sha256="46937f20124b28dc78a634e8e063a3e7a3bbfd9f424ce2680b08417010c376da")
-    version("0.1.1", sha256="e5daa49ee3367c087f5028dc5a08655298beb318014c6f3f65ef4a08fcbe346c")
-    version("0.1.0", sha256="8b341138e1069361351e0a94478608c5af479cca76e2f97d556229aed45c0169")
+    license("BSD-3-Clause")
+
+    with default_args(deprecated=True):  # part of ascent
+        version("develop", branch="develop", submodules="True")
+        version("0.1.8", sha256="ae78ca6a5a31f06f6400a4a1ff6fc1d75347c8b41027a80662179f5b877eee30")
+        version("0.1.7", sha256="11ea794c1a24d7ed0d76bad7209d62bafc033ec40a2ea3a00e68fe598c6aa46d")
+        version("0.1.6", sha256="43f39039599e3493cbbaeaf5621b611bef301ff504bed6e32c98f30bb2179e92")
+        version("0.1.5", sha256="aaf0975561a8e7910b9353e2dc30bd78abf9f01c306ec042422b7da223d3a8b8")
+        version("0.1.4", sha256="e763a3aa537b23486a4788f9d68db0a3eb545f6a2e617cd7c8a876682ca2d0a0")
+        version("0.1.3", sha256="b2f624a072463189997343b1ed911cc34c9bb1b6c7f0c3e48efeb40c05dd0d92")
+        version("0.1.2", sha256="46937f20124b28dc78a634e8e063a3e7a3bbfd9f424ce2680b08417010c376da")
+        version("0.1.1", sha256="e5daa49ee3367c087f5028dc5a08655298beb318014c6f3f65ef4a08fcbe346c")
+        version("0.1.0", sha256="8b341138e1069361351e0a94478608c5af479cca76e2f97d556229aed45c0169")
+
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("openmp", default=True, description="Build OpenMP backend")
     variant("shared", default=True, description="Build as shared libs")
@@ -79,9 +86,10 @@ class Dray(Package, CudaPackage):
     depends_on("apcomp~shared", when="~shared")
     depends_on("apcomp+shared", when="+shared")
 
-    depends_on("raja@0.12.0:")
+    depends_on("raja@0.14.0:0.14", when="@0.1.8:")
     depends_on("raja@:0.14", when="@0.1.7:")
     depends_on("raja@:0.13", when="@:0.1.6")
+    depends_on("raja@0.12.0:")
     depends_on("raja~cuda", when="~cuda")
     depends_on("raja+cuda", when="+cuda")
     propagate_cuda_arch("raja")
@@ -112,19 +120,13 @@ class Dray(Package, CudaPackage):
         """
         with working_dir("spack-build", create=True):
             host_cfg_fname = self.create_host_config(spec, prefix)
-            cmake_args = []
-            # if we have a static build, we need to avoid any of
-            # spack's default cmake settings related to rpaths
-            # (see: https://github.com/LLNL/spack/issues/2658)
-            if "+shared" in spec:
-                cmake_args.extend(std_cmake_args)
-            else:
-                for arg in std_cmake_args:
-                    if arg.count("RPATH") == 0:
-                        cmake_args.append(arg)
-            cmake_args.extend(["-C", host_cfg_fname, "../src"])
             print("Configuring Devil Ray...")
-            cmake(*cmake_args)
+            cmake(
+                *CMakeBuilder.std_args(self, generator="Unix Makefiles"),
+                "-C",
+                host_cfg_fname,
+                "../src",
+            )
             print("Building Devil Ray...")
             make()
             # run unit tests if requested
@@ -166,7 +168,7 @@ class Dray(Package, CudaPackage):
         # Find and record what CMake is used
         ##############################################
 
-        if "+cmake" in spec:
+        if spec.satisfies("+cmake"):
             cmake_exe = spec["cmake"].command.path
         else:
             cmake_exe = which("cmake")
@@ -203,7 +205,7 @@ class Dray(Package, CudaPackage):
         cfg.write("# cpp compiler used by spack\n")
         cfg.write(cmake_cache_entry("CMAKE_CXX_COMPILER", cpp_compiler))
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             mpicc_path = spec["mpi"].mpicc
             mpicxx_path = spec["mpi"].mpicxx
             # if we are using compiler wrappers on cray systems
@@ -216,7 +218,7 @@ class Dray(Package, CudaPackage):
             cfg.write(cmake_cache_entry("ENABLE_MPI", "ON"))
             cfg.write(cmake_cache_entry("MPI_C_COMPILER", mpicc_path))
             cfg.write(cmake_cache_entry("MPI_CXX_COMPILER", mpicxx_path))
-            if "+blt_find_mpi" in spec:
+            if spec.satisfies("+blt_find_mpi"):
                 cfg.write(cmake_cache_entry("ENABLE_FIND_MPI", "ON"))
             else:
                 cfg.write(cmake_cache_entry("ENABLE_FIND_MPI", "OFF"))
@@ -254,7 +256,7 @@ class Dray(Package, CudaPackage):
 
         cfg.write("# CUDA Support\n")
 
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             cfg.write(cmake_cache_entry("ENABLE_CUDA", "ON"))
             if "cuda_arch" in spec.variants:
                 cuda_value = spec.variants["cuda_arch"].value
@@ -263,13 +265,13 @@ class Dray(Package, CudaPackage):
         else:
             cfg.write(cmake_cache_entry("ENABLE_CUDA", "OFF"))
 
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             cfg.write(cmake_cache_entry("ENABLE_OPENMP", "ON"))
         else:
             cfg.write(cmake_cache_entry("ENABLE_OPENMP", "OFF"))
 
         # shared vs static libs
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             cfg.write(cmake_cache_entry("BUILD_SHARED_LIBS", "ON"))
         else:
             cfg.write(cmake_cache_entry("BUILD_SHARED_LIBS", "OFF"))
@@ -277,7 +279,7 @@ class Dray(Package, CudaPackage):
         #######################
         # Unit Tests
         #######################
-        if "+test" in spec:
+        if spec.satisfies("+test"):
             cfg.write(cmake_cache_entry("DRAY_ENABLE_TESTS", "ON"))
             # we need this to control BLT tests
             cfg.write(cmake_cache_entry("ENABLE_TESTS", "ON"))
@@ -289,7 +291,7 @@ class Dray(Package, CudaPackage):
         #######################
         # Utilities
         #######################
-        if "+utils" in spec:
+        if spec.satisfies("+utils"):
             cfg.write(cmake_cache_entry("DRAY_ENABLE_UTILS", "ON"))
         else:
             cfg.write(cmake_cache_entry("DRAY_ENABLE_UTILS", "OFF"))
@@ -297,7 +299,7 @@ class Dray(Package, CudaPackage):
         #######################
         # Logging
         #######################
-        if "+logging" in spec:
+        if spec.satisfies("+logging"):
             cfg.write(cmake_cache_entry("ENABLE_LOGGING", "ON"))
         else:
             cfg.write(cmake_cache_entry("ENABLE_LOGGING", "OFF"))
@@ -305,7 +307,7 @@ class Dray(Package, CudaPackage):
         #######################
         # Status
         #######################
-        if "+stats" in spec:
+        if spec.satisfies("+stats"):
             cfg.write(cmake_cache_entry("ENABLE_STATS", "ON"))
         else:
             cfg.write(cmake_cache_entry("ENABLE_STATS", "OFF"))

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class PyOpppy(PythonPackage):
     url = "https://github.com/lanl/OPPPY/archive/refs/tags/opppy-0_1_2.tar.gz"
     git = "https://github.com/lanl/OPPPY.git"
     maintainers("clevelam")
+
+    license("BSD-3-Clause")
 
     version("master", branch="master")
     version("0_1_7", sha256="6ef17e289de2c469ac931288fc5debee77583b300e35fa72080ee06d0e27f7af")

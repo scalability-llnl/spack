@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -42,6 +42,7 @@ class ArpackNg(CMakePackage, AutotoolsPackage):
     build_system("cmake", "autotools", default="cmake")
 
     version("develop", branch="master")
+    version("3.9.0", sha256="24f2a2b259992d3c797d80f626878aa8e2ed5009d549dad57854bbcfb95e1ed0")
     version("3.8.0", sha256="ada5aeb3878874383307239c9235b716a8a170c6d096a6625bfd529844df003d")
     version("3.7.0", sha256="972e3fc3cd0b9d6b5a737c9bf6fd07515c0d6549319d4ffb06970e64fa3cc2d6")
     version("3.6.3", sha256="64f3551e5a2f8497399d82af3076b6a33bf1bc95fc46bbcabe66442db366f453")
@@ -54,6 +55,10 @@ class ArpackNg(CMakePackage, AutotoolsPackage):
         sha256="ad59811e7d79d50b8ba19fd908f92a3683d883597b2c7759fdcc38f6311fe5b3",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("shared", default=True, description="Enables the build of shared libraries")
     variant("mpi", default=True, description="Activates MPI support")
@@ -88,16 +93,15 @@ class ArpackNg(CMakePackage, AutotoolsPackage):
 
     def flag_handler(self, name, flags):
         spec = self.spec
-        iflags = []
         if name == "cflags":
             if spec.satisfies("%oneapi"):
-                iflags.append("-Wno-error=implicit-function-declaration")
+                flags.append("-Wno-error=implicit-function-declaration")
 
         if name == "fflags":
             if self.spec.satisfies("%cce"):
-                iflags.append("-hnopattern")
+                flags.append("-hnopattern")
 
-        return (iflags, None, None)
+        return (flags, None, None)
 
     @property
     def libs(self):
@@ -105,7 +109,7 @@ class ArpackNg(CMakePackage, AutotoolsPackage):
         # query_parameters = self.spec.last_query.extra_parameters
         libraries = ["libarpack"]
 
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             libraries = ["libparpack"] + libraries
 
         return find_libraries(libraries, root=self.prefix, shared=True, recursive=True)
@@ -149,14 +153,14 @@ class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
         options = (
             self.enable_or_disable("mpi")
             + [
-                "--with-blas={0}".format(spec["blas"].libs.ld_flags),
-                "--with-lapack={0}".format(spec["lapack"].libs.ld_flags),
+                f"--with-blas={spec['blas'].libs.ld_flags}",
+                f"--with-lapack={spec['lapack'].libs.ld_flags}",
             ]
             + self.enable_or_disable("shared")
         )
 
-        if "+mpi" in spec:
-            options.append("F77={0}".format(spec["mpi"].mpif77))
+        if spec.satisfies("+mpi"):
+            options.append(f"F77={spec['mpi'].mpif77}")
 
         return options
 

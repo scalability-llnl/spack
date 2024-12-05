@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,7 @@ class RAcgh(RPackage):
 
     bioc = "aCGH"
 
+    version("1.78.0", commit="75df3a4839af66ce177d1bbc3cec4ac03c21dc8e")
     version("1.76.0", commit="c6068522854ed0b1c3feb006619ef25590f70ad6")
     version("1.74.0", commit="e7ba380af0da138788eb6c86f5dbe453269c0810")
     version("1.72.0", commit="b5d4022ac487125194d3913f1b8c2948db6e2792")
@@ -25,6 +26,8 @@ class RAcgh(RPackage):
     version("1.58.0", commit="2decc79a21bff5a14d708cdc654e351515b20d3e")
     version("1.56.0", commit="f3531ec99fc181044bdcb6a01c9976029efb6235")
     version("1.54.0", commit="be2ed339449f55c8d218e10c435e4ad356683693")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r@2.10:", type=("build", "run"))
     depends_on("r-cluster", type=("build", "run"))

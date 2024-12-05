@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,11 @@ class Nfft(AutotoolsPackage):
     homepage = "https://www-user.tu-chemnitz.de/~potts/nfft"
     url = "https://github.com/NFFT/nfft/releases/download/3.4.1/nfft-3.4.1.tar.gz"
 
+    license("GPL-2.0-or-later")
+
+    version("3.5.3", sha256="caf1b3b3e5bf8c33a6bfd7eca811d954efce896605ecfd0144d47d0bebdf4371")
+    version("3.5.2", sha256="cf3b2f3b2eabd79e49a5fbabf7f8d73fc3c57c4f68ae71e29f6dead853ab2901")
+    version("3.5.1", sha256="bb95b2c240c6d972d4bb20740751a8efeba8b48b3be1d61fd59883909776fee3")
     version("3.4.1", sha256="1cf6060eec0afabbbba323929d8222397a77fa8661ca74927932499db26b4aaf")
     version("3.3.2", sha256="9dcebd905a82c4f0a339d0d5e666b68c507169d9173b66d5ac588aae5d50b57c")
     version(
@@ -21,6 +26,8 @@ class Nfft(AutotoolsPackage):
         sha256="31932438bd28609bcc32bef23830994fe6ac26d411d2077cde782faa5d21207e",
         url="https://www-user.tu-chemnitz.de/~potts/nfft/download/nfft-3.2.4.tar.gz",
     )
+
+    depends_on("c", type="build")  # generated
 
     depends_on("fftw")
 

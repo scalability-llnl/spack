@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyLagom(PythonPackage):
     homepage = "https://lagom-di.readthedocs.io"
     url = "https://github.com/meadsteve/lagom/archive/refs/tags/2.2.0.tar.gz"
     git = "https://github.com/meadsteve/lagom.git"
+
+    license("MIT")
 
     version("2.2.0", sha256="69f701a2f81d9ca0ea7c93a5b15f7420bbe03d14175ec128959ad82e2b67460b")
 

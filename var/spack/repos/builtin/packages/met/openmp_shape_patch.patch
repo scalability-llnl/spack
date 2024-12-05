@@ -1,0 +1,11 @@
+--- a/src/basic/vx_util/data_plane_util.cc	2022-03-18 22:29:42.000000000 -0400
++++ b/src/basic/vx_util/data_plane_util.cc	2022-03-18 22:30:44.000000000 -0400
+@@ -253,7 +253,7 @@
+ 
+ #pragma omp parallel default(none)                 \
+    shared(mlog, dp, frac_dp, width, wrap_lon, t)   \
+-   shared(use_climo, cmn, csd, vld_t, bad)         \
++   shared(use_climo, cmn, csd, vld_t, bad, shape)  \
+    private(x, y, n_vld, n_thr, gp, v)
+    {
+ 

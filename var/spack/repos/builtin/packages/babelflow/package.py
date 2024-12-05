@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,9 +17,13 @@ class Babelflow(CMakePackage):
 
     maintainers("spetruzza")
 
+    license("BSD-3-Clause")
+
     version("1.1.0", sha256="6436b0e6b2f57fbe0cb9127dc9e7f513167de89de2a8c145055434013714989f")
     version("1.0.1", sha256="b7817870b7a1d7ae7ae2eff1a1acec2824675fb856f666d5dc95c41ce453ae91")
     version("1.0.0", sha256="4c4d7ddf60e25e8d3550c07875dba3e46e7c9e61b309cc47a409461b7ffa405e")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("mpi")
 

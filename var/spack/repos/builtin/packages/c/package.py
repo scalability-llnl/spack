@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,17 +14,17 @@ class C(Package):
     homepage = "http://open-std.org/JTC1/SC22/WG14/www/standards"
     virtual = True
 
-    def test(self):
+    def test_c(self):
+        """build and run C examples"""
+        cc = which(os.environ["CC"])
+        expected = ["Hello world", "YES!"]
+
         test_source = self.test_suite.current_test_data_dir
-
         for test in os.listdir(test_source):
-            filepath = test_source.join(test)
-            exe_name = "%s.exe" % test
-
-            cc_exe = os.environ["CC"]
-            cc_opts = ["-o", exe_name, filepath]
-            compiled = self.run_test(cc_exe, options=cc_opts, installed=True)
-
-            if compiled:
-                expected = ["Hello world", "YES!"]
-                self.run_test(exe_name, expected=expected)
+            exe_name = f"{test}.exe"
+            with test_part(self, f"test_c_{test}", f"build and run {exe_name}"):
+                filepath = join_path(test_source, test)
+                cc("-o", exe_name, filepath)
+                exe = which(exe_name)
+                out = exe(output=str.split, error=str.split)
+                check_outputs(expected, out)
