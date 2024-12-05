@@ -121,28 +121,8 @@ class Go(Package):
 
         In most cases, extensions will only need to set GOPATH and use go::
 
-        env['GOPATH'] = self.source_path + ':' + env['GOPATH']
         go('get', '<package>', env=env)
         install_tree('bin', prefix.bin)
         """
         #  Add a go command/compiler for extensions
         module.go = self.spec["go"].command
-
-    def generate_path_components(self, dependent_spec):
-        if os.environ.get("GOROOT", False):
-            tty.warn("GOROOT is set, this is not recommended")
-
-        # Set to include paths of dependencies
-        path_components = [dependent_spec.prefix]
-        for d in dependent_spec.traverse():
-            if d.package.extends(self.spec):
-                path_components.append(d.prefix)
-        return ":".join(path_components)
-
-    def setup_dependent_build_environment(self, env, dependent_spec):
-        # This *MUST* be first, this is where new code is installed
-        env.prepend_path("GOPATH", self.generate_path_components(dependent_spec))
-
-    def setup_dependent_run_environment(self, env, dependent_spec):
-        # Allow packages to find this when using module files
-        env.prepend_path("GOPATH", self.generate_path_components(dependent_spec))
