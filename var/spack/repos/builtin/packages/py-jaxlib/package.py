@@ -99,11 +99,13 @@ class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
         depends_on("py-build", when="@0.4.14:")
 
     with default_args(type=("build", "run")):
+        depends_on("python@3.10:", when="@0.4.31:")
+        depends_on("python@3.9:", when="@0.4.14:")
+        depends_on("python@3.8:", when="@0.4.6:")
         # Based on PyPI wheels
-        depends_on("python@3.10:3.12", when="@0.4.31:")
-        depends_on("python@3.9:3.12", when="@0.4.17:0.4.30")
-        depends_on("python@3.9:3.11", when="@0.4.14:0.4.16")
-        depends_on("python@3.8:3.11", when="@0.4.6:0.4.13")
+        depends_on("python@:3.13")
+        depends_on("python@:3.12", when="@:0.4.33")
+        depends_on("python@:3.11", when="@:0.4.16")
 
         # jaxlib/setup.py
         depends_on("py-scipy@1.10:", when="@0.4.31:")

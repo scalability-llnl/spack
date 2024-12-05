@@ -7,9 +7,7 @@ import os
 import os.path
 import sys
 
-import spack.platforms
 import spack.util.environment
-import spack.util.executable
 from spack.build_environment import dso_suffix
 from spack.build_systems import cmake, makefile
 from spack.package import *
@@ -434,7 +432,6 @@ class MakefileBuilder(makefile.MakefileBuilder):
         optimization_flags = {
             "gcc": ["-O2", "-funroll-loops", "-ftree-vectorize"],
             "intel": ["-O2", "-pc64", "-unroll"],
-            "pgi": ["-fast"],
             "nvhpc": ["-fast"],
             "cce": ["-O2"],
             "xl": ["-O3"],
@@ -483,7 +480,7 @@ class MakefileBuilder(makefile.MakefileBuilder):
             ]
         elif spec.satisfies("%aocc") or spec.satisfies("%rocmcc"):
             fcflags += ["-ffree-form", "-Mbackslash"]
-        elif spec.satisfies("%pgi") or spec.satisfies("%nvhpc"):
+        elif spec.satisfies("%nvhpc"):
             fcflags += ["-Mfreeform", "-Mextend"]
         elif spec.satisfies("%cce"):
             fcflags += ["-emf", "-ffree", "-hflex_mp=strict"]

@@ -30,3 +30,6 @@ class PyRiver(PythonPackage):
     depends_on("py-numpy@1.22:", type=("build", "run"))
     depends_on("py-scipy@1.5:", type=("build", "run"))
     depends_on("py-pandas@1.3:", type=("build", "run"))
+
+    # https://github.com/online-ml/river/pull/1632
+    depends_on("py-numpy@:1", when="@:0.21", type=("build", "run"))

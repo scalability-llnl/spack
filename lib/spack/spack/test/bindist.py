@@ -32,7 +32,7 @@ import spack.config
 import spack.fetch_strategy
 import spack.hooks.sbang as sbang
 import spack.main
-import spack.mirror
+import spack.mirrors.mirror
 import spack.paths
 import spack.spec
 import spack.stage
@@ -324,8 +324,8 @@ def test_push_and_fetch_keys(mock_gnupghome, tmp_path):
 
     mirror = os.path.join(testpath, "mirror")
     mirrors = {"test-mirror": url_util.path_to_file_url(mirror)}
-    mirrors = spack.mirror.MirrorCollection(mirrors)
-    mirror = spack.mirror.Mirror(url_util.path_to_file_url(mirror))
+    mirrors = spack.mirrors.mirror.MirrorCollection(mirrors)
+    mirror = spack.mirrors.mirror.Mirror(url_util.path_to_file_url(mirror))
 
     gpg_dir1 = os.path.join(testpath, "gpg1")
     gpg_dir2 = os.path.join(testpath, "gpg2")

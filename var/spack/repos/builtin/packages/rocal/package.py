@@ -37,6 +37,56 @@ class Rocal(CMakePackage):
             "rocAL/rocAL_hip/CMakeLists.txt",
             string=True,
         )
+        filter_file(
+            r"${ROCM_PATH}/include/rocal",
+            "{0}/include/rocal".format(self.spec.prefix),
+            "tests/cpp_api/CMakeLists.txt",
+            string=True,
+        )
+        filter_file(
+            r"${ROCM_PATH}/${CMAKE_INSTALL_INCLUDEDIR}/rocal",
+            "{0}/include/rocal".format(self.spec.prefix),
+            "tests/cpp_api/audio_tests/CMakeLists.txt",
+            "tests/cpp_api/image_augmentation/CMakeLists.txt",
+            "tests/cpp_api/basic_test/CMakeLists.txt",
+            "tests/cpp_api/performance_tests/CMakeLists.txt",
+            "tests/cpp_api/dataloader/CMakeLists.txt",
+            "tests/cpp_api/performance_tests_with_depth/CMakeLists.txt",
+            "tests/cpp_api/dataloader_multithread/CMakeLists.txt",
+            "tests/cpp_api/unit_tests/CMakeLists.txt",
+            "tests/cpp_api/dataloader_tf/CMakeLists.txt",
+            "tests/cpp_api/video_tests/CMakeLists.txt",
+            "tests/cpp_api/external_source/CMakeLists.txt",
+            string=True,
+        )
+        filter_file(
+            r"${ROCM_PATH}/lib",
+            "{0}/lib".format(self.spec.prefix),
+            "tests/cpp_api/audio_tests/CMakeLists.txt",
+            "tests/cpp_api/image_augmentation/CMakeLists.txt",
+            "tests/cpp_api/basic_test/CMakeLists.txt",
+            "tests/cpp_api/performance_tests/CMakeLists.txt",
+            "tests/cpp_api/dataloader/CMakeLists.txt",
+            "tests/cpp_api/performance_tests_with_depth/CMakeLists.txt",
+            "tests/cpp_api/dataloader_multithread/CMakeLists.txt",
+            "tests/cpp_api/unit_tests/CMakeLists.txt",
+            "tests/cpp_api/dataloader_tf/CMakeLists.txt",
+            "tests/cpp_api/video_tests/CMakeLists.txt",
+            "tests/cpp_api/external_source/CMakeLists.txt",
+            string=True,
+        )
+        filter_file(
+            r"${ROCM_PATH}/lib",
+            "{0}/lib".format(self.spec.prefix),
+            "tests/cpp_api/CMakeLists.txt",
+            string=True,
+        )
+        filter_file(
+            r"${ROCM_PATH}/share/rocal",
+            "{0}/share/rocal".format(self.spec.prefix),
+            "tests/cpp_api/CMakeLists.txt",
+            string=True,
+        )
 
     def cmake_args(self):
         args = [
@@ -46,3 +96,12 @@ class Rocal(CMakePackage):
             self.define("CMAKE_INSTALL_PREFIX_PYTHON", self.spec.prefix),
         ]
         return args
+
+    def check(self):
+        print("test will run after install")
+
+    @run_after("install")
+    @on_package_attributes(run_tests=True)
+    def check_install(self):
+        with working_dir(self.build_directory, create=True):
+            make("test")

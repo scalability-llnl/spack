@@ -219,10 +219,10 @@ def test_redistribute_override_when():
         disable_redistribute = {}
 
     cls = MockPackage
-    spack.directives._execute_redistribute(cls, source=False, when="@1.0")
+    spack.directives._execute_redistribute(cls, source=False, binary=None, when="@1.0")
     spec_key = spack.directives._make_when_spec("@1.0")
     assert not cls.disable_redistribute[spec_key].binary
     assert cls.disable_redistribute[spec_key].source
-    spack.directives._execute_redistribute(cls, binary=False, when="@1.0")
+    spack.directives._execute_redistribute(cls, source=None, binary=False, when="@1.0")
     assert cls.disable_redistribute[spec_key].binary
     assert cls.disable_redistribute[spec_key].source

@@ -74,6 +74,12 @@ class PyPillowBase(PythonPackage):
     depends_on("libimagequant", when="+imagequant")
     depends_on("libxcb", when="+xcb")
 
+    patch(
+        "https://github.com/python-pillow/Pillow/commit/1c11d4581c5705dfa21bc5a4f3b6980c556978bf.patch?full_index=1",
+        sha256="599f37e6a5a8d1adb9f4025ffc7cae5f5b61cad60a04e7c7a3015f9e350047bb",
+        when="@11.0.0",
+    )
+
     @when("@10:")
     def config_settings(self, spec, prefix):
         settings = {"parallel": make_jobs}

@@ -325,12 +325,7 @@ class AsciiGraph:
         self._out = llnl.util.tty.color.ColorStream(out, color=color)
 
         # We'll traverse the spec in topological order as we graph it.
-        nodes_in_topological_order = [
-            edge.spec
-            for edge in spack.traverse.traverse_edges_topo(
-                [spec], direction="children", deptype=self.depflag
-            )
-        ]
+        nodes_in_topological_order = list(spec.traverse(order="topo", deptype=self.depflag))
         nodes_in_topological_order.reverse()
 
         # Work on a copy to be nondestructive

@@ -35,7 +35,6 @@ class Raxml(Package):
     conflicts("%apple-clang")
     conflicts("%clang")
     conflicts("%nag")
-    conflicts("%pgi")
     conflicts("%xl")
     conflicts("%xl_r")
 

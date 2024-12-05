@@ -210,7 +210,7 @@ nitpick_ignore = [
     # Spack classes that are private and we don't want to expose
     ("py:class", "spack.provider_index._IndexBase"),
     ("py:class", "spack.repo._PrependFileLoader"),
-    ("py:class", "spack.build_systems._checks.BaseBuilder"),
+    ("py:class", "spack.build_systems._checks.BuilderWithDefaults"),
     # Spack classes that intersphinx is unable to resolve
     ("py:class", "spack.version.StandardVersion"),
     ("py:class", "spack.spec.DependencySpec"),
@@ -221,6 +221,10 @@ nitpick_ignore = [
     ("py:class", "spack.filesystem_view.SimpleFilesystemView"),
     ("py:class", "spack.traverse.EdgeAndDepth"),
     ("py:class", "archspec.cpu.microarchitecture.Microarchitecture"),
+    ("py:class", "spack.compiler.CompilerCache"),
+    ("py:class", "spack.mirrors.mirror.Mirror"),
+    ("py:class", "spack.mirrors.layout.MirrorLayout"),
+    ("py:class", "spack.mirrors.utils.MirrorStats"),
     # TypeVar that is not handled correctly
     ("py:class", "llnl.util.lang.T"),
 ]

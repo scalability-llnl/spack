@@ -16,6 +16,8 @@ from spack.pkg.builtin.boost import Boost
 #   --with-papi=/usr
 #   --with-dwarf=/usr
 #   --with-elf=/usr
+#   --with-elfutils=/usr
+#   --with-tbb=/usr
 #   --with-dyninst=/usr
 #   --with-binutils=/usr
 #   --with-xml-prefix=/usr
@@ -88,7 +90,10 @@ class Extrae(AutotoolsPackage):
     build_directory = "spack-build"
 
     variant("dyninst", default=False, description="Use dyninst for dynamic code installation")
-    depends_on("dyninst@:9", when="+dyninst")
+    with when("+dyninst"):
+        depends_on("dyninst@10.1.0:")
+        depends_on("elfutils", when="@4.1.2:")
+        depends_on("intel-oneapi-tbb", when="@4.1.2:")
 
     variant("papi", default=True, description="Use PAPI to collect performance counters")
     depends_on("papi", when="+papi")
@@ -104,6 +109,12 @@ class Extrae(AutotoolsPackage):
         "single-mpi-lib",
         default=False,
         description="Enable single MPI instrumentation library that supports both Fortran and C",
+    )
+
+    patch(
+        "dyninst_instruction.patch",
+        when="@:4.0.6 +dyninst",
+        sha256="c1df1627b51b9d0f38711aee50ff11f30ffc34c43e520c39118157e9c31a927e",
     )
 
     def configure_args(self):
@@ -129,11 +140,16 @@ class Extrae(AutotoolsPackage):
             else ["--without-papi"]
         )
 
-        args += (
-            ["--with-dyninst=%s" % spec["dyninst"].prefix]
-            if spec.satisfies("+dyninst")
-            else ["--without-dyninst"]
-        )
+        if spec.satisfies("+dyninst"):
+            args += ["--with-dyninst={spec['dyninst'].prefix}"]
+
+            if spec.satisfies("@4.1.2:"):
+                args += [
+                    f"--with-elfutils={spec['elfutils'].prefix}",
+                    f"--with-tbb={spec['tbb'].prefix}",
+                ]
+        else:
+            args += ["--without-dyninst"]
 
         args += (
             ["--with-cuda=%s" % spec["cuda"].prefix]
@@ -147,7 +163,7 @@ class Extrae(AutotoolsPackage):
 
         args += ["--with-cupti=%s" % cupti_dir] if "+cupti" in spec else ["--without-cupti"]
 
-        if spec.satisfies("^dyninst@9.3.0:"):
+        if spec.satisfies("+dyninst"):
             make.add_default_arg("CXXFLAGS=%s" % self.compiler.cxx11_flag)
             args.append("CXXFLAGS=%s" % self.compiler.cxx11_flag)
 

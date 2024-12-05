@@ -6,6 +6,7 @@
 import os
 import tempfile
 
+from spack.build_systems.cmake import CMakeBuilder
 from spack.package import *
 
 
@@ -113,7 +114,6 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
     # Requires mature C++11 implementations
     conflicts("%gcc@:4.7")
     conflicts("%intel@:15")
-    conflicts("%pgi@:14")
 
     # ifx does not support submodules in separate files
     conflicts("%oneapi@:2022.1.0", when="+fortran")
@@ -192,10 +192,14 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("mgard@2023-01-10:", when="@2.9: +mgard")
 
     extends("python", when="+python")
-    depends_on("python@2.7:2.8,3.5:", when="@:2.4.0 +python", type=("build", "run"))
-    depends_on("python@2.7:2.8,3.5:", when="@:2.4.0", type="test")
-    depends_on("python@3.5:", when="@2.5.0: +python", type=("build", "run"))
-    depends_on("python@3.5:", when="@2.5.0:", type="test")
+    depends_on("python", when="+python", type=("build", "run"))
+    depends_on("python@2.7:2.8,3.5:3.10", when="@:2.4.0 +python", type=("build", "run"))
+    depends_on("python@3.5:3.10", when="@2.5.0:2.7 +python", type=("build", "run"))
+
+    depends_on("python", type="test")
+    depends_on("python@2.7:2.8,3.5:3.10", when="@:2.4.0", type="test")
+    depends_on("python@3.5:3.10", when="@2.5.0:2.7", type="test")
+
     depends_on("py-numpy@1.6.1:", when="+python", type=("build", "run"))
     depends_on("py-mpi4py@2.0.0:", when="+mpi +python", type=("build", "run"))
     depends_on("aws-sdk-cpp", when="+aws")
@@ -314,11 +318,11 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
 
         # hip support
         if spec.satisfies("+cuda"):
-            args.append(self.builder.define_cuda_architectures(self))
+            args.append(CMakeBuilder.define_cuda_architectures(self))
 
         # hip support
         if spec.satisfies("+rocm"):
-            args.append(self.builder.define_hip_architectures(self))
+            args.append(CMakeBuilder.define_hip_architectures(self))
 
         return args
 

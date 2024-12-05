@@ -3,8 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import spack.version
 from spack.package import *
-from spack.util.executable import which_string
 
 
 class NinjaFortran(Package):

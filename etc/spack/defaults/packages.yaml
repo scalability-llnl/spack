@@ -76,6 +76,8 @@ packages:
     buildable: false
   cray-mvapich2:
     buildable: false
+  egl:
+    buildable: false
   fujitsu-mpi:
     buildable: false
   hpcx-mpi:

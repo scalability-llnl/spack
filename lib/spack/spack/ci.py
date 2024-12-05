@@ -32,11 +32,13 @@ from llnl.util.tty.color import cescape, colorize
 
 import spack
 import spack.binary_distribution as bindist
+import spack.builder
 import spack.concretize
 import spack.config as cfg
 import spack.error
 import spack.main
-import spack.mirror
+import spack.mirrors.mirror
+import spack.mirrors.utils
 import spack.paths
 import spack.repo
 import spack.spec
@@ -203,7 +205,7 @@ def _print_staging_summary(spec_labels, stages, rebuild_decisions):
     if not stages:
         return
 
-    mirrors = spack.mirror.MirrorCollection(binary=True)
+    mirrors = spack.mirrors.mirror.MirrorCollection(binary=True)
     tty.msg("Checked the following mirrors for binaries:")
     for m in mirrors.values():
         tty.msg(f"  {m.fetch_url}")
@@ -796,7 +798,7 @@ def generate_gitlab_ci_yaml(
             path = path.replace("\\", "/")
         return path
 
-    pipeline_mirrors = spack.mirror.MirrorCollection(binary=True)
+    pipeline_mirrors = spack.mirrors.mirror.MirrorCollection(binary=True)
     buildcache_destination = None
     if "buildcache-destination" not in pipeline_mirrors:
         raise SpackCIError("spack ci generate requires a mirror named 'buildcache-destination'")
@@ -1322,7 +1324,7 @@ def push_to_build_cache(spec: spack.spec.Spec, mirror_url: str, sign_binaries: b
     """
     tty.debug(f"Pushing to build cache ({'signed' if sign_binaries else 'unsigned'})")
     signing_key = bindist.select_signing_key() if sign_binaries else None
-    mirror = spack.mirror.Mirror.from_url(mirror_url)
+    mirror = spack.mirrors.mirror.Mirror.from_url(mirror_url)
     try:
         with bindist.make_uploader(mirror, signing_key=signing_key) as uploader:
             uploader.push_or_raise([spec])
@@ -1342,7 +1344,7 @@ def remove_other_mirrors(mirrors_to_keep, scope=None):
             mirrors_to_remove.append(name)
 
     for mirror_name in mirrors_to_remove:
-        spack.mirror.remove(mirror_name, scope)
+        spack.mirrors.utils.remove(mirror_name, scope)
 
 
 def copy_files_to_artifacts(src, artifacts_dir):
@@ -1387,7 +1389,11 @@ def copy_stage_logs_to_artifacts(job_spec: spack.spec.Spec, job_log_dir: str) ->
 
     stage_dir = job_pkg.stage.path
     tty.debug(f"stage dir: {stage_dir}")
-    for file in [job_pkg.log_path, job_pkg.env_mods_path, *job_pkg.builder.archive_files]:
+    for file in [
+        job_pkg.log_path,
+        job_pkg.env_mods_path,
+        *spack.builder.create(job_pkg).archive_files,
+    ]:
         copy_files_to_artifacts(file, job_log_dir)
 
 

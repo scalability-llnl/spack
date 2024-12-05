@@ -50,12 +50,13 @@ from llnl.util.tty.log import log_output
 
 import spack.binary_distribution as binary_distribution
 import spack.build_environment
+import spack.builder
 import spack.config
 import spack.database
 import spack.deptypes as dt
 import spack.error
 import spack.hooks
-import spack.mirror
+import spack.mirrors.mirror
 import spack.package_base
 import spack.package_prefs as prefs
 import spack.repo
@@ -212,7 +213,7 @@ def _check_last_phase(pkg: "spack.package_base.PackageBase") -> None:
     Raises:
         ``BadInstallPhase`` if stop_before or last phase is invalid
     """
-    phases = pkg.builder.phases  # type: ignore[attr-defined]
+    phases = spack.builder.create(pkg).phases  # type: ignore[attr-defined]
     if pkg.stop_before_phase and pkg.stop_before_phase not in phases:  # type: ignore[attr-defined]
         raise BadInstallPhase(pkg.name, pkg.stop_before_phase)  # type: ignore[attr-defined]
 
@@ -490,7 +491,7 @@ def _try_install_from_binary_cache(
         timer: timer to keep track of binary install phases.
     """
     # Early exit if no binary mirrors are configured.
-    if not spack.mirror.MirrorCollection(binary=True):
+    if not spack.mirrors.mirror.MirrorCollection(binary=True):
         return False
 
     tty.debug(f"Searching for binary cache of {package_id(pkg.spec)}")
@@ -661,7 +662,7 @@ def log(pkg: "spack.package_base.PackageBase") -> None:
             spack.store.STORE.layout.metadata_path(pkg.spec), "archived-files"
         )
 
-        for glob_expr in pkg.builder.archive_files:
+        for glob_expr in spack.builder.create(pkg).archive_files:
             # Check that we are trying to copy things that are
             # in the stage tree (not arbitrary files)
             abs_expr = os.path.realpath(glob_expr)
@@ -2394,7 +2395,6 @@ class BuildProcessInstaller:
         fs.install_tree(pkg.stage.source_path, src_target)
 
     def _real_install(self) -> None:
-        import spack.builder
 
         pkg = self.pkg
 

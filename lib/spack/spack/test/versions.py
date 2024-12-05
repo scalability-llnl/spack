@@ -607,6 +607,9 @@ def test_stringify_version(version_str):
     v.string = None
     assert str(v) == version_str
 
+    v.string = None
+    assert v.string == version_str
+
 
 def test_len():
     a = Version("1.2.3.4")

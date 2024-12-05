@@ -6,6 +6,7 @@ import os.path
 
 import llnl.util.lang as lang
 
+import spack.build_systems.cmake
 from spack.package import *
 
 
@@ -28,6 +29,7 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
     version("master", branch="master")
     version("develop", branch="develop")
 
+    version("4.5.00", sha256="cbfb742feeb9e649db9eca0394e6ca9a22aa017a1e6aab8576990772a0e3135b")
     version("4.4.01", sha256="3413f0cb39912128d91424ebd92e8832009e7eeaf6fa8da58e99b0d37860d972")
     version("4.4.00", sha256="0b46372f38c48aa088411ac1b7c173a5c90f0fdb69ab40271827688fc134f58b")
 
@@ -142,6 +144,7 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         url="https://github.com/kokkos/kokkos/archive/3.0.00.tar.gz",
     )
 
+    depends_on("c", type="build")
     depends_on("cxx", type="build")  # Kokkos requires a C++ compiler
 
     depends_on("cmake@3.16:", type="build")
@@ -177,6 +180,7 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
     options_variants = {
         "aggressive_vectorization": [False, "Aggressively vectorize loops"],
         "compiler_warnings": [False, "Print all compiler warnings"],
+        "complex_align": [True, "Align complex numbers"],
         "cuda_constexpr": [False, "Activate experimental constexpr features"],
         "cuda_lambda": [False, "Activate experimental lambda features"],
         "cuda_ldg_intrinsic": [False, "Use CUDA LDG intrinsics"],

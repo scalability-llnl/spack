@@ -20,7 +20,7 @@ from urllib.request import Request
 import llnl.util.lang
 
 import spack.config
-import spack.mirror
+import spack.mirrors.mirror
 import spack.parser
 import spack.util.web
 
@@ -367,19 +367,20 @@ class OCIAuthHandler(urllib.request.BaseHandler):
 
 
 def credentials_from_mirrors(
-    domain: str, *, mirrors: Optional[Iterable[spack.mirror.Mirror]] = None
+    domain: str, *, mirrors: Optional[Iterable[spack.mirrors.mirror.Mirror]] = None
 ) -> Optional[UsernamePassword]:
     """Filter out OCI registry credentials from a list of mirrors."""
 
-    mirrors = mirrors or spack.mirror.MirrorCollection().values()
+    mirrors = mirrors or spack.mirrors.mirror.MirrorCollection().values()
 
     for mirror in mirrors:
         # Prefer push credentials over fetch. Unlikely that those are different
         # but our config format allows it.
         for direction in ("push", "fetch"):
-            pair = mirror.get_access_pair(direction)
-            if pair is None:
+            pair = mirror.get_credentials(direction).get("access_pair")
+            if not pair:
                 continue
+
             url = mirror.get_url(direction)
             if not url.startswith("oci://"):
                 continue

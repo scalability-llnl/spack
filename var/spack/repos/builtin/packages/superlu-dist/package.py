@@ -16,10 +16,12 @@ class SuperluDist(CMakePackage, CudaPackage, ROCmPackage):
 
     tags = ["e4s"]
 
-    maintainers("xiaoye", "gchavez2", "balay", "pghysels", "liuyangzhuan")
+    maintainers("xiaoyeli", "gchavez2", "balay", "pghysels", "liuyangzhuan")
 
     version("develop", branch="master")
     version("amd", branch="amd")
+    version("9.1.0", sha256="1cb2c6dc7e8231b2ec30c1266e55e440ffca9f55527771d8df28f900dd179f9d")
+    version("9.0.0", sha256="aa43d33d4b1b0f5f7b5ad7685e9a6bc25088832c6c74d2ab8f75a2c9f4e9e955")
     version("8.2.1", sha256="b77d065cafa6bc1a1dcc15bf23fd854f54b05762b165badcffc195835ad2bddf")
     version("8.2.0", sha256="d53573e5a399b2b4ab1fcc36e8421c1b6fab36345c0af14f8fa20326e3365f1f")
     version("8.1.2", sha256="7b16c442bb01ea8b298c0aab9a2584aa4615d09786aac968cb2f3118c058206b")

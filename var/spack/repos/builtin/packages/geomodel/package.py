@@ -54,6 +54,14 @@ class Geomodel(CMakePackage):
         when="+fullsimlight",
     )
 
+    variant(
+        "cxxstd",
+        default="17",
+        values=("17", "20", "23"),
+        multi=False,
+        description="Use the specified C++ standard when building",
+    )
+
     conflicts("+fullsimlight", when="+fsl", msg="FSL triggers the build of the FullSimLight")
 
     depends_on("cmake@3.16:", type="build")
@@ -65,11 +73,14 @@ class Geomodel(CMakePackage):
 
     depends_on("geant4", when="+geomodelg4")
     depends_on("geant4", when="+fullsimlight")
+    depends_on("hdf5+cxx", when="+fullsimlight")
     depends_on("hepmc3", when="+hepmc3")
     depends_on("pythia8", when="+pythia")
     with when("+visualization"):
-        depends_on("hdf5")
-        depends_on("qt-base +gui +opengl +sql +widgets")
+        depends_on("hdf5+cxx")
+        depends_on("qt +gui +opengl +sql")
+        depends_on("coin3d")
+        depends_on("soqt")
         depends_on("opengl")
 
     def cmake_args(self):
@@ -80,5 +91,6 @@ class Geomodel(CMakePackage):
             self.define_from_variant("GEOMODEL_BUILD_FSL", "fsl"),
             self.define_from_variant("GEOMODEL_BUILD_EXAMPLES", "examples"),
             self.define_from_variant("GEOMODEL_BUILD_TOOLS", "tools"),
+            self.define_from_variant("CMAKE_CXX_STANDARD", "cxxstd"),
         ]
         return args
