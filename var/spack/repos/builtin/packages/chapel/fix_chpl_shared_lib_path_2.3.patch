@@ -1,5 +1,5 @@
 diff --git a/tools/chapel-py/setup.py b/tools/chapel-py/setup.py
-index bee452790c..fd2fe54e12 100644
+index 30c2708724..fd2fe54e12 100644
 --- a/tools/chapel-py/setup.py
 +++ b/tools/chapel-py/setup.py
 @@ -25,6 +25,7 @@ import sys
@@ -10,14 +10,10 @@ index bee452790c..fd2fe54e12 100644
  chpl_printchplenv = os.path.join(chpl_home, "util", "printchplenv")
  chpl_variables_lines = (
      subprocess.check_output(
-@@ -64,9 +65,9 @@ CXXFLAGS += ["-std=c++17", "-I{}/frontend/include".format(chpl_home)]
- LDFLAGS = []
- LDFLAGS += [
+@@ -66,6 +67,7 @@ LDFLAGS += [
      "-L{}".format(chpl_lib_path),
-+    "-Wl,-rpath,{}".format(chpl_lib_path),
+     "-Wl,-rpath,{}".format(chpl_lib_path),
      "-lChplFrontendShared",
--    "-Wl,-rpath",
--    chpl_lib_path,
 +    "-Wl,-rpath,{}".format(chpl_lib_install),
  ]
 
