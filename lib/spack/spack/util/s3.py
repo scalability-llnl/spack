@@ -87,7 +87,7 @@ def _parse_s3_endpoint_url(endpoint_url):
 def get_mirror_s3_connection_info(mirror, method):
     """Create s3 config for session/client from a Mirror instance (or just set defaults
     when no mirror is given.)"""
-    from spack.mirror import Mirror
+    from spack.mirrors.mirror import Mirror
 
     s3_connection = {}
     s3_client_args = {"use_ssl": spack.config.get("config:verify_ssl")}

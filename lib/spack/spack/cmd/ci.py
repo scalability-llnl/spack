@@ -21,6 +21,7 @@ import spack.config as cfg
 import spack.environment as ev
 import spack.hash_types as ht
 import spack.mirror
+import spack.mirrors.mirror
 import spack.util.gpg as gpg_util
 import spack.util.timer as timer
 import spack.util.url as url_util
@@ -240,7 +241,7 @@ def ci_reindex(args):
     ci_mirrors = yaml_root["mirrors"]
     mirror_urls = [url for url in ci_mirrors.values()]
     remote_mirror_url = mirror_urls[0]
-    mirror = spack.mirror.Mirror(remote_mirror_url)
+    mirror = spack.mirrors.mirror.Mirror(remote_mirror_url)
 
     buildcache.update_index(mirror, update_keys=True)
 

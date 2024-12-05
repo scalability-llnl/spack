@@ -354,7 +354,7 @@ class Stage(LockableStagingDir):
         *,
         name=None,
         mirror_paths: Optional["spack.mirror.MirrorLayout"] = None,
-        mirrors: Optional[Iterable["spack.mirror.Mirror"]] = None,
+        mirrors: Optional[Iterable["spack.mirrors.mirror.Mirror"]] = None,
         keep=False,
         path=None,
         lock=True,

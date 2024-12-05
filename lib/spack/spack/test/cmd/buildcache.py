@@ -17,6 +17,7 @@ import spack.environment as ev
 import spack.error
 import spack.main
 import spack.mirror
+import spack.mirrors.mirror
 import spack.spec
 import spack.util.url
 from spack.installer import PackageInstaller
@@ -385,7 +386,9 @@ def test_correct_specs_are_pushed(
 
     class DontUpload(spack.binary_distribution.Uploader):
         def __init__(self):
-            super().__init__(spack.mirror.Mirror.from_local_path(str(tmpdir)), False, False)
+            super().__init__(
+                spack.mirrors.mirror.Mirror.from_local_path(str(tmpdir)), False, False
+            )
             self.pushed = []
 
         def push(self, specs: List[spack.spec.Spec]):

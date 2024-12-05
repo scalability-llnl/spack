@@ -17,6 +17,7 @@ import llnl.util.tty as tty
 
 import spack.fetch_strategy
 import spack.mirror
+import spack.mirrors.mirror
 import spack.oci.opener
 import spack.stage
 import spack.util.url
@@ -213,7 +214,7 @@ def upload_manifest(
     return digest, size
 
 
-def image_from_mirror(mirror: spack.mirror.Mirror) -> ImageReference:
+def image_from_mirror(mirror: spack.mirrors.mirror.Mirror) -> ImageReference:
     """Given an OCI based mirror, extract the URL and image name from it"""
     url = mirror.push_url
     if not url.startswith("oci://"):

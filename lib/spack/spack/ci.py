@@ -38,6 +38,7 @@ import spack.config as cfg
 import spack.error
 import spack.main
 import spack.mirror
+import spack.mirrors.mirror
 import spack.paths
 import spack.repo
 import spack.spec
@@ -1323,7 +1324,7 @@ def push_to_build_cache(spec: spack.spec.Spec, mirror_url: str, sign_binaries: b
     """
     tty.debug(f"Pushing to build cache ({'signed' if sign_binaries else 'unsigned'})")
     signing_key = bindist.select_signing_key() if sign_binaries else None
-    mirror = spack.mirror.Mirror.from_url(mirror_url)
+    mirror = spack.mirrors.mirror.Mirror.from_url(mirror_url)
     try:
         with bindist.make_uploader(mirror, signing_key=signing_key) as uploader:
             uploader.push_or_raise([spec])

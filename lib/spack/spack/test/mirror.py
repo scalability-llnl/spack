@@ -15,6 +15,7 @@ import spack.caches
 import spack.config
 import spack.fetch_strategy
 import spack.mirror
+import spack.mirrors.mirror
 import spack.patch
 import spack.stage
 import spack.util.executable
@@ -135,16 +136,16 @@ def test_all_mirror(mock_git_repository, mock_svn_repository, mock_hg_repository
 @pytest.mark.parametrize(
     "mirror",
     [
-        spack.mirror.Mirror(
+        spack.mirrors.mirror.Mirror(
             {"fetch": "https://example.com/fetch", "push": "https://example.com/push"}
         )
     ],
 )
-def test_roundtrip_mirror(mirror: spack.mirror.Mirror):
+def test_roundtrip_mirror(mirror: spack.mirrors.mirror.Mirror):
     mirror_yaml = mirror.to_yaml()
-    assert spack.mirror.Mirror.from_yaml(mirror_yaml) == mirror
+    assert spack.mirrors.mirror.Mirror.from_yaml(mirror_yaml) == mirror
     mirror_json = mirror.to_json()
-    assert spack.mirror.Mirror.from_json(mirror_json) == mirror
+    assert spack.mirrors.mirror.Mirror.from_json(mirror_json) == mirror
 
 
 @pytest.mark.parametrize(
@@ -152,14 +153,14 @@ def test_roundtrip_mirror(mirror: spack.mirror.Mirror):
 )
 def test_invalid_yaml_mirror(invalid_yaml):
     with pytest.raises(SpackYAMLError, match="error parsing YAML") as e:
-        spack.mirror.Mirror.from_yaml(invalid_yaml)
+        spack.mirrors.mirror.Mirror.from_yaml(invalid_yaml)
     assert invalid_yaml in str(e.value)
 
 
 @pytest.mark.parametrize("invalid_json, error_message", [("{13:", "Expecting property name")])
 def test_invalid_json_mirror(invalid_json, error_message):
     with pytest.raises(sjson.SpackJSONError) as e:
-        spack.mirror.Mirror.from_json(invalid_json)
+        spack.mirrors.mirror.Mirror.from_json(invalid_json)
     exc_msg = str(e.value)
     assert exc_msg.startswith("error parsing JSON mirror:")
     assert error_message in exc_msg
@@ -170,7 +171,7 @@ def test_invalid_json_mirror(invalid_json, error_message):
     [
         spack.mirror.MirrorCollection(
             mirrors={
-                "example-mirror": spack.mirror.Mirror(
+                "example-mirror": spack.mirrors.mirror.Mirror(
                     "https://example.com/fetch", "https://example.com/push"
                 ).to_dict()
             }
@@ -296,14 +297,14 @@ def test_get_all_versions(specs, expected_specs):
 
 def test_update_1():
     # No change
-    m = spack.mirror.Mirror("https://example.com")
+    m = spack.mirrors.mirror.Mirror("https://example.com")
     assert not m.update({"url": "https://example.com"})
     assert m.to_dict() == "https://example.com"
 
 
 def test_update_2():
     # Change URL, shouldn't expand to {"url": ...} dict.
-    m = spack.mirror.Mirror("https://example.com")
+    m = spack.mirrors.mirror.Mirror("https://example.com")
     assert m.update({"url": "https://example.org"})
     assert m.to_dict() == "https://example.org"
     assert m.fetch_url == "https://example.org"
@@ -312,7 +313,7 @@ def test_update_2():
 
 def test_update_3():
     # Change fetch url, ensure minimal config
-    m = spack.mirror.Mirror("https://example.com")
+    m = spack.mirrors.mirror.Mirror("https://example.com")
     assert m.update({"url": "https://example.org"}, "fetch")
     assert m.to_dict() == {"url": "https://example.com", "fetch": "https://example.org"}
     assert m.fetch_url == "https://example.org"
@@ -321,7 +322,7 @@ def test_update_3():
 
 def test_update_4():
     # Change push url, ensure minimal config
-    m = spack.mirror.Mirror("https://example.com")
+    m = spack.mirrors.mirror.Mirror("https://example.com")
     assert m.update({"url": "https://example.org"}, "push")
     assert m.to_dict() == {"url": "https://example.com", "push": "https://example.org"}
     assert m.push_url == "https://example.org"
@@ -331,7 +332,7 @@ def test_update_4():
 @pytest.mark.parametrize("direction", ["fetch", "push"])
 def test_update_connection_params(direction, tmpdir, monkeypatch):
     """Test whether new connection params expand the mirror config to a dict."""
-    m = spack.mirror.Mirror("https://example.com", "example")
+    m = spack.mirrors.mirror.Mirror("https://example.com", "example")
 
     assert m.update(
         {

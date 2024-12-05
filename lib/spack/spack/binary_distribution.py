@@ -41,6 +41,7 @@ import spack.hash_types as ht
 import spack.hooks
 import spack.hooks.sbang
 import spack.mirror
+import spack.mirrors.mirror
 import spack.oci.image
 import spack.oci.oci
 import spack.oci.opener
@@ -1176,7 +1177,7 @@ def _url_upload_tarball_and_specfile(
 
 
 class Uploader:
-    def __init__(self, mirror: spack.mirror.Mirror, force: bool, update_index: bool):
+    def __init__(self, mirror: spack.mirrors.mirror.Mirror, force: bool, update_index: bool):
         self.mirror = mirror
         self.force = force
         self.update_index = update_index
@@ -1224,7 +1225,7 @@ class Uploader:
 class OCIUploader(Uploader):
     def __init__(
         self,
-        mirror: spack.mirror.Mirror,
+        mirror: spack.mirrors.mirror.Mirror,
         force: bool,
         update_index: bool,
         base_image: Optional[str],
@@ -1273,7 +1274,7 @@ class OCIUploader(Uploader):
 class URLUploader(Uploader):
     def __init__(
         self,
-        mirror: spack.mirror.Mirror,
+        mirror: spack.mirrors.mirror.Mirror,
         force: bool,
         update_index: bool,
         signing_key: Optional[str],
@@ -1297,7 +1298,7 @@ class URLUploader(Uploader):
 
 
 def make_uploader(
-    mirror: spack.mirror.Mirror,
+    mirror: spack.mirrors.mirror.Mirror,
     force: bool = False,
     update_index: bool = False,
     signing_key: Optional[str] = None,
@@ -1953,7 +1954,7 @@ def download_tarball(spec, unsigned: Optional[bool] = False, mirrors_for_spec=No
            "signature_verified": "true-if-binary-pkg-was-already-verified"
        }
     """
-    configured_mirrors: Iterable[spack.mirror.Mirror] = spack.mirror.MirrorCollection(
+    configured_mirrors: Iterable[spack.mirrors.mirror.Mirror] = spack.mirror.MirrorCollection(
         binary=True
     ).values()
     if not configured_mirrors:
@@ -1980,7 +1981,7 @@ def download_tarball(spec, unsigned: Optional[bool] = False, mirrors_for_spec=No
         for mirror in configured_mirrors:
             if mirror.fetch_url == url:
                 return mirror
-        return spack.mirror.Mirror(url)
+        return spack.mirrors.mirror.Mirror(url)
 
     mirrors = [fetch_url_to_mirror(url) for url in mirror_urls]
 
@@ -2805,7 +2806,7 @@ def get_keys(install=False, trust=False, force=False, mirrors=None):
 
 
 def _url_push_keys(
-    *mirrors: Union[spack.mirror.Mirror, str],
+    *mirrors: Union[spack.mirrors.mirror.Mirror, str],
     keys: List[str],
     tmpdir: str,
     update_index: bool = False,

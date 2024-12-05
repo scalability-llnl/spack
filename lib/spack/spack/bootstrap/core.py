@@ -38,6 +38,7 @@ import spack.binary_distribution
 import spack.config
 import spack.detection
 import spack.mirror
+import spack.mirrors.mirror
 import spack.platforms
 import spack.spec
 import spack.store
@@ -91,7 +92,7 @@ class Bootstrapper:
         self.metadata_dir = spack.util.path.canonicalize_path(conf["metadata"])
 
         # Promote (relative) paths to file urls
-        self.url = spack.mirror.Mirror(conf["info"]["url"]).fetch_url
+        self.url = spack.mirrors.mirror.Mirror(conf["info"]["url"]).fetch_url
 
     @property
     def mirror_scope(self) -> spack.config.InternalConfigScope:

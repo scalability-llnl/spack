@@ -15,6 +15,7 @@ import spack.concretize
 import spack.config
 import spack.environment as ev
 import spack.mirror
+import spack.mirrors.mirror
 import spack.repo
 import spack.spec
 import spack.util.web as web_util
@@ -365,9 +366,9 @@ def mirror_add(args):
             connection["autopush"] = args.autopush
         if args.signed is not None:
             connection["signed"] = args.signed
-        mirror = spack.mirror.Mirror(connection, name=args.name)
+        mirror = spack.mirrors.mirror.Mirror(connection, name=args.name)
     else:
-        mirror = spack.mirror.Mirror(args.url, name=args.name)
+        mirror = spack.mirrors.mirror.Mirror(args.url, name=args.name)
     spack.mirror.add(mirror, args.scope)
 
 
@@ -382,7 +383,7 @@ def _configure_mirror(args):
     if args.name not in mirrors:
         tty.die(f"No mirror found with name {args.name}.")
 
-    entry = spack.mirror.Mirror(mirrors[args.name], args.name)
+    entry = spack.mirrors.mirror.Mirror(mirrors[args.name], args.name)
     direction = "fetch" if args.fetch else "push" if args.push else None
     changes = {}
     if args.url:
