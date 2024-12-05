@@ -34,7 +34,8 @@ from llnl.util.tty.color import colorize
 import spack.caches
 import spack.config
 import spack.error
-import spack.mirror
+import spack.mirrors.layout
+import spack.mirrors.utils
 import spack.resource
 import spack.spec
 import spack.util.crypto
@@ -353,8 +354,8 @@ class Stage(LockableStagingDir):
         url_or_fetch_strategy,
         *,
         name=None,
-        mirror_paths: Optional["spack.mirror.MirrorLayout"] = None,
-        mirrors: Optional[Iterable["spack.mirror.Mirror"]] = None,
+        mirror_paths: Optional["spack.mirrors.layout.MirrorLayout"] = None,
+        mirrors: Optional[Iterable["spack.mirrors.mirror.Mirror"]] = None,
         keep=False,
         path=None,
         lock=True,
@@ -601,7 +602,7 @@ class Stage(LockableStagingDir):
         spack.caches.FETCH_CACHE.store(self.fetcher, self.mirror_layout.path)
 
     def cache_mirror(
-        self, mirror: "spack.caches.MirrorCache", stats: "spack.mirror.MirrorStats"
+        self, mirror: "spack.caches.MirrorCache", stats: "spack.mirrors.utils.MirrorStats"
     ) -> None:
         """Perform a fetch if the resource is not already cached
 

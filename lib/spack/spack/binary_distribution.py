@@ -40,7 +40,7 @@ import spack.error
 import spack.hash_types as ht
 import spack.hooks
 import spack.hooks.sbang
-import spack.mirror
+import spack.mirrors.mirror
 import spack.oci.image
 import spack.oci.oci
 import spack.oci.opener
@@ -369,7 +369,7 @@ class BinaryCacheIndex:
         on disk under ``_index_cache_root``)."""
         self._init_local_index_cache()
         configured_mirror_urls = [
-            m.fetch_url for m in spack.mirror.MirrorCollection(binary=True).values()
+            m.fetch_url for m in spack.mirrors.mirror.MirrorCollection(binary=True).values()
         ]
         items_to_remove = []
         spec_cache_clear_needed = False
@@ -1176,7 +1176,7 @@ def _url_upload_tarball_and_specfile(
 
 
 class Uploader:
-    def __init__(self, mirror: spack.mirror.Mirror, force: bool, update_index: bool):
+    def __init__(self, mirror: spack.mirrors.mirror.Mirror, force: bool, update_index: bool):
         self.mirror = mirror
         self.force = force
         self.update_index = update_index
@@ -1224,7 +1224,7 @@ class Uploader:
 class OCIUploader(Uploader):
     def __init__(
         self,
-        mirror: spack.mirror.Mirror,
+        mirror: spack.mirrors.mirror.Mirror,
         force: bool,
         update_index: bool,
         base_image: Optional[str],
@@ -1273,7 +1273,7 @@ class OCIUploader(Uploader):
 class URLUploader(Uploader):
     def __init__(
         self,
-        mirror: spack.mirror.Mirror,
+        mirror: spack.mirrors.mirror.Mirror,
         force: bool,
         update_index: bool,
         signing_key: Optional[str],
@@ -1297,7 +1297,7 @@ class URLUploader(Uploader):
 
 
 def make_uploader(
-    mirror: spack.mirror.Mirror,
+    mirror: spack.mirrors.mirror.Mirror,
     force: bool = False,
     update_index: bool = False,
     signing_key: Optional[str] = None,
@@ -1953,9 +1953,9 @@ def download_tarball(spec, unsigned: Optional[bool] = False, mirrors_for_spec=No
            "signature_verified": "true-if-binary-pkg-was-already-verified"
        }
     """
-    configured_mirrors: Iterable[spack.mirror.Mirror] = spack.mirror.MirrorCollection(
-        binary=True
-    ).values()
+    configured_mirrors: Iterable[spack.mirrors.mirror.Mirror] = (
+        spack.mirrors.mirror.MirrorCollection(binary=True).values()
+    )
     if not configured_mirrors:
         tty.die("Please add a spack mirror to allow download of pre-compiled packages.")
 
@@ -1980,7 +1980,7 @@ def download_tarball(spec, unsigned: Optional[bool] = False, mirrors_for_spec=No
         for mirror in configured_mirrors:
             if mirror.fetch_url == url:
                 return mirror
-        return spack.mirror.Mirror(url)
+        return spack.mirrors.mirror.Mirror(url)
 
     mirrors = [fetch_url_to_mirror(url) for url in mirror_urls]
 
@@ -2650,7 +2650,7 @@ def try_direct_fetch(spec, mirrors=None):
     specfile_is_signed = False
     found_specs = []
 
-    binary_mirrors = spack.mirror.MirrorCollection(mirrors=mirrors, binary=True).values()
+    binary_mirrors = spack.mirrors.mirror.MirrorCollection(mirrors=mirrors, binary=True).values()
 
     for mirror in binary_mirrors:
         buildcache_fetch_url_json = url_util.join(
@@ -2711,7 +2711,7 @@ def get_mirrors_for_spec(spec=None, mirrors_to_check=None, index_only=False):
     if spec is None:
         return []
 
-    if not spack.mirror.MirrorCollection(mirrors=mirrors_to_check, binary=True):
+    if not spack.mirrors.mirror.MirrorCollection(mirrors=mirrors_to_check, binary=True):
         tty.debug("No Spack mirrors are currently configured")
         return {}
 
@@ -2750,7 +2750,7 @@ def clear_spec_cache():
 
 def get_keys(install=False, trust=False, force=False, mirrors=None):
     """Get pgp public keys available on mirror with suffix .pub"""
-    mirror_collection = mirrors or spack.mirror.MirrorCollection(binary=True)
+    mirror_collection = mirrors or spack.mirrors.mirror.MirrorCollection(binary=True)
 
     if not mirror_collection:
         tty.die("Please add a spack mirror to allow " + "download of build caches.")
@@ -2805,7 +2805,7 @@ def get_keys(install=False, trust=False, force=False, mirrors=None):
 
 
 def _url_push_keys(
-    *mirrors: Union[spack.mirror.Mirror, str],
+    *mirrors: Union[spack.mirrors.mirror.Mirror, str],
     keys: List[str],
     tmpdir: str,
     update_index: bool = False,
@@ -2872,7 +2872,7 @@ def check_specs_against_mirrors(mirrors, specs, output_file=None):
 
     """
     rebuilds = {}
-    for mirror in spack.mirror.MirrorCollection(mirrors, binary=True).values():
+    for mirror in spack.mirrors.mirror.MirrorCollection(mirrors, binary=True).values():
         tty.debug("Checking for built specs at {0}".format(mirror.fetch_url))
 
         rebuild_list = []
@@ -2916,7 +2916,7 @@ def _download_buildcache_entry(mirror_root, descriptions):
 
 
 def download_buildcache_entry(file_descriptions, mirror_url=None):
-    if not mirror_url and not spack.mirror.MirrorCollection(binary=True):
+    if not mirror_url and not spack.mirrors.mirror.MirrorCollection(binary=True):
         tty.die(
             "Please provide or add a spack mirror to allow " + "download of buildcache entries."
         )
@@ -2925,7 +2925,7 @@ def download_buildcache_entry(file_descriptions, mirror_url=None):
         mirror_root = os.path.join(mirror_url, BUILD_CACHE_RELATIVE_PATH)
         return _download_buildcache_entry(mirror_root, file_descriptions)
 
-    for mirror in spack.mirror.MirrorCollection(binary=True).values():
+    for mirror in spack.mirrors.mirror.MirrorCollection(binary=True).values():
         mirror_root = os.path.join(mirror.fetch_url, BUILD_CACHE_RELATIVE_PATH)
 
         if _download_buildcache_entry(mirror_root, file_descriptions):

@@ -20,7 +20,7 @@ import spack.cmd.buildcache as buildcache
 import spack.config as cfg
 import spack.environment as ev
 import spack.hash_types as ht
-import spack.mirror
+import spack.mirrors.mirror
 import spack.util.gpg as gpg_util
 import spack.util.timer as timer
 import spack.util.url as url_util
@@ -240,7 +240,7 @@ def ci_reindex(args):
     ci_mirrors = yaml_root["mirrors"]
     mirror_urls = [url for url in ci_mirrors.values()]
     remote_mirror_url = mirror_urls[0]
-    mirror = spack.mirror.Mirror(remote_mirror_url)
+    mirror = spack.mirrors.mirror.Mirror(remote_mirror_url)
 
     buildcache.update_index(mirror, update_keys=True)
 
@@ -328,7 +328,7 @@ def ci_rebuild(args):
 
     full_rebuild = True if rebuild_everything and rebuild_everything.lower() == "true" else False
 
-    pipeline_mirrors = spack.mirror.MirrorCollection(binary=True)
+    pipeline_mirrors = spack.mirrors.mirror.MirrorCollection(binary=True)
     buildcache_destination = None
     if "buildcache-destination" not in pipeline_mirrors:
         tty.die("spack ci rebuild requires a mirror named 'buildcache-destination")

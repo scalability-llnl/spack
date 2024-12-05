@@ -40,7 +40,8 @@ import spack.directives_meta
 import spack.error
 import spack.fetch_strategy as fs
 import spack.hooks
-import spack.mirror
+import spack.mirrors.layout
+import spack.mirrors.mirror
 import spack.multimethod
 import spack.patch
 import spack.phase_callbacks
@@ -1187,10 +1188,10 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
             root=root_stage,
             resource=resource,
             name=self._resource_stage(resource),
-            mirror_paths=spack.mirror.default_mirror_layout(
+            mirror_paths=spack.mirrors.layout.default_mirror_layout(
                 resource.fetcher, os.path.join(self.name, pretty_resource_name)
             ),
-            mirrors=spack.mirror.MirrorCollection(source=True).values(),
+            mirrors=spack.mirrors.mirror.MirrorCollection(source=True).values(),
             path=self.path,
         )
 
@@ -1202,7 +1203,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         # Construct a mirror path (TODO: get this out of package.py)
         format_string = "{name}-{version}"
         pretty_name = self.spec.format_path(format_string)
-        mirror_paths = spack.mirror.default_mirror_layout(
+        mirror_paths = spack.mirrors.layout.default_mirror_layout(
             fetcher, os.path.join(self.name, pretty_name), self.spec
         )
         # Construct a path where the stage should build..
@@ -1211,7 +1212,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         stage = Stage(
             fetcher,
             mirror_paths=mirror_paths,
-            mirrors=spack.mirror.MirrorCollection(source=True).values(),
+            mirrors=spack.mirrors.mirror.MirrorCollection(source=True).values(),
             name=stage_name,
             path=self.path,
             search_fn=self._download_search,
