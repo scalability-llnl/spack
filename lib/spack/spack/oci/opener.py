@@ -21,7 +21,7 @@ import llnl.util.lang
 
 import spack.config
 import spack.mirrors.mirror
-import spack.parser
+import spack.token
 import spack.util.web
 
 from .image import ImageReference
@@ -57,7 +57,7 @@ quoted_pair = rf"\\([{HTAB}{SP}{VCHAR}{obs_text}])"
 quoted_string = rf'"(?:({qdtext}*)|{quoted_pair})*"'
 
 
-class TokenType(spack.parser.TokenBase):
+class TokenType(spack.token.TokenBase):
     AUTH_PARAM = rf"({token}){BWS}={BWS}({token}|{quoted_string})"
     # TOKEN68 = r"([A-Za-z0-9\-._~+/]+=*)"  # todo... support this?
     TOKEN = rf"{tchar}+"
@@ -85,7 +85,7 @@ def tokenize(input: str):
     scanner = ALL_TOKENS.scanner(input)  # type: ignore[attr-defined]
 
     for match in iter(scanner.match, None):  # type: ignore[var-annotated]
-        yield spack.parser.Token(
+        yield spack.token.Token(
             TokenType.__members__[match.lastgroup],  # type: ignore[attr-defined]
             match.group(),  # type: ignore[attr-defined]
             match.start(),  # type: ignore[attr-defined]
@@ -141,7 +141,7 @@ def parse_www_authenticate(input: str):
         return key, value
 
     while True:
-        token: spack.parser.Token = next(tokens)
+        token: spack.token.Token = next(tokens)
 
         if mode == State.CHALLENGE:
             if token.kind == TokenType.EOF:
