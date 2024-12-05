@@ -221,6 +221,7 @@ def test_load_and_cache_shell_script(
         cached_file = f.read()
     assert shell_out == cached_file
 
+
 @pytest.mark.parametrize(
     "shell,set_command",
     (
@@ -247,14 +248,14 @@ def test_load_multiple_and_cache_shell_script(
     # Read the mpileaks cached file
     path_to_mpileaks_file = os.path.join(
         mpileaks_spec.prefix, ".spack", f"{mpileaks_spec.name}_shell.{shell[2:]}"
-        )
+    )
     with open(path_to_mpileaks_file, "r") as f:
         mpileaks_cache = f.read()
 
     # Read the mpileaks cached file
     path_to_zlib_file = os.path.join(
         zlib_spec.prefix, ".spack", f"{zlib_spec.name}_shell.{shell[2:]}"
-        )
+    )
     with open(path_to_zlib_file, "r") as f:
         zlib_cache = f.read()
 
