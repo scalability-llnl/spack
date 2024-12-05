@@ -10,9 +10,6 @@ the main server for a particular package is down.  Or, if the computer
 where spack is run is not connected to the internet, it allows spack
 to download packages directly from a mirror (e.g., on an intranet).
 """
-import collections
-import collections.abc
-import operator
 import os
 import os.path
 import sys
@@ -32,119 +29,10 @@ import spack.mirror
 import spack.oci.image
 import spack.repo
 import spack.spec
-import spack.util.spack_json as sjson
 import spack.util.spack_yaml as syaml
 import spack.version
 from spack.error import MirrorError
-from spack.mirrors.mirror import Mirror
-
-
-class MirrorCollection(collections.abc.Mapping):
-    """A mapping of mirror names to mirrors."""
-
-    def __init__(
-        self,
-        mirrors=None,
-        scope=None,
-        binary: Optional[bool] = None,
-        source: Optional[bool] = None,
-        autopush: Optional[bool] = None,
-    ):
-        """Initialize a mirror collection.
-
-        Args:
-            mirrors: A name-to-mirror mapping to initialize the collection with.
-            scope: The scope to use when looking up mirrors from the config.
-            binary: If True, only include binary mirrors.
-                    If False, omit binary mirrors.
-                    If None, do not filter on binary mirrors.
-            source: If True, only include source mirrors.
-                    If False, omit source mirrors.
-                    If None, do not filter on source mirrors.
-            autopush: If True, only include mirrors that have autopush enabled.
-                      If False, omit mirrors that have autopush enabled.
-                      If None, do not filter on autopush."""
-        mirrors_data = (
-            mirrors.items()
-            if mirrors is not None
-            else spack.config.get("mirrors", scope=scope).items()
-        )
-        mirrors = (Mirror(data=mirror, name=name) for name, mirror in mirrors_data)
-
-        def _filter(m: Mirror):
-            if source is not None and m.source != source:
-                return False
-            if binary is not None and m.binary != binary:
-                return False
-            if autopush is not None and m.autopush != autopush:
-                return False
-            return True
-
-        self._mirrors = {m.name: m for m in mirrors if _filter(m)}
-
-    def __eq__(self, other):
-        return self._mirrors == other._mirrors
-
-    def to_json(self, stream=None):
-        return sjson.dump(self.to_dict(True), stream)
-
-    def to_yaml(self, stream=None):
-        return syaml.dump(self.to_dict(True), stream)
-
-    # TODO: this isn't called anywhere
-    @staticmethod
-    def from_yaml(stream, name=None):
-        data = syaml.load(stream)
-        return MirrorCollection(data)
-
-    @staticmethod
-    def from_json(stream, name=None):
-        try:
-            d = sjson.load(stream)
-            return MirrorCollection(d)
-        except Exception as e:
-            raise sjson.SpackJSONError("error parsing JSON mirror collection:", str(e)) from e
-
-    def to_dict(self, recursive=False):
-        return syaml.syaml_dict(
-            sorted(
-                ((k, (v.to_dict() if recursive else v)) for (k, v) in self._mirrors.items()),
-                key=operator.itemgetter(0),
-            )
-        )
-
-    @staticmethod
-    def from_dict(d):
-        return MirrorCollection(d)
-
-    def __getitem__(self, item):
-        return self._mirrors[item]
-
-    def display(self):
-        max_len = max(len(mirror.name) for mirror in self._mirrors.values())
-        for mirror in self._mirrors.values():
-            mirror.display(max_len)
-
-    def lookup(self, name_or_url):
-        """Looks up and returns a Mirror.
-
-        If this MirrorCollection contains a named Mirror under the name
-        [name_or_url], then that mirror is returned.  Otherwise, [name_or_url]
-        is assumed to be a mirror URL, and an anonymous mirror with the given
-        URL is returned.
-        """
-        result = self.get(name_or_url)
-
-        if result is None:
-            result = Mirror(fetch=name_or_url)
-
-        return result
-
-    def __iter__(self):
-        return iter(self._mirrors)
-
-    def __len__(self):
-        return len(self._mirrors)
+from spack.mirrors.mirror import Mirror, MirrorCollection
 
 
 def _determine_extension(fetcher):

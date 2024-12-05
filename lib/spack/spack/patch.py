@@ -17,6 +17,7 @@ import spack
 import spack.error
 import spack.fetch_strategy
 import spack.mirror
+import spack.mirrors.mirror
 import spack.repo
 import spack.stage
 import spack.util.spack_json as sjson
@@ -334,7 +335,7 @@ class UrlPatch(Patch):
             fetcher,
             name=f"{spack.stage.stage_prefix}patch-{fetch_digest}",
             mirror_paths=mirror_ref,
-            mirrors=spack.mirror.MirrorCollection(source=True).values(),
+            mirrors=spack.mirrors.mirror.MirrorCollection(source=True).values(),
         )
         return self._stage
 

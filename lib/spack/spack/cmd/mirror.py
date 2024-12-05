@@ -450,7 +450,7 @@ def mirror_set_url(args):
 def mirror_list(args):
     """print out available mirrors to the console"""
 
-    mirrors = spack.mirror.MirrorCollection(scope=args.scope)
+    mirrors = spack.mirrors.mirror.MirrorCollection(scope=args.scope)
     if not mirrors:
         tty.msg("No mirrors configured.")
         return
@@ -682,7 +682,7 @@ def mirror_destroy(args):
     mirror_url = None
 
     if args.mirror_name:
-        result = spack.mirror.MirrorCollection().lookup(args.mirror_name)
+        result = spack.mirrors.mirror.MirrorCollection().lookup(args.mirror_name)
         mirror_url = result.push_url
     elif args.mirror_url:
         mirror_url = args.mirror_url

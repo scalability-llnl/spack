@@ -169,7 +169,7 @@ def test_invalid_json_mirror(invalid_json, error_message):
 @pytest.mark.parametrize(
     "mirror_collection",
     [
-        spack.mirror.MirrorCollection(
+        spack.mirrors.mirror.MirrorCollection(
             mirrors={
                 "example-mirror": spack.mirrors.mirror.Mirror(
                     "https://example.com/fetch", "https://example.com/push"
@@ -180,9 +180,15 @@ def test_invalid_json_mirror(invalid_json, error_message):
 )
 def test_roundtrip_mirror_collection(mirror_collection):
     mirror_collection_yaml = mirror_collection.to_yaml()
-    assert spack.mirror.MirrorCollection.from_yaml(mirror_collection_yaml) == mirror_collection
+    assert (
+        spack.mirrors.mirror.MirrorCollection.from_yaml(mirror_collection_yaml)
+        == mirror_collection
+    )
     mirror_collection_json = mirror_collection.to_json()
-    assert spack.mirror.MirrorCollection.from_json(mirror_collection_json) == mirror_collection
+    assert (
+        spack.mirrors.mirror.MirrorCollection.from_json(mirror_collection_json)
+        == mirror_collection
+    )
 
 
 @pytest.mark.parametrize(
@@ -190,14 +196,14 @@ def test_roundtrip_mirror_collection(mirror_collection):
 )
 def test_invalid_yaml_mirror_collection(invalid_yaml):
     with pytest.raises(SpackYAMLError, match="error parsing YAML") as e:
-        spack.mirror.MirrorCollection.from_yaml(invalid_yaml)
+        spack.mirrors.mirror.MirrorCollection.from_yaml(invalid_yaml)
     assert invalid_yaml in str(e.value)
 
 
 @pytest.mark.parametrize("invalid_json, error_message", [("{13:", "Expecting property name")])
 def test_invalid_json_mirror_collection(invalid_json, error_message):
     with pytest.raises(sjson.SpackJSONError) as e:
-        spack.mirror.MirrorCollection.from_json(invalid_json)
+        spack.mirrors.mirror.MirrorCollection.from_json(invalid_json)
     exc_msg = str(e.value)
     assert exc_msg.startswith("error parsing JSON mirror collection:")
     assert error_message in exc_msg

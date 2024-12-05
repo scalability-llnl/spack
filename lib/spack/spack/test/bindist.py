@@ -325,7 +325,7 @@ def test_push_and_fetch_keys(mock_gnupghome, tmp_path):
 
     mirror = os.path.join(testpath, "mirror")
     mirrors = {"test-mirror": url_util.path_to_file_url(mirror)}
-    mirrors = spack.mirror.MirrorCollection(mirrors)
+    mirrors = spack.mirrors.mirror.MirrorCollection(mirrors)
     mirror = spack.mirrors.mirror.Mirror(url_util.path_to_file_url(mirror))
 
     gpg_dir1 = os.path.join(testpath, "gpg1")

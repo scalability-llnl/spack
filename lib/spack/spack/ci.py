@@ -205,7 +205,7 @@ def _print_staging_summary(spec_labels, stages, rebuild_decisions):
     if not stages:
         return
 
-    mirrors = spack.mirror.MirrorCollection(binary=True)
+    mirrors = spack.mirrors.mirror.MirrorCollection(binary=True)
     tty.msg("Checked the following mirrors for binaries:")
     for m in mirrors.values():
         tty.msg(f"  {m.fetch_url}")
@@ -798,7 +798,7 @@ def generate_gitlab_ci_yaml(
             path = path.replace("\\", "/")
         return path
 
-    pipeline_mirrors = spack.mirror.MirrorCollection(binary=True)
+    pipeline_mirrors = spack.mirrors.mirror.MirrorCollection(binary=True)
     buildcache_destination = None
     if "buildcache-destination" not in pipeline_mirrors:
         raise SpackCIError("spack ci generate requires a mirror named 'buildcache-destination'")

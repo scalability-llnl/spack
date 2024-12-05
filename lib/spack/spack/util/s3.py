@@ -25,7 +25,7 @@ def get_s3_session(url, method="fetch"):
     from botocore.exceptions import ClientError
 
     # Circular dependency
-    from spack.mirror import MirrorCollection
+    from spack.mirrors.mirror import MirrorCollection
 
     global s3_client_cache
 

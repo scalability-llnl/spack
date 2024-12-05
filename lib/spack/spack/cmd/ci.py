@@ -329,7 +329,7 @@ def ci_rebuild(args):
 
     full_rebuild = True if rebuild_everything and rebuild_everything.lower() == "true" else False
 
-    pipeline_mirrors = spack.mirror.MirrorCollection(binary=True)
+    pipeline_mirrors = spack.mirrors.mirror.MirrorCollection(binary=True)
     buildcache_destination = None
     if "buildcache-destination" not in pipeline_mirrors:
         tty.die("spack ci rebuild requires a mirror named 'buildcache-destination")

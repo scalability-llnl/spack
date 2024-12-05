@@ -372,7 +372,7 @@ def credentials_from_mirrors(
 ) -> Optional[UsernamePassword]:
     """Filter out OCI registry credentials from a list of mirrors."""
 
-    mirrors = mirrors or spack.mirror.MirrorCollection().values()
+    mirrors = mirrors or spack.mirrors.mirror.MirrorCollection().values()
 
     for mirror in mirrors:
         # Prefer push credentials over fetch. Unlikely that those are different
