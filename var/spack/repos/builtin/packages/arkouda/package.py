@@ -14,7 +14,7 @@ class Arkouda(MakefilePackage):
     homepage = "https://github.com/Bears-R-Us/arkouda"
 
     # Arkouda does not have a current PyPI package, so we use the GitHub tarball
-    url = "https://github.com/Bears-R-Us/arkouda/archive/refs/tags/v2024.06.21.tar.gz"
+    url = "https://github.com/Bears-R-Us/arkouda/archive/refs/tags/v2024.10.02.tar.gz"
     git = "https://github.com/Bears-R-Us/arkouda.git"
 
     test_requires_compiler = True
@@ -97,7 +97,4 @@ class Arkouda(MakefilePackage):
         # single-locale or multi-locale mode
         if not self.spec.satisfies("^chapel comm=none"):
             install("arkouda_server_real", prefix.bin)
-        install_tree(self.stage.source_path, prefix)
-
-    def setup_build_environment(self, env):
-        env.set("CHPL_FLAGS", "--no-compiler-driver")
+        # install_tree(self.stage.source_path, prefix)
