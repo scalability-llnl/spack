@@ -9,7 +9,7 @@ import platform
 import re
 import sys
 from itertools import chain
-from typing import Any, List, Optional, Set, Tuple
+from typing import Any, List, Optional, Tuple
 
 import llnl.util.filesystem as fs
 from llnl.util.lang import stable_partition
@@ -21,6 +21,7 @@ import spack.package_base
 import spack.phase_callbacks
 import spack.spec
 import spack.util.prefix
+from spack import traverse
 from spack.directives import build_system, conflicts, depends_on, variant
 from spack.multimethod import when
 from spack.util.environment import filter_system_paths
@@ -166,15 +167,18 @@ def generator(*names: str, default: Optional[str] = None) -> None:
 def get_cmake_prefix_path(pkg: spack.package_base.PackageBase) -> List[str]:
     """Obtain the CMAKE_PREFIX_PATH entries for a package, based on the cmake_prefix_path package
     attribute of direct build/test and transitive link dependencies."""
-    # Add direct build/test deps
-    selected: Set[str] = {s.dag_hash() for s in pkg.spec.dependencies(deptype=dt.BUILD | dt.TEST)}
-    # Add transitive link deps
-    selected.update(s.dag_hash() for s in pkg.spec.traverse(root=False, deptype=dt.LINK))
-    # Separate out externals so they do not shadow Spack prefixes
-    externals, spack_built = stable_partition(
-        (s for s in pkg.spec.traverse(root=False, order="topo") if s.dag_hash() in selected),
-        lambda x: x.external,
+    edges = traverse.traverse_topo_edges_generator(
+        traverse.with_artificial_edges([pkg.spec]),
+        visitor=traverse.MixedDepthVisitor(
+            direct=dt.BUILD | dt.TEST, transitive=dt.LINK, key=traverse.by_dag_hash
+        ),
+        key=traverse.by_dag_hash,
+        root=False,
+        all_edges=False,  # cover all nodes, not all edges
     )
+    ordered_specs = [edge.spec for edge in edges]
+    # Separate out externals so they do not shadow Spack prefixes
+    externals, spack_built = stable_partition((s for s in ordered_specs), lambda x: x.external)
 
     return filter_system_paths(
         path for spec in chain(spack_built, externals) for path in spec.package.cmake_prefix_paths

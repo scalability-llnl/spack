@@ -5,10 +5,12 @@
 
 import sys
 
+import spack.build_systems.autotools
+import spack.build_systems.meson
 from spack.package import *
 
 
-class Pixman(AutotoolsPackage):
+class Pixman(AutotoolsPackage, MesonPackage):
     """The Pixman package contains a library that provides low-level
     pixel manipulation features such as image compositing and
     trapezoid rasterization."""
@@ -32,6 +34,9 @@ class Pixman(AutotoolsPackage):
         conditional("meson", when="@0.38:"),
         default="meson",
     )
+
+    # https://github.com/spack/spack/issues/47917
+    conflicts("%intel")
 
     depends_on("c", type="build")
     with when("build_system=meson"):

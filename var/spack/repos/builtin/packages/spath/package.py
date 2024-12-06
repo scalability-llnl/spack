@@ -26,7 +26,8 @@ class Spath(CMakePackage):
     version("0.0.2", sha256="7a65be59c3d27e92ed4718fba1a97a4a1c68e0a552b54de13d58afe3d8199cf7")
     version("0.0.1", sha256="f41c0ac74e6fb8acfd0c072d756db0fc9c00441f22be492cc4ad25f7fb596a24")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     depends_on("zlib-api", type="link", when="@:0.0.2")
 

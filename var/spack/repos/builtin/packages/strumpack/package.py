@@ -9,7 +9,6 @@ import llnl.util.tty as tty
 
 from spack.package import *
 from spack.util.environment import set_env
-from spack.util.executable import ProcessError
 
 
 class Strumpack(CMakePackage, CudaPackage, ROCmPackage):

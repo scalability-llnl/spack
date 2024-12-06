@@ -87,14 +87,15 @@ class Vtk(CMakePackage):
 
     conflicts("%gcc@13", when="@9.2")
 
-    with when("+python"):
-        # Depend on any Python, add bounds below.
-        extends("python@2.7:", type=("build", "run"))
-        depends_on("python@:3.7", when="@:8.2.0", type=("build", "run"))
-        # Python 3.8 support from vtk 9 and patched 8.2
-        depends_on("python@:3.8", when="@:8.2.1a", type=("build", "run"))
-        # Python 3.10 support from vtk 9.2
-        depends_on("python@:3.9", when="@:9.1", type=("build", "run"))
+    # Based on PyPI wheel availability
+    with when("+python"), default_args(type=("build", "link", "run")):
+        depends_on("python@:3.13")
+        depends_on("python@:3.12", when="@:9.3")
+        depends_on("python@:3.11", when="@:9.2")
+        depends_on("python@:3.10", when="@:9.2.2")
+        depends_on("python@:3.9", when="@:9.1")
+        depends_on("python@:3.8", when="@:9.0.1")
+        depends_on("python@:3.7", when="@:8.2.0")
 
     # We need mpi4py if buidling python wrappers and using MPI
     depends_on("py-mpi4py", when="+python+mpi", type="run")

@@ -64,7 +64,7 @@ class Libxml2(AutotoolsPackage, NMakePackage):
         version("2.9.2", sha256="5178c30b151d044aefb1b08bf54c3003a0ac55c59c866763997529d60770d5bc")
         version("2.7.8", sha256="cda23bc9ebd26474ca8f3d67e7d1c4a1f1e7106364b690d822e009fdc3c417ec")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     variant("python", default=False, description="Enable Python support")
     variant("shared", default=True, description="Build shared library")

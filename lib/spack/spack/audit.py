@@ -571,8 +571,13 @@ def _search_for_deprecated_package_methods(pkgs, error_cls):
 @package_properties
 def _ensure_all_package_names_are_lowercase(pkgs, error_cls):
     """Ensure package names are lowercase and consistent"""
+    reserved_names = ("all",)
     badname_regex, errors = re.compile(r"[_A-Z]"), []
     for pkg_name in pkgs:
+        if pkg_name in reserved_names:
+            error_msg = f"The name '{pkg_name}' is reserved, and cannot be used for packages"
+            errors.append(error_cls(error_msg, []))
+
         if badname_regex.search(pkg_name):
             error_msg = f"Package name '{pkg_name}' should be lowercase and must not contain '_'"
             errors.append(error_cls(error_msg, []))
@@ -688,19 +693,19 @@ def _ensure_all_packages_use_sha256_checksums(pkgs, error_cls):
                     return h, True
             return None, False
 
-        error_msg = "Package '{}' does not use sha256 checksum".format(pkg_name)
+        error_msg = f"Package '{pkg_name}' does not use sha256 checksum"
         details = []
         for v, args in pkg.versions.items():
             fetcher = spack.fetch_strategy.for_package_version(pkg, v)
             digest, is_bad = invalid_sha256_digest(fetcher)
             if is_bad:
-                details.append("{}@{} uses {}".format(pkg_name, v, digest))
+                details.append(f"{pkg_name}@{v} uses {digest}")
 
         for _, resources in pkg.resources.items():
             for resource in resources:
                 digest, is_bad = invalid_sha256_digest(resource.fetcher)
                 if is_bad:
-                    details.append("Resource in '{}' uses {}".format(pkg_name, digest))
+                    details.append(f"Resource in '{pkg_name}' uses {digest}")
         if details:
             errors.append(error_cls(error_msg, details))
 

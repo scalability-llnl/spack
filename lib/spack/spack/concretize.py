@@ -160,6 +160,11 @@ def concretize_separately(
     # TODO: support parallel concretization on macOS and Windows
     num_procs = min(len(args), spack.config.determine_number_of_jobs(parallel=True))
 
+    msg = "Starting concretization"
+    if sys.platform not in ("darwin", "win32") and num_procs > 1:
+        msg += f" pool with {num_procs} processes"
+    tty.msg(msg)
+
     for j, (i, concrete, duration) in enumerate(
         spack.util.parallel.imap_unordered(
             _concretize_task, args, processes=num_procs, debug=tty.is_debug(), maxtaskperchild=1

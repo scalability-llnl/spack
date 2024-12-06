@@ -361,6 +361,8 @@ class Mfem(Package, CudaPackage, ROCmPackage):
     # MUMPS (and SuiteSparse in older versions). On the other hand, PETSc built
     # with MUMPS is not strictly required, so we do not require it here.
     depends_on("petsc@3.8:+mpi+hypre", when="+petsc")
+    # rocPRIM is a dependency when using petsc+rocm and requires C++14 or newer:
+    conflicts("cxxstd=11", when="^rocprim@5.5.0:")
     depends_on("slepc@3.8.0:", when="+slepc")
     # If petsc is built with +cuda, propagate cuda_arch to petsc and slepc
     for sm_ in CudaPackage.cuda_arch_values:
@@ -635,6 +637,9 @@ class Mfem(Package, CudaPackage, ROCmPackage):
             cxxstd = "14"
         if self.spec.satisfies("^ginkgo"):
             cxxstd = "14"
+        # When rocPRIM is used (e.g. by PETSc + ROCm) we need C++14:
+        if self.spec.satisfies("^rocprim@5.5.0:"):
+            cxxstd = "14"
         cxxstd_req = spec.variants["cxxstd"].value
         if cxxstd_req != "auto":
             # Constraints for valid standard level should be imposed during
@@ -697,8 +702,10 @@ class Mfem(Package, CudaPackage, ROCmPackage):
         if "+mpi" in spec:
             options += ["MPICXX=%s" % spec["mpi"].mpicxx]
             hypre = spec["hypre"]
-            # The hypre package always links with 'blas' and 'lapack'.
-            all_hypre_libs = hypre.libs + hypre["lapack"].libs + hypre["blas"].libs
+            all_hypre_libs = hypre.libs
+            if "+lapack" in hypre:
+                all_hypre_libs += hypre["lapack"].libs + hypre["blas"].libs
+
             hypre_gpu_libs = ""
             if "+cuda" in hypre:
                 hypre_gpu_libs = " -lcusparse -lcurand -lcublas"

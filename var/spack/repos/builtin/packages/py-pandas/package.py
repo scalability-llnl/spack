@@ -73,6 +73,7 @@ class PyPandas(PythonPackage):
     variant("excel", when="@1.4:", default=False, description="Build with support for Excel")
 
     depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     with default_args(type="build"):
         depends_on("py-meson-python@0.13.1:", when="@2.1:")
@@ -95,15 +96,16 @@ class PyPandas(PythonPackage):
         depends_on("py-setuptools@24.2:", when="@:1.2")
 
     with default_args(type=("build", "run")):
-        # Based on PyPI wheel versions
-        depends_on("python@3.9:3.13", when="@2.2.3:")
-        depends_on("python@3.9:3.12", when="@2.1.1:")
-        depends_on("python@3.9:3.11", when="@2.1.0")
-        depends_on("python@3.8:3.11", when="@1.5:2.0")
-        depends_on("python@3.8:3.10", when="@1.4")
-        depends_on("python@:3.10", when="@1.3.3:1.3")
-        depends_on("python@:3.9", when="@1.1.3:1.3.2")
-        depends_on("python@:3.8", when="@0.25.2:1.1.2")
+        # Based on PyPI wheel availability
+        depends_on("python@3.9:", when="@2.1:")
+        depends_on("python@3.8:", when="@1.4:")
+
+        depends_on("python@:3.13")
+        depends_on("python@:3.12", when="@:2.2.2")
+        depends_on("python@:3.11", when="@:2.1.0")
+        depends_on("python@:3.10", when="@:1.4")
+        depends_on("python@:3.9", when="@:1.3.2")
+        depends_on("python@:3.8", when="@:1.1.2")
 
         depends_on("py-numpy@1.22.4:", when="@2.1:")
         depends_on("py-numpy@1.20.3:", when="@1.5:")
