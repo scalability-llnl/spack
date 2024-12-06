@@ -68,6 +68,9 @@ class PyPsyclone(PythonPackage):
     depends_on("py-pytest-xdist", type="test")
     depends_on("py-pytest", type="test")
 
+    # Maintainers
+    maintainers("arporter", "sergisiso")
+
     # Test
     @run_after("install")
     @on_package_attributes(run_tests=True)
