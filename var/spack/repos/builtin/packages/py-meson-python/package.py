@@ -62,5 +62,5 @@ class PyMesonPython(PythonPackage):
         # compiler path env vars to handle this by using the windows shortname
         # syntax rather than the full path.
         if self.spec.satisfies("platform=windows"):
-            env.set("CC", windows_sfn(self.compiler.cc))
-            env.set("CXX", windows_sfn(self.compiler.cxx))
+            env.set("CC", windows_sfn(dependent_spec.package.compiler.cc))
+            env.set("CXX", windows_sfn(dependent_spec.package.compiler.cxx))
