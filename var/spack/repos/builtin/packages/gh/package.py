@@ -51,6 +51,7 @@ class Gh(GoPackage):
     depends_on("go@1.19:", type="build", when="@2.21.0:")
     depends_on("go@1.21:", type="build", when="@2.33.0:")
     depends_on("go@1.22:", type="build", when="@2.47.0:")
+    depends_on("go@1.22.5:", type="build", when="@2.56.0:")
 
     @property
     def build_args(self):
