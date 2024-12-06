@@ -41,6 +41,7 @@ import spack.spec_list
 import spack.store
 import spack.user_environment as uenv
 import spack.util.environment
+import spack.util.git
 import spack.util.hash
 import spack.util.lock as lk
 import spack.util.path
@@ -1922,6 +1923,7 @@ class Environment:
         detect_changes_with_git = self.manifest.configuration.get("detect-changes-with-git", False)
 
         git_states = list()
+
         def _is_dev_spec_and_has_changed(s):
             # First check if this is a dev build and in the process already try to get
             # the dev_path
@@ -2017,10 +2019,7 @@ class Environment:
         specs_to_overwrite, git_states = self._dev_specs_that_need_overwrite()
 
         # Extend the set of specs to overwrite with modified dev specs and their parents
-        install_args["overwrite"] = {
-            *install_args.get("overwrite", ()),
-            *specs_to_overwrite,
-        }
+        install_args["overwrite"] = {*install_args.get("overwrite", ()), *specs_to_overwrite}
 
         # Only environment roots are marked explicit
         install_args["explicit"] = {

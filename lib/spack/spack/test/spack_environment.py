@@ -8,8 +8,8 @@ import sys
 
 import pytest
 
+import spack.database
 import spack.environment as ev
-import spack.spec
 from spack.main import SpackCommand
 
 env = SpackCommand("env")
