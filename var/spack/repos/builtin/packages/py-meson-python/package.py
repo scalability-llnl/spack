@@ -3,8 +3,9 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack.package import *
 from llnl.util.filesystem import windows_sfn
+
+from spack.package import *
 
 
 class PyMesonPython(PythonPackage):
