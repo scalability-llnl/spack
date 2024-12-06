@@ -7,7 +7,6 @@ spack:
   view: false
   specs:
   - vtk~mpi
-  - boost+program_options+filesystem+thread+chrono+system+exception+test~shared
 
   cdash:
     build-group: Windows Visualization (Kitware)
