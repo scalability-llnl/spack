@@ -195,10 +195,18 @@ class Clang(Compiler):
         return ver
 
     def setup_custom_environment(self, pkg, env):
-        # Overwrite the compiler environment variables on Windows so we use the
-        # direct executables rather than the spack compiler wrappers (shell scripts)
-        # and reuse the environment setup provided by MSVC which calls vcvars64.bat.
         if sys.platform == "win32":
+            # Overwrite the compiler environment variables on Windows so we use the
+            # direct executables rather than the spack compiler wrappers (shell scripts)
+            # and reuse the environment setup provided by MSVC which calls vcvars64.bat.
+            #
+            # TODO: This is a pretty fragile solution as getting a consistent msvc compiler
+            #  depends on the order of the compilers.yaml. If that gets changed, it will
+            #  change the selected MSVC compiler, which will call a different setvars.bat
+            #  and provide different runtime libraries. To properly track this, the compiler
+            #  inteface needs to be modified, but with many incoming changes happening in
+            #  other PRs, this should wait until those changes become available in develop.
+            #  See discussion: https://github.com/spack/spack/pull/47338#discussion_r1873842503
             for compiler in all_compilers():
                 if "msvc" == compiler.spec.name:
                     tty.info(f"Configuring clang environment using {compiler.spec}")
