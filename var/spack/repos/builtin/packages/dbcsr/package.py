@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import os
+
 from spack.package import *
 
 
@@ -125,6 +127,18 @@ class Dbcsr(CMakePackage, CudaPackage, ROCmPackage):
 
     generator("ninja")
     depends_on("ninja@1.10:", type="build")
+
+    @when("+rocm")
+    def patch(self):
+        for directory, subdirectory, files in os.walk(os.getcwd()):
+            for i in files:
+                file_path = os.path.join(directory, i)
+                filter_file("USE ISO_C_BINDING", "USE,INTRINSIC :: ISO_C_BINDING", file_path)
+                filter_file("USE ISO_FORTRAN_ENV", "USE,INTRINSIC :: ISO_FORTRAN_ENV", file_path)
+                filter_file("USE omp_lib", "USE,INTRINSIC :: omp_lib", file_path)
+                filter_file("USE OMP_LIB", "USE,INTRINSIC :: OMP_LIB", file_path)
+                filter_file("USE iso_c_binding", "USE,INTRINSIC :: iso_c_binding", file_path)
+                filter_file("USE iso_fortran_env", "USE,INTRINSIC :: iso_fortran_env", file_path)
 
     def cmake_args(self):
         spec = self.spec

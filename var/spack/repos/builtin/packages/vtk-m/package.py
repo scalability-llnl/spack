@@ -7,6 +7,7 @@
 import os
 import sys
 
+from spack.build_systems.cmake import CMakeBuilder
 from spack.package import *
 
 
@@ -52,7 +53,8 @@ class VtkM(CMakePackage, CudaPackage, ROCmPackage):
     version("1.2.0", sha256="44596e88b844e7626248fb8e96a38be25a0e585a22256b1c859208b23ef45171")
     version("1.1.0", sha256="55f42c417d3a41893230b2fd3b5c192daeee689a2193de10bf22a1ef5c24c7ad")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("shared", default=False, description="build shared libs")
 
@@ -185,6 +187,12 @@ class VtkM(CMakePackage, CudaPackage, ROCmPackage):
         when="@1.6.0:2.1 +cuda ^cuda@12.5:",
     )
 
+    def flag_handler(self, name, flags):
+        if name == "cxxflags":
+            if self.spec.satisfies("@:2.2.0 %oneapi@2025:"):
+                flags.append("-Wno-error=missing-template-arg-list-after-template-kw")
+        return (flags, None, None)
+
     def cmake_args(self):
         spec = self.spec
         options = []
@@ -243,7 +251,7 @@ class VtkM(CMakePackage, CudaPackage, ROCmPackage):
                 options.append("-DCMAKE_CUDA_HOST_COMPILER={0}".format(env["SPACK_CXX"]))
 
                 if spec.satisfies("@1.9.0:") and spec.satisfies("^cmake@3.18:"):
-                    options.append(self.builder.define_cuda_architectures(self))
+                    options.append(CMakeBuilder.define_cuda_architectures(self))
 
                 else:
                     # VTKm_CUDA_Architecture only accepts a single CUDA arch
@@ -263,7 +271,7 @@ class VtkM(CMakePackage, CudaPackage, ROCmPackage):
 
             # hip support
             if "+rocm" in spec:
-                options.append(self.builder.define_hip_architectures(self))
+                options.append(CMakeBuilder.define_hip_architectures(self))
 
         return options
 

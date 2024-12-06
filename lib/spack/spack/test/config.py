@@ -15,6 +15,7 @@ import pytest
 import llnl.util.tty as tty
 from llnl.util.filesystem import join_path, touch, touchp
 
+import spack
 import spack.config
 import spack.directory_layout
 import spack.environment as ev
@@ -470,6 +471,13 @@ def test_substitute_date(mock_low_high_config):
     new_path = spack_path.canonicalize_path(test_path)
     assert "$date" in test_path
     assert date.today().strftime("%Y-%m-%d") in new_path
+
+
+def test_substitute_spack_version():
+    version = spack.spack_version_info
+    assert spack_path.canonicalize_path(
+        "spack$spack_short_version/test"
+    ) == spack_path.canonicalize_path(f"spack{version[0]}.{version[1]}/test")
 
 
 PAD_STRING = spack_path.SPACK_PATH_PADDING_CHARS

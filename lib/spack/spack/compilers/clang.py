@@ -19,7 +19,6 @@ f77_mapping = [
     ("gfortran", os.path.join("clang", "gfortran")),
     ("xlf_r", os.path.join("xl_r", "xlf_r")),
     ("xlf", os.path.join("xl", "xlf")),
-    ("pgfortran", os.path.join("pgi", "pgfortran")),
     ("ifort", os.path.join("intel", "ifort")),
 ]
 
@@ -28,7 +27,6 @@ fc_mapping = [
     ("gfortran", os.path.join("clang", "gfortran")),
     ("xlf90_r", os.path.join("xl_r", "xlf90_r")),
     ("xlf90", os.path.join("xl", "xlf90")),
-    ("pgfortran", os.path.join("pgi", "pgfortran")),
     ("ifort", os.path.join("intel", "ifort")),
 ]
 

@@ -17,6 +17,7 @@ class Cgal(CMakePackage):
     homepage = "https://www.cgal.org/"
     url = "https://github.com/CGAL/cgal/releases/download/v5.4.1/CGAL-5.4.1.tar.xz"
 
+    version("6.0.1", sha256="0acdfbf317c556630dd526f3253780f29b6ec9713ee92903e81b5c93c0f59b7f")
     version("5.6", sha256="dcab9b08a50a06a7cc2cc69a8a12200f8d8f391b9b8013ae476965c10b45161f")
     version("5.5.3", sha256="0a04f662693256328b05babfabb5e3a5b7db2f5a58d52e3c520df9d0828ddd73")
     version("5.5.2", sha256="b2b05d5616ecc69facdc24417cce0b04fb4321491d107db45103add520e3d8c3")
@@ -33,16 +34,24 @@ class Cgal(CMakePackage):
     version("4.7", sha256="50bd0a1cad7a8957b09012f831eebaf7d670e2a3467e8f365ec0c71fa5436369")
     version("4.6.3", sha256="e338027b8767c0a7a6e4fd8679182d1b83b5b1a0da0a1fe4546e7c0ca094fc21")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
-    variant("shared", default=True, description="Enables the build of shared libraries")
+    # @5: is header only and doesn't build shared libs
+    variant(
+        "shared", default=True, description="Enables the build of shared libraries", when="@:4.14"
+    )
+
     variant(
         "build_type",
         default="Release",
         description="The build type to build",
         values=("Debug", "Release"),
     )
-    variant("header_only", default=False, description="Install in header only mode")
+
+    # header only is the default and only option for 5+
+    # https://doc.cgal.org/latest/Manual/installation.html
+    variant("header_only", default=False, description="Install in header only mode", when="@:4.13")
 
     # ---- See "7 CGAL Libraries" at:
     # https://doc.cgal.org/latest/Manual/installation.html
@@ -52,16 +61,32 @@ class Cgal(CMakePackage):
     #      https://cs.nyu.edu/exact/core_pages/svn-core.html
     variant("core", default=False, description="Build the CORE library for algebraic numbers")
     variant("imageio", default=False, description="Build utilities to read/write image files")
-    variant("demos", default=False, description="Build CGAL demos")
+    variant("demos", default=False, description="Build CGAL demos", when="@:5")
     variant("eigen", default=True, description="Build with Eigen support")
 
-    depends_on("cmake@2.8.11:", type="build")
+    # Starting with cgal 6, GMP/MPFR are no longer mandatory and Core library
+    # is based on on Boost.Multiprecision. However, either GMP backend or Boost
+    # backend can be used. Downstream cmake users must also set -DCGAL_DISABLE_GMP=1
+    # or the macro CMAKE_OVERRIDDEN_DEFAULT_ENT_BACKEND if GMP is disabled.
+    # This variant doesn't change how cgal is installed, but it does change spack to
+    # not depend on gmp & mpfr.
+    # More details here https://github.com/CGAL/cgal/issues/8606
+    variant("gmp", default=True, description="Enable the GMP backend", when="@6:")
+
+    # Upper bound follows CGAL's @6: CMakeLists.txt
+    depends_on("cmake@3.12:3.29", type="build", when="@6:")
+    depends_on("cmake@2.8.11:", type="build", when="@:5")
 
     # Essential Third Party Libraries
     depends_on("boost+exception+math+random+container", when="@5.0:")
+    depends_on("boost@1.72.0:+exception+math+random+container", when="@6:")
     depends_on("boost+thread+system", when="@:5.0")
-    depends_on("gmp")
-    depends_on("mpfr")
+
+    depends_on("gmp", when="@:5")
+    depends_on("mpfr", when="@:5")
+
+    depends_on("gmp", when="@6: +gmp")
+    depends_on("mpfr", when="@6: +gmp")
 
     # Required for CGAL_ImageIO
     # depends_on('opengl', when='+imageio') # not yet in Spack
@@ -69,7 +94,10 @@ class Cgal(CMakePackage):
 
     # Optional to build CGAL_Qt5 (demos)
     # depends_on('opengl', when='+demos')   # not yet in Spack
-    depends_on("qt@5:", when="+demos")
+    depends_on("qt@5:", when="@:5 +demos")
+
+    # Demos are now based on qt6, but at the moment qt6 is not in spack
+    # depends_on("qt@6:", when="@6: +demos")
 
     # Optional Third Party Libraries
     depends_on("eigen", when="+eigen")
@@ -82,6 +110,24 @@ class Cgal(CMakePackage):
     # depends_on('libqglviewer')
     # depends_on('esbtl')
     # depends_on('intel-tbb')
+
+    # @6: requires C++17 or later. The table gives tested
+    # compilers, so use the lwoer limit of that as the bounds
+    # https://www.cgal.org/2024/10/22/cgal601/
+    with when("@6:"):
+        # Gnu g++ 11.4.0 or later (on Linux or macOS)
+        conflicts("%gcc @:11.3.0", when="platform=darwin")
+        conflicts("%gcc @:11.3.0", when="platform=linux")
+
+        # LLVM Clang version 15.0.7 or later (on Linux)
+        conflicts("%clang @:15.0.6", when="platform=linux")
+
+        # Apple Clang compiler versions 10.0.1, 12.0.5, and 15.0.0 (on macOS)
+        # (10+ has C++17 support)
+        conflicts("%apple-clang @:10.0.0", when="platform=darwin")
+
+        # Visual C++ 15.9 or later
+        conflicts("%msvc @:15.8", when="platform=windows")
 
     conflicts(
         "~header_only",
@@ -119,7 +165,13 @@ class Cgal(CMakePackage):
         cmake_args.append("-DWITH_CGAL_ImageIO:BOOL=%s" % variant_bool("+imageio"))
         cmake_args.append("-DWITH_CGAL_Qt5:BOOL=%s" % variant_bool("+demos"))
 
+        if spec.satisfies("@6:"):
+            cmake_args.append("-DCXX_STANDARD=17")
+
         if spec.satisfies("@4.9:"):
             cmake_args.append("-DCGAL_HEADER_ONLY:BOOL=%s" % variant_bool("+header_only"))
+
+        if spec.satisfies("~gmp"):
+            cmake_args.append("-DCGAL_DISABLE_GMP:BOOL=1")
 
         return cmake_args

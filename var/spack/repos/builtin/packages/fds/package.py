@@ -77,7 +77,7 @@ class Fds(MakefilePackage):
 
     def edit(self, spec, prefix):
         env["MKL_ROOT"] = self.spec["mkl"].prefix
-        if spec.compiler.name == "oneapi":
+        if spec.satisfies("%oneapi"):
             env["INTEL_IFORT"] = "ifx"
         makefile = FileFilter("Build/makefile")
         makefile.filter(r"\.\./Scripts", "./Scripts")

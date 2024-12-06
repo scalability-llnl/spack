@@ -501,18 +501,20 @@ def test_find_required_file(tmpdir):
 
     # First just find a single path
     results = spack.install_test.find_required_file(
-        tmpdir.join("c"), filename, expected=1, recursive=True
+        str(tmpdir.join("c")), filename, expected=1, recursive=True
     )
     assert isinstance(results, str)
 
     # Ensure none file if do not recursively search that directory
     with pytest.raises(spack.install_test.SkipTest, match="Expected 1"):
         spack.install_test.find_required_file(
-            tmpdir.join("c"), filename, expected=1, recursive=False
+            str(tmpdir.join("c")), filename, expected=1, recursive=False
         )
 
     # Now make sure we get all of the files
-    results = spack.install_test.find_required_file(tmpdir, filename, expected=3, recursive=True)
+    results = spack.install_test.find_required_file(
+        str(tmpdir), filename, expected=3, recursive=True
+    )
     assert isinstance(results, list) and len(results) == 3
 
 

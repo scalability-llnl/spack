@@ -19,6 +19,7 @@ class PyJoblib(PythonPackage):
 
     license("BSD-3-Clause")
 
+    version("1.4.2", sha256="2382c5816b2636fbd20a09e0f4e9dad4736765fdfb7dca582943b9c1366b3f0e")
     version("1.2.0", sha256="e1cee4a79e4af22881164f218d4311f60074197fb707e082e803b61f6d137018")
     version("1.1.0", sha256="4158fcecd13733f8be669be0683b96ebdbbd38d23559f54dca7205aea1bf1e35")
     version("1.0.1", sha256="9c17567692206d2f3fb9ecf5e991084254fe631665c450b443761c4186a613f7")
@@ -35,7 +36,10 @@ class PyJoblib(PythonPackage):
     version("0.10.2", sha256="3123553bdad83b143428033537c9e1939caf4a4d8813dade6a2246948c94494b")
     version("0.10.0", sha256="49b3a0ba956eaa2f077e1ebd230b3c8d7b98afc67520207ada20a4d8b8efd071")
 
-    depends_on("python@3.7:", when="@1.2:", type=("build", "run"))
-    depends_on("python@3.6:", when="@0.15:", type=("build", "run"))
-    depends_on("python@2.7:2.8,3.4:", type=("build", "run"))
-    depends_on("py-setuptools", type=("build", "run"))
+    with default_args(type=("build", "run")):
+        # https://github.com/joblib/joblib/pull/1361
+        depends_on("python@:3.11", when="@:1.2")
+
+    with default_args(type="build"):
+        depends_on("py-setuptools@61.2:", when="@1.4:")
+        depends_on("py-setuptools")

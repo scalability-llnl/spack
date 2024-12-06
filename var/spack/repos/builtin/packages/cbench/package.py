@@ -47,7 +47,7 @@ class Cbench(MakefilePackage):
         env.set("MPIHOME", self.spec["mpi"].prefix)
 
         # Pick the compiler collection/chain you want to compile with.
-        # Examples include: intel, gcc, pgi.
+        # Examples include: intel, gcc.
         env.set("COMPILERCOLLECTION", self.compiler.name)
 
         # Linking flags for BLAS/LAPACK and FFTW

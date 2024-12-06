@@ -10,8 +10,9 @@ import sys
 import llnl.util.tty as tty
 from llnl.util.lang import classproperty
 
-import spack.util.executable
+import spack.compilers
 from spack.build_systems.cmake import get_cmake_prefix_path
+from spack.operating_systems.mac_os import macos_sdk_path
 from spack.package import *
 from spack.package_base import PackageBase
 
@@ -40,6 +41,7 @@ class LlvmDetection(PackageBase):
         reject_list = [
             r"vscode",
             r"cpp",
+            r"ocl",
             r"gpu",
             r"tidy",
             r"rename",
@@ -88,6 +90,10 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
     license("Apache-2.0")
 
     version("main", branch="main")
+    version("19.1.4", sha256="010e1fd3cabee8799bd2f8a6fbc68f28207494f315cf9da7057a2820f79fd531")
+    version("19.1.3", sha256="e5106e2bef341b3f5e41340e4b6c6a58259f4021ad801acf14e88f1a84567b05")
+    version("19.1.2", sha256="622cb6c5e95a3bb7e9876c4696a65671f235bd836cfd0c096b272f6c2ada41e7")
+    version("19.1.1", sha256="115dfd98a353d05bffdab3f80db22f159da48aca0124e8c416f437adcd54b77f")
     version("19.1.0", sha256="0a08341036ca99a106786f50f9c5cb3fbe458b3b74cab6089fd368d0edb2edfe")
     version("18.1.8", sha256="09c08693a9afd6236f27a2ebae62cda656eba19021ef3f94d59e931d662d4856")
     version("18.1.7", sha256="b60df7cbe02cef2523f7357120fb0d46cbb443791cde3a5fb36b82c335c0afc9")
@@ -716,7 +722,7 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
             match = re.search(cls.compiler_version_regex, output)
             if match:
                 return match.group(match.lastindex)
-        except spack.util.executable.ProcessError:
+        except ProcessError:
             pass
         except Exception as e:
             tty.debug(e)
@@ -857,6 +863,10 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
                     mkdirp(self.stage.path)
                     os.symlink(bin, sym)
             env.prepend_path("PATH", self.stage.path)
+
+        if self.spec.satisfies("platform=darwin"):
+            # set the SDKROOT so the bootstrap compiler finds its C++ headers
+            env.set("SDKROOT", macos_sdk_path())
 
     def setup_run_environment(self, env):
         if self.spec.satisfies("+clang"):
@@ -1054,7 +1064,20 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
         # Enable building with CLT [and not require full Xcode]
         # https://github.com/llvm/llvm-project/issues/57037
         if self.spec.satisfies("@15.0.0: platform=darwin"):
-            cmake_args.append(define("BUILTINS_CMAKE_ARGS", "-DCOMPILER_RT_ENABLE_IOS=OFF"))
+            cmake_args.append(
+                define(
+                    "BUILTINS_CMAKE_ARGS",
+                    ";".join(
+                        [f"-DCOMPILER_RT_ENABLE_{os}=OFF" for os in ("IOS", "WATCHOS", "TVOS")]
+                    ),
+                )
+            )
+
+        if self.spec.satisfies("platform=darwin"):
+            cmake_args.append(define("LLVM_ENABLE_LIBCXX", True))
+            cmake_args.append(define("DEFAULT_SYSROOT", macos_sdk_path()))
+            # without this libc++ headers are not fond during compiler-rt build
+            cmake_args.append(define("LLVM_BUILD_EXTERNAL_COMPILER_RT", True))
 
         # Semicolon seperated list of projects to enable
         cmake_args.append(define("LLVM_ENABLE_PROJECTS", projects))

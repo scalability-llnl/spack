@@ -16,7 +16,7 @@ import spack.bootstrap
 import spack.bootstrap.config
 import spack.bootstrap.core
 import spack.config
-import spack.mirror
+import spack.mirrors.utils
 import spack.spec
 import spack.stage
 import spack.util.path
@@ -400,7 +400,7 @@ def _mirror(args):
         llnl.util.tty.set_msg_enabled(False)
         spec = spack.spec.Spec(spec_str).concretized()
         for node in spec.traverse():
-            spack.mirror.create(mirror_dir, [node])
+            spack.mirrors.utils.create(mirror_dir, [node])
         llnl.util.tty.set_msg_enabled(True)
 
     if args.binary_packages:

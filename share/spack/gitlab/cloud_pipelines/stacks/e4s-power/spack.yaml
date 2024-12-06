@@ -15,14 +15,10 @@ spack:
       variants: +mpi cuda_arch=70
     binutils:
       variants: +ld +gold +headers +libiberty ~nls
-    elfutils:
-      variants: ~nls
     hdf5:
       variants: +fortran +hl +shared
     libfabric:
       variants: fabrics=sockets,tcp,udp,rxm
-    libunwind:
-      variants: +pic +xz
     openblas:
       variants: threads=openmp
     trilinos:
@@ -42,8 +38,6 @@ spack:
       require: "~tcmalloc %gcc@9.4.0 target=ppc64le"
     tbb:
       require: intel-tbb
-    libffi:
-      require: "@3.4.4 %gcc@9.4.0 target=ppc64le"
     vtk-m:
       require: "+examples %gcc@9.4.0 target=ppc64le"
     cuda:

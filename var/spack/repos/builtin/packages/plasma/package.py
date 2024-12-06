@@ -82,7 +82,6 @@ class Plasma(CMakePackage):
     conflicts("%clang")
     conflicts("%intel")
     conflicts("%nag")
-    conflicts("%pgi")
     conflicts("%xl")
     conflicts("%xl_r")
 

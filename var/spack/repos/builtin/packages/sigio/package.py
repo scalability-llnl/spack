@@ -44,5 +44,5 @@ class Sigio(CMakePackage):
         return (None, None, flags)
 
     def check(self):
-        with working_dir(self.builder.build_directory):
+        with working_dir(self.build_directory):
             make("test")

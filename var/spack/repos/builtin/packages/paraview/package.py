@@ -88,6 +88,7 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
     variant("nvindex", default=False, description="Enable the pvNVIDIAIndeX plugin")
     variant("tbb", default=False, description="Enable multi-threaded parallelism with TBB")
     variant("adios2", default=False, description="Enable ADIOS2 support", when="@5.8:")
+    variant("fides", default=False, description="Enable Fides support", when="@5.9:")
     variant("visitbridge", default=False, description="Enable VisItBridge support")
     variant("raytracing", default=False, description="Enable Raytracing support")
     variant("cdi", default=False, description="Enable CDI support")
@@ -130,6 +131,9 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
 
     conflicts("~hdf5", when="+visitbridge")
     conflicts("+adios2", when="@:5.10 ~mpi")
+    conflicts("+fides", when="~adios2", msg="Fides needs ADIOS2")
+    conflicts("+fides", when="use_vtkm=off", msg="Fides needs VTK-m")
+    conflicts("+fides", when="use_vtkm=default", msg="Fides needs VTK-m")
     conflicts("+openpmd", when="~adios2 ~hdf5", msg="openPMD needs ADIOS2 and/or HDF5")
     conflicts("~shared", when="+cuda")
     conflicts("+cuda", when="@5.8:5.10")
@@ -225,6 +229,7 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("tbb", when="+tbb")
 
     depends_on("mpi", when="+mpi")
+    conflicts("mpi", when="~mpi")
 
     depends_on("qt@:4", when="@:5.2.0+qt")
     depends_on("qt+sql", when="+qt")
@@ -304,6 +309,8 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
     # and pre-5.9 is unable to handle that.
     depends_on("pugixml@:1.10", when="@:5.8")
     depends_on("pugixml", when="@5.9:")
+    # 5.13 uses 'remove_children': https://github.com/spack/spack/issues/47098
+    depends_on("pugixml@1.11:", when="@5.13:")
 
     # ParaView depends on cli11 due to changes in MR
     # https://gitlab.kitware.com/paraview/paraview/-/merge_requests/4951
@@ -317,6 +324,9 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
     # v8.1.0 is required for VTK::GeoVis
     # https://gitlab.kitware.com/vtk/vtk/-/merge_requests/8474
     depends_on("proj@8.1.0", when="@5.11:")
+
+    # Patches to vendored VTK-m are needed for forward compat with CUDA 12 (mr 2972 and 3259)
+    depends_on("cuda@:11", when="+cuda")
 
     patch("stl-reader-pv440.patch", when="@4.4.0")
 
@@ -573,6 +583,9 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
         if "+adios2" in spec:
             cmake_args.extend(["-DPARAVIEW_ENABLE_ADIOS2:BOOL=ON"])
 
+        if "+fides" in spec:
+            cmake_args.append("-DPARAVIEW_ENABLE_FIDES:BOOL=ON")
+
         # The assumed qt version changed to QT5 (as of paraview 5.2.1),
         # so explicitly specify which QT major version is actually being used
         if spec.satisfies("+qt"):
@@ -602,11 +615,9 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
         else:
             cmake_args.append("-DPARAVIEW_ENABLE_PYTHON:BOOL=OFF")
 
+        cmake_args.append("-DPARAVIEW_USE_MPI:BOOL=%s" % variant_bool("+mpi"))
         if "+mpi" in spec:
-            mpi_args = [
-                "-DPARAVIEW_USE_MPI:BOOL=ON",
-                "-DMPIEXEC:FILEPATH=%s/bin/mpiexec" % spec["mpi"].prefix,
-            ]
+            mpi_args = ["-DMPIEXEC:FILEPATH=%s/bin/mpiexec" % spec["mpi"].prefix]
             if not sys.platform == "win32":
                 mpi_args.extend(
                     [
