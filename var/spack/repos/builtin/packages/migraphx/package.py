@@ -20,6 +20,7 @@ class Migraphx(CMakePackage):
     libraries = ["libmigraphx"]
 
     license("MIT")
+    version("6.2.4", sha256="849cca3c7c98dc437e42ac17013f86ef0a5fd202cb87b7822778bd9a8f93d293")
     version("6.2.1", sha256="a9479fd6846bae4a888f712c2fecee6a252951ae8979d9990b100450e4cd6c30")
     version("6.2.0", sha256="7b36c1a0c44dd21f31ce6c9c4e7472923281aa7fdc693e75edd2670b101a6d48")
     version("6.1.2", sha256="829f4a2bd9fe3dee130dfcca103ddc7691da18382f5b683aaca8f3ceceaef355")
@@ -98,6 +99,7 @@ class Migraphx(CMakePackage):
         "6.1.2",
         "6.2.0",
         "6.2.1",
+        "6.2.4",
     ]:
         depends_on(f"rocm-cmake@{ver}:", type="build", when=f"@{ver}")
         depends_on(f"hip@{ver}", when=f"@{ver}")
@@ -105,7 +107,7 @@ class Migraphx(CMakePackage):
         depends_on(f"rocblas@{ver}", when=f"@{ver}")
         depends_on(f"miopen-hip@{ver}", when=f"@{ver}")
 
-    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1"]:
+    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4"]:
         depends_on(f"rocmlir@{ver}", when=f"@{ver}")
 
     @property

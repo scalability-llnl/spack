@@ -9,6 +9,20 @@ import spack.platforms
 from spack.package import *
 
 _versions = {
+    "6.2.4": {
+        "apt": (
+            "614ad0c01b7f18eaa9e8a33fb73b9d8445c8785841ed41b406e129101dea854d",
+            "https://repo.radeon.com/rocm/apt/6.2.4/pool/main/h/hsa-amd-aqlprofile/hsa-amd-aqlprofile_1.0.0.60204.60204-139~20.04_amd64.deb",
+        ),
+        "yum": (
+            "fe499f5f0f4dac3652913d4009ff802d2136725341a8346c797af790700b5f31",
+            "https://repo.radeon.com/rocm/yum/6.2.4/main/hsa-amd-aqlprofile-1.0.0.60204.60204-139.el7.x86_64.rpm",
+        ),
+        "zyp": (
+            "7109118f0edce2f85e5554330ce6f6c6519d45558d8912940c9f7ee9c01fc4dd",
+            "https://repo.radeon.com/rocm/zyp/6.2.4/main/hsa-amd-aqlprofile-1.0.0.60204.60204-sles155.139.x86_64.rpm",
+        ),
+    },
     "6.2.1": {
         "apt": (
             "a196698d39c567aef39734b4a47e0daa1596c86945868b4b0cffc6fcb0904dea",
@@ -217,6 +231,24 @@ class Aqlprofile(Package):
 
     depends_on("cpio")
 
+    for ver in [
+        "5.5.0",
+        "5.5.1",
+        "5.6.0",
+        "5.6.1",
+        "5.7.0",
+        "5.7.1",
+        "6.0.0",
+        "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+    ]:
+        depends_on(f"hsa-rocr-dev@{ver}", when=f"@{ver}")
+
     def install(self, spec, prefix):
         # find deb or rpm pkg and extract files
         for file in os.listdir("."):
@@ -230,3 +262,6 @@ class Aqlprofile(Package):
 
         install_tree(f"opt/rocm-{spec.version}/share/", prefix.share)
         install_tree(f"opt/rocm-{spec.version}/lib/", prefix.lib)
+
+    def setup_run_environment(self, env):
+        env.prepend_path("LD_LIBRARY_PATH", self.spec["hsa-rocr-dev"].prefix.lib)
