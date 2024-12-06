@@ -27,7 +27,7 @@ class AllClean(argparse.Action):
     """Activates flags -s -d -f -m and -p simultaneously"""
 
     def __call__(self, parser, namespace, values, option_string=None):
-        parser.parse_args(["-sdfmp"], namespace=namespace)
+        parser.parse_args(["-sdfcmp"], namespace=namespace)
 
 
 def setup_parser(subparser):
@@ -42,6 +42,12 @@ def setup_parser(subparser):
         "--failures",
         action="store_true",
         help="force removal of all install failure tracking markers",
+    )
+    subparser.add_argument(
+        "-c",
+        "--conc-cache",
+        action="store_true",
+        help="remove cached concretization results"
     )
     subparser.add_argument(
         "-m",
@@ -126,6 +132,10 @@ def clean(parser, args):
     if args.misc_cache:
         tty.msg("Removing cached information on repositories")
         spack.caches.MISC_CACHE.destroy()
+
+    if args.conc_cache:
+        tty.msg("Removing cached concretization results")
+        spack.caches.CONC_CACHE.destroy()
 
     if args.python_cache:
         tty.msg("Removing python cache files")

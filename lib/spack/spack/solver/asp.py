@@ -734,6 +734,13 @@ class ConcretizationCache:
             return True
         return False
 
+    def destroy(self) -> None:
+        for cache_dir in self.root.iterdir():
+            for cache_entry in cache_dir.iterdir():
+                cache_entry.unlink()
+            cache_dir.rmdir()
+        self.root.rmdir()
+
 
 def _normalize_packages_yaml(packages_yaml):
     normalized_yaml = copy.copy(packages_yaml)
@@ -1016,7 +1023,7 @@ class PyclingoDriver:
         timer.start("setup")
         asp_problem = setup.setup(specs, reuse=reuse, allow_deprecated=allow_deprecated)
         if output.out is not None:
-            output.out.write(asp_problem)
+            output.out.write("\n".join(sorted(asp_problem.split("\n"))))
         if output.setup_only:
             return Result(specs), None, None
         timer.stop("setup")
@@ -1163,7 +1170,7 @@ class ConcreteSpecsByHash(collections.abc.Mapping):
         """Iterate on items that have been added explicitly, and not just as a dependency
         of other nodes.
         """
-        for h, s in self.items():
+        for h, s in sorted(self.items()):
             # We need to make an exception for gcc-runtime, until we can splice it.
             if h in self.explicit or s.name == "gcc-runtime":
                 yield h, s
@@ -1978,7 +1985,7 @@ class SpackSolverSetup:
         """Call func(vspec, provider, i) for each of pkg's provider prefs."""
         config = spack.config.get("packages")
         pkg_prefs = config.get(pkg_name, {}).get("providers", {})
-        for vspec, providers in pkg_prefs.items():
+        for vspec, providers in sorted(pkg_prefs.items()):
             if vspec not in self.possible_virtuals:
                 continue
 
@@ -2921,7 +2928,7 @@ class SpackSolverSetup:
                     "dev_path=%s"
                     % spack.util.path.canonicalize_path(info["path"], default_wd=env.path)
                 )
-                for name, info in env.dev_specs.items()
+                for name, info in sorted(env.dev_specs.items())
             )
 
         specs = tuple(specs)  # ensure compatible types to add
@@ -4010,7 +4017,7 @@ class SpecBuilder:
             splice_triples.append((target, replacement, transitive))
 
         specs = {}
-        for key, spec in self._specs.items():
+        for key, spec in sorted(self._specs.items()):
             current_spec = spec
             for target, replacement, transitive in splice_triples:
                 if target in current_spec:
@@ -4383,9 +4390,7 @@ class Solver:
         reusable_specs.extend(self.selector.reusable_specs(specs))
         setup = SpackSolverSetup(tests=tests)
         output = OutputConfiguration(timers=timers, stats=stats, out=out, setup_only=setup_only)
-        #####
-        #####
-        #####
+
         return self.driver.solve(
             setup, specs, reuse=reusable_specs, output=output, allow_deprecated=allow_deprecated
         )
@@ -4429,10 +4434,6 @@ class Solver:
         input_specs = specs
         output = OutputConfiguration(timers=timers, stats=stats, out=out, setup_only=False)
         while True:
-            ######
-            ######
-            ######
-            ######
             result, _, _ = self.driver.solve(
                 setup,
                 input_specs,

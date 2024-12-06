@@ -140,9 +140,6 @@ def solve(parser, args):
         # set up solver parameters
         # Note: reuse and other concretizer prefs are passed as configuration
 
-        ######
-        ######
-        ######
         result = solver.solve(
             specs,
             out=output,
