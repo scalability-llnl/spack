@@ -17,6 +17,7 @@ from llnl.util.filesystem import HeaderList, LibraryList
 import spack.build_environment
 import spack.compiler
 import spack.compilers
+import spack.concretize
 import spack.config
 import spack.deptypes as dt
 import spack.package_base
@@ -164,8 +165,7 @@ def test_static_to_shared_library(build_environment):
 @pytest.mark.regression("8345")
 @pytest.mark.usefixtures("config", "mock_packages")
 def test_cc_not_changed_by_modules(monkeypatch, working_env):
-    s = spack.spec.Spec("cmake")
-    s.concretize()
+    s = spack.concretize.concretized(spack.spec.Spec("cmake"))
     pkg = s.package
 
     def _set_wrong_cc(x):
@@ -185,7 +185,7 @@ def test_setup_dependent_package_inherited_modules(
     working_env, mock_packages, install_mockery, mock_fetch
 ):
     # This will raise on regression
-    s = spack.spec.Spec("cmake-client-inheritor").concretized()
+    s = spack.concretize.concretized(spack.spec.Spec("cmake-client-inheritor"))
     PackageInstaller([s.package]).install()
 
 
@@ -278,7 +278,7 @@ def test_compiler_config_modifications(
         return convert_to_platform_path(pathlist)
 
     # Monkeypatch a pkg.compiler.environment with the required modifications
-    pkg = spack.spec.Spec("cmake").concretized().package
+    pkg = spack.concretize.concretized(spack.spec.Spec("cmake")).package
     monkeypatch.setattr(pkg.compiler, "environment", modifications)
     # Trigger the modifications
     spack.build_environment.setup_package(pkg, False)
@@ -302,7 +302,7 @@ def test_compiler_custom_env(config, mock_packages, monkeypatch, working_env):
         env.prepend_path("PATH", test_path)
         env.append_flags("ENV_CUSTOM_CC_FLAGS", "--custom-env-flag1")
 
-    pkg = spack.spec.Spec("cmake").concretized().package
+    pkg = spack.concretize.concretized(spack.spec.Spec("cmake")).package
     monkeypatch.setattr(pkg.compiler, "setup_custom_environment", custom_env)
     spack.build_environment.setup_package(pkg, False)
 
@@ -323,7 +323,7 @@ def test_external_config_env(mock_packages, mutable_config, working_env):
     }
     spack.config.set("packages:cmake", cmake_config)
 
-    cmake_client = spack.spec.Spec("cmake-client").concretized()
+    cmake_client = spack.concretize.concretized(spack.spec.Spec("cmake-client"))
     spack.build_environment.setup_package(cmake_client.package, False)
 
     assert os.environ["TEST_ENV_VAR_SET"] == "yes it's set"
@@ -331,8 +331,7 @@ def test_external_config_env(mock_packages, mutable_config, working_env):
 
 @pytest.mark.regression("9107")
 def test_spack_paths_before_module_paths(config, mock_packages, monkeypatch, working_env):
-    s = spack.spec.Spec("cmake")
-    s.concretize()
+    s = spack.concretize.concretized(spack.spec.Spec("cmake"))
     pkg = s.package
 
     module_path = os.path.join("path", "to", "module")
@@ -353,8 +352,7 @@ def test_spack_paths_before_module_paths(config, mock_packages, monkeypatch, wor
 
 
 def test_package_inheritance_module_setup(config, mock_packages, working_env):
-    s = spack.spec.Spec("multimodule-inheritance")
-    s.concretize()
+    s = spack.concretize.concretized(spack.spec.Spec("multimodule-inheritance"))
     pkg = s.package
 
     spack.build_environment.setup_package(pkg, False)
@@ -388,8 +386,7 @@ def test_wrapper_variables(
         not in cuda_include_dirs
     )
 
-    root = spack.spec.Spec("dt-diamond")
-    root.concretize()
+    root = spack.concretize.concretized(spack.spec.Spec("dt-diamond"))
 
     for s in root.traverse():
         s.prefix = "/{0}-prefix/".format(s.name)
@@ -454,7 +451,7 @@ dt-diamond-left:
 """
     )
     spack.config.set("packages", cfg_data)
-    top = spack.spec.Spec("dt-diamond").concretized()
+    top = spack.concretize.concretized(spack.spec.Spec("dt-diamond"))
 
     def _trust_me_its_a_dir(path):
         return True
@@ -501,8 +498,7 @@ def test_parallel_false_is_not_propagating(default_mock_concretization):
 )
 def test_setting_dtags_based_on_config(config_setting, expected_flag, config, mock_packages):
     # Pick a random package to be able to set compiler's variables
-    s = spack.spec.Spec("cmake")
-    s.concretize()
+    s = spack.concretize.concretized(spack.spec.Spec("cmake"))
     pkg = s.package
 
     env = EnvironmentModifications()
@@ -534,7 +530,7 @@ def test_module_globals_available_at_setup_dependent_time(
         assert dependent_module.ninja is not None
         dependent_spec.package.test_attr = True
 
-    externaltool = spack.spec.Spec("externaltest").concretized()
+    externaltool = spack.concretize.concretized(spack.spec.Spec("externaltest"))
     monkeypatch.setattr(
         externaltool["externaltool"].package, "setup_dependent_package", setup_dependent_package
     )
@@ -729,7 +725,7 @@ def test_build_system_globals_only_set_on_root_during_build(default_mock_concret
     But obviously it can lead to very hard to find bugs... We should get rid of those globals and
     define them instead as a property on the package instance.
     """
-    root = spack.spec.Spec("mpileaks").concretized()
+    root = spack.concretize.concretized(spack.spec.Spec("mpileaks"))
     build_variables = ("std_cmake_args", "std_meson_args", "std_pip_args")
 
     # See todo above, we clear out any properties that may have been set by the previous test.

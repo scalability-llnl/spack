@@ -190,8 +190,47 @@ def _concretize_task(packed_arguments: Tuple[int, str, TestsType]) -> Tuple[int,
     index, spec_str, tests = packed_arguments
     with tty.SuppressOutput(msg_enabled=False):
         start = time.time()
-        spec = Spec(spec_str).concretized(tests=tests)
+        spec = concretized(Spec(spec_str), tests=tests)
         return index, spec, time.time() - start
+
+
+def concretized(spec: Spec, tests: Union[bool, Iterable[str]] = False) -> Spec:
+    """Return a concretized copy of the given spec.
+
+    Args:
+        tests: if False disregard 'test' dependencies, if a list of names activate them for
+            the packages in the list, if True activate 'test' dependencies for all packages.
+    """
+    spec.replace_hash()
+
+    for node in spec.traverse():
+        if not node.name:
+            raise spack.error.SpecError(
+                f"Spec {node} has no name; cannot concretize an anonymous spec"
+            )
+
+    if spec._concrete:
+        return spec.copy()
+
+    allow_deprecated = spack.config.get("config:deprecated", False)
+    solver = spack.solver.asp.Solver()
+    result = solver.solve([spec], tests=tests, allow_deprecated=allow_deprecated)
+
+    # take the best answer
+    opt, i, answer = min(result.answers)
+    name = spec.name
+    # TODO: Consolidate this code with similar code in solve.py
+    if spec.virtual:
+        providers = [s.name for s in answer.values() if s.package.provides(name)]
+        name = providers[0]
+
+    node = spack.solver.asp.SpecBuilder.make_node(pkg=name)
+    assert (
+        node in answer
+    ), f"cannot find {name} in the list of specs {','.join([n.pkg for n in answer.keys()])}"
+
+    concretized = answer[node]
+    return concretized
 
 
 class UnavailableCompilerVersionError(spack.error.SpackError):

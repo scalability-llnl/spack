@@ -19,6 +19,7 @@ import llnl.util.tty as tty
 from llnl.util.symlink import symlink
 
 import spack.cmd
+import spack.concretize
 import spack.environment as ev
 import spack.installer
 import spack.store
@@ -104,7 +105,7 @@ def deprecate(parser, args):
     )
 
     if args.install:
-        deprecator = specs[1].concretized()
+        deprecator = spack.concretize.concretized(specs[1])
     else:
         deprecator = spack.cmd.disambiguate_spec(specs[1], env, local=True)
 

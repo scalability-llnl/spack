@@ -19,6 +19,7 @@ import spack.binary_distribution
 import spack.ci as ci
 import spack.cmd
 import spack.cmd.ci
+import spack.concretize
 import spack.environment as ev
 import spack.hash_types as ht
 import spack.main
@@ -145,7 +146,7 @@ and then 'd', 'b', and 'a' to be put in the next three stages, respectively.
     builder.add_package("pkg-a", dependencies=[("pkg-b", None, None), ("pkg-c", None, None)])
 
     with repo.use_repositories(builder.root):
-        spec_a = Spec("pkg-a").concretized()
+        spec_a = spack.concretize.concretized(Spec("pkg-a"))
 
         spec_a_label = ci._spec_ci_label(spec_a)
         spec_b_label = ci._spec_ci_label(spec_a["pkg-b"])
@@ -1108,7 +1109,7 @@ spack:
     with working_dir(tmp_path):
         env_cmd("create", "test", "./spack.yaml")
         with ev.read("test"):
-            concrete_spec = Spec("callpath").concretized()
+            concrete_spec = spack.concretize.concretized(Spec("callpath"))
             with open(tmp_path / "spec.json", "w") as f:
                 f.write(concrete_spec.to_json(hash=ht.dag_hash))
 
@@ -1229,12 +1230,10 @@ def test_ci_generate_read_broken_specs_url(
     ci_base_environment,
 ):
     """Verify that `broken-specs-url` works as intended"""
-    spec_a = Spec("pkg-a")
-    spec_a.concretize()
+    spec_a = spack.concretize.concretized(Spec("pkg-a"))
     a_dag_hash = spec_a.dag_hash()
 
-    spec_flattendeps = Spec("flatten-deps")
-    spec_flattendeps.concretize()
+    spec_flattendeps = spack.concretize.concretized(Spec("flatten-deps"))
     flattendeps_dag_hash = spec_flattendeps.dag_hash()
 
     broken_specs_url = tmp_path.as_uri()
@@ -1585,8 +1584,7 @@ spack:
 """
         )
 
-    spec_a = Spec("pkg-a")
-    spec_a.concretize()
+    spec_a = spack.concretize.concretized(Spec("pkg-a"))
 
     return ci.get_job_name(spec_a)
 

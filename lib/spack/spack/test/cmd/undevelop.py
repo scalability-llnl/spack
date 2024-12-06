@@ -2,6 +2,7 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import spack.concretize
 import spack.environment as ev
 import spack.spec
 from spack.main import SpackCommand
@@ -31,9 +32,9 @@ spack:
 
         env("create", "test", "./spack.yaml")
         with ev.read("test"):
-            before = spack.spec.Spec("mpich").concretized()
+            before = spack.concretize.concretized(spack.spec.Spec("mpich"))
             undevelop("mpich")
-            after = spack.spec.Spec("mpich").concretized()
+            after = spack.concretize.concretized(spack.spec.Spec("mpich"))
 
     # Removing dev spec from environment changes concretization
     assert before.satisfies("dev_path=*")

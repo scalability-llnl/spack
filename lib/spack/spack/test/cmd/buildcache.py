@@ -13,6 +13,7 @@ import pytest
 
 import spack.binary_distribution
 import spack.cmd.buildcache
+import spack.concretize
 import spack.environment as ev
 import spack.error
 import spack.main
@@ -82,7 +83,7 @@ def tests_buildcache_create(install_mockery, mock_fetch, monkeypatch, tmpdir):
 
     buildcache("push", "--unsigned", str(tmpdir), pkg)
 
-    spec = Spec(pkg).concretized()
+    spec = spack.concretize.concretized(Spec(pkg))
     tarball_path = spack.binary_distribution.tarball_path_name(spec, ".spack")
     tarball = spack.binary_distribution.tarball_name(spec, ".spec.json")
     assert os.path.exists(os.path.join(str(tmpdir), "build_cache", tarball_path))
@@ -102,7 +103,7 @@ def tests_buildcache_create_env(
 
         buildcache("push", "--unsigned", str(tmpdir))
 
-    spec = Spec(pkg).concretized()
+    spec = spack.concretize.concretized(Spec(pkg))
     tarball_path = spack.binary_distribution.tarball_path_name(spec, ".spack")
     tarball = spack.binary_distribution.tarball_name(spec, ".spec.json")
     assert os.path.exists(os.path.join(str(tmpdir), "build_cache", tarball_path))
@@ -146,7 +147,7 @@ def test_update_key_index(
 
     gpg("create", "Test Signing Key", "nobody@nowhere.com")
 
-    s = Spec("libdwarf").concretized()
+    s = spack.concretize.concretized(Spec("libdwarf"))
 
     # Install a package
     install(s.name)
@@ -176,7 +177,7 @@ def test_buildcache_autopush(tmp_path, install_mockery, mock_fetch):
     mirror("add", "--unsigned", "mirror", mirror_dir.as_uri())
     mirror("add", "--autopush", "--unsigned", "mirror-autopush", mirror_autopush_dir.as_uri())
 
-    s = Spec("libdwarf").concretized()
+    s = spack.concretize.concretized(Spec("libdwarf"))
 
     # Install and generate build cache index
     PackageInstaller([s.package], explicit=True).install()
@@ -220,7 +221,7 @@ def test_buildcache_sync(
             assert False
 
     # Install a package and put it in the buildcache
-    s = Spec(out_env_pkg).concretized()
+    s = spack.concretize.concretized(Spec(out_env_pkg))
     install(s.name)
     buildcache("push", "-u", "-f", src_mirror_url, s.name)
 
@@ -330,7 +331,7 @@ def test_buildcache_create_install(
 
     buildcache("push", "--unsigned", str(tmpdir), pkg)
 
-    spec = Spec(pkg).concretized()
+    spec = spack.concretize.concretized(Spec(pkg))
     tarball_path = spack.binary_distribution.tarball_path_name(spec, ".spack")
     tarball = spack.binary_distribution.tarball_name(spec, ".spec.json")
     assert os.path.exists(os.path.join(str(tmpdir), "build_cache", tarball_path))
@@ -451,7 +452,7 @@ def test_push_and_install_with_mirror_marked_unsigned_does_not_require_extra_fla
 
 
 def test_skip_no_redistribute(mock_packages, config):
-    specs = list(Spec("no-redistribute-dependent").concretized().traverse())
+    specs = list(spack.concretize.concretized(Spec("no-redistribute-dependent")).traverse())
     filtered = spack.cmd.buildcache._skip_no_redistribute_for_public(specs)
     assert not any(s.name == "no-redistribute" for s in filtered)
     assert any(s.name == "no-redistribute-dependent" for s in filtered)
@@ -491,7 +492,7 @@ def test_push_without_build_deps(tmp_path, temporary_store, mock_packages, mutab
 
     mirror("add", "--unsigned", "my-mirror", str(tmp_path))
 
-    s = spack.spec.Spec("dtrun3").concretized()
+    s = spack.concretize.concretized(spack.spec.Spec("dtrun3"))
     PackageInstaller([s.package], explicit=True, fake=True).install()
     s["dtbuild3"].package.do_uninstall()
 

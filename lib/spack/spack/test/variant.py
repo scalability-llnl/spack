@@ -6,6 +6,7 @@ import numbers
 
 import pytest
 
+import spack.concretize
 import spack.error
 import spack.repo
 import spack.spec
@@ -691,7 +692,7 @@ class TestVariantMapTest:
         assert not vm.concrete
 
         # concrete if associated spec is concrete
-        spec.concretize()
+        spec = spack.concretize.concretized(spec)
         assert vm.concrete
 
         # concrete if all variants are present (even if spec not concrete)
@@ -911,7 +912,7 @@ def test_concretize_variant_default_with_multiple_defs(
     pkg = spack.repo.PATH.get_pkg_class(pkg_name)
     pkg_defs = [vdef for _, vdef in pkg.variant_definitions("v")]
 
-    spec = spack.spec.Spec(f"{pkg_name}{spec}").concretized()
+    spec = spack.concretize.concretized(spack.spec.Spec(f"{pkg_name}{spec}"))
     assert spec.satisfies(satisfies)
     assert spec.package.get_variant("v") is pkg_defs[def_id]
 

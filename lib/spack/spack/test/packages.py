@@ -8,6 +8,7 @@ import os
 import pytest
 
 import spack.build_systems.cmake as cmake
+import spack.concretize
 import spack.directives
 import spack.error
 import spack.fetch_strategy
@@ -76,13 +77,13 @@ class TestPackage:
         assert len(pkg_cls.provided) == 2
 
         # Check that Spec instantiation behaves as we expect
-        s = Spec("simple-inheritance").concretized()
+        s = spack.concretize.concretized(Spec("simple-inheritance"))
         assert "^cmake" in s
         assert "^openblas" in s
         assert "+openblas" in s
         assert "mpi" in s
 
-        s = Spec("simple-inheritance~openblas").concretized()
+        s = spack.concretize.concretized(Spec("simple-inheritance~openblas"))
         assert "^cmake" in s
         assert "^openblas" not in s
         assert "~openblas" in s
@@ -90,9 +91,8 @@ class TestPackage:
 
     @pytest.mark.regression("11844")
     def test_inheritance_of_patches(self):
-        s = Spec("patch-inheritance")
         # Will error if inheritor package cannot find inherited patch files
-        s.concretize()
+        _ = spack.concretize.concretized(Spec("patch-inheritance"))
 
     def test_import_class_from_package(self):
         from spack.pkg.builtin.mock.mpich import Mpich  # noqa: F401
@@ -116,7 +116,7 @@ class TestPackage:
 def test_urls_for_versions(mock_packages, config):
     """Version directive without a 'url' argument should use default url."""
     for spec_str in ("url_override@0.9.0", "url_override@1.0.0"):
-        s = Spec(spec_str).concretized()
+        s = spack.concretize.concretized(Spec(spec_str))
         url = s.package.url_for_version("0.9.0")
         assert url == "http://www.anothersite.org/uo-0.9.0.tgz"
 
@@ -138,7 +138,7 @@ def test_url_for_version_with_no_urls(mock_packages, config):
 
 
 def test_custom_cmake_prefix_path(mock_packages, config):
-    spec = Spec("depends-on-define-cmake-prefix-paths").concretized()
+    spec = spack.concretize.concretized(Spec("depends-on-define-cmake-prefix-paths"))
 
     assert cmake.get_cmake_prefix_path(spec.package) == [
         spec["define-cmake-prefix-paths"].prefix.test
@@ -146,7 +146,7 @@ def test_custom_cmake_prefix_path(mock_packages, config):
 
 
 def test_url_for_version_with_only_overrides(mock_packages, config):
-    s = Spec("url-only-override").concretized()
+    s = spack.concretize.concretized(Spec("url-only-override"))
 
     # these exist and should just take the URL provided in the package
     assert s.package.url_for_version("1.0.0") == "http://a.example.com/url_override-1.0.0.tar.gz"
@@ -161,7 +161,7 @@ def test_url_for_version_with_only_overrides(mock_packages, config):
 
 
 def test_url_for_version_with_only_overrides_with_gaps(mock_packages, config):
-    s = Spec("url-only-override-with-gaps").concretized()
+    s = spack.concretize.concretized(Spec("url-only-override-with-gaps"))
 
     # same as for url-only-override -- these are specific
     assert s.package.url_for_version("1.0.0") == "http://a.example.com/url_override-1.0.0.tar.gz"
