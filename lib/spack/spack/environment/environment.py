@@ -563,7 +563,7 @@ def _timestamp_changed(spec, _database=None):
     db = _database or spack.store.STORE.db
     dev_path_var = spec.variants.get("dev_path", None)
     _, record = db.query_by_spec_hash(spec.dag_hash())
-    mtime = fsys.last_modification_time_recursive(dev_path_var.value)
+    mtime = fs.last_modification_time_recursive(dev_path_var.value)
     return mtime > record.installation_time
 
 
