@@ -18,6 +18,7 @@ class Rocminfo(CMakePackage):
     maintainers("srekolam", "renjithravindrankannath", "haampie")
 
     version("master", branch="master")
+    version("6.3.0", sha256="40e2ef89e135770196022761cb929af93c80c41869082b3ef80e42b7772267d0")
     version("6.2.4", sha256="14d4b0e22e2314156091ac9ad1646dd20909dba3a43e037584a503a6754e7f9e")
     version("6.2.1", sha256="ae6e08962535e76a81ed872cbd6bf6860c46fa6e4e4bc8f7849c8781359798d8")
     version("6.2.0", sha256="4d9a9051bda3355f8d2050e981435cd02528a04264a7f61162d685e7e1629f73")
@@ -62,9 +63,31 @@ class Rocminfo(CMakePackage):
         "6.2.0",
         "6.2.1",
         "6.2.4",
-        "master",
     ]:
         depends_on(f"hsakmt-roct@{ver}", when=f"@{ver}")
+
+    for ver in [
+        "5.3.0",
+        "5.3.3",
+        "5.4.0",
+        "5.4.3",
+        "5.5.0",
+        "5.5.1",
+        "5.6.0",
+        "5.6.1",
+        "5.7.0",
+        "5.7.1",
+        "6.0.0",
+        "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "master",
+    ]:
         depends_on(f"hsa-rocr-dev@{ver}", when=f"@{ver}")
 
     for ver in [
@@ -82,6 +105,7 @@ class Rocminfo(CMakePackage):
         "6.2.0",
         "6.2.1",
         "6.2.4",
+        "6.3.0",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 

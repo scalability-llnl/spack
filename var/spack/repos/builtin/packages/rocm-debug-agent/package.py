@@ -16,8 +16,9 @@ class RocmDebugAgent(CMakePackage):
     url = "https://github.com/ROCm/rocr_debug_agent/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
-    maintainers("srekolam", "renjithravindrankannath")
+    maintainers("srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["librocm-debug-agent"]
+    version("6.3.0", sha256="c8c3461395b2fc1e136d61eb5a36ba9f3f751eb00cb9d830f498de2e5d4299d5")
     version("6.2.4", sha256="a4f213a9e28a1e82543135c0b6d16c5a252186f83fc842f980631943f7e11398")
     version("6.2.1", sha256="933223ff6e0aefb54917f4102ac6679dcd67e25ade4bce5e49f5212f45e3bae5")
     version("6.2.0", sha256="a4b839c47b8a1cd8d00c3577eeeea04d3661210eb8124e221d88bcbedc742363")
@@ -69,8 +70,30 @@ class RocmDebugAgent(CMakePackage):
         "6.2.1",
         "6.2.4",
     ]:
-        depends_on(f"hsa-rocr-dev@{ver}", when=f"@{ver}")
         depends_on(f"hsakmt-roct@{ver}", when=f"@{ver}")
+
+    for ver in [
+        "5.3.0",
+        "5.3.3",
+        "5.4.0",
+        "5.4.3",
+        "5.5.0",
+        "5.5.1",
+        "5.6.0",
+        "5.6.1",
+        "5.7.0",
+        "5.7.1",
+        "6.0.0",
+        "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+    ]:
+        depends_on(f"hsa-rocr-dev@{ver}", when=f"@{ver}")
         depends_on(f"rocm-dbgapi@{ver}", when=f"@{ver}")
         depends_on(f"hip@{ver}", when=f"@{ver}")
 
@@ -88,6 +111,7 @@ class RocmDebugAgent(CMakePackage):
         "6.2.0",
         "6.2.1",
         "6.2.4",
+        "6.3.0",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 

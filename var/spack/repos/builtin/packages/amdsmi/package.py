@@ -16,10 +16,11 @@ class Amdsmi(CMakePackage):
     url = "https://github.com/ROCm/amdsmi/archive/refs/tags/rocm-6.1.2.tar.gz"
 
     tags = ["rocm"]
-    maintainers("srekolam", "renjithravindrankannath")
+    maintainers("srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["libamd_smi"]
 
     license("MIT")
+    version("6.3.0", sha256="7234c46648938239385cd5db57516ed53985b8c09d2f0828ae8f446386d8bd1e")
     version("6.2.4", sha256="5ebe8d0f176bf4a73b0e7000d9c47cb7f65ecca47011d3f9b08b93047dcf7ac5")
     version("6.2.1", sha256="136941e3f13e0d373ee3698bd60d4fc36353a2df6406e5a50b6ac78f1b639698")
     version("6.2.0", sha256="49e4b15af62bf9800c02a24c75c6cd99dc8b146d69cc7f00ecbbcd60f6106315")
