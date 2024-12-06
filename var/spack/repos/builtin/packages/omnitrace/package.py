@@ -13,7 +13,7 @@ class Omnitrace(CMakePackage):
 
     homepage = "https://rocm.docs.amd.com/projects/omnitrace/en/latest/index.html"
     git = "https://github.com/ROCm/omnitrace.git"
-    url = "https://github.com/ROCm/omnitrace/archive/refs/tags/rocm-6.0.2.tar.gz"
+    url = "https://github.com/ROCm/rocprofiler-systems/archive/refs/tags/rocm-6.3.0.tar.gz"
 
     maintainers("dgaliffiAMD", "afzpatel", "srekolam", "renjithravindrankannath", "jrmadsen")
 
@@ -156,6 +156,9 @@ class Omnitrace(CMakePackage):
     depends_on("m4", when="@1.8:,rocm-6.2:0 +rocm")
     depends_on("texinfo", when="@1.8:,rocm-6.2:0 +rocm")
     depends_on("libunwind", when="@1.8:,rocm-6.2:0 +rocm")
+    depends_on("autoconf", when="@rocm-6.3:0 +rocm")
+    depends_on("automake", when="@rocm-6.3:0 +rocm")
+    depends_on("libtool", when="@rocm-6.3:0 +rocm")
 
     def cmake_args(self):
         spec = self.spec

@@ -11,12 +11,12 @@ from spack.package import *
 _versions = {
     "6.3.0": {
         "apt": (
-            "7d9765903ddbc651b44fa16bbc5562cc35439a7668e2217d8b12ddeaf69ce4e5",
-            "https://repo.radeon.com/rocm/apt/6.3/pool/main/h/hsa-amd-aqlprofile/hsa-amd-aqlprofile_1.0.0.60300-38~20.04_amd64.deb",
+            "af03118e2606aeae0da636af17221fe124d5b955ebf40f0e2518f4a427a0c9bc",
+            "https://repo.radeon.com/rocm/apt/6.3/pool/main/h/hsa-amd-aqlprofile/hsa-amd-aqlprofile_1.0.0.60300-39~20.04_amd64.deb",
         ),
         "zyp": (
-            "7109118f0edce2f85e5554330ce6f6c6519d45558d8912940c9f7ee9c01fc4dd",
-            "https://repo.radeon.com/rocm/zyp/6.2.4/main/hsa-amd-aqlprofile-1.0.0.60204.60204-sles155.139.x86_64.rpm",
+            "6086231326d0a9de1033278995ca0fe635b8081dfd856019ec17c75b08fc6188",
+            "https://repo.radeon.com/rocm/zyp/6.3/main/hsa-amd-aqlprofile-1.0.0.60300-sles155.39.x86_64.rpm",
         ),
     },
     "6.2.4": {

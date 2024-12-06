@@ -171,9 +171,10 @@ class RocprofilerDev(CMakePackage):
             self.define(
                 "PROF_API_HEADER_PATH", self.spec["roctracer-dev-api"].prefix.roctracer.include.ext
             ),
-            self.define("ROCM_ROOT_DIR", self.spec["hsakmt-roct"].prefix.include),
             self.define("CMAKE_INSTALL_LIBDIR", "lib"),
         ]
+        if self.spec.satisfies("@:6.2"):
+            args.append(self.define("ROCM_ROOT_DIR", self.spec["hsakmt-roct"].prefix.include))
         if self.spec.satisfies("@6.2:"):
             args.append(self.define("ROCPROFILER_BUILD_PLUGIN_PERFETTO", "OFF"))
         return args
