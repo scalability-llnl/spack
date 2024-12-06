@@ -57,7 +57,7 @@ spack:
         def mock_git_checker(git_dir):
             return MockGitChangeDetector()
 
-        needs_reinstall, git_states = e._get_overwrite_specs(
+        needs_reinstall, git_states = e._dev_specs_that_need_overwrite(
             _database=db, _git_checker=mock_git_checker
         )
         assert set(needs_reinstall) == set([dependent.dag_hash(), child.dag_hash()])
