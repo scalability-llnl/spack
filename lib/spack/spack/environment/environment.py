@@ -560,10 +560,11 @@ def _eval_conditional(string):
 def _timestamp_changed(spec, _database=None):
     """Check if the passed spec is a dev build and whether it has changed since the
     last installation"""
-    # hook so packages can use to write their own method for checking the dev_path
-    # use package so attributes about concretization such as variant state can be
-    # utilized
-    return spec.package.detect_dev_src_change(_database)
+    db = _database or spack.store.STORE.db
+    dev_path_var = spec.variants.get("dev_path", None)
+    _, record = db.query_by_spec_hash(spec.dag_hash())
+    mtime = fsys.last_modification_time_recursive(dev_path_var.value)
+    return mtime > record.installation_time
 
 
 class GitRepoChangeDetector:
@@ -1935,6 +1936,9 @@ class Environment:
             if not db.installed(s):
                 # Not installed -> nothing to compare against
                 return False
+
+            if hasattr(s.package, "detect_dev_src_change"):
+                return s.package.detect_dev_src_change()
 
             if detect_changes_with_git:
                 git_state = _git_checker(dev_path_var.value)
