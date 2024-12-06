@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,7 +15,11 @@ class Sickle(MakefilePackage):
     homepage = "https://github.com/najoshi/sickle"
     url = "https://github.com/najoshi/sickle/archive/v1.33.tar.gz"
 
+    license("MIT")
+
     version("1.33", sha256="eab271d25dc799e2ce67c25626128f8f8ed65e3cd68e799479bba20964624734")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("zlib-api")
 

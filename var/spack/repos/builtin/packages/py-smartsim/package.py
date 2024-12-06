@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,13 +19,15 @@ class PySmartsim(PythonPackage):
 
     maintainers("MattToast")
 
+    license("BSD-2-Clause")
+
     version("0.5.0", sha256="35b36243dc84af62261a7f772bae92f0b3502faf01401423899cb2a48339858c")
 
     variant("torch", default=True, description="Build with the pytorch backend")
 
     depends_on("python@3.8:3.10", type=("build", "run"))
     depends_on("py-setuptools@39.2:", type=("build",))
-    depends_on("py-cmake@3.13:", type=("build",))
+    depends_on("cmake@3.13:", type=("build",))
 
     depends_on("py-psutil@5.7.2:", type=("build", "run"))
     depends_on("py-coloredlogs@10:", type=("build", "run"))

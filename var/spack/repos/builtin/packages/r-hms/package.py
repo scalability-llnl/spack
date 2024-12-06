@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class RHms(RPackage):
     on the 'difftime' class."""
 
     cran = "hms"
+
+    license("MIT")
 
     version("1.1.3", sha256="e626f4c60af46efd53ea631b316a103e089470d8fd63c0e0c0efb99364990282")
     version("1.1.2", sha256="1ee6a9847336aaf58d3fcee5b56c290c2204e1213b6628862818419b2302bded")

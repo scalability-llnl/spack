@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,9 +21,14 @@ class RaxmlNg(CMakePackage):
     url = "https://github.com/amkozlov/raxml-ng/archive/1.0.1.tar.gz"
     git = "https://github.com/amkozlov/raxml-ng.git"
 
+    license("AGPL-3.0-only")
+
     version("1.1.0", submodules=True)
     version("1.0.2", submodules=True)
     version("1.0.1", submodules=True)
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("mpi", default=True, description="Use MPI")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyWebob(PythonPackage):
 
     homepage = "https://webob.org/"
     pypi = "WebOb/WebOb-1.8.7.tar.gz"
+
+    license("MIT")
 
     version("1.8.7", sha256="b64ef5141be559cfade448f044fa45c2260351edcb6a8ef6b7e00c7dcef0c323")
 

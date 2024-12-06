@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyBidscoin(PythonPackage):
 
     homepage = "https://github.com/Donders-Institute/bidscoin"
     pypi = "bidscoin/bidscoin-3.7.4.tar.gz"
+
+    license("GPL-3.0-or-later")
 
     version("4.1.1", sha256="28730e9202d3c44d77c0bbdea9565e00adfdd23e85a6f3f121c1bfce1a7b462b")
     version("4.0.0", sha256="3b0c26f2e250e06b6f526cdbee09517e1f339da8035c0a316609b4463d75824d")

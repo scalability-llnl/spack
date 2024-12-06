@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyRequirementsParser(PythonPackage):
     pypi = "requirements-parser/requirements-parser-0.5.0.tar.gz"
 
     maintainers("DaxLynch", "eugeneswalker")
+
+    license("Apache-2.0")
 
     version("0.5.0", sha256="3336f3a3ae23e06d3f0f88595e4052396e3adf91688787f637e5d2ca1a904069")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -31,6 +31,9 @@ class Libint(AutotoolsPackage):
 
     maintainers("dev-zero")
 
+    license("LGPL-3.0-only")
+
+    version("2.9.0", sha256="4929b2f2d3e53479270be052e366e8c70fa154a7f309e5c2c23b7d394159687d")
     version("2.6.0", sha256="4ae47e8f0b5632c3d2a956469a7920896708e9f0e396ec10071b8181e4c8d9fa")
     version("2.4.2", sha256="86dff38065e69a3a51d15cfdc638f766044cb87e5c6682d960c14f9847e2eac3")
     version("2.4.1", sha256="0513be124563fdbbc7cd3c7043e221df1bda236a037027ba9343429a27db8ce4")
@@ -39,6 +42,10 @@ class Libint(AutotoolsPackage):
     version("2.1.0", sha256="43c453a1663aa1c55294df89ff9ece3aefc8d1bbba5ea31dbfe71b2d812e24c8")
     version("1.1.6", sha256="f201b0c621df678cfe8bdf3990796b8976ff194aba357ae398f2f29b0e2985a6")
     version("1.1.5", sha256="ec8cd4a4ba1e1a98230165210c293632372f0e573acd878ed62e5ec6f8b6174b")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("debug", default=False, description="Enable building with debug symbols")
     variant("fortran", default=False, description="Build & install Fortran bindings")
@@ -62,11 +69,16 @@ class Libint(AutotoolsPackage):
     depends_on("automake", type="build")
     depends_on("libtool", type="build")
     depends_on("python", type="build")
+    depends_on("cmake@3.19:", when="@2.6.0:", type="build")
 
     # Libint 2 dependencies
     # Fixme: Can maintainers please confirm that this is a required dependency
     depends_on(Boost.with_default_variants, when="@2:")
     depends_on("gmp+cxx", when="@2:")
+    depends_on("eigen", when="@2.7.0:")
+    # unicode variable names in @2.9.0:
+    # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67224
+    conflicts("%gcc@:9", when="@2.9.0:", msg="libint@2.9.0: requires at least gcc 10")
 
     for tvariant in TUNE_VARIANTS[1:]:
         conflicts(
@@ -96,10 +108,6 @@ class Libint(AutotoolsPackage):
             aclocal("-I", "lib/autoconf")
             autoconf()
 
-        if "@2.6.0:" in spec:
-            # skip tarball creation and removal of dir with generated code
-            filter_file(r"^(export::.*)\s+tgz$", r"\1", "export/Makefile")
-
     @property
     def optflags(self):
         flags = "-O2"
@@ -115,9 +123,12 @@ class Libint(AutotoolsPackage):
         env.set("CFLAGS", self.optflags)
         env.set("CXXFLAGS", self.optflags)
 
+        if self.spec.satisfies("%fj"):
+            env.set("LDFLAGS", "--linkfortran")
+
         # Change AR to xiar if we compile with Intel and we
         # find the executable
-        if "%intel" in self.spec and which("xiar"):
+        if self.spec.satisfies("%intel") and which("xiar"):
             env.set("AR", "xiar")
 
     def configure_args(self):
@@ -147,7 +158,7 @@ class Libint(AutotoolsPackage):
         if self.version < Version("2.0.0"):
             config_args.extend(["--with-libint-max-am=5", "--with-libderiv-max-am1=4"])
 
-        if "@2.6.0:" in self.spec:
+        if self.spec.satisfies("@2.6.0:"):
             config_args += ["--with-libint-exportdir=generated"]
             config_args += self.enable_or_disable("debug", activation_value=lambda x: "opt")
             config_args += self.enable_or_disable("fma")
@@ -193,7 +204,7 @@ class Libint(AutotoolsPackage):
 
     @property
     def build_targets(self):
-        if "@2.6.0:" in self.spec:
+        if self.spec.satisfies("@2.6.0:"):
             return ["export"]
 
         return []
@@ -207,40 +218,71 @@ class Libint(AutotoolsPackage):
         """
 
         # upstream says that using configure/make for the generated code
-        # is deprecated and one should use CMake, but with the currently
-        # recent 2.7.0.b1 it still doesn't work
-        # first generate the libint compiler
+        # is deprecated and one should use CMake
+
+        # skip tarball creation and removal of dir with generated code
+        filter_file("&& rm -rf $(EXPORTDIR)", "", "export/Makefile", string=True)
+
         make("export")
         # now build the library
         with working_dir(os.path.join(self.build_directory, "generated")):
-            # straight from the AutotoolsPackage class:
-            config_args = [
-                "--prefix={0}".format(prefix),
-                "--enable-shared",
-                "--with-boost={0}".format(self.spec["boost"].prefix),
-                "--with-cxx-optflags={0}".format(self.optflags),
-            ]
-            config_args += self.enable_or_disable("debug", activation_value=lambda x: "opt")
-            config_args += self.enable_or_disable("fortran")
-
-            configure = Executable("./configure")
-            configure(*config_args)
-            make()
+            if spec.satisfies("@2.6.0"):
+                config_args = [
+                    f"--prefix={prefix}",
+                    "--enable-shared",
+                    f"--with-boost={spec['boost'].prefix}",
+                    f"--with-cxx-optflags={self.optflags}",
+                ]
+                config_args += self.enable_or_disable("debug", activation_value=lambda x: "opt")
+                config_args += self.enable_or_disable("fortran")
+                configure = Executable("./configure")
+                configure(*config_args)
+                make()
+            else:
+                cmake_args = [
+                    "..",
+                    f"-DCMAKE_INSTALL_PREFIX={prefix}",
+                    "-DLIBINT2_BUILD_SHARED_AND_STATIC_LIBS=ON",
+                ]
+                if spec.satisfies("+fortran"):
+                    cmake_args.append("-DENABLE_FORTRAN=ON")
+                if spec.satisfies("+debug"):
+                    cmake_args.append("CMAKE_BUILD_TYPE=Debug")
+                cmake = Executable("cmake")
+                mkdirp("build")
+                with working_dir("build"):
+                    cmake(*cmake_args)
+                    make()
 
     @when("@2.6.0:")
     def check(self):
-        with working_dir(os.path.join(self.build_directory, "generated")):
+        path = join_path(self.build_directory, "generated")
+        if self.spec.satisfies("@2.9.0:"):
+            path = join_path(path, "build")
+        with working_dir(path):
             make("check")
 
     @when("@2.6.0:")
     def install(self, spec, prefix):
-        with working_dir(os.path.join(self.build_directory, "generated")):
+        path = join_path(self.build_directory, "generated")
+        if self.spec.satisfies("@2.9.0:"):
+            path = join_path(path, "build")
+        with working_dir(path):
             make("install")
 
+    @when("@:2.6.0")
     def patch(self):
         # Use Fortran compiler to link the Fortran example, not the C++
         # compiler
-        if "+fortran" in self.spec:
-            filter_file(
-                "$(CXX) $(CXXFLAGS)", "$(FC) $(FCFLAGS)", "export/fortran/Makefile", string=True
-            )
+        if self.spec.satisfies("+fortran"):
+            if not self.spec.satisfies("%fj"):
+                filter_file(
+                    "$(CXX) $(CXXFLAGS)",
+                    "$(FC) $(FCFLAGS)",
+                    "export/fortran/Makefile",
+                    string=True,
+                )
+
+    @property
+    def libs(self):
+        return find_libraries("libint2", self.spec.prefix, shared=True, recursive=True)

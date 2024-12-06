@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class RShinydashboard(RPackage):
     'Shiny', making it easy to create attractive dashboards."""
 
     cran = "shinydashboard"
+
+    license("GPL-2.0-or-later OR custom")
 
     version("0.7.2", sha256="a56ee48572649830cd8d82f1caa2099411461e19e19223cbad36a375299f3843")
     version("0.7.1", sha256="51a49945c6b8a684111a2ba4b2a5964e3a50610286ce0378e37ae02316620a4e")

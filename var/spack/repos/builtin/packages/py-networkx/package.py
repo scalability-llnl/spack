@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,7 +14,10 @@ class PyNetworkx(PythonPackage):
     pypi = "networkx/networkx-2.4.tar.gz"
     git = "https://github.com/networkx/networkx.git"
 
+    license("BSD-3-Clause")
+
     version("3.1", sha256="de346335408f84de0eada6ff9fafafff9bcda11f0a0dfaa931133debb146ab61")
+    version("3.0", sha256="9a9992345353618ae98339c2b63d8201c381c2944f38a2ab49cb45a4c667e412")
     version("2.8.6", sha256="bd2b7730300860cbd2dafe8e5af89ff5c9a65c3975b352799d87a6238b4301a6")
     version("2.7.1", sha256="d1194ba753e5eed07cdecd1d23c5cd7a3c772099bd8dbd2fea366788cf4de7ba")
     version("2.6.3", sha256="c0946ed31d71f1b732b5aaa6da5a0388a345019af232ce2f49c766e2d6795c51")
@@ -47,6 +50,8 @@ class PyNetworkx(PythonPackage):
         # From requirements/default.txt
         depends_on("py-numpy@1.20:", when="@3:", type=("build", "run"))
         depends_on("py-numpy@1.19:", when="@2.8.6:", type=("build", "run"))
+        # https://github.com/networkx/networkx/pull/7390
+        depends_on("py-numpy@:1", when="@:3.2", type=("build", "run"))
         depends_on("py-scipy@1.8:", when="@2.8.6:", type=("build", "run"))
         depends_on("py-matplotlib@3.4:", when="@2.8.6:", type=("build", "run"))
         depends_on("py-pandas@1.3:", when="@2.8.6:", type=("build", "run"))

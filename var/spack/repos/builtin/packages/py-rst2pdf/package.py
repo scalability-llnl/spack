@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyRst2pdf(PythonPackage):
     homepage = "https://rst2pdf.org/"
     pypi = "rst2pdf/rst2pdf-0.99.tar.gz"
     git = "https://github.com/rst2pdf/rst2pdf.git"
+
+    license("MIT")
 
     version("0.100", sha256="664c3c16e6d3dea274e840a436eac4dba6cb50ab6af3162fc9d5716be3cb7b42")
     version("0.99", sha256="8fa23fa93bddd1f52d058ceaeab6582c145546d80f2f8a95974f3703bd6c8152")

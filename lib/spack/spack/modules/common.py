@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -39,20 +39,20 @@ from typing import List, Optional
 
 import llnl.util.filesystem
 import llnl.util.tty as tty
-from llnl.util.lang import dedupe, memoized
+from llnl.util.lang import Singleton, dedupe, memoized
 
 import spack.build_environment
 import spack.config
+import spack.deptypes as dt
 import spack.environment
 import spack.error
-import spack.modules.common
 import spack.paths
 import spack.projections as proj
-import spack.repo
 import spack.schema.environment
 import spack.spec
 import spack.store
 import spack.tengine as tengine
+import spack.user_environment
 import spack.util.environment
 import spack.util.file_permissions as fp
 import spack.util.path
@@ -79,6 +79,17 @@ _valid_tokens = (
     "compilername",
     "compilerver",
 )
+
+
+_FORMAT_STRING_RE = re.compile(r"({[^}]*})")
+
+
+def _format_env_var_name(spec, var_name_fmt):
+    """Format the variable name, but uppercase any formatted fields."""
+    fmt_parts = _FORMAT_STRING_RE.split(var_name_fmt)
+    return "".join(
+        spec.format(part).upper() if _FORMAT_STRING_RE.match(part) else part for part in fmt_parts
+    )
 
 
 def _check_tokens_are_valid(format_string, message):
@@ -119,43 +130,26 @@ def update_dictionary_extending_lists(target, update):
             target[key] = update[key]
 
 
-def dependencies(spec, request="all"):
-    """Returns the list of dependent specs for a given spec, according to the
-    request passed as parameter.
+def dependencies(spec: spack.spec.Spec, request: str = "all") -> List[spack.spec.Spec]:
+    """Returns the list of dependent specs for a given spec.
 
     Args:
         spec: spec to be analyzed
-        request: either 'none', 'direct' or 'all'
+        request: one of "none", "run", "direct", "all"
 
     Returns:
-        list of dependencies
-
-        The return list will be empty if request is 'none', will contain
-        the direct dependencies if request is 'direct', or the entire DAG
-        if request is 'all'.
+        list of requested dependencies
     """
-    if request not in ("none", "direct", "all"):
-        message = "Wrong value for argument 'request' : "
-        message += "should be one of ('none', 'direct', 'all')"
-        raise tty.error(message + " [current value is '%s']" % request)
-
     if request == "none":
         return []
+    elif request == "run":
+        return spec.dependencies(deptype=dt.RUN)
+    elif request == "direct":
+        return spec.dependencies(deptype=dt.RUN | dt.LINK)
+    elif request == "all":
+        return list(spec.traverse(order="topo", deptype=dt.LINK | dt.RUN, root=False))
 
-    if request == "direct":
-        return spec.dependencies(deptype=("link", "run"))
-
-    # FIXME : during module file creation nodes seem to be visited multiple
-    # FIXME : times even if cover='nodes' is given. This work around permits
-    # FIXME : to get a unique list of spec anyhow. Do we miss a merge
-    # FIXME : step among nodes that refer to the same package?
-    seen = set()
-    seen_add = seen.add
-    deps = sorted(
-        spec.traverse(order="post", cover="nodes", deptype=("link", "run"), root=False),
-        reverse=True,
-    )
-    return [d for d in deps if not (d in seen or seen_add(d))]
+    raise ValueError(f'request "{request}" is not one of "none", "direct", "run", "all"')
 
 
 def merge_config_rules(configuration, spec):
@@ -252,7 +246,7 @@ def _generate_upstream_module_index():
     return UpstreamModuleIndex(spack.store.STORE.db, module_indices)
 
 
-upstream_module_index = llnl.util.lang.Singleton(_generate_upstream_module_index)
+upstream_module_index = Singleton(_generate_upstream_module_index)
 
 
 ModuleIndexEntry = collections.namedtuple("ModuleIndexEntry", ["path", "use_name"])
@@ -326,67 +320,6 @@ class UpstreamModuleIndex:
         else:
             tty.debug(f"No module is available for upstream package {spec}")
             return None
-
-
-def get_module(module_type, spec, get_full_path, module_set_name="default", required=True):
-    """Retrieve the module file for a given spec and module type.
-
-    Retrieve the module file for the given spec if it is available. If the
-    module is not available, this will raise an exception unless the module
-    is excluded or if the spec is installed upstream.
-
-    Args:
-        module_type: the type of module we want to retrieve (e.g. lmod)
-        spec: refers to the installed package that we want to retrieve a module
-            for
-        required: if the module is required but excluded, this function will
-            print a debug message. If a module is missing but not excluded,
-            then an exception is raised (regardless of whether it is required)
-        get_full_path: if ``True``, this returns the full path to the module.
-            Otherwise, this returns the module name.
-        module_set_name: the named module configuration set from modules.yaml
-            for which to retrieve the module.
-
-    Returns:
-        The module name or path. May return ``None`` if the module is not
-        available.
-    """
-    try:
-        upstream = spec.installed_upstream
-    except spack.repo.UnknownPackageError:
-        upstream, record = spack.store.STORE.db.query_by_spec_hash(spec.dag_hash())
-    if upstream:
-        module = spack.modules.common.upstream_module_index.upstream_module(spec, module_type)
-        if not module:
-            return None
-
-        if get_full_path:
-            return module.path
-        else:
-            return module.use_name
-    else:
-        writer = spack.modules.module_types[module_type](spec, module_set_name)
-        if not os.path.isfile(writer.layout.filename):
-            fmt_str = "{name}{@version}{/hash:7}"
-            if not writer.conf.excluded:
-                raise ModuleNotFoundError(
-                    "The module for package {} should be at {}, but it does not exist".format(
-                        spec.format(fmt_str), writer.layout.filename
-                    )
-                )
-            elif required:
-                tty.debug(
-                    "The module configuration has excluded {}: omitting it".format(
-                        spec.format(fmt_str)
-                    )
-                )
-            else:
-                return None
-
-        if get_full_path:
-            return writer.layout.filename
-        else:
-            return writer.layout.use_name
 
 
 class BaseConfiguration:
@@ -594,7 +527,8 @@ class BaseFileLayout:
         parts = name.split("/")
         name = os.path.join(*parts)
         # Add optional suffixes based on constraints
-        path_elements = [name] + self.conf.suffixes
+        path_elements = [name]
+        path_elements.extend(map(self.spec.format, self.conf.suffixes))
         return "-".join(path_elements)
 
     @property
@@ -695,28 +629,33 @@ class BaseContext(tengine.Context):
         )
         spack.config.merge_yaml(
             prefix_inspections,
-            spack.config.get("modules:%s:prefix_inspections" % self.conf.name, {}),
+            spack.config.get(f"modules:{self.conf.name}:prefix_inspections", {}),
         )
 
-        use_view = spack.config.get("modules:%s:use_view" % self.conf.name, False)
+        use_view = spack.config.get(f"modules:{self.conf.name}:use_view", False)
 
-        spec = self.spec.copy()  # defensive copy before setting prefix
+        assert isinstance(use_view, (bool, str))
+
         if use_view:
-            if use_view is True:
-                use_view = spack.environment.default_view_name
-
             env = spack.environment.active_environment()
             if not env:
                 raise spack.environment.SpackEnvironmentViewError(
                     "Module generation with views requires active environment"
                 )
 
-            view = env.views[use_view]
+            view_name = spack.environment.default_view_name if use_view is True else use_view
 
-            spec.prefix = view.get_projection_for_spec(spec)
+            if not env.has_view(view_name):
+                raise spack.environment.SpackEnvironmentViewError(
+                    f"View {view_name} not found in environment {env.name} when generating modules"
+                )
+
+            view = env.views[view_name]
+        else:
+            view = None
 
         env = spack.util.environment.inspect_path(
-            spec.prefix, prefix_inspections, exclude=spack.util.environment.is_system_path
+            self.spec.prefix, prefix_inspections, exclude=spack.util.environment.is_system_path
         )
 
         # Let the extendee/dependency modify their extensions/dependencies
@@ -726,13 +665,19 @@ class BaseContext(tengine.Context):
         # whole chain of setup_dependent_package has to be followed from leaf to spec.
         # So: just run it here, but don't collect env mods.
         spack.build_environment.SetupContext(
-            spec, context=Context.RUN
+            self.spec, context=Context.RUN
         ).set_all_package_py_globals()
 
         # Then run setup_dependent_run_environment before setup_run_environment.
-        for dep in spec.dependencies(deptype=("link", "run")):
-            dep.package.setup_dependent_run_environment(env, spec)
-        spec.package.setup_run_environment(env)
+        for dep in self.spec.dependencies(deptype=("link", "run")):
+            dep.package.setup_dependent_run_environment(env, self.spec)
+        self.spec.package.setup_run_environment(env)
+
+        # Project the environment variables from prefix to view if needed
+        if view and self.spec in view:
+            spack.user_environment.project_env_mods(
+                *self.spec.traverse(deptype=dt.LINK | dt.RUN), view=view, env=env
+            )
 
         # Modifications required from modules.yaml
         env.extend(self.conf.env)
@@ -741,24 +686,16 @@ class BaseContext(tengine.Context):
         exclude = self.conf.exclude_env_vars
 
         # We may have tokens to substitute in environment commands
-
-        # Prepare a suitable transformation dictionary for the names
-        # of the environment variables. This means turn the valid
-        # tokens uppercase.
-        transform = {}
-        for token in _valid_tokens:
-            transform[token] = lambda s, string: str.upper(string)
-
         for x in env:
             # Ensure all the tokens are valid in this context
             msg = "some tokens cannot be expanded in an environment variable name"
+
             _check_tokens_are_valid(x.name, message=msg)
-            # Transform them
-            x.name = spec.format(x.name, transform=transform)
+            x.name = _format_env_var_name(self.spec, x.name)
             if self.modification_needs_formatting(x):
                 try:
                     # Not every command has a value
-                    x.value = spec.format(x.value)
+                    x.value = self.spec.format(x.value)
                 except AttributeError:
                     pass
             x.name = str(x.name).replace("-", "_")

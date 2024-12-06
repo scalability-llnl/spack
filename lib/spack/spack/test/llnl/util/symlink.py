@@ -1,11 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 """Tests for ``llnl/util/symlink.py``"""
 import os
-import sys
 import tempfile
 
 import pytest
@@ -20,7 +19,7 @@ def test_symlink_file(tmpdir):
         fd, real_file = tempfile.mkstemp(prefix="real", suffix=".txt", dir=test_dir)
         link_file = str(tmpdir.join("link.txt"))
         assert os.path.exists(link_file) is False
-        symlink.symlink(source_path=real_file, link_path=link_file)
+        symlink.symlink(real_file, link_file)
         assert os.path.exists(link_file)
         assert symlink.islink(link_file)
 
@@ -32,11 +31,12 @@ def test_symlink_dir(tmpdir):
         real_dir = os.path.join(test_dir, "real_dir")
         link_dir = os.path.join(test_dir, "link_dir")
         os.mkdir(real_dir)
-        symlink.symlink(source_path=real_dir, link_path=link_dir)
+        symlink.symlink(real_dir, link_dir)
         assert os.path.exists(link_dir)
         assert symlink.islink(link_dir)
 
 
+@pytest.mark.only_windows("Test is for Windows specific behavior")
 def test_symlink_source_not_exists(tmpdir):
     """Test the symlink.symlink method for the case where a source path does not exist"""
     with tmpdir.as_cwd():
@@ -44,7 +44,7 @@ def test_symlink_source_not_exists(tmpdir):
         real_dir = os.path.join(test_dir, "real_dir")
         link_dir = os.path.join(test_dir, "link_dir")
         with pytest.raises(symlink.SymlinkError):
-            symlink.symlink(source_path=real_dir, link_path=link_dir, allow_broken_symlinks=False)
+            symlink._windows_symlink(real_dir, link_dir)
 
 
 def test_symlink_src_relative_to_link(tmpdir):
@@ -61,18 +61,16 @@ def test_symlink_src_relative_to_link(tmpdir):
         fd, real_file = tempfile.mkstemp(prefix="real", suffix=".txt", dir=subdir_2)
         link_file = os.path.join(subdir_1, "link.txt")
 
-        symlink.symlink(
-            source_path=f"b/{os.path.basename(real_file)}",
-            link_path=f"a/{os.path.basename(link_file)}",
-        )
+        symlink.symlink(f"b/{os.path.basename(real_file)}", f"a/{os.path.basename(link_file)}")
         assert os.path.exists(link_file)
         assert symlink.islink(link_file)
         # Check dirs
         assert not os.path.lexists(link_dir)
-        symlink.symlink(source_path="b", link_path="a/c")
+        symlink.symlink("b", "a/c")
         assert os.path.lexists(link_dir)
 
 
+@pytest.mark.only_windows("Test is for Windows specific behavior")
 def test_symlink_src_not_relative_to_link(tmpdir):
     """Test the symlink.symlink functionality where the source value does not exist relative to
     the link and not relative to the cwd. NOTE that this symlink api call is EXPECTED to raise
@@ -88,19 +86,18 @@ def test_symlink_src_not_relative_to_link(tmpdir):
         link_file = str(tmpdir.join("link.txt"))
         # Expected SymlinkError because source path does not exist relative to link path
         with pytest.raises(symlink.SymlinkError):
-            symlink.symlink(
-                source_path=f"d/{os.path.basename(real_file)}",
-                link_path=f"a/{os.path.basename(link_file)}",
-                allow_broken_symlinks=False,
+            symlink._windows_symlink(
+                f"d/{os.path.basename(real_file)}", f"a/{os.path.basename(link_file)}"
             )
         assert not os.path.exists(link_file)
         # Check dirs
         assert not os.path.lexists(link_dir)
         with pytest.raises(symlink.SymlinkError):
-            symlink.symlink(source_path="d", link_path="a/c", allow_broken_symlinks=False)
+            symlink._windows_symlink("d", "a/c")
         assert not os.path.lexists(link_dir)
 
 
+@pytest.mark.only_windows("Test is for Windows specific behavior")
 def test_symlink_link_already_exists(tmpdir):
     """Test the symlink.symlink method for the case where a link already exists"""
     with tmpdir.as_cwd():
@@ -108,21 +105,21 @@ def test_symlink_link_already_exists(tmpdir):
         real_dir = os.path.join(test_dir, "real_dir")
         link_dir = os.path.join(test_dir, "link_dir")
         os.mkdir(real_dir)
-        symlink.symlink(real_dir, link_dir, allow_broken_symlinks=False)
+        symlink._windows_symlink(real_dir, link_dir)
         assert os.path.exists(link_dir)
         with pytest.raises(symlink.SymlinkError):
-            symlink.symlink(source_path=real_dir, link_path=link_dir, allow_broken_symlinks=False)
+            symlink._windows_symlink(real_dir, link_dir)
 
 
 @pytest.mark.skipif(not symlink._windows_can_symlink(), reason="Test requires elevated privileges")
-@pytest.mark.skipif(sys.platform != "win32", reason="Test is only for Windows")
+@pytest.mark.only_windows("Test is for Windows specific behavior")
 def test_symlink_win_file(tmpdir):
     """Check that symlink.symlink makes a symlink file when run with elevated permissions"""
     with tmpdir.as_cwd():
         test_dir = str(tmpdir)
         fd, real_file = tempfile.mkstemp(prefix="real", suffix=".txt", dir=test_dir)
         link_file = str(tmpdir.join("link.txt"))
-        symlink.symlink(source_path=real_file, link_path=link_file)
+        symlink.symlink(real_file, link_file)
         # Verify that all expected conditions are met
         assert os.path.exists(link_file)
         assert symlink.islink(link_file)
@@ -132,7 +129,7 @@ def test_symlink_win_file(tmpdir):
 
 
 @pytest.mark.skipif(not symlink._windows_can_symlink(), reason="Test requires elevated privileges")
-@pytest.mark.skipif(sys.platform != "win32", reason="Test is only for Windows")
+@pytest.mark.only_windows("Test is for Windows specific behavior")
 def test_symlink_win_dir(tmpdir):
     """Check that symlink.symlink makes a symlink dir when run with elevated permissions"""
     with tmpdir.as_cwd():
@@ -140,7 +137,7 @@ def test_symlink_win_dir(tmpdir):
         real_dir = os.path.join(test_dir, "real")
         link_dir = os.path.join(test_dir, "link")
         os.mkdir(real_dir)
-        symlink.symlink(source_path=real_dir, link_path=link_dir)
+        symlink.symlink(real_dir, link_dir)
         # Verify that all expected conditions are met
         assert os.path.exists(link_dir)
         assert symlink.islink(link_dir)
@@ -149,7 +146,7 @@ def test_symlink_win_dir(tmpdir):
         assert not symlink._windows_is_junction(link_dir)
 
 
-@pytest.mark.skipif(sys.platform != "win32", reason="Test is only for Windows")
+@pytest.mark.only_windows("Test is for Windows specific behavior")
 def test_windows_create_junction(tmpdir):
     """Test the symlink._windows_create_junction method"""
     with tmpdir.as_cwd():
@@ -165,7 +162,7 @@ def test_windows_create_junction(tmpdir):
         assert not os.path.islink(junction_link_dir)
 
 
-@pytest.mark.skipif(sys.platform != "win32", reason="Test is only for Windows")
+@pytest.mark.only_windows("Test is for Windows specific behavior")
 def test_windows_create_hard_link(tmpdir):
     """Test the symlink._windows_create_hard_link method"""
     with tmpdir.as_cwd():
@@ -181,7 +178,7 @@ def test_windows_create_hard_link(tmpdir):
         assert not os.path.islink(link_file)
 
 
-@pytest.mark.skipif(sys.platform != "win32", reason="Test is only for Windows")
+@pytest.mark.only_windows("Test is for Windows specific behavior")
 def test_windows_create_link_dir(tmpdir):
     """Test the functionality of the windows_create_link method with a directory
     which should result in making a junction.
@@ -200,7 +197,7 @@ def test_windows_create_link_dir(tmpdir):
         assert not os.path.islink(link_dir)
 
 
-@pytest.mark.skipif(sys.platform != "win32", reason="Test is only for Windows")
+@pytest.mark.only_windows("Test is for Windows specific behavior")
 def test_windows_create_link_file(tmpdir):
     """Test the functionality of the windows_create_link method with a file
     which should result in the creation of a hard link. It also tests the
@@ -217,7 +214,7 @@ def test_windows_create_link_file(tmpdir):
         assert not symlink._windows_is_junction(link_file)
 
 
-@pytest.mark.skipif(sys.platform != "win32", reason="Test is only for Windows")
+@pytest.mark.only_windows("Test is for Windows specific behavior")
 def test_windows_read_link(tmpdir):
     """Makes sure symlink.readlink can read the link source for hard links and
     junctions on windows."""

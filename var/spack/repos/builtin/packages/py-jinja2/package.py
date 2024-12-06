@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,9 +12,12 @@ class PyJinja2(PythonPackage):
     and an optional sandboxed environment."""
 
     homepage = "https://palletsprojects.com/p/jinja/"
-    pypi = "Jinja2/Jinja2-2.10.3.tar.gz"
+    pypi = "jinja2/jinja2-3.1.4.tar.gz"
     git = "https://github.com/pallets/jinja"
 
+    license("BSD-3-Clause")
+
+    version("3.1.4", sha256="4a3aee7acbbe7303aede8e9648d13b8bf88a429282aa6122a993f0ac800cb369")
     version("3.1.2", sha256="31351a702a408a9e7595a8fc6150fc3f43bb6bf7e319770cbc0db9df9437e852")
     version("3.0.3", sha256="611bb273cd68f3b993fabdc4064fc858c5b47a973cb5aa7999ec1ba405c87cd7")
     version("3.0.1", sha256="703f484b47a6af502e743c9122595cc812b0271f661722403114f71a79d0f5a4")
@@ -31,10 +34,12 @@ class PyJinja2(PythonPackage):
 
     variant("i18n", default=False, description="Enables I18N support with Babel")
 
+    depends_on("python@3.8:", when="@3.1.4:", type=("build", "run"))
     depends_on("python@3.7:", when="@3.1:", type=("build", "run"))
     depends_on("python@3.6:", when="@3:", type=("build", "run"))
     depends_on("python@2.7:2.8,3.5:", type=("build", "run"))
-    depends_on("py-setuptools", type="build")
+    depends_on("py-setuptools", when="@:3.1.3", type="build")
+    depends_on("py-flit-core@:3", when="@3.1.4:", type="build")
     depends_on("py-markupsafe@2.0:", when="@3:", type=("build", "run"))
     depends_on("py-markupsafe@0.23:", type=("build", "run"))
     depends_on("py-babel@2.7:", when="@3:+i18n", type=("build", "run"))
@@ -42,3 +47,11 @@ class PyJinja2(PythonPackage):
 
     # https://github.com/pallets/jinja/issues/1585
     conflicts("^py-markupsafe@2.1:", when="@:2")
+
+    def url_for_version(self, version):
+        url = "https://files.pythonhosted.org/packages/source/j/jinja2/"
+        if self.spec.satisfies("@:3.1.3"):
+            url += "Jinja2-{0}.tar.gz"
+        else:
+            url += "jinja2-{0}.tar.gz"
+        return url.format(version)

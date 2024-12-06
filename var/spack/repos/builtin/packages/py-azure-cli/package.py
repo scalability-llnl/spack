@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyAzureCli(PythonPackage):
 
     homepage = "https://github.com/Azure/azure-cli"
     pypi = "azure-cli/azure-cli-2.9.1.tar.gz"
+
+    license("MIT")
 
     version("2.9.1", sha256="749d850f73ea8956ab510288c1061dd7066180a8583081a6d560fdc7ac8314d6")
 
@@ -74,7 +76,7 @@ class PyAzureCli(PythonPackage):
     depends_on("py-azure-mgmt-recoveryservices@0.4.0:0.4", type=("build", "run"))
     depends_on("py-azure-mgmt-recoveryservicesbackup@0.6.0:0.6", type=("build", "run"))
     depends_on("py-azure-mgmt-redhatopenshift@0.1.0", type=("build", "run"))
-    depends_on("py-azure-mgmt-redis@7.0.0:7.0", type=("build", "run"))
+    depends_on("py-azure-mgmt-redis@7.0", type=("build", "run"))
     depends_on("py-azure-mgmt-relay@0.1.0:0.1", type=("build", "run"))
     depends_on("py-azure-mgmt-reservations@0.6.0", type=("build", "run"))
     depends_on("py-azure-mgmt-search@2.0:2", type=("build", "run"))

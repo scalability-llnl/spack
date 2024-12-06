@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,8 @@ class Constype(AutotoolsPackage, XorgPackage):
 
     version("1.0.5", sha256="ec7d07204dd5abf8d21d0a89408be17ab316a017838c88b087b127082f02c051")
     version("1.0.4", sha256="ec09aff369cf1d527fd5b8075fb4dd0ecf89d905190cf1a0a0145d5e523f913d")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -26,6 +26,8 @@ class RRminer(RPackage):
     - first version."""
 
     cran = "rminer"
+
+    license("GPL-2.0-only")
 
     version("1.4.6", sha256="1f8bf7b3fbc887fd766568c1ec1f861021c962259354bd8967a61c1d0761cdf7")
     version("1.4.2", sha256="64444dcedcd17f2f26129819d6bd2f84d4bb59c8f65328b6054ef32cb9624fc2")

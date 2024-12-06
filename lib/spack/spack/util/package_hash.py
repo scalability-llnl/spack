@@ -1,17 +1,17 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import ast
 
-import spack.directives
+import spack.directives_meta
 import spack.error
+import spack.fetch_strategy
 import spack.package_base
 import spack.repo
 import spack.spec
 import spack.util.hash
-import spack.util.naming
 from spack.util.unparse import unparse
 
 
@@ -82,7 +82,7 @@ class RemoveDirectives(ast.NodeTransformer):
                 node.value
                 and isinstance(node.value, ast.Call)
                 and isinstance(node.value.func, ast.Name)
-                and node.value.func.id in spack.directives.directive_names
+                and node.value.func.id in spack.directives_meta.directive_names
             )
             else node
         )

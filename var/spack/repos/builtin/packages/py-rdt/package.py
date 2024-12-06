@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyRdt(PythonPackage):
 
     homepage = "https://github.com/sdv-dev/RDT"
     pypi = "rdt/rdt-0.6.1.tar.gz"
+
+    license("MIT")
 
     version("0.6.1", sha256="ee2ac0d3479b254f99f35a709a24ffd5f2c899de6ea71f1ee844c6113febba71")
 

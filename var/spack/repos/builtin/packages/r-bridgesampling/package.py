@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,7 +17,11 @@ class RBridgesampling(RPackage):
 
     cran = "bridgesampling"
 
+    license("GPL-2.0-or-later")
+
     version("1.1-2", sha256="54ecd39aa2e36d4d521d3d36425f9fe56a3f8547df6048c814c5931d790f3e6b")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r@3.0.0:", type=("build", "run"))
     depends_on("r-mvtnorm", type=("build", "run"))

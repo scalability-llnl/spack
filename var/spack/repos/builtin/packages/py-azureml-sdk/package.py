@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,21 +15,7 @@ class PyAzuremlSdk(PythonPackage):
 
     maintainers("adamjstewart")
 
-    version(
-        "1.23.0",
-        sha256="b9520f426831acb99fafa1ecd154b6bfd4f73fbf71e918d819f9db4a75438ab9",
-        expand=False,
-    )
-    version(
-        "1.11.0",
-        sha256="d8c9d24ea90457214d798b0d922489863dad518adde3638e08ef62de28fb183a",
-        expand=False,
-    )
-    version(
-        "1.8.0",
-        sha256="61107db1403ce2c1a12064eb0fa31a1d075debbf32dd17cb93b7639b615b7839",
-        expand=False,
-    )
+    version("1.23.0", sha256="b9520f426831acb99fafa1ecd154b6bfd4f73fbf71e918d819f9db4a75438ab9")
 
     # https://github.com/Azure/MachineLearningNotebooks/issues/1285
     depends_on("python@3.5:3.8", type=("build", "run"))
@@ -41,17 +27,3 @@ class PyAzuremlSdk(PythonPackage):
     depends_on("py-azureml-train@1.23.0:1.23", when="@1.23.0", type=("build", "run"))
     depends_on("py-azureml-train-automl-client@1.23.0:1.23", when="@1.23.0", type=("build", "run"))
     depends_on("py-azureml-pipeline@1.23.0:1.23", when="@1.23.0", type=("build", "run"))
-
-    depends_on("py-azureml-core@1.11.0:1.11", when="@1.11.0", type=("build", "run"))
-    depends_on(
-        "py-azureml-dataset-runtime@1.11.0:1.11 +fuse", when="@1.11.0", type=("build", "run")
-    )
-    depends_on("py-azureml-train@1.11.0:1.11", when="@1.11.0", type=("build", "run"))
-    depends_on("py-azureml-train-automl-client@1.11.0:1.11", when="@1.11.0", type=("build", "run"))
-    depends_on("py-azureml-pipeline@1.11.0:1.11", when="@1.11.0", type=("build", "run"))
-
-    depends_on("py-azureml-core@1.8.0:1.8", when="@1.8.0", type=("build", "run"))
-    depends_on("py-azureml-train@1.8.0:1.8", when="@1.8.0", type=("build", "run"))
-    depends_on("py-azureml-train-automl-client@1.8.0:1.8", when="@1.8.0", type=("build", "run"))
-    depends_on("py-azureml-pipeline@1.8.0:1.8", when="@1.8.0", type=("build", "run"))
-    depends_on("py-azureml-dataprep@1.8.0:1.8 +fuse", when="@1.8.0", type=("build", "run"))

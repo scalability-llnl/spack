@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -23,6 +23,8 @@ class Helib(CMakePackage):
 
     maintainers("wohlbier")
 
+    license("Apache-2.0")
+
     version("2.2.2", sha256="70c07d2a2da393c695095fe755836524e3d98efb27a336e206291f71db9cec7d")
     version("2.2.1", sha256="cbe030c752c915f1ece09681cadfbe4f140f6752414ab000b4cf076b6c3019e4")
     version("2.2.0", sha256="e5f82fb0520a76eafdf5044a1f17f512999479d899da8c34335da5e193699b94")
@@ -36,6 +38,9 @@ class Helib(CMakePackage):
     )
     version("1.1.0", sha256="77a912ed3c86f8bde31b7d476321d0c2d810570c04a60fa95c4bd32a1955b5cf")
     version("1.0.2", sha256="b907eaa8381af3d001d7fb8383273f4c652415b3320c11d5be2ad8f19757c998")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("shared", default=False, description="Build shared library.")
     depends_on("gmp@6.2.1:")

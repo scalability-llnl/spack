@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,8 +21,13 @@ class Sonlib(MakefilePackage):
     url = "https://github.com/ComparativeGenomicsToolkit/sonLib"
     git = "https://github.com/ComparativeGenomicsToolkit/sonLib.git"
 
+    license("MIT")
+
     version("master", branch="master")
     version("2020-04-01", commit="7ebe2ede05a6ee366d93a7a993db69a99943a68f")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     def setup_build_environment(self, env):
         binpath = os.path.join(self.stage.source_path, "bin")

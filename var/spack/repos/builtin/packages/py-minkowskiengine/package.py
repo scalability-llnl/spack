@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyMinkowskiengine(PythonPackage, CudaPackage):
     maintainers("wdconinc")
 
     version("0.5.4", sha256="b1879c00d0b0b1d30ba622cce239886a7e3c78ee9da1064cdfe2f64c2ab15f94")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("py-setuptools", type="build")
     depends_on("py-pybind11", type="link")

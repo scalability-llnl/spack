@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,6 +10,8 @@ class RFindpython(RPackage):
     """Package designed to find an acceptable python binary."""
 
     cran = "findpython"
+
+    license("MIT")
 
     version("1.0.8", sha256="0f8a90cbafd4949c0333a86808383a358fb7ec3268953d8a4887d5d22264cdb7")
     version("1.0.7", sha256="59f904b9c2ec84b589380de59d13afbf14d1ec3b670e3a07e820298aaf04c149")

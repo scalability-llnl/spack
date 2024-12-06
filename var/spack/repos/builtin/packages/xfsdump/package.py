@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class Xfsdump(MakefilePackage):
     version("3.1.6", sha256="bbf659758107cad9b41cf3001df121e6428485b341109a1f1a952fd477a7010b")
     version("3.1.5", sha256="ba5bb91413ccb5a0eaffaa84f242baa08520a09f7b990b28bbd0d33a4390f7b6")
     version("3.1.4", sha256="a75d5c7dabd3dd4184008efcfd30d0c96b6ab318edaad9659ce180dfb9652b01")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("gettext")
     depends_on("autoconf", type="build")

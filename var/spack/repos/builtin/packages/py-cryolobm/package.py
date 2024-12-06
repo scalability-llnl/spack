@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyCryolobm(PythonPackage):
 
     homepage = "https://pypi.org/project/cryoloBM/#description"
     pypi = "cryoloBM/cryoloBM-1.3.7.tar.gz"
+
+    license("MIT")
 
     version("1.3.7", sha256="e3505c95cddac3a344d1c6eddf1a9ff576a1384f9194b580287c76367912bedc")
 

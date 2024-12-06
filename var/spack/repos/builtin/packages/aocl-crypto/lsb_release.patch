@@ -1,0 +1,153 @@
+diff --git a/cmake/CompilerLinux.cmake b/cmake/CompilerLinux.cmake
+index f54bea37..8541e343 100644
+--- a/cmake/CompilerLinux.cmake
++++ b/cmake/CompilerLinux.cmake
+@@ -32,22 +32,11 @@ function(alcp_get_build_environment)
+         set (ALCP_BUILD_COMPILER "Clang_v${CMAKE_CXX_COMPILER_VERSION}")
+     endif()
+ 
+-    # uses lsb_release utility on linux, as cmake doesnt have a variable which has the Linux flavor information
+-    find_program(LSB_RELEASE_EXEC lsb_release)
+-    if(NOT LSB_RELEASE_EXEC)
+-        MESSAGE(FATAL_ERROR "LSB Release is missing from the machine, please install lsb_release!")
+-    endif()
+-    execute_process(COMMAND ${LSB_RELEASE_EXEC} -r -s
+-        OUTPUT_VARIABLE OS_VERSION
+-        OUTPUT_STRIP_TRAILING_WHITESPACE
+-    )
+-    execute_process(COMMAND ${LSB_RELEASE_EXEC} -i -s
+-        OUTPUT_VARIABLE OS_VENDOR
+-        OUTPUT_STRIP_TRAILING_WHITESPACE
+-    )
+-    
++    cmake_host_system_information(RESULT OS_VERSION QUERY DISTRIB_PRETTY_NAME)
++    message(STATUS "OS Information: ${OS_VERSION}")
++
+     # final build env string will contain compiler and system environment details where the binary was created
+-    set (ALCP_BUILD_ENV ${ALCP_BUILD_COMPILER}_${OS_VENDOR}_${OS_VERSION} PARENT_SCOPE)
++    set (ALCP_BUILD_ENV ${ALCP_BUILD_COMPILER}_${OS_VERSION} PARENT_SCOPE)
+ endfunction(alcp_get_build_environment)
+ 
+ 
+diff --git a/docs/resources/Quick_Start.md b/docs/resources/Quick_Start.md
+index 17bc025a..278a3d1f 100644
+--- a/docs/resources/Quick_Start.md
++++ b/docs/resources/Quick_Start.md
+@@ -141,47 +141,6 @@ AOCL_CRYPTO_REPO="https://github.com/amd/aocl-crypto.git"
+ AOCL_UTILS_REPO="https://github.com/amd/aocl-utils.git"
+ AOCL_BRANCH="amd-main"
+ 
+-# Function to check if lsb_release is installed
+-ensure_lsb_release(){
+-    if ! type "lsb_release" > /dev/null; then
+-        if type "apt" > /dev/null; then
+-            if type "sudo" > /dev/null; then
+-                sudo apt update
+-                sudo apt install lsb-release
+-            else
+-                echo "lsb-release not found, cannot install! missing \"sudo\" binary"
+-                exit -1; # We cannot do anything anymore
+-            fi
+-        else
+-            echo "lsb-release not found, cannot install! missing \"apt\" binary"
+-        fi
+-    fi
+-
+-    type lsb_release > /dev/null
+-    if [ $? -ne 0 ]; then
+-        echo "lsb_release not found!"
+-        exit -1;
+-    else
+-        echo "lsb_release found"
+-    fi
+-}
+-
+-# Function to check if OS is ubuntu with a specific version
+-detect_ubuntu(){
+-
+-    lsb_release --id | grep "Ubuntu" > /dev/null
+-    if [ $? -eq 0 ]; then
+-        # Detected Ubuntu
+-        echo "Detected Ubuntu"
+-        lsb_release --release | grep $1 > /dev/null
+-        if [ $? -eq 0 ]; then
+-            echo "Detected OS Release Version $1"
+-            return 0
+-        fi
+-    fi
+-    return 1 # Return error
+-}
+-
+ # Function to exit with an error if some execution failed
+ quit_if_status_not_zero(){
+     if [ $1 -ne 0 ]; then
+@@ -338,8 +297,6 @@ run_example_cfb(){
+ 
+ # Make sure we dont destroy anything
+ ensure_no_directory_conflict
+-# Make sure we can detect the OS
+-ensure_lsb_release
+ # Make sure all the needed packages (dependancies) are installed
+ ensure_packages
+ # Clone Utils and Crypto
+diff --git a/scripts/Clone_Build.sh b/scripts/Clone_Build.sh
+index 89a7cd2f..1ed2f3cf 100755
+--- a/scripts/Clone_Build.sh
++++ b/scripts/Clone_Build.sh
+@@ -36,47 +36,6 @@ AOCL_CRYPTO_REPO="git@er.github.amd.com:AOCL/aocl-crypto"
+ AOCL_UTILS_REPO="git@github.amd.com:AOCL/aocl-utils"
+ AOCL_BRANCH="amd-main"
+ 
+-# Function to check if lsb_release is installed
+-ensure_lsb_release(){
+-    if ! type "lsb_release" > /dev/null; then
+-        if type "apt" > /dev/null; then
+-            if type "sudo" > /dev/null; then
+-                sudo apt update
+-                sudo apt install lsb-release
+-            else
+-                echo "lsb-release not found, cannot install! missing \"sudo\" binary"
+-                exit -1; # We cannot do anything anymore
+-            fi
+-        else
+-            echo "lsb-release not found, cannot install! missing \"apt\" binary"
+-        fi
+-    fi
+-
+-    type lsb_release > /dev/null
+-    if [ $? -ne 0 ]; then
+-        echo "lsb_release not found!"
+-        exit -1;
+-    else
+-        echo "lsb_release found"
+-    fi
+-}
+-
+-# Function to check if OS is ubuntu with a specific version
+-detect_ubuntu(){
+-
+-    lsb_release --id | grep "Ubuntu" > /dev/null
+-    if [ $? -eq 0 ]; then
+-        # Detected Ubuntu
+-        echo "Detected Ubuntu"
+-        lsb_release --release | grep $1 > /dev/null
+-        if [ $? -eq 0 ]; then
+-            echo "Detected OS Release Version $1"
+-            return 0
+-        fi
+-    fi
+-    return 1 # Return error
+-}
+-
+ # Function to exit with an error if some execution failed
+ quit_if_status_not_zero(){
+     if [ $1 -ne 0 ]; then
+@@ -233,8 +192,6 @@ run_example_cfb(){
+ 
+ # Make sure we dont destroy anything
+ ensure_no_directory_conflict
+-# Make sure we can detect the OS
+-ensure_lsb_release
+ # Make sure all the needed packages (dependancies) are installed
+ ensure_packages
+ # Clone Utils and Crypto

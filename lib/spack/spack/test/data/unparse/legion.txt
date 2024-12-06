@@ -1,5 +1,5 @@
 # -*- python -*-
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -357,37 +357,28 @@ class Legion(CMakePackage):
         install test subdirectory for use during `spack test run`."""
         cache_extra_test_sources(self, [join_path('examples', 'local_function_tasks')])
 
-    def run_local_function_tasks_test(self):
-        """Run stand alone test: local_function_tasks"""
+    def test_run_local_function_tasks(self):
+        """Build and run external application example"""
 
-        test_dir = join_path(self.test_suite.current_test_cache_dir,
-                             'examples', 'local_function_tasks')
+        test_dir = join_path(
+            self.test_suite.current_test_cache_dir, "examples", "local_function_tasks"
+        )
 
         if not os.path.exists(test_dir):
-            print('Skipping local_function_tasks test')
-            return
+            raise SkipTest(f"{test_dir} must exist")
 
-        exe = 'local_function_tasks'
+        cmake_args = [
+            f"-DCMAKE_C_COMPILER={self.compiler.cc}",
+            f"-DCMAKE_CXX_COMPILER={self.compiler.cxx}",
+            f"-DLegion_DIR={join_path(self.prefix, 'share', 'Legion', 'cmake')}",
+        ]
 
-        cmake_args = ['-DCMAKE_C_COMPILER={0}'.format(self.compiler.cc),
-                      '-DCMAKE_CXX_COMPILER={0}'.format(self.compiler.cxx),
-                      '-DLegion_DIR={0}'.format(join_path(self.prefix,
-                                                          'share',
-                                                          'Legion',
-                                                          'cmake'))]
+        with working_dir(test_dir):
+            cmake = self.spec["cmake"].command
+            cmake(*cmake_args)
 
-        self.run_test('cmake',
-                      options=cmake_args,
-                      purpose='test: generate makefile for {0} example'.format(exe),
-                      work_dir=test_dir)
+            make = which("make")
+            make()
 
-        self.run_test('make',
-                      purpose='test: build {0} example'.format(exe),
-                      work_dir=test_dir)
-
-        self.run_test(exe,
-                      purpose='test: run {0} example'.format(exe),
-                      work_dir=test_dir)
-
-    def test(self):
-        self.run_local_function_tasks_test()
+            exe = which("local_function_tasks")
+            exe()

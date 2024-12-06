@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PySvgpathtools(PythonPackage):
     and Bezier curves."""
 
     pypi = "svgpathtools/svgpathtools-1.3.3.tar.gz"
+
+    license("MIT")
 
     version("1.3.3", sha256="e4b3784ae41b725fbce6a33a8981210967b16d0b557cb5d98c0ed0c81f0f89b9")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -26,6 +26,8 @@ class RDss(RPackage):
     version("2.36.0", commit="841c7ed72a138a458ee2df52336050dbe581e727")
     version("2.34.0", commit="f9819c7d7927c8e6d9963632cdeab36c8c22caa8")
     version("2.32.0", commit="ffb502d20810a873c2376199d44adedf7c83912d")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r@3.3:", type=("build", "run"))
     depends_on("r@3.5.0:", type=("build", "run"), when="@2.44.0:")

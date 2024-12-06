@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyThewalrus(PythonPackage):
 
     homepage = "https://github.com/XanaduAI/thewalrus"
     pypi = "thewalrus/thewalrus-0.19.0.tar.gz"
+
+    license("Apache-2.0")
 
     version("0.19.0", sha256="06ff07a14cd8cd4650d9c82b8bb8301ef9a58dcdd4bafb14841768ccf80c98b9")
 

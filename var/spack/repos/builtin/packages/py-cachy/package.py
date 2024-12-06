@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyCachy(PythonPackage):
 
     homepage = "https://github.com/sdispater/cachy"
     pypi = "cachy/cachy-0.3.0.tar.gz"
+
+    license("MIT")
 
     version("0.3.0", sha256="186581f4ceb42a0bbe040c407da73c14092379b1e4c0e327fdb72ae4a9b269b1")
 

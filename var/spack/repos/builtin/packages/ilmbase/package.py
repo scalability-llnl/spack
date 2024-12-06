@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -34,3 +34,5 @@ class Ilmbase(AutotoolsPackage):
         sha256="c134e47206d0e22ff0be96fa95391a13b635b6ad42668673e293f835fbd176b1",
         url="http://download.savannah.nongnu.org/releases/openexr/ilmbase-0.9.0.tar.gz",
     )
+
+    depends_on("cxx", type="build")  # generated

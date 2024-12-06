@@ -15,14 +15,10 @@ spack:
       variants: +mpi cuda_arch=70
     binutils:
       variants: +ld +gold +headers +libiberty ~nls
-    elfutils:
-      variants: +bzip2 ~nls +xz
     hdf5:
       variants: +fortran +hl +shared
     libfabric:
       variants: fabrics=sockets,tcp,udp,rxm
-    libunwind:
-      variants: +pic +xz
     openblas:
       variants: threads=openmp
     trilinos:
@@ -32,24 +28,22 @@ spack:
         +teko +tempus +tpetra +trilinoscouplings +zoltan +zoltan2 +superlu-dist gotype=long_long
     xz:
       variants: +pic
-    mesa:
-      version: [21.3.8]
     mpi:
       require: mpich
     mpich:
-      require: '~wrapperrpath ~hwloc'
+      require: '~wrapperrpath ~hwloc %gcc@9.4.0 target=ppc64le'
     ncurses:
-      require: '@6.3 +termlib'
+      require: '@6.3 +termlib %gcc@9.4.0 target=ppc64le'
     faodel:
-      require: "~tcmalloc"
+      require: "~tcmalloc %gcc@9.4.0 target=ppc64le"
     tbb:
       require: intel-tbb
-    libffi:
-      require: "@3.4.4"
     vtk-m:
-      require: "+examples"
+      require: "+examples %gcc@9.4.0 target=ppc64le"
     cuda:
-      require: "@11.4.4"
+      require: "@11.4.4 %gcc@9.4.0 target=ppc64le"
+    paraview:
+      require: "+examples %gcc@9.4.0 target=ppc64le"
 
 
   specs:
@@ -67,15 +61,17 @@ spack:
   - butterflypack
   - cabana
   - caliper
-  - chai ~benchmarks ~tests
+  - chai
+  - chapel ~rocm ~cuda
   - charliecloud
   - conduit
+  - cp2k +mpi
   - datatransferkit
   - drishti
   - dxt-explorer
   - dyninst
-  # - ecp-data-vis-sdk ~cuda ~rocm +adios2 +ascent +cinema +darshan +faodel +hdf5 ~paraview +pnetcdf +sz +unifyfs +veloc ~visit +vtkm +zfp # +visit: libext, libxkbfile, libxrender, libxt, silo (https://github.com/spack/spack/issues/39538), cairo
   - exaworks
+  - fftx
   - flecsi
   - flit
   - flux-core
@@ -86,7 +82,7 @@ spack:
   - gmp
   - gotcha
   - gptune
-  - gromacs +cp2k ^cp2k build_system=cmake
+  - gromacs +cp2k ^cp2k +mpi build_system=cmake
   - h5bench
   - hdf5-vol-async
   - hdf5-vol-cache
@@ -97,6 +93,7 @@ spack:
   - hypre
   - kokkos +openmp
   - kokkos-kernels +openmp
+  - laghos
   - lammps
   - lbann
   - legion
@@ -115,6 +112,7 @@ spack:
   - netlib-scalapack
   - nrm
   - nvhpc
+  - nwchem
   - omega-h
   - openfoam
   - openmpi
@@ -130,11 +128,11 @@ spack:
   - precice
   - pruners-ninja
   - pumi
+  - py-amrex
   - py-h5py
   - py-jupyterhub
   - py-libensemble
   - py-petsc4py
-  - py-warpx
   - qthreads scheduler=distrib
   - quantum-espresso
   - raja
@@ -157,6 +155,9 @@ spack:
   - umpire
   - upcxx
   - wannier90
+  - warpx +python
+  - wps
+  - wrf
   - xyce +mpi +shared +pymi +pymi_static_tpls
   # INCLUDED IN ECP DAV CPU
   - adios2
@@ -167,7 +168,6 @@ spack:
   - hdf5
   - libcatalyst
   - parallel-netcdf
-  - paraview
   - py-cinemasci
   - sz
   - unifyfs
@@ -175,13 +175,35 @@ spack:
   # - visit                                 # libext, libxkbfile, libxrender, libxt, silo (https://github.com/spack/spack/issues/39538), cairo
   - vtk-m
   - zfp
+  # - ecp-data-vis-sdk ~cuda ~rocm +adios2 +ascent +cinema +darshan +faodel +hdf5 ~paraview +pnetcdf +sz +unifyfs +veloc ~visit +vtkm +zfp # +visit: libext, libxkbfile, libxrender, libxt, silo (https://github.com/spack/spack/issues/39538), cairo
   # --
-  # - archer                                # part of llvm +omp_tsan
   # - dealii                                # fltk: https://github.com/spack/spack/issues/38791
-  # - geopm                                 # geopm: https://github.com/spack/spack/issues/38798
+  # - geopm-runtime                         # cairo: *** No autoreconf found, please install it ***
+  # - glvis                                 # glvis: https://github.com/spack/spack/issues/42839
   # - libpressio +bitgrooming +bzip2 ~cuda ~cusz +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp # py-numcodecs: gcc: error: unrecognized command line option '-mno-sse2'; did you mean '-mno-isel'? gcc: error: unrecognized command line option '-mno-avx2'
   # - phist +mpi                            # ghost@develop: gcc-9: error: unrecognized command line option '-march=native'; did you mean '-mcpu=native'?
   # - variorum                              # variorum: https://github.com/spack/spack/issues/38786
+
+  # PYTHON PACKAGES
+  - opencv +python3
+  - py-jax
+  - py-jupyterlab
+  - py-matplotlib
+  - py-mpi4py
+  - py-notebook
+  - py-numba
+  - py-numpy
+  - py-openai
+  - py-pandas
+  - py-plotly
+  - py-pooch
+  - py-pytest
+  - py-scikit-learn
+  - py-scipy
+  - py-seaborn
+  # - py-horovod        # py-torch, py-tensorflow
+  # - py-tensorflow     # error
+  # - py-torch          # error
 
   # CUDA NOARCH
   - bricks +cuda
@@ -189,7 +211,7 @@ spack:
   - flux-core +cuda
   - hpctoolkit +cuda
   - papi +cuda
-  - tau +mpi +cuda                          # tau: has issue with `spack env depfile` build
+  - tau +mpi +cuda
   # --
   # - legion +cuda                          # legion: needs NVIDIA driver
 
@@ -197,11 +219,12 @@ spack:
   - amrex +cuda cuda_arch=70
   - arborx +cuda cuda_arch=70 ^kokkos +wrapper
   - caliper +cuda cuda_arch=70
-  - chai ~benchmarks ~tests +cuda cuda_arch=70 ^umpire ~shared
+  - chai +cuda cuda_arch=70 ^umpire ~shared
   - ecp-data-vis-sdk ~rocm +adios2 ~ascent +hdf5 +vtkm +zfp ~paraview +cuda cuda_arch=70
   - exago +mpi +python +raja +hiop ~rocm +cuda cuda_arch=70 ~ipopt ^hiop@1.0.0 ~sparse +mpi +raja ~rocm +cuda cuda_arch=70 #^raja@0.14.0
   - flecsi +cuda cuda_arch=70
   - ginkgo +cuda cuda_arch=70
+  - gromacs +cuda cuda_arch=70
   - heffte +cuda cuda_arch=70
   - hpx +cuda cuda_arch=70
   - hypre +cuda cuda_arch=70
@@ -229,6 +252,7 @@ spack:
   - zfp +cuda cuda_arch=70
   # --
   # - axom +cuda cuda_arch=70               # axom: https://github.com/spack/spack/issues/29520
+  # - cp2k +mpi +cuda cuda_arch=70          # dbcsr
   # - cusz +cuda cuda_arch=70               # cusz: https://github.com/spack/spack/issues/38787
   # - dealii +cuda cuda_arch=70             # fltk: https://github.com/spack/spack/issues/38791
   # - lammps +cuda cuda_arch=70             # lammps: needs NVIDIA driver

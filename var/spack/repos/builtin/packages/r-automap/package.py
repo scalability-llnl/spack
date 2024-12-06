@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class RAutomap(RPackage):
     (2008) <doi:10.1016/j.cageo.2008.10.011>."""
 
     cran = "automap"
+
+    license("GPL-2.0-or-later")
 
     version("1.1-9", sha256="f3070aed385352d2595ceddd74cb03cd71965f2e60b675832d16ec2ead6f3a43")
 

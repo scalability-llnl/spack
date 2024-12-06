@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyUmapLearn(PythonPackage):
 
     homepage = "https://github.com/lmcinnes/umap"
     pypi = "umap-learn/umap-learn-0.5.3.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("0.5.3", sha256="dbd57cb181c2b66d238acb5635697526bf24c798082daed0cf9b87f6a3a6c0c7")
 

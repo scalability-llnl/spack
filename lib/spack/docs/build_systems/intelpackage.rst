@@ -1,4 +1,4 @@
-.. Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
    Spack Project Developers. See the top-level COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -90,7 +90,7 @@ and optimizers do require a paid license.  In Spack, they are packaged as:
     TODO: Confirm and possible change(!) the scope of MPI components (runtime
     vs. devel) in current (and previous?) *cluster/professional/composer*
     editions, i.e., presence in downloads, possibly subject to license
-    coverage(!); see `disussion in PR #4300
+    coverage(!); see `discussion in PR #4300
     <https://github.com/spack/spack/pull/4300#issuecomment-305582898>`_.  [NB:
     An "mpi" subdirectory is not indicative of the full MPI SDK being present
     (i.e., ``mpicc``, ..., and header files).  The directory may just as well

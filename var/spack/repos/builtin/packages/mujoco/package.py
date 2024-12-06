@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -27,6 +27,9 @@ class Mujoco(Package):
         pkg_sha256 = packages.get(key)
         if pkg_sha256:
             version(ver, sha256=pkg_sha256)
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     def url_for_version(self, version):
         url = "https://mujoco.org/download/mujoco{0}-{1}-x86_64.tar.gz"

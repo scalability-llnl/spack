@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -25,6 +25,8 @@ class RLimma(RPackage):
     version("3.36.5", commit="3148d1cb7eea9c6bdd60351d51abcfd665332d44")
     version("3.34.9", commit="6755278a929f942a49e2441fb002a3ed393e1139")
     version("3.32.10", commit="593edf28e21fe054d64137ae271b8a52ab05bc60")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r@2.3.0:", type=("build", "run"))
     depends_on("r@3.6.0:", type=("build", "run"), when="@3.40.6:")

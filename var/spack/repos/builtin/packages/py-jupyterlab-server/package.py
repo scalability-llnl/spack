@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyJupyterlabServer(PythonPackage):
 
     homepage = "https://github.com/jupyterlab/jupyterlab_server"
     pypi = "jupyterlab_server/jupyterlab_server-1.2.0.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("2.22.1", sha256="dfaaf898af84b9d01ae9583b813f378b96ee90c3a66f24c5186ea5d1bbdb2089")
     version("2.10.3", sha256="3fb84a5813d6d836ceda773fb2d4e9ef3c7944dbc1b45a8d59d98641a80de80a")

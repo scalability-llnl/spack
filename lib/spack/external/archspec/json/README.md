@@ -9,11 +9,11 @@ language specific APIs.
 
 Currently the repository contains the following JSON files:
 ```console
-.
-├── COPYRIGHT
-└── cpu
-    ├── microarchitectures.json         # Contains information on CPU microarchitectures
-    └── microarchitectures_schema.json  # Schema for the file above
+cpu/
+├── cpuid.json                     # Contains information on CPUID calls to retrieve vendor and features on x86_64
+├── cpuid_schema.json              # Schema for the file above
+├── microarchitectures.json        # Contains information on CPU microarchitectures
+└── microarchitectures_schema.json # Schema for the file above
  ```
 
 

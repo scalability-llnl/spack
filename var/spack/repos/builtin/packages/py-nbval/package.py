@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class PyNbval(PythonPackage):
 
     homepage = "https://github.com/computationalmodelling/nbval"
     pypi = "nbval/nbval-0.9.6.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("0.9.6", sha256="cfefcd2ef66ee2d337d0b252c6bcec4023384eb32e8b9e5fcc3ac80ab8cd7d40")
 

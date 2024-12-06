@@ -1,0 +1,20 @@
+diff --git a/src/vec/is/sf/impls/basic/hip/sfhip.hip.cpp b/src/vec/is/sf/impls/basic/hip/sfhip.hip.cpp
+index a39933c6893..6ef9f513bd6 100644
+--- a/src/vec/is/sf/impls/basic/hip/sfhip.hip.cpp
++++ b/src/vec/is/sf/impls/basic/hip/sfhip.hip.cpp
+@@ -471,6 +471,7 @@ __device__ static float atomicMax(float *address, float val)
+ #endif
+ 
+ /* As of ROCm 3.10 llint atomicMin/Max(llint*, llint) is not supported */
++#if PETSC_PKG_HIP_VERSION_LT(5, 7, 0)
+ __device__ static llint atomicMin(llint *address, llint val)
+ {
+   ullint *address_as_ull = (ullint *)(address);
+@@ -492,6 +493,7 @@ __device__ static llint atomicMax(llint *address, llint val)
+   } while (assumed != old);
+   return (llint)old;
+ }
++#endif
+ 
+ template <typename Type>
+ struct AtomicMin {

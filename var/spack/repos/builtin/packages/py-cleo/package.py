@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyCleo(PythonPackage):
     pypi = "cleo/cleo-0.8.1.tar.gz"
 
     maintainers("LydDeb")
+
+    license("MIT")
 
     version("2.1.0", sha256="0b2c880b5d13660a7ea651001fb4acb527696c01f15c9ee650f377aa543fd523")
     version("2.0.1", sha256="eb4b2e1f3063c11085cebe489a6e9124163c226575a3c3be69b2e51af4a15ec5")

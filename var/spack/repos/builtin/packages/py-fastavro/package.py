@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyFastavro(PythonPackage):
 
     homepage = "https://github.com/fastavro/fastavro"
     url = "https://github.com/fastavro/fastavro/archive/1.0.0.post1.tar.gz"
+
+    license("MIT")
 
     version(
         "1.0.0.post1", sha256="74f9bf0f9bc9e484c6d42fad603d6e6f907e716a78189873761dc86ce64cc6c5"

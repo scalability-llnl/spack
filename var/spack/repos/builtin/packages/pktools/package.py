@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,8 +14,13 @@ class Pktools(CMakePackage):
     homepage = "http://pktools.nongnu.org/html/index.html"
     url = "http://download.savannah.gnu.org/releases/pktools/pktools-2.6.7.tar.gz"
 
+    license("GPL-3.0-or-later")
+
     version("2.6.7.1", sha256="519b6a500ce3c5ef3793c1cda1f5377f13b7d7591b5ccc376b2bd1de4bd4f7e5")
     version("2.6.7", sha256="f566647e93037cc01cebfe17ea554d798177fe5081887c70223dcca817f4fe7f")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("fann", default=True, description="Build with libfann to enable related programs")
     variant("liblas", default=False, description="Build with libLAS support")

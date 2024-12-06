@@ -3,8 +3,11 @@ spack:
 
   packages:
     all:
-      require: target=aarch64
-      variants: +mps~cuda~rocm
+      require:
+      - target=aarch64
+      - +mps
+      - ~cuda
+      - ~rocm
     mpi:
       require: openmpi
     openblas:
@@ -24,13 +27,12 @@ spack:
 
   # Keras
   # Bazel codesign issues
-  # - py-keras
+  # - py-keras backend=tensorflow
+  # - py-keras backend=jax
+  - py-keras backend=torch
   - py-keras-applications
   - py-keras-preprocessing
   - py-keras2onnx
-
-  # MXNet not supported on darwin aarch64 yet
-  # - mxnet
 
   # PyTorch
   - py-botorch
@@ -79,8 +81,6 @@ spack:
 
   # XGBoost
   - py-xgboost
-  # - r-xgboost
-  - xgboost
 
   ci:
     pipeline-gen:

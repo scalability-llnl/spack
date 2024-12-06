@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,9 @@ class Gatetools(PythonPackage):
     homepage = "https://github.com/OpenGATE/GateTools"
     pypi = "gatetools/gatetools-0.9.14.tar.gz"
 
+    license("LGPL-3.0-only")
+
+    version("0.12.1", sha256="eb4847442594e466f0fc01eb5ff1eb89f1dfc4e4b5968d611dacb75a88d24013")
     version("0.11.2", sha256="6eef8a779278b862823ae79d6aab210db4f7889c9127b2c2e4c3a4195f9a9928")
     version("0.9.14", sha256="78fe864bb52fd4c6aeeee90d8f6c1bc5406ce02ac6f48712379efac606b5c006")
 

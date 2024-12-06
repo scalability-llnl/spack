@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyDateparser(PythonPackage):
 
     homepage = "https://github.com/scrapinghub/dateparser"
     pypi = "dateparser/dateparser-0.7.2.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("0.7.2", sha256="e1eac8ef28de69a554d5fcdb60b172d526d61924b1a40afbbb08df459a36006b")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyPfzy(PythonPackage):
 
     homepage = "https://github.com/kazhala/pfzy"
     pypi = "pfzy/pfzy-0.3.4.tar.gz"
+
+    license("MIT")
 
     version("0.3.4", sha256="717ea765dd10b63618e7298b2d98efd819e0b30cd5905c9707223dceeb94b3f1")
 

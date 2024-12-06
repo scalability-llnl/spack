@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,7 +14,12 @@ class PyPynio(PythonPackage):
     homepage = "https://www.pyngl.ucar.edu/Nio.shtml"
     url = "https://github.com/NCAR/pynio/archive/1.5.4.tar.gz"
 
+    license("Apache-2.0")
+
     version("1.5.4", sha256="e5bb57d902740d25e4781a9f89e888149f55f2ffe60f9a5ad71069f017c89e1a")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("hdf5", default=False, description="Include HDF5 support")
     variant("gdal", default=False, description="Include GDAL support")

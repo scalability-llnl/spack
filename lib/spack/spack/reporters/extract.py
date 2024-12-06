@@ -1,8 +1,7 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import os
 import re
 import xml.sax.saxutils
 from datetime import datetime
@@ -42,17 +41,6 @@ def elapsed(current, previous):
     return diff.total_seconds()
 
 
-# TODO (post-34236): Should remove with deprecated test methods since don't
-# TODO (post-34236): have an XFAIL mechanism with the new test_part() approach.
-def expected_failure(line):
-    if not line:
-        return False
-
-    match = returns_regexp.search(line)
-    xfail = "0" not in match.group(1) if match else False
-    return xfail
-
-
 def new_part():
     return {
         "command": None,
@@ -66,14 +54,6 @@ def new_part():
     }
 
 
-# TODO (post-34236): Remove this when remove deprecated methods
-def part_name(source):
-    elements = []
-    for e in source.replace("'", "").split(" "):
-        elements.append(os.path.basename(e) if os.sep in e else e)
-    return "_".join(elements)
-
-
 def process_part_end(part, curr_time, last_time):
     if part:
         if not part["elapsed"]:
@@ -81,11 +61,7 @@ def process_part_end(part, curr_time, last_time):
 
         stat = part["status"]
         if stat in completed:
-            # TODO (post-34236): remove the expected failure mapping when
-            # TODO (post-34236): remove deprecated test methods.
-            if stat == "passed" and expected_failure(part["desc"]):
-                part["completed"] = "Expected to fail"
-            elif part["completed"] == "Unknown":
+            if part["completed"] == "Unknown":
                 part["completed"] = completed[stat]
         elif stat is None or stat == "unknown":
             part["status"] = "passed"
@@ -151,14 +127,6 @@ def extract_test_parts(default_name, outputs):
 
                 # Skip logged message for caching build-time data
                 if msg.startswith("Installing"):
-                    continue
-
-                # TODO (post-34236): Remove this check when remove run_test(),
-                # TODO (post-34236): etc. since no longer supporting expected
-                # TODO (post-34236): failures.
-                if msg.startswith("Expecting return code"):
-                    if part:
-                        part["desc"] += f"; {msg}"
                     continue
 
                 # Terminate without further parsing if no more test messages

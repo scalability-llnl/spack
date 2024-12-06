@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,7 @@ class Evtgen(CMakePackage):
 
     maintainers("vvolkl")
 
+    version("02.02.01", sha256="1fcae56c6b27b89c4a2f4b224d27980607442185f5570e961f6334a3543c6e77")
     version("02.02.00", sha256="0c626e51cb17e799ad0ffd0beea5cb94d7ac8a5f8777b746aa1944dd26071ecf")
     version("02.00.00", sha256="02372308e1261b8369d10538a3aa65fe60728ab343fcb64b224dac7313deb719")
     # switched to cmake in 02.00.00
@@ -25,6 +26,8 @@ class Evtgen(CMakePackage):
         sha256="2648f1e2be5f11568d589d2079f22f589c283a2960390bbdb8d9d7f71bc9c014",
         deprecated=True,
     )
+
+    depends_on("cxx", type="build")  # generated
 
     variant("pythia8", default=True, description="Build with pythia8")
     variant("tauola", default=False, description="Build with tauola")
@@ -36,6 +39,7 @@ class Evtgen(CMakePackage):
 
     depends_on("hepmc", when="~hepmc3")
     depends_on("hepmc3", when="+hepmc3")
+    depends_on("pythia8@:8.309", when="@:02.02.00 +pythia8")
     depends_on("pythia8", when="+pythia8")
     depends_on("tauola~hepmc3", when="+tauola~hepmc3")
     depends_on("photos~hepmc3", when="+photos~hepmc3")
@@ -93,18 +97,18 @@ class Evtgen(CMakePackage):
         options += self.configure_args()
 
         with working_dir(self.build_directory, create=True):
-            inspect.getmodule(self).configure(*options)
+            configure(*options)
 
     @when("@:01")
     def configure_args(self):
         args = []
 
         args.append("--hepmcdir=%s" % self.spec["hepmc"].prefix)
-        if "+pythia8" in self.spec:
+        if self.spec.satisfies("+pythia8"):
             args.append("--pythiadir=%s" % self.spec["pythia8"].prefix)
-        if "+photos" in self.spec:
+        if self.spec.satisfies("+photos"):
             args.append("--photosdir=%s" % self.spec["photos"].prefix)
-        if "+tauola" in self.spec:
+        if self.spec.satisfies("+tauola"):
             args.append("--tauoladir=%s" % self.spec["tauola"].prefix)
 
         return args

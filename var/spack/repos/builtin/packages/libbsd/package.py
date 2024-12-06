@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,10 @@ class Libbsd(AutotoolsPackage):
         "https://mirrors.dotsrc.org/pub/mirrors/exherbo/libbsd-0.9.1.tar.xz",
     ]
 
+    license("BSD-3-Clause")
+
+    version("0.12.2", sha256="b88cc9163d0c652aaf39a99991d974ddba1c3a9711db8f1b5838af2a14731014")
+    version("0.12.1", sha256="d7747f8ec1baa6ff5c096a9dd587c061233dec90da0f1aedd66d830f6db6996a")
     version("0.11.7", sha256="9baa186059ebbf25c06308e9f991fda31f7183c0f24931826d83aa6abd8a0261")
     version("0.11.6", sha256="19b38f3172eaf693e6e1c68714636190c7e48851e45224d720b3b5bc0499b5df")
     version("0.11.5", sha256="1a9c952525635c1bb6770cb22e969b938d8e6a9d7912362b98ee8370599b0efd")
@@ -32,8 +36,12 @@ class Libbsd(AutotoolsPackage):
     version("0.8.7", sha256="f548f10e5af5a08b1e22889ce84315b1ebe41505b015c9596bad03fd13a12b31")
     version("0.8.6", sha256="467fbf9df1f49af11f7f686691057c8c0a7613ae5a870577bef9155de39f9687")
 
+    depends_on("c", type="build")  # generated
+
     patch("cdefs.h.patch", when="@0.8.6 %gcc@:4")
     patch("local-elf.h.patch", when="@:0.10 %intel")
+
+    conflicts("platform=freebsd")
 
     # https://gitlab.freedesktop.org/libbsd/libbsd/issues/1
     conflicts("platform=darwin")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,13 +16,26 @@ class OfPrecice(Package):
 
     homepage = "https://precice.org/"
     git = "https://github.com/precice/openfoam-adapter.git"
+    url = "https://github.com/precice/openfoam-adapter/archive/v1.2.3.tar.gz"
+    maintainers("MakisH", "kjrstory")
 
-    # Currently develop only
-    version("develop", branch="master")
+    license("GPL-3.0-only")
+
+    version("develop", branch="develop")
+    version("master", branch="master")
+    version("1.2.3", sha256="e5fbbc633a573cd1a952a98f7f05078a384078a8ea9cd166825148538a23683e")
+    version("1.2.2", sha256="9d2d8d372b39c4e672e6311e92545d335c52c8eb3cefea34a794572523583aa5")
+    version("1.2.1", sha256="12772ddea1eb0155ebf6d0a2ea4cd9700dbe63a0df016771b39591ae12efad11")
+    version("1.2.0", sha256="4e7676cffe12380cda7af32e84a7727dc4c9133815d3b0e1c22150a2e7b34ce0")
+    version("1.1.0", sha256="c35340b50d1b01978635130da94a876e1fa846c80b62e45204aa727db2ef4983")
+    version("1.0.0", sha256="b70e5bdce47328f789f76dc6187604f8568b4a996158b5a6f6c11f111ff10308")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("openfoam+source")
     depends_on("precice")
     depends_on("yaml-cpp")
+    depends_on("pkgconfig", type="build")
 
     # General patches
     common = ["change-userdir.sh", "spack-derived-Allwmake"]
@@ -81,7 +94,8 @@ export CPLUS_INCLUDE_PATH
             if os.path.isfile(f):
                 install(f, join_path(self.prefix, f))
 
-        install_tree("tutorials", join_path(self.prefix, "tutorials"))
-
         # Place directly under 'lib' (no bin)
         install_tree(join_path(self.build_userdir, "lib"), join_path(self.prefix, "lib"))
+
+    def setup_run_environment(self, env):
+        env.prepend_path("LD_LIBRARY_PATH", join_path(self.prefix, "lib"))

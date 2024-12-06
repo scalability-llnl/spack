@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class HealpixCxx(AutotoolsPackage):
 
     homepage = "https://healpix.sourceforge.io"
     url = "https://ayera.dl.sourceforge.net/project/healpix/Healpix_3.50/healpix_cxx-3.50.0.tar.gz"
+
+    license("GPL-2.0-or-later")
 
     version("3.50.0", sha256="6538ee160423e8a0c0f92cf2b2001e1a2afd9567d026a86ff6e2287c1580cb4c")
 

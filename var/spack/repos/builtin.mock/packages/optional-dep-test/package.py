@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,14 +19,14 @@ class OptionalDepTest(Package):
     variant("f", default=False)
     variant("mpi", default=False)
 
-    depends_on("a", when="+a")
-    depends_on("b", when="@1.1")
-    depends_on("c", when="%intel")
-    depends_on("d", when="%intel@64.1")
-    depends_on("e", when="%clang@34:40")
+    depends_on("pkg-a", when="+a")
+    depends_on("pkg-b", when="@1.1")
+    depends_on("pkg-c", when="%intel")
+    depends_on("pkg-d", when="%intel@64.1")
+    depends_on("pkg-e", when="%clang@34:40")
 
-    depends_on("f", when="+f")
-    depends_on("g", when="^f")
-    depends_on("mpi", when="^g")
+    depends_on("pkg-f", when="+f")
+    depends_on("pkg-g", when="^pkg-f")
+    depends_on("mpi", when="^pkg-g")
 
     depends_on("mpi", when="+mpi")

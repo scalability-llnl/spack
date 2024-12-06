@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyDunamai(PythonPackage):
 
     homepage = "https://github.com/mtkennerly/dunamai"
     pypi = "dunamai/dunamai-1.13.1.tar.gz"
+
+    license("MIT")
 
     version("1.18.0", sha256="5200598561ea5ba956a6174c36e402e92206c6a6aa4a93a6c5cb8003ee1e0997")
     version("1.17.0", sha256="459381b585a1e78e4070f0d38a6afb4d67de2ee95064bf6b0438ec620dde0820")

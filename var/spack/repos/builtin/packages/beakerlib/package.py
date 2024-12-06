@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class Beakerlib(MakefilePackage):
 
     homepage = "https://github.com/beakerlib/beakerlib"
     url = "https://github.com/beakerlib/beakerlib/archive/1.20.tar.gz"
+
+    license("GPL-2.0-only")
 
     version("1.29.3", sha256="f792b86bac8be1a4593dd096c32c1a061102c802c6f5760259a5753b13f6caa1")
     version("1.20", sha256="81f39a0b67adff4c3f4c051ffd26bcf45e19068dee7e81e3b00ee4698587f4e9")

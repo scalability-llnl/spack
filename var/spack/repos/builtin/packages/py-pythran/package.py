@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,7 +15,14 @@ class PyPythran(PythonPackage):
 
     homepage = "https://github.com/serge-sans-paille/pythran"
     pypi = "pythran/pythran-0.9.11.tar.gz"
+    tags = ["build-tools"]
 
+    license("BSD-3-Clause")
+    maintainers("rgommers")
+
+    version("0.16.1", sha256="861748c0f9c7d422b32724b114b3817d818ed4eab86c09781aa0a3f7ceabb7f9")
+    version("0.16.0", sha256="37dcf6aa9713b352b05004e3a20d14b3de7399bb0d7fe2027bd2b9e2833fe65a")
+    version("0.15.0", sha256="f9bc61bcb96df2cd4b578abc5a62dfb3fbb0b0ef02c264513dfb615c5f87871c")
     version("0.12.2", sha256="2344c7ad76255f31f79d87877cc6bb8bddc5e5593015dae29b3f821c6c06a627")
     version("0.12.0", sha256="eff3dd0d3eebe57372f0d14f82985525e9bcdfb5b1d1010e1932cf9207060f9f")
     version("0.11.0", sha256="0b2cba712e09f7630879dff69f268460bfe34a6d6000451b47d598558a92a875")
@@ -31,15 +38,22 @@ class PyPythran(PythonPackage):
     version("0.9.4", sha256="ec9c91f5331454263b064027292556a184a9f55a50f8615e09b08f57a4909855")
     version("0.9.3", sha256="217427a8225a331fdc8f3efe57871aed775cdf2c6e847a0a83df0aaae4b02493")
 
-    depends_on("py-setuptools", type="build")
+    depends_on("cxx", type="build")  # generated
+
+    # https://github.com/serge-sans-paille/pythran/pull/2196
+    depends_on("py-setuptools@62:", when="@0.15:", type=("build", "run"))
+    depends_on("py-setuptools", type=("build", "run"))
     depends_on("py-ply@3.4:", type=("build", "run"))
+    depends_on("py-gast@0.5", when="@0.15:", type=("build", "run"))
     # upper bound due to https://github.com/scipy/scipy/issues/18390
-    depends_on("py-gast@0.5:0.5.3", when="@0.9.12:", type=("build", "run"))
+    depends_on("py-gast@0.5:0.5.3", when="@0.9.12:0.12", type=("build", "run"))
     depends_on("py-gast@0.4", when="@0.9.7:0.9.11", type=("build", "run"))
     depends_on("py-gast@0.3.3:0.3", when="@0.9.6", type=("build", "run"))
     depends_on("py-gast@0.3:", when="@0.9.4:0.9.5", type=("build", "run"))
     depends_on("py-gast", when="@:0.9.3", type=("build", "run"))
     depends_on("py-numpy", type=("build", "run"))
+    # https://github.com/serge-sans-paille/pythran/issues/2189
+    depends_on("py-numpy@:1", when="@:0.15", type=("build", "run"))
     depends_on("py-beniget@0.4", when="@0.9.12:", type=("build", "run"))
     depends_on("py-beniget@0.3", when="@0.9.7:0.9.11", type=("build", "run"))
     depends_on("py-beniget@0.2.1:0.2", when="@0.9.6", type=("build", "run"))
@@ -56,8 +70,19 @@ class PyPythran(PythonPackage):
     # https://github.com/serge-sans-paille/pythran/pull/1856
     patch("omp.patch", when="@0.9.10:0.9.12")
 
+    # https://github.com/serge-sans-paille/pythran/pull/2029
+    patch(
+        "https://github.com/serge-sans-paille/pythran/commit/00a454a9c33ff05852c8d36a73cc1aadb9690c9a.patch?full_index=1",
+        sha256="5ccf989a259e33e942b7dde39f8e90917e12afd7fda16ec90e9adad8ccf444fb",
+        when="@:0.12.0",
+    )
+
     # https://github.com/serge-sans-paille/pythran/issues/1937
     conflicts("%apple-clang@13:", when="@:0.10")
+    # https://github.com/serge-sans-paille/pythran/issues/2101
+    conflicts("^python@3.11:", when="@:0.12.1")
+    # from distutils.errors import CompileError in run.py
+    conflicts("^python@3.12:", when="@:0.15")
 
     @property
     def headers(self):

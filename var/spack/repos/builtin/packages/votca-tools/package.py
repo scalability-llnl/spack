@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -82,6 +82,8 @@ class VotcaTools(CMakePackage):
         sha256="41638122e7e59852af61d391b4ab8c308fd2e16652f768077e13a99d206ec5d3",
         deprecated=True,
     )
+
+    depends_on("cxx", type="build")  # generated
 
     # https://github.com/votca/tools/pull/229, fix mkl in exported target
     patch(

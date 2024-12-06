@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class Hisat2(MakefilePackage):
     homepage = "https://daehwankimlab.github.io/hisat2/"
     url = "ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/downloads/hisat2-2.1.0-source.zip"
 
+    license("GPL-3.0-or-later")
+
     version(
         "2.2.1",
         sha256="48e933330d4d8470d2b3dfe7ec3918f2e98a75f7381891e23b7df1fb4f135eb1",
@@ -29,7 +31,12 @@ class Hisat2(MakefilePackage):
         url="https://cloud.biohpc.swmed.edu/index.php/s/hisat2-220-source/download",
         extension="zip",
     )
-    version("2.1.0", sha256="89a276eed1fc07414b1601947bc9466bdeb50e8f148ad42074186fe39a1ee781")
+    version(
+        "2.1.0",
+        sha256="89a276eed1fc07414b1601947bc9466bdeb50e8f148ad42074186fe39a1ee781",
+        url="ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/downloads/hisat2-2.1.0-source.zip",
+        extension="zip",
+    )
 
     variant("sra", default=False, description="Add SRA (Sequence Read Archive) support")
 
@@ -46,8 +53,8 @@ class Hisat2(MakefilePackage):
     def build(self, spec, prefix):
         make(
             "USE_SRA=1",
-            "NCBI_NGS_DIR={0}".format(spec["sra-tools"].prefix),
-            "NCBI_VDB_DIR={0}".format(spec["ncbi-vdb"].prefix),
+            f"NCBI_NGS_DIR={spec['sra-tools'].prefix}",
+            f"NCBI_VDB_DIR={spec['ncbi-vdb'].prefix}",
         )
 
     def install(self, spec, prefix):
@@ -57,7 +64,7 @@ class Hisat2(MakefilePackage):
         install_tree("example", prefix.example)
         install_tree("scripts", prefix.scripts)
 
-        if "@:2.2.0" in spec:
+        if spec.satisfies("@:2.2.0"):
             install_tree("hisatgenotype_modules", prefix.hisatgenotype_modules)
             install_tree("hisatgenotype_scripts", prefix.hisatgenotype_scripts)
 
@@ -73,33 +80,29 @@ class Hisat2(MakefilePackage):
         install("hisat2-inspect-l", prefix.bin)
         install("*.py", prefix.bin)
 
-        if "@2.2:" in spec:
+        if spec.satisfies("@2.2:"):
             install("hisat2-repeat", prefix.bin)
 
     @run_after("install")
     def filter_sbang(self):
         with working_dir(self.prefix.bin):
             pattern = "^#!.*/usr/bin/env python"
-            repl = "#!{0}".format(self.spec["python"].command.path)
+            repl = f"#!{self.spec['python'].command.path}"
             files = ["hisat2-build", "hisat2-inspect"]
-            for file in files:
-                filter_file(pattern, repl, *files, backup=False)
+            filter_file(pattern, repl, *files, backup=False)
 
             pattern = "^#!.*/usr/bin/env perl"
-            repl = "#!{0}".format(self.spec["perl"].command.path)
+            repl = f"#!{self.spec['perl'].command.path}"
             files = ["hisat2"]
-            for file in files:
-                filter_file(pattern, repl, *files, backup=False)
+            filter_file(pattern, repl, *files, backup=False)
 
             pattern = "^#!.*/usr/bin/env python3"
-            repl = "#!{0}".format(self.spec["python"].command.path)
+            repl = f"#!{self.spec['python'].command.path}"
             files = glob.glob("*.py")
-            for file in files:
-                filter_file(pattern, repl, *files, backup=False)
+            filter_file(pattern, repl, *files, backup=False)
 
         with working_dir(self.prefix.scripts):
             pattern = "^#!.*/usr/bin/perl"
-            repl = "#!{0}".format(self.spec["perl"].command.path)
+            repl = f"#!{self.spec['perl'].command.path}"
             files = glob.glob("*.pl")
-            for file in files:
-                filter_file(pattern, repl, *files, backup=False)
+            filter_file(pattern, repl, *files, backup=False)

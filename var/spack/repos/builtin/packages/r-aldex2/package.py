@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,6 +22,8 @@ class RAldex2(RPackage):
     p-values and Benjamini-Hochberg corrected p-values."""
 
     bioc = "ALDEx2"
+
+    license("GPL-3.0-only")
 
     version("1.32.0", commit="ba32b9a9b6a8f42906ea094318f00116f15e42eb")
     version("1.30.0", commit="cb6670515a8722f9cfedac12a8c2747a5298ee46")

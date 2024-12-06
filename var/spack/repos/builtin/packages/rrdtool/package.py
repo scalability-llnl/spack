@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,7 +10,9 @@ class Rrdtool(AutotoolsPackage):
     """RA tool for data logging and analysis."""
 
     homepage = "https://oss.oetiker.ch/rrdtool"
-    url = "http://oss.oetiker.ch/rrdtool/pub/rrdtool-1.7.0.tar.gz"
+    url = "https://oss.oetiker.ch/rrdtool/pub/rrdtool-1.7.0.tar.gz"
+
+    license("GPL-2.0-or-later")
 
     version("1.7.2", sha256="a199faeb7eff7cafc46fac253e682d833d08932f3db93a550a4a5af180ca58db")
     version("1.7.1", sha256="989b778eda6967aa5192c73abafe43e7b10e6100776971a7e79d249942781aae")

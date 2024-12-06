@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,6 +22,8 @@ class Gmt(CMakePackage, AutotoolsPackage):
 
     maintainers("adamjstewart")
 
+    license("LGPL-3.0-only")
+
     version("master", branch="master")
     version("6.4.0", sha256="c39d23dbc8a85416457946f6b93c2b9a5f039f092453e7f4b1aaf88d4a288300")
     version("6.3.0", sha256="48712279da8228a7960f36fd4b7b04cc1a66489c37b2a5c03f8336a631aa3b24")
@@ -35,6 +37,9 @@ class Gmt(CMakePackage, AutotoolsPackage):
         sha256="27c30b516c317fed8e44efa84a0262f866521d80cfe76a61bf12952efb522b63",
         url="ftp://ftp.soest.hawaii.edu/gmt/gmt-4.5.18-src.tar.bz2",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant(
         "ghostscript",
@@ -125,16 +130,16 @@ class CMakeBuilder(CMakeBuilder):
             self.define("DCW_PATH", "dcw"),
         ]
 
-        if "+ghostscript" in spec:
+        if spec.satisfies("+ghostscript"):
             args.append(self.define("GS", spec["ghostscript"].prefix.bin.gs))
 
-        if "+geos" in spec:
+        if spec.satisfies("+geos"):
             args.append(self.define("GEOS_CONFIG", spec["geos"].prefix.bin.join("geos-config")))
 
-        if "+pcre" in spec:
+        if spec.satisfies("+pcre"):
             args.append(self.define("PCRE2_CONFIG", spec["pcre2"].prefix.bin.join("pcre2-config")))
 
-        if "+fftw" in spec:
+        if spec.satisfies("+fftw"):
             args.extend(
                 [
                     self.define("FFTW3_INCLUDE_DIR", spec["fftw"].headers.directories[0]),
@@ -142,7 +147,7 @@ class CMakeBuilder(CMakeBuilder):
                 ]
             )
 
-        if "+glib" in spec:
+        if spec.satisfies("+glib"):
             args.extend(
                 [
                     self.define("GLIB_INCLUDE_DIR", spec["glib"].headers.directories[0]),
@@ -150,7 +155,7 @@ class CMakeBuilder(CMakeBuilder):
                 ]
             )
 
-        if "graphicsmagick" in spec:
+        if spec.satisfies("graphicsmagick"):
             args.extend(
                 [
                     self.define("GM", spec["graphicsmagick"].prefix.bin.gm),
@@ -158,7 +163,7 @@ class CMakeBuilder(CMakeBuilder):
                 ]
             )
 
-        if "+ffmpeg" in spec:
+        if spec.satisfies("+ffmpeg"):
             args.append(self.define("FFMPEG", spec["ffmpeg"].prefix.bin.ffmpeg))
 
         return args

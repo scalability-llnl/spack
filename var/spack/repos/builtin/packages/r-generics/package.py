@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class RGenerics(RPackage):
     provides a number of commonly used S3 generics."""
 
     cran = "generics"
+
+    license("MIT")
 
     version("0.1.3", sha256="75046163bfa8b8a4f4214c1b689e796207f6447182f2e5062cf570302387d053")
     version("0.1.2", sha256="63eab37a9148f820ce2d67bda3dab6dedb9db6890baa5284949c39ab1b4c5898")

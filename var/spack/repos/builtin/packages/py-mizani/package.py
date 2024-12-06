@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyMizani(PythonPackage):
 
     homepage = "https://mizani.readthedocs.io/en/latest"
     pypi = "mizani/mizani-0.7.4.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("0.8.1", sha256="8ad0a0efa52f1bcdf41f675b64a8c0f7cd24e763d53baced6613f20bd6ed4928")
     version("0.7.4", sha256="b84b923cd3b8b4c0421a750672e5a85ed2aa05e632bd37af8419d5bbf65c397c")

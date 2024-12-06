@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyRequestsCache(PythonPackage):
 
     homepage = "https://github.com/requests-cache/requests-cache"
     pypi = "requests-cache/requests_cache-0.9.7.tar.gz"
+
+    license("BSD-2-Clause")
 
     version("0.9.7", sha256="b7c26ea98143bac7058fad6e773d56c3442eabc0da9ea7480af5edfc134ff515")
 

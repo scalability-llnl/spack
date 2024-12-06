@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyPymumps(PythonPackage):
     # Add a list of GitHub accounts to notify when the
     # package is updated
     maintainers("payerle")
+
+    license("BSD-3-Clause")
 
     version("0.3.2", sha256="f290ec4850098f108fb91cb9e7fa07302ebf5076e4329f8e6ea4924de8ba35df")
 

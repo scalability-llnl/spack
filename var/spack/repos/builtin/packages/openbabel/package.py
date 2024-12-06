@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,7 +12,7 @@ class Openbabel(CMakePackage):
     search, convert, analyze, or store data from molecular modeling, chemistry,
     solid-state materials, biochemistry, or related areas."""
 
-    homepage = "https://openbabel.org/wiki/Main_Page"
+    homepage = "https://openbabel.org/index.html"
     url = "https://github.com/openbabel/openbabel/archive/openbabel-3-0-0.tar.gz"
     git = "https://github.com/openbabel/openbabel.git"
 
@@ -24,6 +24,9 @@ class Openbabel(CMakePackage):
     version("3.0.0", tag="openbabel-3-0-0", commit="49f9cfb32bd0bc6ea440639d338123eb27accbe2")
     version("2.4.1", tag="openbabel-2-4-1", commit="701f6049c483b1349118c2ff736a7f609a84dedd")
     version("2.4.0", tag="openbabel-2-4-0", commit="087f33320e6796f39e6a1da04f4de7ec46bec4af")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("python", default=True, description="Build Python bindings")
     variant("gui", default=True, description="Build with GUI")
@@ -58,18 +61,15 @@ class Openbabel(CMakePackage):
     # Convert tabs to spaces. Allows unit tests to pass
     patch("testpdbformat-tabs-to-spaces.patch", when="@:2.4.1")
 
+    # https://github.com/openbabel/openbabel/pull/2493
+    patch("cmake-time.patch", when="@3.1.1")
+
     def cmake_args(self):
         spec = self.spec
         args = []
 
         if "+python" in spec:
-            args.extend(
-                [
-                    "-DPYTHON_BINDINGS=ON",
-                    "-DPYTHON_EXECUTABLE={0}".format(spec["python"].command.path),
-                    "-DRUN_SWIG=ON",
-                ]
-            )
+            args.extend(["-DPYTHON_BINDINGS=ON", "-DRUN_SWIG=ON"])
         else:
             args.append("-DPYTHON_BINDINGS=OFF")
 

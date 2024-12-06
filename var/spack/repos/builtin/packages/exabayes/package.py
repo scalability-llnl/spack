@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,8 +14,13 @@ class Exabayes(AutotoolsPackage):
     homepage = "https://sco.h-its.org/exelixis/web/software/exabayes/"
     url = "https://sco.h-its.org/exelixis/resource/download/software/exabayes-1.5.tar.gz"
 
+    license("GPL-3.0-only")
+
     version("1.5.1", sha256="f75ce8d5cee4d241cadacd0f5f5612d783b9e9babff2a99c7e0c3819a94bbca9")
     version("1.5", sha256="e401f1b4645e67e8879d296807131d0ab79bba81a1cd5afea14d7c3838b095a2")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("mpi", default=True, description="Enable MPI parallel support")
 
@@ -33,7 +38,7 @@ class Exabayes(AutotoolsPackage):
 
     def configure_args(self):
         args = []
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             args.append("--enable-mpi")
         else:
             args.append("--disable-mpi")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,6 +22,8 @@ class RScuttle(RPackage):
     version("1.6.2", commit="afdfc555151d84cc332757b4ec0b97cb7f39d2d5")
     version("1.4.0", commit="b335263dd56bb859b5dd3ea27ee00dffa0215313")
     version("1.0.4", commit="a827e2759d80e6c3510e2f8fd4bd680274206d9f")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r-singlecellexperiment", type=("build", "run"))
     depends_on("r-matrix", type=("build", "run"))

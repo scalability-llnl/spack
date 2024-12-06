@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,7 +11,7 @@ class Freeimage(MakefilePackage):
     to support popular graphics image formats like PNG, BMP, JPEG, TIFF and
     others as needed by today's multimedia applications"""
 
-    homepage = "http://freeimage.sourceforge.net/"
+    homepage = "https://freeimage.sourceforge.net/"
 
     version("3.18.0", sha256="f41379682f9ada94ea7b34fe86bf9ee00935a3147be41b6569c9605a53e438fd")
 

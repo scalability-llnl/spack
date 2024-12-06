@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,8 +13,8 @@ class Opengl(BundlePackage):
     """Placeholder for external OpenGL libraries from hardware vendors"""
 
     homepage = "https://www.opengl.org/"
-
     version("4.5")
+    maintainers("biddisco")
 
     # This should really be when='platform=linux' but can't because of a
     # current bug in when and how ArchSpecs are constructed
@@ -83,15 +83,20 @@ class Opengl(BundlePackage):
         _ = self.fetcher
 
     @property
+    def headers(self):
+        return self.gl_headers
+
+    @property
     def libs(self):
         return self.gl_libs
 
     @property
     def gl_headers(self):
-        if "platform=darwin":
-            header_name = "OpenGL/gl.h"
+        spec = self.spec
+        if "platform=darwin" in spec:
+            header_name = "OpenGL/gl"
         else:
-            header_name = "GL/gl.h"
+            header_name = "GL/gl"
         return find_headers(header_name, root=self.prefix, recursive=True)
 
     @property
@@ -101,6 +106,6 @@ class Opengl(BundlePackage):
             lib_name = "opengl32"
         elif "platform=darwin" in spec:
             lib_name = "libOpenGL"
-        else:  # linux and cray
+        else:
             lib_name = "libGL"
         return find_libraries(lib_name, root=self.prefix, recursive=True)

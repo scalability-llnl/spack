@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class Wordnet(AutotoolsPackage):
     url = "https://wordnetcode.princeton.edu/3.0/WordNet-3.0.tar.gz"
 
     version("3.0", sha256="640db279c949a88f61f851dd54ebbb22d003f8b90b85267042ef85a3781d3a52")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("tk")
     depends_on("tcl")

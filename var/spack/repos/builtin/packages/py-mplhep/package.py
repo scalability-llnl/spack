@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyMplhep(PythonPackage):
 
     homepage = "https://github.com/scikit-hep/mplhep"
     pypi = "mplhep/mplhep-0.3.15.tar.gz"
+
+    license("MIT")
 
     version("0.3.26", sha256="d707a95ce59b0bac2fe4fe1c57fede14e15da639f3a7c732e7513a753fd9e9ac")
     version("0.3.15", sha256="595f796ea65930094e86a805214e0d44537ead267a7487ae16eda02d1670653e")

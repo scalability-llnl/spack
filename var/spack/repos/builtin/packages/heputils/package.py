@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class Heputils(MakefilePackage):
     url = "https://bitbucket.org/andybuckley/heputils/get/heputils-1.3.2.tar.gz"
 
     tags = ["hep"]
+
+    license("GPL-3.0-only")
 
     version("1.3.2", sha256="be43586979ab1a81a55348d795c2f63a5da19fc6367d5f66f354217c76c809c0")
     version("1.3.1", sha256="7f33ef44364a3d3a39cc65005fb6aa9dfd06bd1b18b41151c0e5e3d28d6ba15b")

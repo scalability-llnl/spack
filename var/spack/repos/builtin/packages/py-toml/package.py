@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyToml(PythonPackage):
 
     homepage = "https://github.com/uiri/toml.git"
     url = "https://github.com/uiri/toml/archive/0.10.2.tar.gz"
+
+    license("MIT")
 
     version("0.10.2", sha256="71d4039bbdec91e3e7591ec5d6c943c58f9a2d17e5f6783acdc378f743fcdd2a")
     version("0.10.0", sha256="c3821b94be15da61d631bfff45b5c58074f01149792182e68f8690829cabfcf6")

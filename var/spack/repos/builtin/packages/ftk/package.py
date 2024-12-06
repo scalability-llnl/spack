@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,8 @@ class Ftk(CMakePackage):
     # notify when the package is updated.
     maintainers("hguo")
 
+    license("MIT")
+
     version("master", branch="master")
     version("dev", branch="dev")
     version("0.0.7.1", sha256="6090fd436f971316062dbb4fcbf2c44603ed5c29341df8f2b80b85770a3bcda2")
@@ -26,6 +28,9 @@ class Ftk(CMakePackage):
     version("0.0.5.1", sha256="5f7d1931d902a3f48d5c15a3b3e6dc6038b880ac869930b44ca9e196148804e8")
     version("0.0.5", sha256="9d5c84a73b7761b9fc7dac62d4296df9f3052b722ec1b06518b2b8f51a8d3440")
     version("0.0.4", sha256="1674904da8d88dbd4c7d2b6a2629883f0444e70aefc99b48d285735d394897fa")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     # variants
     variant("adios2", default=False, description="Use ADIOS2")

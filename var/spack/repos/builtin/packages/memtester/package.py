@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class Memtester(MakefilePackage):
 
     homepage = "http://pyropus.ca/software/memtester/"
     url = "http://pyropus.ca/software/memtester/old-versions/memtester-4.3.0.tar.gz"
+
+    license("GPL-2.0-or-later")
 
     version("4.3.0", sha256="f9dfe2fd737c38fad6535bbab327da9a21f7ce4ea6f18c7b3339adef6bf5fd88")
     version("4.2.2", sha256="a494569d58d642c796332a1b7f3b4b86845b52da66c15c96fbeecd74e48dae8e")

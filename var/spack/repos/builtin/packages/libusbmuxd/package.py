@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class Libusbmuxd(AutotoolsPackage):
     homepage = "https://www.libimobiledevice.org/"
     url = "https://www.libimobiledevice.org/downloads/libusbmuxd-1.0.10.tar.bz2"
     git = "https://git.libimobiledevice.org/libusbmuxd.git"
+
+    license("LGPL-2.1-or-later")
 
     version("master", branch="master")
     version("1.0.10", sha256="1aa21391265d2284ac3ccb7cf278126d10d354878589905b35e8102104fec9f2")

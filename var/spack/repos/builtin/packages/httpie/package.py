@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class Httpie(PythonPackage):
     homepage = "https://httpie.io/"
     pypi = "httpie/httpie-2.6.0.tar.gz"
     maintainers("BoboTiG")
+
+    license("BSD-3-Clause")
 
     version("3.2.1", sha256="c9c0032ca3a8d62492b7231b2dd83d94becf3b71baf8a4bbcd9ed1038537e3ec")
     version("2.6.0", sha256="ef929317b239bbf0a5bb7159b4c5d2edbfc55f8a0bcf9cd24ce597daec2afca5")

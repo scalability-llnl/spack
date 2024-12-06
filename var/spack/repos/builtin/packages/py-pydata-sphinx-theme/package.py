@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyPydataSphinxTheme(PythonPackage):
 
     homepage = "https://pydata-sphinx-theme.readthedocs.io/en/stable"
     pypi = "pydata_sphinx_theme/pydata_sphinx_theme-0.14.1.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("0.14.1", sha256="d8d4ac81252c16a002e835d21f0fea6d04cf3608e95045c816e8cc823e79b053")
 

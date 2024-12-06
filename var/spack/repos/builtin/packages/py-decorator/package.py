@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyDecorator(PythonPackage):
 
     homepage = "https://github.com/micheles/decorator"
     pypi = "decorator/decorator-5.1.0.tar.gz"
+
+    license("BSD-2-Clause")
 
     version("5.1.1", sha256="637996211036b6385ef91435e4fae22989472f9d571faba8927ba8253acbc330")
     version("5.1.0", sha256="e59913af105b9860aa2c8d3272d9de5a56a4e608db9a2f167a8480b323d529a7")

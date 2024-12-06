@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,4 +13,8 @@ class Cmdlime(CMakePackage):
     homepage = "https://github.com/kamchatka-volcano/cmdlime"
     url = "https://github.com/kamchatka-volcano/cmdlime/archive/refs/tags/v2.5.0.tar.gz"
 
+    license("MS-PL")
+
     version("2.5.0", sha256="d5188d7f075142fcb546099a4ee2a967f8248109c0bee8c084e0e00f37603481")
+
+    depends_on("cxx", type="build")  # generated

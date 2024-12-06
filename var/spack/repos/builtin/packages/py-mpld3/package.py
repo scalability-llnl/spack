@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyMpld3(PythonPackage):
 
     homepage = "https://mpld3.github.io/"
     pypi = "mpld3/mpld3-0.3.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("0.5.8", sha256="1a167dbef836dd7c66d8aa71c06a32d50bffa18725f304d93cb74fdb3545043b")
     version("0.5.5", sha256="b080f3535238a71024c0158280ab4f6091717c45347c41c907012f8dd6da1bd5")

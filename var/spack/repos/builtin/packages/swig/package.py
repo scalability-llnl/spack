@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,13 +19,15 @@ class Swig(AutotoolsPackage, SourceforgePackage):
     features that let you tailor the wrapping process to suit your
     application."""
 
-    homepage = "http://www.swig.org"
+    homepage = "https://www.swig.org"
     sourceforge_mirror_path = "swig/swig-3.0.12.tar.gz"
     maintainers("sethrj")
 
     tags = ["e4s", "build-tools"]
 
     executables = ["^swig$"]
+
+    license("GPL-3.0-only")
 
     version("master", git="https://github.com/swig/swig.git")
     version(
@@ -66,6 +68,9 @@ class Swig(AutotoolsPackage, SourceforgePackage):
         sha256="2d65ebe82274da294709254703f9ac2333fd39286b9375b0d89182385aac548e",
         url="https://github.com/swig-fortran/swig/archive/v4.0.2+fortran.tar.gz",
     )
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     depends_on("pcre", when="@:4.0")
     depends_on("pcre2", when="@4.1:")
@@ -146,7 +151,7 @@ class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
     def create_symlink(self):
         # CMake compatibility: see https://github.com/spack/spack/pull/6240
         with working_dir(self.prefix.bin):
-            os.symlink("swig", "swig{0}".format(self.spec.version.up_to(2)))
+            os.symlink("swig", "swig{0}.0".format(self.spec.version.up_to(1)))
 
     @when(Swig.AUTOCONF_VERSIONS)
     def autoreconf(self, pkg, spec, prefix):

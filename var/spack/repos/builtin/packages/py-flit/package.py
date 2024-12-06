@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyFlit(PythonPackage):
     homepage = "https://github.com/pypa/flit"
     pypi = "flit/flit-3.9.0.tar.gz"
     maintainers("takluyver")
+
+    license("BSD-3-Clause")
 
     version("3.9.0", sha256="d75edf5eb324da20d53570a6a6f87f51e606eee8384925cd66a90611140844c7")
     version("3.8.0", sha256="d0f2a8f4bd45dc794befbf5839ecc0fd3830d65a57bd52b5997542fac5d5e937")

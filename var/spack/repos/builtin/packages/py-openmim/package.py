@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyOpenmim(PythonPackage):
 
     homepage = "https://github.com/open-mmlab/mim"
     pypi = "openmim/openmim-0.3.9.tar.gz"
+
+    license("Apache-2.0")
 
     version("0.3.9", sha256="b3977b92232b4b8c4d987cbc73e4515826d5543ccd3a66d49fcfc602cc5b3352")
 

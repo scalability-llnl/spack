@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class Repeatmodeler(Package):
     url = "https://github.com/Dfam-consortium/RepeatModeler/archive/refs/tags/2.0.4.tar.gz"
 
     maintainers("snehring")
+
+    license("OSL-2.1")
 
     version("2.0.4", sha256="94aad46cc70911d48de3001836fc3165adb95b2b282b5c53ab0d1da98c27a6b6")
     version(

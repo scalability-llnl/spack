@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,7 +12,6 @@ from llnl.util.tty.color import cprint, get_color_when
 import spack.cmd
 import spack.environment as ev
 import spack.solver.asp as asp
-import spack.util.environment
 import spack.util.spack_json as sjson
 from spack.cmd.common import arguments
 
@@ -44,6 +43,9 @@ def setup_parser(subparser):
         action="append",
         help="select the attributes to show (defaults to all)",
     )
+    subparser.add_argument(
+        "--ignore", action="append", help="omit diffs related to these dependencies"
+    )
 
 
 def shift(asp_function):
@@ -54,7 +56,7 @@ def shift(asp_function):
     return asp.AspFunction(first, rest)
 
 
-def compare_specs(a, b, to_string=False, color=None):
+def compare_specs(a, b, to_string=False, color=None, ignore_packages=None):
     """
     Generate a comparison, including diffs (for each side) and an intersection.
 
@@ -72,6 +74,14 @@ def compare_specs(a, b, to_string=False, color=None):
     """
     if color is None:
         color = get_color_when()
+
+    a = a.copy()
+    b = b.copy()
+
+    if ignore_packages:
+        for pkg_name in ignore_packages:
+            a.trim(pkg_name)
+            b.trim(pkg_name)
 
     # Prepare a solver setup to parse differences
     setup = asp.SpackSolverSetup()
@@ -209,7 +219,7 @@ def diff(parser, args):
 
     # Calculate the comparison (c)
     color = False if args.dump_json else get_color_when()
-    c = compare_specs(specs[0], specs[1], to_string=True, color=color)
+    c = compare_specs(specs[0], specs[1], to_string=True, color=color, ignore_packages=args.ignore)
 
     # Default to all attributes
     attributes = args.attribute or ["all"]

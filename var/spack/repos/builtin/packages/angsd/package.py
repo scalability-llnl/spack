@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,6 +21,9 @@ class Angsd(MakefilePackage):
     version("0.933", sha256="2f992325dc08fa25ac525d9300ef6bd61808e74c521b4cc72a2ce00d98f402bb")
     version("0.921", sha256="8892d279ce1804f9e17fe2fc65a47e5498e78fc1c1cb84d2ca2527fd5c198772")
     version("0.919", sha256="c2ea718ca5a5427109f4c3415e963dcb4da9afa1b856034e25c59c003d21822a")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("r", default=True, description="Enable R dependency")
 

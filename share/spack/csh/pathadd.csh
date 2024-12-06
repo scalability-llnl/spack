@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -25,8 +25,8 @@ if ($_pa_set == 1) then
     eval set _pa_old_value='$'$_pa_varname
 endif
 
-# Do the actual prepending here, if it is a dir and not already in the path
-if ( -d $_pa_new_path && \:$_pa_old_value\: !~ *\:$_pa_new_path\:* ) then
+# Do the actual prepending here, if it is a dir and not first in the path
+if ( -d $_pa_new_path && $_pa_old_value\: !~ $_pa_new_path\:* ) then
     if ("x$_pa_old_value" == "x") then
         setenv $_pa_varname $_pa_new_path
     else

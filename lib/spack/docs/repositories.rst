@@ -1,4 +1,4 @@
-.. Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
    Spack Project Developers. See the top-level COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,7 +17,7 @@ experimental software separately from the built-in repository. Spack
 allows you to configure local repositories using either the
 ``repos.yaml`` or the ``spack repo`` command.
 
-A package repository a directory structured like this::
+A package repository is a directory structured like this::
 
   repo/
       repo.yaml
@@ -476,9 +476,3 @@ implemented using Python's built-in `sys.path
 :py:mod:`spack.repo` module implements a custom `Python importer
 <https://docs.python.org/2/library/imp.html>`_.
 
-.. warning::
-
-   The mechanism for extending packages is not yet extensively tested,
-   and extending packages across repositories imposes inter-repo
-   dependencies, which may be hard to manage.  Use this feature at your
-   own risk, but let us know if you have a use case for it.

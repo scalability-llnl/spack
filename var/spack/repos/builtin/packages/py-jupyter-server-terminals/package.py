@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,8 @@ class PyJupyterServerTerminals(PythonPackage):
     # for windows depends_on pywinpty@2.0.3:
     # py-pywinpty is not in spack and requires the build system maturin
     depends_on("py-terminado@0.8.3:", type=("build", "run"))
+
     # to prevent: ModuleNotFoundError: Jupyter Server must be installed to use this extension.
     # there should be a dependency on `py-jupyter-server` but this would create
     # a cyclic dependency
+    skip_modules = ["jupyter_server_terminals"]

@@ -4,7 +4,7 @@ lmod:
   hash_length: 0
 
   core_compilers:
-    - 'clang@12.0.0'
+    - 'clang@15.0.0'
 
   core_specs:
     - 'mpich@3.0.1'

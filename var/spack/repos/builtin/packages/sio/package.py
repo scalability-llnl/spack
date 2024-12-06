@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,11 +18,17 @@ class Sio(CMakePackage):
 
     maintainers("vvolkl", "tmadlener", "jmcarcell")
 
+    license("BSD-3-Clause")
+
     version("master", branch="master")
+    version("0.2", sha256="416c93402e7314b7aadedba8e7f9e0d4b0b4f4e34ce26285b04cebb505ecfab2")
     version("0.1", sha256="0407c0daeae53660c0562f9302a220f72ab51547050cd9fe9113b995804ab4b4")
     version("0.0.4", sha256="72e96e6a1cc8dd3641d3e2bb9876e75bf6af8074e1617220da9e52df522ef5c0")
     version("0.0.3", sha256="4c8b9c08480fb53cd10abb0e1260071a8c3f68d06a8acfd373f6560a916155cc")
     version("0.0.2", sha256="e4cd2aeaeaa23c1da2c20c5c08a9b72a31b16b7a8f5aa6d480dcd561ef667657")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "builtin_zlib",

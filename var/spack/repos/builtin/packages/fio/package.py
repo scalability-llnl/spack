@@ -1,8 +1,7 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
 
 from spack.package import *
 
@@ -19,6 +18,10 @@ class Fio(AutotoolsPackage):
     homepage = "https://github.com/axboe/fio"
     url = "https://github.com/axboe/fio/archive/fio-3.26.tar.gz"
 
+    license("GPL-2.0-only")
+
+    version("3.37", sha256="b59099d42d5c62a8171974e54466a688c8da6720bf74a7f16bf24fb0e51ff92d")
+    version("3.36", sha256="b34b8f3c5cd074c09ea487ffe3f444e95565c214b34a73042f35b00cbaab0e17")
     version("3.34", sha256="42ea28c78d269c4cc111b7516213f4d4b32986797a710b0ff364232cc7a3a0b7")
     version("3.33", sha256="f48b2547313ffd1799c58c6a170175176131bbd42bc847b5650784eaf6d914b3")
     version("3.26", sha256="8bd6987fd9b8c2a75d3923661566ade50b99f61fa4352148975e65577ffa4024")
@@ -31,26 +34,28 @@ class Fio(AutotoolsPackage):
     variant("doc", default=False, description="Generate documentation")
     variant("libaio", default=False, description="Enable libaio engine")
 
+    depends_on("c", type="build")
+    depends_on("pkgconfig", type="build")
+    depends_on("zlib-api")
     depends_on("gtkplus@2.18:", when="+gui")
     depends_on("cairo", when="+gui")
     depends_on("libaio", when="+libaio")
-
     depends_on("py-sphinx", type="build", when="+doc")
 
     conflicts("+libaio", when="platform=darwin", msg="libaio does not support Darwin")
-
+    conflicts("+libaio", when="platform=windows", msg="libaio does not support Windows")
     conflicts("@:3.18", when="%gcc@10:", msg="gcc@10: sets -fno-common by default")
 
     def configure_args(self):
-        config_args = []
+        config_args = ["--disable-native"]
 
-        if "+gui" in self.spec:
+        if self.spec.satisfies("+gui"):
             config_args.append("--enable-gfio")
 
         return config_args
 
     @run_after("build")
     def build_docs(self):
-        if "+doc" in self.spec:
+        if self.spec.satisfies("+doc"):
             make("-C", "doc", "html")
             make("-C", "doc", "man")

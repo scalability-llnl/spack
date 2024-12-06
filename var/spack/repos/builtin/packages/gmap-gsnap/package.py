@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class GmapGsnap(AutotoolsPackage):
     url = "http://research-pub.gene.com/gmap/src/gmap-gsnap-2017-06-16.tar.gz"
 
     maintainers("snehring")
+
+    license("Apache-2.0")
 
     version(
         "2023-07-20", sha256="19e70eebd9b282d8596721812d071efed188b6d5000627b9948f0486f87fe68f"
@@ -58,6 +60,8 @@ class GmapGsnap(AutotoolsPackage):
     version(
         "2014-12-28", sha256="108433f3e3ea89b8117c8bb36d396913225caf1261d46ce6d89709ff1b44025d"
     )
+
+    depends_on("c", type="build")  # generated
 
     depends_on("zlib-api")
     depends_on("bzip2")

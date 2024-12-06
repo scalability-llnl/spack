@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyCorner(PythonPackage):
     pypi = "corner/corner-2.2.2.tar.gz"
 
     maintainers("LydDeb")
+
+    license("BSD-2-Clause")
 
     version("2.2.2", sha256="4bc79f3b6778c270103f0926e64ef2606c48c3b6f92daf5382fc4babf5d608d1")
 

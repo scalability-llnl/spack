@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -78,8 +78,8 @@ def python(parser, args, unknown_args):
 
     # Run user choice of interpreter
     if args.python_interpreter == "ipython":
-        return spack.cmd.python.ipython_interpreter(args)
-    return spack.cmd.python.python_interpreter(args)
+        return ipython_interpreter(args)
+    return python_interpreter(args)
 
 
 def ipython_interpreter(args):
@@ -116,39 +116,38 @@ def ipython_interpreter(args):
 
 def python_interpreter(args):
     """A python interpreter is the default interpreter"""
-    # Fake a main python shell by setting __name__ to __main__.
-    console = code.InteractiveConsole({"__name__": "__main__", "spack": spack})
-    if "PYTHONSTARTUP" in os.environ:
-        startup_file = os.environ["PYTHONSTARTUP"]
-        if os.path.isfile(startup_file):
-            with open(startup_file) as startup:
-                console.runsource(startup.read(), startup_file, "exec")
 
-    if args.python_command:
-        propagate_exceptions_from(console)
-        console.runsource(args.python_command)
-    elif args.python_args:
-        propagate_exceptions_from(console)
+    if args.python_args and not args.python_command:
         sys.argv = args.python_args
-        with open(args.python_args[0]) as file:
-            console.runsource(file.read(), args.python_args[0], "exec")
+        runpy.run_path(args.python_args[0], run_name="__main__")
     else:
-        # Provides readline support, allowing user to use arrow keys
-        console.push("import readline")
-        # Provide tabcompletion
-        console.push("from rlcompleter import Completer")
-        console.push("readline.set_completer(Completer(locals()).complete)")
-        console.push('readline.parse_and_bind("tab: complete")')
+        # Fake a main python shell by setting __name__ to __main__.
+        console = code.InteractiveConsole({"__name__": "__main__", "spack": spack})
+        if "PYTHONSTARTUP" in os.environ:
+            startup_file = os.environ["PYTHONSTARTUP"]
+            if os.path.isfile(startup_file):
+                with open(startup_file) as startup:
+                    console.runsource(startup.read(), startup_file, "exec")
+        if args.python_command:
+            propagate_exceptions_from(console)
+            console.runsource(args.python_command)
+        else:
+            # Provides readline support, allowing user to use arrow keys
+            console.push("import readline")
+            # Provide tabcompletion
+            console.push("from rlcompleter import Completer")
+            console.push("readline.set_completer(Completer(locals()).complete)")
+            console.push('readline.parse_and_bind("tab: complete")')
 
-        console.interact(
-            "Spack version %s\nPython %s, %s %s"
-            % (
-                spack.spack_version,
-                platform.python_version(),
-                platform.system(),
-                platform.machine(),
+            console.interact(
+                "Spack version %s\nPython %s, %s %s"
+                % (
+                    spack.spack_version,
+                    platform.python_version(),
+                    platform.system(),
+                    platform.machine(),
+                )
             )
-        )
 
 
 def propagate_exceptions_from(console):

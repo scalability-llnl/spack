@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,9 +20,8 @@ from urllib.request import Request
 import llnl.util.lang
 
 import spack.config
-import spack.mirror
+import spack.mirrors.mirror
 import spack.parser
-import spack.repo
 import spack.util.web
 
 from .image import ImageReference
@@ -310,19 +309,15 @@ class OCIAuthHandler(urllib.request.BaseHandler):
         # Login failed, avoid infinite recursion where we go back and
         # forth between auth server and registry
         if hasattr(req, "login_attempted"):
-            raise urllib.error.HTTPError(
-                req.full_url, code, f"Failed to login to {req.full_url}: {msg}", headers, fp
+            raise spack.util.web.DetailedHTTPError(
+                req, code, f"Failed to login: {msg}", headers, fp
             )
 
         # On 401 Unauthorized, parse the WWW-Authenticate header
         # to determine what authentication is required
         if "WWW-Authenticate" not in headers:
-            raise urllib.error.HTTPError(
-                req.full_url,
-                code,
-                "Cannot login to registry, missing WWW-Authenticate header",
-                headers,
-                fp,
+            raise spack.util.web.DetailedHTTPError(
+                req, code, "Cannot login to registry, missing WWW-Authenticate header", headers, fp
             )
 
         header_value = headers["WWW-Authenticate"]
@@ -330,8 +325,8 @@ class OCIAuthHandler(urllib.request.BaseHandler):
         try:
             challenge = get_bearer_challenge(parse_www_authenticate(header_value))
         except ValueError as e:
-            raise urllib.error.HTTPError(
-                req.full_url,
+            raise spack.util.web.DetailedHTTPError(
+                req,
                 code,
                 f"Cannot login to registry, malformed WWW-Authenticate header: {header_value}",
                 headers,
@@ -340,8 +335,8 @@ class OCIAuthHandler(urllib.request.BaseHandler):
 
         # If there is no bearer challenge, we can't handle it
         if not challenge:
-            raise urllib.error.HTTPError(
-                req.full_url,
+            raise spack.util.web.DetailedHTTPError(
+                req,
                 code,
                 f"Cannot login to registry, unsupported authentication scheme: {header_value}",
                 headers,
@@ -356,8 +351,8 @@ class OCIAuthHandler(urllib.request.BaseHandler):
                 timeout=req.timeout,
             )
         except ValueError as e:
-            raise urllib.error.HTTPError(
-                req.full_url,
+            raise spack.util.web.DetailedHTTPError(
+                req,
                 code,
                 f"Cannot login to registry, failed to obtain bearer token: {e}",
                 headers,
@@ -372,19 +367,20 @@ class OCIAuthHandler(urllib.request.BaseHandler):
 
 
 def credentials_from_mirrors(
-    domain: str, *, mirrors: Optional[Iterable[spack.mirror.Mirror]] = None
+    domain: str, *, mirrors: Optional[Iterable[spack.mirrors.mirror.Mirror]] = None
 ) -> Optional[UsernamePassword]:
     """Filter out OCI registry credentials from a list of mirrors."""
 
-    mirrors = mirrors or spack.mirror.MirrorCollection().values()
+    mirrors = mirrors or spack.mirrors.mirror.MirrorCollection().values()
 
     for mirror in mirrors:
         # Prefer push credentials over fetch. Unlikely that those are different
         # but our config format allows it.
         for direction in ("push", "fetch"):
-            pair = mirror.get_access_pair(direction)
-            if pair is None:
+            pair = mirror.get_credentials(direction).get("access_pair")
+            if not pair:
                 continue
+
             url = mirror.get_url(direction)
             if not url.startswith("oci://"):
                 continue
@@ -402,7 +398,7 @@ def create_opener():
     opener = urllib.request.OpenerDirector()
     for handler in [
         urllib.request.UnknownHandler(),
-        urllib.request.HTTPSHandler(),
+        urllib.request.HTTPSHandler(context=spack.util.web.ssl_create_default_context()),
         spack.util.web.SpackHTTPDefaultErrorHandler(),
         urllib.request.HTTPRedirectHandler(),
         urllib.request.HTTPErrorProcessor(),
@@ -412,28 +408,37 @@ def create_opener():
     return opener
 
 
-def ensure_status(response: HTTPResponse, status: int):
+def ensure_status(request: urllib.request.Request, response: HTTPResponse, status: int):
     """Raise an error if the response status is not the expected one."""
     if response.status == status:
         return
 
-    raise urllib.error.HTTPError(
-        response.geturl(), response.status, response.reason, response.info(), None
+    raise spack.util.web.DetailedHTTPError(
+        request, response.status, response.reason, response.info(), None
     )
 
 
-def default_retry(f, retries: int = 3, sleep=None):
+def default_retry(f, retries: int = 5, sleep=None):
     sleep = sleep or time.sleep
 
     def wrapper(*args, **kwargs):
         for i in range(retries):
             try:
                 return f(*args, **kwargs)
-            except urllib.error.HTTPError as e:
+            except (urllib.error.URLError, TimeoutError) as e:
                 # Retry on internal server errors, and rate limit errors
                 # Potentially this could take into account the Retry-After header
                 # if registries support it
-                if i + 1 != retries and (500 <= e.code < 600 or e.code == 429):
+                if i + 1 != retries and (
+                    (
+                        isinstance(e, urllib.error.HTTPError)
+                        and (500 <= e.code < 600 or e.code == 429)
+                    )
+                    or (
+                        isinstance(e, urllib.error.URLError) and isinstance(e.reason, TimeoutError)
+                    )
+                    or isinstance(e, TimeoutError)
+                ):
                     # Exponential backoff
                     sleep(2**i)
                     continue

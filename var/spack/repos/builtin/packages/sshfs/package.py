@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,7 +15,11 @@ class Sshfs(MesonPackage):
 
     maintainers("haampie")
 
+    license("GPL-2.0-or-later")
+
     version("3.7.1", sha256="fe5d3436d61b46974889e0c4515899c21a9d67851e3793c209989f72353d7750")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("glib")
     depends_on("fuse@3.1.0:")

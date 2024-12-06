@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyPyeventsystem(PythonPackage):
 
     homepage = "https://github.com/cloudve/pyeventsystem"
     pypi = "pyeventsystem/pyeventsystem-0.1.0.tar.gz"
+
+    license("MIT")
 
     version("0.1.0", sha256="4a3d199759a040d2cd17f8b4293cc1c3f3c2ae50ae531fb5f9f955a895fca8b9")
 

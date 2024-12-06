@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,7 +12,7 @@ from urllib.parse import urlsplit, urlunsplit
 # Archive extensions allowed in Spack
 PREFIX_EXTENSIONS = ("tar", "TAR")
 EXTENSIONS = ("gz", "bz2", "xz", "Z")
-NO_TAR_EXTENSIONS = ("zip", "tgz", "tbz2", "tbz", "txz")
+NO_TAR_EXTENSIONS = ("zip", "tgz", "tbz2", "tbz", "txz", "whl")
 
 # Add PREFIX_EXTENSIONS and EXTENSIONS last so that .tar.gz is matched *before* .tar or .gz
 ALLOWED_ARCHIVE_TYPES = (
@@ -357,10 +357,8 @@ def strip_version_suffixes(path_or_url: str) -> str:
         r"i[36]86",
         r"ppc64(le)?",
         r"armv?(7l|6l|64)?",
-        # PyPI
-        r"[._-]py[23].*\.whl",
-        r"[._-]cp[23].*\.whl",
-        r"[._-]win.*\.exe",
+        # PyPI wheels
+        r"-(?:py|cp)[23].*",
     ]
 
     for regex in suffix_regexes:
@@ -403,7 +401,7 @@ def expand_contracted_extension_in_path(
 def compression_ext_from_compressed_archive(extension: str) -> Optional[str]:
     """Returns compression extension for a compressed archive"""
     extension = expand_contracted_extension(extension)
-    for ext in [*EXTENSIONS]:
+    for ext in EXTENSIONS:
         if ext in extension:
             return ext
     return None

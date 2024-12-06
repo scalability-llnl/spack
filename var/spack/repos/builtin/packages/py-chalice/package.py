@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyChalice(PythonPackage):
 
     homepage = "https://github.com/aws/chalice"
     url = "https://github.com/aws/chalice/archive/1.20.0.tar.gz"
+
+    license("Apache-2.0")
 
     version("1.20.0", sha256="0504fa8492379a658b123a7aa173b008be1a01c5a06d65f8ef1f1e6b87515e33")
     version("1.19.0", sha256="6d2f9e2d39e836c9cf32451a39443bb8d08d8dfd5ddc75792519ec97817b4fdd")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyPytecplot(PythonPackage):
 
     homepage = "https://www.tecplot.com/docs/pytecplot/"
     pypi = "pytecplot/pytecplot-1.4.2.zip"
+
+    license("Frameworx-1.0")
 
     version("1.4.2", sha256="586a2ee947314ddd2f28be5523911dd298465b8f6a9145ba351866d5d695ef0d")
 

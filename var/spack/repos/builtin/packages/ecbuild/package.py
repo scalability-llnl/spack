@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,11 +13,17 @@ class Ecbuild(CMakePackage):
     homepage = "https://github.com/ecmwf/ecbuild"
     url = "https://github.com/ecmwf/ecbuild/archive/refs/tags/3.6.1.tar.gz"
 
-    maintainers("skosukhin", "climbfuji")
+    maintainers("skosukhin", "climbfuji", "victoria-cherkas", "dominichofer")
+
+    license("Apache-2.0")
 
     version("3.7.2", sha256="7a2d192cef1e53dc5431a688b2e316251b017d25808190faed485903594a3fb9")
     version("3.6.5", sha256="98bff3d3c269f973f4bfbe29b4de834cd1d43f15b1c8d1941ee2bfe15e3d4f7f")
     version("3.6.1", sha256="796ccceeb7af01938c2f74eab0724b228e9bf1978e32484aa3e227510f69ac59")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("cmake@3.11:", type=("build", "run"))
 

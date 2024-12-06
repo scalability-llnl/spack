@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,54 @@ class RiscvGnuToolchain(AutotoolsPackage):
     maintainers("wanlinwang")
 
     version("develop", branch="master", submodules=True)
+    version(
+        "2024.02.02",
+        tag="2024.02.02",
+        commit="59ab58e8a4aed4ed8f711ebab307757a5ebaa1f5",
+        submodules=True,
+    )
+    version(
+        "2023.12.20",
+        tag="2023.12.20",
+        commit="8c969a9efe68a811cf524174d25255632029f3d3",
+        submodules=True,
+    )
+    version(
+        "2023.12.14",
+        tag="2023.12.14",
+        commit="99e2d2bac5144f5152ba6d3fbf04bdd9b9ba4381",
+        submodules=True,
+    )
+    version(
+        "2023.12.12",
+        tag="2023.12.12",
+        commit="ae9efcc33c4968f97ab89b4b13c7f6520b145f94",
+        submodules=True,
+    )
+    version(
+        "2023.11.22",
+        tag="2023.11.22",
+        commit="8e9fb09a0c4b1e566492ee6f42e8c1fa5ef7e0c2",
+        submodules=True,
+    )
+    version(
+        "2023.11.20",
+        tag="2023.11.20",
+        commit="82c3d6550a26f03c3b4acb6cbefe5c5e98855ddb",
+        submodules=True,
+    )
+    version(
+        "2023.11.17",
+        tag="2023.11.17",
+        commit="9b2ad263050085543a1ad57c13039e49a79a7def",
+        submodules=True,
+    )
+    version(
+        "2023.11.08",
+        tag="2023.11.08",
+        commit="b86b2b37d0acc607156ff56ff17ee105a9b48897",
+        submodules=True,
+    )
     version(
         "2023.10.18",
         tag="2023.10.18",
@@ -67,6 +115,10 @@ class RiscvGnuToolchain(AutotoolsPackage):
         submodules=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # Dependencies:
     depends_on("pkgconfig", type="build")
     depends_on("autoconf", when="@main:", type="build")
@@ -85,13 +137,32 @@ class RiscvGnuToolchain(AutotoolsPackage):
     depends_on("gmake@4.3:", type="build")
 
     conflicts("platform=windows", msg="Windows is not supported.")
+    conflicts("arch=aarch64", msg="aarch64 is not supported.")
 
     variant(
         "compiler_type",
         default="newlib",
-        values=("newlib", "linux"),
+        values=("newlib", "linux", "musl"),
         description="Compiler back-end to build",
     )
+
+    variant("multilib", default=False, description="Enable multilib support")
+    variant(
+        "cmodel",
+        default="medlow",
+        values=("medlow", "medany"),
+        description="The name of the cmodel",
+    )
+
+    def configure_args(self):
+        args = super(RiscvGnuToolchain, self).configure_args()
+        if "+multilib" in self.spec:
+            args.append("--enable-multilib")
+
+        cmodel_value = self.spec.variants["cmodel"].value
+        if cmodel_value:
+            args.append("--with-cmodel={}".format(cmodel_value))
+        return args
 
     def build(self, spec, prefix):
         """Makes the build targets specified by
@@ -109,5 +180,7 @@ class RiscvGnuToolchain(AutotoolsPackage):
             params = []
             if self.spec.satisfies("compiler_type=linux"):
                 params.append("linux")
+            elif self.spec.satisfies("compiler_type=musl"):
+                params.append("musl")
 
             make(*params)

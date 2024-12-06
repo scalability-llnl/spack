@@ -1,10 +1,9 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
-import re
 
 from llnl.util.filesystem import ancestor
 
@@ -15,18 +14,6 @@ from spack.version import Version
 
 
 class Gcc(spack.compiler.Compiler):
-    # Subclasses use possible names of C compiler
-    cc_names = ["gcc"]
-
-    # Subclasses use possible names of C++ compiler
-    cxx_names = ["g++"]
-
-    # Subclasses use possible names of Fortran 77 compiler
-    f77_names = ["gfortran"]
-
-    # Subclasses use possible names of Fortran 90 compiler
-    fc_names = ["gfortran"]
-
     # MacPorts builds gcc versions with prefixes and -mp-X or -mp-X.Y suffixes.
     # Homebrew and Linuxbrew may build gcc with -X, -X.Y suffixes.
     # Old compatibility versions may contain XY suffixes.
@@ -39,9 +26,6 @@ class Gcc(spack.compiler.Compiler):
         "f77": os.path.join("gcc", "gfortran"),
         "fc": os.path.join("gcc", "gfortran"),
     }
-
-    PrgEnv = "PrgEnv-gnu"
-    PrgEnv_compiler = "gcc"
 
     @property
     def verbose_flag(self):
@@ -183,40 +167,6 @@ class Gcc(spack.compiler.Compiler):
             output = spack.compiler.get_compiler_version_output(cc, "-dumpfullversion")
             version = cls.extract_version_from_output(output)
         return version
-
-    @classmethod
-    def fc_version(cls, fc):
-        """Older versions of gfortran use the ``-dumpversion`` option.
-        Output looks like this::
-
-            GNU Fortran (GCC) 4.4.7 20120313 (Red Hat 4.4.7-18)
-            Copyright (C) 2010 Free Software Foundation, Inc.
-
-        or::
-
-            4.8.5
-
-        In GCC 7, this option was changed to only return the major
-        version of the compiler::
-
-            7
-
-        A new ``-dumpfullversion`` option was added that gives us
-        what we want::
-
-            7.2.0
-        """
-        output = spack.compiler.get_compiler_version_output(fc, "-dumpversion")
-        match = re.search(r"(?:GNU Fortran \(GCC\) )?([\d.]+)", output)
-        version = match.group(match.lastindex) if match else "unknown"
-        if Version(version) >= Version("7"):
-            output = spack.compiler.get_compiler_version_output(fc, "-dumpfullversion")
-            version = cls.extract_version_from_output(output)
-        return version
-
-    @classmethod
-    def f77_version(cls, f77):
-        return cls.fc_version(f77)
 
     @property
     def stdcxx_libs(self):

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyLeather(PythonPackage):
 
     homepage = "https://leather.readthedocs.io/en/stable/"
     pypi = "leather/leather-0.3.3.tar.gz"
+
+    license("MIT")
 
     version("0.3.3", sha256="076d1603b5281488285718ce1a5ce78cf1027fe1e76adf9c548caf83c519b988")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyCrashtest(PythonPackage):
 
     homepage = "https://github.com/sdispater/crashtest"
     pypi = "crashtest/crashtest-0.3.1.tar.gz"
+
+    license("MIT")
 
     version("0.4.1", sha256="80d7b1f316ebfbd429f648076d6275c877ba30ba48979de4191714a75266f0ce")
     version("0.4.0", sha256="d629b00f1d4e79c316909f4eb763bbcb29b510d65fbde1365a1ceb93ab7fa4c8")

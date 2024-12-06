@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,9 +17,13 @@ class PyIminuit(PythonPackage):
     version("1.3.6", sha256="d79a197f305d4708a0e3e52b0a6748c1a6997360d2fbdfd09c022995a6963b5e")
     version("1.2", sha256="7651105fc3f186cfb5742f075ffebcc5088bf7797d8ed124c00977eebe0d1c64")
 
+    depends_on("cxx", type="build")  # generated
+
     # Required dependencies
     depends_on("python@3.6:", type=("build", "run"), when="@2.6.1:")
     depends_on("py-setuptools", type="build")
     depends_on("py-numpy", type=("build", "run"), when="@1.3:1.3.6")
     depends_on("py-numpy@1.11.3:", type=("build", "run"), when="@1.3.7:")
-    depends_on("py-cmake", type="build", when="@2.8.4")
+    # https://github.com/numpy/numpy/issues/26191#issuecomment-2179127999
+    depends_on("py-numpy@:1", when="@:2.25", type=("build", "run"))
+    depends_on("cmake", type="build", when="@2.8.4")

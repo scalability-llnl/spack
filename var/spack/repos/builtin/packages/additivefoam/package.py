@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,8 +20,12 @@ class Additivefoam(Package):
 
     tags = ["ecp"]
 
+    license("GPL-3.0-only")
+
     version("main", branch="main")
     version("1.0.0", sha256="abbdf1b0230cd2f26f526be76e973f508978611f404fe8ec4ecdd7d5df88724c")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("openfoam-org@10")
 

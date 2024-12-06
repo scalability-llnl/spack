@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,9 +17,15 @@ class Delly2(MakefilePackage):
     git = "https://github.com/dellytools/delly.git"
     maintainers("snehring")
 
+    license("BSD-3-Clause")
+
+    version("1.2.6", sha256="1a71fcc5f2a55649c2104086f3f7163ed58c5868eaf040a25e45c777b0e1abb7")
+    version("1.1.8", sha256="f72a1143dc71449fc277fc8b3e337a4d35b2fe736f3693a14b1986efa8da4889")
     version("1.1.6", sha256="08961e9c81431eb486476fa71eea94941ad24ec1970b71e5a7720623a39bfd2a")
     version("0.9.1", tag="v0.9.1", commit="ef1cd626a85cfd1c1b7acfca2b5fd5957f2a05f1")
     version("2017-08-03", commit="e32a9cd55c7e3df5a6ae4a91f31a0deb354529fc", deprecated=True)
+
+    depends_on("cxx", type="build")  # generated
 
     variant("openmp", default=False, description="Build with openmp support")
 
@@ -37,7 +43,7 @@ class Delly2(MakefilePackage):
     depends_on("bcftools", type="run")
 
     def edit(self, spec, prefix):
-        if "+openmp" in self.spec:
+        if self.spec.satisfies("+openmp"):
             env["PARALLEL"] = "1"
         # Only want to build delly source, not submodules. Build fails
         # using provided submodules, succeeds with existing spack recipes.

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyModred(PythonPackage):
 
     homepage = "https://github.com/belson17/modred"
     git = "https://github.com/belson17/modred.git"
+
+    license("BSD-2-Clause")
 
     version("2.0.4", tag="v2.0.4", commit="b793efd353434799ec8c4c350757037f87dcf99a")
     version("2.0.3", tag="v2.0.3", commit="70f61fddf4192a33952f5c98103d2b90955c4e79")

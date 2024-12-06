@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyAgateDbf(PythonPackage):
 
     homepage = "https://agate-dbf.readthedocs.io/en/latest/"
     pypi = "agate-dbf/agate-dbf-0.2.1.tar.gz"
+
+    license("MIT")
 
     version("0.2.2", sha256="589682b78c5c03f2dc8511e6e3edb659fb7336cd118e248896bb0b44c2f1917b")
     version("0.2.1", sha256="00c93c498ec9a04cc587bf63dd7340e67e2541f0df4c9a7259d7cb3dd4ce372f")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -37,6 +37,10 @@ class OpenspeedshopUtils(CMakePackage):
     version("2.4.2.1", branch="2.4.2.1")
     version("2.4.2", branch="2.4.2")
     version("2.4.1", branch="2.4.1")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant(
         "runtime", default=False, description="build only the runtime libraries and collectors."
@@ -86,7 +90,7 @@ class OpenspeedshopUtils(CMakePackage):
 
     # Dependencies for openspeedshop that are common to all
     # the variants of the OpenSpeedShop build
-    depends_on("libtool", type="build")
+    depends_on("libtool", type="link")  # links against libltdl
     depends_on("bison", type="build")
     depends_on("flex@2.6.1", type="build")
 
@@ -236,26 +240,19 @@ class OpenspeedshopUtils(CMakePackage):
         # Appends to cmake_options the options that will enable
         # the appropriate base level options to the openspeedshop
         # cmake build.
-        python_exe = spec["python"].command.path
-        python_library = spec["python"].libs[0]
-        python_include = spec["python"].headers.directories[0]
-
-        base_options = []
-
-        base_options.append("-DBINUTILS_DIR=%s" % spec["binutils"].prefix)
-        base_options.append("-DLIBELF_DIR=%s" % spec["elfutils"].prefix)
-        base_options.append("-DLIBDWARF_DIR=%s" % spec["libdwarf"].prefix)
-        base_options.append("-DPYTHON_EXECUTABLE=%s" % python_exe)
-        base_options.append("-DPYTHON_INCLUDE_DIR=%s" % python_include)
-        base_options.append("-DPYTHON_LIBRARY=%s" % python_library)
-        base_options.append("-DBoost_NO_SYSTEM_PATHS=TRUE")
-        base_options.append("-DBoost_NO_BOOST_CMAKE=TRUE")
-        base_options.append("-DBOOST_ROOT=%s" % spec["boost"].prefix)
-        base_options.append("-DBoost_DIR=%s" % spec["boost"].prefix)
-        base_options.append("-DBOOST_LIBRARYDIR=%s" % spec["boost"].prefix.lib)
-        base_options.append("-DDYNINST_DIR=%s" % spec["dyninst"].prefix)
-
-        cmake_options.extend(base_options)
+        cmake_options.extend(
+            [
+                self.define("BINUTILS_DIR", spec["binutils"].prefix),
+                self.define("LIBELF_DIR", spec["elfutils"].prefix),
+                self.define("LIBDWARF_DIR", spec["libdwarf"].prefix),
+                self.define("Boost_NO_SYSTEM_PATHS", True),
+                self.define("Boost_NO_BOOST_CMAKE", True),
+                self.define("BOOST_ROOT", spec["boost"].prefix),
+                self.define("Boost_DIR", spec["boost"].prefix),
+                self.define("BOOST_LIBRARYDIR", spec["boost"].prefix.lib),
+                self.define("DYNINST_DIR", spec["dyninst"].prefix),
+            ]
+        )
 
     def set_mpi_cmake_options(self, spec, cmake_options):
         # Appends to cmake_options the options that will enable

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -30,6 +30,8 @@ class RIranges(RPackage):
     version("2.14.12", commit="00af02756c14771a23df9efcf379409ab6eb3041")
     version("2.12.0", commit="1b1748655a8529ba87ad0f223f035ef0c08e7fcd")
     version("2.10.5", commit="b00d1d5025e3c480d17c13100f0da5a0132b1614")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r@3.1.0:", type=("build", "run"))
     depends_on("r@4.0.0:", type=("build", "run"), when="@2.24.1:")

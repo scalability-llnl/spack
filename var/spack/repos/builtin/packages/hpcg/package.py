@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,8 @@ class Hpcg(AutotoolsPackage):
 
     version("develop", branch="master")
     version("3.1", sha256="33a434e716b79e59e745f77ff72639c32623e7f928eeb7977655ffcaade0f4a4")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("openmp", default=True, description="Enable OpenMP support")
 
@@ -48,6 +50,11 @@ class Hpcg(AutotoolsPackage):
         sha256="722c13837b287e979442f8372274aa5910a290aa39f1ed1ff646116be08dcae9",
         when="%intel",
     )
+    patch(
+        "https://github.com/hpcg-benchmark/hpcg/commit/e9e0b7e6cae23e1f30dd983c2ce2d3bd34d56f75.patch?full_index=1",
+        sha256="722c13837b287e979442f8372274aa5910a290aa39f1ed1ff646116be08dcae9",
+        when="%clang",
+    )
 
     depends_on("mpi@1.1:")
 
@@ -62,13 +69,14 @@ class Hpcg(AutotoolsPackage):
             and not spec.satisfies("%arm")
             and not spec.satisfies("%intel")
             and not spec.satisfies("%oneapi")
+            and not spec.satisfies("%clang")
         ):
             CXXFLAGS += " -ftree-vectorizer-verbose=0 "
         if spec.satisfies("%cce"):
             CXXFLAGS += " -Rpass=loop-vectorize"
             CXXFLAGS += " -Rpass-missed=loop-vectorize"
             CXXFLAGS += " -Rpass-analysis=loop-vectorize "
-        if "+openmp" in self.spec:
+        if self.spec.satisfies("+openmp"):
             CXXFLAGS += self.compiler.openmp_flag
         config = [
             # Shell

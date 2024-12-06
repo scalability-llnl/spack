@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -8,29 +8,6 @@ import os.path
 import platform
 
 from spack.package import *
-
-
-# The viewer and trace viewer tar files and sha256sum depend on the
-# version and machine type.  Starting with 2019.08, the name of the
-# tar file contains the version number.
-def viewer_url(ver, mach):
-    ver2 = ("-" + ver) if ver >= "2019.08" else ""
-    return ("http://hpctoolkit.org/download/hpcviewer/{0}/hpcviewer{1}-linux.gtk.{2}.tgz").format(
-        ver, ver2, mach
-    )
-
-
-def trace_url(ver, mach):
-    ver2 = ("-" + ver) if ver >= "2019.08" else ""
-    return (
-        "http://hpctoolkit.org/download/hpcviewer/{0}/hpctraceviewer{1}-linux.gtk.{2}.tgz"
-    ).format(ver, ver2, mach)
-
-
-def darwin_url(ver, mach):
-    return (
-        "http://hpctoolkit.org/download/hpcviewer/{0}/hpcviewer-{0}-macosx.cocoa.{1}.zip"
-    ).format(ver, mach)
 
 
 class Hpcviewer(Package):
@@ -43,10 +20,16 @@ class Hpcviewer(Package):
     run hpcrun and hpcviewer on different machines.
     """
 
-    homepage = "http://hpctoolkit.org"
+    homepage = "https://hpctoolkit.org"
     maintainers("mwkrentel")
 
+    skip_version_audit = ["platform=windows"]
+
     darwin_sha = {
+        ("2024.09", "aarch64"): "f2e5b516105fe99315950ac4cc3bce120afadeca57cfaa16d58684756950d373",
+        ("2024.09", "x86_64"): "dd7a807a70c384e73d9abfe67b9e41de5dedcec2da4a36cc487bb9cd1ed6b366",
+        ("2024.02", "aarch64"): "0f2bf2f89b7b9656b1b249efc8b24763f7865e8ddae5b22a3c21cc79fda49ce9",
+        ("2024.02", "x86_64"): "7f61166155f326179e309aa18568b44d98a2219973a323cd4713123b5bf6fd54",
         ("2023.07", "aarch64"): "6e3146fc3c6d778a256938a3589818ad3ac6496415f9fe27a012b6c1e7fbe766",
         ("2023.07", "x86_64"): "0711a71d44e0323ec4a274983e63f07d13d09a41ead08427d273808326565cc9",
         ("2023.05", "aarch64"): "b34e1ebc021e91c7260cc91a888e966a81913691de04c5e972da613d0dc34294",
@@ -69,6 +52,12 @@ class Hpcviewer(Package):
     }
 
     viewer_sha = {
+        ("2024.09", "aarch64"): "22f2fd477652a252375554270f82068691462e93d1fea4b7c1620e26ca0c9148",
+        ("2024.09", "ppc64le"): "eabfa180fc023b9d0d3db06763ec5bb9abc278d65a9763cd26d214605d1b8dd4",
+        ("2024.09", "x86_64"): "4b3acd19f96ffd387e5aca7a51fcaad4919449223ce77332c91d616660c2850a",
+        ("2024.02", "aarch64"): "b64166060ee0d2165fdb885ca7a0658c0d7656b2fcf3e5fc735127f3e577ed7b",
+        ("2024.02", "ppc64le"): "83ea588d547c4a8bc13db0ed5c763770e7b40b44b0318b75b54ccd226410aa0d",
+        ("2024.02", "x86_64"): "fa4d769ef93c666f2702d0cbc4bb49bd5f48c0c15a0eb4cbad6105807bcd57b0",
         ("2023.07", "aarch64"): "641c151ed0bc5d85db40187eb39ba4bcb7a4fdeeb07d5b4d00ed6a6d457f59b4",
         ("2023.07", "ppc64le"): "e76558377b5e64d8a07f6232468c8098d5aba32c2a6210c58bef26acd3ce8c9b",
         ("2023.07", "x86_64"): "06db75b1aab80f1142058716ca295bb43956a2b315bd7f385ec4c3a74ade0cbb",
@@ -122,27 +111,6 @@ class Hpcviewer(Package):
         ("2020.02", "x86_64"): "af1f514547a9325aee30eb891b31e38c7ea3f33d2d1978b44f83e7daa3d5de6b",
         ("2020.02", "ppc64"): "7bb4926202db663aedd5a6830778c5f73f6b08a65d56861824ea95ba83b1f59c",
         ("2020.02", "ppc64le"): "cfcebb7ba301affd6d21d2afd43c540e6dd4c5bc39b0d20e8bd1e4fed6aa3481",
-        ("2020.01", "x86_64"): "3cd5a2a382cec1d64c8bd0abaf2b1461dcd4092a4b4074ddbdc1b96d2a0b4220",
-        ("2020.01", "ppc64"): "814394a5f410033cc1019526c268ef98b5b381e311fcd39ae8b2bde6c6ff017c",
-        ("2020.01", "ppc64le"): "e830e956b8088c415fb25ef44a8aca16ebcb27bcd34536866612343217e3f9e4",
-        ("2019.12", "x86_64"): "6ba149c8d23d9913291655602894f7a91f9c838e69ae5682fd7b605467255c2d",
-        ("2019.12", "ppc64"): "787257272381fac26401e1013952bea94635172503e7abf8063081fe03f08384",
-        ("2019.12", "ppc64le"): "fd20891fdae6dd5c2313cdd98e53c52023a0cf146a1121d0c889ebedc08a8bb9",
-        ("2019.09", "x86_64"): "40982a43880fe646b7f9d03ac4911b55f8a4464510eb8c7304ffaf4d4205ecc6",
-        ("2019.09", "ppc64"): "3972d604bd160c058185b6f8f3f3a63c4031046734b29cc386c24e40831e6798",
-        ("2019.09", "ppc64le"): "c348f442b7415aadb94ead06bd35e96442a49a9768fd8c972ca707d77d61e0c3",
-        ("2019.08", "x86_64"): "249aae6a23dca19286ee15909afbeba5e515388f1c1ad87f572454534fccb9f2",
-        ("2019.08", "ppc64"): "f91b4772c92c05a4a35c88eec094604f3c233c7233adeede97acba38592da379",
-        ("2019.08", "ppc64le"): "b1bd5c76b37f225a01631193e0a62524bd41a54b3354a658fdfd0f66c444cc28",
-        ("2019.07", "x86_64"): "e999781d6a7d178cb1db5b549650024fa9b19891e933bac8b0441d24e7bf015c",
-        ("2019.07", "ppc64"): "057ce0e2d6be5639639f762fb43b116fe31fb855745abaf4ea26bd281cffaab1",
-        ("2019.07", "ppc64le"): "40d6928e0761568168f3ce34f3ed320916ea60bda830dd74513897ef77386b28",
-        ("2019.04", "x86_64"): "c524498ef235171e298c8142b7e73b0a1f7c433f9c471fb692d31f0685e53aa4",
-        ("2019.04", "ppc64"): "dc9daee886ba72c0615db909860ee1aed0979f12c0d113efbe721ddabdf55199",
-        ("2019.04", "ppc64le"): "dddabccef156996d390653639096ad3e27b7384a5754f42084f50c4a50a9009b",
-        ("2019.02", "x86_64"): "e24368a3ec27b82736a781971a8371abfe7744b2a4f68b7b41d76f84af306b83",
-        ("2019.02", "ppc64"): "72c1ef1a5682c3273e900bb248f126428a02dfe728af0c49c7ee8381938d1e18",
-        ("2019.02", "ppc64le"): "02aaf27bb5b0f72d5b5738289bce60f6ef0ef7327ca96a890892509a09adc946",
     }
 
     trace_sha = {
@@ -158,27 +126,6 @@ class Hpcviewer(Package):
         ("2020.02", "x86_64"): "b7b634e91108aa50a2e8647ac6bac87df775ae38aff078545efaa84735e0a666",
         ("2020.02", "ppc64"): "a3e845901689e1b32bc6ab2826c6ac6ed352df4839090fa530b20f747e6e0957",
         ("2020.02", "ppc64le"): "a64a283f61e706d988952a7cede9fac0328b09d2d0b64e4c08acc54e38781c98",
-        ("2020.01", "x86_64"): "9459177a2445e85d648384e2ccee20524592e91a74d615262f32d0876831cd7c",
-        ("2020.01", "ppc64"): "02366a2ba30b9b2450d50cf44933288f04fae5bf9868eef7bb2ae1b49d4f454e",
-        ("2020.01", "ppc64le"): "39970e84e397ed96bc994e7b8db3b7b3aab4e3155fa7ca8e68b9274bb58115f0",
-        ("2019.12", "x86_64"): "6339b36e655e2c2b07af4cb40946f325acc46da3ec590d36069661e69b046a92",
-        ("2019.12", "ppc64"): "fe4ee5af22a983fa0ddbfbd97fa6676f07492400536e900188455f21e489c59b",
-        ("2019.12", "ppc64le"): "2688ea834c546b9e2c6e9d69d271a62dd00f6bc7ff4cb874563ba8d0ae5824e3",
-        ("2019.09", "x86_64"): "8d7ce0710570bb8cd424d88cc4b5bfe821330f24fef84bbbbb370fa291b60a14",
-        ("2019.09", "ppc64"): "dfb3fe8283cbaeaa1653e8c8bf68267a3f25886bc452309b10f88a7b1e713ec6",
-        ("2019.09", "ppc64le"): "c1b6ab4f6c91e3a226e8629de62e718c92318ffd83d03db3c40678d578b99b20",
-        ("2019.08", "x86_64"): "6cefed6a397298ab31cadd10831f5d5533d3f634a4a76bb93f686e603a42c5ed",
-        ("2019.08", "ppc64"): "64ca5605c89dd3065cacaeee4a8e2ac14b47953530711ed9e04666c8435e44e8",
-        ("2019.08", "ppc64le"): "bee03b5cb2de7e8556cf1249f98ece7848c13a0de6b8ba71786c430da68f7bcc",
-        ("2019.07", "x86_64"): "267052cf742d12bbe900bc03bc7c47c8e1704fbaad0e1a3fc77b73dc506d5a68",
-        ("2019.07", "ppc64"): "5ae63d8e2f2edf5c3b982d3663311e4d55f9b378f512926b3ebadab27ba72e22",
-        ("2019.07", "ppc64le"): "c2883714cbafa5252432c52d1d32ab5f34554b33a9bad20dcd2c0632388fbee5",
-        ("2019.04", "x86_64"): "f5f908c0e52c97a72af1af8519f4b191298fe52bd811dd06a051b68cd7bcce27",
-        ("2019.04", "ppc64"): "221683c992e4fe2cd9079ad2ebb531d99d04a3cbb3a8860f795b276b1eaeab19",
-        ("2019.04", "ppc64le"): "fe539c6a165a72bba6ea7bdb34a90d862d427c4d55095c97794d54e6dd9d3075",
-        ("2019.02", "x86_64"): "5ff11317a638318295821204ffcb1276e9da1684cd5f298410ae2bf78ce88b6b",
-        ("2019.02", "ppc64"): "95b2a7d848ecb924591c248f5e47c641646ef90a071db48237ddb96c4b71a8fb",
-        ("2019.02", "ppc64le"): "01a159306e7810efe07157ec823ac6ca7570ec2014c95db599a3f90eee33355c",
     }
 
     system = platform.system().lower()
@@ -188,34 +135,42 @@ class Hpcviewer(Package):
 
     # Versions for MacOSX / Darwin
     if system == "darwin":
-        for key in darwin_sha.keys():
-            if key[1] == machine:
-                version(key[0], url=darwin_url(*key), sha256=darwin_sha[key])
+        for (ver, arch), sha in darwin_sha.items():
+            if arch == machine:
+                version(
+                    ver,
+                    url=f"https://gitlab.com/hpctoolkit/hpcviewer/-/releases/{ver}/downloads/hpcviewer-macosx.cocoa.{arch}.zip",
+                    sha256=sha,
+                    # Versions before 2022.01 are dead links
+                    deprecated=(ver < "2022.01"),
+                )
 
     # Versions for Linux and Cray front-end
     if system == "linux":
-        for key in viewer_sha.keys():
-            if key[1] == machine:
+        for (ver, arch), sha in viewer_sha.items():
+            if arch == machine:
                 version(
-                    key[0],
-                    url=viewer_url(*key),
-                    sha256=viewer_sha[key],
-                    deprecated=(key[0] <= "2020.99"),
+                    ver,
+                    url=f"https://gitlab.com/hpctoolkit/hpcviewer/-/releases/{ver}/downloads/hpcviewer-linux.gtk.{arch}.tgz",
+                    sha256=sha,
+                    # Versions before 2022.01 are dead links
+                    deprecated=(ver < "2022.01"),
                 )
 
                 # Current versions include the viewer and trace viewer in
                 # one tar file.  Before 2020.07, the trace viewer was a
                 # separate tar file (resource).
-                if key in trace_sha:
+                if (ver, arch) in trace_sha:
                     resource(
                         name="hpctraceviewer",
-                        url=trace_url(*key),
-                        sha256=trace_sha[key],
+                        url=f"https://gitlab.com/hpctoolkit/hpcviewer/-/releases/{ver}/downloads/hpctraceviewer-linux.gtk.{arch}.tgz",
+                        sha256=trace_sha[ver, arch],
                         placement="TRACE",
-                        when="@{0}".format(key[0]),
+                        when=f"@{ver}",
                     )
 
-    depends_on("java@11:", type=("build", "run"), when="@2021.0:")
+    depends_on("java@17:", type=("build", "run"), when="@2024.09:")
+    depends_on("java@11:", type=("build", "run"), when="@2021.0:2024.02")
     depends_on("java@8", type=("build", "run"), when="@:2020")
 
     # Install for MacOSX / Darwin
@@ -238,11 +193,6 @@ class Hpcviewer(Package):
             file.write("#!/bin/sh\n")
             file.write("open " + app_dir + "\n")
         os.chmod(viewer_file, 0o755)
-
-    # Install for Cray front-end is the same as Linux.
-    @when("platform=cray")
-    def install(self, spec, prefix):
-        self.linux_install(spec, prefix)
 
     @when("platform=linux")
     def install(self, spec, prefix):

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyTox(PythonPackage):
 
     homepage = "https://tox.readthedocs.org/"
     pypi = "tox/tox-3.14.2.tar.gz"
+
+    license("MIT")
 
     version("3.14.2", sha256="7efd010a98339209f3a8292f02909b51c58417bfc6838ab7eca14cf90f96117a")
 

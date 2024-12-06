@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -265,8 +265,11 @@ class Openfoam(Package):
     list_url = "https://sourceforge.net/projects/openfoam/files/"
     list_depth = 2
 
+    license("GPL-3.0-or-later")
+
     version("develop", branch="develop", submodules="True")
     version("master", branch="master", submodules="True")
+    version("2312", sha256="f113183a4d027c93939212af8967053c5f8fe76fb62e5848cb11bbcf8e829552")
     version("2306", sha256="d7fba773658c0f06ad17f90199565f32e9bf502b7bb03077503642064e1f5344")
     version(
         "2212_230612", sha256="604cd731173ec2a3645c838cf2468fae050a35c6340e2ca7c157699899d904c0"
@@ -330,6 +333,9 @@ class Openfoam(Package):
     version("1706", sha256="7779048bb53798d9a5bd2b2be0bf302c5fd3dff98e29249d6e0ef7eeb83db79a")
     version("1612", sha256="2909c43506a68e1f23efd0ca6186a6948ae0fc8fe1e39c78cc23ef0d69f3569d")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("int64", default=False, description="With 64-bit labels")
     variant("knl", default=False, description="Use KNL compiler settings")
     variant("kahip", default=False, description="With kahip decomposition")
@@ -366,8 +372,12 @@ class Openfoam(Package):
     # See https://github.com/spack/spack/pull/22303 for reference
     depends_on(Boost.with_default_variants)
 
-    # OpenFOAM does not play nice with CGAL 5.X
-    depends_on("cgal@:4")
+    # Earlier versions of OpenFOAM may not work with CGAL 5.6. I do
+    # not know which OpenFOAM added support for 5.x and conservatively
+    # use 2312 in the check.
+    depends_on("cgal", when="@2312:")
+    depends_on("cgal@:4", when="@:2306")
+
     # The flex restriction is ONLY to deal with a spec resolution clash
     # introduced by the restriction within scotch!
     depends_on("flex@:2.6.1,2.6.4:")
@@ -686,11 +696,13 @@ class Openfoam(Package):
             "CGAL": [
                 ("BOOST_ARCH_PATH", spec["boost"].prefix),
                 ("CGAL_ARCH_PATH", spec["cgal"].prefix),
+                ("MPFR_ARCH_PATH", spec["mpfr"].prefix),
                 (
                     "LD_LIBRARY_PATH",
                     foam_add_lib(
                         pkglib(spec["boost"], "${BOOST_ARCH_PATH}"),
                         pkglib(spec["cgal"], "${CGAL_ARCH_PATH}"),
+                        pkglib(spec["mpfr"], "${MPFR_ARCH_PATH}"),
                     ),
                 ),
             ],

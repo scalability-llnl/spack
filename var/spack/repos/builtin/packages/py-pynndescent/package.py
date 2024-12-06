@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyPynndescent(PythonPackage):
 
     homepage = "https://github.com/lmcinnes/pynndescent"
     pypi = "pynndescent/pynndescent-0.5.7.tar.gz"
+
+    license("BSD-2-Clause")
 
     version("0.5.7", sha256="ecb395255fa36a748b5870b4ba0300ea0f7da8b1964864b8edd62577a84dfd7d")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class Powertop(AutotoolsPackage):
 
     homepage = "https://01.org/powertop/"
     url = "https://01.org/sites/default/files/downloads/powertop/powertop-v2.9.tar.gz"
+
+    license("GPL-2.0-only")
 
     version("2.9", sha256="aa7fb7d8e9a00f05e7d8a7a2866d85929741e0d03a5bf40cab22d2021c959250")
 

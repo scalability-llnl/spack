@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyWxmplot(PythonPackage):
 
     homepage = "https://newville.github.io/wxmplot/"
     pypi = "wxmplot/wxmplot-0.9.38.tar.gz"
+
+    license("MIT")
 
     version("0.9.38", sha256="82dc64abb42bdd03ec7067a3aa2a475001f2bc8e4772149bae47facf460c0081")
 

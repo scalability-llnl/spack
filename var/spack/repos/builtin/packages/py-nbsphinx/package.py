@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class PyNbsphinx(PythonPackage):
 
     homepage = "https://nbsphinx.readthedocs.io"
     pypi = "nbsphinx/nbsphinx-0.8.0.tar.gz"
+
+    license("MIT")
 
     version("0.8.8", sha256="b5090c824b330b36c2715065a1a179ad36526bff208485a9865453d1ddfc34ec")
     version("0.8.7", sha256="ff91b5b14ceb1a9d44193b5fc3dd3617e7b8ab59c788f7710049ce5faff2750c")

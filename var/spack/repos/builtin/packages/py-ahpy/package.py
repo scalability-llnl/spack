@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyAhpy(PythonPackage):
 
     homepage = "https://github.com/PhilipGriffith/AHPy"
     pypi = "ahpy/ahpy-2.0.tar.gz"
+
+    license("MIT")
 
     version("2.0", sha256="f0af7b81b51466a055778d84f64c98f5cc3e1ba34aaeaedc48ba0b91008e40e3")
 

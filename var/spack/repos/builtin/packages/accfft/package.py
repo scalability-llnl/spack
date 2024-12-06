@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,7 +14,11 @@ class Accfft(CMakePackage, CudaPackage):
     homepage = "http://accfft.org"
     git = "https://github.com/amirgholami/accfft.git"
 
+    license("GPL-2.0-only")
+
     version("develop", branch="master")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("pnetcdf", default=True, description="Add support for parallel NetCDF")
     variant("shared", default=True, description="Enables the build of shared libraries")
@@ -38,7 +42,7 @@ class Accfft(CMakePackage, CudaPackage):
             self.define("BUILD_SHARED", str(spec.satisfies("+shared")).lower()),
         ]
 
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             cuda_arch = [x for x in spec.variants["cuda_arch"].value if x]
             if cuda_arch:
                 args.append(f"-DCUDA_NVCC_FLAGS={' '.join(self.cuda_flags(cuda_arch))}")

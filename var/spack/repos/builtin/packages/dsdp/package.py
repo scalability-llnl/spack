@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,7 +19,11 @@ class Dsdp(MakefilePackage):
     homepage = "https://www.mcs.anl.gov/hs/software/DSDP/"
     url = "https://www.mcs.anl.gov/hs/software/DSDP/DSDP5.8.tar.gz"
 
+    license("DSDP")
+
     version("5.8", sha256="26aa624525a636de272c0b329e2dfd01a0d5b7827f1c1c76f393d71e37dead70")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("blas")
     depends_on("lapack")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -27,6 +27,8 @@ class PyPyside(PythonPackage):
     )  # rpath problems
 
     version("1.2.2", sha256="53129fd85e133ef630144c0598d25c451eab72019cdcb1012f2aec773a3f25be")
+
+    depends_on("cxx", type="build")  # generated
 
     # to prevent error: 'PyTypeObject' {aka 'struct _typeobject'} has no member
     # named 'tp_print'

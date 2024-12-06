@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,9 +18,14 @@ class Aspcud(CMakePackage):
     homepage = "https://potassco.org/aspcud"
     url = "https://github.com/potassco/aspcud/archive/v1.9.4.tar.gz"
 
+    license("MIT")
+
     version("1.9.6", sha256="4dddfd4a74e4324887a1ddd7f8ff36231774fc1aa78b383256546e83acdf516c")
     version("1.9.5", sha256="9cd3a9490d377163d87b16fa1a10cc7254bc2dbb9f60e846961ac8233f3835cf")
     version("1.9.4", sha256="3645f08b079e1cc80e24cd2d7ae5172a52476d84e3ec5e6a6c0034492a6ea885")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("boost@1.74:+exception+serialization+container", type=("build"), when="@1.9.5:")
     depends_on("cmake", type=("build"))

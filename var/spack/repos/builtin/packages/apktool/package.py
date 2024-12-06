@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class Apktool(Package):
 
     homepage = "https://ibotpeaches.github.io/Apktool/"
     url = "https://github.com/iBotPeaches/Apktool/archive/refs/tags/v2.6.0.tar.gz"
+
+    license("Apache-2.0")
 
     version("2.7.0", sha256="17d12a2955a46c48afb9b6855651016ac17626512216c91e8b2adab0013d3056")
     version("2.6.1", sha256="8932e77d963b9e0e07227422d82ed4a355e8aa268bad1361e5cfaffa8e4d52ee")

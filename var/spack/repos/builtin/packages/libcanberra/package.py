@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,7 +14,11 @@ class Libcanberra(AutotoolsPackage):
     homepage = "https://0pointer.de/lennart/projects/libcanberra/"
     url = "https://0pointer.de/lennart/projects/libcanberra/libcanberra-0.30.tar.xz"
 
+    license("LGPL-2.1-or-later")
+
     version("0.30", sha256="c2b671e67e0c288a69fc33dc1b6f1b534d07882c2aceed37004bf48c601afa72")
+
+    depends_on("c", type="build")  # generated
 
     # TODO: Add variants and dependencies for the following audio support:
     # ALSA, OSS, PulseAudio, udev, GStreamer, null, GTK3+ , tdb
@@ -35,14 +39,14 @@ class Libcanberra(AutotoolsPackage):
     depends_on("gtkplus", when="+gtk")
 
     depends_on("libvorbis")
-    depends_on("libtool", type="build")
+    depends_on("libtool", type="link")  # libltdl
 
     depends_on("pkgconfig", type="build")
 
     def configure_args(self):
         args = ["--enable-static"]
 
-        if "+gtk" in self.spec:
+        if self.spec.satisfies("+gtk"):
             args.append("--enable-gtk")
         else:
             args.append("--disable-gtk")

@@ -1,4 +1,4 @@
-# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,7 +17,11 @@ class ScineReaduct(CMakePackage):
     homepage = "https://scine.ethz.ch/download/readuct"
     url = "https://github.com/qcscine/readuct/archive/refs/tags/4.1.0.tar.gz"
 
+    license("BSD-3-Clause")
+
     version("4.1.0", sha256="9cec0192a444403d6a8fd096509798c49fbd1eec298ec7194aba915e31f50782")
+
+    depends_on("cxx", type="build")  # generated
 
     resource(
         name="dev",
@@ -52,7 +56,7 @@ class ScineReaduct(CMakePackage):
         )
 
     def cmake_args(self):
-        args = [
+        return [
             self.define("SCINE_BUILD_TESTS", self.run_tests),
             self.define("SCINE_BUILD_PYTHON_BINDINGS", "+python" in self.spec),
             self.define("SCINE_MARCH", ""),
@@ -62,6 +66,3 @@ class ScineReaduct(CMakePackage):
             self.define("BOOST_NO_SYSTEM_PATHS", True),
             self.define("Boost_NO_BOOST_CMAKE", True),
         ]
-        if "+python" in self.spec:
-            args.append(self.define("PYTHON_EXECUTABLE", self.spec["python"].command.path))
-        return args

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,8 @@ class Veccore(CMakePackage):
 
     maintainers("drbenmorgan", "sethrj")
 
+    license("Apache-2.0")
+
     version("master", branch="master")
     version("0.8.1", sha256="7d7983947c2c6faa55c908b3a968f19f96f4d5c909447c536de30c34b439e008")
     version("0.8.0", sha256="2f8e49f2b609bf15a776026fbec899b3d5d4ba30f033d4fdac4b07a5220a4fd3")
@@ -31,6 +33,8 @@ class Veccore(CMakePackage):
     version("0.4.1", sha256="59ffe668c061acde89afb33749f4eb8bab35dd5f6e51f632758794c1a745aabf")
     version("0.4.0", sha256="0a38b958c92647c30b5709d17edaf39d241b92b988f1040c0fbe24932b42927e")
     version("0.3.2", sha256="d72b03df00f5e94b2d07f78ab3af6d9d956c19e9a1fae07267b48f6fc8d7713f")
+
+    depends_on("cxx", type="build")
 
     variant("vc", default=False, description="Enable Vc backend")
 

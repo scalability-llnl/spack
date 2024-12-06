@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyCylcUiserver(PythonPackage):
     pypi = "cylc-uiserver/cylc-uiserver-1.3.0.tar.gz"
 
     maintainers("LydDeb")
+
+    license("GPL-3.0-or-later")
 
     version("1.3.0", sha256="f3526e470c7ac2b61bf69e9b8d17fc7a513392219d28baed9b1166dcc7033d7a")
 

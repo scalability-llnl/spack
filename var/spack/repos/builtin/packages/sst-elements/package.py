@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,10 +14,14 @@ class SstElements(AutotoolsPackage):
 
     homepage = "https://github.com/sstsimulator"
     git = "https://github.com/sstsimulator/sst-elements.git"
-    url = "https://github.com/sstsimulator/sst-elements/releases/download/v13.1.0_Final/sstelements-13.1.0.tar.gz"
+    url = "https://github.com/sstsimulator/sst-elements/releases/download/v14.1.0_Final/sstelements-14.1.0.tar.gz"
 
     maintainers("berquist", "naromero77")
 
+    license("BSD-3-Clause")
+
+    version("14.1.0", sha256="433994065810d3afee4e355173e781cd76171043cce8835bbc40887672a33350")
+    version("14.0.0", sha256="68eab77febdd0138a497249d854e1cb0c3a67b1c56c4d51f1fe35df12dcd1b9c")
     version("13.1.0", sha256="ebda6ee5af858192dff8a7faf3125010001d5c439beec22afe5b9828a74adf1a")
     version("13.0.0", sha256="1f6f6b403a8c1b22a27cdf2943c9e505825ee14866891e7bc944d4471b7b0321")
     version("12.1.0", sha256="77948cf8e1f8bf8d238d475cea111c9a72b307cbf403cb429ef0426d0cf708a4")
@@ -38,6 +42,10 @@ class SstElements(AutotoolsPackage):
 
     version("develop", branch="devel")
     version("master", branch="master")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # Contact SST developers (https://github.com/sstsimulator)
     # if your use case requires support for:
@@ -79,10 +87,11 @@ class SstElements(AutotoolsPackage):
     depends_on("gettext")
     depends_on("zlib-api")
 
-    depends_on("autoconf@1.68:", type="build")
-    depends_on("automake@1.11.1:", type="build")
-    depends_on("libtool@1.2.4:", type="build")
-    depends_on("m4", type="build")
+    for version_name in ("master", "develop"):
+        depends_on("autoconf@1.68:", type="build", when="@{}".format(version_name))
+        depends_on("automake@1.11.1:", type="build", when="@{}".format(version_name))
+        depends_on("libtool@1.2.4:", type="build", when="@{}".format(version_name))
+        depends_on("m4", type="build", when="@{}".format(version_name))
 
     conflicts("+dumpi", msg="Dumpi not currently supported, contact SST Developers for help")
     conflicts("+otf", msg="OTF not currently supported, contact SST Developers for help")
@@ -100,6 +109,7 @@ class SstElements(AutotoolsPackage):
     # force out-of-source builds
     build_directory = "spack-build"
 
+    @when("@develop,master")
     def autoreconf(self, spec, prefix):
         bash = which("bash")
         bash("autogen.sh")

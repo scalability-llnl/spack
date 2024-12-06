@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,8 +15,4 @@ class PyLightningApiAccess(PythonPackage):
     url = "https://files.pythonhosted.org/packages/py3/l/lightning-api-access/lightning_api_access-0.0.5-py3-none-any.whl"
     list_url = "https://pypi.org/simple/lightning-api-access/"
 
-    version(
-        "0.0.5",
-        sha256="08657fee636377534332df92e0bee893d46cb877f9642cba09ce560aed95fd40",
-        expand=False,
-    )
+    version("0.0.5", sha256="08657fee636377534332df92e0bee893d46cb877f9642cba09ce560aed95fd40")

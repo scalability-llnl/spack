@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,9 @@ class FuseOverlayfs(AutotoolsPackage):
     url = "https://github.com/containers/fuse-overlayfs/archive/v1.1.2.tar.gz"
     maintainers("haampie")
 
+    license("GPL-2.0-or-later")
+
+    version("1.13", sha256="96d10344921d5796bcba7a38580ae14a53c4e60399bb90b238ac5a10b3bb65b2")
     version("1.10", sha256="4351eaed7cf26a5012c14c6e0fc883ef65a7b5dcc95ba129ce485904106c25a9")
     version("1.7.1", sha256="fe2c076aed7b8669e7970301a99c0b197759b611035d8199de4c0add7d2fb2b4")
     version("1.7", sha256="e4d9a794d270e237a38e7ced95af95ad15268e0584eab981ed7c7b3758b95995")
@@ -25,9 +28,12 @@ class FuseOverlayfs(AutotoolsPackage):
     version("1.1.1", sha256="9a1c4221a82059fd9686dd8b519d432bae126c08f9d891fb722bcb51ba4933ec")
     version("1.1.0", sha256="060168c2d5a8c6cc768b4542eba9953b7ff4a31f94bfb2e05b3d1051390838b1")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")
     depends_on("m4", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("fuse")
+    depends_on("libfuse@3.2.1:", when="^[virtuals=fuse] libfuse")

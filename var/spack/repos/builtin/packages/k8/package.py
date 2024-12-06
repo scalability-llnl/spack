@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class K8(Package):
     url = "https://github.com/attractivechaos/k8/releases/download/v0.2.4/k8-0.2.4.tar.bz2"
 
     version("0.2.4", sha256="da8a99c7f1ce7f0cb23ff07ce10510e770686b906d5431442a5439743c0b3c47")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("zlib-api", type="run")
 

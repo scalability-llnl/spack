@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,7 +19,14 @@ class Fish(CMakePackage):
 
     maintainers("funnell", "adamjstewart")
 
+    license("GPL-2.0-only")
+
     version("master", branch="master")
+    version("3.7.1", sha256="614c9f5643cd0799df391395fa6bbc3649427bb839722ce3b114d3bbc1a3b250")
+    version("3.7.0", sha256="df1b7378b714f0690b285ed9e4e58afe270ac98dbc9ca5839589c1afcca33ab1")
+    version("3.6.4", sha256="0f3f610e580de092fbe882c8aa76623ecf91bb16fdf0543241e6e90d5d4bc393")
+    version("3.6.3", sha256="55520128c8ef515908a3821423b430db9258527a6c6acb61c7cb95626b5a48d5")
+    version("3.6.2", sha256="a21a6c986f1f80273895ba7e905fa80ad7e1a262ddb3d979efa443367eaf4863")
     version("3.6.1", sha256="55402bb47ca6739d8aba25e41780905b5ce1bce0a5e0dd17dca908b5bc0b49b2")
     version("3.6.0", sha256="97044d57773ee7ca15634f693d917ed1c3dc0fa7fde1017f1626d60b83ea6181")
     version("3.5.1", sha256="a6d45b3dc5a45dd31772e7f8dfdfecabc063986e8f67d60bd7ca60cc81db6928")
@@ -28,6 +35,8 @@ class Fish(CMakePackage):
     version("3.1.2", sha256="d5b927203b5ca95da16f514969e2a91a537b2f75bec9b21a584c4cd1c7aa74ed")
     version("3.1.0", sha256="e5db1e6839685c56f172e1000c138e290add4aa521f187df4cd79d4eab294368")
     version("3.0.0", sha256="ea9dd3614bb0346829ce7319437c6a93e3e1dfde3b7f6a469b543b0d2c68f2cf")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("docs", default=False, description="Build documentation")
 
@@ -71,7 +80,7 @@ class Fish(CMakePackage):
             "-DPCRE2_INCLUDE_DIR=" + self.spec["pcre2"].headers.directories[0],
         ]
 
-        if "+docs" in self.spec:
+        if self.spec.satisfies("+docs"):
             args.append("-DBUILD_DOCS=ON")
         else:
             args.append("-DBUILD_DOCS=OFF")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -50,6 +50,7 @@ def setup_parser(subparser):
         default=lambda: spack.config.default_modify_scope("compilers"),
         help="configuration scope to modify",
     )
+    arguments.add_common_arguments(find_parser, ["jobs"])
 
     # Remove
     remove_parser = sp.add_parser("remove", aliases=["rm"], help="remove compiler by spec")
@@ -64,45 +65,35 @@ def setup_parser(subparser):
     # List
     list_parser = sp.add_parser("list", help="list available compilers")
     list_parser.add_argument(
-        "--scope",
-        action=arguments.ConfigScope,
-        default=lambda: spack.config.default_list_scope(),
-        help="configuration scope to read from",
+        "--scope", action=arguments.ConfigScope, help="configuration scope to read from"
     )
 
     # Info
     info_parser = sp.add_parser("info", help="show compiler paths")
     info_parser.add_argument("compiler_spec")
     info_parser.add_argument(
-        "--scope",
-        action=arguments.ConfigScope,
-        default=lambda: spack.config.default_list_scope(),
-        help="configuration scope to read from",
+        "--scope", action=arguments.ConfigScope, help="configuration scope to read from"
     )
 
 
 def compiler_find(args):
     """Search either $PATH or a list of paths OR MODULES for compilers and
     add them to Spack's configuration.
-
     """
-    # None signals spack.compiler.find_compilers to use its default logic
     paths = args.add_paths or None
-
-    # Below scope=None because we want new compilers that don't appear
-    # in any other configuration.
-    new_compilers = spack.compilers.find_new_compilers(
-        paths, scope=None, mixed_toolchain=args.mixed_toolchain
+    new_compilers = spack.compilers.find_compilers(
+        path_hints=paths,
+        scope=args.scope,
+        mixed_toolchain=args.mixed_toolchain,
+        max_workers=args.jobs,
     )
     if new_compilers:
-        spack.compilers.add_compilers_to_config(new_compilers, scope=args.scope, init_config=False)
         n = len(new_compilers)
         s = "s" if n > 1 else ""
-
-        config = spack.config.CONFIG
-        filename = config.get_config_filename(args.scope, "compilers")
-        tty.msg("Added %d new compiler%s to %s" % (n, s, filename))
-        colify(reversed(sorted(c.spec.display_str for c in new_compilers)), indent=4)
+        filename = spack.config.CONFIG.get_config_filename(args.scope, "compilers")
+        tty.msg(f"Added {n:d} new compiler{s} to {filename}")
+        compiler_strs = sorted(f"{c.spec.name}@{c.spec.version}" for c in new_compilers)
+        colify(reversed(compiler_strs), indent=4)
     else:
         tty.msg("Found no new compilers")
     tty.msg("Compilers are defined in the following files:")

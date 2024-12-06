@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -6,6 +6,7 @@
 schemas.
 """
 import collections.abc
+from typing import Any, Dict
 
 array_of_strings_or_num = {
     "type": "array",
@@ -18,7 +19,7 @@ dictionary_of_strings_or_num = {
     "patternProperties": {r"\w[\w-]*": {"anyOf": [{"type": "string"}, {"type": "number"}]}},
 }
 
-definition = {
+definition: Dict[str, Any] = {
     "type": "object",
     "default": {},
     "additionalProperties": False,

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class RMitml(RPackage):
     analysis of multiply imputed data sets."""
 
     cran = "mitml"
+
+    license("GPL-2.0-or-later")
 
     version("0.4-5", sha256="056aec823187cc3793640d8a5e74d74093bae74260a975ceb098a83a52e2eeeb")
     version("0.4-3", sha256="49bd3eb68a60fb2a269e7ddca8b862e1e81e0651e2b29759482fb7bcad452102")

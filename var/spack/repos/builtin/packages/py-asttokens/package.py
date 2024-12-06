@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyAsttokens(PythonPackage):
 
     homepage = "https://github.com/gristlabs/asttokens"
     pypi = "asttokens/asttokens-2.0.5.tar.gz"
+
+    license("Apache-2.0")
 
     version("2.4.0", sha256="2e0171b991b2c959acc6c49318049236844a5da1d65ba2672c4880c1c894834e")
     version("2.2.1", sha256="4622110b2a6f30b77e1473affaa97e711bc2f07d3f10848420ff1898edbe94f3")

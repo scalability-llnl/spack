@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,8 +21,12 @@ class Prrte(AutotoolsPackage):
     git = "https://github.com/pmix/prrte.git"
     maintainers("rhc54")
 
+    license("BSD-3-Clause-Open-MPI")
+
     version("develop", branch="master")
     version("1.0.0", sha256="a9b3715e059c10ed091bd6e3a0d8896f7752e43ee731abcc95fb962e67132a2d")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("pmix")
     depends_on("libevent")

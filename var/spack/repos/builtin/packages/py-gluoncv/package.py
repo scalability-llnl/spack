@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyGluoncv(PythonPackage):
     homepage = "https://gluon-cv.mxnet.io/"
     pypi = "gluoncv/gluoncv-0.6.0.tar.gz"
     git = "https://github.com/dmlc/gluon-cv.git"
+
+    license("Apache-2.0")
 
     version(
         "0.10.5.post0", sha256="4598b9612e8b459a5a14ebeffedefcdae4a5700302a91f9b99fc82e9b08928a5"

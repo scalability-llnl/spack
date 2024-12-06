@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,7 +14,12 @@ class Cpmd(MakefilePackage):
     homepage = "https://www.cpmd.org/wordpress/"
     url = "https://github.com/CPMD-code/CPMD/archive/refs/tags/4.3.tar.gz"
 
+    license("MIT")
+
     version("4.3", sha256="e0290f9da0d255f90a612e60662b14a97ca53003f89073c6af84fa7bc8739f65")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("omp", description="Enables the use of OMP instructions", default=False)
     variant("mpi", description="Build with MPI support", default=False)
@@ -73,6 +78,7 @@ class Cpmd(MakefilePackage):
         install_tree(".", prefix)
 
     def test_cpmd(self):
+        """check cpmd.x outputs"""
         test_dir = self.test_suite.current_test_data_dir
         test_file = join_path(test_dir, "1-h2o-pbc-geoopt.inp")
         opts = []

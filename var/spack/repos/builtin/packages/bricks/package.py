@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -9,7 +9,6 @@ from spack.package import *
 
 
 class Bricks(CMakePackage):
-
     """Bricks is a data layout and code generation framework,
     enabling performance-portable stencil computations across
     a multitude of architectures."""
@@ -23,8 +22,13 @@ class Bricks(CMakePackage):
     # List of GitHub accounts to notify when the package is updated.
     maintainers("ztuowen", "drhansj")
 
+    license("MIT")
+
     version("r0.1", branch="r0.1")
     version("2023.08.25", commit="d81725055c117c4b63a1b3835c6b634768b5bea7")  # no official release
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("cuda", default=False, description="Build bricks with CUDA enabled")
 
@@ -43,7 +47,7 @@ class Bricks(CMakePackage):
     def cmake_args(self):
         """CMake arguments for configure stage"""
         args = [self.define_from_variant("BRICK_USE_OPENCL", "cuda")]
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             args.append(f"-DOCL_ROOT:STRING={self.spec['opencl-clhpp'].prefix}")
         return args
 
@@ -72,7 +76,7 @@ class Bricks(CMakePackage):
             join_path("examples", "external", "main.cpp"),
             join_path("examples", "external", "7pt.py"),
         ]
-        self.cache_extra_test_sources(srcs)
+        cache_extra_test_sources(self, srcs)
 
     def test_bricklib_example(self):
         """build and run pre-built example"""

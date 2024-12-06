@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,6 +21,8 @@ class Globalarrays(AutotoolsPackage):
 
     tags = ["e4s"]
 
+    license("BSD-3-Clause")
+
     version("5.8.2", sha256="51599e4abfe36f05cecfaffa33be19efbe9e9fa42d035fd3f866469b663c22a2")
     version("5.8", sha256="64df7d1ea4053d24d84ca361e67a6f51c7b17ed7d626cb18a9fbc759f4a078ac")
     version("5.7.2", sha256="8cd0fcfd85bc7f9c168c831616f66f1e8b9b2ca31dc7dd93cc55b27cc7fe7069")
@@ -33,6 +35,10 @@ class Globalarrays(AutotoolsPackage):
     version("5.6.1", sha256="b324deed49f930f55203e1d18294ce07dd02680b9ac0728ebc54f94a12557ebc")
     version("5.6", sha256="a228dfbae9a6cfaae34694d7e56f589ac758e959b58f4bc49e6ef44058096767")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("scalapack", default=False, description="Enable SCALAPACK")
     variant(
         "armci",
@@ -44,6 +50,9 @@ class Globalarrays(AutotoolsPackage):
     depends_on("mpi")
     depends_on("blas")
     depends_on("lapack")
+
+    depends_on("libfabric", when="armci=ofi")
+    depends_on("rdma-core", when="armci=openib")
 
     depends_on("scalapack", when="+scalapack")
 
@@ -66,7 +75,7 @@ class Globalarrays(AutotoolsPackage):
             "--with-lapack={0}".format(lapack_libs),
         ]
 
-        if "+scalapack" in self.spec:
+        if self.spec.satisfies("+scalapack"):
             scalapack_libs = self.spec["scalapack"].libs.ld_flags
             args.append("--with-scalapack={0}".format(scalapack_libs))
 

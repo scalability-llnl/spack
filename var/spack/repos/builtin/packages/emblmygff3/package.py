@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class Emblmygff3(PythonPackage):
     url = "https://github.com/NBISweden/EMBLmyGFF3/archive/refs/tags/v2.2.tar.gz"
 
     maintainers("snehring")
+
+    license("GPL-3.0-or-later")
 
     version("2.2", sha256="225b2b50da9064f779e164b2859506d7540d11fa78f7d41b5c0d94f02f7845c5")
     version("2.1", sha256="64aef403bc64088eca504b69acffb3fb16ec4448cd3d6c9692b7baf276b92fd2")

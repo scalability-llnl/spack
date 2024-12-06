@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyTomliW(PythonPackage):
 
     homepage = "https://github.com/hukkin/tomli-w"
     pypi = "tomli_w/tomli_w-1.0.0.tar.gz"
+
+    license("MIT")
 
     version("1.0.0", sha256="f463434305e0336248cac9c2dc8076b707d8a12d019dd349f5c1e382dd1ae1b9")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -9,7 +9,6 @@ import spack.cmd
 import spack.config
 import spack.environment as ev
 import spack.package_base
-import spack.repo
 import spack.traverse
 from spack.cmd.common import arguments
 
@@ -19,7 +18,7 @@ level = "long"
 
 
 def setup_parser(subparser):
-    arguments.add_common_arguments(subparser, ["no_checksum", "deprecated", "specs"])
+    arguments.add_common_arguments(subparser, ["no_checksum", "specs"])
     arguments.add_concretizer_args(subparser)
 
 
@@ -33,12 +32,10 @@ def patch(parser, args):
     if args.no_checksum:
         spack.config.set("config:checksum", False, scope="command_line")
 
-    if args.deprecated:
-        spack.config.set("config:deprecated", True, scope="command_line")
-
     specs = spack.cmd.parse_specs(args.specs, concretize=False)
+    specs = spack.cmd.matching_specs_from_env(specs)
     for spec in specs:
-        _patch(spack.cmd.matching_spec_from_env(spec).package)
+        _patch(spec.package)
 
 
 def _patch_env(env: ev.Environment):

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,8 @@ class Percept(CMakePackage):
     # here and the patch allows us to build the mesh_transfer exe and
     # creates a make install target so Spack can install Percept
     version("master", commit="363cdd0050443760d54162f140b2fb54ed9decf0")
+
+    depends_on("cxx", type="build")  # generated
     patch("cmakelists.patch")
 
     depends_on("googletest~shared")

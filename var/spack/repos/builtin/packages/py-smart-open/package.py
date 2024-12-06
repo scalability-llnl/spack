@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class PySmartOpen(PythonPackage):
     homepage = "https://github.com/piskvorky/smart_open"
     pypi = "smart_open/smart_open-5.2.1.tar.gz"
     maintainers("marcusboden")
+
+    license("MIT")
 
     version("5.2.1", sha256="75abf758717a92a8f53aa96953f0c245c8cedf8e1e4184903db3659b419d4c17")
     version("1.10.0", sha256="bea5624c0c2e49987c227bdf3596573157eccd96fd1d53198856c8d53948fa2c")

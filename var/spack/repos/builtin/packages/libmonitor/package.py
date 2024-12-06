@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class Libmonitor(AutotoolsPackage):
     git = "https://github.com/HPCToolkit/libmonitor.git"
     maintainers("mwkrentel")
 
+    license("BSD-3-Clause")
+
     version("master", branch="master")
     version("2023.03.15", commit="48520940b915352748950ea718fadc82f87f659d")
     version("2023.02.13", commit="6db182b25202552f75a087116ab57193652d150f")
@@ -25,6 +27,8 @@ class Libmonitor(AutotoolsPackage):
     version("2019.05.31", commit="c9767087d52e58a719aa7f149136b101e499db44")
     version("2018.07.18", commit="d28cc1d3c08c02013a68a022a57a6ac73db88166")
     version("2013.02.18", commit="4f2311e413fd90583263d6f20453bbe552ccfef3")
+
+    depends_on("c", type="build")  # generated
 
     # Configure for Rice HPCToolkit.
     variant("hpctoolkit", default=False, description="Configure for HPCToolkit")
@@ -60,10 +64,10 @@ class Libmonitor(AutotoolsPackage):
     def configure_args(self):
         args = []
 
-        if "+hpctoolkit" in self.spec:
+        if self.spec.satisfies("+hpctoolkit"):
             args.append("--enable-client-signals=%s" % self.signals)
 
-        if "+dlopen" in self.spec:
+        if self.spec.satisfies("+dlopen"):
             args.append("--enable-dlfcn")
         else:
             args.append("--disable-dlfcn")

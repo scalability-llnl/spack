@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,7 +14,12 @@ class Cvs(AutotoolsPackage, GNUMirrorPackage):
     homepage = "https://www.nongnu.org/cvs/"
     gnu_mirror_path = "non-gnu/cvs/source/feature/1.12.13/cvs-1.12.13.tar.bz2"
 
+    license("GPL-2.0-or-later")
+
     version("1.12.13", sha256="78853613b9a6873a30e1cc2417f738c330e75f887afdaf7b3d0800cb19ca515e")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     # To avoid the problem: The use of %n in format strings in writable memory
     # may crash the program on glibc2 systems from 2004-10-18 or newer.

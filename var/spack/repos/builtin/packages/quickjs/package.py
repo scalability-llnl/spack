@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class Quickjs(MakefilePackage):
     git = "https://github.com/bellard/quickjs.git"
     url = "https://bellard.org/quickjs/quickjs-2021-03-27.tar.xz"
 
+    license("MIT")
+
     version("master", branch="master")
     version(
         "2021-03-27", sha256="a45bface4c3379538dea8533878d694e289330488ea7028b105f72572fe7fe1a"
@@ -24,6 +26,8 @@ class Quickjs(MakefilePackage):
     version(
         "2020-09-06", sha256="0021a3e8cdc6b61e225411d05e2841d2437e1ccf4b4cabb9a5f7685ebfb57717"
     )
+
+    depends_on("c", type="build")  # generated
 
     variant("lto", default=True, when="%gcc", description="Enable link-time optimization")
 

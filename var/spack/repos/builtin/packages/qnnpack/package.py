@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,10 +15,15 @@ class Qnnpack(CMakePackage):
     homepage = "https://github.com/pytorch/QNNPACK"
     git = "https://github.com/pytorch/QNNPACK.git"
 
+    license("BSD-3-Clause")
+
     version("master", branch="master")
     version("2019-08-28", commit="7d2a4e9931a82adc3814275b6219a03e24e36b4c")  # py-torch@1.3:1.9
     version("2018-12-27", commit="6c62fddc6d15602be27e9e4cbb9e985151d2fa82")  # py-torch@1.2
     version("2018-12-04", commit="ef05e87cef6b8e719989ce875b5e1c9fdb304c05")  # py-torch@1.0:1.1
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     generator("ninja")
     depends_on("cmake@3.5:", type="build")

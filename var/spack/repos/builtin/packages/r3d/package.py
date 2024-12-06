@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,9 @@ class R3d(CMakePackage):
     version("2019-04-24", commit="86cea79c124c6a8edd8c8cdea61e3e923acb0b22", deprecated=True)
     version("2018-12-19", commit="47308f68c782ed3227d3dab1eff24d41f6421f21", deprecated=True)
     version("2018-01-07", commit="d6799a582256a120ef3bd7e18959e96cba0e5495", deprecated=True)
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "r3d_max_verts",

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyApeyeCore(PythonPackage):
 
     homepage = "https://github.com/domdfcoding/apeye-core"
     pypi = "apeye_core/apeye_core-1.1.4.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("1.1.4", sha256="72bb89fed3baa647cb81aa28e1d851787edcbf9573853b5d2b5f87c02f50eaf5")
 

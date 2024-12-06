@@ -1,4 +1,4 @@
-# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,7 +19,11 @@ class E4sCl(PythonPackage):
 
     patch("drop-docker.patch", when="@:1.0.1")
 
+    license("MIT")
+
     version("master", branch="master")
+    version("1.0.4", commit="9781a62af20f951e3c2c19a522f4fc16d20a256e")
+    version("1.0.3", commit="1b34fa7964273675ce18b9cd3006b4b87dda1ef2")
     version("1.0.1", commit="b2c92993e0c7cb42de07f0f7cc02da3a06816192")
     version("1.0.0", commit="410bb2e6601d9b90243a487ad7f7d2dabd8ba04c")
 

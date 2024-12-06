@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class RFgsea(RPackage):
 
     bioc = "fgsea"
 
+    license("MIT")
+
     version("1.26.0", commit="102b439e2208ae415dc19d3d1ac8936f9c5999f1")
     version("1.24.0", commit="ac74ccd935c15623b8584caa791835aec514144b")
     version("1.22.0", commit="e4e203aa64faa984e0406fed5d87a422d9df92f2")
@@ -26,6 +28,8 @@ class RFgsea(RPackage):
     version("1.6.0", commit="52b801b7c2dfd8238fa8f2b402fddb4fda60271d")
     version("1.4.1", commit="73de5ff364e520ac99507a9ee5a61a0d23d3c44e")
     version("1.2.1", commit="99b04eef664204d0dca4b9f8027cd7eefb006b72")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r@3.3:", type=("build", "run"))
     depends_on("r-rcpp", type=("build", "run"))

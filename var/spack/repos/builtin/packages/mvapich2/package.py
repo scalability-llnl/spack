@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -7,6 +7,7 @@ import os.path
 import re
 import sys
 
+import spack.compilers
 from spack.package import *
 
 
@@ -38,6 +39,10 @@ class Mvapich2(AutotoolsPackage):
     version("2.3a", sha256="7f0bc94265de9f66af567a263b1be6ef01755f7f6aedd25303d640cc4d8b1cff")
     version("2.2", sha256="791a6fc2b23de63b430b3e598bf05b1b25b82ba8bf7e0622fc81ba593b3bb131")
     version("2.1", sha256="49f3225ad17d2f3b6b127236a0abdc979ca8a3efb8d47ab4b6cd4f5252d05d29")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     provides("mpi")
     provides("mpi@:3.1", when="@2.3:")
@@ -81,6 +86,15 @@ class Mvapich2(AutotoolsPackage):
         .with_error("'slurm' or 'auto' cannot be activated along with " "other process managers")
         .with_default("auto")
         .with_non_feature_values("auto"),
+    )
+
+    variant(
+        "pmi_version",
+        description=("The pmi version to be used with slurm"),
+        when="process_managers=slurm",
+        default="pmi2",
+        values=("pmi1", "pmi2", "pmix"),
+        multi=False,
     )
 
     variant(
@@ -133,6 +147,7 @@ class Mvapich2(AutotoolsPackage):
     depends_on("rdma-core", when="fabrics=nemesisibtcp")
     depends_on("libfabric", when="fabrics=nemesisofi")
     depends_on("slurm", when="process_managers=slurm")
+    depends_on("pmix", when="pmi_version=pmix")
 
     # Fix segmentation fault in `MPIR_Attr_delete_list`:
     # <https://lists.osu.edu/pipermail/mvapich-discuss/2023-January/010695.html>.
@@ -277,11 +292,14 @@ class Mvapich2(AutotoolsPackage):
 
         # See: http://slurm.schedmd.com/mpi_guide.html#mvapich2
         if "process_managers=slurm" in spec:
-            opts = [
-                "--with-pmi=pmi2",
-                "--with-pm=slurm",
-                "--with-slurm={0}".format(spec["slurm"].prefix),
-            ]
+            opts = ["--with-pm=slurm", "--with-slurm={0}".format(spec["slurm"].prefix)]
+            if "pmi_version=pmi1" in spec:
+                opts.append("--with-pmi=pmi1")
+            elif "pmi_version=pmi2" in spec:
+                opts.append("--with-pmi=pmi2")
+            elif "pmi_version=pmix" in spec:
+                opts.append("--with-pmi=pmix")
+                opts.append("--with-pmix={0}".format(spec["pmix"].prefix))
 
         return opts
 
@@ -347,7 +365,12 @@ class Mvapich2(AutotoolsPackage):
 
     def setup_run_environment(self, env):
         if "process_managers=slurm" in self.spec:
-            env.set("SLURM_MPI_TYPE", "pmi2")
+            if "pmi_version=pmi1" in self.spec:
+                env.set("SLURM_MPI_TYPE", "pmi1")
+            elif "pmi_version=pmi2" in self.spec:
+                env.set("SLURM_MPI_TYPE", "pmi2")
+            elif "pmi_version=pmix" in self.spec:
+                env.set("SLURM_MPI_TYPE", "pmix")
 
         env.set("MPI_ROOT", self.prefix)
 
@@ -357,42 +380,25 @@ class Mvapich2(AutotoolsPackage):
 
     def setup_dependent_build_environment(self, env, dependent_spec):
         self.setup_compiler_environment(env)
-
         # use the Spack compiler wrappers under MPI
-        env.set("MPICH_CC", spack_cc)
-        env.set("MPICH_CXX", spack_cxx)
-        env.set("MPICH_F77", spack_f77)
-        env.set("MPICH_F90", spack_fc)
-        env.set("MPICH_FC", spack_fc)
+        dependent_module = dependent_spec.package.module
+        env.set("MPICH_CC", dependent_module.spack_cc)
+        env.set("MPICH_CXX", dependent_module.spack_cxx)
+        env.set("MPICH_F77", dependent_module.spack_f77)
+        env.set("MPICH_F90", dependent_module.spack_fc)
+        env.set("MPICH_FC", dependent_module.spack_fc)
 
     def setup_compiler_environment(self, env):
-        # For Cray MPIs, the regular compiler wrappers *are* the MPI wrappers.
-        # Cray MPIs always have cray in the module name, e.g. "cray-mvapich"
-        if self.spec.satisfies("platform=cray"):
-            env.set("MPICC", spack_cc)
-            env.set("MPICXX", spack_cxx)
-            env.set("MPIF77", spack_fc)
-            env.set("MPIF90", spack_fc)
-        else:
-            env.set("MPICC", join_path(self.prefix.bin, "mpicc"))
-            env.set("MPICXX", join_path(self.prefix.bin, "mpicxx"))
-            env.set("MPIF77", join_path(self.prefix.bin, "mpif77"))
-            env.set("MPIF90", join_path(self.prefix.bin, "mpif90"))
+        env.set("MPICC", join_path(self.prefix.bin, "mpicc"))
+        env.set("MPICXX", join_path(self.prefix.bin, "mpicxx"))
+        env.set("MPIF77", join_path(self.prefix.bin, "mpif77"))
+        env.set("MPIF90", join_path(self.prefix.bin, "mpif90"))
 
     def setup_dependent_package(self, module, dependent_spec):
-        # For Cray MPIs, the regular compiler wrappers *are* the MPI wrappers.
-        # Cray MPIs always have cray in the module name, e.g. "cray-mvapich"
-        if self.spec.satisfies("platform=cray"):
-            self.spec.mpicc = spack_cc
-            self.spec.mpicxx = spack_cxx
-            self.spec.mpifc = spack_fc
-            self.spec.mpif77 = spack_f77
-        else:
-            self.spec.mpicc = join_path(self.prefix.bin, "mpicc")
-            self.spec.mpicxx = join_path(self.prefix.bin, "mpicxx")
-            self.spec.mpifc = join_path(self.prefix.bin, "mpif90")
-            self.spec.mpif77 = join_path(self.prefix.bin, "mpif77")
-
+        self.spec.mpicc = join_path(self.prefix.bin, "mpicc")
+        self.spec.mpicxx = join_path(self.prefix.bin, "mpicxx")
+        self.spec.mpifc = join_path(self.prefix.bin, "mpif90")
+        self.spec.mpif77 = join_path(self.prefix.bin, "mpif77")
         self.spec.mpicxx_shared_libs = [
             os.path.join(self.prefix.lib, "libmpicxx.{0}".format(dso_suffix)),
             os.path.join(self.prefix.lib, "libmpi.{0}".format(dso_suffix)),

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,8 @@ class PyEnvisage(PythonPackage):
 
     homepage = "https://github.com/enthought/envisage"
     pypi = "envisage/envisage-4.9.2.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("6.0.1", sha256="8864c29aa344f7ac26eeb94788798f2d0cc791dcf95c632da8d79ebc580e114c")
     version("4.9.2", sha256="ed9580ac6ea17b333f1cce5b94656aed584798d56d8bd364f996a06fe1ac32eb")

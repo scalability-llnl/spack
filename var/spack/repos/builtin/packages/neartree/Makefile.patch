@@ -1,0 +1,23 @@
+--- a/Makefile
++++ b/Makefile
+@@ -117,13 +117,13 @@ CPPLIBRARIES = -lm
+ #
+ CLIBRARIES = $(CVECTOR_LIBLOC) -lCVector -lm
+ 
+-COMPILE_COMMAND        =  $(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -c
+-CPPCOMPILE_COMMAND     =  $(LIBTOOL) --mode=compile $(CXX) $(CFLAGS) $(INCLUDES) $(WARNINGS) -c
+-LIBRARY_LINK_COMMAND   =  $(LIBTOOL) --mode=link $(CC) -version-info $(VERSION) -no-undefined -rpath $(INSTALL_PREFIX)/lib
+-BUILD_COMMAND_LOCAL    =  $(LIBTOOL) --mode=link $(CC) $(CFLAGS) $(INCLUDES)
+-CPPBUILD_COMMAND_LOCAL =  $(LIBTOOL) --mode=link $(CXX) -no-undefined $(CFLAGS) $(INCLUDES)
+-BUILD_COMMAND_DYNAMIC  =  $(LIBTOOL) --mode=link $(CC) -no-undefined $(CFLAGS) -shared -I$(INSTALL_PREFIX)/include
+-BUILD_COMMAND_STATIC   =  $(LIBTOOL) --mode=link $(CC) $(CFLAGS) -static-libtool-libs -I$(INSTALL_PREFIX)/include
++COMPILE_COMMAND        =  $(LIBTOOL) --mode=compile --tag=CC $(CC) $(CFLAGS) $(INCLUDES) $(WARNINGS) -c
++CPPCOMPILE_COMMAND     =  $(LIBTOOL) --mode=compile --tag=CXX $(CXX) $(CFLAGS) $(INCLUDES) $(WARNINGS) -c
++LIBRARY_LINK_COMMAND   =  $(LIBTOOL) --mode=link --tag=CC $(CC) -version-info $(VERSION) -no-undefined -rpath $(INSTALL_PREFIX)/lib
++BUILD_COMMAND_LOCAL    =  $(LIBTOOL) --mode=link --tag=CC $(CC) $(CFLAGS) $(INCLUDES)
++CPPBUILD_COMMAND_LOCAL =  $(LIBTOOL) --mode=link --tag=CXX $(CXX) -no-undefined $(CFLAGS) $(INCLUDES)
++BUILD_COMMAND_DYNAMIC  =  $(LIBTOOL) --mode=link --tag=CC $(CC) -no-undefined $(CFLAGS) -shared -I$(INSTALL_PREFIX)/include
++BUILD_COMMAND_STATIC   =  $(LIBTOOL) --mode=link --tag=CC $(CC) $(CFLAGS) -static-libtool-libs -I$(INSTALL_PREFIX)/include
+ INSTALL_COMMAND        =  $(LIBTOOL) --mode=install cp
+ INSTALL_FINISH_COMMAND =  $(LIBTOOL) --mode=finish
+ 

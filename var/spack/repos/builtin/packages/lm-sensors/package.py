@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class LmSensors(MakefilePackage):
     url = "https://github.com/groeck/lm-sensors/archive/V3-4-0.tar.gz"
     maintainers("G-Ragghianti")
 
+    license("LGPL-2.1-or-later AND GPL-2.0-or-later")
+
     version("3-6-0", sha256="0591f9fa0339f0d15e75326d0365871c2d4e2ed8aa1ff759b3a55d3734b7d197")
     version("3-5-0", sha256="f671c1d63a4cd8581b3a4a775fd7864a740b15ad046fe92038bcff5c5134d7e0")
     version("3-4-0", sha256="e334c1c2b06f7290e3e66bdae330a5d36054701ffd47a5dde7a06f9a7402cb4e")
@@ -26,6 +28,8 @@ class LmSensors(MakefilePackage):
     version("3-2-0", sha256="ff54bee654f9f317224489fa64aeb659425d58ac3d031fe019c2c072ba19ee9a")
     version("3-1-2", sha256="a587f4f37c0f32ac48575338013ee443a0152d87543e8e702db6161ec0ca1161")
     version("3-1-1", sha256="22b5ab0bab853c34298ff617efb292c5dde7b254596b31ce4c6e90b1d1cf8ad8")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("bison", type="build")
     depends_on("flex", type="build")

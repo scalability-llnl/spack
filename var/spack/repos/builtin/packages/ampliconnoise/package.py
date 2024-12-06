@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class Ampliconnoise(MakefilePackage):
     url = "https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/ampliconnoise/AmpliconNoiseV1.29.tar.gz"
 
     version("1.29", sha256="0bf946806d77ecaf0994ad8ebf9a5e98ad33c809f6def5c9340a16c367918167")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("mpi@2:")
     depends_on("gsl")

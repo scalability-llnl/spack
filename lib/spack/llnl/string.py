@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -39,6 +39,20 @@ def comma_and(sequence: List[str]) -> str:
     one (which is joined by 'and').
     """
     return comma_list(sequence, "and")
+
+
+def ordinal(number: int) -> str:
+    """Return the ordinal representation (1st, 2nd, 3rd, etc.) for the provided number.
+
+    Args:
+        number: int to convert to ordinal number
+
+    Returns: number's corresponding ordinal
+    """
+    idx = (number % 10) << 1
+    tens = number % 100 // 10
+    suffix = "th" if tens == 1 or idx > 6 else "thstndrd"[idx : idx + 2]
+    return f"{number}{suffix}"
 
 
 def quote(sequence: List[str], q: str = "'") -> List[str]:

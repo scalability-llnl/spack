@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyPybktree(PythonPackage):
 
     homepage = "https://github.com/benhoyt/pybktree"
     pypi = "pybktree/pybktree-1.1.tar.gz"
+
+    license("MIT")
 
     version("1.1", sha256="eec0037cdd3d7553e6d72435a4379bede64be17c6712f149e485169638154d2b")
 

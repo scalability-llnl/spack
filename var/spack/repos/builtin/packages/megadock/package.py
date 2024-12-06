@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,8 +15,12 @@ class Megadock(MakefilePackage, CudaPackage):
     homepage = "https://www.bi.cs.titech.ac.jp/megadock/"
     url = "https://www.bi.cs.titech.ac.jp/megadock/archives/megadock-4.0.3.tgz"
 
+    license("GPL-3.0-or-later")
+
     version("4.1.1", sha256="5e08416ea86169be9f0a998f081f53c04aa8696ef83b9fcc5bf685fe45d52087")
     version("4.0.3", sha256="c1409a411555f4f7b4eeeda81caf622d8a28259a599ea1d2181069c55f257664")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("mpi", description="Enable MPI", default=False)
 

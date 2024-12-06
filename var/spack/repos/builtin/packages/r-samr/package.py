@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,8 +14,13 @@ class RSamr(RPackage):
 
     cran = "samr"
 
+    license("LGPL-2.0-or-later")
+
     version("3.0", sha256="25f88ac002c2adce8881a562241bc12d683810a05defb553e8e3d4878f037506")
     version("2.0", sha256="090b5becd91d60f4bb8269df5c9bc19a03c09917d327b28e75b0ee7b80624e67")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("r-impute", type=("build", "run"))
     depends_on("r-matrixstats", type=("build", "run"))

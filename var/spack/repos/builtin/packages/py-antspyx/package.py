@@ -1,4 +1,4 @@
-# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyAntspyx(PythonPackage):
 
     homepage = "https://pypi.org/project/antspyx/"
     pypi = "antspyx/antspyx-0.3.7.tar.gz"
+
+    license("Apache-2.0")
 
     version("0.3.7", sha256="cd831eb966d4ce82cc0afb65edddd8e2db6b439d418316e6356199f966104c1b")
 

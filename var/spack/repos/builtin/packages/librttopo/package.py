@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,7 +16,11 @@ class Librttopo(AutotoolsPackage):
     url = "https://git.osgeo.org/gitea/rttopo/librttopo/archive/librttopo-1.1.0.tar.gz"
     git = "https://git.osgeo.org/gitea/rttopo/librttopo.git"
 
+    license("GPL-2.0-or-later")
+
     version("1.1.0", sha256="2e2fcabb48193a712a6c76ac9a9be2a53f82e32f91a2bc834d9f1b4fa9cd879f")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("geos")
 

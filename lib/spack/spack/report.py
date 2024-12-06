@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -6,6 +6,7 @@
 import collections
 import contextlib
 import functools
+import gzip
 import os
 import time
 import traceback
@@ -14,7 +15,6 @@ from typing import Any, Callable, Dict, List, Type
 import llnl.util.lang
 
 import spack.build_environment
-import spack.fetch_strategy
 import spack.install_test
 import spack.installer
 import spack.package_base
@@ -190,9 +190,13 @@ class BuildInfoCollector(InfoCollector):
 
     def fetch_log(self, pkg):
         try:
-            with open(pkg.build_log_path, "r", encoding="utf-8") as stream:
-                return "".join(stream.readlines())
-        except Exception:
+            if os.path.exists(pkg.install_log_path):
+                stream = gzip.open(pkg.install_log_path, "rt")
+            else:
+                stream = open(pkg.log_path)
+            with stream as f:
+                return f.read()
+        except OSError:
             return f"Cannot open log for {pkg.spec.cshort_spec}"
 
     def extract_package_from_signature(self, instance, *args, **kwargs):

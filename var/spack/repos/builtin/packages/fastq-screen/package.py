@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class FastqScreen(Package):
 
     homepage = "https://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/"
     url = "https://github.com/StevenWingett/FastQ-Screen/archive/refs/tags/v0.15.3.tar.gz"
+
+    license("GPL-3.0-or-later")
 
     version("0.15.3", sha256="002750d78ca50fe0f789e24445e10988e16244f81b4f0189bf2fc4ee8b680be5")
     version(

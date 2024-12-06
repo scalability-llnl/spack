@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyTemplateflow(PythonPackage):
 
     homepage = "https://github.com/templateflow/python-client"
     pypi = "templateflow/templateflow-0.7.1.tar.gz"
+
+    license("Apache-2.0")
 
     version("0.7.1", sha256="c6e8282d1ffbb5dca7bd704a12e02bd00021860b71a043c35716861910c7187f")
     version("0.4.2", sha256="5585f3e7ccaa756f811aafb526ed6b2c79aabfd012477129af9c6038d7686f84")

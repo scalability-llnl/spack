@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,12 +14,15 @@ class Magics(CMakePackage):
     software MAGICS. Although completely redesigned in C++, it is intended
     to be as backwards-compatible as possible with the Fortran interface."""
 
-    homepage = "https://software.ecmwf.int/wiki/display/MAGP/Magics"
+    homepage = "https://confluence.ecmwf.int/display/MAGP/Magics"
     url = "https://confluence.ecmwf.int/download/attachments/3473464/Magics-4.2.4-Source.tar.gz?api=v2"
-    list_url = "https://software.ecmwf.int/wiki/display/MAGP/Releases"
+    list_url = "https://confluence.ecmwf.int/display/MAGP/Releases"
+
+    license("Apache-2.0")
 
     # The policy on which minor releases remain available and which get deleted
     # after a newer version becomes available is unclear.
+    version("4.15.3", sha256="1836e1e37534c556f55b5b13812a513091c2fa508b8c4f5a8b6842f07741f1a7")
     version("4.9.3", sha256="c01ee7c4b05c5512e93e573748d2766d299fa1a60c226f2a0d0989f3d7c5239b")
     version("4.4.0", sha256="544058cd334f3e28a16d00ea7811e13cdf282f9c1ebec2ad7868171d925abd24")
     version("4.3.3", sha256="27d3de71cf41f3d557fd85dabaea2baaab34c4c6422a5b5b15071a6a53387601")
@@ -28,6 +31,10 @@ class Magics(CMakePackage):
     version("4.2.6", sha256="9b34a375d9125ab6e8a715b970da2e479f96370bac6a5bb8a015a079ed9e027c")
     version("4.2.4", sha256="920c7dbb1aaabe65a31c6c18010829210f8b2f8d614b6c405dc5a4530e346f07")
     version("4.1.0", sha256="da626c31f53716990754dd72ab7b2f3902a8ad924b23ef3309bd14900d170541")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     conflicts("%gcc@11:", when="@:4.4", msg="missing #include <limits>")
 
@@ -84,7 +91,7 @@ class Magics(CMakePackage):
 
     # Even if netcdf is disabled and -DENABLE_NETCDF=OFF is set, building
     # magics still requires legacy netcdf-cxx
-    depends_on("netcdf-cxx", when="@4.1.0:4.3.1")
+    conflicts("~netcdf", when="@4.1.0:4.3.1,4.15.3:")
 
     # Optional dependencies
     depends_on("netcdf-cxx", when="+netcdf")
@@ -149,3 +156,13 @@ class Magics(CMakePackage):
             args.append("-DENABLE_METVIEW=OFF")
 
         return args
+
+    @property
+    def libs(self):
+        return find_libraries(["libMagPlus"], root=self.prefix, recursive=True)
+
+    @property
+    def headers(self):
+        hl = find_all_headers(self.prefix.include)
+        hl.directories = [self.prefix.include, self.prefix.include.magics]
+        return hl

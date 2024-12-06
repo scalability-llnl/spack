@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,7 +11,7 @@ from spack.package import *
 class AperturePhotometry(Package):
     """Aperture Photometry Tool APT is software for astronomical research"""
 
-    homepage = "http://www.aperturephotometry.org/"
+    homepage = "https://www.aperturephotometry.org/"
     url = "https://web.ipac.caltech.edu/staff/laher/apt/APT_v2.8.4.tar.gz"
     maintainers("snehring")
 

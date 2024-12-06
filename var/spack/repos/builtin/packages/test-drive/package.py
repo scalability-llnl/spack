@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,4 +14,8 @@ class TestDrive(MesonPackage):
 
     maintainers("awvwgk")
 
+    license("Apache-2.0")
+
     version("0.4.0", "effabe5d46ea937a79f3ea8d37eea43caf38f9f1377398bad0ca02784235e54a")
+
+    depends_on("fortran", type="build")  # generated

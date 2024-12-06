@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyAnyio(PythonPackage):
 
     homepage = "https://github.com/agronholm/anyio"
     pypi = "anyio/anyio-3.2.1.tar.gz"
+
+    license("MIT")
 
     version("4.0.0", sha256="f7ed51751b2c2add651e5747c891b47e26d2a21be5d32d9311dfe9692f3e5d7a")
     version("3.6.2", sha256="25ea0d673ae30af41a0c442f81cf3b38c7e79fdc7b60335a4c14e05eb0947421")

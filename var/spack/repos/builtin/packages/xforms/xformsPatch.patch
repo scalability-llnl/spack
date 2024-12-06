@@ -1,0 +1,66 @@
+diff --git a/fdesign/sp_spinner.c b/fdesign/sp_spinner.c
+index 04f2c19..6206daa 100644
+--- a/fdesign/sp_spinner.c
++++ b/fdesign/sp_spinner.c
+@@ -29,7 +29,7 @@
+ #include "spec/spinner_spec.h"
+
+ static FD_spinnerattrib * spn_attrib;
+-FL_OBJECT *curobj;
++static FL_OBJECT *curobj;
+
+
+ /***************************************
+diff --git a/fdesign/sp_twheel.c b/fdesign/sp_twheel.c
+index 5cfda18..22537f6 100644
+--- a/fdesign/sp_twheel.c
++++ b/fdesign/sp_twheel.c
+@@ -38,7 +38,7 @@
+ #include "spec/twheel_spec.h"
+
+ static FD_twheelattrib * twheel_attrib;
+-FL_OBJECT * curobj;
++static FL_OBJECT * curobj;
+
+
+ /***************************************
+
+diff --git a/lib/xpopup.c b/lib/xpopup.c
+index e9629e6..84a74a2 100644
+--- a/lib/xpopup.c
++++ b/lib/xpopup.c
+@@ -1973,6 +1973,7 @@ draw_popup( PopUP * m )
+ void
+ fl_showpup( int n )
+ {
++    const char empty_title[] = "\0";
+     PopUP *m = menu_rec + n;
+     int req_y = exty;
+     unsigned int dummy;
+@@ -2083,6 +2084,10 @@ fl_showpup( int n )
+                                 fli_visual( fl_vmode ), vmask, &xswa );
+
+         XSetTransientForHint( flx->display, m->win, fl_root );
++	       if(!m->title)
++	       {
++	           m->title = fl_strdup(empty_title);
++	       }
+         XStoreName( flx->display, m->win, m->title );
+
+         if ( ! m->gc_active && ! m->gc_inactive )
+--
+
+diff --git a/lib/include/Basic.h b/lib/include/Basic.h
+index 7544193..46da14e 100644
+--- a/lib/include/Basic.h
++++ b/lib/include/Basic.h
+@@ -1441,7 +1441,7 @@ FL_EXPORT void fl_draw_text_cursor( int          align,
+ 									FL_COLOR     cc,
+ 									int          pos );
+
+-#define fl_draw_box fl_draw_box
++#define fl_drw_box fl_draw_box
+ FL_EXPORT void fl_draw_box( int      style,
+ 							FL_Coord x,
+ 							FL_Coord y,
+--

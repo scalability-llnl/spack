@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,9 +12,11 @@ class Openfst(AutotoolsPackage):
     finite-state transducers are automata where each transition has
     an input label, an output label, and a weight."""
 
-    homepage = "http://www.openfst.org"
-    url = "http://www.openfst.org/twiki/pub/FST/FstDownload/openfst-1.6.1.tar.gz"
-    list_url = "http://www.openfst.org/twiki/bin/view/FST/FstDownload"
+    homepage = "https://www.openfst.org"
+    url = "https://www.openfst.org/twiki/pub/FST/FstDownload/openfst-1.6.1.tar.gz"
+    list_url = "https://www.openfst.org/twiki/bin/view/FST/FstDownload"
+
+    license("Apache-2.0")
 
     version("1.8.2", sha256="de987bf3624721c5d5ba321af95751898e4f4bb41c8a36e2d64f0627656d8b42")
     version("1.8.1", sha256="24fb53b72bb687e3fa8ee96c72a31ff2920d99b980a0a8f61dda426fca6713f0")
@@ -31,10 +33,12 @@ class Openfst(AutotoolsPackage):
     version(
         "1.4.1-patch",
         sha256="e671bf6bd4425a1fed4e7543a024201b74869bfdd029bdf9d10c53a3c2818277",
-        url="http://www.openfst.org/twiki/pub/FST/FstDownload/openfst-1.4.1.tar.gz",
+        url="https://www.openfst.org/twiki/pub/FST/FstDownload/openfst-1.4.1.tar.gz",
     )
     version("1.4.1", sha256="e671bf6bd4425a1fed4e7543a024201b74869bfdd029bdf9d10c53a3c2818277")
     version("1.4.0", sha256="eb557f37560438f03912b4e43335c4c9e72aa486d4f2046127131185eb88f17a")
+
+    depends_on("cxx", type="build")  # generated
 
     conflicts("%intel@16:")
     conflicts("%gcc@6:", when="@:1.6.1")

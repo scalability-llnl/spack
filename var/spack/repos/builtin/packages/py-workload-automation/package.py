@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyWorkloadAutomation(PythonPackage):
     homepage = "https://github.com/ARM-software/workload-automation"
     url = "https://github.com/ARM-software/workload-automation/archive/v3.2.tar.gz"
 
+    license("Apache-2.0")
+
     version("3.2", sha256="a3db9df6a9e0394231560ebe6ba491a513f6309e096eaed3db6f4cb924c393ea")
     version("3.1.4", sha256="217fc33a3739d011a086315ef86b90cf332c16d1b03c9dcd60d58c9fd1f37f98")
     version("3.1.3", sha256="152470808cf8dad8a833fd7b2cb7d77cf8aa5d1af404e37fa0a4ff3b07b925b2")
@@ -22,6 +24,8 @@ class PyWorkloadAutomation(PythonPackage):
     version("3.0.0", sha256="8564b0c67541e3a212363403ee090dfff5e4df85770959a133c0979445b51c3c")
     version("2.7.0", sha256="e9005b9db18e205bf6c4b3e09b15a118abeede73700897427565340dcd589fbb")
     version("2.6.0", sha256="b94341fb067592cebe0db69fcf7c00c82f96b4eb7c7210e34b38473869824cce")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("py-setuptools", type="build")
     depends_on("py-python-dateutil", type=("build", "run"))

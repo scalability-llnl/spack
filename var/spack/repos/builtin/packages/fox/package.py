@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,12 +17,18 @@ class Fox(AutotoolsPackage):
     homepage = "http://fox-toolkit.org/"
     url = "http://fox-toolkit.org/ftp/fox-1.7.67.tar.gz"
 
+    license("LGPL-3.0-or-later")
+
+    # Stable releases (even numbers, preferred)
+    version("1.7.84", sha256="bdb1fe785605488b58addc95f6091a75873e8a3bea7b83caecfb7f4b0827b34e")
     version("1.7.67", sha256="7e511685119ef096fa90d334da46f0e50cfed8d414df32d80a7850442052f57d")
     version(
         "1.6.57",
         preferred=True,
         sha256="65ef15de9e0f3a396dc36d9ea29c158b78fad47f7184780357b929c94d458923",
     )
+
+    depends_on("cxx", type="build")  # generated
 
     patch("no_rexdebug.patch", when="@1.7.67")
 
@@ -46,6 +52,6 @@ class Fox(AutotoolsPackage):
     def configure_args(self):
         # Make the png link flags explicit or it will try to pick up libpng15
         # from system
-        args = ["LDFLAGS={0}".format(self.spec["libpng"].libs.search_flags)]
+        args = [f"LDFLAGS={self.spec['libpng'].libs.search_flags}"]
         args += self.with_or_without("opengl")
         return args

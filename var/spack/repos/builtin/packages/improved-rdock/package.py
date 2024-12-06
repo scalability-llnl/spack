@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,7 +19,11 @@ class ImprovedRdock(MakefilePackage):
     homepage = "https://github.com/clinfo/improved_rDock"
     git = "https://github.com/clinfo/improved_rDock.git"
 
+    license("LGPL-3.0-or-later")
+
     version("main", branch="main")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("popt")
     depends_on("cppunit")
@@ -59,33 +63,41 @@ class ImprovedRdock(MakefilePackage):
     def setup_run_environment(self, env):
         env.set("RBT_ROOT", self.prefix)
 
-    def test(self):
+    def test_rdock(self):
+        """improved-rdock test suite"""
         copy(join_path(self.prefix.example, "1sj0", "*"), ".")
-        opts = ["-r", "1sj0_rdock.prm", "-was"]
-        self.run_test("rbcavity", options=opts)
 
-        mpiexe = self.spec["mpi"].prefix.bin.mpirun
-        opts = [
-            self.prefix.bin.rbdock,
-            "-r",
-            "1sj0_rdock.prm",
-            "-p",
-            "dock.prm",
-            "-n",
-            "100",
-            "-i",
-            "1sj0_ligand.sd",
-            "-o",
-            "1sj0_docking_out",
-            "-s",
-            "1",
-        ]
-        self.run_test(str(mpiexe), options=opts)
+        with test_part(self, "test_rdock_rbcavity", purpose="Check rbcavity"):
+            rbcavity = which("rbcavity")
+            rbcavity("-r", "1sj0_rdock.prm", "-was")
 
-        opts = [join_path(self.test_suite.current_test_data_dir, "test.sh")]
-        self.run_test("bash", options=opts)
+        with test_part(self, "test_rdock_rbdock", purpose="Use mpirun to run rbdock in parallel"):
+            mpiexe = which(str(self.spec["mpi"].prefix.bin.mpirun))
+            opts = [
+                self.prefix.bin.rbdock,
+                "-r",
+                "1sj0_rdock.prm",
+                "-p",
+                "dock.prm",
+                "-n",
+                "100",
+                "-i",
+                "1sj0_ligand.sd",
+                "-o",
+                "1sj0_docking_out",
+                "-s",
+                "1",
+            ]
+            mpiexe(*opts)
 
-        pythonexe = self.spec["python"].command.path
-        opts = [self.spec.prefix.bin.sdrmsd, "1sj0_ligand.sd", "1sj0_docking_out_sorted.sd"]
-        expected = ["1\t0.55", "100\t7.91"]
-        self.run_test(pythonexe, options=opts, expected=expected)
+        with test_part(self, "test_rdock_test_sh", purpose="Sort the output"):
+            bash = which("bash")
+            opts = [join_path(self.test_suite.current_test_data_dir, "test.sh")]
+            bash(*opts)
+
+        with test_part(self, "test_rdock_sdrmsd", purpose="Check sdrmsd calculations"):
+            pythonexe = which(str(self.spec["python"].command.path))
+            opts = [self.spec.prefix.bin.sdrmsd, "1sj0_ligand.sd", "1sj0_docking_out_sorted.sd"]
+            expected = ["1\t0.55", "100\t7.91"]
+            out = pythonexe(*opts, out=str.split, error=str.split)
+            check_outputs(expected, out)

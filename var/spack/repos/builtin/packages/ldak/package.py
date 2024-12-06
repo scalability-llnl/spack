@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class Ldak(Package):
 
     maintainers("snehring")
 
+    license("GPL-3.0-only")
+
     version("5.2", sha256="ba3de4eb4f2d664b3c2a54bef2eb66d1a498ac423179e97a5795d010161b1805")
     version(
         "5.1",
@@ -26,9 +28,9 @@ class Ldak(Package):
     depends_on("zlib-api")
     depends_on("blas")
     depends_on("lapack")
-    depends_on("openblas threads=openmp", when="^openblas")
-    depends_on("intel-mkl threads=openmp", when="^intel-mkl")
-    depends_on("intel-oneapi-mkl threads=openmp", when="^intel-oneapi-mkl")
+    depends_on("openblas threads=openmp", when="^[virtuals=blas] openblas")
+    depends_on("intel-mkl threads=openmp", when="^[virtuals=blas] intel-mkl")
+    depends_on("intel-oneapi-mkl threads=openmp", when="^[virtuals=blas] intel-oneapi-mkl")
     depends_on("glpk", when="+glpk")
 
     requires("target=x86_64:", when="~glpk", msg="bundled qsopt is only for x86_64")
@@ -38,7 +40,6 @@ class Ldak(Package):
         policy="one_of",
         msg="Only mkl or openblas are supported for blas/lapack with ldak",
     )
-    conflicts("platform=cray", when="~glpk", msg="bundled qsopt only for linux or mac")
 
     phases = ["build", "install"]
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,8 +12,10 @@ class Jmol(Package):
     """Jmol: an open-source Java viewer for chemical structures in 3D
     with features for chemicals, crystals, materials and biomolecules."""
 
-    homepage = "http://jmol.sourceforge.net/"
+    homepage = "https://jmol.sourceforge.net/"
     url = "https://sourceforge.net/projects/jmol/files/Jmol/Version%2014.8/Jmol%2014.8.0/Jmol-14.8.0-binary.tar.gz"
+
+    license("LGPL-2.1-or-later")
 
     version("14.31.0", sha256="eee0703773607c8bd6d51751d0d062c3e10ce44c11e1d7828e4ea3d5f710e892")
     version("14.8.0", sha256="8ec45e8d289aa0762194ca71848edc7d736121ddc72276031a253a3651e6d588")

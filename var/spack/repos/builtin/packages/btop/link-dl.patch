@@ -1,0 +1,12 @@
+--- a/CMakeLists.txt	2024-01-07 15:23:01.000000000 +0100
++++ b/CMakeLists.txt	2024-01-18 10:55:06.245357111 +0100
+@@ -150,6 +150,9 @@
+
+     target_link_libraries(btop ROCm)
+   endif()
++  if(NOT BTOP_STATIC)
++    target_link_libraries(btop ${CMAKE_DL_LIBS})
++  endif()
+ endif()
+
+ if(BTOP_USE_MOLD)

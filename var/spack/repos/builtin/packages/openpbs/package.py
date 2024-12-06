@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,7 +17,12 @@ class Openpbs(AutotoolsPackage):
     homepage = "https://www.openpbs.org"
     url = "https://github.com/openpbs/openpbs/archive/v19.1.3.tar.gz"
 
+    license("AGPL-3.0-only")
+
     version("20.0.1", sha256="685a4abcea92bf518df02b544d25e237ae8cef76f86525f7bf3554812e9f50fa")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

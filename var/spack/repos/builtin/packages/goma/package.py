@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,11 @@ class Goma(CMakePackage):
 
     maintainers("wortiz")
 
+    license("GPL-2.0-or-later")
+
+    version("7.8.2", commit="968790728b7544f6e362792748c3842d6c5e2bd9")
+    version("7.7.0", commit="936caf27cab74023d8dfd792cc5411b8c92f2a04")
+    version("7.6.1", commit="c799e935009b85e00979fa8b248952194f6ade7a")
     version("7.4.3", commit="bb0cf8030f9e8d61066d052ea6fad67fe49651f8")
     version("7.3.0", commit="415f442953e2171afae1f8ad55868052c6f511ce")
     version("7.2.0", commit="814f433aa5674c07274fffd4a619d80cd31f71ab")
@@ -25,6 +30,10 @@ class Goma(CMakePackage):
     version("7.0.0", commit="5166896f273e5853e1f32885e20f68317b24979c")
     version("release", branch="release")
     version("main", branch="main")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # Problem size variants
     variant(

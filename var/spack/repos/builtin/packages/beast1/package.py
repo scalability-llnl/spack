@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class Beast1(Package):
 
     version("1.10.4", sha256="be652c4d55953f7c6c7a9d3eb3de203c77dc380e81ad81cfe0492408990c36a8")
     version("1.8.4", sha256="c14e93976008463108aefa34ecc23287ab70703caccf4962e36e295207120d78")
+
+    depends_on("c", type="build")  # generated
 
     variant("beagle", default=True, description="Build with libbeagle support")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class RPillar(RPackage):
     the full range of colours provided by modern terminals."""
 
     cran = "pillar"
+
+    license("MIT")
 
     version("1.9.0", sha256="f23eb486c087f864c2b4072d5cba01d5bebf2f554118bcba6886d8dbceb87acc")
     version("1.8.1", sha256="2f06a7cc9e5638390c9b98a6ec9a9ec1beec0f2b9dbdfa42e39a5ab2456d87ec")

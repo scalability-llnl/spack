@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -36,6 +36,12 @@ class SpecHashDescriptor:
     def __call__(self, spec):
         """Run this hash on the provided spec."""
         return spec.spec_hash(self)
+
+    def __repr__(self):
+        return (
+            f"SpecHashDescriptor(depflag={self.depflag!r}, "
+            f"package_hash={self.package_hash!r}, name={self.name!r}, override={self.override!r})"
+        )
 
 
 #: Spack's deployment hash. Includes all inputs that can affect how a package is built.

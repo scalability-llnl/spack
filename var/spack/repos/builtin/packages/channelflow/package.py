@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,7 +15,11 @@ class Channelflow(CMakePackage):
     homepage = "https://github.com/epfl-ecps/channelflow"
     git = "https://github.com/epfl-ecps/channelflow.git"
 
+    license("GPL-2.0-only")
+
     version("master", branch="master")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("shared", default=True, description="Build shared libs")
     variant("mpi", default=True, description="Enable MPI parallelism")
@@ -72,7 +76,7 @@ class Channelflow(CMakePackage):
         args.append("-DWITH_NETCDF:STRING={0}".format(netcdf_str[spec.variants["netcdf"].value]))
 
         # Set an MPI compiler for parallel builds
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             args.append("-DCMAKE_CXX_COMPILER:PATH={0}".format(spec["mpi"].mpicxx))
 
         return args

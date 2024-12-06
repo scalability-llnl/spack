@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class Xdotool(MakefilePackage):
 
     homepage = "https://github.com/jordansissel/xdotool"
     url = "https://github.com/jordansissel/xdotool/releases/download/v3.20160805.1/xdotool-3.20160805.1.tar.gz"
+
+    license("BSD-3-Clause")
 
     version(
         "3.20211022.1", sha256="96f0facfde6d78eacad35b91b0f46fecd0b35e474c03e00e30da3fdd345f9ada"
@@ -27,6 +29,8 @@ class Xdotool(MakefilePackage):
     version(
         "3.20150503.1", sha256="e8326883bd5e91bede7336cbee186e6e9143f40b3fb61c84afc9bb31b87e96d1"
     )
+
+    depends_on("c", type="build")  # generated
 
     depends_on("libxext")
     depends_on("libxtst")

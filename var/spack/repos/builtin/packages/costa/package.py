@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class Costa(CMakePackage):
     homepage = "https://github.com/eth-cscs/COSTA"
     git = "https://github.com/eth-cscs/COSTA.git"
 
+    license("BSD-3-Clause")
+
     # note: The default archives produced with github do not have the archives
     #       of the submodules.
     version("master", branch="master", submodules=True)
@@ -26,8 +28,10 @@ class Costa(CMakePackage):
     version("2.1", sha256="c1e86452415083f7470b292d93ec60708b7c8dbafc2bac383636bb4b28135866")
     version("2.0", sha256="de250197f31f7d23226c6956a687c3ff46fb0ff6c621a932428236c3f7925fe4")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("scalapack", default=False, description="Build with ScaLAPACK API")
-    variant("shared", default=False, description="Build shared libraries")
+    variant("shared", default=True, description="Build shared libraries")
     variant("profiling", default=False, description="Enable profiling")
     variant("tests", default=False, description="Enable tests")
     variant("apps", default=False, description="Enable miniapp")
@@ -37,6 +41,7 @@ class Costa(CMakePackage):
     depends_on("mpi@3:")
     depends_on("scalapack", when="+scalapack")
     depends_on("cxxopts", when="+apps")
+    depends_on("cxxopts", when="+tests")
     depends_on("semiprof", when="+profiling")
 
     def url_for_version(self, version):
@@ -52,11 +57,11 @@ class Costa(CMakePackage):
     def costa_scalapack_cmake_arg(self):
         spec = self.spec
 
-        if "~scalapack" in spec:
+        if spec.satisfies("~scalapack"):
             return "OFF"
-        elif "^intel-mkl" in spec or "^intel-oneapi-mkl" in spec:
+        elif spec.satisfies("^intel-mkl") or spec.satisfies("^intel-oneapi-mkl"):
             return "MKL"
-        elif "^cray-libsci" in spec:
+        elif spec.satisfies("^cray-libsci"):
             return "CRAY_LIBSCI"
 
         return "CUSTOM"

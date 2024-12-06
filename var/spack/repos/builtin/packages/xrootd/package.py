@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,12 +11,28 @@ class Xrootd(CMakePackage):
     """The XROOTD project aims at giving high performance, scalable fault
     tolerant access to data repositories of many kinds."""
 
-    homepage = "http://xrootd.org"
-    url = "https://xrootd.slac.stanford.edu/download/v5.5.1/xrootd-5.5.1.tar.gz"
-    list_url = "https://xrootd.slac.stanford.edu/dload.html"
+    homepage = "https://xrootd.web.cern.ch"
+    urls = [
+        "https://xrootd.web.cern.ch/download/v5.7.0/xrootd-5.7.0.tar.gz",
+        "https://github.com/xrootd/xrootd/releases/download/v5.7.0/xrootd-5.7.0.tar.gz",
+    ]
+    list_url = "https://xrootd.web.cern.ch/dload.html"
+    git = "https://github.com/xrootd/xrootd.git"
 
     maintainers("gartung", "greenc-FNAL", "marcmengel", "vitodb", "wdconinc")
 
+    license("LGPL-3.0-only")
+
+    version("5.7.1", sha256="c28c9dc0a2f5d0134e803981be8b1e8b1c9a6ec13b49f5fa3040889b439f4041")
+    version("5.7.0", sha256="214599bba98bc69875b82ac74f2d4b9ac8a554a1024119d8a9802b3d8b9986f8")
+    version("5.6.9", sha256="44196167fbcf030d113e3749dfdecab934c43ec15e38e77481e29aac191ca3a8")
+    version("5.6.8", sha256="19268fd9f0307d936da3598a5eb8471328e059c58f60d91d1ce7305ca0d57528")
+    version("5.6.7", sha256="4089ce3a69fcf6566d320ef1f4a73a1d6332e6835b7566e17548569bdea78a8d")
+    version("5.6.6", sha256="b265a75be750472561df9ff321dd0b2102bd64ca19451d312799f501edc597ba")
+    version("5.6.5", sha256="600874e7c5cdb11d20d6bd6c549b04a3c5beb230d755829726cd15fab99073b1")
+    version("5.6.4", sha256="52f041ab2eaa4bf7c6087a7246c3d5f90fbab0b0622b57c018b65f60bf677fad")
+    version("5.6.3", sha256="72000835497f6337c3c6a13c6d39a51fa6a5f3a1ccd34214f2d92f7d47cc6b6c")
+    version("5.6.2", sha256="7d7c262714268b92dbe370a9ae72275cc07f0cdbed400afd9989c366fed04c00")
     version("5.6.1", sha256="9afc48ab0fb3ba69611b1edc1b682a185d49b45caf197323eecd1146d705370c")
     version("5.6.0", sha256="cda0d32d29f94220be9b6627a80386eb33fac2dcc25c8104569eaa4ea3563009")
     version("5.5.5", sha256="0710caae527082e73d3bf8f9d1dffe95808afd3fcaaaa15ab0b937b8b226bc1f")
@@ -52,7 +68,16 @@ class Xrootd(CMakePackage):
     version("4.4.0", sha256="f066e7488390c0bc50938d23f6582fb154466204209ca92681f0aa06340e77c8")
     version("4.3.0", sha256="d34865772d975b5d58ad80bb05312bf49aaf124d5431e54dc8618c05a0870e3c")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("davix", default=True, description="Build with Davix")
+    variant(
+        "ec",
+        default=True,
+        description="Build with erasure coding component support",
+        when="@5.7.0:",
+    )
     variant("http", default=True, description="Build with HTTP support")
     variant("krb5", default=False, description="Build with KRB5 support")
     variant("python", default=False, description="Build pyxroot Python extension")
@@ -82,7 +107,16 @@ class Xrootd(CMakePackage):
         values=("98", "11", "14", "17", "20"),
         multi=False,
         description="Use the specified C++ standard when building",
-        when="@5.2.0:",
+        when="@5.2.0:5.6.99",
+    )
+
+    variant(
+        "cxxstd",
+        default="17",
+        values=("98", "11", "14", "17", "20"),
+        multi=False,
+        description="Use the specified C++ standard when building",
+        when="@5.7.0:",
     )
 
     variant(
@@ -110,6 +144,8 @@ class Xrootd(CMakePackage):
     conflicts("^cmake@:3.0", when="@5.0.0")
     conflicts("^cmake@:3.15.99", when="@5.5.4:5.5")
     depends_on("davix", when="+davix")
+    depends_on("isa-l", when="+ec")
+    depends_on("pkgconfig", type="build", when="+davix")
     depends_on("libxml2", when="+http")
     depends_on("uuid", when="@4.11.0:")
     depends_on("openssl@:1", when="@:5.4")
@@ -191,6 +227,7 @@ class Xrootd(CMakePackage):
             define_from_variant("ENABLE_READLINE", "readline"),
             define_from_variant("ENABLE_KRB5", "krb5"),
             define_from_variant("ENABLE_SCITOKENS", "scitokens-cpp"),
+            define_from_variant("ENABLE_XRDEC", "ec"),
             define_from_variant("XRDCL_ONLY", "client_only"),
             define("ENABLE_CEPH", False),
             define("ENABLE_CRYPTO", True),
@@ -198,15 +235,11 @@ class Xrootd(CMakePackage):
             define("ENABLE_MACAROONS", False),
             define("ENABLE_VOMS", False),
             define("FORCE_ENABLED", True),
+            define("USE_SYSTEM_ISAL", True),
         ]
         # see https://github.com/spack/spack/pull/11581
         if "+python" in self.spec:
-            options.extend(
-                [
-                    define("PYTHON_EXECUTABLE", spec["python"].command.path),
-                    define("XRD_PYTHON_REQ_VERSION", spec["python"].version.up_to(2)),
-                ]
-            )
+            options.append(define("XRD_PYTHON_REQ_VERSION", spec["python"].version.up_to(2)))
 
         if "+scitokens-cpp" in self.spec:
             options.append("-DSCITOKENS_CPP_DIR=%s" % spec["scitokens-cpp"].prefix)

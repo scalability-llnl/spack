@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,6 +21,12 @@ class IntelMpiBenchmarks(MakefilePackage):
     url = "https://github.com/intel/mpi-benchmarks/archive/IMB-v2021.3.tar.gz"
     maintainers("carsonwoods")
 
+    license("BSD-3-Clause")
+
+    version("2021.7", sha256="acee02cc719a74e6853194576cb7e6bf1fdc74f8971578e1b2141306c3c19477")
+    version("2021.6", sha256="57d1bcc0027f8fc7bffe323ab70cc9d3f1d7482d456c47b4a9e7c4337089bd54")
+    version("2021.5", sha256="ac144dbfad8759e4956d99569dfcbec25758ba10abfb5ae2d83831660f27be60")
+    version("2021.4", sha256="786570f0ff46aab01c4e5ecbde72c8051682809b23a04e55554f265b761ddde3")
     version("2021.3", sha256="9b58a4a7eef7c0c877513152340948402fd87cb06270d2d81308dc2ef740f4c7")
     version("2021.2", sha256="ade3bfe18b4313a31fc09f0bf038e0a6c169c4145089bfc6f1f827687b81be6a")
     version("2021.1", sha256="9089bb81e3091af3481e03b898b339fb2d9fb6574d4ef059adb1f5410112b23a")
@@ -33,6 +39,9 @@ class IntelMpiBenchmarks(MakefilePackage):
     version("2019.0", sha256="1c7d44aa7fd86ca84ac7cae1a69a8426243048d6294582337f1de7b4ffe68d37")
     version("2018.1", sha256="718a4eb155f18cf15a736f6496332407b5837cf1f19831723d4cfe5266c43507")
     version("2018.0", sha256="2e60a9894a686a95791be2227bc569bf81ca3875421b5307df7d83f885b1de88")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("mpi", when="@2019:")
     depends_on("intel-mpi", when="@2018")
@@ -89,25 +98,25 @@ class IntelMpiBenchmarks(MakefilePackage):
     def build_targets(self):
         spec = self.spec
         targets = []
-        if "+mpi1" in spec:
+        if spec.satisfies("+mpi1"):
             targets.append("MPI1")
-        if "+ext" in spec:
+        if spec.satisfies("+ext"):
             targets.append("EXT")
-        if "+io" in spec:
+        if spec.satisfies("+io"):
             targets.append("IO")
-        if "+nbc" in spec:
+        if spec.satisfies("+nbc"):
             targets.append("NBC")
-        if "+p2p" in spec:
+        if spec.satisfies("+p2p"):
             targets.append("P2P")
-        if "+rma" in spec:
+        if spec.satisfies("+rma"):
             targets.append("RMA")
-        if "+mt" in spec:
+        if spec.satisfies("+mt"):
             targets.append("MT")
 
         if spec.satisfies("@2019:"):
             targets = ["TARGET=" + target for target in targets]
 
-        if "+check" in spec:
+        if spec.satisfies("+check"):
             targets.append("CPPFLAGS=-DCHECK")
 
         return targets
@@ -120,17 +129,17 @@ class IntelMpiBenchmarks(MakefilePackage):
         mkdir(prefix.bin)
 
         with working_dir(self.build_directory):
-            if "+mpi1" in spec:
+            if spec.satisfies("+mpi1"):
                 install("IMB-MPI1", prefix.bin)
-            if "+ext" in spec:
+            if spec.satisfies("+ext"):
                 install("IMB-EXT", prefix.bin)
-            if "+io" in spec:
+            if spec.satisfies("+io"):
                 install("IMB-IO", prefix.bin)
-            if "+nbc" in spec:
+            if spec.satisfies("+nbc"):
                 install("IMB-NBC", prefix.bin)
-            if "+p2p" in spec:
+            if spec.satisfies("+p2p"):
                 install("IMB-P2P", prefix.bin)
-            if "+rma" in spec:
+            if spec.satisfies("+rma"):
                 install("IMB-RMA", prefix.bin)
-            if "+mt" in spec:
+            if spec.satisfies("+mt"):
                 install("IMB-MT", prefix.bin)

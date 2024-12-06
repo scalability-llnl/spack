@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -26,5 +26,7 @@ class PerlIoAll(PerlPackage):
 
     homepage = "https://metacpan.org/pod/distribution/IO-All/lib/IO/All.pod"
     url = "https://cpan.metacpan.org/authors/id/F/FR/FREW/IO-All-0.87.tar.gz"
+
+    license("Artistic-1.0")
 
     version("0.87", sha256="54e21d250c0229127e30b77a3461e10077854ec244f26fb670f1b445ed4c4d5b")

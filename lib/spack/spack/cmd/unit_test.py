@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -9,6 +9,8 @@ import io
 import os.path
 import re
 import sys
+
+import spack.extensions
 
 try:
     import pytest
@@ -33,6 +35,13 @@ def setup_parser(subparser):
         action="store_true",
         default=False,
         help="show full pytest help, with advanced options",
+    )
+    subparser.add_argument(
+        "-n",
+        "--numprocesses",
+        type=int,
+        default=1,
+        help="run tests in parallel up to this wide, default 1 for sequential",
     )
 
     # extra spack arguments to list tests
@@ -207,8 +216,6 @@ def unit_test(parser, args, unknown_args):
 
     # Ensure clingo is available before switching to the
     # mock configuration used by unit tests
-    # Note: skip on windows here because for the moment,
-    # clingo is wholly unsupported from bootstrap
     with spack.bootstrap.ensure_bootstrap_configuration():
         spack.bootstrap.ensure_core_dependencies()
         if pytest is None:
@@ -227,9 +234,17 @@ def unit_test(parser, args, unknown_args):
     # has been used, then test that extension.
     pytest_root = spack.paths.spack_root
     if args.extension:
-        target = args.extension
-        extensions = spack.extensions.get_extension_paths()
-        pytest_root = spack.extensions.path_for_extension(target, *extensions)
+        pytest_root = spack.extensions.load_extension(args.extension)
+
+    if args.numprocesses is not None and args.numprocesses > 1:
+        pytest_args.extend(
+            [
+                "--dist",
+                "loadfile",
+                "--tx",
+                f"{args.numprocesses}*popen//python=spack-tmpconfig spack python",
+            ]
+        )
 
     # pytest.ini lives in the root of the spack repository.
     with llnl.util.filesystem.working_dir(pytest_root):

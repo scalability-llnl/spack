@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyOntFast5Api(PythonPackage):
 
     homepage = "https://github.com/nanoporetech/ont_fast5_api"
     pypi = "ont-fast5-api/ont-fast5-api-0.3.2.tar.gz"
+
+    license("MPL-2.0")
 
     version("4.1.0", sha256="afa58fb0a73ac33161fe0d13d32698b3325756c370f2f440a8a43b4b68c75f32")
     version("0.3.2", sha256="ae44b1bcd812e8acf8beff3db92456647c343cf19340f97cff4847de5cc905d8")

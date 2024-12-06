@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,6 +22,11 @@ class RJsonlite(RPackage):
 
     cran = "jsonlite"
 
+    license("MIT")
+
+    version("1.8.8", sha256="7de21316984c3ba3d7423d12f43d1c30c716007c5e39bf07e11885e0ceb0caa4")
+    version("1.8.7", sha256="7d42b7784b72d728698ea02b97818df51e2015ffa39fec2eaa2400771b0f601c")
+    version("1.8.5", sha256="dc3cca4bdca1b6d6836c412760ea9656140683126c54cb89c3e42219dec4a3ad")
     version("1.8.4", sha256="79eaabe042226b0918aa828cc63d54fee8be67ae7c67f5e0d3010f468efb1278")
     version("1.8.3", sha256="c57f1daf681fc7d5db893693a65ac61a48ddd7aabf66b28647b0e30df92ac8f0")
     version("1.8.2", sha256="677b645c081a7e004b71f0c48a1d46c1be9715163ccb6b419fbb0342a6c9cc3a")
@@ -34,3 +39,5 @@ class RJsonlite(RPackage):
     version("1.2", sha256="cb6b4660468d2db84ed09c7b8fefd169fcfc13e1e6b4e7ce64dce2713f34264d")
     version("1.0", sha256="d756dd6367e3fc515c855bb0b34a3a81955f8aeb494db029a893f3cdfcff962d")
     version("0.9.21", sha256="079349342ea6eb92bd5fa8f6a7c08d9e3652c3d41010b64afbc3297671eb3791")
+
+    depends_on("c", type="build")  # generated

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyMako(PythonPackage):
     homepage = "https://www.makotemplates.org/"
     pypi = "Mako/Mako-1.0.1.tar.gz"
     git = "https://github.com/sqlalchemy/mako"
+
+    license("MIT")
 
     version("1.2.4", sha256="d60a3903dc3bb01a18ad6a89cdbe2e4eadc69c0bc8ef1e3773ba53d44c3f7a34")
     version("1.2.2", sha256="3724869b363ba630a272a5f89f68c070352137b8fd1757650017b7e06fda163f")

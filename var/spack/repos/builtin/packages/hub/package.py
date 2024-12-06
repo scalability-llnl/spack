@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class Hub(Package):
     homepage = "https://github.com/github/hub"
     url = "https://github.com/github/hub/archive/v2.2.2.tar.gz"
     git = "https://github.com/github/hub.git"
+
+    license("MIT")
 
     version("master", branch="master")
     version("2.14.2", sha256="e19e0fdfd1c69c401e1c24dd2d4ecf3fd9044aa4bd3f8d6fd942ed1b2b2ad21a")
@@ -37,6 +39,8 @@ class Hub(Package):
         sha256="b7fe404d7dc5f60554f088bec12de5e80229331430ea0ced46d5bf89ecae5117",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
 
     extends("go")
 

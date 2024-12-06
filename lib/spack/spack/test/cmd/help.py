@@ -1,30 +1,14 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-import pytest
-
 from spack.main import SpackCommand
 
 
-@pytest.mark.xfail
 def test_reuse_after_help():
     """Test `spack help` can be called twice with the same SpackCommand."""
     help_cmd = SpackCommand("help", subprocess=True)
     help_cmd()
-
-    # This second invocation will somehow fail because the parser no
-    # longer works after add_all_commands() is called in
-    # SpackArgumentParser.format_help_sections().
-    #
-    # TODO: figure out why this doesn't work properly and change this
-    # test to use a single SpackCommand.
-    #
-    # It seems that parse_known_args() finds "too few arguments" the
-    # second time through b/c add_all_commands() ends up leaving extra
-    # positionals in the parser. But this used to work before we loaded
-    # commands lazily.
     help_cmd()
 
 

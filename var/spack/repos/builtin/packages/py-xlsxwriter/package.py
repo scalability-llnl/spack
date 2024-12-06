@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyXlsxwriter(PythonPackage):
     file format."""
 
     pypi = "XlsxWriter/XlsxWriter-1.0.2.tar.gz"
+
+    license("BSD-2-Clause")
 
     version("3.1.7", sha256="353042efb0f8551ce72baa087e98228f3394fcb380e8b96313edf1eec8d50823")
     version("3.0.3", sha256="e89f4a1d2fa2c9ea15cde77de95cd3fd8b0345d0efb3964623f395c8c4988b7f")

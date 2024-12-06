@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyBokeh(PythonPackage):
 
     homepage = "https://bokeh.org/"
     pypi = "bokeh/bokeh-0.12.2.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("3.3.1", sha256="2a7b3702d7e9f03ef4cd801b02b7380196c70cff2773859bcb84fa565218955c")
     version("2.4.3", sha256="ef33801161af379665ab7a34684f2209861e3aefd5c803a21fbbb99d94874b03")
@@ -44,6 +46,8 @@ class PyBokeh(PythonPackage):
     depends_on("py-numpy@1.7.1:", type=("build", "run"))
     depends_on("py-numpy@1.11.3:", type=("build", "run"), when="@2.3.3:")
     depends_on("py-numpy@1.16:", type=("build", "run"), when="@3.1:")
+    # https://github.com/bokeh/bokeh/issues/13835
+    depends_on("py-numpy@:1", when="@:3.4.0", type=("build", "run"))
 
     depends_on("py-packaging@16.8:", type=("build", "run"), when="@1.3.4:")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyPatsy(PythonPackage):
 
     homepage = "https://github.com/pydata/patsy"
     pypi = "patsy/patsy-0.5.2.tar.gz"
+
+    license("PSF-2.0")
 
     version("0.5.3", sha256="bdc18001875e319bc91c812c1eb6a10be4bb13cb81eb763f466179dca3b67277")
     version("0.5.2", sha256="5053de7804676aba62783dbb0f23a2b3d74e35e5bfa238b88b7cbf148a38b69d")

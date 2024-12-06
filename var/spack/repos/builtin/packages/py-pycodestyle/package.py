@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyPycodestyle(PythonPackage):
 
     homepage = "https://github.com/PyCQA/pycodestyle"
     pypi = "pycodestyle/pycodestyle-2.8.0.tar.gz"
+
+    license("MIT")
 
     version("2.11.0", sha256="259bcc17857d8a8b3b4a2327324b79e5f020a13c16074670f9c8c8f872ea76d0")
     version("2.10.0", sha256="347187bdb476329d98f695c213d7295a846d1152ff4fe9bacb8a9590b8ee7053")

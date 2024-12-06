@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyAgate(PythonPackage):
 
     homepage = "https://agate.readthedocs.io/en/latest/"
     pypi = "agate/agate-1.6.1.tar.gz"
+
+    license("MIT")
 
     version("1.6.1", sha256="c93aaa500b439d71e4a5cf088d0006d2ce2c76f1950960c8843114e5f361dfd3")
 

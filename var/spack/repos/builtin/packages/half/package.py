@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,8 @@ class Half(Package):
     url = "https://downloads.sourceforge.net/project/half/half/2.1.0/half-2.1.0.zip"
 
     maintainers("bvanessen")
+
+    license("MIT")
 
     version("2.1.0", sha256="ad1788afe0300fa2b02b0d1df128d857f021f92ccf7c8bddd07812685fa07a25")
     version("1.12.0", sha256="cdd70d3bf3fe091b688e7ab3f48471c881a197d2c186c95cca8bf156961fb41c")

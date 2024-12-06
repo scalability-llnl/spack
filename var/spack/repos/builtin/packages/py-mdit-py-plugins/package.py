@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyMditPyPlugins(PythonPackage):
     homepage = "https://github.com/executablebooks/mdit-py-plugins/"
     git = "https://github.com/executablebooks/mdit-py-plugins/"
     pypi = "mdit-py-plugins/mdit-py-plugins-0.3.1.tar.gz"
+
+    license("MIT")
 
     version("0.3.1", sha256="3fc13298497d6e04fe96efdd41281bfe7622152f9caa1815ea99b5c893de9441")
     version("0.2.8", sha256="5991cef645502e80a5388ec4fc20885d2313d4871e8b8e320ca2de14ac0c015f")

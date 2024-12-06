@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyHttplib2(PythonPackage):
 
     homepage = "https://github.com/httplib2/httplib2"
     pypi = "httplib2/httplib2-0.13.1.tar.gz"
+
+    license("MIT")
 
     version("0.22.0", sha256="d7a10bc5ef5ab08322488bde8c726eeee5c8618723fdb399597ec58f3d82df81")
     version("0.20.4", sha256="58a98e45b4b1a48273073f905d2961666ecf0fbac4250ea5b47aef259eb5c585")

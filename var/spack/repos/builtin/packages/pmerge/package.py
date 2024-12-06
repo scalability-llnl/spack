@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,7 +17,11 @@ class Pmerge(AutotoolsPackage):
     homepage = "https://github.com/beiko-lab/PMERGE"
     git = "https://github.com/beiko-lab/PMERGE.git"
 
+    license("GPL-3.0-only")
+
     version("master", branch="master")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("automake@1.14.0:1.14", type="build")
     depends_on("autoconf", type="build")

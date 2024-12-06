@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyJedi(PythonPackage):
 
     homepage = "https://github.com/davidhalter/jedi"
     pypi = "jedi/jedi-0.9.0.tar.gz"
+
+    license("MIT")
 
     version("0.18.2", sha256="bae794c30d07f6d910d32a7048af09b5a39ed740918da923c6b780790ebac612")
     version("0.18.1", sha256="74137626a64a99c8eb6ae5832d99b3bdd7d29a3850fe2aa80a4126b2a7d949ab")
@@ -36,6 +38,8 @@ class PyJedi(PythonPackage):
         url="https://github.com/davidhalter/jedi/archive/v0.10.0.tar.gz",
     )
     version("0.9.0", sha256="3b4c19fba31bdead9ab7350fb9fa7c914c59b0a807dcdd5c00a05feb85491d31")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("py-setuptools", type=("build", "run"))
 

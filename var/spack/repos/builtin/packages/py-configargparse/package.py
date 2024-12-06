@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,9 +18,13 @@ class PyConfigargparse(PythonPackage):
     features."""
 
     homepage = "https://github.com/bw2/ConfigArgParse"
-    url = "https://github.com/bw2/ConfigArgParse/archive/1.2.3.tar.gz"
+    url = "https://github.com/bw2/ConfigArgParse/archive/1.7.tar.gz"
 
+    license("MIT")
+
+    version("1.7", sha256="4549d105790386d01f71beebc3aa457d4177315680b75415f05bc22e1e28183a")
+    version("1.5.7", sha256="2156f15ef4ccce4377427046789ce93e0b09ac425c7297f1c9572655bf11bdfe")
+    version("1.5.5", sha256="5b8316f11985aa169e51126086d3d6d24d7ba976585266311491015ddffbd717")
     version("1.2.3", sha256="0f1144a204e3b896d6ac900e151c1d13bde3103d6b7d541e3bb57514a94083bf")
 
-    depends_on("python@2.2:2,3.5:", type=("build", "run"))
     depends_on("py-setuptools", type="build")

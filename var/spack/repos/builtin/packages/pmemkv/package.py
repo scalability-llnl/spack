@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,6 +22,9 @@ class Pmemkv(CMakePackage):
     version("1.1", sha256="c4ca07c1fecad39b5dbf197673f033f27d74c9f9987f036f6eaf5c7f23a342f3")
     version("1.0.3", sha256="cae393a01ba69364271c5894046bf2c611f677ac88012f2473fadf6fcd20ff29")
     version("1.0.2", sha256="a0cbbb60c0342d6fd0b73d2cee1a1423c6a894b8d21daf669016809961fe23b8")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("libpmemobj-cpp@develop", when="@master")
     depends_on("libpmemobj-cpp@1.12:", when="@1.4:")

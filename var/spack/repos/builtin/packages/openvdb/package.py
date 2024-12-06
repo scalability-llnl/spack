@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,7 +10,6 @@ from spack.package import *
 
 
 class Openvdb(CMakePackage):
-
     """OpenVDB - a sparse volume data format."""
 
     homepage = "https://github.com/AcademySoftwareFoundation/openvdb"
@@ -20,12 +19,16 @@ class Openvdb(CMakePackage):
     # Github account name for drew@lagrangian.xyz
     maintainers("eloop")
 
+    license("MPL-2.0")
+
     version("develop", branch="develop")
     version("10.0.0", sha256="6d4f6b5ccd0f9d35a4886d9a51a98c97fa314f75bf9737c5121e91b706e2db70")
     version("9.1.0", sha256="914ee417b4607c75c95b53bc73a0599de4157c7d6a32e849e80f24e40fb64181")
     version("8.2.0", sha256="d2e77a0720db79e9c44830423bdb013c24a1cf50994dd61d570b6e0c3e0be699")
     version("8.0.1", sha256="a6845da7c604d2c72e4141c898930ac8a2375521e535f696c2cd92bebbe43c4f")
     version("7.1.0", sha256="0c3588c1ca6e647610738654ec2c6aaf41a203fd797f609fbeab1c9f7c3dc116")
+
+    depends_on("cxx", type="build")  # generated
 
     # these variants were for 8.0.1 and probably could be updated...
     variant("shared", default=True, description="Build as a shared library.")

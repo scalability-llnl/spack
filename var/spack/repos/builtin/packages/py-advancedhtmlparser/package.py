@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyAdvancedhtmlparser(PythonPackage):
 
     homepage = "https://github.com/kata198/AdvancedHTMLParser"
     pypi = "advancedhtmlparser/AdvancedHTMLParser-8.1.4.tar.gz"
+
+    license("LGPL-3.0-or-later")
 
     version("9.0.1", sha256="1b7f632ca4c61fca50ee896c84112b97915c07d5b25b9527aefe7cbad8458837")
     version("8.1.4", sha256="21a73137026c8ec3248c654a24cc40064196029256cdf71681149f6835e9ed39")

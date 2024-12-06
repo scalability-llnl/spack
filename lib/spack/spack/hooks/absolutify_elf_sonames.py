@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,7 +13,6 @@ import spack.bootstrap
 import spack.config
 import spack.relocate
 from spack.util.elf import ElfParsingError, parse_elf
-from spack.util.executable import Executable
 
 
 def is_shared_library_elf(filepath):
@@ -141,7 +140,7 @@ def post_install(spec, explicit=None):
         return
 
     # Only enable on platforms using ELF.
-    if not spec.satisfies("platform=linux") and not spec.satisfies("platform=cray"):
+    if not spec.satisfies("platform=linux"):
         return
 
     # Disable this hook when bootstrapping, to avoid recursion.
@@ -149,10 +148,9 @@ def post_install(spec, explicit=None):
         return
 
     # Should failing to locate patchelf be a hard error?
-    patchelf_path = spack.relocate._patchelf()
-    if not patchelf_path:
+    patchelf = spack.relocate._patchelf()
+    if not patchelf:
         return
-    patchelf = Executable(patchelf_path)
 
     fixes = find_and_patch_sonames(spec.prefix, spec.package.non_bindable_shared_objects, patchelf)
 

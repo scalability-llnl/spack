@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class Patchelf(AutotoolsPackage):
     list_depth = 1
 
     maintainers("haampie")
+
+    license("GPL-3.0-or-later")
 
     version("0.18.0", sha256="64de10e4c6b8b8379db7e87f58030f336ea747c0515f381132e810dbf84a86e7")
     # patchelf 0.18 breaks libraries:
@@ -41,6 +43,9 @@ class Patchelf(AutotoolsPackage):
     version("0.10", sha256="b2deabce05c34ce98558c0efb965f209de592197b2c88e930298d740ead09019")
     version("0.9", sha256="f2aa40a6148cb3b0ca807a1bf836b081793e55ec9e5540a5356d800132be7e0a")
     version("0.8", sha256="14af06a2da688d577d64ff8dac065bb8903bbffbe01d30c62df7af9bf4ce72fe")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     conflicts("%gcc@:4.6", when="@0.10:", msg="Requires C++11 support")
     conflicts("%gcc@:6", when="@0.14:", msg="Requires C++17 support")

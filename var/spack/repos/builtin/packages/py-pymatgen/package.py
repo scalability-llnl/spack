@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyPymatgen(PythonPackage):
 
     homepage = "http://www.pymatgen.org/"
     pypi = "pymatgen/pymatgen-4.7.2.tar.gz"
+
+    license("MIT")
 
     version("2022.9.8", sha256="2250e05b81af3313bc0fc70cb558c2f528ed4eefb32d943ed9bd7a9756f03652")
     version("2021.3.9", sha256="a6f22d69133a48b7801bfd5e6a2878b47b4b4b2ef1a377b87c6c573be14cbf16")
@@ -50,3 +52,8 @@ class PyPymatgen(PythonPackage):
     depends_on("py-uncertainties@3.1.4:", when="@2021.1.1:", type=("build", "run"))
     depends_on("py-pybtex", when="@2022.1.9:", type=("build", "run"))
     depends_on("py-tqdm", when="@2022.1.9:", type=("build", "run"))
+
+    # <<< manual changes
+    # https://github.com/materialsproject/pymatgen/commit/29b5b909e109cb04d4b118d0de5b3929819b9378
+    depends_on("py-cython@:2", when="@:2023.7.16", type="build")
+    # manual changes >>>

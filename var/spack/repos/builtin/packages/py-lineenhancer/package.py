@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyLineenhancer(PythonPackage):
     pypi = "lineenhancer/lineenhancer-1.0.8.tar.gz"
 
     maintainers("dorton21")
+
+    license("MIT")
 
     version("1.0.8", sha256="a1c7f2556110135d7298b0002674b669b8bbf23f94d63e3e3db8f17f2fd3efbe")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,6 +21,8 @@ class PyNumpyGroupies(PythonPackage):
 
     homepage = "https://github.com/ml31415/numpy-groupies"
     pypi = "numpy_groupies/numpy_groupies-0.9.20.tar.gz"
+
+    license("BSD-2-Clause")
 
     version("0.9.20", sha256="923a382d6bc6876384b58a9c0503b05b9d36a660f329695c2d33e4f93fcbbe3d")
 

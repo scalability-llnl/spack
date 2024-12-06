@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -6,8 +6,10 @@
 """Schema for modules.yaml configuration file.
 
 .. literalinclude:: _spack_root/lib/spack/spack/schema/modules.py
-   :lines: 13-
+   :lines: 16-
 """
+from typing import Any, Dict
+
 import spack.schema.environment
 import spack.schema.projections
 
@@ -32,7 +34,7 @@ array_of_strings = {"type": "array", "default": [], "items": {"type": "string"}}
 
 dictionary_of_strings = {"type": "object", "patternProperties": {r"\w[\w-]*": {"type": "string"}}}
 
-dependency_selection = {"type": "string", "enum": ["none", "direct", "all"]}
+dependency_selection = {"type": "string", "enum": ["none", "run", "direct", "all"]}
 
 module_file_configuration = {
     "type": "object",
@@ -141,7 +143,7 @@ module_config_properties = {
 
 
 # Properties for inclusion into other schemas (requires definitions)
-properties = {
+properties: Dict[str, Any] = {
     "modules": {
         "type": "object",
         "additionalProperties": False,

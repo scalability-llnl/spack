@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,7 +13,12 @@ class Sortmerna(CMakePackage):
     homepage = "https://github.com/biocore/sortmerna"
     git = "https://github.com/biocore/sortmerna.git"
 
+    license("LGPL-3.0-or-later")
+
     version("2017-07-13", commit="8bde6fa113a5d99a23ae81b48eeea6760e966094")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("zlib-api")
     depends_on("sse2neon", when="target=aarch64:")

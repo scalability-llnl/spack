@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,8 @@ class PyPythonDaemon(PythonPackage):
     """
 
     pypi = "python-daemon/python-daemon-2.0.5.tar.gz"
+
+    license("GPL-3.0-or-later")
 
     version("2.3.1", sha256="15c2c5e2cef563e0a5f98d542b77ba59337380b472975d2b2fd6b8c4d5cf46ca")
     version("2.3.0", sha256="bda993f1623b1197699716d68d983bb580043cf2b8a66a01274d9b8297b0aeaf")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,7 +20,11 @@ class Circe2(AutotoolsPackage):
 
     maintainers("tmadlener")
 
+    license("GPL-2.0-or-later")
+
     version("3.1.2.1", sha256="8bb09e6f566adefcf7b5b1cf9d9fe4536dd3dd11ed3674861de29e177ee0bb04")
+
+    depends_on("fortran", type="build")  # generated
 
     variant("doc", default=False, description="Create the latex documentation")
 

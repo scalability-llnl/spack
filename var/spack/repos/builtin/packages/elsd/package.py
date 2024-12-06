@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,7 +12,11 @@ class Elsd(MakefilePackage):
     homepage = "http://ubee.enseeiht.fr/vision/ELSD/"
     git = "https://github.com/viorik/ELSD.git"
 
+    license("AGPL-3.0-only")
+
     version("master", branch="master")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("blas")
     depends_on("lapack")

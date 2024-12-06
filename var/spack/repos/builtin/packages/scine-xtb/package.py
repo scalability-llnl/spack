@@ -1,4 +1,4 @@
-# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,8 +15,12 @@ class ScineXtb(CMakePackage):
     url = "https://github.com/qcscine/xtb_wrapper/archive/refs/tags/1.0.2.tar.gz"
     git = "https://github.com/qcscine/xtb_wrapper.git"
 
+    license("BSD-3-Clause")
+
     version("master", branch="master")
     version("1.0.2", sha256="9beb1103467f3cfd9ad33beb2f3ec650bc3e6dc7094876774be3cc4e6f210487")
+
+    depends_on("cxx", type="build")  # generated
 
     resource(
         name="dev",
@@ -50,7 +54,7 @@ class ScineXtb(CMakePackage):
         os.rename("_dev", "dev")
 
     def cmake_args(self):
-        args = [
+        return [
             self.define("SCINE_BUILD_TESTS", self.run_tests),
             self.define("SCINE_BUILD_PYTHON_BINDINGS", "+python" in self.spec),
             self.define("SCINE_MARCH", ""),
@@ -60,6 +64,3 @@ class ScineXtb(CMakePackage):
             self.define("BOOST_NO_SYSTEM_PATHS", True),
             self.define("Boost_NO_BOOST_CMAKE", True),
         ]
-        if "+python" in self.spec:
-            args.append(self.define("PYTHON_EXECUTABLE", self.spec["python"].command.path))
-        return args

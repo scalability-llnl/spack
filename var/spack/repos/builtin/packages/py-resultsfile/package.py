@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyResultsfile(PythonPackage):
     git = "https://gitlab.com/scemama/resultsFile.git"
 
     maintainers("scemama")
+
+    license("GPL-2.0-only")
 
     version("2.0", sha256="2a34208254e4bea155695690437f6a59bf5f7b0ddb421d6c1a2d377510f018f7")
 

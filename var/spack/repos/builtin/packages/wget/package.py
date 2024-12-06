@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,10 @@ class Wget(AutotoolsPackage, GNUMirrorPackage):
     homepage = "https://www.gnu.org/software/wget/"
     gnu_mirror_path = "wget/wget-1.19.1.tar.gz"
 
+    license("GPL-3.0-or-later WITH OpenSSL-Exception")
+
+    version("1.24.5", sha256="fa2dc35bab5184ecbc46a9ef83def2aaaa3f4c9f3c97d4bd19dcb07d4da637de")
+    version("1.21.4", sha256="81542f5cefb8faacc39bbbc6c82ded80e3e4a88505ae72ea51df27525bcde04c")
     version("1.21.3", sha256="5726bb8bc5ca0f6dc7110f6416e4bb7019e2d2ff5bf93d1ca2ffcc6656f220e5")
     version("1.21.2", sha256="e6d4c76be82c676dd7e8c61a29b2ac8510ae108a810b5d1d18fc9a1d2c9a2497")
     version("1.21.1", sha256="59ba0bdade9ad135eda581ae4e59a7a9f25e3a4bde6a5419632b31906120e26e")
@@ -23,6 +27,8 @@ class Wget(AutotoolsPackage, GNUMirrorPackage):
     version("1.19.1", sha256="9e4f12da38cc6167d0752d934abe27c7b1599a9af294e73829be7ac7b5b4da40")
     version("1.17", sha256="3e04ad027c5b6ebd67c616eec13e66fbedb3d4d8cbe19cc29dadde44b92bda55")
     version("1.16", sha256="b977fc10ac7a72d987d48136251aeb332f2dced1aabd50d6d56bdf72e2b79101")
+
+    depends_on("c", type="build")  # generated
 
     variant(
         "ssl", default="openssl", values=("gnutls", "openssl"), description="Specify SSL backend"
@@ -34,6 +40,8 @@ class Wget(AutotoolsPackage, GNUMirrorPackage):
 
     depends_on("gnutls", when="ssl=gnutls")
     depends_on("openssl", when="ssl=openssl")
+    # OpenSSL 3.0 is not supported by wget, openssl@3.1: works:
+    conflicts("openssl@3.0", when="ssl=openssl")
 
     depends_on("gettext", type="build")
     depends_on("python@3:", type="build", when="+python")

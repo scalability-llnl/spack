@@ -1,4 +1,4 @@
-% Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+% Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 % Spack Project Developers. See the top-level COPYRIGHT file for details.
 %
 % SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,7 +13,8 @@
 #show attr/2.
 #show attr/3.
 #show attr/4.
-
+#show attr/5.
+#show attr/6.
 % names of optimization criteria
 #show opt_criterion/2.
 
@@ -38,7 +39,7 @@
 #show condition_requirement/4.
 #show condition_requirement/5.
 #show condition_requirement/6.
-#show node_has_variant/2.
+#show node_has_variant/3.
 #show build/1.
 #show external/1.
 #show external_version/3.
@@ -48,5 +49,6 @@
 #show condition_nodes/3.
 #show trigger_node/3.
 #show imposed_nodes/3.
+#show variant_single_value/2.
 
 % debug

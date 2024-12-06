@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyRedis(PythonPackage):
 
     homepage = "https://github.com/redis/redis-py"
     pypi = "redis/redis-3.3.8.tar.gz"
+
+    license("MIT")
 
     version("4.5.1", sha256="1eec3741cda408d3a5f84b78d089c8b8d895f21b3b050988351e925faf202864")
     version("3.5.3", sha256="0e7e0cfca8660dea8b7d5cd8c4f6c5e29e11f31158c0b0ae91a397f00e5a05a2")

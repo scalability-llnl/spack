@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,7 +15,11 @@ class PyAnnoy(PythonPackage):
     homepage = "https://github.com/spotify/annoy"
     pypi = "annoy/annoy-1.17.1.tar.gz"
 
+    license("Apache-2.0")
+
     version("1.17.1", sha256="bf177dbeafb81f63b2ac1e1246b1f26a2acc82e73ba46638734d29d8258122da")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("py-setuptools", type="build")
     depends_on("py-nose@1:", type="build")

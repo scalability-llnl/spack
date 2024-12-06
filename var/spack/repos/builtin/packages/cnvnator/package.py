@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class Cnvnator(MakefilePackage):
     url = "https://github.com/abyzovlab/CNVnator/archive/v0.3.3.tar.gz"
 
     version("0.3.3", sha256="58c5acf61f9a1e5febf546c196f8917a5e084b729e5c4cfd3eba83471b3fe5c1")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("samtools@:1.13")
     depends_on("htslib")

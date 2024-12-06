@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyCloudbridge(PythonPackage):
 
     homepage = "http://cloudbridge.cloudve.org"
     pypi = "cloudbridge/cloudbridge-3.1.0.tar.gz"
+
+    license("MIT")
 
     version("3.1.0", sha256="f9d3c1ae36b14a1c953d36c21a35fa2c72d42831cbbfe6117d13b25e9cccb28c")
 

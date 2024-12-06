@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyUsgs(PythonPackage):
     pypi = "usgs/usgs-0.2.7.tar.gz"
 
     maintainers("adamjstewart")
+
+    license("MIT")
 
     version("0.2.7", sha256="484e569ea1baf9574e11ccf15219957364690dcf06ee3d09afef030df944e79b")
 

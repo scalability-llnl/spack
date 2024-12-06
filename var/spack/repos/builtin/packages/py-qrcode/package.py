@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,7 +12,7 @@ class PyQrcode(PythonPackage):
     homepage = "https://github.com/lincolnloop/python-qrcode"
     pypi = "qrcode/qrcode-7.3.1.tar.gz"
 
-    maintainers("sethrj")
+    license("BSD-3-Clause")
 
     version("7.3.1", sha256="375a6ff240ca9bd41adc070428b5dfc1dcfbb0f2507f1ac848f6cded38956578")
 

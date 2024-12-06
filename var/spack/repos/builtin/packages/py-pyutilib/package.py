@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyPyutilib(PythonPackage):
 
     homepage = "https://github.com/PyUtilib/pyutilib"
     url = "https://github.com/PyUtilib/pyutilib/archive/5.5.1.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("6.0.0", sha256="b758419b42f9f512330644ebf05d54a1d3c5671268c344204e02f32713342de5")
     version("5.6.2", sha256="3f9f500cf1f15a92e7eb0b3c3ca2af537a2a9e61fe70ad6be4d2d08d9e47764f")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,7 +14,11 @@ class PyRich(PythonPackage):
     homepage = "https://github.com/willmcgugan/rich"
     pypi = "rich/rich-9.4.0.tar.gz"
 
+    license("MIT")
+
+    version("13.7.1", sha256="9be308cb1fe2f1f57d67ce99e95af38a1e2bc71ad9813b0e247cf7ffbcc3a432")
     version("13.4.2", sha256="d653d6bccede5844304c605d5aac802c7cf9621efd700b46c7ec2b51ea914898")
+    version("12.6.0", sha256="ba3a3775974105c221d31141f2c116f4fd65c5ceb0698657a11e9f295ec93fd0")
     version("12.5.1", sha256="63a5c5ce3673d3d5fbbf23cd87e11ab84b6b451436f1b7f19ec54b6bc36ed7ca")
     version("10.14.0", sha256="8bfe4546d56b4131298d3a9e571a0742de342f1593770bd0d4707299f772a0af")
     version("10.9.0", sha256="ba285f1c519519490034284e6a9d2e6e3f16dc7690f2de3d9140737d81304d22")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -25,11 +25,17 @@ class Compadre(CMakePackage):
     version("1.4.1", sha256="2e1e7d8e30953f76b6dc3a4c86ec8103d4b29447194cb5d5abb74b8e4099bdd9")
     version("1.3.0", sha256="f711a840fd921e84660451ded408023ec3bcfc98fd0a7dc4a299bfae6ab489c2")
 
-    depends_on("kokkos-kernels@3.3.01:3.6")
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
+    depends_on("kokkos-kernels@3.3.01:4")
     depends_on("cmake@3.13:", type="build")
 
     variant("mpi", default=False, description="Enable MPI support")
     depends_on("mpi", when="+mpi")
+
+    variant("tests", default=True, description="Enable tests and examples")
 
     # fixes duplicate symbol issue with static library build
     patch(
@@ -53,10 +59,14 @@ class Compadre(CMakePackage):
             ]
         )
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             options.append("-DCompadre_USE_MPI:BOOL=ON")
 
-        if "+shared" in spec:
+        if spec.satisfies("~tests"):
+            options.append("-DCompadre_EXAMPLES:BOOL=OFF")
+            options.append("-DCompadre_TESTS:BOOL=OFF")
+
+        if spec.satisfies("+shared"):
             options.append("-DBUILD_SHARED_LIBS:BOOL=ON")
         else:
             options.append("-DBUILD_SHARED_LIBS:BOOL=OFF")

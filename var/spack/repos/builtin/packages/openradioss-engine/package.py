@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,8 +22,14 @@ class OpenradiossEngine(CMakePackage):
     homepage = "https://www.openradioss.org/"
     git = "https://github.com/OpenRadioss/OpenRadioss.git"
 
+    license("AGPL-3.0-or-later")
+
     maintainers("kjrstory")
     version("main", branch="main")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("mpi", default=False, description="Enable MPI support")
     variant("sp", default=False, description="Using single precision option")
@@ -52,59 +58,52 @@ class OpenradiossEngine(CMakePackage):
     @property
     def compiler_name(self):
         compiler_mapping = {
-            "aocc": "64_AOCC",
-            "intel": "64_intel",
-            "oneapi": "64_intel",
-            "gcc": "64_gf",
-            "arm": "a64_gf",
+            "aocc": "linux64_AOCC",
+            "intel": "linux64_intel",
+            "oneapi": "linux64_intel",
+            "gcc": "linux64_gf",
+            "arm": "linuxa64",
         }
         compiler_name = compiler_mapping[self.spec.compiler.name]
         return compiler_name
 
     def cmake_args(self):
         args = [
-            "-Dmpi_os=0",
-            "-DCMAKE_Fortran_COMPILER={0}".format(spack_fc),
-            "-DCMAKE_C_COMPILER={0}".format(spack_cc),
-            "-DCMAKE_CPP_COMPILER={0}".format(spack_cxx),
-            "-DCMAKE_CXX_COMPILER={0}".format(spack_cxx),
-            "-Dsanitize=0",
+            self.define("mpi_os", False),
+            self.define("CMAKE_Fortran_COMPILER", spack_fc),
+            self.define("CMAKE_C_COMPILER", spack_cc),
+            self.define("CMAKE_CPP_COMPILER", spack_cxx),
+            self.define("CMAKE_CXX_COMPILER", spack_cxx),
+            self.define("sanitize", False),
+            self.define("arch", self.compiler_name),
+            self.define_from_variant("debug", "debug"),
+            self.define_from_variant("static_link", "static_link"),
         ]
 
-        args.append("-Drach=linux" + self.compiler_name)
-
         if "+sp" in self.spec:
-            args.append("-Dprecision=sp")
+            args.append(self.define("precision", "sp"))
         else:
-            args.append("-Dprecision=dp")
+            args.append(self.define("precision", "dp"))
 
         if "+mpi" in self.spec:
-            args.append("-DMPI=ompi")
-            args.append("-Dmpi_root=" + self.spec["mpi"].prefix)
-            args.append("-Dmpi_incdir=" + self.spec["mpi"].prefix.include)
-            args.append("-Dmpi_libdir=" + self.spec["mpi"].prefix.lib)
+            args.append(self.define("MPI", "ompi"))
+            args.append(self.define("mpi_root", self.spec["mpi"].prefix))
+            args.append(self.define("mpi_incdir", self.spec["mpi"].prefix.include))
+            args.append(self.define("mpi_libdir", self.spec["mpi"].prefix.lib))
         else:
-            args.append("-DMPI=smp")
+            args.append(self.define("MPI", "smp"))
 
-        if "+debug" in self.spec:
-            args.append("-Ddebug=1")
-        else:
-            args.append("-Ddebug=0")
-
-        if "+static_link" in self.spec:
-            args.append("-Dstatic_link=1")
-        else:
-            args.append("-Dstatic_link=0")
+        exec_file = f"engine_{self.compiler_name}"
+        exec_file += "_ompi" if "+mpi" in self.spec else ""
+        args.append(self.define("EXEC_NAME", exec_file))
 
         return args
 
     def install(self, spec, prefix):
         mkdirp(join_path(prefix, "exec"))
 
-        if "+mpi" in spec:
-            exec_file = "engine_linux" + self.compiler_name + "_ompi"
-        else:
-            exec_file = "engine_linux" + self.compiler_name
+        exec_file = f"engine_{self.compiler_name}"
+        exec_file += "_ompi" if "+mpi" in self.spec else ""
 
         install(
             join_path(self.stage.source_path, "engine", exec_file),

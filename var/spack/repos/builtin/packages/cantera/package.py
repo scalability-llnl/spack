@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,10 @@ class Cantera(SConsPackage):
     version("2.4.0", sha256="0dc771693b657d8f4ba835dd229939e5b9cfd8348d2f5ba82775451a524365a5")
     version("2.3.0", sha256="06624f0f06bdd2acc9c0dba13443d945323ba40f68a9d422d95247c02e539b57")
     version("2.2.1", sha256="c7bca241848f541466f56e479402521c618410168e8983e2b54ae48888480e1e")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("python", default=False, description="Build the Cantera Python module")
     variant("matlab", default=False, description="Build the Cantera Matlab toolbox")
@@ -114,7 +118,7 @@ class Cantera(SConsPackage):
             )
 
         # Sundials support
-        if "+sundials" in spec:
+        if spec.satisfies("+sundials"):
             if spec.satisfies("@2.3.0:"):
                 args.append("system_sundials=y")
             else:
@@ -133,14 +137,10 @@ class Cantera(SConsPackage):
             )
 
         # Python module
-        if "+python" in spec:
-            args.extend(
-                ["python_package=full", "python_cmd={0}".format(spec["python"].command.path)]
-            )
+        if spec.satisfies("+python"):
+            args.extend(["python_package=full", "python_cmd={0}".format(python.path)])
             if spec["python"].satisfies("@3:"):
-                args.extend(
-                    ["python3_package=y", "python3_cmd={0}".format(spec["python"].command.path)]
-                )
+                args.extend(["python3_package=y", "python3_cmd={0}".format(python.path)])
             else:
                 args.append("python3_package=n")
         else:
@@ -148,7 +148,7 @@ class Cantera(SConsPackage):
             args.append("python3_package=n")
 
         # Matlab toolbox
-        if "+matlab" in spec:
+        if spec.satisfies("+matlab"):
             args.extend(["matlab_toolbox=y", "matlab_path={0}".format(spec["matlab"].prefix)])
         else:
             args.append("matlab_toolbox=n")
@@ -156,7 +156,7 @@ class Cantera(SConsPackage):
         return args
 
     def build_test(self):
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             # Tests will always fail if Python dependencies aren't built
             # In addition, 3 of the tests fail when run in parallel
             scons("test", parallel=False)

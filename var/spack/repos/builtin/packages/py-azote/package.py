@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyAzote(PythonPackage):
 
     homepage = "https://github.com/nwg-piotr/azote"
     url = "https://github.com/nwg-piotr/azote/archive/v1.7.14.tar.gz"
+
+    license("GPL-3.0-only")
 
     version("1.7.14", sha256="68f9be55858dc33650a6712f68c9e5d2c96be9d7ca380dbde8ea9b2895f3f22f")
     version("1.7.12", sha256="71d56784decf19b4e1a30943e054fd95f5044f7d471a65cecfef885ac8ef917e")

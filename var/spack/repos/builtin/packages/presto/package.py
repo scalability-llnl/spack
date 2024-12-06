@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class Presto(MavenPackage):
 
     homepage = "https://prestodb.io/"
     url = "https://github.com/prestodb/presto/archive/0.239.tar.gz"
+
+    license("Apache-2.0")
 
     version("0.239", sha256="cff738eecf9e4e0bb58a9b0366053a328c4ac4e72d3e8209e8c654f6e1b8985f")
     version("0.238.2", sha256="cb79311cb27695e00108c84c6e135c0b1f8ffb631013c2b25ed8565f9cf1b71f")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -28,12 +28,18 @@ class Gawk(AutotoolsPackage, GNUMirrorPackage):
 
     tags = ["build-tools", "core-packages"]
 
+    license("GPL-3.0-or-later")
+
+    version("5.3.1", sha256="694db764812a6236423d4ff40ceb7b6c4c441301b72ad502bb5c27e00cd56f78")
+    version("5.3.0", sha256="ca9c16d3d11d0ff8c69d79dc0b47267e1329a69b39b799895604ed447d3ca90b")
     version("5.2.2", sha256="3c1fce1446b4cbee1cd273bd7ec64bc87d89f61537471cd3e05e33a965a250e9")
     version("5.2.1", sha256="673553b91f9e18cc5792ed51075df8d510c9040f550a6f74e09c9add243a7e4f")
     version("5.1.1", sha256="d87629386e894bbea11a5e00515fc909dc9b7249529dad9e6a3a2c77085f7ea2")
     version("5.1.0", sha256="cf5fea4ac5665fd5171af4716baab2effc76306a9572988d5ba1078f196382bd")
     version("5.0.1", sha256="8e4e86f04ed789648b66f757329743a0d6dfb5294c3b91b756a474f1ce05a794")
     version("4.1.4", sha256="53e184e2d0f90def9207860531802456322be091c7b48f23fdc79cda65adc266")
+
+    depends_on("c", type="build")  # generated
 
     variant("nls", default=False, description="Enable Native Language Support")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,8 +15,12 @@ class Dropwatch(AutotoolsPackage):
     homepage = "https://github.com/nhorman/dropwatch"
     url = "https://github.com/nhorman/dropwatch/archive/v1.5.3.tar.gz"
 
+    license("GPL-2.0")
+
     version("1.5.4", sha256="8c43d0c15d0cb9ce179fa1fb0610611723689a6f551b23c70a7ddc1cf068e8d2")
     version("1.5.3", sha256="b748b66a816c1f94531446c0451da5461a4a31b0949244bb867d741c6ac0148b")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

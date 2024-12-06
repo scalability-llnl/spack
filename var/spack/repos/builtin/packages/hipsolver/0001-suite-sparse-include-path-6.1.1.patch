@@ -1,0 +1,38 @@
+From 329ee96fa7004c6fb0a8f93375e9081ef717fbab Mon Sep 17 00:00:00 2001
+From: Renjith Ravindran <Renjith.RavindranKannath@amd.com>
+Date: Fri, 31 May 2024 19:51:49 +0000
+Subject: [PATCH] suite-sparse include and library path 6.1.1
+
+---
+ CMakeLists.txt             | 1 +
+ library/src/CMakeLists.txt | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 52a059a..fddda0b 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -88,6 +88,7 @@ include( ROCMPackageConfigHelpers )
+ include( ROCMInstallSymlinks )
+ include( ROCMClients )
+ include( ROCMHeaderWrapper )
++include_directories(${SUITE_SPARSE_PATH}/include)
+ 
+ set ( VERSION_STRING "2.1.1" )
+ rocm_setup_version( VERSION ${VERSION_STRING} )
+diff --git a/library/src/CMakeLists.txt b/library/src/CMakeLists.txt
+index ec708df..7b0e414 100644
+--- a/library/src/CMakeLists.txt
++++ b/library/src/CMakeLists.txt
+@@ -135,7 +135,7 @@ if( NOT USE_CUDA )
+       endif( )
+     endif( )
+ 
+-    target_link_libraries( hipsolver PRIVATE roc::rocsparse suitesparseconfig cholmod )
++    target_link_libraries( hipsolver PRIVATE roc::rocsparse ${SUITE_SPARSE_LIBDIR}/libsuitesparseconfig.so ${SUITE_SPARSE_LIBDIR}/libcholmod.so )
+     set_source_files_properties(${hipsolver_source}
+       PROPERTIES
+         COMPILE_DEFINITIONS HAVE_ROCSPARSE
+-- 
+2.17.1
+

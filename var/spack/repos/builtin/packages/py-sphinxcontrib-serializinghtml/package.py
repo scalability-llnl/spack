@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,8 @@ class PySphinxcontribSerializinghtml(PythonPackage):
     # 'sphinxcontrib-serializinghtml' requires 'sphinx' at run-time. Don't bother trying
     # to import any modules.
     import_modules: List[str] = []
+
+    license("BSD-2-Clause")
 
     version("1.1.9", sha256="0c64ff898339e1fac29abd2bf5f11078f3ec413cfe9c046d3120d7ca65530b54")
     version("1.1.5", sha256="aa5f6de5dfdf809ef505c4895e51ef5c9eac17d0f287933eb49ec495280b6952")

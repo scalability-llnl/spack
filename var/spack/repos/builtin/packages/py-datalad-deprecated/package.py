@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyDataladDeprecated(PythonPackage):
 
     homepage = "https://github.com/datalad/datalad-deprecated"
     pypi = "datalad_deprecated/datalad_deprecated-0.3.0.tar.gz"
+
+    license("MIT")
 
     version("0.3.0", sha256="874cf31c7640a9eafe7c5ecf36f0924d5d5b47222666a55ef10eabb9c29f46cd")
 

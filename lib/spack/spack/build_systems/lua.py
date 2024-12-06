@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -29,15 +29,12 @@ class LuaPackage(spack.package_base.PackageBase):
 
     with when("build_system=lua"):
         depends_on("lua-lang")
-        extends("lua", when="^lua")
-        with when("^lua-luajit"):
-            extends("lua-luajit")
-            depends_on("luajit")
-            depends_on("lua-luajit+lualinks")
-        with when("^lua-luajit-openresty"):
-            extends("lua-luajit-openresty")
-            depends_on("luajit")
-            depends_on("lua-luajit-openresty+lualinks")
+        with when("^[virtuals=lua-lang] lua"):
+            extends("lua")
+        with when("^[virtuals=lua-lang] lua-luajit"):
+            extends("lua-luajit+lualinks")
+        with when("^[virtuals=lua-lang] lua-luajit-openresty"):
+            extends("lua-luajit-openresty+lualinks")
 
     @property
     def lua(self):

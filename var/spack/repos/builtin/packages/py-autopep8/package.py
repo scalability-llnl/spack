@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyAutopep8(PythonPackage):
 
     homepage = "https://github.com/hhatto/autopep8"
     pypi = "autopep8/autopep8-1.2.4.tar.gz"
+
+    license("MIT")
 
     version("1.7.0", sha256="ca9b1a83e53a7fad65d731dc7a2a2d50aa48f43850407c59f6a1a306c4201142")
     version("1.6.0", sha256="44f0932855039d2c15c4510d6df665e4730f2b8582704fa48f9c55bd3e17d979")

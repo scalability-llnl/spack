@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class Pasta(PythonPackage):
     homepage = "https://github.com/smirarab/pasta"
     git = "https://github.com/smirarab/pasta"
     maintainers("snehring")
+
+    license("GPL-3.0-or-later")
 
     version("1.9.0", commit="370ae2d21ef461bcb2cef7c20cb5a4a1db7ff99d")
 

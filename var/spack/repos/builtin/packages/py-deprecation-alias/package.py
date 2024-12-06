@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyDeprecationAlias(PythonPackage):
 
     homepage = "https://github.com/domdfcoding/deprecation-alias"
     pypi = "deprecation_alias/deprecation-alias-0.3.2.tar.gz"
+
+    license("Apache-2.0")
 
     version("0.3.2", sha256="1c9e1a5ddd0a276a1a18e7a4f9d56b53232217491c4549eaa45e51753013ce76")
 

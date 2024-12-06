@@ -1,4 +1,4 @@
-.. Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
    Spack Project Developers. See the top-level COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -88,13 +88,13 @@ command-line. However, Makefiles that use ``?=`` for assignment honor
 environment variables. Since Spack already sets ``CC``, ``CXX``, ``F77``,
 and ``FC``, you won't need to worry about setting these variables. If
 there are any other variables you need to set, you can do this in the
-``edit`` method:
+``setup_build_environment`` method:
 
 .. code-block:: python
 
-   def edit(self, spec, prefix):
-       env["PREFIX"] = prefix
-       env["BLASLIB"] = spec["blas"].libs.ld_flags
+   def setup_build_environment(self, env):
+       env.set("PREFIX", prefix)
+       env.set("BLASLIB", spec["blas"].libs.ld_flags)
 
 
 `cbench <https://github.com/spack/spack/blob/develop/var/spack/repos/builtin/packages/cbench/package.py>`_
@@ -140,7 +140,7 @@ Edit Makefile
 Some Makefiles are just plain stubborn and will ignore command-line
 variables. The only way to ensure that these packages build correctly
 is to directly edit the Makefile. Spack provides a ``FileFilter`` class
-and a ``filter_file`` method to help with this. For example:
+and a ``filter`` method to help with this. For example:
 
 .. code-block:: python
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyWsproto(PythonPackage):
 
     homepage = "https://github.com/python-hyper/wsproto/"
     pypi = "wsproto/wsproto-1.0.0.tar.gz"
+
+    license("MIT")
 
     version("1.0.0", sha256="868776f8456997ad0d9720f7322b746bbe9193751b5b290b7f924659377c8c38")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class Scripts(AutotoolsPackage, XorgPackage):
     xorg_mirror_path = "app/scripts-1.0.1.tar.gz"
 
     version("1.0.1", sha256="0ed6dabdbe821944d61830489ad5f21bd934550456b9157a1cd8a32f76e08279")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("libx11")
 

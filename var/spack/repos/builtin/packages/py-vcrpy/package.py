@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyVcrpy(PythonPackage):
 
     homepage = "https://github.com/kevin1024/vcrpy"
     pypi = "vcrpy/vcrpy-4.1.1.tar.gz"
+
+    license("MIT")
 
     version("5.1.0", sha256="bbf1532f2618a04f11bce2a99af3a9647a32c880957293ff91e0a5f187b6b3d2")
     version("4.2.1", sha256="7cd3e81a2c492e01c281f180bcc2a86b520b173d2b656cb5d89d99475423e013")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,8 +15,15 @@ class PyBlack(PythonPackage):
     homepage = "https://github.com/psf/black"
     pypi = "black/black-22.1.0.tar.gz"
 
-    maintainers("adamjstewart")
+    license("MIT", checked_by="tgamblin")
+    maintainers("spack/spack-releasers")
 
+    version("24.3.0", sha256="a0c9c4a0771afc6919578cec71ce82a3e31e054904e7197deacbc9382671c41f")
+    version("24.2.0", sha256="bce4f25c27c3435e4dace4815bcb2008b87e167e3bf4ee47ccdc5ce906eb4894")
+    version("24.1.1", sha256="48b5760dcbfe5cf97fd4fba23946681f3a81514c6ab8a45b50da67ac8fbc6c7b")
+    version("24.1.0", sha256="30fbf768cd4f4576598b1db0202413fafea9a227ef808d1a12230c643cefe9fc")
+    version("23.12.1", sha256="4ce3ef14ebe8d9509188014d96af1c456a910d5b5cbf434a09fef7e024b3d0d5")
+    version("23.12.0", sha256="330a327b422aca0634ecd115985c1c7fd7bdb5b5a2ef8aa9888a82e2ebe9437a")
     version("23.11.0", sha256="4c68855825ff432d197229846f971bc4d6666ce90492e5b02013bcaca4d9ab05")
     version("23.10.1", sha256="1f8ce316753428ff68749c65a5f7844631aa18c8679dfd3ca9dc1a289979c258")
     version("23.10.0", sha256="31b9f87b277a68d0e99d2905edae08807c007973eaa609da5f0c62def6b7c0bd")
@@ -37,6 +44,7 @@ class PyBlack(PythonPackage):
     variant("d", default=False, description="enable blackd HTTP server")
     variant("jupyter", default=False, description="enable Jupyter support")
 
+    depends_on("py-hatchling@1.20:", when="@23.12.1:", type="build")
     depends_on("py-hatchling@1.8:", when="@22.10:", type="build")
     depends_on("py-hatch-vcs", when="@22.10:", type="build")
     depends_on("py-hatch-fancy-pypi-readme", when="@22.10:", type="build")

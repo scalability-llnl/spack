@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class Orthofiller(Package):
 
     homepage = "https://github.com/mpdunne/orthofiller/"
     url = "https://github.com/mpdunne/orthofiller/archive/1.1.4.tar.gz"
+
+    license("GPL-3.0-only")
 
     version("1.1.4", sha256="a693a3372a3f05041ce30cbf84da1be88e85eae4effe32dbd7809ccef119a295")
 

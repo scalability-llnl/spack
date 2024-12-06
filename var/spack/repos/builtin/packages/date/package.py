@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class Date(CMakePackage):
 
     homepage = "https://github.com/HowardHinnant/date"
     url = "https://github.com/HowardHinnant/date/archive/v3.0.0.zip"
+
+    license("MIT")
 
     version("3.0.1", sha256="f4300b96f7a304d4ef9bf6e0fa3ded72159f7f2d0f605bdde3e030a0dba7cf9f")
     version("3.0.0", sha256="ddbec664607bb6ec7dd4c7be1f9eefc3d8ce88293ffc9391486ce6ce887ec9b2")

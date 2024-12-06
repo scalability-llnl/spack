@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,9 @@ class PySip(PythonPackage):
     homepage = "https://www.riverbankcomputing.com/software/sip"
     pypi = "sip/sip-6.4.0.tar.gz"
 
+    license("GPL-2.0-or-later")
+
+    version("6.8.5", sha256="5dddd5966e9875d89ecde9d3e6ac63225f9972e4d25c09e20fa22f1819409c70")
     version("6.7.9", sha256="35d51fc10f599d3696abb50f29d068ad04763df7b77808c76b74597660f99b17")
     version("6.6.2", sha256="0e3efac1c5dfd8e525ae57140927df26993e13f58b89d1577c314f4105bfd90d")
     version("6.4.0", sha256="42ec368520b8da4a0987218510b1b520b4981e4405086c1be384733affc2bcb0")
@@ -26,6 +29,8 @@ class PySip(PythonPackage):
     version("4.19.15", sha256="02bff1ac89253e12cdf1406ad39f841d0e264b0d96a7de13dfe9e29740df2053")
     version("4.19.13", sha256="92193fcf990503bf29f03e290efc4ee1812d556efc18acf5c8b88c090177a630")
 
+    depends_on("c", type="build")  # generated
+
     variant(
         "module",
         default="sip",
@@ -35,14 +40,16 @@ class PySip(PythonPackage):
         multi=False,
     )
 
-    depends_on("py-ply", when="@6.6:", type=("build", "run"))
+    depends_on("py-ply", type=("build", "run"), when="@6.6:")
 
     with when("@5:"):
         depends_on("python", type=("build", "link", "run"))
         depends_on("py-packaging", type=("build", "run"))
-        depends_on("py-setuptools@30.3:", type=("build", "run"))
-        depends_on("py-tomli", when="@6.7: ^python@:3.10", type=("build", "run"))
-        depends_on("py-toml", when="@:6.6", type=("build", "run"))
+        depends_on("py-setuptools@64:", type=("build", "run"), when="@6.8.4:")
+        depends_on("py-setuptools@30.3:", type=("build", "run"), when="@:6.8.3")
+        depends_on("py-setuptools-scm@8:", type="build", when="@6.8.4:")
+        depends_on("py-tomli", type=("build", "run"), when="@6.7: ^python@:3.10")
+        depends_on("py-toml", type=("build", "run"), when="@:6.6")
 
     with when("@:4"):
         # Requires distutils

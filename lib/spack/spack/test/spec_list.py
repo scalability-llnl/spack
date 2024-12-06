@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -6,6 +6,7 @@ import itertools
 
 import pytest
 
+from spack.installer import PackageInstaller
 from spack.spec import Spec
 from spack.spec_list import SpecList
 
@@ -196,21 +197,28 @@ class TestSpecList:
         speclist = SpecList("specs", matrix)
         assert len(speclist.specs) == 1
 
-    @pytest.mark.regression("22991")
-    def test_spec_list_constraints_with_structure(
-        self, mock_packages, mock_fetch, install_mockery
-    ):
-        # Setup by getting hash and installing package with dep
-        libdwarf_spec = Spec("libdwarf").concretized()
-        libdwarf_spec.package.do_install()
+    def test_spec_list_exclude_with_abstract_hashes(self, mock_packages, install_mockery):
+        # Put mpich in the database so it can be referred to by hash.
+        mpich_1 = Spec("mpich+debug").concretized()
+        mpich_2 = Spec("mpich~debug").concretized()
+        PackageInstaller([mpich_1.package, mpich_2.package], explicit=True, fake=True).install()
 
-        # Create matrix
-        matrix = {
-            "matrix": [["mpileaks"], ["^callpath"], ["^libdwarf/%s" % libdwarf_spec.dag_hash()]]
-        }
+        # Create matrix and exclude +debug, which excludes the first mpich after its abstract hash
+        # is resolved.
+        speclist = SpecList(
+            "specs",
+            [
+                {
+                    "matrix": [
+                        ["mpileaks"],
+                        ["^callpath"],
+                        [f"^mpich/{mpich_1.dag_hash(5)}", f"^mpich/{mpich_2.dag_hash(5)}"],
+                    ],
+                    "exclude": ["^mpich+debug"],
+                }
+            ],
+        )
 
-        # ensure the concrete spec was retained in the matrix entry of which
-        # it is a dependency
-        speclist = SpecList("specs", [matrix])
+        # Ensure that only mpich~debug is selected, and that the assembled spec remains abstract.
         assert len(speclist.specs) == 1
-        assert libdwarf_spec in speclist.specs[0]
+        assert speclist.specs[0] == Spec(f"mpileaks ^callpath ^mpich/{mpich_2.dag_hash(5)}")

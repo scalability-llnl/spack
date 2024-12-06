@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -105,7 +105,7 @@ class GribApi(CMakePackage):
             for var, opt in var_opt_list
         ]
 
-        if "+netcdf" in self.spec:
+        if self.spec.satisfies("+netcdf"):
             args.extend(
                 [
                     "-DENABLE_NETCDF=ON",
@@ -128,12 +128,12 @@ class GribApi(CMakePackage):
         if self.spec.variants["jp2k"].value == "openjpeg":
             args.append("-DOPENJPEG_PATH=" + self.spec["openjpeg"].prefix)
 
-        if "+png" in self.spec:
+        if self.spec.satisfies("+png"):
             args.extend(["-DENABLE_PNG=ON", "-DZLIB_ROOT=" + self.spec["zlib-api"].prefix])
         else:
             args.append("-DENABLE_PNG=OFF")
 
-        if "+aec" in self.spec:
+        if self.spec.satisfies("+aec"):
             args.extend(
                 [
                     "-DENABLE_AEC=ON",

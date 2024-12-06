@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyAltgraph(PythonPackage):
     """
 
     pypi = "altgraph/altgraph-0.16.1.tar.gz"
+
+    license("MIT")
 
     version("0.16.1", sha256="ddf5320017147ba7b810198e0b6619bd7b5563aa034da388cea8546b877f9b0c")
 

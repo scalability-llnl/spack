@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyGcsOauth2BotoPlugin(PythonPackage):
     pypi = "gcs-oauth2-boto-plugin/gcs-oauth2-boto-plugin-2.7.tar.gz"
 
     maintainers("dorton21")
+
+    license("Apache-2.0")
 
     version("3.0", sha256="f4120b08b7f8d32904674c98f07d4caf4083a58343c0c0fa0016e0f0254dfe31")
     version("2.7", sha256="c95b011717911a6c40fbd3aa07a8faa0ab57570dee178d7148531327c4c6f93e")

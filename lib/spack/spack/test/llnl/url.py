@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -84,14 +84,15 @@ def test_get_bad_extension():
         ("astyle_1.23_macosx", "astyle_1.23"),
         ("haxe-2.08-osx", "haxe-2.08"),
         # PyPI - wheel
-        ("entrypoints-0.2.2-py2.py3-none-any.whl", "entrypoints-0.2.2"),
+        ("wheel-1.2.3-py3-none-any", "wheel-1.2.3"),
+        ("wheel-1.2.3-py2.py3-none-any", "wheel-1.2.3"),
+        ("wheel-1.2.3-cp38-abi3-macosx_10_12_x86_64", "wheel-1.2.3"),
+        ("entrypoints-0.2.2-py2.py3-none-any", "entrypoints-0.2.2"),
         (
             "numpy-1.12.0-cp27-cp27m-macosx_10_6_intel.macosx_10_9_intel."
-            "macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl",
+            "macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64",
             "numpy-1.12.0",
         ),
-        # PyPI - exe
-        ("PyYAML-3.12.win-amd64-py3.5.exe", "PyYAML-3.12"),
         # Combinations of multiple patterns - bin, release
         ("rocketmq-all-4.5.2-bin-release", "rocketmq-all-4.5.2"),
         # Combinations of multiple patterns - all
@@ -148,6 +149,8 @@ def test_strip_compression_extension(archive_and_expected):
         assert stripped == "Foo.zip"
         stripped = llnl.url.strip_compression_extension(archive, "zip")
         assert stripped == "Foo"
+    elif extension == "whl":
+        assert stripped == "Foo.whl"
     elif (
         extension.lower() == "tar"
         or extension in llnl.url.CONTRACTION_MAP

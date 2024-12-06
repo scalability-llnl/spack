@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -136,3 +136,16 @@ user_config_path = _get_user_config_path()
 
 #: System configuration location
 system_config_path = _get_system_config_path()
+
+#: Recorded directory where spack command was originally invoked
+spack_working_dir = None
+
+
+def set_working_dir():
+    """Change the working directory to getcwd, or spack prefix if no cwd."""
+    global spack_working_dir
+    try:
+        spack_working_dir = os.getcwd()
+    except OSError:
+        os.chdir(prefix)
+        spack_working_dir = prefix

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,8 @@ class CommonsLang(Package):
 
     homepage = "https://commons.apache.org/proper/commons-lang/"
     url = "https://archive.apache.org/dist/commons/lang/binaries/commons-lang-2.6-bin.tar.gz"
+
+    license("Apache-2.0")
 
     version("2.6", sha256="ff6a244bb71a9a1c859e81cb744d0ce698c20e04f13a7ef7dbffb99c8122752c")
     version("2.4", sha256="00e6b3174e31196d726c14302c8e7e9ba9b8409d57a8a9821c7648beeda31c5e")

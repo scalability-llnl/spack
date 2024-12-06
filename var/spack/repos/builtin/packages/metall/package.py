@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,9 +18,14 @@ class Metall(CMakePackage):
 
     tags = ["e4s"]
 
+    license("MIT")
+
     version("master", branch="master")
     version("develop", branch="develop")
 
+    version("0.28", sha256="770dedb7f8220c333688b232a22104ca9d8d5823e7a8a21152b58ef970eb85d0")
+    version("0.27", sha256="6e6f17a760778f9162def939701f9381a75e5275fd1eb1b2af4b2e89e86e1c58")
+    version("0.26", sha256="7453c87d99708be8542e354e582cbeefac1e5ba65e609cd85d7126c5b25a6d7b")
     version("0.25", sha256="223cb54543b62a62fdbbe6274b02ddcc14b29806e344ee7e2fd3f055c2374295")
     version("0.24", sha256="872de2a1b76d44e6876c0b672c0cc518c6f334959e4a229f2f18cc7e01edf477")
     version("0.23.1", sha256="25e8fbc424e66d09e0faf60029288e4612685675bfd947cc142bd9d6d0645ac4")
@@ -40,7 +45,10 @@ class Metall(CMakePackage):
     version("0.10", sha256="58b4b5507d4db5baca315b1bed2b728981755d755b91ef63bd0b6dfaf320f46b")
     version("0.9", sha256="2d7bd9ea2f1e04136050f210884445a9e3dcb96c992cf42ff9ea4b392f85f927")
 
-    depends_on("cmake@3.10:", type="build")
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
+    depends_on("cmake@3.12:", type="build")
     depends_on("boost@1.75:", type=("build", "link"))
 
     # googletest is required only for test

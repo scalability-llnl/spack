@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyMarkupsafe(PythonPackage):
     pypi = "MarkupSafe/MarkupSafe-1.1.1.tar.gz"
     git = "https://github.com/pallets/markupsafe.git"
 
+    license("BSD-3-Clause")
+
     version("2.1.3", sha256="af598ed32d6ae86f1b747b82783958b1a4ab8f617b06fe68795c7f026abbdcad")
     version("2.1.1", sha256="7f91197cc9e48f989d12e4e6fbc46495c446636dfc81b9ccf50bb0ec74b91d4b")
     version("2.0.1", sha256="594c67807fb16238b30c44bdf74f36c02cdf22d1c8cda91ef8a0ed8dabf5620a")
@@ -27,4 +29,7 @@ class PyMarkupsafe(PythonPackage):
     version("0.20", sha256="f6cf3bd233f9ea6147b21c7c02cac24e5363570ce4fd6be11dab9f499ed6a7d8")
     version("0.19", sha256="62fcc5d641df8b5ad271ebbd6b77a19cd92eceba1e1a990de4e96c867789f037")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
+    depends_on("python@3.7:", when="@2.0:")

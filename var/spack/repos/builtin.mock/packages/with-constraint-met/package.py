@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,8 +16,8 @@ class WithConstraintMet(Package):
     version("1.0", md5="0123456789abcdef0123456789abcdef")
 
     with when("@1.0"):
-        depends_on("b")
+        depends_on("pkg-b")
         conflicts("%gcc", when="+foo")
 
-    with when("@0.14: ^b@:4.0"):
-        depends_on("c", when="@:15 ^b@3.8:")
+    with when("@0.14: ^pkg-b@:4.0"):
+        depends_on("pkg-c", when="@:15 ^pkg-b@3.8:")

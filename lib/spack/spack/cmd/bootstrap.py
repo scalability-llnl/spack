@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,11 +16,11 @@ import spack.bootstrap
 import spack.bootstrap.config
 import spack.bootstrap.core
 import spack.config
-import spack.main
-import spack.mirror
+import spack.mirrors.utils
 import spack.spec
 import spack.stage
 import spack.util.path
+import spack.util.spack_yaml
 from spack.cmd.common import arguments
 
 description = "manage bootstrap configuration"
@@ -165,7 +165,7 @@ def _reset(args):
         if not ok_to_continue:
             raise RuntimeError("Aborting")
 
-    for scope in spack.config.CONFIG.file_scopes:
+    for scope in spack.config.CONFIG.writable_scopes:
         # The default scope should stay untouched
         if scope.name == "defaults":
             continue
@@ -400,7 +400,7 @@ def _mirror(args):
         llnl.util.tty.set_msg_enabled(False)
         spec = spack.spec.Spec(spec_str).concretized()
         for node in spec.traverse():
-            spack.mirror.create(mirror_dir, [node])
+            spack.mirrors.utils.create(mirror_dir, [node])
         llnl.util.tty.set_msg_enabled(True)
 
     if args.binary_packages:

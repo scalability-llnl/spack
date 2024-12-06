@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,7 +12,11 @@ class Hping(AutotoolsPackage):
     homepage = "http://www.hping.org"
     git = "https://github.com/antirez/hping.git"
 
+    license("GPL-2.0-only")
+
     version("master", commit="3547c7691742c6eaa31f8402e0ccbb81387c1b99")
+
+    depends_on("c", type="build")  # generated
 
     patch("bpf.patch", sha256="99b9f91a308ffca306f69ccdb285e289ee3d280ec47ec7229e3a7669cca512f2")
 

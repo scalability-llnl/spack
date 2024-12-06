@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyIsort(PythonPackage):
 
     homepage = "https://github.com/timothycrosley/isort"
     pypi = "isort/isort-4.2.15.tar.gz"
+
+    license("MIT")
 
     version("5.12.0", sha256="8bef7dde241278824a6d83f44a544709b065191b95b6e50894bdc722fcba0504")
     version("5.11.5", sha256="6be1f76a507cb2ecf16c7cf14a37e41609ca082330be4e3436a18ef74add55db")

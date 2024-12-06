@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyFastfold(PythonPackage):
     maintainers("meyersbs")
 
     version("0.2.0", sha256="6760dbae9809b8b26219c9477489d34325807be504098901d0375fbdc3103f88")
+
+    depends_on("cxx", type="build")  # generated
 
     # From README:
     depends_on("python@3.8:", type=("build", "run"))  # Req Relaxed (was @3.8:3.9)

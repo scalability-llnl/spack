@@ -1,0 +1,24 @@
+--- spack-src/timers.c.orig	2024-03-12 23:42:29.017345816 -0700
++++ spack-src/timers.c	2024-03-12 23:43:55.329454579 -0700
+@@ -32,9 +32,6 @@
+ 
+ #else  /* !MS_WINDOWS */
+ 
+-#ifndef HAVE_GETTIMEOFDAY
+-#error "This module requires gettimeofday() on non-Windows platforms!"
+-#endif
+ 
+ #if (defined(PYOS_OS2) && defined(PYCC_GCC))
+ #include <sys/time.h>
+@@ -48,11 +45,7 @@
+ {
+         struct timeval tv;
+         PY_LONG_LONG ret;
+-#ifdef GETTIMEOFDAY_NO_TZ
+-        gettimeofday(&tv);
+-#else
+         gettimeofday(&tv, (struct timezone *)NULL);
+-#endif
+         ret = tv.tv_sec;
+         ret = ret * 1000000 + tv.tv_usec;
+         return ret;

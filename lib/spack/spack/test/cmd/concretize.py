@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,7 +10,7 @@ import spack.environment as ev
 from spack import spack_version
 from spack.main import SpackCommand
 
-pytestmark = pytest.mark.usefixtures("config", "mutable_mock_repo")
+pytestmark = pytest.mark.usefixtures("mutable_config", "mutable_mock_repo")
 
 env = SpackCommand("env")
 add = SpackCommand("add")
@@ -51,8 +51,8 @@ def test_concretize_root_test_dependencies_are_concretized(unify, mutable_mock_e
 
     with ev.read("test") as e:
         e.unify = unify
-        add("a")
-        add("b")
+        add("pkg-a")
+        add("pkg-b")
         concretize("--test", "root")
         assert e.matching_spec("test-dependency")
 

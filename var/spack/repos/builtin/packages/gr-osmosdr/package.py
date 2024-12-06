@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -33,7 +33,11 @@ class GrOsmosdr(CMakePackage):
 
     variant("hackrf", default=True, description="Support HackRF Hardware")
 
+    license("GPL-3.0-only")
+
     version("0.2.2", sha256="5a7ce7afee38a56191b5d16cb4a91c92476729ff16ed09cbba5a3851ac619713")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("gnuradio")
     depends_on("swig", type="build")

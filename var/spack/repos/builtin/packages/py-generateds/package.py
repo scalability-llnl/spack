@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyGenerateds(PythonPackage):
     pypi = "generateDS/generateDS-2.41.4.tar.gz"
 
     maintainers("LydDeb")
+
+    license("MIT")
 
     version("2.43.2", sha256="e86f033f4d93414dd5b04cab9544a68b8f46d559073d85cd0990266b7b9ec09e")
     version("2.43.1", sha256="2d3d71b42a09ba153bc51d2204324d04e384d0f15e41bdba881ee2daff9bbd68")

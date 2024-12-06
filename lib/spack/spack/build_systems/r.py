@@ -1,11 +1,11 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import inspect
 from typing import Optional, Tuple
 
 import llnl.util.lang as lang
+from llnl.util.filesystem import mkdirp
 
 from spack.directives import extends
 
@@ -37,6 +37,7 @@ class RBuilder(GenericBuilder):
 
     def install(self, pkg, spec, prefix):
         """Installs an R package."""
+        mkdirp(pkg.module.r_lib_dir)
 
         config_args = self.configure_args()
         config_vars = self.configure_vars()
@@ -44,14 +45,14 @@ class RBuilder(GenericBuilder):
         args = ["--vanilla", "CMD", "INSTALL"]
 
         if config_args:
-            args.append("--configure-args={0}".format(" ".join(config_args)))
+            args.append(f"--configure-args={' '.join(config_args)}")
 
         if config_vars:
-            args.append("--configure-vars={0}".format(" ".join(config_vars)))
+            args.append(f"--configure-vars={' '.join(config_vars)}")
 
-        args.extend(["--library={0}".format(self.pkg.module.r_lib_dir), self.stage.source_path])
+        args.extend([f"--library={pkg.module.r_lib_dir}", self.stage.source_path])
 
-        inspect.getmodule(self.pkg).R(*args)
+        pkg.module.R(*args)
 
 
 class RPackage(Package):
@@ -80,27 +81,21 @@ class RPackage(Package):
     @lang.classproperty
     def homepage(cls):
         if cls.cran:
-            return "https://cloud.r-project.org/package=" + cls.cran
+            return f"https://cloud.r-project.org/package={cls.cran}"
         elif cls.bioc:
-            return "https://bioconductor.org/packages/" + cls.bioc
+            return f"https://bioconductor.org/packages/{cls.bioc}"
 
     @lang.classproperty
     def url(cls):
         if cls.cran:
-            return (
-                "https://cloud.r-project.org/src/contrib/"
-                + cls.cran
-                + "_"
-                + str(list(cls.versions)[0])
-                + ".tar.gz"
-            )
+            return f"https://cloud.r-project.org/src/contrib/{cls.cran}_{str(list(cls.versions)[0])}.tar.gz"
 
     @lang.classproperty
     def list_url(cls):
         if cls.cran:
-            return "https://cloud.r-project.org/src/contrib/Archive/" + cls.cran + "/"
+            return f"https://cloud.r-project.org/src/contrib/Archive/{cls.cran}/"
 
     @property
     def git(self):
         if self.bioc:
-            return "https://git.bioconductor.org/packages/" + self.bioc
+            return f"https://git.bioconductor.org/packages/{self.bioc}"

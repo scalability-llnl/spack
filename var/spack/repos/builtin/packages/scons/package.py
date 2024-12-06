@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,9 @@ class Scons(PythonPackage):
 
     tags = ["build-tools", "windows"]
 
+    license("MIT")
+
+    version("4.7.0", sha256="d8b617f6610a73e46509de70dcf82f76861b79762ff602d546f4e80918ec81f3")
     version("4.5.2", sha256="813360b2bce476bc9cc12a0f3a22d46ce520796b352557202cb07d3e402f5458")
     version("4.5.1", sha256="9daeabe4d87ba2bd4ea15410765fc1ed2d931b723e4dc730a487a3911b9a1738")
     version("4.4.0", sha256="7703c4e9d2200b4854a31800c1dbd4587e1fa86e75f58795c740bcfa7eca7eaa")
@@ -39,7 +42,7 @@ class Scons(PythonPackage):
 
     def url_for_version(self, version):
         url = "https://files.pythonhosted.org/packages/source/{0}/{1}/{1}-{2}.tar.gz"
-        if version >= Version("4.0.0"):
+        if self.spec.satisfies("@4.0.0:"):
             name = "SCons"
         else:
             name = "scons"

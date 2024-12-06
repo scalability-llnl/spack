@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,8 @@ class PyFlexmock(PythonPackage):
     pypi = "flexmock/flexmock-0.10.4.tar.gz"
 
     maintainers("dorton21")
+
+    license("BSD-2-Clause")
 
     version("0.10.4", sha256="5033ceb974d6452cf8716c2ff5059074b77e546df5c849fb44a53f98dfe0d82c")
 

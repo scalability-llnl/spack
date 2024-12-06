@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyConfection(PythonPackage):
 
     homepage = "https://github.com/explosion/confection"
     pypi = "confection/confection-0.0.4.tar.gz"
+
+    license("MIT")
 
     version("0.0.4", sha256="b1ddf5885da635f0e260a40b339730806dfb1bd17d30e08764f35af841b04ecf")
 

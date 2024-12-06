@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PyMarshmallow(PythonPackage):
     pypi = "marshmallow/marshmallow-3.15.0.tar.gz"
 
     maintainers("haralmha")
+
+    license("MIT")
 
     version("3.19.0", sha256="90032c0fd650ce94b6ec6dc8dfeb0e3ff50c144586462c389b81a07205bedb78")
     version("3.15.0", sha256="2aaaab4f01ef4f5a011a21319af9fce17ab13bf28a026d1252adab0e035648d5")

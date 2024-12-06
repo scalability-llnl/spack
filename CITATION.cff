@@ -31,13 +31,17 @@ type: software
 message: "If you are referencing Spack in a publication, please cite the paper below."
 title: "The Spack Package Manager: Bringing Order to HPC Software Chaos"
 abstract: >-
-  Large HPC centers spend considerable time supporting software for thousands of users, but the complexity of HPC software is quickly outpacing the capabilities of existing software management tools.
-  Scientific applications require specific versions of compilers, MPI, and other dependency libraries, so using a single, standard software stack is infeasible.
-  However, managing many configurations is difficult because the configuration space is combinatorial in size.
-  We introduce Spack, a tool used at Lawrence Livermore National Laboratory to manage this complexity.
-  Spack provides a novel, re- cursive specification syntax to invoke parametric builds of packages and dependencies.
-  It allows any number of builds to coexist on the same system, and it ensures that installed packages can find their dependencies, regardless of the environment.
-  We show through real-world use cases that Spack supports diverse and demanding applications, bringing order to HPC software chaos.
+  Large HPC centers spend considerable time supporting software for thousands of users, but the
+  complexity of HPC software is quickly outpacing the capabilities of existing software management
+  tools. Scientific applications require specific versions of compilers, MPI, and other dependency
+  libraries, so using a single, standard software stack is infeasible. However, managing many
+  configurations is difficult because the configuration space is combinatorial in size. We
+  introduce Spack, a tool used at Lawrence Livermore National Laboratory to manage this complexity.
+  Spack provides a novel, re- cursive specification syntax to invoke parametric builds of packages
+  and dependencies. It allows any number of builds to coexist on the same system, and it ensures
+  that installed packages can find their dependencies, regardless of the environment. We show
+  through real-world use cases that Spack supports diverse and demanding applications, bringing
+  order to HPC software chaos.
 preferred-citation:
   title: "The Spack Package Manager: Bringing Order to HPC Software Chaos"
   type: conference-paper
@@ -71,7 +75,7 @@ preferred-citation:
       type: doi
       value: 10.1145/2807591.2807623
     - description: "The DOE Document Release Number of the work"
-      type: other 
+      type: other
       value: "LLNL-CONF-669890"
 authors:
   - family-names: "Gamblin"

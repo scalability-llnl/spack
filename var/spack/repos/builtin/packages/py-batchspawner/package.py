@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyBatchspawner(PythonPackage):
 
     homepage = "https://github.com/jupyterhub/batchspawner"
     pypi = "batchspawner/batchspawner-1.1.0.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("1.1.0", sha256="9bae72f7c1bd9bb11aa58ecc3bc9fae5475a10fdd92dc0c0d67fa7eb95c9dd3a")
 

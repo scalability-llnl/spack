@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,8 @@ class Netgen(AutotoolsPackage):
     url = "https://sourceforge.net/projects/netgen-mesher/files/netgen-mesher/5.3/netgen-5.3.1.tar.gz"
 
     version("5.3.1", sha256="cb97f79d8f4d55c00506ab334867285cde10873c8a8dc783522b47d2bc128bf9")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("mpi", default=True, description="enable mpi support")
     variant("oce", default=False, description="enable oce geometry kernel")

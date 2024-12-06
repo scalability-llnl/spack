@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,7 +14,12 @@ class Weechat(CMakePackage):
     homepage = "https://weechat.org"
     url = "https://weechat.org/files/src/weechat-2.9.tar.gz"
 
+    license("GPL-3.0-or-later")
+
     version("2.9", sha256="3a78063b76c42ba306eacf8f74cb8c9a260f8a61d1915d0b5d76f11d2be69a53")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("perl", default=False, description="Include perl support")
     variant("lua", default=False, description="Include lua support")

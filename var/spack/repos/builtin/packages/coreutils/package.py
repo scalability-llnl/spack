@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,6 +22,10 @@ class Coreutils(AutotoolsPackage, GNUMirrorPackage):
 
     executables = [r"^md5sum$"]
 
+    license("GPL-3.0-or-later")
+
+    version("9.5", sha256="cd328edeac92f6a665de9f323c93b712af1858bc2e0d88f3f7100469470a1b8a")
+    version("9.4", sha256="ea613a4cf44612326e917201bbbcdfbd301de21ffc3b59b6e5c07e040b275e52")
     version("9.3", sha256="adbcfcfe899235b71e8768dcf07cd532520b7f54f9a8064843f8d199a904bbaa")
     version("9.2", sha256="6885ff47b9cdb211de47d368c17853f406daaf98b148aaecdf10de29cc04b0b3")
     version("9.1", sha256="61a1f410d78ba7e7f37a5a4f50e6d1320aca33375484a3255eddf17a38580423")
@@ -32,6 +36,8 @@ class Coreutils(AutotoolsPackage, GNUMirrorPackage):
     version("8.29", sha256="92d0fa1c311cacefa89853bdb53c62f4110cdfda3820346b59cbd098f40f955e")
     version("8.26", sha256="155e94d748f8e2bc327c66e0cbebdb8d6ab265d2f37c3c928f7bf6c3beba9a8e")
     version("8.23", sha256="ec43ca5bcfc62242accb46b7f121f6b684ee21ecd7d075059bf650ff9e37b82d")
+
+    depends_on("c", type="build")  # generated
 
     variant(
         "gprefix",
@@ -54,7 +60,7 @@ class Coreutils(AutotoolsPackage, GNUMirrorPackage):
         spec = self.spec
         configure_args = []
         if spec.satisfies("platform=darwin"):
-            if "+gprefix" in self.spec:
+            if self.spec.satisfies("+gprefix"):
                 configure_args.append("--program-prefix=g")
             configure_args.append("--without-gmp")
             configure_args.append("gl_cv_func_ftello_works=yes")

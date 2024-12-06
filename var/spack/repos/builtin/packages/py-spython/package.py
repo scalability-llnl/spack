@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PySpython(PythonPackage):
 
     homepage = "https://github.com/singularityhub/singularity-cli"
     pypi = "spython/spython-0.2.14.tar.gz"
+
+    license("MPL-2.0")
 
     version("0.3.1", sha256="143557849d636697ddd80e0ba95920efe4668351f5becce6bdc73a7651aa128d")
     version("0.2.14", sha256="49e22fbbdebe456b27ca17d30061489db8e0f95e62be3623267a23b85e3ce0f0")

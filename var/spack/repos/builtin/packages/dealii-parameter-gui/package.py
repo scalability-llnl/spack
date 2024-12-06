@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,7 +13,11 @@ class DealiiParameterGui(CMakePackage):
     homepage = "https://github.com/dealii/parameter_gui"
     git = "https://github.com/dealii/parameter_gui.git"
 
+    license("LGPL-2.1-or-later")
+
     version("develop", branch="master")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("qt")
 

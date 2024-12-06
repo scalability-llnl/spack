@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,7 +17,10 @@ class Qgraf(Package):
 
     version("3.4.2", sha256="cfc029fb871c78943865ef8b51ebcd3cd4428448b8816714b049669dfdeab8aa")
 
+    depends_on("fortran", type="build")  # generated
+
     def install(self, spec, prefix):
         fortran = Executable(spack_fc)
         fortran("qgraf-{0}.f".format(self.spec.version), "-o", "qgraf")
-        install_tree(".", prefix)
+        mkdirp(prefix.bin)
+        install("./qgraf", prefix.bin)

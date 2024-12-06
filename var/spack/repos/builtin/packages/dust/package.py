@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class Dust(Package):
     url = "https://github.com/bootandy/dust/archive/v0.7.5.tar.gz"
 
     maintainers("fangohr")
+
+    license("Apache-2.0")
 
     version("0.8.6", sha256="feede818e814011207c5bfeaf06dd9fc95825c59ab70942aa9b9314791c5d6b6")
     version("0.7.5", sha256="f892aaf7a0a7852e12d01b2ced6c2484fb6dc5fe7562abdf0c44a2d08aa52618")

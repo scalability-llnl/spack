@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,8 @@ class RNp(RPackage):
 
     cran = "np"
 
+    license("GPL-2.0-or-later")
+
     version("0.60-17", sha256="d97957cb234ec2e570fc2d02d305eadff3d71939484b3d1054ed8b67a3427f36")
     version("0.60-16", sha256="bef967c0195059e53c68e64d7540bf4627415c832f050c8806520ab8796e01b0")
     version("0.60-14", sha256="342b7f51e44eee556a9bb1f2ac9a143006019ca398fdccbb9c4562db3883d56c")
@@ -27,6 +29,8 @@ class RNp(RPackage):
     version("0.60-9", sha256="fe31a8985f0b1a576a7775022b7131093b1c9a8337734136d5fcad85fa6592fc")
     version("0.60-8", sha256="924c342feb2a862fa3871a45db5f8434dbbfb900cfc40c001a0872108a3a069e")
     version("0.60-2", sha256="25d667fc1056899516584b9d5d933377e6f4694d8e5e868dd047db572b69417f")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r-boot", type=("build", "run"))
     depends_on("r-cubature", type=("build", "run"))

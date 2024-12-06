@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and otherargs
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and otherargs
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -23,11 +23,28 @@ class Gimp(AutotoolsPackage):
     conflicts("platform=darwin", msg="spack/GIMP currently requires Linux")
     conflicts("platform=windows", msg="spack/GIMP currently requires Linux")
 
-    version("2.10.32", sha256="3f15c70554af5dcc1b46e6dc68f3d8f0a6cc9fe56b6d78ac08c0fd859ab89a25")
-    version("2.10.30", sha256="88815daa76ed7d4277eeb353358bafa116cd2fcd2c861d95b95135c1d52b67dc")
-    version("2.10.28", sha256="4f4dc22cff1ab5f026feaa2ab55e05775b3a11e198186b47bdab79cbfa078826")
-    version("2.10.26", sha256="5ddbccf1db462a41df9a26197fcb0d24c7152753a36b3c8b8a9506b4136395f7")
-    version("2.10.24", sha256="bd1bb762368c0dd3175cf05006812dd676949c3707e21f4e6857435cb435989e")
+    license("GPL-3.0-or-later")
+
+    version("2.10.38", sha256="50a845eec11c8831fe8661707950f5b8446e35f30edfb9acf98f85c1133f856e")
+    with default_args(deprecated=True):
+        version(
+            "2.10.32", sha256="3f15c70554af5dcc1b46e6dc68f3d8f0a6cc9fe56b6d78ac08c0fd859ab89a25"
+        )
+        version(
+            "2.10.30", sha256="88815daa76ed7d4277eeb353358bafa116cd2fcd2c861d95b95135c1d52b67dc"
+        )
+        version(
+            "2.10.28", sha256="4f4dc22cff1ab5f026feaa2ab55e05775b3a11e198186b47bdab79cbfa078826"
+        )
+        version(
+            "2.10.26", sha256="5ddbccf1db462a41df9a26197fcb0d24c7152753a36b3c8b8a9506b4136395f7"
+        )
+        version(
+            "2.10.24", sha256="bd1bb762368c0dd3175cf05006812dd676949c3707e21f4e6857435cb435989e"
+        )
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("doc", default=True, description="Build documentation with gtk-doc")
     variant("ghostscript", default=True, description="Build with ghostscript support")
@@ -50,6 +67,7 @@ class Gimp(AutotoolsPackage):
     # variant("python",      default=False, description="Build with Python bindings")
 
     # ref. https://www.gimp.org/source/
+    depends_on("gettext", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("babl")
     depends_on("fontconfig@2.12.4:")
@@ -65,6 +83,7 @@ class Gimp(AutotoolsPackage):
     depends_on("libexif")
     # depends_on("libheif+libde265", when="+libheif")
     depends_on("libjxl", when="+jpegxl")
+    depends_on("libjxl@:0.7", when="+jpegxl@:2.10.32")
     depends_on("libmng", when="+libmng")
     depends_on("libmypaint@1.4")
     depends_on("libpng")
@@ -88,6 +107,10 @@ class Gimp(AutotoolsPackage):
         url = "https://download.gimp.org/gimp/v{0}/gimp-{1}.tar.bz2"
         return url.format(version.up_to(2), version)
 
+    @when("@:2.10.32")
+    def patch(self):
+        filter_file("babl ", "babl-0.1 ", "configure")
+
     def configure_args(self):
         args = [
             "--disable-python",
@@ -95,7 +118,7 @@ class Gimp(AutotoolsPackage):
             "GIO_USE_TLS=gnutls",
             "GIO_EXTRA_MODULES={0}/lib/gio/modules".format(self.spec["glib-networking"].prefix),
         ]
-        if "+libxpm" in self.spec:
+        if self.spec.satisfies("+libxpm"):
             args.append("--with-libxpm={0}".format(self.spec["libxpm"].prefix))
         return args
 

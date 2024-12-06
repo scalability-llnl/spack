@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -75,9 +75,12 @@
 #    does not like its directory structure.
 #
 
+import os
+
 import spack.variant
 from spack.directives import conflicts, depends_on, variant
 from spack.package_base import PackageBase
+from spack.util.environment import EnvironmentModifications
 
 
 class ROCmPackage(PackageBase):
@@ -108,6 +111,8 @@ class ROCmPackage(PackageBase):
         "gfx90a:xnack+",
         "gfx90c",
         "gfx940",
+        "gfx941",
+        "gfx942",
         "gfx1010",
         "gfx1011",
         "gfx1012",
@@ -152,6 +157,25 @@ class ROCmPackage(PackageBase):
         archs = ",".join(amdgpu_target)
         return "--amdgpu-target={0}".format(archs)
 
+    def asan_on(self, env: EnvironmentModifications):
+        llvm_path = self.spec["llvm-amdgpu"].prefix
+        env.set("CC", llvm_path + "/bin/clang")
+        env.set("CXX", llvm_path + "/bin/clang++")
+        env.set("ASAN_OPTIONS", "detect_leaks=0")
+
+        for root, _, files in os.walk(llvm_path):
+            if "libclang_rt.asan-x86_64.so" in files:
+                asan_lib_path = root
+        env.prepend_path("LD_LIBRARY_PATH", asan_lib_path)
+        if "rhel" in self.spec.os or "sles" in self.spec.os:
+            SET_DWARF_VERSION_4 = "-gdwarf-5"
+        else:
+            SET_DWARF_VERSION_4 = ""
+
+        env.set("CFLAGS", f"-fsanitize=address -shared-libasan -g {SET_DWARF_VERSION_4}")
+        env.set("CXXFLAGS", f"-fsanitize=address -shared-libasan -g {SET_DWARF_VERSION_4}")
+        env.set("LDFLAGS", "-Wl,--enable-new-dtags -fuse-ld=lld  -fsanitize=address -g -Wl,")
+
     # HIP version vs Architecture
 
     # TODO: add a bunch of lines like:
@@ -160,21 +184,9 @@ class ROCmPackage(PackageBase):
 
     # Add compiler minimum versions based on the first release where the
     # processor is included in llvm/lib/Support/TargetParser.cpp
-    depends_on("llvm-amdgpu@4.1.0:", when="amdgpu_target=gfx900:xnack-")
-    depends_on("llvm-amdgpu@4.1.0:", when="amdgpu_target=gfx906:xnack-")
-    depends_on("llvm-amdgpu@4.1.0:", when="amdgpu_target=gfx908:xnack-")
-    depends_on("llvm-amdgpu@4.1.0:", when="amdgpu_target=gfx90c")
-    depends_on("llvm-amdgpu@4.3.0:", when="amdgpu_target=gfx90a")
-    depends_on("llvm-amdgpu@4.3.0:", when="amdgpu_target=gfx90a:xnack-")
-    depends_on("llvm-amdgpu@4.3.0:", when="amdgpu_target=gfx90a:xnack+")
     depends_on("llvm-amdgpu@5.2.0:", when="amdgpu_target=gfx940")
-    depends_on("llvm-amdgpu@4.5.0:", when="amdgpu_target=gfx1013")
-    depends_on("llvm-amdgpu@3.8.0:", when="amdgpu_target=gfx1030")
-    depends_on("llvm-amdgpu@3.9.0:", when="amdgpu_target=gfx1031")
-    depends_on("llvm-amdgpu@4.1.0:", when="amdgpu_target=gfx1032")
-    depends_on("llvm-amdgpu@4.1.0:", when="amdgpu_target=gfx1033")
-    depends_on("llvm-amdgpu@4.3.0:", when="amdgpu_target=gfx1034")
-    depends_on("llvm-amdgpu@4.5.0:", when="amdgpu_target=gfx1035")
+    depends_on("llvm-amdgpu@5.7.0:", when="amdgpu_target=gfx941")
+    depends_on("llvm-amdgpu@5.7.0:", when="amdgpu_target=gfx942")
     depends_on("llvm-amdgpu@5.2.0:", when="amdgpu_target=gfx1036")
     depends_on("llvm-amdgpu@5.3.0:", when="amdgpu_target=gfx1100")
     depends_on("llvm-amdgpu@5.3.0:", when="amdgpu_target=gfx1101")

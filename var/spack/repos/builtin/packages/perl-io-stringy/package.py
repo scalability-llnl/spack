@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,6 +21,15 @@ class PerlIoStringy(PerlPackage):
     globref, or a FileHandle."""
 
     homepage = "https://metacpan.org/pod/IO::Stringy"
-    url = "https://cpan.metacpan.org/authors/id/D/DS/DSKOLL/IO-stringy-2.111.tar.gz"
+    url = "https://cpan.metacpan.org/authors/id/C/CA/CAPOEIRAB/IO-Stringy-2.112.tar.gz"
 
+    version("2.113", sha256="51220fcaf9f66a639b69d251d7b0757bf4202f4f9debd45bdd341a6aca62fe4e")
     version("2.111", sha256="8c67fd6608c3c4e74f7324f1404a856c331dbf48d9deda6aaa8296ea41bf199d")
+
+    def url_for_version(self, version):
+        if self.spec.satisfies("@2.112:"):
+            return (
+                f"https://cpan.metacpan.org/authors/id/C/CA/CAPOEIRAB/IO-Stringy-{version}.tar.gz"
+            )
+        else:
+            return f"https://cpan.metacpan.org/authors/id/D/DS/DSKOLL/IO-stringy-{version}.tar.gz"

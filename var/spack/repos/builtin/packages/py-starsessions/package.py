@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyStarsessions(PythonPackage):
 
     homepage = "https://github.com/alex-oleshkevich/starsessions"
     pypi = "starsessions/starsessions-2.1.1.tar.gz"
+
+    license("MIT")
 
     version("2.1.1", sha256="cb250de84ebc6159ad187cab69e6fe60eab11684b40349457e74dcfb7656c805")
     version("1.3.0", sha256="8d3b509d4e6d235655f7dd495fcf0afc1bd86da84de3a8d434e6f82137ebcde8")

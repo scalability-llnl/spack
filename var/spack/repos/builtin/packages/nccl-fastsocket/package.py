@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class NcclFastsocket(Package):
     git = "https://github.com/google/nccl-fastsocket.git"
 
     version("master", preferred=True)
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("bazel", type="build")
     depends_on("nccl", type=["build", "run"])

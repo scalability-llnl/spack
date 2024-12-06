@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,8 @@ class Parmgridgen(Package):
     url = "http://www.stasyan.com/devel/distfiles/ParMGridGen-1.0.tar.gz"
 
     version("1.0", sha256="62cdb6e48cfc59124e5d5d360c2841e0fc2feecafe65bda110b74e942740b395")
+
+    depends_on("c", type="build")  # generated
 
     variant("mpi", default=True, description="Activate the compilation of parallel libraries")
 

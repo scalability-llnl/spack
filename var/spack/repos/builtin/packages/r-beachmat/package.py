@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -26,6 +26,8 @@ class RBeachmat(RPackage):
     version("1.4.0", commit="e3b7a21cae0080d077a0d40e35d1d148f088720a")
     version("1.2.1", commit="ebae81772045a314e568c2f7d73ea3b27e7bf7d8")
     version("1.0.2", commit="6bd57b91d6428ac916f46572d685d3cb01a757f7")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r@3.4:", type=("build", "run"))
     depends_on("r@3.5:", type=("build", "run"), when="@1.2.1:1.4.0")

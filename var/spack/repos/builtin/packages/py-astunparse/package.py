@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyAstunparse(PythonPackage):
     Python 3."""
 
     pypi = "astunparse/astunparse-1.6.2.tar.gz"
+
+    license("PSF-2.0")
 
     version("1.6.3", sha256="5ad93a8456f0d084c3456d059fd9a92cce667963232cbf763eac3bc5b7940872")
     version("1.6.2", sha256="dab3e426715373fd76cd08bb1abe64b550f5aa494cf1e32384f26fd60961eb67")

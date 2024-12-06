@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class Minitri(MakefilePackage):
     url = "https://github.com/Mantevo/miniTri/archive/v1.0.tar.gz"
 
     version("1.0", sha256="e340dbb04b7c182804ebf6f5a946a392f1c68b7f798885c091c3f0d8aaa844ce")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("mpi", default=True, description="Build with MPI support")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,8 +12,13 @@ class Ipopt(AutotoolsPackage):
 
     homepage = "https://github.com/coin-or/Ipopt"
     url = "https://github.com/coin-or/Ipopt/archive/refs/tags/releases/3.13.2.tar.gz"
-    maintainers("goxberry")
+    maintainers("chapman39", "tepperly")
 
+    license("EPL-2.0")
+
+    version("3.14.14", sha256="264d2d3291cd1cd2d0fa0ad583e0a18199e3b1378c3cb015b6c5600083f1e036")
+    version("3.14.13", sha256="2afcb057e7cf8ed7e07f50ee0a4a06d2e4d39e0f964777e9dd55fe56199a5e0a")
+    version("3.14.12", sha256="6b06cd6280d5ca52fc97ca95adaaddd43529e6e8637c274e21ee1072c3b4577f")
     version("3.14.9", sha256="e12eba451269ec30f4cf6e2acb8b35399f0d029c97dff10465416f5739c8cf7a")
     version("3.14.5", sha256="9ebbbbf14a64e998e3fba5d2662a8f9bd03f97b1406017e78ae54e5d105ae932")
     version("3.14.4", sha256="60865150b6fad19c5968395b57ff4a0892380125646c3afa2a714926f5ac9487")
@@ -41,15 +46,19 @@ class Ipopt(AutotoolsPackage):
     version("3.12.1", sha256="bde8c415136bb38d5a3c5935757399760c6cabf67e9362702e59ab6027f030ec")
     version("3.12.0", sha256="b42f44eb53540205ede4584cced5d88a7b3ec2f1fac6e173a105496307e273a0")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     variant("coinhsl", default=False, description="Build with Coin Harwell Subroutine Libraries")
     variant("metis", default=False, description="Build with METIS partitioning support")
     variant("debug", default=False, description="Build debug instead of optimized version")
     variant("mumps", default=True, description="Build with support for linear solver MUMPS")
+    variant("java", default=False, description="Include Java support")
 
     depends_on("blas")
     depends_on("lapack")
     depends_on("pkgconfig", type="build")
-    depends_on("mumps+double~mpi", when="+mumps")
+    depends_on("mumps+double", when="+mumps")
     depends_on("coinhsl", when="+coinhsl")
     depends_on("metis@4.0:", when="+metis")
 
@@ -57,6 +66,7 @@ class Ipopt(AutotoolsPackage):
     conflicts("~mumps", when="~coinhsl")
 
     patch("ipopt_ppc_build.patch", when="arch=ppc64le")
+    patch("ipopt_mumps_mpi_comm_option.patch", when="+mumps")
 
     flag_handler = build_system_flags
     build_directory = "spack-build"
@@ -87,9 +97,11 @@ class Ipopt(AutotoolsPackage):
         else:
             args.extend(["--with-lapack-lflags={0} {1}".format(lapack_lib, blas_lib)])
 
-        if "+mumps" in spec:
+        if spec.satisfies("+mumps"):
             mumps_dir = spec["mumps"].prefix
-            mumps_flags = "-ldmumps -lmumps_common -lpord -lmpiseq"
+            mumps_flags = "-ldmumps -lmumps_common -lpord"
+            if "^mumps~mpi" in spec:
+                mumps_flags = mumps_flags + "-lmpiseq"
             mumps_libcmd = "-L%s " % mumps_dir.lib + mumps_flags
             if spec.satisfies("@:3.12.13"):
                 args.extend(
@@ -106,8 +118,10 @@ class Ipopt(AutotoolsPackage):
                         "--with-mumps-cflags=%s" % mumps_dir.include,
                     ]
                 )
+                if "^mumps+mpi" in spec:
+                    args.extend(["--disable-mpiinit"])
 
-        if "coinhsl" in spec:
+        if spec.satisfies("+coinhsl"):
             hsl_ld_flags = "-ldl {0}".format(spec["coinhsl"].libs.ld_flags)
 
             if spec.satisfies("^coinhsl+blas"):
@@ -128,8 +142,12 @@ class Ipopt(AutotoolsPackage):
                         "--with-hsl-cflags=%s" % spec["coinhsl"].prefix.include,
                     ]
                 )
+        else:
+            # Fixes dynamic linking errors relating to failure to find hsllib.so
+            if spec.satisfies("@3.13:"):
+                args.extend(["--without-hsl"])
 
-        if "metis" in spec:
+        if spec.satisfies("+metis"):
             if spec.satisfies("@:3.12.13"):
                 args.extend(
                     [
@@ -138,10 +156,15 @@ class Ipopt(AutotoolsPackage):
                     ]
                 )
 
+        if spec.satisfies("+java"):
+            args.extend(["--enable-java"])
+        else:
+            args.extend(["--disable-java"])
+
         # The IPOPT configure file states that '--enable-debug' implies
         # '--disable-shared', but adding '--enable-shared' overrides
         # '--disable-shared' and builds a shared library with debug symbols
-        if "+debug" in spec:
+        if spec.satisfies("+debug"):
             args.append("--enable-debug")
         else:
             args.append("--disable-debug")

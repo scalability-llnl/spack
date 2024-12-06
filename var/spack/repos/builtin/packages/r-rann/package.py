@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,3 +19,6 @@ class RRann(RPackage):
     cran = "RANN"
 
     version("2.6.1", sha256="b299c3dfb7be17aa41e66eff5674fddd2992fb6dd3b10bc59ffbf0c401697182")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated

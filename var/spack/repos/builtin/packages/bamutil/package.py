@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -23,6 +23,8 @@ class Bamutil(MakefilePackage):
         sha256="16c1d01c37d1f98b98c144f3dd0fda6068c1902f06bd0989f36ce425eb0c592b",
         url="https://genome.sph.umich.edu/w/images/7/70/BamUtilLibStatGen.1.0.13.tgz",
     )
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("zlib-api")
     depends_on("git", type="build", when="@1.0.15:")

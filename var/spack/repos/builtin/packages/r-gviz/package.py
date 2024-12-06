@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class RGviz(RPackage):
     plotted together with your data."""
 
     bioc = "Gviz"
+
+    license("Artistic-2.0")
 
     version("1.44.0", commit="e70aaa7dd27df8482ee854395475a87ec2121279")
     version("1.42.0", commit="4eddb688bca3fdeb65fd536d653d7ba7f7976121")

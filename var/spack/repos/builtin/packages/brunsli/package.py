@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,7 +12,12 @@ class Brunsli(CMakePackage):
     homepage = "https://github.com/google/brunsli"
     git = "https://github.com/google/brunsli.git"
 
+    license("MIT")
+
     version("0.1", tag="v0.1", commit="8a0e9b8ca2e3e089731c95a1da7ce8a3180e667c", submodules=True)
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3.1:", type="build")
 

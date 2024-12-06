@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,7 +14,7 @@ class Genomefinisher(Package):
     assembly errors and organizes the contigs/scaffolds with genomes
     references."""
 
-    homepage = "http://gfinisher.sourceforge.net"
+    homepage = "https://gfinisher.sourceforge.net"
     url = "https://sourceforge.net/projects/gfinisher/files/GenomeFinisher_1.4.zip"
 
     version("1.4", sha256="8efbebaab4b577c72193f14c2c362b96fb949981fd66d2cca1364839af8bf1e3")

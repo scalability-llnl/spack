@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -9,6 +9,52 @@ import platform
 from spack.package import *
 
 _versions = {
+    # cuDNN 9.2.0
+    "9.2.0.82-12": {
+        "Linux-x86_64": "1362b4d437e37e92c9814c3b4065db5106c2e03268e22275a5869e968cee7aa8",
+        "Linux-aarch64": "24cc2a0308dfe412c02c7d41d4b07ec12dacb021ebf8c719de38eb77d22f68c1",
+    },
+    "9.2.0.82-11": {
+        "Linux-x86_64": "99dcb3fa2bf7eed7f35b0f8e58e7d1f04d9a52e01e382efc1de16fed230d3b26"
+    },
+    # cuDNN 8.9.7
+    "8.9.7.29-12": {
+        "Linux-x86_64": "475333625c7e42a7af3ca0b2f7506a106e30c93b1aa0081cd9c13efb6e21e3bb",
+        "Linux-ppc64le": "8574d291b299f9cc0134304473c9933bd098cc717e8d0876f4aba9f9eebe1b76",
+    },
+    "8.9.7.29-11": {
+        "Linux-x86_64": "a3e2509028cecda0117ce5a0f42106346e82e86d390f4bb9475afc976c77402e",
+        "Linux-ppc64le": "f23fd7d59f9d4f743fa926f317dab0d37f6ea21edb2726ceb607bea45b0f9f36",
+    },
+    # cuDNN 8.9.5
+    "8.9.5.30-12": {
+        "Linux-x86_64": "2a2eb89a2ab51071151c6082f1e816c702167a711a9372f9f73a7b5c4b06e01a",
+        "Linux-ppc64le": "38388ec3c99c6646aaf5c707985cd35e25c67f653d780c4081c2df5557ab665f",
+        "Linux-aarch64": "0491f7b02f55c22077eb678bf314c1f917524bd507cf5b658239bf98a47233a1",
+    },
+    "8.9.5.30-11": {
+        "Linux-x86_64": "bbe10e3c08cd7e4aea1012213781e4fe270e1c908263444f567cafefb2cc6525",
+        "Linux-ppc64le": "d678f8b2903b95de7eeaef38890c5674705864ea049b2b63e90565f2c0ea682f",
+    },
+    # cuDNN 8.9.0
+    "8.9.0.131-12": {
+        "Linux-x86_64": "477631002be61022b60961cba0a501271507a93f81d6b08384bc320cb8706c98",
+        "Linux-ppc64le": "ff239e4cbbf21fa18104b62a887686e2197f820ad58817d62e509c735a331829",
+        "Linux-aarch64": "fab70f4fb3b933ff502200a1d954d2c6fc205ff9c9b1d271ea4c41e980a66596",
+    },
+    "8.9.0.131-11": {
+        "Linux-x86_64": "3cb82c50723f14b41d43523f222cd52cc9d50b3ad67c380f4be51bd1133daa2d",
+        "Linux-ppc64le": "18778de490550c5b584e96560208e5e37678397037946e10a1c2824174c69725",
+    },
+    # cuDNN 8.8.1
+    "8.8.1.3-12": {
+        "Linux-x86_64": "79d77a769c7e7175abc7b5c2ed5c494148c0618a864138722c887f95c623777c",
+        "Linux-ppc64le": "b0e89021a846952cad8cfc674edce2883f6e344ebd47a2394f706b1136715bc7",
+    },
+    "8.8.1.3-11": {
+        "Linux-x86_64": "af7584cae0cc5524b5913ef08c29ba6154113c60eb0a37a0590a91b515a8a8f9",
+        "Linux-ppc64le": "d086003d09d5388aa42142f07483a773aa74b602478b0933e24fc63f56f1658f",
+    },
     # cuDNN 8.7.0
     "8.7.0.84-11.8": {
         "Linux-x86_64": "976c4cba7233c97ae74006afab5172976300ba40f5b250a21f8cf71f59c9f76d",
@@ -260,7 +306,9 @@ class Cudnn(Package):
     # need to use modified URLs like in url_for_version.
     maintainers("adamjstewart", "bvanessen")
 
-    skip_version_audit = ["platform=darwin"]
+    skip_version_audit = ["platform=darwin", "platform=windows"]
+
+    license("MIT")
 
     for ver, packages in _versions.items():
         key = "{0}-{1}".format(platform.system(), platform.machine())
@@ -287,7 +335,7 @@ class Cudnn(Package):
                 .replace("darwin", "osx")
                 .replace("aarch64", "aarch64sbsa")
             )
-        else:
+        elif version < Version("8.8.0"):
             sys_key = sys_key.replace("aarch64", "sbsa")
 
         if version >= Version("8.3.1"):
@@ -318,8 +366,12 @@ class Cudnn(Package):
             ver = version[:2]
             cuda = version[2:]
 
+        # 8.8.0 changed the base url again
+        if version >= Version("8.8.0"):
+            url = "https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/{0}/cudnn-{0}-{1}_cuda{2}-archive.tar.xz"
+            return url.format(sys_key, ver, cuda.up_to(1))
         # 8.5.0 removed minor from cuda version
-        if version >= Version("8.5.0"):
+        elif version >= Version("8.5.0"):
             url = "https://developer.download.nvidia.com/compute/redist/cudnn/v{0}/cudnn-{1}-{2}_cuda{3}-archive.tar.xz"
             return url.format(directory, sys_key, ver, cuda.up_to(1))
         # 8.3.1 switched to xzip tarballs and reordered url parts.
@@ -334,19 +386,13 @@ class Cudnn(Package):
         # Package is not compiled, and does not work unless LD_LIBRARY_PATH is set
         env.prepend_path("LD_LIBRARY_PATH", self.prefix.lib)
 
-        if "target=ppc64le: platform=linux" in self.spec:
+        if self.spec.satisfies("target=ppc64le: platform=linux"):
             env.set("cuDNN_ROOT", os.path.join(self.prefix, "targets", "ppc64le-linux"))
-
-    def setup_dependent_build_environment(self, env, dependent_spec):
-        self.setup_run_environment(env)
-
-    def setup_dependent_run_environment(self, env, dependent_spec):
-        self.setup_run_environment(env)
 
     def install(self, spec, prefix):
         install_tree(".", prefix)
 
-        if "target=ppc64le: platform=linux" in spec:
+        if spec.satisfies("target=ppc64le: platform=linux"):
             target_lib = os.path.join(prefix, "targets", "ppc64le-linux", "lib")
             if os.path.isdir(target_lib) and not os.path.isdir(prefix.lib):
                 symlink(target_lib, prefix.lib)

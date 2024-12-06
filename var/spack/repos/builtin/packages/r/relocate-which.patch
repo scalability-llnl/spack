@@ -1,0 +1,52 @@
+From 3f2b1b6c94460fd4d3e9f03c9f17a25db2d2b473 Mon Sep 17 00:00:00 2001
+From: Harmen Stoppels <me@harmenstoppels.nl>
+Date: Wed, 10 Jan 2024 12:40:40 +0100
+Subject: [PATCH] base: use a symlink for which instead of hard-coded string
+
+---
+ share/make/basepkg.mk                 | 8 ++++----
+ src/library/base/R/unix/system.unix.R | 6 +++---
+ 2 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/share/make/basepkg.mk b/share/make/basepkg.mk
+index c0a69c8a0af338ec002156236e47b9d7efea8165..4cf6387870915001cbb8b1439509ff4955cc67b1 100644
+--- a/share/make/basepkg.mk
++++ b/share/make/basepkg.mk
+@@ -72,16 +72,16 @@ mkRbase:
+ 	  else \
+ 	    cat $(RSRC) > "$${f}"; \
+ 	  fi; \
+-	  f2=$${TMPDIR:-/tmp}/R2$$$$; \
+-	  sed -e "s:@WHICH@:${WHICH}:" "$${f}" > "$${f2}"; \
+-	  rm -f "$${f}"; \
+-	  $(SHELL) $(top_srcdir)/tools/move-if-change "$${f2}" all.R)
++	  $(SHELL) $(top_srcdir)/tools/move-if-change "$${f}" all.R)
+ 	@if ! test -f $(top_builddir)/library/$(pkg)/R/$(pkg); then \
+ 	  $(INSTALL_DATA) all.R $(top_builddir)/library/$(pkg)/R/$(pkg); \
+ 	else if test all.R -nt $(top_builddir)/library/$(pkg)/R/$(pkg); then \
+ 	  $(INSTALL_DATA) all.R $(top_builddir)/library/$(pkg)/R/$(pkg); \
+ 	  fi \
+ 	fi
++	@if ! test -f $(top_builddir)/library/$(pkg)/R/which; then \
++	  cd $(top_builddir)/library/$(pkg)/R/ && $(LN_S) $(WHICH) which; \
++	fi
+ 
+ mkdesc:
+ 	@if test -f DESCRIPTION; then \
+diff --git a/src/library/base/R/unix/system.unix.R b/src/library/base/R/unix/system.unix.R
+index 3bb7d0cb27cc73a024bcea3e41e2e0c5c7e9648a..78271c8c12cb3217bc068e9d53ef9e3060e8dcc9 100644
+--- a/src/library/base/R/unix/system.unix.R
++++ b/src/library/base/R/unix/system.unix.R
+@@ -114,9 +114,9 @@ system2 <- function(command, args = character(),
+ Sys.which <- function(names)
+ {
+     res <- character(length(names)); names(res) <- names
+-    ## hopefully configure found [/usr]/bin/which
+-    which <- "@WHICH@"
+-    if (!nzchar(which)) {
++    which <- file.path(R.home(), "library", "base", "R", "which")
++    ## which should be a symlink to the system's which
++    if (!file.exists(which)) {
+         warning("'which' was not found on this platform")
+         return(res)
+     }

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class PyAlpacaEval(PythonPackage):
     pypi = "alpaca_eval/alpaca_eval-0.2.8.tar.gz"
 
     maintainers("meyersbs")
+
+    license("Apache-2.0")
 
     version("0.2.8", sha256="5b21b74d7362ee229481b6a6d826dd620b2ef6b82e4f5470645e0a4b696a31e6")
 

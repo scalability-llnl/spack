@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyIsoduration(PythonPackage):
 
     homepage = "https://github.com/bolsote/isoduration"
     pypi = "isoduration/isoduration-20.11.0.tar.gz"
+
+    license("0BSD")
 
     version("20.11.0", sha256="ac2f9015137935279eac671f94f89eb00584f940f5dc49462a0c4ee692ba1bd9")
 

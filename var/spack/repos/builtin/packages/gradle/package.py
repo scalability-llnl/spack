@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,20 @@ class Gradle(Package):
     homepage = "https://gradle.org"
     url = "https://services.gradle.org/distributions/gradle-3.4-all.zip"
 
+    license("Apache-2.0", checked_by="wdconinc")
+
+    version("8.10.2", sha256="2ab88d6de2c23e6adae7363ae6e29cbdd2a709e992929b48b6530fd0c7133bd6")
+    version("8.10.1", sha256="fdfca5dbc2834f0ece5020465737538e5ba679deeff5ab6c09621d67f8bb1a15")
+    version("8.10", sha256="682b4df7fe5accdca84a4d1ef6a3a6ab096b3efd5edf7de2bd8c758d95a93703")
+    version("8.9", sha256="258e722ec21e955201e31447b0aed14201765a3bfbae296a46cf60b70e66db70")
+    version("8.8", sha256="f8b4f4772d302c8ff580bc40d0f56e715de69b163546944f787c87abf209c961")
+    version("8.7", sha256="194717442575a6f96e1c1befa2c30e9a4fc90f701d7aee33eb879b79e7ff05c0")
+    version("8.6", sha256="85719317abd2112f021d4f41f09ec370534ba288432065f4b477b6a3b652910d")
+    version("8.5", sha256="c16d517b50dd28b3f5838f0e844b7520b8f1eb610f2f29de7e4e04a1b7c9c79b")
+    version("8.4", sha256="f2b9ed0faf8472cbe469255ae6c86eddb77076c75191741b4a462f33128dd419")
+    version("8.3", sha256="bb09982fdf52718e4c7b25023d10df6d35a5fff969860bdf5a5bd27a3ab27a9e")
+    version("8.2.1", sha256="7c3ad722e9b0ce8205b91560fd6ce8296ac3eadf065672242fd73c06b8eeb6ee")
+    version("8.2", sha256="5022b0b25fe182b0e50867e77f484501dba44feeea88f5c1f13b6b4660463640")
     version("8.1.1", sha256="5625a0ae20fe000d9225d000b36909c7a0e0e8dda61c19b12da769add847c975")
     version("8.0.2", sha256="47a5bfed9ef814f90f8debcbbb315e8e7c654109acd224595ea39fca95c5d4da")
     version("7.3", sha256="00b273629df4ce46e68df232161d5a7c4e495b9a029ce6e0420f071e21316867")

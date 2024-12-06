@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,9 +10,15 @@ class Nco(AutotoolsPackage):
     """The NCO toolkit manipulates and analyzes data stored in
     netCDF-accessible formats"""
 
-    homepage = "http://nco.sourceforge.net/"
+    homepage = "https://nco.sourceforge.net/"
     url = "https://github.com/nco/nco/archive/5.0.1.tar.gz"
 
+    license("BSD-3-Clause")
+
+    version("5.2.4", sha256="44efa9151825487fa0562fa5c6d68837624059a8e2da9d15c83ceb4d498f7902")
+    version("5.1.9", sha256="9cd90345c1e3860a690b53fd6c08b721d631a646d169431927884c99841c34e9")
+    version("5.1.8", sha256="f22c63a3cbe1947fbf06160a6ed7b6d1934aa242fbe3feeb8d1964eef266b7d5")
+    version("5.1.7", sha256="2b068558a605e30a465870166747e1d37726849814a5cfe41a000764b30e2ba1")
     version("5.1.6", sha256="6b217156cb14f670c80d5de5c5b88905cdb281f6e239e83397f14eaf3d0b390b")
     version("5.1.5", sha256="6a35c2d45744b427a424896d32066e483c0a49a46dba83ba90f2cc5ed3dca869")
     version("5.1.4", sha256="4b1ec67b795b985990620be7b7422ecae6da77f5ec93e4407b799f0220dffc88")
@@ -35,6 +41,9 @@ class Nco(AutotoolsPackage):
     version("4.6.1", sha256="7433fe5901f48eb5170f24c6d53b484161e1c63884d9350600070573baf8b8b0")
     version("4.5.5", sha256="bc6f5b976fdfbdec51f2ebefa158fa54672442c2fd5f042ba884f9f32c2ad666")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # https://github.com/nco/nco/issues/43
     patch("NUL-0-NULL.patch", when="@:4.6.7")
 
@@ -55,7 +64,7 @@ class Nco(AutotoolsPackage):
 
     def configure_args(self):
         spec = self.spec
-        return ["--{0}-doc".format("enable" if "+doc" in spec else "disable")]
+        return [f"--{'enable' if '+doc' in spec else 'disable'}-doc"]
 
     def setup_build_environment(self, env):
         spec = self.spec

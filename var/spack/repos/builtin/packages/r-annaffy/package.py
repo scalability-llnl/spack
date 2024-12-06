@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class RAnnaffy(RPackage):
     metadata using various criteria."""
 
     bioc = "annaffy"
+
+    license("LGPL-2.1-or-later")
 
     version("1.72.0", commit="7cb439706a7e93fb5b44ead374010077a44ea78b")
     version("1.70.0", commit="c99e81259adb39b5d8e954fd7afe7f93675229bc")

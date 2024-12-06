@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -22,6 +22,8 @@ class Recola(CMakePackage):
 
     variant("python", default=True, description="Build py-recola python bindings.")
 
+    license("GPL-3.0-or-later")
+
     version("2.2.4", sha256="212ae6141bc5de38c50be3e0c6947a3b0752aeb463cf850c22cfed5e61b1a64b")
     version("2.2.3", sha256="8dc25798960c272434fcde93817ed92aad82b2a7cf07438bb4deb5688d301086")
     version("2.2.2", sha256="a64cf2b4aa213289dfab6e2255a77264f281cd0ac85f5e9770c82b815272c5c9")
@@ -36,6 +38,10 @@ class Recola(CMakePackage):
         url="https://recola.hepforge.org/downloads/?f=recola-1.4.0.tar.gz",
         sha256="dc7db5ac9456dda2e6c03a63ad642066b0b5e4ceb8cae1f2a13ab33b35caaba8",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("collier")
     depends_on("recola-sm")

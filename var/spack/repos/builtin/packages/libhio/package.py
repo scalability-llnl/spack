@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -32,6 +32,8 @@ class Libhio(AutotoolsPackage):
     version("1.4.1.1", sha256="5c65d18bf74357f9d9960bf6b9ad2432f8fc5a2b653e72befe4d1caabb9a2f7a")
     version("1.4.1.0", sha256="963f4a8d365afd92a5593f80946e2c4c79f4185d897436a43fae61dae5567ac4")
 
+    depends_on("c", type="build")  # generated
+
     #
     # main users of libhio thru spack will want to use HFDF5 plugin,
     # so make hdf5 variant a default
@@ -60,7 +62,7 @@ class Libhio(AutotoolsPackage):
         args = []
 
         args.append("--with-external_bz2={0}".format(spec["bzip2"].prefix))
-        if "+hdf5" in spec:
+        if spec.satisfies("+hdf5"):
             args.append("--with-hdf5={0}".format(spec["hdf5"].prefix))
 
         args.append("--with-external-json={0}".format(spec["json-c"].prefix))

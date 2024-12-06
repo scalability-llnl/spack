@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class Relax(CMakePackage):
     tags = ["hep"]
 
     version("root6", sha256="1d24b1a0884bbe99d60f7d02fea45d59695c158ab5e53516ac3fb780eb460bb4")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("clhep")
     depends_on("gsl")

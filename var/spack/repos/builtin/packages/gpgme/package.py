@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,6 +21,9 @@ class Gpgme(AutotoolsPackage):
     version("1.16.0", sha256="6c8cc4aedb10d5d4c905894ba1d850544619ee765606ac43df7405865de29ed0")
     version("1.12.0", sha256="b4dc951c3743a60e2e120a77892e9e864fb936b2e58e7c77e8581f4d050e8cd8")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # https://dev.gnupg.org/T5509 - New test t-edit-sign test crashes with GCC 11.1.0
     patch(
         "https://git.gnupg.org/cgi-bin/gitweb.cgi?p=gpgme.git;a=commitdiff_plain;h=81a33ea5e1b86d586b956e893a5b25c4cd41c969;hp=e8e055e682f8994d62012574e1c8d862ca72a35d",
@@ -30,7 +33,7 @@ class Gpgme(AutotoolsPackage):
 
     depends_on("gnupg", type="build")
     depends_on("libgpg-error", type="build")
-    depends_on("libassuan", type="build")
+    depends_on("libassuan@2.4.2:2", type=("build", "link"))
 
     @classmethod
     def determine_version(cls, exe):

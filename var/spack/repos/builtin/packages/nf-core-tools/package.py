@@ -1,4 +1,4 @@
-# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class NfCoreTools(PythonPackage):
     homepage = "https://nf-co.re/tools"
     pypi = "nf-core/nf-core-2.7.1.tar.gz"
     maintainers("marcodelapierre")
+
+    license("MIT")
 
     version("2.7.2", sha256="585be3908b9b93ee9263b99dd779818d48d51f6e7f44a42aa79e626617e7af48")
     version("2.7.1", sha256="90de62390314ef3141cee700667f017aa65c0346e40704a0f70d0662abcfb0db")

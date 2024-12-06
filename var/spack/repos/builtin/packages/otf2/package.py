@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,7 @@ class Otf2(AutotoolsPackage):
     homepage = "https://www.vi-hps.org/projects/score-p"
     url = "https://perftools.pages.jsc.fz-juelich.de/cicd/otf2/tags/otf2-3.0/otf2-3.0.tar.gz"
 
+    version("3.0.3", sha256="18a3905f7917340387e3edc8e5766f31ab1af41f4ecc5665da6c769ca21c4ee8")
     version("3.0", sha256="6fff0728761556e805b140fd464402ced394a3c622ededdb618025e6cdaa6d8c")
     version("2.3", sha256="36957428d37c40d35b6b45208f050fb5cfe23c54e874189778a24b0e9219c7e3")
     version(
@@ -58,21 +59,24 @@ class Otf2(AutotoolsPackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     def url_for_version(self, version):
         if version < Version("2.3"):
-            return "https://www.vi-hps.org/cms/upload/packages/otf2/otf2-{0}.tar.gz".format(
-                version
-            )
+            return f"https://www.vi-hps.org/cms/upload/packages/otf2/otf2-{version}.tar.gz"
 
-        return "https://perftools.pages.jsc.fz-juelich.de/cicd/otf2/tags/otf2-{0}/otf2-{0}.tar.gz".format(
-            version
-        )
+        return f"https://perftools.pages.jsc.fz-juelich.de/cicd/otf2/tags/otf2-{version}/otf2-{version}.tar.gz"
+
+    extends("python")
+
+    # `imp` module required
+    depends_on("python@:3.11", type=("build", "run"))
 
     with when("@2.2 %cce"):
         depends_on("autoconf", type="build")
         depends_on("automake", type="build")
         depends_on("libtool", type="build")
-        depends_on("m4", type="build")
 
     # Fix missing initialization of variable resulting in issues when used by
     # APEX/HPX: https://github.com/STEllAR-GROUP/hpx/issues/5239
@@ -85,14 +89,19 @@ class Otf2(AutotoolsPackage):
     def force_autoreconf(self):
         return self.spec.satisfies("@2.2 %cce")
 
+    def flag_handler(self, name, flags):
+        if name == "cflags":
+            flags.append(self.compiler.cc_pic_flag)
+        elif name == "cxxflags":
+            flags.append(self.compiler.cxx_pic_flag)
+        return (flags, None, None)
+
     def configure_args(self):
         return [
             "--enable-shared",
-            "CC={0}".format(spack_cc),
-            "CXX={0}".format(spack_cxx),
-            "F77={0}".format(spack_f77),
-            "FC={0}".format(spack_fc),
-            "CFLAGS={0}".format(self.compiler.cc_pic_flag),
-            "CXXFLAGS={0}".format(self.compiler.cxx_pic_flag),
+            f"CC={spack_cc}",
+            f"CXX={spack_cxx}",
+            f"F77={spack_f77}",
+            f"FC={spack_fc}",
             "PYTHON_FOR_GENERATOR=:",
         ]

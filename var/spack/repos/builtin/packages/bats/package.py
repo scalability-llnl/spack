@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class Bats(Package):
 
     homepage = "https://github.com/bats-core/bats-core"
     url = "https://github.com/bats-core/bats-core/archive/refs/tags/v1.10.0.tar.gz"
+
+    license("MIT")
 
     version("1.10.0", sha256="a1a9f7875aa4b6a9480ca384d5865f1ccf1b0b1faead6b47aa47d79709a5c5fd")
     version(

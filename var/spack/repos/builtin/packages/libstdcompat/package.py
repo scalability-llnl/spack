@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,9 @@ class Libstdcompat(CMakePackage):
     maintainers("robertu94")
 
     version("master", branch="master")
+    version("0.0.21", sha256="67cfd57080a74752b4c239e031cc44734286589a89bb1cd51a8bd7039f87a3f3")
+    version("0.0.20", sha256="9fdc632eb135f57132953b512d8f9101e8eb4e6a88e6c3b838aaa9c51a2dbfd6")
+    version("0.0.19", sha256="584ee52b1f82671e5d8fde786c46aa7e98d30104674c6f4b75dbae8d83b13f21")
     version("0.0.17", sha256="8c8a3f2727dd28c51ab10e02a1114e39b683d6d9ea119d5c2a953f8c41d6bedd")
     version("0.0.16", sha256="1287251b694adb80210536ab6eb75c1ff2c4ed8b77023208a757ae27c9dae0bb")
     version("0.0.15", sha256="af374a8883a32d874f6cd18cce4e4344e32f9d60754be403a5ac7114feca2a28")
@@ -34,9 +37,11 @@ class Libstdcompat(CMakePackage):
     version("0.0.2", sha256="36424399e649be38bdb21899aa45f94aebba25c66048bab2751b1b3b9fd27238")
     version("0.0.1", sha256="3d63e901f4e20b9032a67086f4b4281f641ee0dea436cf15f7058faa40d8637b")
 
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "cpp_compat",
-        values=("11", "14", "17", "20", "auto"),
+        values=("11", "14", "17", "20", "23", "auto"),
         default="auto",
         multi=False,
         description="version of the c++ standard to use and depend on",
@@ -57,6 +62,17 @@ class Libstdcompat(CMakePackage):
     conflicts("cpp_compat=20", when="@:0.0.7")
 
     def max_cxx_version(self):
+        if self.spec.version >= Version("0.0.20"):
+            try:
+                self.compiler.cxx23_flag
+                return "23"
+            except Exception:
+                pass
+            try:
+                self.compiler.cxx20_flag
+                return "20"
+            except Exception:
+                pass
         try:
             self.compiler.cxx17_flag
             return "17"
@@ -74,7 +90,7 @@ class Libstdcompat(CMakePackage):
         args = []
         cpp_compat = self.spec.variants["cpp_compat"].value
 
-        if "cpp_unstable" in self.spec:
+        if self.spec.satisfies("+cpp_unstable"):
             args.append("-DSTDCOMPAT_CXX_UNSTABLE=ON")
 
         if cpp_compat == "auto":
@@ -93,8 +109,3 @@ class Libstdcompat(CMakePackage):
         else:
             args.append("-DBUILD_TESTING=OFF")
         return args
-
-    @run_after("build")
-    @on_package_attributes(run_tests=True)
-    def test(self):
-        make("test")

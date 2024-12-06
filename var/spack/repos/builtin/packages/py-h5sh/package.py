@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyH5sh(PythonPackage):
     pypi = "h5sh/h5sh-0.1.1.tar.gz"
 
     maintainers("sethrj")
+
+    license("BSD-3-Clause")
 
     version("0.1.1", sha256="ccd8fed532d479d297baef044265100a4fb9cd119bce6f43270f2ee9f63a2183")
 

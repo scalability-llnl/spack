@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,7 +15,11 @@ class Gluegen(Package):
     homepage = "https://jogamp.org/gluegen/www/"
     git = "https://github.com/WadeWalker/gluegen.git"
 
+    license("Apache-2.0")
+
     version("java-11-fixes", branch="java-11-fixes", submodules=True)
+
+    depends_on("c", type="build")  # generated
 
     # ant optional jar file to execute antlr tasks
     resource(

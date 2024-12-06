@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class Gzip(AutotoolsPackage):
 
     homepage = "https://www.gnu.org/software/gzip/"
     url = "https://ftp.gnu.org/gnu/gzip/gzip-1.10.tar.gz"
+
+    license("GPL-3.0-or-later")
 
     version("1.13", sha256="20fc818aeebae87cdbf209d35141ad9d3cf312b35a5e6be61bfcfbf9eddd212a")
     version(
@@ -28,6 +30,8 @@ class Gzip(AutotoolsPackage):
         sha256="c91f74430bf7bc20402e1f657d0b252cb80aa66ba333a25704512af346633c68",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
 
     # Gzip makes a recursive symlink if built in-source
     build_directory = "spack-build"

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,9 +16,18 @@ class T8code(AutotoolsPackage):
     homepage = "https://github.com/DLR-AMR/t8code"
     url = "https://github.com/DLR-AMR/t8code/releases/download/v1.4.1/t8-1.4.1.tar.gz"
 
-    maintainers = ["Davknapp", "melven"]
+    maintainers("Davknapp", "melven")
 
+    license("GPL-2.0-or-later")
+
+    version("2.0.0", sha256="b83f6c204cdb663cec7e0c1059406afc4c06df236b71d7b190fb698bec44c1e0")
+    version("1.6.1", sha256="dc96effa7c1ad1d50437fefdd0963f6ef7c943eb10a372a4e8546a5f2970a412")
+    version("1.6.0", sha256="94fb8dd9d9401130867ff18e8f71249cbb0fc34995fd04412a983eb2c93db3d5")
+    version("1.5.0", sha256="22ce6492c0f808c6859a42921352d857639fddd48ecdc9935e419db95c466f28")
     version("1.4.1", sha256="b0ec0c9b4a182f8ac7e930ba80cd20e6dc5baefc328630e4a9dac8c688749e9a")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("mpi", default=True, description="Enable MPI parallel code")
     variant("vtk", default=False, description="Enable vtk-dependent code")
@@ -59,9 +68,14 @@ class T8code(AutotoolsPackage):
 
             # vtk paths need to be passed to configure command
             args.append(f"CPPFLAGS=-I{include_dir}")
-            args.append(f"LDFLAGS=-L{lib_dir}")
+            if "%gcc@14:" in spec:
+                args.append(f"LDFLAGS=-L{lib_dir} -lm")
+            else:
+                args.append(f"LDFLAGS=-L{lib_dir}")
             # Chosen vtk version number is needed for t8code to find the right version
             args.append(f"--with-vtk_version_number={vtk_ver}")
+        elif "%gcc@14:" in spec:
+            args.append("LDFLAGS=-lm")
 
         if "+petsc" in spec:
             args.append(f"--with-petsc={spec['petsc'].prefix}")

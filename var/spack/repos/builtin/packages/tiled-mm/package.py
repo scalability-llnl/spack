@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,9 +16,16 @@ class TiledMm(CMakePackage, CudaPackage, ROCmPackage):
 
     maintainers("mtaillefumier", "simonpintarelli", "RMeli")
 
+    license("BSD-3-Clause")
+
     version("master", branch="master")
+
+    version("2.3.1", sha256="68914a483e62f796b790ea428210b1d5ef5943d6289e53d1aa62f56a20fbccc8")
+    version("2.3", sha256="504c6201f5a9be9741c55036bf8e2656ae3f4bc19996295b264ee5e303c9253c")
     version("2.2", sha256="6d0b49c9588ece744166822fd44a7bc5bec3dc666b836de8bf4bf1a7bb675aac")
     version("2.0", sha256="ea554aea8c53d7c8e40044e6d478c0e8137d7e8b09d7cb9650703430d92cf32e")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("shared", default=True, description="Build shared libraries")
     variant("examples", default=False, description="Enable examples")

@@ -1,8 +1,8 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
+from spack.build_environment import optimization_flags
 from spack.package import *
 
 
@@ -13,7 +13,9 @@ class Arbor(CMakePackage, CudaPackage):
     homepage = "https://arbor-sim.org"
     git = "https://github.com/arbor-sim/arbor.git"
     url = "https://github.com/arbor-sim/arbor/releases/download/v0.8.1/arbor-v0.8.1-full.tar.gz"
-    maintainers = ["thorstenhater", "brenthuisman"]
+
+    maintainers("thorstenhater", "brenthuisman")
+    license("BSD-3-Clause")
 
     version("master", branch="master")
     version("develop")
@@ -47,6 +49,9 @@ class Arbor(CMakePackage, CudaPackage):
         sha256="290e2ad8ca8050db1791cabb6b431e7c0409c305af31b559e397e26b300a115d",
         url="https://github.com/arbor-sim/arbor/releases/download/v0.5.2/arbor-v0.5.2-full.tar.gz",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("assertions", default=False, description="Enable arb_assert() assertions in code.")
     variant("doc", default=False, description="Build documentation.")
@@ -105,23 +110,23 @@ class Arbor(CMakePackage, CudaPackage):
         return ["all", "html"] if "+doc" in self.spec else ["all"]
 
     def cmake_args(self):
+        spec = self.spec
         args = [
             self.define_from_variant("ARB_WITH_ASSERTIONS", "assertions"),
             self.define_from_variant("ARB_WITH_MPI", "mpi"),
             self.define_from_variant("ARB_WITH_PYTHON", "python"),
             self.define_from_variant("ARB_VECTORIZE", "vectorize"),
+            self.define("ARB_ARCH", "none"),
+            self.define("ARB_CXX_FLAGS_TARGET", optimization_flags(self.compiler, spec.target)),
         ]
 
-        if "+cuda" in self.spec:
-            args.append("-DARB_GPU=cuda")
-            args.append(self.define_from_variant("ARB_USE_GPU_RNG", "gpu_rng"))
-
-        # query spack for the architecture-specific compiler flags set by its wrapper
-        args.append("-DARB_ARCH=none")
-        opt_flags = self.spec.target.optimization_flags(
-            self.spec.compiler.name, self.spec.compiler.version
-        )
-        args.append("-DARB_CXX_FLAGS_TARGET=" + opt_flags)
+        if self.spec.satisfies("+cuda"):
+            args.extend(
+                [
+                    self.define("ARB_GPU", "cuda"),
+                    self.define_from_variant("ARB_USE_GPU_RNG", "gpu_rng"),
+                ]
+            )
 
         return args
 

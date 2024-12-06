@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class Jline3(MavenPackage):
 
     homepage = "https://github.com/jline/jline3/"
     url = "https://github.com/jline/jline3/archive/jline-parent-3.16.0.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("3.22.0", sha256="610ff2fca902f006d230d05be4eb6d62f345bb64371a279d521373c7b61a6279")
     version("3.16.0", sha256="d2de8dfe55a55e20752aeb082a75192bf835baaab75f257d3fab90ce350fdbcb")

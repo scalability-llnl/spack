@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,8 +14,12 @@ class Digitrounding(CMakePackage):
 
     maintainers("robertu94")
 
+    license("LGPL-3.0-or-later")
+
     version("master", branch="master")
     version("2020-02-27", commit="7b18679aded7a85e6f221f7f5cd4f080f322bc33")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("zlib-api")
 
@@ -23,7 +27,7 @@ class Digitrounding(CMakePackage):
 
     def cmake_args(self):
         args = []
-        if "+shared" in self.spec:
+        if self.spec.satisfies("+shared"):
             args.append("-DBUILD_SHARED_LIBS=ON")
         else:
             args.append("-DBUILD_SHARED_LIBS=OFF")

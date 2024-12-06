@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -27,6 +27,8 @@ class Mstk(CMakePackage):
 
     maintainers("raovgarimella", "julienloiseau")
 
+    license("BSD-3-Clause")
+
     version("master", branch="master")
     version("3.3.6", sha256="30041ee6f32d754e5d9b46db8f62609bb66d2686f8e6e16ad254f552849cb0f1")
     version("3.3.5", sha256="64c976e12d1393aafd086ef941b176add6cfb963f463c33259596e7ef641cdd8")
@@ -46,6 +48,9 @@ class Mstk(CMakePackage):
     version("3.0.2", sha256="b0172cd68e5137b8585d82c37b8a4af4b7e884f04d1b7d006a399d39447fe89e")
     version("3.0.1", sha256="d44e4bf01b118b1d19710aa839b3f5f0c1a8391264a435f641ba4bd23bcf45ec")
     version("3.0.0", sha256="d993ff5fc6c431067eb97e4089835c7790397d9c1ad88a56523c0591d451df19")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("exodusii", default=False, description="Enable ExodusII")
     variant("use_markers", default=True, description="Enable use of markers")

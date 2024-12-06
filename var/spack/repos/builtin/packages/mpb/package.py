@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,7 +13,11 @@ class Mpb(AutotoolsPackage):
     homepage = "https://github.com/NanoComp/mpb"
     url = "https://github.com/NanoComp/mpb/archive/refs/tags/v1.11.1.tar.gz"
 
+    license("GPL-2.0-only")
+
     version("1.11.1", sha256="7311fc525214c1184cad3e0626b8540c0b53b3c31c28e61ce6ec2860088eca46")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

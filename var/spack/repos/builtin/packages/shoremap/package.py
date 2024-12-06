@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,7 +19,11 @@ class Shoremap(MakefilePackage):
     homepage = "http://bioinfo.mpipz.mpg.de/shoremap/"
     url = "http://bioinfo.mpipz.mpg.de/shoremap/SHOREmap_v3.6.tar.gz"
 
+    license("GPL-3.0-or-later")
+
     version("3.6", sha256="0da4179e92cbc68434a9d8eff7bd5fff55c89fd9a543a2db6bd0f69074f2ec70")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("dislin")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyPkginfo(PythonPackage):
 
     homepage = "https://code.launchpad.net/~tseaver/pkginfo/trunk"
     pypi = "pkginfo/pkginfo-1.5.0.1.tar.gz"
+
+    license("MIT")
 
     version("1.9.6", sha256="8fd5896e8718a4372f0ea9cc9d96f6417c9b986e23a4d116dda26b62cc29d046")
     version("1.8.3", sha256="a84da4318dd86f870a9447a8c98340aa06216bfc6f2b7bdc4b8766984ae1867c")

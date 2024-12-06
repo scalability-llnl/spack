@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,8 @@ class Cachefilesd(MakefilePackage):
     version("0.10.7", sha256="193cca5efb37ee460a4ed8e1ed4878e3718e432ebe690ec4fe02486ef3f2494e")
     version("0.10.6", sha256="aaaaea887a5850c6fa01d09c80946e987411f6b550261f83967c671c65af959d")
     version("0.10.5", sha256="125ea4f6aef4bf8e936a7cc747b59e074537a8aed74cd1bab3f05d7fbc47287f")
+
+    depends_on("c", type="build")  # generated
 
     @when("target=aarch64:")
     def edit(self, spec, prefix):

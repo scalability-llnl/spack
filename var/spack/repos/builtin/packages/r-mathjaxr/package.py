@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class RMathjaxr(RPackage):
     rendering equations in the HTML help files."""
 
     cran = "mathjaxr"
+
+    license("GPL-3.0-only")
 
     version("1.6-0", sha256="ecc47607111b788d84789459af7f4f9102719f98640b7a23bd5a4eb1a6d3c179")
     version("1.4-0", sha256="ba57378236d593a39c5839054adc5473526de0c8f05b7eeb87c99438496ddc67")

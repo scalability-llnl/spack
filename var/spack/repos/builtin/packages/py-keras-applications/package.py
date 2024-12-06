@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyKerasApplications(PythonPackage):
 
     homepage = "https://keras.io"
     url = "https://github.com/keras-team/keras-applications/archive/1.0.4.tar.gz"
+
+    license("MIT")
 
     version("1.0.8", sha256="7c37f9e9ef93efac9b4956301cb21ce46c474ce9da41fac9a46753bab6823dfc")
     version("1.0.7", sha256="8580a885c8abe4bf8429cb0e551f23e79b14eda73d99138cfa1d355968dd4b0a")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -9,14 +9,10 @@ import shutil
 
 import pytest
 
-import spack.concretize
-import spack.paths
 import spack.platforms
 import spack.relocate
 import spack.relocate_text as relocate_text
-import spack.spec
-import spack.store
-import spack.tengine
+import spack.repo
 import spack.util.executable
 
 pytestmark = pytest.mark.not_on_windows("Tests fail on Windows")
@@ -44,14 +40,6 @@ def text_in_bin(text, binary):
         if not pat.search(data):
             return False
         return True
-
-
-@pytest.fixture()
-def mock_patchelf(tmpdir, mock_executable):
-    def _factory(output):
-        return mock_executable("patchelf", output=output)
-
-    return _factory
 
 
 @pytest.fixture()
@@ -291,6 +279,14 @@ def test_relocate_text_bin_raise_if_new_prefix_is_longer(tmpdir):
 
 @pytest.mark.requires_executables("install_name_tool", "file", "cc")
 def test_fixup_macos_rpaths(make_dylib, make_object_file):
+    compiler_cls = spack.repo.PATH.get_pkg_class("apple-clang")
+    compiler_version = compiler_cls.determine_version("cc")
+    try:
+        # See https://forums.swift.org/t/xcode-ships-llvm-15-but-swift-builds-llvm-16/67377
+        xcode_major_version = int(compiler_version.split(".")[0])
+    except IndexError:
+        pytest.xfail("cannot determine the major version of XCode")
+
     # For each of these tests except for the "correct" case, the first fixup
     # should make changes, and the second fixup should be a null-op.
     fixup_rpath = spack.relocate.fixup_macos_rpath
@@ -301,7 +297,9 @@ def test_fixup_macos_rpaths(make_dylib, make_object_file):
 
     # Non-relocatable library id and duplicate rpaths
     (root, filename) = make_dylib("abs", duplicate_rpaths)
-    assert fixup_rpath(root, filename)
+    # XCode 15 ships a new linker that takes care of deduplication
+    if xcode_major_version < 15:
+        assert fixup_rpath(root, filename)
     assert not fixup_rpath(root, filename)
 
     # Hardcoded but relocatable library id (but we do NOT relocate)
@@ -310,7 +308,9 @@ def test_fixup_macos_rpaths(make_dylib, make_object_file):
 
     # Library id uses rpath but there are extra duplicate rpaths
     (root, filename) = make_dylib("rpath", duplicate_rpaths)
-    assert fixup_rpath(root, filename)
+    # XCode 15 ships a new linker that takes care of deduplication
+    if xcode_major_version < 15:
+        assert fixup_rpath(root, filename)
     assert not fixup_rpath(root, filename)
 
     # Shared library was constructed with relocatable id from the get-go
@@ -333,7 +333,9 @@ def test_fixup_macos_rpaths(make_dylib, make_object_file):
     # Duplicate nonexistent rpath will need *two* passes
     (root, filename) = make_dylib("rpath", bad_rpath * 2)
     assert fixup_rpath(root, filename)
-    assert fixup_rpath(root, filename)
+    # XCode 15 ships a new linker that takes care of deduplication
+    if xcode_major_version < 15:
+        assert fixup_rpath(root, filename)
     assert not fixup_rpath(root, filename)
 
     # Test on an object file, which *also* has type 'application/x-mach-binary'

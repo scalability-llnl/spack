@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,9 +21,9 @@ class TrivialSmokeTest(Package):
 
     @run_before("install")
     def create_extra_test_source(self):
-        mkdirp(self.install_test_root)
-        touch(join_path(self.install_test_root, self.test_source_filename))
+        mkdirp(install_test_root(self))
+        touch(join_path(install_test_root(self), self.test_source_filename))
 
     @run_after("install")
     def copy_test_sources(self):
-        self.cache_extra_test_sources([self.test_source_filename])
+        cache_extra_test_sources(self, [self.test_source_filename])

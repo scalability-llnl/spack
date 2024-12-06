@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -40,6 +40,8 @@ class RSva(RPackage):
     version("3.28.0", commit="dd4937229dbccd2f383a04d5237fe147a884728d")
     version("3.26.0", commit="3cc5e75413c35ed5511892f5c36a8b5cb454937e")
     version("3.24.4", commit="ed2ebb6e33374dc9ec50e6ea97cc1d9aef836c73")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r@3.2:", type=("build", "run"))
     depends_on("r-mgcv", type=("build", "run"))

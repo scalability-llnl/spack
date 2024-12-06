@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class Orientdb(MavenPackage):
 
     homepage = "https://orientdb.org"
     url = "https://github.com/orientechnologies/orientdb/archive/3.1.2.tar.gz"
+
+    license("Apache-2.0")
 
     version("3.1.2", sha256="3c8e1f55de9e1a6c3cd714832deb7369f50096e85f1e048f0c0328e611970850")
     version("3.1.1", sha256="d5cc6b6048b71696a4a592705c2a3aec65757eca3cfadb03905306ceb4348d37")

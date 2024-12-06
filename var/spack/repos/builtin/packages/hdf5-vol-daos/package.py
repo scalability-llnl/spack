@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,8 +17,13 @@ class Hdf5VolDaos(CMakePackage):
 
     maintainers("hyoklee", "soumagne")
 
+    license("BSD-3-Clause")
+
     version("master", branch="master", submodules=True)
     version("1.2.0", sha256="669c1443605068f24c033783ef72619afcec4844902b3e0bffa19ddeea39779f")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@2.8.12.2:", type="build")
     depends_on("daos@2.2.0:")

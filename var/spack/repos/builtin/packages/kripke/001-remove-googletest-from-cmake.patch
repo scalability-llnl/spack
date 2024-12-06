@@ -1,0 +1,25 @@
+
+m aa630efbd686c8581bb893b512dbf1613e1e574d Mon Sep 17 00:00:00 2001
+From: Afzal Patel <Afzal.Patel@amd.com>
+Date: Thu, 20 Jun 2024 18:40:02 +0000
+Subject: [PATCH] Comment out googletest folder
+
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 2f9bff0..3059e26 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -64,7 +64,7 @@ endif()
+ #
+ # Add googletest (needed by RAJA, etc)
+ #
+-add_subdirectory(tpl/googletest)
++# add_subdirectory(tpl/googletest)
+
+
+ #
+--
+2.31.1

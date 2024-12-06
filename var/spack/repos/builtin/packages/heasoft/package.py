@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -24,8 +24,14 @@ class Heasoft(AutotoolsPackage):
     homepage = "https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/"
     url = "https://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/lheasoft6.29/heasoft-6.29src.tar.gz"
 
+    license("BSD-3-Clause")
+
     version("6.30", sha256="7f828f6050809653319f94d715c1b6815fbc09adfdcb61f2f0f1d7a6af10684a")
     version("6.29", sha256="534fec04baa2586326fd7240805f2606620f3b7d7078a80fdd95c9c1177c9e68")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("X", default=True, description="Enable X11 support")
 
@@ -87,7 +93,7 @@ class Heasoft(AutotoolsPackage):
             join_path("tcltk", "BUILD_DIR", "hd_config_info"),
         )
 
-        if "+X" in self.spec:
+        if self.spec.satisfies("+X"):
             filter_file(
                 r"(\s+XDIR => ).*",
                 r"\1'{0}',".format(self.spec["libx11"].libs.directories[0]),
@@ -103,7 +109,7 @@ class Heasoft(AutotoolsPackage):
 
         config_args += self.enable_or_disable("x", variant="X")
 
-        if "+X" in self.spec:
+        if self.spec.satisfies("+X"):
             config_args.extend(
                 [
                     "--x-includes={0}".format(self.spec["libx11"].headers.directories[0]),

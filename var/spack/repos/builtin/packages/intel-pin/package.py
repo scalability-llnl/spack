@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,28 @@ class IntelPin(Package):
     homepage = "http://www.pintool.org"
     maintainers("matthiasdiener")
 
+    license("MIT")
+
+    version(
+        "3.31",
+        sha256="82216144e3df768f0203b671ff48605314f13266903eb42dac01b91310eba956",
+        url="https://software.intel.com/sites/landingpage/pintool/downloads/pin-external-3.31-98869-gfa6f126a8-gcc-linux.tar.gz",
+    )
+    version(
+        "3.30",
+        sha256="be4f1130445c3fc4d83b7afad85c421d418f60013c33e8ee457bc7c9c194de1b",
+        url="https://software.intel.com/sites/landingpage/pintool/downloads/pin-3.30-98830-g1d7b601b3-gcc-linux.tar.gz",
+    )
+    version(
+        "3.29",
+        sha256="45c2a68d4b2184117584a55db17b44c86f9476e9cb8109b2fae50a965b1ea64f",
+        url="https://software.intel.com/sites/landingpage/pintool/downloads/pin-3.29-98790-g1a445fcd1-gcc-linux.tar.gz",
+    )
+    version(
+        "3.28",
+        sha256="5a5a3337f3f16176b97edcd3366b561936e1068fba4ebcfed4b836d81d45847b",
+        url="https://software.intel.com/sites/landingpage/pintool/downloads/pin-3.28-98749-g6643ecee5-gcc-linux.tar.gz",
+    )
     version(
         "3.27",
         sha256="e7d44d25668632007d5a109e5033415e91db543b8ce9e665893a05e852b67707",
@@ -111,6 +133,9 @@ class IntelPin(Package):
         sha256="1c29f589515772411a699a82fc4a3156cad95863a29741dfa6522865d4d281a1",
         url="https://software.intel.com/sites/landingpage/pintool/downloads/pin-2.14-71313-gcc.4.4.7-linux.tar.gz",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     def install(self, spec, prefix):
         install_tree(".", prefix)

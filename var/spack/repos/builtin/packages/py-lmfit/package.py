@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyLmfit(PythonPackage):
 
     homepage = "https://lmfit.github.io/lmfit-py/"
     pypi = "lmfit/lmfit-0.9.5.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("1.0.2", sha256="67090ce56685cf7f92bd7358a1e7d4ad862b3758988109ec440e9825e5184b45")
     version("1.0.1", sha256="d249eb756899360f4d2a544c9458f47fc8f765ac22c09e099530585fd64e286e")

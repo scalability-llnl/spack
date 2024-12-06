@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,11 @@ class PyTraitlets(PythonPackage):
     homepage = "https://github.com/ipython/traitlets"
     pypi = "traitlets/traitlets-5.0.4.tar.gz"
 
+    version("5.14.3", sha256="9ed0579d3502c94b4b3732ac120375cda96f923114522847de4b3bb98b96b6b7")
+    version("5.13.0", sha256="9b232b9430c8f57288c1024b34a8f0251ddcc47268927367a0dd3eeaca40deb5")
+    version("5.12.0", sha256="833273bf645d8ce31dcb613c56999e2e055b1ffe6d09168a164bcd91c36d5d35")
+    version("5.11.2", sha256="7564b5bf8d38c40fa45498072bf4dc5e8346eb087bbf1e2ae2d8774f6a0f078e")
+    version("5.10.1", sha256="db9c4aa58139c3ba850101913915c042bdba86f7c8a0dda1c6f7f92c5da8e542")
     version("5.9.0", sha256="f6cde21a9c68cf756af02035f72d5a723bf607e862e7be33ece505abf4a3bad9")
     version("5.7.1", sha256="fde8f62c05204ead43c2c1b9389cfc85befa7f54acb5da28529d671175bb4108")
     version("5.3.0", sha256="0bb9f1f9f017aa8ec187d8b1b2a7a6626a2a1d877116baba52a129bfa124f8e2")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class RIca(RPackage):
     of Eigenmatrices (JADE)."""
 
     cran = "ica"
+
+    license("GPL-2.0-or-later")
 
     version("1.0-3", sha256="474d3530b16b76a1bf1a1114d24092678ea7215fa57c6fdcee6333f1e768b865")
     version("1.0-2", sha256="e721596fc6175d3270a60d5e0b5b98be103a8fd0dd93ef16680af21fe0b54179")

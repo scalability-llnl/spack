@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class PyMsalExtensions(PythonPackage):
 
     homepage = "https://github.com/AzureAD/microsoft-authentication-library-for-python"
     pypi = "msal-extensions/msal-extensions-0.2.2.tar.gz"
+
+    license("MIT")
 
     version("1.0.0", sha256="c676aba56b0cce3783de1b5c5ecfe828db998167875126ca4b47dc6436451354")
     version("0.2.2", sha256="31414753c484679bb3b6c6401623eb4c3ccab630af215f2f78c1d5c4f8e1d1a9")

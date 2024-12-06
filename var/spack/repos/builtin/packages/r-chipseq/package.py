@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,8 @@ class RChipseq(RPackage):
     version("1.46.0", commit="76b00397cd117d5432158f50fc1032d50485bd24")
     version("1.44.0", commit="b64d0d28e9fcf0fdab9a7f9c521baf729426a594")
     version("1.40.0", commit="84bcbc0b7ad732730b5989a308f1624a6a358df1")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r@2.10:", type=("build", "run"))
     depends_on("r-biocgenerics@0.1.0:", type=("build", "run"))

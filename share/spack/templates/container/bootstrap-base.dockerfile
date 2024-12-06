@@ -1,4 +1,4 @@
-FROM {{ bootstrap.image }} as bootstrap
+FROM {{ bootstrap.image }} AS bootstrap
 
 {% block env_vars %}
 ENV SPACK_ROOT=/opt/spack \

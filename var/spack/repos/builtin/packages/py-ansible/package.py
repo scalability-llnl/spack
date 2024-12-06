@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,9 @@ class PyAnsible(PythonPackage):
     homepage = "https://github.com/ansible"
     url = "https://github.com/ansible/ansible/archive/v2.9.1.tar.gz"
 
+    license("GPL-3.0-or-later")
+
+    version("2.16.3", sha256="1ea5d3110f19d11bd1f330ab00bcc0dbfc51a5146349da849b8496be50b0bff7")
     version("2.9.2", sha256="27673726435e8773ef031ef6ffb121b8ec75b85b07b7684454b430c3c9a848a9")
     version("2.9.1", sha256="087a7644890e27c26171b0d24fc5d64024f12201ffb81d222aaa5704987e4c12")
     version("2.9.0", sha256="a2a9b1a74f3d47b82f9ea9da10ebf3573fa10c1783b7ed9b7eb937c7052fcb13")
@@ -24,8 +27,19 @@ class PyAnsible(PythonPackage):
     version("2.7.14", sha256="92f0be1de4f9d1c0a3a35963fb853a6d7831360fd1e734cb36d601495a71770c")
     version("2.6.20", sha256="55962e79e24a67a5534bf08aa0482d5f7322ad3f112a3ebffc4a58ae02b82277")
 
-    depends_on("python@2.7:2.8,3.5:", type=("build", "run"))
+    depends_on("python@3.8:", type=("build", "run"), when="@2.12.0:")
+    depends_on("python@3.9:", type=("build", "run"), when="@2.14.0:")
+    depends_on("python@3.10:", type=("build", "run"), when="@2.16.0:")
+
     depends_on("py-setuptools", type="build")
+    depends_on("py-setuptools@39.2.0:", type="build", when="@2.13.0:")
+    depends_on("py-setuptools@45.2.0:", type="build", when="@2.14.9:")
+    depends_on("py-setuptools@66.1.0:", type="build", when="@2.16.0:")
+
     depends_on("py-jinja2", type=("build", "run"))
+    depends_on("py-jinja2@3:", type=("build", "run"), when="@2.13.0:")
     depends_on("py-pyyaml", type=("build", "run"))
+    depends_on("py-pyyaml@5.1:", type=("build", "run"))
     depends_on("py-cryptography", type=("build", "run"))
+    depends_on("py-packaging", type=("build", "run"), when="@2.10.0:")
+    depends_on("py-resolvelib@0.5.3:1.0", type=("build", "run"), when="@2.11.0:")

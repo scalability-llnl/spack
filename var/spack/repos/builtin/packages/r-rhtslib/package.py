@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -37,6 +37,8 @@ class RRhtslib(RPackage):
     version("1.12.1", commit="e3487b1355995d09b28fde5d0a7504a3e79a7203")
     version("1.10.0", commit="53dcf7dfe35d735283956c77c011a97ca3f4eb26")
     version("1.8.0", commit="3b5493473bed42958614091c58c739932ffcfa79")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r-zlibbioc", type=("build", "run"))
     depends_on("bzip2", type=("build", "link", "run"))

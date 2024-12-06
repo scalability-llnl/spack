@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,8 @@ class Simgrid(CMakePackage):
     git = "https://framagit.org/simgrid/simgrid.git"
 
     maintainers("viniciusvgp")
+
+    license("LGPL-2.1-or-later")
 
     version("3.35", sha256="b4570d3de18d319cbd2e16c5a669f90760307673c0cc9940d4d11cfc537e69a8")
     version("3.34", sha256="161f1c6c0ebb588c587aea6388114307bb31b3c6d5332fa3dc678151f1d0564d")
@@ -116,6 +118,10 @@ class Simgrid(CMakePackage):
     )
 
     version("develop", branch="master")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("doc", default=False, description="Build documentation")
     variant("smpi", default=True, description="SMPI provides MPI")

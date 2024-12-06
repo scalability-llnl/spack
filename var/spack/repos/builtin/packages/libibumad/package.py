@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,9 +13,13 @@ class Libibumad(CMakePackage):
     homepage = "https://github.com/linux-rdma/"
     url = "https://github.com/linux-rdma/rdma-core/archive/v25.0.tar.gz"
 
+    license("GPL-2.0-only OR BSD-2-Clause")
+
     version("46.0", sha256="23fd2a5a656f7d147796660c3d3728b31287bc70a3e913e28ea5da7f39269229")
     version("44.1", sha256="1dec7e25dd248f1ff4d262e5674297205ad9113a4ff25ab7ecbb75a824adac27")
     version("25.0", sha256="d735bd091d13e8a68ce650e432b5bdc934fc7f1d5fb42a6045278a5b3f7fe48b")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("libnl")
 

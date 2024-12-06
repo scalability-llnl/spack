@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,37 +14,53 @@ import time
 import xml.sax.saxutils
 from typing import Dict, Optional
 from urllib.parse import urlencode
-from urllib.request import HTTPHandler, Request, build_opener
+from urllib.request import HTTPSHandler, Request, build_opener
 
 import llnl.util.tty as tty
 from llnl.util.filesystem import working_dir
 
-import spack.build_environment
-import spack.fetch_strategy
-import spack.package_base
+import spack
+import spack.paths
 import spack.platforms
+import spack.spec
+import spack.tengine
 import spack.util.git
 from spack.error import SpackError
 from spack.util.crypto import checksum
 from spack.util.log_parse import parse_log_events
+from spack.util.web import ssl_create_default_context
 
 from .base import Reporter
 from .extract import extract_test_parts
 
 # Mapping Spack phases to the corresponding CTest/CDash phase.
+# TODO: Some of the phases being lumped into configure in the CDash tables
+# TODO:   really belong in a separate column, such as "Setup".
+# TODO: Would also be nice to have `stage` as a separate phase that could
+# TODO:   be lumped into that new column instead of configure, for example.
 MAP_PHASES_TO_CDASH = {
-    "autoreconf": "configure",
-    "cmake": "configure",
-    "configure": "configure",
-    "edit": "configure",
+    "autoreconf": "configure",  # AutotoolsBuilder
+    "bootstrap": "configure",  # CMakeBuilder
     "build": "build",
+    "build_processes": "build",  # Openloops
+    "cmake": "configure",  # CMakeBuilder
+    "configure": "configure",
+    "edit": "configure",  # MakefileBuilder
+    "generate_luarocks_config": "configure",  # LuaBuilder
+    "hostconfig": "configure",  # Lvarray
+    "initconfig": "configure",  # CachedCMakeBuilder
     "install": "build",
+    "meson": "configure",  # MesonBuilder
+    "preprocess": "configure",  # LuaBuilder
+    "qmake": "configure",  # QMakeBuilder
+    "unpack": "configure",  # LuaBuilder
 }
 
 # Initialize data structures common to each phase's report.
 CDASH_PHASES = set(MAP_PHASES_TO_CDASH.values())
 CDASH_PHASES.add("update")
-
+# CDash request timeout in seconds
+SPACK_CDASH_TIMEOUT = 45
 
 CDashConfiguration = collections.namedtuple(
     "CDashConfiguration", ["upload_url", "packages", "build", "site", "buildstamp", "track"]
@@ -92,18 +108,19 @@ class CDash(Reporter):
         self.osname = platform.system()
         self.osrelease = platform.release()
         self.target = spack.platforms.host().target("default_target")
-        self.endtime = int(time.time())
+        self.starttime = int(time.time())
+        self.endtime = self.starttime
         self.buildstamp = (
             configuration.buildstamp
             if configuration.buildstamp
-            else build_stamp(configuration.track, self.endtime)
+            else build_stamp(configuration.track, self.starttime)
         )
         self.buildIds: Dict[str, str] = {}
         self.revision = ""
         git = spack.util.git.git()
         with working_dir(spack.paths.spack_root):
             self.revision = git("rev-parse", "HEAD", output=str).strip()
-        self.generator = "spack-{0}".format(spack.main.get_version())
+        self.generator = "spack-{0}".format(spack.get_version())
         self.multiple_packages = False
 
     def report_build_name(self, pkg_name):
@@ -125,7 +142,7 @@ class CDash(Reporter):
             report_data[phase] = {}
             report_data[phase]["loglines"] = []
             report_data[phase]["status"] = 0
-            report_data[phase]["endtime"] = self.endtime
+            report_data[phase]["starttime"] = self.starttime
 
         # Track the phases we perform so we know what reports to create.
         # We always report the update step because this is how we tell CDash
@@ -153,6 +170,25 @@ class CDash(Reporter):
             elif cdash_phase:
                 report_data[cdash_phase]["loglines"].append(xml.sax.saxutils.escape(line))
 
+        # something went wrong pre-cdash "configure" phase b/c we have an exception and only
+        # "update" was encounterd.
+        # dump the report in the configure line so teams can see what the issue is
+        if len(phases_encountered) == 1 and package["exception"]:
+            # TODO this mapping is not ideal since these are pre-configure errors
+            # we need to determine if a more appropriate cdash phase can be utilized
+            # for now we will add a message to the log explaining this
+            cdash_phase = "configure"
+            phases_encountered.append(cdash_phase)
+
+            log_message = (
+                "Pre-configure errors occured in Spack's process that terminated the "
+                "build process prematurely.\nSpack output::\n{0}".format(
+                    xml.sax.saxutils.escape(package["exception"])
+                )
+            )
+
+            report_data[cdash_phase]["loglines"].append(log_message)
+
         # Move the build phase to the front of the list if it occurred.
         # This supports older versions of CDash that expect this phase
         # to be reported before all others.
@@ -160,9 +196,9 @@ class CDash(Reporter):
             build_pos = phases_encountered.index("build")
             phases_encountered.insert(0, phases_encountered.pop(build_pos))
 
-        self.starttime = self.endtime - duration
+        self.endtime = self.starttime + duration
         for phase in phases_encountered:
-            report_data[phase]["starttime"] = self.starttime
+            report_data[phase]["endtime"] = self.endtime
             report_data[phase]["log"] = "\n".join(report_data[phase]["loglines"])
             errors, warnings = parse_log_events(report_data[phase]["loglines"])
 
@@ -309,7 +345,7 @@ class CDash(Reporter):
             self.buildname = "{0}-{1}".format(self.current_package_name, package["id"])
         else:
             self.buildname = self.report_build_name(self.current_package_name)
-        self.starttime = self.endtime - duration
+        self.endtime = self.starttime + duration
 
         report_data = self.initialize_report(report_dir)
         report_data["hostname"] = socket.gethostname()
@@ -354,7 +390,7 @@ class CDash(Reporter):
         self.buildname = self.base_buildname
         report_data = self.initialize_report(report_dir)
         report_data["update"] = {}
-        report_data["update"]["starttime"] = self.endtime
+        report_data["update"]["starttime"] = self.starttime
         report_data["update"]["endtime"] = self.endtime
         report_data["update"]["revision"] = self.revision
         report_data["update"]["log"] = msg
@@ -394,7 +430,7 @@ class CDash(Reporter):
         # Compute md5 checksum for the contents of this file.
         md5sum = checksum(hashlib.md5, filename, block_size=8192)
 
-        opener = build_opener(HTTPHandler)
+        opener = build_opener(HTTPSHandler(context=ssl_create_default_context()))
         with open(filename, "rb") as f:
             params_dict = {
                 "build": self.buildname,
@@ -413,7 +449,7 @@ class CDash(Reporter):
                 # By default, urllib2 only support GET and POST.
                 # CDash expects this file to be uploaded via PUT.
                 request.get_method = lambda: "PUT"
-                response = opener.open(request)
+                response = opener.open(request, timeout=SPACK_CDASH_TIMEOUT)
                 if self.current_package_name not in self.buildIds:
                     resp_value = response.read()
                     if isinstance(resp_value, bytes):

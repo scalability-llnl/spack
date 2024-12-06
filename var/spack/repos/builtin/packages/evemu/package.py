@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,15 +10,18 @@ class Evemu(AutotoolsPackage):
     """The evemu library and tools are used to describe devices, record data,
     create devices and replay data from kernel evdev devices."""
 
-    homepage = "https://github.com/freedesktop/evemu"
-    url = "https://github.com/freedesktop/evemu/archive/v2.7.0.tar.gz"
+    homepage = "https://gitlab.freedesktop.org/libevdev/evemu"
+    url = "https://gitlab.freedesktop.org/libevdev/evemu/-/archive/v2.7.0/evemu-v2.7.0.tar.gz"
 
-    version("2.7.0", sha256="aee1ecc2b6761134470316d97208b173adb4686dc72548b82b2c2b5d1e5dc259")
-    version("2.6.0", sha256="dc2382bee4dcb6c413271d586dc11d9b4372a70fa2b66b1e53a7107f2f9f51f8")
-    version("2.5.0", sha256="ab7cce32800db84ab3504789583d1be0d9b0a5f2689389691367b18cf059b09f")
-    version("2.4.0", sha256="d346ec59289f588bd93fe3cfa40858c7e048660164338787da79b9ebe3256069")
-    version("2.3.1", sha256="f2dd97310520bc7824adc38b69ead22c53944a666810c60a3e49592914e14e8a")
+    license("LGPL-3.0-only")
 
+    version("2.7.0", sha256="b4ba7458ccb394e9afdb2562c9809e9e90fd1099e8a028d05de3f12349ab6afa")
+    version("2.6.0", sha256="2efa4abb51f9f35a48605db51ab835cf688f02f6041d48607e78e11ec3524ac8")
+    version("2.5.0", sha256="1d88b2a81db36b6018cdc3e8d57fbb95e3a5df9e6806cd7b3d29c579a7113d4f")
+    version("2.4.0", sha256="ea8e7147550432321418ae1161a909e054ff482c86a6a1631f727171791a501d")
+    version("2.3.1", sha256="fbe77a083ed4328e76e2882fb164efc925b308b83e879b518136ee54d74def46")
+
+    depends_on("c", type="build")
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

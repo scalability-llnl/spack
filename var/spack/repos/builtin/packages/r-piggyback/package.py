@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -25,6 +25,8 @@ class RPiggyback(RPackage):
     cran = "piggyback"
 
     maintainers("jgaeb")
+
+    license("GPL-3.0-only")
 
     version("0.1.5", sha256="983b5a46792ff5f2895f36ee29afcbd7723d05fe3daefdaefaada12987e36aee")
     version("0.1.4", sha256="9e9d6d75e13f82559e5322182af557b3c79f9a6e9b0bc8c1e1b193544dcda511")

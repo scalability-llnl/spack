@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,10 +12,14 @@ class LibcapNg(AutotoolsPackage):
     homepage = "https://github.com/stevegrubb/libcap-ng/"
     url = "https://github.com/stevegrubb/libcap-ng/archive/v0.8.tar.gz"
 
+    license("GPL-2.0-or-later AND LGPL-2.1-or-later")
+
     version("0.8.3", sha256="e542e9139961f0915ab5878427890cdc7762949fbe216bd0cb4ceedb309bb854")
     version("0.8", sha256="836ea8188ae7c658cdf003e62a241509dd542f3dec5bc40c603f53a5aadaa93f")
     version("0.7.11", sha256="78f32ff282b49b7b91c56d317fb6669df26da332c6fc9462870cec2573352222")
     version("0.7.10", sha256="c3c156a215e5be5430b2f3b8717bbd1afdabe458b6068a8d163e71cefe98fc32")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
@@ -31,7 +35,7 @@ class LibcapNg(AutotoolsPackage):
 
     def setup_build_environment(self, env):
         if self.spec.satisfies("+python"):
-            env.set("PYTHON", self.spec["python"].command.path)
+            env.set("PYTHON", python.path)
 
     def configure_args(self):
         args = []

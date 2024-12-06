@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class Gengetopt(AutotoolsPackage):
 
     maintainers("rblake-llnl")
 
+    license("GPL-3.0-or-later")
+
     version("2.23", sha256="b941aec9011864978dd7fdeb052b1943535824169d2aa2b0e7eae9ab807584ac")
     version("2.22.6", sha256="30b05a88604d71ef2a42a2ef26cd26df242b41f5b011ad03083143a31d9b01f7")
     version("2.22.5", sha256="3b6fb3240352b0eb0c5b8583b58b62cbba58167cef5a7e82fa08a7f968ed2137")
@@ -24,6 +26,9 @@ class Gengetopt(AutotoolsPackage):
     version("2.22", sha256="b605555e41e9bf7e852a37b051e6a49014e561f21290680e3a60c279488d417e")
     version("2.21", sha256="355a32310b2fee5e7289d6d6e89eddd13275a7c85a243dc5dd293a6cb5bb047e")
     version("2.20", sha256="4c8b3b42cecff579f5f9de5ccad47e0849e0245e325a04ff5985c248141af1a4")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("texinfo", type="build")
 

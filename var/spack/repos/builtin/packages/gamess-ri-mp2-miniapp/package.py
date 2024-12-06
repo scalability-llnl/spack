@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class GamessRiMp2Miniapp(MakefilePackage):
     url = "https://github.com/jkwack/GAMESS_RI-MP2_MiniApp/archive/1.5.tar.gz"
 
     version("1.5", sha256="0ff4e8e556caa99ce1ab85c53e78932a32d2e2fa3c5d883fa321d5000f8a731e")
+
+    depends_on("fortran", type="build")  # generated
 
     depends_on("mpi")
     depends_on("lapack")

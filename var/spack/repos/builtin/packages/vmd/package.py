@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -24,7 +24,7 @@ class Vmd(Package):
     homepage = "https://www.ks.uiuc.edu/Research/vmd/"
     version(
         "1.9.3",
-        sha256="145b4d0cc10b56cadeb71e16c54ab8be713e268f11491714cd617422758ec643",
+        sha256="9427a7acb1c7809525f70f635bceeb7eff8e7574e7e3565d6f71f3d6ce405a71",
         url="file://{0}/vmd-1.9.3.bin.LINUXAMD64-CUDA8-OptiX4-OSPRay111p1.opengl.tar.gz".format(
             os.getcwd()
         ),

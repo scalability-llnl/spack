@@ -1,9 +1,8 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import inspect
 import os.path
 
 from spack.package import *
@@ -15,15 +14,20 @@ class Wannier90(MakefilePackage):
     Wannier90 is released under the GNU General Public License.
     """
 
-    homepage = "http://wannier.org"
+    homepage = "https://wannier.org"
     url = "https://github.com/wannier-developers/wannier90/archive/v3.1.0.tar.gz"
     git = "https://github.com/wannier-developers/wannier90.git"
+
+    license("GPL-2.0-or-later")
 
     version("develop", branch="develop")
     version("3.1.0", sha256="40651a9832eb93dec20a8360dd535262c261c34e13c41b6755fa6915c936b254")
     version("3.0.0", sha256="f196e441dcd7b67159a1d09d2d7de2893b011a9f03aab6b30c4703ecbf20fe5b")
     version("2.1.0", sha256="ee90108d4bc4aa6a1cf16d72abebcb3087cf6c1007d22dda269eb7e7076bddca")
     version("2.0.1", sha256="05ea7cd421a219ce19d379ad6ae3d9b1a84be4ffb367506ffdfab1e729309e94")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("mpi")
     depends_on("lapack")
@@ -49,7 +53,7 @@ class Wannier90(MakefilePackage):
         if version > Version("2"):
             url = "https://github.com/wannier-developers/wannier90/archive/v{0}.tar.gz"
         else:
-            url = "http://wannier.org/code/wannier90-{0}.tar.gz"
+            url = "https://wannier.org/code/wannier90-{0}.tar.gz"
         return url.format(version)
 
     @property
@@ -75,7 +79,7 @@ class Wannier90(MakefilePackage):
             "@LIBS": (lapack + blas + mpi).joined(),
         }
 
-        template = join_path(os.path.dirname(inspect.getmodule(self).__file__), "make.sys")
+        template = join_path(os.path.dirname(__file__), "make.sys")
 
         copy(template, self.makefile_name)
         for key, value in substitutions.items():

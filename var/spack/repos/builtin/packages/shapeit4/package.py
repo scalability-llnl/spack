@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,8 +13,12 @@ class Shapeit4(MakefilePackage):
     homepage = "https://odelaneau.github.io/shapeit4/"
     url = "https://github.com/odelaneau/shapeit4/archive/v4.1.3.tar.gz"
 
+    license("MIT")
+
     version("4.2.2", sha256="9f109e307b5cc22ab68e7bf77de2429a9bbb2212d66303386e6a3dd81a5bc556")
     version("4.1.3", sha256="d209731277b00bca1e3478b7e0a0cbe40fbe23826c3d640ad12e0dd6033cbbb8")
+
+    depends_on("cxx", type="build")  # generated
 
     maintainers("ilbiondo")
 

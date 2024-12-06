@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,9 @@ class PyAmici(PythonPackage):
 
     version("0.16.0", sha256="1a2d6633ec34241d8d8b496d18d4318482cffe125e9ddf3ca6cac5d36d235f38")
     version("0.11.28", sha256="a8ddda70d8ebdc40600b4ad2ea02eb26e765ca0e594b957f61866b8c84255d5b")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("boost", default=True, description="Enable boost support")
     variant("hdf5", default=True, description="Enable HDF5 support")

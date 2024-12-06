@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,6 +10,8 @@ class PyPybtexDocutils(PythonPackage):
     """A docutils backend for pybtex."""
 
     pypi = "pybtex-docutils/pybtex-docutils-0.2.1.tar.gz"
+
+    license("MIT")
 
     version("1.0.0", sha256="cead6554b4af99c287dd29f38b1fa152c9542f56a51cb6cbc3997c95b2725b2e")
     version("0.2.2", sha256="ea90935da188a0f4de2fe6b32930e185c33a0e306154322ccc12e519ebb5fa7d")

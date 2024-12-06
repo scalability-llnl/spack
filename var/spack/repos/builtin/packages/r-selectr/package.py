@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class RSelectr(RPackage):
     package 'cssselect' (<https://cssselect.readthedocs.io/>)."""
 
     cran = "selectr"
+
+    license("BSD-3-Clause")
 
     version("0.4-2", sha256="5588aed05f3f5ee63c0d29953ef53da5dac7afccfdd04b7b22ef24e1e3b0c127")
     version("0.4-1", sha256="8bd42f167629344e485e586f9b05fed342746132489079084d82133d7b3ee2ca")

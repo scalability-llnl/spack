@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,27 +19,12 @@ class Cce(Compiler):
         if not self.is_clang_based:
             self.version_argument = "-V"
 
-    # Subclasses use possible names of C compiler
-    cc_names = ["craycc", "cc"]
-
-    # Subclasses use possible names of C++ compiler
-    cxx_names = ["crayCC", "CC"]
-
-    # Subclasses use possible names of Fortran 77 compiler
-    f77_names = ["crayftn", "ftn"]
-
-    # Subclasses use possible names of Fortran 90 compiler
-    fc_names = ["crayftn", "ftn"]
-
     # MacPorts builds gcc versions with prefixes and -mp-X.Y suffixes.
     suffixes = [r"-mp-\d\.\d"]
 
-    PrgEnv = "PrgEnv-cray"
-    PrgEnv_compiler = "cce"
-
     @property
     def link_paths(self):
-        if any(self.PrgEnv in m for m in self.modules):
+        if any("PrgEnv-cray" in m for m in self.modules):
             # Old module-based interface to cray compilers
             return {
                 "cc": os.path.join("cce", "cc"),

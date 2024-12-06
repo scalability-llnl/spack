@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class Poppler(CMakePackage):
     list_url = "https://poppler.freedesktop.org/releases.html"
     git = "https://gitlab.freedesktop.org/poppler/poppler.git"
 
+    license("GPL-2.0-or-later")
+
     version("master", branch="master")
     version("23.04.0", sha256="b6d893dc7dcd4138b9e9df59a13c59695e50e80dc5c2cacee0674670693951a1")
     version("21.09.0", sha256="5a47fef738c2b99471f9b459a8bf8b40aefb7eed92caa4861c3798b2e126d05b")
@@ -26,6 +28,9 @@ class Poppler(CMakePackage):
     version("0.65.0", sha256="89c8cf73f83efda78c5a9bd37c28f4593ad0e8a51556dbe39ed81e1ae2dd8f07")
     version("0.64.0", sha256="b21df92ca99f78067785cf2dc8e06deb04726b62389c0ee1f5d8b103c77f64b1")
     version("0.61.1", sha256="1266096343f5163c1a585124e9a6d44474e1345de5cdfe55dc7b47357bcfcda9")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("boost", default=False, description="Enable Boost for Splash")
     variant("cms", default=False, description="Use color management system")
@@ -72,9 +77,7 @@ class Poppler(CMakePackage):
 
     # Only needed to run `make test`
     resource(
-        name="test",
-        git="https://anongit.freedesktop.org/git/poppler/test.git",
-        placement="testdata",
+        name="test", git="git://git.freedesktop.org/git/poppler/test.git", placement="testdata"
     )
 
     def cmake_args(self):

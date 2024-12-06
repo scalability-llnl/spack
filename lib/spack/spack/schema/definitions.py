@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -6,20 +6,21 @@
 """Schema for definitions
 
 .. literalinclude:: _spack_root/lib/spack/spack/schema/definitions.py
-   :lines: 13-
+   :lines: 16-
 """
+from typing import Any, Dict
 
-import spack.schema
+from .spec_list import spec_list_schema
 
 #: Properties for inclusion in other schemas
-properties = {
+properties: Dict[str, Any] = {
     "definitions": {
         "type": "array",
         "default": [],
         "items": {
             "type": "object",
             "properties": {"when": {"type": "string"}},
-            "patternProperties": {r"^(?!when$)\w*": spack.schema.spec_list_schema},
+            "patternProperties": {r"^(?!when$)\w*": spec_list_schema},
         },
     }
 }

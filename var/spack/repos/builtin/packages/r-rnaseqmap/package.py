@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,6 +21,8 @@ class RRnaseqmap(RPackage):
     version("2.38.0", commit="5eb9583bfacd375161739a8ae6057204487f8b9e")
     version("2.36.0", commit="69c46fa467be0ac30776ede85a521f7622539b7e")
     version("2.34.0", commit="7881bc00600ed824ac437edf3cfba35573261e46")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r@2.11.0:", type=("build", "run"))
     depends_on("r-biobase", type=("build", "run"))

@@ -1,0 +1,26 @@
+diff --git a/CMake/FindSQLite3.cmake b/CMake/FindSQLite3.cmake
+index 7933ba7cc3..43f467e524 100644
+--- a/CMake/FindSQLite3.cmake
++++ b/CMake/FindSQLite3.cmake
+@@ -1,6 +1,6 @@
+-find_path(SQLite3_INCLUDE_DIR NAMES sqlite3.h)
++find_path(SQLite3_INCLUDE_DIRS NAMES sqlite3.h)
+ 
+-get_filename_component(POSSIBLE_SQLite_ROOT "${SQLite3_INCLUDE_DIR}" DIRECTORY)
++get_filename_component(POSSIBLE_SQLite_ROOT "${SQLite3_INCLUDE_DIRS}" DIRECTORY)
+ 
+ find_library(SQLite3_LIBRARY
+   NAMES sqlite3
+@@ -14,9 +14,9 @@ add_library(sqlite3::sqlite3 UNKNOWN IMPORTED)
+ set_target_properties(sqlite3::sqlite3
+   PROPERTIES
+     IMPORTED_LOCATION ${SQLite3_LIBRARY}
+-    INTERFACE_INCLUDE_DIRECTORIES ${SQLite3_INCLUDE_DIR})
++    INTERFACE_INCLUDE_DIRECTORIES ${SQLite3_INCLUDE_DIRS})
+ 
+ include(FindPackageHandleStandardArgs)
+-find_package_handle_standard_args(SQLite3 DEFAULT_MSG SQLite3_LIBRARY SQLite3_INCLUDE_DIR)
++find_package_handle_standard_args(SQLite3 DEFAULT_MSG SQLite3_LIBRARY SQLite3_INCLUDE_DIRS)
+ 
+-mark_as_advanced(SQLite3_INCLUDE_DIR SQLite3_LIBRARY)
++mark_as_advanced(SQLite3_INCLUDE_DIRS SQLite3_LIBRARY)

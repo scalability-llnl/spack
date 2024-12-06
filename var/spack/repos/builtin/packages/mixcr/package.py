@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,7 @@ class Mixcr(Package):
     homepage = "https://mixcr.readthedocs.io/en/master/index.html"
     url = "https://github.com/milaboratory/mixcr/releases/download/v3.0.2/mixcr-3.0.2.zip"
 
+    version("4.6.0", sha256="05db1276951a2e656d0a7bf4e2b1fff326733a5f961a9d4829be139852fabe13")
     version("4.3.2", sha256="8f67cda8e55eeee66b46db0f33308418b6ddb63ca8914623035809ccb5aae2c2")
     version("3.0.2", sha256="b4dcad985053438d5f5590555f399edfbd8cb514e1b9717620ee0ad0b5eb6b33")
 

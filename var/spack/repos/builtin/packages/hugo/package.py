@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -8,7 +8,7 @@ import re
 from spack.package import *
 
 
-class Hugo(Package):
+class Hugo(GoPackage):
     """The world's fastest framework for building websites."""
 
     homepage = "https://gohugo.io"
@@ -18,6 +18,11 @@ class Hugo(Package):
 
     maintainers("alecbcs")
 
+    license("Apache-2.0")
+
+    version("0.135.0", sha256="a75c4c684d2125255f214d11b9834a5ec6eb64353f4de2c06952d2b3b7430f0e")
+    version("0.127.0", sha256="549c7ebdf2ee6b3107ea10a9fbd9932a91bb3f30f7e8839245f6d8e318aca88c")
+    version("0.126.3", sha256="2a1d65b09884e3c57a8705db99487404856c947dd847cf7bb845e0e1825b33ec")
     version("0.118.2", sha256="915d7dcb44fba949c80858f9c2a55a11256162ba28a9067752f808cfe8faedaa")
     version("0.112.7", sha256="d706e52c74f0fb00000caf4e95b98e9d62c3536a134d5e26b433b1fa1e2a74aa")
     version("0.111.3", sha256="b6eeb13d9ed2e5d5c6895bae56480bf0fec24a564ad9d17c90ede14a7b240999")
@@ -29,27 +34,11 @@ class Hugo(Package):
     version("0.107.0", sha256="31d959a3c1633087d338147782d03bdef65323b67ff3efcec7b40241413e270a")
     version("0.106.0", sha256="9219434beb51466487b9f8518edcbc671027c1998e5a5820d76d517e1dfbd96a")
 
-    # https://nvd.nist.gov/vuln/detail/CVE-2020-26284
-    version(
-        "0.74.3",
-        sha256="9b296fa0396c20956fa6a1f7afadaa78739af62c277b6c0cfae79a91b0fe823f",
-        deprecated=True,
-    )
-    version(
-        "0.68.3",
-        sha256="38e743605e45e3aafd9563feb9e78477e72d79535ce83b56b243ff991d3a2b6e",
-        deprecated=True,
-    )
-    version(
-        "0.53",
-        sha256="48e65a33d3b10527101d13c354538379d9df698e5c38f60f4660386f4232e65c",
-        deprecated=True,
-    )
-
-    # Uses go modules.
-    # See https://gohugo.io/getting-started/installing/#fetch-from-github
-    depends_on("go@1.11:", when="@0.48:", type="build")
-    depends_on("go@1.18:", when="@0.106:", type="build")
+    depends_on("go@1.11:", type="build", when="@0.48:")
+    depends_on("go@1.18:", type="build", when="@0.106:")
+    depends_on("go@1.20:", type="build", when="@0.123:")
+    depends_on("go@1.21.8:", type="build", when="@0.131:")
+    depends_on("go@1.22.6:", type="build", when="@0.133:")
 
     variant("extended", default=False, description="Enable extended features")
 
@@ -61,17 +50,26 @@ class Hugo(Package):
         match = re.search(r"Hugo Static Site Generator v(\S+)", output)
         return match.group(1) if match else None
 
-    def setup_build_environment(self, env):
-        # Point GOPATH at the top of the staging dir for the build step.
-        env.prepend_path("GOPATH", self.stage.path)
-
-    def build(self, spec, prefix):
-        go_args = ["build"]
+    @property
+    def build_args(self):
+        args = super().build_args
         if self.spec.satisfies("+extended"):
-            go_args.extend(["--tags", "extended"])
+            args.extend(["--tags", "extended"])
 
-        go(*go_args)
+        return args
 
-    def install(self, spec, prefix):
-        mkdirp(prefix.bin)
-        install("hugo", prefix.bin)
+    @run_after("install")
+    def install_completions(self):
+        hugo = Executable(self.prefix.bin.hugo)
+
+        mkdirp(bash_completion_path(self.prefix))
+        with open(bash_completion_path(self.prefix) / "hugo", "w") as file:
+            hugo("completion", "bash", output=file)
+
+        mkdirp(fish_completion_path(self.prefix))
+        with open(fish_completion_path(self.prefix) / "hugo.fish", "w") as file:
+            hugo("completion", "fish", output=file)
+
+        mkdirp(zsh_completion_path(self.prefix))
+        with open(zsh_completion_path(self.prefix) / "_hugo", "w") as file:
+            hugo("completion", "zsh", output=file)

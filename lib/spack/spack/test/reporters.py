@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,7 +10,6 @@ import llnl.util.filesystem as fs
 import llnl.util.tty as tty
 
 import spack.reporters.extract
-import spack.spec
 from spack.install_test import TestStatus
 from spack.reporters import CDash, CDashConfiguration
 
@@ -121,26 +120,6 @@ def test_reporters_extract_missing_desc():
     assert parts[2]["command"] == "exe1 1; exe2 2"
 
 
-# TODO (post-34236): Remove this test when removing deprecated run_test(), etc.
-def test_reporters_extract_xfail():
-    fake_bin = fs.join_path(fake_install_prefix, "bin", "fake-app")
-    outputs = """
-==> Testing package fake-1.0-abcdefg
-==> [2022-02-15-18:44:21.250165] test: test_fake: Checking fake imports
-==> [2022-02-15-18:44:21.250175] Expecting return code in [3]
-==> [2022-02-15-18:44:21.250200] '{0}'
-{1}
-""".format(
-        fake_bin, str(TestStatus.PASSED)
-    ).splitlines()
-
-    parts = spack.reporters.extract.extract_test_parts("fake", outputs)
-
-    assert len(parts) == 1
-    parts[0]["command"] == fake_bin
-    parts[0]["completed"] == "Expected to fail"
-
-
 @pytest.mark.parametrize("state", [("not installed"), ("external")])
 def test_reporters_extract_skipped(state):
     expected = "Skipped {0} package".format(state)
@@ -155,34 +134,6 @@ def test_reporters_extract_skipped(state):
 
     assert len(parts) == 1
     parts[0]["completed"] == expected
-
-
-# TODO (post-34236): Remove this test when removing deprecated run_test(), etc.
-def test_reporters_skip():
-    # This test ticks 3 boxes:
-    # 1) covers an as yet uncovered skip messages
-    # 2) covers debug timestamps
-    # 3) unrecognized output
-    fake_bin = fs.join_path(fake_install_prefix, "bin", "fake")
-    unknown_message = "missing timestamp"
-    outputs = """
-==> Testing package fake-1.0-abcdefg
-==> [2022-02-15-18:44:21.250165, 123456] Detected the following modules: fake1
-==> {0}
-==> [2022-02-15-18:44:21.250175, 123456] test: test_fake: running fake program
-==> [2022-02-15-18:44:21.250200, 123456] '{1}'
-INVALID
-Results for test suite abcdefghijklmn
-""".format(
-        unknown_message, fake_bin
-    ).splitlines()
-
-    parts = spack.reporters.extract.extract_test_parts("fake", outputs)
-
-    assert len(parts) == 1
-    assert fake_bin in parts[0]["command"]
-    assert parts[0]["loglines"] == ["INVALID"]
-    assert parts[0]["elapsed"] == 0.0
 
 
 def test_reporters_skip_new():

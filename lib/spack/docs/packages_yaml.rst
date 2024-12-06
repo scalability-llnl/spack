@@ -1,4 +1,4 @@
-.. Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
    Spack Project Developers. See the top-level COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -96,6 +96,35 @@ on its most-favored packages, and it may guess incorrectly.
 Each package version and compiler listed in an external should
 have entries in Spack's packages and compiler configuration, even
 though the package and compiler may not ever be built.
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Extra attributes for external packages
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Sometimes external packages require additional attributes to be used
+effectively. This information can be defined on a per-package basis
+and stored in the ``extra_attributes`` section of the external package
+configuration. In addition to per-package information, this section
+can be used to define environment modifications to be performed
+whenever the package is used. For example, if an external package is
+built without ``rpath`` support, it may require ``LD_LIBRARY_PATH``
+settings to find its dependencies. This could be configured as
+follows:
+
+.. code-block:: yaml
+
+   packages:
+     mpich:
+       externals:
+       - spec: mpich@3.3 %clang@12.0.0 +hwloc
+         prefix: /path/to/mpich
+         extra_attributes:
+           environment:
+             prepend_path:
+               LD_LIBRARY_PATH: /path/to/hwloc/lib64
+
+See :ref:`configuration_environment_variables` for more information on
+how to configure environment modifications in Spack config files.
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Prevent packages from being built from sources
@@ -458,6 +487,56 @@ present. For instance with a configuration like:
 
 you will use ``mvapich2~cuda %gcc`` as an ``mpi`` provider.
 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Conflicts and strong preferences
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If the semantic of requirements is too strong, you can also express "strong preferences" and "conflicts"
+from configuration files:
+
+.. code-block:: yaml
+
+   packages:
+     all:
+       prefer:
+       - '%clang'
+       conflict:
+       - '+shared'
+
+The ``prefer`` and ``conflict`` sections can be used whenever a ``require`` section is allowed.
+The argument is always a list of constraints, and each constraint can be either a simple string,
+or a more complex object:
+
+.. code-block:: yaml
+
+   packages:
+     all:
+       conflict:
+       - spec: '%clang'
+         when: 'target=x86_64_v3'
+         message: 'reason why clang cannot be used'
+
+The ``spec`` attribute is mandatory, while both ``when`` and ``message`` are optional.
+
+.. note::
+
+   Requirements allow for expressing both "strong preferences" and "conflicts".
+   The syntax for doing so, though, may not be immediately clear. For
+   instance, if we want to prevent any package from using ``%clang``, we can set:
+
+   .. code-block:: yaml
+
+      packages:
+        all:
+          require:
+          - one_of: ['%clang', '@:']
+
+   Since only one of the requirements must hold, and ``@:`` is always true, the rule above is
+   equivalent to a conflict. For "strong preferences" we need to substitute the ``one_of`` policy
+   with ``any_of``.
+
+
+
 .. _package-preferences:
 
 -------------------
@@ -568,6 +647,8 @@ manually placed files within the install prefix are owned by the
 assigned group. If no group is assigned, Spack will allow the OS
 default behavior to go as expected.
 
+.. _assigning-package-attributes:
+
 ----------------------------
 Assigning Package Attributes
 ----------------------------
@@ -578,10 +659,11 @@ You can assign class-level attributes in the configuration:
 
   packages:
     mpileaks:
-      # Override existing attributes
-      url: http://www.somewhereelse.com/mpileaks-1.0.tar.gz
-      # ... or add new ones
-      x: 1
+      package_attributes:
+        # Override existing attributes
+        url: http://www.somewhereelse.com/mpileaks-1.0.tar.gz
+        # ... or add new ones
+        x: 1
 
 Attributes set this way will be accessible to any method executed
 in the package.py file (e.g. the ``install()`` method). Values for these

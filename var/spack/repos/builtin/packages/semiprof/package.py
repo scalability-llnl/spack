@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,7 +17,11 @@ class Semiprof(CMakePackage):
     variant("examples", default=False, description="Enable examples")
     variant("shared", default=True, description="Build shared libraries")
 
+    license("BSD-3-Clause")
+
     version("0.1", sha256="4fb3823c65a4f5dfbe05e8cbe1911dfd25cd7740597f82c7b3a84472de26f0dc")
+
+    depends_on("cxx", type="build")  # generated
 
     def cmake_args(self):
         return [

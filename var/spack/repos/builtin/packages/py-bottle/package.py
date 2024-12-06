@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyBottle(PythonPackage):
 
     homepage = "https://github.com/bottlepy/bottle"
     url = "https://github.com/bottlepy/bottle/archive/0.12.18.tar.gz"
+
+    license("MIT")
 
     version("0.12.23", sha256="f38c26395736ae4653cbeb94087d3bd1d2e1ad0c29b1d3e5384f5db20b63bc98")
     version("0.12.19", sha256="b97277f8e87d452a0aa5fbcd16cd604a189e2cc17fdb2d4eaf6baa732f8d111b")

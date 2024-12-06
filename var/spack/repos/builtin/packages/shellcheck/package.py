@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -34,6 +34,8 @@ class Shellcheck(Package):
     # Haskell framework is not yet in Spack. See #1408 for a discussion of the
     # challenges with Haskell, and see the pandoc package for a precedent of
     # downloading a Haskell-derived binary.
+
+    license("GPL-3.0")
 
     for ver, packages in _versions.items():
         system = platform.system().lower()

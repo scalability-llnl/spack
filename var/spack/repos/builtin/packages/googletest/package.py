@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -10,7 +10,7 @@ class Googletest(CMakePackage):
     """Google test framework for C++.  Also called gtest."""
 
     homepage = "https://github.com/google/googletest"
-    url = "https://github.com/google/googletest/archive/release-1.10.0.tar.gz"
+    url = "https://github.com/google/googletest/archive/refs/tags/v1.14.0.tar.gz"
     git = "https://github.com/google/googletest"
 
     maintainers("sethrj")
@@ -26,6 +26,9 @@ class Googletest(CMakePackage):
     version("1.8.0", sha256="58a6f4277ca2bc8565222b3bbd58a177609e9c488e8a72649359ba51450db7d8")
     version("1.7.0", sha256="f73a6546fdf9fce9ff93a5015e0333a8af3062a152a9ad6bcb772c96687016cc")
     version("1.6.0", sha256="5fbc058e5b662b9c86d93ac76fefb58eec89cbf26144b49669a38ecb62758447")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("gmock", default=True, when="@1.8:", description="Build with gmock")
     variant("pthreads", default=True, description="Build multithreaded version with pthreads")
@@ -44,10 +47,10 @@ class Googletest(CMakePackage):
     def cmake_args(self):
         spec = self.spec
         args = [
-            self.define_from_variant("gtest_disable_pthreads", "pthreads"),
             self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
             self.define_from_variant("CMAKE_CXX_STANDARD", "cxxstd"),
         ]
+        args.append(self.define("gtest_disable_pthreads", not spec.satisfies("+pthreads")))
         if spec.satisfies("@1.8:"):
             # New style (contains both Google Mock and Google Test)
             args.append(self.define("BUILD_GTEST", True))
@@ -64,7 +67,7 @@ class Googletest(CMakePackage):
             install_tree(join_path(self.stage.source_path, "include"), prefix.include)
 
             mkdirp(prefix.lib)
-            if "+shared" in spec:
+            if spec.satisfies("+shared"):
                 install("libgtest.{0}".format(dso_suffix), prefix.lib)
                 install("libgtest_main.{0}".format(dso_suffix), prefix.lib)
             else:
@@ -85,11 +88,11 @@ class Googletest(CMakePackage):
         while versions up to, and including, 1.8.0 are available only from
         `archive/release-<version>.tar.gz`
         """
-        if version.satisfies("@:1.8.0"):
+        if version <= Version("1.8.0"):
             return f"{self.git}/archive/release-{version}.tar.gz"
 
         tagname = f"release-{version}"
-        if version.satisfies("@1.13:"):
+        if version >= Version("1.13"):
             tagname = f"v{version}"
 
         return f"{self.git}/archive/refs/tags/{tagname}.tar.gz"

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class Muscle(MakefilePackage):
 
     version("3.8.31", sha256="43c5966a82133bd7da5921e8142f2f592c2b5f53d802f0527a2801783af809ad")
     version("3.8.1551", sha256="c70c552231cd3289f1bad51c9bd174804c18bb3adcf47f501afec7a68f9c482e")
+
+    depends_on("cxx", type="build")  # generated
 
     @property
     def build_directory(self):

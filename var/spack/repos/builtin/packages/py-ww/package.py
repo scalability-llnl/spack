@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyWw(PythonPackage):
 
     homepage = "https://github.com/tygs/ww/"
     pypi = "ww/ww-0.2.1.tar.gz"
+
+    license("MIT")
 
     version("0.2.1", sha256="3664f1f91bf927fe597ab153e8df73c8954927258b3737220efd1cb9912ebd7e")
 

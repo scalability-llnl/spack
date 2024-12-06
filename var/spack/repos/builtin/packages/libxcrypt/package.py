@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,7 @@ class Libxcrypt(AutotoolsPackage):
 
     homepage = "https://github.com/besser82/libxcrypt"
     url = "https://github.com/besser82/libxcrypt/releases/download/v4.4.30/libxcrypt-4.4.30.tar.xz"
+    tags = ["build-tools"]
     maintainers("haampie")
 
     def url_for_version(self, version):
@@ -19,6 +20,8 @@ class Libxcrypt(AutotoolsPackage):
         return "https://github.com/besser82/libxcrypt/releases/download/v{}/libxcrypt-{}.tar.xz".format(
             version, version
         )
+
+    license("LGPL-2.1-or-later")
 
     version("4.4.35", sha256="a8c935505b55f1df0d17f8bfd59468c7c6709a1d31831b0f8e3e045ab8fd455d")
     version("4.4.34", sha256="bb3f467af21c48046ce662186eb2ddf078ca775c441fdf1c3628448a3833a230")
@@ -29,6 +32,8 @@ class Libxcrypt(AutotoolsPackage):
     version("4.4.17", sha256="7665168d0409574a03f7b484682e68334764c29c21ca5df438955a381384ca07")
     version("4.4.16", sha256="a98f65b8baffa2b5ba68ee53c10c0a328166ef4116bce3baece190c8ce01f375")
     version("4.4.15", sha256="8bcdef03bc65f9dbda742e56820435b6f13eea59fb903765141c6467f4655e5a")
+
+    depends_on("c", type="build")  # generated
 
     variant(
         "obsolete_api",

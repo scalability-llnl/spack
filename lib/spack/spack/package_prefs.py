@@ -1,14 +1,15 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import stat
 import warnings
 
+import spack.config
 import spack.error
 import spack.repo
-from spack.config import ConfigError
-from spack.util.path import canonicalize_path
+import spack.spec
+from spack.error import ConfigError
 from spack.version import Version
 
 _lesser_spec_types = {"compiler": spack.spec.CompilerSpec, "version": Version}
@@ -148,48 +149,12 @@ class PackagePrefs:
 
         # Only return variants that are actually supported by the package
         pkg_cls = spack.repo.PATH.get_pkg_class(pkg_name)
-        spec = spack.spec.Spec("%s %s" % (pkg_name, variants))
-        return dict(
-            (name, variant) for name, variant in spec.variants.items() if name in pkg_cls.variants
-        )
-
-
-def spec_externals(spec):
-    """Return a list of external specs (w/external directory path filled in),
-    one for each known external installation.
-    """
-    # break circular import.
-    from spack.util.module_cmd import path_from_modules  # noqa: F401
-
-    def _package(maybe_abstract_spec):
-        pkg_cls = spack.repo.PATH.get_pkg_class(spec.name)
-        return pkg_cls(maybe_abstract_spec)
-
-    allpkgs = spack.config.get("packages")
-    names = set([spec.name])
-    names |= set(vspec.name for vspec in _package(spec).virtuals_provided)
-
-    external_specs = []
-    for name in names:
-        pkg_config = allpkgs.get(name, {})
-        pkg_externals = pkg_config.get("externals", [])
-        for entry in pkg_externals:
-            spec_str = entry["spec"]
-            external_path = entry.get("prefix", None)
-            if external_path:
-                external_path = canonicalize_path(external_path)
-            external_modules = entry.get("modules", None)
-            external_spec = spack.spec.Spec.from_detection(
-                spack.spec.Spec(
-                    spec_str, external_path=external_path, external_modules=external_modules
-                ),
-                extra_attributes=entry.get("extra_attributes", {}),
-            )
-            if external_spec.intersects(spec):
-                external_specs.append(external_spec)
-
-    # Defensively copy returned specs
-    return [s.copy() for s in external_specs]
+        spec = spack.spec.Spec(f"{pkg_name} {variants}")
+        return {
+            name: variant
+            for name, variant in spec.variants.items()
+            if name in pkg_cls.variant_names()
+        }
 
 
 def is_spec_buildable(spec):

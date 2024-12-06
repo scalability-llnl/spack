@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,8 @@ class Hssp(AutotoolsPackage):
     homepage = "https://github.com/cmbi/hssp"
     url = "https://github.com/cmbi/hssp/archive/3.0.10.tar.gz"
 
+    license("GPL-3.0-or-later")
+
     version("3.1.5", sha256="9462608ce6b5b92f13a3a8d94b780d85a3cac68ab38449116193754cc22dc5d0")
     version("3.0.10", sha256="9b2cba9c498e65fd48730f0fc86ca2b480bf12903a2c131521023f3a161fe870")
     version("3.0.9", sha256="2f67743ffd233ed9c4cd298e8fc65a332b863052945fb62bd61d7f1776274da9")
@@ -30,6 +32,8 @@ class Hssp(AutotoolsPackage):
     version("3.0.3", sha256="42fc2b293fc60407ae097cc8021fd7cf0044092aa366c11ee99015beec83beea")
     version("3.0.2", sha256="76b4275c8cde120509d7920609fca983f2b04249a649d0aa802c69fd09e5f8cf")
     version("3.0.1", sha256="62a703d15bdfec82fdbd2a4275e1973b6a1ac6ccd4dbec75036f16faacaa9dce")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

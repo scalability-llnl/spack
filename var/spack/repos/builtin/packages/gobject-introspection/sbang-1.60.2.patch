@@ -1,0 +1,11 @@
+--- a/Makefile.in	2016-09-13 01:23:59.000000000 -0700
++++ b/Makefile.in	2017-02-22 10:26:31.824509512 -0800
+@@ -1475,7 +1475,7 @@
+ gir_DATA = $(STATIC_GIRSOURCES) $(SUBSTITUTED_GIRSOURCES) $(BUILT_GIRSOURCES)
+ typelibsdir = $(libdir)/girepository-1.0
+ typelibs_DATA = $(gir_DATA:.gir=.typelib)
+-TOOL_SUBSTITUTIONS = -e s,@libdir\@,$(libdir), -e s,@datarootdir\@,$(datarootdir), -e s,@PYTHON_CMD\@,\/usr\/bin\/env\ $(PYTHON), -e s,@GIR_DIR\@,$(GIR_DIR),g
++TOOL_SUBSTITUTIONS = -e s,@libdir\@,$(libdir), -e s,@datarootdir\@,$(datarootdir), -e s,@PYTHON_CMD\@,\/usr\/bin\/env\ $(PYTHON), -e s,@GIR_DIR\@,$(GIR_DIR),g -e "1i\#!/bin/bash $(SPACK_SBANG)"
+ g_ir_compiler_SOURCES = tools/compiler.c
+ g_ir_compiler_CPPFLAGS = -DGIREPO_DEFAULT_SEARCH_PATH="\"$(libdir)\"" \
+ 			 -I$(top_srcdir)/girepository

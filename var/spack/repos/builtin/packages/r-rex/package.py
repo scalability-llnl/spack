@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class RRex(RPackage):
     A friendly interface for the construction of regular expressions."""
 
     cran = "rex"
+
+    license("MIT")
 
     version("1.2.1", sha256="af42e649c06e4bbdba94d5a1870a7e8347903571c90cd5e5ca40f52307a3bfd6")
     version("1.2.0", sha256="06b491f1469078862e40543fd74e1d38b2e0fb61fdf01c8083add4b11ac2eb54")

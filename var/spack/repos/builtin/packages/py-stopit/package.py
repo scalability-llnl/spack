@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyStopit(PythonPackage):
     """
 
     pypi = "stopit/stopit-1.1.2.tar.gz"
+
+    license("MIT")
 
     version("1.1.2", sha256="f7f39c583fd92027bd9d06127b259aee7a5b7945c1f1fa56263811e1e766996d")
 

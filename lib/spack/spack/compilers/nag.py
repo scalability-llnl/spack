@@ -1,11 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 import re
-from typing import List
 
 import llnl.util.lang
 
@@ -13,18 +12,6 @@ import spack.compiler
 
 
 class Nag(spack.compiler.Compiler):
-    # Subclasses use possible names of C compiler
-    cc_names: List[str] = []
-
-    # Subclasses use possible names of C++ compiler
-    cxx_names: List[str] = []
-
-    # Subclasses use possible names of Fortran 77 compiler
-    f77_names = ["nagfor"]
-
-    # Subclasses use possible names of Fortran 90 compiler
-    fc_names = ["nagfor"]
-
     # Named wrapper links within build_env_path
     # Use default wrappers for C and C++, in case provided in compilers.yaml
     link_paths = {
@@ -64,7 +51,7 @@ class Nag(spack.compiler.Compiler):
         #
         # This way, we at least enable the implicit rpath detection, which is
         # based on compilation of a C file (see method
-        # spack.compiler._get_compiler_link_paths): in the case of a mixed
+        # spack.compiler._compile_dummy_c_source): in the case of a mixed
         # NAG/GCC toolchain, the flag will be passed to g++ (e.g.
         # 'g++ -Wl,-v ./main.c'), otherwise, the flag will be passed to nagfor
         # (e.g. 'nagfor -Wl,-v ./main.c' - note that nagfor recognizes '.c'

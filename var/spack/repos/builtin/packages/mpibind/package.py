@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class Mpibind(AutotoolsPackage):
 
     maintainers("eleon")
 
+    license("MIT")
+
     # This package uses 'git describe --tags' to get the
     # package version in Autotools' AC_INIT, thus
     # 'get_full_repo' is needed.
@@ -27,6 +29,9 @@ class Mpibind(AutotoolsPackage):
     version("0.8.0", commit="ff38b9dcd150ca1e8a8796835d8e1e1847b3ba68", no_cache=True)
     version("0.7.0", commit="3c437a97cd841b9c13abfbe1062a0285e1a29d3e", no_cache=True)
     version("0.5.0", commit="8698f07412232e4dd4de4802b508374dc0de48c9", no_cache=True)
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("cuda", default=False, description="Build w/support for NVIDIA GPUs.")
     variant("rocm", default=False, description="Build w/support for AMD GPUs.")

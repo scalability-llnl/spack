@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyCoveralls(PythonPackage):
     pypi = "coveralls/coveralls-3.0.1.tar.gz"
 
     maintainers("dorton21")
+
+    license("MIT")
 
     version("3.0.1", sha256="cbb942ae5ef3d2b55388cb5b43e93a269544911535f1e750e1c656aef019ce60")
 

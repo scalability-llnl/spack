@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,6 +11,8 @@ class PyRsa(PythonPackage):
 
     homepage = "https://stuvel.eu/rsa"
     pypi = "rsa/rsa-3.4.2.tar.gz"
+
+    license("Apache-2.0")
 
     version("4.9", sha256="e38464a49c6c85d7f1351b0126661487a7e0a14a50f1675ec50eb34d4f20ef21")
     version("4.7.2", sha256="9d689e6ca1b3038bc82bf8d23e944b6b6037bc02301a574935b2dd946e0353b9")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -24,6 +24,8 @@ class AmdAocl(BundlePackage):
 
     maintainers("amd-toolchain-support")
 
+    version("5.0", preferred=True)
+    version("4.2")
     version("4.1")
     version("4.0")
     version("3.2")
@@ -32,21 +34,37 @@ class AmdAocl(BundlePackage):
     version("2.2")
 
     variant("openmp", default=False, description="Enable OpenMP support.")
-    for vers in ["2.2", "3.0", "3.1", "3.2", "4.0", "4.1"]:
-        depends_on("amdblis@{0} threads=openmp".format(vers), when="@{0} +openmp".format(vers))
-        depends_on("amdblis@{0} threads=none".format(vers), when="@{0} ~openmp".format(vers))
-        depends_on("amdfftw@{0} +openmp".format(vers), when="@{0} +openmp".format(vers))
-        depends_on("amdfftw@{0} ~openmp".format(vers), when="@{0} ~openmp".format(vers))
-        depends_on("amdlibflame@{0}".format(vers), when="@{0}".format(vers))
-        depends_on("amdlibm@{0}".format(vers), when="@{0}".format(vers))
-        depends_on(
-            "amdscalapack@{0} ^amdblis@{0} ^amdlibflame@{0} threads=none".format(vers),
-            when="@{0} ~openmp".format(vers),
-        )
-        depends_on(
-            "amdscalapack@{0} ^amdblis@{0} ^amdlibflame@{0} threads=openmp".format(vers),
-            when="@{0} +openmp".format(vers),
-        )
-        depends_on(
-            "aocl-sparse@{0} ^amdblis@{0} ^amdlibflame@{0}".format(vers), when="@{0}".format(vers)
-        )
+
+    with when("+openmp"):
+        depends_on("amdblis threads=openmp")
+        depends_on("amdfftw +openmp")
+        depends_on("amdlibflame threads=openmp")
+        depends_on("aocl-sparse +openmp")
+        depends_on("aocl-da +openmp")
+        depends_on("aocl-compression +openmp")
+
+    with when("~openmp"):
+        depends_on("amdblis threads=none")
+        depends_on("amdfftw ~openmp")
+        depends_on("amdlibflame threads=none")
+        depends_on("aocl-sparse ~openmp")
+        depends_on("aocl-da ~openmp")
+        depends_on("aocl-compression ~openmp")
+
+    for vers in ["2.2", "3.0", "3.1", "3.2", "4.0", "4.1", "4.2", "5.0"]:
+        with when(f"@={vers}"):
+            depends_on(f"amdblis@={vers}")
+            depends_on(f"amdfftw@={vers}")
+            depends_on(f"amdlibflame@={vers}")
+            depends_on("amdlibflame ^[virtuals=blas] amdblis")
+            depends_on(f"amdlibm@={vers}")
+            depends_on(f"amdscalapack@={vers}")
+            depends_on("amdscalapack ^[virtuals=blas] amdblis")
+            depends_on("amdscalapack ^[virtuals=lapack] amdlibflame")
+            depends_on(f"aocl-sparse@={vers}")
+            if Version(vers) >= Version("4.2"):
+                depends_on(f"aocl-compression@={vers}")
+                depends_on(f"aocl-crypto@={vers}")
+                depends_on(f"aocl-libmem@={vers}")
+            if Version(vers) >= Version("5.0"):
+                depends_on(f"aocl-da@={vers}")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyDynim(PythonPackage):
     git = "https://github.com/LLNL/dynim.git"
 
     maintainers("lpottier")
+
+    license("MIT")
 
     version("main", branch="main", submodules=True)
     version("0.1", commit="aebd780376e7998f7f8b92ba5fdd320bdba7b0d3")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,6 +15,8 @@ class PyRapidfuzzCapi(PythonPackage):
     pypi = "rapidfuzz_capi/rapidfuzz_capi-1.0.5.tar.gz"
 
     maintainers("LydDeb")
+
+    license("MIT")
 
     version("1.0.5", sha256="b3af179874b28364ba1b7850e37d0d353de9cf5b844e3569c023b74da3a9c68e")
 

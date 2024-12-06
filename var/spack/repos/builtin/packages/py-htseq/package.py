@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,9 +13,14 @@ class PyHtseq(PythonPackage):
     homepage = "https://htseq.readthedocs.io/en/master/index.html"
     pypi = "HTSeq/HTSeq-2.0.3.tar.gz"
 
+    license("GPL-3.0-only")
+
     version("2.0.3", sha256="c7e7eb29bdc44e80d2d68e3599fa8a8f1d9d6475624dcf1b9644285a8a9c0fac")
     version("0.11.2", sha256="65c4c13968506c7df92e97124df96fdd041c4476c12a548d67350ba8b436bcfc")
     version("0.9.1", sha256="af5bba775e3fb45ed4cde64c691ebef36b0bf7a86efd35c884ad0734c27ad485")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("qa", default=True, description="Quality assessment")
     variant("mtx", default=True, description="BigWig manipulation", when="@2:")

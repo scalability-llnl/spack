@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,8 @@ class PyCythonBbox(PythonPackage):
     pypi = "cython-bbox/cython_bbox-0.1.3.tar.gz"
 
     version("0.1.3", sha256="82e2d887534ecc10d3507489a05b11259f3baacd29eee37e6d8c97e1ffb16554")
+
+    depends_on("c", type="build")  # generated
     depends_on("py-setuptools", type="build")
     depends_on("py-cython", type="build")
     depends_on("py-numpy", type=("build", "run"))

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -30,6 +30,8 @@ class RDelayedarray(RPackage):
     version("0.6.6", commit="bdb0ac0eee71edd40ccca4808f618fa77f595a64")
     version("0.4.1", commit="ffe932ef8c255614340e4856fc6e0b44128a27a1")
     version("0.2.7", commit="909c2ce1665ebae2543172ead50abbe10bd42bc4")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r@3.4:", type=("build", "run"))
     depends_on("r@4.0.0:", type=("build", "run"), when="@0.20.0:")

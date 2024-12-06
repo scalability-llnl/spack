@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class Graphblast(MakefilePackage, CudaPackage):
     homepage = "https://github.com/gunrock/graphblast"
     git = "https://github.com/gunrock/graphblast.git"
 
+    license("Apache-2.0")
+
     version("master", submodules=True)
     version(
         "2020-05-07",
@@ -20,6 +22,8 @@ class Graphblast(MakefilePackage, CudaPackage):
         commit="1a052558a71f2cd67f5d6fe9db3b274c303ef8f6",
         preferred=True,
     )
+
+    depends_on("cxx", type="build")  # generated
 
     variant("cuda", default=True, description="Build with Cuda support")
 

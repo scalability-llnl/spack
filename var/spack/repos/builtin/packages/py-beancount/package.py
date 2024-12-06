@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,7 +15,11 @@ class PyBeancount(PythonPackage):
     homepage = "http://furius.ca/beancount/"
     pypi = "beancount/beancount-2.3.3.tar.gz"
 
+    license("GPL-2.0-only")
+
     version("2.3.3", sha256="d9a29839ea867d1dda7af1f4bf5d3959aa7c1574cd4a0bc86f69ee64c555c71c")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("python@3.6:", type=("build", "run"))
     depends_on("py-setuptools", type=("build"))

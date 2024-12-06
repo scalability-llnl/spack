@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -7,6 +7,7 @@ import os
 import re
 import sys
 
+import spack.compilers
 from spack.build_environment import dso_suffix
 from spack.package import *
 
@@ -27,7 +28,13 @@ class Mpich(AutotoolsPackage, CudaPackage, ROCmPackage):
 
     keep_werror = "specific"
 
+    license("mpich2")
+
     version("develop", submodules=True)
+    version("4.2.3", sha256="7a019180c51d1738ad9c5d8d452314de65e828ee240bcb2d1f80de9a65be88a8")
+    version("4.2.2", sha256="883f5bb3aeabf627cb8492ca02a03b191d09836bbe0f599d8508351179781d41")
+    version("4.2.1", sha256="23331b2299f287c3419727edc2df8922d7e7abbb9fd0ac74e03b9966f9ad42d7")
+    version("4.2.0", sha256="a64a66781b9e5312ad052d32689e23252f745b27ee8818ac2ac0c8209bc0b90e")
     version("4.1.2", sha256="3492e98adab62b597ef0d292fb2459b6123bc80070a8aa0a30be6962075a12f0")
     version("4.1.1", sha256="ee30471b35ef87f4c88f871a5e2ad3811cd9c4df32fd4f138443072ff4284ca2")
     version("4.1", sha256="8b1ec63bc44c7caa2afbb457bc5b3cd4a70dbe46baba700123d67c48dc5ab6a0")
@@ -51,6 +58,10 @@ class Mpich(AutotoolsPackage, CudaPackage, ROCmPackage):
     version("3.1", sha256="fcf96dbddb504a64d33833dc455be3dda1e71c7b3df411dfcf9df066d7c32c39")
     version("3.0.4", sha256="cf638c85660300af48b6f776e5ecd35b5378d5905ec5d34c3da7a27da0acf0b3")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build", when="+fortran")
+
     variant("hwloc", default=True, description="Use external hwloc package")
     variant("hydra", default=True, description="Build the hydra process manager")
     variant("romio", default=True, description="Enable ROMIO MPI I/O implementation")
@@ -59,9 +70,9 @@ class Mpich(AutotoolsPackage, CudaPackage, ROCmPackage):
     variant("wrapperrpath", default=True, description="Enable wrapper rpath")
     variant(
         "pmi",
-        default="pmi",
+        default="default",
         description="""PMI interface.""",
-        values=("off", "pmi", "pmi2", "pmix", "cray"),
+        values=("default", "pmi", "pmi2", "pmix", "cray"),
         multi=False,
     )
     variant(
@@ -114,12 +125,19 @@ supported, and netmod is ignored if device is ch3:sock.""",
         when="@3.4:",
         multi=False,
     )
-    depends_on("yaksa", when="@4.0: device=ch4 datatype-engine=auto")
-    depends_on("yaksa", when="@4.0: device=ch4 datatype-engine=yaksa")
-    depends_on("yaksa+cuda", when="+cuda ^yaksa")
-    depends_on("yaksa+rocm", when="+rocm ^yaksa")
+    for _yaksa_cond in (
+        "@4.0: device=ch4 datatype-engine=auto",
+        "@4.0: device=ch4 datatype-engine=yaksa",
+    ):
+        with when(_yaksa_cond):
+            depends_on("yaksa")
+            depends_on("yaksa+cuda", when="+cuda")
+            depends_on("yaksa+rocm", when="+rocm")
+
     conflicts("datatype-engine=yaksa", when="device=ch3")
     conflicts("datatype-engine=yaksa", when="device=ch3:sock")
+    conflicts("datatype-engine=dataloop", when="+cuda")
+    conflicts("datatype-engine=dataloop", when="+rocm")
 
     variant(
         "hcoll",
@@ -129,6 +147,9 @@ supported, and netmod is ignored if device is ch3:sock.""",
         when="@3.3: device=ch4 netmod=ucx",
     )
     depends_on("hcoll", when="+hcoll")
+
+    variant("xpmem", default=False, when="@3.4:", description="Enable XPMEM support")
+    depends_on("xpmem", when="+xpmem")
 
     # Todo: cuda can be a conditional variant, but it does not seem to work when
     # overriding the variant from CudaPackage.
@@ -183,6 +204,26 @@ supported, and netmod is ignored if device is ch3:sock.""",
         when="@=3.3",
     )
 
+    # Fix SLURM hostlist_t usage
+    # See https://github.com/pmodels/mpich/issues/6806
+    # and https://github.com/pmodels/mpich/pull/6820
+    patch(
+        "https://github.com/pmodels/mpich/commit/7a28682a805acfe84a4ea7b41cea079696407398.patch?full_index=1",
+        sha256="8cc80a8ffc3f1c907b1d8176129a0c1d01794a95adbed5b5357f50c13f6560e4",
+        when="@4.1:4.1.2 +slurm ^slurm@23-11-1-1:",
+    )
+    # backports of fix down to v3.3
+    patch(
+        "mpich40_slurm_hostlist.patch",
+        sha256="39aa1353305b7b03bc5c645c87d5299bd5d2ff676750898ba925f6cb9b716bdb",
+        when="@4.0 +slurm ^slurm@23-11-1-1:",
+    )
+    patch(
+        "mpich33_slurm_hostlist.patch",
+        sha256="d6ec26adcf2d08d0739be44ab65b928a7a88e9ff1375138a0593678eedd420ab",
+        when="@3.3:3.4 +slurm ^slurm@23-11-1-1:",
+    )
+
     # Fix reduce operations for unsigned integers
     # See https://github.com/pmodels/mpich/issues/6083
     patch(
@@ -221,7 +262,6 @@ supported, and netmod is ignored if device is ch3:sock.""",
     depends_on("hwloc@2.0.0:", when="@3.3: +hwloc")
 
     depends_on("libfabric", when="netmod=ofi")
-    depends_on("libfabric fabrics=gni", when="netmod=ofi pmi=cray")
     # The ch3 ofi netmod results in crashes with libfabric 1.7
     # See https://github.com/pmodels/mpich/issues/3665
     depends_on("libfabric@:1.6", when="device=ch3 netmod=ofi")
@@ -358,11 +398,15 @@ supported, and netmod is ignored if device is ch3:sock.""",
             if re.search(r"--with-thread-package=argobots", output):
                 variants.append("+argobots")
 
-            if re.search(r"--with-pmi=no", output):
-                variants.append("pmi=off")
+            if re.search(r"--with-pmi=default", output):
+                variants.append("pmi=default")
             elif re.search(r"--with-pmi=simple", output):
                 variants.append("pmi=pmi")
             elif re.search(r"--with-pmi=pmi2/simple", output):
+                variants.append("pmi=pmi2")
+            elif re.search(r"--with-pmi=pmi", output):
+                variants.append("pmi=pmi")
+            elif re.search(r"--with-pmi=pmi2", output):
                 variants.append("pmi=pmi2")
             elif re.search(r"--with-pmix", output):
                 variants.append("pmi=pmix")
@@ -412,49 +456,28 @@ supported, and netmod is ignored if device is ch3:sock.""",
     def setup_run_environment(self, env):
         # Because MPI implementations provide compilers, they have to add to
         # their run environments the code to make the compilers available.
-        # For Cray MPIs, the regular compiler wrappers *are* the MPI wrappers.
-        # Cray MPIs always have cray in the module name, e.g. "cray-mpich"
-        if self.spec.satisfies("platform=cray"):
-            # This is intended to support external MPICH instances registered
-            # by Spack on Cray machines prior to a879c87; users defining an
-            # external MPICH entry for Cray should generally refer to the
-            # "cray-mpich" package
-            env.set("MPICC", spack_cc)
-            env.set("MPICXX", spack_cxx)
-            env.set("MPIF77", spack_fc)
-            env.set("MPIF90", spack_fc)
-        else:
-            env.set("MPICC", join_path(self.prefix.bin, "mpicc"))
-            env.set("MPICXX", join_path(self.prefix.bin, "mpic++"))
-            env.set("MPIF77", join_path(self.prefix.bin, "mpif77"))
-            env.set("MPIF90", join_path(self.prefix.bin, "mpif90"))
+        env.set("MPICC", join_path(self.prefix.bin, "mpicc"))
+        env.set("MPICXX", join_path(self.prefix.bin, "mpic++"))
+        env.set("MPIF77", join_path(self.prefix.bin, "mpif77"))
+        env.set("MPIF90", join_path(self.prefix.bin, "mpif90"))
 
     def setup_dependent_build_environment(self, env, dependent_spec):
-        self.setup_run_environment(env)
-
-        env.set("MPICH_CC", spack_cc)
-        env.set("MPICH_CXX", spack_cxx)
-        env.set("MPICH_F77", spack_f77)
-        env.set("MPICH_F90", spack_fc)
-        env.set("MPICH_FC", spack_fc)
+        dependent_module = dependent_spec.package.module
+        env.set("MPICH_CC", dependent_module.spack_cc)
+        env.set("MPICH_CXX", dependent_module.spack_cxx)
+        env.set("MPICH_F77", dependent_module.spack_f77)
+        env.set("MPICH_F90", dependent_module.spack_fc)
+        env.set("MPICH_FC", dependent_module.spack_fc)
 
     def setup_dependent_package(self, module, dependent_spec):
         spec = self.spec
 
-        # For Cray MPIs, the regular compiler wrappers *are* the MPI wrappers.
-        # Cray MPIs always have cray in the module name, e.g. "cray-mpich"
-        if self.spec.satisfies("platform=cray"):
-            spec.mpicc = spack_cc
-            spec.mpicxx = spack_cxx
-            spec.mpifc = spack_fc
-            spec.mpif77 = spack_f77
-        else:
-            spec.mpicc = join_path(self.prefix.bin, "mpicc")
-            spec.mpicxx = join_path(self.prefix.bin, "mpic++")
+        spec.mpicc = join_path(self.prefix.bin, "mpicc")
+        spec.mpicxx = join_path(self.prefix.bin, "mpic++")
 
-            if "+fortran" in spec:
-                spec.mpifc = join_path(self.prefix.bin, "mpif90")
-                spec.mpif77 = join_path(self.prefix.bin, "mpif77")
+        if "+fortran" in spec:
+            spec.mpifc = join_path(self.prefix.bin, "mpif90")
+            spec.mpif77 = join_path(self.prefix.bin, "mpif77")
 
         spec.mpicxx_shared_libs = [
             join_path(self.prefix.lib, "libmpicxx.{0}".format(dso_suffix)),
@@ -528,16 +551,32 @@ supported, and netmod is ignored if device is ch3:sock.""",
         else:
             config_args.append("--with-slurm=no")
 
-        if "pmi=off" in spec:
-            config_args.append("--with-pmi=no")
-        elif "pmi=pmi" in spec:
-            config_args.append("--with-pmi=simple")
-        elif "pmi=pmi2" in spec:
-            config_args.append("--with-pmi=pmi2/simple")
-        elif "pmi=pmix" in spec:
-            config_args.append("--with-pmix={0}".format(spec["pmix"].prefix))
-        elif "pmi=cray" in spec:
-            config_args.append("--with-pmi=cray")
+        # PMI options changed in 4.2.0
+        if spec.satisfies("@4.2:"):
+            # default (no option) is to build both PMIv1 and PMI2 client interfaces
+            if "pmi=pmi" in spec:
+                # make PMI1 the default client interface
+                config_args.append("--with-pmi=pmi")
+            elif "pmi=pmi2" in spec:
+                # make PMI2 the default client interface
+                config_args.append("--with-pmi=pmi2")
+            elif "pmi=pmix" in spec:
+                # use the PMIx client interface with an external PMIx library
+                config_args.append("--with-pmi=pmix")
+                config_args.append(f"--with-pmix={spec['pmix'].prefix}")
+            elif "pmi=cray" in spec:
+                # use PMI2 interface of the Cray PMI library
+                config_args.append("--with-pmi=pmi2")
+                config_args.append(f"--with-pmi2={spec['cray-pmi'].prefix}")
+        else:
+            if "pmi=pmi" in spec:
+                config_args.append("--with-pmi=simple")
+            elif "pmi=pmi2" in spec:
+                config_args.append("--with-pmi=pmi2/simple")
+            elif "pmi=pmix" in spec:
+                config_args.append(f"--with-pmix={spec['pmix'].prefix}")
+            elif "pmi=cray" in spec:
+                config_args.append("--with-pmi=cray")
 
         if "+cuda" in spec:
             config_args.append("--with-cuda={0}".format(spec["cuda"].prefix))
@@ -593,7 +632,6 @@ supported, and netmod is ignored if device is ch3:sock.""",
 
         if "+vci" in spec:
             config_args.append("--enable-thread-cs=per-vci")
-            config_args.append("--with-ch4-max-vcis=default")
 
         if "datatype-engine=yaksa" in spec:
             config_args.append("--with-datatype-engine=yaksa")
@@ -605,13 +643,16 @@ supported, and netmod is ignored if device is ch3:sock.""",
         if "+hcoll" in spec:
             config_args.append("--with-hcoll=" + spec["hcoll"].prefix)
 
+        if "+xpmem" in spec:
+            config_args.append("--with-xpmem=" + spec["xpmem"].prefix)
+
         return config_args
 
     @run_after("install")
     def cache_test_sources(self):
         """Copy the example source files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources(["examples", join_path("test", "mpi")])
+        cache_extra_test_sources(self, ["examples", join_path("test", "mpi")])
 
     def mpi_launcher(self):
         """Determine the appropriate launcher."""

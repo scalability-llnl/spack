@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyGxformat2(PythonPackage):
     homepage = "https://github.com/galaxyproject/gxformat2"
     pypi = "gxformat2/gxformat2-0.16.0.tar.gz"
     # note that requirements.txt is missing from the tarball. it can be found on github.
+
+    license("MIT")
 
     version("0.16.0", sha256="16ff5aae1456e0a65c1ed644537e66626ea047a567c8eda19d2a2eb0b20fb752")
 

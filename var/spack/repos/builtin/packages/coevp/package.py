@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -24,6 +24,10 @@ class Coevp(MakefilePackage):
 
     version("develop", branch="master")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("mpi", default=True, description="Build with MPI Support")
     variant("silo", default=False, description="Build with silo Support")
     variant("flann", default=False, description="Build with flann Support")
@@ -38,11 +42,11 @@ class Coevp(MakefilePackage):
     @property
     def build_targets(self):
         targets = []
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             targets.append("COEVP_MPI=yes")
         else:
             targets.append("COEVP_MPI=no")
-        if "+flann" in self.spec:
+        if self.spec.satisfies("+flann"):
             targets.append("FLANN=yes")
             targets.append("FLANN_TARGET=")
             targets.append(
@@ -51,7 +55,7 @@ class Coevp(MakefilePackage):
         else:
             targets.append("FLANN=no")
         targets.append("REDIS=no")
-        if "+silo" in self.spec:
+        if self.spec.satisfies("+silo"):
             targets.append("SILO=yes")
             targets.append("SILO_TARGET=")
             targets.append("SILO_LOC={0}".format(self.spec["silo"].prefix))

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,7 +21,11 @@ class Spack(Package):
     url = "https://github.com/spack/spack/releases/download/v0.16.2/spack-0.16.2.tar.gz"
     maintainers("haampie")
 
+    license("Apache-2.0 OR MIT")
+
     version("develop", branch="develop")
+    version("0.21.1", sha256="9a66bc8b59d436d5c0bd7b052c36d2177b228665ece6c9a2c339c2acb3f9103e")
+    version("0.21.0", sha256="98680e52591428dc194a021e673a79bdc7799f394c1217b3fc22c89465159a84")
     version("0.20.1", sha256="141be037b56e4b095840a95ac51c428c29dad078f7f88140ae6355b2a1b32dc3")
     version("0.20.0", sha256="a189b4e8173eefdf76617445125b329d912f730767048846c38c8a2637396a7d")
     version("0.19.2", sha256="4978b37da50f5690f4e1aa0cfe3975a89ccef85d96c68d417ea0716a8ce3aa98")
@@ -37,6 +41,10 @@ class Spack(Package):
     version("0.16.2", sha256="ed3e5d479732b0ba82489435b4e0f9088571604e789f7ab9bc5ce89030793350")
     version("0.16.1", sha256="8d893036b24d9ee0feee41ac33dd66e4fc68d392918f346f8a7a36a69c567567")
     version("0.16.0", sha256="064b2532c70916c7684d4c7c973416ac32dd2ea15f5c392654c75258bfc8c6c2")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("development_tools", default=False, description="Build development dependencies")
     variant(
@@ -65,6 +73,7 @@ class Spack(Package):
     depends_on("python@2.6.0:2.7,3.5:", type="run")
     depends_on("python@2.7.0:2.7,3.5:", type="run", when="@0.18.0:")
     depends_on("python@2.7.0:2.7,3.6:", type="run", when="@0.19.0:")
+    depends_on("python@3.6:", type="run", when="@0.20.0:")
 
     # Old Spack unfortunately depends on distutils, removed in Python 3.12
     depends_on("python@:3.12", type="run", when="@0.18:0.20.1")
@@ -110,7 +119,6 @@ class Spack(Package):
     depends_on("binutils", type="run", when="@:0.20")
     depends_on("gnupg", type="run")
     depends_on("patchelf", type="run", when="platform=linux")
-    depends_on("patchelf", type="run", when="platform=cray")
 
     # See https://github.com/spack/spack/pull/24686
     # and #25595, #25726, #25853, #25923, #25924 upstream in python/cpython

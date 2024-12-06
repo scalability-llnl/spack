@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,15 +15,14 @@ class Roms(MakefilePackage):
     the scientific community for a diverse range of applications"""
 
     homepage = "https://www.myroms.org/"
-    url = "file://{0}/roms_3.8_source.tar.gz".format(os.getcwd())
-    manual_download = True
+    url = "https://github.com/myroms/roms/archive/refs/tags/roms-4.1.tar.gz"
 
-    # TODO: ROMS v3.8 (svn version 986) require credentials to download and use
-    # Spack recipe expects ROMS source code in .tar.gz format
-    # checksum may differ from what is provided here.
-    # user can skip checksum verification by placing "--no-checksum"
-    # next to "spack install"
-    version("3.8", sha256="5da7a61b69bd3e1f84f33f894a9f418971f3ba61cf9f5ef0a806a722161e2c9a")
+    version("4.1", sha256="cf25625066be3ea40fdd7bbe361f830d4415170636163b05bd338ac299809d4e")
+    version("4.0", sha256="d14b4920e791ad24684f439c4751c2f1c38dbf9b82aa0d4d57def93e50a5a747")
+    version("3.9", sha256="8e93f6ed40040e3f1b88d456ea9411ed3c06f280dc50b2787d6e5f793f58f1bc")
+    version("3.8", sha256="99fb69239e70edaef35771d82e203e43cd301dde4f2a5662da038499b7258ae7")
+
+    depends_on("fortran", type="build")  # generated
 
     variant("openmp", default=False, description="Turn on shared-memory parallelization in ROMS")
     variant("mpi", default=True, description="Turn on distributed-memory parallelization in ROMS")
@@ -77,22 +76,16 @@ class Roms(MakefilePackage):
         """
         Edit Linux-flang.mk makefile to support AOCC compiler
         """
-        fflags = [
-            "-fveclib=AMDLIBM",
-            "-O3",
-            "-ffast-math",
-            "-funroll-loops",
-            "-Mstack_arrays",
-            "-std=f2008",
-        ]
+        fflags = ["-fveclib=AMDLIBM", "-O3", "-ffast-math", "-funroll-loops", "-std=f2008"]
         make_aocc = join_path("Compilers", "{0}-{1}.mk".format(self.arch, lib))
 
-        filter_file(r"\sFC := gfortran*$", "FC := {0}".format(lib), make_aocc)
-        filter_file(r"\sFFLAGS\s:=.*$", "FFLAGS := {0}".format(" ".join(fflags)), make_aocc)
+        filter_file(r"\sFC := gfortran*$", " FC := {0}".format(lib), make_aocc)
+        filter_file(r"\sFFLAGS :=.*$", " FFLAGS := {0}".format(" ".join(fflags)), make_aocc)
+        filter_file("-fallow-argument-mismatch", "", make_aocc, string=True)
         filter_file(
-            r"\sLIBS\s:= [$]", "LIBS := {0} $".format(spec["amdlibm"].libs.ld_flags), make_aocc
+            r"\sLIBS :=.*", " LIBS := {0}".format(spec["amdlibm"].libs.ld_flags), make_aocc
         )
-        filter_file(r"\sFREEFLAGS\s:=.*", "FREEFLAGS := -ffree-form", make_aocc)
+        filter_file(r"\sFREEFLAGS :=.*", " FREEFLAGS := -ffree-form", make_aocc)
 
     def edit(self, spec, prefix):
         # ROMS doesn't have support for AOCC out of the box
@@ -101,6 +94,14 @@ class Roms(MakefilePackage):
             lib_info = os.path.basename(spack_fc)
             self._copy_arch_file(lib_info)
             self._edit_arch(spec, prefix, lib_info)
+
+        # With gfortran >= 10 requires '-fallow-argument-mismatch' flag
+        if spec.satisfies("@:4.0 %gcc@10:"):
+            filter_file(
+                r"\sFFLAGS := ",
+                " FFLAGS := -fallow-argument-mismatch ",
+                "Compilers/Linux-gfortran.mk",
+            )
 
         makefile = FileFilter("makefile")
 
@@ -144,4 +145,8 @@ class Roms(MakefilePackage):
 
     def install(self, spec, prefix):
         mkdirp(prefix.bin)
+        # Keep ROMS External Standard input scripts
+        mkdirp(spec.prefix.ROMS)
+
         install("roms*", prefix.bin)
+        install_tree("./ROMS/External", join_path(spec.prefix.ROMS.External))

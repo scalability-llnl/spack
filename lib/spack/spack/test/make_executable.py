@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -9,16 +9,13 @@ Tests for Spack's built-in parallel make support.
 This just tests whether the right args are getting passed to make.
 """
 import os
-import sys
 
 import pytest
 
 from spack.build_environment import MakeExecutable
 from spack.util.environment import path_put_first
 
-pytestmark = pytest.mark.skipif(
-    sys.platform == "win32", reason="MakeExecutable not supported on Windows"
-)
+pytestmark = pytest.mark.not_on_windows("MakeExecutable not supported on Windows")
 
 
 @pytest.fixture(autouse=True)

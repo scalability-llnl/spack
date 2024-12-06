@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,9 +18,12 @@ class Lizard(MakefilePackage):
     git = "https://github.com/inikep/lizard.git"
 
     version("develop", branch="lizard")
+    version("2.0", sha256="85456b7274c9f0e477ff8e3f06dbc2f8ee8619d737a73c730c8a1adacb45f6da")
     version("1.0", sha256="6f666ed699fc15dc7fdaabfaa55787b40ac251681b50c0d8df017c671a9457e6")
+
+    depends_on("c", type="build")  # generated
 
     patch("fix-install-decompress.patch", when="@1.0")
 
     def install(self, spec, prefix):
-        make("PREFIX=%s" % prefix, "install")
+        make(f"PREFIX={prefix}", "install")

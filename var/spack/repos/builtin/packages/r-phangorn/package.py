@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,12 +17,17 @@ class RPhangorn(RPackage):
 
     cran = "phangorn"
 
+    license("GPL-2.0-or-later")
+
     version("2.11.1", sha256="10096ecae03e118aa4dbc60d9866175fad4849c948e004cf10c3868e3feed420")
     version("2.10.0", sha256="d153f87053a1e6eebf46be98fad3f118349008c559a6797b55613629cab85dce")
     version("2.8.1", sha256="6d471410ae29775104a94746936e8c1c54c7273dd289333973ec06dad489dc75")
     version("2.5.5", sha256="c58dc1ace26cb4358619a15da3ea4765dbdde1557acccc5103c85589a7571346")
     version("2.5.3", sha256="a306585a0aabe7360a2adaf9116ae2993fb5ceff641b198f2e01e4329d3768af")
     version("2.3.1", sha256="518c31f5b2c5f0a655d02a3c71b00c30caea2794dfc31f9d63f3d505bd7863eb")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r@3.2.0:", type=("build", "run"))
     depends_on("r@4.1.0:", type=("build", "run"), when="@2.8.1:")

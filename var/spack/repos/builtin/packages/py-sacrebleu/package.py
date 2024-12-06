@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class PySacrebleu(PythonPackage):
 
     homepage = "https://github.com/mjpost/sacrebleu"
     pypi = "sacrebleu/sacrebleu-2.0.0.tar.gz"
+
+    license("Apache-2.0")
 
     version("2.0.0", sha256="51fb69b6683f1b9999cd180143bb6b21d7841744537c9aab235cfe676550f0cf")
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,6 +21,9 @@ class Vdt(CMakePackage):
     version("0.3.8", sha256="e6d8485c3c8923993cb1b1a5bb85068a86746285058bf77faeb177363647be62")
     version("0.3.7", sha256="713a7e6d76d98f3b2b56b5216e7d5906e30f17865a5c7c889968e9a0b0664949")
     version("0.3.6", sha256="fb8f6386f2cd1eeb03db43f2b5c83a172107949bb5e5e8d4dfa603660a9757b0")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "preload",
@@ -46,10 +49,7 @@ class Vdt(CMakePackage):
         elif spec.satisfies("target=ppc64le:"):
             disable_features.add("fma")
 
-        args = [
-            self.define_from_variant("PRELOAD"),
-            self.define("PYTHON_EXECUTABLE", spec["python"].command),
-        ]
+        args = [self.define_from_variant("PRELOAD")]
         for f in ["sse", "avx", "avx2", "fma", "neon"]:
             args.append(
                 self.define(f.upper(), f not in disable_features and f in self.spec.target)

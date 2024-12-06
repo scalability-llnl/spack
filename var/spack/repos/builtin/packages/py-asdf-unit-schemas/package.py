@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class PyAsdfUnitSchemas(PythonPackage):
     pypi = "asdf_unit_schemas/asdf_unit_schemas-0.1.0.tar.gz"
 
     maintainers("lgarrison")
+
+    license("BSD-3-Clause")
 
     version("0.1.0", sha256="42b78d67213efe4ffd4529fb0e58d9c7a0dab5cbf8839b230f1bc0a446bff999")
 

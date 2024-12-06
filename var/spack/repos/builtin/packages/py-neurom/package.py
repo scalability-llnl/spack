@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class PyNeurom(PythonPackage):
     homepage = "https://github.com/BlueBrain/NeuroM"
     git = "https://github.com/BlueBrain/NeuroM.git"
     pypi = "neurom/neurom-2.2.1.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("master", branch="master")
     version("3.2.4", sha256="a584e0979b54deee906dd716ea90de20773e20b527d83960d0fe655b0905eb4a")

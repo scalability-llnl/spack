@@ -1,11 +1,11 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 
-from spack.build_systems.generic import GenericBuilder
+from spack.build_systems import cmake, generic
 from spack.package import *
 
 
@@ -16,9 +16,23 @@ class Libogg(CMakePackage, AutotoolsPackage, Package):
     homepage = "https://www.xiph.org/ogg/"
     url = "http://downloads.xiph.org/releases/ogg/libogg-1.3.2.tar.gz"
 
+    license("BSD-3-Clause")
+
     version("1.3.5", sha256="0eb4b4b9420a0f51db142ba3f9c64b333f826532dc0f48c6410ae51f4799b664")
     version("1.3.4", sha256="fe5670640bd49e828d64d2879c31cb4dde9758681bb664f9bdbf159a01b0c76e")
     version("1.3.2", sha256="e19ee34711d7af328cb26287f4137e70630e7261b17cbe3cd41011d73a654692")
+
+    depends_on("c", type="build")  # generated
+
+    variant("shared", default=True, description="Build shared library", when="build_system=cmake")
+    variant(
+        "pic",
+        default=True,
+        description="Produce position-independent code (for shared libs)",
+        when="build_system=cmake",
+    )
+
+    requires("+pic", when="+shared")
 
     # Backport a patch that fixes an unsigned typedef problem on macOS:
     # https://github.com/xiph/ogg/pull/64
@@ -35,7 +49,17 @@ class Libogg(CMakePackage, AutotoolsPackage, Package):
     )
 
 
-class GenericBuilder(GenericBuilder):
+class CMakeBuilder(cmake.CMakeBuilder):
+    def cmake_args(self):
+        base_cmake_args = [
+            self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
+            self.define_from_variant("CMAKE_POSITION_INDEPENDENT_CODE", "pic"),
+        ]
+
+        return base_cmake_args
+
+
+class GenericBuilder(generic.GenericBuilder):
     phases = ["build", "install"]
 
     def is_64bit(self):

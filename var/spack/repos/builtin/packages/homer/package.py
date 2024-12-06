@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class Homer(Package):
 
     homepage = "http://homer.ucsd.edu/homer"
     url = "http://homer.ucsd.edu/homer/data/software/homer.v4.9.1.zip"
+
+    license("GPL-3.0-only")
 
     version("4.11.1", sha256="80d1cd00616729894017b24a36a2ef81f9cde8bd364e875aead1e0cfb500c82b")
     version("4.9.1", sha256="ad1303b0b0400dc8a88dbeae1ee03a94631977b751a3d335326c4febf0eec3a9")
@@ -48,5 +50,5 @@ class Homer(Package):
         perl("configureHomer.pl", "-local")
 
         # download extra data if requested
-        if "+data" in spec:
+        if spec.satisfies("+data"):
             perl("configureHomer.pl", "-install", "-all")

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -16,6 +16,8 @@ class PyPycosat(PythonPackage):
 
     homepage = "https://github.com/ContinuumIO/pycosat"
     pypi = "pycosat/pycosat-0.6.3.zip"
+
+    license("MIT")
 
     version("0.6.3", sha256="4c99874946a7e939bb941bbb019dd2c20e6068e3107c91366e7779c69d70e0ed")
 

@@ -1,7 +1,4 @@
 ci:
   pipeline-gen:
-  - any-job:
-      variables:
-        SPACK_TARGET_ARCH: neoverse_v1
   - build-job:
       tags: ["aarch64", "graviton3"]

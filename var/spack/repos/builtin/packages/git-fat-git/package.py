@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,6 +12,8 @@ class GitFatGit(Package):
 
     homepage = "https://github.com/jedbrown/git-fat"
     git = "https://github.com/jedbrown/git-fat.git"
+
+    license("BSD-2-Clause")
 
     version("2018-08-21", commit="e1733b1c7c4169d0a1d31cb76f168fb0880176c0")
 
