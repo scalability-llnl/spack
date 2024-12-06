@@ -17,9 +17,9 @@ class Omnitrace(CMakePackage):
 
     def git_for_version(self, version):
         if version <= Version("rocm-6.2.4"):
-             git="https://github.com/ROCm/omnitrace.git"
+            git = "https://github.com/ROCm/omnitrace.git"
         else:
-             git="https://github.com/ROCm/rocprofiler-systems.git" 
+            git = "https://github.com/ROCm/rocprofiler-systems.git"
 
     maintainers("dgaliffiAMD", "afzpatel", "srekolam", "renjithravindrankannath", "jrmadsen")
 

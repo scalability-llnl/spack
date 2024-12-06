@@ -65,7 +65,10 @@ class Hipblaslt(CMakePackage):
     def setup_build_environment(self, env):
         env.set("CXX", self.spec["hip"].hipcc)
         env.set("TENSILE_ROCM_ASSEMBLER_PATH", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang++")
-        env.set("TENSILE_ROCM_OFFLOAD_BUNDLER_PATH", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang-offload-bundler")
+        env.set(
+            "TENSILE_ROCM_OFFLOAD_BUNDLER_PATH",
+            f"{self.spec['llvm-amdgpu'].prefix}/bin/clang-offload-bundler",
+        )
 
     def patch(self):
         if self.spec.satisfies("@6.3:"):
@@ -73,7 +76,7 @@ class Hipblaslt(CMakePackage):
                 'globalParameters["ROCmPath"], "llvm/bin"',
                 f'"{self.spec["llvm-amdgpu"].prefix.bin}"',
                 "tensilelite/Tensile/Common.py",
-                 string=True,
+                string=True,
             )
             filter_file(
                 "${rocm_path}/llvm/bin",
@@ -87,7 +90,6 @@ class Hipblaslt(CMakePackage):
                 "library/src/amd_detail/rocblaslt/src/kernels/compile_code_object.sh",
                 string=True,
             )
-
 
     def cmake_args(self):
         args = [

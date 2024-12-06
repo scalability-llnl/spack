@@ -164,7 +164,7 @@ class RoctracerDev(CMakePackage, ROCmPackage):
         if self.spec.satisfies("@6.0:"):
             args.append("-DCMAKE_INSTALL_LIBDIR=lib")
         if self.spec.satisfies("@6.2:"):
-            args.append(self.define("Clang_DIR", self.spec['llvm-amdgpu'].prefix))
+            args.append(self.define("Clang_DIR", self.spec["llvm-amdgpu"].prefix))
         return args
 
     @run_after("install")

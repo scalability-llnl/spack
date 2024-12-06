@@ -273,7 +273,9 @@ class LlvmAmdgpu(CMakePackage, CompilerPackage):
         if self.spec.satisfies("@5.6.0:6.2"):
             hsainc_path = os.path.join(self.stage.source_path, "hsa-runtime/src/inc")
         if self.spec.satisfies("@6.3:"):
-            hsainc_path = os.path.join(self.stage.source_path, "hsa-runtime/runtime/hsa-runtime/inc")
+            hsainc_path = os.path.join(
+                self.stage.source_path, "hsa-runtime/runtime/hsa-runtime/inc"
+            )
         if self.spec.satisfies("@5.6.0:"):
             args.append("-DSANITIZER_HSA_INCLUDE_PATH={0}".format(hsainc_path))
             args.append("-DSANITIZER_COMGR_INCLUDE_PATH={0}".format(comgrinc_path))
