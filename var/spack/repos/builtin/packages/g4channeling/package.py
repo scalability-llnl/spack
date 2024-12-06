@@ -31,11 +31,8 @@ class G4channeling(Package):
 
     def url_for_version(self, version):
         """Handle version string."""
-        return (
-            "http://geant4-data.web.cern.ch/geant4-data/datasets/G4CHANNELING.%s.tar.gz" % version
-        )
+        return f"http://geant4-data.web.cern.ch/geant4-data/datasets/G4CHANNELING.{version}.tar.gz"
 
     @property
     def g4datasetname(self):
-        spec = self.spec
-        return "G4CHANNELING{0}".format(spec.version)
+        return f"G4CHANNELING{self.spec.version}"
