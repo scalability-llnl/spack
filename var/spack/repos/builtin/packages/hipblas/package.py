@@ -115,7 +115,7 @@ class Hipblas(CMakePackage, CudaPackage, ROCmPackage):
         depends_on(f"rocblas amdgpu_target={tgt}", when=f"+rocm amdgpu_target={tgt}")
         depends_on(f"rocsolver amdgpu_target={tgt}", when=f"+rocm amdgpu_target={tgt}")
 
-    depends_on(f"hipblas-common@6.3.0", when="@6.3.0")
+    depends_on("hipblas-common@6.3.0", when="@6.3.0")
 
     @classmethod
     def determine_version(cls, lib):

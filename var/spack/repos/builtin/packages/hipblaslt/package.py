@@ -46,7 +46,7 @@ class Hipblaslt(CMakePackage):
     for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4"]:
         depends_on(f"hipblas@{ver}", when=f"@{ver}")
 
-    depends_on(f"hipblas-common@6.3.0", when="@6.3.0")
+    depends_on("hipblas-common@6.3.0", when="@6.3.0")
 
     depends_on("msgpack-c")
     depends_on("py-joblib")

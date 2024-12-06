@@ -15,12 +15,6 @@ class Omnitrace(CMakePackage):
     git = "https://github.com/ROCm/omnitrace.git"
     url = "https://github.com/ROCm/omnitrace/archive/refs/tags/rocm-6.0.2.tar.gz"
 
-    def git_for_version(self, version):
-        if version <= Version("rocm-6.2.4"):
-            git = "https://github.com/ROCm/omnitrace.git"
-        else:
-            git = "https://github.com/ROCm/rocprofiler-systems.git"
-
     maintainers("dgaliffiAMD", "afzpatel", "srekolam", "renjithravindrankannath", "jrmadsen")
 
     license("MIT")
@@ -29,6 +23,7 @@ class Omnitrace(CMakePackage):
     version("amd-staging", branch="amd-staging", submodules=True)
     version(
         "rocm-6.3.0",
+        git="https://github.com/ROCm/rocprofiler-systems",
         tag="rocm-6.3.0",
         commit="71a5e271b5e07efd2948fb6e7b451db5e8e40cb8",
         submodules=True,
