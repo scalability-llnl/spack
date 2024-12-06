@@ -8,23 +8,25 @@ from spack.package import *
 
 class PyPsyclone(PythonPackage):
     """
-    Code generation system developed to support domain-specific languages
-    (DSLs) for finite element, finite volume and finite difference codes.
-    Notably, it is used in the LFRic Project from the UK Met Office, and
-    it also supports the GOcean (2D, finite difference) DSL.
+    A source-to-source Fortran compiler designed to programmatically optimise,
+    parallelise and instrument HPC applications (written in Fortran) via user-
+    provided transformation scripts. Additionally, PSyclone supports the
+    development of kernel-based, Fortran-embedded DSLs and is used in the UK
+    Met Office's next-generation modelling system, LFRic.
 
     """
 
     # Links
     homepage = "https://github.com/stfc/PSyclone"
     git = "https://github.com/stfc/PSyclone.git"
-    pypi = "PSyclone/PSyclone-2.5.0.tar.gz"
+    pypi = "PSyclone/PSyclone-3.0.0.tar.gz"
 
     # License
     license("BSD-3-Clause")
 
     # Releases
     version("develop", branch="master")
+    version("3.0.0", tag="v3.0.0")
     version("2.5.0", sha256="dd1b40d635423c6b23effd2c569908d319afa6153680692e1cbae27f7b5bf4dc")
     version("2.4.0", sha256="14fd3717f99b317471356c59c1d4c4c22c41fd264af11b78ed831dd2eb71a270")
     version("2.3.1", sha256="eee70b3069d71fcf95e9bc8796f0333bd502e0202a98df051b635b133432a082")
@@ -34,12 +36,10 @@ class PyPsyclone(PythonPackage):
     version("2.0.0", sha256="94766ffda760404af99f85d70341376192e4a1b8e16e7ae5df980038898a9c41")
     version("1.5.1", sha256="f053ad7316623b2a4002afc79607abda3b22306645e86f2312d9f3fe56d312dc")
 
-    depends_on("fortran", type="build")  # generated
-
     # Current dependencies
     depends_on("py-setuptools", type="build")
     depends_on("py-pyparsing", type=("build", "run"))
-    depends_on("py-fparser@0.1.4:", type=("build", "run"), when="@2.5.0")
+    depends_on("py-fparser@0.2.0:", type=("build", "run"), when="@3.0.0")
     depends_on("py-configparser", type=("build", "run"))
     depends_on("py-jsonschema", type=("build", "run"), when="@2.5.0")
     depends_on("py-sympy", type=("build", "run"), when="@2.2.0:")
@@ -49,6 +49,7 @@ class PyPsyclone(PythonPackage):
     depends_on("py-jsonschema@3.0.2", type=("build", "run"), when="@2.1.0:2.4.0")
 
     # Test cases fail without compatible versions of py-fparser:
+    depends_on("py-fparser@0.1.4", type=("build", "run"), when="@2.5.0")
     depends_on("py-fparser@0.1.3", type=("build", "run"), when="@2.4.0")
     depends_on("py-fparser@0.0.16", type=("build", "run"), when="@2.3.1")
     depends_on("py-fparser@0.0.15", type=("build", "run"), when="@2.3.0")
