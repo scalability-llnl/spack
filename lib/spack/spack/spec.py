@@ -2964,8 +2964,6 @@ class Spec:
 
     def _mark_root_concrete(self, value=True):
         """Mark just this spec (not dependencies) concrete."""
-        if (not value) and self.concrete and self.installed:
-            return
         self._concrete = value
         self._validate_version()
 
@@ -2994,13 +2992,9 @@ class Spec:
         Only for internal use -- client code should use "concretize"
         unless there is a need to force a spec to be concrete.
         """
-        # if set to false, clear out all hashes (set to None or remove attr)
-        # may need to change references to respect None
         for s in self.traverse():
-            if (not value) and s.concrete and s.installed:
-                continue
-            elif not value:
-                s.clear_caches()
+            if value is False:
+                s.clear_caches(ignore=(ht.package_hash.attr,))
             s._mark_root_concrete(value)
 
     def _finalize_concretization(self):
