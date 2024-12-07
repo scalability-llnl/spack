@@ -1,0 +1,13 @@
+diff --git a/setup.py b/setup.py
+index ad2256a..6571a38 100755
+--- a/setup.py
++++ b/setup.py
+@@ -2,6 +2,8 @@
+ # vim: ts=3:sw=3
+ import os
+ try:
++  # This is a hack to make builds on python >= 3.13 work
++  import _distutils_hack.override
+   from distutils.core import setup
+   from distutils.sysconfig import get_config_vars
+   from distutils.command.build_py import build_py as _build_py
