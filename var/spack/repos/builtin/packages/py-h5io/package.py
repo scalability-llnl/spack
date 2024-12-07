@@ -9,7 +9,7 @@ from spack.package import *
 class PyH5io(PythonPackage):
     """Python Objects Onto HDF5."""
 
-    homepage = "http://h5io.github.io"
+    homepage = "https://h5io.github.io"
     pypi = "h5io/h5io-0.1.7.tar.gz"
     git = "https://github.com/h5io/h5io.git"
 
