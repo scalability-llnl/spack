@@ -348,11 +348,11 @@ class TestConcretize:
         assert concrete["mpich2"].satisfies("mpich2@1.3.1:1.4")
 
     def test_concretize_enable_disable_compiler_existence_check(self):
-        with spack.concretize.enable_compiler_existence_check():
-            with pytest.raises(spack.concretize.UnavailableCompilerVersionError):
+        with spack.solver.asp.enable_compiler_existence_check():
+            with pytest.raises(spack.solver.asp.UnavailableCompilerVersionError):
                 check_concretize("dttop %gcc@=100.100")
 
-        with spack.concretize.disable_compiler_existence_check():
+        with spack.solver.asp.disable_compiler_existence_check():
             spec = check_concretize("dttop %gcc@=100.100")
             assert spec.satisfies("%gcc@100.100")
             assert spec["dtlink3"].satisfies("%gcc@100.100")
@@ -723,9 +723,9 @@ class TestConcretize:
 
     def test_no_matching_compiler_specs(self, mock_low_high_config):
         # only relevant when not building compilers as needed
-        with spack.concretize.enable_compiler_existence_check():
+        with spack.solver.asp.enable_compiler_existence_check():
             s = Spec("pkg-a %gcc@=0.0.0")
-            with pytest.raises(spack.concretize.UnavailableCompilerVersionError):
+            with pytest.raises(spack.solver.asp.UnavailableCompilerVersionError):
                 s = spack.concretize.concretized(s)
 
     def test_no_compilers_for_arch(self):
@@ -951,7 +951,7 @@ class TestConcretize:
     ):
         best_achievable = archspec.cpu.TARGETS[best_achievable]
         expected = best_achievable if best_achievable < current_host else current_host
-        with spack.concretize.disable_compiler_existence_check():
+        with spack.solver.asp.disable_compiler_existence_check():
             s = spack.concretize.concretized(Spec(spec))
             assert str(s.architecture.target) == str(expected)
 
@@ -966,7 +966,7 @@ class TestConcretize:
         )
 
         # This compiler does not exist
-        with pytest.raises(spack.concretize.UnavailableCompilerVersionError):
+        with pytest.raises(spack.solver.asp.UnavailableCompilerVersionError):
             spack.concretize.concretized(Spec("mpileaks %gcc@=10.2"))
 
     def test_concretize_anonymous(self):

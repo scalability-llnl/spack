@@ -29,7 +29,6 @@ import spack
 import spack.binary_distribution
 import spack.compiler
 import spack.compilers
-import spack.concretize
 import spack.config
 import spack.deptypes as dt
 import spack.environment as ev
@@ -48,6 +47,7 @@ import spack.variant as vt
 import spack.version as vn
 import spack.version.git_ref_lookup
 from spack import traverse
+from spack.spec import ArchSpec, CompilerSpec
 
 from .core import (
     AspFunction,
@@ -65,6 +65,8 @@ from .core import (
 from .counter import FullDuplicatesCounter, MinimalDuplicatesCounter, NoDuplicatesCounter
 from .requirements import RequirementKind, RequirementParser, RequirementRule
 from .version_order import concretization_version_order
+
+CHECK_COMPILER_EXISTENCE = True
 
 GitOrStandardVersion = Union[spack.version.GitVersion, spack.version.StandardVersion]
 
@@ -3103,7 +3105,6 @@ class CompilerParser:
         Args:
             input_specs: specs to be concretized
         """
-        strict = spack.concretize.CHECK_COMPILER_EXISTENCE
         default_os = str(spack.platforms.host().default_os)
         default_target = str(archspec.cpu.host().family)
         for s in traverse.traverse_nodes(input_specs):
@@ -3117,8 +3118,8 @@ class CompilerParser:
                 continue
 
             # Error when a compiler is not found and strict mode is enabled
-            if strict:
-                raise spack.concretize.UnavailableCompilerVersionError(s.compiler)
+            if CHECK_COMPILER_EXISTENCE:
+                raise UnavailableCompilerVersionError(s.compiler)
 
             # Make up a compiler matching the input spec. This is for bootstrapping.
             compiler_cls = spack.compilers.class_for_compiler_name(s.compiler.name)
@@ -4012,6 +4013,22 @@ def _specs_from_environment_included_concrete(env, included_concrete):
         return []
 
 
+@contextmanager
+def disable_compiler_existence_check():
+    global CHECK_COMPILER_EXISTENCE
+    CHECK_COMPILER_EXISTENCE, saved = False, CHECK_COMPILER_EXISTENCE
+    yield
+    CHECK_COMPILER_EXISTENCE = saved
+
+
+@contextmanager
+def enable_compiler_existence_check():
+    global CHECK_COMPILER_EXISTENCE
+    CHECK_COMPILER_EXISTENCE, saved = True, CHECK_COMPILER_EXISTENCE
+    yield
+    CHECK_COMPILER_EXISTENCE = saved
+
+
 class ReuseStrategy(enum.Enum):
     ROOTS = enum.auto()
     DEPENDENCIES = enum.auto()
@@ -4295,3 +4312,20 @@ class SolverError(InternalConcretizerError):
 
 class InvalidSpliceError(spack.error.SpackError):
     """For cases in which the splice configuration is invalid."""
+
+
+class UnavailableCompilerVersionError(spack.error.SpackError):
+    """Raised when there is no available compiler that satisfies a
+    compiler spec."""
+
+    def __init__(self, compiler_spec: CompilerSpec, arch: Optional[ArchSpec] = None) -> None:
+        err_msg = f"No compilers with spec {compiler_spec} found"
+        if arch:
+            err_msg += f" for operating system {arch.os} and target {arch.target}."
+
+        super().__init__(
+            err_msg,
+            "Run 'spack compiler find' to add compilers or "
+            "'spack compilers' to see which compilers are already recognized"
+            " by spack.",
+        )

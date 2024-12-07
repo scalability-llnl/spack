@@ -7,8 +7,8 @@ import pytest
 
 import spack.compilers
 import spack.spec
-from spack.concretize import UnavailableCompilerVersionError
 from spack.solver import asp
+from spack.solver.asp import UnavailableCompilerVersionError
 
 
 class TestCompilerParser:

@@ -33,7 +33,6 @@ from llnl.util.tty.color import cescape, colorize
 import spack
 import spack.binary_distribution as bindist
 import spack.builder
-import spack.concretize
 import spack.config as cfg
 import spack.error
 import spack.main
@@ -41,6 +40,7 @@ import spack.mirrors.mirror
 import spack.mirrors.utils
 import spack.paths
 import spack.repo
+import spack.solver.asp
 import spack.spec
 import spack.util.git
 import spack.util.gpg as gpg_util
@@ -707,7 +707,7 @@ def generate_gitlab_ci_yaml(
             files (spack.yaml, spack.lock), etc should be written.  GitLab
             requires this to be within the project directory.
     """
-    with spack.concretize.disable_compiler_existence_check():
+    with spack.solver.asp.disable_compiler_existence_check():
         with env.write_transaction():
             env.concretize()
             env.write()

@@ -17,6 +17,7 @@ import spack.environment as ev
 import spack.mirrors.mirror
 import spack.mirrors.utils
 import spack.repo
+import spack.solver.asp
 import spack.spec
 import spack.util.web as web_util
 from spack.cmd.common import arguments
@@ -516,7 +517,7 @@ def extend_with_dependencies(specs):
 
 def concrete_specs_from_cli_or_file(args):
     tty.msg("Concretizing input specs")
-    with spack.concretize.disable_compiler_existence_check():
+    with spack.solver.asp.disable_compiler_existence_check():
         if args.specs:
             specs = spack.cmd.parse_specs(args.specs, concretize=True)
             if not specs:
