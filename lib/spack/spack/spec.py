@@ -2130,6 +2130,10 @@ class Spec:
         if not hash.attr:
             return self.spec_hash(hash)[:length]
 
+        # On an abstract spec, the only thing safe to cache is the package hash
+        if not self.concrete and hash.name != ht.package_hash.name:
+            return self.spec_hash(hash)[:length]
+
         hash_string = getattr(self, hash.attr, None)
         if hash_string:
             return hash_string[:length]
