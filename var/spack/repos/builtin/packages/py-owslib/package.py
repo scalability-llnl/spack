@@ -11,7 +11,7 @@ class PyOwslib(PythonPackage):
     Consortium (OGC) web service (hence OWS) interface standards, and their
     related content models."""
 
-    homepage = "https://http://geopython.github.io/OWSLib/#installation"
+    homepage = "https://geopython.github.io/OWSLib/#installation"
     pypi = "OWSLib/OWSLib-0.16.0.tar.gz"
 
     license("BSD-3-Clause")
