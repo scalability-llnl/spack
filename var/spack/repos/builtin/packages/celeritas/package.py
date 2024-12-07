@@ -102,7 +102,9 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
         sha256="1161c4f1166860d35d2a3f103236a63acd6a35aee2d2c27561cb929941d1c170",
         when="@0.5.0 +geant4 ^geant4@11.3.0:",
     )
-    conflicts("^geant4@11.3.0:", when="@:0.4 +geant4", msg="geant4@11.3.0: requires at least 0.5.0")
+    conflicts(
+        "^geant4@11.3.0:", when="@:0.4 +geant4", msg="geant4@11.3.0: requires at least 0.5.0"
+    )
 
     def cmake_args(self):
         define = self.define
