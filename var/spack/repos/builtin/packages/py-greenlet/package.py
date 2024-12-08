@@ -37,3 +37,5 @@ class PyGreenlet(PythonPackage):
 
     depends_on("py-setuptools", type="build")
     depends_on("py-setuptools@40.8.0:", type="build", when="@3.0.2:")
+
+    conflicts("%gcc@:7", when="@3.1.1:", msg="GCC-8 required as of 3.1.1")
