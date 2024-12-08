@@ -214,7 +214,9 @@ class MirrorStats:
         self.errors.add(self.current_spec)
 
 
-def create_mirror_from_package_object(pkg_obj, mirror_cache, mirror_stats):
+def create_mirror_from_package_object(
+    pkg_obj, mirror_cache: "spack.caches.MirrorCache", mirror_stats: MirrorStats
+) -> bool:
     """Add a single package object to a mirror.
 
     The package object is only required to have an associated spec
@@ -222,8 +224,8 @@ def create_mirror_from_package_object(pkg_obj, mirror_cache, mirror_stats):
 
     Args:
         pkg_obj (spack.package_base.PackageBase): package object with to be added.
-        mirror_cache (spack.caches.MirrorCache): mirror where to add the spec.
-        mirror_stats (spack.mirror.MirrorStats): statistics on the current mirror
+        mirror_cache: mirror where to add the spec.
+        mirror_stats: statistics on the current mirror
 
     Return:
         True if the spec was added successfully, False otherwise
