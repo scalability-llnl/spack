@@ -26,6 +26,7 @@ import spack.extensions
 import spack.paths
 import spack.repo
 import spack.spec
+import spack.spec_lookup
 import spack.spec_parser
 import spack.store
 import spack.traverse as traverse
@@ -211,7 +212,8 @@ def _concretize_spec_pairs(
     ):
         # Get all the concrete specs
         ret = [
-            concrete or (abstract if abstract.concrete else abstract.lookup_hash())
+            concrete
+            or (abstract if abstract.concrete else spack.spec_lookup.lookup_hash(abstract))
             for abstract, concrete in to_concretize
         ]
 

@@ -202,3 +202,10 @@ class MirrorError(SpackError):
 
     def __init__(self, msg, long_msg=None):
         super().__init__(msg, long_msg)
+
+
+class InvalidHashError(SpecError):
+    def __init__(self, spec, hash):
+        msg = f"No spec with hash {hash} could be found to match {spec}."
+        msg += " Either the hash does not exist, or it does not match other spec constraints."
+        super().__init__(msg)

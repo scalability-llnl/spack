@@ -427,9 +427,9 @@ class TestSpecSemantics:
         """Test that Specs specified only by their incompatible hashes fail appropriately."""
         lhs = "/" + database.query_one("callpath ^mpich").dag_hash()
         rhs = "/" + database.query_one("callpath ^mpich2").dag_hash()
-        with pytest.raises(spack.spec.InvalidHashError):
+        with pytest.raises(spack.error.InvalidHashError):
             Spec(lhs).constrain(Spec(rhs))
-        with pytest.raises(spack.spec.InvalidHashError):
+        with pytest.raises(spack.error.InvalidHashError):
             Spec(lhs[:7]).constrain(Spec(rhs))
 
     @pytest.mark.parametrize(

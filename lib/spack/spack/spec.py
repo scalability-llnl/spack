@@ -106,8 +106,6 @@ import spack.variant as vt
 import spack.version as vn
 import spack.version.git_ref_lookup
 
-from .enums import InstallRecordStatus
-
 __all__ = [
     "CompilerSpec",
     "Spec",
@@ -128,8 +126,6 @@ __all__ = [
     "UnsatisfiableArchitectureSpecError",
     "UnsatisfiableProviderSpecError",
     "UnsatisfiableDependencySpecError",
-    "AmbiguousHashError",
-    "InvalidHashError",
     "SpecDeprecatedError",
 ]
 
@@ -2170,66 +2166,6 @@ class Spec:
         """Get the first <bits> bits of the DAG hash as an integer type."""
         return spack.util.hash.base32_prefix_bits(self.process_hash(), bits)
 
-    def _lookup_hash(self):
-        """Lookup just one spec with an abstract hash, returning a spec from the the environment,
-        store, or finally, binary caches."""
-        import spack.binary_distribution
-        import spack.environment
-
-        active_env = spack.environment.active_environment()
-
-        # First env, then store, then binary cache
-        matches = (
-            (active_env.all_matching_specs(self) if active_env else [])
-            or spack.store.STORE.db.query(self, installed=InstallRecordStatus.ANY)
-            or spack.binary_distribution.BinaryCacheQuery(True)(self)
-        )
-
-        if not matches:
-            raise InvalidHashError(self, self.abstract_hash)
-
-        if len(matches) != 1:
-            raise AmbiguousHashError(
-                f"Multiple packages specify hash beginning '{self.abstract_hash}'.", *matches
-            )
-
-        return matches[0]
-
-    def lookup_hash(self):
-        """Given a spec with an abstract hash, return a copy of the spec with all properties and
-        dependencies by looking up the hash in the environment, store, or finally, binary caches.
-        This is non-destructive."""
-        if self.concrete or not any(node.abstract_hash for node in self.traverse()):
-            return self
-
-        spec = self.copy(deps=False)
-        # root spec is replaced
-        if spec.abstract_hash:
-            spec._dup(self._lookup_hash())
-            return spec
-
-        # Get dependencies that need to be replaced
-        for node in self.traverse(root=False):
-            if node.abstract_hash:
-                spec._add_dependency(node._lookup_hash(), depflag=0, virtuals=())
-
-        # reattach nodes that were not otherwise satisfied by new dependencies
-        for node in self.traverse(root=False):
-            if not any(n.satisfies(node) for n in spec.traverse()):
-                spec._add_dependency(node.copy(), depflag=0, virtuals=())
-
-        return spec
-
-    def replace_hash(self):
-        """Given a spec with an abstract hash, attempt to populate all properties and dependencies
-        by looking up the hash in the environment, store, or finally, binary caches.
-        This is destructive."""
-
-        if not any(node for node in self.traverse(order="post") if node.abstract_hash):
-            return
-
-        self._dup(self.lookup_hash())
-
     def to_node_dict(self, hash=ht.dag_hash):
         """Create a dictionary representing the state of this Spec.
 
@@ -3132,7 +3068,7 @@ class Spec:
             if not self.abstract_hash or other.abstract_hash.startswith(self.abstract_hash):
                 self.abstract_hash = other.abstract_hash
             elif not self.abstract_hash.startswith(other.abstract_hash):
-                raise InvalidHashError(self, other.abstract_hash)
+                raise spack.error.InvalidHashError(self, other.abstract_hash)
 
         if not (self.name == other.name or (not self.name) or (not other.name)):
             raise UnsatisfiableSpecNameError(self.name, other.name)
@@ -5336,21 +5272,6 @@ class UnconstrainableDependencySpecError(spack.error.SpecError):
     def __init__(self, spec):
         msg = "Cannot constrain by spec '%s'. Cannot constrain by a" % spec
         msg += " spec containing anonymous dependencies"
-        super().__init__(msg)
-
-
-class AmbiguousHashError(spack.error.SpecError):
-    def __init__(self, msg, *specs):
-        spec_fmt = "{namespace}.{name}{@version}{%compiler}{compiler_flags}"
-        spec_fmt += "{variants}{ arch=architecture}{/hash:7}"
-        specs_str = "\n  " + "\n  ".join(spec.format(spec_fmt) for spec in specs)
-        super().__init__(msg + specs_str)
-
-
-class InvalidHashError(spack.error.SpecError):
-    def __init__(self, spec, hash):
-        msg = f"No spec with hash {hash} could be found to match {spec}."
-        msg += " Either the hash does not exist, or it does not match other spec constraints."
         super().__init__(msg)
 
 

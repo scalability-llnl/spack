@@ -39,6 +39,7 @@ import spack.platforms
 import spack.repo
 import spack.solver.splicing
 import spack.spec
+import spack.spec_lookup
 import spack.store
 import spack.util.crypto
 import spack.util.libc
@@ -3774,7 +3775,7 @@ class SpecBuilder:
 
                     # The first iteration, we need to replace the abstract hash
                     if not replacement.concrete:
-                        replacement.replace_hash()
+                        spack.spec_lookup.replace_hash(replacement)
                     current_spec = current_spec.splice(replacement, transitive)
             new_key = NodeArgument(id=key.id, pkg=current_spec.name)
             specs[new_key] = current_spec
@@ -4133,7 +4134,7 @@ class Solver:
           setup_only (bool): if True, stop after setup and don't solve (default False).
           allow_deprecated (bool): allow deprecated version in the solve
         """
-        specs = [s.lookup_hash() for s in specs]
+        specs = [spack.spec_lookup.lookup_hash(s) for s in specs]
         reusable_specs = self._check_input_and_extract_concrete_specs(specs)
         reusable_specs.extend(self.selector.reusable_specs(specs))
         setup = SpackSolverSetup(tests=tests)
@@ -4170,7 +4171,7 @@ class Solver:
             tests (bool): add test dependencies to the solve
             allow_deprecated (bool): allow deprecated version in the solve
         """
-        specs = [s.lookup_hash() for s in specs]
+        specs = [spack.spec_lookup.lookup_hash(s) for s in specs]
         reusable_specs = self._check_input_and_extract_concrete_specs(specs)
         reusable_specs.extend(self.selector.reusable_specs(specs))
         setup = SpackSolverSetup(tests=tests)
