@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
 import os.path
-import sys
 import traceback
 
 import llnl.util.tty as tty
@@ -231,28 +230,23 @@ def create_mirror_from_package_object(
         True if the spec was added successfully, False otherwise
     """
     tty.msg("Adding package {} to mirror".format(pkg_obj.spec.format("{name}{@version}")))
-    num_retries = 3
-    while num_retries > 0:
+    max_retries = 3
+    for num_retries in range(max_retries):
         try:
             # Includes patches and resources
             with pkg_obj.stage as pkg_stage:
                 pkg_stage.cache_mirror(mirror_cache, mirror_stats)
-            exception = None
             break
         except Exception as e:
-            exc_tuple = sys.exc_info()
-            exception = e
-        num_retries -= 1
-    if exception:
-        if spack.config.get("config:debug"):
-            traceback.print_exception(file=sys.stderr, *exc_tuple)
-        else:
-            tty.warn(
-                "Error while fetching %s" % pkg_obj.spec.cformat("{name}{@version}"),
-                getattr(exception, "message", exception),
-            )
-        mirror_stats.error()
-        return False
+            if num_retries + 1 == max_retries:
+                if spack.config.get("config:debug"):
+                    traceback.print_exc()
+                else:
+                    tty.warn(
+                        "Error while fetching %s" % pkg_obj.spec.format("{name}{@version}"), str(e)
+                    )
+                mirror_stats.error()
+                return False
     return True
 
 
