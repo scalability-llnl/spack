@@ -43,7 +43,8 @@ class PyDask(PythonPackage):
 
     depends_on("py-setuptools", type="build")
     depends_on("py-setuptools@62.6:", type="build", when="@2023.4.1:")
-    depends_on("py-versioneer@0.28+toml", type="build", when="@2023.4.1:")
+    depends_on("py-versioneer@0.29+toml", type="build", when="@2023.10.1:")
+    depends_on("py-versioneer@0.28+toml", type="build", when="@2023.4.1:2023.10.0")
 
     # Common requirements
     depends_on("py-packaging@20:", type="build", when="@2022.10.2:")
