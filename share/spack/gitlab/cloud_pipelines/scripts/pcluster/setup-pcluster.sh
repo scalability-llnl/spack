@@ -91,18 +91,12 @@ install_compilers() {
         fi
 
         spack install /${gcc_hash}
-        (
-            spack load gcc
-            spack compiler add --scope site
-        )
+        spack compiler add --scope site "$(spack find -p --no-groups gcc | tail -n 1 | awk '{print $2}')"/bin
 
         if [ "x86_64" == "$(arch)" ]; then
             # 2024.1.0 is the last oneapi compiler that works on AL2 and is the one used to compile packages in the build cache.
             spack install intel-oneapi-compilers@2024.1.0
-            (
-                . "$(spack location -i intel-oneapi-compilers)"/setvars.sh; spack compiler add --scope site \
-                    || true
-            )
+            spack compiler add --scope site "$(spack location -i intel-oneapi-compilers@2024.1.0)"/compiler/latest/bin || true
         fi
     fi
 }
