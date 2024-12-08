@@ -103,6 +103,14 @@ class NodeJs(Package):
     # See https://github.com/nodejs/node/issues/52223
     patch("fix-old-glibc-random-headers.patch", when="^glibc@:2.24")
 
+    # Work around gcc-12.[1-2] compiler bug
+    # See https://github.com/nodejs/node/pull/53728
+    patch(
+        "https://github.com/nodejs/node/commit/8027a7be93f85b48957df5c4ecd27292596151fc.patch?full_index=1",
+        sha256="e13c541c9405dea62754b76ae98264eba5b4d8fb6b2c504c828647f6061dd534",
+        when="@22.2:22",
+    )
+
     def setup_build_environment(self, env):
         # Force use of experimental Python 3 support
         env.set("PYTHON", self.spec["python"].command.path)
