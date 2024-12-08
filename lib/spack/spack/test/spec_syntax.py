@@ -11,6 +11,7 @@ import pytest
 import spack.binary_distribution
 import spack.cmd
 import spack.concretize
+import spack.error
 import spack.platforms.test
 import spack.repo
 import spack.spec
@@ -26,7 +27,7 @@ from spack.tokenize import Token
 
 FAIL_ON_WINDOWS = pytest.mark.xfail(
     sys.platform == "win32",
-    raises=(SpecTokenizationError, spack.spec.InvalidHashError),
+    raises=(SpecTokenizationError, spack.error.InvalidHashError),
     reason="Unix style path on Windows",
 )
 
