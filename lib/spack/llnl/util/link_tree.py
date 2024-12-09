@@ -337,22 +337,8 @@ class DestinationMergeVisitor(BaseDirectoryVisitor):
         be seen as files; we should not accidentally merge
         source dir with a symlinked dest dir.
         """
-        # Always conflict
-        if self.src._in_directories(rel_path):
-            _, src_a_root, src_a_relpath = self.src._directory(rel_path)
-            self.src.fatal_conflicts.append(
-                MergeConflict(
-                    rel_path, os.path.join(src_a_root, src_a_relpath), os.path.join(root, rel_path)
-                )
-            )
 
-        if self.src._in_files(rel_path):
-            _, src_a_root, src_a_relpath = self.src._file(rel_path)
-            self.src.fatal_conflicts.append(
-                MergeConflict(
-                    rel_path, os.path.join(src_a_root, src_a_relpath), os.path.join(root, rel_path)
-                )
-            )
+        self.visit_file(root, rel_path, depth)
 
         # Never descend into symlinked target dirs.
         return False
