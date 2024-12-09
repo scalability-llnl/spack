@@ -397,6 +397,8 @@ def test_source_merge_visitor_does_deals_with_dangling_symlinks(tmp_path: pathli
 
     # The first file encountered should be listed.
     assert visitor.files == {str(tmp_path / "view" / "file"): (str(tmp_path / "dir_a"), "file")}
+
+
 # Mocks for the os.path.exists function. Implemented fairly generically to not
 # tailor too much to the implementaion of
 # is_folder_on_case_insensitive_filesystem (should be a detail)
