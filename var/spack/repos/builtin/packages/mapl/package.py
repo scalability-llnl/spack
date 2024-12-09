@@ -164,8 +164,14 @@ class Mapl(CMakePackage):
     resource(
         name="esma_cmake",
         git="https://github.com/GEOS-ESM/ESMA_cmake.git",
+        tag="v3.55.0",
+        when="@2.51:",
+    )
+    resource(
+        name="esma_cmake",
+        git="https://github.com/GEOS-ESM/ESMA_cmake.git",
         tag="v3.51.0",
-        when="@2.48:",
+        when="@2.48:2.50",
     )
     resource(
         name="esma_cmake",
@@ -244,6 +250,11 @@ class Mapl(CMakePackage):
     # builds with gcc 13 from that version onwards
     conflicts("%gcc@13:", when="@:2.44")
 
+    # MAPL can use ifx only from MAPL 2.51 onwards and only supports
+    # ifx 2025.0 and newer due to bugs in ifx
+    conflicts("%oneapi@:2024")
+    conflicts("%oneapi", when="@:2.50")
+
     variant("flap", default=False, description="Build with FLAP support", when="@:2.39")
     variant("pflogger", default=True, description="Build with pFlogger support")
     variant("fargparse", default=True, description="Build with fArgParse support")
@@ -265,7 +276,8 @@ class Mapl(CMakePackage):
     conflicts("+pflogger", when="@:2.40.3 %intel@2021.7:")
     conflicts("+extdata2g", when="@:2.40.3 %intel@2021.7:")
 
-    depends_on("cmake@3.23:", type="build", when="@2.50:")
+    depends_on("cmake@3.24:", type="build", when="@2.51:")
+    depends_on("cmake@3.23:", type="build", when="@2.50")
     depends_on("cmake@3.17:", type="build", when="@:2.49")
     depends_on("mpi")
     depends_on("hdf5")
