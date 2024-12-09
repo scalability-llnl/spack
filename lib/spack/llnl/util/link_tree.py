@@ -76,7 +76,7 @@ class SourceMergeVisitor(BaseDirectoryVisitor):
         # and can run mkdir in order.
         self.directories: Dict[str, Tuple[str, str]] = {}
 
-        # If the visitor is configure to normalize paths, keep a map of
+        # If the visitor is configured to normalize paths, keep a map of
         # normalized path to: original path, root directory + relative path
         self._directories_normalized: Dict[str, Tuple[str, str, str]] = {}
 
@@ -84,7 +84,7 @@ class SourceMergeVisitor(BaseDirectoryVisitor):
         # are guaranteed to be grouped by src_root in the order they were visited.
         self.files: Dict[str, Tuple[str, str]] = {}
 
-        # If the visitor is configure to normalize paths, keep a map of
+        # If the visitor is configured to normalize paths, keep a map of
         # normalized path to: original path, root directory + relative path
         self._files_normalized: Dict[str, Tuple[str, str, str]] = {}
 
