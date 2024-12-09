@@ -11,47 +11,16 @@ spack:
       providers:
         blas: [openblas]
         mpi: [mpich]
+        tbb: [intel-tbb]
       variants: +mpi
-    binutils:
-      variants: +ld +gold +headers +libiberty ~nls
-    elfutils:
-      variants: ~nls
-    gdb:
-      version: [14.1]
-    hdf5:
-      variants: +fortran +hl +shared
-    libfabric:
-      variants: fabrics=sockets,tcp,udp,rxm
-    libunwind:
-      variants: +pic +xz
-    openblas:
-      variants: threads=openmp
-    xz:
-      variants: +pic
-    mesa:
-      version: [21.3.8]
-    mpi:
-      require: mpich
-    mpich:
-      require: '~wrapperrpath ~hwloc'
-    ncurses:
-      require: '@6.3 +termlib'
-    tbb:
-      require: intel-tbb
-    boost:
-      version: [1.79.0]
-      variants: +atomic +chrono +container +date_time +exception +filesystem +graph
-        +iostreams +locale +log +math +mpi +multithreaded +program_options +random
-        +regex +serialization +shared +signals +stacktrace +system +test +thread +timer
-        cxxstd=17 visibility=global
-    libffi:
-      require: "@3.4.4"
-    cuda:
-      version: [11.8.0]
 
     # Mark geant4 data as external to prevent wasting bandwidth on GB-scale files
     geant4-data:
       externals:
+        - spec: geant4-data@11.3.0
+          prefix: /usr
+        - spec: geant4-data@11.2.2
+          prefix: /usr
         - spec: geant4-data@11.2.0
           prefix: /usr
         - spec: geant4-data@11.1.0
@@ -61,13 +30,13 @@ spack:
 
   specs:
   # CPU
-  - acts +analysis +binaries +dd4hep +edm4hep +examples +fatras +geant4 +hepmc3 +identification +podio +pythia8 +python +tgeo
+  - acts +analysis +binaries +dd4hep +edm4hep +examples +fatras +geant4 +hepmc3 +podio +pythia8 +python +tgeo
   - dd4hep +ddalign +ddcad +ddcond +dddetectors +dddigi +ddeve +ddg4 +ddrec +edm4hep +hepmc3 +lcio +utilityapps +xercesc
   - delphes +pythia8
   - edm4hep
   - fastjet
   - fjcontrib
-  - gaudi +aida +examples +heppdt +xercesc ^gdb +python
+  - gaudi +aida +examples +heppdt +xercesc
   - geant4 +opengl +qt +threads ~vtk
   - hepmc
   - hepmc3 +interfaces +protobuf +python +rootio
@@ -89,7 +58,7 @@ spack:
   ci:
     pipeline-gen:
     - build-job:
-        image: "ghcr.io/spack/ubuntu20.04-runner-amd64-gcc-11.4:2023.08.01"
+        image: "ghcr.io/spack/spack/ubuntu22.04-runner-amd64-gcc-11.4:2024.03.01"
 
   cdash:
     build-group: HEP
