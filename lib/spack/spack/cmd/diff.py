@@ -90,12 +90,16 @@ def compare_specs(a, b, to_string=False, color=None, ignore_packages=None):
     # specs and to descend into dependency hashes so we include all facts.
     a_facts = set(
         shift(func)
-        for func in setup.spec_clauses(a, body=True, expand_hashes=True, concrete_build_deps=True)
+        for func in setup.spec_clauses(
+            a, body=True, expand_hashes=True, concrete_build_deps=True, node=True
+        )
         if func.name == "attr"
     )
     b_facts = set(
         shift(func)
-        for func in setup.spec_clauses(b, body=True, expand_hashes=True, concrete_build_deps=True)
+        for func in setup.spec_clauses(
+            b, body=True, expand_hashes=True, concrete_build_deps=True, node=True
+        )
         if func.name == "attr"
     )
 

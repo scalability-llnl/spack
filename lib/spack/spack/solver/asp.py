@@ -266,11 +266,6 @@ def specify(spec):
     return spack.spec.Spec(spec)
 
 
-def remove_node(spec: spack.spec.Spec, facts: List[AspFunction]) -> List[AspFunction]:
-    """Transformation that removes all "node" and "virtual_node" from the input list of facts."""
-    return list(filter(lambda x: x.args[0] not in ("node", "virtual_node"), facts))
-
-
 def _create_counter(specs: List[spack.spec.Spec], tests: bool):
     strategy = spack.config.CONFIG.get("concretizer:duplicates:strategy", "none")
     if strategy == "full":
@@ -1522,7 +1517,8 @@ class SpackSolverSetup:
             return result[0]
 
         cond_id = next(self._id_counter)
-        requirements = self.spec_clauses(named_cond, body=body, context=context)
+
+        requirements = self.spec_clauses(named_cond, body=body, context=context, node=True)
         if context.transform:
             requirements = context.transform(named_cond, requirements)
         pkg_cache[named_cond_key] = (cond_id, requirements)
@@ -1560,7 +1556,6 @@ class SpackSolverSetup:
 
         if not context:
             context = ConditionContext()
-            context.transform_imposed = remove_node
 
         if imposed_spec:
             imposed_name = imposed_spec.name or imposed_name
@@ -1594,14 +1589,6 @@ class SpackSolverSetup:
             )
 
             return condition_id
-
-    def impose(self, condition_id, imposed_spec, node=True, body=False):
-        imposed_constraints = self.spec_clauses(imposed_spec, body=body)
-        for pred in imposed_constraints:
-            # imposed "node"-like conditions are no-ops
-            if not node and pred.args[0] in ("node", "virtual_node"):
-                continue
-            self.gen.fact(fn.imposed_constraint(condition_id, *pred.args))
 
     def package_provider_rules(self, pkg):
         for vpkg_name in pkg.provided_virtual_names():
@@ -1660,7 +1647,7 @@ class SpackSolverSetup:
                     return requirements + [fn.attr("track_dependencies", input_spec.name)]
 
                 def dependency_holds(input_spec, requirements):
-                    return remove_node(input_spec, requirements) + [
+                    return requirements + [
                         fn.attr(
                             "dependency_holds", pkg.name, input_spec.name, dt.flag_to_string(t)
                         )
@@ -1719,12 +1706,10 @@ class SpackSolverSetup:
                 when_spec_attrs = [
                     fn.attr(c.args[0], splice_node, *(c.args[2:]))
                     for c in self.spec_clauses(cond, body=True, required_from=None)
-                    if c.args[0] != "node"
                 ]
                 splice_spec_hash_attrs = [
                     fn.hash_attr(hash_var, *(c.args))
                     for c in self.spec_clauses(spec_to_splice, body=True, required_from=None)
-                    if c.args[0] != "node"
                 ]
                 if match_variants is None:
                     variant_constraints = []
@@ -1846,10 +1831,6 @@ class SpackSolverSetup:
                     context.source = ConstraintOrigin.append_type_suffix(
                         pkg_name, ConstraintOrigin.REQUIRE
                     )
-                    if not virtual:
-                        context.transform_imposed = remove_node
-                    # else: for virtuals we want to emit "node" and
-                    # "virtual_node" in imposed specs
 
                     member_id = self.condition(
                         required_spec=when_spec,
@@ -2023,6 +2004,7 @@ class SpackSolverSetup:
         self,
         spec: spack.spec.Spec,
         *,
+        node: bool = False,
         body: bool = False,
         transitive: bool = True,
         expand_hashes: bool = False,
@@ -2040,6 +2022,7 @@ class SpackSolverSetup:
         try:
             clauses = self._spec_clauses(
                 spec,
+                node=node,
                 body=body,
                 transitive=transitive,
                 expand_hashes=expand_hashes,
@@ -2057,6 +2040,7 @@ class SpackSolverSetup:
         self,
         spec: spack.spec.Spec,
         *,
+        node: bool = False,
         body: bool = False,
         transitive: bool = True,
         expand_hashes: bool = False,
@@ -2067,6 +2051,7 @@ class SpackSolverSetup:
 
         Arguments:
             spec: the spec to analyze
+            node: if True, emit node(PackageName, ...) and virtual_node(PackageaName, ...) facts
             body: if True, generate clauses to be used in rule bodies (final values) instead
                 of rule heads (setters).
             transitive: if False, don't generate clauses from dependencies (default True)
@@ -2086,8 +2071,10 @@ class SpackSolverSetup:
 
         f: Union[Type[_Head], Type[_Body]] = _Body if body else _Head
 
-        if spec.name:
+        # only generate this if caller asked for node facts -- not needed for most conditions
+        if node and spec.name:
             clauses.append(f.node(spec.name) if not spec.virtual else f.virtual_node(spec.name))
+
         if spec.namespace:
             clauses.append(f.namespace(spec.name, spec.namespace))
 
@@ -2245,6 +2232,7 @@ class SpackSolverSetup:
                     clauses.extend(
                         self._spec_clauses(
                             dep,
+                            node=node,
                             body=body,
                             expand_hashes=expand_hashes,
                             concrete_build_deps=concrete_build_deps,
@@ -2888,7 +2876,7 @@ class SpackSolverSetup:
                 effect_id = next(self._id_counter)
                 context = SourceContext()
                 context.source = "literal"
-                requirements = self.spec_clauses(spec, context=context)
+                requirements = self.spec_clauses(spec, context=context, node=True)
             root_name = spec.name
             for clause in requirements:
                 clause_name = clause.args[0]
@@ -3250,7 +3238,7 @@ class RuntimePropertyRecorder:
             for language in languages:
                 body_str += f'  attr("language", {node_variable}, "{language}")'
 
-        head_clauses = self._setup.spec_clauses(dependency_spec, body=False)
+        head_clauses = self._setup.spec_clauses(dependency_spec, body=False, node=True)
 
         runtime_pkg = dependency_spec.name
 
