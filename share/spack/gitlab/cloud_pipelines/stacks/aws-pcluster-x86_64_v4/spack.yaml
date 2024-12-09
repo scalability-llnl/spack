@@ -75,7 +75,7 @@ spack:
       # Newer gettext cannot build with gcc@12 and old AL2 glibc headers
       # Older gettext versions do not build correctly with oneapi.
       require:
-      - '@:0.20 %oneapi'
+      - '@:0.20 %gcc'
     gromacs:
       require:
       - +intel_provided_gcc ^intel-oneapi-mkl
