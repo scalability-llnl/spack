@@ -12,7 +12,7 @@ class PyArkouda(PythonPackage):
     homepage = "https://github.com/Bears-R-Us/arkouda"
 
     # Updating the arkouda PyPI package is future work
-    url = "https://github.com/Bears-R-Us/arkouda/archive/refs/tags/v2024.06.21.tar.gz"
+    url = "https://github.com/Bears-R-Us/arkouda/archive/refs/tags/v2024.10.02.tar.gz"
     git = "https://github.com/Bears-R-Us/arkouda.git"
 
     test_requires_compiler = True
