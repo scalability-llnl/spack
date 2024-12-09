@@ -688,12 +688,11 @@ class TestVariantMapTest:
 
     def test_concrete(self, mock_packages, config) -> None:
         spec = Spec("pkg-a")
-        vm = VariantMap(spec)
-        assert not vm.concrete
+        assert not VariantMap(spec).concrete
 
         # concrete if associated spec is concrete
         spec = spack.concretize.concretized(spec)
-        assert vm.concrete
+        assert VariantMap(spec).concrete
 
         # concrete if all variants are present (even if spec not concrete)
         spec._mark_concrete(False)
