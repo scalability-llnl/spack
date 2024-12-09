@@ -1566,7 +1566,7 @@ class SpackSolverSetup:
 
     def define_auto_variant(self, name: str, multi: bool):
         self.gen.h3(f"Special variant: {name}")
-        vid = next(self._id_counter)
+        vid = self.new_id(["auto_variant", name])
         self.gen.fact(fn.auto_variant(name, vid))
         self.gen.fact(
             fn.variant_type(
@@ -1654,7 +1654,7 @@ class SpackSolverSetup:
 
         if not context:
             context = ConditionContext()
-            context.transform_imposed = remove_node
+            context.transform_imposed = rm_node()
 
         if imposed_spec:
             imposed_name = imposed_spec.name or imposed_name
@@ -1666,7 +1666,7 @@ class SpackSolverSetup:
             # In this way, if a condition can't be emitted but the exception is handled in the
             # caller, we won't emit partial facts.
             condition_id = self.new_id(
-                ["condition", required_spec, name, imposed_spec] + id_context
+                ["condition", required_spec, required_name, imposed_spec, imposed_name] + id_context
             )
             requirement_context = context.requirement_context()
             trigger_id = self._get_condition_id(
@@ -1722,7 +1722,7 @@ class SpackSolverSetup:
             condition_id = self.condition(
                 when,
                 required_name=pkg.name,
-                msg="Virtuals are provided together"
+                msg="Virtuals are provided together",
                 id_context=["provided-together", pkg.name, when]
             )
             for virtuals_together in sets_of_virtuals:
@@ -1759,24 +1759,12 @@ class SpackSolverSetup:
                 else:
                     pass
 
-                def track_dependencies(input_spec, requirements):
-                    return requirements + [fn.attr("track_dependencies", input_spec.name)]
-
-                def dependency_holds(input_spec, requirements):
-                    return remove_node(input_spec, requirements) + [
-                        fn.attr(
-                            "dependency_holds", pkg.name, input_spec.name, dt.flag_to_string(t)
-                        )
-                        for t in dt.ALL_FLAGS
-                        if t & depflag
-                    ]
-
                 context = ConditionContext()
                 context.source = ConstraintOrigin.append_type_suffix(
                     pkg.name, ConstraintOrigin.DEPENDS_ON
                 )
-                context.transform_required = track_dependencies
-                context.transform_imposed = dependency_holds
+                context.transform_required = track_dependencies()
+                context.transform_imposed = dependency_holds(pkg, depflag)
 
                 self.condition(cond, dep.spec, required_name=pkg.name, msg=msg, context=context, id_context=["dep-rule"])
 
