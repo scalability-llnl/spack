@@ -23,13 +23,14 @@ class Hipsolver(CMakePackage, CudaPackage, ROCmPackage):
     url = "https://github.com/ROCm/hipSOLVER/archive/rocm-6.1.2.tar.gz"
     tags = ["rocm"]
 
-    maintainers("cgmb", "srekolam", "renjithravindrankannath")
+    maintainers("cgmb", "srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["libhipsolver"]
 
     license("MIT")
 
     version("develop", branch="develop")
     version("master", branch="master")
+    version("6.3.0", sha256="a0443f0b894cedd5af59af4fadcb3c38daa728ca32c13b9741fb19e2d828a089")
     version("6.2.4", sha256="4dc564498361cb1bac17dcfeaf0f2b9c85320797c75b05ee33160a133f5f4a15")
     version("6.2.1", sha256="614e3c0bc11bfa84acd81d46db63f3852a750adaaec094b7701ab7b996cc8e93")
     version("6.2.0", sha256="637577a9cc38e4865894dbcd7eb35050e3de5d45e6db03472e836b318602a84d")
@@ -106,6 +107,7 @@ class Hipsolver(CMakePackage, CudaPackage, ROCmPackage):
         "6.2.0",
         "6.2.1",
         "6.2.4",
+        "6.3.0",
         "master",
         "develop",
     ]:
@@ -119,7 +121,7 @@ class Hipsolver(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("googletest@1.10.0:", type="test")
     depends_on("netlib-lapack@3.7.1:", type="test")
     patch("001-suite-sparse-include-path.patch", when="@6.1.0")
-    patch("0001-suite-sparse-include-path-6.1.1.patch", when="@6.1.1:")
+    patch("0001-suite-sparse-include-path-6.1.1.patch", when="@6.1.1:6.2")
 
     def check(self):
         exe = join_path(self.build_directory, "clients", "staging", "hipsolver-test")
