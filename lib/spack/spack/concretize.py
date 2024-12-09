@@ -5,7 +5,8 @@
 """High-level functions to concretize list of specs"""
 import sys
 import time
-from typing import Iterable, Sequence, Tuple, Union
+from contextlib import contextmanager
+from typing import Iterable, Optional, Sequence, Tuple, Union
 
 import llnl.util.tty as tty
 
@@ -14,7 +15,26 @@ import spack.config
 import spack.error
 import spack.repo
 import spack.util.parallel
-from spack.spec import Spec
+from spack.spec import ArchSpec, CompilerSpec, Spec
+
+CHECK_COMPILER_EXISTENCE = True
+
+
+@contextmanager
+def disable_compiler_existence_check():
+    global CHECK_COMPILER_EXISTENCE
+    CHECK_COMPILER_EXISTENCE, saved = False, CHECK_COMPILER_EXISTENCE
+    yield
+    CHECK_COMPILER_EXISTENCE = saved
+
+
+@contextmanager
+def enable_compiler_existence_check():
+    global CHECK_COMPILER_EXISTENCE
+    CHECK_COMPILER_EXISTENCE, saved = True, CHECK_COMPILER_EXISTENCE
+    yield
+    CHECK_COMPILER_EXISTENCE = saved
+
 
 SpecPair = Tuple[Spec, Spec]
 SpecLike = Union[Spec, str]
@@ -210,3 +230,20 @@ def concretized(spec: Spec, tests: Union[bool, Iterable[str]] = False) -> Spec:
 
     concretized = answer[node]
     return concretized
+
+
+class UnavailableCompilerVersionError(spack.error.SpackError):
+    """Raised when there is no available compiler that satisfies a
+    compiler spec."""
+
+    def __init__(self, compiler_spec: CompilerSpec, arch: Optional[ArchSpec] = None) -> None:
+        err_msg = f"No compilers with spec {compiler_spec} found"
+        if arch:
+            err_msg += f" for operating system {arch.os} and target {arch.target}."
+
+        super().__init__(
+            err_msg,
+            "Run 'spack compiler find' to add compilers or "
+            "'spack compilers' to see which compilers are already recognized"
+            " by spack.",
+        )
