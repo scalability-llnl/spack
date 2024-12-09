@@ -775,15 +775,25 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
             chpl_patch_version = None
             for line in f:
                 if "set(CHPL_MAJOR_VERSION" in line:
-                    chpl_major_version = line.split()[1].strip(')')
+                    chpl_major_version = line.split()[1].strip(")")
                 if "set(CHPL_MINOR_VERSION" in line:
-                    chpl_minor_version = line.split()[1].strip(')')
+                    chpl_minor_version = line.split()[1].strip(")")
                 if "set(CHPL_PATCH_VERSION" in line:
-                    chpl_patch_version = line.split()[1].strip(')')
-                if chpl_major_version is not None and chpl_minor_version is not None and chpl_patch_version is not None:
+                    chpl_patch_version = line.split()[1].strip(")")
+                if (
+                    chpl_major_version is not None
+                    and chpl_minor_version is not None
+                    and chpl_patch_version is not None
+                ):
                     break
-        assert(chpl_major_version is not None and chpl_minor_version is not None and chpl_patch_version is not None)
-        chpl_version_string = "{}.{}.{}".format(chpl_major_version, chpl_minor_version, chpl_patch_version)
+        assert (
+            chpl_major_version is not None
+            and chpl_minor_version is not None
+            and chpl_patch_version is not None
+        )
+        chpl_version_string = "{}.{}.{}".format(
+            chpl_major_version, chpl_minor_version, chpl_patch_version
+        )
         return chpl_version_string
 
     @property
