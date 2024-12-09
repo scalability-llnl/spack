@@ -265,11 +265,6 @@ def specify(spec):
     return spack.spec.Spec(spec)
 
 
-def remove_node(spec: spack.spec.Spec, facts: List[AspFunction]) -> List[AspFunction]:
-    """Transformation that removes all "node" and "virtual_node" from the input list of facts."""
-    return list(filter(lambda x: x.args[0] not in ("node", "virtual_node"), facts))
-
-
 def _create_counter(specs: List[spack.spec.Spec], tests: bool):
     strategy = spack.config.CONFIG.get("concretizer:duplicates:strategy", "none")
     if strategy == "full":
@@ -1521,6 +1516,7 @@ class SpackSolverSetup:
             return result[0]
 
         cond_id = next(self._id_counter)
+
         requirements = self.spec_clauses(named_cond, body=body, context=context)
         if context.transform:
             requirements = context.transform(named_cond, requirements)
@@ -1559,7 +1555,6 @@ class SpackSolverSetup:
 
         if not context:
             context = ConditionContext()
-            context.transform_imposed = remove_node
 
         if imposed_spec:
             imposed_name = imposed_spec.name or imposed_name
@@ -1593,14 +1588,6 @@ class SpackSolverSetup:
             )
 
             return condition_id
-
-    def impose(self, condition_id, imposed_spec, node=True, body=False):
-        imposed_constraints = self.spec_clauses(imposed_spec, body=body)
-        for pred in imposed_constraints:
-            # imposed "node"-like conditions are no-ops
-            if not node and pred.args[0] in ("node", "virtual_node"):
-                continue
-            self.gen.fact(fn.imposed_constraint(condition_id, *pred.args))
 
     def package_provider_rules(self, pkg):
         for vpkg_name in pkg.provided_virtual_names():
@@ -1659,7 +1646,7 @@ class SpackSolverSetup:
                     return requirements + [fn.attr("track_dependencies", input_spec.name)]
 
                 def dependency_holds(input_spec, requirements):
-                    return remove_node(input_spec, requirements) + [
+                    return requirements + [
                         fn.attr(
                             "dependency_holds", pkg.name, input_spec.name, dt.flag_to_string(t)
                         )
@@ -1717,13 +1704,13 @@ class SpackSolverSetup:
                 splice_node = fn.node(AspVar("NID"), cond.name)
                 when_spec_attrs = [
                     fn.attr(c.args[0], splice_node, *(c.args[2:]))
-                    for c in self.spec_clauses(cond, body=True, required_from=None)
-                    if c.args[0] != "node"
+                    for c in self.spec_clauses(cond, body=True, required_from=None, node=False)
                 ]
                 splice_spec_hash_attrs = [
                     fn.hash_attr(hash_var, *(c.args))
-                    for c in self.spec_clauses(spec_to_splice, body=True, required_from=None)
-                    if c.args[0] != "node"
+                    for c in self.spec_clauses(
+                        spec_to_splice, body=True, required_from=None, node=False
+                    )
                 ]
                 if match_variants is None:
                     variant_constraints = []
@@ -1845,10 +1832,6 @@ class SpackSolverSetup:
                     context.source = ConstraintOrigin.append_type_suffix(
                         pkg_name, ConstraintOrigin.REQUIRE
                     )
-                    if not virtual:
-                        context.transform_imposed = remove_node
-                    # else: for virtuals we want to emit "node" and
-                    # "virtual_node" in imposed specs
 
                     member_id = self.condition(
                         required_spec=when_spec,
@@ -2022,6 +2005,7 @@ class SpackSolverSetup:
         self,
         spec: spack.spec.Spec,
         *,
+        node: bool = True,
         body: bool = False,
         transitive: bool = True,
         expand_hashes: bool = False,
@@ -2039,6 +2023,7 @@ class SpackSolverSetup:
         try:
             clauses = self._spec_clauses(
                 spec,
+                node=node,
                 body=body,
                 transitive=transitive,
                 expand_hashes=expand_hashes,
@@ -2056,6 +2041,7 @@ class SpackSolverSetup:
         self,
         spec: spack.spec.Spec,
         *,
+        node: bool = True,
         body: bool = False,
         transitive: bool = True,
         expand_hashes: bool = False,
@@ -2066,6 +2052,7 @@ class SpackSolverSetup:
 
         Arguments:
             spec: the spec to analyze
+            node: if True, emit node(PackageName, ...) and virtual_node(PackageaName, ...) facts
             body: if True, generate clauses to be used in rule bodies (final values) instead
                 of rule heads (setters).
             transitive: if False, don't generate clauses from dependencies (default True)
@@ -2085,8 +2072,10 @@ class SpackSolverSetup:
 
         f: Union[Type[_Head], Type[_Body]] = _Body if body else _Head
 
-        if spec.name:
+        # only generate this if caller asked for node facts -- not needed for most conditions
+        if node and spec.name:
             clauses.append(f.node(spec.name) if not spec.virtual else f.virtual_node(spec.name))
+
         if spec.namespace:
             clauses.append(f.namespace(spec.name, spec.namespace))
 
@@ -2244,6 +2233,7 @@ class SpackSolverSetup:
                     clauses.extend(
                         self._spec_clauses(
                             dep,
+                            node=node,
                             body=body,
                             expand_hashes=expand_hashes,
                             concrete_build_deps=concrete_build_deps,
@@ -2628,7 +2618,7 @@ class SpackSolverSetup:
             # this indicates that there is a spec like this installed
             self.gen.fact(fn.installed_hash(spec.name, h))
             # indirection layer between hash constraints and imposition to allow for splicing
-            for pred in self.spec_clauses(spec, body=True, required_from=None):
+            for pred in self.spec_clauses(spec, body=True, required_from=None, node=False):
                 self.gen.fact(fn.hash_attr(h, *pred.args))
             self.gen.newline()
             # Declare as possible parts of specs that are not in package.py
@@ -3238,7 +3228,7 @@ class RuntimePropertyRecorder:
         node_variable = "node(ID, Package)"
         when_spec.name = placeholder
 
-        body_clauses = self._setup.spec_clauses(when_spec, body=True)
+        body_clauses = self._setup.spec_clauses(when_spec, body=True, node=False)
         body_str = (
             f"  {f',{os.linesep}  '.join(str(x) for x in body_clauses)},\n"
             f"  not external({node_variable}),\n"
@@ -3326,7 +3316,7 @@ class RuntimePropertyRecorder:
         node_variable = "node(ID, Package)"
         when_spec.name = placeholder
 
-        body_clauses = self._setup.spec_clauses(when_spec, body=True)
+        body_clauses = self._setup.spec_clauses(when_spec, body=True, node=False)
         body_str = (
             f"  {f',{os.linesep}  '.join(str(x) for x in body_clauses)},\n"
             f"  not external({node_variable}),\n"
@@ -3337,7 +3327,7 @@ class RuntimePropertyRecorder:
         assert constraint_spec.name is None, "only anonymous constraint specs are accepted"
 
         constraint_spec.name = placeholder
-        constraint_clauses = self._setup.spec_clauses(constraint_spec, body=False)
+        constraint_clauses = self._setup.spec_clauses(constraint_spec, body=False, node=False)
         for clause in constraint_clauses:
             if clause.args[0] == "node_compiler_version_satisfies":
                 self._setup.compiler_version_constraints.add(constraint_spec.compiler)
