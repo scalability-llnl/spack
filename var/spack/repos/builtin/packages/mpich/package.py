@@ -529,8 +529,8 @@ supported, and netmod is ignored if device is ch3:sock.""",
             *self.with_or_without("ze", variant="level_zero"),
         ]
 
-        # --without-ze does not propagate --disable-levelzero to hwloc's configure script
-        if self.spec.satisfies("~hwloc"):
+        # https://github.com/pmodels/mpich/commit/bbfc4cab6ade0b75ef3803a83af1cad4a262a564
+        if self.spec.satisfies("@:4.2 ~hwloc"):
             config_args += self.enable_or_disable("levelzero", variant="level_zero")
 
         # see https://github.com/pmodels/mpich/issues/5530
