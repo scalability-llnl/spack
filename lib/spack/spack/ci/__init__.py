@@ -24,7 +24,6 @@ from llnl.util.tty.color import cescape, colorize
 import spack
 import spack.binary_distribution as bindist
 import spack.builder
-import spack.concretize
 import spack.config as cfg
 import spack.environment as ev
 import spack.error
@@ -375,10 +374,9 @@ def generate_pipeline(env: ev.Environment, args) -> None:
         args: (spack.main.SpackArgumentParser): Parsed arguments from the command
             line.
     """
-    with spack.concretize.disable_compiler_existence_check():
-        with env.write_transaction():
-            env.concretize()
-            env.write()
+    with env.write_transaction():
+        env.concretize()
+        env.write()
 
     options = collect_pipeline_options(env, args)
 

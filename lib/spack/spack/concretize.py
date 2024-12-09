@@ -4,7 +4,6 @@
 """High-level functions to concretize list of specs"""
 import sys
 import time
-from contextlib import contextmanager
 from typing import Iterable, List, Optional, Sequence, Tuple, Union
 
 import llnl.util.tty as tty
@@ -16,25 +15,6 @@ import spack.error
 import spack.repo
 import spack.util.parallel
 from spack.spec import ArchSpec, CompilerSpec, Spec
-
-CHECK_COMPILER_EXISTENCE = True
-
-
-@contextmanager
-def disable_compiler_existence_check():
-    global CHECK_COMPILER_EXISTENCE
-    CHECK_COMPILER_EXISTENCE, saved = False, CHECK_COMPILER_EXISTENCE
-    yield
-    CHECK_COMPILER_EXISTENCE = saved
-
-
-@contextmanager
-def enable_compiler_existence_check():
-    global CHECK_COMPILER_EXISTENCE
-    CHECK_COMPILER_EXISTENCE, saved = True, CHECK_COMPILER_EXISTENCE
-    yield
-    CHECK_COMPILER_EXISTENCE = saved
-
 
 SpecPairInput = Tuple[Spec, Optional[Spec]]
 SpecPair = Tuple[Spec, Spec]
