@@ -42,14 +42,13 @@ class PyHttpx(PythonPackage):
         depends_on("py-anyio", when="@0.27:")
         depends_on("py-idna", when="@0.27:")
 
-        depends_on("py-sniffio@1", when="@0.11.1")
-        depends_on("py-sniffio", when="@0.15.2:")
-
         depends_on("py-h2@3", when="@0.11.1")
         depends_on("py-h2@3", when="@0.15.2+http2")
         depends_on("py-h2@3:4", when="@0.22.0:+http2")
 
         # Historical dependencies
+        depends_on("py-sniffio", when="@0.15.2:0.27")
+        depends_on("py-sniffio@1", when="@0.11.1")
         depends_on("py-hstspreload", when="@0.11.1")
         depends_on("py-chardet@3", when="@0.11.1")
         depends_on("py-h11@0.8:0.9", when="@0.11.1")
