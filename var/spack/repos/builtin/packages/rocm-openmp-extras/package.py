@@ -525,9 +525,10 @@ class RocmOpenmpExtras(Package):
             os.unlink(os.path.join(lib_dir, "libdevice"))
         if os.path.islink((os.path.join(llvm_prefix, "lib-debug"))):
             os.unlink(os.path.join(llvm_prefix, "lib-debug"))
-
-        os.symlink(os.path.join(omp_bin_dir, "flang1"), os.path.join(bin_dir, "flang1"))
-        os.symlink(os.path.join(omp_bin_dir, "flang2"), os.path.join(bin_dir, "flang2"))
+        if not os.path.exists(os.path.join(bin_dir, "flang1")):
+            os.symlink(os.path.join(omp_bin_dir, "flang1"), os.path.join(bin_dir, "flang1"))
+        if not os.path.exists(os.path.join(bin_dir, "flang2")):
+            os.symlink(os.path.join(omp_bin_dir, "flang2"), os.path.join(bin_dir, "flang2"))
 
         if self.spec.version >= Version("6.1.0"):
             os.symlink(

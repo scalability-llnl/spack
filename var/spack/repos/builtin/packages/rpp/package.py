@@ -143,6 +143,7 @@ class Rpp(CMakePackage):
     depends_on("bzip2")
     depends_on("half")
     depends_on("hwloc")
+    depends_on("ffmpeg@:6", when="@6.2:")
     depends_on(
         "opencv@4.5:"
         "+calib3d+features2d+highgui+imgcodecs+imgproc"
