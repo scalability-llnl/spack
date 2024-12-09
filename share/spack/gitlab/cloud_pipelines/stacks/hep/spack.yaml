@@ -71,7 +71,7 @@ spack:
   - geant4 +opengl +qt +threads ~vtk
   - hepmc
   - hepmc3 +interfaces +protobuf +python +rootio
-  - herwig3 +njet +vbfnlo
+  #- herwig3 +njet +vbfnlo  # Note: herwig3 fails to find evtgen
   - lcio -examples ~jar +rootdict  # Note: lcio +examples ^ncurses -termlib, which leads to conflicts
   - lhapdf +python
   - madgraph5amc
