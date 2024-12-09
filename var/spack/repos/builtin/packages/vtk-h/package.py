@@ -60,6 +60,9 @@ class VtkH(CMakePackage, CudaPackage):
     version("0.5.3", sha256="0c4aae3bd2a5906738a6806de2b62ea2049ac8b40ebe7fc2ba25505272c2d359")
     version("0.5.2", sha256="db2e6250c0ece6381fc90540317ad7b5869dbcce0231ce9be125916a77bfdb25")
 
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("shared", default=True, description="Build vtk-h as shared libs")
     variant("mpi", default=True, description="build mpi support")
     # set to false for systems that implicitly link mpi

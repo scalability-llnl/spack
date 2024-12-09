@@ -43,6 +43,9 @@ class Upp(CMakePackage):
     )
     version("8.2.0", sha256="38de2178dc79420f42aa3fb8b85796fc49d43d66f90e5276e47ab50c282627ac")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("openmp", default=True, description="Use OpenMP threading")
     variant("postexec", default=True, description="Build NCEPpost executable")
     variant("wrf-io", default=False, description="Build with WRF-IO library")

@@ -20,6 +20,8 @@ class Libev(AutotoolsPackage):
     version("4.33", sha256="507eb7b8d1015fbec5b935f34ebed15bf346bed04a11ab82b8eee848c4205aea")
     version("4.24", sha256="973593d3479abdf657674a55afe5f78624b0e440614e2b8cb3a07f16d4d7f821")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build", when="@develop")
     depends_on("automake", type="build", when="@develop")
     depends_on("libtool", type="build", when="@develop")

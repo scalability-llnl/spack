@@ -83,6 +83,8 @@ class VotcaCsg(CMakePackage):
         deprecated=True,
     )
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@2.8:", type="build")
     for v in [
         "1.4",

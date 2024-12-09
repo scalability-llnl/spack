@@ -20,6 +20,9 @@ class Openmx(MakefilePackage):
     version("3.9", sha256="27bb56bd4d1582d33ad32108fb239b546bdd1bdffd6f5b739b4423da1ab93ae2")
     version("3.8", sha256="36ee10d8b1587b25a2ca1d57f110111be65c4fb4dc820e6d93e1ed2b562634a1")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     resource(
         name="patch",
         url="http://www.openmx-square.org/bugfixed/18June12/patch3.8.5.tar.gz",

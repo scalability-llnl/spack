@@ -16,6 +16,8 @@ class Orc(CMakePackage):
 
     version("1.6.5", sha256="df5885db8fa2e4435db8d486c6c7fc4e2c565d6197eee27729cf9cbdf36353c0")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("maven")
     depends_on("openssl")
     depends_on("zlib-api")

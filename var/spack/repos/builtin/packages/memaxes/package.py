@@ -19,5 +19,7 @@ class Memaxes(CMakePackage):
         url="https://github.com/llnl/MemAxes/archive/v0.5.tar.gz",
     )
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@2.8.9:", type="build")
     depends_on("qt@5:")

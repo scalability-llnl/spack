@@ -29,6 +29,8 @@ class SnapBerkeley(MakefilePackage):
         preferred=True,
     )
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("zlib-api")
 
     conflicts("%gcc@6:", when="@:1.0beta.18")

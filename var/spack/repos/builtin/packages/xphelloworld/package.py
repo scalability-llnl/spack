@@ -14,6 +14,8 @@ class Xphelloworld(AutotoolsPackage, XorgPackage):
 
     version("1.0.1", sha256="ead6437c4dc9540698a41e174c9d1ac792de07baeead81935d72cb123196f866")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libx11")
     depends_on("libxaw")
     depends_on("libxprintapputil")

@@ -18,6 +18,8 @@ class PyRiver(PythonPackage):
 
     version("0.13.0", sha256="9d068b7a9db32302fbd581af81315681dfe61774a5d777fb3d5982d3c3061340")
 
+    depends_on("c", type="build")  # generated
+
     # pyproject.toml
     depends_on("py-cython", type="build")
     depends_on("py-setuptools", type="build")
@@ -28,3 +30,6 @@ class PyRiver(PythonPackage):
     depends_on("py-numpy@1.22:", type=("build", "run"))
     depends_on("py-scipy@1.5:", type=("build", "run"))
     depends_on("py-pandas@1.3:", type=("build", "run"))
+
+    # https://github.com/online-ml/river/pull/1632
+    depends_on("py-numpy@:1", when="@:0.21", type=("build", "run"))

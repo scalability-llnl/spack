@@ -123,7 +123,7 @@ def edit(parser, args):
         spack.util.editor.editor(*paths)
     elif names:
         if args.repo:
-            repo = spack.repo.Repo(args.repo)
+            repo = spack.repo.from_path(args.repo)
         elif args.namespace:
             repo = spack.repo.PATH.get_repo(args.namespace)
         else:

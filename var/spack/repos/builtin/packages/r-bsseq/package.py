@@ -23,6 +23,8 @@ class RBsseq(RPackage):
     version("1.22.0", commit="d4f7301dcd4a03431b0833302b5a79c6f1b186cc")
     version("1.20.0", commit="07e398bc38ba903881df9a5d0577cca15788e0cd")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@3.5:", type=("build", "run"))
     depends_on("r@4.0:", type=("build", "run"), when="@1.26.0:")
     depends_on("r-biocgenerics", type=("build", "run"))

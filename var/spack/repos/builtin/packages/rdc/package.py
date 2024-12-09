@@ -13,7 +13,7 @@ class Rdc(CMakePackage):
     """ROCm Data Center Tool"""
 
     homepage = "https://github.com/ROCm/rdc"
-    url = "https://github.com/ROCm/rdc/archive/rocm-6.1.1.tar.gz"
+    url = "https://github.com/ROCm/rdc/archive/rocm-6.1.2.tar.gz"
     tags = ["rocm"]
 
     maintainers("srekolam", "renjithravindrankannath")
@@ -27,6 +27,10 @@ class Rdc(CMakePackage):
         return url.format(version)
 
     license("MIT")
+    version("6.2.4", sha256="cdebbc0c1a49f067fb8ff17bd91cd92f6f83b2aee142e5b576e5eb1742983a7f")
+    version("6.2.1", sha256="63c0cffd772a43d0984505646023485ca2bc8512f5a87ece016f1d381cded075")
+    version("6.2.0", sha256="dd12428426a4963d6eb3cfdd818acef7a3c4cddf32504df17f4c1004fa902bef")
+    version("6.1.2", sha256="5553b76d4c8b6381d236197613720587377d03d4fd43a5a20bb6a716d49f7dfc")
     version("6.1.1", sha256="c133ebd20bf42e543d13c5b84ea420a7f7c069c77b1d6dcae9680de924e5f539")
     version("6.1.0", sha256="a8ad5d880645c9e95c9c90b0c9026627b22467e3e879525fff38ccd924f36c39")
     version("6.0.2", sha256="00defa3b68c340d7f46b8cb06b37ab0602a7949bfddc884b01c163a1526502f8")
@@ -43,11 +47,14 @@ class Rdc(CMakePackage):
         version("5.3.3", sha256="1bf1a02f305e3a629801e62584116a34eafbd1b26627837a2a8c10550fcf611b")
         version("5.3.0", sha256="ce9c85dad8e0c0b21e8e5938bf16f86a62dc5f6ded5f453c61acd43666634d6b")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.15:", type="build")
     depends_on("grpc@1.28.1+shared", type="build", when="@:5.3")
     depends_on("grpc@1.44.0+shared", when="@5.4.0:5.4")
     depends_on("grpc@1.55.0+shared", when="@5.5.0:6.0")
-    depends_on("grpc@1.59.1+shared", when="@6.1:")
+    depends_on("grpc@1.59.1+shared", when="@6.1")
+    depends_on("grpc@1.61.2+shared", when="@6.2:")
     depends_on("protobuf")
     depends_on("libcap")
 
@@ -66,6 +73,10 @@ class Rdc(CMakePackage):
         "6.0.2",
         "6.1.0",
         "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
     ]:
         depends_on(f"rocm-smi-lib@{ver}", type=("build", "link"), when=f"@{ver}")
         depends_on(f"hsa-rocr-dev@{ver}", when=f"@{ver}")
@@ -81,8 +92,14 @@ class Rdc(CMakePackage):
         "6.0.2",
         "6.1.0",
         "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
+    for ver in ["6.2.0", "6.2.1", "6.2.4"]:
+        depends_on(f"amdsmi@{ver}", when=f"@{ver}")
 
     def patch(self):
         filter_file(r"\${ROCM_DIR}/rocm_smi", "${ROCM_SMI_DIR}", "CMakeLists.txt")

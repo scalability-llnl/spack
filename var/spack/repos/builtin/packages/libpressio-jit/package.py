@@ -18,6 +18,8 @@ class LibpressioJit(CMakePackage):
 
     version("0.0.1", sha256="6aa771c624980589cc941e8cfca1c5fb6cea3fef2b060f58bfdf07109eda8c08")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("poorjit", description="include the prototype poorjit compiler", default=True)
 
     depends_on("poorjit", when="+poorjit")

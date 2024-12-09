@@ -10,7 +10,7 @@ from spack.directives import build_system, depends_on
 from spack.multimethod import when
 from spack.util.executable import which
 
-from ._checks import BaseBuilder
+from ._checks import BuilderWithDefaults
 
 
 class MavenPackage(spack.package_base.PackageBase):
@@ -34,7 +34,7 @@ class MavenPackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("maven")
-class MavenBuilder(BaseBuilder):
+class MavenBuilder(BuilderWithDefaults):
     """The Maven builder encodes the default way to build software with Maven.
     It has two phases that can be overridden, if need be:
 

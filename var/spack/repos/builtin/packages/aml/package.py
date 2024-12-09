@@ -41,6 +41,8 @@ class Aml(AutotoolsPackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+
     # Generate possible variants.
     #############################
 
@@ -113,7 +115,7 @@ class Aml(AutotoolsPackage):
     def cache_test_sources(self):
         """Copy the example source files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources(self.smoke_test_src)
+        cache_extra_test_sources(self, self.smoke_test_src)
 
     def test_check_tutorial(self):
         """Compile and run the tutorial tests as install checks"""

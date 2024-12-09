@@ -23,6 +23,8 @@ class PerlXmlLibxml(PerlPackage):
     version("2.0209", sha256="b4a5abbcd689aa2fbbc8b7b45339e961c4984e48108494eb6c282b4748222425")
     version("2.0201", sha256="e008700732502b3f1f0890696ec6e2dc70abf526cd710efd9ab7675cae199bc2")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libxml2")
     depends_on("perl-xml-namespacesupport", type=("build", "run"))
     depends_on("perl-xml-sax", type=("build", "run"))

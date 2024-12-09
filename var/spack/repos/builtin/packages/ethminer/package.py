@@ -17,6 +17,9 @@ class Ethminer(CMakePackage):
 
     version("0.12.0", sha256="71122c8aa1be2c29e46d7f07961fa760b1eb390e4d9a2a21cf900f6482a8755a")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("opencl", default=True, description="Enable OpenCL mining.")
     variant("cuda", default=False, description="Enable CUDA mining.")
     variant("stratum", default=True, description="Build with Stratum protocol support.")

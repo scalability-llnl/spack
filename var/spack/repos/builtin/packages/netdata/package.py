@@ -20,6 +20,10 @@ class Netdata(AutotoolsPackage):
     version("1.30.1", sha256="3df188ac04f17094cb929e2990841ba77f68aa6af484e0509b99db298fa206c9")
     version("1.22.1", sha256="f169c8615a6823448c2f1923c87c286d798132ea29d26f366e96d26e0aec3697")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("pkgconfig", type="build")
     depends_on("json-c")
     depends_on("judy")

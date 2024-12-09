@@ -16,6 +16,8 @@ class Wordnet(AutotoolsPackage):
 
     version("3.0", sha256="640db279c949a88f61f851dd54ebbb22d003f8b90b85267042ef85a3781d3a52")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("tk")
     depends_on("tcl")
 

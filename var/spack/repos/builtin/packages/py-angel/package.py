@@ -16,6 +16,8 @@ class PyAngel(PythonPackage):
 
     version("3.0", sha256="a0319553055d3dfc84a4f732ed246c180c23ee9c397810c96acd7940721ae57d")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python@3.7:", type=("build", "run"))
     depends_on("py-setuptools", type="build")
     depends_on("py-cython", type="build")

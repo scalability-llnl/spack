@@ -15,6 +15,8 @@ class PacbioDamasker(MakefilePackage):
 
     version("2017-02-11", commit="144244b77d52cb785cb1b3b8ae3ab6f3f0c63264")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("gmake", type="build")
 
     def edit(self, spec, prefix):

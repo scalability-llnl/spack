@@ -16,6 +16,8 @@ class PacbioDazzDb(MakefilePackage):
 
     version("2017-04-10", commit="f29d27d51f460563481cd227d17f4bdc5e288365")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("gmake", type="build")
 
     def edit(self, spec, prefix):

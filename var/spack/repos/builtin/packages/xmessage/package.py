@@ -20,6 +20,8 @@ class Xmessage(AutotoolsPackage, XorgPackage):
     version("1.0.5", sha256="99533a90ab66e268180a8400796950a7f560ea9421e2c3f32284cabc1858806b")
     version("1.0.4", sha256="883099c3952c8cace5bd11d3df2e9ca143fc07375997435d5ff4f2d50353acca")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libxaw")
     depends_on("libxt")
 

@@ -20,6 +20,8 @@ class Discotec(CMakePackage):
 
     version("main", branch="main")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("compression", default=False, description="Write sparse grid files compressed")
     variant("ft", default=False, description="DisCoTec with algorithm-based fault tolerance")
     variant("gene", default=False, description="Build for GENE (as task library)")
@@ -52,7 +54,7 @@ class Discotec(CMakePackage):
             self.define_from_variant("DISCOTEC_USE_VTK", "vtk"),
             self.define_from_variant("DISCOTEC_WITH_SELALIB", "selalib"),
         ]
-        if "+selalib" in self.spec:
+        if self.spec.satisfies("+selalib"):
             args.append(self.define("SELALIB_DIR", self.spec["selalib"].prefix.cmake))
 
         return args

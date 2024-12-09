@@ -21,6 +21,8 @@ class Iniparser(MakefilePackage):
     version("3.2", sha256="4a60b8e29d33d24b458749404e1ff2bcbfedd53ad800757daeed7955599fdce4")
     version("3.1", sha256="73b88632dc16c2839f5d9ac7e6ec7a41415a68e590f75d0580b302af4a5d821d")
 
+    depends_on("c", type="build")  # generated
+
     def install(self, spec, prefix):
         mkdirp(prefix.include)
         mkdirp(prefix.lib)

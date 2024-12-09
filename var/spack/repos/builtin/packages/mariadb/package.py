@@ -36,6 +36,9 @@ class Mariadb(CMakePackage):
     version("10.1.14", sha256="18e71974a059a268a3f28281599607344d548714ade823d575576121f76ada13")
     version("5.5.49", sha256="2c82f2af71b88a7940d5ff647498ed78922c92e88004942caa213131e20f4706")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "nonblocking",
         default=True,

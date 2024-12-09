@@ -17,6 +17,8 @@ class Ethtool(AutotoolsPackage):
 
     version("4.8", sha256="e4443c612b01b6c4891e21f55a59aa2d6da1c9915edcf067bb66a0855590e143")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

@@ -14,6 +14,9 @@ class Tcoffee(MakefilePackage):
 
     version("2017-08-17", commit="f389b558e91d0f82e7db934d9a79ce285f853a71")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("perl", type=("build", "run"))
     depends_on("blast-plus")
     depends_on("dialign-tx")

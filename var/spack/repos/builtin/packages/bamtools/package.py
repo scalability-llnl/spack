@@ -24,6 +24,8 @@ class Bamtools(CMakePackage):
     version("2.3.0", sha256="288046e6d5d41afdc5fce8608c5641cf2b8e670644587c1315b90bbe92f039af")
     version("2.2.3", sha256="92ddef44801a1f8f01ce1a397f83e0f8b5e1ae8ad92c620f2dafaaf8d54cf178")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("zlib-api", type="link")
     depends_on("jsoncpp")
 

@@ -42,6 +42,8 @@ class Tetgen(Package):
         url="http://www.tetgen.org/files/tetgen1.4.3.tar.gz",
     )
 
+    depends_on("cxx", type="build")  # generated
+
     variant("pic", default=True, description="Builds the library in pic mode.")
     variant("debug", default=False, description="Builds the library in debug mode.")
     variant(

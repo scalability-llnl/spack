@@ -20,6 +20,8 @@ class Conmon(MakefilePackage):
     version("2.1.5", sha256="ee3179ee2b9a9107acec00eb546062cf7deb847f135a3b81503d22b0d226b3ed")
     version("2.0.30", sha256="4b0a98fbe8a63c42f60edac25c19aa6606caa7b1e4fe7846fc7f7de0b566ba25")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("go", type="build")
     depends_on("go-md2man", type="build")
     depends_on("pkgconfig", type="build")

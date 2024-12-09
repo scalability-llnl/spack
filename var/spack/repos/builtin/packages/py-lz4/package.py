@@ -18,6 +18,8 @@ class PyLz4(PythonPackage):
     version("3.1.3", sha256="081ef0a3b5941cb03127f314229a1c78bd70c9c220bb3f4dd80033e707feaa18")
     version("3.1.0", sha256="debe75513db3eb9e5cdcd82a329ff38374b6316ab65b848b571e0404746c1e05")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@3.5:", type=("build", "run"))
     depends_on("python@3.7:", when="@4.0.2:", type=("build", "run"))
     depends_on("py-setuptools@45:", when="@4.0.2:", type="build")

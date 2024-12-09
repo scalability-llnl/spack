@@ -14,6 +14,8 @@ class PyIlmbase(AutotoolsPackage):
 
     version("2.3.0", sha256="9c898bb16e7bc916c82bebdf32c343c0f2878fc3eacbafa49937e78f2079a425")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("ilmbase")
     depends_on("boost+python")
     depends_on("py-numpy")

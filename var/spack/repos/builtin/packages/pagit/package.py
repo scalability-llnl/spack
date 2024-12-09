@@ -15,6 +15,8 @@ class Pagit(Package):
 
     version("1.01", sha256="8069c1d236804cf4ea782495adcc50d18561ef466af06b21946b980b3c37ad55")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("java", type=("build", "run"))
     depends_on("perl", type=("build", "run"))
 

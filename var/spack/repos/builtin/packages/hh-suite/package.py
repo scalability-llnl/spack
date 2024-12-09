@@ -21,6 +21,9 @@ class HhSuite(CMakePackage):
 
     version("3.3.0", sha256="dd67f7f3bf601e48c9c0bc4cf1fbe3b946f787a808bde765e9436a48d27b0964")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("mpi", default=True, description="Enable MPI support")
 
     depends_on("cmake@2.8.12:", type="build")
@@ -34,7 +37,7 @@ class HhSuite(CMakePackage):
 
     def build_args(self, spec, prefix):
         args = []
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             args.append("-DCHECK_MPI=1")
         else:
             args.append("-DCHECK_MPI=0")

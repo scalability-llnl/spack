@@ -20,6 +20,8 @@ class PyPythonRapidjson(PythonPackage):
     version("1.5", sha256="04323e63cf57f7ed927fd9bcb1861ef5ecb0d4d7213f2755969d4a1ac3c2de6f")
     version("0.9.1", sha256="ad80bd7e4bb15d9705227630037a433e2e2a7982b54b51de2ebabdd1611394a1")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python@3.4:", type=("build", "run"))
     depends_on("python@3.6:", type=("build", "run"), when="@1.5:")
     depends_on("py-setuptools", type="build")

@@ -23,6 +23,10 @@ class Cernlib(CMakePackage):
         sha256="7006475d9c38254cb94ce75e556a319fea3b3155087780ea522003103771474e",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("shared", default=True, description="Build shared libraries")
 
     depends_on("freetype")

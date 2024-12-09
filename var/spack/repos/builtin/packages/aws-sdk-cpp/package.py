@@ -51,6 +51,9 @@ class AwsSdkCpp(CMakePackage):
         submodules=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.1:", type="build")
     depends_on("zlib-api")
     depends_on("curl")

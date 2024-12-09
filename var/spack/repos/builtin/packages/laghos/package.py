@@ -30,6 +30,8 @@ class Laghos(MakefilePackage):
     version("1.1", sha256="53b9bfe2af263c63eb4544ca1731dd26f40b73a0d2775a9883db51821bf23b7f")
     version("1.0", sha256="af50a126355a41c758fcda335a43fdb0a3cd97e608ba51c485afda3dd84a5b34")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("metis", default=True, description="Enable/disable METIS support")
     variant("ofast", default=False, description="Enable gcc optimization flags")
 
@@ -61,7 +63,7 @@ class Laghos(MakefilePackage):
         targets.append("TEST_MK=%s" % spec["mfem"].package.test_mk)
         if spec.satisfies("@:2.0"):
             targets.append("CXX=%s" % spec["mpi"].mpicxx)
-        if "+ofast %gcc" in self.spec:
+        if self.spec.satisfies("+ofast %gcc"):
             targets.append("CXXFLAGS = -Ofast -finline-functions")
         return targets
 

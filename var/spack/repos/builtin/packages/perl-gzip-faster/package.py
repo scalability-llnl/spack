@@ -18,4 +18,6 @@ class PerlGzipFaster(PerlPackage):
 
     version("0.21", sha256="c65f41ca108e7e53ec34c30dbb1b5d614bf4b8100673646cf301d0caf82c7aa5")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("perl@5.8.1:", type=("build", "link", "run", "test"))

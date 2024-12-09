@@ -15,6 +15,8 @@ class Bonniepp(AutotoolsPackage):
 
     version("1.98", sha256="6e0bcbc08b78856fd998dd7bcb352d4615a99c26c2dc83d5b8345b102bad0b04")
 
+    depends_on("cxx", type="build")  # generated
+
     def configure_args(self):
         configure_args = []
         configure_args.append("--enable-debug")

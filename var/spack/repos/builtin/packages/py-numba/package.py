@@ -28,6 +28,9 @@ class PyNumba(PythonPackage):
     version("0.50.1", sha256="89e81b51b880f9b18c82b7095beaccc6856fcf84ba29c4f0ced42e4e5748a3a7")
     version("0.48.0", sha256="9d21bc77e67006b5723052840c88cc59248e079a907cc68f1a1a264e1eaba017")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("tbb", default=False, description="Build with Intel Threading Building Blocks")
 
     depends_on("python@3.8:3.11", when="@0.57:", type=("build", "run"))

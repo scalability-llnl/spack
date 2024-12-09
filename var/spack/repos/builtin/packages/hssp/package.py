@@ -33,6 +33,8 @@ class Hssp(AutotoolsPackage):
     version("3.0.2", sha256="76b4275c8cde120509d7920609fca983f2b04249a649d0aa802c69fd09e5f8cf")
     version("3.0.1", sha256="62a703d15bdfec82fdbd2a4275e1973b6a1ac6ccd4dbec75036f16faacaa9dce")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

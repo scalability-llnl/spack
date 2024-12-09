@@ -19,6 +19,8 @@ class Pxz(MakefilePackage):
         sha256="df69f91103db6c20f0b523bb7f026d86ee662c49fe714647ed63f918cd39767a",
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("xz")
 
     conflicts("platform=darwin", msg="Pxz runs only on Linux.")

@@ -19,6 +19,8 @@ class DmlcCore(CMakePackage):
     version("master")
     version("20170508", commit="a6c5701219e635fea808d264aefc5b03c3aec314")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("openmp", default=False, description="Enable OpenMP support")
 
     patch("cmake.patch")

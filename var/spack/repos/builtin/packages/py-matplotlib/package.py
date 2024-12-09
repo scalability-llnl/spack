@@ -26,6 +26,8 @@ class PyMatplotlib(PythonPackage):
     license("Apache-2.0")
     maintainers("adamjstewart", "rgommers")
 
+    version("3.9.2", sha256="96ab43906269ca64a6366934106fa01534454a69e471b7bf3d79083981aaab92")
+    version("3.9.1", sha256="de06b19b8db95dd33d0dc17c926c7c9ebed9f572074b6fac4f65068a6814d010")
     version("3.9.0", sha256="e6d29ea6c19e34b30fb7d88b7081f869a03014f66fe06d62cc77d5a6ea88ed7a")
     version("3.8.4", sha256="8aac397d5e9ec158960e31c381c5ffc52ddd52bd9a47717e2a694038167dffea")
     version("3.8.3", sha256="7b416239e9ae38be54b028abbf9048aff5054a9aba5416bef0bd17f9162ce161")
@@ -66,6 +68,9 @@ class PyMatplotlib(PythonPackage):
     version("3.0.2", sha256="c94b792af431f6adb6859eb218137acd9a35f4f7442cea57e4a59c54751c36af")
     version("3.0.1", sha256="70f8782c50ac2c7617aad0fa5ba59fc49f690a851d6afc0178813c49767644dd")
     version("3.0.0", sha256="b4e2333c98a7c2c1ff6eb930cd2b57d4b818de5437c5048802096b32f66e65f9")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     # https://matplotlib.org/stable/users/explain/figure/backends.html
     # matplotlib 3.9+: lib/matplotlib/backends/registry.py
@@ -142,14 +147,15 @@ class PyMatplotlib(PythonPackage):
     depends_on("py-kiwisolver@1.3.1:", when="@3.8.1:", type=("build", "run"))
     depends_on("py-kiwisolver@1.0.1:", type=("build", "run"))
     depends_on("py-numpy@1.23:", when="@3.9:", type=("build", "link", "run"))
-    depends_on("py-numpy@1.21:", when="@3.8.4", type=("build", "link", "run"))
-    depends_on("py-numpy@1.21:1", when="@3.8.0:3.8.3", type=("build", "link", "run"))
-    depends_on("py-numpy@1.20:1", when="@3.7", type=("build", "link", "run"))
-    depends_on("py-numpy@1.19:1", when="@3.6", type=("build", "link", "run"))
-    depends_on("py-numpy@1.17:1", when="@3.5", type=("build", "link", "run"))
-    depends_on("py-numpy@1.16:1", when="@3.4", type=("build", "link", "run"))
-    depends_on("py-numpy@1.15:1", when="@3.3", type=("build", "link", "run"))
-    depends_on("py-numpy@1.11:1", when="@:3.2", type=("build", "run"))
+    depends_on("py-numpy@1.21:", when="@3.8", type=("build", "link", "run"))
+    depends_on("py-numpy@1.20:", when="@3.7", type=("build", "link", "run"))
+    depends_on("py-numpy@1.19:", when="@3.6", type=("build", "link", "run"))
+    depends_on("py-numpy@1.17:", when="@3.5", type=("build", "link", "run"))
+    depends_on("py-numpy@1.16:", when="@3.4", type=("build", "link", "run"))
+    depends_on("py-numpy@1.15:", when="@3.3", type=("build", "link", "run"))
+    depends_on("py-numpy@1.11:", when="@:3.2", type=("build", "link", "run"))
+    # https://github.com/matplotlib/matplotlib/issues/26778
+    depends_on("py-numpy@:1", when="@:3.8.3", type=("build", "link", "run"))
     depends_on("py-packaging@20:", when="@3.6:", type=("build", "run"))
     depends_on("py-packaging", when="@3.5:", type=("build", "run"))
     depends_on("pil@8:", when="@3.8.1:", type=("build", "run"))
@@ -326,7 +332,7 @@ class PyMatplotlib(PythonPackage):
             include.extend(query.headers.directories)
             try:
                 library.extend(query.libs.directories)
-            except spack.error.NoLibrariesError:
+            except NoLibrariesError:
                 pass
 
         # Build uses a mix of Spack's compiler wrapper and the actual compiler,

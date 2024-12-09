@@ -42,6 +42,8 @@ class Nvbandwidth(CMakePackage, CudaPackage):
         sha256="ce164f91e35d1b28ebb1f83b22f38199e430d18ebfb8e21fa8c5e53c38d82daf",
     )
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("boost@1.66.0 +program_options")
 
     def install(self, spec, prefix):

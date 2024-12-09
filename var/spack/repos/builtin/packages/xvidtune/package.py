@@ -18,6 +18,8 @@ class Xvidtune(AutotoolsPackage, XorgPackage):
     version("1.0.4", sha256="e5982c9e6c5009f0061c187a9cc82368215bd004cfa464a3d738c90e1d258668")
     version("1.0.3", sha256="c0e158388d60e1ce054ce462958a46894604bd95e13093f3476ec6d9bbd786d4")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libxxf86vm")
     depends_on("libxt")
     depends_on("libxaw")

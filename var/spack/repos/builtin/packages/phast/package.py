@@ -18,6 +18,8 @@ class Phast(MakefilePackage):
     version("1.6", sha256="8100f6582008c5de46d2de05cee038f0f1ca3a50147031da1bc5e8744883cbe4")
     version("1.4", sha256="287c77599c51256a3adbd62ed217cb6d6a547fcec2c29262e9d61fa32ed92b99")
 
+    depends_on("c", type="build")  # generated
+
     # phast cannot build with clapack using external blas
     depends_on("clapack~external-blas")
 

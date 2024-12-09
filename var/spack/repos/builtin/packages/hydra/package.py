@@ -23,3 +23,5 @@ class Hydra(AutotoolsPackage):
     version("4.2.0", sha256="d7159353d9d0576effba632668a3e6defde2067530ac5db4bae0a85a23dfda5a")
     version("4.1.1", sha256="d4b915ccab426cd8368bbb2ee9d933fe07bea01493901fb56880b338a7f0b97e")
     version("3.2", sha256="f7a67ec91a773d95cbbd479a80e926d44bee1ff9fc70a8d1df075ea53ea33889")
+
+    depends_on("c", type="build")  # generated

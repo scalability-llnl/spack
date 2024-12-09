@@ -12,10 +12,14 @@ from llnl.util.symlink import readlink
 import spack.cmd.modules
 import spack.config
 import spack.error
+import spack.modules
+import spack.modules.common
 import spack.modules.tcl
 import spack.package_base
-import spack.schema.modules
+import spack.package_prefs
+import spack.repo
 import spack.spec
+from spack.installer import PackageInstaller
 from spack.modules.common import UpstreamModuleIndex
 from spack.spec import Spec
 
@@ -168,7 +172,7 @@ module_index:
         old_index = spack.modules.common.upstream_module_index
         spack.modules.common.upstream_module_index = upstream_index
 
-        m1_path = spack.modules.common.get_module("tcl", s1, True)
+        m1_path = spack.modules.get_module("tcl", s1, True)
         assert m1_path == "/path/to/a"
     finally:
         spack.modules.common.upstream_module_index = old_index
@@ -178,7 +182,7 @@ module_index:
 def test_load_installed_package_not_in_repo(install_mockery, mock_fetch, monkeypatch):
     """Test that installed packages that have been removed are still loadable"""
     spec = Spec("trivial-install-test-package").concretized()
-    spec.package.do_install()
+    PackageInstaller([spec.package], explicit=True).install()
     spack.modules.module_types["tcl"](spec, "default", True).write()
 
     def find_nothing(*args):
@@ -190,7 +194,7 @@ def test_load_installed_package_not_in_repo(install_mockery, mock_fetch, monkeyp
     with pytest.raises(spack.repo.UnknownPackageError):
         spec.package
 
-    module_path = spack.modules.common.get_module("tcl", spec, True)
+    module_path = spack.modules.get_module("tcl", spec, True)
     assert module_path
 
     spack.package_base.PackageBase.uninstall_by_spec(spec)
@@ -216,8 +220,8 @@ def test_check_module_set_name(mutable_config):
 
     # Invalid module set names
     msg = "Valid module set names are"
-    with pytest.raises(spack.config.ConfigError, match=msg):
+    with pytest.raises(spack.error.ConfigError, match=msg):
         spack.cmd.modules.check_module_set_name("prefix_inspections")
 
-    with pytest.raises(spack.config.ConfigError, match=msg):
+    with pytest.raises(spack.error.ConfigError, match=msg):
         spack.cmd.modules.check_module_set_name("third")

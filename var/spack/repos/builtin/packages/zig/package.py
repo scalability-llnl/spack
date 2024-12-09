@@ -22,6 +22,9 @@ class Zig(CMakePackage):
     version("0.11.0", tag="0.11.0", commit="67709b638224ac03820226c6744d8b6ead59184c")
     version("0.10.1", tag="0.10.1", commit="b57081f039bd3f8f82210e8896e336e3c3a6869b")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "build_type",
         values=("Release", "RelWithDebInfo", "MinSizeRel"),

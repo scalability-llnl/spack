@@ -16,3 +16,5 @@ class Pflask(CMakePackage):
 
     version("0.2", sha256="dabbd060d1c50174de5fffae9ec97dc1d41b22de898a8280166cba768c940ebd")
     version("0.1", sha256="3c41c670fd8c48b7b6a41d697b444df8bf95380937ba4f734b41af135d5c5816")
+
+    depends_on("c", type="build")  # generated

@@ -22,4 +22,7 @@ class Tinygltf(CMakePackage):
     version("2.6.3", sha256="f61e4a501baa7fbf31b18ea0f6815a59204ad0de281f7b04f0168f6bbd17c340")
     version("2.5.0", sha256="5d85bd556b60b1b69527189293cfa4902957d67fabb8582b6532f23a5ef27ec1")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.6:", type="build")

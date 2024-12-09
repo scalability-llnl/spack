@@ -16,6 +16,9 @@ class Dedisp(MakefilePackage, CudaPackage):
 
     version("master", branch="master", preferred=True)
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     conflicts("~cuda", msg="You must specify +cuda")
     conflicts("cuda@11.8")
     conflicts("cuda_arch=none", msg="You must specify the CUDA architecture")
@@ -33,10 +36,10 @@ class Dedisp(MakefilePackage, CudaPackage):
         makefile.filter(r"^\s*INSTALL_DIR\s*\?=.*", "INSTALL_DIR ?= " + prefix)
 
     @run_before("install")
-    def preinstall(self, spec, prefix):
+    def preinstall(self):
         # The $PREFIX/dedisp/include and $PREFIX/dedisp/lib directories don't seem
         # to be created automatically by the software's Makefile so manually create them
-        libdir = join_path(prefix, "lib")
-        incdir = join_path(prefix, "include")
+        libdir = join_path(self.prefix, "lib")
+        incdir = join_path(self.prefix, "include")
         mkdirp(libdir)
         mkdirp(incdir)

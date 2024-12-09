@@ -23,6 +23,8 @@ class Libjpeg(AutotoolsPackage):
     version("9b", sha256="240fd398da741669bf3c90366f58452ea59041cacc741a489b99f2f6a0bad052")
     version("9a", sha256="3a753ea48d917945dd54a2d97de388aa06ca2eb1066cbfdc6652036349fe05a7")
 
+    depends_on("c", type="build")  # generated
+
     provides("jpeg")
 
     def check(self):

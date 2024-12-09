@@ -18,6 +18,10 @@ class IntelLlvm(CMakePackage):
 
     version("sycl", branch="sycl")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("cmake@3.4.3:", type="build")
 
     # It doesn't seem possible to use != in a conflicts statement
@@ -28,7 +32,7 @@ class IntelLlvm(CMakePackage):
         env.append_flags("CXXFLAGS", self.compiler.cxx11_flag)
 
     def setup_run_environment(self, env):
-        if "+clang" in self.spec:
+        if self.spec.satisfies("+clang"):
             env.set("CC", join_path(self.spec.prefix.bin, "clang"))
             env.set("CXX", join_path(self.spec.prefix.bin, "clang++"))
 

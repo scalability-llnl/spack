@@ -16,6 +16,8 @@ class PyPykerberos(PythonPackage):
 
     version("1.2.4", sha256="9d701ebd8fc596c99d3155d5ba45813bd5908d26ef83ba0add250edb622abed4")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
 
     depends_on("krb5", type=("build", "link"))

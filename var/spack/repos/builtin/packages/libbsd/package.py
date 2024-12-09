@@ -36,6 +36,8 @@ class Libbsd(AutotoolsPackage):
     version("0.8.7", sha256="f548f10e5af5a08b1e22889ce84315b1ebe41505b015c9596bad03fd13a12b31")
     version("0.8.6", sha256="467fbf9df1f49af11f7f686691057c8c0a7613ae5a870577bef9155de39f9687")
 
+    depends_on("c", type="build")  # generated
+
     patch("cdefs.h.patch", when="@0.8.6 %gcc@:4")
     patch("local-elf.h.patch", when="@:0.10 %intel")
 

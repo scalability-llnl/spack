@@ -14,6 +14,8 @@ class SofaC(MakefilePackage):
 
     version("20180130", sha256="de09807198c977e1c58ea1d0c79c40bdafef84f2072eab586a7ac246334796db")
 
+    depends_on("c", type="build")  # generated
+
     @property
     def build_directory(self):
         return join_path(self.version, "c", "src")

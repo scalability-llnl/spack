@@ -16,4 +16,6 @@ class PerlHtmlParser(PerlPackage):
 
     version("3.72", sha256="ec28c7e1d9e67c45eca197077f7cdc41ead1bb4c538c7f02a3296a4bb92f608b")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("perl-html-tagset", type=("build", "run"))

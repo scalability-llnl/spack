@@ -20,6 +20,8 @@ class Cachefilesd(MakefilePackage):
     version("0.10.6", sha256="aaaaea887a5850c6fa01d09c80946e987411f6b550261f83967c671c65af959d")
     version("0.10.5", sha256="125ea4f6aef4bf8e936a7cc747b59e074537a8aed74cd1bab3f05d7fbc47287f")
 
+    depends_on("c", type="build")  # generated
+
     @when("target=aarch64:")
     def edit(self, spec, prefix):
         makefile = FileFilter("Makefile")

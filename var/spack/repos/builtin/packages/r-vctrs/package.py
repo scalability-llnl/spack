@@ -34,6 +34,9 @@ class RVctrs(RPackage):
     version("0.3.5", sha256="11605d98106e294dae1a9b205462dd3906a6159a647150752b85dd290f6635cc")
     version("0.2.0", sha256="5bce8f228182ecaa51230d00ad8a018de9cf2579703e82244e0931fe31f20016")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@3.2:", type=("build", "run"))
     depends_on("r@3.3:", type=("build", "run"), when="@0.3.5:")
     depends_on("r@3.5.0:", type=("build", "run"), when="@0.6.2:")

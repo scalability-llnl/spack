@@ -21,5 +21,7 @@ class Talloc(AutotoolsPackage):
     version("2.3.0", sha256="75d5bcb34482545a82ffb06da8f6c797f963a0da450d0830c669267b14992fc6")
     version("2.1.9", sha256="f0aad4cb88a3322207c82136ddc07bed48a37c2c21f82962d6c5ccb422711062")
 
+    depends_on("c", type="build")  # generated
+
     extends("python")
     depends_on("python@3:")

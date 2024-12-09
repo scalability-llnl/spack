@@ -22,6 +22,9 @@ class Vdt(CMakePackage):
     version("0.3.7", sha256="713a7e6d76d98f3b2b56b5216e7d5906e30f17865a5c7c889968e9a0b0664949")
     version("0.3.6", sha256="fb8f6386f2cd1eeb03db43f2b5c83a172107949bb5e5e8d4dfa603660a9757b0")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "preload",
         default=False,

@@ -18,6 +18,8 @@ class Filo(CMakePackage):
 
     version("main", branch="main")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("mpi")
     depends_on("axl")
     depends_on("kvtree")

@@ -27,6 +27,8 @@ class RAdsplit(RPackage):
     version("1.48.0", commit="57dfcd93b9232cf53f05c34179ecb759bb7aff46")
     version("1.46.0", commit="7e81a83f34d371447f491b3a146bf6851e260c7c")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@2.1.0:", type=("build", "run"))
     depends_on("r-annotationdbi", type=("build", "run"))
     depends_on("r-biobase@1.5.12:", type=("build", "run"))

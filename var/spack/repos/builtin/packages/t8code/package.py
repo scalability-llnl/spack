@@ -26,6 +26,9 @@ class T8code(AutotoolsPackage):
     version("1.5.0", sha256="22ce6492c0f808c6859a42921352d857639fddd48ecdc9935e419db95c466f28")
     version("1.4.1", sha256="b0ec0c9b4a182f8ac7e930ba80cd20e6dc5baefc328630e4a9dac8c688749e9a")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("mpi", default=True, description="Enable MPI parallel code")
     variant("vtk", default=False, description="Enable vtk-dependent code")
     variant("petsc", default=False, description="Enable PETSc-dependent code")
@@ -65,9 +68,14 @@ class T8code(AutotoolsPackage):
 
             # vtk paths need to be passed to configure command
             args.append(f"CPPFLAGS=-I{include_dir}")
-            args.append(f"LDFLAGS=-L{lib_dir}")
+            if "%gcc@14:" in spec:
+                args.append(f"LDFLAGS=-L{lib_dir} -lm")
+            else:
+                args.append(f"LDFLAGS=-L{lib_dir}")
             # Chosen vtk version number is needed for t8code to find the right version
             args.append(f"--with-vtk_version_number={vtk_ver}")
+        elif "%gcc@14:" in spec:
+            args.append("LDFLAGS=-lm")
 
         if "+petsc" in spec:
             args.append(f"--with-petsc={spec['petsc'].prefix}")

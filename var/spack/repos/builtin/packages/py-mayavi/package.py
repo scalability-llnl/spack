@@ -22,6 +22,9 @@ class PyMayavi(PythonPackage):
         url="https://files.pythonhosted.org/packages/source/m/mayavi/mayavi-4.7.1.tar.bz2",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("py-apptools", type=("build", "run"))
     depends_on("py-envisage", type=("build", "run"))

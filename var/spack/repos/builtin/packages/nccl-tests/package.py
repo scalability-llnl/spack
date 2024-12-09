@@ -17,6 +17,8 @@ class NcclTests(MakefilePackage, CudaPackage):
     version("2.13.6", sha256="52b472a58a4918d3221a9b8c4bd9335382643d7e241983918b64692d685cc3d1")
     version("2.0.0", sha256="731fc3b7c37de59cfe880bf198349ac185639ef23570749ea6aef334c850c49c")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("mpi", default=True, description="with MPI support")
     variant("cuda", default=True, description="with CUDA support, must be true")
     conflicts("~cuda", msg="nccl-tests require cuda")

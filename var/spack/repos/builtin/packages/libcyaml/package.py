@@ -19,6 +19,8 @@ class Libcyaml(MakefilePackage):
     version("1.4.0", sha256="e803fef0e254aa1f302c622c2d25cff989e04e9b2bebb7d22abd91386373122f")
     version("1.1.0", sha256="37a00ed8ec206b60a712acfd44196bef063b8f02e376d8e86f61a7007a81daea")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libyaml")
 
     def build(self, spec, prefix):

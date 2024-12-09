@@ -27,6 +27,8 @@ class PyPsutil(PythonPackage):
     version("5.4.5", sha256="ebe293be36bb24b95cdefc5131635496e88b17fabbcf1e4bc9b5c01f5e489cfe")
     version("5.0.1", sha256="9d8b7f8353a2b2eb6eb7271d42ec99d0d264a9338a37be46424d56b4e473b39e")
 
+    depends_on("c", type="build")  # generated
+
     # pyproject.toml
     depends_on("py-setuptools@43:", when="@5.9.4:", type="build")
     depends_on("py-setuptools", type="build")

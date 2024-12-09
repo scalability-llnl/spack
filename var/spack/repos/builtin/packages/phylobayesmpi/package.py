@@ -18,6 +18,8 @@ class Phylobayesmpi(MakefilePackage):
     version("1.9", sha256="567d8db995f23b2b0109c1e6088a7e5621e38fec91d6b2f27abd886b90ea31ce")
     version("1.8b", sha256="7ff017bf492c1d8b42bfff3ee8e998ba1c50f4e4b3d9d6125647b91738017324")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("mpi")
 
     build_directory = "sources"

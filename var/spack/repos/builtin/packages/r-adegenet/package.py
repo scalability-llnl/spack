@@ -32,6 +32,8 @@ class RAdegenet(RPackage):
     version("2.1.0", sha256="7ee44061002b41164bbc09256307ab02e536f4f2ac03f36c7dc8f85f6af4639a")
     version("2.0.1", sha256="7eddf46e64f680d54d034b68c50900d9bd5bc2e08309d062e230121b7460bb10")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@2.14:", type=("build", "run"))
     depends_on("r-ade4", type=("build", "run"))
     depends_on("r-mass", type=("build", "run"))

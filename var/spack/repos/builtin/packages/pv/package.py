@@ -20,3 +20,5 @@ class Pv(AutotoolsPackage):
     version("1.8.5", sha256="d22948d06be06a5be37336318de540a2215be10ab0163f8cd23a20149647b780")
     version("1.6.20", sha256="b5f1ee79a370c5287e092b6e8f1084f026521fe0aecf25c44b9460b870319a9e")
     version("1.6.6", sha256="94defb4183ae07c44219ba298d43c4991d6e203c29f74393d72ecad3b090508a")
+
+    depends_on("c", type="build")  # generated

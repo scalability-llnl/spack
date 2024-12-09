@@ -24,6 +24,8 @@ class PyParsl(PythonPackage):
     version("1.2.0", sha256="342c74ee39fa210d74b8adfb455f0a9c20d9f059ec5bd9d60c5bdc9929abcdcc")
     version("1.1.0", sha256="6a623d3550329f028775950d23a2cafcb0f82b199f15940180410604aa5d102c")
 
+    depends_on("c", type="build")  # generated
+
     variant("monitoring", default=False, description="enable live monitoring")
     # See https://parsl.readthedocs.io/en/stable/userguide/monitoring.html
 

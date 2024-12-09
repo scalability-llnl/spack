@@ -20,6 +20,8 @@ class PyOkadaWrapper(PythonPackage):
         "18.12.07.3", sha256="ee296ad6e347c8df400f6f3d1badc371925add8d1af33854634c2fe1a2b2c855"
     )
 
+    depends_on("fortran", type="build")  # generated
+
     # https://github.com/tbenthompson/okada_wrapper/issues/8
     depends_on("python@3:3.11", type=("build", "run"))
 

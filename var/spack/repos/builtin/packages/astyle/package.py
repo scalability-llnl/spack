@@ -12,7 +12,7 @@ class Astyle(CMakePackage, MakefilePackage):
     Objective-C, C#, and Java Source Code.
     """
 
-    homepage = "http://astyle.sourceforge.net/"
+    homepage = "https://astyle.sourceforge.net/"
     url = "https://sourceforge.net/projects/astyle/files/astyle/astyle%204.1.11/astyle-4.1.11.tar.bz2"
     list_url = "https://sourceforge.net/projects/astyle/files/astyle"
     list_depth = 1
@@ -29,6 +29,8 @@ class Astyle(CMakePackage, MakefilePackage):
     version("2.06", sha256="3b7212210dc139e8f648e004b758c0be1b3ceb1694b22a879202d2b833db7c7e")
     version("2.05.1", sha256="fbdfc6f1966a972d19a215927266c76d4183eee235ed1e2bd7ec551c2a270eac")
     version("2.04", sha256="70b37f4853c418d1e2632612967eebf1bdb93dfbe558c51d7d013c9b4e116b60")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3.8.0:", type="build", when="@3.2.0:")
 

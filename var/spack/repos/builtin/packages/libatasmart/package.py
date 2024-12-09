@@ -19,6 +19,8 @@ class Libatasmart(AutotoolsPackage):
     version("0.18", sha256="4a6e93fbaec2d4caffb06ddd47c2c35ea4ad2d3d22e805bf284adba949f64ddf")
     version("0.17", sha256="353b2ec097814254989a809fd495f95a315e608fdf320c2b96dc52d70392e955")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

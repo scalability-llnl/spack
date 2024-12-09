@@ -39,6 +39,9 @@ class Wayland(MesonPackage, AutotoolsPackage):
     version("1.17.93", sha256="293536ad23bfed15fc34e2a63bbb511167e8b096c0eba35e805cb64d46ad62ae")
     version("1.17.92", sha256="d944a7b999cfe6fee5327a2315c8e5891222c5a88a96e1ca73485978e4990512")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     with when("build_system=autotools"):
         depends_on("autoconf", type="build")
         depends_on("automake", type="build")

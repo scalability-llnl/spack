@@ -40,6 +40,8 @@ class PyHypothesis(PythonPackage):
     depends_on("py-pytz@2014.1:", type="run", when="+django")
     depends_on("py-numpy@1.17.3:", type="run", when="@6.96: +numpy")
     depends_on("py-numpy@1.9.0:", type="run", when="+numpy")
+    # https://github.com/HypothesisWorks/hypothesis/issues/3950
+    depends_on("py-numpy@:1", when="@:6.100.1+numpy", type="run")
     depends_on("py-pandas@1.1:", type="run", when="@6.96: +pandas")
     depends_on("py-pandas@0.25:", type="run", when="+pandas")
 

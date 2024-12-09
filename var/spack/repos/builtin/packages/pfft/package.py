@@ -23,6 +23,9 @@ class Pfft(AutotoolsPackage):
         "1.0.8-alpha", sha256="6c43960ad72fcff7e49b87c604c5f471fb5890f1bd11ce750ab52f035e7c5317"
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("fftw+mpi+pfft_patches")
     depends_on("mpi")
 

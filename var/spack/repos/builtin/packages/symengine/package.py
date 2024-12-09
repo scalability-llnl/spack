@@ -30,6 +30,9 @@ class Symengine(CMakePackage):
     version("0.2.0", sha256="64d050b0b9decd12bf4ea3b7d18d3904dd7cb8baaae9fbac1b8068e3c59709be")
     version("0.1.0", sha256="daba3ba0ae91983a772f66bf755b1953c354fe6dc353588b23705d9a79b011fc")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "boostmp", default=False, description="Compile with Boost multi-precision integer library"
     )

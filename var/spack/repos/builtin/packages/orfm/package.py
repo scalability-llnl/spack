@@ -17,4 +17,6 @@ class Orfm(AutotoolsPackage):
 
     version("0.7.1", sha256="19f39c72bcc48127b757613c5eef4abae95ee6c82dccf96b041db527b27f319a")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("zlib-api", type="link")

@@ -21,6 +21,9 @@ class BoincClient(AutotoolsPackage):
 
     version("7.16.5", sha256="33db60991b253e717c6124cce4750ae7729eaab4e54ec718b9e37f87012d668a")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("manager", default=False, description="Builds the client manager")
     variant("graphics", default=False, description="Graphic apps support")
 
@@ -57,7 +60,7 @@ class BoincClient(AutotoolsPackage):
         args.append("--disable-server")
         args.append("--enable-client")
 
-        if "+manager" in spec:
+        if spec.satisfies("+manager"):
             args.append("--enable-manager")
         else:
             args.append("--disable-manager")

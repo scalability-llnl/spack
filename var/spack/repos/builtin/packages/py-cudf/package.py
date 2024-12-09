@@ -20,6 +20,8 @@ class PyCudf(PythonPackage):
 
     version("0.15.0", sha256="2570636b72cce4c52f71e36307f51f630e2f9ea94a1abc018d40ce919ba990e4")
 
+    depends_on("cxx", type="build")  # generated
+
     build_directory = "python/cudf"
 
     depends_on("cmake@3.14:", type="build")

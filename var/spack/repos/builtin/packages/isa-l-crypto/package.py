@@ -35,6 +35,8 @@ class IsaLCrypto(AutotoolsPackage):
     version("2.23.0", sha256="4827bc3e281d19a434deaa17a172f22f38c113ffc65f5df4348062165cb89eb8")
     version("2.22.0", sha256="c6503b455bdf0efcad74fdae4e9b30465e0e208cff2b0b34fd8f471553455527")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

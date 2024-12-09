@@ -21,6 +21,9 @@ class PyAwscrt(PythonPackage):
     version("0.19.18", sha256="350b6efd8ebee082ea3f3e52c59a3c3ec594cdaf01db8b4853dceb9fec90c89d")
     version("0.16.16", sha256="13075df2c1d7942fe22327b6483274517ee0f6ae765c4e6b6ae9ef5b4c43a827")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.1:", type=("build"))
     depends_on("openssl", type=("build"), when="platform=linux")
     depends_on("py-setuptools", type=("build"))

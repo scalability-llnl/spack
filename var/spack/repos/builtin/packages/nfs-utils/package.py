@@ -20,6 +20,8 @@ class NfsUtils(AutotoolsPackage):
     version("2.4.1", sha256="c0dda96318af554881f4eb1590bfe91f1aba2fba59ed2ac3ba099f80fdf838e9")
     version("2.3.4", sha256="36e70b0a583751ead0034ebe5d8826caf2dcc7ee7c0beefe94d6ee5a3b0b2484")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("pkgconfig", type="build")
     depends_on("libtirpc")
     depends_on("libevent")

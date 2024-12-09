@@ -16,6 +16,7 @@ from llnl.util.filesystem import working_dir
 
 import spack.package_base
 import spack.spec
+import spack.version
 from spack.version import (
     EmptyRangeError,
     GitVersion,
@@ -605,6 +606,9 @@ def test_stringify_version(version_str):
     v = Version(version_str)
     v.string = None
     assert str(v) == version_str
+
+    v.string = None
+    assert v.string == version_str
 
 
 def test_len():

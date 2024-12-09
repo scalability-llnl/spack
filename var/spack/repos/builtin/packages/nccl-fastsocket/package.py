@@ -16,6 +16,8 @@ class NcclFastsocket(Package):
 
     version("master", preferred=True)
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("bazel", type="build")
     depends_on("nccl", type=["build", "run"])
 

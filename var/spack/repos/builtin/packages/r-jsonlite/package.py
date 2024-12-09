@@ -39,3 +39,5 @@ class RJsonlite(RPackage):
     version("1.2", sha256="cb6b4660468d2db84ed09c7b8fefd169fcfc13e1e6b4e7ce64dce2713f34264d")
     version("1.0", sha256="d756dd6367e3fc515c855bb0b34a3a81955f8aeb494db029a893f3cdfcff962d")
     version("0.9.21", sha256="079349342ea6eb92bd5fa8f6a7c08d9e3652c3d41010b64afbc3297671eb3791")
+
+    depends_on("c", type="build")  # generated

@@ -19,6 +19,9 @@ class Rsem(MakefilePackage):
     version("1.3.1", sha256="93c749a03ac16e94b1aab94d032d4fd5687d3261316ce943ecb89d3ae3ec2e11")
     version("1.3.0", sha256="ecfbb79c23973e1c4134f05201f4bd89b0caf0ce4ae1ffd7c4ddc329ed4e05d2")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r", type=("build", "run"))
     depends_on("perl", type=("build", "run"))
     depends_on("python", type=("build", "run"))

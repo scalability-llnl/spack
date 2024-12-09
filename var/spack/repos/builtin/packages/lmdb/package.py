@@ -24,6 +24,8 @@ class Lmdb(MakefilePackage):
     version("0.9.21", sha256="1187b635a4cc415bb6972bba346121f81edd996e99b8f0816151d4090f90b559")
     version("0.9.16", sha256="49d7b40949f2ced9bc8b23ea6a89e75471a1c9126537a8b268c318a00b84322b")
 
+    depends_on("c", type="build")  # generated
+
     build_directory = "libraries/liblmdb"
 
     @property

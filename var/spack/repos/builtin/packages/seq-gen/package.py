@@ -26,6 +26,8 @@ class SeqGen(MakefilePackage):
 
     version("1.3.4", sha256="092ec2255ce656a02b2c3012c32443c7d8e38c692f165fb155b304ca030cbb59")
 
+    depends_on("c", type="build")  # generated
+
     build_directory = "source"
 
     def install(self, spec, prefix):

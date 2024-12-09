@@ -17,6 +17,8 @@ class Oclock(AutotoolsPackage, XorgPackage):
     version("1.0.4", sha256="cffc414cd0cf0b0e4a9bec3b5e707d9c2e2bcd109629d74bd6dd61381563dd35")
     version("1.0.3", sha256="6628d1abe1612b87db9d0170cbe7f1cf4205cd764274f648c3c1bdb745bff877")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libx11")
     depends_on("libxmu")
     depends_on("libxext")

@@ -18,6 +18,10 @@ class Rempi(AutotoolsPackage):
     version("1.1.0", sha256="4fd94fca52311fd19dc04a32547841e6c1c1656b7999b2f76f537d6ec24efccc")
     version("1.0.0", sha256="1cb21f457cf8a04632150156a2ba699dd0c3f81d47e8881a9b943b9bf575fa01")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("mpi")
     depends_on("zlib-api")
     depends_on("autoconf", type="build")

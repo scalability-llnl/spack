@@ -37,6 +37,9 @@ class Star(MakefilePackage):
         url="https://github.com/alexdobin/STAR/archive/STAR_2.4.2a.tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("zlib-api")
     # required for certain steps in the makefile
     depends_on("xxd", type="build")

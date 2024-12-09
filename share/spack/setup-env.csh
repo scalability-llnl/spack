@@ -62,9 +62,9 @@ if (! $?SPACK_PYTHON) then
     setenv SPACK_PYTHON ""
 endif
 foreach cmd ("$SPACK_PYTHON" python3 python python2)
-    command -v "$cmd" >& /dev/null
+    set status=`which "$cmd" >& /dev/null; echo $?`
     if ($status == 0) then
-        setenv SPACK_PYTHON `command -v "$cmd"`
+        setenv SPACK_PYTHON `which "$cmd"`
         break
     endif
 end

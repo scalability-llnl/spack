@@ -29,6 +29,9 @@ class Atmi(CMakePackage):
         version("5.3.3", sha256="cc1144e4939cea2944f6c72a21406b9dc5b56d933696494074c280df7469834a")
         version("5.3.0", sha256="dffc0eb0bc1617843e7f728dbd6c8b12326c5c8baa34369aa267aab40f5deb6a")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3:", type="build")
     depends_on("rsync")
     for ver in ["5.3.0", "5.3.3", "5.4.0", "5.4.3", "5.5.0", "5.5.1"]:

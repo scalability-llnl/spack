@@ -33,16 +33,12 @@ class Pkgconf(AutotoolsPackage):
     version("1.3.10", sha256="62577d265fa9415a57a77a59dede5526b7ece3ef59a750434b281b262f0c1da9")
     version("1.3.8", sha256="fc06f058e6905435481f649865ca51000192c91808f307b1053ca5e859cb1488")
 
+    depends_on("c", type="build")  # generated
+
     provides("pkgconfig")
 
     # https://github.com/spack/spack/issues/11704
     patch("nvhpc.patch", when="@1.7.3%nvhpc")
-
-    # TODO: Add a package for the kyua testing framework
-    # depends_on('kyua', type='test')
-
-    # https://github.com/spack/spack/issues/3525
-    conflicts("%pgi")
 
     tags = ["build-tools"]
 

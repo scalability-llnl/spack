@@ -19,4 +19,7 @@ class Netcdf95(CMakePackage):
 
     version("0.3", tag="v0.3", commit="5b8db6bb66a22b6a080589ee1c11521ee3cae550", submodules=True)
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("netcdf-fortran")

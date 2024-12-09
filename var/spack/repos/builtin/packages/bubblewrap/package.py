@@ -28,6 +28,8 @@ class Bubblewrap(AutotoolsPackage):
     version("0.3.3", sha256="c6a45f51794a908b76833b132471397a7413f07620af08e76c273d9f7b364dff")
     version("0.3.1", sha256="deca6b608c54df4be0669b8bb6d254858924588e9f86e116eb04656a3b6d4bf8")
 
+    depends_on("c", type="build")  # generated
+
     def configure_args(self):
         return ["--disable-sudo", "--disable-man", "--without-bash-completion-dir"]
 

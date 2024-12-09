@@ -13,7 +13,7 @@ class Shc(AutotoolsPackage):
     and linked to produce a stripped binary executable."""
 
     homepage = "https://neurobin.org/projects/softwares/unix/shc/"
-    url = "https://github.com/neurobin/shc/archive/4.0.3.tar.gz"
+    url = "https://github.com/neurobin/shc/archive/refs/tags/4.0.3.tar.gz"
 
     license("GPL-3.0-or-later")
 

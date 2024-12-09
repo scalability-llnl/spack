@@ -18,6 +18,9 @@ class Ltrace(AutotoolsPackage):
 
     version("0.7.3", sha256="0e6f8c077471b544c06def7192d983861ad2f8688dd5504beae62f0c5f5b9503")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     conflicts("platform=darwin", msg="ltrace runs only on Linux.")
 
     depends_on("elf", type="link")

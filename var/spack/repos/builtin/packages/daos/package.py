@@ -21,6 +21,9 @@ class Daos(SConsPackage):
     version(
         "2.2.0", tag="v2.2.0", commit="d2a1f2790c946659c9398926254e6203fd957b7c", submodules=True
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
     variant(
         "debug", default=False, description="Enable debugging info and strict compile warnings"
     )
@@ -52,7 +55,7 @@ class Daos(SConsPackage):
     def build_args(self, spec, prefix):
         args = ["PREFIX={0}".format(prefix), "USE_INSTALLED=all"]
 
-        if "+debug" in spec:
+        if spec.satisfies("+debug"):
             args.append("--debug=explain,findlibs,includes")
 
         # Construct ALT_PREFIX and make sure that '/usr' is last.

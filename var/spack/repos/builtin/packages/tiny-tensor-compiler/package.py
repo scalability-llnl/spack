@@ -21,6 +21,9 @@ class TinyTensorCompiler(CMakePackage):
 
     version("0.3.1", sha256="e512b92f9ef8f21362ea4a8f2655338769bc7fcf9de543e3dc7db86b696695b3")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=True, description="Shared library")
     variant("level-zero", default=False, description="Build tinytc_ze (Level Zero runtime)")
     variant("opencl", default=True, description="Build tintc_cl (OpenCL runtime)")
@@ -31,7 +34,10 @@ class TinyTensorCompiler(CMakePackage):
     depends_on("cmake@3.23.0:", type="build")
     depends_on("double-batched-fft-library ~sycl ~level-zero ~opencl@0.5.1:", type="link")
     depends_on("oneapi-level-zero@1.13:", when="+level-zero")
+    depends_on("opencl-c-headers@2022.01.04:", when="+opencl")
     depends_on("opencl-icd-loader@2022.01.04:", when="+opencl", type="link")
+    depends_on("re2c@3.0:", type="build")
+    depends_on("bison@3.8.2:", type="build")
 
     def cmake_args(self):
         cxx_compiler = os.path.basename(self.compiler.cxx)

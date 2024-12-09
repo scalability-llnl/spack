@@ -32,6 +32,10 @@ class Bml(CMakePackage):
     version("1.2.2", sha256="babc2fd0229397e418be00f3691277e86f549b5a23cadbcee66078595e9176a0")
     version("1.1.0", sha256="a90ede19d80ed870f0bf1588875a9f371484d89006a7296010d8d791da3eac33")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("shared", default=True, description="Build shared libs")
     variant("mpi", default=True, description="Build with MPI Support")
 
@@ -45,7 +49,7 @@ class Bml(CMakePackage):
     def cmake_args(self):
         args = [self.define_from_variant("BUILD_SHARED_LIBS", "shared")]
         spec = self.spec
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             args.append("-DBML_MPI=True")
             args.append("-DCMAKE_C_COMPILER=%s" % spec["mpi"].mpicc)
             args.append("-DCMAKE_CXX_COMPILER=%s" % spec["mpi"].mpicxx)

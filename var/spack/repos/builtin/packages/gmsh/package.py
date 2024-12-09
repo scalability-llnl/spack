@@ -26,7 +26,7 @@ class Gmsh(CMakePackage):
 
     version("master", branch="master")
     version("4.13.1", sha256="77972145f431726026d50596a6a44fb3c1c95c21255218d66955806b86edbe8d")
-    version("4.13.0", sha256="c85f056ee549a433e814a61c385c97952bbfe514b442b999f6149fffb1e54f64.")
+    version("4.13.0", sha256="c85f056ee549a433e814a61c385c97952bbfe514b442b999f6149fffb1e54f64")
     version("4.12.2", sha256="13e09d9ca8102e5c40171d6ee150c668742b98c3a6ca57f837f7b64e1e2af48f")
     version("4.12.0", sha256="2a6007872ba85abd9901914826f6986a2437ab7104f564ccefa1b7a3de742c17")
     version("4.11.1", sha256="c5fe1b7cbd403888a814929f2fd0f5d69e27600222a18c786db5b76e8005b365")
@@ -45,6 +45,10 @@ class Gmsh(CMakePackage):
     version("3.0.1", sha256="830b5400d9f1aeca79c3745c5c9fdaa2900cdb2fa319b664a5d26f7e615c749f")
     version("2.16.0", sha256="e829eaf32ea02350a385202cc749341f2a3217c464719384b18f653edd028eea")
     version("2.15.0", sha256="992a4b580454105f719f5bc05441d3d392ab0b4b80d4ea07b61ca3bdc974070a")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant(
         "external",
@@ -76,6 +80,9 @@ class Gmsh(CMakePackage):
 
     # https://gmsh.info/doc/texinfo/gmsh.html#Compiling-the-source-code
     # We make changes to the GMSH default, such as external blas.
+    depends_on("libpng", when="+fltk")
+    depends_on("libjpeg-turbo", when="+fltk")
+    depends_on("zlib-api")
     depends_on("blas", when="~eigen")
     depends_on("lapack", when="~eigen")
     depends_on("eigen@3:", when="+eigen+external")

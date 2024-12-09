@@ -24,6 +24,9 @@ class Kcov(CMakePackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@2.8.4:", type="build")
     depends_on("zlib-api")
     depends_on("curl")

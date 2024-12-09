@@ -18,6 +18,9 @@ class Libmaus2(AutotoolsPackage):
         url="https://gitlab.com/german.tischler/libmaus2/-/archive/2.0.767-release-20201123131410/libmaus2-2.0.767-release-20201123131410.tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

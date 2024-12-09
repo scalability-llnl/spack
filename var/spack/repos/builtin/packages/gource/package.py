@@ -17,6 +17,8 @@ class Gource(AutotoolsPackage):
 
     version("0.44", sha256="2604ca4442305ffdc5bb1a7bac07e223d59c846f93567be067e8dfe2f42f097c")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("automake", type="build")
     depends_on("autoconf", type="build")
     depends_on("libtool", type="build")

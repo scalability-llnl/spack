@@ -17,6 +17,8 @@ class StartupNotification(AutotoolsPackage):
 
     version("0.12", sha256="3c391f7e930c583095045cd2d10eb73a64f085c7fde9d260f2652c7cb3cfbe4a")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libx11")
     depends_on("libxcb")
     depends_on("xcb-util")

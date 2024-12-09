@@ -23,6 +23,9 @@ class Maloc(AutotoolsPackage):
     version("1.1", sha256="b5dd7923e84f13e7ed43304ed1062de24171c5a7a042a12b0d1e501d6eaedf58")
     version("1.0", sha256="23f3ea3215067fd8f1ba4c407375f387b5f1d11258f29508295e651828d32cb7")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("doc", default=False, description="Build documentation.")
 
     depends_on("graphviz", type="build", when="+doc")

@@ -19,6 +19,9 @@ class Systemc(CMakePackage):
 
     version("2.3.3", sha256="5781b9a351e5afedabc37d145e5f7edec08f3fd5de00ffeb8fa1f3086b1f7b3f")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "cxxstd",
         values=("11", "14", "17", "20"),

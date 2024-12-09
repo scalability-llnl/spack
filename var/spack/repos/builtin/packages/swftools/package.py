@@ -21,6 +21,9 @@ class Swftools(AutotoolsPackage):
 
     version("0.9.2", sha256="bf6891bfc6bf535a1a99a485478f7896ebacbe3bbf545ba551298080a26f01f1")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     patch("configure.patch")
     patch("swfs_Makefile.in.patch")
     patch(

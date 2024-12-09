@@ -17,14 +17,22 @@ from typing import Callable, List, Optional, Tuple, Type, TypeVar, Union
 
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
+import llnl.util.tty.log
 from llnl.string import plural
 from llnl.util.lang import nullcontext
 from llnl.util.tty.color import colorize
 
+import spack.build_environment
+import spack.config
 import spack.error
+import spack.package_base
 import spack.paths
+import spack.repo
+import spack.spec
+import spack.util.executable
+import spack.util.path
 import spack.util.spack_json as sjson
-from spack.installer import InstallError
+from spack.error import InstallError
 from spack.spec import Spec
 from spack.util.prefix import Prefix
 
@@ -42,7 +50,7 @@ spack_install_test_log = "install-time-test-log.txt"
 
 
 ListOrStringType = Union[str, List[str]]
-LogType = Union["tty.log.nixlog", "tty.log.winlog"]
+LogType = Union[llnl.util.tty.log.nixlog, llnl.util.tty.log.winlog]
 
 Pb = TypeVar("Pb", bound="spack.package_base.PackageBase")
 PackageObjectOrClass = Union[Pb, Type[Pb]]
@@ -110,7 +118,7 @@ def cache_extra_test_sources(pkg: Pb, srcs: ListOrStringType):
             location(s) under the install testing directory.
 
     Raises:
-        spack.installer.InstallError: if any of the source paths are absolute
+        spack.error.InstallError: if any of the source paths are absolute
             or do not exist
             under the build stage
     """
@@ -280,7 +288,7 @@ class PackageTest:
     def logger(self) -> Optional[LogType]:
         """The current logger or, if none, sets to one."""
         if not self._logger:
-            self._logger = tty.log.log_output(self.test_log_file)
+            self._logger = llnl.util.tty.log.log_output(self.test_log_file)
 
         return self._logger
 
@@ -297,7 +305,7 @@ class PackageTest:
         fs.touch(self.test_log_file)  # Otherwise log_parse complains
         fs.set_install_permissions(self.test_log_file)
 
-        with tty.log.log_output(self.test_log_file, verbose) as self._logger:
+        with llnl.util.tty.log.log_output(self.test_log_file, verbose) as self._logger:
             with self.logger.force_echo():  # type: ignore[union-attr]
                 tty.msg("Testing package " + colorize(r"@*g{" + self.pkg_id + r"}"))
 
@@ -344,9 +352,7 @@ class PackageTest:
         self.test_parts[part_name] = status
         self.counts[status] += 1
 
-    def phase_tests(
-        self, builder: spack.builder.Builder, phase_name: str, method_names: List[str]
-    ):
+    def phase_tests(self, builder, phase_name: str, method_names: List[str]):
         """Execute the builder's package phase-time tests.
 
         Args:
@@ -363,30 +369,22 @@ class PackageTest:
             builder.pkg.test_suite.current_test_spec = builder.pkg.spec
             builder.pkg.test_suite.current_base_spec = builder.pkg.spec
 
-            # TODO (post-34236): "test"->"test_" once remove deprecated methods
-            have_tests = any(name.startswith("test") for name in method_names)
+            have_tests = any(name.startswith("test_") for name in method_names)
             if have_tests:
                 copy_test_files(builder.pkg, builder.pkg.spec)
 
             for name in method_names:
                 try:
-                    # Prefer the method in the package over the builder's.
-                    # We need this primarily to pick up arbitrarily named test
-                    # methods but also some build-time checks.
-                    fn = getattr(builder.pkg, name, getattr(builder, name))
-
-                    msg = f"RUN-TESTS: {phase_name}-time tests [{name}]"
-                    print_message(logger, msg, verbose)
-
-                    fn()
-
+                    fn = getattr(builder, name, None) or getattr(builder.pkg, name)
                 except AttributeError as e:
-                    msg = f"RUN-TESTS: method not implemented [{name}]"
-                    print_message(logger, msg, verbose)
-
-                    self.add_failure(e, msg)
+                    print_message(logger, f"RUN-TESTS: method not implemented [{name}]", verbose)
+                    self.add_failure(e, f"RUN-TESTS: method not implemented [{name}]")
                     if fail_fast:
                         break
+                    continue
+
+                print_message(logger, f"RUN-TESTS: {phase_name}-time tests [{name}]", verbose)
+                fn()
 
             if have_tests:
                 print_message(logger, "Completed testing", verbose)
@@ -468,16 +466,9 @@ class PackageTest:
 def test_part(pkg: Pb, test_name: str, purpose: str, work_dir: str = ".", verbose: bool = False):
     wdir = "." if work_dir is None else work_dir
     tester = pkg.tester
-    # TODO (post-34236): "test"->"test_" once remove deprecated methods
     assert test_name and test_name.startswith(
-        "test"
-    ), f"Test name must start with 'test' but {test_name} was provided"
-
-    if test_name == "test":
-        tty.warn(
-            "{}: the 'test' method is deprecated. Convert stand-alone "
-            "test(s) to methods with names starting 'test_'.".format(pkg.name)
-        )
+        "test_"
+    ), f"Test name must start with 'test_' but {test_name} was provided"
 
     title = "test: {}: {}".format(test_name, purpose or "unspecified purpose")
     with fs.working_dir(wdir, create=True):
@@ -637,28 +628,11 @@ def test_functions(
             except spack.repo.UnknownPackageError:
                 tty.debug(f"{vname}: virtual does not appear to have a package file")
 
-    # TODO (post-34236): Remove if removing empty test method check
-    def skip(line):
-        # This should match the lines in the deprecated test() method
-        ln = line.strip()
-        return ln.startswith("#") or ("warn" in ln and "deprecated" in ln)
-
-    doc_regex = r'\s+("""[\w\s\(\)\-\,\;\:]+""")'
     tests = []
     for clss in classes:
         methods = inspect.getmembers(clss, predicate=lambda x: inspect.isfunction(x))
         for name, test_fn in methods:
-            # TODO (post-34236): "test"->"test_" once remove deprecated methods
-            if not name.startswith("test"):
-                continue
-
-            # TODO (post-34236): Could remove empty method check once remove
-            # TODO (post-34236): deprecated methods though some use cases,
-            # TODO (post-34236): such as checking packages have actual, non-
-            # TODO (post-34236): empty tests, may want this check to remain.
-            source = re.sub(doc_regex, r"", inspect.getsource(test_fn)).splitlines()[1:]
-            lines = [ln.strip() for ln in source if not skip(ln)]
-            if not lines:
+            if not name.startswith("test_"):
                 continue
 
             tests.append((clss.__name__, test_fn))  # type: ignore[union-attr]
@@ -757,6 +731,10 @@ def test_process(pkg: Pb, kwargs):
             pkg.tester.status(pkg.spec.name, TestStatus.SKIPPED)
             return
 
+        # Make sure properly named build-time test methods actually run as
+        # stand-alone tests.
+        pkg.run_tests = True
+
         # run test methods from the package and all virtuals it provides
         v_names = virtuals(pkg)
         test_specs = [pkg.spec] + [spack.spec.Spec(v_name) for v_name in sorted(v_names)]
@@ -776,7 +754,7 @@ def virtuals(pkg):
 
     # hack for compilers that are not dependencies (yet)
     # TODO: this all eventually goes away
-    c_names = ("gcc", "intel", "intel-parallel-studio", "pgi")
+    c_names = ("gcc", "intel", "intel-parallel-studio")
     if pkg.name in c_names:
         v_names.extend(["c", "cxx", "fortran"])
     if pkg.spec.satisfies("llvm+clang"):

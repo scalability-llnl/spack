@@ -16,6 +16,9 @@ class LumpySv(MakefilePackage):
 
     version("0.2.13", sha256="3672b86ef0190ebe520648a6140077ee9f15b0549cb233dca18036e63bbf6375")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("htslib")
 
     def edit(self, spec, prefix):

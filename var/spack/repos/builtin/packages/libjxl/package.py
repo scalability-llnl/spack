@@ -26,7 +26,11 @@ class Libjxl(CMakePackage):
         "0.6.1", tag="v0.6.1", commit="a205468bc5d3a353fb15dae2398a101dff52f2d3", submodules=True
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.10:", type="build")
+    depends_on("pkgconfig", type="build")
     depends_on("brotli")
     depends_on("highway")
 

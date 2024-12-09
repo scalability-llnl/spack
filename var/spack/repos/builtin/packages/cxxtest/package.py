@@ -16,5 +16,8 @@ class Cxxtest(Package):
 
     version("4.4", sha256="1c154fef91c65dbf1cd4519af7ade70a61d85a923b6e0c0b007dc7f4895cf7d8")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     def install(self, spec, prefix):
         install_tree(self.stage.source_path, prefix)

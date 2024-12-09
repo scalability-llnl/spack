@@ -17,6 +17,8 @@ class Ssmtp(AutotoolsPackage):
 
     version("2.64", sha256="22c37dc90c871e8e052b2cab0ad219d010fa938608cd66b21c8f3c759046fa36")
 
+    depends_on("c", type="build")  # generated
+
     variant("ssl", default=True, description="Enable support for secure connection to mail server")
     variant("inet6", default=True, description="Enable support for IPv6 transport")
     variant("md5auth", default=True, description="Enable support for MD5 authentication")

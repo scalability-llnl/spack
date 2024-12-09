@@ -21,6 +21,8 @@ class Steps(CMakePackage):
     version("5.0.1", tag="5.0.1", commit="1f2eb8193edc1c75e0877fe37e39452b399242c9")
     version("4.1.1", tag="4.1.1", commit="fdb6d9e02a69dae698f66013117fc3f08f808f45")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("blender", default=False, description="Build stepsblender package")
     variant(
         "codechecks",

@@ -17,6 +17,9 @@ class Clfft(CMakePackage):
 
     version("2.12.2", sha256="e7348c146ad48c6a3e6997b7702202ad3ee3b5df99edf7ef00bbacc21e897b12")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("client", default=True, description="build client and callback client")
 
     depends_on("opencl@1.2:")

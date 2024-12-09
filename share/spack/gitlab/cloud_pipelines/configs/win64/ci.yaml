@@ -15,4 +15,4 @@ ci:
       - spack.ps1 config add "config:install_tree:projections:${SPACK_JOB_SPEC_PKG_NAME}:'morepadding/{hash}'"
       - mkdir ${SPACK_ARTIFACTS_ROOT}/user_data
       - spack.ps1 --backtrace ci rebuild | Tee-Object -FilePath "${env:SPACK_ARTIFACTS_ROOT}/user_data/pipeline_out.txt" 2>&1 | Tee-Object -FilePath "${env:SPACK_ARTIFACTS_ROOT}/user_data/pipeline_err.txt"
-      image: "ghcr.io/johnwparent/windows-server21h2:sha-c749cf3"
+      image: "ghcr.io/johnwparent/windows-server21h2:sha-1c12b61"

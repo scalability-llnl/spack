@@ -21,6 +21,9 @@ class Imgui(Package):
     version("1.90.6", sha256="70b4b05ac0938e82b4d5b8d59480d3e2ca63ca570dfb88c55023831f387237ad")
     version("1.85", sha256="7ed49d1f4573004fa725a70642aaddd3e06bb57fcfe1c1a49ac6574a3e895a77")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     def install(self, spec, prefix):
         # No specific build process is required.
         # You can add the .cpp files to your existing project.

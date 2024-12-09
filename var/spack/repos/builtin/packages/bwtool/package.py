@@ -14,4 +14,6 @@ class Bwtool(AutotoolsPackage):
 
     version("1.0", sha256="2e177573602c129e1d37e07288bdc04bef14d2c25c39636aea8c9a359400594a")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libbeato")

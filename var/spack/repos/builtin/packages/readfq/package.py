@@ -18,5 +18,7 @@ class Readfq(Package):
 
     version("2013.04.10", commit="4fb766095d8f459e0f8025be70f9173673905d12")
 
+    depends_on("c", type="build")  # generated
+
     def install(self, spec, prefix):
         install_tree(".", prefix.bin)

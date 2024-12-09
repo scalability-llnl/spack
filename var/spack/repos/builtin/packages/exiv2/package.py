@@ -22,5 +22,7 @@ class Exiv2(CMakePackage):
     version("0.27.3", sha256="6398bc743c32b85b2cb2a604273b8c90aa4eb0fd7c1700bf66cbb2712b4f00c1")
     version("0.27.2", sha256="3dbcaf01fbc5b98d42f091d1ff0d4b6cd9750dc724de3d9c0d113948570b2934")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("zlib-api", type="link")
     depends_on("expat@2.2.6:", type="link")

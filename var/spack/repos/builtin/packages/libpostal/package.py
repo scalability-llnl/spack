@@ -25,6 +25,8 @@ class Libpostal(AutotoolsPackage):
     version("0.3.1", sha256="68c51a5fdae41e1cac474742789ba5a46a38e307a0a2450cb2d3e33b4f17cf4d")
     version("0.3", sha256="28c19e21bab13425a76aa65a8435f4b3909611056c2ff439c39b4e57b2a70150")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

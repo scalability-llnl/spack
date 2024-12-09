@@ -27,6 +27,9 @@ class Spdk(AutotoolsPackage):
         "23.01", tag="v23.01", commit="10edc60aa8b5f1b04d6496fea976dec75e276a95", submodules=True
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("crypto", default=False, description="Build vbdev crypto module")
     variant("dpdk", default=False, description="Build with dpdk")
     variant("fio", default=False, description="Build fio plugin")

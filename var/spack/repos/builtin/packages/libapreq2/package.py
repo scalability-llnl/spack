@@ -21,6 +21,8 @@ class Libapreq2(AutotoolsPackage):
     version("2.12", sha256="75cc1daa60e781270178c8f9fbe9c68231a7bc96bcc5c7a970cfce75d784b568")
     version("2.08", sha256="9f491588957415ebe0decdf6758fcb5c0d3eaf05a573bdd51de499ae111ffc53")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("apr")
     depends_on("apr-util")
     depends_on("httpd")

@@ -23,3 +23,6 @@ class MysqlConnectorC(CMakePackage):
     license("GPL-2.0-or-later")
 
     version("6.1.11", sha256="c8664851487200162b38b6f3c8db69850bd4f0e4c5ff5a6d161dbfb5cb76b6c4")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated

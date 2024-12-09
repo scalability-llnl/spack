@@ -31,6 +31,8 @@ class Squashfuse(AutotoolsPackage):
     version("0.1.104", sha256="aa52460559e0d0b1753f6b1af5c68cfb777ca5a13913285e93f4f9b7aa894b3a")
     version("0.1.103", sha256="42d4dfd17ed186745117cfd427023eb81effff3832bab09067823492b6b982e7")
 
+    depends_on("c", type="build")  # generated
+
     variant("shared", default=True, description="Enable shared libraries")
     variant("static", default=True, description="Enable static libraries")
     variant("min_size", default=False, description="Build small binaries")

@@ -20,6 +20,8 @@ class PyUvloop(PythonPackage):
     version("0.16.0", sha256="f74bc20c7b67d1c27c72601c78cf95be99d5c2cdd4514502b4f3eb0933ff1228")
     version("0.14.0", sha256="123ac9c0c7dd71464f58f1b4ee0bbd81285d96cdda8bc3519281b8973e3a461e")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@3.8:", when="@0.19:", type=("build", "run"))
     depends_on("python@3.7:", when="@0.15:", type=("build", "run"))
     depends_on("python@3.5:", type=("build", "run"))

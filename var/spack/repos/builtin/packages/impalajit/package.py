@@ -27,6 +27,10 @@ class Impalajit(CMakePackage):
     version("llvm", git="https://github.com/ravil-mobile/ImpalaJIT.git", branch="dev")
     version("llvm-1.0.0", git="https://github.com/ravil-mobile/ImpalaJIT.git", tag="v1.0.0")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     maintainers("ravil-mobile", "Thomas-Ulrich")
 
     variant("shared", default=True, description="build as a shared library")
@@ -42,7 +46,6 @@ class Impalajit(CMakePackage):
         args.append(self.define_from_variant("SHARED_LIB", "shared"))
         args.append(self.define("TESTS", self.run_tests))
 
-        if self.compiler != "intel":
+        if not self.spec.satisfies("%intel"):
             args.append("-DINTEL_COMPILER=OFF")
-
         return args

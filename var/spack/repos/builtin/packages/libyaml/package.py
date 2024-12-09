@@ -29,6 +29,8 @@ class Libyaml(AutotoolsPackage):
     version("0.1.2", sha256="5beb94529cc7ac79b17e354f9b03aea311f5af17be5d48bc39e6f1db5059f70f")
     version("0.1.1", sha256="76444692a94de4e6776a1bdf3b735e8f016bb374ae7c60496f8032fdc6085889")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("automake", when="@master")
     depends_on("autoconf", when="@master")
     depends_on("libtool", when="@master")

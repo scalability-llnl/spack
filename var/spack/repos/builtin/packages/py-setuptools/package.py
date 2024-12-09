@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -61,20 +62,20 @@ class PySetuptools(Package, PythonExtension):
 
     extends("python")
 
-    depends_on("python@3.7:", when="@59.7:", type=("build", "run"))
-    depends_on("python@3.6:", when="@51:", type=("build", "run"))
-    depends_on("python@3.5:", when="@45:50", type=("build", "run"))
-    depends_on("python@2.7:2.8,3.5:", when="@44", type=("build", "run"))
-    depends_on("python@2.7:2.8,3.4:", when="@:43", type=("build", "run"))
+    with default_args(type=("build", "run")):
+        depends_on("python@3.9:", when="@75.4:")
+        depends_on("python@3.8:", when="@68.1:")
+        depends_on("python@3.7:", when="@59.7:")
+        depends_on("python@3.6:", when="@51:")
 
-    # Uses HTMLParser.unescape
-    depends_on("python@:3.8", when="@:41.0", type=("build", "run"))
+        # Uses HTMLParser.unescape
+        depends_on("python@:3.8", when="@:41.0")
 
-    # Uses collections.MutableMapping
-    depends_on("python@:3.9", when="@:40.4.2", type=("build", "run"))
+        # Uses collections.MutableMapping
+        depends_on("python@:3.9", when="@:40.4.2")
 
-    # https://github.com/pypa/setuptools/issues/3661
-    depends_on("python@:3.11", when="@:67", type=("build", "run"))
+        # https://github.com/pypa/setuptools/issues/3661
+        depends_on("python@:3.11", when="@:67")
 
     depends_on("py-pip", type="build")
 
@@ -95,5 +96,4 @@ class PySetuptools(Package, PythonExtension):
         #
         # We work around this issue by installing setuptools from wheels
         whl = self.stage.archive_file
-        args = ["-m", "pip"] + std_pip_args + ["--prefix=" + prefix, whl]
-        python(*args)
+        python("-m", "pip", *PythonPipBuilder.std_args(self), f"--prefix={prefix}", whl)

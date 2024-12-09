@@ -38,6 +38,9 @@ class PyScikitImage(PythonPackage):
     version("0.14.2", sha256="1afd0b84eefd77afd1071c5c1c402553d67be2d7db8950b32d6f773f25850c1f")
     version("0.12.3", sha256="82da192f0e524701e89c5379c79200bc6dc21373f48bf7778a864c583897d7c7")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # Get dependencies for:
     #
     # @0.20:      from pyproject.toml
@@ -59,6 +62,8 @@ class PyScikitImage(PythonPackage):
         depends_on("py-numpy@1.14.1:", when="@0.16")
         depends_on("py-numpy@1.11:", when="@0.13:0.15")
         depends_on("py-numpy@1.7.2:", when="@:0.12")
+        # https://github.com/scikit-image/scikit-image/issues/7282
+        depends_on("py-numpy@:1", when="@:0.23.0")
 
     with default_args(type=("build", "run")):
         depends_on("py-scipy@1.9:", when="@0.23:")

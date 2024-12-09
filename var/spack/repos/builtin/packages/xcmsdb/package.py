@@ -20,6 +20,8 @@ class Xcmsdb(AutotoolsPackage, XorgPackage):
     version("1.0.6", sha256="640b42c746eb34bdd71ca2850f2bc9fb0ade194c9f152a8d002425a0684df077")
     version("1.0.5", sha256="8442352ee5eb3ea0d3a489c26d734e784ef6964150c2a173401d0dc6638ca236")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libx11")
 
     depends_on("pkgconfig", type="build")

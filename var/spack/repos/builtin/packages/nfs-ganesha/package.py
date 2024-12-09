@@ -18,6 +18,9 @@ class NfsGanesha(CMakePackage):
     version("3.0.3", sha256="fcc0361b9a2752be7eb4e990230765e17de373452ac24514be22c81a5447a460")
     version("3.0", sha256="136c5642ff21ec6e8a4e77c037f6218a39b2eeba77798b13556f1abbb0923ccd")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("bison", type="build")
     depends_on("flex", type="build")
     depends_on("py-stsci-distutils", type="build")

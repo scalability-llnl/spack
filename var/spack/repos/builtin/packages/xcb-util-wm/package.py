@@ -27,6 +27,8 @@ class XcbUtilWm(AutotoolsPackage, XorgPackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("m4", type="build")
 
     depends_on("libxcb@1.4:")

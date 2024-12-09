@@ -22,3 +22,6 @@ class Cmark(CMakePackage):
     version("0.28.1", sha256="dda7b8b5974815b7cbc8f12f509ad419250571f258ee697db2efe3deae01aaf8")
     version("0.28.0", sha256="68cf191f4a78494a43b7e1663506635e370f0ba4c67c9ee9518e295685bbfe0e")
     version("0.27.1", sha256="669b4c19355e8cb90139fdd03b02283b97130e92ea99a104552a2976751446b5")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated

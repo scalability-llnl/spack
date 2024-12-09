@@ -10,7 +10,7 @@ class LibpressioOpt(CMakePackage):
     """Metacompressor which preforms optimization of compressor settings for LibPressio"""
 
     homepage = "https://github.com/robertu94/libpressio_opt"
-    git = "git@github.com:robertu94/libpressio_opt"
+    git = "https://github.com/robertu94/libpressio_opt.git"
     url = "https://github.com/robertu94/libpressio_opt/archive/refs/tags/0.11.0.tar.gz"
 
     maintainers("robertu94")
@@ -29,6 +29,9 @@ class LibpressioOpt(CMakePackage):
     version("0.12.1", sha256="e5d0b4d8b4885dfe555148e23f34e0bc904a898871dea8d412265075f1f8c858")
     version("0.12.0", sha256="5f28f37de858634cf481d911f202360f078902803f82b5f49b7eec9b59948d64")
     version("0.11.0", sha256="cebbc512fcaa537d2af1a6919d6e0400cdc13595d71d9b90b74ad3eb865c9767")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("libpressio+libdistributed+mpi")
     depends_on("libpressio@0.99.4:", when="@0.15.4:")

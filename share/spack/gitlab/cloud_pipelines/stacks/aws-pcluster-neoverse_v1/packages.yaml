@@ -8,8 +8,8 @@ packages:
   gromacs:
     require:
       - one_of:
-          - "gromacs@2021.3 %arm ^fftw ^openmpi"
-          - "gromacs@2021.3 %gcc ^armpl-gcc ^openmpi"
+          - "gromacs@2024.3 %arm ^fftw ^openmpi"
+          - "gromacs@2024.3 %gcc ^armpl-gcc ^openmpi"
   libfabric:
     buildable: true
     externals:
@@ -47,7 +47,7 @@ packages:
   slurm:
     buildable: false
     externals:
-      - prefix: /opt/slurm/
+      - prefix: ${SLURM_ROOT}
         spec: slurm@${SLURM_VERSION} +pmix
   wrf:
     require:

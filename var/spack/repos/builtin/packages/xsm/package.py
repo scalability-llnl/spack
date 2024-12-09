@@ -16,6 +16,8 @@ class Xsm(AutotoolsPackage, XorgPackage):
     version("1.0.4", sha256="d12fb0071719de5845d41602963988e4b889f482427c13ce8e515f5ca51c0564")
     version("1.0.3", sha256="f70815139d62416dbec5915ec37db66f325932a69f6350bb1a74c0940cdc796a")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libx11")
     depends_on("libxt@1.1.0:")
     depends_on("libice")

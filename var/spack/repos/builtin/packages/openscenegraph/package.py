@@ -29,6 +29,9 @@ class Openscenegraph(CMakePackage):
     version("3.2.3", sha256="a1ecc6524197024834e1277916922b32f30246cb583e27ed19bf3bf889534362")
     version("3.1.5", sha256="dddecf2b33302076712100af59b880e7647bc595a9a7cc99186e98d6e0eaeb5c")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=True, description="Builds a shared version of the library")
     variant("apps", default=False, description="Build OpenSceneGraph tools")
     variant("dcmtk", default=False, description="Build support for DICOM files using DCMTK")
@@ -55,8 +58,8 @@ class Openscenegraph(CMakePackage):
     )  # Qt windowing system was moved into separate osgQt project
     depends_on("qt@4:", when="@3.2:3.5.4")
     depends_on("qt@:4", when="@:3.1")
-    depends_on("libxinerama")
-    depends_on("libxrandr")
+    depends_on("libxinerama", when="platform=linux")
+    depends_on("libxrandr", when="platform=linux")
     depends_on("libpng")
     depends_on("jasper")
     depends_on("libtiff")

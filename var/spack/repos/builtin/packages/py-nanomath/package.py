@@ -14,6 +14,7 @@ class PyNanomath(PythonPackage):
 
     maintainers("Pandapip1")
 
+    version("1.4.0", sha256="ed7a38fbb156d9a68a95c2570fe3c2035321d0a3e234580496750afca4927ced")
     version("1.3.0", sha256="c35a024b10b34dd8f539cefed1fd69e0a46d18037ca48bed63c7941c67ae028e")
 
     depends_on("py-setuptools", type=("build",))

@@ -23,6 +23,9 @@ class Plink2(MakefilePackage):
     version("2.00a5.10", sha256="53d845c6a04f8fc701e6f58f6431654e36cbf6b79bff25099862d169a8199a45")
     version("2.00a4.3", sha256="3cd1d26ac6dd1c451b42440f479789aa19d2b57642c118aac530a5ff1b0b4ce6")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("zlib-api")
     depends_on("zlib@1.2.12:", when="^[virtuals=zlib-api] zlib")
     depends_on("zstd@1.5.2:")

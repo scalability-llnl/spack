@@ -24,6 +24,8 @@ class Amg2013(MakefilePackage):
     version("1.1", tag="1.1", commit="09fe8a78baf6ba5eaef7d2804f7b653885d60fee")
     version("1.0", tag="1.0", commit="f5b864708ca3ef48a86e1e46fcb812cbbfa80c51")
 
+    depends_on("c", type="build")  # generated
+
     variant("openmp", default=True, description="Build with OpenMP support")
     variant("optflags", default=False, description="Additional optimizations")
     variant("int64", default=False, description="Use 64-bit integers for global variables")
@@ -37,15 +39,15 @@ class Amg2013(MakefilePackage):
         include_cflags = ["-DTIMER_USE_MPI"]
         include_lflags = ["-lm"]
 
-        if "+openmp" in self.spec:
+        if self.spec.satisfies("+openmp"):
             include_cflags.append("-DHYPRE_USING_OPENMP")
             include_cflags.append(self.compiler.openmp_flag)
             include_lflags.append(self.compiler.openmp_flag)
-            if "+optflags" in self.spec:
+            if self.spec.satisfies("+optflags"):
                 include_cflags.append("-DHYPRE_USING_PERSISTENT_COMM")
                 include_cflags.append("-DHYPRE_HOPSCOTCH")
 
-        if "+int64" in self.spec:
+        if self.spec.satisfies("+int64"):
             include_cflags.append("-DHYPRE_BIGINT")
 
         targets.append(f"INCLUDE_CFLAGS={' '.join(include_cflags)}")

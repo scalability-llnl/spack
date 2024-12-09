@@ -37,6 +37,8 @@ class PyPyarrow(PythonPackage, CudaPackage):
     version("0.11.0", sha256="07a6fd71c5d7440f2c42383dd2c5daa12d7f0a012f1e88288ed08a247032aead")
     version("0.9.0", sha256="7db8ce2f0eff5a00d6da918ce9f9cfec265e13f8a119b4adb1595e5b19fd6242")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("parquet", default=False, description="Build with Parquet support")
     variant("orc", default=False, description="Build with orc support")
     variant("dataset", default=False, description="Build with Dataset support")
@@ -64,8 +66,10 @@ class PyPyarrow(PythonPackage, CudaPackage):
 
     depends_on("py-numpy@1.16.6:", type=("build", "run"), when="@3:")
     # Prior to python 3.9 numpy must be >=0.14,<1.25
-    depends_on("py-numpy@0.14:1.24", when="^python@:3.8")
-    depends_on("py-numpy@1.25:", when="^python@3.9:")
+    depends_on("py-numpy@0.14:1.24", when="^python@:3.8", type=("build", "run"))
+    depends_on("py-numpy@1.25:", when="^python@3.9:", type=("build", "run"))
+    # https://github.com/apache/arrow/issues/39532
+    depends_on("py-numpy@:1", when="@:15", type=("build", "run"))
 
     arrow_versions = (
         "@0.9.0",

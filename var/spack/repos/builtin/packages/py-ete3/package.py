@@ -23,6 +23,8 @@ class PyEte3(PythonPackage):
     version("3.1.3", sha256="06a3b7fa8ed90187b076a8dbbe5b1b62acee94201d3c6e822f55f449601ef6f2")
     version("3.1.2", sha256="4fc987b8c529889d6608fab1101f1455cb5cbd42722788de6aea9c7d0a8e59e9")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
 
     depends_on("py-numpy", type=("build", "run"))

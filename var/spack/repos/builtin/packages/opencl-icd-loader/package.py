@@ -47,6 +47,8 @@ class OpenclIcdLoader(CMakePackage):
         "2021.04.29", sha256="c2eb8a15b3d6d0795d609f55a4cea92eaa34571f6a21428d5593673b568ac6fd"
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("opencl-c-headers@2024.05.08", when="@2024.05.08")
     depends_on("opencl-c-headers@2023.12.14", when="@2023.12.14")
     depends_on("opencl-c-headers@2023.04.17", when="@2023.04.17")

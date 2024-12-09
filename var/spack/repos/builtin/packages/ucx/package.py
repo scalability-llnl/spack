@@ -11,7 +11,7 @@ class Ucx(AutotoolsPackage, CudaPackage):
     """a communication library implementing high-performance messaging for
     MPI/PGAS frameworks"""
 
-    homepage = "http://www.openucx.org"
+    homepage = "https://www.openucx.org"
     url = "https://github.com/openucx/ucx/releases/download/v1.3.1/ucx-1.3.1.tar.gz"
     git = "https://github.com/openucx/ucx.git"
 
@@ -54,6 +54,9 @@ class Ucx(AutotoolsPackage, CudaPackage):
     version("1.2.2", sha256="914d10fee8f970d4fb286079dd656cf8a260ec7d724d5f751b3109ed32a6da63")
     version("1.2.1", sha256="fc63760601c03ff60a2531ec3c6637e98f5b743576eb410f245839c84a0ad617")
     version("1.2.0", sha256="1e1a62d6d0f89ce59e384b0b5b30b416b8fd8d7cedec4182a5319d0dfddf649c")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     simd_values = ("avx", "sse41", "sse42")
 

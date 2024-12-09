@@ -30,6 +30,8 @@ class Cxxopts(CMakePackage):
     version("1.4.1", sha256="c5ccfe99bd3db0604d077c968b39a42d61333a64d171fe84d7037d6c0dcc996d")
     version("1.4.0", sha256="60d4a482ec603ef4efa2603978596716884b33e24d39af6ddca52b4a30f7107b")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("unicode", default=False, description="Enables unicode support using the ICU library.")
 
     depends_on("cmake@3.1.0:", type="build")

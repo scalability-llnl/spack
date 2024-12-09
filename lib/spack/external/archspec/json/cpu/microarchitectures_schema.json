@@ -52,6 +52,9 @@
                   }
                 }
               }
+            },
+            "cpupart": {
+              "type": "string"
             }
           },
           "required": [

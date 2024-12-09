@@ -163,13 +163,13 @@ spack:
   # - phist
   # - plasma
   # - py-jupyterhub
-  # - py-warpx
   # - quantum-espresso
   # - scr
   # - strumpack ~slate
   # - upcxx
   # - variorum
   # - xyce +mpi +shared +pymi +pymi_static_tpls ^trilinos~shylu
+  # - warpx +python
 
   cdash:
     build-group: E4S Cray SLES

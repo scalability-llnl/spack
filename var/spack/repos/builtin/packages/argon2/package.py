@@ -21,5 +21,7 @@ class Argon2(MakefilePackage):
     version("20171227", sha256="eaea0172c1f4ee4550d1b6c9ce01aab8d1ab66b4207776aa67991eb5872fdcd8")
     version("20161029", sha256="fe0049728b946b58b94cc6db89b34e2d050c62325d16316a534d2bedd78cd5e7")
 
+    depends_on("c", type="build")  # generated
+
     def install(self, spec, prefix):
         make(f"PREFIX={prefix}", "install", "LIBRARY_REL=lib")

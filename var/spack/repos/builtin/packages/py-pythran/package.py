@@ -38,6 +38,8 @@ class PyPythran(PythonPackage):
     version("0.9.4", sha256="ec9c91f5331454263b064027292556a184a9f55a50f8615e09b08f57a4909855")
     version("0.9.3", sha256="217427a8225a331fdc8f3efe57871aed775cdf2c6e847a0a83df0aaae4b02493")
 
+    depends_on("cxx", type="build")  # generated
+
     # https://github.com/serge-sans-paille/pythran/pull/2196
     depends_on("py-setuptools@62:", when="@0.15:", type=("build", "run"))
     depends_on("py-setuptools", type=("build", "run"))
@@ -50,6 +52,8 @@ class PyPythran(PythonPackage):
     depends_on("py-gast@0.3:", when="@0.9.4:0.9.5", type=("build", "run"))
     depends_on("py-gast", when="@:0.9.3", type=("build", "run"))
     depends_on("py-numpy", type=("build", "run"))
+    # https://github.com/serge-sans-paille/pythran/issues/2189
+    depends_on("py-numpy@:1", when="@:0.15", type=("build", "run"))
     depends_on("py-beniget@0.4", when="@0.9.12:", type=("build", "run"))
     depends_on("py-beniget@0.3", when="@0.9.7:0.9.11", type=("build", "run"))
     depends_on("py-beniget@0.2.1:0.2", when="@0.9.6", type=("build", "run"))

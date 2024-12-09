@@ -78,6 +78,8 @@ class Crtm(CMakePackage):
     # Uses the tip of REL-2.3.0_emc branch
     version("2.3.0", commit="99760e693ce3b90a3b3b0e97d80972b4dfb61196")
 
+    depends_on("fortran", type="build")  # generated
+
     def url_for_version(self, version):
         if self.spec.satisfies("@v3") or version >= Version("3.0.0"):
             return f"https://github.com/JCSDA/crtmv3/archive/refs/tags/{version}.tar.gz"

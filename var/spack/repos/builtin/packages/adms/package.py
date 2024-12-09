@@ -23,6 +23,8 @@ class Adms(AutotoolsPackage):
     version("master", branch="master")
     version("2.3.7", sha256="3a78e1283ecdc3f356410474b3ff44c4dcc82cb89772087fd3bbde8a1038ce08")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("bison@2.5:", type="build")
     depends_on("flex", type="build")
     depends_on("perl-xml-libxml", type="build")

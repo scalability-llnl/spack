@@ -15,6 +15,8 @@ class PacbioDaligner(MakefilePackage):
 
     version("2017-08-05", commit="0fe5240d2cc6b55bf9e04465b700b76110749c9d")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("gmake", type="build")
     depends_on("pacbio-dazz-db")
 

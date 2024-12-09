@@ -24,6 +24,8 @@ class PyPysam(PythonPackage):
     version("0.14.1", sha256="2e86f5228429d08975c8adb9030296699012a8deba8ba26cbfc09b374f792c97")
     version("0.7.7", sha256="c9f3018482eec99ee199dda3fdef2aa7424dde6574672a4c0d209a10985755cc")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools@59.0:", when="@0.21:", type="build")
     depends_on("py-setuptools", type="build")
     depends_on("py-cython@0.29.30:2", when="@0.21:", type="build")

@@ -18,6 +18,10 @@ class Cardioid(CMakePackage):
     version("develop", branch="master")
     version("elecfem", branch="elec-fem")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("cuda", default=False, description="Build with cuda support")
     variant("mfem", default=False, description="Build with mfem support")
 
@@ -44,12 +48,12 @@ class Cardioid(CMakePackage):
             "-DCMAKE_CXX_COMPILER:STRING=" + spec["mpi"].mpicxx,
         ]
 
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             args.append("-DENABLE_CUDA:BOOL=ON")
             args.append("-DCUDA_TOOLKIT_ROOT:PATH=" + spec["cuda"].prefix)
         else:
             args.append("-DENABLE_CUDA:BOOL=OFF")
 
-        if "+mfem" in self.spec:
+        if self.spec.satisfies("+mfem"):
             args.append("-DMFEM_DIR:PATH=" + spec["mfem"].prefix)
         return args

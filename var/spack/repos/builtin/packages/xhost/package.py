@@ -19,6 +19,8 @@ class Xhost(AutotoolsPackage, XorgPackage):
     version("1.0.8", sha256="e5aabce1533dc778ceb5bbc207105cf3770f710629caceaad64675b00c38c3f8")
     version("1.0.7", sha256="8dd1b6245dfbdef45a64a18ea618f233f77432c2f30881b1db9dc40d510d9490")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libx11")
     depends_on("libxmu")
     depends_on("libxau")

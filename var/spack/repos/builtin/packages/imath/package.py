@@ -22,4 +22,7 @@ class Imath(CMakePackage):
     version("3.1.7", sha256="bff1fa140f4af0e7f02c6cb78d41b9a7d5508e6bcdfda3a583e35460eb6d4b47")
     version("3.1.5", sha256="1e9c7c94797cf7b7e61908aed1f80a331088cc7d8873318f70376e4aed5f25fb")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.12:", type="build")

@@ -17,6 +17,8 @@ class Pblat(MakefilePackage):
 
     version("2.5.1", sha256="e85a4d752b8e159502d529f0f9e47579851a6b466b6c2f1f4d49f598642bc615")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("openssl")
     depends_on("zlib-api")
 

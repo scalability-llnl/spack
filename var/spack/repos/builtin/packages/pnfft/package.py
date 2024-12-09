@@ -21,6 +21,9 @@ class Pnfft(AutotoolsPackage):
         "1.0.7-alpha", sha256="fda558ff57ee3119754363bb6e6739338680d2d6860fe7dc42009d85562bd67a"
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("pfft")
     depends_on("gsl")
 

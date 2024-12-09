@@ -22,6 +22,8 @@ class Pugixml(CMakePackage):
     version("1.10", sha256="55f399fbb470942410d348584dc953bcaec926415d3462f471ef350f29b5870a")
     version("1.8.1", sha256="929c4657c207260f8cc28e5b788b7499dffdba60d83d59f55ea33d873d729cd4")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("pic", default=True, description="Build position-independent code")
     variant("shared", default=True, description="Build shared libraries")
 

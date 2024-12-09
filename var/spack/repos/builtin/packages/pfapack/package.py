@@ -19,6 +19,10 @@ class Pfapack(MakefilePackage):
         "2014-09-17", sha256="b68fc35dda23ee24c358641b1a92ef701c4ffa0b3f0b0808b24e68afeb58ef07"
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     parallel = False
 
     depends_on("lapack")

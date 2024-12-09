@@ -20,6 +20,9 @@ class Nopayloadclient(CMakePackage):
     version("main", branch="main")
     version("0.0.3", sha256="9481981d0cfbe1727f08ae3d1129c142a952d5e67ddb9ad88224356040af2225")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("curl")
     depends_on("nlohmann-json", type="build")
 

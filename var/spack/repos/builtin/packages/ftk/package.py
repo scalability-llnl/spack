@@ -29,6 +29,9 @@ class Ftk(CMakePackage):
     version("0.0.5", sha256="9d5c84a73b7761b9fc7dac62d4296df9f3052b722ec1b06518b2b8f51a8d3440")
     version("0.0.4", sha256="1674904da8d88dbd4c7d2b6a2629883f0444e70aefc99b48d285735d394897fa")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # variants
     variant("adios2", default=False, description="Use ADIOS2")
     variant("cuda", default=False, description="Use CUDA")

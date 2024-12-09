@@ -40,6 +40,9 @@ class MongoCDriver(AutotoolsPackage, CMakePackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("ssl", default=True, description="Enable SSL support.")
     variant("snappy", default=True, description="Enable Snappy support.")
     variant("zlib", default=True, description="Enable zlib support.")

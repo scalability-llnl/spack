@@ -15,7 +15,6 @@ import spack.cmd
 import spack.repo
 import spack.spec
 import spack.stage
-import spack.util.crypto
 import spack.util.web as web_util
 from spack.cmd.common import arguments
 from spack.package_base import (

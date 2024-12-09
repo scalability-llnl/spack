@@ -16,3 +16,5 @@ class Libbinio(AutotoolsPackage):
 
     version("1.5", sha256="398b2468e7838d2274d1f62dbc112e7e043433812f7ae63ef29f5cb31dc6defd")
     version("1.4", sha256="4a32d3154517510a3fe4f2dc95e378dcc818a4a921fc0cb992bdc0d416a77e75")
+
+    depends_on("cxx", type="build")  # generated

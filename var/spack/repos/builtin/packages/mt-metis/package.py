@@ -19,6 +19,9 @@ class MtMetis(CMakePackage):
 
     version("0.6.0", sha256="cb8fb836b630a899edbeca4e1da19ec9eb47e89903bda83e7ec62cb0ffdcc284")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # avoid asm('pause') for no x86_64 familly.
     patch("non_x8664.patch")
 

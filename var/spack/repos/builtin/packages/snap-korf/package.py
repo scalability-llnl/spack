@@ -21,6 +21,8 @@ class SnapKorf(MakefilePackage):
         "2013-11-29", sha256="e2a236392d718376356fa743aa49a987aeacd660c6979cee67121e23aeffc66a"
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("perl", type=("build", "run"))
 
     def edit(self, spec, prefix):

@@ -37,6 +37,8 @@ class Coreutils(AutotoolsPackage, GNUMirrorPackage):
     version("8.26", sha256="155e94d748f8e2bc327c66e0cbebdb8d6ab265d2f37c3c928f7bf6c3beba9a8e")
     version("8.23", sha256="ec43ca5bcfc62242accb46b7f121f6b684ee21ecd7d075059bf650ff9e37b82d")
 
+    depends_on("c", type="build")  # generated
+
     variant(
         "gprefix",
         default=False,
@@ -58,7 +60,7 @@ class Coreutils(AutotoolsPackage, GNUMirrorPackage):
         spec = self.spec
         configure_args = []
         if spec.satisfies("platform=darwin"):
-            if "+gprefix" in self.spec:
+            if self.spec.satisfies("+gprefix"):
                 configure_args.append("--program-prefix=g")
             configure_args.append("--without-gmp")
             configure_args.append("gl_cv_func_ftello_works=yes")

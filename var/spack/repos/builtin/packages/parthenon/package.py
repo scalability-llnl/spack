@@ -19,6 +19,8 @@ class Parthenon(CMakePackage):
     version("23.11", sha256="76f79fb7d6556d94052829a8ac71f53cbda76f37fabd9233c5c0cd47ef561aee")
     version("0.8.0", sha256="9ed7c9ebdc84927a43b86c1e061f925b57cef9b567c7275f22779ed4d98e858d")
 
+    depends_on("cxx", type="build")  # generated
+
     # ------------------------------------------------------------#
     # Variants
     # ------------------------------------------------------------#

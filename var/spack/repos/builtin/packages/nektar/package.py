@@ -20,6 +20,9 @@ class Nektar(CMakePackage):
     version("5.4.0", commit="002bf62648ec667e10524ceb8a98bb1c21804130")
     version("5.3.0", commit="f286f809cfeb26cb73828c90a689a048898971d2")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("mpi", default=True, description="Builds with mpi support")
     variant("fftw", default=True, description="Builds with fftw support")
     variant("arpack", default=True, description="Builds with arpack support")

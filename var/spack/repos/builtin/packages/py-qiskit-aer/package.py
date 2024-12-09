@@ -19,6 +19,8 @@ class PyQiskitAer(PythonPackage, CudaPackage):
     version("0.11.1", sha256="ff136a086d0473346e5f5309ae34cc78b103dcd8a898344c6e5f86de91af41a1")
     version("0.9.1", sha256="3bf5f615aaae7cc5f816c39a4e9108aabaed0cc894fb6f841e48ffd56574e7eb")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python@3.6:", type=("build", "run"), when="@0.9.1")
     depends_on("python@3.7:", type=("build", "run"), when="@0.11.1")
     depends_on("py-setuptools@40.1.0:", type="build")

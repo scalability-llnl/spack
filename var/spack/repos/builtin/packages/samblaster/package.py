@@ -19,6 +19,8 @@ class Samblaster(MakefilePackage):
     version("0.1.24", sha256="72c42e0a346166ba00152417c82179bd5139636fea859babb06ca855af93d11f")
     version("0.1.23", sha256="0d35ce629771946e3d6fc199025747054e5512bffa1ba4446ed81160fffee57a")
 
+    depends_on("cxx", type="build")  # generated
+
     def install(self, spec, prefix):
         mkdirp(prefix.bin)
         install("samblaster", prefix.bin)

@@ -33,13 +33,14 @@ class Xsimd(CMakePackage):
     version("4.0.0", sha256="67b818601c15ef15ea4d611a8cd7382588c340ebd9146c799a0210d212540455")
     version("3.1.0", sha256="d56288826f6b82fd9583f83ace6aa2306ba2ae82cec003de1d04ce17fbb1e91f")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("googletest", type="test")
 
     # C++14 support
     conflicts("%gcc@:4.8")
     conflicts("%clang@:3.6")
     # untested: conflicts('%intel@:15')
-    # untested: conflicts('%pgi@:14')
 
     def cmake_args(self):
         args = [self.define("BUILD_TESTS", self.run_tests)]

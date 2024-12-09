@@ -37,6 +37,10 @@ class Spla(CMakePackage):
     version("develop", branch="develop")
     version("master", branch="master")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("openmp", default=True, when="@:1.5.5", description="Build with OpenMP support")
     variant("static", default=False, description="Build as static library")
     variant("cuda", default=False, description="CUDA backend")

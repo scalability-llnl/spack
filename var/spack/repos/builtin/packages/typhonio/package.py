@@ -19,6 +19,9 @@ class Typhonio(CMakePackage):
     version("develop", branch="cmake_build")
     version("1.6_CMake", sha256="c9b7b2a7f4fa0b786f6b69c6426b67f42efc4ea6871323139d52cd44f4d0ff7c")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant(
         "build_type",
         default="Release",

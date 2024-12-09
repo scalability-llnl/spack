@@ -20,9 +20,8 @@ def create_dag(nodes, edges):
     """
     specs = {name: Spec(name) for name in nodes}
     for parent, child, deptypes in edges:
-        specs[parent].add_dependency_edge(
-            specs[child], depflag=dt.canonicalize(deptypes), virtuals=()
-        )
+        depflag = deptypes if isinstance(deptypes, dt.DepFlag) else dt.canonicalize(deptypes)
+        specs[parent].add_dependency_edge(specs[child], depflag=depflag, virtuals=())
     return specs
 
 
@@ -431,3 +430,84 @@ def test_traverse_nodes_no_deps(abstract_specs_dtuse):
     ]
     outputs = [x for x in traverse.traverse_nodes(inputs, deptype=dt.NONE)]
     assert outputs == [abstract_specs_dtuse["dtuse"], abstract_specs_dtuse["dtlink5"]]
+
+
+@pytest.mark.parametrize("cover", ["nodes", "edges"])
+def test_topo_is_bfs_for_trees(cover):
+    """For trees, both DFS and BFS produce a topological order, but BFS is the most sensible for
+    our applications, where we typically want to avoid that transitive dependencies shadow direct
+    depenencies in global search paths, etc. This test ensures that for trees, the default topo
+    order coincides with BFS."""
+    binary_tree = create_dag(
+        nodes=["A", "B", "C", "D", "E", "F", "G"],
+        edges=(
+            ("A", "B", "all"),
+            ("A", "C", "all"),
+            ("B", "D", "all"),
+            ("B", "E", "all"),
+            ("C", "F", "all"),
+            ("C", "G", "all"),
+        ),
+    )
+
+    assert list(traverse.traverse_nodes([binary_tree["A"]], order="topo", cover=cover)) == list(
+        traverse.traverse_nodes([binary_tree["A"]], order="breadth", cover=cover)
+    )
+
+
+@pytest.mark.parametrize("roots", [["A"], ["A", "B"], ["B", "A"], ["A", "B", "A"]])
+@pytest.mark.parametrize("order", ["breadth", "post", "pre"])
+@pytest.mark.parametrize("include_root", [True, False])
+def test_mixed_depth_visitor(roots, order, include_root):
+    """Test that the MixedDepthVisitor lists unique edges that are reachable either directly from
+    roots through build type edges, or transitively through link type edges. The tests ensures that
+    unique edges are listed exactly once."""
+    my_graph = create_dag(
+        nodes=["A", "B", "C", "D", "E", "F", "G", "H", "I"],
+        edges=(
+            ("A", "B", dt.LINK | dt.RUN),
+            ("A", "C", dt.BUILD),
+            ("A", "D", dt.BUILD | dt.RUN),
+            ("A", "H", dt.LINK),
+            ("A", "I", dt.RUN),
+            ("B", "D", dt.BUILD | dt.LINK),
+            ("C", "E", dt.BUILD | dt.LINK | dt.RUN),
+            ("D", "F", dt.LINK),
+            ("D", "G", dt.BUILD | dt.RUN),
+            ("H", "B", dt.LINK),
+        ),
+    )
+    starting_points = traverse.with_artificial_edges([my_graph[root] for root in roots])
+    visitor = traverse.MixedDepthVisitor(direct=dt.BUILD, transitive=dt.LINK)
+
+    if order == "pre":
+        edges = traverse.traverse_depth_first_edges_generator(
+            starting_points, visitor, post_order=False, root=include_root
+        )
+    elif order == "post":
+        edges = traverse.traverse_depth_first_edges_generator(
+            starting_points, visitor, post_order=True, root=include_root
+        )
+    elif order == "breadth":
+        edges = traverse.traverse_breadth_first_edges_generator(
+            starting_points, visitor, root=include_root
+        )
+
+    artificial_edges = [(None, root) for root in roots] if include_root else []
+    simple_edges = [
+        (None if edge.parent is None else edge.parent.name, edge.spec.name) for edge in edges
+    ]
+
+    # make sure that every edge is listed exactly once and that the right edges are listed
+    assert len(simple_edges) == len(set(simple_edges))
+    assert set(simple_edges) == {
+        # the roots
+        *artificial_edges,
+        ("A", "B"),
+        ("A", "C"),
+        ("A", "D"),
+        ("A", "H"),
+        ("B", "D"),
+        ("D", "F"),
+        ("H", "B"),
+    }

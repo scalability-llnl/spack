@@ -17,6 +17,8 @@ class PySimpletraj(PythonPackage):
     # Versions
     version("0.5", sha256="860ccba82e7a6085ef1cbff74eb2db53df65fd58edabae3c45b8c45a219b8a3b")
 
+    depends_on("c", type="build")  # generated
+
     # Dependencies
     depends_on("py-setuptools", type="build")
     depends_on("python@3.8:", type=("build", "run"))

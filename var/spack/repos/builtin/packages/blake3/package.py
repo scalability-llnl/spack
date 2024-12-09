@@ -18,4 +18,6 @@ class Blake3(CMakePackage):
 
     version("1.5.1", sha256="822cd37f70152e5985433d2c50c8f6b2ec83aaf11aa31be9fe71486a91744f37")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("cmake@3.9:", type="build")

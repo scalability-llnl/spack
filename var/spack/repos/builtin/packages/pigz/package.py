@@ -21,6 +21,8 @@ class Pigz(MakefilePackage):
     version("2.4", sha256="e228e7d18b34c4ece8d596eb6eee97bde533c6beedbb728d07d3abe90b4b1b52")
     version("2.3.4", sha256="763f2fdb203aa0b7b640e63385e38e5dd4e5aaa041bc8e42aa96f2ef156b06e8")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("zlib-api")
 
     def build(self, spec, prefix):

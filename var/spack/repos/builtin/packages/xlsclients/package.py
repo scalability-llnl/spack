@@ -17,6 +17,8 @@ class Xlsclients(AutotoolsPackage, XorgPackage):
     version("1.1.4", sha256="0b46e8289413c3e7c437a95ecd6494f99d27406d3a0b724ef995a98cbd6c33e8")
     version("1.1.3", sha256="4670a4003aae01e9172efb969246c3d8f33481f290aa8726ff50398c838e6994")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libxcb@1.6:", when="@1.1:")
     depends_on("libx11", when="@:1.0")
 

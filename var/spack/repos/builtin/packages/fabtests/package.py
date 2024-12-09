@@ -41,6 +41,8 @@ class Fabtests(AutotoolsPackage):
     version("1.5.0", sha256="1dddd446c3f1df346899f9a8636f1b4265de5b863103ae24876e9f0c1e40a69d")
     version("1.4.2", sha256="3b78d0ca1b223ff21b7f5b3627e67e358e3c18b700f86b017e2233fee7e88c2e")
 
+    depends_on("c", type="build")  # generated
+
     versions = [
         "1.21.0",
         "1.20.2",

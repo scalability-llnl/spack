@@ -16,11 +16,15 @@ class Rccl(CMakePackage):
 
     homepage = "https://github.com/ROCm/rccl"
     git = "https://github.com/ROCm/rccl.git"
-    url = "https://github.com/ROCm/rccl/archive/rocm-6.1.1.tar.gz"
+    url = "https://github.com/ROCm/rccl/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
     maintainers("srekolam", "renjithravindrankannath")
     libraries = ["librccl"]
+    version("6.2.4", sha256="12a04743ed89a74b4a08aa046b6a549d385e15d6866042fd41eac8f085f50eea")
+    version("6.2.1", sha256="0f5e35c7afbb21c1d49ff201b7d1ddf163d853c27c75c3eaf7b449f4dc1e2188")
+    version("6.2.0", sha256="a29c94ea3b9c1a0121d7b1450cb01a697f9f9132169632312b9b0bf744d3c0e3")
+    version("6.1.2", sha256="98af99c12d800f5439c7740d797162c35810a25e08e3b11b397d3300d3c0148e")
     version("6.1.1", sha256="6368275059ba190d554535d5aeaa5c2510d944b56efd85c90a1701d0292a14c5")
     version("6.1.0", sha256="c6308f6883cbd63dceadbe4ee154cc6fa9e6bdccbd2f0fda295b564b0cf01e9a")
     version("6.0.2", sha256="5c8495acba3d620b751e729d1157e7b4eea8f5e5692c50ce47c5204d3dfd443c")
@@ -36,6 +40,9 @@ class Rccl(CMakePackage):
         version("5.4.0", sha256="213f4f3d75389be588673e43f563e5c0d6908798228b0b6a71f27138fd4ed0c7")
         version("5.3.3", sha256="8995a2d010ad0748fc85ac06e8da7e8d110ba996db04d42b77526c9c059c05bb")
         version("5.3.0", sha256="51da5099fa58c2be882319cebe9ceabe2062feebcc0c5849e8c109030882c10a")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     amdgpu_targets = ROCmPackage.amdgpu_targets
 
@@ -68,28 +75,15 @@ class Rccl(CMakePackage):
         "6.0.2",
         "6.1.0",
         "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
     ]:
         depends_on(f"rocm-cmake@{ver}:", type="build", when=f"@{ver}")
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"comgr@{ver}", when=f"@{ver}")
         depends_on(f"hsa-rocr-dev@{ver}", when=f"@{ver}")
-
-    for ver in [
-        "5.3.0",
-        "5.3.3",
-        "5.4.0",
-        "5.4.3",
-        "5.5.0",
-        "5.5.1",
-        "5.6.0",
-        "5.6.1",
-        "5.7.0",
-        "5.7.1",
-        "6.0.0",
-        "6.0.2",
-        "6.1.0",
-        "6.1.1",
-    ]:
         depends_on(f"rocm-smi-lib@{ver}", when=f"@{ver}")
 
     for ver in [
@@ -102,7 +96,10 @@ class Rccl(CMakePackage):
         "6.0.0",
         "6.0.2",
         "6.1.0",
-        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 
@@ -138,7 +135,7 @@ class Rccl(CMakePackage):
             args.append(self.define("BUILD_TESTS", "ON"))
         return args
 
-    def test(self):
-        test_dir = join_path(self.spec["rccl"].prefix, "bin")
-        with working_dir(test_dir, create=True):
-            self.run_test("UnitTests")
+    def test_unit(self):
+        """Run unit tests"""
+        unit_tests = which(join_path(self.prefix.bin, "rccl-UnitTests"))
+        unit_tests()

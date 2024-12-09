@@ -22,6 +22,10 @@ class Eztrace(CMakePackage, AutotoolsPackage, CudaPackage):
     version("1.1-13", sha256="6144d04fb62b3ccad41af0268cd921161f168d0cca3f6c210c448bb0b07be7e0")
     version("1.1-10", sha256="63d1af2db38b04efa817614574f381e7536e12db06a2c75375d1795adda3d1d8")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("starpu", default=False, description="Enable StarPU support", when="@2.1:")
     variant("netcdf", default=False, description="Enable NetCDF support", when="@2.1:")
     variant("pnetcdf", default=False, description="Enable PNetCDF support", when="@2.1:")
@@ -88,13 +92,13 @@ class CMakeBuilder(cmake.CMakeBuilder):
 
         if spec.satisfies("@2.1: %llvm-openmp-ompt"):
             args.append(self.define("EZTRACE_ENABLE_OMPT", True))
-        if "+starpu" in spec:
+        if spec.satisfies("+starpu"):
             args.append(self.define("EZTRACE_ENABLE_STARPU", True))
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             args.append(self.define("EZTRACE_ENABLE_CUDA", True))
-        if "+netcdf" in spec:
+        if spec.satisfies("+netcdf"):
             args.append(self.define("EZTRACE_ENABLE_NETCDF", True))
-        if "+pnetcdf" in spec:
+        if spec.satisfies("+pnetcdf"):
             args.append(self.define("EZTRACE_ENABLE_PNETCDF", True))
 
         return args

@@ -22,6 +22,8 @@ class PyOsqp(PythonPackage):
     )
     version("0.6.1", sha256="47b17996526d6ecdf35cfaead6e3e05d34bc2ad48bcb743153cefe555ecc0e8c")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("cmake", type="build")
     depends_on("py-setuptools", type="build")
     depends_on("py-setuptools@40.8.0:", when="@0.6.2.post8:", type="build")

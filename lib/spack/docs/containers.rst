@@ -203,9 +203,6 @@ The OS that are currently supported are summarized in the table below:
    * - Ubuntu 24.04
      - ``ubuntu:24.04``
      - ``spack/ubuntu-noble``
-   * - CentOS 7
-     - ``centos:7``
-     - ``spack/centos7``
    * - CentOS Stream9
      - ``quay.io/centos/centos:stream9``
      - ``spack/centos-stream9``

@@ -12,12 +12,16 @@ class Rocminfo(CMakePackage):
 
     homepage = "https://github.com/ROCm/rocminfo"
     git = "https://github.com/ROCm/rocminfo.git"
-    url = "https://github.com/ROCm/rocminfo/archive/rocm-6.1.1.tar.gz"
+    url = "https://github.com/ROCm/rocminfo/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
     maintainers("srekolam", "renjithravindrankannath", "haampie")
 
     version("master", branch="master")
+    version("6.2.4", sha256="14d4b0e22e2314156091ac9ad1646dd20909dba3a43e037584a503a6754e7f9e")
+    version("6.2.1", sha256="ae6e08962535e76a81ed872cbd6bf6860c46fa6e4e4bc8f7849c8781359798d8")
+    version("6.2.0", sha256="4d9a9051bda3355f8d2050e981435cd02528a04264a7f61162d685e7e1629f73")
+    version("6.1.2", sha256="882ebe3db60b6290a81a98e0bac9b8923fbf83966f1706fd24484700b8213bcc")
     version("6.1.1", sha256="ef5e33ad3d0bae462d01e1528ffa9c83c587ccbf7ef5947e096e550480d83819")
     version("6.1.0", sha256="973352210fdc65932f0125e2db68729383727eaf4ebb7f52c88a948c14bbbb73")
     version("6.0.2", sha256="e616d364a48de18eaee661bdce999d095086905f49777663ca99312f40a63da1")
@@ -33,6 +37,9 @@ class Rocminfo(CMakePackage):
         version("5.4.0", sha256="79123b92992cce75ae679caf9a6bf57b16d24e96e54b36eb002511f3800e29c6")
         version("5.3.3", sha256="77e6adc81da6c1d153517e1d28db774205531a2ec188e6518f998328ef7897c6")
         version("5.3.0", sha256="c279da1d946771d120611b64974fde751534e787a394ceb6b8e0b743c143d782")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     depends_on("cmake@3:", type="build")
 
@@ -51,6 +58,10 @@ class Rocminfo(CMakePackage):
         "6.0.2",
         "6.1.0",
         "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
         "master",
     ]:
         depends_on(f"hsakmt-roct@{ver}", when=f"@{ver}")
@@ -67,6 +78,10 @@ class Rocminfo(CMakePackage):
         "6.0.2",
         "6.1.0",
         "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 

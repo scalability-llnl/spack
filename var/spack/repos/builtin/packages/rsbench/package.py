@@ -19,6 +19,9 @@ class Rsbench(MakefilePackage):
     version("2", sha256="1e97a38a863836e98cedc5cc669f8fdcaed905fafdc921d2bce32319b3e157ff")
     version("0", sha256="95c06cf4cb6f396f9964d5e4b58a477bf9d7131cd39804480f1cb74e9310b271")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     tags = ["proxy-app"]
 
     # To-Do: Add build support for other parallelism versions in v12:
@@ -42,7 +45,7 @@ class Rsbench(MakefilePackage):
             cflags += " -ffast-math "
         elif spec.satisfies("%intel"):
             cflags += " -xhost -ansi-alias -no-prec-div "
-        elif spec.satisfies("%pgi") or spec.satisfies("%nvhpc"):
+        elif spec.satisfies("%nvhpc"):
             cflags += " -fastsse "
         elif spec.satisfies("%arm"):
             cflags += " -ffast-math "

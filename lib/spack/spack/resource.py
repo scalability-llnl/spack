@@ -12,7 +12,10 @@ package to enable optional features.
 
 
 class Resource:
-    """Represents an optional resource to be fetched by a package.
+    """Represents any resource to be fetched by a package.
+
+    This includes the main tarball or source archive, as well as extra archives defined
+    by the resource() directive.
 
     Aggregates a name, a fetcher, a destination and a placement.
     """

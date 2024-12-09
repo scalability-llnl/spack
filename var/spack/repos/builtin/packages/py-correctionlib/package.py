@@ -17,6 +17,8 @@ class PyCorrectionlib(PythonPackage):
     version("2.1.0", sha256="edf79644dc1d9d94f12b4b45366331e5da3f1e21d4cbcd3bb8b0d4b1421b0c44")
     version("2.0.0", sha256="e4d240cbdb2633a8955ddcd02d5b9bfb33d7e1a33554d6f7957f2dec56988a67")
 
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "convert",
         default=False,

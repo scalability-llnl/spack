@@ -11,6 +11,8 @@ import sys
 
 import llnl.util.tty as tty
 
+import spack.compilers
+import spack.version
 from spack.package import *
 
 
@@ -44,10 +46,16 @@ class Openmpi(AutotoolsPackage, CudaPackage):
 
     # Current
     version(
-        "5.0.3", sha256="990582f206b3ab32e938aa31bbf07c639368e4405dca196fabe7f0f76eeda90b"
-    )  # libmpi.so.40.40.3
+        "5.0.5", sha256="6588d57c0a4bd299a24103f4e196051b29e8b55fbda49e11d5b3d32030a32776"
+    )  # libmpi.so.40.40.5
 
     # Still supported
+    version(
+        "5.0.4", sha256="64526852cdd88b2d30e022087c16ab3e03806c451b10cd691d5c1ac887d8ef9d"
+    )  # libmpi.so.40.40.4
+    version(
+        "5.0.3", sha256="990582f206b3ab32e938aa31bbf07c639368e4405dca196fabe7f0f76eeda90b"
+    )  # libmpi.so.40.40.3
     version(
         "5.0.2", sha256="ee46ad8eeee2c3ff70772160bff877cbf38c330a0bc3b3ddc811648b3396698f"
     )  # libmpi.so.40.40.2
@@ -57,6 +65,9 @@ class Openmpi(AutotoolsPackage, CudaPackage):
     version(
         "5.0.0", sha256="9d845ca94bc1aeb445f83d98d238cd08f6ec7ad0f73b0f79ec1668dbfdacd613"
     )  # libmpi.so.40.40.0
+    version(
+        "4.1.7", sha256="54a33cb7ad81ff0976f15a6cc8003c3922f0f3d8ceed14e1813ef3603f22cd34"
+    )  # libmpi.so.40.30.7
     version(
         "4.1.6", sha256="f740994485516deb63b5311af122c265179f5328a0d857a567b85db00b11e415"
     )  # libmpi.so.40.30.6
@@ -388,6 +399,10 @@ class Openmpi(AutotoolsPackage, CudaPackage):
         "1.0", sha256="cf75e56852caebe90231d295806ac3441f37dc6d9ad17b1381791ebb78e21564"
     )  # libmpi.so.0.0.0
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     patch("ad_lustre_rwcontig_open_source.patch", when="@1.6.5")
     patch("llnl-platforms.patch", when="@1.6.5")
     patch("configure.patch", when="@1.10.1")
@@ -433,39 +448,46 @@ class Openmpi(AutotoolsPackage, CudaPackage):
     patch("btlsmcuda-fix-problem-with-makefile.patch", when="@5.0.0")
     patch("accelerator-build-components-as-dso-s-by-default.patch", when="@5.0.0:5.0.1")
 
+    # OpenMPI 5.0.0-5.0.3 needs to change PMIX version check to compile w/ PMIX > 4.2.5
+    # https://github.com/open-mpi/ompi/issues/12537#issuecomment-2103350910
+    # https://github.com/openpmix/prrte/pull/1957
+    patch("pmix_getline_pmix_version.patch", when="@5.0.0:5.0.3")
+    patch("pmix_getline_pmix_version-prte.patch", when="@5.0.3")
+
+    FABRICS = (
+        "psm",
+        "psm2",
+        "verbs",
+        "mxm",
+        "ucx",
+        "ofi",
+        "fca",
+        "hcoll",
+        "ucc",
+        "xpmem",
+        "cma",
+        "knem",
+    )
+
     variant(
         "fabrics",
         values=disjoint_sets(
-            ("auto",),
-            (
-                "psm",
-                "psm2",
-                "verbs",
-                "mxm",
-                "ucx",
-                "ofi",
-                "fca",
-                "hcoll",
-                "ucc",
-                "xpmem",
-                "cma",
-                "knem",
-            ),  # shared memory transports
+            ("auto",), FABRICS  # shared memory transports
         ).with_non_feature_values("auto", "none"),
         description="List of fabrics that are enabled; " "'auto' lets openmpi determine",
     )
 
+    SCHEDULERS = ("alps", "lsf", "tm", "slurm", "sge", "loadleveler")
+
     variant(
         "schedulers",
-        values=disjoint_sets(
-            ("auto",), ("alps", "lsf", "tm", "slurm", "sge", "loadleveler")
-        ).with_non_feature_values("auto", "none"),
+        values=disjoint_sets(("auto",), SCHEDULERS).with_non_feature_values("auto", "none"),
         description="List of schedulers for which support is enabled; "
         "'auto' lets openmpi determine",
     )
 
     # Additional support options
-    variant("atomics", default=False, description="Enable built-in atomics")
+    variant("atomics", default=True, description="Enable built-in atomics")
     variant("java", default=False, when="@1.7.4:", description="Build Java support")
     variant("static", default=False, description="Build static libraries")
     variant("sqlite3", default=False, when="@1.7.3:1", description="Build SQLite3 support")
@@ -526,6 +548,7 @@ class Openmpi(AutotoolsPackage, CudaPackage):
     variant(
         "orterunprefix",
         default=False,
+        when="@1.3:4",
         description="Prefix Open MPI to PATH and LD_LIBRARY_PATH on local and remote hosts",
     )
     # Adding support to build a debug version of OpenMPI that activates
@@ -544,6 +567,7 @@ class Openmpi(AutotoolsPackage, CudaPackage):
     variant(
         "legacylaunchers",
         default=False,
+        when="@1.6:4 schedulers=slurm",
         description="Do not remove mpirun/mpiexec when building with slurm",
     )
     # Variants to use internal packages
@@ -551,10 +575,30 @@ class Openmpi(AutotoolsPackage, CudaPackage):
     variant("internal-pmix", default=False, description="Use internal pmix")
     variant("internal-libevent", default=False, description="Use internal libevent")
     variant("openshmem", default=False, description="Enable building OpenSHMEM")
+    variant("debug", default=False, description="Make debug build", when="build_system=autotools")
 
-    provides("mpi")
-    provides("mpi@:2.2", when="@1.6.5")
-    provides("mpi@:3.0", when="@1.7.5:")
+    variant(
+        "two_level_namespace",
+        default=False,
+        description="""Build shared libraries and programs
+built with the mpicc/mpifort/etc. compiler wrappers
+with '-Wl,-commons,use_dylibs' and without
+'-Wl,-flat_namespace'.""",
+    )
+
+    # Patch to allow two-level namespace on a MacOS platform when building
+    # openmpi. Unfortuntately, the openmpi configure command has flat namespace
+    # hardwired in. In spack, this only works for openmpi up to versions 4,
+    # because for versions 5+ autoreconf is triggered (see below) and this
+    # patch needs to be applied (again) AFTER autoreconf ran.
+    @when("+two_level_namespace platform=darwin")
+    def patch(self):
+        filter_file(r"-flat_namespace", "-commons,use_dylibs", "configure")
+
+    provides("mpi@:2.0", when="@:1.2")
+    provides("mpi@:2.1", when="@1.3:1.7.2")
+    provides("mpi@:2.2", when="@1.7.3:1.7.4")
+    provides("mpi@:3.0", when="@1.7.5:1.10.7")
     provides("mpi@:3.1", when="@2.0.0:")
 
     if sys.platform != "darwin":
@@ -648,11 +692,6 @@ class Openmpi(AutotoolsPackage, CudaPackage):
     # knem support was added in 1.5
     conflicts("fabrics=knem", when="@:1.4")
 
-    conflicts(
-        "schedulers=slurm ~pmi",
-        when="@1.5.4",
-        msg="+pmi is required for openmpi to work with Slurm.",
-    )
     conflicts(
         "schedulers=loadleveler",
         when="@3:",
@@ -788,24 +827,26 @@ class Openmpi(AutotoolsPackage, CudaPackage):
                     variants.append("~pmi")
 
             # fabrics
-            fabrics = get_options_from_variant(cls, "fabrics")
             used_fabrics = []
-            for fabric in fabrics:
+            for fabric in cls.FABRICS:
                 match = re.search(r"\bMCA (?:mtl|btl|pml): %s\b" % fabric, output)
                 if match:
                     used_fabrics.append(fabric)
             if used_fabrics:
                 variants.append("fabrics=" + ",".join(used_fabrics))
+            else:
+                variants.append("fabrics=none")
 
             # schedulers
-            schedulers = get_options_from_variant(cls, "schedulers")
             used_schedulers = []
-            for scheduler in schedulers:
+            for scheduler in cls.SCHEDULERS:
                 match = re.search(r"\bMCA (?:prrte|ras): %s\b" % scheduler, output)
                 if match:
                     used_schedulers.append(scheduler)
             if used_schedulers:
                 variants.append("schedulers=" + ",".join(used_schedulers))
+            else:
+                variants.append("schedulers=none")
 
             # Get the appropriate compiler
             match = re.search(r"\bC compiler absolute: (\S+)", output)
@@ -976,11 +1017,15 @@ class Openmpi(AutotoolsPackage, CudaPackage):
     def autoreconf(self, spec, prefix):
         perl = which("perl")
         perl("autogen.pl")
+        if spec.satisfies("+two_level_namespace platform=darwin"):
+            filter_file(r"-flat_namespace", "-commons,use_dylibs", "configure")
 
     @when("@5.0.0:5.0.1")
     def autoreconf(self, spec, prefix):
         perl = which("perl")
         perl("autogen.pl", "--force")
+        if spec.satisfies("+two_level_namespace platform=darwin"):
+            filter_file(r"-flat_namespace", "-commons,use_dylibs", "configure")
 
     def configure_args(self):
         spec = self.spec
@@ -988,7 +1033,7 @@ class Openmpi(AutotoolsPackage, CudaPackage):
 
         # Work around incompatibility with new apple-clang linker
         # https://github.com/open-mpi/ompi/issues/12427
-        if spec.satisfies("@5: %apple-clang@15:"):
+        if spec.satisfies("@:4.1.6,5.0.0:5.0.3 %apple-clang@15:"):
             config_args.append("--with-wrapper-fcflags=-Wl,-ld_classic")
 
         # All rpath flags should be appended with self.compiler.cc_rpath_arg.
@@ -1014,9 +1059,9 @@ class Openmpi(AutotoolsPackage, CudaPackage):
             config_args.append("--enable-mca-no-build=plm-rsh")
 
         # Useful for ssh-based environments
-        if spec.satisfies("@1.3:"):
-            if spec.satisfies("+orterunprefix"):
-                config_args.append("--enable-orterun-prefix-by-default")
+        # For v4 and lower
+        if spec.satisfies("+orterunprefix"):
+            config_args.append("--enable-orterun-prefix-by-default")
 
         # some scientific packages ignore deprecated/remove symbols. Re-enable
         # them for now, for discussion see
@@ -1119,13 +1164,6 @@ class Openmpi(AutotoolsPackage, CudaPackage):
             if spec.satisfies("@1.7.2"):
                 # There was a bug in 1.7.2 when --enable-static is used
                 config_args.append("--enable-mca-no-build=pml-bfo")
-            if spec.satisfies("%pgi^cuda@7.0:7"):
-                # OpenMPI has problems with CUDA 7 and PGI
-                config_args.append("--with-wrapper-cflags=-D__LP64__ -ta:tesla")
-                if spec.satisfies("%pgi@:15.8"):
-                    # With PGI 15.9 and later compilers, the
-                    # CFLAGS=-D__LP64__ is no longer needed.
-                    config_args.append("CFLAGS=-D__LP64__")
         elif spec.satisfies("@1.7:"):
             config_args.append("--without-cuda")
 
@@ -1199,6 +1237,8 @@ class Openmpi(AutotoolsPackage, CudaPackage):
         if spec.satisfies("%intel@2021.7.0:"):
             config_args.append("CPPFLAGS=-diag-disable=10441")
 
+        config_args += self.enable_or_disable("debug")
+
         return config_args
 
     @run_after("install", when="+wrapper-rpath")
@@ -1248,6 +1288,7 @@ class Openmpi(AutotoolsPackage, CudaPackage):
         if self.compiler.name == "nag":
             x.filter("-Wl,--enable-new-dtags", "", string=True, backup=False)
 
+    # For v4 and lower
     @run_after("install")
     def delete_mpirun_mpiexec(self):
         # The preferred way to run an application when Slurm is the
@@ -1257,7 +1298,7 @@ class Openmpi(AutotoolsPackage, CudaPackage):
         # applications via mpirun or mpiexec, and leaves srun as the
         # only sensible choice (orterun is still present, but normal
         # users don't know about that).
-        if "@1.6: ~legacylaunchers schedulers=slurm" in self.spec:
+        if self.spec.satisfies("~legacylaunchers schedulers=slurm"):
             exe_list = [
                 self.prefix.bin.mpirun,
                 self.prefix.bin.mpiexec,
@@ -1279,7 +1320,7 @@ class Openmpi(AutotoolsPackage, CudaPackage):
         Copy the example files after the package is installed to an
         install test subdirectory for use during `spack test run`.
         """
-        self.cache_extra_test_sources(self.extra_install_tests)
+        cache_extra_test_sources(self, self.extra_install_tests)
 
     def run_installed_binary(self, bin, options, expected):
         """run and check outputs for the installed binary"""
@@ -1297,7 +1338,7 @@ class Openmpi(AutotoolsPackage, CudaPackage):
         self.run_installed_binary("mpirun", options, [f"openmpi-{self.spec.version}"])
 
     def test_opmpi_info(self):
-        """test installed mpirun"""
+        """test installed ompi_info"""
         self.run_installed_binary("ompi_info", [], [f"Ident string: {self.spec.version}", "MCA"])
 
     def test_version(self):
@@ -1391,12 +1432,3 @@ def is_enabled(text):
     if text in set(["t", "true", "enabled", "yes", "1"]):
         return True
     return False
-
-
-# This code gets all the fabric names from the variants list
-# Idea taken from the AutotoolsPackage source.
-def get_options_from_variant(self, name):
-    values = self.variants[name][0].values
-    if getattr(values, "feature_values", None):
-        values = values.feature_values
-    return values

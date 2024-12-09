@@ -28,6 +28,8 @@ class Opensta(CMakePackage):
 
     version("master", branch="master")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("zlib", default=True, description="build with zlib support")
     variant("cudd", default=True, description="build with cudd support")
 

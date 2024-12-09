@@ -22,6 +22,8 @@ class Libpsm3(AutotoolsPackage):
     )
     version("11.4.1.0", sha256="272adb9ec10edf709bfcfccc6b6e9296d25d892c36b845ad577caeb82b70c9ac")
 
+    depends_on("c", type="build")  # generated
+
     variant("atomics", default=True, description="Enable atomics")
     variant("debug", default=False, description="Enable debugging")
     variant("sockets", default=True, description="Enable PSM3 sockets")
@@ -54,8 +56,8 @@ class Libpsm3(AutotoolsPackage):
         env.prepend_path("FI_PROVIDER_PATH", self.prefix.lib)
         env.set("FI_PROVIDER", "psm3")
         env.set("PSM3_ALLOW_ROUTERS", "1")
-        if "+sockets" in self.spec and "~verbs" in self.spec:
+        if self.spec.satisfies("+sockets ~verbs"):
             env.set("PSM3_HAL", "sockets")
         env.set("FI_PSM3_NAME_SERVER", "1")
-        if "+debug" in self.spec:
+        if self.spec.satisfies("+debug"):
             env.set("PSM3_IDENTIFY", "1")

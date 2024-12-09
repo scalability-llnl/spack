@@ -13,7 +13,7 @@ class RocmCmake(CMakePackage):
 
     homepage = "https://github.com/ROCm/rocm-cmake"
     git = "https://github.com/ROCm/rocm-cmake.git"
-    url = "https://github.com/ROCm/rocm-cmake/archive/rocm-6.1.1.tar.gz"
+    url = "https://github.com/ROCm/rocm-cmake/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
     maintainers("srekolam", "renjithravindrankannath")
@@ -21,6 +21,10 @@ class RocmCmake(CMakePackage):
     license("MIT")
 
     version("master", branch="master")
+    version("6.2.4", sha256="76bfac6fba31a9c4ec196d9b9b2d5ec51b8b68840b3fba8686aa42323d76a425")
+    version("6.2.1", sha256="5ea05ad58186ac9bac40ab083c1e769a36ecaed950f82e88863169a25bc6ac8f")
+    version("6.2.0", sha256="7b6aaa1bb616669636aa2cd5dbc7fdb7cd05642a8dcc61138e0efb7d0dc7e1a3")
+    version("6.1.2", sha256="0757bb90f25d6f1e6bc93bdd1e238f76bbaddf154d66f94f37e40c425dc6d259")
     version("6.1.1", sha256="0eb81245f7573a3cadf9e91a854d9a0a014ce93610e4e7ea4d8309867a470bf6")
     version("6.1.0", sha256="8b37d458e801b486521f12d18ca2103125173dd0f1130d37c8c36e795d34772b")
     version("6.0.2", sha256="7bd3ff971b1a898b8cf06b0ed9fac45891e2523ae651c3194ba36050ab45f869")
@@ -37,6 +41,8 @@ class RocmCmake(CMakePackage):
         version("5.3.3", sha256="3e527f99db52e301ab4f1b994029585951e2ae685f0cdfb7b8529c72f4b77af4")
         version("5.3.0", sha256="659a8327f13e6786103dd562d3632e89a51244548fca081f46c753857cf09d04")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.6:", type="build")
 
     for ver in [
@@ -50,6 +56,10 @@ class RocmCmake(CMakePackage):
         "6.0.2",
         "6.1.0",
         "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 
@@ -59,19 +69,15 @@ class RocmCmake(CMakePackage):
     def cache_test_sources(self):
         """Copy the tests source files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        if self.spec.satisfies("@:5.1.0"):
-            return
-        self.cache_extra_test_sources([self.test_src_dir])
+        cache_extra_test_sources(self, [self.test_src_dir])
 
-    def test(self):
-        if self.spec.satisfies("@:5.1.0"):
-            print("Skipping: stand-alone tests")
-            return
+    def test_cmake(self):
+        """Test cmake"""
         test_dir = join_path(self.test_suite.current_test_cache_dir, self.test_src_dir)
         with working_dir(test_dir, create=True):
-            cmake_bin = join_path(self.spec["cmake"].prefix.bin, "cmake")
             prefixes = ";".join([self.spec["rocm-cmake"].prefix])
             cc_options = ["-DCMAKE_PREFIX_PATH=" + prefixes, "."]
-            self.run_test(cmake_bin, cc_options)
+            cmake = which(self.spec["cmake"].prefix.bin.cmake)
+            cmake(*cc_options)
             make()
             make("clean")

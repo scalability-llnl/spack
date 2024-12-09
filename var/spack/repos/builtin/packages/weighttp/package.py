@@ -18,6 +18,8 @@ class Weighttp(AutotoolsPackage):
     version("0.3", sha256="376e2311af2decb8f6051e4f968d7c0ba92ca60cd563d768beb4868eb9679f45")
     version("0.2", sha256="bc2b3955126010ce27e0829285720f973df9f144e9cca2568569a657a3d5e634")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

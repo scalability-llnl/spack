@@ -15,4 +15,6 @@ class PerlSetIntervaltree(PerlPackage):
 
     version("0.10", sha256="e3bd9ccf0d074b5f879eef1ed88254983697bf83d02744fce62150ee46553ebc")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("perl-extutils-makemaker", type="build")

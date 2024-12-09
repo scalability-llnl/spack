@@ -25,6 +25,8 @@ class Hapcut2(MakefilePackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("htslib@1.3:")
     depends_on("curl")
     depends_on("openssl")

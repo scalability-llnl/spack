@@ -33,6 +33,9 @@ class Cppad(CMakePackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     def cmake_args(self):
         # NOTE: This package does not obey CMAKE_INSTALL_PREFIX
         args = [

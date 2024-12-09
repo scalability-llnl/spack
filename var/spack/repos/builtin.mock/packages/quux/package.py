@@ -142,7 +142,7 @@ const int quux_version_minor = %s;
                 "-o",
                 "libquux.dylib",
                 "-install_name",
-                "@rpath/libcorge.dylib",
+                "@rpath/libquux.dylib",
                 "quux.cc.o",
                 "-Wl,-rpath,%s" % prefix.lib64,
                 "-Wl,-rpath,%s" % spec["garply"].prefix.lib64,

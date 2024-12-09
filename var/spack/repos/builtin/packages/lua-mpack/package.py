@@ -23,5 +23,7 @@ class LuaMpack(LuaPackage):
     version("1.0.7", sha256="68565484a3441d316bd51bed1cacd542b7f84b1ecfd37a8bd18dd0f1a20887e8")
     version("1.0.6-0", sha256="9068d9d3f407c72a7ea18bc270b0fa90aad60a2f3099fa23d5902dd71ea4cd5f")
 
+    depends_on("c", type="build")  # generated
+
     def luarocks_args(self):
         return ["CFLAGS=-fPIC -Wno-error=implicit-function-declaration"]

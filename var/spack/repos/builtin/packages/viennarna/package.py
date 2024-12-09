@@ -21,6 +21,10 @@ class Viennarna(AutotoolsPackage):
     version("2.4.3", sha256="4cda6e22029b34bb9f5375181562f69e4a780a89ead50fe952891835e9933ac0")
     version("2.3.5", sha256="26b62a00da21bc5597b580ab8fef4e624234ec446d7d3cb0ce22803a5d7074ca")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant(
         "sse", default=True, description="Enable SSE in order to substantially speed up execution"
     )

@@ -18,6 +18,8 @@ class Xmh(AutotoolsPackage, XorgPackage):
     version("1.0.4", sha256="2034f24fb3181b6e07ebf7235d2845a7ebb18d533aa405dbc99235eec4ab410f")
     version("1.0.3", sha256="f90baf2615a4e1e01232c50cfd36ee4d50ad2fb2f76b8b5831fb796661f194d2")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libxaw")
     depends_on("libxmu")
     depends_on("libxt")

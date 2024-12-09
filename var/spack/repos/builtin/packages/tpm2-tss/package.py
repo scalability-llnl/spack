@@ -19,6 +19,8 @@ class Tpm2Tss(AutotoolsPackage):
     version("2.4.2", sha256="1cec5e834a6a750b138cabcd100b3fcd12b16cd21fa4f9103739914743511f75")
     version("2.4.1", sha256="cc6f0691307f3c65d5a1375e2cd22508cc72850dbc70eb820b892f0b3d0cbea2")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

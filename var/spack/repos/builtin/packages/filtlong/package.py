@@ -19,6 +19,8 @@ class Filtlong(MakefilePackage):
     version("0.2.0", sha256="a4afb925d7ced8d083be12ca58911bb16d5348754e7c2f6431127138338ee02a")
     version("0.1.1", sha256="ddae7a5850efeb64424965a443540b1ced34286fbefad9230ab71f4af314081b")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("zlib-api")
 
     # %gcc@13: requires std libraries be manually added - add an include for `cstdint`

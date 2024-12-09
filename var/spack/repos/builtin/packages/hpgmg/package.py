@@ -32,6 +32,8 @@ class Hpgmg(MakefilePackage):
     )
     version("0.3", sha256="12a65da216fec91daea78594ae4b5a069c8f1a700f1ba21eed9f45a79a68c793")
 
+    depends_on("c", type="build")  # generated
+
     variant("fe", default=False, description="Build finite element solver")
     variant(
         "fv",
@@ -50,24 +52,24 @@ class Hpgmg(MakefilePackage):
 
     def configure_args(self):
         args = []
-        if "+fe" in self.spec and not ("@0.3" in self.spec):
+        if self.spec.satisfies("+fe") and not self.spec.satisfies("@0.3"):
             args.append("--fe")
 
-        if "fv=serial" in self.spec:
+        if self.spec.satisfies("fv=serial"):
             args.append("--no-fv-mpi")
 
-        if "mpi" in self.spec:
+        if self.spec.satisfies("^mpi"):
             args.append("--CC={0}".format(self.spec["mpi"].mpicc))
 
         cflags = []
-        if "fv=none" in self.spec:
+        if self.spec.satisfies("fv=none"):
             args.append("--no-fv")
         else:
             # Apple's Clang doesn't support OpenMP
             if not self.spec.satisfies("%apple-clang"):
                 cflags.append(self.compiler.openmp_flag)
 
-        if "+debug" in self.spec:
+        if self.spec.satisfies("+debug"):
             cflags.append("-g")
         else:
             cflags.append("-O3")

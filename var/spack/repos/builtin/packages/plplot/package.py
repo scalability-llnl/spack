@@ -9,7 +9,7 @@ from spack.package import *
 class Plplot(CMakePackage):
     """PLplot is a cross-platform package for creating scientific plots."""
 
-    homepage = "http://plplot.sourceforge.net/"
+    homepage = "https://plplot.sourceforge.net/"
     url = "https://sourceforge.net/projects/plplot/files/plplot/5.13.0%20Source/plplot-5.13.0.tar.gz/download"
 
     license("LGPL-2.0-or-later")
@@ -19,6 +19,10 @@ class Plplot(CMakePackage):
     version("5.13.0", sha256="ec36bbee8b03d9d1c98f8fd88f7dc3415560e559b53eb1aa991c2dcf61b25d2b")
     version("5.12.0", sha256="8dc5da5ef80e4e19993d4c3ef2a84a24cc0e44a5dade83201fca7160a6d352ce")
     version("5.11.0", sha256="bfa8434e6e1e7139a5651203ec1256c8581e2fac3122f907f7d8d25ed3bd5f7e")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("java", default=False, description="Enable Java binding")
     variant("lua", default=False, description="Enable Lua binding")

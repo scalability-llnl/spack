@@ -16,6 +16,10 @@ class Vampirtrace(AutotoolsPackage):
 
     version("5.14.4", sha256="1719a1666dd274c221b781631958cae56aa8bcb3f22861fb4ba6526c1b465a30")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("mpi", default=True, description="Enable MPI support")
 
     depends_on("mpi", when="+mpi")

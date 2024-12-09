@@ -3,9 +3,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import inspect
-import os.path
-
 import spack.build_systems.cmake
 import spack.build_systems.makefile
 from spack.package import *
@@ -37,6 +34,10 @@ class Pexsi(MakefilePackage, CMakePackage):
     version("1.2.0", sha256="8bfad6ec6866c6a29e1cc87fb1c17a39809795e79ede98373c8ba9a3aaf820dd")
     version("0.10.2", sha256="8714c71b76542e096211b537a9cb1ffb2c28f53eea4f5a92f94cc1ca1e7b499f")
     version("0.9.0", sha256="e5efe0c129013392cdac3234e37f1f4fea641c139b1fbea47618b4b839d05029")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     patch("fujitsu-add-link-flags.patch", when="%fj")
 
@@ -90,7 +91,7 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
 
         substitutions.append(("@FLDFLAGS", fldflags.lstrip()))
 
-        template = join_path(os.path.dirname(inspect.getmodule(self).__file__), "make.inc")
+        template = join_path(os.path.dirname(__file__), "make.inc")
         makefile = join_path(pkg.stage.source_path, "make.inc")
         copy(template, makefile)
         for key, value in substitutions:

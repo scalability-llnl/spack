@@ -20,6 +20,8 @@ class Mmv(MakefilePackage):
 
     version("1.01b", sha256="0399c027ea1e51fd607266c1e33573866d4db89f64a74be8b4a1d2d1ff1fdeef")
 
+    depends_on("c", type="build")  # generated
+
     patch("better-diagnostics-for-directories-584850.diff")
     patch("format-security.diff")
     patch("man-page-examples.diff")

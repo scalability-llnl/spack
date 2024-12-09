@@ -16,6 +16,8 @@ class Graph500(MakefilePackage):
 
     version("3.0.0", sha256="887dcff56999987fba4953c1c5696d50e52265fe61b6ffa8bb14cc69ff27e8a0")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("mpi@2.0:")
 
     build_directory = "src"

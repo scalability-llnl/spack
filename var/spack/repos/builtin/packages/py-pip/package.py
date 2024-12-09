@@ -5,6 +5,7 @@
 import os
 import sys
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -24,6 +25,12 @@ class PyPip(Package, PythonExtension):
 
     license("MIT")
 
+    version("24.3.1", sha256="3790624780082365f47549d032f3770eeb2b1e8bd1f7b2e02dace1afa361b4ed")
+    version("24.2", sha256="2cd581cf58ab7fcfca4ce8efa6dcacd0de5bf8d0a3eb9ec927e07405f4d9e2a2")
+    version("24.1.2", sha256="7cd207eed4c60b0f411b444cd1464198fe186671c323b6cd6d433ed80fc9d247")
+    version("24.0", sha256="ba0d021a166865d2265246961bec0152ff124de910c5cc39f1156ce3fa7c69dc")
+    version("23.3.2", sha256="5052d7889c1f9d05224cd41741acb7c5d6fa735ab34e339624a614eaaa7e7d76")
+    version("23.2.1", sha256="7ccf472345f20d35bdc9d1841ff5f313260c2c33fe417f48c30ac46cccabf5be")
     version("23.1.2", sha256="3ef6ac33239e4027d9a5598a381b9d30880a1477e50039db2eac6e8a8f6d1b18")
     version("23.0", sha256="b5f88adff801f5ef052bcdef3daa31b55eb67b0fccd6d0106c206fa248e0463c")
     version("22.2.2", sha256="b61a374b5bc40a6e982426aede40c9b5a08ff20e640f5b56977f4f91fed1e39a")
@@ -39,6 +46,7 @@ class PyPip(Package, PythonExtension):
     version("9.0.1", sha256="690b762c0a8460c303c089d5d0be034fb15a5ea2b75bdf565f40421f542fefb0")
 
     extends("python")
+    depends_on("python@3.8:", when="@24.1:", type=("build", "run"))
     depends_on("python@3.7:", when="@22:", type=("build", "run"))
 
     # Uses collections.MutableMapping
@@ -48,8 +56,17 @@ class PyPip(Package, PythonExtension):
         name="pip-bootstrap",
         url="https://bootstrap.pypa.io/pip/zipapp/pip-22.3.1.pyz",
         checksum="c9363c70ad91d463f9492a8a2c89f60068f86b0239bd2a6aa77367aab5fefb3e",
-        when="platform=windows",
+        when="platform=windows ^python@:3.11",
         placement={"pip-22.3.1.pyz": "pip.pyz"},
+        expand=False,
+    )
+
+    resource(
+        name="pip-bootstrap",
+        url="https://bootstrap.pypa.io/pip/zipapp/pip-23.1.pyz",
+        checksum="d9f2fe58c472f9107964df35954f8b74e68c307497a12364b00dc28f36f96816",
+        when="platform=windows ^python@3.12:",
+        placement={"pip-23.1.pyz": "pip.pyz"},
         expand=False,
     )
 
@@ -67,15 +84,14 @@ class PyPip(Package, PythonExtension):
         # itself, see:
         # https://discuss.python.org/t/bootstrapping-a-specific-version-of-pip/12306
         whl = self.stage.archive_file
-        args = std_pip_args + ["--prefix=" + prefix, whl]
         if sys.platform == "win32":
             # On Windows for newer versions of pip, you must bootstrap pip first.
             # In order to achieve this, use the pip.pyz zipapp version of pip to
             # bootstrap the pip wheel install.
-            args.insert(0, os.path.join(self.stage.source_path, "pip.pyz"))
+            script = os.path.join(self.stage.source_path, "pip.pyz")
         else:
-            args.insert(0, os.path.join(whl, "pip"))
-        python(*args)
+            script = os.path.join(whl, "pip")
+        python(script, *PythonPipBuilder.std_args(self), f"--prefix={prefix}", whl)
 
     def setup_dependent_package(self, module, dependent_spec: Spec):
         setattr(module, "pip", python.with_default_args("-m", "pip"))

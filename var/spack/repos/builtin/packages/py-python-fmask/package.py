@@ -24,6 +24,8 @@ class PyPythonFmask(PythonPackage):
     version("0.5.5", sha256="8257227d2527ea5fbd229f726d06d05986914beafd090acef05772a27dbbf062")
     version("0.5.4", sha256="ed20776f6b63615f664da89a9e3951c79437b66c2bf88fe19a93c2cc7dc40c82")
 
+    depends_on("c", type="build")  # generated
+
     # Note: Dependencies are listed here: https://github.com/ubarsc/python-fmask/blob/master/doc/source/index.rst#introduction
 
     # pip silently replaces distutils with setuptools

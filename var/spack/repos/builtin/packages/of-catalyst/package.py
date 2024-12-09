@@ -28,6 +28,8 @@ class OfCatalyst(CMakePackage):
     version("develop", branch="develop")
     version("1806", tag="v1806", commit="d97babec3581bad413fd602e17fcd4bc1e312d26")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("full", default=False, description="Build against paraview (full) or catalyst (light)")
 
     depends_on("openfoam@1806", when="@1806", type=("build", "link", "run"))

@@ -26,6 +26,8 @@ class PyGmxapi(PythonPackage):
     version("0.4.1", sha256="cc7a2e509ab8a59c187d388dcfd21ea78b785c3b355149b1818085f34dbda62a")
     version("0.4.0", sha256="7fd58e6a4b1391043379e8ba55555ebeba255c5b394f5df9d676e6a5571d7eba")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("gromacs@2022.1:~mdrun_only+shared")
     depends_on("mpi")
     depends_on("cmake@3.16:", type="build")
