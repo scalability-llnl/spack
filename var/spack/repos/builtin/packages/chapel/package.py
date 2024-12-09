@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
+import re
 import subprocess
 
 import llnl.util.lang
@@ -767,7 +768,13 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
         env.set("CHPL_HOME", chpl_home)
 
     def get_main_version_from_cmakelists(self) -> str:
-        with open(join_path(self.build_directory, "CMakeLists.txt"), "r") as f:
+        cmake_lists = None
+        if os.path.exists(join_path(self.prefix.share, "chapel", "CMakeLists.txt")):
+            cmake_lists = join_path(self.prefix.share, "chapel", "CMakeLists.txt")
+        else:
+            cmake_lists = join_path(self.build_directory, "CMakeLists.txt")
+        assert cmake_lists is not None and os.path.exists(cmake_lists)
+        with open(cmake_lists, "r") as f:
             # read CMakeLists.txt to get the CHPL_MAJOR_VERSION and CHPL_MINOR_VERSION
             # and then construct the path from that
             chpl_major_version = None
@@ -796,10 +803,15 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
         )
         return chpl_version_string
 
+    def is_versioned_release(self) -> bool:
+        # detect main or possibly other branch names
+        matches = re.findall(r"[^0-9.]", str(self.spec.version))
+        return len(matches) == 0
+
     @property
     @llnl.util.lang.memoized
     def _output_version_long(self) -> str:
-        if str(self.spec.version).lower() == "main":
+        if not self.is_versioned_release():
             return self.get_main_version_from_cmakelists()
         spec_vers_str = str(self.spec.version.up_to(3))
         return spec_vers_str
@@ -807,7 +819,7 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
     @property
     @llnl.util.lang.memoized
     def _output_version_short(self) -> str:
-        if str(self.spec.version).lower() == "main":
+        if not self.is_versioned_release():
             return self.get_main_version_from_cmakelists()[-2]
         spec_vers_str = str(self.spec.version.up_to(2))
         return spec_vers_str
