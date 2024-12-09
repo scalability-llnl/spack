@@ -486,9 +486,7 @@ def test_source_visitor_path_normalization(tmp_path: pathlib.Path, monkeypatch):
     # file conflict with os.path.samefile reporting it's NOT the same file
     a = SourceMergeVisitor(normalize_paths=True)
     a.visit_file(src, "file", 0)
-    with monkeypatch.context() as m:
-        # m.setattr(os.path, "samefile", lambda a, b: True)
-        a.visit_file(src, "FILE", 0)
+    a.visit_file(src, "FILE", 0)
     assert a.files
     assert len(a.files) == 1
     # first file wins
