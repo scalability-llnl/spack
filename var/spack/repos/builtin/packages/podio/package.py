@@ -106,6 +106,7 @@ class Podio(CMakePackage):
     depends_on("py-tabulate", type=("run", "test"), when="@0.16.6:")
 
     conflicts("+rntuple", when="@:0.16", msg="rntuple support requires at least podio@0.17")
+    conflicts("+rntuple ^root@6.32:", when="@:0.99", msg="rntuple API change requires podio@1:")
 
     # See https://github.com/AIDASoft/podio/pull/600
     patch(
