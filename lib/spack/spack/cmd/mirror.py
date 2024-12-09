@@ -515,16 +515,15 @@ def extend_with_dependencies(specs):
 
 def concrete_specs_from_cli_or_file(args):
     tty.msg("Concretizing input specs")
-    with spack.concretize.disable_compiler_existence_check():
-        if args.specs:
-            specs = spack.cmd.parse_specs(args.specs, concretize=True)
-            if not specs:
-                raise SpackError("unable to parse specs from command line")
+    if args.specs:
+        specs = spack.cmd.parse_specs(args.specs, concretize=True)
+        if not specs:
+            raise SpackError("unable to parse specs from command line")
 
-        if args.file:
-            specs = specs_from_text_file(args.file, concretize=True)
-            if not specs:
-                raise SpackError("unable to parse specs from file '{}'".format(args.file))
+    if args.file:
+        specs = specs_from_text_file(args.file, concretize=True)
+        if not specs:
+            raise SpackError("unable to parse specs from file '{}'".format(args.file))
     return specs
 
 
