@@ -107,8 +107,10 @@ class Rocfft(CMakePackage):
     # This adds  the include headers from the rocrand and fftw in the cmakelists.txt
     # issue is seen from 5.7.0 onwards
     patch(
-        "0005-Fix-clients-tests-include-rocrand-fftw-include-dir-rocm-6.0.0.patch", when="@5.7.0:6.2"
+        "0005-Fix-clients-tests-include-rocrand-fftw-include-dir-rocm-6.0.0.patch",
+        when="@5.7.0:6.2",
     )
+    patch("0005-Fix-clients-tests-include-rocrand-fftw-include-dir-rocm-6.3.patch", when="@6.3")
 
     # Set LD_LIBRARY_PATH for executing the binaries from build directoryfix missing type
     # https://github.com/ROCm/rocFFT/pull/449)
