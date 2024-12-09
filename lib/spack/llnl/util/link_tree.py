@@ -7,7 +7,7 @@
 import filecmp
 import os
 import shutil
-from typing import Callable, Dict, List, Optional, Set, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 import llnl.util.tty as tty
 from llnl.util.filesystem import BaseDirectoryVisitor, mkdirp, touch, traverse_tree
