@@ -42,6 +42,8 @@ class Cub(Package):
     version("1.7.1", sha256="50b8777b83093fdfdab429a61fccdbfbbb991b3bbc08385118e5ad58e8f62e1d")
     version("1.4.1", sha256="7c3784cf59f02d4a88099d6a11e357032bac9eac2b9c78aaec947d1270e21871")
 
+    provides("cub-api")
+
     def setup_dependent_build_environment(self, env, dependent_spec):
         env.set("CUB_DIR", self.prefix.include.cub.cmake)
 

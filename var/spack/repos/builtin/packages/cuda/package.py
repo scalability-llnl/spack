@@ -741,7 +741,7 @@ class Cuda(Package):
         ["11.2.1", "1.10.0"],
         ["11.2.0", "1.10.0"],
     ]:
-        provides(f"cub@{cub_ver}", when=f"@{cuda_ver}")
+        provides(f"cub-api@{cub_ver}", when=f"@{cuda_ver}")
 
     @classmethod
     def determine_version(cls, exe):
