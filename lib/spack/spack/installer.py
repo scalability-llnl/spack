@@ -33,6 +33,7 @@ import heapq
 import io
 import itertools
 import os
+import re
 import shutil
 import sys
 import time
@@ -2321,7 +2322,12 @@ class BuildProcessInstaller:
         # If we are using a padded path, filter the output to compress padded paths
         # The real log still has full-length paths.
         padding = spack.config.get("config:install_tree:padded_length", None)
-        self.filter_fn = spack.util.path.padding_filter if padding else None
+        padding_filter_fn = spack.util.path.padding_filter if padding else lambda ln: ln
+
+        # Filter out non-ascii characters from the output
+        ascii_filter_fn = lambda ln: re.sub(r"[^\x00-\x7f]+", "???", ln)
+
+        self.filter_fn = lambda ln: ascii_filter_fn(padding_filter_fn(ln))
 
         # info/debug information
         self.pre = _log_prefix(pkg.name)
