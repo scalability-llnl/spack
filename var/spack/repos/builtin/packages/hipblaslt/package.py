@@ -47,6 +47,7 @@ class Hipblaslt(CMakePackage):
         depends_on(f"hipblas@{ver}", when=f"@{ver}")
 
     depends_on("hipblas-common@6.3.0", when="@6.3.0")
+    depends_on("rocm-smi-lib@6.3.0", when="@6.3.0")
 
     depends_on("msgpack-c")
     depends_on("py-joblib")
@@ -60,7 +61,7 @@ class Hipblaslt(CMakePackage):
     # Below patch sets the proper path for clang++ and clang-offload-blunder.
     # Also adds hipblas and msgpack include directories for 6.1.0 release.
     patch("0001-Set-LLVM_Path-Add-Hiblas-Include-to-CmakeLists-6.1.Patch", when="@6.1:6.2")
-    # patch("0001-Set-LLVM_Path-6.3.Patch", when="@6.1:6.2")
+    patch("0001-Set-LLVM-Path-6.3.Patch", when="@6.3:")
 
     def setup_build_environment(self, env):
         env.set("CXX", self.spec["hip"].hipcc)
@@ -69,15 +70,14 @@ class Hipblaslt(CMakePackage):
             "TENSILE_ROCM_OFFLOAD_BUNDLER_PATH",
             f"{self.spec['llvm-amdgpu'].prefix}/bin/clang-offload-bundler",
         )
+        env.set("ROCM_SMI_PATH", f"{self.spec['rocm-smi-lib'].prefix}/bin/rocm-smi")
+        env.set(
+            "ROCM_AGENT_NUMERATOR_PATH",
+            f"{self.spec['rocminfo'].prefix}/bin/rocm_agent_enumerator",
+        )
 
     def patch(self):
         if self.spec.satisfies("@6.3:"):
-            filter_file(
-                'globalParameters["ROCmPath"], "llvm/bin"',
-                f'"{self.spec["llvm-amdgpu"].prefix.bin}"',
-                "tensilelite/Tensile/Common.py",
-                string=True,
-            )
             filter_file(
                 "${rocm_path}/llvm/bin",
                 self.spec["llvm-amdgpu"].prefix.bin,
