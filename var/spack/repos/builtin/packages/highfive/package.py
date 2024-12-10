@@ -14,7 +14,7 @@ class Highfive(CMakePackage):
     homepage = "https://github.com/BlueBrain/HighFive"
     url = "https://github.com/BlueBrain/HighFive/archive/v1.2.tar.gz"
     git = "https://github.com/BlueBrain/HighFive.git"
-    maintainers("alkino")
+    maintainers("1uc")
 
     license("BSL-1.0")
 

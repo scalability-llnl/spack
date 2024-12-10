@@ -475,8 +475,6 @@ def provides(*specs: SpecType, when: WhenType = None):
     """
 
     def _execute_provides(pkg: Type[spack.package_base.PackageBase]):
-        import spack.parser  # Avoid circular dependency
-
         when_spec = _make_when_spec(when)
         if not when_spec:
             return
