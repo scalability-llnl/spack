@@ -57,18 +57,16 @@ def test_log_python_output_without_echo(capfd, tmpdir):
         assert capfd.readouterr()[0] == ""
 
 
-def test_log_python_output_with_invalid_utf8(capfd, tmpdir):
-    with tmpdir.as_cwd():
-        with log.log_output("foo.txt"):
-            sys.stdout.buffer.write(b"\xc3\x28\n")
+def test_log_python_output_with_invalid_utf8(capfd, tmp_path):
+    tmp_file = str(tmp_path / "foo.txt")
+    with log.log_output(tmp_file, echo=True):
+        sys.stdout.buffer.write(b"\xc3helloworld\n")
 
-        expected = b"<line lost: output was not encoded as UTF-8>\n"
-        with open("foo.txt", "rb") as f:
-            written = f.read()
-            assert written == expected
+    # we should be able to read this as valid utf-8
+    with open(tmp_file, "r", encoding="utf-8") as f:
+        assert f.read() == "�helloworld\n"
 
-        # nothing on stdout or stderr
-        assert capfd.readouterr()[0] == ""
+    assert capfd.readouterr().out == "�helloworld\n"
 
 
 def test_log_python_output_and_echo_output(capfd, tmpdir):
