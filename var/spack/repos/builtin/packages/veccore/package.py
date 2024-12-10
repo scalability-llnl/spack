@@ -39,7 +39,7 @@ class Veccore(CMakePackage):
 
     variant("vc", default=False, description="Enable Vc backend")
 
-    depends_on("cmake@3.16:", type="build", when="0.8.1:")
+    depends_on("cmake@3.16:", type="build", when="@0.8.1:")
     depends_on("vc@1.2.0:", when="@0.2.0: +vc")
     depends_on("vc@1.3.3:", when="@0.6.0: +vc")
 
