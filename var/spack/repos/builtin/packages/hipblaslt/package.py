@@ -50,7 +50,7 @@ class Hipblaslt(CMakePackage):
     depends_on("rocm-smi-lib@6.3.0", when="@6.3.0")
 
     depends_on("msgpack-c")
-    depends_on("py-joblib")
+    depends_on("py-joblib", type=("build", "link"))
     depends_on("googletest@1.10.0:", type="test")
     depends_on("netlib-lapack@3.7.1:", type="test")
     depends_on("py-pyyaml", type="test")
