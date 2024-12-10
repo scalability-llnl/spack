@@ -24,6 +24,8 @@ class PyJax(PythonPackage):
     license("Apache-2.0")
     maintainers("adamjstewart", "jonas-eschle")
 
+    version("0.4.37", sha256="7774f3d9e23fe199c65589c680c5a5be87a183b89598421a632d8245222b637b")
+    version("0.4.36", sha256="088bff0575d01fc82682a9af4eb07433d60de7e5164686bd2cea3439492e608a")
     version("0.4.35", sha256="c0c986993026b10bf6f607fecb7417377460254640766ce40f1fef3fd139c12e")
     version("0.4.34", sha256="44196854f40c5f9cea3142824b9f1051f85afc3fcf7593ec5479fc8db01c58db")
     version("0.4.33", sha256="f0d788692fc0179653066c9e1c64e57311b8c15a389837fd7baf328abefcbb92")
@@ -83,6 +85,8 @@ class PyJax(PythonPackage):
         # jax/_src/lib/__init__.py
         # https://github.com/google/jax/commit/8be057de1f50756fe7522f7e98b2f30fad56f7e4
         for v in [
+            "0.4.37",
+            "0.4.36",
             "0.4.35",
             "0.4.34",
             "0.4.33",
@@ -120,6 +124,7 @@ class PyJax(PythonPackage):
             depends_on(f"py-jaxlib@:{v}", when=f"@{v}")
 
         # See _minimum_jaxlib_version in jax/version.py
+        depends_on("py-jaxlib@0.4.36:", when="@0.4.36:")
         depends_on("py-jaxlib@0.4.35:", when="@0.4.35:")
         depends_on("py-jaxlib@0.4.34:", when="@0.4.34:")
         depends_on("py-jaxlib@0.4.33:", when="@0.4.33:")
