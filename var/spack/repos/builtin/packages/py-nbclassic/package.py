@@ -25,27 +25,30 @@ class PyNbclassic(PythonPackage):
     depends_on("py-jupyter-packaging@0.9:0", when="@0.3.3:", type="build")
     depends_on("py-babel", when="@0.4:", type="build")
 
-    depends_on("py-jinja2", when="@0.4:", type=("build", "run"))
-    depends_on("py-tornado@6.1:", when="@0.4:", type=("build", "run"))
-    depends_on("py-pyzmq@17:", when="@0.4:", type=("build", "run"))
-    depends_on("py-argon2-cffi", when="@0.4:", type=("build", "run"))
-    depends_on("py-traitlets@4.2.1:", when="@0.4:", type=("build", "run"))
-    depends_on("py-jupyter-core@4.6.1:", when="@0.4:", type=("build", "run"))
-    depends_on("py-jupyter-client@6.1.1:", when="@0.4:", type=("build", "run"))
     depends_on("py-ipython-genutils", when="@0.4:", type=("build", "run"))
-    # version requirement for py-jupyter-server comes from pyproject.toml
-    depends_on("py-jupyter-server@1.17:", when="@0.4:", type=("build", "run"))
-    depends_on("py-jupyter-server@1.8:", when="@0.3.7", type=("build", "run"))
-    depends_on("py-jupyter-server@1.8:1", when="@:0.3.6", type=("build", "run"))
-    depends_on("py-nbformat", when="@0.4:", type=("build", "run"))
     depends_on("py-notebook-shim@0.2.3:", when="@0.5.6:", type=("build", "run"))
     depends_on("py-notebook-shim@0.1:", when="@0.3.6:", type=("build", "run"))
-    depends_on("py-nbconvert@5:", when="@0.4:", type=("build", "run"))
     depends_on("py-nest-asyncio@1.5:", when="@0.4:", type=("build", "run"))
     depends_on("py-ipykernel", when="@0.4:", type=("build", "run"))
-    depends_on("py-send2trash@1.8:", when="@0.4:", type=("build", "run"))
-    depends_on("py-terminado@0.8.3:", when="@0.4:", type=("build", "run"))
-    depends_on("py-prometheus-client", when="@0.4:", type=("build", "run"))
+
+    # Dependencies reduced after 1.0
+    # https://github.com/jupyter/nbclassic/issues/252
+    depends_on("py-jinja2", when="@0.4:1.0", type=("build", "run"))
+    depends_on("py-tornado@6.1:", when="@0.4:1.0", type=("build", "run"))
+    depends_on("py-pyzmq@17:", when="@0.4:1.0", type=("build", "run"))
+    depends_on("py-argon2-cffi", when="@0.4:1.0", type=("build", "run"))
+    depends_on("py-traitlets@4.2.1:", when="@0.4:1.0", type=("build", "run"))
+    depends_on("py-jupyter-core@4.6.1:", when="@0.4:1.0", type=("build", "run"))
+    depends_on("py-jupyter-client@6.1.1:", when="@0.4:1.0", type=("build", "run"))
+    # version requirement for py-jupyter-server comes from pyproject.toml
+    depends_on("py-jupyter-server@1.17:", when="@0.4:1.0", type=("build", "run"))
+    depends_on("py-jupyter-server@1.8:", when="@0.3.7", type=("build", "run"))
+    depends_on("py-jupyter-server@1.8:1", when="@:0.3.6", type=("build", "run"))
+    depends_on("py-nbformat", when="@0.4:1.0", type=("build", "run"))
+    depends_on("py-nbconvert@5:", when="@0.4:1.0", type=("build", "run"))
+    depends_on("py-send2trash@1.8:", when="@0.4:1.0", type=("build", "run"))
+    depends_on("py-terminado@0.8.3:", when="@0.4:1.0", type=("build", "run"))
+    depends_on("py-prometheus-client", when="@0.4:1.0", type=("build", "run"))
 
     # Historical dependencies
     depends_on("py-notebook@:6", when="@:0.3.7", type=("build", "run"))
