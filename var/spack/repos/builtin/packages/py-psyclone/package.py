@@ -21,6 +21,9 @@ class PyPsyclone(PythonPackage):
     git = "https://github.com/stfc/PSyclone.git"
     pypi = "PSyclone/PSyclone-3.0.0.tar.gz"
 
+    # Maintainers
+    maintainers("arporter", "sergisiso", "TeranIvy", "hiker")
+
     # License
     license("BSD-3-Clause")
 
@@ -40,9 +43,12 @@ class PyPsyclone(PythonPackage):
     depends_on("py-setuptools", type="build")
     depends_on("py-pyparsing", type=("build", "run"))
     depends_on("py-fparser@0.2.0:", type=("build", "run"), when="@3.0.0")
+    depends_on("py-graphviz", type=("build", "run"))
     depends_on("py-configparser", type=("build", "run"))
-    depends_on("py-jsonschema", type=("build", "run"), when="@2.5.0")
-    depends_on("py-sympy", type=("build", "run"), when="@2.2.0:")
+    depends_on("py-jinja2", type="build")
+    depends_on("py-jsonschema", type=("build", "run"), when>="@2.5.0")
+    depends_on("py-sympy", type=("build", "run"), when>="@2.2.0:")
+    depends_on("py-termcolor", type=("build", "run"))
 
     # Historical dependencies
     depends_on("py-six", type=("build", "run"), when="@2.0.0:2.3.1")
@@ -58,18 +64,11 @@ class PyPsyclone(PythonPackage):
     depends_on("py-fparser@0.0.12", type=("build", "run"), when="@2.0.0")
 
     # Dependencies only required for tests:
-    depends_on("py-pep8", type="test")
     depends_on("py-flake8", type="test")
     depends_on("py-pylint@:2", type="test")
     depends_on("py-pytest-cov", type="test")
-    depends_on("py-pytest-pep8", type="test")
-    depends_on("py-pytest-pylint", type="test")
-    depends_on("py-pytest-flakes", type="test")
     depends_on("py-pytest-xdist", type="test")
     depends_on("py-pytest", type="test")
-
-    # Maintainers
-    maintainers("arporter", "sergisiso")
 
     # Test
     @run_after("install")
