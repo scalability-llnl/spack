@@ -1755,7 +1755,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
 
         return patches
 
-    def content_hash(self, content=None):
+    def content_hash(self, content: Optional[bytes] = None) -> str:
         """Create a hash based on the artifacts and patches used to build this package.
 
         This includes:
