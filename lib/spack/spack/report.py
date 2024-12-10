@@ -198,6 +198,8 @@ class BuildInfoCollector(InfoCollector):
                 return f.read()
         except OSError:
             return f"Cannot open log for {pkg.spec.cshort_spec}"
+        except UnicodeDecodeError:
+            return f"Cannot read log for {pkg.spec.cshort_spec}"
 
     def extract_package_from_signature(self, instance, *args, **kwargs):
         return args[0].pkg
