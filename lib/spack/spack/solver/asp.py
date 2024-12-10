@@ -584,7 +584,8 @@ class Result:
             serial_answers.append(serial_answer)
         ret["answers"] = serial_answers
         ret["specs_by_input"] = {}
-        for input, spec in self.specs_by_input.items():
+        input_specs = {} if not self.specs_by_input else self.specs_by_input
+        for input, spec in input_specs.items():
             ret["specs_by_input"][json.dumps(input.to_dict())] = spec.to_dict()
         return ret
 
@@ -642,6 +643,10 @@ class ConcretizationCache:
                 else spack.paths.default_conc_cache_path
             )
         self.root = pathlib.Path(spack.util.path.canonicalize_path(root))
+        self._check_purge()
+
+    def _cache_entry_count(self) -> int:
+        return len([x for x in y for y in ])
 
     def _results_from_cache(self, cache_path: pathlib.Path) -> Result:
         """Returns a Results object from the concretizer cache
