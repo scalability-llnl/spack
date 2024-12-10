@@ -39,7 +39,7 @@ class PyArkouda(PythonPackage):
     depends_on("python@3.9:3.12.3", type=("build", "run"), when="@2024.10.02:")
     depends_on("py-setuptools", type="build")
     depends_on("py-numpy@1.24.1:1.99", type=("build", "run"))
-    depends_on("py-pandas@1.4.0", type=("build", "run"))
+    depends_on("py-pandas@1.4.0:", type=("build", "run"))
     conflicts("^py-pandas@2.2.0", msg="arkouda client not compatible with pandas 2.2.0")
 
     depends_on("py-pyarrow", type=("build", "run"))
@@ -55,12 +55,26 @@ class PyArkouda(PythonPackage):
     depends_on("py-tabulate", type=("build", "run"))
     depends_on("py-pytest@6.0:", type=("build", "run"), when="@2024.10.02")
 
+    # TODO: Add tests and examples variant that copies tests and examples
+    # @run_after("install")
+    # def install_additional_files(self):
+    #     spec = self.spec
+    #     prefix = self.prefix
+    #     if "+examples" in spec or "+tests" in spec:
+    #         install_tree("drivers", prefix.drivers)
+    #     if "+examples" in spec:
+    #         install_tree("examples", prefix.examples)
+    #     if "+tests" in spec:
+    #         install_tree("tests", prefix.tests)
+
+    # TODO: Implement dev variant to mimic setup.py optionals
     with when("+dev"):
         with default_args(type=("build", "run", "test")):
             # not available in spack: mathjax, sphinx-autoapi, sphinx-autopackagesummary
             # py-myst-parser creates incompatibility with sphinx versions
             depends_on("py-pexpect")
             depends_on("py-pytest@6:")
+            depends_on("py-pytest-env")
             depends_on("py-sphinx@5.1.1:")
             depends_on("py-sphinx-argparse")
             depends_on("py-mypy@0.931:")
@@ -75,3 +89,8 @@ class PyArkouda(PythonPackage):
             depends_on("py-pandas-stubs")
             depends_on("py-types-python-dateutil")
             depends_on("py-ipython")
+
+    def install(self, spec, prefix):
+        if self.spec.satisfies("+dev"):
+            install("pytest.ini", prefix)
+            install_tree("tests", prefix.tests)
