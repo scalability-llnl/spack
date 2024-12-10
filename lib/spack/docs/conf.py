@@ -222,9 +222,6 @@ nitpick_ignore = [
     ("py:class", "spack.traverse.EdgeAndDepth"),
     ("py:class", "archspec.cpu.microarchitecture.Microarchitecture"),
     ("py:class", "spack.compiler.CompilerCache"),
-    ("py:class", "spack.mirrors.mirror.Mirror"),
-    ("py:class", "spack.mirrors.layout.MirrorLayout"),
-    ("py:class", "spack.mirrors.utils.MirrorStats"),
     # TypeVar that is not handled correctly
     ("py:class", "llnl.util.lang.T"),
 ]
