@@ -1671,11 +1671,16 @@ class SpackSolverSetup:
             # In this way, if a condition can't be emitted but the exception is handled in the
             # caller, we won't emit partial facts.
             condition_id = self.new_id(
-                ["condition", required_spec, required_name, imposed_spec, imposed_name] + id_context
+                ["condition", required_spec, required_name, imposed_spec, imposed_name]
+                + id_context
             )
             requirement_context = context.requirement_context()
             trigger_id = self._get_condition_id(
-                required_spec, cache=self._trigger_cache, body=True, context=requirement_context, id_context=id_context
+                required_spec,
+                cache=self._trigger_cache,
+                body=True,
+                context=requirement_context,
+                id_context=id_context,
             )
             self.gen.fact(fn.pkg_fact(required_spec.name, fn.condition(condition_id)))
             self.gen.fact(fn.condition_reason(condition_id, msg))
@@ -1687,7 +1692,11 @@ class SpackSolverSetup:
 
             impose_context = context.impose_context()
             effect_id = self._get_condition_id(
-                imposed_spec, cache=self._effect_cache, body=False, context=impose_context, id_context=id_context
+                imposed_spec,
+                cache=self._effect_cache,
+                body=False,
+                context=impose_context,
+                id_context=id_context,
             )
             self.gen.fact(
                 fn.pkg_fact(required_spec.name, fn.condition_effect(condition_id, effect_id))
@@ -1716,7 +1725,11 @@ class SpackSolverSetup:
 
                 msg = f"{pkg.name} provides {vpkg} when {when}"
                 condition_id = self.condition(
-                    when, vpkg, required_name=pkg.name, msg=msg, id_context=["provided-when", pkg.name, when, vpkg]
+                    when,
+                    vpkg,
+                    required_name=pkg.name,
+                    msg=msg,
+                    id_context=["provided-when", pkg.name, when, vpkg],
                 )
                 self.gen.fact(
                     fn.pkg_fact(when.name, fn.provider_condition(condition_id, vpkg.name))
@@ -1728,7 +1741,7 @@ class SpackSolverSetup:
                 when,
                 required_name=pkg.name,
                 msg="Virtuals are provided together",
-                id_context=["provided-together", pkg.name, when]
+                id_context=["provided-together", pkg.name, when],
             )
             for virtuals_together in sets_of_virtuals:
                 set_id = self.new_id(
@@ -1771,7 +1784,14 @@ class SpackSolverSetup:
                 context.transform_required = track_dependencies()
                 context.transform_imposed = dependency_holds(pkg, depflag)
 
-                self.condition(cond, dep.spec, required_name=pkg.name, msg=msg, context=context, id_context=["dep-rule"])
+                self.condition(
+                    cond,
+                    dep.spec,
+                    required_name=pkg.name,
+                    msg=msg,
+                    context=context,
+                    id_context=["dep-rule"],
+                )
 
                 self.gen.newline()
 
@@ -1916,7 +1936,7 @@ class SpackSolverSetup:
                         rule.condition,
                         required_name=pkg_name,
                         msg=msg,
-                        id_context=["requirement-grp-cnd", pkg_name, requirement_grp_id]
+                        id_context=["requirement-grp-cnd", pkg_name, requirement_grp_id],
                     )
                 except Exception as e:
                     if rule.kind != RequirementKind.DEFAULT:
@@ -1961,7 +1981,7 @@ class SpackSolverSetup:
                         required_name=pkg_name,
                         msg=f"{input_spec} is a requirement for package {pkg_name}",
                         context=context,
-                        id_context=["requirement-grp-member", pkg_name, requirement_grp_id]
+                        id_context=["requirement-grp-member", pkg_name, requirement_grp_id],
                     )
                 except Exception as e:
                     # Do not raise if the rule comes from the 'all' subsection, since usability
@@ -2075,7 +2095,9 @@ class SpackSolverSetup:
 
                 try:
                     context = ConditionContext()
-                    context.transform_imposed = external_imposition(spec, external_id=parsed_to_id[spec])
+                    context.transform_imposed = external_imposition(
+                        spec, external_id=parsed_to_id[spec]
+                    )
                     self.condition(spec, spec, msg=msg, context=context, id_context=["external"])
                 except (spack.error.SpecError, RuntimeError) as e:
                     warnings.warn(f"while setting up external spec {spec}: {e}")
@@ -2087,8 +2109,7 @@ class SpackSolverSetup:
             # Order the external versions to prefer more recent versions
             # even if specs in packages.yaml are not ordered that way
             external_versions = [
-                (v, idx)
-                for idx, (v, _) in enumerate(sorted(external_versions, reverse=True))
+                (v, idx) for idx, (v, _) in enumerate(sorted(external_versions, reverse=True))
             ]
             for version, idx in external_versions:
                 self.declared_versions[pkg_name].append(
