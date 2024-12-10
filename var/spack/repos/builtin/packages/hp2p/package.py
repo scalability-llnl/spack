@@ -14,7 +14,7 @@ class Hp2p(AutotoolsPackage):
     like congestions or problems with switches or links.
     """
 
-    home = "https://github.com/cea-hpc/hp2p"
+    homepage = "https://github.com/cea-hpc/hp2p"
     url = "https://github.com/cea-hpc/hp2p/releases/download/4.1/hp2p-4.1.tar.gz"
     git = "https://github.com/cea-hpc/hp2p.git"
 
