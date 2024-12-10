@@ -141,8 +141,6 @@ class PyNumpy(PythonPackage):
     patch("check_executables2.patch", when="@1.19.0:1.19.5")
     patch("check_executables3.patch", when="@1.16.0:1.18.5")
 
-    patch("intel_mask_conversion.patch", when="@1.25.0:1.26.5")
-
     # Backport bug fix for f2py's define for threading when building with Mingw
     patch(
         "https://github.com/numpy/numpy/pull/20881.patch?full_index=1",
