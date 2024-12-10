@@ -29,7 +29,7 @@ class PyPsyclone(PythonPackage):
 
     # Releases
     version("develop", branch="master")
-    version("3.0.0", tag="v3.0.0")
+    version("3.0.0", sha256="25085a6d0dad36c03ec1f06becf7e2f915ded26603d4a1a2981392f5752fdb3e")
     version("2.5.0", sha256="dd1b40d635423c6b23effd2c569908d319afa6153680692e1cbae27f7b5bf4dc")
     version("2.4.0", sha256="14fd3717f99b317471356c59c1d4c4c22c41fd264af11b78ed831dd2eb71a270")
     version("2.3.1", sha256="eee70b3069d71fcf95e9bc8796f0333bd502e0202a98df051b635b133432a082")
