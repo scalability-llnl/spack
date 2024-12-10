@@ -1,0 +1,62 @@
+From 740a657bd6890f45eeb4f9bd359bedccba25f1ee Mon Sep 17 00:00:00 2001
+From: Afzal Patel <Afzal.Patel@amd.com>
+Date: Tue, 10 Dec 2024 16:04:46 +0000
+Subject: [PATCH] link hipblas, hipblas-common, rocrand and roctracer
+
+---
+ driver/CMakeLists.txt |  8 +++++++-
+ src/CMakeLists.txt    | 12 +++++++++++-
+ 2 files changed, 18 insertions(+), 2 deletions(-)
+
+diff --git a/driver/CMakeLists.txt b/driver/CMakeLists.txt
+index 60d6fe6..26c8417 100644
+--- a/driver/CMakeLists.txt
++++ b/driver/CMakeLists.txt
+@@ -71,7 +71,13 @@ if(WIN32)
+ endif()
+ add_dependencies(MIOpenDriver generate_kernels)
+ target_include_directories(MIOpenDriver PRIVATE ../src/kernels)
+-target_link_libraries(MIOpenDriver MIOpen Threads::Threads roc::rocrand)
++target_link_libraries(MIOpenDriver MIOpen Threads::Threads roc::rocrand roc::hipblas)
++find_package( hipblas-common REQUIRED CONFIG PATHS ${HIP_DIR} ${ROCM_PATH} /opt/rocm)
++target_include_directories(MIOpenDriver PRIVATE ${HIPBLAS-COMMON_INCLUDE_DIRS})
++if(MIOPEN_USE_ROCTRACER)
++    target_include_directories(MIOpenDriver PRIVATE ${ROCTRACER_INCLUDE_DIR})
++    target_link_libraries(MIOpenDriver ${rocTracer})
++endif()
+ if(NOT MIOPEN_EMBED_DB STREQUAL "")
+ target_link_libraries(MIOpenDriver $<BUILD_INTERFACE:miopen_data> )
+ endif()
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 92e4f42..3001f0f 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -940,6 +940,15 @@ if(hipblaslt_FOUND)
+     target_link_libraries( MIOpen PRIVATE roc::hipblaslt )
+ endif()
+ 
++if(hipblas_FOUND)
++    target_link_libraries( MIOpen PRIVATE roc::hipblas )
++    find_package( hipblas-common REQUIRED CONFIG PATHS ${HIP_DIR} ${ROCM_PATH} /opt/rocm)
++    target_include_directories(MIOpen PRIVATE ${HIPBLAS-COMMON_INCLUDE_DIRS})
++endif()
++if(rocrand_FOUND)
++    target_link_libraries( MIOpen PRIVATE roc::rocrand )
++endif()
++
+ # For backward compatibility with ROCm 5.3
+ # Build with library libMLIRMIOpen
+ if(LIBMLIRMIOPEN)
+@@ -994,7 +1003,8 @@ if(NOT WIN32 AND NOT APPLE)
+ endif()
+ 
+ if(MIOPEN_USE_ROCTRACER)
+-    target_link_libraries(MIOpen PRIVATE roctx64)
++    target_include_directories(MIOpen PRIVATE ${ROCTRACER_INCLUDE_DIR})
++    target_link_libraries(MIOpen PRIVATE ${rocTracer})
+ endif()
+ 
+ ############################################################
+-- 
+2.34.1
+

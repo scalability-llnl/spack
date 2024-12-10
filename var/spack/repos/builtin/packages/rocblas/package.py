@@ -121,7 +121,7 @@ class Rocblas(CMakePackage):
         depends_on(f"rocminfo@{ver}", type="build", when=f"@{ver}")
         depends_on(f"rocm-cmake@{ver}", type="build", when=f"@{ver}")
 
-    depends_on("hipblaslt@6.3.0", when=f"@{ver}")
+    depends_on("hipblaslt@6.3.0", when=f"@6.3.0")
     depends_on("python@3.6:", type="build")
 
     with when("+tensile"):
@@ -176,6 +176,7 @@ class Rocblas(CMakePackage):
     patch("0004-Find-python.patch", when="@5.2.0:5.4")
     patch("0006-Guard-use-of-OpenMP-to-make-it-optional-5.4.patch", when="@5.4")
     patch("0007-add-rocm-openmp-extras-include-dir.patch", when="@5.6:5.7")
+    patch("0008-add-hipblas-common-include-dir.patch", when="@6.3:")
 
     def setup_build_environment(self, env):
         env.set("CXX", self.spec["hip"].hipcc)
@@ -250,8 +251,6 @@ class Rocblas(CMakePackage):
             args.append(self.define("Tensile_CODE_OBJECT_VERSION", "V3"))
         else:
             args.append(self.define("Tensile_CODE_OBJECT_VERSION", "default"))
-        if self.spec.satisfies("@6.3:"):
-            args.append(self.define("BUILD_WITH_HIPBLASLT", "OFF"))
         return args
 
     @run_after("build")

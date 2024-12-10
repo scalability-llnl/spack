@@ -1,0 +1,25 @@
+From e5c1387687780df5ddf4283b0eccd9129ba0693c Mon Sep 17 00:00:00 2001
+From: Afzal Patel <Afzal.Patel@amd.com>
+Date: Tue, 10 Dec 2024 18:25:09 +0000
+Subject: [PATCH] add hipblas-common include
+
+---
+ src/targets/gpu/CMakeLists.txt | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/targets/gpu/CMakeLists.txt b/src/targets/gpu/CMakeLists.txt
+index 6b5a052..a08ec4b 100644
+--- a/src/targets/gpu/CMakeLists.txt
++++ b/src/targets/gpu/CMakeLists.txt
+@@ -375,6 +375,8 @@ endif()
+ 
+ if(MIGRAPHX_USE_HIPBLASLT)
+     target_link_libraries(migraphx_gpu PUBLIC roc::hipblaslt)
++    find_package( hipblas-common REQUIRED CONFIG PATHS ${HIP_DIR} ${ROCM_PATH} /opt/rocm)
++    target_include_directories(migraphx_gpu PUBLIC ${HIPBLAS-COMMON_INCLUDE_DIRS})
+ endif()
+ 
+ if(WIN32)
+-- 
+2.34.1
+

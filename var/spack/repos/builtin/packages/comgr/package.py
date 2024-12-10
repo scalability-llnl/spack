@@ -67,8 +67,6 @@ class Comgr(CMakePackage):
     depends_on("z3", type="link")
     depends_on("ncurses", type="link")
 
-    depends_on("rocm-cmake@3.5.0:", type="build")
-
     for ver in [
         "5.3.0",
         "5.3.3",
@@ -97,6 +95,7 @@ class Comgr(CMakePackage):
         # aomp may not build rocm-device-libs as part of llvm-amdgpu, so make
         # that a conditional dependency
         depends_on(f"rocm-device-libs@{ver}", when=f"@{ver} ^llvm-amdgpu ~rocm-device-libs")
+        depends_on(f"rocm-cmake@{ver}", when=f"@{ver}", type="build")
 
     for ver in [
         "5.5.0",
