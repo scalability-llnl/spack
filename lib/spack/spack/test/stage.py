@@ -11,6 +11,7 @@ import os
 import shutil
 import stat
 import sys
+from pathlib import Path, PurePath
 
 import pytest
 
@@ -86,14 +87,14 @@ def check_expand_archive(stage, stage_name, expected_file_list):
     stage_path = get_stage_path(stage, stage_name)
     archive_dir = spack.stage._source_path_subdir
 
-    stage_contents = os.listdir(stage_path)
+    stage_contents = [path.name for path in Path(stage_path).iterdir()]
     assert _archive_fn in stage_contents
     assert archive_dir in stage_contents
 
-    source_path = os.path.join(stage_path, archive_dir)
+    source_path = os.fsdecode(PurePath(stage_path, archive_dir))
     assert source_path == stage.source_path
 
-    source_contents = os.listdir(source_path)
+    source_contents = [path.name for path in Path(source_path).iterdir()]
 
     for _include in expected_file_list:
         if _include == _include_hidden:
@@ -102,7 +103,7 @@ def check_expand_archive(stage, stage_name, expected_file_list):
             # the archive directory.
             assert _hidden_fn in stage_contents
 
-            fn = os.path.join(stage_path, _hidden_fn)
+            fn = Path(stage_path, _hidden_fn)
             contents = _hidden_contents
 
         elif _include == _include_readme:
@@ -110,21 +111,21 @@ def check_expand_archive(stage, stage_name, expected_file_list):
             # the tarball didn't explode; otherwise, it will be in the
             # original archive subdirectory of it.
             if _archive_base in source_contents:
-                fn = os.path.join(source_path, _archive_base, _readme_fn)
+                fn = Path(source_path, _archive_base, _readme_fn)
             else:
-                fn = os.path.join(source_path, _readme_fn)
+                fn = Path(source_path, _readme_fn)
             contents = _readme_contents
 
         elif _include == _include_extra:
             assert _extra_fn in source_contents
 
-            fn = os.path.join(source_path, _extra_fn)
+            fn = Path(source_path, _extra_fn)
             contents = _extra_contents
 
         else:
             assert False
 
-        assert os.path.isfile(fn)
+        assert fn.is_file()
         with open(fn, encoding="utf-8") as _file:
             _file.read() == contents
 
@@ -135,37 +136,37 @@ def check_fetch(stage, stage_name):
     the module-level comments.
     """
     stage_path = get_stage_path(stage, stage_name)
-    assert _archive_fn in os.listdir(stage_path)
-    assert os.path.join(stage_path, _archive_fn) == stage.fetcher.archive_file
+    assert _archive_fn in [path.name for path in Path(stage_path).iterdir()]
+    assert os.fsdecode(PurePath(stage_path, _archive_fn)) == stage.fetcher.archive_file
 
 
 def check_destroy(stage, stage_name):
     """Figure out whether a stage was destroyed correctly."""
-    stage_path = get_stage_path(stage, stage_name)
+    stage_path = Path(get_stage_path(stage, stage_name))
 
     # check that the stage dir/link was removed.
-    assert not os.path.exists(stage_path)
+    assert not stage_path.exists()
 
     # tmp stage needs to remove tmp dir too.
-    target = os.path.realpath(stage_path)
-    assert not os.path.exists(target)
+    target = stage_path.resolve()
+    assert not target.exists()
 
 
 def check_setup(stage, stage_name, archive):
     """Figure out whether a stage was set up correctly."""
-    stage_path = get_stage_path(stage, stage_name)
+    stage_path = Path(get_stage_path(stage, stage_name))
 
     # Ensure stage was created in the spack stage directory
-    assert os.path.isdir(stage_path)
+    assert stage_path.is_dir()
 
     # Make sure it points to a valid directory
-    target = os.path.realpath(stage_path)
-    assert os.path.isdir(target)
-    assert not os.path.islink(target)
+    target = stage_path.resolve()
+    assert target.is_dir()
+    assert not target.is_symlink()
 
     # Make sure the directory is in the place we asked it to
     # be (see setUp, tearDown, and use_tmp)
-    assert target.startswith(str(archive.stage_path))
+    assert os.fsdecode(target).startswith(str(archive.stage_path))
 
 
 def get_stage_path(stage, stage_name):
@@ -175,7 +176,7 @@ def get_stage_path(stage, stage_name):
     stage_path = spack.stage.get_stage_root()
     if stage_name is not None:
         # If it is a named stage, we know where the stage should be
-        return os.path.join(stage_path, stage_name)
+        return os.fsdecode(PurePath(stage_path, stage_name))
     else:
         # If it's unnamed, ensure that we ran mkdtemp in the right spot.
         assert stage.path is not None
@@ -411,7 +412,7 @@ class TestStage:
         with Stage(test_noexpand_fetcher) as stage:
             stage.fetch()
             stage.expand_archive()
-            assert os.path.exists(stage.archive_file)
+            assert Path(stage.archive_file).exists()
 
     @pytest.mark.disable_clean_stage_check
     def test_composite_stage_with_noexpand_resource(
@@ -435,7 +436,7 @@ class TestStage:
         composite_stage.expand_archive()
         assert composite_stage.expanded  # Archive is expanded
 
-        assert os.path.exists(os.path.join(composite_stage.source_path, resource_dst_name))
+        assert Path(composite_stage.source_path, resource_dst_name).exists()
 
     @pytest.mark.disable_clean_stage_check
     def test_composite_stage_with_expand_resource(self, composite_stage_with_expanding_resource):
@@ -450,8 +451,8 @@ class TestStage:
         assert composite_stage.expanded  # Archive is expanded
 
         for fname in mock_resource.files:
-            file_path = os.path.join(root_stage.source_path, "resource-dir", fname)
-            assert os.path.exists(file_path)
+            file_path = Path(root_stage.source_path, "resource-dir", fname)
+            assert file_path.exists()
 
         # Perform a little cleanup
         shutil.rmtree(root_stage.path)
@@ -477,8 +478,8 @@ class TestStage:
         composite_stage.expand_archive()
 
         for fname in mock_resource.files:
-            file_path = os.path.join(root_stage.source_path, "resource-expand", fname)
-            assert os.path.exists(file_path)
+            file_path = Path(root_stage.source_path, "resource-expand", fname)
+            assert file_path.exists()
 
         # Perform a little cleanup
         shutil.rmtree(root_stage.path)
@@ -584,12 +585,12 @@ class TestStage:
                 with open("foobar", "w", encoding="utf-8") as file:
                     file.write("this file is to be destroyed.")
 
-            assert "foobar" in os.listdir(stage.source_path)
+            assert "foobar" in [path.name for path in Path(stage.source_path).iterdir()]
 
             # Make sure the file is not there after restage.
             stage.restage()
             check_fetch(stage, self.stage_name)
-            assert "foobar" not in os.listdir(stage.source_path)
+            assert "foobar" not in [path.name for path in Path(stage.source_path).iterdir()]
         check_destroy(stage, self.stage_name)
 
     def test_no_keep_without_exceptions(self, mock_stage_archive):
@@ -606,7 +607,7 @@ class TestStage:
         with stage:
             pass
         path = get_stage_path(stage, self.stage_name)
-        assert os.path.isdir(path)
+        assert Path(path).is_dir()
 
     @pytest.mark.disable_clean_stage_check
     def test_no_keep_with_exceptions(self, mock_stage_archive):
@@ -621,7 +622,7 @@ class TestStage:
 
         except ThisMustFailHere:
             path = get_stage_path(stage, self.stage_name)
-            assert os.path.isdir(path)
+            assert Path(path).is_dir()
 
     @pytest.mark.disable_clean_stage_check
     def test_keep_exceptions(self, mock_stage_archive):
@@ -636,7 +637,7 @@ class TestStage:
 
         except ThisMustFailHere:
             path = get_stage_path(stage, self.stage_name)
-            assert os.path.isdir(path)
+            assert Path(path).is_dir()
 
     def test_source_path_available(self, mock_stage_archive):
         """Ensure source path available but does not exist on instantiation."""
@@ -646,7 +647,7 @@ class TestStage:
         source_path = stage.source_path
         assert source_path
         assert source_path.endswith(spack.stage._source_path_subdir)
-        assert not os.path.exists(source_path)
+        assert not Path(source_path).exists()
 
     @pytest.mark.not_on_windows("Windows file permission erroring is not yet supported")
     @pytest.mark.skipif(getuid() == 0, reason="user is root")
@@ -689,7 +690,7 @@ class TestStage:
             if getpass.getuser() in str(test_path).split(os.sep):
                 # Simply ensure directory created if tmpdir includes user
                 spack.stage.create_stage_root(test_path)
-                assert os.path.exists(test_path)
+                assert Path(test_path).exists()
 
                 p_stat = os.stat(test_path)
                 assert p_stat.st_mode & stat.S_IRWXU == stat.S_IRWXU
@@ -710,7 +711,7 @@ class TestStage:
         assert spack.stage._resolve_paths([]) == []
 
         # resolved path without user appends user
-        paths = [os.path.join(os.path.sep, "a", "b", "c")]
+        paths = [os.fsdecode(PurePath(os.path.sep, "a", "b", "c"))]
         can_paths = [paths[0]]
         user = getpass.getuser()
 
@@ -719,7 +720,7 @@ class TestStage:
         assert spack.stage._resolve_paths(paths) == can_paths
 
         # resolved path with node including user does not append user
-        paths = [os.path.join(os.path.sep, "spack-{0}".format(user), "stage")]
+        paths = [os.fsdecode(PurePath(os.path.sep, f"spack-{user}", "stage"))]
         assert spack.stage._resolve_paths(paths) == paths
 
         tempdir = "$tempdir"
@@ -727,17 +728,17 @@ class TestStage:
         user = getpass.getuser()
         temp_has_user = user in can_tempdir.split(os.sep)
         paths = [
-            os.path.join(tempdir, "stage"),
-            os.path.join(tempdir, "$user"),
-            os.path.join(tempdir, "$user", "$user"),
-            os.path.join(tempdir, "$user", "stage", "$user"),
+            os.fsdecode(PurePath(tempdir, "stage")),
+            os.fsdecode(PurePath(tempdir, "$user")),
+            os.fsdecode(PurePath(tempdir, "$user", "$user")),
+            os.fsdecode(PurePath(tempdir, "$user", "stage", "$user")),
         ]
 
         res_paths = [canonicalize_path(p) for p in paths]
         if temp_has_user:
             res_paths[1] = can_tempdir
-            res_paths[2] = os.path.join(can_tempdir, user)
-            res_paths[3] = os.path.join(can_tempdir, "stage", user)
+            res_paths[2] = os.fsdecode(PurePath(can_tempdir, user))
+            res_paths[3] = os.fsdecode(PurePath(can_tempdir, "stage", user))
         elif sys.platform != "win32":
             res_paths[0] = os.path.join(res_paths[0], user)
 
@@ -769,7 +770,7 @@ class TestStage:
 
         test_dir = stage_dir.join(path)
         test_dir.ensure(dir=True)
-        test_path = str(test_dir)
+        test_path = Path(test_dir)
 
         with spack.config.override("config:build_stage", stage_path):
             stage_root = spack.stage.get_stage_root()
@@ -778,9 +779,9 @@ class TestStage:
             spack.stage.purge()
 
             if purged:
-                assert not os.path.exists(test_path)
+                assert not test_path.exists()
             else:
-                assert os.path.exists(test_path)
+                assert test_path.exists()
                 shutil.rmtree(test_path)
 
     def test_stage_constructor_no_fetcher(self):
@@ -798,7 +799,7 @@ class TestStage:
 
 def _create_files_from_tree(base, tree):
     for name, content in tree.items():
-        sub_base = os.path.join(base, name)
+        sub_base = PurePath(base, name)
         if isinstance(content, dict):
             os.mkdir(sub_base)
             _create_files_from_tree(sub_base, content)
@@ -810,13 +811,13 @@ def _create_files_from_tree(base, tree):
 
 
 def _create_tree_from_dir_recursive(path):
-    if os.path.islink(path):
+    if Path(path).is_symlink():
         return readlink(path)
-    elif os.path.isdir(path):
+    elif Path(path).is_dir():
         tree = {}
-        for name in os.listdir(path):
-            sub_path = os.path.join(path, name)
-            tree[name] = _create_tree_from_dir_recursive(sub_path)
+        for name in Path(path).iterdir():
+            sub_path = PurePath(path, name.name)
+            tree[name.name] = _create_tree_from_dir_recursive(sub_path)
         return tree
     else:
         with open(path, "r", encoding="utf-8") as f:
@@ -836,10 +837,10 @@ def develop_path(tmpdir):
 class TestDevelopStage:
     def test_sanity_check_develop_path(self, develop_path):
         _, srcdir = develop_path
-        with open(os.path.join(srcdir, "a1", "b2"), encoding="utf-8") as f:
+        with open(PurePath(srcdir, "a1", "b2"), encoding="utf-8") as f:
             assert f.read() == "b1content"
 
-        assert os.path.exists(os.path.join(srcdir, "a2"))
+        assert Path(srcdir, "a2").exists()
 
     def test_develop_stage(self, develop_path, tmp_build_stage_dir):
         """Check that (a) develop stages update the given
@@ -848,19 +849,19 @@ class TestDevelopStage:
         """
         devtree, srcdir = develop_path
         stage = DevelopStage("test-stage", srcdir, reference_link="link-to-stage")
-        assert not os.path.exists(stage.reference_link)
+        assert not Path(stage.reference_link).exists()
         stage.create()
-        assert os.path.exists(stage.reference_link)
+        assert Path(stage.reference_link).exists()
         srctree1 = _create_tree_from_dir_recursive(stage.source_path)
-        assert os.path.samefile(srctree1["link-to-stage"], stage.path)
+        assert Path(srctree1["link-to-stage"]).samefile(stage.path)
         del srctree1["link-to-stage"]
         assert srctree1 == devtree
 
         stage.destroy()
-        assert not os.path.exists(stage.reference_link)
+        assert not Path(stage.reference_link).exists()
         # Make sure destroying the stage doesn't change anything
         # about the path
-        assert not os.path.exists(stage.path)
+        assert not Path(stage.path).exists()
         srctree2 = _create_tree_from_dir_recursive(srcdir)
         assert srctree2 == devtree
 
@@ -870,7 +871,7 @@ def test_stage_create_replace_path(tmp_build_stage_dir):
     _, test_stage_path = tmp_build_stage_dir
     mkdirp(test_stage_path)
 
-    nondir = os.path.join(test_stage_path, "afile")
+    nondir = Path(test_stage_path, "afile")
     touch(nondir)
     path = url_util.path_to_file_url(str(nondir))
 
@@ -878,7 +879,7 @@ def test_stage_create_replace_path(tmp_build_stage_dir):
     stage.create()
 
     # Ensure the stage path is "converted" to a directory
-    assert os.path.isdir(nondir)
+    assert nondir.is_dir()
 
 
 def test_cannot_access(capsys):

@@ -12,6 +12,7 @@ import shutil
 import stat
 import sys
 import tempfile
+from pathlib import Path, PurePath
 from typing import Callable, Dict, Generator, Iterable, List, Optional, Set
 
 import llnl.string
@@ -65,7 +66,7 @@ def compute_stage_name(spec):
 
 def create_stage_root(path: str) -> None:
     """Create the stage root directory and ensure appropriate access perms."""
-    assert os.path.isabs(path) and len(path.strip()) > 1
+    assert PurePath(path).is_absolute() and len(path.strip()) > 1
 
     err_msg = "Cannot create stage root {0}: Access to {1} is denied"
 
@@ -75,10 +76,10 @@ def create_stage_root(path: str) -> None:
     group_paths, user_node, user_paths = partition_path(path, getpass.getuser())
 
     for p in group_paths:
-        if not os.path.exists(p):
+        if not Path(p).exists():
             # Ensure access controls of subdirs created above `$user` inherit
             # from the parent and share the group.
-            par_stat = os.stat(os.path.dirname(p))
+            par_stat = os.stat(PurePath(p).parent)
             mkdirp(p, group=par_stat.st_gid, mode=par_stat.st_mode)
 
             p_stat = os.stat(p)
@@ -115,14 +116,14 @@ def create_stage_root(path: str) -> None:
                 )
             )
 
-    spack_src_subdir = os.path.join(path, _source_path_subdir)
+    spack_src_subdir = Path(path, _source_path_subdir)
     # When staging into a user-specified directory with `spack stage -p <PATH>`, we need
     # to ensure the `spack-src` subdirectory exists, as we can't rely on it being
     # created automatically by spack. It's not clear why this is the case for `spack
     # stage -p`, but since `mkdirp()` is idempotent, this should not change the behavior
     # for any other code paths.
-    if not os.path.isdir(spack_src_subdir):
-        mkdirp(spack_src_subdir, mode=stat.S_IRWXU)
+    if not spack_src_subdir.is_dir():
+        mkdirp(os.fsdecode(spack_src_subdir), mode=stat.S_IRWXU)
 
 
 def _first_accessible_path(paths):
@@ -159,7 +160,7 @@ def _resolve_paths(candidates):
     for path in candidates:
         # Remove the extra `$user` node from a `$tempdir/$user` entry for
         # hosts that automatically append `$user` to `$tempdir`.
-        if path.startswith(os.path.join("$tempdir", "$user")) and tmp_has_usr:
+        if path.startswith(os.fsdecode(PurePath("$tempdir", "$user"))) and tmp_has_usr:
             path = path.replace("/$user", "", 1)
 
         # Ensure the path is unique per user.
@@ -228,7 +229,7 @@ class LockableStagingDir:
         if path is not None:
             self.path = path
         else:
-            self.path = os.path.join(get_stage_root(), self.name)
+            self.path = os.fsdecode(PurePath(get_stage_root(), self.name))
 
         # Flag to decide whether to delete the stage folder on exit or not
         self.keep = keep
