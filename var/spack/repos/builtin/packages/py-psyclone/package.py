@@ -46,8 +46,8 @@ class PyPsyclone(PythonPackage):
     depends_on("py-graphviz", type=("build", "run"))
     depends_on("py-configparser", type=("build", "run"))
     depends_on("py-jinja2", type="build")
-    depends_on("py-jsonschema", type=("build", "run"), when>="@2.5.0")
-    depends_on("py-sympy", type=("build", "run"), when>="@2.2.0:")
+    depends_on("py-jsonschema", type=("build", "run"), when="@2.5.0:")
+    depends_on("py-sympy", type=("build", "run"), when="@2.2.0:")
     depends_on("py-termcolor", type=("build", "run"))
 
     # Historical dependencies
