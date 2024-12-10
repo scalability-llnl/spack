@@ -20,7 +20,7 @@ class Pism(CMakePackage):
     version("develop", branch="dev")
     version("2.1.1", sha256="be4ac3ac42abbcb4d23af5c35284e06333dff0797eb11fa9745a214033857ab0")
     version("2.0.7", sha256="cd1523fdccd5c261c68cfb1e84a044d014f2e892796b31c490109a5e56cc9edf")
-    version("1.1.4", sha256="8ccb867af3b37e8d103351dadc1d7e77512e64379519fe8a2592668deb27bc44"))
+    version("1.1.4", sha256="8ccb867af3b37e8d103351dadc1d7e77512e64379519fe8a2592668deb27bc44")
     version("0.7.x", branch="stable0.7")
     version("icebin", branch="efischer/dev")
 
