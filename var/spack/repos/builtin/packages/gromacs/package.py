@@ -358,12 +358,12 @@ class Gromacs(CMakePackage, CudaPackage):
     )
 
     variant("openmp", default=True, description="Enables OpenMP at configure time")
-    
+
     # When using apple-clang version 15.x or newer, need to use the llvm-openmp library
     # We also protect with version 2025+ as there seems to be a CMake bug with
     # Apple Clang and OpenMP that is fixed in 2025
     depends_on("llvm-openmp", when="@2025: %apple-clang@15: +openmp", type=("build", "run"))
-    
+
     # But we need to block +openmp for Gromacs older than 2025
     conflicts(
         "+openmp",
