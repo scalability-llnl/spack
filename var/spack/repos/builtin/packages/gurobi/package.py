@@ -22,6 +22,7 @@ class Gurobi(Package):
 
     homepage = "https://www.gurobi.com"
     manual_download = True
+    maintainers("whart222")
 
     version("10.0.0", sha256="91a9ce1464f5f948809fcdfbdeb55f77698ed8a6d6cfa6985295424b6ece2bd4")
     version("9.5.2", sha256="95d8ca18b7f86116ba834a27fd6228c5b1708ae67927e7ea0e954c09374a2d0f")
@@ -35,8 +36,11 @@ class Gurobi(Package):
     license_vars = ["GRB_LICENSE_FILE"]
     license_url = "http://www.gurobi.com/downloads/download-center"
 
-    extends("python")
-    depends_on("python@2.7,3.6:")
+    variant("python", default=False, description="Install gurobipy")
+
+    with when("+python"):
+        extends("python")
+        depends_on("python@2.7,3.6:")
 
     def url_for_version(self, version):
         return "file://{0}/gurobi{1}_linux64.tar.gz".format(os.getcwd(), version)
@@ -56,5 +60,7 @@ class Gurobi(Package):
 
     @run_after("install")
     def gurobipy(self):
-        with working_dir("linux64"):
-            python("setup.py", "install", "--prefix={0}".format(self.prefix))
+        if self.spec.satisfies("+python"):
+            with working_dir("linux64"):
+                python = which("python")
+                python("setup.py", "install", "--prefix={0}".format(self.prefix))
