@@ -14,7 +14,7 @@ import pytest
 import llnl.util.tty as tty
 
 import spack.config
-import spack.mirror
+import spack.mirrors.mirror
 import spack.paths
 import spack.url
 import spack.util.s3
@@ -276,7 +276,7 @@ class MockS3Client:
 
 
 def test_gather_s3_information(monkeypatch, capfd):
-    mirror = spack.mirror.Mirror(
+    mirror = spack.mirrors.mirror.Mirror(
         {
             "fetch": {
                 "access_token": "AAAAAAA",

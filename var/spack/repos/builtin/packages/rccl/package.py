@@ -16,11 +16,12 @@ class Rccl(CMakePackage):
 
     homepage = "https://github.com/ROCm/rccl"
     git = "https://github.com/ROCm/rccl.git"
-    url = "https://github.com/ROCm/rccl/archive/rocm-6.1.2.tar.gz"
+    url = "https://github.com/ROCm/rccl/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
     maintainers("srekolam", "renjithravindrankannath")
     libraries = ["librccl"]
+    version("6.2.4", sha256="12a04743ed89a74b4a08aa046b6a549d385e15d6866042fd41eac8f085f50eea")
     version("6.2.1", sha256="0f5e35c7afbb21c1d49ff201b7d1ddf163d853c27c75c3eaf7b449f4dc1e2188")
     version("6.2.0", sha256="a29c94ea3b9c1a0121d7b1450cb01a697f9f9132169632312b9b0bf744d3c0e3")
     version("6.1.2", sha256="98af99c12d800f5439c7740d797162c35810a25e08e3b11b397d3300d3c0148e")
@@ -77,6 +78,7 @@ class Rccl(CMakePackage):
         "6.1.2",
         "6.2.0",
         "6.2.1",
+        "6.2.4",
     ]:
         depends_on(f"rocm-cmake@{ver}:", type="build", when=f"@{ver}")
         depends_on(f"hip@{ver}", when=f"@{ver}")
@@ -97,6 +99,7 @@ class Rccl(CMakePackage):
         "6.1.2",
         "6.2.0",
         "6.2.1",
+        "6.2.4",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 

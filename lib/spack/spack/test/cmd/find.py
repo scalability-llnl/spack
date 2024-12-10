@@ -462,6 +462,8 @@ def test_environment_with_version_range_in_compiler_doesnt_fail(tmp_path):
 _pkga = (
     "a0",
     """\
+from spack.package import *
+
 class A0(Package):
     version("1.2")
     version("1.1")
@@ -475,6 +477,8 @@ class A0(Package):
 _pkgb = (
     "b0",
     """\
+from spack.package import *
+
 class B0(Package):
     version("1.2")
     version("1.1")
@@ -485,6 +489,8 @@ class B0(Package):
 _pkgc = (
     "c0",
     """\
+from spack.package import *
+
 class C0(Package):
     version("1.2")
     version("1.1")
@@ -497,6 +503,8 @@ class C0(Package):
 _pkgd = (
     "d0",
     """\
+from spack.package import *
+
 class D0(Package):
     version("1.2")
     version("1.1")
@@ -510,6 +518,8 @@ class D0(Package):
 _pkge = (
     "e0",
     """\
+from spack.package import *
+
 class E0(Package):
     tags = ["tag1", "tag2"]
 

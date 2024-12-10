@@ -19,7 +19,7 @@ class Hip(CMakePackage):
 
     homepage = "https://github.com/ROCm/HIP"
     git = "https://github.com/ROCm/HIP.git"
-    url = "https://github.com/ROCm/HIP/archive/rocm-6.1.2.tar.gz"
+    url = "https://github.com/ROCm/HIP/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
     maintainers("srekolam", "renjithravindrankannath", "haampie")
@@ -28,6 +28,7 @@ class Hip(CMakePackage):
     license("MIT")
 
     version("master", branch="master")
+    version("6.2.4", sha256="76e4583ae3d31786270fd92abbb2e3dc5e665b22fdedb5ceff0093131d4dc0ca")
     version("6.2.1", sha256="a8b86666a59867cae67409c4a45e0b8f29a6328c9739e6512c2b5612376f30cf")
     version("6.2.0", sha256="7ca261eba79793427674bf2372c92ac5483cc0fac5278f8ad611de396fad8bee")
     version("6.1.2", sha256="9ba5f70a553b48b2cea25c7e16b97ad49320750c0152763b173b63b9f151e783")
@@ -92,6 +93,7 @@ class Hip(CMakePackage):
             "6.1.2",
             "6.2.0",
             "6.2.1",
+            "6.2.4",
         ]:
             depends_on(f"hsakmt-roct@{ver}", when=f"@{ver}")
             depends_on(f"hsa-rocr-dev@{ver}", when=f"@{ver}")
@@ -116,6 +118,7 @@ class Hip(CMakePackage):
             "6.1.2",
             "6.2.0",
             "6.2.1",
+            "6.2.4",
         ]:
             depends_on(f"hipify-clang@{ver}", when=f"@{ver}")
 
@@ -133,6 +136,7 @@ class Hip(CMakePackage):
             "6.1.2",
             "6.2.0",
             "6.2.1",
+            "6.2.4",
         ]:
             depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 
@@ -140,10 +144,10 @@ class Hip(CMakePackage):
         # ref https://github.com/ROCm/HIP/pull/2202
         depends_on("numactl", when="@3.7.0:")
 
-    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1"]:
+    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4"]:
         depends_on(f"hipcc@{ver}", when=f"@{ver}")
 
-    for ver in ["6.2.0", "6.2.1"]:
+    for ver in ["6.2.0", "6.2.1", "6.2.4"]:
         depends_on(f"rocprofiler-register@{ver}", when=f"@{ver}")
 
     # roc-obj-ls requirements
@@ -205,6 +209,7 @@ class Hip(CMakePackage):
         )
     # Add hip-clr sources thru the below
     for d_version, d_shasum in [
+        ("6.2.4", "0a3164af7f997a4111ade634152957378861b95ee72d7060eb01c86c87208c54"),
         ("6.2.1", "e9cff3a8663defdbda833d49c9e7160171eca14dc285ffe4061378607d6c890d"),
         ("6.2.0", "620e4c6a7f05651cc7a170bc4700fef8cae002420307a667c638b981d00b25e8"),
         ("6.1.2", "1a1e21640035d957991559723cd093f0c7e202874423667d2ba0c7662b01fea4"),
@@ -260,6 +265,7 @@ class Hip(CMakePackage):
         )
     # Add hipother sources thru the below
     for d_version, d_shasum in [
+        ("6.2.4", "b7ebcf8a2679e50d27c49ebec0dbea5a67573f8b8c3f4a29108c84b28b5bedee"),
         ("6.2.1", "5d99e498c1fece44a421574282fc89c6a2499979eaa9f850e5caa7fa3a8938b8"),
         ("6.2.0", "1f854b0c07d71b10450080e3bbffe47adaf10a9745a9212797d991756a100174"),
         ("6.1.2", "2740d1e3dcf1f2d07d2a8db6acf4c972941ae392172b83fd8ddcfe8706a40d0b"),
@@ -280,6 +286,7 @@ class Hip(CMakePackage):
 
     # Add hiptests sources thru the below
     for d_version, d_shasum in [
+        ("6.2.4", "1478b49583d09cb3a96e26ec3bf8dc5ff3e3ec72fa133bb6d7768595d825051e"),
         ("6.2.1", "90fcf0169889533b882d289f9cb8a7baf9bd46a3ce36752b915083931dc839f1"),
         ("6.2.0", "314837dbac78be71844ceb959476470c484fdcd4fb622ff8de9277783e0fcf1c"),
         ("6.1.2", "5b14e4a30d8d8fb56c43e262009646ba9188eac1c8ff882d9a606a4bec69b56b"),

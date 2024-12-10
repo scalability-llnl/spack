@@ -21,7 +21,7 @@ import spack.config
 import spack.deptypes as dt
 import spack.environment as ev
 import spack.error
-import spack.mirror
+import spack.mirrors.mirror
 import spack.oci.oci
 import spack.spec
 import spack.stage
@@ -392,7 +392,7 @@ def push_fn(args):
         roots = spack.cmd.require_active_env(cmd_name="buildcache push").concrete_roots()
 
     mirror = args.mirror
-    assert isinstance(mirror, spack.mirror.Mirror)
+    assert isinstance(mirror, spack.mirrors.mirror.Mirror)
 
     push_url = mirror.push_url
 
@@ -750,7 +750,7 @@ def manifest_copy(manifest_file_list, dest_mirror=None):
             copy_buildcache_file(copy_file["src"], dest)
 
 
-def update_index(mirror: spack.mirror.Mirror, update_keys=False):
+def update_index(mirror: spack.mirrors.mirror.Mirror, update_keys=False):
     # Special case OCI images for now.
     try:
         image_ref = spack.oci.oci.image_from_mirror(mirror)

@@ -21,6 +21,7 @@ The available directives are:
   * ``conflicts``
   * ``depends_on``
   * ``extends``
+  * ``license``
   * ``patch``
   * ``provides``
   * ``resource``
@@ -34,11 +35,12 @@ import collections
 import collections.abc
 import os.path
 import re
-from typing import Any, Callable, List, Optional, Tuple, Union
+from typing import Any, Callable, List, Optional, Tuple, Type, Union
 
 import llnl.util.tty.color
 
 import spack.deptypes as dt
+import spack.fetch_strategy
 import spack.package_base
 import spack.patch
 import spack.spec
@@ -46,7 +48,6 @@ import spack.util.crypto
 import spack.variant
 from spack.dependency import Dependency
 from spack.directives_meta import DirectiveError, DirectiveMeta
-from spack.fetch_strategy import from_kwargs
 from spack.resource import Resource
 from spack.version import (
     GitVersion,
@@ -81,8 +82,8 @@ _patch_order_index = 0
 SpecType = str
 DepType = Union[Tuple[str, ...], str]
 WhenType = Optional[Union[spack.spec.Spec, str, bool]]
-Patcher = Callable[[Union[spack.package_base.PackageBase, Dependency]], None]
-PatchesType = Optional[Union[Patcher, str, List[Union[Patcher, str]]]]
+Patcher = Callable[[Union[Type[spack.package_base.PackageBase], Dependency]], None]
+PatchesType = Union[Patcher, str, List[Union[Patcher, str]]]
 
 
 SUPPORTED_LANGUAGES = ("fortran", "cxx", "c")
@@ -218,7 +219,7 @@ def version(
     return lambda pkg: _execute_version(pkg, ver, **kwargs)
 
 
-def _execute_version(pkg, ver, **kwargs):
+def _execute_version(pkg: Type[spack.package_base.PackageBase], ver: Union[str, int], **kwargs):
     if (
         (any(s in kwargs for s in spack.util.crypto.hashes) or "checksum" in kwargs)
         and hasattr(pkg, "has_code")
@@ -249,12 +250,12 @@ def _execute_version(pkg, ver, **kwargs):
 
 
 def _depends_on(
-    pkg: spack.package_base.PackageBase,
+    pkg: Type[spack.package_base.PackageBase],
     spec: spack.spec.Spec,
     *,
     when: WhenType = None,
     type: DepType = dt.DEFAULT_TYPES,
-    patches: PatchesType = None,
+    patches: Optional[PatchesType] = None,
 ):
     when_spec = _make_when_spec(when)
     if not when_spec:
@@ -329,7 +330,7 @@ def conflicts(conflict_spec: SpecType, when: WhenType = None, msg: Optional[str]
         msg (str): optional user defined message
     """
 
-    def _execute_conflicts(pkg: spack.package_base.PackageBase):
+    def _execute_conflicts(pkg: Type[spack.package_base.PackageBase]):
         # If when is not specified the conflict always holds
         when_spec = _make_when_spec(when)
         if not when_spec:
@@ -348,7 +349,7 @@ def depends_on(
     spec: SpecType,
     when: WhenType = None,
     type: DepType = dt.DEFAULT_TYPES,
-    patches: PatchesType = None,
+    patches: Optional[PatchesType] = None,
 ):
     """Creates a dict of deps with specs defining when they apply.
 
@@ -370,14 +371,16 @@ def depends_on(
         assert type == "build", "languages must be of 'build' type"
         return _language(lang_spec_str=spec, when=when)
 
-    def _execute_depends_on(pkg: spack.package_base.PackageBase):
+    def _execute_depends_on(pkg: Type[spack.package_base.PackageBase]):
         _depends_on(pkg, dep_spec, when=when, type=type, patches=patches)
 
     return _execute_depends_on
 
 
 @directive("disable_redistribute")
-def redistribute(source=None, binary=None, when: WhenType = None):
+def redistribute(
+    source: Optional[bool] = None, binary: Optional[bool] = None, when: WhenType = None
+):
     """Can be used inside a Package definition to declare that
     the package source and/or compiled binaries should not be
     redistributed.
@@ -392,7 +395,10 @@ def redistribute(source=None, binary=None, when: WhenType = None):
 
 
 def _execute_redistribute(
-    pkg: spack.package_base.PackageBase, source=None, binary=None, when: WhenType = None
+    pkg: Type[spack.package_base.PackageBase],
+    source: Optional[bool],
+    binary: Optional[bool],
+    when: WhenType,
 ):
     if source is None and binary is None:
         return
@@ -468,9 +474,7 @@ def provides(*specs: SpecType, when: WhenType = None):
         when: condition when this provides clause needs to be considered
     """
 
-    def _execute_provides(pkg: spack.package_base.PackageBase):
-        import spack.parser  # Avoid circular dependency
-
+    def _execute_provides(pkg: Type[spack.package_base.PackageBase]):
         when_spec = _make_when_spec(when)
         if not when_spec:
             return
@@ -516,7 +520,7 @@ def can_splice(
             variants will be skipped by '*'.
     """
 
-    def _execute_can_splice(pkg: spack.package_base.PackageBase):
+    def _execute_can_splice(pkg: Type[spack.package_base.PackageBase]):
         when_spec = _make_when_spec(when)
         if isinstance(match_variants, str) and match_variants != "*":
             raise ValueError(
@@ -557,10 +561,10 @@ def patch(
             compressed URL patches)
     """
 
-    def _execute_patch(pkg_or_dep: Union[spack.package_base.PackageBase, Dependency]):
-        pkg = pkg_or_dep
-        if isinstance(pkg, Dependency):
-            pkg = pkg.pkg
+    def _execute_patch(
+        pkg_or_dep: Union[Type[spack.package_base.PackageBase], Dependency]
+    ) -> None:
+        pkg = pkg_or_dep.pkg if isinstance(pkg_or_dep, Dependency) else pkg_or_dep
 
         if hasattr(pkg, "has_code") and not pkg.has_code:
             raise UnsupportedPackageDirective(
@@ -734,58 +738,55 @@ def variant(
 
 
 @directive("resources")
-def resource(**kwargs):
-    """Define an external resource to be fetched and staged when building the
-    package. Based on the keywords present in the dictionary the appropriate
-    FetchStrategy will be used for the resource. Resources are fetched and
-    staged in their own folder inside spack stage area, and then moved into
-    the stage area of the package that needs them.
+def resource(
+    *,
+    name: Optional[str] = None,
+    destination: str = "",
+    placement: Optional[str] = None,
+    when: WhenType = None,
+    # additional kwargs are as for `version()`
+    **kwargs,
+):
+    """Define an external resource to be fetched and staged when building the package.
+    Based on the keywords present in the dictionary the appropriate FetchStrategy will
+    be used for the resource. Resources are fetched and staged in their own folder
+    inside spack stage area, and then moved into the stage area of the package that
+    needs them.
 
-    List of recognized keywords:
+    Keyword Arguments:
+        name: name for the resource
+        when: condition defining when the resource is needed
+        destination: path, relative to the package stage area, to which resource should be moved
+        placement: optionally rename the expanded resource inside the destination directory
 
-    * 'when' : (optional) represents the condition upon which the resource is
-      needed
-    * 'destination' : (optional) path where to move the resource. This path
-      must be relative to the main package stage area.
-    * 'placement' : (optional) gives the possibility to fine tune how the
-      resource is moved into the main package stage area.
     """
 
     def _execute_resource(pkg):
-        when = kwargs.get("when")
         when_spec = _make_when_spec(when)
         if not when_spec:
             return
 
-        destination = kwargs.get("destination", "")
-        placement = kwargs.get("placement", None)
-
         # Check if the path is relative
         if os.path.isabs(destination):
-            message = (
-                "The destination keyword of a resource directive " "can't be an absolute path.\n"
-            )
-            message += "\tdestination : '{dest}\n'".format(dest=destination)
-            raise RuntimeError(message)
+            msg = "The destination keyword of a resource directive can't be an absolute path.\n"
+            msg += f"\tdestination : '{destination}\n'"
+            raise RuntimeError(msg)
 
         # Check if the path falls within the main package stage area
         test_path = "stage_folder_root"
-        normalized_destination = os.path.normpath(
-            os.path.join(test_path, destination)
-        )  # Normalized absolute path
+
+        # Normalized absolute path
+        normalized_destination = os.path.normpath(os.path.join(test_path, destination))
 
         if test_path not in normalized_destination:
-            message = (
-                "The destination folder of a resource must fall "
-                "within the main package stage directory.\n"
-            )
-            message += "\tdestination : '{dest}'\n".format(dest=destination)
-            raise RuntimeError(message)
+            msg = "Destination of a resource must be within the package stage directory.\n"
+            msg += f"\tdestination : '{destination}'\n"
+            raise RuntimeError(msg)
 
         resources = pkg.resources.setdefault(when_spec, [])
-        name = kwargs.get("name")
-        fetcher = from_kwargs(**kwargs)
-        resources.append(Resource(name, fetcher, destination, placement))
+        resources.append(
+            Resource(name, spack.fetch_strategy.from_kwargs(**kwargs), destination, placement)
+        )
 
     return _execute_resource
 
@@ -817,7 +818,9 @@ def maintainers(*names: str):
     return _execute_maintainer
 
 
-def _execute_license(pkg, license_identifier: str, when):
+def _execute_license(
+    pkg: Type[spack.package_base.PackageBase], license_identifier: str, when: WhenType
+):
     # If when is not specified the license always holds
     when_spec = _make_when_spec(when)
     if not when_spec:
@@ -881,7 +884,7 @@ def requires(*requirement_specs: str, policy="one_of", when=None, msg=None):
         msg: optional user defined message
     """
 
-    def _execute_requires(pkg: spack.package_base.PackageBase):
+    def _execute_requires(pkg: Type[spack.package_base.PackageBase]):
         if policy not in ("one_of", "any_of"):
             err_msg = (
                 f"the 'policy' argument of the 'requires' directive in {pkg.name} is set "
@@ -906,7 +909,7 @@ def requires(*requirement_specs: str, policy="one_of", when=None, msg=None):
 def _language(lang_spec_str: str, *, when: Optional[Union[str, bool]] = None):
     """Temporary implementation of language virtuals, until compilers are proper dependencies."""
 
-    def _execute_languages(pkg: spack.package_base.PackageBase):
+    def _execute_languages(pkg: Type[spack.package_base.PackageBase]):
         when_spec = _make_when_spec(when)
         if not when_spec:
             return

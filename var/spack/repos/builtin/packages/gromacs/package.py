@@ -358,6 +358,9 @@ class Gromacs(CMakePackage, CudaPackage):
     )
 
     variant("openmp", default=True, description="Enables OpenMP at configure time")
+    conflicts(
+        "+openmp", when="%apple-clang", msg="OpenMP not available for the Apple clang compiler"
+    )
     variant("openmp_max_threads", default="none", description="Max number of OpenMP threads")
     conflicts(
         "+openmp_max_threads", when="~openmp", msg="OpenMP is off but OpenMP Max threads is set"
@@ -487,7 +490,7 @@ class Gromacs(CMakePackage, CudaPackage):
     variant(
         "intel_provided_gcc",
         default=False,
-        description="Use this if Intel compiler is installed through spack."
+        description="Use this if Intel compiler is installed through spack. "
         + "The g++ location is written to icp{c,x}.cfg",
     )
 

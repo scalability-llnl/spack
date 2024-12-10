@@ -16,7 +16,8 @@ import spack.config
 import spack.database
 import spack.error
 import spack.installer
-import spack.mirror
+import spack.mirrors.mirror
+import spack.mirrors.utils
 import spack.package_base
 import spack.patch
 import spack.repo
@@ -615,7 +616,7 @@ def test_install_from_binary_with_missing_patch_succeeds(
     temporary_store.db.add(s, explicit=True)
 
     # Push it to a binary cache
-    mirror = spack.mirror.Mirror.from_local_path(str(tmp_path / "my_build_cache"))
+    mirror = spack.mirrors.mirror.Mirror.from_local_path(str(tmp_path / "my_build_cache"))
     with binary_distribution.make_uploader(mirror=mirror) as uploader:
         uploader.push_or_raise([s])
 
@@ -628,7 +629,7 @@ def test_install_from_binary_with_missing_patch_succeeds(
         PackageInstaller([s.package], explicit=True).install()
 
     # Binary install: succeeds, we don't need the patch.
-    spack.mirror.add(mirror)
+    spack.mirrors.utils.add(mirror)
     PackageInstaller(
         [s.package],
         explicit=True,

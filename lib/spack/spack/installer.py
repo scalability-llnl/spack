@@ -56,7 +56,7 @@ import spack.database
 import spack.deptypes as dt
 import spack.error
 import spack.hooks
-import spack.mirror
+import spack.mirrors.mirror
 import spack.package_base
 import spack.package_prefs as prefs
 import spack.repo
@@ -491,7 +491,7 @@ def _try_install_from_binary_cache(
         timer: timer to keep track of binary install phases.
     """
     # Early exit if no binary mirrors are configured.
-    if not spack.mirror.MirrorCollection(binary=True):
+    if not spack.mirrors.mirror.MirrorCollection(binary=True):
         return False
 
     tty.debug(f"Searching for binary cache of {package_id(pkg.spec)}")

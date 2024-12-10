@@ -11,7 +11,7 @@ import spack.cmd.mirror
 import spack.config
 import spack.environment as ev
 import spack.error
-import spack.mirror
+import spack.mirrors.utils
 import spack.spec
 import spack.util.url as url_util
 import spack.version
@@ -74,7 +74,7 @@ def test_mirror_skip_unstable(tmpdir_factory, mock_packages, config, source_for_
     mirror_dir = str(tmpdir_factory.mktemp("mirror-dir"))
 
     specs = [spack.spec.Spec(x).concretized() for x in ["git-test", "trivial-pkg-with-valid-hash"]]
-    spack.mirror.create(mirror_dir, specs, skip_unstable_versions=True)
+    spack.mirrors.utils.create(mirror_dir, specs, skip_unstable_versions=True)
 
     assert set(os.listdir(mirror_dir)) - set(["_source-cache"]) == set(
         ["trivial-pkg-with-valid-hash"]

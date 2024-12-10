@@ -106,10 +106,9 @@ class Libfabric(AutotoolsPackage, CudaPackage):
     #   device file can only be opened once per process, however, and thus it
     #   frequently conflicts with MPI.
     variant("kdreg", default=False, description="Enable kdreg on supported Cray platforms")
-
     variant("debug", default=False, description="Enable debugging")
-
     variant("uring", default=False, when="@1.17.0:", description="Enable uring support")
+    variant("level_zero", default=False, description="Enable Level Zero support")
 
     # For version 1.9.0:
     # headers: fix forward-declaration of enum fi_collective_op with C++
@@ -132,6 +131,7 @@ class Libfabric(AutotoolsPackage, CudaPackage):
     depends_on("uuid", when="fabrics=opx")
     depends_on("numactl", when="fabrics=opx")
     depends_on("liburing@2.1:", when="+uring")
+    depends_on("oneapi-level-zero", when="+level_zero")
 
     depends_on("m4", when="@main", type="build")
     depends_on("autoconf", when="@main", type="build")
@@ -195,26 +195,19 @@ class Libfabric(AutotoolsPackage, CudaPackage):
         bash("./autogen.sh")
 
     def configure_args(self):
-        args = []
-
-        args.extend(self.enable_or_disable("debug"))
-
-        if self.spec.satisfies("+kdreg"):
-            args.append("--with-kdreg=yes")
-        else:
-            args.append("--with-kdreg=no")
-
-        if self.spec.satisfies("+uring"):
-            args.append("--with-uring=yes")
+        args = [
+            *self.enable_or_disable("debug"),
+            *self.with_or_without("kdreg"),
+            *self.with_or_without("uring"),
+            *self.with_or_without("cuda", activation_value="prefix"),
+            *self.with_or_without("ze", variant="level_zero"),
+        ]
 
         for fabric in [f if isinstance(f, str) else f[0].value for f in self.fabrics]:
-            if "fabrics=" + fabric in self.spec:
-                args.append("--enable-{0}=yes".format(fabric))
+            if f"fabrics={fabric}" in self.spec:
+                args.append(f"--enable-{fabric}")
             else:
-                args.append("--enable-{0}=no".format(fabric))
-
-        if self.spec.satisfies("+cuda"):
-            args.append(f"--with-cuda={self.spec['cuda'].prefix}")
+                args.append(f"--disable-{fabric}")
 
         return args
 

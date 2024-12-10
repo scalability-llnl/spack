@@ -41,6 +41,7 @@ import spack.patch
 import spack.provider_index
 import spack.spec
 import spack.tag
+import spack.tengine
 import spack.util.file_cache
 import spack.util.git
 import spack.util.naming as nm
@@ -79,43 +80,6 @@ def namespace_from_fullname(fullname):
     if namespace.startswith(prefix_and_dot):
         namespace = namespace[len(prefix_and_dot) :]
     return namespace
-
-
-class _PrependFileLoader(importlib.machinery.SourceFileLoader):
-    def __init__(self, fullname, path, prepend=None):
-        super(_PrependFileLoader, self).__init__(fullname, path)
-        self.prepend = prepend
-
-    def path_stats(self, path):
-        stats = super(_PrependFileLoader, self).path_stats(path)
-        if self.prepend:
-            stats["size"] += len(self.prepend) + 1
-        return stats
-
-    def get_data(self, path):
-        data = super(_PrependFileLoader, self).get_data(path)
-        if path != self.path or self.prepend is None:
-            return data
-        else:
-            return self.prepend.encode() + b"\n" + data
-
-
-class RepoLoader(_PrependFileLoader):
-    """Loads a Python module associated with a package in specific repository"""
-
-    #: Code in ``_package_prepend`` is prepended to imported packages.
-    #:
-    #: Spack packages are expected to call `from spack.package import *`
-    #: themselves, but we are allowing a deprecation period before breaking
-    #: external repos that don't do this yet.
-    _package_prepend = "from spack.package import *"
-
-    def __init__(self, fullname, repo, package_name):
-        self.repo = repo
-        self.package_name = package_name
-        self.package_py = repo.filename_for_package_name(package_name)
-        self.fullname = fullname
-        super().__init__(self.fullname, self.package_py, prepend=self._package_prepend)
 
 
 class SpackNamespaceLoader:
@@ -187,7 +151,8 @@ class ReposFinder:
                 # With 2 nested conditionals we can call "repo.real_name" only once
                 package_name = repo.real_name(module_name)
                 if package_name:
-                    return RepoLoader(fullname, repo, package_name)
+                    module_path = repo.filename_for_package_name(package_name)
+                    return importlib.machinery.SourceFileLoader(fullname, module_path)
 
             # We are importing a full namespace like 'spack.pkg.builtin'
             if fullname == repo.full_namespace:
@@ -1521,8 +1486,6 @@ class MockRepositoryBuilder:
                 Both "dep_type" and "condition" can default to ``None`` in which case
                 ``spack.dependency.default_deptype`` and ``spack.spec.Spec()`` are used.
         """
-        import spack.tengine  # avoid circular import
-
         dependencies = dependencies or []
         context = {"cls_name": nm.mod_to_class(name), "dependencies": dependencies}
         template = spack.tengine.make_environment().get_template("mock-repository/package.pyt")
