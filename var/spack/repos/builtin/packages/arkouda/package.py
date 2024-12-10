@@ -97,4 +97,3 @@ class Arkouda(MakefilePackage):
         # single-locale or multi-locale mode
         if not self.spec.satisfies("^chapel comm=none"):
             install("arkouda_server_real", prefix.bin)
-        # install_tree(self.stage.source_path, prefix)
