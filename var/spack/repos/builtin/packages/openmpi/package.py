@@ -1122,6 +1122,10 @@ with '-Wl,-commons,use_dylibs' and without
         if "~romio" in spec:
             config_args.append("--disable-io-romio")
 
+        # Disable Lustre if requested
+        if "~lustre" in self.spec:
+            config_args.append("--without-lustre")
+
         if not spec.satisfies("romio-filesystem=none"):
             args = "+".join(spec.variants["romio-filesystem"].value)
             config_args.append(f"--with-io-romio-flags=--with-file-system={args}")
