@@ -23,6 +23,6 @@ class Hp2p(AutotoolsPackage):
     depends_on("mpi", type=("build", "link", "run"))
 
     def configure_args(self):
-        spec = self.spec
-        args = ["CC={0}".format(spec["mpi"].mpicc), "CXX={0}".format(spec["mpi"].mpicxx)]
+        mpi = self.spec["mpi"]
+        args = [f"CC={mpi.mpicc}", f"CXX={mpi.mpicxx}"]
         return args
