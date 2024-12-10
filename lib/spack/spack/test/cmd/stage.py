@@ -130,6 +130,7 @@ def test_concretizer_arguments(mock_packages, mock_fetch):
     stage("--fresh", "trivial-install-test-package")
     assert spack.config.get("concretizer:reuse", None) is False
 
+
 @pytest.mark.maybeslow
 @pytest.mark.parametrize("externals", [["libelf"], []])
 @pytest.mark.parametrize(
