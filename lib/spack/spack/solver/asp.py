@@ -2081,11 +2081,13 @@ class SpackSolverSetup:
 
             # Order the external versions to prefer more recent versions
             # even if specs in packages.yaml are not ordered that way
-            external_versions = [x.version for x in external_specs]
-            weighted_versions = list(enumerate(sorted(external_versions, reverse=True)))
-            for v_weight, version in weighted_versions:
+            external_versions = [
+                (v, idx)
+                for idx, (v, _) in enumerate(sorted(external_versions, reverse=True))
+            ]
+            for version, idx in external_versions:
                 self.declared_versions[pkg_name].append(
-                    DeclaredVersion(version=version, idx=v_weight, origin=Provenance.EXTERNAL)
+                    DeclaredVersion(version=version, idx=idx, origin=Provenance.EXTERNAL)
                 )
 
             self.trigger_rules()
