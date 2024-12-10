@@ -375,16 +375,6 @@ class Gromacs(CMakePackage, CudaPackage):
     conflicts(
         "+openmp_max_threads", when="~openmp", msg="OpenMP is off but OpenMP Max threads is set"
     )
-
-
-
-    # But we need to block +openmp for Gromacs older than 2025
-    conflicts(
-        "+openmp",
-        when="@:2024 %apple-clang",
-        msg="OpenMP not available for the Apple clang compiler",
-    )
-
     variant(
         "sve",
         default=True,
