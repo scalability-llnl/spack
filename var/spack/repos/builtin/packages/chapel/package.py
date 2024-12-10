@@ -40,7 +40,7 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
 
     homepage = "https://chapel-lang.org/"
 
-    url = "https://github.com/chapel-lang/chapel/archive/refs/tags/2.2.0.tar.gz"
+    url = "https://github.com/chapel-lang/chapel/archive/refs/tags/2.3.0.tar.gz"
     git = "https://github.com/chapel-lang/chapel.git"
 
     test_requires_compiler = True
@@ -59,6 +59,7 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
 
     version("main", branch="main")
 
+    version("2.3.0", sha256="ea6d8970dde32480e6b74e0568a9c4635ec7682716a18adcbab4a5bc4ce9a042")
     version("2.2.0", sha256="9b0ce16ed0b1c777647c3aa852d8d8cacea2c3d8a952548a238f07c0f357a0f9")
     version("2.1.0", sha256="8e164d9a9e705e6b816857e84833b0922ce0bde6a36a9f3a29734830aac168ef")
     version("2.0.1", sha256="47e1f3789478ea870bd4ecdf52acbe469d171b89b663309325431f3da7c75008")
