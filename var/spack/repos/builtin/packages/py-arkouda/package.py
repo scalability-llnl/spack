@@ -46,3 +46,4 @@ class PyArkouda(PythonPackage):
     depends_on("py-pyfiglet", type=("build", "run"))
     depends_on("py-typeguard", type=("build", "run"))
     depends_on("py-tabulate", type=("build", "run"))
+    depends_on("chapel +python-bindings", type=("build", "run"))
