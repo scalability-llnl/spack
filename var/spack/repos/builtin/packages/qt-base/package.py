@@ -70,9 +70,9 @@ class QtPackage(CMakePackage):
 
         # Make our CMAKE_INSTALL_RPATH redundant:
         # for prefix of current package ($ORIGIN/../lib type of rpaths),
-        self.define("QT_DISABLE_RPATH", True)
+        args.append(self.define("QT_DISABLE_RPATH", True))
         # for prefixes of dependencies
-        self.define("QT_NO_DISABLE_CMAKE_INSTALL_RPATH_USE_LINK_PATH", True)
+        args.append(self.define("QT_NO_DISABLE_CMAKE_INSTALL_RPATH_USE_LINK_PATH", True))
 
         return args
 
