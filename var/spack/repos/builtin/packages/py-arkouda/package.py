@@ -55,18 +55,6 @@ class PyArkouda(PythonPackage):
     depends_on("py-tabulate", type=("build", "run"))
     depends_on("py-pytest@6.0:", type=("build", "run"), when="@2024.10.02")
 
-    # TODO: Add tests and examples variant that copies tests and examples
-    # @run_after("install")
-    # def install_additional_files(self):
-    #     spec = self.spec
-    #     prefix = self.prefix
-    #     if "+examples" in spec or "+tests" in spec:
-    #         install_tree("drivers", prefix.drivers)
-    #     if "+examples" in spec:
-    #         install_tree("examples", prefix.examples)
-    #     if "+tests" in spec:
-    #         install_tree("tests", prefix.tests)
-
     # TODO: Implement dev variant to mimic setup.py optionals
     with when("+dev"):
         with default_args(type=("build", "run", "test")):
