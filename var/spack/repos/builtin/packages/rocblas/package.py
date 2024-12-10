@@ -121,7 +121,7 @@ class Rocblas(CMakePackage):
         depends_on(f"rocminfo@{ver}", type="build", when=f"@{ver}")
         depends_on(f"rocm-cmake@{ver}", type="build", when=f"@{ver}")
 
-    depends_on("hipblaslt@6.3.0", when=f"@6.3.0")
+    depends_on("hipblaslt@6.3.0", when="@6.3.0")
     depends_on("python@3.6:", type="build")
 
     with when("+tensile"):

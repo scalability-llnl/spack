@@ -150,8 +150,8 @@ class MiopenHip(CMakePackage):
         depends_on("googletest")
     for ver in ["6.2.0", "6.2.1", "6.2.4", "6.3.0"]:
         depends_on(f"rocrand@{ver}", when=f"@{ver}")
-    depends_on(f"hipblas@6.3.0", when=f"@6.3.0")
-    depends_on(f"hipblaslt@6.3.0", when=f"@6.3.0")
+    depends_on("hipblas@6.3.0", when="@6.3.0")
+    depends_on("hipblaslt@6.3.0", when="@6.3.0")
 
     def setup_build_environment(self, env):
         lib_dir = self.spec["zlib-api"].libs.directories[0]
