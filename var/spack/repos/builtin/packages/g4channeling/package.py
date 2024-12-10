@@ -7,20 +7,18 @@
 from spack.package import *
 
 
-class G4urrpt(Package):
-    """Geant4 data for evaluated particle cross-sections on
-    natural composition of elements"""
+class G4channeling(Package):
+    """Geant4 data for solid state crystal channeling"""
 
     homepage = "https://geant4.web.cern.ch"
-    url = "https://geant4-data.web.cern.ch/geant4-data/datasets/G4URRPT.1.0.tar.gz"
+    url = "https://geant4-data.web.cern.ch/geant4-data/datasets/G4CHANNELING.1.0.tar.gz"
 
     tags = ["hep"]
 
     maintainers("drbenmorgan")
 
     # Only versions relevant to Geant4 releases built by spack are added
-    version("1.1", sha256="6a3432db80bc088aee19c504b9c0124913005d6357ea14870451400ab20d9c11")
-    version("1.0", sha256="278eb6c4086e919d2c2a718eb44d4897b7e06d2a32909f6ed48eb8590b3f9977")
+    version("1.0", sha256="203e3c69984ca09acd181a1d31a9b0efafad4bc12e6c608f0b05e695120d67f2")
 
     def install(self, spec, prefix):
         mkdirp(join_path(prefix.share, "data"))
@@ -29,13 +27,12 @@ class G4urrpt(Package):
 
     def setup_dependent_run_environment(self, env, dependent_spec):
         install_path = join_path(self.prefix.share, "data", self.g4datasetname)
-        env.set("G4URRPTDATA", install_path)
+        env.set("G4CHANNELINGDATA", install_path)
 
     def url_for_version(self, version):
         """Handle version string."""
-        return "http://geant4-data.web.cern.ch/geant4-data/datasets/G4URRPT.%s.tar.gz" % version
+        return f"http://geant4-data.web.cern.ch/geant4-data/datasets/G4CHANNELING.{version}.tar.gz"
 
     @property
     def g4datasetname(self):
-        spec = self.spec
-        return "G4URRPT{0}".format(spec.version)
+        return f"G4CHANNELING{self.spec.version}"

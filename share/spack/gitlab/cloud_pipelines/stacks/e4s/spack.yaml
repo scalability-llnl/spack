@@ -327,6 +327,7 @@ spack:
   - heffte +rocm amdgpu_target=gfx90a
   - hpx +rocm amdgpu_target=gfx90a
   - hypre +rocm amdgpu_target=gfx90a
+  - lammps +rocm amdgpu_target=gfx90a
   - magma ~cuda +rocm amdgpu_target=gfx90a
   - mfem +rocm amdgpu_target=gfx90a
   - raja ~openmp +rocm amdgpu_target=gfx90a
