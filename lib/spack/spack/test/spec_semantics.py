@@ -460,7 +460,6 @@ class TestSpecSemantics:
             ("foo platform=linux", "platform=test os=redhat6 target=x86"),
             ("foo os=redhat6", "platform=test os=debian6 target=x86_64"),
             ("foo target=x86_64", "platform=test os=redhat6 target=x86"),
-            ("foo arch=test-frontend-frontend", "platform=test os=frontend target=backend"),
             ("foo%intel", "%gcc"),
             ("foo%intel", "%gcc"),
             ("foo%gcc@4.3", "%gcc@4.4:4.6"),
@@ -487,7 +486,6 @@ class TestSpecSemantics:
             ("libelf+debug", "libelf~debug"),
             ("libelf+debug~foo", "libelf+debug+foo"),
             ("libelf debug=True", "libelf debug=False"),
-            ("libelf platform=test target=be os=be", "libelf target=fe os=fe"),
             ("namespace=builtin.mock", "namespace=builtin"),
         ],
     )

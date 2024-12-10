@@ -14,6 +14,8 @@ import os
 
 import pytest
 
+import archspec.cpu
+
 import spack
 import spack.cmd
 import spack.cmd.external
@@ -99,11 +101,8 @@ class JsonCompilerEntry:
 
 @pytest.fixture
 def _common_arch(test_platform):
-    return JsonArchEntry(
-        platform=test_platform.name,
-        os=test_platform.front_os,
-        target=test_platform.target("fe").name,
-    )
+    generic = archspec.cpu.TARGETS[test_platform.default].family
+    return JsonArchEntry(platform=test_platform.name, os="redhat6", target=generic.name)
 
 
 @pytest.fixture

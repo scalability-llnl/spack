@@ -306,7 +306,7 @@ def specfile_for(default_mock_concretization):
         (
             r"os=fe",  # Various translations associated with the architecture
             [Token(TokenType.KEY_VALUE_PAIR, value="os=fe")],
-            "arch=test-redhat6-None",
+            "arch=test-debian6-None",
         ),
         (
             r"os=default_os",
