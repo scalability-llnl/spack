@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import argparse
+import difflib
 import importlib
 import os
 import re
@@ -125,6 +126,8 @@ def get_module(cmd_name):
         tty.debug("Imported {0} from built-in commands".format(pname))
     except ImportError:
         module = spack.extensions.get_module(cmd_name)
+        if not module:
+            raise CommandNotFoundError(cmd_name)
 
     attr_setdefault(module, SETUP_PARSER, lambda *args: None)  # null-op
     attr_setdefault(module, DESCRIPTION, "")
@@ -691,3 +694,24 @@ def find_environment(args):
 def first_line(docstring):
     """Return the first line of the docstring."""
     return docstring.split("\n")[0]
+
+
+class CommandNotFoundError(spack.error.SpackError):
+    """Exception class thrown when a requested command is not recognized as
+    such.
+    """
+
+    def __init__(self, cmd_name):
+        msg = (
+            f"{cmd_name} is not a recognized Spack command or extension command; "
+            "check with `spack commands`."
+        )
+        long_msg = None
+
+        similar = difflib.get_close_matches(cmd_name, all_commands())
+
+        if 1 <= len(similar) <= 5:
+            long_msg = "\nDid you mean one of the following commands?\n  "
+            long_msg += "\n  ".join(similar)
+
+        super().__init__(msg, long_msg)
