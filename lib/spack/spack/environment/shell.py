@@ -67,7 +67,8 @@ def deactivate_header(shell):
         cmds += "set -e SPACK_PROMPT;\n"
         cmds += "functions -e despacktivate;\n"
         #
-        # NOTE: Unsetting SPACK_PROMPT environment variable which is used to avoid changing fish_prompt function.
+        # NOTE: Unsetting SPACK_PROMPT environment variable which is used to
+        # avoid changing fish_prompt function.
         #
     elif shell == "bat":
         # TODO: Color
