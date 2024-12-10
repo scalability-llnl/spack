@@ -294,7 +294,7 @@ def gcc11_with_flags(compiler_factory):
 # which changes the config.
 @pytest.mark.usefixtures("mutable_config", "mock_packages", "do_not_check_runtimes_on_reuse")
 class TestConcretize:
-    def test_concretize(self, spec):
+    def test_concretize_0(self, spec):
         check_concretize(spec)
 
     def test_concretize_mention_build_dep(self):

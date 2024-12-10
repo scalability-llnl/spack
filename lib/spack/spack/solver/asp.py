@@ -1486,7 +1486,12 @@ class SpackSolverSetup:
         else:
             # conditional variant
             msg = f"Package {pkg.name} has variant '{name}' when {when}"
-            cond_id = self.condition(when, required_name=pkg.name, msg=msg)
+            # TODO: it seems like id_context shouldn't be required here. Without this
+            # we will get an error because 'build_type' *and* 'generator' are conditioned
+            # on build_system=cmake. It seems like we should be able to generate one
+            # condition that determines both outcomes. Outside-of/before these changes
+            # Spack was generating distinct condition IDs in both cases though.
+            cond_id = self.condition(when, required_name=pkg.name, msg=msg, id_context=[name])
             pkg_fact(fn.variant_condition(name, vid, cond_id))
 
         # record type so we can construct the variant when we read it back in
