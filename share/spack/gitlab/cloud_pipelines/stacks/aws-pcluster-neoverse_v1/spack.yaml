@@ -18,8 +18,7 @@ spack:
   ci:
     pipeline-gen:
     - build-job:
-        image: {name: ghcr.io/spack/pcluster-amazonlinux-2:v2024-10-07, entrypoint: [
-            '']}
+        image: {name: ghcr.io/spack/pcluster-amazonlinux-2:v2024-10-07, entrypoint: ['']}
         tags: [aarch64]
         before_script:
         - - . "./share/spack/setup-env.sh"
@@ -30,13 +29,8 @@ spack:
     - signing-job:
         before_script:
             # Do not distribute Intel & ARM binaries
-        - -
-            for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/
-            | grep intel-oneapi | awk '{print $4}' | sed -e 's?^.*build_cache/??g');
-            do aws s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/$i; done
-          - for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/
-            | grep armpl | awk '{print $4}' | sed -e 's?^.*build_cache/??g'); do aws
-            s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/$i; done
+        - - for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/ | grep intel-oneapi | awk '{print $4}' | sed -e 's?^.*build_cache/??g'); do aws s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/$i; done
+          - for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/ | grep armpl | awk '{print $4}' | sed -e 's?^.*build_cache/??g'); do aws s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/$i; done
   cdash:
     build-group: AWS Packages
   compilers:
@@ -69,7 +63,7 @@ spack:
   packages:
     acfl:
       require:
-      - target=aarch64
+      - '%gcc target=aarch64'
     gromacs:
       require:
       - gromacs@2024.3 %gcc ^armpl-gcc ^openmpi
@@ -84,20 +78,18 @@ spack:
       variants: ~lldb
     mpas-model:
       require:
-      - precision=single ^parallelio+pnetcdf
+      - precision=single %gcc ^parallelio+pnetcdf
     mpich:
       require:
       - mpich pmi=pmi2 device=ch4 netmod=ofi +slurm
     nvhpc:
       require:
-      - nvhpc target=aarch64
+      - nvhpc %gcc target=aarch64
     openfoam:
       require:
       - openfoam ^scotch@6.0.9
     openmpi:
-      variants: ~atomics ~cuda ~cxx ~cxx_exceptions ~internal-hwloc ~java +legacylaunchers
-        ~lustre ~memchecker +pmi +romio ~singularity +vt +wrapper-rpath fabrics=ofi
-        schedulers=slurm
+      variants: ~atomics ~cuda ~cxx ~cxx_exceptions ~internal-hwloc ~java +legacylaunchers ~lustre ~memchecker +pmi +romio ~singularity +vt +wrapper-rpath fabrics=ofi schedulers=slurm
       require: '@4:'
     # Palace does not build correctly with armpl until https://github.com/awslabs/palace/pull/207 is merged into a version.
     # palace:
@@ -107,7 +99,7 @@ spack:
       require: 'pmix@3:'
     quantum-espresso:
       require:
-      - quantum-espresso@6.6 ^armpl-gcc
+      - quantum-espresso@6.6 %gcc ^armpl-gcc
     slurm:
       buildable: false
       externals:

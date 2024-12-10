@@ -22,8 +22,7 @@ spack:
   ci:
     pipeline-gen:
     - build-job:
-        image: {name: ghcr.io/spack/pcluster-amazonlinux-2:v2024-10-07, entrypoint: [
-            '']}
+        image: {name: ghcr.io/spack/pcluster-amazonlinux-2:v2024-10-07, entrypoint: ['']}
         before_script:
         - - . "./share/spack/setup-env.sh"
           - . /etc/profile.d/modules.sh
@@ -33,13 +32,8 @@ spack:
     - signing-job:
         before_script:
             # Do not distribute Intel & ARM binaries
-        - -
-            for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/
-            | grep intel-oneapi | awk '{print $4}' | sed -e 's?^.*build_cache/??g');
-            do aws s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/$i; done
-          - for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/
-            | grep armpl | awk '{print $4}' | sed -e 's?^.*build_cache/??g'); do aws
-            s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/$i; done
+        - - for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/ | grep intel-oneapi | awk '{print $4}' | sed -e 's?^.*build_cache/??g'); do aws s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/$i; done
+          - for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/ | grep armpl | awk '{print $4}' | sed -e 's?^.*build_cache/??g'); do aws s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/$i; done
   cdash:
     build-group: AWS Packages
   compilers:
@@ -75,7 +69,7 @@ spack:
       # Newer gettext cannot build with gcc@12 and old AL2 glibc headers
       # Older gettext versions do not build correctly with oneapi.
       require:
-      - '@:0.20 %gcc'
+      - one_of: ['@:0.20 %gcc', '%oneapi']
     gromacs:
       require:
       - +intel_provided_gcc ^intel-oneapi-mkl
@@ -83,8 +77,8 @@ spack:
       variants: +external-libfabric generic-names=True
     lammps:
       require:
-      - lammps_sizes=bigbig +molecule +kspace +rigid +asphere +opt +openmp +openmp-package
-        fft=mkl ^intel-oneapi-mkl
+      - lammps_sizes=bigbig +molecule +kspace +rigid +asphere +opt +openmp +openmp-package fft=mkl ^intel-oneapi-mkl
+      - one_of: [+intel target=x86_64_v4, target=x86_64_v3]
     libfabric:
       buildable: true
       externals:
@@ -94,9 +88,7 @@ spack:
       - fabrics=shm,efa
     mpas-model:
       require:
-      - one_of:
-        - precision=single ^parallelio+pnetcdf target=x86_64_v4
-        - precision=single ^parallelio+pnetcdf target=x86_64_v3
+      - spec: precision=single ^parallelio+pnetcdf
         when: '%oneapi'
     mpich:
       require:
@@ -105,9 +97,7 @@ spack:
       require:
       - openfoam %gcc ^scotch@6.0.9
     openmpi:
-      variants: ~atomics ~cuda ~cxx ~cxx_exceptions ~internal-hwloc ~java +legacylaunchers
-        ~lustre ~memchecker +pmi +romio ~singularity +vt +wrapper-rpath fabrics=ofi
-        schedulers=slurm
+      variants: ~atomics ~cuda ~cxx ~cxx_exceptions ~internal-hwloc ~java +legacylaunchers ~lustre ~memchecker +pmi +romio ~singularity +vt +wrapper-rpath fabrics=ofi schedulers=slurm
       require:
       - 'openmpi @4:'
     palace:
