@@ -879,10 +879,13 @@ def _writer_daemon(
     write_fd.close()
 
     # 1. Use line buffering (3rd param = 1) since Python 3 has a bug
-    # that prevents unbuffered text I/O.
-    # 2. Python 3.x before 3.7 does not open with UTF-8 encoding by default
+    #    that prevents unbuffered text I/O. [needs citation]
+    # 2. Enforce a UTF-8 interpretation of build process output with errors replaced by '?'.
+    #    The downside is that the log file will not contain the exact output of the build process.
     # 3. closefd=False because Connection has "ownership"
-    read_file = os.fdopen(read_fd.fileno(), "r", 1, encoding="utf-8", closefd=False)
+    read_file = os.fdopen(
+        read_fd.fileno(), "r", 1, encoding="utf-8", errors="replace", closefd=False
+    )
 
     if stdin_fd:
         stdin_file = os.fdopen(stdin_fd.fileno(), closefd=False)
@@ -928,11 +931,7 @@ def _writer_daemon(
                     try:
                         while line_count < 100:
                             # Handle output from the calling process.
-                            try:
-                                line = _retry(read_file.readline)()
-                            except UnicodeDecodeError:
-                                # installs like --test=root gpgme produce non-UTF8 logs
-                                line = "<line lost: output was not encoded as UTF-8>\n"
+                            line = _retry(read_file.readline)()
 
                             if not line:
                                 return
@@ -946,6 +945,13 @@ def _writer_daemon(
                                 output_line = clean_line
                                 if filter_fn:
                                     output_line = filter_fn(clean_line)
+                                enc = sys.stdout.encoding
+                                if enc != "utf-8":
+                                    # On Python 3.6 and 3.7-3.14 with non-{utf-8,C} locale stdout
+                                    # may not be able to handle utf-8 output. We do an inefficient
+                                    # dance of re-encoding with errors replaced, so stdout.write
+                                    # does not raise.
+                                    output_line = output_line.encode(enc, "replace").decode(enc)
                                 sys.stdout.write(output_line)
 
                             # Stripped output to log file.
