@@ -47,6 +47,13 @@ class Rocdecode(CMakePackage):
             "CMakeLists.txt",
             string=True,
         )
+        filter_file(
+            r"${ROCM_PATH}/lib/llvm/bin/clang++",
+            "{0}/bin/clang++".format(self.spec["llvm-amdgpu"].prefix),
+            "CMakeLists.txt",
+            string=True,
+        )
+
 
     def cmake_args(self):
         args = []

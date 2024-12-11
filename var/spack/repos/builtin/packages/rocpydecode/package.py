@@ -14,7 +14,7 @@ class Rocpydecode(CMakePackage):
     url = "https://github.com/ROCm/rocPyDecode/archive/refs/tags/rocm-6.2.0.tar.gz"
 
     maintainers("afzpatel", "srekolam", "renjithravindrankannath")
-
+    version("6.3.0", sha256="4d0d969fb32328d8277b5cc451ee875428f58c12c1d4b3ff33247774ecc6caf8")
     version("6.2.4", sha256="9cdb8bdc65b54b2c02d6c950dd34cd702ec50d903aa4d252d1eb1f8cae8c0afb")
     version("6.2.1", sha256="34c595cfe40ad74fcec2f52e7cc7be3ad8c8334030b0e98eb36305b6f63edc0d")
     version("6.2.0", sha256="e465254cd3e96bbb59208e90293d7c6b7744b0fbcd928ef278ec568c83e63ff3")
@@ -23,12 +23,18 @@ class Rocpydecode(CMakePackage):
     depends_on("ffmpeg@4.4:6")
     depends_on("dlpack")
 
-    for ver in ["6.2.0", "6.2.1", "6.2.4"]:
+    for ver in ["6.2.0", "6.2.1", "6.2.4", "6.3.0"]:
         depends_on(f"rocdecode@{ver}", when=f"@{ver}")
 
     def patch(self):
         filter_file(
             r"${ROCM_PATH}/llvm/bin/clang++",
+            "{0}/bin/clang++".format(self.spec["llvm-amdgpu"].prefix),
+            "CMakeLists.txt",
+            string=True,
+        )
+        filter_file(
+            r"${ROCM_PATH}/lib/llvm/bin/clang++",
             "{0}/bin/clang++".format(self.spec["llvm-amdgpu"].prefix),
             "CMakeLists.txt",
             string=True,
