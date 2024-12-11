@@ -6,7 +6,7 @@
 from spack.package import *
 
 
-class Spiner(CMakePackage, CudaPackage):
+class Spiner(CMakePackage):
     """Spiner:
     Performance portable routines for generic, tabulated, multi-dimensional data"""
 
@@ -45,7 +45,6 @@ class Spiner(CMakePackage, CudaPackage):
     # "when" clauses. Therefore, call the whens FIRST then the non-whens.
     # https://spack.readthedocs.io/en/latest/packaging_guide.html#overriding-variants
     variant("kokkos", default=False, description="Enable kokkos")
-    variant("openmp", default=False, description="Enable openmp kokkos backend")
 
     variant("hdf5", default=False, description="Enable hdf5")
     variant("mpi", default=False, description="Support parallel hdf5")
@@ -54,7 +53,8 @@ class Spiner(CMakePackage, CudaPackage):
 
     depends_on("cmake@3.12:", when="@:1.5.1", type="build")
     depends_on("cmake@3.23:", when="@1.6.0:", type="build")
-    depends_on("catch2@2.13.4:2.13.9", type="test")
+    depends_on("catch2@3.0.1:", when="@main", type="test")
+    depends_on("catch2@2.13.4:2.13.9", when="@:1.6.2", type="test")
     depends_on("ports-of-call@1.2.0:", when="@:1.5.1")
     depends_on("ports-of-call@1.5.1:", when="@1.6.0:")
     depends_on("ports-of-call@main", when="@main")
@@ -62,11 +62,8 @@ class Spiner(CMakePackage, CudaPackage):
     # Currently the raw cuda backend of ports-of-call is not supported.
     depends_on("ports-of-call portability_strategy=Kokkos", when="@:1.5.1 +kokkos")
     depends_on("ports-of-call portability_strategy=None", when="@:1.5.1 ~kokkos")
-    for _flag in list(CudaPackage.cuda_arch_values):
-        depends_on("kokkos@3.3.00: cuda_arch=" + _flag, when="+cuda+kokkos cuda_arch=" + _flag)
-    for _flag in ("~cuda", "+cuda", "~openmp", "+openmp"):
-        depends_on("kokkos@3.3.00: " + _flag, when="+kokkos" + _flag)
-    depends_on("kokkos@3.3.00: ~shared+wrapper+cuda_lambda+cuda_constexpr", when="+cuda+kokkos")
+    depends_on("kokkos@3.3.00:", when="+kokkos")
+    conflicts("kokkos+cuda~cuda_lambda~cuda_constexpr", when="+kokkos")
 
     depends_on("hdf5+hl~mpi", when="+hdf5~mpi")
     depends_on("hdf5+hl+mpi", when="+hdf5+mpi")
@@ -76,26 +73,31 @@ class Spiner(CMakePackage, CudaPackage):
     depends_on("py-matplotlib", when="+python")
 
     conflicts("+mpi", when="~hdf5")
-    conflicts("+cuda", when="~kokkos")
-    conflicts("+openmp", when="~kokkos")
-    conflicts("cuda_arch=none", when="+cuda", msg="CUDA architecture is required")
 
     def cmake_args(self):
         if self.spec.satisfies("@1.6.0:"):
             use_kokkos_option = "SPINER_TEST_USE_KOKKOS"
-            use_cuda_option = "SPINER_TEST_USE_CUDA"
         else:
             use_kokkos_option = "SPINER_USE_KOKKOS"
-            use_cuda_option = "SPINER_USE_CUDA"
 
         args = [
             self.define("BUILD_TESTING", self.run_tests),
+            self.define("SPINER_BUILD_TESTS", self.run_tests),
+            self.define(
+                "SPINER_TEST_USE_KOKKOS", self.run_tests and self.spec.satisfies("+kokkos")
+            ),
             self.define_from_variant(use_kokkos_option, "kokkos"),
-            self.define_from_variant(use_cuda_option, "cuda"),
             self.define_from_variant("SPINER_USE_HDF", "hdf5"),
         ]
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("^kokkos+cuda"):
             args.append(
-                self.define("CMAKE_CUDA_ARCHITECTURES", self.spec.variants["cuda_arch"].value)
+                self.define(
+                    "CMAKE_CUDA_ARCHITECTURES", self.spec["kokkos"].variants["cuda_arch"].value
+                )
             )
+        if self.spec.satisfies("^kokkos+rocm"):
+            args.append(self.define("CMAKE_CXX_COMPILER", self.spec["hip"].hipcc))
+            args.append(self.define("CMAKE_C_COMPILER", self.spec["hip"].hipcc))
+        if self.spec.satisfies("^kokkos+cuda"):
+            args.append(self.define("CMAKE_CXX_COMPILER", self.spec["kokkos"].kokkos_cxx))
         return args
