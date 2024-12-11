@@ -36,4 +36,4 @@ class PyPytestEnv(PythonPackage):
     depends_on("py-pytest@8.3.3:", type=("build", "run"), when="@1.1.5:")
     depends_on("py-pytest@8.3.2:", type=("build", "run"), when="@1.1.4:")
 
-    depends_on("py-tomli", type=("build", "run"))
+    depends_on("py-tomli@2.0.1:", type=("build", "run"), when="^python@:3.10")
