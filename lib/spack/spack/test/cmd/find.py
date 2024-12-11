@@ -13,6 +13,7 @@ import pytest
 
 import spack.cmd as cmd
 import spack.cmd.find
+import spack.concretize
 import spack.environment as ev
 import spack.repo
 import spack.store
@@ -202,7 +203,8 @@ def test_find_json_deps(database):
 @pytest.mark.db
 def test_display_json(database, capsys):
     specs = [
-        Spec(s).concretized() for s in ["mpileaks ^zmpi", "mpileaks ^mpich", "mpileaks ^mpich2"]
+        spack.concretize.concretized(Spec(s))
+        for s in ["mpileaks ^zmpi", "mpileaks ^mpich", "mpileaks ^mpich2"]
     ]
 
     cmd.display_specs_as_json(specs)
@@ -217,7 +219,8 @@ def test_display_json(database, capsys):
 @pytest.mark.db
 def test_display_json_deps(database, capsys):
     specs = [
-        Spec(s).concretized() for s in ["mpileaks ^zmpi", "mpileaks ^mpich", "mpileaks ^mpich2"]
+        spack.concretize.concretized(Spec(s))
+        for s in ["mpileaks ^zmpi", "mpileaks ^mpich", "mpileaks ^mpich2"]
     ]
 
     cmd.display_specs_as_json(specs, deps=True)
@@ -276,7 +279,7 @@ mpileaks-2.3
 def test_find_format_deps_paths(database, config):
     output = find("-dp", "--format", "{name}-{version}", "mpileaks", "^zmpi")
 
-    spec = Spec("mpileaks ^zmpi").concretized()
+    spec = spack.concretize.concretized(Spec("mpileaks ^zmpi"))
     prefixes = [s.prefix for s in spec.traverse()]
 
     assert (
@@ -301,7 +304,8 @@ def test_find_very_long(database, config):
     output = find("-L", "--no-groups", "mpileaks")
 
     specs = [
-        Spec(s).concretized() for s in ["mpileaks ^zmpi", "mpileaks ^mpich", "mpileaks ^mpich2"]
+        spack.concretize.concretized(Spec(s))
+        for s in ["mpileaks ^zmpi", "mpileaks ^mpich", "mpileaks ^mpich2"]
     ]
 
     assert set(output.strip().split("\n")) == set(

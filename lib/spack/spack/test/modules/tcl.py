@@ -9,6 +9,7 @@ import pytest
 
 import archspec.cpu
 
+import spack.concretize
 import spack.modules.common
 import spack.modules.tcl
 import spack.spec
@@ -394,8 +395,7 @@ class TestTcl:
         assert len([x for x in content if "setenv FOOBAR" in x]) == 1
         assert len([x for x in content if "setenv FOOBAR {mpileaks}" in x]) == 1
 
-        spec = spack.spec.Spec("mpileaks")
-        spec.concretize()
+        spec = spack.concretize.concretized(spack.spec.Spec("mpileaks"))
         content = modulefile_content(spec["callpath"])
 
         assert len([x for x in content if "setenv FOOBAR" in x]) == 1
@@ -469,14 +469,12 @@ class TestTcl:
         module_configuration("exclude_implicits")
 
         # mpileaks is defined as explicit with explicit argument set on writer
-        mpileaks_spec = spack.spec.Spec("mpileaks")
-        mpileaks_spec.concretize()
+        mpileaks_spec = spack.concretize.concretized(spack.spec.Spec("mpileaks"))
         writer = writer_cls(mpileaks_spec, "default", True)
         assert not writer.conf.excluded
 
         # callpath is defined as implicit with explicit argument set on writer
-        callpath_spec = spack.spec.Spec("callpath")
-        callpath_spec.concretize()
+        callpath_spec = spack.concretize.concretized(spack.spec.Spec("callpath"))
         writer = writer_cls(callpath_spec, "default", False)
         assert writer.conf.excluded
 
@@ -511,7 +509,7 @@ class TestTcl:
         """Tests the addition and removal of hide command in modulerc."""
         module_configuration("hide_implicits")
 
-        spec = spack.spec.Spec("mpileaks@2.3").concretized()
+        spec = spack.concretize.concretized(spack.spec.Spec("mpileaks@2.3"))
 
         # mpileaks is defined as implicit, thus hide command should appear in modulerc
         writer = writer_cls(spec, "default", False)
@@ -558,8 +556,8 @@ class TestTcl:
         # three versions of mpileaks are implicit
         writer = writer_cls(spec, "default", False)
         writer.write(overwrite=True)
-        spec_alt1 = spack.spec.Spec("mpileaks@2.2").concretized()
-        spec_alt2 = spack.spec.Spec("mpileaks@2.1").concretized()
+        spec_alt1 = spack.concretize.concretized(spack.spec.Spec("mpileaks@2.2"))
+        spec_alt2 = spack.concretize.concretized(spack.spec.Spec("mpileaks@2.1"))
         writer_alt1 = writer_cls(spec_alt1, "default", False)
         writer_alt1.write(overwrite=True)
         writer_alt2 = writer_cls(spec_alt2, "default", False)

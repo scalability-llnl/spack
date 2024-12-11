@@ -51,11 +51,10 @@ def concretize_specs_together(
         tests: list of package names for which to consider tests dependencies. If True, all nodes
             will have test dependencies. If False, test dependencies will be disregarded.
     """
-    import spack.solver.asp
+    from spack.solver.asp import Solver
 
     allow_deprecated = spack.config.get("config:deprecated", False)
-    solver = spack.solver.asp.Solver()
-    result = solver.solve(abstract_specs, tests=tests, allow_deprecated=allow_deprecated)
+    result = Solver().solve(abstract_specs, tests=tests, allow_deprecated=allow_deprecated)
     return [s.copy() for s in result.specs]
 
 
@@ -90,7 +89,7 @@ def concretize_together_when_possible(
         tests: list of package names for which to consider tests dependencies. If True, all nodes
             will have test dependencies. If False, test dependencies will be disregarded.
     """
-    import spack.solver.asp
+    from spack.solver.asp import Solver
 
     to_concretize = [concrete if concrete else abstract for abstract, concrete in spec_list]
     old_concrete_to_abstract = {
@@ -98,9 +97,8 @@ def concretize_together_when_possible(
     }
 
     result_by_user_spec = {}
-    solver = spack.solver.asp.Solver()
     allow_deprecated = spack.config.get("config:deprecated", False)
-    for result in solver.solve_in_rounds(
+    for result in Solver().solve_in_rounds(
         to_concretize, tests=tests, allow_deprecated=allow_deprecated
     ):
         result_by_user_spec.update(result.specs_by_input)
@@ -124,7 +122,7 @@ def concretize_separately(
         tests: list of package names for which to consider tests dependencies. If True, all nodes
             will have test dependencies. If False, test dependencies will be disregarded.
     """
-    import spack.bootstrap
+    from spack.bootstrap import ensure_bootstrap_configuration, ensure_clingo_importable_or_raise
 
     to_concretize = [abstract for abstract, concrete in spec_list if not concrete]
     args = [
@@ -134,8 +132,8 @@ def concretize_separately(
     ]
     ret = [(i, abstract) for i, abstract in enumerate(to_concretize) if abstract.concrete]
     # Ensure we don't try to bootstrap clingo in parallel
-    with spack.bootstrap.ensure_bootstrap_configuration():
-        spack.bootstrap.ensure_clingo_importable_or_raise()
+    with ensure_bootstrap_configuration():
+        ensure_clingo_importable_or_raise()
 
     # Ensure all the indexes have been built or updated, since
     # otherwise the processes in the pool may timeout on waiting
@@ -190,8 +188,48 @@ def _concretize_task(packed_arguments: Tuple[int, str, TestsType]) -> Tuple[int,
     index, spec_str, tests = packed_arguments
     with tty.SuppressOutput(msg_enabled=False):
         start = time.time()
-        spec = Spec(spec_str).concretized(tests=tests)
+        spec = concretized(Spec(spec_str), tests=tests)
         return index, spec, time.time() - start
+
+
+def concretized(spec: Spec, tests: Union[bool, Iterable[str]] = False) -> Spec:
+    """Return a concretized copy of the given spec.
+
+    Args:
+        tests: if False disregard 'test' dependencies, if a list of names activate them for
+            the packages in the list, if True activate 'test' dependencies for all packages.
+    """
+    from spack.solver.asp import Solver, SpecBuilder
+
+    spec.replace_hash()
+
+    for node in spec.traverse():
+        if not node.name:
+            raise spack.error.SpecError(
+                f"Spec {node} has no name; cannot concretize an anonymous spec"
+            )
+
+    if spec._concrete:
+        return spec.copy()
+
+    allow_deprecated = spack.config.get("config:deprecated", False)
+    result = Solver().solve([spec], tests=tests, allow_deprecated=allow_deprecated)
+
+    # take the best answer
+    opt, i, answer = min(result.answers)
+    name = spec.name
+    # TODO: Consolidate this code with similar code in solve.py
+    if spec.virtual:
+        providers = [s.name for s in answer.values() if s.package.provides(name)]
+        name = providers[0]
+
+    node = SpecBuilder.make_node(pkg=name)
+    assert (
+        node in answer
+    ), f"cannot find {name} in the list of specs {','.join([n.pkg for n in answer.keys()])}"
+
+    concretized = answer[node]
+    return concretized
 
 
 class UnavailableCompilerVersionError(spack.error.SpackError):

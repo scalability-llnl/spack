@@ -11,10 +11,10 @@ import llnl.util.filesystem as fs
 
 import spack.caches
 import spack.cmd.clean
+import spack.concretize
 import spack.environment as ev
 import spack.main
 import spack.package_base
-import spack.spec
 import spack.stage
 import spack.store
 
@@ -78,7 +78,7 @@ def test_env_aware_clean(mock_stage, install_mockery, mutable_mock_env_path, mon
     def fail(*args, **kwargs):
         raise Exception("This should not have been called")
 
-    monkeypatch.setattr(spack.spec.Spec, "concretize", fail)
+    monkeypatch.setattr(spack.concretize, "concretized", fail)
 
     with e:
         clean("mpileaks")

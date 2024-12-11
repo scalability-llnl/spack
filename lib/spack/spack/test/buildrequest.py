@@ -5,6 +5,7 @@
 
 import pytest
 
+import spack.concretize
 import spack.deptypes as dt
 import spack.installer as inst
 import spack.repo
@@ -22,8 +23,7 @@ def test_build_request_errors(install_mockery):
 
 
 def test_build_request_basics(install_mockery):
-    spec = spack.spec.Spec("dependent-install")
-    spec.concretize()
+    spec = spack.concretize.concretized(spack.spec.Spec("dependent-install"))
     assert spec.concrete
 
     # Ensure key properties match expectations
@@ -40,8 +40,7 @@ def test_build_request_basics(install_mockery):
 def test_build_request_strings(install_mockery):
     """Tests of BuildRequest repr and str for coverage purposes."""
     # Using a package with one dependency
-    spec = spack.spec.Spec("dependent-install")
-    spec.concretize()
+    spec = spack.concretize.concretized(spack.spec.Spec("dependent-install"))
     assert spec.concrete
 
     # Ensure key properties match expectations
@@ -73,7 +72,7 @@ def test_build_request_deptypes(
     package_deptypes,
     dependencies_deptypes,
 ):
-    s = spack.spec.Spec("dependent-install").concretized()
+    s = spack.concretize.concretized(spack.spec.Spec("dependent-install"))
 
     build_request = inst.BuildRequest(
         s.package,

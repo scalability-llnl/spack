@@ -8,6 +8,7 @@ import re
 
 import pytest
 
+import spack.concretize
 import spack.config
 import spack.main
 import spack.modules
@@ -34,7 +35,7 @@ def ensure_module_files_are_there(mock_repo_path, mock_store, mock_configuration
 
 
 def _module_files(module_type, *specs):
-    specs = [spack.spec.Spec(x).concretized() for x in specs]
+    specs = [spack.concretize.concretized(spack.spec.Spec(x)) for x in specs]
     writer_cls = spack.modules.module_types[module_type]
     return [writer_cls(spec, "default").layout.filename for spec in specs]
 
@@ -185,12 +186,15 @@ def test_setdefault_command(mutable_database, mutable_config):
     # Install two different versions of pkg-a
     other_spec, preferred = "pkg-a@1.0", "pkg-a@2.0"
 
-    specs = [spack.spec.Spec(other_spec).concretized(), spack.spec.Spec(preferred).concretized()]
+    specs = [
+        spack.concretize.concretized(spack.spec.Spec(other_spec)),
+        spack.concretize.concretized(spack.spec.Spec(preferred)),
+    ]
     PackageInstaller([s.package for s in specs], explicit=True, fake=True).install()
 
     writers = {
-        preferred: writer_cls(spack.spec.Spec(preferred).concretized(), "default"),
-        other_spec: writer_cls(spack.spec.Spec(other_spec).concretized(), "default"),
+        preferred: writer_cls(specs[1], "default"),
+        other_spec: writer_cls(specs[0], "default"),
     }
 
     # Create two module files for the same software

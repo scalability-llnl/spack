@@ -9,6 +9,7 @@ import pytest
 
 from llnl.util.filesystem import mkdirp, touch, working_dir
 
+import spack.concretize
 import spack.config
 from spack.fetch_strategy import SvnFetchStrategy
 from spack.spec import Spec
@@ -41,7 +42,7 @@ def test_fetch(type_of_test, secure, mock_svn_repository, config, mutable_mock_r
     h = mock_svn_repository.hash
 
     # Construct the package under test
-    s = Spec("svn-test").concretized()
+    s = spack.concretize.concretized(Spec("svn-test"))
     monkeypatch.setitem(s.package.versions, Version("svn"), t.args)
 
     # Enter the stage directory and check some properties

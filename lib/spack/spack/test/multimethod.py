@@ -7,6 +7,7 @@
 
 import pytest
 
+import spack.concretize
 import spack.config
 import spack.platforms
 import spack.spec
@@ -29,7 +30,7 @@ def pkg_name(request):
 
 
 def test_no_version_match(pkg_name):
-    spec = spack.spec.Spec(pkg_name + "@2.0").concretized()
+    spec = spack.concretize.concretized(spack.spec.Spec(pkg_name + "@2.0"))
     with pytest.raises(NoSuchMethodError):
         spec.package.no_version_2()
 
@@ -75,7 +76,7 @@ def test_multimethod_calls(
     with spack.config.override(
         "compilers", [compiler_factory(spec="apple-clang@9.1.0", operating_system="elcapitan")]
     ):
-        s = spack.spec.Spec(pkg_name + constraint_str).concretized()
+        s = spack.concretize.concretized(spack.spec.Spec(pkg_name + constraint_str))
     msg = f"Method {method_name} from {s} is giving a wrong result"
     assert getattr(s.package, method_name)() == expected_result, msg
 
@@ -84,10 +85,10 @@ def test_target_match(pkg_name):
     platform = spack.platforms.host()
     targets = list(platform.targets.values())
     for target in targets[:-1]:
-        s = spack.spec.Spec(pkg_name + " target=" + target.name).concretized()
+        s = spack.concretize.concretized(spack.spec.Spec(pkg_name + " target=" + target.name))
         assert s.package.different_by_target() == target.name
 
-    s = spack.spec.Spec(pkg_name + " target=" + targets[-1].name).concretized()
+    s = spack.concretize.concretized(spack.spec.Spec(pkg_name + " target=" + targets[-1].name))
     if len(targets) == 1:
         assert s.package.different_by_target() == targets[-1].name
     else:
@@ -117,5 +118,5 @@ def test_target_match(pkg_name):
     ],
 )
 def test_multimethod_calls_and_inheritance(spec_str, method_name, expected_result):
-    s = spack.spec.Spec(spec_str).concretized()
+    s = spack.concretize.concretized(spack.spec.Spec(spec_str))
     assert getattr(s.package, method_name)() == expected_result
