@@ -8,6 +8,7 @@ import platform
 
 from spack.build_environment import dso_suffix
 from spack.package import *
+from spack.util.environment import EnvironmentModifications
 
 versions = [
     {
@@ -395,6 +396,14 @@ class IntelOneapiCompilers(IntelOneApiPackage, CompilerPackage):
         and from setting CC/CXX/F77/FC
         """
         super().setup_run_environment(env)
+
+        # umf is packaged with compiler and not available as a standalone
+        if "~envmods" not in self.spec:
+            env.extend(
+                EnvironmentModifications.from_sourcing_file(
+                    self.prefix.umf.latest.env.join("vars.sh"), *self.env_script_args
+                )
+            )
 
         env.set("CC", self._llvm_bin.icx)
         env.set("CXX", self._llvm_bin.icpx)
