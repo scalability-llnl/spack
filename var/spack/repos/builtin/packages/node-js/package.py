@@ -27,6 +27,7 @@ class NodeJs(Package):
     version("17.9.1", sha256="1102f5e0aafaab8014d19c6c57142caf2ba3ef69d88d7a7f0f82798051796027")
     version("15.3.0", sha256="cadfa384a5f14591b84ce07a1afe529f28deb0d43366fb0ae4e78afba96bfaf2")
     with default_args(deprecated=True):
+        # requires deprecated python versions
         version(
             "13.8.0", sha256="815b5e1b18114f35da89e4d98febeaba97555d51ef593bd5175db2b05f2e8be6"
         )
