@@ -2,7 +2,6 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import codecs
 import collections
 import hashlib
 import os.path
@@ -253,7 +252,7 @@ class CDash(Reporter):
                 report_file_name = report_name
             phase_report = os.path.join(report_dir, report_file_name)
 
-            with codecs.open(phase_report, "w", "utf-8") as f:
+            with open(phase_report, "w", encoding="utf-8") as f:
                 env = spack.tengine.make_environment()
                 if phase != "update":
                     # Update.xml stores site information differently
@@ -317,7 +316,7 @@ class CDash(Reporter):
             report_file_name = "_".join([package["name"], package["id"], report_name])
             phase_report = os.path.join(report_dir, report_file_name)
 
-            with codecs.open(phase_report, "w", "utf-8") as f:
+            with open(phase_report, "w", encoding="utf-8") as f:
                 env = spack.tengine.make_environment()
                 if phase not in ["update", "testing"]:
                     # Update.xml stores site information differently
