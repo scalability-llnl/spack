@@ -143,13 +143,12 @@ class Survey(CMakePackage):
 
     @property
     def python_lib_dir(self):
-        python_vers_phrase = 'python{0}'.format(
-                             self.spec['python'].version.up_to(2))
-        return join_path('lib', python_vers_phrase)
+        python_vers_phrase = "python{0}".format(self.spec["python"].version.up_to(2))
+        return join_path("lib", python_vers_phrase)
 
     @property
     def site_packages_dir(self):
-        return join_path(self.python_lib_dir, 'site-packages')
+        return join_path(self.python_lib_dir, "site-packages")
 
     def setup_run_environment(self, env):
         """Set up the compile and runtime environments for a package."""
@@ -165,93 +164,94 @@ class Survey(CMakePackage):
         env.prepend_path("PATH", self.spec["papi"].prefix.bin)
         env.prepend_path("PATH", self.spec["libmonitor"].prefix.bin)
 
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['python'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-pandas'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-python-dateutil'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-setuptools'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-numpy'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-pytz'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-six'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-psutil'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-sqlalchemy'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-pyyaml'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-matplotlib'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-filelock'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-humanize'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-importlib-resources'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-pip'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-seaborn'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-jinja2'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-more-itertools'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-versioneer'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-zipp'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-gitpython'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-smmap'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-gitdb'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-pyparsing'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-markupsafe'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-packaging'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-pillow'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-cycler'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-kiwisolver'].prefix,
-                                   self.site_packages_dir))
-        env.prepend_path('PYTHONPATH',
-                         join_path(self.spec['py-gpustat'].prefix,
-                                   self.site_packages_dir))
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["python"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-pandas"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-python-dateutil"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-setuptools"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-numpy"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-pytz"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-six"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-psutil"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-sqlalchemy"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-pyyaml"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-matplotlib"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-filelock"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-humanize"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH",
+            join_path(self.spec["py-importlib-resources"].prefix, self.site_packages_dir),
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-pip"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-seaborn"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-jinja2"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-more-itertools"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-versioneer"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-zipp"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-gitpython"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-smmap"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-gitdb"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-pyparsing"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-markupsafe"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-packaging"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-pillow"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-cycler"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-kiwisolver"].prefix, self.site_packages_dir)
+        )
+        env.prepend_path(
+            "PYTHONPATH", join_path(self.spec["py-gpustat"].prefix, self.site_packages_dir)
+        )
