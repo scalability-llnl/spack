@@ -41,6 +41,7 @@ class Acts(CMakePackage, CudaPackage):
     # Supported Acts versions
     version("main", branch="main")
     version("master", branch="main", deprecated=True)  # For compatibility
+    version("38.1.0", commit="8a20c88808f10bf4fcdfd7c6e077f23614c3ab90", submodules=True)
     version("38.0.0", commit="0a6b5155e29e3b755bf351b8a76067fff9b4214b", submodules=True)
     version("37.4.0", commit="4ae9a44f54c854599d1d753222ec36e0b5b4e9c7", submodules=True)
     version("37.3.0", commit="b3e856d4dadcda7d1a88a9b846ce5a7acd8410c4", submodules=True)
@@ -429,6 +430,8 @@ class Acts(CMakePackage, CudaPackage):
     conflicts("%gcc@:9", when="cxxstd=20")
     # See https://github.com/acts-project/acts/pull/3512
     conflicts("^boost@1.85.0")
+    # See https://github.com/acts-project/acts/pull/3921
+    conflicts("^edm4hep@0.99:", when="@:37")
 
     def cmake_args(self):
         spec = self.spec

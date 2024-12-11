@@ -1,6 +1,5 @@
 spack:
   view: false
-
   definitions:
   - apps:
     - gromacs
@@ -9,20 +8,18 @@ spack:
     - openfoam
     - quantum-espresso
     - wrf
-
   - targets:
-      - 'target=neoverse_v1'
-      - 'target=neoverse_n1'
-
+    - target=neoverse_v1
+    - target=neoverse_n1
   specs:
   - matrix:
-      - [$apps]
-      - [$targets]
+    - [$apps]
+    - [$targets]
   ci:
     pipeline-gen:
     - build-job:
-        image: { "name": "ghcr.io/spack/pcluster-amazonlinux-2:v2024-10-07", "entrypoint": [""] }
-        tags: ["aarch64"]
+        image: {name: ghcr.io/spack/pcluster-amazonlinux-2:v2024-10-07, entrypoint: ['']}
+        tags: [aarch64]
         before_script:
         - - . "./share/spack/setup-env.sh"
           - . /etc/profile.d/modules.sh
@@ -31,27 +28,12 @@ spack:
           - export PATH=/home/software/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeh/linux-amzn2-aarch64/gcc-7.3.1/binutils-2.37-2yxz3xsjfmesxujxtlrgcctxlyilynmp/bin:$PATH
     - signing-job:
         before_script:
-          # Do not distribute Intel & ARM binaries
-          - - for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/ | grep intel-oneapi | awk '{print $4}' | sed -e 's?^.*build_cache/??g'); do aws s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/$i; done
-            - for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/ | grep armpl | awk '{print $4}' | sed -e 's?^.*build_cache/??g'); do aws s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/$i; done
-
+            # Do not distribute Intel & ARM binaries
+        - - for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/ | grep intel-oneapi | awk '{print $4}' | sed -e 's?^.*build_cache/??g'); do aws s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/$i; done
+          - for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/ | grep armpl | awk '{print $4}' | sed -e 's?^.*build_cache/??g'); do aws s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/$i; done
   cdash:
     build-group: AWS Packages
-
   compilers:
-  - compiler:
-      environment: {}
-      extra_rpaths: []
-      flags: {}
-      modules: []
-      operating_system: amzn2
-      paths:
-        cc: /usr/bin/gcc
-        cxx: /usr/bin/g++
-        f77: /usr/bin/gfortran
-        fc: /usr/bin/gfortran
-      spec: gcc@=7.3.1
-      target: aarch64
   - compiler:
       environment: {}
       extra_rpaths: []
@@ -65,41 +47,34 @@ spack:
         fc: /home/software/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeh/linux-amzn2-aarch64/gcc-7.3.1/gcc-12.4.0-v6wxye6ijzrxnzxftcwnpu3psohsjl2b/bin/gfortran
       spec: gcc@=12.4.0
       target: aarch64
-
   packages:
     acfl:
       require:
-        - one_of: ["%gcc target=aarch64"]
-          message: "Clang based compilers need GCC libraries and they should be made available for the wide range of CPUs they actually support.
-                  Edit $SPACK_ROOT/etc/spack/packages.yaml to change this default."
+      - '%gcc target=aarch64'
     gromacs:
       require:
-        - one_of:
-            - "gromacs@2024.3 %arm ^fftw ^openmpi"
-            - "gromacs@2024.3 %gcc ^armpl-gcc ^openmpi"
+      - gromacs@2024.3 %gcc ^armpl-gcc ^openmpi
     libfabric:
       buildable: true
       externals:
-        - prefix: /opt/amazon/efa/
-          spec: libfabric@1.17.0
-      require: ['fabrics=shm,efa']
+      - prefix: /opt/amazon/efa/
+        spec: libfabric@1.17.0
+      require:
+      - fabrics=shm,efa
     llvm:
       variants: ~lldb
     mpas-model:
       require:
-        - one_of:
-            - "precision=single make_target=llvm %arm ^parallelio+pnetcdf"
-            - "precision=single %gcc ^parallelio+pnetcdf"
+      - precision=single %gcc ^parallelio+pnetcdf
     mpich:
-      require: "mpich pmi=pmi2 device=ch4 netmod=ofi +slurm"
+      require:
+      - mpich pmi=pmi2 device=ch4 netmod=ofi +slurm
     nvhpc:
       require:
-        - one_of:
-            - "nvhpc %gcc target=aarch64"
-          message: "NVHPC should be built with GCC and should be made available for the wide range of CPUs they actually support.
-                  Edit $SPACK_ROOT/etc/spack/packages.yaml to change this default."
+      - nvhpc %gcc target=aarch64
     openfoam:
-      require: "openfoam %gcc ^scotch@6.0.9"
+      require:
+      - openfoam ^scotch@6.0.9
     openmpi:
       variants: ~atomics ~cuda ~cxx ~cxx_exceptions ~internal-hwloc ~java +legacylaunchers ~lustre ~memchecker +pmi +romio ~singularity +vt +wrapper-rpath fabrics=ofi schedulers=slurm
       require: '@4:'
@@ -108,19 +83,15 @@ spack:
     #   require:
     #     - one_of: ["palace cxxflags=\"-include cstdint\" ^fmt@9.1.0"]
     pmix:
-      require: "pmix@3:"
+      require: 'pmix@3:'
     quantum-espresso:
-      require: "quantum-espresso@6.6 %gcc ^armpl-gcc"
+      require:
+      - quantum-espresso@6.6 %gcc ^armpl-gcc
     slurm:
       buildable: false
       externals:
-        - prefix: /opt/slurm
-          spec: slurm@22.05.8 +pmix
-    wrf:
-      require:
-        - one_of:
-            - "wrf%arm"
-            - "wrf%gcc"
+      - prefix: /opt/slurm
+        spec: slurm@22.05.8 +pmix
     all:
       compiler: [gcc, arm, nvhpc, clang]
       providers:

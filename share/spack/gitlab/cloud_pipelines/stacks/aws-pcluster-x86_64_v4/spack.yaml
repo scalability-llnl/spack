@@ -1,31 +1,28 @@
 spack:
   view: false
-
   definitions:
   - apps:
     - gromacs %oneapi
     - lammps %oneapi
-    # earliest oneapi version with fix does not run on AmazonLinux2, see https://github.com/spack/spack/pull/46457
-    # - mpas-model %oneapi
+        # earliest oneapi version with fix does not run on AmazonLinux2, see https://github.com/spack/spack/pull/46457
+        # - mpas-model %oneapi
     - openfoam %gcc
-    - palace %oneapi ^superlu-dist%oneapi # hack: force fortran-rt provider through superlu-dist
-    # TODO: Find out how to make +ipo cmake flag work.
-    # - quantum-espresso %oneapi
+    - palace %oneapi ^superlu-dist%oneapi     # hack: force fortran-rt provider through superlu-dist
+        # TODO: Find out how to make +ipo cmake flag work.
+        # - quantum-espresso %oneapi
     - openmpi %oneapi
     - wrf %oneapi
-
   - targets:
-      - 'target=x86_64_v4'
-      - 'target=x86_64_v3'
-
+    - target=x86_64_v4
+    - target=x86_64_v3
   specs:
   - matrix:
-      - [$apps]
-      - [$targets]
+    - [$apps]
+    - [$targets]
   ci:
     pipeline-gen:
     - build-job:
-        image: { "name": "ghcr.io/spack/pcluster-amazonlinux-2:v2024-10-07", "entrypoint": [""] }
+        image: {name: ghcr.io/spack/pcluster-amazonlinux-2:v2024-10-07, entrypoint: ['']}
         before_script:
         - - . "./share/spack/setup-env.sh"
           - . /etc/profile.d/modules.sh
@@ -34,13 +31,11 @@ spack:
           - export PATH=/home/software/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeh/linux-amzn2-x86_64_v3/gcc-7.3.1/binutils-2.37-qvccg7zpskturysmr4bzbsfrx34kvazo/bin:$PATH
     - signing-job:
         before_script:
-          # Do not distribute Intel & ARM binaries
-          - - for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/ | grep intel-oneapi | awk '{print $4}' | sed -e 's?^.*build_cache/??g'); do aws s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/$i; done
-            - for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/ | grep armpl | awk '{print $4}' | sed -e 's?^.*build_cache/??g'); do aws s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/$i; done
-
+            # Do not distribute Intel & ARM binaries
+        - - for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/ | grep intel-oneapi | awk '{print $4}' | sed -e 's?^.*build_cache/??g'); do aws s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/$i; done
+          - for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/ | grep armpl | awk '{print $4}' | sed -e 's?^.*build_cache/??g'); do aws s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/$i; done
   cdash:
     build-group: AWS Packages
-
   compilers:
   - compiler:
       environment: {}
@@ -69,131 +64,59 @@ spack:
         fc: /home/software/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeh/linux-amzn2-x86_64_v3/gcc-12.4.0/intel-oneapi-compilers-2024.1.0-f5u3psfhbwscasajkn324igtupn3blop/compiler/2024.1/bin/ifx
       spec: oneapi@=2024.1.0
       target: x86_64
-
   packages:
-    cpio:
-      require:
-        - one_of:
-            - "cflags=-std=c18 target=x86_64_v4"
-            - "cflags=-std=c18 target=x86_64_v3"
-          when: "%intel"
     gettext:
       # Newer gettext cannot build with gcc@12 and old AL2 glibc headers
       # Older gettext versions do not build correctly with oneapi.
       require:
-        - one_of:
-            - '@:0.20'
-            - '%oneapi'
+      - one_of: ['@:0.20 %gcc', '%oneapi']
     gromacs:
       require:
-        - one_of:
-            - "+intel_provided_gcc ^intel-oneapi-mkl target=x86_64_v4"
-            - "+intel_provided_gcc ^intel-oneapi-mkl target=x86_64_v3"
-          when: "%intel"
-        - one_of:
-            - "+intel_provided_gcc target=x86_64_v4 ^intel-oneapi-mkl"
-            - "+intel_provided_gcc target=x86_64_v3 ^intel-oneapi-mkl"
-          when: "%oneapi"
-    intel-oneapi-compilers:
-      require: "intel-oneapi-compilers %gcc target=x86_64_v3"
+      - +intel_provided_gcc ^intel-oneapi-mkl
     intel-oneapi-mpi:
       variants: +external-libfabric generic-names=True
     lammps:
       require:
-        - one_of:
-            - "lammps_sizes=bigbig +molecule +kspace +rigid +asphere +opt +openmp +openmp-package +intel fft=mkl ^intel-oneapi-mkl target=x86_64_v4"
-            - "lammps_sizes=bigbig +molecule +kspace +rigid +asphere +opt +openmp +openmp-package fft=mkl ^intel-oneapi-mkl target=x86_64_v3"
-          when: "%intel"
-        - one_of:
-            - "lammps_sizes=bigbig +molecule +kspace +rigid +asphere +opt +openmp +openmp-package +intel fft=mkl ^intel-oneapi-mkl target=x86_64_v4"
-            - "lammps_sizes=bigbig +molecule +kspace +rigid +asphere +opt +openmp +openmp-package fft=mkl ^intel-oneapi-mkl target=x86_64_v3"
-          when: "%oneapi"
-    libidn2:
-      require:
-        - one_of:
-            - "cflags=-std=c18 target=x86_64_v4"
-            - "cflags=-std=c18 target=x86_64_v3"
-          when: "%intel"
+      - lammps_sizes=bigbig +molecule +kspace +rigid +asphere +opt +openmp +openmp-package fft=mkl ^intel-oneapi-mkl
+      - one_of: [+intel target=x86_64_v4, target=x86_64_v3]
     libfabric:
       buildable: true
       externals:
-        - prefix: /opt/amazon/efa/
-          spec: libfabric@1.17.0
-      require: ['fabrics=shm,efa']
-    libunistring:
+      - prefix: /opt/amazon/efa/
+        spec: libfabric@1.17.0
       require:
-        - one_of:
-            - "cflags=-std=c18 target=x86_64_v4"
-            - "cflags=-std=c18 target=x86_64_v3"
-          when: "%intel"
+      - fabrics=shm,efa
     mpas-model:
       require:
-        - one_of:
-            - "precision=single ^parallelio+pnetcdf target=x86_64_v4"
-            - "precision=single ^parallelio+pnetcdf target=x86_64_v3"
-          when: "%intel"
-        - one_of:
-            - "precision=single ^parallelio+pnetcdf target=x86_64_v4"
-            - "precision=single ^parallelio+pnetcdf target=x86_64_v3"
-          when: "%oneapi"
+      - spec: precision=single ^parallelio+pnetcdf
+        when: '%oneapi'
     mpich:
       require:
-        - one_of:
-            - "mpich pmi=pmi2 device=ch4 netmod=ofi +slurm target=x86_64_v4"
-            - "mpich pmi=pmi2 device=ch4 netmod=ofi +slurm target=x86_64_v3"
+      - mpich pmi=pmi2 device=ch4 netmod=ofi +slurm
     openfoam:
       require:
-        - one_of:
-            - "openfoam %gcc ^scotch@6.0.9 target=x86_64_v4"
-            - "openfoam %gcc ^scotch@6.0.9 target=x86_64_v3"
+      - openfoam %gcc ^scotch@6.0.9
     openmpi:
       variants: ~atomics ~cuda ~cxx ~cxx_exceptions ~internal-hwloc ~java +legacylaunchers ~lustre ~memchecker +pmi +romio ~singularity +vt +wrapper-rpath fabrics=ofi schedulers=slurm
       require:
-        - one_of:
-            - "openmpi @4: target=x86_64_v4"
-            - "openmpi @4: target=x86_64_v3"
+      - 'openmpi @4:'
     palace:
       require:
-        - one_of:
-            - "palace ^fmt@9.1.0 target=x86_64_v4"
-            - "palace ^fmt@9.1.0 target=x86_64_v3"
-          when: "%oneapi"
-        - one_of:
-            - "palace ^fmt@9.1.0"
-          when: "%gcc"
+      - palace ^fmt@9.1.0
     pmix:
       require:
-        - one_of:
-            - "pmix@3: target=x86_64_v4"
-            - "pmix@3: target=x86_64_v3"
+      - 'pmix@3:'
     quantum-espresso:
       require:
-        - one_of:
-            - "quantum-espresso@6.6 ^intel-oneapi-mkl+cluster target=x86_64_v4"
-            - "quantum-espresso@6.6 ^intel-oneapi-mkl+cluster target=x86_64_v3"
-          when: "%intel"
-        - one_of:
-            - "quantum-espresso@6.6 ^intel-oneapi-mkl+cluster target=x86_64_v4"
-            - "quantum-espresso@6.6 ^intel-oneapi-mkl+cluster target=x86_64_v3"
-          when: "%oneapi"
+      - quantum-espresso@6.6 ^intel-oneapi-mkl+cluster
     slurm:
       buildable: false
       externals:
-        - prefix: /opt/slurm
-          spec: slurm@22.05.8 +pmix
+      - prefix: /opt/slurm
+        spec: slurm@22.05.8 +pmix
     wrf:
       require:
-        - one_of:
-            - "wrf@4 build_type=dm+sm target=x86_64_v4"
-            - "wrf@4 build_type=dm+sm target=x86_64_v3"
-            - "wrf@4.2.2 +netcdf_classic fflags=\"-fp-model fast=2 -no-heap-arrays -no-prec-div -no-prec-sqrt -fno-common\" build_type=dm+sm target=x86_64_v3"
-          when: "%intel"
-        - one_of:
-            - "wrf@4 build_type=dm+sm target=x86_64_v4"
-            - "wrf@4 build_type=dm+sm target=x86_64_v3"
-            - "wrf@4.2.2 +netcdf_classic fflags=\"-fp-model fast=2 -no-heap-arrays -no-prec-div -no-prec-sqrt -fno-common\" build_type=dm+sm target=x86_64_v3"
-          when: "%oneapi"
-
+      - wrf@4 build_type=dm+sm
     all:
       compiler: [oneapi, gcc]
       permissions:
