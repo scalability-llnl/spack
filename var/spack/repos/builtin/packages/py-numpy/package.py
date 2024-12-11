@@ -266,12 +266,24 @@ class PyNumpy(PythonPackage):
 
         return blas, lapack
 
-    @when("@1.25:")
+    @when("@1.26:")
     def config_settings(self, spec, prefix):
         settings = {"builddir": "build", "compile-args": f"-j{make_jobs}"}
 
-        if self.spec.satisfies("@1.26:"):
-            settings.update(self.blas_config_settings())
+        blas, lapack = self.blas_lapack_pkg_config()
+        settings.update(
+            {
+                "setup-args": {
+                    # https://scipy.github.io/devdocs/building/blas_lapack.html
+                    "-Dblas": blas,
+                    "-Dlapack": lapack,
+                    # https://numpy.org/doc/stable/reference/simd/build-options.html
+                    # TODO: get this working in CI
+                    # "-Dcpu-baseline": "native",
+                    # "-Dcpu-dispatch": "none",
+                }
+            }
+        )
 
         # Disable AVX512 features for Intel Classic compilers
         # https://numpy.org/doc/stable/reference/simd/build-options.html
@@ -279,33 +291,15 @@ class PyNumpy(PythonPackage):
         # https://github.com/matplotlib/matplotlib/issues/28762
         archs = ("x86_64_v4:", "cannonlake:", "mic_knl")
         if any([self.spec.satisfies(f"target={arch} %intel") for arch in archs]):
-            intel_settings = {
-                "setup-args": {
-                    "-Dcpu-dispatch": (
-                        settings.get("setup-args", {}).get("-Dcpu-dispatch", "")
-                        + " "
-                        + "MAX -AVX512F -AVX512CD -AVX512_KNL -AVX512_KNM -AVX512_SKX "
-                        + "-AVX512_CLX -AVX512_CNL -AVX512_ICL -AVX512_SPR"
-                    )
-                }
+            intel_setup_args = {
+                "-Dcpu-dispatch": (
+                    "MAX -AVX512F -AVX512CD -AVX512_KNL -AVX512_KNM -AVX512_SKX "
+                    + "-AVX512_CLX -AVX512_CNL -AVX512_ICL -AVX512_SPR"
+                )
             }
-            settings.update(intel_settings)
+            settings["setup-args"].update(intel_setup_args)
 
         return settings
-
-    def blas_config_settings(self):
-        blas, lapack = self.blas_lapack_pkg_config()
-        return {
-            "setup-args": {
-                # https://scipy.github.io/devdocs/building/blas_lapack.html
-                "-Dblas": blas,
-                "-Dlapack": lapack,
-                # https://numpy.org/doc/stable/reference/simd/build-options.html
-                # TODO: get this working in CI
-                # "-Dcpu-baseline": "native",
-                # "-Dcpu-dispatch": "none",
-            }
-        }
 
     def blas_lapack_site_cfg(self) -> None:
         """Write a site.cfg file to configure BLAS/LAPACK."""
