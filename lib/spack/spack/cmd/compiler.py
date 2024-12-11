@@ -151,13 +151,13 @@ def compiler_info(args):
                 print("  flags:")
                 for flag, flag_value in extra_attributes["flags"].items():
                     print(f"    {flag} = {flag_value}")
-            # FIXME (compiler as nodes): recover this printing
-            # if "environment" in extra_attributes:
-            #     if len(c.environment.get("set", {})) != 0:
-            #         print("\tenvironment:")
-            #         print("\t    set:")
-            #         for key, value in c.environment["set"].items():
-            #             print("\t        %s = %s" % (key, value))
+            if "environment" in extra_attributes:
+                environment = extra_attributes["environment"]
+                if len(environment.get("set", {})) != 0:
+                    print("\tenvironment:")
+                    print("\t    set:")
+                    for key, value in environment["set"].items():
+                        print(f"\t        {key} = {value}")
             if "extra_rpaths" in extra_attributes:
                 print("  extra rpaths:")
                 for extra_rpath in extra_attributes["extra_rpaths"]:
