@@ -62,7 +62,9 @@ class PyArkouda(PythonPackage):
             # py-myst-parser creates incompatibility with sphinx versions
             depends_on("py-pexpect")
             depends_on("py-pytest@6:")
-            depends_on("py-pytest-env")
+            # pytest-env is not yet available on spack.
+            # see PR to add it at https://github.com/spack/spack/pull/48020
+            # depends_on("py-pytest-env")
             depends_on("py-sphinx@5.1.1:")
             depends_on("py-sphinx-argparse")
             depends_on("py-mypy@0.931:")
