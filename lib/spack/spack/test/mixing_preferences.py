@@ -19,9 +19,9 @@ from spack.test.conftest import create_test_repo
 solve = SpackCommand("solve")
 
 
-def update_packages_config(conf_str):
+def update_cfg_section(section, conf_str):
     conf = syaml.load_config(conf_str)
-    spack.config.set("packages", conf["packages"], scope="concretize")
+    spack.config.set(section, conf[section], scope="concretize")
 
 
 _pkgx1 = (
@@ -97,3 +97,39 @@ def test_repo(_create_test_repo, monkeypatch, mock_stage):
 
 def test_diamond(concretize_scope, test_repo):
     Spec("x1").concretized()
+
+def test_with_cfg(concretize_scope, test_repo):
+    test_cfg = """\
+compilers::
+- compiler:
+    spec: gcc@11.0.0
+    paths:
+      cc: /usr/bin/gcc
+      cxx: /usr/bin/g++
+      f77: /usr/bin/gfortran
+      fc: /usr/bin/gfortran
+    flags: {}
+    operating_system: debian6
+    target: aarch64
+    modules: []
+    environment: {}
+    extra_rpaths: []
+- compiler:
+    spec: aocc@5.0.0
+    paths:
+      cc: /usr/bin/clang
+      cxx: /usr/bin/clang++
+      f77: /usr/bin/flang
+      fc: /usr/bin/flang
+    flags: {}
+    operating_system: ventura
+    target: aarch64
+    modules: []
+    environment: {}
+    extra_rpaths: []
+"""
+    update_cfg_section("compilers", test_cfg)
+
+    x = Spec("x1").concretized()
+    import pdb; pdb.set_trace()
+    print("hi")
