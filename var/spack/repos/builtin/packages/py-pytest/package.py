@@ -54,7 +54,6 @@ class PyPytest(PythonPackage):
         depends_on("py-setuptools-scm", when="@3.1:")
 
     with default_args(type=("build", "run")):
-        depends_on("python@3.8:3.12", when="@8.3.4")
         depends_on("python@3.8:", when="@8:")
         depends_on("python@3.7:", when="@7.1:")
         # see https://github.com/pytest-dev/pytest/releases/tag/8.2.1
