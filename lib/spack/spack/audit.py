@@ -656,7 +656,7 @@ def _ensure_docstring_and_no_fixme(pkgs, error_cls):
     for pkg_name in pkgs:
         details = []
         filename = spack.repo.PATH.filename_for_package_name(pkg_name)
-        with open(filename, "r") as package_file:
+        with open(filename, "r", encoding="utf-8") as package_file:
             for i, line in enumerate(package_file):
                 pattern = next((r for r in fixme_regexes if r.search(line)), None)
                 if pattern:
@@ -809,7 +809,7 @@ def _uses_deprecated_globals(pkgs, error_cls):
             continue
 
         file = spack.repo.PATH.filename_for_package_name(pkg_name)
-        tree = ast.parse(open(file).read())
+        tree = ast.parse(open(file, "rb").read())
         visitor = DeprecatedMagicGlobals(("std_cmake_args", "std_meson_args", "std_pip_args"))
         visitor.visit(tree)
         if visitor.references_to_globals:

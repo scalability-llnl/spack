@@ -836,7 +836,7 @@ To resolve this problem, please try the following:
         libtool_files = fs.find(str(self.pkg.prefix), "*.la", recursive=True)
         with fs.safe_remove(*libtool_files):
             fs.mkdirp(os.path.dirname(self._removed_la_files_log))
-            with open(self._removed_la_files_log, mode="w") as f:
+            with open(self._removed_la_files_log, mode="w", encoding="utf-8") as f:
                 f.write("\n".join(libtool_files))
 
     def setup_build_environment(self, env):

@@ -1115,12 +1115,12 @@ def hash_directory(directory, ignore=[]):
 
 @contextmanager
 @system_path_filter
-def write_tmp_and_move(filename):
+def write_tmp_and_move(filename: str, *, encoding: Optional[str] = None):
     """Write to a temporary file, then move into place."""
     dirname = os.path.dirname(filename)
     basename = os.path.basename(filename)
     tmp = os.path.join(dirname, ".%s.tmp" % basename)
-    with open(tmp, "w") as f:
+    with open(tmp, "w", encoding=encoding) as f:
         yield f
     shutil.move(tmp, filename)
 

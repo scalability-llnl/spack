@@ -21,7 +21,7 @@ pytestmark = pytest.mark.not_on_windows(
 
 def test_version_git_nonsense_output(tmpdir, working_env, monkeypatch):
     git = str(tmpdir.join("git"))
-    with open(git, "w") as f:
+    with open(git, "w", encoding="utf-8") as f:
         f.write(
             """#!/bin/sh
 echo --|not a hash|----
@@ -35,7 +35,7 @@ echo --|not a hash|----
 
 def test_version_git_fails(tmpdir, working_env, monkeypatch):
     git = str(tmpdir.join("git"))
-    with open(git, "w") as f:
+    with open(git, "w", encoding="utf-8") as f:
         f.write(
             """#!/bin/sh
 echo 26552533be04e83e66be2c28e0eb5011cb54e8fa
@@ -51,7 +51,7 @@ exit 1
 def test_git_sha_output(tmpdir, working_env, monkeypatch):
     git = str(tmpdir.join("git"))
     sha = "26552533be04e83e66be2c28e0eb5011cb54e8fa"
-    with open(git, "w") as f:
+    with open(git, "w", encoding="utf-8") as f:
         f.write(
             """#!/bin/sh
 echo {0}
@@ -88,7 +88,7 @@ def test_main_calls_get_version(tmpdir, capsys, working_env, monkeypatch):
 
 def test_get_version_bad_git(tmpdir, working_env, monkeypatch):
     bad_git = str(tmpdir.join("git"))
-    with open(bad_git, "w") as f:
+    with open(bad_git, "w", encoding="utf-8") as f:
         f.write(
             """#!/bin/sh
 exit 1

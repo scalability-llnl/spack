@@ -129,7 +129,7 @@ def update_env_scopes(
     environment, by reading the yaml, adding the missing includes, and writing the
     updated yaml back to the same location.
     """
-    with open(env.manifest_path, "r") as env_fd:
+    with open(env.manifest_path, "r", encoding="utf-8") as env_fd:
         env_yaml_root = syaml.load(env_fd)
 
     # Add config scopes to environment
@@ -143,7 +143,7 @@ def update_env_scopes(
         ensure_expected_target_path(i) if transform_windows_paths else i for i in env_includes
     ]
 
-    with open(output_file, "w") as fd:
+    with open(output_file, "w", encoding="utf-8") as fd:
         syaml.dump_config(env_yaml_root, fd, default_flow_style=False)
 
 
@@ -186,7 +186,7 @@ def write_pipeline_manifest(specs, src_prefix, dest_prefix, output_file):
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
 
-    with open(output_file, "w") as fd:
+    with open(output_file, "w", encoding="utf-8") as fd:
         fd.write(json.dumps(buildcache_copies))
 
 

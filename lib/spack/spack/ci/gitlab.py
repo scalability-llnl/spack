@@ -412,5 +412,5 @@ def generate_gitlab_yaml(pipeline: PipelineDag, spack_ci: SpackCIConfig, options
     # Minimize yaml output size through use of anchors
     syaml.anchorify(sorted_output)
 
-    with open(output_file, "w") as f:
+    with open(output_file, "w", encoding="utf-8") as f:
         ruamel.yaml.YAML().dump(sorted_output, f)

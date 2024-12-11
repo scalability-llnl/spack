@@ -50,7 +50,7 @@ def module_suffixes_schema():
 def meta_schema():
     """Meta schema for JSON schema validation (Draft 4)"""
     meta_schema_file = os.path.join(spack.paths.test_path, "data", "jsonschema_meta.json")
-    with open(meta_schema_file) as f:
+    with open(meta_schema_file, encoding="utf-8") as f:
         ms = json.load(f)
     return ms
 

@@ -398,7 +398,7 @@ class CDash(Reporter):
         update_template = posixpath.join(self.template_dir, "Update.xml")
         t = env.get_template(update_template)
         output_filename = os.path.join(report_dir, "Update.xml")
-        with open(output_filename, "w") as f:
+        with open(output_filename, "w", encoding="utf-8") as f:
             f.write(t.render(report_data))
         # We don't have a current package when reporting on concretization
         # errors so refer to this report with the base buildname instead.

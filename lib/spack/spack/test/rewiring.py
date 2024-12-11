@@ -27,7 +27,7 @@ def check_spliced_spec_prefixes(spliced_spec):
     """check the file in the prefix has the correct paths"""
     for node in spliced_spec.traverse(root=True):
         text_file_path = os.path.join(node.prefix, node.name)
-        with open(text_file_path, "r") as f:
+        with open(text_file_path, "r", encoding="utf-8") as f:
             text = f.read()
             print(text)
             for modded_spec in node.traverse(root=True, deptype=dt.ALL & ~dt.BUILD):
