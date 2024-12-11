@@ -1269,12 +1269,6 @@ has_built_packages() :- build(X), not external(X).
 % "gcc-runtime" is always built
 :- concrete(node(X, "gcc-runtime")), has_built_packages().
 
-% FIXME (compiler as nodes): is this version constraint always required and better than the callback?
-% "gcc-runtime" and the "gcc" it depends on must be at the same version
-% attr("version", node(Y, "gcc"), Version) :-
-%   attr("version", node(X, "gcc-runtime"), Version),
-%   attr("depends_on", node(X, "gcc-runtime"), node(Y, "gcc"), "build").
-
 % The "gcc" linked to "gcc-runtime" must be used by at least another package
 :- attr("depends_on", node(X, "gcc-runtime"), node(Y, "gcc"), "build"),
    not 2 { attr("depends_on", PackageNode, node(Y, "gcc"), "build") : attr("node", PackageNode) }.
