@@ -242,7 +242,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
 
         with when("@2024.2:"):
             depends_on("dla-future-fortran@0.1.0:")
-            depends_on("dla-future-fortran@0.2.0:", when="@master")
+            depends_on("dla-future-fortran@0.2.0:", when="@2025.1:")
 
             # Use a direct dependency on dla-future so that constraints can be expressed
             # WARN: In the concretizer output, dla-future will appear as dependency of CP2K
