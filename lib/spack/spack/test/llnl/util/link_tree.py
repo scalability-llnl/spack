@@ -403,10 +403,14 @@ def test_source_merge_visitor_does_deals_with_dangling_symlinks(tmp_path: pathli
 # tailor too much to the implementaion of
 # is_folder_on_case_insensitive_filesystem (should be a detail)
 def _iter_path_components(path: str):
-    drive, root, path = os.path.splitroot(path)
+    if path.startswith(os.sep):
+        root = os.sep
+        path = path[len(os.sep) :]
+    else:
+        root = ""
     parts = path.split(os.sep)
     for i in range(len(parts)):
-        yield os.path.split(drive + root + os.path.join(*parts[: i + 1]))
+        yield os.path.split(root + os.path.join(*parts[: i + 1]))
 
 
 def _mock_exists_case_insensitive(path: str):
