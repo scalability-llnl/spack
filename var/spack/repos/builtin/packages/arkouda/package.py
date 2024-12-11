@@ -17,8 +17,6 @@ class Arkouda(MakefilePackage):
     url = "https://github.com/Bears-R-Us/arkouda/archive/refs/tags/v2024.10.02.tar.gz"
     git = "https://github.com/Bears-R-Us/arkouda.git"
 
-    test_requires_compiler = True
-
     # A list of GitHub accounts to notify when the package is updated.
     # TODO: add arkouda devs github account
     maintainers("arezaii")
@@ -40,7 +38,7 @@ class Arkouda(MakefilePackage):
     variant(
         "distributed",
         default=False,
-        description="Build Arkouda for distributed execution on a cluster or supercomputer",
+        description="Build Arkouda for multi-locale execution on a cluster or supercomputer",
     )
 
     depends_on("chapel@2.1: +hdf5 +zmq", type=("build", "link", "run", "test"))
@@ -95,5 +93,5 @@ class Arkouda(MakefilePackage):
         install("arkouda_server", prefix.bin)
         # Arkouda can have two executables depending on if Chapel is compiled in
         # single-locale or multi-locale mode
-        if not self.spec.satisfies("^chapel comm=none"):
+        if self.spec.satisfies("+distributed"):
             install("arkouda_server_real", prefix.bin)
