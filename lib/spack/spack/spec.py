@@ -551,18 +551,6 @@ class ArchSpec:
         """True if the spec is concrete, False otherwise"""
         return self.platform and self.os and self.target and self.target_concrete
 
-    def concretize(self, tests: Union[bool, Iterable[str]] = False) -> None:
-        self._dup(self.concretized(tests=tests))
-
-    def concretized(self, tests: Union[bool, Iterable[str]] = False) -> "spack.spec.Spec":
-        import spack.concretize
-
-        msg = "`Spec.concretize` and `Spec.concretized` methods are deprecated and will be "
-        msg += "removed in version 1.0.0. Use `spack.concretize.concretized` instead."
-        tty.warn(msg)
-
-        return spack.concretize.concretized(self)
-
     @property
     def target_concrete(self):
         """True if the target is not a range or list."""
@@ -1910,6 +1898,18 @@ class Spec:
         values.
         """
         return self._concrete
+
+    def concretize(self, tests: Union[bool, Iterable[str]] = False) -> None:
+        self._dup(self.concretized(tests=tests))
+
+    def concretized(self, tests: Union[bool, Iterable[str]] = False) -> "spack.spec.Spec":
+        import spack.concretize
+
+        msg = "`Spec.concretize` and `Spec.concretized` methods are deprecated and will be "
+        msg += "removed in version 1.0.0. Use `spack.concretize.concretized` instead."
+        tty.warn(msg)
+
+        return spack.concretize.concretized(self)
 
     @property
     def spliced(self):
