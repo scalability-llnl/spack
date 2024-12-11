@@ -42,13 +42,6 @@ class PyPytest(PythonPackage):
     version("3.0.7", sha256="b70696ebd1a5e6b627e7e3ac1365a4bc60aaf3495e843c1e70448966c5224cab")
     version("3.0.2", sha256="64d8937626dd2a4bc15ef0edd307d26636a72a3f3f9664c424d78e40efb1e339")
 
-    variant(
-        "dev",
-        description="Include optional dependencies, pluggy and tomli",
-        default=False,
-        when="@8.3.4:",
-    )
-
     with default_args(type="build"):
         depends_on("py-setuptools@61:", when="@8.1:")
         depends_on("py-setuptools@45:", when="@7:")
@@ -61,8 +54,7 @@ class PyPytest(PythonPackage):
         depends_on("py-setuptools-scm", when="@3.1:")
 
     with default_args(type=("build", "run")):
-        depends_on("python@3.9:", when="@8.3.4:")
-        depends_on("python@3.8:", when="@8:8.2.1")
+        depends_on("python@3.8:", when="@8:")
         depends_on("python@3.7:", when="@7.1:")
         # see https://github.com/pytest-dev/pytest/releases/tag/8.2.1
         depends_on("python@:3.12", when="@:8.2.0")
@@ -73,9 +65,8 @@ class PyPytest(PythonPackage):
         depends_on("py-exceptiongroup@1:", when="@7:^python@:3.10")
         depends_on("py-iniconfig", when="@6.0:")
         depends_on("py-packaging", when="@4.6:")
-        depends_on("py-pluggy@1.5:1", when="@8.3.4: +dev")
-        depends_on("py-pluggy@1.5:1", when="@8.2:8.3")
-        depends_on("py-pluggy@1.3:1", when="@8:8.3")
+        depends_on("py-pluggy@1.5:1", when="@8.2:")
+        depends_on("py-pluggy@1.3:1", when="@8:")
         depends_on("py-pluggy@0.12:1", when="@6.2:7")
         depends_on("py-pluggy@0.12:0", when="@4.6:6.1")
         depends_on("py-pluggy@0.9.0:0.9,0.11:0", when="@4.5.0:4.5")
@@ -84,8 +75,7 @@ class PyPytest(PythonPackage):
         depends_on("py-pluggy@0.7:", when="@3.7:4.3")
         depends_on("py-pluggy@0.5:0.7", when="@3.6.4:3.6")
         depends_on("py-pluggy@0.5:0.6", when="@:3.6.3")
-        depends_on("py-tomli@1:", when="@8.3.4: +dev ^python@:3.10")
-        depends_on("py-tomli@1:", when="@7.1:8.3 ^python@:3.10")
+        depends_on("py-tomli@1:", when="@7.1: ^python@:3.10")
         depends_on("py-tomli@1:", when="@7.0")
 
         # Historic dependencies
