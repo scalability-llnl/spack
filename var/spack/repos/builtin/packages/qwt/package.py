@@ -37,7 +37,7 @@ class Qwt(QMakePackage):
     with when("^[virtuals=qmake] qt-base"):
         depends_on("qt-svg")
         depends_on("qt-tools", when="+designer")
-        depends_on("qt-base+opengl", when="+opengl")
+        depends_on("qt-base+opengl+widgets", when="+opengl")
     with when("^[virtuals=qmake] qt"):
         depends_on("qt+tools", when="+designer")
         depends_on("qt+opengl", when="+opengl")
