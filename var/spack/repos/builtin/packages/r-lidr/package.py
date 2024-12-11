@@ -12,13 +12,15 @@ class RLidr(RPackage):
     homepage = "https://github.com/r-lidar/lidR"
     url = "https://cran.r-project.org/src/contrib/lidR_4.1.2.tar.gz"
 
+    maintainers("sidpbury")
+
     license("GPL-3.0")
 
     version("4.1.2", sha256="e452c35c189fb8bcfedb53b2cb1184a6feee11c2f3ccf1db4b161a9ce700a9eb")
 
-    variant("suggests", default=False, description="adding the suggests here helps to prevent unwanted masking issues")
+    variant("suggests", default=False, description="adding suggests helps masking issues")
 
-	# Depends
+    # Depends
     depends_on("r@3.5.0:", type=("build", "run"))
 
     # Imports

@@ -6,11 +6,14 @@
 from spack.package import *
 from spack.pkg.builtin.boost import Boost
 
+
 class RRlas(RPackage):
     """R package to read and write las and laz files used to store LiDAR data"""
 
     homepage = "https://cran.r-project.org"
     cran = "rlas"
+
+    maintainers("sidpbury")
 
     license("LGPL-3.0-only")
 
