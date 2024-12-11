@@ -98,7 +98,12 @@ def test_repo(_create_test_repo, monkeypatch, mock_stage):
 def test_diamond(concretize_scope, test_repo):
     Spec("x1").concretized()
 
-def test_with_cfg(concretize_scope, test_repo):
+
+install = SpackCommand("install")
+solve = SpackCommand("solve")
+
+
+def test_with_cfg(mutable_mock_env_path, install_mockery, mock_fetch, concretize_scope, test_repo):
     test_cfg = """\
 compilers::
 - compiler:
@@ -122,7 +127,7 @@ compilers::
       f77: /usr/bin/flang
       fc: /usr/bin/flang
     flags: {}
-    operating_system: ventura
+    operating_system: debian6
     target: aarch64
     modules: []
     environment: {}
@@ -130,6 +135,9 @@ compilers::
 """
     update_cfg_section("compilers", test_cfg)
 
-    x = Spec("x1").concretized()
+    install("x1%gcc")
+    # output = solve("--show=asp", "x1%aocc")
+    x = Spec("x1%aocc").concretized()
+    output = solve("--reuse", "x1%aocc")
     import pdb; pdb.set_trace()
     print("hi")
