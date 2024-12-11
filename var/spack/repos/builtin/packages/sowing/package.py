@@ -18,6 +18,11 @@ class Sowing(AutotoolsPackage):
     maintainers("balay")
 
     version("master", branch="master")
+    version(
+        "1.1.26.12",
+        sha256="e2fd8980ffe20056dca84aa93b523bcb389d155bf9702b882d2d68a9b87ff235",
+        url="https://bitbucket.org/petsc/pkg-sowing/get/8ec17636b4e930d33817d862163ea4e29104efb4.tar.gz",
+    )
     version("1.1.26-p8", sha256="2ef4d6db2075230247306e3d0194ffb3e4591aeb05bd244647c72dc1a4e52994")
     version("1.1.26-p1", sha256="fa0bd07295e5d768f2c33c8ab32205cc6411d42cb40bde0700fb57f9ee31c3d9")
     version("1.1.25-p1", sha256="c3a5bb170fffeeb1405ec4c3a048744a528d2bef24de29b6ac5e970cfeaddab5")
