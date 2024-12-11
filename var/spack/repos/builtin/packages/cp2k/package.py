@@ -370,7 +370,8 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
         for arch in ROCmPackage.amdgpu_targets:
             if arch not in supported_rocm_arch_list:
                 conflicts("+rocm", when="amdgpu_target={0}".format(arch), msg=rocm_msg)
-
+            if arch not in ["gfx90a:xnack-", "gfx90a:xnack+", "gfx942:xnack-", "gfx942:xnack+"]:
+                conflicts("+unified_memory")
     # Fix 2- and 3-center integral calls to libint
     patch(
         "https://github.com/cp2k/cp2k/commit/5eaf864ed2bd21fb1b05a9173bb77a815ad4deda.patch?full_index=1",
