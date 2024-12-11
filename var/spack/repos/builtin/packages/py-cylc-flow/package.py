@@ -57,4 +57,8 @@ class PyCylcFlow(PythonPackage):
         python_version = self.spec["python"].version.up_to(2)
         pydir = join_path(self.prefix.lib, "python{0}".format(python_version), "site-packages")
         cylc_dot_py = join_path(pydir, "cylc/flow/scripts/cylc.py")
-        filter_file(r"^pythonpath_manip\(\)$", "# spack knows what it is doing, skip 'pythonpath_manip()'", cylc_dot_py)
+        filter_file(
+            r"^pythonpath_manip\(\)$",
+            "# spack knows what it is doing, skip 'pythonpath_manip()'",
+            cylc_dot_py,
+        )
