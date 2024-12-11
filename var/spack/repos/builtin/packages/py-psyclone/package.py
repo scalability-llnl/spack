@@ -19,7 +19,7 @@ class PyPsyclone(PythonPackage):
     # Links
     homepage = "https://github.com/stfc/PSyclone"
     git = "https://github.com/stfc/PSyclone.git"
-    pypi = "PSyclone/PSyclone-3.0.0.tar.gz"
+    pypi = "PSyclone/psyclone-3.0.0.tar.gz"
 
     # Maintainers
     maintainers("arporter", "sergisiso", "TeranIvy", "hiker")
@@ -28,7 +28,7 @@ class PyPsyclone(PythonPackage):
     license("BSD-3-Clause")
 
     # Releases
-    version("develop", branch="master")
+    version("master", branch="master")
     version("3.0.0", sha256="25085a6d0dad36c03ec1f06becf7e2f915ded26603d4a1a2981392f5752fdb3e")
     version("2.5.0", sha256="dd1b40d635423c6b23effd2c569908d319afa6153680692e1cbae27f7b5bf4dc")
     version("2.4.0", sha256="14fd3717f99b317471356c59c1d4c4c22c41fd264af11b78ed831dd2eb71a270")
@@ -69,6 +69,11 @@ class PyPsyclone(PythonPackage):
     depends_on("py-pytest-cov", type="test")
     depends_on("py-pytest-xdist", type="test")
     depends_on("py-pytest", type="test")
+
+    def url_for_version(self, version):
+        # As of version 3.0.0, the name of the tarball on pypi is all lowercase.
+        name = "psyclone" if version >= Version("3.0.0") else "PSyclone"
+        return f"https://files.pythonhosted.org/packages/source/P/PSyclone/{name}-{version}.tar.gz"
 
     # Test
     @run_after("install")
