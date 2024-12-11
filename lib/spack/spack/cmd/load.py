@@ -76,6 +76,26 @@ def setup_parser(subparser):
     )
 
 
+# Use this later for executing the cached shell script
+def read_script_and_execute(env_mod, variable, *paths):
+    for path in paths:
+        env_mod.prepend_path(variable, path)
+
+
+def cache_shell_script(specs, shell = None):
+    spack_shell = shell if shell else os.environ.get("SPACK_SHELL")
+    for spec in specs:
+       # spec is a str
+       shell_script_path = os.path.join(spec.prefix, ".spack", f"{spec.name}_shell.{spack_shell}")
+
+       spec_mod = uenv.environment_modifications_for_specs(*[spec])
+       spec_mod.prepend_path(uenv.spack_loaded_hashes_var, spec.dag_hash())
+       spec_cmds = spec_mod.shell_modifications(shell)
+
+       with open(shell_script_path, "w") as f:
+           f.write(spec_cmds)
+
+
 def load(parser, args):
     env = ev.active_environment()
 
@@ -98,22 +118,20 @@ def load(parser, args):
         )
         return 1
 
-    # Check if spec's pkg.py file was changed (modification date - os.path.get_end_time?)
+    # Check if spec's pkg.py file was changed
+    # (modification date - os.path.get_end_time?)
+    # var/spack/envirnonments/env-name/.spack-env
 
     with spack.store.STORE.db.read_transaction():
-        env_mod = uenv.environment_modifications_for_specs(*specs)
         shell = args.shell if args.shell else os.environ.get("SPACK_SHELL")
+        env_mod = uenv.environment_modifications_for_specs(*specs)
         for spec in specs:
-            # if file cached shell script exists skip
-            spec_mod = uenv.environment_modifications_for_specs(*[spec])
-            spec_mod.prepend_path(uenv.spack_loaded_hashes_var, spec.dag_hash())
-            spec_cmds = spec_mod.shell_modifications(shell)
+            shell_script_path = os.path.join(spec.prefix, ".spack", f"{spec.name}_shell.{shell}")
+
+            # Cache each individual spec's commands
+            cache_shell_script([spec], shell)
 
             env_mod.prepend_path(uenv.spack_loaded_hashes_var, spec.dag_hash())
             cmds = env_mod.shell_modifications(shell)
-
-            path = os.path.join(spec.prefix, ".spack", f"{spec.name}_shell.{shell}")
-            with open(path, "w") as f:
-                f.write(spec_cmds)
 
         sys.stdout.write(cmds)
