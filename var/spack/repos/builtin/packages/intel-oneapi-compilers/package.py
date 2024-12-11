@@ -398,7 +398,7 @@ class IntelOneapiCompilers(IntelOneApiPackage, CompilerPackage):
         super().setup_run_environment(env)
 
         # umf is packaged with compiler and not available as a standalone
-        if "~envmods" not in self.spec:
+        if "~envmods" not in self.spec and self.spec.satisfies("@2025:"):
             env.extend(
                 EnvironmentModifications.from_sourcing_file(
                     self.prefix.umf.latest.env.join("vars.sh"), *self.env_script_args
