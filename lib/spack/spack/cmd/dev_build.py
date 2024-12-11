@@ -8,13 +8,12 @@ import sys
 
 import llnl.util.tty as tty
 
-import spack.build_environment
 import spack.cmd
 import spack.cmd.common.arguments
 import spack.config
 import spack.environment as ev
-import spack.prompt
 import spack.repo
+import spack.version
 from spack.cmd.common import arguments
 from spack.cmd.common.env_utility import run_command_in_subshell
 from spack.context import Context
