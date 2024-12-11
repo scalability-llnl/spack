@@ -457,7 +457,7 @@ def extends(spec, when=None, type=("build", "run"), patches=None):
             _depends_on(pkg, spack.spec.Spec("python-venv"), when=when, type=("build", "run"))
 
         # TODO: the values of the extendees dictionary are not used. Remove in next refactor.
-        pkg.extendees[dep_spec.name] = (dep_spec, None)
+        pkg.extendees[dep_spec.name] = (dep_spec, when_spec)
 
     return _execute_extends
 

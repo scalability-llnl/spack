@@ -6,7 +6,7 @@
 from spack.package import *
 
 
-class ExtendsTransitiveDep(Package):
+class ConditionallyExtendsTransitiveDep(Package):
     """Package that tests if the extends directive supports a spec."""
 
     homepage = "http://www.example.com"
