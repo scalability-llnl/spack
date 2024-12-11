@@ -1899,18 +1899,6 @@ class Spec:
         """
         return self._concrete
 
-    def concretize(self, tests: Union[bool, Iterable[str]] = False) -> None:
-        self._dup(self.concretized(tests=tests))
-
-    def concretized(self, tests: Union[bool, Iterable[str]] = False) -> "spack.spec.Spec":
-        import spack.concretize
-
-        msg = "`Spec.concretize` and `Spec.concretized` methods are deprecated and will be "
-        msg += "removed in version 1.0.0. Use `spack.concretize.concretized` instead."
-        tty.warn(msg)
-
-        return spack.concretize.concretized(self)
-
     @property
     def spliced(self):
         """Returns whether or not this Spec is being deployed as built i.e.
