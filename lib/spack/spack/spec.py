@@ -59,7 +59,7 @@ import platform
 import re
 import socket
 import warnings
-from typing import Any, Callable, Dict, List, Match, Optional, Set, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, Match, Optional, Set, Tuple, Union
 
 import archspec.cpu
 
