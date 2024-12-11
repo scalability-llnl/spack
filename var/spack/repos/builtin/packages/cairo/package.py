@@ -22,6 +22,7 @@ class Cairo(MesonPackage, AutotoolsPackage):
         default="meson",
     )
 
+    version("1.18.2", sha256="a62b9bb42425e844cc3d6ddde043ff39dbabedd1542eba57a2eb79f85889d45a")
     version("1.18.0", sha256="243a0736b978a33dee29f9cca7521733b78a65b5418206fef7bd1c3d4cf10b64")
     # 1.17.8: https://gitlab.freedesktop.org/cairo/cairo/-/issues/646 (we enable tee by default)
     version(
