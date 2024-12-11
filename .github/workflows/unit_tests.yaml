@@ -134,7 +134,7 @@ jobs:
     - name: Setup repo and non-root user
       run: |
           git --version
-          git config --global --add safe.directory /__w/spack/spack
+          git config --global --add safe.directory '*'
           git fetch --unshallow
           . .github/workflows/bin/setup_git.sh
           useradd spack-test
