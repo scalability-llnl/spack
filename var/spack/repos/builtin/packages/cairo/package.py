@@ -74,6 +74,7 @@ class Cairo(MesonPackage, AutotoolsPackage):
     depends_on("python", when="+X", type="build")
     depends_on("libpng", when="+png")
     depends_on("glib")
+    depends_on("pixman@0.40.0:", when="@1.18.2:")
     depends_on("pixman@0.36.0:", when="@1.17.2:")
     depends_on("pixman")
     depends_on("freetype build_system=autotools", when="+ft")
