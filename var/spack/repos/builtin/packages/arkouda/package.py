@@ -33,8 +33,6 @@ class Arkouda(MakefilePackage):
         "2024.06.21", sha256="ab7f753befb3a0b8e27a3d28f3c83332d2c6ae49678877a7456f0fcfe42df51c"
     )
 
-    depends_on("c", type="build")
-    depends_on("cxx", type="build")
     variant(
         "distributed",
         default=False,
