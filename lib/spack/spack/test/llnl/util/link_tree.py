@@ -13,8 +13,8 @@ from llnl.util.filesystem import mkdirp, touchp, visit_directory_tree, working_d
 from llnl.util.link_tree import DestinationMergeVisitor, LinkTree, SourceMergeVisitor
 from llnl.util.symlink import _windows_can_symlink, islink, readlink, symlink
 
-from spack.stage import Stage
 from spack.filesystem_view import is_folder_on_case_insensitive_filesystem
+from spack.stage import Stage
 
 
 @pytest.fixture()
