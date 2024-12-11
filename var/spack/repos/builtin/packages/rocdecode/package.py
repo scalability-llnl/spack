@@ -54,7 +54,6 @@ class Rocdecode(CMakePackage):
             string=True,
         )
 
-
     def cmake_args(self):
         args = []
         if "auto" not in self.spec.variants["amdgpu_target"]:
