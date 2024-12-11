@@ -104,7 +104,8 @@ class Apex(CMakePackage):
 
     # Dependencies
     depends_on("zlib-api")
-    depends_on("cmake@3.20.1:", type="build")
+    depends_on("cmake@3.10.0:", type="build")
+    depends_on("cmake@3.20.1:", type="build", when="@2.6.2:")
     depends_on("kokkos+pic+tuning", type="build", when="+kokkos")
     depends_on("binutils@2.33:+libiberty+headers", when="+binutils")
     depends_on("gettext", when="+binutils ^binutils+nls")
