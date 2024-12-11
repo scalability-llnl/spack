@@ -36,7 +36,7 @@ spack:
   - edm4hep
   - fastjet
   - fjcontrib
-  - gaudi +aida +examples +heppdt +xercesc ^gdb +python
+  - gaudi +aida +examples +heppdt +xercesc ^gdb +debuginfod +python
   - geant4 +opengl +qt +threads ~vtk ^[virtuals=qmake] qt
   - hepmc
   - hepmc3 +interfaces +protobuf +python +rootio
