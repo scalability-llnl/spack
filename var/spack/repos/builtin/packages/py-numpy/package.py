@@ -268,22 +268,21 @@ class PyNumpy(PythonPackage):
 
     @when("@1.26:")
     def config_settings(self, spec, prefix):
-        settings = {"builddir": "build", "compile-args": f"-j{make_jobs}"}
-
         blas, lapack = self.blas_lapack_pkg_config()
-        settings.update(
-            {
-                "setup-args": {
-                    # https://scipy.github.io/devdocs/building/blas_lapack.html
-                    "-Dblas": blas,
-                    "-Dlapack": lapack,
-                    # https://numpy.org/doc/stable/reference/simd/build-options.html
-                    # TODO: get this working in CI
-                    # "-Dcpu-baseline": "native",
-                    # "-Dcpu-dispatch": "none",
-                }
-            }
-        )
+
+        settings = {
+            "builddir": "build",
+            "compile-args": f"-j{make_jobs}",
+            "setup-args": {
+                # https://scipy.github.io/devdocs/building/blas_lapack.html
+                "-Dblas": blas,
+                "-Dlapack": lapack,
+                # https://numpy.org/doc/stable/reference/simd/build-options.html
+                # TODO: get this working in CI
+                # "-Dcpu-baseline": "native",
+                # "-Dcpu-dispatch": "none",
+            },
+        }
 
         # Disable AVX512 features for Intel Classic compilers
         # https://numpy.org/doc/stable/reference/simd/build-options.html
