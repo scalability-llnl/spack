@@ -21,7 +21,8 @@ class RocmValidationSuite(CMakePackage):
 
     license("MIT")
 
-    maintainers("srekolam", "renjithravindrankannath")
+    maintainers("srekolam", "renjithravindrankannath", "afzpatel")
+    version("6.3.0", sha256="1e2b7eee002dd922625bcf792104e265cc5a57bec21f13d79d68036aa84b422f")
     version("6.2.4", sha256="ccdea6e955ca145a29d47da74d77b14196c935b57502edaed37fd18029b5220c")
     version("6.2.1", sha256="7e1f4f391a5b31087585b250136f3a8c1fdf4c609880499575291c61b3ebbc15")
     version("6.2.0", sha256="03913a1aae426b9fbb7a4870f408a3af1b8b7d32766515eaccb43107673fe631")
@@ -61,6 +62,7 @@ class RocmValidationSuite(CMakePackage):
     patch("009-replacing-rocm-path-with-package-path.patch", when="@6.0")
     patch("009-replacing-rocm-path-with-package-path-6.1.patch", when="@6.1:6.2.0")
     patch("009-replacing-rocm-path-with-package-path-6.2.1.patch", when="@6.2.1:6.2.4")
+    patch("009-replacing-rocm-path-with-package-path-6.3.patch", when="@6.3.0")
     depends_on("cmake@3.5:", type="build")
     depends_on("zlib-api", type="link")
     depends_on("yaml-cpp~shared")
@@ -91,15 +93,39 @@ class RocmValidationSuite(CMakePackage):
         "6.2.1",
         "6.2.4",
     ]:
+        depends_on(f"hsakmt-roct@{ver}", when=f"@{ver}")
+
+    for ver in [
+        "5.3.0",
+        "5.3.3",
+        "5.4.0",
+        "5.4.3",
+        "5.5.0",
+        "5.5.1",
+        "5.6.0",
+        "5.6.1",
+        "5.7.0",
+        "5.7.1",
+        "6.0.0",
+        "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+    ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"rocminfo@{ver}", when=f"@{ver}")
         depends_on(f"rocblas@{ver}", when=f"@{ver}")
         depends_on(f"rocm-smi-lib@{ver}", when=f"@{ver}")
         depends_on(f"hsa-rocr-dev@{ver}", when=f"@{ver}")
-        depends_on(f"hsakmt-roct@{ver}", when=f"@{ver}")
-    for ver in ["6.2.1", "6.2.4"]:
+    for ver in ["6.2.1", "6.2.4", "6.3.0"]:
         depends_on(f"hiprand@{ver}", when=f"@{ver}")
         depends_on(f"rocrand@{ver}", when=f"@{ver}")
+
+    depends_on("hipblaslt@6.3.0", when="@6.3.0")
 
     def patch(self):
         if self.spec.satisfies("@5.2:5.4"):
@@ -132,13 +158,17 @@ class RocmValidationSuite(CMakePackage):
         if not os.path.isdir(libloc):
             libloc = self.spec["googletest"].prefix.lib
         args.append(self.define("UT_LIB", libloc))
-        libloc = self.spec["hsakmt-roct"].prefix.lib64
-        if not os.path.isdir(libloc):
-            libloc = self.spec["hsakmt-roct"].prefix.lib
-        args.append(self.define("HSAKMT_LIB_DIR", libloc))
+        if self.spec.satisfies("@:6.2"):
+            libloc = self.spec["hsakmt-roct"].prefix.lib64
+            if not os.path.isdir(libloc):
+                libloc = self.spec["hsakmt-roct"].prefix.lib
+            args.append(self.define("HSAKMT_LIB_DIR", libloc))
+        else:
+            args.append(self.define("HSAKMT_LIB_DIR", self.spec["hsa-rocr-dev"].prefix.lib))
         libloc = self.spec["yaml-cpp"].prefix.lib64
         if not os.path.isdir(libloc):
             libloc = self.spec["yaml-cpp"].prefix.lib
         args.append(self.define("YAML_CPP_LIB_PATH", libloc))
-
+        if self.spec.satisfies("@6.3.0:"):
+            args.append(self.define("HIPBLASLT_DIR", self.spec["hipblaslt"].prefix))
         return args
