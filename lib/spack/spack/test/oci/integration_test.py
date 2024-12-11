@@ -336,7 +336,7 @@ def test_best_effort_upload(mutable_database: spack.database.Database, monkeypat
 
         # Verify that manifests of mpich/libdwarf are missing due to upload failure.
         for name in without_manifest:
-            tagged_img = image.with_tag(spack.binary_distribution.default_tag(mpileaks[name]))
+            tagged_img = image.with_tag(spack.binary_distribution._oci_default_tag(mpileaks[name]))
             with pytest.raises(urllib.error.HTTPError, match="404"):
                 get_manifest_and_config(tagged_img)
 
@@ -353,7 +353,7 @@ def test_best_effort_upload(mutable_database: spack.database.Database, monkeypat
 
             # This should not raise a 404.
             manifest, _ = get_manifest_and_config(
-                image.with_tag(spack.binary_distribution.default_tag(s))
+                image.with_tag(spack.binary_distribution._oci_default_tag(s))
             )
 
             # Collect layer digests

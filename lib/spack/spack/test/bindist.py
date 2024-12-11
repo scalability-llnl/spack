@@ -1230,4 +1230,4 @@ def test_download_tarball_with_unsupported_layout_fails(tmp_path, mutable_config
 )
 def test_default_tag(spec: str):
     """Make sure that computed image tags are valid."""
-    assert re.fullmatch(spack.oci.image.tag, bindist.default_tag(spack.spec.Spec(spec)))
+    assert re.fullmatch(spack.oci.image.tag, bindist._oci_default_tag(spack.spec.Spec(spec)))

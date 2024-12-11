@@ -1641,7 +1641,7 @@ def _oci_update_base_images(
         )
 
 
-def default_tag(spec: spack.spec.Spec) -> str:
+def _oci_default_tag(spec: spack.spec.Spec) -> str:
     """Return a valid, default image tag for a spec."""
     return ensure_valid_tag(f"{spec.name}-{spec.version}-{spec.dag_hash()}.spack")
 
@@ -1682,7 +1682,9 @@ def _oci_push(
         tty.info("Checking for existing specs in the buildcache")
         blobs_to_upload = []
 
-        tags_to_check = (target_image.with_tag(default_tag(s)) for s in installed_specs_with_deps)
+        tags_to_check = (
+            target_image.with_tag(_oci_default_tag(s)) for s in installed_specs_with_deps
+        )
         available_blobs = executor.map(_oci_get_blob_info, tags_to_check)
 
         for spec, maybe_blob in zip(installed_specs_with_deps, available_blobs):
@@ -1753,7 +1755,7 @@ def _oci_push(
             _oci_put_manifest,
             base_images,
             checksums,
-            target_image.with_tag(default_tag(spec)),
+            target_image.with_tag(_oci_default_tag(spec)),
             tmpdir,
             extra_config(spec),
             {"org.opencontainers.image.description": spec.format()},
@@ -1770,7 +1772,7 @@ def _oci_push(
         manifest_progress.start(spec, manifest_future.running())
         if error is None:
             manifest_progress.ok(
-                f"Tagged {_format_spec(spec)} as {target_image.with_tag(default_tag(spec))}"
+                f"Tagged {_format_spec(spec)} as {target_image.with_tag(_oci_default_tag(spec))}"
             )
         else:
             manifest_progress.fail()
@@ -2016,7 +2018,7 @@ def download_tarball(spec, unsigned: Optional[bool] = False, mirrors_for_spec=No
             if fetch_url.startswith("oci://"):
                 ref = spack.oci.image.ImageReference.from_string(
                     fetch_url[len("oci://") :]
-                ).with_tag(default_tag(spec))
+                ).with_tag(_oci_default_tag(spec))
 
                 # Fetch the manifest
                 try:
