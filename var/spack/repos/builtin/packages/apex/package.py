@@ -98,7 +98,7 @@ class Apex(CMakePackage):
     variant("lmsensors", default=False, description="Enables LM-Sensors support")
     variant("mpi", default=False, description="Enables MPI support")
     variant("starpu", default=False, description="Enables StarPU support")
-    variant("opencl", default=False, description="Enables OpenCL support")
+    variant("opencl", default=False, description="Enables OpenCL support", when="@2.7:)
     variant("tests", default=False, description="Build Unit Tests")
     variant("examples", default=False, description="Build Examples")
 
