@@ -14,8 +14,8 @@ import spack.cmd
 import spack.platforms.test
 import spack.repo
 import spack.spec
-from spack.parser import SpecParser, SpecParsingError
-from spack.token import UNIX_FILENAME, WINDOWS_FILENAME, SpecTokenizationError, Token, TokenType
+from spack.parser import SpecParser, SpecParsingError, SpecTokenizationError, TokenType
+from spack.token import UNIX_FILENAME, WINDOWS_FILENAME, Token
 
 FAIL_ON_WINDOWS = pytest.mark.xfail(
     sys.platform == "win32",
