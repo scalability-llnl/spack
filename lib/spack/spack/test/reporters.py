@@ -181,7 +181,7 @@ def test_reporters_report_for_package_no_stdout(tmpdir, monkeypatch, capfd):
     assert "No generated output" in err
 
 
-def test_cdash_reporter_truncates_build_name_properly():
+def test_cdash_reporter_truncates_build_name_if_too_long():
     build_name = "a" * 190
     extra_long_build_name = build_name + "a"
     configuration = CDashConfiguration(
