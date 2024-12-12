@@ -532,9 +532,26 @@ absolute path to the independent environments.
      - /absolute/path/to/environment1
      - /absolute/path/to/environment2
 
+It is also possible to include concrete environments from the command line either by
+environment name or by path.
+
+.. code-block:: console
+
+   $ spack -e included_env include --concrete add environment1
+   $ spack -e included_env include --concrete add /absolute/path/to/environment1
 
 Once the ``spack.yaml`` has been updated you must concretize the environment to
 get the concrete specs from the included environments.
+
+To list which concrete environments are included in the current active environment
+from the command line use the ``spack include --concrete list`` command.
+
+.. code-block:: console
+
+   $ spack include --concrete list
+   ==> Included Concrete Environments
+           environment1 (/absolute/path/to/environment1)
+           environment2 (/absolute/path/to/environment2)
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Updating an included environment
@@ -604,6 +621,24 @@ environment will get the updated information from the reconcretized base environ
    perl  python
 
    ==> 0 installed packages
+
+It is also required to reconcretize to reflect the changes of a new environment being
+added or removed. For example if ``myenv`` were to be removed and a new environment
+``externalpython`` were added.
+
+.. code-block:: console
+
+  $ spack env create myotherenv
+  $ spack -e externalpython add python
+  $ spack -e externalpython external find --not-buildable python
+  ==> The following specs have been detected on this system and added to $spack/var/spack/environments/externalpython/spack.yaml
+  python@3.8.10
+  $ spack -e externalpython concretize
+
+  $ spack -e included_env include --concrete remove myenv
+  $ spack -e included_env include --concrete add externalpython
+  $ spack -e included_env concretize
+
 
 .. _environment-configuration:
 
@@ -676,6 +711,26 @@ can be the path to a directory containing configuration files.
 Spack supports ``file``, ``http``, ``https`` and ``ftp`` protocols (or
 schemes). Spack-specific, environment and user path variables may be
 used in these paths. See :ref:`config-file-variables` for more information.
+
+It is possible to add or remove configurations to the current active environment
+from the command line. When includes are added they will be added with the highest
+precendence. In the case of multiple includes being added the precendence increases
+left to right in the same way ``--config-scope`` arguments are applied.
+
+.. code-block:: console
+
+  $ spack include add /path/to/my/configs/
+  $ spack include add /path/to/my/packages/package.yaml /path/to/higher/scope/
+
+  $ spack include remove /absolute/path/to/packages.yaml
+
+  $ spack include list
+  ==> Included Configuration Scopes
+          /path/to/higher/scope/
+          /path/to/my/packages/package.yaml
+          /path/to/my/configs/
+          relative/path/to/config.yaml
+          https://github.com/path/to/raw/config/compilers.yaml
 
 ^^^^^^^^^^^^^^^^^^^^^^^^
 Configuration precedence

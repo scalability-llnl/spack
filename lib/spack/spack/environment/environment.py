@@ -292,10 +292,13 @@ def environment_from_name_or_dir(name_or_dir):
 
 def read(name):
     """Get an environment with the supplied name."""
-    validate_env_name(name)
-    if not exists(name):
-        raise SpackEnvironmentError("no such environment '%s'" % name)
-    return Environment(root(name))
+    if is_env_dir(name):
+        return Environment(name)
+    else:
+        validate_env_name(name)
+        if not exists(name):
+            raise SpackEnvironmentError("no such environment '%s'" % name)
+        return Environment(root(name))
 
 
 def create(
@@ -2767,6 +2770,102 @@ class EnvironmentManifestFile(collections.abc.Mapping):
             self.configuration[included_concrete_name].append(env_path)
 
         self.changed = True
+
+    def list_includes(self, concrete: bool = False) -> List[str]:
+        include_keyword = "include"
+        if concrete:
+            include_keyword = included_concrete_name
+
+        includes = self.configuration.get(include_keyword, [])
+
+        return includes
+
+    def add_includes(self, include: List[str], concrete: bool = False) -> List[str]:
+        """Appends includes to an environment
+
+        Args:
+            include: list of configuration files or directories containing configs for
+                     concrete environments
+        """
+
+        if not include:
+            return []
+
+        include_keyword = "include"
+        # Allow including configs or concrete using the env name
+        set_included_envs_to_env_paths(include)
+        if concrete:
+            include_keyword = included_concrete_name
+            validate_included_envs_exists(include)
+            validate_included_envs_concrete(include)
+
+        invalid_paths = []
+        for inc in include:
+            if not os.path.exists(inc):
+                invalid_paths.append(inc)
+
+        include = [inc for inc in include if inc not in invalid_paths]
+
+        if not include:
+            return invalid_paths
+
+        # Reverse the list of includes so they are applied in
+        # the correct order when the config is loaded.
+        include.reverse()
+
+        def _add_includes(config):
+            include_list = config.get(include_keyword, [])
+            include_list[:0] = include
+            config[include_keyword] = include_list
+
+        _add_includes(self.configuration)
+
+        self.changed = True
+
+        return invalid_paths
+
+    def remove_includes(self, include: List[str], concrete=False) -> Optional[List[str]]:
+        """Removes includes from an environment
+
+        Args:
+            include: list of configuration files or directories containing configs for
+                     concrete environments
+        """
+        if not include:
+            return None
+
+        include_keyword = "include"
+        # Allow removing config paths or concrete using the env name
+        set_included_envs_to_env_paths(include)
+        if concrete:
+            include_keyword = included_concrete_name
+            validate_included_envs_exists(include)
+            validate_included_envs_concrete(include)
+
+        # Expand the includes for full path matching
+        include_expanded = [substitute_path_variables(inc) for inc in include]
+        include_idx_map = dict({(idx, inc) for idx, inc in enumerate(include)})
+
+        def _remove_includes(include_list):
+            if not include_list:
+                return
+
+            expanded_include_list = dict(
+                {(substitute_path_variables(inc), idx) for idx, inc in enumerate(include_list)}
+            )
+            for ii, inc in enumerate(include_expanded):
+                idx = expanded_include_list.get(inc, -1)
+                if idx >= 0:
+                    include_list.pop(idx)
+                    if ii in include_idx_map:
+                        include_idx_map.pop(ii)
+
+        _remove_includes(self.configuration.get(include_keyword))
+
+        self.changed = True
+
+        # Return the includes that were not found
+        return list(include_idx_map.values())
 
     def add_definition(self, user_spec: str, list_name: str) -> None:
         """Appends a user spec to the first active definition matching the name passed as argument.
