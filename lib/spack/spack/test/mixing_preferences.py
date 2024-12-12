@@ -173,8 +173,8 @@ def _create_test_repo(tmpdir, mutable_config):
             _pkgx3,
             _pkgx4,
             _glibc,
-            _gcc,
-            _gcc_runtime,
+            #_gcc,
+            #_gcc_runtime,
         ],
     )
 
@@ -194,7 +194,9 @@ def enable_runtimes():
 
 @pytest.fixture
 def test_repo(_create_test_repo, monkeypatch, mock_stage):
-    with spack.repo.use_repositories(_create_test_repo) as mock_repo_path:
+
+    libc_repo = os.path.join(spack.paths.repos_path, "compiler_runtime.test")
+    with spack.repo.use_repositories(_create_test_repo, libc_repo) as mock_repo_path:
         yield mock_repo_path
 
 
@@ -278,9 +280,9 @@ compilers::
 """
     update_cfg_section("compilers", test_cfg)
 
-    #output = solve("--show=asp", "x4%gcc")
+    output = solve("--show=asp", "x4%gcc")
 
-    #import pdb; pdb.set_trace()
+    import pdb; pdb.set_trace()
 
     Spec("x4%gcc").concretized()
     install("x1%gcc")
