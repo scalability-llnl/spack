@@ -196,7 +196,17 @@ build --local_cpu_resources={make_jobs}
     def install(self, spec, prefix):
         # https://jax.readthedocs.io/en/latest/developer.html
         buildtmp = self.wrapped_package_object.buildtmp
-        args = ["build/build.py", f"--bazel_startup_options=--output_user_root={buildtmp}"]
+        args = ["build/build.py"]
+
+        if spec.satisfies("@0.4.36:"):
+            args.append("build")
+
+            if spec.satisfies("+cuda"):
+                args.append("--wheels=jaxlib,jax-cuda-plugin,jax-cuda-pjrt")
+            else:
+                args.append("--wheels=jaxlib")
+
+        args.append(f"--bazel_startup_options=--output_user_root={buildtmp}")
 
         if "+cuda" in spec:
             capabilities = CudaPackage.compute_capabilities(spec.variants["cuda_arch"].value)
