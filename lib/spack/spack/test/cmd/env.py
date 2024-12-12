@@ -1953,7 +1953,7 @@ def test_env_include_concrete_env_yaml(env_name):
     combined_yaml = combined.manifest["spack"]
 
     assert "include_concrete" in combined_yaml
-    assert test.path in combined_yaml["include_concrete"]
+    assert environ in combined_yaml["include_concrete"]
 
 
 @pytest.mark.regression("45766")
@@ -1988,8 +1988,8 @@ def test_env_multiple_include_concrete_envs():
 
     combined_yaml = combined.manifest["spack"]
 
-    assert test1.path in combined_yaml["include_concrete"][0]
-    assert test2.path in combined_yaml["include_concrete"][1]
+    assert "test1" in combined_yaml["include_concrete"][0]
+    assert "test2" in combined_yaml["include_concrete"][1]
 
     # No local specs in the combined env
     assert not combined_yaml["specs"]
@@ -2001,7 +2001,7 @@ def test_env_include_concrete_envs_lockfile():
     combined_yaml = combined.manifest["spack"]
 
     assert "include_concrete" in combined_yaml
-    assert test1.path in combined_yaml["include_concrete"]
+    assert "test1" in combined_yaml["include_concrete"]
 
     with open(combined.lock_path, encoding="utf-8") as f:
         lockfile_as_dict = combined._read_lockfile(f)
