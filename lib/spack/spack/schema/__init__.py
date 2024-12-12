@@ -26,14 +26,14 @@ def _make_validator():
         """Check if the attributes on instance are valid specs."""
         import jsonschema
 
-        import spack.parser
+        import spack.spec_parser
 
         if not validator.is_type(instance, "object"):
             return
 
         for spec_str in instance:
             try:
-                spack.parser.parse(spec_str)
+                spack.spec_parser.parse(spec_str)
             except SpecSyntaxError as e:
                 yield jsonschema.ValidationError(str(e))
 

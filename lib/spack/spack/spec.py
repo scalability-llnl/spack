@@ -77,14 +77,13 @@ import spack.config
 import spack.deptypes as dt
 import spack.error
 import spack.hash_types as ht
-import spack.parser
 import spack.paths
 import spack.platforms
 import spack.provider_index
 import spack.repo
 import spack.solver
+import spack.spec_parser
 import spack.store
-import spack.token
 import spack.traverse as traverse
 import spack.util.executable
 import spack.util.hash
@@ -613,7 +612,7 @@ class CompilerSpec:
             # If there is one argument, it's either another CompilerSpec
             # to copy or a string to parse
             if isinstance(arg, str):
-                spec = spack.parser.parse_one_or_raise(f"%{arg}")
+                spec = spack.spec_parser.parse_one_or_raise(f"%{arg}")
                 self.name = spec.compiler.name
                 self.versions = spec.compiler.versions
 
@@ -951,11 +950,13 @@ class FlagMap(lang.HashableMap):
         for flag_type, flags in sorted_items:
             normal = [f for f in flags if not f.propagate]
             if normal:
-                result += f" {flag_type}={spack.token.quote_if_needed(' '.join(normal))}"
+                value = spack.spec_parser.quote_if_needed(" ".join(normal))
+                result += f" {flag_type}={value}"
 
             propagated = [f for f in flags if f.propagate]
             if propagated:
-                result += f" {flag_type}=={spack.token.quote_if_needed(' '.join(propagated))}"
+                value = spack.spec_parser.quote_if_needed(" ".join(propagated))
+                result += f" {flag_type}=={value}"
 
         # TODO: somehow add this space only if something follows in Spec.format()
         if sorted_items:
@@ -1514,7 +1515,7 @@ class Spec:
         self._build_spec = None
 
         if isinstance(spec_like, str):
-            spack.parser.parse_one_or_raise(spec_like, self)
+            spack.spec_parser.parse_one_or_raise(spec_like, self)
 
         elif spec_like is not None:
             raise TypeError("Can't make spec out of %s" % type(spec_like))
