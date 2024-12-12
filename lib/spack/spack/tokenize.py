@@ -2,7 +2,9 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-"""Generic token support."""
+"""This module provides building blocks for tokenizing strings. Users can define tokens by
+inheriting from TokenBase and defining tokens as ordered enum members. The Tokenizer class can then
+be used to iterate over tokens in a string."""
 import enum
 import re
 from typing import Generator, Match, Optional, Type
