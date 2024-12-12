@@ -16,7 +16,6 @@ import spack.operating_systems
 import spack.platforms
 import spack.repo
 import spack.solver.asp
-import spack.store
 import spack.util.spack_yaml as syaml
 from spack.main import SpackCommand
 from spack.platforms._platform import Platform
@@ -279,11 +278,13 @@ compilers::
         with open(os.path.join(spec.prefix, ".spack", "spec.json"), "w") as f:
             spec.to_json(f)
     temporary_store.db.add(x, explicit=True)
-    #output = solve("--show=asp", "x1%aocc")
-    #import pdb; pdb.set_trace()
+    # output = solve("--show=asp", "x1%aocc")
+    # import pdb; pdb.set_trace()
     # This mixes gcc and aocc
     output1 = spec_cmd("--reuse", "x1%aocc ^x4%gcc")
     output2 = spec_cmd("--reuse", "x1%aocc")
+    print(output1)
+    print(output2)
     # output = solve("--reuse", "x1%aocc")
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     # print("hi")
