@@ -281,10 +281,9 @@ compilers::
     temporary_store.db.add(x, explicit=True)
     #output = solve("--show=asp", "x1%aocc")
     #import pdb; pdb.set_trace()
-    # This does not mix gcc and aocc
-    y = Spec("x1%aocc").concretized()
     # This mixes gcc and aocc
-    output = spec_cmd("x1%aocc ^x4%gcc")
+    output1 = spec_cmd("--reuse", "x1%aocc ^x4%gcc")
+    output2 = spec_cmd("--reuse", "x1%aocc")
     # output = solve("--reuse", "x1%aocc")
-    # import pdb; pdb.set_trace()
+    import pdb; pdb.set_trace()
     # print("hi")
