@@ -138,8 +138,6 @@ class Apex(CMakePackage):
     # https://github.com/UO-OACISS/apex/issues/180.
     conflicts("~kokkos", when="@:2.6.5")
 
-    # OpenCL added with 2.7.0
-    conflicts("+opencl", when="@:2.6.5")
     # Disable OpenCL when using SYCL support
     conflicts("+opencl", when="+sycl")
 
