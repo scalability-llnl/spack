@@ -191,7 +191,7 @@ class Qt(Package):
         "https://patch-diff.githubusercontent.com/raw/Tencent/rapidjson/pull/719.patch",
         sha256="8abc5c5ef033801ea99a9f289126e473ccf4ebdb9ab33fa8157f957fdeb03a2f",
         working_dir="qtlocation/src/3rdparty/mapbox-gl-native/deps/rapidjson/1.1.0",
-        when="@5: %gcc@14:"
+        when="@5: %gcc@14:",
     )
 
     conflicts("%gcc@10:", when="@5.9:5.12.6 +opengl")
