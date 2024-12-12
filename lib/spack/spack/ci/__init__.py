@@ -636,7 +636,7 @@ def download_and_extract_artifacts(url, work_dir):
         url (str): Complete url to artifacts.zip file
         work_dir (str): Path to destination where artifacts should be extracted
     """
-    tty.msg(f"Fetching artifacts from: {url}\n")
+    tty.msg(f"Fetching artifacts from: {url}")
 
     headers = {"Content-Type": "application/zip"}
 
