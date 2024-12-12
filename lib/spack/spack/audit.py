@@ -1009,20 +1009,6 @@ def _issues_in_depends_on_directive(pkgs, error_cls):
 
         for when, deps_by_name in pkg_cls.dependencies.items():
             for dep_name, dep in deps_by_name.items():
-                # Check if there are nested dependencies declared. We don't want directives like:
-                #
-                #     depends_on('foo+bar ^fee+baz')
-                #
-                # but we'd like to have two dependencies listed instead.
-                nested_dependencies = dep.spec.dependencies()
-                if nested_dependencies:
-                    summary = f"{pkg_name}: nested dependency declaration '{dep.spec}'"
-                    ndir = len(nested_dependencies) + 1
-                    details = [
-                        f"split depends_on('{dep.spec}', when='{when}') into {ndir} directives",
-                        f"in {filename}",
-                    ]
-                    errors.append(error_cls(summary=summary, details=details))
 
                 def check_virtual_with_variants(spec, msg):
                     if not spec.virtual or not spec.variants:
