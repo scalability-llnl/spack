@@ -112,6 +112,7 @@ from spack.package import *
 class GccRuntime(Package):
     has_code = False
 
+    # Without this line, you get the concretizer version of a segfault
     tags = ["runtime"]
     requires("%gcc")
 
@@ -279,11 +280,12 @@ compilers::
 """
     update_cfg_section("compilers", test_cfg)
 
-    output = solve("--show=asp", "x4%gcc")
+    #output = solve("--show=asp", "x4%gcc")
+    #import pdb; pdb.set_trace()
 
+    x = Spec("x4%gcc").concretized()
     import pdb; pdb.set_trace()
-
-    Spec("x4%gcc").concretized()
+    return
     install("x1%gcc")
     # output = solve("--show=asp", "x1%aocc")
     x = Spec("x1%aocc").concretized()
