@@ -27,7 +27,6 @@ import spack.caches
 import spack.concretize
 import spack.config
 import spack.deptypes as dt
-import spack.environment
 import spack.error
 import spack.filesystem_view as fsv
 import spack.hash_types as ht
@@ -163,7 +162,7 @@ def installed_specs():
     Returns the specs of packages installed in the active environment or None
     if no packages are installed.
     """
-    env = spack.environment.active_environment()
+    env = active_environment()
     hashes = env.all_hashes() if env else None
     return spack.store.STORE.db.query(hashes=hashes)
 
