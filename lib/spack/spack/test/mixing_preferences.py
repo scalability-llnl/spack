@@ -5,14 +5,18 @@
 
 import pytest
 
-import spack.build_systems.generic
+import archspec.cpu
+
+import spack.compiler
 import spack.config
-import spack.error
-import spack.package_base
+import spack.operating_systems
+import spack.platforms
 import spack.repo
+import spack.solver.asp
+import spack.store
 import spack.util.spack_yaml as syaml
-import spack.version
 from spack.main import SpackCommand
+from spack.platforms._platform import Platform
 from spack.spec import Spec
 from spack.test.conftest import create_test_repo
 
@@ -45,7 +49,7 @@ class X1(Package):
 _pkgx2 = (
     "x2",
     """\
-from spack.package import *    
+from spack.package import *
 
 class X2(Package):
     version("2.1")
@@ -79,7 +83,7 @@ class X3(Package):
 _pkgx4 = (
     "x4",
     """\
-from spack.package import *    
+from spack.package import *
 
 class X4(Package):
     version("4.1")
@@ -95,7 +99,7 @@ class X4(Package):
 _glibc = (
     "glibc",
     """\
-from spack.package import *    
+from spack.package import *
 
 class Glibc(Package):
     provides("libc")
@@ -122,7 +126,7 @@ class GccRuntime(Package):
     provides("libgfortran@5", when="%gcc@8:")
 
     depends_on("libc", type="link", when="platform=linux")
-"""
+""",
 )
 
 
@@ -161,29 +165,13 @@ class Gcc(Package):
 
         # If a node used %gcc@X.Y its dependencies must use gcc-runtime@:X.Y
         pkg("*").propagate(f"%gcc@:{str(spec.version)}", when=f"%{str(spec)}")
-"""
+""",
 )
 
 
 @pytest.fixture
 def _create_test_repo(tmpdir, mutable_config):
-    yield create_test_repo(
-        tmpdir,
-        [
-            _pkgx1,
-            _pkgx2,
-            _pkgx3,
-            _pkgx4,
-            _glibc,
-            _gcc,
-            _gcc_runtime,
-        ],
-    )
-
-
-import spack.solver.asp
-import os
-import spack.paths
+    yield create_test_repo(tmpdir, [_pkgx1, _pkgx2, _pkgx3, _pkgx4, _glibc, _gcc, _gcc_runtime])
 
 
 @pytest.fixture
@@ -208,14 +196,6 @@ install = SpackCommand("install")
 solve = SpackCommand("solve")
 
 
-import spack.platforms
-from spack.platforms._platform import Platform
-import spack.operating_systems
-import archspec.cpu
-import spack.compiler
-import spack.store
-
-
 class TestLinux(Platform):
     front_end = "x86_64"
     back_end = "x86_64"
@@ -231,12 +211,8 @@ class TestLinux(Platform):
         self.add_target(self.front_end, archspec.cpu.TARGETS[self.front_end])
 
         os = spack.operating_systems.OperatingSystem("debian", 6)
-        self.add_operating_system(
-            self.default_os, os
-        )
-        self.add_operating_system(
-            self.front_os, os
-        )
+        self.add_operating_system(self.default_os, os)
+        self.add_operating_system(self.front_os, os)
 
 
 @pytest.fixture
@@ -249,7 +225,15 @@ def pretend_linux(monkeypatch, tmpdir):
         yield
 
 
-def test_with_cfg(mutable_mock_env_path, install_mockery, mock_fetch, concretize_scope, test_repo, pretend_linux, enable_runtimes):
+def test_with_cfg(
+    mutable_mock_env_path,
+    install_mockery,
+    mock_fetch,
+    concretize_scope,
+    test_repo,
+    pretend_linux,
+    enable_runtimes,
+):
     test_cfg = """\
 compilers::
 - compiler:
@@ -289,7 +273,7 @@ compilers::
     x = Spec("x1%gcc").concretized()
     spack.store.STORE.db.add(x, explicit=True)
     # output = solve("--show=asp", "x1%aocc")
-    y = Spec("x1%aocc").concretized()
+    Spec("x1%aocc").concretized()
     # output = solve("--reuse", "x1%aocc")
     # import pdb; pdb.set_trace()
     # print("hi")
