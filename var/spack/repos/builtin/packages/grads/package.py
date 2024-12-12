@@ -41,7 +41,7 @@ class Grads(AutotoolsPackage):
     variant("hdf4", default=True, when="@2.2.2:", description="Enable HDF4 support")
     variant("netcdf", default=True, when="@2.2.2:", description="Enable NetCDF support")
 
-    depends_on("hdf5@:1.10", when="+hdf5")
+    depends_on("hdf5", when="+hdf5")
     depends_on("hdf", when="+hdf4")
     depends_on("netcdf-c", when="+netcdf")
     depends_on("g2c", when="+grib2")
@@ -73,6 +73,17 @@ class Grads(AutotoolsPackage):
             filter_file("grib2c", "g2c", "configure")
             if self.spec.satisfies("^g2c@1.8.0:"):
                 filter_file("G2_VERSION", "G2C_VERSION", "src/gacfg.c")
+
+    # Can use newer versions of HDF5, but 1.10 is the last API GrADS supports
+    def flag_handler(self, name, flags):
+        spec = self.spec
+
+        if name == "cflags":
+            if "+hdf5" in spec:
+                if "@1.12:" in spec["hdf5"]:
+                    flags.append("-DH5_USE_110_API")
+
+        return (flags, None, None)
 
     def setup_build_environment(self, env):
         env.set("SUPPLIBS", "/")
