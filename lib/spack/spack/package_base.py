@@ -24,7 +24,6 @@ import textwrap
 import time
 import traceback
 import typing
-import warnings
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, Type, TypeVar, Union
 
 import llnl.util.filesystem as fsys
@@ -1359,24 +1358,6 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         if not self._tester:
             self._tester = spack.install_test.PackageTest(self)
         return self._tester
-
-    @property
-    def installed(self):
-        msg = (
-            'the "PackageBase.installed" property is deprecated and will be '
-            'removed in Spack v0.19, use "Spec.installed" instead'
-        )
-        warnings.warn(msg)
-        return self.spec.installed
-
-    @property
-    def installed_upstream(self):
-        msg = (
-            'the "PackageBase.installed_upstream" property is deprecated and will '
-            'be removed in Spack v0.19, use "Spec.installed_upstream" instead'
-        )
-        warnings.warn(msg)
-        return self.spec.installed_upstream
 
     @property
     def fetcher(self):
