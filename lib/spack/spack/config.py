@@ -790,30 +790,6 @@ def config_paths_from_entry_points() -> List[Tuple[str, str]]:
     return config_paths
 
 
-def _add_command_line_scopes(cfg: Configuration, command_line_scopes: List[str]) -> None:
-    """Add additional scopes from the --config-scope argument, either envs or dirs."""
-    import spack.environment.environment as env  # circular import
-
-    for i, path in enumerate(command_line_scopes):
-        name = f"cmd_scope_{i}"
-
-        if env.exists(path):  # managed environment
-            manifest = env.EnvironmentManifestFile(env.root(path))
-        elif env.is_env_dir(path):  # anonymous environment
-            manifest = env.EnvironmentManifestFile(path)
-        elif os.path.isdir(path):  # directory with config files
-            cfg.push_scope(DirectoryConfigScope(name, path, writable=False))
-            _add_platform_scope(cfg, name, path, writable=False)
-            continue
-        else:
-            raise spack.error.ConfigError(f"Invalid configuration scope: {path}")
-
-        for scope in manifest.env_config_scopes:
-            scope.name = f"{name}:{scope.name}"
-            scope.writable = False
-            cfg.push_scope(scope)
-
-
 def create() -> Configuration:
     """Singleton Configuration instance.
 

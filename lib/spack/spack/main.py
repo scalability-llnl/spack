@@ -48,7 +48,6 @@ import spack.store
 import spack.util.debug
 import spack.util.environment
 import spack.util.lock
-from spack.error import SpackError
 
 #: names of profile statistics
 stat_names = pstats.Stats.sort_arg_dict_default
@@ -858,6 +857,20 @@ def resolve_alias(cmd_name: str, cmd: List[str]) -> Tuple[str, List[str]]:
     return cmd_name, cmd
 
 
+def add_command_line_scopes(
+    cfg: spack.config.Configuration, command_line_scopes: List[str]
+) -> None:
+    """Add additional scopes from the --config-scope argument, either envs or dirs.
+
+    Args:
+        cfg: configuration instance
+        command_line_scopes: list of configuration scope paths
+    """
+    for i, path in enumerate(command_line_scopes):
+        name = f"cmd_scope_{i}"
+        ev.add_path_scopes(cfg, name, path)
+
+
 def _main(argv=None):
     """Logic for the main entry point for the Spack command.
 
@@ -926,7 +939,7 @@ def _main(argv=None):
 
     # Push scopes from the command line last
     if args.config_scopes:
-        spack.config._add_command_line_scopes(spack.config.CONFIG, args.config_scopes)
+        add_command_line_scopes(spack.config.CONFIG, args.config_scopes)
     spack.config.CONFIG.push_scope(spack.config.InternalConfigScope("command_line"))
     setup_main_options(args)
 
@@ -1012,7 +1025,7 @@ def main(argv=None):
     try:
         return _main(argv)
 
-    except SpackError as e:
+    except spack.error.SpackError as e:
         tty.debug(e)
         e.die()  # gracefully die on any SpackErrors
 

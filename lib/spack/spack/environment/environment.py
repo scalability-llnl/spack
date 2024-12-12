@@ -3058,6 +3058,34 @@ class EnvironmentManifestFile(collections.abc.Mapping):
             self.deactivate_config_scope()
 
 
+def add_path_scopes(cfg: spack.config.Configuration, name: str, path: str):
+    """Add configuration scope(s) from the path
+
+    Arguments:
+        cfg: configuration instance
+        name: configuration scope name
+        path: path to configuration file(s)
+
+    Raises:
+        spack.error.ConfigError: if the path is an invalid configuration scope
+    """
+    if exists(path):  # managed environment
+        manifest = EnvironmentManifestFile(root(path))
+    elif is_env_dir(path):  # anonymous environment
+        manifest = EnvironmentManifestFile(path)
+    elif os.path.isdir(path):  # directory with config files
+        cfg.push_scope(spack.config.DirectoryConfigScope(name, path, writable=False))
+        spack.config._add_platform_scope(cfg, name, path, writable=False)
+        return
+    else:
+        raise spack.error.ConfigError(f"Invalid configuration scope: {path}")
+
+    for scope in manifest.env_config_scopes:
+        scope.name = f"{name}:{scope.name}"
+        scope.writable = False
+        cfg.push_scope(scope)
+
+
 class SpackEnvironmentError(spack.error.SpackError):
     """Superclass for all errors to do with Spack environments."""
 
