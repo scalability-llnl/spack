@@ -197,6 +197,7 @@ def test_diamond(concretize_scope, test_repo):
 
 install = SpackCommand("install")
 solve = SpackCommand("solve")
+spec_cmd = SpackCommand("spec")
 
 
 class TestLinux(Platform):
@@ -278,9 +279,12 @@ compilers::
         with open(os.path.join(spec.prefix, ".spack", "spec.json"), "w") as f:
             spec.to_json(f)
     temporary_store.db.add(x, explicit=True)
-    output = solve("--show=asp", "x1%aocc")
-    import pdb; pdb.set_trace()
+    #output = solve("--show=asp", "x1%aocc")
+    #import pdb; pdb.set_trace()
+    # This does not mix gcc and aocc
     y = Spec("x1%aocc").concretized()
+    # This mixes gcc and aocc
+    output = spec_cmd("x1%aocc ^x4%gcc")
     # output = solve("--reuse", "x1%aocc")
     # import pdb; pdb.set_trace()
     # print("hi")
