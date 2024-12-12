@@ -272,8 +272,10 @@ compilers::
 
     x = Spec("x1%gcc").concretized()
     spack.store.STORE.db.add(x, explicit=True)
-    # output = solve("--show=asp", "x1%aocc")
-    Spec("x1%aocc").concretized()
+    #output = solve("--show=asp", "x1%aocc")
+    #import pdb; pdb.set_trace()
+    # Right now, only glibc from the prior install appears to be marked as reusable
+    y = Spec("x1%aocc").concretized()
     # output = solve("--reuse", "x1%aocc")
     # import pdb; pdb.set_trace()
     # print("hi")
