@@ -79,9 +79,8 @@ class Grads(AutotoolsPackage):
         spec = self.spec
 
         if name == "cflags":
-            if "+hdf5" in spec:
-                if "@1.12:" in spec["hdf5"]:
-                    flags.append("-DH5_USE_110_API")
+            if "hdf5" in spec and spec["hdf5"].satisfies("@1.12:"):
+                flags.append("-DH5_USE_110_API")
 
         return (flags, None, None)
 
