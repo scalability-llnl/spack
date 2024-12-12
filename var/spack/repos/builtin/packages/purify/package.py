@@ -28,6 +28,7 @@ class Purify(CMakePackage):
     variant("benchmarks", default=False, description="Build benchmarks")
     variant("docs", default=False, description="Enable multithreading with OpenMP")
     variant("coverage", default=False, description="Enable code coverage")
+    variant("onnxrt", default=False, description="Build with Tensorflow support using onnx")
 
     depends_on("cmake@3")
     depends_on("eigen@3.4:3")
@@ -41,10 +42,13 @@ class Purify(CMakePackage):
     depends_on("sopt+mpi", when="+mpi")
     depends_on("sopt~openmp", when="~openmp")
     depends_on("sopt+openmp", when="+openmp")
+    depends_on("sopt~onnxrt", when="~onnxrt")
+    depends_on("sopt+onnxrt", when="+onnxrt")
     depends_on("catch2@3.4:3", when="+tests")
     depends_on("mpi", when="+mpi")
     depends_on("benchmark@1.8~performance_counters", when="+benchmarks")
     depends_on("doxygen@1.9:1.12+graphviz", when="+docs")
+    depends_on("py-onnxruntime@1.17.1:", when="+onnxrt")
 
     def cmake_args(self):
         args = [
@@ -54,6 +58,7 @@ class Purify(CMakePackage):
             self.define_from_variant("openmp", "openmp"),
             self.define_from_variant("dompi", "mpi"),
             self.define_from_variant("coverage", "coverage"),
+            self.define_from_variant("onnxrt", "onnxrt"),
         ]
         return args
 
