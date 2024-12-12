@@ -43,9 +43,9 @@ class PyNetcdf4(PythonPackage):
     # https://github.com/Unidata/netcdf4-python/pull/1317
     depends_on("py-numpy@:1", when="@:1.6", type=("build", "link", "run"))
     depends_on("py-mpi4py", when="+mpi", type=("build", "run"))
-    depends_on("netcdf-c~mpi", when="~mpi")  # netcdf-c has +mpi by default
+    depends_on("netcdf-c~mpi", when="~mpi")
     depends_on("netcdf-c+mpi", when="+mpi")
-    depends_on("hdf5@1.8.0:+hl~mpi", when="~mpi")  # hdf5 defaults to +mpi by default
+    depends_on("hdf5@1.8.0:+hl~mpi", when="~mpi")
     depends_on("hdf5@1.8.0:+hl+mpi", when="+mpi")
 
     # The installation script tries to find hdf5 using pkg-config. However, the
