@@ -342,6 +342,7 @@ def filter_file(
 
     if string:
         regex = re.escape(regex)
+    regex_compiled = re.compile(regex)
     for path in path_to_os_path(*filenames):
         fd, temp_path = tempfile.mkstemp(prefix=os.path.basename(path), dir=os.path.dirname(path))
         os.close(fd)
@@ -366,7 +367,7 @@ def filter_file(
             ) as output_file:
                 if start_at is None and stop_at is None:  # common case, avoids branching in loop
                     for line in input_file:
-                        output_file.write(re.sub(regex, repl, line))
+                        output_file.write(re.sub(regex_compiled, repl, line))
                 else:
                     # state is -1 before start_at; 0 between; 1 after stop_at
                     state = 0 if start_at is None else -1
@@ -375,7 +376,7 @@ def filter_file(
                             if stop_at == line.strip():
                                 state = 1
                             else:
-                                line = re.sub(regex, repl, line)
+                                line = re.sub(regex_compiled, repl, line)
                         elif state == -1 and start_at == line.strip():
                             state = 0
                         output_file.write(line)
