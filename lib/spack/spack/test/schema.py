@@ -11,6 +11,7 @@ import pytest
 
 import spack.paths
 import spack.schema
+import spack.util.spack_yaml as syaml
 
 
 @pytest.fixture()
@@ -124,3 +125,28 @@ def test_deprecated_properties(module_suffixes_schema):
     data = {"tcl": {"all": {"suffixes": {"^python": "py"}}}}
     # The next validation doesn't raise anymore
     v.validate(data)
+
+
+def test_ordereddict_merge_order():
+    """ "Test that source keys come before dest keys in merge_yaml results."""
+    source = syaml.syaml_dict([("k1", "v1"), ("k2", "v2"), ("k3", "v3")])
+
+    dest = syaml.syaml_dict([("k4", "v4"), ("k3", "WRONG"), ("k5", "v5")])
+
+    result = spack.schema.merge_yaml(dest, source)
+    assert "WRONG" not in result.values()
+
+    expected_keys = ["k1", "k2", "k3", "k4", "k5"]
+    expected_items = [("k1", "v1"), ("k2", "v2"), ("k3", "v3"), ("k4", "v4"), ("k5", "v5")]
+    assert expected_keys == list(result.keys())
+    assert expected_items == list(result.items())
+
+
+def test_list_merge_order():
+    """ "Test that source lists are prepended to dest."""
+    source = ["a", "b", "c"]
+    dest = ["d", "e", "f"]
+
+    result = spack.schema.merge_yaml(dest, source)
+
+    assert ["a", "b", "c", "d", "e", "f"] == result

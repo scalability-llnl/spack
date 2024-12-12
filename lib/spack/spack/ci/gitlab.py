@@ -15,6 +15,7 @@ import spack
 import spack.binary_distribution as bindist
 import spack.config as cfg
 import spack.mirrors.mirror
+import spack.schema
 import spack.spec
 import spack.util.spack_yaml as syaml
 
@@ -248,7 +249,7 @@ def generate_gitlab_yaml(pipeline: PipelineDag, spack_ci: SpackCIConfig, options
                 build_stamp = options.cdash_handler.build_stamp
                 job_vars["SPACK_CDASH_BUILD_STAMP"] = build_stamp
 
-            job_object["artifacts"] = cfg.merge_yaml(
+            job_object["artifacts"] = spack.schema.merge_yaml(
                 job_object.get("artifacts", {}),
                 {
                     "when": "always",

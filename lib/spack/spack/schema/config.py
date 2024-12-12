@@ -11,7 +11,7 @@ from typing import Any, Dict
 
 from llnl.util.lang import union_dicts
 
-import spack.config
+import spack.schema
 import spack.schema.projections
 
 #: Properties for inclusion in other schemas
@@ -157,7 +157,7 @@ def update(data):
         # whether install_tree was updated or not
         # we merge the yaml to ensure we don't invalidate other projections
         update_data = data.get("install_tree", {})
-        update_data = spack.config.merge_yaml(update_data, projections_data)
+        update_data = spack.schema.merge_yaml(update_data, projections_data)
         data["install_tree"] = update_data
         changed = True
 
