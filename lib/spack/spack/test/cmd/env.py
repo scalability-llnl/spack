@@ -1718,7 +1718,7 @@ def test_uninstall_keeps_in_env(mock_stage, mock_fetch, install_mockery):
     assert test.concretized_order == orig_concretized_specs
     assert test.user_specs.specs == orig_user_specs.specs
     assert mpileaks_hash in test.specs_by_hash
-    assert not test.specs_by_hash[mpileaks_hash].package.installed
+    assert not test.specs_by_hash[mpileaks_hash].installed
 
 
 def test_uninstall_removes_from_env(mock_stage, mock_fetch, install_mockery):
