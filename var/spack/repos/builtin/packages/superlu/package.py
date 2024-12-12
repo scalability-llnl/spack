@@ -43,7 +43,7 @@ class Superlu(CMakePackage, Package):
         )
 
     depends_on("c", type="build")
-    depends_on("fortran", type="build", when="fortran")
+    depends_on("fortran", type="build", when="+fortran")
     depends_on("metis", when="@6:")
 
     build_system(
