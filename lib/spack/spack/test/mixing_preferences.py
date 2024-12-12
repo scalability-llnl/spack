@@ -213,6 +213,7 @@ from spack.platforms._platform import Platform
 import spack.operating_systems
 import archspec.cpu
 import spack.compiler
+import spack.store
 
 
 class TestLinux(Platform):
@@ -280,15 +281,15 @@ compilers::
 """
     update_cfg_section("compilers", test_cfg)
 
-    #output = solve("--show=asp", "x4%gcc")
-    #import pdb; pdb.set_trace()
+    # output = solve("--show=asp", "x4%gcc")
+    # import pdb; pdb.set_trace()
 
-    x = Spec("x4%gcc").concretized()
-    import pdb; pdb.set_trace()
-    return
-    install("x1%gcc")
+    # x = Spec("x4%gcc").concretized()
+
+    x = Spec("x1%gcc").concretized()
+    spack.store.STORE.db.add(x, explicit=True)
     # output = solve("--show=asp", "x1%aocc")
-    x = Spec("x1%aocc").concretized()
-    output = solve("--reuse", "x1%aocc")
-    import pdb; pdb.set_trace()
-    print("hi")
+    y = Spec("x1%aocc").concretized()
+    # output = solve("--reuse", "x1%aocc")
+    # import pdb; pdb.set_trace()
+    # print("hi")
