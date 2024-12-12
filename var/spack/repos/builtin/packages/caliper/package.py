@@ -140,7 +140,7 @@ class Caliper(CachedCMakePackage, CudaPackage, ROCmPackage):
     conflicts("+rocm", "@:2.7")
     conflicts("+rocm+cuda")
 
-    patch("for_aarch64.patch", when="@:2.12 target=aarch64:")
+    patch("for_aarch64.patch", when="@:2.11 target=aarch64:")
     patch(
         "sampler-service-missing-libunwind-include-dir.patch",
         when="@2.9.0:2.9.1 +libunwind +sampler",
