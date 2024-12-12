@@ -65,18 +65,6 @@ spack_compiler = spack.main.SpackCommand("compiler")
 PushResult = namedtuple("PushResult", "success url")
 
 
-class TemporaryDirectory:
-    def __init__(self):
-        self.temporary_directory = tempfile.mkdtemp()
-
-    def __enter__(self):
-        return self.temporary_directory
-
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        shutil.rmtree(self.temporary_directory)
-        return False
-
-
 def get_change_revisions():
     """If this is a git repo get the revisions to use when checking
     for changed packages and spack core modules."""
@@ -525,7 +513,7 @@ def import_signing_key(base64_signing_key):
     if isinstance(decoded_key, bytes):
         decoded_key = decoded_key.decode("utf8")
 
-    with TemporaryDirectory() as tmpdir:
+    with tempfile.TemporaryDirectory() as tmpdir:
         sign_key_path = os.path.join(tmpdir, "signing_key")
         with open(sign_key_path, "w") as fd:
             fd.write(decoded_key)
