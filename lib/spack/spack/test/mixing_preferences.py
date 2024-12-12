@@ -112,6 +112,7 @@ from spack.package import *
 class GccRuntime(Package):
     has_code = False
 
+    tags = ["runtime"]
     requires("%gcc")
 
     provides("fortran-rt", "libgfortran")
@@ -173,8 +174,8 @@ def _create_test_repo(tmpdir, mutable_config):
             _pkgx3,
             _pkgx4,
             _glibc,
-            #_gcc,
-            #_gcc_runtime,
+            _gcc,
+            _gcc_runtime,
         ],
     )
 
@@ -194,9 +195,7 @@ def enable_runtimes():
 
 @pytest.fixture
 def test_repo(_create_test_repo, monkeypatch, mock_stage):
-
-    libc_repo = os.path.join(spack.paths.repos_path, "compiler_runtime.test")
-    with spack.repo.use_repositories(_create_test_repo, libc_repo) as mock_repo_path:
+    with spack.repo.use_repositories(_create_test_repo) as mock_repo_path:
         yield mock_repo_path
 
 
