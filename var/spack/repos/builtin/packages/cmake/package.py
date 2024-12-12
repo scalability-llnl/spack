@@ -200,7 +200,7 @@ class Cmake(Package):
         # expat/zlib are used in CMake/CTest, so why not require them in libarchive.
         for plat in ["darwin", "linux", "freebsd"]:
             with when("platform=%s" % plat):
-                depends_on("libarchive@3.1.0: xar=expat compression=zlib")
+                depends_on("libarchive@3.1.0: xar=expat compression=bz2lib,lzma,zlib,zstd")
                 depends_on("libarchive@3.3.3:", when="@3.15.0:")
                 depends_on("libuv@1.0.0:1.10", when="@3.7.0:3.10.3")
                 depends_on("libuv@1.10.0:1.10", when="@3.11.0:3.11")
