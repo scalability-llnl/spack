@@ -207,7 +207,6 @@ class Scorep(AutotoolsPackage):
         # If autodetection fails for +shmem with one of these available to spack, please add
         # a "if spec.satisfies():" clause for said package.
 
-
         if spec.satisfies("^intel-mpi") or spec.satisfies("^intel-oneapi-mpi"):
             config_args.append("--with-mpi=intel3")
         elif (
