@@ -78,12 +78,12 @@ spack:
 
   compilers:
   - compiler:
-      spec: gcc@=10.2.1
+      spec: gcc@=10.5.0
       paths:
-        cc: /opt/rh/devtoolset-10/root/usr/bin/gcc
-        cxx: /opt/rh/devtoolset-10/root/usr/bin/g++
-        f77: /opt/rh/devtoolset-10/root/usr/bin/gfortran
-        fc: /opt/rh/devtoolset-10/root/usr/bin/gfortran
+        cc: /spack/store/linux-centos7-x86_64_v3/gcc-10.5.0/gcc-10.5.0-jxwvpluevsb5xfmelfqa5vjnapbodaet/bin/gcc
+        cxx: /spack/store/linux-centos7-x86_64_v3/gcc-10.5.0/gcc-10.5.0-jxwvpluevsb5xfmelfqa5vjnapbodaet/bin/g++
+        f77: /spack/store/linux-centos7-x86_64_v3/gcc-10.5.0/gcc-10.5.0-jxwvpluevsb5xfmelfqa5vjnapbodaet/bin/gfortran
+        fc: /spack/store/linux-centos7-x86_64_v3/gcc-10.5.0/gcc-10.5.0-jxwvpluevsb5xfmelfqa5vjnapbodaet/bin/gfortran
       flags: {}
       operating_system: centos7
       target: x86_64
@@ -94,7 +94,7 @@ spack:
   ci:
     pipeline-gen:
     - build-job:
-        image: ghcr.io/spack/spack/manylinux2014:2024.03.28
+        image: ghcr.io/haampie/x86_64_v3-linux-gnu:2024-12-12
 
   cdash:
-    build-group: Developer Tools Manylinux2014
+    build-group: Developer Tools x86_64_v3-linux-gnu
