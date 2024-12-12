@@ -338,10 +338,10 @@ def test_install_conflicts(conflict_spec):
 
 
 @pytest.mark.usefixtures("mock_packages", "mock_archive", "mock_fetch", "install_mockery")
-def test_install_invalid_spec(invalid_spec):
+def test_install_invalid_spec():
     # Make sure that invalid specs raise a SpackError
     with pytest.raises(SpecSyntaxError, match="unexpected tokens"):
-        install(invalid_spec)
+        install("conflict%~")
 
 
 @pytest.mark.usefixtures("noop_install", "mock_packages", "config")

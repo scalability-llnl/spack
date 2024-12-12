@@ -1676,12 +1676,6 @@ def conflict_spec(request):
     return request.param
 
 
-@pytest.fixture(params=["conflict%~"])
-def invalid_spec(request):
-    """Specs that do not parse cleanly due to invalid formatting."""
-    return request.param
-
-
 @pytest.fixture(scope="module")
 def mock_test_repo(tmpdir_factory):
     """Create an empty repository."""
