@@ -48,6 +48,7 @@ import spack.environment
 import spack.error
 import spack.paths
 import spack.projections as proj
+import spack.schema
 import spack.schema.environment
 import spack.spec
 import spack.store
@@ -216,7 +217,7 @@ def root_path(name, module_set_name):
     roots = spack.config.get(f"modules:{module_set_name}:roots", {})
 
     # Merge config values into the defaults so we prefer configured values
-    roots = spack.config.merge_yaml(defaults, roots)
+    roots = spack.schema.merge_yaml(defaults, roots)
 
     path = roots.get(name, os.path.join(spack.paths.share_path, name))
     return spack.util.path.canonicalize_path(path)
@@ -624,10 +625,10 @@ class BaseContext(tengine.Context):
         """List of environment modifications to be processed."""
         # Modifications guessed by inspecting the spec prefix
         prefix_inspections = syaml.syaml_dict()
-        spack.config.merge_yaml(
+        spack.schema.merge_yaml(
             prefix_inspections, spack.config.get("modules:prefix_inspections", {})
         )
-        spack.config.merge_yaml(
+        spack.schema.merge_yaml(
             prefix_inspections,
             spack.config.get(f"modules:{self.conf.name}:prefix_inspections", {}),
         )

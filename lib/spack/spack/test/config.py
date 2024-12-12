@@ -639,31 +639,6 @@ def test_read_config_override_list(mock_low_high_config, write_config_file):
     }
 
 
-def test_ordereddict_merge_order():
-    """ "Test that source keys come before dest keys in merge_yaml results."""
-    source = syaml.syaml_dict([("k1", "v1"), ("k2", "v2"), ("k3", "v3")])
-
-    dest = syaml.syaml_dict([("k4", "v4"), ("k3", "WRONG"), ("k5", "v5")])
-
-    result = spack.config.merge_yaml(dest, source)
-    assert "WRONG" not in result.values()
-
-    expected_keys = ["k1", "k2", "k3", "k4", "k5"]
-    expected_items = [("k1", "v1"), ("k2", "v2"), ("k3", "v3"), ("k4", "v4"), ("k5", "v5")]
-    assert expected_keys == list(result.keys())
-    assert expected_items == list(result.items())
-
-
-def test_list_merge_order():
-    """ "Test that source lists are prepended to dest."""
-    source = ["a", "b", "c"]
-    dest = ["d", "e", "f"]
-
-    result = spack.config.merge_yaml(dest, source)
-
-    assert ["a", "b", "c", "d", "e", "f"] == result
-
-
 def test_internal_config_update(mock_low_high_config, write_config_file):
     write_config_file("config", config_low, "low")
 

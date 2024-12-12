@@ -29,6 +29,7 @@ import spack.paths
 import spack.repo
 import spack.spec
 import spack.store
+import spack.token
 import spack.traverse as traverse
 import spack.user_environment as uenv
 import spack.util.spack_json as sjson
@@ -168,7 +169,7 @@ def quote_kvp(string: str) -> str:
         return string
 
     key, delim, value = match.groups()
-    return f"{key}{delim}{spack.parser.quote_if_needed(value)}"
+    return f"{key}{delim}{spack.token.quote_if_needed(value)}"
 
 
 def parse_specs(

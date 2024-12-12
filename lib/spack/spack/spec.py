@@ -84,6 +84,7 @@ import spack.provider_index
 import spack.repo
 import spack.solver
 import spack.store
+import spack.token
 import spack.traverse as traverse
 import spack.util.executable
 import spack.util.hash
@@ -950,11 +951,11 @@ class FlagMap(lang.HashableMap):
         for flag_type, flags in sorted_items:
             normal = [f for f in flags if not f.propagate]
             if normal:
-                result += f" {flag_type}={spack.parser.quote_if_needed(' '.join(normal))}"
+                result += f" {flag_type}={spack.token.quote_if_needed(' '.join(normal))}"
 
             propagated = [f for f in flags if f.propagate]
             if propagated:
-                result += f" {flag_type}=={spack.parser.quote_if_needed(' '.join(propagated))}"
+                result += f" {flag_type}=={spack.token.quote_if_needed(' '.join(propagated))}"
 
         # TODO: somehow add this space only if something follows in Spec.format()
         if sorted_items:

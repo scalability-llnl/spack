@@ -11,18 +11,11 @@ import pytest
 
 import spack.binary_distribution
 import spack.cmd
-import spack.parser
 import spack.platforms.test
 import spack.repo
 import spack.spec
-from spack.parser import (
-    UNIX_FILENAME,
-    WINDOWS_FILENAME,
-    SpecParser,
-    SpecTokenizationError,
-    Token,
-    TokenType,
-)
+from spack.parser import SpecParser, SpecParsingError, SpecTokenizationError, TokenType
+from spack.token import UNIX_FILENAME, WINDOWS_FILENAME, Token
 
 FAIL_ON_WINDOWS = pytest.mark.xfail(
     sys.platform == "win32",
@@ -1022,7 +1015,7 @@ def test_disambiguate_hash_by_spec(spec1, spec2, constraint, mock_packages, monk
     ],
 )
 def test_error_conditions(text, match_string):
-    with pytest.raises(spack.parser.SpecParsingError, match=match_string):
+    with pytest.raises(SpecParsingError, match=match_string):
         SpecParser(text).next_spec()
 
 

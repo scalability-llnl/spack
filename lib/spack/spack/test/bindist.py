@@ -10,6 +10,7 @@ import json
 import os
 import pathlib
 import platform
+import re
 import shutil
 import sys
 import tarfile
@@ -33,6 +34,7 @@ import spack.fetch_strategy
 import spack.hooks.sbang as sbang
 import spack.main
 import spack.mirrors.mirror
+import spack.oci.image
 import spack.paths
 import spack.spec
 import spack.stage
@@ -1213,3 +1215,19 @@ def test_download_tarball_with_unsupported_layout_fails(tmp_path, mutable_config
 
     # And there should be a warning about an unsupported layout version.
     assert f"Layout version {layout_version} is too new" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize(
+    "spec",
+    [
+        # Standard case
+        "short-name@=1.2.3",
+        # Unsupported characters in git version
+        f"git-version@{1:040x}=develop",
+        # Too long of a name
+        f"{'too-long':x<256}@=1.2.3",
+    ],
+)
+def test_default_tag(spec: str):
+    """Make sure that computed image tags are valid."""
+    assert re.fullmatch(spack.oci.image.tag, bindist._oci_default_tag(spack.spec.Spec(spec)))

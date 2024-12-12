@@ -69,10 +69,8 @@ from spack.oci.image import (
     Digest,
     ImageReference,
     default_config,
-    default_index_tag,
     default_manifest,
-    default_tag,
-    tag_is_spec,
+    ensure_valid_tag,
 )
 from spack.oci.oci import (
     copy_missing_layers_with_retry,
@@ -83,7 +81,6 @@ from spack.oci.oci import (
 )
 from spack.package_prefs import get_package_dir_permissions, get_package_group
 from spack.relocate_text import utf8_paths_to_single_binary_regex
-from spack.spec import Spec
 from spack.stage import Stage
 from spack.util.executable import which
 
@@ -827,10 +824,10 @@ def _read_specs_and_push_index(
         contents = read_method(file)
         # Need full spec.json name or this gets confused with index.json.
         if file.endswith(".json.sig"):
-            specfile_json = Spec.extract_json_from_clearsig(contents)
-            fetched_spec = Spec.from_dict(specfile_json)
+            specfile_json = spack.spec.Spec.extract_json_from_clearsig(contents)
+            fetched_spec = spack.spec.Spec.from_dict(specfile_json)
         elif file.endswith(".json"):
-            fetched_spec = Spec.from_json(contents)
+            fetched_spec = spack.spec.Spec.from_json(contents)
         else:
             continue
 
@@ -1100,7 +1097,7 @@ class ExistsInBuildcache(NamedTuple):
 
 
 class BuildcacheFiles:
-    def __init__(self, spec: Spec, local: str, remote: str):
+    def __init__(self, spec: spack.spec.Spec, local: str, remote: str):
         """
         Args:
             spec: The spec whose tarball and specfile are being managed.
@@ -1130,7 +1127,7 @@ class BuildcacheFiles:
         return os.path.join(self.local, f"{self.spec.dag_hash()}.tar.gz")
 
 
-def _exists_in_buildcache(spec: Spec, tmpdir: str, out_url: str) -> ExistsInBuildcache:
+def _exists_in_buildcache(spec: spack.spec.Spec, tmpdir: str, out_url: str) -> ExistsInBuildcache:
     """returns a tuple of bools (signed, unsigned, tarball) indicating whether specfiles/tarballs
     exist in the buildcache"""
     files = BuildcacheFiles(spec, tmpdir, out_url)
@@ -1141,7 +1138,11 @@ def _exists_in_buildcache(spec: Spec, tmpdir: str, out_url: str) -> ExistsInBuil
 
 
 def _url_upload_tarball_and_specfile(
-    spec: Spec, tmpdir: str, out_url: str, exists: ExistsInBuildcache, signing_key: Optional[str]
+    spec: spack.spec.Spec,
+    tmpdir: str,
+    out_url: str,
+    exists: ExistsInBuildcache,
+    signing_key: Optional[str],
 ):
     files = BuildcacheFiles(spec, tmpdir, out_url)
     tarball = files.local_tarball()
@@ -1314,7 +1315,7 @@ def make_uploader(
         )
 
 
-def _format_spec(spec: Spec) -> str:
+def _format_spec(spec: spack.spec.Spec) -> str:
     return spec.cformat("{name}{@version}{/hash:7}")
 
 
@@ -1337,7 +1338,7 @@ class FancyProgress:
             return f"[{self.n:{digits}}/{self.total}] "
         return ""
 
-    def start(self, spec: Spec, running: bool) -> None:
+    def start(self, spec: spack.spec.Spec, running: bool) -> None:
         self.n += 1
         self.running = running
         self.pre = self._progress()
@@ -1356,18 +1357,18 @@ class FancyProgress:
 
 
 def _url_push(
-    specs: List[Spec],
+    specs: List[spack.spec.Spec],
     out_url: str,
     signing_key: Optional[str],
     force: bool,
     update_index: bool,
     tmpdir: str,
     executor: concurrent.futures.Executor,
-) -> Tuple[List[Spec], List[Tuple[Spec, BaseException]]]:
+) -> Tuple[List[spack.spec.Spec], List[Tuple[spack.spec.Spec, BaseException]]]:
     """Pushes to the provided build cache, and returns a list of skipped specs that were already
     present (when force=False), and a list of errors. Does not raise on error."""
-    skipped: List[Spec] = []
-    errors: List[Tuple[Spec, BaseException]] = []
+    skipped: List[spack.spec.Spec] = []
+    errors: List[Tuple[spack.spec.Spec, BaseException]] = []
 
     exists_futures = [
         executor.submit(_exists_in_buildcache, spec, tmpdir, out_url) for spec in specs
@@ -1440,7 +1441,7 @@ def _url_push(
     return skipped, errors
 
 
-def _oci_upload_success_msg(spec: Spec, digest: Digest, size: int, elapsed: float):
+def _oci_upload_success_msg(spec: spack.spec.Spec, digest: Digest, size: int, elapsed: float):
     elapsed = max(elapsed, 0.001)  # guard against division by zero
     return (
         f"Pushed {_format_spec(spec)}: {digest} ({elapsed:.2f}s, "
@@ -1526,7 +1527,7 @@ def _oci_put_manifest(
 ):
     architecture = _oci_archspec_to_gooarch(specs[0])
 
-    expected_blobs: List[Spec] = [
+    expected_blobs: List[spack.spec.Spec] = [
         s
         for s in traverse.traverse_nodes(specs, order="topo", deptype=("link", "run"), root=True)
         if not s.external
@@ -1640,19 +1641,33 @@ def _oci_update_base_images(
         )
 
 
+def _oci_default_tag(spec: spack.spec.Spec) -> str:
+    """Return a valid, default image tag for a spec."""
+    return ensure_valid_tag(f"{spec.name}-{spec.version}-{spec.dag_hash()}.spack")
+
+
+#: Default OCI index tag
+default_index_tag = "index.spack"
+
+
+def tag_is_spec(tag: str) -> bool:
+    """Check if a tag is likely a Spec"""
+    return tag.endswith(".spack") and tag != default_index_tag
+
+
 def _oci_push(
     *,
     target_image: ImageReference,
     base_image: Optional[ImageReference],
-    installed_specs_with_deps: List[Spec],
+    installed_specs_with_deps: List[spack.spec.Spec],
     tmpdir: str,
     executor: concurrent.futures.Executor,
     force: bool = False,
 ) -> Tuple[
-    List[Spec],
+    List[spack.spec.Spec],
     Dict[str, Tuple[dict, dict]],
     Dict[str, spack.oci.oci.Blob],
-    List[Tuple[Spec, BaseException]],
+    List[Tuple[spack.spec.Spec, BaseException]],
 ]:
     # Spec dag hash -> blob
     checksums: Dict[str, spack.oci.oci.Blob] = {}
@@ -1661,13 +1676,15 @@ def _oci_push(
     base_images: Dict[str, Tuple[dict, dict]] = {}
 
     # Specs not uploaded because they already exist
-    skipped: List[Spec] = []
+    skipped: List[spack.spec.Spec] = []
 
     if not force:
         tty.info("Checking for existing specs in the buildcache")
         blobs_to_upload = []
 
-        tags_to_check = (target_image.with_tag(default_tag(s)) for s in installed_specs_with_deps)
+        tags_to_check = (
+            target_image.with_tag(_oci_default_tag(s)) for s in installed_specs_with_deps
+        )
         available_blobs = executor.map(_oci_get_blob_info, tags_to_check)
 
         for spec, maybe_blob in zip(installed_specs_with_deps, available_blobs):
@@ -1695,8 +1712,8 @@ def _oci_push(
         executor.submit(_oci_push_pkg_blob, target_image, spec, tmpdir) for spec in blobs_to_upload
     ]
 
-    manifests_to_upload: List[Spec] = []
-    errors: List[Tuple[Spec, BaseException]] = []
+    manifests_to_upload: List[spack.spec.Spec] = []
+    errors: List[Tuple[spack.spec.Spec, BaseException]] = []
 
     # And update the spec to blob mapping for successful uploads
     for spec, blob_future in zip(blobs_to_upload, blob_futures):
@@ -1722,7 +1739,7 @@ def _oci_push(
             base_image_cache=base_images,
         )
 
-    def extra_config(spec: Spec):
+    def extra_config(spec: spack.spec.Spec):
         spec_dict = spec.to_dict(hash=ht.dag_hash)
         spec_dict["buildcache_layout_version"] = CURRENT_BUILD_CACHE_LAYOUT_VERSION
         spec_dict["binary_cache_checksum"] = {
@@ -1738,7 +1755,7 @@ def _oci_push(
             _oci_put_manifest,
             base_images,
             checksums,
-            target_image.with_tag(default_tag(spec)),
+            target_image.with_tag(_oci_default_tag(spec)),
             tmpdir,
             extra_config(spec),
             {"org.opencontainers.image.description": spec.format()},
@@ -1755,7 +1772,7 @@ def _oci_push(
         manifest_progress.start(spec, manifest_future.running())
         if error is None:
             manifest_progress.ok(
-                f"Tagged {_format_spec(spec)} as {target_image.with_tag(default_tag(spec))}"
+                f"Tagged {_format_spec(spec)} as {target_image.with_tag(_oci_default_tag(spec))}"
             )
         else:
             manifest_progress.fail()
@@ -1790,7 +1807,7 @@ def _oci_update_index(
     db = BuildCacheDatabase(db_root_dir)
 
     for spec_dict in spec_dicts:
-        spec = Spec.from_dict(spec_dict)
+        spec = spack.spec.Spec.from_dict(spec_dict)
         db.add(spec)
         db.mark(spec, "in_buildcache", True)
 
@@ -1905,7 +1922,7 @@ def _get_valid_spec_file(path: str, max_supported_layout: int) -> Tuple[Dict, in
     try:
         as_string = binary_content.decode("utf-8")
         if path.endswith(".json.sig"):
-            spec_dict = Spec.extract_json_from_clearsig(as_string)
+            spec_dict = spack.spec.Spec.extract_json_from_clearsig(as_string)
         else:
             spec_dict = json.loads(as_string)
     except Exception as e:
@@ -2001,7 +2018,7 @@ def download_tarball(spec, unsigned: Optional[bool] = False, mirrors_for_spec=No
             if fetch_url.startswith("oci://"):
                 ref = spack.oci.image.ImageReference.from_string(
                     fetch_url[len("oci://") :]
-                ).with_tag(spack.oci.image.default_tag(spec))
+                ).with_tag(_oci_default_tag(spec))
 
                 # Fetch the manifest
                 try:
@@ -2245,7 +2262,8 @@ def relocate_package(spec):
             ]
             if analogs:
                 # Prefer same-name analogs and prefer higher versions
-                # This matches the preferences in Spec.splice, so we will find same node
+                # This matches the preferences in spack.spec.Spec.splice, so we
+                # will find same node
                 analog = max(analogs, key=lambda a: (a.name == s.name, a.version))
 
         lookup_dag_hash = analog.dag_hash()
@@ -2681,10 +2699,10 @@ def try_direct_fetch(spec, mirrors=None):
         # are concrete (as they are built) so we need to mark this spec
         # concrete on read-in.
         if specfile_is_signed:
-            specfile_json = Spec.extract_json_from_clearsig(specfile_contents)
-            fetched_spec = Spec.from_dict(specfile_json)
+            specfile_json = spack.spec.Spec.extract_json_from_clearsig(specfile_contents)
+            fetched_spec = spack.spec.Spec.from_dict(specfile_json)
         else:
-            fetched_spec = Spec.from_json(specfile_contents)
+            fetched_spec = spack.spec.Spec.from_json(specfile_contents)
         fetched_spec._mark_concrete()
 
         found_specs.append({"mirror_url": mirror.fetch_url, "spec": fetched_spec})
@@ -2983,7 +3001,7 @@ class BinaryCacheQuery:
 
         self.possible_specs = specs
 
-    def __call__(self, spec: Spec, **kwargs):
+    def __call__(self, spec: spack.spec.Spec, **kwargs):
         """
         Args:
             spec: The spec being searched for
@@ -3121,7 +3139,7 @@ class OCIIndexFetcher:
 
     def conditional_fetch(self) -> FetchIndexResult:
         """Download an index from an OCI registry type mirror."""
-        url_manifest = self.ref.with_tag(spack.oci.image.default_index_tag).manifest_url()
+        url_manifest = self.ref.with_tag(default_index_tag).manifest_url()
         try:
             response = self.urlopen(
                 urllib.request.Request(
