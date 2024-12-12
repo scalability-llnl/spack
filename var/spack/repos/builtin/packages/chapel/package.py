@@ -40,7 +40,7 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
 
     homepage = "https://chapel-lang.org/"
 
-    url = "https://github.com/chapel-lang/chapel/archive/refs/tags/2.3.0.tar.gz"
+    url = "https://github.com/chapel-lang/chapel/releases/download/2.3.0/chapel-2.3.0.tar.gz"
     git = "https://github.com/chapel-lang/chapel.git"
 
     test_requires_compiler = True
@@ -59,11 +59,11 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
 
     version("main", branch="main")
 
-    version("2.3.0", sha256="ea6d8970dde32480e6b74e0568a9c4635ec7682716a18adcbab4a5bc4ce9a042")
-    version("2.2.0", sha256="9b0ce16ed0b1c777647c3aa852d8d8cacea2c3d8a952548a238f07c0f357a0f9")
-    version("2.1.0", sha256="8e164d9a9e705e6b816857e84833b0922ce0bde6a36a9f3a29734830aac168ef")
-    version("2.0.1", sha256="47e1f3789478ea870bd4ecdf52acbe469d171b89b663309325431f3da7c75008")
-    version("2.0.0", sha256="a8cab99fd034c7b7229be8d4626ec95cf02072646fb148c74b4f48c460c6059c")
+    version("2.3.0", sha256="0185970388aef1f1fae2a031edf060d5eac4eb6e6b1089e7e3b15a130edd8a31")
+    version("2.2.0", sha256="bb16952a87127028031fd2b56781bea01ab4de7c3466f7b6a378c4d8895754b6")
+    version("2.1.0", sha256="72593c037505dd76e8b5989358b7580a3fdb213051a406adb26a487d26c68c60")
+    version("2.0.1", sha256="19ebcd88d829712468cfef10c634c3e975acdf78dd1a57671d11657574636053")
+    version("2.0.0", sha256="b5387e9d37b214328f422961e2249f2687453c2702b2633b7d6a678e544b9a02")
 
     sanity_check_is_dir = ["bin", join_path("lib", "chapel"), join_path("share", "chapel")]
     sanity_check_is_file = [join_path("bin", "chpl")]
@@ -338,6 +338,7 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
         "python-bindings",
         description="Also build the Python bindings for Chapel frontend (requires LLVM)",
         default=False,
+        when="@2.2:",
     )
 
     variant(
@@ -600,7 +601,11 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
 
     def install(self, spec, prefix):
         make("install")
-        if str(spec.version).lower() == "main":
+        install_tree(
+            "examples",
+            join_path(self.prefix.share, "chapel", self._output_version_short, "examples"),
+        )
+        if not self.is_versioned_release():
             install("CMakeLists.txt", join_path(prefix.share, "chapel"))
 
     def setup_chpl_platform(self, env):
@@ -768,7 +773,7 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
         )
         env.set("CHPL_HOME", chpl_home)
 
-    def get_main_version_from_cmakelists(self) -> str:
+    def get_chpl_version_from_cmakelists(self) -> str:
         cmake_lists = None
         if os.path.exists(join_path(self.prefix.share, "chapel", "CMakeLists.txt")):
             cmake_lists = join_path(self.prefix.share, "chapel", "CMakeLists.txt")
@@ -813,7 +818,7 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
     @llnl.util.lang.memoized
     def _output_version_long(self) -> str:
         if not self.is_versioned_release():
-            return self.get_main_version_from_cmakelists()
+            return self.get_chpl_version_from_cmakelists()
         spec_vers_str = str(self.spec.version.up_to(3))
         return spec_vers_str
 
@@ -821,7 +826,7 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
     @llnl.util.lang.memoized
     def _output_version_short(self) -> str:
         if not self.is_versioned_release():
-            return self.get_main_version_from_cmakelists()[-2]
+            return self.get_chpl_version_from_cmakelists()[-2]
         spec_vers_str = str(self.spec.version.up_to(2))
         return spec_vers_str
 
@@ -895,85 +900,18 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
             # TODO: Need to update checkChplDoc to work in the spack testing environment
             pass
 
-    # TODO: In order to run these tests, there's a lot of infrastructure to copy
-    # from the Chapel test suite and there are conflicts with CHPL_HOME needing
-    # to match the compiler's directory and the test suite's directory
-    # def test_package_modules(self):
-    #     """Test that the package modules are available"""
-    #     # if not self.spec.satisfies("+module_tests"):
-    #     #     print("Skipping module tests as module_tests variant is not set")
-    #     #     return
-    #     tests_to_run = []
-    #     with working_dir(self.test_suite.current_test_cache_dir):
-    #         with set_env(CHPL_HOME=join_path(self.spec.prefix.share,
-    #                      "chapel", self._output_version_short)):
-    #             with test_part(self, "test_package_modules", purpose="test package modules"):
-    #                 if self.spec.satisfies("+yaml"):
-    #                     tests_to_run.append("test/library/packages/Yaml/writeAndParse.chpl")
-    #                 if self.spec.satisfies("+zmq"):
-    #                     tests_to_run.append("test/library/packages/ZMQ/weather.chpl")
-    #                 if self.spec.satisfies("+ssl"):
-    #                     tests_to_run.append("test/library/packages/Crypto/")
-    #                 # TODO: These tests fail with llvm, unable to find C variable CURLPAUSE_CONT
-    #                 if (
-    #                     self.spec.satisfies("+curl")
-    #                     and self.spec.variants["llvm"].value == "none"
-    #                 ):
-    #                     with set_env(CHPL_NIGHTLY_TEST_CONFIG_NAME="networking-packages"):
-    #                         print("Running package module test for package 'curl'")
-    #                         res = subprocess.run(
-    #                             ["util/start_test", "test/library/packages/Curl/"]
-    #                         )
-    #                         assert res.returncode == 0
-    #                         print("Running package module test for package 'url'")
-    #                         res = subprocess.run(["util/start_test",
-    #                                               "test/library/packages/URL/"])
-    #                         assert res.returncode == 0
-    #                 if self.spec.satisfies("+hdf5"):
-    #                     tests_to_run.append("test/library/packages/HDF5/")
-    #                 if self.spec.satisfies("+protobuf"):
-    #                     tests_to_run.append("test/library/packages/ProtobufProtocolSupport/")
-    #                 if len(tests_to_run) > 0:
-    #                     with set_env(CHPL_HOME=self.test_suite.current_test_cache_dir):
-    #                         compiler = join_path(self.spec.prefix.bin,'chpl')
-    #                         print("Running package module tests for packages...")
-    #                         print(f" command to run: util/start_test --compiler {compiler}")
-    #                         tests_to_run.insert(0, "util/start_test")
-    #                         tests_to_run.insert(1, "--compiler")
-    #                         tests_to_run.insert(2, compiler)
-    #                         res = subprocess.run([t for t in tests_to_run])
-    #                         assert res.returncode == 0
-
     @run_after("install")
     def copy_test_files(self):
         """Copy test files to the install directory"""
         test_files = [
-            "test/release/examples",
+            "examples/",
             "util/start_test",
             "util/test",
             "util/chplenv",
             "util/config",
             "util/printchplenv",
-            #   "test/library/packages/Curl",
-            #   "test/library/packages/URL/",
-            #   "test/library/packages/ProtobufProtocolSupport/",
-            #   "test/library/packages/Crypto/",
-            #   "test/library/packages/Yaml/",
-            #   "test/library/packages/ZMQ/",
-            #   "test/library/packages/HDF5/",
             "chplconfig",
             "make",
             "third-party/chpl-venv/",
         ]
         cache_extra_test_sources(self, test_files)
-
-    # @run_after("install")
-    # @on_package_attributes(run_tests=True)
-    # def self_check(self):
-    #     """Run the self-check after installing the package"""
-    #     path_put_first("PATH", [self.prefix.bin])
-    #     self.test_version()
-    #     self.test_hello()
-    #     if self.spec.satisfies("+chpldoc"):
-    #       make("check-chpldoc")
-    #     self.test_package_modules()
