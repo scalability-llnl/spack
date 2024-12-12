@@ -3,6 +3,9 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import os
+import os.path
+
 import pytest
 
 import archspec.cpu
@@ -227,8 +230,7 @@ def pretend_linux(monkeypatch, tmpdir):
 
 def test_with_cfg(
     mutable_mock_env_path,
-    install_mockery,
-    mock_fetch,
+    temporary_store,
     concretize_scope,
     test_repo,
     pretend_linux,
@@ -271,10 +273,13 @@ compilers::
     # x = Spec("x4%gcc").concretized()
 
     x = Spec("x1%gcc").concretized()
-    spack.store.STORE.db.add(x, explicit=True)
-    #output = solve("--show=asp", "x1%aocc")
-    #import pdb; pdb.set_trace()
-    # Right now, only glibc from the prior install appears to be marked as reusable
+    for spec in x.traverse():
+        os.makedirs(os.path.join(spec.prefix, ".spack"))
+        with open(os.path.join(spec.prefix, ".spack", "spec.json"), "w") as f:
+            spec.to_json(f)
+    temporary_store.db.add(x, explicit=True)
+    output = solve("--show=asp", "x1%aocc")
+    import pdb; pdb.set_trace()
     y = Spec("x1%aocc").concretized()
     # output = solve("--reuse", "x1%aocc")
     # import pdb; pdb.set_trace()
