@@ -130,11 +130,14 @@ _gcc = (
 from spack.package import *
 
 class Gcc(Package):
-    homepage = "http://www.example.com/"
     has_code = False
 
     version("13.2.0")
     version("12.3.0")
+
+    provides("c")
+    provides("cxx")
+    provides("fortran")
 
     @classmethod
     def runtime_constraints(cls, *, spec, pkg):
@@ -275,10 +278,11 @@ compilers::
 """
     update_cfg_section("compilers", test_cfg)
 
-    output = solve("--show=asp", "x4%gcc")
+    #output = solve("--show=asp", "x4%gcc")
 
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
 
+    Spec("x4%gcc").concretized()
     install("x1%gcc")
     # output = solve("--show=asp", "x1%aocc")
     x = Spec("x1%aocc").concretized()
