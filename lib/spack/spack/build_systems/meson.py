@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections.abc
-import inspect
 import os
 from typing import List
 
