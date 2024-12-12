@@ -76,21 +76,6 @@ spack:
     - - $default_specs
     - - $arch
 
-  compilers:
-  - compiler:
-      spec: gcc@=10.5.0
-      paths:
-        cc: /spack/store/linux-centos7-x86_64_v3/gcc-10.5.0/gcc-10.5.0-jxwvpluevsb5xfmelfqa5vjnapbodaet/bin/gcc
-        cxx: /spack/store/linux-centos7-x86_64_v3/gcc-10.5.0/gcc-10.5.0-jxwvpluevsb5xfmelfqa5vjnapbodaet/bin/g++
-        f77: /spack/store/linux-centos7-x86_64_v3/gcc-10.5.0/gcc-10.5.0-jxwvpluevsb5xfmelfqa5vjnapbodaet/bin/gfortran
-        fc: /spack/store/linux-centos7-x86_64_v3/gcc-10.5.0/gcc-10.5.0-jxwvpluevsb5xfmelfqa5vjnapbodaet/bin/gfortran
-      flags: {}
-      operating_system: centos7
-      target: x86_64
-      modules: []
-      environment: {}
-      extra_rpaths: []
-
   ci:
     pipeline-gen:
     - build-job:
