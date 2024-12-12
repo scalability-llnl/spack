@@ -524,7 +524,8 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
     # TODO: keep up to date with util/chplenv/chpl_llvm.py
     with when("llvm=spack ~rocm"):
         depends_on("llvm@11:17", when="@:2.0.1")
-        depends_on("llvm@11:18", when="@2.1.0:")
+        depends_on("llvm@11:18", when="@2.1:2.2")
+        depends_on("llvm@11:19", when="@2.3:")
 
     # Based on docs https://chapel-lang.org/docs/technotes/gpu.html#requirements
     depends_on("llvm@16:", when="llvm=spack +cuda ^cuda@12:")
