@@ -58,4 +58,6 @@ class Rocdecode(CMakePackage):
         args = []
         if "auto" not in self.spec.variants["amdgpu_target"]:
             args.append(self.define_from_variant("AMDGPU_TARGETS", "amdgpu_target"))
+        if self.spec.satisfies("@6.3.0:"):
+            args.append(self.define("LIBVA_INCLUDE_DIR", self.spec["libva"].prefix.include))
         return args
