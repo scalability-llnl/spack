@@ -203,7 +203,8 @@ class Scorep(AutotoolsPackage):
         if "~shmem" in spec:
             config_args.append("--without-shmem")
         # Autodetect shmem in +shmem case
-        # Valid --with-shmem values are cray|openshmem|openmpi|openmpi3|sgimpt|sgimptwrapper|spectrum
+        # Valid --with-shmem values are cray|openshmem|openmpi|openmpi3|sgimpt|
+        # sgimptwrapper|spectrum
         # If autodetection fails for +shmem with one of these available to spack, please add
         # a "if spec.satisfies():" clause for said package.
 
@@ -220,9 +221,11 @@ class Scorep(AutotoolsPackage):
         elif "~mpi" in spec:
             config_args.append("--without-mpi")
         # Let any +mpi that gets here autodetect, which is default
-        # Valid values are bullxmpi|cray|hp|ibmpoe|intel|intel2|intel3|intelpoe|lam|mpibull2|mpich|mpich2
-        # |mpich3|mpich4|openmpi|openmpi3|platform|scali|sgimpt|sgimptwrapper|spectrum|sun
-        # Score-P does not care overly much as long as the MPI compilers are set (see end of function)
+        # Valid values are bullxmpi|cray|hp|ibmpoe|intel|intel2|intel3|intelpoe|lam|mpibull2
+        # |mpich|mpich2|mpich3|mpich4|openmpi|openmpi3|platform|scali|sgimpt|sgimptwrapper
+        # |spectrum|sun
+        # Score-P does not care overly much as long as the MPI compilers are set
+        # (see end of function)
         # but add similar spec.satisfies clauses for any that you need.
         # -- wrwilliams 12/2024
         if spec.satisfies("^binutils"):
