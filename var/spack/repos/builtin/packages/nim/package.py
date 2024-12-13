@@ -54,7 +54,7 @@ class Nim(Package):
             "0.19.6", sha256="a09f0c58d29392434d4fd6d15d4059cf7e013ae948413cb9233b8233d67e3a29"
         )
 
-    variant("sqlite", default=True, when="@0:2.0", description="Install SQLite for std/db_sqlite")
+    variant("sqlite", default=False, when="@0:2.0", description="Install SQLite for std/db_sqlite")
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
