@@ -86,6 +86,7 @@ include_dirs = {2}
 
     @property
     def import_modules(self):
-        # don't import arbitrary modules, since for older versions this may trigger runtime
-        # compilation of the cffi backend, even though cython is the default precompiled backend.
-        return ["zmq"]
+        # importing zmq mutates the install prefix, meaning spack install --test=root py-pyzmq
+        # would result in a different install prefix than spack install py-pyzmq. Therefore do not
+        # run any import tests.
+        return [] if self.spec.satisfies("@:20") else ["zmq"]
