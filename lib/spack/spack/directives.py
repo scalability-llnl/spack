@@ -297,6 +297,13 @@ def _depends_on(
     deps_by_name = pkg.dependencies.setdefault(when_spec, {})
     dependency = deps_by_name.get(spec.name)
 
+    if spec.dependencies():
+        raise DirectiveError(
+            f"the '^' sigil cannot be used in 'depends_on' directives. Please reformulate "
+            f"the directive below as multiple directives:\n\n"
+            f'\tdepends_on("{spec}", when="{when_spec}")\n'
+        )
+
     if not dependency:
         dependency = Dependency(pkg, spec, depflag=depflag)
         deps_by_name[spec.name] = dependency
@@ -475,8 +482,6 @@ def provides(*specs: SpecType, when: WhenType = None):
     """
 
     def _execute_provides(pkg: Type[spack.package_base.PackageBase]):
-        import spack.parser  # Avoid circular dependency
-
         when_spec = _make_when_spec(when)
         if not when_spec:
             return

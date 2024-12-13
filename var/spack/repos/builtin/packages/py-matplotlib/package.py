@@ -26,6 +26,8 @@ class PyMatplotlib(PythonPackage):
     license("Apache-2.0")
     maintainers("adamjstewart", "rgommers")
 
+    version("3.9.4", sha256="1e00e8be7393cbdc6fedfa8a6fba02cf3e83814b285db1c60b906a023ba41bc3")
+    version("3.9.3", sha256="cd5dbbc8e25cad5f706845c4d100e2c8b34691b412b93717ce38d8ae803bcfa5")
     version("3.9.2", sha256="96ab43906269ca64a6366934106fa01534454a69e471b7bf3d79083981aaab92")
     version("3.9.1", sha256="de06b19b8db95dd33d0dc17c926c7c9ebed9f572074b6fac4f65068a6814d010")
     version("3.9.0", sha256="e6d29ea6c19e34b30fb7d88b7081f869a03014f66fe06d62cc77d5a6ea88ed7a")
@@ -234,7 +236,7 @@ class PyMatplotlib(PythonPackage):
 
     # Dependencies for building matplotlib
     # Setup dependencies
-    depends_on("py-meson-python@0.13.1:", when="@3.9:", type="build")
+    depends_on("py-meson-python@0.13.1:0.16", when="@3.9:", type="build")
     depends_on("ninja@1.8.2:", when="@3.9:", type="build")
     depends_on("py-pybind11@2.6:", when="@3.7:", type=("build", "link"))
     depends_on("py-setuptools-scm@7:", when="@3.6:", type="build")

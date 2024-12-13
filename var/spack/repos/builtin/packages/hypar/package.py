@@ -17,7 +17,7 @@ class Hypar(AutotoolsPackage):
     forms of the hyperbolic flux, parabolic flux, source terms, upwinding functions, etc.
     """
 
-    homepage = "http://hypar.github.io/"
+    homepage = "https://hypar.github.io/"
     url = "https://github.com/debog/hypar/archive/refs/tags/v4.1.tar.gz"
     git = "https://github.com/debog/hypar.git"
 
