@@ -239,6 +239,9 @@ build --local_cpu_resources={make_jobs}
         if "+rocm" in spec:
             args.extend(["--enable_rocm", f"--rocm_path={self.spec['hip'].prefix}"])
 
+        if spec.satisfies("@0.4.32:"):
+            args.append("--use_clang=false")
+
         python(*args)
         whl = glob.glob(join_path("dist", "*.whl"))[0]
         with working_dir(self.wrapped_package_object.tmp_path):
