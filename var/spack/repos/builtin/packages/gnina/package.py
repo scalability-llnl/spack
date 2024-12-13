@@ -87,7 +87,7 @@ class Gnina(CMakePackage, CudaPackage):
         args = []
 
         if self.spec.satisfies("@:1.1"):
-            argg.append("-DBLAS=Open")  # Use OpenBLAS instead of Atlas' BLAS
+            args.append("-DBLAS=Open")  # Use OpenBLAS instead of Atlas' BLAS
 
         if self.spec.satisfies("+gninavis"):
             args.append(f"-DRDKIT_INCLUDE_DIR={self.spec['rdkit'].prefix.include.rdkit}")
