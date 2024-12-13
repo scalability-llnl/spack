@@ -15,6 +15,7 @@ class Libcxi(AutotoolsPackage):
 
     license("LGPL-2.1-or-later or BSD-3-Clause")
 
+    # no releases, tags: see https://github.com/HewlettPackard/shs-libcxi/issues/2
     version("main", branch="main")
 
     variant("level_zero", default=False, description="Enable level zero support")
@@ -28,7 +29,9 @@ class Libcxi(AutotoolsPackage):
 
     depends_on("libconfig@1.5:")
     depends_on("libuv@1.18:")
-    depends_on("libfuse@2.9.7:2")  # configure fails with newer, bug?
+    # configure fails with newer libfuse
+    # see https://github.com/HewlettPackard/shs-libcxi/issues/3
+    depends_on("libfuse@2.9.7:2")
     depends_on("libyaml@0.1.7:")
     depends_on("libnl@3:")
     depends_on("numactl@2:")
@@ -38,6 +41,7 @@ class Libcxi(AutotoolsPackage):
     depends_on("cuda", when="+cuda")
     depends_on("hip", when="+rocm")
 
+    # required due to https://github.com/HewlettPackard/shs-libcxi/issues/4
     def patch(self):
         filter_file(
             r"/usr/share/cassini-headers/csr_defs.json",
