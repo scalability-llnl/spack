@@ -179,7 +179,7 @@ class DirectoryConfigScope(ConfigScope):
 
         try:
             filesystem.mkdirp(self.path)
-            with open(filename, "w") as f:
+            with open(filename, "w", encoding="utf-8") as f:
                 syaml.dump_config(data, stream=f, default_flow_style=False)
         except (syaml.SpackYAMLError, OSError) as e:
             raise ConfigFileError(f"cannot write to '{filename}'") from e
@@ -314,7 +314,7 @@ class SingleFileScope(ConfigScope):
             filesystem.mkdirp(parent)
 
             tmp = os.path.join(parent, f".{os.path.basename(self.path)}.tmp")
-            with open(tmp, "w") as f:
+            with open(tmp, "w", encoding="utf-8") as f:
                 syaml.dump_config(data_to_write, stream=f, default_flow_style=False)
             filesystem.rename(tmp, self.path)
 
@@ -1093,7 +1093,7 @@ def read_config_file(
     # schema when it's not necessary) while allowing us to validate against a
     # known schema when the top-level key could be incorrect.
     try:
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             tty.debug(f"Reading config from file {path}")
             data = syaml.load_config(f)
 

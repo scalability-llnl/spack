@@ -583,7 +583,7 @@ def buildinfo_file_name(prefix):
 
 def read_buildinfo_file(prefix):
     """Read buildinfo file"""
-    with open(buildinfo_file_name(prefix), "r") as f:
+    with open(buildinfo_file_name(prefix), "r", encoding="utf-8") as f:
         return syaml.load(f)
 
 
@@ -837,17 +837,17 @@ def _read_specs_and_push_index(
     # Now generate the index, compute its hash, and push the two files to
     # the mirror.
     index_json_path = os.path.join(temp_dir, "index.json")
-    with open(index_json_path, "w") as f:
+    with open(index_json_path, "w", encoding="utf-8") as f:
         db._write_to_file(f)
 
     # Read the index back in and compute its hash
-    with open(index_json_path) as f:
+    with open(index_json_path, encoding="utf-8") as f:
         index_string = f.read()
         index_hash = compute_hash(index_string)
 
     # Write the hash out to a local file
     index_hash_path = os.path.join(temp_dir, "index.json.hash")
-    with open(index_hash_path, "w") as f:
+    with open(index_hash_path, "w", encoding="utf-8") as f:
         f.write(index_hash)
 
     # Push the index itself
@@ -881,7 +881,7 @@ def _specs_from_cache_aws_cli(cache_prefix):
     aws = which("aws")
 
     def file_read_method(file_path):
-        with open(file_path) as fd:
+        with open(file_path, encoding="utf-8") as fd:
             return fd.read()
 
     tmpspecsdir = tempfile.mkdtemp()
@@ -1026,7 +1026,7 @@ def generate_key_index(key_prefix: str, tmpdir: str) -> None:
     target = os.path.join(tmpdir, "index.json")
 
     index = {"keys": dict((fingerprint, {}) for fingerprint in sorted(set(fingerprints)))}
-    with open(target, "w") as f:
+    with open(target, "w", encoding="utf-8") as f:
         sjson.dump(index, f)
 
     try:
@@ -1160,7 +1160,7 @@ def _url_upload_tarball_and_specfile(
     web_util.push_to_url(tarball, files.remote_tarball(), keep_original=False)
 
     specfile = files.local_specfile()
-    with open(specfile, "w") as f:
+    with open(specfile, "w", encoding="utf-8") as f:
         # Note: when using gpg clear sign, we need to avoid long lines (19995 chars).
         # If lines are longer, they are truncated without error. Thanks GPG!
         # So, here we still add newlines, but no indent, so save on file size and
@@ -1571,7 +1571,7 @@ def _oci_put_manifest(
 
     config_file = os.path.join(tmpdir, f"{specs[0].dag_hash()}.config.json")
 
-    with open(config_file, "w") as f:
+    with open(config_file, "w", encoding="utf-8") as f:
         json.dump(config, f, separators=(",", ":"))
 
     config_file_checksum = Digest.from_sha256(
@@ -1813,7 +1813,7 @@ def _oci_update_index(
 
     # Create the index.json file
     index_json_path = os.path.join(tmpdir, "index.json")
-    with open(index_json_path, "w") as f:
+    with open(index_json_path, "w", encoding="utf-8") as f:
         db._write_to_file(f)
 
     # Create an empty config.json file
@@ -2907,7 +2907,7 @@ def check_specs_against_mirrors(mirrors, specs, output_file=None):
             }
 
     if output_file:
-        with open(output_file, "w") as outf:
+        with open(output_file, "w", encoding="utf-8") as outf:
             outf.write(json.dumps(rebuilds))
 
     return 1 if rebuilds else 0

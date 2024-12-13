@@ -356,7 +356,7 @@ def ci_rebuild(args):
     # Write this job's spec json into the reproduction directory, and it will
     # also be used in the generated "spack install" command to install the spec
     tty.debug("job concrete spec path: {0}".format(job_spec_json_path))
-    with open(job_spec_json_path, "w") as fd:
+    with open(job_spec_json_path, "w", encoding="utf-8") as fd:
         fd.write(job_spec.to_json(hash=ht.dag_hash))
 
     # Write some other details to aid in reproduction into an artifact
@@ -366,7 +366,7 @@ def ci_rebuild(args):
         "job_spec_json": job_spec_json_file,
         "ci_project_dir": ci_project_dir,
     }
-    with open(repro_file, "w") as fd:
+    with open(repro_file, "w", encoding="utf-8") as fd:
         fd.write(json.dumps(repro_details))
 
     # Write information about spack into an artifact in the repro dir
@@ -576,7 +576,7 @@ If this project does not have public pipelines, you will need to first:
 
     rebuild_timer.stop()
     try:
-        with open("install_timers.json", "w") as timelog:
+        with open("install_timers.json", "w", encoding="utf-8") as timelog:
             extra_attributes = {"name": ".ci-rebuild"}
             rebuild_timer.write_json(timelog, extra_attributes=extra_attributes)
     except Exception as e:

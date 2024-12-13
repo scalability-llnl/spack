@@ -192,7 +192,7 @@ def view(parser, args):
 
     if args.action in actions_link and args.projection_file:
         # argparse confirms file exists
-        with open(args.projection_file, "r") as f:
+        with open(args.projection_file, "r", encoding="utf-8") as f:
             projections_data = s_yaml.load(f)
             validate(projections_data, spack.schema.projections.schema)
             ordered_projections = projections_data["projections"]

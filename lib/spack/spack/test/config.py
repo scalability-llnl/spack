@@ -72,7 +72,7 @@ def write_config_file(tmpdir):
 def env_yaml(tmpdir):
     """Return a sample env.yaml for test purposes"""
     env_yaml = str(tmpdir.join("env.yaml"))
-    with open(env_yaml, "w") as f:
+    with open(env_yaml, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -779,7 +779,7 @@ def get_config_error(filename, schema, yaml_string):
 
     Fail if there is no ConfigFormatError
     """
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(yaml_string)
 
     # parse and return error, or fail.
@@ -864,7 +864,7 @@ def test_bad_command_line_scopes(tmp_path, config):
 
 def test_add_command_line_scopes(tmpdir, mutable_config):
     config_yaml = str(tmpdir.join("config.yaml"))
-    with open(config_yaml, "w") as f:
+    with open(config_yaml, "w", encoding="utf-8") as f:
         f.write(
             """\
 config:
@@ -882,7 +882,7 @@ def test_add_command_line_scope_env(tmp_path, mutable_mock_env_path):
     """Test whether --config-scope <env> works, either by name or path."""
     managed_env = ev.create("example").manifest_path
 
-    with open(managed_env, "w") as f:
+    with open(managed_env, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -892,7 +892,7 @@ spack:
 """
         )
 
-    with open(tmp_path / "spack.yaml", "w") as f:
+    with open(tmp_path / "spack.yaml", "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -963,7 +963,7 @@ def test_alternate_override(monkeypatch):
 
 def test_immutable_scope(tmpdir):
     config_yaml = str(tmpdir.join("config.yaml"))
-    with open(config_yaml, "w") as f:
+    with open(config_yaml, "w", encoding="utf-8") as f:
         f.write(
             """\
 config:
@@ -1005,7 +1005,7 @@ def test_single_file_scope_section_override(tmpdir, config):
     "::" syntax).
     """
     env_yaml = str(tmpdir.join("env.yaml"))
-    with open(env_yaml, "w") as f:
+    with open(env_yaml, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -1377,7 +1377,7 @@ def test_config_fetch_remote_configs(
         # be the basename of the file so this check leverages that feature. If
         # that changes, then this check will need to change accordingly.
         element = "{0}:".format(os.path.splitext(os.path.basename(filename))[0])
-        with open(filename, "r") as fd:
+        with open(filename, "r", encoding="utf-8") as fd:
             for line in fd:
                 if element in line:
                     return True
@@ -1436,7 +1436,7 @@ def test_config_fetch_remote_configs_skip(
     required and not skipping if replacing it."""
 
     def check_contents(filename, expected):
-        with open(filename, "r") as fd:
+        with open(filename, "r", encoding="utf-8") as fd:
             lines = fd.readlines()
             if expected:
                 assert lines[0] == "compilers:"
@@ -1480,7 +1480,7 @@ def test_config_file_read_invalid_yaml(tmpdir, mutable_empty_config):
     """Test reading a configuration file with invalid (unparseable) YAML
     raises a ConfigFileError."""
     filename = join_path(tmpdir.strpath, "test.yaml")
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write("spack:\nview")
 
     with pytest.raises(spack.config.ConfigFileError, match="parsing YAML"):

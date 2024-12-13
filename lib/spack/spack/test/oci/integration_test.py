@@ -139,7 +139,7 @@ def test_buildcache_push_with_base_image_command(mutable_database, tmpdir):
         # Save the config file
         config["rootfs"]["diff_ids"] = [str(tar_digest)]
         config_file = tmpdir.join("config.json")
-        with open(config_file, "w") as f:
+        with open(config_file, "w", encoding="utf-8") as f:
             f.write(json.dumps(config))
 
         config_digest = Digest.from_sha256(
