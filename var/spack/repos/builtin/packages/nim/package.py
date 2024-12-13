@@ -54,7 +54,9 @@ class Nim(Package):
             "0.19.6", sha256="a09f0c58d29392434d4fd6d15d4059cf7e013ae948413cb9233b8233d67e3a29"
         )
 
-    variant("sqlite", default=False, when="@0:1.7.3", description="Install SQLite for std/db_sqlite")
+    variant(
+        "sqlite", default=False, when="@0:1.7.3", description="Install SQLite for std/db_sqlite"
+    )
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
@@ -66,13 +68,31 @@ class Nim(Package):
     depends_on("sqlite@3:", type="link", when="+sqlite")
 
     # CVE-2021-46872
-    patch("rst_sanitize_image_links-1.4.patch", when="@1.4.0:1.4.9")
+    patch(
+        "https://github.com/nim-lang/Nim/commit/17522d6ae1444614be78b1002005513105f2893f.patch",
+        sha256="7c94d5be929ea455d790adb0dfe5f58a5d456ce288b6ad3b82c86cec5e43bfff",
+        when="@1.4.0:1.4.9",
+    )
     # CVE-2021-21374, CVE-2021-29495
-    patch("httpclient_ssl_default-1.4.patch", when="@1.4.0:1.4.3")
+    patch(
+        "https://github.com/nim-lang/Nim/commit/c7d090c418f7847bdfa1fd3bfed831470665c3e9.patch",
+        sha256="8842e521d86f356723fe0ce0fde06b12e56aea11d7fc3fa4efdcf38d8a926f76",
+        when="@1.4.0:1.4.3",
+    )
     # CVE-2021-21373
-    patch("nimble_https_fallback.patch", when="@0:1.2.9,1.4.0:1.4.3")
+    patch(
+        "https://github.com/nim-lang/nimble/commit/aec0ae5c23d2e2a2ec28e97dcb9dd6cb1e68b134.patch",
+        sha256="fb6d9a55427e61dd8ddaf16218ef5752fb5ab3d55006c69c5d13950e9dec6480",
+        when="@1:1.2.9,1.4.0:1.4.3",
+        working_dir="dist/nimble",
+    )
     # CVE-2021-21372
-    patch("nimble_quote_doCmd.patch", when="@0:1.2.9,1.4.0:1.4.3")
+    patch(
+        "https://github.com/nim-lang/nimble/commit/89954f8b03b05970aea78c8fe1241138f5bbeae8.patch",
+        sha256="263a2016e5845640683d1695f9bac16797e8a2ad506149e265c462438faadbb4",
+        when="@0:1.2.9,1.4.0:1.4.3",
+        working_dir="dist/nimble",
+    )
 
     resource(
         name="csources_v2",
