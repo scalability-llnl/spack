@@ -24,8 +24,7 @@ spack:
     # the ci:dynamic field uses a strategy to determine which
     # if any specs should be added to the stack based on which
     # packages have been detected as changed.
-    dynamic:
-      strategy: changed
+    dynamic: true
     pipeline-gen:
     - build-job:
         image: ghcr.io/spack/spack/manylinux2014:2024.03.28
