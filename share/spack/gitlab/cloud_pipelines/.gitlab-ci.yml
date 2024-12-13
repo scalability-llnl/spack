@@ -944,6 +944,10 @@ e4s-cray-sles-build:
   extends: [".win64-msvc2019"]
   variables:
     SPACK_CI_STACK_NAME: windows-vis
+    # TODO: windows runners are currently m5.2xlarge with a max 8 vCPU and 32GiB MEM
+    # setting request to half of the available allocation to allow room for overhead.
+    KUBERNETES_CPU_REQUEST: 4000m
+    KUBERNETES_MEMORY_REQUEST: 16G
 
 windows-vis-generate:
   extends: [ ".generate-win64", ".windows-vis" ]
