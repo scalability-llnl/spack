@@ -18,8 +18,8 @@ import llnl.util.lang as lang
 import llnl.util.tty.color
 
 import spack.error as error
-import spack.parser
 import spack.spec
+import spack.spec_parser
 
 #: These are variant names used by Spack internally; packages can't use them
 reserved_names = [
@@ -465,7 +465,7 @@ class AbstractVariant:
 
     def __str__(self) -> str:
         delim = "==" if self.propagate else "="
-        values = spack.parser.quote_if_needed(",".join(str(v) for v in self.value_as_tuple))
+        values = spack.spec_parser.quote_if_needed(",".join(str(v) for v in self.value_as_tuple))
         return f"{self.name}{delim}{values}"
 
 
@@ -514,7 +514,7 @@ class MultiValuedVariant(AbstractVariant):
             values_str = ",".join(str(x) for x in self.value_as_tuple)
 
         delim = "==" if self.propagate else "="
-        return f"{self.name}{delim}{spack.parser.quote_if_needed(values_str)}"
+        return f"{self.name}{delim}{spack.spec_parser.quote_if_needed(values_str)}"
 
 
 class SingleValuedVariant(AbstractVariant):
@@ -571,7 +571,7 @@ class SingleValuedVariant(AbstractVariant):
 
     def __str__(self) -> str:
         delim = "==" if self.propagate else "="
-        return f"{self.name}{delim}{spack.parser.quote_if_needed(str(self.value))}"
+        return f"{self.name}{delim}{spack.spec_parser.quote_if_needed(str(self.value))}"
 
 
 class BoolValuedVariant(SingleValuedVariant):

@@ -27,7 +27,6 @@ import spack.caches
 import spack.concretize
 import spack.config
 import spack.deptypes as dt
-import spack.environment
 import spack.error
 import spack.filesystem_view as fsv
 import spack.hash_types as ht
@@ -163,7 +162,7 @@ def installed_specs():
     Returns the specs of packages installed in the active environment or None
     if no packages are installed.
     """
-    env = spack.environment.active_environment()
+    env = active_environment()
     hashes = env.all_hashes() if env else None
     return spack.store.STORE.db.query(hashes=hashes)
 
@@ -972,7 +971,7 @@ class Environment:
         self._construct_state_from_manifest()
 
         if os.path.exists(self.lock_path):
-            with open(self.lock_path) as f:
+            with open(self.lock_path, encoding="utf-8") as f:
                 read_lock_version = self._read_lockfile(f)["_meta"]["lockfile-version"]
 
             if read_lock_version == 1:
@@ -1054,7 +1053,7 @@ class Environment:
 
         if self.included_concrete_envs:
             if os.path.exists(self.lock_path):
-                with open(self.lock_path) as f:
+                with open(self.lock_path, encoding="utf-8") as f:
                     data = self._read_lockfile(f)
 
                 if included_concrete_name in data:
@@ -2333,7 +2332,7 @@ class Environment:
         self.new_specs.clear()
 
     def update_lockfile(self) -> None:
-        with fs.write_tmp_and_move(self.lock_path) as f:
+        with fs.write_tmp_and_move(self.lock_path, encoding="utf-8") as f:
             sjson.dump(self._to_lockfile_dict(), stream=f)
 
     def ensure_env_directory_exists(self, dot_env: bool = False) -> None:
@@ -2508,7 +2507,7 @@ def update_yaml(manifest, backup_file):
         AssertionError: in case anything goes wrong during the update
     """
     # Check if the environment needs update
-    with open(manifest) as f:
+    with open(manifest, encoding="utf-8") as f:
         data = syaml.load(f)
 
     top_level_key = _top_level_key(data)
@@ -2526,7 +2525,7 @@ def update_yaml(manifest, backup_file):
     assert not os.path.exists(backup_file), msg.format(backup_file)
 
     shutil.copy(manifest, backup_file)
-    with open(manifest, "w") as f:
+    with open(manifest, "w", encoding="utf-8") as f:
         syaml.dump_config(data, f)
     return True
 
@@ -2554,7 +2553,7 @@ def is_latest_format(manifest):
         manifest (str): manifest file to be analyzed
     """
     try:
-        with open(manifest) as f:
+        with open(manifest, encoding="utf-8") as f:
             data = syaml.load(f)
     except (OSError, IOError):
         return True
@@ -2656,7 +2655,7 @@ class EnvironmentManifestFile(collections.abc.Mapping):
         # TBD: Should this be the abspath?
         manifest_dir = pathlib.Path(manifest_dir)
         lockfile = manifest_dir / lockfile_name
-        with lockfile.open("r") as f:
+        with lockfile.open("r", encoding="utf-8") as f:
             data = sjson.load(f)
         user_specs = data["roots"]
 
@@ -2683,7 +2682,7 @@ class EnvironmentManifestFile(collections.abc.Mapping):
             msg = f"cannot find '{manifest_name}' in {self.manifest_dir}"
             raise SpackEnvironmentError(msg)
 
-        with self.manifest_file.open() as f:
+        with self.manifest_file.open(encoding="utf-8") as f:
             self.yaml_content = _read_yaml(f)
 
         self.changed = False
@@ -3057,6 +3056,29 @@ class EnvironmentManifestFile(collections.abc.Mapping):
             self.prepare_config_scope()
             yield
             self.deactivate_config_scope()
+
+
+def environment_path_scopes(name: str, path: str) -> Optional[List[spack.config.ConfigScope]]:
+    """Retrieve the suitably named environment path scopes
+
+    Arguments:
+        name: configuration scope name
+        path: path to configuration file(s)
+
+    Returns: list of environment scopes, if any, or None
+    """
+    if exists(path):  # managed environment
+        manifest = EnvironmentManifestFile(root(path))
+    elif is_env_dir(path):  # anonymous environment
+        manifest = EnvironmentManifestFile(path)
+    else:
+        return None
+
+    for scope in manifest.env_config_scopes:
+        scope.name = f"{name}:{scope.name}"
+        scope.writable = False
+
+    return manifest.env_config_scopes
 
 
 class SpackEnvironmentError(spack.error.SpackError):

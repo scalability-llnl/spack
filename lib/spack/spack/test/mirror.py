@@ -226,13 +226,13 @@ def test_mirror_with_url_patches(mock_packages, monkeypatch):
         files_cached_in_mirror.add(os.path.basename(relative_dst))
 
     def successful_fetch(_class):
-        with open(_class.stage.save_filename, "w"):
+        with open(_class.stage.save_filename, "w", encoding="utf-8"):
             pass
 
     def successful_expand(_class):
         expanded_path = os.path.join(_class.stage.path, spack.stage._source_path_subdir)
         os.mkdir(expanded_path)
-        with open(os.path.join(expanded_path, "test.patch"), "w"):
+        with open(os.path.join(expanded_path, "test.patch"), "w", encoding="utf-8"):
             pass
 
     def successful_apply(*args, **kwargs):
@@ -268,7 +268,7 @@ class MockFetcher:
 
     @staticmethod
     def archive(dst):
-        with open(dst, "w"):
+        with open(dst, "w", encoding="utf-8"):
             pass
 
 
