@@ -12,16 +12,6 @@ class PyPyzmq(PythonPackage):
     homepage = "https://github.com/zeromq/pyzmq"
     pypi = "pyzmq/pyzmq-22.3.0.tar.gz"
 
-    skip_modules = [
-        # Requires zmq.backend.cffi._cffi
-        "zmq.backend.cffi",
-        # Requires tornado
-        "zmq.eventloop",
-        "zmq.green.eventloop",
-        # Requires pytest
-        "zmq.tests",
-    ]
-
     license("BSD-3-Clause")
 
     version("26.2.0", sha256="070672c258581c8e4f640b5159297580a9974b026043bd4ab0470be9ed324f1f")
@@ -94,12 +84,8 @@ include_dirs = {2}
                 )
             )
 
-    def setup_build_environment(self, env):
-        # Needed for `spack install --test=root py-pyzmq`
-        # Fixes import failure for zmq.backend.cffi
-        # https://github.com/zeromq/pyzmq/issues/395#issuecomment-22041019
-        env.prepend_path("C_INCLUDE_PATH", self.spec["libzmq"].headers.directories[0])
-        env.prepend_path("LIBRARY_PATH", self.spec["libzmq"].libs.directories[0])
-
-    # Needed for `spack test run py-pyzmq`
-    setup_run_environment = setup_build_environment
+    @property
+    def import_modules(self):
+        # don't import arbitrary modules, since for older versions this may trigger runtime
+        # compilation of the cffi backend, even though cython is the default precompiled backend.
+        return ["zmq"]
