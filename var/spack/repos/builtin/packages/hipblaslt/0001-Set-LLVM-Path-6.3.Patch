@@ -28,7 +28,7 @@ index 6b5cdc8..6d5bdd3 100644
      globalParameters["ROCmAgentEnumeratorPath"] = locateExe(globalParameters["ROCmBinPath"], "hipinfo.exe")
    else:
 -    globalParameters["ROCmAgentEnumeratorPath"] = locateExe(globalParameters["ROCmBinPath"], "rocm_agent_enumerator")
-+    globalParameters["ROCmAgentEnumeratorPath"] = os.environ.get("ROCM_AGENT_NUMERATOR_PATH")
++    globalParameters["ROCmAgentEnumeratorPath"] = os.environ.get("ROCM_AGENT_ENUMERATOR_PATH")
 
    if "CxxCompiler" in config:
      globalParameters["CxxCompiler"] = config["CxxCompiler"]

@@ -41,6 +41,7 @@ class Hipblaslt(CMakePackage):
 
     for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4", "6.3.0"]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
+        depends_on(f"llvm-amdgpu@{ver}", when=f"@{ver}")
         depends_on(f"rocm-openmp-extras@{ver}", type="test", when=f"@{ver}")
 
     for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4"]:
@@ -72,7 +73,7 @@ class Hipblaslt(CMakePackage):
         )
         env.set("ROCM_SMI_PATH", f"{self.spec['rocm-smi-lib'].prefix}/bin/rocm-smi")
         env.set(
-            "ROCM_AGENT_NUMERATOR_PATH",
+            "ROCM_AGENT_ENUMERATOR_PATH",
             f"{self.spec['rocminfo'].prefix}/bin/rocm_agent_enumerator",
         )
 
