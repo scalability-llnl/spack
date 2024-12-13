@@ -69,27 +69,27 @@ class Nim(Package):
 
     # CVE-2021-46872
     patch(
-        "https://github.com/nim-lang/Nim/commit/17522d6ae1444614be78b1002005513105f2893f.patch",
-        sha256="7c94d5be929ea455d790adb0dfe5f58a5d456ce288b6ad3b82c86cec5e43bfff",
+        "https://github.com/nim-lang/Nim/commit/17522d6ae1444614be78b1002005513105f2893f.patch?full_index=1",
+        sha256="fee426d5f027a8676d94309932812c5d70e1bc089f4d030326a413cacba78330",
         when="@1.4.0:1.4.9",
     )
     # CVE-2021-21374, CVE-2021-29495
     patch(
-        "https://github.com/nim-lang/Nim/commit/c7d090c418f7847bdfa1fd3bfed831470665c3e9.patch",
-        sha256="8842e521d86f356723fe0ce0fde06b12e56aea11d7fc3fa4efdcf38d8a926f76",
+        "https://github.com/nim-lang/Nim/commit/c7d090c418f7847bdfa1fd3bfed831470665c3e9.patch?full_index=1",
+        sha256="88fd2a137a2170a4df41b9f5419a47aff78b0dbf421405e22a6d6a066e3e0431",
         when="@1.4.0:1.4.3",
     )
     # CVE-2021-21373
     patch(
-        "https://github.com/nim-lang/nimble/commit/aec0ae5c23d2e2a2ec28e97dcb9dd6cb1e68b134.patch",
-        sha256="fb6d9a55427e61dd8ddaf16218ef5752fb5ab3d55006c69c5d13950e9dec6480",
+        "https://github.com/nim-lang/nimble/commit/aec0ae5c23d2e2a2ec28e97dcb9dd6cb1e68b134.patch?full_index=1",
+        sha256="4fe4f8b760e7a516fcd51d6ce02562432f1d34623751f52556d4e6c1823e705a",
         when="@1:1.2.9,1.4.0:1.4.3",
         working_dir="dist/nimble",
     )
     # CVE-2021-21372
     patch(
-        "https://github.com/nim-lang/nimble/commit/89954f8b03b05970aea78c8fe1241138f5bbeae8.patch",
-        sha256="263a2016e5845640683d1695f9bac16797e8a2ad506149e265c462438faadbb4",
+        "https://github.com/nim-lang/nimble/commit/89954f8b03b05970aea78c8fe1241138f5bbeae8.patch?full_index=1",
+        sha256="5e6f7e2d2dac5d2ed70b5047418d9b43e156de35737f9fad0052ae30dd539b03",
         when="@0:1.2.9,1.4.0:1.4.3",
         working_dir="dist/nimble",
     )
