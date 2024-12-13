@@ -133,6 +133,12 @@ class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
         depends_on("py-ml-dtypes@0.4:", when="@0.4.29")
 
     patch(
+        "https://github.com/jax-ml/jax/pull/25473.patch?full_index=1",
+        sha256="9d6977bc32046600bf8b15863251283fe7546896340367a7f14e3dccf418b4fe",
+        when="@0.4.36:",
+    )
+
+    patch(
         "https://github.com/google/jax/pull/20101.patch?full_index=1",
         sha256="4dfb9f32d4eeb0a0fb3a6f4124c4170e3fe49511f1b768cd634c78d489962275",
         when="@:0.4.25",
@@ -203,6 +209,8 @@ build --local_cpu_resources={make_jobs}
 
             if spec.satisfies("+cuda"):
                 args.append("--wheels=jaxlib,jax-cuda-plugin,jax-cuda-pjrt")
+            elif spec.satisfies("+rocm"):
+                args.append("--wheels=jaxlib,jax-rocm-plugin,jax-rocm-pjrt")
             else:
                 args.append("--wheels=jaxlib")
 
