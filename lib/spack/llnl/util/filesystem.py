@@ -350,7 +350,9 @@ def filter_file(
         else:
             tty.debug(f'FILTER FILE: {path} [replacing "{regex}"]')
 
-        fd, temp_path = tempfile.mkstemp(prefix=os.path.basename(path), dir=os.path.dirname(path))
+        fd, temp_path = tempfile.mkstemp(
+            prefix=f"{os.path.basename(path)}.", dir=os.path.dirname(path)
+        )
         os.close(fd)
 
         shutil.copy(path, temp_path)
