@@ -63,7 +63,6 @@ import spack.repo
 import spack.rewiring
 import spack.spec
 import spack.store
-import spack.user_environment as uenv
 import spack.util.executable
 import spack.util.path
 import spack.util.timer as timer
@@ -2106,21 +2105,6 @@ class PackageInstaller:
                 continue
 
             term_status.clear()
-
-            # Rikki: HERE?? Create & cache shell script?
-            print(f"Rikki:")
-
-            shell = os.environ.get("SPACK_SHELL")
-            env_mods = uenv.environment_modifications_for_specs(spec)
-            mods= env_mods.shell_modifications(shell)
-
-            shell_script_path = os.path.join(pkg.spec.prefix, ".spack", f"{spec.name}_shell.{shell}")
-
-            with open(shell_script_path, "w") as f:
-                f.write(mods)
-
-            print(f"\nspec: {spec}\nenv_mods: {env_mods}\nmods: {mods}")
-            print(f"pkg.prefix: {pkg.prefix}")
 
             # Take a timestamp with the overwrite argument to allow checking
             # whether another process has already overridden the package.
