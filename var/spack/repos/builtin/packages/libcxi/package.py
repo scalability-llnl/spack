@@ -17,7 +17,7 @@ class Libcxi(AutotoolsPackage):
 
     version("main", branch="main")
 
-    variant("oneapi", default=False, description="Build with OneAPI Level Zero support")
+    variant("level_zero", default=False, description="Enable level zero support")
     variant("cuda", default=False, description="Build with CUDA support")
     variant("rocm", default=False, description="Build with ROCm support")
 
@@ -34,7 +34,7 @@ class Libcxi(AutotoolsPackage):
     depends_on("numactl@2:")
     depends_on("lm-sensors")
 
-    depends_on("oneapi-level-zero", when="+oneapi")
+    depends_on("oneapi-level-zero", when="+level_zero")
     depends_on("cuda", when="+cuda")
     depends_on("hip", when="+rocm")
 
@@ -60,7 +60,7 @@ class Libcxi(AutotoolsPackage):
             f"--with-systemdsystemunitdir={self.prefix}/lib/systemd/system",
         ]
 
-        if self.spec.satisfies("+oneapi"):
+        if self.spec.satisfies("+level_zero"):
             args.append(f"--with-ze={self.spec['oneapi-level-zero'].prefix}")
         if self.spec.satisfies("+cuda"):
             args.append(f"--with-cuda={self.spec['cuda'].prefix}")
