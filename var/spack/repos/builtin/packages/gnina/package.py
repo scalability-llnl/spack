@@ -93,6 +93,6 @@ class Gnina(CMakePackage, CudaPackage):
             args.append(f"-DRDKIT_INCLUDE_DIR={self.spec['rdkit'].prefix.include.rdkit}")
 
         if self.spec.satisfies("@1.3:"):
-            args.append("-DGNINA_FORCE_EXTERNAL_LIBS=ON")
+            args.append(self.define("GNINA_FORCE_EXTERNAL_LIBS", True)
 
         return args
