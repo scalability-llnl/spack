@@ -203,7 +203,7 @@ class Executable:
 
         def streamify(arg, mode):
             if isinstance(arg, str):
-                return open(arg, mode), True
+                return open(arg, mode), True # pylint: disable=unspecified-encoding
             elif arg in (str, str.split):
                 return subprocess.PIPE, False
             else:
