@@ -54,6 +54,8 @@ class Mesa(MesonPackage):
     depends_on("cxx", type="build")  # generated
 
     depends_on("meson@0.52:", type="build")
+    depends_on("meson@0.54:", type="build", when="@23:")
+    depends_on("meson@0.60:", type="build", when="@23.1:")
 
     depends_on("pkgconfig", type="build")
     depends_on("bison", type="build")
