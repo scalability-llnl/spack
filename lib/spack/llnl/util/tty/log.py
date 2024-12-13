@@ -762,9 +762,7 @@ class winlog:
             self.reader = open(self.logfile, mode="rb+")
 
             # Dup stdout so we can still write to it after redirection
-            self.echo_writer = open(  # pylint: disable=unspecified-encoding
-                os.dup(sys.stdout.fileno()), "w"
-            )
+            self.echo_writer = open(os.dup(sys.stdout.fileno()), "w", encoding=sys.stdout.encoding)
             # Redirect stdout and stderr to write to logfile
             self.stderr.redirect_stream(self.writer.fileno())
             self.stdout.redirect_stream(self.writer.fileno())
