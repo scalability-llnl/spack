@@ -236,7 +236,7 @@ class PyMatplotlib(PythonPackage):
 
     # Dependencies for building matplotlib
     # Setup dependencies
-    depends_on("py-meson-python@0.13.1:", when="@3.9:", type="build")
+    depends_on("py-meson-python@0.13.1:0.16", when="@3.9:", type="build")
     depends_on("ninja@1.8.2:", when="@3.9:", type="build")
     depends_on("py-pybind11@2.6:", when="@3.7:", type=("build", "link"))
     depends_on("py-setuptools-scm@7:", when="@3.6:", type="build")
