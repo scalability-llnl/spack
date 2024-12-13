@@ -70,7 +70,7 @@ class PyNetworkx(PythonPackage):
         depends_on("py-pandas@2.0:", when="@3.4:", type=("build", "run"))
         depends_on("py-pandas@1.4:", when="@3.2:", type=("build", "run"))
         depends_on("py-pandas@1.3:", when="@2.8.6:", type=("build", "run"))
-        depends_on("py-setuptools@61.2", when="@3.2:", type=("build", "run"))
+        depends_on("py-setuptools@61.2:", when="@3.2:", type=("build", "run"))
         depends_on("python@3.10:", when="@3.3:", type=("build", "run"))
         depends_on("python@3.8:", when="@2.7:", type=("build", "run"))
 
