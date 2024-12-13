@@ -119,7 +119,7 @@ def test_bad_command_line_scopes(tmp_path, config):
 
 def test_add_command_line_scopes(tmpdir, mutable_config):
     config_yaml = str(tmpdir.join("config.yaml"))
-    with open(config_yaml, "w") as f:
+    with open(config_yaml, "w", encoding="utf-8") as f:
         f.write(
             """\
 config:
@@ -137,7 +137,7 @@ def test_add_command_line_scope_env(tmp_path, mutable_mock_env_path):
     """Test whether --config-scope <env> works, either by name or path."""
     managed_env = ev.create("example").manifest_path
 
-    with open(managed_env, "w") as f:
+    with open(managed_env, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -147,7 +147,7 @@ spack:
 """
         )
 
-    with open(tmp_path / "spack.yaml", "w") as f:
+    with open(tmp_path / "spack.yaml", "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
