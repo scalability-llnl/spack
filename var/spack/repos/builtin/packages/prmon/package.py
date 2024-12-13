@@ -34,7 +34,7 @@ class Prmon(CMakePackage):
     depends_on("cmake@3.3:", type="build")
     depends_on("spdlog", when="@3.0.0:")
     depends_on("py-matplotlib", type="run", when="+plot")
-    depends_on("py-matplotlib@:3.6", type="run", when="@:3.1.0 +plot")
+    depends_on("py-matplotlib@:3.5", type="run", when="@:3.1.0 +plot")
     depends_on("py-numpy", type="run", when="+plot")
     depends_on("py-pandas", type="run", when="+plot")
 
