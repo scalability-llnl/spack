@@ -28,6 +28,7 @@ def module(
     environb: Optional[MutableMapping[bytes, bytes]] = None,
 ):
     module_cmd = module_template or ("module " + " ".join(args))
+    module_cmd = f'source $MODULESHOME/init/bash; ' + module_cmd
     environb = environb or os.environb
 
     if args[0] in module_change_commands:
