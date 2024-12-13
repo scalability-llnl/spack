@@ -563,6 +563,7 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
 
     depends_on("python@3.7:")
     depends_on("cmake@3.16:")
+    depends_on("cmake@3.20:", when="llvm=bundled")
 
     # ensure we can map the spack compiler name to one of the ones we recognize
     requires(
