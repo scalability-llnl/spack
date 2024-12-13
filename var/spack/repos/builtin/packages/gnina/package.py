@@ -73,8 +73,8 @@ class Gnina(CMakePackage, CudaPackage):
     depends_on("cudnn", when="+cudnn")
 
     depends_on("cmake@3.27:", when="@1.3:")  # CMake policy CMP0146 introduced in 3.27
-    depends_on("jsoncpp", when="@1.3")
-    depends_on("py-torch", when="@1.3")
+    depends_on("jsoncpp", when="@1.3:")
+    depends_on("py-torch", when="@1.3:")
 
     depends_on("glog@:0.6", when="@:1.1")
     depends_on("hdf5+cxx+hl~mpi", when="@:1.1")
