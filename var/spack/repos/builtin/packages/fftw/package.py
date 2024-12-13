@@ -251,3 +251,4 @@ class Fftw(FftwBase):
     patch("pfft-3.3.5.patch", when="@3.3.5:3.3.8+pfft_patches", level=0)
     patch("pfft-3.3.4.patch", when="@3.3.4+pfft_patches", level=0)
     patch("intel-configure.patch", when="@3:3.3.8%intel", level=0)
+    patch("Fix-the-cmake-config-file-when-configured-with-autot.patch", when="@3.3.10", level=0)
