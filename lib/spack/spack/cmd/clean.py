@@ -44,10 +44,7 @@ def setup_parser(subparser):
         help="force removal of all install failure tracking markers",
     )
     subparser.add_argument(
-        "-c",
-        "--conc-cache",
-        action="store_true",
-        help="remove cached concretization results"
+        "-c", "--conc-cache", action="store_true", help="remove cached concretization results"
     )
     subparser.add_argument(
         "-m",
