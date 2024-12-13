@@ -865,10 +865,23 @@ def add_command_line_scopes(
     Args:
         cfg: configuration instance
         command_line_scopes: list of configuration scope paths
+
+    Raises:
+        spack.error.ConfigError: if the path is an invalid configuration scope
     """
     for i, path in enumerate(command_line_scopes):
         name = f"cmd_scope_{i}"
-        ev.add_path_scopes(cfg, name, path)
+        scopes = ev.environment_path_scopes(name, path)
+        if scopes is None:
+            if os.path.isdir(path):  # directory with config files
+                cfg.push_scope(spack.config.DirectoryConfigScope(name, path, writable=False))
+                spack.config._add_platform_scope(cfg, name, path, writable=False)
+                continue
+            else:
+                raise spack.error.ConfigError(f"Invalid configuration scope: {path}")
+
+        for scope in scopes:
+            cfg.push_scope(scope)
 
 
 def _main(argv=None):
