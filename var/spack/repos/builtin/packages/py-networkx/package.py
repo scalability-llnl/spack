@@ -55,17 +55,24 @@ class PyNetworkx(PythonPackage):
     with when("+default"):
         # From requirements/default.txt
         # push numpy up to 2
-        depends_on("py-numpy@1.25:", when="@3.4:", type=("build", "run"))
+        depends_on("py-numpy@1.24:", when="@3.4:", type=("build", "run"))
+        depends_on("py-numpy@1.23:", when="@3.3:", type=("build", "run"))
+        depends_on("py-numpy@1.22:", when="@3.2:", type=("build", "run"))
         depends_on("py-numpy@1.20:", when="@3:", type=("build", "run"))
         depends_on("py-numpy@1.19:", when="@2.8.6:", type=("build", "run"))
         # https://github.com/networkx/networkx/pull/7390
         depends_on("py-numpy@:1", when="@:3.2", type=("build", "run"))
-        depends_on("py-scipy@1.11.2:", when="@3.4:", type=("build", "run"))
+        depends_on("py-scipy@1.11.2:", when="@3.2:", type=("build", "run"))
         depends_on("py-scipy@1.8:", when="@2.8.6:", type=("build", "run"))
         depends_on("py-matplotlib@3.8:", when="@3.4:", type=("build", "run"))
+        depends_on("py-matplotlib@3.5:", when="@3.2:", type=("build", "run"))
         depends_on("py-matplotlib@3.4:", when="@2.8.6:", type=("build", "run"))
         depends_on("py-pandas@2.0:", when="@3.4:", type=("build", "run"))
+        depends_on("py-pandas@1.4:", when="@3.2:", type=("build", "run"))
         depends_on("py-pandas@1.3:", when="@2.8.6:", type=("build", "run"))
+        depends_on("py-setuptools@61.2", when="@3.2:", type=("build", "run"))
+        depends_on("python@3.10:", when="@3.3:", type=("build", "run"))
+        depends_on("python@3.8:", when="@2.7:", type=("build", "run"))
 
         # Historical dependencies
         depends_on("py-decorator@4.3.0:4", when="@2.5.1:2.5", type=("build", "run"))
