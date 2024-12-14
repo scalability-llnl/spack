@@ -27,8 +27,12 @@ class NodeJs(Package):
     version("17.9.1", sha256="1102f5e0aafaab8014d19c6c57142caf2ba3ef69d88d7a7f0f82798051796027")
     version("15.3.0", sha256="cadfa384a5f14591b84ce07a1afe529f28deb0d43366fb0ae4e78afba96bfaf2")
     with default_args(deprecated=True):
-    	version("13.8.0", sha256="815b5e1b18114f35da89e4d98febeaba97555d51ef593bd5175db2b05f2e8be6")
-        version("13.5.0", sha256="4b8078d896a7550d7ed399c1b4ac9043e9f883be404d9b337185c8d8479f2db8")
+        version(
+            "13.8.0", sha256="815b5e1b18114f35da89e4d98febeaba97555d51ef593bd5175db2b05f2e8be6"
+        )
+        version(
+            "13.5.0", sha256="4b8078d896a7550d7ed399c1b4ac9043e9f883be404d9b337185c8d8479f2db8"
+        )
 
     # LTS (recommended for most users) - even major number
     version(
@@ -44,8 +48,12 @@ class NodeJs(Package):
     version("14.16.1", sha256="5f5080427abddde7f22fd2ba77cd2b8a1f86253277a1eec54bc98a202728ce80")
     version("14.15.1", sha256="a1120472bf55aea745287693a6651e16973e1008c9d6107df350126adf9716fe")
     with default_args(deprecated=True):
-        version("14.13.0", sha256="8538b2e76aa06ee0e6eb1c118426c3c5ca53b2e49d66591738eacf76e89edd61")
-        version("14.10.0", sha256="7e0d7a1aa23697415e3588a1ca4f1c47496e6c88b9cf37c66be90353d3e4ac3e")
+        version(
+            "14.13.0", sha256="8538b2e76aa06ee0e6eb1c118426c3c5ca53b2e49d66591738eacf76e89edd61"
+        )
+        version(
+            "14.10.0", sha256="7e0d7a1aa23697415e3588a1ca4f1c47496e6c88b9cf37c66be90353d3e4ac3e"
+        )
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
