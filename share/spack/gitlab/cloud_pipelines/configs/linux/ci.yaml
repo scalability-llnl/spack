@@ -199,6 +199,7 @@ ci:
 
     - match:
       - parallelio
+      - sherpa
       build-job:
         tags: [ "spack", "medium" ]
         variables:
