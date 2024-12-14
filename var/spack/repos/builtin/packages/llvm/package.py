@@ -1153,9 +1153,16 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
         else:
             return ret
 
-    # known issue: for omp we have to add rpaths to `bin/llvm-omp-*` and
-    # `share/gdb/python/ompd/ompdModule.so`.
-    unresolved_libraries = ["libpython*.so.*", "libomp.so*", "libomptarget*.so*", "libunwind.so.*"]
+    @property
+    def unresolved_libraries(self):
+        # libomptarget at 14 and older has a hard-coded rpath that lacks hwloc's path
+        # https://github.com/llvm/llvm-project/commit/dc52712a063241bd0d3a0473b4e7ed870e41921f
+        if self.spec.satisfies("@:14 +libomptarget"):
+            return ["*"]
+
+        # TODO: for newer llvm there are still issues with runtimes for omp we
+        # have to add rpaths to `bin/llvm-omp-*` and `share/gdb/python/ompd/ompdModule.so`.
+        return ["libpython*.so.*", "libomp.so*", "libomptarget*.so*", "libunwind.so.*"]
 
 
 def get_gcc_install_dir_flag(spec: Spec, compiler) -> Optional[str]:
