@@ -54,17 +54,16 @@ import spack.schema.develop
 import spack.schema.env
 import spack.schema.env_vars
 import spack.schema.include
-import spack.schema.merged
 import spack.schema.mirrors
 import spack.schema.modules
 import spack.schema.packages
 import spack.schema.repos
 import spack.schema.upstreams
 import spack.schema.view
+import spack.util.path
 
 # Hacked yaml for configuration files preserves line numbers.
 import spack.util.spack_yaml as syaml
-import spack.util.url
 from spack.util.cpus import cpus_available
 
 #: Dict from section names -> schema for that section
@@ -790,6 +789,8 @@ def update_config_with_includes():
     configurations to include. This does not handle recursive includes
     (i.e. if an included config defines an "include:" section).
     """
+    import spack.environment.environment
+
     includes = CONFIG.get("include")
     if not includes:
         return
