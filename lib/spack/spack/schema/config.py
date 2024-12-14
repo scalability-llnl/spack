@@ -10,7 +10,6 @@ from typing import Any, Dict
 
 from llnl.util.lang import union_dicts
 
-import spack.config
 import spack.schema.projections
 
 #: Properties for inclusion in other schemas
