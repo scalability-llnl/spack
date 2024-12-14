@@ -150,6 +150,7 @@ ci:
       - dd4hep
       - hipblas
       - qt-base
+      - qt-declarative
       - rivet
       - rocfft
       - umpire
