@@ -7,7 +7,7 @@ import spack.build_systems.cmake
 from spack.package import *
 
 
-class Libzip(CMakePackage, AutotoolsPackage):
+class Libzip(CMakePackage):
     """libzip is a C library for reading, creating,
     and modifying zip archives."""
 
@@ -26,17 +26,6 @@ class Libzip(CMakePackage, AutotoolsPackage):
         sha256="06eb8e9141fd19e2788cabaea9c9c2fd4d488d9e1484eb474bbfcac78e7b1d88",
         url="https://github.com/nih-at/libzip/releases/download/rel-1-6-1/libzip-1.6.1.tar.gz",
     )
-    # older releases are available on libzip.org
-    version(
-        "1.3.2",
-        sha256="ab4c34eb6c3a08b678cd0f2450a6c57a13e9618b1ba34ee45d00eb5327316457",
-        deprecated=True,
-    )
-    version(
-        "1.2.0",
-        sha256="6cf9840e427db96ebf3936665430bab204c9ebbd0120c326459077ed9c907d9f",
-        deprecated=True,
-    )
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
@@ -48,29 +37,22 @@ class Libzip(CMakePackage, AutotoolsPackage):
 
     depends_on("zlib-api")
 
-    # Build system
-    build_system(
-        conditional("cmake", when="@1.4:"), conditional("autotools", when="@:1.3"), default="cmake"
-    )
-
-    # Required dependencies
-    with when("build_system=cmake"):
-        variant("gnutls", default=True, description="Enable gnutls support")
-        variant("bzip2", default=True, description="Enable bzip2 support")
-        variant("lzma", default=True, description="Enable lzma support")
-        variant("openssl", default=True, description="Enable openssl support")
+    variant("gnutls", default=True, description="Enable gnutls support")
+    variant("bzip2", default=True, description="Enable bzip2 support")
+    variant("lzma", default=True, description="Enable lzma support")
+    variant("openssl", default=True, description="Enable openssl support")
+    variant("zstd", default=True, description="Enable zstd support")
+    variant("mbedtls", default=True, description="Enable mbedtls support")
+    depends_on("gnutls", when="+gnutls")
+    depends_on("bzip2", when="+bzip2")
+    depends_on("lzma", when="+lzma")
+    depends_on("openssl", when="+openssl")
+    depends_on("mbedtls", when="+mbedtls")
+    
+    # zstd support starts with version 1.8.0
+    with when("@1.8:"):
         variant("zstd", default=True, description="Enable zstd support")
-        variant("mbedtls", default=True, description="Enable mbedtls support")
-        depends_on("gnutls", when="+gnutls")
-        depends_on("bzip2", when="+bzip2")
-        depends_on("lzma", when="+lzma")
-        depends_on("openssl", when="+openssl")
-        depends_on("mbedtls", when="+mbedtls")
-
-        # zstd support starts with version 1.8.0
-        with when("@1.8:"):
-            variant("zstd", default=True, description="Enable zstd support")
-            depends_on("zstd", when="+zstd")
+        depends_on("zstd", when="+zstd")
 
     @property
     def headers(self):
@@ -79,8 +61,6 @@ class Libzip(CMakePackage, AutotoolsPackage):
             self.prefix if self.spec.satisfies("@:1.3.0") else self.prefix.include
         )
 
-
-class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
     def cmake_args(self):
         return [
             self.define_from_variant("ENABLE_GNUTLS", "gnutls"),
