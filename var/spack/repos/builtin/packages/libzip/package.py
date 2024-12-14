@@ -48,7 +48,6 @@ class Libzip(CMakePackage):
     depends_on("lzma", when="+lzma")
     depends_on("openssl", when="+openssl")
     depends_on("mbedtls", when="+mbedtls")
-    
     # zstd support starts with version 1.8.0
     with when("@1.8:"):
         variant("zstd", default=True, description="Enable zstd support")
