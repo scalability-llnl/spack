@@ -60,7 +60,6 @@ import spack.schema.packages
 import spack.schema.repos
 import spack.schema.upstreams
 import spack.schema.view
-import spack.util.path
 
 # Hacked yaml for configuration files preserves line numbers.
 import spack.util.spack_yaml as syaml
@@ -784,12 +783,15 @@ def _add_platform_scope(cfg: Configuration, name: str, path: str, writable: bool
     cfg.push_scope(scope)
 
 
+# TODO This needs to be moved or refactored since not only adds back
+# TODO circular import to environment but adds spack.util.path
 def update_config_with_includes():
     """The "config:" section of a Configuration can specify other
     configurations to include. This does not handle recursive includes
     (i.e. if an included config defines an "include:" section).
     """
-    import spack.environment.environment
+    from spack.environment.environment import _eval_conditional, scopes_from_paths
+    from spack.util.path import canonicalize_path
 
     includes = CONFIG.get("include")
     if not includes:
@@ -810,20 +812,20 @@ def update_config_with_includes():
                 always_activate = True
             optional |= entry.get("optional", False)
 
-        include_path = spack.util.path.canonicalize_path(include_path)
+        include_path = canonicalize_path(include_path)
         if not os.path.exists(include_path) and not optional:
             raise ValueError(
                 f"Specified include path does not exist and is not optional: {include_path}"
             )
 
-        activate = always_activate or spack.environment.environment._eval_conditional(when_str)
+        activate = always_activate or _eval_conditional(when_str)
         if activate and os.path.exists(include_path):
             to_add.append(include_path)
 
     def resolve_relative(cfg_path):
         raise ValueError(f"config:include got relative path {cfg_path}")
 
-    scopes = spack.environment.environment.scopes_from_paths(
+    scopes = scopes_from_paths(
         to_add, "include", config_stage_dir=None, resolve_relative=resolve_relative
     )
 
