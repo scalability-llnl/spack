@@ -50,7 +50,7 @@ class PyScikitImage(PythonPackage):
     # @:0.13      from requirements.txt, DEPENDS.txt
 
     with default_args(type=("build", "run")):
-        depends_on("python@3.10:", when="@0.23")
+        depends_on("python@3.10:", when="@0.23:")
         depends_on("python@3.9:", when="@0.22:")
 
     with default_args(type=("build", "link", "run")):
