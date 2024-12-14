@@ -302,7 +302,6 @@ class NMakeBuilder(spack.build_systems.nmake.NMakeBuilder):
         # rather than patching sqlite's build
         env.set("CL", "/utf-8")
 
-
     def nmake_args(self):
         enable_fts = "1" if "+fts" in self.spec else "0"
         enable_rtree = "1" if "+rtree" in self.spec else "0"
