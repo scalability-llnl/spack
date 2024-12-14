@@ -6,6 +6,9 @@
 import os
 import re
 
+import llnl.util.lang
+
+import spack.platforms
 from spack.package import *
 
 
@@ -164,11 +167,7 @@ class Upcxx(Package, CudaPackage, ROCmPackage):
     depends_on("oneapi-level-zero@1.8.0:", when="+level_zero")
 
     # All flags should be passed to the build-env in autoconf-like vars
-    def flag_handler(self, name, flags):
-        if name == "cxxflags":
-            if self.spec.satisfies("%oneapi@2025:"):
-                flags.append("-Wno-error=missing-template-arg-list-after-template-kw")
-        return (flags, None, None)
+    flag_handler = env_flags
 
     def set_variables(self, env):
         env.set("UPCXX_INSTALL", self.prefix)

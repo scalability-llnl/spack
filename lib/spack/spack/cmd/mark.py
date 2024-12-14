@@ -10,7 +10,8 @@ from llnl.util import tty
 import spack.cmd
 import spack.store
 from spack.cmd.common import arguments
-from spack.database import InstallStatuses
+
+from ..enums import InstallRecordStatus
 
 description = "mark packages as explicitly or implicitly installed"
 section = "admin"
@@ -67,8 +68,7 @@ def find_matching_specs(specs, allow_multiple_matches=False):
     has_errors = False
 
     for spec in specs:
-        install_query = [InstallStatuses.INSTALLED]
-        matching = spack.store.STORE.db.query_local(spec, installed=install_query)
+        matching = spack.store.STORE.db.query_local(spec, installed=InstallRecordStatus.INSTALLED)
         # For each spec provided, make sure it refers to only one package.
         # Fail and ask user to be unambiguous if it doesn't
         if not allow_multiple_matches and len(matching) > 1:

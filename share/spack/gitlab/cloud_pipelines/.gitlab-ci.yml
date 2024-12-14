@@ -810,14 +810,6 @@ ml-darwin-aarch64-mps-build:
 
 .aws-pcluster-generate:
   image: { "name": "ghcr.io/spack/pcluster-amazonlinux-2:v2024-10-07", "entrypoint": [""] }
-  before_script:
-    # Use gcc from pre-installed spack store
-    - - . "./share/spack/setup-env.sh"
-      - . "/etc/profile.d/modules.sh"
-      - diff -q "/bootstrap/cloud_pipelines-config.yaml" "share/spack/gitlab/cloud_pipelines/configs/config.yaml" || echo "WARNING Install tree might have changed. You need to rebuild the pcluster-amazonlinux-2 container in spack/gitlab-runners."
-      - cp "share/spack/gitlab/cloud_pipelines/configs/config.yaml" "etc/spack/"
-      - /bin/bash "${SPACK_ROOT}/share/spack/gitlab/cloud_pipelines/scripts/pcluster/setup-pcluster.sh"
-      - rm "etc/spack/config.yaml"
 
 # X86_64_V4 (one pipeline per target)
 .aws-pcluster-x86_64_v4:
@@ -826,6 +818,10 @@ ml-darwin-aarch64-mps-build:
 
 aws-pcluster-generate-x86_64_v4:
   extends: [ ".linux_x86_64_v4", ".aws-pcluster-x86_64_v4", ".generate-base", ".tags-x86_64_v4", ".aws-pcluster-generate"]
+  before_script:
+    - - . "./share/spack/setup-env.sh"
+      # TODO: Move this to the container next time it is rebuilt
+      - export PATH=/home/software/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeh/linux-amzn2-x86_64_v3/gcc-7.3.1/binutils-2.37-qvccg7zpskturysmr4bzbsfrx34kvazo/bin:$PATH
 
 aws-pcluster-build-x86_64_v4:
   extends: [ ".linux_x86_64_v4", ".aws-pcluster-x86_64_v4", ".build" ]
@@ -846,6 +842,10 @@ aws-pcluster-build-x86_64_v4:
 aws-pcluster-generate-neoverse_v1:
   # TODO: Use updated runner tags: https://github.com/spack/spack-infrastructure/pull/694/files
   extends: [ ".linux_neoverse_v1", ".aws-pcluster-neoverse_v1", ".generate-neoverse_v1", ".aws-pcluster-generate"]
+  before_script:
+    - - . "./share/spack/setup-env.sh"
+      # TODO: Move this to the container next time it is rebuilt
+      - export PATH=/home/software/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeh/linux-amzn2-aarch64/gcc-7.3.1/binutils-2.37-2yxz3xsjfmesxujxtlrgcctxlyilynmp/bin:$PATH
 
 aws-pcluster-build-neoverse_v1:
   extends: [  ".linux_neoverse_v1", ".aws-pcluster-neoverse_v1", ".build" ]
@@ -951,3 +951,49 @@ windows-vis-build:
   needs:
     - artifacts: True
       job: windows-vis-generate
+
+#######################################
+# Bootstrap x86_64-linux-gnu
+#######################################
+.bootstrap-x86_64-linux-gnu:
+  extends: [ ".linux_x86_64_v3" ]
+  variables:
+    SPACK_CI_STACK_NAME: bootstrap-x86_64-linux-gnu
+
+bootstrap-x86_64-linux-gnu-generate:
+  extends: [ .generate-x86_64, .bootstrap-x86_64-linux-gnu ]
+  image: ghcr.io/spack/ubuntu-24.04:v2024-09-05-v2
+
+bootstrap-x86_64-linux-gnu-build:
+  extends: [ .build, .bootstrap-x86_64-linux-gnu ]
+  trigger:
+    include:
+      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
+        job: bootstrap-x86_64-linux-gnu-generate
+    strategy: depend
+  needs:
+    - artifacts: True
+      job: bootstrap-x86_64-linux-gnu-generate
+
+#######################################
+# Bootstrap aarch64-darwin
+#######################################
+.bootstrap-aarch64-darwin:
+  extends: [.darwin_aarch64]
+  variables:
+    SPACK_CI_STACK_NAME: bootstrap-aarch64-darwin
+
+bootstrap-aarch64-darwin-generate:
+  tags: [macos-ventura, apple-clang-15, aarch64-macos]
+  extends: [.bootstrap-aarch64-darwin, .generate-base]
+
+bootstrap-aarch64-darwin-build:
+  extends: [.bootstrap-aarch64-darwin, .build]
+  trigger:
+    include:
+      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
+        job: bootstrap-aarch64-darwin-generate
+    strategy: depend
+  needs:
+    - artifacts: true
+      job: bootstrap-aarch64-darwin-generate

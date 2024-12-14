@@ -12,7 +12,7 @@ class HipifyClang(CMakePackage):
 
     homepage = "https://github.com/ROCm/HIPIFY"
     git = "https://github.com/ROCm/HIPIFY.git"
-    url = "https://github.com/ROCm/HIPIFY/archive/rocm-6.1.2.tar.gz"
+    url = "https://github.com/ROCm/HIPIFY/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
     maintainers("srekolam", "renjithravindrankannath")
@@ -20,6 +20,7 @@ class HipifyClang(CMakePackage):
     license("MIT")
 
     version("master", branch="master")
+    version("6.2.4", sha256="981af55ab4243f084b3e75007e827f7c94ac317fa84fe08d59c5872124a7d3c7")
     version("6.2.1", sha256="db5680d677222596cf9edfb84ae96b37db829a40a2e0243d26ff24a16e03ff74")
     version("6.2.0", sha256="11bfbde7c40e5cd5de02a47ec30dc6df4b233a12126bf7ee449432a30a3e6e1e")
     version("6.1.2", sha256="7cc1e3fd7690a3e1d99cd07f2bd62ee73682cceeb4a46918226fc70f8092eb68")
@@ -39,7 +40,8 @@ class HipifyClang(CMakePackage):
         version("5.3.3", sha256="9d08e2896e52c10a0a189a5407567043f2510adc7bf618591c97a22a23699691")
         version("5.3.0", sha256="7674900d2b9319d91fa8f469252c5acb5bedf339142417cdcb64f33ee8482e00")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("asan", default=False, description="Build with address-sanitizer enabled or disabled")
 
@@ -70,6 +72,7 @@ class HipifyClang(CMakePackage):
         "6.1.2",
         "6.2.0",
         "6.2.1",
+        "6.2.4",
         "master",
     ]:
         depends_on(f"llvm-amdgpu@{ver}", when=f"@{ver}")
@@ -88,6 +91,7 @@ class HipifyClang(CMakePackage):
         "6.1.2",
         "6.2.0",
         "6.2.1",
+        "6.2.4",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 

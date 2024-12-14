@@ -237,3 +237,35 @@ is optional -- by default, splices will be transitive.
    ``mpich/abcdef`` instead of ``mvapich2`` as the MPI provider. Spack
    will warn the user in this case, but will not fail the
    concretization.
+
+.. _automatic_splicing:
+
+^^^^^^^^^^^^^^^^^^
+Automatic Splicing
+^^^^^^^^^^^^^^^^^^
+
+The Spack solver can be configured to do automatic splicing for
+ABI-compatible packages. Automatic splices are enabled in the concretizer
+config section
+
+.. code-block:: yaml
+
+   concretizer:
+     splice:
+       automatic: True
+
+Packages can include ABI-compatibility information using the
+``can_splice`` directive. See :ref:`the packaging
+guide<abi_compatibility>` for instructions on specifying ABI
+compatibility using the ``can_splice`` directive.
+
+.. note::
+
+   The ``can_splice`` directive is experimental and may be changed in
+   future versions.
+
+When automatic splicing is enabled, the concretizer will combine any
+number of ABI-compatible specs if possible to reuse installed packages
+and packages available from binary caches. The end result of these
+specs is equivalent to a series of transitive/intransitive splices,
+but the series may be non-obvious.

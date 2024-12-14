@@ -29,6 +29,7 @@ import spack.util.libc
 import spack.util.module_cmd
 import spack.version
 from spack.util.environment import filter_system_paths
+from spack.util.file_cache import FileCache
 
 __all__ = ["Compiler"]
 
@@ -427,6 +428,11 @@ class Compiler:
     @property
     def default_libc(self) -> Optional["spack.spec.Spec"]:
         """Determine libc targeted by the compiler from link line"""
+        # technically this should be testing the target platform of the compiler, but we don't have
+        # that, so stick to host platform for now.
+        if sys.platform in ("darwin", "win32"):
+            return None
+
         dynamic_linker = self.default_dynamic_linker
 
         if not dynamic_linker:
@@ -448,16 +454,22 @@ class Compiler:
         return self.cache.get(self).c_compiler_output
 
     def _compile_dummy_c_source(self) -> Optional[str]:
-        cc = self.cc if self.cc else self.cxx
+        if self.cc:
+            cc = self.cc
+            ext = "c"
+        else:
+            cc = self.cxx
+            ext = "cc"
+
         if not cc or not self.verbose_flag:
             return None
 
         try:
             tmpdir = tempfile.mkdtemp(prefix="spack-implicit-link-info")
             fout = os.path.join(tmpdir, "output")
-            fin = os.path.join(tmpdir, "main.c")
+            fin = os.path.join(tmpdir, f"main.{ext}")
 
-            with open(fin, "w") as csource:
+            with open(fin, "w", encoding="utf-8") as csource:
                 csource.write(
                     "int main(int argc, char* argv[]) { (void)argc; (void)argv; return 0; }\n"
                 )
@@ -776,7 +788,7 @@ class FileCompilerCache(CompilerCache):
 
     name = os.path.join("compilers", "compilers.json")
 
-    def __init__(self, cache: "spack.caches.FileCacheType") -> None:
+    def __init__(self, cache: "FileCache") -> None:
         self.cache = cache
         self.cache.init_entry(self.name)
         self._data: Dict[str, Dict[str, Optional[str]]] = {}

@@ -24,6 +24,7 @@ from typing import (
     Callable,
     Deque,
     Dict,
+    Generator,
     Iterable,
     List,
     Match,
@@ -300,35 +301,32 @@ def filter_file(
     ignore_absent: bool = False,
     start_at: Optional[str] = None,
     stop_at: Optional[str] = None,
+    encoding: Optional[str] = "utf-8",
 ) -> None:
     r"""Like sed, but uses python regular expressions.
 
-    Filters every line of each file through regex and replaces the file
-    with a filtered version.  Preserves mode of filtered files.
+    Filters every line of each file through regex and replaces the file with a filtered version.
+    Preserves mode of filtered files.
 
-    As with re.sub, ``repl`` can be either a string or a callable.
-    If it is a callable, it is passed the match object and should
-    return a suitable replacement string.  If it is a string, it
-    can contain ``\1``, ``\2``, etc. to represent back-substitution
-    as sed would allow.
+    As with re.sub, ``repl`` can be either a string or a callable. If it is a callable, it is
+    passed the match object and should return a suitable replacement string.  If it is a string, it
+    can contain ``\1``, ``\2``, etc. to represent back-substitution as sed would allow.
 
     Args:
-        regex (str): The regular expression to search for
-        repl (str): The string to replace matches with
-        *filenames: One or more files to search and replace
-        string (bool): Treat regex as a plain string. Default it False
-        backup (bool): Make backup file(s) suffixed with ``~``. Default is False
-        ignore_absent (bool): Ignore any files that don't exist.
-            Default is False
-        start_at (str): Marker used to start applying the replacements. If a
-            text line matches this marker filtering is started at the next line.
-            All contents before the marker and the marker itself are copied
-            verbatim. Default is to start filtering from the first line of the
-            file.
-        stop_at (str): Marker used to stop scanning the file further. If a text
-            line matches this marker filtering is stopped and the rest of the
-            file is copied verbatim. Default is to filter until the end of the
-            file.
+        regex: The regular expression to search for
+        repl: The string to replace matches with
+        *filenames: One or more files to search and replace string: Treat regex as a plain string.
+            Default it False backup: Make backup file(s) suffixed with ``~``. Default is False
+        ignore_absent: Ignore any files that don't exist. Default is False
+        start_at: Marker used to start applying the replacements. If a text line matches this
+            marker filtering is started at the next line. All contents before the marker and the
+            marker itself are copied verbatim. Default is to start filtering from the first line of
+            the file.
+        stop_at: Marker used to stop scanning the file further. If a text line matches this marker
+            filtering is stopped and the rest of the file is copied verbatim. Default is to filter
+            until the end of the file.
+        encoding: The encoding to use when reading and writing the files. Default is None, which
+            uses the system's default encoding.
     """
     # Allow strings to use \1, \2, etc. for replacement, like sed
     if not callable(repl):
@@ -344,72 +342,56 @@ def filter_file(
 
     if string:
         regex = re.escape(regex)
-    for filename in path_to_os_path(*filenames):
-        msg = 'FILTER FILE: {0} [replacing "{1}"]'
-        tty.debug(msg.format(filename, regex))
-
-        backup_filename = filename + "~"
-        tmp_filename = filename + ".spack~"
-
-        if ignore_absent and not os.path.exists(filename):
-            msg = 'FILTER FILE: file "{0}" not found. Skipping to next file.'
-            tty.debug(msg.format(filename))
+    regex_compiled = re.compile(regex)
+    for path in path_to_os_path(*filenames):
+        if ignore_absent and not os.path.exists(path):
+            tty.debug(f'FILTER FILE: file "{path}" not found. Skipping to next file.')
             continue
+        else:
+            tty.debug(f'FILTER FILE: {path} [replacing "{regex}"]')
 
-        # Create backup file. Don't overwrite an existing backup
-        # file in case this file is being filtered multiple times.
-        if not os.path.exists(backup_filename):
-            shutil.copy(filename, backup_filename)
+        fd, temp_path = tempfile.mkstemp(
+            prefix=f"{os.path.basename(path)}.", dir=os.path.dirname(path)
+        )
+        os.close(fd)
 
-        # Create a temporary file to read from. We cannot use backup_filename
-        # in case filter_file is invoked multiple times on the same file.
-        shutil.copy(filename, tmp_filename)
+        shutil.copy(path, temp_path)
+        errored = False
 
         try:
-            # Open as a text file and filter until the end of the file is
-            # reached, or we found a marker in the line if it was specified
-            #
-            # To avoid translating line endings (\n to \r\n and vice-versa)
-            # we force os.open to ignore translations and use the line endings
-            # the file comes with
-            with open(tmp_filename, mode="r", errors="surrogateescape", newline="") as input_file:
-                with open(filename, mode="w", errors="surrogateescape", newline="") as output_file:
-                    do_filtering = start_at is None
-                    # Using iter and readline is a workaround needed not to
-                    # disable input_file.tell(), which will happen if we call
-                    # input_file.next() implicitly via the for loop
-                    for line in iter(input_file.readline, ""):
-                        if stop_at is not None:
-                            current_position = input_file.tell()
+            # Open as a text file and filter until the end of the file is reached, or we found a
+            # marker in the line if it was specified. To avoid translating line endings (\n to
+            # \r\n and vice-versa) use newline="".
+            with open(
+                temp_path, mode="r", errors="surrogateescape", newline="", encoding=encoding
+            ) as input_file, open(
+                path, mode="w", errors="surrogateescape", newline="", encoding=encoding
+            ) as output_file:
+                if start_at is None and stop_at is None:  # common case, avoids branching in loop
+                    for line in input_file:
+                        output_file.write(re.sub(regex_compiled, repl, line))
+                else:
+                    # state is -1 before start_at; 0 between; 1 after stop_at
+                    state = 0 if start_at is None else -1
+                    for line in input_file:
+                        if state == 0:
                             if stop_at == line.strip():
-                                output_file.write(line)
-                                break
-                        if do_filtering:
-                            filtered_line = re.sub(regex, repl, line)
-                            output_file.write(filtered_line)
-                        else:
-                            do_filtering = start_at == line.strip()
-                            output_file.write(line)
-                    else:
-                        current_position = None
-
-            # If we stopped filtering at some point, reopen the file in
-            # binary mode and copy verbatim the remaining part
-            if current_position and stop_at:
-                with open(tmp_filename, mode="rb") as input_binary_buffer:
-                    input_binary_buffer.seek(current_position)
-                    with open(filename, mode="ab") as output_binary_buffer:
-                        output_binary_buffer.writelines(input_binary_buffer.readlines())
+                                state = 1
+                            else:
+                                line = re.sub(regex_compiled, repl, line)
+                        elif state == -1 and start_at == line.strip():
+                            state = 0
+                        output_file.write(line)
 
         except BaseException:
-            # clean up the original file on failure.
-            shutil.move(backup_filename, filename)
+            # restore the original file
+            os.rename(temp_path, path)
+            errored = True
             raise
 
         finally:
-            os.remove(tmp_filename)
-            if not backup and os.path.exists(backup_filename):
-                os.remove(backup_filename)
+            if not errored and not backup:
+                os.unlink(temp_path)
 
 
 class FileFilter:
@@ -1114,12 +1096,12 @@ def hash_directory(directory, ignore=[]):
 
 @contextmanager
 @system_path_filter
-def write_tmp_and_move(filename):
+def write_tmp_and_move(filename: str, *, encoding: Optional[str] = None):
     """Write to a temporary file, then move into place."""
     dirname = os.path.dirname(filename)
     basename = os.path.basename(filename)
     tmp = os.path.join(dirname, ".%s.tmp" % basename)
-    with open(tmp, "w") as f:
+    with open(tmp, "w", encoding=encoding) as f:
         yield f
     shutil.move(tmp, filename)
 
@@ -1693,11 +1675,11 @@ def find(
     recursive: bool = True,
     max_depth: Optional[int] = None,
 ) -> List[str]:
-    """Finds all non-directory files matching the patterns from ``files`` starting from ``root``.
-    This function returns a deterministic result for the same input and directory structure when
-    run multiple times. Symlinked directories are followed, and unique directories are searched
-    only once. Each matching file is returned only once at lowest depth in case multiple paths
-    exist due to symlinked directories.
+    """Finds all files matching the patterns from ``files`` starting from ``root``. This function
+    returns a deterministic result for the same input and directory structure when run multiple
+    times. Symlinked directories are followed, and unique directories are searched only once. Each
+    matching file is returned only once at lowest depth in case multiple paths exist due to
+    symlinked directories.
 
     Accepts any glob characters accepted by fnmatch:
 
@@ -1830,54 +1812,58 @@ def _find_max_depth(
         # Use glob.glob for complex patterns.
         for pattern_name, pattern in complex_patterns.items():
             matched_paths[pattern_name].extend(
-                path
-                for path in glob.glob(os.path.join(curr_dir, pattern))
-                if not os.path.isdir(path)
+                path for path in glob.glob(os.path.join(curr_dir, pattern))
             )
 
+        # List of subdirectories by path and (inode, device) tuple
+        subdirs: List[Tuple[str, Tuple[int, int]]] = []
+
         with dir_iter:
-            ordered_entries = sorted(dir_iter, key=lambda x: x.name)
-            for dir_entry in ordered_entries:
+            for dir_entry in dir_iter:
+
+                # Match filename only patterns
+                if filename_only_patterns:
+                    m = regex.match(os.path.normcase(dir_entry.name))
+                    if m:
+                        for pattern_name in filename_only_patterns:
+                            if m.group(pattern_name):
+                                matched_paths[pattern_name].append(dir_entry.path)
+                                break
+
+                # Collect subdirectories
+                if depth >= max_depth:
+                    continue
+
                 try:
-                    it_is_a_dir = dir_entry.is_dir(follow_symlinks=True)
+                    if not dir_entry.is_dir(follow_symlinks=True):
+                        continue
+                    if sys.platform == "win32":
+                        # Note: st_ino/st_dev on DirEntry.stat are not set on Windows, so we have
+                        # to call os.stat
+                        stat_info = os.stat(dir_entry.path, follow_symlinks=True)
+                    else:
+                        stat_info = dir_entry.stat(follow_symlinks=True)
                 except OSError as e:
                     # Possible permission issue, or a symlink that cannot be resolved (ELOOP).
                     _log_file_access_issue(e, dir_entry.path)
                     continue
 
-                if it_is_a_dir:
-                    if depth >= max_depth:
-                        continue
-                    try:
-                        # The stat should be performed in a try/except block. We repeat that here
-                        # vs. moving to the above block because we only want to call `stat` if we
-                        # haven't exceeded our max_depth
-                        if sys.platform == "win32":
-                            # Note: st_ino/st_dev on DirEntry.stat are not set on Windows, so we
-                            # have to call os.stat
-                            stat_info = os.stat(dir_entry.path, follow_symlinks=True)
-                        else:
-                            stat_info = dir_entry.stat(follow_symlinks=True)
-                    except OSError as e:
-                        _log_file_access_issue(e, dir_entry.path)
-                        continue
+                subdirs.append((dir_entry.path, _file_id(stat_info)))
 
-                    dir_id = _file_id(stat_info)
-                    if dir_id not in visited_dirs:
-                        dir_queue.appendleft((depth + 1, dir_entry.path))
-                        visited_dirs.add(dir_id)
-                elif filename_only_patterns:
-                    m = regex.match(os.path.normcase(dir_entry.name))
-                    if not m:
-                        continue
-                    for pattern_name in filename_only_patterns:
-                        if m.group(pattern_name):
-                            matched_paths[pattern_name].append(dir_entry.path)
-                            break
+        # Enqueue subdirectories in a deterministic order
+        if subdirs:
+            subdirs.sort(key=lambda s: os.path.basename(s[0]))
+            for subdir, subdir_id in subdirs:
+                if subdir_id not in visited_dirs:
+                    dir_queue.appendleft((depth + 1, subdir))
+                    visited_dirs.add(subdir_id)
 
+    # Sort the matched paths for deterministic output
+    for paths in matched_paths.values():
+        paths.sort()
     all_matching_paths = [path for paths in matched_paths.values() for path in paths]
 
-    # we only dedupe files if we have any complex patterns, since only they can match the same file
+    # We only dedupe files if we have any complex patterns, since only they can match the same file
     # multiple times
     return _dedupe_files(all_matching_paths) if complex_patterns else all_matching_paths
 
@@ -2769,22 +2755,6 @@ def prefixes(path):
 
 
 @system_path_filter
-def md5sum(file):
-    """Compute the MD5 sum of a file.
-
-    Args:
-        file (str): file to be checksummed
-
-    Returns:
-        MD5 sum of the file's content
-    """
-    md5 = hashlib.md5()
-    with open(file, "rb") as f:
-        md5.update(f.read())
-    return md5.digest()
-
-
-@system_path_filter
 def remove_directory_contents(dir):
     """Remove all contents of a directory."""
     if os.path.exists(dir):
@@ -2832,6 +2802,25 @@ def temporary_dir(
             yield tmp_dir
     finally:
         remove_directory_contents(tmp_dir)
+
+
+@contextmanager
+def edit_in_place_through_temporary_file(file_path: str) -> Generator[str, None, None]:
+    """Context manager for modifying ``file_path`` in place, preserving its inode and hardlinks,
+    for functions or external tools that do not support in-place editing. Notice that this function
+    is unsafe in that it works with paths instead of a file descriptors, but this is by design,
+    since we assume the call site will create a new inode at the same path."""
+    tmp_fd, tmp_path = tempfile.mkstemp(
+        dir=os.path.dirname(file_path), prefix=f"{os.path.basename(file_path)}."
+    )
+    # windows cannot replace a file with open fds, so close since the call site needs to replace.
+    os.close(tmp_fd)
+    try:
+        shutil.copyfile(file_path, tmp_path, follow_symlinks=True)
+        yield tmp_path
+        shutil.copyfile(tmp_path, file_path, follow_symlinks=True)
+    finally:
+        os.unlink(tmp_path)
 
 
 def filesummary(path, print_bytes=16) -> Tuple[int, bytes]:

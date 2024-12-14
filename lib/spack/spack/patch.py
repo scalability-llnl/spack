@@ -16,7 +16,8 @@ from llnl.url import allowed_archive
 import spack
 import spack.error
 import spack.fetch_strategy
-import spack.mirror
+import spack.mirrors.layout
+import spack.mirrors.mirror
 import spack.repo
 import spack.stage
 import spack.util.spack_json as sjson
@@ -329,12 +330,12 @@ class UrlPatch(Patch):
         name = "{0}-{1}".format(os.path.basename(self.url), fetch_digest[:7])
 
         per_package_ref = os.path.join(self.owner.split(".")[-1], name)
-        mirror_ref = spack.mirror.default_mirror_layout(fetcher, per_package_ref)
+        mirror_ref = spack.mirrors.layout.default_mirror_layout(fetcher, per_package_ref)
         self._stage = spack.stage.Stage(
             fetcher,
             name=f"{spack.stage.stage_prefix}patch-{fetch_digest}",
             mirror_paths=mirror_ref,
-            mirrors=spack.mirror.MirrorCollection(source=True).values(),
+            mirrors=spack.mirrors.mirror.MirrorCollection(source=True).values(),
         )
         return self._stage
 
@@ -530,7 +531,7 @@ class PatchCache:
 
         # update the index with per-package patch indexes
         pkg_cls = self.repository.get_pkg_class(pkg_fullname)
-        partial_index = self._index_patches(pkg_cls)
+        partial_index = self._index_patches(pkg_cls, self.repository)
         for sha256, package_to_patch in partial_index.items():
             p2p = self.index.setdefault(sha256, {})
             p2p.update(package_to_patch)
@@ -546,11 +547,14 @@ class PatchCache:
             p2p.update(package_to_patch)
 
     @staticmethod
-    def _index_patches(pkg_class: Type["spack.package_base.PackageBase"]) -> Dict[Any, Any]:
+    def _index_patches(
+        pkg_class: Type["spack.package_base.PackageBase"], repository: "spack.repo.RepoPath"
+    ) -> Dict[Any, Any]:
         """Patch index for a specific patch.
 
         Args:
             pkg_class: package object to get patches for
+            repository: repository containing the package
 
         Returns:
             The patch index for that package.
@@ -568,7 +572,7 @@ class PatchCache:
             for dependency in deps_by_name.values():
                 for patch_list in dependency.patches.values():
                     for patch in patch_list:
-                        dspec_cls = spack.repo.PATH.get_pkg_class(dependency.spec.fullname)
+                        dspec_cls = repository.get_pkg_class(dependency.spec.name)
                         patch_dict = patch.to_dict()
                         patch_dict.pop("sha256")  # save some space
                         index[patch.sha256] = {dspec_cls.fullname: patch_dict}

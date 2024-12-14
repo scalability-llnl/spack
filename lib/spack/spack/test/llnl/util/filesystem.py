@@ -334,7 +334,7 @@ def test_move_transaction_commit(tmpdir):
         fake_library.write("Other content.")
 
     assert not os.path.lexists(backup)
-    with open(str(tmpdir.join("lib", "libfoo.so")), "r") as f:
+    with open(str(tmpdir.join("lib", "libfoo.so")), "r", encoding="utf-8") as f:
         assert "Other content." == f.read()
 
 
@@ -352,7 +352,7 @@ def test_move_transaction_rollback(tmpdir):
         pass
 
     assert not os.path.lexists(backup)
-    with open(str(tmpdir.join("lib", "libfoo.so")), "r") as f:
+    with open(str(tmpdir.join("lib", "libfoo.so")), "r", encoding="utf-8") as f:
         assert "Initial content." == f.read()
 
 
@@ -506,9 +506,7 @@ def test_filter_files_with_different_encodings(regex, replacement, filename, tmp
     # This should not raise exceptions
     fs.filter_file(regex, replacement, target_file, **keyword_args)
     # Check the strings have been replaced
-    extra_kwargs = {"errors": "surrogateescape"}
-
-    with open(target_file, mode="r", **extra_kwargs) as f:
+    with open(target_file, mode="r", encoding="utf-8", errors="surrogateescape") as f:
         assert replacement in f.read()
 
 
@@ -558,9 +556,7 @@ def test_filter_files_multiple(tmpdir):
     fs.filter_file(r"\<string.h\>", "<unistd.h>", target_file)
     fs.filter_file(r"\<stdio.h\>", "<unistd.h>", target_file)
     # Check the strings have been replaced
-    extra_kwargs = {"errors": "surrogateescape"}
-
-    with open(target_file, mode="r", **extra_kwargs) as f:
+    with open(target_file, mode="r", encoding="utf-8", errors="surrogateescape") as f:
         assert "<malloc.h>" not in f.read()
         assert "<string.h>" not in f.read()
         assert "<stdio.h>" not in f.read()
@@ -585,7 +581,7 @@ def test_filter_files_start_stop(tmpdir):
     fs.filter_file("B", "X", target_file, string=True, start_at="X", stop_at="C")
     fs.filter_file(r"C|D", "X", target_file, start_at="X", stop_at="E")
 
-    with open(target_file, mode="r") as f:
+    with open(target_file, mode="r", encoding="utf-8") as f:
         assert all("X" == line.strip() for line in f.readlines())
 
 
@@ -920,7 +916,7 @@ def test_rename_dest_exists(tmpdir):
         b = tmpdir.join("a", "file2")
         fs.touchp(a)
         fs.touchp(b)
-        with open(a, "w") as oa, open(b, "w") as ob:
+        with open(a, "w", encoding="utf-8") as oa, open(b, "w", encoding="utf-8") as ob:
             oa.write("I am A")
             ob.write("I am B")
         yield a, b
@@ -942,7 +938,7 @@ def test_rename_dest_exists(tmpdir):
         fs.rename(str(a), str(b))
         assert os.path.exists(b)
         assert not os.path.exists(a)
-        with open(b, "r") as ob:
+        with open(b, "r", encoding="utf-8") as ob:
             content = ob.read()
         assert content == "I am A"
 
@@ -954,7 +950,7 @@ def test_rename_dest_exists(tmpdir):
             fs.rename(os.path.join("a", "file1"), os.path.join("a", "file2"))
             assert os.path.exists(b)
             assert not os.path.exists(a)
-            with open(b, "r") as ob:
+            with open(b, "r", encoding="utf-8") as ob:
                 content = ob.read()
             assert content == "I am A"
 
@@ -975,14 +971,14 @@ def test_rename_dest_exists(tmpdir):
     a = tmpdir.join("a", "file1")
     b = a
     fs.touchp(a)
-    with open(a, "w") as oa:
+    with open(a, "w", encoding="utf-8") as oa:
         oa.write("I am A")
     fs.rename(str(a), str(b))
     # check a, or b, doesn't matter, same file
     assert os.path.exists(a)
     # ensure original file was not duplicated
     assert len(os.listdir(tmpdir.join("a"))) == 1
-    with open(a, "r") as oa:
+    with open(a, "r", encoding="utf-8") as oa:
         assert oa.read()
     shutil.rmtree(tmpdir.join("a"))
 
@@ -1130,16 +1126,16 @@ def complex_dir_structure(request, tmpdir):
     <root>/
         l1-d1/
             l2-d1/
-                l3-s1 -> l1-d2 # points to directory above l2-d1
                 l3-d2/
                     l4-f1
-                l3-s3 -> l1-d1 # cyclic link
                 l3-d4/
                     l4-f2
+                l3-s1 -> l1-d2 # points to directory above l2-d1
+                l3-s3 -> l1-d1 # cyclic link
         l1-d2/
-            l2-f1
             l2-d2/
                 l3-f3
+            l2-f1
             l2-s3 -> l2-d2
         l1-s3 -> l3-d4 # a link that "skips" a directory level
         l1-s4 -> l2-s3 # a link to a link to a dir
@@ -1155,7 +1151,7 @@ def complex_dir_structure(request, tmpdir):
     l3_d2 = l2_d1.join("l3-d2").ensure(dir=True)
     l3_d4 = l2_d1.join("l3-d4").ensure(dir=True)
     l1_d2 = tmpdir.join("l1-d2").ensure(dir=True)
-    l2_d2 = l1_d2.join("l1-d2").ensure(dir=True)
+    l2_d2 = l1_d2.join("l2-d2").ensure(dir=True)
 
     if use_junctions:
         link_fn = llnl.util.symlink._windows_create_junction
@@ -1216,7 +1212,7 @@ def test_find_max_depth_multiple_and_repeated_entry_points(complex_dir_structure
 
 def test_multiple_patterns(complex_dir_structure):
     root, _ = complex_dir_structure
-    paths = fs.find(root, ["l2-f1", "l*-d*/l3-f3", "*", "*/*"])
+    paths = fs.find(root, ["l2-f1", "l*-d*/l3-f3", "*-f*", "*/*-f*"])
     # There shouldn't be duplicate results with multiple, overlapping patterns
     assert len(set(paths)) == len(paths)
     # All files should be found
@@ -1251,13 +1247,12 @@ def test_find_input_types(tmp_path: pathlib.Path):
         fs.find(1, "file.txt")  # type: ignore
 
 
-def test_find_only_finds_files(tmp_path: pathlib.Path):
-    """ensure that find only returns files even at max_depth"""
-    (tmp_path / "subdir").mkdir()
-    (tmp_path / "subdir" / "dir").mkdir()
-    (tmp_path / "subdir" / "file.txt").write_text("")
-    assert (
-        fs.find(tmp_path, "*", max_depth=1)
-        == fs.find(tmp_path, "*/*", max_depth=1)
-        == [str(tmp_path / "subdir" / "file.txt")]
-    )
+def test_edit_in_place_through_temporary_file(tmp_path):
+    (tmp_path / "example.txt").write_text("Hello")
+    current_ino = os.stat(tmp_path / "example.txt").st_ino
+    with fs.edit_in_place_through_temporary_file(tmp_path / "example.txt") as temporary:
+        os.unlink(temporary)
+        with open(temporary, "w", encoding="utf-8") as f:
+            f.write("World")
+    assert (tmp_path / "example.txt").read_text() == "World"
+    assert os.stat(tmp_path / "example.txt").st_ino == current_ino

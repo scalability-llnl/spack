@@ -28,6 +28,11 @@ class QtPackage(CMakePackage):
         return _url.format(qualname.lower())
 
     @staticmethod
+    def get_git(qualname):
+        _git = "https://github.com/qt/{}.git"
+        return _git.format(qualname.lower())
+
+    @staticmethod
     def get_list_url(qualname):
         _list_url = "https://github.com/qt/{}/tags"
         return _list_url.format(qualname.lower())
@@ -65,8 +70,14 @@ class QtPackage(CMakePackage):
             if re_qt.match(dep.name):
                 qt_prefix_path.append(self.spec[dep.name].prefix)
 
-        # Now append all qt-* dependency prefixex into a prefix path
+        # Now append all qt-* dependency prefixes into a prefix path
         args.append(self.define("QT_ADDITIONAL_PACKAGES_PREFIX_PATH", ":".join(qt_prefix_path)))
+
+        # Make our CMAKE_INSTALL_RPATH redundant:
+        # for prefix of current package ($ORIGIN/../lib type of rpaths),
+        args.append(self.define("QT_DISABLE_RPATH", True))
+        # for prefixes of dependencies
+        args.append(self.define("QT_NO_DISABLE_CMAKE_INSTALL_RPATH_USE_LINK_PATH", True))
 
         return args
 

@@ -38,7 +38,7 @@ import spack.caches
 import spack.compiler
 import spack.compilers
 import spack.config
-import spack.directives
+import spack.directives_meta
 import spack.environment as ev
 import spack.error
 import spack.modules.common
@@ -107,7 +107,7 @@ def last_two_git_commits(git):
 
 
 def write_file(filename, contents):
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(contents)
 
 
@@ -575,11 +575,6 @@ def mock_repo_path():
     yield spack.repo.from_path(spack.paths.mock_packages_path)
 
 
-@pytest.fixture(scope="session")
-def mock_repo_path2():
-    yield spack.repo.from_path(spack.paths.mock_packages_path2)
-
-
 def _pkg_install_fn(pkg, spec, prefix):
     # sanity_check_prefix requires something in the install directory
     mkdirp(prefix.bin)
@@ -593,20 +588,19 @@ def mock_pkg_install(monkeypatch):
 
 
 @pytest.fixture(scope="function")
-def mock_packages(mock_repo_path, mock_repo_path2, mock_pkg_install, request):
-    """Use the 'builtin.mock' and 'builtin.mock2' repositories instead of 'builtin'"""
+def mock_packages(mock_repo_path, mock_pkg_install, request):
+    """Use the 'builtin.mock' repository instead of 'builtin'"""
     ensure_configuration_fixture_run_before(request)
-    with spack.repo.use_repositories(mock_repo_path, mock_repo_path2) as mock_repo:
+    with spack.repo.use_repositories(mock_repo_path) as mock_repo:
         yield mock_repo
 
 
 @pytest.fixture(scope="function")
-def mutable_mock_repo(request):
+def mutable_mock_repo(mock_repo_path, request):
     """Function-scoped mock packages, for tests that need to modify them."""
     ensure_configuration_fixture_run_before(request)
     mock_repo = spack.repo.from_path(spack.paths.mock_packages_path)
-    mock_repo2 = spack.repo.from_path(spack.paths.mock_packages_path2)
-    with spack.repo.use_repositories(mock_repo, mock_repo2) as mock_repo_path:
+    with spack.repo.use_repositories(mock_repo) as mock_repo_path:
         yield mock_repo_path
 
 
@@ -677,7 +671,7 @@ def mock_uarch_configuration(mock_uarch_json):
     """Create mock dictionaries for the archspec.cpu."""
 
     def load_json():
-        with open(mock_uarch_json) as f:
+        with open(mock_uarch_json, encoding="utf-8") as f:
             return json.load(f)
 
     targets_json = load_json()
@@ -1106,7 +1100,7 @@ class ConfigUpdate:
 
     def __call__(self, filename):
         file = os.path.join(self.root_for_conf, filename + ".yaml")
-        with open(file) as f:
+        with open(file, encoding="utf-8") as f:
             config_settings = syaml.load_config(f)
         spack.config.set("modules:default", config_settings)
         mock_config = MockConfig(config_settings, self.writer_key)
@@ -1180,7 +1174,7 @@ def mock_archive(request, tmpdir_factory):
 
     # Create the configure script
     configure_path = str(tmpdir.join(spack.stage._source_path_subdir, "configure"))
-    with open(configure_path, "w") as f:
+    with open(configure_path, "w", encoding="utf-8") as f:
         f.write(
             "#!/bin/sh\n"
             "prefix=$(echo $1 | sed 's/--prefix=//')\n"
@@ -1682,12 +1676,6 @@ def conflict_spec(request):
     return request.param
 
 
-@pytest.fixture(params=["conflict%~"])
-def invalid_spec(request):
-    """Specs that do not parse cleanly due to invalid formatting."""
-    return request.param
-
-
 @pytest.fixture(scope="module")
 def mock_test_repo(tmpdir_factory):
     """Create an empty repository."""
@@ -1760,7 +1748,7 @@ def clear_directive_functions():
     # Make sure any directive functions overidden by tests are cleared before
     # proceeding with subsequent tests that may depend on the original
     # functions.
-    spack.directives.DirectiveMeta._directives_to_be_executed = []
+    spack.directives_meta.DirectiveMeta._directives_to_be_executed = []
 
 
 @pytest.fixture
@@ -1880,7 +1868,7 @@ def mock_curl_configs(mock_config_data, monkeypatch):
                 if basename in config_files:
                     filename = os.path.join(config_data_dir, basename)
 
-                    with open(filename, "r") as f:
+                    with open(filename, "r", encoding="utf-8") as f:
                         lines = f.readlines()
                         write_file(os.path.basename(filename), "".join(lines))
 
@@ -2070,7 +2058,7 @@ def create_test_repo(tmpdir, pkg_name_content_tuples):
 
     repo_path = str(tmpdir)
     repo_yaml = tmpdir.join("repo.yaml")
-    with open(str(repo_yaml), "w") as f:
+    with open(str(repo_yaml), "w", encoding="utf-8") as f:
         f.write(
             f"""\
 repo:
@@ -2084,7 +2072,7 @@ repo:
     for pkg_name, pkg_str in pkg_name_content_tuples:
         pkg_dir = packages_dir.ensure(pkg_name, dir=True)
         pkg_file = pkg_dir.join("package.py")
-        with open(str(pkg_file), "w") as f:
+        with open(str(pkg_file), "w", encoding="utf-8") as f:
             f.write(pkg_str)
 
     repo_cache = spack.util.file_cache.FileCache(str(tmpdir.join("cache")))

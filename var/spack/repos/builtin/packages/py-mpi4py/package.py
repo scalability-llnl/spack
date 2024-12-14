@@ -2,6 +2,7 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import os
 
 from spack.package import *
 
@@ -50,3 +51,35 @@ class PyMpi4py(PythonPackage):
     def cythonize(self):
         with working_dir(self.build_directory):
             python(join_path("conf", "cythonize.py"))
+
+    def create_mpi_config_file(self, cfg_fn):
+        """
+        create mpi.cfg file introduced since version 4.0.0.
+        see https://mpi4py.readthedocs.io/en/stable/mpi4py.html#mpi4py.get_config
+        """
+        mpi_spec = self.spec["mpi"]
+        include_dirs = mpi_spec.headers.directories
+        library_dirs = mpi_spec.libs.directories
+        with open(cfg_fn, "w") as cfg:
+            cfg.write("[mpi]\n")
+            cfg.write("mpi_dir              = {}\n".format(mpi_spec.prefix))
+            cfg.write("mpicc                = {}\n".format(mpi_spec.mpicc))
+            cfg.write("mpicxx               = {}\n".format(mpi_spec.mpicxx))
+            cfg.write("\n")
+            cfg.write("## define_macros        =\n")
+            cfg.write("## undef_macros         =\n")
+            cfg.write("include_dirs         = {}\n".format(include_dirs))
+            cfg.write("## libraries            = mpi\n")
+            cfg.write("library_dirs         = {}\n".format(library_dirs))
+            cfg.write("## runtime_library_dirs = %(mpi_dir)s/lib\n")
+            cfg.write("\n")
+            cfg.write("## extra_compile_args   =\n")
+            cfg.write("## extra_link_args      =\n")
+            cfg.write("## extra_objects        =\n")
+
+    @run_after("install", when="@4:")
+    def install_cfg(self):
+        python_dir = join_path(self.prefix, python_platlib, "mpi4py")
+        cfg_fn = join_path(python_dir, "mpi.cfg")
+        if not os.path.isfile(cfg_fn):
+            self.create_mpi_config_file(cfg_fn)

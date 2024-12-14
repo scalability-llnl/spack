@@ -211,7 +211,6 @@ spack:
   - chai +cuda cuda_arch=75 ^umpire ~shared
   - chapel +cuda cuda_arch=75
   - cusz +cuda cuda_arch=75
-  - dealii +cuda cuda_arch=75
   - ecp-data-vis-sdk +adios2 +hdf5 +vtkm +zfp ~paraview +cuda cuda_arch=75  # # +paraview: job killed oom?
   - fftx +cuda cuda_arch=75
   - flecsi +cuda cuda_arch=75
@@ -245,6 +244,7 @@ spack:
   - zfp +cuda cuda_arch=75
   # --
   # - cp2k +mpi +cuda cuda_arch=75    # cp2k: cp2k only supports cuda_arch ('35', '37', '60', '70', '80')
+  # - dealii +cuda cuda_arch=75 ~vtk  # include/deal.II/base/vectorization.h(1498): error: identifier "vaddvq_f32" is undefined; +vtk: https://github.com/spack/spack/pull/45554#issuecomment-2457255720
   # - lammps +cuda cuda_arch=75       # lammps: needs NVIDIA driver
   # - lbann +cuda cuda_arch=75        # aluminum: include/aluminum/base.hpp:53: multiple definition of `cub::CUB_200400___CUDA_ARCH_LIST___NS::Debug(cudaError,char const*, int)'; lbann: https://github.com/spack/spack/issues/38788
   # - libpressio +bitgrooming +bzip2 +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp +json +remote +netcdf ~cusz +mgard +cuda cuda_arch=75 # libpressio: CMake Error at CMakeLists.txt:498 (find_library): Could not find CUFile_LIBRARY using the following names: cufile ; +cusz: https://github.com/spack/spack/issues/38787
@@ -260,7 +260,6 @@ spack:
   - chai +cuda cuda_arch=80 ^umpire ~shared
   - chapel +cuda cuda_arch=80
   - cusz +cuda cuda_arch=80
-  - dealii +cuda cuda_arch=80
   - ecp-data-vis-sdk +adios2 +hdf5 +vtkm +zfp ~paraview +cuda cuda_arch=80 # +paraview: job killed oom?
   - fftx +cuda cuda_arch=80
   - flecsi +cuda cuda_arch=80
@@ -294,6 +293,7 @@ spack:
   - zfp +cuda cuda_arch=80
   # --
   # - cp2k +mpi +cuda cuda_arch=80    # cp2k: Error: KeyError: 'Point environment variable LIBSMM_PATH to the absolute path of the libsmm.a file'
+  # - dealii +cuda cuda_arch=80 ~vtk  # include/deal.II/base/vectorization.h(1498): error: identifier "vaddvq_f32" is undefined; +vtk: https://github.com/spack/spack/pull/45554#issuecomment-2457255720
   # - lammps +cuda cuda_arch=80       # lammps: needs NVIDIA driver
   # - lbann +cuda cuda_arch=80        # aluminum: include/aluminum/base.hpp:53: multiple definition of `cub::CUB_200400___CUDA_ARCH_LIST___NS::Debug(cudaError,char const*, int)'; lbann: https://github.com/spack/spack/issues/38788
   # - libpressio +bitgrooming +bzip2 +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp +json +remote +netcdf ~cusz +mgard +cuda cuda_arch=80 # libpressio: CMake Error at CMakeLists.txt:498 (find_library): Could not find CUFile_LIBRARY using the following names: cufile ; +cusz: https://github.com/spack/spack/issues/38787

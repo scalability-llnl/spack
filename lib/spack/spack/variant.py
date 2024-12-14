@@ -18,8 +18,8 @@ import llnl.util.lang as lang
 import llnl.util.tty.color
 
 import spack.error as error
-import spack.parser
 import spack.spec
+import spack.spec_parser
 
 #: These are variant names used by Spack internally; packages can't use them
 reserved_names = [
@@ -266,7 +266,7 @@ def _flatten(values) -> Collection:
 
     flattened: List = []
     for item in values:
-        if isinstance(item, _ConditionalVariantValues):
+        if isinstance(item, ConditionalVariantValues):
             flattened.extend(item)
         else:
             flattened.append(item)
@@ -465,7 +465,7 @@ class AbstractVariant:
 
     def __str__(self) -> str:
         delim = "==" if self.propagate else "="
-        values = spack.parser.quote_if_needed(",".join(str(v) for v in self.value_as_tuple))
+        values = spack.spec_parser.quote_if_needed(",".join(str(v) for v in self.value_as_tuple))
         return f"{self.name}{delim}{values}"
 
 
@@ -514,7 +514,7 @@ class MultiValuedVariant(AbstractVariant):
             values_str = ",".join(str(x) for x in self.value_as_tuple)
 
         delim = "==" if self.propagate else "="
-        return f"{self.name}{delim}{spack.parser.quote_if_needed(values_str)}"
+        return f"{self.name}{delim}{spack.spec_parser.quote_if_needed(values_str)}"
 
 
 class SingleValuedVariant(AbstractVariant):
@@ -571,7 +571,7 @@ class SingleValuedVariant(AbstractVariant):
 
     def __str__(self) -> str:
         delim = "==" if self.propagate else "="
-        return f"{self.name}{delim}{spack.parser.quote_if_needed(str(self.value))}"
+        return f"{self.name}{delim}{spack.spec_parser.quote_if_needed(str(self.value))}"
 
 
 class BoolValuedVariant(SingleValuedVariant):
@@ -775,18 +775,21 @@ def disjoint_sets(*sets):
 
 
 @functools.total_ordering
-class Value:
-    """Conditional value that might be used in variants."""
+class ConditionalValue:
+    """Conditional value for a variant."""
 
     value: Any
-    when: Optional["spack.spec.Spec"]  # optional b/c we need to know about disabled values
+
+    # optional because statically disabled values (when=False) are set to None
+    # when=True results in spack.spec.Spec()
+    when: Optional["spack.spec.Spec"]
 
     def __init__(self, value: Any, when: Optional["spack.spec.Spec"]):
         self.value = value
         self.when = when
 
     def __repr__(self):
-        return f"Value({self.value}, when={self.when})"
+        return f"ConditionalValue({self.value}, when={self.when})"
 
     def __str__(self):
         return str(self.value)
@@ -884,15 +887,8 @@ def prevalidate_variant_value(
     )
 
 
-class _ConditionalVariantValues(lang.TypedMutableSequence):
+class ConditionalVariantValues(lang.TypedMutableSequence):
     """A list, just with a different type"""
-
-
-def conditional(*values: List[Any], when: Optional["spack.directives.WhenType"] = None):
-    """Conditional values that can be used in variant declarations."""
-    # _make_when_spec returns None when the condition is statically false.
-    when = spack.directives._make_when_spec(when)
-    return _ConditionalVariantValues([Value(x, when=when) for x in values])
 
 
 class DuplicateVariantError(error.SpecError):

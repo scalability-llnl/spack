@@ -5,6 +5,7 @@
 
 import sys
 
+import spack.build_systems.cmake
 from spack.package import *
 
 
