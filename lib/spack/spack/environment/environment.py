@@ -43,6 +43,7 @@ import spack.util.url
 from spack import traverse
 from spack.installer import PackageInstaller
 from spack.schema.env import TOP_LEVEL_KEY, schema, update
+from spack.schema.merged import schema as  merged_schema
 from spack.spec import Spec
 from spack.spec_list import SpecList
 from spack.util.path import substitute_path_variables
@@ -2980,7 +2981,7 @@ class EnvironmentManifestFile(collections.abc.Mapping):
             spack.config.SingleFileScope(
                 self.scope_name,
                 str(self.manifest_file),
-                spack.schema.env.schema,
+                schema,
                 yaml_path=[TOP_LEVEL_KEY],
             ),
         ]
@@ -3129,7 +3130,7 @@ def scopes_from_paths(
             config_name = f"{name_prefix}:{config_path}"
             tty.debug(f"Creating SingleFileScope {config_name} for '{config_path}'")
             scopes.append(
-                spack.config.SingleFileScope(config_name, config_path, spack.schema.merged.schema)
+                spack.config.SingleFileScope(config_name, config_path, merged_schema)
             )
         elif orig_path in required:
             raise ValueError(f"Required include path does not exist: {orig_path}")
