@@ -39,6 +39,16 @@ def generate_module(args):
         view = descriptor.view(new=view_input)
         specs_to_consider = list(view.get_all_specs())
         specs_to_consider.sort(key=lambda s: len(list(s.traverse())))
+        visited = set()
+        not_contained = list()
+        for spec in reversed(specs_to_consider):
+            if spec in visited:
+                continue
+            not_contained.append(spec)
+            visited.update(spec.traverse())
+        specs_to_consider = not_contained
+        #tmp_map = dict((x.name, x) for x in specs_to_consider)
+        #import pdb; pdb.set_trace()
         env_mods.extend(
             uenv.environment_modifications_for_specs(*specs_to_consider, view=view)
         )
