@@ -47,8 +47,6 @@ def generate_module(args):
             not_contained.append(spec)
             visited.update(spec.traverse())
         specs_to_consider = not_contained
-        #tmp_map = dict((x.name, x) for x in specs_to_consider)
-        #import pdb; pdb.set_trace()
         env_mods.extend(
             uenv.environment_modifications_for_specs(*specs_to_consider, view=view)
         )
