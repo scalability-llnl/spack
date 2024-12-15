@@ -60,10 +60,7 @@ class Mmg(CMakePackage):
 
 class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
     def cmake_args(self):
-        shared_active = self.spec.satisfies("+shared")
-        return [
-            if self.spec.satisfies("@5.7.0:"):
-              self.define("MMG_INSTALL_PRIVATE_HEADERS", self.spec.satisfies("+private_headers")),
+        args = [
             self.define_from_variant("USE_SCOTCH", "scotch"),
             self.define_from_variant("USE_VTK", "vtk"),
             self.define("BUILD_SHARED_LIBS", shared_active),
@@ -76,6 +73,12 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
             self.define("LIBMMGS_STATIC", not shared_active),
             self.define("LIBMMG_STATIC", not shared_active),
         ]
+    
+        # Add conditional flag for MMG_INSTALL_PRIVATE_HEADERS
+        if self.spec.satisfies("@5.7.0:"):
+            args.append(self.define("MMG_INSTALL_PRIVATE_HEADERS", self.spec.satisfies("+private_headers")))
+    
+        return args
 
     # parmmg requires this for its build
     @run_after("install")
