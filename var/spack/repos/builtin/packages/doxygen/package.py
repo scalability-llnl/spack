@@ -131,6 +131,14 @@ class Doxygen(CMakePackage):
         when="@1.10:1.11.0",
     )
 
+    # https://github.com/doxygen/doxygen/pull/11275: fix compile for clang >= 19.0
+    patch(
+        "https://github.com/doxygen/doxygen/commit/7037b3061c554f02933bfdde9c51738e43b26d4d.patch?full_index=1",
+        sha256="90ddc686d6f8628edb11999e9561c133938fa65df91d896c536f0a74fcfe67e8",
+        when="@1.9.7:1.12.0 %clang@19.0:",
+    )
+    conflicts("%clang@19.0:", when="@:1.9.6")
+
     # Some GCC 7.x get stuck in an infinite loop
     conflicts("%gcc@7.0:7.9", when="@1.9:")
 
