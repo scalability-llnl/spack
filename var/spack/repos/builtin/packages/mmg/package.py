@@ -7,6 +7,7 @@ import os
 
 import spack.build_systems.cmake
 from spack.package import *
+from spack.util.executable import which
 
 
 class Mmg(CMakePackage):
@@ -77,7 +78,6 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
             args.append(
                 self.define("MMG_INSTALL_PRIVATE_HEADERS", self.spec.satisfies("+private_headers"))
             )
-    
         return args
 
     # parmmg requires this for its build
