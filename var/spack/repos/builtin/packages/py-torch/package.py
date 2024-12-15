@@ -485,6 +485,13 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
         working_dir="third_party/fbgemm",
     )
 
+    # Fix build on clang 19 due to nop include from tensorpipe
+    patch(
+        "clang-template.patch",
+        when="@2.5.0:2.5.1 %clang@19:"
+    )
+    conflicts("@:2.4.1", when="%clang@19:")
+
     @when("@1.5.0:")
     def patch(self):
         # https://github.com/pytorch/pytorch/issues/52208
