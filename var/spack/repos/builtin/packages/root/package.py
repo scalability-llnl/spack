@@ -268,10 +268,16 @@ class Root(CMakePackage):
         description="Build TMVA with CPU support for deep learning (requires BLAS)",
     )
     variant(
+        "tmva-cudnn",
+        when="@6.34.00:",
+        default=True,
+        description="Enable support for cuDNN in TMVA",
+    )
+    variant(
         "tmva-gpu",
         when="@6.15.02:",
         default=False,
-        description="Build TMVA with GPU support for deep learning (requries CUDA)",
+        description="Build TMVA with GPU support for deep learning (requires CUDA)",
     )
     variant(
         "tmva-pymva",
@@ -285,6 +291,12 @@ class Root(CMakePackage):
         default=False,
         description="Build TMVA with support for sofie - "
         "fast inference code generation (requires protobuf 3)",
+    )
+    variant(
+        "tpython",
+        when="@6.34.00: +python",
+        default=True,
+        description="Build the TPython class to run Python code from C++",
     )
     variant("unuran", default=True, description="Use UNURAN for random number generation")
     variant("vc", default=False, description="Enable Vc for adding new types for SIMD programming")
@@ -318,6 +330,7 @@ class Root(CMakePackage):
     depends_on("cmake@3.9:", type="build", when="@6.18.00:")
     depends_on("cmake@3.16:", type="build", when="@6.26.00:")
     depends_on("cmake@3.19:", type="build", when="@6.28.00: platform=darwin")
+    depends_on("cmake@3.20:", type="build", when="@6.34.00:")
     depends_on("pkgconfig", type="build")
 
     # 6.32.00 requires sys/random.h
@@ -363,6 +376,7 @@ class Root(CMakePackage):
     # Python
     depends_on("python@2.7:", when="+python", type=("build", "run"))
     depends_on("python@2.7:3.10", when="@:6.26.09 +python", type=("build", "run"))
+    depends_on("python@3.8:", when="@6.34.00: +python", type=("build", "run"))
     depends_on("py-numpy", type=("build", "run"), when="+tmva-pymva")
     # See: https://sft.its.cern.ch/jira/browse/ROOT-10626
     depends_on("py-numpy", type=("build", "run"), when="@6.20.00:6.20.05 +python")
@@ -777,6 +791,11 @@ class Root(CMakePackage):
 
         if self.spec.satisfies("@:6.30"):
             options.append(define_from_variant("minuit2", "minuit"))
+
+        if self.spec.satisfies("@6.34:"):
+            options.append(define_from_variant("tmva-cudnn", "tmva-cudnn"))
+            options.append(define_from_variant("tmva-cudnn", "cudnn"))
+            options.append(define_from_variant("tpython"))
 
         # #################### Compiler options ####################
 
