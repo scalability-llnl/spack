@@ -25,7 +25,11 @@ class Parmmg(CMakePackage):
     version("1.1.0", sha256="a5904f1f56b7809ab9ec2f6118b03a082ec2b5564355a73c74fc55426cc69600")
     version("1.0.0", sha256="614feb815ff6cdfc9bced30e8105994f0bf3a812243619d3349203ec1851cf6d")
 
-    patch("parmmg_cmake_patch.diff")
+    patch(
+        "parmmg_cmake_patch.diff",
+        when="@:1.5.0",
+        sha256="b6002dc32372b7d78ed5b16e0932ab12049d1dbec5f6389403603af450fd818d",
+    )
 
     variant("vtk", default=False, description="Build with VTK support")
     variant("shared", default=True, description="Build shared libraries")
@@ -35,7 +39,7 @@ class Parmmg(CMakePackage):
     depends_on("fortran", type="build")  # generated
 
     depends_on("mmg", when="@:1.4.0")
-    depends_on("mmg@5.8: +private", when="@1.5.0:")
+    depends_on("mmg@5.8: +private_headers", when="@1.5.0:")
     depends_on("metis")
     depends_on("vtk", when="+vtk")
     depends_on("mpi")
