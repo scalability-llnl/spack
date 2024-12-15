@@ -73,6 +73,7 @@ ci:
       - dealii
       - geant4
       - rocblas
+      - root
       build-job:
         tags: [ "spack", "huge" ]
         variables:
