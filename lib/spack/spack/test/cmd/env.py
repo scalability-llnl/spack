@@ -8,6 +8,7 @@ import io
 import os
 import pathlib
 import shutil
+import sys
 from argparse import Namespace
 from typing import Any, Dict, Optional
 
@@ -52,7 +53,6 @@ from spack.version import Version
 pytestmark = [
     pytest.mark.usefixtures("mutable_config", "mutable_mock_env_path", "mutable_mock_repo"),
     pytest.mark.maybeslow,
-    pytest.mark.not_on_windows("Envs unsupported on Window"),
 ]
 
 env = SpackCommand("env")
@@ -120,9 +120,8 @@ def check_viewdir_removal(viewdir):
 def test_env_track_nonexistant_path_fails(capfd):
     with pytest.raises(spack.main.SpackCommandError):
         env("track", "path/does/not/exist")
-
-    out, _ = capfd.readouterr()
-    assert "doesn't contain an environment" in out
+        out, _ = capfd.readouterr()
+        assert "doesn't contain an environment" in out
 
 
 def test_env_track_existing_env_fails(capfd):
@@ -130,9 +129,8 @@ def test_env_track_existing_env_fails(capfd):
 
     with pytest.raises(spack.main.SpackCommandError):
         env("track", "--name", "track_test", ev.environment_dir_from_name("track_test"))
-
-    out, _ = capfd.readouterr()
-    assert "environment named track_test already exists" in out
+        out, _ = capfd.readouterr()
+        assert "environment named track_test already exists" in out
 
 
 def test_env_track_valid(tmp_path):
@@ -187,9 +185,9 @@ def test_env_untrack_when_active(tmp_path, capfd):
             with pytest.raises(spack.main.SpackCommandError):
                 env("untrack", "--yes-to-all", env_name)
 
-        # check that environment could not be untracked while active
-        out, _ = capfd.readouterr()
-        assert f"'{env_name}' can't be untracked while activated" in out
+                # check that environment could not be untracked while active
+                out, _ = capfd.readouterr()
+                assert f"'{env_name}' can't be untracked while activated" in out
 
         env("untrack", "-f", env_name)
         out = env("ls")
@@ -205,9 +203,9 @@ def test_env_untrack_managed(tmp_path, capfd):
     with pytest.raises(spack.main.SpackCommandError):
         env("untrack", env_name)
 
-    # check that environment could not be untracked while active
-    out, _ = capfd.readouterr()
-    assert f"'{env_name}' is not a tracked env" in out
+        # check that environment could not be untracked while active
+        out, _ = capfd.readouterr()
+        assert f"'{env_name}' is not a tracked env" in out
 
 
 def test_add():
@@ -318,10 +316,10 @@ def test_env_rename_managed(capfd):
     # Need real environment
     with pytest.raises(spack.main.SpackCommandError):
         env("rename", "foo", "bar")
-    assert (
-        "The specified name does not correspond to a managed spack environment"
-        in capfd.readouterr()[0]
-    )
+        assert (
+            "The specified name does not correspond to a managed spack environment"
+            in capfd.readouterr()[0]
+        )
 
     env("create", "foo")
 
@@ -340,14 +338,14 @@ def test_env_rename_managed(capfd):
         # Cannot rename active environment
         with pytest.raises(spack.main.SpackCommandError):
             env("rename", "bar", "baz")
-        assert "Cannot rename active environment" in capfd.readouterr()[0]
+            assert "Cannot rename active environment" in capfd.readouterr()[0]
 
         env("create", "qux")
 
         # Cannot rename to an active environment (even with force flag)
         with pytest.raises(spack.main.SpackCommandError):
             env("rename", "-f", "qux", "bar")
-        assert "bar is an active environment" in capfd.readouterr()[0]
+            assert "bar is an active environment" in capfd.readouterr()[0]
 
         # Can rename inactive environment when another's active
         out = env("rename", "qux", "quux")
@@ -362,11 +360,11 @@ def test_env_rename_managed(capfd):
     # Cannot rename to existing environment without --force
     with pytest.raises(spack.main.SpackCommandError):
         env("rename", "bar", "baz")
-    errmsg = (
-        "The new name corresponds to an existing environment;"
-        " specify the --force flag to overwrite it."
-    )
-    assert errmsg in capfd.readouterr()[0]
+        errmsg = (
+            "The new name corresponds to an existing environment;"
+            " specify the --force flag to overwrite it."
+        )
+        assert errmsg in capfd.readouterr()[0]
 
     env("rename", "-f", "bar", "baz")
     out = env("list")
@@ -378,10 +376,10 @@ def test_env_rename_independent(capfd, tmpdir):
     # Need real environment
     with pytest.raises(spack.main.SpackCommandError):
         env("rename", "-d", "./non-existing", "./also-non-existing")
-    assert (
-        "The specified path does not correspond to a valid spack environment"
-        in capfd.readouterr()[0]
-    )
+        assert (
+            "The specified path does not correspond to a valid spack environment"
+            in capfd.readouterr()[0]
+        )
 
     anon_foo = str(tmpdir / "foo")
     env("create", "-d", anon_foo)
@@ -397,7 +395,7 @@ def test_env_rename_independent(capfd, tmpdir):
     env("activate", "--sh", "-d", anon_bar)
     with pytest.raises(spack.main.SpackCommandError):
         env("rename", "-d", anon_bar, anon_baz)
-    assert "Cannot rename active environment" in capfd.readouterr()[0]
+        assert "Cannot rename active environment" in capfd.readouterr()[0]
     env("deactivate", "--sh")
 
     assert ev.is_env_dir(anon_bar)
@@ -407,11 +405,11 @@ def test_env_rename_independent(capfd, tmpdir):
     env("create", "-d", anon_baz)
     with pytest.raises(spack.main.SpackCommandError):
         env("rename", "-d", anon_bar, anon_baz)
-    errmsg = (
-        "The new path corresponds to an existing environment;"
-        " specify the --force flag to overwrite it."
-    )
-    assert errmsg in capfd.readouterr()[0]
+        errmsg = (
+            "The new path corresponds to an existing environment;"
+            " specify the --force flag to overwrite it."
+        )
+        assert errmsg in capfd.readouterr()[0]
     assert ev.is_env_dir(anon_bar)
     assert ev.is_env_dir(anon_baz)
 
@@ -427,8 +425,8 @@ def test_env_rename_independent(capfd, tmpdir):
 
     with pytest.raises(spack.main.SpackCommandError):
         env("rename", "-d", anon_baz, anon_qux)
-    errmsg = "The new path already exists; specify the --force flag to overwrite it."
-    assert errmsg in capfd.readouterr()[0]
+        errmsg = "The new path already exists; specify the --force flag to overwrite it."
+        assert errmsg in capfd.readouterr()[0]
 
     env("rename", "-f", "-d", anon_baz, anon_qux)
     assert not ev.is_env_dir(anon_baz)
@@ -603,11 +601,9 @@ def test_env_definition_symlink(install_mockery, mock_fetch, tmpdir):
     assert os.path.islink(filepath_mid)
 
 
+@pytest.mark.not_on_windows("Not supported on Window (yet)")
 def test_env_install_two_specs_same_dep(install_mockery, mock_fetch, tmpdir, capsys):
-    """Test installation of two packages that share a dependency with no
-    connection and the second specifying the dependency as a 'build'
-    dependency.
-    """
+    """Test installation of two packages that share a dependency with no connection."""
     path = tmpdir.join("spack.yaml")
 
     with tmpdir.as_cwd():
@@ -1350,7 +1346,7 @@ def test_env_with_included_config_file_url(tmpdir, mutable_empty_config, package
 
     spack_yaml = tmpdir.join("spack.yaml")
     with spack_yaml.open("w") as f:
-        f.write("spack:\n  include:\n    - file://{0}\n".format(packages_file))
+        f.write("spack:\n  include:\n    - file:///{0}\n".format(packages_file))
 
     env = ev.Environment(tmpdir.strpath)
     ev.activate(env)
@@ -1405,7 +1401,9 @@ def test_env_with_included_config_var_path(tmpdir, packages_file):
     """Test inclusion of a package configuration file with path variables
     "staged" in the environment's configuration stage directory."""
     included_file = packages_file.strpath
-    env_path = pathlib.PosixPath(tmpdir)
+    env_path = (
+        pathlib.WindowsPath(tmpdir) if sys.platform == "win32" else pathlib.PosixPath(tmpdir)
+    )
     config_var_path = os.path.join("$tempdir", "included-packages.yaml")
 
     spack_yaml = env_path / ev.manifest_name
@@ -1851,9 +1849,7 @@ def test_env_view_fails_dir_file(tmpdir, mock_packages, mock_stage, mock_fetch, 
     with ev.read("test"):
         add("view-file")
         add("view-dir")
-        with pytest.raises(
-            llnl.util.link_tree.MergeConflictSummary, match=os.path.join("bin", "x")
-        ):
+        with pytest.raises(llnl.util.link_tree.MergeConflictSummary, match="bin"):
             install()
 
 
@@ -3477,6 +3473,7 @@ spack:
     env("update", "-y", str(abspath.dirname))
 
 
+@pytest.mark.not_on_windows("modules unsupported on Windows")
 @pytest.mark.regression("18338")
 def test_newline_in_commented_sequence_is_not_an_issue(tmpdir):
     spack_yaml = """
@@ -3624,6 +3621,7 @@ def test_custom_version_concretize_together(tmpdir):
     assert any(spec.satisfies("hdf5@myversion") for _, spec in e.concretized_specs())
 
 
+@pytest.mark.not_on_windows("modules unsupported on Windows")
 def test_modules_relative_to_views(environment_from_manifest, install_mockery, mock_fetch):
     environment_from_manifest(
         """
@@ -3656,6 +3654,7 @@ spack:
     assert spec.prefix not in contents
 
 
+@pytest.mark.not_on_windows("modules unsupported on Windows")
 def test_modules_exist_after_env_install(
     environment_from_manifest, install_mockery, mock_fetch, monkeypatch
 ):
@@ -4088,6 +4087,7 @@ def _parse_dry_run_package_installs(make_output):
     ]
 
 
+@pytest.mark.not_on_windows("Makefile not compatible with Windows")
 @pytest.mark.parametrize(
     "depfile_flags,expected_installs",
     [
@@ -4190,6 +4190,7 @@ def test_depfile_safe_format():
     assert spec.unsafe_format("{name}") == "abc@def=ghi"
 
 
+@pytest.mark.not_on_windows("Makefile not compatible with Windows")
 def test_depfile_works_with_gitversions(tmpdir, mock_packages, monkeypatch):
     """Git versions may contain = chars, which should be escaped in targets,
     otherwise they're interpreted as makefile variable assignments."""
@@ -4229,6 +4230,7 @@ def test_depfile_works_with_gitversions(tmpdir, mock_packages, monkeypatch):
     assert len(specs_that_make_would_install) == len(set(specs_that_make_would_install))
 
 
+@pytest.mark.not_on_windows("Makefile not compatible with Windows")
 @pytest.mark.parametrize(
     "picked_package,expected_installs",
     [
@@ -4294,6 +4296,7 @@ def test_depfile_phony_convenience_targets(
         assert len(specs_that_make_would_install) == len(set(specs_that_make_would_install))
 
 
+@pytest.mark.not_on_windows("Makefile not compatible with Windows")
 def test_environment_depfile_out(tmpdir, mock_packages):
     env("create", "test")
     makefile_path = str(tmpdir.join("Makefile"))
@@ -4307,6 +4310,7 @@ def test_environment_depfile_out(tmpdir, mock_packages):
             assert stdout == f.read()
 
 
+@pytest.mark.not_on_windows("Makefile not compatible with Windows")
 def test_spack_package_ids_variable(tmpdir, mock_packages):
     # Integration test for post-install hooks through prefix/SPACK_PACKAGE_IDS
     # variable
@@ -4355,6 +4359,7 @@ post-install: $(addprefix example/post-install/,$(example/SPACK_PACKAGE_IDS))
             assert "post-install: {}".format(s.dag_hash()) in out
 
 
+@pytest.mark.not_on_windows("Makefile not compatible with Windows")
 def test_depfile_empty_does_not_error(tmp_path):
     # For empty environments Spack should create a depfile that does nothing
     make = Executable("make")

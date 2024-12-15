@@ -798,9 +798,11 @@ class ViewDescriptor:
         tmp_symlink_name = os.path.join(root_dirname, "._view_link")
 
         # Remove self.root if is it an empty dir, since we need a symlink there. Note that rmdir
-        # fails if self.root is a symlink.
+        # fails if self.root is a symlink on Linux, on Windows it will remove SymlinkD (symlinks
+        # to directory). On Windows we need to first validate its not a symlink
         try:
-            os.rmdir(self.root)
+            if not islink(self.root):
+                os.rmdir(self.root)
         except (FileNotFoundError, NotADirectoryError):
             pass
         except OSError as e:
