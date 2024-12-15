@@ -51,7 +51,7 @@ class Mmg(CMakePackage):
     variant("scotch", default=True, description="Enable SCOTCH library support")
     variant("doc", default=False, description="Build documentation")
     variant("vtk", default=False, when="@5.5.0:", description="Enable VTK I/O support")
-    variant("private", default=True, description="Enable private headers")
+    variant("private_headers", default=True, description="Enable private headers")
 
     depends_on("scotch", when="+scotch")
     depends_on("doxygen", when="+doc")
@@ -62,7 +62,8 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
     def cmake_args(self):
         shared_active = self.spec.satisfies("+shared")
         return [
-            self.define("MMG_INSTALL_PRIVATE_HEADERS", self.spec.satisfies("+private")),
+            if self.spec.satisfies("@5.7.0:"):
+              self.define("MMG_INSTALL_PRIVATE_HEADERS", self.spec.satisfies("+private_headers")),
             self.define_from_variant("USE_SCOTCH", "scotch"),
             self.define_from_variant("USE_VTK", "vtk"),
             self.define("BUILD_SHARED_LIBS", shared_active),
