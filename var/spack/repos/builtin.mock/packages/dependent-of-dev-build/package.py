@@ -16,5 +16,5 @@ class DependentOfDevBuild(Package):
     depends_on("dev-build-test-install")
 
     def install(self, spec, prefix):
-        with open(prefix.filename, "w") as f:
+        with open(prefix.filename, "w", encoding="utf-8") as f:
             f.write("This file is installed")

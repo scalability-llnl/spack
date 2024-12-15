@@ -21,6 +21,8 @@ class AmrWind(CMakePackage, CudaPackage, ROCmPackage):
     license("BSD-3-Clause")
 
     version("main", branch="main", submodules=True)
+    version("3.2.0", tag="v3.2.0", submodules=True)
+    version("3.1.7", tag="v3.1.7", submodules=True)
     version("3.1.6", tag="v3.1.6", submodules=True)
     version("3.1.5", tag="v3.1.5", submodules=True)
     version("3.1.4", tag="v3.1.4", submodules=True)
@@ -138,10 +140,7 @@ class AmrWind(CMakePackage, CudaPackage, ROCmPackage):
         ]
         args = [self.define_from_variant("AMR_WIND_ENABLE_%s" % v.upper(), v) for v in vs]
 
-        args += [
-            define("AMR_WIND_ENABLE_ALL_WARNINGS", True),
-            self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
-        ]
+        args += [self.define_from_variant("BUILD_SHARED_LIBS", "shared")]
 
         if spec.satisfies("+mpi"):
             args.append(define("MPI_HOME", spec["mpi"].prefix))

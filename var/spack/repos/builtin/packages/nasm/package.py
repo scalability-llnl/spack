@@ -5,6 +5,7 @@
 import glob
 import os
 
+import spack.build_systems.generic
 from spack.package import *
 
 

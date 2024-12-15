@@ -174,7 +174,6 @@ class Mumps(Package):
 
         # Determine which compiler suite we are using
         using_gcc = self.compiler.name == "gcc"
-        using_pgi = self.compiler.name == "pgi"
         using_nvhpc = self.compiler.name == "nvhpc"
         using_intel = self.compiler.name == "intel"
         using_oneapi = self.compiler.name == "oneapi"
@@ -287,7 +286,7 @@ class Mumps(Package):
 
         # TODO: change the value to the correct one according to the
         # compiler possible values are -DAdd_, -DAdd__ and/or -DUPPER
-        if using_intel or using_oneapi or using_pgi or using_nvhpc or using_fj:
+        if using_intel or using_oneapi or using_nvhpc or using_fj:
             # Intel, PGI, and Fujitsu Fortran compiler provides
             # the main() function so C examples linked with the Fortran
             # compiler require a hack defined by _DMAIN_COMP

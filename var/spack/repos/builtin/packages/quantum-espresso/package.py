@@ -226,11 +226,6 @@ class QuantumEspresso(CMakePackage, Package):
         # EPW doesn't gets along well with OpenMPI 2.x.x
         conflicts("^openmpi@2.0.0:2", msg="OpenMPI version incompatible with EPW")
 
-        # EPW also doesn't gets along well with PGI 17.x + OpenMPI 1.10.7
-        conflicts(
-            "^openmpi@1.10.7%pgi@17.0:17.12", msg="PGI+OpenMPI version combo incompatible with EPW"
-        )
-
     variant(
         "environ",
         default=False,

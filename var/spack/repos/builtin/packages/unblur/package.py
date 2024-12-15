@@ -26,7 +26,6 @@ class Unblur(AutotoolsPackage):
     depends_on("fftw@3:")
     # Requires Intel Fortran compiler
     conflicts("%gcc")
-    conflicts("%pgi")
     conflicts("%apple-clang")
     conflicts("%clang")
     conflicts("%cce")

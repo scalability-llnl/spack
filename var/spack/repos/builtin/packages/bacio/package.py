@@ -39,5 +39,5 @@ class Bacio(CMakePackage):
             filter_file(".+", "2.4.1", "VERSION")
 
     def check(self):
-        with working_dir(self.builder.build_directory):
+        with working_dir(self.build_directory):
             make("test")

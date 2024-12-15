@@ -8,9 +8,7 @@ from spack.package import *
 
 
 class Pandorasdk(CMakePackage):
-    """Metadata package to bring together and build multiple Pandora libraries.
-    NOTE: for proper version control with spack, this should be broken up and
-    the subpackages installed individually."""
+    """Pandora Software Development Kit for pattern-recognition algorithms"""
 
     url = "https://github.com/PandoraPFA/PandoraSDK/archive/v03-04-00.tar.gz"
     homepage = "https://github.com/PandoraPFA/PandoraSDK"

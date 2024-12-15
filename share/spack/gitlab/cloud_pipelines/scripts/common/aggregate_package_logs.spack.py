@@ -32,7 +32,7 @@ if __name__ == "__main__":
     # Look in the CWD for logs
     local_log_path = os.path.join(os.getcwd(), args.log)
     if os.path.exists(local_log_path):
-        with open(local_log_path) as fd:
+        with open(local_log_path, encoding="utf-8") as fd:
             data.append(json.load(fd))
 
     # Look in the list of prefixes for logs
@@ -42,9 +42,9 @@ if __name__ == "__main__":
         print(f"  * found {len(logs)} logs")
         for log in logs:
             print(f"  * appending data for {log}")
-            with open(log) as fd:
+            with open(log, encoding="utf-8") as fd:
                 data.append(json.load(fd))
 
     print(f"Writing {args.output_file}")
-    with open(args.output_file, "w") as fd:
+    with open(args.output_file, "w", encoding="utf-8") as fd:
         json.dump(data, fd)

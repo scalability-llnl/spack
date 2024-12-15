@@ -39,8 +39,9 @@ class PyTorchtext(PythonPackage):
     version("0.10.0", tag="v0.10.0", commit="4da1de36247aa06622088e78508e0e38a4392e38")
     version("0.9.2", tag="v0.9.2", commit="22e5ee7548a85190eee78e8ed6c8911ec2c53035")
     version("0.8.1", tag="v0.8.1", commit="0f911ec35ab020983efbf36b8c14415651e98618")
-    version("0.6.0", tag="0.6.0", commit="3a54c7f52584f201c17ca7489b52b812152612dc")
-    version("0.5.0", tag="0.5.0", commit="0169cde2f1d446ae886ef0be07e9a673585ed256")
+    with default_args(deprecated=True):
+        version("0.6.0", tag="0.6.0", commit="3a54c7f52584f201c17ca7489b52b812152612dc")
+        version("0.5.0", tag="0.5.0", commit="0169cde2f1d446ae886ef0be07e9a673585ed256")
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
@@ -93,3 +94,18 @@ class PyTorchtext(PythonPackage):
     depends_on("py-pybind11", when="@0.8:", type=("build", "link"))
     depends_on("py-six", when="@:0.6", type=("build", "run"))
     depends_on("py-sentencepiece", when="@:0.7", type=("build", "run"))
+
+    def patch(self):
+        # Add missing rpaths, which requires patching due to hardcoded cmake_args
+        if self.spec.satisfies("@0.13:"):
+            cmake_args = [
+                f"-DCMAKE_INSTALL_RPATH={python_platlib}/torchtext/lib",
+                "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON",
+            ]
+            cmake_str = ", ".join(f"'{arg}'" for arg in cmake_args)
+            filter_file(
+                "cmake_args = [",
+                f"cmake_args = [{cmake_str},",
+                "tools/setup_helpers/extension.py",
+                string=True,
+            )

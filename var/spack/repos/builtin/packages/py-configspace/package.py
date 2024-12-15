@@ -12,7 +12,7 @@ class PyConfigspace(PythonPackage):
 
     maintainers("Kerilk", "mdorier")
 
-    homepage = "https://automl.github.io/ConfigSpace/master/"
+    homepage = "https://automl.github.io/ConfigSpace/latest/"
     pypi = "configspace/configspace-1.0.0.tar.gz"
 
     license("BSD-3-Clause")

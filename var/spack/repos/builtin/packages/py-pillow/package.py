@@ -74,6 +74,12 @@ class PyPillowBase(PythonPackage):
     depends_on("libimagequant", when="+imagequant")
     depends_on("libxcb", when="+xcb")
 
+    patch(
+        "https://github.com/python-pillow/Pillow/commit/1c11d4581c5705dfa21bc5a4f3b6980c556978bf.patch?full_index=1",
+        sha256="599f37e6a5a8d1adb9f4025ffc7cae5f5b61cad60a04e7c7a3015f9e350047bb",
+        when="@11.0.0",
+    )
+
     @when("@10:")
     def config_settings(self, spec, prefix):
         settings = {"parallel": make_jobs}
@@ -160,10 +166,26 @@ class PyPillow(PyPillowBase):
     version("9.0.0", sha256="ee6e2963e92762923956fe5d3479b1fdc3b76c83f290aad131a2f98c3df0593e")
     version("8.4.0", sha256="b8e2f83c56e141920c39464b852de3719dfbfb6e3c99a2d8da0edf4fb33176ed")
     version("8.0.0", sha256="59304c67d12394815331eda95ec892bf54ad95e0aa7bc1ccd8e0a4a5a25d4bf3")
-    version("7.2.0", sha256="97f9e7953a77d5a70f49b9a48da7776dc51e9b738151b22dacf101641594a626")
-    version("7.0.0", sha256="4d9ed9a64095e031435af120d3c910148067087541131e82b3e8db302f4c8946")
-    version("6.2.2", sha256="db9ff0c251ed066d367f53b64827cc9e18ccea001b986d08c265e53625dab950")
-    version("6.2.1", sha256="bf4e972a88f8841d8fdc6db1a75e0f8d763e66e3754b03006cbc3854d89f1cb1")
+    version(
+        "7.2.0",
+        sha256="97f9e7953a77d5a70f49b9a48da7776dc51e9b738151b22dacf101641594a626",
+        deprecated=True,
+    )
+    version(
+        "7.0.0",
+        sha256="4d9ed9a64095e031435af120d3c910148067087541131e82b3e8db302f4c8946",
+        deprecated=True,
+    )
+    version(
+        "6.2.2",
+        sha256="db9ff0c251ed066d367f53b64827cc9e18ccea001b986d08c265e53625dab950",
+        deprecated=True,
+    )
+    version(
+        "6.2.1",
+        sha256="bf4e972a88f8841d8fdc6db1a75e0f8d763e66e3754b03006cbc3854d89f1cb1",
+        deprecated=True,
+    )
 
     depends_on("c", type="build")
 

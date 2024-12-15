@@ -192,3 +192,10 @@ class StopPhase(SpackError):
 
 def _make_stop_phase(msg, long_msg):
     return StopPhase(msg, long_msg)
+
+
+class MirrorError(SpackError):
+    """Superclass of all mirror-creation related errors."""
+
+    def __init__(self, msg, long_msg=None):
+        super().__init__(msg, long_msg)

@@ -17,6 +17,7 @@ class Armadillo(CMakePackage):
 
     license("Apache-2.0")
 
+    version("14.0.3", sha256="ebd6215eeb01ee412fed078c8a9f7f87d4e1f6187ebcdc1bc09f46095a4f4003")
     version("14.0.2", sha256="248e2535fc092add6cb7dea94fc86ae1c463bda39e46fd82d2a7165c1c197dff")
     version("12.8.4", sha256="558fe526b990a1663678eff3af6ec93f79ee128c81a4c8aef27ad328fae61138")
     version("12.8.3", sha256="2922589f6387796504b340da6bb954bef3d87574c298515893289edd2d890151")
@@ -30,7 +31,8 @@ class Armadillo(CMakePackage):
     version("8.100.1", sha256="54773f7d828bd3885c598f90122b530ded65d9b195c9034e082baea737cd138d")
     version("7.950.1", sha256="a32da32a0ea420b8397a53e4b40ed279c1a5fc791dd492a2ced81ffb14ad0d1b")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("hdf5", default=False, description="Include HDF5 support")
 
@@ -87,4 +89,9 @@ class Armadillo(CMakePackage):
             self.define("SuperLU_LIBRARY", spec["superlu"].libs.joined(";")),
             # HDF5 support
             self.define("DETECT_HDF5", "ON" if spec.satisfies("+hdf5") else "OFF"),
+            # disable flexiblas support because armadillo will possibly detect system
+            # flexiblas which causes problems. If this is removed, then SuperLU and ARPACK must
+            # also link with Flexiblas. As this does not seem to be needed with the spack
+            # blas and lapack, it is easier to disable
+            self.define("ALLOW_FLEXIBLAS_LINUX", "OFF"),
         ]

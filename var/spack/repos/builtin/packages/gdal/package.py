@@ -28,10 +28,10 @@ class Gdal(CMakePackage, AutotoolsPackage, PythonExtension):
     list_url = "https://download.osgeo.org/gdal/"
     list_depth = 1
 
+    license("MIT")
     maintainers("adamjstewart")
 
-    license("MIT")
-
+    version("3.10.0", sha256="af821a3bcf68cf085724c21c9b53605fd451d83af3c8854d8bf194638eb734a8")
     version("3.9.3", sha256="34a037852ffe6d2163f1b8948a1aa7019ff767148aea55876c1339b22ad751f1")
     version("3.9.2", sha256="bfbcc9f087f012c36151c20c79f8eac9529e1e5298fbded79cd5a1365f0b113a")
     version("3.9.1", sha256="aff3086fee75f5773e33a5598df98d8a4d10be411f777d3ce23584b21d8171ca")
@@ -115,6 +115,7 @@ class Gdal(CMakePackage, AutotoolsPackage, PythonExtension):
     variant(
         "arrow", default=False, when="build_system=cmake", description="Required for Arrow driver"
     )
+    variant("avif", default=False, when="@3.10:", description="Required for AVIF driver")
     variant(
         "basisu", default=False, when="@3.6:", description="Required for BASISU and KTX2 drivers"
     )
@@ -197,6 +198,7 @@ class Gdal(CMakePackage, AutotoolsPackage, PythonExtension):
         "opencad", default=False, when="build_system=cmake", description="Required for CAD driver"
     )
     variant("opencl", default=False, description="Required to accelerate warping computations")
+    variant("opendrive", default=False, when="@3.10:", description="Required for XODR driver")
     variant("openexr", default=False, when="@3.1:", description="Required for EXR driver")
     variant("openjpeg", default=False, description="Required for JP2OpenJPEG driver")
     variant("openssl", default=False, when="@2.3:", description="Required for EEDAI driver")
@@ -289,6 +291,7 @@ class Gdal(CMakePackage, AutotoolsPackage, PythonExtension):
     depends_on("blas", when="+armadillo")
     depends_on("lapack", when="+armadillo")
     depends_on("arrow", when="+arrow")
+    depends_on("libavif", when="+avif")
     # depends_on("basis-universal", when="+basisu")
     depends_on("c-blosc", when="+blosc")
     depends_on("brunsli", when="+brunsli")
@@ -354,6 +357,7 @@ class Gdal(CMakePackage, AutotoolsPackage, PythonExtension):
     # depends_on('ogdi', when='+ogdi')
     # depends_on('lib-opencad', when='+opencad')
     depends_on("opencl", when="+opencl")
+    # depends_on("libopendrive@0.6:", when="+opendrive")
     depends_on("openexr@2.2:", when="+openexr")
     depends_on("openjpeg@2.3.1:", when="@3.9:+openjpeg")
     depends_on("openjpeg", when="+openjpeg")
@@ -549,6 +553,7 @@ class CMakeBuilder(CMakeBuilder):
             self.define_from_variant("GDAL_USE_ARCHIVE", "archive"),
             self.define_from_variant("GDAL_USE_ARMADILLO", "armadillo"),
             self.define_from_variant("GDAL_USE_ARROW", "arrow"),
+            self.define_from_variant("GDAL_USE_AVIF", "avif"),
             self.define_from_variant("GDAL_USE_BASISU", "basisu"),
             self.define_from_variant("GDAL_USE_BLOSC", "blosc"),
             self.define_from_variant("GDAL_USE_BRUNSLI", "brunsli"),
@@ -595,6 +600,7 @@ class CMakeBuilder(CMakeBuilder):
             self.define_from_variant("GDAL_USE_OGDI", "ogdi"),
             self.define_from_variant("GDAL_USE_OPENCAD", "opencad"),
             self.define_from_variant("GDAL_USE_OPENCL", "opencl"),
+            self.define_from_variant("GDAL_USE_OPENDRIVE", "opendrive"),
             self.define_from_variant("GDAL_USE_OPENEXR", "openexr"),
             self.define_from_variant("GDAL_USE_OPENJPEG", "openjpeg"),
             self.define_from_variant("GDAL_USE_OPENSSL", "openssl"),

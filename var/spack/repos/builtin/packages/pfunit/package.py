@@ -225,7 +225,6 @@ class Pfunit(CMakePackage):
             "%gcc": "GNU",
             "%clang": "GNU",
             "%intel": "Intel",
-            "%pgi": "PGI",
             "%nag": "NAG",
             "%cce": "Cray",
         }

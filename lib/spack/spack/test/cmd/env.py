@@ -117,6 +117,99 @@ def check_viewdir_removal(viewdir):
     ) == ["projections.yaml"]
 
 
+def test_env_track_nonexistant_path_fails(capfd):
+    with pytest.raises(spack.main.SpackCommandError):
+        env("track", "path/does/not/exist")
+
+    out, _ = capfd.readouterr()
+    assert "doesn't contain an environment" in out
+
+
+def test_env_track_existing_env_fails(capfd):
+    env("create", "track_test")
+
+    with pytest.raises(spack.main.SpackCommandError):
+        env("track", "--name", "track_test", ev.environment_dir_from_name("track_test"))
+
+    out, _ = capfd.readouterr()
+    assert "environment named track_test already exists" in out
+
+
+def test_env_track_valid(tmp_path):
+    with fs.working_dir(str(tmp_path)):
+        # create an independent environment
+        env("create", "-d", ".")
+
+        # test tracking an environment in known store
+        env("track", "--name", "test1", ".")
+
+        # test removing environment to ensure independent isn't deleted
+        env("rm", "-y", "test1")
+
+        assert os.path.isfile("spack.yaml")
+
+
+def test_env_untrack_valid(tmp_path):
+    with fs.working_dir(str(tmp_path)):
+        # create an independent environment
+        env("create", "-d", ".")
+
+        # test tracking an environment in known store
+        env("track", "--name", "test_untrack", ".")
+        env("untrack", "--yes-to-all", "test_untrack")
+
+        # check that environment was sucessfully untracked
+        out = env("ls")
+        assert "test_untrack" not in out
+
+
+def test_env_untrack_invalid_name():
+    # test untracking an environment that doesn't exist
+    env_name = "invalid_enviornment_untrack"
+
+    out = env("untrack", env_name)
+
+    assert f"Environment '{env_name}' does not exist" in out
+
+
+def test_env_untrack_when_active(tmp_path, capfd):
+    env_name = "test_untrack_active"
+
+    with fs.working_dir(str(tmp_path)):
+        # create an independent environment
+        env("create", "-d", ".")
+
+        # test tracking an environment in known store
+        env("track", "--name", env_name, ".")
+
+        active_env = ev.read(env_name)
+        with active_env:
+            with pytest.raises(spack.main.SpackCommandError):
+                env("untrack", "--yes-to-all", env_name)
+
+        # check that environment could not be untracked while active
+        out, _ = capfd.readouterr()
+        assert f"'{env_name}' can't be untracked while activated" in out
+
+        env("untrack", "-f", env_name)
+        out = env("ls")
+        assert env_name not in out
+
+
+def test_env_untrack_managed(tmp_path, capfd):
+    env_name = "test_untrack_managed"
+
+    # create an managed environment
+    env("create", env_name)
+
+    with pytest.raises(spack.main.SpackCommandError):
+        env("untrack", env_name)
+
+    # check that environment could not be untracked while active
+    out, _ = capfd.readouterr()
+    assert f"'{env_name}' is not a tracked env" in out
+
+
 def test_add():
     e = ev.create("test")
     e.add("mpileaks")
@@ -128,6 +221,7 @@ def test_change_match_spec():
 
     e = ev.read("test")
     with e:
+
         add("mpileaks@2.1")
         add("mpileaks@2.2")
 
@@ -517,7 +611,7 @@ def test_env_install_two_specs_same_dep(install_mockery, mock_fetch, tmpdir, cap
     path = tmpdir.join("spack.yaml")
 
     with tmpdir.as_cwd():
-        with open(str(path), "w") as f:
+        with open(str(path), "w", encoding="utf-8") as f:
             f.write(
                 """\
 spack:
@@ -688,7 +782,7 @@ def test_force_remove_included_env():
     rm_output = env("remove", "-f", "-y", "test")
     list_output = env("list")
 
-    assert '"test" is being used by environment "combined_env"' in rm_output
+    assert "'test' is used by environment 'combined_env'" in rm_output
     assert "test" not in list_output
 
 
@@ -796,7 +890,7 @@ spack:
     before.write()
 
     # user modifies yaml externally to spack and removes hypre
-    with open(before.manifest_path, "w") as f:
+    with open(before.manifest_path, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -955,7 +1049,7 @@ def test_init_with_file_and_remove(tmpdir):
     path = tmpdir.join("spack.yaml")
 
     with tmpdir.as_cwd():
-        with open(str(path), "w") as f:
+        with open(str(path), "w", encoding="utf-8") as f:
             f.write(
                 """\
 spack:
@@ -1047,7 +1141,7 @@ spack:
 def test_env_with_include_config_files_same_basename(tmp_path, environment_from_manifest):
     file1 = fs.join_path(tmp_path, "path", "to", "included-config.yaml")
     fs.mkdirp(os.path.dirname(file1))
-    with open(file1, "w") as f:
+    with open(file1, "w", encoding="utf-8") as f:
         f.write(
             """\
         packages:
@@ -1058,7 +1152,7 @@ def test_env_with_include_config_files_same_basename(tmp_path, environment_from_
 
     file2 = fs.join_path(tmp_path, "second", "path", "included-config.yaml")
     fs.mkdirp(os.path.dirname(file2))
-    with open(file2, "w") as f:
+    with open(file2, "w", encoding="utf-8") as f:
         f.write(
             """\
         packages:
@@ -1150,7 +1244,7 @@ def test_config_change_existing(mutable_mock_env_path, tmp_path, mock_packages, 
 
     included_file = "included-packages.yaml"
     included_path = tmp_path / included_file
-    with open(included_path, "w") as f:
+    with open(included_path, "w", encoding="utf-8") as f:
         f.write(
             """\
 packages:
@@ -1334,7 +1428,7 @@ def test_env_with_included_config_precedence(tmp_path):
 
     included_file = "included-packages.yaml"
     included_path = tmp_path / included_file
-    with open(included_path, "w") as f:
+    with open(included_path, "w", encoding="utf-8") as f:
         f.write(
             """\
 packages:
@@ -1388,7 +1482,7 @@ spack:
 """
     )
 
-    with open(tmp_path / file1, "w") as f:
+    with open(tmp_path / file1, "w", encoding="utf-8") as f:
         f.write(
             """\
 packages:
@@ -1397,7 +1491,7 @@ packages:
 """
         )
 
-    with open(tmp_path / file2, "w") as f:
+    with open(tmp_path / file2, "w", encoding="utf-8") as f:
         f.write(
             """\
 packages:
@@ -1425,7 +1519,7 @@ def test_bad_env_yaml_format_remove(mutable_mock_env_path):
     badenv = "badenv"
     env("create", badenv)
     filename = mutable_mock_env_path / "spack.yaml"
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
     - mpileaks
@@ -1536,7 +1630,7 @@ def test_env_loads(install_mockery, mock_fetch, mock_modules_root):
     loads_file = os.path.join(e.path, "loads")
     assert os.path.exists(loads_file)
 
-    with open(loads_file) as f:
+    with open(loads_file, encoding="utf-8") as f:
         contents = f.read()
         assert "module load mpileaks" in contents
 
@@ -1624,7 +1718,7 @@ def test_uninstall_keeps_in_env(mock_stage, mock_fetch, install_mockery):
     assert test.concretized_order == orig_concretized_specs
     assert test.user_specs.specs == orig_user_specs.specs
     assert mpileaks_hash in test.specs_by_hash
-    assert not test.specs_by_hash[mpileaks_hash].package.installed
+    assert not test.specs_by_hash[mpileaks_hash].installed
 
 
 def test_uninstall_removes_from_env(mock_stage, mock_fetch, install_mockery):
@@ -1867,7 +1961,7 @@ def test_env_include_concrete_envs_lockfile():
     assert "include_concrete" in combined_yaml
     assert test1.path in combined_yaml["include_concrete"]
 
-    with open(combined.lock_path) as f:
+    with open(combined.lock_path, encoding="utf-8") as f:
         lockfile_as_dict = combined._read_lockfile(f)
 
     assert set(
@@ -1894,7 +1988,7 @@ def test_env_include_concrete_add_env():
     combined.included_concrete_envs.append(new_env.path)
 
     # assert thing haven't changed yet
-    with open(combined.lock_path) as f:
+    with open(combined.lock_path, encoding="utf-8") as f:
         lockfile_as_dict = combined._read_lockfile(f)
 
     assert new_env.path not in lockfile_as_dict["include_concrete"].keys()
@@ -1904,7 +1998,7 @@ def test_env_include_concrete_add_env():
     combined.write()
 
     # assert changes
-    with open(combined.lock_path) as f:
+    with open(combined.lock_path, encoding="utf-8") as f:
         lockfile_as_dict = combined._read_lockfile(f)
 
     assert new_env.path in lockfile_as_dict["include_concrete"].keys()
@@ -1917,7 +2011,7 @@ def test_env_include_concrete_remove_env():
     combined.included_concrete_envs = [test1.path]
 
     # assert test2 is still in combined's lockfile
-    with open(combined.lock_path) as f:
+    with open(combined.lock_path, encoding="utf-8") as f:
         lockfile_as_dict = combined._read_lockfile(f)
 
     assert test2.path in lockfile_as_dict["include_concrete"].keys()
@@ -1927,7 +2021,7 @@ def test_env_include_concrete_remove_env():
     combined.write()
 
     # assert test2 is not in combined's lockfile
-    with open(combined.lock_path) as f:
+    with open(combined.lock_path, encoding="utf-8") as f:
         lockfile_as_dict = combined._read_lockfile(f)
 
     assert test2.path not in lockfile_as_dict["include_concrete"].keys()
@@ -2052,7 +2146,7 @@ def test_env_include_concrete_env_reconcretized(unify):
 
     combined.unify = unify
 
-    with open(combined.lock_path) as f:
+    with open(combined.lock_path, encoding="utf-8") as f:
         lockfile_as_dict = combined._read_lockfile(f)
 
     assert not lockfile_as_dict["roots"]
@@ -2061,7 +2155,7 @@ def test_env_include_concrete_env_reconcretized(unify):
     combined.concretize()
     combined.write()
 
-    with open(combined.lock_path) as f:
+    with open(combined.lock_path, encoding="utf-8") as f:
         lockfile_as_dict = combined._read_lockfile(f)
 
     assert not lockfile_as_dict["roots"]
@@ -2103,7 +2197,7 @@ def test_concretize_nested_include_concrete_envs():
     env("create", "--include-concrete", "test2", "test3")
     test3 = ev.read("test3")
 
-    with open(test3.lock_path) as f:
+    with open(test3.lock_path, encoding="utf-8") as f:
         lockfile_as_dict = test3._read_lockfile(f)
 
     assert test2.path in lockfile_as_dict["include_concrete"]
@@ -2301,7 +2395,7 @@ def test_env_activate_view_fails(tmpdir, mock_stage, mock_fetch, install_mockery
 
 def test_stack_yaml_definitions(tmpdir):
     filename = str(tmpdir.join("spack.yaml"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -2321,7 +2415,7 @@ spack:
 
 def test_stack_yaml_definitions_as_constraints(tmpdir):
     filename = str(tmpdir.join("spack.yaml"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -2346,7 +2440,7 @@ spack:
 
 def test_stack_yaml_definitions_as_constraints_on_matrix(tmpdir):
     filename = str(tmpdir.join("spack.yaml"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -2375,7 +2469,7 @@ spack:
 @pytest.mark.regression("12095")
 def test_stack_yaml_definitions_write_reference(tmpdir):
     filename = str(tmpdir.join("spack.yaml"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -2399,7 +2493,7 @@ spack:
 
 def test_stack_yaml_add_to_list(tmpdir):
     filename = str(tmpdir.join("spack.yaml"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -2423,7 +2517,7 @@ spack:
 
 def test_stack_yaml_remove_from_list(tmpdir):
     filename = str(tmpdir.join("spack.yaml"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -2474,7 +2568,7 @@ spack:
 
 def test_stack_yaml_remove_from_matrix_no_effect(tmpdir):
     filename = str(tmpdir.join("spack.yaml"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -2499,7 +2593,7 @@ spack:
 
 def test_stack_yaml_force_remove_from_matrix(tmpdir):
     filename = str(tmpdir.join("spack.yaml"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -2534,7 +2628,7 @@ spack:
 
 def test_stack_definition_extension(tmpdir):
     filename = str(tmpdir.join("spack.yaml"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -2557,7 +2651,7 @@ spack:
 
 def test_stack_definition_conditional_false(tmpdir):
     filename = str(tmpdir.join("spack.yaml"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -2581,7 +2675,7 @@ spack:
 
 def test_stack_definition_conditional_true(tmpdir):
     filename = str(tmpdir.join("spack.yaml"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -2605,7 +2699,7 @@ spack:
 
 def test_stack_definition_conditional_with_variable(tmpdir):
     filename = str(tmpdir.join("spack.yaml"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -2629,7 +2723,7 @@ spack:
 
 def test_stack_definition_conditional_with_satisfaction(tmpdir):
     filename = str(tmpdir.join("spack.yaml"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -2654,7 +2748,7 @@ spack:
 
 def test_stack_definition_complex_conditional(tmpdir):
     filename = str(tmpdir.join("spack.yaml"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -2678,7 +2772,7 @@ spack:
 
 def test_stack_definition_conditional_invalid_variable(tmpdir):
     filename = str(tmpdir.join("spack.yaml"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -2697,7 +2791,7 @@ spack:
 
 def test_stack_definition_conditional_add_write(tmpdir):
     filename = str(tmpdir.join("spack.yaml"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -2732,7 +2826,7 @@ def test_stack_combinatorial_view(
 ):
     filename = str(tmpdir.join("spack.yaml"))
     viewdir = str(tmpdir.join("view"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -2766,7 +2860,7 @@ spack:
 def test_stack_view_select(tmpdir, mock_fetch, mock_packages, mock_archive, install_mockery):
     filename = str(tmpdir.join("spack.yaml"))
     viewdir = str(tmpdir.join("view"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -2806,7 +2900,7 @@ spack:
 def test_stack_view_exclude(tmpdir, mock_fetch, mock_packages, mock_archive, install_mockery):
     filename = str(tmpdir.join("spack.yaml"))
     viewdir = str(tmpdir.join("view"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -2848,7 +2942,7 @@ def test_stack_view_select_and_exclude(
 ):
     filename = str(tmpdir.join("spack.yaml"))
     viewdir = str(tmpdir.join("view"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -2889,7 +2983,7 @@ spack:
 def test_view_link_roots(tmpdir, mock_fetch, mock_packages, mock_archive, install_mockery):
     filename = str(tmpdir.join("spack.yaml"))
     viewdir = str(tmpdir.join("view"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -2934,7 +3028,7 @@ def test_view_link_run(tmpdir, mock_fetch, mock_packages, mock_archive, install_
     yaml = str(tmpdir.join("spack.yaml"))
     viewdir = str(tmpdir.join("view"))
     envdir = str(tmpdir)
-    with open(yaml, "w") as f:
+    with open(yaml, "w", encoding="utf-8") as f:
         f.write(
             """
 spack:
@@ -2976,7 +3070,7 @@ def test_view_link_type(
 ):
     filename = str(tmpdir.join("spack.yaml"))
     viewdir = str(tmpdir.join("view"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -3005,7 +3099,7 @@ spack:
 def test_view_link_all(tmpdir, mock_fetch, mock_packages, mock_archive, install_mockery):
     filename = str(tmpdir.join("spack.yaml"))
     viewdir = str(tmpdir.join("view"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -3049,7 +3143,7 @@ def test_stack_view_activate_from_default(
 ):
     filename = str(tmpdir.join("spack.yaml"))
     viewdir = str(tmpdir.join("view"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -3084,7 +3178,7 @@ def test_stack_view_no_activate_without_default(
 ):
     filename = str(tmpdir.join("spack.yaml"))
     viewdir = str(tmpdir.join("view"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -3254,7 +3348,7 @@ def test_env_activate_custom_view(tmp_path: pathlib.Path, mock_packages):
     env_template = tmp_path / "spack.yaml"
     default_dir = tmp_path / "defaultdir"
     nondefaultdir = tmp_path / "nondefaultdir"
-    with open(env_template, "w") as f:
+    with open(env_template, "w", encoding="utf-8") as f:
         f.write(
             f"""\
 spack:
@@ -3323,7 +3417,7 @@ def test_env_write_only_non_default():
     env("create", "test")
 
     e = ev.read("test")
-    with open(e.manifest_path, "r") as f:
+    with open(e.manifest_path, "r", encoding="utf-8") as f:
         yaml = f.read()
 
     assert yaml == ev.default_manifest_yaml()
@@ -3348,7 +3442,7 @@ spack:
 """
 
     # create environment with some structure
-    with open(filepath, "w") as f:
+    with open(filepath, "w", encoding="utf-8") as f:
         f.write(contents)
     env("create", "test", filepath)
 
@@ -3357,7 +3451,7 @@ spack:
         concretize()
         e.write()
 
-        with open(e.manifest_path, "r") as f:
+        with open(e.manifest_path, "r", encoding="utf-8") as f:
             manifest = f.read()
 
     assert manifest == contents
@@ -3555,7 +3649,7 @@ spack:
         assert len(modules) == 1
         module = modules[0]
 
-    with open(module, "r") as f:
+    with open(module, "r", encoding="utf-8") as f:
         contents = f.read()
 
     assert view_prefix in contents
@@ -3598,7 +3692,7 @@ spack:
 
                 # Now verify that modules have paths pointing into the view instead of the package
                 # prefix if and only if they set use_view to true.
-                with open(module, "r") as f:
+                with open(module, "r", encoding="utf-8") as f:
                     contents = f.read()
 
                 if module_set == "uses_view":
@@ -3873,7 +3967,7 @@ def test_read_old_lock_and_write_new(tmpdir, lockfile):
     lockfile_path = os.path.join(spack.paths.test_path, "data", "legacy_env", "%s.lock" % lockfile)
 
     # read in the JSON from a legacy lockfile
-    with open(lockfile_path) as f:
+    with open(lockfile_path, encoding="utf-8") as f:
         old_dict = sjson.load(f)
 
     # read all DAG hashes from the legacy lockfile and record its shadowed DAG hash.
@@ -4209,7 +4303,7 @@ def test_environment_depfile_out(tmpdir, mock_packages):
     with ev.read("test"):
         env("depfile", "-G", "make", "-o", makefile_path)
         stdout = env("depfile", "-G", "make")
-        with open(makefile_path, "r") as f:
+        with open(makefile_path, "r", encoding="utf-8") as f:
             assert stdout == f.read()
 
 
@@ -4237,15 +4331,15 @@ def test_spack_package_ids_variable(tmpdir, mock_packages):
         )
 
     # Include in Makefile and create target that depend on SPACK_PACKAGE_IDS
-    with open(makefile_path, "w") as f:
+    with open(makefile_path, "w", encoding="utf-8") as f:
         f.write(
-            r"""
+            """
 all: post-install
 
 include include.mk
 
 example/post-install/%: example/install/%
-	$(info post-install: $(HASH)) # noqa: W191,E101
+\t$(info post-install: $(HASH)) # noqa: W191,E101
 
 post-install: $(addprefix example/post-install/,$(example/SPACK_PACKAGE_IDS))
 """

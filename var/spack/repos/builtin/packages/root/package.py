@@ -7,9 +7,12 @@
 import os
 import sys
 
+import spack.util.environment
 from spack.operating_systems.mac_os import macos_version
 from spack.package import *
 from spack.util.environment import is_system_path
+
+_is_macos = sys.platform == "darwin"
 
 
 class Root(CMakePackage):
@@ -34,6 +37,7 @@ class Root(CMakePackage):
     version("develop", branch="master")
 
     # Production version
+    version("6.32.08", sha256="29ad4945a72dff1a009c326a65b6fa5ee2478498823251d3cef86a2cbeb77b27")
     version("6.32.06", sha256="3fc032d93fe848dea5adb1b47d8f0a86279523293fee0aa2b3cd52a1ffab7247")
     version("6.32.04", sha256="132f126aae7d30efbccd7dcd991b7ada1890ae57980ef300c16421f9d4d07ea8")
     version("6.32.02", sha256="3d0f76bf05857e1807ccfb2c9e014f525bcb625f94a2370b455f4b164961602d")
@@ -154,7 +158,7 @@ class Root(CMakePackage):
         when="@6.32.0:6.32.02",
     )
 
-    if sys.platform == "darwin":
+    if _is_macos:
         # Resolve non-standard use of uint, _cf_
         # https://sft.its.cern.ch/jira/browse/ROOT-7886.
         patch("math_uint.patch", when="@6.06.02")
@@ -184,7 +188,7 @@ class Root(CMakePackage):
     # See README.md for specific notes about what ROOT configuration
     # options are or are not supported, and why.
 
-    variant("aqua", default=False, description="Enable Aqua interface")
+    variant("aqua", default=_is_macos, description="Enable native macOS (Cocoa) interface")
     variant("arrow", default=False, description="Enable Arrow interface")
     variant("cuda", when="@6.08.00:", default=False, description="Enable CUDA support")
     variant("cudnn", when="@6.20.02:", default=False, description="Enable cuDNN support")
@@ -286,7 +290,7 @@ class Root(CMakePackage):
     variant(
         "webgui", default=True, description="Enable web-based UI components of ROOT", when="+root7"
     )
-    variant("x", default=True, description="Enable set of graphical options")
+    variant("x", default=(not _is_macos), description="Enable set of graphical options")
     variant("xml", default=True, description="Enable XML parser interface")
     variant("xrootd", default=False, description="Build xrootd file server and its client")
 
@@ -427,7 +431,7 @@ class Root(CMakePackage):
     conflicts("target=ppc64le:", when="@:6.24")
 
     # Incompatible variants
-    if sys.platform == "darwin":
+    if _is_macos:
         conflicts("+opengl", when="~x ~aqua", msg="root+opengl requires X or Aqua")
         # https://github.com/root-project/root/issues/7160
         conflicts("+aqua", when="~opengl", msg="+aqua requires OpenGL to be enabled")
@@ -453,15 +457,15 @@ class Root(CMakePackage):
     conflicts("%clang@16:", when="@:6.26.07", msg="clang 16+ support was added in root 6.26.08")
 
     # See https://github.com/spack/spack/pull/44826
-    if sys.platform == "darwin" and macos_version() == Version("12"):
+    if _is_macos and macos_version() == Version("12"):
         conflicts("@:6.27", when="+python", msg="macOS 12 python support for 6.28: only")
 
     # See https://github.com/root-project/root/issues/11714
-    if sys.platform == "darwin" and macos_version() >= Version("13"):
+    if _is_macos and macos_version() >= Version("13"):
         conflicts("@:6.26.09", msg="macOS 13 support was added in root 6.26.10")
 
     # See https://github.com/root-project/root/issues/16219
-    if sys.platform == "darwin" and macos_version() >= Version("15"):
+    if _is_macos and macos_version() >= Version("15"):
         conflicts("@:6.32.05", msg="macOS 15 support was added in root 6.32.06")
 
     # ROOT <6.14 is incompatible with Python >=3.7, which is the minimum supported by spack
@@ -625,8 +629,6 @@ class Root(CMakePackage):
         # Options related to ROOT's ability to download and build its own
         # dependencies. Per Spack convention, this should generally be avoided.
 
-        afterimage_enabled = ("+x" in self.spec) if "platform=darwin" not in self.spec else True
-
         options += [
             define("builtin_cfitsio", False),
             define("builtin_davix", False),
@@ -634,7 +636,7 @@ class Root(CMakePackage):
             define("builtin_freetype", False),
             define("builtin_ftgl", False),
             define("builtin_gl2ps", False),
-            define("builtin_glew", self.spec.satisfies("platform=darwin")),
+            define("builtin_glew", False),
             define("builtin_gsl", False),
             define("builtin_llvm", True),
             define("builtin_lz4", self.spec.satisfies("@6.12.02:6.12")),
@@ -653,7 +655,12 @@ class Root(CMakePackage):
         ]
 
         if self.spec.satisfies("@:6.32"):
-            options.append(define("builtin_afterimage", afterimage_enabled))
+            options.append(
+                define(
+                    "builtin_afterimage",
+                    ("+x" in self.spec) if "platform=darwin" not in self.spec else True,
+                )
+            )
 
         # Features
         options += [
@@ -762,7 +769,7 @@ class Root(CMakePackage):
 
         # #################### Compiler options ####################
 
-        if sys.platform == "darwin" and self.compiler.cc == "gcc":
+        if _is_macos and self.compiler.cc == "gcc":
             cflags = "-D__builtin_unreachable=__builtin_trap"
             options.extend([define("CMAKE_C_FLAGS", cflags), define("CMAKE_CXX_FLAGS", cflags)])
 

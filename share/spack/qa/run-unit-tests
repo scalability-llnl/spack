@@ -52,7 +52,7 @@ if [[ "$UNIT_TEST_COVERAGE" != "true" ]] && python -m pytest -VV 2>&1 | grep xdi
 fi
 
 # We are running pytest-cov after the addition of pytest-xdist, since it integrates
-# other pugins for pytest automatically. We still need to use "coverage" explicitly
+# other plugins for pytest automatically. We still need to use "coverage" explicitly
 # for the commands above.
 #
 # There is a need to pass the configuration file explicitly due to a bug:

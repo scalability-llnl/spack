@@ -32,12 +32,12 @@ class DoubleBatchedFftLibrary(CMakePackage):
 
     variant("shared", default=True, description="Shared library")
     variant("sycl", default=True, description="Build bbfft-sycl")
-    variant("level-zero", default=True, when="~sycl", description="Build bbfft-level-zero")
+    variant("level_zero", default=True, when="~sycl", description="Build bbfft-level-zero")
     variant("opencl", default=True, when="~sycl", description="Build bbfft-opencl")
 
     depends_on("cmake@3.23.0:", type="build")
     depends_on("oneapi-level-zero", when="+sycl")
-    depends_on("oneapi-level-zero", when="+level-zero")
+    depends_on("oneapi-level-zero", when="+level_zero")
     depends_on("opencl", when="+opencl")
 
     patch("0001-Add-CPATH-and-LIBRARY_PATHs-to-OpenCL-search-paths.patch", when="@:0.3.6")
@@ -50,7 +50,7 @@ class DoubleBatchedFftLibrary(CMakePackage):
         return [
             self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
             self.define_from_variant("BUILD_SYCL", "sycl"),
-            self.define_from_variant("BUILD_LEVEL_ZERO", "level-zero"),
+            self.define_from_variant("BUILD_LEVEL_ZERO", "level_zero"),
             self.define_from_variant("BUILD_OPENCL", "opencl"),
             self.define("BUILD_BENCHMARK", False),
             self.define("BUILD_EXAMPLE", False),

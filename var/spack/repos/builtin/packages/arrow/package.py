@@ -17,6 +17,7 @@ class Arrow(CMakePackage, CudaPackage):
 
     license("Apache-2.0")
 
+    version("18.0.0", sha256="9c473f2c9914c59ab571761c9497cf0e5cfd3ea335f7782ccc6121f5cb99ae9b")
     version("16.1.0", sha256="9762d9ecc13d09de2a03f9c625a74db0d645cb012de1e9a10dfed0b4ddc09524")
     version("15.0.2", sha256="4735b349845bff1fe95ed11abbfed204eb092cabc37523aa13a80cb830fe5b5e")
     version("14.0.2", sha256="07cdb4da6795487c800526b2865c150ab7d80b8512a31793e6a7147c8ccd270f")
@@ -53,7 +54,12 @@ class Arrow(CMakePackage, CudaPackage):
     depends_on("llvm@:11 +clang", when="+gandiva @:3", type="build")
     depends_on("llvm@:12 +clang", when="+gandiva @:4", type="build")
     depends_on("llvm@:13 +clang", when="+gandiva @:7", type="build")
-    depends_on("llvm@:14 +clang", when="+gandiva @8:", type="build")
+    depends_on("llvm@:14 +clang", when="+gandiva @:9", type="build")
+    depends_on("llvm@:15 +clang", when="+gandiva @:11", type="build")
+    depends_on("llvm@:16 +clang", when="+gandiva @:13", type="build")
+    depends_on("llvm@:17 +clang", when="+gandiva @:15.0.1", type="build")
+    depends_on("llvm@:18.1 +clang", when="+gandiva @:16.0.1", type="build")
+    depends_on("llvm@:19.1 +clang", when="+gandiva", type="build")
     depends_on("lz4", when="+lz4")
     depends_on("ninja", type="build")
     depends_on("openssl", when="+gandiva @6.0.0:")

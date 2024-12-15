@@ -25,15 +25,15 @@ class TinyTensorCompiler(CMakePackage):
     depends_on("cxx", type="build")  # generated
 
     variant("shared", default=True, description="Shared library")
-    variant("level-zero", default=False, description="Build tinytc_ze (Level Zero runtime)")
+    variant("level_zero", default=False, description="Build tinytc_ze (Level Zero runtime)")
     variant("opencl", default=True, description="Build tintc_cl (OpenCL runtime)")
     variant("sycl", default=False, description="Build tinytc_sycl (SYCL runtime)")
 
-    requires("+opencl +level-zero", when="+sycl")
+    requires("+opencl +level_zero", when="+sycl")
 
     depends_on("cmake@3.23.0:", type="build")
-    depends_on("double-batched-fft-library ~sycl ~level-zero ~opencl@0.5.1:", type="link")
-    depends_on("oneapi-level-zero@1.13:", when="+level-zero")
+    depends_on("double-batched-fft-library ~sycl ~level_zero ~opencl@0.5.1:", type="link")
+    depends_on("oneapi-level-zero@1.13:", when="+level_zero")
     depends_on("opencl-c-headers@2022.01.04:", when="+opencl")
     depends_on("opencl-icd-loader@2022.01.04:", when="+opencl", type="link")
     depends_on("re2c@3.0:", type="build")
@@ -47,6 +47,6 @@ class TinyTensorCompiler(CMakePackage):
         return [
             self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
             self.define_from_variant("BUILD_SYCL", "sycl"),
-            self.define_from_variant("BUILD_LEVEL_ZERO", "level-zero"),
+            self.define_from_variant("BUILD_LEVEL_ZERO", "level_zero"),
             self.define_from_variant("BUILD_OPENCL", "opencl"),
         ]

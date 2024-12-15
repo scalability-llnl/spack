@@ -30,7 +30,7 @@ class ViewNotIgnored(Package):
         for test_file in self.install_test_files:
             path = os.path.join(prefix, test_file)
             mkdirp(os.path.dirname(path))
-            with open(path, "w") as f:
+            with open(path, "w", encoding="utf-8") as f:
                 f.write(test_file)
 
     @classmethod

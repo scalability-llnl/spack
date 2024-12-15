@@ -161,7 +161,7 @@ def try_enable_terminal_color_on_windows():
             )
             # Use conout$ here to handle a redirectired stdout/get active console associated
             # with spack
-            with open(r"\\.\CONOUT$", "w") as conout:
+            with open(r"\\.\CONOUT$", "w", encoding="utf-8") as conout:
                 # Link above would use kernel32.GetStdHandle(-11) however this would not handle
                 # a redirected stdout appropriately, so we always refer to the current CONSOLE out
                 # which is defined as conout$ on Windows.

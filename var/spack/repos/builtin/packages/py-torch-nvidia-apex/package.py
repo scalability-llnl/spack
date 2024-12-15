@@ -26,6 +26,7 @@ class PyTorchNvidiaApex(PythonPackage, CudaPackage):
     version("22.03", tag="22.03")
     version("2020-10-19", commit="8a1ed9e8d35dfad26fb973996319965e4224dcdd")
 
+    depends_on("c", type="build")
     depends_on("cxx", type="build")
 
     variant("cuda", default=True, description="Build with CUDA")

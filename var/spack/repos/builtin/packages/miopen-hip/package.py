@@ -21,6 +21,8 @@ class MiopenHip(CMakePackage):
     libraries = ["libMIOpen"]
 
     license("MIT")
+
+    version("6.2.4", sha256="8e4836e007e5e66fa487288887a098aaeeb95f3c63a19c2b91f6e848c023a040")
     version("6.2.1", sha256="c7abe5ae7a332813a3c3da849e9a50b91221fe05c6bb622413e5b048b1f15982")
     version("6.2.0", sha256="f4473f724362732019d505a0e01c17b060b542350859cb1e4bd4e3898b609276")
     version("6.1.2", sha256="c8ff4af72264b2049bfe2685d581ea0f3e43319db7bd00dc347159bcf2731614")
@@ -46,7 +48,8 @@ class MiopenHip(CMakePackage):
     conflicts("+asan", when="os=centos7")
     conflicts("+asan", when="os=centos8")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     depends_on("cmake@3.5:", type="build")
     depends_on("pkgconfig", type="build")
@@ -63,7 +66,8 @@ class MiopenHip(CMakePackage):
 
     patch("miopen-hip-include-nlohmann-include-directory.patch", when="@5.4.0:5.7")
     patch("0002-add-include-dir-miopen-hip-6.0.0.patch", when="@6.0")
-    patch("0002-add-include-dir-miopen-hip-6.1.0.patch", when="@6.1")
+    patch("0001-link-with-roctracer-when-building-miopendriver-6.1.0.patch", when="@6.1")
+    patch("0001-link-with-roctracer-when-building-miopendriver-6.2.0.patch", when="@6.2:")
     patch(
         "https://github.com/ROCm/MIOpen/commit/f60aa1ff89f8fb596b4a6a4c70aa7d557803db87.patch?full_index=1",
         sha256="7f382c872d89f22da1ad499e85ffe9881cc7404c8465e42877a210a09382e2ea",
@@ -88,6 +92,7 @@ class MiopenHip(CMakePackage):
         "6.1.2",
         "6.2.0",
         "6.2.1",
+        "6.2.4",
     ]:
         depends_on(f"rocm-cmake@{ver}:", type="build", when=f"@{ver}")
         depends_on(f"hip@{ver}", when=f"@{ver}")
@@ -128,17 +133,18 @@ class MiopenHip(CMakePackage):
         "6.1.2",
         "6.2.0",
         "6.2.1",
+        "6.2.4",
     ]:
         depends_on("nlohmann-json", type="link")
         depends_on(f"composable-kernel@{ver}", when=f"@{ver}")
     for ver in ["5.4.0", "5.4.3", "5.5.0"]:
         depends_on("nlohmann-json", type="link")
         depends_on(f"rocmlir@{ver}", when=f"@{ver}")
-    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1"]:
-        depends_on("roctracer-dev@" + ver, when="@" + ver)
+    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4"]:
+        depends_on(f"roctracer-dev@{ver}", when=f"@{ver}")
     for ver in ["6.1.0", "6.1.1", "6.1.2"]:
         depends_on("googletest")
-    for ver in ["6.2.0", "6.2.1"]:
+    for ver in ["6.2.0", "6.2.1", "6.2.4"]:
         depends_on(f"rocrand@{ver}", when=f"@{ver}")
 
     def setup_build_environment(self, env):
@@ -200,19 +206,20 @@ class MiopenHip(CMakePackage):
             args.append(self.define("MIOPEN_USE_MLIR", "OFF"))
         if self.spec.satisfies("@5.7.0:"):
             args.append(self.define("MIOPEN_ENABLE_AI_IMMED_MODE_FALLBACK", "OFF"))
-        if self.spec.satisfies("@6:6.1"):
+        if self.spec.satisfies("@6.0"):
             args.append(
                 "-DROCTRACER_INCLUDE_DIR={0}".format(self.spec["roctracer-dev"].prefix.include)
             )
             args.append("-DROCTRACER_LIB_DIR={0}".format(self.spec["roctracer-dev"].prefix.lib))
-        if self.spec.satisfies("@6.1"):
             args.append("-DSQLITE_INCLUDE_DIR={0}".format(self.spec["sqlite"].prefix.include))
-        if self.spec.satisfies("@6.2:"):
+        if self.spec.satisfies("@6.1:"):
+            args.append(
+                "-DROCTRACER_INCLUDE_DIR={0}".format(self.spec["roctracer-dev"].prefix.include)
+            )
+            args.append(self.define("MIOPEN_USE_ROCTRACER", "ON"))
             args.append(
                 self.define(
                     "CMAKE_CXX_FLAGS",
-                    f"-I{self.spec['roctracer-dev'].prefix.include} "
-                    f"-L{self.spec['roctracer-dev'].prefix.lib} "
                     f"-I{self.spec['nlohmann-json'].prefix.include} "
                     f"-I{self.spec['sqlite'].prefix.include} ",
                 )
