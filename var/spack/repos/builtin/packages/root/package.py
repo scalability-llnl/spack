@@ -34,10 +34,18 @@ class Root(CMakePackage):
     # Development version (when more recent than production).
     version("develop", branch="master")
 
-    # Production version
+    # Please note that 6.34 is a short term support release. As such, it is not meant to
+    # be used for data taking. It will be superseded by the 6.36 release, which is foreseen
+    # in May 2025. Patch releases of 6.34 will be provided until June 30th 2025.
     version("6.34.02", sha256="166bec562e420e177aaf3133fa3fb09f82ecddabe8a2e1906345bad442513f94")
     version("6.34.00", sha256="f3b00f3db953829c849029c39d7660a956468af247efd946e89072101796ab03")
-    version("6.32.08", sha256="29ad4945a72dff1a009c326a65b6fa5ee2478498823251d3cef86a2cbeb77b27")
+
+    # Production version
+    version(
+        "6.32.08",
+        sha256="29ad4945a72dff1a009c326a65b6fa5ee2478498823251d3cef86a2cbeb77b27",
+        preferred=True,  # when 6.36 is released, this can be removed
+    )
     version("6.32.06", sha256="3fc032d93fe848dea5adb1b47d8f0a86279523293fee0aa2b3cd52a1ffab7247")
     version("6.32.04", sha256="132f126aae7d30efbccd7dcd991b7ada1890ae57980ef300c16421f9d4d07ea8")
     version("6.32.02", sha256="3d0f76bf05857e1807ccfb2c9e014f525bcb625f94a2370b455f4b164961602d")
