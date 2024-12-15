@@ -73,10 +73,11 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
             self.define("LIBMMGS_STATIC", not shared_active),
             self.define("LIBMMG_STATIC", not shared_active),
         ]
-    
         # Add conditional flag for MMG_INSTALL_PRIVATE_HEADERS
         if self.spec.satisfies("@5.7.0:"):
-            args.append(self.define("MMG_INSTALL_PRIVATE_HEADERS", self.spec.satisfies("+private_headers")))
+            args.append(
+                self.define("MMG_INSTALL_PRIVATE_HEADERS", self.spec.satisfies("+private_headers"))
+            )
     
         return args
 
