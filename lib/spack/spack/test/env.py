@@ -932,7 +932,7 @@ def test_env_include_configs(mutable_mock_env_path, mock_packages):
     config_root = env_path / this_os
     config_root.mkdir()
     config_path = str(config_root / "config.yaml")
-    with open(config_path, "w") as f:
+    with open(config_path, "w", encoding="utf-8") as f:
         f.write(
             """\
 config:
@@ -941,7 +941,7 @@ config:
         )
 
     packages_path = str(env_path / "packages.yaml")
-    with open(packages_path, "w") as f:
+    with open(packages_path, "w", encoding="utf-8") as f:
         f.write(
             """\
 packages:
