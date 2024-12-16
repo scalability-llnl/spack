@@ -883,7 +883,7 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
         """Run the hello world test"""
         with working_dir(self.test_suite.current_test_cache_dir):
             with set_env(CHPL_CHECK_HOME=self.test_suite.current_test_cache_dir):
-                with test_part(self, "test_hello", purpose="test hello world"):
+                with test_part(self, "test_hello_checkChplInstall", purpose="test hello world"):
                     if self.spec.satisfies("+cuda") or self.spec.satisfies("+rocm"):
                         with set_env(COMP_FLAGS="--no-checks --no-compiler-driver"):
                             res = self.check_chpl_install()
