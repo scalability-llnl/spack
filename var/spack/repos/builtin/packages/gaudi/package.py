@@ -144,7 +144,7 @@ class Gaudi(CMakePackage):
             # Disable a test that fails on pytest collection due to NameError
             filter_file(
                 r"\(tests/pytest\)",
-                "(tests/pytest --ignore=tests/pytest/refs/RandomNumber.py)",
+                "(tests/pytest OPTIONS --ignore=tests/pytest/refs/RandomNumber.py)",
                 "GaudiTestSuite/CMakeLists.txt",
             )
 
