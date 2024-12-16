@@ -16,8 +16,6 @@ class Grep(AutotoolsPackage):
 
     license("GPL-3.0-or-later")
 
-    executables = ["^grep$"]
-
     version("3.11", sha256="1db2aedde89d0dea42b16d9528f894c8d15dae4e190b59aecc78f5a951276eab")
     version("3.10", sha256="24efa5b595fb5a7100879b51b8868a0bb87a71c183d02c4c602633b88af6855b")
     version("3.9", sha256="abcd11409ee23d4caf35feb422e53bbac867014cfeed313bb5f488aca170b599")
@@ -33,13 +31,19 @@ class Grep(AutotoolsPackage):
     depends_on("pcre2", when="@3.8:+pcre")
     depends_on("pcre", when="@:3.7+pcre")
 
+    # For spack external find
+    executables = ["^grep$"]
+
     @classmethod
     def determine_version(cls, exe):
-        output = Executable(exe)("--version", output=str, error=str)
-        # Example output:
-        #     grep (GNU grep) 3.11
-        match = re.search(r"^grep \(GNU grep\) ([0-9.]+)", output)
-        return match.group(1) if match else None
+        version_string = Executable(exe)("--version", output=str, error=str).split('\n')[0]
+        if "GNU grep" in version_string:
+            return version_string.lstrip("grep (GNU grep)").strip()
+        elif "BSD grep, GNU compatible" in version_string:
+            return version_string.lstrip("grep (BSD grep, GNU compatible)").rstrip("-FreeBSD").strip()
+        else:
+            # Don't know how to handle this version of grep, don't add it
+            return None
 
     def configure_args(self):
         args = []
