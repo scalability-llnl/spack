@@ -15,7 +15,7 @@ import sys
 import traceback
 import urllib.parse
 from html.parser import HTMLParser
-from pathlib import Path, PurePath, PurePosixPath
+from pathlib import Path, PurePosixPath
 from typing import IO, Dict, Iterable, List, Optional, Set, Tuple, Union
 from urllib.error import HTTPError, URLError
 from urllib.request import HTTPSHandler, Request, build_opener
@@ -31,6 +31,7 @@ import spack.util.executable
 import spack.util.parallel
 import spack.util.path
 import spack.util.url as url_util
+from spack.util.path import abstract_path, concrete_path, fs_path
 
 from .executable import CommandNotFoundError, Executable
 from .gcs import GCSBlob, GCSBucket, GCSHandler
@@ -67,12 +68,12 @@ def custom_ssl_certs() -> Optional[Tuple[bool, str]]:
     ssl_certs = spack.config.get("config:ssl_certs")
     if not ssl_certs:
         return None
-    path = spack.util.path.substitute_path_variables(ssl_certs)
-    if not PurePath(path).is_absolute():
+    path = concrete_path(spack.util.path.substitute_path_variables(ssl_certs))
+    if not path.is_absolute():
         tty.debug(f"certs: relative path not allowed: {path}")
         return None
     try:
-        st = Path(path).stat()
+        st = path.stat()
     except OSError as e:
         tty.debug(f"certs: error checking path {path}: {e}")
         return None
@@ -83,7 +84,7 @@ def custom_ssl_certs() -> Optional[Tuple[bool, str]]:
         tty.debug(f"certs: not a file or directory: {path}")
         return None
 
-    return (file_type == stat.S_IFREG, path)
+    return (file_type == stat.S_IFREG, fs_path(path))
 
 
 def ssl_create_default_context():
@@ -231,9 +232,10 @@ def read_from_url(url, accept_content_type=None):
 
 def push_to_url(local_file_path, remote_path, keep_original=True, extra_args=None):
     remote_url = urllib.parse.urlparse(remote_path)
+    local_file_path = concrete_path(local_file_path)
     if remote_url.scheme == "file":
-        remote_file_path = url_util.local_file_path(remote_url)
-        mkdirp(PurePath(remote_file_path).parent)
+        remote_file_path = concrete_path(url_util.local_file_path(remote_url))
+        remote_file_path.parent.mkdir()
         if keep_original:
             shutil.copy(local_file_path, remote_file_path)
         else:
@@ -246,7 +248,7 @@ def push_to_url(local_file_path, remote_path, keep_original=True, extra_args=Non
                     # metadata), and then delete the original.  This operation
                     # needs to be done in separate steps.
                     shutil.copy2(local_file_path, remote_file_path)
-                    Path(local_file_path).unlink()
+                    local_file_path.unlink()
                 else:
                     raise
 
@@ -262,13 +264,13 @@ def push_to_url(local_file_path, remote_path, keep_original=True, extra_args=Non
         s3.upload_file(local_file_path, remote_url.netloc, remote_path, ExtraArgs=extra_args)
 
         if not keep_original:
-            Path(local_file_path).unlink()
+            local_file_path.unlink()
 
     elif remote_url.scheme == "gs":
         gcs = GCSBlob(remote_url)
         gcs.upload_to_blob(local_file_path)
         if not keep_original:
-            Path(local_file_path).unlink()
+            local_file_path.unlink()
 
     else:
         raise NotImplementedError(f"Unrecognized URL scheme: {remote_url.scheme}")
@@ -383,8 +385,8 @@ def fetch_url_text(url, curl: Optional[Executable] = None, dest_dir="."):
 
     tty.debug("Fetching text at {0}".format(url))
 
-    filename = PurePath(url).name
-    path = os.fsdecode(PurePath(dest_dir, filename))
+    filename = abstract_path(url).name
+    path = fs_path(abstract_path(dest_dir, filename))
 
     fetch_method = spack.config.get("config:url_fetch_method")
     tty.debug("Using '{0}' to fetch {1} into {2}".format(fetch_method, url, path))
@@ -476,10 +478,11 @@ def remove_url(url, recursive=False):
 
     local_path = url_util.local_file_path(url)
     if local_path:
+        local_path = concrete_path(local_path)
         if recursive:
             shutil.rmtree(local_path)
         else:
-            Path(local_path).unlink()
+            local_path.unlink()
         return
 
     if url.scheme == "s3":
@@ -534,7 +537,7 @@ def _iter_s3_contents(contents, prefix):
         if not key.startswith("/"):
             key = "/" + key
 
-        key = os.fsdecode(PurePath(key).relative_to(prefix))
+        key = fs_path(abstract_path(key).relative_to(prefix))
 
         if key == ".":
             continue
@@ -576,8 +579,9 @@ def _iter_s3_prefix(client, url, num_entries=1024):
 
 def _iter_local_prefix(path):
     for root, _, files in os.walk(path):
+        root = abstract_path(root)
         for f in files:
-            yield PurePath(root, f).relative_to(path)
+            yield (root / f).relative_to(path)
 
 
 def list_url(url, recursive=False):
@@ -585,13 +589,14 @@ def list_url(url, recursive=False):
     local_path = url_util.local_file_path(url)
 
     if local_path:
+        local_path = concrete_path(local_path)
         if recursive:
             # convert backslash to forward slash as required for URLs
-            return [os.fsdecode(PurePosixPath(p)) for p in _iter_local_prefix(local_path)]
+            return [fs_path(PurePosixPath(p)) for p in _iter_local_prefix(local_path)]
         return [
             subpath.name
-            for subpath in Path(local_path).iterdir()
-            if Path(local_path, subpath).is_file()
+            for subpath in local_path.iterdir()
+            if (local_path / subpath).is_file()
         ]
 
     if url.scheme == "s3":

@@ -11,10 +11,9 @@ import posixpath
 import re
 import urllib.parse
 import urllib.request
-from pathlib import Path, PurePath
 from typing import Optional
 
-from spack.util.path import sanitize_filename
+from spack.util.path import fs_path, concrete_path, sanitize_filename
 
 
 def validate_scheme(scheme):
@@ -41,9 +40,10 @@ def local_file_path(url):
 
 
 def path_to_file_url(path):
-    if not PurePath(path).is_absolute():
-        path = Path(path).resolve()
-    return urllib.parse.urljoin("file:", urllib.request.pathname2url(os.fspath(path)))
+    path = concrete_path(path)
+    if not path.is_absolute():
+        path = path.resolve()
+    return urllib.parse.urljoin("file:", urllib.request.pathname2url(fs_path(path)))
 
 
 def file_url_string_to_path(url):

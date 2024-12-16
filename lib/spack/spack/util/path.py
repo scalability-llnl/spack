@@ -14,6 +14,7 @@ import subprocess
 import sys
 import tempfile
 from datetime import date
+from pathlib import Path, PurePath
 
 import llnl.util.tty as tty
 from llnl.util.lang import memoized
@@ -186,6 +187,24 @@ def substitute_config_variables(path):
 
     # Replace $var or ${var}.
     return re.sub(r"(\$\w+\b|\$\{\w+\})", repl, path)
+
+
+def abstract_path(*path_strings):
+    """Cast string path or combine parts of a path to a PurePath object"""
+    return PurePath(*path_strings)
+
+
+def concrete_path(*path_strings):
+    """Cast string path or combine parts of a path to a Path object"""
+    return Path(*path_strings)
+
+
+def fs_path(path_object):
+    """Cast path object to path underlying representation (str | bytes). 
+    
+    If str or byte is passed in, it is returned unchanged. If an input is not 
+    a str, byte, or PathLike object it will return a TypeError."""
+    return os.fspath(path_object)
 
 
 def substitute_path_variables(path):
