@@ -222,14 +222,14 @@ build --local_cpu_resources={make_jobs}
 
         if "+cuda" in spec:
             capabilities = CudaPackage.compute_capabilities(spec.variants["cuda_arch"].value)
-            args.extend(["--enable_cuda", f"--cuda_compute_capabilities={','.join(capabilities)}"])
+            args.append(f"--cuda_compute_capabilities={','.join(capabilities)}")
+            if spec.satisfies("@0.4.36:"):
+                args.append("--enable_cuda")
             if spec.satisfies("@0.4.32:"):
                 args.extend(
                     [
                         f"--bazel_options=--repo_env=LOCAL_CUDA_PATH={spec['cuda'].prefix}",
                         f"--bazel_options=--repo_env=LOCAL_CUDNN_PATH={spec['cudnn'].prefix}",
-                        "--bazel_options=--action_env=TF_NVCC_CLANG=1",
-                        "--bazel_options=--@local_config_cuda//:cuda_compiler=nvcc",
                     ]
                 )
             else:
