@@ -1530,7 +1530,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         )
         return f"{required}Refer to {self.homepage} for download instructions."
 
-    def do_fetch(self, mirror_only=False):
+    def do_fetch(self, mirror_only: bool=False, retries: int=0):
         """
         Creates a stage directory and downloads the tarball for this package.
         Working directory will be set to the stage directory.
@@ -1594,7 +1594,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         self.stage.create()
         err_msg = None if not self.manual_download else self.download_instr
         start_time = time.time()
-        self.stage.fetch(mirror_only, err_msg=err_msg)
+        self.stage.fetch(mirror_only, err_msg=err_msg, retries=retries)
         self._fetch_time = time.time() - start_time
 
         if checksum and self.version in self.versions:
@@ -1602,7 +1602,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
 
         self.stage.cache_local()
 
-    def do_stage(self, mirror_only=False):
+    def do_stage(self, mirror_only: bool=False, retries: int=0):
         """Unpacks and expands the fetched tarball."""
         # Always create the stage directory at this point.  Why?  A no-code
         # package may want to use the installation process to install metadata.
@@ -1610,7 +1610,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
 
         # Fetch/expand any associated code.
         if self.has_code:
-            self.do_fetch(mirror_only)
+            self.do_fetch(mirror_only, retries=retries)
             self.stage.expand_archive()
         else:
             # Support for post-install hooks requires a stage.source_path

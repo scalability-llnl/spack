@@ -26,6 +26,12 @@ def setup_parser(subparser):
     subparser.add_argument(
         "-D", "--dependencies", action="store_true", help="also fetch all dependencies"
     )
+    subparser.add_argument(
+        "--retries",
+        default=0,
+        metavar="N",
+        help="retry fetching N times before raising an error"
+    )
     arguments.add_concretizer_args(subparser)
     subparser.epilog = (
         "With an active environment, the specs "
@@ -70,4 +76,4 @@ def fetch(parser, args):
 
         pkg.stage.keep = True
         with pkg.stage:
-            pkg.do_fetch()
+            pkg.do_fetch(retries=args.retries)
