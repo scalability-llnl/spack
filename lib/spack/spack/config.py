@@ -32,6 +32,7 @@ import contextlib
 import copy
 import functools
 import os
+import os.path
 import re
 import sys
 from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
@@ -54,6 +55,7 @@ import spack.schema.develop
 import spack.schema.env
 import spack.schema.env_vars
 import spack.schema.include
+import spack.schema.merged
 import spack.schema.mirrors
 import spack.schema.modules
 import spack.schema.packages
@@ -64,6 +66,8 @@ import spack.schema.view
 # Hacked yaml for configuration files preserves line numbers.
 import spack.util.spack_yaml as syaml
 from spack.util.cpus import cpus_available
+from spack.util.path import substitute_path_variables
+from spack.util.url import validate_scheme
 
 #: Dict from section names -> schema for that section
 SECTION_SCHEMAS: Dict[str, Any] = {
@@ -783,6 +787,118 @@ def _add_platform_scope(cfg: Configuration, name: str, path: str, writable: bool
     cfg.push_scope(scope)
 
 
+# Track staged paths so can avoid repeating the warning during processing
+skip_restage_warning = list()
+
+
+def scopes_from_paths(
+    includes: List[str],
+    name_prefix: str,
+    config_stage_dir: str,
+    resolve_relative: Callable[[str], str],
+    required: List[str] = [],
+) -> List[ConfigScope]:
+    """Load included config scopes
+    Scopes are added in reverse order so that highest-precedence scopes are last.
+    Args:
+        includes: list of paths to be included
+        name_prefix: environment's name prefix
+        config_stage_dir: path to directory to be used to stage remote includes
+        resolve_relative: method to use to resolve relative paths
+        required: list of paths that are required
+    Raises:
+        ValueError: included path has an unsupported URL scheme or is required
+            but does not exist
+        ConfigFileError: unable to access remote configuration file(s)
+    """
+    import urllib.parse
+    import urllib.request
+
+    scopes: List[ConfigScope] = []
+
+    missing = []
+    for i, orig_path in enumerate(reversed(includes)):
+        # allow paths to contain spack config/environment variables, etc.
+        config_path = substitute_path_variables(orig_path)
+        include_url = urllib.parse.urlparse(config_path)
+
+        # If scheme is not valid, config_path is not a url
+        # of a type Spack is generally aware
+        if validate_scheme(include_url.scheme):
+            # Transform file:// URLs to direct includes.
+            if include_url.scheme == "file":
+                config_path = urllib.request.url2pathname(include_url.path)
+
+            # Any other URL should be fetched.
+            elif include_url.scheme in ("http", "https", "ftp"):
+                # Stage any remote configuration file(s)
+                staged_configs = (
+                    os.listdir(config_stage_dir) if os.path.exists(config_stage_dir) else []
+                )
+                remote_path = urllib.request.url2pathname(include_url.path)
+                basename = os.path.basename(remote_path)
+                if basename in staged_configs:
+                    # Do NOT re-stage configuration files over existing
+                    # ones with the same name since there is a risk of
+                    # losing changes (e.g., from 'spack config update').
+                    if remote_path not in skip_restage_warning:
+                        tty.warn(
+                            f"Will not re-stage configuration from {remote_path} "
+                            "to avoid losing changes to the already staged file of "
+                            "the same name."
+                        )
+                        skip_restage_warning.append(remote_path)
+
+                    # Recognize the configuration stage directory
+                    # is flattened to ensure a single copy of each
+                    # configuration file.
+                    config_path = config_stage_dir
+                    if basename.endswith(".yaml"):
+                        config_path = os.path.join(config_path, basename)
+                else:
+                    staged_path = fetch_remote_configs(
+                        config_path, str(config_stage_dir), skip_existing=True
+                    )
+                    if not staged_path:
+                        raise ConfigFileError(
+                            f"Unable to fetch remote configuration {config_path}"
+                        )
+                    config_path = staged_path
+
+            elif include_url.scheme:
+                raise ValueError(
+                    f"Unsupported URL scheme ({include_url.scheme}) for "
+                    f"environment include: {config_path}"
+                )
+
+        # treat relative paths as relative to the environment
+        if not os.path.isabs(config_path):
+            config_path = resolve_relative(config_path)
+
+        if os.path.isdir(config_path):
+            # directories are treated as regular ConfigScopes
+            config_name = f"{name_prefix}:{os.path.basename(config_path)}"
+            tty.debug(f"Creating DirectoryConfigScope {config_name} for '{config_path}'")
+            scopes.append(DirectoryConfigScope(config_name, config_path))
+        elif os.path.exists(config_path):
+            # files are assumed to be SingleFileScopes
+            config_name = f"{name_prefix}:{config_path}"
+            tty.debug(f"Creating SingleFileScope {config_name} for '{config_path}'")
+            scopes.append(SingleFileScope(config_name, config_path, spack.schema.merged.schema))
+        elif orig_path in required:
+            raise ValueError(f"Required include path does not exist: {orig_path}")
+        else:
+            missing.append(config_path)
+            continue
+
+    if missing:
+        msg = f"Detected {len(missing)} optional missing include path(s):"
+        msg += "\n   {0}".format("\n   ".join(missing))
+        tty.warn(msg)
+
+    return scopes
+
+
 # TODO This needs to be moved or refactored since not only adds back
 # TODO circular import to environment but adds spack.util.path
 def update_config_with_includes():
@@ -790,7 +906,7 @@ def update_config_with_includes():
     configurations to include. This does not handle recursive includes
     (i.e. if an included config defines an "include:" section).
     """
-    from spack.environment.environment import _eval_conditional, scopes_from_paths
+    from spack.environment.environment import _eval_conditional
     from spack.util.path import canonicalize_path
 
     includes = CONFIG.get("include")
