@@ -2927,8 +2927,8 @@ class EnvironmentManifestFile(collections.abc.Mapping):
             SpackEnvironmentError: if the manifest includes a remote file but
                 no configuration stage directory has been identified
         """
-        # TODO (next include PR): revisit need to for explicit include
-        # TODO (next include PR): revisit support for using spack.config.get
+        # Retrieve and process the includes explicit listed in the environment's
+        # manifest.
         includes = self[TOP_LEVEL_KEY].get("include", [])
         if not includes:
             return []
