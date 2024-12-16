@@ -47,6 +47,7 @@ import spack.store
 import spack.util.debug
 import spack.util.environment
 import spack.util.lock
+import spack.util.path
 
 #: names of profile statistics
 stat_names = pstats.Stats.sort_arg_dict_default
@@ -580,9 +581,54 @@ def allows_unknown_args(command):
     return argcount == 3 and varnames[2] == "unknown_args"
 
 
+def update_config_with_includes():
+    """The "config:" section of a Configuration can specify other
+    configurations to include. This does not handle recursive includes
+    (i.e. if an included config defines an "include:" section).
+    """
+    includes = spack.config.CONFIG.get("include")
+    if not includes:
+        return
+
+    to_add = list()
+    for entry in includes:
+        always_activate = False
+        optional = False
+        if isinstance(entry, str):
+            include_path = entry
+            always_activate = True
+        else:
+            include_path = entry["path"]
+            if "when" in entry:
+                when_str = entry["when"]
+            else:
+                always_activate = True
+            optional |= entry.get("optional", False)
+
+        include_path = spack.util.path.canonicalize_path(include_path)
+        if not os.path.exists(include_path) and not optional:
+            raise ValueError(
+                f"Specified include path does not exist and is not optional: {include_path}"
+            )
+
+        activate = always_activate or ev._eval_conditional(when_str)
+        if activate and os.path.exists(include_path):
+            to_add.append(include_path)
+
+    def resolve_relative(cfg_path):
+        raise ValueError(f"config:include got relative path {cfg_path}")
+
+    scopes = spack.config.scopes_from_paths(
+        to_add, "include", config_stage_dir=None, resolve_relative=resolve_relative
+    )
+
+    for scope in scopes:
+        spack.config.CONFIG.push_scope(scope)
+
+
 def _invoke_command(command, parser, args, unknown_args):
     """Run a spack command *without* setting spack global options."""
-    spack.config.update_config_with_includes()
+    update_config_with_includes()
 
     if allows_unknown_args(command):
         return_val = command(parser, args, unknown_args)

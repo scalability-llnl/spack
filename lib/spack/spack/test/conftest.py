@@ -2173,3 +2173,16 @@ class MockHTTPResponse(io.IOBase):
 
     def info(self):
         return self.headers
+
+
+@pytest.fixture()
+def write_config_file(tmpdir):
+    """Returns a function that writes a config file."""
+
+    def _write(config, data, scope):
+        config_yaml = tmpdir.join(scope, config + ".yaml")
+        config_yaml.ensure()
+        with config_yaml.open("w") as f:
+            syaml.dump_config(data, f)
+
+    return _write
