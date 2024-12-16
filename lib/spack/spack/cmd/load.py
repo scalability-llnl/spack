@@ -82,20 +82,6 @@ def read_script_and_execute(env_mod, variable, *paths):
         env_mod.prepend_path(variable, path)
 
 
-def cache_shell_script(specs, shell = None):
-    spack_shell = shell if shell else os.environ.get("SPACK_SHELL")
-    for spec in specs:
-       # spec is a str
-       shell_script_path = os.path.join(spec.prefix, ".spack", f"{spec.name}_shell.{spack_shell}")
-
-       spec_mod = uenv.environment_modifications_for_specs(*[spec])
-       spec_mod.prepend_path(uenv.spack_loaded_hashes_var, spec.dag_hash())
-       spec_cmds = spec_mod.shell_modifications(shell)
-
-       with open(shell_script_path, "w") as f:
-           f.write(spec_cmds)
-
-
 def load(parser, args):
     env = ev.active_environment()
 
@@ -127,9 +113,6 @@ def load(parser, args):
         env_mod = uenv.environment_modifications_for_specs(*specs)
         for spec in specs:
             shell_script_path = os.path.join(spec.prefix, ".spack", f"{spec.name}_shell.{shell}")
-
-            # Cache each individual spec's commands
-            cache_shell_script([spec], shell)
 
             env_mod.prepend_path(uenv.spack_loaded_hashes_var, spec.dag_hash())
             cmds = env_mod.shell_modifications(shell)
