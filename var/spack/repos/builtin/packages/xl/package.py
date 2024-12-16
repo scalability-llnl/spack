@@ -88,24 +88,3 @@ class Xl(Package, CompilerPackage):
         if _compilers:
             results.append(("~r", {"compilers": _compilers}))
         return results
-
-    @property
-    def cc(self):
-        if self.spec.external:
-            return self.spec.extra_attributes["compilers"]["c"]
-        msg = "cannot retrieve C compiler [spec is not concrete]"
-        assert self.spec.concrete, msg
-
-    @property
-    def cxx(self):
-        if self.spec.external:
-            return self.spec.extra_attributes["compilers"]["cxx"]
-        msg = "cannot retrieve C++ compiler [spec is not concrete]"
-        assert self.spec.concrete, msg
-
-    @property
-    def fortran(self):
-        if self.spec.external:
-            return self.spec.extra_attributes["compilers"]["fortran"]
-        msg = "cannot retrieve Fortran compiler [spec is not concrete]"
-        assert self.spec.concrete, msg
