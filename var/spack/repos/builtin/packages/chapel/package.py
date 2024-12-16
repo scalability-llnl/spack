@@ -720,8 +720,10 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
 
         if self.spec.variants["hwloc"].value == "spack":
             self.update_lib_path(env, self.spec["hwloc"].prefix)
-            # Need this for the test env, where it does not appear automatic:
-            env.prepend_path("PKG_CONFIG_PATH", self.spec["libpciaccess"].prefix.lib.pkgconfig)
+            # Need hwloc opt deps for test env, where it does not appear automatic:
+            for dep in ["libpciaccess", "libxml2"]:
+                if dep in self.spec:
+                    self.update_lib_path(env, self.spec[dep].prefix)
 
         # TODO: unwind builds but resulting binaries fail to run, producing linker errors
         if self.spec.variants["unwind"].value == "spack":
