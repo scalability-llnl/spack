@@ -76,25 +76,10 @@ spack:
     - - $default_specs
     - - $arch
 
-  compilers:
-  - compiler:
-      spec: gcc@=10.2.1
-      paths:
-        cc: /opt/rh/devtoolset-10/root/usr/bin/gcc
-        cxx: /opt/rh/devtoolset-10/root/usr/bin/g++
-        f77: /opt/rh/devtoolset-10/root/usr/bin/gfortran
-        fc: /opt/rh/devtoolset-10/root/usr/bin/gfortran
-      flags: {}
-      operating_system: centos7
-      target: x86_64
-      modules: []
-      environment: {}
-      extra_rpaths: []
-
   ci:
     pipeline-gen:
     - build-job:
-        image: ghcr.io/spack/spack/manylinux2014:2024.03.28
+        image: ghcr.io/spack/x86_64_v3-linux-gnu:2024-12-12
 
   cdash:
-    build-group: Developer Tools Manylinux2014
+    build-group: Developer Tools x86_64_v3-linux-gnu

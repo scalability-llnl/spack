@@ -30,6 +30,7 @@ class Hipsolver(CMakePackage, CudaPackage, ROCmPackage):
 
     version("develop", branch="develop")
     version("master", branch="master")
+    version("6.2.4", sha256="4dc564498361cb1bac17dcfeaf0f2b9c85320797c75b05ee33160a133f5f4a15")
     version("6.2.1", sha256="614e3c0bc11bfa84acd81d46db63f3852a750adaaec094b7701ab7b996cc8e93")
     version("6.2.0", sha256="637577a9cc38e4865894dbcd7eb35050e3de5d45e6db03472e836b318602a84d")
     version("6.1.2", sha256="406a8e5b82daae2fc03e0a738b5a054ade01bb41785cee4afb9e21c7ec91d492")
@@ -104,6 +105,7 @@ class Hipsolver(CMakePackage, CudaPackage, ROCmPackage):
         "6.1.2",
         "6.2.0",
         "6.2.1",
+        "6.2.4",
         "master",
         "develop",
     ]:

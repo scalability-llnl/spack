@@ -9,7 +9,7 @@ import os.path
 import pytest
 
 import spack.binary_distribution as bd
-import spack.mirror
+import spack.mirrors.mirror
 import spack.spec
 from spack.installer import PackageInstaller
 
@@ -23,7 +23,7 @@ def test_build_tarball_overwrite(install_mockery, mock_fetch, monkeypatch, tmp_p
     specs = [spec]
 
     # populate cache, everything is new
-    mirror = spack.mirror.Mirror.from_local_path(str(tmp_path))
+    mirror = spack.mirrors.mirror.Mirror.from_local_path(str(tmp_path))
     with bd.make_uploader(mirror) as uploader:
         skipped = uploader.push_or_raise(specs)
         assert not skipped
