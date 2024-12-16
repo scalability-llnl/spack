@@ -624,7 +624,7 @@ def download_and_extract_artifacts(url, work_dir):
         url (str): Complete url to artifacts.zip file
         work_dir (str): Path to destination where artifacts should be extracted
     """
-    tty.msg(f"Fetching artifacts from: {url}\n")
+    tty.msg(f"Fetching artifacts from: {url}")
 
     headers = {"Content-Type": "application/zip"}
 
@@ -694,8 +694,8 @@ def setup_spack_repro_version(repro_dir, checkout_commit, merge_commit=None):
     """
     # figure out the path to the spack git version being used for the
     # reproduction
-    print(f"checkout_commit: {checkout_commit}")
-    print(f"merge_commit: {merge_commit}")
+    tty.info(f"checkout_commit: {checkout_commit}")
+    tty.info(f"merge_commit: {merge_commit}")
 
     dot_git_path = os.path.join(spack.paths.prefix, ".git")
     if not os.path.exists(dot_git_path):
@@ -941,7 +941,7 @@ def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime):
             "Failed to automatically setup the tested version of spack "
             "in your local reproduction directory."
         )
-        print(setup_msg)
+        tty.info(setup_msg)
 
     # In cases where CI build was run on a shell runner, it might be useful
     # to see what tags were applied to the job so the user knows what shell

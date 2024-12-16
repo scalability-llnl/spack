@@ -9,10 +9,13 @@ import pytest
 import llnl.util.filesystem as fs
 
 import spack
+import spack.config
+import spack.environment as ev
+import spack.error
+import spack.main
 import spack.paths
 import spack.util.executable as exe
 import spack.util.git
-from spack.main import main
 
 pytestmark = pytest.mark.not_on_windows(
     "Test functionality supported but tests are failing on Win"
@@ -81,7 +84,7 @@ def test_main_calls_get_version(tmpdir, capsys, working_env, monkeypatch):
     monkeypatch.setattr(spack.util.git, "git", lambda: None)
 
     # make sure we get a bare version (without commit) when this happens
-    main(["-V"])
+    spack.main.main(["-V"])
     out, err = capsys.readouterr()
     assert spack.spack_version == out.strip()
 
@@ -98,3 +101,70 @@ exit 1
 
     monkeypatch.setattr(spack.util.git, "git", lambda: exe.which(bad_git))
     assert spack.spack_version == spack.get_version()
+
+
+def test_bad_command_line_scopes(tmp_path, config):
+    cfg = spack.config.Configuration()
+    file_path = tmp_path / "file_instead_of_dir"
+    non_existing_path = tmp_path / "non_existing_dir"
+
+    file_path.write_text("")
+
+    with pytest.raises(spack.error.ConfigError):
+        spack.main.add_command_line_scopes(cfg, [str(file_path)])
+
+    with pytest.raises(spack.error.ConfigError):
+        spack.main.add_command_line_scopes(cfg, [str(non_existing_path)])
+
+
+def test_add_command_line_scopes(tmpdir, mutable_config):
+    config_yaml = str(tmpdir.join("config.yaml"))
+    with open(config_yaml, "w", encoding="utf-8") as f:
+        f.write(
+            """\
+config:
+    verify_ssl: False
+    dirty: False
+"""
+        )
+
+    spack.main.add_command_line_scopes(mutable_config, [str(tmpdir)])
+    assert mutable_config.get("config:verify_ssl") is False
+    assert mutable_config.get("config:dirty") is False
+
+
+def test_add_command_line_scope_env(tmp_path, mutable_mock_env_path):
+    """Test whether --config-scope <env> works, either by name or path."""
+    managed_env = ev.create("example").manifest_path
+
+    with open(managed_env, "w", encoding="utf-8") as f:
+        f.write(
+            """\
+spack:
+  config:
+    install_tree:
+      root: /tmp/first
+"""
+        )
+
+    with open(tmp_path / "spack.yaml", "w", encoding="utf-8") as f:
+        f.write(
+            """\
+spack:
+  config:
+    install_tree:
+      root: /tmp/second
+"""
+        )
+
+    config = spack.config.Configuration()
+    spack.main.add_command_line_scopes(config, ["example", str(tmp_path)])
+    assert len(config.scopes) == 2
+    assert config.get("config:install_tree:root") == "/tmp/second"
+
+    config = spack.config.Configuration()
+    spack.main.add_command_line_scopes(config, [str(tmp_path), "example"])
+    assert len(config.scopes) == 2
+    assert config.get("config:install_tree:root") == "/tmp/first"
+
+    assert ev.active_environment() is None  # shouldn't cause an environment to be activated

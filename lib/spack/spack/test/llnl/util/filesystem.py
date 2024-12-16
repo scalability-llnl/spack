@@ -506,9 +506,7 @@ def test_filter_files_with_different_encodings(regex, replacement, filename, tmp
     # This should not raise exceptions
     fs.filter_file(regex, replacement, target_file, **keyword_args)
     # Check the strings have been replaced
-    extra_kwargs = {"errors": "surrogateescape"}
-
-    with open(target_file, mode="r", **extra_kwargs) as f:
+    with open(target_file, mode="r", encoding="utf-8", errors="surrogateescape") as f:
         assert replacement in f.read()
 
 
@@ -558,9 +556,7 @@ def test_filter_files_multiple(tmpdir):
     fs.filter_file(r"\<string.h\>", "<unistd.h>", target_file)
     fs.filter_file(r"\<stdio.h\>", "<unistd.h>", target_file)
     # Check the strings have been replaced
-    extra_kwargs = {"errors": "surrogateescape"}
-
-    with open(target_file, mode="r", **extra_kwargs) as f:
+    with open(target_file, mode="r", encoding="utf-8", errors="surrogateescape") as f:
         assert "<malloc.h>" not in f.read()
         assert "<string.h>" not in f.read()
         assert "<stdio.h>" not in f.read()

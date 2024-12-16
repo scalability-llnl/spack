@@ -3058,6 +3058,29 @@ class EnvironmentManifestFile(collections.abc.Mapping):
             self.deactivate_config_scope()
 
 
+def environment_path_scopes(name: str, path: str) -> Optional[List[spack.config.ConfigScope]]:
+    """Retrieve the suitably named environment path scopes
+
+    Arguments:
+        name: configuration scope name
+        path: path to configuration file(s)
+
+    Returns: list of environment scopes, if any, or None
+    """
+    if exists(path):  # managed environment
+        manifest = EnvironmentManifestFile(root(path))
+    elif is_env_dir(path):  # anonymous environment
+        manifest = EnvironmentManifestFile(path)
+    else:
+        return None
+
+    for scope in manifest.env_config_scopes:
+        scope.name = f"{name}:{scope.name}"
+        scope.writable = False
+
+    return manifest.env_config_scopes
+
+
 class SpackEnvironmentError(spack.error.SpackError):
     """Superclass for all errors to do with Spack environments."""
 

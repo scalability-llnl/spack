@@ -344,14 +344,16 @@ def filter_file(
         regex = re.escape(regex)
     regex_compiled = re.compile(regex)
     for path in path_to_os_path(*filenames):
-        fd, temp_path = tempfile.mkstemp(prefix=os.path.basename(path), dir=os.path.dirname(path))
-        os.close(fd)
-
         if ignore_absent and not os.path.exists(path):
             tty.debug(f'FILTER FILE: file "{path}" not found. Skipping to next file.')
             continue
         else:
             tty.debug(f'FILTER FILE: {path} [replacing "{regex}"]')
+
+        fd, temp_path = tempfile.mkstemp(
+            prefix=f"{os.path.basename(path)}.", dir=os.path.dirname(path)
+        )
+        os.close(fd)
 
         shutil.copy(path, temp_path)
         errored = False
