@@ -899,56 +899,6 @@ def scopes_from_paths(
     return scopes
 
 
-# TODO This needs to be moved or refactored since not only adds back
-# TODO circular import to environment but adds spack.util.path
-def update_config_with_includes():
-    """The "config:" section of a Configuration can specify other
-    configurations to include. This does not handle recursive includes
-    (i.e. if an included config defines an "include:" section).
-    """
-    from spack.environment.environment import _eval_conditional
-    from spack.util.path import canonicalize_path
-
-    includes = CONFIG.get("include")
-    if not includes:
-        return
-
-    to_add = list()
-    for entry in includes:
-        always_activate = False
-        optional = False
-        if isinstance(entry, str):
-            include_path = entry
-            always_activate = True
-        else:
-            include_path = entry["path"]
-            if "when" in entry:
-                when_str = entry["when"]
-            else:
-                always_activate = True
-            optional |= entry.get("optional", False)
-
-        include_path = canonicalize_path(include_path)
-        if not os.path.exists(include_path) and not optional:
-            raise ValueError(
-                f"Specified include path does not exist and is not optional: {include_path}"
-            )
-
-        activate = always_activate or _eval_conditional(when_str)
-        if activate and os.path.exists(include_path):
-            to_add.append(include_path)
-
-    def resolve_relative(cfg_path):
-        raise ValueError(f"config:include got relative path {cfg_path}")
-
-    scopes = scopes_from_paths(
-        to_add, "include", config_stage_dir=None, resolve_relative=resolve_relative
-    )
-
-    for scope in scopes:
-        CONFIG.push_scope(scope)
-
-
 def config_paths_from_entry_points() -> List[Tuple[str, str]]:
     """Load configuration paths from entry points
 
