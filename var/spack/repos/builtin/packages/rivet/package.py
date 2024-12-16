@@ -82,6 +82,8 @@ class Rivet(AutotoolsPackage):
         "hepmc@3.3.0", when="@:3.1.10 hepmc=3", msg="patch-level zero requires at least 3.1.11"
     )
     conflicts("hepmc@3.3.0", when="@4.0.0 hepmc=3", msg="patch-level zero requires at least 4.0.1")
+    # The backported fix introduced an unguarded include of a HepMC3 header
+    conflicts("hepmc=2", when="@3.1.11", msg="rivet@3.1.11 cannot be built against hepmc=2")
     depends_on("fastjet plugins=cxx")
     depends_on("fastjet@3.4.0:", when="@3.1.7:")
     depends_on("fjcontrib")
