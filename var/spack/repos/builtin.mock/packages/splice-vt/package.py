@@ -18,7 +18,7 @@ class SpliceVt(Package):
     depends_on("splice-z")
 
     def install(self, spec, prefix):
-        with open(prefix.join("splice-vt"), "w") as f:
+        with open(prefix.join("splice-vt"), "w", encoding="utf-8") as f:
             f.write("splice-vt: {0}".format(prefix))
             f.write("splice-h: {0}".format(spec["somethingelse"].prefix))
             f.write("splice-z: {0}".format(spec["splice-z"].prefix))

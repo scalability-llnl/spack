@@ -48,7 +48,7 @@ def test_shared_libraries_visitor(tmpdir):
     # ./mydir/skip_symlink -> ../libskipme  # a symlink to a library
 
     with fs.working_dir(str(tmpdir)):
-        with open("hello.c", "w") as f:
+        with open("hello.c", "w", encoding="utf-8") as f:
             f.write("int main(){return 0;}")
         gcc("hello.c", "-o", "no-soname.so", "--shared")
         gcc("hello.c", "-o", "soname.so", "--shared", "-Wl,-soname,example.so")

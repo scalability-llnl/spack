@@ -110,7 +110,7 @@ class BundlePackageTemplate:
         all_deps.append(self.dependencies)
 
         # Write out a template for the file
-        with open(pkg_path, "w") as pkg_file:
+        with open(pkg_path, "w", encoding="utf-8") as pkg_file:
             pkg_file.write(
                 package_template.format(
                     name=self.name,

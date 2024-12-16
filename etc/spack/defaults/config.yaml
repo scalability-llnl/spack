@@ -194,6 +194,12 @@ config:
     # executables with many dependencies, in particular on slow filesystems.
     bind: false
 
+    # Controls the handling of missing dynamic libraries after installation.
+    # Options are ignore (default), warn, or error. If set to error, the
+    # installation fails if installed binaries reference dynamic libraries that
+    # are not found in their specified rpaths.
+    missing_library_policy: ignore
+
 
   # Set to 'false' to allow installation on filesystems that doesn't allow setgid bit
   # manipulation by unprivileged user (e.g. AFS)

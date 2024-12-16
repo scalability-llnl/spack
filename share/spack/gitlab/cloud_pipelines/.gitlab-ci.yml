@@ -447,27 +447,26 @@ build_systems-build:
 
 ###########################################
 # Build tests for different developer tools
-# manylinux2014
 ###########################################
-.developer-tools-manylinux2014:
+.developer-tools-x86_64_v3-linux-gnu:
   extends: [ ".linux_x86_64_v3" ]
   variables:
-    SPACK_CI_STACK_NAME: developer-tools-manylinux2014
+    SPACK_CI_STACK_NAME: developer-tools-x86_64_v3-linux-gnu
 
-developer-tools-manylinux2014-generate:
-  extends: [ ".developer-tools-manylinux2014", ".generate-x86_64"]
-  image:  ghcr.io/spack/spack/manylinux2014:2024.03.28
+developer-tools-x86_64_v3-linux-gnu-generate:
+  extends: [ ".developer-tools-x86_64_v3-linux-gnu", ".generate-x86_64"]
+  image:  ghcr.io/spack/x86_64_v3-linux-gnu:2024-12-12
 
-developer-tools-manylinux2014-build:
-  extends: [ ".developer-tools-manylinux2014", ".build" ]
+developer-tools-x86_64_v3-linux-gnu-build:
+  extends: [ ".developer-tools-x86_64_v3-linux-gnu", ".build" ]
   trigger:
     include:
       - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
-        job: developer-tools-manylinux2014-generate
+        job: developer-tools-x86_64_v3-linux-gnu-generate
     strategy: depend
   needs:
     - artifacts: True
-      job: developer-tools-manylinux2014-generate
+      job: developer-tools-x86_64_v3-linux-gnu-generate
 
 ###########################################
 # Build tests for different developer tools
