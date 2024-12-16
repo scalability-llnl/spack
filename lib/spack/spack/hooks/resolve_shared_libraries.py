@@ -121,7 +121,7 @@ class ResolveSharedElfLibDepsVisitor(BaseDirectoryVisitor):
             with open(path, "rb") as f:
                 parsed_elf = elf.parse_elf(f, interpreter=False, dynamic_section=True)
         except (OSError, elf.ElfParsingError):
-            # Not dealing with a valid ELF file.
+            # Not dealing with an invalid ELF file.
             return
 
         # If there's no needed libs all is good
