@@ -1406,7 +1406,7 @@ def test_config_fetch_remote_configs_skip(
 
 def test_include_cfg(mock_low_high_config, write_config_file, tmpdir):
     cfg1_path = str(tmpdir.join("include1.yaml"))
-    with open(cfg1_path, "w") as f:
+    with open(cfg1_path, "w", encoding="utf-8") as f:
         f.write(
             """\
 config:
@@ -1429,7 +1429,7 @@ packages:
 
     def write_python_cfg(_spec, _cfg_name):
         cfg_path = str(tmpdir.join(_cfg_name))
-        with open(cfg_path, "w") as f:
+        with open(cfg_path, "w", encoding="utf-8") as f:
             f.write(python_cfg(_spec))
         return cfg_path
 
@@ -1442,7 +1442,7 @@ packages:
     this_os = spack.platforms.host().default_os
     cfg3_expanded_path = os.path.join(str(tmpdir), f"{this_os}", "include3.yaml")
     mkdirp(os.path.dirname(cfg3_expanded_path))
-    with open(cfg3_expanded_path, "w") as f:
+    with open(cfg3_expanded_path, "w", encoding="utf-8") as f:
         f.write(python_cfg("+ssl"))
     cfg3_abstract_path = os.path.join(str(tmpdir), "$os", "include3.yaml")
 
