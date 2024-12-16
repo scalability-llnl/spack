@@ -48,7 +48,7 @@ class Sphexa(CMakePackage, CudaPackage, ROCmPackage):
     conflicts("+cuda", when="+rocm", msg="cuda and hip cannot both be enabled")
 
     def cmake_args(self):
-        spec, args = self.spec, []
+        spec = self.spec
 
         args = [
             self.define_from_variant("SPH_EXA_WITH_H5PART", "hdf5"),
