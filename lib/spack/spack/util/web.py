@@ -15,14 +15,14 @@ import sys
 import traceback
 import urllib.parse
 from html.parser import HTMLParser
-from pathlib import Path, PurePosixPath
+from pathlib import PurePosixPath
 from typing import IO, Dict, Iterable, List, Optional, Set, Tuple, Union
 from urllib.error import HTTPError, URLError
 from urllib.request import HTTPSHandler, Request, build_opener
 
 import llnl.url
 from llnl.util import lang, tty
-from llnl.util.filesystem import mkdirp, rename, working_dir
+from llnl.util.filesystem import rename, working_dir
 
 import spack
 import spack.config
@@ -594,9 +594,7 @@ def list_url(url, recursive=False):
             # convert backslash to forward slash as required for URLs
             return [fs_path(PurePosixPath(p)) for p in _iter_local_prefix(local_path)]
         return [
-            subpath.name
-            for subpath in local_path.iterdir()
-            if (local_path / subpath).is_file()
+            subpath.name for subpath in local_path.iterdir() if (local_path / subpath).is_file()
         ]
 
     if url.scheme == "s3":

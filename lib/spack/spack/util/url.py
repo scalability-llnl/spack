@@ -6,14 +6,13 @@
 Utility functions for parsing, formatting, and manipulating URLs.
 """
 
-import os
 import posixpath
 import re
 import urllib.parse
 import urllib.request
 from typing import Optional
 
-from spack.util.path import fs_path, concrete_path, sanitize_filename
+from spack.util.path import concrete_path, fs_path, sanitize_filename
 
 
 def validate_scheme(scheme):

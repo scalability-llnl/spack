@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections
 import email.message
-import os
 import pickle
 import ssl
 import urllib.request
@@ -19,7 +18,7 @@ import spack.url
 import spack.util.s3
 import spack.util.url as url_util
 import spack.util.web
-from spack.util.path import fs_path, abstract_path, concrete_path 
+from spack.util.path import abstract_path, concrete_path, fs_path
 from spack.version import Version
 
 
