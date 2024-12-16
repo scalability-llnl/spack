@@ -690,38 +690,20 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
                 msg = "{0} not in {1}"
                 assert key in compilers, msg.format(key, spec)
 
-    @property
-    def cc(self):
-        msg = "cannot retrieve C compiler [spec is not concrete]"
-        assert self.spec.concrete, msg
-        if self.spec.external:
-            return self.spec.extra_attributes["compilers"].get("c", None)
-        result = None
+    def _cc_path(self):
         if self.spec.satisfies("languages=c"):
-            result = str(self.spec.prefix.bin.gcc)
-        return result
+            return str(self.spec.prefix.bin.gcc)
+        return None
 
-    @property
-    def cxx(self):
-        msg = "cannot retrieve C++ compiler [spec is not concrete]"
-        assert self.spec.concrete, msg
-        if self.spec.external:
-            return self.spec.extra_attributes["compilers"].get("cxx", None)
-        result = None
+    def _cxx_path(self):
         if self.spec.satisfies("languages=c++"):
-            result = os.path.join(self.spec.prefix.bin, "g++")
-        return result
+            return os.path.join(self.spec.prefix.bin, "g++")
+        return None
 
-    @property
-    def fortran(self):
-        msg = "cannot retrieve Fortran compiler [spec is not concrete]"
-        assert self.spec.concrete, msg
-        if self.spec.external:
-            return self.spec.extra_attributes["compilers"].get("fortran", None)
-        result = None
+    def _fortran_path(self):
         if self.spec.satisfies("languages=fortran"):
-            result = str(self.spec.prefix.bin.gfortran)
-        return result
+            return str(self.spec.prefix.bin.gfortran)
+        return None
 
     def url_for_version(self, version):
         # This function will be called when trying to fetch from url, before

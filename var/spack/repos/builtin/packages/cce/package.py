@@ -24,11 +24,32 @@ class Cce(Package, CompilerPackage):
 
     debug_flags = ["-g", "-G0", "-G1", "-G2", "-Gfast"]
 
-    liink_paths = {
+    link_paths = {
         "c": os.path.join("cce", "craycc"),
         "cxx": os.path.join("cce", "case-insensitive", "crayCC"),
         "fortran": os.path.join("cce", "crayftn"),
     }
+
+    required_libs = [
+        "libalign",
+        "libcrayacc_amdgpu",
+        "libcrayacc_x86_64",
+        "libcraymath",
+        "libcraymp",
+        "libcrayompd",
+        "libcsup",
+        "libfi",
+        "libf",
+        "libmodules64",
+        "libmodules",
+        "libopenacc_amdgpu",
+        "libopenacc",
+        "libopenacc_x86_64",
+        "libpgas-shmem",
+        "libplinterface",
+        "libquadmath",
+        "libu",
+    ]
 
     maintainers("becker33")
 

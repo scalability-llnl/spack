@@ -63,20 +63,6 @@ class Msvc(Package, CompilerPackage):
         extras["compilers"]["c"] = extras["compilers"]["cxx"]
         return spec, extras
 
-    @property
-    def cc(self):
-        if self.spec.external:
-            return self.spec.extra_attributes["compilers"]["c"]
-        msg = "cannot retrieve C compiler [spec is not concrete]"
-        assert self.spec.concrete, msg
-
-    @property
-    def cxx(self):
-        if self.spec.external:
-            return self.spec.extra_attributes["compilers"]["cxx"]
-        msg = "cannot retrieve C++ compiler [spec is not concrete]"
-        assert self.spec.concrete, msg
-
     def setup_dependent_build_environment(self, env, dependent_spec):
         self.init_msvc()
         # Set the build environment variables for spack. Just using
