@@ -351,7 +351,7 @@ hash={spec.dag_hash()} arch={spec.architecture} ({self.build_group})"
         configuration = CDashConfiguration(
             upload_url=self.upload_url,
             packages=[spec.name],
-            build=self.build_name,
+            build=self.build_name(),
             site=self.site,
             buildstamp=self.build_stamp,
             track=None,
