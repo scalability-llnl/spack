@@ -455,7 +455,7 @@ build_systems-build:
 
 developer-tools-x86_64_v3-linux-gnu-generate:
   extends: [ ".developer-tools-x86_64_v3-linux-gnu", ".generate-x86_64"]
-  image:  ghcr.io/haampie/x86_64_v3-linux-gnu:2024-12-12
+  image:  ghcr.io/spack/x86_64_v3-linux-gnu:2024-12-12
 
 developer-tools-x86_64_v3-linux-gnu-build:
   extends: [ ".developer-tools-x86_64_v3-linux-gnu", ".build" ]
