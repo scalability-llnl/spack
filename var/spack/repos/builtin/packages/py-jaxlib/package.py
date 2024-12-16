@@ -223,7 +223,7 @@ build --local_cpu_resources={make_jobs}
         if "+cuda" in spec:
             capabilities = CudaPackage.compute_capabilities(spec.variants["cuda_arch"].value)
             args.append(f"--cuda_compute_capabilities={','.join(capabilities)}")
-            if spec.satisfies("@0.4.36:"):
+            if spec.satisfies("@:0.4.35"):
                 args.append("--enable_cuda")
             if spec.satisfies("@0.4.32:"):
                 args.extend(
@@ -248,7 +248,6 @@ build --local_cpu_resources={make_jobs}
 
         python(*args)
         whl = glob.glob(join_path("dist", "*.whl"))[0]
-        with working_dir(self.wrapped_package_object.tmp_path):
-            pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", whl)
+        pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", whl)
         remove_linked_tree(self.wrapped_package_object.tmp_path)
         remove_linked_tree(self.wrapped_package_object.buildtmp)
