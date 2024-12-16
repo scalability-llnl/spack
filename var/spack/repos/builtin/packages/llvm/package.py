@@ -840,49 +840,20 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
             msg = "{0} compiler not found for {1}"
             assert key in compilers, msg.format(key, spec)
 
-    @property
-    def cc(self):
-        msg = "cannot retrieve C compiler [spec is not concrete]"
-        assert self.spec.concrete, msg
-        if self.spec.external:
-            return self.spec.extra_attributes["compilers"].get("c", None)
-        result = None
+    def _cc_path(self):
         if self.spec.satisfies("+clang"):
-            result = os.path.join(self.spec.prefix.bin, "clang")
-        return result
+            return os.path.join(self.spec.prefix.bin, "clang")
+        return None
 
-    @property
-    def cxx(self):
-        msg = "cannot retrieve C++ compiler [spec is not concrete]"
-        assert self.spec.concrete, msg
-        if self.spec.external:
-            return self.spec.extra_attributes["compilers"].get("cxx", None)
-        result = None
+    def _cxx_path(self):
         if self.spec.satisfies("+clang"):
-            result = os.path.join(self.spec.prefix.bin, "clang++")
-        return result
+            return os.path.join(self.spec.prefix.bin, "clang++")
+        return None
 
-    @property
-    def fc(self):
-        msg = "cannot retrieve Fortran compiler [spec is not concrete]"
-        assert self.spec.concrete, msg
-        if self.spec.external:
-            return self.spec.extra_attributes["compilers"].get("fc", None)
-        result = None
+    def _fortran_path(self):
         if self.spec.satisfies("+flang"):
-            result = os.path.join(self.spec.prefix.bin, "flang")
-        return result
-
-    @property
-    def f77(self):
-        msg = "cannot retrieve Fortran 77 compiler [spec is not concrete]"
-        assert self.spec.concrete, msg
-        if self.spec.external:
-            return self.spec.extra_attributes["compilers"].get("f77", None)
-        result = None
-        if self.spec.satisfies("+flang"):
-            result = os.path.join(self.spec.prefix.bin, "flang")
-        return result
+            return os.path.join(self.spec.prefix.bin, "flang")
+        return None
 
     debug_flags = [
         "-gcodeview",
