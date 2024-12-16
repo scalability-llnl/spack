@@ -36,13 +36,17 @@ class Grep(AutotoolsPackage):
 
     @classmethod
     def determine_version(cls, exe):
-        version_string = Executable(exe)("--version", output=str, error=str).split('\n')[0]
+        version_string = Executable(exe)("--version", output=str, error=str).split("\n")[0]
+        # Linux
         if "GNU grep" in version_string:
             return version_string.lstrip("grep (GNU grep)").strip()
+        # macOS
         elif "BSD grep, GNU compatible" in version_string:
-            return version_string.lstrip("grep (BSD grep, GNU compatible)").rstrip("-FreeBSD").strip()
+            return (
+                version_string.lstrip("grep (BSD grep, GNU compatible)").rstrip("-FreeBSD").strip()
+            )
+        # Don't know how to handle this version of grep, don't add it
         else:
-            # Don't know how to handle this version of grep, don't add it
             return None
 
     def configure_args(self):
