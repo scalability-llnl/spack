@@ -280,10 +280,10 @@ def as_env_dir(name_or_dir):
     if is_env_dir(path):
         return path
     else:
-        validate_env_name(name_or_dir)
-        if not exists(name_or_dir):
-            raise SpackEnvironmentError("no such environment '%s'" % name_or_dir)
-        return root(name_or_dir)
+        path = environment_dir_from_name(name_or_dir)
+        if not is_env_dir(path):
+            raise SpackEnvironmentError("could not find environment with name '%s'" % name_or_dir)
+        return path
 
 
 def environment_from_name_or_dir(name_or_dir):
@@ -295,7 +295,7 @@ def read(name):
     """Get an environment with the supplied name."""
     validate_env_name(name)
     if not exists(name):
-        raise SpackEnvironmentError("no such environment '%s'" % name)
+        raise SpackEnvironmentError("could not read environment '%s'" % name)
     return Environment(root(name))
 
 
