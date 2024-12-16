@@ -109,28 +109,13 @@ class IntelOneapiCompilersClassic(Package, CompilerPackage):
             else:
                 os.symlink(src_path, dest_path)
 
-    @property
-    def cc(self):
-        msg = "cannot retrieve C compiler [spec is not concrete]"
-        assert self.spec.concrete, msg
-        if self.spec.external:
-            return self.spec.extra_attributes["compilers"].get("c", None)
+    def _cc_path(self):
         return str(self.prefix.bin.icc)
 
-    @property
-    def cxx(self):
-        msg = "cannot retrieve C++ compiler [spec is not concrete]"
-        assert self.spec.concrete, msg
-        if self.spec.external:
-            return self.spec.extra_attributes["compilers"].get("cxx", None)
+    def _cxx_path(self):
         return str(self.prefix.bin.icpc)
 
-    @property
-    def fortran(self):
-        msg = "cannot retrieve Fortran compiler [spec is not concrete]"
-        assert self.spec.concrete, msg
-        if self.spec.external:
-            return self.spec.extra_attributes["compilers"].get("fortran", None)
+    def _fortran_path(self):
         return str(self.prefix.bin.ifort)
 
     def archspec_name(self):

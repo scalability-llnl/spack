@@ -115,10 +115,5 @@ class Nag(Package, CompilerPackage):
 
     openmp_flag = "-openmp"
 
-    @property
-    def fortran(self):
-        msg = "cannot retrieve Fortran compiler [spec is not concrete]"
-        assert self.spec.concrete, msg
-        if self.spec.external:
-            return self.spec.extra_attributes["compilers"].get("fortran", None)
+    def _fortran_path(self):
         return str(self.spec.prefix.bin.nagfor)
