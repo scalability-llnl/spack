@@ -62,7 +62,7 @@ class MiopenHip(CMakePackage):
     depends_on("boost@1.67.0:1.73.0")
     depends_on("bzip2")
     depends_on("sqlite")
-    depends_on("half")
+    depends_on("half@1")
     depends_on("zlib-api")
 
     patch("miopen-hip-include-nlohmann-include-directory.patch", when="@5.4.0:5.7")
