@@ -107,8 +107,6 @@ class Caliper(CachedCMakePackage, CudaPackage, ROCmPackage):
     variant("kokkos", default=True, when="@2.3.0:", description="Enable Kokkos profiling support")
     variant("tests", default=False, description="Enable tests")
     variant("tools", default=True, description="Enable tools")
-
-    # TODO change the 'when' argument for the next release of Caliper
     variant("python", default=False, when="@v2.12:", description="Build Python bindings")
 
     depends_on("adiak@0.1:0", when="@2.2:2.10 +adiak")
