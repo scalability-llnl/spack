@@ -2128,3 +2128,15 @@ def mock_test_cache(tmp_path_factory):
     cache_dir = tmp_path_factory.mktemp("cache")
     print(cache_dir)
     return spack.util.file_cache.FileCache(str(cache_dir))
+
+@pytest.fixture()
+def write_config_file(tmpdir):
+    """Returns a function that writes a config file."""
+
+    def _write(config, data, scope):
+        config_yaml = tmpdir.join(scope, config + ".yaml")
+        config_yaml.ensure()
+        with config_yaml.open("w") as f:
+            syaml.dump_config(data, f)
+
+    return _write
