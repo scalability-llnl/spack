@@ -350,7 +350,7 @@ compilers::
     # This should *not* work, but it does
     output1 = spec_cmd("--reuse", "x1%oneapi ^x4%gcc")
 
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     print(output1)
     print(output2)
     # output = solve("--reuse", "x1%aocc")
