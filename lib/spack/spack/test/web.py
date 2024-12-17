@@ -3,9 +3,11 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections
 import email.message
+import os
 import pickle
 import ssl
 import urllib.request
+from pathlib import Path
 
 import pytest
 
@@ -205,20 +207,19 @@ def test_etag_parser():
     assert spack.util.web.parse_etag("abc def") is None
 
 
-def test_list_url(tmpdir):
-    testpath = str(tmpdir)
-    testpath_url = url_util.path_to_file_url(testpath)
+def test_list_url(tmp_path):
+    testpath_url = url_util.path_to_file_url(tmp_path)
 
-    (tmpdir / "dir").mkdir()
+    (tmp_path / "dir").mkdir()
 
-    with open((tmpdir / "file-0.txt"), "w", encoding="utf-8"):
+    with open((tmp_path / "file-0.txt"), "w", encoding="utf-8"):
         pass
-    with open((tmpdir / "file-1.txt"), "w", encoding="utf-8"):
+    with open((tmp_path / "file-1.txt"), "w", encoding="utf-8"):
         pass
-    with open((tmpdir / "file-2.txt"), "w", encoding="utf-8"):
+    with open((tmp_path / "file-2.txt"), "w", encoding="utf-8"):
         pass
 
-    with open((tmpdir / "dir" / "another-file.txt"), "w", encoding="utf-8"):
+    with open((tmp_path / "dir" / "another-file.txt"), "w", encoding="utf-8"):
         pass
 
     list_url = lambda recursive: list(
@@ -395,7 +396,7 @@ def ssl_scrubbed_env(mutable_config, monkeypatch):
     ],
 )
 def test_ssl_urllib(
-    cert_path, cert_creator, tmpdir, ssl_scrubbed_env, mutable_config, monkeypatch
+    cert_path, cert_creator, tmp_path, ssl_scrubbed_env, mutable_config, monkeypatch
 ):
     """
     create a proposed cert type and then verify that they exist inside ssl's checks
@@ -412,37 +413,41 @@ def test_ssl_urllib(
 
     monkeypatch.setattr(ssl.SSLContext, "load_verify_locations", mock_verify_locations)
 
-    with tmpdir.as_cwd():
-        mock_cert = cert_path(tmpdir.strpath)
-        cert_creator(mock_cert)
-        spack.config.set("config:ssl_certs", mock_cert)
+    cwd = Path.cwd()
+    os.chdir(tmp_path)
+    mock_cert = cert_path(tmp_path)
+    cert_creator(mock_cert)
+    spack.config.set("config:ssl_certs", mock_cert)
 
-        assert mock_cert == spack.config.get("config:ssl_certs", None)
+    assert mock_cert == spack.config.get("config:ssl_certs", None)
 
-        ssl_context = spack.util.web.ssl_create_default_context()
-        assert ssl_context.verify_mode == ssl.CERT_REQUIRED
+    ssl_context = spack.util.web.ssl_create_default_context()
+    assert ssl_context.verify_mode == ssl.CERT_REQUIRED
+    os.chdir(cwd)
 
 
 @pytest.mark.parametrize("cert_exists", [True, False], ids=["exists", "missing"])
-def test_ssl_curl_cert_file(cert_exists, tmpdir, ssl_scrubbed_env, mutable_config, monkeypatch):
+def test_ssl_curl_cert_file(cert_exists, tmp_path, ssl_scrubbed_env, mutable_config, monkeypatch):
     """
     Assure that if a valid cert file is specified curl executes
     with CURL_CA_BUNDLE in the env
     """
     spack.config.set("config:url_fetch_method", "curl")
-    with tmpdir.as_cwd():
-        mock_cert = tmpdir.join("mock_cert.crt")
-        spack.config.set("config:ssl_certs", fs_path(mock_cert))
-        if cert_exists:
-            open(mock_cert, "w", encoding="utf-8").close()
-            assert mock_cert.isfile()
-        curl = spack.util.web.require_curl()
+    cwd = Path.cwd()
+    os.chdir(tmp_path)
+    mock_cert = tmp_path / "mock_cert.crt"
+    spack.config.set("config:ssl_certs", fs_path(mock_cert))
+    if cert_exists:
+        open(mock_cert, "w", encoding="utf-8").close()
+        assert mock_cert.is_file()
+    curl = spack.util.web.require_curl()
 
-        # arbitrary call to query the run env
-        dump_env = {}
-        curl("--help", output=str, _dump_env=dump_env)
+    # arbitrary call to query the run env
+    dump_env = {}
+    curl("--help", output=str, _dump_env=dump_env)
 
-        if cert_exists:
-            assert dump_env["CURL_CA_BUNDLE"] == mock_cert
-        else:
-            assert "CURL_CA_BUNDLE" not in dump_env
+    if cert_exists:
+        assert dump_env["CURL_CA_BUNDLE"] == fs_path(mock_cert)
+    else:
+        assert "CURL_CA_BUNDLE" not in dump_env
+    os.chdir(cwd)
