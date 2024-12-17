@@ -611,7 +611,7 @@ def update_config_with_includes():
                 f"Specified include path does not exist and is not optional: {include_path}"
             )
 
-        activate = always_activate or ev._eval_conditional(when_str)
+        activate = always_activate or spack.spec.eval_conditional(when_str)
         if activate and os.path.exists(include_path):
             to_add.append(include_path)
 

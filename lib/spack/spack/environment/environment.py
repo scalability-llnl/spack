@@ -541,13 +541,6 @@ def _write_yaml(data, str_or_file):
     syaml.dump_config(data, str_or_file, default_flow_style=False)
 
 
-def _eval_conditional(string):
-    """Evaluate conditional definitions using restricted variable scope."""
-    valid_variables = spack.spec.get_host_environment()
-    valid_variables.update({"re": re, "env": os.environ})
-    return eval(string, valid_variables)
-
-
 def _is_dev_spec_and_has_changed(spec):
     """Check if the passed spec is a dev build and whether it has changed since the
     last installation"""
@@ -980,7 +973,7 @@ class Environment:
         """Process a single spec definition item."""
         when_string = entry.get("when")
         if when_string is not None:
-            when = _eval_conditional(when_string)
+            when = spack.spec.eval_conditional(when_string)
             assert len([x for x in entry if x != "when"]) == 1
         else:
             when = True
@@ -2846,7 +2839,7 @@ class EnvironmentManifestFile(collections.abc.Mapping):
                 continue
 
             condition_str = item.get("when", "True")
-            if not _eval_conditional(condition_str):
+            if not spack.spec.eval_conditional(condition_str):
                 continue
 
             yield idx, item
@@ -2951,7 +2944,7 @@ class EnvironmentManifestFile(collections.abc.Mapping):
             if not optional:
                 required_paths.append(path)
 
-            if always_activate or _eval_conditional(when_str):
+            if always_activate or spack.spec.eval_conditional(when_str):
                 include_paths.append(path)
 
         return spack.config.scopes_from_paths(
