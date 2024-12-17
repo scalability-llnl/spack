@@ -122,7 +122,7 @@ class PyPyomo(PythonPackage):
     depends_on("py-sphinx-jinja2-compat@0.1.1:", when="@6.7.1:+docs", type=("run"))
     depends_on("py-enum-tools", when="@6.7.1:6.8.0+docs", type=("run"))
     depends_on("py-numpy@1", when="@6.1:6.7+docs", type=("run"))
-    depends_on("py-numpy@2", when="@6.8:+docs", type=("run"))
+    depends_on("py-numpy", when="@6.8:+docs", type=("run"))
     depends_on("py-scipy", when="@6.4.2:+docs", type=("run"))
 
     # when optional is requested
@@ -132,7 +132,7 @@ class PyPyomo(PythonPackage):
     depends_on("py-matplotlib@:3.6.0,3.6.2:", when="@6.1:+optional", type=("run"))
     depends_on("py-networkx", when="@6.1:+optional", type=("run"))
     depends_on("py-numpy@1", when="@6.1:6.7+optional", type=("run"))
-    depends_on("py-numpy@2", when="@6.8:+optional", type=("run"))
+    depends_on("py-numpy", when="@6.8:+optional", type=("run"))
     depends_on("py-openpyxl", when="@6.1:+optional", type=("run"))
     depends_on("py-pint", when="@6.1:+optional", type=("run"))
     depends_on("py-plotly", when="@6.6:+optional", type=("run"))
