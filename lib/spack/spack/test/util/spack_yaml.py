@@ -73,7 +73,7 @@ def test_config_blame_defaults():
 
     def get_file_lines(filename):
         if filename not in files:
-            with open(filename, "r") as f:
+            with open(filename, "r", encoding="utf-8") as f:
                 files[filename] = [""] + f.read().split("\n")
         return files[filename]
 

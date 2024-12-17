@@ -24,7 +24,6 @@ import textwrap
 import time
 import traceback
 import typing
-import warnings
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, Type, TypeVar, Union
 
 import llnl.util.filesystem as fsys
@@ -633,6 +632,14 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
     #: ``["libcuda.so", "stubs"]`` will ensure libcuda.so and all libraries in the
     #: stubs directory are not bound by path."""
     non_bindable_shared_objects: List[str] = []
+
+    #: List of fnmatch patterns of library file names (specifically DT_NEEDED entries) that are not
+    #: expected to be locatable in RPATHs. Generally this is a problem, and Spack install with
+    #: config:shared_linking:strict will cause install failures if such libraries are found.
+    #: However, in certain cases it can be hard if not impossible to avoid accidental linking
+    #: against system libraries; until that is resolved, this attribute can be used to suppress
+    #: errors.
+    unresolved_libraries: List[str] = []
 
     #: List of prefix-relative file paths (or a single path). If these do
     #: not exist after install, or if they exist but are not files,
@@ -1361,24 +1368,6 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         return self._tester
 
     @property
-    def installed(self):
-        msg = (
-            'the "PackageBase.installed" property is deprecated and will be '
-            'removed in Spack v0.19, use "Spec.installed" instead'
-        )
-        warnings.warn(msg)
-        return self.spec.installed
-
-    @property
-    def installed_upstream(self):
-        msg = (
-            'the "PackageBase.installed_upstream" property is deprecated and will '
-            'be removed in Spack v0.19, use "Spec.installed_upstream" instead'
-        )
-        warnings.warn(msg)
-        return self.spec.installed_upstream
-
-    @property
     def fetcher(self):
         if not self.spec.versions.concrete:
             raise ValueError("Cannot retrieve fetcher for package without concrete version.")
@@ -1755,7 +1744,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
 
         return patches
 
-    def content_hash(self, content=None):
+    def content_hash(self, content: Optional[bytes] = None) -> str:
         """Create a hash based on the artifacts and patches used to build this package.
 
         This includes:
