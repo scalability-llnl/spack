@@ -67,6 +67,7 @@ class Libxml2(AutotoolsPackage, NMakePackage):
 
     depends_on("c", type="build")
 
+    variant("http", default=False, description="Enable HTTP support")
     variant("python", default=False, description="Enable Python support")
     variant("shared", default=True, description="Build shared library")
     variant("pic", default=True, description="Enable position-independent code (PIC)")
@@ -253,6 +254,11 @@ class AutotoolsBuilder(AnyBuilder, autotools.AutotoolsBuilder):
         else:
             args.append("--without-python")
 
+        if spec.satisfies("+http"):
+            args.append("--with-http")
+        else:
+            args.append("--without-http")
+
         args.extend(self.enable_or_disable("shared"))
         # PIC setting is taken care of above by self.flag_handler()
         args.append("--without-pic")
@@ -296,4 +302,6 @@ class NMakeBuilder(AnyBuilder, nmake.NMakeBuilder):
             ]
             if spec.satisfies("+python"):
                 opts.append("python=yes")
+            if spec.satisfies("+http"):
+                opts.append("http=yes")
             cscript("configure.js", *opts)
