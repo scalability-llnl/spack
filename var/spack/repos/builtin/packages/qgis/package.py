@@ -133,7 +133,7 @@ class Qgis(CMakePackage):
     depends_on("proj@7.2:", when="@3.28:")
     depends_on("proj@:8", when="@3.28")  # build fails with proj@9
     # fails to build with proj 9.4+ until the backported patch in 3.34.5
-    # https://github.com/qgis/QGIS/compare/final-3_34_4%5E...final-3_34_5
+    # https://github.com/qgis/QGIS/pull/56761
     depends_on("proj@:9.3", when="@:3.34.4")
     depends_on("py-psycopg2", type=("build", "run"))  # TODO: is build dependency necessary?
     depends_on("py-pyqt4", when="@2")
