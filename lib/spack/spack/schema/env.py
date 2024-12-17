@@ -13,7 +13,6 @@ from typing import Any, Dict
 from llnl.util.lang import union_dicts
 
 import spack.schema.merged
-import spack.schema.environment
 
 from .spec_list import spec_list_schema
 
@@ -35,7 +34,6 @@ properties: Dict[str, Any] = {
                 "include": {"type": "array", "default": [], "items": {"type": "string"}},
                 "specs": spec_list_schema,
                 "include_concrete": include_concrete,
-                "env_vars": spack.schema.environment.definition,
 
             },
         ),

@@ -1,0 +1,25 @@
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
+# Spack Project Developers. See the top-level COPYRIGHT file for details.
+#
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+"""Schema for env_vars.yaml configuration file.
+
+.. literalinclude:: _spack_root/lib/spack/spack/schema/env_vars.py
+   :lines: 14-
+"""
+
+import spack.schema.environment
+from typing import Any, Dict
+
+properties: Dict[str, Any] = {
+    "env_vars": spack.schema.environment.definition,
+    }
+
+#: Full schema with metadata
+schema = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Spack env_vars configuration file schema",
+    "type": "object",
+    "additionalProperties": False,
+    "properties": properties,
+}
