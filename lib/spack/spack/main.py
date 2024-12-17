@@ -615,11 +615,8 @@ def update_config_with_includes():
         if activate and os.path.exists(include_path):
             to_add.append(include_path)
 
-    def resolve_relative(cfg_path):
-        raise ValueError(f"config:include got relative path {cfg_path}")
-
     scopes = spack.config.scopes_from_paths(
-        to_add, "include", config_stage_dir=None, resolve_relative=resolve_relative
+        to_add, "include", config_stage_dir=None, relative_root=None
     )
 
     for scope in scopes:
