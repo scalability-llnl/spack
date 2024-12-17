@@ -40,10 +40,12 @@ class Rivet(AutotoolsPackage):
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
 
+    # The backported fix introduced an unguarded include of a HepMC3 header in
+    # 3.1.11 and as of version 4 HepMC2 is no longer supported
     variant(
         "hepmc",
         default="2",
-        values=(conditional("2", when="@:3"), "3"),
+        values=(conditional("2", when="@:3.1.10"), "3"),
         description="HepMC version to link against",
     )
 
@@ -83,8 +85,6 @@ class Rivet(AutotoolsPackage):
         when="@:3.1.10,4.0.0 hepmc=3",
         msg="patch-level zero requires at least 3.1.11 or 4.0.1",
     )
-    # The backported fix introduced an unguarded include of a HepMC3 header
-    conflicts("hepmc=2", when="@3.1.11", msg="rivet@3.1.11 cannot be built against hepmc=2")
     depends_on("fastjet plugins=cxx")
     depends_on("fastjet@3.4.0:", when="@3.1.7:")
     depends_on("fjcontrib")
