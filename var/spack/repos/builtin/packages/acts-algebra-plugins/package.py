@@ -17,6 +17,7 @@ class ActsAlgebraPlugins(CMakePackage):
 
     license("MPL-2.0", checked_by="stephenswat")
 
+    version("0.26.1", sha256="8eb1e9e28ec2839d149b6a6bddd0f983b0cdf71c286c0aeb67ede31727c5b7d3")
     version("0.26.0", sha256="301702e3d0a3d12e46ae6d949f3027ddebd0b1167cbb3004d9a4a5697d3adc7f")
     version("0.25.0", sha256="bb0cba6e37558689d780a6de8f749abb3b96f8cd9e0c8851474eb4532e1e98b8")
     version("0.24.0", sha256="f44753e62b1ba29c28ab86b282ab67ac6028a0f9fe41e599b7fc6fc50b586b62")

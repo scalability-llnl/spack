@@ -66,3 +66,9 @@ class IntelOneapiRuntime(Package):
     @property
     def headers(self):
         return HeaderList([])
+
+    # We expect dependencies between runtime libraries themselves to be resolved by rpaths in the
+    # dependent binaries. This means RUNPATH is currently unsupported. Supporting this is hard,
+    # because the only way to register the rpath is through patchelf, which itself depends on C++
+    # runtime libraries.
+    unresolved_libraries = ["libimf.so*", "libintlc.so*", "libsvml.so*"]

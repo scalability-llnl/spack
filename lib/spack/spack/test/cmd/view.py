@@ -175,7 +175,7 @@ def test_view_extension_conflict_ignored(
     viewpath = str(tmpdir.mkdir("view"))
     view("symlink", viewpath, "extension1@1.0")
     view("symlink", viewpath, "-i", "extension1@2.0")
-    with open(os.path.join(viewpath, "bin", "extension1"), "r") as fin:
+    with open(os.path.join(viewpath, "bin", "extension1"), "r", encoding="utf-8") as fin:
         assert fin.read() == "1.0"
 
 
@@ -202,7 +202,7 @@ def test_view_files_not_ignored(
 
     if with_projection:
         proj = str(tmpdir.join("proj.yaml"))
-        with open(proj, "w") as f:
+        with open(proj, "w", encoding="utf-8") as f:
             f.write('{"projections":{"all":"{name}"}}')
         prefix_in_view = os.path.join(viewpath, "view-not-ignored")
         args = ["--projection-file", proj]

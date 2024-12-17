@@ -45,14 +45,46 @@ class PyScipy(PythonPackage):
     version("1.6.1", sha256="c4fceb864890b6168e79b0e714c585dbe2fd4222768ee90bc1aa0f8218691b11")
     version("1.6.0", sha256="cb6dc9f82dfd95f6b9032a8d7ea70efeeb15d5b5fd6ed4e8537bb3c673580566")
     version("1.5.4", sha256="4a453d5e5689de62e5d38edf40af3f17560bfd63c9c5bd228c18c1f99afa155b")
-    version("1.5.3", sha256="ddae76784574cc4c172f3d5edd7308be16078dd3b977e8746860c76c195fa707")
-    version("1.5.2", sha256="066c513d90eb3fd7567a9e150828d39111ebd88d3e924cdfc9f8ce19ab6f90c9")
-    version("1.5.1", sha256="039572f0ca9578a466683558c5bf1e65d442860ec6e13307d528749cfe6d07b8")
-    version("1.5.0", sha256="4ff72877d19b295ee7f7727615ea8238f2d59159df0bdd98f91754be4a2767f0")
-    version("1.4.1", sha256="dee1bbf3a6c8f73b6b218cb28eed8dd13347ea2f87d572ce19b289d6fd3fbc59")
-    version("1.4.0", sha256="31f7cfa93b01507c935c12b535e24812594002a02a56803d7cd063e9920d25e8")
-    version("1.3.3", sha256="64bf4e8ae0db2d42b58477817f648d81e77f0b381d0ea4427385bba3f959380a")
-    version("1.3.2", sha256="a03939b431994289f39373c57bbe452974a7da724ae7f9620a1beee575434da4")
+    version(
+        "1.5.3",
+        sha256="ddae76784574cc4c172f3d5edd7308be16078dd3b977e8746860c76c195fa707",
+        deprecated=True,
+    )
+    version(
+        "1.5.2",
+        sha256="066c513d90eb3fd7567a9e150828d39111ebd88d3e924cdfc9f8ce19ab6f90c9",
+        deprecated=True,
+    )
+    version(
+        "1.5.1",
+        sha256="039572f0ca9578a466683558c5bf1e65d442860ec6e13307d528749cfe6d07b8",
+        deprecated=True,
+    )
+    version(
+        "1.5.0",
+        sha256="4ff72877d19b295ee7f7727615ea8238f2d59159df0bdd98f91754be4a2767f0",
+        deprecated=True,
+    )
+    version(
+        "1.4.1",
+        sha256="dee1bbf3a6c8f73b6b218cb28eed8dd13347ea2f87d572ce19b289d6fd3fbc59",
+        deprecated=True,
+    )
+    version(
+        "1.4.0",
+        sha256="31f7cfa93b01507c935c12b535e24812594002a02a56803d7cd063e9920d25e8",
+        deprecated=True,
+    )
+    version(
+        "1.3.3",
+        sha256="64bf4e8ae0db2d42b58477817f648d81e77f0b381d0ea4427385bba3f959380a",
+        deprecated=True,
+    )
+    version(
+        "1.3.2",
+        sha256="a03939b431994289f39373c57bbe452974a7da724ae7f9620a1beee575434da4",
+        deprecated=True,
+    )
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")

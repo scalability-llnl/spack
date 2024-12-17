@@ -171,7 +171,7 @@ def test_user_view_path_is_not_canonicalized_in_yaml(tmpdir, config):
 
 def test_environment_cant_modify_environments_root(tmpdir):
     filename = str(tmpdir.join("spack.yaml"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
  spack:

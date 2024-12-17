@@ -23,7 +23,7 @@ def modulefile_content(request):
         generator = writer_cls(spec, module_set_name, explicit)
         generator.write(overwrite=True)
         written_module = pathlib.Path(generator.layout.filename)
-        content = written_module.read_text().splitlines()
+        content = written_module.read_text(encoding="utf-8").splitlines()
         generator.remove()
         return content
 

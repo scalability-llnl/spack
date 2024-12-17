@@ -140,10 +140,7 @@ class AmrWind(CMakePackage, CudaPackage, ROCmPackage):
         ]
         args = [self.define_from_variant("AMR_WIND_ENABLE_%s" % v.upper(), v) for v in vs]
 
-        args += [
-            define("AMR_WIND_ENABLE_ALL_WARNINGS", True),
-            self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
-        ]
+        args += [self.define_from_variant("BUILD_SHARED_LIBS", "shared")]
 
         if spec.satisfies("+mpi"):
             args.append(define("MPI_HOME", spec["mpi"].prefix))
