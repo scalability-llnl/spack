@@ -14,7 +14,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22.04]
+        os: [ubuntu-latest]
         python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
         on_develop:
         - ${{ github.ref == 'refs/heads/develop' }}
@@ -24,19 +24,19 @@ jobs:
           on_develop: ${{ github.ref == 'refs/heads/develop' }}
         exclude:
         - python-version: '3.7'
-          os: ubuntu-22.04
+          os: ubuntu-latest
           on_develop: false
         - python-version: '3.8'
-          os: ubuntu-22.04
+          os: ubuntu-latest
           on_develop: false
         - python-version: '3.9'
-          os: ubuntu-22.04
+          os: ubuntu-latest
           on_develop: false
         - python-version: '3.10'
-          os: ubuntu-22.04
+          os: ubuntu-latest
           on_develop: false
         - python-version: '3.11'
-          os: ubuntu-22.04
+          os: ubuntu-latest
           on_develop: false
 
     steps:
@@ -52,7 +52,13 @@ jobs:
           # Needed for unit tests
           sudo apt-get -y install \
               coreutils cvs gfortran graphviz gnupg2 mercurial ninja-build \
-              cmake bison libbison-dev kcov
+              cmake bison libbison-dev subversion
+    # On ubuntu 24.04, kcov was removed. It may come back in some future Ubuntu
+    - name: Set up Homebrew
+      id: set-up-homebrew
+      uses: Homebrew/actions/setup-homebrew@40e9946c182a64b3db1bf51be0dcb915f7802aa9
+    - name: Install kcov with brew
+      run: "brew install kcov"
     - name: Install Python packages
       run: |
           pip install --upgrade pip setuptools pytest pytest-xdist pytest-cov
@@ -87,7 +93,7 @@ jobs:
         include-hidden-files: true
   # Test shell integration
   shell:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       with:
@@ -99,7 +105,13 @@ jobs:
       run: |
           sudo apt-get -y update
           # Needed for shell tests
-          sudo apt-get install -y coreutils kcov csh zsh tcsh fish dash bash
+          sudo apt-get install -y coreutils csh zsh tcsh fish dash bash subversion
+    # On ubuntu 24.04, kcov was removed. It may come back in some future Ubuntu
+    - name: Set up Homebrew
+      id: set-up-homebrew
+      uses: Homebrew/actions/setup-homebrew@40e9946c182a64b3db1bf51be0dcb915f7802aa9
+    - name: Install kcov with brew
+      run: "brew install kcov"
     - name: Install Python packages
       run: |
           pip install --upgrade pip setuptools pytest coverage[toml] pytest-xdist
