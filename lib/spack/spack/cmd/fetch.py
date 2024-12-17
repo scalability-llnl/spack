@@ -27,10 +27,7 @@ def setup_parser(subparser):
         "-D", "--dependencies", action="store_true", help="also fetch all dependencies"
     )
     subparser.add_argument(
-        "--retries",
-        default=0,
-        metavar="N",
-        help="retry fetching N times before raising an error"
+        "--retries", default=0, metavar="N", help="retry fetching N times before raising an error"
     )
     arguments.add_concretizer_args(subparser)
     subparser.epilog = (

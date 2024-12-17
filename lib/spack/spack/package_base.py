@@ -1530,7 +1530,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         )
         return f"{required}Refer to {self.homepage} for download instructions."
 
-    def do_fetch(self, mirror_only: bool=False, retries: int=0):
+    def do_fetch(self, mirror_only: bool = False, retries: int = 0):
         """
         Creates a stage directory and downloads the tarball for this package.
         Working directory will be set to the stage directory.
@@ -1602,7 +1602,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
 
         self.stage.cache_local()
 
-    def do_stage(self, mirror_only: bool=False, retries: int=0):
+    def do_stage(self, mirror_only: bool = False, retries: int = 0):
         """Unpacks and expands the fetched tarball."""
         # Always create the stage directory at this point.  Why?  A no-code
         # package may want to use the installation process to install metadata.

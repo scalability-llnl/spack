@@ -512,7 +512,9 @@ class Stage(LockableStagingDir):
         if self.search_fn and not mirror_only:
             yield from self.search_fn()
 
-    def fetch(self, mirror_only: bool = False, retries: int = 0, err_msg: Optional[str] = None) -> None:
+    def fetch(
+        self, mirror_only: bool = False, retries: int = 0, err_msg: Optional[str] = None
+    ) -> None:
         """Retrieves the code or archive
 
         Args:
@@ -521,7 +523,9 @@ class Stage(LockableStagingDir):
                 fetch failure message
         """
         errors: List[str] = []
-        for fetcher in (f for f in self._generate_fetchers(mirror_only) for _ in range(retries+1)):
+        for fetcher in (
+            f for f in self._generate_fetchers(mirror_only) for _ in range(retries + 1)
+        ):
             try:
                 fetcher.stage = self
                 self.fetcher = fetcher
