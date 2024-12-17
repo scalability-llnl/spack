@@ -304,7 +304,7 @@ spack:
   - zfp +cuda cuda_arch=90
   # --
   - cusz +cuda cuda_arch=90         # cusz: cuda-12.5.0-ndrzb7undvancjdj3fi6bhthdxdo7gr5/targets/x86_64-linux/include/cub/util_device.cuh:202:50: error: 'blockDim' was not declared in this scope
-  - dealii +cuda cuda_arch=90       # dealii: conflicts with '+cuda ^cuda@12:'; dealii: https://github.com/spack/spack/issues/39532
+  # - dealii +cuda cuda_arch=90       # dealii: conflicts with '+cuda ^cuda@12:'; dealii: https://github.com/spack/spack/issues/39532
   - ecp-data-vis-sdk ~rocm +adios2 +ascent +hdf5 +vtkm +zfp +paraview +cuda cuda_arch=90 # +ascent: # ascent: https://github.com/spack/spack/issues/38045; +paraview: VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/vtkm/exec/cuda/internal/ExecutionPolicy.h(121): error: namespace "thrust" has no member "sort"
   - lammps +cuda cuda_arch=90       # lammps: needs NVIDIA driver
   - lbann +cuda cuda_arch=90        # aluminum: /usr/include/c++/11/bits/basic_string.h:1260: multiple definition of `cub::CUB_200400___CUDA_ARCH_LIST___NS::Debug(cudaError, char const*, int)'; 
