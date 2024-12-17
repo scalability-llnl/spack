@@ -145,7 +145,7 @@ default:
       --config-scope "${SPACK_CI_CONFIG_ROOT}"
       --config-scope "${SPACK_CI_CONFIG_ROOT}/${SPACK_TARGET_PLATFORM}"
       --config-scope "${SPACK_CI_CONFIG_ROOT}/${SPACK_TARGET_PLATFORM}/${SPACK_TARGET_ARCH}"
-      ci generate --check-index-only
+      ci generate --check-index-only -j ${SPACK_CONCRETIZE_JOBS}
       --artifacts-root "${CI_PROJECT_DIR}/jobs_scratch_dir"
       --output-file "${CI_PROJECT_DIR}/jobs_scratch_dir/cloud-ci-pipeline.yml"
   artifacts:
@@ -155,7 +155,8 @@ default:
       - "${CI_PROJECT_DIR}/tmp/_user_cache/cache/providers"
       - "${CI_PROJECT_DIR}/tmp/_user_cache/cache/tags"
   variables:
-    KUBERNETES_CPU_REQUEST: 4000m
+    SPACK_CONCRETIZE_JOBS: 8
+    KUBERNETES_CPU_REQUEST: 8000m
     KUBERNETES_MEMORY_REQUEST: 16G
     # avoid moving targets like branches and tags
     SPACK_CONCRETIZER_REQUIRE_CHECKSUM: 1
@@ -408,6 +409,8 @@ e4s-oneapi-build:
   extends: [".linux_power"]
   variables:
     SPACK_CI_STACK_NAME: e4s-power
+    # Override concretization pool for metal runners
+    SPACK_CONCRETIZE_JOBS: 16
 
 e4s-power-generate:
   extends: [ ".e4s-power", ".generate-x86_64", ".e4s-power-generate-tags-and-image"]
@@ -860,6 +863,10 @@ aws-pcluster-build-neoverse_v1:
 # Cray definitions
 .generate-cray:
   extends: [ ".generate-common", ".base-job" ]
+  variables:
+    # Override concretization pool for metal runners
+    SPACK_CONCRETIZE_JOBS: 16
+
   before_script:
     - echo $PATH
     - module avail
@@ -936,6 +943,10 @@ e4s-cray-sles-build:
   extends: [".win64-msvc2019"]
   variables:
     SPACK_CI_STACK_NAME: windows-vis
+    # TODO: windows runners are currently m5.2xlarge with a max 8 vCPU and 32GiB MEM
+    # setting request to half of the available allocation to allow room for overhead.
+    KUBERNETES_CPU_REQUEST: 4000m
+    KUBERNETES_MEMORY_REQUEST: 16G
 
 windows-vis-generate:
   extends: [ ".generate-win64", ".windows-vis" ]
