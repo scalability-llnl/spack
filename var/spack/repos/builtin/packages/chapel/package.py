@@ -76,6 +76,7 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
     patch("fix_chpl_shared_lib_path_2.3.patch", when="@2.2.1: +python-bindings")
     patch("fix_chpl_line_length.patch")
     patch("fix_llvm_include_path_2.3.patch", when="@=2.3.0 llvm=bundled")  # PR 26402
+    patch("fix_chpl_check_gpu_2.3.patch", when="@2.3")  # PR 26317
 
     launcher_names = (
         "amudprun",
@@ -604,12 +605,17 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
 
     def install(self, spec, prefix):
         make("install")
+        # We install CMakeLists.txt so we can later lookup the version number
+        # if working from a non-versioned release/branch (such as main)
+        if not self.is_versioned_release():
+            install("CMakeLists.txt", join_path(prefix.share, "chapel"))
+        install_tree(
+            "doc", join_path(self.prefix.share, "chapel", self._output_version_short, "doc")
+        )
         install_tree(
             "examples",
             join_path(self.prefix.share, "chapel", self._output_version_short, "examples"),
         )
-        if not self.is_versioned_release():
-            install("CMakeLists.txt", join_path(prefix.share, "chapel"))
 
     def setup_chpl_platform(self, env):
         if self.spec.variants["host_platform"].value == "unset":

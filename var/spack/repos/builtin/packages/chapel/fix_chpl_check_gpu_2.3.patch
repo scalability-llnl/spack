@@ -1,0 +1,58 @@
+diff --git a/test/release/examples/gpu/hello-gpu.chpl b/test/release/examples/gpu/hello-gpu.chpl
+index 01d97bbc13..76a190e771 100644
+--- a/test/release/examples/gpu/hello-gpu.chpl
++++ b/test/release/examples/gpu/hello-gpu.chpl
+@@ -1,4 +1,5 @@
+ use GpuDiagnostics;
++use ChplConfig;
+
+ config const N = 32;
+ config const verbose = false;
+@@ -33,10 +34,16 @@ forall i in 0..<Locales.size with (&& reduce correct) {
+   if verbose then
+     writeln("On locale ", i, " diags = ", diags[i]);
+
+-  correct &&=
+-    diags[i].kernel_launch  == numGpusPerLocale &&
+-    diags[i].host_to_device == numGpusPerLocale &&
+-    diags[i].device_to_host == numGpusPerLocale;
++  if CHPL_GPU != "cpu" then
++    correct &&=
++      diags[i].kernel_launch  == numGpusPerLocale &&
++      diags[i].host_to_device == numGpusPerLocale &&
++      diags[i].device_to_host == numGpusPerLocale;
++  else
++    correct &&=
++      diags[i].kernel_launch  == numGpusPerLocale &&
++      diags[i].host_to_device == 0 &&
++      diags[i].device_to_host == 0;
+ }
+
+ writeln("CORRECT = ", correct);
+diff --git a/util/test/checkChplInstall b/util/test/checkChplInstall
+index e0e82a471e..5b1c638835 100755
+--- a/util/test/checkChplInstall
++++ b/util/test/checkChplInstall
+@@ -213,12 +213,18 @@ else
+ fi
+
+ # Find number of locales and .good file
++NUMLOCALES=1
++GOOD=${TEST_DIR}/${TEST_JOB}.good
+ if [ ${chpl_comm} == "none" ]; then
+-    NUMLOCALES=1
+-    GOOD=${TEST_DIR}/${TEST_JOB}.comm-none.good
++    # use comm-none specific good file if it exists
++    if [ -f ${TEST_DIR}/${TEST_JOB}.comm-none.good ]; then
++        GOOD=${TEST_DIR}/${TEST_JOB}.comm-none.good
++    fi
+ else
+-    NUMLOCALES="$(cat ${TEST_DIR}/NUMLOCALES)"
+-    GOOD=${TEST_DIR}/${TEST_JOB}.good
++    # use specific NUMLOCALES if it exists
++    if [ -f ${TEST_DIR}/NUMLOCALES ]; then
++      NUMLOCALES="$(cat ${TEST_DIR}/NUMLOCALES)"
++    fi
+ fi
+
+ # Check for valid launchers
