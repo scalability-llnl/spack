@@ -104,6 +104,8 @@ _glibc = (
 from spack.package import *
 
 class Glibc(Package):
+    tags = ["runtime"]
+
     provides("libc")
 """,
 )
@@ -339,7 +341,7 @@ compilers::
     x = Spec("x1%gcc").concretized()
     for spec in x.traverse():
         os.makedirs(os.path.join(spec.prefix, ".spack"))
-        with open(os.path.join(spec.prefix, ".spack", "spec.json"), "w") as f:
+        with open(os.path.join(spec.prefix, ".spack", "spec.json"), "w", encoding="utf-8") as f:
             spec.to_json(f)
     temporary_store.db.add(x, explicit=True)
     # output = solve("--show=asp", "x1%aocc")
