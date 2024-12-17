@@ -704,6 +704,9 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
 
         if self.spec.satisfies("+developer"):
             env.set("CHPL_DEVELOPER", "true")
+        else:
+            # CHPL_DEVELOPER needs to be unset, the value "False" is mishandled
+            env.unset("CHPL_DEVELOPER")
 
         if not self.spec.satisfies("llvm=none"):
             # workaround Spack issue #44746:
