@@ -28,8 +28,9 @@ class PyGfal2Python(PythonPackage):
     depends_on("glib")
     depends_on("gfal2")
 
-    def setup_build_environment(self, env):
-        python_executable = self.spec["python"].command.path
-        env.set("PYTHON_EXECUTABLE", python_executable)
-        env.set("Python_EXECUTABLE", python_executable)
-        env.set("Python3_EXECUTABLE", python_executable)
+    def patch(self):
+        filter_file(
+            r"\'-DSKIP_TESTS=TRUE\',",
+            "'-DSKIP_TESTS=TRUE', f'-DPython_EXECUTABLE={sys.executable}',",
+            "setup.py",
+        )
