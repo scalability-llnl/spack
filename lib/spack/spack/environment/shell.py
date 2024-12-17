@@ -165,7 +165,7 @@ def activate(
     try:
         if view and env.has_view(view):
             with spack.store.STORE.db.read_transaction():
-               env.add_view_to_env(env_mods, view)
+                env.add_view_to_env(env_mods, view)
     except (spack.repo.UnknownPackageError, spack.repo.UnknownNamespaceError) as e:
         tty.error(e)
         tty.die(
