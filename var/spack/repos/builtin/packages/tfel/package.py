@@ -50,7 +50,7 @@ class Tfel(CMakePackage):
 
     # released versions
     version(
-         "5.0.0",
+        "5.0.0",
         sha256="fe1ec39eba7f23571c2b0c773dab1cc274fee4512c5b2f2fc54b231da4502e87",
         preferred=True,
     )
