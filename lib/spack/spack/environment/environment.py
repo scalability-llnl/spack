@@ -2909,7 +2909,6 @@ class EnvironmentManifestFile(collections.abc.Mapping):
 
     # TODO (next include PR): refactor optional/conditional include handling
     # TODO (next include PR): revisit use of spack.util.path.canonicalize_path
-    # TODO (next include PR): revisit resolve_relative use
     @property
     def included_config_scopes(self) -> List[spack.config.ConfigScope]:
         """List of included configuration scopes from the manifest.
@@ -2927,8 +2926,8 @@ class EnvironmentManifestFile(collections.abc.Mapping):
             SpackEnvironmentError: if the manifest includes a remote file but
                 no configuration stage directory has been identified
         """
-        # Retrieve and process the includes explicit listed in the environment's
-        # manifest.
+        # Retrieve and process the includes explicitly listed in the
+        # environment's manifest.
         includes = self[TOP_LEVEL_KEY].get("include", [])
         if not includes:
             return []
@@ -2955,15 +2954,11 @@ class EnvironmentManifestFile(collections.abc.Mapping):
             if always_activate or _eval_conditional(when_str):
                 include_paths.append(path)
 
-        def resolve_relative(cfg_path):
-            cfg_path = os.path.join(self.manifest_dir, cfg_path)
-            return os.path.normpath(os.path.realpath(cfg_path))
-
         return spack.config.scopes_from_paths(
             include_paths,
             f"env:{self.name}",
             self.config_stage_dir,
-            resolve_relative,
+            self.manifest_dir,
             required_paths,
         )
 
