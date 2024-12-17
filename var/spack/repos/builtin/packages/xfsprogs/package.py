@@ -43,6 +43,7 @@ class Xfsprogs(AutotoolsPackage):
     depends_on("uuid")
     depends_on("util-linux")
     depends_on("liburcu", when="@6:")
+    depends_on("unzip", type="build")
 
     def flag_handler(self, name, flags):
         if name == "cflags":
