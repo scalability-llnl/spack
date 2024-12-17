@@ -69,7 +69,7 @@ def test_pickle(tmpdir):
 @pytest.mark.usefixtures("config", "mock_packages", "working_env")
 def test_cd(cd_key, tmpdir, monkeypatch, capfd):
     """test that a subshell will navigate using spack cd before running commands"""
-    cmd = "pwd" if sys.platform != "win32" else "Get-Location"
+    cmd = "pwd" if sys.platform != "win32" else 'powershell.exe -Command "& {(Get-Location).Path}'
 
     def mock_execvp(_, args):
         """os.execvp will kill take over the pytest process when it is successful"""
