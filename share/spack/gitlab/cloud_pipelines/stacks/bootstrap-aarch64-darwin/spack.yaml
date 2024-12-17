@@ -30,4 +30,4 @@ spack:
     - build-job:
         variables:
           CI_GPG_KEY_ROOT: /etc/protected-runner
-        tags: [ "macos-sonoma", "aarch64-macos" ]
+        tags: [ "macos-sonoma", "apple-clang-16", "aarch64-macos" ]
