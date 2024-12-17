@@ -24,6 +24,7 @@ install = SpackCommand("install")
 def test_install_shell_cached(
     shell, set_command, install_mockery, mock_fetch, mock_archive, mock_packages
     ):
+    """Test does a thing"""
     os.environ["SPACK_SHELL"] = shell
 
     spec = Spec("mpileaks")
@@ -35,3 +36,47 @@ def test_install_shell_cached(
         path_to_shell = os.path.join(pkg.prefix, ".spack", f"{pkg.name}_shell.{shell}")
     
         assert os.path.isfile(path_to_shell)
+
+
+@pytest.mark.parametrize(
+    "shell,set_command",
+    (
+        [("bat", 'set "%s=%s"')]
+        if sys.platform == "win32"
+        else [("sh", "export %s=%s"), ("csh", "setenv %s %s")]
+    ),
+)
+def test_install_with_individual_shell_scripts(
+    shell, set_command, install_mockery, mock_fetch, mock_archive, mock_packages
+    ):  # get better name
+    """Test does a thing"""
+    os.environ["SPACK_SHELL"] = shell
+
+    callpath_spec = Spec("callpath")
+    dyninst_spec = Spec("dyninst")
+    mpich_spec = Spec("mpich")
+
+    callpath_spec.concretize()
+    dyninst_spec.concretize()
+    mpich_spec.concretize()
+
+    install(callpath_spec.name)
+
+    path_to_dyninst = os.path.join(dyninst_spec.prefix, ".spack", f"{dyninst_spec.name}_shell.{shell}")
+    path_to_mpich = os.path.join(mpich_spec.prefix, ".spack", f"{mpich_spec.name}_shell.{shell}")
+
+    with open(path_to_dyninst, "r") as f:
+        dyninst_shell = f.read()
+
+    with open(path_to_mpich, "r") as f:
+        mpich_shell = f.read()
+
+    assert mpich_spec.name not in dyninst_shell
+    assert dyninst_spec.name not in mpich_shell
+
+
+
+# def test_install_external_spec()
+
+
+# def test_install_multiple_specs()
