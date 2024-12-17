@@ -795,7 +795,7 @@ def scopes_from_paths(
     includes: List[str],
     name_prefix: str,
     config_stage_dir: str,
-    resolve_relative: Callable[[str], str],
+    relative_root: None,
     required: List[str] = [],
 ) -> List[ConfigScope]:
     """Load included config scopes
@@ -804,11 +804,12 @@ def scopes_from_paths(
         includes: list of paths to be included
         name_prefix: environment's name prefix
         config_stage_dir: path to directory to be used to stage remote includes
-        resolve_relative: method to use to resolve relative paths
+        relative_root: path to root directory for relative paths or ``None``
+            if relative paths are not supported
         required: list of paths that are required
     Raises:
-        ValueError: included path has an unsupported URL scheme or is required
-            but does not exist
+        ValueError: included path has an unsupported URL scheme, is required
+            but does not exist, or is not allowed to be relative
         ConfigFileError: unable to access remote configuration file(s)
     """
     import urllib.parse
@@ -871,9 +872,13 @@ def scopes_from_paths(
                     f"environment include: {config_path}"
                 )
 
-        # treat relative paths as relative to the environment
+        # Treat relative paths as relative to relative_root. If not provided,
+        # then relative paths are considered unsupported so raise an exception.
         if not os.path.isabs(config_path):
-            config_path = resolve_relative(config_path)
+            if relative_root is None:
+                raise ValueError(f"include: has an unsupported relative path {config_path}")
+            cfg_path = os.path.join(relative_root, config_path)
+            config_path = os.path.normpath(os.path.realpath(cfg_path))
 
         if os.path.isdir(config_path):
             # directories are treated as regular ConfigScopes
