@@ -75,8 +75,8 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
     patch("fix_chpl_shared_lib_path.patch", when="@2.1:2.2 +python-bindings")
     patch("fix_chpl_shared_lib_path_2.3.patch", when="@2.2.1: +python-bindings")
     patch("fix_chpl_line_length.patch")
+    patch("fix_checkChplInstall.patch", when="@:2.3.0")  # PR 26317
     patch("fix_llvm_include_path_2.3.patch", when="@=2.3.0 llvm=bundled")  # PR 26402
-    patch("fix_chpl_check_gpu_2.3.patch", when="@2.3")  # PR 26317
 
     launcher_names = (
         "amudprun",
