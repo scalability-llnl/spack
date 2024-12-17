@@ -307,29 +307,6 @@ e4s-neoverse-v2-build:
       job: e4s-neoverse-v2-generate
 
 ########################################
-# E4S Neoverse V1 pipeline
-########################################
-.e4s-neoverse_v1:
-  extends: [ ".linux_neoverse_v1" ]
-  variables:
-    SPACK_CI_STACK_NAME: e4s-neoverse_v1
-
-e4s-neoverse_v1-generate:
-  extends: [ ".e4s-neoverse_v1", ".generate-neoverse_v1" ]
-  image: ghcr.io/spack/spack/ubuntu22.04-runner-arm64-gcc-11.4:2024.03.01
-
-e4s-neoverse_v1-build:
-  extends: [ ".e4s-neoverse_v1", ".build" ]
-  trigger:
-    include:
-      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
-        job: e4s-neoverse_v1-generate
-    strategy: depend
-  needs:
-    - artifacts: True
-      job: e4s-neoverse_v1-generate
-
-########################################
 # E4S ROCm External pipeline
 ########################################
 .e4s-rocm-external:
