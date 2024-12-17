@@ -192,9 +192,7 @@ def deactivate() -> EnvironmentModifications:
     env_mods = EnvironmentModifications()
     active = ev.active_environment()
 
-# TODO jfrye - undo shelll mods on deactivate 
     env_vars_yaml = active.manifest.configuration.get("shell_modifications", None)
-    print("echo $env_vars_yaml")
     if env_vars_yaml:
         env_mods.extend(spack.schema.environment.parse(env_vars_yaml))
     
