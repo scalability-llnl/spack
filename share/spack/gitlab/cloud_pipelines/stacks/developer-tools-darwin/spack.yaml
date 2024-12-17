@@ -69,7 +69,6 @@ spack:
     - build-job:
         variables:
           CI_GPG_KEY_ROOT: /etc/protected-runner
-        tags: [ "macos-sonoma", "apple-clang-16", "aarch64-macos" ]
 
   cdash:
     build-group: Developer Tools Darwin
