@@ -22,7 +22,7 @@ from urllib.request import HTTPSHandler, Request, build_opener
 
 import llnl.url
 from llnl.util import lang, tty
-from llnl.util.filesystem import rename, working_dir
+from llnl.util.filesystem import mkdirp, rename, working_dir
 
 import spack
 import spack.config
@@ -234,8 +234,8 @@ def push_to_url(local_file_path, remote_path, keep_original=True, extra_args=Non
     remote_url = urllib.parse.urlparse(remote_path)
     local_file_path = concrete_path(local_file_path)
     if remote_url.scheme == "file":
-        remote_file_path = concrete_path(url_util.local_file_path(remote_url))
-        remote_file_path.parent.mkdir()
+        remote_file_path = abstract_path(url_util.local_file_path(remote_url))
+        mkdirp(remote_file_path.parent)
         if keep_original:
             shutil.copy(local_file_path, remote_file_path)
         else:
