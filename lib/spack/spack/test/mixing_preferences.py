@@ -208,7 +208,7 @@ class IntelOneapiCompilers(Package):
             )
         # The version of intel-oneapi-runtime is the same as the %oneapi used to "compile" it
         pkg("intel-oneapi-runtime").requires(f"@={str(spec.version)}", when=f"%{str(spec)}")
-"""
+""",
 )
 
 
@@ -234,9 +234,10 @@ class IntelOneapiRuntime(Package):
 
 @pytest.fixture
 def _create_test_repo(tmpdir, mutable_config):
-    yield create_test_repo(tmpdir, [_pkgx1, _pkgx2, _pkgx3, _pkgx4,
-                                    _glibc, _gcc, _gcc_runtime,
-                                    _oneapi, _intel_runtime])
+    yield create_test_repo(
+        tmpdir,
+        [_pkgx1, _pkgx2, _pkgx3, _pkgx4, _glibc, _gcc, _gcc_runtime, _oneapi, _intel_runtime],
+    )
 
 
 @pytest.fixture
@@ -281,15 +282,11 @@ class TestLinux(Platform):
         self.add_operating_system(self.front_os, os)
 
 
-import spack.compilers.gcc
-import spack.compilers.oneapi
-
-
 @pytest.fixture
 def pretend_linux(monkeypatch, tmpdir):
     pretend_glibc = Spec("glibc@=2.28")
     pretend_glibc.external_path = str(tmpdir.join("fake-libc").ensure(dir=True))
-    #monkeypatch.setattr(spack.compilers.gcc.Gcc, "default_libc", pretend_glibc)
+    # monkeypatch.setattr(spack.compilers.gcc.Gcc, "default_libc", pretend_glibc)
     monkeypatch.setattr(spack.compiler.Compiler, "default_libc", pretend_glibc)
     with spack.platforms.use_platform(TestLinux()):
         yield
@@ -348,11 +345,13 @@ compilers::
     # output = solve("--show=asp", "x1%aocc")
     # import pdb; pdb.set_trace()
     # This mixes gcc and aocc
+    # This should work, and it does
     output2 = spec_cmd("--reuse", "x4%oneapi")
-    #output1 = spec_cmd("--reuse", "x1%oneapi ^x4%gcc")
+    # This should *not* work, but it does
+    output1 = spec_cmd("--reuse", "x1%oneapi ^x4%gcc")
 
-    import pdb; pdb.set_trace()
-    #print(output1)
+    # import pdb; pdb.set_trace()
+    print(output1)
     print(output2)
     # output = solve("--reuse", "x1%aocc")
     # import pdb; pdb.set_trace()
