@@ -44,6 +44,7 @@ class Libspatialite(AutotoolsPackage):
     depends_on("iconv")
     depends_on("librttopo", when="@5.0.1:")
     depends_on("libxml2")
+    # libspatialite fails to build with newer libxml2@2.13
     depends_on("libxml2@:2.12", when="@:5.1.0")
     depends_on("minizip", when="@5.0.0:")
     depends_on("proj")
