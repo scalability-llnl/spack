@@ -209,10 +209,6 @@ build --local_cpu_resources={make_jobs}
             string=True,
         )
 
-        # https://github.com/jax-ml/jax/issues/25488
-        if self.spec.satisfies("%gcc"):
-            filter_file(".*-Qunused-arguments.*", "", ".bazelrc")
-
     def install(self, spec, prefix):
         # https://jax.readthedocs.io/en/latest/developer.html
         buildtmp = self.wrapped_package_object.buildtmp
