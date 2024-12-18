@@ -14,7 +14,10 @@ class PyParamiko(PythonPackage):
 
     license("LGPL-2.1-or-later")
 
+    version("3.5.0", sha256="ad11e540da4f55cedda52931f1a3f812a8238a7af7f62a60de538cd80bb28124")
+    version("3.4.1", sha256="8b15302870af7f6652f2e038975c1d2973f06046cb5d7d65355668b3ecbece0c")
     version("3.4.0", sha256="aac08f26a31dc4dffd92821527d1682d99d52f9ef6851968114a8728f3c274d3")
+    version("3.3.2", sha256="71eacec637a2dcb8a9771e6cd8c381754191c4fc8c82f2f103dbe056b0ba13a5")
     version("3.3.1", sha256="6a3777a961ac86dbef375c5f5b8d50014a1a96d0fd7f054a43bc880134b0ff77")
     version("3.3.0", sha256="ef639f5b97cf7bde57b6e1706e85b7e3f5561f632e180c6c155f53560ff1701b")
     version("3.2.0", sha256="93cdce625a8a1dc12204439d45033f3261bdb2c201648cfcdc06f9fd0f94ec29")
