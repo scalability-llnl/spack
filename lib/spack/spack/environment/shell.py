@@ -192,12 +192,12 @@ def deactivate() -> EnvironmentModifications:
     env_mods = EnvironmentModifications()
     active = ev.active_environment()
 
-    env_vars_yaml = active.manifest.configuration.get("shell_modifications", None)
-    if env_vars_yaml:
-        env_mods.extend(spack.schema.environment.parse(env_vars_yaml))
-    
     if active is None:
         return env_mods
+
+    env_vars_yaml = active.manifest.configuration.get("env_vars", None)
+    if env_vars_yaml:
+        env_mods.extend(spack.schema.environment.parse(env_vars_yaml).reversed())
 
     active_view = os.getenv(ev.spack_env_view_var)
 
