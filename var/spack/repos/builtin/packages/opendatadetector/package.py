@@ -31,10 +31,7 @@ class Opendatadetector(CMakePackage):
     depends_on("boost")
 
     def cmake_args(self):
-        args = [
-            self.define("CMAKE_CXX_STANDARD",
-                        self.spec["root"].variants["cxxstd"].value),
-        ]
+        args = [self.define("CMAKE_CXX_STANDARD", self.spec["root"].variants["cxxstd"].value)]
         return args
 
     def setup_run_environment(self, env):
