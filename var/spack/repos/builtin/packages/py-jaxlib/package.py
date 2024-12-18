@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import glob
-import tempfile
 
 from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
