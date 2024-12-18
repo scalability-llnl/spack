@@ -384,12 +384,12 @@ def ssl_scrubbed_env(mutable_config, monkeypatch):
     "cert_path,cert_creator",
     [
         pytest.param(
-            lambda base_path: fs_path(abstract_path(base_path, "mock_cert.crt")),
+            lambda base_path: fs_path(base_path / "mock_cert.crt"),
             lambda cert_path: open(cert_path, "w", encoding="utf-8").close(),
             id="cert_file",
         ),
         pytest.param(
-            lambda base_path: fs_path(abstract_path(base_path, "mock_cert")),
+            lambda base_path: fs_path(base_path / "mock_cert"),
             lambda cert_path: concrete_path(cert_path).mkdir(),
             id="cert_directory",
         ),
