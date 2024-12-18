@@ -265,3 +265,6 @@ class Aqlprofile(Package):
 
     def setup_run_environment(self, env):
         env.prepend_path("LD_LIBRARY_PATH", self.spec["hsa-rocr-dev"].prefix.lib)
+
+    # This package is installed from binaries, and we haven't patched rpaths.
+    unresolved_libraries = ["*"]

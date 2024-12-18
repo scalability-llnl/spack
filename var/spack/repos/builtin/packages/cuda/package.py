@@ -818,3 +818,6 @@ class Cuda(Package):
 
     # Avoid binding stub libraries by absolute path
     non_bindable_shared_objects = ["stubs"]
+
+    # contains precompiled binaries without rpaths
+    unresolved_libraries = ["*"]

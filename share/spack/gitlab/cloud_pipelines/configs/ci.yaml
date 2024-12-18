@@ -15,7 +15,6 @@ ci:
       - - touch ${SPACK_USER_CACHE_PATH}/cache/*/*  # bump mtime of cache so it is not invalidated
       - - spack env activate --without-view ${SPACK_CONCRETE_ENV_DIR}
         - spack compiler list
-        - if [ -n "$SPACK_BUILD_JOBS" ]; then spack config add "config:build_jobs:$SPACK_BUILD_JOBS"; fi
       - - mkdir -p ${SPACK_ARTIFACTS_ROOT}/user_data
         # AWS runners mount E4S public key (verification), UO runners mount public/private (signing/verification)
       - - k=$CI_GPG_KEY_ROOT/e4s.gpg; [[ -r $k ]] && spack gpg trust $k
@@ -24,7 +23,7 @@ ci:
         - k=$CI_GPG_KEY_ROOT/spack_public_key.gpg; [[ -r $k ]] && spack gpg trust $k
       script::
       - - spack config blame mirrors
-        - spack --color=always --backtrace ci rebuild --tests > >(tee ${SPACK_ARTIFACTS_ROOT}/user_data/pipeline_out.txt) 2> >(tee ${SPACK_ARTIFACTS_ROOT}/user_data/pipeline_err.txt >&2)
+        - spack --color=always --backtrace ci rebuild -j ${SPACK_BUILD_JOBS} --tests > >(tee ${SPACK_ARTIFACTS_ROOT}/user_data/pipeline_out.txt) 2> >(tee ${SPACK_ARTIFACTS_ROOT}/user_data/pipeline_err.txt >&2)
       after_script:
       - - cat /proc/loadavg || true
         - cat /proc/meminfo | grep 'MemTotal\|MemFree' || true
@@ -34,6 +33,9 @@ ci:
           ${SPACK_ARTIFACTS_ROOT}/user_data/install_times.json || true
       variables:
         CI_JOB_SIZE: "default"
+        SPACK_BUILD_JOBS: "4"
+        KUBERNETES_CPU_REQUEST: "4000m"
+        KUBERNETES_MEMORY_REQUEST: "16G"
         CI_GPG_KEY_ROOT: /mnt/key
         # SPACK_VERBOSE_SCRIPT: "1"
       id_tokens:
