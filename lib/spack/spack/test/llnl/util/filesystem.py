@@ -334,7 +334,7 @@ def test_move_transaction_commit(tmpdir):
         fake_library.write("Other content.")
 
     assert not os.path.lexists(backup)
-    with open(str(tmpdir.join("lib", "libfoo.so")), "r") as f:
+    with open(str(tmpdir.join("lib", "libfoo.so")), "r", encoding="utf-8") as f:
         assert "Other content." == f.read()
 
 
@@ -352,7 +352,7 @@ def test_move_transaction_rollback(tmpdir):
         pass
 
     assert not os.path.lexists(backup)
-    with open(str(tmpdir.join("lib", "libfoo.so")), "r") as f:
+    with open(str(tmpdir.join("lib", "libfoo.so")), "r", encoding="utf-8") as f:
         assert "Initial content." == f.read()
 
 
@@ -506,9 +506,7 @@ def test_filter_files_with_different_encodings(regex, replacement, filename, tmp
     # This should not raise exceptions
     fs.filter_file(regex, replacement, target_file, **keyword_args)
     # Check the strings have been replaced
-    extra_kwargs = {"errors": "surrogateescape"}
-
-    with open(target_file, mode="r", **extra_kwargs) as f:
+    with open(target_file, mode="r", encoding="utf-8", errors="surrogateescape") as f:
         assert replacement in f.read()
 
 
@@ -558,9 +556,7 @@ def test_filter_files_multiple(tmpdir):
     fs.filter_file(r"\<string.h\>", "<unistd.h>", target_file)
     fs.filter_file(r"\<stdio.h\>", "<unistd.h>", target_file)
     # Check the strings have been replaced
-    extra_kwargs = {"errors": "surrogateescape"}
-
-    with open(target_file, mode="r", **extra_kwargs) as f:
+    with open(target_file, mode="r", encoding="utf-8", errors="surrogateescape") as f:
         assert "<malloc.h>" not in f.read()
         assert "<string.h>" not in f.read()
         assert "<stdio.h>" not in f.read()
@@ -585,7 +581,7 @@ def test_filter_files_start_stop(tmpdir):
     fs.filter_file("B", "X", target_file, string=True, start_at="X", stop_at="C")
     fs.filter_file(r"C|D", "X", target_file, start_at="X", stop_at="E")
 
-    with open(target_file, mode="r") as f:
+    with open(target_file, mode="r", encoding="utf-8") as f:
         assert all("X" == line.strip() for line in f.readlines())
 
 
@@ -920,7 +916,7 @@ def test_rename_dest_exists(tmpdir):
         b = tmpdir.join("a", "file2")
         fs.touchp(a)
         fs.touchp(b)
-        with open(a, "w") as oa, open(b, "w") as ob:
+        with open(a, "w", encoding="utf-8") as oa, open(b, "w", encoding="utf-8") as ob:
             oa.write("I am A")
             ob.write("I am B")
         yield a, b
@@ -942,7 +938,7 @@ def test_rename_dest_exists(tmpdir):
         fs.rename(str(a), str(b))
         assert os.path.exists(b)
         assert not os.path.exists(a)
-        with open(b, "r") as ob:
+        with open(b, "r", encoding="utf-8") as ob:
             content = ob.read()
         assert content == "I am A"
 
@@ -954,7 +950,7 @@ def test_rename_dest_exists(tmpdir):
             fs.rename(os.path.join("a", "file1"), os.path.join("a", "file2"))
             assert os.path.exists(b)
             assert not os.path.exists(a)
-            with open(b, "r") as ob:
+            with open(b, "r", encoding="utf-8") as ob:
                 content = ob.read()
             assert content == "I am A"
 
@@ -975,14 +971,14 @@ def test_rename_dest_exists(tmpdir):
     a = tmpdir.join("a", "file1")
     b = a
     fs.touchp(a)
-    with open(a, "w") as oa:
+    with open(a, "w", encoding="utf-8") as oa:
         oa.write("I am A")
     fs.rename(str(a), str(b))
     # check a, or b, doesn't matter, same file
     assert os.path.exists(a)
     # ensure original file was not duplicated
     assert len(os.listdir(tmpdir.join("a"))) == 1
-    with open(a, "r") as oa:
+    with open(a, "r", encoding="utf-8") as oa:
         assert oa.read()
     shutil.rmtree(tmpdir.join("a"))
 
@@ -1249,3 +1245,14 @@ def test_find_input_types(tmp_path: pathlib.Path):
 
     with pytest.raises(TypeError):
         fs.find(1, "file.txt")  # type: ignore
+
+
+def test_edit_in_place_through_temporary_file(tmp_path):
+    (tmp_path / "example.txt").write_text("Hello")
+    current_ino = os.stat(tmp_path / "example.txt").st_ino
+    with fs.edit_in_place_through_temporary_file(tmp_path / "example.txt") as temporary:
+        os.unlink(temporary)
+        with open(temporary, "w", encoding="utf-8") as f:
+            f.write("World")
+    assert (tmp_path / "example.txt").read_text() == "World"
+    assert os.stat(tmp_path / "example.txt").st_ino == current_ino

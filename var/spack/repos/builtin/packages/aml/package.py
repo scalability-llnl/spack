@@ -47,7 +47,11 @@ class Aml(AutotoolsPackage):
     #############################
 
     variant("opencl", default=False, description="Support for memory operations on top of OpenCL.")
-    variant("ze", default=False, description="Support for memory operations on top of Level Zero.")
+    variant(
+        "level_zero",
+        default=False,
+        description="Support for memory operations on top of Level Zero.",
+    )
     variant("hip", default=False, description="Support for memory operations on top of HIP.")
     variant("cuda", default=False, description="Support for memory operations on top of CUDA.")
     variant("hwloc", default=True, description="Enable feature related to topology management")
@@ -70,7 +74,7 @@ class Aml(AutotoolsPackage):
     # - hip dependency. We use the environment variable HIP_PATH in the configure.
     depends_on("hip", when="+hip")
     # - level_zero loader is the dependency for the oneAPI variant
-    depends_on("oneapi-level-zero", when="+ze")
+    depends_on("oneapi-level-zero", when="+level_zero")
     # - hwloc >= 2.1 becomes a dependency when +hwloc variant is used.
     depends_on("hwloc@2.1:", when="+hwloc")
     # - ocl-icd >= 2.1 becomes a dependency when +opencl variant is used.
@@ -94,15 +98,19 @@ class Aml(AutotoolsPackage):
 
     # This is the function to overload to pass all hwloc flag.
     def configure_args(self):
-        config_args = []
-        for b in ["opencl", "hwloc", "ze", "hip", "cuda"]:
-            config_args.extend(self.with_or_without(b))
+        config_args = [
+            *self.with_or_without("opencl"),
+            *self.with_or_without("hwloc"),
+            *self.with_or_without("hip"),
+            *self.with_or_without("cuda"),
+            *self.with_or_without("ze", variant="level_zero"),
+        ]
         if self.spec.satisfies("%oneapi"):
-            config_args += ["--with-openmp-flags=-fiopenmp -fopenmp-targets=spir64"]
+            config_args.append("--with-openmp-flags=-fiopenmp -fopenmp-targets=spir64")
         if self.spec.variants["hip-platform"].value == "amd":
-            config_args += ["--with-hip-platform=amd"]
+            config_args.append("--with-hip-platform=amd")
         if self.spec.variants["hip-platform"].value == "nvidia":
-            config_args += ["--with-hip-platform=nvidia"]
+            config_args.append("--with-hip-platform=nvidia")
         return config_args
 
     # Tests

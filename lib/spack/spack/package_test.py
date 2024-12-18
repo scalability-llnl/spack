@@ -40,7 +40,7 @@ def compare_output(current_output, blessed_output):
 
 def compare_output_file(current_output, blessed_output_file):
     """Same as above, but when the blessed output is given as a file."""
-    with open(blessed_output_file, "r") as f:
+    with open(blessed_output_file, "r", encoding="utf-8") as f:
         blessed_output = f.read()
 
     compare_output(current_output, blessed_output)

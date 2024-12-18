@@ -24,8 +24,8 @@ class PyAzuremlDataprepNative(PythonPackage):
         version(
             "30.0.0-py3.8",
             sha256="6772b638f9d03a041b17ce4343061f5d543019200904b9d361b2b2629c3595a7",
-            preferred=True,
             url="https://pypi.io/packages/cp38/a/azureml_dataprep_native/azureml_dataprep_native-30.0.0-cp38-cp38-macosx_10_9_x86_64.whl",
+            deprecated=True,
         )
     elif sys.platform.startswith("linux"):
         version(
@@ -36,8 +36,8 @@ class PyAzuremlDataprepNative(PythonPackage):
         version(
             "30.0.0-py3.8",
             sha256="d07cf20f22b14c98576e135bbad9bb8aaa3108941d2beaadf050b4238bc93a18",
-            preferred=True,
             url="https://pypi.io/packages/cp38/a/azureml_dataprep_native/azureml_dataprep_native-30.0.0-cp38-cp38-manylinux1_x86_64.whl",
+            deprecated=True,
         )
 
     depends_on("python@3.9.0:3.9", when="@30.0.0-py3.9", type=("build", "run"))

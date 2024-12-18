@@ -32,8 +32,8 @@ class OldSbang(Package):
 """.format(
             spack.store.STORE.unpadded_root, prefix.bin
         )
-        with open("%s/sbang-style-1.sh" % self.prefix.bin, "w") as f:
+        with open("%s/sbang-style-1.sh" % self.prefix.bin, "w", encoding="utf-8") as f:
             f.write(sbang_style_1)
 
-        with open("%s/sbang-style-2.sh" % self.prefix.bin, "w") as f:
+        with open("%s/sbang-style-2.sh" % self.prefix.bin, "w", encoding="utf-8") as f:
             f.write(sbang_style_2)

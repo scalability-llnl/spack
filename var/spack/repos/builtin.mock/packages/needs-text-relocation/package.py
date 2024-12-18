@@ -17,11 +17,11 @@ class NeedsTextRelocation(Package):
         mkdirp(prefix.bin)
 
         exe = join_path(prefix.bin, "exe")
-        with open(exe, "w") as f:
+        with open(exe, "w", encoding="utf-8") as f:
             f.write(prefix)
         set_executable(exe)
 
         otherexe = join_path(prefix.bin, "otherexe")
-        with open(otherexe, "w") as f:
+        with open(otherexe, "w", encoding="utf-8") as f:
             f.write("Lorem Ipsum")
         set_executable(otherexe)

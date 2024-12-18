@@ -41,9 +41,14 @@ class Nwchem(Package):
         url="https://github.com/nwchemgit/nwchem/releases/download/v7.0.2-release/nwchem-7.0.2-release.revision-b9985dfa-srconly.2020-10-12.tar.bz2",
     )
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    resource(
+        name="dftd3.tgz",
+        url="https://www.chemie.uni-bonn.de/grimme/de/software/dft-d3/dftd3.tgz",
+        destination="",
+        placement="dft-d3",
+        sha256="d97cf9758f61aa81fd85425448fbf4a6e8ce07c12e9236739831a3af32880f59",
+        expand=False,
+    )
 
     variant("openmp", default=False, description="Enables OpenMP support")
     variant("f90allocatable", default=False, description="Use F90 allocatable instead of MA")
@@ -80,10 +85,10 @@ class Nwchem(Package):
     # https://github.com/nwchemgit/nwchem/commit/c89fc9d1eca6689bce12564a63fdea95d962a123
     # Prior versions of NWChem, including 7.0.2, were not able to link with FFTW
     patch("fftw_splans.patch", when="@7.2.0:7.2.3 +fftw3")
-    # This patch is for including a working link for dft-d3 download as existing link
-    # https://www.chemiebn.uni-bonn.de/pctc/mulliken-center/software/dft-d3//dftd3.tgz is not active
-    # Same is mentioned in https://metadata.ftp-master.debian.org/changelogs/main/n/nwchem/unstable_changelog
-    patch("dft-d3_url.patch", when="@7.2.0:7.2.2")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
 
     depends_on("blas")
     depends_on("lapack")
@@ -96,10 +101,18 @@ class Nwchem(Package):
     depends_on("fftw-api@3", when="+fftw3")
     depends_on("libxc", when="+libxc")
     depends_on("elpa", when="+elpa")
-    depends_on("python@3:3.9", type=("build", "link", "run"), when="@:7.0.2")
+    depends_on("python@:3.9", type=("build", "link", "run"), when="@:7.0.2")
     depends_on("python@3", type=("build", "link", "run"), when="@7.2.0:")
 
+    depends_on("gmake", type="build")
+    # for the dftd3 resource (bash is also required, not listed here)
+    depends_on("tar", type="build")
+    depends_on("patch", type="build")
+
     def install(self, spec, prefix):
+        # move the dft-d3/dftd3.tgz resource
+        os.rename("dft-d3/dftd3.tgz", "src/nwpw/nwpwlib/nwpwxc/dftd3.tgz")
+
         scalapack = spec["scalapack"].libs
         lapack = spec["lapack"].libs
         blas = spec["blas"].libs

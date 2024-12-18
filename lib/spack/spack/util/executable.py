@@ -203,15 +203,15 @@ class Executable:
 
         def streamify(arg, mode):
             if isinstance(arg, str):
-                return open(arg, mode), True
+                return open(arg, mode), True  # pylint: disable=unspecified-encoding
             elif arg in (str, str.split):
                 return subprocess.PIPE, False
             else:
                 return arg, False
 
-        ostream, close_ostream = streamify(output, "w")
-        estream, close_estream = streamify(error, "w")
-        istream, close_istream = streamify(input, "r")
+        ostream, close_ostream = streamify(output, "wb")
+        estream, close_estream = streamify(error, "wb")
+        istream, close_istream = streamify(input, "rb")
 
         if not ignore_quotes:
             quoted_args = [arg for arg in args if re.search(r'^".*"$|^\'.*\'$', arg)]

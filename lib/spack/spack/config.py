@@ -179,7 +179,7 @@ class DirectoryConfigScope(ConfigScope):
 
         try:
             filesystem.mkdirp(self.path)
-            with open(filename, "w") as f:
+            with open(filename, "w", encoding="utf-8") as f:
                 syaml.dump_config(data, stream=f, default_flow_style=False)
         except (syaml.SpackYAMLError, OSError) as e:
             raise ConfigFileError(f"cannot write to '{filename}'") from e
@@ -314,7 +314,7 @@ class SingleFileScope(ConfigScope):
             filesystem.mkdirp(parent)
 
             tmp = os.path.join(parent, f".{os.path.basename(self.path)}.tmp")
-            with open(tmp, "w") as f:
+            with open(tmp, "w", encoding="utf-8") as f:
                 syaml.dump_config(data_to_write, stream=f, default_flow_style=False)
             filesystem.rename(tmp, self.path)
 
@@ -619,7 +619,7 @@ class Configuration:
             if changed:
                 self.format_updates[section].append(scope)
 
-            merged_section = merge_yaml(merged_section, data)
+            merged_section = spack.schema.merge_yaml(merged_section, data)
 
         # no config files -- empty config.
         if section not in merged_section:
@@ -680,7 +680,7 @@ class Configuration:
         while len(parts) > 1:
             key = parts.pop(0)
 
-            if _override(key):
+            if spack.schema.override(key):
                 new = type(data[key])()
                 del data[key]
             else:
@@ -693,7 +693,7 @@ class Configuration:
                 data[key] = new
             data = new
 
-        if _override(parts[0]):
+        if spack.schema.override(parts[0]):
             data.pop(parts[0], None)
 
         # update new value
@@ -790,30 +790,6 @@ def config_paths_from_entry_points() -> List[Tuple[str, str]]:
     return config_paths
 
 
-def _add_command_line_scopes(cfg: Configuration, command_line_scopes: List[str]) -> None:
-    """Add additional scopes from the --config-scope argument, either envs or dirs."""
-    import spack.environment.environment as env  # circular import
-
-    for i, path in enumerate(command_line_scopes):
-        name = f"cmd_scope_{i}"
-
-        if env.exists(path):  # managed environment
-            manifest = env.EnvironmentManifestFile(env.root(path))
-        elif env.is_env_dir(path):  # anonymous environment
-            manifest = env.EnvironmentManifestFile(path)
-        elif os.path.isdir(path):  # directory with config files
-            cfg.push_scope(DirectoryConfigScope(name, path, writable=False))
-            _add_platform_scope(cfg, name, path, writable=False)
-            continue
-        else:
-            raise spack.error.ConfigError(f"Invalid configuration scope: {path}")
-
-        for scope in manifest.env_config_scopes:
-            scope.name = f"{name}:{scope.name}"
-            scope.writable = False
-            cfg.push_scope(scope)
-
-
 def create() -> Configuration:
     """Singleton Configuration instance.
 
@@ -894,7 +870,7 @@ def add_from_file(filename: str, scope: Optional[str] = None) -> None:
 
             value = data[section]
             existing = get(section, scope=scope)
-            new = merge_yaml(existing, value)
+            new = spack.schema.merge_yaml(existing, value)
 
             # We cannot call config.set directly (set is a type)
             CONFIG.set(section, new, scope)
@@ -946,7 +922,7 @@ def add(fullpath: str, scope: Optional[str] = None) -> None:
         value: List[str] = [value]  # type: ignore[no-redef]
 
     # merge value into existing
-    new = merge_yaml(existing, value)
+    new = spack.schema.merge_yaml(existing, value)
     CONFIG.set(path, new, scope)
 
 
@@ -1093,7 +1069,7 @@ def read_config_file(
     # schema when it's not necessary) while allowing us to validate against a
     # known schema when the top-level key could be incorrect.
     try:
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             tty.debug(f"Reading config from file {path}")
             data = syaml.load_config(f)
 
@@ -1118,44 +1094,6 @@ def read_config_file(
 
     except syaml.SpackYAMLError as e:
         raise ConfigFileError(str(e)) from e
-
-
-def _override(string: str) -> bool:
-    """Test if a spack YAML string is an override.
-
-    See ``spack_yaml`` for details.  Keys in Spack YAML can end in `::`,
-    and if they do, their values completely replace lower-precedence
-    configs instead of merging into them.
-
-    """
-    return hasattr(string, "override") and string.override
-
-
-def _append(string: str) -> bool:
-    """Test if a spack YAML string is an override.
-
-    See ``spack_yaml`` for details.  Keys in Spack YAML can end in `+:`,
-    and if they do, their values append lower-precedence
-    configs.
-
-    str, str : concatenate strings.
-    [obj], [obj] : append lists.
-
-    """
-    return getattr(string, "append", False)
-
-
-def _prepend(string: str) -> bool:
-    """Test if a spack YAML string is an override.
-
-    See ``spack_yaml`` for details.  Keys in Spack YAML can end in `+:`,
-    and if they do, their values prepend lower-precedence
-    configs.
-
-    str, str : concatenate strings.
-    [obj], [obj] : prepend lists. (default behavior)
-    """
-    return getattr(string, "prepend", False)
 
 
 def _mark_internal(data, name):
@@ -1260,7 +1198,7 @@ def remove_yaml(dest, source):
             unmerge = sk in dest
             old_dest_value = dest.pop(sk, None)
 
-            if unmerge and not _override(sk):
+            if unmerge and not spack.schema.override(sk):
                 dest[sk] = remove_yaml(old_dest_value, sv)
 
         return dest
@@ -1268,81 +1206,6 @@ def remove_yaml(dest, source):
     # If we reach here source and dest are either different types or are
     # not both lists or dicts: replace with source.
     return dest
-
-
-def merge_yaml(dest, source, prepend=False, append=False):
-    """Merges source into dest; entries in source take precedence over dest.
-
-    This routine may modify dest and should be assigned to dest, in
-    case dest was None to begin with, e.g.:
-
-       dest = merge_yaml(dest, source)
-
-    In the result, elements from lists from ``source`` will appear before
-    elements of lists from ``dest``. Likewise, when iterating over keys
-    or items in merged ``OrderedDict`` objects, keys from ``source`` will
-    appear before keys from ``dest``.
-
-    Config file authors can optionally end any attribute in a dict
-    with `::` instead of `:`, and the key will override that of the
-    parent instead of merging.
-
-    `+:` will extend the default prepend merge strategy to include string concatenation
-    `-:` will change the merge strategy to append, it also includes string concatentation
-    """
-
-    def they_are(t):
-        return isinstance(dest, t) and isinstance(source, t)
-
-    # If source is None, overwrite with source.
-    if source is None:
-        return None
-
-    # Source list is prepended (for precedence)
-    if they_are(list):
-        if append:
-            # Make sure to copy ruamel comments
-            dest[:] = [x for x in dest if x not in source] + source
-        else:
-            # Make sure to copy ruamel comments
-            dest[:] = source + [x for x in dest if x not in source]
-        return dest
-
-    # Source dict is merged into dest.
-    elif they_are(dict):
-        # save dest keys to reinsert later -- this ensures that  source items
-        # come *before* dest in OrderdDicts
-        dest_keys = [dk for dk in dest.keys() if dk not in source]
-
-        for sk, sv in source.items():
-            # always remove the dest items. Python dicts do not overwrite
-            # keys on insert, so this ensures that source keys are copied
-            # into dest along with mark provenance (i.e., file/line info).
-            merge = sk in dest
-            old_dest_value = dest.pop(sk, None)
-
-            if merge and not _override(sk):
-                dest[sk] = merge_yaml(old_dest_value, sv, _prepend(sk), _append(sk))
-            else:
-                # if sk ended with ::, or if it's new, completely override
-                dest[sk] = copy.deepcopy(sv)
-
-        # reinsert dest keys so they are last in the result
-        for dk in dest_keys:
-            dest[dk] = dest.pop(dk)
-
-        return dest
-
-    elif they_are(str):
-        # Concatenate strings in prepend mode
-        if prepend:
-            return source + dest
-        elif append:
-            return dest + source
-
-    # If we reach here source and dest are either different types or are
-    # not both lists or dicts: replace with source.
-    return copy.copy(source)
 
 
 class ConfigPath:
