@@ -330,29 +330,6 @@ e4s-rocm-external-build:
       job: e4s-rocm-external-generate
 
 ########################################
-# GPU Testing Pipeline
-########################################
-# .gpu-tests:
-#   extends: [ ".linux_x86_64_v3" ]
-#   variables:
-#     SPACK_CI_STACK_NAME: gpu-tests
-
-# gpu-tests-generate:
-#   extends: [ ".gpu-tests", ".generate-x86_64"]
-#   image: ghcr.io/spack/ubuntu20.04-runner-x86_64:2023-01-01
-
-# gpu-tests-build:
-#   extends: [ ".gpu-tests", ".build" ]
-#   trigger:
-#     include:
-#       - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
-#         job: gpu-tests-generate
-#     strategy: depend
-#   needs:
-#     - artifacts: True
-#       job: gpu-tests-generate
-
-########################################
 # E4S OneAPI Pipeline
 ########################################
 .e4s-oneapi:
