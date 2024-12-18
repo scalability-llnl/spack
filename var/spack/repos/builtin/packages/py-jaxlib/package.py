@@ -137,9 +137,15 @@ class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
         depends_on("py-ml-dtypes@0.0.3:", when="@0.4.7:")
 
     patch(
+        "https://github.com/jax-ml/jax/pull/25531.patch?full_index=1",
+        sha256="d3b7ea2cfeba927e40a11f07e4cbf80939f7fe69448c9eb55231a93bd64e5c02",
+        when="@0.4.36:",
+    )
+
+    patch(
         "https://github.com/jax-ml/jax/pull/25473.patch?full_index=1",
         sha256="9d6977bc32046600bf8b15863251283fe7546896340367a7f14e3dccf418b4fe",
-        when="@0.4.36:",
+        when="@0.4.36:0.4.37",
     )
 
     patch(
@@ -248,7 +254,10 @@ build --local_cpu_resources={make_jobs}
             args.extend(["--enable_rocm", f"--rocm_path={self.spec['hip'].prefix}"])
 
         if spec.satisfies("@0.4.32:"):
-            args.append("--use_clang=false")
+            if spec.satisfies("%clang"):
+                args.append("--use_clang=true")
+            else:
+                args.append("--use_clang=false")
 
         python(*args)
         whl = glob.glob(join_path("dist", "*.whl"))[0]
