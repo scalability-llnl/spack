@@ -38,9 +38,6 @@ class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
     homepage = "https://github.com/jax-ml/jax"
     url = "https://github.com/jax-ml/jax/archive/refs/tags/jax-v0.4.34.tar.gz"
 
-    tmp_path = ""
-    buildtmp = ""
-
     license("Apache-2.0")
     maintainers("adamjstewart", "jonas-eschle")
 
@@ -71,11 +68,11 @@ class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
     version("0.4.4", sha256="881f402c7983b56b185e182d5315dd64c9f5320be96213d0415996ece1826806")
     version("0.4.3", sha256="2104735dc22be2b105e5517bd5bc6ae97f40e8e9e54928cac1585c6112a3d910")
 
-    depends_on("c", type="build")
-    depends_on("cxx", type="build")
-
     variant("cuda", default=True, description="Build with CUDA enabled")
     variant("nccl", default=True, description="Build with NCCL enabled", when="+cuda")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     # docs/installation.md (Compatible with)
     with when("+cuda"):
@@ -141,13 +138,11 @@ class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
         sha256="d3b7ea2cfeba927e40a11f07e4cbf80939f7fe69448c9eb55231a93bd64e5c02",
         when="@0.4.36:",
     )
-
     patch(
         "https://github.com/jax-ml/jax/pull/25473.patch?full_index=1",
         sha256="9d6977bc32046600bf8b15863251283fe7546896340367a7f14e3dccf418b4fe",
         when="@0.4.36:0.4.37",
     )
-
     patch(
         "https://github.com/google/jax/pull/20101.patch?full_index=1",
         sha256="4dfb9f32d4eeb0a0fb3a6f4124c4170e3fe49511f1b768cd634c78d489962275",
@@ -176,42 +171,8 @@ class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
             name = "jaxlib"
         return url.format(name, version)
 
-    def patch(self):
-        self.tmp_path = tempfile.mkdtemp(prefix="spack")
-        self.buildtmp = tempfile.mkdtemp(prefix="spack")
-        filter_file(
-            "build --spawn_strategy=standalone",
-            f"""
-# Limit CPU workers to spack jobs instead of using all HOST_CPUS.
-build --spawn_strategy=standalone
-build --local_cpu_resources={make_jobs}
-""".strip(),
-            ".bazelrc",
-            string=True,
-        )
-        filter_file(
-            'f"--output_path={output_path}",',
-            'f"--output_path={output_path}",'
-            f' "--sources_path={self.tmp_path}",'
-            ' "--nohome_rc",'
-            ' "--nosystem_rc",'
-            f' "--jobs={make_jobs}",',
-            "build/build.py",
-            string=True,
-        )
-        build_wheel = join_path("build", "build_wheel.py")
-        if self.spec.satisfies("@0.4.14:"):
-            build_wheel = join_path("jaxlib", "tools", "build_wheel.py")
-        filter_file(
-            "args = parser.parse_args()",
-            "args, junk = parser.parse_known_args()",
-            build_wheel,
-            string=True,
-        )
-
     def install(self, spec, prefix):
         # https://jax.readthedocs.io/en/latest/developer.html
-        buildtmp = self.wrapped_package_object.buildtmp
         args = ["build/build.py"]
 
         if spec.satisfies("@0.4.36:"):
@@ -224,7 +185,17 @@ build --local_cpu_resources={make_jobs}
             else:
                 args.append("--wheels=jaxlib")
 
-        args.append(f"--bazel_startup_options=--output_user_root={buildtmp}")
+        buildtmp = tempfile.mkdtemp(prefix="spack")
+        tmp_path = tempfile.mkdtemp(prefix="spack")
+        args.extend(
+            [
+                "--bazel_options=--nohome_rc",
+                "--bazel_options=--nosystem_rc",
+                f"--bazel_options=--sources_path={tmp_path}",
+                f"--bazel_options=--jobs={make_jobs}",
+                f"--bazel_startup_options=--output_user_root={buildtmp}",
+            ]
+        )
 
         if "+cuda" in spec:
             capabilities = CudaPackage.compute_capabilities(spec.variants["cuda_arch"].value)
@@ -258,5 +229,6 @@ build --local_cpu_resources={make_jobs}
         python(*args)
         whl = glob.glob(join_path("dist", "*.whl"))[0]
         pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", whl)
-        remove_linked_tree(self.wrapped_package_object.tmp_path)
-        remove_linked_tree(self.wrapped_package_object.buildtmp)
+
+        remove_linked_tree(tmp_path)
+        remove_linked_tree(buildtmp)
