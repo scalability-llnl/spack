@@ -35,7 +35,7 @@ import os
 import os.path
 import re
 import sys
-from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Generator, List, NamedTuple, Optional, Tuple, Union
 
 import jsonschema
 
@@ -1725,6 +1725,34 @@ def determine_number_of_jobs(
         pass
 
     return min(max_cpus, cfg.get("config:build_jobs", 16))
+
+
+#: Data class for the relevance of an optional path conditioned on either
+#: a spec and or explicitly specified as optional.
+class OptionalPath(NamedTuple):
+    path: str
+    when: str
+    optional: bool
+
+
+def included_path(entry: Union[str, dict]) -> OptionalPath:
+    """Convert the included path entry into a standard form.
+
+    Args:
+        entry: include configuration entry
+
+    Returns: converted entry, where an empty ``when`` means the path is
+        not conditionally included
+    """
+    always_activate = False
+    optional = False
+    if isinstance(entry, str):
+        return OptionalPath(path=entry, when="", optional=False)
+
+    path = entry["path"]
+    when = entry.get("when", "")
+    optional = entry.get("optional", False)
+    return OptionalPath(path=path, when=when, optional=optional)
 
 
 class ConfigSectionError(spack.error.ConfigError):

@@ -2928,23 +2928,15 @@ class EnvironmentManifestFile(collections.abc.Mapping):
         include_paths = list()
         required_paths = list()
         for entry in includes:
-            always_activate = False
-            optional = False
-            if isinstance(entry, str):
-                path = entry
-                always_activate = True
-            else:
-                path = entry["path"]
-                if "when" in entry:
-                    when_str = entry["when"]
-                else:
-                    always_activate = True
-                optional |= entry.get("optional", False)
+            info = spack.config.included_path(entry)
+            include_path = info.path
+            optional = info.optional
+            when = info.when
 
             if not optional:
                 required_paths.append(path)
 
-            if always_activate or spack.spec.eval_conditional(when_str):
+            if (not when) or spack.spec.eval_conditional(when):
                 include_paths.append(path)
 
         return spack.config.scopes_from_paths(
