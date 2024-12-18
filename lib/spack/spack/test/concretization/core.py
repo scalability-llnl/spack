@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import copy
+import io
+import multiprocessing
 import os
 import sys
 
@@ -3236,3 +3238,31 @@ def test_spec_unification(unify, mutable_config, mock_packages):
     maybe_fails = pytest.raises if unify is True else llnl.util.lang.nullcontext
     with maybe_fails(spack.solver.asp.UnsatisfiableSpecError):
         _ = spack.cmd.parse_specs([a_restricted, b], concretize=True)
+
+
+def solver_driver(queue):
+    test_spec = spack.spec.Spec("hdf5")
+    output_capture = io.StringIO()
+    kwargs = {"out": output_capture, "setup_only": True}
+    spack.solver.asp.Solver().solve([test_spec], **kwargs)
+    queue.put(output_capture.getvalue())
+
+
+@pytest.mark.maybeslow
+def test_deterministic_asp_problem_ordering():
+    """Test validating that out ASP output is deterministic
+
+    Ensures the same rules with the same node ids are produced
+    with each run of the solver setup
+    """
+    asp_output_queue = multiprocessing.Queue()
+    asp_results = []
+    for _ in range(10):
+        asp_p = multiprocessing.Process(target=solver_driver, args=(asp_output_queue,))
+        asp_p.start()
+        # sort the results to ensure deterministic output
+        asp_results.append("\n".join(sorted(asp_output_queue.get().split("\n"))))
+        asp_p.join()
+
+    for i in range(1, 10):
+        assert asp_results[0] == asp_results[i]

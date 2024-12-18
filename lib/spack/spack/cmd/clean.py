@@ -14,6 +14,7 @@ import spack.cmd
 import spack.config
 import spack.stage
 import spack.store
+import spack.solver.asp
 import spack.util.path
 from spack.cmd.common import arguments
 from spack.paths import lib_path, var_path
@@ -132,7 +133,7 @@ def clean(parser, args):
 
     if args.conc_cache:
         tty.msg("Removing cached concretization results")
-        spack.caches.CONC_CACHE.destroy()
+        spack.solver.asp.CONC_CACHE.destroy()
 
     if args.python_cache:
         tty.msg("Removing python cache files")

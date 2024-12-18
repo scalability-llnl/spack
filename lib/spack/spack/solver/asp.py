@@ -28,7 +28,6 @@ from typing import (
     Set,
     Tuple,
     Type,
-    TypeVar,
     Union,
 )
 
@@ -41,7 +40,6 @@ from llnl.util.lang import elide_list
 import spack
 import spack.binary_distribution
 import spack.compiler
-import spack.caches
 import spack.compilers
 import spack.concretize
 import spack.config
@@ -83,8 +81,6 @@ from .version_order import concretization_version_order
 GitOrStandardVersion = Union[spack.version.GitVersion, spack.version.StandardVersion]
 
 TransformFunction = Callable[[spack.spec.Spec, List[AspFunction]], List[AspFunction]]
-
-ResultType = TypeVar("ResultType", bound="Result")
 
 #: Enable the addition of a runtime node
 WITH_RUNTIME = sys.platform != "win32"
@@ -591,7 +587,7 @@ class Result:
         return ret
 
     @staticmethod
-    def from_dict(obj: dict) -> ResultType:
+    def from_dict(obj: dict):
         """Returns Result object from compatible dictionary"""
 
         def _dict_to_node_argument(dict):
@@ -642,16 +638,42 @@ class ConcretizationCache:
 
     def __init__(self, root: Union[str, None] = None):
         if not root:
-            root = (
-                spack.config.get("config:concretization_cache")
-                if spack.config.get("config:concretization_cache")
-                else spack.paths.default_conc_cache_path
+            root = spack.config.get(
+                "config:concretization_cache", spack.paths.default_conc_cache_path
             )
         self.root = pathlib.Path(spack.util.path.canonicalize_path(root))
-        # self._check_purge()
 
-    # def _cache_entry_count(self) -> int:
-    #     return len([x for x in y for y in ])
+    def cleanup(self):
+        # TODO: determine a better default
+        entry_limit = spack.config.get("config:concretization_cache_limit", 1000)
+        # TODO: Rewrite this to use a metadata file
+        entries = [x for x in self.cache_entries()]
+        entry_count = len(entries)
+        if entry_count > entry_limit:
+            cache_value_key = lambda x: x.stat().st_mtime
+            entries = sorted(entries, key=cache_value_key, reverse=True)
+            # prune the oldest 10%
+            # TODO: make this configurable?
+            for i in range(entry_count // 10):
+                self._safe_remove(entries[i])
+        for cache_dir in self.root.iterdir():
+            if cache_dir.is_dir() and not any(cache_dir.iterdir()):
+                self._safe_remove(cache_dir)
+
+    def cache_entries(self):
+        for cache_dir in self.root.iterdir():
+            # ensure component is cache entry directory
+            # not metadata file
+            if cache_dir.is_dir():
+                for cache_entry in cache_dir.iterdir():
+                    if not cache_entry.is_dir():
+                        yield cache_entry
+                    else:
+                        raise RuntimeError(
+                            f"Improperly formed concretization cache. "
+                            "Directory {cache_entry.name} is improperly located "
+                            "within the concretization cache."
+                        )
 
     def _results_from_cache(self, cache_path: pathlib.Path) -> Result:
         """Returns a Results object from the concretizer cache
@@ -685,6 +707,30 @@ class ConcretizationCache:
         prefix, digest = self._prefix_digest(problem)
         return self.root / prefix / digest
 
+    def _safe_remove(self, cache_dir: pathlib.Path):
+        try:
+            if cache_dir.is_dir():
+                cache_dir.rmdir()
+            else:
+                cache_dir.unlink()
+            return True
+        except FileNotFoundError:
+            tty.debug(f"Unable to remove cache dir entry: {str(cache_dir)}, it does not exist")
+        return False
+
+    def _safe_read(self, cache_path: pathlib.Path):
+        try:
+            return cache_path.read_text()
+        except FileNotFoundError:
+            tty.debug(f"Unable to read cache entry, {str(cache_path)} does not exist")
+
+    def _safe_write(self, cache_path: pathlib.Path, output:str):
+        try:
+            return cache_path.write_text(output)
+        except FileExistsError:
+            tty.debug(f"Cache entry {str(cache_path)} exists already, created by another Spack process")
+        return 0
+
     @contextmanager
     def _create_cache_entry(self, entry: pathlib.Path):
         """Context manager for creating cache entries
@@ -692,8 +738,7 @@ class ConcretizationCache:
         Creates cache entry and file, cleans up on failure to
         correctly populate cache
         """
-        if not entry.exists():
-            entry.parent.mkdir(parents=True, exist_ok=True)
+        entry.parent.mkdir(parents=True, exist_ok=True)
         failed = False
         try:
             yield
@@ -702,10 +747,8 @@ class ConcretizationCache:
             raise e from e
         finally:
             if failed:
-                if entry.exists():
-                    entry.unlink()
-                if entry.parent.exists():
-                    entry.parent.rmdir()
+                self._safe_remove(entry)
+                self._safe_remove(entry.parent)
 
     def store(self, problem: str, result: Result, statistics: List):
         """Creates entry in concretization cache for problem if none exists,
@@ -718,7 +761,8 @@ class ConcretizationCache:
         cache_path = self._cache_path(problem)
         with self._create_cache_entry(cache_path):
             cache_dict = {"results": result.to_dict(), "statistics": statistics}
-            cache_path.write_text(json.dumps(cache_dict))
+            self._safe_write(cache_path, json.dumps(cache_dict))
+        self.cleanup()
 
     def fetch(self, problem: str) -> Union[Tuple[Result, List], Tuple[None, None]]:
         """Returns the concretization cache result for a lookup based on the given problem.
@@ -728,10 +772,10 @@ class ConcretizationCache:
         or returns none if no cache entry was found.
         """
         cache_path = self._cache_path(problem)
-        if cache_path.exists():
+        result = self._results_from_cache(cache_path)
+        statistics = self._stats_from_cache(cache_path)
+        if result and statistics:
             tty.debug(f"Concretization cache hit at {str(cache_path)}")
-            result = self._results_from_cache(cache_path)
-            statistics = self._stats_from_cache(cache_path)
             return result, statistics
         tty.debug(f"Concretization cache miss at {str(cache_path)}")
         return None, None
@@ -739,17 +783,16 @@ class ConcretizationCache:
     def remove(self, problem: str) -> bool:
         """Removes cache entry associated with problem"""
         cache_path = self._cache_path(problem)
-        if cache_path.exists():
-            cache_path.unlink()
-            return True
-        return False
+        return self._safe_remove(cache_path)
 
     def destroy(self) -> None:
+        for cache_entry in self.cache_entries():
+            self._safe_remove(cache_entry)
         for cache_dir in self.root.iterdir():
-            for cache_entry in cache_dir.iterdir():
-                cache_entry.unlink()
-            cache_dir.rmdir()
-        self.root.rmdir()
+            self._safe_remove(cache_dir)
+
+
+CONC_CACHE = llnl.util.lang.Singleton(lambda: ConcretizationCache())
 
 
 def _normalize_packages_yaml(packages_yaml):

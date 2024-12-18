@@ -72,6 +72,7 @@ properties: Dict[str, Any] = {
             "source_cache": {"type": "string"},
             "misc_cache": {"type": "string"},
             "concretization_cache": {"type": "string"},
+            "concretization_cache_limit": {"type": "integer", "minimum": 1},
             "environments_root": {"type": "string"},
             "connect_timeout": {"type": "integer", "minimum": 0},
             "verify_ssl": {"type": "boolean"},
