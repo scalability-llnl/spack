@@ -40,17 +40,14 @@ class Libzip(CMakePackage):
     variant("bzip2", default=True, description="Enable bzip2 support")
     variant("lzma", default=True, description="Enable lzma support")
     variant("openssl", default=True, description="Enable openssl support")
-    variant("zstd", default=True, description="Enable zstd support")
+    variant("zstd", default=True, description="Enable zstd support", when="@1.8:")
     variant("mbedtls", default=True, description="Enable mbedtls support")
     depends_on("gnutls", when="+gnutls")
     depends_on("bzip2", when="+bzip2")
     depends_on("lzma", when="+lzma")
     depends_on("openssl", when="+openssl")
     depends_on("mbedtls", when="+mbedtls")
-    # zstd support starts with version 1.8.0
-    with when("@1.8:"):
-        variant("zstd", default=True, description="Enable zstd support")
-        depends_on("zstd", when="+zstd")
+    depends_on("zstd", when="+zstd")
 
     @property
     def headers(self):
@@ -66,7 +63,5 @@ class Libzip(CMakePackage):
             self.define_from_variant("ENABLE_OPENSSL", "openssl"),
             self.define_from_variant("ENABLE_BZIP2", "bzip2"),
             self.define_from_variant("ENABLE_LZMA", "lzma"),
+            self.define_from_variant("ENABLE_ZSTD", "zstd"),
         ]
-        # Add zstd option if version is 1.8.0 or newer
-        if self.spec.satisfies("@1.8:"):
-            args.append(self.define_from_variant("ENABLE_ZSTD", "zstd"))
