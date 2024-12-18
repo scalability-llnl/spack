@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
+import sys
 
 import spack.user_environment as uenv
 
@@ -15,11 +16,14 @@ def post_install(spec, explicit=None):
         spec:
         explicit:
     """
-    # Skip externals
+
     if spec.external:
         return
 
     shells_avail = ["sh", "csh", "fish"]
+
+    if sys.platform == "win32":
+        shells_avail.extend(["bat", "pwsh"])
 
     for shell in shells_avail:
         env_mods = uenv.environment_modifications_for_specs(spec)

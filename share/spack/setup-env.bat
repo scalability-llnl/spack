@@ -64,6 +64,8 @@ if not defined EDITOR (
    set EDITOR=notepad
 )
 
+set "SPACK_SHELL=bat"
+
 @echo **********************************************************************
 @echo ** Spack Package Manager
 @echo **********************************************************************
