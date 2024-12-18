@@ -155,7 +155,7 @@ class Rocblas(CMakePackage):
         ("@6.2.0", "dbc2062dced66e4cbee8e0591d76e0a1588a4c70"),
         ("@6.2.1", "dbc2062dced66e4cbee8e0591d76e0a1588a4c70"),
         ("@6.2.4", "81ae9537671627fe541332c0a5d953bfd6af71d6"),
-        ("@6.3.0", "df4be50f2cf7abb86b2fc7af171802a8b16e043a"),
+        ("@6.3.0", "aca95d1743c243dd0dd0c8b924608bc915ce1ae7"),
     ]:
         resource(
             name="Tensile",
@@ -222,9 +222,13 @@ class Rocblas(CMakePackage):
 
         if "+tensile" in self.spec:
             tensile_path = join_path(self.stage.source_path, "Tensile")
+            if self.spec.satisfies("@:6.2"):
+                tensile_compiler = "hipcc"
+            else:
+                tensile_compiler = "amdclang++"
             args += [
                 self.define("Tensile_TEST_LOCAL_PATH", tensile_path),
-                self.define("Tensile_COMPILER", "hipcc"),
+                self.define("Tensile_COMPILER", tensile_compiler),
                 self.define("Tensile_LOGIC", "asm_full"),
                 self.define("BUILD_WITH_TENSILE_HOST", "@3.7.0:" in self.spec),
                 self.define("Tensile_LIBRARY_FORMAT", "msgpack"),

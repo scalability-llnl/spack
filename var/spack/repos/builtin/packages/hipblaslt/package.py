@@ -66,16 +66,20 @@ class Hipblaslt(CMakePackage):
 
     def setup_build_environment(self, env):
         env.set("CXX", self.spec["hip"].hipcc)
-        env.set("TENSILE_ROCM_ASSEMBLER_PATH", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang++")
-        env.set(
-            "TENSILE_ROCM_OFFLOAD_BUNDLER_PATH",
-            f"{self.spec['llvm-amdgpu'].prefix}/bin/clang-offload-bundler",
-        )
-        env.set("ROCM_SMI_PATH", f"{self.spec['rocm-smi-lib'].prefix}/bin/rocm-smi")
-        env.set(
-            "ROCM_AGENT_ENUMERATOR_PATH",
-            f"{self.spec['rocminfo'].prefix}/bin/rocm_agent_enumerator",
-        )
+        if self.spec.satisfies("@6.3.0:"):
+            env.set(
+                "TENSILE_ROCM_ASSEMBLER_PATH",
+                f"{self.spec['llvm-amdgpu'].prefix}/bin/clang++",
+            )
+            env.set(
+                "TENSILE_ROCM_OFFLOAD_BUNDLER_PATH",
+                f"{self.spec['llvm-amdgpu'].prefix}/bin/clang-offload-bundler",
+            )
+            env.set("ROCM_SMI_PATH", f"{self.spec['rocm-smi-lib'].prefix}/bin/rocm-smi")
+            env.set(
+                "ROCM_AGENT_ENUMERATOR_PATH",
+                f"{self.spec['rocminfo'].prefix}/bin/rocm_agent_enumerator",
+            )
 
     def patch(self):
         if self.spec.satisfies("@6.3:"):
