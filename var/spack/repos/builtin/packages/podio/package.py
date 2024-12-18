@@ -73,7 +73,7 @@ class Podio(CMakePackage):
 
     depends_on("cxx", type="build")  # generated
 
-    _cxxstd_values = (conditional("17", when="@"1.2"), conditional("20", when="@0.15:"))
+    _cxxstd_values = (conditional("17", when="@:1.2"), conditional("20", when="@0.15:"))
     variant(
         "cxxstd",
         default="17",
