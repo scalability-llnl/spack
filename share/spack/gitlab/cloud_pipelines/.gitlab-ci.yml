@@ -1,7 +1,6 @@
 stages: [ "generate", "build" ]
 
 variables:
-  SPACK_CI_ENABLE_STACKS: "/^(.*e4s-cray-rhel.*)$/"
   SPACK_DISABLE_LOCAL_CONFIG: "1"
   SPACK_USER_CACHE_PATH: "${CI_PROJECT_DIR}/tmp/_user_cache/"
   # PR_MIRROR_FETCH_DOMAIN: "https://binaries-prs.spack.io"
