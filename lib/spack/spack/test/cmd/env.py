@@ -2229,7 +2229,8 @@ def test_concretize_nested_include_concrete_envs():
     test1.concretize()
     test1.write()
 
-    env("create", "--include-concrete", "test1", "test2")
+    os.environ["TEST1_ROOT"] = test1.path
+    env("create", "--include-concrete", "${TEST1_ROOT}", "test2")
     test2 = ev.read("test2")
     with test2:
         add("libelf")
