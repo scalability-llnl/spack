@@ -39,7 +39,7 @@ spack:
       require: "~gui target=x86_64_v3"
     paraview:
       # Don't build GUI support or GLX rendering for HPC/container deployments
-      require: "@5.11: +examples ~qt ^[virtuals=gl] osmesa target=x86_64_v3"
+      require: "+examples ~qt ^[virtuals=gl] osmesa target=x86_64_v3"
 
   specs:
   # CPU
@@ -299,7 +299,7 @@ spack:
   # INCLUDED IN ECP DAV CUDA
   - adios2 +cuda cuda_arch=90
   - ascent +cuda cuda_arch=90       # ascent: https://github.com/spack/spack/issues/38045
-  - paraview +cuda cuda_arch=90     # paraview: InstallError: Incompatible cuda_arch=90
+  - paraview +cuda cuda_arch=90     # paraview: Cannot satisfy 'cuda@:11' and 'cuda@12.0:
   - vtk-m +cuda cuda_arch=90
   - zfp +cuda cuda_arch=90
   # --
