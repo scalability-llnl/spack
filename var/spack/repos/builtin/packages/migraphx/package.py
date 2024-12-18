@@ -69,7 +69,6 @@ class Migraphx(CMakePackage):
         when="@6.0",
     )
     patch("0003-add-half-include-directory-migraphx-6.0.patch", when="@6.0:")
-    patch("0007-add-hipblas-common.patch", when="@6.3:")
 
     depends_on("cmake@3.5:", type="build")
     depends_on("protobuf", type="link")

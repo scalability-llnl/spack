@@ -22,5 +22,5 @@ class PyDash(PythonPackage):
     depends_on("py-setuptools", type="build")
     depends_on("py-typing-extensions")
     depends_on("py-flask")
-    depends_on("py-plotly")
+    depends_on("py-plotly@5")
     depends_on("py-importlib-metadata")

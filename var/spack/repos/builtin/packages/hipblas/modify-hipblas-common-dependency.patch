@@ -1,0 +1,13 @@
+diff --git a/library/src/CMakeLists.txt b/library/src/CMakeLists.txt
+index 9394dce..caa6eb6 100755
+--- a/library/src/CMakeLists.txt
++++ b/library/src/CMakeLists.txt
+@@ -138,7 +138,7 @@ target_include_directories( hipblas
+           $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include/hipblas>
+           $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
+           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+-          $<BUILD_INTERFACE:${HIPBLAS-COMMON_INCLUDE_DIRS}>
++          ${HIPBLAS-COMMON_INCLUDE_DIRS}
+   PRIVATE
+           ${CMAKE_CURRENT_SOURCE_DIR}/include
+           ${CMAKE_CURRENT_SOURCE_DIR}
