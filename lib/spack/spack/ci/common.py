@@ -217,7 +217,7 @@ class CDashHandler:
             "--cdash-upload-url",
             win_quote(self.upload_url),
             "--cdash-build",
-            win_quote(self.build_name),
+            win_quote(self.build_name()),
             "--cdash-site",
             win_quote(self.site),
             "--cdash-buildstamp",
