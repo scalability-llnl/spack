@@ -28,7 +28,12 @@ rocm_dependencies = [
 
 
 class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
-    """XLA library for Jax"""
+    """XLA library for Jax.
+
+    jaxlib is the support library for JAX. While JAX itself is a pure Python package,
+    jaxlib contains the binary (C/C++) parts of the library, including Python bindings,
+    the XLA compiler, the PJRT runtime, and a handful of handwritten kernels.
+    """
 
     homepage = "https://github.com/jax-ml/jax"
     url = "https://github.com/jax-ml/jax/archive/refs/tags/jax-v0.4.34.tar.gz"
@@ -39,6 +44,7 @@ class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
     license("Apache-2.0")
     maintainers("adamjstewart", "jonas-eschle")
 
+    version("0.4.38", sha256="ca1e63c488d505b9c92e81499e8b06cc1977319c50d64a0e58adbd2dae1a625c")
     version("0.4.37", sha256="17a8444a931f26edda8ccbc921ab71c6bf46857287b1db186deebd357e526870")
     version("0.4.36", sha256="442bfdf491b509995aa160361e23a9db488d5b97c87e6648cc733501b06eda77")
     version("0.4.35", sha256="65e086708ae56670676b7b2340ad82b901d8c9993d1241a839c8990bdb8d6212")
@@ -123,14 +129,12 @@ class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
         depends_on("py-numpy@1.22:", when="@0.4.14:")
         depends_on("py-numpy@1.21:", when="@0.4.7:")
         depends_on("py-numpy@1.20:", when="@0.3:")
-        depends_on("py-ml-dtypes@0.2:", when="@0.4.14:")
-        depends_on("py-ml-dtypes@0.1:", when="@0.4.9:")
-        depends_on("py-ml-dtypes@0.0.3:", when="@0.4.7:")
-
-        # Historical dependencies
         # https://github.com/google/jax/issues/19246
         depends_on("py-numpy@:1", when="@:0.4.25")
         depends_on("py-ml-dtypes@0.4:", when="@0.4.29")
+        depends_on("py-ml-dtypes@0.2:", when="@0.4.14:")
+        depends_on("py-ml-dtypes@0.1:", when="@0.4.9:")
+        depends_on("py-ml-dtypes@0.0.3:", when="@0.4.7:")
 
     patch(
         "https://github.com/jax-ml/jax/pull/25473.patch?full_index=1",

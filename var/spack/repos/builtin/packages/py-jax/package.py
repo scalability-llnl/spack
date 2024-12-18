@@ -8,15 +8,11 @@ from spack.package import *
 
 
 class PyJax(PythonPackage):
-    """JAX is Autograd and XLA, brought together for high-performance
-    machine learning research. With its updated version of Autograd,
-    JAX can automatically differentiate native Python and NumPy
-    functions. It can differentiate through loops, branches,
-    recursion, and closures, and it can take derivatives of
-    derivatives of derivatives. It supports reverse-mode
-    differentiation (a.k.a. backpropagation) via grad as well as
-    forward-mode differentiation, and the two can be composed
-    arbitrarily to any order."""
+    """Differentiate, compile, and transform Numpy code.
+
+    JAX is a Python library for accelerator-oriented array computation and program transformation,
+    designed for high-performance numerical computing and large-scale machine learning.
+    """
 
     homepage = "https://github.com/jax-ml/jax"
     pypi = "jax/jax-0.4.27.tar.gz"
@@ -24,6 +20,7 @@ class PyJax(PythonPackage):
     license("Apache-2.0")
     maintainers("adamjstewart", "jonas-eschle")
 
+    version("0.4.38", sha256="43bae65881628319e0a2148e8f81a202fbc2b8d048e35c7cb1df2416672fa4a8")
     version("0.4.37", sha256="7774f3d9e23fe199c65589c680c5a5be87a183b89598421a632d8245222b637b")
     version("0.4.36", sha256="088bff0575d01fc82682a9af4eb07433d60de7e5164686bd2cea3439492e608a")
     version("0.4.35", sha256="c0c986993026b10bf6f607fecb7417377460254640766ce40f1fef3fd139c12e")
@@ -66,7 +63,7 @@ class PyJax(PythonPackage):
         # setup.py
         depends_on("python@3.10:", when="@0.4.31:")
         depends_on("python@3.9:", when="@0.4.14:")
-        depends_on("py-ml-dtypes@0.4:", when="@0.4.35:")
+        depends_on("py-ml-dtypes@0.4:", when="@0.4.29,0.4.35:")
         depends_on("py-ml-dtypes@0.2:", when="@0.4.14:")
         depends_on("py-ml-dtypes@0.1:", when="@0.4.9:")
         depends_on("py-ml-dtypes@0.0.3:", when="@0.4.7:")
@@ -85,6 +82,7 @@ class PyJax(PythonPackage):
         # jax/_src/lib/__init__.py
         # https://github.com/google/jax/commit/8be057de1f50756fe7522f7e98b2f30fad56f7e4
         for v in [
+            "0.4.38",
             "0.4.37",
             "0.4.36",
             "0.4.35",
@@ -124,6 +122,7 @@ class PyJax(PythonPackage):
             depends_on(f"py-jaxlib@:{v}", when=f"@{v}")
 
         # See _minimum_jaxlib_version in jax/version.py
+        depends_on("py-jaxlib@0.4.38:", when="@0.4.38:")
         depends_on("py-jaxlib@0.4.36:", when="@0.4.36:")
         depends_on("py-jaxlib@0.4.35:", when="@0.4.35:")
         depends_on("py-jaxlib@0.4.34:", when="@0.4.34:")
@@ -143,5 +142,4 @@ class PyJax(PythonPackage):
         depends_on("py-jaxlib@0.4.1:", when="@0.4.2:")
 
         # Historical dependencies
-        depends_on("py-ml-dtypes@0.4:", when="@0.4.29")
         depends_on("py-importlib-metadata@4.6:", when="@0.4.11:0.4.30 ^python@:3.9")
