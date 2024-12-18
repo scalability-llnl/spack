@@ -26,6 +26,8 @@ class Prrte(AutotoolsPackage):
     version("develop", branch="master")
     version("1.0.0", sha256="a9b3715e059c10ed091bd6e3a0d8896f7752e43ee731abcc95fb962e67132a2d")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("pmix")
     depends_on("libevent")
     depends_on("hwloc")

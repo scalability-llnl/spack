@@ -57,6 +57,9 @@ class Parallelmergetree(CMakePackage):
         submodules=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("babelflow@1.1.0", when="@1.1.2")
     depends_on("babelflow@1.1.0", when="@1.1.1")
     depends_on("babelflow@1.1.0", when="@1.1.0")

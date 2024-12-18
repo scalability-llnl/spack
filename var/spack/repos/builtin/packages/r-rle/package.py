@@ -18,4 +18,6 @@ class RRle(RPackage):
 
     version("0.9.2", sha256="803cbe310af6e882e27be61d37d660dbe5910ac1ee1eff61a480bcf724a04f69")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@3.5:", type=("build", "run"))

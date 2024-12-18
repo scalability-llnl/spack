@@ -30,6 +30,9 @@ class PyBreathe(PythonPackage):
     version("4.7.1", sha256="afb1ab0084b25d3670fa8f5cf2eeaee6fe61bfc77876e3816b140eacd4949875")
     version("4.7.0", sha256="5629c67f5adb41f39375d36c5f0d60d34b1230be268125e535205d77f69211e4")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
 
     depends_on("python@3.5:", type=("build", "run"), when="@4.21:4.32")

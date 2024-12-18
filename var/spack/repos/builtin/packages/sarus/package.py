@@ -31,6 +31,8 @@ class Sarus(CMakePackage):
     version("1.0.1", commit="abb8c314a196207204826f7b60e5064677687405")
     version("1.0.0", commit="d913b1d0ef3729f9f41ac5bd06dd5615c407ced4")
 
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "ssh",
         default=False,

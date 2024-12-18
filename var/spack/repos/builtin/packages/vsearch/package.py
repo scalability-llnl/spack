@@ -20,6 +20,9 @@ class Vsearch(AutotoolsPackage):
     version("2.13.3", sha256="e5f34ece28b76403d3ba4a673eca41178fe399c35a1023dbc87d0c0da5efaa52")
     version("2.4.3", sha256="f7ffc2aec5d76bdaf1ffe7fb733102138214cec3e3846eb225455dcc3c088141")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("m4", type="build")
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

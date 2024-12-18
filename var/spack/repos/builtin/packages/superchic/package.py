@@ -23,6 +23,8 @@ class Superchic(MakefilePackage):
     version("3.06", sha256="17b4f56e85634f3c9708d5263772d7035fe4d7fb91a11bbffe889e0860efbd02")
     version("3.05", sha256="032f5c784f284ca02003a990234b099f61cd125791d56715680cd342e55c7da1")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("lhapdf")
     depends_on("apfel", when="@4.01:")
 

@@ -27,6 +27,9 @@ class Wxparaver(AutotoolsPackage):
     version("4.7.1", sha256="8cbec0c5e0f8a849820f6682cbb0920ea234bb7f20d1483e38ea5d0b0ee045cd")
     version("4.7.0", sha256="81e02bcc1853455b13435172a4336ba85ba05020887d322c9678c97def03d76f")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("boost@1.36: +serialization")
     depends_on("wxwidgets@2.8:")  # NOTE: using external for this one is usually simpler
     depends_on("wxpropgrid@1.4:")

@@ -21,6 +21,9 @@ class RAnalysispageserver(RPackage):
     version("1.12.0", commit="146501974ef1938ee1ec4eb293ea7eeca331a0dc")
     version("1.10.0", commit="876c87073be116fa15a1afdd407e21152eb80d50")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r-log4r", type=("build", "run"))
     depends_on("r-rjson", type=("build", "run"))
     depends_on("r-biobase", type=("build", "run"))

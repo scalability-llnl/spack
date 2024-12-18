@@ -23,6 +23,9 @@ class Vigra(CMakePackage):
     version("master", branch="master")
     version("1.11.1", sha256="a5564e1083f6af6a885431c1ee718bad77d11f117198b277557f8558fa461aaf")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("png", default=False, description="Include support for PNG images")
     variant("jpeg", default=False, description="Include support for JPEG images")
     variant("tiff", default=False, description="Include support for TIFF images")

@@ -25,6 +25,9 @@ class Idg(CMakePackage):
     version("1.0.0", commit="3322756fb8b6e3bb1fe5293f3e07e40623ff8486")
     version("0.8.1", commit="a09f3c85094c592f9304fff4c31e920c7592c3c3")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("boost")
     depends_on("fftw-api@3")
     depends_on("blas")

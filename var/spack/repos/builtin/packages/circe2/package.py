@@ -24,6 +24,8 @@ class Circe2(AutotoolsPackage):
 
     version("3.1.2.1", sha256="8bb09e6f566adefcf7b5b1cf9d9fe4536dd3dd11ed3674861de29e177ee0bb04")
 
+    depends_on("fortran", type="build")  # generated
+
     variant("doc", default=False, description="Create the latex documentation")
 
     depends_on("ocaml@4.05:")

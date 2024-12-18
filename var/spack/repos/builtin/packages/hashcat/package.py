@@ -25,5 +25,8 @@ class Hashcat(MakefilePackage):
     version("5.1.0", sha256="283beaa68e1eab41de080a58bb92349c8e47a2bb1b93d10f36ea30f418f1e338")
     version("5.0.0", sha256="7092d98cf0d8b29bd6efe2cf94802442dd8d7283982e9439eafbdef62b0db08f")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     def install(self, spec, prefix):
         make("SHARED=1", "PREFIX={0}".format(prefix), "install")

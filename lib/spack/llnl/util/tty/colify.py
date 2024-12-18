@@ -237,7 +237,6 @@ def colify_table(
 def colified(
     elts: List[Any],
     cols: int = 0,
-    output: Optional[IO] = None,
     indent: int = 0,
     padding: int = 2,
     tty: Optional[bool] = None,

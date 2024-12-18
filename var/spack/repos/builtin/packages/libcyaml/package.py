@@ -15,8 +15,11 @@ class Libcyaml(MakefilePackage):
 
     license("ISC")
 
+    version("1.4.1", sha256="8dbd216e1fce90f9f7cca341e5178710adc76ee360a7793ef867edb28f3e4130")
     version("1.4.0", sha256="e803fef0e254aa1f302c622c2d25cff989e04e9b2bebb7d22abd91386373122f")
     version("1.1.0", sha256="37a00ed8ec206b60a712acfd44196bef063b8f02e376d8e86f61a7007a81daea")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("libyaml")
 
@@ -24,4 +27,4 @@ class Libcyaml(MakefilePackage):
         make("VARIANT=release")
 
     def install(self, spec, prefix):
-        make("install", "VARIANT=release", "PREFIX={0}".format(prefix))
+        make("install", "VARIANT=release", f"PREFIX={prefix}")

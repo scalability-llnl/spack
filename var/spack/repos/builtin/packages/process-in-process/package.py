@@ -31,6 +31,8 @@ class ProcessInProcess(Package):
     # PiP version 3 is experimental and unstable yet
     version("3", branch="pip-3", deprecated=True)
 
+    depends_on("c", type="build")  # generated
+
     conflicts("%gcc@:3", when="os=centos7")
     conflicts("%gcc@5:", when="os=centos7")
     conflicts("%gcc@:3", when="os=rhel7")

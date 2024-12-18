@@ -23,6 +23,8 @@ class Sysfsutils(AutotoolsPackage):
     version("0_4_0", sha256="9c78edb118c6bd962e04558ddb2df46d456273284fe3f23bb930dc287225aea5")
     version("0_3_0", sha256="f10250aa09513d245cb4ed61ac0dbfd7dfb2e7810bcd8804a07b3fe18f08a74a")
 
+    depends_on("c", type="build")  # generated
+
     @when("target=aarch64:")
     def configure_args(self):
         args = ["--build=arm-linux"]

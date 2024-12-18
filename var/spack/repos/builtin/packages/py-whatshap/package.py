@@ -18,6 +18,8 @@ class PyWhatshap(PythonPackage):
 
     version("0.17", sha256="5f342cbd28f5d3e79490754f067aa67e8bb059da1c042d944b9f75663ef6b055")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python@3.4:", type=("build", "run"))
     depends_on("py-setuptools", type="build")
     depends_on("py-cython@0.17:", type=("build", "run"))

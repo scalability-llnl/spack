@@ -16,6 +16,7 @@ from llnl.util.filesystem import working_dir
 
 import spack.package_base
 import spack.spec
+import spack.version
 from spack.version import (
     EmptyRangeError,
     GitVersion,
@@ -606,6 +607,9 @@ def test_stringify_version(version_str):
     v.string = None
     assert str(v) == version_str
 
+    v.string = None
+    assert v.string == version_str
+
 
 def test_len():
     a = Version("1.2.3.4")
@@ -672,7 +676,7 @@ def test_versions_from_git(git, mock_git_version_info, monkeypatch, mock_package
         with working_dir(repo_path):
             git("checkout", commit)
 
-        with open(os.path.join(repo_path, filename), "r") as f:
+        with open(os.path.join(repo_path, filename), "r", encoding="utf-8") as f:
             expected = f.read()
 
         assert str(comparator) == expected

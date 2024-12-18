@@ -31,6 +31,8 @@ class PyZarr(PythonPackage):
     depends_on("py-asciitree", type=("build", "run"))
     depends_on("py-numpy@1.21.1:", type=("build", "run"), when="@2.17:")
     depends_on("py-numpy@1.7:", type=("build", "run"))
+    # https://github.com/zarr-developers/zarr-python/issues/1818
+    depends_on("py-numpy@:1", when="@:2.17", type=("build", "run"))
     depends_on("py-fasteners", type=("build", "run"))
     depends_on("py-numcodecs@0.10:", type=("build", "run"), when="@2.17:")
     depends_on("py-numcodecs@0.6.4:", type=("build", "run"), when="@2.4.0:")

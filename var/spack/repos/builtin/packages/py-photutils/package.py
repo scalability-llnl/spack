@@ -19,6 +19,8 @@ class PyPhotutils(PythonPackage):
 
     version("1.5.0", sha256="014f7aa5a571401094d5cf9ffb57803b48869233feb80476ce377ecb91113689")
 
+    depends_on("c", type="build")  # generated
+
     maintainers("meyersbs")
 
     # From setup.cfg

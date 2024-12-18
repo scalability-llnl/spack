@@ -21,4 +21,6 @@ class Coinutils(AutotoolsPackage):
     version("2.11.6", sha256="6ea31d5214f7eb27fa3ffb2bdad7ec96499dd2aaaeb4a7d0abd90ef852fc79ca")
     version("2.11.4", sha256="d4effff4452e73356eed9f889efd9c44fe9cd68bd37b608a5ebb2c58bd45ef81")
 
+    depends_on("cxx", type="build")  # generated
+
     build_directory = "spack-build"

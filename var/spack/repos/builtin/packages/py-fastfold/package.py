@@ -17,6 +17,8 @@ class PyFastfold(PythonPackage):
 
     version("0.2.0", sha256="6760dbae9809b8b26219c9477489d34325807be504098901d0375fbdc3103f88")
 
+    depends_on("cxx", type="build")  # generated
+
     # From README:
     depends_on("python@3.8:", type=("build", "run"))  # Req Relaxed (was @3.8:3.9)
     depends_on("cuda@11.1:", type=("build", "run"))

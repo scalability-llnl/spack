@@ -10,7 +10,7 @@ class Aespipe(AutotoolsPackage):
     """aespipe program is AES encrypting or decrypting pipe. It reads from
     standard input and writes to standard output."""
 
-    homepage = "http://loop-aes.sourceforge.net/"
+    homepage = "https://sourceforge.net/projects/loop-aes/"
     url = "https://sourceforge.net/projects/loop-aes/files/aespipe/v2.4f/aespipe-v2.4f.tar.bz2"
 
     license("Intel")
@@ -22,3 +22,5 @@ class Aespipe(AutotoolsPackage):
     version("2.4b", sha256="4f08611966998f66266f03d40d0597f94096164393c8f303b2dfd565e9d9b59d")
     version("2.3e", sha256="4e63a5709fdd0bffdb555582f9fd7a0bd1842e429420159accaf7f60c5d3c70f")
     version("2.3d", sha256="70330cd0710446c9ddf8148a7713fd73f1dc5e0b13fc4d3c75590305b2e3f008")
+
+    depends_on("c", type="build")  # generated

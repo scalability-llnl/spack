@@ -29,5 +29,8 @@ class RRcppgsl(RPackage):
     version("0.3.11", sha256="f094ea26c99b04d9e203986a1f2003f02472ceca0e2ef1c3beefd3ae80aeada8")
     version("0.3.10", sha256="8612087da02fb791f427fed310c23d0482a8eb60fb089119f018878143f95451")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r-rcpp@0.11.0:", type=("build", "run"))
     depends_on("gsl")

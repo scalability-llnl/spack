@@ -24,7 +24,10 @@ class XcbUtilWm(AutotoolsPackage, XorgPackage):
         "0.4.1",
         sha256="038b39c4bdc04a792d62d163ba7908f4bb3373057208c07110be73c1b04b8334",
         url="https://xcb.freedesktop.org/dist/xcb-util-wm-0.4.1.tar.gz",
+        deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
 
     depends_on("m4", type="build")
 

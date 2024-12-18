@@ -26,6 +26,8 @@ class RAneufinder(RPackage):
     version("1.6.0", commit="0cfbdd1951fb4df5622e002260cfa86294d65d1d")
     version("1.4.0", commit="e5bdf4d5e4f84ee5680986826ffed636ed853b8e")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@3.3:", type=("build", "run"))
     depends_on("r@3.5:", type=("build", "run"), when="@1.10.2:")
     depends_on("r-genomicranges", type=("build", "run"))

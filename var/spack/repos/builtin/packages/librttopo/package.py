@@ -20,6 +20,8 @@ class Librttopo(AutotoolsPackage):
 
     version("1.1.0", sha256="2e2fcabb48193a712a6c76ac9a9be2a53f82e32f91a2bc834d9f1b4fa9cd879f")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("geos")
 
     depends_on("autoconf", type="build")

@@ -21,6 +21,9 @@ class Motif(AutotoolsPackage):
 
     version("2.3.8", sha256="859b723666eeac7df018209d66045c9853b50b4218cecadb794e2359619ebce7")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("flex")
     depends_on("libx11")
     depends_on("libxt")

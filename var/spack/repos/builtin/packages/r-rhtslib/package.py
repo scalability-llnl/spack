@@ -38,6 +38,8 @@ class RRhtslib(RPackage):
     version("1.10.0", commit="53dcf7dfe35d735283956c77c011a97ca3f4eb26")
     version("1.8.0", commit="3b5493473bed42958614091c58c739932ffcfa79")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r-zlibbioc", type=("build", "run"))
     depends_on("bzip2", type=("build", "link", "run"))
     depends_on("xz", type=("build", "link", "run"))

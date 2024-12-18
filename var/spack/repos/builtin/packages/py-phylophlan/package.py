@@ -34,5 +34,5 @@ class PyPhylophlan(PythonPackage):
     depends_on("mafft@7.310:", type=("build", "run"))
     depends_on("fasttree@2.1.8:", type=("build", "run"))
     depends_on("raxml@8.2.10:", type=("build", "run"))
-    depends_on("iqtree2", type=("build", "run"))
+    depends_on("iq-tree@2", type=("build", "run"))
     depends_on("mash", type=("build", "run"))

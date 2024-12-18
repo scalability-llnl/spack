@@ -22,13 +22,15 @@ class Clapack(MakefilePackage):
 
     version("3.2.1", sha256="6dc4c382164beec8aaed8fd2acc36ad24232c406eda6db462bd4c41d5e455fac")
 
+    depends_on("c", type="build")  # generated
+
     variant("external-blas", default=True, description="Build with external BLAS (ATLAS here).")
 
     depends_on("atlas", when="+external-blas")
 
     def edit(self, spec, prefix):
         copy("make.inc.example", "make.inc")
-        if "+external-blas" in spec:
+        if spec.satisfies("+external-blas"):
             make_inc = FileFilter("make.inc")
             make_inc.filter(r"^BLASLIB.*", "BLASLIB = ../../libcblaswr.a -lcblas -latlas")
             makefile = FileFilter("Makefile")

@@ -23,6 +23,9 @@ class PyGensim(PythonPackage):
     version("3.8.1", sha256="33277fc0a8d7b0c7ce70fcc74bb82ad39f944c009b334856c6e86bf552b1dfdc")
     version("3.8.0", sha256="ec5de7ff2bfa8692fa96a846bb5aae52f267fc322fbbe303c1f042d258af5766")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python@2.7:2.8,3.5:", type=("build", "run"))
     depends_on("python@3.8:", type=("build", "run"), when="@4.3.1:")
     depends_on("py-setuptools", type="build")

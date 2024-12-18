@@ -16,6 +16,8 @@ class MpiBash(AutotoolsPackage):
     version("1.3", sha256="ab39dcc0eadce765abaf685e73d38f4351e3229fdb4302aee4b9e6e70d431d99")
     version("1.2", sha256="5c2faaa74464111205dbae4799bd89c2425810ec3708d004237b42d620c8be57")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("bash@4.4:")
     # uses MPI_Exscan which is in MPI-1.2 and later
     depends_on("mpi@1.2:")

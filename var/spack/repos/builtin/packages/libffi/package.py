@@ -33,6 +33,9 @@ class Libffi(AutotoolsPackage):
         sha256="d06ebb8e1d9a22d19e38d63fdb83954253f39bedc5d46232a05645685722ca37",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     patch("clang-powerpc-3.2.1.patch", when="@3.2.1%clang platform=linux")
     # ref.: https://github.com/libffi/libffi/pull/561
     patch("powerpc-3.3.patch", when="@3.3")
@@ -58,7 +61,7 @@ class Libffi(AutotoolsPackage):
         return (flags, None, None)
 
     def configure_args(self):
-        args = []
+        args = ["--with-pic"]
         if self.spec.version >= Version("3.3"):
             # Spack adds its own target flags, so tell libffi not to
             # second-guess us

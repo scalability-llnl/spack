@@ -14,7 +14,7 @@ def minimal_configuration():
             "specs": ["gromacs", "mpich", "fftw precision=float"],
             "container": {
                 "format": "docker",
-                "images": {"os": "ubuntu:18.04", "spack": "develop"},
+                "images": {"os": "ubuntu:22.04", "spack": "develop"},
             },
         }
     }

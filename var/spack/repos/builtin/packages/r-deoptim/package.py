@@ -22,4 +22,6 @@ class RDeoptim(RPackage):
     version("2.2-4", sha256="0a547784090d1e9b93efc53768110621f35bed3692864f6ce5c0dda2ebd6d482")
     version("2.2-3", sha256="af2120feea3a736ee7a5a93c6767d464abc0d45ce75568074b233405e73c9a5d")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r-parallelly", type=("build", "run"), when="@2.2-7:2.2-7")

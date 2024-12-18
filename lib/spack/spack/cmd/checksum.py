@@ -15,7 +15,6 @@ import spack.cmd
 import spack.repo
 import spack.spec
 import spack.stage
-import spack.util.crypto
 import spack.util.web as web_util
 from spack.cmd.common import arguments
 from spack.package_base import (
@@ -254,7 +253,7 @@ def add_versions_to_package(pkg: PackageBase, version_lines: str, is_batch: bool
         if match:
             new_versions.append((Version(match.group(1)), ver_line))
 
-    with open(filename, "r+") as f:
+    with open(filename, "r+", encoding="utf-8") as f:
         contents = f.read()
         split_contents = version_statement_re.split(contents)
 

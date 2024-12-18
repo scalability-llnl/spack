@@ -1,0 +1,23 @@
+diff --git a/src/cdo_options.cc b/src/cdo_options_patched.cc
+index 465f1f9..0684e78 100644
+--- a/src/cdo_options.cc
++++ b/src/cdo_options_patched.cc
+@@ -12,6 +12,7 @@
+ #include "cdo_output.h"
+ 
+ #include <cstring>
++#include <algorithm>
+ 
+ namespace cdo
+ {
+diff -u src/cdo_options.h src/cdo_options_patched.h
+--- a/src/cdo_options.h
++++ b/src/cdo_options_patched.h
+@@ -3,6 +3,7 @@
+
+ #include <vector>
+ #include <string>
++#include <algorithm>
+
+ #ifdef HAVE_CONFIG_H
+ #include "config.h" /* _FILE_OFFSET_BITS influence off_t */

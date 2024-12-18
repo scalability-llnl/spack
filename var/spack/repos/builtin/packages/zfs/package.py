@@ -22,6 +22,8 @@ class Zfs(AutotoolsPackage):
     version("0.8.1", sha256="0af79fde44b7b8ecb94d5166ce2e4fff7409c20ed874c2d759db92909e6c2799")
     version("0.8.0", sha256="0fd92e87f4b9df9686f18e2ac707c16b2eeaf00f682d41c20ea519f3a0fe4705")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("uuid")
     depends_on("libtirpc")
     depends_on("util-linux")

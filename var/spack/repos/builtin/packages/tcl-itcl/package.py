@@ -16,6 +16,8 @@ class TclItcl(AutotoolsPackage):
 
     version("4.0.4", sha256="63860438ca22f70049aecff70dc607b31bb1bea0edcc736e36ac6e36c24aecde")
 
+    depends_on("c", type="build")  # generated
+
     extends("tcl")
 
     def configure_args(self):

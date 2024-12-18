@@ -40,6 +40,8 @@ class Hub(Package):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+
     extends("go")
 
     def install(self, spec, prefix):

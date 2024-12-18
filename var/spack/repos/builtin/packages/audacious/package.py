@@ -19,6 +19,9 @@ class Audacious(AutotoolsPackage):
     version("3.10.1", sha256="c478939b4bcf6704c26eee87d48cab26547e92a83741f437711178c433373fa1")
     version("3.10", sha256="82710d6ac90931c2cc4a0f0fcb6380ac21ed42a7a50856d16a67d3179a96e9ae")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("m4", type="build")
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

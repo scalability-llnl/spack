@@ -23,6 +23,8 @@ class OmeModel(CMakePackage):
     version("master", branch="master")
     version("6.0.0", sha256="d6644ff722411d3a8ac9f26a49c1afda30e4d4102e37b31593d2a9fdc8f96700")
 
+    depends_on("cxx", type="build")  # generated
+
     # Match version with ome-common-cpp.  It would be nice to match versions in a
     # more automated way.
     depends_on("ome-common-cpp")

@@ -32,7 +32,7 @@
 
 Spack is a multi-platform package manager that builds and installs
 multiple versions and configurations of software. It works on Linux,
-macOS, and many supercomputers. Spack is non-destructive: installing a
+macOS, Windows, and many supercomputers. Spack is non-destructive: installing a
 new version of a package does not break existing installations, so many
 configurations of the same package can coexist.
 
@@ -46,12 +46,17 @@ See the
 [Feature Overview](https://spack.readthedocs.io/en/latest/features.html)
 for examples and highlights.
 
-To install spack and your first package, make sure you have Python.
+To install spack and your first package, make sure you have Python & Git.
 Then:
 
-    $ git clone -c feature.manyFiles=true https://github.com/spack/spack.git
+    $ git clone -c feature.manyFiles=true --depth=2 https://github.com/spack/spack.git
     $ cd spack/bin
     $ ./spack install zlib
+
+> [!TIP]
+> `-c feature.manyFiles=true` improves git's performance on repositories with 1,000+ files.
+>
+> `--depth=2` prunes the git history to reduce the size of the Spack installation.
 
 Documentation
 ----------------
@@ -65,7 +70,7 @@ Tutorial
 ----------------
 
 We maintain a
-[**hands-on tutorial**](https://spack.readthedocs.io/en/latest/tutorial.html).
+[**hands-on tutorial**](https://spack-tutorial.readthedocs.io/).
 It covers basic to advanced usage, packaging, developer features, and large HPC
 deployments.  You can do all of the exercises on your own laptop using a
 Docker container.
@@ -88,7 +93,7 @@ Resources:
   [bridged](https://github.com/matrix-org/matrix-appservice-slack#matrix-appservice-slack) to Slack.
 * [**Github Discussions**](https://github.com/spack/spack/discussions):
   for Q&A and discussions. Note the pinned discussions for announcements.
-* **Twitter**: [@spackpm](https://twitter.com/spackpm). Be sure to
+* **X**: [@spackpm](https://twitter.com/spackpm). Be sure to
   `@mention` us!
 * **Mailing list**: [groups.google.com/d/forum/spack](https://groups.google.com/d/forum/spack):
   only for announcements. Please use other venues for discussions.

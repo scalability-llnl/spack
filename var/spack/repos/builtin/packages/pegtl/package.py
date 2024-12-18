@@ -27,13 +27,15 @@ class Pegtl(CMakePackage):
     version("2.1.4", sha256="d990dccc07b4d9ba548326d11c5c5e34fa88b34fe113cb5377da03dda29f23f2")
     version("2.0.0", sha256="5aae0505077e051cae4d855c38049cc6cf71103a6cc8d0ddef01a576e8a60cc0")
 
+    depends_on("cxx", type="build")  # generated
+
     # Ref: https://github.com/taocpp/PEGTL/blob/master/src/example/pegtl/json_classes.hpp
     patch("change_to_virtual_destructor.patch", when="@:2.4")
 
     # Ref: https://bugs.gentoo.org/733678
     patch_url = "https://gitweb.gentoo.org/repo/gentoo.git/plain/dev-libs/pegtl/files/pegtl-2.8.3-gcc-10.patch"
     patch_checksum = "fc40b0c7390f8c0473f2cb4821bda7a5e107f93ca9d2fafeff2065445bb39981"
-    patch(patch_url, sha256=patch_checksum, level=0, when="@2.1.4:2.8.3")
+    patch(patch_url, sha256=patch_checksum, level=0, when="@2.1.4")
 
     def cmake_args(self):
         args = []

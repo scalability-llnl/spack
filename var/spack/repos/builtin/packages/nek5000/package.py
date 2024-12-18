@@ -33,6 +33,9 @@ class Nek5000(Package):
     version("17.0", sha256="4d8d4793ce3c926c54e09a5a5968fa959fe0ba46bd2e6b8043e099528ee35a60")
     version("19.0", sha256="db129877a10ff568d49edc77cf65f9e732eecb1fce10edbd91ffc5ac10c41ad6")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # MPI, Profiling and Visit variants
     variant("mpi", default=True, description="Build with MPI.")
     variant("profiling", default=True, description="Build with profiling data.")

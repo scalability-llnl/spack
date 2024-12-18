@@ -25,6 +25,8 @@ class OmeCommonCpp(CMakePackage):
     version("master", branch="master")
     version("6.0.0", sha256="26f3ce6e0b9a022590eed2ade5519eca12a2507bb207cdfe9f29d360984a7e0d")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("fmt")
     depends_on("spdlog")
     depends_on("xalan-c")

@@ -24,6 +24,8 @@ class Linktest(MakefilePackage):
         extension="tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("mpi")
     depends_on("sionlib")
 

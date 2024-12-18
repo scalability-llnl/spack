@@ -16,3 +16,5 @@ class DingLibs(AutotoolsPackage):
     version("0.6.1", sha256="a319a327deb81f2dfab9ce4a4926e80e1dac5dcfc89f4c7e548cec2645af27c1")
     version("0.6.0", sha256="764a211f40cbcf2c9a613fc7ce0d77799d5ee469221b8b6739972e76f09e9fad")
     version("0.5.0", sha256="dab937537a05d7a7cbe605fdb9b3809080d67b124ac97eb321255b35f5b172fd")
+
+    depends_on("c", type="build")  # generated

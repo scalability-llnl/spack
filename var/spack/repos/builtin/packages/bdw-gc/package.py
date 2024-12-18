@@ -11,10 +11,11 @@ class BdwGc(AutotoolsPackage):
     collecting replacement for C malloc or C++ new."""
 
     homepage = "https://www.hboehm.info/gc/"
-    url = "https://github.com/ivmai/bdwgc/releases/download/v8.2.6/gc-8.2.6.tar.gz"
+    url = "https://github.com/ivmai/bdwgc/releases/download/v8.2.8/gc-8.2.8.tar.gz"
 
     license("Xerox")
 
+    version("8.2.8", sha256="7649020621cb26325e1fb5c8742590d92fb48ce5c259b502faf7d9fb5dabb160")
     version("8.2.6", sha256="b9183fe49d4c44c7327992f626f8eaa1d8b14de140f243edb1c9dcff7719a7fc")
     version("8.2.4", sha256="3d0d3cdbe077403d3106bb40f0cbb563413d6efdbb2a7e1cd6886595dec48fc2")
     version("8.2.2", sha256="f30107bcb062e0920a790ffffa56d9512348546859364c23a14be264b38836a0")
@@ -30,6 +31,9 @@ class BdwGc(AutotoolsPackage):
         sha256="e5ca9b628b765076b6ab26f882af3a1a29cde786341e08b9f366604f74e4db84",
         url="http://www.hboehm.info/gc/gc_source/gc-7.4.4.tar.gz",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("libatomic-ops", default=True, description="Use external libatomic-ops")
     variant(

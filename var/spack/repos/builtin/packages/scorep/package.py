@@ -69,6 +69,10 @@ class Scorep(AutotoolsPackage):
         deprecated="true",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     def url_for_version(self, version):
         if version < Version("7.0"):
             return "https://www.vi-hps.org/cms/upload/packages/scorep/scorep-{0}.tar.gz".format(
@@ -153,6 +157,14 @@ class Scorep(AutotoolsPackage):
             return None
         return libs.directories[0]
 
+    # handle any mapping of Spack compiler names to Score-P args
+    # this should continue to exist for backward compatibility
+    def clean_compiler(self, compiler):
+        renames = {"cce": "cray", "rocmcc": "amdclang"}
+        if compiler in renames:
+            return renames[compiler]
+        return compiler
+
     def configure_args(self):
         spec = self.spec
 
@@ -162,9 +174,9 @@ class Scorep(AutotoolsPackage):
             "--enable-shared",
         ]
 
-        cname = spec.compiler.name
-        if not spec.satisfies("platform=cray"):
-            config_args.append("--with-nocross-compiler-suite={0}".format(cname))
+        cname = self.clean_compiler(spec.compiler.name)
+
+        config_args.append("--with-nocross-compiler-suite={0}".format(cname))
 
         if self.version >= Version("4.0"):
             config_args.append("--with-cubew=%s" % spec["cubew"].prefix.bin)
@@ -189,8 +201,7 @@ class Scorep(AutotoolsPackage):
             config_args.append("--with-rocm=%s" % spec["hip"].prefix)
 
         config_args += self.with_or_without("shmem")
-        if not spec.satisfies("platform=cray"):
-            config_args += self.with_or_without("mpi")
+        config_args += self.with_or_without("mpi")
 
         if spec.satisfies("^intel-mpi"):
             config_args.append("--with-mpi=intel3")
@@ -200,7 +211,7 @@ class Scorep(AutotoolsPackage):
             or spec.satisfies("^cray-mpich")
         ):
             config_args.append("--with-mpi=mpich3")
-        elif spec.satisfies("^openmpi"):
+        elif spec.satisfies("^openmpi") or spec.satisfies("^hpcx-mpi"):
             config_args.append("--with-mpi=openmpi")
 
         if spec.satisfies("^binutils"):

@@ -37,6 +37,9 @@ class Subversion(AutotoolsPackage):
     version("1.8.17", sha256="1b2cb9a0ca454035e55b114ee91c6433b9ede6c2893f2fb140939094d33919e4")
     version("1.8.13", sha256="17e8900a877ac9f0d5ef437c20df437fec4eb2c5cb9882609d2277e2312da52c")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("serf", default=True, description="Serf HTTP client library")
     variant("perl", default=False, description="Build with Perl bindings")
     variant("apxs", default=True, description="Build with APXS")

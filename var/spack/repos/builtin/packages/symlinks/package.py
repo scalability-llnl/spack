@@ -14,6 +14,8 @@ class Symlinks(MakefilePackage):
 
     version("1.4", sha256="b0bb689dd0a2c46d9a7dd111b053707aba7b9cf29c4f0bad32984b14bdbe0399")
 
+    depends_on("c", type="build")  # generated
+
     def edit(self, spec, prefix):
         filter_file("/usr/local", prefix, "Makefile", string=True)
         filter_file("-o root -g root", "", "Makefile")

@@ -19,3 +19,5 @@ class Fasttext(CMakePackage):
     version("0.9.1", sha256="254ace2fc8dc3bea0fc6ad4897a221eb85c1e9adfa61d130b43398193ca1f061")
     version("0.2.0", sha256="71d24ffec9fcc4364554ecac2b3308d834178c903d16d090aa6be9ea6b8e480c")
     version("0.1.0", sha256="d6b4932b18d2c8b3d50905028671aadcd212b7aa31cbc6dd6cac66db2eff1397")
+
+    depends_on("cxx", type="build")  # generated

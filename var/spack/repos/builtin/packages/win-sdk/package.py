@@ -19,7 +19,7 @@ class WinSdk(Package):
 
     homepage = "https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/"
     has_code = False
-    tags = ["windows"]
+    tags = ["windows", "windows-system"]
 
     # The sdk has many libraries and executables. Record one for detection purposes
     libraries = ["rcdll.dll"]
@@ -55,7 +55,7 @@ class WinSdk(Package):
 
     # For now we don't support Windows development env
     # on other platforms
-    for plat in ["linux", "darwin", "cray"]:
+    for plat in ["linux", "darwin"]:
         conflicts("platform=%s" % plat)
 
     @classmethod

@@ -30,6 +30,8 @@ class PyModin(PythonPackage):
     depends_on("py-pandas@1.1.5", when="^python@:3.7", type=("build", "run"))
     depends_on("py-packaging", type=("build", "run"))
     depends_on("py-numpy@1.18.5:", type=("build", "run"))
+    # https://github.com/modin-project/modin/issues/7310
+    depends_on("py-numpy@:1", when="@:0.30", type=("build", "run"))
     depends_on("py-fsspec", type=("build", "run"))
     depends_on("py-psutil", type=("build", "run"))
 

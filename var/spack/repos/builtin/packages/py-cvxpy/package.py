@@ -18,6 +18,8 @@ class PyCvxpy(PythonPackage):
     version("1.1.13", sha256="a9c781e74ad76097b47b86456cb3a943898f7ec9ac8f47bcefc922051cdc4a04")
     version("1.0.25", sha256="8535529ddb807067b0d59661dce1d9a6ddb2a218398a38ea7772328ad8a6ea13")
 
+    depends_on("cxx", type="build")  # generated
+
     # Dependency versions based on README.md in python packages
     depends_on("python@3.4:", type=("build", "run"), when="@1.1:")
     depends_on("python@3.6:", type=("build", "run"), when="@1.1.13:")

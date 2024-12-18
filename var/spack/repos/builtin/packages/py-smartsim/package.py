@@ -27,7 +27,7 @@ class PySmartsim(PythonPackage):
 
     depends_on("python@3.8:3.10", type=("build", "run"))
     depends_on("py-setuptools@39.2:", type=("build",))
-    depends_on("py-cmake@3.13:", type=("build",))
+    depends_on("cmake@3.13:", type=("build",))
 
     depends_on("py-psutil@5.7.2:", type=("build", "run"))
     depends_on("py-coloredlogs@10:", type=("build", "run"))

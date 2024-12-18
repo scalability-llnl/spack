@@ -18,4 +18,6 @@ class BppPopgen(CMakePackage):
 
     version("2.4.1", sha256="03b57d71a63c8fa7f11c085e531d0d691fc1d40d4ea541070dabde0ab3baf413")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("bpp-seq")

@@ -17,3 +17,5 @@ class PerlHttpParserXs(PerlPackage):
     license("Artistic-1.0-Perl OR GPL-1.0-or-later")
 
     version("0.17", sha256="794e6833e326b10d24369f9cdbfc1667105ef6591e8f41e561a3d41a7027a809")
+
+    depends_on("c", type="build")  # generated

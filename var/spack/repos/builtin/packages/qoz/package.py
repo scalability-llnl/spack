@@ -12,8 +12,13 @@ class Qoz(CMakePackage):
     git = "https://github.com/robertu94/QoZ"
     homepage = git
 
+    version("2023.11.07", commit="611369be4b1cc7a12eaae02600baf8d232d4caa5")
+    version("2023.03.09", commit="537f6a52a39396f9c05e16a12ab160d8dc8b9d56")
     version("2022.04.26", commit="d28a7a8c9f703075441b700202b8a1ee185ded00")
     version("2023.03.09", commit="537f6a52a39396f9c05e16a12ab160d8dc8b9d56")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     maintainers("disheng222")
 

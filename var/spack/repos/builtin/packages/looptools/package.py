@@ -22,6 +22,9 @@ class Looptools(AutotoolsPackage):
     version("2.15", sha256="a065ffdc4fe6882aa3bb926134ba8ec875d6c0a633c3d4aa5f70db26542713f2")
     version("2.8", sha256="2395518d0eac9b0883a2c249b9a5ba80df443929c520c45e60f5a4284166eb42")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     patch("conf.patch", when="%fj")
 
     def configure_args(self):

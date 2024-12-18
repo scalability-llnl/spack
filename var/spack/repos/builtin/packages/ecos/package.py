@@ -17,6 +17,8 @@ class Ecos(MakefilePackage):
 
     version("2.0.7", sha256="bdb6a84f7d150820459bd0a796cb64ffbb019afb95dc456d22acc2dafb2e70e0")
 
+    depends_on("c", type="build")  # generated
+
     build_targets = ["all", "shared"]
 
     def install(self, spec, prefix):

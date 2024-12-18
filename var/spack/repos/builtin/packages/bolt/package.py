@@ -35,6 +35,9 @@ class Bolt(CMakePackage):
     version("1.0.1", sha256="769e30dfc4042cee7ebbdadd23cf08796c03bcd8b335f516dc8cbc3f8adfa597")
     version("1.0", sha256="1c0d2f75597485ca36335d313a73736594e75c8a36123c5a6f54d01b5ba5c384")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("argobots")
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
@@ -53,7 +56,7 @@ class Bolt(CMakePackage):
     def cache_test_sources(self):
         """Copy the example source files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources(["examples"])
+        cache_extra_test_sources(self, ["examples"])
 
     def test_sample_nested_example(self):
         """build and run sample_nested"""

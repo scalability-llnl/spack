@@ -14,4 +14,5 @@ class PerlDevelCover(PerlPackage):
 
     license("GPL-1.0-or-later OR Artistic-1.0-Perl")
 
+    version("1.42", sha256="cb9c45dee359f3d259856450389df270e2ecea1b49f5f8800fdb972ff50bbebb")
     version("1.40", sha256="26e2f431fbcf7bff3851f352f83b84067c09ff206f40ab975cad8d2bafe711a8")

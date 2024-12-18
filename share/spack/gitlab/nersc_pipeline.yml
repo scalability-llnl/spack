@@ -1,9 +1,0 @@
-merge_pipeline:
-  only:
-  - develop
-  variables:
-    SPACK_REPO: ${CI_PROJECT_URL}
-    SPACK_REF: ${CI_COMMIT_SHA}
-  trigger:
-    project: ecp/e4s/e4s
-    strategy: depend

@@ -26,6 +26,9 @@ class PpopenMathVis(MakefilePackage):
 
     version("master", branch="MATH/VIS")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("mpi")
 
     def edit(self, spec, prefix):

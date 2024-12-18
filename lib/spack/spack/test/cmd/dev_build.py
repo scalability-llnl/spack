@@ -9,9 +9,9 @@ import pytest
 
 import llnl.util.filesystem as fs
 
-import spack.build_environment
 import spack.environment as ev
 import spack.error
+import spack.repo
 import spack.spec
 import spack.store
 from spack.main import SpackCommand
@@ -20,10 +20,7 @@ dev_build = SpackCommand("dev-build")
 install = SpackCommand("install")
 env = SpackCommand("env")
 
-pytestmark = [
-    pytest.mark.not_on_windows("does not run on windows"),
-    pytest.mark.disable_clean_stage_check,
-]
+pytestmark = [pytest.mark.disable_clean_stage_check]
 
 
 def test_dev_build_basics(tmpdir, install_mockery):
@@ -32,13 +29,13 @@ def test_dev_build_basics(tmpdir, install_mockery):
     assert "dev_path" in spec.variants
 
     with tmpdir.as_cwd():
-        with open(spec.package.filename, "w") as f:
+        with open(spec.package.filename, "w", encoding="utf-8") as f:
             f.write(spec.package.original_string)
 
         dev_build("dev-build-test-install@0.0.0")
 
     assert spec.package.filename in os.listdir(spec.prefix)
-    with open(os.path.join(spec.prefix, spec.package.filename), "r") as f:
+    with open(os.path.join(spec.prefix, spec.package.filename), "r", encoding="utf-8") as f:
         assert f.read() == spec.package.replacement_string
 
     assert os.path.exists(str(tmpdir))
@@ -48,13 +45,13 @@ def test_dev_build_before(tmpdir, install_mockery):
     spec = spack.spec.Spec(f"dev-build-test-install@0.0.0 dev_path={tmpdir}").concretized()
 
     with tmpdir.as_cwd():
-        with open(spec.package.filename, "w") as f:
+        with open(spec.package.filename, "w", encoding="utf-8") as f:
             f.write(spec.package.original_string)
 
         dev_build("-b", "edit", "dev-build-test-install@0.0.0")
 
         assert spec.package.filename in os.listdir(os.getcwd())
-        with open(spec.package.filename, "r") as f:
+        with open(spec.package.filename, "r", encoding="utf-8") as f:
             assert f.read() == spec.package.original_string
 
     assert not os.path.exists(spec.prefix)
@@ -64,13 +61,13 @@ def test_dev_build_until(tmpdir, install_mockery):
     spec = spack.spec.Spec(f"dev-build-test-install@0.0.0 dev_path={tmpdir}").concretized()
 
     with tmpdir.as_cwd():
-        with open(spec.package.filename, "w") as f:
+        with open(spec.package.filename, "w", encoding="utf-8") as f:
             f.write(spec.package.original_string)
 
         dev_build("-u", "edit", "dev-build-test-install@0.0.0")
 
         assert spec.package.filename in os.listdir(os.getcwd())
-        with open(spec.package.filename, "r") as f:
+        with open(spec.package.filename, "r", encoding="utf-8") as f:
             assert f.read() == spec.package.replacement_string
 
     assert not os.path.exists(spec.prefix)
@@ -82,13 +79,13 @@ def test_dev_build_until_last_phase(tmpdir, install_mockery):
     spec = spack.spec.Spec(f"dev-build-test-install@0.0.0 dev_path={tmpdir}").concretized()
 
     with tmpdir.as_cwd():
-        with open(spec.package.filename, "w") as f:
+        with open(spec.package.filename, "w", encoding="utf-8") as f:
             f.write(spec.package.original_string)
 
         dev_build("-u", "install", "dev-build-test-install@0.0.0")
 
         assert spec.package.filename in os.listdir(os.getcwd())
-        with open(spec.package.filename, "r") as f:
+        with open(spec.package.filename, "r", encoding="utf-8") as f:
             assert f.read() == spec.package.replacement_string
 
     assert os.path.exists(spec.prefix)
@@ -96,11 +93,11 @@ def test_dev_build_until_last_phase(tmpdir, install_mockery):
     assert os.path.exists(str(tmpdir))
 
 
-def test_dev_build_before_until(tmpdir, install_mockery, capsys):
+def test_dev_build_before_until(tmpdir, install_mockery):
     spec = spack.spec.Spec(f"dev-build-test-install@0.0.0 dev_path={tmpdir}").concretized()
 
     with tmpdir.as_cwd():
-        with open(spec.package.filename, "w") as f:
+        with open(spec.package.filename, "w", encoding="utf-8") as f:
             f.write(spec.package.original_string)
 
         with pytest.raises(SystemExit):
@@ -125,21 +122,11 @@ def print_spack_cc(*args):
     print(os.environ.get("CC", ""))
 
 
-# `module unload cray-libsci` in test environment causes failure
-# It does not fail for actual installs
-# build_environment.py imports module directly, so we monkeypatch it there
-# rather than in module_cmd
-def mock_module_noop(*args):
-    pass
-
-
 def test_dev_build_drop_in(tmpdir, mock_packages, monkeypatch, install_mockery, working_env):
     monkeypatch.setattr(os, "execvp", print_spack_cc)
-    monkeypatch.setattr(spack.build_environment, "module", mock_module_noop)
-
     with tmpdir.as_cwd():
         output = dev_build("-b", "edit", "--drop-in", "sh", "dev-build-test-install@0.0.0")
-        assert "lib/spack/env" in output
+        assert os.path.join("lib", "spack", "env") in output
 
 
 def test_dev_build_fails_already_installed(tmpdir, install_mockery):
@@ -147,7 +134,7 @@ def test_dev_build_fails_already_installed(tmpdir, install_mockery):
     spec.concretize()
 
     with tmpdir.as_cwd():
-        with open(spec.package.filename, "w") as f:
+        with open(spec.package.filename, "w", encoding="utf-8") as f:
             f.write(spec.package.original_string)
 
         dev_build("dev-build-test-install@0.0.0")
@@ -190,13 +177,13 @@ def test_dev_build_env(tmpdir, install_mockery, mutable_mock_env_path):
     spec.concretize()
 
     with build_dir.as_cwd():
-        with open(spec.package.filename, "w") as f:
+        with open(spec.package.filename, "w", encoding="utf-8") as f:
             f.write(spec.package.original_string)
 
     # setup environment
     envdir = tmpdir.mkdir("env")
     with envdir.as_cwd():
-        with open("spack.yaml", "w") as f:
+        with open("spack.yaml", "w", encoding="utf-8") as f:
             f.write(
                 f"""\
 spack:
@@ -214,7 +201,7 @@ spack:
             install()
 
     assert spec.package.filename in os.listdir(spec.prefix)
-    with open(os.path.join(spec.prefix, spec.package.filename), "r") as f:
+    with open(os.path.join(spec.prefix, spec.package.filename), "r", encoding="utf-8") as f:
         assert f.read() == spec.package.replacement_string
 
 
@@ -228,13 +215,13 @@ def test_dev_build_env_with_vars(tmpdir, install_mockery, mutable_mock_env_path,
     # store the build path in an environment variable that will be used in the environment
     monkeypatch.setenv("CUSTOM_BUILD_PATH", build_dir)
 
-    with build_dir.as_cwd(), open(spec.package.filename, "w") as f:
+    with build_dir.as_cwd(), open(spec.package.filename, "w", encoding="utf-8") as f:
         f.write(spec.package.original_string)
 
     # setup environment
     envdir = tmpdir.mkdir("env")
     with envdir.as_cwd():
-        with open("spack.yaml", "w") as f:
+        with open("spack.yaml", "w", encoding="utf-8") as f:
             f.write(
                 """\
 spack:
@@ -252,7 +239,7 @@ spack:
             install()
 
     assert spec.package.filename in os.listdir(spec.prefix)
-    with open(os.path.join(spec.prefix, spec.package.filename), "r") as f:
+    with open(os.path.join(spec.prefix, spec.package.filename), "r", encoding="utf-8") as f:
         assert f.read() == spec.package.replacement_string
 
 
@@ -264,13 +251,13 @@ def test_dev_build_env_version_mismatch(tmpdir, install_mockery, mutable_mock_en
     spec.concretize()
 
     with build_dir.as_cwd():
-        with open(spec.package.filename, "w") as f:
+        with open(spec.package.filename, "w", encoding="utf-8") as f:
             f.write(spec.package.original_string)
 
     # setup environment
     envdir = tmpdir.mkdir("env")
     with envdir.as_cwd():
-        with open("spack.yaml", "w") as f:
+        with open("spack.yaml", "w", encoding="utf-8") as f:
             f.write(
                 f"""\
 spack:
@@ -305,7 +292,7 @@ def test_dev_build_multiple(tmpdir, install_mockery, mutable_mock_env_path, mock
     leaf_spec = spack.spec.Spec("dev-build-test-install@=1.0.0")  # non-existing version
     leaf_pkg_cls = spack.repo.PATH.get_pkg_class(leaf_spec.name)
     with leaf_dir.as_cwd():
-        with open(leaf_pkg_cls.filename, "w") as f:
+        with open(leaf_pkg_cls.filename, "w", encoding="utf-8") as f:
             f.write(leaf_pkg_cls.original_string)
 
     # setup dev-build-test-dependent package for dev build
@@ -314,13 +301,13 @@ def test_dev_build_multiple(tmpdir, install_mockery, mutable_mock_env_path, mock
     root_spec = spack.spec.Spec("dev-build-test-dependent@0.0.0")
     root_pkg_cls = spack.repo.PATH.get_pkg_class(root_spec.name)
     with root_dir.as_cwd():
-        with open(root_pkg_cls.filename, "w") as f:
+        with open(root_pkg_cls.filename, "w", encoding="utf-8") as f:
             f.write(root_pkg_cls.original_string)
 
     # setup environment
     envdir = tmpdir.mkdir("env")
     with envdir.as_cwd():
-        with open("spack.yaml", "w") as f:
+        with open("spack.yaml", "w", encoding="utf-8") as f:
             f.write(
                 f"""\
 spack:
@@ -349,7 +336,7 @@ spack:
 
     for spec in (leaf_spec, root_spec):
         assert spec.package.filename in os.listdir(spec.prefix)
-        with open(os.path.join(spec.prefix, spec.package.filename), "r") as f:
+        with open(os.path.join(spec.prefix, spec.package.filename), "r", encoding="utf-8") as f:
             assert f.read() == spec.package.replacement_string
 
 
@@ -364,13 +351,13 @@ def test_dev_build_env_dependency(tmpdir, install_mockery, mock_fetch, mutable_m
 
     with build_dir.as_cwd():
         dep_pkg_cls = spack.repo.PATH.get_pkg_class(dep_spec.name)
-        with open(dep_pkg_cls.filename, "w") as f:
+        with open(dep_pkg_cls.filename, "w", encoding="utf-8") as f:
             f.write(dep_pkg_cls.original_string)
 
     # setup environment
     envdir = tmpdir.mkdir("env")
     with envdir.as_cwd():
-        with open("spack.yaml", "w") as f:
+        with open("spack.yaml", "w", encoding="utf-8") as f:
             f.write(
                 f"""\
 spack:
@@ -418,7 +405,7 @@ def test_dev_build_rebuild_on_source_changes(
 
     def reset_string():
         with build_dir.as_cwd():
-            with open(spec.package.filename, "w") as f:
+            with open(spec.package.filename, "w", encoding="utf-8") as f:
                 f.write(spec.package.original_string)
 
     reset_string()
@@ -426,7 +413,7 @@ def test_dev_build_rebuild_on_source_changes(
     # setup environment
     envdir = tmpdir.mkdir("env")
     with envdir.as_cwd():
-        with open("spack.yaml", "w") as f:
+        with open("spack.yaml", "w", encoding="utf-8") as f:
             f.write(
                 f"""\
 spack:

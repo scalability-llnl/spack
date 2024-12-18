@@ -29,6 +29,9 @@ class Poppler(CMakePackage):
     version("0.64.0", sha256="b21df92ca99f78067785cf2dc8e06deb04726b62389c0ee1f5d8b103c77f64b1")
     version("0.61.1", sha256="1266096343f5163c1a585124e9a6d44474e1345de5cdfe55dc7b47357bcfcda9")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("boost", default=False, description="Enable Boost for Splash")
     variant("cms", default=False, description="Use color management system")
     variant("cpp", default=False, description="Compile poppler cpp wrapper")
@@ -74,9 +77,7 @@ class Poppler(CMakePackage):
 
     # Only needed to run `make test`
     resource(
-        name="test",
-        git="https://anongit.freedesktop.org/git/poppler/test.git",
-        placement="testdata",
+        name="test", git="git://git.freedesktop.org/git/poppler/test.git", placement="testdata"
     )
 
     def cmake_args(self):

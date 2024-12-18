@@ -20,6 +20,8 @@ class Hicops(CMakePackage):
     version("release", branch="release")
     version("develop", branch="develop")
 
+    depends_on("cxx", type="build")  # generated
+
     # Build Options
     variant("mpi", default=True, description="Enable MPI support.")
     variant(

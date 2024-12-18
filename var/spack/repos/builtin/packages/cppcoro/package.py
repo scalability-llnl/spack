@@ -19,4 +19,6 @@ class Cppcoro(CMakePackage):
     version("develop", branch="master")
     version("2021-01-13", commit="7cc9433436fe8f2482138019cfaafce8e1d7a896")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.12:", type="build")

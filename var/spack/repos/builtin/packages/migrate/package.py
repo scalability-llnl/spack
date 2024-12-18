@@ -18,6 +18,9 @@ class Migrate(AutotoolsPackage):
 
     version("3.6.11", sha256="a9ba06a4e995a45b8d04037f5f2da23e1fe64a2f3565189bdd50c62c6fe01fb8")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("mpi", default=False, description="Build MPI binaries")
 
     depends_on("autoconf", type="build")

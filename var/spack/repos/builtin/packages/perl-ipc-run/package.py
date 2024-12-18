@@ -18,6 +18,9 @@ class PerlIpcRun(PerlPackage):
     license("GPL-1.0-or-later OR Artistic-1.0-Perl")
 
     version(
+        "20231003.0", sha256="eb25bbdf5913d291797ef1bfe998f15130b455d3ed02aacde6856f0b25e4fe57"
+    )
+    version(
         "20220807.0", sha256="277d781dbbc98af18e979c7ef36f222513d7361742c52507c3348b265f6f5e69"
     )
     version(

@@ -2,9 +2,7 @@
 # Archspec Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-"""Types and functions to manage information
-on CPU microarchitectures.
-"""
+"""Types and functions to manage information on CPU microarchitectures."""
 import functools
 import platform
 import re
@@ -65,23 +63,31 @@ class Microarchitecture:
                 passed in as argument above.
             * versions: versions that support this micro-architecture.
 
-        generation (int): generation of the micro-architecture, if
-            relevant.
+        generation (int): generation of the micro-architecture, if relevant.
+        cpu_part (str): cpu part of the architecture, if relevant.
     """
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-instance-attributes
     #: Aliases for micro-architecture's features
     feature_aliases = FEATURE_ALIASES
 
-    def __init__(self, name, parents, vendor, features, compilers, generation=0):
+    def __init__(self, name, parents, vendor, features, compilers, generation=0, cpu_part=""):
         self.name = name
         self.parents = parents
         self.vendor = vendor
         self.features = features
         self.compilers = compilers
+        # Only relevant for PowerPC
         self.generation = generation
-        # Cache the ancestor computation
+        # Only relevant for AArch64
+        self.cpu_part = cpu_part
+
+        # Cache the "ancestor" computation
         self._ancestors = None
+        # Cache the "generic" computation
+        self._generic = None
+        # Cache the "family" computation
+        self._family = None
 
     @property
     def ancestors(self):
@@ -111,7 +117,11 @@ class Microarchitecture:
             and self.parents == other.parents  # avoid ancestors here
             and self.compilers == other.compilers
             and self.generation == other.generation
+            and self.cpu_part == other.cpu_part
         )
+
+    def __hash__(self):
+        return hash(self.name)
 
     @coerce_target_names
     def __ne__(self, other):
@@ -143,7 +153,8 @@ class Microarchitecture:
         cls_name = self.__class__.__name__
         fmt = (
             cls_name + "({0.name!r}, {0.parents!r}, {0.vendor!r}, "
-            "{0.features!r}, {0.compilers!r}, {0.generation!r})"
+            "{0.features!r}, {0.compilers!r}, generation={0.generation!r}, "
+            "cpu_part={0.cpu_part!r})"
         )
         return fmt.format(self)
 
@@ -168,18 +179,22 @@ class Microarchitecture:
     @property
     def family(self):
         """Returns the architecture family a given target belongs to"""
-        roots = [x for x in [self] + self.ancestors if not x.ancestors]
-        msg = "a target is expected to belong to just one architecture family"
-        msg += f"[found {', '.join(str(x) for x in roots)}]"
-        assert len(roots) == 1, msg
+        if self._family is None:
+            roots = [x for x in [self] + self.ancestors if not x.ancestors]
+            msg = "a target is expected to belong to just one architecture family"
+            msg += f"[found {', '.join(str(x) for x in roots)}]"
+            assert len(roots) == 1, msg
+            self._family = roots.pop()
 
-        return roots.pop()
+        return self._family
 
     @property
     def generic(self):
         """Returns the best generic architecture that is compatible with self"""
-        generics = [x for x in [self] + self.ancestors if x.vendor == "generic"]
-        return max(generics, key=lambda x: len(x.ancestors))
+        if self._generic is None:
+            generics = [x for x in [self] + self.ancestors if x.vendor == "generic"]
+            self._generic = max(generics, key=lambda x: len(x.ancestors))
+        return self._generic
 
     def to_dict(self):
         """Returns a dictionary representation of this object."""
@@ -190,6 +205,7 @@ class Microarchitecture:
             "generation": self.generation,
             "parents": [str(x) for x in self.parents],
             "compilers": self.compilers,
+            "cpupart": self.cpu_part,
         }
 
     @staticmethod
@@ -202,11 +218,14 @@ class Microarchitecture:
             features=set(data["features"]),
             compilers=data.get("compilers", {}),
             generation=data.get("generation", 0),
+            cpu_part=data.get("cpupart", ""),
         )
 
     def optimization_flags(self, compiler, version):
         """Returns a string containing the optimization flags that needs
         to be used to produce code optimized for this micro-architecture.
+
+        The version is expected to be a string of dot separated digits.
 
         If there is no information on the compiler passed as argument the
         function returns an empty string. If it is known that the compiler
@@ -216,6 +235,11 @@ class Microarchitecture:
         Args:
             compiler (str): name of the compiler to be used
             version (str): version of the compiler to be used
+
+        Raises:
+            UnsupportedMicroarchitecture: if the requested compiler does not support
+                this micro-architecture.
+            ValueError: if the version doesn't match the expected format
         """
         # If we don't have information on compiler at all return an empty string
         if compiler not in self.family.compilers:
@@ -231,6 +255,14 @@ class Microarchitecture:
             )
             msg = msg.format(compiler, best_target, best_target.family)
             raise UnsupportedMicroarchitecture(msg)
+
+        # Check that the version matches the expected format
+        if not re.match(r"^(?:\d+\.)*\d+$", version):
+            msg = (
+                "invalid format for the compiler version argument. "
+                "Only dot separated digits are allowed."
+            )
+            raise InvalidCompilerVersion(msg)
 
         # If we have information on this compiler we need to check the
         # version being used
@@ -292,7 +324,7 @@ def generic_microarchitecture(name):
     Args:
         name (str): name of the micro-architecture
     """
-    return Microarchitecture(name, parents=[], vendor="generic", features=[], compilers={})
+    return Microarchitecture(name, parents=[], vendor="generic", features=set(), compilers={})
 
 
 def version_components(version):
@@ -345,8 +377,11 @@ def _known_microarchitectures():
         features = set(values["features"])
         compilers = values.get("compilers", {})
         generation = values.get("generation", 0)
+        cpu_part = values.get("cpupart", "")
 
-        targets[name] = Microarchitecture(name, parents, vendor, features, compilers, generation)
+        targets[name] = Microarchitecture(
+            name, parents, vendor, features, compilers, generation=generation, cpu_part=cpu_part
+        )
 
     known_targets = {}
     data = archspec.cpu.schema.TARGETS_JSON["microarchitectures"]
@@ -367,7 +402,15 @@ def _known_microarchitectures():
 TARGETS = LazyDictionary(_known_microarchitectures)
 
 
-class UnsupportedMicroarchitecture(ValueError):
+class ArchspecError(Exception):
+    """Base class for errors within archspec"""
+
+
+class UnsupportedMicroarchitecture(ArchspecError, ValueError):
     """Raised if a compiler version does not support optimization for a given
     micro-architecture.
     """
+
+
+class InvalidCompilerVersion(ArchspecError, ValueError):
+    """Raised when an invalid format is used for compiler versions in archspec."""

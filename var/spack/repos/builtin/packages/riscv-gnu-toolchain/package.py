@@ -115,6 +115,10 @@ class RiscvGnuToolchain(AutotoolsPackage):
         submodules=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # Dependencies:
     depends_on("pkgconfig", type="build")
     depends_on("autoconf", when="@main:", type="build")

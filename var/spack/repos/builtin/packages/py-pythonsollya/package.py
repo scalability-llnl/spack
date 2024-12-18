@@ -9,7 +9,7 @@ from spack.package import *
 class PyPythonsollya(PythonPackage):
     """Python wrapper for the Sollya library"""
 
-    homepage = "Python wrapper for the Sollya library"
+    homepage = "https://gitlab.com/metalibm-dev/pythonsollya"
     url = "https://gitlab.com/metalibm-dev/pythonsollya/-/archive/release-0.4.0-alpha0/pythonsollya-release-0.4.0-alpha0.tar.gz"
 
     license("CECILL-2.1")
@@ -34,9 +34,4 @@ class PyPythonsollya(PythonPackage):
 
     @run_before("install")
     def patch(self):
-        filter_file(
-            "PYTHON ?= python2",
-            "PYTHON ?= " + self.spec["python"].command.path,
-            "GNUmakefile",
-            string=True,
-        )
+        filter_file("PYTHON ?= python2", f"PYTHON ?= {python.path}", "GNUmakefile", string=True)

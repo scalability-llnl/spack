@@ -17,6 +17,9 @@ class IqTree(CMakePackage):
     license("GPL-2.0-or-later")
 
     version(
+        "2.3.2", tag="v2.3.1", commit="60f1aa68646ab84cc96b55a7548707adde15f47a", submodules=True
+    )
+    version(
         "2.3.1", tag="v2.3.1", commit="2914a2f7aac0a1a3c4fadde42c83e5dee315186d", submodules=True
     )
     version(
@@ -32,6 +35,9 @@ class IqTree(CMakePackage):
         "2.0.6", tag="v2.0.6", commit="219e88407ac915a209a29808a81084bf0d5f1a84", submodules=True
     )
     version("1.6.12", sha256="9614092de7a157de82c9cc402b19cc8bfa0cb0ffc93b91817875c2b4bb46a284")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("openmp", default=True, description="Enable OpenMP support.")
     variant("mpi", default=False, description="Enable MPI support.")
@@ -51,13 +57,13 @@ class IqTree(CMakePackage):
         args = []
         iqflags = []
 
-        if "+lsd2" in spec:
+        if spec.satisfies("+lsd2"):
             args.append("-DUSE_LSD2=ON")
 
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             iqflags.append("omp")
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             iqflags.append("mpi")
 
         if not iqflags:

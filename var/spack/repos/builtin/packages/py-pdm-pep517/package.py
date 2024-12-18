@@ -17,4 +17,6 @@ class PyPdmPep517(PythonPackage):
 
     version("1.0.4", sha256="392f8c2b47c6ec20550cb8e19e24b9dbd27373413f067b56ecd75f9767f93015")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@3.7:", type=("build", "run"))

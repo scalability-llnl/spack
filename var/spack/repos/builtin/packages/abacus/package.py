@@ -29,6 +29,9 @@ class Abacus(MakefilePackage):
     version("2.2.1", sha256="14feca1d8d1ce025d3f263b85ebfbebc1a1efff704b6490e95b07603c55c1d63")
     version("2.2.0", sha256="09d4a2508d903121d29813a85791eeb3a905acbe1c5664b8a88903f8eda64b8f")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("openmp", default=True, description="Enable OpenMP support")
 
     depends_on("elpa+openmp", when="+openmp")
@@ -43,7 +46,7 @@ class Abacus(MakefilePackage):
     build_directory = "source"
 
     def edit(self, spec, prefix):
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             inc_var = "_openmp-"
             system_var = "ELPA_LIB = -L${ELPA_LIB_DIR} -lelpa_openmp -Wl, -rpath=${ELPA_LIB_DIR}"
         else:

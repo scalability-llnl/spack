@@ -28,3 +28,6 @@ class Heppdt(AutotoolsPackage):
         sha256="12a1b6ffdd626603fa3b4d70f44f6e95a36f8f3b6d4fd614bac14880467a2c2e",
         preferred=True,
     )
+
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated

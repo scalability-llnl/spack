@@ -91,7 +91,7 @@ def repo_add(args):
         tty.die("Not a Spack repository: %s" % path)
 
     # Make sure it's actually a spack repository by constructing it.
-    repo = spack.repo.Repo(canon_path)
+    repo = spack.repo.from_path(canon_path)
 
     # If that succeeds, finally add it to the configuration.
     repos = spack.config.get("repos", scope=args.scope)
@@ -124,7 +124,7 @@ def repo_remove(args):
     # If it is a namespace, remove corresponding repo
     for path in repos:
         try:
-            repo = spack.repo.Repo(path)
+            repo = spack.repo.from_path(path)
             if repo.namespace == namespace_or_path:
                 repos.remove(path)
                 spack.config.set("repos", repos, args.scope)
@@ -142,7 +142,7 @@ def repo_list(args):
     repos = []
     for r in roots:
         try:
-            repos.append(spack.repo.Repo(r))
+            repos.append(spack.repo.from_path(r))
         except spack.repo.RepoError:
             continue
 

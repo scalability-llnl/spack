@@ -17,6 +17,8 @@ class Tldd(MakefilePackage):
     version("2018-10-05", commit="61cb512cc992ea6cbb7239e99ec7ac92ea072507")
     version("master", branch="master")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("pstreams@0.8.0:")
 
     def patch(self):

@@ -25,6 +25,8 @@ class Feh(MakefilePackage):
     version("3.3", sha256="f3959958258111d5f7c9fbe2e165c52b9d5987f07fd1f37540a4abf9f9638811")
     version("3.1.1", sha256="61d0242e3644cf7c5db74e644f0e8a8d9be49b7bd01034265cc1ebb2b3f9c8eb")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("imlib2")
     depends_on("curl")
     depends_on("libxinerama")

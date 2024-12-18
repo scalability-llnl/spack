@@ -54,7 +54,7 @@ class Orthofinder(Package):
     depends_on("blast-plus", type="run", when="+blast")
     depends_on("mmseqs2", type="run", when="+mmseqs2")
     depends_on("muscle5", type="run", when="+muscle")
-    depends_on("iqtree2", type="run", when="+iqtree")
+    depends_on("iq-tree@2", type="run", when="+iqtree")
     depends_on("raxml", type="run", when="+raxml")
     depends_on("raxml-ng", type="run", when="+raxml-ng")
 

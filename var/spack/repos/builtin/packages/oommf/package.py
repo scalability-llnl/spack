@@ -108,6 +108,9 @@ class Oommf(Package):
         url="https://github.com/fangohr/oommf/archive/refs/tags/1.2b0_20160930b1.tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("tk", type=("build", "link", "test", "run"))
     depends_on("tcl", type=("build", "test", "run"))
     depends_on("xproto", type=("build"))

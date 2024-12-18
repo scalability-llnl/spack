@@ -17,3 +17,5 @@ class TestDrive(MesonPackage):
     license("Apache-2.0")
 
     version("0.4.0", "effabe5d46ea937a79f3ea8d37eea43caf38f9f1377398bad0ca02784235e54a")
+
+    depends_on("fortran", type="build")  # generated

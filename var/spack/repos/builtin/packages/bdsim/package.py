@@ -27,6 +27,8 @@ class Bdsim(CMakePackage):
     version("1.7.0", sha256="713ce3c9d94f340ca774ce1803e0c4f992b904dbc28ce4129713abe883e98683")
     version("1.6.0", sha256="e3241d2d097cb4e22249e315c1474da9b3657b9c6893232d9f9e543a5323f717")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake")
     depends_on("geant4")
     depends_on("geant4@:10.7.3", when="@:1.6.0")

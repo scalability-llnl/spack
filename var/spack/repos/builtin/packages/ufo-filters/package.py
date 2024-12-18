@@ -16,4 +16,7 @@ class UfoFilters(CMakePackage):
 
     version("0.14.1", sha256="084d7cdef59205e1a048e5c142be1ffeaacedc42965824b642e8302ef30ebb13")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("ufo-core")

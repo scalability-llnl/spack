@@ -22,6 +22,8 @@ class RScran(RPackage):
     version("1.24.1", commit="1a83eb7c948b1dc49253080c23b26cefb3a0f3b9")
     version("1.24.0", commit="c3f9e169c4538ce827d4f14a4141571c2366cd31")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r-singlecellexperiment", type=("build", "run"))
     depends_on("r-scuttle", type=("build", "run"))
     depends_on("r-summarizedexperiment", type=("build", "run"))

@@ -27,6 +27,8 @@ class RBiovizbase(RPackage):
     version("1.26.0", commit="640742f48384f01d117b70dc5c64737e97ae9b4b")
     version("1.24.0", commit="ae9cd2ff665b74a8f45ed9c1d17fc0a778b4af6c")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@2.10:", type=("build", "run"))
     depends_on("r@3.5.0:", type=("build", "run"), when="@1.38.0:")
     depends_on("r-scales", type=("build", "run"))

@@ -24,6 +24,8 @@ class Conquest(MakefilePackage):
     version("master", branch="master")
     version("develop", branch="develop")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("blas")
     depends_on("lapack")
     depends_on("scalapack")
@@ -64,7 +66,7 @@ class Conquest(MakefilePackage):
         fflags = "-O3 -fallow-argument-mismatch"
         ldflags = ""
 
-        if "+openmp" in self.spec:
+        if self.spec.satisfies("+openmp"):
             fflags += " " + self.compiler.openmp_flag
             ldflags += " " + self.compiler.openmp_flag
 
@@ -92,7 +94,7 @@ class Conquest(MakefilePackage):
         defs_file.filter(".*FFT_LIB=.*", f"FFT_LIB={fftw_ld}")
         defs_file.filter(".*XC_LIB=.*", f"XC_LIB={libxc_ld} -lxcf90 -lxc")
 
-        if "+openmp" in self.spec:
+        if self.spec.satisfies("+openmp"):
             defs_file.filter("OMP_DUMMY = DUMMY", "OMP_DUMMY = ")
 
         if self.spec.variants["mult_kern"].value != "default":

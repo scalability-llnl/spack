@@ -23,6 +23,9 @@ class QmdProgress(CMakePackage):
     version("1.1.0", sha256="757d2606d7b7f38e7f8f491bf7369b88de55062bae0b12a9928f0a5acae993bd")
     version("1.0.0", sha256="eed87e68b4a1533a3ed70c1662feca4ac890b985f3326fc94522c2f71f198fdc")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("graphlib", default=False, description="Build with Metis Suppport")
     variant("mpi", default=True, description="Build with MPI Support")
     variant("shared", default=True, description="Build shared libs")

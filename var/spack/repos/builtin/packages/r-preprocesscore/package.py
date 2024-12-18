@@ -23,3 +23,5 @@ class RPreprocesscore(RPackage):
     version("1.42.0", commit="2e3a8baeacfaa1526d51252642772ea951015bba")
     version("1.40.0", commit="969bb0e5cbd63d569502ae4e6eaadc1e216646dd")
     version("1.38.1", commit="c58cb4c720eda0f1c733b989b14912093a7c5fbc")
+
+    depends_on("c", type="build")  # generated

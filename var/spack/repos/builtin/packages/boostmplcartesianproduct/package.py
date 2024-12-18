@@ -17,5 +17,7 @@ class Boostmplcartesianproduct(Package):
 
     version("20161205", sha256="1fa8e367e4dc545b34016bf57d802858ce38baf40aff20f7c93b329895a18572")
 
+    depends_on("cxx", type="build")  # generated
+
     def install(self, spec, prefix):
         install_tree("boost/mpl", join_path(prefix.include, "boost", "mpl"))

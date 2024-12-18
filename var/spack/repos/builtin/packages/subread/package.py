@@ -27,6 +27,8 @@ class Subread(MakefilePackage):
     version("1.6.0", sha256="31251ec4c134e3965d25ca3097890fb37e2c7a4163f6234515534fd325b1002a")
     version("1.5.2", sha256="a8c5f0e09ed3a105f01866517a89084c7302ff70c90ef8714aeaa2eab181a0aa")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("zlib-api")
 
     def build(self, spec, prefix):

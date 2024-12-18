@@ -24,12 +24,16 @@ class Ncurses(AutotoolsPackage, GNUMirrorPackage):
 
     license("X11")
 
+    version("6.5", sha256="136d91bc269a9a5785e5f9e980bc76ab57428f604ce3e5a5a90cebc767971cc6")
     version("6.4", sha256="6931283d9ac87c5073f30b6290c4c75f21632bb4fc3603ac8100812bed248159")
     version("6.3", sha256="97fc51ac2b085d4cde31ef4d2c3122c21abc217e9090a43a30fc5ec21684e059")
     version("6.2", sha256="30306e0c76e0f9f1f0de987cf1c82a5c21e1ce6568b9227f7da5b71cbea86c9d")
     version("6.1", sha256="aa057eeeb4a14d470101eff4597d5833dcef5965331be3528c08d99cebaa0d17")
     version("6.0", sha256="f551c24b30ce8bfb6e96d9f59b42fbea30fa3a6123384172f9e7284bcf647260")
     version("5.9", sha256="9046298fb440324c9d4135ecea7879ffed8546dd1b58e59430ea07a4633f563b")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("symlinks", default=False, description="Enables symlinks. Needed on AFS filesystem.")
     variant(

@@ -28,6 +28,8 @@ class Jali(CMakePackage):
     version("1.1.0", sha256="783dfcd6a9284af83bb380ed257fa8b0757dc2f7f9196d935eb974fb6523c644")
     version("1.0.5", sha256="979170615d33a7bf20c96bd4d0285e05a2bbd901164e377a8bccbd9af9463801")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("mstk", default=True, description="Enable MSTK")
 
     # dependencies

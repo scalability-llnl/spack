@@ -26,6 +26,8 @@ class CrayMvapich2(Package):
 
     provides("mpi@3")
 
+    requires("platform=linux", msg="Cray MVAPICH2 is only available on Cray")
+
     def setup_run_environment(self, env):
         if spack_cc is None:
             return

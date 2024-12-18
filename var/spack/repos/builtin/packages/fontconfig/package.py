@@ -23,15 +23,19 @@ class Fontconfig(AutotoolsPackage):
     version("2.12.1", sha256="a9f42d03949f948a3a4f762287dbc16e53a927c91a07ee64207ebd90a9e5e292")
     version("2.11.1", sha256="b6b066c7dce3f436fdc0dfbae9d36122b38094f4f53bd8dffd45e195b0540d8d")
 
+    depends_on("c", type="build")  # generated
+
     # freetype2 21.0.15+ provided by freetype 2.8.1+
     depends_on("freetype@2.8.1:", when="@2.13:")
     depends_on("freetype")
-    depends_on("gperf", type="build", when="@2.12.2:")
+    depends_on("gperf", type="build", when="@2.11.1:")
     depends_on("libxml2@2.6:")
     depends_on("pkgconfig@0.9:", type="build")
     depends_on("font-util")
     depends_on("uuid", when="@2.13.1:")
     depends_on("python@3:", type="build", when="@2.13.93:")
+
+    variant("pic", default=False, description="Enable position-independent code (PIC)")
 
     def patch(self):
         """Make test/run-test.sh compatible with dash"""
@@ -45,8 +49,29 @@ class Fontconfig(AutotoolsPackage):
 
     def configure_args(self):
         font_path = join_path(self.spec["font-util"].prefix, "share", "fonts")
+        args = ["--enable-libxml2", "--disable-docs", f"--with-default-fonts={font_path}"]
+        ldflags = []
+        libs = []
+        deps = []
+        if self.spec["bzip2"].satisfies("~shared"):
+            deps.append("bzip2")
+        if not self.spec["libpng"].satisfies("libs=shared"):
+            deps.append("libpng")
+        if self.spec["libxml2"].satisfies("~shared"):
+            deps.append("libxml-2.0")
+        if deps:
+            pc = which("pkg-config")
+            for lib in deps:
+                ldflags.append(pc(lib, "--static", "--libs-only-L", output=str).strip())
+                libs.append(pc(lib, "--static", "--libs-only-l", output=str).strip())
+            args.append("LDFLAGS=%s" % " ".join(ldflags))
+            args.append("LIBS=%s" % " ".join(libs))
 
-        return ["--enable-libxml2", "--disable-docs", f"--with-default-fonts={font_path}"]
+        if self.spec.satisfies("+pic"):
+            args.append(f"CFLAGS={self.compiler.cc_pic_flag}")
+            args.append(f"FFLAGS={self.compiler.f77_pic_flag}")
+
+        return args
 
     @run_after("install")
     def system_fonts(self):

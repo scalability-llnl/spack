@@ -26,6 +26,8 @@ class Libecpint(CMakePackage):
     version("1.0.1", sha256="245b89fe8cb0a92cbbb79c811b48cb15fcfc937389df89387466f1bf76a096bf")
     version("1.0.0", sha256="47d741cc48a543ef9c85483cb2d5cd1c9f6677fa7e9920886d083b3c25232379")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("pugixml")
     depends_on("googletest")
 

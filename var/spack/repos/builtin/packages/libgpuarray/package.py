@@ -24,6 +24,8 @@ class Libgpuarray(CMakePackage):
     version("0.6.1", sha256="b2466311e0e3bacdf7a586bba0263f6d232bf9f8d785e91ddb447653741e6ea5")
     version("0.6.0", sha256="a58a0624e894475a4955aaea25e82261c69b4d22c8f15ec07041a4ba176d35af")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("cuda")
     depends_on("cmake@3:", type="build")
     depends_on("check")

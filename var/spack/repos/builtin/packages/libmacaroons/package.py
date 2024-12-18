@@ -20,6 +20,8 @@ class Libmacaroons(AutotoolsPackage):
     version("0.2.0", sha256="fa2146d89a4e844703896ece778f0c42b2b0ee3d09dea350ff34fd6873e72018")
     version("0.1.0", sha256="0aa413d8a793f004874695466f93eed9c8e721524765704fe410694583928007")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

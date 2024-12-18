@@ -23,7 +23,7 @@ class MockConfigEntryPoint:
         etc_path = self.dir.joinpath("spack/etc")
         etc_path.mkdir(exist_ok=True, parents=True)
         f = self.dir / "spack/etc/config.yaml"
-        with open(f, "w") as fh:
+        with open(f, "w", encoding="utf-8") as fh:
             fh.write("config:\n  install_tree:\n    root: /spam/opt\n")
 
         def ep():
@@ -41,7 +41,7 @@ class MockExtensionsEntryPoint:
         cmd_path = self.dir.joinpath("spack/spack-myext/myext/cmd")
         cmd_path.mkdir(exist_ok=True, parents=True)
         f = self.dir / "spack/spack-myext/myext/cmd/spam.py"
-        with open(f, "w") as fh:
+        with open(f, "w", encoding="utf-8") as fh:
             fh.write("description = 'hello world extension command'\n")
             fh.write("section = 'test command'\n")
             fh.write("level = 'long'\n")

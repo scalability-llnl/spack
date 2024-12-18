@@ -718,23 +718,45 @@ command-line tool, or C/C++/Fortran program with optional Python
 modules? The former should be prepended with ``py-``, while the
 latter should not.
 
-""""""""""""""""""""""
-extends vs. depends_on
-""""""""""""""""""""""
+""""""""""""""""""""""""""""""
+``extends`` vs. ``depends_on``
+""""""""""""""""""""""""""""""
 
-This is very similar to the naming dilemma above, with a slight twist.
 As mentioned in the :ref:`Packaging Guide <packaging_extensions>`,
 ``extends`` and ``depends_on`` are very similar, but ``extends`` ensures
 that the extension and extendee share the same prefix in views.
 This allows the user to import a Python module without
 having to add that module to ``PYTHONPATH``.
 
-When deciding between ``extends`` and ``depends_on``, the best rule of
-thumb is to check the installation prefix. If Python libraries are
-installed to ``<prefix>/lib/pythonX.Y/site-packages``, then you
-should use ``extends``. If Python libraries are installed elsewhere
-or the only files that get installed reside in ``<prefix>/bin``, then
-don't use ``extends``.
+Additionally, ``extends("python")`` adds a dependency on the package
+``python-venv``. This improves isolation from the system, whether
+it's during the build or at runtime: user and system site packages
+cannot accidentally be used by any package that ``extends("python")``.
+
+As a rule of thumb: if a package does not install any Python modules
+of its own, and merely puts a Python script in the ``bin`` directory,
+then there is no need for ``extends``. If the package installs modules
+in the ``site-packages`` directory, it requires ``extends``.
+
+"""""""""""""""""""""""""""""""""""""
+Executing ``python`` during the build
+"""""""""""""""""""""""""""""""""""""
+
+Whenever you need to execute a Python command or pass the path of the
+Python interpreter to the build system, it is best to use the global
+variable ``python`` directly. For example:
+
+.. code-block:: python
+
+    @run_before("install")
+    def recythonize(self):
+        python("setup.py", "clean")  # use the `python` global
+
+As mentioned in the previous section, ``extends("python")`` adds an
+automatic dependency on ``python-venv``, which is a virtual environment
+that guarantees build isolation. The ``python`` global always refers to
+the correct Python interpreter, whether the package uses ``extends("python")``
+or ``depends_on("python")``.
 
 ^^^^^^^^^^^^^^^^^^^^^
 Alternatives to Spack

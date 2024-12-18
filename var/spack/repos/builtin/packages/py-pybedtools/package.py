@@ -26,6 +26,8 @@ class PyPybedtools(PythonPackage):
     version("0.7.4", sha256="15cfae9e8a207ded403ad9fa2e77f09d14c2fe377d1bc5f8b063647e2d0554e0")
     version("0.6.9", sha256="56915b3e2200c6fb56260a36f839e66ce27d7dd3ef55fba278c3931b786fbfd1")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("py-setuptools@0.6c5:", type="build")
     depends_on("py-cython", type="build")
 

@@ -14,6 +14,7 @@ class Spdlog(CMakePackage):
 
     license("MIT")
 
+    version("1.14.1", sha256="1586508029a7d0670dfcb2d97575dcdc242d3868a259742b69f100801ab4e16b")
     version("1.13.0", sha256="534f2ee1a4dcbeb22249856edfb2be76a1cf4f708a20b0ac2ed090ee24cfdbc9")
     version("1.12.0", sha256="4dccf2d10f410c1e2feaff89966bfc49a1abb29ef6f08246335b110e001e09a9")
     version("1.11.0", sha256="ca5cae8d6cac15dae0ec63b21d6ad3530070650f68076f3a4a862ca293a858bb")
@@ -49,6 +50,8 @@ class Spdlog(CMakePackage):
     version("0.10.0", sha256="fbbc53c1cc09b93b4c3d76b683bbe9315e2efe3727701227374dce6aa4264075")
     version("0.9.0", sha256="bbbe5a855c8b309621352921d650449eb2f741d35d55ec50fb4d8122ddfb8f01")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=True, description="Build shared libraries (v1.4.0+)")
 
     depends_on("cmake@3.2:", when="@:1.7.0", type="build")
@@ -70,7 +73,7 @@ class Spdlog(CMakePackage):
     def cmake_args(self):
         args = []
 
-        if self.spec.version >= Version("1.4.0"):
+        if self.spec.satisfies("@1.4.0:"):
             args.extend(
                 [
                     self.define_from_variant("SPDLOG_BUILD_SHARED", "shared"),

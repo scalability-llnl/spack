@@ -20,6 +20,9 @@ class Xtb(MesonPackage):
     version("6.5.1", sha256="0922205cc224fe79e28f3d75be4e10c03efa8f3f666aedec8346fed82b272cad")
     version("6.5.0", sha256="5f780656bf7b440a8e1f753a9a877401a7d497fb3160762f48bdefc8a9914976")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("blas")
     depends_on("lapack")
     depends_on("meson@0.57.2:", type="build")

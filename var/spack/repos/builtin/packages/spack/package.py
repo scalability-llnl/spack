@@ -42,6 +42,10 @@ class Spack(Package):
     version("0.16.1", sha256="8d893036b24d9ee0feee41ac33dd66e4fc68d392918f346f8a7a36a69c567567")
     version("0.16.0", sha256="064b2532c70916c7684d4c7c973416ac32dd2ea15f5c392654c75258bfc8c6c2")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("development_tools", default=False, description="Build development dependencies")
     variant(
         "fetchers",
@@ -115,7 +119,6 @@ class Spack(Package):
     depends_on("binutils", type="run", when="@:0.20")
     depends_on("gnupg", type="run")
     depends_on("patchelf", type="run", when="platform=linux")
-    depends_on("patchelf", type="run", when="platform=cray")
 
     # See https://github.com/spack/spack/pull/24686
     # and #25595, #25726, #25853, #25923, #25924 upstream in python/cpython

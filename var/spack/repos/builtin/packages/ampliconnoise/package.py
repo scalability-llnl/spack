@@ -17,6 +17,8 @@ class Ampliconnoise(MakefilePackage):
 
     version("1.29", sha256="0bf946806d77ecaf0994ad8ebf9a5e98ad33c809f6def5c9340a16c367918167")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("mpi@2:")
     depends_on("gsl")
 

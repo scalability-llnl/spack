@@ -16,5 +16,7 @@ class PyPyeda(PythonPackage):
 
     version("0.28.0", sha256="07185f458d5d0b2ba5058da8b95dad6ab7684ceaf41237a25bcd3f005490f59d")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("python@3.3:", type=("build", "run"))

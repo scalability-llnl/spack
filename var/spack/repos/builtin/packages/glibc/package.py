@@ -20,8 +20,16 @@ class Glibc(AutotoolsPackage, GNUMirrorPackage):
     maintainers("haampie")
 
     build_directory = "build"
+    tags = ["runtime"]
+
+    # This is used when the package is external and we need to find the actual default include path
+    # which may be in a multiarch subdir.
+    representative_headers = ["ieee754.h"]
 
     license("LGPL-2.1-or-later")
+
+    provides("libc")
+    provides("iconv")
 
     version("master", branch="master")
     version("2.39", sha256="97f84f3b7588cd54093a6f6389b0c1a81e70d99708d74963a2e3eab7c7dc942d")
@@ -59,6 +67,9 @@ class Glibc(AutotoolsPackage, GNUMirrorPackage):
     version("2.7", sha256="f5ef515cb70f8d4cfcee0b3aac05b73def60d897bdb7a71f4356782febfe415a")
     version("2.6.1", sha256="6be7639ccad715d25eef560ce9d1637ef206fb9a162714f6ab8167fc0d971cae")
     version("2.5", sha256="16d3ac4e86eed75d85d80f1f214a6bd58d27f13590966b5ad0cc181df85a3493")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     # Fix for newer GCC, related to -fno-common
     patch("locs.patch", when="@2.23:2.25")
@@ -195,3 +206,11 @@ class Glibc(AutotoolsPackage, GNUMirrorPackage):
             make("-C", "..", f"objdir={os.getcwd()}", "lib")
             delete_rpath(join_path("elf", "ld.so"))
             make()
+
+    @property
+    def libs(self):
+        return LibraryList([])
+
+    @property
+    def headers(self):
+        return HeaderList([])

@@ -22,6 +22,9 @@ class JsonC(CMakePackage, AutotoolsPackage):
     version("0.12", sha256="000c01b2b3f82dcb4261751eb71f1b084404fb7d6a282f06074d3c17078b9f3f")
     version("0.11", sha256="28dfc65145dc0d4df1dfe7701ac173c4e5f9347176c8983edbfac9149494448c")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     build_system(
         conditional("cmake", when="@0.14:"),
         conditional("autotools", when="@:0.13.1"),
@@ -45,11 +48,10 @@ class JsonC(CMakePackage, AutotoolsPackage):
         filter_file("-Werror", "", "CMakeLists.txt")
 
     def flag_handler(self, name, flags):
-        iflags = []
         if name == "cflags":
             if self.spec.satisfies("%oneapi"):
-                iflags.append("-Wno-error=implicit-function-declaration")
-        return (iflags, None, None)
+                flags.append("-Wno-error=implicit-function-declaration")
+        return (flags, None, None)
 
     @run_after("install")
     def darwin_fix(self):

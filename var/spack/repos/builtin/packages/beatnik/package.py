@@ -16,9 +16,12 @@ class Beatnik(CMakePackage, CudaPackage, ROCmPackage):
 
     license("BSD-3-Clause")
 
+    version("1.1", commit="7d5a6fa588bcb7065fc53c3e8ae52d4d7f13b6f1", submodules=True)
     version("1.0", commit="ae31ef9cb44678d5ace77994b45b0778defa3d2f")
-    version("develop", branch="develop")
-    version("main", branch="main")
+    version("develop", branch="develop", submodules=True)
+    version("main", branch="main", submodules=True)
+
+    depends_on("cxx", type="build")  # generated
 
     # Variants are primarily backends to build on GPU systems and pass the right
     # informtion to the packages we depend on
@@ -45,13 +48,17 @@ class Beatnik(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("kokkos +wrapper", when="%gcc+cuda")
 
     # Cabana dependencies
-    depends_on("cabana @0.6.0 +grid +heffte +silo +hdf5 +mpi")
+    depends_on("cabana @0.7.0 +grid +heffte +silo +hdf5 +mpi +arborx", when="@1.1")
+    depends_on("cabana @0.7.0 +grid +heffte +silo +hdf5 +mpi +arborx", when="@1.0")
+    depends_on("cabana @master +grid +heffte +silo +hdf5 +mpi +arborx", when="@develop")
+    depends_on("cabana @0.7.0 +grid +heffte +silo +hdf5 +mpi +arborx", when="@main")
     depends_on("cabana +cuda", when="+cuda")
     depends_on("cabana +rocm", when="+rocm")
 
     # Silo dependencies
     depends_on("silo @4.11:")
-    depends_on("silo @4.11.1:", when="%cce")  # Eariler silo versions have trouble cce
+    depends_on("silo @4.11.1 +fpzip+hzip~python", when="%cce")
+    # Eariler silo versions have trouble with cce
 
     # Heffte dependencies - We always require FFTW so that there's a host
     # backend even when we're compiling for GPUs
@@ -82,7 +89,7 @@ class Beatnik(CMakePackage, CudaPackage, ROCmPackage):
         # Use hipcc as the c compiler if we are compiling for rocm. Doing it this way
         # keeps the wrapper insted of changeing CMAKE_CXX_COMPILER keeps the spack wrapper
         # and the rpaths it sets for us from the underlying spec.
-        if "+rocm" in self.spec:
+        if self.spec.satisfies("+rocm"):
             env["SPACK_CXX"] = self.spec["hip"].hipcc
 
         # If we're building with cray mpich, we need to make sure we get the GTL library for

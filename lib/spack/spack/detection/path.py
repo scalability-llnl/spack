@@ -11,20 +11,23 @@ import os
 import os.path
 import re
 import sys
+import traceback
 import warnings
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, Iterable, List, Optional, Set, Tuple, Type
 
 import llnl.util.filesystem
 import llnl.util.lang
 import llnl.util.tty
 
+import spack.error
+import spack.spec
 import spack.util.elf as elf_utils
 import spack.util.environment
 import spack.util.environment as environment
 import spack.util.ld_so_conf
+import spack.util.parallel
 
 from .common import (
-    DetectedPackage,
     WindowsCompilerExternalPaths,
     WindowsKitExternalPaths,
     _convert_to_iterable,
@@ -62,7 +65,22 @@ def common_windows_package_paths(pkg_cls=None) -> List[str]:
 
 def file_identifier(path):
     s = os.stat(path)
-    return (s.st_dev, s.st_ino)
+    return s.st_dev, s.st_ino
+
+
+def dedupe_paths(paths: List[str]) -> List[str]:
+    """Deduplicate paths based on inode and device number. In case the list contains first a
+    symlink and then the directory it points to, the symlink is replaced with the directory path.
+    This ensures that we pick for example ``/usr/bin`` over ``/bin`` if the latter is a symlink to
+    the former`."""
+    seen: Dict[Tuple[int, int], str] = {}
+    for path in paths:
+        identifier = file_identifier(path)
+        if identifier not in seen:
+            seen[identifier] = path
+        elif not os.path.islink(path):
+            seen[identifier] = path
+    return list(seen.values())
 
 
 def executables_in_path(path_hints: List[str]) -> Dict[str, str]:
@@ -80,29 +98,19 @@ def executables_in_path(path_hints: List[str]) -> Dict[str, str]:
             constructed based on the PATH environment variable.
     """
     search_paths = llnl.util.filesystem.search_paths_for_executables(*path_hints)
-    return path_to_dict(search_paths)
-
-
-def get_elf_compat(path):
-    """For ELF files, get a triplet (EI_CLASS, EI_DATA, e_machine) and see if
-    it is host-compatible."""
-    # On ELF platforms supporting, we try to be a bit smarter when it comes to shared
-    # libraries, by dropping those that are not host compatible.
-    with open(path, "rb") as f:
-        elf = elf_utils.parse_elf(f, only_header=True)
-        return (elf.is_64_bit, elf.is_little_endian, elf.elf_hdr.e_machine)
+    # Make use we don't doubly list /usr/lib and /lib etc
+    return path_to_dict(dedupe_paths(search_paths))
 
 
 def accept_elf(path, host_compat):
-    """Accept an ELF file if the header matches the given compat triplet,
-    obtained with :py:func:`get_elf_compat`. In case it's not an ELF (e.g.
-    static library, or some arbitrary file, fall back to is_readable_file)."""
+    """Accept an ELF file if the header matches the given compat triplet. In case it's not an ELF
+    (e.g. static library, or some arbitrary file, fall back to is_readable_file)."""
     # Fast path: assume libraries at least have .so in their basename.
     # Note: don't replace with splitext, because of libsmth.so.1.2.3 file names.
     if ".so" not in os.path.basename(path):
         return llnl.util.filesystem.is_readable_file(path)
     try:
-        return host_compat == get_elf_compat(path)
+        return host_compat == elf_utils.get_elf_compat(path)
     except (OSError, elf_utils.ElfParsingError):
         return llnl.util.filesystem.is_readable_file(path)
 
@@ -152,10 +160,10 @@ def libraries_in_ld_and_system_library_path(
         search_paths = list(filter(os.path.isdir, search_paths))
 
     # Make use we don't doubly list /usr/lib and /lib etc
-    search_paths = list(llnl.util.lang.dedupe(search_paths, key=file_identifier))
+    search_paths = dedupe_paths(search_paths)
 
     try:
-        host_compat = get_elf_compat(sys.executable)
+        host_compat = elf_utils.get_elf_compat(sys.executable)
         accept = lambda path: accept_elf(path, host_compat)
     except (OSError, elf_utils.ElfParsingError):
         accept = llnl.util.filesystem.is_readable_file
@@ -198,7 +206,7 @@ def libraries_in_windows_paths(path_hints: Optional[List[str]] = None) -> Dict[s
     return path_to_dict(search_paths)
 
 
-def _group_by_prefix(paths: Set[str]) -> Dict[str, Set[str]]:
+def _group_by_prefix(paths: List[str]) -> Dict[str, Set[str]]:
     groups = collections.defaultdict(set)
     for p in paths:
         groups[os.path.dirname(p)].add(p)
@@ -211,7 +219,7 @@ class Finder:
     def default_path_hints(self) -> List[str]:
         return []
 
-    def search_patterns(self, *, pkg: "spack.package_base.PackageBase") -> List[str]:
+    def search_patterns(self, *, pkg: Type["spack.package_base.PackageBase"]) -> List[str]:
         """Returns the list of patterns used to match candidate files.
 
         Args:
@@ -237,8 +245,8 @@ class Finder:
         raise NotImplementedError("must be implemented by derived classes")
 
     def detect_specs(
-        self, *, pkg: "spack.package_base.PackageBase", paths: List[str]
-    ) -> List[DetectedPackage]:
+        self, *, pkg: Type["spack.package_base.PackageBase"], paths: List[str]
+    ) -> List["spack.spec.Spec"]:
         """Given a list of files matching the search patterns, returns a list of detected specs.
 
         Args:
@@ -254,7 +262,9 @@ class Finder:
             return []
 
         result = []
-        for candidate_path, items_in_prefix in sorted(_group_by_prefix(set(paths)).items()):
+        for candidate_path, items_in_prefix in _group_by_prefix(
+            llnl.util.lang.dedupe(paths)
+        ).items():
             # TODO: multiple instances of a package can live in the same
             # prefix, and a package implementation can return multiple specs
             # for one prefix, but without additional details (e.g. about the
@@ -266,8 +276,12 @@ class Finder:
                 )
             except Exception as e:
                 specs = []
+                if spack.error.SHOW_BACKTRACE:
+                    details = traceback.format_exc()
+                else:
+                    details = f"[{e.__class__.__name__}: {e}]"
                 warnings.warn(
-                    f'error detecting "{pkg.name}" from prefix {candidate_path} [{str(e)}]'
+                    f'error detecting "{pkg.name}" from prefix {candidate_path}: {details}'
                 )
 
             if not specs:
@@ -302,27 +316,25 @@ class Finder:
                     warnings.warn(msg)
                     continue
 
-                if spec.external_path:
-                    prefix = spec.external_path
+                if not spec.external_path:
+                    spec.external_path = prefix
 
-                result.append(DetectedPackage(spec=spec, prefix=prefix))
+                result.append(spec)
 
         return result
 
     def find(
-        self, *, pkg_name: str, initial_guess: Optional[List[str]] = None
-    ) -> List[DetectedPackage]:
+        self, *, pkg_name: str, repository, initial_guess: Optional[List[str]] = None
+    ) -> List["spack.spec.Spec"]:
         """For a given package, returns a list of detected specs.
 
         Args:
             pkg_name: package being detected
-            initial_guess: initial list of paths to search from the caller
-                           if None, default paths are searched. If this
-                           is an empty list, nothing will be searched.
+            repository: repository to retrieve the package
+            initial_guess: initial list of paths to search from the caller if None, default paths
+                are searched. If this is an empty list, nothing will be searched.
         """
-        import spack.repo
-
-        pkg_cls = spack.repo.PATH.get_pkg_class(pkg_name)
+        pkg_cls = repository.get_pkg_class(pkg_name)
         patterns = self.search_patterns(pkg=pkg_cls)
         if not patterns:
             return []
@@ -338,7 +350,7 @@ class ExecutablesFinder(Finder):
     def default_path_hints(self) -> List[str]:
         return spack.util.environment.get_path("PATH")
 
-    def search_patterns(self, *, pkg: "spack.package_base.PackageBase") -> List[str]:
+    def search_patterns(self, *, pkg: Type["spack.package_base.PackageBase"]) -> List[str]:
         result = []
         if hasattr(pkg, "executables") and hasattr(pkg, "platform_executables"):
             result = pkg.platform_executables()
@@ -346,13 +358,10 @@ class ExecutablesFinder(Finder):
 
     def candidate_files(self, *, patterns: List[str], paths: List[str]) -> List[str]:
         executables_by_path = executables_in_path(path_hints=paths)
-        patterns = [re.compile(x) for x in patterns]
-        result = []
-        for compiled_re in patterns:
-            for path, exe in executables_by_path.items():
-                if compiled_re.search(exe):
-                    result.append(path)
-        return list(sorted(set(result)))
+        joined_pattern = re.compile(r"|".join(patterns))
+        result = [path for path, exe in executables_by_path.items() if joined_pattern.search(exe)]
+        result.sort()
+        return result
 
     def prefix_from_path(self, *, path: str) -> str:
         result = executable_prefix(path)
@@ -367,7 +376,7 @@ class LibrariesFinder(Finder):
     DYLD_LIBRARY_PATH, DYLD_FALLBACK_LIBRARY_PATH, and standard system library paths
     """
 
-    def search_patterns(self, *, pkg: "spack.package_base.PackageBase") -> List[str]:
+    def search_patterns(self, *, pkg: Type["spack.package_base.PackageBase"]) -> List[str]:
         result = []
         if hasattr(pkg, "libraries"):
             result = pkg.libraries
@@ -396,11 +405,11 @@ class LibrariesFinder(Finder):
 
 
 def by_path(
-    packages_to_search: List[str],
+    packages_to_search: Iterable[str],
     *,
     path_hints: Optional[List[str]] = None,
     max_workers: Optional[int] = None,
-) -> Dict[str, List[DetectedPackage]]:
+) -> Dict[str, List["spack.spec.Spec"]]:
     """Return the list of packages that have been detected on the system, keyed by
     unqualified package name.
 
@@ -410,19 +419,28 @@ def by_path(
         path_hints: initial list of paths to be searched
         max_workers: maximum number of workers to search for packages in parallel
     """
+    import spack.repo
+
     # TODO: Packages should be able to define both .libraries and .executables in the future
     # TODO: determine_spec_details should get all relevant libraries and executables in one call
     executables_finder, libraries_finder = ExecutablesFinder(), LibrariesFinder()
     detected_specs_by_package: Dict[str, Tuple[concurrent.futures.Future, ...]] = {}
 
     result = collections.defaultdict(list)
-    with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+    repository = spack.repo.PATH.ensure_unwrapped()
+    with spack.util.parallel.make_concurrent_executor(max_workers, require_fork=False) as executor:
         for pkg in packages_to_search:
             executable_future = executor.submit(
-                executables_finder.find, pkg_name=pkg, initial_guess=path_hints
+                executables_finder.find,
+                pkg_name=pkg,
+                initial_guess=path_hints,
+                repository=repository,
             )
             library_future = executor.submit(
-                libraries_finder.find, pkg_name=pkg, initial_guess=path_hints
+                libraries_finder.find,
+                pkg_name=pkg,
+                initial_guess=path_hints,
+                repository=repository,
             )
             detected_specs_by_package[pkg] = executable_future, library_future
 
@@ -437,9 +455,9 @@ def by_path(
                     llnl.util.tty.debug(
                         f"[EXTERNAL DETECTION] Skipping {pkg_name}: timeout reached"
                     )
-                except Exception as e:
+                except Exception:
                     llnl.util.tty.debug(
-                        f"[EXTERNAL DETECTION] Skipping {pkg_name}: exception occured {e}"
+                        f"[EXTERNAL DETECTION] Skipping {pkg_name}: {traceback.format_exc()}"
                     )
 
     return result

@@ -28,6 +28,9 @@ class Mujoco(Package):
         if pkg_sha256:
             version(ver, sha256=pkg_sha256)
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     def url_for_version(self, version):
         url = "https://mujoco.org/download/mujoco{0}-{1}-x86_64.tar.gz"
 

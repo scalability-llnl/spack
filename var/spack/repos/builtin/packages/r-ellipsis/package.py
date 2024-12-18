@@ -23,6 +23,8 @@ class REllipsis(RPackage):
     version("0.3.0", sha256="0bf814cb7a1f0ee1f2949bdc98752a0d535f2a9489280dd4d8fcdb10067ee907")
     version("0.2.0.1", sha256="0e6528c5e8016c3617cc1cfcdb5a4bfeb073e0bd5ea76b43e56b0c3208a0a943")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@3.1:", type=("build", "run"))
     depends_on("r@3.2:", type=("build", "run"), when="@0.3:")
     depends_on("r-rlang@0.3.0:", type=("build", "run"))

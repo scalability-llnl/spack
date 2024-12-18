@@ -16,6 +16,8 @@ class PyTensorstore(PythonPackage):
 
     version("0.1.54", sha256="e1a9dcb0be7c828f752375409537d4b39c658dd6c6a0873fe21a24a556ec0e2a")
 
+    depends_on("cxx", type="build")  # generated
+
     # .bazelversion
     depends_on("bazel@6.4.0", type="build")
 

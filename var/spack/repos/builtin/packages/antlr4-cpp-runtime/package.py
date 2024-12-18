@@ -26,7 +26,7 @@ class Antlr4CppRuntime(CMakePackage):
         "clanglibcpp", default=False, description="Compile with clang libc++ instead of libstdc++"
     )
 
-    depends_on("libuuid", type=["build", "link"], when="@:4.10.1")
+    depends_on("uuid", type=["build", "link"], when="@:4.10.1")
     depends_on("git", type=["build"])
     depends_on("pkgconfig", type=["build"])
 

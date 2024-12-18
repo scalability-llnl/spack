@@ -21,4 +21,6 @@ class RSom(RPackage):
     version("0.3-3", sha256="434e2210df3e6a459a8588606676c02494f58c5b52e25291d142121b7b9be5c7")
     version("0.3-2", sha256="b46ecb79c08f3d4cf9527d5c7f85a235808dda45dae7f50909b2df90e7b9e543")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@2.10:", type=("build", "run"))

@@ -18,6 +18,8 @@ class PyCuml(PythonPackage):
 
     version("0.15.0", sha256="5c9c656ae4eaa94a426e07d7385fd5ea0e5dc7abff806af2941aee10d4ca99c7")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python@3.7:", type=("build", "run"))
     depends_on("py-setuptools", type="build")
     depends_on("py-cython", type="build")

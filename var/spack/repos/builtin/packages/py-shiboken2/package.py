@@ -13,6 +13,8 @@ class PyShiboken2(PythonPackage):
 
     homepage = "https://www.pyside.org/"
 
+    skip_version_audit = ["platform=windows"]
+
     if sys.platform.startswith("linux"):
         version(
             "5.15.2",

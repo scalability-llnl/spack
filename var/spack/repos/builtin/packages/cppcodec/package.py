@@ -19,4 +19,6 @@ class Cppcodec(CMakePackage):
 
     version("0.2", sha256="0edaea2a9d9709d456aa99a1c3e17812ed130f9ef2b5c2d152c230a5cbc5c482")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@2.8:", type="build")

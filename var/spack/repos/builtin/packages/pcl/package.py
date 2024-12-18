@@ -16,11 +16,15 @@ class Pcl(CMakePackage):
 
     license("BSD-3-Clause")
 
+    version("1.14.1", sha256="cc3dc26a9ea176cb588fb1f182324399dbaf11e5ba1bea95c7d39005b7a5d352")
     version("1.13.1", sha256="be4d499c066203a3c296e2f7e823d6209be5983415f2279310ed1c9abb361d30")
     version("1.13.0", sha256="bd110789f6a7416ed1c58da302afbdb80f8d297a9e23cc02fd78ab78b4762698")
     version("1.12.1", sha256="a9573efad5e024c02f2cc9180bb8f82605c3772c62463efbe25c5d6e634b91dc")
     version("1.12.0", sha256="606a2d5c7af304791731d6b8ea79365bc8f2cd75908006484d71ecee01d9b51c")
     version("1.11.1", sha256="19d1a0bee2bc153de47c05da54fc6feb23393f306ab2dea2e25419654000336e")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3.5:", type="build")
     depends_on("cmake@3.10:", when="@1.12.1:", type="build")

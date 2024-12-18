@@ -3,8 +3,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import os
-
 from spack.package import *
 
 
@@ -20,6 +18,8 @@ class RedlandBindings(AutotoolsPackage):
     version("1.0.16.1", sha256="065037ef61e9b78f642e75b9c2a42700eb1a87d903f2f9963d86591c7d916826")
     version("1.0.14.1", sha256="a8cc365fccf292c56d53341ecae57fe8727e5002e048ca25f6251b5e595aec40")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("swig", type="build")
     depends_on("redland")
     depends_on("krb5")
@@ -27,11 +27,4 @@ class RedlandBindings(AutotoolsPackage):
     extends("python")
 
     def configure_args(self):
-        plib = self.spec["python"].prefix.lib
-        plib64 = self.spec["python"].prefix.lib64
-        mybase = self.prefix.lib
-        if os.path.isdir(plib64) and not os.path.isdir(plib):
-            mybase = self.prefix.lib64
-        pver = "python{0}".format(self.spec["python"].version.up_to(2))
-        myplib = join_path(mybase, pver, "site-packages")
-        return ["--with-python", "PYTHON_LIB={0}".format(myplib)]
+        return ["--with-python", f"PYTHON_LIB={python_platlib}"]

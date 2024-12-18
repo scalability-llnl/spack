@@ -22,6 +22,9 @@ class RedisAi(MakefilePackage):
         "1.2.7", tag="v1.2.7", commit="1bf38d86233ba06e1350ca9de794df2b07cdb274", submodules=True
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("torch", default=True, description="Build with the pytorch backend")
     variant("cuda", default=False, description="Use CUDA")
     variant("rocm", default=False, description="Use ROCm")

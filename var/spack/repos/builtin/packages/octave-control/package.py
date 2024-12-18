@@ -17,4 +17,6 @@ class OctaveControl(OctavePackage, SourceforgePackage):
 
     version("3.2.0", sha256="faf1d510d16ab46e4fa91a1288f4a7839ee05469c33e4698b7a007a0bb965e3e")
 
+    depends_on("cxx", type="build")  # generated
+
     extends("octave@4.0.0:")

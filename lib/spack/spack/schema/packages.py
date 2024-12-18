@@ -11,6 +11,8 @@ from typing import Any, Dict
 
 import spack.schema.environment
 
+from .compilers import extra_rpaths, flags, implicit_rpaths
+
 permissions = {
     "type": "object",
     "additionalProperties": False,
@@ -107,7 +109,6 @@ properties: Dict[str, Any] = {
                     "require": requirements,
                     "prefer": prefer_and_conflict,
                     "conflict": prefer_and_conflict,
-                    "version": {},  # Here only to warn users on ignored properties
                     "target": {
                         "type": "array",
                         "default": [],
@@ -138,14 +139,6 @@ properties: Dict[str, Any] = {
                     },
                     "variants": variants,
                 },
-                "deprecatedProperties": {
-                    "properties": ["version"],
-                    "message": "setting version preferences in the 'all' section of packages.yaml "
-                    "is deprecated and will be removed in v0.22\n\n\tThese preferences "
-                    "will be ignored by Spack. You can set them only in package-specific sections "
-                    "of the same file.\n",
-                    "error": False,
-                },
             }
         },
         "patternProperties": {
@@ -163,14 +156,11 @@ properties: Dict[str, Any] = {
                         # version strings
                         "items": {"anyOf": [{"type": "string"}, {"type": "number"}]},
                     },
-                    "target": {},  # Here only to warn users on ignored properties
-                    "compiler": {},  # Here only to warn users on ignored properties
                     "buildable": {"type": "boolean", "default": True},
                     "permissions": permissions,
                     # If 'get_full_repo' is promoted to a Package-level
                     # attribute, it could be useful to set it here
                     "package_attributes": package_attributes,
-                    "providers": {},  # Here only to warn users on ignored properties
                     "variants": variants,
                     "externals": {
                         "type": "array",
@@ -184,7 +174,16 @@ properties: Dict[str, Any] = {
                                     "type": "object",
                                     "additionalProperties": True,
                                     "properties": {
-                                        "environment": spack.schema.environment.definition
+                                        "compilers": {
+                                            "type": "object",
+                                            "patternProperties": {
+                                                r"(^\w[\w-]*)": {"type": "string"}
+                                            },
+                                        },
+                                        "environment": spack.schema.environment.definition,
+                                        "extra_rpaths": extra_rpaths,
+                                        "implicit_rpaths": implicit_rpaths,
+                                        "flags": flags,
                                     },
                                 },
                             },
@@ -192,18 +191,6 @@ properties: Dict[str, Any] = {
                             "required": ["spec"],
                         },
                     },
-                },
-                "deprecatedProperties": {
-                    "properties": ["target", "compiler", "providers"],
-                    "message": "setting 'compiler:', 'target:' or 'provider:' preferences in "
-                    "a package-specific section of packages.yaml is deprecated, and will be "
-                    "removed in v0.22.\n\n\tThese preferences will be ignored by Spack, and "
-                    "can be set only in the 'all' section of the same file. "
-                    "You can run:\n\n\t\t$ spack audit configs\n\n\tto get better diagnostics, "
-                    "including files:lines where the deprecated attributes are used.\n\n"
-                    "\tUse requirements to enforce conditions on specific packages: "
-                    f"{REQUIREMENT_URL}\n",
-                    "error": False,
                 },
             }
         },

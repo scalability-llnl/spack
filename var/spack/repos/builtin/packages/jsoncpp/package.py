@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import spack.build_systems.cmake
+import spack.build_systems.meson
 from spack.package import *
 
 
@@ -34,6 +36,8 @@ class Jsoncpp(CMakePackage, MesonPackage):
     version("1.7.5", sha256="4338c6cab8af8dee6cdfd54e6218bd0533785f552c6162bb083f8dd28bf8fbbe")
     version("1.7.4", sha256="10dcd0677e80727e572a1e462193e51a5fde3e023b99e144b2ee1a469835f769")
     version("1.7.3", sha256="1cfcad14054039ba97c22531888796cb9369e6353f257aacaad34fda956ada53")
+
+    depends_on("cxx", type="build")  # generated
 
     # From 1.9.3 onwards CMAKE_CXX_STANDARD is finally set to 11.
     variant(

@@ -1,0 +1,10 @@
+config:
+  build_stage::
+    - 'C:/spack stage'
+  install_tree:
+    root: "C:/spack install"
+    # Path lengths on windows doesn't support much padding
+    padded_length: 0
+    # Reduce the projections to only including the hash to avoid path length issues
+    projections:
+      all: '{hash}'

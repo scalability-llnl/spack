@@ -17,5 +17,7 @@ class PyLruDict(PythonPackage):
 
     version("1.1.6", sha256="365457660e3d05b76f1aba3e0f7fedbfcd6528e97c5115a351ddd0db488354cc")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@2.7:", type=("build", "run"))
     depends_on("py-setuptools", type=("build"))

@@ -1,0 +1,75 @@
+paths:
+- layout:
+  - executables:
+    - "bin/clang"
+    - "bin/clang++"
+    - "bin/flang"
+    script: |
+      echo "AMD clang version 12.0.0 (CLANG: AOCC_3_1_0-Build#126 2021_06_07)(based on LLVM Mirror.Version.12.0.0)"
+      echo "Target: x86_64-unknown-linux-gnu"
+      echo "Thread model: posix"
+  platforms: [linux]
+  results:
+  - spec: aocc@3.1.0
+    extra_attributes:
+      compilers:
+        c: ".*/bin/clang"
+        cxx: ".*/bin/clang[+][+]"
+        fortran: ".*/bin/flang"
+- layout:
+  - executables:
+    - "bin/clang"
+    - "bin/clang++"
+    script: |
+      echo "AMD clang version 12.0.0 (CLANG: AOCC_3_1_0-Build#126 2021_06_07)(based on LLVM Mirror.Version.12.0.0)"
+      echo "Target: x86_64-unknown-linux-gnu"
+      echo "Thread model: posix"
+  platforms: [linux]
+  results:
+  - spec: aocc@3.1.0
+    extra_attributes:
+      compilers:
+        c: ".*/bin/clang"
+        cxx: ".*/bin/clang[+][+]"
+- layout:
+  - executables:
+    - "bin/clang"
+    - "bin/clang++"
+    - "bin/flang"
+    script: |
+      echo "AMD clang version 12.0.0 (CLANG: AOCC_3_0_0-Build#78 2020_12_10)(based on LLVM Mirror.Version.12.0.0)"
+      echo "Target: x86_64-unknown-linux-gnu"
+      echo "Thread model: posix"
+  - executables:
+    - "bin/clang-11"
+    - "bin/clang++-11"
+    - "bin/flang-11"
+    script: |
+      echo "AMD clang version 11.0.0 (CLANG: AOCC_2_3_0-Build#85 2020_11_10)(based on LLVM Mirror.Version.11.0.0)"
+      echo "Target: x86_64-unknown-linux-gnu"
+      echo "Thread model: posix"
+  platforms: [linux]
+  results:
+  - spec: aocc@3.0.0
+    extra_attributes:
+      compilers:
+        c: ".*/bin/clang$"
+        cxx: ".*/bin/clang[+][+]$"
+        fortran: ".*/bin/flang$"
+  - spec: aocc@2.3.0
+    extra_attributes:
+      compilers:
+        c: ".*/bin/clang-11"
+        cxx: ".*/bin/clang[+][+]-11"
+        fortran: ".*/bin/flang-11"
+- layout:
+  - executables:
+    - "bin/clang"
+    - "bin/clang++"
+    script: |
+      echo "clang version 8.0.0 (tags/RELEASE_800/final)"
+      echo "Target: x86_64-unknown-linux-gnu\n"
+      echo "Thread model: posix\n"
+      echo "InstalledDir: /usr/bin"
+  platforms: [linux]
+  results: []

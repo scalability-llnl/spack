@@ -16,6 +16,8 @@ class Liblockfile(AutotoolsPackage):
 
     version("1.14", sha256="be85dba347889d9b65cbd361a611e6b88e044fdca9c98e5139d5fbc9ba37ccc8")
 
+    depends_on("c", type="build")  # generated
+
     patch("install_as_nonroot.patch")
 
     def configure_args(self):

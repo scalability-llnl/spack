@@ -17,6 +17,10 @@ class Enzo(MakefilePackage):
     version("master", branch="main", deprecated=True)
     version("2.6.1", sha256="280270accfc1ddb60e92cc98ca538a3e5787e8cc93ed58fb5c3ab75db8c4b048")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("mpi")
     depends_on("hdf5~mpi")
     depends_on("sse2neon", when="target=aarch64:")

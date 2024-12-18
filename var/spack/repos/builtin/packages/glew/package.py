@@ -2,16 +2,13 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-import sys
-
 from spack.package import *
 
 
 class Glew(CMakePackage):
     """The OpenGL Extension Wrangler Library."""
 
-    homepage = "http://glew.sourceforge.net/"
+    homepage = "https://glew.sourceforge.net/"
     url = "https://github.com/nigels-com/glew/releases/download/glew-2.1.0/glew-2.1.0.tgz"
     root_cmakelists_dir = "build/cmake"
 
@@ -23,29 +20,11 @@ class Glew(CMakePackage):
     version("2.1.0", sha256="04de91e7e6763039bc11940095cd9c7f880baba82196a7765f727ac05a993c95")
     version("2.0.0", sha256="c572c30a4e64689c342ba1624130ac98936d7af90c3103f9ce12b8a0c5736764")
 
-    variant(
-        "gl",
-        default="glx" if sys.platform.startswith("linux") else "other",
-        values=("glx", "osmesa", "egl", "other"),
-        multi=False,
-        description="The OpenGL provider to use",
-    )
-    conflicts("^osmesa", when="gl=glx")
-    conflicts("^osmesa", when="gl=egl")
-    conflicts("^osmesa", when="gl=other")
-    conflicts("^glx", when="gl=osmesa")
-    conflicts("^glx", when="gl=other")
-    conflicts("^glx", when="gl=egl")
-    conflicts("^egl", when="gl=glx")
-    conflicts("^egl", when="gl=osmesa")
-    conflicts("^egl", when="gl=other")
+    depends_on("c", type="build")  # generated
 
     depends_on("gl")
-    depends_on("osmesa", when="gl=osmesa")
-    depends_on("glx", when="gl=glx")
-    depends_on("libx11", when="gl=glx")
-    depends_on("xproto", when="gl=glx")
-    depends_on("egl", when="gl=egl")
+    depends_on("libx11", when="^[virtuals=gl] glx")
+    depends_on("xproto", when="^[virtuals=gl] glx")
 
     # glu is already forcibly disabled in the CMakeLists.txt.  This prevents
     # it from showing up in the .pc file
@@ -56,15 +35,15 @@ class Glew(CMakePackage):
         args = [
             self.define("BUILD_UTILS", True),
             self.define("GLEW_REGAL", False),
-            self.define("GLEW_EGL", "gl=egl" in spec),
+            self.define("GLEW_EGL", spec.satisfies("^[virtuals=gl] egl")),
             self.define("OPENGL_INCLUDE_DIR", spec["gl"].headers.directories[0]),
             self.define("OPENGL_gl_LIBRARY", spec["gl"].libs[0]),
             self.define("OPENGL_opengl_LIBRARY", "IGNORE"),
             self.define("OPENGL_glx_LIBRARY", "IGNORE"),
             self.define("OPENGL_glu_LIBRARY", "IGNORE"),
-            self.define("GLEW_OSMESA", "gl=osmesa" in spec),
+            self.define("GLEW_OSMESA", spec.satisfies("^[virtuals=gl] osmesa")),
         ]
-        if "gl=egl" in spec:
+        if spec.satisfies("^[virtuals=gl] egl"):
             args.append(
                 self.define("OPENGL_egl_LIBRARY", [spec["egl"].libs[0], spec["egl"].libs[1]])
             )
@@ -72,3 +51,8 @@ class Glew(CMakePackage):
             args.append(self.define("OPENGL_egl_LIBRARY", "IGNORE"))
 
         return args
+
+    def flag_handler(self, name, flags):
+        if name == "ldflags" and self.spec.satisfies("platform=darwin ^apple-gl"):
+            flags.append("-framework OpenGL")
+        return flags, None, None

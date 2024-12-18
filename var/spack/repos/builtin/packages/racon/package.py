@@ -25,6 +25,9 @@ class Racon(CMakePackage):
     version("1.3.0", sha256="f2331fb88eae5c54227dc16651607af6f045ae1ccccc1d117011762927d4606a")
     version("1.2.1", sha256="6e4b752b7cb6ab13b5e8cb9db58188cf1a3a61c4dcc565c8849bf4868b891bf8")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.2:", type="build")
     depends_on("python", type="build")
     depends_on("sse2neon", when="target=aarch64:")

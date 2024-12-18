@@ -554,9 +554,7 @@ class Unparser:
 
     def _fstring_JoinedStr(self, node, write):
         for value in node.values:
-            print("   ", value)
             meth = getattr(self, "_fstring_" + type(value).__name__)
-            print(meth)
             meth(value, write)
 
     def _fstring_Str(self, node, write):

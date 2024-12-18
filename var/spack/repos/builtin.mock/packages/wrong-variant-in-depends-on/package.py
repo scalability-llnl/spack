@@ -13,4 +13,4 @@ class WrongVariantInDependsOn(Package):
 
     version("1.0", md5="0123456789abcdef0123456789abcdef")
 
-    depends_on("b+doesnotexist")
+    depends_on("pkg-b+doesnotexist")

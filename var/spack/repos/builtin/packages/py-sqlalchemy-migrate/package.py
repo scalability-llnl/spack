@@ -10,7 +10,7 @@ from spack.package import *
 class PySqlalchemyMigrate(PythonPackage):
     """Database schema migration for SQLAlchemy"""
 
-    homepage = "http://www.openstack.org/"
+    homepage = "https://www.openstack.org/"
     pypi = "sqlalchemy-migrate/sqlalchemy-migrate-0.13.0.tar.gz"
 
     license("MIT")

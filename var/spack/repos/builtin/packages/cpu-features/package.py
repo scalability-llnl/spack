@@ -20,6 +20,9 @@ class CpuFeatures(CMakePackage):
     version("0.9.0", sha256="bdb3484de8297c49b59955c3b22dba834401bc2df984ef5cfc17acbe69c5018e")
     version("0.7.0", sha256="df80d9439abf741c7d2fdcdfd2d26528b136e6c52976be8bd0cd5e45a27262c0")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", description="Build shared libraries", default=False)
 
     depends_on("cmake@3.0.0:", type="build")

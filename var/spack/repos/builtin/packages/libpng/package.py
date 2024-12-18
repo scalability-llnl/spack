@@ -30,6 +30,9 @@ class Libpng(CMakePackage):
     version("1.5.30", sha256="7d76275fad2ede4b7d87c5fd46e6f488d2a16b5a69dc968ffa840ab39ba756ed")
     version("1.2.57", sha256="0f4620e11fa283fedafb474427c8e96bf149511a1804bdc47350963ae5cf54d8")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("zlib-api")
 
     variant(
@@ -45,8 +48,10 @@ class Libpng(CMakePackage):
     def libs(self):
         # v1.2 does not have a version-less symlink
         libraries = f"libpng{self.version.up_to(2).joined}"
-        shared = "libs=shared" in self.spec
-        return find_libraries(libraries, root=self.prefix, shared=shared, recursive=True)
+        shared = self.spec.satisfies("libs=shared")
+        return find_libraries(
+            libraries, root=self.prefix, shared=shared, recursive=True, runtime=False
+        )
 
 
 class CMakeBuilder(CMakeBuilder):

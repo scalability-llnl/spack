@@ -18,6 +18,8 @@ class Jose(AutotoolsPackage):
     version("9", sha256="64262b1344d92fc183f70ca93db6100cd97b3dfa7cddea1e08e8588e6cd681eb")
     version("8", sha256="24e3d71e3da5a7913ab3c299381d76dfde488d91cb108b1a9527454bf1e9dc51")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("pkgconfig", type="build")
     depends_on("jansson@2.10:")
     depends_on("zlib-api")

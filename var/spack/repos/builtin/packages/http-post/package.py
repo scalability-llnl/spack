@@ -20,6 +20,8 @@ class HttpPost(MakefilePackage):
         "2018-05-18", sha256="6607faa91aea410efb9b86ae0b1b64541b55318831cf6bb3fdee5d68f8adab31"
     )
 
+    depends_on("c", type="build")  # generated
+
     def url_for_version(self, version):
         ver = datetime.datetime.strptime(str(version), "%Y-%m-%d").date()
         verstr = datetime.datetime.strftime(ver, "%d%b%Y")

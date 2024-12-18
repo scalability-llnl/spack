@@ -35,6 +35,9 @@ class Memkind(AutotoolsPackage):
     version("1.8.0", sha256="8b57c5afa8afa6793e4662322e37620bbb11f119cd8d29654ec00945bbe13a17")
     version("1.7.0", sha256="5048eaaa1bc484203c685a019f3f428ab6c9b1cf94ef6d264e299bc0127ec572")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

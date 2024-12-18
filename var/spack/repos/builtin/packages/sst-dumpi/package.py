@@ -14,7 +14,7 @@ class SstDumpi(AutotoolsPackage):
     information, and PAPI counters.
     """
 
-    homepage = "http://sst.sandia.gov/about_dumpi.html"
+    homepage = "https://github.com/sstsimulator/sst-dumpi"
     url = "https://github.com/sstsimulator/sst-dumpi/archive/refs/tags/v13.0.0_Final.tar.gz"
     git = "https://github.com/sstsimulator/sst-dumpi.git"
 
@@ -29,6 +29,10 @@ class SstDumpi(AutotoolsPackage):
     version("11.1.0", sha256="58144b4b7543705ef648ca86ea4ebf3c739554ea8a472123aadc2967a8201cdd")
 
     version("master", branch="master")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("autoconf@1.68:", type="build")
     depends_on("automake@1.11.1:", type="build")

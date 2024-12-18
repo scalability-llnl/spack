@@ -150,7 +150,7 @@ this can expose you to attacks.  Use at your own risk.
 --------------------
 
 Path to custom certificats for SSL verification. The value can be a 
-filesytem path, or an environment variable that expands to a file path.
+filesytem path, or an environment variable that expands to an absolute file path.
 The default value is set to the environment variable ``SSL_CERT_FILE``
 to use the same syntax used by many other applications that automatically
 detect custom certificates.
@@ -160,6 +160,9 @@ in the subprocess calling ``curl``.
 If ``url_fetch_method:urllib`` then files and directories are supported i.e. 
 ``config:ssl_certs:$SSL_CERT_FILE`` or ``config:ssl_certs:$SSL_CERT_DIR``
 will work.
+In all cases the expanded path must be absolute for Spack to use the certificates.
+Certificates relative to an environment can be created by prepending the path variable
+with the Spack configuration variable``$env``.
 
 --------------------
 ``checksum``

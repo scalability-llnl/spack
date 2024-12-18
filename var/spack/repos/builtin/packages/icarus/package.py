@@ -22,6 +22,9 @@ class Icarus(AutotoolsPackage):
     version("11_0", sha256="6327fb900e66b46803d928b7ca439409a0dc32731d82143b20387be0833f1c95")
     version("10_3", commit="453c5465895eaca4a792d18b75e9ec14db6ea50e")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("bison", type="build")
     depends_on("flex", type="build")

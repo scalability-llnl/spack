@@ -11,7 +11,6 @@ from llnl.util.tty.colify import colify
 import spack.cmd
 import spack.environment as ev
 import spack.package_base
-import spack.repo
 import spack.store
 from spack.cmd.common import arguments
 

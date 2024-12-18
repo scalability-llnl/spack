@@ -19,6 +19,8 @@ class Exmcutils(AutotoolsPackage):
     version("0.5.7", sha256="6b84f43e8928d835dbd68c735ece6a9b7c648a1a4488ec2b1d2f3c4ceec508e8")
     version("0.5.6", sha256="296ba85cc828bd816c7c4de9453f589da37f32854a58ffda3586b6f371a23abf")
 
+    depends_on("c", type="build")  # generated
+
     @property
     def configure_directory(self):
         if self.version == Version("master"):

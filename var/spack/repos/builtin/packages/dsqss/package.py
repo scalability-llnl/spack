@@ -21,6 +21,8 @@ class Dsqss(CMakePackage):
 
     version("2.0.3", sha256="11255dd1f1317fb4ac2d6ae95535f027d627d03f5470717cd277dd9ab94496e0")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("mpi", default=True, description="build mpi support")
 
     depends_on("mpi", when="+mpi")
@@ -58,7 +60,6 @@ class Dsqss(CMakePackage):
         copy(join_path(test01, "std.toml"), ".")
 
         # prepare
-        python = self.spec["python"].command
         opts = [self.spec.prefix.bin.dla_pre, "std.toml"]
         with test_part(self, "test_dla_pre", purpose="prepare dla"):
             python(*opts)

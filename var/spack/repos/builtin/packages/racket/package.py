@@ -17,9 +17,11 @@ class Racket(MakefilePackage):
 
     version("8.3", sha256="3b963cd29ae119e1acc2c6dc4781bd9f25027979589caaae3fdfc021aac2324b")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("libffi", type=("build", "link", "run"))
     depends_on("patchutils")
-    depends_on("libtool", type=("build"))
 
     variant("cs", default=True, description="Build Racket CS (new ChezScheme VM)")
     variant("bc", default=False, description="Build Racket BC (old MZScheme VM)")

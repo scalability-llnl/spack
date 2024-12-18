@@ -20,6 +20,8 @@ class CniPlugins(Package):
     version("1.1.1", sha256="c86c44877c47f69cd23611e22029ab26b613f620195b76b3ec20f589367a7962")
     version("1.0.1", sha256="2ba3cd9f341a7190885b60d363f6f23c6d20d975a7a0ab579dd516f8c6117619")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("go", type="build")
 
     def install(self, spec, prefix):

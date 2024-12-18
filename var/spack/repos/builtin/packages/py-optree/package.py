@@ -16,6 +16,8 @@ class PyOptree(PythonPackage):
 
     version("0.10.0", sha256="dc7e8880f997365083191784d141c790833877af71aec8825c7f2b7f7f43c98e")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.11:", type="build")
     depends_on("python", type=("build", "link", "run"))
     depends_on("py-setuptools", type="build")

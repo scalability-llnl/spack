@@ -16,6 +16,9 @@ class Fastdb(MakefilePackage):
     version("3.75", sha256="eeafdb2ad01664c29e2d4053a305493bdedc8e91612ab25f1d36ad2f95b0dad6")
     version("3.74", sha256="4d0c9a165a1031860d4853d7084b8fe4627f0004861e6070927d3b6c594af889")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     patch("fastdb-fmax-fmin.patch")
 
     def install(self, spec, prefix):

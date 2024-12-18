@@ -19,6 +19,9 @@ class Hdf5VolLog(AutotoolsPackage):
 
     version("1.4.0", tag="logvol.1.4.0", commit="786d2cc4da8b4a0827ee00b1b0ab3968ef942f99")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("hdf5@1.14.0:", when="@1.4.0:")
     depends_on("mpi")
     depends_on("autoconf", type="build")

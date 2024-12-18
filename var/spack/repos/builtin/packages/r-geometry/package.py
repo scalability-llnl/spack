@@ -27,6 +27,9 @@ class RGeometry(RPackage):
     version("0.4.6.1", sha256="52c87a43cdf414c08b8183441c44497039cba92a9cff719debf09ad8d5d7f472")
     version("0.4.6", sha256="910465a8c8043faca73bcc7c81c9249b9938677ee6649468003b438a6503f5d8")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@3.0.0:", type=("build", "run"))
     depends_on("r-magic", type=("build", "run"))
     depends_on("r-rcpp", type=("build", "run"))

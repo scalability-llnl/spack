@@ -24,6 +24,8 @@ class JxrlibDebian(MakefilePackage):
         sha256="3d9d5d6ca972b51259efe1f37a8e42892e90920b13308d70b8a24eb9a82bf34c",
     )
 
+    depends_on("c", type="build")  # generated
+
     def setup_build_environment(self, env):
         env.set("DIR_INSTALL", self.prefix)
         if self.spec.satisfies("+shared"):

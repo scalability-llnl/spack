@@ -14,6 +14,7 @@ class Opus(AutotoolsPackage):
 
     license("BSD-3-Clause")
 
+    version("1.5.2", sha256="65c1d2f78b9f2fb20082c38cbe47c951ad5839345876e46941612ee87f9a7ce1")
     version("1.5.1", sha256="b84610959b8d417b611aa12a22565e0a3732097c6389d19098d844543e340f85")
     version("1.5", sha256="d8230bbeb99e6d558645aaad25d79de8f4f28fdcc55f8af230050586d62c4f2c")
     version("1.4", sha256="c9b32b4253be5ae63d1ff16eea06b94b5f0f2951b7a02aceef58e3a3ce49c51f")
@@ -42,3 +43,5 @@ class Opus(AutotoolsPackage):
     version("0.9.2", sha256="6e85c1b57e1d7b7dfe2928bf92586b96b73a9067e054ede45bd8e6d24bd30582")
     version("0.9.1", sha256="206221afc47b87496588013bd4523e1e9f556336c0813f4372773fc536dd4293")
     version("0.9.0", sha256="b2f75c4ac5ab837845eb028413fae2a28754bfb0a6d76416e2af1441ef447649")
+
+    depends_on("c", type="build")  # generated

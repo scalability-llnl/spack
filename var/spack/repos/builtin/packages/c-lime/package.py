@@ -18,3 +18,5 @@ class CLime(AutotoolsPackage):
     license("GPL-2.0-or-later")
 
     version("2-3-9", sha256="7b9aeadd4dfec50e24da3e7e729f56abf95c9192612c41515fe27b2158773aac")
+
+    depends_on("c", type="build")  # generated

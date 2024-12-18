@@ -18,8 +18,11 @@ class Whip(CMakePackage, CudaPackage, ROCmPackage):
     license("BSD-3-Clause")
 
     version("main", branch="main")
+    version("0.3.0", sha256="0c803e9453bc9c0cc8fbead507635b5c30465b6c2d46328f2a6a1140b4a8ff48")
     version("0.2.0", sha256="d8fec662526accbd1624922fdf01a077d6f312cf253382660e4a2f65e28e8686")
     version("0.1.0", sha256="5d557794f4afc8332fc660948a342f69e22bc9e5d575ffb3e3944cf526db5ec9")
+
+    depends_on("cxx", type="build")
 
     depends_on("cmake@3.22:", type="build")
 

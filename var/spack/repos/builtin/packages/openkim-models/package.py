@@ -41,6 +41,10 @@ class OpenkimModels(CMakePackage):
         "2019-03-29", sha256="053dda2023fe4bb6d7c1d66530c758c4e633bbf1f1be17b6b075b276fe8874f6"
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     def cmake_args(self):
         args = []
         args.append(

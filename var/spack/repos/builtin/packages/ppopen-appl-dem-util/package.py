@@ -22,6 +22,8 @@ class PpopenApplDemUtil(MakefilePackage):
 
     version("master", branch="APPL/DEM")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("mpi")
 
     def edit(self, spec, prefix):

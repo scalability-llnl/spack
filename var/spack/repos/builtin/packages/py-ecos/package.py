@@ -22,6 +22,8 @@ class PyEcos(PythonPackage):
         "2.0.7.post1", sha256="83e90f42b3f32e2a93f255c3cfad2da78dbd859119e93844c45d2fca20bdc758"
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("py-numpy@1.6:", type=("build", "run"))
     depends_on("py-scipy@0.9:", type=("build", "run"))

@@ -26,6 +26,8 @@ class SlurmDrmaa(AutotoolsPackage):
     version("main", branch="main", submodules=True)
     version("1.1.2", sha256="5bfe25d501de83729df3c8c8f28535b9da3e99aea7738e259903abd6f1f5c836")
 
+    depends_on("c", type="build")  # generated
+
     # Remove this patch when it is merged into main:
     patch(
         "https://github.com/natefoo/slurm-drmaa/pull/62.patch?full_index=1",

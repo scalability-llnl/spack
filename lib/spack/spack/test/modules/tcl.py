@@ -26,7 +26,7 @@ pytestmark = [
 ]
 
 
-@pytest.mark.usefixtures("config", "mock_packages", "mock_module_filename")
+@pytest.mark.usefixtures("mutable_config", "mock_packages", "mock_module_filename")
 class TestTcl:
     def test_simple_case(self, modulefile_content, module_configuration):
         """Tests the generation of a simple Tcl module file."""
@@ -114,9 +114,6 @@ class TestTcl:
 
         assert len([x for x in content if "prereq" in x]) == 5
 
-    @pytest.mark.skipif(
-        str(archspec.cpu.host().family) != "x86_64", reason="test data is specific for x86_64"
-    )
     def test_alter_environment(self, modulefile_content, module_configuration):
         """Tests modifications to run-time environment."""
 
@@ -380,6 +377,14 @@ class TestTcl:
         writer, spec = factory("mpileaks~debug+opt target=x86_64")
         assert "baz-foo-bar" in writer.layout.use_name
 
+    def test_suffixes_format(self, module_configuration, factory):
+        """Tests adding suffixes as spec format string to module file name."""
+        module_configuration("suffix-format")
+
+        writer, spec = factory("mpileaks +debug target=x86_64 ^mpich@3.0.4")
+        assert "debug=True" in writer.layout.use_name
+        assert "mpi=mpich-v3.0.4" in writer.layout.use_name
+
     def test_setup_environment(self, modulefile_content, module_configuration):
         """Tests the internal set-up of run-time environment."""
 
@@ -391,7 +396,7 @@ class TestTcl:
 
         spec = spack.spec.Spec("mpileaks")
         spec.concretize()
-        content = modulefile_content(str(spec["callpath"]))
+        content = modulefile_content(spec["callpath"])
 
         assert len([x for x in content if "setenv FOOBAR" in x]) == 1
         assert len([x for x in content if "setenv FOOBAR {callpath}" in x]) == 1
@@ -442,19 +447,19 @@ class TestTcl:
 
     @pytest.mark.regression("4400")
     @pytest.mark.db
-    def test_hide_implicits_no_arg(self, module_configuration, database):
+    def test_hide_implicits_no_arg(self, module_configuration, mutable_database):
         module_configuration("exclude_implicits")
 
         # mpileaks has been installed explicitly when setting up
         # the tests database
-        mpileaks_specs = database.query("mpileaks")
+        mpileaks_specs = mutable_database.query("mpileaks")
         for item in mpileaks_specs:
             writer = writer_cls(item, "default")
             assert not writer.conf.excluded
 
         # callpath is a dependency of mpileaks, and has been pulled
         # in implicitly
-        callpath_specs = database.query("callpath")
+        callpath_specs = mutable_database.query("callpath")
         for item in callpath_specs:
             writer = writer_cls(item, "default")
             assert writer.conf.excluded
@@ -476,8 +481,7 @@ class TestTcl:
         assert writer.conf.excluded
 
     @pytest.mark.regression("9624")
-    @pytest.mark.db
-    def test_autoload_with_constraints(self, modulefile_content, module_configuration, database):
+    def test_autoload_with_constraints(self, modulefile_content, module_configuration):
         """Tests the automatic loading of direct dependencies."""
 
         module_configuration("autoload_with_constraints")
@@ -513,14 +517,14 @@ class TestTcl:
         writer = writer_cls(spec, "default", False)
         writer.write()
         assert os.path.exists(writer.layout.modulerc)
-        with open(writer.layout.modulerc) as f:
+        with open(writer.layout.modulerc, encoding="utf-8") as f:
             content = [line.strip() for line in f.readlines()]
         hide_implicit_mpileaks = f"module-hide --soft --hidden-loaded {writer.layout.use_name}"
         assert len([x for x in content if hide_implicit_mpileaks == x]) == 1
 
         # The direct dependencies are all implicit, and they should have depends-on with fixed
         # 7 character hash, even though the config is set to hash_length = 0.
-        with open(writer.layout.filename) as f:
+        with open(writer.layout.filename, encoding="utf-8") as f:
             depends_statements = [line.strip() for line in f.readlines() if "depends-on" in line]
             for dep in spec.dependencies(deptype=("link", "run")):
                 assert any(dep.dag_hash(7) in line for line in depends_statements)
@@ -530,7 +534,7 @@ class TestTcl:
         writer = writer_cls(spec, "default", True)
         writer.write()
         assert os.path.exists(writer.layout.modulerc)
-        with open(writer.layout.modulerc) as f:
+        with open(writer.layout.modulerc, encoding="utf-8") as f:
             content = [line.strip() for line in f.readlines()]
         assert hide_implicit_mpileaks in content  # old, implicit mpileaks is still hidden
         assert f"module-hide --soft --hidden-loaded {writer.layout.use_name}" not in content
@@ -561,7 +565,7 @@ class TestTcl:
         writer_alt2 = writer_cls(spec_alt2, "default", False)
         writer_alt2.write(overwrite=True)
         assert os.path.exists(writer.layout.modulerc)
-        with open(writer.layout.modulerc) as f:
+        with open(writer.layout.modulerc, encoding="utf-8") as f:
             content = [line.strip() for line in f.readlines()]
         hide_cmd = f"module-hide --soft --hidden-loaded {writer.layout.use_name}"
         hide_cmd_alt1 = f"module-hide --soft --hidden-loaded {writer_alt1.layout.use_name}"
@@ -573,7 +577,7 @@ class TestTcl:
         # one version is removed
         writer_alt1.remove()
         assert os.path.exists(writer.layout.modulerc)
-        with open(writer.layout.modulerc) as f:
+        with open(writer.layout.modulerc, encoding="utf-8") as f:
             content = [line.strip() for line in f.readlines()]
         assert len([x for x in content if hide_cmd == x]) == 1
         assert len([x for x in content if hide_cmd_alt1 == x]) == 0

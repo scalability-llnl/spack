@@ -50,8 +50,7 @@ class PyXdot(PythonPackage):
             dst,
         )
         # regenerate the byte-compiled __init__.py
-        python3 = spec["python"].command
-        python3("-m", "compileall", dst)
+        python("-m", "compileall", dst)
 
     def setup_run_environment(self, env):
         spec = self.spec

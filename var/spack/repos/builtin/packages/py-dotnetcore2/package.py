@@ -13,6 +13,8 @@ class PyDotnetcore2(PythonPackage):
 
     homepage = "https://github.com/dotnet/core"
 
+    skip_version_audit = ["platform=windows"]
+
     if sys.platform == "darwin":
         version(
             "2.1.14",

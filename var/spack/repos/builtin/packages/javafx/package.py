@@ -47,6 +47,8 @@ class Javafx(Package):
         except KeyError:
             continue
 
+    skip_version_audit = ["platform=windows"]
+
     maintainers("snehring")
 
     extends("openjdk")

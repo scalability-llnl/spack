@@ -43,5 +43,4 @@ class PyEccodes(PythonPackage):
 
     def test_selfcheck(self):
         """checking system setup"""
-        python = self.spec["python"].command
         python("-m", "eccodes", "selfcheck")

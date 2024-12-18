@@ -17,6 +17,8 @@ class DealiiParameterGui(CMakePackage):
 
     version("develop", branch="master")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("qt")
 
     def setup_run_environment(self, env):

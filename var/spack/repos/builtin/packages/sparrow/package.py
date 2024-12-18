@@ -35,6 +35,8 @@ class Sparrow(CMakePackage):
         deprecated=True,
     )
 
+    depends_on("cxx", type="build")  # generated
+
     resource(
         name="dev",
         url="https://github.com/qcscine/development-utils/archive/refs/tags/4.0.0.tar.gz",

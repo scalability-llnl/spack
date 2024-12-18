@@ -31,6 +31,8 @@ class RIranges(RPackage):
     version("2.12.0", commit="1b1748655a8529ba87ad0f223f035ef0c08e7fcd")
     version("2.10.5", commit="b00d1d5025e3c480d17c13100f0da5a0132b1614")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@3.1.0:", type=("build", "run"))
     depends_on("r@4.0.0:", type=("build", "run"), when="@2.24.1:")
     depends_on("r-biocgenerics@0.21.1:", type=("build", "run"))

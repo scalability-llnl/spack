@@ -28,6 +28,8 @@ class PyScikitSparse(PythonPackage):
     depends_on("py-cython@0.22:", when="@0.4.12", type="build")
     depends_on("py-cython@0.22:0.29", when="@:0.4.11", type="build")
     depends_on("py-numpy@1.13.3:", type=("build", "link", "run"))
+    # https://github.com/scikit-sparse/scikit-sparse/issues/120
+    depends_on("py-numpy@:1", type=("build", "link", "run"))
     depends_on("py-scipy@0.19:", type="run")
     depends_on("suite-sparse", type=("build", "link", "run"))
 

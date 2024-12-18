@@ -17,3 +17,5 @@ class Figcone(CMakePackage):
 
     version("3.0.0", sha256="24ed65c2dabc93b205c3adfdb5d7d0523286a956a0257dc5f15de91c5b828aea")
     version("2.4.9", sha256="735399e849621a4923e71a50d5e2ba928d5dfa3b01e54d56e0bac8e5102b7697")
+
+    depends_on("cxx", type="build")  # generated

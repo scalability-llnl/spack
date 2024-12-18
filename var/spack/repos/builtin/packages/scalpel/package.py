@@ -12,13 +12,16 @@ class Scalpel(MakefilePackage, SourceforgePackage):
     with next-generation sequencing technology.
     """
 
-    homepage = "http://scalpel.sourceforge.net/index.html"
+    homepage = "https://scalpel.sourceforge.net/index.html"
     sourceforge_mirror_path = "scalpel/scalpel-0.5.4.tar.gz"
 
     license("MIT")
 
     version("0.5.4", sha256="506f731b3886def158c15fd8b74fa98390f304a507d2040972e6b09ddefac8f0")
     version("0.5.3", sha256="d45b569fe3aa5934883bc7216c243d53168351c23e020d96a46fa77a1563b65e")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("perl@5.10.0:")
 

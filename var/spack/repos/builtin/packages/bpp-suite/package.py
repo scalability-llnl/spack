@@ -24,6 +24,8 @@ class BppSuite(CMakePackage):
         deprecated=True,
     )
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@2.6:", type="build")
     depends_on("texinfo", type="build")
     depends_on("bpp-core")

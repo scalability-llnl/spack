@@ -17,6 +17,8 @@ class Kmergenie(MakefilePackage):
     version("1.7051", sha256="13148e5a2c700359cffca363b66ffa8f23c5db6af6eec03f739139ffdfee763f")
     version("1.7044", sha256="46f2a08a2d7b1885414143e436829dd7e61fcc31ec4e429433e516a168d2978e")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python", type=("build", "run"))
     depends_on("py-setuptools", type=("build", "run"))
     depends_on("r", type=("build", "run"))

@@ -25,6 +25,8 @@ class Xmlf90(AutotoolsPackage):
     version("1.5.3", tag="xmlf90-1.5.3", commit="d55a5bcf8a0d4e592a03585209435d342d8e6d0f")
     version("1.5.2", tag="xmlf90-1.5.2", commit="b238aec8719b7c40c7b7252c5f200818a0d5004a")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("autoconf@2.69:", type="build")
     depends_on("automake@1.14:", type="build")
     depends_on("libtool@2.4.2:", type="build")

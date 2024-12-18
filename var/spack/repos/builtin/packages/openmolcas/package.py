@@ -22,6 +22,9 @@ class Openmolcas(CMakePackage):
     version("21.02", sha256="d0b9731a011562ff4740c0e67e48d9af74bf2a266601a38b37640f72190519ca")
     version("19.11", sha256="8ebd1dcce98fc3f554f96e54e34f1e8ad566c601196ee68153763b6c0a04c7b9")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("mpi", default=False, description="Build with mpi support.")
 
     depends_on("hdf5")

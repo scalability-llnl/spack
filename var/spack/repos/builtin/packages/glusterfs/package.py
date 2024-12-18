@@ -25,6 +25,8 @@ class Glusterfs(AutotoolsPackage):
     version("6.8", sha256="41e855bdc456759c8c15ef494c636a25cc7b62c55ad132ecd55bec05df64793f")
     version("6.7", sha256="e237dd59a2d5b73e156b0b71df49ff64a143b3aaf8f0a65daaf369bb40f5e923")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("m4", type="build")
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

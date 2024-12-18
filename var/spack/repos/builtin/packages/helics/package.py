@@ -23,6 +23,7 @@ class Helics(CMakePackage):
     version("develop", branch="develop", submodules=True)
     version("main", branch="main", submodules=True)
     version("master", branch="main", submodules=True)
+    version("3.5.3", sha256="f9ace240510b18caf642f55d08f9009a9babb203fbc032ec7d7d8aa6fd5e1553")
     version("3.5.2", sha256="c2604694698a1e33c4a68f3d1c5ab0a228ef2bfca1b0d3bae94801dbd3b11048")
     version("3.5.1", sha256="546fc6e6a85de6ba841e4bd547b811cc81a67a22be5e212ccb54be139d740555")
     version("3.5.0", sha256="0c02ebaecf3d4ead7911e13325b26706f1e4b316ca51ec609e969e18ec584b78")
@@ -48,6 +49,9 @@ class Helics(CMakePackage):
     version("2.5.0", sha256="6f4f9308ebb59d82d71cf068e0d9d66b6edfa7792d61d54f0a61bf20dd2a7428")
     version("2.4.2", sha256="957856f06ed6d622f05dfe53df7768bba8fe2336d841252f5fac8345070fa5cb")
     version("2.4.1", sha256="ac077e9efe466881ea366721cb31fb37ea0e72a881a717323ba4f3cdda338be4")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("apps", default=True, description="Install the HELICS apps executables")
     variant("apps_lib", default=True, description="Install the HELICS apps library")
@@ -138,7 +142,9 @@ class Helics(CMakePackage):
 
         # HELICS shared library options
         args.append(
-            "-DHELICS_DISABLE_C_SHARED_LIB={0}".format("OFF" if "+c_shared" in spec else "ON")
+            "-DHELICS_DISABLE_C_SHARED_LIB={0}".format(
+                "OFF" if spec.satisfies("+c_shared") else "ON"
+            )
         )
         args.append(from_variant("HELICS_BUILD_CXX_SHARED_LIB", "cxx_shared"))
 
@@ -146,13 +152,17 @@ class Helics(CMakePackage):
         args.append(from_variant("HELICS_BUILD_APP_EXECUTABLES", "apps"))
         args.append(from_variant("HELICS_BUILD_APP_LIBRARY", "apps_lib"))
         args.append(
-            "-DHELICS_DISABLE_WEBSERVER={0}".format("OFF" if "+webserver" in spec else "ON")
+            "-DHELICS_DISABLE_WEBSERVER={0}".format(
+                "OFF" if spec.satisfies("+webserver") else "ON"
+            )
         )
         args.append(from_variant("HELICS_BUILD_BENCHMARKS", "benchmarks"))
 
         # Extra HELICS library dependencies
-        args.append("-DHELICS_DISABLE_BOOST={0}".format("OFF" if "+boost" in spec else "ON"))
-        args.append("-DHELICS_DISABLE_ASIO={0}".format("OFF" if "+asio" in spec else "ON"))
+        args.append(
+            "-DHELICS_DISABLE_BOOST={0}".format("OFF" if spec.satisfies("+boost") else "ON")
+        )
+        args.append("-DHELICS_DISABLE_ASIO={0}".format("OFF" if spec.satisfies("+asio") else "ON"))
 
         # Encryption
         args.append(from_variant("HELICS_ENABLE_ENCRYPTION", "encryption"))
@@ -174,5 +184,5 @@ class Helics(CMakePackage):
 
     def setup_run_environment(self, env):
         spec = self.spec
-        if "+python" in spec:
+        if spec.satisfies("+python"):
             env.prepend_path("PYTHONPATH", self.prefix.python)

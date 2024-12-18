@@ -19,6 +19,8 @@ class I3(AutotoolsPackage):
 
     version("4.14.1", sha256="28d8102d656f17445a6e1523b12c1a730cc3925a520add1f75b56b9c842932f9")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

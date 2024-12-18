@@ -20,6 +20,8 @@ class Pandoc(Package):
     # the challenges with Haskell. Until the Haskell framework is in Spack this
     # package will meet the needs of packages that have a dependency on pandoc.
 
+    skip_version_audit = ["platform=windows"]
+
     if platform.system() == "Linux" and platform.machine() == "aarch64":
         url = "https://github.com/jgm/pandoc/releases/download/2.14.0.3/pandoc-2.14.0.3-linux-arm64.tar.gz"
         version(

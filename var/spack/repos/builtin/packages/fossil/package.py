@@ -26,4 +26,7 @@ class Fossil(AutotoolsPackage):
         sha256="300c1d5cdd6224ec6e8c88ab3f38d50f80e4071b503731b75bd61274cf310733",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("openssl")

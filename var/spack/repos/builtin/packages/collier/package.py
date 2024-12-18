@@ -32,6 +32,8 @@ class Collier(CMakePackage):
     version("1.1", sha256="80fd54e2c30029d3d7d646738ae9469ad3a6f5ea7aa1179b951030df048e36bc")
     version("1.0", sha256="54f40c1ed07a6829230af400abfe48791e74e56eac2709c0947cec3410a4473d")
 
+    depends_on("fortran", type="build")  # generated
+
     @property
     def parallel(self):
         return not self.spec.satisfies("@:1.2.4")

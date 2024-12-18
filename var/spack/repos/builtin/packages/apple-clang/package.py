@@ -2,12 +2,11 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import re
-
 from spack.package import *
+from spack.pkg.builtin.llvm import LlvmDetection
 
 
-class AppleClang(BundlePackage):
+class AppleClang(BundlePackage, LlvmDetection, CompilerPackage):
     """Apple's Clang compiler"""
 
     homepage = "https://developer.apple.com/videos/developer-tools/compiler-and-llvm"
@@ -15,44 +14,8 @@ class AppleClang(BundlePackage):
 
     maintainers("alalazo")
 
-    executables = ["^clang$", r"^clang\+\+$", "^ld.lld$", "^lldb$"]
-
-    @classmethod
-    def determine_version(cls, exe):
-        version_regex = re.compile(
-            # Apple's LLVM compiler has its own versions, which are
-            # different from vanilla LLVM
-            r"^Apple (?:LLVM|clang) version ([^ )]+)",
-            # Multi-line, since 'Apple clang' may not be on the first line
-            # in particular, when run as gcc, it seems to output
-            # "Configured with: --prefix=..." as the first line
-            re.M,
-        )
-        try:
-            compiler = Executable(exe)
-            output = compiler("--version", output=str, error=str)
-            match = version_regex.search(output)
-            if match:
-                return match.group(match.lastindex)
-        except Exception:
-            pass
-
-        return None
-
-    @classmethod
-    def determine_variants(cls, exes, version_str):
-        compilers = {}
-        for exe in exes:
-            if "clang++" in exe:
-                compilers["cxx"] = exe
-            elif "clang" in exe:
-                compilers["c"] = exe
-            elif "ld.lld" in exe:
-                compilers["ld"] = exe
-            elif "lldb" in exe:
-                compilers["lldb"] = exe
-
-        return "", {"compilers": compilers}
+    compiler_languages = ["c", "cxx"]
+    compiler_version_regex = r"^Apple (?:LLVM|clang) version ([^ )]+)"
 
     @classmethod
     def validate_detected_spec(cls, spec, extra_attributes):

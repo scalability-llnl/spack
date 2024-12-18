@@ -35,6 +35,8 @@ class Lbann(CachedCMakePackage, CudaPackage, ROCmPackage):
         deprecated=True,
     )
 
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "build_type",
         default="Release",
@@ -224,7 +226,7 @@ class Lbann(CachedCMakePackage, CudaPackage, ROCmPackage):
     depends_on("python@3: +shared", type=("build", "run"), when="+pfe")
     extends("python", when="+pfe")
     depends_on("py-setuptools", type="build", when="+pfe")
-    depends_on("py-protobuf+cpp@3.10.0:4.21.12", type=("build", "run"), when="+pfe")
+    depends_on("py-protobuf@3.10.0:4.21.12", type=("build", "run"), when="+pfe")
 
     depends_on("protobuf@3.10.0:3.21.12")
     depends_on("zlib-api", when="^protobuf@3.11.0:")
@@ -264,7 +266,7 @@ class Lbann(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     @property
     def libs(self):
-        shared = True if "+shared" in self.spec else False
+        shared = True if self.spec.satisfies("+shared") else False
         return find_libraries("liblbann", root=self.prefix, shared=shared, recursive=True)
 
     @property
@@ -284,7 +286,7 @@ class Lbann(CachedCMakePackage, CudaPackage, ROCmPackage):
         spec = self.spec
         entries = super().initconfig_compiler_entries()
         entries.append(cmake_cache_string("CMAKE_CXX_STANDARD", "17"))
-        entries.append(cmake_cache_option("BUILD_SHARED_LIBS", "+shared" in spec))
+        entries.append(cmake_cache_option("BUILD_SHARED_LIBS", spec.satisfies("+shared")))
         if not spec.satisfies("^cmake@3.23.0"):
             # There is a bug with using Ninja generator in this version
             # of CMake
@@ -296,7 +298,7 @@ class Lbann(CachedCMakePackage, CudaPackage, ROCmPackage):
         entries.append(cmake_cache_string("CMAKE_SHARED_LINKER_FLAGS", linker_flags))
 
         # Use lld high performance linker
-        if "+lld" in spec:
+        if spec.satisfies("+lld"):
             entries.append(
                 cmake_cache_string(
                     "CMAKE_EXE_LINKER_FLAGS", "{0} -fuse-ld=lld".format(linker_flags)
@@ -309,7 +311,7 @@ class Lbann(CachedCMakePackage, CudaPackage, ROCmPackage):
             )
 
         # Use gold high performance linker
-        if "+gold" in spec:
+        if spec.satisfies("+gold"):
             entries.append(
                 cmake_cache_string(
                     "CMAKE_EXE_LINKER_FLAGS", "{0} -fuse-ld=gold".format(linker_flags)
@@ -338,7 +340,7 @@ class Lbann(CachedCMakePackage, CudaPackage, ROCmPackage):
         spec = self.spec
         entries = super().initconfig_hardware_entries()
 
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             if self.spec.satisfies("%clang"):
                 for flag in self.spec.compiler_flags["cxxflags"]:
                     if "gcc-toolchain" in flag:
@@ -356,10 +358,6 @@ class Lbann(CachedCMakePackage, CudaPackage, ROCmPackage):
                 entries.append(
                     cmake_cache_string("CMAKE_CUDA_FLAGS", "-allow-unsupported-compiler")
                 )
-
-        if "+rocm" in spec:
-            if "platform=cray" in spec:
-                entries.append(cmake_cache_option("MPI_ASSUME_NO_BUILTIN_MPI", True))
 
         return entries
 
@@ -395,19 +393,17 @@ class Lbann(CachedCMakePackage, CudaPackage, ROCmPackage):
         entries.append(cmake_cache_option("LBANN_WITH_ALUMINUM", True))
         entries.append(cmake_cache_option("LBANN_WITH_CONDUIT", True))
         entries.append(cmake_cache_option("LBANN_WITH_HWLOC", True))
-        entries.append(cmake_cache_option("LBANN_WITH_ROCTRACER", "+rocm +distconv" in spec))
+        entries.append(
+            cmake_cache_option("LBANN_WITH_ROCTRACER", spec.satisfies("+rocm +distconv"))
+        )
         entries.append(cmake_cache_option("LBANN_WITH_TBINF", False))
         entries.append(
             cmake_cache_string("LBANN_DATATYPE", "{0}".format(spec.variants["dtype"].value))
         )
         entries.append(cmake_cache_option("protobuf_MODULE_COMPATIBLE", True))
 
-        if spec.satisfies("^python") and "+pfe" in spec:
-            entries.append(
-                cmake_cache_path(
-                    "LBANN_PFE_PYTHON_EXECUTABLE", "{0}/python3".format(spec["python"].prefix.bin)
-                )
-            )
+        if spec.satisfies("+pfe ^python"):
+            entries.append(cmake_cache_path("LBANN_PFE_PYTHON_EXECUTABLE", python.path))
             entries.append(
                 cmake_cache_string("LBANN_PFE_PYTHONPATH", env["PYTHONPATH"])
             )  # do NOT need to sub ; for : because

@@ -28,6 +28,8 @@ class Kadath(CMakePackage):
 
     version("fuka", branch="fuka")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("mpi", default=True, description="Enable MPI support")
 
     variant(

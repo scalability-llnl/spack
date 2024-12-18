@@ -41,6 +41,8 @@ class RSva(RPackage):
     version("3.26.0", commit="3cc5e75413c35ed5511892f5c36a8b5cb454937e")
     version("3.24.4", commit="ed2ebb6e33374dc9ec50e6ea97cc1d9aef836c73")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@3.2:", type=("build", "run"))
     depends_on("r-mgcv", type=("build", "run"))
     depends_on("r-genefilter", type=("build", "run"))

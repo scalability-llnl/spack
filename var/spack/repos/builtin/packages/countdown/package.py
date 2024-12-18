@@ -21,6 +21,8 @@ class Countdown(CMakePackage, CudaPackage):
 
     version("1.1.1", sha256="ee7f00ffc047f000a21a7a71f6ea6f4049afb1a8407608adc04993929ceba917")
 
+    depends_on("c", type="build")  # generated
+
     variant(
         "acc_mpi",
         default=True,

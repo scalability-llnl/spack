@@ -41,7 +41,7 @@ class NfWaveCli(Package):
                 url="https://github.com/seqeralabs/wave-cli/releases/download/v1.1.3/wave-1.1.3-linux-x86_64",
                 expand=False,
             )
-    elif platform.machine() == "aarch64":
+    elif platform.machine() == "arm64":
         if platform.system() == "Darwin":
             version(
                 "1.2.0",

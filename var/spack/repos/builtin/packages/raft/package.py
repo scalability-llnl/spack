@@ -18,6 +18,8 @@ class Raft(CMakePackage):
     version("develop", branch="master")
     version("1.2.3", sha256="c41630e74491c8db272dcf4707e9b11cdcb226c0b7e978ca6eba8006f47bdae6")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("mpi")
     depends_on("cmake", type="build")
     depends_on("hdf5")

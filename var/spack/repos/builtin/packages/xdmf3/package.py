@@ -22,6 +22,10 @@ class Xdmf3(CMakePackage):
     # but the current version, 3.x, is maintained on the master branch.
     version("2019-01-14", commit="8d9c98081d89ac77a132d56bc8bef53581db4078")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("shared", default=True, description="Enable shared libraries")
     variant("mpi", default=True, description="Enable MPI")
 

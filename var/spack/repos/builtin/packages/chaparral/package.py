@@ -19,6 +19,8 @@ class Chaparral(CMakePackage):
     version("develop", branch="truchas")
     version("2020-08-28", commit="c8a190bb74ef33ad8b2f7b67d20590f393fde32a", preferred=True)
 
+    depends_on("c", type="build")  # generated
+
     variant("shared", default=True, description="Build shared library")
     variant("mpi", default=True, description="Build parallel library")
 

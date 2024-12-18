@@ -16,6 +16,10 @@ class Sicm(CMakePackage):
 
     version("master")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("jemalloc jemalloc_prefix=je_")
     depends_on("numactl")
 

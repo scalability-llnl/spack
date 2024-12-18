@@ -8,9 +8,8 @@ from spack.package import *
 
 
 class Pandoramonitoring(CMakePackage):
-    """Metadata package to bring together and build multiple Pandora libraries.
-    NOTE: for proper version control with spack, this should be broken up and
-    the subpackages installed individually."""
+    """ROOT-based Event Visualisation Environment for Pandora with
+    tree-writing functionality"""
 
     url = "https://github.com/PandoraPFA/PandoraMonitoring/archive/v03-04-00.tar.gz"
     homepage = "https://github.com/PandoraPFA/PandoraMonitoring"
@@ -22,6 +21,8 @@ class Pandoramonitoring(CMakePackage):
 
     version("master", branch="master")
     version("3.5.0", sha256="274562abb7c797194634d5460a56227444a1de07a240c88ae35ca806abcbaf60")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("root@6.18.04: +x +opengl")
     depends_on("pandorasdk")

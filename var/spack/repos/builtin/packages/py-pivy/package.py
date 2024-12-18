@@ -16,6 +16,8 @@ class PyPivy(PythonPackage):
 
     version("0.6.8", sha256="c443dd7dd724b0bfa06427478b9d24d31e0c3b5138ac5741a2917a443b28f346")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("coin3d")
     depends_on("py-setuptools", type="build")
     depends_on("cmake@3.18:", type="build")

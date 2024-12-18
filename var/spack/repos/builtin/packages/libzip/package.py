@@ -36,6 +36,9 @@ class Libzip(CMakePackage, AutotoolsPackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     def url_for_version(self, version):
         if version < Version("1.6"):
             return f"https://libzip.org/download/libzip-{version}.tar.gz"

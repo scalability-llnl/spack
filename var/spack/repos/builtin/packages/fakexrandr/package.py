@@ -15,6 +15,8 @@ class Fakexrandr(MakefilePackage):
 
     version("master", branch="master")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libxrandr")
     depends_on("libxinerama")
     depends_on("libx11")

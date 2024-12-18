@@ -16,7 +16,7 @@ spack:
     boost:
       variants: +python +filesystem +iostreams +system
     elfutils:
-      variants: +bzip2 ~nls +xz
+      variants: ~nls
     hdf5:
       variants: +fortran +hl +shared
     libfabric:
@@ -31,7 +31,7 @@ spack:
       variants: threads=openmp
     paraview:
       # Don't build GUI support or GLX rendering for HPC/container deployments
-      require: "@5.11 ~qt+osmesa"
+      require: "@5.11 ~qt ^[virtuals=gl] osmesa"
     trilinos:
       require: +amesos +amesos2 +anasazi +aztec +boost +epetra +epetraext
         +ifpack +intrepid +intrepid2 +isorropia +kokkos +ml +minitensor +muelu

@@ -18,6 +18,8 @@ class Mshadow(Package):
     version("master", branch="master")
     version("20170721", commit="20b54f068c1035f0319fa5e5bbfb129c450a5256")
 
+    depends_on("cxx", type="build")  # generated
+
     def install(self, spec, prefix):
         install_tree("mshadow", prefix.include.mshadow)
         install_tree("make", prefix.make)

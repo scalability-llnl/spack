@@ -33,6 +33,9 @@ class Flex(AutotoolsPackage):
     version("2.6.0", sha256="cde6e46064a941a3810f7bbc612a2c39cb3aa29ce7eb775089c2515d0adfa7e9")
     version("2.5.39", sha256="258d3c9c38cae05932fb470db58b6a288a361c448399e6bda2694ef72a76e7cd")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("nls", default=False, description="Enable native language support")
     variant("lex", default=True, description="Provide symlinks for lex and libl")
 
@@ -62,11 +65,10 @@ class Flex(AutotoolsPackage):
 
     def flag_handler(self, name, flags):
         spec = self.spec
-        iflags = []
         if name == "cflags":
             if spec.satisfies("%oneapi"):
-                iflags.append("-Wno-error=implicit-function-declaration")
-        return (iflags, None, None)
+                flags.append("-Wno-error=implicit-function-declaration")
+        return (flags, None, None)
 
     @classmethod
     def determine_version(cls, exe):

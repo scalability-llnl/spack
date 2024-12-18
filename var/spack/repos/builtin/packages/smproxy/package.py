@@ -16,6 +16,8 @@ class Smproxy(AutotoolsPackage, XorgPackage):
     version("1.0.7", sha256="aabd5e644512442da2bca1ce65ccee403b760a08e354b3474753ed36033e3d21")
     version("1.0.6", sha256="a01374763426a5fdcbc7a65edc54e2070cdbca4df41dddd3051c7586e4c814c9")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libsm")
     depends_on("libice")
     depends_on("libxt")

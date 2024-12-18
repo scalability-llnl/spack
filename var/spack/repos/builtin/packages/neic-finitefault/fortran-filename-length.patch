@@ -1,0 +1,370 @@
+diff --git a/fortran_code/bin_inversion_gfortran_f95/docs/src/retrieve_gf.f95 b/fortran_code/bin_inversion_gfortran_f95/docs/src/retrieve_gf.f95
+index a87100b..658decf 100644
+--- a/fortran_code/bin_inversion_gfortran_f95/docs/src/retrieve_gf.f95
++++ b/fortran_code/bin_inversion_gfortran_f95/docs/src/retrieve_gf.f95
+@@ -139,9 +139,9 @@ contains
+    real omega, block, lat_e, lon_e, lat_s(nnsta), lon_s(nnsta), dt, depth, &
+    &  weig, df, dt_sample, w, tlen
+    complex z0, z
+-   character(len=80) path
++   character(len=255) path
+    character(len=6) sta_name(nnsta)
+-   character(len=80) filename
++   character(len=255) filename
+    character(len=3) component(nnsta), comp
+    
+    z0 = cmplx(0.0, 0.0)
+@@ -244,9 +244,9 @@ contains
+    real omega, block, lat_e, lon_e, lat_s(nnsta), lon_s(nnsta), dt, depth, &
+    &  weig, df, dt_sample, w, low_freq, tlen
+    complex z0, z
+-   character(len=80) path
++   character(len=255) path
+    character(len=6) sta_name(nnsta)
+-   character(len=80) filename
++   character(len=255) filename
+    character(len=3) component(nnsta), comp
+ 
+    z0 = cmplx(0.0, 0.0)
+@@ -572,8 +572,8 @@ contains
+    complex :: kahan_y, kahan_t, kahan_c
+    complex sour_sub(npth), green_s(inptd, 10), www, wss, z0
+ 
+-   character(len=250) modes
+-   character(len=100) surf_gf_bank
++   character(len=255) modes
++   character(len=255) surf_gf_bank
+    character(len=6) sta_name(nnsta)
+ 
+    z0 = cmplx(0.0, 0.0)
+@@ -776,9 +776,9 @@ contains
+    &  gf_imag(inptd), h, time, tsub(nnxy_m), a
+    complex z0, z, sour_sub(npth)
+    complex :: kahan_y, kahan_t, kahan_c
+-   character(len=80) path
++   character(len=255) path
+    character(len=6) sta_name(nnsta)
+-   character(len=80) filename
++   character(len=255) filename
+    
+    z0 = cmplx(0.0, 0.0)
+    n_chan3 = 0
+diff --git a/fortran_code/bin_inversion_gfortran_f95/docs/src/retrieve_surf_gf.f95 b/fortran_code/bin_inversion_gfortran_f95/docs/src/retrieve_surf_gf.f95
+index 6123151..416d81d 100644
+--- a/fortran_code/bin_inversion_gfortran_f95/docs/src/retrieve_surf_gf.f95
++++ b/fortran_code/bin_inversion_gfortran_f95/docs/src/retrieve_surf_gf.f95
+@@ -15,8 +15,8 @@ contains
+ 
+    subroutine get_surf_gf_data(gf_file, gf_bank)
+    implicit none
+-   character(len=100), intent(in) :: gf_file
+-   character(len=100), intent(out) :: gf_bank
++   character(len=255), intent(in) :: gf_file
++   character(len=255), intent(out) :: gf_bank
+    integer :: int2, int3, int4
+    open(1, file=gf_file)
+    read(1, *) npt_bank, dt_bank, int2, int3, int4, nfmax, nblock2
+@@ -36,7 +36,7 @@ contains
+    !!  Load to memory GF bank, from a specified location. 
+    !!
+    implicit none
+-   character(len=100) :: gf_bank
++   character(len=255) :: gf_bank
+    real :: d_min, d_max, z_min, z_max
+    integer :: nx_b, nx_e, nz_b, nz_e, ixx, izz
+    integer :: index_rec
+diff --git a/fortran_code/bin_inversion_gfortran_f95/get_stations_data.f95 b/fortran_code/bin_inversion_gfortran_f95/get_stations_data.f95
+index e47dea1..e6bd2d7 100755
+--- a/fortran_code/bin_inversion_gfortran_f95/get_stations_data.f95
++++ b/fortran_code/bin_inversion_gfortran_f95/get_stations_data.f95
+@@ -153,8 +153,8 @@ contains
+    &  n_wave_weight, stations, channels0, int1, int2, used_channels
+    real dt, weig(max_stations), wavelet_weight0(11), dt_sample, lat_s, lon_s
+    logical, parameter :: dart = .False.
+-   character(len=20) filename, string2, string1
+-   character(len=30) event_file, channels_file, wavelets_file, waveforms_file
++   character(len=255) filename, string2, string1
++   character(len=255) event_file, channels_file, wavelets_file, waveforms_file
+    logical :: is_file, strong, cgps
+ !   character(len=6) sta_name(max_stations)
+ !   character(len=3) component(max_stations)
+@@ -258,7 +258,7 @@ contains
+    real lat_sta, lon_sta, wavelet_weight0(11), dt, & 
+    &  rang, az, angle, float1, float2
+    logical, parameter :: cgps=.False., dart = .False.
+-   character(len=20) filename, string1, string2
++   character(len=255) filename, string1, string2
+    character(len=30) event_file
+    character(len=6)  earth, sttyp 
+    character(len=14) fname
+@@ -361,10 +361,10 @@ contains
+    &  weig(max_stations, 3), wavelet_weight0(11), dt_sample, &
+    &  dip, rake, theta
+    logical, parameter :: cgps=.False., dart=.False.
+-   character(len=20) filename, string1, string2
++   character(len=255) filename, string1, string2
+    character(len=30) event_file
+ !   character(len=6) sta_name(max_stations)
+-   character(len=250) modes
++   character(len=255) modes
+    logical :: is_file
+ 
+    write(*,*)'Get stations metadata and waveforms for long period surface waves...'
+@@ -469,7 +469,7 @@ contains
+    &  n_wave_weight, stations, channels0, int1, int2, used_channels
+    real :: lat_s, lon_s, dt, weig(max_stations), wavelet_weight0(11), dt_sample
+    logical, parameter :: cgps=.False., dart=.True.
+-   character(len=20) filename
++   character(len=255) filename
+ !   character(len=6) sta_name(max_stations)
+ !   character(len=3) component(max_stations)
+ 
+@@ -544,7 +544,7 @@ contains
+    integer first, channel, i, j, channels0
+    real :: dto
+    character(len=40) string
+-   character(len=20) filename
++   character(len=255) filename
+   
+    filename = trim(filename)
+    open(13, file=filename, status='old')
+diff --git a/fortran_code/bin_inversion_gfortran_f95/retrieve_gf.f95 b/fortran_code/bin_inversion_gfortran_f95/retrieve_gf.f95
+index b37efeb..a47ffcd 100755
+--- a/fortran_code/bin_inversion_gfortran_f95/retrieve_gf.f95
++++ b/fortran_code/bin_inversion_gfortran_f95/retrieve_gf.f95
+@@ -116,7 +116,7 @@ contains
+    &  l, k, event
+    real :: omega, factor, start, dt, df, dt_sample, tlen
+    complex :: z0, z
+-   character(len=80) filename, filename2
++   character(len=255) filename, filename2
+    character(len=3) comp
+    character(len=1) channel2
+    character(len=2) event2
+@@ -414,8 +414,8 @@ contains
+    complex :: kahan_y, kahan_t, kahan_c
+    complex start(wave_pts), green_s(wave_pts2, 10), green_dip0, green_stk0, z0
+ 
+-   character(len=250) modes
+-   character(len=100) surf_gf_bank
++   character(len=255) modes
++   character(len=255) surf_gf_bank
+    character(len=6) sta_name1
+    logical :: many_events
+ 
+@@ -632,7 +632,7 @@ contains
+    &  k, l, etc
+    real :: omega, dt, df, dt_sample, start, tlen, real1, imag1, time
+    complex :: z0, z
+-   character(len=80) filename
++   character(len=255) filename
+    
+    write(*,*)'Store DART GF in memory...'
+    z0 = cmplx(0.0, 0.0)
+diff --git a/fortran_code/bin_inversion_gfortran_f95/retrieve_surf_gf.f95 b/fortran_code/bin_inversion_gfortran_f95/retrieve_surf_gf.f95
+index e07e1f3..bfc5250 100755
+--- a/fortran_code/bin_inversion_gfortran_f95/retrieve_surf_gf.f95
++++ b/fortran_code/bin_inversion_gfortran_f95/retrieve_surf_gf.f95
+@@ -20,8 +20,8 @@ contains
+ !  gf_bank: location of GF bank
+ !
+    implicit none
+-   character(len=100), intent(in) :: gf_file
+-   character(len=100), intent(out) :: gf_bank
++   character(len=255), intent(in) :: gf_file
++   character(len=255), intent(out) :: gf_bank
+    integer :: int2, int3, int4
+    open(1, file=gf_file, status='old')
+    read(1, *) npt_bank, dt_bank, int2, int3, int4, nfmax, nblock2
+@@ -71,7 +71,7 @@ contains
+ !  z_max: maximum depth to get GF from Gf bank
+ !
+    implicit none
+-   character(len=100) :: gf_bank
++   character(len=255) :: gf_bank
+    real :: d_min, d_max, z_min, z_max
+    integer :: nx_b, nx_e, nz_b, nz_e, ixx, izz
+    integer :: index_rec
+diff --git a/fortran_code/bin_inversion_gfortran_f95/save_forward.f95 b/fortran_code/bin_inversion_gfortran_f95/save_forward.f95
+index 987b115..b626166 100755
+--- a/fortran_code/bin_inversion_gfortran_f95/save_forward.f95
++++ b/fortran_code/bin_inversion_gfortran_f95/save_forward.f95
+@@ -114,7 +114,7 @@ contains
+    real*8 t1, t2, df
+    complex forward(wave_pts2), z0, z
+    complex :: source2(wave_pts, max_rise_time_range, max_rise_time_range)
+-   character(len=70) filename, filename2
++   character(len=255) filename, filename2
+    character(len=3) comp!component(max_stations), comp
+    logical :: strong, cgps
+ 
+diff --git a/fortran_code/bin_inversion_gfortran_f95/static_data.f95 b/fortran_code/bin_inversion_gfortran_f95/static_data.f95
+index 9e5bc3a..28e9085 100755
+--- a/fortran_code/bin_inversion_gfortran_f95/static_data.f95
++++ b/fortran_code/bin_inversion_gfortran_f95/static_data.f95
+@@ -52,7 +52,7 @@ contains
+    real :: cosal, sinal, angle
+    real*8 :: disp
+    logical is_file, is_file2, many_events
+-   character(len=30) :: event_file, string1, string2
++   character(len=255) :: event_file, string1, string2
+ !
+    inquire( file = 'static_data.txt', exist = is_file )
+    if (is_file) then 
+diff --git a/fortran_code/bin_str_f95/get_stations_data.f95 b/fortran_code/bin_str_f95/get_stations_data.f95
+index 49e5788..a43990c 100755
+--- a/fortran_code/bin_str_f95/get_stations_data.f95
++++ b/fortran_code/bin_str_f95/get_stations_data.f95
+@@ -66,7 +66,7 @@ contains
+    &  n_wave_weight, ir_max, n_chan, &
+    &  nos(nnsta), io_mod(nnsta), n_chan3
+    real dt, weig(nnsta), j_wig(11), dt_sample, lat_s, lon_s
+-   character(len=20) filename
++   character(len=255) filename
+ !   character(len=6) sta_name(nnsta)
+ !   character(len=3) component(nnsta)
+ 
+@@ -144,7 +144,7 @@ contains
+    &  n_wave_weight, ir_max, n_chan, &
+    &  nos(nnsta), io_mod(nnsta), n_chan3
+    real :: lat_s, lon_s, dt, weig(nnsta), j_wig(11), dt_sample
+-   character(len=20) filename
++   character(len=255) filename
+ !   character(len=6) sta_name(nnsta)
+ !   character(len=3) component(nnsta)
+ 
+@@ -221,7 +221,7 @@ contains
+    &  nos, n_chan3, idts, nstaon, love, int1
+    real lat_sta, lon_sta, j_wig(11), dt, & 
+    &  rang, az, earth_angle, disp_or_vel(nnsta), float1, float2
+-   character(len=20) filename
++   character(len=255) filename
+    character(len=6)  earth, sttyp 
+    character(len=14) fname
+ 
+@@ -303,9 +303,9 @@ contains
+    real lat_s(nnsta), lon_s(nnsta), dt, &
+    &  ang_ns(nnsta), ang_ew(nnsta), weig(nnsta, 3), j_wig(11), dt_sample, &
+    &  dip, rake, theta
+-   character(len=20) filename
++   character(len=255) filename
+ !   character(len=6) sta_name(nnsta)
+-   character(len=250) modes
++   character(len=255) modes
+ 
+    n_chan3 = 0
+ !
+@@ -401,7 +401,7 @@ contains
+    integer ll_in, ll_out, ll_g, j_con(11), k, ir, no, &
+    &  n_wave_weight, ir_max, n_chan, nos, io_mod, n_chan3
+    real :: lat_s, lon_s, dt, weig(nnsta), j_wig(11), dt_sample
+-   character(len=20) filename
++   character(len=255) filename
+ !   character(len=6) sta_name(nnsta)
+ !   character(len=3) component(nnsta)
+ 
+@@ -476,7 +476,7 @@ contains
+    real cr(inptd), cz(inptd), obser(n_data), &
+    &  dto, amp_max, obse(n_data, nnsta)
+    character(len=40) string
+-   character(len=20) filename
++   character(len=255) filename
+   
+    filename = trim(filename)
+    open(13, file=filename, status='old')
+diff --git a/fortran_code/bin_str_f95/get_strong_motion.f95 b/fortran_code/bin_str_f95/get_strong_motion.f95
+index ff6f158..b13e734 100755
+--- a/fortran_code/bin_str_f95/get_strong_motion.f95
++++ b/fortran_code/bin_str_f95/get_strong_motion.f95
+@@ -14,10 +14,10 @@ program get_strong_motion
+    use bpfilter, only : bandpassfilter
+    use rad_pattern, only : rad_coef
+    implicit none
+-   character(len=100) :: vel_model, gf_file, vel_file, gf_bank, filter_file, wave_file, stat_file
++   character(len=255) :: vel_model, gf_file, vel_file, gf_bank, filter_file, wave_file, stat_file
+    character(len=70) :: string1, input
+-   character(len=200) :: directory,filterfile,risetimefile,pointsourcefile
+-   character(len=200) :: channelsfile,waveformsfile,responsefile
++   character(len=255) :: directory,filterfile,risetimefile,pointsourcefile
++   character(len=255) :: channelsfile,waveformsfile,responsefile
+    character(len=10) :: sta_name(200)
+    character(len=12) :: filename
+    character(len=3) :: comp
+diff --git a/fortran_code/bin_str_f95/retrieve_gf.f95 b/fortran_code/bin_str_f95/retrieve_gf.f95
+index 6a80593..fac8795 100755
+--- a/fortran_code/bin_str_f95/retrieve_gf.f95
++++ b/fortran_code/bin_str_f95/retrieve_gf.f95
+@@ -22,8 +22,8 @@ contains
+ !  vel_model: file with velocity model
+ !
+    implicit none
+-   character(len=100), intent(in) :: gf_file
+-   character(len=100), intent(out) :: vel_model, gf_bank
++   character(len=255), intent(in) :: gf_file
++   character(len=255), intent(out) :: vel_model, gf_bank
+    open(1, file=gf_file, status='old')
+    read(1, *)vel_model
+    read(1, *)dep_max, dep_min, dep_step
+@@ -44,7 +44,7 @@ contains
+ !  z_max: maximum depth of point sources
+ !
+    implicit none
+-   character(len=100) :: gf_bank
++   character(len=255) :: gf_bank
+    real :: z_min, z_max
+    integer :: npt, nx_b, nx_e, nz_b, nz_e, ixx, izz
+    integer :: index_rec
+diff --git a/fortran_code/bin_str_f95/store_gf.f95 b/fortran_code/bin_str_f95/store_gf.f95
+index b544795..8b92bc7 100644
+--- a/fortran_code/bin_str_f95/store_gf.f95
++++ b/fortran_code/bin_str_f95/store_gf.f95
+@@ -81,7 +81,7 @@ contains
+ !  disp: True if data to be used is cGPS, False otherwise
+ !  
+    implicit none
+-   character(len=100) :: filter_file, wave_file, stat_file, event_file
++   character(len=255) :: filter_file, wave_file, stat_file, event_file
+    character(len=70) :: string1, string2
+    real :: lat_e, lon_e, dep_e
+    integer :: ir, no
+diff --git a/fortran_code/src_dc_f95/green_bank_fk.f95 b/fortran_code/src_dc_f95/green_bank_fk.f95
+index aed84e9..76db003 100644
+--- a/fortran_code/src_dc_f95/green_bank_fk.f95
++++ b/fortran_code/src_dc_f95/green_bank_fk.f95
+@@ -20,7 +20,7 @@ program green_bank_fk
+    integer iz, k, ll, n_com, nd_max, npt, ntc, nx, nz
+    logical :: disp
+ 
+-   character(len=100) gf_file, vel_model, gf_bank, input
++   character(len=255) gf_file, vel_model, gf_bank, input
+ !
+    call getarg(1, input)
+    disp = (input.eq.'cgps')
+diff --git a/fortran_code/src_dc_f95/green_bank_fk_openmp.f95 b/fortran_code/src_dc_f95/green_bank_fk_openmp.f95
+index 4d89e33..3f819b1 100644
+--- a/fortran_code/src_dc_f95/green_bank_fk_openmp.f95
++++ b/fortran_code/src_dc_f95/green_bank_fk_openmp.f95
+@@ -20,7 +20,7 @@ program green_bank_fk_openmp
+    integer iz, k, ll, n_com, nd_max, npt, ntc, nx, nz
+    logical :: disp
+ 
+-   character(len=100) gf_file, vel_model, gf_bank, input, directory
++   character(len=255) gf_file, vel_model, gf_bank, input, directory
+ !
+    call getarg(1, input)
+    call getarg(2, directory)
+diff --git a/fortran_code/src_dc_f95/retrieve_gf.f95 b/fortran_code/src_dc_f95/retrieve_gf.f95
+index 94191d6..555ec59 100755
+--- a/fortran_code/src_dc_f95/retrieve_gf.f95
++++ b/fortran_code/src_dc_f95/retrieve_gf.f95
+@@ -24,8 +24,8 @@ contains
+ !  gf_bank: location of GF bank
+ !
+    implicit none
+-   character(len=100), intent(in) :: gf_file
+-   character(len=100), intent(out) :: vel_model, gf_bank
++   character(len=255), intent(in) :: gf_file
++   character(len=255), intent(out) :: vel_model, gf_bank
+    open(1, file=gf_file, status='old')
+    read(1, *)vel_model
+    read(1, *)dep_max, dep_min, dep_step
