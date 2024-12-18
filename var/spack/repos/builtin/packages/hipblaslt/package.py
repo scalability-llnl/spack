@@ -68,8 +68,7 @@ class Hipblaslt(CMakePackage):
         env.set("CXX", self.spec["hip"].hipcc)
         if self.spec.satisfies("@6.3.0:"):
             env.set(
-                "TENSILE_ROCM_ASSEMBLER_PATH",
-                f"{self.spec['llvm-amdgpu'].prefix}/bin/clang++",
+                "TENSILE_ROCM_ASSEMBLER_PATH", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang++"
             )
             env.set(
                 "TENSILE_ROCM_OFFLOAD_BUNDLER_PATH",
