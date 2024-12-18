@@ -185,17 +185,11 @@ class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
             else:
                 args.append("--wheels=jaxlib")
 
-        buildtmp = tempfile.mkdtemp(prefix="spack")
-        tmp_path = tempfile.mkdtemp(prefix="spack")
-        args.extend(
-            [
-                "--bazel_options=--nohome_rc",
-                "--bazel_options=--nosystem_rc",
-                f"--bazel_options=--sources_path={tmp_path}",
-                f"--bazel_options=--jobs={make_jobs}",
-                f"--bazel_startup_options=--output_user_root={buildtmp}",
-            ]
-        )
+        if spec.satisfies("@0.4.32:"):
+            if spec.satisfies("%clang"):
+                args.append("--use_clang=true")
+            else:
+                args.append("--use_clang=false")
 
         if "+cuda" in spec:
             capabilities = CudaPackage.compute_capabilities(spec.variants["cuda_arch"].value)
@@ -220,15 +214,14 @@ class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
         if "+rocm" in spec:
             args.extend(["--enable_rocm", f"--rocm_path={self.spec['hip'].prefix}"])
 
-        if spec.satisfies("@0.4.32:"):
-            if spec.satisfies("%clang"):
-                args.append("--use_clang=true")
-            else:
-                args.append("--use_clang=false")
+        args.extend(
+            [
+                f"--bazel_options=--jobs={make_jobs}",
+                "--bazel_startup_options=--nohome_rc",
+                "--bazel_startup_options=--nosystem_rc",
+            ]
+        )
 
         python(*args)
         whl = glob.glob(join_path("dist", "*.whl"))[0]
         pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", whl)
-
-        remove_linked_tree(tmp_path)
-        remove_linked_tree(buildtmp)
