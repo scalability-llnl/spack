@@ -161,7 +161,7 @@ def activate(
     env_vars_yaml = env.manifest.configuration.get("env_vars", None)
     if env_vars_yaml:
         env_mods.extend(spack.schema.environment.parse(env_vars_yaml))
- 
+
     try:
         if view and env.has_view(view):
             with spack.store.STORE.db.read_transaction():
@@ -215,4 +215,3 @@ def deactivate() -> EnvironmentModifications:
     ev.deactivate()
 
     return env_mods
-
