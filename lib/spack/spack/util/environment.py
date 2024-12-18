@@ -643,6 +643,11 @@ class EnvironmentModifications:
             for modifier in actions:
                 modifier.execute(env)
 
+    # def cache_shell_modifications(
+    #   self,
+    #   shell: str = os.environ.get("SPACK_SHELL")
+    # )
+
     def shell_modifications(
         self,
         shell: str = "sh" if sys.platform != "win32" else os.environ.get("SPACK_SHELL", "bat"),

@@ -76,12 +76,6 @@ def setup_parser(subparser):
     )
 
 
-# Use this later for executing the cached shell script
-def read_script_and_execute(env_mod, variable, *paths):
-    for path in paths:
-        env_mod.prepend_path(variable, path)
-
-
 def load(parser, args):
     env = ev.active_environment()
 
@@ -114,7 +108,10 @@ def load(parser, args):
         for spec in specs:
             shell_script_path = os.path.join(spec.prefix, ".spack", f"{spec.name}_shell.{shell}")
 
+            # find out if shell script is outdated?
+            # read and execute shell script
+
             env_mod.prepend_path(uenv.spack_loaded_hashes_var, spec.dag_hash())
-            cmds = env_mod.shell_modifications(shell)
+        cmds = env_mod.shell_modifications(shell)
 
         sys.stdout.write(cmds)

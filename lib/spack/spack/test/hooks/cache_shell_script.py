@@ -16,7 +16,8 @@ install = SpackCommand("install")
 @pytest.mark.parametrize(
     "shell,set_command",
     (
-        [("bat", 'set "%s=%s"'), ("pwsh", "Set-Variable %s %s")]
+        [("sh", "export %s=%s"), ("csh", "setenv %s %s"), ("fish", "set %s %s"),
+         ("bat", 'set "%s=%s"'), ("pwsh", "Set-Variable %s %s")]
         if sys.platform == "win32"
         else [("sh", "export %s=%s"), ("csh", "setenv %s %s"), ("fish", "set %s %s")]
     ),
@@ -40,7 +41,8 @@ def test_install_shell_cached(
 @pytest.mark.parametrize(
     "shell,set_command",
     (
-        [("bat", 'set "%s=%s"'), ("pwsh", "Set-Variable %s %s")]
+        [("sh", "export %s=%s"), ("csh", "setenv %s %s"), ("fish", "set %s %s"),
+         ("bat", 'set "%s=%s"'), ("pwsh", "Set-Variable %s %s")]
         if sys.platform == "win32"
         else [("sh", "export %s=%s"), ("csh", "setenv %s %s"), ("fish", "set %s %s")]
     ),
@@ -76,7 +78,8 @@ def test_install_with_individual_shell_scripts(
 @pytest.mark.parametrize(
     "shell,set_command",
     (
-        [("bat", 'set "%s=%s"'), ("pwsh", "Set-Variable %s %s")]
+        [("sh", "export %s=%s"), ("csh", "setenv %s %s"), ("fish", "set %s %s"),
+         ("bat", 'set "%s=%s"'), ("pwsh", "Set-Variable %s %s")]
         if sys.platform == "win32"
         else [("sh", "export %s=%s"), ("csh", "setenv %s %s"), ("fish", "set %s %s")]
     ),
