@@ -64,7 +64,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
         args = [
             self.define_from_variant("USE_SCOTCH", "scotch"),
             self.define_from_variant("USE_VTK", "vtk"),
-            self.define_from_variant("MMG_INSTALL_PRIVATE_HEADERS", "private_headers")
+            self.define_from_variant("MMG_INSTALL_PRIVATE_HEADERS", "private_headers"),
             self.define("BUILD_SHARED_LIBS", shared_active),
             self.define("LIBMMG3D_SHARED", shared_active),
             self.define("LIBMMG2D_SHARED", shared_active),
