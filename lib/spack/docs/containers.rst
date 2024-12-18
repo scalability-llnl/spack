@@ -42,7 +42,7 @@ just have to configure and OCI registry and run ``spack buildcache push``.
                          --oci-password-variable REGISTRY_TOKEN \
                         container-registry oci://example.com/name/image
 
-   # Push the image (don't forget to set REGISTRY_USER and REGISTRY_TOKEN)
+   # Push the image (do set REGISTRY_USER and REGISTRY_TOKEN)
    spack -e . buildcache push --update-index --base-image ubuntu:22.04 --tag my_env container-registry
 
 The resulting container image can then be run as follows:
