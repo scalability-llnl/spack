@@ -16,6 +16,8 @@ class GtkorvoCercsEnv(CMakePackage):
     version("develop", branch="master")
     version("1.0", sha256="e4080a98c1af5003a038361c8bb343843665cac428101ac7d721bad8ba7d244e")
 
+    depends_on("c", type="build")  # generated
+
     def cmake_args(self):
         args = ["-DENABLE_TESTING=0", "-DENABLE_SHARED_STATIC=STATIC"]
         return args

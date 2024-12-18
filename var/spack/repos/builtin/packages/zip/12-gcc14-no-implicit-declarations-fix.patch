@@ -1,0 +1,71 @@
+diff --git a/unix/configure b/unix/configure
+index 6a3d1d9..148a6d6 100644
+--- a/unix/configure
++++ b/unix/configure
+@@ -509,17 +509,32 @@ $CC $CFLAGS -c conftest.c >/dev/null 2>/dev/null
+ # Check for missing functions
+ # add NO_'function_name' to flags if missing
+ 
+-for func in rmdir strchr strrchr rename mktemp mktime mkstemp
++for func_hdr in unistd/rmdir string/strchr string/strrchr stdio/renaae \
++                stdlib/mktemp time/mktime stdlib/mkstemp
+ do
+-  echo Check for $func
++  hdr=${func_hdr%/*}
++  func=${func_hdr#*/}
++  echo -n Check for $func
+   echo "int main(){ $func(); return 0; }" > conftest.c
+   $CC $BFLAG -o conftest conftest.c >/dev/null 2>/dev/null
+-  [ $? -ne 0 ] && CFLAGS="${CFLAGS} -DNO_`echo $func | tr '[a-z]' '[A-Z]'`"
+-done
++  if [ $? -ne 0 ] ; then
++    echo " ... in $hdr"
++    cat > conftest.c << _EOF_
++#include <$hdr.h>
++int main(){ $func(); return 0; }
++_EOF_
++     [ $? -ne 0 ] && CFLAGS="${CFLAGS} -DNO_`echo $func | tr '[a-z]' '[A-Z]'`" 
++  else
++    echo
++  fi
++ done
+ 
+ 
+ echo Check for memset
+-echo "int main(){ char k; memset(&k,0,0); return 0; }" > conftest.c
++cat > conftest.c << _EOF_
++#include <string.h>
++int main(){ char k; memset(&k,0,0); return 0; }
++_EOF_
+ $CC -o conftest conftest.c >/dev/null 2>/dev/null
+ [ $? -ne 0 ] && CFLAGS="${CFLAGS} -DZMEM"
+ 
+@@ -544,7 +559,7 @@ $CC -o conftest conftest.c >/dev/null 2>/dev/null
+ echo Check for errno declaration
+ cat > conftest.c << _EOF_
+ #include <errno.h>
+-main()
++int main()
+ {
+   errno = 0;
+   return 0;
+@@ -556,6 +571,7 @@ $CC $CFLAGS -c conftest.c >/dev/null 2>/dev/null
+ 
+ echo Check for directory libraries
+ cat > conftest.c << _EOF_
++#include <dirent.h>
+ int main() { return closedir(opendir(".")); }
+ _EOF_
+ 
+diff --git a/timezone.c b/timezone.c
+index 485ec02..325fd5a 100644
+--- a/timezone.c
++++ b/timezone.c
+@@ -39,6 +39,7 @@
+ 
+ #include "zip.h"
+ #include "timezone.h"
++#include <time.h>
+ #include <ctype.h>
+ #include <errno.h>
+ 

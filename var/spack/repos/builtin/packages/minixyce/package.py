@@ -19,6 +19,8 @@ class Minixyce(MakefilePackage):
 
     version("1.0", sha256="40e3b4ed5c65cb1d210e828460e99b755cac922a7e27e70c687d5bb6ed19a21b")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("mpi", default=True, description="Build with MPI Support")
 
     depends_on("mpi", when="+mpi")

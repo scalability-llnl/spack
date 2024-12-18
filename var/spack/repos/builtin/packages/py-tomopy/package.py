@@ -21,6 +21,9 @@ class PyTomopy(PythonPackage):
     version("1.11.0", sha256="4e5691c2b083753692ba4376ce301578037071c83fc61a6ae9e5bc9e6fcd3d1f")
     version("1.0.0", sha256="ee45f7a062e5a66d6f18a904d2e204e48d85a1ce1464156f9e2f6353057dfe4c")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # GPU accel needs PTL which is a git submodule. Thus, we can only build it on master
     depends_on("cuda", when="@master")
     # The shared opencv is not found by during runtest. Not using GOT/PLT is faster too

@@ -34,6 +34,8 @@ class Sfcgal(CMakePackage):
         url=old_github_urlbase.format("1.3.7"),
     )
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@2.8.6:", type="build")
     # Ref: https://oslandia.github.io/SFCGAL/installation.html, but starts to work @4.7:
     # Ref: https://gitlab.com/sfcgal/SFCGAL/-/blob/v1.5.1/NEWS?ref_type=tags

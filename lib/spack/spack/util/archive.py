@@ -195,14 +195,12 @@ def reproducible_tarfile_from_prefix(
             file_info = tarfile.TarInfo(path_to_name(entry.path))
 
             if entry.is_symlink():
-                # strip off long path reg prefix on Windows
-                link_dest = readlink(entry.path)
-                file_info.linkname = link_dest
+                file_info.type = tarfile.SYMTYPE
+                file_info.linkname = readlink(entry.path)
                 # According to POSIX: "the value of the file mode bits returned in the
                 # st_mode field of the stat structure is unspecified." So we set it to
                 # something sensible without lstat'ing the link.
                 file_info.mode = 0o755
-                file_info.type = tarfile.SYMTYPE
                 tar.addfile(file_info)
 
             elif entry.is_file(follow_symlinks=False):

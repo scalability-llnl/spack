@@ -19,6 +19,8 @@ class XcbUtilXrm(AutotoolsPackage):
     # in order to build it.
     version("1.2", tag="v1.2", commit="a45b3d0bbaa94bf8a68405ab8c5c61404da464ce", submodules=True)
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

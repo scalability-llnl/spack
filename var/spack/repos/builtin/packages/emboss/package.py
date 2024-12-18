@@ -11,12 +11,14 @@ class Emboss(AutotoolsPackage):
     developed for the needs of the molecular biology (e.g. EMBnet) user
     community"""
 
-    homepage = "http://emboss.sourceforge.net/"
+    homepage = "https://emboss.sourceforge.net/"
     url = "ftp://emboss.open-bio.org/pub/EMBOSS/EMBOSS-6.6.0.tar.gz"
 
     license("GPL-2.0-only")
 
     version("6.6.0", sha256="7184a763d39ad96bb598bfd531628a34aa53e474db9e7cac4416c2a40ab10c6e")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("libxpm")
     depends_on("libgd")

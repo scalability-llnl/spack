@@ -43,6 +43,10 @@ class Med(CMakePackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("api23", default=True, description="Enable API2.3")
     variant("mpi", default=True, description="Enable MPI")
     variant("shared", default=False, description="Builds a shared version of the library")

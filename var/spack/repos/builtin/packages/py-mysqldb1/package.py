@@ -18,5 +18,7 @@ class PyMysqldb1(PythonPackage):
         url="https://github.com/farcepest/MySQLdb1/archive/MySQLdb-1.2.5.tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("mysql@:6")
     depends_on("py-setuptools", type="build")

@@ -23,6 +23,10 @@ class Gtksourceview(AutotoolsPackage):
     version("4.2.0", sha256="c431eb234dc83c7819e58f77dd2af973252c7750da1c9d125ddc94268f94f675")
     version("3.24.11", sha256="691b074a37b2a307f7f48edc5b8c7afa7301709be56378ccf9cc9735909077fd")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("m4", type="build")
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

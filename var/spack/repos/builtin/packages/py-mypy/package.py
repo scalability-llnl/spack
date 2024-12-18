@@ -9,7 +9,7 @@ from spack.package import *
 class PyMypy(PythonPackage):
     """Optional static typing for Python."""
 
-    homepage = "http://www.mypy-lang.org/"
+    homepage = "https://www.mypy-lang.org/"
     pypi = "mypy/mypy-0.740.tar.gz"
     git = "https://github.com/python/mypy.git"
 
@@ -17,6 +17,10 @@ class PyMypy(PythonPackage):
 
     license("MIT AND PSF-2.0", checked_by="tgamblin")
 
+    version("1.11.2", sha256="7f9993ad3e0ffdc95c2a14b66dee63729f021968bff8ad911867579c65d13a79")
+    version("1.11.1", sha256="f404a0b069709f18bbdb702eb3dcfe51910602995de00bd39cea3050b5772d08")
+    version("1.10.1", sha256="1f8f492d7db9e3593ef42d4f115f04e556130f2819ad33ab84551403e97dd4c0")
+    version("1.9.0", sha256="3cc5da0127e6a478cddd906068496a97a7618a21ce9b54bde5bf7e539c7af974")
     version("1.8.0", sha256="6ff8b244d7085a0b425b56d327b480c3b29cafbd2eff27316a004f9a7391ae07")
     version("1.7.1", sha256="fcb6d9afb1b6208b4c712af0dafdc650f518836065df0d4fb1d800f5d6773db2")
     version("1.7.0", sha256="1e280b5697202efa698372d2f39e9a6713a0395a756b1c6bd48995f8d72690dc")
@@ -53,6 +57,9 @@ class PyMypy(PythonPackage):
     version("0.740", sha256="48c8bc99380575deb39f5d3400ebb6a8a1cb5cc669bbba4d3bb30f904e0a0e7d")
     version("0.670", sha256="e80fd6af34614a0e898a57f14296d0dacb584648f0339c2e000ddbf0f4cc2f8d")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # pyproject.toml
     depends_on("py-setuptools@40.6.2:", when="@0.790:", type="build")
     depends_on("py-setuptools", type="build")
@@ -63,6 +70,7 @@ class PyMypy(PythonPackage):
     # setup.py
     depends_on("python@3.8:", when="@1.5:", type=("build", "run"))
     depends_on("python@3.7:", when="@0.981:", type=("build", "run"))
+    depends_on("py-typing-extensions@4.6:", when="@1.11:", type=("build", "run"))
     depends_on("py-typing-extensions@4.1:", when="@1.5:", type=("build", "run"))
     depends_on("py-typing-extensions@3.10:", when="@0.930:", type=("build", "run"))
     depends_on("py-typing-extensions@3.7.4:", when="@0.700:", type=("build", "run"))

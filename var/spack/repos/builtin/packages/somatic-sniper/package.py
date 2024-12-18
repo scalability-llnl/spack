@@ -16,6 +16,9 @@ class SomaticSniper(CMakePackage):
 
     version("1.0.5.0", sha256="fc41e90237b059fcc591e404830c4b1be678642dd5afd76ce545b97b4b7b3de1")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("ncurses")
 
     parallel = False

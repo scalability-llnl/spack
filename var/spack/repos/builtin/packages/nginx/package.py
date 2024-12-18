@@ -25,6 +25,9 @@ class Nginx(AutotoolsPackage):
     version("1.13.8", sha256="8410b6c31ff59a763abf7e5a5316e7629f5a5033c95a3a0ebde727f9ec8464c5")
     version("1.12.0", sha256="b4222e26fdb620a8d3c3a3a8b955e08b713672e1bc5198d1e4f462308a795b30")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("openssl")
     depends_on("openssl@:1", when="@:1.21.2")
     depends_on("pcre")

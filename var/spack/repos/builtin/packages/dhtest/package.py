@@ -19,6 +19,8 @@ class Dhtest(MakefilePackage):
 
     version("1.5", sha256="df66150429a59a3b6cea9b29e2687707d04ab10db5dfe1c893ba3e0b0531b151")
 
+    depends_on("c", type="build")  # generated
+
     def install(self, spec, prefix):
         mkdirp(prefix.bin)
         install("dhtest", prefix.bin)

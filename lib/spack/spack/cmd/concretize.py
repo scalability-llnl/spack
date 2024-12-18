@@ -3,6 +3,9 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import llnl.util.tty as tty
+from llnl.string import plural
+
 import spack.cmd
 import spack.cmd.common.arguments
 import spack.environment as ev
@@ -43,5 +46,9 @@ def concretize(parser, args):
     with env.write_transaction():
         concretized_specs = env.concretize(force=args.force, tests=tests)
         if not args.quiet:
-            ev.display_specs(concretized_specs)
+            if concretized_specs:
+                tty.msg(f"Concretized {plural(len(concretized_specs), 'spec')}:")
+                ev.display_specs([concrete for _, concrete in concretized_specs])
+            else:
+                tty.msg("No new specs to concretize.")
         env.write()

@@ -21,6 +21,8 @@ class Keyutils(MakefilePackage):
     version("1.5.10", sha256="e1fdbde234c786b65609a4cf080a2c5fbdb57f049249c139160c85fc3dfa7da9")
     version("1.5.9", sha256="2dc0bdb099ab8331e02e5dbbce320359bef76eda0a4ddbd2ba1d1b9d3a8cdff8")
 
+    depends_on("c", type="build")  # generated
+
     conflicts("platform=darwin", msg="Linux-only")
 
     def install(self, spec, prefix):

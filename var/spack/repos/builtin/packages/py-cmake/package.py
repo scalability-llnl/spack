@@ -15,7 +15,9 @@ pycmake_versions = {
 
 class PyCmake(PythonPackage):
     """CMake is an open-source, cross-platform family of tools designed to
-    build, test and package software
+    build, test and package software.
+
+    Deprecated: use cmake instead.
     """
 
     homepage = "https://cmake.org"
@@ -25,7 +27,7 @@ class PyCmake(PythonPackage):
     license("Apache-2.0")
 
     for v, sha in pycmake_versions.items():
-        version(v, sha256=sha)
+        version(v, sha256=sha, deprecated=True)
 
     depends_on("ninja", type="build")
     depends_on("py-scikit-build@0.12:", type="build")

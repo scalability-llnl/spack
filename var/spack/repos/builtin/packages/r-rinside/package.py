@@ -33,4 +33,7 @@ class RRinside(RPackage):
     version("0.2.14", sha256="8de5340993fe879ca00fa559c5b1b27b408ba78bfc5f67d36d6f0b8d8e8649cf")
     version("0.2.13", sha256="be1da861f4f8c1292f0691bce05978e409a081f24ad6006ae173a6a89aa4d031")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r-rcpp", type=("build", "run"))

@@ -27,7 +27,7 @@ int main() {
 }
 """
         mkdirp("%s/symly" % self.stage.source_path)
-        with open("%s/symly/symly.c" % self.stage.source_path, "w") as f:
+        with open("%s/symly/symly.c" % self.stage.source_path, "w", encoding="utf-8") as f:
             f.write(symly_c)
         gcc = which("/usr/bin/gcc")
         if sys.platform == "darwin":

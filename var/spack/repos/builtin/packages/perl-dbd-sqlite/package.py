@@ -21,4 +21,6 @@ class PerlDbdSqlite(PerlPackage):
     version("1.57_01", sha256="fa7fb111fa8bfc257c3208f8980ac802a9cac4531ab98afc1988b88929672184")
     version("1.56", sha256="c5f831a67a94f9bb2fb3c44051f309fc7994b2725d1896c018ad5d4cd865e991")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("perl-dbi", type=("build", "run"))

@@ -75,7 +75,7 @@ class LuaBuilder(spack.builder.Builder):
                 table_entries.append(self._generate_tree_line(d.name, d.prefix))
 
         path = self._luarocks_config_path()
-        with open(path, "w") as config:
+        with open(path, "w", encoding="utf-8") as config:
             config.write(
                 """
                 deps_mode="all"

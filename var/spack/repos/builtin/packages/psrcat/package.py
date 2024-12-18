@@ -16,6 +16,8 @@ class Psrcat(MakefilePackage):
 
     version("1.68", sha256="fbe4710c9122e4f93dbca54cf42cc2906f948f76885b241d1da2f8caecfbc657")
 
+    depends_on("c", type="build")  # generated
+
     def build(self, spec, prefix):
         makeit = which("./makeit")
         makeit()

@@ -24,5 +24,7 @@ class RGenie3(RPackage):
     version("1.2.1", commit="1b56fe8184d521d1bb247f000efe9e2b540604c9")
     version("1.0.0", commit="eb7c95ed12ea50d61e8fa20bc2b25ae9d74c302f")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r-reshape2", type=("build", "run"))
     depends_on("r-dplyr", type=("build", "run"), when="@1.16.0:")

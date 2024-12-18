@@ -24,6 +24,11 @@ class Libcatalyst(CMakePackage):
     version("master", branch="master")
     version("2.0.0", sha256="5842b690bd8afa635414da9b9c5e5d79fa37879b0d382428d0d8e26ba5374828")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+    depends_on("pkgconfig", type="build")
+
     variant("mpi", default=False, description="Enable MPI support")
     variant("conduit", default=False, description="Use external Conduit for Catalyst")
     variant("fortran", default=False, description="Enable Fortran wrapping")
@@ -32,6 +37,8 @@ class Libcatalyst(CMakePackage):
     depends_on("mpi", when="+mpi")
     depends_on("conduit", when="+conduit")
     depends_on("cmake@3.26:", type="build")
+    depends_on("python@3:", when="+python")
+    depends_on("py-numpy", when="+python", type=("build", "link", "run"))
 
     def cmake_args(self):
         """Populate cmake arguments for libcatalyst."""

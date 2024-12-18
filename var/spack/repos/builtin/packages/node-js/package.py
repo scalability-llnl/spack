@@ -22,18 +22,9 @@ class NodeJs(Package):
     license("Unicode-TOU")
 
     # Current (latest features) - odd major number
-    version("22.2.0", sha256="2210ce0a40aa6aec3cc118228fdad6536607002319b1fde24260d179118c1055")
     version("21.7.3", sha256="ce1f61347671ef219d9c2925313d629d3fef98fc8d7f5ef38dd4656f7d0f58e7")
-    version(
-        "19.9.0",
-        sha256="c9293eb40dff8e5f55ef8da7cf1b9fd71b4a6a513620d02bbd158936e85216f2",
-        deprecated=True,
-    )
-    version(
-        "19.2.0",
-        sha256="aac9d1a366fb57d68f4639f9204d1de5d6387656959a97ed929a5ba9e62c033a",
-        deprecated=True,
-    )
+    version("19.2.0", sha256="aac9d1a366fb57d68f4639f9204d1de5d6387656959a97ed929a5ba9e62c033a")
+    version("17.9.1", sha256="1102f5e0aafaab8014d19c6c57142caf2ba3ef69d88d7a7f0f82798051796027")
     version(
         "15.3.0",
         sha256="cadfa384a5f14591b84ce07a1afe529f28deb0d43366fb0ae4e78afba96bfaf2",
@@ -52,14 +43,14 @@ class NodeJs(Package):
 
     # LTS (recommended for most users) - even major number
     version(
-        "20.13.1",
+        "22.4.0",
+        sha256="b62cd83c9a57a11349883f89b1727a16e66c02eb6255a4bf32714ff5d93165f5",
         preferred=True,
         sha256="a85ee53aa0a5c2f5ca94fa414cdbceb91eb7d18a77fc498358512c14cc6c6991",
     )
-    version("20.12.2", sha256="bc57ee721a12cc8be55bb90b4a9a2f598aed5581d5199ec3bd171a4781bfecda")
-    version("18.20.2", sha256="68c165b9ceb7bc69dcdc75c6099723edb5ff0509215959af0775ed426174c404")
+    version("22.3.0", sha256="6326484853093ab6b8f361a267445f4a5bff469042cda11a3585497b13136b55")
+    version("20.15.0", sha256="01e2c034467a324a33e778c81f2808dff13d289eaa9307d3e9b06c171e4d932d")
     version("18.12.1", sha256="ba8174dda00d5b90943f37c6a180a1d37c861d91e04a4cb38dc1c0c74981c186")
-    version("16.20.2", sha256="33188eb11b977113adb65b2e09d71bddd63f12168ba73ceadae6c27938dc9e93")
     version("16.18.1", sha256="3d24c9c3a953afee43edc44569045eda56cd45cd58b0539922d17da62736189c")
     version(
         "14.21.1",
@@ -86,6 +77,9 @@ class NodeJs(Package):
         sha256="7e0d7a1aa23697415e3588a1ca4f1c47496e6c88b9cf37c66be90353d3e4ac3e",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("debug", default=False, description="Include debugger support")
     variant("doc", default=False, description="Compile with documentation")
@@ -142,13 +136,34 @@ class NodeJs(Package):
     depends_on("c-ares@1.18.1:", when="+cares")
     depends_on("libuv", when="+libuv")
 
+    # https://github.com/nodejs/node/blob/main/BUILDING.md#supported-toolchains
+    conflicts("%gcc@:12.1", when="@23:")
+    conflicts("%gcc@:10.0", when="@20:")
+    conflicts("%gcc@:8.2", when="@16:")
+    conflicts("%gcc@:6.2", when="@12:")
+    conflicts("%apple-clang@:11", when="@21:")
+    conflicts("%apple-clang@:10", when="@16:")
+    conflicts("%apple-clang@:9", when="@13:")
+
     phases = ["configure", "build", "install"]
 
     # https://github.com/spack/spack/issues/19310
     conflicts(
         "%gcc@:4.8",
-        msg="fails to build with gcc 4.8 (see https://github.com/spack/spack/issues/19310",
+        msg="fails to build with gcc 4.8 (see https://github.com/spack/spack/issues/19310)",
     )
+
+    conflicts(
+        "%gcc@14:", when="@:19", msg="fails to build with gcc 14+ due to implicit conversions"
+    )
+
+    # See https://github.com/nodejs/node/issues/52223
+    patch("fix-old-glibc-random-headers.patch", when="^glibc@:2.24")
+
+    # Work around gcc-12.[1-2] compiler bug
+    # See https://github.com/nodejs/node/pull/53728
+    # and https://github.com/nodejs/node/issues/53633
+    patch("fix-broken-gcc12-pr53728.patch", when="@22.2:22.5")
 
     def setup_build_environment(self, env):
         # Force use of experimental Python 3 support
@@ -169,8 +184,14 @@ class NodeJs(Package):
             #
             # /usr/bin/libtool
             # libtool: /usr/bin/libtool
+            #
+            # We specify -M -f (an empty list of man-path entries) to prevent man-page
+            # searching to avoid an Illegal seek error processing manpath results in CI,
+            # which prevents the last form:
             # libtool: /usr/bin/libtool /Applications/Xcode.app/.../share/man/man1/libtool.1
-            process_pipe = subprocess.Popen(["whereis", "libtool"], stdout=subprocess.PIPE)
+            process_pipe = subprocess.Popen(
+                ["whereis", "-M", "-f", "libtool"], stdout=subprocess.PIPE
+            )
             result_whereis_list = process_pipe.communicate()[0].strip().split()
             if len(result_whereis_list) == 1:
                 result_whereis = result_whereis_list[0]

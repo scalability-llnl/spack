@@ -9,12 +9,15 @@ from spack.package import *
 class Mummer(Package):
     """MUMmer is a system for rapidly aligning entire genomes."""
 
-    homepage = "http://mummer.sourceforge.net/"
+    homepage = "https://mummer.sourceforge.net/"
     url = "https://sourceforge.net/projects/mummer/files/mummer/3.23/MUMmer3.23.tar.gz/download"
 
     license("Artistic-1.0")
 
     version("3.23", sha256="1efad4f7d8cee0d8eaebb320a2d63745bb3a160bb513a15ef7af46f330af662f")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("gnuplot")
     depends_on("perl", type=("build", "run"))

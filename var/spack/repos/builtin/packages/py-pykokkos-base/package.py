@@ -21,6 +21,8 @@ class PyPykokkosBase(CMakePackage, PythonExtension):
     version("0.0.4", commit="2efe1220d0128d3f2d371c9ed5234c4978d73a77", submodules=False)
     version("0.0.3", commit="4fe4421ac624ba2efe1eee265153e690622a18a5", submodules=False)
 
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "layouts", default=True, description="Build Kokkos View/DynRankView with layout variants"
     )

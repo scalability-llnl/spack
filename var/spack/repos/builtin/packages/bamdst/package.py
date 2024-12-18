@@ -14,6 +14,8 @@ class Bamdst(MakefilePackage):
 
     version("master", git="https://github.com/shiquan/bamdst.git")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("zlib-api")
 
     parallel = False

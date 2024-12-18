@@ -17,6 +17,8 @@ class Libbacktrace(AutotoolsPackage):
     version("master", branch="master")
     version("2020-02-19", commit="ca0de0517f3be44fedf5a2c01cfaf6437d4cae68")
 
+    depends_on("c", type="build")  # generated
+
     variant("shared", default=False, description="Additionally build shared library")
 
     depends_on("autoconf", type="build")

@@ -17,6 +17,9 @@ class Imp(CMakePackage):
 
     version("2.8.0", sha256="0b46b8988febd7cdfc5838849007f9a547493ed4b6c752fe54571467eeb1acd2")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python@2.7:")
     depends_on("swig")
     depends_on("boost@1.40:")

@@ -23,6 +23,8 @@ class Hdf5VfdGds(CMakePackage, CudaPackage):
     version("1.0.1", sha256="00e125fd149561be991f41e883824de826d8add604aebccf103a4fb82d5faac2")
     version("1.0.0", sha256="6b16105c7c49f13fc05784ee69b78d45fb159270c78d760689f9cd21e230ddd2")
 
+    depends_on("c", type="build")  # generated
+
     # Dependencies
     conflicts("~cuda")
     # Although cuFILE predates 11.7.0, it is not installed in a location the build

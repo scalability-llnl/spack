@@ -21,6 +21,10 @@ class Primer3(MakefilePackage):
     version("2.5.0", sha256="7581e2fa3228ef0ee1ffa427b2aa0a18fc635d561208327471daf59d1b804da0")
     version("2.3.7", sha256="f7ac3e64dc89b7c80882bf0f52c2c0a58572f5fdafd178680d4a7ae91b6c465b")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     build_directory = "src"
 
     # Prior to May 15, 2018, the code contained invalid pointer/int

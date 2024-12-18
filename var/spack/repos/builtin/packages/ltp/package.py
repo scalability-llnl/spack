@@ -23,6 +23,8 @@ class Ltp(AutotoolsPackage):
     version("20190930", sha256="eca11dbe11a61f3035561a2aa272d578ca9380563440f9ba876c0c4755a42533")
     version("20190517", sha256="538175fff2d6c9d69748b2d4afcf5ac43f7300456f839fa7b5b101c7ad447af7")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

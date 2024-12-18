@@ -27,6 +27,9 @@ class Nekcem(Package):
     version("0b8bedd", commit="0b8beddfdcca646bfcc866dfda1c5f893338399b")
     version("7332619", commit="7332619b73d03868a256614b61794dce2d95b360")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # dependencies
     depends_on("mpi", when="+mpi")
     depends_on("blas")
@@ -81,9 +84,6 @@ class Nekcem(Package):
             elif self.compiler.name == "xl" or self.compiler.name == "xl_r":
                 fflags += ["-qrealsize=8"]
                 cflags += ["-DPREFIX=jl_", "-DIBM"]
-            elif self.compiler.name == "pgi":
-                fflags += ["-r8"]
-                cflags += ["-DUNDERSCORE"]
 
             error = Executable(fc)("empty.f", output=str, error=str, fail_on_error=False)
 

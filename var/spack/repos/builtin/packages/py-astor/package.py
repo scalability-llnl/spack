@@ -25,7 +25,7 @@ class PyAstor(PythonPackage):
     # https://github.com/berkerpeksag/astor/issues/162
     # https://github.com/berkerpeksag/astor/pull/163
     patch(
-        "https://github.com/berkerpeksag/astor/pull/163/commits/30059dac4eb832e58ab2109db84508b294ba366d.patch?full_index=1",
-        sha256="edc5eeddabe153b08e938f52edaeb2d880ee3128082967f310db0f98510fe6e0",
+        "https://github.com/berkerpeksag/astor/commit/30059dac4eb832e58ab2109db84508b294ba366d.patch?full_index=1",
+        sha256="4993c8d7e36b7fbad7586ff49e57fd8e7abe79724936445db2eed2d91398e82d",
         when="@0.8.0",
     )

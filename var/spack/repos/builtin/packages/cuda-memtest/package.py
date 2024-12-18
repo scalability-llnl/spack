@@ -24,6 +24,8 @@ class CudaMemtest(CMakePackage):
 
     version("master", branch="dev")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@2.8.5:", type="build")
     # depends_on('nvml', when='+nvml')
     depends_on("cuda@5.0:")

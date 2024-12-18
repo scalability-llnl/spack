@@ -17,6 +17,9 @@ class PyPyheadtail(PythonPackage):
     version("1.14.1", sha256="bf90ac7e8764176c55e82c363cad7ab43543863b6ef482760ced23b78e917bb4")
     version("1.13.1", sha256="29c742573a918126b5a9c21806ee0ec6a34ec642a0e6ad200f6d4551bf1bb310")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("python", type=("build", "run"))
     depends_on("python@3:", when="@1.13.5:", type=("build", "run"))
     depends_on("py-setuptools", type="build")

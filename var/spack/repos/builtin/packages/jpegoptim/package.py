@@ -18,4 +18,6 @@ class Jpegoptim(AutotoolsPackage):
     version("1.4.5", sha256="53207f479f96c4f792b3187f31abf3534d69c88fe23720d0c23f5310c5d2b2f5")
     version("1.4.4", sha256="bc6b018ae8c3eb12d07596693d54243e214780a2a2303a6578747d3671f45da3")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libjpeg")

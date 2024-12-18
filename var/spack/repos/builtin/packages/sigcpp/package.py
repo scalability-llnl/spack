@@ -21,6 +21,8 @@ class Sigcpp(CMakePackage):
     version("3.2.0", sha256="f9c36331b5d5ac7a1651477288f47eec51394c03ade8bb1a05d1c46eac5f77e7")
     version("3.0.7", sha256="063b6ab86e4d8703ea65d894d78e8482b1fc34b92be8849f82ce1c5b05cf2b8d")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("doc", default=True, description="Keep man files")
 
     @run_after("install")

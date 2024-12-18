@@ -16,6 +16,8 @@ class Dcap(AutotoolsPackage):
 
     version("2.47.12", sha256="050a8d20c241abf358d5d72586f9abc43940e61d9ec9480040ac7da52ec804ac")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

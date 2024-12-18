@@ -25,3 +25,10 @@ class PyXtb(PythonPackage):
     depends_on("py-meson-python", type="build")
     depends_on("py-numpy", type=("build", "run"))
     depends_on("xtb", type=("build", "run"))
+
+    # from https://github.com/grimme-lab/xtb-python/pull/114
+    patch(
+        "https://github.com/grimme-lab/xtb-python/commit/df7e0010a679f5f00456bf09fcd9330cd7c56c39.patch?full_index=1",
+        when="@:22.1",
+        sha256="0242a4b79b7e24cfec3c0e6661e744eeb6a786d7",
+    )

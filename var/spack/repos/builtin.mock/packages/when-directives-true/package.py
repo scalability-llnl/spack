@@ -20,7 +20,7 @@ class WhenDirectivesTrue(Package):
         when=True,
     )
     extends("extendee", when=True)
-    depends_on("b", when=True)
+    depends_on("pkg-b", when=True)
     conflicts("@1.0", when=True)
     resource(
         url="http://www.example.com/example-1.0-resource.tar.gz",

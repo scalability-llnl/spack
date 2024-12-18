@@ -17,6 +17,8 @@ class Mscgen(AutotoolsPackage):
 
     version("0.20", sha256="3c3481ae0599e1c2d30b7ed54ab45249127533ab2f20e768a0ae58d8551ddc23")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("flex")
     depends_on("bison")
     depends_on("pkgconfig")

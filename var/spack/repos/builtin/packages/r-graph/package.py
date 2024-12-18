@@ -24,5 +24,7 @@ class RGraph(RPackage):
     version("1.56.0", commit="c4abe227dac525757679743e6fb4f49baa34acad")
     version("1.54.0", commit="2a8b08520096241620421078fc1098f4569c7301")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@2.10:", type=("build", "run"))
     depends_on("r-biocgenerics@0.13.11:", type=("build", "run"))

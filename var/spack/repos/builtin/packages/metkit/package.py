@@ -14,7 +14,7 @@ class Metkit(CMakePackage):
     git = "https://github.com/ecmwf/metkit.git"
     url = "https://github.com/ecmwf/metkit/archive/refs/tags/1.7.0.tar.gz"
 
-    maintainers("skosukhin", "victoria-cherkas", "dominichofer")
+    maintainers("skosukhin", "victoria-cherkas")
 
     license("Apache-2.0")
 
@@ -23,6 +23,8 @@ class Metkit(CMakePackage):
     version("1.10.2", sha256="a038050962aecffda27b755c40b0a6ed0db04a2c22cad3d8c93e6109c8ab4b34")
     version("1.9.2", sha256="35d5f67196197cc06e5c2afc6d1354981e7c85a441df79a2fbd774e0c343b0b4")
     version("1.7.0", sha256="8c34f6d8ea5381bd1bcfb22462349d03e1592e67d8137e76b3cecf134a9d338c")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("tools", default=True, description="Build the command line tools")
     variant("grib", default=True, description="Enable support for GRIB format")

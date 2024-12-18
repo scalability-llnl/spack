@@ -23,5 +23,7 @@ class RRcppde(RPackage):
     version("0.1.7", sha256="4a238ee97e574cb44b12e4962b9927dd811f087fc13fc777637ec6fe12bd86a0")
     version("0.1.6", sha256="c9386709f72cdc33505b3ac675c173013fe098434b7c21bc09eb625b529132c5")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r-rcpp", type=("build", "run"))
     depends_on("r-rcpparmadillo", type=("build", "run"))

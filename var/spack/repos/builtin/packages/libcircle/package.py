@@ -26,6 +26,8 @@ class Libcircle(AutotoolsPackage):
         "0.2.1-rc.1", sha256="5747f91cf4417023304dcc92fd07e3617ac712ca1eeb698880979bbca3f54865"
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("mpi")
     depends_on("pkgconfig", type="build")
     depends_on("libpciaccess", type="link")

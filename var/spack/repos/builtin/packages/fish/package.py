@@ -36,6 +36,8 @@ class Fish(CMakePackage):
     version("3.1.0", sha256="e5db1e6839685c56f172e1000c138e290add4aa521f187df4cd79d4eab294368")
     version("3.0.0", sha256="ea9dd3614bb0346829ce7319437c6a93e3e1dfde3b7f6a469b543b0d2c68f2cf")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("docs", default=False, description="Build documentation")
 
     # https://github.com/fish-shell/fish-shell#dependencies-1
@@ -78,7 +80,7 @@ class Fish(CMakePackage):
             "-DPCRE2_INCLUDE_DIR=" + self.spec["pcre2"].headers.directories[0],
         ]
 
-        if "+docs" in self.spec:
+        if self.spec.satisfies("+docs"):
             args.append("-DBUILD_DOCS=ON")
         else:
             args.append("-DBUILD_DOCS=OFF")

@@ -19,6 +19,8 @@ class PyGlmnet(PythonPackage):
 
     version("2.2.1", sha256="3222bca2e901b3f60c2dc22df7aeba6bb9c7b6451b44cbbe1b91084b66f14481")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("python@3.6:", type=("build", "run"))
     depends_on("py-setuptools", type=("build"))
 

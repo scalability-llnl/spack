@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -33,6 +34,10 @@ class PyDgl(CMakePackage, PythonExtension, CudaPackage):
     version(
         "0.4.2", tag="0.4.2", commit="55e056fbae8f25f3da4aab0a0d864d72c2a445ff", submodules=True
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("cuda", default=True, description="Build with CUDA")
     variant("openmp", default=True, description="Build with OpenMP")
@@ -128,8 +133,7 @@ class PyDgl(CMakePackage, PythonExtension, CudaPackage):
 
     def install(self, spec, prefix):
         with working_dir("python"):
-            args = std_pip_args + ["--prefix=" + prefix, "."]
-            pip(*args)
+            pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")
 
         # Older versions do not install correctly
         if self.spec.satisfies("@:0.4.3"):

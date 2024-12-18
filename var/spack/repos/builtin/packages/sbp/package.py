@@ -20,6 +20,9 @@ class Sbp(CMakePackage):
         "3.4.10", tag="v3.4.10", commit="d8ec454a3d7f1b2f8b8f515934612c184b8d5fa3", submodules=True
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     root_cmakelists_dir = "c"
 
     def cmake_args(self):

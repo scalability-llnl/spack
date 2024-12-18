@@ -18,5 +18,7 @@ class Efivar(MakefilePackage):
     version("36", sha256="24ed0cafbaf6d913e8f60e5da3cbbac1a1578e16cf5c95b21f2eb6753c13173f")
     version("35", sha256="747bc4d97b4bd74979e5356c44a172534a8a07184f130349fd201742e683d292")
 
+    depends_on("c", type="build")  # generated
+
     def install(self, spec, prefix):
         make("PREFIX={0}".format(prefix), "install")

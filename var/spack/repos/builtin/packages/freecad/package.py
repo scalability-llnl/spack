@@ -21,6 +21,10 @@ class Freecad(CMakePackage):
 
     version("0.20.2", sha256="46922f3a477e742e1a89cd5346692d63aebb2b67af887b3e463e094a4ae055da")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("opencascade")
     depends_on("xerces-c")
     depends_on("vtk")

@@ -23,6 +23,9 @@ class Glpk(AutotoolsPackage, GNUMirrorPackage):
     version("4.61", sha256="9866de41777782d4ce21da11b88573b66bb7858574f89c28be6967ac22dfaba9")
     version("4.57", sha256="7323b2a7cc1f13e45fc845f0fdca74f4daea2af716f5ad2d4d55b41e8394275c")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("gmp", default=False, description="Activates support for GMP library")
 
     depends_on("gmp", when="+gmp")
@@ -30,7 +33,7 @@ class Glpk(AutotoolsPackage, GNUMirrorPackage):
     def configure_args(self):
         options = []
 
-        if "+gmp" in self.spec:
+        if self.spec.satisfies("+gmp"):
             options.append("--with-gmp")
 
         return options

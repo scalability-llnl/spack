@@ -25,6 +25,8 @@ class Guile(AutotoolsPackage, GNUMirrorPackage):
     version("2.0.14", sha256="8aeb2f353881282fe01694cce76bb72f7ffdd296a12c7a1a39255c27b0dfe5f1")
     version("2.0.11", sha256="e6786c934346fa2e38e46d8d81a622bb1c16d130153523f6129fcd79ef1fb040")
 
+    depends_on("c", type="build")  # generated
+
     variant("readline", default=True, description="Use the readline library")
     variant(
         "threads",
@@ -39,7 +41,7 @@ class Guile(AutotoolsPackage, GNUMirrorPackage):
     depends_on("bdw-gc@7.0: threads=dgux386", when="threads=dgux386")
     depends_on("gmp@4.2:")
     depends_on("gettext")
-    depends_on("libtool@1.5.6:")
+    depends_on("libtool@1.5.6:", type="link")  # links to libltdl.so
     depends_on("libunistring@0.9.3:")
     depends_on("libffi")
     depends_on("readline", when="+readline")
@@ -68,12 +70,12 @@ class Guile(AutotoolsPackage, GNUMirrorPackage):
             "--with-libintl-prefix={0}".format(spec["gettext"].prefix),
         ]
 
-        if "threads=none" in spec:
+        if spec.satisfies("threads=none"):
             config_args.append("--without-threads")
         else:
             config_args.append("--with-threads")
 
-        if "+readline" in spec:
+        if spec.satisfies("+readline"):
             config_args.append("--with-libreadline-prefix={0}".format(spec["readline"].prefix))
         else:
             config_args.append("--without-libreadline-prefix")

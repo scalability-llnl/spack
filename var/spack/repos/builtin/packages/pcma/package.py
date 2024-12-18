@@ -15,6 +15,8 @@ class Pcma(MakefilePackage):
 
     version("2.0", sha256="4b92d412126d393baa3ede501cafe9606ada9a66af6217d56befd6ec2e0c01ba")
 
+    depends_on("c", type="build")  # generated
+
     def edit(self, spec, prefix):
         makefile = FileFilter("makefile")
         makefile.filter("gcc", spack_cc)

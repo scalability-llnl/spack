@@ -18,6 +18,10 @@ class Montage(MakefilePackage):
 
     version("6.0", sha256="1f540a7389d30fcf9f8cd9897617cc68b19350fbcde97c4d1cdc5634de1992c6")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("freetype")
     depends_on("bzip2")
     depends_on("libnsl")

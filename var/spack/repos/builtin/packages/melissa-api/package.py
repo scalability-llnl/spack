@@ -21,6 +21,9 @@ class MelissaApi(CMakePackage):
 
     version("develop", branch="develop")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("cmake@3.7.2:", type="build")
     depends_on("libzmq@4.1.5:")
     depends_on("mpi")

@@ -26,6 +26,8 @@ class Dd4hep(CMakePackage):
     license("LGPL-3.0-or-later")
 
     version("master", branch="master")
+    version("1.30", sha256="02de46151e945eff58cffd84b4b86d35051f4436608199c3efb4d2e1183889fe")
+    version("1.29", sha256="435d25a7ef093d8bf660f288b5a89b98556b4c1c293c55b93bf641fb4cba77e9")
     version("1.28", sha256="b28d671eda0154073873a044a384486e66f1f200065deca99537aa84f07328ad")
     version("1.27.2", sha256="09d8acd743d010274562b856d39e2a88aeaf89cf287a4148f52223b0cd960ab2")
     version("1.27.1", sha256="e66ae726c0a9a55e5603024a7f8a48ffbc5613ea36e5f892e9a90d87833f92e0")
@@ -44,6 +46,8 @@ class Dd4hep(CMakePackage):
     version("1.18", sha256="1e909a42b969dfd966224fa8ab1eca5aa05136baf3c00a140f2f6d812b497152")
     version("1.17", sha256="036a9908aaf1e13eaf5f2f43b6f5f4a8bdda8183ddc5befa77a4448dbb485826")
     version("1.16.1", sha256="c8b1312aa88283986f89cc008d317b3476027fd146fdb586f9f1fbbb47763f1a")
+
+    depends_on("cxx", type="build")  # generated
 
     generator("ninja")
 
@@ -94,10 +98,13 @@ class Dd4hep(CMakePackage):
     depends_on("boost +iostreams", when="+ddg4")
     depends_on("boost +system +filesystem", when="%gcc@:7")
     depends_on("root @6.08: +gdml +math +python")
+    depends_on("root @6.12.2: +root7", when="@1.26:")  # DDCoreGraphics needs ROOT::ROOTHistDraw
     with when("+ddeve"):
         depends_on("root @6.08: +x +opengl")
         depends_on("root @:6.27", when="@:1.23")
         conflicts("^root ~webgui", when="^root@6.28:")
+        # For DD4hep >= 1.24, DDEve_Interface needs ROOT::ROOTGeomViewer only if ROOT >= 6.27
+        requires("^root +root7 +webgui", when="@1.24: ^root @6.27:")
     depends_on("root @6.08: +gdml +math +python +x +opengl", when="+utilityapps")
 
     extends("python")
@@ -117,6 +124,7 @@ class Dd4hep(CMakePackage):
     depends_on("podio@:0.16.03", when="@:1.23 +edm4hep")
     depends_on("podio@0.16:", when="@1.24: +edm4hep")
     depends_on("podio@0.16.3:", when="@1.26: +edm4hep")
+    depends_on("podio@:0", when="@:1.29 +edm4hep")
     depends_on("py-pytest", type=("build", "test"))
 
     # See https://github.com/AIDASoft/DD4hep/pull/771 and https://github.com/AIDASoft/DD4hep/pull/876
@@ -132,6 +140,9 @@ class Dd4hep(CMakePackage):
     # dependent on roots cxxstd. However, cxxstd=11 will never work
     # See https://github.com/AIDASoft/DD4hep/pull/1191
     conflicts("^geant4 cxxstd=11", when="+ddg4")
+
+    # See https://github.com/AIDASoft/DD4hep/issues/1210
+    conflicts("^root@6.31.1:", when="@:1.27")
 
     @property
     def libs(self):

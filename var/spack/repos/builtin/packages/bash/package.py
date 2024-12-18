@@ -22,6 +22,8 @@ class Bash(AutotoolsPackage, GNUMirrorPackage):
     version("4.4", sha256="d86b3392c1202e8ff5a423b302e6284db7f8f435ea9f39b5b1b20fd3ac36dfcb")
     version("4.3", sha256="afc687a28e0e24dc21b988fa159ff9dbcf6b7caa92ade8645cc6d5605cd024d4")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("ncurses")
     depends_on("readline@8.2:", when="@5.2:")
     depends_on("readline@5.0:")
@@ -201,6 +203,9 @@ class Bash(AutotoolsPackage, GNUMirrorPackage):
             args.append(f"--with-libiconv-prefix={spec['iconv'].prefix}")
         else:
             args.append("--without-libiconv-prefix")
+        # bash malloc relies on sbrk which fails intentionally in musl
+        if spec.satisfies("^[virtuals=libc] musl"):
+            args.append("--without-bash-malloc")
         return args
 
     def check(self):

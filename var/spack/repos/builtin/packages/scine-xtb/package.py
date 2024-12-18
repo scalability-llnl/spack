@@ -20,6 +20,8 @@ class ScineXtb(CMakePackage):
     version("master", branch="master")
     version("1.0.2", sha256="9beb1103467f3cfd9ad33beb2f3ec650bc3e6dc7094876774be3cc4e6f210487")
 
+    depends_on("cxx", type="build")  # generated
+
     resource(
         name="dev",
         url="https://github.com/qcscine/development-utils/archive/refs/tags/5.0.1.tar.gz",

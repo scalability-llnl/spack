@@ -22,5 +22,8 @@ class RTfmpvalue(RPackage):
     version("0.0.8", sha256="6d052529f7b59d0384edc097f724f70468013777b6adf4c63e61a359029d3841")
     version("0.0.6", sha256="cee3aa2d4e22856865d820f695e29a5f23486e5e08cd42cb95a0728f5f9522a1")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@3.0.1:", type=("build", "run"))
     depends_on("r-rcpp@0.11.1:", type=("build", "run"))

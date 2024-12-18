@@ -18,6 +18,8 @@ class PyRmm(PythonPackage):
 
     version("0.15.0", sha256="599f97b95d169a90d11296814763f7e151a8a1e060ba10bc6c8f4684a5cd7972")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python@3.6:", type=("build", "run"))
     depends_on("py-setuptools", type="build")
     depends_on("py-cython", type="build")

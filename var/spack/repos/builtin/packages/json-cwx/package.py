@@ -16,6 +16,8 @@ class JsonCwx(AutotoolsPackage):
 
     version("0.12", sha256="3bfae1f23eacba53ee130dbd1a6acf617af4627a9b4e4581d64b20a99b4e2b60")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

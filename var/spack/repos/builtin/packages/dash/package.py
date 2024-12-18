@@ -18,6 +18,8 @@ class Dash(AutotoolsPackage):
     version("0.5.12", sha256="0d632f6b945058d84809cac7805326775bd60cb4a316907d0bd4228ff7107154")
     version("0.5.9.1", sha256="3f747013a20a3a9d2932be1a6dd1b002ca5649849b649be0af8a8da80bd8a918")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libedit", type="link")
 
     depends_on("autoconf", type="build")

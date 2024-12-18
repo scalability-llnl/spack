@@ -23,6 +23,8 @@ class Caffe(CMakePackage, CudaPackage):
     version("rc3", sha256="0884207bfba0fbc8b263b87d30f9304f7094eec3a48f975177d142f8c72b6e3b")
     version("rc2", sha256="55c9c20870b30ce398e19e4f1a62ade1eff08fce51e28fa5604035b711978eec")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("cuda", default=False, description="Builds with support for GPUs via CUDA and cuDNN")
     variant("opencv", default=True, description="Build with OpenCV support")
     variant("leveldb", default=True, description="Build with levelDB")
@@ -90,7 +92,7 @@ class Caffe(CMakePackage, CudaPackage):
                 ]
             )
 
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             if spec.variants["cuda_arch"].value[0] != "none":
                 cuda_arch = spec.variants["cuda_arch"].value
                 args.append(self.define("CUDA_ARCH_NAME", "Manual"))

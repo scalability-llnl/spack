@@ -20,6 +20,8 @@ class PyPycairo(PythonPackage):
     version("1.24.0", sha256="1444d52f1bb4cc79a4a0c0fe2ccec4bd78ff885ab01ebe1c0f637d8392bcafb6")
     version("1.20.0", sha256="5695a10cb7f9ae0d01f665b56602a845b0a8cb17e2123bfece10c2e58552468c")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python@3.8:", when="@1.23:", type=("build", "run"))
     depends_on("python@3.6:3", when="@1.20:1.22", type=("build", "run"))
     depends_on("py-setuptools", type="build")

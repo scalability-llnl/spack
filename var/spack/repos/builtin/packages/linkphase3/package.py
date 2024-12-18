@@ -16,6 +16,8 @@ class Linkphase3(Package):
 
     version("2017-06-14", commit="559913593fc818bb1adb29796a548cf5bf323827")
 
+    depends_on("fortran", type="build")  # generated
+
     def install(self, spec, prefix):
         fortran = Executable(self.compiler.fc)
         fortran("LINKPHASE3.f90", "-o", "LINKPHASE3")

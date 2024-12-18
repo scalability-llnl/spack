@@ -20,6 +20,8 @@ class Seqan(CMakePackage):
 
     version("2.4.0", sha256="d7084d17729214003e84818e0280a16f223c8f1c6a30eeef040c27e0c0047bd7")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.4.0:", type="build")
     depends_on("python@2.7.0:", type="build")
     depends_on("py-nose", type="build")

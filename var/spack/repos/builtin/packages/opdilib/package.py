@@ -14,9 +14,12 @@ class Opdilib(Package):
     homepage = "https://github.com/SciCompKL/OpDiLib"
     url = "https://github.com/SciCompKL/OpDiLib/archive/refs/tags/v1.5.tar.gz"
 
+    version("1.5.1", sha256="58bbd4c7105e519b553bd0cbcf1c9797e6e9ca5ea445e4cc55cd32f216300781")
     version("1.5", sha256="47b345954df5e7ee8147e7b29db2ec160ba02ccc93b3b88af0b34bb880170248")
     version("1.4", sha256="f1dd2575a8c3b2328df89b732dbeaa23657731d77e4bf7ee201c6571f20d13d5")
     version("1.3.2", sha256="5da4a99ab1332e5c3746cb6d55ee4cd96ce578b06987e2b10e33ae6413b7cf7a")
+
+    depends_on("cxx", type="build")  # generated
 
     def install(self, spec, prefix):
         mkdirp(join_path(prefix, "include"))

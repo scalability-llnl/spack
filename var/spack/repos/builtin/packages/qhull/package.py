@@ -27,6 +27,9 @@ class Qhull(CMakePackage):
     version("2015.2", sha256="8b6dd67ff77ce1ee814da84f4134ef4bdce1f1031e570b8d83019ccef58b1c00")
     version("2012.1", sha256="cb1296fbb9ec8b7d6e8f4c239ad165590616f242c7c46f790c27d8dcebe96c6a")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     patch("qhull-unused-intel-17.02.patch", when="@2015.2")
 
     depends_on("cmake@3.0:", type="build")

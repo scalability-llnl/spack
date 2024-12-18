@@ -18,6 +18,8 @@ class Mg(MakefilePackage):
 
     version("6.6", sha256="e8440353da1a52ec7d40fb88d4f145da49c320b5ba31daf895b0b0db5ccd0632")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("ncurses")
 
     def edit(self, spec, prefix):

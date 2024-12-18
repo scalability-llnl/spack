@@ -23,6 +23,8 @@ class PyJupytext(PythonPackage):
     version("1.13.6", sha256="c6c25918ddb6403d0d8504e08d35f6efc447baf0dbeb6a28b73adf39e866a0c4")
     version("1.13.0", sha256="fb220af65d2bd32d01c779b0e935c4c2b71e3f5f2f01bf1bab10d5f23fe121d4")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python@3.8:", type=("build", "run"), when="@1.16:")
     depends_on("python@3.6:3", type=("build", "run"), when="@:1.14")
 

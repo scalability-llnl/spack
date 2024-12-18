@@ -9,7 +9,7 @@ from spack.package import *
 class PerlSwissknife(PerlPackage):
     """An object-oriented Perl library to handle Swiss-Prot entries"""
 
-    homepage = "http://swissknife.sourceforge.net"
+    homepage = "https://swissknife.sourceforge.net"
     url = "https://downloads.sourceforge.net/project/swissknife/swissknife/1.75/Swissknife_1.75.tar.gz"
 
     license("GPL-2.0-only")

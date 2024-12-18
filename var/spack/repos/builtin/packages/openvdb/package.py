@@ -28,6 +28,8 @@ class Openvdb(CMakePackage):
     version("8.0.1", sha256="a6845da7c604d2c72e4141c898930ac8a2375521e535f696c2cd92bebbe43c4f")
     version("7.1.0", sha256="0c3588c1ca6e647610738654ec2c6aaf41a203fd797f609fbeab1c9f7c3dc116")
 
+    depends_on("cxx", type="build")  # generated
+
     # these variants were for 8.0.1 and probably could be updated...
     variant("shared", default=True, description="Build as a shared library.")
     variant("python", default=False, description="Build the pyopenvdb python extension.")

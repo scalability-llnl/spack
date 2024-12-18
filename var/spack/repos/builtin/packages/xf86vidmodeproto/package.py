@@ -12,7 +12,7 @@ class Xf86vidmodeproto(AutotoolsPackage, XorgPackage):
     This extension defines a protocol for dynamically configuring modelines
     and gamma."""
 
-    homepage = "https://cgit.freedesktop.org/xorg/proto/xf86vidmodeproto"
+    homepage = "https://gitlab.freedesktop.org/xorg/proto/xf86vidmodeproto"
     xorg_mirror_path = "proto/xf86vidmodeproto-2.3.1.tar.gz"
 
     version("2.3.1", sha256="c3512b11cefa7558576551f8582c6e7071c8a24d78176059d94b84b48b262979")

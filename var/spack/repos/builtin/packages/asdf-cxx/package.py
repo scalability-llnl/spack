@@ -38,6 +38,8 @@ class AsdfCxx(CMakePackage):
     version("1.1.0", sha256="3e23b9cd16254f5adbf878145e320f56b4d3ad75de23d2c761eb7f04150926c5")
     version("1.0.0", sha256="0b63594a1dec27cc85d25adbf900b6e936b5015f579b9b892b983151bec96775")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("python", default=True, description="Enable Python support")
 
     depends_on("bzip2")

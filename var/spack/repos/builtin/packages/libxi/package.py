@@ -9,7 +9,7 @@ from spack.package import *
 class Libxi(AutotoolsPackage, XorgPackage):
     """libXi - library for the X Input Extension."""
 
-    homepage = "https://cgit.freedesktop.org/xorg/lib/libXi"
+    homepage = "https://gitlab.freedesktop.org/xorg/lib/libXi"
     xorg_mirror_path = "lib/libXi-1.7.6.tar.gz"
 
     license("MIT AND X11")
@@ -25,15 +25,17 @@ class Libxi(AutotoolsPackage, XorgPackage):
     version("1.7.7", sha256="501f49e9c85609da17614d711aa4931fd128011042ff1cae53a16ce03e51ff5e")
     version("1.7.6", sha256="4e88fa7decd287e58140ea72238f8d54e4791de302938c83695fc0c9ac102b7e")
 
+    depends_on("c", type="build")
+
     depends_on("pkgconfig", type="build")
     depends_on("libx11@1.6:")
     depends_on("libxext@1.0.99.1:")
     depends_on("libxfixes@5:")
-    depends_on("fixesproto@5.0:")
-    depends_on("xproto@7.0.13:")
-    depends_on("xextproto@7.0.3:")
-    depends_on("inputproto@2.2.99.1:", when="@1.7:")
-    # depends_on("inputproto@2.3.99.1:", when="@1.8:")
+    depends_on("fixesproto@5.0:", type="build")
+    depends_on("xproto@7.0.13:", type="build")
+    depends_on("xextproto@7.0.3:", type="build")
+    depends_on("inputproto@2.2.99.1:", when="@1.7:", type=("build", "link"))
+    # depends_on("inputproto@2.3.99.1:", when="@1.8:", type=("build", "link"))
 
     @property
     def libs(self):

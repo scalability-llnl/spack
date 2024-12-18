@@ -20,6 +20,8 @@ class PyHttpstan(PythonPackage):
     version("4.7.2", sha256="94f6631d969cbd91d136194b074d02642d8c9e2a05674877a39059be87c5bf7b")
     version("4.6.1", sha256="703e5e04e60651e0004574bb9695827d759fd13eb0d6bd67f827c1bfa0a1fd31")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python@3.8:3", type=("build", "run"), when="@4.7:")
     depends_on("python@3.7:3", type=("build", "run"), when="@:4.6")
     depends_on("py-setuptools@41.0:", type=("build", "run"))

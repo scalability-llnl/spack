@@ -22,6 +22,9 @@ class Gslib(Package):
     version("1.0.1", tag="v1.0.1", commit="d16685f24551b7efd69e58d96dc76aec75239ea3")
     version("1.0.0", tag="v1.0.0", commit="9533e652320a3b26a72c36487ae265b02072cd48")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("mpi", default=True, description="Build with MPI")
     variant("mpiio", default=True, description="Build with MPI I/O")
     variant("blas", default=False, description="Build with BLAS")
@@ -47,7 +50,7 @@ class Gslib(Package):
         if "+mpiio" not in spec:
             filter_file(r"MPIIO.*?=.*1", "MPIIO = 0", makefile)
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             cc = spec["mpi"].mpicc
         else:
             filter_file(r"MPI.*?=.*1", "MPI = 0", makefile)
@@ -55,7 +58,7 @@ class Gslib(Package):
 
         make_cmd = "CC=" + cc
 
-        if "+blas" in spec:
+        if spec.satisfies("+blas"):
             filter_file(r"BLAS.*?=.*0", "BLAS = 1", makefile)
             blas = spec["blas"].libs
             ld_flags = blas.ld_flags

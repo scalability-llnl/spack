@@ -71,7 +71,7 @@ class HdfEos2(AutotoolsPackage):
     # Build dependencies
     depends_on("hdf")
     # Because hdf always depends on zlib and jpeg in spack, the tests below in configure_args
-    # (if "jpeg" in self.spec:) always returns true and hdf-eos2 wants zlib and jpeg, too.
+    # (if self.spec.satisfies("^jpeg"):) always returns true and hdf-eos2 wants zlib and jpeg, too.
     depends_on("zlib-api")
     depends_on("jpeg")
     depends_on("szip", when="^hdf +szip")
@@ -120,9 +120,11 @@ class HdfEos2(AutotoolsPackage):
         filter_file("CC=./\\$SZIP_CC", "", "configure")
 
     def flag_handler(self, name, flags):
-        if self.spec.compiler.name == "apple-clang":
-            if name == "cflags":
+        if name == "cflags":
+            flags.append(self.compiler.cc_pic_flag)
+            if self.spec.compiler.name in ["apple-clang", "oneapi"]:
                 flags.append("-Wno-error=implicit-function-declaration")
+                flags.append("-Wno-error=implicit-int")
 
         return flags, None, None
 
@@ -149,26 +151,15 @@ class HdfEos2(AutotoolsPackage):
 
         # Provide config args for dependencies
         extra_args.append("--with-hdf4={0}".format(self.spec["hdf"].prefix))
-        if "jpeg" in self.spec:
+        if self.spec.satisfies("^jpeg"):
             # Allow handling whatever provider of jpeg are using
             tmp = self.spec["jpeg"].libs.directories
             if tmp:
                 tmp = tmp[0]
                 extra_args.append("--with-jpeg={0}".format(tmp))
-        if "szip" in self.spec:
+        if self.spec.satisfies("^szip"):
             extra_args.append("--with-szlib={0}".format(self.spec["szip"].prefix))
-        if "zlib" in self.spec:
+        if self.spec.satisfies("^zlib"):
             extra_args.append("--with-zlib={0}".format(self.spec["zlib-api"].prefix))
-
-        # https://forum.hdfgroup.org/t/help-building-hdf4-with-clang-error-implicit-declaration-of-function-test-mgr-szip-is-invalid-in-c99/7680
-        # -fPIC: https://github.com/spack/spack/issues/43792
-        if self.spec.satisfies("%apple-clang"):
-            extra_args.append(
-                "CFLAGS=-Wno-error=implicit-function-declaration {0}".format(
-                    self.compiler.cc_pic_flag
-                )
-            )
-        else:
-            extra_args.append("CFLAGS={0}".format(self.compiler.cc_pic_flag))
 
         return extra_args

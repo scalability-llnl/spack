@@ -32,6 +32,8 @@ class PpopenApplFvm(MakefilePackage):
 
     version("master", branch="APPL/FVM")
 
+    depends_on("fortran", type="build")  # generated
+
     depends_on("mpi")
     depends_on("metis@:4")
 

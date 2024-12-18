@@ -31,6 +31,5 @@ class PyUvicorn(PythonPackage):
         depends_on("py-pyyaml@5.1:", type=("build", "run"))
         depends_on("py-uvloop@0.14,0.15.2:", when="platform=linux", type=("build", "run"))
         depends_on("py-uvloop@0.14,0.15.2:", when="platform=darwin", type=("build", "run"))
-        depends_on("py-uvloop@0.14,0.15.2:", when="platform=cray", type=("build", "run"))
         depends_on("py-watchfiles@0.13:", type=("build", "run"))
         depends_on("py-websockets@10.4:", type=("build", "run"))

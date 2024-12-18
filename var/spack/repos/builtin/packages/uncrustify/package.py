@@ -9,7 +9,7 @@ from spack.package import *
 class Uncrustify(CMakePackage, AutotoolsPackage):
     """Source Code Beautifier for C, C++, C#, ObjectiveC, Java, and others."""
 
-    homepage = "http://uncrustify.sourceforge.net/"
+    homepage = "https://uncrustify.sourceforge.net/"
     git = "https://github.com/uncrustify/uncrustify"
     url = "https://sourceforge.net/projects/uncrustify/files/uncrustify/uncrustify-0.69/uncrustify-0.69.tar.gz"
 
@@ -32,6 +32,9 @@ class Uncrustify(CMakePackage, AutotoolsPackage):
     version("0.63", commit="44ce0f156396b79ddf3ed9242023a14e9665b76f")
     version("0.62", commit="5987f2223f16b993dbece1360363eef9515fe5e8")
     version("0.61", sha256="1df0e5a2716e256f0a4993db12f23d10195b3030326fdf2e07f8e6421e172df9")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     build_system(
         conditional("cmake", when="@0.64:"),

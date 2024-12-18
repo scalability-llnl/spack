@@ -19,6 +19,8 @@ class Panda(CMakePackage):
         "2016-03-07", sha256="9fae1544626db417ade7318d26bc43c8af04151b9f7679b6d742dba598762037"
     )
 
+    depends_on("cxx", type="build")  # generated
+
     # Note: Panda can also be built without MPI support
 
     depends_on("cmake@2.6.4:", type="build")

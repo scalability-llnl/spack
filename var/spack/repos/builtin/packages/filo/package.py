@@ -18,6 +18,8 @@ class Filo(CMakePackage):
 
     version("main", branch="main")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("mpi")
     depends_on("axl")
     depends_on("kvtree")
@@ -26,8 +28,6 @@ class Filo(CMakePackage):
     def cmake_args(self):
         args = []
         args.append("-DMPI_C_COMPILER=%s" % self.spec["mpi"].mpicc)
-        if self.spec.satisfies("platform=cray"):
-            args.append("-DFILO_LINK_STATIC=ON")
         args.append("-DWITH_AXL_PREFIX=%s" % self.spec["axl"].prefix)
         args.append("-DWITH_KVTREE_PREFIX=%s" % self.spec["kvtree"].prefix)
         args.append("-DWITH_SPATH_PREFIX=%s" % self.spec["spath"].prefix)

@@ -13,21 +13,23 @@ from datetime import date
 import pytest
 
 import llnl.util.tty as tty
-from llnl.util.filesystem import getuid, join_path, mkdirp, touch, touchp
+from llnl.util.filesystem import join_path, touch, touchp
 
+import spack
 import spack.config
 import spack.directory_layout
 import spack.environment as ev
-import spack.main
+import spack.error
 import spack.package_base
 import spack.paths
+import spack.platforms
 import spack.repo
 import spack.schema.compilers
 import spack.schema.config
 import spack.schema.env
 import spack.schema.mirrors
-import spack.schema.packages
 import spack.schema.repos
+import spack.spec
 import spack.store
 import spack.util.path as spack_path
 import spack.util.spack_yaml as syaml
@@ -70,7 +72,7 @@ def write_config_file(tmpdir):
 def env_yaml(tmpdir):
     """Return a sample env.yaml for test purposes"""
     env_yaml = str(tmpdir.join("env.yaml"))
-    with open(env_yaml, "w") as f:
+    with open(env_yaml, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -306,14 +308,14 @@ def test_add_config_path(mutable_config):
 
 @pytest.mark.regression("17543,23259")
 def test_add_config_path_with_enumerated_type(mutable_config):
-    spack.config.add("config:concretizer:clingo")
-    assert spack.config.get("config")["concretizer"] == "clingo"
+    spack.config.add("config:flags:keep_werror:all")
+    assert spack.config.get("config")["flags"]["keep_werror"] == "all"
 
-    spack.config.add("config:concretizer:original")
-    assert spack.config.get("config")["concretizer"] == "original"
+    spack.config.add("config:flags:keep_werror:specific")
+    assert spack.config.get("config")["flags"]["keep_werror"] == "specific"
 
-    with pytest.raises(spack.config.ConfigError):
-        spack.config.add("config:concretizer:foo")
+    with pytest.raises(spack.error.ConfigError):
+        spack.config.add("config:flags:keep_werror:foo")
 
 
 def test_add_config_filename(mock_low_high_config, tmpdir):
@@ -406,7 +408,7 @@ def test_substitute_config_variables(mock_low_high_config, monkeypatch):
     ) == os.path.abspath(os.path.join("foo", "test", "bar"))
 
     host_target = spack.platforms.host().target("default_target")
-    host_target_family = str(host_target.microarchitecture.family)
+    host_target_family = str(host_target.family)
     assert spack_path.canonicalize_path(
         os.path.join("foo", "$target_family", "bar")
     ) == os.path.abspath(os.path.join("foo", host_target_family, "bar"))
@@ -471,6 +473,13 @@ def test_substitute_date(mock_low_high_config):
     assert date.today().strftime("%Y-%m-%d") in new_path
 
 
+def test_substitute_spack_version():
+    version = spack.spack_version_info
+    assert spack_path.canonicalize_path(
+        "spack$spack_short_version/test"
+    ) == spack_path.canonicalize_path(f"spack{version[0]}.{version[1]}/test")
+
+
 PAD_STRING = spack_path.SPACK_PATH_PADDING_CHARS
 MAX_PATH_LEN = spack_path.get_system_path_max()
 MAX_PADDED_LEN = MAX_PATH_LEN - spack_path.SPACK_MAX_INSTALL_PATH_LENGTH
@@ -492,7 +501,7 @@ full_padded_string = os.path.join(os.sep + "path", os.sep.join(reps))[:MAX_PADDE
     ],
 )
 def test_parse_install_tree(config_settings, expected, mutable_config):
-    expected_root = expected[0] or spack.store.DEFAULT_INSTALL_TREE_ROOT
+    expected_root = expected[0] or mutable_config.get("config:install_tree:root")
     expected_unpadded_root = expected[1] or expected_root
     expected_proj = expected[2] or spack.directory_layout.default_projections
 
@@ -575,7 +584,7 @@ def test_change_or_add(mutable_config, mock_packages):
     ],
 )
 def test_parse_install_tree_padded(config_settings, expected, mutable_config):
-    expected_root = expected[0] or spack.store.DEFAULT_INSTALL_TREE_ROOT
+    expected_root = expected[0] or mutable_config.get("config:install_tree:root")
     expected_unpadded_root = expected[1] or expected_root
     expected_proj = expected[2] or spack.directory_layout.default_projections
 
@@ -628,31 +637,6 @@ def test_read_config_override_list(mock_low_high_config, write_config_file):
         "install_tree": {"root": "install_tree_path"},
         "build_stage": config_override_list["config"]["build_stage:"],
     }
-
-
-def test_ordereddict_merge_order():
-    """ "Test that source keys come before dest keys in merge_yaml results."""
-    source = syaml.syaml_dict([("k1", "v1"), ("k2", "v2"), ("k3", "v3")])
-
-    dest = syaml.syaml_dict([("k4", "v4"), ("k3", "WRONG"), ("k5", "v5")])
-
-    result = spack.config.merge_yaml(dest, source)
-    assert "WRONG" not in result.values()
-
-    expected_keys = ["k1", "k2", "k3", "k4", "k5"]
-    expected_items = [("k1", "v1"), ("k2", "v2"), ("k3", "v3"), ("k4", "v4"), ("k5", "v5")]
-    assert expected_keys == list(result.keys())
-    assert expected_items == list(result.items())
-
-
-def test_list_merge_order():
-    """ "Test that source lists are prepended to dest."""
-    source = ["a", "b", "c"]
-    dest = ["d", "e", "f"]
-
-    result = spack.config.merge_yaml(dest, source)
-
-    assert ["a", "b", "c", "d", "e", "f"] == result
 
 
 def test_internal_config_update(mock_low_high_config, write_config_file):
@@ -761,25 +745,20 @@ def test_internal_config_from_data():
     assert config.get("config:checksum", scope="higher") is True
 
 
-def test_keys_are_ordered():
+def test_keys_are_ordered(configuration_dir):
     """Test that keys in Spack YAML files retain their order from the file."""
     expected_order = (
-        "bin",
-        "man",
-        "share/man",
-        "share/aclocal",
-        "lib",
-        "lib64",
-        "include",
-        "lib/pkgconfig",
-        "lib64/pkgconfig",
-        "share/pkgconfig",
-        "",
+        "./bin",
+        "./man",
+        "./share/man",
+        "./share/aclocal",
+        "./lib/pkgconfig",
+        "./lib64/pkgconfig",
+        "./share/pkgconfig",
+        "./",
     )
 
-    config_scope = spack.config.ConfigScope(
-        "modules", os.path.join(spack.paths.test_path, "data", "config")
-    )
+    config_scope = spack.config.DirectoryConfigScope("modules", configuration_dir.join("site"))
 
     data = config_scope.get_section("modules")
 
@@ -800,7 +779,7 @@ def get_config_error(filename, schema, yaml_string):
 
     Fail if there is no ConfigFormatError
     """
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(yaml_string)
 
     # parse and return error, or fail.
@@ -869,42 +848,6 @@ def test_bad_config_section(mock_low_high_config):
         spack.config.get("foobar")
 
 
-@pytest.mark.not_on_windows("chmod not supported on Windows")
-@pytest.mark.skipif(getuid() == 0, reason="user is root")
-def test_bad_command_line_scopes(tmpdir, config):
-    cfg = spack.config.Configuration()
-
-    with tmpdir.as_cwd():
-        with pytest.raises(spack.config.ConfigError):
-            spack.config._add_command_line_scopes(cfg, ["bad_path"])
-
-        touch("unreadable_file")
-        with pytest.raises(spack.config.ConfigError):
-            spack.config._add_command_line_scopes(cfg, ["unreadable_file"])
-
-        mkdirp("unreadable_dir")
-        with pytest.raises(spack.config.ConfigError):
-            try:
-                os.chmod("unreadable_dir", 0)
-                spack.config._add_command_line_scopes(cfg, ["unreadable_dir"])
-            finally:
-                os.chmod("unreadable_dir", 0o700)  # so tmpdir can be removed
-
-
-def test_add_command_line_scopes(tmpdir, mutable_config):
-    config_yaml = str(tmpdir.join("config.yaml"))
-    with open(config_yaml, "w") as f:
-        f.write(
-            """\
-config:
-    verify_ssl: False
-    dirty: False
-"""
-        )
-
-    spack.config._add_command_line_scopes(mutable_config, [str(tmpdir)])
-
-
 def test_nested_override():
     """Ensure proper scope naming of nested overrides."""
     base_name = spack.config._OVERRIDES_BASE_NAME
@@ -953,7 +896,7 @@ def test_alternate_override(monkeypatch):
 
 def test_immutable_scope(tmpdir):
     config_yaml = str(tmpdir.join("config.yaml"))
-    with open(config_yaml, "w") as f:
+    with open(config_yaml, "w", encoding="utf-8") as f:
         f.write(
             """\
 config:
@@ -961,17 +904,19 @@ config:
       root: dummy_tree_value
 """
         )
-    scope = spack.config.ImmutableConfigScope("test", str(tmpdir))
+    scope = spack.config.DirectoryConfigScope("test", str(tmpdir), writable=False)
 
     data = scope.get_section("config")
     assert data["config"]["install_tree"] == {"root": "dummy_tree_value"}
 
-    with pytest.raises(spack.config.ConfigError):
+    with pytest.raises(spack.error.ConfigError):
         scope._write_section("config")
 
 
 def test_single_file_scope(config, env_yaml):
-    scope = spack.config.SingleFileScope("env", env_yaml, spack.schema.env.schema, ["spack"])
+    scope = spack.config.SingleFileScope(
+        "env", env_yaml, spack.schema.env.schema, yaml_path=["spack"]
+    )
 
     with spack.config.override(scope):
         # from the single-file config
@@ -993,7 +938,7 @@ def test_single_file_scope_section_override(tmpdir, config):
     "::" syntax).
     """
     env_yaml = str(tmpdir.join("env.yaml"))
-    with open(env_yaml, "w") as f:
+    with open(env_yaml, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -1007,7 +952,9 @@ spack:
 """
         )
 
-    scope = spack.config.SingleFileScope("env", env_yaml, spack.schema.env.schema, ["spack"])
+    scope = spack.config.SingleFileScope(
+        "env", env_yaml, spack.schema.env.schema, yaml_path=["spack"]
+    )
 
     with spack.config.override(scope):
         # from the single-file config
@@ -1023,7 +970,7 @@ spack:
 def test_write_empty_single_file_scope(tmpdir):
     env_schema = spack.schema.env.schema
     scope = spack.config.SingleFileScope(
-        "test", str(tmpdir.ensure("config.yaml")), env_schema, ["spack"]
+        "test", str(tmpdir.ensure("config.yaml")), env_schema, yaml_path=["spack"]
     )
     scope._write_section("config")
     # confirm we can write empty config
@@ -1211,18 +1158,20 @@ def test_license_dir_config(mutable_config, mock_packages):
     expected_dir = spack.paths.default_license_dir
     assert spack.config.get("config:license_dir") == expected_dir
     assert spack.package_base.PackageBase.global_license_dir == expected_dir
-    assert spack.repo.PATH.get_pkg_class("a").global_license_dir == expected_dir
+    assert spack.repo.PATH.get_pkg_class("pkg-a").global_license_dir == expected_dir
 
     rel_path = os.path.join(os.path.sep, "foo", "bar", "baz")
     spack.config.set("config:license_dir", rel_path)
     assert spack.config.get("config:license_dir") == rel_path
     assert spack.package_base.PackageBase.global_license_dir == rel_path
-    assert spack.repo.PATH.get_pkg_class("a").global_license_dir == rel_path
+    assert spack.repo.PATH.get_pkg_class("pkg-a").global_license_dir == rel_path
 
 
 @pytest.mark.regression("22547")
 def test_single_file_scope_cache_clearing(env_yaml):
-    scope = spack.config.SingleFileScope("env", env_yaml, spack.schema.env.schema, ["spack"])
+    scope = spack.config.SingleFileScope(
+        "env", env_yaml, spack.schema.env.schema, yaml_path=["spack"]
+    )
     # Check that we can retrieve data from the single file scope
     before = scope.get_section("config")
     assert before
@@ -1361,7 +1310,7 @@ def test_config_fetch_remote_configs(
         # be the basename of the file so this check leverages that feature. If
         # that changes, then this check will need to change accordingly.
         element = "{0}:".format(os.path.splitext(os.path.basename(filename))[0])
-        with open(filename, "r") as fd:
+        with open(filename, "r", encoding="utf-8") as fd:
             for line in fd:
                 if element in line:
                     return True
@@ -1420,7 +1369,7 @@ def test_config_fetch_remote_configs_skip(
     required and not skipping if replacing it."""
 
     def check_contents(filename, expected):
-        with open(filename, "r") as fd:
+        with open(filename, "r", encoding="utf-8") as fd:
             lines = fd.readlines()
             if expected:
                 assert lines[0] == "compilers:"
@@ -1464,7 +1413,7 @@ def test_config_file_read_invalid_yaml(tmpdir, mutable_empty_config):
     """Test reading a configuration file with invalid (unparseable) YAML
     raises a ConfigFileError."""
     filename = join_path(tmpdir.strpath, "test.yaml")
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write("spack:\nview")
 
     with pytest.raises(spack.config.ConfigFileError, match="parsing YAML"):

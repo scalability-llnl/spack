@@ -24,4 +24,6 @@ class RMagrittr(RPackage):
     version("2.0.1", sha256="75c265d51cc2b34beb27040edb09823c7b954d3990a7a931e40690b75d4aad5f")
     version("1.5", sha256="05c45943ada9443134caa0ab24db4a962b629f00b755ccf039a2a2a7b2c92ae8")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@3.4.0:", type=("build", "run"), when="@2.0.3:")

@@ -20,6 +20,9 @@ class Asdcplib(AutotoolsPackage):
     version("2_10_33", sha256="16fafb5da3d46b0f44570ef9780c85dd82cca60106a9e005e538809ea1a95373")
     version("2_10_32", sha256="fe5123c49980ee3fa25dea876286f2ac974d203bfcc6c77fc288a59025dee3ee")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("m4", type="build")
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

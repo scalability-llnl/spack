@@ -31,6 +31,9 @@ class Libfuse(MesonPackage):
     version("3.9.2", sha256="b4409255cbda6f6975ca330f5b04cb335b823a95ddd8c812c3d224ec53478fc0")
     version("2.9.9", sha256="d0e69d5d608cc22ff4843791ad097f554dd32540ddc9bed7638cc6fea7c1b4b5")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     def url_for_version(self, version):
         if version < Version("3.0.0"):
             return "https://github.com/libfuse/libfuse/releases/download/fuse-{0}/fuse-{1}.tar.gz".format(
@@ -103,19 +106,19 @@ class Libfuse(MesonPackage):
     def meson_args(self):
         args = []
 
-        if "+utils" in self.spec:
+        if self.spec.satisfies("+utils"):
             args.append("-Dutils=true")
             args.append("-Dexamples=true")
         else:
             args.append("-Dutils=false")
             args.append("-Dexamples=false")
 
-        if "+useroot" in self.spec:
+        if self.spec.satisfies("+useroot"):
             args.append("-Duseroot=true")
         else:
             args.append("-Duseroot=false")
 
-        if "~system_install" in self.spec:
+        if self.spec.satisfies("~system_install"):
             # Fix meson's setup if meson does not have the host system's udev package:
             args.append("-Dudevrulesdir={0}".format(self.prefix.etc.rules.d))
 
@@ -144,10 +147,14 @@ class Libfuse(MesonPackage):
         ]
 
         args.append(
-            "--enable-static" if "default_library=static" in self.spec else "--disable-static"
+            "--enable-static"
+            if self.spec.satisfies("default_library=static")
+            else "--disable-static"
         )
         args.append(
-            "--enable-shared" if "default_library=shared" in self.spec else "--disable-shared"
+            "--enable-shared"
+            if self.spec.satisfies("default_library=shared")
+            else "--disable-shared"
         )
 
         configure(*args)

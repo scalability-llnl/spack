@@ -16,4 +16,6 @@ class PyFastcache(PythonPackage):
 
     version("1.1.0", sha256="6de1b16e70335b7bde266707eb401a3aaec220fb66c5d13b02abf0eab8be782b")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")

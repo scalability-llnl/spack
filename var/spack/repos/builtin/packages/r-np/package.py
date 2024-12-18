@@ -30,6 +30,8 @@ class RNp(RPackage):
     version("0.60-8", sha256="924c342feb2a862fa3871a45db5f8434dbbfb900cfc40c001a0872108a3a069e")
     version("0.60-2", sha256="25d667fc1056899516584b9d5d933377e6f4694d8e5e868dd047db572b69417f")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r-boot", type=("build", "run"))
     depends_on("r-cubature", type=("build", "run"))
     depends_on("r-quadprog", type=("build", "run"), when="@0.60-8:")

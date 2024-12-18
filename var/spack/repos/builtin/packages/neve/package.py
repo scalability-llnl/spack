@@ -17,6 +17,8 @@ class Neve(MakefilePackage):
 
     version("master", branch="master")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("openmp", default=True, description="Build with OpenMP support")
     variant("opt", default=True, description="Optimization flags")
 

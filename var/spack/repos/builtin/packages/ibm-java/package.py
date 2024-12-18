@@ -6,6 +6,8 @@
 import os
 import platform
 
+from llnl.util.symlink import readlink
+
 from spack.package import *
 
 
@@ -94,7 +96,7 @@ class IbmJava(Package):
         # The archive.bin file is quite fussy and doesn't work as a
         # symlink.
         if os.path.islink(archive):
-            targ = os.readlink(archive)
+            targ = readlink(archive)
             os.unlink(archive)
             copy(targ, archive)
 

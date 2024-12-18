@@ -1,0 +1,102 @@
+diff --git a/examples/hiop/ex9p.cpp b/examples/hiop/ex9p.cpp
+index 4facbb3c0b..f783b97a3b 100644
+--- a/examples/hiop/ex9p.cpp
++++ b/examples/hiop/ex9p.cpp
+@@ -96,6 +96,7 @@ public:
+    {
+       Vector w_glob(width);
+       pfes.Dof_TrueDof_Matrix()->MultTranspose(w, w_glob);
++      w_glob.HostReadWrite(); // read+write -> can use w_glob(i) (non-const)
+       for (int i = 0; i < width; i++) { grad(0, i) = w_glob(i); }
+    }
+ 
+diff --git a/linalg/sparsemat.cpp b/linalg/sparsemat.cpp
+index 0b5334d2a6..efe471d416 100644
+--- a/linalg/sparsemat.cpp
++++ b/linalg/sparsemat.cpp
+@@ -1267,24 +1267,32 @@ real_t SparseMatrix::InnerProduct(const Vector &x, const Vector &y) const
+ 
+ void SparseMatrix::GetRowSums(Vector &x) const
+ {
+-   for (int i = 0; i < height; i++)
++   if (Finalized())
+    {
+-      real_t a = 0.0;
+-      if (A)
++      auto d_I = ReadI();
++      auto d_A = ReadData();
++      auto d_x = x.Write();
++      mfem::forall(height, [=] MFEM_HOST_DEVICE (int i)
+       {
+-         for (int j = I[i], end = I[i+1]; j < end; j++)
++         real_t sum = 0.0;
++         for (int j = d_I[i], end = d_I[i+1]; j < end; j++)
+          {
+-            a += A[j];
++            sum += d_A[j];
+          }
+-      }
+-      else
++         d_x[i] = sum;
++      });
++   }
++   else
++   {
++      for (int i = 0; i < height; i++)
+       {
++         real_t a = 0.0;
+          for (RowNode *np = Rows[i]; np != NULL; np = np->Prev)
+          {
+             a += np->Value;
+          }
++         x(i) = a;
+       }
+-      x(i) = a;
+    }
+ }
+ 
+diff --git a/linalg/sparsemat.hpp b/linalg/sparsemat.hpp
+index 7042279663..dc2d773bc4 100644
+--- a/linalg/sparsemat.hpp
++++ b/linalg/sparsemat.hpp
+@@ -216,7 +216,7 @@ public:
+    void ClearCuSparse() { ClearGPUSparse(); }
+ 
+    /// Check if the SparseMatrix is empty.
+-   bool Empty() const { return (A == NULL) && (Rows == NULL); }
++   bool Empty() const { return A.Empty() && (Rows == NULL); }
+ 
+    /// Return the array #I.
+    inline int *GetI() { return I; }
+diff --git a/tests/unit/general/test_umpire_mem.cpp b/tests/unit/general/test_umpire_mem.cpp
+index 84457669ec..d4a7b85093 100644
+--- a/tests/unit/general/test_umpire_mem.cpp
++++ b/tests/unit/general/test_umpire_mem.cpp
+@@ -18,12 +18,13 @@
+ #include <unistd.h>
+ #include <stdio.h>
+ #include "umpire/Umpire.hpp"
++#include <umpire/strategy/QuickPool.hpp>
+ 
+ #ifdef MFEM_USE_CUDA
+ #include <cuda.h>
+ constexpr const char * device_name = "cuda";
+ #elif defined(MFEM_USE_HIP)
+-constexpr const char * device_name = "raja-hip";
++constexpr const char * device_name = "hip";
+ #endif
+ 
+ using namespace mfem;
+@@ -45,10 +46,12 @@ static bool is_pinned_host(void * h_p)
+    unsigned flags;
+ #ifdef MFEM_USE_CUDA
+    auto err = cudaHostGetFlags(&flags, h_p);
++   cudaGetLastError(); // also resets last error
+    if (err == cudaSuccess) { return true; }
+    else if (err == cudaErrorInvalidValue) { return false; }
+ #elif defined(MFEM_USE_HIP)
+    auto err = hipHostGetFlags(&flags, h_p);
++   hipGetLastError(); // also resets last error
+    if (err == hipSuccess) { return true; }
+    else if (err == hipErrorInvalidValue) { return false; }
+ #endif

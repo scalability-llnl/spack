@@ -3,8 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import spack.version
 from spack.package import *
-from spack.util.executable import which_string
 
 
 class NinjaFortran(Package):
@@ -45,6 +45,9 @@ class NinjaFortran(Package):
     version(
         "1.7.1.0.g7ca7f", sha256="53472d0c3cf9c1cff7e991699710878be55d21a1c229956dea6a2c3e44edee80"
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("python", type="build")
 

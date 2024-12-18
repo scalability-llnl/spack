@@ -28,6 +28,9 @@ class PyScikitBuild(PythonPackage):
     version("0.11.1", sha256="da40dfd69b2456fad1349a894b90180b43712152b8a85d2a00f4ae2ce8ac9a5c")
     version("0.10.0", sha256="7342017cc82dd6178e3b19377389b8a8d1f8b429d9cdb315cfb1094e34a0f526")
 
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("py-hatchling", when="@0.17:", type="build")
     depends_on("py-hatch-fancy-pypi-readme", when="@0.17:", type="build")
     depends_on("py-hatch-vcs", when="@0.17:", type="build")

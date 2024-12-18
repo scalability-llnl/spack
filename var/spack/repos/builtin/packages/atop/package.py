@@ -20,6 +20,8 @@ class Atop(Package):
     version("2.2.6", sha256="d0386840ee4df36e5d0ad55f144661b434d9ad35d94deadc0405b514485db615")
     version("2.2-3", sha256="c785b8a2355be28b3de6b58a8ea4c4fcab8fadeaa57a99afeb03c66fac8e055d")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("zlib-api")
     depends_on("ncurses")
 

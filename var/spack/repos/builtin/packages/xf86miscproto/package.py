@@ -12,7 +12,7 @@ class Xf86miscproto(AutotoolsPackage, XorgPackage):
     supported by the XFree86 X server and versions of the Xorg X server
     prior to Xorg 1.6."""
 
-    homepage = "https://cgit.freedesktop.org/xorg/proto/xf86miscproto"
+    homepage = "https://gitlab.freedesktop.org/xorg/proto/xf86miscproto"
     xorg_mirror_path = "proto/xf86miscproto-0.9.3.tar.gz"
 
     version("0.9.3", sha256="1b05cb76ac165c703b82bdd270b86ebbc4d42a7d04d299050b07ba2099c31352")

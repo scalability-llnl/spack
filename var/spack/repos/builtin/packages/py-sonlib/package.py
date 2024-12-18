@@ -27,4 +27,7 @@ class PySonlib(PythonPackage):
     version("devel", branch="master")
     version("20200401", commit="7ebe2ede05a6ee366d93a7a993db69a99943a68f")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("py-setuptools", type="build")

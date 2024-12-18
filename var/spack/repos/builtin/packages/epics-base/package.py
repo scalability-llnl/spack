@@ -20,6 +20,9 @@ class EpicsBase(MakefilePackage):
 
     version("7.0.6.1", sha256="8ff318f25e2b70df466f933636a2da85e4b0c841504b9e89857652a4786b6387")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("readline")
     depends_on("perl", type=("build", "run"))
 

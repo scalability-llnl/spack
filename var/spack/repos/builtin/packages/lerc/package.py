@@ -22,6 +22,8 @@ class Lerc(CMakePackage):
     version("4.0.0", sha256="91431c2b16d0e3de6cbaea188603359f87caed08259a645fd5a3805784ee30a0")
     version("3.0", sha256="8c0148f5c22d823eff7b2c999b0781f8095e49a7d3195f13c68c5541dd5740a1")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("cmake@3.11:", type="build")
     depends_on("cmake@3.12:", type="build", when="@4.0.0:")
 

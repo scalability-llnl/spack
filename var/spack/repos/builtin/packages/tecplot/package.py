@@ -20,6 +20,11 @@ class Tecplot(Package):
     maintainers("LRWeber")
 
     version(
+        "2024r1",
+        sha256="46012aab7e3f18d77344448d1e1a8d43a58f5e35fb0a296c593199810df4bc8e",
+        expand=False,
+    )
+    version(
         "2023r1",
         sha256="58e7f4de875e65047f4edd684013d0ff538df6246f00c059458989f281be4c93",
         expand=False,

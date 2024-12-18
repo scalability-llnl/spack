@@ -19,6 +19,9 @@ class Mpir(Package):
     version("2.7.0", sha256="2d0174aaccff918766215df00420f12929a6c376ab4e558af31f57c55193bcb7")
     version("2.6.0", sha256="dedb336098d41d4e298909586cf351003bcd7aad9317e801f3e4c4838f6d7691")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # This setting allows mpir to act as a drop-in replacement for gmp
     variant("gmp_compat", default=False, description="Compile with GMP library compatibility")
 

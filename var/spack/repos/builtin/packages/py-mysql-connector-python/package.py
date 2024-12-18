@@ -20,5 +20,8 @@ class PyMysqlConnectorPython(PythonPackage):
 
     version("8.0.13", sha256="d4c0834c583cdb90c0aeae90b1917d58355a4bf9b0266c16fd58874a5607f9d4")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("py-setuptools", type=("build", "run"))
     depends_on("py-protobuf@3.0.0:", type=("build", "run"))

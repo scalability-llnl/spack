@@ -17,5 +17,7 @@ class KvasirMpl(Package):
 
     version("develop", branch="development")
 
+    depends_on("cxx", type="build")  # generated
+
     def install(self, spec, prefix):
         install_tree("src", prefix.include)

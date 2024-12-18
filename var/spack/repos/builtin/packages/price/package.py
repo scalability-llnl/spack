@@ -15,6 +15,8 @@ class Price(MakefilePackage):
 
     version("140408", sha256="12276b2b15f4e020a772944a19fd2aaf089d3437cbc71e7486fa8db95014843f")
 
+    depends_on("cxx", type="build")  # generated
+
     def install(self, spec, prefix):
         mkdirp(prefix.bin)
         install("PriceTI", prefix.bin)

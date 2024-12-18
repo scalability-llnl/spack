@@ -33,6 +33,9 @@ class Gunrock(CMakePackage, CudaPackage):
     version("0.2", submodules=True, tag="v0.2", commit="f9d85343ee68c65567184d74021b9483cd142ea0")
     version("0.1", submodules=True, tag="v0.1", commit="4c00284f6b7d490a83fa7afe5cdff60923316448")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("cuda", default=True, description="Build with Cuda support")
 
     variant("lib", default=True, description="Build main gunrock library")
@@ -160,5 +163,5 @@ See "spack info gunrock"',
         with working_dir(self.build_directory):
             install_tree("lib", prefix.lib)
             # bin dir is created only if tests/examples are built
-            if "+tests" in spec:
+            if spec.satisfies("+tests"):
                 install_tree("bin", prefix.bin)

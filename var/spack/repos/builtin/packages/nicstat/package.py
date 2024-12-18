@@ -20,6 +20,8 @@ class Nicstat(MakefilePackage, SourceforgePackage):
 
     version("1.95", sha256="c4cc33f8838f4523f27c3d7584eedbe59f4c587f0821612f5ac2201adc18b367")
 
+    depends_on("c", type="build")  # generated
+
     def edit(self, spec, prefix):
         copy("Makefile.Linux", "makefile")
         filter_file(r"CMODEL =\s+-m32", "", "makefile")

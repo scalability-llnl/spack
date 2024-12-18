@@ -21,6 +21,8 @@ class Brynet(CMakePackage):
     version("1.0.7", sha256="60116fccff108d03f3ff0a3d5c1fb5ad442bad7ef155bf1a3c7819ffc9d57524")
     version("1.0.6", sha256="5e94b5b64fbdfbcb4e33b11fb7832cf0ca3898ab6b6461867182598bab7ca65f")
 
+    depends_on("cxx", type="build")  # generated
+
     def cmake_args(self):
         args = []
         args.append("-Dbrynet_BUILD_EXAMPLES=ON")

@@ -16,6 +16,8 @@ class Hdf5VolExternalPassthrough(CMakePackage):
 
     version("develop", branch="develop")
     version("1.1", sha256="9f1a7fba4958fe0f46b4451253b9b1d7a4cfb30a0ce4183f5f756ceaddbbf2c3")
+
+    depends_on("c", type="build")  # generated
     depends_on("hdf5@1.14.0:")
 
     def cmake_args(self):

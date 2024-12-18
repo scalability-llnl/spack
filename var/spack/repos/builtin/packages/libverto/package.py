@@ -21,6 +21,8 @@ class Libverto(AutotoolsPackage):
     version("0.3.0", sha256="fad201d9d0ac1abf1283d2d78bb3a615f72cfd2a2141673589d93c0cb762b3f1")
     version("0.2.7", sha256="0ef688a8a8690c24714834cc155b067b1c5d3f3194acceb333751deebd50de01")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

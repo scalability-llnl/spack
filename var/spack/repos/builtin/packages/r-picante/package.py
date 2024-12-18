@@ -28,6 +28,8 @@ class RPicante(RPackage):
     version("1.6-2", sha256="4db3a5a0fe5e4e9197c96245195843294fbb8d0a324edcde70c6ab01276ab7ff")
     version("1.6-1", sha256="2708315b26737857a6729fd67bde06bc939930035c5b09a8bba472a593f24000")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r-ape", type=("build", "run"))
     depends_on("r-vegan", type=("build", "run"))
     depends_on("r-nlme", type=("build", "run"))

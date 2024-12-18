@@ -31,6 +31,8 @@ class PyEspresso(CMakePackage):
     version("4.0.1", sha256="17b7268eeba652a77f861bc534cdd05d206e7641d203a9dd5029b44bd422304b")
     version("4.0.0", sha256="8e128847447eebd843de24be9b4ad14aa19c028ae48879a5a4535a9683836e6b")
 
+    depends_on("cxx", type="build")  # generated
+
     # espressomd/espresso#2244 merge upstream
     patch("2244.patch", when="@4.0.0")
 

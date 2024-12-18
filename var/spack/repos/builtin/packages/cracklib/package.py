@@ -22,6 +22,8 @@ class Cracklib(AutotoolsPackage):
     version("2.9.6", sha256="7cd2c01365f199c466b490ad2585beccbe0108ccd606c1bcc6c1e52800e627fe")
     version("2.9.5", sha256="b3fcf3fba2f4566f8eb2b79502d1a66198a71c557d2ab1011c78001489f0fe26")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("python", type=("build", "run"))
     depends_on("gettext")
     depends_on("fmt")

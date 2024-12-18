@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from typing import Union
 
 from llnl.util import lang, tty
 
@@ -16,92 +17,66 @@ from ..path import sanitize_win_longpath, system_path_filter
 if sys.platform == "win32":
     from win32file import CreateHardLink
 
-is_windows = sys.platform == "win32"
 
+def _windows_symlink(
+    src: str, dst: str, target_is_directory: bool = False, *, dir_fd: Union[int, None] = None
+):
+    """On Windows with System Administrator privileges this will be a normal symbolic link via
+    os.symlink. On Windows without privledges the link will be a junction for a directory and a
+    hardlink for a file. On Windows the various link types are:
 
-def symlink(source_path: str, link_path: str, allow_broken_symlinks: bool = not is_windows):
-    """
-    Create a link.
+    Symbolic Link: A link to a file or directory on the same or different volume (drive letter) or
+    even to a remote file or directory (using UNC in its path). Need System Administrator
+    privileges to make these.
 
-    On non-Windows and Windows with System Administrator
-    privleges this will be a normal symbolic link via
-    os.symlink.
+    Hard Link: A link to a file on the same volume (drive letter) only. Every file (file's data)
+    has at least 1 hard link (file's name). But when this method creates a new hard link there will
+    be 2. Deleting all hard links effectively deletes the file. Don't need System Administrator
+    privileges.
 
-    On Windows without privledges the link will be a
-    junction for a directory and a hardlink for a file.
-    On Windows the various link types are:
-
-    Symbolic Link: A link to a file or directory on the
-    same or different volume (drive letter) or even to
-    a remote file or directory (using UNC in its path).
-    Need System Administrator privileges to make these.
-
-    Hard Link: A link to a file on the same volume (drive
-    letter) only. Every file (file's data) has at least 1
-    hard link (file's name). But when this method creates
-    a new hard link there will be 2. Deleting all hard
-    links effectively deletes the file. Don't need System
-    Administrator privileges.
-
-    Junction: A link to a directory on the same or different
-    volume (drive letter) but not to a remote directory. Don't
-    need System Administrator privileges.
-
-    Parameters:
-        source_path (str): The real file or directory that the link points to.
-            Must be absolute OR relative to the link.
-        link_path (str): The path where the link will exist.
-        allow_broken_symlinks (bool): On Linux or Mac, don't raise an exception if the source_path
-            doesn't exist. This will still raise an exception on Windows.
-    """
-    source_path = os.path.normpath(source_path)
+    Junction: A link to a directory on the same or different volume (drive letter) but not to a
+    remote directory. Don't need System Administrator privileges."""
+    source_path = os.path.normpath(src)
     win_source_path = source_path
-    link_path = os.path.normpath(link_path)
+    link_path = os.path.normpath(dst)
 
-    # Never allow broken links on Windows.
-    if sys.platform == "win32" and allow_broken_symlinks:
-        raise ValueError("allow_broken_symlinks parameter cannot be True on Windows.")
+    # Perform basic checks to make sure symlinking will succeed
+    if os.path.lexists(link_path):
+        raise AlreadyExistsError(f"Link path ({link_path}) already exists. Cannot create link.")
 
-    if not allow_broken_symlinks:
-        # Perform basic checks to make sure symlinking will succeed
-        if os.path.lexists(link_path):
-            raise AlreadyExistsError(
-                f"Link path ({link_path}) already exists. Cannot create link."
+    if not os.path.exists(source_path):
+        if os.path.isabs(source_path):
+            # An absolute source path that does not exist will result in a broken link.
+            raise SymlinkError(
+                f"Source path ({source_path}) is absolute but does not exist. Resulting "
+                f"link would be broken so not making link."
             )
-
-        if not os.path.exists(source_path):
-            if os.path.isabs(source_path) and not allow_broken_symlinks:
-                # An absolute source path that does not exist will result in a broken link.
-                raise SymlinkError(
-                    f"Source path ({source_path}) is absolute but does not exist. Resulting "
-                    f"link would be broken so not making link."
-                )
+        else:
+            # os.symlink can create a link when the given source path is relative to
+            # the link path. Emulate this behavior and check to see if the source exists
+            # relative to the link path ahead of link creation to prevent broken
+            # links from being made.
+            link_parent_dir = os.path.dirname(link_path)
+            relative_path = os.path.join(link_parent_dir, source_path)
+            if os.path.exists(relative_path):
+                # In order to work on windows, the source path needs to be modified to be
+                # relative because hardlink/junction dont resolve relative paths the same
+                # way as os.symlink. This is ignored on other operating systems.
+                win_source_path = relative_path
             else:
-                # os.symlink can create a link when the given source path is relative to
-                # the link path. Emulate this behavior and check to see if the source exists
-                # relative to the link path ahead of link creation to prevent broken
-                # links from being made.
-                link_parent_dir = os.path.dirname(link_path)
-                relative_path = os.path.join(link_parent_dir, source_path)
-                if os.path.exists(relative_path):
-                    # In order to work on windows, the source path needs to be modified to be
-                    # relative because hardlink/junction dont resolve relative paths the same
-                    # way as os.symlink. This is ignored on other operating systems.
-                    win_source_path = relative_path
-                elif not allow_broken_symlinks:
-                    raise SymlinkError(
-                        f"The source path ({source_path}) is not relative to the link path "
-                        f"({link_path}). Resulting link would be broken so not making link."
-                    )
+                raise SymlinkError(
+                    f"The source path ({source_path}) is not relative to the link path "
+                    f"({link_path}). Resulting link would be broken so not making link."
+                )
 
     # Create the symlink
-    if sys.platform == "win32" and not _windows_can_symlink():
+    if not _windows_can_symlink():
         _windows_create_link(win_source_path, link_path)
     else:
         os.symlink(source_path, link_path, target_is_directory=os.path.isdir(source_path))
 
 
-def islink(path: str) -> bool:
+def _windows_islink(path: str) -> bool:
     """Override os.islink to give correct answer for spack logic.
 
     For Non-Windows: a link can be determined with the os.path.islink method.
@@ -269,7 +244,7 @@ def _windows_create_hard_link(path: str, link: str):
         CreateHardLink(link, path)
 
 
-def readlink(path: str, *, dir_fd=None):
+def _windows_readlink(path: str, *, dir_fd=None):
     """Spack utility to override of os.readlink method to work cross platform"""
     if _windows_is_hardlink(path):
         return _windows_read_hard_link(path)
@@ -336,6 +311,16 @@ def resolve_link_target_relative_to_the_link(link):
         return target
     link_dir = os.path.dirname(os.path.abspath(link))
     return os.path.join(link_dir, target)
+
+
+if sys.platform == "win32":
+    symlink = _windows_symlink
+    readlink = _windows_readlink
+    islink = _windows_islink
+else:
+    symlink = os.symlink
+    readlink = os.readlink
+    islink = os.path.islink
 
 
 class SymlinkError(RuntimeError):

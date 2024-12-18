@@ -9,13 +9,15 @@ from spack.package import *
 class Pblat(MakefilePackage):
     """Parallelized blat with multi-threads support"""
 
-    homepage = "http://icebert.github.io/pblat/"
+    homepage = "https://icebert.github.io/pblat/"
     url = "https://github.com/icebert/pblat/archive/refs/tags/2.5.1.tar.gz"
 
     # `pblat` shares the license for Jim Kent's `blat`. For-profit users must visit:
     license_url = "https://kentinformatics.com/"
 
     version("2.5.1", sha256="e85a4d752b8e159502d529f0f9e47579851a6b466b6c2f1f4d49f598642bc615")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("openssl")
     depends_on("zlib-api")

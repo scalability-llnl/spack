@@ -22,6 +22,8 @@ class PyPymoo(PythonPackage):
     version("0.5.0", sha256="2fbca1716f6b45e430197ce4ce2210070fd3b6b9ec6b17bb25d98486115272c2")
     version("0.4.2", sha256="6ec382a7d29c8775088eec7f245a30fd384b42c40f230018dea0e3bcd9aabdf1")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python@3.4:", type=("build", "run"))
     depends_on("py-autograd", type=("build", "run"))
     depends_on("py-setuptools", type="build")

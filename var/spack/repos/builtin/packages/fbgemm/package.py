@@ -56,6 +56,9 @@ class Fbgemm(CMakePackage):
         "2018-12-04", commit="0d5a159b944252e70a677236b570f291943e0543", submodules=True
     )  # py-torch@1.0.0
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     generator("ninja")
     depends_on("cmake@3.5:", type="build")
     depends_on("python", type="build")

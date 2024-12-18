@@ -27,6 +27,8 @@ class RDss(RPackage):
     version("2.34.0", commit="f9819c7d7927c8e6d9963632cdeab36c8c22caa8")
     version("2.32.0", commit="ffb502d20810a873c2376199d44adedf7c83912d")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@3.3:", type=("build", "run"))
     depends_on("r@3.5.0:", type=("build", "run"), when="@2.44.0:")
     depends_on("r-biobase", type=("build", "run"))

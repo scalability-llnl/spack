@@ -18,3 +18,5 @@ class Multitime(AutotoolsPackage):
     license("MIT")
 
     version("1.4", sha256="dd85c431c022d0b992f3a8816a1a3dfb414454a229c0ec22514761bf72d3ce47")
+
+    depends_on("c", type="build")  # generated

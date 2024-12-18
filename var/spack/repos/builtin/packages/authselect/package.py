@@ -18,6 +18,8 @@ class Authselect(AutotoolsPackage):
     version("1.2", sha256="c354c87a0115612cb51b09b5157f151569e16384cdd69f32b8515209036531b4")
     version("1.1", sha256="39b888575980c1ecac7022dfe5a5452eef59cef850b8544ed5f928e2e8a335dd")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

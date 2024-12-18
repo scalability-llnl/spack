@@ -30,3 +30,6 @@ class Gcc(Package):
         )
         # The version of gcc-runtime is the same as the %gcc used to "compile" it
         pkg("gcc-runtime").requires(f"@={str(spec.version)}", when=f"%{str(spec)}")
+
+        # If a node used %gcc@X.Y its dependencies must use gcc-runtime@:X.Y
+        pkg("*").propagate(f"%gcc@:{str(spec.version)}", when=f"%{str(spec)}")

@@ -17,6 +17,8 @@ class PyMisopy(PythonPackage):
 
     version("0.5.4", sha256="377a28b0c254b1920ffdc2d89cf96c3a21cadf1cf148ee6d6ef7a88ada067dfc")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("python@2.6:", type=("build", "run"))
     depends_on("py-numpy@1.5.0:", type=("build", "run"))

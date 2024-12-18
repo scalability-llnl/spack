@@ -18,6 +18,9 @@ class Openslp(AutotoolsPackage):
 
     version("2.0.0", sha256="9dda45ff52cf8561ca1414ac8b4947ed2d9b43e66aec03478fa0ed37121a5ea2")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

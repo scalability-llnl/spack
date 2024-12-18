@@ -17,6 +17,9 @@ class Regale(CMakePackage):
 
     version("1.0", sha256="894b0927372467e765049e79b855a9a277def65638013f68a1f2b6e837e35663")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("eprosima-fastdds")
 
     variant("examples", default=False, description="Build examples")

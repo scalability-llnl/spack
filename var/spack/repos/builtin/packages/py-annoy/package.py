@@ -19,5 +19,7 @@ class PyAnnoy(PythonPackage):
 
     version("1.17.1", sha256="bf177dbeafb81f63b2ac1e1246b1f26a2acc82e73ba46638734d29d8258122da")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("py-nose@1:", type="build")

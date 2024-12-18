@@ -23,6 +23,8 @@ class Casper(MakefilePackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("jellyfish@2.2.3:")
     depends_on("boost+exception")
 

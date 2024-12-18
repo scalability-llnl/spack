@@ -18,6 +18,8 @@ class PyRapidfuzz(PythonPackage):
     version("2.2.0", sha256="acb8839aac452ec61a419fdc8799e8a6e6cd21bed53d04678cdda6fba1247e2f")
     version("1.8.2", sha256="d6efbb2b6b18b3a67d7bdfbcd9bb72732f55736852bbef823bdf210f9e0c6c90")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python", type=("build", "link", "run"))
     depends_on("py-setuptools@42:", when="@2:", type="build")
     depends_on("py-setuptools", type="build")

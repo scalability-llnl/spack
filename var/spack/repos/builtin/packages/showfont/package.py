@@ -17,6 +17,8 @@ class Showfont(AutotoolsPackage, XorgPackage):
     version("1.0.6", sha256="006c5cb931e33c8c073215cf106a9c7fe93b81ccb4268274bb33dd5697e1f425")
     version("1.0.5", sha256="566e34a145ea73397724d46e84f6a9b3691cf55d0fcb96ec7f917b2b39265ebb")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("libfs")
 
     depends_on("pkgconfig", type="build")

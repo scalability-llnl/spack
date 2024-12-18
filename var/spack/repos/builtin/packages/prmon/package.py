@@ -19,6 +19,7 @@ class Prmon(CMakePackage):
     license("Apache-2.0")
 
     version("main", branch="main")
+    version("3.1.0", sha256="02f25f1ea82300c93e5af14137e366b31c8d615283768d5f3f98616a0d6e507c")
     version("3.0.2", sha256="ea9ff521689fecb8c395e35e9540be18c7ab37812354c4a5c0ba505e2ab467c1")
     version("3.0.0", sha256="fd6f4e3a95e055d265fbbaba08d680826cb4770eb8830cc987898d6504ac7474")
     version("2.2.1", sha256="7c95538a0ddcfc71b5c581979a5bb298873fdf16966fd6951aaa2b2639b08319")

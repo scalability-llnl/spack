@@ -23,6 +23,8 @@ class RLobstr(RPackage):
     version("1.0.1", sha256="25fb288f73dbaf680ebbf27a50da338868c55d788501118fd33748854c5104fb")
     version("1.0.0", sha256="9d24de1519c51b3bac79066a1abf623b939e884ba5b3005110bb9c2016954b3d")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@3.1:", type=("build", "run"))
     depends_on("r@3.2:", type=("build", "run"), when="@1.1.1:")
     depends_on("r-crayon", type=("build", "run"))

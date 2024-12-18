@@ -44,6 +44,9 @@ class Patchelf(AutotoolsPackage):
     version("0.9", sha256="f2aa40a6148cb3b0ca807a1bf836b081793e55ec9e5540a5356d800132be7e0a")
     version("0.8", sha256="14af06a2da688d577d64ff8dac065bb8903bbffbe01d30c62df7af9bf4ce72fe")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     conflicts("%gcc@:4.6", when="@0.10:", msg="Requires C++11 support")
     conflicts("%gcc@:6", when="@0.14:", msg="Requires C++17 support")
     conflicts("%clang@:3", when="@0.14:", msg="Requires C++17 support")

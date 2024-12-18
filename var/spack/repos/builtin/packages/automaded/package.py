@@ -24,6 +24,8 @@ class Automaded(CMakePackage):
 
     version("1.0", sha256="600740cdd594cc6968c7bcb285d0829eb0ddbd5597c32c06c6ae5d9929a2625d")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("mpi")
 
     # TODO: replace this with an explicit list of components of Boost,

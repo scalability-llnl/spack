@@ -15,6 +15,7 @@ class RPurrr(RPackage):
 
     license("MIT")
 
+    version("1.0.2", sha256="2c1bc6bb88433dff0892b41136f2f5c23573b335ff35a4775c72aa57b48bbb63")
     version("1.0.1", sha256="0a7911be3539355a4c40d136f2602befcaaad5a3f7222078500bfb969a6f2ba2")
     version("0.3.5", sha256="a2386cd7e78a043cb9c14703023fff15ab1c879bf648816879d2c0c4a554fcef")
     version("0.3.4", sha256="23ebc93bc9aed9e7575e8eb9683ff4acc0270ef7d6436cc2ef4236a9734840b2")
@@ -25,12 +26,16 @@ class RPurrr(RPackage):
     depends_on("r@3.1:", type=("build", "run"))
     depends_on("r@3.2:", type=("build", "run"), when="@0.3.3:")
     depends_on("r@3.4.0:", type=("build", "run"), when="@1.0.1:")
+    depends_on("r@3.5.0:", type=("build", "run"), when="@1.0.2:")
     depends_on("r-vctrs@0.5.0:", type=("build", "run"), when="@1.0.1:")
+    depends_on("r-vctrs@0.6.3:", type=("build", "run"), when="@1.0.2:")
     depends_on("r-lifecycle@1.0.3:", type=("build", "run"), when="@1.0.1:")
     depends_on("r-cli@3.4.0:", type=("build", "run"), when="@1.0.1:")
+    depends_on("r-cli@3.6.1:", type=("build", "run"), when="@1.0.2:")
     depends_on("r-magrittr@1.5:", type=("build", "run"))
     depends_on("r-magrittr@1.5.0:", type=("build", "run"), when="@1.0.1:")
     depends_on("r-rlang@0.3.1:", type=("build", "run"))
     depends_on("r-rlang@0.4.10:", type=("build", "run"), when="@1.0.1:")
+    depends_on("r-rlang@1.1.1:", type=("build", "run"), when="@1.0.2:")
 
     depends_on("r-tibble", type=("build", "run"), when="@:0.2.9")

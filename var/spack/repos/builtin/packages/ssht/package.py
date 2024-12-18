@@ -34,6 +34,9 @@ class Ssht(CMakePackage):
     version("1.3.3", sha256="1f3b89e29d89fa79170b9979046a55c81b588d9dd563fd36f37887495b71dd28")
     version("1.3.2", sha256="6cb3b6f94fb90dff45ba59da30a8ccd9667d8e319bed437f19d2287f59e35dd1")
     version("1.3.0", sha256="9e2c220a70d662714ff601a121b674c8423866058279e000cbbee532d31dd3c9")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
     # version('1.2b1', commit='7378ce8853897cbd1b08adebf7ec088c1e40f860')
 
     depends_on("fftw @3.0.0:")

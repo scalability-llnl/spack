@@ -23,5 +23,8 @@ class RHexbin(RPackage):
     version("1.27.2", sha256="46d47b1efef75d6f126af686a4dd614228b60418b9a5bde9e9e5d11200a0ee52")
     version("1.27.1", sha256="075935a3ae2d90e44aca6ebbd368dc6f7e59d322e36e0e0932dedbf01330ad08")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("r@2.0.1:", type=("build", "run"))
     depends_on("r-lattice", type=("build", "run"))

@@ -15,6 +15,8 @@ class Probconsrna(Package):
 
     version("2005-6-7", sha256="7fe4494bd423db1d5f33f5ece2c70f9f66a0d9112e28d3eaa7dfdfe7fa66eba8")
 
+    depends_on("cxx", type="build")  # generated
+
     def install(self, build, prefix):
         mkdirp(prefix.bin)
         install("compare", prefix.bin)

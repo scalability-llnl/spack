@@ -39,17 +39,16 @@ from typing import List, Optional
 
 import llnl.util.filesystem
 import llnl.util.tty as tty
-from llnl.util.lang import dedupe, memoized
+from llnl.util.lang import Singleton, dedupe, memoized
 
 import spack.build_environment
 import spack.config
 import spack.deptypes as dt
 import spack.environment
 import spack.error
-import spack.modules.common
 import spack.paths
 import spack.projections as proj
-import spack.repo
+import spack.schema
 import spack.schema.environment
 import spack.spec
 import spack.store
@@ -218,7 +217,7 @@ def root_path(name, module_set_name):
     roots = spack.config.get(f"modules:{module_set_name}:roots", {})
 
     # Merge config values into the defaults so we prefer configured values
-    roots = spack.config.merge_yaml(defaults, roots)
+    roots = spack.schema.merge_yaml(defaults, roots)
 
     path = roots.get(name, os.path.join(spack.paths.share_path, name))
     return spack.util.path.canonicalize_path(path)
@@ -229,7 +228,7 @@ def generate_module_index(root, modules, overwrite=False):
     if overwrite or not os.path.exists(index_path):
         entries = syaml.syaml_dict()
     else:
-        with open(index_path) as index_file:
+        with open(index_path, encoding="utf-8") as index_file:
             yaml_content = syaml.load(index_file)
             entries = yaml_content["module_index"]
 
@@ -238,7 +237,7 @@ def generate_module_index(root, modules, overwrite=False):
         entries[m.spec.dag_hash()] = entry
     index = {"module_index": entries}
     llnl.util.filesystem.mkdirp(root)
-    with open(index_path, "w") as index_file:
+    with open(index_path, "w", encoding="utf-8") as index_file:
         syaml.dump(index, default_flow_style=False, stream=index_file)
 
 
@@ -248,7 +247,7 @@ def _generate_upstream_module_index():
     return UpstreamModuleIndex(spack.store.STORE.db, module_indices)
 
 
-upstream_module_index = llnl.util.lang.Singleton(_generate_upstream_module_index)
+upstream_module_index = Singleton(_generate_upstream_module_index)
 
 
 ModuleIndexEntry = collections.namedtuple("ModuleIndexEntry", ["path", "use_name"])
@@ -258,7 +257,7 @@ def read_module_index(root):
     index_path = os.path.join(root, "module-index.yaml")
     if not os.path.exists(index_path):
         return {}
-    with open(index_path) as index_file:
+    with open(index_path, encoding="utf-8") as index_file:
         return _read_module_index(index_file)
 
 
@@ -322,67 +321,6 @@ class UpstreamModuleIndex:
         else:
             tty.debug(f"No module is available for upstream package {spec}")
             return None
-
-
-def get_module(module_type, spec, get_full_path, module_set_name="default", required=True):
-    """Retrieve the module file for a given spec and module type.
-
-    Retrieve the module file for the given spec if it is available. If the
-    module is not available, this will raise an exception unless the module
-    is excluded or if the spec is installed upstream.
-
-    Args:
-        module_type: the type of module we want to retrieve (e.g. lmod)
-        spec: refers to the installed package that we want to retrieve a module
-            for
-        required: if the module is required but excluded, this function will
-            print a debug message. If a module is missing but not excluded,
-            then an exception is raised (regardless of whether it is required)
-        get_full_path: if ``True``, this returns the full path to the module.
-            Otherwise, this returns the module name.
-        module_set_name: the named module configuration set from modules.yaml
-            for which to retrieve the module.
-
-    Returns:
-        The module name or path. May return ``None`` if the module is not
-        available.
-    """
-    try:
-        upstream = spec.installed_upstream
-    except spack.repo.UnknownPackageError:
-        upstream, record = spack.store.STORE.db.query_by_spec_hash(spec.dag_hash())
-    if upstream:
-        module = spack.modules.common.upstream_module_index.upstream_module(spec, module_type)
-        if not module:
-            return None
-
-        if get_full_path:
-            return module.path
-        else:
-            return module.use_name
-    else:
-        writer = spack.modules.module_types[module_type](spec, module_set_name)
-        if not os.path.isfile(writer.layout.filename):
-            fmt_str = "{name}{@version}{/hash:7}"
-            if not writer.conf.excluded:
-                raise ModuleNotFoundError(
-                    "The module for package {} should be at {}, but it does not exist".format(
-                        spec.format(fmt_str), writer.layout.filename
-                    )
-                )
-            elif required:
-                tty.debug(
-                    "The module configuration has excluded {}: omitting it".format(
-                        spec.format(fmt_str)
-                    )
-                )
-            else:
-                return None
-
-        if get_full_path:
-            return writer.layout.filename
-        else:
-            return writer.layout.use_name
 
 
 class BaseConfiguration:
@@ -590,7 +528,8 @@ class BaseFileLayout:
         parts = name.split("/")
         name = os.path.join(*parts)
         # Add optional suffixes based on constraints
-        path_elements = [name] + self.conf.suffixes
+        path_elements = [name]
+        path_elements.extend(map(self.spec.format, self.conf.suffixes))
         return "-".join(path_elements)
 
     @property
@@ -667,7 +606,7 @@ class BaseContext(tengine.Context):
             return msg
 
         if os.path.exists(pkg.install_configure_args_path):
-            with open(pkg.install_configure_args_path) as args_file:
+            with open(pkg.install_configure_args_path, encoding="utf-8") as args_file:
                 return spack.util.path.padding_filter(args_file.read())
 
         # Returning a false-like value makes the default templates skip
@@ -686,10 +625,10 @@ class BaseContext(tengine.Context):
         """List of environment modifications to be processed."""
         # Modifications guessed by inspecting the spec prefix
         prefix_inspections = syaml.syaml_dict()
-        spack.config.merge_yaml(
+        spack.schema.merge_yaml(
             prefix_inspections, spack.config.get("modules:prefix_inspections", {})
         )
-        spack.config.merge_yaml(
+        spack.schema.merge_yaml(
             prefix_inspections,
             spack.config.get(f"modules:{self.conf.name}:prefix_inspections", {}),
         )
@@ -962,7 +901,7 @@ class BaseModuleFileWriter:
         # Render the template
         text = template.render(context)
         # Write it to file
-        with open(self.layout.filename, "w") as f:
+        with open(self.layout.filename, "w", encoding="utf-8") as f:
             f.write(text)
 
         # Set the file permissions of the module to match that of the package
@@ -1001,7 +940,7 @@ class BaseModuleFileWriter:
 
         if modulerc_exists:
             # retrieve modulerc content
-            with open(modulerc_path) as f:
+            with open(modulerc_path, encoding="utf-8") as f:
                 content = f.readlines()
                 content = "".join(content).split("\n")
                 # remove last empty item if any
@@ -1036,7 +975,7 @@ class BaseModuleFileWriter:
             elif content != self.modulerc_header:
                 # ensure file ends with a newline character
                 content.append("")
-                with open(modulerc_path, "w") as f:
+                with open(modulerc_path, "w", encoding="utf-8") as f:
                     f.write("\n".join(content))
 
     def remove(self):

@@ -22,6 +22,8 @@ class Whip(CMakePackage, CudaPackage, ROCmPackage):
     version("0.2.0", sha256="d8fec662526accbd1624922fdf01a077d6f312cf253382660e4a2f65e28e8686")
     version("0.1.0", sha256="5d557794f4afc8332fc660948a342f69e22bc9e5d575ffb3e3944cf526db5ec9")
 
+    depends_on("cxx", type="build")
+
     depends_on("cmake@3.22:", type="build")
 
     # Exactly one of +cuda and +rocm need to be set

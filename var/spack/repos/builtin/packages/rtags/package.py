@@ -19,6 +19,9 @@ class Rtags(CMakePackage):
     version("2.20", sha256="9d73399421327147dc47b0ae5b95e12e8355f30291ad1954a78c0ef68b4b501f")
     version("2.17", sha256="288fa49fedf647fb15e2ef10f0ebcd9de1a4ef1bbae3a3940870e136d32a3a60")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("llvm@3.3: +clang")
     depends_on("zlib-api")
     depends_on("openssl")

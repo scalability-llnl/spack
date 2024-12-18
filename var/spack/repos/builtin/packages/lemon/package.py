@@ -17,6 +17,8 @@ class Lemon(CMakePackage):
 
     version("1.3.1", sha256="71b7c725f4c0b4a8ccb92eb87b208701586cf7a96156ebd821ca3ed855bad3c8")
 
+    depends_on("cxx", type="build")  # generated
+
     # variant("coin", default=False, description="Enable Coin solver backend") #TODO build fails
     variant("ilog", default=False, description="Enable ILOG (CPLEX) solver backend")
     variant("glpk", default=True, description="Enable GLPK solver backend")

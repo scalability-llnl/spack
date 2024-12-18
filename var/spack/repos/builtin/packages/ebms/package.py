@@ -24,6 +24,8 @@ class Ebms(MakefilePackage):
 
     version("develop")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("mpi@2:")
 
     tags = ["proxy-app"]
@@ -34,7 +36,7 @@ class Ebms(MakefilePackage):
 
         cflags = "-g -O3 -std=gnu99"
 
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             targets.append("CC={0}".format(self.spec["mpi"].mpicc))
 
         targets.append("CFLAGS={0}".format(cflags))

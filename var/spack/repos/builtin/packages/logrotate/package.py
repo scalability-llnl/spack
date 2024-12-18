@@ -20,6 +20,8 @@ class Logrotate(AutotoolsPackage):
     version("3.16.0", sha256="bc6acfd09925045d48b5ff553c24c567cfd5f59d513c4ac34bfb51fa6b79dc8a")
     version("3.15.1", sha256="a7b20f5184c9598c36546f9200d3bd616d561478a0423ab8074e97a1cd7b1c25")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

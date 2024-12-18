@@ -16,6 +16,9 @@ class Unuran(AutotoolsPackage):
 
     version("1.8.1", sha256="c270ae96857857dbac6450043df865e0517f52856ddbe5202fd35583b13c5193")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=True, description="Enable the build of shared libraries")
     variant(
         "rngstreams",

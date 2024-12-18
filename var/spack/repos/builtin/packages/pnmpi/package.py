@@ -17,6 +17,10 @@ class Pnmpi(CMakePackage):
 
     version("1.7", sha256="523228bdc220ae417d6812c0766bba698a240d71c69981cb0cb2b09a75ef4a9e")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("fortran", default=False, description="Configure PnMPI with Fortran support")
     variant(
         "tests", default=False, description='Build test cases and enable "test" makefile target'

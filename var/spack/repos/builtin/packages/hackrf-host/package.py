@@ -22,6 +22,8 @@ class HackrfHost(CMakePackage):
 
     version("2018.01.1", sha256="84dbb5536d3aa5bd6b25d50df78d591e6c3431d752de051a17f4cb87b7963ec3")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("cmake@2.8.12:", type="build")
     depends_on("libusb@1.0.18:")
     depends_on("fftw@3.3.5:")

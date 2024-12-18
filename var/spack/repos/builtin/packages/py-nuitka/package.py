@@ -20,5 +20,8 @@ class PyNuitka(PythonPackage):
 
     version("2.2.1", sha256="7bf67e80f94c93017fbaacfe1e277b92422d234a3c849a1555e43848f5fb27a1")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("py-setuptools", type="build")
     depends_on("py-ordered-set", type="build")

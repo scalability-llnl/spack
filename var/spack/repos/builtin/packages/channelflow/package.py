@@ -19,6 +19,8 @@ class Channelflow(CMakePackage):
 
     version("master", branch="master")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=True, description="Build shared libs")
     variant("mpi", default=True, description="Enable MPI parallelism")
     variant("hdf5", default=True, description="Enable support for HDF5 I/O")
@@ -74,7 +76,7 @@ class Channelflow(CMakePackage):
         args.append("-DWITH_NETCDF:STRING={0}".format(netcdf_str[spec.variants["netcdf"].value]))
 
         # Set an MPI compiler for parallel builds
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             args.append("-DCMAKE_CXX_COMPILER:PATH={0}".format(spec["mpi"].mpicxx))
 
         return args

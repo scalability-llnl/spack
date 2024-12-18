@@ -18,6 +18,9 @@ class Pvm(MakefilePackage):
 
     version("3.4.6", sha256="482665e9bc975d826bcdacf1df1d42e43deda9585a2c430fd3b7b7ed08eada44")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("m4", type="build")
     depends_on("libtirpc", type="link")
 

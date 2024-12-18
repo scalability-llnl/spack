@@ -18,6 +18,9 @@ class Weechat(CMakePackage):
 
     version("2.9", sha256="3a78063b76c42ba306eacf8f74cb8c9a260f8a61d1915d0b5d76f11d2be69a53")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("perl", default=False, description="Include perl support")
     variant("lua", default=False, description="Include lua support")
     variant("ruby", default=False, description="Include ruby support")

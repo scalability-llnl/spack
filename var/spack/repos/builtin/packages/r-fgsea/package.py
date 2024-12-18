@@ -29,6 +29,8 @@ class RFgsea(RPackage):
     version("1.4.1", commit="73de5ff364e520ac99507a9ee5a61a0d23d3c44e")
     version("1.2.1", commit="99b04eef664204d0dca4b9f8027cd7eefb006b72")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@3.3:", type=("build", "run"))
     depends_on("r-rcpp", type=("build", "run"))
     depends_on("r-data-table", type=("build", "run"))

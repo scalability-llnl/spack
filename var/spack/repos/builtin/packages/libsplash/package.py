@@ -31,6 +31,8 @@ class Libsplash(CMakePackage):
     version("1.3.1", sha256="6ad04261e6d377a59b209f345af56405b37830f0dcfac28770b63091bff59383")
     version("1.2.4", sha256="f5c4f792fee5609ede6a7d2fee5fa5799d3b68e8cdc23001a3aba390394d2f36")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("mpi", default=True, description="Enable parallel I/O (one-file aggregation) support")
 
     depends_on("cmake@3.10.0:", type="build", when="@1.7.0:")

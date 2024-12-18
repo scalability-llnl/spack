@@ -19,6 +19,8 @@ class Pal(AutotoolsPackage):
 
     version("0.9.8", sha256="191fde8c4f45d6807d4b011511344014966bb46e44029a4481d070cd5e7cc697")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("sofa-c")
     depends_on("erfa")
 

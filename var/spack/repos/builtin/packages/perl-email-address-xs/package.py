@@ -16,4 +16,6 @@ class PerlEmailAddressXs(PerlPackage):
 
     version("1.05", sha256="1510b7f10d67201037cd50d22c9d6b26eeca55ededa4cdb46bbca27e59a4ea16")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("perl@5.6.0:", type=("build", "link", "run", "test"))

@@ -26,6 +26,8 @@ class Npm(Package):
     version("7.24.2", sha256="5b9eeea011f8bc3b76e55cc33339e87213800677f37e0756ad13ef0e9eaccd64")
     version("6.14.18", sha256="c9b15f277e2a0b1b57e05bad04504296a27024555d56c2aa967f862e957ad2ed")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("node-js", type=("build", "run"))
     # see https://github.com/npm/cli/blob/v10.0.0/README.md for version constraints
     depends_on("node-js@14.17:14,16.13:16,18:", type=("build", "run"), when="@9:")

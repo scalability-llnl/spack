@@ -21,5 +21,7 @@ class Lzop(CMakePackage):
     version("1.03", sha256="c1425b8c77d49f5a679d5a126c90ea6ad99585a55e335a613cae59e909dbb2c9")
     version("1.01", sha256="28acd94d933befbc3af986abcfe833173fb7563b66533fdb4ac592f38bb944c7")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("pkgconfig", type="build")
     depends_on("lzo")

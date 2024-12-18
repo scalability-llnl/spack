@@ -25,6 +25,8 @@ class Fullock(AutotoolsPackage):
     version("1.0.33", sha256="31a292e50553abf71058b47277dbca37d25a772cf99c0f99c85e56dfcd11edb2")
     version("1.0.32", sha256="57d4ca06e5b88a98745062f55ee5ce37c88a49d59d58d09c5178fa1eee4d8353")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

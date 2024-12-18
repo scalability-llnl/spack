@@ -22,6 +22,8 @@ class AutodockGpu(MakefilePackage, CudaPackage):
 
     version("develop", branch="develop")
 
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "device",
         default="cuda",

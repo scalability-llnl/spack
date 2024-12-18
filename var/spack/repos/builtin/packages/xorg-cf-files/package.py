@@ -12,7 +12,7 @@ class XorgCfFiles(AutotoolsPackage, XorgPackage):
     have not been verified or tested in over a decade), and for many of the
     libraries formerly delivered in the X.Org monolithic releases."""
 
-    homepage = "https://cgit.freedesktop.org/xorg/util/cf"
+    homepage = "https://gitlab.freedesktop.org/xorg/util/cf"
     xorg_mirror_path = "util/xorg-cf-files-1.0.6.tar.gz"
 
     license("custom")

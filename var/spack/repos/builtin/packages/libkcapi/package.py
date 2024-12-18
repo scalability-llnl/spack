@@ -19,6 +19,8 @@ class Libkcapi(AutotoolsPackage):
     version("1.1.5", sha256="ca38bf4d750dd2d3531ddb94d502feedb0f926bd9b29fb97e253b83bbceb6611")
     version("1.1.4", sha256="241ffa4f2813c6da442b1c1e152d489905ffab35a6c50e76aca5ee6fe60319dd")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

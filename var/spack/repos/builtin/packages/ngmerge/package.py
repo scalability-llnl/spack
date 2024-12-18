@@ -16,6 +16,8 @@ class Ngmerge(MakefilePackage):
 
     version("0.3", sha256="5928f727feebd0d1bcdbee0e631ba06fbe9ce88328bd58b6c8bf4e54cc742ac3")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("zlib-api")
 
     def install(self, spec, prefix):

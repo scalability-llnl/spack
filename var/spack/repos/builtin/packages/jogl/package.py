@@ -19,6 +19,9 @@ class Jogl(Package):
 
     version("java-11-fixes", branch="java-11-fixes", submodules=True)
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("ant", type="build")
     depends_on("java", type=("build", "run"))
     depends_on("gluegen", type=("build", "run"))

@@ -15,6 +15,9 @@ class PyPywcs(PythonPackage):
 
     version("1.12.1", sha256="efd4e0ea190e3a2521ebcde583452e126acdeac85cc8a9c78c8a96f10805b5e1")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     depends_on("python@2.6:", type=("build", "run"))
     depends_on("py-setuptools", type="build")
     depends_on("py-d2to1@0.2.3:", type="build")

@@ -1,0 +1,25 @@
+packages:
+  all:
+    target: [x86_64]
+  tbb:
+    require: "intel-tbb"
+  cmake:
+    externals:
+    - spec: cmake@3.28.0-msvc1
+      prefix: "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake"
+    buildable: False
+  ninja:
+    externals:
+    - spec: ninja@1.11.0
+      prefix: "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja"
+    buildable: False
+  wgl:
+    externals:
+    - spec: wgl@10.0.22621 plat=x64
+      prefix: "C:\\Program Files (x86)\\Windows Kits\\10"
+    buildable: False
+  win-sdk:
+    externals:
+    - spec: win-sdk@10.0.22621 plat=x64
+      prefix: "C:\\Program Files (x86)\\Windows Kits\\10"
+    buildable: False

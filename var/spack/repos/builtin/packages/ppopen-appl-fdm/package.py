@@ -19,6 +19,10 @@ class PpopenApplFdm(MakefilePackage):
 
     version("master", branch="APPL/FDM")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # remove unused variable definition
     patch("unused.patch")
     # remove iargc external definition

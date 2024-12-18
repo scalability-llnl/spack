@@ -20,6 +20,9 @@ class Cvise(CMakePackage):
     version("2.10.0", tag="v2.10.0", commit="c8606497e354ddab273745cf823823bdd3e86bd8")
     version("2.7.0", tag="v2.7.0", commit="d9e4a50514d9931b2a1293755a7e96e0f9520032")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("pytest", default=False, description="Add py-pytest as dependency")
     variant("colordiff", default=False, description="Add colordiff support")
 

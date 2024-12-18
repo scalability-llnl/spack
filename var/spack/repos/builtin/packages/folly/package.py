@@ -26,6 +26,9 @@ class Folly(CMakePackage):
         "2021.05.24.00", sha256="9d308adefe4670637f5c7d96309b3b394ac3fa129bc954f5dfbdd8b741c02aad"
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # CMakePackage Dependency
     depends_on("pkgconfig", type="build")
 

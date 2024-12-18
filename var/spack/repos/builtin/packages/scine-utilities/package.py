@@ -21,6 +21,8 @@ class ScineUtilities(CMakePackage):
     version("6.0.0", sha256="e4387d5562b7442a8e31e4dfc028bacfeb6d12e39f2d8aa6effc6db380863b4a")
     version("5.0.0", sha256="a304c89d9a196fe304f38610dea6b066d74590c0d434e4bd09a9796340700465")
 
+    depends_on("cxx", type="build")  # generated
+
     resource(
         name="dev",
         url="https://github.com/qcscine/development-utils/archive/refs/tags/5.0.1.tar.gz",

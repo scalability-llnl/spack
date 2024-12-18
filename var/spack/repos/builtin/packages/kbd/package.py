@@ -20,6 +20,8 @@ class Kbd(AutotoolsPackage):
     version("2.2.90", sha256="a310a915f474c85ee28cd860677a34a529aca940daa44634a428dd6df58c196e")
     version("2.2.0", sha256="5dec023c7a05b4d11d8ae795f59fab2b0bacfcc5c20a3d534dc7566cfe47ccf7")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")

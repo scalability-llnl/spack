@@ -23,6 +23,9 @@ class PyAts(PythonPackage):
     version("7.0.100", tag="7.0.100", commit="202c18d11b8f1c14f1a3361a6e45c9e4f83a3fa1")
     version("7.0.5", tag="7.0.5", commit="86b0b18b96b179f97008393170f5e5bc95118867")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # TODO: Add flux variant when Flux functionality works in ATS
 
     depends_on("python@3.8:", type=("build", "run"))

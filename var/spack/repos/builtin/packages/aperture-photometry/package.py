@@ -11,7 +11,7 @@ from spack.package import *
 class AperturePhotometry(Package):
     """Aperture Photometry Tool APT is software for astronomical research"""
 
-    homepage = "http://www.aperturephotometry.org/"
+    homepage = "https://www.aperturephotometry.org/"
     url = "https://web.ipac.caltech.edu/staff/laher/apt/APT_v2.8.4.tar.gz"
     maintainers("snehring")
 

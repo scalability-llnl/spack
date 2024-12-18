@@ -43,6 +43,9 @@ class Delphes(CMakePackage):
     version("3.0.6", sha256="9e225731d57d2a76d35886841f8eff121bb3a45560b16077bd8c351151581d88")
     version("3.0.5", sha256="ab64ec6d2476fbfa40562e7edb510a8ab4c4fe5be77a4353ebf315c2af181a80")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("pythia8", default=True, description="build with pythia8")
 
     depends_on("cmake", type="build")

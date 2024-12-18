@@ -19,6 +19,8 @@ class Dnstracer(MakefilePackage):
 
     version("master", branch="master")
 
+    depends_on("c", type="build")  # generated
+
     def edit(self, spec, prefix):
         configure = Executable("./configure.sh")
         configure("--prefix={0}".format(prefix))
