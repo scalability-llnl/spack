@@ -299,7 +299,7 @@ spack:
   # INCLUDED IN ECP DAV CUDA
   - adios2 +cuda cuda_arch=90
   - ascent +cuda cuda_arch=90       # ascent: https://github.com/spack/spack/issues/38045
-  - paraview +cuda cuda_arch=90     # paraview: Cannot satisfy 'cuda@:11' and 'cuda@12.0:
+  # - paraview +cuda cuda_arch=90     # paraview: Cannot satisfy 'cuda@:11' and 'cuda@12.0:
   - vtk-m +cuda cuda_arch=90
   - zfp +cuda cuda_arch=90
   # --
