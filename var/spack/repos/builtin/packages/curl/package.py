@@ -222,7 +222,11 @@ class AutotoolsBuilder(AutotoolsBuilder):
             "--without-libgsasl",
             "--without-libpsl",
             "--without-zstd",
+            "--disable-manual",
         ]
+
+        if spec.satisfies("@8.7:"):
+            args.append("--disable-docs")
 
         args += self.enable_or_disable("libs")
 
