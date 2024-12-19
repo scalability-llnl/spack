@@ -1226,7 +1226,7 @@ class SvnFetchStrategy(VCSFetchStrategy):
                 # On Windows, ensure that the checkout is not set to read-only to prevent
                 # PermissionsError when shutil.move attempts to copy-then-delete the temp
                 # directory when working on muliple drives.
-                subprocess.run("attrib -r /d /s", check=True, shell=True)
+                subprocess.run("attrib -h -r /d /s", check=True, shell=True)
             repo_name = get_single_file(".")
             self.stage.srcdir = repo_name
             shutil.move(repo_name, self.stage.source_path)
