@@ -863,8 +863,10 @@ def elide_list(line_list: List[str], max_num: int = 10) -> List[str]:
 
 if sys.version_info >= (3, 9):
     PatternStr = re.Pattern[str]
+    PatternBytes = re.Pattern[bytes]
 else:
     PatternStr = typing.Pattern[str]
+    PatternBytes = typing.Pattern[bytes]
 
 
 def fnmatch_translate_multiple(named_patterns: Dict[str, str]) -> str:
