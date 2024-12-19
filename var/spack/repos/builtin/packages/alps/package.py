@@ -3,31 +3,17 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-# ----------------------------------------------------------------------------
-# If you submit this package back to Spack as a pull request,
-# please first remove this boilerplate and all FIXME comments.
-#
-# This is a template package file for Spack.  We've put "FIXME"
-# next to all the things you'll want to change. Once you've handled
-# them, you can save this file and test your package like this:
-#
-#     spack install alps
-#
-# You can edit this file again by typing:
-#
-#     spack edit alps
-#
-# See the Spack documentation for more information on packaging.
-# ----------------------------------------------------------------------------
 
 from spack.package import *
 
 
 class Alps(CMakePackage):
-    """FIXME: Put a proper description of your package here."""
+    """Algorithms for Physics Simulations
 
-    # FIXME: Add a proper url for your package's homepage here.
-    homepage = "https://www.example.com"
+    Tags: Condensed Matter Physics, Computational Physics
+    """
+
+    homepage = "https://github.com/ALPSim/ALPS"
     url = "https://github.com/ALPSim/ALPS/archive/refs/tags/v2.3.3-beta.5.tar.gz"
 
     # FIXME: Add a list of GitHub accounts to
@@ -64,6 +50,28 @@ class Alps(CMakePackage):
 
     def cmake_args(self):
         args = []
-        args.append("-DBoost_ROOT_DIR="+self.spec["boost"].prefix.include)
-        args.append("-DCMAKE_CXX_FLAGS='-std=c++14 -fpermissive'")
+        # Don't use Boost_ROOT_DIR option
+        args.append("-DCMAKE_CXX_FLAGS={0}".format(self.compiler.cxx14_flag + " -fpermissive"))
         return args
+
+    # The following tests were added by github user "ketsubouchi"
+    def _single_test(self, target, exename, dataname, opts=[]):
+        troot = self.prefix.tutorials
+        copy_tree(join_path(troot, target), target)
+
+        if target == "dmrg-01-dmrg":
+            test_dir = self.test_suite.current_test_data_dir
+            copy(join_path(test_dir, dataname), target)
+
+        self.run_test("parameter2xml", options=[dataname, "SEED=123456"], work_dir=target)
+        options = []
+        options.extend(opts)
+        options.extend(["--write-xml", "{0}.in.xml".format(dataname)])
+        self.run_test(
+            exename, options=options, expected=["Finished with everything."], work_dir=target
+        )
+
+    def test(self):
+        self._single_test("mc-02-susceptibilities", "spinmc", "parm2a", ["--Tmin", "10"])
+        self._single_test("ed-01-sparsediag", "sparsediag", "parm1a")
+        self._single_test("dmrg-01-dmrg", "dmrg", "spin_one_half")
