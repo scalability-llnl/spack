@@ -350,32 +350,6 @@ def _set_elf_rpaths_and_interpreter(
         return None
 
 
-def needs_binary_relocation(m_type, m_subtype):
-    """Returns True if the file with MIME type/subtype passed as arguments
-    needs binary relocation, False otherwise.
-
-    Args:
-        m_type (str): MIME type of the file
-        m_subtype (str): MIME subtype of the file
-    """
-    subtypes = ("x-executable", "x-sharedlib", "x-mach-binary", "x-pie-executable")
-    if m_type == "application":
-        if m_subtype in subtypes:
-            return True
-    return False
-
-
-def needs_text_relocation(m_type, m_subtype):
-    """Returns True if the file with MIME type/subtype passed as arguments
-    needs text relocation, False otherwise.
-
-    Args:
-        m_type (str): MIME type of the file
-        m_subtype (str): MIME subtype of the file
-    """
-    return m_type == "text"
-
-
 def relocate_macho_binaries(
     path_names, old_layout_root, new_layout_root, prefix_to_prefix, rel, old_prefix, new_prefix
 ):
