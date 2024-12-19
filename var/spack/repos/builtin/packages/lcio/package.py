@@ -118,7 +118,10 @@ class Lcio(CMakePackage):
         env.prepend_path("PYTHONPATH", self.prefix.python)
         # needed for the python bindings to find "Exceptions.h"
         env.prepend_path("CPATH", self.prefix)
-        env.prepend_path("LD_LIBRARY_PATH", self.spec["lcio"].libs.directories[0])
+        # Set up ROOT_LIBRARY_PATH (or for older versions, LD_LIBRARY_PATH)
+        root_env = self.spec["root"].root_library_path
+        for d in self.libs.directories:
+            env.prepend_path(root_env, d)
 
     @run_after("install")
     def install_source(self):
