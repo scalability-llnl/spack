@@ -2752,6 +2752,16 @@ class SpackSolverSetup:
                 # Inject default flags for compilers
                 recorder("*").default_flags(compiler)
 
+            # FIXME (compiler as nodes): think of using isinstance(compiler_cls, WrappedCompiler)
+            # Add a dependency on the compiler wrapper
+            if sys.platform != "win32":
+                recorder("*").depends_on(
+                    "compiler-wrapper",
+                    when=f"%{compiler.name}@{compiler.versions}",
+                    type="build",
+                    description=f"Add the compiler wrapper when using {compiler}",
+                )
+
             if not using_libc_compatibility():
                 continue
 

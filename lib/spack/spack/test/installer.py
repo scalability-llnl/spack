@@ -1022,7 +1022,7 @@ def test_install_fail_fast_on_detect(install_mockery, monkeypatch, capsys):
     b, c = spack.concretize.concretize_one("pkg-b"), spack.concretize.concretize_one("pkg-c")
     b_id, c_id = inst.package_id(b), inst.package_id(c)
 
-    installer = create_installer([b, c], {"fail_fast": True})
+    installer = create_installer([c, b], {"fail_fast": True})
 
     # Make sure all packages are identified as failed
     # This will prevent b from installing, which will cause the build of c to be skipped.
@@ -1031,7 +1031,7 @@ def test_install_fail_fast_on_detect(install_mockery, monkeypatch, capsys):
     with pytest.raises(spack.error.InstallError, match="after first install failure"):
         installer.install()
 
-    assert c_id in installer.failed, "Expected b to be marked as failed"
+    assert c_id in installer.failed
     assert b_id not in installer.failed, "Expected no attempt to install pkg-c"
     assert f"{c_id} failed to install" in capsys.readouterr().err
 

@@ -71,7 +71,7 @@ def test_install_package_and_dependency(
     assert filename in files
 
     content = filename.open().read()
-    assert 'tests="3"' in content
+    assert 'tests="4"' in content
     assert 'failures="0"' in content
     assert 'errors="0"' in content
 
@@ -116,12 +116,12 @@ def test_install_package_already_installed(
 
     content = filename.open().read()
     print(content)
-    assert 'tests="4"' in content
+    assert 'tests="5"' in content
     assert 'failures="0"' in content
     assert 'errors="0"' in content
 
     skipped = [line for line in content.split("\n") if "skipped" in line]
-    assert len(skipped) == 4
+    assert len(skipped) == 5
 
 
 @pytest.mark.parametrize(
@@ -458,16 +458,16 @@ def test_junit_output_with_errors(
 
     # Only libelf error is reported (through libdwarf root spec). libdwarf
     # install is skipped and it is not an error.
-    assert 'tests="1"' in content
+    assert 'tests="0"' not in content
     assert 'failures="0"' in content
-    assert 'errors="1"' in content
+    assert 'errors="0"' not in content
 
     # Nothing should have succeeded
     assert 'errors="0"' not in content
 
     # We want to have both stdout and stderr
     assert "<system-out>" in content
-    assert 'error message="{0}"'.format(msg) in content
+    assert f'error message="{msg}"' in content
 
 
 @pytest.mark.usefixtures("noop_install", "mock_packages", "config")

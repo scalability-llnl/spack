@@ -38,7 +38,6 @@ licensed_files = [
     r"^lib/spack/spack/.*\.sh$",
     r"^lib/spack/spack/.*\.lp$",
     r"^lib/spack/llnl/.*\.py$",
-    r"^lib/spack/env/cc$",
     # special case some test data files that have license headers
     r"^lib/spack/spack/test/data/style/broken.dummy",
     r"^lib/spack/spack/test/data/unparse/.*\.txt",

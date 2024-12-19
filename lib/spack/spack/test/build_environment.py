@@ -2,8 +2,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
-import platform
 import posixpath
+import sys
 
 import pytest
 
@@ -13,19 +13,16 @@ from llnl.path import Path, convert_to_platform_path
 from llnl.util.filesystem import HeaderList, LibraryList
 
 import spack.build_environment
-import spack.build_systems.compiler
 import spack.concretize
 import spack.config
 import spack.deptypes as dt
 import spack.package_base
-import spack.paths
 import spack.spec
 import spack.util.environment
 import spack.util.spack_yaml as syaml
 from spack.build_environment import UseMode, _static_to_shared_library, dso_suffix
 from spack.context import Context
 from spack.installer import PackageInstaller
-from spack.paths import build_env_path
 from spack.util.environment import EnvironmentModifications
 from spack.util.executable import Executable
 
@@ -42,55 +39,41 @@ def prep_and_join(path, *pths):
 
 
 @pytest.fixture
-def build_environment(working_env):
-    cc = Executable(os.path.join(build_env_path, "cc"))
-    cxx = Executable(os.path.join(build_env_path, "c++"))
-    fc = Executable(os.path.join(build_env_path, "fc"))
-
+def build_environment(monkeypatch, wrapper_dir, tmp_path):
     realcc = "/bin/mycc"
-    prefix = "/spack-test-prefix"
+    prefix = str(tmp_path)
 
-    os.environ["SPACK_CC"] = realcc
-    os.environ["SPACK_CXX"] = realcc
-    os.environ["SPACK_FC"] = realcc
+    monkeypatch.setenv("SPACK_CC", realcc)
+    monkeypatch.setenv("SPACK_CXX", realcc)
+    monkeypatch.setenv("SPACK_FC", realcc)
 
-    os.environ["SPACK_PREFIX"] = prefix
-    os.environ["SPACK_ENV_PATH"] = "test"
-    os.environ["SPACK_DEBUG_LOG_DIR"] = "."
-    os.environ["SPACK_DEBUG_LOG_ID"] = "foo-hashabc"
-    os.environ["SPACK_SHORT_SPEC"] = "foo@1.2 arch=linux-rhel6-x86_64 /hashabc"
+    monkeypatch.setenv("SPACK_PREFIX", prefix)
+    monkeypatch.setenv("SPACK_ENV_PATH", "test")
+    monkeypatch.setenv("SPACK_DEBUG_LOG_DIR", ".")
+    monkeypatch.setenv("SPACK_DEBUG_LOG_ID", "foo-hashabc")
+    monkeypatch.setenv("SPACK_SHORT_SPEC", "foo@1.2 arch=linux-rhel6-x86_64 /hashabc")
 
-    os.environ["SPACK_CC_RPATH_ARG"] = "-Wl,-rpath,"
-    os.environ["SPACK_CXX_RPATH_ARG"] = "-Wl,-rpath,"
-    os.environ["SPACK_F77_RPATH_ARG"] = "-Wl,-rpath,"
-    os.environ["SPACK_FC_RPATH_ARG"] = "-Wl,-rpath,"
-    os.environ["SPACK_LINKER_ARG"] = "-Wl,"
-    os.environ["SPACK_DTAGS_TO_ADD"] = "--disable-new-dtags"
-    os.environ["SPACK_DTAGS_TO_STRIP"] = "--enable-new-dtags"
-    os.environ["SPACK_SYSTEM_DIRS"] = "/usr/include|/usr/lib"
-    os.environ["SPACK_MANAGED_DIRS"] = f"{prefix}/opt/spack"
-    os.environ["SPACK_TARGET_ARGS"] = ""
+    monkeypatch.setenv("SPACK_CC_RPATH_ARG", "-Wl,-rpath,")
+    monkeypatch.setenv("SPACK_CXX_RPATH_ARG", "-Wl,-rpath,")
+    monkeypatch.setenv("SPACK_F77_RPATH_ARG", "-Wl,-rpath,")
+    monkeypatch.setenv("SPACK_FC_RPATH_ARG", "-Wl,-rpath,")
+    monkeypatch.setenv("SPACK_CC_LINKER_ARG", "-Wl,")
+    monkeypatch.setenv("SPACK_CXX_LINKER_ARG", "-Wl,")
+    monkeypatch.setenv("SPACK_FC_LINKER_ARG", "-Wl,")
+    monkeypatch.setenv("SPACK_F77_LINKER_ARG", "-Wl,")
+    monkeypatch.setenv("SPACK_DTAGS_TO_ADD", "--disable-new-dtags")
+    monkeypatch.setenv("SPACK_DTAGS_TO_STRIP", "--enable-new-dtags")
+    monkeypatch.setenv("SPACK_SYSTEM_DIRS", "/usr/include|/usr/lib")
+    monkeypatch.setenv("SPACK_MANAGED_DIRS", f"{prefix}/opt/spack")
+    monkeypatch.setenv("SPACK_TARGET_ARGS", "")
 
-    if "SPACK_DEPENDENCIES" in os.environ:
-        del os.environ["SPACK_DEPENDENCIES"]
+    monkeypatch.delenv("SPACK_DEPENDENCIES", raising=False)
 
-    yield {"cc": cc, "cxx": cxx, "fc": fc}
+    cc = Executable(str(wrapper_dir / "cc"))
+    cxx = Executable(str(wrapper_dir / "c++"))
+    fc = Executable(str(wrapper_dir / "fc"))
 
-    for name in (
-        "SPACK_CC",
-        "SPACK_CXX",
-        "SPACK_FC",
-        "SPACK_PREFIX",
-        "SPACK_ENV_PATH",
-        "SPACK_DEBUG_LOG_DIR",
-        "SPACK_SHORT_SPEC",
-        "SPACK_CC_RPATH_ARG",
-        "SPACK_CXX_RPATH_ARG",
-        "SPACK_F77_RPATH_ARG",
-        "SPACK_FC_RPATH_ARG",
-        "SPACK_TARGET_ARGS",
-    ):
-        del os.environ[name]
+    return {"cc": cc, "cxx": cxx, "fc": fc}
 
 
 @pytest.fixture
@@ -322,14 +305,14 @@ def test_external_config_env(mock_packages, mutable_config, working_env):
 @pytest.mark.regression("9107")
 @pytest.mark.not_on_windows("Windows does not support module files")
 def test_spack_paths_before_module_paths(
-    mutable_config, mock_packages, compiler_factory, monkeypatch, working_env
+    mutable_config, mock_packages, compiler_factory, monkeypatch, working_env, wrapper_dir
 ):
     gcc_entry = compiler_factory(spec="gcc@14.0.1 languages=c,c++")
     gcc_entry["modules"] = ["some_module"]
     mutable_config.set("packages", {"gcc": {"externals": [gcc_entry]}})
 
     module_path = os.path.join("path", "to", "module")
-    spack_path = os.path.join(spack.paths.prefix, os.path.join("lib", "spack", "env"))
+    monkeypatch.setenv("SPACK_ENV_PATH", wrapper_dir)
 
     def _set_wrong_cc(x):
         os.environ["PATH"] = module_path + os.pathsep + os.environ["PATH"]
@@ -341,7 +324,7 @@ def test_spack_paths_before_module_paths(
     spack.build_environment.setup_package(s.package, dirty=False)
 
     paths = os.environ["PATH"].split(os.pathsep)
-    assert paths.index(spack_path) < paths.index(module_path)
+    assert paths.index(str(wrapper_dir)) < paths.index(module_path)
 
 
 def test_package_inheritance_module_setup(config, mock_packages, working_env):
@@ -484,11 +467,9 @@ def test_parallel_false_is_not_propagating(default_mock_concretization):
 
 @pytest.mark.parametrize(
     "config_setting,expected_flag",
-    [
-        ("runpath", "" if platform.system() == "Darwin" else "--enable-new-dtags"),
-        ("rpath", "" if platform.system() == "Darwin" else "--disable-new-dtags"),
-    ],
+    [("runpath", "--enable-new-dtags"), ("rpath", "--disable-new-dtags")],
 )
+@pytest.mark.skipif(sys.platform != "linux", reason="dtags make sense only on linux")
 def test_setting_dtags_based_on_config(
     config_setting, expected_flag, config, mock_packages, working_env
 ):
@@ -787,12 +768,11 @@ def test_optimization_flags_are_using_node_target(default_mock_concretization, m
     """Tests that we are using the target on the node to be compiled to retrieve the uarch
     specific flags, and not the target of the compiler.
     """
-    monkeypatch.setattr(spack.build_systems.compiler, "_implicit_rpaths", lambda pkg: [])
-    gcc = default_mock_concretization("gcc target=core2")
+    compiler_wrapper_pkg = default_mock_concretization("compiler-wrapper target=core2").package
     mpileaks = default_mock_concretization("mpileaks target=x86_64")
 
     env = EnvironmentModifications()
-    gcc.package.setup_dependent_build_environment(env, mpileaks)
+    compiler_wrapper_pkg.setup_dependent_build_environment(env, mpileaks)
     actions = env.group_by_name()["SPACK_TARGET_ARGS_CC"]
 
     assert len(actions) == 1 and isinstance(actions[0], spack.util.environment.SetEnv)
