@@ -132,18 +132,15 @@ class Podio(CMakePackage):
             # After 0.99 podio installs its python bindings into a more standard place
             env.prepend_path("PYTHONPATH", self.prefix.python)
 
-        # Set up ROOT_LIBRARY_PATH (or for older versions, LD_LIBRARY_PATH)
-        self.spec["root"].setup_root_env(env, self)
+        # Note: ROOT dependency automatically sets up ROOT environment vars
 
         if "+sio" in self.spec:
             # sio needs to be on LD_LIBRARY_PATH for ROOT to be able to
             # dynamicaly load the python bindings library
             env.prepend_path("LD_LIBRARY_PATH", self.spec["sio"].libs.directories[0])
 
-        # Frame header needs to be available for python bindings
-        env.prepend_path("ROOT_INCLUDE_PATH", self.prefix.include)
-
     def setup_dependent_build_environment(self, env, dependent_spec):
+        # Set python path, root paths
         self.setup_run_environment(env)
 
     def url_for_version(self, version):
