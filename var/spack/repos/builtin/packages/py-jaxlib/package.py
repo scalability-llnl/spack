@@ -134,7 +134,7 @@ class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
 
     patch(
         "https://github.com/jax-ml/jax/pull/25531.patch?full_index=1",
-        sha256="d3b7ea2cfeba927e40a11f07e4cbf80939f7fe69448c9eb55231a93bd64e5c02",
+        sha256="ee648570a642d33e799c464ff483fc791bd727911b4d015ff130ac51181cf5e3",
         when="@0.4.36:",
     )
     patch(
