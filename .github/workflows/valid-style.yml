@@ -140,8 +140,13 @@ jobs:
         if [ "$edges_after" -gt "$edges_before" ]; then
           printf '\033[1;31mImport check failed: %s imports need to be deleted, ' "$edges_after"
           printf 'previously this was %s\033[0m\n'  "$edges_before"
+          printf 'Imports that have changed:\n'
+          tail +$(($(sed -n "/edges to delete/=" solution.old)+1)) solution.old > imports.old
+          tail +$(($(sed -n "/edges to delete/=" solution.new)+1)) solution.new > imports.new
+          diff -u imports.old imports.new | sed -n '/^+[^+]/ s/^+//p'
+          printf '\n'
           printf 'Compare \033[1;97m"Import cycles before"\033[0m and '
-          printf '\033[1;97m"Import cycles after"\033[0m to see problematic imports.\n'
+          printf '\033[1;97m"Import cycles after"\033[0m for more information.\n'
           exit 1
         else
           printf '\033[1;32mImport check passed: %s <= %s\033[0m\n' "$edges_after" "$edges_before"
