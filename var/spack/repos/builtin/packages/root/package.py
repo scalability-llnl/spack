@@ -7,8 +7,6 @@
 import os
 import sys
 
-import spack.package
-import spack.package_base
 import spack.util.environment
 from spack.operating_systems.mac_os import macos_version
 from spack.package import *
@@ -837,16 +835,6 @@ class Root(CMakePackage):
             return "LD_LIBRARY_PATH"
         return "ROOT_LIBRARY_PATH"
 
-    def setup_root_env(
-        self,
-        env: spack.util.environment.EnvironmentModifications,
-        dependent: spack.package_base.PackageBase,
-    ):
-        """Add library directories from a dependent package to the environment."""
-        varname = self.root_library_path
-        for d in dependent.lib.directories:
-            env.prepend_path(varname, d)
-
     def setup_run_environment(self, env):
         env.set("ROOTSYS", self.prefix)
         env.set("ROOT_VERSION", "v{0}".format(self.version.up_to(1)))
@@ -873,9 +861,7 @@ class Root(CMakePackage):
             env.unset("MACOSX_DEPLOYMENT_TARGET")
 
     def setup_dependent_run_environment(
-        self,
-        env: spack.util.environment.EnvironmentModifications,
-        dependent_spec: spack.package.Spec,
+        self, env: spack.util.environment.EnvironmentModifications, dependent_spec: Spec
     ):
         env.prepend_path("ROOT_INCLUDE_PATH", dependent_spec.prefix.include)
         # For dependents that build dictionaries, ROOT needs to know where the
