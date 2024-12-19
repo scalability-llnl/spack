@@ -20,18 +20,13 @@ class Alps(CMakePackage):
     # notify when the package is updated.
     # maintainers("github_user1", "github_user2")
 
-    # FIXME: Add the SPDX identifier of the project's license below.
-    # See https://spdx.org/licenses/ for a list. Upon manually verifying
-    # the license, set checked_by to your Github username.
-    license("UNKNOWN", checked_by="github_user1")
+    license("BSL-1.0", checked_by="github_user1")
 
     version("2.3.3-beta.5", sha256="b01c537ea74b57f82dbd97e27ec62e9dce57f9ea05ba9e98f53c6ad370c5f317")
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
     depends_on("fortran", type="build")
-
-    # FIXME: Add dependencies if required.
 
     depends_on(
         "boost@:1.82.0"
