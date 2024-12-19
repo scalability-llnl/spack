@@ -49,7 +49,6 @@ class Libzip(CMakePackage):
     depends_on("mbedtls", when="+mbedtls")
     depends_on("zstd", when="+zstd")
 
-
     def cmake_args(self):
         return [
             self.define_from_variant("ENABLE_GNUTLS", "gnutls"),
