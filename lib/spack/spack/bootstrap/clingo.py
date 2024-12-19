@@ -21,6 +21,7 @@ import spack.config
 import spack.platforms
 import spack.spec
 import spack.traverse
+import spack.version
 
 from .config import spec_for_current_python
 
@@ -125,6 +126,10 @@ class ClingoBootstrapConcretizer:
 
             if node.name == "gcc-runtime":
                 node.versions = self.host_compiler.versions
+
+        # Can't use re2c@3.1 with Python 3.6
+        if self.host_python.satisfies("@3.6"):
+            s["re2c"].versions.versions = [spack.version.from_string("=2.2")]
 
         for edge in spack.traverse.traverse_edges([s], cover="edges"):
             if edge.spec.name == "python":

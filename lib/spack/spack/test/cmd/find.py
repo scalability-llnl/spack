@@ -170,7 +170,7 @@ def _check_json_output(spec_list):
 
 
 def _check_json_output_deps(spec_list):
-    assert len(spec_list) == 15
+    assert len(spec_list) == 16
 
     names = [spec["name"] for spec in spec_list]
     assert names.count("mpileaks") == 3
@@ -272,6 +272,7 @@ mpileaks-2.3
         dyninst-8.2
             libdwarf-20130729
             libelf-0.8.13
+    compiler-wrapper-1.0
     gcc-10.2.1
     gcc-runtime-10.2.1
     zmpi-1.0
@@ -293,6 +294,7 @@ mpileaks-2.3                   {mpileaks.prefix}
         dyninst-8.2            {mpileaks['dyninst'].prefix}
             libdwarf-20130729  {mpileaks['libdwarf'].prefix}
             libelf-0.8.13      {mpileaks['libelf'].prefix}
+    compiler-wrapper-1.0       {mpileaks['compiler-wrapper'].prefix}
     gcc-10.2.1                 {mpileaks['gcc'].prefix}
     gcc-runtime-10.2.1         {mpileaks['gcc-runtime'].prefix}
     zmpi-1.0                   {mpileaks['zmpi'].prefix}
