@@ -254,10 +254,7 @@ class AutotoolsBuilder(AnyBuilder, autotools.AutotoolsBuilder):
         else:
             args.append("--without-python")
 
-        if spec.satisfies("+http"):
-            args.append("--with-http")
-        else:
-            args.append("--without-http")
+        args.append(self.with_or_without("http"))
 
         args.extend(self.enable_or_disable("shared"))
         # PIC setting is taken care of above by self.flag_handler()
