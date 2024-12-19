@@ -29,7 +29,7 @@ class Sphexa(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("cuda@11.2:", when="+cuda")
     depends_on("hip", when="+rocm")
     depends_on("rocthrust", when="+rocm")
-    depends_on("rocprim", when="+rocm")
+    depends_on("hipcub", when="+rocm")
     depends_on("hdf5 +mpi", when="+hdf5")
 
     # Build MPI with GPU support when GPU aware MPI is requested.
