@@ -49,12 +49,6 @@ class Libzip(CMakePackage):
     depends_on("mbedtls", when="+mbedtls")
     depends_on("zstd", when="+zstd")
 
-    @property
-    def headers(self):
-        # Up to version 1.3.0 zipconf.h was installed outside of self.prefix.include
-        return find_all_headers(
-            self.prefix if self.spec.satisfies("@:1.3.0") else self.prefix.include
-        )
 
     def cmake_args(self):
         return [
