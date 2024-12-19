@@ -466,7 +466,7 @@ class TestConcretize:
         with spack.config.override("packages", {"gcc": {"externals": [cnl_compiler]}}):
             spec_str = "mpileaks %gcc@4.5.0 os=CNL target=nocona ^dyninst os=CNL ^callpath os=CNL"
             spec = spack.concretize.concretize_one(spec_str)
-            for s in spec.traverse(root=False):
+            for s in spec.traverse(root=False, deptype=("link", "run")):
                 assert s.architecture.target == spec.architecture.target
 
     def test_compiler_flags_from_user_are_grouped(self):
@@ -1991,17 +1991,17 @@ class TestConcretize:
             assert s.satisfies("~debug"), s
 
     @pytest.mark.regression("32471")
-    def test_require_targets_are_allowed(self, mutable_database):
+    def test_require_targets_are_allowed(self, mutable_config, mutable_database):
         """Test that users can set target constraints under the require attribute."""
         # Configuration to be added to packages.yaml
         required_target = archspec.cpu.TARGETS[spack.platforms.test.Test.default].family
         external_conf = {"all": {"require": f"target={required_target}"}}
-        spack.config.set("packages", external_conf)
+        mutable_config.set("packages", external_conf)
 
         with spack.config.override("concretizer:reuse", False):
             spec = spack.concretize.concretize_one("mpich")
 
-        for s in spec.traverse():
+        for s in spec.traverse(deptype=("link", "run")):
             assert s.satisfies(f"target={required_target}")
 
     def test_external_python_extensions_have_dependency(self):
@@ -2977,7 +2977,7 @@ def test_filtering_reused_specs(
 @pytest.mark.usefixtures("mutable_database", "mock_store")
 @pytest.mark.parametrize(
     "reuse_yaml,expected_length",
-    [({"from": [{"type": "local"}]}, 19), ({"from": [{"type": "buildcache"}]}, 0)],
+    [({"from": [{"type": "local"}]}, 20), ({"from": [{"type": "buildcache"}]}, 0)],
 )
 @pytest.mark.not_on_windows("Expected length is different on Windows")
 def test_selecting_reused_sources(

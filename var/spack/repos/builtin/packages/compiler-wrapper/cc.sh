@@ -39,7 +39,6 @@ readonly params="\
 SPACK_ENV_PATH
 SPACK_DEBUG_LOG_DIR
 SPACK_DEBUG_LOG_ID
-SPACK_LINKER_ARG
 SPACK_SHORT_SPEC
 SPACK_SYSTEM_DIRS
 SPACK_MANAGED_DIRS"
@@ -397,7 +396,9 @@ fi
 #
 dtags_to_add="${SPACK_DTAGS_TO_ADD}"
 dtags_to_strip="${SPACK_DTAGS_TO_STRIP}"
-linker_arg="${SPACK_LINKER_ARG}"
+
+linker_arg="ERROR: LINKER ARG WAS NOT SET, MAYBE THE PACKAGE DOES NOT DEPEND ON ${comp}?"
+eval "linker_arg=\${SPACK_${comp}_LINKER_ARG:?${linker_arg}}"
 
 # Set up rpath variable according to language.
 rpath="ERROR: RPATH ARG WAS NOT SET, MAYBE THE PACKAGE DOES NOT DEPEND ON ${comp}?"
