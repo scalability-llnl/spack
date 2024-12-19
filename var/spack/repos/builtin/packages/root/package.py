@@ -835,6 +835,15 @@ class Root(CMakePackage):
             return "LD_LIBRARY_PATH"
         return "ROOT_LIBRARY_PATH"
 
+    def setup_root_env(self, env:
+                       spack.util.environment.EnvironmentModifications,
+                       dependent: spack.package_base.PackageBase):
+        """Add library directories from a dependent package to the environment.
+        """
+        varname = self.root_library_path
+        for d in dependent.lib.directories:
+            env.prepend_path(varname, d)
+
     def setup_run_environment(self, env):
         env.set("ROOTSYS", self.prefix)
         env.set("ROOT_VERSION", "v{0}".format(self.version.up_to(1)))

@@ -168,9 +168,7 @@ class Gaudi(CMakePackage):
         env.prepend_path("PATH", self.prefix.scripts)
         env.prepend_path("PYTHONPATH", self.prefix.python)
         # Set up ROOT_LIBRARY_PATH (or for older versions, LD_LIBRARY_PATH)
-        root_env = self.spec["root"].root_library_path
-        for d in self.libs.directories:
-            env.prepend_path(root_env, d)
+        self.spec["root"].setup_root_env(env, self)
 
 
     def url_for_version(self, version):
