@@ -80,7 +80,7 @@ jobs:
           UNIT_TEST_COVERAGE: ${{ matrix.python-version == '3.11' }}
       run: |
           share/spack/qa/run-unit-tests
-    - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
+    - uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b
       with:
         name: coverage-${{ matrix.os }}-python${{ matrix.python-version }}
         path: coverage
@@ -113,7 +113,7 @@ jobs:
           COVERAGE: true
       run: |
           share/spack/qa/run-shell-tests
-    - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
+    - uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b
       with:
         name: coverage-shell
         path: coverage
@@ -175,7 +175,7 @@ jobs:
         spack bootstrap status
         spack solve zlib
         spack unit-test --verbose --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml lib/spack/spack/test/concretization/core.py
-    - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
+    - uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b
       with:
         name: coverage-clingo-cffi
         path: coverage
@@ -213,7 +213,7 @@ jobs:
         $(which spack) solve zlib
         common_args=(--dist loadfile --tx '4*popen//python=./bin/spack-tmpconfig python -u ./bin/spack python' -x)
         $(which spack) unit-test --verbose --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml "${common_args[@]}"
-    - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
+    - uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b
       with:
         name: coverage-${{ matrix.os }}-python${{ matrix.python-version }}
         path: coverage
@@ -244,7 +244,7 @@ jobs:
       run: |
         spack unit-test -x --verbose --cov --cov-config=pyproject.toml
         ./share/spack/qa/validate_last_exit.ps1
-    - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
+    - uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b
       with:
         name: coverage-windows
         path: coverage

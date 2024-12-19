@@ -28,7 +28,7 @@ class Kmod(AutotoolsPackage):
     depends_on("automake", type="build")
     depends_on("libtool", type="build")
     depends_on("pkgconfig", type="build")
-    depends_on("lzma")
+    depends_on("xz")
 
     def autoreconf(self, spec, prefix):
         bash = which("bash")

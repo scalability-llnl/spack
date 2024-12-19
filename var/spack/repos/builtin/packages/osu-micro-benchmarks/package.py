@@ -69,7 +69,7 @@ class OsuMicroBenchmarks(AutotoolsPackage, CudaPackage, ROCmPackage):
             config_args.extend(["--enable-rocm", "--with-rocm=%s" % spec["hip"].prefix])
             rocm_arch = spec.variants["amdgpu_target"].value
             if "none" not in rocm_arch:
-                config_args.append("HCC_AMDGPU_TARGET=" + " ".join(self.hip_flags(rocm_arch)))
+                config_args.append("HCC_AMDGPU_TARGET=" + self.hip_flags(rocm_arch))
 
         if "+papi" in spec:
             config_args.extend(["--enable-papi", "--with-papi=%s" % spec["papi"].prefix])

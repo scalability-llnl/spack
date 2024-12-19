@@ -2885,7 +2885,7 @@ complete -c spack -n '__fish_spack_using_command spec' -l deprecated -f -a confi
 complete -c spack -n '__fish_spack_using_command spec' -l deprecated -d 'allow concretizer to select deprecated versions'
 
 # spack stage
-set -g __fish_spack_optspecs_spack_stage h/help n/no-checksum p/path= U/fresh reuse fresh-roots deprecated
+set -g __fish_spack_optspecs_spack_stage h/help n/no-checksum p/path= e/exclude= s/skip-installed U/fresh reuse fresh-roots deprecated
 complete -c spack -n '__fish_spack_using_command_pos_remainder 0 stage' -f -k -a '(__fish_spack_specs_or_id)'
 complete -c spack -n '__fish_spack_using_command stage' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command stage' -s h -l help -d 'show this help message and exit'
@@ -2893,6 +2893,10 @@ complete -c spack -n '__fish_spack_using_command stage' -s n -l no-checksum -f -
 complete -c spack -n '__fish_spack_using_command stage' -s n -l no-checksum -d 'do not use checksums to verify downloaded files (unsafe)'
 complete -c spack -n '__fish_spack_using_command stage' -s p -l path -r -f -a path
 complete -c spack -n '__fish_spack_using_command stage' -s p -l path -r -d 'path to stage package, does not add to spack tree'
+complete -c spack -n '__fish_spack_using_command stage' -s e -l exclude -r -f -a exclude
+complete -c spack -n '__fish_spack_using_command stage' -s e -l exclude -r -d 'exclude packages that satisfy the specified specs'
+complete -c spack -n '__fish_spack_using_command stage' -s s -l skip-installed -f -a skip_installed
+complete -c spack -n '__fish_spack_using_command stage' -s s -l skip-installed -d 'dont restage already installed specs'
 complete -c spack -n '__fish_spack_using_command stage' -s U -l fresh -f -a concretizer_reuse
 complete -c spack -n '__fish_spack_using_command stage' -s U -l fresh -d 'do not reuse installed deps; build newest configuration'
 complete -c spack -n '__fish_spack_using_command stage' -l reuse -f -a concretizer_reuse
