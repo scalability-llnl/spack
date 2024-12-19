@@ -352,14 +352,14 @@ spack:
   - arborx +rocm amdgpu_target=gfx90a         # kokkos: https://github.com/spack/spack/issues/44832
   - cabana +rocm amdgpu_target=gfx90a         # kokkos: https://github.com/spack/spack/issues/44832
   - chapel +rocm amdgpu_target=gfx90a         # chapel: need chapel >= 2.2 to support ROCm >5.4
-  - exago +mpi +python +raja +hiop +rocm amdgpu_target=gfx90a ~ipopt cxxflags="-Wno-error=non-pod-varargs" ^hiop@1.0.0 ~sparse +mpi +raja +rocm amdgpu_target=gfx90a # hiop: CMake Error at cmake/FindHiopHipLibraries.cmake:23 (find_package)
+  - exago +mpi +python +raja +hiop +rocm amdgpu_target=gfx90a ~ipopt cxxflags="-Wno-error=non-pod-varargs" ^hiop ~sparse +mpi +raja +rocm amdgpu_target=gfx90a # hiop: CMake Error at cmake/FindHiopHipLibraries.cmake:23 (find_package)
   - fftx +rocm amdgpu_target=gfx90a           # fftx: https://github.com/spack/spack/issues/47034
   - kokkos +rocm amdgpu_target=gfx90a         # kokkos: https://github.com/spack/spack/issues/44832
   # - lbann ~cuda +rocm amdgpu_target=gfx90a    # concretize: Cannot select a single "version" for package "hiptt"
   - legion +rocm amdgpu_target=gfx90a         # kokkos: https://github.com/spack/spack/issues/44832
   # - papi +rocm amdgpu_target=gfx90a           # papi: https://github.com/spack/spack/issues/27898
   - petsc +rocm amdgpu_target=gfx90a          # petsc: https://github.com/spack/spack/issues/44600
-  - slepc +rocm amdgpu_target=gfx90a ^petsc +rocm amdgpu_target=gfx90a # petsc: https://github.com/spack/spack/issues/44600
+  # - slepc +rocm amdgpu_target=gfx90a ^petsc +rocm amdgpu_target=gfx90a # slepc: ERROR: Unable to link with PETSc
 
   # - cp2k +mpi +cuda cuda_arch=80            # cp2k: libxsmm_gemm.c:238: undefined reference to `sgemv_'
   # - cp2k +mpi +cuda cuda_arch=90            # cp2k: libxsmm_gemm.c:238: undefined reference to `sgemv_'
