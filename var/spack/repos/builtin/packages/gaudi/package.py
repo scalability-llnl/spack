@@ -18,6 +18,7 @@ class Gaudi(CMakePackage):
     tags = ["hep"]
 
     version("master", branch="master")
+    version("39.1", sha256="acdeddcc2383a127b1ad4b0bdaf9f1c6699b64105e0c1d8095c560c96c157885")
     version("39.0", sha256="faa3653e2e6c769292c0592e3fc35cd98a2820bd6fc0c967cac565808b927262")
     version("38.3", sha256="47e8c65ea446656d2dae54a32205525e08257778cf80f9f029cd244d6650486e")
     version("38.2", sha256="08759b1398336987ad991602e37079f0744e8d8e4e3d5df2d253b8dedf925068")
@@ -142,6 +143,7 @@ class Gaudi(CMakePackage):
         args = [
             # Note: gaudi only builds examples when testing enabled
             self.define("BUILD_TESTING", self.run_tests or self.spec.satisfies("+examples")),
+            self.define_from_variant("GAUDI_BUILD_EXAMPLES", "examples"),
             self.define_from_variant("GAUDI_USE_AIDA", "aida"),
             self.define_from_variant("GAUDI_USE_CPPUNIT", "cppunit"),
             self.define_from_variant("GAUDI_ENABLE_GAUDIALG", "gaudialg"),
