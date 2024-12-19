@@ -201,10 +201,8 @@ class Dd4hep(CMakePackage):
         env.set("DD4HEP", self.prefix.examples)
         env.set("DD4hep_DIR", self.prefix)
         env.set("DD4hep_ROOT", self.prefix)
-        # Set up ROOT_LIBRARY_PATH (or for older versions, LD_LIBRARY_PATH)
-        root_env = self.spec["root"].root_library_path
-        for d in self.libs.directories:
-            env.prepend_path(root_env, d)
+
+        # Note: ROOT dependency automatically sets up ROOT environment vars
 
     def url_for_version(self, version):
         # dd4hep releases are dashes and padded with a leading zero
