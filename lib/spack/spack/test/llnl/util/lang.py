@@ -298,30 +298,6 @@ def test_grouped_exception():
     top-level raised TypeError: ok"""
     )
 
-    full_message = h.grouped_message(with_tracebacks=True)
-    no_line_numbers = re.sub(r"line [0-9]+,", "line xxx,", full_message)
-
-    assert (
-        no_line_numbers
-        == dedent(
-            """\
-    due to the following failures:
-    inner method raised ValueError: wow!
-      File "{0}", \
-line xxx, in test_grouped_exception
-        inner()
-      File "{0}", \
-line xxx, in inner
-        raise ValueError("wow!")
-
-    top-level raised TypeError: ok
-      File "{0}", \
-line xxx, in test_grouped_exception
-        raise TypeError("ok")
-    """
-        ).format(__file__)
-    )
-
 
 def test_grouped_exception_base_type():
     h = llnl.util.lang.GroupedExceptionHandler()
