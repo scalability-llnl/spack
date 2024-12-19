@@ -20,10 +20,11 @@ class HsaRocrDev(CMakePackage):
     url = "https://github.com/ROCm/ROCR-Runtime/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
-    maintainers("srekolam", "renjithravindrankannath", "haampie")
+    maintainers("srekolam", "renjithravindrankannath", "haampie", "afzpatel")
     libraries = ["libhsa-runtime64"]
 
     version("master", branch="master")
+    version("6.3.0", sha256="8fd6bcd6a5afd0ae5a59e33b786a525f575183d38c34049c2dab6b9270a1ca3b")
     version("6.2.4", sha256="b7aa0055855398d1228c39a6f4feb7d7be921af4f43d82855faf0b531394bb9b")
     version("6.2.1", sha256="dbe477b323df636f5e3221471780da156c938ec00dda4b50639aa8d7fb9248f4")
     version("6.2.0", sha256="c98090041fa56ca4a260709876e2666f85ab7464db9454b177a189e1f52e0b1a")
@@ -60,6 +61,7 @@ class HsaRocrDev(CMakePackage):
     depends_on("elf", type="link")
     depends_on("numactl")
     depends_on("pkgconfig")
+    depends_on("libdrm", when="@6.3:")
 
     for ver in [
         "5.3.0",
@@ -80,9 +82,31 @@ class HsaRocrDev(CMakePackage):
         "6.2.0",
         "6.2.1",
         "6.2.4",
-        "master",
     ]:
         depends_on(f"hsakmt-roct@{ver}", when=f"@{ver}")
+
+    for ver in [
+        "5.3.0",
+        "5.3.3",
+        "5.4.0",
+        "5.4.3",
+        "5.5.0",
+        "5.5.1",
+        "5.6.0",
+        "5.6.1",
+        "5.7.0",
+        "5.7.1",
+        "6.0.0",
+        "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+        "master",
+    ]:
         depends_on(f"llvm-amdgpu@{ver}", when=f"@{ver}")
         # allow standalone rocm-device-libs (useful for aomp)
         depends_on(f"rocm-device-libs@{ver}", when=f"@{ver} ^llvm-amdgpu ~rocm-device-libs")
@@ -102,12 +126,18 @@ class HsaRocrDev(CMakePackage):
         "6.2.0",
         "6.2.1",
         "6.2.4",
+        "6.3.0",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 
     patch("0002-Remove-explicit-RPATH-again.patch", when="@3.7.0:5.6")
 
-    root_cmakelists_dir = "src"
+    @property
+    def root_cmakelists_dir(self):
+        if self.spec.satisfies("@6.3:"):
+            return "."
+        else:
+            return "src"
 
     @classmethod
     def determine_version(cls, lib):

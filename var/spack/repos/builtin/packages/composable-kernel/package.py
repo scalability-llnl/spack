@@ -19,6 +19,7 @@ class ComposableKernel(CMakePackage):
     license("MIT")
 
     version("master", branch="develop")
+    version("6.3.0", sha256="274f87fc27ec2584c76b5bc7ebdbe172923166b6b93e66a24f98475b44be272d")
     version("6.2.4", sha256="5598aea4bce57dc95b60f2029831edfdade80b30a56e635412cc02b2a6729aa6")
     version("6.2.1", sha256="708ff25218dc5fa977af4a37105b380d7612a70c830fa7977b40b3df8b8d3162")
     version("6.2.0", sha256="4a3024f4f93c080db99d560a607ad758745cd2362a90d0e8f215331686a6bc64")
@@ -59,6 +60,7 @@ class ComposableKernel(CMakePackage):
 
     for ver in [
         "master",
+        "6.3.0",
         "6.2.4",
         "6.2.1",
         "6.2.0",
@@ -103,6 +105,8 @@ class ComposableKernel(CMakePackage):
         if self.spec.satisfies("@5.6.0:"):
             if self.run_tests:
                 args.append(self.define("BUILD_TESTING", "ON"))
+            elif self.spec.satisfies("@:6.1"):
+                args.append(self.define("INSTANCES_ONLY", "ON"))
             args.append(self.define("CK_BUILD_JIT_LIB", "ON"))
             args.append(self.define("CMAKE_POSITION_INDEPENDENT_CODE", "ON"))
         if self.spec.satisfies("@:5.7"):
