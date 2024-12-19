@@ -363,11 +363,12 @@ e4s-oneapi-build:
   extends: [".linux_power"]
   variables:
     SPACK_CI_STACK_NAME: e4s-power
-    # Override concretization pool for metal runners
-    SPACK_CONCRETIZE_JOBS: 16
 
 e4s-power-generate:
   extends: [ ".e4s-power", ".generate-x86_64", ".e4s-power-generate-tags-and-image"]
+  variables:
+    # Override concretization pool for metal runners
+    SPACK_CONCRETIZE_JOBS: 16
 
 e4s-power-build:
   extends: [ ".e4s-power", ".build" ]
