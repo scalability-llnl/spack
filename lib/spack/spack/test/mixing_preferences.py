@@ -12,6 +12,7 @@ import archspec.cpu
 
 import spack.compiler
 import spack.config
+import spack.error
 import spack.operating_systems
 import spack.platforms
 import spack.repo
@@ -164,10 +165,27 @@ class Gcc(Package):
             description=f"If any package uses %{str(spec)}, "
             f"it depends on gcc-runtime@{str(spec.version)}:",
         )
+
+        gfortran_str = "libgfortran@5"
+        if spec.satisfies("gcc@:6"):
+            gfortran_str = "libgfortran@3"
+        elif spec.satisfies("gcc@7"):
+            gfortran_str = "libgfortran@4"
+
+        for fortran_virtual in ("fortran-rt", gfortran_str):
+            pkg("*").depends_on(
+                fortran_virtual,
+                when=f"%{str(spec)}",
+                languages=["fortran"],
+                type="link",
+                description=f"Add a dependency on '{gfortran_str}' for nodes compiled with "
+                f"{str(spec)} and using the 'fortran' language",
+            )
         # The version of gcc-runtime is the same as the %gcc used to "compile" it
         pkg("gcc-runtime").requires(f"@={str(spec.version)}", when=f"%{str(spec)}")
 
         # If a node used %gcc@X.Y its dependencies must use gcc-runtime@:X.Y
+        # (technically @:X is broader than ... <= @=X but this should work in practice)
         pkg("*").propagate(f"%gcc@:{str(spec.version)}", when=f"%{str(spec)}")
 """,
 )
@@ -333,28 +351,19 @@ compilers::
 """
     update_cfg_section("compilers", test_cfg)
 
-    # output = solve("--show=asp", "x4%gcc")
-    # import pdb; pdb.set_trace()
+    output1, output2, output3 = "", "", ""
+    output1 = spec_cmd("--reuse", "x4%oneapi")
 
-    # x = Spec("x4%gcc").concretized()
+    with pytest.raises(spack.error.UnsatisfiableSpecError):
+        output2 = spec_cmd("--reuse", "x1%oneapi ^x4%gcc")
 
-    x = Spec("x1%gcc").concretized()
-    for spec in x.traverse():
-        os.makedirs(os.path.join(spec.prefix, ".spack"))
-        with open(os.path.join(spec.prefix, ".spack", "spec.json"), "w", encoding="utf-8") as f:
-            spec.to_json(f)
-    temporary_store.db.add(x, explicit=True)
-    # output = solve("--show=asp", "x1%aocc")
-    # import pdb; pdb.set_trace()
-    # This mixes gcc and aocc
-    # This should work, and it does
-    output2 = spec_cmd("--reuse", "x4%oneapi")
-    # This should *not* work, but it does
-    output1 = spec_cmd("--reuse", "x1%oneapi ^x4%gcc")
+    with pytest.raises(spack.error.UnsatisfiableSpecError):
+        output3 = spec_cmd("--reuse", "x1%gcc ^x4%oneapi")
 
     # import pdb; pdb.set_trace()
     print(output1)
     print(output2)
+    print(output3)
     # output = solve("--reuse", "x1%aocc")
     # import pdb; pdb.set_trace()
     # print("hi")
