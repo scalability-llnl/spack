@@ -303,7 +303,6 @@ class TestLinux(Platform):
 def pretend_linux(monkeypatch, tmpdir):
     pretend_glibc = Spec("glibc@=2.28")
     pretend_glibc.external_path = str(tmpdir.join("fake-libc").ensure(dir=True))
-    # monkeypatch.setattr(spack.compilers.gcc.Gcc, "default_libc", pretend_glibc)
     monkeypatch.setattr(spack.compiler.Compiler, "default_libc", pretend_glibc)
     with spack.platforms.use_platform(TestLinux()):
         yield
@@ -351,19 +350,10 @@ compilers::
 """
     update_cfg_section("compilers", test_cfg)
 
-    output1, output2, output3 = "", "", ""
-    output1 = spec_cmd("--reuse", "x4%oneapi")
+    spec_cmd("--reuse", "x4%oneapi")
 
     with pytest.raises(spack.error.UnsatisfiableSpecError):
-        output2 = spec_cmd("--reuse", "x1%oneapi ^x4%gcc")
+        spec_cmd("--reuse", "x1%oneapi ^x4%gcc")
 
     with pytest.raises(spack.error.UnsatisfiableSpecError):
-        output3 = spec_cmd("--reuse", "x1%gcc ^x4%oneapi")
-
-    # import pdb; pdb.set_trace()
-    print(output1)
-    print(output2)
-    print(output3)
-    # output = solve("--reuse", "x1%aocc")
-    # import pdb; pdb.set_trace()
-    # print("hi")
+        spec_cmd("--reuse", "x1%gcc ^x4%oneapi")
