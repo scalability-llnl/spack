@@ -85,6 +85,24 @@ class ParallelNetcdf(AutotoolsPackage):
     # (see below).
     conflicts("+shared", when="@:1.9%nag+fortran")
 
+    def flag_handler(self, name, flags):
+        if self.spec.satisfies("+pic"):
+            if name == "cflags":
+                flags.append(self.compiler.cc_pic_flag)
+            if name == "cxxflags" and self.spec.satisfies("+cxx"):
+                flags.append(self.compiler.cxx_pic_flag)
+            if name == "fflags" and self.spec.satisfies("+fortran"):
+                flags.append(self.compiler.fc_pic_flag)
+
+        # https://github.com/Parallel-NetCDF/PnetCDF/issues/61
+        if name == "fflags" and self.spec.satisfies("@:1.12.1%gcc@10:+fortran"):
+            flags.append("-fallow-argument-mismatch")
+
+        # Note that cflags and fflags should be added by the compiler wrapper
+        # and not on the command line to avoid overriding the default
+        # compilation flags set by the configure script:
+        return flags, None, None
+
     @property
     def libs(self):
         libraries = ["libpnetcdf"]
@@ -119,23 +137,6 @@ class ParallelNetcdf(AutotoolsPackage):
 
         args += self.enable_or_disable("cxx")
         args += self.enable_or_disable("fortran")
-
-        flags = {"CFLAGS": [], "CXXFLAGS": [], "FFLAGS": [], "FCFLAGS": []}
-
-        if "+pic" in self.spec:
-            flags["CFLAGS"].append(self.compiler.cc_pic_flag)
-            flags["CXXFLAGS"].append(self.compiler.cxx_pic_flag)
-            flags["FFLAGS"].append(self.compiler.f77_pic_flag)
-            flags["FCFLAGS"].append(self.compiler.fc_pic_flag)
-
-        # https://github.com/Parallel-NetCDF/PnetCDF/issues/61
-        if self.spec.satisfies("%gcc@10:"):
-            flags["FFLAGS"].append("-fallow-argument-mismatch")
-            flags["FCFLAGS"].append("-fallow-argument-mismatch")
-
-        for key, value in sorted(flags.items()):
-            if value:
-                args.append(f"{key}={' '.join(value)}")
 
         if self.version >= Version("1.8"):
             args.append("--enable-relax-coord-bound")
