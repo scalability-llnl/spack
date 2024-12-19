@@ -10,6 +10,7 @@ import json
 import os
 import pathlib
 import platform
+import re
 import shutil
 import sys
 import tarfile
@@ -32,7 +33,8 @@ import spack.config
 import spack.fetch_strategy
 import spack.hooks.sbang as sbang
 import spack.main
-import spack.mirror
+import spack.mirrors.mirror
+import spack.oci.image
 import spack.paths
 import spack.spec
 import spack.stage
@@ -181,13 +183,13 @@ def dummy_prefix(tmpdir):
     absolute_app_link = p.join("bin", "absolute_app_link")
     data = p.join("share", "file")
 
-    with open(app, "w") as f:
+    with open(app, "w", encoding="utf-8") as f:
         f.write("hello world")
 
-    with open(data, "w") as f:
+    with open(data, "w", encoding="utf-8") as f:
         f.write("hello world")
 
-    with open(p.join(".spack", "binary_distribution"), "w") as f:
+    with open(p.join(".spack", "binary_distribution"), "w", encoding="utf-8") as f:
         f.write("{}")
 
     os.symlink("app", relative_app_link)
@@ -324,8 +326,8 @@ def test_push_and_fetch_keys(mock_gnupghome, tmp_path):
 
     mirror = os.path.join(testpath, "mirror")
     mirrors = {"test-mirror": url_util.path_to_file_url(mirror)}
-    mirrors = spack.mirror.MirrorCollection(mirrors)
-    mirror = spack.mirror.Mirror(url_util.path_to_file_url(mirror))
+    mirrors = spack.mirrors.mirror.MirrorCollection(mirrors)
+    mirror = spack.mirrors.mirror.Mirror(url_util.path_to_file_url(mirror))
 
     gpg_dir1 = os.path.join(testpath, "gpg1")
     gpg_dir2 = os.path.join(testpath, "gpg2")
@@ -556,10 +558,16 @@ def test_update_sbang(tmpdir, temporary_mirror):
         )
 
         installed_script_style_1_path = new_spec.prefix.bin.join("sbang-style-1.sh")
-        assert sbang_style_1_expected == open(str(installed_script_style_1_path)).read()
+        assert (
+            sbang_style_1_expected
+            == open(str(installed_script_style_1_path), encoding="utf-8").read()
+        )
 
         installed_script_style_2_path = new_spec.prefix.bin.join("sbang-style-2.sh")
-        assert sbang_style_2_expected == open(str(installed_script_style_2_path)).read()
+        assert (
+            sbang_style_2_expected
+            == open(str(installed_script_style_2_path), encoding="utf-8").read()
+        )
 
         uninstall_cmd("-y", "/%s" % new_spec.dag_hash())
 
@@ -902,7 +910,7 @@ def test_tarball_doesnt_include_buildinfo_twice(tmp_path: Path):
     p.joinpath(".spack").mkdir(parents=True)
 
     # Create a binary_distribution file in the .spack folder
-    with open(p / ".spack" / "binary_distribution", "w") as f:
+    with open(p / ".spack" / "binary_distribution", "w", encoding="utf-8") as f:
         f.write(syaml.dump({"metadata", "old"}))
 
     # Now create a tarball, which should include a new binary_distribution file
@@ -936,7 +944,7 @@ def test_reproducible_tarball_is_reproducible(tmp_path: Path):
     tarball_1 = str(tmp_path / "prefix-1.tar.gz")
     tarball_2 = str(tmp_path / "prefix-2.tar.gz")
 
-    with open(app, "w") as f:
+    with open(app, "w", encoding="utf-8") as f:
         f.write("hello world")
 
     buildinfo = {"metadata": "yes please"}
@@ -981,12 +989,16 @@ def test_tarball_normalized_permissions(tmpdir):
 
     # Everyone can write & execute. This should turn into 0o755 when the tarball is
     # extracted (on a different system).
-    with open(app, "w", opener=lambda path, flags: os.open(path, flags, 0o777)) as f:
+    with open(
+        app, "w", opener=lambda path, flags: os.open(path, flags, 0o777), encoding="utf-8"
+    ) as f:
         f.write("hello world")
 
     # User doesn't have execute permissions, but group/world have; this should also
     # turn into 0o644 (user read/write, group&world only read).
-    with open(data, "w", opener=lambda path, flags: os.open(path, flags, 0o477)) as f:
+    with open(
+        data, "w", opener=lambda path, flags: os.open(path, flags, 0o477), encoding="utf-8"
+    ) as f:
         f.write("hello world")
 
     bindist._do_create_tarball(tarball, binaries_dir=p.strpath, buildinfo={})
@@ -1153,7 +1165,7 @@ def test_get_valid_spec_file(tmp_path, layout, expect_success):
         spec_dict["buildcache_layout_version"] = layout
 
     # Save to file
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(spec_dict, f)
 
     try:
@@ -1202,7 +1214,7 @@ def test_download_tarball_with_unsupported_layout_fails(tmp_path, mutable_config
         tmp_path / bindist.build_cache_relative_path() / bindist.tarball_name(spec, ".spec.json")
     )
     path.parent.mkdir(parents=True)
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(spec_dict, f)
 
     # Configure as a mirror.
@@ -1213,3 +1225,19 @@ def test_download_tarball_with_unsupported_layout_fails(tmp_path, mutable_config
 
     # And there should be a warning about an unsupported layout version.
     assert f"Layout version {layout_version} is too new" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize(
+    "spec",
+    [
+        # Standard case
+        "short-name@=1.2.3",
+        # Unsupported characters in git version
+        f"git-version@{1:040x}=develop",
+        # Too long of a name
+        f"{'too-long':x<256}@=1.2.3",
+    ],
+)
+def test_default_tag(spec: str):
+    """Make sure that computed image tags are valid."""
+    assert re.fullmatch(spack.oci.image.tag, bindist._oci_default_tag(spack.spec.Spec(spec)))

@@ -24,6 +24,12 @@ class Omnitrace(CMakePackage):
         "1.12.0", tag="v1.12.0", commit="abff23ac4238da6d7891d9ac9f36a919e30bf759", submodules=True
     )
     version(
+        "rocm-6.2.4",
+        tag="rocm-6.2.4",
+        commit="47597c1be3699c5aaaf6164061ee4189c6b32445",
+        submodules=True,
+    )
+    version(
         "rocm-6.2.1",
         tag="rocm-6.2.1",
         commit="df91a342370401c93b5278bf082e520d6a0e22e9",
@@ -127,7 +133,7 @@ class Omnitrace(CMakePackage):
     depends_on("roctracer-dev@5", when="@1:1.10 +rocm")
     depends_on("rocprofiler-dev@5", when="@1.3.0:1.10 +rocm")
 
-    for ver in ["6.2.0", "6.2.1"]:
+    for ver in ["6.2.0", "6.2.1", "6.2.4"]:
         depends_on(f"rocm-smi-lib@{ver}", when=f"@rocm-{ver} +rocm")
         depends_on(f"hip@{ver}", when=f"@rocm-{ver} +rocm")
         depends_on(f"roctracer-dev@{ver}", when=f"@rocm-{ver} +rocm")

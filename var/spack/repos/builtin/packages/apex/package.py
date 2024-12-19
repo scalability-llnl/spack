@@ -18,6 +18,8 @@ class Apex(CMakePackage):
 
     version("develop", branch="develop")
     version("master", branch="master")
+    version("2.7.1", sha256="5a31f5d790908e3b266e85abd03ea6affef8001c1276f8b883a55fda7a213aae")
+    version("2.7.0", sha256="81cd7e8dbea35cec2360d6404e20f7527f66410614f06a73c8c782ac2cfdb0b0")
     version("2.6.5", sha256="2ba29a1198c904ac209fc6bc02962304a1416443b249f34ef96889aff39644ce")
     version("2.6.4", sha256="281a673f447762a488577beaa60e48d88cb6354f220457cf8f05c1de2e1fce70")
     version("2.6.3", sha256="7fef12937d3bd1271a01abe44cb931b1d63823fb5c74287a332f3012ed7297d5")
@@ -96,13 +98,15 @@ class Apex(CMakePackage):
     variant("lmsensors", default=False, description="Enables LM-Sensors support")
     variant("mpi", default=False, description="Enables MPI support")
     variant("starpu", default=False, description="Enables StarPU support")
+    variant("opencl", default=False, description="Enables OpenCL support", when="@2.7:")
     variant("tests", default=False, description="Build Unit Tests")
     variant("examples", default=False, description="Build Examples")
 
     # Dependencies
     depends_on("zlib-api")
     depends_on("cmake@3.10.0:", type="build")
-    depends_on("kokkos", type="build", when="+kokkos")
+    depends_on("cmake@3.20.1:", type="build", when="@2.6.2:")
+    depends_on("kokkos+pic+tuning", type="build", when="+kokkos")
     depends_on("binutils@2.33:+libiberty+headers", when="+binutils")
     depends_on("gettext", when="+binutils ^binutils+nls")
     depends_on("activeharmony@4.6:", when="+activeharmony")
@@ -134,6 +138,9 @@ class Apex(CMakePackage):
     # https://github.com/UO-OACISS/apex/issues/180.
     conflicts("~kokkos", when="@:2.6.5")
 
+    # Disable OpenCL when using SYCL support
+    conflicts("+opencl", when="+sycl")
+
     # Patches
 
     # This patch ensures that the missing dependency_tree.hpp header is
@@ -155,6 +162,7 @@ class Apex(CMakePackage):
         args.append(self.define_from_variant("APEX_WITH_CUDA", "cuda"))
         args.append(self.define_from_variant("APEX_WITH_HIP", "hip"))
         args.append(self.define_from_variant("APEX_WITH_LEVEL0", "sycl"))
+        args.append(self.define_from_variant("APEX_WITH_OPENCL", "opencl"))
         args.append(self.define_from_variant(prefix + "_MPI", "mpi"))
         args.append(self.define_from_variant(prefix + "_OMPT", "openmp"))
         args.append(self.define_from_variant(prefix + "_OTF2", "otf2"))

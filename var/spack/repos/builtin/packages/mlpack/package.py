@@ -65,6 +65,8 @@ class Mlpack(CMakePackage):
         # ref: src/mlpack/bindings/python/PythonInstall.cmake
         depends_on("py-pip")
         depends_on("py-wheel")
+        # ref: src/mlpack/bindings/python/setup.py.in
+        depends_on("py-setuptools", type="build")
     with when("+r"):
         # ref: src/mlpack/bindings/R/CMakeLists.txt
         depends_on("r@4.0:")

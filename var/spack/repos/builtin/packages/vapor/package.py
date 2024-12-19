@@ -4,8 +4,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
-import re
-
 from spack.package import *
 
 
@@ -23,11 +21,10 @@ class Vapor(CMakePackage):
     maintainers("vanderwb")
 
     version("main", branch="main")
-    version(
-        "3.9.0",
-        sha256="343ababe40b5824ef826f16c935a6dc1fb18e1a4c88ef967c8d64386f28a99a3",
-        preferred=True,
-    )
+    version("3.9.3", sha256="0bf614ef80387f4ef313154e55861b6a36ac31cc2993f1e3899a329d272331b0")
+    version("3.9.2", sha256="94b17067c707768d543888c9c3111d82a9f468290b611099889d6b6430a8e846")
+    version("3.9.1", sha256="5842bfd21e8e905e1acec35e8b86bc706a5a340eeee3530e07a20debe982ca31")
+    version("3.9.0", sha256="343ababe40b5824ef826f16c935a6dc1fb18e1a4c88ef967c8d64386f28a99a3")
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
@@ -37,9 +34,9 @@ class Vapor(CMakePackage):
 
     depends_on("cmake@3.17:", type="build")
     depends_on("python+ssl", type="build")
-    depends_on("py-numpy@1.21", type="build")
     depends_on("py-scipy", type="build")
     depends_on("py-matplotlib", type="build")
+    depends_on("py-numpy@1.21", type="build")
 
     depends_on("zlib-api")
     depends_on("gl")
@@ -69,9 +66,9 @@ class Vapor(CMakePackage):
     # These images are required but not provided by the source
     resource(
         name="map-images",
-        url="https://stratus.ucar.edu/vapor-images/2023-Jun-images.tar.xz",
-        sha256="3f0c6d40446abdb16d5aaaa314349a140e497b3be6f4971394b3e78f22d47c7d",
-        placement="share/extras/images",
+        url="https://anaconda.org/Ncar-vapor/vapor-maps-extra/1.0.0/download/noarch/vapor-maps-extra-1.0.0-0.tar.bz2",
+        sha256="6d102817f13ee02d6af8842e8c20844af6fb848dcd79a42b6e24b204e9905f50",
+        placement="extras",
     )
 
     def cmake_args(self):
@@ -90,7 +87,7 @@ class Vapor(CMakePackage):
             self.define("PYTHONDIR", spec.prefix),
             self.define("PYTHONPATH", pypath),
             self.define("NUMPY_INCLUDE_DIR", pypath + "/site-packages/numpy/core/include"),
-            self.define("MAP_IMAGES_PATH", "extras/images"),
+            self.define("MAP_IMAGES_PATH", "../extras/share/images"),
         ]
 
         return args
@@ -118,10 +115,16 @@ class Vapor(CMakePackage):
     def copy_python_library(self):
         spec = self.spec
         mkdirp(spec.prefix.lib)
-        pp = re.compile("py-[a-z0-9-]*")
 
-        for pydep in ["python"] + pp.findall(str(spec)):
-            install_tree(spec[pydep].prefix.lib, spec.prefix.lib)
+        install_tree(spec["python"].prefix.lib, spec.prefix.lib)
+
+        for py_dep in [dep_spec.name for dep_spec in spec.traverse()]:
+            if py_dep.startswith("py-"):
+                install_tree(spec[py_dep].prefix.lib, spec.prefix.lib)
+
+    @run_before("cmake")
+    def add_extra_images(self):
+        install_tree("extras/share", "share")
 
     # The documentation will not be built without this target (though
     # it will try to install!)

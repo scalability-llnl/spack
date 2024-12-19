@@ -32,6 +32,9 @@ class IntelOneApiPackage(Package):
     # organization (e.g. University/Company).
     redistribute(source=False, binary=False)
 
+    # contains precompiled binaries without rpaths
+    unresolved_libraries = ["*"]
+
     for c in [
         "target=ppc64:",
         "target=ppc64le:",
@@ -255,7 +258,7 @@ class IntelOneApiLibraryPackage(IntelOneApiPackage):
         return find_libraries("*", root=self.component_prefix.lib, recursive=not self.v2_layout)
 
 
-class IntelOneApiLibraryPackageWithSdk(IntelOneApiPackage):
+class IntelOneApiLibraryPackageWithSdk(IntelOneApiLibraryPackage):
     """Base class for Intel oneAPI library packages with SDK components.
 
     Contains some convenient default implementations for libraries

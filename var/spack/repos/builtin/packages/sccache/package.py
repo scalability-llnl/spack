@@ -7,6 +7,7 @@ import os
 import re
 
 import spack.build_systems
+import spack.build_systems.cargo
 from spack.package import *
 
 

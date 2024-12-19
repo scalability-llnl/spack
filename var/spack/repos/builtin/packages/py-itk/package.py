@@ -23,6 +23,7 @@ class PyItk(PythonPackage):
             "5.1.1-cp38",
             url="https://pypi.io/packages/cp35/i/itk/itk-5.1.1-cp38-cp38-macosx_10_9_x86_64.whl",
             sha256="94b09ab9dd59ceaecc456ede2b719a44b8f0d54d92409eede372c6004395ae7b",
+            deprecated=True,
         )
 
         # version 5.1.2
@@ -30,6 +31,7 @@ class PyItk(PythonPackage):
             "5.1.2-cp38",
             url="https://pypi.io/packages/cp38/i/itk/itk-5.1.2-cp38-cp38-macosx_10_9_x86_64.whl",
             sha256="e8dec75b4452bd2ee65beb4901b245fc3a2a2ccc46dfa008ae0b5b757718d458",
+            deprecated=True,
         )
         version(
             "5.1.2-cp39",
@@ -42,6 +44,7 @@ class PyItk(PythonPackage):
             "5.3.0-cp38",
             url="https://pypi.io/packages/cp38/i/itk/itk-5.3.0-cp38-cp38-macosx_10_9_x86_64.whl",
             sha256="1fbcde6f6612b13d2934722707fd7194b1d5900a655efa191dfc130bbb94df09",
+            deprecated=True,
         )
         version(
             "5.3.0-cp39",
@@ -64,6 +67,7 @@ class PyItk(PythonPackage):
             "5.1.1-cp38",
             url="https://pypi.io/packages/cp38/i/itk/itk-5.1.1-cp38-cp38-manylinux1_x86_64.whl",
             sha256="14cd6c3a25f0d69f45eda74b006eceeaf8e2b2fcbe7c343e49683edf97e0fb14",
+            deprecated=True,
         )
 
         # version 5.1.2
@@ -71,6 +75,7 @@ class PyItk(PythonPackage):
             "5.1.2-cp38",
             url="https://pypi.io/packages/cp38/i/itk/itk-5.1.2-cp38-cp38-manylinux1_x86_64.whl",
             sha256="fe9225ac353116f4000c0a3440bf151200beb4a65deec5b2e626edda5b498f16",
+            deprecated=True,
         )
         version(
             "5.1.2-cp39",
@@ -83,6 +88,7 @@ class PyItk(PythonPackage):
             "5.3.0-cp38",
             url="https://pypi.io/packages/cp38/i/itk/itk-5.3.0-cp38-cp38-manylinux_2_28_x86_64.whl",
             sha256="d83dc2b0f5d673226ef6eacac012d1da6dd36c6126f2b3cffc7ed62231c29bf2",
+            deprecated=True,
         )
         version(
             "5.3.0-cp39",

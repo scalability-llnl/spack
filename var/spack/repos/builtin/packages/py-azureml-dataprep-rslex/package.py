@@ -27,8 +27,8 @@ class PyAzuremlDataprepRslex(PythonPackage):
         version(
             "1.9.0-py3.8",
             sha256="9b2e741ac1c53d3f7e6061d264feccf157d97e404c772933a176e6021014484e",
-            preferred=True,
             url="https://pypi.io/packages/cp38/a/azureml_dataprep_rslex/azureml_dataprep_rslex-1.9.0-cp38-cp38-macosx_10_9_x86_64.whl",
+            deprecated=True,
         )
 
         version(
@@ -40,6 +40,7 @@ class PyAzuremlDataprepRslex(PythonPackage):
             "1.8.0-py3.8",
             sha256="d7f2dec06296544b1707f5b01c6a4eaad744b4abfe9e8e89830b561c84d95a7a",
             url="https://pypi.io/packages/cp38/a/azureml_dataprep_rslex/azureml_dataprep_rslex-1.8.0-cp38-cp38-macosx_10_9_x86_64.whl",
+            deprecated=True,
         )
     elif sys.platform.startswith("linux"):
         version(
@@ -50,8 +51,8 @@ class PyAzuremlDataprepRslex(PythonPackage):
         version(
             "1.9.0-py3.8",
             sha256="a52461103b45867dd919bab593bb6f2426c9b5f5a435081e82a3c57c54c3add6",
-            preferred=True,
             url="https://pypi.io/packages/cp38/a/azureml_dataprep_rslex/azureml_dataprep_rslex-1.9.0-cp38-cp38-manylinux1_x86_64.whl",
+            deprecated=True,
         )
 
         version(
@@ -63,6 +64,7 @@ class PyAzuremlDataprepRslex(PythonPackage):
             "1.8.0-py3.8",
             sha256="2ebfa164f0933a5cec383cd27ba10d33861a73237ef481ada5a9a822bb55514a",
             url="https://pypi.io/packages/cp38/a/azureml_dataprep_rslex/azureml_dataprep_rslex-1.8.0-cp38-cp38-manylinux1_x86_64.whl",
+            deprecated=True,
         )
 
     depends_on("python@3.9.0:3.9", when="@1.9.0-py3.9,1.8.0-py3.9", type=("build", "run"))

@@ -82,14 +82,6 @@ def spec(parser, args):
     if args.namespaces:
         fmt = "{namespace}." + fmt
 
-    tree_kwargs = {
-        "cover": args.cover,
-        "format": fmt,
-        "hashlen": None if args.very_long else 7,
-        "show_types": args.types,
-        "status_fn": install_status_fn if args.install_status else None,
-    }
-
     # use a read transaction if we are getting install status for every
     # spec in the DAG.  This avoids repeatedly querying the DB.
     tree_context = lang.nullcontext
@@ -99,46 +91,35 @@ def spec(parser, args):
     env = ev.active_environment()
 
     if args.specs:
-        input_specs = spack.cmd.parse_specs(args.specs)
-        concretized_specs = spack.cmd.parse_specs(args.specs, concretize=True)
-        specs = list(zip(input_specs, concretized_specs))
+        concrete_specs = spack.cmd.parse_specs(args.specs, concretize=True)
     elif env:
         env.concretize()
-        specs = env.concretized_specs()
-
-        if not args.format:
-            # environments are printed together in a combined tree() invocation,
-            # except when using --yaml or --json, which we print spec by spec below.
-            tree_kwargs["key"] = spack.traverse.by_dag_hash
-            tree_kwargs["hashes"] = args.long or args.very_long
-            print(spack.spec.tree([concrete for _, concrete in specs], **tree_kwargs))
-            return
+        concrete_specs = env.concrete_roots()
     else:
         tty.die("spack spec requires at least one spec or an active environment")
 
-    for input, output in specs:
-        # With --yaml or --json, just print the raw specs to output
-        if args.format:
+    # With --yaml, --json, or --format, just print the raw specs to output
+    if args.format:
+        for spec in concrete_specs:
             if args.format == "yaml":
                 # use write because to_yaml already has a newline.
-                sys.stdout.write(output.to_yaml(hash=ht.dag_hash))
+                sys.stdout.write(spec.to_yaml(hash=ht.dag_hash))
             elif args.format == "json":
-                print(output.to_json(hash=ht.dag_hash))
+                print(spec.to_json(hash=ht.dag_hash))
             else:
-                print(output.format(args.format))
-            continue
+                print(spec.format(args.format))
+        return
 
-        with tree_context():
-            # Only show the headers for input specs that are not concrete to avoid
-            # repeated output. This happens because parse_specs outputs concrete
-            # specs for `/hash` inputs.
-            if not input.concrete:
-                tree_kwargs["hashes"] = False  # Always False for input spec
-                print("Input spec")
-                print("--------------------------------")
-                print(input.tree(**tree_kwargs))
-                print("Concretized")
-                print("--------------------------------")
-
-            tree_kwargs["hashes"] = args.long or args.very_long
-            print(output.tree(**tree_kwargs))
+    with tree_context():
+        print(
+            spack.spec.tree(
+                concrete_specs,
+                cover=args.cover,
+                format=fmt,
+                hashlen=None if args.very_long else 7,
+                show_types=args.types,
+                status_fn=install_status_fn if args.install_status else None,
+                hashes=args.long or args.very_long,
+                key=spack.traverse.by_dag_hash,
+            )
+        )
