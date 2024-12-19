@@ -167,8 +167,8 @@ class Gaudi(CMakePackage):
         # environment as in Gaudi.xenv
         env.prepend_path("PATH", self.prefix.scripts)
         env.prepend_path("PYTHONPATH", self.prefix.python)
-        env.prepend_path("LD_LIBRARY_PATH", self.prefix.lib)
-        env.prepend_path("LD_LIBRARY_PATH", self.prefix.lib64)
+        for d in self.libs.directories:
+            env.prepend_path("LD_LIBRARY_PATH", d)
 
     def url_for_version(self, version):
         major = str(version[0])
