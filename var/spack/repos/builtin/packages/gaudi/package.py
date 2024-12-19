@@ -139,15 +139,6 @@ class Gaudi(CMakePackage):
     # The Intel VTune dependency is taken aside because it requires a license
     depends_on("intel-parallel-studio -mpi +vtune", when="+vtune")
 
-    def patch(self):
-        if self.spec.satisfies("@39:"):
-            # Disable a test that fails on pytest collection due to NameError
-            filter_file(
-                r"\(tests/pytest\)",
-                "(tests/pytest OPTIONS --ignore=tests/pytest/refs/RandomNumber.py)",
-                "GaudiTestSuite/CMakeLists.txt",
-            )
-
     def cmake_args(self):
         args = [
             # Note: gaudi only builds examples when testing enabled
