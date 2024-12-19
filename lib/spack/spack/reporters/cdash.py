@@ -10,6 +10,7 @@ import posixpath
 import re
 import socket
 import time
+import warnings
 import xml.sax.saxutils
 from typing import Dict, Optional
 from urllib.parse import urlencode
@@ -123,11 +124,15 @@ class CDash(Reporter):
         self.multiple_packages = False
 
     def report_build_name(self, pkg_name):
-        return (
+        buildname = (
             "{0} - {1}".format(self.base_buildname, pkg_name)
             if self.multiple_packages
             else self.base_buildname
         )
+        if len(buildname) > 190:
+            warnings.warn("Build name exceeds CDash 190 character maximum and will be truncated.")
+            buildname = buildname[:190]
+        return buildname
 
     def build_report_for_package(self, report_dir, package, duration):
         if "stdout" not in package:
