@@ -30,14 +30,6 @@ class Hpl(AutotoolsPackage):
     depends_on("mpi@1.1:")
     depends_on("blas")
 
-    with when("@=2.3"):
-        depends_on("autoconf-archive", type="build")  # AX_PROG_CC_MPI
-        depends_on("autoconf", type="build")
-        depends_on("automake", type="build")
-        depends_on("m4", type="build")
-        depends_on("libtool", type="build")
-        force_autoreconf = True
-
     # 2.3 adds support for openmpi 4
     conflicts("^openmpi@4.0.0:", when="@:2.2")
 
@@ -45,6 +37,17 @@ class Hpl(AutotoolsPackage):
 
     arch = "{0}-{1}".format(platform.system(), platform.processor())
     build_targets = ["arch={0}".format(arch)]
+
+    with when("@=2.3"):
+        depends_on("autoconf-archive", type="build")  # AX_PROG_CC_MPI
+        depends_on("autoconf", type="build")
+        depends_on("automake", type="build")
+        depends_on("m4", type="build")
+        depends_on("libtool", type="build")
+
+    @property
+    def force_autoreconf(self):
+        return self.version == Version("2.3")
 
     @when("@=2.3")
     @run_before("autoreconf")
