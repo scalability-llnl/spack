@@ -584,23 +584,6 @@ def set_package_py_globals(pkg, context: Context = Context.BUILD):
     # Don't use which for this; we want to find it in the current dir.
     module.configure = Executable("./configure")
 
-    # Put spack compiler paths in module scope. (Some packages use it
-    # in setup_run_environment etc, so don't put it context == build)
-    link_dir = spack.paths.build_env_path
-
-    # Set spack_cc, etc. for backward compatibility. This might change if the compiler wrapper
-    # is modeled as a package.
-    global_names = {
-        "c": ("spack_cc",),
-        "cxx": ("spack_cxx",),
-        "fortran": ("spack_fc", "spack_f77"),
-    }
-    for language in ("c", "cxx", "fortran"):
-        spec = pkg.spec.dependencies(virtuals=[language])
-        value = None if not spec else os.path.join(link_dir, spec[0].package.link_paths[language])
-        for name in global_names[language]:
-            setattr(module, name, value)
-
     # Useful directories within the prefix are encapsulated in
     # a Prefix object.
     module.prefix = pkg.prefix

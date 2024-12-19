@@ -14,7 +14,6 @@ from typing import Dict, List
 
 from llnl.util.lang import dedupe
 
-import spack.paths
 from spack.build_environment import dso_suffix, stat_suffix
 from spack.package import *
 
@@ -1175,6 +1174,9 @@ print(json.dumps(config))
         """Set PYTHONPATH to include the site-packages directory for the
         extension and any other python extensions it depends on.
         """
+        if sys.platform == "win32":
+            return
+
         # We need to make sure that the extensions are compiled and linked with
         # the Spack wrapper. Paths to the executables that are used for these
         # operations are normally taken from the sysconfigdata file, which we
@@ -1201,15 +1203,16 @@ print(json.dumps(config))
             if not dependent_spec.dependencies(virtuals=(language,)):
                 continue
 
+            compiler_wrapper_pkg = dependent_spec["compiler-wrapper"].package
+            compiler_pkg = dependent_spec[language].package
+
             # First, we get the values from the sysconfigdata:
             config_compile = self.config_vars[compile_var]
             config_link = self.config_vars[link_var]
 
             # The dependent environment will have the compilation command set to
             # the following:
-            new_compile = join_path(
-                spack.paths.build_env_path, dependent_spec[language].package.link_paths[language]
-            )
+            new_compile = str(compiler_wrapper_pkg.bin_dir() / compiler_pkg.link_paths[language])
 
             # Normally, the link command starts with the compilation command:
             if config_link.startswith(config_compile):

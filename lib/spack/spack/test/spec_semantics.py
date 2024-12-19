@@ -1695,6 +1695,7 @@ def test_spec_trim(mock_packages, config):
     top.trim("dt-diamond-left")
     remaining = {x.name for x in top.traverse()}
     assert {
+        "compiler-wrapper",
         "dt-diamond",
         "dt-diamond-right",
         "dt-diamond-bottom",
@@ -1704,7 +1705,7 @@ def test_spec_trim(mock_packages, config):
 
     top.trim("dt-diamond-right")
     remaining = {x.name for x in top.traverse()}
-    assert {"dt-diamond", "gcc-runtime", "gcc"} == remaining
+    assert {"compiler-wrapper", "dt-diamond", "gcc-runtime", "gcc"} == remaining
 
 
 @pytest.mark.regression("30861")

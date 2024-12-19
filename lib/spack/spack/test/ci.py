@@ -344,10 +344,20 @@ def test_get_spec_filter_list(mutable_mock_env_path, mutable_mock_repo):
         "libelf",
         "gcc",
         "gcc-runtime",
+        "compiler-wrapper",
     }
-    depth_2_set = {"mpich", "callpath", "dyninst", "libdwarf", "libelf", "gcc", "gcc-runtime"}
-    depth_1_set = {"dyninst", "libdwarf", "libelf", "gcc", "gcc-runtime"}
-    depth_0_set = {"libdwarf", "libelf", "gcc", "gcc-runtime"}
+    depth_2_set = {
+        "mpich",
+        "callpath",
+        "dyninst",
+        "libdwarf",
+        "libelf",
+        "gcc",
+        "gcc-runtime",
+        "compiler-wrapper",
+    }
+    depth_1_set = {"dyninst", "libdwarf", "libelf", "gcc", "gcc-runtime", "compiler-wrapper"}
+    depth_0_set = {"libdwarf", "libelf", "gcc", "gcc-runtime", "compiler-wrapper"}
 
     expectations = {
         None: full_set,

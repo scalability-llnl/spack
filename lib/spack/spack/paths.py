@@ -31,7 +31,6 @@ sbang_script = os.path.join(bin_path, "sbang")
 # spack directory hierarchy
 lib_path = os.path.join(prefix, "lib", "spack")
 external_path = os.path.join(lib_path, "external")
-build_env_path = os.path.join(lib_path, "env")
 module_path = os.path.join(lib_path, "spack")
 command_path = os.path.join(module_path, "cmd")
 analyzers_path = os.path.join(module_path, "analyzers")

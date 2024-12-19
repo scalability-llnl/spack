@@ -2132,3 +2132,12 @@ class MockHTTPResponse(io.IOBase):
 @pytest.fixture()
 def mock_runtimes(config, mock_packages):
     return mock_packages.packages_with_tags("runtime")
+
+
+@pytest.fixture()
+def wrapper_dir(install_mockery):
+    """Installs the compiler wrapper and returns the prefix where the script is installed."""
+    wrapper = spack.spec.Spec("compiler-wrapper").concretized()
+    wrapper_pkg = wrapper.package
+    PackageInstaller([wrapper_pkg], explicit=True).install()
+    return wrapper_pkg.bin_dir()

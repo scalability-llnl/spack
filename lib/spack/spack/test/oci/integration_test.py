@@ -15,12 +15,15 @@ from contextlib import contextmanager
 
 import pytest
 
+import spack
 import spack.binary_distribution
 import spack.database
+import spack.deptypes as dt
 import spack.environment as ev
 import spack.error
 import spack.oci.opener
 import spack.spec
+import spack.traverse
 from spack.main import SpackCommand
 from spack.oci.image import Digest, ImageReference, default_config, default_manifest
 from spack.oci.oci import blob_exists, get_manifest_and_config, upload_blob, upload_manifest
@@ -82,7 +85,13 @@ def test_buildcache_tag(install_mockery, mock_fetch, mutable_mock_env_path):
         name = ImageReference.from_string("example.com/image:full_env")
 
         with ev.read("test") as e:
-            specs = [x for x in e.all_specs() if not x.external]
+            specs = [
+                x
+                for x in spack.traverse.traverse_nodes(
+                    e.concrete_roots(), deptype=dt.LINK | dt.RUN
+                )
+                if not x.external
+            ]
 
         manifest, config = get_manifest_and_config(name)
 
@@ -99,7 +108,9 @@ def test_buildcache_tag(install_mockery, mock_fetch, mutable_mock_env_path):
 
         name = ImageReference.from_string("example.com/image:single_spec")
         manifest, config = get_manifest_and_config(name)
-        assert len(manifest["layers"]) == len([x for x in libelf.traverse() if not x.external])
+        assert len(manifest["layers"]) == len(
+            [x for x in libelf.traverse(deptype=dt.LINK | dt.RUN) if not x.external]
+        )
 
 
 def test_buildcache_push_with_base_image_command(mutable_database, tmpdir):

@@ -184,6 +184,7 @@ class TestSpecDag:
                 [
                     (0, "mpileaks"),
                     (1, "callpath"),
+                    (2, "compiler-wrapper"),
                     (2, "dyninst"),
                     (3, "gcc"),
                     (3, "gcc-runtime"),
@@ -199,23 +200,29 @@ class TestSpecDag:
                 [
                     (0, "mpileaks"),
                     (1, "callpath"),
+                    (2, "compiler-wrapper"),
                     (2, "dyninst"),
+                    (3, "compiler-wrapper"),
                     (3, "gcc"),
                     (3, "gcc-runtime"),
                     (4, "gcc"),
                     (3, "libdwarf"),
+                    (4, "compiler-wrapper"),
                     (4, "gcc"),
                     (4, "gcc-runtime"),
                     (4, "libelf"),
+                    (5, "compiler-wrapper"),
                     (5, "gcc"),
                     (5, "gcc-runtime"),
                     (3, "libelf"),
                     (2, "gcc"),
                     (2, "gcc-runtime"),
                     (2, "zmpi"),
+                    (3, "compiler-wrapper"),
                     (3, "fake"),
                     (3, "gcc"),
                     (3, "gcc-runtime"),
+                    (1, "compiler-wrapper"),
                     (1, "gcc"),
                     (1, "gcc-runtime"),
                     (1, "zmpi"),
@@ -227,19 +234,24 @@ class TestSpecDag:
                 [
                     (0, "mpileaks"),
                     (1, "callpath"),
+                    (2, "compiler-wrapper"),
                     (2, "dyninst"),
+                    (3, "compiler-wrapper"),
                     (3, "gcc"),
                     (3, "gcc-runtime"),
                     (4, "gcc"),
                     (3, "libdwarf"),
+                    (4, "compiler-wrapper"),
                     (4, "gcc"),
                     (4, "gcc-runtime"),
                     (5, "gcc"),
                     (4, "libelf"),
+                    (5, "compiler-wrapper"),
                     (5, "gcc"),
                     (5, "gcc-runtime"),
                     (6, "gcc"),
                     (3, "libelf"),
+                    (4, "compiler-wrapper"),
                     (4, "gcc"),
                     (4, "gcc-runtime"),
                     (5, "gcc"),
@@ -247,14 +259,17 @@ class TestSpecDag:
                     (2, "gcc-runtime"),
                     (3, "gcc"),
                     (2, "zmpi"),
+                    (3, "compiler-wrapper"),
                     (3, "fake"),
                     (3, "gcc"),
                     (3, "gcc-runtime"),
                     (4, "gcc"),
+                    (1, "compiler-wrapper"),
                     (1, "gcc"),
                     (1, "gcc-runtime"),
                     (2, "gcc"),
                     (1, "zmpi"),
+                    (2, "compiler-wrapper"),
                     (2, "fake"),
                     (2, "gcc"),
                     (2, "gcc-runtime"),
@@ -265,6 +280,7 @@ class TestSpecDag:
             # Postorder node traversal
             (
                 [
+                    (2, "compiler-wrapper"),
                     (3, "gcc"),
                     (3, "gcc-runtime"),
                     (4, "libelf"),
@@ -280,11 +296,15 @@ class TestSpecDag:
             # Postorder edge traversal
             (
                 [
+                    (2, "compiler-wrapper"),
+                    (3, "compiler-wrapper"),
                     (3, "gcc"),
                     (4, "gcc"),
                     (3, "gcc-runtime"),
+                    (4, "compiler-wrapper"),
                     (4, "gcc"),
                     (4, "gcc-runtime"),
+                    (5, "compiler-wrapper"),
                     (5, "gcc"),
                     (5, "gcc-runtime"),
                     (4, "libelf"),
@@ -293,11 +313,13 @@ class TestSpecDag:
                     (2, "dyninst"),
                     (2, "gcc"),
                     (2, "gcc-runtime"),
+                    (3, "compiler-wrapper"),
                     (3, "fake"),
                     (3, "gcc"),
                     (3, "gcc-runtime"),
                     (2, "zmpi"),
                     (1, "callpath"),
+                    (1, "compiler-wrapper"),
                     (1, "gcc"),
                     (1, "gcc-runtime"),
                     (1, "zmpi"),
@@ -308,17 +330,22 @@ class TestSpecDag:
             # Postorder path traversal
             (
                 [
+                    (2, "compiler-wrapper"),
+                    (3, "compiler-wrapper"),
                     (3, "gcc"),
                     (4, "gcc"),
                     (3, "gcc-runtime"),
+                    (4, "compiler-wrapper"),
                     (4, "gcc"),
                     (5, "gcc"),
                     (4, "gcc-runtime"),
+                    (5, "compiler-wrapper"),
                     (5, "gcc"),
                     (6, "gcc"),
                     (5, "gcc-runtime"),
                     (4, "libelf"),
                     (3, "libdwarf"),
+                    (4, "compiler-wrapper"),
                     (4, "gcc"),
                     (5, "gcc"),
                     (4, "gcc-runtime"),
@@ -327,15 +354,18 @@ class TestSpecDag:
                     (2, "gcc"),
                     (3, "gcc"),
                     (2, "gcc-runtime"),
+                    (3, "compiler-wrapper"),
                     (3, "fake"),
                     (3, "gcc"),
                     (4, "gcc"),
                     (3, "gcc-runtime"),
                     (2, "zmpi"),
                     (1, "callpath"),
+                    (1, "compiler-wrapper"),
                     (1, "gcc"),
                     (2, "gcc"),
                     (1, "gcc-runtime"),
+                    (2, "compiler-wrapper"),
                     (2, "fake"),
                     (2, "gcc"),
                     (3, "gcc"),
@@ -350,47 +380,53 @@ class TestSpecDag:
     def test_traversal(self, pairs, traverse_kwargs, default_mock_concretization):
         r"""Tests different traversals of the following graph
 
-        o mpileaks
+        o mpileaks@2.3/3qeg7jx
         |\
         | |\
         | | |\
         | | | |\
-        | | | | o callpath
-        | |_|_|/|
-        |/| |_|/|
-        | |/| |/|
-        | | |/|/|
-        o | | | | zmpi
-        |\| | | |
-        |\ \ \ \ \
-        | |_|/ / /
-        |/| | | |
-        | |\ \ \ \
-        | | |_|/ /
-        | |/| | |
-        | | o | | fake
-        | |  / /
-        | | | o dyninst
-        | |_|/|
-        |/| |/|
-        | |/|/|
-        | | | |\
-        | | | | o libdwarf
+        | | | | |\
+        | | | | | o callpath@1.0/4gilijr
+        | |_|_|_|/|
+        |/| |_|_|/|
+        | |/| |_|/|
+        | | |/| |/|
+        | | | |/|/|
+        | | | | | o dyninst@8.2/u4oymb3
+        | | |_|_|/|
+        | |/| |_|/|
+        | | |/| |/|
+        | | | |/|/|
+        | | | | | |\
+        o | | | | | | mpich@3.0.4/g734fu6
+        |\| | | | | |
+        |\ \ \ \ \ \ \
+        | |_|/ / / / /
+        |/| | | | | |
+        | |\ \ \ \ \ \
+        | | |_|/ / / /
+        | |/| | | | |
+        | | |/ / / /
+        | | | | | o libdwarf@20130729/q5r7l2r
+        | |_|_|_|/|
+        |/| |_|_|/|
+        | |/| |_|/|
+        | | |/| |/|
+        | | | |/|/
+        | | | | o libelf@0.8.13/i2x6pya
         | |_|_|/|
         |/| |_|/|
         | |/| |/|
         | | |/|/
-        | | | o libel
-        | |_|/|
-        |/| |/|
-        | |/|/
-        o | | gcc-runtime
+        | | o | compiler-wrapper@1.0/njdili2
+        | |  /
+        o | | gcc-runtime@10.5.0/iyytqeo
         |\| |
         | |/
         |/|
-        o | glibc
-         /
-        o gcc
+        | o gcc@10.5.0/ljeisd4
+        |
+        o glibc@2.31/tbyn33w
         """
         dag = default_mock_concretization("mpileaks ^zmpi")
         names = [x for _, x in pairs]
@@ -844,10 +880,10 @@ class TestSpecDag:
         "query,expected_length,expected_satisfies",
         [
             ({"virtuals": ["mpi"]}, 1, ["mpich", "mpi"]),
-            ({"depflag": dt.BUILD}, 3, ["mpich", "mpi", "callpath"]),
+            ({"depflag": dt.BUILD}, 4, ["mpich", "mpi", "callpath"]),
             ({"depflag": dt.BUILD, "virtuals": ["mpi"]}, 1, ["mpich", "mpi"]),
             ({"depflag": dt.LINK}, 3, ["mpich", "mpi", "callpath"]),
-            ({"depflag": dt.BUILD | dt.LINK}, 4, ["mpich", "mpi", "callpath"]),
+            ({"depflag": dt.BUILD | dt.LINK}, 5, ["mpich", "mpi", "callpath"]),
             ({"virtuals": ["lapack"]}, 0, []),
         ],
     )
@@ -929,7 +965,7 @@ def test_synthetic_construction_of_split_dependencies_from_same_package(mock_pac
     root.add_dependency_edge(build_spec, depflag=dt.BUILD, virtuals=())
 
     # Check dependencies from the perspective of root
-    assert len(root.dependencies()) == 4
+    assert len(root.dependencies()) == 5
     assert len([x for x in root.dependencies() if x.name == "pkg-c"]) == 2
 
     assert "@2.0" in root.dependencies(name="pkg-c", deptype=dt.BUILD)[0]

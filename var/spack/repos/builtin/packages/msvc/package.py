@@ -32,7 +32,6 @@ class Msvc(Package, CompilerPackage):
     compiler_version_argument = ""
     compiler_version_regex = r"([1-9][0-9]*\.[0-9]*\.[0-9]*)"
 
-    # Named wrapper links within build_env_path
     # Due to the challenges of supporting compiler wrappers
     # in Windows, we leave these blank, and dynamically compute
     # based on proper versions of MSVC from there
