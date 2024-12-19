@@ -11,6 +11,7 @@ from llnl.util.tty.color import colorize
 
 import spack.environment as ev
 import spack.repo
+import spack.schema.environment
 import spack.store
 from spack.util.environment import EnvironmentModifications
 
