@@ -133,8 +133,8 @@ class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
         depends_on("py-ml-dtypes@0.0.3:", when="@0.4.7:")
 
     patch(
-        "https://github.com/jax-ml/jax/commit/8a516e8e5b60bb16eef59c963e6c68d7e6a6dd9b.patch?full_index=1",
-        sha256="9b4d6079c8704be5cd00effc6c4d0515216ad027baa1f91de589265c48e56252",
+        "https://github.com/jax-ml/jax/commit/f62af6457a6cc575a7b1ada08d541f0dd0eb5765.patch?full_index=1",
+        sha256="d3b7ea2cfeba927e40a11f07e4cbf80939f7fe69448c9eb55231a93bd64e5c02",
         when="@0.4.36:0.4.38",
     )
     patch(
