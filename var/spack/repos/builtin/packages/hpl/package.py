@@ -31,7 +31,7 @@ class Hpl(AutotoolsPackage):
     depends_on("blas")
 
     with when("@=2.3"):
-        depends_on("autoconf-archive", type="build") # AX_PROG_CC_MPI
+        depends_on("autoconf-archive", type="build")  # AX_PROG_CC_MPI
         depends_on("autoconf", type="build")
         depends_on("automake", type="build")
         depends_on("m4", type="build")
@@ -50,7 +50,9 @@ class Hpl(AutotoolsPackage):
     @run_before("autoreconf")
     def add_timer_to_libhpl(self):
         # Add HPL_timer_walltime to libhpl.a
-        filter_file(r"(pgesv/HPL_perm.c)$", r"\1 ../testing/timer/HPL_timer_walltime.c", "src/Makefile.am")
+        filter_file(
+            r"(pgesv/HPL_perm.c)$", r"\1 ../testing/timer/HPL_timer_walltime.c", "src/Makefile.am"
+        )
 
     @when("@:2.2")
     def autoreconf(self, spec, prefix):
