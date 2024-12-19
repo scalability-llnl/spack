@@ -174,32 +174,25 @@ class Dd4hep(CMakePackage):
             # However, with spack it is preferrable to have a proper external
             # dependency, so we disable it.
             self.define("DD4HEP_LOAD_ASSIMP", False),
-            "-DCMAKE_CXX_STANDARD={0}".format(cxxstd),
-            "-DBUILD_TESTING={0}".format(self.run_tests),
-            "-DBOOST_ROOT={0}".format(spec["boost"].prefix),
-            "-DBoost_NO_BOOST_CMAKE=ON",
+            self.define("CMAKE_CXX_STANDARD", cxxstd),
+            self.define("BUILD_TESTING", self.run_tests),
+            self.define("BOOST_ROOT", spec["boost"].prefix),
+            self.define("Boost_NO_BOOST_CMAKE", True),
         ]
-        subpackages = []
-        if spec.satisfies("+ddg4"):
-            subpackages += ["DDG4"]
-        if spec.satisfies("+ddcond"):
-            subpackages += ["DDCond"]
-        if spec.satisfies("+ddcad"):
-            subpackages += ["DDCAD"]
-        if spec.satisfies("+ddrec"):
-            subpackages += ["DDRec"]
-        if spec.satisfies("+dddetectors"):
-            subpackages += ["DDDetectors"]
-        if spec.satisfies("+ddalign"):
-            subpackages += ["DDAlign"]
-        if spec.satisfies("+dddigi"):
-            subpackages += ["DDDigi"]
-        if spec.satisfies("+ddeve"):
-            subpackages += ["DDEve"]
-        if spec.satisfies("+utilityapps"):
-            subpackages += ["UtilityApps"]
-        subpackages = " ".join(subpackages)
-        args += [self.define("DD4HEP_BUILD_PACKAGES", subpackages)]
+
+        packages = [
+            "DDG4",
+            "DDCond",
+            "DDCAD",
+            "DDRec",
+            "DDDetectors",
+            "DDAlign",
+            "DDDigi",
+            "DDEve",
+            "UtilityApps",
+        ]
+        enabled_packages = [p for p in packages if self.spec.variants[package.lower()].value]
+        args.append(self.define("DD4HEP_BUILD_PACKAGES", " ".join(enabled_packages)))
         return args
 
     def setup_run_environment(self, env):

@@ -15,11 +15,12 @@ class HipifyClang(CMakePackage):
     url = "https://github.com/ROCm/HIPIFY/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
-    maintainers("srekolam", "renjithravindrankannath")
+    maintainers("srekolam", "renjithravindrankannath", "afzpatel")
 
     license("MIT")
 
     version("master", branch="master")
+    version("6.3.0", sha256="9fced04f9e36350bdbabd730c446b55a898e2f4ba82078855bcf5dea3b5e8dc8")
     version("6.2.4", sha256="981af55ab4243f084b3e75007e827f7c94ac317fa84fe08d59c5872124a7d3c7")
     version("6.2.1", sha256="db5680d677222596cf9edfb84ae96b37db829a40a2e0243d26ff24a16e03ff74")
     version("6.2.0", sha256="11bfbde7c40e5cd5de02a47ec30dc6df4b233a12126bf7ee449432a30a3e6e1e")
@@ -51,7 +52,7 @@ class HipifyClang(CMakePackage):
     patch("0001-install-hipify-clang-in-bin-dir-and-llvm-clangs-head.patch", when="@5.1.0:5.5")
     patch("0002-install-hipify-clang-in-bin-dir-and-llvm-clangs-head.patch", when="@5.6:6.0")
     patch("0003-install-hipify-clang-in-bin-dir-and-llvm-clangs-head.patch", when="@6.1")
-    patch("0001-use-source-permission-for-hipify-perl.patch", when="@6.2")
+    patch("0001-use-source-permission-for-hipify-perl.patch", when="@6.2:")
 
     depends_on("cmake@3.5:", type="build")
     for ver in [
@@ -73,6 +74,7 @@ class HipifyClang(CMakePackage):
         "6.2.0",
         "6.2.1",
         "6.2.4",
+        "6.3.0",
         "master",
     ]:
         depends_on(f"llvm-amdgpu@{ver}", when=f"@{ver}")
@@ -92,6 +94,7 @@ class HipifyClang(CMakePackage):
         "6.2.0",
         "6.2.1",
         "6.2.4",
+        "6.3.0",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 
