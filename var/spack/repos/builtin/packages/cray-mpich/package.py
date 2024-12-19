@@ -139,7 +139,6 @@ class CrayMpich(Package, CudaPackage, ROCmPackage):
 
         return libs
 
-    # @memoized
     @property
     def gtl_lib(self):
         # GPU transport Layer (GTL) handling background:
