@@ -19,7 +19,7 @@ class Nim(Package):
     url = "https://nim-lang.org/download/nim-2.2.0.tar.xz"
     git = "https://github.com/nim-lang/Nim.git"
 
-    license("MIT")
+    license("MIT", checked_by="Buldram")
 
     maintainers("Buldram")
 
@@ -58,8 +58,8 @@ class Nim(Package):
         "sqlite", default=False, when="@0:1.7.3", description="Install SQLite for std/db_sqlite"
     )
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     depends_on("gmake", type="build", when="@devel,0.20:")
     depends_on("pcre", type="link")
@@ -141,8 +141,7 @@ class Nim(Package):
             make()
 
         else:
-            bash = which("bash")
-            bash("./build.sh")
+            Executable("./build.sh")()
 
         nim = Executable(join_path("bin", "nim"))
         # Separate nimcache allows parallel compilation of different versions of the Nim compiler
@@ -159,7 +158,6 @@ class Nim(Package):
     def install(self, spec, prefix):
         filter_file("1/nim", "1", "install.sh")
 
-        bash = which("bash")
-        bash("./install.sh", prefix)
+        Executable("./install.sh")(prefix)
 
         install_tree("bin", prefix.bin)

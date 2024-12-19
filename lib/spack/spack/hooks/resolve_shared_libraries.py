@@ -29,6 +29,7 @@ ALLOW_UNRESOLVED = [
     # glibc
     "ld-linux*.so.*",
     "ld64.so.*",
+    "libanl.so.*",
     "libc.so.*",
     "libdl.so.*",
     "libm.so.*",

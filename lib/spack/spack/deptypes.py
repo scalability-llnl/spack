@@ -6,6 +6,8 @@
 
 from typing import Iterable, List, Tuple, Union
 
+from typing_extensions import Literal
+
 #: Type hint for the low-level dependency input (enum.Flag is too slow)
 DepFlag = int
 
@@ -13,7 +15,7 @@ DepFlag = int
 DepTypes = Union[str, List[str], Tuple[str, ...]]
 
 #: Individual dependency types
-DepType = str  # Python 3.8: Literal["build", "link", "run", "test"]
+DepType = Literal["build", "link", "run", "test"]
 
 # Flag values. NOTE: these values are not arbitrary, since hash computation imposes
 # the order (link, run, build, test) when depending on the same package multiple times,

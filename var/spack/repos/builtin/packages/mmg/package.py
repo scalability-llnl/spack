@@ -7,6 +7,7 @@ import os
 
 import spack.build_systems.cmake
 from spack.package import *
+from spack.util.executable import which
 
 
 class Mmg(CMakePackage):
@@ -50,6 +51,7 @@ class Mmg(CMakePackage):
     variant("scotch", default=True, description="Enable SCOTCH library support")
     variant("doc", default=False, description="Build documentation")
     variant("vtk", default=False, when="@5.5.0:", description="Enable VTK I/O support")
+    variant("private_headers", default=False, description="Enable private headers", when="@5.7.0:")
 
     depends_on("scotch", when="+scotch")
     depends_on("doxygen", when="+doc")
@@ -59,9 +61,10 @@ class Mmg(CMakePackage):
 class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
     def cmake_args(self):
         shared_active = self.spec.satisfies("+shared")
-        return [
+        args = [
             self.define_from_variant("USE_SCOTCH", "scotch"),
             self.define_from_variant("USE_VTK", "vtk"),
+            self.define_from_variant("MMG_INSTALL_PRIVATE_HEADERS", "private_headers"),
             self.define("BUILD_SHARED_LIBS", shared_active),
             self.define("LIBMMG3D_SHARED", shared_active),
             self.define("LIBMMG2D_SHARED", shared_active),
@@ -72,6 +75,7 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
             self.define("LIBMMGS_STATIC", not shared_active),
             self.define("LIBMMG_STATIC", not shared_active),
         ]
+        return args
 
     # parmmg requires this for its build
     @run_after("install")

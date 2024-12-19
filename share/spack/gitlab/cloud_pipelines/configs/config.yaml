@@ -1,7 +1,7 @@
 config:
   db_lock_timeout: 120
   shared_linking:
-    missing_library_policy: error
+    missing_library_policy: warn
   install_tree:
     root: /home/software/spack
     padded_length: 256
