@@ -24,6 +24,7 @@ class PyScikitImage(PythonPackage):
         "skimage.future.graph",
     ]
 
+    version("0.25.0", sha256="58d94fea11b6b3306b3770417dc1cbca7fa9bcbd6a13945d7910399c88c2018c")
     version("0.24.0", sha256="5d16efe95da8edbeb363e0c4157b99becbd650a60b77f6e3af5768b66cf007ab")
     version("0.23.2", sha256="c9da4b2c3117e3e30364a3d14496ee5c72b09eb1a4ab1292b302416faa360590")
     version("0.23.1", sha256="4ff756161821568ed56523f1c4ab9094962ba79e817a9a8e818d9f51d223d669")
@@ -49,10 +50,11 @@ class PyScikitImage(PythonPackage):
     # @:0.13      from requirements.txt, DEPENDS.txt
 
     with default_args(type=("build", "run")):
-        depends_on("python@3.10:", when="@0.23")
+        depends_on("python@3.10:", when="@0.23:")
         depends_on("python@3.9:", when="@0.22:")
 
     with default_args(type=("build", "link", "run")):
+        depends_on("py-numpy@1.24:", when="@0.25:")
         depends_on("py-numpy@1.23:", when="@0.23:")
         depends_on("py-numpy@1.22:", when="@0.22:")
         depends_on("py-numpy@1.21.1:", when="@0.20:")
@@ -66,6 +68,7 @@ class PyScikitImage(PythonPackage):
         depends_on("py-numpy@:1", when="@:0.23.0")
 
     with default_args(type=("build", "run")):
+        depends_on("py-scipy@1.11.2:", when="@0.25:")
         depends_on("py-scipy@1.9:", when="@0.23:")
         depends_on("py-scipy@1.8:", when="@0.20:")
         depends_on("py-scipy@1.4.1:", when="@0.19:")
@@ -73,10 +76,12 @@ class PyScikitImage(PythonPackage):
         depends_on("py-scipy@0.19:", when="@0.16:")
         depends_on("py-scipy@0.17:", when="@0.13:")
         depends_on("py-scipy@0.9:")
+        depends_on("py-networkx@3:", when="@0.25:")
         depends_on("py-networkx@2.8:", when="@0.20:")
         depends_on("py-networkx@2.2:", when="@0.19:")
         depends_on("py-networkx@2:", when="@0.15:")
         depends_on("py-networkx@1.8:")
+        depends_on("pil@10.1:", when="@0.25:")
         depends_on("pil@9.1:", when="@0.23:")
         depends_on("pil@9.0.1:", when="@0.20:")
         depends_on("pil@6.1:7.0,7.1.2:8.2,8.3.1:", when="@0.19:")
@@ -98,14 +103,16 @@ class PyScikitImage(PythonPackage):
         depends_on("py-lazy-loader@0.1:", when="@0.20:")
 
     with default_args(type="build"):
+        depends_on("py-meson-python@0.16:", when="@0.25:")
         depends_on("py-meson-python@0.15:", when="@0.23:")
         depends_on("py-meson-python@0.14:", when="@0.22:")
         depends_on("py-meson-python@0.13:", when="@0.20:")
+        depends_on("py-setuptools@68:", when="@0.25:")
         depends_on("py-setuptools@67:", when="@0.20:")
         depends_on("py-setuptools@:59.4", when="@0.19.1:0.19")
         depends_on("py-setuptools@51:", when="@0.18:")
         depends_on("py-setuptools")
-        depends_on("ninja", when="@0.20:")
+        depends_on("py-cython@3.0.8:", when="@0.25:")
         depends_on("py-cython@3.0.4:", when="@0.23:")
         depends_on("py-cython@0.29.32:", when="@0.21:")
         depends_on("py-cython@0.29.24:", when="@0.20:")
@@ -117,6 +124,7 @@ class PyScikitImage(PythonPackage):
         depends_on("py-cython@0.23.4:0.28.1", when="@0.14.2")
         depends_on("py-cython@0.23.4:", when="@0.14.1")
         depends_on("py-cython@0.21:", when="@0.12")
+        depends_on("py-pythran@0.16:", when="@0.25:")
         depends_on("py-pythran", when="@0.19:")
 
     # dependencies for old versions
@@ -136,6 +144,8 @@ class PyScikitImage(PythonPackage):
         depends_on("py-dask+array@0.9:", when="@0.14.0:0.14.1")
         depends_on("py-dask+array@0.5:", when="@:0.13")
         depends_on("py-cloudpickle@0.2.1:", when="@0.14.0:0.14")
+
+    conflicts("py-imageio@2.35.0")
 
     def url_for_version(self, version):
         url = (

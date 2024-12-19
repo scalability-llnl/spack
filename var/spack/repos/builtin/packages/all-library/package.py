@@ -22,6 +22,7 @@ class AllLibrary(CMakePackage):
     license("BSD-3-Clause", checked_by="junghans")
 
     version("master", branch="master")
+    version("0.9.3", sha256="378656548628172838fc8c7b8f4ac4e18b9e73f9a884c4197ad1c67f560112d7")
     version("0.9.2", sha256="2b4ef52c604c3c0c467712d0912a33c82177610b67edc14df1e034779c6ddb71")
 
     variant("fortran", default=False, description="Build with fortran support")

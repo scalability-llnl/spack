@@ -27,6 +27,7 @@ class Likwid(Package):
 
     license("GPL-3.0-only")
 
+    version("5.4.1", sha256="5773851455dbba489e2e3735931e51547377cd1796c982a5ac88d0f2299c0811")
     version("5.4.0", sha256="0f2b671c69caa993fedb48187b3bdcc94c22400ec84c926fd0898dbff68aa03e")
     version("5.3.0", sha256="c290e554c4253124ac2ab8b056e14ee4d23966b8c9fbfa10ba81f75ae543ce4e")
     version("5.2.2", sha256="7dda6af722e04a6c40536fc9f89766ce10f595a8569b29e80563767a6a8f940e")
@@ -71,6 +72,11 @@ class Likwid(Package):
         "https://github.com/RRZE-HPC/likwid/releases/download/v5.2.0/likwid-icx-mem-group-fix.patch",
         sha256="af4ce278ef20cd1df26d8749a6b0e2716e4286685dae5a5e1eb4af8c383f7d10",
         when="@5.2.0:5.2.2",
+    )
+    patch(
+        "https://github.com/RRZE-HPC/likwid/releases/download/v5.4.0/likwid-5.4.0-bstrlib.patch",
+        when="@5.4.0",
+        sha256="81fc733d20098208ec1d35a6d512d287f550050813dcad785a56a5539ec23cce",
     )
     variant("fortran", default=True, description="with fortran interface")
     variant("cuda", default=False, description="with Nvidia GPU profiling support")

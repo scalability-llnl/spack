@@ -10,7 +10,6 @@ spack:
     - wrf
   - targets:
     - target=neoverse_v1
-    - target=neoverse_n1
   specs:
   - matrix:
     - [$apps]

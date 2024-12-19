@@ -26,6 +26,8 @@ import traceback
 import typing
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, Type, TypeVar, Union
 
+from typing_extensions import Literal
+
 import llnl.util.filesystem as fsys
 import llnl.util.tty as tty
 from llnl.util.lang import classproperty, memoized
@@ -1009,10 +1011,8 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
                 return False
         return True
 
-    # NOTE: return type should be Optional[Literal['all', 'specific', 'none']] in
-    # Python 3.8+, but we still support 3.6.
     @property
-    def keep_werror(self) -> Optional[str]:
+    def keep_werror(self) -> Optional[Literal["all", "specific", "none"]]:
         """Keep ``-Werror`` flags, matches ``config:flags:keep_werror`` to override config.
 
         Valid return values are:

@@ -20,18 +20,35 @@ class Ghostscript(AutotoolsPackage):
 
     license("AGPL-3.0-or-later", checked_by="wdconinc")
 
-    version("10.03.1", sha256="31cd01682ad23a801cc3bbc222a55f07c4ea3e068bdfb447792d54db21a2e8ad")
-    version("10.02.1", sha256="e429e4f5b01615a4f0f93a4128e8a1a4d932dff983b1774174c79c0630717ad9")
-    version("10.01.2", sha256="a4cd61a07fec161bee35da0211a5e5cde8ff8a0aaf942fc0176715e499d21661")
-    version("10.0.0", sha256="a57764d70caf85e2fc0b0f59b83b92e25775631714dcdb97cc6e0cea414bb5a3")
-    version("9.56.1", sha256="1598b9a38659cce8448d42a73054b2f9cbfcc40a9b97eeec5f22d4d6cd1de8e6")
-    version("9.54.0", sha256="0646bb97f6f4d10a763f4919c54fa28b4fbdd3dff8e7de3410431c81762cade0")
-    version("9.53.3", sha256="6eaf422f26a81854a230b80fd18aaef7e8d94d661485bd2e97e695b9dce7bf7f")
-    version("9.50", sha256="0f53e89fd647815828fc5171613e860e8535b68f7afbc91bf89aee886769ce89")
-    version("9.27", sha256="9760e8bdd07a08dbd445188a6557cb70e60ccb6a5601f7dbfba0d225e28ce285")
-    version("9.26", sha256="831fc019bd477f7cc2d481dc5395ebfa4a593a95eb2fe1eb231a97e450d7540d")
-    version("9.21", sha256="02bceadbc4dddeb6f2eec9c8b1623d945d355ca11b8b4df035332b217d58ce85")
-    version("9.18", sha256="5fc93079749a250be5404c465943850e3ed5ffbc0d5c07e10c7c5ee8afbbdb1b")
+    version("10.04.0", sha256="c764dfbb7b13fc71a7a05c634e014f9bb1fb83b899fe39efc0b6c3522a9998b1")
+    with default_args(deprecated=True):
+        # https://nvd.nist.gov/vuln/detail/CVE-2024-46956
+        version(
+            "10.03.1", sha256="31cd01682ad23a801cc3bbc222a55f07c4ea3e068bdfb447792d54db21a2e8ad"
+        )
+        version(
+            "10.02.1", sha256="e429e4f5b01615a4f0f93a4128e8a1a4d932dff983b1774174c79c0630717ad9"
+        )
+        version(
+            "10.01.2", sha256="a4cd61a07fec161bee35da0211a5e5cde8ff8a0aaf942fc0176715e499d21661"
+        )
+        version(
+            "10.0.0", sha256="a57764d70caf85e2fc0b0f59b83b92e25775631714dcdb97cc6e0cea414bb5a3"
+        )
+        version(
+            "9.56.1", sha256="1598b9a38659cce8448d42a73054b2f9cbfcc40a9b97eeec5f22d4d6cd1de8e6"
+        )
+        version(
+            "9.54.0", sha256="0646bb97f6f4d10a763f4919c54fa28b4fbdd3dff8e7de3410431c81762cade0"
+        )
+        version(
+            "9.53.3", sha256="6eaf422f26a81854a230b80fd18aaef7e8d94d661485bd2e97e695b9dce7bf7f"
+        )
+        version("9.50", sha256="0f53e89fd647815828fc5171613e860e8535b68f7afbc91bf89aee886769ce89")
+        version("9.27", sha256="9760e8bdd07a08dbd445188a6557cb70e60ccb6a5601f7dbfba0d225e28ce285")
+        version("9.26", sha256="831fc019bd477f7cc2d481dc5395ebfa4a593a95eb2fe1eb231a97e450d7540d")
+        version("9.21", sha256="02bceadbc4dddeb6f2eec9c8b1623d945d355ca11b8b4df035332b217d58ce85")
+        version("9.18", sha256="5fc93079749a250be5404c465943850e3ed5ffbc0d5c07e10c7c5ee8afbbdb1b")
 
     depends_on("c", type="build")
 
