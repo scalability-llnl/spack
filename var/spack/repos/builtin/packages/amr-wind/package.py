@@ -82,6 +82,7 @@ class AmrWind(CMakePackage, CudaPackage, ROCmPackage):
     variant(
         "waves2amr", default=False, description="Enable Waves2AMR support for ocean wave input"
     )
+    variant("fftw", default=False, description="Enable FFT support for MAC projection")
 
     depends_on("mpi", when="+mpi")
     depends_on("hdf5~mpi", when="+hdf5~mpi")
@@ -107,6 +108,7 @@ class AmrWind(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("helics@:3.3.2", when="+helics")
     depends_on("helics@:3.3.2+mpi", when="+helics+mpi")
     depends_on("fftw", when="@2.1: +waves2amr")
+    depends_on("fftw", when="@3.3.1: +fftw")
 
     for arch in CudaPackage.cuda_arch_values:
         depends_on("hypre+cuda cuda_arch=%s" % arch, when="+cuda+hypre cuda_arch=%s" % arch)
@@ -176,6 +178,9 @@ class AmrWind(CMakePackage, CudaPackage, ROCmPackage):
         if spec.satisfies("+waves2amr"):
             args.append(self.define_from_variant("AMR_WIND_ENABLE_W2A", "waves2amr"))
             args.append(define("FFTW_DIR", spec["fftw"].prefix))
+
+        if spec.satisfies("+fftw"):
+            args.append(define("AMR_WIND_ENABLE_FFT", True))
 
         if spec.satisfies("+sycl"):
             args.append(define("AMR_WIND_ENABLE_SYCL", True))
