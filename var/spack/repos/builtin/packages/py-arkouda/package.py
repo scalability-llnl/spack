@@ -56,31 +56,26 @@ class PyArkouda(PythonPackage):
     depends_on("py-pytest@6.0:", type=("build", "run"), when="@2024.10.02")
 
     # TODO: Implement dev variant to mimic setup.py optionals
-    with when("+dev"):
-        with default_args(type=("build", "run", "test")):
-            # not available in spack: mathjax, sphinx-autoapi, sphinx-autopackagesummary
-            # py-myst-parser creates incompatibility with sphinx versions
-            depends_on("py-pexpect")
-            depends_on("py-pytest@6:")
-            # pytest-env is not yet available on spack.
-            # see PR to add it at https://github.com/spack/spack/pull/48020
-            # depends_on("py-pytest-env")
-            depends_on("py-sphinx@5.1.1:")
-            depends_on("py-sphinx-argparse")
-            depends_on("py-mypy@0.931:")
-            depends_on("py-typed-ast")
-            depends_on("py-black")
-            depends_on("py-isort")
-            depends_on("py-flake8")
-            depends_on("py-furo")
-            # depends_on("py-myst-parser")
-            depends_on("py-linkify-it-py")
-            depends_on("py-sphinx-design")
-            depends_on("py-pandas-stubs")
-            depends_on("py-types-python-dateutil")
-            depends_on("py-ipython")
-
-    def install(self, spec, prefix):
-        if self.spec.satisfies("+dev"):
-            install("pytest.ini", prefix)
-            install_tree("tests", prefix.tests)
+    # with when("+dev"):
+    #     with default_args(type=("build", "run", "test")):
+    #         # not available in spack: mathjax, sphinx-autoapi, sphinx-autopackagesummary
+    #         # py-myst-parser creates incompatibility with sphinx versions
+    #         depends_on("py-pexpect")
+    #         depends_on("py-pytest@6:")
+    #         # pytest-env is not yet available on spack.
+    #         # see PR to add it at https://github.com/spack/spack/pull/48020
+    #         # depends_on("py-pytest-env")
+    #         depends_on("py-sphinx@5.1.1:")
+    #         depends_on("py-sphinx-argparse")
+    #         depends_on("py-mypy@0.931:")
+    #         depends_on("py-typed-ast")
+    #         depends_on("py-black")
+    #         depends_on("py-isort")
+    #         depends_on("py-flake8")
+    #         depends_on("py-furo")
+    #         # depends_on("py-myst-parser")
+    #         depends_on("py-linkify-it-py")
+    #         depends_on("py-sphinx-design")
+    #         depends_on("py-pandas-stubs")
+    #         depends_on("py-types-python-dateutil")
+    #         depends_on("py-ipython")
