@@ -12,7 +12,7 @@ import shutil
 import stat
 import sys
 import tempfile
-from pathlib import Path, PurePath
+from pathlib import PurePath
 from typing import Callable, Dict, Generator, Iterable, List, Optional, Set
 
 import llnl.string
@@ -48,6 +48,7 @@ import spack.util.url as url_util
 from spack import fetch_strategy as fs  # breaks a cycle
 from spack.util.crypto import bit_length, prefix_bits
 from spack.util.editor import editor, executable
+from spack.util.path import abstract_path, concrete_path, fs_path
 from spack.version import StandardVersion, VersionList
 
 # The well-known stage source subdirectory name.
@@ -66,20 +67,22 @@ def compute_stage_name(spec):
 
 def create_stage_root(path: str) -> None:
     """Create the stage root directory and ensure appropriate access perms."""
-    assert PurePath(path).is_absolute() and len(path.strip()) > 1
+    path = concrete_path(path)
+    assert path.is_absolute() and len(fs_path(path).strip()) > 1
 
     err_msg = "Cannot create stage root {0}: Access to {1} is denied"
 
     user_uid = getuid()
 
     # Obtain lists of ancestor and descendant paths of the $user node, if any.
-    group_paths, user_node, user_paths = partition_path(path, getpass.getuser())
+    group_paths, user_node, user_paths = partition_path(fs_path(path), getpass.getuser())
 
     for p in group_paths:
-        if not Path(p).exists():
+        p = concrete_path(p)
+        if not p.exists():
             # Ensure access controls of subdirs created above `$user` inherit
             # from the parent and share the group.
-            par_stat = os.stat(PurePath(p).parent)
+            par_stat = os.stat(p.parent)
             mkdirp(p, group=par_stat.st_gid, mode=par_stat.st_mode)
 
             p_stat = os.stat(p)
@@ -116,14 +119,14 @@ def create_stage_root(path: str) -> None:
                 )
             )
 
-    spack_src_subdir = Path(path, _source_path_subdir)
+    spack_src_subdir = path / _source_path_subdir
     # When staging into a user-specified directory with `spack stage -p <PATH>`, we need
     # to ensure the `spack-src` subdirectory exists, as we can't rely on it being
     # created automatically by spack. It's not clear why this is the case for `spack
     # stage -p`, but since `mkdirp()` is idempotent, this should not change the behavior
     # for any other code paths.
     if not spack_src_subdir.is_dir():
-        mkdirp(os.fsdecode(spack_src_subdir), mode=stat.S_IRWXU)
+        mkdirp(spack_src_subdir, mode=stat.S_IRWXU)
 
 
 def _first_accessible_path(paths):
@@ -160,7 +163,7 @@ def _resolve_paths(candidates):
     for path in candidates:
         # Remove the extra `$user` node from a `$tempdir/$user` entry for
         # hosts that automatically append `$user` to `$tempdir`.
-        if path.startswith(os.fsdecode(PurePath("$tempdir", "$user"))) and tmp_has_usr:
+        if path.startswith(fs_path(abstract_path("$tempdir", "$user"))) and tmp_has_usr:
             path = path.replace("/$user", "", 1)
 
         # Ensure the path is unique per user.
