@@ -3027,9 +3027,7 @@ def test_stack_view_activate_from_default(
         assert "FOOBAR=mpileaks" in shell
 
 
-def test_envvar_set_in_activate(
-    tmpdir, mock_fetch, mock_packages, mock_archive, install_mockery
-):
+def test_envvar_set_in_activate(tmpdir, mock_fetch, mock_packages, mock_archive, install_mockery):
     filename = str(tmpdir.join("spack.yaml"))
     with open(filename, "w", encoding="utf-8") as f:
         f.write(

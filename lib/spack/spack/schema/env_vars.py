@@ -8,12 +8,11 @@
    :lines: 14-
 """
 
-import spack.schema.environment
 from typing import Any, Dict
 
-properties: Dict[str, Any] = {
-    "env_vars": spack.schema.environment.definition,
-    }
+import spack.schema.environment
+
+properties: Dict[str, Any] = {"env_vars": spack.schema.environment.definition}
 
 #: Full schema with metadata
 schema = {
