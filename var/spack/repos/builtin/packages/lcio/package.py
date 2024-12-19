@@ -120,7 +120,6 @@ class Lcio(CMakePackage):
         env.prepend_path("CPATH", self.prefix)
         # Note: ROOT dependency automatically sets up ROOT environment vars
 
-
     @run_after("install")
     def install_source(self):
         # these files are needed for the python bindings and root to

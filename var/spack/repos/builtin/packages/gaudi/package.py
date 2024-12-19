@@ -169,7 +169,6 @@ class Gaudi(CMakePackage):
         env.prepend_path("PYTHONPATH", self.prefix.python)
         # Note: ROOT dependency automatically sets up ROOT environment vars
 
-
     def url_for_version(self, version):
         major = str(version[0])
         minor = str(version[1])
