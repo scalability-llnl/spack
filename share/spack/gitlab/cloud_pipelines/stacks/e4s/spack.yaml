@@ -263,7 +263,7 @@ spack:
   - lammps +cuda cuda_arch=80     # lammps: needs NVIDIA driver
   - lbann +cuda cuda_arch=80      # lbann: layers/transform/cereal_registration/../permute/cutensor_support.hpp:95:18: error: 'cutensorInit' was not declared in this scope; did you mean 'cutensorPlan_t'?
   - mgard +serial +openmp +timing +unstructured +cuda cuda_arch=80 # mgard: https://github.com/spack/spack/issues/44833
-  - upcxx +cuda cuda_arch=80      # upcxx: needs NVIDIA driver
+  # - upcxx +cuda cuda_arch=80      # upcxx: needs NVIDIA driver
 
   # CUDA 90
   - amrex +cuda cuda_arch=90
@@ -311,7 +311,7 @@ spack:
   - libpressio +bitgrooming +bzip2 +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp +json +remote +netcdf +cusz +mgard +cuda cuda_arch=90 ^cusz +cuda cuda_arch=90 # cusz: cuda-12.5.0-e3rny44pq5z5x3nnoljynbsq5on5fnl3/targets/x86_64-linux/include/cub/util_device.cuh:202:50: error: 'blockDim' was not declared in this scope
   - omega-h +cuda cuda_arch=90      # omega-h: https://github.com/spack/spack/issues/39535
   - py-torch +cuda cuda_arch=90     # py-torch: FAILED: caffe2/CMakeFiles/torch_cuda.dir/__/aten/src/ATen/native/transformers/cuda/flash_attn/kernels/flash_bwd_hdim256_bf16_sm80.cu.o
-  - upcxx +cuda cuda_arch=90        # upcxx: needs NVIDIA driver
+  # - upcxx +cuda cuda_arch=90        # upcxx: needs NVIDIA driver
 
   # ROCM NOARCH
   - hpctoolkit +rocm
