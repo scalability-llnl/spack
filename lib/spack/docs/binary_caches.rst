@@ -265,25 +265,30 @@ infrastructure, or to cache Spack built binaries in Github Actions and
 GitLab CI.
 
 To get started, configure an OCI mirror using ``oci://`` as the scheme,
-and optionally specify a username and password (or personal access token):
+and optionally specify variables that hold the username and password (or
+personal access token) for the registry:
 
 .. code-block:: console
 
-    $ spack mirror add --oci-username username --oci-password password my_registry oci://example.com/my_image
+    $ spack mirror add --oci-username-variable REGISTRY_USER \
+                       --oci-password-variable REGISTRY_TOKEN \
+                       my_registry oci://example.com/my_image
 
 Spack follows the naming conventions of Docker, with Dockerhub as the default
 registry. To use Dockerhub, you can omit the registry domain:
 
 .. code-block:: console
 
-    $ spack mirror add --oci-username username --oci-password password my_registry oci://username/my_image
+    $ spack mirror add ... my_registry oci://username/my_image
 
 From here, you can use the mirror as any other build cache:
 
 .. code-block:: console
 
+    $ export REGISTRY_USER=...
+    $ export REGISTRY_TOKEN=...
     $ spack buildcache push my_registry <specs...>  # push to the registry
-    $ spack install <specs...> # install from the registry
+    $ spack install <specs...>  # or install from the registry
 
 A unique feature of buildcaches on top of OCI registries is that it's incredibly
 easy to generate get a runnable container image with the binaries installed. This
