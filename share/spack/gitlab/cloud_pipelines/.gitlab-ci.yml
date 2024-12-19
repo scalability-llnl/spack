@@ -357,7 +357,7 @@ e4s-oneapi-build:
 ########################################
 .e4s-power-generate-tags-and-image:
   image: { "name": "ghcr.io/spack/ubuntu20.04-runner-ppc64-gcc-11.4:2023.08.01", "entrypoint": [""] }
-  tags: ["spack", "public", "large", "ppc64le"]
+  tags: ["spack", "public", "huge", "ppc64le"]
 
 .e4s-power:
   extends: [".linux_power"]
