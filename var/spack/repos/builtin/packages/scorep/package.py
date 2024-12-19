@@ -200,10 +200,15 @@ class Scorep(AutotoolsPackage):
         if "+hip" in spec:
             config_args.append("--with-rocm=%s" % spec["hip"].prefix)
 
-        config_args += self.with_or_without("shmem")
-        config_args += self.with_or_without("mpi")
+        if "~shmem" in spec:
+            config_args.append("--without-shmem")
+        # Autodetect shmem in +shmem case
+        # Valid --with-shmem values are cray|openshmem|openmpi|openmpi3|sgimpt|
+        # sgimptwrapper|spectrum
+        # If autodetection fails for +shmem with one of these available to spack, please add
+        # a "if spec.satisfies():" clause for said package.
 
-        if spec.satisfies("^intel-mpi"):
+        if spec.satisfies("^intel-mpi") or spec.satisfies("^intel-oneapi-mpi"):
             config_args.append("--with-mpi=intel3")
         elif (
             spec.satisfies("^mpich")
@@ -213,7 +218,16 @@ class Scorep(AutotoolsPackage):
             config_args.append("--with-mpi=mpich3")
         elif spec.satisfies("^openmpi") or spec.satisfies("^hpcx-mpi"):
             config_args.append("--with-mpi=openmpi")
-
+        elif "~mpi" in spec:
+            config_args.append("--without-mpi")
+        # Let any +mpi that gets here autodetect, which is default
+        # Valid values are bullxmpi|cray|hp|ibmpoe|intel|intel2|intel3|intelpoe|lam|mpibull2
+        # |mpich|mpich2|mpich3|mpich4|openmpi|openmpi3|platform|scali|sgimpt|sgimptwrapper
+        # |spectrum|sun
+        # Score-P does not care overly much as long as the MPI compilers are set
+        # (see end of function)
+        # but add similar spec.satisfies clauses for any that you need.
+        # -- wrwilliams 12/2024
         if spec.satisfies("^binutils"):
             config_args.append("--with-libbfd-lib=%s" % spec["binutils"].prefix.lib)
             config_args.append("--with-libbfd-include=%s" % spec["binutils"].prefix.include)

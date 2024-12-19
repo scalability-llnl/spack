@@ -22,7 +22,7 @@ class Eagle(MakefilePackage):
 
     depends_on("curl")
     depends_on("zlib-api")
-    depends_on("lzma")
+    depends_on("xz")
     depends_on("htslib")
 
     def edit(self, spec, prefix):

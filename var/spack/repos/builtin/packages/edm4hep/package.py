@@ -92,12 +92,11 @@ class Edm4hep(CMakePackage):
     extends("python", when="@0.10.6:")
 
     def cmake_args(self):
-        args = []
-        # C++ Standard
-        args.append(self.define("CMAKE_CXX_STANDARD", self.spec.variants["cxxstd"].value))
-        args.append(self.define("BUILD_TESTING", self.run_tests))
-        if self.spec.satisfies("@0.99.2: +json"):
-            args.append(self.define_from_variant("EDM4HEP_WITH_JSON", "json"))
+        args = [
+            self.define_from_variant("CMAKE_CXX_STANDARD", "cxxstd"),
+            self.define("BUILD_TESTING", self.run_tests),
+            self.define_from_variant("EDM4HEP_WITH_JSON", "json"),
+        ]
         return args
 
     def setup_run_environment(self, env):
