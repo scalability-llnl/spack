@@ -10,62 +10,10 @@ like those in llnl.util.filesystem, but which require logic from spack.util
 
 import glob
 import os
-import sys
 
-from llnl.util import tty
 from llnl.util.filesystem import edit_in_place_through_temporary_file
-from llnl.util.lang import memoized
 
-from spack.util.executable import Executable, which
-
-
-def _ensure_file_on_win():
-    """Ensures the file command is available on Windows
-    If not, it is bootstrapped.
-    No-op on all other platforms"""
-    if sys.platform != "win32":
-        return
-    import spack.bootstrap
-
-    with spack.bootstrap.ensure_bootstrap_configuration():
-        spack.bootstrap.ensure_file_in_path_or_raise()
-
-
-@memoized
-def file_command(*args):
-    """Creates entry point to `file` system command with provided arguments"""
-    _ensure_file_on_win()
-    file_cmd = which("file", required=True)
-    for arg in args:
-        file_cmd.add_default_arg(arg)
-    return file_cmd
-
-
-@memoized
-def _get_mime_type():
-    """Generate method to call `file` system command to aquire mime type
-    for a specified path
-    """
-    if sys.platform == "win32":
-        # -h option (no-dereference) does not exist in Windows
-        return file_command("-b", "--mime-type")
-    else:
-        return file_command("-b", "-h", "--mime-type")
-
-
-def mime_type(filename):
-    """Returns the mime type and subtype of a file.
-
-    Args:
-        filename: file to be analyzed
-
-    Returns:
-        Tuple containing the MIME type and subtype
-    """
-    output = _get_mime_type()(filename, output=str, error=str).strip()
-    tty.debug("==> " + output)
-    type, _, subtype = output.partition("/")
-    return type, subtype
+from spack.util.executable import Executable
 
 
 def fix_darwin_install_name(path):

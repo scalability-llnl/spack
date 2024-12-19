@@ -103,7 +103,7 @@ from spack.package_completions import *
 from spack.phase_callbacks import run_after, run_before
 from spack.spec import InvalidSpecDetected, Spec
 from spack.util.executable import *
-from spack.util.filesystem import file_command, fix_darwin_install_name, mime_type
+from spack.util.filesystem import fix_darwin_install_name
 from spack.variant import any_combination_of, auto_or_any_combination_of, disjoint_sets
 from spack.version import Version, ver
 

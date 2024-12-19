@@ -23,7 +23,6 @@ import spack.error
 import spack.store
 import spack.util.elf as elf
 import spack.util.executable as executable
-import spack.util.filesystem as ssys
 
 from .relocate_text import BinaryFilePrefixReplacer, TextFilePrefixReplacer
 
@@ -597,30 +596,41 @@ def relocate_text_bin(binaries, prefixes):
     return BinaryFilePrefixReplacer.from_strings_or_bytes(prefixes).apply(binaries)
 
 
+def is_macho_magic(magic: bytes) -> bool:
+    return (
+        magic.startswith(b"\xFE\xED\xFA\xCE")  # 0xfeedface big endian
+        or magic.startswith(b"\xCE\xFA\xED\xFE")  # 0xfeedface little endian
+        or magic.startswith(b"\xFE\xED\xFA\xCF")  # 0xfeedfacf big endian
+        or magic.startswith(b"\xCF\xFA\xED\xFE")  # 0xfeedfacf little endian
+        or magic.startswith(b"\xCA\xFE\xBA\xBE")  # 0xcafebabe big endian
+        or magic.startswith(b"\xBE\xBA\xFE\xCA")
+    )  # 0xcafebabe little endian
+
+
+def is_elf_magic(magic: bytes) -> bool:
+    return magic.startswith(b"\x7FELF")
+
+
 def is_binary(filename):
-    """Returns true if a file is binary, False otherwise
+    """Returns true iff a file is likely binary"""
+    with open(filename, "rb") as f:
+        magic = f.read(4)
 
-    Args:
-        filename: file to be tested
-
-    Returns:
-        True or False
-    """
-    m_type, _ = ssys.mime_type(filename)
-
-    msg = "[{0}] -> ".format(filename)
-    if m_type == "application":
-        tty.debug(msg + "BINARY FILE")
-        return True
-
-    tty.debug(msg + "TEXT FILE")
-    return False
+    return is_macho_magic(magic) or is_elf_magic(magic)
 
 
 # Memoize this due to repeated calls to libraries in the same directory.
 @llnl.util.lang.memoized
 def _exists_dir(dirname):
     return os.path.isdir(dirname)
+
+
+def is_macho_binary(path):
+    try:
+        with open(path, "rb") as f:
+            return f.read(4) in (b"\xcf\xfa\xed\xfe", b"\xfe\xed\xfa\xcf")
+    except OSError:
+        return False
 
 
 def fixup_macos_rpath(root, filename):
@@ -634,7 +644,8 @@ def fixup_macos_rpath(root, filename):
         True if fixups were applied, else False
     """
     abspath = os.path.join(root, filename)
-    if ssys.mime_type(abspath) != ("application", "x-mach-binary"):
+
+    if not is_macho_binary(abspath):
         return False
 
     # Get Mach-O header commands
