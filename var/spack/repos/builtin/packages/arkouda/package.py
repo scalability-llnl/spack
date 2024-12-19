@@ -4,7 +4,10 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
+import llnl.util.tty as tty
+
 from spack.package import *
+from spack.util.environment import set_env
 
 
 class Arkouda(MakefilePackage):
@@ -85,11 +88,23 @@ class Arkouda(MakefilePackage):
             f.write("$(eval $(call add-path,{0}))\n".format(spec["libiconv"].prefix))
             f.write("$(eval $(call add-path,{0}))\n".format(spec["libidn2"].prefix))
 
+    def build(self, spec, prefix):
+        # Detect distributed builds and skip the dependency checks built into
+        # the Arkouda Makefile. These checks will try to spawn multiple jobs which may
+        # cause the build to fail in situations where the user is constrained
+        # to a limited number of simultaneous jobs.
+        if spec.satisfies("+distributed"):
+            with set_env(ARKOUDA_SKIP_CHECK_DEPS="1"):
+                tty.warn("Distributed build detected. Skipping dependency checks")
+                make()
+        else:
+            make()
+
     # Arkouda does not have an install target in its Makefile
     def install(self, spec, prefix):
         mkdir(prefix.bin)
         install("arkouda_server", prefix.bin)
         # Arkouda can have two executables depending on if Chapel is compiled in
         # single-locale or multi-locale mode
-        if self.spec.satisfies("+distributed"):
+        if spec.satisfies("+distributed"):
             install("arkouda_server_real", prefix.bin)
