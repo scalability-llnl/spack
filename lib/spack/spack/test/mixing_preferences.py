@@ -3,9 +3,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import os
-import os.path
-
 import pytest
 
 import archspec.cpu
@@ -312,7 +309,7 @@ def pretend_linux(monkeypatch, tmpdir):
         yield
 
 
-def test_with_cfg(
+def test_mixing_fortran(
     mutable_mock_env_path,
     temporary_store,
     concretize_scope,
@@ -320,6 +317,9 @@ def test_with_cfg(
     pretend_linux,
     enable_runtimes,
 ):
+    """The constraints for the compilers in this test repo should prevent
+    mixing them in a DAG where all nodes depend on fortran.
+    """
     test_cfg = """\
 compilers::
 - compiler:
