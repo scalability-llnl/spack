@@ -11,7 +11,7 @@ class Sphexa(CMakePackage, CudaPackage, ROCmPackage):
     """SPH and N-body simulation framework"""
 
     homepage = "https://github.com/sphexa-org/sphexa"
-    url = "https://github.com/sphexa-org/sphexa/archive/v0.0.tar.gz"
+    url = "https://github.com/sphexa-org/sphexa/archive/v0.0.0.tar.gz"
     git = "https://github.com/sphexa-org/sphexa.git"
     maintainers = ["sekelle"]
 
@@ -45,7 +45,7 @@ class Sphexa(CMakePackage, CudaPackage, ROCmPackage):
     conflicts("%gcc@:10")
     conflicts("cuda_arch=none", when="+cuda", msg="CUDA architecture is required")
     conflicts("amdgpu_target=none", when="+rocm", msg="HIP architecture is required")
-    conflicts("+cuda", when="+rocm", msg="cuda and hip cannot both be enabled")
+    conflicts("+cuda", when="+rocm", msg="CUDA and HIP cannot both be enabled")
 
     def cmake_args(self):
         spec = self.spec
