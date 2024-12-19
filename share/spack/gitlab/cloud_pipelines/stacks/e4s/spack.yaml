@@ -183,7 +183,7 @@ spack:
   - zfp
   # --
   - glvis                           # glvis: https://github.com/spack/spack/issues/42839
-  - nek5000 +mpi +visit             # nek5000:  Error: AttributeError: 'str' object has no attribute 'propagate': 'VISIT_INSTALL="' + spec["visit"].prefix.bin + '"',
+  # - nek5000 +mpi +visit             # nek5000: KeyError: 'No spec with name visit in nek5000@19.0/4mtjged6gb5yqgzlpjftjxxasqwqdysh'
 
   # PYTHON PACKAGES
   - opencv +python3
@@ -260,7 +260,7 @@ spack:
   - zfp +cuda cuda_arch=80
   # --
   - dealii +cuda cuda_arch=80     # dealii: conflicts with '+cuda ^cuda@12:'
-  - lammps +cuda cuda_arch=80     # lammps: needs NVIDIA driver
+  # - lammps +cuda cuda_arch=80     # lammps: needs NVIDIA driver
   - lbann +cuda cuda_arch=80      # lbann: layers/transform/cereal_registration/../permute/cutensor_support.hpp:95:18: error: 'cutensorInit' was not declared in this scope; did you mean 'cutensorPlan_t'?
   - mgard +serial +openmp +timing +unstructured +cuda cuda_arch=80 # mgard: https://github.com/spack/spack/issues/44833
   # - upcxx +cuda cuda_arch=80      # upcxx: needs NVIDIA driver
@@ -306,7 +306,7 @@ spack:
   - cusz +cuda cuda_arch=90         # cusz: cuda-12.5.0-ndrzb7undvancjdj3fi6bhthdxdo7gr5/targets/x86_64-linux/include/cub/util_device.cuh:202:50: error: 'blockDim' was not declared in this scope
   # - dealii +cuda cuda_arch=90       # dealii: conflicts with '+cuda ^cuda@12:'; dealii: https://github.com/spack/spack/issues/39532
   - ecp-data-vis-sdk ~rocm +adios2 +ascent +hdf5 +vtkm +zfp ~paraview +cuda cuda_arch=90 # +paraview: issue with cuda@12; +ascent: # ascent: https://github.com/spack/spack/issues/38045; +paraview: VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/vtkm/exec/cuda/internal/ExecutionPolicy.h(121): error: namespace "thrust" has no member "sort"
-  - lammps +cuda cuda_arch=90       # lammps: needs NVIDIA driver
+  # - lammps +cuda cuda_arch=90       # lammps: needs NVIDIA driver
   - lbann +cuda cuda_arch=90        # aluminum: /usr/include/c++/11/bits/basic_string.h:1260: multiple definition of `cub::CUB_200400___CUDA_ARCH_LIST___NS::Debug(cudaError, char const*, int)'; 
   - libpressio +bitgrooming +bzip2 +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp +json +remote +netcdf +cusz +mgard +cuda cuda_arch=90 ^cusz +cuda cuda_arch=90 # cusz: cuda-12.5.0-e3rny44pq5z5x3nnoljynbsq5on5fnl3/targets/x86_64-linux/include/cub/util_device.cuh:202:50: error: 'blockDim' was not declared in this scope
   - omega-h +cuda cuda_arch=90      # omega-h: https://github.com/spack/spack/issues/39535
