@@ -357,12 +357,12 @@ spack:
   - kokkos +rocm amdgpu_target=gfx90a         # kokkos: https://github.com/spack/spack/issues/44832
   # - lbann ~cuda +rocm amdgpu_target=gfx90a    # concretize: Cannot select a single "version" for package "hiptt"
   - legion +rocm amdgpu_target=gfx90a         # kokkos: https://github.com/spack/spack/issues/44832
-  - papi +rocm amdgpu_target=gfx90a           # papi: https://github.com/spack/spack/issues/27898
+  # - papi +rocm amdgpu_target=gfx90a           # papi: https://github.com/spack/spack/issues/27898
   - petsc +rocm amdgpu_target=gfx90a          # petsc: https://github.com/spack/spack/issues/44600
   - slepc +rocm amdgpu_target=gfx90a ^petsc +rocm amdgpu_target=gfx90a # petsc: https://github.com/spack/spack/issues/44600
 
-  - cp2k +mpi +cuda cuda_arch=80              # cp2k: spack-stage-libxsmm-1.17-r2zqxa24bhufaj5i3ili5se25cw7tioo/spack-src/./src/libxsmm_gemm.c:238: undefined reference to `sgemv_'
-  - cp2k +mpi +cuda cuda_arch=90              # cp2k: cp2k only supports cuda_arch ('35', '37', '60', '70', '80')
+  # - cp2k +mpi +cuda cuda_arch=80            # cp2k: libxsmm_gemm.c:238: undefined reference to `sgemv_'
+  # - cp2k +mpi +cuda cuda_arch=90            # cp2k: libxsmm_gemm.c:238: undefined reference to `sgemv_'
   - cp2k +mpi +rocm amdgpu_target=gfx908      # cp2k: "-L{}".format(spec["rocm"].libs.directories[0]),
   - cp2k +mpi +rocm amdgpu_target=gfx90a      # cp2k: "-L{}".format(spec["rocm"].libs.directories[0]),
 
