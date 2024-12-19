@@ -4,22 +4,16 @@
 import itertools
 import os
 import pathlib
-import platform
 import re
 import sys
 from typing import Dict, List, Optional, Sequence, Tuple, Union
-
-import archspec.cpu
 
 import llnl.util.tty as tty
 from llnl.util.lang import classproperty, memoized
 
 import spack
 import spack.compilers.error
-import spack.compilers.libraries
-import spack.config
 import spack.package_base
-import spack.paths
 import spack.util.executable
 
 # Local "type" for type hints
@@ -109,7 +103,7 @@ class CompilerPackage(spack.package_base.PackageBase):
 
     @classmethod
     def compiler_bindir(cls, prefix: Path) -> Path:
-        """Overridable method for the location of the compiler bindir within the preifx"""
+        """Overridable method for the location of the compiler bindir within the prefix"""
         return os.path.join(prefix, "bin")
 
     @classmethod
@@ -183,109 +177,6 @@ class CompilerPackage(spack.package_base.PackageBase):
     def _standard_flag(self, *, language: str, standard: str) -> str:
         raise NotImplementedError("Must be implemented by derived classes")
 
-    @property
-    def disable_new_dtags(self) -> str:
-        if platform.system() == "Darwin":
-            return ""
-        return "--disable-new-dtags"
-
-    @property
-    def enable_new_dtags(self) -> str:
-        if platform.system() == "Darwin":
-            return ""
-        return "--enable-new-dtags"
-
-    def setup_dependent_build_environment(self, env, dependent_spec):
-        # FIXME (compiler as nodes): check if this is good enough or should be made more general
-
-        # The package is not used as a compiler, so skip this setup
-        if not any(
-            lang in dependent_spec and dependent_spec[lang].name == self.spec.name
-            for lang in ("c", "cxx", "fortran")
-        ):
-            return
-
-        # Populate an object with the list of environment modifications and return it
-        link_dir = pathlib.Path(spack.paths.build_env_path)
-        env_paths = []
-
-        for language, attr_name, wrapper_var_name, spack_var_name in [
-            ("c", "cc", "CC", "SPACK_CC"),
-            ("cxx", "cxx", "CXX", "SPACK_CXX"),
-            ("fortran", "fortran", "F77", "SPACK_F77"),
-            ("fortran", "fortran", "FC", "SPACK_FC"),
-        ]:
-            if language not in dependent_spec or dependent_spec[language].name != self.spec.name:
-                continue
-
-            if not hasattr(self, attr_name):
-                continue
-
-            compiler = getattr(self, attr_name)
-            env.set(spack_var_name, compiler)
-
-            if language not in self.link_paths:
-                continue
-
-            wrapper_path = link_dir / self.link_paths.get(language)
-            env.set(wrapper_var_name, str(wrapper_path))
-            env.set(f"SPACK_{wrapper_var_name}_RPATH_ARG", self.rpath_arg)
-
-            uarch = dependent_spec.architecture.target
-            version_number, _ = archspec.cpu.version_components(
-                self.spec.version.dotted_numeric_string
-            )
-            try:
-                isa_arg = uarch.optimization_flags(self.archspec_name(), version_number)
-            except (ValueError, archspec.cpu.UnsupportedMicroarchitecture):
-                isa_arg = ""
-
-            if isa_arg:
-                env.set(f"SPACK_TARGET_ARGS_{attr_name.upper()}", isa_arg)
-
-            # Add spack build environment path with compiler wrappers first in
-            # the path. We add the compiler wrapper path, which includes default
-            # wrappers (cc, c++, f77, f90), AND a subdirectory containing
-            # compiler-specific symlinks.  The latter ensures that builds that
-            # are sensitive to the *name* of the compiler see the right name when
-            # we're building with the wrappers.
-            #
-            # Conflicts on case-insensitive systems (like "CC" and "cc") are
-            # handled by putting one in the <build_env_path>/case-insensitive
-            # directory.  Add that to the path too.
-            compiler_specific = os.path.join(
-                spack.paths.build_env_path, os.path.dirname(self.link_paths[language])
-            )
-            for item in [spack.paths.build_env_path, compiler_specific]:
-                env_paths.append(item)
-                ci = os.path.join(item, "case-insensitive")
-                if os.path.isdir(ci):
-                    env_paths.append(ci)
-
-        # FIXME (compiler as nodes): make these paths language specific
-        env.set("SPACK_LINKER_ARG", self.linker_arg)
-
-        paths = _implicit_rpaths(pkg=self)
-        if paths:
-            env.set("SPACK_COMPILER_IMPLICIT_RPATHS", ":".join(paths))
-
-        # Check whether we want to force RPATH or RUNPATH
-        if spack.config.CONFIG.get("config:shared_linking:type") == "rpath":
-            env.set("SPACK_DTAGS_TO_STRIP", self.enable_new_dtags)
-            env.set("SPACK_DTAGS_TO_ADD", self.disable_new_dtags)
-        else:
-            env.set("SPACK_DTAGS_TO_STRIP", self.disable_new_dtags)
-            env.set("SPACK_DTAGS_TO_ADD", self.enable_new_dtags)
-
-        spec = self.spec
-        if spec.extra_attributes:
-            extra_rpaths = spec.extra_attributes.get("extra_rpaths")
-            if extra_rpaths:
-                env.append_path("SPACK_COMPILER_EXTRA_RPATHS", ":".join(extra_rpaths))
-
-        for item in env_paths:
-            env.prepend_path("SPACK_ENV_PATH", item)
-
     def archspec_name(self) -> str:
         """Name that archspec uses to refer to this compiler"""
         return self.spec.name
@@ -322,12 +213,6 @@ class CompilerPackage(spack.package_base.PackageBase):
     def _fortran_path(self) -> Optional[str]:
         """Returns the path to the Fortran compiler, if the package was installed by Spack"""
         return None
-
-
-def _implicit_rpaths(pkg: spack.package_base.PackageBase) -> List[str]:
-    detector = spack.compilers.libraries.CompilerPropertyDetector(pkg.spec)
-    paths = detector.implicit_rpaths()
-    return paths
 
 
 @memoized
