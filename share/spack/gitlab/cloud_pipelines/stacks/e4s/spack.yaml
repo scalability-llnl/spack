@@ -67,7 +67,7 @@ spack:
   - dxt-explorer
   - dyninst
   - e4s-cl
-  - ecp-data-vis-sdk ~cuda ~rocm +adios2 +ascent +cinema +darshan +faodel +hdf5 +paraview +pnetcdf +sz +unifyfs +veloc +visit +vtkm +zfp # adios2~cuda, ascent~cuda, darshan-runtime, darshan-util, faodel, hdf5, libcatalyst, parallel-netcdf, paraview~cuda, py-cinemasci, sz, unifyfs, veloc, visit, vtk-m, zfp
+  - ecp-data-vis-sdk ~cuda ~rocm +adios2 +ascent +cinema +darshan +faodel +hdf5 +paraview +pnetcdf +sz +unifyfs +veloc +visit +vtkm +zfp # 
   - exaworks
   - fftx
   - flecsi
@@ -225,7 +225,7 @@ spack:
   - chai +cuda cuda_arch=80 ^umpire ~shared
   - chapel +cuda cuda_arch=80
   - cusz +cuda cuda_arch=80
-  - ecp-data-vis-sdk ~rocm +adios2 ~ascent +hdf5 +vtkm +zfp +paraview +cuda cuda_arch=80 # +ascent fails because fides fetch error
+  - ecp-data-vis-sdk ~rocm +adios2 ~ascent +hdf5 +vtkm +zfp +paraview +cuda cuda_arch=80
   - exago +mpi +python +raja +hiop ~rocm +cuda cuda_arch=80 ~ipopt ^hiop@1.0.0 ~sparse +mpi +raja ~rocm +cuda cuda_arch=80 #^raja@0.14.0
   - fftx +cuda cuda_arch=80
   - flecsi +cuda cuda_arch=80
@@ -254,7 +254,7 @@ spack:
   - umpire ~shared +cuda cuda_arch=80
   # INCLUDED IN ECP DAV CUDA
   - adios2 +cuda cuda_arch=80
-  - ascent +cuda cuda_arch=80     # ascent: https://github.com/spack/spack/issues/38045
+  # - ascent +cuda cuda_arch=80     # ascent: https://github.com/spack/spack/issues/38045
   - paraview +cuda cuda_arch=80
   - vtk-m +cuda cuda_arch=80
   - zfp +cuda cuda_arch=80
@@ -298,14 +298,14 @@ spack:
   - umpire ~shared +cuda cuda_arch=90
   # INCLUDED IN ECP DAV CUDA
   - adios2 +cuda cuda_arch=90
-  - ascent +cuda cuda_arch=90       # ascent: https://github.com/spack/spack/issues/38045
+  # - ascent +cuda cuda_arch=90       # ascent: https://github.com/spack/spack/issues/38045
   # - paraview +cuda cuda_arch=90     # paraview: Cannot satisfy 'cuda@:11' and 'cuda@12.0:
   - vtk-m +cuda cuda_arch=90
   - zfp +cuda cuda_arch=90
   # --
   - cusz +cuda cuda_arch=90         # cusz: cuda-12.5.0-ndrzb7undvancjdj3fi6bhthdxdo7gr5/targets/x86_64-linux/include/cub/util_device.cuh:202:50: error: 'blockDim' was not declared in this scope
   # - dealii +cuda cuda_arch=90       # dealii: conflicts with '+cuda ^cuda@12:'; dealii: https://github.com/spack/spack/issues/39532
-  - ecp-data-vis-sdk ~rocm +adios2 +ascent +hdf5 +vtkm +zfp ~paraview +cuda cuda_arch=90 # +paraview: issue with cuda@12; +ascent: # ascent: https://github.com/spack/spack/issues/38045; +paraview: VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/vtkm/exec/cuda/internal/ExecutionPolicy.h(121): error: namespace "thrust" has no member "sort"
+  - ecp-data-vis-sdk ~rocm +adios2 ~ascent +hdf5 +vtkm +zfp ~paraview +cuda cuda_arch=90 # +paraview: issue with cuda@12; +ascent: # ascent: https://github.com/spack/spack/issues/38045; +paraview: VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/vtkm/exec/cuda/internal/ExecutionPolicy.h(121): error: namespace "thrust" has no member "sort"
   # - lammps +cuda cuda_arch=90       # lammps: needs NVIDIA driver
   # - lbann +cuda cuda_arch=90       # dihydrogen: hydrogen/device/gpu/CUB.hpp:41:5: error: reference to 'CachingDeviceAllocator' is ambiguous
   - libpressio +bitgrooming +bzip2 +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp +json +remote +netcdf +cusz +mgard +cuda cuda_arch=90 ^cusz +cuda cuda_arch=90 # cusz: cuda-12.5.0-e3rny44pq5z5x3nnoljynbsq5on5fnl3/targets/x86_64-linux/include/cub/util_device.cuh:202:50: error: 'blockDim' was not declared in this scope
@@ -321,7 +321,7 @@ spack:
   - amrex +rocm amdgpu_target=gfx90a
   - caliper +rocm amdgpu_target=gfx90a
   - chai +rocm amdgpu_target=gfx90a
-  - ecp-data-vis-sdk +paraview +vtkm +rocm amdgpu_target=gfx90a
+  - ecp-data-vis-sdk ~paraview +vtkm +rocm amdgpu_target=gfx90a # +paraview: CMake Error at VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/CMakeLists.txt:272 (find_package): Could not find a package configuration file provided by "rocthrust" with any of the following names: rocthrustConfig.cmake rocthrust-config.cmake
   - gasnet +rocm amdgpu_target=gfx90a
   - ginkgo +rocm amdgpu_target=gfx90a
   - heffte +rocm amdgpu_target=gfx90a
@@ -345,15 +345,15 @@ spack:
   # - hdf5-vol-cache
   # - hdf5-vol-log
   # - libcatalyst
-  - paraview +rocm amdgpu_target=gfx90a
+  # - paraview +rocm amdgpu_target=gfx90a # paraview: CMake Error at VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/CMakeLists.txt:272 (find_package): Could not find a package configuration file provided by "rocthrust" with any of the following names: rocthrustConfig.cmake rocthrust-config.cmake
   - vtk-m ~openmp +rocm amdgpu_target=gfx90a  # vtk-m: https://github.com/spack/spack/issues/40268
   # --
   - adios2 +kokkos +rocm amdgpu_target=gfx90a # +kokkos: https://github.com/spack/spack/issues/44832
   - arborx +rocm amdgpu_target=gfx90a         # kokkos: https://github.com/spack/spack/issues/44832
   - cabana +rocm amdgpu_target=gfx90a         # kokkos: https://github.com/spack/spack/issues/44832
   # - chapel +rocm amdgpu_target=gfx90a         # chapel: lld: error: undefined symbol: llvm.amdgcn.readfirstlane.i32
-  - exago +mpi +python +raja +hiop +rocm amdgpu_target=gfx90a ~ipopt cxxflags="-Wno-error=non-pod-varargs" ^hiop ~sparse +mpi +raja +rocm amdgpu_target=gfx90a # hiop: CMake Error at cmake/FindHiopHipLibraries.cmake:23 (find_package)
-  - fftx +rocm amdgpu_target=gfx90a           # fftx: https://github.com/spack/spack/issues/47034
+  # - exago +mpi +python +raja +hiop +rocm amdgpu_target=gfx90a ~ipopt cxxflags="-Wno-error=non-pod-varargs" ^hiop ~sparse +mpi +raja +rocm amdgpu_target=gfx90a # hiop: CMake Error at cmake/FindHiopHipLibraries.cmake:23 (find_package); By not providing "Findhipfft.cmake" in CMAKE_MODULE_PATH this project has asked CMake to find a package configuration file provided by "hipfft", but CMake did not find one.
+  # - fftx +rocm amdgpu_target=gfx90a           # fftx: https://github.com/spack/spack/issues/47034
   - kokkos +rocm amdgpu_target=gfx90a         # kokkos: https://github.com/spack/spack/issues/44832
   # - lbann ~cuda +rocm amdgpu_target=gfx90a    # concretize: Cannot select a single "version" for package "hiptt"
   - legion +rocm amdgpu_target=gfx90a         # kokkos: https://github.com/spack/spack/issues/44832
