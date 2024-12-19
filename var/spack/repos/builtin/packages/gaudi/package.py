@@ -138,6 +138,11 @@ class Gaudi(CMakePackage):
     # The Intel VTune dependency is taken aside because it requires a license
     depends_on("intel-parallel-studio -mpi +vtune", when="+vtune")
 
+    def patch(self):
+        # ensure an empty pytest.ini is present to prevent finding one
+        # accidentally in a higher directory than the stage directory
+        touch("pytest.ini")
+
     def cmake_args(self):
         args = [
             # Note: gaudi only builds examples when testing enabled
