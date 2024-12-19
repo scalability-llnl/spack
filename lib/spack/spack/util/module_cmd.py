@@ -25,12 +25,13 @@ awk_cmd = r"""awk 'BEGIN{for(name in ENVIRON)""" r"""printf("%s=%s%c", name, ENV
 def module(
     *args,
     module_template: Optional[str] = None,
+    module_src_cmd: Optional[str] = None,
     environb: Optional[MutableMapping[bytes, bytes]] = None,
 ):
     module_cmd = module_template or ("module " + " ".join(args))
-    if environb and "MODULESHOME" in environb:
-        module_cmd = "source $MODULESHOME/init/bash; " + module_cmd
     environb = environb or os.environb
+    if b"MODULESHOME" in environb:
+        module_cmd = module_src_cmd or "source $MODULESHOME/init/bash; " + module_cmd
 
     if args[0] in module_change_commands:
         # Suppress module output
