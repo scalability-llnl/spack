@@ -27,7 +27,8 @@ class RDmrcate(RPackage):
     version("2.4.1", commit="bc6242a0291a9b997872f575a4417d38550c9550")
 
     depends_on("r@3.6.0:", type=("build", "run"))
-    depends_on("r@4.0.0:", type=("build", "run"), when="@2.8.5:")
+    depends_on("r@4.0.0:", type=("build", "run"), when="@2.8.5:2.17.1")
+    depends_on("r@4.3.0:", type=("build", "run"), when="@2.99.0:")
     depends_on("r-experimenthub", type=("build", "run"))
     depends_on("r-bsseq", type=("build", "run"))
     depends_on("r-genomeinfodb", type=("build", "run"))
