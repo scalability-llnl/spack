@@ -64,7 +64,7 @@ class PyTorchNvidiaApex(PythonPackage, CudaPackage):
         depends_on("py-setuptools")
         depends_on("py-packaging")
         depends_on("py-pip")
-    with default_args(type=("build", "run")):
+    with default_args(type=("build", "link", "run")):
         depends_on("python@3:")
         depends_on("py-torch@0.4:")
         for _arch in CudaPackage.cuda_arch_values:

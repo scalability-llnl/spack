@@ -731,7 +731,7 @@ def manifest_copy(manifest_file_list, dest_mirror=None):
     deduped_manifest = {}
 
     for manifest_path in manifest_file_list:
-        with open(manifest_path) as fd:
+        with open(manifest_path, encoding="utf-8") as fd:
             manifest = json.loads(fd.read())
             for spec_hash, copy_list in manifest.items():
                 # Last duplicate hash wins

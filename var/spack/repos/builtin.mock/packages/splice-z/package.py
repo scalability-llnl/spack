@@ -24,5 +24,5 @@ class SpliceZ(Package):
     can_splice("splice-z@1.0.0:1.0.1 +compat", when="@1.0.2 +compat")
 
     def install(self, spec, prefix):
-        with open(prefix.join("splice-z"), "w") as f:
+        with open(prefix.join("splice-z"), "w", encoding="utf-8") as f:
             f.write("splice-z: {0}".format(prefix))

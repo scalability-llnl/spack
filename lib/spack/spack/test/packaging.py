@@ -256,7 +256,7 @@ def test_replace_paths(tmpdir):
         ]
 
         for old_libname in old_libnames:
-            with open(old_libname, "a"):
+            with open(old_libname, "a", encoding="utf-8"):
                 os.utime(old_libname, None)
 
         hash2prefix = dict()
@@ -299,7 +299,7 @@ def test_replace_paths(tmpdir):
         ]
 
         for new_libname in new_libnames:
-            with open(new_libname, "a"):
+            with open(new_libname, "a", encoding="utf-8"):
                 os.utime(new_libname, None)
 
         prefix2prefix = dict()

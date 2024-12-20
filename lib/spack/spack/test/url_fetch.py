@@ -168,7 +168,7 @@ def test_fetch(
             assert os.path.exists("configure")
             assert is_exe("configure")
 
-            with open("configure") as f:
+            with open("configure", encoding="utf-8") as f:
                 contents = f.read()
             assert contents.startswith("#!/bin/sh")
             assert "echo Building..." in contents

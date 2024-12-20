@@ -894,6 +894,18 @@ class Openfoam(Package):
             ]:
                 os.symlink(f, os.path.basename(f))
 
+    # Executables like decomposePar require interface libraries for optional dependencies, but if
+    # the dependency is missing, an dummy library is used and put in lib/dummy. Allow this until
+    # the https://develop.openfoam.com/Development/openfoam/-/issues/3283 is resolved.
+    unresolved_libraries = [
+        "libkahipDecomp.so",
+        "libmetisDecomp.so",
+        "libMGridGen.so",
+        "libPstream.so",
+        "libptscotchDecomp.so",
+        "libscotchDecomp.so",
+    ]
+
 
 # -----------------------------------------------------------------------------
 

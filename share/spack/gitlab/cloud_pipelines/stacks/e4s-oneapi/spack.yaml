@@ -223,7 +223,7 @@ spack:
   # - py-torch        # error
 
   # GPU
-  - aml +ze
+  - aml +level_zero
   - amrex +sycl
   - arborx +sycl ^kokkos +sycl +openmp cxxstd=17 +examples
   - cabana +sycl ^kokkos +sycl +openmp cxxstd=17 +examples

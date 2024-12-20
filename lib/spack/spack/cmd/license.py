@@ -191,7 +191,7 @@ def verify(args):
 
     for relpath in _licensed_files(args):
         path = os.path.join(args.root, relpath)
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             lines = [line for line in f][:license_lines]
 
         error = _check_license(lines, path)

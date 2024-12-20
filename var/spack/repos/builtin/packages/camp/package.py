@@ -63,7 +63,8 @@ class Camp(CMakePackage, CudaPackage, ROCmPackage):
     variant("omptarget", default=False, description="Build with OpenMP Target support")
     variant("sycl", default=False, description="Build with Sycl support")
 
-    depends_on("cub", when="+cuda")
+    with when("+cuda"):
+        depends_on("cub", when="^cuda@:10")
 
     depends_on("blt", type="build")
     depends_on("blt@0.6.2:", type="build", when="@2024.02.1:")

@@ -174,3 +174,6 @@ class Charliecloud(AutotoolsPackage):
             args.append("--with-libsquashfuse={0}".format(squashfuse_prefix))
 
         return args
+
+    # libexec/charliecloud/sotest/bin/sotest misses an rpath, but shouldn't be problematic.
+    unresolved_libraries = ["libsotest.so.*"]

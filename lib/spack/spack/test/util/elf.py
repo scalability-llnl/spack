@@ -36,9 +36,9 @@ def test_elf_parsing_shared_linking(linker_flag, is_runpath, tmpdir):
 
     with fs.working_dir(str(tmpdir)):
         # Create a library to link to so we can force a dynamic section in an ELF file
-        with open("foo.c", "w") as f:
+        with open("foo.c", "w", encoding="utf-8") as f:
             f.write("int foo(){return 0;}")
-        with open("bar.c", "w") as f:
+        with open("bar.c", "w", encoding="utf-8") as f:
             f.write("int foo(); int _start(){return foo();}")
 
         # Create library and executable linking to it.

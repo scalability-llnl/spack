@@ -148,6 +148,8 @@ def test_version_type_validation():
 _pkgx = (
     "x",
     """\
+from spack.package import *
+
 class X(Package):
     version("1.3")
     version("1.2")
@@ -166,6 +168,8 @@ class X(Package):
 _pkgy = (
     "y",
     """\
+from spack.package import *
+
 class Y(Package):
     version("2.1")
     version("2.0")

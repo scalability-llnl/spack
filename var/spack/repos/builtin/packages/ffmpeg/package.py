@@ -20,6 +20,7 @@ class Ffmpeg(AutotoolsPackage):
     license("LGPL-2.1-or-later AND GPL-2.0-or-later", when="+gpl", checked_by="wdconinc")
 
     version("master", branch="master")
+    version("7.1", sha256="fd59e6160476095082e94150ada5a6032d7dcc282fe38ce682a00c18e7820528")
     version("7.0.2", sha256="1ed250407ea8f955cca2f1139da3229fbc13032a0802e4b744be195865ff1541")
     version("7.0", sha256="a24d9074bf5523a65aaa9e7bd02afe4109ce79d69bd77d104fed3dab4b934d7a")
     version("6.1.1", sha256="5e3133939a61ef64ac9b47ffd29a5ea6e337a4023ef0ad972094b4da844e3a20")

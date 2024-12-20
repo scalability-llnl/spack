@@ -169,7 +169,7 @@ def _cdash_reporter(namespace):
             else:
                 packages = []
                 for file in args.specfiles:
-                    with open(file, "r") as f:
+                    with open(file, "r", encoding="utf-8") as f:
                         s = spack.spec.Spec.from_yaml(f)
                         packages.append(s.format())
             return packages
