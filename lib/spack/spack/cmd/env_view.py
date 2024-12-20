@@ -58,7 +58,15 @@ def _specs_for_view(env):
         concrete_roots, order="topo", deptype=deptype, key=traverse.by_dag_hash
     )
 
-    return [x for x in specs if x.installed]
+    selected = list()
+    for x in specs:
+        if not x.installed:
+            continue
+        if hasattr(x.package, "tags") and "runtime" in x.package.tags:
+            continue
+        selected.append(x)
+
+    return selected
 
 
 def env_view(parser, args):
