@@ -27,7 +27,7 @@ class Tfel(CMakePackage):
     constraints on each component of the strain or the stress.
     """
 
-    homepage = "https://tfel.sourceforge.net"
+    homepage = "https://thelfer.github.io/tfel/web/index.html"
     url = "https://github.com/thelfer/tfel/archive/TFEL-4.0.tar.gz"
     git = "https://github.com/thelfer/tfel.git"
     maintainers("thelfer")
@@ -156,12 +156,20 @@ class Tfel(CMakePackage):
     depends_on("python", when="+python_bindings", type=("build", "link", "run"))
     depends_on("py-numpy", when="+python_bindings", type=("build", "link", "run"))
 
-    # As boost+py has py runtime dependency, boost+py needs types link and run as well:
-    depends_on(
-        "boost+python+numpy+exception+container",
-        when="+python_bindings",
-        type=("build", "link", "run"),
-    )
+    with when("@5.1:"):
+        depends_on(
+            "py-pybind11",
+            when="+python_bindings",
+            type=("build", "link", "run"),
+        )
+        
+    with @when("@2.0.4:5.0.99"):
+        # As boost+py has py runtime dependency, boost+py needs types link and run as well:
+        depends_on(
+            "boost+python+numpy+exception+container",
+            when="+python_bindings",
+            type=("build", "link", "run"),
+        )
 
     extends("python", when="+python_bindings")
 
