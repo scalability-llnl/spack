@@ -225,8 +225,8 @@ spack:
   - chai +cuda cuda_arch=80 ^umpire ~shared
   - chapel +cuda cuda_arch=80
   - cusz +cuda cuda_arch=80
-  - ecp-data-vis-sdk ~rocm +adios2 ~ascent +hdf5 +vtkm +zfp +paraview +cuda cuda_arch=80
-  - exago +mpi +python +raja +hiop ~rocm +cuda cuda_arch=80 ~ipopt ^hiop@1.0.0 ~sparse +mpi +raja ~rocm +cuda cuda_arch=80 #^raja@0.14.0
+  - ecp-data-vis-sdk ~rocm +adios2 ~ascent +hdf5 +vtkm +zfp ~paraview +cuda cuda_arch=80 # +paraview: FAILED: VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/vtkm/filter/flow/CMakeFiles/vtkm_filter_flow.dir/StreamSurface.cxx.o
+  - exago +mpi +python +raja +hiop ~rocm +cuda cuda_arch=80 ~ipopt ^hiop@1.0.0 ~sparse +mpi +raja ~rocm +cuda cuda_arch=80
   - fftx +cuda cuda_arch=80
   - flecsi +cuda cuda_arch=80
   - ginkgo +cuda cuda_arch=80
@@ -255,7 +255,7 @@ spack:
   # INCLUDED IN ECP DAV CUDA
   - adios2 +cuda cuda_arch=80
   # - ascent +cuda cuda_arch=80     # ascent: https://github.com/spack/spack/issues/38045
-  - paraview +cuda cuda_arch=80
+  # - paraview +cuda cuda_arch=80   # paraview: FAILED: VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/vtkm/filter/flow/CMakeFiles/vtkm_filter_flow.dir/StreamSurface.cxx.o
   - vtk-m +cuda cuda_arch=80
   - zfp +cuda cuda_arch=80
   # --
