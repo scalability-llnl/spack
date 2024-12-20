@@ -2424,6 +2424,14 @@ def _tar_strip_component(tar: tarfile.TarFile, prefix: str):
         yield m
 
 
+def extract_buildcache_tarball(tarfile_path: str, destination: str) -> None:
+    with closing(tarfile.open(tarfile_path, "r")) as tar:
+        # Remove common prefix from tarball entries and directly extract them to the install dir.
+        tar.extractall(
+            path=destination, members=_tar_strip_component(tar, prefix=_ensure_common_prefix(tar))
+        )
+
+
 def extract_tarball(spec, download_result, force=False, timer=timer.NULL_TIMER):
     """
     extract binary tarball for given package into install area
@@ -2493,12 +2501,7 @@ def extract_tarball(spec, download_result, force=False, timer=timer.NULL_TIMER):
                 tarfile_path, size, contents, "sha256", expected, local_checksum
             )
     try:
-        with closing(tarfile.open(tarfile_path, "r")) as tar:
-            # Remove install prefix from tarfil to extract directly into spec.prefix
-            tar.extractall(
-                path=spec.prefix,
-                members=_tar_strip_component(tar, prefix=_ensure_common_prefix(tar)),
-            )
+        extract_buildcache_tarball(tarfile_path, destination=spec.prefix)
     except Exception:
         shutil.rmtree(spec.prefix, ignore_errors=True)
         _delete_staged_downloads(download_result)
