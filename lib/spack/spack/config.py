@@ -33,6 +33,7 @@ import copy
 import functools
 import os
 import os.path
+import pathlib
 import re
 import sys
 from typing import Any, Callable, Dict, Generator, List, NamedTuple, Optional, Tuple, Union
@@ -795,7 +796,7 @@ def scopes_from_paths(
     includes: List[str],
     name_prefix: str,
     config_stage_dir: str,
-    relative_root: None,
+    relative_root: Optional[Union[pathlib.Path, str]] = None,
     required: List[str] = [],
 ) -> List[ConfigScope]:
     """Load included config scopes
@@ -1744,8 +1745,6 @@ def included_path(entry: Union[str, dict]) -> OptionalPath:
     Returns: converted entry, where an empty ``when`` means the path is
         not conditionally included
     """
-    always_activate = False
-    optional = False
     if isinstance(entry, str):
         return OptionalPath(path=entry, when="", optional=False)
 
