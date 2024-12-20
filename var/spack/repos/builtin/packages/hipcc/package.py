@@ -24,6 +24,7 @@ class Hipcc(CMakePackage):
     maintainers("srekolam", "renjithravindrankannath", "afzpatel")
 
     license("MIT")
+    version("6.3.0", sha256="79580508b039ca6c50dfdfd7c4f6fbcf489fe1931037ca51324818851eea0c1c")
     version("6.2.4", sha256="7af782bf5835fcd0928047dbf558f5000e7f0207ca39cf04570969343e789528")
     version("6.2.1", sha256="4840f109d8f267c28597e936c869c358de56b8ad6c3ed4881387cf531846e5a7")
     version("6.2.0", sha256="12ce17dc920ec6dac0c5484159b3eec00276e4a5b301ab1250488db3b2852200")
@@ -57,7 +58,7 @@ class Hipcc(CMakePackage):
         if self.spec.satisfies("@:6.0"):
             with working_dir("bin"):
                 filter_shebang("hipconfig")
-        else:
+        elif self.spec.satisfies("@:6.2"):
             with working_dir("amd/hipcc/bin"):
                 filter_shebang("hipconfig")
 

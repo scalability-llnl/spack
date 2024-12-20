@@ -20,7 +20,7 @@ class Rocsparse(CMakePackage):
     url = "https://github.com/ROCm/rocSPARSE/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
-    maintainers("cgmb", "srekolam", "renjithravindrankannath")
+    maintainers("cgmb", "srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["librocsparse"]
 
     amdgpu_targets = ROCmPackage.amdgpu_targets
@@ -39,6 +39,7 @@ class Rocsparse(CMakePackage):
     conflicts("+asan", when="os=centos8")
 
     license("MIT")
+    version("6.3.0", sha256="38aaf1cc55f57566a3056a970f73f40a9a4930583d6e57fc9c7745a127029227")
     version("6.2.4", sha256="1f86c2d439e777cd17724269da66997d351b3a1b83f44143361e9c77d80e2370")
     version("6.2.1", sha256="4691d689db0a03fc950dbc9d88471752f6d17f5382a4bd2f7e23dfb43fc7074c")
     version("6.2.0", sha256="d07357d180423cedbabc849983a2d4d79b0e9f4c9b5e07d4993043e646fe6df9")
@@ -84,6 +85,7 @@ class Rocsparse(CMakePackage):
         "6.2.0",
         "6.2.1",
         "6.2.4",
+        "6.3.0",
     ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"rocprim@{ver}", when=f"@{ver}")

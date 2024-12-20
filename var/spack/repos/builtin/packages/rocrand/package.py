@@ -18,13 +18,14 @@ class Rocrand(CMakePackage):
     url = "https://github.com/ROCm/rocRAND/archive/rocm-6.0.2.tar.gz"
     tags = ["rocm"]
 
-    maintainers("cgmb", "srekolam", "renjithravindrankannath")
+    maintainers("cgmb", "srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["librocrand"]
 
     license("MIT")
 
     version("develop", branch="develop")
     version("master", branch="master")
+    version("6.3.0", sha256="396d2dc842c64d29f577365c348fbccd6260a11431eec61f233fdb0f38b7625d")
     version("6.2.4", sha256="94a2ea2413623b427ddf69365b3996c18721456965024c0dfac506a13c8dc547")
     version("6.2.1", sha256="ed07f638b5e30199251ddda6dd9ee53ee0ec49bcf37cc571a3de85c3a9833248")
     version("6.2.0", sha256="7f5318e9c9eb36fb3660392e97520268920c59af3a51af19633aabe5046ef1af")
@@ -126,6 +127,7 @@ class Rocrand(CMakePackage):
         "6.2.0",
         "6.2.1",
         "6.2.4",
+        "6.3.0",
     ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"rocm-cmake@{ver}:", type="build", when=f"@{ver}")

@@ -5,8 +5,6 @@ ci:
     - superlu-dist    # srun -n 4 hangs
     - papyrus
 
-  broken-specs-url: "https://dummy.io" # s3://spack-binaries/broken-specs"
-
   pipeline-gen:
   - build-job:
       before_script-:

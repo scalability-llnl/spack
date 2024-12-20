@@ -16,6 +16,7 @@ class DlaFuture(CMakePackage, CudaPackage, ROCmPackage):
 
     license("BSD-3-Clause")
 
+    version("0.7.1", sha256="651129686b7fb04178f230c763b371192f9cb91262ddb9959f722449715bdfe8")
     version("0.7.0", sha256="40a62bc70b0a06246a16348ce6701ccfab1f0c1ace99684de4bfc6c90776f8c6")
     version("0.6.0", sha256="85dfcee36ff28fa44da3134408c40ebd611bccff8a295982a7c78eaf982524d9")
     version("0.5.0", sha256="f964ee2a96bb58b3f0ee4563ae65fcd136e409a7c0e66beda33f926fc9515a8e")
@@ -130,6 +131,10 @@ class DlaFuture(CMakePackage, CudaPackage, ROCmPackage):
     # Pedantic warnings, triggered by GCC 9 and 10, are always errors until 0.3.1:
     # https://github.com/eth-cscs/DLA-Future/pull/1043
     conflicts("%gcc@9:10", when="@:0.3.0")
+
+    # Compilation failure with ROCm introduced in 0.7.0 and fixed in 0.7.1:
+    # https://github.com/eth-cscs/DLA-Future/pull/1241
+    conflicts("+rocm ^hip@5.6:6.0", when="@0.7.0")
 
     depends_on("hdf5 +cxx+mpi+threadsafe+shared", when="+hdf5")
 
