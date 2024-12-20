@@ -958,6 +958,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
             namespace = getattr(cls, "namespace", None)
             if namespace:
                 fullnames.append("%s.%s" % (namespace, cls.name))
+            #TODO: Does this need to be changed?
             if namespace == "builtin":
                 # builtin packages cannot inherit from other repos
                 break

@@ -2266,6 +2266,7 @@ class Spec:
             )
         return d
 
+    #TODO: Does the example namespace need to change from builtin?
     def to_dict(self, hash=ht.dag_hash):
         """Create a dictionary suitable for writing this spec to YAML or JSON.
 
