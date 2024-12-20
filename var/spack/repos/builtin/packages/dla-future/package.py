@@ -16,7 +16,7 @@ class DlaFuture(CMakePackage, CudaPackage, ROCmPackage):
 
     license("BSD-3-Clause")
 
-    version("0.7.2", sha256="81b369fc577ec5c48199318b305e1aadc17235fc4de859fb540423c6b335e9ec")
+    version("0.7.3", sha256="8c829b72f4ea9c924abdb6fe2ac7489304be4056ab76b8eba226c33ce7b7dc0e")
     version(
         "0.7.1",
         sha256="651129686b7fb04178f230c763b371192f9cb91262ddb9959f722449715bdfe8",
