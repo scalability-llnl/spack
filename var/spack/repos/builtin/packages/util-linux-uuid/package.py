@@ -40,11 +40,11 @@ class UtilLinuxUuid(AutotoolsPackage):
 
     @property
     def libs(self):
-        return find_libraries("libuuid", self.prefix, recursive=True)
+        return find_libraries("libuuid", self.prefix)
 
     @property
     def headers(self):
-        return find_headers("uuid", self.prefix, recursive=True)
+        return find_headers("uuid", self.prefix)
 
     def configure_args(self):
         config_args = [

@@ -328,7 +328,7 @@ class Openblas(CMakePackage, MakefilePackage):
         if suffix != "none":
             name = [x + suffix for x in name]
 
-        return find_libraries(name, spec.prefix, shared=search_shared, recursive=True)
+        return find_libraries(name, spec.prefix, shared=search_shared)
 
 
 class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):

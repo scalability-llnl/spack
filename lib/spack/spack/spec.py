@@ -1101,20 +1101,19 @@ def _command_default_handler(spec: "Spec"):
 def _headers_default_handler(spec: "Spec"):
     """Default handler when looking for the 'headers' attribute.
 
-    Tries to search for ``*.h`` files recursively starting from
-    ``spec.package.home.include``.
+    Tries to search heuristically for header files in ``spec.package.home``.
 
     Parameters:
         spec: spec that is being queried
 
     Returns:
-        HeaderList: The headers in ``prefix.include``
+        HeaderList: The headers in ``prefix``
 
     Raises:
         NoHeadersError: If no headers are found
     """
     home = getattr(spec.package, "home")
-    headers = fs.find_headers("*", root=home.include, recursive=True)
+    headers = fs.find_headers("*", root=home)
 
     if headers:
         return headers
@@ -1164,7 +1163,7 @@ def _libs_default_handler(spec: "Spec"):
     for shared in search_shared:
         # Since we are searching for link libraries, on Windows search only for
         # ".Lib" extensions by default as those represent import libraries for implicit links.
-        libs = fs.find_libraries(name, home, shared=shared, recursive=True, runtime=False)
+        libs = fs.find_libraries(name, home, shared=shared, runtime=False)
         if libs:
             return libs
 

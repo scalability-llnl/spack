@@ -78,4 +78,4 @@ class Sparskit(MakefilePackage):
 
     @property
     def libs(self):
-        return find_libraries("libskit*", root=self.prefix, shared=False, recursive=True)
+        return find_libraries("libskit*", root=self.prefix, shared=False)

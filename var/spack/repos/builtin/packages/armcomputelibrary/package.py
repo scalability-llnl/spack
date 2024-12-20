@@ -133,14 +133,13 @@ class Armcomputelibrary(SConsPackage):
             ["libarm_compute", "libarm_compute_core", "libarm_compute_graph"],
             root=self.spec.prefix,
             shared=True,
-            recursive=True,
         )
         return acl_libs
 
     @property
     def headers(self):
         incdir = join_path(self.spec.prefix, "include")
-        hlist = find_all_headers(incdir)
+        hlist = find_headers("*", incdir)
         hlist.directories = [incdir]
         return hlist
 

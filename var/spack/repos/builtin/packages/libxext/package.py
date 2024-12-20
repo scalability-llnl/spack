@@ -32,4 +32,4 @@ class Libxext(AutotoolsPackage, XorgPackage):
 
     @property
     def libs(self):
-        return find_libraries("libXext", self.prefix, shared=True, recursive=True)
+        return find_libraries("libXext", self.prefix, shared=True)

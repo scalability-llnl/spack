@@ -71,7 +71,7 @@ class Mpitrampoline(CMakePackage):
 
     @property
     def headers(self):
-        return HeaderList(find(self.prefix.include, "mpi.h"))
+        return find_headers("mpi", self.prefix)
 
     @property
     def libs(self):

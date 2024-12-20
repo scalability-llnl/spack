@@ -40,13 +40,12 @@ class Libtirpc(AutotoolsPackage):
 
     @property
     def headers(self):
-        hdrs = find_all_headers(self.prefix.include)
+        hdrs = find_headers("*", self.prefix)
         # libtirpc puts headers under include/tirpc, but some codes (e.g. hdf)
         # do not expect a tirpc component.  Since some might, we return
         # both prefix.include.tirpc and prefix.include as header paths
-        if hdrs:
-            hdrs.directories = [self.prefix.include.tirpc, self.prefix.include]
-        return hdrs or None
+        hdrs.directories = [self.prefix.include.tirpc, self.prefix.include]
+        return hdrs
 
     def configure_args(self):
         # See discussion in

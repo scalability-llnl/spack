@@ -98,7 +98,7 @@ class Elemental(CMakePackage):
     @property
     def libs(self):
         shared = True if "+shared" in self.spec else False
-        return find_libraries("libEl", root=self.prefix, shared=shared, recursive=True)
+        return find_libraries("libEl", root=self.prefix, shared=shared)
 
     def cmake_args(self):
         spec = self.spec
@@ -123,7 +123,7 @@ class Elemental(CMakePackage):
             ifort = env["SPACK_F77"]
             intel_bin = os.path.dirname(ifort)
             intel_root = os.path.dirname(intel_bin)
-            libfortran = find_libraries("libifcoremt", root=intel_root, recursive=True)
+            libfortran = find_libraries("libifcoremt", root=intel_root)
         elif self.spec.satisfies("%gcc"):
             # see <stage_folder>/debian/rules as an example:
             mpif77 = Executable(spec["mpi"].mpif77)
@@ -134,7 +134,7 @@ class Elemental(CMakePackage):
             xl_fort = env["SPACK_F77"]
             xl_bin = os.path.dirname(xl_fort)
             xl_root = os.path.dirname(xl_bin)
-            libfortran = find_libraries("libxlf90_r", root=xl_root, recursive=True)
+            libfortran = find_libraries("libxlf90_r", root=xl_root)
         else:
             libfortran = None
 

@@ -126,4 +126,4 @@ class Lorene(MakefilePackage):
     @property
     def libs(self):
         shared = self.spec.satisfies("+shared")
-        return find_libraries("liblorene*", root=self.prefix, shared=shared, recursive=True)
+        return find_libraries("liblorene*", root=self.prefix, shared=shared)

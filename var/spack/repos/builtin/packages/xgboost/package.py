@@ -101,8 +101,7 @@ class Xgboost(CMakePackage, CudaPackage):
             clang_root = os.path.dirname(clang_bin)
             args += [
                 self.define(
-                    "OpenMP_libomp_LIBRARY",
-                    find_libraries("libomp", root=clang_root, shared=True, recursive=True),
+                    "OpenMP_libomp_LIBRARY", find_libraries("libomp", root=clang_root, shared=True)
                 )
             ]
 

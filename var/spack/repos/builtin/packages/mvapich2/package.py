@@ -275,7 +275,7 @@ class Mvapich2(AutotoolsPackage):
         if "cxx" in query_parameters:
             libraries = ["libmpicxx"] + libraries
 
-        return find_libraries(libraries, root=self.prefix, shared=True, recursive=True)
+        return find_libraries(libraries, root=self.prefix, shared=True)
 
     @property
     def process_manager_options(self):

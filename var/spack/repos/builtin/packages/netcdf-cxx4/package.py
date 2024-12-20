@@ -60,7 +60,7 @@ class NetcdfCxx4(CMakePackage):
         libraries = ["libnetcdf_c++4"]
         shared = "+shared" in self.spec
 
-        libs = find_libraries(libraries, root=self.prefix, shared=shared, recursive=True)
+        libs = find_libraries(libraries, root=self.prefix, shared=shared)
         if libs:
             return libs
 

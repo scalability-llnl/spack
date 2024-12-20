@@ -78,9 +78,7 @@ class Pixman(AutotoolsPackage, MesonPackage):
 
     @property
     def libs(self):
-        return find_libraries(
-            "libpixman-1", self.prefix, shared=self.spec.satisfies("+shared"), recursive=True
-        )
+        return find_libraries("libpixman-1", self.prefix, shared=self.spec.satisfies("+shared"))
 
 
 class MesonBuilder(spack.build_systems.meson.MesonBuilder):

@@ -85,7 +85,7 @@ class Zlib(MakefilePackage, Package):
     @property
     def libs(self):
         shared = "+shared" in self.spec
-        return find_libraries(["libz"], root=self.prefix, recursive=True, shared=shared)
+        return find_libraries(["libz"], root=self.prefix, shared=shared)
 
 
 class SetupEnvironment:

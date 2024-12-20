@@ -25,4 +25,4 @@ class Unixodbc(AutotoolsPackage):
 
     @property
     def libs(self):
-        return find_libraries("libodbc", root=self.prefix, recursive=True)
+        return find_libraries("libodbc", root=self.prefix)

@@ -172,11 +172,11 @@ class Ffmpeg(AutotoolsPackage):
 
     @property
     def libs(self):
-        return find_libraries("*", self.prefix, recursive=True)
+        return find_libraries("*", self.prefix)
 
     @property
     def headers(self):
-        headers = find_all_headers(self.prefix.include)
+        headers = find_headers("*", self.prefix)
         headers.directories = [self.prefix.include]
         return headers
 

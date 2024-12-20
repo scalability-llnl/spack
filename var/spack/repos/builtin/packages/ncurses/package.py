@@ -248,4 +248,4 @@ class Ncurses(AutotoolsPackage, GNUMirrorPackage):
             libraries.extend(libs)
         if wide:
             libraries.extend(wlibs)
-        return find_libraries(libraries, root=self.prefix, recursive=True)
+        return find_libraries(libraries, root=self.prefix)

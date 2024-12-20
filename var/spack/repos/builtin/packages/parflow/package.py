@@ -47,9 +47,7 @@ class Parflow(CMakePackage):
             "-DPARFLOW_HAVE_CLM=TRUE",
             "-DTCL_TCLSH={0}".format(spec["tcl"].prefix.bin.tclsh),
             "-DTCL_LIBRARY={0}".format(
-                LibraryList(
-                    find_libraries("libtcl*", self.spec["tcl"].prefix, shared=True, recursive=True)
-                )
+                find_libraries("libtcl*", self.spec["tcl"].prefix, shared=True)
             ),
             "-DHDF5_ROOT={0}".format(spec["hdf5"].prefix),
             "-DSILO_ROOT={0}".format(spec["silo"].prefix),

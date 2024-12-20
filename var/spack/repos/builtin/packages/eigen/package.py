@@ -114,6 +114,6 @@ class Eigen(CMakePackage, ROCmPackage):
 
     @property
     def headers(self):
-        headers = find_all_headers(self.prefix.include)
+        headers = find_headers("*", self.prefix)
         headers.directories = [self.prefix.include.eigen3]
         return headers

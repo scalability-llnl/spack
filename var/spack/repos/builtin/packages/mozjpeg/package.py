@@ -40,7 +40,7 @@ class Mozjpeg(CMakePackage):
 
     @property
     def libs(self):
-        return find_libraries("libjpeg*", root=self.prefix, recursive=True)
+        return find_libraries("libjpeg*", root=self.prefix)
 
     def cmake_args(self):
         args = [

@@ -73,4 +73,4 @@ class CrayFftw(Package):
 
             libraries.append("libfftw3" + sfx)
 
-        return find_libraries(libraries, root=self.prefix, recursive=True)
+        return find_libraries(libraries, root=self.prefix)

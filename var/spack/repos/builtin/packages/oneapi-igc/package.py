@@ -31,4 +31,4 @@ class OneapiIgc(Package):
 
     @property
     def libs(self):
-        return find_libraries(["libigc"], root=self.prefix, recursive=True)
+        return find_libraries(["libigc"], root=self.prefix)

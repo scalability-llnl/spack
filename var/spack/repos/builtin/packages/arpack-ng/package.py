@@ -112,7 +112,7 @@ class ArpackNg(CMakePackage, AutotoolsPackage):
         if self.spec.satisfies("+mpi"):
             libraries = ["libparpack"] + libraries
 
-        return find_libraries(libraries, root=self.prefix, shared=True, recursive=True)
+        return find_libraries(libraries, root=self.prefix, shared=True)
 
 
 class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):

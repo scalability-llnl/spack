@@ -43,6 +43,4 @@ class Ntpoly(CMakePackage):
 
     @property
     def libs(self):
-        return find_libraries(
-            ["libNTPoly", "libNTPolyCPP", "libNTPolyWrapper"], root=self.home, recursive=True
-        )
+        return find_libraries(["libNTPoly", "libNTPolyCPP", "libNTPolyWrapper"], root=self.home)

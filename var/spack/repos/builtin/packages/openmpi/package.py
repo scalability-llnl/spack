@@ -867,10 +867,7 @@ with '-Wl,-commons,use_dylibs' and without
 
     @property
     def headers(self):
-        hdrs = HeaderList(find(self.prefix.include, "mpi.h", recursive=False))
-        if not hdrs:
-            hdrs = HeaderList(find(self.prefix, "mpi.h", recursive=True))
-        return hdrs or None
+        return find_headers("mpi", self.prefix)
 
     @property
     def libs(self):
@@ -880,7 +877,7 @@ with '-Wl,-commons,use_dylibs' and without
         if "cxx" in query_parameters:
             libraries = ["libmpi_cxx"] + libraries
 
-        return find_libraries(libraries, root=self.prefix, shared=True, recursive=True)
+        return find_libraries(libraries, root=self.prefix, shared=True)
 
     def setup_run_environment(self, env):
         # Because MPI is both a runtime and a compiler, we have to setup the

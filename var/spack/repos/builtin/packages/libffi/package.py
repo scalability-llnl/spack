@@ -48,7 +48,7 @@ class Libffi(AutotoolsPackage):
     @property
     def headers(self):
         # The headers are probably in self.prefix.lib but we search everywhere
-        return find_headers("ffi", self.prefix, recursive=True)
+        return find_headers("ffi", self.prefix)
 
     def flag_handler(self, name, flags):
         if name == "cflags":

@@ -467,9 +467,7 @@ class Warpx(CMakePackage, PythonExtension):
         libsuffix = {"1": "1d", "2": "2d", "3": "3d", "rz": "rz"}
         libs = []
         for dim in self.spec.variants["dims"].value:
-            libs += find_libraries(
-                ["libwarpx." + libsuffix[dim]], root=self.prefix, recursive=True, shared=True
-            )
+            libs += find_libraries(["libwarpx." + libsuffix[dim]], root=self.prefix, shared=True)
             libs += find_libraries(
                 ["libablastr"],
                 root=self.prefix,

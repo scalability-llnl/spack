@@ -73,7 +73,7 @@ class Htslib(AutotoolsPackage):
 
     @property
     def libs(self):
-        return find_libraries("libhts", root=self.prefix, recursive=True)
+        return find_libraries("libhts", root=self.prefix)
 
     # v1.2 uses the automagically assembled tarball from .../archive/...
     # everything else uses the tarballs uploaded to the release

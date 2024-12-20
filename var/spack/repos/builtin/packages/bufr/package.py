@@ -108,7 +108,7 @@ class Bufr(CMakePackage):
         shared = True if "+shared" in self.spec else False
         # Bufr has _DA (dynamic allocation) libs in versions <= 11.5.0
         append = "" if self.spec.satisfies("@11.5.0:") else "_DA"
-        lib = find_libraries(libname + append, root=self.prefix, shared=shared, recursive=True)
+        lib = find_libraries(libname + append, root=self.prefix, shared=shared)
         lib_envname = "BUFR_LIB{0}".format(suffix) + append
         inc_envname = "BUFR_INC{0}".format(suffix) + append
         include_dir = "{0}_{1}".format(self.prefix.include.bufr, suffix)

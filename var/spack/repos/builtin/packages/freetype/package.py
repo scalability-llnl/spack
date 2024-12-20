@@ -81,7 +81,7 @@ class Freetype(AutotoolsPackage, CMakePackage):
 
     @property
     def headers(self):
-        headers = find_headers("*", self.prefix.include, recursive=True)
+        headers = find_headers("*", self.prefix.include)
         headers.directories = [self.prefix.include.freetype2]
         return headers
 

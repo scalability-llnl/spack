@@ -29,4 +29,4 @@ class Lerc(CMakePackage):
 
     @property
     def libs(self):
-        return find_libraries(["libLerc"], root=self.prefix, recursive=True)
+        return find_libraries(["libLerc"], root=self.prefix)

@@ -74,9 +74,7 @@ class W3emc(CMakePackage):
             shared = self.spec.satisfies("+shared")
 
         for suffix in suffixes:
-            lib = find_libraries(
-                "libw3emc_" + suffix, root=self.prefix, shared=shared, recursive=True
-            )
+            lib = find_libraries("libw3emc_" + suffix, root=self.prefix, shared=shared)
             env.set("W3EMC_LIB" + suffix, lib[0])
             env.set("W3EMC_INC" + suffix, join_path(self.prefix, "include_" + suffix))
 

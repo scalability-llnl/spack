@@ -1050,4 +1050,4 @@ class Opencv(CMakePackage, CudaPackage):
     @property
     def libs(self):
         shared = "+shared" in self.spec
-        return find_libraries("libopencv_*", root=self.prefix, shared=shared, recursive=True)
+        return find_libraries("libopencv_*", root=self.prefix, shared=shared)

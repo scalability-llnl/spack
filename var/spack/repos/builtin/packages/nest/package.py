@@ -136,7 +136,7 @@ class Nest(CMakePackage):
         mkdirp(path_headers)
 
         for suffix in ["h", "hpp"]:
-            for f in find_headers("*.{0}".format(suffix), self.stage.source_path, recursive=True):
+            for f in find_headers("*.{0}".format(suffix), self.stage.source_path):
                 install(f, path_headers)
 
     def setup_run_environment(self, env):

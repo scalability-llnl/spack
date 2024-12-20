@@ -35,7 +35,7 @@ class Dislin(Package):
         key = tuple(query_parameters)
         libraries = query2libraries[key]
 
-        return find_libraries(libraries, root=self.prefix, shared=True, recursive=True)
+        return find_libraries(libraries, root=self.prefix, shared=True)
 
     def setup_build_environment(self, env):
         env.set("DISLIN", self.prefix)

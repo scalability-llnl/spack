@@ -159,7 +159,7 @@ class Extrae(AutotoolsPackage):
         )
 
         if spec.satisfies("+cupti"):
-            cupti_h = find_headers("cupti", spec["cuda"].prefix, recursive=True)
+            cupti_h = find_headers("cupti", spec["cuda"].prefix)
             cupti_dir = os.path.dirname(os.path.dirname(cupti_h[0]))
 
         args += ["--with-cupti=%s" % cupti_dir] if "+cupti" in spec else ["--without-cupti"]

@@ -49,9 +49,7 @@ class Libpng(CMakePackage):
         # v1.2 does not have a version-less symlink
         libraries = f"libpng{self.version.up_to(2).joined}"
         shared = self.spec.satisfies("libs=shared")
-        return find_libraries(
-            libraries, root=self.prefix, shared=shared, recursive=True, runtime=False
-        )
+        return find_libraries(libraries, root=self.prefix, shared=shared, runtime=False)
 
 
 class CMakeBuilder(CMakeBuilder):

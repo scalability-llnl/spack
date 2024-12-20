@@ -115,7 +115,7 @@ class LibjpegTurbo(CMakePackage, AutotoolsPackage):
     def libs(self):
         shared = self.spec.satisfies("libs=shared")
         name = "jpeg" if sys.platform == "win32" else "libjpeg*"
-        return find_libraries(name, root=self.prefix, shared=shared, recursive=True, runtime=False)
+        return find_libraries(name, root=self.prefix, shared=shared, runtime=False)
 
 
 class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):

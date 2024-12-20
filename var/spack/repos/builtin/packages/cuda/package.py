@@ -805,7 +805,7 @@ class Cuda(Package):
 
     @property
     def libs(self):
-        libs = find_libraries("libcudart", root=self.prefix, shared=True, recursive=True)
+        libs = find_libraries("libcudart", root=self.prefix, shared=True)
 
         filtered_libs = []
         # CUDA 10.0 provides Compatability libraries for running newer versions

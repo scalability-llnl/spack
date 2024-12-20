@@ -173,7 +173,7 @@ class Pgplot(MakefilePackage):
             libnames = ["libpgplot"]
         else:
             libnames = ["libcpgplot", "libpgplot"]
-        return find_libraries(libnames, root=self.prefix, shared=shared, recursive=True)
+        return find_libraries(libnames, root=self.prefix, shared=shared)
 
     def setup_run_environment(self, env):
         env.set("PGPLOT_FONT", self.prefix.include + "/grfont.dat")

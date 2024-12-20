@@ -481,7 +481,7 @@ class Openjdk(Package):
 
         Search recursively to find the correct library location."""
 
-        return find_libraries(["libjvm"], root=self.home, recursive=True)
+        return find_libraries(["libjvm"], root=self.home)
 
     def install(self, spec, prefix):
         top_dir = "Contents/Home/" if platform.system() == "Darwin" else "."

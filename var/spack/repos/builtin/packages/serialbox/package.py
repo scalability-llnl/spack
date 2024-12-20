@@ -125,7 +125,7 @@ class Serialbox(CMakePackage):
                 "{0}{1}".format(name, "Shared" if shared else "Static") for name in libraries
             ]
 
-        libs = find_libraries(libraries, root=self.prefix, shared=shared, recursive=True)
+        libs = find_libraries(libraries, root=self.prefix, shared=shared)
 
         if libs:
             return libs

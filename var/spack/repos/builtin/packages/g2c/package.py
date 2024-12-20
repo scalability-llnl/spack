@@ -89,7 +89,7 @@ class G2c(CMakePackage):
             shared = False
         else:
             shared = self.spec.satisfies("libs=shared")
-        lib = find_libraries("libg2c", root=self.prefix, shared=shared, recursive=True)
+        lib = find_libraries("libg2c", root=self.prefix, shared=shared)
         env.set("G2C_LIB", lib[0])
         env.set("G2C_INC", join_path(self.prefix, "include"))
 

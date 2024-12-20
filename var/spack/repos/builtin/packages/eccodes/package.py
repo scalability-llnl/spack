@@ -296,7 +296,7 @@ class Eccodes(CMakePackage):
         if return_memfs:
             libraries.append("libeccodes_memfs")
 
-        libs = find_libraries(libraries, root=self.prefix, shared=shared, recursive=True)
+        libs = find_libraries(libraries, root=self.prefix, shared=shared)
 
         if libs and len(libs) == len(libraries):
             return libs

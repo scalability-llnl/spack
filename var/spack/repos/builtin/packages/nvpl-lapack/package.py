@@ -58,7 +58,7 @@ class NvplLapack(Package):
 
     @property
     def lapack_headers(self):
-        return find_all_headers(self.spec.prefix.include)
+        return find_headers("*", self.spec.prefix.include)
 
     @property
     def lapack_libs(self):
@@ -77,7 +77,7 @@ class NvplLapack(Package):
 
         name = ["libnvpl_lapack_core", f"libnvpl_lapack_{int_type}_{threading_type}"]
 
-        return find_libraries(name, spec.prefix.lib, shared=True, recursive=True)
+        return find_libraries(name, spec.prefix.lib, shared=True)
 
     def install(self, spec, prefix):
         install_tree(".", prefix)

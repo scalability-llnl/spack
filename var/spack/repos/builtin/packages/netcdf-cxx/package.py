@@ -34,7 +34,7 @@ class NetcdfCxx(AutotoolsPackage):
     @property
     def libs(self):
         shared = True
-        return find_libraries("libnetcdf_c++", root=self.prefix, shared=shared, recursive=True)
+        return find_libraries("libnetcdf_c++", root=self.prefix, shared=shared)
 
     def configure_args(self):
         args = []

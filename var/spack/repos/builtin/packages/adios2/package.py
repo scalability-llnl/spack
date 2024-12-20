@@ -354,7 +354,7 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
                 libs_to_seek.add("libadios2_fortran")
 
         return find_libraries(
-            list(libs_to_seek), root=self.spec.prefix, shared=("+shared" in spec), recursive=True
+            list(libs_to_seek), root=self.spec.prefix, shared=("+shared" in spec)
         )
 
     def setup_run_environment(self, env):

@@ -39,7 +39,7 @@ class LibuvJulia(AutotoolsPackage):
 
     @property
     def libs(self):
-        return find_libraries(["libuv"], root=self.prefix, recursive=True, shared=False)
+        return find_libraries(["libuv"], root=self.prefix, shared=False)
 
     def configure_args(self):
         # Only build static libaries for now

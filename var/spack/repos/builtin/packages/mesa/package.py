@@ -176,7 +176,7 @@ class Mesa(MesonPackage):
 
     @property
     def libglx_libs(self):
-        return find_libraries("libGL", root=self.spec.prefix, recursive=True)
+        return find_libraries("libGL", root=self.spec.prefix)
 
     @property
     def libosmesa_headers(self):
@@ -188,7 +188,7 @@ class Mesa(MesonPackage):
             lib_name = "osmesa"
         else:
             lib_name = "libOSMesa"
-        return find_libraries(lib_name, root=self.spec.prefix, recursive=True)
+        return find_libraries(lib_name, root=self.spec.prefix)
 
 
 class MesonBuilder(spack.build_systems.meson.MesonBuilder):

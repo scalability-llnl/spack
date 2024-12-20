@@ -45,7 +45,7 @@ class Libkml(CMakePackage):
 
     @property
     def libs(self):
-        return find_libraries("libkmlbase", root=self.prefix, recursive=True)
+        return find_libraries("libkmlbase", root=self.prefix)
 
     def cmake_args(self):
         spec = self.spec

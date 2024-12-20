@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import fnmatch
-import os.path
+import pathlib
 import sys
 
 import pytest
@@ -242,7 +242,7 @@ class TestHeaderList:
 
 
 #: Directory where the data for the test below is stored
-search_dir = os.path.join(spack.paths.test_path, "data", "directory_search")
+search_dir = pathlib.Path(spack.paths.test_path) / "data" / "directory_search"
 
 
 @pytest.mark.parametrize(
@@ -257,7 +257,7 @@ search_dir = os.path.join(spack.paths.test_path, "data", "directory_search")
     ],
 )
 def test_library_type_search(lib_list, kwargs):
-    results = find_libraries(lib_list, search_dir, **kwargs)
+    results = find_libraries(lib_list, str(search_dir), **kwargs)
     assert len(results) != 0
     for result in results:
         lib_type_ext = plat_shared_ext
@@ -293,13 +293,17 @@ def test_library_type_search(lib_list, kwargs):
         (find_headers, ["a", "c"], search_dir, {"recursive": True}),
         (find_headers, ["c", "b", "a"], search_dir, {"recursive": True}),
         (find_headers, ["a", "c"], search_dir, {"recursive": True}),
-        (find_libraries, ["liba", "libd"], os.path.join(search_dir, "b"), {"recursive": False}),
-        (find_headers, ["b", "d"], os.path.join(search_dir, "b"), {"recursive": False}),
+        (find_libraries, ["liba", "libd"], search_dir / "lib" / "a", {"recursive": False}),
+        (find_headers, ["a", "d"], search_dir / "include" / "a", {"recursive": False}),
     ],
 )
 def test_searching_order(search_fn, search_list, root, kwargs):
+    """Tests whether when multiple libraries or headers are searched for, like [a, b], the found
+    file list adheres to the same ordering: [a matches..., b matches...], which is relevant in case
+    of dependencies across static libraries, and we want to ensure they are passed in the correct
+    order to the linker."""
     # Test search
-    result = search_fn(search_list, root, **kwargs)
+    result = search_fn(search_list, str(root), **kwargs)
 
     # The tests are set-up so that something is always found
     assert len(result) != 0

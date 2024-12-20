@@ -71,7 +71,7 @@ class Fdb(CMakePackage):
 
     @property
     def libs(self):
-        return find_libraries("libfdb5", root=self.prefix, shared=True, recursive=True)
+        return find_libraries("libfdb5", root=self.prefix, shared=True)
 
     def cmake_args(self):
         enable_build_tools = "+tools" in self.spec

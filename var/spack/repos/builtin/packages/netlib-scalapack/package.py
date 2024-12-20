@@ -57,7 +57,7 @@ class ScalapackBase(CMakePackage):
         # Note that the default will be to search
         # for 'libnetlib-scalapack.<suffix>'
         shared = True if "+shared" in self.spec else False
-        return find_libraries("libscalapack", root=self.prefix, shared=shared, recursive=True)
+        return find_libraries("libscalapack", root=self.prefix, shared=shared)
 
     def cmake_args(self):
         spec = self.spec

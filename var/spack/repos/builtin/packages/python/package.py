@@ -18,6 +18,7 @@ from llnl.util.lang import dedupe
 
 import spack.paths
 from spack.build_environment import dso_suffix, stat_suffix
+from spack.error import NoHeadersError, NoLibrariesError
 from spack.package import *
 from spack.util.prefix import Prefix
 
@@ -1073,7 +1074,7 @@ print(json.dumps(config))
         candidates = list(dedupe(candidates))
 
         for directory in candidates:
-            headers = find_headers("pyconfig", directory)
+            headers = find_headers("pyconfig", directory, recursive=False)
             if headers:
                 config_h = headers[0]
                 break

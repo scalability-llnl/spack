@@ -120,7 +120,7 @@ class Libxml2(AutotoolsPackage, NMakePackage):
     @property
     def headers(self):
         include_dir = self.spec.prefix.include.libxml2
-        hl = find_all_headers(include_dir)
+        hl = find_headers("*", include_dir, recursive=True)
         hl.directories = [include_dir, self.spec.prefix.include]
         return hl
 

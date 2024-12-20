@@ -40,9 +40,7 @@ class AprUtil(AutotoolsPackage):
 
     @property
     def libs(self):
-        return find_libraries(
-            [f"libaprutil-{self.version.up_to(1)}"], root=self.prefix, recursive=True
-        )
+        return find_libraries([f"libaprutil-{self.version.up_to(1)}"], root=self.prefix)
 
     def configure_args(self):
         spec = self.spec

@@ -29,7 +29,7 @@ class FujitsuMpi(Package):
 
     @property
     def headers(self):
-        hdrs = find_headers("mpi", self.prefix.include, recursive=True)
+        hdrs = find_headers("mpi", self.prefix.include)
         hdrs.directories = os.path.dirname(hdrs[0])
         return hdrs or None
 
@@ -41,7 +41,7 @@ class FujitsuMpi(Package):
         if "cxx" in query_parameters:
             libraries = ["libmpi_cxx"] + libraries
 
-        return find_libraries(libraries, root=self.prefix, shared=True, recursive=True)
+        return find_libraries(libraries, root=self.prefix, shared=True)
 
     def setup_dependent_package(self, module, dependent_spec):
         if self.spec.satisfies("%gcc"):

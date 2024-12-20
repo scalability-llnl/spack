@@ -740,7 +740,7 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
                 sun_libs += ["libsundials_core"]
         is_shared = "+shared" in self.spec
 
-        libs = find_libraries(sun_libs, root=self.prefix, shared=is_shared, recursive=True)
+        libs = find_libraries(sun_libs, root=self.prefix, shared=is_shared)
 
         return libs or None  # Raise an error if no libs are found
 

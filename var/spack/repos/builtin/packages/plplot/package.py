@@ -76,18 +76,10 @@ class Plplot(CMakePackage):
             args += [
                 "-DTCL_INCLUDE_PATH={0}/include".format(self.spec["tcl"].headers.directories[0]),
                 "-DTCL_LIBRARY={0}".format(
-                    LibraryList(
-                        find_libraries(
-                            "libtcl*", self.spec["tcl"].prefix, shared=True, recursive=True
-                        )
-                    )
+                    find_libraries("libtcl*", self.spec["tcl"].prefix, shared=True)
                 ),
                 "-DTCL_STUB_LIBRARY={0}".format(
-                    LibraryList(
-                        find_libraries(
-                            "libtclstub*", self.spec["tcl"].prefix, shared=False, recursive=True
-                        )
-                    )
+                    find_libraries("libtclstub*", self.spec["tcl"].prefix, shared=False)
                 ),
             ]
         else:

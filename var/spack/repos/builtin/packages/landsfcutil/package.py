@@ -34,9 +34,7 @@ class Landsfcutil(CMakePackage):
 
     def setup_run_environment(self, env):
         for suffix in ("4", "d"):
-            lib = find_libraries(
-                "liblandsfcutil_" + suffix, root=self.prefix, shared=False, recursive=True
-            )
+            lib = find_libraries("liblandsfcutil_" + suffix, root=self.prefix, shared=False)
 
             env.set("LANDSFCUTIL_LIB" + suffix, lib[0])
             env.set("LANDSFCUTIL_INC" + suffix, join_path(self.prefix, "include_" + suffix))

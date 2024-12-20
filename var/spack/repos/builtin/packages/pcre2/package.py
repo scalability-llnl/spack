@@ -60,9 +60,7 @@ class Pcre2(AutotoolsPackage, CMakePackage):
             name = "lib" + name
         if self.spec.satisfies("platform=windows") and not is_shared:
             name += "-static"
-        return find_libraries(
-            name, root=self.prefix, recursive=True, shared=is_shared, runtime=False
-        )
+        return find_libraries(name, root=self.prefix, shared=is_shared, runtime=False)
 
 
 class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):

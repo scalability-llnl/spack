@@ -42,7 +42,7 @@ class Lcms(AutotoolsPackage, MSBuildPackage):
 
     @property
     def libs(self):
-        return find_libraries("liblcms2", root=self.prefix, recursive=True)
+        return find_libraries("liblcms2", root=self.prefix)
 
 
 class MSBuildBuilder(spack.build_systems.msbuild.MSBuildBuilder):

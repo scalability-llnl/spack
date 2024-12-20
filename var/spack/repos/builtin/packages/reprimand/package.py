@@ -63,4 +63,4 @@ class Reprimand(MesonPackage):
     @property
     def libs(self):
         shared = "+shared" in self.spec
-        return find_libraries("libRePrimAnd*", root=self.prefix, shared=shared, recursive=True)
+        return find_libraries("libRePrimAnd*", root=self.prefix, shared=shared)

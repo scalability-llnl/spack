@@ -114,7 +114,7 @@ class Scotch(CMakePackage, MakefilePackage):
             else:
                 libraries = ["libptesmumps"] + libraries
 
-        scotchlibs = find_libraries(libraries, root=self.prefix, recursive=True, shared=shared)
+        scotchlibs = find_libraries(libraries, root=self.prefix, shared=shared)
         if "+compression" in self.spec:
             zlibs = self.spec["zlib-api"].libs
 

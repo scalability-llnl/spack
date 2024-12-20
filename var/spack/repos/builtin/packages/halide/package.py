@@ -95,7 +95,7 @@ class Halide(CMakePackage, PythonExtension):
 
     @property
     def libs(self):
-        return find_libraries("libHalide", root=self.prefix, recursive=True)
+        return find_libraries("libHalide", root=self.prefix)
 
     def cmake_args(self):
         # See https://github.com/halide/Halide/blob/main/README_cmake.md#building-halide-with-cmake

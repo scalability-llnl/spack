@@ -82,7 +82,7 @@ class IbmJava(Package):
 
     @property
     def libs(self):
-        return find_libraries(["libjvm"], root=self.home, recursive=True)
+        return find_libraries(["libjvm"], root=self.home)
 
     def setup_run_environment(self, env):
         env.set("JAVA_HOME", self.home)

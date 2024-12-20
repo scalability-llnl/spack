@@ -83,6 +83,4 @@ class Rnpletal(AutotoolsPackage):
 
     @property
     def libs(self):
-        return find_libraries(
-            ["libbbhutil", "librnpl"], root=self.prefix, shared=False, recursive=True
-        )
+        return find_libraries(["libbbhutil", "librnpl"], root=self.prefix, shared=False)

@@ -459,7 +459,6 @@ class ArmplGcc(Package):
             [libname, "libamath", "libastring"],
             root=armpl_prefix,
             shared=self.spec.satisfies("+shared"),
-            recursive=True,
         )
 
         armpl_libs += find_system_libraries(["libm"])
@@ -489,7 +488,7 @@ class ArmplGcc(Package):
 
         incdir = join_path(armpl_dir, suffix)
 
-        hlist = find_all_headers(incdir)
+        hlist = find_headers("*", incdir)
         hlist.directories = [incdir]
         return hlist
 

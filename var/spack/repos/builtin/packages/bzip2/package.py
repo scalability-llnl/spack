@@ -61,7 +61,7 @@ class Bzip2(Package, SourcewarePackage):
     @property
     def libs(self):
         shared = "+shared" in self.spec
-        return find_libraries("libbz2", root=self.prefix, shared=shared, recursive=True)
+        return find_libraries("libbz2", root=self.prefix, shared=shared)
 
     def flag_handler(self, name, flags):
         if name == "cflags":

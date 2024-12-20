@@ -114,9 +114,7 @@ class Ip(CMakePackage):
         )
         shared = False if self.spec.satisfies("@:4.0") else self.spec.satisfies("+shared")
         for suffix in suffixes:
-            lib = find_libraries(
-                "libip_" + suffix, root=self.prefix, shared=shared, recursive=True
-            )
+            lib = find_libraries("libip_" + suffix, root=self.prefix, shared=shared)
             env.set("IP_LIB" + suffix, lib[0])
             env.set("IP_INC" + suffix, join_path(self.prefix, "include_" + suffix))
 

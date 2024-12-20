@@ -117,9 +117,7 @@ class Likwid(Package):
 
     def setup_run_environment(self, env):
         if self.spec.satisfies("+cuda"):
-            libs = find_libraries(
-                "libcupti", root=self.spec["cuda"].prefix, shared=True, recursive=True
-            )
+            libs = find_libraries("libcupti", root=self.spec["cuda"].prefix, shared=True)
             for lib in libs.directories:
                 env.append_path("LD_LIBRARY_PATH", lib)
         if self.spec.satisfies("+rocm"):
@@ -205,7 +203,7 @@ class Likwid(Package):
             filter_file("^BUILDAPPDAEMON.*", "BUILDAPPDAEMON = true", "config.mk")
             cudainc = spec["cuda"].prefix.include
             filter_file("^CUDAINCLUDE.*", "CUDAINCLUDE = {0}".format(cudainc), "config.mk")
-            cuptihead = HeaderList(find(spec["cuda"].prefix, "cupti.h", recursive=True))
+            cuptihead = find_headers("cupti", spec["cuda"].prefix, recursive=True)
             filter_file(
                 "^CUPTIINCLUDE.*",
                 "CUPTIINCLUDE = {0}".format(cuptihead.directories[0]),

@@ -52,4 +52,4 @@ class MatrixSwitch(CMakePackage):
 
     @property
     def libs(self):
-        return find_libraries("libmatrixswitch", root=self.home, recursive=True, shared=False)
+        return find_libraries("libmatrixswitch", root=self.home, shared=False)

@@ -113,7 +113,7 @@ class CrayMpich(Package):
 
     @property
     def headers(self):
-        hdrs = find_headers("mpi", self.prefix.include, recursive=True)
+        hdrs = find_headers("mpi", self.prefix.include)
         hdrs.directories = os.path.dirname(hdrs[0])
         return hdrs
 
@@ -132,7 +132,4 @@ class CrayMpich(Package):
         if "f90" in query_parameters:
             libraries.extend(["libmpif90", "libmpichf90"])
 
-        libs = find_libraries(libraries, root=self.prefix.lib, recursive=True)
-        libs += find_libraries(libraries, root=self.prefix.lib64, recursive=True)
-
-        return libs
+        return find_libraries(libraries, root=self.prefix)

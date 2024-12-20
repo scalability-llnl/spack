@@ -113,7 +113,7 @@ class Elpa(AutotoolsPackage, CudaPackage, ROCmPackage):
     @property
     def libs(self):
         libname = "libelpa_openmp" if "+openmp" in self.spec else "libelpa"
-        return find_libraries(libname, root=self.prefix, shared=True, recursive=True)
+        return find_libraries(libname, root=self.prefix, shared=True)
 
     @property
     def headers(self):
@@ -130,7 +130,7 @@ class Elpa(AutotoolsPackage, CudaPackage, ROCmPackage):
             "elpa{suffix}-{version}".format(suffix=suffix, version=elpa_version),
         )
 
-        hlist = find_all_headers(incdir)
+        hlist = find_headers("*", incdir)
         hlist.directories = [incdir]
         return hlist
 

@@ -62,7 +62,7 @@ class FftwBase(AutotoolsPackage):
 
             libraries.append("libfftw3" + sfx)
 
-        return find_libraries(libraries, root=self.prefix, recursive=True)
+        return find_libraries(libraries, root=self.prefix)
 
     def flag_handler(self, name, flags):
         if name == "cflags":

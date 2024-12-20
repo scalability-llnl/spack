@@ -51,5 +51,5 @@ class PpopenMathVis(MakefilePackage):
     @property
     def libs(self):
         return find_libraries(
-            ["libfppohvisfdm3d", "libppohvisfdm3d"], root=self.prefix, shared=False, recursive=True
+            ["libfppohvisfdm3d", "libppohvisfdm3d"], root=self.prefix, shared=False
         )

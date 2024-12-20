@@ -112,7 +112,7 @@ class IntelGtpin(Package):
 
     @property
     def libs(self):
-        return find_libraries("libgtpin", self.prefix.Lib, recursive=True)
+        return find_libraries("libgtpin", self.prefix.Lib)
 
     # The gtpin binary uses libraries from its own Lib directory but
     # doesn't set rpath.

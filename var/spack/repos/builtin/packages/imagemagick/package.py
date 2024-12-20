@@ -82,4 +82,4 @@ class Imagemagick(AutotoolsPackage):
 
     @property
     def libs(self):
-        return find_libraries("libMagick*", root=self.prefix, recursive=True)
+        return find_libraries("libMagick*", root=self.prefix)

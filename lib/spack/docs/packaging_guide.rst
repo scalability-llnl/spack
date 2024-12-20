@@ -3192,7 +3192,7 @@ as a ``@property`` in the package's class:
        @property
        def libs(self):
            # The library provided by Foo is libMyFoo.so
-           return find_libraries("libMyFoo", root=self.home, recursive=True)
+           return find_libraries("libMyFoo", root=self.home)
 
 A package may also provide a custom implementation of each attribute
 for the virtual packages it provides by implementing the
@@ -3246,22 +3246,22 @@ follows:
        # Just the foo headers
        @property
        def headers(self):
-           return find_headers("foo", root=self.home.include, recursive=False)
+           return find_headers("foo", root=self.home)
 
        # Just the foo libraries
        @property
        def libs(self):
-           return find_libraries("libFoo", root=self.home, recursive=True)
+           return find_libraries("libFoo", root=self.home)
 
        # The header provided by the bar virtual package
        @property
        def bar_headers(self):
-           return find_headers("bar/bar.h", root=self.home.include, recursive=False)
+           return find_headers("bar", root=self.home)
 
        # The library provided by the bar virtual package
        @property
        def bar_libs(self):
-           return find_libraries("libFooBar", root=self.home, recursive=True)
+           return find_libraries("libFooBar", root=self.home)
 
        # The baz virtual package home
        @property
@@ -3271,12 +3271,12 @@ follows:
        # The header provided by the baz virtual package
        @property
        def baz_headers(self):
-           return find_headers("baz/baz", root=self.baz_home.include, recursive=False)
+           return find_headers("baz", root=self.baz_home)
 
        # The library provided by the baz virtual package
        @property
        def baz_libs(self):
-           return find_libraries("libFooBaz", root=self.baz_home, recursive=True)
+           return find_libraries("libFooBaz", root=self.baz_home)
 
 Now consider another package, ``foo-app``, depending on all three:
 

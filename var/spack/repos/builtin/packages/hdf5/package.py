@@ -430,7 +430,7 @@ class Hdf5(CMakePackage):
         key = tuple(sorted(query_parameters))
         libraries = query2libraries[key]
 
-        return find_libraries(libraries, root=self.prefix, shared=shared, recursive=True)
+        return find_libraries(libraries, root=self.prefix, shared=shared)
 
     @classmethod
     def determine_version(cls, exe):

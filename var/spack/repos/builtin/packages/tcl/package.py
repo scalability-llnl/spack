@@ -81,7 +81,7 @@ class Tcl(AutotoolsPackage, NMakePackage, SourceforgePackage):
     @property
     def libs(self):
         lib = "lib" if not is_windows else ""
-        return find_libraries([f"{lib}tcl{self._tcl_name}"], root=self.prefix, recursive=True)
+        return find_libraries([f"{lib}tcl{self._tcl_name}"], root=self.prefix)
 
     @property
     def command(self):

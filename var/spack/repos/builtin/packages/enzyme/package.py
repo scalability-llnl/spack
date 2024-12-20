@@ -58,7 +58,7 @@ class Enzyme(CMakePackage):
         if self.version >= Version("0.0.32"):  # TODO actual lower bound
             libs.append("LLDEnzyme-{0}".format(ver))
 
-        return find_libraries(libs, root=self.prefix, recursive=True)
+        return find_libraries(libs, root=self.prefix)
 
     def setup_dependent_build_environment(self, env, dependent_spec):
         # Get the LLVMEnzyme and ClangEnzyme lib paths

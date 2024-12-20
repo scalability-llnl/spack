@@ -78,15 +78,15 @@ class Egl(BundlePackage):
     @property
     def egl_headers(self):
         header_name = "GL/gl"
-        gl_header = find_headers(header_name, root=self.prefix, recursive=True)
+        gl_header = find_headers(header_name, root=self.prefix)
         header_name = "EGL/egl"
-        egl_header = find_headers(header_name, root=self.prefix, recursive=True)
+        egl_header = find_headers(header_name, root=self.prefix)
         return gl_header + egl_header
 
     @property
     def egl_libs(self):
         lib_name = "libGL"
-        gl_lib = find_libraries(lib_name, root=self.prefix, recursive=True)
+        gl_lib = find_libraries(lib_name, root=self.prefix)
         lib_name = "libEGL"
-        egl_lib = find_libraries(lib_name, root=self.prefix, recursive=True)
+        egl_lib = find_libraries(lib_name, root=self.prefix)
         return gl_lib + egl_lib

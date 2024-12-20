@@ -117,7 +117,7 @@ class Met(AutotoolsPackage):
         bufr = spec["bufr"]
         shared_bufr = True if "+shared" in bufr else False
         bufr_libdir = find_libraries(
-            "libbufr_4", root=bufr.prefix, shared=shared_bufr, recursive=True
+            "libbufr_4", root=bufr.prefix, shared=shared_bufr
         ).directories[0]
         env.set("BUFRLIB_NAME", "-lbufr_4")
         env.set("MET_BUFRLIB", bufr_libdir)

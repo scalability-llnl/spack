@@ -152,7 +152,7 @@ class Atlas(Package):
             )
             to_find = ["liblapack"] + interfaces + ["libatlas"]
             shared = False
-        return find_libraries(to_find, root=self.prefix, shared=shared, recursive=True)
+        return find_libraries(to_find, root=self.prefix, shared=shared)
 
     def install_test(self):
         source_file = join_path(os.path.dirname(self.module.__file__), "test_cblas_dgemm.c")

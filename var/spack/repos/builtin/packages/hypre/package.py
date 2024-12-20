@@ -434,5 +434,5 @@ class Hypre(AutotoolsPackage, CudaPackage, ROCmPackage):
         Sample usage: spec['hypre'].libs.ld_flags
         """
         is_shared = self.spec.satisfies("+shared")
-        libs = find_libraries("libHYPRE", root=self.prefix, shared=is_shared, recursive=True)
+        libs = find_libraries("libHYPRE", root=self.prefix, shared=is_shared)
         return libs or None

@@ -166,4 +166,4 @@ class Elfutils(AutotoolsPackage, SourcewarePackage):
     # Provide location of libelf.so to match libelf.
     @property
     def libs(self):
-        return find_libraries("libelf", self.prefix, recursive=True)
+        return find_libraries("libelf", self.prefix)

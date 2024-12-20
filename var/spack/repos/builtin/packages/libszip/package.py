@@ -30,7 +30,7 @@ class Libszip(AutotoolsPackage):
     def libs(self):
         shared = "static" not in self.spec.last_query.extra_parameters
 
-        libs = find_libraries("libsz", root=self.prefix, shared=shared, recursive=True)
+        libs = find_libraries("libsz", root=self.prefix, shared=shared)
 
         if not libs:
             msg = "Unable to recursively locate {0} {1} libraries in {2}"

@@ -217,7 +217,7 @@ class Glib(MesonPackage, AutotoolsPackage):
 
     @property
     def libs(self):
-        return find_libraries(["libglib*"], root=self.prefix, recursive=True)
+        return find_libraries(["libglib*"], root=self.prefix)
 
 
 class AnyBuilder(BaseBuilder):
