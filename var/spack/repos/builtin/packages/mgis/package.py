@@ -71,6 +71,7 @@ class Mgis(CMakePackage):
     depends_on("tfel@3.3.0", when="@1.1")
     depends_on("tfel@3.2.1", when="@1.0.1")
     depends_on("tfel@3.2.0", when="@1.0")
+    depends_on("tfel@rliv-5.0", when="@rliv-3.0")
     depends_on("tfel@rliv-4.2", when="@rliv-2.2")
     depends_on("tfel@rliv-4.1", when="@rliv-2.1")
     depends_on("tfel@rliv-4.0", when="@rliv-2.0")
@@ -78,10 +79,19 @@ class Mgis(CMakePackage):
     depends_on("tfel@rliv-3.3", when="@rliv-1.1")
     depends_on("tfel@rliv-3.2", when="@rliv-1.0")
     depends_on("tfel@master", when="@master")
-    depends_on(
-        "boost+python+numpy+exception+container", when="+python", type=("build", "link", "run")
-    )
+
     depends_on("py-numpy", when="+python", type=("build", "link", "run"))
+    with when("@3.1:"):
+        depends_on(
+            "py-pybind11",
+            when="+python_bindings",
+            type=("build", "link", "run"),
+        )
+
+    with when("@1.0:3.0.99"):
+        depends_on(
+            "boost+python+numpy+exception+container", when="+python", type=("build", "link", "run")
+        )
 
     extends("python", when="+python")
 
