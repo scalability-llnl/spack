@@ -5,6 +5,7 @@
 
 import os
 import os.path
+
 import pytest
 
 import llnl.util.filesystem as fs
@@ -15,6 +16,7 @@ import spack.environment as ev
 import spack.error
 import spack.main
 import spack.paths
+import spack.platforms
 import spack.util.executable as exe
 import spack.util.git
 
