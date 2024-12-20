@@ -29,7 +29,7 @@ level = "long"
 
 
 # Tarball to be downloaded if binary packages are requested in a local mirror
-BINARY_TARBALL = "https://github.com/spack/spack-bootstrap-mirrors/releases/download/v0.4/bootstrap-buildcache.tar.gz"
+BINARY_TARBALL = "https://github.com/spack/spack-bootstrap-mirrors/releases/download/v0.5/bootstrap-buildcache.tar.gz"
 
 #: Subdirectory where to create the mirror
 LOCAL_MIRROR_DIR = "bootstrap_cache"
@@ -51,9 +51,9 @@ BINARY_METADATA = {
     },
 }
 
-CLINGO_JSON = "$spack/share/spack/bootstrap/github-actions-v0.4/clingo.json"
-GNUPG_JSON = "$spack/share/spack/bootstrap/github-actions-v0.4/gnupg.json"
-PATCHELF_JSON = "$spack/share/spack/bootstrap/github-actions-v0.4/patchelf.json"
+CLINGO_JSON = "$spack/share/spack/bootstrap/github-actions-v0.5/clingo.json"
+GNUPG_JSON = "$spack/share/spack/bootstrap/github-actions-v0.5/gnupg.json"
+PATCHELF_JSON = "$spack/share/spack/bootstrap/github-actions-v0.5/patchelf.json"
 
 # Metadata for a generated source mirror
 SOURCE_METADATA = {
@@ -342,11 +342,21 @@ def _add(args):
     file = os.path.join(metadata_dir, "metadata.yaml")
     if not os.path.exists(file):
         raise RuntimeError('the file "{0}" does not exist'.format(file))
+    # Update the new mirror's metadata: replace relative
+    # paths (urls) with absolute paths.
+    with open(file, mode="r", encoding="utf-8") as f:
+        metadata = spack.util.spack_yaml.load(stream=f)
+    metadata['info']['url'] = spack.util.path.canonicalize_path(
+        metadata['info']['url'],
+        default_wd=metadata_dir
+    )
+    with open(file, mode="w", encoding="utf-8") as f:
+        spack.util.spack_yaml.dump(metadata, stream=f)
 
     # Insert the new source as the highest priority one
     write_scope = args.scope or spack.config.default_modify_scope(section="bootstrap")
     sources = spack.config.get("bootstrap:sources", scope=write_scope) or []
-    sources = [{"name": args.name, "metadata": args.metadata_dir}] + sources
+    sources = [{"name": args.name, "metadata": metadata_dir}] + sources
     spack.config.set("bootstrap:sources", sources, scope=write_scope)
 
     msg = 'New bootstrapping source "{0}" added in the "{1}" configuration scope'
