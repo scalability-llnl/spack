@@ -1,8 +1,10 @@
 import argparse
 import os
+import tempfile
 
 from llnl.util.lang import dedupe
 
+import spack.database as db
 import spack.environment as ev
 import spack.environment.shell
 import spack.paths
@@ -23,6 +25,15 @@ def main():
     generate_module(args)
 
 
+def _associate_specs(specs):
+    with tempfile.TemporaryDirectory() as temp_dir:
+        database = db.Database(temp_dir)
+        for spec in specs:
+            database.add(spec, directory_layout=None)
+        database._read()
+        return set(database.query())
+
+
 def generate_module(args):
     env_mods = EnvironmentModifications()
 
@@ -38,7 +49,9 @@ def generate_module(args):
         env_mods.extend(uenv.unconditional_environment_modifications(descriptor))
         view = descriptor.view(new=view_input)
         specs_to_consider = list(view.get_all_specs())
-        specs_to_consider.sort(key=lambda s: len(list(s.traverse())))
+
+        specs_to_consider = _associate_specs(specs_to_consider)
+
         env_mods.extend(
             uenv.environment_modifications_for_specs(*specs_to_consider, view=view)
         )
