@@ -157,13 +157,9 @@ class Tfel(CMakePackage):
     depends_on("py-numpy", when="+python_bindings", type=("build", "link", "run"))
 
     with when("@5.1:"):
-        depends_on(
-            "py-pybind11",
-            when="+python_bindings",
-            type=("build", "link", "run"),
-        )
+        depends_on("py-pybind11", when="+python_bindings", type=("build", "link", "run"))
         
-    with @when("@2.0.4:5.0.99"):
+    with when("@2.0.4:5.0.99"):
         # As boost+py has py runtime dependency, boost+py needs types link and run as well:
         depends_on(
             "boost+python+numpy+exception+container",

@@ -82,11 +82,7 @@ class Mgis(CMakePackage):
 
     depends_on("py-numpy", when="+python", type=("build", "link", "run"))
     with when("@3.1:"):
-        depends_on(
-            "py-pybind11",
-            when="+python_bindings",
-            type=("build", "link", "run"),
-        )
+        depends_on("py-pybind11", when="+python_bindings", type=("build", "link", "run"))
 
     with when("@1.0:3.0.99"):
         depends_on(
