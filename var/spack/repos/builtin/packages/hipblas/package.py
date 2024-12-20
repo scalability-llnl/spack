@@ -18,13 +18,14 @@ class Hipblas(CMakePackage, CudaPackage, ROCmPackage):
     url = "https://github.com/ROCm/hipBLAS/archive/rocm-6.0.2.tar.gz"
     tags = ["rocm"]
 
-    maintainers("cgmb", "srekolam", "renjithravindrankannath", "haampie")
+    maintainers("cgmb", "srekolam", "renjithravindrankannath", "haampie", "afzpatel")
     libraries = ["libhipblas"]
 
     license("MIT")
 
     version("develop", branch="develop")
     version("master", branch="master")
+    version("6.3.0", sha256="72604c1896e42e65ea2b3e905159af6ec5eede6a353678009c47d0a24f462c92")
     version("6.2.4", sha256="3137ba35e0663d6cceed70086fc6397d9e74803e1711382be62809b91beb2f32")
     version("6.2.1", sha256="b770b6ebd27d5c12ad01827195e996469bfc826e8a2531831df475fc8d7f6b2e")
     version("6.2.0", sha256="33688a4d929b13e1fd800aff7e0833a9f7abf3913754b6b15995595e0d434e94")
@@ -76,10 +77,11 @@ class Hipblas(CMakePackage, CudaPackage, ROCmPackage):
 
     patch("remove-hipblas-clients-file-installation.patch", when="@5.5:5.7.1")
     patch("remove-hipblas-clients-file-installation-6.0.patch", when="@6.0:")
+    patch("modify-hipblas-common-dependency.patch", when="@6.3:")
 
     depends_on("rocm-cmake@5.2.0:", type="build", when="@5.2.0:5.7")
     depends_on("rocm-cmake@4.5.0:", type="build")
-    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4"]:
+    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4", "6.3.0"]:
         depends_on(f"rocm-cmake@{ver}", when=f"+rocm @{ver}")
         depends_on(f"rocm-openmp-extras@{ver}", type="test", when=f"+rocm @{ver}")
 
@@ -104,6 +106,7 @@ class Hipblas(CMakePackage, CudaPackage, ROCmPackage):
         "6.2.0",
         "6.2.1",
         "6.2.4",
+        "6.3.0",
         "master",
         "develop",
     ]:
@@ -112,6 +115,8 @@ class Hipblas(CMakePackage, CudaPackage, ROCmPackage):
     for tgt in ROCmPackage.amdgpu_targets:
         depends_on(f"rocblas amdgpu_target={tgt}", when=f"+rocm amdgpu_target={tgt}")
         depends_on(f"rocsolver amdgpu_target={tgt}", when=f"+rocm amdgpu_target={tgt}")
+
+    depends_on("hipblas-common@6.3.0", when="@6.3.0")
 
     @classmethod
     def determine_version(cls, lib):

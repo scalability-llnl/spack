@@ -27,6 +27,7 @@ class Mivisionx(CMakePackage):
 
     license("MIT")
 
+    version("6.3.0", sha256="bc16881eae11140025b8fbd00bc741763548d41345dbe954c8d8659f4dccfe9e")
     version("6.2.4", sha256="7e65dc83f1b85e089c1218dff57211e64f3586bcb4415bda4798e4a434cba216")
     version("6.2.1", sha256="591fe23ee1e2ab49f29aeeb835b5045e4ba00165c604ddfaa26bd8eb56cb367d")
     version("6.2.0", sha256="ce28ac3aef76f28869c4dad9ffd9ef090e0b54ac58088f1f1eef803641125b51")
@@ -228,6 +229,7 @@ class Mivisionx(CMakePackage):
             "6.2.0",
             "6.2.1",
             "6.2.4",
+            "6.3.0",
         ]:
             depends_on(f"miopen-hip@{ver}", when=f"@{ver}")
         for ver in [
@@ -248,6 +250,7 @@ class Mivisionx(CMakePackage):
             "6.2.0",
             "6.2.1",
             "6.2.4",
+            "6.3.0",
         ]:
             depends_on(f"migraphx@{ver}", when=f"@{ver}")
             depends_on(f"hip@{ver}", when=f"@{ver}")
@@ -267,6 +270,7 @@ class Mivisionx(CMakePackage):
         "6.2.0",
         "6.2.1",
         "6.2.4",
+        "6.3.0",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
         depends_on("python@3.5:", type="build")
@@ -282,6 +286,7 @@ class Mivisionx(CMakePackage):
         "6.2.0",
         "6.2.1",
         "6.2.4",
+        "6.3.0",
     ]:
         depends_on(f"rpp@{ver}", when=f"@{ver}")
 

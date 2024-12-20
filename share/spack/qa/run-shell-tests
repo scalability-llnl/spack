@@ -36,7 +36,7 @@ export QA_DIR=$(realpath $QA_DIR)
 cd "$SPACK_ROOT"
 
 # Run bash tests with coverage enabled, but pipe output to /dev/null
-# because it seems that kcov seems to undo the script's redirection
+# because it seems that kcov undoes the script's redirection
 if [ "$COVERAGE" = true ]; then
     kcov "$SPACK_ROOT/coverage" "$QA_DIR/setup-env-test.sh" &> /dev/null
     kcov "$SPACK_ROOT/coverage" "$QA_DIR/completion-test.sh" &> /dev/null

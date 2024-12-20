@@ -16,13 +16,14 @@ class Rocblas(CMakePackage):
     url = "https://github.com/ROCm/rocBLAS/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
-    maintainers("cgmb", "srekolam", "renjithravindrankannath", "haampie")
+    maintainers("cgmb", "srekolam", "renjithravindrankannath", "haampie", "afzpatel")
     libraries = ["librocblas"]
 
     license("MIT")
 
     version("develop", branch="develop")
     version("master", branch="master")
+    version("6.3.0", sha256="051f53bb69a9aba55a0c66c32688bf6af80e29e4a6b56b380b3c427e7a6aff9d")
     version("6.2.4", sha256="8bacf74e3499c445f1bb0a8048df1ef3ce6f72388739b1823b5784fd1e8aa22a")
     version("6.2.1", sha256="cf3bd7b47694f95f387803191615e2ff5c1106175473be7a5b2e8eb6fb99179f")
     version("6.2.0", sha256="184e9b39dcbed57c25f351b047d44c613f8a2bbab3314a20c335f024a12ad4e5")
@@ -85,10 +86,11 @@ class Rocblas(CMakePackage):
         "6.2.0",
         "6.2.1",
         "6.2.4",
+        "6.3.0",
     ]:
         depends_on(f"rocm-openmp-extras@{ver}", type="test", when=f"@{ver}")
 
-    for ver in ["6.2.0", "6.2.1", "6.2.4"]:
+    for ver in ["6.2.0", "6.2.1", "6.2.4", "6.3.0"]:
         depends_on(f"rocm-smi-lib@{ver}", type="test", when=f"@{ver}")
 
     depends_on("rocm-cmake@master", type="build", when="@master:")
@@ -112,12 +114,14 @@ class Rocblas(CMakePackage):
         "6.2.0",
         "6.2.1",
         "6.2.4",
+        "6.3.0",
     ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"llvm-amdgpu@{ver}", type="build", when=f"@{ver}")
         depends_on(f"rocminfo@{ver}", type="build", when=f"@{ver}")
         depends_on(f"rocm-cmake@{ver}", type="build", when=f"@{ver}")
 
+    depends_on("hipblaslt@6.3.0", when="@6.3.0")
     depends_on("python@3.6:", type="build")
 
     with when("+tensile"):
@@ -151,6 +155,7 @@ class Rocblas(CMakePackage):
         ("@6.2.0", "dbc2062dced66e4cbee8e0591d76e0a1588a4c70"),
         ("@6.2.1", "dbc2062dced66e4cbee8e0591d76e0a1588a4c70"),
         ("@6.2.4", "81ae9537671627fe541332c0a5d953bfd6af71d6"),
+        ("@6.3.0", "aca95d1743c243dd0dd0c8b924608bc915ce1ae7"),
     ]:
         resource(
             name="Tensile",
@@ -216,9 +221,13 @@ class Rocblas(CMakePackage):
 
         if "+tensile" in self.spec:
             tensile_path = join_path(self.stage.source_path, "Tensile")
+            if self.spec.satisfies("@:6.2"):
+                tensile_compiler = "hipcc"
+            else:
+                tensile_compiler = "amdclang++"
             args += [
                 self.define("Tensile_TEST_LOCAL_PATH", tensile_path),
-                self.define("Tensile_COMPILER", "hipcc"),
+                self.define("Tensile_COMPILER", tensile_compiler),
                 self.define("Tensile_LOGIC", "asm_full"),
                 self.define("BUILD_WITH_TENSILE_HOST", "@3.7.0:" in self.spec),
                 self.define("Tensile_LIBRARY_FORMAT", "msgpack"),
@@ -245,7 +254,6 @@ class Rocblas(CMakePackage):
             args.append(self.define("Tensile_CODE_OBJECT_VERSION", "V3"))
         else:
             args.append(self.define("Tensile_CODE_OBJECT_VERSION", "default"))
-
         return args
 
     @run_after("build")

@@ -36,6 +36,9 @@ spack:
           - for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/ | grep armpl | awk '{print $4}' | sed -e 's?^.*build_cache/??g'); do aws s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/$i; done
   cdash:
     build-group: AWS Packages
+  config:
+    shared_linking:
+      missing_library_policy: ignore  # due to use of externals
   compilers:
   - compiler:
       environment: {}

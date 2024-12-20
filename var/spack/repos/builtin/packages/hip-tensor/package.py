@@ -17,6 +17,7 @@ class HipTensor(CMakePackage, ROCmPackage):
     maintainers("srekolam", "afzpatel")
 
     version("master", branch="master")
+    version("6.3.0", sha256="9a4acef722e838ec702c6b111ebc1fff9d5686ae5c79a9f5a82e5fac2a5e406a")
     version("6.2.4", sha256="54c378b440ede7a07c93b5ed8d16989cc56283a56ea35e41f3666bb05b6bc984")
     version("6.2.1", sha256="592dbe73f5f95ba512f7fbe9975a68dbea85846be74da15344d74952b286f243")
     version("6.2.0", sha256="adb7459416864fb2664064f5bea5fb669839247b702209a6415b396813626b31")
@@ -42,12 +43,13 @@ class HipTensor(CMakePackage, ROCmPackage):
         "6.2.0",
         "6.2.1",
         "6.2.4",
+        "6.3.0",
         "master",
     ]:
         depends_on(f"composable-kernel@{ver}", when=f"@{ver}")
         depends_on(f"rocm-cmake@{ver}", when=f"@{ver}")
 
-    for ver in ["6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4"]:
+    for ver in ["6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4", "6.3.0"]:
         depends_on(f"hipcc@{ver}", when=f"@{ver}")
 
     def setup_build_environment(self, env):

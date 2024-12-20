@@ -34,6 +34,7 @@ properties: Dict[str, Any] = {
                         "properties": {
                             "type": {"type": "string", "enum": ["rpath", "runpath"]},
                             "bind": {"type": "boolean"},
+                            "missing_library_policy": {"enum": ["error", "warn", "ignore"]},
                         },
                     },
                 ]

@@ -602,3 +602,6 @@ class Tau(Package):
         ):
             rocm_test_dir = join_path(self.test_suite.current_test_cache_dir, self.rocm_test)
             self._run_rocm_test("test_rocm", "Testing rocm", rocm_test_dir)
+
+    # tau contains various prebuilt binaries with missing system dependencies
+    unresolved_libraries = ["*"]
