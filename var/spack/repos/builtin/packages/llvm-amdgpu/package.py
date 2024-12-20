@@ -25,6 +25,7 @@ class LlvmAmdgpu(CMakePackage, CompilerPackage):
     license("Apache-2.0")
 
     version("master", branch="amd-stg-open")
+    version("6.3.0", sha256="79580508b039ca6c50dfdfd7c4f6fbcf489fe1931037ca51324818851eea0c1c")
     version("6.2.4", sha256="7af782bf5835fcd0928047dbf558f5000e7f0207ca39cf04570969343e789528")
     version("6.2.1", sha256="4840f109d8f267c28597e936c869c358de56b8ad6c3ed4881387cf531846e5a7")
     version("6.2.0", sha256="12ce17dc920ec6dac0c5484159b3eec00276e4a5b301ab1250488db3b2852200")
@@ -159,6 +160,7 @@ class LlvmAmdgpu(CMakePackage, CompilerPackage):
         when="@master +rocm-device-libs",
     )
     for d_version, d_shasum in [
+        ("6.3.0", "8fd6bcd6a5afd0ae5a59e33b786a525f575183d38c34049c2dab6b9270a1ca3b"),
         ("6.2.4", "b7aa0055855398d1228c39a6f4feb7d7be921af4f43d82855faf0b531394bb9b"),
         ("6.2.1", "dbe477b323df636f5e3221471780da156c938ec00dda4b50639aa8d7fb9248f4"),
         ("6.2.0", "c98090041fa56ca4a260709876e2666f85ab7464db9454b177a189e1f52e0b1a"),
@@ -268,8 +270,13 @@ class LlvmAmdgpu(CMakePackage, CompilerPackage):
             comgrinc_path = os.path.join(self.stage.source_path, "comgr/lib/comgr/include")
         elif self.spec.satisfies("@6.1:"):
             comgrinc_path = os.path.join(self.stage.source_path, "amd/comgr/include")
-        if self.spec.satisfies("@5.6.0:"):
+        if self.spec.satisfies("@5.6.0:6.2"):
             hsainc_path = os.path.join(self.stage.source_path, "hsa-runtime/src/inc")
+        if self.spec.satisfies("@6.3:"):
+            hsainc_path = os.path.join(
+                self.stage.source_path, "hsa-runtime/runtime/hsa-runtime/inc"
+            )
+        if self.spec.satisfies("@5.6.0:"):
             args.append("-DSANITIZER_HSA_INCLUDE_PATH={0}".format(hsainc_path))
             args.append("-DSANITIZER_COMGR_INCLUDE_PATH={0}".format(comgrinc_path))
             args.append("-DSANITIZER_AMDGPU:Bool=ON")

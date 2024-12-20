@@ -17,6 +17,7 @@ class Hipblaslt(CMakePackage):
     maintainers("srekolam", "afzpatel", "renjithravindrankannath")
 
     license("MIT")
+    version("6.3.0", sha256="e570996037ea42eeca4c9b8b0b77a202d40be1a16068a6245595c551d80bdcad")
     version("6.2.4", sha256="b8a72cb1ed4988b0569817c6387fb2faee4782795a0d8f49b827b32b52572cfd")
     version("6.2.1", sha256="9b062b1d6d945349c31828030c8c1d99fe57d14a1837196ff9aa67bf10ef43f1")
     version("6.2.0", sha256="aec9edc75ae4438aa712192c784e2bed683d2839b502b6aadb18f6012306749b")
@@ -38,13 +39,19 @@ class Hipblaslt(CMakePackage):
     )
     variant("asan", default=False, description="Build with address-sanitizer enabled or disabled")
 
-    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4"]:
+    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4", "6.3.0"]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
-        depends_on(f"hipblas@{ver}", when=f"@{ver}")
+        depends_on(f"llvm-amdgpu@{ver}", when=f"@{ver}")
         depends_on(f"rocm-openmp-extras@{ver}", type="test", when=f"@{ver}")
 
+    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4"]:
+        depends_on(f"hipblas@{ver}", when=f"@{ver}")
+
+    depends_on("hipblas-common@6.3.0", when="@6.3.0")
+    depends_on("rocm-smi-lib@6.3.0", when="@6.3.0")
+
     depends_on("msgpack-c")
-    depends_on("py-joblib")
+    depends_on("py-joblib", type=("build", "link"))
     depends_on("googletest@1.10.0:", type="test")
     depends_on("netlib-lapack@3.7.1:", type="test")
     depends_on("py-pyyaml", type="test")
@@ -55,9 +62,38 @@ class Hipblaslt(CMakePackage):
     # Below patch sets the proper path for clang++ and clang-offload-blunder.
     # Also adds hipblas and msgpack include directories for 6.1.0 release.
     patch("0001-Set-LLVM_Path-Add-Hiblas-Include-to-CmakeLists-6.1.Patch", when="@6.1:6.2")
+    patch("0001-Set-LLVM-Path-6.3.Patch", when="@6.3:")
 
     def setup_build_environment(self, env):
         env.set("CXX", self.spec["hip"].hipcc)
+        if self.spec.satisfies("@6.3.0:"):
+            env.set(
+                "TENSILE_ROCM_ASSEMBLER_PATH", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang++"
+            )
+            env.set(
+                "TENSILE_ROCM_OFFLOAD_BUNDLER_PATH",
+                f"{self.spec['llvm-amdgpu'].prefix}/bin/clang-offload-bundler",
+            )
+            env.set("ROCM_SMI_PATH", f"{self.spec['rocm-smi-lib'].prefix}/bin/rocm-smi")
+            env.set(
+                "ROCM_AGENT_ENUMERATOR_PATH",
+                f"{self.spec['rocminfo'].prefix}/bin/rocm_agent_enumerator",
+            )
+
+    def patch(self):
+        if self.spec.satisfies("@6.3:"):
+            filter_file(
+                "${rocm_path}/llvm/bin",
+                self.spec["llvm-amdgpu"].prefix.bin,
+                "tensilelite/Tensile/Ops/gen_assembly.sh",
+                string=True,
+            )
+            filter_file(
+                "${rocm_path}/bin/amdclang++",
+                f'{self.spec["llvm-amdgpu"].prefix}/bin/amdclang++',
+                "library/src/amd_detail/rocblaslt/src/kernels/compile_code_object.sh",
+                string=True,
+            )
 
     def cmake_args(self):
         args = [
