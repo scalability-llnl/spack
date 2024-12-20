@@ -163,11 +163,25 @@ class Gaudi(CMakePackage):
             args.append(self.define("GAUDI_CXX_STANDARD", "20"))
         return args
 
+    @property
+    def gaudi_library_path(self):
+        # Where possible, we do not use LD_LIBRARY_PATH as that is non-portable
+        # and pollutes the standard library-loading mechanisms on Linux systems.
+        # Unfortunately for now DD4HEP doesn't have a better alternative.
+        # TODO: this may be GAUDI_LIBRARY_PATH on newer versions of Gaudi on
+        # macOS.
+        return "LD_LIBRARY_PATH"
+
     def setup_run_environment(self, env):
         # environment as in Gaudi.xenv
         env.prepend_path("PATH", self.prefix.scripts)
         env.prepend_path("PYTHONPATH", self.prefix.python)
+
         # Note: ROOT dependency automatically sets up ROOT environment vars
+
+        # ...but Gaudi additionally requires a path variable about itself
+        for d in self.libs.directories:
+            env.prepend_path(self.gaudi_library_path, d)
 
     def url_for_version(self, version):
         major = str(version[0])
