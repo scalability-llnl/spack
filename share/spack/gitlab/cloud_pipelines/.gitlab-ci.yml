@@ -428,6 +428,30 @@ developer-tools-x86_64_v3-linux-gnu-build:
 
 ###########################################
 # Build tests for different developer tools
+# aarch64
+###########################################
+.developer-tools-aarch64-linux-gnu:
+  extends: [ ".linux_aarch64" ]
+  variables:
+    SPACK_CI_STACK_NAME: developer-tools-aarch64-linux-gnu
+
+developer-tools-aarch64-linux-gnu-generate:
+  extends: [ ".developer-tools-aarch64-linux-gnu", ".generate-aarch64"]
+  image:  ghcr.io/spack/aarch64-linux-gnu:v2024-12-18
+
+developer-tools-aarch64-linux-gnu-build:
+  extends: [ ".developer-tools-aarch64-linux-gnu", ".build" ]
+  trigger:
+    include:
+      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
+        job: developer-tools-aarch64-linux-gnu-generate
+    strategy: depend
+  needs:
+    - artifacts: True
+      job: developer-tools-aarch64-linux-gnu-generate
+
+###########################################
+# Build tests for different developer tools
 # darwin
 ###########################################
 .developer-tools-darwin:
