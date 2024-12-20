@@ -114,7 +114,7 @@ _double_compiler_definition = [
         ),
     ],
 )
-def test_config_audits(config_section, data, failing_check):
+def test_config_audits(config_section, data, failing_check, mock_packages):
     with spack.config.override(config_section, data):
         reports = spack.audit.run_group("configs")
         assert any((check == failing_check) and errors for check, errors in reports)
