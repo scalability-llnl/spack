@@ -538,6 +538,10 @@ def ensure_patchelf_in_path_or_raise() -> spack.util.executable.Executable:
         )
 
 
+def re2c_root_spec() -> str:
+    """Return the root spec used to bootstrap re2c"""
+    return _root_spec("re2c@3.0:")
+
 def ensure_winsdk_external_or_raise() -> None:
     """Ensure the Windows SDK + WGL are available on system
     If both of these package are found, the Spack user or bootstrap
@@ -585,7 +589,7 @@ def ensure_core_dependencies() -> None:
 
 def all_core_root_specs() -> List[str]:
     """Return a list of all the core root specs that may be used to bootstrap Spack"""
-    return [clingo_root_spec(), gnupg_root_spec(), patchelf_root_spec(), file_root_spec()]
+    return [clingo_root_spec(), gnupg_root_spec(), patchelf_root_spec(), file_root_spec(), re2c_root_spec()]
 
 
 def bootstrapping_sources(scope: Optional[str] = None):
