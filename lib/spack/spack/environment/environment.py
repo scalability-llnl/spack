@@ -2929,7 +2929,7 @@ class EnvironmentManifestFile(collections.abc.Mapping):
         required_paths = list()
         for entry in includes:
             info = spack.config.included_path(entry)
-            include_path = info.path
+            path = info.path
             optional = info.optional
             when = info.when
 

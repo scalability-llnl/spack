@@ -2129,6 +2129,7 @@ def mock_test_cache(tmp_path_factory):
     print(cache_dir)
     return spack.util.file_cache.FileCache(str(cache_dir))
 
+
 @pytest.fixture()
 def write_config_file(tmpdir):
     """Returns a function that writes a config file."""
