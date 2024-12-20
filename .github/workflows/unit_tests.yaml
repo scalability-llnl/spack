@@ -15,17 +15,17 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
         on_develop:
         - ${{ github.ref == 'refs/heads/develop' }}
         include:
         - python-version: '3.6'
           os: ubuntu-20.04
           on_develop: ${{ github.ref == 'refs/heads/develop' }}
-        exclude:
         - python-version: '3.7'
-          os: ubuntu-latest
-          on_develop: false
+          os: ubuntu-22.04
+          on_develop: ${{ github.ref == 'refs/heads/develop' }}
+        exclude:
         - python-version: '3.8'
           os: ubuntu-latest
           on_develop: false
