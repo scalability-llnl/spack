@@ -21,12 +21,6 @@ class Evtgen(CMakePackage):
     version("02.02.01", sha256="1fcae56c6b27b89c4a2f4b224d27980607442185f5570e961f6334a3543c6e77")
     version("02.02.00", sha256="0c626e51cb17e799ad0ffd0beea5cb94d7ac8a5f8777b746aa1944dd26071ecf")
     version("02.00.00", sha256="02372308e1261b8369d10538a3aa65fe60728ab343fcb64b224dac7313deb719")
-    # switched to cmake in 02.00.00
-    version(
-        "01.07.00",
-        sha256="2648f1e2be5f11568d589d2079f22f589c283a2960390bbdb8d9d7f71bc9c014",
-        deprecated=True,
-    )
 
     depends_on("cxx", type="build")  # generated
 
@@ -36,7 +30,6 @@ class Evtgen(CMakePackage):
     variant("sherpa", default=False, description="build with sherpa")
     variant("hepmc3", default=False, description="Link with hepmc3 (instead of hepmc)")
 
-    patch("g2c.patch", when="@01.07.00")
     patch("evtgen-2.0.0.patch", when="@02.00.00 ^pythia8@8.304:")
 
     depends_on("hepmc", when="~hepmc3")
@@ -58,7 +51,6 @@ class Evtgen(CMakePackage):
         "that cannot be resolved at the moment! "
         "Use evtgen+pythia8^pythia8~evtgen.",
     )
-    conflicts("+hepmc3", when="@:01", msg="hepmc3 support was added in 02.00.00")
 
     @property
     def root_cmakelists_dir(self):
@@ -90,51 +82,6 @@ class Evtgen(CMakePackage):
             return
 
         filter_file("-shared", "-dynamiclib -undefined dynamic_lookup", "make.inc")
-
-    # Taken from AutotoolsPackage
-    def configure(self, spec, prefix):
-        """Runs configure with the arguments specified in
-        :py:meth:`~.AutotoolsPackage.configure_args`
-        and an appropriately set prefix.
-        """
-        options = getattr(self, "configure_flag_args", [])
-        options += ["--prefix={0}".format(prefix)]
-        options += self.configure_args()
-
-        with working_dir(self.build_directory, create=True):
-            configure(*options)
-
-    @when("@:01")
-    def configure_args(self):
-        args = []
-
-        args.append("--hepmcdir=%s" % self.spec["hepmc"].prefix)
-        if self.spec.satisfies("+pythia8"):
-            args.append("--pythiadir=%s" % self.spec["pythia8"].prefix)
-        if self.spec.satisfies("+photos"):
-            args.append("--photosdir=%s" % self.spec["photos"].prefix)
-        if self.spec.satisfies("+tauola"):
-            args.append("--tauoladir=%s" % self.spec["tauola"].prefix)
-
-        return args
-
-    @when("@:01")
-    def cmake(self, spec, prefix):
-        pass
-
-    @when("@:01")
-    def build(self, spec, prefix):
-        self.configure(spec, prefix)
-        # avoid parallel compilation errors
-        # due to libext_shared depending on lib_shared
-        with working_dir(self.build_directory):
-            make("lib_shared")
-            make("all")
-
-    @when("@:01")
-    def install(self, spec, prefix):
-        with working_dir(self.build_directory):
-            make("install")
 
     def setup_run_environment(self, env):
         env.set("EVTGEN", self.prefix.share)
