@@ -358,7 +358,7 @@ spack:
   # - lbann ~cuda +rocm amdgpu_target=gfx90a    # concretize: Cannot select a single "version" for package "hiptt"
   - legion +rocm amdgpu_target=gfx90a         # kokkos: https://github.com/spack/spack/issues/44832
   # - papi +rocm amdgpu_target=gfx90a           # papi: https://github.com/spack/spack/issues/27898
-  - petsc +rocm amdgpu_target=gfx90a          # petsc: https://github.com/spack/spack/issues/44600
+  # - petsc +rocm amdgpu_target=gfx90a          # petsc: hipblas-6.3.0-brvfa2h47yfpawguzbiac6ijtj3b6bcn/include/hipblas/hipblas.h:40:10: fatal error: 'hipblas-common/hipblas-common.h' file not found
   # - slepc +rocm amdgpu_target=gfx90a ^petsc +rocm amdgpu_target=gfx90a # slepc: ERROR: Unable to link with PETSc
 
   # - cp2k +mpi +cuda cuda_arch=80            # cp2k: libxsmm_gemm.c:238: undefined reference to `sgemv_'
