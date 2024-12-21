@@ -3041,10 +3041,8 @@ class EnvironmentManifestFile(collections.abc.Mapping):
 
     def prepare_config_scope(self) -> None:
         """Add the manifest's scopes to the global configuration search path."""
-        command_line_scope = spack.config.CONFIG.pop_scope()
         for scope in self.env_config_scopes:
             spack.config.CONFIG.push_scope(scope)
-        spack.config.CONFIG.push_scope(command_line_scope)
 
     def deactivate_config_scope(self) -> None:
         """Remove any of the manifest's scopes from the global config path."""
