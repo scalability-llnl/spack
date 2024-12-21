@@ -7,6 +7,7 @@
 import pytest
 
 import spack.environment as ev
+import spack.solver.asp as asp
 from spack import spack_version
 from spack.main import SpackCommand
 
@@ -14,6 +15,7 @@ pytestmark = pytest.mark.usefixtures("mutable_config", "mutable_mock_repo")
 
 env = SpackCommand("env")
 add = SpackCommand("add")
+config = SpackCommand("config")
 concretize = SpackCommand("concretize")
 
 
@@ -58,3 +60,25 @@ def test_concretize_root_test_dependencies_are_concretized(unify, mutable_mock_e
 
         data = e._to_lockfile_dict()
         assert data["spack"]["version"] == spack_version
+
+
+@pytest.mark.regression("48254")
+@pytest.mark.parametrize("unify", unification_strategies)
+def test_concretize_fresh_respected_with_env(unify, mutable_mock_env_path, monkeypatch):
+    """Check that root test dependencies are concretized."""
+    env("create", "test")
+
+    def mock_reusable_fresh(self, specs):
+        assert self.reuse_strategy == asp.ReuseStrategy.NONE
+        return []
+
+    monkeypatch.setattr(
+        asp.ReusableSpecsSelector, "reusable_specs", mock_reusable_fresh
+    )
+
+    with ev.read("test") as e:
+        config("add", "concretizer:reuse:true")
+        e.unify = unify
+        add("pkg-a")
+        add("pkg-b")
+        concretize("--fresh")
