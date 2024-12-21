@@ -798,6 +798,11 @@ class Cuda(Package):
 
         install_shell(*arguments)
 
+        # XLA/JAX expect a lib directory
+        # https://github.com/openxla/xla/blob/main/docs/hermetic_cuda.md
+        if not os.path.exists(prefix.lib) and os.path.exists(prefix.lib64):
+            symlink(prefix.lib64, prefix.lib)
+
         try:
             os.remove("/tmp/cuda-installer.log")
         except OSError:
