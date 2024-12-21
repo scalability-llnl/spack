@@ -4,7 +4,7 @@ spack:
     all:
       require: '%gcc target=x86_64_v3'
   concretizer:
-    unify: true
+    unify: when_possible
     reuse: false
 
   specs:

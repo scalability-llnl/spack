@@ -4,7 +4,7 @@ spack:
     all:
       require: '%gcc target=aarch64'
   concretizer:
-    unify: true
+    unify: when_possible
     reuse: false
 
   specs:
