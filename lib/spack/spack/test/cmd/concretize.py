@@ -72,9 +72,7 @@ def test_concretize_fresh_respected_with_env(unify, mutable_mock_env_path, monke
         assert self.reuse_strategy == asp.ReuseStrategy.NONE
         return []
 
-    monkeypatch.setattr(
-        asp.ReusableSpecsSelector, "reusable_specs", mock_reusable_fresh
-    )
+    monkeypatch.setattr(asp.ReusableSpecsSelector, "reusable_specs", mock_reusable_fresh)
 
     with ev.read("test") as e:
         config("add", "concretizer:reuse:true")
