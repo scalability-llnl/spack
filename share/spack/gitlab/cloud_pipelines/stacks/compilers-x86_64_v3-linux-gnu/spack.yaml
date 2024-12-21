@@ -1,0 +1,24 @@
+spack:
+  view: false
+  packages:
+    all:
+      require: '%gcc target=x86_64_v3'
+  concretizer:
+    unify: true
+    reuse: false
+
+  specs:
+  - gcc@11:11.9
+  - gcc@12:12.9
+  - gcc@13:13.9
+  - gcc@14:14.9
+  - llvm@18:18.9
+  - llvm@19:19.9 +flang
+
+  ci:
+    pipeline-gen:
+    - build-job:
+        image: ghcr.io/spack/x86_64_v3-linux-gnu:2024-12-12
+
+  cdash:
+    build-group: Developer Tools x86_64_v3-linux-gnu
