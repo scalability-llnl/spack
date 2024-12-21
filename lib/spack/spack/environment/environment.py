@@ -3045,7 +3045,7 @@ class EnvironmentManifestFile(collections.abc.Mapping):
         spack.config.CONFIG.pop_scope()
         for scope in self.env_config_scopes:
             spack.config.CONFIG.push_scope(scope)
-        spack.config.CONFIG.push_scope(spack.config.InternalConfigScope("command_line")
+        spack.config.CONFIG.push_scope(spack.config.InternalConfigScope("command_line"))
 
     def deactivate_config_scope(self) -> None:
         """Remove any of the manifest's scopes from the global config path."""
