@@ -436,6 +436,8 @@ class Configuration:
         """Add a higher precedence scope to the Configuration."""
         tty.debug(f"[CONFIGURATION: PUSH SCOPE]: {str(scope)}", level=2)
         self.scopes[scope.name] = scope
+        if "command_line" in self.scopes:
+            self.scopes.move_to_end("command_line")
 
     @_config_mutator
     def pop_scope(self) -> ConfigScope:
