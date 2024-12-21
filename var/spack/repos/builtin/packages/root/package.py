@@ -7,7 +7,7 @@
 import os
 import sys
 
-from spack.util.environment import EnvironmentModifications
+import spack.util.environment
 from spack.operating_systems.mac_os import macos_version
 from spack.package import *
 from spack.util.environment import is_system_path
@@ -827,7 +827,7 @@ class Root(CMakePackage):
             env.unset("MACOSX_DEPLOYMENT_TARGET")
 
     @property
-    def root_library_path(self) -> str:
+    def root_library_path(self):
         # Where possible, we do not use LD_LIBRARY_PATH as that is non-portable
         # and pollutes the standard library-loading mechanisms on Linux systems.
         # The ROOT_LIBRARY_PATH environment variable was added to ROOT 6.26.
@@ -835,18 +835,18 @@ class Root(CMakePackage):
             return "LD_LIBRARY_PATH"
         return "ROOT_LIBRARY_PATH"
 
-    def setup_run_environment(self, env: EnvironmentModifications):
+    def setup_run_environment(self, env):
         env.set("ROOTSYS", self.prefix)
         env.set("ROOT_VERSION", "v{0}".format(self.version.up_to(1)))
         env.prepend_path("PYTHONPATH", self.prefix.lib.root)
         # the following vars are copied from thisroot.sh; silence a cppyy warning
         env.set("CLING_STANDARD_PCH", "none")
         env.set("CPPYY_API_PATH", "none")
-        if self.spec.satisfies("~rpath"):
+        if "+rpath" not in self.spec:
             env.prepend_path(self.root_library_path, self.prefix.lib.root)
 
     def setup_dependent_build_environment(
-        self, env: EnvironmentModifications, dependent_spec
+        self, env: spack.util.environment.EnvironmentModifications, dependent_spec
     ):
         env.set("ROOTSYS", self.prefix)
         env.set("ROOT_VERSION", "v{0}".format(self.version.up_to(1)))
@@ -854,14 +854,14 @@ class Root(CMakePackage):
         env.prepend_path("PATH", self.prefix.bin)
         env.append_path("CMAKE_MODULE_PATH", self.prefix.cmake)
         env.prepend_path("ROOT_INCLUDE_PATH", dependent_spec.prefix.include)
-        if self.spec.satisfies("~rpath"):
+        if "+rpath" not in self.spec:
             env.prepend_path(self.root_library_path, self.prefix.lib.root)
-        if self.spec.satisfies("platform=darwin"):
+        if "platform=darwin" in self.spec:
             # Newer deployment targets cause fatal errors in rootcling
             env.unset("MACOSX_DEPLOYMENT_TARGET")
 
     def setup_dependent_run_environment(
-        self, env: EnvironmentModifications, dependent_spec: Spec
+        self, env: spack.util.environment.EnvironmentModifications, dependent_spec
     ):
         env.prepend_path("ROOT_INCLUDE_PATH", dependent_spec.prefix.include)
         # For dependents that build dictionaries, ROOT needs to know where the
@@ -869,6 +869,6 @@ class Root(CMakePackage):
         # automatically prepending dependent package library paths to
         # ROOT_LIBRARY_PATH (for @6.26:) or LD_LIBRARY_PATH (for older
         # versions).
-        for lib_path in [dependent_spec.prefix.lib, dependent_spec.prefix.lib64]:
+        for lib_path in (dependent_spec.prefix.lib, dependent_spec.prefix.lib64):
             if os.path.exists(lib_path):
                 env.prepend_path(self.root_library_path, lib_path)
