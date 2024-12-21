@@ -800,8 +800,9 @@ class Cuda(Package):
 
         # XLA/JAX expect a lib directory
         # https://github.com/openxla/xla/blob/main/docs/hermetic_cuda.md
-        if not os.path.exists(prefix.lib) and os.path.exists(prefix.lib64):
-            symlink(prefix.lib64, prefix.lib)
+        for directory in [prefix, prefix.extras.CUPTI, prefix.extras.Debugger, prefix.nvvm]:
+            if not os.path.exists(directory.lib) and os.path.exists(directory.lib64):
+                symlink(directory.lib64, directory.lib)
 
         try:
             os.remove("/tmp/cuda-installer.log")
