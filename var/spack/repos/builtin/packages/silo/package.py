@@ -65,6 +65,7 @@ class Silo(AutotoolsPackage):
     variant("hzip", default=True, description="Enable hzip support")
     variant("fpzip", default=True, description="Enable fpzip support")
 
+    depends_on("python", type="build", when="+python")
     depends_on("perl", type="build")
     depends_on("m4", type="build", when="+shared")
     depends_on("autoconf", type="build", when="+shared")
