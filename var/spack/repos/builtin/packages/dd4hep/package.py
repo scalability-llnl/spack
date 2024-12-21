@@ -3,7 +3,9 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import spack.util.environment
+import sys
+
+from spack.util.environment import EnvironmentModifications
 from spack.package import *
 
 
@@ -197,7 +199,7 @@ class Dd4hep(CMakePackage):
         return args
 
     @property
-    def dd4hep_library_path(self):
+    def dd4hep_library_path(self) -> str:
         # Where possible, we do not use LD_LIBRARY_PATH as that is non-portable
         # and pollutes the standard library-loading mechanisms on Linux systems.
         # Unfortunately for now DD4HEP doesn't have a better alternative.
@@ -205,7 +207,7 @@ class Dd4hep(CMakePackage):
         # on macOS, but it's not clear.
         return "LD_LIBRARY_PATH"
 
-    def setup_run_environment(self, env):
+    def setup_run_environment(self, env: EnvironmentModifications):
         # used p.ex. in ddsim to find DDDetectors dir
         env.set("DD4hepINSTALL", self.prefix)
         env.set("DD4HEP", self.prefix.examples)
@@ -220,12 +222,8 @@ class Dd4hep(CMakePackage):
         # Note: ROOT dependency automatically sets up ROOT environment vars
 
     def setup_dependent_run_environment(
-        self, env: spack.util.environment.EnvironmentModifications, dependent_spec: Spec
+        self, env: EnvironmentModifications, dependent_spec: Spec
     ):
-        # dd4hep relies on library search paths to load plugin ".component"
-        # files
-        env.prepend_path("LD_LIBRARY_PATH", dependent_spec.prefix.include)
-
         # For dependents that define plugins, DD4HEP needs to know their
         # location.
         for d in [dependent_spec.prefix.lib, dependent_spec.prefix.lib64]:
