@@ -437,7 +437,10 @@ class Configuration:
         tty.debug(f"[CONFIGURATION: PUSH SCOPE]: {str(scope)}", level=2)
         self.scopes[scope.name] = scope
         if "command_line" in self.scopes:
-            self.scopes.move_to_end("command_line")
+            # TODO when we drop 3.6
+            # self.scopes.move_to_end("command_line")
+            # hacky implementation for now
+            self.scopes["command_line"] = self.remove_scope("command_line")
 
     @_config_mutator
     def pop_scope(self) -> ConfigScope:
