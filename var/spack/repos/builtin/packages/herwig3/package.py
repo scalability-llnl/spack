@@ -36,7 +36,7 @@ class Herwig3(AutotoolsPackage):
     depends_on("thepeg@2.3.0", when="@7.3.0")
     depends_on("evtgen")
     conflicts(
-        "evtgen ~photos ~pythia8 ~sherpa ~tauola",
+        "^evtgen ~photos ~pythia8 ~sherpa ~tauola",
         msg="At least one external EvtGen component required",
     )
 
