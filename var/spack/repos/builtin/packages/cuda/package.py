@@ -798,11 +798,11 @@ class Cuda(Package):
 
         install_shell(*arguments)
 
-        # XLA/JAX expect a lib directory
+        # XLA expects all libraries to be symlinked in a lib directory
         # https://github.com/openxla/xla/blob/main/docs/hermetic_cuda.md
-        for directory in [prefix, prefix.extras.CUPTI, prefix.extras.Debugger, prefix.nvvm]:
-            if not os.path.exists(directory.lib) and os.path.exists(directory.lib64):
-                symlink(directory.lib64, directory.lib)
+        os.makedirs(prefix.lib, exist_ok=True)
+        for lib in find_all_libraries(prefix):
+            symlink(lib, prefix.lib.join(os.path.basename(lib)))
 
         try:
             os.remove("/tmp/cuda-installer.log")
