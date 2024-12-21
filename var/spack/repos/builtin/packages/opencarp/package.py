@@ -52,6 +52,7 @@ class Opencarp(CMakePackage):
     version(
         "7.0", commit="78da91952738b45760bcbc34610814a83c8c6299", submodules=False, no_cache=True
     )
+    version("17.0", commit="537a359d49e976cc9f97042189fb9d3ba4e686c4", submodules=False, no_cache=True, preferred=True)
     version("master", branch="master", submodules=False, no_cache=True)
 
     depends_on("c", type="build")  # generated
@@ -75,7 +76,7 @@ class Opencarp(CMakePackage):
     depends_on("py-carputils", when="+carputils", type=("build", "run"))
     depends_on("meshtool", when="+meshtool", type=("build", "run"))
     # Use specific versions of carputils and meshtool for releases
-    for ver in ["16.0", "15.0", "13.0", "12.0", "11.0", "10.0", "9.0", "8.2", "8.1", "7.0"]:
+    for ver in ["17.0", "16.0", "15.0", "13.0", "12.0", "11.0", "10.0", "9.0", "8.2", "8.1", "7.0"]:
         depends_on("py-carputils@oc" + ver, when="@" + ver + " +carputils")
         depends_on("meshtool@oc" + ver, when="@" + ver + " +meshtool")
 
