@@ -33,7 +33,7 @@ class Evtgen(CMakePackage):
     variant("pythia8", default=True, description="Build with pythia8")
     variant("tauola", default=False, description="Build with tauola")
     variant("photos", default=False, description="Build with photos")
-    variant("sherpa", defualt=False, description="build with sherpa")
+    variant("sherpa", default=False, description="build with sherpa")
     variant("hepmc3", default=False, description="Link with hepmc3 (instead of hepmc)")
 
     patch("g2c.patch", when="@01.07.00")
