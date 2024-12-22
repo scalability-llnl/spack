@@ -202,8 +202,10 @@ class PyTorchgeo(PythonPackage):
 
     # https://github.com/microsoft/torchgeo/pull/1123
     conflicts("py-kornia@0.6.10:", when="@:0.4.0")
+    # https://github.com/microsoft/torchgeo/pull/2484
+    conflicts("py-lightning@=2.5.0")
     # https://github.com/Lightning-AI/pytorch-lightning/issues/19977
-    conflicts("py-lightning@2.3", when="@0.4.1:")
+    conflicts("py-lightning@2.3")
     # https://github.com/microsoft/torchgeo/pull/2151
     conflicts("py-numpy@2:", when="@:0.5")
     # https://github.com/rasterio/rasterio/issues/3196
