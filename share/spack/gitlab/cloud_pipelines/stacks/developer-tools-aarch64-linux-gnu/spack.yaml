@@ -2,7 +2,7 @@ spack:
   view: false
   packages:
     all:
-      require: target=x86_64_v3
+      require: target=aarch64
   concretizer:
     unify: true
     reuse: false
@@ -69,32 +69,17 @@ spack:
     - meson
 
   - arch:
-    - '%gcc target=x86_64_v3'
+    - '%gcc target=aarch64'
 
   specs:
   - matrix:
     - - $default_specs
     - - $arch
 
-  compilers:
-  - compiler:
-      spec: gcc@=10.2.1
-      paths:
-        cc: /opt/rh/devtoolset-10/root/usr/bin/gcc
-        cxx: /opt/rh/devtoolset-10/root/usr/bin/g++
-        f77: /opt/rh/devtoolset-10/root/usr/bin/gfortran
-        fc: /opt/rh/devtoolset-10/root/usr/bin/gfortran
-      flags: {}
-      operating_system: centos7
-      target: x86_64
-      modules: []
-      environment: {}
-      extra_rpaths: []
-
   ci:
     pipeline-gen:
     - build-job:
-        image: ghcr.io/spack/spack/manylinux2014:2024.03.28
+        image: ghcr.io/spack/aarch64-linux-gnu:v2024-12-18
 
   cdash:
-    build-group: Developer Tools Manylinux2014
+    build-group: Developer Tools aarch64-linux-gnu

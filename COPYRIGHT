@@ -102,6 +102,6 @@ PackageName: sbang
 PackageHomePage: https://github.com/spack/sbang
 PackageLicenseDeclared: Apache-2.0 OR MIT
 
-PackageName: six
-PackageHomePage: https://pypi.python.org/pypi/six
-PackageLicenseDeclared: MIT
+PackageName: typing_extensions
+PackageHomePage: https://pypi.org/project/typing-extensions/
+PackageLicenseDeclared: Python-2.0

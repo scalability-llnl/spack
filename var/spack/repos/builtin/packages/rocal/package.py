@@ -17,6 +17,7 @@ class Rocal(CMakePackage):
 
     license("MIT")
 
+    version("6.3.0", sha256="162a0c15e6e7e09c0e13a9d01a493ba3199b77919addf396cd5d273ebf44d759")
     version("6.2.4", sha256="630813669e75a8ee179b89f489101931a26f7a7ee486fcbe1b0e3cb1803c582c")
     version("6.2.1", sha256="77d3e63e02afaee6f1ee1d877d88b48c6ea66a0afca96a1313d0f1c4f8e86b2a")
     version("6.2.0", sha256="c7c265375a40d4478a628258378726c252caac424f974456d488fce43890e157")
@@ -26,7 +27,7 @@ class Rocal(CMakePackage):
     depends_on("rapidjson")
     depends_on("ffmpeg@4.4:")
 
-    for ver in ["6.2.0", "6.2.1", "6.2.4"]:
+    for ver in ["6.2.0", "6.2.1", "6.2.4", "6.3.0"]:
         depends_on(f"mivisionx@{ver}", when=f"@{ver}")
         depends_on(f"llvm-amdgpu@{ver}", when=f"@{ver}")
         depends_on(f"rpp@{ver}", when=f"@{ver}")
@@ -34,6 +35,12 @@ class Rocal(CMakePackage):
     def patch(self):
         filter_file(
             r"${ROCM_PATH}/llvm/bin/clang++",
+            "{0}/bin/clang++".format(self.spec["llvm-amdgpu"].prefix),
+            "rocAL/rocAL_hip/CMakeLists.txt",
+            string=True,
+        )
+        filter_file(
+            r"${ROCM_PATH}/lib/llvm/bin/clang++",
             "{0}/bin/clang++".format(self.spec["llvm-amdgpu"].prefix),
             "rocAL/rocAL_hip/CMakeLists.txt",
             string=True,

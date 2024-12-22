@@ -411,3 +411,6 @@ class Visit(CMakePackage):
         output = Executable(exe)("-version", output=str, error=str)
         match = re.search(r"\s*(\d[\d\.]+)\.", output)
         return match.group(1) if match else None
+
+    # see https://github.com/visit-dav/visit/issues/20055
+    unresolved_libraries = ["*"]

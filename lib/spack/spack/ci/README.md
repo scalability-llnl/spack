@@ -22,7 +22,7 @@ All of the above functionality is defined in the `__init__.py` of the top-level
 ci module, and should be roughly the same for pipelines generated for any
 platform.
 
-## CI platform specific funcionality
+## CI platform specific functionality
 
 Functionality specific to CI platforms (e.g. gitlab, gha, etc.) should be
 defined in a dedicated module.  In order to define a generator for a new

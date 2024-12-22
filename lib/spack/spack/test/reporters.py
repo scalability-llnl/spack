@@ -179,3 +179,22 @@ def test_reporters_report_for_package_no_stdout(tmpdir, monkeypatch, capfd):
     err = capfd.readouterr()[1]
     assert "Skipping report for" in err
     assert "No generated output" in err
+
+
+def test_cdash_reporter_truncates_build_name_if_too_long():
+    build_name = "a" * 190
+    extra_long_build_name = build_name + "a"
+    configuration = CDashConfiguration(
+        upload_url="https://fake-upload",
+        packages="fake-package",
+        build=extra_long_build_name,
+        site="fake-site",
+        buildstamp=None,
+        track="fake-track",
+    )
+
+    reporter = CDash(configuration=configuration)
+    new_build_name = reporter.report_build_name("fake-package")
+
+    assert new_build_name != extra_long_build_name
+    assert new_build_name == build_name

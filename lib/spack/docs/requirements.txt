@@ -1,5 +1,5 @@
 sphinx==8.1.3
-sphinxcontrib-programoutput==0.17
+sphinxcontrib-programoutput==0.18
 sphinx_design==0.6.1
 sphinx-rtd-theme==3.0.2
 python-levenshtein==0.26.1

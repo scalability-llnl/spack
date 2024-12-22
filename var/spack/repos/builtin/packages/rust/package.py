@@ -210,3 +210,6 @@ class Rust(Package):
 
     def install(self, spec, prefix):
         python("./x.py", "install")
+
+    # known issue: https://github.com/rust-lang/rust/issues/132604
+    unresolved_libraries = ["libz.so.*"]

@@ -208,11 +208,11 @@ class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
 
         return args
 
-    def install(self, spec, prefix):
+    def install(self, pkg, spec, prefix):
         # Make sure the path to the provided libtool is used instead of the system one
         filter_file(
             r"autoreconf -fi",
-            f"autoreconf -fi -I {self.spec['libtool'].prefix.share.aclocal}",
+            f"autoreconf -fi -I {pkg.spec['libtool'].prefix.share.aclocal}",
             "AMEGIC++/Main/makelibs",
         )
         make("install")

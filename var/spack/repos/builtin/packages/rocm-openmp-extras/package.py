@@ -34,6 +34,7 @@ aomp = [
     "5f54d7c7c798bcf1cd47d3a7f17ceaf79991bf166cc5e47e5372a68e7cf7d520",
     "ac82e8da0c210ee14b911c833ae09a029a41541689930759737c135db52464a3",
     "ad5674b5626ed6720ca5f8772542e8ed3fb7a9150ed7a86a1adbcd70a2074e8e",
+    "8c8240d948817ab1874eff0406d6053ee0518902427e0236e6b4d2cee84ff882",
 ]
 
 devlib = [
@@ -55,6 +56,7 @@ devlib = [
     "12ce17dc920ec6dac0c5484159b3eec00276e4a5b301ab1250488db3b2852200",
     "4840f109d8f267c28597e936c869c358de56b8ad6c3ed4881387cf531846e5a7",
     "7af782bf5835fcd0928047dbf558f5000e7f0207ca39cf04570969343e789528",
+    "79580508b039ca6c50dfdfd7c4f6fbcf489fe1931037ca51324818851eea0c1c",
 ]
 
 llvm = [
@@ -76,6 +78,7 @@ llvm = [
     "12ce17dc920ec6dac0c5484159b3eec00276e4a5b301ab1250488db3b2852200",
     "4840f109d8f267c28597e936c869c358de56b8ad6c3ed4881387cf531846e5a7",
     "7af782bf5835fcd0928047dbf558f5000e7f0207ca39cf04570969343e789528",
+    "79580508b039ca6c50dfdfd7c4f6fbcf489fe1931037ca51324818851eea0c1c",
 ]
 
 flang = [
@@ -97,6 +100,7 @@ flang = [
     "6af7785b1776aeb9229ce4e5083dcfd451e8450f6e5ebe34214560b13f679d96",
     "409ee98bf15e51ac68b7ed351f4582930dfa0288de042006e17eea6b64df5ad6",
     "51c1308f324101e4b637e78cd2eb652e22f68f6d820991a76189c15131f971dc",
+    "43f10662706dbf22b0090839fd590d9fc633e7339b19aaee7578322ea6809275",
 ]
 
 extras = [
@@ -118,6 +122,7 @@ extras = [
     "7cef51c980f29d8b46d8d4b110e4f2f75d93544cf7d63c5e5d158cf531aeec7d",
     "4b0d250b5ebd997ed6d5d057689c3f67dfb4d82f09f582ebb439ca9134fae48d",
     "34c3506b0f6aefbf0bc7981ff2901b7a2df975a5b40c5eb078522499d81057f0",
+    "22cdd87b1d66e7e7f9e30fd9031fcbf01ce0b631551959144bb42e7f1dba28cb",
 ]
 
 versions = [
@@ -139,6 +144,7 @@ versions = [
     "6.2.0",
     "6.2.1",
     "6.2.4",
+    "6.3.0",
 ]
 versions_dict = dict()  # type: Dict[str,Dict[str,str]]
 components = ["aomp", "devlib", "llvm", "flang", "extras"]
@@ -162,6 +168,7 @@ class RocmOpenmpExtras(Package):
     license("Apache-2.0")
 
     maintainers("srekolam", "renjithravindrankannath", "estewart08", "afzpatel")
+    version("6.3.0", sha256=versions_dict["6.3.0"]["aomp"])
     version("6.2.4", sha256=versions_dict["6.2.4"]["aomp"])
     version("6.2.1", sha256=versions_dict["6.2.1"]["aomp"])
     version("6.2.0", sha256=versions_dict["6.2.0"]["aomp"])
@@ -213,6 +220,7 @@ class RocmOpenmpExtras(Package):
         "6.2.0",
         "6.2.1",
         "6.2.4",
+        "6.3.0",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 
@@ -275,6 +283,8 @@ class RocmOpenmpExtras(Package):
         )
     for ver in ["6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4"]:
         depends_on(f"hsakmt-roct@{ver}", when=f"@{ver}")
+
+    for ver in ["6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4", "6.3.0"]:
         depends_on(f"comgr@{ver}", when=f"@{ver}")
         depends_on(f"hsa-rocr-dev@{ver}", when=f"@{ver}")
         depends_on(f"llvm-amdgpu@{ver}", when=f"@{ver}")
@@ -315,7 +325,7 @@ class RocmOpenmpExtras(Package):
         when="@6.1",
     )
     patch("0001-Avoid-duplicate-registration-on-cuda-env.patch", when="@6.1")
-    patch("0001-Avoid-duplicate-registration-on-cuda-env-6.2.patch", when="@6.2")
+    patch("0001-Avoid-duplicate-registration-on-cuda-env-6.2.patch", when="@6.2:")
 
     def setup_run_environment(self, env):
         devlibs_prefix = self.spec["llvm-amdgpu"].prefix
@@ -481,7 +491,8 @@ class RocmOpenmpExtras(Package):
         else:
             devlibs_src = "{0}/rocm-openmp-extras/rocm-device-libs".format(src)
         hsa_prefix = self.spec["hsa-rocr-dev"].prefix
-        hsakmt_prefix = self.spec["hsakmt-roct"].prefix
+        if self.spec.satisfies("@:6.2"):
+            hsakmt_prefix = self.spec["hsakmt-roct"].prefix
         if self.spec.satisfies("@5.7:6.1"):
             libdrm_prefix = self.spec["libdrm"].prefix
             numactl_prefix = self.spec["numactl"].prefix
@@ -514,9 +525,10 @@ class RocmOpenmpExtras(Package):
             os.unlink(os.path.join(lib_dir, "libdevice"))
         if os.path.islink((os.path.join(llvm_prefix, "lib-debug"))):
             os.unlink(os.path.join(llvm_prefix, "lib-debug"))
-
-        os.symlink(os.path.join(omp_bin_dir, "flang1"), os.path.join(bin_dir, "flang1"))
-        os.symlink(os.path.join(omp_bin_dir, "flang2"), os.path.join(bin_dir, "flang2"))
+        if not os.path.exists(os.path.join(bin_dir, "flang1")):
+            os.symlink(os.path.join(omp_bin_dir, "flang1"), os.path.join(bin_dir, "flang1"))
+        if not os.path.exists(os.path.join(bin_dir, "flang2")):
+            os.symlink(os.path.join(omp_bin_dir, "flang2"), os.path.join(bin_dir, "flang2"))
 
         if self.spec.version >= Version("6.1.0"):
             os.symlink(
@@ -560,8 +572,6 @@ class RocmOpenmpExtras(Package):
             "-DLIBOMPTARGET_AMDGCN_GFXLIST={0}".format(gfx_list),
             "-DLIBOMP_COPY_EXPORTS=OFF",
             "-DHSA_LIB={0}/lib".format(hsa_prefix),
-            "-DHSAKMT_LIB={0}/lib".format(hsakmt_prefix),
-            "-DHSAKMT_LIB64={0}/lib64".format(hsakmt_prefix),
             "-DCOMGR_INCLUDE={0}/include".format(comgr_prefix),
             "-DCOMGR_LIB={0}/lib".format(comgr_prefix),
             "-DOPENMP_ENABLE_LIBOMPTARGET=1",
@@ -572,6 +582,7 @@ class RocmOpenmpExtras(Package):
             "-DCMAKE_CXX_FLAGS=-isystem{0} -I{1}".format(elfutils_inc, ffi_inc),
             "-DNEW_BC_PATH=1",
             "-DHSA_INCLUDE={0}/include/hsa".format(hsa_prefix),
+            "-DLIBOMPTARGET_ENABLE_DEBUG=ON",
         ]
         if self.spec.satisfies("@5.7:6.1"):
             openmp_common_args += [
@@ -579,9 +590,9 @@ class RocmOpenmpExtras(Package):
                 "-DHSAKMT_INC_PATH={0}/include".format(hsakmt_prefix),
                 "-DNUMACTL_DIR={0}".format(numactl_prefix),
             ]
-
-        if self.spec.satisfies("@5.3.0:"):
-            openmp_common_args += ["-DLIBOMPTARGET_ENABLE_DEBUG=ON"]
+        if self.spec.satisfies("@:6.2"):
+            "-DHSAKMT_LIB={0}/lib".format(hsakmt_prefix),
+            "-DHSAKMT_LIB64={0}/lib64".format(hsakmt_prefix),
 
         components["openmp"] = ["../rocm-openmp-extras/llvm-project/openmp"]
         components["openmp"] += openmp_common_args

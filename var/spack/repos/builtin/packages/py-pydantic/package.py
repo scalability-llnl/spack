@@ -16,6 +16,7 @@ class PyPydantic(PythonPackage):
 
     version("2.10.1", sha256="a4daca2dc0aa429555e0656d6bf94873a7dc5f54ee42b1f5873d666fb3f35560")
     version("2.7.4", sha256="0c84efd9548d545f63ac0060c1e4d39bb9b14db8b3c0652338aecc07b5adec52")
+    version("1.10.19", sha256="fea36c2065b7a1d28c6819cc2e93387b43dd5d3cf5a1e82d8132ee23f36d1f10")
     version("1.10.9", sha256="95c70da2cd3b6ddf3b9645ecaa8d98f3d80c606624b6d245558d202cd23ea3be")
     version("1.10.2", sha256="91b8e218852ef6007c2b98cd861601c6a09f1aa32bbbb74fab5b1c33d4a1e410")
     version("1.9.2", sha256="8cb0bc509bfb71305d7a59d00163d5f9fc4530f0881ea32c74ff4f74c85f3d3d")
@@ -36,3 +37,6 @@ class PyPydantic(PythonPackage):
     depends_on("py-pydantic-core@2.27.1", type=("build", "run"), when="@2.10.1")
     depends_on("py-pydantic-core@2.18.4", type=("build", "run"), when="@2.7.4")
     depends_on("py-python-dotenv@0.10.4:", when="@1 +dotenv", type=("build", "run"))
+
+    # https://github.com/pydantic/pydantic/pull/9612
+    conflicts("python@3.12.4:", when="@:1.10.15")
