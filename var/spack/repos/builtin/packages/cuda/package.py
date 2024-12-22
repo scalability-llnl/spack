@@ -802,7 +802,7 @@ class Cuda(Package):
         # XLA expects all libraries to be symlinked in a lib directory
         # https://github.com/openxla/xla/blob/main/docs/hermetic_cuda.md
         os.makedirs(prefix.lib, exist_ok=True)
-        for lib in find_all_libraries(prefix):
+        for lib in find_all_libraries(prefix, recursive=True):
             symlink(lib, prefix.lib.join(os.path.basename(lib)))
 
         try:
