@@ -130,7 +130,7 @@ class Silo(AutotoolsPackage):
             if spec.satisfies("%oneapi"):
                 flags.append("-Wno-error=int")
                 flags.append("-Wno-error=int-conversion")
-            if "+python" in spec:
+            if spec.satisfies("+python"):
                 flags.append("-I {0}".format(spec["python"].headers.directories[0]))
             if "+hdf5" in spec:
                 # @:4.10 can use up to the 1.10 API
