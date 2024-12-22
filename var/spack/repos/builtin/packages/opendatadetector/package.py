@@ -31,11 +31,10 @@ class Opendatadetector(CMakePackage):
     depends_on("boost")
 
     def cmake_args(self):
-        args = []
-        args.append("-DCMAKE_CXX_STANDARD=%s" % self.spec["root"].variants["cxxstd"].value)
+        args = [self.define("CMAKE_CXX_STANDARD", self.spec["root"].variants["cxxstd"].value)]
         return args
 
     def setup_run_environment(self, env):
         env.set("OPENDATADETECTOR_DATA", join_path(self.prefix.share, "OpenDataDetector"))
-        env.prepend_path("LD_LIBRARY_PATH", self.prefix.lib)
-        env.prepend_path("LD_LIBRARY_PATH", self.prefix.lib64)
+        for d in self.libs.directories:
+            env.prepend_path("LD_LIBRARY_PATH", d)

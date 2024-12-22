@@ -12,12 +12,21 @@ class DlaFuture(CMakePackage, CudaPackage, ROCmPackage):
     homepage = "https://github.com/eth-cscs/DLA-Future"
     url = "https://github.com/eth-cscs/DLA-Future/archive/v0.0.0.tar.gz"
     git = "https://github.com/eth-cscs/DLA-Future.git"
-    maintainers = ["rasolca", "albestro", "msimberg", "aurianer"]
+    maintainers = ["rasolca", "albestro", "msimberg", "aurianer", "RMeli"]
 
     license("BSD-3-Clause")
 
-    version("0.7.1", sha256="651129686b7fb04178f230c763b371192f9cb91262ddb9959f722449715bdfe8")
-    version("0.7.0", sha256="40a62bc70b0a06246a16348ce6701ccfab1f0c1ace99684de4bfc6c90776f8c6")
+    version("0.7.3", sha256="8c829b72f4ea9c924abdb6fe2ac7489304be4056ab76b8eba226c33ce7b7dc0e")
+    version(
+        "0.7.1",
+        sha256="651129686b7fb04178f230c763b371192f9cb91262ddb9959f722449715bdfe8",
+        deprecated=True,
+    )
+    version(
+        "0.7.0",
+        sha256="40a62bc70b0a06246a16348ce6701ccfab1f0c1ace99684de4bfc6c90776f8c6",
+        deprecated=True,
+    )
     version("0.6.0", sha256="85dfcee36ff28fa44da3134408c40ebd611bccff8a295982a7c78eaf982524d9")
     version("0.5.0", sha256="f964ee2a96bb58b3f0ee4563ae65fcd136e409a7c0e66beda33f926fc9515a8e")
     version("0.4.1", sha256="ba95f26475ad68da1f3a24d091dc1b925525e269e4c83c1eaf1d37d29b526666")

@@ -6,7 +6,7 @@ This script is meant to be run using:
 
 import os
 
-from llnl.util.tty import tty
+from llnl.util import tty
 
 
 def find_logs(prefix, filename):

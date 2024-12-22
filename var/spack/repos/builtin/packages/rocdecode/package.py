@@ -18,6 +18,7 @@ class Rocdecode(CMakePackage):
     maintainers("afzpatel", "srekolam", "renjithravindrankannath")
 
     license("MIT")
+    version("6.3.0", sha256="931f49ff86fa34929b03cec8e7becde78d0c49c1c3a23a13203fecd2b392b242")
     version("6.2.4", sha256="37aaa1299cfc517ddaf60b0e8a5cf06d672f59e8acc0da3862b40b810d4931cb")
     version("6.2.1", sha256="d4a636415d61fef94f97197cb9ebbff59e3a18dc4850612ee142e3e14a35e6d4")
     version("6.2.0", sha256="fe0d7c19a4e65b93405566511880b94f25ef68c830d0088f9458da9baea1d4f9")
@@ -36,7 +37,7 @@ class Rocdecode(CMakePackage):
 
     depends_on("libva", type="build", when="@6.2:")
 
-    for ver in ["6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4"]:
+    for ver in ["6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4", "6.3.0"]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
 
     def patch(self):
@@ -46,9 +47,17 @@ class Rocdecode(CMakePackage):
             "CMakeLists.txt",
             string=True,
         )
+        filter_file(
+            r"${ROCM_PATH}/lib/llvm/bin/clang++",
+            "{0}/bin/clang++".format(self.spec["llvm-amdgpu"].prefix),
+            "CMakeLists.txt",
+            string=True,
+        )
 
     def cmake_args(self):
         args = []
         if "auto" not in self.spec.variants["amdgpu_target"]:
             args.append(self.define_from_variant("AMDGPU_TARGETS", "amdgpu_target"))
+        if self.spec.satisfies("@6.3.0:"):
+            args.append(self.define("LIBVA_INCLUDE_DIR", self.spec["libva"].prefix.include))
         return args

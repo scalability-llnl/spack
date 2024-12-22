@@ -18,6 +18,8 @@ class QtSvg(QtPackage):
 
     license("BSD-3-Clause")
 
+    version("6.8.1", sha256="288f233991686bc411a11cc331fb1be5f12ed43be03e29639158e545685ce7c9")
+    version("6.8.0", sha256="ec3112668b7b8cfd1790bf4f936268dd6d32251ea81bb20d3aa4c4bac2031866")
     version("6.7.3", sha256="2852d8f1f52b60f0624ca5edf479125e4b32d579b1177d8b76d8e28fac98a701")
     version("6.7.2", sha256="c0e140bbba4157cdbbe0e84ddbb4e238b87aa0ca7b870bad283d8cf2a7fa74b6")
     version("6.7.1", sha256="55134e1242305e554610bf1a77e71d3d15104ee819a3c87def1f8b736d5ecf0e")

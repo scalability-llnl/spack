@@ -19,8 +19,14 @@ class Rccl(CMakePackage):
     url = "https://github.com/ROCm/rccl/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
-    maintainers("srekolam", "renjithravindrankannath")
+    maintainers("srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["librccl"]
+    version(
+        "6.3.0",
+        tag="rocm-6.3.0",
+        commit="eef7b2918cef592a18b6e59859558e6a3f0f0614",
+        submodules=True,
+    )
     version("6.2.4", sha256="12a04743ed89a74b4a08aa046b6a549d385e15d6866042fd41eac8f085f50eea")
     version("6.2.1", sha256="0f5e35c7afbb21c1d49ff201b7d1ddf163d853c27c75c3eaf7b449f4dc1e2188")
     version("6.2.0", sha256="a29c94ea3b9c1a0121d7b1450cb01a697f9f9132169632312b9b0bf744d3c0e3")
@@ -54,7 +60,8 @@ class Rccl(CMakePackage):
     )
 
     patch("0003-Fix-numactl-rocm-smi-path-issue.patch", when="@5.2.3:5.6")
-    patch("0004-Set-rocm-core-path-for-version-file.patch", when="@6.0:")
+    patch("0004-Set-rocm-core-path-for-version-file.patch", when="@6.0:6.2")
+    patch("0004-Set-rocm-core-path-for-version-file-6.3.patch", when="@6.3")
 
     depends_on("cmake@3.5:", type="build")
     depends_on("chrpath", when="@5.3.0:5", type="build")
@@ -79,6 +86,7 @@ class Rccl(CMakePackage):
         "6.2.0",
         "6.2.1",
         "6.2.4",
+        "6.3.0",
     ]:
         depends_on(f"rocm-cmake@{ver}:", type="build", when=f"@{ver}")
         depends_on(f"hip@{ver}", when=f"@{ver}")
@@ -100,6 +108,7 @@ class Rccl(CMakePackage):
         "6.2.0",
         "6.2.1",
         "6.2.4",
+        "6.3.0",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 
@@ -124,6 +133,7 @@ class Rccl(CMakePackage):
         args = [
             self.define("NUMACTL_DIR", self.spec["numactl"].prefix),
             self.define("ROCM_SMI_DIR", self.spec["rocm-smi-lib"].prefix),
+            self.define("ROCM_PATH", self.spec["hip"].prefix),
         ]
         if "auto" not in self.spec.variants["amdgpu_target"]:
             args.append(self.define_from_variant("AMDGPU_TARGETS", "amdgpu_target"))
