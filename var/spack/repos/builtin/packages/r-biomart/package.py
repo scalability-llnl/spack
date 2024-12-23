@@ -23,6 +23,7 @@ class RBiomart(RPackage):
 
     bioc = "biomaRt"
 
+    version("2.63.0", commit="d5a275caeb3c293f148b9795eea111ef9cdf060e")
     version("2.56.0", commit="91ca89eff52e63c225f7e4eb24b765d08faf3ed9")
     version("2.54.0", commit="4fb88fb56c684d5678f8288ba05db193e4881758")
     version("2.52.0", commit="cf4932ac02686da45ea36ff5137fa63cead8860b")

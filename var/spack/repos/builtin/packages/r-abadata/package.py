@@ -19,6 +19,7 @@ class RAbadata(RPackage):
 
     bioc = "ABAData"
 
+    version("1.25.0", commit="ed9b1a21e084bff864025bada260cbf70d80d22b")
     version("1.24.0", commit="c4c42701f995ab8d5ede7f36ff06650493c82e36")
     version("1.20.0", commit="c08a841ffb54d6555eb80b90a7a8afe7e48201b3")
     version("1.14.0", commit="ed7460e7d2948684db69dd4b4f8e135af50198bd")

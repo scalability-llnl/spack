@@ -21,6 +21,7 @@ class RGenomicranges(RPackage):
 
     bioc = "GenomicRanges"
 
+    version("1.59.1", commit="efa80fa13ab9904421d9439084be010b84f74b88")
     version("1.52.0", commit="883f125ea593099293dc808ec2188be3cbdbd3a7")
     version("1.50.1", commit="6b3fb388ec038fb43f3cd26684ce778ee0e80e81")
     version("1.48.0", commit="2bce60814db7c20949892587740fb484aa435978")

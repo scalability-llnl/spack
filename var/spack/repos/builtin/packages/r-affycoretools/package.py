@@ -14,6 +14,7 @@ class RAffycoretools(RPackage):
 
     bioc = "affycoretools"
 
+    version("1.79.0", commit="b82bcab95def11fdd03253f19d0f6b595aa61a5c")
     version("1.72.0", commit="229ae09efc1a66e64ea395019c32d16387bf81ac")
     version("1.70.0", commit="f09a788aa83e1e052a7c5f148a451a99fe9c9c96")
     version("1.68.1", commit="69546b1fe5edd71eca130d53d33f0fb0fcf62c97")

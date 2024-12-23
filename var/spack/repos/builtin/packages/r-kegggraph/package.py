@@ -17,6 +17,7 @@ class RKegggraph(RPackage):
 
     bioc = "KEGGgraph"
 
+    version("1.67.0", commit="522a8e80c561fc82f981762ff84bf2202324715a")
     version("1.60.0", commit="9fc1e371309193e7ff47b0e9d9937cbeed830a1c")
     version("1.58.0", commit="7c3f148b57903b8df517f94824f07f38bbd3b591")
     version("1.56.0", commit="e95cbf9f8a095d59b78a053463191b89c00d5ded")

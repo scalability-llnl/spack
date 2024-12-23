@@ -17,6 +17,7 @@ class RScdblfinder(RPackage):
 
     license("GPL-3.0-only")
 
+    version("1.21.0", commit="4c4444551547af4be4ee5673ed7d06e1d2145a79")
     version("1.14.0", commit="6191ed09b87d7c54809a721d1d6c50c0027cf0a9")
     version("1.12.0", commit="65a88be3a4ca98ccad0a1829a19652df1a3c94fd")
     version("1.10.0", commit="03512cad0cdfe3cddbef66ec5e330b53661eccfc")

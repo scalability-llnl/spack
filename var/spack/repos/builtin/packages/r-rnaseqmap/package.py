@@ -14,6 +14,7 @@ class RRnaseqmap(RPackage):
 
     bioc = "rnaSeqMap"
 
+    version("2.51.0", commit="104684a9c64e711ccbf503da955745f86c842ec9")
     version("2.48.0", commit="a8c515e518cebf571d1524c3a8a986ba7d1557db")
     version("2.42.0", commit="3a3a1030cc38d79d04536e0ab16114e4fa6721cf")
     version("2.40.1", commit="c122d645b3503fb1a061f5515e4f8cf2863b3ba3")

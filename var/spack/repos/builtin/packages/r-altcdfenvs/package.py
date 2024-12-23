@@ -12,6 +12,7 @@ class RAltcdfenvs(RPackage):
 
     bioc = "altcdfenvs"
 
+    version("2.69.0", commit="6869520f2f6493bc5b699a2e73e99e5c30294cdc")
     version("2.62.0", commit="aedf0e9f98639d60b327e50957e504cf24b64bbb")
     version("2.60.0", commit="0bc0b4493b8e9fe2eb47fb8e9377123ce8f472bb")
     version("2.58.0", commit="08255a777ffa1e1414d3dd3062d95bfdd3dfd47c")

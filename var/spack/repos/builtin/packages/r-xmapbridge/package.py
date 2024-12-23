@@ -13,6 +13,7 @@ class RXmapbridge(RPackage):
 
     bioc = "xmapbridge"
 
+    version("1.65.0", commit="13dcfdee953f00a80aa7853e60bd02e16e76b8dc")
     version("1.58.0", commit="905077b7935c4678376f3f2afd9881ff0c45ad00")
     version("1.56.0", commit="fdf2cafca8ad348813d3381fee57623fab53f0ab")
     version("1.54.0", commit="a316e2399894191646c229378fa138b7461c75ab")

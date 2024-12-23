@@ -15,6 +15,7 @@ class RTopgo(RPackage):
 
     bioc = "topGO"
 
+    version("2.59.0", commit="2711dac8513ecd792caa4068abe8e06f0b32c16e")
     version("2.52.0", commit="214db210d1757231eb9b2889288dc385553525cd")
     version("2.50.0", commit="befbff4e67c1b01e23f111d147274641a8b7b0f5")
     version("2.48.0", commit="a47f0079319c7d74db4aeda6399e06f12a34b585")

@@ -17,6 +17,7 @@ class RYarn(RPackage):
 
     bioc = "yarn"
 
+    version("1.33.0", commit="7e48450e3fb0e8f096c8478eb690befe53be87d7")
     version("1.26.0", commit="54dac4a6afe6b036bac60482cf268aa0cf28cec4")
     version("1.24.0", commit="d3a9c5cc1f97bff111dc9332f32ded676e3709d3")
     version("1.22.0", commit="0d94152eee4224bf1ca467fad7f2b35c2e1df6b2")

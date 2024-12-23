@@ -14,6 +14,7 @@ class RYaqcaffy(RPackage):
 
     bioc = "yaqcaffy"
 
+    version("1.53.0", commit="424a473405c5e0acd5c09f4a2ef6c5376d57fd23")
     version("1.50.0", commit="b32e6b947ca9c4ab7163cfddc084a1bc0a34780e")
     version("1.44.0", commit="00898f3ec9ac0beadbcf57bda3d3c1c99fb0c3c0")
     version("1.42.0", commit="a4af673774165e087499ecc35f96aab6bbfbeea1")

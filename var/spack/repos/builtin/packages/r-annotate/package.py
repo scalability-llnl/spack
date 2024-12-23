@@ -12,6 +12,7 @@ class RAnnotate(RPackage):
 
     bioc = "annotate"
 
+    version("1.85.0", commit="732426ec7698fb93b2aaa77cc2e79a1f8915a072")
     version("1.78.0", commit="ca6415a463ec682f340ba5d1dc6246a92e836143")
     version("1.76.0", commit="0181d5c41d594e36be06adb6a02302db0ad2c507")
     version("1.74.0", commit="200c71743417792880f8171d59b2ac0ddd3902a8")

@@ -14,6 +14,7 @@ class RAffyexpress(RPackage):
 
     bioc = "AffyExpress"
 
+    version("1.59.0", commit="c08fdf299c39cb63c6cdad8e232f2c68bd94e3c3")
     version("1.56.0", commit="e07085833de2bbf81537410cad526d39f8a82478")
     version("1.50.0", commit="8b98703b63396df9692afb0e15b594658125cc96")
     version("1.48.0", commit="dbaed516b7529ef4f7588aafaf3c5f1d53a9bb92")

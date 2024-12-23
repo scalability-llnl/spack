@@ -18,6 +18,8 @@ class RBasilisk(RPackage):
 
     license("GPL-3.0-or-later")
 
+    version("1.19.0", commit="f596ce05fb07b15cce559027f3a7a36a493d829d")
+    version("1.19.0", commit="7e940de862c0ed765ee1cf768e3c9d5f2e946b0d")
     version("1.12.0", commit="26c1c354526eb8d806268427a7c40b31bb89f489")
 
     depends_on("r-reticulate", type=("build", "run"))

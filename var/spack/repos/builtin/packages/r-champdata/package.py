@@ -13,6 +13,7 @@ class RChampdata(RPackage):
 
     bioc = "ChAMPdata"
 
+    version("2.39.0", commit="c9833d6214344216d9f4b300e6069baffc737990")
     version("2.32.0", commit="98a94978001b6a28543257e72a036c43d61e67ef")
     version("2.30.0", commit="6e05b8f7b004b1a5185ec4b387c32725e8bd95cb")
     version("2.28.0", commit="601555bf599828b6cfa125beffa51aebccdc8503")

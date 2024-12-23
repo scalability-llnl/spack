@@ -12,6 +12,7 @@ class RImpute(RPackage):
 
     bioc = "impute"
 
+    version("1.81.0", commit="bd0db5e534a523daa3d8709b4008da5a110b447c")
     version("1.74.0", commit="6dc26573263e337d4b521f006701f022bbad21b9")
     version("1.72.0", commit="638ac916464f5a392b947ef5bb426b8445d27325")
     version("1.70.0", commit="970b2c28d908e26369b01dddf36dab2f8916d4af")

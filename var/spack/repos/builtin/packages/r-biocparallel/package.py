@@ -14,6 +14,7 @@ class RBiocparallel(RPackage):
 
     bioc = "BiocParallel"
 
+    version("1.41.0", commit="0f688b6a07b5c705421030d4c88454e85a8e7241")
     version("1.34.0", commit="f3bbc0a2d38da034c50ca1e4704fc4ee99a2dc9e")
     version("1.32.1", commit="6c85dbad596a74a6d3022173a4a11c6b81a4a2c2")
     version("1.30.4", commit="1229ebe9f6d8305f9f61e562464f83f9ba86e699")

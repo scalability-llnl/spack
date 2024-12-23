@@ -17,6 +17,7 @@ class RFgsea(RPackage):
 
     license("MIT")
 
+    version("1.33.2", commit="f5458a444b9a5aacb67e1140b137cd876abca1c4")
     version("1.26.0", commit="102b439e2208ae415dc19d3d1ac8936f9c5999f1")
     version("1.24.0", commit="ac74ccd935c15623b8584caa791835aec514144b")
     version("1.22.0", commit="e4e203aa64faa984e0406fed5d87a422d9df92f2")

@@ -14,6 +14,7 @@ class RSnpstats(RPackage):
 
     bioc = "snpStats"
 
+    version("1.57.0", commit="a3f434d515c2d14f822c41e0fdfdc654d159b6c2")
     version("1.50.0", commit="b6d42f93f2ce510cc10a1668809218f317c23d2a")
     version("1.48.0", commit="7d4cec7275b9360d98cb59d15c4140bed3e6a74c")
     version("1.46.0", commit="1e70784b113eaca231bc5f91fc8ae5aadb151ddb")

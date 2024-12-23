@@ -15,6 +15,7 @@ class RBiovizbase(RPackage):
 
     bioc = "biovizBase"
 
+    version("1.55.0", commit="85d7c9482f9a988a04a90f851aefcba921907efc")
     version("1.48.0", commit="534db77074710dae57ade81844c769fd35a2fa9c")
     version("1.46.0", commit="a47060cfb68e3f3b4876114af932823aed5d2d57")
     version("1.44.0", commit="a8f05c56c27b278524033cb896a6c97f3ee0081c")

@@ -12,6 +12,7 @@ class RBumphunter(RPackage):
 
     bioc = "bumphunter"
 
+    version("1.49.0", commit="28669ca9b4d71973d424aa8cf5cce73f2a053e55")
     version("1.42.0", commit="0eb2808a04920aaba00e1ce3e9dff503596e931f")
     version("1.40.0", commit="3de207a3659859737d4c748fc8023694943da43b")
     version("1.38.0", commit="06e2fa87b342d48793d0d2f1f7d94a95a6613995")

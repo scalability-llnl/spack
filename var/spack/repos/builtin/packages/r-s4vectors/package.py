@@ -19,6 +19,7 @@ class RS4vectors(RPackage):
 
     bioc = "S4Vectors"
 
+    version("0.45.2", commit="336e71ee64371c7d5fbbb71aa5b66469fc3c64c4")
     version("0.38.0", commit="e80c24e1481033741147a0677fb42ce455e7da74")
     version("0.36.0", commit="af58701957ffdd9209031dd6a8dee3acdc58e999")
     version("0.34.0", commit="f590de3ec4d896a63351d0c1925d3856c0bd5292")

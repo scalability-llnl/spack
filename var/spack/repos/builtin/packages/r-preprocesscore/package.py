@@ -12,6 +12,7 @@ class RPreprocesscore(RPackage):
 
     bioc = "preprocessCore"
 
+    version("1.69.0", commit="d2e67f1e83f4427266d996cee24f3e23ac55b9a2")
     version("1.62.0", commit="a6e3d339bc8204d15db4e750bd98f0313490b658")
     version("1.60.0", commit="7f62a7d54776a21ab6c2d3df4668382d531d1ee8")
     version("1.58.0", commit="2995e3e1a8f428a80aee200db42ee44743d893f6")

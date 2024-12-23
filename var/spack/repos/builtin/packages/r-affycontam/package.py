@@ -13,6 +13,7 @@ class RAffycontam(RPackage):
 
     bioc = "affyContam"
 
+    version("1.65.0", commit="c1f4c9dd8a3bcbfd3bafed35dfc2f19d69caadef")
     version("1.58.0", commit="5e91d79d7653a4f484b62eae7fd7e908de8cb9b6")
     version("1.56.0", commit="e2b8a4fba1648255eadce954a848f2dd8e22bcb3")
     version("1.54.0", commit="c5208b48b8881983ff53a4713244327e8ad13b78")

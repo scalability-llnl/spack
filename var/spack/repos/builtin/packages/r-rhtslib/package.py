@@ -16,6 +16,8 @@ class RRhtslib(RPackage):
 
     bioc = "Rhtslib"
 
+    version("3.3.1", commit="9373c6f253fd4c2b15789e40bec7bebbc77dcc60")
+    version("2.0.0", commit="1757333eb88625158505e5fa47840081110cf8a4")
     # There is a problem with the git repository where the commit for
     # version 1.28.0 pulls changes to a file that blocks checking out the
     # commit. Use the branch instead.
@@ -26,7 +28,6 @@ class RRhtslib(RPackage):
     #             branches.
     #             Aborting
     # version("1.28.0", commit='214fde2218bdbca89f1e12a30d2e081e76915aef')
-    version("2.0.0", commit="1757333eb88625158505e5fa47840081110cf8a4")
     version("1.28.0", branch="RELEASE_3_15")
     version("1.26.0", commit="f5b20e97b283942877529f750b28398782552655")
     version("1.22.0", commit="899b79faa54d42c7c9b9a2bc49972109637d367f")

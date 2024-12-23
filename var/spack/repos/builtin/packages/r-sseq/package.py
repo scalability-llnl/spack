@@ -22,6 +22,7 @@ class RSseq(RPackage):
 
     bioc = "sSeq"
 
+    version("1.45.0", commit="d459b872fac185bcd523e3bd50d93557233c984b")
     version("1.38.0", commit="09242bb94d72ff13e3f18c3588934149f27ac374")
     version("1.36.0", commit="0345ac579c4bdcc9c42c24831ad86fc6225c5cb9")
     version("1.34.0", commit="882bea1664f55d85550a7185cbd4a0108c35df36")

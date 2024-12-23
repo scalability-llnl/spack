@@ -19,6 +19,7 @@ class RPathview(RPackage):
 
     bioc = "pathview"
 
+    version("1.47.0", commit="87ffb7b842db77fb4ea7bd749d66745addb785b0")
     version("1.40.0", commit="6546c6139f797bdff2fcc0645030a5de3588f2eb")
     version("1.38.0", commit="8229376ffd45278b74a6e4ccfb3abea8992667f7")
     version("1.36.1", commit="f2e86b106c1cd91aac703337f968b7593a61c68d")

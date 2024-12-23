@@ -15,6 +15,7 @@ class RScaledmatrix(RPackage):
 
     bioc = "ScaledMatrix"
 
+    version("1.15.0", commit="5ea7d67ff24e97a0d0cb51b0b15ae9ee292458e6")
     version("1.8.0", commit="122f2c43d496bd420f0aff7cd96728a11bd7fa07")
     version("1.6.0", commit="45a29d3662e2766f973b281ed86ce2654be84b70")
     version("1.4.1", commit="15e2efcb6b11e26c31ef2d44968355f71cc1f4fc")

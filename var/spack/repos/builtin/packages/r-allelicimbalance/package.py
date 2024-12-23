@@ -13,6 +13,7 @@ class RAllelicimbalance(RPackage):
 
     bioc = "AllelicImbalance"
 
+    version("1.45.0", commit="ffd47ab9c9d8b0cfe16da9ac263ceb9b375c5117")
     version("1.38.0", commit="75a3b0fefe635a0892eae338d0fdd4a9e091f957")
     version("1.36.0", commit="cb4910c1fd58cc4272c21251a8f120990e1aa431")
     version("1.34.0", commit="290708ccc4ceae1fbb9e9257cb254916449d389b")

@@ -13,6 +13,7 @@ class RCner(RPackage):
 
     bioc = "CNEr"
 
+    version("1.43.0", commit="7b0cff1b4abfbb90e9150ef7af912a178879de60")
     version("1.36.0", commit="4f2feeb395cfc071ed97ba8b6327425dfd42d6b5")
     version("1.34.0", commit="878de98d18f6f959ad5e014ecd8165d3105d8b48")
     version("1.32.0", commit="1c92f3d7f3dccf76ab7d54f286117b09bc470b8f")

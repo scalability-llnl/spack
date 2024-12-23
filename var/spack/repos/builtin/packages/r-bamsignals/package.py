@@ -15,6 +15,7 @@ class RBamsignals(RPackage):
 
     bioc = "bamsignals"
 
+    version("1.39.0", commit="df2b237eef414f0ffee8b490acc0fcff01ca40fa")
     version("1.32.0", commit="34bfc4e8b58e47c3b94347fd2976aeae07fc28c2")
     version("1.30.0", commit="aac37dffd6f6876b4626866e3d40bb7af75620fe")
     version("1.28.0", commit="27b70be6f73747d9d32054da043f4a37ea55b917")

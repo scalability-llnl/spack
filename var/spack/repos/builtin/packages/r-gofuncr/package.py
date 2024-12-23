@@ -27,6 +27,7 @@ class RGofuncr(RPackage):
 
     bioc = "GOfuncR"
 
+    version("1.27.0", commit="872b8cdffd1b3bccc14d33254fba5b828ec06e64")
     version("1.20.0", commit="2374d68fdd13a72bc8d43cc3b5e6735228996ff1")
     version("1.18.0", commit="49182411e40a5d72abf99a5cca9287f34f870b19")
     version("1.16.0", commit="603fc79e13b58ec4612b6092f37d2450078dbfe1")

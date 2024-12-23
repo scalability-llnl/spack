@@ -16,6 +16,7 @@ class RBiocsingular(RPackage):
 
     bioc = "BiocSingular"
 
+    version("1.23.0", commit="bd97d96ca7b63f8f3ef7b3bc929a867bb8844cbb")
     version("1.16.0", commit="0db9a691d4eb21551c532d8bde8f64dcc19b6c66")
     version("1.14.0", commit="6dc42b30110e498f6694f18037f991c1006c71b7")
     version("1.12.0", commit="7d1b8f4954e9e6f2c30a5111cdab9aabc8bcc3a6")

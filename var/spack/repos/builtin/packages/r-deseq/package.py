@@ -15,6 +15,7 @@ class RDeseq(RPackage):
 
     bioc = "DESeq"
 
+    version("1.43.0", commit="ace59de6b3a8693aeaf295596a5ef85a2e9b4232")
     version("1.42.0", commit="da76bc64e8c4073b58eaf1c93aa4e89bec5c4e50")
     version("1.36.0", commit="db4af67b49d3bd8c321d19efbe9415cd2e4ddb7e")
     version("1.34.1", commit="e86f1b03a30bc02de4bfd4a0759af2f65cb48c62")

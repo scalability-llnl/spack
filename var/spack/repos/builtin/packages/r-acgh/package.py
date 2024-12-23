@@ -15,6 +15,7 @@ class RAcgh(RPackage):
 
     bioc = "aCGH"
 
+    version("1.85.0", commit="061926db3da3e8644318c4e55c8f3cf0d21daa9f")
     version("1.78.0", commit="75df3a4839af66ce177d1bbc3cec4ac03c21dc8e")
     version("1.76.0", commit="c6068522854ed0b1c3feb006619ef25590f70ad6")
     version("1.74.0", commit="e7ba380af0da138788eb6c86f5dbe453269c0810")

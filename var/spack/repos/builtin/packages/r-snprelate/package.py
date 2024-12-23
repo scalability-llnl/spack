@@ -28,6 +28,7 @@ class RSnprelate(RPackage):
 
     bioc = "SNPRelate"
 
+    version("1.41.0", commit="5e409c687f1c74bc2892addc9d7d48a757b35b96")
     version("1.34.0", commit="27a7c9658b974f9887f48a4a3ed1a7621b141488")
     version("1.32.0", commit="2e8cc807baa74fca5137148b672f3945c36689b2")
     version("1.30.1", commit="baef8a71d3908287a2307768348c02db0720d125")

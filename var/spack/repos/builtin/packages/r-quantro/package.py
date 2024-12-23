@@ -17,6 +17,7 @@ class RQuantro(RPackage):
 
     bioc = "quantro"
 
+    version("1.41.0", commit="7ff2ff0a331bc500d4e2c45f61a63a0eff41b09f")
     version("1.34.0", commit="c769d21ce5ccb6f33c35e6e1dbb901ea8afad4b1")
     version("1.32.0", commit="0c70b787866d915abb720f2ab326a83eb1e775b7")
     version("1.30.0", commit="e756c439cdc5a6fb4d7879aff56a8368475513b5")

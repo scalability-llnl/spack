@@ -15,6 +15,7 @@ class RGlmgampoi(RPackage):
 
     bioc = "glmGamPoi"
 
+    version("1.19.2", commit="e8799cbd0efed02a49e43adf13fe98f0963d5374")
     version("1.12.0", commit="5fdfa5ca1a56b19e51bc6e307ca6015cc56109a0")
     version("1.10.0", commit="048e17384209fc07031e09875ec6eea35e90ef46")
     version("1.8.0", commit="b723d61e05c1ad50a3cf6a6393ec3d97adc7edb4")
