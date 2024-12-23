@@ -8,7 +8,6 @@ import re
 import sys
 
 import spack.compilers
-from spack.build_environment import dso_suffix
 from spack.package import *
 
 
@@ -481,11 +480,6 @@ supported, and netmod is ignored if device is ch3:sock.""",
         if "+fortran" in spec:
             spec.mpifc = join_path(self.prefix.bin, "mpif90")
             spec.mpif77 = join_path(self.prefix.bin, "mpif77")
-
-        spec.mpicxx_shared_libs = [
-            join_path(self.prefix.lib, "libmpicxx.{0}".format(dso_suffix)),
-            join_path(self.prefix.lib, "libmpi.{0}".format(dso_suffix)),
-        ]
 
     def autoreconf(self, spec, prefix):
         """Not needed usually, configure should be already there"""
