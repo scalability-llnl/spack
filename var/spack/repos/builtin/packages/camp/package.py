@@ -110,9 +110,9 @@ class Camp(CMakePackage, CudaPackage, ROCmPackage):
             options.append("-DHIP_ROOT_DIR={0}".format(spec["hip"].prefix))
 
             archs = self.spec.variants["amdgpu_target"].value
-            options.append("-DCMAKE_HIP_ARCHITECTURES={0}".format(archs))
-            options.append("-DGPU_TARGETS={0}".format(archs))
-            options.append("-DAMDGPU_TARGETS={0}".format(archs))
+            options.append("-DCMAKE_HIP_ARCHITECTURES={0}".format(archs[0]))
+            options.append("-DGPU_TARGETS={0}".format(archs[0]))
+            options.append("-DAMDGPU_TARGETS={0}".format(archs[0]))
 
         if spec.satisfies("+omptarget"):
             options.append(cmake_cache_string("RAJA_DATA_ALIGN", 64))
