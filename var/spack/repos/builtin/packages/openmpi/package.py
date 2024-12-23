@@ -899,10 +899,16 @@ with '-Wl,-commons,use_dylibs' and without
     def setup_dependent_build_environment(self, env, dependent_spec):
         # Use the spack compiler wrappers under MPI
         dependent_module = dependent_spec.package.module
-        env.set("OMPI_CC", dependent_module.spack_cc)
-        env.set("OMPI_CXX", dependent_module.spack_cxx)
-        env.set("OMPI_FC", dependent_module.spack_fc)
-        env.set("OMPI_F77", dependent_module.spack_f77)
+        for var_name, attr_name in (
+            ("OMPI_CC", "spack_cc"),
+            ("OMPI_CXX", "spack_cxx"),
+            ("OMPI_FC", "spack_fc"),
+            ("OMPI_F77", "spack_f77"),
+        ):
+            if not hasattr(dependent_module, attr_name):
+                continue
+
+            env.set(var_name, getattr(dependent_module, attr_name))
 
         # See https://www.open-mpi.org/faq/?category=building#installdirs
         for suffix in [
