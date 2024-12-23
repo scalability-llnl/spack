@@ -603,15 +603,15 @@ def is_macho_magic(magic: bytes) -> bool:
         or magic.startswith(b"\xFE\xED\xFA\xCF")  # 0xfeedfacf big endian
         or magic.startswith(b"\xCF\xFA\xED\xFE")  # 0xfeedfacf little endian
         or magic.startswith(b"\xCA\xFE\xBA\xBE")  # 0xcafebabe big endian
-        or magic.startswith(b"\xBE\xBA\xFE\xCA")
-    )  # 0xcafebabe little endian
+        or magic.startswith(b"\xBE\xBA\xFE\xCA")  # 0xcafebabe little endian
+    )
 
 
 def is_elf_magic(magic: bytes) -> bool:
     return magic.startswith(b"\x7FELF")
 
 
-def is_binary(filename):
+def is_binary(filename: str) -> bool:
     """Returns true iff a file is likely binary"""
     with open(filename, "rb") as f:
         magic = f.read(4)
@@ -628,7 +628,7 @@ def _exists_dir(dirname):
 def is_macho_binary(path):
     try:
         with open(path, "rb") as f:
-            return f.read(4) in (b"\xcf\xfa\xed\xfe", b"\xfe\xed\xfa\xcf")
+            return is_macho_magic(f.read(4))
     except OSError:
         return False
 

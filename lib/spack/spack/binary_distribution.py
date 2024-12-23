@@ -936,15 +936,7 @@ def file_type(f: IO[bytes]) -> int:
         magic = f.read(4)
         if len(magic) < 4:
             return FileTypes.UNKNOWN
-        elif (
-            magic == b"\x7FELF"
-            or magic == b"\xFE\xED\xFA\xCE"  # 0xfeedface big endian
-            or magic == b"\xCE\xFA\xED\xFE"  # 0xfeedface little endian
-            or magic == b"\xFE\xED\xFA\xCF"  # 0xfeedfacf big endian
-            or magic == b"\xCF\xFA\xED\xFE"  # 0xfeedfacf little endian
-            or magic == b"\xCA\xFE\xBA\xBE"  # 0xcafebabe big endian
-            or magic == b"\xBE\xBA\xFE\xCA"  # 0xcafebabe little endian
-        ):
+        elif relocate.is_elf_magic(magic) or relocate.is_macho_magic(magic):
             return FileTypes.BINARY
 
         f.seek(0)
