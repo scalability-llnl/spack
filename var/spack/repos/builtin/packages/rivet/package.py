@@ -81,7 +81,7 @@ class Rivet(AutotoolsPackage):
     # See: https://gitlab.com/hepcedar/rivet/-/merge_requests/904
     # and: https://gitlab.com/hepcedar/rivet/-/merge_requests/912
     conflicts(
-        "hepmc@3.3.0",
+        "^hepmc@3.3.0",
         when="@:3.1.10,4.0.0 hepmc=3",
         msg="patch-level zero requires at least 3.1.11 or 4.0.1",
     )
