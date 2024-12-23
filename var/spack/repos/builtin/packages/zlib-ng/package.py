@@ -35,6 +35,7 @@ class ZlibNg(AutotoolsPackage, CMakePackage):
     variant("opt", default=True, description="Enable optimizations")
     variant("shared", default=True, description="Build shared library")
     variant("pic", default=True, description="Enable position-independent code (PIC)")
+    variant("do-not-merge", default=True, description="test in ci")
 
     conflicts("+shared~pic")
 
