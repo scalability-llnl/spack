@@ -17,6 +17,7 @@ class RTmixclust(RPackage):
 
     bioc = "TMixClust"
 
+    version("1.29.0", commit="67da9fc4e551364bf57180486267560b8c08be88")
     version("1.22.0", commit="bb750ce4682542ba8e2cb5bfbdb5eff839ffacd4")
     version("1.20.0", commit="df27f53d088b02cf596504b44909f2762900ab49")
     version("1.18.0", commit="71f80a7ace481f46471f36c91223effb85e17186")

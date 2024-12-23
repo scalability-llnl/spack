@@ -12,6 +12,7 @@ class RBiocgenerics(RPackage):
 
     bioc = "BiocGenerics"
 
+    version("0.53.3", commit="68e6aa48819878a88d580a8d0ce230418ba1124c")
     version("0.46.0", commit="a90f0c5976a24417e47e009ba602fc98515ac9ab")
     version("0.44.0", commit="d7cd9c19958bd8d4573d980494188fa15ab16e45")
     version("0.42.0", commit="3582d47b836387afc08157f3d6a5013fd64334ed")

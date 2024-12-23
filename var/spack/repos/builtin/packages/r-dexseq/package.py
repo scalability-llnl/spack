@@ -20,6 +20,7 @@ class RDexseq(RPackage):
 
     maintainers("dorton21")
 
+    version("1.53.0", commit="a6a657311461784bb4e71eaf8062835a8d1aeef5")
     version("1.46.0", commit="074c0bf6776eea69e58a788a0f6904dd632a1b74")
     version("1.44.0", commit="9660d7372d5ced1a7e324ed9a61b935023b7d135")
     version("1.42.0", commit="d91de62a27d0cab2ef12ef1a5f23dc2f7a0cfadd")

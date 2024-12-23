@@ -29,6 +29,7 @@ class RSva(RPackage):
 
     bioc = "sva"
 
+    version("3.55.0", commit="5dc7e05494da475f717932faedebfc1d10c2ade7")
     version("3.48.0", commit="f1657af586d402598df71ade10dfeb28aa28b5c4")
     version("3.46.0", commit="4aac49cf806f05bb98e08a6be539adebbecbfdb2")
     version("3.44.0", commit="45ab2c1d6643bcda4de2d95a81b9b28d33a1a8a1")

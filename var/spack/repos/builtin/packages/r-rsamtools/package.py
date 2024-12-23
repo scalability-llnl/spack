@@ -18,6 +18,7 @@ class RRsamtools(RPackage):
 
     license("MIT")
 
+    version("2.23.1", commit="21a5945271e78bd38ebbe42a1368a8e8287c32f9")
     version("2.16.0", commit="3eb6d03acecb8d640ec5201cacdc322e9e0c2445")
     version("2.14.0", commit="8302eb7fa1c40384f1af5855222d94f2efbdcad1")
     version("2.12.0", commit="d6a65dd57c5a17e4c441a27492e92072f69b175e")

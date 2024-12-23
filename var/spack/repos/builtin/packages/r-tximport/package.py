@@ -18,6 +18,7 @@ class RTximport(RPackage):
 
     bioc = "tximport"
 
+    version("1.35.0", commit="6275b97d145bcfce91c91b462f91aee3f8dd54f0")
     version("1.28.0", commit="9acd3640c034655ffba12044ed2982fab57d4fbb")
     version("1.26.0", commit="5ae7139edf9d3445210ea014026813fd030212a8")
     version("1.24.0", commit="58524f39bdd55299cfe80a726f99b714b724be20")

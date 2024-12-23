@@ -15,6 +15,7 @@ class RSummarizedexperiment(RPackage):
 
     bioc = "SummarizedExperiment"
 
+    version("1.37.0", commit="cbdaaaadf2c66e2e666f898500f2afb3cf0cf221")
     version("1.30.0", commit="a2843fbced9fc345c9061b2e52244f3263326e2e")
     version("1.28.0", commit="ba55dac12224f0aafe8f52f1397611b5efb41626")
     version("1.26.1", commit="c8cbd3b4f0fa1d686c4d7ce5b8614a24c74b2074")

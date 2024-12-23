@@ -13,6 +13,7 @@ class RAgdex(RPackage):
 
     bioc = "AGDEX"
 
+    version("1.55.0", commit="8b303095fecd8d984d6947de4a3853eac81eb75d")
     version("1.48.0", commit="917920b397493b0ea40093044ebe36fff7c389ad")
     version("1.46.0", commit="d7c38e8bdcaa7b0261117c605e7f61e2b07e8316")
     version("1.44.0", commit="9d3eb90eaf7bf093c7fa73facb3df89506a85185")

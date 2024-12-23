@@ -15,6 +15,7 @@ class RSinglecellexperiment(RPackage):
 
     bioc = "SingleCellExperiment"
 
+    version("1.29.1", commit="6ed39963dec11e13ac68d8216e6a9471b9b80d9f")
     version("1.22.0", commit="d477e8ef442dec60576e08bb660081b8bccc978c")
     version("1.20.0", commit="467f02c0346e3ca5ec8825a6faa80a90d20fcd29")
     version("1.18.1", commit="db7768a7cb5eca724bcf7e4cea3234992ac714a1")

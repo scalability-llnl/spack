@@ -13,6 +13,7 @@ class RVariantannotation(RPackage):
 
     bioc = "VariantAnnotation"
 
+    version("1.53.0", commit="478ea77bf6e8c90d31f7a4ea7ee4dab0362f1343")
     version("1.46.0", commit="80d43e024bead5afd48cb86910ba4670d8d37424")
     version("1.44.0", commit="2e7e0a3b7c1918c0d64170dc7c173a636d3764f4")
     version("1.42.1", commit="d1121696c76c189d6b4df9914806bf585a495845")

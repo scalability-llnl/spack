@@ -19,6 +19,7 @@ class RMethylumi(RPackage):
 
     bioc = "methylumi"
 
+    version("2.53.0", commit="491e60ef086994b690bb1a357d3da7ccaa5fab7f")
     version("2.46.0", commit="eb09e6508f1619c789d6b3091a8065cb6571cdac")
     version("2.44.0", commit="8f1f1f944993800da2776cb3240b4482c09429ad")
     version("2.42.0", commit="73e9c7fe1252c4ca20dc7b4e58decf04bf22d5e0")

@@ -17,6 +17,7 @@ class RDelayedmatrixstats(RPackage):
 
     bioc = "DelayedMatrixStats"
 
+    version("1.29.0", commit="bfe5e8b24f0c5762c55ea31d256188062b1dbd2f")
     version("1.22.0", commit="e820ab9a72963badc539e38fa79dbaeab95b2d2c")
     version("1.20.0", commit="1ed14250e8731e60bccb44946cafad4c2b3ac5b0")
     version("1.18.1", commit="9c4658d11fc20b7d88e05b9c52140c2ca8a65768")

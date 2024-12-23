@@ -15,6 +15,7 @@ class RSiggenes(RPackage):
 
     bioc = "siggenes"
 
+    version("1.81.0", commit="60ae98183adf44583e67d006c8f2eefba891382a")
     version("1.74.0", commit="02e0e825eae0e1fa8ffda0c826ddc176cb67cb0a")
     version("1.72.0", commit="4f93d1a28087c941b275e6c6bae9e42d721cf422")
     version("1.70.0", commit="c263daa14cf87c61b41e3a9e88573ba339c66179")

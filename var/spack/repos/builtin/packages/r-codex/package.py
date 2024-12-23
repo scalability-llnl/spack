@@ -21,6 +21,7 @@ class RCodex(RPackage):
 
     bioc = "CODEX"
 
+    version("1.39.0", commit="a803161f17b43097a07e49a7abf1b68d6ca4c9b2")
     version("1.32.0", commit="83926238fb49b0e95d989612a98356d20e7caf57")
     version("1.30.0", commit="0694f11be9e0b02ab15047d01db2afce943f92d8")
     version("1.28.0", commit="c707497bd93aa4a0516fcf3671a64997c28c9f67")

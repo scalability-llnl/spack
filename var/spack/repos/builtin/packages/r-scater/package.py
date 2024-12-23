@@ -14,6 +14,7 @@ class RScater(RPackage):
 
     bioc = "scater"
 
+    version("1.35.0", commit="7211adabdf57f98255d5d95f7d5b8ab6355567bb")
     version("1.28.0", commit="e654498c3fa9f769b794f840f230720333bd9555")
     version("1.26.0", commit="a548ddc8424e185bfb06f48bfc174071e69fc687")
     version("1.24.0", commit="013f0935a1a225139986ca5a3f0e9d08a1558153")

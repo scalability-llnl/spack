@@ -13,6 +13,7 @@ class RLimma(RPackage):
 
     bioc = "limma"
 
+    version("3.63.2", commit="39aac521872107bf372f732e57afea54e0bcdd03")
     version("3.56.0", commit="efe857829233edb11ae317ce5d1ad4ea3073cf7f")
     version("3.54.0", commit="1d1fa843d4fe2f8c94fd843bb1e80b8384d8306e")
     version("3.52.4", commit="3226c29ad8c18aa7e6722f4a2c95ff8ac900437e")

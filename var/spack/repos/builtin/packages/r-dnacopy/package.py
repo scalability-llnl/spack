@@ -14,6 +14,7 @@ class RDnacopy(RPackage):
 
     bioc = "DNAcopy"
 
+    version("1.81.0", commit="8c04c59ec6461c0bec941fdacb5d5cd8dd6ed390")
     version("1.74.0", commit="7d22a81570c0fe76f4b5a5c25d0b8fd3696ec70e")
     version("1.72.0", commit="1a1ae854c3425aee68b060e3e7ab788db5bed08c")
     version("1.70.0", commit="9595d0ad7c78af4ed568cbd210b894d3350eae0a")

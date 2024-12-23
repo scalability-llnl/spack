@@ -21,6 +21,7 @@ class RAcde(RPackage):
 
     bioc = "acde"
 
+    version("1.37.0", commit="863c5e50808fa3b02b2448a584149716782f3859")
     version("1.30.0", commit="4c16b9fd6c91a433bf1345252e022571c4983cb5")
     version("1.28.0", commit="0edccca7be2475fa2ae3b3c36d0d64924c37b3c0")
     version("1.26.0", commit="dfef9a435062e948efd5eda22942a0d500baa992")

@@ -12,6 +12,7 @@ class RGraph(RPackage):
 
     bioc = "graph"
 
+    version("1.85.0", commit="eff9ecd703b566f9504c1802d4d4ce3076f2f89f")
     version("1.78.0", commit="9df68e8f74e2b807b033f991d21142edfd1bc090")
     version("1.76.0", commit="e3efc108716e98bd3363621d17a6f9c3ef975d19")
     version("1.74.0", commit="4af608a5d9e1de33fda6ae28fb73bff9272ee296")

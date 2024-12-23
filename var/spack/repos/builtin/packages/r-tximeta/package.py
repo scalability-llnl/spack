@@ -15,6 +15,7 @@ class RTximeta(RPackage):
 
     bioc = "tximeta"
 
+    version("1.25.0", commit="eab5dbe3ed5af3a215c0691a4360a831b8ca8d37")
     version("1.20.0", commit="c9cf6d6a80ca5129b91d723867aca0aec12e8299")
     version("1.18.3", commit="3caed00397476cfe9c379f4bc5a361023fdd6ffa")
     version("1.18.0", commit="8f87d53bbd6f2d97821dd8f7fdd54624928f862d")

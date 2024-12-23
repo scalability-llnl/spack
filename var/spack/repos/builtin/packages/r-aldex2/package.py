@@ -24,6 +24,7 @@ class RAldex2(RPackage):
 
     license("GPL-3.0-only")
 
+    version("1.39.0", commit="f7a601796fee0e873f8c377f24cd96c11e513da6")
     version("1.32.0", commit="ba32b9a9b6a8f42906ea094318f00116f15e42eb")
     version("1.30.0", commit="cb6670515a8722f9cfedac12a8c2747a5298ee46")
     version("1.28.1", commit="f8d8ba6d2439bff75ab80f5466c9a047c31ed0a6")

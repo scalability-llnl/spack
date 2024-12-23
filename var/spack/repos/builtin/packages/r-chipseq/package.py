@@ -14,6 +14,7 @@ class RChipseq(RPackage):
 
     maintainers("dorton21")
 
+    version("1.57.0", commit="205b17904836134ec5ec3dd195205e21101ff6cb")
     version("1.50.0", commit="0bdfa25828b1d65f629e96c8e832061fd7ff7935")
     version("1.48.0", commit="9c78296001b6dd4102318879c8504dac70015822")
     version("1.46.0", commit="76b00397cd117d5432158f50fc1032d50485bd24")

@@ -21,6 +21,7 @@ class RBiocio(RPackage):
 
     bioc = "BiocIO"
 
+    version("1.17.1", commit="a2a0962beed9e874ed8fc3fed65c6c45686d05d2")
     version("1.10.0", commit="1368ff1a7ddbb62515a87a88d7ec39981de557d5")
     version("1.8.0", commit="4a719fa41e014b7b948f7b245e581ede6a04eda1")
     version("1.6.0", commit="60c8aa1a961e43bf0ee5d563a6d9fcec84f7f8f8")

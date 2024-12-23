@@ -20,6 +20,7 @@ class RGgbio(RPackage):
 
     bioc = "ggbio"
 
+    version("1.55.0", commit="289a36c7a2b6fee9b9c175827ea0b7c4064f6315")
     version("1.48.0", commit="fd4ebca44151e8f8e20ad2a38292398a3a4bb948")
     version("1.46.0", commit="d9c6cb495c7268bcaaab141231a9038aec8498bc")
     version("1.44.1", commit="0301d9464e304a8113ea4479185cd358855ca365")

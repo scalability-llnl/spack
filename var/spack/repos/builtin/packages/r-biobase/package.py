@@ -13,6 +13,7 @@ class RBiobase(RPackage):
 
     bioc = "Biobase"
 
+    version("2.67.0", commit="06c9ac285265da39be0e4713176c1e1eb8a60184")
     version("2.60.0", commit="8dc10d2d26dc0847740ff2b4f16cc1ae2e936464")
     version("2.58.0", commit="767f2f33f158f233616178e12ce08cdb03d2a5a2")
     version("2.56.0", commit="3b2dd91b333677c2f27257c7624014a55e73c52b")

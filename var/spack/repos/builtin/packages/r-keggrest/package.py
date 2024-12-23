@@ -14,6 +14,7 @@ class RKeggrest(RPackage):
 
     bioc = "KEGGREST"
 
+    version("1.47.0", commit="388585c0a8d73c4b1482a2b72b656073db9c08f2")
     version("1.40.0", commit="1bdb0b57d7e9b708da14d2847c2a17ca35500b21")
     version("1.38.0", commit="4dfbff9f6662227bd49d64d18a342f469dd88ad3")
     version("1.36.3", commit="1827cde76863aa80c83264a0dd95514654358df3")

@@ -18,6 +18,7 @@ class RMscoreutils(RPackage):
 
     bioc = "MsCoreUtils"
 
+    version("1.19.0", commit="6a5c06dfdbff06d3667bf3a50dee4c9ad82f3d83")
     version("1.12.0", commit="14a3fdb2fecca41ef0acb67bc8356227a1491c56")
     version("1.10.0", commit="742c0c7143b1c32f75cc96b555e9f8cd265096c9")
     version("1.8.0", commit="8b7e2c31009276aad0b418ba5cdfc94d03e1973e")

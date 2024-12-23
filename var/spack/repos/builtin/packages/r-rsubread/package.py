@@ -10,6 +10,7 @@ class RRsubread(RPackage):
 
     bioc = "Rsubread"
 
+    version("2.21.1", commit="d57f69cc785bed7d44e242a1d5dd4cebd084536f")
     version("2.16.0", commit="62b92c9ed3fc2be89ed9f29e3db1809d1e115dbc")
     version("2.14.2", commit="863bd98c6523b888da59335a6acb516d2676d412")
 

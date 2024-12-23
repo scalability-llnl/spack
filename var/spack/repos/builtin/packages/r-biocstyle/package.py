@@ -13,6 +13,7 @@ class RBiocstyle(RPackage):
 
     bioc = "BiocStyle"
 
+    version("2.35.0", commit="40286b4f449af4d78e632785ab7cfb041b3a6c0e")
     version("2.28.0", commit="b358aa5d3f9c68629e9abf50ffceccbf77226ea8")
     version("2.26.0", commit="add035498bdce76d71a0afa22a063c2d8e5588bc")
     version("2.24.0", commit="53095b534b7e6c80a33a67b5f2db0db8f00db902")

@@ -18,6 +18,7 @@ class RMatrixgenerics(RPackage):
 
     bioc = "MatrixGenerics"
 
+    version("1.19.0", commit="dbb20c23361dbff407b61d3f59b53408e30d2a98")
     version("1.12.0", commit="442fde27fdf18ee3460ea0258a74a847b2c99cf3")
     version("1.10.0", commit="6d9d907e8c4d1fc96a32160fb9f3ab805d6eb356")
     version("1.8.1", commit="a4a21089e9f78275dd4a6f0df0c4b6b45c4650c7")
