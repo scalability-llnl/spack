@@ -21,7 +21,7 @@ pytestmark = pytest.mark.not_on_windows("MakeExecutable not supported on Windows
 @pytest.fixture(autouse=True)
 def make_executable(tmp_path, working_env):
     make_exe = tmp_path / "make"
-    with open(make_exe, "w") as f:
+    with open(make_exe, "w", encoding="utf-8") as f:
         f.write("#!/bin/sh\n")
         f.write('echo "$@"')
     os.chmod(make_exe, 0o700)

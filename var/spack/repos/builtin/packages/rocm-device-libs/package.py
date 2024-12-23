@@ -22,9 +22,11 @@ class RocmDeviceLibs(CMakePackage):
 
     tags = ["rocm"]
 
-    maintainers("srekolam", "renjithravindrankannath", "haampie")
+    maintainers("srekolam", "renjithravindrankannath", "haampie", "afzpatel")
 
     version("master", branch="amd-stg-open")
+    version("6.3.0", sha256="79580508b039ca6c50dfdfd7c4f6fbcf489fe1931037ca51324818851eea0c1c")
+    version("6.2.4", sha256="7af782bf5835fcd0928047dbf558f5000e7f0207ca39cf04570969343e789528")
     version("6.2.1", sha256="4840f109d8f267c28597e936c869c358de56b8ad6c3ed4881387cf531846e5a7")
     version("6.2.0", sha256="12ce17dc920ec6dac0c5484159b3eec00276e4a5b301ab1250488db3b2852200")
     version("6.1.2", sha256="300e9d6a137dcd91b18d5809a316fddb615e0e7f982dc7ef1bb56876dff6e097")
@@ -77,6 +79,8 @@ class RocmDeviceLibs(CMakePackage):
         "6.1.2",
         "6.2.0",
         "6.2.1",
+        "6.2.4",
+        "6.3.0",
         "master",
     ]:
         depends_on(f"llvm-amdgpu@{ver}", when=f"@{ver}")
@@ -95,6 +99,8 @@ class RocmDeviceLibs(CMakePackage):
         "6.1.2",
         "6.2.0",
         "6.2.1",
+        "6.2.4",
+        "6.3.0",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 

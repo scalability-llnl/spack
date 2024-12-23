@@ -14,7 +14,7 @@ import spack.bootstrap.core
 import spack.config
 import spack.environment as ev
 import spack.main
-import spack.mirror
+import spack.mirrors.utils
 import spack.spec
 
 _bootstrap = spack.main.SpackCommand("bootstrap")
@@ -182,8 +182,8 @@ def test_bootstrap_mirror_metadata(mutable_config, linux_os, monkeypatch, tmpdir
     `spack bootstrap add`. Here we don't download data, since that would be an
     expensive operation for a unit test.
     """
-    old_create = spack.mirror.create
-    monkeypatch.setattr(spack.mirror, "create", lambda p, s: old_create(p, []))
+    old_create = spack.mirrors.utils.create
+    monkeypatch.setattr(spack.mirrors.utils, "create", lambda p, s: old_create(p, []))
     monkeypatch.setattr(spack.spec.Spec, "concretized", lambda p: p)
 
     # Create the mirror in a temporary folder

@@ -128,7 +128,7 @@ def test_read_and_write_spec(temporary_store, config, mock_packages):
         assert spec_from_file.concrete
 
         # Ensure that specs that come out "normal" are really normal.
-        with open(spec_path) as spec_file:
+        with open(spec_path, encoding="utf-8") as spec_file:
             read_separately = Spec.from_yaml(spec_file.read())
 
         # TODO: revise this when build deps are in dag_hash

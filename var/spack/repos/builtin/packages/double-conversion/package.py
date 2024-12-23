@@ -33,5 +33,8 @@ class DoubleConversion(CMakePackage):
     version("1.1.4", sha256="24b5edce8c88f0f632c83e60e0bde11252656dc3b714ba195619c1798ff28834")
     version("1.1.3", sha256="f0d1b8621592a3cf010c04c3e1c0f08455fc0fc7ee22e1583e2a63dc6d3e3871")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     def cmake_args(self):
         return ["-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true"]

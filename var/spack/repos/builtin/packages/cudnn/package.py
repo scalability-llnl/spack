@@ -399,3 +399,6 @@ class Cudnn(Package):
             target_include = os.path.join(prefix, "targets", "ppc64le-linux", "include")
             if os.path.isdir(target_include) and not os.path.isdir(prefix.include):
                 symlink(target_include, prefix.include)
+
+    # contains precompiled binaries without rpaths
+    unresolved_libraries = ["*"]

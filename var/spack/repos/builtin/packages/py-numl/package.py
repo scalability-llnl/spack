@@ -9,24 +9,26 @@ from spack.package import *
 class PyNuml(PythonPackage):
     """Standardised ML input processing for particle physics"""
 
-    pypi = "pynuml/pynuml-24.7.1.tar.gz"
+    homepage = "https://github.com/nugraph/nugraph"
+    git = "https://github.com/nugraph/nugraph"
+    url = "https://github.com/nugraph/nugraph/archive/v24.7.1.tar.gz"
+    build_directory = "pynuml"
 
     maintainers("vhewes")
 
     license("MIT", checked_by="vhewes")
 
-    version("24.7.1", sha256="20d2f1a07887473e67c79ecc3804b8012e22b78883199fdb0d07bb1b725b6ab0")
-    version("24.7.0", sha256="d47f71ead6861278595b79d04c554da4998d5c4c50587e4c90231f50db0f2e81")
-    version("24.6.0", sha256="357d2b0e0b9ca179514d177278620e5ac57bed37bfb6d145c172150126432613")
-    version("23.11.0", sha256="1a7e61864cfeb0b27c6a93646c33e3f457bbc384eb86aee4df76b5e02898d02f")
-    version("23.9.0", sha256="77ea8c9df541351adeb249594cce27d742973ee82a0d7f2ad8cdcffa9d3fa6b1")
-    version("23.8.0", sha256="0896797f3f70b3a6d3d74f7a3e7fe5eaf59a2000a47ffc7ac08b73be0aa15706")
-    version("23.7.0", sha256="5449dd09a7e046d036e12c7971e61d2862cdb79c7932144b038288fc05ca50a8")
-    version("23.6.1", sha256="fdb23a9d4f1b83b06cc35b07608fe4c2e55f8307ac47851cccc21a20b69ab674")
-    version("23.6.0", sha256="fcc1546b9489584f2635f6418c5e1a43f6bdf02dd5c46b7afa09ea5f247524a2")
-    version("23.5.2", sha256="d83576c8e25e22cc9ba68a35b9690ea861f7a4c09db65ca134849c89fba9b330")
-    version("23.5.1", sha256="73ef1bea1022b9ebddec35ac7d66c1394003aa5e63a4ec99bfa14d4f833e04a4")
-    version("23.5.0", sha256="dccb774932813ddc788b1d27e52e251d9db6ea16b303596bfa0955ae51098674")
+    version("main", branch="main")
+    version("24.7.1", sha256="a51c0576ab969c404024b734e5507712e5a9d1d29e14077fee121415779c78f0")
+    version("24.7.0", sha256="7e44fbc1eb75a9302d57cabfffd559ddaddb44d0b7198168cbacbeed5e11dd7e")
+    version("24.4.0", sha256="927da53b28630921d31ca3b71676ef392b9ff847796b76d593239c6af9276b4c")
+    version("24.2.0", sha256="6ff9204bc0817619e7317e7a0d7ddfbea1842b261938f1718c3949539c8719df")
+    version("23.11.0", sha256="db77e0c723caf4ac9fb5c41d250aee1d03e623e861c73120b23aff194902bf09")
+    version("23.10.0", sha256="ee36625d5215406a199420d8fa262b720c5d191c0346d2b4aaab6808b47e80ad")
+    version("23.9.0", sha256="2cc77356a1061b7271c3c5da69009f0d2ef0df09a18ab6466049ea901231909c")
+    version("23.7.0", sha256="8598f65b7fcc76fc3f0f41f7ca44bfb134daa627693f1ada61c8106b26db4d84")
+    version("23.6.1", sha256="74c41b34eba1d80548a0ec1b36aee5948f3ee0e9df80d6864b38aed99964263c")
+    version("23.6.0", sha256="93ebbaf0a55e22d06fc06e8a93e29a0e875985f4b3801d391db853d1fceb3d6c")
 
     depends_on("py-flit-core", type="build")
 

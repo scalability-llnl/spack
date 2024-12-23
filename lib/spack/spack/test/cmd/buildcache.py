@@ -16,7 +16,7 @@ import spack.cmd.buildcache
 import spack.environment as ev
 import spack.error
 import spack.main
-import spack.mirror
+import spack.mirrors.mirror
 import spack.spec
 import spack.util.url
 from spack.installer import PackageInstaller
@@ -284,7 +284,7 @@ def test_buildcache_sync(
             ]
 
         manifest_file = os.path.join(tmpdir.strpath, "manifest_dest.json")
-        with open(manifest_file, "w") as fd:
+        with open(manifest_file, "w", encoding="utf-8") as fd:
             test_env = ev.active_environment()
 
             manifest = {}
@@ -298,7 +298,7 @@ def test_buildcache_sync(
         shutil.rmtree(dest_mirror_dir)
 
         manifest_file = os.path.join(tmpdir.strpath, "manifest_bad_dest.json")
-        with open(manifest_file, "w") as fd:
+        with open(manifest_file, "w", encoding="utf-8") as fd:
             manifest = {}
             for spec in test_env.specs_by_hash.values():
                 manifest_insert(
@@ -385,7 +385,9 @@ def test_correct_specs_are_pushed(
 
     class DontUpload(spack.binary_distribution.Uploader):
         def __init__(self):
-            super().__init__(spack.mirror.Mirror.from_local_path(str(tmpdir)), False, False)
+            super().__init__(
+                spack.mirrors.mirror.Mirror.from_local_path(str(tmpdir)), False, False
+            )
             self.pushed = []
 
         def push(self, specs: List[spack.spec.Spec]):

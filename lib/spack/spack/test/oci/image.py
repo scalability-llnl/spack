@@ -3,12 +3,9 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import re
-
 import pytest
 
-import spack.spec
-from spack.oci.image import Digest, ImageReference, default_tag, tag
+from spack.oci.image import Digest, ImageReference
 
 
 @pytest.mark.parametrize(
@@ -87,19 +84,3 @@ def test_digest():
     # Missing algorithm
     with pytest.raises(ValueError):
         Digest.from_string(valid_digest)
-
-
-@pytest.mark.parametrize(
-    "spec",
-    [
-        # Standard case
-        "short-name@=1.2.3",
-        # Unsupported characters in git version
-        f"git-version@{1:040x}=develop",
-        # Too long of a name
-        f"{'too-long':x<256}@=1.2.3",
-    ],
-)
-def test_default_tag(spec: str):
-    """Make sure that computed image tags are valid."""
-    assert re.fullmatch(tag, default_tag(spack.spec.Spec(spec)))

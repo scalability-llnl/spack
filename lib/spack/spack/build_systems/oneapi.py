@@ -32,6 +32,9 @@ class IntelOneApiPackage(Package):
     # organization (e.g. University/Company).
     redistribute(source=False, binary=False)
 
+    # contains precompiled binaries without rpaths
+    unresolved_libraries = ["*"]
+
     for c in [
         "target=ppc64:",
         "target=ppc64le:",

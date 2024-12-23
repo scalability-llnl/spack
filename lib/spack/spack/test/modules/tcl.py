@@ -517,14 +517,14 @@ class TestTcl:
         writer = writer_cls(spec, "default", False)
         writer.write()
         assert os.path.exists(writer.layout.modulerc)
-        with open(writer.layout.modulerc) as f:
+        with open(writer.layout.modulerc, encoding="utf-8") as f:
             content = [line.strip() for line in f.readlines()]
         hide_implicit_mpileaks = f"module-hide --soft --hidden-loaded {writer.layout.use_name}"
         assert len([x for x in content if hide_implicit_mpileaks == x]) == 1
 
         # The direct dependencies are all implicit, and they should have depends-on with fixed
         # 7 character hash, even though the config is set to hash_length = 0.
-        with open(writer.layout.filename) as f:
+        with open(writer.layout.filename, encoding="utf-8") as f:
             depends_statements = [line.strip() for line in f.readlines() if "depends-on" in line]
             for dep in spec.dependencies(deptype=("link", "run")):
                 assert any(dep.dag_hash(7) in line for line in depends_statements)
@@ -534,7 +534,7 @@ class TestTcl:
         writer = writer_cls(spec, "default", True)
         writer.write()
         assert os.path.exists(writer.layout.modulerc)
-        with open(writer.layout.modulerc) as f:
+        with open(writer.layout.modulerc, encoding="utf-8") as f:
             content = [line.strip() for line in f.readlines()]
         assert hide_implicit_mpileaks in content  # old, implicit mpileaks is still hidden
         assert f"module-hide --soft --hidden-loaded {writer.layout.use_name}" not in content
@@ -565,7 +565,7 @@ class TestTcl:
         writer_alt2 = writer_cls(spec_alt2, "default", False)
         writer_alt2.write(overwrite=True)
         assert os.path.exists(writer.layout.modulerc)
-        with open(writer.layout.modulerc) as f:
+        with open(writer.layout.modulerc, encoding="utf-8") as f:
             content = [line.strip() for line in f.readlines()]
         hide_cmd = f"module-hide --soft --hidden-loaded {writer.layout.use_name}"
         hide_cmd_alt1 = f"module-hide --soft --hidden-loaded {writer_alt1.layout.use_name}"
@@ -577,7 +577,7 @@ class TestTcl:
         # one version is removed
         writer_alt1.remove()
         assert os.path.exists(writer.layout.modulerc)
-        with open(writer.layout.modulerc) as f:
+        with open(writer.layout.modulerc, encoding="utf-8") as f:
             content = [line.strip() for line in f.readlines()]
         assert len([x for x in content if hide_cmd == x]) == 1
         assert len([x for x in content if hide_cmd_alt1 == x]) == 0

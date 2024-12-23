@@ -357,7 +357,7 @@ def test_find_specs_include_concrete_env(mutable_mock_env_path, mutable_mock_rep
     path = tmpdir.join("spack.yaml")
 
     with tmpdir.as_cwd():
-        with open(str(path), "w") as f:
+        with open(str(path), "w", encoding="utf-8") as f:
             f.write(
                 """\
 spack:
@@ -372,7 +372,7 @@ spack:
     test1.write()
 
     with tmpdir.as_cwd():
-        with open(str(path), "w") as f:
+        with open(str(path), "w", encoding="utf-8") as f:
             f.write(
                 """\
 spack:
@@ -401,7 +401,7 @@ def test_find_specs_nested_include_concrete_env(mutable_mock_env_path, mutable_m
     path = tmpdir.join("spack.yaml")
 
     with tmpdir.as_cwd():
-        with open(str(path), "w") as f:
+        with open(str(path), "w", encoding="utf-8") as f:
             f.write(
                 """\
 spack:
@@ -462,6 +462,8 @@ def test_environment_with_version_range_in_compiler_doesnt_fail(tmp_path):
 _pkga = (
     "a0",
     """\
+from spack.package import *
+
 class A0(Package):
     version("1.2")
     version("1.1")
@@ -475,6 +477,8 @@ class A0(Package):
 _pkgb = (
     "b0",
     """\
+from spack.package import *
+
 class B0(Package):
     version("1.2")
     version("1.1")
@@ -485,6 +489,8 @@ class B0(Package):
 _pkgc = (
     "c0",
     """\
+from spack.package import *
+
 class C0(Package):
     version("1.2")
     version("1.1")
@@ -497,6 +503,8 @@ class C0(Package):
 _pkgd = (
     "d0",
     """\
+from spack.package import *
+
 class D0(Package):
     version("1.2")
     version("1.1")
@@ -510,6 +518,8 @@ class D0(Package):
 _pkge = (
     "e0",
     """\
+from spack.package import *
+
 class E0(Package):
     tags = ["tag1", "tag2"]
 

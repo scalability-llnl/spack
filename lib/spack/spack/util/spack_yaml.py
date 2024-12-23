@@ -416,10 +416,12 @@ def dump_config(data, stream, *, default_flow_style=False, blame=False):
     if blame:
         handler = ConfigYAML(yaml_type=YAMLType.ANNOTATED_SPACK_CONFIG_FILE)
         handler.yaml.default_flow_style = default_flow_style
+        handler.yaml.width = maxint
         return _dump_annotated(handler, data, stream)
 
     handler = ConfigYAML(yaml_type=YAMLType.SPACK_CONFIG_FILE)
     handler.yaml.default_flow_style = default_flow_style
+    handler.yaml.width = maxint
     return handler.dump(data, stream)
 
 
