@@ -3,10 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import sys
-
-from spack.util.environment import EnvironmentModifications
 from spack.package import *
+from spack.util.environment import EnvironmentModifications
 
 
 class Dd4hep(CMakePackage):
@@ -221,9 +219,7 @@ class Dd4hep(CMakePackage):
 
         # Note: ROOT dependency automatically sets up ROOT environment vars
 
-    def setup_dependent_run_environment(
-        self, env: EnvironmentModifications, dependent_spec: Spec
-    ):
+    def setup_dependent_run_environment(self, env: EnvironmentModifications, dependent_spec: Spec):
         # For dependents that define plugins, DD4HEP needs to know their
         # location.
         for d in [dependent_spec.prefix.lib, dependent_spec.prefix.lib64]:
