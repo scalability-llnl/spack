@@ -130,9 +130,6 @@ jobs:
         name: coverage-shell
         path: coverage
         include-hidden-files: true
-    - name: setup tmate session
-      if: ${{ failure() }}
-      uses: mxschmitt/action-tmate@v3
 
   # Test RHEL8 UBI with platform Python. This job is run
   # only on PRs modifying core Spack
