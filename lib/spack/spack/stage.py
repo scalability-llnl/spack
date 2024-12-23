@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import errno
 import getpass
-import glob
 import hashlib
 import io
 import os
@@ -566,13 +565,12 @@ class Stage(LockableStagingDir):
             mkdirp(fs_path(dest))
 
         # glob all files and directories in the source path
-        hidden_entries = glob.glob(os.path.join(self.source_path, ".*"))
-        entries = glob.glob(os.path.join(self.source_path, "*"))
+        source_path = concrete_path(self.source_path)
+        entries = source_path.glob("*")
 
         # Move all files from stage to destination directory
         # Include hidden files for VCS repo history
-        for entry in hidden_entries + entries:
-            entry = concrete_path(entry)
+        for entry in entries:
             if entry.is_dir():
                 d = dest / entry.name
                 shutil.copytree(entry, d, symlinks=True)
