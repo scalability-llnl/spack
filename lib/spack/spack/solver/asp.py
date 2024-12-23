@@ -1106,7 +1106,7 @@ class SpackSolverSetup:
             set
         )
 
-        self.possible_compilers: List[KnownCompiler] = []
+        self.possible_compilers: List[spack.spec.Spec] = []
         self.possible_oses: Set = set()
         self.variant_values_from_specs: Set = set()
         self.version_constraints: Set = set()
@@ -2746,13 +2746,12 @@ class SpackSolverSetup:
 
             # FIXME (compiler as nodes): think of using isinstance(compiler_cls, WrappedCompiler)
             # Add a dependency on the compiler wrapper
-            if sys.platform != "win32":
-                recorder("*").depends_on(
-                    "compiler-wrapper",
-                    when=f"%{compiler.name}@{compiler.versions}",
-                    type="build",
-                    description=f"Add the compiler wrapper when using {compiler}",
-                )
+            recorder("*").depends_on(
+                "compiler-wrapper",
+                when=f"%{compiler.name}@{compiler.versions}",
+                type="build",
+                description=f"Add the compiler wrapper when using {compiler}",
+            )
 
             if not using_libc_compatibility():
                 continue
