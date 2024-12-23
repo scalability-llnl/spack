@@ -432,15 +432,34 @@ class Configuration:
         return self
 
     @_config_mutator
+    def ensure_scope_ordering(self, reorder: bool = False):
+        """Ensure that scope order matches documented precedent"""
+        # WIP
+        # intent is to loop over the dictionary with weights based on config type
+        # if it is not ordered
+        # scope_weights = [ 5, 4, 3, 4, 2, 1 ,0 ]
+        #                         ^
+        #                         | error
+        #
+        # then flip them with reorder, or raise an exception otherwise
+
+        for index, (name, value) in enumerate(reversed(self.scopes.items())):
+            if name == "command_line" and index != 0:
+                if reorder:
+                    # TODO when we drop 3.6
+                    # self.scopes.move_to_end("command_line")
+                    # hacky implementation for now
+                    self.scopes["command_line"] = self.remove_scope("command_line")
+                else:
+                    # raise spack.error.ConfigError(f"Config scopes are not ordered properly: {name}, {index}")
+                    tty.warn(f"Config scopes are not ordered properly: {name}, {index}")
+
+    @_config_mutator
     def push_scope(self, scope: ConfigScope) -> None:
         """Add a higher precedence scope to the Configuration."""
         tty.debug(f"[CONFIGURATION: PUSH SCOPE]: {str(scope)}", level=2)
         self.scopes[scope.name] = scope
-        if "command_line" in self.scopes:
-            # TODO when we drop 3.6
-            # self.scopes.move_to_end("command_line")
-            # hacky implementation for now
-            self.scopes["command_line"] = self.remove_scope("command_line")
+        self.ensure_scope_ordering()
 
     @_config_mutator
     def pop_scope(self) -> ConfigScope:

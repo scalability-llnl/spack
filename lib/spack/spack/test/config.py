@@ -1441,3 +1441,18 @@ def test_config_path_dsl(path, it_should_work, expected_parsed):
     else:
         with pytest.raises(ValueError):
             spack.config.ConfigPath._validate(path)
+
+
+@pytest.mark.regression("48254")
+def test_env_activation_preserves_config_scopes(mutable_mock_env_path):
+    """Check that root test dependencies are concretized."""
+    cli_config_match = spack.config.CONFIG.matching_scopes("command_line")
+    assert len(cli_config_match) == 1
+    cli_config = cli_config_match[0]
+
+    ev.create("test")
+
+    with ev.read("test") as e:
+        top_scope = spack.config.CONFIG.pop_scope()
+        assert cli_config == top_scope
+        spack.config.CONFIG.push_scope(top_scope)
