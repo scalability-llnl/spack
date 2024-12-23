@@ -20,7 +20,7 @@ class SrcmlIdentifierGetterTool(CMakePackage):
 
     depends_on("libxml2")
     depends_on("zlib-api")
-    depends_on("lzma")
+    depends_on("xz")
 
     def install(self, spec, prefix):
         super().install(spec, prefix)

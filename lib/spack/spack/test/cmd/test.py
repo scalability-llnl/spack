@@ -80,7 +80,7 @@ def test_test_output(mock_test_stage, mock_packages, mock_archive, mock_fetch, i
 
     # Grab the output from the test log to confirm expected result
     outfile = os.path.join(testdir, testlogs[0])
-    with open(outfile, "r") as f:
+    with open(outfile, "r", encoding="utf-8") as f:
         output = f.read()
     assert "test_print" in output
     assert "PASSED" in output

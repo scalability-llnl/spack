@@ -31,6 +31,9 @@ class Perl(Package):  # Perl doesn't use Autotools, it should subclass Package
 
     executables = [r"^perl(-?\d+.*)?$"]
 
+    # TODO: resolve the circular dependency between perl and libxcrypt.
+    unresolved_libraries = ["libcrypt.so.*"]
+
     # see https://www.cpan.org/src/README.html for
     # explanation of version numbering scheme
 

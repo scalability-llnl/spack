@@ -33,7 +33,7 @@ def validate(configuration_file):
     """
     import jsonschema
 
-    with open(configuration_file) as f:
+    with open(configuration_file, encoding="utf-8") as f:
         config = syaml.load(f)
 
     # Ensure we have a "container" attribute with sensible defaults set

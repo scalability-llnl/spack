@@ -1,0 +1,17 @@
+--- a/CMakeLists.txt	2024-12-03 16:22:56.474665264 -0700
++++ b/CMakeLists.txt	2024-12-03 16:23:47.304644596 -0700
+@@ -82,13 +82,13 @@
+ #message (STATUS "netcdf_fortran_lib == ${netcdf_fortran_lib}")
+ get_filename_component(netcdf_fortran_lib_location ${netcdf_fortran_lib} DIRECTORY)
+ #message (STATUS "netcdf_fortran_lib_location == ${netcdf_fortran_lib_location}")
+-SET(CMAKE_INSTALL_RPATH "${netcdf_fortran_lib_location};${netcdf_c_lib_location}")
+ 
+ find_library(netcdf_c_lib netcdf HINTS ${NetCDF_C_LIBRARY})
+ #message (STATUS "netcdf_c_lib == ${netcdf_c_lib}")
+ get_filename_component(netcdf_c_lib_location ${netcdf_c_lib} DIRECTORY)
+ #message (STATUS "netcdf_c_lib_location == ${netcdf_c_lib_location}")
+ 
++SET(CMAKE_INSTALL_RPATH "${netcdf_fortran_lib_location};${netcdf_c_lib_location}")
+ list(APPEND CMAKE_BUILD_RPATH ${netcdf_fortran_lib_location} ${netcdf_c_lib_location})
+ #message("CMAKE_BUILD_RPATH is ${CMAKE_BUILD_RPATH}")
+ add_executable (cprnc ${CPRNC_Fortran_SRCS} ${CPRNC_GenF90_SRCS})

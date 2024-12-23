@@ -13,7 +13,7 @@ class PyGpyopt(PythonPackage):
     Learning algorithms. It is able to handle large data sets via sparse
     Gaussian process models."""
 
-    homepage = "http://sheffieldml.github.io/GPyOpt/"
+    homepage = "https://sheffieldml.github.io/GPyOpt/"
     pypi = "GPyOpt/GPyOpt-1.2.6.tar.gz"
 
     license("BSD-3-Clause")

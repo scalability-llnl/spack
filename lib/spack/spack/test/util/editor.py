@@ -46,7 +46,7 @@ def _make_exe(tmpdir_factory, name, contents=None):
         name += ".exe"
     path = str(tmpdir_factory.mktemp("%s_exe" % name).join(name))
     if contents is not None:
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             f.write("#!/bin/sh\n%s\n" % contents)
         set_executable(path)
     return path

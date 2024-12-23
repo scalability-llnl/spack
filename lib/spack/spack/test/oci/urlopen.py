@@ -14,7 +14,7 @@ from urllib.request import Request
 
 import pytest
 
-import spack.mirror
+import spack.mirrors.mirror
 from spack.oci.image import Digest, ImageReference, default_config, default_manifest
 from spack.oci.oci import (
     copy_missing_layers,
@@ -474,7 +474,7 @@ def test_copy_missing_layers(tmpdir, config):
 
 
 def test_image_from_mirror():
-    mirror = spack.mirror.Mirror("oci://example.com/image")
+    mirror = spack.mirrors.mirror.Mirror("oci://example.com/image")
     assert image_from_mirror(mirror) == ImageReference.from_string("example.com/image")
 
 
@@ -511,25 +511,25 @@ def test_default_credentials_provider():
 
     mirrors = [
         # OCI mirror with push credentials
-        spack.mirror.Mirror(
+        spack.mirrors.mirror.Mirror(
             {"url": "oci://a.example.com/image", "push": {"access_pair": ["user.a", "pass.a"]}}
         ),
         # Not an OCI mirror
-        spack.mirror.Mirror(
+        spack.mirrors.mirror.Mirror(
             {"url": "https://b.example.com/image", "access_pair": ["user.b", "pass.b"]}
         ),
         # No credentials
-        spack.mirror.Mirror("oci://c.example.com/image"),
+        spack.mirrors.mirror.Mirror("oci://c.example.com/image"),
         # Top-level credentials
-        spack.mirror.Mirror(
+        spack.mirrors.mirror.Mirror(
             {"url": "oci://d.example.com/image", "access_pair": ["user.d", "pass.d"]}
         ),
         # Dockerhub short reference
-        spack.mirror.Mirror(
+        spack.mirrors.mirror.Mirror(
             {"url": "oci://user/image", "access_pair": ["dockerhub_user", "dockerhub_pass"]}
         ),
         # Localhost (not a dockerhub short reference)
-        spack.mirror.Mirror(
+        spack.mirrors.mirror.Mirror(
             {"url": "oci://localhost/image", "access_pair": ["user.localhost", "pass.localhost"]}
         ),
     ]

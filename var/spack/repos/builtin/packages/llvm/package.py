@@ -57,6 +57,7 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
     license("Apache-2.0")
 
     version("main", branch="main")
+    version("19.1.5", sha256="e2204b9903cd9d7ee833a2f56a18bef40a33df4793e31cc090906b32cbd8a1f5")
     version("19.1.4", sha256="010e1fd3cabee8799bd2f8a6fbc68f28207494f315cf9da7057a2820f79fd531")
     version("19.1.3", sha256="e5106e2bef341b3f5e41340e4b6c6a58259f4021ad801acf14e88f1a84567b05")
     version("19.1.2", sha256="622cb6c5e95a3bb7e9876c4696a65671f235bd836cfd0c096b272f6c2ada41e7")
@@ -1152,6 +1153,17 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
             return ret.split()
         else:
             return ret
+
+    @property
+    def unresolved_libraries(self):
+        # libomptarget at 14 and older has a hard-coded rpath that lacks hwloc's path
+        # https://github.com/llvm/llvm-project/commit/dc52712a063241bd0d3a0473b4e7ed870e41921f
+        if self.spec.satisfies("@:14 +libomptarget"):
+            return ["*"]
+
+        # TODO: for newer llvm there are still issues with runtimes for omp we
+        # have to add rpaths to `bin/llvm-omp-*` and `share/gdb/python/ompd/ompdModule.so`.
+        return ["libpython*.so.*", "libomp.so*", "libomptarget*.so*", "libunwind.so.*"]
 
 
 def get_gcc_install_dir_flag(spec: Spec, compiler) -> Optional[str]:

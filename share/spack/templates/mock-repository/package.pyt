@@ -1,3 +1,5 @@
+from spack.package import *
+
 class {{ cls_name }}(Package):
     homepage = "http://www.example.com"
     url = "http://www.example.com/root-1.0.tar.gz"

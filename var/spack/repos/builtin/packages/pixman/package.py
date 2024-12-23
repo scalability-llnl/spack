@@ -35,6 +35,9 @@ class Pixman(AutotoolsPackage, MesonPackage):
         default="meson",
     )
 
+    # https://github.com/spack/spack/issues/47917
+    conflicts("%intel")
+
     depends_on("c", type="build")
     with when("build_system=meson"):
         depends_on("meson@0.52:", type="build")

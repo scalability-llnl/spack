@@ -420,3 +420,7 @@ class Julia(MakefilePackage):
 
         with open("Make.user", "w") as f:
             f.write("\n".join(options) + "\n")
+
+    # julia's sys/package images are lacking rpaths, but this is fine because julia dlopen's them
+    # at which point their dependencies are already loaded. ccalllazyfoo.so is from tests.
+    unresolved_libraries = ["libjulia.so.*", "libjulia-internal.so.*", "ccalllazyfoo.so"]

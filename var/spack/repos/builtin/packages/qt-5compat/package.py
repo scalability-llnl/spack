@@ -18,6 +18,8 @@ class Qt5compat(QtPackage):
 
     license("LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only")
 
+    version("6.8.1", sha256="5e51feb8d9362d860017ae72f63daa5caeddf3ec3396e73a4b27c672536fd774")
+    version("6.8.0", sha256="0ea312a2d7e7033857712273e5ea42e61d1f485d23420307f7bbf0b8ca701453")
     version("6.7.3", sha256="959634d1a6a53f9a483882e81da87ec182ff44d7747a0cc771c786b0f2cf52e0")
     version("6.7.2", sha256="331a1e617952217868beeef7964828500388abeeb502ea3436f16eec816426c4")
 

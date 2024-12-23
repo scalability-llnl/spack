@@ -119,7 +119,7 @@ def test_dump_environment(prepare_environment_for_tests, shell_as, shell, tmpdir
     os.environ["TEST_ENV_VAR"] = test_paths
     dumpfile_path = str(tmpdir.join("envdump.txt"))
     envutil.dump_environment(dumpfile_path)
-    with open(dumpfile_path, "r") as dumpfile:
+    with open(dumpfile_path, "r", encoding="utf-8") as dumpfile:
         if shell == "pwsh":
             assert "$Env:TEST_ENV_VAR={}\n".format(test_paths) in list(dumpfile)
         elif shell == "bat":

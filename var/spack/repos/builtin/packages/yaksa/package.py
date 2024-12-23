@@ -29,7 +29,9 @@ class Yaksa(AutotoolsPackage, CudaPackage, ROCmPackage):
     version("0.3", sha256="c9e5291211bee8852831bb464f430ad5ba1541e31db5718a6fa2f2d3329fc2d9")
     version("0.2", sha256="9401cb6153dc8c34ddb9781bbabd418fd26b0a27b5da3294ecc21af7be9c86f2")
 
-    depends_on("c", type="build")  # generated
+    variant("level_zero", default=False, description="Enable Level Zero support")
+
+    depends_on("c", type="build")
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
@@ -43,9 +45,11 @@ class Yaksa(AutotoolsPackage, CudaPackage, ROCmPackage):
 
     def configure_args(self):
         spec = self.spec
-        config_args = []
+        config_args = [
+            *self.with_or_without("cuda", activation_value="prefix"),
+            *self.with_or_without("ze", variant="level_zero"),
+        ]
 
-        config_args += self.with_or_without("cuda", activation_value="prefix")
         if "+cuda" in spec:
             cuda_archs = spec.variants["cuda_arch"].value
             if "none" not in cuda_archs:

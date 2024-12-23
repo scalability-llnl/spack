@@ -410,15 +410,19 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
     with when("@14.4: +kokkos"):
         depends_on("kokkos+wrapper", when="+wrapper")
         depends_on("kokkos~wrapper", when="~wrapper")
+        depends_on("kokkos+cuda_relocatable_device_code~shared", when="+cuda_rdc")
+        depends_on("kokkos+hip_relocatable_device_code~shared", when="+rocm_rdc")
+        depends_on("kokkos-kernels~shared", when="+cuda_rdc")
+        depends_on("kokkos-kernels~shared", when="+rocm_rdc")
         depends_on("kokkos~complex_align")
-        depends_on("kokkos@4.4.01", when="@master:")
+        depends_on("kokkos@4.5.00", when="@master:")
         depends_on("kokkos@4.3.01", when="@16")
         depends_on("kokkos@4.2.01", when="@15.1:15")
         depends_on("kokkos@4.1.00", when="@14.4:15.0")
-        depends_on("kokkos-kernels@4.4.01", when="@master:")
+        depends_on("kokkos-kernels@4.5.00", when="@master:")
         depends_on("kokkos-kernels@4.3.01", when="@16")
         depends_on("kokkos-kernels@4.2.01", when="@15.1:15")
-        depends_on("kokkos-kernels@4.1.00", when="@14.4:15.0")
+        depends_on("kokkos-kernels@4.1.00", when="@15.0")
 
         for a in CudaPackage.cuda_arch_values:
             arch_str = f"+cuda cuda_arch={a}"
@@ -903,6 +907,7 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
         # External Kokkos
         if spec.satisfies("@14.4.0: +kokkos"):
             options.append(define_tpl_enable("Kokkos"))
+        if spec.satisfies("@15.0: +kokkos"):
             options.append(define_tpl_enable("KokkosKernels", True))
 
         # MPI settings

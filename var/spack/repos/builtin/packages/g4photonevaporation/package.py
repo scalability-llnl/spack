@@ -18,6 +18,7 @@ class G4photonevaporation(Package):
     maintainers("drbenmorgan")
 
     # Only versions relevant to Geant4 releases built by spack are added
+    version("6.1", sha256="5ffc1f99a81d50c9020186d59874af73c53ba24c1842b3b82b3188223bb246f2")
     version("5.7", sha256="761e42e56ffdde3d9839f9f9d8102607c6b4c0329151ee518206f4ee9e77e7e5")
     version("5.5", sha256="5995dda126c18bd7f68861efde87b4af438c329ecbe849572031ceed8f5e76d7")
     version("5.3", sha256="d47ababc8cbe548065ef644e9bd88266869e75e2f9e577ebc36bc55bf7a92ec8")

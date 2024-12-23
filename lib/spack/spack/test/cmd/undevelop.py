@@ -15,7 +15,7 @@ def test_undevelop(tmpdir, mutable_config, mock_packages, mutable_mock_env_path)
     # setup environment
     envdir = tmpdir.mkdir("env")
     with envdir.as_cwd():
-        with open("spack.yaml", "w") as f:
+        with open("spack.yaml", "w", encoding="utf-8") as f:
             f.write(
                 """\
 spack:
@@ -44,7 +44,7 @@ def test_undevelop_nonexistent(tmpdir, mutable_config, mock_packages, mutable_mo
     # setup environment
     envdir = tmpdir.mkdir("env")
     with envdir.as_cwd():
-        with open("spack.yaml", "w") as f:
+        with open("spack.yaml", "w", encoding="utf-8") as f:
             f.write(
                 """\
 spack:

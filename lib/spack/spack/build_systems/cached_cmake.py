@@ -324,7 +324,7 @@ class CachedCMakeBuilder(CMakeBuilder):
             + self.initconfig_package_entries()
         )
 
-        with open(self.cache_name, "w") as f:
+        with open(self.cache_name, "w", encoding="utf-8") as f:
             for entry in cache_entries:
                 f.write("%s\n" % entry)
             f.write("\n")

@@ -24,7 +24,7 @@ class JUnit(Reporter):
             filename = filename + ".xml"
 
         report_data = {"specs": specs}
-        with open(filename, "w") as f:
+        with open(filename, "w", encoding="utf-8") as f:
             env = spack.tengine.make_environment()
             t = env.get_template(self._jinja_template)
             f.write(t.render(report_data))

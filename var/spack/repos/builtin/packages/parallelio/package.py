@@ -19,6 +19,7 @@ class Parallelio(CMakePackage):
 
     license("Apache-2.0")
 
+    version("2.6.3", sha256="a483eb1cfa88ace8c6266e02741771c984e846dd732e86c72c3fdeae942b4299")
     version("2.6.2", sha256="c318894f0230197458917e932ec66301b4407a744df481e9c6a6d9d85f7e5ab1")
     version("2.6.1", sha256="83d3108d2b9db8219aa6b6ee333cfc12b2a588bcfc781587df5f8b24a716a6eb")
     version("2.6.0", sha256="e56a980c71c7f57f396a88beae08f1670d4adf59be6411cd573fe85868ef98c0")

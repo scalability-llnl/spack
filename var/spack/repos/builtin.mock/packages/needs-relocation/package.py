@@ -24,6 +24,6 @@ class NeedsRelocation(Package):
         mkdirp(prefix.bin)
 
         exe = join_path(prefix.bin, "exe")
-        with open(exe, "w") as f:
+        with open(exe, "w", encoding="utf-8") as f:
             f.write(prefix)
         set_executable(exe)

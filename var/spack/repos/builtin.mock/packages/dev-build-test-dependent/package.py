@@ -20,7 +20,7 @@ class DevBuildTestDependent(MakefilePackage):
     depends_on("dev-build-test-install")
 
     def edit(self, spec, prefix):
-        with open(self.filename, "r+") as f:
+        with open(self.filename, "r+", encoding="utf-8") as f:
             assert f.read() == self.original_string
             f.seek(0)
             f.truncate()

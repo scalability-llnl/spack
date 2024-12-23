@@ -198,6 +198,6 @@ def _detection_tests_yaml(
 ) -> Tuple[pathlib.Path, Dict[str, Any]]:
     pkg_dir = pathlib.Path(repository.filename_for_package_name(pkg_name)).parent
     detection_tests_yaml = pkg_dir / "detection_test.yaml"
-    with open(str(detection_tests_yaml)) as f:
+    with open(str(detection_tests_yaml), encoding="utf-8") as f:
         content = spack_yaml.load(f)
     return detection_tests_yaml, content

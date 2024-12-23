@@ -89,7 +89,6 @@ spack:
     - build-job:
         variables:
           CI_GPG_KEY_ROOT: /etc/protected-runner
-        tags: [ "macos-ventura", "apple-clang-15", "aarch64-macos" ]
 
   cdash:
     build-group: Machine Learning MPS

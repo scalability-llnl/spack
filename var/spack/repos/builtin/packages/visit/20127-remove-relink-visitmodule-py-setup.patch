@@ -1,0 +1,149 @@
+diff --git a/src/CMake/FindPySide.cmake b/src/CMake/FindPySide.cmake
+index abb1be0bb4e..19fcb1d8930 100644
+--- a/src/CMake/FindPySide.cmake
++++ b/src/CMake/FindPySide.cmake
+@@ -448,7 +448,7 @@ function(PYSIDE_ADD_HYBRID_MODULE module_name
+                   ${mod_gen_global}
+                   ${mod_gen_typesystem})
+ 
+-    add_dependencies(${module_name} "${module_name}_py_setup")
++    target_link_libraries(${module_name} PRIVATE "${module_name}_py_setup")
+     add_dependencies(${module_name} "${module_name}_gen")
+ 
+ endfunction(PYSIDE_ADD_HYBRID_MODULE)
+diff --git a/src/CMake/FindVisItPython.cmake b/src/CMake/FindVisItPython.cmake
+index 76ab1f54ca3..27272143366 100644
+--- a/src/CMake/FindVisItPython.cmake
++++ b/src/CMake/FindVisItPython.cmake
+@@ -356,7 +356,7 @@ function(PYTHON_ADD_MODULE _NAME )
+         if(WIN32)
+             set_target_properties(${_NAME} PROPERTIES SUFFIX ".pyd")
+         endif()
+-        target_link_libraries(${_NAME} ${PYTHON_LIBRARIES})
++        target_link_libraries(${_NAME} PRIVATE ${PYTHON_LIBRARIES})
+     endif()
+ endfunction()
+ 
+@@ -411,6 +411,10 @@ FUNCTION(PYTHON_ADD_PIP_SETUP)
+     # like we were able to do with distutils, you have to use TMPDIR
+     # TODO: we might want to  explore this in the future
+ 
++    # Use a stamp file to track when the pip comand was last executed
++    # wrt its dependencies
++    set(stamp ${CMAKE_CURRENT_BINARY_DIR}/${args_NAME}.stamp)
++
+     # add some cleanup (rm -rf) for the build artifacts left in source
+     # by pip-install
+     # since the egg-info dir for flow_vpe doesn't match its dirname
+@@ -418,25 +422,27 @@ FUNCTION(PYTHON_ADD_PIP_SETUP)
+     # there isn't a reliable way to only delete it when visit_flow_vpe
+     # calls this function. So, go ahead and add it to all the pip installs
+     # the 'rm -rf' will not error out if the dir doesn't exist
+-
+-    add_custom_command(OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/${args_NAME}_build
++    add_custom_command(OUTPUT ${stamp}
+             COMMAND ${PYTHON_EXECUTABLE} -m pip install . -V --upgrade
+             --disable-pip-version-check --no-warn-script-location
+             --target "${abs_dest_path}"
+             COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/build
+             COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/${args_PY_MODULE_DIR}.egg-info
+             COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/flow.egg-info
++            COMMAND ${CMAKE_COMMAND} -E touch ${stamp}
+             DEPENDS  ${args_PY_SETUP_FILE} ${args_PY_SOURCES}
+             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+ 
+-    add_custom_target(${args_NAME} ALL DEPENDS
+-                      ${CMAKE_CURRENT_BINARY_DIR}/${args_NAME}_build)
++    # The pip command wipes the --target directory, so all dependent modules need
++    # to be linked afterwards. Propagate this dependency as a usage requirement.
++    add_library(${args_NAME} INTERFACE ${stamp})
++    set_property(TARGET ${args_NAME} APPEND PROPERTY INTERFACE_LINK_DEPENDS ${stamp})
+ 
+     # set folder if passed
+     if(DEFINED args_FOLDER)
+         blt_set_target_folder(TARGET ${args_NAME} FOLDER ${args_FOLDER})
+     endif()
+-    
++
+     if(WIN32)
+         visit_add_to_util_builds(${args_NAME})
+     endif()
+@@ -506,7 +512,7 @@ FUNCTION(PYTHON_ADD_HYBRID_MODULE)
+         set_target_properties(${args_NAME} PROPERTIES
+              LIBRARY_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/$<CONFIG>/${args_DEST_DIR}/${args_NAME}/")
+     endif()
+-    add_dependencies(${args_NAME} "${args_NAME}_py_setup")
++    target_link_libraries(${args_NAME} PRIVATE "${args_NAME}_py_setup")
+     VISIT_INSTALL_TARGETS_RELATIVE(${args_DEST_DIR}/${args_NAME} ${args_NAME})
+ 
+ ENDFUNCTION(PYTHON_ADD_HYBRID_MODULE)
+diff --git a/src/sim/V2/swig/python/CMakeLists.txt b/src/sim/V2/swig/python/CMakeLists.txt
+index b5aaeff7e54..adb46efbf21 100644
+--- a/src/sim/V2/swig/python/CMakeLists.txt
++++ b/src/sim/V2/swig/python/CMakeLists.txt
+@@ -58,7 +58,7 @@ PYTHON_ADD_MODULE(pysimV2
+ # libsimV2. We then reset its output name to _simV2 since that's what SWIG
+ # wants us to call it.
+ SET_TARGET_PROPERTIES(pysimV2 PROPERTIES PREFIX "" OUTPUT_NAME _simV2)
+-TARGET_LINK_LIBRARIES(pysimV2 ${PYTHON_LIBRARY})
++TARGET_LINK_LIBRARIES(pysimV2 PRIVATE ${PYTHON_LIBRARY})
+ IF(NOT APPLE)
+     SET_TARGET_PROPERTIES(pysimV2 PROPERTIES INSTALL_RPATH "$ORIGIN")
+ ENDIF(NOT APPLE)
+diff --git a/src/tools/data/writer/CMakeLists.txt b/src/tools/data/writer/CMakeLists.txt
+index dbd5fcb7c6b..b2cea7ea643 100644
+--- a/src/tools/data/writer/CMakeLists.txt
++++ b/src/tools/data/writer/CMakeLists.txt
+@@ -31,7 +31,7 @@ PYTHON_ADD_MODULE(visit_writer
+ ${WRITER_SOURCES}
+ )
+ SET_TARGET_PROPERTIES(visit_writer PROPERTIES PREFIX "")
+-TARGET_LINK_LIBRARIES(visit_writer
++TARGET_LINK_LIBRARIES(visit_writer PRIVATE
+ ${PYTHON_LIBRARY}
+ )
+ 
+diff --git a/src/visitpy/CMakeLists.txt b/src/visitpy/CMakeLists.txt
+index df9f0e96d18..6ba68e288ff 100644
+--- a/src/visitpy/CMakeLists.txt
++++ b/src/visitpy/CMakeLists.txt
+@@ -451,7 +451,7 @@ ELSE(VISIT_STATIC)
+     # Create the visitmodule
+     PYTHON_ADD_MODULE(visitmodule
+                       ${COMMON_SOURCES})
+-    TARGET_LINK_LIBRARIES(visitmodule
++    TARGET_LINK_LIBRARIES(visitmodule PUBLIC
+         viewerproxy
+         viewerrpc
+         avtdbatts
+@@ -463,7 +463,7 @@ ELSE(VISIT_STATIC)
+     IF(NOT WIN32)
+         IF(NOT APPLE)
+             find_library(LIBRT rt)
+-            TARGET_LINK_LIBRARIES(visitmodule ${LIBRT})
++            TARGET_LINK_LIBRARIES(visitmodule PUBLIC ${LIBRT})
+         ENDIF(NOT APPLE)
+         SET_TARGET_PROPERTIES(visitmodule PROPERTIES
+                                           LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/site-packages/visit)
+@@ -486,7 +486,7 @@ ADD_SUBDIRECTORY(visitmodule)
+ # the visitmodule subdir added above creates the visitmodule_py_setup target
+ # visitmodule needs to depend on it so it is built after the py module,
+ # otherwise pip install will overwrite the directory and delete visitmodule.so
+-add_dependencies(visitmodule visitmodule_py_setup)
++target_link_libraries(visitmodule PRIVATE visitmodule_py_setup)
+ ADD_SUBDIRECTORY(visit_utils)
+ ADD_SUBDIRECTORY(visit_flow)
+ 
+diff --git a/src/visitpy/mpicom/CMakeLists.txt b/src/visitpy/mpicom/CMakeLists.txt
+index 3566e0deaff..fbae1032795 100644
+--- a/src/visitpy/mpicom/CMakeLists.txt
++++ b/src/visitpy/mpicom/CMakeLists.txt
+@@ -68,7 +68,7 @@ IF(VISIT_PARALLEL)
+         ADD_TARGET_DEFINITIONS(mpicom ${VISIT_PARALLEL_DEFS})
+     ENDIF(UNIX)
+ 
+-    TARGET_LINK_LIBRARIES(mpicom
++    TARGET_LINK_LIBRARIES(mpicom PRIVATE
+                           ${PYTHON_LIBRARY}
+                           ${VISIT_PARALLEL_LIBS})
+ 

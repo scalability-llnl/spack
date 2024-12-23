@@ -415,7 +415,7 @@ def fetch_url_text(url, curl: Optional[Executable] = None, dest_dir="."):
             output = codecs.getreader("utf-8")(response).read()
             if output:
                 with working_dir(dest_dir, create=True):
-                    with open(filename, "w") as f:
+                    with open(filename, "w", encoding="utf-8") as f:
                         f.write(output)
 
                 return path

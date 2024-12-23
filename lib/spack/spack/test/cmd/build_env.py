@@ -40,7 +40,7 @@ _out_file = "env.out"
 def test_dump(shell_as, shell, tmpdir):
     with tmpdir.as_cwd():
         build_env("--dump", _out_file, "zlib")
-        with open(_out_file) as f:
+        with open(_out_file, encoding="utf-8") as f:
             if shell == "pwsh":
                 assert any(line.startswith("$Env:PATH") for line in f.readlines())
             elif shell == "bat":

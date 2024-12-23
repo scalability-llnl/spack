@@ -71,7 +71,9 @@ class Onnx(CMakePackage):
 
     def patch(self):
         if self.spec.satisfies("@1.13:1.14 ^protobuf@3.22:"):
-            filter_file("CMAKE_CXX_STANDARD 11", "CMAKE_CXX_STANDARD 14", "CMakeLists.txt")
+            # CMAKE_CXX_STANDARD is overridden in CMakeLists.txt until 1.14
+            cxxstd = self.spec["abseil-cpp"].variants["cxxstd"].value
+            filter_file("CMAKE_CXX_STANDARD 11", f"CMAKE_CXX_STANDARD {cxxstd}", "CMakeLists.txt")
 
     def cmake_args(self):
         args = [
@@ -79,4 +81,8 @@ class Onnx(CMakePackage):
             self.define("PY_VERSION", self.spec["python"].version.up_to(2)),
             self.define("ONNX_BUILD_TESTS", self.run_tests),
         ]
+        if self.spec.satisfies("@1.15: ^protobuf@3.22:"):
+            # CMAKE_CXX_STANDARD can be set on command line as of 1.15
+            cxxstd = self.spec["abseil-cpp"].variants["cxxstd"].value
+            args.append(self.define("CMAKE_CXX_STANDARD", cxxstd))
         return args

@@ -66,7 +66,7 @@ def path_to_os_path(*parameters: str) -> List[str]:
     return result
 
 
-def system_path_filter(_func=None, arg_slice: Optional[slice] = None):
+def _system_path_filter(_func=None, arg_slice: Optional[slice] = None):
     """Filters function arguments to account for platform path separators.
     Optional slicing range can be specified to select specific arguments
 
@@ -98,6 +98,16 @@ def system_path_filter(_func=None, arg_slice: Optional[slice] = None):
     if _func:
         return holder_func(_func)
     return holder_func
+
+
+def _noop_decorator(_func=None, arg_slice: Optional[slice] = None):
+    return _func if _func else lambda x: x
+
+
+if sys.platform == "win32":
+    system_path_filter = _system_path_filter
+else:
+    system_path_filter = _noop_decorator
 
 
 def sanitize_win_longpath(path: str) -> str:

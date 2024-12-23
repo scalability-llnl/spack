@@ -5137,7 +5137,7 @@ other checks.
      - Not applicable
    * - :ref:`PythonPackage <pythonpackage>`
      - Not applicable
-     - ``test`` (module imports)
+     - ``test_imports`` (module imports)
    * - :ref:`QMakePackage <qmakepackage>`
      - ``check`` (``make check``)
      - Not applicable
@@ -5146,7 +5146,7 @@ other checks.
      - Not applicable
    * - :ref:`SIPPackage <sippackage>`
      - Not applicable
-     - ``test`` (module imports)
+     - ``test_imports`` (module imports)
    * - :ref:`WafPackage <wafpackage>`
      - ``build_test`` (must be overridden)
      - ``install_test`` (must be overridden)

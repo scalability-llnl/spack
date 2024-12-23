@@ -19,6 +19,7 @@ class Prmon(CMakePackage):
     license("Apache-2.0")
 
     version("main", branch="main")
+    version("3.1.1", sha256="30ce420f807e637002fbfb92f54b3a74f645dc95b81a75995196e787a7b952ba")
     version("3.1.0", sha256="02f25f1ea82300c93e5af14137e366b31c8d615283768d5f3f98616a0d6e507c")
     version("3.0.2", sha256="ea9ff521689fecb8c395e35e9540be18c7ab37812354c4a5c0ba505e2ab467c1")
     version("3.0.0", sha256="fd6f4e3a95e055d265fbbaba08d680826cb4770eb8830cc987898d6504ac7474")
@@ -33,6 +34,7 @@ class Prmon(CMakePackage):
     depends_on("cmake@3.3:", type="build")
     depends_on("spdlog", when="@3.0.0:")
     depends_on("py-matplotlib", type="run", when="+plot")
+    depends_on("py-matplotlib@:3.5", type="run", when="@:3.1.0 +plot")
     depends_on("py-numpy", type="run", when="+plot")
     depends_on("py-pandas", type="run", when="+plot")
 

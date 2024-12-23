@@ -44,7 +44,8 @@ class ClingoBootstrap(Clingo):
         patch("mimalloc.patch", when="@5.5.0:")
         patch("mimalloc-pre-5.5.0.patch", when="@:5.4")
         # ensure we hide libstdc++ with custom operator new/delete symbols
-        patch("version-script.patch")
+        patch("version-script.patch", when="@spack,5.5:5.6")
+        patch("version-script-5.4.patch", when="@5.2:5.4")
 
     # CMake at version 3.16.0 or higher has the possibility to force the
     # Python interpreter, which is crucial to build against external Python

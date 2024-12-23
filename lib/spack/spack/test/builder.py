@@ -164,7 +164,7 @@ def test_install_time_test_callback(tmpdir, config, mock_packages, mock_stage):
     for phase_fn in builder:
         phase_fn.execute()
 
-    with open(s.package.tester.test_log_file, "r") as f:
+    with open(s.package.tester.test_log_file, "r", encoding="utf-8") as f:
         results = f.read().replace("\n", " ")
         assert "PyTestCallback test" in results
 

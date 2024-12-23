@@ -340,7 +340,7 @@ def list(parser, args):
                 return
 
         tty.msg("Updating file: %s" % args.update)
-        with open(args.update, "w") as f:
+        with open(args.update, "w", encoding="utf-8") as f:
             formatter(sorted_packages, f)
 
     elif args.count:

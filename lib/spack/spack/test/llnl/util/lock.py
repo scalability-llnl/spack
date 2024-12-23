@@ -649,17 +649,17 @@ def test_upgrade_read_to_write(private_lock_path):
     lock.acquire_read()
     assert lock._reads == 1
     assert lock._writes == 0
-    assert lock._file.mode == "r+"
+    assert lock._file.mode == "rb+"
 
     lock.acquire_write()
     assert lock._reads == 1
     assert lock._writes == 1
-    assert lock._file.mode == "r+"
+    assert lock._file.mode == "rb+"
 
     lock.release_write()
     assert lock._reads == 1
     assert lock._writes == 0
-    assert lock._file.mode == "r+"
+    assert lock._file.mode == "rb+"
 
     lock.release_read()
     assert lock._reads == 0
@@ -681,7 +681,7 @@ def test_upgrade_read_to_write_fails_with_readonly_file(private_lock_path):
         lock.acquire_read()
         assert lock._reads == 1
         assert lock._writes == 0
-        assert lock._file.mode == "r"
+        assert lock._file.mode == "rb"
 
         # upgrade to write here
         with pytest.raises(lk.LockROFileError):

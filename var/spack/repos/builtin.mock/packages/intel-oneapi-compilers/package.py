@@ -40,6 +40,6 @@ class IntelOneapiCompilers(Package, CompilerPackage):
             comp_string = f"@echo off\necho oneAPI DPC++ Compiler {str(spec.version)}"
         else:
             comp_string = f'#!/bin/bash\necho "oneAPI DPC++ Compiler {str(spec.version)}"'
-        with open(comp, "w") as f:
+        with open(comp, "w", encoding="utf-8") as f:
             f.write(comp_string)
         set_executable(comp)

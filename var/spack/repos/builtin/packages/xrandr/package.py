@@ -17,6 +17,7 @@ class Xrandr(AutotoolsPackage, XorgPackage):
 
     maintainers("wdconinc")
 
+    version("1.5.3", sha256="980befa14b48de2fa74dc07bbb22f746acfd12e1f9dbd539eab9a3c9b434d667")
     version("1.5.2", sha256="efd062cd228dc18a7de26422c81bc4be6a7e62f7f0ad6f9bebdd9ff8385c5668")
     version("1.5.1", sha256="7b99edb7970a1365eaf5bcaf552144e4dfc3ccf510c4abc08569849929fb366e")
     version("1.5.0", sha256="ddfe8e7866149c24ccce8e6aaa0623218ae19130c2859cadcaa4228d8bb4a46d")

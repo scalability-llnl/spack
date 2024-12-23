@@ -35,6 +35,14 @@ class AmdAocl(BundlePackage):
 
     variant("openmp", default=False, description="Enable OpenMP support.")
 
+    depends_on("scalapack")
+    depends_on("lapack")
+    depends_on("blas")
+
+    requires("^[virtuals=scalapack] amdscalapack")
+    requires("^[virtuals=lapack] amdlibflame")
+    requires("^[virtuals=blas] amdblis")
+
     with when("+openmp"):
         depends_on("amdblis threads=openmp")
         depends_on("amdfftw +openmp")
@@ -56,11 +64,8 @@ class AmdAocl(BundlePackage):
             depends_on(f"amdblis@={vers}")
             depends_on(f"amdfftw@={vers}")
             depends_on(f"amdlibflame@={vers}")
-            depends_on("amdlibflame ^[virtuals=blas] amdblis")
             depends_on(f"amdlibm@={vers}")
             depends_on(f"amdscalapack@={vers}")
-            depends_on("amdscalapack ^[virtuals=blas] amdblis")
-            depends_on("amdscalapack ^[virtuals=lapack] amdlibflame")
             depends_on(f"aocl-sparse@={vers}")
             if Version(vers) >= Version("4.2"):
                 depends_on(f"aocl-compression@={vers}")

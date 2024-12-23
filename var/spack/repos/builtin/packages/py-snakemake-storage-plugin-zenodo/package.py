@@ -15,6 +15,8 @@ class PySnakemakeStoragePluginZenodo(PythonPackage):
 
     license("MIT")
 
+    version("0.1.4", sha256="f9c13b4476c8002ec15dcce69819ed65e0cca86595f6ac3ece19020c012c9526")
+    version("0.1.3", sha256="ae72ab8f866c72a63912a353923d976a7b5c91658fd9534f670691963be98e53")
     version("0.1.2", sha256="3675e76ae5dc930664bbcc1132a957c6490199c366e4e1e607d1491a7a46cf3d")
 
     depends_on("py-requests@2.31:2", type=("build", "run"))

@@ -146,7 +146,7 @@ def test_spec_parse_error():
         spec("1.15:")
 
     # make sure the error is formatted properly
-    error_msg = "unexpected tokens in the spec string\n1.15:\n    ^"
+    error_msg = "unexpected characters in the spec string\n1.15:\n    ^"
     assert error_msg in str(e.value)
 
 

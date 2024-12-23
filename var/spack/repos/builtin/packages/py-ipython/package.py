@@ -51,6 +51,7 @@ class PyIpython(PythonPackage):
     version("5.8.0", sha256="4bac649857611baaaf76bc82c173aa542f7486446c335fe1a6c05d0d491c8906")
     version("5.1.0", sha256="7ef4694e1345913182126b219aaa4a0047e191af414256da6772cf249571b961")
 
+    depends_on("python@3.10:", when="@8.19:", type=("build", "run"))
     depends_on("python@3.9:", when="@8.13.1:", type=("build", "run"))
     depends_on("python@3.8: +sqlite3", when="@8:", type=("build", "run"))
     depends_on("py-setuptools@61.2:", when="@8.22:", type="build")
@@ -61,7 +62,7 @@ class PyIpython(PythonPackage):
     depends_on("py-colorama", when="platform=windows", type=("build", "run"))
     depends_on("py-decorator", type=("build", "run"))
     depends_on("py-exceptiongroup", when="@8.15: ^python@:3.10", type=("build", "run"))
-    depends_on("py-jedi@0.16:", when="@7.18,7.20:", type=("build", "run"))
+    depends_on("py-jedi@0.16:0.18", when="@7.18,7.20:", type=("build", "run"))
     depends_on("py-jedi@0.10:", when="@7.5:7.17,7.19", type=("build", "run"))
     depends_on("py-matplotlib-inline", when="@7.23:", type=("build", "run"))
     depends_on("py-pexpect@4.4:", when="@7.18: platform=linux", type=("build", "run"))

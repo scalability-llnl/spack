@@ -96,6 +96,16 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
     conflicts("+rocm", when="+cuda", msg="AMD and NVIDIA accelerators are incompatible")
     conflicts("+rocm", when="+vecgeom", msg="HIP support is only available with ORANGE")
 
+    # geant4@11.3.0 now returns const G4Element::GetElementTable()
+    patch(
+        "https://github.com/celeritas-project/celeritas/commit/3c8ed9614fc695fba35e8a058bedb7bc1556f71c.patch?full_index=1",
+        sha256="1161c4f1166860d35d2a3f103236a63acd6a35aee2d2c27561cb929941d1c170",
+        when="@0.5.0 +geant4 ^geant4@11.3.0:",
+    )
+    conflicts(
+        "^geant4@11.3.0:", when="@:0.4 +geant4", msg="geant4@11.3.0: requires at least 0.5.0"
+    )
+
     def cmake_args(self):
         define = self.define
         from_variant = self.define_from_variant

@@ -555,3 +555,6 @@ class Openjdk(Package):
     # fix that prevents us from modifying the soname of libjvm.so. If we move
     # to source builds this should be possible.
     non_bindable_shared_objects = ["libjvm.so"]
+
+    # contains precompiled binaries without rpaths
+    unresolved_libraries = ["*"]

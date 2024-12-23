@@ -22,6 +22,7 @@ class Veccore(CMakePackage):
     license("Apache-2.0")
 
     version("master", branch="master")
+    version("0.8.2", sha256="1268bca92acf00acd9775f1e79a2da7b1d902733d17e283e0dd5e02c41ac9666")
     version("0.8.1", sha256="7d7983947c2c6faa55c908b3a968f19f96f4d5c909447c536de30c34b439e008")
     version("0.8.0", sha256="2f8e49f2b609bf15a776026fbec899b3d5d4ba30f033d4fdac4b07a5220a4fd3")
     version("0.7.0", sha256="61d9fc4be815c5c98088c2796763d3ed82ba4bad5a69b7892c1c2e7e1e53d311")
@@ -38,6 +39,7 @@ class Veccore(CMakePackage):
 
     variant("vc", default=False, description="Enable Vc backend")
 
+    depends_on("cmake@3.16:", type="build", when="@0.8.1:")
     depends_on("vc@1.2.0:", when="@0.2.0: +vc")
     depends_on("vc@1.3.3:", when="@0.6.0: +vc")
 

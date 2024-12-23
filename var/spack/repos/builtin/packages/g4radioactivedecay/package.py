@@ -18,6 +18,7 @@ class G4radioactivedecay(Package):
     maintainers("drbenmorgan")
 
     # Only versions relevant to Geant4 releases built by spack are added
+    version("6.1.2", sha256="a40d7e3ebc64d35555c4a49d0ff1e0945cd605d84354d053121293914caea13a")
     version("5.6", sha256="3886077c9c8e5a98783e6718e1c32567899eeb2dbb33e402d4476bc2fe4f0df1")
     version("5.4", sha256="240779da7d13f5bf0db250f472298c3804513e8aca6cae301db97f5ccdcc4a61")
     version("5.3", sha256="5c8992ac57ae56e66b064d3f5cdfe7c2fee76567520ad34a625bfb187119f8c1")

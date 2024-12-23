@@ -25,6 +25,14 @@ QMake does not appear to have a standardized way of specifying
 the installation directory, so you may have to set environment
 variables or edit ``*.pro`` files to get things working properly.
 
+QMake packages will depend on the virtual ``qmake`` package which
+is provided by multiple versions of Qt: ``qt`` provides Qt up to
+Qt5, and ``qt-base`` provides Qt from version Qt6 onwards. This
+split was motivated by the desire to split the single Qt package
+into its components to allow for more fine-grained installation.
+To depend on a specific version, refer to the documentation on
+:ref:`virtual-dependencies`.
+
 ^^^^^^
 Phases
 ^^^^^^

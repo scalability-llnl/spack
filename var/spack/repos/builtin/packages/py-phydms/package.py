@@ -13,7 +13,7 @@ class PyPhydms(PythonPackage):
     codon models (ExpCM) for phylogenetic inference and the detection of
     biologically interesting selection."""
 
-    homepage = "http://jbloomlab.github.io/phydms"
+    homepage = "https://jbloomlab.github.io/phydms"
     pypi = "phydms/phydms-2.4.1.tar.gz"
 
     license("GPL-3.0-or-later")

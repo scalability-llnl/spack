@@ -2,6 +2,7 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
 import spack.build_systems.cmake
 from spack.package import *
 
@@ -12,7 +13,6 @@ class NetlibLapack(CMakePackage):
     solutions to linear sets of equations, eigenvector analysis, singular
     value decomposition, etc. It is a very comprehensive and reputable
     package that has found extensive use in the scientific community.
-
     """
 
     homepage = "https://www.netlib.org/lapack/"
@@ -21,6 +21,11 @@ class NetlibLapack(CMakePackage):
 
     license("BSD-3-Clause-Open-MPI")
 
+    version(
+        "3.12.0",
+        sha256="eac9570f8e0ad6f30ce4b963f4f033f0f643e7c3912fc9ee6cd99120675ad48b",
+        url="https://github.com/Reference-LAPACK/lapack/archive/refs/tags/v3.12.0.tar.gz",
+    )
     version(
         "3.11.0",
         sha256="4b9ba79bfd4921ca820e83979db76ab3363155709444a787979e81c22285ffa9",
@@ -61,11 +66,10 @@ class NetlibLapack(CMakePackage):
     version("3.4.0", sha256="a7139ef97004d0e3c4c30f1c52d508fd7ae84b5fbaf0dd8e792c167dc306c3e9")
     version("3.3.1", sha256="56821ab51c29369a34e5085728f92c549a9aa926f26acf7eeac87b61eed329e4")
 
-    depends_on("c", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
-
     # netlib-lapack is the reference implementation of LAPACK
     for ver in [
+        "3.12.0",
+        "3.11.0",
         "3.10.1",
         "3.10.0",
         "3.9.1",
@@ -86,7 +90,6 @@ class NetlibLapack(CMakePackage):
     variant("shared", default=True, description="Build shared library version")
     variant("pic", default=True, description="Produce position-independent code")
     variant("external-blas", default=False, description="Build lapack with an external blas")
-
     variant("lapacke", default=True, description="Activates the build of the LAPACKE C interface")
     variant("xblas", default=False, description="Builds extended precision routines using XBLAS")
 
@@ -117,6 +120,8 @@ class NetlibLapack(CMakePackage):
     provides("lapack", "blas", when="~external-blas")
     provides("lapack")
 
+    depends_on("c", type="build")
+    depends_on("fortran", type="build")
     depends_on("blas", when="+external-blas")
     depends_on("netlib-xblas+fortran+plain_blas", when="+xblas")
     depends_on("python@2.7:", type="test")

@@ -18,15 +18,20 @@ class Qgis(CMakePackage):
     maintainers("adamjstewart", "Sinan81")
 
     license("GPL-2.0-or-later")
-
-    # TODO version 3.36 isn't building right now.
-    version("3.36.0", sha256="1b64bc92660bf07edc6b6478fc6a13656149e87d92eabe5c3db9493072506e2c")
+    version("3.40.1", sha256="53110464c9f5ba5562c437e1563ab36dad2f218e6e7d1c0cfbe5b6effe241c8e")
+    #  version 3.36 isn't building right now.
+    version(
+        "3.36.0",
+        sha256="1b64bc92660bf07edc6b6478fc6a13656149e87d92eabe5c3db9493072506e2c",
+        deprecated=True,
+    )
     # Prefer latest LTR
     version(
-        "3.34.4",
-        sha256="7d1c5fafff13f508a9bcf6244c9666f891351deb1ace2aedcc63504f070c5ce4",
+        "3.34.13",
+        sha256="a8873ca9bae346bae48ef3fe3eed702ef1f06d951201464464a64019302ba50b",
         preferred=True,
     )
+    version("3.34.4", sha256="7d1c5fafff13f508a9bcf6244c9666f891351deb1ace2aedcc63504f070c5ce4")
     version("3.34.0", sha256="348a2df4c4520813a319b7f72546b3823e044cacd28646ba189b56a49c7d1b5f")
     version("3.28.15", sha256="217342ba2232cc8fe5bf8f3671c2b3d6daf5504c33006b67424373e70d568dfa")
     version("3.28.12", sha256="d6d0ea39ed3433d553f8b83324dc14cfa90f8caaf766fa484791df9169800f25")
@@ -127,6 +132,9 @@ class Qgis(CMakePackage):
     depends_on("proj@4.9.3:", when="@3.8.2:")
     depends_on("proj@7.2:", when="@3.28:")
     depends_on("proj@:8", when="@3.28")  # build fails with proj@9
+    # fails to build with proj 9.4+ until the backported patch in 3.34.5
+    # https://github.com/qgis/QGIS/pull/56761
+    depends_on("proj@:9.3", when="@:3.34.4")
     depends_on("py-psycopg2", type=("build", "run"))  # TODO: is build dependency necessary?
     depends_on("py-pyqt4", when="@2")
     depends_on("py-pyqt5@5.3:", when="@3")

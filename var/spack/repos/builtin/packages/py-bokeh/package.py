@@ -14,6 +14,7 @@ class PyBokeh(PythonPackage):
 
     license("BSD-3-Clause")
 
+    version("3.5.2", sha256="03a54a67db677b8881834271c620a781b383ae593af5c3ea2149164754440d07")
     version("3.3.1", sha256="2a7b3702d7e9f03ef4cd801b02b7380196c70cff2773859bcb84fa565218955c")
     version("2.4.3", sha256="ef33801161af379665ab7a34684f2209861e3aefd5c803a21fbbb99d94874b03")
     version("2.4.1", sha256="d0410717d743a0ac251e62480e2ea860a7341bdcd1dbe01499a904f233c90512")
@@ -33,6 +34,7 @@ class PyBokeh(PythonPackage):
     depends_on("python@3.7:", type=("build", "run"), when="@2.4.0:")
     depends_on("python@3.8:", type=("build", "run"), when="@3.0.0:")
     depends_on("python@3.9:", type=("build", "run"), when="@3.2.0:")
+    depends_on("python@3.10:", type=("build", "run"), when="@3.5.0:")
 
     depends_on("py-requests@1.2.3:", type=("build", "run"), when="@0.12.2")
     depends_on("py-six@1.5.2:", type=("build", "run"), when="@:1.3.4")
@@ -42,6 +44,7 @@ class PyBokeh(PythonPackage):
     depends_on("py-jinja2@2.9:", type=("build", "run"), when="@2.3.3:")
 
     depends_on("py-contourpy@1:", type=("build", "run"), when="@3:")
+    depends_on("py-contourpy@1.2:", type=("build", "run"), when="@3.5:")
 
     depends_on("py-numpy@1.7.1:", type=("build", "run"))
     depends_on("py-numpy@1.11.3:", type=("build", "run"), when="@2.3.3:")
@@ -60,6 +63,7 @@ class PyBokeh(PythonPackage):
 
     depends_on("py-tornado@4.3:", type=("build", "run"))
     depends_on("py-tornado@5.1:", type=("build", "run"), when="@2.3.3:")
+    depends_on("py-tornado@6.2:", type=("build", "run"), when="@3.5:")
 
     depends_on("py-typing-extensions@3.7.4:", type=("build", "run"), when="@2.3.3:3.0.0")
     depends_on("py-typing-extensions@3.10.0:", type=("build", "run"), when="@2.4.0:3.0.0")

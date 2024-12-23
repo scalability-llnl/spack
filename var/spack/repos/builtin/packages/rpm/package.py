@@ -94,7 +94,6 @@ class Rpm(AutotoolsPackage):
     depends_on("bzip2")
     depends_on("gzip")
     depends_on("xz")
-    depends_on("lzma")
     with when("+zstd"):
         depends_on("zstd")
         depends_on("zstd@1.3.8:", when="@4.17:")

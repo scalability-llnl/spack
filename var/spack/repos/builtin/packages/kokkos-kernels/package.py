@@ -23,6 +23,8 @@ class KokkosKernels(CMakePackage, CudaPackage):
 
     version("develop", branch="develop")
     version("master", branch="master")
+
+    version("4.5.00", sha256="94726a64e349adf6cd276e9fdc1b2bf7ff81efec833e479a5d3024b83f165a59")
     version("4.4.01", sha256="4a32bc8330e0113856bdf181df94cc4f9902e3cebb5dc7cea5948f30df03bfa1")
     version("4.4.00", sha256="66d5c3f728a8c7689159c97006996164ea00fd39702476220e3dbf2a05c49e8f")
 
@@ -132,6 +134,7 @@ class KokkosKernels(CMakePackage, CudaPackage):
     depends_on("kokkos")
     depends_on("kokkos@master", when="@master")
     depends_on("kokkos@develop", when="@develop")
+    depends_on("kokkos@4.5.00", when="@4.5.00")
     depends_on("kokkos@4.4.01", when="@4.4.01")
     depends_on("kokkos@4.4.00", when="@4.4.00")
     depends_on("kokkos@4.3.01", when="@4.3.01")

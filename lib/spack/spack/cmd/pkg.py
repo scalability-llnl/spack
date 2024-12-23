@@ -150,7 +150,7 @@ def pkg_source(args):
         content = ph.canonical_source(spec)
     else:
         message = "Source for %s:" % filename
-        with open(filename) as f:
+        with open(filename, encoding="utf-8") as f:
             content = f.read()
 
     if sys.stdout.isatty():

@@ -29,6 +29,7 @@ class Legion(CMakePackage, ROCmPackage):
 
     maintainers("pmccormick", "streichler", "elliottslaughter")
     tags = ["e4s"]
+    version("24.12.0", tag="legion-24.12.0", commit="2f087ebe433a19f9a3abd05382f951027933bad9")
     version("24.09.0", tag="legion-24.09.0", commit="4a03402467547b99530042cfe234ceec2cd31b2e")
     version("24.06.0", tag="legion-24.06.0", commit="3f27977943626ef23038ef0049b7ad1b389caad1")
     version("24.03.0", tag="legion-24.03.0", commit="c61071541218747e35767317f6f89b83f374f264")

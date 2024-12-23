@@ -36,6 +36,7 @@ class Tfel(CMakePackage):
 
     # development branches
     version("master", branch="master")
+    version("rliv-5.0", branch="rliv-5.0")
     version("rliv-4.2", branch="rliv-4.2")
     version("rliv-4.1", branch="rliv-4.1")
     version("rliv-4.0", branch="rliv-4.0")
@@ -47,20 +48,25 @@ class Tfel(CMakePackage):
     version("rliv-2.0", branch="rliv-2.0")
     version("rliv-1.2", branch="rliv-1.2")
 
-    # released version
+    # released versions
     version(
-        "4.2.1",
-        sha256="14f27257014a992a4e511f35390e4b9a086f6a5ed74087f891f8c00306f1758f",
+        "5.0.0",
+        sha256="fe1ec39eba7f23571c2b0c773dab1cc274fee4512c5b2f2fc54b231da4502e87",
         preferred=True,
     )
+    version("4.2.2", sha256="021864ad5b27ffce1915bcacc8f39f3e8a72ce6bd32e80a61ea0998a060180e5")
+    version("4.2.1", sha256="14f27257014a992a4e511f35390e4b9a086f6a5ed74087f891f8c00306f1758f")
     version("4.2.0", sha256="cf8a309c4d19a8e36232f8540ff28aa0d6285645f8dfb1ac57dd481ba3453e02")
+    version("4.1.3", sha256="c1d47345194fcffe98ff15b454ba721432e58b1943427362af8653ee8663875a")
     version("4.1.2", sha256="e9e7c2aeef7d19f92ffd83b2a7fc54186e648d25e42696b5cba7c4bfa194276a")
     version("4.1.1", sha256="e0f229094e88a2d6c6a78ae60fa77d2f4b8294e9d810c21fd7df61004bf29a33")
     version("4.1.0", sha256="7505c41da9df5fb3c281651ff29b58a18fd4d91b92f839322f0267269c5f1375")
+    version("4.0.4", sha256="cc2926387c1e948866f9e0e8f0f09b699d072cc6fd1d345631cb0038d8292817")
     version("4.0.3", sha256="c21c13fbd5ad8f52e9874a7931c619b9b7e69d69a2ab003e09628a1e9945542d")
     version("4.0.2", sha256="f5c8a285e00f334fd3e1a95f9a393fed393990ee827dae3766da1decfaa1074e")
     version("4.0.1", sha256="f54741b7e654cb12511ca68c6494a4789ba41b5ada4cd345ad2bc7da631309d1")
     version("4.0.0", sha256="7a0c32c8a9cd2fd65cbcb54fff802f303665d7cba5d46f92ff3d55f057c92845")
+    version("3.4.7", sha256="5b79b58b9f234169eb47358f9717e8ae7401533e4e645f442194fcefdb4bcb98")
     version("3.4.6", sha256="88c3d076ca360ffbadb6ffeb6cbc1267a9da0e098e7c182407501820ba2bf6e7")
     version("3.4.5", sha256="064d6926106e0052829182087a025f58fc3e98dfb69967e0795d9cdb4e1500b9")
     version("3.4.4", sha256="a518a7a761fec6c92fab6dc9df5694c28aad2554c7c649d707dfdc71fe93d2ca")
@@ -68,12 +74,14 @@ class Tfel(CMakePackage):
     version("3.4.2", sha256="f39e65b2282fd3b108081388f161ba662407b192fed68fafe324c7528026a202")
     version("3.4.1", sha256="04cd4257e39e1b05e02b12ad941106fff4d439934bdfe6e950c08bab23e2a4ba")
     version("3.4.0", sha256="176feb4c1726d0f21f4c656b20620dce6f99ab7f5f09a66905aeb643a316bbc1")
+    version("3.3.6", sha256="e56e999675fe08b0efdcbdd8b4bde8ab45d249098ec8d9641104819eb930bedf")
     version("3.3.5", sha256="4319a7a6363f69f7f0c78abb0741bc90b49dc777831c2886b13aca61c79bae04")
     version("3.3.4", sha256="3829e0b07520a14b17a8e75f879683a0d97b04b897aeb3ad0dd96dc94c0fcd6b")
     version("3.3.3", sha256="5a1fb43a8086e594e0a7234c1f227e6e005d384fd84affe3acadccb68fe2bbf6")
     version("3.3.2", sha256="17127ffdf92367c10041258f70a88ac3dcb0a7d89c1766a6aa1ebaeb4d03d55d")
     version("3.3.1", sha256="ad07329c25874832fbacc999b5f88d9b9ab84415bc897a6f3cae5b4afcd7661f")
     version("3.3.0", sha256="884ad68b0fbbededc3a602d559433c24114ae4534dc9f0a759d31ca3589dace0")
+    version("3.2.11", sha256="3f00343e5cd66d3a95903cbd08f078d48cea75b64b444e3b48dddf3aa5a6aa02")
     version("3.2.10", sha256="3fe24a2811811d68ce5735f601d12fae7b1da465ac5b2917bd0887782218f2bd")
     version("3.2.9", sha256="4ee26f2b5db24dc10113100ae0165cbbe8c7960c99c0e64ec96410788774aa54")
     version("3.2.8", sha256="8bc3db975a87c3f0da3a857ab45cd237ee02f4ab35094a7db28b01d92676a78c")
@@ -85,6 +93,7 @@ class Tfel(CMakePackage):
     version("3.2.2", sha256="69b01ae0d1f9140b619aaa9135948284ff40d4654672c335e55ab4934c02eb43")
     version("3.2.1", sha256="12786480524a7fe86889120fb334fa00211dfd44ad5ec71e2279e7adf1ddc807")
     version("3.2.0", sha256="089d79745e9f267a2bd03dcd8841d484e668bd27f5cc2ff7453634cb39016848")
+    version("3.1.14", sha256="04a11c146dede67777b3311e838305c9f5856d56154b263dc8b23168226b51f1")
     version("3.1.13", sha256="f0e5dddb5d32931dcab2d060029da31aacb47cd3251297d701b86d93c8fa0255")
     version("3.1.12", sha256="770aa4680063ddd7be4f735ed1ec9402e83502d1ceb688c79cdba27490b7bf98")
     version("3.1.11", sha256="578e3463db029bfed7b24bfa1226394e6998cc95959b46246ab9bf5cfb6d65f0")
@@ -99,6 +108,7 @@ class Tfel(CMakePackage):
     version("3.1.2", sha256="2eaa191f0699031786d8845ac769320a42c7e035991d82b3738289886006bfba")
     version("3.1.1", sha256="a4c0c21c6c22752cc90c82295a6bafe637b3395736c66fcdfcfe4aeccb5be7af")
     version("3.1.0", sha256="dd67b400b5f157aef503aa3615b9bf6b52333876a29e75966f94ee3f79ab37ad")
+    version("3.0.14", sha256="5422031c63ffbd43436bd1471e107b6821649b8f2da5db77fce363a72c1d752c")
     version("3.0.13", sha256="04987d318c46294853481fa987dd09e8ca38493b8994a363d20623f9b8f009ff")
     version("3.0.12", sha256="f7dae9e5a00c721445b3167ec7bc71747bab047ddb36103f232b72d3e4d3cd00")
     version("3.0.11", sha256="3d2d249534563887d301f6be5c4c2e4be33258b9d712d550d4c71271b764cc2d")

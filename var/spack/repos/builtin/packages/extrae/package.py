@@ -82,7 +82,8 @@ class Extrae(AutotoolsPackage):
     depends_on("elf", type="link")
     depends_on("libxml2")
     depends_on("numactl")
-    depends_on("binutils+libiberty@:2.33")
+    depends_on("binutils+libiberty@:2.33", when="@:4.0.1")
+    depends_on("binutils+libiberty", when="@4.0.2:")
     depends_on("gettext")
     # gettext dependency added to find -lintl
     # https://www.gnu.org/software/gettext/FAQ.html#integrating_undefined

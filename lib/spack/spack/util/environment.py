@@ -185,7 +185,7 @@ def dump_environment(path: Path, environment: Optional[MutableMapping[str, str]]
     hidden_vars = {"PS1", "PWD", "OLDPWD", "TERM_SESSION_ID"}
 
     file_descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-    with os.fdopen(file_descriptor, "w") as env_file:
+    with os.fdopen(file_descriptor, "w", encoding="utf-8") as env_file:
         for var, val in sorted(use_env.items()):
             env_file.write(
                 "".join(

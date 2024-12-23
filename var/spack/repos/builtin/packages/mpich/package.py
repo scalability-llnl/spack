@@ -58,10 +58,6 @@ class Mpich(AutotoolsPackage, CudaPackage, ROCmPackage):
     version("3.1", sha256="fcf96dbddb504a64d33833dc455be3dda1e71c7b3df411dfcf9df066d7c32c39")
     version("3.0.4", sha256="cf638c85660300af48b6f776e5ecd35b5378d5905ec5d34c3da7a27da0acf0b3")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build", when="+fortran")
-
     variant("hwloc", default=True, description="Use external hwloc package")
     variant("hydra", default=True, description="Build the hydra process manager")
     variant("romio", default=True, description="Enable ROMIO MPI I/O implementation")
@@ -134,11 +130,6 @@ supported, and netmod is ignored if device is ch3:sock.""",
             depends_on("yaksa+cuda", when="+cuda")
             depends_on("yaksa+rocm", when="+rocm")
 
-    conflicts("datatype-engine=yaksa", when="device=ch3")
-    conflicts("datatype-engine=yaksa", when="device=ch3:sock")
-    conflicts("datatype-engine=dataloop", when="+cuda")
-    conflicts("datatype-engine=dataloop", when="+rocm")
-
     variant(
         "hcoll",
         default=False,
@@ -146,9 +137,20 @@ supported, and netmod is ignored if device is ch3:sock.""",
         "collective operations library",
         when="@3.3: device=ch4 netmod=ucx",
     )
-    depends_on("hcoll", when="+hcoll")
 
     variant("xpmem", default=False, when="@3.4:", description="Enable XPMEM support")
+    variant("level_zero", default=False, description="Enable level zero support")
+
+    conflicts("datatype-engine=yaksa", when="device=ch3")
+    conflicts("datatype-engine=yaksa", when="device=ch3:sock")
+    conflicts("datatype-engine=dataloop", when="+cuda")
+    conflicts("datatype-engine=dataloop", when="+rocm")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build", when="+fortran")
+
+    depends_on("hcoll", when="+hcoll")
     depends_on("xpmem", when="+xpmem")
 
     # Todo: cuda can be a conditional variant, but it does not seem to work when
@@ -303,6 +305,7 @@ supported, and netmod is ignored if device is ch3:sock.""",
     depends_on("python@3.0:", when="@develop", type="build")
 
     depends_on("cray-pmi", when="pmi=cray")
+    depends_on("oneapi-level-zero", when="+level_zero")
 
     conflicts("device=ch4", when="@:3.2")
     conflicts("netmod=ofi", when="@:3.1.4")
@@ -523,7 +526,12 @@ supported, and netmod is ignored if device is ch3:sock.""",
             "--{0}-ibverbs".format("with" if "+verbs" in spec else "without"),
             "--enable-wrapper-rpath={0}".format("no" if "~wrapperrpath" in spec else "yes"),
             "--with-yaksa={0}".format(spec["yaksa"].prefix if "^yaksa" in spec else "embedded"),
+            *self.with_or_without("ze", variant="level_zero"),
         ]
+
+        # https://github.com/pmodels/mpich/commit/bbfc4cab6ade0b75ef3803a83af1cad4a262a564
+        if self.spec.satisfies("@:4.2 ~hwloc"):
+            config_args += self.enable_or_disable("levelzero", variant="level_zero")
 
         # see https://github.com/pmodels/mpich/issues/5530
         if spec.platform == "darwin":
