@@ -3,6 +3,7 @@
 ##########################
 
 /var/spack/stage
+/var/spack/bootstrap
 /var/spack/cache
 /var/spack/environments
 /var/spack/repos/*/index.yaml
