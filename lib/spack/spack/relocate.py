@@ -598,12 +598,17 @@ def relocate_text_bin(binaries, prefixes):
 
 def is_macho_magic(magic: bytes) -> bool:
     return (
-        magic.startswith(b"\xFE\xED\xFA\xCE")  # 0xfeedface big endian
-        or magic.startswith(b"\xCE\xFA\xED\xFE")  # 0xfeedface little endian
-        or magic.startswith(b"\xFE\xED\xFA\xCF")  # 0xfeedfacf big endian
-        or magic.startswith(b"\xCF\xFA\xED\xFE")  # 0xfeedfacf little endian
-        or magic.startswith(b"\xCA\xFE\xBA\xBE")  # 0xcafebabe big endian
-        or magic.startswith(b"\xBE\xBA\xFE\xCA")  # 0xcafebabe little endian
+        # In order of popularity: 64-bit mach-o le/be, 32-bit mach-o le/be.
+        magic.startswith(b"\xCF\xFA\xED\xFE")
+        or magic.startswith(b"\xFE\xED\xFA\xCF")
+        or magic.startswith(b"\xCE\xFA\xED\xFE")
+        or magic.startswith(b"\xFE\xED\xFA\xCE")
+        # universal binaries: 0xcafebabe be (most common?) or 0xbebafeca le (not sure if exists).
+        # Here we need to disambiguate mach-o and JVM class files. In mach-o the next 4 bytes are
+        # the number of binaries; in JVM class files it's the java version number. We assume there
+        # are less than 10 binaries in a universal binary.
+        or (magic.startswith(b"\xCA\xFE\xBA\xBE") and int.from_bytes(magic[4:8], "big") < 10)
+        or (magic.startswith(b"\xBE\xBA\xFE\xCA") and int.from_bytes(magic[4:8], "little") < 10)
     )
 
 
@@ -614,7 +619,7 @@ def is_elf_magic(magic: bytes) -> bool:
 def is_binary(filename: str) -> bool:
     """Returns true iff a file is likely binary"""
     with open(filename, "rb") as f:
-        magic = f.read(4)
+        magic = f.read(8)
 
     return is_macho_magic(magic) or is_elf_magic(magic)
 

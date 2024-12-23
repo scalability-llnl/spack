@@ -931,10 +931,9 @@ NOT_ISO8859_1_TEXT = re.compile(b"[\x00\x7F-\x9F]")
 
 def file_type(f: IO[bytes]) -> int:
     try:
-        # first check if this is an ELF or mach-o binary. (For now we do not care about the false
-        # positive of Java class files, which also use the magic number 0xCAFEBABE.)
-        magic = f.read(4)
-        if len(magic) < 4:
+        # first check if this is an ELF or mach-o binary.
+        magic = f.read(8)
+        if len(magic) < 8:
             return FileTypes.UNKNOWN
         elif relocate.is_elf_magic(magic) or relocate.is_macho_magic(magic):
             return FileTypes.BINARY
