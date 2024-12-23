@@ -121,6 +121,7 @@ class NetlibLapack(CMakePackage):
     provides("lapack")
 
     depends_on("c", type="build")
+    depends_on("cxx", type="build")
     depends_on("fortran", type="build")
     depends_on("blas", when="+external-blas")
     depends_on("netlib-xblas+fortran+plain_blas", when="+xblas")
