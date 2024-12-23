@@ -43,6 +43,8 @@ class PyNetcdf4(PythonPackage):
     # https://github.com/Unidata/netcdf4-python/pull/1317
     depends_on("py-numpy@:1", when="@:1.6", type=("build", "link", "run"))
     depends_on("py-mpi4py", when="+mpi", type=("build", "run"))
+    # These forced variant requests are due to py-netcdf4 build scripts
+    # https://github.com/spack/spack/pull/47824#discussion_r1882473998
     depends_on("netcdf-c~mpi", when="~mpi")
     depends_on("netcdf-c+mpi", when="+mpi")
     depends_on("hdf5@1.8.0:+hl~mpi", when="~mpi")
