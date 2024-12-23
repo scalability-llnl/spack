@@ -180,8 +180,8 @@ class Gaudi(CMakePackage):
         # Note: ROOT dependency automatically sets up ROOT environment vars
 
         # ...but Gaudi additionally requires a path variable about itself
-        for d in self.libs.directories:
-            env.prepend_path(self.gaudi_library_path, d)
+        for lib_path in [self.prefix.lib, self.prefix.lib64]:
+            env.prepend_path(self.gaudi_library_path, lib_path)
 
     def url_for_version(self, version):
         major = str(version[0])
