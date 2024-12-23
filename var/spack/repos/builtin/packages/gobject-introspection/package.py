@@ -100,7 +100,7 @@ class GobjectIntrospection(MesonPackage, AutotoolsPackage):
     # - https://gitlab.gnome.org/GNOME/gobject-introspection/-/issues/361
     # - https://gitlab.gnome.org/GNOME/gobject-introspection/-/issues/395
     # for new enough versions we import setuptools first
-    patch("setuptools.patch", when="@1.78:")
+    patch("setuptools.patch", when="@1.78: ^python@3.12:")
     # for older versions we conflict with newer python
     conflicts(
         "@:1.77 ^python@3.12:",
