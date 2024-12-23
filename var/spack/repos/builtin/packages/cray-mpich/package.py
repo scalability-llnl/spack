@@ -76,15 +76,10 @@ class CrayMpich(MpichEnvironmentModifications, Package):
             self.setup_mpi_wrapper_variables(env)
             return
 
-        if self.spec.dependencies(virtuals=("c",)):
-            env.set("MPICC", self.spec["c"].package.cc)
-
-        if self.spec.dependencies(virtuals=("cxx",)):
-            env.set("MPICXX", self.spec["cxx"].package.cxx)
-
-        if self.spec.dependencies(virtuals=("c",)):
-            env.set("MPIFC", self.spec["fortran"].package.fc)
-            env.set("MPIF77", self.spec["fortran"].package.fc)
+        env.set("MPICC", self.compiler.cc)
+        env.set("MPICXX", self.compiler.cxx)
+        env.set("MPIFC", self.compiler.fc)
+        env.set("MPIF77", self.compiler.f77)
 
     def setup_dependent_package(self, module, dependent_spec):
         spec = self.spec
