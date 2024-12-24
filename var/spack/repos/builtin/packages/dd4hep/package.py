@@ -191,7 +191,7 @@ class Dd4hep(CMakePackage):
             "DDEve",
             "UtilityApps",
         ]
-        enabled_packages = [p for p in packages if self.spec.variants[package.lower()].value]
+        enabled_packages = [p for p in packages if self.spec.variants[p.lower()].value]
         args.append(self.define("DD4HEP_BUILD_PACKAGES", " ".join(enabled_packages)))
         return args
 

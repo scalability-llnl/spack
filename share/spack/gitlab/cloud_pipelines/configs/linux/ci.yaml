@@ -18,6 +18,7 @@ ci:
           KUBERNETES_MEMORY_REQUEST: 48G
 
     - match:
+      - composable-kernel
       - rust
       build-job:
         tags: [ "spack", "huge" ]
