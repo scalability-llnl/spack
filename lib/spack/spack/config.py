@@ -441,7 +441,7 @@ class Configuration:
         #                         | error
         #
         # then corect the order
-        # For now just ensure the command line scope is last 
+        # For now just ensure the command line scope is last
         # We also need to consider that custom configurations and other orderings
         # may not be preserved correctly
         if "command_line" in self.scopes:
