@@ -39,17 +39,22 @@ class ParallelNetcdf(AutotoolsPackage):
     version("1.14.0", sha256="575f189fb01c53f93b3d6ae0e506f46e19694807c81af0b9548e947995acf704")
     version("1.13.0", sha256="aba0f1c77a51990ba359d0f6388569ff77e530ee574e40592a1e206ed9b2c491")
     version("1.12.3", sha256="439e359d09bb93d0e58a6e3f928f39c2eae965b6c97f64e67cd42220d6034f77")
-    version("1.12.2", sha256="3ef1411875b07955f519a5b03278c31e566976357ddfc74c2493a1076e7d7c74")
-    version("1.12.1", sha256="56f5afaa0ddc256791c405719b6436a83b92dcd5be37fe860dea103aee8250a2")
-    version("1.11.2", sha256="d2c18601b364c35b5acb0a0b46cd6e14cae456e0eb854e5c789cf65f3cd6a2a7")
-    version("1.11.1", sha256="0c587b707835255126a23c104c66c9614be174843b85b897b3772a590be45779")
-    version("1.11.0", sha256="a18a1a43e6c4fd7ef5827dbe90e9dcf1363b758f513af1f1356ed6c651195a9f")
-    version("1.10.0", sha256="ed189228b933cfeac3b7b4f8944eb00e4ff2b72cf143365b1a77890980663a09")
-    version("1.9.0", sha256="356e1e1fae14bc6c4236ec11435cfea0ff6bde2591531a4a329f9508a01fbe98")
-    version("1.8.1", sha256="8d7d4c9c7b39bb1cbbcf087e0d726551c50f0cc30d44aed3df63daf3772c9043")
-    version("1.8.0", sha256="ac00bb2333bee96354de9d9c32d3dfdaa919d878098762f146996578b7f0ede9")
-    version("1.7.0", sha256="52f0d106c470a843c6176318141f74a21e6ece3f70ee8fe261c6b93e35f70a94")
-    version("1.6.1", sha256="8cf1af7b640475e3cc931e5fbcfe52484c5055f2fab526691933c02eda388aae")
+    with default_args(deprecated=True):
+        version(
+            "1.12.2", sha256="3ef1411875b07955f519a5b03278c31e566976357ddfc74c2493a1076e7d7c74"
+        )
+        version(
+            "1.12.1", sha256="56f5afaa0ddc256791c405719b6436a83b92dcd5be37fe860dea103aee8250a2"
+        )
+        version(
+            "1.11.2", sha256="d2c18601b364c35b5acb0a0b46cd6e14cae456e0eb854e5c789cf65f3cd6a2a7"
+        )
+        version(
+            "1.11.1", sha256="0c587b707835255126a23c104c66c9614be174843b85b897b3772a590be45779"
+        )
+        version(
+            "1.11.0", sha256="a18a1a43e6c4fd7ef5827dbe90e9dcf1363b758f513af1f1356ed6c651195a9f"
+        )
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
@@ -72,22 +77,9 @@ class ParallelNetcdf(AutotoolsPackage):
 
     depends_on("perl", type="build")
 
-    # Suport for shared libraries was introduced in version 1.9.0
-    conflicts("+shared", when="@:1.8")
-    conflicts("+burstbuffer", when="@:1.10")
-
-    # Before 1.10.0, C utility programs (e.g. ncmpigen) were linked without
-    # explicit specification of the Fortran runtime libraries, which is
-    # required when libpnetcdf.so contains Fortran symbols. Libtool sets the
-    # required linking flags implicitly but only if the Fortran compiler
-    # produces verbose output with the '-v' flag (and, due to a bug in Libtool,
-    # when CXX is not set to 'no'; see macro _LT_LANG_FC_CONFIG in libtool.m4
-    # for more details). The latter is not the case for NAG. Starting 1.10.0,
-    # the required linking flags are explicitly set in the makefiles and
-    # detected using macro AC_FC_LIBRARY_LDFLAGS, which means that we can
-    # override the verbose output flag for Fortran compiler on the command line
-    # (see below).
-    conflicts("+shared", when="@:1.9%nag+fortran")
+    # Link to issue here
+    patch("parallel-netcdf-1.12.3-intel-irc-intlc.patch", when="@1.12.3 %intel")
+    patch("parallel-netcdf-1.12.3-intel-irc-intlc.patch", when="@1.12.3 %oneapi")
 
     @property
     def libs(self):
