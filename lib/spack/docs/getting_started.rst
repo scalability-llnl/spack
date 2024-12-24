@@ -35,7 +35,7 @@ A build matrix showing which packages are working on which systems is shown belo
       .. code-block:: console
 
          apt update
-         apt install bzip2 ca-certificates file g++ gcc gfortran git gzip lsb-release patch python3 tar unzip xz-utils zstd
+         apt install bzip2 ca-certificates g++ gcc gfortran git gzip lsb-release patch python3 tar unzip xz-utils zstd
 
    .. tab-item:: RHEL
 
