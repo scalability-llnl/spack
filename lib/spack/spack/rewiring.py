@@ -108,8 +108,8 @@ def rewire_node(spec, explicit):
         os.unlink(install_manifest)
     except FileNotFoundError:
         pass
-    # Write the spliced spec into spec.json. Without this, Database.add would because it checks the
-    # spec.json in the prefix against the spec being added to look for mismatches
+    # Write the spliced spec into spec.json. Without this, Database.add would fail because it
+    # checks the spec.json in the prefix against the spec being added to look for mismatches
     spack.store.STORE.layout.write_spec(spec, spack.store.STORE.layout.spec_file_path(spec))
     # add to database, not sure about explicit
     spack.store.STORE.db.add(spec, explicit=explicit)
