@@ -1,0 +1,22 @@
+--- a/configure	2024-12-23 18:30:28.919868886 +0000
++++ b/configure	2024-12-23 18:34:25.317866633 +0000
+@@ -23603,6 +23603,9 @@
+ 	  ;;
+ 	-[lLR]*)
+ 	    ac_exists=false
++            if test x"$ac_arg" = x"-lirc"; then
++	      ac_arg="-lintlc"
++	    fi
+   for ac_i in $ac_cv_f77_libs; do
+     if test x"$ac_arg" = x"$ac_i"; then
+       ac_exists=true
+@@ -27343,6 +27346,9 @@
+ 	  ;;
+ 	-[lLR]*)
+ 	    ac_exists=false
++            if test x"$ac_arg" = x"-lirc"; then
++              ac_arg="-lintlc"
++            fi
+   for ac_i in $ac_cv_fc_libs; do
+     if test x"$ac_arg" = x"$ac_i"; then
+       ac_exists=true
