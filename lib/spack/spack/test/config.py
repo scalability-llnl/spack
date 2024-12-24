@@ -1452,7 +1452,7 @@ def test_env_activation_preserves_config_scopes(mutable_mock_env_path):
 
     ev.create("test")
 
-    with ev.read("test") as e:
+    with ev.read("test"):
         top_scope = spack.config.CONFIG.pop_scope()
         assert cli_config == top_scope
         spack.config.CONFIG.push_scope(top_scope)
