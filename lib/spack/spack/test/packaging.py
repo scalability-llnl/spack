@@ -36,8 +36,6 @@ from spack.relocate import (
     macho_find_paths,
     macho_make_paths_normal,
     macho_make_paths_relative,
-    needs_binary_relocation,
-    needs_text_relocation,
     relocate_links,
     relocate_text,
 )
@@ -191,16 +189,6 @@ def test_relocate_links(tmpdir):
         # These two are not.
         assert readlink("to_system") == system_path
         assert readlink("to_self_but_relative") == "relative"
-
-
-def test_needs_relocation():
-    assert needs_binary_relocation("application", "x-sharedlib")
-    assert needs_binary_relocation("application", "x-executable")
-    assert not needs_binary_relocation("application", "x-octet-stream")
-    assert not needs_binary_relocation("text", "x-")
-    assert needs_text_relocation("text", "x-")
-    assert not needs_text_relocation("symbolic link to", "x-")
-    assert needs_binary_relocation("application", "x-mach-binary")
 
 
 def test_replace_paths(tmpdir):

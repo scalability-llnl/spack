@@ -24,13 +24,12 @@ import urllib.parse
 import urllib.request
 import warnings
 from contextlib import closing
-from typing import Dict, Iterable, List, NamedTuple, Optional, Set, Tuple, Union
+from typing import IO, Dict, Iterable, List, NamedTuple, Optional, Set, Tuple, Union
 
 import llnl.util.filesystem as fsys
 import llnl.util.lang
 import llnl.util.tty as tty
-from llnl.util.filesystem import BaseDirectoryVisitor, mkdirp, visit_directory_tree
-from llnl.util.symlink import readlink
+from llnl.util.filesystem import mkdirp
 
 import spack.caches
 import spack.config as config
@@ -54,7 +53,6 @@ import spack.user_environment
 import spack.util.archive
 import spack.util.crypto
 import spack.util.file_cache as file_cache
-import spack.util.filesystem as ssys
 import spack.util.gpg
 import spack.util.parallel
 import spack.util.path
@@ -587,129 +585,11 @@ def read_buildinfo_file(prefix):
         return syaml.load(f)
 
 
-class BuildManifestVisitor(BaseDirectoryVisitor):
-    """Visitor that collects a list of files and symlinks
-    that can be checked for need of relocation. It knows how
-    to dedupe hardlinks and deal with symlinks to files and
-    directories."""
-
-    def __init__(self):
-        # Save unique identifiers of hardlinks to avoid relocating them multiple times
-        self.visited = set()
-
-        # Lists of files we will check
-        self.files = []
-        self.symlinks = []
-
-    def seen_before(self, root, rel_path):
-        stat_result = os.lstat(os.path.join(root, rel_path))
-        if stat_result.st_nlink == 1:
-            return False
-        identifier = (stat_result.st_dev, stat_result.st_ino)
-        if identifier in self.visited:
-            return True
-        else:
-            self.visited.add(identifier)
-            return False
-
-    def visit_file(self, root, rel_path, depth):
-        if self.seen_before(root, rel_path):
-            return
-        self.files.append(rel_path)
-
-    def visit_symlinked_file(self, root, rel_path, depth):
-        # Note: symlinks *can* be hardlinked, but it is unclear if
-        # symlinks can be relinked in-place (preserving inode).
-        # Therefore, we do *not* de-dupe hardlinked symlinks.
-        self.symlinks.append(rel_path)
-
-    def before_visit_dir(self, root, rel_path, depth):
-        return os.path.basename(rel_path) not in (".spack", "man")
-
-    def before_visit_symlinked_dir(self, root, rel_path, depth):
-        # Treat symlinked directories simply as symlinks.
-        self.visit_symlinked_file(root, rel_path, depth)
-        # Never recurse into symlinked directories.
-        return False
-
-
-def file_matches(path, regex):
-    with open(path, "rb") as f:
-        contents = f.read()
-    return bool(regex.search(contents))
-
-
-def get_buildfile_manifest(spec):
-    """
-    Return a data structure with information about a build, including
-    text_to_relocate, binary_to_relocate, binary_to_relocate_fullpath
-    link_to_relocate, and other, which means it doesn't fit any of previous
-    checks (and should not be relocated). We exclude docs (man) and
-    metadata (.spack). This can be used to find a particular kind of file
-    in spack, or to generate the build metadata.
-    """
-    data = {
-        "text_to_relocate": [],
-        "binary_to_relocate": [],
-        "link_to_relocate": [],
-        "other": [],
-        "binary_to_relocate_fullpath": [],
-        "hardlinks_deduped": True,
-    }
-
-    # Guard against filesystem footguns of hardlinks and symlinks by using
-    # a visitor to retrieve a list of files and symlinks, so we don't have
-    # to worry about hardlinks of symlinked dirs and what not.
-    visitor = BuildManifestVisitor()
-    root = spec.prefix
-    visit_directory_tree(root, visitor)
-
-    # Collect a list of prefixes for this package and it's dependencies, Spack will
-    # look for them to decide if text file needs to be relocated or not
-    prefixes = [d.prefix for d in spec.traverse(root=True, deptype="all") if not d.external]
-    prefixes.append(spack.hooks.sbang.sbang_install_path())
-    prefixes.append(str(spack.store.STORE.layout.root))
-
-    # Create a giant regex that matches all prefixes
-    regex = utf8_paths_to_single_binary_regex(prefixes)
-
-    # Symlinks.
-
-    # Obvious bugs:
-    #   1. relative links are not relocated.
-    #   2. paths are used as strings.
-    for rel_path in visitor.symlinks:
-        abs_path = os.path.join(root, rel_path)
-        link = readlink(abs_path)
-        if os.path.isabs(link) and link.startswith(spack.store.STORE.layout.root):
-            data["link_to_relocate"].append(rel_path)
-
-    # Non-symlinks.
-    for rel_path in visitor.files:
-        abs_path = os.path.join(root, rel_path)
-        m_type, m_subtype = ssys.mime_type(abs_path)
-
-        if relocate.needs_binary_relocation(m_type, m_subtype):
-            # Why is this branch not part of needs_binary_relocation? :(
-            if (
-                (
-                    m_subtype in ("x-executable", "x-sharedlib", "x-pie-executable")
-                    and sys.platform != "darwin"
-                )
-                or (m_subtype in ("x-mach-binary") and sys.platform == "darwin")
-                or (not rel_path.endswith(".o"))
-            ):
-                data["binary_to_relocate"].append(rel_path)
-                data["binary_to_relocate_fullpath"].append(abs_path)
-                continue
-
-        elif relocate.needs_text_relocation(m_type, m_subtype) and file_matches(abs_path, regex):
-            data["text_to_relocate"].append(rel_path)
-            continue
-
-        data["other"].append(abs_path)
-
-    return data
+def file_matches(f: IO[bytes], regex: llnl.util.lang.PatternBytes) -> bool:
+    try:
+        return bool(regex.search(f.read()))
+    finally:
+        f.seek(0)
 
 
 def deps_to_relocate(spec):
@@ -742,17 +622,15 @@ def deps_to_relocate(spec):
 
 def get_buildinfo_dict(spec):
     """Create metadata for a tarball"""
-    manifest = get_buildfile_manifest(spec)
-
     return {
         "sbang_install_path": spack.hooks.sbang.sbang_install_path(),
         "buildpath": spack.store.STORE.layout.root,
         "spackprefix": spack.paths.prefix,
         "relative_prefix": os.path.relpath(spec.prefix, spack.store.STORE.layout.root),
-        "relocate_textfiles": manifest["text_to_relocate"],
-        "relocate_binaries": manifest["binary_to_relocate"],
-        "relocate_links": manifest["link_to_relocate"],
-        "hardlinks_deduped": manifest["hardlinks_deduped"],
+        # "relocate_textfiles": [],
+        # "relocate_binaries": [],
+        # "relocate_links": [],
+        "hardlinks_deduped": True,
         "hash_to_prefix": {d.dag_hash(): str(d.prefix) for d in deps_to_relocate(spec)},
     }
 
@@ -1042,7 +920,55 @@ def generate_key_index(key_prefix: str, tmpdir: str) -> None:
         ) from e
 
 
-def tarfile_of_spec_prefix(tar: tarfile.TarFile, prefix: str) -> None:
+class FileTypes:
+    BINARY = 0
+    TEXT = 1
+    UNKNOWN = 2
+
+
+NOT_ISO8859_1_TEXT = re.compile(b"[\x00\x7F-\x9F]")
+
+
+def file_type(f: IO[bytes]) -> int:
+    try:
+        # first check if this is an ELF or mach-o binary.
+        magic = f.read(8)
+        if len(magic) < 8:
+            return FileTypes.UNKNOWN
+        elif relocate.is_elf_magic(magic) or relocate.is_macho_magic(magic):
+            return FileTypes.BINARY
+
+        f.seek(0)
+
+        # Then try utf-8, which has a fast exponential decay in false positive rate with file size.
+        # Use chunked reads for fast early exit.
+        f_txt = io.TextIOWrapper(f, encoding="utf-8", errors="strict")
+        try:
+            while f_txt.read(1024):
+                pass
+            return FileTypes.TEXT
+        except UnicodeError:
+            f_txt.seek(0)
+            pass
+        finally:
+            f_txt.detach()
+        # Finally try iso-8859-1 heuristically. In Python, all possible 256 byte values are valid.
+        # We classify it as text if it does not contain any control characters / null bytes.
+        data = f.read(1024)
+        while data:
+            if NOT_ISO8859_1_TEXT.search(data):
+                break
+            data = f.read(1024)
+        else:
+            return FileTypes.TEXT
+        return FileTypes.UNKNOWN
+    finally:
+        f.seek(0)
+
+
+def tarfile_of_spec_prefix(
+    tar: tarfile.TarFile, prefix: str, prefixes_to_relocate: List[str]
+) -> dict:
     """Create a tarfile of an install prefix of a spec. Skips existing buildinfo file.
 
     Args:
@@ -1058,6 +984,33 @@ def tarfile_of_spec_prefix(tar: tarfile.TarFile, prefix: str) -> None:
     except OSError:
         skip = lambda entry: False
 
+    binary_regex = utf8_paths_to_single_binary_regex(prefixes_to_relocate)
+
+    relocate_binaries = []
+    relocate_links = []
+    relocate_textfiles = []
+
+    # use callbacks to add files and symlinks, so we can register which files need relocation upon
+    # extraction.
+    def add_file(tar: tarfile.TarFile, info: tarfile.TarInfo, path: str):
+        with open(path, "rb") as f:
+            relpath = os.path.relpath(path, prefix)
+            # no need to relocate anything in the .spack directory
+            if relpath.split(os.sep, 1)[0] == ".spack":
+                tar.addfile(info, f)
+                return
+            f_type = file_type(f)
+            if f_type == FileTypes.BINARY:
+                relocate_binaries.append(os.path.relpath(path, prefix))
+            elif f_type == FileTypes.TEXT and file_matches(f, binary_regex):
+                relocate_textfiles.append(os.path.relpath(path, prefix))
+            tar.addfile(info, f)
+
+    def add_symlink(tar: tarfile.TarFile, info: tarfile.TarInfo, path: str):
+        if os.path.isabs(info.linkname) and binary_regex.match(info.linkname.encode("utf-8")):
+            relocate_links.append(os.path.relpath(path, prefix))
+        tar.addfile(info)
+
     spack.util.archive.reproducible_tarfile_from_prefix(
         tar,
         prefix,
@@ -1065,29 +1018,51 @@ def tarfile_of_spec_prefix(tar: tarfile.TarFile, prefix: str) -> None:
         # used in runtimes like AWS lambda.
         include_parent_directories=True,
         skip=skip,
+        add_file=add_file,
+        add_symlink=add_symlink,
+    )
+
+    return {
+        "relocate_binaries": relocate_binaries,
+        "relocate_links": relocate_links,
+        "relocate_textfiles": relocate_textfiles,
+    }
+
+
+def create_tarball(spec: spack.spec.Spec, tarfile_path: str) -> Tuple[str, str]:
+    """Create a tarball of a spec and return the checksums of the compressed tarfile and the
+    uncompressed tarfile."""
+    return _do_create_tarball(
+        tarfile_path,
+        spec.prefix,
+        buildinfo=get_buildinfo_dict(spec),
+        prefixes_to_relocate=prefixes_to_relocate(spec),
     )
 
 
-def _do_create_tarball(tarfile_path: str, binaries_dir: str, buildinfo: dict):
+def _do_create_tarball(
+    tarfile_path: str, prefix: str, buildinfo: dict, prefixes_to_relocate: List[str]
+) -> Tuple[str, str]:
     with spack.util.archive.gzip_compressed_tarfile(tarfile_path) as (
         tar,
-        inner_checksum,
-        outer_checksum,
+        tar_gz_checksum,
+        tar_checksum,
     ):
         # Tarball the install prefix
-        tarfile_of_spec_prefix(tar, binaries_dir)
+        files_to_relocate = tarfile_of_spec_prefix(tar, prefix, prefixes_to_relocate)
+        buildinfo.update(files_to_relocate)
 
         # Serialize buildinfo for the tarball
         bstring = syaml.dump(buildinfo, default_flow_style=True).encode("utf-8")
         tarinfo = tarfile.TarInfo(
-            name=spack.util.archive.default_path_to_name(buildinfo_file_name(binaries_dir))
+            name=spack.util.archive.default_path_to_name(buildinfo_file_name(prefix))
         )
         tarinfo.type = tarfile.REGTYPE
         tarinfo.size = len(bstring)
         tarinfo.mode = 0o644
         tar.addfile(tarinfo, io.BytesIO(bstring))
 
-    return inner_checksum.hexdigest(), outer_checksum.hexdigest()
+    return tar_gz_checksum.hexdigest(), tar_checksum.hexdigest()
 
 
 class ExistsInBuildcache(NamedTuple):
@@ -1137,6 +1112,13 @@ def _exists_in_buildcache(spec: spack.spec.Spec, tmpdir: str, out_url: str) -> E
     return ExistsInBuildcache(signed, unsigned, tarball)
 
 
+def prefixes_to_relocate(spec):
+    prefixes = [s.prefix for s in deps_to_relocate(spec)]
+    prefixes.append(spack.hooks.sbang.sbang_install_path())
+    prefixes.append(str(spack.store.STORE.layout.root))
+    return prefixes
+
+
 def _url_upload_tarball_and_specfile(
     spec: spack.spec.Spec,
     tmpdir: str,
@@ -1146,7 +1128,7 @@ def _url_upload_tarball_and_specfile(
 ):
     files = BuildcacheFiles(spec, tmpdir, out_url)
     tarball = files.local_tarball()
-    checksum, _ = _do_create_tarball(tarball, spec.prefix, get_buildinfo_dict(spec))
+    checksum, _ = create_tarball(spec, tarball)
     spec_dict = spec.to_dict(hash=ht.dag_hash)
     spec_dict["buildcache_layout_version"] = CURRENT_BUILD_CACHE_LAYOUT_VERSION
     spec_dict["binary_cache_checksum"] = {"hash_algorithm": "sha256", "hash": checksum}
@@ -1470,13 +1452,11 @@ def _oci_push_pkg_blob(
     filename = os.path.join(tmpdir, f"{spec.dag_hash()}.tar.gz")
 
     # Create an oci.image.layer aka tarball of the package
-    compressed_tarfile_checksum, tarfile_checksum = _do_create_tarball(
-        filename, spec.prefix, get_buildinfo_dict(spec)
-    )
+    tar_gz_checksum, tar_checksum = create_tarball(spec, filename)
 
     blob = spack.oci.oci.Blob(
-        Digest.from_sha256(compressed_tarfile_checksum),
-        Digest.from_sha256(tarfile_checksum),
+        Digest.from_sha256(tar_gz_checksum),
+        Digest.from_sha256(tar_checksum),
         os.path.getsize(filename),
     )
 
@@ -2435,6 +2415,14 @@ def _tar_strip_component(tar: tarfile.TarFile, prefix: str):
         yield m
 
 
+def extract_buildcache_tarball(tarfile_path: str, destination: str) -> None:
+    with closing(tarfile.open(tarfile_path, "r")) as tar:
+        # Remove common prefix from tarball entries and directly extract them to the install dir.
+        tar.extractall(
+            path=destination, members=_tar_strip_component(tar, prefix=_ensure_common_prefix(tar))
+        )
+
+
 def extract_tarball(spec, download_result, force=False, timer=timer.NULL_TIMER):
     """
     extract binary tarball for given package into install area
@@ -2504,12 +2492,7 @@ def extract_tarball(spec, download_result, force=False, timer=timer.NULL_TIMER):
                 tarfile_path, size, contents, "sha256", expected, local_checksum
             )
     try:
-        with closing(tarfile.open(tarfile_path, "r")) as tar:
-            # Remove install prefix from tarfil to extract directly into spec.prefix
-            tar.extractall(
-                path=spec.prefix,
-                members=_tar_strip_component(tar, prefix=_ensure_common_prefix(tar)),
-            )
+        extract_buildcache_tarball(tarfile_path, destination=spec.prefix)
     except Exception:
         shutil.rmtree(spec.prefix, ignore_errors=True)
         _delete_staged_downloads(download_result)
