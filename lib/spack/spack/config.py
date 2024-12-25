@@ -445,9 +445,7 @@ class Configuration:
         # We also need to consider that custom configurations and other orderings
         # may not be preserved correctly
         if "command_line" in self.scopes:
-            # TODO when we drop 3.6
-            # self.scopes.move_to_end("command_line")
-            # hacky implementation for now
+            # TODO (when dropping python 3.6): self.scopes.move_to_end
             self.scopes["command_line"] = self.remove_scope("command_line")
 
     @_config_mutator
