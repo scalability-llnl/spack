@@ -431,6 +431,10 @@ class Configuration:
         """Ensure we unwrap this object from any dynamic wrapper (like Singleton)"""
         return self
 
+    def highest(self) -> ConfigScope:
+        """Scope with highest precedence"""
+        return next(reversed(self.scopes.values()))
+
     @_config_mutator
     def ensure_scope_ordering(self):
         """Ensure that scope order matches documented precedent"""
