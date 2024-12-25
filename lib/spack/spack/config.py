@@ -433,7 +433,7 @@ class Configuration:
 
     def highest(self) -> ConfigScope:
         """Scope with highest precedence"""
-        return next(reversed(self.scopes.values()))
+        return next(reversed(self.scopes.values()))  # type: ignore
 
     @_config_mutator
     def ensure_scope_ordering(self):
