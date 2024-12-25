@@ -431,6 +431,19 @@ class Configuration:
         """Ensure we unwrap this object from any dynamic wrapper (like Singleton)"""
         return self
 
+    def highest(self) -> ConfigScope:
+        """Scope with highest precedence"""
+        return next(reversed(self.scopes.values()))  # type: ignore
+
+    @_config_mutator
+    def ensure_scope_ordering(self):
+        """Ensure that scope order matches documented precedent"""
+        # FIXME: We also need to consider that custom configurations and other orderings
+        # may not be preserved correctly
+        if "command_line" in self.scopes:
+            # TODO (when dropping python 3.6): self.scopes.move_to_end
+            self.scopes["command_line"] = self.remove_scope("command_line")
+
     @_config_mutator
     def push_scope(self, scope: ConfigScope) -> None:
         """Add a higher precedence scope to the Configuration."""
