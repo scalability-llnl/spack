@@ -438,15 +438,7 @@ class Configuration:
     @_config_mutator
     def ensure_scope_ordering(self):
         """Ensure that scope order matches documented precedent"""
-        # WIP
-        # if it is not ordered
-        # scope_weights = [ 5, 4, 3, 4, 2, 1 ,0 ]
-        #                         ^
-        #                         | error
-        #
-        # then corect the order
-        # For now just ensure the command line scope is last
-        # We also need to consider that custom configurations and other orderings
+        # FIXME: We also need to consider that custom configurations and other orderings
         # may not be preserved correctly
         if "command_line" in self.scopes:
             # TODO (when dropping python 3.6): self.scopes.move_to_end
