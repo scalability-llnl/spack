@@ -19,7 +19,7 @@ class Hiop(CMakePackage, CudaPackage, ROCmPackage):
 
     homepage = "https://github.com/LLNL/hiop"
     git = "https://github.com/LLNL/hiop.git"
-    maintainers("ryandanehy", "cameronrutherford", "pelesh")
+    maintainers("nychiang", "cnpetra", "pelesh")
 
     license("BSD-3-Clause")
 
