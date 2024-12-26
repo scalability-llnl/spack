@@ -11,12 +11,13 @@ class PyFastapi(PythonPackage):
     """FastAPI framework, high performance, easy to learn, fast to code, ready for production"""
 
     homepage = "https://github.com/fastapi/fastapi"
-    pypi = "fastapi/fastapi-0.88.0.tar.gz"
+    pypi = "fastapi/fastapi-0.115.4.tar.gz"
 
     license("MIT")
 
     version("0.115.4", sha256="db653475586b091cb8b2fec2ac54a680ac6a158e07406e1abae31679e8826349")
     version("0.110.2", sha256="b53d673652da3b65e8cd787ad214ec0fe303cad00d2b529b86ce7db13f17518d")
+    version("0.109.2", sha256="f3817eac96fe4f65a2ebb4baa000f394e55f5fccdaf7f75250804bc58f354f73")
     with default_args(deprecated=True):
         # https://nvd.nist.gov/vuln/detail/CVE-2024-24762
         version(
@@ -38,12 +39,13 @@ class PyFastapi(PythonPackage):
     depends_on("py-starlette@0.37.2:0.40", when="@0.115.2", type=("build", "run"))
     depends_on("py-starlette@0.37.2:0.38", when="@0.112.1:0.115.1", type=("build", "run"))
     depends_on("py-starlette@0.37.2:0.37", when="@0.110.1:0.112.0", type=("build", "run"))
-    depends_on("py-starlette@0.36.3:0.36", when="@0.109.2:0.110.0", type=("build", "run"))
+    depends_on("py-starlette@0.36.3:0.37.0", when="@0.109.2:0.110.0", type=("build", "run"))
     depends_on("py-starlette@0.35:0.35", when="@0.109.0:0.109.1", type=("build", "run"))
     depends_on("py-starlette@0.29:0.32", when="@0.108.0:0.108", type=("build", "run"))
     depends_on("py-starlette@0.28", when="@0.107.0:0.107", type=("build", "run"))
     depends_on("py-starlette@0.27", when="@0.95.2:0.106", type=("build", "run"))
     depends_on("py-starlette@0.22.0", when="@:0.89.1", type=("build", "run"))
+    depends_on("py-pydantic@2.7.4:", when="@0.109.2", type=("build", "run"))
     depends_on("py-pydantic@1.7.4:1,2.1.1:2", when="@0.101:", type=("build", "run"))
     depends_on("py-pydantic@1.7.4:1", when="@0.96.1:", type=("build", "run"))
     depends_on("py-pydantic@1.6.2:1", when="@:0.96.0", type=("build", "run"))
