@@ -15,6 +15,7 @@ class Freeglut(CMakePackage, SourceforgePackage):
 
     license("MIT")
 
+    version("3.6.0", sha256="9c3d4d6516fbfa0280edc93c77698fb7303e443c1aaaf37d269e3288a6c3ea52")
     version("3.2.2", sha256="c5944a082df0bba96b5756dddb1f75d0cd72ce27b5395c6c1dde85c2ff297a50")
     version("3.2.1", sha256="d4000e02102acaf259998c870e25214739d1f16f67f99cb35e4f46841399da68")
     version("3.0.0", sha256="2a43be8515b01ea82bcfa17d29ae0d40bd128342f0930cd1f375f1ff999f76a2")
