@@ -99,3 +99,8 @@ class PyOnnx(PythonPackage):
         env.set(
             "CMAKE_BUILD_DIR", join_path(self.stage.path, f"spack-build-{self.spec.dag_hash(7)}")
         )
+        # The absl code will use std::partial_ordering because of the compiler
+        # but it will fail to compile without setting standard to c++20
+        with when("%clang@19:"):
+            env.set("CXXFLAGS", "-std=c++20")
+            env.set("SPACK_CXXFLAGS", "-std=c++20")
