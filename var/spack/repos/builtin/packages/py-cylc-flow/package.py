@@ -45,12 +45,31 @@ class PyCylcFlow(PythonPackage):
     depends_on("py-promise", type=("build", "run"))
     depends_on("py-tomli@2:", type=("build", "run"), when="^python@:3.10")
 
-    # Non-Python dependencies
-    depends_on("graphviz", type="run")
+    # Non-Python dependencies for creating graphs.
+    # We want at least the pangocairo variant for
+    # graphviz so that we can create output as png.
+    depends_on("graphviz+pangocairo", type="run")
 
-    # cylc thinks it's smarter than everyone else and unsets
-    # PYTHONPATH, then sets it from CYLC_PYTHONPATH ...
+    # cylc at runtime unsets PYTHONPATH, then sets it from CYLC_PYTHONPATH
     # https://github.com/cylc/cylc-flow/issues/5124
+    #def setup_run_environment(self, env):               
+    #    
+    #    def add_dependencies_to_cylc_pythonpath(spec):
+    #        cylc_pythonpaths = []
+    #        pyver = spec["python"].version.up_to(2)
+    #        pydir = join_path("python{0}".format(pyver), "site-packages")
+    #        for dep in spec.dependencies(deptype="run"):
+    #            if dep.name.startswith("py-"):
+    #                cylc_pythonpaths = add_dependencies_to_cylc_pythonpath(dep) + cylc_pythonpaths
+    #        cylc_pythonpaths = [ join_path(dep.prefix.lib, pydir) for dep in spec.dependencies(deptype="run") if dep.name.startswith("py-") ] + cylc_pythonpaths
+    #        return cylc_pythonpaths
+    #    
+    #    cylc_pythonpaths = add_dependencies_to_cylc_pythonpath(self.spec)
+    #    # Remove duplicates
+    #    cylc_pythonpaths = list(set(cylc_pythonpaths))
+    #    #cylc_pythonpaths = [ join_path(dep.prefix.lib, pydir) for dep in self.spec.dependencies(deptype="run") if dep.name.startswith("py-") ]
+    #    env.set("CYLC_PYTHONPATH", ":".join(cylc_pythonpaths))
+
     # We need to filter this out, spack knows what it is doing.
     @run_after("install")
     def fix_cylc_pythonpath_mangling(self):
