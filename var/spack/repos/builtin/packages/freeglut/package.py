@@ -43,17 +43,17 @@ class Freeglut(CMakePackage, SourceforgePackage):
     patch(
         "https://gitweb.gentoo.org/repo/gentoo.git/plain/media-libs/freeglut/files/freeglut-3.2.1-gcc10-fno-common.patch?id=f9102571b69d9fc05471a592fda252681fdfdef1",
         sha256="898e8fb314cbe728d791e9ea69829313143cda039c008f0ca06c1b5730922aa7",
-        when="@3.2.1 %gcc@10.0:",
+        when="@3:3.2.1 %gcc@10.0:",
     )
     patch(
         "https://gitweb.gentoo.org/repo/gentoo.git/plain/media-libs/freeglut/files/freeglut-3.2.1-gcc10-fno-common.patch?id=f9102571b69d9fc05471a592fda252681fdfdef1",
         sha256="898e8fb314cbe728d791e9ea69829313143cda039c008f0ca06c1b5730922aa7",
-        when="@3.2.1 %clang@11.0:",
+        when="@3:3.2.1 %clang@11.0:",
     )
     patch(
         "https://gitweb.gentoo.org/repo/gentoo.git/plain/media-libs/freeglut/files/freeglut-3.2.1-gcc10-fno-common.patch?id=f9102571b69d9fc05471a592fda252681fdfdef1",
         sha256="898e8fb314cbe728d791e9ea69829313143cda039c008f0ca06c1b5730922aa7",
-        when="@3.2.1 %aocc@2.3.0:",
+        when="@3:3.2.1 %aocc@2.3.0:",
     )
 
     def cmake_args(self):
