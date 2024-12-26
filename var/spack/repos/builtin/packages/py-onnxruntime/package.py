@@ -161,6 +161,11 @@ class PyOnnxruntime(CMakePackage, PythonExtension, ROCmPackage):
         env.set("MLAS_DYNAMIC_CPU_ARCH", str(value))
         if self.spec.satisfies("+rocm"):
             env.set("MIOPEN_PATH", self.spec["miopen-hip"].prefix)
+        # The include files in absl will look for std::partial_order if
+        # clang19 but compile will fail without setting std standard
+        with when("%clang@19:"):
+            env.set("CXXFLAGS", "-std=c++20")
+            env.set("SPACK_CXXFLAGS", "-std=c++20")
 
     def setup_run_environment(self, env):
         value = self.spec.variants["dynamic_cpu_arch"].value
