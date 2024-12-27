@@ -357,7 +357,7 @@ def test_find_specs_include_concrete_env(mutable_mock_env_path, mutable_mock_rep
     path = tmpdir.join("spack.yaml")
 
     with tmpdir.as_cwd():
-        with open(str(path), "w") as f:
+        with open(str(path), "w", encoding="utf-8") as f:
             f.write(
                 """\
 spack:
@@ -372,7 +372,7 @@ spack:
     test1.write()
 
     with tmpdir.as_cwd():
-        with open(str(path), "w") as f:
+        with open(str(path), "w", encoding="utf-8") as f:
             f.write(
                 """\
 spack:
@@ -401,7 +401,7 @@ def test_find_specs_nested_include_concrete_env(mutable_mock_env_path, mutable_m
     path = tmpdir.join("spack.yaml")
 
     with tmpdir.as_cwd():
-        with open(str(path), "w") as f:
+        with open(str(path), "w", encoding="utf-8") as f:
             f.write(
                 """\
 spack:

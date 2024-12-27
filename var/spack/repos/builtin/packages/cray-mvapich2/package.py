@@ -53,11 +53,6 @@ class CrayMvapich2(Package):
         spec.mpifc = dependent_module.spack_fc
         spec.mpif77 = dependent_module.spack_f77
 
-        spec.mpicxx_shared_libs = [
-            join_path(self.prefix.lib, "libmpicxx.{0}".format(dso_suffix)),
-            join_path(self.prefix.lib, "libmpi.{0}".format(dso_suffix)),
-        ]
-
     def install(self, spec, prefix):
         raise InstallError(
             self.spec.format(

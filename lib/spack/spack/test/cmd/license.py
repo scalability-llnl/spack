@@ -101,8 +101,8 @@ def test_update_copyright_year(tmpdir):
     # add an old MIT license at top level
     mit_file = os.path.join(spack.paths.prefix, "LICENSE-MIT")
     test_mit_file = str(tmpdir.join("LICENSE-MIT"))
-    with open(mit_file) as real:
-        with open(test_mit_file, "w") as dummy:
+    with open(mit_file, encoding="utf-8") as real:
+        with open(test_mit_file, "w", encoding="utf-8") as dummy:
             old_copyright = re.sub(r"\d{4}-\d{4}", "2018-2019", real.read())
             dummy.write(old_copyright)
 
@@ -115,4 +115,4 @@ def test_update_copyright_year(tmpdir):
         assert spack.cmd.license.strict_date in first_line
 
     mit_date = spack.cmd.license.strict_date.replace("Copyright", "Copyright (c)")
-    assert mit_date in open(test_mit_file).read()
+    assert mit_date in open(test_mit_file, encoding="utf-8").read()

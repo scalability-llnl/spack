@@ -3,7 +3,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import os.path
 import sys
 
 from spack.package import *
@@ -184,10 +183,6 @@ class Mvapich2Gdr(AutotoolsPackage):
         self.spec.mpicxx = join_path(self.prefix.bin, "mpicxx")
         self.spec.mpifc = join_path(self.prefix.bin, "mpif90")
         self.spec.mpif77 = join_path(self.prefix.bin, "mpif77")
-        self.spec.mpicxx_shared_libs = [
-            os.path.join(self.prefix.lib, "libmpicxx.{0}".format(dso_suffix)),
-            os.path.join(self.prefix.lib, "libmpi.{0}".format(dso_suffix)),
-        ]
 
     def configure_args(self):
         spec = self.spec

@@ -41,10 +41,26 @@ class PyPyomo(PythonPackage):
     version("5.7.2", sha256="f10ada18ade84b16225dc519ef1788dd6d5f22cb22d0ea44db64c96d14cb7bb0")
     version("5.7.1", sha256="1228204d7eb4cdd217fed6323a7434de68e89a2aaa74085ea47f1b42fb64d8cd")
     version("5.7", sha256="27e3a3c8411de9bc52e5e6aa88e9a0de0dd7369126bc905996e23057775905d7")
-    version("5.6.9", sha256="17bc3c15b405e3ba3a3b7cf9bf3867f6b8e57b611c8ecfdd43fd802587ee8bc6")
-    version("5.6.8", sha256="28cbe034b06a477053616a3ce5ef43149bfd7d025cac490c2a3dd006c388b60d")
-    version("5.6.7", sha256="fc97cc9d5a55c5185358ba65c1f9530c9af17e67a9aae7b36c3414f159030ae0")
-    version("5.6.6", sha256="813e14a604b9d3ac63bdd0880c07f5f4e1b8f0a8a10345f1b42bee762219c001")
+    version(
+        "5.6.9",
+        sha256="17bc3c15b405e3ba3a3b7cf9bf3867f6b8e57b611c8ecfdd43fd802587ee8bc6",
+        deprecated=True,
+    )
+    version(
+        "5.6.8",
+        sha256="28cbe034b06a477053616a3ce5ef43149bfd7d025cac490c2a3dd006c388b60d",
+        deprecated=True,
+    )
+    version(
+        "5.6.7",
+        sha256="fc97cc9d5a55c5185358ba65c1f9530c9af17e67a9aae7b36c3414f159030ae0",
+        deprecated=True,
+    )
+    version(
+        "5.6.6",
+        sha256="813e14a604b9d3ac63bdd0880c07f5f4e1b8f0a8a10345f1b42bee762219c001",
+        deprecated=True,
+    )
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated

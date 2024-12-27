@@ -16,7 +16,7 @@ class Eckit(CMakePackage):
     git = "https://github.com/ecmwf/eckit.git"
     url = "https://github.com/ecmwf/eckit/archive/refs/tags/1.16.0.tar.gz"
 
-    maintainers("skosukhin", "climbfuji", "victoria-cherkas", "dominichofer")
+    maintainers("skosukhin", "climbfuji", "victoria-cherkas")
 
     license("Apache-2.0")
 

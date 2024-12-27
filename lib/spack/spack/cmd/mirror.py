@@ -468,7 +468,7 @@ def specs_from_text_file(filename, concretize=False):
         concretize (bool): if True concretize the specs before returning
             the list.
     """
-    with open(filename, "r") as f:
+    with open(filename, "r", encoding="utf-8") as f:
         specs_in_file = f.readlines()
         specs_in_file = [s.strip() for s in specs_in_file]
     return spack.cmd.parse_specs(" ".join(specs_in_file), concretize=concretize)

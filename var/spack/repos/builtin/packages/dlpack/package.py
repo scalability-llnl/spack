@@ -6,7 +6,7 @@
 from spack.package import *
 
 
-class Dlpack(Package):
+class Dlpack(CMakePackage):
     """DLPack is an RFC for common tensor and operator guidelines
     in deep learning systems."""
 
@@ -17,6 +17,7 @@ class Dlpack(Package):
     license("Apache-2.0")
 
     version("master", branch="master")
+    version("1.0", sha256="f8cfdcb634ff3cf0e3d9a3426e019e1c6469780a3b0020c9bc4ecc09cf9abcb1")
     version("0.8", sha256="cf965c26a5430ba4cc53d61963f288edddcd77443aa4c85ce722aaf1e2f29513")
     version("0.5", sha256="9209ac194a175aaab4381313891fba047cb173b2bdd15ac934f83f567f9cd514")
     version("0.4", sha256="d0a533189ecd45a033b72e276fccaa2122cfd76de125e0a5e126bdea0fec2d24")
@@ -26,6 +27,3 @@ class Dlpack(Package):
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
-
-    def install(self, spec, prefix):
-        install_tree("include", prefix.include)

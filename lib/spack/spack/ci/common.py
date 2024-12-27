@@ -26,6 +26,7 @@ import spack.deptypes as dt
 import spack.environment as ev
 import spack.error
 import spack.mirrors.mirror
+import spack.schema
 import spack.spec
 import spack.util.spack_yaml as syaml
 import spack.util.url as url_util
@@ -128,7 +129,7 @@ def update_env_scopes(
     environment, by reading the yaml, adding the missing includes, and writing the
     updated yaml back to the same location.
     """
-    with open(env.manifest_path, "r") as env_fd:
+    with open(env.manifest_path, "r", encoding="utf-8") as env_fd:
         env_yaml_root = syaml.load(env_fd)
 
     # Add config scopes to environment
@@ -142,7 +143,7 @@ def update_env_scopes(
         ensure_expected_target_path(i) if transform_windows_paths else i for i in env_includes
     ]
 
-    with open(output_file, "w") as fd:
+    with open(output_file, "w", encoding="utf-8") as fd:
         syaml.dump_config(env_yaml_root, fd, default_flow_style=False)
 
 
@@ -185,7 +186,7 @@ def write_pipeline_manifest(specs, src_prefix, dest_prefix, output_file):
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
 
-    with open(output_file, "w") as fd:
+    with open(output_file, "w", encoding="utf-8") as fd:
         fd.write(json.dumps(buildcache_copies))
 
 
@@ -216,7 +217,7 @@ class CDashHandler:
             "--cdash-upload-url",
             win_quote(self.upload_url),
             "--cdash-build",
-            win_quote(self.build_name),
+            win_quote(self.build_name()),
             "--cdash-site",
             win_quote(self.site),
             "--cdash-buildstamp",
@@ -350,7 +351,7 @@ hash={spec.dag_hash()} arch={spec.architecture} ({self.build_group})"
         configuration = CDashConfiguration(
             upload_url=self.upload_url,
             packages=[spec.name],
-            build=self.build_name,
+            build=self.build_name(),
             site=self.site,
             buildstamp=self.build_stamp,
             track=None,
@@ -608,7 +609,7 @@ class SpackCIConfig:
                     if "build-job-remove" in match_attrs:
                         spack.config.remove_yaml(dest, attrs["build-job-remove"])
                     if "build-job" in match_attrs:
-                        spack.config.merge_yaml(dest, attrs["build-job"])
+                        spack.schema.merge_yaml(dest, attrs["build-job"])
                     break
             if matched and only_first:
                 break
@@ -679,7 +680,7 @@ class SpackCIConfig:
                     if do_remove:
                         dest = spack.config.remove_yaml(dest, src[remove_job_name])
                     if do_merge:
-                        dest = copy.copy(spack.config.merge_yaml(dest, src[merge_job_name]))
+                        dest = copy.copy(spack.schema.merge_yaml(dest, src[merge_job_name]))
 
                 if name == "build":
                     # Apply attributes to all build jobs
@@ -808,7 +809,7 @@ class SpackCIConfig:
                             tty.warn(f"Response missing required keys: {missing_keys}")
 
                     if clean_config:
-                        job["attributes"] = spack.config.merge_yaml(
+                        job["attributes"] = spack.schema.merge_yaml(
                             job.get("attributes", {}), clean_config
                         )
 

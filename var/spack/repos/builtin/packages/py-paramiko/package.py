@@ -14,7 +14,10 @@ class PyParamiko(PythonPackage):
 
     license("LGPL-2.1-or-later")
 
+    version("3.5.0", sha256="ad11e540da4f55cedda52931f1a3f812a8238a7af7f62a60de538cd80bb28124")
+    version("3.4.1", sha256="8b15302870af7f6652f2e038975c1d2973f06046cb5d7d65355668b3ecbece0c")
     version("3.4.0", sha256="aac08f26a31dc4dffd92821527d1682d99d52f9ef6851968114a8728f3c274d3")
+    version("3.3.2", sha256="71eacec637a2dcb8a9771e6cd8c381754191c4fc8c82f2f103dbe056b0ba13a5")
     version("3.3.1", sha256="6a3777a961ac86dbef375c5f5b8d50014a1a96d0fd7f054a43bc880134b0ff77")
     version("3.3.0", sha256="ef639f5b97cf7bde57b6e1706e85b7e3f5561f632e180c6c155f53560ff1701b")
     version("3.2.0", sha256="93cdce625a8a1dc12204439d45033f3261bdb2c201648cfcdc06f9fd0f94ec29")
@@ -23,7 +26,9 @@ class PyParamiko(PythonPackage):
     version("2.12.0", sha256="376885c05c5d6aa6e1f4608aac2a6b5b0548b1add40274477324605903d9cd49")
     version("2.9.2", sha256="944a9e5dbdd413ab6c7951ea46b0ab40713235a9c4c5ca81cfe45c6f14fa677b")
     version("2.7.1", sha256="920492895db8013f6cc0179293147f830b8c7b21fdfc839b6bad760c27459d9f")
-    version("2.1.2", sha256="5fae49bed35e2e3d45c4f7b0db2d38b9ca626312d91119b3991d0ecf8125e310")
+    with default_args(deprecated=True):
+        # https://nvd.nist.gov/vuln/detail/CVE-2018-7750
+        version("2.1.2", sha256="5fae49bed35e2e3d45c4f7b0db2d38b9ca626312d91119b3991d0ecf8125e310")
 
     variant("invoke", default=False, description="Enable invoke support")
 

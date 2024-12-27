@@ -35,7 +35,7 @@ def stdout_as_buffered_text_stream():
     original_stdout = sys.stdout
 
     with tempfile.TemporaryFile(mode="w+b") as tf:
-        sys.stdout = TextIOWrapper(tf)
+        sys.stdout = TextIOWrapper(tf, encoding="utf-8")
         try:
             yield tf
         finally:

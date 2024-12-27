@@ -481,19 +481,6 @@ def ensure_gpg_in_path_or_raise() -> None:
     )
 
 
-def file_root_spec() -> str:
-    """Return the root spec used to bootstrap file"""
-    root_spec_name = "win-file" if IS_WINDOWS else "file"
-    return _root_spec(root_spec_name)
-
-
-def ensure_file_in_path_or_raise() -> None:
-    """Ensure file is in the PATH or raise"""
-    return ensure_executables_in_path_or_raise(
-        executables=["file"], abstract_spec=file_root_spec()
-    )
-
-
 def patchelf_root_spec() -> str:
     """Return the root spec used to bootstrap patchelf"""
     # 0.13.1 is the last version not to require C++17.
@@ -577,15 +564,13 @@ def ensure_core_dependencies() -> None:
     """Ensure the presence of all the core dependencies."""
     if sys.platform.lower() == "linux":
         ensure_patchelf_in_path_or_raise()
-    elif sys.platform == "win32":
-        ensure_file_in_path_or_raise()
     ensure_gpg_in_path_or_raise()
     ensure_clingo_importable_or_raise()
 
 
 def all_core_root_specs() -> List[str]:
     """Return a list of all the core root specs that may be used to bootstrap Spack"""
-    return [clingo_root_spec(), gnupg_root_spec(), patchelf_root_spec(), file_root_spec()]
+    return [clingo_root_spec(), gnupg_root_spec(), patchelf_root_spec()]
 
 
 def bootstrapping_sources(scope: Optional[str] = None):

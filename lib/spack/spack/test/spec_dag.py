@@ -391,7 +391,6 @@ class TestSpecDag:
 
         assert orig == copy
         assert orig.eq_dag(copy)
-        assert orig._normal == copy._normal
         assert orig._concrete == copy._concrete
 
         # ensure no shared nodes bt/w orig and copy.
@@ -408,7 +407,6 @@ class TestSpecDag:
 
         assert orig == copy
         assert orig.eq_dag(copy)
-        assert orig._normal == copy._normal
         assert orig._concrete == copy._concrete
 
         # ensure no shared nodes bt/w orig and copy.
@@ -620,18 +618,6 @@ class TestSpecDag:
             spec["dt-diamond-right"].edges_to_dependencies(name="dt-diamond-bottom")[0].depflag
             == dt.BUILD | dt.LINK | dt.RUN
         )
-
-    def check_diamond_normalized_dag(self, spec):
-        dag = Spec.from_literal(
-            {
-                "dt-diamond": {
-                    "dt-diamond-left:build,link": {"dt-diamond-bottom:build": None},
-                    "dt-diamond-right:build,link": {"dt-diamond-bottom:build,link,run": None},
-                }
-            }
-        )
-
-        assert spec.eq_dag(dag)
 
     def test_concretize_deptypes(self):
         """Ensure that dependency types are preserved after concretization."""

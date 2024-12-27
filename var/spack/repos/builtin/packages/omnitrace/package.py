@@ -13,13 +13,21 @@ class Omnitrace(CMakePackage):
 
     homepage = "https://rocm.docs.amd.com/projects/omnitrace/en/latest/index.html"
     git = "https://github.com/ROCm/omnitrace.git"
-    url = "https://github.com/ROCm/omnitrace/archive/refs/tags/rocm-6.2.0.tar.gz"
+    url = "https://github.com/ROCm/rocprofiler-systems/archive/refs/tags/rocm-6.3.0.tar.gz"
+
     maintainers("dgaliffiAMD", "afzpatel", "srekolam", "renjithravindrankannath", "jrmadsen")
 
     license("MIT")
 
     version("amd-mainline", branch="amd-mainline", submodules=True)
     version("amd-staging", branch="amd-staging", submodules=True)
+    version(
+        "rocm-6.3.0",
+        git="https://github.com/ROCm/rocprofiler-systems",
+        tag="rocm-6.3.0",
+        commit="71a5e271b5e07efd2948fb6e7b451db5e8e40cb8",
+        submodules=True,
+    )
     version(
         "1.12.0", tag="v1.12.0", commit="abff23ac4238da6d7891d9ac9f36a919e30bf759", submodules=True
     )
@@ -133,7 +141,7 @@ class Omnitrace(CMakePackage):
     depends_on("roctracer-dev@5", when="@1:1.10 +rocm")
     depends_on("rocprofiler-dev@5", when="@1.3.0:1.10 +rocm")
 
-    for ver in ["6.2.0", "6.2.1", "6.2.4"]:
+    for ver in ["6.2.0", "6.2.1", "6.2.4", "6.3.0"]:
         depends_on(f"rocm-smi-lib@{ver}", when=f"@rocm-{ver} +rocm")
         depends_on(f"hip@{ver}", when=f"@rocm-{ver} +rocm")
         depends_on(f"roctracer-dev@{ver}", when=f"@rocm-{ver} +rocm")
@@ -148,6 +156,9 @@ class Omnitrace(CMakePackage):
     depends_on("m4", when="@1.8:,rocm-6.2:0 +rocm")
     depends_on("texinfo", when="@1.8:,rocm-6.2:0 +rocm")
     depends_on("libunwind", when="@1.8:,rocm-6.2:0 +rocm")
+    depends_on("autoconf", when="@rocm-6.3:0 +rocm")
+    depends_on("automake", when="@rocm-6.3:0 +rocm")
+    depends_on("libtool", when="@rocm-6.3:0 +rocm")
 
     def cmake_args(self):
         spec = self.spec

@@ -16,6 +16,7 @@ import spack.binary_distribution as bindist
 import spack.ci as spack_ci
 import spack.cmd
 import spack.cmd.buildcache as buildcache
+import spack.cmd.common.arguments
 import spack.config as cfg
 import spack.environment as ev
 import spack.hash_types as ht
@@ -119,6 +120,9 @@ def setup_parser(subparser):
     )
     generate.set_defaults(func=ci_generate)
 
+    spack.cmd.common.arguments.add_concretizer_args(generate)
+    spack.cmd.common.arguments.add_common_arguments(generate, ["jobs"])
+
     # Rebuild the buildcache index associated with the mirror in the
     # active, gitlab-enabled environment.
     index = subparsers.add_parser(
@@ -148,6 +152,7 @@ def setup_parser(subparser):
         help="stop stand-alone tests after the first failure",
     )
     rebuild.set_defaults(func=ci_rebuild)
+    spack.cmd.common.arguments.add_common_arguments(rebuild, ["jobs"])
 
     # Facilitate reproduction of a failed CI build job
     reproduce = subparsers.add_parser(
@@ -356,7 +361,7 @@ def ci_rebuild(args):
     # Write this job's spec json into the reproduction directory, and it will
     # also be used in the generated "spack install" command to install the spec
     tty.debug("job concrete spec path: {0}".format(job_spec_json_path))
-    with open(job_spec_json_path, "w") as fd:
+    with open(job_spec_json_path, "w", encoding="utf-8") as fd:
         fd.write(job_spec.to_json(hash=ht.dag_hash))
 
     # Write some other details to aid in reproduction into an artifact
@@ -366,7 +371,7 @@ def ci_rebuild(args):
         "job_spec_json": job_spec_json_file,
         "ci_project_dir": ci_project_dir,
     }
-    with open(repro_file, "w") as fd:
+    with open(repro_file, "w", encoding="utf-8") as fd:
         fd.write(json.dumps(repro_details))
 
     # Write information about spack into an artifact in the repro dir
@@ -410,6 +415,9 @@ def ci_rebuild(args):
     verify_binaries = can_verify and spack_is_pr_pipeline is False
     if not verify_binaries:
         install_args.append("--no-check-signature")
+
+    if args.jobs:
+        install_args.append(f"-j{args.jobs}")
 
     slash_hash = spack_ci.common.win_quote("/" + job_spec.dag_hash())
 
@@ -576,7 +584,7 @@ If this project does not have public pipelines, you will need to first:
 
     rebuild_timer.stop()
     try:
-        with open("install_timers.json", "w") as timelog:
+        with open("install_timers.json", "w", encoding="utf-8") as timelog:
             extra_attributes = {"name": ".ci-rebuild"}
             rebuild_timer.write_json(timelog, extra_attributes=extra_attributes)
     except Exception as e:

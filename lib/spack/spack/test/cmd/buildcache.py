@@ -284,7 +284,7 @@ def test_buildcache_sync(
             ]
 
         manifest_file = os.path.join(tmpdir.strpath, "manifest_dest.json")
-        with open(manifest_file, "w") as fd:
+        with open(manifest_file, "w", encoding="utf-8") as fd:
             test_env = ev.active_environment()
 
             manifest = {}
@@ -298,7 +298,7 @@ def test_buildcache_sync(
         shutil.rmtree(dest_mirror_dir)
 
         manifest_file = os.path.join(tmpdir.strpath, "manifest_bad_dest.json")
-        with open(manifest_file, "w") as fd:
+        with open(manifest_file, "w", encoding="utf-8") as fd:
             manifest = {}
             for spec in test_env.specs_by_hash.values():
                 manifest_insert(
