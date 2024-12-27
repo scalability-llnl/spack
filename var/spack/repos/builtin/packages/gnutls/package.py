@@ -7,12 +7,14 @@ from spack.package import *
 
 
 class Gnutls(AutotoolsPackage):
-    """GnuTLS is a secure communications library implementing the SSL, TLS
-    and DTLS protocols and technologies around them. It provides a simple C
-    language application programming interface (API) to access the secure
-    communications protocols as well as APIs to parse and write X.509, PKCS
-    #12, OpenPGP and other required structures. It is aimed to be portable
-    and efficient with focus on security and interoperability."""
+    """GnuTLS is a secure communications library implementing the SSL, TLS and DTLS protocols
+    and technologies around them.
+
+    It provides a simple C language application programming interface (API) to access the secure
+    communications protocols as well as APIs to parse and write X.509, PKCS #12, OpenPGP and other
+    required structures. It is aimed to be portable and efficient with focus on security
+    and interoperability.
+    """
 
     homepage = "https://www.gnutls.org"
     url = "https://www.gnupg.org/ftp/gcrypt/gnutls/v3.5/gnutls-3.5.19.tar.xz"
@@ -21,6 +23,7 @@ class Gnutls(AutotoolsPackage):
 
     license("LGPL-2.1-or-later")
 
+    version("3.8.4", sha256="2bea4e154794f3f00180fa2a5c51fe8b005ac7a31cd58bd44cdfa7f36ebc3a9b")
     version("3.8.3", sha256="f74fc5954b27d4ec6dfbb11dea987888b5b124289a3703afcada0ee520f4173e")
     version("3.7.8", sha256="c58ad39af0670efe6a8aee5e3a8b2331a1200418b64b7c51977fb396d4617114")
     version("3.6.15", sha256="0ea8c3283de8d8335d7ae338ef27c53a916f15f382753b174c18b45ffd481558")
@@ -33,11 +36,13 @@ class Gnutls(AutotoolsPackage):
     version("3.5.9", sha256="82b10f0c4ef18f4e64ad8cef5dbaf14be732f5095a41cf366b4ecb4050382951")
     version("3.3.9", sha256="39166de5293a9d30ef1cd0a4d97f01fdeed7d7dbf8db95392e309256edcb13c1")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("zlib", default=True, description="Enable zlib compression support")
-    variant("guile", default=False, description="Enable Guile bindings")
+    variant("zstd", default=True, description="Enable zstd compression support", when="@3.7:")
+    # See https://lists.gnupg.org/pipermail/gnutls-help/2023-February/004816.html
+    variant("guile", default=False, description="Enable Guile bindings", when="@:3.7")
     variant(
         "brotli", default=True, description="Enable brotli compression support", when="@3.7.4:"
     )
@@ -60,7 +65,10 @@ class Gnutls(AutotoolsPackage):
     depends_on("brotli", when="+brotli")
     depends_on("gettext")
 
+    depends_on("zstd", when="+zstd")
+
     depends_on("pkgconfig", type="build")
+    depends_on("libtool", type="build")
 
     build_directory = "spack-build"
 
@@ -72,6 +80,9 @@ class Gnutls(AutotoolsPackage):
         spec = self.spec
         if spec.satisfies("+guile"):
             env.set("GUILE", spec["guile"].prefix.bin.guile)
+
+        if self.spec.satisfies("platform=linux @3.8:"):
+            env.set("LDFLAGS", "-ldl")
 
     def configure_args(self):
         spec = self.spec
@@ -85,7 +96,12 @@ class Gnutls(AutotoolsPackage):
 
         args += self.with_or_without("zlib")
         args += self.with_or_without("brotli")
-        args += self.enable_or_disable("guile")
+
+        if self.spec.satisfies("@:3.7"):
+            args += self.enable_or_disable("guile")
+
+        if self.spec.satisfies("@3.7:"):
+            args += self.with_or_without("zstd")
 
         if self.run_tests:
             args.extend(["--enable-tests", "--enable-valgrind-tests", "--enable-full-test-suite"])
