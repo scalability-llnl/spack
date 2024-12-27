@@ -78,8 +78,8 @@ class ParallelNetcdf(AutotoolsPackage):
     depends_on("perl", type="build")
 
     # Link to issue here
-    patch("parallel-netcdf-1.12.3-intel-irc-intlc.patch", when="@1.12.3 %intel")
-    patch("parallel-netcdf-1.12.3-intel-irc-intlc.patch", when="@1.12.3 %oneapi")
+    patch("parallel-netcdf-1.12.3-intel-irc-intlc.patch", when="@1.12.3: %intel")
+    patch("parallel-netcdf-1.12.3-intel-irc-intlc.patch", when="@1.12.3: %oneapi")
 
     @property
     def libs(self):
