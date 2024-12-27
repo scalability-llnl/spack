@@ -19,6 +19,7 @@ class Pandoramonitoring(CMakePackage):
     maintainers("jmcarcell", "wdconinc")
 
     version("master", branch="master")
+    version("3.6.0", sha256="5fc9574faa3e90d96e5d2a27dea46b55f844499cf21e39060acb1e4c080dec77")
     version("3.5.0", sha256="274562abb7c797194634d5460a56227444a1de07a240c88ae35ca806abcbaf60")
 
     depends_on("c", type="build")
@@ -39,7 +40,8 @@ class Pandoramonitoring(CMakePackage):
     def cmake_args(self):
         args = [
             self.define("CMAKE_MODULE_PATH", self.spec["pandorapfa"].prefix.cmakemodules),
-            self.define("CMAKE_CXX_FLAGS", "-std=c++17"),
+            self.define("CMAKE_CXX_FLAGS", "-Wno-error"),
+            self.define("CMAKE_CXX_STANDARD", self.spec["root"].variants["cxxstd"].value),
         ]
         return args
 
