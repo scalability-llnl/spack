@@ -9,10 +9,10 @@ from spack.package import *
 class RRentrez(RPackage):
     """'Entrez' in R.
 
-    Provides an R interface to the NCBI's 'EUtils' API, 
-    allowing users to search databases like 'GenBank' 
-    <https://www.ncbi.nlm.nih.gov/genbank/> and 'PubMed' 
-    <https://pubmed.ncbi.nlm.nih.gov/>, process the 
+    Provides an R interface to the NCBI's 'EUtils' API,
+    allowing users to search databases like 'GenBank'
+    <https://www.ncbi.nlm.nih.gov/genbank/> and 'PubMed'
+    <https://pubmed.ncbi.nlm.nih.gov/>, process the
     results of those searches and pull data into their R sessions."""
 
     cran = "rrentrez"
