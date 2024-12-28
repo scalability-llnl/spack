@@ -15,6 +15,7 @@ properties: Dict[str, Any] = {
         "type": "object",
         "additionalProperties": False,
         "properties": {
+            "force": {"type": "boolean", "default": False},
             "reuse": {
                 "oneOf": [
                     {"type": "boolean"},
