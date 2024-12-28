@@ -21,7 +21,6 @@ class RMergemaid(RPackage):
 
     bioc = "MergeMaid"
 
-    version("2.61.0", commit="0a76820a27a94ca253bd44ee3a337bd5a29f50b4")
     version("2.56.0", commit="c510d1d85bb39476e8397b24c4bc127780a17686")
     version("2.54.0", commit="8e79bd2bd06b25138b3c5107681c89d714a3b194")
     version("2.52.0", commit="88a1ddfd9cdbe902ba40fae0f39ee5665ac33a74")

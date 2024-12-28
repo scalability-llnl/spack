@@ -17,8 +17,8 @@ class RAlsace(RPackage):
 
     bioc = "alsace"
 
-    version("1.31.0", commit="71be42c81c4da92ebcc5180ccea1e7145319d0fb")
     version("1.30.0", commit="d0e09b283da2b4869d5d6e6801399676246bc5bc")
+    version("1.28.0", commit="03344a1f12a5c86e61a8d69b68d9d16c3ed07561")
     version("1.26.0", commit="40a76404acb1466723a78a55d87c67eec3e6f306")
     version("1.20.0", commit="47f1cf8daafc864e5e3418009f349ce85d6b0389")
     version("1.18.0", commit="c9fc43c7b441de43b14ef1be69926c4c4a566191")

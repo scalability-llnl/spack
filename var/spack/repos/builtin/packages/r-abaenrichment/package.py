@@ -23,7 +23,6 @@ class RAbaenrichment(RPackage):
 
     bioc = "ABAEnrichment"
 
-    version("1.27.0", commit="7f29995375f536da5ff2a196f8eb7786d1d97acd")
     version("1.26.0", commit="33df9e162aec07e2aae92cc058cbfb33720ba4b4")
     version("1.24.0", commit="5d20752263ae8f18ea5f5a6cfbdd5921a0f236d7")
     version("1.20.0", commit="608433a0b07e6dd99915dc536a038d960f1be1d5")

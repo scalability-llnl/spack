@@ -13,7 +13,6 @@ class RAlpine(RPackage):
 
     bioc = "alpine"
 
-    version("1.27.0", commit="c69321d373e9a46d0afeb1c9f185770bf3009e49")
     version("1.26.0", commit="1e317dbf2973eb4b6a3ffbf52bc0faacec76a616")
     version("1.24.0", commit="7e734d49881761cafaacea096ce757531b6bd522")
     version("1.22.0", commit="6107a82962f07e0434e93f261cd375eaaa171d91")

@@ -16,7 +16,6 @@ class RExomecopy(RPackage):
 
     bioc = "exomeCopy"
 
-    version("1.49.0", commit="7b27fb0b5b9bdcd95b435eafbc4a231b13e67542")
     version("1.48.0", commit="c418319e721b440272b551be91b965e928b8af65")
     version("1.46.0", commit="b282adb17fb05e1a940d068d27bfd9d4549a53e7")
     version("1.44.0", commit="2dd6598d5fb14d49f7a42e597284c7a929c0cd62")
