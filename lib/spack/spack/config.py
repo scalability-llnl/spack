@@ -415,7 +415,7 @@ class Configuration:
     """
 
     # convert to typing.OrderedDict when we drop 3.6, or OrderedDict when we reach 3.9
-    scopes: Dict[str, ConfigScope]
+    scopes: lang.PriorityOrderedMapping[str, ConfigScope]
 
     def __init__(self, *scopes: ConfigScope) -> None:
         """Initialize a configuration with an initial list of scopes.
@@ -425,7 +425,7 @@ class Configuration:
                 Configuration, ordered from lowest to highest precedence
 
         """
-        self.scopes = collections.OrderedDict()
+        self.scopes = lang.PriorityOrderedMapping()
         for scope in scopes:
             self.push_scope(scope)
         self.format_updates: Dict[str, List[ConfigScope]] = collections.defaultdict(list)
@@ -451,20 +451,25 @@ class Configuration:
     def push_scope(self, scope: ConfigScope) -> None:
         """Add a higher precedence scope to the Configuration."""
         tty.debug(f"[CONFIGURATION: PUSH SCOPE]: {str(scope)}", level=2)
-        self.scopes[scope.name] = scope
+        self.scopes.add(scope.name, value=scope)
 
     @_config_mutator
     def pop_scope(self) -> ConfigScope:
         """Remove the highest precedence scope and return it."""
-        name, scope = self.scopes.popitem(last=True)  # type: ignore[call-arg]
+        name = next(reversed(self.scopes))
+        scope = self.scopes.remove(name)
         tty.debug(f"[CONFIGURATION: POP SCOPE]: {str(scope)}", level=2)
         return scope
 
     @_config_mutator
     def remove_scope(self, scope_name: str) -> Optional[ConfigScope]:
         """Remove scope by name; has no effect when ``scope_name`` does not exist"""
-        scope = self.scopes.pop(scope_name, None)
-        tty.debug(f"[CONFIGURATION: POP SCOPE]: {str(scope)}", level=2)
+        try:
+            scope = self.scopes.remove(scope_name)
+            tty.debug(f"[CONFIGURATION: POP SCOPE]: {str(scope)}", level=2)
+        except KeyError as e:
+            tty.debug(f"[CONFIGURATION: POP SCOPE]: {e}", level=2)
+            return None
         return scope
 
     @property
@@ -474,14 +479,12 @@ class Configuration:
 
     def highest_precedence_scope(self) -> ConfigScope:
         """Writable scope with highest precedence."""
-        return next(s for s in reversed(self.scopes.values()) if s.writable)  # type: ignore
+        return next(s for s in self.scopes.reversed_values() if s.writable)
 
     def highest_precedence_non_platform_scope(self) -> ConfigScope:
         """Writable non-platform scope with highest precedence"""
         return next(
-            s
-            for s in reversed(self.scopes.values())  # type: ignore
-            if s.writable and not s.is_platform_dependent
+            s for s in self.scopes.reversed_values() if s.writable and not s.is_platform_dependent
         )
 
     def matching_scopes(self, reg_expr) -> List[ConfigScope]:
@@ -955,7 +958,7 @@ def set(path: str, value: Any, scope: Optional[str] = None) -> None:
     return CONFIG.set(path, value, scope)
 
 
-def scopes() -> Dict[str, ConfigScope]:
+def scopes() -> lang.PriorityOrderedMapping[str, ConfigScope]:
     """Convenience function to get list of configuration scopes."""
     return CONFIG.scopes
 
