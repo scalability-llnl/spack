@@ -12,7 +12,9 @@ class RAgilp(RPackage):
 
     bioc = "agilp"
 
-    version("3.39.0", commit="669a614e0c2dee46b6fb7084653959ff51cb52e5")
+    version("3.38.0", commit="5ed3359c61678afed7709bd3795702b9e94f46f3")
+    version("3.36.0", commit="204ae1003390b0b4efa5aa7d43f96c256e59fc9e")
+    version("3.34.0", commit="12c94ca5c5c1b6bc909571c1bee897a6268d9e39")
     version("3.32.0", commit="8291f7b7c1b6167952568f51593116afc6d0fc27")
     version("3.30.0", commit="a2c898dc901ccdda4b8582caff079ab20b1bfc28")
     version("3.28.0", commit="2c6dfccc76473b5bef13b75fa59adf46b3381f55")

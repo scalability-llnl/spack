@@ -13,7 +13,9 @@ class RGseabase(RPackage):
 
     bioc = "GSEABase"
 
-    version("1.69.0", commit="9f00f81bb100ed855067af84f47c43e386837960")
+    version("1.68.0", commit="3766175d62925ba81f99ffbfc71f236c46591540")
+    version("1.66.0", commit="49e3956ba47b43c0b501548c99ff979a9c6c07e2")
+    version("1.64.0", commit="d89947cb243d88a5e42e64c210d134cb7857e91c")
     version("1.62.0", commit="fc20cbcd85da0202eb0f2316dcf63f6fb1372b3e")
     version("1.60.0", commit="aae4e52b50b076550967601f98031e952fb97765")
     version("1.58.0", commit="7de04442fb1ab63ffde29f4e3daf13ad32e90bdb")

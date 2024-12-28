@@ -14,7 +14,9 @@ class RClusterprofiler(RPackage):
 
     bioc = "clusterProfiler"
 
-    version("4.15.1", commit="1aedd904412e14926b5d1aa96bc3f7cc57a91fbc")
+    version("4.14.4", commit="0be6e3bf12d42c0769653c44a1dce9f4e8a02b84")
+    version("4.12.6", commit="af7bbecdf62de32033a114602add1736676dfa4f")
+    version("4.10.1", commit="072a273e06ca98f2c6a2c60a549fe3df97d99d38")
     version("4.8.0", commit="35a69cf05855b01775658def2f3f26596902f5db")
     version("4.6.0", commit="2644118c36a3aa14408bc0c97ac20a545e40344d")
     version("4.4.4", commit="9fca9a45ca1793884d8dcfd0f077353dbf75df29")

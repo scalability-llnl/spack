@@ -18,7 +18,9 @@ class REdger(RPackage):
 
     bioc = "edgeR"
 
-    version("4.5.1", commit="380f86e20e7cc83d77e2f59b16cf2ef42a8c9dfa")
+    version("4.4.1", commit="797c5353c166a6ea15094f9f36d547187ea81aaa")
+    version("4.2.2", commit="d50e8020f272abdaf612326bf55a1ef7c2123f22")
+    version("4.0.16", commit="1e37a9b4c0660174016925d6294221e9ac9d5ea2")
     version("3.42.0", commit="197b9a8ccc27016611b262c2c31ca22f991661c5")
     version("3.40.0", commit="0b25adcc6b3cb0a8c641964d1274536ee07ee162")
     version("3.38.4", commit="f5a3bb568a23b34146ac66329a95ee4785093536")

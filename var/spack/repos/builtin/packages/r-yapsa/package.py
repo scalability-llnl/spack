@@ -19,7 +19,9 @@ class RYapsa(RPackage):
 
     license("GPL-3.0-or-later")
 
-    version("1.33.0", commit="d41177ebf53f26284c73e24079c2cc9fdd5f514a")
+    version("1.32.0", commit="e3cceb26c77a7edfb4c51820b25f2b2ef99abdf5")
+    version("1.30.0", commit="ac601b3ea882e0f51822ae2ba8bcd684286e9293")
+    version("1.28.0", commit="257bdf9cf13de42943db3afb3d6ae3e41b3dbbc1")
     version("1.26.0", commit="eab6bbd7a44e1368c7827e4717439de445303868")
     version("1.24.0", commit="68d1c9c71af3ade4a44237ec2d3003688378f898")
     version("1.22.0", commit="55c2886874f154c737264ce6843089bf3565fa57")

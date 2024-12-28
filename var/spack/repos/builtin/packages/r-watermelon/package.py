@@ -13,7 +13,9 @@ class RWatermelon(RPackage):
 
     bioc = "wateRmelon"
 
-    version("2.13.0", commit="d54e8438a798aed253a8579c02d2b7dbe8cfbe6b")
+    version("2.12.0", commit="3f299e11ffb3bffa8f495696047d1c19ef04509f")
+    version("2.10.0", commit="0e0ae034e6fd69e58f7e703e3110d39e8c50e8c2")
+    version("2.8.0", commit="6cb9c13511e818acd6dbbed0d96480b87e644ea2")
     version("2.6.0", commit="a46541ffcc08efebf08ea29cb214a45f51f5cb72")
     version("2.4.0", commit="31c15255511940b8b83d039c42ec89e43ceb0885")
     version("2.2.0", commit="6ec49efe98aef31d0789b31ab048eb46edec762c")

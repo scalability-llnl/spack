@@ -17,7 +17,9 @@ class RTfbstools(RPackage):
 
     bioc = "TFBSTools"
 
-    version("1.45.0", commit="58fd543eab111ad6c7b474007a38d5ec4e280126")
+    version("1.44.0", commit="9bb14bebd2e681e9a83fe60c22ea293bd1bd5ba5")
+    version("1.42.0", commit="713402eb3bea4dfd6de309ad6019bc8517b4d0af")
+    version("1.40.0", commit="c3a176b05a8950f538feb8187b5757540511803b")
     version("1.38.0", commit="2ce17166b6f73b5093acec2a3dde33b6bcfa56bc")
     version("1.36.0", commit="3358c89227a4d2e237ee5f8c532f468460a16ee2")
     version("1.34.0", commit="7f8d0cb58a527a5d7ba94a773279f13aedca6ec7")

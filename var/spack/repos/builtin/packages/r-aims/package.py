@@ -16,7 +16,9 @@ class RAims(RPackage):
 
     bioc = "AIMS"
 
-    version("1.39.0", commit="0d17e7f91a504297f402cf893033799064b7cdc2")
+    version("1.38.0", commit="b7d238e6573f1921a4f255f9c7cd673a31482c1c")
+    version("1.36.0", commit="8c8f6120501a37595034c1c1759ccfb751e995e1")
+    version("1.34.0", commit="61910444b05ce6e438467177202a93046c700e32")
     version("1.32.0", commit="019415a6362e805465d43c157606e1774aed9e51")
     version("1.30.0", commit="2ab61159c5aa0902cc33fc1502f7853b66912cce")
     version("1.28.0", commit="84608df638b5694c08158ed77ad2c8a64c4e594b")

@@ -22,7 +22,9 @@ class RMissmethyl(RPackage):
 
     bioc = "missMethyl"
 
-    version("1.41.0", commit="9006ed418b308435c78fc88ba276c84dcbcf7257")
+    version("1.40.0", commit="8e61f088ec50def306512886313af9e43ddfc287")
+    version("1.38.0", commit="ae6957aed0885dca26c1d66f01e88e482a4a26fa")
+    version("1.36.0", commit="7853a3c9ec2434fd70224c9fd7f5441c23cc155f")
     version("1.34.0", commit="57db57c48ab79c36eb89726afc2833a981cbaf3d")
     version("1.32.0", commit="969b892e400b9821398099bcea46f2d0431daedf")
     version("1.30.0", commit="734846653f332f10e557b87aca4cb5d100b62469")

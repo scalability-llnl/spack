@@ -22,7 +22,9 @@ class RPcamethods(RPackage):
 
     license("GPL-2.0-or-later")
 
-    version("1.99.0", commit="8148736e3b387cd7b663a862f24fda6996095ae1")
+    version("1.98.0", commit="19b67d5b60617eca68e2613cf0b1433636df62b4")
+    version("1.96.0", commit="a97ba23199cacd02518d1318f15ffe3ef3188db0")
+    version("1.94.0", commit="5bb47fc169023e40b199b45b3a7c3f6e76d6bf0b")
     version("1.92.0", commit="ecbbc5b96b8fa79342611af8f798dd43c36d6699")
     version("1.90.0", commit="52474bc6d125122e89834328a1a780988349756f")
     version("1.88.0", commit="02fb58d6fe35579b86fb2ebd2eaf92e6b53444d2")

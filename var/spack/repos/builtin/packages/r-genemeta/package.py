@@ -13,7 +13,9 @@ class RGenemeta(RPackage):
 
     bioc = "GeneMeta"
 
-    version("1.79.0", commit="7798817f854a11b5c9fdb8b9a83a6bde45ee9216")
+    version("1.78.0", commit="4d17ec8babebad5b49b007d2791181f95cb39a02")
+    version("1.76.0", commit="2eed8386ee1a40e4ab14594323e4538b7f73f8e9")
+    version("1.74.0", commit="476eb5edef69cc05d4178faaf02ef45293c91f32")
     version("1.72.0", commit="1cb047172f54c12c5dc5a9b39358ea04cbeff8a2")
     version("1.70.0", commit="e5db82e04efc4572358abce7e0c09273f94c9d72")
     version("1.68.0", commit="4213c0205d477660195300a0aa9751972f86bf91")

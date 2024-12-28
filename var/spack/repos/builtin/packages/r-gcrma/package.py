@@ -12,7 +12,9 @@ class RGcrma(RPackage):
 
     bioc = "gcrma"
 
-    version("2.79.0", commit="737578531230d19feec820daef94b23ff0c0a69a")
+    version("2.78.0", commit="dc3bef2a17004fdb6d8842c258c2e1b9122f221a")
+    version("2.76.0", commit="01247c38a2f4be1088df02645b9110369f609e91")
+    version("2.74.0", commit="1ceeafef23eec0669759bff675d15385dda22c33")
     version("2.72.0", commit="5cfccc7c684283dc3a82830bad75aad254efcb01")
     version("2.70.0", commit="095f38914525d8812524a3cb38db8075382f8121")
     version("2.68.0", commit="c14063ff5490fac8d60530826613d728e68b3d66")

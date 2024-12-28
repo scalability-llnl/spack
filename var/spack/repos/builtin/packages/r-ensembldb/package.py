@@ -23,7 +23,9 @@ class REnsembldb(RPackage):
 
     bioc = "ensembldb"
 
-    version("2.31.0", commit="9c0616161f801a1a197ef1b8af7a2d37b163bf41")
+    version("2.30.0", commit="1376f59be5f6d34f9cc8e57632fc27fa58b1dcc0")
+    version("2.28.1", commit="32dfb29152e8f581398dc6893eecc92347a1f2a8")
+    version("2.26.1", commit="acdf57b7e91e5256e63e87a1d0c457e11d8405d1")
     version("2.24.0", commit="45a79a438fde11b0d244b071e6ae2b652100be03")
     version("2.22.0", commit="4dda178a14e080c643bbd8c4dd6378bfe4e6ee9f")
     version("2.20.2", commit="ac1fb8389efd88099600af298d6bb3384206f9ed")

@@ -16,7 +16,9 @@ class RScran(RPackage):
 
     bioc = "scran"
 
-    version("1.35.0", commit="f18e781b54b513137d578130f1779745777db7db")
+    version("1.34.0", commit="a51745941a9abfde2962dc758f4634ee7bf8a9f7")
+    version("1.32.0", commit="03deb6166dcbc5e0eb38edad0108b48accb9f3c8")
+    version("1.30.2", commit="f01bc21c69892280c492537a80b30fc05180ca40")
     version("1.28.0", commit="2e542b929b231fb5bb8c40af0f6ccea97f79234d")
     version("1.26.0", commit="df66576d6958a088c38bd45e1cad9c16cbb52991")
     version("1.24.1", commit="1a83eb7c948b1dc49253080c23b26cefb3a0f3b9")

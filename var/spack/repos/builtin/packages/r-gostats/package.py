@@ -14,7 +14,9 @@ class RGostats(RPackage):
 
     bioc = "GOstats"
 
-    version("2.73.0", commit="a8f723854673514441d7b553f17de7c3963830ba")
+    version("2.72.0", commit="7306a7f71d239ab0994450a02049740b7ccac1d3")
+    version("2.70.0", commit="f0d76ff5f19a89933d98404cb66a203f0d194cef")
+    version("2.68.0", commit="c8a775a3021090f92bbbdcc5fe12c7adf22a50d6")
     version("2.66.0", commit="dbfc8a7646b53db53b0c329e0e1c77c0f202f08f")
     version("2.64.0", commit="62813253249dc02d2ddaafa7f0249e69d6f2c6b0")
     version("2.62.0", commit="217db032272010ebb8fe3af4647153428f42cd47")

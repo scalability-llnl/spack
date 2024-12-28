@@ -25,7 +25,9 @@ class RGdsfmt(RPackage):
 
     license("BSD-2-Clause")
 
-    version("1.43.0", commit="84cf1468ace5e9be7a99549dc9d201ac18c17665")
+    version("1.42.1", commit="a1256b83b335aa7db67719a42a8270ea9780c326")
+    version("1.40.2", commit="3e0d00850ddb7480e935bc5b6c906512aac6b7e0")
+    version("1.38.0", commit="47ebf725814d52ff0c42d6fce908dbd11c8b50b3")
     version("1.36.0", commit="39ba0af93d499b0f9ef53f04d4f15e5436616f1a")
     version("1.34.0", commit="ab912c393d8eb6dc26f844a13422a29b9ce7265b")
     version("1.32.0", commit="06f2097cc10b1888739f86e635383a0f2ee7e208")

@@ -13,7 +13,9 @@ class RBiocstyle(RPackage):
 
     bioc = "BiocStyle"
 
-    version("2.35.0", commit="40286b4f449af4d78e632785ab7cfb041b3a6c0e")
+    version("2.34.0", commit="0a042423c1f4e8bc6dece3c31fcc5e9750a2f9ab")
+    version("2.32.1", commit="bd5e8295d5a1891189553c1f5b0177ea90001366")
+    version("2.30.0", commit="48deba5c4d84ea9d236256a673a58ab3f1d6c2cf")
     version("2.28.0", commit="b358aa5d3f9c68629e9abf50ffceccbf77226ea8")
     version("2.26.0", commit="add035498bdce76d71a0afa22a063c2d8e5588bc")
     version("2.24.0", commit="53095b534b7e6c80a33a67b5f2db0db8f00db902")

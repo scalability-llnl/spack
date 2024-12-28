@@ -14,7 +14,9 @@ class RIllumina450probevariantsDb(RPackage):
 
     bioc = "Illumina450ProbeVariants.db"
 
-    version("1.43.0", commit="ed7a63c74d9f9d5e05d6aeb60e3052ccd7dc23f2")
+    version("1.42.0", commit="74df7518f99b54b034871a15d1d5bb8530080975")
+    version("1.40.0", commit="1767fa6bc145e0ad31588c0df86b5d5759848812")
+    version("1.38.0", commit="c0871033cdb7d4770446d9da8b903f1eacd1764f")
     version("1.36.0", commit="aaa4254cebb352730779677cef7a7c99c1447e7a")
     version("1.34.0", commit="6c0f0b4d2bcf13da852b2f132a8ce1229fa5269e")
     version("1.32.0", commit="a15602253e675a104303627957653a08876d8d7c")

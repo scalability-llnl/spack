@@ -13,7 +13,9 @@ class RBsgenome(RPackage):
 
     bioc = "BSgenome"
 
-    version("1.75.0", commit="c53bfc0656a10f8754b5efe34cc8a2cd701f4ec6")
+    version("1.74.0", commit="7ab2eb4e27431a8ee4698bf2a31940bb29d9851a")
+    version("1.72.0", commit="152815df39c49a0d518c2786c0433a761293257b")
+    version("1.70.2", commit="77b80d5515b4a3b8eba9c014104321454dad9bc0")
     version("1.68.0", commit="c546020750e900377fbdeae015a01a96d5962d09")
     version("1.66.1", commit="d1efdfa8e7242bc0f54cc1c3a9583ea555c924f6")
     version("1.64.0", commit="59cdebde613e9702985c003f699f4aea2b0f0e7b")

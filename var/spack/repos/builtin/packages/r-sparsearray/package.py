@@ -11,7 +11,9 @@ class RSparsearray(RPackage):
 
     bioc = "SparseArray"
 
-    version("1.7.2", commit="49e375d8e6d7d7a95aa3c7009d9f0fb199fd824f")
+    version("1.6.0", commit="c665d9eb675881e651e24afa6f098eb5fd13dcb0")
+    version("1.4.8", commit="3d08cdc5d7723b74cef6b10fd7fa70cb242f31cd")
+    version("1.2.4", commit="5ece9d3ea94373d08f703197c3308e364c56872b")
 
     depends_on("r@4.3.0:", type=("build", "run"))
     depends_on("r-biocgenerics@0.43.1:", type=("build", "run"))

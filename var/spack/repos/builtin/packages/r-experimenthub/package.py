@@ -17,7 +17,9 @@ class RExperimenthub(RPackage):
 
     bioc = "ExperimentHub"
 
-    version("2.15.0", commit="dace2c4007335a808ee446a82181fcb251ce91e0")
+    version("2.14.0", commit="2bac493f4fb89cdd562840050631e3d937db949b")
+    version("2.12.0", commit="b9071266793f2857365bc621ddf91d8c5cc8445c")
+    version("2.10.0", commit="f9cb6a0518ece8ff2b5d0708861ad5e5b47b2903")
     version("2.8.0", commit="f25c854c51878844098290a05936cb35b235f30e")
     version("2.6.0", commit="557ba29720bce85902a85445dd0435b7356cdd7f")
     version("2.4.0", commit="bdce35d3a89e8633cc395f28991e6b5d1eccbe8e")

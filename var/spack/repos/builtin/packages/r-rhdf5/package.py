@@ -18,7 +18,9 @@ class RRhdf5(RPackage):
 
     bioc = "rhdf5"
 
-    version("2.51.1", commit="5bf9a52ab489b6d25619b98a0f82f133413a4ff1")
+    version("2.50.1", commit="d0313f0a033839851c155eb54e899abbbcf3e928")
+    version("2.48.0", commit="9541edabd57e04a1f0e204dc1991f8aba76be24f")
+    version("2.46.1", commit="27bab898b04971a75197e92dd93e3dfd3338fa11")
     version("2.44.0", commit="0f6e367ca9e97c37c683cd0f97c06732a67146f0")
     version("2.42.0", commit="fa26027d57b5b6d1c297446d9bbed74d5710c5d2")
     version("2.40.0", commit="fb6c15a3199f3ffd746fb9a381d574d17fef45a2")

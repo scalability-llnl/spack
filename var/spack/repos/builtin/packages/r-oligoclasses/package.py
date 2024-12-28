@@ -14,7 +14,9 @@ class ROligoclasses(RPackage):
 
     bioc = "oligoClasses"
 
-    version("1.69.0", commit="37e0a0eeedc5768d01c04aa771f2e6e349d91931")
+    version("1.68.0", commit="13ba25ab77b75a9fc9d2c0c05a1ba7137ef9279b")
+    version("1.66.0", commit="9f8562133fa529664de8b8a76ad1d9f942633cfe")
+    version("1.64.0", commit="0b4dcaaa871dfdf6559b7b1f4321fe07026fc99e")
     version("1.62.0", commit="2de6126d2a98f78d6dc80ffeef8bc76782a6dbdf")
     version("1.60.0", commit="cf9d76c2551ad061d8b882ff1dc0a5cadc64a8a7")
     version("1.58.0", commit="5544e937913bb0df54c66d738d279c38efeb30cd")

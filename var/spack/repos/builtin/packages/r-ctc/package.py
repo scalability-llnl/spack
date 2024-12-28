@@ -13,7 +13,9 @@ class RCtc(RPackage):
 
     bioc = "ctc"
 
-    version("1.81.0", commit="d5fd1b90af30130154da5c917f8e43bc930f7cb7")
+    version("1.80.0", commit="00f4fb67b54e3412a4944bdb73d8d6036cd3608d")
+    version("1.78.0", commit="ba922348637c4d59e9b76ecfd54acd728e431848")
+    version("1.76.0", commit="3e581adbcabf67a8bed878ff0e411df6196341af")
     version("1.74.0", commit="00be85633de7d71ca3dc6fe6c634cf0bde6188fd")
     version("1.72.0", commit="0a4b464e1768e6407c1c2ce64ec4ae5a4577be65")
     version("1.70.0", commit="05dc046ecfddbc1eeadf77e8f3ec0ce054794437")

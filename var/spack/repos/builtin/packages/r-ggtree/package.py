@@ -15,7 +15,9 @@ class RGgtree(RPackage):
 
     bioc = "ggtree"
 
-    version("3.15.0", commit="ac91900a07a5437b1fd33c6174c5eac97f9043ad")
+    version("3.14.0", commit="a309078ca8291b8e8bbf6ec099413f1550ad2ba7")
+    version("3.12.0", commit="87fbfbdf72bb9f919ea4c969d9037775227591f8")
+    version("3.10.1", commit="5014378b1e4ec7942bad948ef0b30ed825700a83")
     version("3.8.0", commit="e7c989085d0848e4d5f82aa8000422c71458a9a8")
     version("3.6.2", commit="431ec37bc0f0159b08a7990ce1d9374e160b9f44")
     version("3.4.4", commit="8e48d3e2ea445b6c2213f0471462108a7a72b333")

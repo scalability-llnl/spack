@@ -13,7 +13,9 @@ class RGenelendatabase(RPackage):
 
     bioc = "geneLenDataBase"
 
-    version("1.43.0", commit="9a7cf995473c86781c86d686223634f1fe93a623")
+    version("1.42.0", commit="8eb26117e5e45ac2079162c84f37d233c54e0640")
+    version("1.40.1", commit="f1617949a5586f7668f3d196ea404b0d12e57103")
+    version("1.38.0", commit="cbe2fbdba91a5b8f98242d3164d4564f3329e39e")
     version("1.36.0", commit="e8f37dd2a63cf10ba946958362192909fec64a10")
     version("1.34.0", commit="e26cf8e3fc20b5d183cbd39b7b28a8cc866f6ead")
     version("1.32.0", commit="eaa193a2c6d502c6d59113fd42f66761b8730594")

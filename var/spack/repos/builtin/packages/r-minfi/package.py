@@ -12,7 +12,9 @@ class RMinfi(RPackage):
 
     bioc = "minfi"
 
-    version("1.53.1", commit="3852366c4f20ed78d3ec4970716a705143dd28b2")
+    version("1.52.1", commit="c1e4c4c3e75f08b24fd4315c24f3f64728199a4b")
+    version("1.50.0", commit="8f33a8b9e8f22bc32fa4f3400239e9da99d080f1")
+    version("1.48.0", commit="aef0cdeef0af25bff51024613e8435a132f50dfa")
     version("1.46.0", commit="1d063178fb27d577c260f8b7626b982c9a6585cc")
     version("1.44.0", commit="7c89fefc2e174d43ed9891b3f30b51ee19e916a6")
     version("1.42.0", commit="30fc7059460a9ec0be734fc26e608426ca9f5614")

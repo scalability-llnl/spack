@@ -15,7 +15,9 @@ class RAffyilm(RPackage):
 
     bioc = "affyILM"
 
-    version("1.59.0", commit="3485abcfcdefe0785d4164c26f4b7293e070a5d1")
+    version("1.58.0", commit="0ceee74b89a9e2dcd8793371cb37e60a9c9a79da")
+    version("1.56.0", commit="ee6044051fce374b0c7ec858e5d300bba28cfafa")
+    version("1.54.0", commit="4586915a1be400f54e37506ebc1ddffb91480e89")
     version("1.52.0", commit="08ed8c60921ba1b9e04fa90e156eef1a3c899d15")
     version("1.50.0", commit="185cd8e4712a3378ce7a156d4940224bbb2c4122")
     version("1.48.0", commit="4603a4c4d6c2330a8a56a7bb657dc56c51a9393a")
