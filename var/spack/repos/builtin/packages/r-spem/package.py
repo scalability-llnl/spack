@@ -13,7 +13,9 @@ class RSpem(RPackage):
 
     bioc = "SPEM"
 
-    version("1.47.0", commit="d1af4f230dafc130176b190cdf72fe71aaf37a6f")
+    version("1.46.0", commit="ecff5514765835db2ac62654d6b8d7bc56a5526b")
+    version("1.44.0", commit="b2bcabd798b53b11541eabca56e95aaebcd324b9")
+    version("1.42.0", commit="f6ea9a3fbf831770158e2108b2e4434470564589")
     version("1.40.0", commit="2eb948950c01ced90ebf27558817e2849da81a32")
     version("1.38.0", commit="43ff6b0a84e7aef947d1a793583d2e9a0119c99d")
     version("1.36.0", commit="75832966ba3e2bae6b56aa138764f7a98c7ba9b1")

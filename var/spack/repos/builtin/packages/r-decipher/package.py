@@ -12,7 +12,9 @@ class RDecipher(RPackage):
 
     bioc = "DECIPHER"
 
-    version("3.3.2", commit="c3647f8b29f89f4ff1e76c9927b32ca7452a4dfb")
+    version("3.2.0", commit="7d5caa259d743538544af34680e4138c9aa3914d")
+    version("3.0.0", commit="1b13c4ea08ece7a46b2675c8ae88f2bbb738561c")
+    version("2.30.0", commit="e33ea83bf5ef398b214f5bd3dca41101badafbe9")
     version("2.28.0", commit="9be570c9fd812139d6bf9cd0851821fe54d4d3fa")
     version("2.26.0", commit="7de99ec5e79f1f645f29dfbe24d2a106c2b0e69a")
     version("2.24.0", commit="437e60005ab281bd836f47756a367795bc16755d")

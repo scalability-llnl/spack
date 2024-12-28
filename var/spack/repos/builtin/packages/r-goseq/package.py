@@ -13,7 +13,9 @@ class RGoseq(RPackage):
 
     bioc = "goseq"
 
-    version("1.59.0", commit="87e9f39ded2f155184545a8a6bcb108382ac7565")
+    version("1.58.0", commit="3ed9d9a45b72f49f51d4a70325a0a0c564677cae")
+    version("1.56.0", commit="48999d95b8dbf4ccce29ec1fe8b401af32f3ef0f")
+    version("1.54.0", commit="8fa10e5c720240c42555ca1cdad161253e7adb62")
     version("1.52.0", commit="d6b0cfddf887a074acf18c77c2ea4cb3a9202bd8")
     version("1.50.0", commit="f9fad238e2d08a87b14c3c8c228ad332efa60f14")
     version("1.48.0", commit="d077fda56986cc7218a88f7db37a42412b227025")

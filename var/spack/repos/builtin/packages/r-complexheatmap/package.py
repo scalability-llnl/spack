@@ -17,7 +17,9 @@ class RComplexheatmap(RPackage):
 
     license("MIT")
 
-    version("2.23.0", commit="29bc18500a599b9f749e14c591162d0ae7e13bd9")
+    version("2.22.0", commit="bf351d6dc95d692217019b3aeda53f8ce56f5e1e")
+    version("2.20.0", commit="d9e4bb2ab50c32e555055590020d9d36331c71c5")
+    version("2.18.0", commit="d3c15b6eb7889cec2a705e81a3a2b761b8ea9ea0")
     version("2.16.0", commit="01eb55ca9b783c6d99bdfe88aa131cc102bae5b3")
     version("2.14.0", commit="57fcaa040b08917c97fb66b963eb240d5fd5a8c7")
     version("2.12.1", commit="2c5fe70724219008174d4e6f83189cddbd895ec6")

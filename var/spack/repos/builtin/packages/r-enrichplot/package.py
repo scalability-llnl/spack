@@ -15,7 +15,9 @@ class REnrichplot(RPackage):
 
     bioc = "enrichplot"
 
-    version("1.27.3", commit="0ca2fcf18a4178e28ea8578d9b21e471448ef5fa")
+    version("1.26.5", commit="fcb6e51593cccc45f8cc0bdfa171d5998816946f")
+    version("1.24.4", commit="ae4470158b2c3e423ef997cb2b7e2ae423ac5b01")
+    version("1.22.0", commit="6277b76898e14b6cde758186bb3870632132ab16")
     version("1.20.0", commit="ae72efe5f2ded561958f95bc8b1b41c0fc79840e")
     version("1.18.0", commit="61ea941784a1ed6cc604af1c1cc4532b8b5fcea7")
     version("1.16.2", commit="eeb21345288d96c116ac308649fa772d03760259")

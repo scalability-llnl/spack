@@ -15,7 +15,9 @@ class RPhyloseq(RPackage):
 
     license("LiLiQ-R-1.1")
 
-    version("1.51.0", commit="fca595938b91eedcf3766202e00a5eb3c103e9e2")
+    version("1.50.0", commit="8724974f42b2cd3fdeea717ce4ec62b614fc81fa")
+    version("1.48.0", commit="e7cb934f503fa70fb74c8ca25d18d340f366fd29")
+    version("1.46.0", commit="73201334be21630253f51253171ab5d785986b53")
     version("1.44.0", commit="03b74f7d7aa866f5f9a84c7368da57b7a168967e")
     version("1.42.0", commit="de6be71fe9902bdfe7791163acb7b67d238424dc")
     version("1.40.0", commit="20bb27d5e6e0d4368978a15671b829990b1f4568")

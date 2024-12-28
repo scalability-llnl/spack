@@ -19,7 +19,9 @@ class RGviz(RPackage):
 
     license("Artistic-2.0")
 
-    version("1.51.0", commit="60a0f4aec10dfd7c8ac7b36fb3075dd1f9cbe1d5")
+    version("1.50.0", commit="631b4a17a85ee13ddeac2389f2fdc905886c00ac")
+    version("1.48.0", commit="2be307f0bb5196a32ca1957b13c82bff5c122208")
+    version("1.46.1", commit="ef98aa81e38003d96fda6fba78472674a37271a3")
     version("1.44.0", commit="e70aaa7dd27df8482ee854395475a87ec2121279")
     version("1.42.0", commit="4eddb688bca3fdeb65fd536d653d7ba7f7976121")
     version("1.40.1", commit="d21843710cd05135353de5cd4ce4d35cdd333b7c")

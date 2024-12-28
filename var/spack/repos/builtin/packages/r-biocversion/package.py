@@ -13,8 +13,8 @@ class RBiocversion(RPackage):
 
     bioc = "BiocVersion"
 
-    version("3.21.1", commit="1e5e5afe88e423e3923ab9a527f62a760278052e")
-    version("3.17.1", commit="a2d0c4c489be1cafdb51bf8d205161429b09ac7f")
+    version("3.20.0", commit="43c716aa5d110bc2ac42053033edde0fce3fe9cf")
+    version("3.18.1", commit="70680b8e1f121361244f4755e5c3ec384b5a6a3a")
     version("3.16.0", commit="c681e06fe30ea6815f958c1a3c74c090863680ba")
     version("3.15.2", commit="818ab03b6a3551993b712e3702126040f9fb7600")
     version("3.14.0", commit="aa56d93d0ea5dcdbf301f120502981740fd91e1e")
@@ -24,4 +24,4 @@ class RBiocversion(RPackage):
     depends_on("r@4.1.0:", type=("build", "run"), when="@3.14.0:")
     depends_on("r@4.2.0:", type=("build", "run"), when="@3.15.2:")
     depends_on("r@4.3.0:", type=("build", "run"), when="@3.17.1:")
-    depends_on("r@4.5.0:", type=("build", "run"), when="@3.21.1:")
+    depends_on("r@4.4.0:", type=("build", "run"), when="@3.19.1:")

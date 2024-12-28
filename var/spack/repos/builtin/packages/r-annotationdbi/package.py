@@ -13,7 +13,9 @@ class RAnnotationdbi(RPackage):
 
     bioc = "AnnotationDbi"
 
-    version("1.69.0", commit="faea5ea106743c64d2e838e1b5cc2f994981f7a0")
+    version("1.68.0", commit="6a2aa3361bb114fbfe7a25b51bcaed36450a57e0")
+    version("1.66.0", commit="989c1dcf56db17646e79bd7caa70484e4cda73d1")
+    version("1.64.1", commit="e5b997eac9f538d6ad5418fbe90716848d8c5f2e")
     version("1.62.0", commit="7ca03a0332d0a284ea27d16edb7b386c86cf99ea")
     version("1.60.0", commit="cd61bd1b1538e2f1f411fd7087820749ecf39da8")
     version("1.58.0", commit="05fcf7a28a6b15b195da23474d7ba89bd0cfd891")

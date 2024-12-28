@@ -17,7 +17,9 @@ class RDose(RPackage):
 
     bioc = "DOSE"
 
-    version("4.1.0", commit="898262a3120c527215984d01408f55adfe60674b")
+    version("4.0.0", commit="5c3c2f3669f0dfec9336ffe40053b71b4167a559")
+    version("3.30.5", commit="f2882c1bf60496619a3ff40b434ade673ee0c460")
+    version("3.28.2", commit="9e236d97ad30d3db1b00895815f23c88b17a04fe")
     version("3.26.0", commit="9c91fb45a2ab9a875a6a7259610b7d5bc86933f6")
     version("3.24.1", commit="a78995d3b12bd4baabb69c497102687814cd4c68")
     version("3.22.1", commit="6b711a0f076a9fefcb00ddef66e8f198039e6dfa")

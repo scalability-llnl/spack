@@ -14,7 +14,9 @@ class RXvector(RPackage):
 
     bioc = "XVector"
 
-    version("0.47.1", commit="3fa081b9da5402d6033d97572fb07fbafed6c542")
+    version("0.46.0", commit="1c8f81d7e6da9236beb7861a53b2447ce6d34558")
+    version("0.44.0", commit="5790b9bb5e62813bfd31baf7359cf74de28897a3")
+    version("0.42.0", commit="e2c28979b8e9930a9168428eb5c76b0d25733e9f")
     version("0.40.0", commit="875b4b4469e125737bee42362e7a3c75edd642f1")
     version("0.38.0", commit="8cad08446091dcc7cd759e880c0f3e47228278dd")
     version("0.36.0", commit="ff6f818ff4357eb9bf00654de9e0f508a5285408")

@@ -11,7 +11,8 @@ class RUcscUtils(RPackage):
 
     bioc = "UCSC.utils"
 
-    version("1.3.0", commit="1fe2970955d486197d62791b34d0984656c5edf5")
+    version("1.2.0", commit="d77d73e9064aafc9aba1fdeed73233a68f8c61db")
+    version("1.0.0", commit="dc5a0a84eaab8a0f20f136a6802de583a0c15c1a")
 
     depends_on("r-httr", type=("build", "run"))
     depends_on("r-jsonlite", type=("build", "run"))

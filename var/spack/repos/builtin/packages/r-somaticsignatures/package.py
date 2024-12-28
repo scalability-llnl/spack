@@ -17,7 +17,9 @@ class RSomaticsignatures(RPackage):
 
     license("MIT")
 
-    version("2.43.0", commit="f592f533563503b7e36946182b548cb2bcc708da")
+    version("2.42.0", commit="b9e158c25dee6bf9b89c0803e9a405a6dc0cf716")
+    version("2.40.0", commit="c99d3e9cd915537f5a0b7f2ebabc6158277a624c")
+    version("2.38.0", commit="7578824f038f6213130d90398afc8ca5646c7765")
     version("2.36.0", commit="26ce72c1fc771f711796eccee0a24c1070d33066")
     version("2.34.0", commit="249b1ef7cef3c94cfb96cc8aa2a16e00c2bd5d1f")
     version("2.32.0", commit="444d37661d147618f6830fd5de01a83ddf2a694d")

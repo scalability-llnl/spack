@@ -28,7 +28,9 @@ class RMulttest(RPackage):
 
     bioc = "multtest"
 
-    version("2.63.0", commit="baeb8623e26ca79e6bf8c369412851e87eb02c83")
+    version("2.62.0", commit="b2a47444fd174dcd6e784acc73e27d0238497f6a")
+    version("2.60.0", commit="bc08e7c4144504cf16f2e18ebecd6208d86a1229")
+    version("2.58.0", commit="523a96693ab34fdda3a0dbb872b87e42c2947b5c")
     version("2.56.0", commit="619975704a271cdb74d97a75bee7e2df0028b4d3")
     version("2.54.0", commit="4e2c9e939dfd9984d8ff4bab0a95e1bd0457ec72")
     version("2.52.0", commit="00cfc9beb6d063c2b04fc83495a76824f8a33a64")

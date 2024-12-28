@@ -11,4 +11,5 @@ class RAssorthead(RPackage):
 
     bioc = "assorthead"
 
+    version("1.0.1", commit="4aa44624adb6981c75db9f5e200114784f343e32")
     version("1.1.9", commit="b9de4f460dcac95360ae124cfe6c551863213dc6")

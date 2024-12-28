@@ -14,7 +14,9 @@ class RMlinterfaces(RPackage):
 
     bioc = "MLInterfaces"
 
-    version("1.87.0", commit="7982d3a3ce821da2ae98fe95ea57426736a5749d")
+    version("1.86.0", commit="d3a37b2da554c981ca11062008f73d047de610b2")
+    version("1.84.0", commit="e14ef599d9163ef432aa21623ced40dd1a020601")
+    version("1.82.0", commit="597f246d88c0f653d25b06678f92b801dfee4fb5")
     version("1.80.0", commit="275f8d39f05c46ab3ab7096d1e0539a33bab3a54")
     version("1.78.0", commit="0988b95d282a6bffe56b7df4da2e23485e96d12c")
     version("1.76.0", commit="935323d8ce1e4bbf41844a1f9b6c946c5a30c673")

@@ -17,7 +17,9 @@ class RTreeio(RPackage):
 
     bioc = "treeio"
 
-    version("1.31.0", commit="79e207c9424349587e4635569429fded592fd381")
+    version("1.30.0", commit="c824ca4d2a8a9229922afea60775467905505012")
+    version("1.28.0", commit="39ca57b4b2f0528b54fcdb7c0c9c4d28b2603dc0")
+    version("1.26.0", commit="cce8f0aa896888bd6116897d08ab54e69c814631")
     version("1.24.0", commit="81425559d71ab87ee683c6a8833f0f165632e416")
     version("1.22.0", commit="eb24a854806a671e7b37ef36dafc60b4eb9ddaa1")
     version("1.20.2", commit="ed457d6fd85a50e0993c8c9acbd9b701be01a348")

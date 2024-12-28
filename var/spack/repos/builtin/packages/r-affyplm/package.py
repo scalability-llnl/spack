@@ -16,7 +16,9 @@ class RAffyplm(RPackage):
 
     bioc = "affyPLM"
 
-    version("1.83.2", commit="38ee0fa4e8e8a7dc9a160dab3c7776f4f96330d9")
+    version("1.82.0", commit="16d738761d115c14f72a083266e501edb72ce548")
+    version("1.80.0", commit="b0584edcaba058d5cfb06d64e22a4859c7d15b60")
+    version("1.78.0", commit="1fa54e253098269e93b3e8f88bc592041b855334")
     version("1.76.0", commit="45557df5a32f56aa5240439737c5718738fb4c27")
     version("1.74.0", commit="5f76ef92e69deabc19c5395eaec4adb85c66b63d")
     version("1.72.0", commit="394c0a8e213f188d0b1d01e20516df8bf1bc5c09")

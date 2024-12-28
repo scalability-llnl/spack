@@ -12,7 +12,9 @@ class RProtgenerics(RPackage):
 
     bioc = "ProtGenerics"
 
-    version("1.39.1", commit="95f0f5dbfbb733986b0f780f97375b94039983a4")
+    version("1.38.0", commit="e75a9e082e21ae77c34599c4b4f95a9aa20d776c")
+    version("1.36.0", commit="f1a8d20e37cd9b9c83e5805d570a2dbc83eff88b")
+    version("1.34.0", commit="50328a21b23f1a5955b5a87ff5fada82eae2f5b3")
     version("1.32.0", commit="30c6458568c43fc7d769b0aef855d6e90b314eaa")
     version("1.30.0", commit="fcd566bf04034cf52db3338b5d6de7447443cf77")
     version("1.28.0", commit="cfcd0a9ebd642515764ba70c5c4e9c2a0f2f07ac")

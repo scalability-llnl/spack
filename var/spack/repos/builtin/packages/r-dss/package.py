@@ -17,7 +17,9 @@ class RDss(RPackage):
 
     bioc = "DSS"
 
-    version("2.55.0", commit="23fba501be07265d4752c91094967c98c520b77b")
+    version("2.54.0", commit="d18c722c5efb5ae12f42696a7d178c8dff032cf7")
+    version("2.52.0", commit="bc657668f8ac1c645534ca1c57db04b6e23d1339")
+    version("2.50.1", commit="57860cac9bb1aac36e273735201093dcb6c16b90")
     version("2.48.0", commit="03ceee2656e57b717e4fd7f22ff389f118421ae1")
     version("2.46.0", commit="debfbac4bc741961ba57915d4f2d98534f02cc21")
     version("2.44.0", commit="b9f44106f139c93564dfb4afab50555d24a657ba")

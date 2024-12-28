@@ -17,7 +17,9 @@ class RGlobaltest(RPackage):
 
     bioc = "globaltest"
 
-    version("5.61.0", commit="d81273852b9fbab271836ebb2139695aa91a1113")
+    version("5.60.0", commit="b3becf8008894f4cdd061633e926d0e2c51bcfeb")
+    version("5.58.0", commit="922b0c4a9f5655f20b34dfe0f520221efb542ad6")
+    version("5.56.0", commit="7286ebbae14bfadde666e1f80284942bb1630523")
     version("5.54.0", commit="bb8bc5f757c8b7c020da31b6a3f500075715ab8e")
     version("5.52.0", commit="a1fc3ad206454d1151bcc940644fd8a5c4164d63")
     version("5.50.0", commit="08612a06eb1cc7381f9bf70f6fe198bb401a21df")

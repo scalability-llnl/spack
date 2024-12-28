@@ -18,7 +18,9 @@ class RGlimma(RPackage):
 
     license("LGPL-3.0-only")
 
-    version("2.17.0", commit="895d8b3e177e7b478db849d7bdf9a64dc3af50ca")
+    version("2.16.0", commit="3bb40250af316460c7715ea61f7d35666cabb53b")
+    version("2.14.0", commit="498f03d2a52337a41b6d3e6c1ebb0ed81cc22d23")
+    version("2.12.0", commit="9ca869e84061bafcdbaeb331453b632e4d88d6db")
     version("2.10.0", commit="ea1257614c5fca0cedf5805d5b9a21e8b7d15d18")
     version("2.8.0", commit="09cec82e9af9c6775192570f8c28f050c0df08ac")
     version("2.6.0", commit="23220d9b90476059aab035b5de11b7ce04b331c8")

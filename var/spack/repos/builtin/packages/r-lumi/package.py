@@ -18,7 +18,9 @@ class RLumi(RPackage):
 
     bioc = "lumi"
 
-    version("2.59.0", commit="130abf107a608a88debee920d202188c5a6c8321")
+    version("2.58.0", commit="d65426384737fb6592ee8bd08f95a1dd9754b711")
+    version("2.56.0", commit="2405c66bb7e9fc7479f8c48857a3558dec82e0bd")
+    version("2.54.0", commit="da70ec11b285b2139cdda42013a32522c953a745")
     version("2.52.0", commit="c6aa992a622dbaba4dae1b54c61835a37cce8e95")
     version("2.50.0", commit="8711b77a1b5b0a58770d25d3d079ad02208704f5")
     version("2.48.0", commit="1f988ffe04d2c0707b2202d2074d02b679a3204b")

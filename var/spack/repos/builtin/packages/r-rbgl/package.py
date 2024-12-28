@@ -15,7 +15,9 @@ class RRbgl(RPackage):
 
     license("BSL-1.0")
 
-    version("1.83.0", commit="e0f422cb79230375372ca600ad9aad7051da7465")
+    version("1.82.0", commit="88aa55ca81d8b6fcd2808ac74f053188b070c700")
+    version("1.80.0", commit="7b88a5f4328e7ddaa10f52958d4b3ed6f2c15cd9")
+    version("1.78.0", commit="2e7e330cb69b6eb1796ad830bac38661105a4f5f")
     version("1.76.0", commit="18b7cc5f002435aa83e8b693e7bf269fc0b096a5")
     version("1.74.0", commit="e698db897b719992a8c0747138735c0e7d9dfb21")
     version("1.72.0", commit="a86f3102f2795e1ffb530bb061247e3a42ca22f7")

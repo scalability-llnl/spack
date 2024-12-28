@@ -14,7 +14,9 @@ class RRhdf5filters(RPackage):
 
     license("BSD-2-Clause")
 
-    version("1.19.0", commit="4db11d43e114a6e7edb44b84ce426d97dcb1870d")
+    version("1.18.0", commit="1e07604afaa8a9482c35d059ba1e0fca8ea565c4")
+    version("1.16.0", commit="1d29c0e77bd0ae14662e0dfc004c0dccd3149e3d")
+    version("1.14.1", commit="2a2e71e8016592cc2d7b50d0faee4ac6dd1594ec")
     version("1.12.0", commit="4deabdef71c0349c4eaf7e5604cb7f389809f006")
     version("1.10.0", commit="6131538e2c5896dca0af33882bc2da961d79e49a")
     version("1.8.0", commit="b0b588b71a5595b30f4e698a50b84310dc19745d")

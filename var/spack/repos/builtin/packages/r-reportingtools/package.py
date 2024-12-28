@@ -22,7 +22,9 @@ class RReportingtools(RPackage):
 
     bioc = "ReportingTools"
 
-    version("2.47.0", commit="30a7956038fbbdcdb3ae745bf061d7d4f4235072")
+    version("2.46.0", commit="a3a5795063faf7bff491def37a4d9b85349f7d6a")
+    version("2.44.0", commit="6c9e290b22a808fe9bb0446ce2e5b50213b1aa20")
+    version("2.42.3", commit="fcaebd42a579f1303c73ca0e994afeec3b623db8")
     version("2.40.0", commit="808af36aa9756be8c907a8669726c90dcd02c73c")
     version("2.38.0", commit="5c4971eebbaf3577ef20b74bf36c2db4e91561cc")
     version("2.36.0", commit="34122d4bde5ce43415f63f2e39e3a088c55282cc")

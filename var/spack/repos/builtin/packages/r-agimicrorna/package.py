@@ -13,7 +13,9 @@ class RAgimicrorna(RPackage):
 
     bioc = "AgiMicroRna"
 
-    version("2.57.0", commit="0da1667d0be93702c5bc50a80bcd785764ed0045")
+    version("2.56.0", commit="5e277127c2557b8cff752d3fca9f3a41b373d497")
+    version("2.54.0", commit="2c8850f9b62308a3932d74548689b24741347bab")
+    version("2.52.0", commit="73e65fb29170d1bee3b849f82a25ae7da3c6cd3b")
     version("2.50.0", commit="a812b0f4f215b093ca685889b65de60c6701b695")
     version("2.48.0", commit="4c163b1b730150a3a60a3815bd8c08fa04d71fc1")
     version("2.46.0", commit="8c6d73e1c3f1f9cc019bdb219b19e6179bb1efe4")

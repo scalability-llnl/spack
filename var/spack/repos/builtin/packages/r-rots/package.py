@@ -13,7 +13,9 @@ class RRots(RPackage):
 
     bioc = "ROTS"
 
-    version("1.35.0", commit="4873e437271efe96eb48a7bac61aeb6ffcb02af9")
+    version("1.34.0", commit="3223131ae3934bdf74b483186075004fd5a02688")
+    version("1.32.0", commit="d74c79234ebb9042ac1be69ae0de6acef0fbd822")
+    version("1.30.0", commit="8e4f8cf3380ef4350b1b09e2f9359c04c79896a4")
     version("1.28.0", commit="032cb97ed6fe303758856c669a4f63fb9e43d124")
     version("1.26.0", commit="8bb45fe78779583ae4d30cf0dc3af0d8de405fdf")
     version("1.24.0", commit="372e4623b39f585d4196d21164436c1ba013173f")

@@ -15,7 +15,9 @@ class RMakecdfenv(RPackage):
 
     bioc = "makecdfenv"
 
-    version("1.83.0", commit="d0be98121993254f72bbbdd47c16d25398c9f5a6")
+    version("1.82.0", commit="f1aa5d3a1c4e9b507748e47ae53445dcc34b7c31")
+    version("1.80.0", commit="64c5aa3a211c994081974419667b265520696612")
+    version("1.78.0", commit="da98c6223388c4dc013c37c18180747ebe9a85ee")
     version("1.76.0", commit="8196d4886db1d8e51821bfe9f727a30666d53801")
     version("1.74.0", commit="412affc333ba51cad0ff3c7919e2eadaaf426359")
     version("1.72.0", commit="85c89688e6b6e8bff46b92cbeba49e38c510492e")

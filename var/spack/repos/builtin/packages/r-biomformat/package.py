@@ -20,7 +20,9 @@ class RBiomformat(RPackage):
 
     bioc = "biomformat"
 
-    version("1.35.0", commit="a3d34c3bffb5e58ba5dbe9bcc5a890c30549f0af")
+    version("1.34.0", commit="dd89a5361701dc7ec714e4a5b5ac59e4fc5fdeba")
+    version("1.32.0", commit="9df803bb9eead6cf808504f1f713a8d9a851293e")
+    version("1.30.0", commit="40f51ec90f9707f104b292a3c4ece945078668c7")
     version("1.28.0", commit="9240e78dc378abcf6c62ef8dbf2e60f7241232a3")
     version("1.26.0", commit="f851ba2428b57769f6fbb287874bad0dc84dd69c")
     version("1.24.0", commit="4e14692dbcc34c3bd51defd74c728df5de9d0829")

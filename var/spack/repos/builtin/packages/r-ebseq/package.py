@@ -20,7 +20,8 @@ class REbseq(RPackage):
 
     bioc = "EBSeq"
 
-    version("2.5.0", commit="4664faa0ebab988a320d1681e7709f8ec5740eaf")
+    version("2.4.0", commit="6f13304c4034c19a2d37f4c811ac7aea40f631c6")
+    version("2.2.0", commit="95b79f290698ef871baa2744fd24dd3bb61af5ff")
     version("2.0.0", commit="f1d4e4419988ab98540739c9349559fd437cb59f")
     version("1.40.0", commit="7d1d2a2b4ea0df8cddfb5e57d6431f3948c5c4ca")
 

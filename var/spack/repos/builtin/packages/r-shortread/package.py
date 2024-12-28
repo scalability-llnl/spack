@@ -17,7 +17,9 @@ class RShortread(RPackage):
 
     bioc = "ShortRead"
 
-    version("1.65.0", commit="ad4e1dfeb6eaf4d9fac87342d0fb084fc1483826")
+    version("1.64.0", commit="88fd3abc1d2d78de475550d6e076533854e6804f")
+    version("1.62.0", commit="1456ab94cfd1d7ec6c1d65ccf665b11026f1b25f")
+    version("1.60.0", commit="4304db40717b0b7c46f7f7a4b78796ae916c1485")
     version("1.58.0", commit="433d18266b141ddcc9dc590f5244163a04efebe3")
     version("1.56.0", commit="df25d0872d52aac3610998abda0d7bfd37298726")
     version("1.54.0", commit="a1082a335120860d019aa0065a975d41890351f7")

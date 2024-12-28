@@ -17,8 +17,11 @@ class RDmrcate(RPackage):
     bioc = "DMRcate"
 
     version("3.3.1", commit="52f38aac5f0a9c6e54a68129e63e7afc9357b742")
+    version("3.2.1", commit="e441ab41214f45bb1a46695ffbecaa3924ab669e")
     version("3.2.0", commit="1f46517bcdea269a2c9726d1156495d6dd172067")
+    version("3.0.10", commit="a04f3c932d222b7a2053d3c4f2ff95e5305569b0")
     version("3.0.0", commit="9cd77dedef76528990487b931ae0cc314423c3b9")
+    version("2.16.1", commit="4cd23978fcc74bc5cd22d48e756f454532a4478f")
     version("2.16.0", commit="9e42d8c8eb26dbd2d36a70bf32be322062ecc850")
     version("2.14.0", commit="6e7bae0917001e7664f01c3f8d261f9fe28c2f4d")
     version("2.12.0", commit="560dd5067b05715631739d0fb58ef9cebdbf7078")

@@ -13,7 +13,9 @@ class RA4base(RPackage):
 
     bioc = "a4Base"
 
-    version("1.55.0", commit="d78b7ffab9f59abecb1a2f7abe81d6eabf717bea")
+    version("1.54.0", commit="e45169b98e872087736bddbbc213fcd1951ed8ce")
+    version("1.52.0", commit="7312ef9ce99a61742a8c684739ae3e96b4733c02")
+    version("1.50.0", commit="26439bbad1e79464154cc5eb6adbcc69b3a231a0")
     version("1.48.0", commit="26d5793de3163091125feeed1de82e5406777b60")
     version("1.46.0", commit="be70ae723bb6031cdf9540d62dc6113761074e88")
     version("1.44.0", commit="9ae69e03118c7b14df0e6c9e3b25362b09f25bbe")

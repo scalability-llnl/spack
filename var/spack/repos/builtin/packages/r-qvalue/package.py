@@ -22,7 +22,9 @@ class RQvalue(RPackage):
 
     bioc = "qvalue"
 
-    version("2.39.0", commit="6891905300b76ff9ccd8d9423e5c9d505ad96cbb")
+    version("2.38.0", commit="7673a2521245fa8a345253b30817be225472ffbc")
+    version("2.36.0", commit="2cd25e85567f473046218669e55aa4de58d91580")
+    version("2.34.0", commit="92e1f558e765c9de7992c5180bcb8605efdb481b")
     version("2.32.0", commit="a6272dc68f9d91de63e04fae28476e4ec016ee89")
     version("2.30.0", commit="e8a4c22d035f860ee730aa7c5a4dbc7460afcedc")
     version("2.28.0", commit="aaa62d5ab5a960e0a626928abaf5b3a5c5f73374")

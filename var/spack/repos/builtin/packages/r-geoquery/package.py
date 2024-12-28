@@ -17,7 +17,9 @@ class RGeoquery(RPackage):
 
     license("MIT")
 
-    version("2.75.0", commit="2a416df48bee3ae5db2bae42d0088b8295605621")
+    version("2.74.0", commit="c85b1115cdee87515ed0d72bfde86f3986a0b2b7")
+    version("2.72.0", commit="4ab0516f8f78bcc3f6301fa7ff59945ca63a09a4")
+    version("2.70.0", commit="3f4687930fba296d8075ed56aab1db50e7a3a5da")
     version("2.68.0", commit="7995c579b068f98ebf3f1cd2cfd0575c3d73530c")
     version("2.66.0", commit="00a954e9f8223607b43cf112943ab575d03a0eb6")
     version("2.64.2", commit="e9b7f075a4a6a952660443ca93ed392d7a4fd6d7")

@@ -34,7 +34,9 @@ class RDensvis(RPackage):
 
     license("MIT")
 
-    version("1.17.0", commit="af1be7b0376ccb6b68dd5c07d1d9976ead22a4b6")
+    version("1.16.0", commit="c6a55af619d0959ac29e41f246d51fd6f56fc322")
+    version("1.14.1", commit="a74b17e33e2f4212506bb3694078b061ae7c4d49")
+    version("1.12.1", commit="052bd25b5cc8f7ed041e103488d8cafc484ad4a5")
     version("1.10.0", commit="833db1fb7b2a5667575cc2e7c2fefc8360c8d7fb")
 
     depends_on("cxx", type="build")  # generated

@@ -19,7 +19,9 @@ class RGenomicfeatures(RPackage):
 
     bioc = "GenomicFeatures"
 
-    version("1.59.1", commit="2d2ddd62a18545d226da205197113523960a2ec4")
+    version("1.58.0", commit="a6e2405bf3a8cf10a8a6fe9fdb7cd679f980f00f")
+    version("1.56.0", commit="e3c5136288106501eb820d166a5172ec9be9dda4")
+    version("1.54.4", commit="0d0ab32d823bbe236ddd2a970fae6bf202583026")
     version("1.52.0", commit="207ff08b38421f0394a8f6450e00fb8713ab463c")
     version("1.50.2", commit="4fc9120ceed9ff59f390c8bbdbd79b212ee35b84")
     version("1.48.4", commit="06e37dc1847d49d91391264caec877ed33abf359")
