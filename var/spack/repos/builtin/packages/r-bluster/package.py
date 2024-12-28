@@ -29,3 +29,4 @@ class RBluster(RPackage):
     depends_on("r-s4vectors", type=("build", "run"))
     depends_on("r-biocparallel", type=("build", "run"))
     depends_on("r-biocneighbors", type=("build", "run"))
+    depends_on("r-assorthead", type=("build", "run"), when="@1.15.1:")

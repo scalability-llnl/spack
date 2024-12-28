@@ -39,7 +39,13 @@ class RGeoquery(RPackage):
     depends_on("r-magrittr", type=("build", "run"), when="@2.46.15:")
     depends_on("r-limma", type=("build", "run"), when="@2.46.15:")
     depends_on("r-curl", type=("build", "run"), when="@2.64.2:")
+    depends_on("r-rentrez", type=("build", "run"), when="@2.65.3:")
     depends_on("r-r-utils", type=("build", "run"), when="@2.62.2:")
+    depends_on("r-stringr", type=("build", "run"), when="@2.73.2:")
+    depends_on("r-summarizedexperiment", type=("build", "run"), when="@2.73.2:")
+    depends_on("r-s4vectors", type=("build", "run"), when="@2.73.2:")
+    depends_on("r-rvest", type=("build", "run"), when="@2.73.2:")
+    depends_on("r-httr2", type=("build", "run"), when="@2.73.2:")
 
     depends_on("r-xml", type=("build", "run"), when="@2.42.0")
     depends_on("r-rcurl", type=("build", "run"), when="@2.42.0")

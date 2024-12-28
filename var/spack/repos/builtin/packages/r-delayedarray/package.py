@@ -42,6 +42,7 @@ class RDelayedarray(RPackage):
     depends_on("r-biocgenerics@0.31.5:", type=("build", "run"), when="@0.16.1:")
     depends_on("r-biocgenerics@0.37.0:", type=("build", "run"), when="@0.20.1:")
     depends_on("r-biocgenerics@0.43.4:", type=("build", "run"), when="@0.24.0:")
+    depends_on("r-biocgenerics@0.53.3:", type=("build", "run"), when="@0.33.2:")
     depends_on("r-matrixgenerics@1.1.3:", type=("build", "run"), when="@0.16.1:")
     depends_on("r-s4vectors@0.14.3:", type=("build", "run"))
     depends_on("r-s4vectors@0.15.3:", type=("build", "run"), when="@0.4.1:")
@@ -52,6 +53,8 @@ class RDelayedarray(RPackage):
     depends_on("r-iranges", type=("build", "run"))
     depends_on("r-iranges@2.11.17:", type=("build", "run"), when="@0.4.1:")
     depends_on("r-iranges@2.17.3:", type=("build", "run"), when="@0.10.0:")
+    depends_on("r-s4arrays@1.5.4:", type=("build", "run"), when="@0.31.14:")
+    depends_on("r-sparsearray@1.5.42:", type=("build", "run"), when="@0.31.14:")
 
     depends_on("r-matrixstats", type=("build", "run"), when="@:0.10.0")
     depends_on("r-biocparallel", type=("build", "run"), when="@0.6.6:0.10.0")

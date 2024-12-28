@@ -25,3 +25,4 @@ class RBasilisk(RPackage):
     depends_on("r-reticulate", type=("build", "run"))
     depends_on("r-dir-expiry", type=("build", "run"))
     depends_on("r-basilisk-utils", type=("build", "run"))
+    depends_on("r-basilisk-utils@1.15.1:", type=("build", "run"), when="@1.15.1:")

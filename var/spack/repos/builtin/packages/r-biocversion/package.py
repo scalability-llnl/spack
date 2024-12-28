@@ -24,3 +24,4 @@ class RBiocversion(RPackage):
     depends_on("r@4.1.0:", type=("build", "run"), when="@3.14.0:")
     depends_on("r@4.2.0:", type=("build", "run"), when="@3.15.2:")
     depends_on("r@4.3.0:", type=("build", "run"), when="@3.17.1:")
+    depends_on("r@4.5.0:", type=("build", "run"), when="@3.21.1:")

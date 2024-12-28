@@ -40,11 +40,12 @@ class RRhtslib(RPackage):
 
     depends_on("c", type="build")  # generated
 
-    depends_on("r-zlibbioc", type=("build", "run"))
     depends_on("bzip2", type=("build", "link", "run"))
     depends_on("xz", type=("build", "link", "run"))
     depends_on("curl", type=("build", "link", "run"))
     depends_on("gmake", type="build")
+
+    depends_on("r-zlibbioc", type=("build", "run"), when="@:3.3.0")
 
     # Some versions of this package will leave the temporary installation
     # directory in the htslib shared object. R will fix this if patchelf is

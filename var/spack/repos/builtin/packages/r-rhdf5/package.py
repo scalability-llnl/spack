@@ -40,6 +40,7 @@ class RRhdf5(RPackage):
     depends_on("r-rhdf5lib@1.11.0:", type=("build", "run"), when="@2.34.0:")
     depends_on("r-rhdf5lib@1.13.4:", type=("build", "run"), when="@2.38.0:")
     depends_on("r-rhdf5filters", type=("build", "run"), when="@2.34.0:")
+    depends_on("r-rhdf5filters@1.15.5:", type=("build", "run"), when="@2.48.0:")
     depends_on("gmake", type="build")
     depends_on("zlib-api")
 

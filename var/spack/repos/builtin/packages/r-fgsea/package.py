@@ -32,6 +32,7 @@ class RFgsea(RPackage):
     depends_on("cxx", type="build")  # generated
 
     depends_on("r@3.3:", type=("build", "run"))
+    depends_on("r@4.1:", type=("build", "run"), when="@1.27.1:")
     depends_on("r-rcpp", type=("build", "run"))
     depends_on("r-data-table", type=("build", "run"))
     depends_on("r-biocparallel", type=("build", "run"))

@@ -42,5 +42,6 @@ class RXvector(RPackage):
     depends_on("r-iranges@2.13.16:", type=("build", "run"), when="@0.20.0:")
     depends_on("r-iranges@2.15.12:", type=("build", "run"), when="@0.22.0:")
     depends_on("r-iranges@2.23.9:", type=("build", "run"), when="@0.30.0:")
-    depends_on("r-zlibbioc", type=("build", "run"))
     depends_on("zlib-api")
+
+    depends_on("r-zlibbioc", type=("build", "run"), when="@:0.47.0")

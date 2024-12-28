@@ -28,6 +28,7 @@ class RAffy(RPackage):
 
     depends_on("c", type="build")  # generated
 
+    depends_on("r@2.8.0:", type=("build", "run"))
     depends_on("r@2.8.0:4.0", type=("build", "run"), when="@:1.68.0")
     depends_on("r-biocgenerics@0.1.12:", type=("build", "run"))
     depends_on("r-biobase@2.5.5:", type=("build", "run"))
