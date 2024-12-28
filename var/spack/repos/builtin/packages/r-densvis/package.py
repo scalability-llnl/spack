@@ -44,3 +44,4 @@ class RDensvis(RPackage):
     depends_on("r-assertthat", type=("build", "run"))
     depends_on("r-reticulate", type=("build", "run"))
     depends_on("r-irlba", type=("build", "run"))
+    depends_on("r-rtsne", type=("build", "run"), when="@1.12.0:")

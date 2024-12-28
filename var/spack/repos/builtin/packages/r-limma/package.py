@@ -30,3 +30,5 @@ class RLimma(RPackage):
 
     depends_on("r@2.3.0:", type=("build", "run"))
     depends_on("r@3.6.0:", type=("build", "run"), when="@3.40.6:")
+
+    depends_on("r-statmod", type=("build", "run"), when="@3.57.7:")

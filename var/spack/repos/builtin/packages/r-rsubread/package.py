@@ -18,5 +18,4 @@ class RRsubread(RPackage):
 
     depends_on("r", type=("build", "run"))
     depends_on("r-matrix", type=("build", "run"))
-    depends_on("r-r-utils", type=("build", "run"))
     depends_on("zlib-api", type=("build", "run"))

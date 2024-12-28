@@ -28,3 +28,4 @@ class RMatrixgenerics(RPackage):
 
     depends_on("r-matrixstats@0.57.1:", type=("build", "run"))
     depends_on("r-matrixstats@0.60.1:", type=("build", "run"), when="@1.6.0:")
+    depends_on("r-matrixstats@1.4.1:", type=("build", "run"), when="@1.17.1:")

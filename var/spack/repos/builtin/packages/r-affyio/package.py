@@ -29,5 +29,6 @@ class RAffyio(RPackage):
     depends_on("c", type="build")  # generated
 
     depends_on("r@2.6.0:", type=("build", "run"))
-    depends_on("r-zlibbioc", type=("build", "run"))
     depends_on("zlib-api")
+
+    depends_on("r-zlibbioc", type=("build", "run"), when="@:1.77.0")

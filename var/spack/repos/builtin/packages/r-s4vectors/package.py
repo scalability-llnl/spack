@@ -41,3 +41,4 @@ class RS4vectors(RPackage):
     depends_on("r-biocgenerics@0.31.1:", type=("build", "run"), when="@0.26.1:")
     depends_on("r-biocgenerics@0.36.0:", type=("build", "run"), when="@0.28.1:")
     depends_on("r-biocgenerics@0.37.0:", type=("build", "run"), when="@0.32.3:")
+    depends_on("r-biocgenerics@0.53.2:", type=("build", "run"), when="@0.45.2:")

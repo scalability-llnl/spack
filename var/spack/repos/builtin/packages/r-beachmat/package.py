@@ -35,10 +35,13 @@ class RBeachmat(RPackage):
     depends_on("r-delayedarray@0.5.30:", type=("build", "run"), when="@1.2.1")
     depends_on("r-delayedarray@0.7.38:", type=("build", "run"), when="@1.4.0")
     depends_on("r-delayedarray@0.15.14:", type=("build", "run"), when="@2.6.4")
+    depends_on("r-delayedarray@0.27.2:", type=("build", "run"), when="@2.17.1:")
+    depends_on("r-sparsearray", type=("build", "run"), when="@2.17.8:")
     depends_on("r-biocgenerics", type=("build", "run"), when="@1.4.0:")
     depends_on("r-matrix", type=("build", "run"), when="@2.6.4:")
     depends_on("r-rcpp@0.12.14:", type=("build", "run"), when="@1.0.2:")
     depends_on("r-rcpp", type=("build", "run"), when="@2.10.0:")
+    depends_on("r-assorthead", type=("build", "run"), when="@2.21.6:")
 
     depends_on("r-rhdf5lib", type=("build", "run"), when="@1.0.2:1.4.0")
     depends_on("r-rhdf5lib@1.1.4:", type=("build", "run"), when="@1.2.1")

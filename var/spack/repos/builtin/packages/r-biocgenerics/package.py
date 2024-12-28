@@ -27,3 +27,5 @@ class RBiocgenerics(RPackage):
 
     depends_on("r@3.6.0:", type=("build", "run"), when="@0.30.0:")
     depends_on("r@4.0.0:", type=("build", "run"), when="@0.36.0:")
+
+    depends_on("r-generics", type=("build", "run"), when="@0.53.1:")

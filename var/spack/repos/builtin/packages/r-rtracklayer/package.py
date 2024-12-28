@@ -52,8 +52,9 @@ class RRtracklayer(RPackage):
     depends_on("r-genomeinfodb@1.15.2:", type=("build", "run"), when="@1.40.6:")
     depends_on("r-biostrings@2.43.7:", type=("build", "run"))
     depends_on("r-biostrings@2.47.6:", type=("build", "run"), when="@1.40.6:")
+    depends_on("r-curl", type=("build", "run"), when="@1.63.2:")
+    depends_on("r-httr", type=("build", "run"), when="@1.63.1:")
     depends_on("r-zlibbioc", type=("build", "run"))
-    depends_on("r-rcurl@1.4-2:", type=("build", "run"))
     depends_on("r-rsamtools@1.17.8:", type=("build", "run"))
     depends_on("r-rsamtools@1.31.2:", type=("build", "run"), when="@1.40.6:")
     depends_on("r-genomicalignments@1.5.4:", type=("build", "run"))
@@ -62,3 +63,5 @@ class RRtracklayer(RPackage):
     depends_on("r-restfulr@0.0.13:", type=("build", "run"), when="@1.54.0:")
     depends_on("zlib-api")
     depends_on("openssl")
+
+    depends_on("r-rcurl@1.4-2:", type=("build", "run"), when="@:1.63.0")

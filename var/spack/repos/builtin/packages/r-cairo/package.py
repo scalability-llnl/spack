@@ -44,4 +44,5 @@ class RCairo(RPackage):
     conflicts(
         "^cairo ~fc", when="^cairo +ft", msg="For cairo freetype support, also need fontconfig."
     )
+    depends_on("pkgconfig", type="build")
     depends_on("libxt")
