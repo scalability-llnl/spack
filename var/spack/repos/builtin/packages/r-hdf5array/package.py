@@ -44,7 +44,6 @@ class RHdf5array(RPackage):
     depends_on("r-delayedarray@0.7.41:", type=("build", "run"), when="@1.10.1:")
     depends_on("r-delayedarray@0.9.3:", type=("build", "run"), when="@1.12.3:")
     depends_on("r-delayedarray@0.15.16:", type=("build", "run"), when="@1.18.0:")
-    depends_on("r-delayedarray@0.33.1:", type=("build", "run"), when="@1.35.1:")
     depends_on("r-rhdf5", type=("build", "run"))
     depends_on("r-rhdf5@2.25.6:", type=("build", "run"), when="@1.10.1:")
     depends_on("r-rhdf5@2.31.6:", type=("build", "run"), when="@1.18.0:")

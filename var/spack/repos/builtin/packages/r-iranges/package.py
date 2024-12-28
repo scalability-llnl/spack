@@ -42,7 +42,6 @@ class RIranges(RPackage):
     depends_on("r-biocgenerics@0.25.3:", type=("build", "run"), when="@2.14.12:")
     depends_on("r-biocgenerics@0.36.0:", type=("build", "run"), when="@2.24.1:")
     depends_on("r-biocgenerics@0.39.2:", type=("build", "run"), when="@2.28.0:")
-    depends_on("r-biocgenerics@0.53.2:", type=("build", "run"), when="@2.41.2:")
     depends_on("r-s4vectors@0.13.17:", type=("build", "run"))
     depends_on("r-s4vectors@0.15.5:", type=("build", "run"), when="@2.12.0:")
     depends_on("r-s4vectors@0.18.2:", type=("build", "run"), when="@2.14.12:")
@@ -52,4 +51,3 @@ class RIranges(RPackage):
     depends_on("r-s4vectors@0.27.12:", type=("build", "run"), when="@2.24.1:")
     depends_on("r-s4vectors@0.29.19:", type=("build", "run"), when="@2.28.0:")
     depends_on("r-s4vectors@0.33.3:", type=("build", "run"), when="@2.30.0:")
-    depends_on("r-s4vectors@0.45.2:", type=("build", "run"), when="@2.41.1:")

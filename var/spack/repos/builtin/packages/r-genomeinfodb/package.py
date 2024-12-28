@@ -32,17 +32,14 @@ class RGenomeinfodb(RPackage):
     version("1.12.3", commit="2deef3f0571b7f622483257bc22d2509ab5a0369")
 
     depends_on("r@3.1:", type=("build", "run"))
-    depends_on("r@4.0.0:", type=("build", "run"), when="@1.30.1:")
+    depends_on("r@4.0.0:", type=("build", "run"), when="@1.27.3:")
     depends_on("r-biocgenerics@0.13.8:", type=("build", "run"))
     depends_on("r-biocgenerics@0.37.0:", type=("build", "run"), when="@1.30.1:")
-    depends_on("r-biocgenerics@0.53.2:", type=("build", "run"), when="@1.43.1:")
     depends_on("r-s4vectors@0.9.25:", type=("build", "run"))
     depends_on("r-s4vectors@0.17.25:", type=("build", "run"), when="@1.16.0:")
     depends_on("r-s4vectors@0.25.12:", type=("build", "run"), when="@1.26.2:")
-    depends_on("r-s4vectors@0.45.2:", type=("build", "run"), when="@1.43.1:")
     depends_on("r-iranges@1.99.26:", type=("build", "run"))
     depends_on("r-iranges@2.13.12:", type=("build", "run"), when="@1.16.0:")
-    depends_on("r-iranges@2.41.1:", type=("build", "run"), when="@1.43.1:")
     depends_on("r-genomeinfodbdata", type=("build", "run"))
     depends_on("r-ucsc-utils", type=("build", "run"), when="@1.39.12:")
 
