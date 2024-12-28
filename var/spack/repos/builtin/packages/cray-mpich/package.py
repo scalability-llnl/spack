@@ -84,7 +84,7 @@ class CrayMpich(MpichEnvironmentModifications, Package):
     def setup_dependent_package(self, module, dependent_spec):
         spec = self.spec
         if spec.satisfies("+wrappers"):
-            super().setup_dependent_package(module, dependent_spec)
+            MpichEnvironmentModifications.setup_dependent_package(self, module, dependent_spec)
         elif spack_cc is not None:
             spec.mpicc = spack_cc
             spec.mpicxx = spack_cxx
