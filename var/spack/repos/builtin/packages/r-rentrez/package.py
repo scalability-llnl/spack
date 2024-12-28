@@ -15,9 +15,9 @@ class RRentrez(RPackage):
     <https://pubmed.ncbi.nlm.nih.gov/>, process the
     results of those searches and pull data into their R sessions."""
 
-    cran = "rrentrez"
+    cran = "rentrez"
 
-    version("1.2.3", sha256="")
+    version("1.2.3", sha256="fb256597ebe7780e38bef9c4c2626b3feacd60c7a5a29fc6a218cf0d8d132f74")
 
     depends_on("c", type="build")  # generated
 
