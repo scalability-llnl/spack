@@ -2,7 +2,7 @@ from spack.package import *
 
 
 class Minikube(MakefilePackage):
-    """minikube is local Kubernetes, focusing on making it easy to learn and develop for Kubernetes."""
+    """minikube is local Kubernetes,  making it easy to learn and develop for Kubernetes."""
 
     homepage = "https://minikube.sigs.k8s.io/"
     url = "https://github.com/kubernetes/minikube/archive/refs/tags/v1.34.0.tar.gz"
