@@ -19,6 +19,7 @@ class RRhtslib(RPackage):
     version("3.2.0", commit="3add51cbc8ea3cde6876b91cdd6180bfcbffbf49")
     version("3.0.0", commit="1c89207b035dcd4b4a790beabc4462f969350ed2")
     version("2.4.1", commit="33bf5d13817274d2fe2bf9183f94523cb99de459")
+    version("2.2.0", commit="ac2e2a62f7fdf87f16e7722c60e7d3fc7e48e2ba")
     version("2.0.0", commit="1757333eb88625158505e5fa47840081110cf8a4")
     # There is a problem with the git repository where the commit for
     # version 1.28.0 pulls changes to a file that blocks checking out the

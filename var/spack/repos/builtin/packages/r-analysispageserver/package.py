@@ -14,7 +14,8 @@ class RAnalysispageserver(RPackage):
 
     bioc = "AnalysisPageServer"
 
-    version("1.23.0", commit="307d2d4a128d49e05473affc7567e5fb319b10b9")
+    version("1.22.0", commit="2a18bb215ccaef5da08ea4d0e37cfb591b9dc783")
+    version("1.20.0", commit="aafd0364f9f5d9778a36bda9f2c399360af4d8ad")
     version("1.18.1", commit="08bd85e872d3f2b0c1fa148cf30bcd2d1a29b630")
     version("1.16.0", commit="67b063523f80e2af1d26262367ff50f34e195174")
     version("1.14.0", commit="620c0ea1e129ddd1a0866e2c9d7c3fcf06a8baf4")

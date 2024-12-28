@@ -13,7 +13,8 @@ class RAffypdnn(RPackage):
 
     bioc = "affypdnn"
 
-    version("1.63.0", commit="f09cd8543d9da9fb8ca662e96bb0d62fdcdb6210")
+    version("1.62.0", commit="22a6e97303bd60c8b365b51c38e4312d5b7ee995")
+    version("1.60.0", commit="9f8998fa4405fbbaea6f7a7eb6d3c1b29c3f5e09")
     version("1.58.0", commit="83d8b6b0d9606845bd77dbf7164dd5b160f32ccf")
     version("1.56.0", commit="5fd9c5265fb895a1f646cf72e8d5169669d979f2")
     version("1.54.0", commit="ea971b1b9cc443695a6614bef92e8e116ee87d55")

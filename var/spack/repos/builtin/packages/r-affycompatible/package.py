@@ -17,7 +17,6 @@ class RAffycompatible(RPackage):
 
     bioc = "AffyCompatible"
 
-    version("1.59.0", commit="b32c462d12aaea248bb98c15978061331e54a290")
     version("1.58.0", commit="6508e72736371d353ec5f02d30caf8ffe39b342a")
     version("1.56.0", commit="37ea4bb885c791fb989f40092f3d0d2c57d35641")
     version("1.54.0", commit="fde7d86ccdb03c13c4838c18ac25477ffe6e0fe5")

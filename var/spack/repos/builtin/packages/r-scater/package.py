@@ -17,7 +17,6 @@ class RScater(RPackage):
     version("1.34.0", commit="08b5dc08b117cc7e2be90e370fe1fe5702af1156")
     version("1.32.1", commit="0ad51ab22776aa5249926535000557ad4fe28777")
     version("1.30.1", commit="27d0d22bfbdb4d4f7e8d9a57c4465bc322b326d4")
-    version("1.35.0", commit="7211adabdf57f98255d5d95f7d5b8ab6355567bb")
     version("1.28.0", commit="e654498c3fa9f769b794f840f230720333bd9555")
     version("1.26.0", commit="a548ddc8424e185bfb06f48bfc174071e69fc687")
     version("1.24.0", commit="013f0935a1a225139986ca5a3f0e9d08a1558153")
