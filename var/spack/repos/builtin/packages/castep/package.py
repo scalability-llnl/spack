@@ -59,13 +59,13 @@ class Castep(MakefilePackage):
         spec = self.spec
         targetlist = [f"PWD={self.stage.source_path}"]
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             targetlist.append("COMMS_ARCH=mpi")
 
         targetlist.append(f"FFTLIBDIR={spec['fftw-api'].prefix.lib}")
         targetlist.append(f"MATHLIBDIR={spec['blas'].prefix.lib}")
 
-        if "^mkl" in spec:
+        if spec.satisfies("^mkl"):
             targetlist.append("FFT=mkl")
             if self.spec.satisfies("@20:"):
                 targetlist.append("MATHLIBS=mkl")

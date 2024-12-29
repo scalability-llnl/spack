@@ -2,11 +2,14 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import concurrent.futures
 import multiprocessing
 import os
 import sys
 import traceback
 from typing import Optional
+
+import spack.config
 
 
 class ErrorFromWorker:
@@ -80,3 +83,29 @@ def imap_unordered(
             if isinstance(result, ErrorFromWorker):
                 raise RuntimeError(result.stacktrace if debug else str(result))
             yield result
+
+
+class SequentialExecutor(concurrent.futures.Executor):
+    """Executor that runs tasks sequentially in the current thread."""
+
+    def submit(self, fn, *args, **kwargs):
+        """Submit a function to be executed."""
+        future = concurrent.futures.Future()
+        try:
+            future.set_result(fn(*args, **kwargs))
+        except Exception as e:
+            future.set_exception(e)
+        return future
+
+
+def make_concurrent_executor(
+    jobs: Optional[int] = None, *, require_fork: bool = True
+) -> concurrent.futures.Executor:
+    """Create a concurrent executor. If require_fork is True, then the executor is sequential
+    if the platform does not enable forking as the default start method. Effectively
+    require_fork=True makes the executor sequential in the current process on Windows, macOS, and
+    Linux from Python 3.14+ (which changes defaults)"""
+    if require_fork and multiprocessing.get_start_method() != "fork":
+        return SequentialExecutor()
+    jobs = jobs or spack.config.determine_number_of_jobs(parallel=True)
+    return concurrent.futures.ProcessPoolExecutor(jobs)

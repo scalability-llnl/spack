@@ -32,12 +32,11 @@ class Czmq(AutotoolsPackage):
     depends_on("libzmq")
 
     def flag_handler(self, name, flags):
-        iflags = []
         if name == "cflags":
             if self.spec.satisfies("%oneapi@2022.2.0:"):
-                iflags.append("-Wno-error=gnu-null-pointer-arithmetic")
-                iflags.append("-Wno-error=strict-prototypes")
-        return (iflags, None, None)
+                flags.append("-Wno-error=gnu-null-pointer-arithmetic")
+                flags.append("-Wno-error=strict-prototypes")
+        return (flags, None, None)
 
     def autoreconf(self, spec, prefix):
         autogen = Executable("./autogen.sh")

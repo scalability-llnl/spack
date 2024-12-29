@@ -42,12 +42,12 @@ class CrtmFix(Package):
         mkdir(self.prefix.fix)
 
         endian_dirs = []
-        if "+big_endian" in spec:
+        if spec.satisfies("+big_endian"):
             endian_dirs.append("Big_Endian")
-        elif "+little_endian" in spec:
+        elif spec.satisfies("+little_endian"):
             endian_dirs.append("Little_Endian")
 
-        if "+netcdf" in spec:
+        if spec.satisfies("+netcdf"):
             endian_dirs.extend(["netcdf", "netCDF"])
 
         fix_files = []

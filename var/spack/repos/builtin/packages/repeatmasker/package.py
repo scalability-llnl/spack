@@ -37,10 +37,10 @@ class Repeatmasker(Package):
 
     def url_for_version(self, version):
         if version >= Version("4.1.0"):
-            url = "http://www.repeatmasker.org/RepeatMasker/RepeatMasker-{0}.tar.gz"
+            url = "https://www.repeatmasker.org/RepeatMasker/RepeatMasker-{0}.tar.gz"
             return url.format(version)
         else:
-            url = "http://www.repeatmasker.org/RepeatMasker/RepeatMasker-open-{0}.tar.gz"
+            url = "https://www.repeatmasker.org/RepeatMasker/RepeatMasker-open-{0}.tar.gz"
             return url.format(version.dashed)
 
     def install(self, spec, prefix):

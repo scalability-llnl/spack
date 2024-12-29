@@ -80,7 +80,7 @@ class Fish(CMakePackage):
             "-DPCRE2_INCLUDE_DIR=" + self.spec["pcre2"].headers.directories[0],
         ]
 
-        if "+docs" in self.spec:
+        if self.spec.satisfies("+docs"):
             args.append("-DBUILD_DOCS=ON")
         else:
             args.append("-DBUILD_DOCS=OFF")

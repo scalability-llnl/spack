@@ -21,9 +21,9 @@ class Libxdmcp(AutotoolsPackage, XorgPackage):
     version("1.1.3", sha256="2ef9653d32e09d1bf1b837d0e0311024979653fe755ad3aaada8db1aa6ea180c")
     version("1.1.2", sha256="6f7c7e491a23035a26284d247779174dedc67e34e93cc3548b648ffdb6fc57c0")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
-    depends_on("xproto")
+    depends_on("xproto", type=("build", "link"))
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")
     depends_on("libbsd", when="platform=linux")

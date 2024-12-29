@@ -161,7 +161,7 @@ def try_enable_terminal_color_on_windows():
             )
             # Use conout$ here to handle a redirectired stdout/get active console associated
             # with spack
-            with open(r"\\.\CONOUT$", "w") as conout:
+            with open(r"\\.\CONOUT$", "w", encoding="utf-8") as conout:
                 # Link above would use kernel32.GetStdHandle(-11) however this would not handle
                 # a redirected stdout appropriately, so we always refer to the current CONSOLE out
                 # which is defined as conout$ on Windows.
@@ -263,7 +263,9 @@ def colorize(
                 f"Incomplete color format: '{match.group(0)}' in '{match.string}'"
             )
 
-        ansi_code = _escape(f"{styles[style]};{colors.get(color_code, '')}", color, enclose, zsh)
+        color_number = colors.get(color_code, "")
+        semi = ";" if color_number else ""
+        ansi_code = _escape(f"{styles[style]}{semi}{color_number}", color, enclose, zsh)
         if text:
             return f"{ansi_code}{text}{_escape(0, color, enclose, zsh)}"
         else:

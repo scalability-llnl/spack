@@ -39,15 +39,15 @@ class Amg2013(MakefilePackage):
         include_cflags = ["-DTIMER_USE_MPI"]
         include_lflags = ["-lm"]
 
-        if "+openmp" in self.spec:
+        if self.spec.satisfies("+openmp"):
             include_cflags.append("-DHYPRE_USING_OPENMP")
             include_cflags.append(self.compiler.openmp_flag)
             include_lflags.append(self.compiler.openmp_flag)
-            if "+optflags" in self.spec:
+            if self.spec.satisfies("+optflags"):
                 include_cflags.append("-DHYPRE_USING_PERSISTENT_COMM")
                 include_cflags.append("-DHYPRE_HOPSCOTCH")
 
-        if "+int64" in self.spec:
+        if self.spec.satisfies("+int64"):
             include_cflags.append("-DHYPRE_BIGINT")
 
         targets.append(f"INCLUDE_CFLAGS={' '.join(include_cflags)}")

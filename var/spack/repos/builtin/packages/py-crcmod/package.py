@@ -10,7 +10,7 @@ class PyCrcmod(PythonPackage):
     """Python module for generating objects that
     compute the Cyclic Redundancy Check (CRC)"""
 
-    homepage = "http://crcmod.sourceforge.net/"
+    homepage = "https://crcmod.sourceforge.net/"
     pypi = "crcmod/crcmod-1.7.tar.gz"
 
     license("MIT")

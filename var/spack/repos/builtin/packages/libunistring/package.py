@@ -46,6 +46,11 @@ class Libunistring(AutotoolsPackage, GNUMirrorPackage):
         # https://bugs.gentoo.org/688464#c9 (this links to all further info)
         filter_file("#  pragma weak pthread_create", "", "tests/glthread/thread.h")
 
+    def flag_handler(self, name, flags):
+        if name == "cflags" and self.spec.satisfies("@1.1:") and self.spec.satisfies("%intel"):
+            flags.append(self.compiler.c18_flag)
+        return (flags, None, None)
+
     @when("@master")
     def autoreconf(self, spec, prefix):
         which("./gitsub.sh")("pull")

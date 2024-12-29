@@ -28,9 +28,9 @@ class Cohmm(MakefilePackage):
     depends_on("gnuplot", when="+gnuplot")
 
     def edit(self, spec, prefix):
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             filter_file("DO_OPENMP = O.*", "DO_OPENMP = ON", "Makefile")
-        if "+gnuplot" in spec:
+        if spec.satisfies("+gnuplot"):
             filter_file("DO_GNUPLOT = O.*", "DO_GNUPLOT = ON", "Makefile")
 
     def install(self, spec, prefix):

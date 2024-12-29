@@ -118,7 +118,7 @@ class Halide(CMakePackage, PythonExtension):
         for target in llvm_targets:
             args += [self.define("TARGET_{0}".format(target[0]), target[1])]
 
-        if "+python" in spec:
+        if spec.satisfies("+python"):
             args += [
                 self.define("PYBIND11_USE_FETCHCONTENT", False),
                 self.define("Halide_INSTALL_PYTHONDIR", python_platlib),

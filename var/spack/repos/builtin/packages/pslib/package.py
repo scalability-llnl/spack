@@ -9,7 +9,7 @@ from spack.package import *
 class Pslib(AutotoolsPackage):
     """C-library to create PostScript files on the fly."""
 
-    homepage = "http://pslib.sourceforge.net/"
+    homepage = "https://pslib.sourceforge.net/"
     url = "https://sourceforge.net/projects/pslib/files/pslib/0.4.5/pslib-0.4.5.tar.gz"
 
     license("GPL-2.0-only")

@@ -25,7 +25,7 @@ env = spack.main.SpackCommand("env")
 def _create_config(scope=None, data={}, section="packages"):
     scope = scope or spack.config.default_modify_scope()
     cfg_file = spack.config.CONFIG.get_config_filename(scope, section)
-    with open(cfg_file, "w") as f:
+    with open(cfg_file, "w", encoding="utf-8") as f:
         syaml.dump(data, stream=f)
     return cfg_file
 
@@ -50,7 +50,7 @@ def test_get_config_scope_merged(mock_low_high_config):
     fs.mkdirp(low_path)
     fs.mkdirp(high_path)
 
-    with open(os.path.join(low_path, "repos.yaml"), "w") as f:
+    with open(os.path.join(low_path, "repos.yaml"), "w", encoding="utf-8") as f:
         f.write(
             """\
 repos:
@@ -58,7 +58,7 @@ repos:
 """
         )
 
-    with open(os.path.join(high_path, "repos.yaml"), "w") as f:
+    with open(os.path.join(high_path, "repos.yaml"), "w", encoding="utf-8") as f:
         f.write(
             """\
 repos:
@@ -258,7 +258,7 @@ def test_config_add_from_file(mutable_empty_config, tmpdir):
 """
 
     file = str(tmpdir.join("spack.yaml"))
-    with open(file, "w") as f:
+    with open(file, "w", encoding="utf-8") as f:
         f.write(contents)
     config("add", "-f", file)
     output = config("get", "config")
@@ -279,7 +279,7 @@ def test_config_add_from_file_multiple(mutable_empty_config, tmpdir):
 """
 
     file = str(tmpdir.join("spack.yaml"))
-    with open(file, "w") as f:
+    with open(file, "w", encoding="utf-8") as f:
         f.write(contents)
     config("add", "-f", file)
     output = config("get", "config")
@@ -301,7 +301,7 @@ def test_config_add_override_from_file(mutable_empty_config, tmpdir):
 """
 
     file = str(tmpdir.join("spack.yaml"))
-    with open(file, "w") as f:
+    with open(file, "w", encoding="utf-8") as f:
         f.write(contents)
     config("add", "-f", file)
     output = config("get", "config")
@@ -322,7 +322,7 @@ def test_config_add_override_leaf_from_file(mutable_empty_config, tmpdir):
 """
 
     file = str(tmpdir.join("spack.yaml"))
-    with open(file, "w") as f:
+    with open(file, "w", encoding="utf-8") as f:
         f.write(contents)
     config("add", "-f", file)
     output = config("get", "config")
@@ -347,7 +347,7 @@ def test_config_add_update_dict_from_file(mutable_empty_config, tmpdir):
 
     # create temp file and add it to config
     file = str(tmpdir.join("spack.yaml"))
-    with open(file, "w") as f:
+    with open(file, "w", encoding="utf-8") as f:
         f.write(contents)
     config("add", "-f", file)
 
@@ -375,7 +375,7 @@ def test_config_add_invalid_file_fails(tmpdir):
 
     # create temp file and add it to config
     file = str(tmpdir.join("spack.yaml"))
-    with open(file, "w") as f:
+    with open(file, "w", encoding="utf-8") as f:
         f.write(contents)
 
     with pytest.raises((spack.config.ConfigFormatError)):
@@ -479,7 +479,7 @@ spack:  # comment
       # comment
       compiler: [gcc] # comment
 """
-    with open(filepath, "w") as f:
+    with open(filepath, "w", encoding="utf-8") as f:
         f.write(manifest)
     env = ev.Environment(str(tmpdir))
     with env:
@@ -524,7 +524,7 @@ def test_config_update_can_handle_comments(mutable_config):
     # Create an outdated config file with comments
     scope = spack.config.default_modify_scope()
     cfg_file = spack.config.CONFIG.get_config_filename(scope, "config")
-    with open(cfg_file, mode="w") as f:
+    with open(cfg_file, mode="w", encoding="utf-8") as f:
         f.write(
             """
 config:
@@ -543,7 +543,7 @@ config:
     assert "root" in data["install_tree"]
 
     # Check the comment is there
-    with open(cfg_file) as f:
+    with open(cfg_file, encoding="utf-8") as f:
         text = "".join(f.readlines())
 
     assert "# system cmake in /usr" in text
@@ -554,7 +554,7 @@ config:
 def test_config_update_works_for_empty_paths(mutable_config):
     scope = spack.config.default_modify_scope()
     cfg_file = spack.config.CONFIG.get_config_filename(scope, "config")
-    with open(cfg_file, mode="w") as f:
+    with open(cfg_file, mode="w", encoding="utf-8") as f:
         f.write(
             """
 config:
@@ -591,14 +591,12 @@ def test_config_prefer_upstream(
     """
 
     mock_db_root = str(tmpdir_factory.mktemp("mock_db_root"))
-    prepared_db = spack.database.Database(mock_db_root)
-
-    upstream_layout = gen_mock_layout("/a/")
+    prepared_db = spack.database.Database(mock_db_root, layout=gen_mock_layout("/a/"))
 
     for spec in ["hdf5 +mpi", "hdf5 ~mpi", "boost+debug~icu+graph", "dependency-install", "patch"]:
         dep = spack.spec.Spec(spec)
         dep.concretize()
-        prepared_db.add(dep, upstream_layout)
+        prepared_db.add(dep)
 
     downstream_db_root = str(tmpdir_factory.mktemp("mock_downstream_db_root"))
     db_for_test = spack.database.Database(downstream_db_root, upstream_dbs=[prepared_db])
@@ -607,7 +605,7 @@ def test_config_prefer_upstream(
     output = config("prefer-upstream")
     scope = spack.config.default_modify_scope("packages")
     cfg_file = spack.config.CONFIG.get_config_filename(scope, "packages")
-    packages = syaml.load(open(cfg_file))["packages"]
+    packages = syaml.load(open(cfg_file, encoding="utf-8"))["packages"]
 
     # Make sure only the non-default variants are set.
     assert packages["all"] == {"compiler": ["gcc@=10.2.1"]}
@@ -621,7 +619,7 @@ def test_config_prefer_upstream(
 
 
 def test_environment_config_update(tmpdir, mutable_config, monkeypatch):
-    with open(tmpdir.join("spack.yaml"), "w") as f:
+    with open(tmpdir.join("spack.yaml"), "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:

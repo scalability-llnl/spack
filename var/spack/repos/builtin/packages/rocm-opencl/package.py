@@ -17,7 +17,7 @@ class RocmOpencl(CMakePackage):
     git = "https://github.com/ROCm/ROCm-OpenCL-Runtime.git"
     tags = ["rocm"]
 
-    maintainers("srekolam", "renjithravindrankannath")
+    maintainers("srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["libOpenCL"]
 
     def url_for_version(self, version):
@@ -36,6 +36,10 @@ class RocmOpencl(CMakePackage):
     license("MIT")
 
     version("master", branch="main")
+    version("6.3.0", sha256="829e61a5c54d0c8325d02b0191c0c8254b5740e63b8bfdb05eec9e03d48f7d2c")
+    version("6.2.4", sha256="0a3164af7f997a4111ade634152957378861b95ee72d7060eb01c86c87208c54")
+    version("6.2.1", sha256="e9cff3a8663defdbda833d49c9e7160171eca14dc285ffe4061378607d6c890d")
+    version("6.2.0", sha256="620e4c6a7f05651cc7a170bc4700fef8cae002420307a667c638b981d00b25e8")
     version("6.1.2", sha256="1a1e21640035d957991559723cd093f0c7e202874423667d2ba0c7662b01fea4")
     version("6.1.1", sha256="2db02f335c9d6fa69befcf7c56278e5cecfe3db0b457eaaa41206c2585ef8256")
     version("6.1.0", sha256="49b23eef621f4e8e528bb4de8478a17436f42053a2f7fde21ff221aa683205c7")
@@ -53,12 +57,21 @@ class RocmOpencl(CMakePackage):
         version("5.3.3", sha256="cab394e6ef16c35bab8de29a66b96a7dc0e7d1297aaacba3718fa1d369233c9f")
         version("5.3.0", sha256="d251e2efe95dc12f536ce119b2587bed64bbda013969fa72be58062788044a9e")
 
+    variant("asan", default=False, description="Build with address-sanitizer enabled or disabled")
+
+    conflicts("+asan", when="os=rhel9")
+    conflicts("+asan", when="os=centos7")
+    conflicts("+asan", when="os=centos8")
+
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3:", type="build")
     depends_on("gl@4.5:", type="link")
     depends_on("numactl", type="link")
+    depends_on("libx11", when="+asan")
+    depends_on("xproto", when="+asan")
+    depends_on("opencl-icd-loader@2024.05.08", when="@6.2:")
 
     for d_version, d_shasum in [
         ("5.6.1", "cc9a99c7e4de3d9360c0a471b27d626e84a39c9e60e0aff1e8e1500d82391819"),
@@ -111,12 +124,16 @@ class RocmOpencl(CMakePackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
         "master",
     ]:
         depends_on(f"comgr@{ver}", type="build", when=f"@{ver}")
         depends_on(f"hsa-rocr-dev@{ver}", type="link", when=f"@{ver}")
 
-    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2"]:
+    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4", "6.3.0"]:
         depends_on(f"aqlprofile@{ver}", type="link", when=f"@{ver}")
 
     for ver in [
@@ -131,8 +148,11 @@ class RocmOpencl(CMakePackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
     ]:
-
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 
     @classmethod
@@ -152,8 +172,29 @@ class RocmOpencl(CMakePackage):
         if self.spec.satisfies("@5.7:"):
             args.append(self.define("CLR_BUILD_HIP", False))
             args.append(self.define("CLR_BUILD_OCL", True))
+        if self.spec.satisfies("+asan"):
+            args.append(
+                self.define(
+                    "CMAKE_CXX_FLAGS",
+                    f"-I{self.spec['libx11'].prefix.include} "
+                    f"-I{self.spec['mesa'].prefix.include} "
+                    f"-I{self.spec['xproto'].prefix.include}",
+                )
+            )
+        if self.spec.satisfies("@6.2:"):
+            args.append(self.define("BUILD_ICD", False))
+            args.append(self.define("AMD_ICD_LIBRARY_DIR", self.spec["opencl-icd-loader"].prefix))
 
         return args
+
+    def setup_build_environment(self, env):
+        if self.spec.satisfies("+asan"):
+            env.set("CC", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang")
+            env.set("CXX", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang++")
+            env.set("ASAN_OPTIONS", "detect_leaks=0")
+            env.set("CFLAGS", "-fsanitize=address -shared-libasan")
+            env.set("CXXFLAGS", "-fsanitize=address -shared-libasan")
+            env.set("LDFLAGS", "-fuse-ld=lld")
 
     def setup_run_environment(self, env):
         env.prepend_path("LD_LIBRARY_PATH", self.prefix.lib),

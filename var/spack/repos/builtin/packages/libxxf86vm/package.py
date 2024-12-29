@@ -19,14 +19,14 @@ class Libxxf86vm(AutotoolsPackage, XorgPackage):
     version("1.1.5", sha256="f3f1c29fef8accb0adbd854900c03c6c42f1804f2bc1e4f3ad7b2e1f3b878128")
     version("1.1.4", sha256="5108553c378a25688dcb57dca383664c36e293d60b1505815f67980ba9318a99")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     depends_on("libx11@1.6:")
     depends_on("libxext")
 
-    depends_on("xproto")
-    depends_on("xextproto")
-    depends_on("xf86vidmodeproto@2.2.99.1:")
+    depends_on("xproto", type="build")
+    depends_on("xextproto", type="build")
+    depends_on("xf86vidmodeproto@2.2.99.1:", type=("build", "link"))
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")
 

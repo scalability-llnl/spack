@@ -17,7 +17,7 @@ class Libaio(MakefilePackage):
     I/O operations associated with a given completion group.
     """
 
-    homepage = "http://lse.sourceforge.net/io/aio.html"
+    homepage = "https://lse.sourceforge.net/io/aio.html"
     url = (
         "https://debian.inf.tu-dresden.de/debian/pool/main/liba/libaio/libaio_0.3.110.orig.tar.gz"
     )

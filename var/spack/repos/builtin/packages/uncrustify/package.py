@@ -9,7 +9,7 @@ from spack.package import *
 class Uncrustify(CMakePackage, AutotoolsPackage):
     """Source Code Beautifier for C, C++, C#, ObjectiveC, Java, and others."""
 
-    homepage = "http://uncrustify.sourceforge.net/"
+    homepage = "https://uncrustify.sourceforge.net/"
     git = "https://github.com/uncrustify/uncrustify"
     url = "https://sourceforge.net/projects/uncrustify/files/uncrustify/uncrustify-0.69/uncrustify-0.69.tar.gz"
 

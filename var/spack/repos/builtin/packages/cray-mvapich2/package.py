@@ -26,6 +26,8 @@ class CrayMvapich2(Package):
 
     provides("mpi@3")
 
+    requires("platform=linux", msg="Cray MVAPICH2 is only available on Cray")
+
     def setup_run_environment(self, env):
         if spack_cc is None:
             return
@@ -50,11 +52,6 @@ class CrayMvapich2(Package):
         spec.mpicxx = dependent_module.spack_cxx
         spec.mpifc = dependent_module.spack_fc
         spec.mpif77 = dependent_module.spack_f77
-
-        spec.mpicxx_shared_libs = [
-            join_path(self.prefix.lib, "libmpicxx.{0}".format(dso_suffix)),
-            join_path(self.prefix.lib, "libmpi.{0}".format(dso_suffix)),
-        ]
 
     def install(self, spec, prefix):
         raise InstallError(

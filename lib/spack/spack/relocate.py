@@ -6,6 +6,7 @@ import collections
 import itertools
 import os
 import re
+import sys
 from collections import OrderedDict
 from typing import List, Optional
 
@@ -18,18 +19,12 @@ import llnl.util.tty as tty
 from llnl.util.lang import memoized
 from llnl.util.symlink import readlink, symlink
 
-import spack.paths
-import spack.platforms
-import spack.repo
-import spack.spec
+import spack.error
 import spack.store
 import spack.util.elf as elf
 import spack.util.executable as executable
-import spack.util.path
 
 from .relocate_text import BinaryFilePrefixReplacer, TextFilePrefixReplacer
-
-is_macos = str(spack.platforms.real_host()) == "darwin"
 
 
 class InstallRootStringError(spack.error.SpackError):
@@ -53,7 +48,7 @@ def _patchelf() -> Optional[executable.Executable]:
     """Return the full path to the patchelf binary, if available, else None."""
     import spack.bootstrap
 
-    if is_macos:
+    if sys.platform == "darwin":
         return None
 
     with spack.bootstrap.ensure_bootstrap_configuration():
@@ -210,23 +205,33 @@ def macho_find_paths(orig_rpaths, deps, idpath, old_layout_root, prefix_to_prefi
     paths_to_paths dictionary which maps all of the old paths to new paths
     """
     paths_to_paths = dict()
+    # Sort from longest path to shortest, to ensure we try /foo/bar/baz before /foo/bar
+    prefix_iteration_order = sorted(prefix_to_prefix, key=len, reverse=True)
     for orig_rpath in orig_rpaths:
         if orig_rpath.startswith(old_layout_root):
-            for old_prefix, new_prefix in prefix_to_prefix.items():
+            for old_prefix in prefix_iteration_order:
+                new_prefix = prefix_to_prefix[old_prefix]
                 if orig_rpath.startswith(old_prefix):
                     new_rpath = re.sub(re.escape(old_prefix), new_prefix, orig_rpath)
                     paths_to_paths[orig_rpath] = new_rpath
+                    break
         else:
             paths_to_paths[orig_rpath] = orig_rpath
 
     if idpath:
-        for old_prefix, new_prefix in prefix_to_prefix.items():
+        for old_prefix in prefix_iteration_order:
+            new_prefix = prefix_to_prefix[old_prefix]
             if idpath.startswith(old_prefix):
                 paths_to_paths[idpath] = re.sub(re.escape(old_prefix), new_prefix, idpath)
+                break
+
     for dep in deps:
-        for old_prefix, new_prefix in prefix_to_prefix.items():
+        for old_prefix in prefix_iteration_order:
+            new_prefix = prefix_to_prefix[old_prefix]
             if dep.startswith(old_prefix):
                 paths_to_paths[dep] = re.sub(re.escape(old_prefix), new_prefix, dep)
+                break
+
         if dep.startswith("@"):
             paths_to_paths[dep] = dep
 
@@ -270,45 +275,19 @@ def modify_macho_object(cur_path, rpaths, deps, idpath, paths_to_paths):
 
     # Deduplicate and flatten
     args = list(itertools.chain.from_iterable(llnl.util.lang.dedupe(args)))
+    install_name_tool = executable.Executable("install_name_tool")
     if args:
-        args.append(str(cur_path))
-        install_name_tool = executable.Executable("install_name_tool")
-        install_name_tool(*args)
-
-    return
-
-
-def modify_object_macholib(cur_path, paths_to_paths):
-    """
-    This function is used when install machO buildcaches on linux by
-    rewriting mach-o loader commands for dependency library paths of
-    mach-o binaries and the id path for mach-o libraries.
-    Rewritting of rpaths is handled by replace_prefix_bin.
-    Inputs
-    mach-o binary to be modified
-    dictionary mapping paths in old install layout to new install layout
-    """
-
-    dll = macholib.MachO.MachO(cur_path)
-    dll.rewriteLoadCommands(paths_to_paths.get)
-
-    try:
-        f = open(dll.filename, "rb+")
-        for header in dll.headers:
-            f.seek(0)
-            dll.write(f)
-        f.seek(0, 2)
-        f.flush()
-        f.close()
-    except Exception:
-        pass
-
-    return
+        with fs.edit_in_place_through_temporary_file(cur_path) as temp_path:
+            install_name_tool(*args, temp_path)
 
 
 def macholib_get_paths(cur_path):
     """Get rpaths, dependent libraries, and library id of mach-o objects."""
-    headers = macholib.MachO.MachO(cur_path).headers
+    headers = []
+    try:
+        headers = macholib.MachO.MachO(cur_path).headers
+    except ValueError:
+        pass
     if not headers:
         tty.warn("Failed to read Mach-O headers: {0}".format(cur_path))
         commands = []
@@ -370,32 +349,6 @@ def _set_elf_rpaths_and_interpreter(
         return None
 
 
-def needs_binary_relocation(m_type, m_subtype):
-    """Returns True if the file with MIME type/subtype passed as arguments
-    needs binary relocation, False otherwise.
-
-    Args:
-        m_type (str): MIME type of the file
-        m_subtype (str): MIME subtype of the file
-    """
-    subtypes = ("x-executable", "x-sharedlib", "x-mach-binary", "x-pie-executable")
-    if m_type == "application":
-        if m_subtype in subtypes:
-            return True
-    return False
-
-
-def needs_text_relocation(m_type, m_subtype):
-    """Returns True if the file with MIME type/subtype passed as arguments
-    needs text relocation, False otherwise.
-
-    Args:
-        m_type (str): MIME type of the file
-        m_subtype (str): MIME subtype of the file
-    """
-    return m_type == "text"
-
-
 def relocate_macho_binaries(
     path_names, old_layout_root, new_layout_root, prefix_to_prefix, rel, old_prefix, new_prefix
 ):
@@ -420,10 +373,7 @@ def relocate_macho_binaries(
             # normalized paths
             rel_to_orig = macho_make_paths_normal(orig_path_name, rpaths, deps, idpath)
             # replace the relativized paths with normalized paths
-            if is_macos:
-                modify_macho_object(path_name, rpaths, deps, idpath, rel_to_orig)
-            else:
-                modify_object_macholib(path_name, rel_to_orig)
+            modify_macho_object(path_name, rpaths, deps, idpath, rel_to_orig)
             # get the normalized paths in the mach-o binary
             rpaths, deps, idpath = macholib_get_paths(path_name)
             # get the mapping of paths in old prefix to path in new prefix
@@ -431,10 +381,7 @@ def relocate_macho_binaries(
                 rpaths, deps, idpath, old_layout_root, prefix_to_prefix
             )
             # replace the old paths with new paths
-            if is_macos:
-                modify_macho_object(path_name, rpaths, deps, idpath, paths_to_paths)
-            else:
-                modify_object_macholib(path_name, paths_to_paths)
+            modify_macho_object(path_name, rpaths, deps, idpath, paths_to_paths)
             # get the new normalized path in the mach-o binary
             rpaths, deps, idpath = macholib_get_paths(path_name)
             # get the mapping of paths to relative paths in the new prefix
@@ -442,10 +389,7 @@ def relocate_macho_binaries(
                 path_name, new_layout_root, rpaths, deps, idpath
             )
             # replace the new paths with relativized paths in the new prefix
-            if is_macos:
-                modify_macho_object(path_name, rpaths, deps, idpath, paths_to_paths)
-            else:
-                modify_object_macholib(path_name, paths_to_paths)
+            modify_macho_object(path_name, rpaths, deps, idpath, paths_to_paths)
         else:
             # get the paths in the old prefix
             rpaths, deps, idpath = macholib_get_paths(path_name)
@@ -454,10 +398,7 @@ def relocate_macho_binaries(
                 rpaths, deps, idpath, old_layout_root, prefix_to_prefix
             )
             # replace the old paths with new paths
-            if is_macos:
-                modify_macho_object(path_name, rpaths, deps, idpath, paths_to_paths)
-            else:
-                modify_object_macholib(path_name, paths_to_paths)
+            modify_macho_object(path_name, rpaths, deps, idpath, paths_to_paths)
 
 
 def _transform_rpaths(orig_rpaths, orig_root, new_prefixes):
@@ -576,7 +517,7 @@ def make_macho_binaries_relative(cur_path_names, orig_path_names, old_layout_roo
     """
     Replace old RPATHs with paths relative to old_dir in binary files
     """
-    if not is_macos:
+    if not sys.platform == "darwin":
         return
 
     for cur_path, orig_path in zip(cur_path_names, orig_path_names):
@@ -655,30 +596,46 @@ def relocate_text_bin(binaries, prefixes):
     return BinaryFilePrefixReplacer.from_strings_or_bytes(prefixes).apply(binaries)
 
 
-def is_binary(filename):
-    """Returns true if a file is binary, False otherwise
+def is_macho_magic(magic: bytes) -> bool:
+    return (
+        # In order of popularity: 64-bit mach-o le/be, 32-bit mach-o le/be.
+        magic.startswith(b"\xCF\xFA\xED\xFE")
+        or magic.startswith(b"\xFE\xED\xFA\xCF")
+        or magic.startswith(b"\xCE\xFA\xED\xFE")
+        or magic.startswith(b"\xFE\xED\xFA\xCE")
+        # universal binaries: 0xcafebabe be (most common?) or 0xbebafeca le (not sure if exists).
+        # Here we need to disambiguate mach-o and JVM class files. In mach-o the next 4 bytes are
+        # the number of binaries; in JVM class files it's the java version number. We assume there
+        # are less than 10 binaries in a universal binary.
+        or (magic.startswith(b"\xCA\xFE\xBA\xBE") and int.from_bytes(magic[4:8], "big") < 10)
+        or (magic.startswith(b"\xBE\xBA\xFE\xCA") and int.from_bytes(magic[4:8], "little") < 10)
+    )
 
-    Args:
-        filename: file to be tested
 
-    Returns:
-        True or False
-    """
-    m_type, _ = fs.mime_type(filename)
+def is_elf_magic(magic: bytes) -> bool:
+    return magic.startswith(b"\x7FELF")
 
-    msg = "[{0}] -> ".format(filename)
-    if m_type == "application":
-        tty.debug(msg + "BINARY FILE")
-        return True
 
-    tty.debug(msg + "TEXT FILE")
-    return False
+def is_binary(filename: str) -> bool:
+    """Returns true iff a file is likely binary"""
+    with open(filename, "rb") as f:
+        magic = f.read(8)
+
+    return is_macho_magic(magic) or is_elf_magic(magic)
 
 
 # Memoize this due to repeated calls to libraries in the same directory.
 @llnl.util.lang.memoized
 def _exists_dir(dirname):
     return os.path.isdir(dirname)
+
+
+def is_macho_binary(path):
+    try:
+        with open(path, "rb") as f:
+            return is_macho_magic(f.read(4))
+    except OSError:
+        return False
 
 
 def fixup_macos_rpath(root, filename):
@@ -692,7 +649,8 @@ def fixup_macos_rpath(root, filename):
         True if fixups were applied, else False
     """
     abspath = os.path.join(root, filename)
-    if fs.mime_type(abspath) != ("application", "x-mach-binary"):
+
+    if not is_macho_binary(abspath):
         return False
 
     # Get Mach-O header commands
@@ -750,8 +708,8 @@ def fixup_macos_rpath(root, filename):
         # No fixes needed
         return False
 
-    args.append(abspath)
-    executable.Executable("install_name_tool")(*args)
+    with fs.edit_in_place_through_temporary_file(abspath) as temp_path:
+        executable.Executable("install_name_tool")(*args, temp_path)
     return True
 
 

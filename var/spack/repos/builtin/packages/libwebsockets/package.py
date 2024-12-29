@@ -15,6 +15,7 @@ class Libwebsockets(CMakePackage):
 
     license("MIT")
 
+    version("4.3.3", sha256="6fd33527b410a37ebc91bb64ca51bdabab12b076bc99d153d7c5dd405e4bdf90")
     version("2.2.1", sha256="e7f9eaef258e003c9ada0803a9a5636757a5bc0a58927858834fb38a87d18ad2")
     version("2.1.1", sha256="96183cbdfcd6e6a3d9465e854a924b7bfde6c8c6d3384d6159ad797c2e823b4d")
     version("2.1.0", sha256="bcc96aaa609daae4d3f7ab1ee480126709ef4f6a8bf9c85de40aae48e38cce66")
@@ -26,3 +27,6 @@ class Libwebsockets(CMakePackage):
 
     depends_on("zlib-api")
     depends_on("openssl")
+
+    def cmake_args(self):
+        return ["-DLWS_WITHOUT_TESTAPPS=ON"]

@@ -21,13 +21,13 @@ class Gcta(CMakePackage):
     version("1.94.0beta", commit="746e3975ddb463fc7bd15b03c6cc64b023eca497", submodules=True)
     version("1.91.2", sha256="0609d0fba856599a2acc66adefe87725304117acc226360ec2aabf8a0ac64e85")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     conflicts("target=aarch64:", when="@:1.91.2", msg="aarch64 support added in 1.94.0")
 
     depends_on("cmake@3.1:", type="build")
-    depends_on("intel-mkl@2017:", when="target=x86_64:")
+    depends_on("intel-oneapi-mkl", when="target=x86_64:")
     depends_on("openblas", when="target=aarch64:")
     depends_on("eigen@3.3.1", when="@1.91.2")
     depends_on("eigen@3.3.7:", when="@1.94.0beta:")
@@ -50,6 +50,12 @@ class Gcta(CMakePackage):
         for s in strings:
             filter_file(s, "", "CMakeLists.txt", string=True)
 
+    def flag_handler(self, name, flags):
+        # To compile with newer compilers like gcc-13, gcta needs to include <cstdint>:
+        if name == "cxxflags":
+            flags.extend(["-include", "cstdint"])
+        return (flags, None, None)
+
     def cmake_args(self):
         eigen = self.spec["eigen"].prefix.include
         args = [self.define("EIGEN3_INCLUDE_DIR", eigen)]
@@ -60,7 +66,7 @@ class Gcta(CMakePackage):
             args.extend(deps)
 
         if self.spec.satisfies("target=x86_64:"):
-            mkl = self.spec["intel-mkl"].prefix
+            mkl = self.spec["intel-oneapi-mkl"].prefix.mkl.latest
             args.append(self.define("MKLROOT", mkl))
         elif self.spec.satisfies("target=aarch64:"):
             openblas = self.spec["openblas"].prefix

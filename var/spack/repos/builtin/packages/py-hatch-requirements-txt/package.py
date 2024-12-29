@@ -14,6 +14,7 @@ class PyHatchRequirementsTxt(PythonPackage):
 
     license("MIT")
 
+    version("0.4.1", sha256="2c686e5758fd05bb55fa7d0c198fdd481f8d3aaa3c693260f5c0d74ce3547d20")
     version("0.4.0", sha256="800509946e85d9e56d73242fab223ec36db50372e870a04e2dd1fd9bad98455d")
 
     depends_on("python@3.6.1:", type=("build", "run"))

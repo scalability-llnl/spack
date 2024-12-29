@@ -144,14 +144,14 @@ class Adios(AutotoolsPackage):
         extra_args += self.enable_or_disable("shared")
         extra_args += self.enable_or_disable("fortran")
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             env["MPICC"] = spec["mpi"].mpicc
             env["MPICXX"] = spec["mpi"].mpicxx
 
         extra_args += self.with_or_without("mpi", activation_value="prefix")
         extra_args += self.with_or_without("infiniband")
 
-        if "+zlib" in spec:
+        if spec.satisfies("+zlib"):
             extra_args.append(f"--with-zlib={spec['zlib-api'].prefix}")
         else:
             extra_args.append("--without-zlib")

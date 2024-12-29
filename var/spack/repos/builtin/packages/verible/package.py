@@ -35,6 +35,36 @@ class Verible(Package):
     version("master", branch="master")
 
     version(
+        "0.0.3876",
+        sha256="42b933b52cf394fa2cfcb841edb6cf3649f5453bf43178f8f630fc3e626f3e03",
+        url="https://github.com/chipsalliance/verible/archive/refs/tags/v0.0-3876-g2f99cdc9.tar.gz",
+    )
+    version(
+        "0.0.3864",
+        sha256="aa67a8f3f76828779d61ce35fedee0a9020a03214385c76abb18a7d4dabef081",
+        url="https://github.com/chipsalliance/verible/archive/refs/tags/v0.0-3864-g3d821c62.tar.gz",
+    )
+    version(
+        "0.0.3841",
+        sha256="fbc9cb32aa8a64ba60f24dc89e8573c8ea62c45d76113a0f2ab5b73babed5990",
+        url="https://github.com/chipsalliance/verible/archive/refs/tags/v0.0-3841-g5eb8aa34.tar.gz",
+    )
+    version(
+        "0.0.3836",
+        sha256="946625a1527d0a97772ea031ab7358af29e61258c189a2ab0d9533b43e71f35b",
+        url="https://github.com/chipsalliance/verible/archive/refs/tags/v0.0-3836-g86ee9bab.tar.gz",
+    )
+    version(
+        "0.0.3671",
+        sha256="9f492cdc64b047f4e91aece8aa01fd2b846d9695510360dde34980daf5dbe0dd",
+        url="https://github.com/chipsalliance/verible/archive/refs/tags/v0.0-3671-gf2731544.tar.gz",
+    )
+    version(
+        "0.0.3667",
+        sha256="6a13a902bfd37ecabfd772d619251da40e8ad8e44cf75ec2bc8663046200b02a",
+        url="https://github.com/chipsalliance/verible/archive/refs/tags/v0.0-3667-g88d12889.tar.gz",
+    )
+    version(
         "0.0.3624",
         sha256="e5995644e092e72c9d37c492f319b0d4861a3c63d03d1c3cfefe2363bcd6b74f",
         url="https://github.com/chipsalliance/verible/archive/refs/tags/v0.0-3624-gd256d779.tar.gz",
@@ -75,6 +105,14 @@ class Verible(Package):
 
     conflicts("%gcc@:8", msg="Only works with gcc9 and above")
 
+    @when("@:0.0.3841")
     def install(self, spec, prefix):
         bazel("build", "-c", "opt", "//...")
         bazel("run", "-c", "opt", ":install", "--", prefix.bin)
+
+    @when("@0.0.3841:")
+    def install(self, spec, prefix):
+        mkdirp(prefix.bin)
+        bash = which("bash")
+        bazel("build", "-c", "opt", ":install-binaries")
+        bash(".github/bin/simple-install.sh", prefix.bin)

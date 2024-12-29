@@ -19,6 +19,7 @@ class PyImageio(PythonPackage):
 
     license("BSD-2-Clause")
 
+    version("2.35.1", sha256="4952dfeef3c3947957f6d5dedb1f4ca31c6e509a476891062396834048aeed2a")
     version("2.34.0", sha256="ae9732e10acf807a22c389aef193f42215718e16bd06eed0c5bb57e1034a4d53")
     version("2.30.0", sha256="7fc6ad5b5677cb1e58077875a72512aa8c392b6d40885eca0a6ab250efb4b8f4")
     version("2.22.0", sha256="a332d127ec387b2d3dca967fd065a90f1c1a4ba2343570b03fe2cebb6ed064ea")

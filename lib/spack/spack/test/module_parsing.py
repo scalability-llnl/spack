@@ -38,7 +38,7 @@ def test_module_function_change_env(tmp_path):
 
 def test_module_function_no_change(tmpdir):
     src_file = str(tmpdir.join("src_me"))
-    with open(src_file, "w") as f:
+    with open(src_file, "w", encoding="utf-8") as f:
         f.write("echo TEST_MODULE_FUNCTION_PRINT")
 
     old_env = os.environ.copy()

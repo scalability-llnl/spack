@@ -74,7 +74,7 @@ class Bowtie(MakefilePackage):
         makefile.filter("CXX = .*", "CPP = " + env["CXX"])
 
     def build(self, spec, prefix):
-        if "+tbb" in spec:
+        if spec.satisfies("+tbb"):
             make()
         else:
             make("NO_TBB=1")

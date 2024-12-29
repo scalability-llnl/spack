@@ -9,7 +9,7 @@ from spack.package import *
 class Cppcheck(CMakePackage):
     """A tool for static C/C++ code analysis."""
 
-    homepage = "http://cppcheck.sourceforge.net/"
+    homepage = "https://cppcheck.sourceforge.net/"
     url = "https://downloads.sourceforge.net/project/cppcheck/cppcheck/1.78/cppcheck-1.78.tar.bz2"
 
     maintainers("white238")

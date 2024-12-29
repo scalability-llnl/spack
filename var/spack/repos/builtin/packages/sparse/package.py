@@ -10,8 +10,8 @@ from spack.package import *
 class Sparse(MakefilePackage):
     """An open source sparse linear equation solver."""
 
-    homepage = "http://sparse.sourceforge.net/"
-    url = "http://downloads.sourceforge.net/project/sparse/sparse/sparse1.4b/sparse1.4b.tar.gz"
+    homepage = "https://sparse.sourceforge.net/"
+    url = "https://downloads.sourceforge.net/project/sparse/sparse/sparse1.4b/sparse1.4b.tar.gz"
 
     maintainers("wortiz")
 

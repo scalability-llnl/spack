@@ -13,8 +13,11 @@ class Cryptopp(MakefilePackage):
     public-key encryption (RSA, DSA), and a few obsolete/historical encryption
     algorithms (MD5, Panama)."""
 
-    homepage = "https://www.cryptopp.com"
-    url = "https://www.cryptopp.com/cryptopp700.zip"
+    homepage = "https://github.com/weidai11/cryptopp"
+    urls = [
+        "https://github.com/weidai11/cryptopp/releases/download/CRYPTOPP_8_9_0/cryptopp890.zip",
+        "https://www.cryptopp.com/cryptopp700.zip",
+    ]
 
     license("BSL-1.0")
 
@@ -34,8 +37,7 @@ class Cryptopp(MakefilePackage):
     depends_on("gmake", type="build")
 
     def url_for_version(self, version):
-        url = "{0}/{1}{2}.zip"
-        return url.format(self.homepage, self.name, version.joined)
+        return f"https://github.com/weidai11/cryptopp/releases/download/CRYPTOPP_{version.underscored}/cryptopp{version.joined}.zip"
 
     def build(self, spec, prefix):
         cxx_flags = []

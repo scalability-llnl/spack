@@ -62,7 +62,7 @@ class Bart(MakefilePackage, CudaPackage):
         if "^netlib-lapack+lapacke" not in spec:
             env["NOLAPACKE"] = "1"
 
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             cuda_arch = self.spec.variants["cuda_arch"].value
             env["CUDA"] = "1"
             env["CUDA_BASE"] = spec["cuda"].prefix
@@ -79,7 +79,7 @@ class Bart(MakefilePackage, CudaPackage):
         install("python/cfl.py", python_platlib)
         install("python/wslsupport.py", python_platlib)
 
-        if "^python@3:" in spec:
+        if spec.satisfies("^python@3:"):
             install("python/bartview3.py", join_path(prefix.bin, "bartview"))
             filter_file(r"#!/usr/bin/python3", "#!/usr/bin/env python", prefix.bin.bartview)
         else:

@@ -21,12 +21,12 @@ class Libxv(AutotoolsPackage, XorgPackage):
     version("1.0.11", sha256="c4112532889b210e21cf05f46f0f2f8354ff7e1b58061e12d7a76c95c0d47bb1")
     version("1.0.10", sha256="89a664928b625558268de81c633e300948b3752b0593453d7815f8775bab5293")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     depends_on("libx11@1.6:")
     depends_on("libxext")
 
-    depends_on("xextproto")
-    depends_on("videoproto")
+    depends_on("xextproto", type="build")
+    depends_on("videoproto", type=("build", "link"))
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")

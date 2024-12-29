@@ -33,14 +33,14 @@ class Cosp2(MakefilePackage):
     def edit(self, spec, prefix):
         cc = spack_cc
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             cc = spec["mpi"].mpicc
 
         with working_dir(self.build_directory):
             makefile = FileFilter("Makefile.vanilla")
             makefile.filter(r"^CC\s*=.*", "CC = {0}".format(cc))
 
-            if "+double" in spec:
+            if spec.satisfies("+double"):
                 filter_file("DOUBLE_PRECISION = O.*", "DOUBLE_PRECISION = OFF", "Makefile.vanilla")
             copy("Makefile.vanilla", "Makefile")
 

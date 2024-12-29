@@ -92,7 +92,7 @@ class Caffe(CMakePackage, CudaPackage):
                 ]
             )
 
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             if spec.variants["cuda_arch"].value[0] != "none":
                 cuda_arch = spec.variants["cuda_arch"].value
                 args.append(self.define("CUDA_ARCH_NAME", "Manual"))

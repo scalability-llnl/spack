@@ -93,16 +93,15 @@ class ArpackNg(CMakePackage, AutotoolsPackage):
 
     def flag_handler(self, name, flags):
         spec = self.spec
-        iflags = []
         if name == "cflags":
             if spec.satisfies("%oneapi"):
-                iflags.append("-Wno-error=implicit-function-declaration")
+                flags.append("-Wno-error=implicit-function-declaration")
 
         if name == "fflags":
             if self.spec.satisfies("%cce"):
-                iflags.append("-hnopattern")
+                flags.append("-hnopattern")
 
-        return (iflags, None, None)
+        return (flags, None, None)
 
     @property
     def libs(self):
@@ -110,7 +109,7 @@ class ArpackNg(CMakePackage, AutotoolsPackage):
         # query_parameters = self.spec.last_query.extra_parameters
         libraries = ["libarpack"]
 
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             libraries = ["libparpack"] + libraries
 
         return find_libraries(libraries, root=self.prefix, shared=True, recursive=True)
@@ -160,7 +159,7 @@ class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
             + self.enable_or_disable("shared")
         )
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             options.append(f"F77={spec['mpi'].mpif77}")
 
         return options

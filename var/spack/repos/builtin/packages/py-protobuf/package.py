@@ -17,6 +17,8 @@ class PyProtobuf(PythonPackage):
     homepage = "https://developers.google.com/protocol-buffers/"
     pypi = "protobuf/protobuf-3.11.0.tar.gz"
 
+    version("5.28.2", sha256="59379674ff119717404f7454647913787034f03fe7049cbef1d74a97bb4593f0")
+    version("5.27.5", sha256="7fa81bc550201144a32f4478659da06e0b2ebe4d5303aacce9a202a1c3d5178d")
     version("5.26.1", sha256="8ca2a1d97c290ec7b16e4e5dff2e5ae150cc1582f55b5ab300d45cb0dfa90e51")
     version("4.25.3", sha256="25b5d0b42fd000320bd7830b349e3b696435f3b329810427a6bcce6a5492cc5c")
     version("4.24.3", sha256="12e9ad2ec079b833176d2921be2cb24281fa591f0b119b208b788adc48c2561d")
@@ -62,38 +64,18 @@ class PyProtobuf(PythonPackage):
     version("3.3.0", sha256="1cbcee2c45773f57cb6de7ee0eceb97f92b9b69c0178305509b162c0160c1f04")
     version("3.0.0", sha256="ecc40bc30f1183b418fe0ec0c90bc3b53fa1707c4205ee278c6b90479e5b6ff5")
 
-    depends_on("c", type="build")  # generated
-
-    variant("cpp", default=False, when="@:4.21", description="Enable the cpp implementation")
+    depends_on("c", type="build")
 
     depends_on("python", type=("build", "link", "run"))
     depends_on("py-setuptools", type=("build", "run"))
-    # in newer pip versions --install-option does not exist
-    depends_on("py-pip@:23.0", when="+cpp", type=("build", "run"))
     depends_on("py-six@1.9:", when="@3.0:3.17", type=("build", "run"))
 
-    # Setup dependencies for protobuf to use the same minor version as py-protobuf
-    # Handle mapping the 4.x release to the protobuf 3.x releases
-    depends_on("protobuf@3.21", when="+cpp @4.21")
-    # Handle the 3.x series releases
-    for ver in list(range(0, 21)):
-        depends_on(f"protobuf@3.{ver}", when=f"@3.{ver}+cpp")
+    # Minor version must match protobuf
+    for ver in range(26, 29):
+        depends_on(f"protobuf@3.{ver}", when=f"@5.{ver}")
+    for ver in range(21, 26):
+        depends_on(f"protobuf@3.{ver}", when=f"@4.{ver}")
+    for ver in range(0, 21):
+        depends_on(f"protobuf@3.{ver}", when=f"@3.{ver}")
 
-    conflicts("+cpp", when="^python@3.11:")
-    conflicts("%gcc@14", when="@:4.24.3")
-
-    @property
-    def build_directory(self):
-        if self.spec.satisfies("@3.1.0"):
-            return "python"
-        else:
-            return "."
-
-    @when("+cpp")
-    def setup_build_environment(self, env):
-        protobuf_dir = self.spec["protobuf"].libs.directories[0]
-        env.prepend_path("LIBRARY_PATH", protobuf_dir)
-
-    @when("+cpp")
-    def install_options(self, spec, prefix):
-        return ["--cpp_implementation"]
+    conflicts("%gcc@14:", when="@:4.24.3")

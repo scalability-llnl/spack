@@ -63,7 +63,7 @@ class Laghos(MakefilePackage):
         targets.append("TEST_MK=%s" % spec["mfem"].package.test_mk)
         if spec.satisfies("@:2.0"):
             targets.append("CXX=%s" % spec["mpi"].mpicxx)
-        if "+ofast %gcc" in self.spec:
+        if self.spec.satisfies("+ofast %gcc"):
             targets.append("CXXFLAGS = -Ofast -finline-functions")
         return targets
 

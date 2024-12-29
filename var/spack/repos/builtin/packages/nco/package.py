@@ -10,7 +10,7 @@ class Nco(AutotoolsPackage):
     """The NCO toolkit manipulates and analyzes data stored in
     netCDF-accessible formats"""
 
-    homepage = "http://nco.sourceforge.net/"
+    homepage = "https://nco.sourceforge.net/"
     url = "https://github.com/nco/nco/archive/5.0.1.tar.gz"
 
     license("BSD-3-Clause")

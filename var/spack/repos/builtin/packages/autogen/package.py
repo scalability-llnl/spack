@@ -39,7 +39,7 @@ class Autogen(AutotoolsPackage, GNUMirrorPackage):
             "--disable-nls"
         ]
 
-        if "+xml" in spec:
+        if spec.satisfies("+xml"):
             args.append(f"--with-libxml2={spec['libxml2'].prefix}")
         else:
             args.append("--without-libxml2")

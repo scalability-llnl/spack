@@ -58,10 +58,11 @@ class Fastjet(AutotoolsPackage):
     version("2.3.2", sha256="ba8b17fcc8edae16faa74608e8da53e87a8c574aa21a28c985ea0dfedcb95210")
     version("2.3.1", sha256="16c32b420e1aa7d0b6fecddd980ea0f2b7e3c2c66585e06f0eb3142677ab6ccf")
     version("2.3.0", sha256="e452fe4a9716627bcdb726cfb0917f46a7ac31f6006330a6ccc1abc43d9c2d53")
-
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
     # older version use .tar instead of .tar.gz extension, to be added
+
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build", when="plugins=all")
+    depends_on("fortran", type="build", when="plugins=pxcone")
 
     variant("shared", default=True, description="Builds a shared version of the library")
     variant("auto-ptr", default=False, description="Use auto_ptr")
@@ -99,9 +100,9 @@ class Fastjet(AutotoolsPackage):
     )
     variant(
         "plugins",
-        multi=True,
-        values=("all", "cxx") + available_plugins,
-        default="all",
+        values=disjoint_sets(("all",), ("cxx",), available_plugins)
+        .prohibit_empty_set()
+        .with_default("all"),
         description="List of plugins to enable, or 'cxx' or 'all'",
     )
 

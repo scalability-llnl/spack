@@ -11,7 +11,7 @@ class Argtable(AutotoolsPackage):
     options with a minimum of fuss.
     """
 
-    homepage = "http://argtable.sourceforge.net/"
+    homepage = "https://argtable.sourceforge.net/"
     url = "https://sourceforge.net/projects/argtable/files/argtable/argtable-2.13/argtable2-13.tar.gz/download"
 
     license("LGPL-2.0-or-later")

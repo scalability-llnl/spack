@@ -9,18 +9,6 @@ import spack.compiler
 
 
 class Arm(spack.compiler.Compiler):
-    # Subclasses use possible names of C compiler
-    cc_names = ["armclang"]
-
-    # Subclasses use possible names of C++ compiler
-    cxx_names = ["armclang++"]
-
-    # Subclasses use possible names of Fortran 77 compiler
-    f77_names = ["armflang"]
-
-    # Subclasses use possible names of Fortran 90 compiler
-    fc_names = ["armflang"]
-
     # Named wrapper links within lib/spack/env
     link_paths = {
         "cc": os.path.join("arm", "armclang"),
@@ -90,11 +78,3 @@ class Arm(spack.compiler.Compiler):
         return "-fPIC"
 
     required_libs = ["libclang", "libflang"]
-
-    @classmethod
-    def fc_version(cls, fc):
-        return cls.default_version(fc)
-
-    @classmethod
-    def f77_version(cls, f77):
-        return cls.fc_version(f77)

@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import glob
-import inspect
 import platform
 import sys
 
@@ -33,6 +32,8 @@ class IntelTbb(CMakePackage, MakefilePackage):
     license("Apache-2.0")
 
     version("master", branch="master")
+    version("2022.0.0", sha256="e8e89c9c345415b17b30a2db3095ba9d47647611662073f7fbf54ad48b7f3c2a")
+    version("2021.13.0", sha256="3ad5dd08954b39d113dc5b3f8a8dc6dc1fd5250032b7c491eb07aed5c94133e1")
     version("2021.12.0", sha256="c7bb7aa69c254d91b8f0041a71c5bcc3936acb64408a1719aec0b2b7639dd84f")
     version("2021.11.0", sha256="782ce0cab62df9ea125cdea253a50534862b563f1d85d4cda7ad4e77550ac363")
     version("2021.10.0", sha256="487023a955e5a3cc6d3a0d5f89179f9b6c0ae7222613a7185b0227ba0c83700b")
@@ -188,7 +189,7 @@ class IntelTbb(CMakePackage, MakefilePackage):
 
     @property
     def libs(self):
-        shared = True if "+shared" in self.spec else False
+        shared = True if self.spec.satisfies("+shared") else False
         return find_libraries("libtbb*", root=self.prefix, shared=shared, recursive=True)
 
 
@@ -316,14 +317,13 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder, SetupEnviron
 
         if spec.satisfies("@2017.8,2018.1:"):
             # Generate and install the CMake Config file.
-            cmake_args = (
-                "-DTBB_ROOT={0}".format(prefix),
-                "-DTBB_OS={0}".format(platform.system()),
-                "-P",
-                "tbb_config_generator.cmake",
-            )
             with working_dir(join_path(self.stage.source_path, "cmake")):
-                inspect.getmodule(self).cmake(*cmake_args)
+                cmake(
+                    f"-DTBB_ROOT={prefix}",
+                    f"-DTBB_OS={platform.system()}",
+                    "-P",
+                    "tbb_config_generator.cmake",
+                )
 
     @run_after("install")
     def darwin_fix(self):

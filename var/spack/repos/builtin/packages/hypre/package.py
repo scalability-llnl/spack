@@ -19,13 +19,14 @@ class Hypre(AutotoolsPackage, CudaPackage, ROCmPackage):
     git = "https://github.com/hypre-space/hypre.git"
     tags = ["e4s", "radiuss"]
 
-    maintainers("ulrikeyang", "osborn9", "balay")
+    maintainers("ulrikeyang", "osborn9", "victorapm", "balay")
 
     test_requires_compiler = True
 
     license("MIT")
 
     version("develop", branch="master")
+    version("2.32.0", sha256="2277b6f01de4a7d0b01cfe12615255d9640eaa02268565a7ce1a769beab25fa1")
     version("2.31.0", sha256="9a7916e2ac6615399de5010eb39c604417bb3ea3109ac90e199c5c63b0cb4334")
     version("2.30.0", sha256="8e2af97d9a25bf44801c6427779f823ebc6f306438066bba7fcbc2a5f9b78421")
     version("2.29.0", sha256="98b72115407a0e24dbaac70eccae0da3465f8f999318b2c9241631133f42d511")
@@ -73,6 +74,7 @@ class Hypre(AutotoolsPackage, CudaPackage, ROCmPackage):
     variant(
         "superlu-dist", default=False, description="Activates support for SuperLU_Dist library"
     )
+    variant("lapack", default=True, description="Use external blas/lapack")
     variant("int64", default=False, description="Use 64bit integers")
     variant("mixedint", default=False, description="Use 64bit integers while reducing memory use")
     variant("complex", default=False, description="Use complex values")
@@ -122,8 +124,8 @@ class Hypre(AutotoolsPackage, CudaPackage, ROCmPackage):
         filter_file("\tmake", "\t$(MAKE)", "src/seq_mv/Makefile")
 
     depends_on("mpi", when="+mpi")
-    depends_on("blas")
-    depends_on("lapack")
+    depends_on("blas", when="+lapack")
+    depends_on("lapack", when="+lapack")
     depends_on("magma", when="+magma")
     depends_on("superlu-dist", when="+superlu-dist+mpi")
     depends_on("rocsparse", when="+rocm")
@@ -139,17 +141,11 @@ class Hypre(AutotoolsPackage, CudaPackage, ROCmPackage):
     gpu_pkgs = ["magma", "umpire"]
     for sm_ in CudaPackage.cuda_arch_values:
         for pkg in gpu_pkgs:
-            depends_on(
-                "{0}+cuda cuda_arch={1}".format(pkg, sm_),
-                when="+{0}+cuda cuda_arch={1}".format(pkg, sm_),
-            )
+            depends_on(f"{pkg}+cuda cuda_arch={sm_}", when=f"+{pkg}+cuda cuda_arch={sm_}")
 
     for gfx in ROCmPackage.amdgpu_targets:
         for pkg in gpu_pkgs:
-            depends_on(
-                "{0}+rocm amdgpu_target={1}".format(pkg, gfx),
-                when="+{0}+rocm amdgpu_target={1}".format(pkg, gfx),
-            )
+            depends_on(f"{pkg}+rocm amdgpu_target={gfx}", when=f"+{pkg}+rocm amdgpu_target={gfx}")
 
     # hypre@:2.28.0 uses deprecated cuSPARSE functions/types (e.g. csrsv2Info_t).
     depends_on("cuda@:11", when="@:2.28.0+cuda")
@@ -193,25 +189,30 @@ class Hypre(AutotoolsPackage, CudaPackage, ROCmPackage):
 
     def url_for_version(self, version):
         if version >= Version("2.12.0"):
-            url = "https://github.com/hypre-space/hypre/archive/v{0}.tar.gz"
+            url = f"https://github.com/hypre-space/hypre/archive/v{version}.tar.gz"
         else:
-            url = "http://computing.llnl.gov/project/linear_solvers/download/hypre-{0}.tar.gz"
+            url = (
+                f"http://computing.llnl.gov/project/linear_solvers/download/hypre-{version}.tar.gz"
+            )
 
-        return url.format(version)
+        return url
 
     def configure_args(self):
         spec = self.spec
-        # Note: --with-(lapack|blas)_libs= needs space separated list of names
-        lapack = spec["lapack"].libs
-        blas = spec["blas"].libs
+        configure_args = [f"--prefix={prefix}"]
 
-        configure_args = [
-            "--prefix=%s" % prefix,
-            "--with-lapack-libs=%s" % " ".join(lapack.names),
-            "--with-lapack-lib-dirs=%s" % " ".join(lapack.directories),
-            "--with-blas-libs=%s" % " ".join(blas.names),
-            "--with-blas-lib-dirs=%s" % " ".join(blas.directories),
-        ]
+        # Note: --with-(lapack|blas)_libs= needs space separated list of names
+        if spec.satisfies("+lapack"):
+            configure_args.append("--with-lapack")
+            configure_args.append("--with-blas")
+            configure_args.append("--with-lapack-libs=%s" % " ".join(spec["lapack"].libs.names))
+            configure_args.append("--with-blas-libs=%s" % " ".join(spec["blas"].libs.names))
+            configure_args.append(
+                "--with-lapack-lib-dirs=%s" % " ".join(spec["lapack"].libs.directories)
+            )
+            configure_args.append(
+                "--with-blas-lib-dirs=%s" % " ".join(spec["blas"].libs.directories)
+            )
 
         if spec.satisfies("+mpi"):
             os.environ["CC"] = spec["mpi"].mpicc
@@ -220,8 +221,8 @@ class Hypre(AutotoolsPackage, CudaPackage, ROCmPackage):
                 os.environ["F77"] = spec["mpi"].mpif77
                 os.environ["FC"] = spec["mpi"].mpifc
             configure_args.append("--with-MPI")
-            configure_args.append("--with-MPI-lib-dirs={0}".format(spec["mpi"].prefix.lib))
-            configure_args.append("--with-MPI-include={0}".format(spec["mpi"].prefix.include))
+            configure_args.append(f"--with-MPI-lib-dirs={spec['mpi'].prefix.lib}")
+            configure_args.append(f"--with-MPI-include={spec['mpi'].prefix.include}")
         else:
             configure_args.append("--without-MPI")
 
@@ -248,7 +249,9 @@ class Hypre(AutotoolsPackage, CudaPackage, ROCmPackage):
             configure_args.append("--without-superlu")
             # MLI and FEI do not build without superlu on Linux
             configure_args.append("--without-mli")
-            configure_args.append("--without-fei")
+            # FEI option was removed in hypre 2.17
+            if self.version < Version("2.17.0"):
+                configure_args.append("--without-fei")
 
         if spec.satisfies("+superlu-dist"):
             configure_args.append(
@@ -278,11 +281,11 @@ class Hypre(AutotoolsPackage, CudaPackage, ROCmPackage):
             if cuda_arch_vals:
                 cuda_arch_sorted = list(sorted(cuda_arch_vals, reverse=True))
                 cuda_arch = cuda_arch_sorted[0]
-                configure_args.append("--with-gpu-arch={0}".format(cuda_arch))
+                configure_args.append(f"--with-gpu-arch={cuda_arch}")
             # New in 2.21.0: replaces --enable-cub
             if spec.satisfies("@2.21.0:"):
                 configure_args.append("--enable-device-memory-pool")
-                configure_args.append("--with-cuda-home={0}".format(spec["cuda"].prefix))
+                configure_args.append(f"--with-cuda-home={spec['cuda'].prefix}")
             else:
                 configure_args.append("--enable-cub")
             if spec.satisfies("+cublas"):
@@ -304,14 +307,14 @@ class Hypre(AutotoolsPackage, CudaPackage, ROCmPackage):
                     "--with-hip",
                     "--enable-rocrand",
                     "--enable-rocsparse",
-                    "--with-extra-CUFLAGS={0}".format(rocm_inc),
+                    f"--with-extra-CUFLAGS={rocm_inc}",
                 ]
             )
             rocm_arch_vals = spec.variants["amdgpu_target"].value
             if rocm_arch_vals:
                 rocm_arch_sorted = list(sorted(rocm_arch_vals, reverse=True))
                 rocm_arch = rocm_arch_sorted[0]
-                configure_args.append("--with-gpu-arch={0}".format(rocm_arch))
+                configure_args.append(f"--with-gpu-arch={rocm_arch}")
             if spec.satisfies("+rocblas"):
                 configure_args.append("--enable-rocblas")
         else:
@@ -333,7 +336,7 @@ class Hypre(AutotoolsPackage, CudaPackage, ROCmPackage):
             configure_args.append("--with-magma-lib=%s" % spec["magma"].libs)
             configure_args.append("--with-magma")
 
-        if "+gpu-aware-mpi" in spec:
+        if spec.satisfies("+gpu-aware-mpi"):
             configure_args.append("--enable-gpu-aware-mpi")
 
         configure_args.extend(self.enable_or_disable("fortran"))
@@ -352,7 +355,7 @@ class Hypre(AutotoolsPackage, CudaPackage, ROCmPackage):
             env.set("CUDA_HOME", spec["cuda"].prefix)
             env.set("CUDA_PATH", spec["cuda"].prefix)
             # In CUDA builds hypre currently doesn't handle flags correctly
-            env.append_flags("CXXFLAGS", "-O2" if "~debug" in spec else "-g")
+            env.append_flags("CXXFLAGS", "-O2" if spec.satisfies("~debug") else "-g")
 
         if spec.satisfies("+rocm"):
             # As of 2022/04/05, the following are set by 'llvm-amdgpu' and
@@ -378,8 +381,8 @@ class Hypre(AutotoolsPackage, CudaPackage, ROCmPackage):
             make("install")
             if spec.satisfies("+gptune"):
                 make("test")
-                self.run_test("mkdir", options=["-p", self.prefix.bin])
-                self.run_test("cp", options=["test/ij", self.prefix.bin + "/."])
+                mkdirp(self.prefix.bin)
+                install(join_path("test", "ij"), self.prefix.bin)
 
     extra_install_tests = join_path("src", "examples")
 
@@ -387,36 +390,34 @@ class Hypre(AutotoolsPackage, CudaPackage, ROCmPackage):
     def cache_test_sources(self):
         cache_extra_test_sources(self, self.extra_install_tests)
 
+        # Customize the makefile to use the installed package
+        makefile = join_path(install_test_root(self), self.extra_install_tests, "Makefile")
+        filter_file(r"^HYPRE_DIR\s* =.*", f"HYPRE_DIR = {self.prefix}", makefile)
+        filter_file(r"^CC\s*=.*", f"CC = {os.environ['CC']}", makefile)
+        filter_file(r"^F77\s*=.*", f"F77 = {os.environ['F77']}", makefile)
+        filter_file(r"^CXX\s*=.*", f"CXX = {os.environ['CXX']}", makefile)
+
     @property
     def _cached_tests_work_dir(self):
         """The working directory for cached test sources."""
         return join_path(self.test_suite.current_test_cache_dir, self.extra_install_tests)
 
-    def test(self):
-        """Perform smoke test on installed HYPRE package."""
+    def test_bigint(self):
+        """build and run bigint tests"""
         if "+mpi" not in self.spec:
-            print("Skipping: HYPRE must be installed with +mpi to run tests")
-            return
+            raise SkipTest("Package must be installed with +mpi")
 
-        # Build copied and cached test examples
-        self.run_test(
-            "make",
-            ["HYPRE_DIR={0}".format(self.prefix), "bigint"],
-            purpose="test: building selected examples",
-            work_dir=self._cached_tests_work_dir,
-        )
+        # build and run cached examples
+        with working_dir(self._cached_tests_work_dir):
+            make = which("make")
+            make("bigint")
 
-        # Run the examples built above
-        for exe in ["./ex5big", "./ex15big"]:
-            self.run_test(
-                exe,
-                [],
-                [],
-                installed=False,
-                purpose="test: ensuring {0} runs".format(exe),
-                skip_missing=True,
-                work_dir=self._cached_tests_work_dir,
-            )
+            for name in ["ex5big", "ex15big"]:
+                with test_part(self, f"test_bigint_{name}", f"ensure {name} runs"):
+                    exe = which(name)
+                    if exe is None:
+                        raise SkipTest(f"{name} does not exist in version {self.version}")
+                    exe()
 
     @property
     def headers(self):
@@ -432,6 +433,6 @@ class Hypre(AutotoolsPackage, CudaPackage, ROCmPackage):
         """Export the hypre library.
         Sample usage: spec['hypre'].libs.ld_flags
         """
-        is_shared = "+shared" in self.spec
+        is_shared = self.spec.satisfies("+shared")
         libs = find_libraries("libHYPRE", root=self.prefix, shared=is_shared, recursive=True)
         return libs or None

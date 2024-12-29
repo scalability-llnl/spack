@@ -26,6 +26,7 @@ class Dd4hep(CMakePackage):
     license("LGPL-3.0-or-later")
 
     version("master", branch="master")
+    version("1.30", sha256="02de46151e945eff58cffd84b4b86d35051f4436608199c3efb4d2e1183889fe")
     version("1.29", sha256="435d25a7ef093d8bf660f288b5a89b98556b4c1c293c55b93bf641fb4cba77e9")
     version("1.28", sha256="b28d671eda0154073873a044a384486e66f1f200065deca99537aa84f07328ad")
     version("1.27.2", sha256="09d8acd743d010274562b856d39e2a88aeaf89cf287a4148f52223b0cd960ab2")
@@ -140,6 +141,9 @@ class Dd4hep(CMakePackage):
     # See https://github.com/AIDASoft/DD4hep/pull/1191
     conflicts("^geant4 cxxstd=11", when="+ddg4")
 
+    # See https://github.com/AIDASoft/DD4hep/issues/1210
+    conflicts("^root@6.31.1:", when="@:1.27")
+
     @property
     def libs(self):
         # We need to override libs here, because we don't build a libdd4hep so
@@ -170,32 +174,25 @@ class Dd4hep(CMakePackage):
             # However, with spack it is preferrable to have a proper external
             # dependency, so we disable it.
             self.define("DD4HEP_LOAD_ASSIMP", False),
-            "-DCMAKE_CXX_STANDARD={0}".format(cxxstd),
-            "-DBUILD_TESTING={0}".format(self.run_tests),
-            "-DBOOST_ROOT={0}".format(spec["boost"].prefix),
-            "-DBoost_NO_BOOST_CMAKE=ON",
+            self.define("CMAKE_CXX_STANDARD", cxxstd),
+            self.define("BUILD_TESTING", self.run_tests),
+            self.define("BOOST_ROOT", spec["boost"].prefix),
+            self.define("Boost_NO_BOOST_CMAKE", True),
         ]
-        subpackages = []
-        if spec.satisfies("+ddg4"):
-            subpackages += ["DDG4"]
-        if spec.satisfies("+ddcond"):
-            subpackages += ["DDCond"]
-        if spec.satisfies("+ddcad"):
-            subpackages += ["DDCAD"]
-        if spec.satisfies("+ddrec"):
-            subpackages += ["DDRec"]
-        if spec.satisfies("+dddetectors"):
-            subpackages += ["DDDetectors"]
-        if spec.satisfies("+ddalign"):
-            subpackages += ["DDAlign"]
-        if spec.satisfies("+dddigi"):
-            subpackages += ["DDDigi"]
-        if spec.satisfies("+ddeve"):
-            subpackages += ["DDEve"]
-        if spec.satisfies("+utilityapps"):
-            subpackages += ["UtilityApps"]
-        subpackages = " ".join(subpackages)
-        args += [self.define("DD4HEP_BUILD_PACKAGES", subpackages)]
+
+        packages = [
+            "DDG4",
+            "DDCond",
+            "DDCAD",
+            "DDRec",
+            "DDDetectors",
+            "DDAlign",
+            "DDDigi",
+            "DDEve",
+            "UtilityApps",
+        ]
+        enabled_packages = [p for p in packages if self.spec.variants[p.lower()].value]
+        args.append(self.define("DD4HEP_BUILD_PACKAGES", " ".join(enabled_packages)))
         return args
 
     def setup_run_environment(self, env):

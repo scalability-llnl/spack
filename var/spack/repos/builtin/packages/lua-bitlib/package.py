@@ -10,7 +10,7 @@ from spack.package import *
 class LuaBitlib(LuaPackage):
     """Lua-jit-like bitwise operations for lua"""
 
-    homepage = "http://luaforge.net/projects/bitlib"
+    homepage = "https://luaforge.net/projects/bitlib"
     url = "https://luarocks.org/manifests/luarocks/bitlib-23-2.src.rock"
 
     version(

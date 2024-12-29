@@ -41,6 +41,7 @@ import spack.patch
 import spack.provider_index
 import spack.spec
 import spack.tag
+import spack.tengine
 import spack.util.file_cache
 import spack.util.git
 import spack.util.naming as nm
@@ -81,43 +82,6 @@ def namespace_from_fullname(fullname):
     return namespace
 
 
-class _PrependFileLoader(importlib.machinery.SourceFileLoader):
-    def __init__(self, fullname, path, prepend=None):
-        super(_PrependFileLoader, self).__init__(fullname, path)
-        self.prepend = prepend
-
-    def path_stats(self, path):
-        stats = super(_PrependFileLoader, self).path_stats(path)
-        if self.prepend:
-            stats["size"] += len(self.prepend) + 1
-        return stats
-
-    def get_data(self, path):
-        data = super(_PrependFileLoader, self).get_data(path)
-        if path != self.path or self.prepend is None:
-            return data
-        else:
-            return self.prepend.encode() + b"\n" + data
-
-
-class RepoLoader(_PrependFileLoader):
-    """Loads a Python module associated with a package in specific repository"""
-
-    #: Code in ``_package_prepend`` is prepended to imported packages.
-    #:
-    #: Spack packages are expected to call `from spack.package import *`
-    #: themselves, but we are allowing a deprecation period before breaking
-    #: external repos that don't do this yet.
-    _package_prepend = "from spack.package import *"
-
-    def __init__(self, fullname, repo, package_name):
-        self.repo = repo
-        self.package_name = package_name
-        self.package_py = repo.filename_for_package_name(package_name)
-        self.fullname = fullname
-        super().__init__(self.fullname, self.package_py, prepend=self._package_prepend)
-
-
 class SpackNamespaceLoader:
     def create_module(self, spec):
         return SpackNamespace(spec.name)
@@ -149,12 +113,12 @@ class ReposFinder:
     @contextlib.contextmanager
     def switch_repo(self, substitute: "RepoType"):
         """Switch the current repository list for the duration of the context manager."""
-        old = self.current_repository
+        old = self._repo
         try:
-            self.current_repository = substitute
+            self._repo = substitute
             yield
         finally:
-            self.current_repository = old
+            self._repo = old
 
     def find_spec(self, fullname, python_path, target=None):
         # "target" is not None only when calling importlib.reload()
@@ -187,7 +151,8 @@ class ReposFinder:
                 # With 2 nested conditionals we can call "repo.real_name" only once
                 package_name = repo.real_name(module_name)
                 if package_name:
-                    return RepoLoader(fullname, repo, package_name)
+                    module_path = repo.filename_for_package_name(package_name)
+                    return importlib.machinery.SourceFileLoader(fullname, module_path)
 
             # We are importing a full namespace like 'spack.pkg.builtin'
             if fullname == repo.full_namespace:
@@ -216,9 +181,9 @@ NOT_PROVIDED = object()
 def packages_path():
     """Get the test repo if it is active, otherwise the builtin repo."""
     try:
-        return spack.repo.PATH.get_repo("builtin.mock").packages_path
-    except spack.repo.UnknownNamespaceError:
-        return spack.repo.PATH.get_repo("builtin").packages_path
+        return PATH.get_repo("builtin.mock").packages_path
+    except UnknownNamespaceError:
+        return PATH.get_repo("builtin").packages_path
 
 
 class GitExe:
@@ -314,7 +279,7 @@ def add_package_to_git_stage(packages):
     git = GitExe()
 
     for pkg_name in packages:
-        filename = spack.repo.PATH.filename_for_package_name(pkg_name)
+        filename = PATH.filename_for_package_name(pkg_name)
         if not os.path.isfile(filename):
             tty.die("No such package: %s.  Path does not exist:" % pkg_name, filename)
 
@@ -365,9 +330,9 @@ class SpackNamespace(types.ModuleType):
 
     def __getattr__(self, name):
         """Getattr lazily loads modules if they're not already loaded."""
-        submodule = self.__package__ + "." + name
+        submodule = f"{self.__package__}.{name}"
         try:
-            setattr(self, name, __import__(submodule))
+            setattr(self, name, importlib.import_module(submodule))
         except ImportError:
             msg = "'{0}' object has no attribute {1}"
             raise AttributeError(msg.format(type(self), name))
@@ -590,7 +555,7 @@ class RepoIndex:
         self,
         package_checker: FastPackageChecker,
         namespace: str,
-        cache: "spack.caches.FileCacheType",
+        cache: spack.util.file_cache.FileCache,
     ):
         self.checker = package_checker
         self.packages_path = self.checker.packages_path
@@ -683,7 +648,7 @@ class RepoPath:
     def __init__(
         self,
         *repos: Union[str, "Repo"],
-        cache: "spack.caches.FileCacheType",
+        cache: Optional[spack.util.file_cache.FileCache],
         overrides: Optional[Dict[str, Any]] = None,
     ) -> None:
         self.repos: List[Repo] = []
@@ -696,6 +661,7 @@ class RepoPath:
         for repo in repos:
             try:
                 if isinstance(repo, str):
+                    assert cache is not None, "cache must hold a value, when repo is a string"
                     repo = Repo(repo, cache=cache, overrides=overrides)
                 repo.finder(self)
                 self.put_last(repo)
@@ -706,6 +672,10 @@ class RepoPath:
                     "To remove the bad repository, run this command:",
                     f"    spack repo rm {repo}",
                 )
+
+    def ensure_unwrapped(self) -> "RepoPath":
+        """Ensure we unwrap this object from any dynamic wrapper (like Singleton)"""
+        return self
 
     def put_first(self, repo: "Repo") -> None:
         """Add repo first in the search path."""
@@ -930,6 +900,16 @@ class RepoPath:
     def __contains__(self, pkg_name):
         return self.exists(pkg_name)
 
+    def marshal(self):
+        return (self.repos,)
+
+    @staticmethod
+    def unmarshal(repos):
+        return RepoPath(*repos, cache=None)
+
+    def __reduce__(self):
+        return RepoPath.unmarshal, self.marshal()
+
 
 class Repo:
     """Class representing a package repository in the filesystem.
@@ -950,7 +930,7 @@ class Repo:
         self,
         root: str,
         *,
-        cache: "spack.caches.FileCacheType",
+        cache: spack.util.file_cache.FileCache,
         overrides: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Instantiate a package repository from a filesystem path.
@@ -1051,7 +1031,7 @@ class Repo:
     def _read_config(self) -> Dict[str, str]:
         """Check for a YAML config file in this db's root directory."""
         try:
-            with open(self.config_file) as reponame_file:
+            with open(self.config_file, encoding="utf-8") as reponame_file:
                 yaml_data = syaml.load(reponame_file)
 
                 if (
@@ -1266,7 +1246,7 @@ class Repo:
             raise RepoError(msg) from e
 
         cls = getattr(module, class_name)
-        if not inspect.isclass(cls):
+        if not isinstance(cls, type):
             tty.die(f"{pkg_name}.{class_name} is not a class")
 
         # Clear any prior changes to class attributes in case the class was loaded from the
@@ -1318,6 +1298,20 @@ class Repo:
 
     def __contains__(self, pkg_name: str) -> bool:
         return self.exists(pkg_name)
+
+    @staticmethod
+    def unmarshal(root, cache, overrides):
+        """Helper method to unmarshal keyword arguments"""
+        return Repo(root, cache=cache, overrides=overrides)
+
+    def marshal(self):
+        cache = self._cache
+        if isinstance(cache, llnl.util.lang.Singleton):
+            cache = cache.instance
+        return self.root, cache, self.overrides
+
+    def __reduce__(self):
+        return Repo.unmarshal, self.marshal()
 
 
 RepoType = Union[Repo, RepoPath]
@@ -1371,7 +1365,7 @@ def create_repo(root, namespace=None, subdir=packages_dir_name):
         packages_path = os.path.join(root, subdir)
 
         fs.mkdirp(packages_path)
-        with open(config_path, "w") as config:
+        with open(config_path, "w", encoding="utf-8") as config:
             config.write("repo:\n")
             config.write(f"  namespace: '{namespace}'\n")
             if subdir != packages_dir_name:
@@ -1411,9 +1405,7 @@ def _path(configuration=None):
     return create(configuration=configuration)
 
 
-def create(
-    configuration: Union["spack.config.Configuration", llnl.util.lang.Singleton]
-) -> RepoPath:
+def create(configuration: spack.config.Configuration) -> RepoPath:
     """Create a RepoPath from a configuration object.
 
     Args:
@@ -1436,7 +1428,7 @@ def create(
 
 
 #: Singleton repo path instance
-PATH: Union[RepoPath, llnl.util.lang.Singleton] = llnl.util.lang.Singleton(_path)
+PATH: RepoPath = llnl.util.lang.Singleton(_path)  # type: ignore
 
 # Add the finder to sys.meta_path
 REPOS_FINDER = ReposFinder()
@@ -1495,12 +1487,12 @@ class MockRepositoryBuilder:
                 ``spack.dependency.default_deptype`` and ``spack.spec.Spec()`` are used.
         """
         dependencies = dependencies or []
-        context = {"cls_name": spack.util.naming.mod_to_class(name), "dependencies": dependencies}
+        context = {"cls_name": nm.mod_to_class(name), "dependencies": dependencies}
         template = spack.tengine.make_environment().get_template("mock-repository/package.pyt")
         text = template.render(context)
         package_py = self.recipe_filename(name)
         fs.mkdirp(os.path.dirname(package_py))
-        with open(package_py, "w") as f:
+        with open(package_py, "w", encoding="utf-8") as f:
             f.write(text)
 
     def remove(self, name):
@@ -1554,7 +1546,7 @@ class UnknownPackageError(UnknownEntityError):
                 long_msg = "Use 'spack create' to create a new package."
 
                 if not repo:
-                    repo = spack.repo.PATH
+                    repo = PATH
 
                 # We need to compare the base package name
                 pkg_name = name.rsplit(".", 1)[-1]

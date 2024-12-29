@@ -10,7 +10,7 @@ class Jackcess(Package):
     """Jackcess is a pure Java library for reading from and writing to
     MS Access databases (currently supporting versions 2000-2016)."""
 
-    homepage = "http://jackcess.sourceforge.net/"
+    homepage = "https://jackcess.sourceforge.net/"
     url = "https://sourceforge.net/projects/jackcess/files/jackcess/2.1.12/jackcess-2.1.12.jar"
 
     version(

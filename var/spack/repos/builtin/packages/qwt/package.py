@@ -14,7 +14,7 @@ class Qwt(QMakePackage):
     ranges of type double.
     """
 
-    homepage = "http://qwt.sourceforge.net/"
+    homepage = "https://qwt.sourceforge.net/"
     url = "https://sourceforge.net/projects/qwt/files/qwt/6.1.3/qwt-6.1.3.tar.bz2"
 
     license("custom")

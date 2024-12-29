@@ -21,6 +21,7 @@ class RPkgmaker(RPackage):
 
     license("GPL-2.0-or-later")
 
+    version("0.32.10", sha256="972b0473a64408ccc4841fa3f09a567cc32811e69c3c7e42a2f391a5eb2e2933")
     version("0.32.8", sha256="0ff3578d2c051b544c3f105cfe4801575aac1564add048f9e952c53a8ccd1745")
     version("0.32.2", sha256="ce45b22def771a9c90a414093823e6befe7e23489c500eeccee5154b44d3ef91")
     version("0.27", sha256="17a289d8f596ba5637b07077b3bff22411a2c2263c0b7de59fe848666555ec6a")

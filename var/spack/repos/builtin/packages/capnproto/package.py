@@ -53,12 +53,12 @@ class Capnproto(AutotoolsPackage):
     def configure_args(self):
         args = []
 
-        if "+tls" in self.spec:
+        if self.spec.satisfies("+tls"):
             args.append("--with-openssl")
         else:
             args.append("--without-openssl")
 
-        if "+zlib" in self.spec:
+        if self.spec.satisfies("+zlib"):
             args.append("--with-zlib")
         else:
             args.append("--without-zlib")

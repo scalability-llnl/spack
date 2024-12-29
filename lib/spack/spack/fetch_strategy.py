@@ -24,12 +24,14 @@ in order to build it.  They need to define the following methods:
 """
 import copy
 import functools
+import http.client
 import os
 import os.path
 import re
 import shutil
 import urllib.error
 import urllib.parse
+import urllib.request
 from pathlib import PurePath
 from typing import List, Optional
 
@@ -44,7 +46,6 @@ from llnl.util.symlink import symlink
 import spack.config
 import spack.error
 import spack.oci.opener
-import spack.url
 import spack.util.archive
 import spack.util.crypto as crypto
 import spack.util.git
@@ -53,23 +54,10 @@ import spack.util.web as web_util
 import spack.version
 import spack.version.git_ref_lookup
 from spack.util.compression import decompressor_for
-from spack.util.executable import CommandNotFoundError, which
+from spack.util.executable import CommandNotFoundError, Executable, which
 
 #: List of all fetch strategies, created by FetchStrategy metaclass.
 all_strategies = []
-
-CONTENT_TYPE_MISMATCH_WARNING_TEMPLATE = (
-    "The contents of {subject} look like {content_type}.  Either the URL"
-    " you are trying to use does not exist or you have an internet gateway"
-    " issue.  You can remove the bad archive using 'spack clean"
-    " <package>', then try again using the correct URL."
-)
-
-
-def warn_content_type_mismatch(subject, content_type="HTML"):
-    tty.warn(
-        CONTENT_TYPE_MISMATCH_WARNING_TEMPLATE.format(subject=subject, content_type=content_type)
-    )
 
 
 def _needs_stage(fun):
@@ -245,38 +233,31 @@ class URLFetchStrategy(FetchStrategy):
 
     # these are checksum types. The generic 'checksum' is deprecated for
     # specific hash names, but we need it for backward compatibility
-    optional_attrs = list(crypto.hashes.keys()) + ["checksum"]
+    optional_attrs = [*crypto.hashes.keys(), "checksum"]
 
-    def __init__(self, url=None, checksum=None, **kwargs):
+    def __init__(self, *, url: str, checksum: Optional[str] = None, **kwargs) -> None:
         super().__init__(**kwargs)
 
-        # Prefer values in kwargs to the positionals.
-        self.url = kwargs.get("url", url)
+        self.url = url
         self.mirrors = kwargs.get("mirrors", [])
 
         # digest can be set as the first argument, or from an explicit
         # kwarg by the hash name.
-        self.digest = kwargs.get("checksum", checksum)
+        self.digest: Optional[str] = checksum
         for h in self.optional_attrs:
             if h in kwargs:
                 self.digest = kwargs[h]
 
-        self.expand_archive = kwargs.get("expand", True)
-        self.extra_options = kwargs.get("fetch_options", {})
-        self._curl = None
-
-        self.extension = kwargs.get("extension", None)
-
-        if not self.url:
-            raise ValueError("URLFetchStrategy requires a url for fetching.")
+        self.expand_archive: bool = kwargs.get("expand", True)
+        self.extra_options: dict = kwargs.get("fetch_options", {})
+        self._curl: Optional[Executable] = None
+        self.extension: Optional[str] = kwargs.get("extension", None)
+        self._effective_url: Optional[str] = None
 
     @property
-    def curl(self):
+    def curl(self) -> Executable:
         if not self._curl:
-            try:
-                self._curl = which("curl", required=True)
-            except CommandNotFoundError as exc:
-                tty.error(str(exc))
+            self._curl = web_util.require_curl()
         return self._curl
 
     def source_id(self):
@@ -297,27 +278,23 @@ class URLFetchStrategy(FetchStrategy):
     @_needs_stage
     def fetch(self):
         if self.archive_file:
-            tty.debug("Already downloaded {0}".format(self.archive_file))
+            tty.debug(f"Already downloaded {self.archive_file}")
             return
 
-        url = None
-        errors = []
+        errors: List[Exception] = []
         for url in self.candidate_urls:
-            if not web_util.url_exists(url):
-                tty.debug("URL does not exist: " + url)
-                continue
-
             try:
                 self._fetch_from_url(url)
                 break
             except FailedDownloadError as e:
-                errors.append(str(e))
-
-        for msg in errors:
-            tty.debug(msg)
+                errors.extend(e.exceptions)
+        else:
+            raise FailedDownloadError(*errors)
 
         if not self.archive_file:
-            raise FailedDownloadError(url)
+            raise FailedDownloadError(
+                RuntimeError(f"Missing archive {self.archive_file} after fetching")
+            )
 
     def _fetch_from_url(self, url):
         if spack.config.get("config:url_fetch_method") == "curl":
@@ -331,32 +308,45 @@ class URLFetchStrategy(FetchStrategy):
         # redirects properly.
         content_types = re.findall(r"Content-Type:[^\r\n]+", headers, flags=re.IGNORECASE)
         if content_types and "text/html" in content_types[-1]:
-            warn_content_type_mismatch(self.archive_file or "the archive")
+            msg = (
+                f"The contents of {self.archive_file or 'the archive'} fetched from {self.url} "
+                " looks like HTML. This can indicate a broken URL, or an internet gateway issue."
+            )
+            if self._effective_url != self.url:
+                msg += f" The URL redirected to {self._effective_url}."
+            tty.warn(msg)
 
     @_needs_stage
     def _fetch_urllib(self, url):
         save_file = self.stage.save_filename
-        tty.msg("Fetching {0}".format(url))
 
-        # Run urllib but grab the mime type from the http headers
+        request = urllib.request.Request(url, headers={"User-Agent": web_util.SPACK_USER_AGENT})
+
         try:
-            url, headers, response = web_util.read_from_url(url)
-        except web_util.SpackWebError as e:
+            response = web_util.urlopen(request)
+        except (TimeoutError, urllib.error.URLError) as e:
             # clean up archive on failure.
             if self.archive_file:
                 os.remove(self.archive_file)
             if os.path.lexists(save_file):
                 os.remove(save_file)
-            msg = "urllib failed to fetch with error {0}".format(e)
-            raise FailedDownloadError(url, msg)
+            raise FailedDownloadError(e) from e
+
+        tty.msg(f"Fetching {url}")
 
         if os.path.lexists(save_file):
             os.remove(save_file)
 
-        with open(save_file, "wb") as _open_file:
-            shutil.copyfileobj(response, _open_file)
+        with open(save_file, "wb") as f:
+            shutil.copyfileobj(response, f)
 
-        self._check_headers(str(headers))
+        # Save the redirected URL for error messages. Sometimes we're redirected to an arbitrary
+        # mirror that is broken, leading to spurious download failures. In that case it's helpful
+        # for users to know which URL was actually fetched.
+        if isinstance(response, http.client.HTTPResponse):
+            self._effective_url = response.geturl()
+
+        self._check_headers(str(response.headers))
 
     @_needs_stage
     def _fetch_curl(self, url):
@@ -365,7 +355,7 @@ class URLFetchStrategy(FetchStrategy):
         if self.stage.save_filename:
             save_file = self.stage.save_filename
             partial_file = self.stage.save_filename + ".part"
-        tty.msg("Fetching {0}".format(url))
+        tty.msg(f"Fetching {url}")
         if partial_file:
             save_args = [
                 "-C",
@@ -405,8 +395,8 @@ class URLFetchStrategy(FetchStrategy):
 
             try:
                 web_util.check_curl_code(curl.returncode)
-            except spack.error.FetchError as err:
-                raise spack.fetch_strategy.FailedDownloadError(url, str(err))
+            except spack.error.FetchError as e:
+                raise FailedDownloadError(e) from e
 
         self._check_headers(headers)
 
@@ -473,9 +463,9 @@ class URLFetchStrategy(FetchStrategy):
         """Check the downloaded archive against a checksum digest.
         No-op if this stage checks code out of a repository."""
         if not self.digest:
-            raise NoDigestError("Attempt to check URLFetchStrategy with no digest.")
+            raise NoDigestError(f"Attempt to check {self.__class__.__name__} with no digest.")
 
-        verify_checksum(self.archive_file, self.digest)
+        verify_checksum(self.archive_file, self.digest, self.url, self._effective_url)
 
     @_needs_stage
     def reset(self):
@@ -484,8 +474,8 @@ class URLFetchStrategy(FetchStrategy):
         """
         if not self.archive_file:
             raise NoArchiveFileError(
-                "Tried to reset URLFetchStrategy before fetching",
-                "Failed on reset() for URL %s" % self.url,
+                f"Tried to reset {self.__class__.__name__} before fetching",
+                f"Failed on reset() for URL{self.url}",
             )
 
         # Remove everything but the archive from the stage
@@ -498,14 +488,10 @@ class URLFetchStrategy(FetchStrategy):
         self.expand()
 
     def __repr__(self):
-        url = self.url if self.url else "no url"
-        return "%s<%s>" % (self.__class__.__name__, url)
+        return f"{self.__class__.__name__}<{self.url}>"
 
     def __str__(self):
-        if self.url:
-            return self.url
-        else:
-            return "[no url]"
+        return self.url
 
 
 @fetcher
@@ -518,7 +504,7 @@ class CacheURLFetchStrategy(URLFetchStrategy):
 
         # check whether the cache file exists.
         if not os.path.isfile(path):
-            raise NoCacheError("No cache of %s" % path)
+            raise NoCacheError(f"No cache of {path}")
 
         # remove old symlink if one is there.
         filename = self.stage.save_filename
@@ -528,8 +514,8 @@ class CacheURLFetchStrategy(URLFetchStrategy):
         # Symlink to local cached archive.
         symlink(path, filename)
 
-        # Remove link if checksum fails, or subsequent fetchers
-        # will assume they don't need to download.
+        # Remove link if checksum fails, or subsequent fetchers will assume they don't need to
+        # download.
         if self.digest:
             try:
                 self.check()
@@ -538,12 +524,12 @@ class CacheURLFetchStrategy(URLFetchStrategy):
                 raise
 
         # Notify the user how we fetched.
-        tty.msg("Using cached archive: {0}".format(path))
+        tty.msg(f"Using cached archive: {path}")
 
 
 class OCIRegistryFetchStrategy(URLFetchStrategy):
-    def __init__(self, url=None, checksum=None, **kwargs):
-        super().__init__(url, checksum, **kwargs)
+    def __init__(self, *, url: str, checksum: Optional[str] = None, **kwargs):
+        super().__init__(url=url, checksum=checksum, **kwargs)
 
         self._urlopen = kwargs.get("_urlopen", spack.oci.opener.urlopen)
 
@@ -554,13 +540,13 @@ class OCIRegistryFetchStrategy(URLFetchStrategy):
 
         try:
             response = self._urlopen(self.url)
-        except urllib.error.URLError as e:
+        except (TimeoutError, urllib.error.URLError) as e:
             # clean up archive on failure.
             if self.archive_file:
                 os.remove(self.archive_file)
             if os.path.lexists(file):
                 os.remove(file)
-            raise FailedDownloadError(self.url, f"Failed to fetch {self.url}: {e}") from e
+            raise FailedDownloadError(e) from e
 
         if os.path.lexists(file):
             os.remove(file)
@@ -588,18 +574,18 @@ class VCSFetchStrategy(FetchStrategy):
         # Set a URL based on the type of fetch strategy.
         self.url = kwargs.get(self.url_attr, None)
         if not self.url:
-            raise ValueError("%s requires %s argument." % (self.__class__, self.url_attr))
+            raise ValueError(f"{self.__class__} requires {self.url_attr} argument.")
 
         for attr in self.optional_attrs:
             setattr(self, attr, kwargs.get(attr, None))
 
     @_needs_stage
     def check(self):
-        tty.debug("No checksum needed when fetching with {0}".format(self.url_attr))
+        tty.debug(f"No checksum needed when fetching with {self.url_attr}")
 
     @_needs_stage
     def expand(self):
-        tty.debug("Source fetched with %s is already expanded." % self.url_attr)
+        tty.debug(f"Source fetched with {self.url_attr} is already expanded.")
 
     @_needs_stage
     def archive(self, destination, *, exclude: Optional[str] = None):
@@ -619,10 +605,10 @@ class VCSFetchStrategy(FetchStrategy):
             )
 
     def __str__(self):
-        return "VCS: %s" % self.url
+        return f"VCS: {self.url}"
 
     def __repr__(self):
-        return "%s<%s>" % (self.__class__, self.url)
+        return f"{self.__class__}<{self.url}>"
 
 
 @fetcher
@@ -725,11 +711,17 @@ class GitFetchStrategy(VCSFetchStrategy):
         "submodules",
         "get_full_repo",
         "submodules_delete",
+        "git_sparse_paths",
     ]
 
     git_version_re = r"git version (\S+)"
 
     def __init__(self, **kwargs):
+
+        self.commit: Optional[str] = None
+        self.tag: Optional[str] = None
+        self.branch: Optional[str] = None
+
         # Discards the keywords in kwargs that may conflict with the next call
         # to __init__
         forwarded_args = copy.copy(kwargs)
@@ -740,6 +732,7 @@ class GitFetchStrategy(VCSFetchStrategy):
         self.submodules = kwargs.get("submodules", False)
         self.submodules_delete = kwargs.get("submodules_delete", False)
         self.get_full_repo = kwargs.get("get_full_repo", False)
+        self.git_sparse_paths = kwargs.get("git_sparse_paths", None)
 
     @property
     def git_version(self):
@@ -777,68 +770,71 @@ class GitFetchStrategy(VCSFetchStrategy):
 
     @property
     def cachable(self):
-        return self.cache_enabled and bool(self.commit or self.tag)
+        return self.cache_enabled and bool(self.commit)
 
     def source_id(self):
-        return self.commit or self.tag
+        # TODO: tree-hash would secure download cache and mirrors, commit only secures checkouts.
+        return self.commit
 
     def mirror_id(self):
-        repo_ref = self.commit or self.tag or self.branch
-        if repo_ref:
+        if self.commit:
             repo_path = urllib.parse.urlparse(self.url).path
-            result = os.path.sep.join(["git", repo_path, repo_ref])
+            result = os.path.sep.join(["git", repo_path, self.commit])
             return result
 
     def _repo_info(self):
         args = ""
-
         if self.commit:
-            args = " at commit {0}".format(self.commit)
+            args = f" at commit {self.commit}"
         elif self.tag:
-            args = " at tag {0}".format(self.tag)
+            args = f" at tag {self.tag}"
         elif self.branch:
-            args = " on branch {0}".format(self.branch)
+            args = f" on branch {self.branch}"
 
-        return "{0}{1}".format(self.url, args)
+        return f"{self.url}{args}"
 
     @_needs_stage
     def fetch(self):
         if self.stage.expanded:
-            tty.debug("Already fetched {0}".format(self.stage.source_path))
+            tty.debug(f"Already fetched {self.stage.source_path}")
             return
 
-        self.clone(commit=self.commit, branch=self.branch, tag=self.tag)
+        if self.git_sparse_paths:
+            self._sparse_clone_src()
+        else:
+            self._clone_src()
+        self.submodule_operations()
 
-    def clone(self, dest=None, commit=None, branch=None, tag=None, bare=False):
+    def bare_clone(self, dest: str) -> None:
         """
-        Clone a repository to a path.
+        Execute a bare clone for metadata only
 
-        This method handles cloning from git, but does not require a stage.
-
-        Arguments:
-            dest (str or None): The path into which the code is cloned. If None,
-                requires a stage and uses the stage's source path.
-            commit (str or None): A commit to fetch from the remote. Only one of
-                commit, branch, and tag may be non-None.
-            branch (str or None): A branch to fetch from the remote.
-            tag (str or None): A tag to fetch from the remote.
-            bare (bool): Execute a "bare" git clone (--bare option to git)
+        Requires a destination since bare cloning does not provide source
+        and shouldn't be used for staging.
         """
         # Default to spack source path
-        dest = dest or self.stage.source_path
-        tty.debug("Cloning git repository: {0}".format(self._repo_info()))
+        tty.debug(f"Cloning git repository: {self._repo_info()}")
 
         git = self.git
         debug = spack.config.get("config:debug")
 
-        if bare:
-            # We don't need to worry about which commit/branch/tag is checked out
-            clone_args = ["clone", "--bare"]
-            if not debug:
-                clone_args.append("--quiet")
-            clone_args.extend([self.url, dest])
-            git(*clone_args)
-        elif commit:
+        # We don't need to worry about which commit/branch/tag is checked out
+        clone_args = ["clone", "--bare"]
+        if not debug:
+            clone_args.append("--quiet")
+        clone_args.extend([self.url, dest])
+        git(*clone_args)
+
+    def _clone_src(self) -> None:
+        """Clone a repository to a path using git."""
+        # Default to spack source path
+        dest = self.stage.source_path
+        tty.debug(f"Cloning git repository: {self._repo_info()}")
+
+        git = self.git
+        debug = spack.config.get("config:debug")
+
+        if self.commit:
             # Need to do a regular clone and check out everything if
             # they asked for a particular commit.
             clone_args = ["clone", self.url]
@@ -857,7 +853,7 @@ class GitFetchStrategy(VCSFetchStrategy):
                 )
 
             with working_dir(dest):
-                checkout_args = ["checkout", commit]
+                checkout_args = ["checkout", self.commit]
                 if not debug:
                     checkout_args.insert(1, "--quiet")
                 git(*checkout_args)
@@ -869,10 +865,10 @@ class GitFetchStrategy(VCSFetchStrategy):
                 args.append("--quiet")
 
             # If we want a particular branch ask for it.
-            if branch:
-                args.extend(["--branch", branch])
-            elif tag and self.git_version >= spack.version.Version("1.8.5.2"):
-                args.extend(["--branch", tag])
+            if self.branch:
+                args.extend(["--branch", self.branch])
+            elif self.tag and self.git_version >= spack.version.Version("1.8.5.2"):
+                args.extend(["--branch", self.tag])
 
             # Try to be efficient if we're using a new enough git.
             # This checks out only one branch's history
@@ -904,7 +900,7 @@ class GitFetchStrategy(VCSFetchStrategy):
                 # For tags, be conservative and check them out AFTER
                 # cloning.  Later git versions can do this with clone
                 # --branch, but older ones fail.
-                if tag and self.git_version < spack.version.Version("1.8.5.2"):
+                if self.tag and self.git_version < spack.version.Version("1.8.5.2"):
                     # pull --tags returns a "special" error code of 1 in
                     # older versions that we have to ignore.
                     # see: https://github.com/git/git/commit/19d122b
@@ -916,6 +912,79 @@ class GitFetchStrategy(VCSFetchStrategy):
 
                     git(*pull_args, ignore_errors=1)
                     git(*co_args)
+
+    def _sparse_clone_src(self, **kwargs):
+        """Use git's sparse checkout feature to clone portions of a git repository"""
+        dest = self.stage.source_path
+        git = self.git
+
+        if self.git_version < spack.version.Version("2.26.0"):
+            # technically this should be supported for 2.25, but bumping for OS issues
+            # see https://github.com/spack/spack/issues/45771
+            # code paths exist where the package is not set.  Assure some indentifier for the
+            # package that was configured  for sparse checkout exists in the error message
+            identifier = str(self.url)
+            if self.package:
+                identifier += f" ({self.package.name})"
+            tty.warn(
+                (
+                    f"{identifier} is configured for git sparse-checkout "
+                    "but the git version is too old to support sparse cloning. "
+                    "Cloning the full repository instead."
+                )
+            )
+            self._clone_src()
+        else:
+            # default to depth=2 to allow for retention of some git properties
+            depth = kwargs.get("depth", 2)
+            needs_fetch = self.branch or self.tag
+            git_ref = self.branch or self.tag or self.commit
+
+            assert git_ref
+
+            clone_args = ["clone"]
+
+            if needs_fetch:
+                clone_args.extend(["--branch", git_ref])
+
+            if self.get_full_repo:
+                clone_args.append("--no-single-branch")
+            else:
+                clone_args.append("--single-branch")
+
+            clone_args.extend(
+                [f"--depth={depth}", "--no-checkout", "--filter=blob:none", self.url]
+            )
+
+            sparse_args = ["sparse-checkout", "set"]
+
+            if callable(self.git_sparse_paths):
+                sparse_args.extend(self.git_sparse_paths())
+            else:
+                sparse_args.extend([p for p in self.git_sparse_paths])
+
+            sparse_args.append("--cone")
+
+            checkout_args = ["checkout", git_ref]
+
+            if not spack.config.get("config:debug"):
+                clone_args.insert(1, "--quiet")
+                checkout_args.insert(1, "--quiet")
+
+            with temp_cwd():
+                git(*clone_args)
+                repo_name = get_single_file(".")
+                if self.stage:
+                    self.stage.srcdir = repo_name
+                shutil.move(repo_name, dest)
+
+            with working_dir(dest):
+                git(*sparse_args)
+                git(*checkout_args)
+
+    def submodule_operations(self):
+        dest = self.stage.source_path
+        git = self.git
 
         if self.submodules_delete:
             with working_dir(dest):
@@ -969,7 +1038,7 @@ class GitFetchStrategy(VCSFetchStrategy):
         return not (self.url.startswith("http://") or self.url.startswith("/"))
 
     def __str__(self):
-        return "[git] {0}".format(self._repo_info())
+        return f"[git] {self._repo_info()}"
 
 
 @fetcher
@@ -1293,7 +1362,7 @@ class HgFetchStrategy(VCSFetchStrategy):
             shutil.move(scrubbed, source_path)
 
     def __str__(self):
-        return "[hg] %s" % self.url
+        return f"[hg] {self.url}"
 
 
 @fetcher
@@ -1302,45 +1371,20 @@ class S3FetchStrategy(URLFetchStrategy):
 
     url_attr = "s3"
 
-    def __init__(self, *args, **kwargs):
-        try:
-            super().__init__(*args, **kwargs)
-        except ValueError:
-            if not kwargs.get("url"):
-                raise ValueError("S3FetchStrategy requires a url for fetching.")
-
     @_needs_stage
     def fetch(self):
-        if self.archive_file:
-            tty.debug("Already downloaded {0}".format(self.archive_file))
-            return
-
-        parsed_url = urllib.parse.urlparse(self.url)
-        if parsed_url.scheme != "s3":
-            raise spack.error.FetchError("S3FetchStrategy can only fetch from s3:// urls.")
-
-        tty.debug("Fetching {0}".format(self.url))
-
-        basename = os.path.basename(parsed_url.path)
-
-        with working_dir(self.stage.path):
-            _, headers, stream = web_util.read_from_url(self.url)
-
-            with open(basename, "wb") as f:
-                shutil.copyfileobj(stream, f)
-
-            content_type = web_util.get_header(headers, "Content-type")
-
-        if content_type == "text/html":
-            warn_content_type_mismatch(self.archive_file or "the archive")
-
-        if self.stage.save_filename:
-            llnl.util.filesystem.rename(
-                os.path.join(self.stage.path, basename), self.stage.save_filename
+        if not self.url.startswith("s3://"):
+            raise spack.error.FetchError(
+                f"{self.__class__.__name__} can only fetch from s3:// urls."
             )
-
+        if self.archive_file:
+            tty.debug(f"Already downloaded {self.archive_file}")
+            return
+        self._fetch_urllib(self.url)
         if not self.archive_file:
-            raise FailedDownloadError(self.url)
+            raise FailedDownloadError(
+                RuntimeError(f"Missing archive {self.archive_file} after fetching")
+            )
 
 
 @fetcher
@@ -1349,43 +1393,22 @@ class GCSFetchStrategy(URLFetchStrategy):
 
     url_attr = "gs"
 
-    def __init__(self, *args, **kwargs):
-        try:
-            super().__init__(*args, **kwargs)
-        except ValueError:
-            if not kwargs.get("url"):
-                raise ValueError("GCSFetchStrategy requires a url for fetching.")
-
     @_needs_stage
     def fetch(self):
+        if not self.url.startswith("gs"):
+            raise spack.error.FetchError(
+                f"{self.__class__.__name__} can only fetch from gs:// urls."
+            )
         if self.archive_file:
-            tty.debug("Already downloaded {0}".format(self.archive_file))
+            tty.debug(f"Already downloaded {self.archive_file}")
             return
 
-        parsed_url = urllib.parse.urlparse(self.url)
-        if parsed_url.scheme != "gs":
-            raise spack.error.FetchError("GCSFetchStrategy can only fetch from gs:// urls.")
-
-        tty.debug("Fetching {0}".format(self.url))
-
-        basename = os.path.basename(parsed_url.path)
-
-        with working_dir(self.stage.path):
-            _, headers, stream = web_util.read_from_url(self.url)
-
-            with open(basename, "wb") as f:
-                shutil.copyfileobj(stream, f)
-
-            content_type = web_util.get_header(headers, "Content-type")
-
-        if content_type == "text/html":
-            warn_content_type_mismatch(self.archive_file or "the archive")
-
-        if self.stage.save_filename:
-            os.rename(os.path.join(self.stage.path, basename), self.stage.save_filename)
+        self._fetch_urllib(self.url)
 
         if not self.archive_file:
-            raise FailedDownloadError(self.url)
+            raise FailedDownloadError(
+                RuntimeError(f"Missing archive {self.archive_file} after fetching")
+            )
 
 
 @fetcher
@@ -1394,7 +1417,7 @@ class FetchAndVerifyExpandedFile(URLFetchStrategy):
     as well as after expanding it."""
 
     def __init__(self, url, archive_sha256: str, expanded_sha256: str):
-        super().__init__(url, archive_sha256)
+        super().__init__(url=url, checksum=archive_sha256)
         self.expanded_sha256 = expanded_sha256
 
     def expand(self):
@@ -1410,21 +1433,26 @@ class FetchAndVerifyExpandedFile(URLFetchStrategy):
         if len(files) != 1:
             raise ChecksumError(self, f"Expected a single file in {src_dir}.")
 
-        verify_checksum(os.path.join(src_dir, files[0]), self.expanded_sha256)
+        verify_checksum(
+            os.path.join(src_dir, files[0]), self.expanded_sha256, self.url, self._effective_url
+        )
 
 
-def verify_checksum(file, digest):
+def verify_checksum(file: str, digest: str, url: str, effective_url: Optional[str]) -> None:
     checker = crypto.Checker(digest)
     if not checker.check(file):
         # On failure, provide some information about the file size and
         # contents, so that we can quickly see what the issue is (redirect
         # was not followed, empty file, text instead of binary, ...)
         size, contents = fs.filesummary(file)
-        raise ChecksumError(
-            f"{checker.hash_name} checksum failed for {file}",
+        long_msg = (
             f"Expected {digest} but got {checker.sum}. "
-            f"File size = {size} bytes. Contents = {contents!r}",
+            f"File size = {size} bytes. Contents = {contents!r}. "
+            f"URL = {url}"
         )
+        if effective_url and effective_url != url:
+            long_msg += f", redirected to = {effective_url}"
+        raise ChecksumError(f"{checker.hash_name} checksum failed for {file}", long_msg)
 
 
 def stable_target(fetcher):
@@ -1436,14 +1464,14 @@ def stable_target(fetcher):
     return False
 
 
-def from_url(url):
+def from_url(url: str) -> URLFetchStrategy:
     """Given a URL, find an appropriate fetch strategy for it.
     Currently just gives you a URLFetchStrategy that uses curl.
 
     TODO: make this return appropriate fetch strategies for other
           types of URLs.
     """
-    return URLFetchStrategy(url)
+    return URLFetchStrategy(url=url)
 
 
 def from_kwargs(**kwargs):
@@ -1512,10 +1540,12 @@ def _check_version_attributes(fetcher, pkg, version):
 def _extrapolate(pkg, version):
     """Create a fetcher from an extrapolated URL for this version."""
     try:
-        return URLFetchStrategy(pkg.url_for_version(version), fetch_options=pkg.fetch_options)
-    except spack.package_base.NoURLError:
-        msg = "Can't extrapolate a URL for version %s " "because package %s defines no URLs"
-        raise ExtrapolationError(msg % (version, pkg.name))
+        return URLFetchStrategy(url=pkg.url_for_version(version), fetch_options=pkg.fetch_options)
+    except spack.error.NoURLError:
+        raise ExtrapolationError(
+            f"Can't extrapolate a URL for version {version} because "
+            f"package {pkg.name} defines no URLs"
+        )
 
 
 def _from_merged_attrs(fetcher, pkg, version):
@@ -1532,8 +1562,11 @@ def _from_merged_attrs(fetcher, pkg, version):
     attrs["fetch_options"] = pkg.fetch_options
     attrs.update(pkg.versions[version])
 
-    if fetcher.url_attr == "git" and hasattr(pkg, "submodules"):
-        attrs.setdefault("submodules", pkg.submodules)
+    if fetcher.url_attr == "git":
+        pkg_attr_list = ["submodules", "git_sparse_paths"]
+        for pkg_attr in pkg_attr_list:
+            if hasattr(pkg, pkg_attr):
+                attrs.setdefault(pkg_attr, getattr(pkg, pkg_attr))
 
     return fetcher(**attrs)
 
@@ -1628,11 +1661,9 @@ def for_package_version(pkg, version=None):
     raise InvalidArgsError(pkg, version, **args)
 
 
-def from_url_scheme(url, *args, **kwargs):
+def from_url_scheme(url: str, **kwargs) -> FetchStrategy:
     """Finds a suitable FetchStrategy by matching its url_attr with the scheme
     in the given url."""
-
-    url = kwargs.get("url", url)
     parsed_url = urllib.parse.urlparse(url, scheme="file")
 
     scheme_mapping = kwargs.get("scheme_mapping") or {
@@ -1649,11 +1680,9 @@ def from_url_scheme(url, *args, **kwargs):
     for fetcher in all_strategies:
         url_attr = getattr(fetcher, "url_attr", None)
         if url_attr and url_attr == scheme:
-            return fetcher(url, *args, **kwargs)
+            return fetcher(url=url, **kwargs)
 
-    raise ValueError(
-        'No FetchStrategy found for url with scheme: "{SCHEME}"'.format(SCHEME=parsed_url.scheme)
-    )
+    raise ValueError(f'No FetchStrategy found for url with scheme: "{parsed_url.scheme}"')
 
 
 def from_list_url(pkg):
@@ -1678,7 +1707,9 @@ def from_list_url(pkg):
                     )
 
                 # construct a fetcher
-                return URLFetchStrategy(url_from_list, checksum, fetch_options=pkg.fetch_options)
+                return URLFetchStrategy(
+                    url=url_from_list, checksum=checksum, fetch_options=pkg.fetch_options
+                )
             except KeyError as e:
                 tty.debug(e)
                 tty.msg("Cannot find version %s in url_list" % pkg.version)
@@ -1706,10 +1737,10 @@ class FsCache:
         mkdirp(os.path.dirname(dst))
         fetcher.archive(dst)
 
-    def fetcher(self, target_path, digest, **kwargs):
+    def fetcher(self, target_path: str, digest: Optional[str], **kwargs) -> CacheURLFetchStrategy:
         path = os.path.join(self.root, target_path)
         url = url_util.path_to_file_url(path)
-        return CacheURLFetchStrategy(url, digest, **kwargs)
+        return CacheURLFetchStrategy(url=url, checksum=digest, **kwargs)
 
     def destroy(self):
         shutil.rmtree(self.root, ignore_errors=True)
@@ -1722,9 +1753,9 @@ class NoCacheError(spack.error.FetchError):
 class FailedDownloadError(spack.error.FetchError):
     """Raised when a download fails."""
 
-    def __init__(self, url, msg=""):
-        super().__init__("Failed to fetch file from URL: %s" % url, msg)
-        self.url = url
+    def __init__(self, *exceptions: Exception):
+        super().__init__("Failed to download")
+        self.exceptions = exceptions
 
 
 class NoArchiveFileError(spack.error.FetchError):

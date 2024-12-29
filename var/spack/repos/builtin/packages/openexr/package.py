@@ -16,6 +16,7 @@ class Openexr(CMakePackage, AutotoolsPackage):
     license("BSD-3-Clause")
 
     # New versions should come from github now
+    version("3.3.1", sha256="58aad2b32c047070a52f1205b309bdae007442e0f983120e4ff57551eb6f10f1")
     version("3.2.3", sha256="f3f6c4165694d5c09e478a791eae69847cadb1333a2948ca222aa09f145eba63")
     version("3.2.0", sha256="b1b200606640547fceff0d3ebe01ac05c4a7ae2a131be7e9b3e5b9f491ef35b3")
     version("3.1.11", sha256="06b4a20d0791b5ec0f804c855d320a0615ce8445124f293616a086e093f1f1e1")
@@ -88,6 +89,7 @@ class Openexr(CMakePackage, AutotoolsPackage):
 
     with when("build_system=cmake"):
         depends_on("cmake@3.12:", type="build")
+        depends_on("cmake@3.14:", type="build", when="@3.3:")
 
     @property
     def libs(self):

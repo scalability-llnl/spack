@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import spack.variant
 from spack.package import *
 
 
@@ -16,7 +17,11 @@ class Hipcub(CMakePackage, CudaPackage, ROCmPackage):
 
     license("BSD-3-Clause")
 
-    maintainers("srekolam", "renjithravindrankannath")
+    maintainers("srekolam", "renjithravindrankannath", "afzpatel")
+    version("6.3.0", sha256="a609cde18cefa90a1970049cc5630f2ec263f12961aa85993897580da2ca0456")
+    version("6.2.4", sha256="06f3655b110d3d2e2ecf0aca052d3ba3f2ef012c069e5d2d82f2b75d50555f46")
+    version("6.2.1", sha256="e0203e72afac4da19cb1d62896fff404ec44517141b420bd38f6e962e52ef6fd")
+    version("6.2.0", sha256="8dda8b77740e722fd4cf7223476313fc873bad75d50e6cb86ff284a91d76752d")
     version("6.1.2", sha256="830a0f3231e07fcc6cd6261c4e1af2d7d0ac4862c606ecdc80c2635557ca3d9f")
     version("6.1.1", sha256="967716d67e4270c599a60b770d543ea9148948edb907a0fa4d8be3a1785c2058")
     version("6.1.0", sha256="39ac03053ecf35f1faf212e5b197b03c0104b74b0833f7cce5cf625c273ba71c")
@@ -74,6 +79,10 @@ class Hipcub(CMakePackage, CudaPackage, ROCmPackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
     ]:
         depends_on(f"rocprim@{ver}", when=f"+rocm @{ver}")
         depends_on(f"rocm-cmake@{ver}:", type="build", when=f"@{ver}")

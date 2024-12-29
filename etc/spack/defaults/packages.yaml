@@ -20,11 +20,14 @@ packages:
       awk: [gawk]
       armci: [armcimpi]
       blas: [openblas, amdblis]
+      c: [gcc]
+      cxx: [gcc]
       D: [ldc]
       daal: [intel-oneapi-daal]
       elf: [elfutils]
       fftw-api: [fftw, amdfftw]
       flame: [libflame, amdlibflame]
+      fortran: [gcc]
       fortran-rt: [gcc-runtime, intel-oneapi-runtime]
       fuse: [libfuse]
       gl: [glx, osmesa]
@@ -37,9 +40,9 @@ packages:
       jpeg: [libjpeg-turbo, libjpeg]
       lapack: [openblas, amdlibflame]
       libc: [glibc, musl]
-      libgfortran: [ gcc-runtime ]
+      libgfortran: [gcc-runtime]
       libglx: [mesa+glx]
-      libifcore: [ intel-oneapi-runtime ]
+      libifcore: [intel-oneapi-runtime]
       libllvm: [llvm]
       lua-lang: [lua, lua-luajit-openresty, lua-luajit]
       luajit: [lua-luajit-openresty, lua-luajit]
@@ -70,3 +73,15 @@ packages:
     permissions:
       read: world
       write: user
+  cray-mpich:
+    buildable: false
+  cray-mvapich2:
+    buildable: false
+  egl:
+    buildable: false
+  fujitsu-mpi:
+    buildable: false
+  hpcx-mpi:
+    buildable: false
+  spectrum-mpi:
+    buildable: false

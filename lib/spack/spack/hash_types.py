@@ -37,6 +37,12 @@ class SpecHashDescriptor:
         """Run this hash on the provided spec."""
         return spec.spec_hash(self)
 
+    def __repr__(self):
+        return (
+            f"SpecHashDescriptor(depflag={self.depflag!r}, "
+            f"package_hash={self.package_hash!r}, name={self.name!r}, override={self.override!r})"
+        )
+
 
 #: Spack's deployment hash. Includes all inputs that can affect how a package is built.
 dag_hash = SpecHashDescriptor(depflag=dt.BUILD | dt.LINK | dt.RUN, package_hash=True, name="hash")

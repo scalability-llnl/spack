@@ -13,7 +13,7 @@ class Virtualgl(CMakePackage):
     3D application in real time."""
 
     homepage = "https://www.virtualgl.org/Main/HomePage"
-    url = "http://downloads.sourceforge.net/project/virtualgl/2.5.2/VirtualGL-2.5.2.tar.gz"
+    url = "https://downloads.sourceforge.net/project/virtualgl/2.5.2/VirtualGL-2.5.2.tar.gz"
 
     license("LGPL-2.1-or-later")
 

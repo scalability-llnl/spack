@@ -14,6 +14,7 @@ class PyLaspy(PythonPackage):
 
     license("BSD-2-Clause")
 
+    version("2.5.4", sha256="eebdbf3379afbc0b24e7e4812fac567bff880d1e851f70175d22375aaecdf7e1")
     version("2.2.0", sha256="69d36f01acecd719cbe3c3cf58353f247f391ccadb1da37731d45bfe919685df")
     version("2.0.3", sha256="95c6367bc3a7c1e0d8dc118ae4a6b038bf9e8ad3e60741ecb8d59c36d32f822a")
 

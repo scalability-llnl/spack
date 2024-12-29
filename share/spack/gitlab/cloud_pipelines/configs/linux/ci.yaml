@@ -18,6 +18,7 @@ ci:
           KUBERNETES_MEMORY_REQUEST: 48G
 
     - match:
+      - composable-kernel
       - rust
       build-job:
         tags: [ "spack", "huge" ]
@@ -258,7 +259,6 @@ ci:
       - py-scipy
       - py-statsmodels
       - py-warlock
-      - py-warpx
       - raja
       - slepc
       - slurm
@@ -272,6 +272,7 @@ ci:
       - vtk
       - vtk-h
       - vtk-m
+      - warpx +python
       - zfp
       build-job:
         tags: [ "spack", "medium" ]

@@ -17,6 +17,7 @@ class RRpart(RPackage):
 
     license("GPL-2.0-only OR GPL-3.0-only")
 
+    version("4.1.23", sha256="f9b89aed6aa6cea656a2dcb271574e969ce2b1c98beb07bd91e17339f6daabaf")
     version("4.1.19", sha256="fe723ed0b5583fae8b40e6fecc29b357229cb11f2339b02a4e4f812926249565")
     version("4.1.16", sha256="27ec75258a5a3459ad999f5f36760ead974930744249605bf8465f234f31425c")
     version("4.1-15", sha256="2b8ebe0e9e11592debff893f93f5a44a6765abd0bd956b0eb1f70e9394cfae5c")

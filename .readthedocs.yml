@@ -14,3 +14,26 @@ sphinx:
 python:
   install:
     - requirements: lib/spack/docs/requirements.txt
+
+search:
+  ranking:
+    spack.html: -10
+    spack.*.html: -10
+    llnl.html: -10
+    llnl.*.html: -10
+    _modules/*: -10
+    command_index.html: -9
+    basic_usage.html: 5
+    configuration.html: 5
+    config_yaml.html: 5
+    packages_yaml.html: 5
+    build_settings.html: 5
+    environments.html: 5
+    containers.html: 5
+    mirrors.html: 5
+    module_file_support.html: 5
+    repositories.html: 5
+    binary_caches.html: 5
+    chain.html: 5
+    pipelines.html: 5
+    packaging_guide.html: 5

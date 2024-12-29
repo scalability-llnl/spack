@@ -18,6 +18,7 @@ class PyScipy(PythonPackage):
     license("BSD-3-Clause")
 
     version("main", branch="main")
+    version("1.14.1", sha256="5a275584e726026a5699459aa72f828a610821006228e841b94275c4a7c08417")
     version("1.14.0", sha256="b5923f48cb840380f9854339176ef21763118a7300a88203ccd0bdd26e58527b")
     version("1.13.1", sha256="095a87a0312b08dfd6a6155cbbd310a8c51800fc931b8c0b84003014b874ed3c")
     version("1.13.0", sha256="58569af537ea29d3f78e5abd18398459f195546bb3be23d16677fb26616cc11e")
@@ -44,22 +45,55 @@ class PyScipy(PythonPackage):
     version("1.6.1", sha256="c4fceb864890b6168e79b0e714c585dbe2fd4222768ee90bc1aa0f8218691b11")
     version("1.6.0", sha256="cb6dc9f82dfd95f6b9032a8d7ea70efeeb15d5b5fd6ed4e8537bb3c673580566")
     version("1.5.4", sha256="4a453d5e5689de62e5d38edf40af3f17560bfd63c9c5bd228c18c1f99afa155b")
-    version("1.5.3", sha256="ddae76784574cc4c172f3d5edd7308be16078dd3b977e8746860c76c195fa707")
-    version("1.5.2", sha256="066c513d90eb3fd7567a9e150828d39111ebd88d3e924cdfc9f8ce19ab6f90c9")
-    version("1.5.1", sha256="039572f0ca9578a466683558c5bf1e65d442860ec6e13307d528749cfe6d07b8")
-    version("1.5.0", sha256="4ff72877d19b295ee7f7727615ea8238f2d59159df0bdd98f91754be4a2767f0")
-    version("1.4.1", sha256="dee1bbf3a6c8f73b6b218cb28eed8dd13347ea2f87d572ce19b289d6fd3fbc59")
-    version("1.4.0", sha256="31f7cfa93b01507c935c12b535e24812594002a02a56803d7cd063e9920d25e8")
-    version("1.3.3", sha256="64bf4e8ae0db2d42b58477817f648d81e77f0b381d0ea4427385bba3f959380a")
-    version("1.3.2", sha256="a03939b431994289f39373c57bbe452974a7da724ae7f9620a1beee575434da4")
+    version(
+        "1.5.3",
+        sha256="ddae76784574cc4c172f3d5edd7308be16078dd3b977e8746860c76c195fa707",
+        deprecated=True,
+    )
+    version(
+        "1.5.2",
+        sha256="066c513d90eb3fd7567a9e150828d39111ebd88d3e924cdfc9f8ce19ab6f90c9",
+        deprecated=True,
+    )
+    version(
+        "1.5.1",
+        sha256="039572f0ca9578a466683558c5bf1e65d442860ec6e13307d528749cfe6d07b8",
+        deprecated=True,
+    )
+    version(
+        "1.5.0",
+        sha256="4ff72877d19b295ee7f7727615ea8238f2d59159df0bdd98f91754be4a2767f0",
+        deprecated=True,
+    )
+    version(
+        "1.4.1",
+        sha256="dee1bbf3a6c8f73b6b218cb28eed8dd13347ea2f87d572ce19b289d6fd3fbc59",
+        deprecated=True,
+    )
+    version(
+        "1.4.0",
+        sha256="31f7cfa93b01507c935c12b535e24812594002a02a56803d7cd063e9920d25e8",
+        deprecated=True,
+    )
+    version(
+        "1.3.3",
+        sha256="64bf4e8ae0db2d42b58477817f648d81e77f0b381d0ea4427385bba3f959380a",
+        deprecated=True,
+    )
+    version(
+        "1.3.2",
+        sha256="a03939b431994289f39373c57bbe452974a7da724ae7f9620a1beee575434da4",
+        deprecated=True,
+    )
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
 
     # Based on wheel availability on PyPI
     with default_args(type=("build", "link", "run")):
-        depends_on("python@3.10:3.12", when="@1.14:")
+        depends_on("python@3.10:3.13", when="@1.14.1:")
+        depends_on("python@3.10:3.12", when="@1.14.0")
         depends_on("python@3.9:3.12", when="@1.11.2:1.13")
         depends_on("python@3.8:3.11", when="@1.9.2:1.11.1")
         depends_on("python@3.8:3.10", when="@1.8:1.9.1")
@@ -134,7 +168,8 @@ class PyScipy(PythonPackage):
 
     # meson.build
     # https://docs.scipy.org/doc/scipy/dev/toolchain.html#compilers
-    conflicts("%gcc@:7", when="@1.10:", msg="SciPy requires GCC >= 8.0")
+    conflicts("%gcc@:7", when="@1.10:", msg="SciPy 1.10-1.13 requires GCC >= 8.0")
+    conflicts("%gcc@:9.0", when="@1.14:", msg="SciPy 1.14: requires GCC >= 9.1")
     conflicts("%gcc@:4.7", when="@:1.9", msg="SciPy requires GCC >= 4.8")
     conflicts("%apple-clang@:9", when="@1.10:", msg="SciPy requires Apple Clang >= 10")
     conflicts(
@@ -143,6 +178,12 @@ class PyScipy(PythonPackage):
         msg="SciPy requires at least vc142 (default with Visual Studio 2019) "
         "when building with MSVC",
     )
+
+    # https://github.com/spack/spack/issues/48243
+    conflicts("%intel", when="@1.14:", msg="SciPy 1.14: Use Intel LLVM instead of Intel Classic")
+
+    # https://github.com/spack/spack/issues/45718
+    conflicts("%aocc", msg="SciPy doesn't compile with AOCC yet")
 
     # https://github.com/scipy/scipy/issues/19831
     conflicts("^openblas@0.3.26:", when="@:1.12")
@@ -172,6 +213,13 @@ class PyScipy(PythonPackage):
     )
 
     patch("scipy-clang.patch", when="@1.5.0:1.6.3 %clang")
+
+    # https://github.com/scipy/scipy/issues/21884
+    patch(
+        "https://github.com/scipy/scipy/commit/ab7d08c6148286059f6498ab5c3070268d13cbd9.patch?full_index=1",
+        sha256="37209324c6c2d9bf9284bf4726ec3ea7ecafabf736c7a72cf6789af97aebd30b",
+        when="@1.8.0:1.14.0",
+    )
 
     @property
     def archive_files(self):
@@ -216,18 +264,21 @@ class PyScipy(PythonPackage):
         if self.spec.satisfies("@:1.8"):
             self.spec["py-numpy"].package.setup_build_environment(env)
 
-        # https://github.com/scipy/scipy/issues/19357
-        if self.spec.satisfies("%apple-clang@15:"):
-            env.append_flags("LDFLAGS", "-Wl,-ld_classic")
-
     @when("@1.9:")
     def config_settings(self, spec, prefix):
         blas, lapack = self.spec["py-numpy"].package.blas_lapack_pkg_config()
+
+        if spec.satisfies("%aocc") or spec.satisfies("%clang@18:"):
+            fortran_std = "none"
+        else:
+            fortran_std = "legacy"
+
         return {
             "builddir": "build",
             "compile-args": f"-j{make_jobs}",
             "setup-args": {
                 # http://scipy.github.io/devdocs/building/blas_lapack.html
+                "-Dfortran_std": fortran_std,
                 "-Dblas": blas,
                 "-Dlapack": lapack,
             },

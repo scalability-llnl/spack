@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import os
+
 from spack.package import *
 
 
@@ -36,7 +38,13 @@ class Biobambam2(AutotoolsPackage):
     def cache_test_sources(self):
         """Copy the test source files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources(self.test_src_dir)
+        cache_extra_test_sources(self, self.test_src_dir)
+
+        # Fix test scripts to run installed binaries
+        scripts_dir = join_path(install_test_root(self), self.test_src_dir)
+        for path in os.listdir(scripts_dir):
+            if path.endswith(".sh"):
+                filter_file(r"../src/", r"", join_path(scripts_dir, path))
 
     def test_short_sort(self):
         """run testshortsort.sh to check alignments sorted by coordinate"""

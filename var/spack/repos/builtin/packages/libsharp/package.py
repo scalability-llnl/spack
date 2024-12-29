@@ -43,7 +43,7 @@ class Libsharp(AutotoolsPackage):
             args.append("--disable-openmp")
         if "+mpi" not in self.spec:
             args.append("--disable-mpi")
-        if "+pic" in self.spec:
+        if self.spec.satisfies("+pic"):
             args.append("--enable-pic")
         return args
 

@@ -25,7 +25,7 @@ class AtSpi2Atk(MesonPackage):
     depends_on("c", type="build")  # generated
 
     depends_on("pkgconfig", type="build")
-    depends_on("at-spi2-core@2.28.0:")
+    depends_on("at-spi2-core@2.28.0:2.45.1")
     depends_on("atk@2.28.1:")
 
     def url_for_version(self, version):

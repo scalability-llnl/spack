@@ -29,6 +29,10 @@ class PyJupyterlab(PythonPackage):
     version("2.2.7", sha256="a72ffd0d919cba03a5ef8422bc92c3332a957ff97b0490494209c83ad93826da")
     version("2.1.0", sha256="8c239aababf5baa0b3d36e375fddeb9fd96f3a9a24a8cda098d6a414f5bbdc81")
 
+    # Optional dependencies needed to install jupyterlab extensions
+    depends_on("node-js", type="run")
+    depends_on("npm", type="run")
+
     depends_on("python@3.8:", when="@4:", type=("build", "run"))
     depends_on("py-hatchling@1.5:", when="@4:", type=("build", "run"))
     # under [tool.hatch.build.hooks.jupyter-builder] in pyproject.toml

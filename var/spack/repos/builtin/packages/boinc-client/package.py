@@ -60,7 +60,7 @@ class BoincClient(AutotoolsPackage):
         args.append("--disable-server")
         args.append("--enable-client")
 
-        if "+manager" in spec:
+        if spec.satisfies("+manager"):
             args.append("--enable-manager")
         else:
             args.append("--disable-manager")

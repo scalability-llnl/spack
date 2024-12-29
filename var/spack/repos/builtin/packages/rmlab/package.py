@@ -27,7 +27,6 @@ class Rmlab(CMakePackage):
     # C++11
     conflicts("%gcc@:4.7")
     conflicts("%intel@:15")
-    conflicts("%pgi@:14")
 
     depends_on("pngwriter@0.6.0:", when="+png")
 

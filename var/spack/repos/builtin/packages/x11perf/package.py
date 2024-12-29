@@ -15,13 +15,13 @@ class X11perf(AutotoolsPackage, XorgPackage):
     version("1.6.1", sha256="a1874618df0e30ae1a9b2470fb50e77a40c4a6f6ddf87a5c154f7a3b913ac0b3")
     version("1.6.0", sha256="d33051c4e93100ab60609aee14ff889bb2460f28945063d793e21eda19381abb")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     depends_on("libx11")
     depends_on("libxmu")
     depends_on("libxrender")
     depends_on("libxft")
 
-    depends_on("xproto@7.0.17:")
+    depends_on("xproto@7.0.17:", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")

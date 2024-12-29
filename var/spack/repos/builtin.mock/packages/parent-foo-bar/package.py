@@ -19,4 +19,5 @@ class ParentFooBar(Package):
     variant("foo", default=True, description="")
     variant("bar", default=True, description="")
 
+    depends_on("direct-dep-foo-bar")
     depends_on("dependency-foo-bar")

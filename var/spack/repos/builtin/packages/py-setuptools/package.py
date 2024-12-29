@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -46,35 +47,83 @@ class PySetuptools(Package, PythonExtension):
     version("44.1.1", sha256="27a714c09253134e60a6fa68130f78c7037e5562c4f21f8f318f2ae900d152d5")
     version("44.1.0", sha256="992728077ca19db6598072414fb83e0a284aca1253aaf2e24bb1e55ee6db1a30")
     version("43.0.0", sha256="a67faa51519ef28cd8261aff0e221b6e4c370f8fb8bada8aa3e7ad8945199963")
-    version("41.4.0", sha256="8d01f7ee4191d9fdcd9cc5796f75199deccb25b154eba82d44d6a042cf873670")
-    version("41.3.0", sha256="e9832acd9be6f3174f4c34b40e7d913a146727920cbef6465c1c1bd2d21a4ec4")
-    version("41.0.1", sha256="c7769ce668c7a333d84e17fe8b524b1c45e7ee9f7908ad0a73e1eda7e6a5aebf")
-    version("41.0.0", sha256="e67486071cd5cdeba783bd0b64f5f30784ff855b35071c8670551fd7fc52d4a1")
-    version("40.8.0", sha256="e8496c0079f3ac30052ffe69b679bd876c5265686127a3159cfa415669b7f9ab")
-    version("40.4.3", sha256="ce4137d58b444bac11a31d4e0c1805c69d89e8ed4e91fde1999674ecc2f6f9ff")
-    version("40.2.0", sha256="ea3796a48a207b46ea36a9d26de4d0cc87c953a683a7b314ea65d666930ea8e6")
-    version("39.2.0", sha256="8fca9275c89964f13da985c3656cb00ba029d7f3916b37990927ffdf264e7926")
-    version("39.0.1", sha256="8010754433e3211b9cdbbf784b50f30e80bf40fc6b05eb5f865fab83300599b8")
-    version("25.2.0", sha256="2845247c359bb91097ccf8f6be8a69edfa44847f3d2d5def39aa43c3d7f615ca")
-    version("20.7.0", sha256="8917a52aa3a389893221b173a89dae0471022d32bff3ebc31a1072988aa8039d")
-    version("20.6.7", sha256="9982ee4d279a2541dc1a7efee994ff9c535cfc05315e121e09df7f93da48c442")
+    version(
+        "41.4.0",
+        sha256="8d01f7ee4191d9fdcd9cc5796f75199deccb25b154eba82d44d6a042cf873670",
+        deprecated=True,
+    )
+    version(
+        "41.3.0",
+        sha256="e9832acd9be6f3174f4c34b40e7d913a146727920cbef6465c1c1bd2d21a4ec4",
+        deprecated=True,
+    )
+    version(
+        "41.0.1",
+        sha256="c7769ce668c7a333d84e17fe8b524b1c45e7ee9f7908ad0a73e1eda7e6a5aebf",
+        deprecated=True,
+    )
+    version(
+        "41.0.0",
+        sha256="e67486071cd5cdeba783bd0b64f5f30784ff855b35071c8670551fd7fc52d4a1",
+        deprecated=True,
+    )
+    version(
+        "40.8.0",
+        sha256="e8496c0079f3ac30052ffe69b679bd876c5265686127a3159cfa415669b7f9ab",
+        deprecated=True,
+    )
+    version(
+        "40.4.3",
+        sha256="ce4137d58b444bac11a31d4e0c1805c69d89e8ed4e91fde1999674ecc2f6f9ff",
+        deprecated=True,
+    )
+    version(
+        "40.2.0",
+        sha256="ea3796a48a207b46ea36a9d26de4d0cc87c953a683a7b314ea65d666930ea8e6",
+        deprecated=True,
+    )
+    version(
+        "39.2.0",
+        sha256="8fca9275c89964f13da985c3656cb00ba029d7f3916b37990927ffdf264e7926",
+        deprecated=True,
+    )
+    version(
+        "39.0.1",
+        sha256="8010754433e3211b9cdbbf784b50f30e80bf40fc6b05eb5f865fab83300599b8",
+        deprecated=True,
+    )
+    version(
+        "25.2.0",
+        sha256="2845247c359bb91097ccf8f6be8a69edfa44847f3d2d5def39aa43c3d7f615ca",
+        deprecated=True,
+    )
+    version(
+        "20.7.0",
+        sha256="8917a52aa3a389893221b173a89dae0471022d32bff3ebc31a1072988aa8039d",
+        deprecated=True,
+    )
+    version(
+        "20.6.7",
+        sha256="9982ee4d279a2541dc1a7efee994ff9c535cfc05315e121e09df7f93da48c442",
+        deprecated=True,
+    )
 
     extends("python")
 
-    depends_on("python@3.7:", when="@59.7:", type=("build", "run"))
-    depends_on("python@3.6:", when="@51:", type=("build", "run"))
-    depends_on("python@3.5:", when="@45:50", type=("build", "run"))
-    depends_on("python@2.7:2.8,3.5:", when="@44", type=("build", "run"))
-    depends_on("python@2.7:2.8,3.4:", when="@:43", type=("build", "run"))
+    with default_args(type=("build", "run")):
+        depends_on("python@3.9:", when="@75.4:")
+        depends_on("python@3.8:", when="@68.1:")
+        depends_on("python@3.7:", when="@59.7:")
+        depends_on("python@3.6:", when="@51:")
 
-    # Uses HTMLParser.unescape
-    depends_on("python@:3.8", when="@:41.0", type=("build", "run"))
+        # Uses HTMLParser.unescape
+        depends_on("python@:3.8", when="@:41.0")
 
-    # Uses collections.MutableMapping
-    depends_on("python@:3.9", when="@:40.4.2", type=("build", "run"))
+        # Uses collections.MutableMapping
+        depends_on("python@:3.9", when="@:40.4.2")
 
-    # https://github.com/pypa/setuptools/issues/3661
-    depends_on("python@:3.11", when="@:67", type=("build", "run"))
+        # https://github.com/pypa/setuptools/issues/3661
+        depends_on("python@:3.11", when="@:67")
 
     depends_on("py-pip", type="build")
 
@@ -95,5 +144,4 @@ class PySetuptools(Package, PythonExtension):
         #
         # We work around this issue by installing setuptools from wheels
         whl = self.stage.archive_file
-        args = ["-m", "pip"] + std_pip_args + ["--prefix=" + prefix, whl]
-        python(*args)
+        python("-m", "pip", *PythonPipBuilder.std_args(self), f"--prefix={prefix}", whl)

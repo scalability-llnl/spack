@@ -22,6 +22,9 @@ class Blaspp(CMakePackage, CudaPackage, ROCmPackage):
 
     version("master", branch="master")
     version(
+        "2024.10.26", sha256="c15ae19dbed1be35e8258048a044d3104da59e7e52b4fe7fe7ea5032708a8d2c"
+    )
+    version(
         "2024.05.31", sha256="24f325d2e1c2cc4275324bd88406555688379480877d19553656a0328287927a"
     )
     version(
@@ -91,11 +94,11 @@ class Blaspp(CMakePackage, CudaPackage, ROCmPackage):
         backend_config = "-Duse_cuda=%s" % ("+cuda" in spec)
         if self.version >= Version("2021.04.01"):
             backend = "none"
-            if "+cuda" in spec:
+            if spec.satisfies("+cuda"):
                 backend = "cuda"
-            if "+rocm" in spec:
+            if spec.satisfies("+rocm"):
                 backend = "hip"
-            if "+sycl" in spec:
+            if spec.satisfies("+sycl"):
                 backend = "sycl"
             backend_config = "-Dgpu_backend=%s" % backend
 
@@ -114,8 +117,8 @@ class Blaspp(CMakePackage, CudaPackage, ROCmPackage):
 
     def check(self):
         # If the tester fails to build, ensure that the check() fails.
-        if os.path.isfile(join_path(self.builder.build_directory, "test", "tester")):
-            with working_dir(self.builder.build_directory):
+        if os.path.isfile(join_path(self.build_directory, "test", "tester")):
+            with working_dir(self.build_directory):
                 make("check")
         else:
             raise Exception("The tester was not built!")

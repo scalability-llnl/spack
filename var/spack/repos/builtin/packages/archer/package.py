@@ -50,7 +50,7 @@ class Archer(CMakePackage):
     def cache_test_sources(self):
         """Copy the example source files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources(["test"])
+        cache_extra_test_sources(self, ["test"])
 
     def test_run_parallel_example(self):
         """build and run parallel-simple"""

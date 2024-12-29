@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
-from spack.util.executable import Executable
 
 
 class Ipm(AutotoolsPackage):
@@ -79,25 +78,25 @@ class Ipm(AutotoolsPackage):
     def configure_args(self):
         args = []
         spec = self.spec
-        if "+papi" in spec:
+        if spec.satisfies("+papi"):
             args.append("--with-papi={0}".format(spec["papi"].prefix))
 
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             args.append("--with-cudapath={0}".format(spec["cuda"].prefix))
 
-        if "+libunwind" in spec:
+        if spec.satisfies("+libunwind"):
             args.append("--with-libunwind={0}".format(spec["libunwind"].prefix))
 
-        if "+papi_multiplexing" in spec:
+        if spec.satisfies("+papi_multiplexing"):
             args.append("--enable-papi-multiplexing")
 
-        if "+posixio" in spec:
+        if spec.satisfies("+posixio"):
             args.append("--enable-posixio")
 
-        if "+pmon" in spec:
+        if spec.satisfies("+pmon"):
             args.append("--enable-pmon")
 
-        if "+coll_details" in spec:
+        if spec.satisfies("+coll_details"):
             args.append("--enable-coll-details")
 
         args.extend(

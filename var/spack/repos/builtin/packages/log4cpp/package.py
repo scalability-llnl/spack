@@ -13,7 +13,7 @@ class Log4cpp(AutotoolsPackage):
     the Log4j Java library, staying as close to their API as is
     reasonable."""
 
-    homepage = "http://log4cpp.sourceforge.net/"
+    homepage = "https://log4cpp.sourceforge.net/"
     url = "http://sourceforge.net/projects/log4cpp/files/log4cpp-1.1.3.tar.gz"
 
     license("LGPL-2.1-or-later")

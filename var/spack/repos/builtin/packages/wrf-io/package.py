@@ -22,8 +22,8 @@ class WrfIo(CMakePackage):
     version("develop", branch="develop")
     version("1.2.0", sha256="000cf5294a2c68460085258186e1f36c86d3d0d9c433aa969a0f92736b745617")
 
-    depends_on("c", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("fortran", type="build")
 
     variant("openmp", default=False, description="Enable multithreading with OpenMP")
 

@@ -27,6 +27,9 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
 
     version("master", branch="master")
     version(
+        "2024.10.29", sha256="e729fad51f44b1340c0f64ac0f862026121183a3c8d731874f0a11a3b5053223"
+    )
+    version(
         "2024.05.31", sha256="9c5d4d6779d8935b6fe41031b46e11ab92102f13c5f684022287c8616661b775"
     )
     version(
@@ -70,7 +73,7 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
     # The runtime dependency on cmake is needed by the stand-alone tests (spack test).
     depends_on("cmake", type="run")
 
-    depends_on("mpi", when="+mpi")
+    depends_on("mpi")
     depends_on("intel-oneapi-mkl threads=openmp", when="+sycl")
     depends_on("blas")
     depends_on("blaspp ~cuda", when="~cuda")
@@ -89,6 +92,7 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
     for val in ROCmPackage.amdgpu_targets:
         depends_on("blaspp +rocm amdgpu_target=%s" % val, when="amdgpu_target=%s" % val)
         depends_on("lapackpp +rocm amdgpu_target=%s" % val, when="amdgpu_target=%s" % val)
+    depends_on("lapackpp@2024.10.26:", when="@2024.10.29:")
     depends_on("lapackpp@2024.05.31:", when="@2024.05.31:")
     depends_on("lapackpp@2023.11.05:", when="@2023.11.05:")
     depends_on("lapackpp@2023.08.25:", when="@2023.08.25:")
@@ -105,6 +109,8 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("rocsolver", when="+rocm")
 
     requires("%oneapi", when="+sycl", msg="slate+sycl must be compiled with %oneapi")
+    requires("+mpi", msg="MPI is required (use of the 'mpi' variant is deprecated)")
+    requires("+openmp", msg="OpenMP is required (use of the 'openmp' variant is deprecated)")
 
     cpp_17_msg = "Requires C++17 compiler support"
     conflicts("%gcc@:5", msg=cpp_17_msg)
@@ -121,6 +127,12 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
     conflicts("+sycl", when="@:2022.07.00", msg="SYCL support requires SLATE version 2023.08.25")
     conflicts("^hip@5.6.0:", when="@:2023.08.25", msg="Incompatible version of HIP/ROCm")
 
+    def flag_handler(self, name, flags):
+        if name == "cxxflags":
+            if self.spec.satisfies("%oneapi@2025:"):
+                flags.append("-Wno-error=missing-template-arg-list-after-template-kw")
+        return (flags, None, None)
+
     def cmake_args(self):
         spec = self.spec
         backend_config = "-Duse_cuda=%s" % ("+cuda" in spec)
@@ -136,10 +148,8 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
 
         config = [
             "-Dbuild_tests=%s" % self.run_tests,
-            "-Duse_openmp=%s" % ("+openmp" in spec),
             "-DBUILD_SHARED_LIBS=%s" % ("+shared" in spec),
             backend_config,
-            "-Duse_mpi=%s" % ("+mpi" in spec),
         ]
         if "+cuda" in spec:
             archs = ";".join(spec.variants["cuda_arch"].value)
@@ -158,7 +168,7 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
             return
         """Copy the example source files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources(["examples"])
+        cache_extra_test_sources(self, ["examples"])
 
     def mpi_launcher(self):
         searchpath = [self.spec["mpi"].prefix.bin]

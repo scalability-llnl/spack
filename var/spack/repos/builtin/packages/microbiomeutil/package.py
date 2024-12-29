@@ -9,7 +9,7 @@ from spack.package import *
 class Microbiomeutil(MakefilePackage, SourceforgePackage):
     """Microbiome analysis utilities"""
 
-    homepage = "http://microbiomeutil.sourceforge.net/"
+    homepage = "https://microbiomeutil.sourceforge.net/"
     sourceforge_mirror_path = "microbiomeutil/microbiomeutil-r20110519.tgz"
 
     version("20110519", sha256="9233de80ea57bfb9e9371cbe7e3bfad2d4a51168fddaf60fa144c4046c80d823")

@@ -52,7 +52,6 @@ class Xtensor(CMakePackage):
     conflicts("%gcc@:4.8")
     conflicts("%clang@:3.5")
     # untested: conflicts('%intel@:15')
-    # untested: conflicts('%pgi@:14')
 
     def cmake_args(self):
         args = [

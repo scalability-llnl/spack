@@ -5,18 +5,20 @@
 
 import collections.abc
 import contextlib
+import fnmatch
 import functools
-import inspect
 import itertools
 import os
 import re
 import sys
 import traceback
+import typing
+import warnings
 from datetime import datetime, timedelta
-from typing import Any, Callable, Iterable, List, Tuple
+from typing import Callable, Dict, Iterable, List, Tuple, TypeVar
 
 # Ignore emacs backups when listing modules
-ignore_modules = [r"^\.#", "~$"]
+ignore_modules = r"^\.#|~$"
 
 
 def index_by(objects, *funcs):
@@ -84,34 +86,11 @@ def index_by(objects, *funcs):
     return result
 
 
-def caller_locals():
-    """This will return the locals of the *parent* of the caller.
-    This allows a function to insert variables into its caller's
-    scope.  Yes, this is some black magic, and yes it's useful
-    for implementing things like depends_on and provides.
-    """
-    # Passing zero here skips line context for speed.
-    stack = inspect.stack(0)
-    try:
-        return stack[2][0].f_locals
-    finally:
-        del stack
-
-
 def attr_setdefault(obj, name, value):
     """Like dict.setdefault, but for objects."""
     if not hasattr(obj, name):
         setattr(obj, name, value)
     return getattr(obj, name)
-
-
-def has_method(cls, name):
-    for base in inspect.getmro(cls):
-        if base is object:
-            continue
-        if name in base.__dict__:
-            return True
-    return False
 
 
 def union_dicts(*dicts):
@@ -178,19 +157,22 @@ def list_modules(directory, **kwargs):
     order."""
     list_directories = kwargs.setdefault("directories", True)
 
-    for name in os.listdir(directory):
-        if name == "__init__.py":
-            continue
+    ignore = re.compile(ignore_modules)
 
-        path = os.path.join(directory, name)
-        if list_directories and os.path.isdir(path):
-            init_py = os.path.join(path, "__init__.py")
-            if os.path.isfile(init_py):
-                yield name
+    with os.scandir(directory) as it:
+        for entry in it:
+            if entry.name == "__init__.py" or entry.name == "__pycache__":
+                continue
 
-        elif name.endswith(".py"):
-            if not any(re.search(pattern, name) for pattern in ignore_modules):
-                yield re.sub(".py$", "", name)
+            if (
+                list_directories
+                and entry.is_dir()
+                and os.path.isfile(os.path.join(entry.path, "__init__.py"))
+            ):
+                yield entry.name
+
+            elif entry.name.endswith(".py") and entry.is_file() and not ignore.search(entry.name):
+                yield entry.name[:-3]  # strip .py
 
 
 def decorator_with_or_without_args(decorator):
@@ -237,8 +219,8 @@ def key_ordering(cls):
         value.__name__ = name
         setattr(cls, name, value)
 
-    if not has_method(cls, "_cmp_key"):
-        raise TypeError("'%s' doesn't define _cmp_key()." % cls.__name__)
+    if not hasattr(cls, "_cmp_key"):
+        raise TypeError(f"'{cls.__name__}' doesn't define _cmp_key().")
 
     setter("__eq__", lambda s, o: (s is o) or (o is not None and s._cmp_key() == o._cmp_key()))
     setter("__lt__", lambda s, o: o is not None and s._cmp_key() < o._cmp_key())
@@ -388,8 +370,8 @@ def lazy_lexicographic_ordering(cls, set_hash=True):
         TypeError: If the class does not have a ``_cmp_iter`` method
 
     """
-    if not has_method(cls, "_cmp_iter"):
-        raise TypeError("'%s' doesn't define _cmp_iter()." % cls.__name__)
+    if not hasattr(cls, "_cmp_iter"):
+        raise TypeError(f"'{cls.__name__}' doesn't define _cmp_iter().")
 
     # comparison operators are implemented in terms of lazy_eq and lazy_lt
     def eq(self, other):
@@ -864,20 +846,34 @@ def uniq(sequence):
     return uniq_list
 
 
-def elide_list(line_list, max_num=10):
+def elide_list(line_list: List[str], max_num: int = 10) -> List[str]:
     """Takes a long list and limits it to a smaller number of elements,
     replacing intervening elements with '...'.  For example::
 
-        elide_list([1,2,3,4,5,6], 4)
+        elide_list(["1", "2", "3", "4", "5", "6"], 4)
 
     gives::
 
-        [1, 2, 3, '...', 6]
+        ["1", "2", "3", "...", "6"]
     """
     if len(line_list) > max_num:
-        return line_list[: max_num - 1] + ["..."] + line_list[-1:]
-    else:
-        return line_list
+        return [*line_list[: max_num - 1], "...", line_list[-1]]
+    return line_list
+
+
+if sys.version_info >= (3, 9):
+    PatternStr = re.Pattern[str]
+    PatternBytes = re.Pattern[bytes]
+else:
+    PatternStr = typing.Pattern[str]
+    PatternBytes = typing.Pattern[bytes]
+
+
+def fnmatch_translate_multiple(named_patterns: Dict[str, str]) -> str:
+    """Similar to ``fnmatch.translate``, but takes an ordered dictionary where keys are pattern
+    names, and values are filename patterns. The output is a regex that matches any of the
+    patterns in order, and named capture groups are used to identify which pattern matched."""
+    return "|".join(f"(?P<{n}>{fnmatch.translate(p)})" for n, p in named_patterns.items())
 
 
 @contextlib.contextmanager
@@ -892,18 +888,12 @@ class UnhashableArguments(TypeError):
     """Raise when an @memoized function receives unhashable arg or kwarg values."""
 
 
-def enum(**kwargs):
-    """Return an enum-like class.
-
-    Args:
-        **kwargs: explicit dictionary of enums
-    """
-    return type("Enum", (object,), kwargs)
+T = TypeVar("T")
 
 
 def stable_partition(
-    input_iterable: Iterable, predicate_fn: Callable[[Any], bool]
-) -> Tuple[List[Any], List[Any]]:
+    input_iterable: Iterable[T], predicate_fn: Callable[[T], bool]
+) -> Tuple[List[T], List[T]]:
     """Partition the input iterable according to a custom predicate.
 
     Args:
@@ -915,12 +905,13 @@ def stable_partition(
         Tuple of the list of elements evaluating to True, and
         list of elements evaluating to False.
     """
-    true_items, false_items = [], []
+    true_items: List[T] = []
+    false_items: List[T] = []
     for item in input_iterable:
         if predicate_fn(item):
             true_items.append(item)
-            continue
-        false_items.append(item)
+        else:
+            false_items.append(item)
     return true_items, false_items
 
 
@@ -930,6 +921,21 @@ def ensure_last(lst, *elements):
     Raises ``ValueError`` if any ``elements`` are not already in ``lst``."""
     for elt in elements:
         lst.append(lst.pop(lst.index(elt)))
+
+
+class Const:
+    """Class level constant, raises when trying to set the attribute"""
+
+    __slots__ = ["value"]
+
+    def __init__(self, value):
+        self.value = value
+
+    def __get__(self, instance, owner):
+        return self.value
+
+    def __set__(self, instance, value):
+        raise TypeError(f"Const value does not support assignment [value={self.value}]")
 
 
 class TypedMutableSequence(collections.abc.MutableSequence):
@@ -1036,3 +1042,42 @@ class classproperty:
 
     def __get__(self, instance, owner):
         return self.callback(owner)
+
+
+class DeprecatedProperty:
+    """Data descriptor to error or warn when a deprecated property is accessed.
+
+    Derived classes must define a factory method to return an adaptor for the deprecated
+    property, if the descriptor is not set to error.
+    """
+
+    __slots__ = ["name"]
+
+    #: 0 - Nothing
+    #: 1 - Warning
+    #: 2 - Error
+    error_lvl = 0
+
+    def __init__(self, name: str) -> None:
+        self.name = name
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+
+        if self.error_lvl == 1:
+            warnings.warn(
+                f"accessing the '{self.name}' property of '{instance}', which is deprecated"
+            )
+        elif self.error_lvl == 2:
+            raise AttributeError(f"cannot access the '{self.name}' attribute of '{instance}'")
+
+        return self.factory(instance, owner)
+
+    def __set__(self, instance, value):
+        raise TypeError(
+            f"the deprecated property '{self.name}' of '{instance}' does not support assignment"
+        )
+
+    def factory(self, instance, owner):
+        raise NotImplementedError("must be implemented by derived classes")

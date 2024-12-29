@@ -12,12 +12,16 @@ class RocmGdb(AutotoolsPackage):
     based on GDB, the GNU source-level debugger."""
 
     homepage = "https://github.com/ROCm/ROCgdb"
-    url = "https://github.com/ROCm/ROCgdb/archive/rocm-6.1.2.tar.gz"
+    url = "https://github.com/ROCm/ROCgdb/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
     license("LGPL-2.0-or-later")
 
     maintainers("srekolam", "renjithravindrankannath")
+    version("6.3.0", sha256="4a41ffbc4f7a5970181ee0aae07f0ea4cda278870cd60a562b25001f1365e29f")
+    version("6.2.4", sha256="061d00f3d02ca64094008c5da185712712ccd3a922f6e126d5f203cdae2b9e04")
+    version("6.2.1", sha256="bed312c3fbb9982166538036bb9fd4a75053117c65ba80e34dbdae629a8fe6e4")
+    version("6.2.0", sha256="753fd4f34d49fb0297b01dca2dd7cdf12cd039caa622a5f2d153362d27a8659c")
     version("6.1.2", sha256="19208de18d503e1da79dc0c9085221072a68e299f110dc836204364fa1b532cc")
     version("6.1.1", sha256="3d982abc130a286d227948aca5783f2e4507ef4275be21dad0914e37217ba19e")
     version("6.1.0", sha256="e90d855ca4c1478acf143d45ff0811e7ecd068711db155de6d5f3593cdef6230")
@@ -50,6 +54,7 @@ class RocmGdb(AutotoolsPackage):
     depends_on("babeltrace@1.2.4", type="link")
     depends_on("gmp", type=("build", "link"))
     depends_on("mpfr", type=("build", "link"))
+    depends_on("pkgconfig", type="build")
 
     for ver in [
         "5.3.0",
@@ -67,6 +72,10 @@ class RocmGdb(AutotoolsPackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
     ]:
         depends_on(f"rocm-dbgapi@{ver}", type="link", when=f"@{ver}")
         depends_on(f"comgr@{ver}", type="link", when=f"@{ver}")
@@ -83,6 +92,10 @@ class RocmGdb(AutotoolsPackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 

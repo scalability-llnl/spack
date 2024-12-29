@@ -20,6 +20,7 @@ class Votca(CMakePackage):
     maintainers("junghans")
 
     version("master", branch="master")
+    version("2024.2", sha256="aa9ea3ad54dae31d3f68685d12f3bad4910ef3034a7f51c9ddd573b3856f4bc8")
     version("2024.1", sha256="68669a7d09020f780d2633eb865c6c53e5fb38d155f80c9670ebf9d10d10bee6")
     version("2024", sha256="7f342e857f4a6ba6d25937f63830afa3c32cbd906255c8d78aa6c500cfd418c8")
     version("2023", sha256="6150a38c77379d05592a56ae4392a00c4636d02198bb06108a3dc739a45115f8")

@@ -18,6 +18,7 @@ class Mruby(Package):
     license("MIT")
 
     version("master", branch="master")
+    version("3.3.0", sha256="53088367e3d7657eb722ddfacb938f74aed1f8538b3717fe0b6eb8f58402af65")
     version("3.2.0", sha256="3c198e4a31d31fe8524013066fac84a67fe6cd6067d92c25a1c79089744cb608")
     version("3.1.0", sha256="64ce0a967028a1a913d3dfc8d3f33b295332ab73be6f68e96d0f675f18c79ca8")
     version("3.0.0", sha256="95b798cdd931ef29d388e2b0b267cba4dc469e8722c37d4ef8ee5248bc9075b0")

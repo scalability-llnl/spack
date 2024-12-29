@@ -51,8 +51,6 @@ class Scale(MakefilePackage):
             scale_sys_str = "Linux64-gnu-ompi"
         elif self.spec.satisfies("platform=linux %intel"):
             scale_sys_str = "Linux64-intel-impi"
-        elif self.spec.satisfies("platform=linux %pgi"):
-            scale_sys_str = "Linux64-pgi-ompi"
         elif self.spec.satisfies("platform=linux target=arm %gcc"):
             scale_sys_str = "LinuxARM-gnu-ompi"
         elif self.spec.satisfies("platform=linux target=a64fx %fj"):

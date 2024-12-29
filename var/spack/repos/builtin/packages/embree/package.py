@@ -15,6 +15,8 @@ class Embree(CMakePackage):
 
     license("Apache-2.0")
 
+    version("4.3.3", sha256="8a3bc3c3e21aa209d9861a28f8ba93b2f82ed0dc93341dddac09f1f03c36ef2d")
+    version("4.3.2", sha256="dc7bb6bac095b2e7bc64321435acd07c6137d6d60e4b79ec07bb0b215ddf81cb")
     version("4.3.1", sha256="824edcbb7a8cd393c5bdb7a16738487b21ecc4e1d004ac9f761e934f97bb02a4")
     version("4.3.0", sha256="baf0a57a45837fc055ba828a139467bce0bc0c6a9a5f2dccb05163d012c12308")
     version("4.2.0", sha256="b0479ce688045d17aa63ce6223c84b1cdb5edbf00d7eda71c06b7e64e21f53a0")

@@ -10,7 +10,7 @@ class Xqilla(AutotoolsPackage, SourceforgePackage):
     """XQilla is an XQuery and XPath 2 library and command line utility
     written in C++, implemented on top of the Xerces-C library."""
 
-    homepage = "http://xqilla.sourceforge.net/HomePage"
+    homepage = "https://xqilla.sourceforge.net/HomePage"
     sourceforge_mirror_path = "xqilla/XQilla-2.3.3.tar.gz"
 
     license("Apache-2.0")

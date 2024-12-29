@@ -37,14 +37,14 @@ jobs:
               make patch unzip which xz python3 python3-devel tree \
               cmake bison
       - name: Checkout
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
       - name: Bootstrap clingo
         run: |
           source share/spack/setup-env.sh
+          spack bootstrap disable github-actions-v0.6
           spack bootstrap disable github-actions-v0.5
-          spack bootstrap disable github-actions-v0.4
           spack external find cmake bison
           spack -d solve zlib
           tree ~/.spack/bootstrap/store/
@@ -53,33 +53,27 @@ jobs:
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
-        runner: ['macos-13', 'macos-14', "ubuntu-latest", "windows-latest"]
+        runner: ['macos-13', 'macos-14', "ubuntu-latest"]
     steps:
       - name: Setup macOS
-        if: ${{ matrix.runner != 'ubuntu-latest' && matrix.runner != 'windows-latest' }}
+        if: ${{ matrix.runner != 'ubuntu-latest' }}
         run: |
           brew install cmake bison tree
       - name: Checkout
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@39cd14951b08e74b54015e9e001cdefcf80e669f
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
         with:
           python-version: "3.12"
       - name: Bootstrap clingo
-        env:
-          SETUP_SCRIPT_EXT: ${{ matrix.runner == 'windows-latest' && 'ps1' || 'sh' }}
-          SETUP_SCRIPT_SOURCE: ${{ matrix.runner == 'windows-latest' && './' || 'source ' }}
-          USER_SCOPE_PARENT_DIR: ${{ matrix.runner == 'windows-latest' && '$env:userprofile' || '$HOME' }}
-          VALIDATE_LAST_EXIT: ${{ matrix.runner == 'windows-latest' && './share/spack/qa/validate_last_exit.ps1' || '' }}
         run: |
-          ${{ env.SETUP_SCRIPT_SOURCE }}share/spack/setup-env.${{ env.SETUP_SCRIPT_EXT }}
+          source share/spack/setup-env.sh
+          spack bootstrap disable github-actions-v0.6
           spack bootstrap disable github-actions-v0.5
-          spack bootstrap disable github-actions-v0.4
           spack external find --not-buildable cmake bison
           spack -d solve zlib
-          ${{ env.VALIDATE_LAST_EXIT }}
-          tree ${{ env.USER_SCOPE_PARENT_DIR }}/.spack/bootstrap/store/
+          tree $HOME/.spack/bootstrap/store/
 
   gnupg-sources:
     runs-on: ${{ matrix.runner }}
@@ -89,22 +83,22 @@ jobs:
     steps:
       - name: Setup macOS
         if: ${{ matrix.runner != 'ubuntu-latest' }}
+        run: brew install tree gawk
+      - name: Remove system executables
         run: |
-          brew install tree gawk
-          sudo rm -rf $(command -v gpg gpg2)
-      - name: Setup Ubuntu
-        if: ${{ matrix.runner == 'ubuntu-latest' }}
-        run: sudo rm -rf $(command -v gpg gpg2 patchelf)
+          while [ -n "$(command -v gpg gpg2 patchelf)" ]; do
+            sudo rm $(command -v gpg gpg2 patchelf)
+          done
       - name: Checkout
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
       - name: Bootstrap GnuPG
         run: |
           source share/spack/setup-env.sh
           spack solve zlib
+          spack bootstrap disable github-actions-v0.6
           spack bootstrap disable github-actions-v0.5
-          spack bootstrap disable github-actions-v0.4
           spack -d gpg list
           tree ~/.spack/bootstrap/store/
 
@@ -116,19 +110,17 @@ jobs:
     steps:
       - name: Setup macOS
         if: ${{ matrix.runner != 'ubuntu-latest' }}
+        run: brew install tree
+      - name: Remove system executables
         run: |
-          brew install tree
-          # Remove GnuPG since we want to bootstrap it
-          sudo rm -rf /usr/local/bin/gpg
-      - name: Setup Ubuntu
-        if: ${{ matrix.runner == 'ubuntu-latest' }}
-        run: |
-          sudo rm -rf $(which gpg) $(which gpg2) $(which patchelf)
+          while [ -n "$(command -v gpg gpg2 patchelf)" ]; do
+            sudo rm $(command -v gpg gpg2 patchelf)
+          done
       - name: Checkout
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@39cd14951b08e74b54015e9e001cdefcf80e669f
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
         with:
           python-version: |
             3.8
@@ -136,15 +128,16 @@ jobs:
             3.10
             3.11
             3.12
+            3.13
       - name: Set bootstrap sources
         run: |
           source share/spack/setup-env.sh
-          spack bootstrap disable github-actions-v0.4
+          spack bootstrap disable github-actions-v0.5
           spack bootstrap disable spack-install
       - name: Bootstrap clingo
         run: |
           set -e
-          for ver in '3.8' '3.9' '3.10' '3.11' '3.12' ; do
+          for ver in '3.8' '3.9' '3.10' '3.11' '3.12' '3.13'; do
             not_found=1
             ver_dir="$(find $RUNNER_TOOL_CACHE/Python -wholename "*/${ver}.*/*/bin" | grep . || true)"
             if [[ -d "$ver_dir" ]] ; then
@@ -167,4 +160,35 @@ jobs:
         run: |
           source share/spack/setup-env.sh
           spack -d gpg list
-          tree ~/.spack/bootstrap/store/
+          tree $HOME/.spack/bootstrap/store/
+
+
+  windows:
+    runs-on: "windows-latest"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
+        with:
+          python-version: "3.12"
+      - name: Setup Windows
+        run: |
+          Remove-Item -Path (Get-Command gpg).Path
+          Remove-Item -Path (Get-Command file).Path
+      - name: Bootstrap clingo
+        run: |
+          ./share/spack/setup-env.ps1
+          spack bootstrap disable github-actions-v0.6
+          spack bootstrap disable github-actions-v0.5
+          spack external find --not-buildable cmake bison
+          spack -d solve zlib
+          ./share/spack/qa/validate_last_exit.ps1
+          tree $env:userprofile/.spack/bootstrap/store/
+      - name: Bootstrap GnuPG
+        run: |
+          ./share/spack/setup-env.ps1
+          spack -d gpg list
+          ./share/spack/qa/validate_last_exit.ps1
+          tree $env:userprofile/.spack/bootstrap/store/

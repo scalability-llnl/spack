@@ -5,9 +5,66 @@
 
 import os
 
+import spack.platforms
 from spack.package import *
 
 _versions = {
+    "6.3.0": {
+        "apt": (
+            "af03118e2606aeae0da636af17221fe124d5b955ebf40f0e2518f4a427a0c9bc",
+            "https://repo.radeon.com/rocm/apt/6.3/pool/main/h/hsa-amd-aqlprofile/hsa-amd-aqlprofile_1.0.0.60300-39~20.04_amd64.deb",
+        ),
+        "yum": (
+            "0aef66582b4de4f39c4781da2450c68eff00842ffc6713b141e9ba41630e452d",
+            "https://repo.radeon.com/rocm/rhel8/6.3/main/hsa-amd-aqlprofile-1.0.0.60300-39.el8.x86_64.rpm",
+        ),
+        "zyp": (
+            "6086231326d0a9de1033278995ca0fe635b8081dfd856019ec17c75b08fc6188",
+            "https://repo.radeon.com/rocm/zyp/6.3/main/hsa-amd-aqlprofile-1.0.0.60300-sles155.39.x86_64.rpm",
+        ),
+    },
+    "6.2.4": {
+        "apt": (
+            "614ad0c01b7f18eaa9e8a33fb73b9d8445c8785841ed41b406e129101dea854d",
+            "https://repo.radeon.com/rocm/apt/6.2.4/pool/main/h/hsa-amd-aqlprofile/hsa-amd-aqlprofile_1.0.0.60204.60204-139~20.04_amd64.deb",
+        ),
+        "yum": (
+            "fe499f5f0f4dac3652913d4009ff802d2136725341a8346c797af790700b5f31",
+            "https://repo.radeon.com/rocm/yum/6.2.4/main/hsa-amd-aqlprofile-1.0.0.60204.60204-139.el7.x86_64.rpm",
+        ),
+        "zyp": (
+            "7109118f0edce2f85e5554330ce6f6c6519d45558d8912940c9f7ee9c01fc4dd",
+            "https://repo.radeon.com/rocm/zyp/6.2.4/main/hsa-amd-aqlprofile-1.0.0.60204.60204-sles155.139.x86_64.rpm",
+        ),
+    },
+    "6.2.1": {
+        "apt": (
+            "a196698d39c567aef39734b4a47e0daa1596c86945868b4b0cffc6fcb0904dea",
+            "https://repo.radeon.com/rocm/apt/6.2.1/pool/main/h/hsa-amd-aqlprofile/hsa-amd-aqlprofile_1.0.0.60201.60201-112~20.04_amd64.deb",
+        ),
+        "yum": (
+            "771782e92156a25a775cb324a5ae4288d419659b963132688e9ed79eed22e421",
+            "https://repo.radeon.com/rocm/yum/6.2.1/main/hsa-amd-aqlprofile-1.0.0.60201.60201-112.el7.x86_64.rpm",
+        ),
+        "zyp": (
+            "bb70b54754638c4eb707ae82f4dc02fe9e8fc2e56618e478172169b839851d4d",
+            "https://repo.radeon.com/rocm/zyp/6.2.1/main/hsa-amd-aqlprofile-1.0.0.60201.60201-sles155.112.x86_64.rpm",
+        ),
+    },
+    "6.2.0": {
+        "apt": (
+            "75f4417477abb80f6a453f836d1ac44c8a3d24447b21cfa4b29787a73725ef4e",
+            "https://repo.radeon.com/rocm/apt/6.2/pool/main/h/hsa-amd-aqlprofile/hsa-amd-aqlprofile_1.0.0.60200.60200-66~20.04_amd64.deb",
+        ),
+        "yum": (
+            "d8ec6ceffe366c041d4dda11c418da53ca3b2234e8a57d4c4af9fdec936349ed",
+            "https://repo.radeon.com/rocm/yum/6.2/main/hsa-amd-aqlprofile-1.0.0.60200.60200-66.el7.x86_64.rpm",
+        ),
+        "zyp": (
+            "e7b34e800e4da6542261379e00b4f3a0e3ebc15e80925bf056ce495aff0b25e9",
+            "https://repo.radeon.com/rocm/zyp/6.2/main/hsa-amd-aqlprofile-1.0.0.60200.60200-sles155.66.x86_64.rpm",
+        ),
+    },
     "6.1.2": {
         "apt": (
             "93faa8a0d702bc1623d2346e07a9a1c9134d99c0d3f9de62903e7394e0eedf47",
@@ -188,6 +245,25 @@ class Aqlprofile(Package):
 
     depends_on("cpio")
 
+    for ver in [
+        "5.5.0",
+        "5.5.1",
+        "5.6.0",
+        "5.6.1",
+        "5.7.0",
+        "5.7.1",
+        "6.0.0",
+        "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+    ]:
+        depends_on(f"hsa-rocr-dev@{ver}", when=f"@{ver}")
+
     def install(self, spec, prefix):
         # find deb or rpm pkg and extract files
         for file in os.listdir("."):
@@ -201,3 +277,9 @@ class Aqlprofile(Package):
 
         install_tree(f"opt/rocm-{spec.version}/share/", prefix.share)
         install_tree(f"opt/rocm-{spec.version}/lib/", prefix.lib)
+
+    def setup_run_environment(self, env):
+        env.prepend_path("LD_LIBRARY_PATH", self.spec["hsa-rocr-dev"].prefix.lib)
+
+    # This package is installed from binaries, and we haven't patched rpaths.
+    unresolved_libraries = ["*"]

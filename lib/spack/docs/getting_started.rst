@@ -35,7 +35,7 @@ A build matrix showing which packages are working on which systems is shown belo
       .. code-block:: console
 
          apt update
-         apt install build-essential ca-certificates coreutils curl environment-modules gfortran git gpg lsb-release python3 python3-distutils python3-venv unzip zip
+         apt install bzip2 ca-certificates g++ gcc gfortran git gzip lsb-release patch python3 tar unzip xz-utils zstd
 
    .. tab-item:: RHEL
 
@@ -43,14 +43,14 @@ A build matrix showing which packages are working on which systems is shown belo
 
          dnf install epel-release
          dnf group install "Development Tools"
-         dnf install curl findutils gcc-gfortran gnupg2 hostname iproute redhat-lsb-core python3 python3-pip python3-setuptools unzip python3-boto3
+         dnf install gcc-gfortran redhat-lsb-core python3 unzip
 
    .. tab-item:: macOS Brew
 
       .. code-block:: console
 
          brew update
-         brew install curl gcc git gnupg zip
+         brew install gcc git zip
 
 ------------
 Installation
@@ -61,9 +61,14 @@ Getting Spack is easy.  You can clone it from the `github repository
 
 .. code-block:: console
 
-   $ git clone -c feature.manyFiles=true https://github.com/spack/spack.git
+   $ git clone -c feature.manyFiles=true --depth=2 https://github.com/spack/spack.git
 
 This will create a directory called ``spack``.
+
+.. note::
+   ``-c feature.manyFiles=true`` improves git's performance on repositories with 1,000+ files.
+
+   ``--depth=2`` prunes the git history to reduce the size of the Spack installation.
 
 .. _shell-support:
 
@@ -143,20 +148,22 @@ The first time you concretize a spec, Spack will bootstrap automatically:
    --------------------------------
    zlib@1.2.13%gcc@9.4.0+optimize+pic+shared build_system=makefile arch=linux-ubuntu20.04-icelake
 
+The default bootstrap behavior is to use pre-built binaries. You can verify the
+active bootstrap repositories with:
+
+.. command-output:: spack bootstrap list
+
 If for security concerns you cannot bootstrap ``clingo`` from pre-built
 binaries, you have to disable fetching the binaries we generated with Github Actions.
 
 .. code-block:: console
 
-   $ spack bootstrap disable github-actions-v0.4
-   ==> "github-actions-v0.4" is now disabled and will not be used for bootstrapping
-   $ spack bootstrap disable github-actions-v0.3
-   ==> "github-actions-v0.3" is now disabled and will not be used for bootstrapping
+   $ spack bootstrap disable github-actions-v0.6
+   ==> "github-actions-v0.6" is now disabled and will not be used for bootstrapping
+   $ spack bootstrap disable github-actions-v0.5
+   ==> "github-actions-v0.5" is now disabled and will not be used for bootstrapping
 
-You can verify that the new settings are effective with:
-
-.. command-output:: spack bootstrap list
-
+You can verify that the new settings are effective with ``spack bootstrap list``.
 
 .. note::
 
@@ -278,10 +285,6 @@ compilers`` or ``spack compiler list``:
        intel@14.0.1  intel@13.0.1  intel@12.1.2  intel@10.1
    -- clang -------------------------------------------------------
        clang@3.4  clang@3.3  clang@3.2  clang@3.1
-   -- pgi ---------------------------------------------------------
-       pgi@14.3-0   pgi@13.2-0  pgi@12.1-0   pgi@10.9-0  pgi@8.0-1
-       pgi@13.10-0  pgi@13.1-1  pgi@11.10-0  pgi@10.2-0  pgi@7.1-3
-       pgi@13.6-0   pgi@12.8-0  pgi@11.1-0   pgi@9.0-4   pgi@7.0-6
 
 Any of these compilers can be used to build Spack packages.  More on
 how this is done is in :ref:`sec-specs`.
@@ -799,65 +802,6 @@ flags to the ``icc`` command:
              cxxflags: -gxx-name ~/spack/opt/spack/linux-centos7-x86_64/gcc-4.9.3-iy4rw.../bin/g++
              fflags: -gcc-name ~/spack/opt/spack/linux-centos7-x86_64/gcc-4.9.3-iy4rw.../bin/gcc
            spec: intel@15.0.24.4.9.3
-
-
-^^^
-PGI
-^^^
-
-PGI comes with two sets of compilers for C++ and Fortran,
-distinguishable by their names.  "Old" compilers:
-
-.. code-block:: yaml
-
-    cc:  /soft/pgi/15.10/linux86-64/15.10/bin/pgcc
-    cxx: /soft/pgi/15.10/linux86-64/15.10/bin/pgCC
-    f77: /soft/pgi/15.10/linux86-64/15.10/bin/pgf77
-    fc:  /soft/pgi/15.10/linux86-64/15.10/bin/pgf90
-
-"New" compilers:
-
-.. code-block:: yaml
-
-    cc:  /soft/pgi/15.10/linux86-64/15.10/bin/pgcc
-    cxx: /soft/pgi/15.10/linux86-64/15.10/bin/pgc++
-    f77: /soft/pgi/15.10/linux86-64/15.10/bin/pgfortran
-    fc:  /soft/pgi/15.10/linux86-64/15.10/bin/pgfortran
-
-Older installations of PGI contains just the old compilers; whereas
-newer installations contain the old and the new.  The new compiler is
-considered preferable, as some packages
-(``hdf``) will not build with the old compiler.
-
-When auto-detecting a PGI compiler, there are cases where Spack will
-find the old compilers, when you really want it to find the new
-compilers.  It is best to check this ``compilers.yaml``; and if the old
-compilers are being used, change ``pgf77`` and ``pgf90`` to
-``pgfortran``.
-
-Other issues:
-
-* There are reports that some packages will not build with PGI,
-  including ``libpciaccess`` and ``openssl``.  A workaround is to
-  build these packages with another compiler and then use them as
-  dependencies for PGI-build packages.  For example:
-
-  .. code-block:: console
-
-     $ spack install openmpi%pgi ^libpciaccess%gcc
-
-
-* PGI requires a license to use; see :ref:`licensed-compilers` for more
-  information on installation.
-
-.. note::
-
-   It is believed the problem with HDF 4 is that everything is
-   compiled with the ``F77`` compiler, but at some point some Fortran
-   90 code slipped in there. So compilers that can handle both FORTRAN
-   77 and Fortran 90 (``gfortran``, ``pgfortran``, etc) are fine.  But
-   compilers specific to one or the other (``pgf77``, ``pgf90``) won't
-   work.
 
 
 ^^^
@@ -1384,6 +1328,7 @@ Required:
 * Microsoft Visual Studio
 * Python
 * Git
+* 7z
 
 Optional:
 * Intel Fortran (needed for some packages)
@@ -1449,6 +1394,13 @@ as the project providing Git support on Windows. This is additionally the recomm
 for installing Git on Windows, a link to which can be found above. Spack requires the
 utilities vendored by this project.
 
+"""
+7zip
+"""
+
+A tool for extracting ``.xz`` files is required for extracting source tarballs. The latest 7zip
+can be located at https://sourceforge.net/projects/sevenzip/.
+
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Step 2: Install and setup Spack
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1475,15 +1427,13 @@ in a Windows CMD prompt.
 Step 3: Run and configure Spack
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To use Spack, run ``bin\spack_cmd.bat`` (you may need to Run as Administrator) from the top-level spack
-directory. This will provide a Windows command prompt with an environment properly set up with Spack
-and its prerequisites. If you receive a warning message that Python is not in your ``PATH``
+On Windows, Spack supports both primary native shells, Powershell and the traditional command prompt.
+To use Spack, pick your favorite shell, and run ``bin\spack_cmd.bat`` or ``share/spack/setup-env.ps1``
+(you may need to Run as Administrator) from the top-level spack
+directory. This will provide a Spack enabled shell. If you receive a warning message that Python is not in your ``PATH``
 (which may happen if you installed Python from the website and not the Windows Store) add the location
 of the Python executable to your ``PATH`` now. You can permanently add Python to your ``PATH`` variable
 by using the ``Edit the system environment variables`` utility in Windows Control Panel.
-
-.. note::
-   Alternatively, Powershell can be used in place of CMD
 
 To configure Spack, first run the following command inside the Spack console:
 
@@ -1549,7 +1499,7 @@ and not tabs, so ensure that this is the case when editing one directly.
 
 .. note:: Cygwin
    The use of Cygwin is not officially supported by Spack and is not tested.
-   However Spack will not throw an error, so use if choosing to use Spack
+   However Spack will not prevent this, so use if choosing to use Spack
    with Cygwin, know that no functionality is garunteed.
 
 ^^^^^^^^^^^^^^^^^
@@ -1563,21 +1513,12 @@ Spack console via:
 
    spack install cpuinfo
 
-If in the previous step, you did not have CMake or Ninja installed, running the command above should bootstrap both packages
+If in the previous step, you did not have CMake or Ninja installed, running the command above should install both packages
 
-"""""""""""""""""""""""""""
-Windows Compatible Packages
-"""""""""""""""""""""""""""
+.. note:: Spec Syntax Caveats
+   Windows has a few idiosyncrasies when it comes to the Spack spec syntax and the use of certain shells
+   See the Spack spec syntax doc for more information
 
-Not all spack packages currently have Windows support. Some are inherently incompatible with the
-platform, and others simply have yet to be ported. To view the current set of packages with Windows
-support, the list command should be used via `spack list -t windows`. If there's a package you'd like
-to install on Windows but is not in that list, feel free to reach out to request the port or contribute
-the port yourself.
-
-.. note::
-   This is by no means a comprehensive list, some packages may have ports that were not tagged
-   while others may just work out of the box on Windows and have not been tagged as such.
 
 ^^^^^^^^^^^^^^
 For developers
@@ -1587,6 +1528,3 @@ The intent is to provide a Windows installer that will automatically set up
 Python, Git, and Spack, instead of requiring the user to do so manually.
 Instructions for creating the installer are at
 https://github.com/spack/spack/blob/develop/lib/spack/spack/cmd/installer/README.md
-
-Alternatively a pre-built copy of the Windows installer is available as an artifact of Spack's Windows CI
-available at each run of the CI on develop or any PR.

@@ -9,7 +9,7 @@ from spack.package import *
 class PyCroniter(PythonPackage):
     """croniter provides iteration for datetime object with cron like format."""
 
-    homepage = "http://github.com/kiorky/croniter"
+    homepage = "https://github.com/kiorky/croniter"
     pypi = "croniter/croniter-1.3.8.tar.gz"
 
     license("MIT")

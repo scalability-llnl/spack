@@ -11,7 +11,7 @@ class Libpfm4(MakefilePackage):
     setup performance events for use with
     the perf_events Linux kernel interface."""
 
-    homepage = "http://perfmon2.sourceforge.net"
+    homepage = "https://perfmon2.sourceforge.net"
     url = "https://downloads.sourceforge.net/project/perfmon2/libpfm4/libpfm-4.12.0.tar.gz"
     maintainers("mwkrentel")
 

@@ -17,6 +17,7 @@ class RHtmlwidgets(RPackage):
 
     license("MIT")
 
+    version("1.6.4", sha256="7cb08f0b30485dac26f72e4056ec4ed8825d1398e8b9f25ed63db228fe3a0ed0")
     version("1.6.2", sha256="7fda1672a4c0fbc203c790677b6ee7c40d2c2d72be4f6772f75288fc712b10bc")
     version("1.5.4", sha256="1a3fc60f40717de7f1716b754fd1c31a132e489a2560a278636ee78eba46ffc1")
     version("1.5.3", sha256="01a5833182cc224bd100be2815e57e67b524de9f2bb1542787b6e3d1303f0f29")
@@ -27,6 +28,7 @@ class RHtmlwidgets(RPackage):
 
     depends_on("r-htmltools@0.3:", type=("build", "run"))
     depends_on("r-htmltools@0.5.4:", type=("build", "run"), when="@1.6.2:")
+    depends_on("r-htmltools@0.5.7:", type=("build", "run"), when="@1.6.3:")
     depends_on("r-jsonlite@0.9.16:", type=("build", "run"))
     depends_on("r-yaml", type=("build", "run"))
     depends_on("r-rmarkdown", type=("build", "run"), when="@1.6.2:")

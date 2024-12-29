@@ -18,6 +18,8 @@ class PyH5py(PythonPackage):
     license("BSD-3-Clause")
 
     version("master", branch="master")
+    version("3.12.1", sha256="326d70b53d31baa61f00b8aa5f95c2fcb9621a3ee8365d770c551a13dbbcbfdf")
+    version("3.12.0", sha256="00955a079e9f86c5ae2cd08accb54396c69cda87152312ddd1528e3f90acc866")
     version("3.11.0", sha256="7b7e8f78072a2edec87c9836f25f34203fd492a4475709a18b417a33cfb21fa9")
     version("3.10.0", sha256="d93adc48ceeb33347eb24a634fb787efc7ae4644e6ea4ba733d099605045c049")
     version("3.9.0", sha256="e604db6521c1e367c6bd7fad239c847f53cc46646f2d2651372d05ae5e95f817")
@@ -40,11 +42,12 @@ class PyH5py(PythonPackage):
     version("2.5.0", sha256="9833df8a679e108b561670b245bcf9f3a827b10ccb3a5fa1341523852cfac2f6")
     version("2.4.0", sha256="faaeadf4b8ca14c054b7568842e0d12690de7d5d68af4ecce5d7b8fc104d8e60")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     variant("mpi", default=True, description="Build with MPI support")
 
     # Python versions
+    depends_on("python@3.9:", type=("build", "run"), when="@3.12:")
     depends_on("python@:3.9", type=("build", "run"), when="@:2.8")
 
     # Build dependencies
@@ -60,9 +63,9 @@ class PyH5py(PythonPackage):
     depends_on("py-setuptools", type="build")
 
     # Build and runtime dependencies
-    depends_on("py-numpy@1.17.3:", type=("build", "run"), when="@3.9:")
-    depends_on("py-numpy@1.19.3:", type=("build", "run"), when="@3:3.5 ^python@3.9.0:")
+    depends_on("py-numpy@1.19.3:", type=("build", "run"), when="@3:3.5,3.12: ^python@3.9.0:")
     depends_on("py-numpy@1.17.5:", type=("build", "run"), when="@3:3.5 ^python@3.8.0:3.8")
+    depends_on("py-numpy@1.17.3:", type=("build", "run"), when="@3.9:3.11")
     depends_on("py-numpy@1.14.5:", type=("build", "run"), when="@3:")
     depends_on("py-numpy@1.7:", type=("build", "run"), when="@:2")
     # https://github.com/h5py/h5py/issues/2353
@@ -70,7 +73,8 @@ class PyH5py(PythonPackage):
 
     # Link dependencies (py-h5py v2 cannot build against HDF5 1.12 regardless
     # of API setting)
-    depends_on("hdf5@1.10.4:1.14 +hl", when="@3.10:")
+    depends_on("hdf5@1.10.6:1.14 +hl", when="@3.12:")
+    depends_on("hdf5@1.10.4:1.14 +hl", when="@3.10:3.11")
     depends_on("hdf5@1.8.4:1.14 +hl", when="@3.8:3.9")
     depends_on("hdf5@1.8.4:1.12 +hl", when="@3:3.7")
     depends_on("hdf5@1.8.4:1.11 +hl", when="@:2")

@@ -64,9 +64,6 @@ class P3dfft3(AutotoolsPackage):
         if "%cce" in self.spec:
             args.append("--enable-cray")
 
-        if "%pgi" in self.spec:
-            args.append("--enable-pgi")
-
         if "+mpi" in self.spec:
             args.append("CC=%s" % self.spec["mpi"].mpicc)
             args.append("CXX=%s" % self.spec["mpi"].mpicxx)

@@ -76,6 +76,7 @@ class Ecflow(CMakePackage):
     # https://github.com/JCSDA/spack-stack/issues/1001
     # https://github.com/JCSDA/spack-stack/issues/1009
     patch("ctsapi_cassert.patch", when="@5.11.4")
+    patch("vfile_cassert.patch", when="@5.11.4")
 
     @when("@:4.13.0")
     def patch(self):

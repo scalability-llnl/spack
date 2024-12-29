@@ -15,8 +15,8 @@ class Chatterbug(MakefilePackage):
 
     tags = ["proxy-app"]
 
-    homepage = "https://chatterbug.readthedocs.io"
-    git = "https://github.com/LLNL/chatterbug.git"
+    homepage = "https://github.com/hpcgroup/chatterbug"
+    git = "https://github.com/hpcgroup/chatterbug.git"
 
     license("MIT")
 
@@ -39,13 +39,13 @@ class Chatterbug(MakefilePackage):
         return targets
 
     def build(self, spec, prefix):
-        if "+scorep" in spec:
+        if spec.satisfies("+scorep"):
             make("WITH_OTF2=YES")
         else:
             make()
 
     def install(self, spec, prefix):
-        if "+scorep" in spec:
+        if spec.satisfies("+scorep"):
             make("WITH_OTF2=YES", "PREFIX=" + spec.prefix, "install")
         else:
             make("PREFIX=" + spec.prefix, "install")

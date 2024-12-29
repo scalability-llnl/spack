@@ -15,7 +15,7 @@ from spack.package import *
 class _7zip(SourceforgePackage, Package):
     """7-Zip is a file archiver for Windows"""
 
-    homepage = "https://sourceforge.net/projects/sevenzip"
+    homepage = "https://sourceforge.net/projects/sevenzip/"
     sourceforge_mirror_path = "sevenzip/files/7z2107-src.tar.xz"
     tags = ["windows"]
 

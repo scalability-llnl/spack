@@ -26,12 +26,16 @@ class Julia(MakefilePackage):
     maintainers("vchuravy", "haampie", "giordano")
 
     version("master", branch="master")
+    version("1.11.0", sha256="a938c6b7758a83e817b56db3e542bd85e6d74db75e1381b1ba24cd6e3dc8c566")
+
     version("1.10.4", sha256="c46ed8166fe860a7258d088a0add68dfdf11ad64cc4c0b1f113570862d3ef777")
     version("1.10.3", sha256="b3cd34c839d25b98a162070b4e3abd5f34564ffdad13e07073be7885e5678a18")
     version("1.10.2", sha256="e3d20c02975da054aeb18d32ed84c5d760d54d2563e45e25017684a5a105d185")
+
     version("1.9.3", sha256="8d7dbd8c90e71179e53838cdbe24ff40779a90d7360e29766609ed90d982081d")
     version("1.9.2", sha256="015438875d591372b80b09d01ba899657a6517b7c72ed41222298fef9d4ad86b")
     version("1.9.0", sha256="48f4c8a7d5f33d0bc6ce24226df20ab49e385c2d0c3767ec8dfdb449602095b2")
+
     version("1.8.5", sha256="d31026cc6b275d14abce26fd9fd5b4552ac9d2ce8bde4291e494468af5743031")
     version("1.8.4", sha256="b7b8ee64fb947db8d61104f231e1b25342fe330d29e0d2273f93c264f32c5333")
     version("1.8.3", sha256="4d8d460fcae5c6f8306a3e3c14371635c1a26f47c3ce62b2950cf9234b6ec849")
@@ -49,8 +53,9 @@ class Julia(MakefilePackage):
     version("1.6.5", sha256="b70ae299ff6b63a9e9cbf697147a48a31b4639476d1947cb52e4201e444f23cb")
     version("1.6.4", sha256="a4aa921030250f58015201e28204bff604a007defc5a379a608723e6bb1808d4")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
 
     variant("precompile", default=True, description="Improve julia startup time")
     variant("openlibm", default=True, description="Use openlibm instead of libm")
@@ -66,8 +71,23 @@ class Julia(MakefilePackage):
     depends_on("libuv", when="@:1.7")
     depends_on("libuv-julia@1.42.0", when="@1.8.0:1.8.1")
     depends_on("libuv-julia@1.44.2", when="@1.8.2:1.9")
-    depends_on("libuv-julia@1.44.3", when="@1.10.0:")
+    depends_on("libuv-julia@1.44.3", when="@1.10.0:1.10")
+    depends_on("libuv-julia@1.48.0", when="@1.11.0:")
     depends_on("suite-sparse@5.4:5.10", when="@1.6:1.9")
+
+    with when("@1.11.0:1.11"):
+        # libssh2.so.1, libpcre2-8.so.0, libmbedtls.so.14, libmbedcrypto.so.7, libmbedx509.so.1,
+        # libopenlibm.so.4, libblastrampoline.so.5, libgit2.so.1.7, libnghttp2.so.14,
+        # libcurl.so.4
+        depends_on("libblastrampoline@5.11.0:5")
+        depends_on("libgit2@1.7.2:1.7")
+        depends_on("libssh2@1.11")
+        depends_on("llvm@16.0.6 +lld shlib_symbol_version=JL_LLVM_16.0")
+        depends_on("mbedtls@2.28.2:2.28")
+        depends_on("openlibm@0.8.1:0.8", when="+openlibm")
+        depends_on("nghttp2@1.59.0:1.59")
+        depends_on("curl@8.6.0:")
+        depends_on("suite-sparse@7.7.0")
 
     with when("@1.10.0:1.10"):
         # libssh2.so.1, libpcre2-8.so.0, libmbedtls.so.14, libmbedcrypto.so.7, libmbedx509.so.1,
@@ -174,6 +194,14 @@ class Julia(MakefilePackage):
             sha256="25cdc0271e7722d4a7cc6f72abcb17bfe205fc741bbe3716a21759c3eee7d32c",
         ),
     )
+    depends_on(
+        "llvm",
+        when="^llvm@16.0.6",
+        patches=patch(
+            "https://raw.githubusercontent.com/spack/patches/d042ae8f41493547d4263d249a13546f2c971972/julia/4997cd3006a3171d9b33f9a72ff9fdadc84e91a7c86aa044dcf495eef3a02893.patch",
+            sha256="4997cd3006a3171d9b33f9a72ff9fdadc84e91a7c86aa044dcf495eef3a02893",
+        ),
+    )
 
     # Patches for libuv
     depends_on(
@@ -221,6 +249,9 @@ class Julia(MakefilePackage):
     depends_on("utf8proc")
     depends_on("zlib-api")
     depends_on("zlib +shared +pic +optimize", when="^[virtuals=zlib-api] zlib")
+
+    # https://github.com/JuliaLang/julia/pull/45649#issuecomment-1192377430
+    conflicts("%gcc@12:", when="@:1.7")
 
     # Patches for julia
     patch("julia-1.6-system-libwhich-and-p7zip-symlink.patch", when="@1.6.0:1.6")
@@ -389,3 +420,7 @@ class Julia(MakefilePackage):
 
         with open("Make.user", "w") as f:
             f.write("\n".join(options) + "\n")
+
+    # julia's sys/package images are lacking rpaths, but this is fine because julia dlopen's them
+    # at which point their dependencies are already loaded. ccalllazyfoo.so is from tests.
+    unresolved_libraries = ["libjulia.so.*", "libjulia-internal.so.*", "ccalllazyfoo.so"]

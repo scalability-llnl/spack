@@ -16,7 +16,10 @@ class SuperluMt(Package):
 
     homepage = "https://crd-legacy.lbl.gov/~xiaoye/SuperLU/#superlu_mt"
     url = "http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_mt_3.1.tar.gz"
+    git = "https://github.com/xiaoyeli/superlu_mt"
 
+    version("master", branch="master")
+    version("4.0.1", tag="v4.0.1", commit="1300aec2a46327ecdd34fc7460d56e86e5431f79")
     version("3.1", sha256="407b544b9a92b2ed536b1e713e80f986824cf3016657a4bfc2f3e7d2a76ecab6")
 
     depends_on("c", type="build")  # generated
@@ -127,6 +130,9 @@ class SuperluMt(Package):
     def install(self, spec, prefix):
         # Set up make include file manually
         self.configure(spec)
+
+        # Workaround Makefile bug where lib directory is not always created
+        mkdirp("lib")
 
         # BLAS needs to be compiled separately if using internal BLAS library
         if "+blas" not in spec:

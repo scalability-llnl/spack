@@ -11,14 +11,11 @@ import pytest
 from llnl.util.filesystem import copy_tree
 
 import spack.cmd.common.arguments
-import spack.cmd.install
 import spack.cmd.test
 import spack.config
 import spack.install_test
-import spack.package_base
 import spack.paths
 import spack.spec
-import spack.store
 from spack.install_test import TestStatus
 from spack.main import SpackCommand
 
@@ -83,7 +80,7 @@ def test_test_output(mock_test_stage, mock_packages, mock_archive, mock_fetch, i
 
     # Grab the output from the test log to confirm expected result
     outfile = os.path.join(testdir, testlogs[0])
-    with open(outfile, "r") as f:
+    with open(outfile, "r", encoding="utf-8") as f:
         output = f.read()
     assert "test_print" in output
     assert "PASSED" in output
@@ -197,6 +194,9 @@ def test_test_list_all(mock_packages):
     assert set(pkgs) == set(
         [
             "fail-test-audit",
+            "fail-test-audit-deprecated",
+            "fail-test-audit-docstring",
+            "fail-test-audit-impl",
             "mpich",
             "perl-extension",
             "printing-package",

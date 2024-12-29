@@ -93,6 +93,9 @@ class PythonVenv(Package):
             path = os.path.join(dependent_spec.prefix, directory)
             if os.path.isdir(path):
                 env.prepend_path("PYTHONPATH", path)
+        dep_bin_dir = getattr(dependent_spec.package, "bindir", None)
+        if dep_bin_dir and os.path.isdir(dep_bin_dir):
+            env.prepend_path("PATH", dep_bin_dir)
 
     def setup_dependent_package(self, module, dependent_spec):
         """Called before python modules' install() methods."""

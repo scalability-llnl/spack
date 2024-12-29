@@ -10,7 +10,7 @@ class Pwgen(AutotoolsPackage):
     """Pwgen is a small, GPL'ed password generator which creates passwords
     which can be easily memorized by a human."""
 
-    homepage = "https://sourceforge.net/projects/pwgen"
+    homepage = "https://sourceforge.net/projects/pwgen/"
     url = "https://downloads.sourceforge.net/project/pwgen/pwgen/2.08/pwgen-2.08.tar.gz"
 
     maintainers("cessenat")

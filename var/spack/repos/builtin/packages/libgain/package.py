@@ -24,7 +24,11 @@ class Libgain(AutotoolsPackage):
 
     depends_on("fortran", type="build")  # generated
 
+    def flag_handler(self, name, flags):
+        flags.append(self.compiler.fc_pic_flag)
+        return (None, None, flags)
+
     @property
     def libs(self):
-        shared = "+shared" in self.spec
+        shared = self.spec.satisfies("+shared")
         return find_libraries("libGaIn", root=self.prefix, shared=shared, recursive=True)

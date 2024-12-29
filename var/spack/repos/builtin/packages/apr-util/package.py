@@ -58,22 +58,22 @@ class AprUtil(AutotoolsPackage):
             "--without-oracle",
         ]
 
-        if "+crypto" in spec:
+        if spec.satisfies("+crypto"):
             args.extend(["--with-crypto", f"--with-openssl={spec['openssl'].prefix}"])
         else:
             args.append("--without-crypto")
 
-        if "+gdbm" in spec:
+        if spec.satisfies("+gdbm"):
             args.append(f"--with-gdbm={spec['gdbm'].prefix}")
         else:
             args.append("--without-gdbm")
 
-        if "+pgsql" in spec:
+        if spec.satisfies("+pgsql"):
             args.append(f"--with-pgsql={spec['postgresql'].prefix}")
         else:
             args.append("--without-pgsql")
 
-        if "+sqlite" in spec:
+        if spec.satisfies("+sqlite"):
             if spec.satisfies("^sqlite@3.0:3"):
                 args.extend([f"--with-sqlite3={spec['sqlite'].prefix}", "--without-sqlite2"])
             elif spec.satisfies("^sqlite@2.0:2"):
@@ -81,7 +81,7 @@ class AprUtil(AutotoolsPackage):
         else:
             args.extend(["--without-sqlite2", "--without-sqlite3"])
 
-        if "+odbc" in spec:
+        if spec.satisfies("+odbc"):
             args.append(f"--with-odbc={spec['unixodbc'].prefix}")
         else:
             args.append("--without-odbc")

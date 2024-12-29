@@ -10,12 +10,12 @@ class Xts(AutotoolsPackage, XorgPackage):
     """This is a revamped version of X Test Suite (XTS) which removes some of
     the ugliness of building and running the tests."""
 
-    homepage = "https://www.x.org/wiki/XorgTesting/"
+    homepage = "https://gitlab.freedesktop.org/xorg/test/xts"
     xorg_mirror_path = "test/xts-0.99.1.tar.gz"
 
     version("0.99.1", sha256="d04d987b9a9f8b3921dfe8de8577d0c2a0f21d2c4c3196948fc9805838a352e6")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     depends_on("libx11", type="link")
     depends_on("libxext", type="link")
@@ -25,9 +25,9 @@ class Xts(AutotoolsPackage, XorgPackage):
     depends_on("libxt", type="link")
     depends_on("libxmu", type="link")
     depends_on("libxaw", type="link")
-    depends_on("inputproto")
-    depends_on("recordproto")
-    depends_on("fixesproto")
+    depends_on("inputproto", type="build")
+    depends_on("recordproto", type="build")
+    depends_on("fixesproto", type="build")
 
     depends_on("xtrans")
     depends_on("bdftopcf", type="build")
@@ -35,6 +35,9 @@ class Xts(AutotoolsPackage, XorgPackage):
     depends_on("perl", type="build")
     depends_on("xset", type="build")
     depends_on("xdpyinfo", type="build")
+
+    depends_on("pkgconfig", type="build")
+    depends_on("util-macros", type="build")
 
     # FIXME: Crashes during compilation
     # error: redeclaration of enumerator 'XawChainTop'

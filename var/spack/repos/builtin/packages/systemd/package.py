@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import glob
 import os
 
 from spack.package import *
@@ -17,6 +18,7 @@ class Systemd(MesonPackage):
     url = "https://github.com/systemd/systemd/archive/refs/tags/v255.tar.gz"
     license("GPL-2.0-only")
 
+    version("256.7", sha256="896d76ff65c88f5fd9e42f90d152b0579049158a163431dd77cdc57748b1d7b0")
     version("255", sha256="28854ffb2cb5f9e07fcbdbaf1e03a80b3462a12edeef84893ca2f37b22e4491e")
 
     depends_on("c", type="build")  # generated
@@ -141,3 +143,13 @@ class Systemd(MesonPackage):
         os.environ["DESTDIR"] = prefix
         with working_dir(self.build_directory):
             ninja("install")
+
+    @run_after("install")
+    def symlink_internal_libs(self):
+        with working_dir(self.prefix):
+            # Create symlinks lib/lib*.so* -> lib/systemd/lib*.so* so that executables and
+            # libraries from systemd can find its own libraries in rpaths.
+            for lib_path in glob.glob("lib*/systemd/lib*.so*"):
+                lib_name = os.path.basename(lib_path)
+                lib_dir = os.path.dirname(os.path.dirname(lib_path))
+                os.symlink(os.path.relpath(lib_path, lib_dir), os.path.join(lib_dir, lib_name))

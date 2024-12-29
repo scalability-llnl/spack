@@ -146,29 +146,29 @@ class Converge(Package):
         # The CONVERGE tarball comes with binaries for several MPI libraries.
         # Only install the binary that matches the MPI we are building with.
         with working_dir("l_x86_64/bin"):
-            if "~mpi" in spec:
+            if spec.satisfies("~mpi"):
                 converge = glob.glob("converge-*-serial*")
                 post_convert = glob.glob("post_convert_serial*")
-            elif "hp-mpi" in spec:
+            elif spec.satisfies("^hp-mpi"):
                 converge = glob.glob("converge-*-hpmpi*")
                 # No HP-MPI version of post_convert
                 post_convert = glob.glob("post_convert_serial*")
-            elif "intel-mpi" in spec or "intel-parallel-studio+mpi" in spec:
+            elif spec.satisfies("intel-mpi") or spec.satisfies("intel-parallel-studio+mpi"):
                 converge = glob.glob("converge-*-intel*")
                 # No Intel MPI version of post_convert
                 post_convert = glob.glob("post_convert_serial*")
-            elif "mpich" in spec:
+            elif spec.satisfies("^mpich"):
                 converge = glob.glob("converge-*-mpich*")
                 post_convert = glob.glob("post_convert_mpich*")
-            elif "mvapich2" in spec:
+            elif spec.satisfies("^mvapich2"):
                 converge = glob.glob("converge-*-mvapich*")
                 # MVAPICH2 hasn't been supported since CONVERGE
                 # came with a single serial post_convert
                 post_convert = glob.glob("post_convert")
-            elif "openmpi" in spec:
+            elif spec.satisfies("^openmpi"):
                 converge = glob.glob("converge-*-o*mpi*")
                 post_convert = glob.glob("post_convert_o*mpi*")
-            elif "platform-mpi" in spec:
+            elif spec.satisfies("^platform-mpi"):
                 converge = glob.glob("converge-*-pmpi*")
                 post_convert = glob.glob("post_convert_pmpi*")
             else:

@@ -17,8 +17,9 @@ import pytest
 from llnl.util.filesystem import getuid, mkdirp, partition_path, touch, working_dir
 from llnl.util.symlink import readlink
 
+import spack.config
 import spack.error
-import spack.paths
+import spack.fetch_strategy
 import spack.stage
 import spack.util.executable
 import spack.util.url as url_util
@@ -124,7 +125,7 @@ def check_expand_archive(stage, stage_name, expected_file_list):
             assert False
 
         assert os.path.isfile(fn)
-        with open(fn) as _file:
+        with open(fn, encoding="utf-8") as _file:
             _file.read() == contents
 
 
@@ -323,17 +324,11 @@ def failing_search_fn():
     return _mock
 
 
-@pytest.fixture
-def failing_fetch_strategy():
-    """Returns a fetch strategy that fails."""
-
-    class FailingFetchStrategy(spack.fetch_strategy.FetchStrategy):
-        def fetch(self):
-            raise spack.fetch_strategy.FailedDownloadError(
-                "<non-existent URL>", "This implementation of FetchStrategy always fails"
-            )
-
-    return FailingFetchStrategy()
+class FailingFetchStrategy(spack.fetch_strategy.FetchStrategy):
+    def fetch(self):
+        raise spack.fetch_strategy.FailedDownloadError(
+            "<non-existent URL>", "This implementation of FetchStrategy always fails"
+        )
 
 
 @pytest.fixture
@@ -511,8 +506,8 @@ class TestStage:
             stage.fetch()
         check_destroy(stage, self.stage_name)
 
-    def test_no_search_mirror_only(self, failing_fetch_strategy, failing_search_fn):
-        stage = Stage(failing_fetch_strategy, name=self.stage_name, search_fn=failing_search_fn)
+    def test_no_search_mirror_only(self, failing_search_fn):
+        stage = Stage(FailingFetchStrategy(), name=self.stage_name, search_fn=failing_search_fn)
         with stage:
             try:
                 stage.fetch(mirror_only=True)
@@ -527,8 +522,8 @@ class TestStage:
             (None, "All fetchers failed"),
         ],
     )
-    def test_search_if_default_fails(self, failing_fetch_strategy, search_fn, err_msg, expected):
-        stage = Stage(failing_fetch_strategy, name=self.stage_name, search_fn=search_fn)
+    def test_search_if_default_fails(self, search_fn, err_msg, expected):
+        stage = Stage(FailingFetchStrategy(), name=self.stage_name, search_fn=search_fn)
 
         with stage:
             with pytest.raises(spack.error.FetchError, match=expected):
@@ -586,7 +581,7 @@ class TestStage:
                 check_expand_archive(stage, self.stage_name, [_include_readme])
 
                 # Try to make a file in the old archive dir
-                with open("foobar", "w") as file:
+                with open("foobar", "w", encoding="utf-8") as file:
                     file.write("this file is to be destroyed.")
 
             assert "foobar" in os.listdir(stage.source_path)
@@ -809,7 +804,7 @@ def _create_files_from_tree(base, tree):
             _create_files_from_tree(sub_base, content)
         else:
             assert (content is None) or (isinstance(content, str))
-            with open(sub_base, "w") as f:
+            with open(sub_base, "w", encoding="utf-8") as f:
                 if content:
                     f.write(content)
 
@@ -824,7 +819,7 @@ def _create_tree_from_dir_recursive(path):
             tree[name] = _create_tree_from_dir_recursive(sub_path)
         return tree
     else:
-        with open(path, "r") as f:
+        with open(path, "r", encoding="utf-8") as f:
             content = f.read() or None
         return content
 
@@ -841,7 +836,7 @@ def develop_path(tmpdir):
 class TestDevelopStage:
     def test_sanity_check_develop_path(self, develop_path):
         _, srcdir = develop_path
-        with open(os.path.join(srcdir, "a1", "b2")) as f:
+        with open(os.path.join(srcdir, "a1", "b2"), encoding="utf-8") as f:
             assert f.read() == "b1content"
 
         assert os.path.exists(os.path.join(srcdir, "a2"))

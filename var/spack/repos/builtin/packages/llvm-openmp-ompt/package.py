@@ -61,7 +61,7 @@ class LlvmOpenmpOmpt(CMakePackage):
         # Build llvm-openmp-ompt as a stand alone library
         # CMAKE rpath variable prevents standalone error
         # where this package wants the llvm tools path
-        if "+standalone" in self.spec:
+        if self.spec.satisfies("+standalone"):
             cmake_args.extend(
                 [
                     "-DLIBOMP_STANDALONE_BUILD=true",
@@ -72,11 +72,11 @@ class LlvmOpenmpOmpt(CMakePackage):
 
         # Build llvm-openmp-ompt using the tr6_forwards branch
         # This requires the version to be 5.0 (50)
-        if "@tr6_forwards" in self.spec:
+        if self.spec.satisfies("@tr6_forwards"):
             cmake_args.extend(["-DLIBOMP_OMP_VERSION=50"])
 
         # Disable support for libomptarget
-        if "~libomptarget" in self.spec:
+        if self.spec.satisfies("~libomptarget"):
             cmake_args.extend(["-DOPENMP_ENABLE_LIBOMPTARGET=OFF"])
 
         return cmake_args

@@ -48,11 +48,10 @@ class JsonC(CMakePackage, AutotoolsPackage):
         filter_file("-Werror", "", "CMakeLists.txt")
 
     def flag_handler(self, name, flags):
-        iflags = []
         if name == "cflags":
             if self.spec.satisfies("%oneapi"):
-                iflags.append("-Wno-error=implicit-function-declaration")
-        return (iflags, None, None)
+                flags.append("-Wno-error=implicit-function-declaration")
+        return (flags, None, None)
 
     @run_after("install")
     def darwin_fix(self):

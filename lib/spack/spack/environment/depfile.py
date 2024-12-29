@@ -9,11 +9,13 @@ depfiles from an environment.
 
 import os
 import re
+import shlex
 from enum import Enum
 from typing import List, Optional
 
 import spack.deptypes as dt
 import spack.environment.environment as ev
+import spack.paths
 import spack.spec
 import spack.traverse as traverse
 
@@ -226,6 +228,7 @@ class MakefileModel:
             "install_deps_target": self._target("install-deps"),
             "any_hash_target": self._target("%"),
             "jobserver_support": self.jobserver_support,
+            "spack_script": shlex.quote(spack.paths.spack_script),
             "adjacency_list": self.make_adjacency_list,
             "phony_convenience_targets": " ".join(self.phony_convenience_targets),
             "pkg_ids_variable": self.pkg_identifier_variable,

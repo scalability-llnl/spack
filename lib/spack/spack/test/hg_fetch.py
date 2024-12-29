@@ -10,7 +10,6 @@ import pytest
 from llnl.util.filesystem import mkdirp, touch, working_dir
 
 import spack.config
-import spack.repo
 from spack.fetch_strategy import HgFetchStrategy
 from spack.spec import Spec
 from spack.stage import Stage

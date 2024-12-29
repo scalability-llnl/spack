@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Common basic functions used through the spack.bootstrap package"""
 import fnmatch
+import glob
+import importlib
 import os.path
 import re
 import sys
@@ -28,7 +30,7 @@ QueryInfo = Dict[str, "spack.spec.Spec"]
 
 def _python_import(module: str) -> bool:
     try:
-        __import__(module)
+        importlib.import_module(module)
     except ImportError:
         return False
     return True
@@ -59,10 +61,19 @@ def _try_import_from_store(
             python, *_ = candidate_spec.dependencies("python-venv")
         else:
             python, *_ = candidate_spec.dependencies("python")
-        module_paths = [
-            os.path.join(candidate_spec.prefix, python.package.purelib),
-            os.path.join(candidate_spec.prefix, python.package.platlib),
-        ]
+
+        # if python is installed, ask it for the layout
+        if python.installed:
+            module_paths = [
+                os.path.join(candidate_spec.prefix, python.package.purelib),
+                os.path.join(candidate_spec.prefix, python.package.platlib),
+            ]
+        # otherwise search for the site-packages directory
+        # (clingo from binaries with truncated python-venv runtime)
+        else:
+            module_paths = glob.glob(
+                os.path.join(candidate_spec.prefix, "lib", "python*", "site-packages")
+            )
         path_before = list(sys.path)
 
         # NOTE: try module_paths first and last, last allows an existing version in path

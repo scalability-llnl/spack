@@ -21,43 +21,48 @@ class AmrWind(CMakePackage, CudaPackage, ROCmPackage):
     license("BSD-3-Clause")
 
     version("main", branch="main", submodules=True)
-    version(
-        "2.1.0", tag="v2.1.0", commit="bc787f21deca9239928182e27400133934c62658", submodules=True
-    )
-    version(
-        "2.0.0", tag="v2.0.0", commit="ea448365033fc6bc9ee0febeb369b377f4fd8240", submodules=True
-    )
-    version(
-        "1.4.0", tag="v1.4.0", commit="bdddf133e41a9b7b4c8ce28f1ea1bebec47678f5", submodules=True
-    )
-    version(
-        "1.3.1", tag="v1.3.1", commit="63692889143599de57232e64a9c7e4af8f0a2e1e", submodules=True
-    )
-    version(
-        "1.3.0", tag="v1.3.0", commit="f74d7b3801f0492e586d440fac729d9dec595a8b", submodules=True
-    )
-    version(
-        "1.2.1", tag="v1.2.1", commit="7291737434ca339ecc765355eab88ddd529ff68f", submodules=True
-    )
-    version(
-        "1.2.0", tag="v1.2.0", commit="db9add5c1c68583a9019cb7ba6776bd580b0ab3e", submodules=True
-    )
-    version(
-        "1.1.0", tag="v1.1.0", commit="30396bf70f0bd5ac65dd0f7b29757b0e02b22459", submodules=True
-    )
-    version(
-        "1.0.1", tag="v1.0.1", commit="aa9b7e8e63833e6ac1cc3f60fcba5140416cc139", submodules=True
-    )
-    version(
-        "1.0.0", tag="v1.0.0", commit="885f4137ce7b9e6c60f48aa5e4c1a54f1418ea9e", submodules=True
-    )
-    version(
-        "0.9.0", tag="v0.9.0", commit="cf66ebe31fd5f27b76a83451cd22f346e7a67160", submodules=True
-    )
+    version("3.3.1", tag="v3.3.1", submodules=True)
+    version("3.3.0", tag="v3.3.0", submodules=True)
+    version("3.2.3", tag="v3.2.3", submodules=True)
+    version("3.2.2", tag="v3.2.2", submodules=True)
+    version("3.2.1", tag="v3.2.1", submodules=True)
+    version("3.2.0", tag="v3.2.0", submodules=True)
+    version("3.1.7", tag="v3.1.7", submodules=True)
+    version("3.1.6", tag="v3.1.6", submodules=True)
+    version("3.1.5", tag="v3.1.5", submodules=True)
+    version("3.1.4", tag="v3.1.4", submodules=True)
+    version("3.1.3", tag="v3.1.3", submodules=True)
+    version("3.1.2", tag="v3.1.2", submodules=True)
+    version("3.1.1", tag="v3.1.1", submodules=True)
+    version("3.1.0", tag="v3.1.0", submodules=True)
+    version("3.0.2", tag="v3.0.2", submodules=True)
+    version("3.0.1", tag="v3.0.1", submodules=True)
+    version("3.0.0", tag="v3.0.0", submodules=True)
+    version("2.6.0", tag="v2.6.0", submodules=True)
+    version("2.5.0", tag="v2.5.0", submodules=True)
+    version("2.4.3", tag="v2.4.3", submodules=True)
+    version("2.4.2", tag="v2.4.2", submodules=True)
+    version("2.4.1", tag="v2.4.1", submodules=True)
+    version("2.4.0", tag="v2.4.0", submodules=True)
+    version("2.3.2", tag="v2.3.2", submodules=True)
+    version("2.3.1", tag="v2.3.1", submodules=True)
+    version("2.3.0", tag="v2.3.0", submodules=True)
+    version("2.2.1", tag="v2.2.1", submodules=True)
+    version("2.2.0", tag="v2.2.0", submodules=True)
+    version("2.1.0", tag="v2.1.0", submodules=True)
+    version("2.0.0", tag="v2.0.0", submodules=True)
+    version("1.4.0", tag="v1.4.0", submodules=True)
+    version("1.3.1", tag="v1.3.1", submodules=True)
+    version("1.3.0", tag="v1.3.0", submodules=True)
+    version("1.2.1", tag="v1.2.1", submodules=True)
+    version("1.2.0", tag="v1.2.0", submodules=True)
+    version("1.1.0", tag="v1.1.0", submodules=True)
+    version("1.0.1", tag="v1.0.1", submodules=True)
+    version("1.0.0", tag="v1.0.0", submodules=True)
+    version("0.9.0", tag="v0.9.0", submodules=True)
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("hypre", default=False, description="Enable Hypre integration")
     variant("ascent", default=False, description="Enable Ascent integration")
@@ -77,6 +82,7 @@ class AmrWind(CMakePackage, CudaPackage, ROCmPackage):
     variant(
         "waves2amr", default=False, description="Enable Waves2AMR support for ocean wave input"
     )
+    variant("fft", default=False, description="Enable FFT support for MAC projection")
 
     depends_on("mpi", when="+mpi")
     depends_on("hdf5~mpi", when="+hdf5~mpi")
@@ -102,6 +108,7 @@ class AmrWind(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("helics@:3.3.2", when="+helics")
     depends_on("helics@:3.3.2+mpi", when="+helics+mpi")
     depends_on("fftw", when="@2.1: +waves2amr")
+    depends_on("fftw", when="@3.3.1: +fft")
 
     for arch in CudaPackage.cuda_arch_values:
         depends_on("hypre+cuda cuda_arch=%s" % arch, when="+cuda+hypre cuda_arch=%s" % arch)
@@ -137,13 +144,14 @@ class AmrWind(CMakePackage, CudaPackage, ROCmPackage):
             "rocm",
             "tests",
             "tiny_profile",
+            "fft",
+            "helics",
+            "umpire",
+            "sycl",
         ]
         args = [self.define_from_variant("AMR_WIND_ENABLE_%s" % v.upper(), v) for v in vs]
 
-        args += [
-            define("AMR_WIND_ENABLE_ALL_WARNINGS", True),
-            self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
-        ]
+        args += [self.define_from_variant("BUILD_SHARED_LIBS", "shared")]
 
         if spec.satisfies("+mpi"):
             args.append(define("MPI_HOME", spec["mpi"].prefix))
@@ -156,11 +164,7 @@ class AmrWind(CMakePackage, CudaPackage, ROCmPackage):
             args.append(define("HDF5_IS_PARALLEL", spec.satisfies("+mpi")))
 
         if spec.satisfies("+cuda"):
-            amrex_arch = [
-                "{0:.1f}".format(float(i) / 10.0) for i in spec.variants["cuda_arch"].value
-            ]
-            if amrex_arch:
-                args.append(define("AMReX_CUDA_ARCH", amrex_arch))
+            args.append(define("CMAKE_CUDA_ARCHITECTURES", spec.variants["cuda_arch"].value))
 
         if spec.satisfies("+rocm"):
             args.append(define("CMAKE_CXX_COMPILER", spec["hip"].hipcc))
@@ -168,19 +172,19 @@ class AmrWind(CMakePackage, CudaPackage, ROCmPackage):
             args.append("-DAMReX_AMD_ARCH=" + ";".join(str(x) for x in targets))
 
         if spec.satisfies("+umpire"):
-            args.append(self.define_from_variant("AMR_WIND_ENABLE_UMPIRE", "umpire"))
             args.append(define("UMPIRE_DIR", spec["umpire"].prefix))
 
         if spec.satisfies("+helics"):
-            args.append(self.define_from_variant("AMR_WIND_ENABLE_HELICS", "helics"))
             args.append(define("HELICS_DIR", spec["helics"].prefix))
 
         if spec.satisfies("+waves2amr"):
             args.append(self.define_from_variant("AMR_WIND_ENABLE_W2A", "waves2amr"))
             args.append(define("FFTW_DIR", spec["fftw"].prefix))
 
+        if spec.satisfies("+fft"):
+            args.append(define("FFTW_DIR", spec["fftw"].prefix))
+
         if spec.satisfies("+sycl"):
-            args.append(define("AMR_WIND_ENABLE_SYCL", True))
             requires(
                 "%dpcpp",
                 "%oneapi",

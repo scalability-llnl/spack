@@ -19,7 +19,7 @@ class Netpbm(MakefilePackage):
     editing tools such as magnifying and cropping.
     """
 
-    homepage = "http://netpbm.sourceforge.net"
+    homepage = "https://netpbm.sourceforge.net"
     url = "https://sourceforge.net/projects/netpbm/files/super_stable/10.73.35/netpbm-10.73.35.tgz"
 
     maintainers("cessenat")

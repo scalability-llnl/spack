@@ -22,6 +22,7 @@ class Geos(CMakePackage):
     license("LGPL-2.1-or-later")
     maintainers("adamjstewart")
 
+    version("3.13.0", sha256="47ec83ff334d672b9e4426695f15da6e6368244214971fabf386ff8ef6df39e4")
     version("3.12.2", sha256="34c7770bf0090ee88488af98767d08e779f124fa33437e0aabec8abd4609fec6")
     version("3.12.1", sha256="d6ea7e492224b51193e8244fe3ec17c4d44d0777f3c32ca4fb171140549a0d03")
     version("3.12.0", sha256="d96db96011259178a35555a0f6d6e75a739e52a495a6b2aa5efb3d75390fbc39")
@@ -66,10 +67,11 @@ class Geos(CMakePackage):
     version("3.3.4", sha256="cd5400aa5f3fe32246dfed5d238c5017e1808162c865c016480b3e6c07271904")
     version("3.3.3", sha256="dfcf4bd70ab212a5b7bad21d01b84748f101a545092b56dafdc3882ef3bddec9")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     generator("ninja")
+    depends_on("cmake@3.15:", when="@3.13:", type="build")
     depends_on("cmake@3.13:", when="@3.10:", type="build")
     depends_on("cmake@3.8:", type="build")
 
@@ -89,7 +91,7 @@ class Geos(CMakePackage):
         args = []
 
         # https://github.com/libgeos/geos/issues/460
-        if "%intel" in self.spec:
+        if self.spec.satisfies("%intel"):
             args.append(self.define("BUILD_ASTYLE", False))
 
         args.append(self.define_from_variant("BUILD_SHARED_LIBS", "shared"))

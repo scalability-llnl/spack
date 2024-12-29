@@ -12,7 +12,7 @@ class Relion(CMakePackage, CudaPackage):
     refinement of (multiple) 3D reconstructions or 2D class averages in
     electron cryo-microscopy (cryo-EM)."""
 
-    homepage = "http://www2.mrc-lmb.cam.ac.uk/relion"
+    homepage = "https://www2.mrc-lmb.cam.ac.uk/relion"
     git = "https://github.com/3dem/relion.git"
     url = "https://github.com/3dem/relion/archive/4.0.0.zip"
     maintainers("dacolombo")

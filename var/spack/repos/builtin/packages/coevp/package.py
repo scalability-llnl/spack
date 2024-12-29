@@ -42,11 +42,11 @@ class Coevp(MakefilePackage):
     @property
     def build_targets(self):
         targets = []
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             targets.append("COEVP_MPI=yes")
         else:
             targets.append("COEVP_MPI=no")
-        if "+flann" in self.spec:
+        if self.spec.satisfies("+flann"):
             targets.append("FLANN=yes")
             targets.append("FLANN_TARGET=")
             targets.append(
@@ -55,7 +55,7 @@ class Coevp(MakefilePackage):
         else:
             targets.append("FLANN=no")
         targets.append("REDIS=no")
-        if "+silo" in self.spec:
+        if self.spec.satisfies("+silo"):
             targets.append("SILO=yes")
             targets.append("SILO_TARGET=")
             targets.append("SILO_LOC={0}".format(self.spec["silo"].prefix))

@@ -21,8 +21,6 @@ class Alquimia(CMakePackage):
     version("1.1.0", commit="211931c3e76b1ae7cdb48c46885b248412d6fe3d")  # tag v1.1.0
     version("1.0.10", commit="b2c11b6cde321f4a495ef9fcf267cb4c7a9858a0")  # tag v.1.0.10
     version("1.0.9", commit="2ee3bcfacc63f685864bcac2b6868b48ad235225")  # tag v.1.0.9
-    version("xsdk-0.6.0", commit="9a0aedd3a927d4d5e837f8fd18b74ad5a78c3821")
-    version("xsdk-0.5.0", commit="8397c3b00a09534c5473ff3ab21f0e32bb159380")
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
@@ -35,8 +33,6 @@ class Alquimia(CMakePackage):
     depends_on("pflotran@5.0.0", when="@1.1.0")
     depends_on("pflotran@4.0.1", when="@1.0.10")
     depends_on("pflotran@3.0.2", when="@1.0.9")
-    depends_on("pflotran@xsdk-0.6.0", when="@xsdk-0.6.0")
-    depends_on("pflotran@xsdk-0.5.0", when="@xsdk-0.5.0")
     depends_on("pflotran@develop", when="@develop")
     depends_on("petsc@3.10:", when="@develop")
 

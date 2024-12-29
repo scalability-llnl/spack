@@ -12,7 +12,7 @@ class Astyle(CMakePackage, MakefilePackage):
     Objective-C, C#, and Java Source Code.
     """
 
-    homepage = "http://astyle.sourceforge.net/"
+    homepage = "https://astyle.sourceforge.net/"
     url = "https://sourceforge.net/projects/astyle/files/astyle/astyle%204.1.11/astyle-4.1.11.tar.bz2"
     list_url = "https://sourceforge.net/projects/astyle/files/astyle"
     list_depth = 1

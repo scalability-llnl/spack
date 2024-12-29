@@ -10,7 +10,7 @@ class PyCrossmap(PythonPackage, SourceforgePackage):
     """CrossMap is a program for convenient conversion of genome coordinates
     (or annotation files) between different assemblies"""
 
-    homepage = "http://crossmap.sourceforge.net/"
+    homepage = "https://crossmap.sourceforge.net/"
     sourceforge_mirror_path = "crossmap/CrossMap-0.3.3.tar.gz"
 
     version("0.3.9", sha256="e20a4653e9fc313ac0f5a6cfc37b42e83c3cf2b42f9483706cfb9ec9ff72c74c")

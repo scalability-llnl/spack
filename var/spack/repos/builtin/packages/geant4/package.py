@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
-from spack.variant import _ConditionalVariantValues
+from spack.variant import ConditionalVariantValues
 
 
 class Geant4(CMakePackage):
@@ -21,16 +21,8 @@ class Geant4(CMakePackage):
     executables = ["^geant4-config$"]
 
     maintainers("drbenmorgan", "sethrj")
-    version(
-        "11.3.0.beta",
-        sha256="572ba1570ca3b5b6f2a28ccbffa459901f6a986b79da1ebfdbf2f6f3dc5e14bf",
-        deprecated=True,
-    )
-    version(
-        "11.2.2",
-        sha256="3a8d98c63fc52578f6ebf166d7dffaec36256a186d57f2520c39790367700c8d",
-        preferred=True,
-    )
+    version("11.3.0", sha256="d9d71daff8890a7b5e0e33ea9a65fe6308ad6713000b43ba6705af77078e7ead")
+    version("11.2.2", sha256="3a8d98c63fc52578f6ebf166d7dffaec36256a186d57f2520c39790367700c8d")
     version("11.2.1", sha256="76c9093b01128ee2b45a6f4020a1bcb64d2a8141386dea4674b5ae28bcd23293")
     version("11.2.0", sha256="9ff544739b243a24dac8f29a4e7aab4274fc0124fd4e1c4972018213dc6991ee")
     version("11.1.3", sha256="5d9a05d4ccf8b975649eab1d615fc1b8dce5937e01ab9e795bffd04149240db6")
@@ -78,10 +70,45 @@ class Geant4(CMakePackage):
     variant("x11", default=False, description="Optional X11 support")
     variant("motif", default=False, description="Optional motif support")
     variant("qt", default=False, description="Enable Qt support")
+    variant("hdf5", default=False, description="Enable HDF5 support", when="@10.4:")
     variant("python", default=False, description="Enable Python bindings", when="@10.6.2:11.0")
     variant("tbb", default=False, description="Use TBB as a tasking backend", when="@11:")
     variant("timemory", default=False, description="Use TiMemory for profiling", when="@9.5:")
     variant("vtk", default=False, description="Enable VTK support", when="@11:")
+
+    # For most users, obtaining the Geant4 data via Spack will be useful; the
+    # sticky, default-enabled `+data` variant ensures that this happens.
+    # Furthermore, if this variant is enabled, Spack will automatically set the
+    # necessary environment variables to ensure that the Geant4 code runs
+    # correctly.
+    #
+    # However, the Geant4 data is also large and it is, on many machines used
+    # in HEP, already available via e.g. CVMFS. In these cases, users can save
+    # network bandwidth by using externally supplied Geant4 data. This can be
+    # done in two different ways.
+    #
+    # The first is to declare the Geant4 data directories as externals. This
+    # can be done by manually adding them to the `packages.yaml` file, e.g.:
+    #
+    # ```
+    # g4radioactivedecay:
+    #   externals:
+    #   - spec: g4radioactivedecay@5.6
+    #     prefix: <PREFIX>
+    #     buildable: False
+    # ```
+    #
+    # Where <PREFIX> is a path such that <PREFIX>/share/data/<DATASET><VERSION>
+    # exists.
+    #
+    # Alternatively, the `~data` variant can be supplied; in this case, Spack
+    # will not attempt to use the `geant4-data` spec at all. It is then
+    # essential to set up the `GEANT4_DATA_DIR` environment variable manually
+    # at runtime; see the Geant4 installation guide for more information:
+    # https://geant4-userdoc.web.cern.ch/UsersGuides/InstallationGuide/html/postinstall.html
+    variant(
+        "data", default=True, sticky=True, description="Enable downloading of the data directory"
+    )
 
     depends_on("cmake@3.16:", type="build", when="@11.0.0:")
     depends_on("cmake@3.8:", type="build", when="@10.6.0:")
@@ -108,7 +135,7 @@ class Geant4(CMakePackage):
         "11.2.2:11.2",
         "11.3:",
     ]:
-        depends_on("geant4-data@" + _vers, type="run", when="@" + _vers)
+        depends_on("geant4-data@" + _vers, type="run", when="+data @" + _vers)
 
     depends_on("expat")
     depends_on("zlib-api")
@@ -140,9 +167,12 @@ class Geant4(CMakePackage):
         depends_on("vecgeom@1.1.0", when="@10.5.0:10.5")
         depends_on("vecgeom@0.5.2", when="@10.4.0:10.4")
 
+    with when("+hdf5"):
+        depends_on("hdf5 +threadsafe")
+
     def std_when(values):
         for v in values:
-            if isinstance(v, _ConditionalVariantValues):
+            if isinstance(v, ConditionalVariantValues):
                 for c in v:
                     yield (c.value, c.when)
             else:
@@ -177,6 +207,9 @@ class Geant4(CMakePackage):
     # As released, 10.0.4 has inconsistently capitalised filenames
     # in the cmake files; this patch also enables cxxstd 14
     patch("geant4-10.0.4.patch", when="@10.0.4")
+    # Fix member field typo in g4tools wroot
+    # See https://bugzilla-geant4.kek.jp/show_bug.cgi?id=2640
+    patch("columns.patch", when="@10.4:11.2.2")
     # As released, 10.03.03 has issues with respect to using external
     # CLHEP.
     patch("CLHEP-10.03.03.patch", level=1, when="@10.3")
@@ -190,6 +223,9 @@ class Geant4(CMakePackage):
 
     # See https://bugzilla-geant4.kek.jp/show_bug.cgi?id=2556
     patch("package-cache.patch", level=1, when="@10.7.0:11.1.2^cmake@3.17:")
+
+    # Issue with Twisted tubes, see https://bugzilla-geant4.kek.jp/show_bug.cgi?id=2619
+    patch("twisted-tubes.patch", level=1, when="@11.2.0:11.2.2")
 
     # NVHPC: "thread-local declaration follows non-thread-local declaration"
     conflicts("%nvhpc", when="+threads")
@@ -282,7 +318,7 @@ class Geant4(CMakePackage):
         options.append(self.define_from_variant("GEANT4_BUILD_MULTITHREADED", "threads"))
         options.append(self.define_from_variant("GEANT4_USE_TBB", "tbb"))
 
-        if "+threads" in spec:
+        if spec.satisfies("+threads"):
             # Locked at global-dynamic to allow use cases that load the
             # geant4 libs at application runtime
             options.append(self.define("GEANT4_BUILD_TLS_MODEL", "global-dynamic"))
@@ -294,27 +330,30 @@ class Geant4(CMakePackage):
         # geant4-data's install directory to correctly set up the
         # Geant4Config.cmake values for Geant4_DATASETS .
         options.append(self.define("GEANT4_INSTALL_DATA", False))
-        options.append(self.define("GEANT4_INSTALL_DATADIR", self.datadir))
+        if spec.satisfies("+data"):
+            options.append(self.define("GEANT4_INSTALL_DATADIR", self.datadir))
 
         # Vecgeom
-        if "+vecgeom" in spec:
+        if spec.satisfies("+vecgeom"):
             options.append(self.define("GEANT4_USE_USOLIDS", True))
             options.append(self.define("USolids_DIR", spec["vecgeom"].prefix.lib.CMake.USolids))
 
         # Visualization options
         if "platform=darwin" not in spec:
-            if "+x11 +opengl" in spec:
+            if spec.satisfies("+x11 +opengl"):
                 options.append(self.define("GEANT4_USE_OPENGL_X11", True))
-            if "+motif +opengl" in spec:
+            if spec.satisfies("+motif +opengl"):
                 options.append(self.define("GEANT4_USE_XM", True))
-            if "+x11" in spec:
+            if spec.satisfies("+x11"):
                 options.append(self.define("GEANT4_USE_RAYTRACER_X11", True))
 
-        if "+qt" in spec:
+        if spec.satisfies("+qt"):
             options.append(self.define("GEANT4_USE_QT", True))
-            if "^[virtuals=qmake] qt-base" in spec:
+            if spec.satisfies("^[virtuals=qmake] qt-base"):
                 options.append(self.define("GEANT4_USE_QT_QT6", True))
             options.append(self.define("QT_QMAKE_EXECUTABLE", spec["qmake"].prefix.bin.qmake))
+
+        options.append(self.define_from_variant("GEANT4_USE_HDF5", "hdf5"))
 
         options.append(self.define_from_variant("GEANT4_USE_VTK", "vtk"))
 

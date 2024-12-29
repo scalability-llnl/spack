@@ -60,7 +60,7 @@ class Coreutils(AutotoolsPackage, GNUMirrorPackage):
         spec = self.spec
         configure_args = []
         if spec.satisfies("platform=darwin"):
-            if "+gprefix" in self.spec:
+            if self.spec.satisfies("+gprefix"):
                 configure_args.append("--program-prefix=g")
             configure_args.append("--without-gmp")
             configure_args.append("gl_cv_func_ftello_works=yes")

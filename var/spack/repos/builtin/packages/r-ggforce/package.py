@@ -19,6 +19,7 @@ class RGgforce(RPackage):
 
     license("MIT")
 
+    version("0.4.2", sha256="c145b0e6ed6847d409ed2fe103b81234855bc0661cde2bfb4410fb23680e51a8")
     version("0.4.1", sha256="b44219fb63c45fa003c64bca323452f16dcace635204bc0127d3244c0f451873")
     version("0.3.3", sha256="2a283bb409da6b96929863a926b153bcc59b2c6f00551805db1d1d43e5929f2f")
     version("0.3.2", sha256="4cce8acb60ce06af44c1c76bbacd7de129eed9b51ed6a85e03a9bf55b0eff4d2")

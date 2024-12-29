@@ -10,7 +10,7 @@ from spack.package import *
 class Pstreams(Package):
     """C++ wrapper for the POSIX.2 functions popen(3) and pclose(3)"""
 
-    homepage = "http://pstreams.sourceforge.net/"
+    homepage = "https://pstreams.sourceforge.net/"
     url = "https://sourceforge.net/projects/pstreams/files/pstreams/Release%201.0/pstreams-1.0.1.tar.gz"
 
     license("BSL-1.0")

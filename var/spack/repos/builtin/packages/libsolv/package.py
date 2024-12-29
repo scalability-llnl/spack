@@ -29,7 +29,7 @@ class Libsolv(CMakePackage):
 
     def cmake_args(self):
         return [
-            self.define("ENABLE_STATIC", "~shared" in self.spec),
-            self.define("DISABLE_DYNAMIC", "~shared" in self.spec),
+            self.define("ENABLE_STATIC", self.spec.satisfies("~shared")),
+            self.define("DISABLE_DYNAMIC", self.spec.satisfies("~shared")),
             self.define_from_variant("ENABLE_CONDA", "conda"),
         ]

@@ -33,6 +33,6 @@ class Barvinok(AutotoolsPackage):
         spec = self.spec
         args = ["--with-gmp-prefix={0}".format(self.spec["gmp"].prefix)]
 
-        if "+pet" in spec:
+        if spec.satisfies("+pet"):
             args.append("--with-pet=bundled")
         return args

@@ -96,7 +96,7 @@ class Fortrilinos(CMakePackage):
     def setup_smoke_tests(self):
         """Copy the example source files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources([self.examples_src_dir])
+        cache_extra_test_sources(self, [self.examples_src_dir])
 
     def test_installation(self):
         """build and run ctest against the installed software"""

@@ -43,7 +43,7 @@ class Citcoms(AutotoolsPackage):
     depends_on("hdf5+mpi", when="+hdf5")
 
     def setup_build_environment(self, env):
-        if "+ggrd" in self.spec:
+        if self.spec.satisfies("+ggrd"):
             env.set("HC_HOME", self.spec["hc"].prefix)
 
     def configure_args(self):
@@ -54,17 +54,17 @@ class Citcoms(AutotoolsPackage):
             args.append("--without-pyre")
             args.append("--without-exchanger")
 
-        if "+ggrd" in self.spec:
+        if self.spec.satisfies("+ggrd"):
             args.append("--with-ggrd")
         else:
             args.append("--without-ggrd")
 
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             args.append("--with-cuda")
         else:
             args.append("--without-cuda")
 
-        if "+hdf5" in self.spec:
+        if self.spec.satisfies("+hdf5"):
             args.extend(
                 [
                     "--with-hdf5",

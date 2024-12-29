@@ -9,7 +9,7 @@ from spack.package import *
 class Kdiff3(Package):
     """Compare and merge 2 or 3 files or directories."""
 
-    homepage = "http://kdiff3.sourceforge.net/"
+    homepage = "https://kdiff3.sourceforge.net/"
     url = "https://downloads.sourceforge.net/project/kdiff3/kdiff3/0.9.98/kdiff3-0.9.98.tar.gz"
 
     license("GPL-2.0-or-later")

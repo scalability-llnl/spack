@@ -114,7 +114,7 @@ class Qthreads(AutotoolsPackage):
     def setup_build_tests(self):
         """Copy the build test files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources([join_path("test", "argparsing.h"), self.test_base_path])
+        cache_extra_test_sources(self, [join_path("test", "argparsing.h"), self.test_base_path])
 
     def _build_and_run_test(self, test):
         """Build and run the test."""

@@ -49,7 +49,7 @@ class Bml(CMakePackage):
     def cmake_args(self):
         args = [self.define_from_variant("BUILD_SHARED_LIBS", "shared")]
         spec = self.spec
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             args.append("-DBML_MPI=True")
             args.append("-DCMAKE_C_COMPILER=%s" % spec["mpi"].mpicc)
             args.append("-DCMAKE_CXX_COMPILER=%s" % spec["mpi"].mpicxx)

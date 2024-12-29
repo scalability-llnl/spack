@@ -2,7 +2,6 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import codecs
 import collections
 import hashlib
 import os.path
@@ -11,6 +10,7 @@ import posixpath
 import re
 import socket
 import time
+import warnings
 import xml.sax.saxutils
 from typing import Dict, Optional
 from urllib.parse import urlencode
@@ -19,10 +19,11 @@ from urllib.request import HTTPSHandler, Request, build_opener
 import llnl.util.tty as tty
 from llnl.util.filesystem import working_dir
 
-import spack.build_environment
-import spack.fetch_strategy
-import spack.package_base
+import spack
+import spack.paths
 import spack.platforms
+import spack.spec
+import spack.tengine
 import spack.util.git
 from spack.error import SpackError
 from spack.util.crypto import checksum
@@ -119,15 +120,19 @@ class CDash(Reporter):
         git = spack.util.git.git()
         with working_dir(spack.paths.spack_root):
             self.revision = git("rev-parse", "HEAD", output=str).strip()
-        self.generator = "spack-{0}".format(spack.main.get_version())
+        self.generator = "spack-{0}".format(spack.get_version())
         self.multiple_packages = False
 
     def report_build_name(self, pkg_name):
-        return (
+        buildname = (
             "{0} - {1}".format(self.base_buildname, pkg_name)
             if self.multiple_packages
             else self.base_buildname
         )
+        if len(buildname) > 190:
+            warnings.warn("Build name exceeds CDash 190 character maximum and will be truncated.")
+            buildname = buildname[:190]
+        return buildname
 
     def build_report_for_package(self, report_dir, package, duration):
         if "stdout" not in package:
@@ -252,7 +257,7 @@ class CDash(Reporter):
                 report_file_name = report_name
             phase_report = os.path.join(report_dir, report_file_name)
 
-            with codecs.open(phase_report, "w", "utf-8") as f:
+            with open(phase_report, "w", encoding="utf-8") as f:
                 env = spack.tengine.make_environment()
                 if phase != "update":
                     # Update.xml stores site information differently
@@ -316,7 +321,7 @@ class CDash(Reporter):
             report_file_name = "_".join([package["name"], package["id"], report_name])
             phase_report = os.path.join(report_dir, report_file_name)
 
-            with codecs.open(phase_report, "w", "utf-8") as f:
+            with open(phase_report, "w", encoding="utf-8") as f:
                 env = spack.tengine.make_environment()
                 if phase not in ["update", "testing"]:
                     # Update.xml stores site information differently
@@ -398,7 +403,7 @@ class CDash(Reporter):
         update_template = posixpath.join(self.template_dir, "Update.xml")
         t = env.get_template(update_template)
         output_filename = os.path.join(report_dir, "Update.xml")
-        with open(output_filename, "w") as f:
+        with open(output_filename, "w", encoding="utf-8") as f:
             f.write(t.render(report_data))
         # We don't have a current package when reporting on concretization
         # errors so refer to this report with the base buildname instead.

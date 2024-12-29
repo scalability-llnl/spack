@@ -18,7 +18,7 @@ class Xclipboard(AutotoolsPackage, XorgPackage):
     version("1.1.4", sha256="c40cb97f6c8597ba74a3de5c188d4429f686e4d395b85dac0ec8c7311bdf3d10")
     version("1.1.3", sha256="a8c335cf166cbb27ff86569503db7e639f85741ad199bfb3ba45dd0cfda3da7f")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     depends_on("libxaw")
     depends_on("libxmu")
@@ -26,6 +26,6 @@ class Xclipboard(AutotoolsPackage, XorgPackage):
     depends_on("libx11")
     depends_on("libxkbfile")
 
-    depends_on("xproto@7.0.17:")
+    depends_on("xproto@7.0.17:", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")

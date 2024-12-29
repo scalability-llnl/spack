@@ -5,7 +5,6 @@
 
 """Tests for ``llnl/util/symlink.py``"""
 import os
-import sys
 import tempfile
 
 import pytest
@@ -37,7 +36,7 @@ def test_symlink_dir(tmpdir):
         assert symlink.islink(link_dir)
 
 
-@pytest.mark.skipif(sys.platform != "win32", reason="Test is only for Windows")
+@pytest.mark.only_windows("Test is for Windows specific behavior")
 def test_symlink_source_not_exists(tmpdir):
     """Test the symlink.symlink method for the case where a source path does not exist"""
     with tmpdir.as_cwd():
@@ -71,7 +70,7 @@ def test_symlink_src_relative_to_link(tmpdir):
         assert os.path.lexists(link_dir)
 
 
-@pytest.mark.skipif(sys.platform != "win32", reason="Test is only for Windows")
+@pytest.mark.only_windows("Test is for Windows specific behavior")
 def test_symlink_src_not_relative_to_link(tmpdir):
     """Test the symlink.symlink functionality where the source value does not exist relative to
     the link and not relative to the cwd. NOTE that this symlink api call is EXPECTED to raise
@@ -98,7 +97,7 @@ def test_symlink_src_not_relative_to_link(tmpdir):
         assert not os.path.lexists(link_dir)
 
 
-@pytest.mark.skipif(sys.platform != "win32", reason="Test is only for Windows")
+@pytest.mark.only_windows("Test is for Windows specific behavior")
 def test_symlink_link_already_exists(tmpdir):
     """Test the symlink.symlink method for the case where a link already exists"""
     with tmpdir.as_cwd():
@@ -113,7 +112,7 @@ def test_symlink_link_already_exists(tmpdir):
 
 
 @pytest.mark.skipif(not symlink._windows_can_symlink(), reason="Test requires elevated privileges")
-@pytest.mark.skipif(sys.platform != "win32", reason="Test is only for Windows")
+@pytest.mark.only_windows("Test is for Windows specific behavior")
 def test_symlink_win_file(tmpdir):
     """Check that symlink.symlink makes a symlink file when run with elevated permissions"""
     with tmpdir.as_cwd():
@@ -130,7 +129,7 @@ def test_symlink_win_file(tmpdir):
 
 
 @pytest.mark.skipif(not symlink._windows_can_symlink(), reason="Test requires elevated privileges")
-@pytest.mark.skipif(sys.platform != "win32", reason="Test is only for Windows")
+@pytest.mark.only_windows("Test is for Windows specific behavior")
 def test_symlink_win_dir(tmpdir):
     """Check that symlink.symlink makes a symlink dir when run with elevated permissions"""
     with tmpdir.as_cwd():
@@ -147,7 +146,7 @@ def test_symlink_win_dir(tmpdir):
         assert not symlink._windows_is_junction(link_dir)
 
 
-@pytest.mark.skipif(sys.platform != "win32", reason="Test is only for Windows")
+@pytest.mark.only_windows("Test is for Windows specific behavior")
 def test_windows_create_junction(tmpdir):
     """Test the symlink._windows_create_junction method"""
     with tmpdir.as_cwd():
@@ -163,7 +162,7 @@ def test_windows_create_junction(tmpdir):
         assert not os.path.islink(junction_link_dir)
 
 
-@pytest.mark.skipif(sys.platform != "win32", reason="Test is only for Windows")
+@pytest.mark.only_windows("Test is for Windows specific behavior")
 def test_windows_create_hard_link(tmpdir):
     """Test the symlink._windows_create_hard_link method"""
     with tmpdir.as_cwd():
@@ -179,7 +178,7 @@ def test_windows_create_hard_link(tmpdir):
         assert not os.path.islink(link_file)
 
 
-@pytest.mark.skipif(sys.platform != "win32", reason="Test is only for Windows")
+@pytest.mark.only_windows("Test is for Windows specific behavior")
 def test_windows_create_link_dir(tmpdir):
     """Test the functionality of the windows_create_link method with a directory
     which should result in making a junction.
@@ -198,7 +197,7 @@ def test_windows_create_link_dir(tmpdir):
         assert not os.path.islink(link_dir)
 
 
-@pytest.mark.skipif(sys.platform != "win32", reason="Test is only for Windows")
+@pytest.mark.only_windows("Test is for Windows specific behavior")
 def test_windows_create_link_file(tmpdir):
     """Test the functionality of the windows_create_link method with a file
     which should result in the creation of a hard link. It also tests the
@@ -215,7 +214,7 @@ def test_windows_create_link_file(tmpdir):
         assert not symlink._windows_is_junction(link_file)
 
 
-@pytest.mark.skipif(sys.platform != "win32", reason="Test is only for Windows")
+@pytest.mark.only_windows("Test is for Windows specific behavior")
 def test_windows_read_link(tmpdir):
     """Makes sure symlink.readlink can read the link source for hard links and
     junctions on windows."""

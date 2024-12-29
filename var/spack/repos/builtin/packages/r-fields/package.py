@@ -38,6 +38,7 @@ class RFields(RPackage):
 
     license("GPL-2.0-or-later")
 
+    version("16.2", sha256="3910950cd5476e7e3d17d00dabfa37a6491019426c74b6955a2fbe5648a3b3e4")
     version("14.1", sha256="57c4c5592443d2ee869014b3199989b5edd1aff52e24f1cd313b8f9b34a95434")
     version("13.3", sha256="c652838b1ae7eb368831522824bfbc1d1db7b9d1db5e9bb52b194098549944c3")
     version("11.6", sha256="8600d1d992c40668cc2ab01b3c17d0e1bd44a001ec7ba9f468bc0e9ef87c59db")
@@ -46,5 +47,6 @@ class RFields(RPackage):
     depends_on("r@3.0:", type=("build", "run"))
     depends_on("r@3.5.0:", type=("build", "run"), when="@14.1:")
     depends_on("r-spam", type=("build", "run"))
-    depends_on("r-viridis", type=("build", "run"), when="@13.3:")
+    depends_on("r-viridis", type=("build", "run"), when="@13.3:14.2")
+    depends_on("r-viridislite", type=("build", "run"), when="@14.3:")
     depends_on("r-maps", type=("build", "run"))

@@ -50,7 +50,7 @@ class PyAnuga(PythonPackage):
         if self.run_tests:
             env.prepend_path("PATH", self.spec["mpi"].prefix.bin)
 
-    install_time_test_callbacks = ["test", "installtest"]
+    install_time_test_callbacks = ["test_imports", "installtest"]
 
     def installtest(self):
         python("runtests.py", "--no-build")

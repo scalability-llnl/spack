@@ -34,7 +34,7 @@ class Fasttree(Package):
 
     def install(self, spec, prefix):
         cc = Executable(spack_cc)
-        if "+openmp" in self.spec:
+        if self.spec.satisfies("+openmp"):
             cc(
                 "-O3",
                 self.compiler.openmp_flag,
@@ -63,5 +63,5 @@ class Fasttree(Package):
     @run_after("install")
     def create_fasttree_mp_symlink(self):
         with working_dir(prefix.bin):
-            if "+openmp" in self.spec:
+            if self.spec.satisfies("+openmp"):
                 symlink("FastTree", "FastTreeMP")

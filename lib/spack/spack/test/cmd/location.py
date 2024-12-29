@@ -11,6 +11,7 @@ from llnl.util.filesystem import mkdirp
 
 import spack.environment as ev
 import spack.paths
+import spack.spec
 import spack.stage
 from spack.main import SpackCommand, SpackCommandError
 

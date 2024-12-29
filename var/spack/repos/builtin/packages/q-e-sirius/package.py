@@ -59,8 +59,6 @@ class QESirius(CMakePackage):
     depends_on("git", type="build")
     depends_on("pkgconfig", type="build")
 
-    conflicts("~scalapack", when="+elpa", msg="ELPA requires SCALAPACK support")
-
     variant("scalapack", default=True, description="Enables scalapack support")
 
     with when("+scalapack"):

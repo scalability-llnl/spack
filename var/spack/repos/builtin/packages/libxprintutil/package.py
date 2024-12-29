@@ -14,13 +14,13 @@ class Libxprintutil(AutotoolsPackage, XorgPackage):
 
     version("1.0.1", sha256="220924216f98ef8f7aa4cff33629edb1171ad10f8ea302a1eb85055545d4d195")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     depends_on("libx11")
     depends_on("libxp")
     depends_on("libxt")
     depends_on("libxau")
 
-    depends_on("printproto")
+    depends_on("printproto", type=("build", "link"))
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")

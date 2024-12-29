@@ -339,7 +339,7 @@ def url_stats(args):
     for pkg_cls in spack.repo.PATH.all_package_classes():
         npkgs += 1
 
-        for v in pkg_cls.versions:
+        for v in list(pkg_cls.versions):
             try:
                 pkg = pkg_cls(spack.spec.Spec(pkg_cls.name))
                 fetcher = fs.for_package_version(pkg, v)

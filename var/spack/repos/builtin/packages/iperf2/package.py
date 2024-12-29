@@ -11,7 +11,7 @@ class Iperf2(AutotoolsPackage, SourceforgePackage):
     2.0.5 code base. Iperf 2.0.5 is still widely deployed and used by many for
     testing networks and for qualifying networking products."""
 
-    homepage = "https://sourceforge.net/projects/iperf2"
+    homepage = "https://sourceforge.net/projects/iperf2/"
     sourceforge_mirror_path = "iperf2/iperf-2.0.12.tar.gz"
 
     version("2.1.9", sha256="5c0771aab00ef14520013aef01675977816e23bb8f5d9fde016f90eb2f1be788")

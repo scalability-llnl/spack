@@ -12,7 +12,7 @@ class Scalpel(MakefilePackage, SourceforgePackage):
     with next-generation sequencing technology.
     """
 
-    homepage = "http://scalpel.sourceforge.net/index.html"
+    homepage = "https://scalpel.sourceforge.net/index.html"
     sourceforge_mirror_path = "scalpel/scalpel-0.5.4.tar.gz"
 
     license("MIT")

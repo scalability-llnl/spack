@@ -13,7 +13,7 @@ class Audacity(CMakePackage):
     should need, and unlimited undo. The GUI was built with wxWidgets
     and the audio I/O supports PulseAudio, OSS and ALSA under Linux."""
 
-    homepage = "http://audacity.sourceforge.net"
+    homepage = "https://audacity.sourceforge.net"
     url = "https://github.com/audacity/audacity/archive/Audacity-2.4.2.tar.gz"
 
     license("GPL-3.0-or-later")

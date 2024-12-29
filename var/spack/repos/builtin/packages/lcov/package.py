@@ -12,7 +12,7 @@ class Lcov(MakefilePackage):
     adds overview pages for easy navigation within the file structure. LCOV
     supports statement, function and branch coverage measurement."""
 
-    homepage = "http://ltp.sourceforge.net/coverage/lcov.php"
+    homepage = "https://ltp.sourceforge.net/coverage/lcov.php"
     url = "https://github.com/linux-test-project/lcov/releases/download/v2.0/lcov-2.0.tar.gz"
     git = "https://github.com/linux-test-project/lcov.git"
 

@@ -59,7 +59,7 @@ class Genomeworks(CMakePackage, CudaPackage):
     def cmake_args(self):
         args = []
         spec = self.spec
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             args.append("-DWITH_CUDA=ON")
             args.append("-Dgw_cuda_gen_all_arch=ON")
             args.append("-DTHRUST_IGNORE_CUB_VERSION_CHECK=ON")

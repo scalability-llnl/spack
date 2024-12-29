@@ -9,7 +9,7 @@ from spack.package import *
 class PyPythonPptx(PythonPackage):
     """Generate and manipulate Open XML PowerPoint (.pptx) files."""
 
-    homepage = "http://github.com/scanny/python-pptx"
+    homepage = "https://github.com/scanny/python-pptx"
     pypi = "python-pptx/python-pptx-0.6.21.tar.gz"
 
     maintainers("LydDeb")

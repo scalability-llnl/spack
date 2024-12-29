@@ -49,14 +49,14 @@ following phases:
 #. ``install`` - install the package
 
 Package developers often add unit tests that can be invoked with
-``scons test`` or ``scons check``. Spack provides a ``test`` method
+``scons test`` or ``scons check``. Spack provides a ``build_test`` method
 to handle this. Since we don't know which one the package developer
-chose, the ``test`` method does nothing by default, but can be easily
+chose, the ``build_test`` method does nothing by default, but can be easily
 overridden like so:
 
 .. code-block:: python
 
-   def test(self):
+   def build_test(self):
        scons("check")
 
 

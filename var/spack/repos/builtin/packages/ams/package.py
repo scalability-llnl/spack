@@ -114,31 +114,31 @@ class Ams(CMakePackage, CudaPackage):
             )
         )
 
-        if "+verbose" in spec:
+        if spec.satisfies("+verbose"):
             args.append("-DWITH_AMS_DEBUG=On")
 
-        if "+hdf5" in spec:
+        if spec.satisfies("+hdf5"):
             args.append("-DWITH_HDF5=On")
             args.append("-DHDF5_Dir={0}".format(spec["hdf5"].prefix))
 
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             args.append("-DWITH_CUDA=On")
             cuda_arch = spec.variants["cuda_arch"].value[0]
             args.append("-DAMS_CUDA_ARCH={0}".format(cuda_arch))
 
-        if "+caliper" in spec:
+        if spec.satisfies("+caliper"):
             args.append("-DWITH_CALIPER=On")
             args.append("-DCALIPER_DIR={0}/share/cmake/caliper".format(spec["caliper"].prefix))
         else:
             args.append("-DWITH_CALIPER=Off")
 
-        if "+faiss" in spec:
+        if spec.satisfies("+faiss"):
             args.append("-DWITH_FAISS=On")
             args.append("-DFAISS_DIR={0}".format(spec["faiss"].prefix))
         else:
             args.append("-DWITH_FAISS=Off")
 
-        if "+torch" in spec:
+        if spec.satisfies("+torch"):
             args.append("-DWITH_TORCH=On")
             args.append(
                 "-DTorch_DIR={0}/lib/python{1}/site-packages"
@@ -147,15 +147,15 @@ class Ams(CMakePackage, CudaPackage):
                 )
             )
 
-        if "+redis" in spec:
+        if spec.satisfies("+redis"):
             args.append("-DWITH_REDIS=On")
             args.append("-DREDIS_PLUS_PLUS_DIR={0}".format(spec["redis-plus-plus"].prefix))
 
-        if "+rabbitmq" in spec:
+        if spec.satisfies("+rabbitmq"):
             args.append("-DWITH_RMQ=On")
             args.append("-Damqpcpp_DIR={0}/cmake".format(spec["amqp-cpp"].prefix))
 
-        if "+examples" in spec:
+        if spec.satisfies("+examples"):
             args.append("-DWITH_EXAMPLES=On")
             args.append("-DMFEM_DIR={0}".format(spec["mfem"].prefix))
 

@@ -17,7 +17,6 @@ import spack.repo
 import spack.util.executable
 import spack.util.hash
 import spack.util.spack_json as sjson
-import spack.version
 
 from .common import VersionLookupError
 from .lookup import AbstractRefLookup
@@ -138,7 +137,7 @@ class GitRefLookup(AbstractRefLookup):
 
         # Only clone if we don't have it!
         if not os.path.exists(dest):
-            self.fetcher.clone(dest, bare=True)
+            self.fetcher.bare_clone(dest)
 
         # Lookup commit info
         with working_dir(dest):

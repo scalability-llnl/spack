@@ -9,7 +9,7 @@ from spack.package import *
 class PyDoit(PythonPackage):
     """doit - Automation Tool."""
 
-    homepage = "http://pydoit.org/"
+    homepage = "https://pydoit.org/"
     pypi = "doit/doit-0.36.0.tar.gz"
 
     license("MIT")

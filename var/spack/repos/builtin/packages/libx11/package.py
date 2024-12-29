@@ -17,6 +17,7 @@ class Libx11(AutotoolsPackage, XorgPackage):
 
     maintainers("wdconinc")
 
+    version("1.8.10", sha256="b7a1a90d881bb7b94df5cf31509e6b03f15c0972d3ac25ab0441f5fbc789650f")
     version("1.8.9", sha256="57ca5f07d263788ad661a86f4139412e8b699662e6b60c20f1f028c25a935e48")
     version("1.8.8", sha256="26997a2bc48c03df7d670f8a4ee961d1d6b039bf947475e5fec6b7635b4efe72")
     version("1.8.7", sha256="793ebebf569f12c864b77401798d38814b51790fce206e01a431e5feb982e20b")
@@ -38,17 +39,17 @@ class Libx11(AutotoolsPackage, XorgPackage):
     version("1.6.5", sha256="3abce972ba62620611fab5b404dafb852da3da54e7c287831c30863011d28fb3")
     version("1.6.3", sha256="0b03b9d22f4c9e59b4ba498f294e297f013cae27050dfa0f3496640200db5376")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     depends_on("libxcb@1.11.1:", when="@1.6.4:")
     depends_on("libxcb@1.1.92:")
 
-    depends_on("xproto@7.0.25:", when="@1.7.0:")
-    depends_on("xproto@7.0.17:")
-    depends_on("xextproto")
+    depends_on("xproto@7.0.25:", when="@1.7.0:", type=("build", "link"))
+    depends_on("xproto@7.0.17:", type=("build", "link"))
+    depends_on("xextproto", type="build")
     depends_on("xtrans")
-    depends_on("kbproto")
-    depends_on("inputproto")
+    depends_on("kbproto", type=("build", "link"))
+    depends_on("inputproto", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")
     depends_on("perl", type="build")

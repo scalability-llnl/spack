@@ -9,8 +9,8 @@ from spack.package import *
 class ExuberantCtags(AutotoolsPackage):
     """The canonical ctags generator"""
 
-    homepage = "http://ctags.sourceforge.net"
-    url = "http://downloads.sourceforge.net/project/ctags/ctags/5.8/ctags-5.8.tar.gz"
+    homepage = "https://ctags.sourceforge.net"
+    url = "https://downloads.sourceforge.net/project/ctags/ctags/5.8/ctags-5.8.tar.gz"
 
     license("GPL-2.0-or-later")
 

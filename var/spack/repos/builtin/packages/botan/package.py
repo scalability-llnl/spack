@@ -60,7 +60,7 @@ class Botan(MakefilePackage):
     def configure_args(self):
         spec = self.spec
         args = ["--prefix={0}".format(self.prefix)]
-        if "+doc" in spec:
+        if spec.satisfies("+doc"):
             args.append("--with-documentation")
         else:
             args.append("--without-documentation")

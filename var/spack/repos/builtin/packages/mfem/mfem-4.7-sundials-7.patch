@@ -1,0 +1,1129 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 0be4f5d65d..1f8e13a8ec 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -337,7 +337,10 @@ if (MFEM_USE_SUNDIALS)
+   if (MFEM_USE_HIP)
+     list(APPEND SUNDIALS_COMPONENTS NVector_Hip)
+   endif()
+-  find_package(SUNDIALS REQUIRED ${SUNDIALS_COMPONENTS})
++  # The Core component was added in SUNDIALS v7, so we treat it as optional in
++  # order to support older versions.
++  find_package(SUNDIALS REQUIRED ${SUNDIALS_COMPONENTS}
++    OPTIONAL_COMPONENTS Core)
+ endif()
+ 
+ # SuperLU_DIST can only be enabled in parallel
+diff --git a/config/cmake/modules/FindSUNDIALS.cmake b/config/cmake/modules/FindSUNDIALS.cmake
+index 9a624a9c51..3617df7b24 100644
+--- a/config/cmake/modules/FindSUNDIALS.cmake
++++ b/config/cmake/modules/FindSUNDIALS.cmake
+@@ -31,4 +31,5 @@ mfem_find_package(SUNDIALS SUNDIALS SUNDIALS_DIR
+   ADD_COMPONENT CVODE "include" cvode/cvode.h "lib" sundials_cvode
+   ADD_COMPONENT CVODES "include" cvodes/cvodes.h "lib" sundials_cvodes
+   ADD_COMPONENT ARKODE "include" arkode/arkode.h "lib" sundials_arkode
+-  ADD_COMPONENT KINSOL "include" kinsol/kinsol.h "lib" sundials_kinsol)
++  ADD_COMPONENT KINSOL "include" kinsol/kinsol.h "lib" sundials_kinsol
++  ADD_COMPONENT Core "include" sundials/sundials_core.h "lib" sundials_core)
+diff --git a/config/defaults.mk b/config/defaults.mk
+index f107f360de..d89344b9e8 100644
+--- a/config/defaults.mk
++++ b/config/defaults.mk
+@@ -284,6 +284,13 @@ endif
+ ifeq ($(MFEM_USE_HIP),YES)
+    SUNDIALS_LIB += -lsundials_nvechip
+ endif
++SUNDIALS_CORE_PAT = $(subst\
++ @MFEM_DIR@,$(MFEM_DIR),$(SUNDIALS_DIR))/lib*/libsundials_core.*
++ifeq ($(MFEM_USE_SUNDIALS),YES)
++   ifneq ($(wildcard $(SUNDIALS_CORE_PAT)),)
++      SUNDIALS_LIB += -lsundials_core
++   endif
++endif
+ # If SUNDIALS was built with KLU:
+ # MFEM_USE_SUITESPARSE = YES
+ 
+diff --git a/linalg/sundials.cpp b/linalg/sundials.cpp
+index 1f4c141477..c8982387aa 100644
+--- a/linalg/sundials.cpp
++++ b/linalg/sundials.cpp
+@@ -95,7 +95,7 @@ MFEM_DEPRECATED void* CVodeCreate(int lmm, SUNContext)
+ 
+ /// (DEPRECATED) Wrapper function for backwards compatibility with SUNDIALS
+ /// version < 6
+-MFEM_DEPRECATED void* ARKStepCreate(ARKRhsFn fe, ARKRhsFn fi, realtype t0,
++MFEM_DEPRECATED void* ARKStepCreate(ARKRhsFn fe, ARKRhsFn fi, sunrealtype t0,
+                                     N_Vector y0, SUNContext)
+ {
+    return ARKStepCreate(fe, fi, t0, y0);
+@@ -127,7 +127,7 @@ MFEM_DEPRECATED N_Vector N_VNewEmpty_Parallel(MPI_Comm comm,
+ /// (DEPRECATED) Wrapper function for backwards compatibility with SUNDIALS
+ /// version < 6
+ MFEM_DEPRECATED N_Vector SUN_Hip_OR_Cuda(N_VNewWithMemHelp)(sunindextype length,
+-                                                            booleantype use_managed_mem,
++                                                            sunbooleantype use_managed_mem,
+                                                             SUNMemoryHelper helper,
+                                                             SUNContext)
+ {
+@@ -157,6 +157,16 @@ MFEM_DEPRECATED N_Vector N_VMake_MPIPlusX(MPI_Comm comm, N_Vector local_vector,
+ 
+ #endif // SUNDIALS_VERSION_MAJOR < 6
+ 
++#if MFEM_SUNDIALS_VERSION < 70100
++#define MFEM_ARKode(FUNC) ARKStep##FUNC
++#else
++#define MFEM_ARKode(FUNC) ARKode##FUNC
++#endif
++
++// Macro STR(): expand the argument and add double quotes
++#define STR1(s) #s
++#define STR(s)  STR1(s)
++
+ 
+ namespace mfem
+ {
+@@ -187,11 +197,21 @@ SundialsMemHelper &Sundials::GetMemHelper()
+ Sundials::Sundials()
+ {
+ #ifdef MFEM_USE_MPI
+-   MPI_Comm communicator = MPI_COMM_WORLD;
++   int mpi_initialized = 0;
++   MPI_Initialized(&mpi_initialized);
++   MPI_Comm communicator = mpi_initialized ? MPI_COMM_WORLD : MPI_COMM_NULL;
++#if SUNDIALS_VERSION_MAJOR < 7
+    int return_val = SUNContext_Create((void*) &communicator, &context);
+ #else
++   int return_val = SUNContext_Create(communicator, &context);
++#endif
++#else // #ifdef MFEM_USE_MPI
++#if SUNDIALS_VERSION_MAJOR < 7
+    int return_val = SUNContext_Create(nullptr, &context);
++#else
++   int return_val = SUNContext_Create((SUNComm)(0), &context);
+ #endif
++#endif // #ifdef MFEM_USE_MPI
+    MFEM_VERIFY(return_val == 0, "Call to SUNContext_Create failed");
+    SundialsMemHelper actual_helper(context);
+    memHelper = std::move(actual_helper);
+@@ -250,7 +270,11 @@ int SundialsMemHelper::SundialsMemHelper_Alloc(SUNMemoryHelper helper,
+ #endif
+                                               )
+ {
++#if (SUNDIALS_VERSION_MAJOR < 7)
+    SUNMemory sunmem = SUNMemoryNewEmpty();
++#else
++   SUNMemory sunmem = SUNMemoryNewEmpty(helper->sunctx);
++#endif
+ 
+    sunmem->ptr = NULL;
+    sunmem->own = SUNTRUE;
+@@ -631,7 +655,7 @@ static int LSFree(SUNLinearSolver LS)
+ // ---------------------------------------------------------------------------
+ // CVODE interface
+ // ---------------------------------------------------------------------------
+-int CVODESolver::RHS(realtype t, const N_Vector y, N_Vector ydot,
++int CVODESolver::RHS(sunrealtype t, const N_Vector y, N_Vector ydot,
+                      void *user_data)
+ {
+    // At this point the up-to-date data for N_Vector y and ydot is on the device.
+@@ -648,7 +672,8 @@ int CVODESolver::RHS(realtype t, const N_Vector y, N_Vector ydot,
+    return (0);
+ }
+ 
+-int CVODESolver::root(realtype t, N_Vector y, realtype *gout, void *user_data)
++int CVODESolver::root(sunrealtype t, N_Vector y, sunrealtype *gout,
++                      void *user_data)
+ {
+    CVODESolver *self = static_cast<CVODESolver*>(user_data);
+ 
+@@ -668,8 +693,9 @@ void CVODESolver::SetRootFinder(int components, RootFunction func)
+    MFEM_VERIFY(flag == CV_SUCCESS, "error in SetRootFinder()");
+ }
+ 
+-int CVODESolver::LinSysSetup(realtype t, N_Vector y, N_Vector fy, SUNMatrix A,
+-                             booleantype jok, booleantype *jcur, realtype gamma,
++int CVODESolver::LinSysSetup(sunrealtype t, N_Vector y, N_Vector fy,
++                             SUNMatrix A, sunbooleantype jok,
++                             sunbooleantype *jcur, sunrealtype gamma,
+                              void*, N_Vector, N_Vector, N_Vector)
+ {
+    // Get data from N_Vectors
+@@ -683,7 +709,7 @@ int CVODESolver::LinSysSetup(realtype t, N_Vector y, N_Vector fy, SUNMatrix A,
+ }
+ 
+ int CVODESolver::LinSysSolve(SUNLinearSolver LS, SUNMatrix, N_Vector x,
+-                             N_Vector b, realtype tol)
++                             N_Vector b, sunrealtype tol)
+ {
+    SundialsNVector mfem_x(x);
+    const SundialsNVector mfem_b(b);
+@@ -859,7 +885,7 @@ void CVODESolver::UseSundialsLinearSolver()
+    if (LSA != NULL) { SUNLinSolFree(LSA); LSA = NULL; }
+ 
+    // Create linear solver
+-   LSA = SUNLinSol_SPGMR(*Y, PREC_NONE, 0, Sundials::GetContext());
++   LSA = SUNLinSol_SPGMR(*Y, SUN_PREC_NONE, 0, Sundials::GetContext());
+    MFEM_VERIFY(LSA, "error in SUNLinSol_SPGMR()");
+ 
+    // Attach linear solver
+@@ -1150,7 +1176,7 @@ void CVODESSolver::UseSundialsLinearSolverB()
+    if (LSB != NULL) { SUNLinSolFree(LSB); LSB = NULL; }
+ 
+    // Set default linear solver (Newton is the default Nonlinear Solver)
+-   LSB = SUNLinSol_SPGMR(*yB, PREC_NONE, 0, Sundials::GetContext());
++   LSB = SUNLinSol_SPGMR(*yB, SUN_PREC_NONE, 0, Sundials::GetContext());
+    MFEM_VERIFY(LSB, "error in SUNLinSol_SPGMR()");
+ 
+    /* Attach the matrix and linear solver */
+@@ -1158,11 +1184,11 @@ void CVODESSolver::UseSundialsLinearSolverB()
+    MFEM_VERIFY(flag == CV_SUCCESS, "error in CVodeSetLinearSolverB()");
+ }
+ 
+-int CVODESSolver::LinSysSetupB(realtype t, N_Vector y, N_Vector yB,
++int CVODESSolver::LinSysSetupB(sunrealtype t, N_Vector y, N_Vector yB,
+                                N_Vector fyB, SUNMatrix AB,
+-                               booleantype jokB, booleantype *jcurB,
+-                               realtype gammaB, void *user_data, N_Vector tmp1,
+-                               N_Vector tmp2, N_Vector tmp3)
++                               sunbooleantype jokB, sunbooleantype *jcurB,
++                               sunrealtype gammaB, void *user_data,
++                               N_Vector tmp1, N_Vector tmp2, N_Vector tmp3)
+ {
+    // Get data from N_Vectors
+    const SundialsNVector mfem_y(y);
+@@ -1178,7 +1204,7 @@ int CVODESSolver::LinSysSetupB(realtype t, N_Vector y, N_Vector yB,
+ }
+ 
+ int CVODESSolver::LinSysSolveB(SUNLinearSolver LS, SUNMatrix AB, N_Vector yB,
+-                               N_Vector Rb, realtype tol)
++                               N_Vector Rb, sunrealtype tol)
+ {
+    SundialsNVector mfem_yB(yB);
+    const SundialsNVector mfem_Rb(Rb);
+@@ -1216,7 +1242,7 @@ void CVODESSolver::SetWFTolerances(EWTFunction func)
+ 
+ // CVODESSolver static functions
+ 
+-int CVODESSolver::RHSQ(realtype t, const N_Vector y, N_Vector qdot,
++int CVODESSolver::RHSQ(sunrealtype t, const N_Vector y, N_Vector qdot,
+                        void *user_data)
+ {
+    CVODESSolver *self = static_cast<CVODESSolver*>(user_data);
+@@ -1229,7 +1255,7 @@ int CVODESSolver::RHSQ(realtype t, const N_Vector y, N_Vector qdot,
+    return 0;
+ }
+ 
+-int CVODESSolver::RHSQB(realtype t, N_Vector y, N_Vector yB, N_Vector qBdot,
++int CVODESSolver::RHSQB(sunrealtype t, N_Vector y, N_Vector yB, N_Vector qBdot,
+                         void *user_dataB)
+ {
+    CVODESSolver *self = static_cast<CVODESSolver*>(user_dataB);
+@@ -1243,7 +1269,7 @@ int CVODESSolver::RHSQB(realtype t, N_Vector y, N_Vector yB, N_Vector qBdot,
+    return 0;
+ }
+ 
+-int CVODESSolver::RHSB(realtype t, N_Vector y, N_Vector yB, N_Vector yBdot,
++int CVODESSolver::RHSB(sunrealtype t, N_Vector y, N_Vector yB, N_Vector yBdot,
+                        void *user_dataB)
+ {
+    CVODESSolver *self = static_cast<CVODESSolver*>(user_dataB);
+@@ -1341,46 +1367,67 @@ CVODESSolver::~CVODESSolver()
+ // ARKStep interface
+ // ---------------------------------------------------------------------------
+ 
+-int ARKStepSolver::RHS1(realtype t, const N_Vector y, N_Vector ydot,
++int ARKStepSolver::RHS1(sunrealtype t, const N_Vector y, N_Vector result,
+                         void *user_data)
+ {
+    // Get data from N_Vectors
+    const SundialsNVector mfem_y(y);
+-   SundialsNVector mfem_ydot(ydot);
++   SundialsNVector mfem_result(result);
+    ARKStepSolver *self = static_cast<ARKStepSolver*>(user_data);
+ 
+-   // Compute f(t, y) in y' = f(t, y) or fe(t, y) in y' = fe(t, y) + fi(t, y)
++   // Compute either f(t, y) in one of
++   //   1. y' = f(t, y)
++   //   2. M y' = f(t, y)
++   // or fe(t, y) in one of
++   //   1. y' = fe(t, y) + fi(t, y)
++   //   2. M y' = fe(t, y) + fi(t, y)
+    self->f->SetTime(t);
+    if (self->rk_type == IMEX)
+    {
+       self->f->SetEvalMode(TimeDependentOperator::ADDITIVE_TERM_1);
+    }
+-   self->f->Mult(mfem_y, mfem_ydot);
++   if (self->f->isExplicit()) // ODE is in form 1
++   {
++      self->f->Mult(mfem_y, mfem_result);
++   }
++   else // ODE is in form 2
++   {
++      self->f->ExplicitMult(mfem_y, mfem_result);
++   }
+ 
+    // Return success
+    return (0);
+ }
+ 
+-int ARKStepSolver::RHS2(realtype t, const N_Vector y, N_Vector ydot,
++int ARKStepSolver::RHS2(sunrealtype t, const N_Vector y, N_Vector result,
+                         void *user_data)
+ {
+    // Get data from N_Vectors
+    const SundialsNVector mfem_y(y);
+-   SundialsNVector mfem_ydot(ydot);
++   SundialsNVector mfem_result(result);
+    ARKStepSolver *self = static_cast<ARKStepSolver*>(user_data);
+ 
+-   // Compute fi(t, y) in y' = fe(t, y) + fi(t, y)
++   // Compute fi(t, y) in one of
++   //   1. y' = fe(t, y) + fi(t, y)       (ODE is expressed in EXPLICIT form)
++   //   2. M y' = fe(t, y) + fi(y, t)     (ODE is expressed in IMPLICIT form)
+    self->f->SetTime(t);
+    self->f->SetEvalMode(TimeDependentOperator::ADDITIVE_TERM_2);
+-   self->f->Mult(mfem_y, mfem_ydot);
++   if (self->f->isExplicit())
++   {
++      self->f->Mult(mfem_y, mfem_result);
++   }
++   else
++   {
++      self->f->ExplicitMult(mfem_y, mfem_result);
++   }
+ 
+    // Return success
+    return (0);
+ }
+ 
+-int ARKStepSolver::LinSysSetup(realtype t, N_Vector y, N_Vector fy, SUNMatrix A,
+-                               SUNMatrix, booleantype jok, booleantype *jcur,
+-                               realtype gamma,
++int ARKStepSolver::LinSysSetup(sunrealtype t, N_Vector y, N_Vector fy,
++                               SUNMatrix A, SUNMatrix, sunbooleantype jok,
++                               sunbooleantype *jcur, sunrealtype gamma,
+                                void*, N_Vector, N_Vector, N_Vector)
+ {
+    // Get data from N_Vectors
+@@ -1398,7 +1445,7 @@ int ARKStepSolver::LinSysSetup(realtype t, N_Vector y, N_Vector fy, SUNMatrix A,
+ }
+ 
+ int ARKStepSolver::LinSysSolve(SUNLinearSolver LS, SUNMatrix, N_Vector x,
+-                               N_Vector b, realtype tol)
++                               N_Vector b, sunrealtype tol)
+ {
+    SundialsNVector mfem_x(x);
+    const SundialsNVector mfem_b(b);
+@@ -1412,7 +1459,7 @@ int ARKStepSolver::LinSysSolve(SUNLinearSolver LS, SUNMatrix, N_Vector x,
+    return (self->f->SUNImplicitSolve(mfem_b, mfem_x, tol));
+ }
+ 
+-int ARKStepSolver::MassSysSetup(realtype t, SUNMatrix M,
++int ARKStepSolver::MassSysSetup(sunrealtype t, SUNMatrix M,
+                                 void*, N_Vector, N_Vector, N_Vector)
+ {
+    ARKStepSolver *self = static_cast<ARKStepSolver*>(GET_CONTENT(M));
+@@ -1423,7 +1470,7 @@ int ARKStepSolver::MassSysSetup(realtype t, SUNMatrix M,
+ }
+ 
+ int ARKStepSolver::MassSysSolve(SUNLinearSolver LS, SUNMatrix, N_Vector x,
+-                                N_Vector b, realtype tol)
++                                N_Vector b, sunrealtype tol)
+ {
+    SundialsNVector mfem_x(x);
+    const SundialsNVector mfem_b(b);
+@@ -1443,7 +1490,7 @@ int ARKStepSolver::MassMult1(SUNMatrix M, N_Vector x, N_Vector v)
+    return (self->f->SUNMassMult(mfem_x, mfem_v));
+ }
+ 
+-int ARKStepSolver::MassMult2(N_Vector x, N_Vector v, realtype t,
++int ARKStepSolver::MassMult2(N_Vector x, N_Vector v, sunrealtype t,
+                              void* mtimes_data)
+ {
+    const SundialsNVector mfem_x(x);
+@@ -1514,7 +1561,7 @@ void ARKStepSolver::Init(TimeDependentOperator &f_)
+       // Free existing solver memory and re-create with new vector size
+       if (resize)
+       {
+-         ARKStepFree(&sundials_mem);
++         MFEM_ARKode(Free)(&sundials_mem);
+          sundials_mem = NULL;
+       }
+    }
+@@ -1552,12 +1599,15 @@ void ARKStepSolver::Init(TimeDependentOperator &f_)
+       MFEM_VERIFY(sundials_mem, "error in ARKStepCreate()");
+ 
+       // Attach the ARKStepSolver as user-defined data
+-      flag = ARKStepSetUserData(sundials_mem, this);
+-      MFEM_VERIFY(flag == ARK_SUCCESS, "error in ARKStepSetUserData()");
++      flag = MFEM_ARKode(SetUserData)(sundials_mem, this);
++      MFEM_VERIFY(flag == ARK_SUCCESS,
++                  "error in " STR(MFEM_ARKode(SetUserData)) "()");
+ 
+       // Set default tolerances
+-      flag = ARKStepSStolerances(sundials_mem, default_rel_tol, default_abs_tol);
+-      MFEM_VERIFY(flag == ARK_SUCCESS, "error in ARKStepSetSStolerances()");
++      flag = MFEM_ARKode(SStolerances)(sundials_mem, default_rel_tol,
++                                       default_abs_tol);
++      MFEM_VERIFY(flag == ARK_SUCCESS,
++                  "error in " STR(MFEM_ARKode(SStolerances)) "()");
+ 
+       // If implicit, attach MFEM linear solver by default
+       if (use_implicit) { UseMFEMLinearSolver(); }
+@@ -1567,7 +1617,7 @@ void ARKStepSolver::Init(TimeDependentOperator &f_)
+    reinit = true;
+ }
+ 
+-void ARKStepSolver::Step(Vector &x, double &t, double &dt)
++void ARKStepSolver::Step(Vector &x, real_t &t, real_t &dt)
+ {
+    Y->MakeRef(x, 0, x.Size());
+    MFEM_VERIFY(Y->Size() == x.Size(), "size mismatch");
+@@ -1596,15 +1646,16 @@ void ARKStepSolver::Step(Vector &x, double &t, double &dt)
+ 
+    // Integrate the system
+    double tout = t + dt;
+-   flag = ARKStepEvolve(sundials_mem, tout, *Y, &t, step_mode);
+-   MFEM_VERIFY(flag >= 0, "error in ARKStepEvolve()");
++   flag = MFEM_ARKode(Evolve)(sundials_mem, tout, *Y, &t, step_mode);
++   MFEM_VERIFY(flag >= 0, "error in " STR(MFEM_ARKode(Evolve)) "()");
+ 
+    // Make sure host is up to date
+    Y->HostRead();
+ 
+    // Return the last incremental step size
+-   flag = ARKStepGetLastStep(sundials_mem, &dt);
+-   MFEM_VERIFY(flag == ARK_SUCCESS, "error in ARKStepGetLastStep()");
++   flag = MFEM_ARKode(GetLastStep)(sundials_mem, &dt);
++   MFEM_VERIFY(flag == ARK_SUCCESS,
++               "error in " STR(MFEM_ARKode(GetLastStep)) "()");
+ }
+ 
+ void ARKStepSolver::UseMFEMLinearSolver()
+@@ -1630,12 +1681,14 @@ void ARKStepSolver::UseMFEMLinearSolver()
+    A->ops->destroy = MatDestroy;
+ 
+    // Attach the linear solver and matrix
+-   flag = ARKStepSetLinearSolver(sundials_mem, LSA, A);
+-   MFEM_VERIFY(flag == ARK_SUCCESS, "error in ARKStepSetLinearSolver()");
++   flag = MFEM_ARKode(SetLinearSolver)(sundials_mem, LSA, A);
++   MFEM_VERIFY(flag == ARK_SUCCESS,
++               "error in " STR(MFEM_ARKode(SetLinearSolver)) "()");
+ 
+    // Set the linear system evaluation function
+-   flag = ARKStepSetLinSysFn(sundials_mem, ARKStepSolver::LinSysSetup);
+-   MFEM_VERIFY(flag == ARK_SUCCESS, "error in ARKStepSetLinSysFn()");
++   flag = MFEM_ARKode(SetLinSysFn)(sundials_mem, ARKStepSolver::LinSysSetup);
++   MFEM_VERIFY(flag == ARK_SUCCESS,
++               "error in " STR(MFEM_ARKode(SetLinSysFn)) "()");
+ }
+ 
+ void ARKStepSolver::UseSundialsLinearSolver()
+@@ -1645,12 +1698,13 @@ void ARKStepSolver::UseSundialsLinearSolver()
+    if (LSA != NULL) { SUNLinSolFree(LSA); LSA = NULL; }
+ 
+    // Create linear solver
+-   LSA = SUNLinSol_SPGMR(*Y, PREC_NONE, 0, Sundials::GetContext());
++   LSA = SUNLinSol_SPGMR(*Y, SUN_PREC_NONE, 0, Sundials::GetContext());
+    MFEM_VERIFY(LSA, "error in SUNLinSol_SPGMR()");
+ 
+    // Attach linear solver
+-   flag = ARKStepSetLinearSolver(sundials_mem, LSA, NULL);
+-   MFEM_VERIFY(flag == ARK_SUCCESS, "error in ARKStepSetLinearSolver()");
++   flag = MFEM_ARKode(SetLinearSolver)(sundials_mem, LSA, NULL);
++   MFEM_VERIFY(flag == ARK_SUCCESS,
++               "error in " STR(MFEM_ARKode(SetLinearSolver)) "()");
+ }
+ 
+ void ARKStepSolver::UseMFEMMassLinearSolver(int tdep)
+@@ -1666,7 +1720,7 @@ void ARKStepSolver::UseMFEMMassLinearSolver(int tdep)
+    LSM->content      = this;
+    LSM->ops->gettype = LSGetType;
+    LSM->ops->solve   = ARKStepSolver::MassSysSolve;
+-   LSA->ops->free    = LSFree;
++   LSM->ops->free    = LSFree;
+ 
+    M = SUNMatNewEmpty(Sundials::GetContext());
+    MFEM_VERIFY(M, "error in SUNMatNewEmpty()");
+@@ -1677,12 +1731,17 @@ void ARKStepSolver::UseMFEMMassLinearSolver(int tdep)
+    M->ops->destroy = MatDestroy;
+ 
+    // Attach the linear solver and matrix
+-   flag = ARKStepSetMassLinearSolver(sundials_mem, LSM, M, tdep);
+-   MFEM_VERIFY(flag == ARK_SUCCESS, "error in ARKStepSetLinearSolver()");
++   flag = MFEM_ARKode(SetMassLinearSolver)(sundials_mem, LSM, M, tdep);
++   MFEM_VERIFY(flag == ARK_SUCCESS,
++               "error in " STR(MFEM_ARKode(SetMassLinearSolver)) "()");
+ 
+    // Set the linear system function
+-   flag = ARKStepSetMassFn(sundials_mem, ARKStepSolver::MassSysSetup);
+-   MFEM_VERIFY(flag == ARK_SUCCESS, "error in ARKStepSetMassFn()");
++   flag = MFEM_ARKode(SetMassFn)(sundials_mem, ARKStepSolver::MassSysSetup);
++   MFEM_VERIFY(flag == ARK_SUCCESS,
++               "error in " STR(MFEM_ARKode(SetMassFn)) "()");
++
++   // Check that the ODE is not expressed in EXPLICIT form
++   MFEM_VERIFY(!f->isExplicit(), "ODE operator is expressed in EXPLICIT form")
+ }
+ 
+ void ARKStepSolver::UseSundialsMassLinearSolver(int tdep)
+@@ -1692,17 +1751,22 @@ void ARKStepSolver::UseSundialsMassLinearSolver(int tdep)
+    if (LSM != NULL) { SUNLinSolFree(LSM); LSM = NULL; }
+ 
+    // Create linear solver
+-   LSM = SUNLinSol_SPGMR(*Y, PREC_NONE, 0, Sundials::GetContext());
++   LSM = SUNLinSol_SPGMR(*Y, SUN_PREC_NONE, 0, Sundials::GetContext());
+    MFEM_VERIFY(LSM, "error in SUNLinSol_SPGMR()");
+ 
+    // Attach linear solver
+-   flag = ARKStepSetMassLinearSolver(sundials_mem, LSM, NULL, tdep);
+-   MFEM_VERIFY(flag == ARK_SUCCESS, "error in ARKStepSetMassLinearSolver()");
++   flag = MFEM_ARKode(SetMassLinearSolver)(sundials_mem, LSM, NULL, tdep);
++   MFEM_VERIFY(flag == ARK_SUCCESS,
++               "error in " STR(MFEM_ARKode(SetMassLinearSolver)) "()");
+ 
+    // Attach matrix multiplication function
+-   flag = ARKStepSetMassTimes(sundials_mem, NULL, ARKStepSolver::MassMult2,
+-                              this);
+-   MFEM_VERIFY(flag == ARK_SUCCESS, "error in ARKStepSetMassTimes()");
++   flag = MFEM_ARKode(SetMassTimes)(sundials_mem, NULL,
++                                    ARKStepSolver::MassMult2, this);
++   MFEM_VERIFY(flag == ARK_SUCCESS,
++               "error in " STR(MFEM_ARKode(SetMassTimes)) "()");
++
++   // Check that the ODE is not expressed in EXPLICIT form
++   MFEM_VERIFY(!f->isExplicit(), "ODE operator is expressed in EXPLICIT form")
+ }
+ 
+ void ARKStepSolver::SetStepMode(int itask)
+@@ -1712,20 +1776,23 @@ void ARKStepSolver::SetStepMode(int itask)
+ 
+ void ARKStepSolver::SetSStolerances(double reltol, double abstol)
+ {
+-   flag = ARKStepSStolerances(sundials_mem, reltol, abstol);
+-   MFEM_VERIFY(flag == ARK_SUCCESS, "error in ARKStepSStolerances()");
++   flag = MFEM_ARKode(SStolerances)(sundials_mem, reltol, abstol);
++   MFEM_VERIFY(flag == ARK_SUCCESS,
++               "error in " STR(MFEM_ARKode(SStolerances)) "()");
+ }
+ 
+ void ARKStepSolver::SetMaxStep(double dt_max)
+ {
+-   flag = ARKStepSetMaxStep(sundials_mem, dt_max);
+-   MFEM_VERIFY(flag == ARK_SUCCESS, "error in ARKStepSetMaxStep()");
++   flag = MFEM_ARKode(SetMaxStep)(sundials_mem, dt_max);
++   MFEM_VERIFY(flag == ARK_SUCCESS,
++               "error in " STR(MFEM_ARKode(SetMaxStep)) "()");
+ }
+ 
+ void ARKStepSolver::SetOrder(int order)
+ {
+-   flag = ARKStepSetOrder(sundials_mem, order);
+-   MFEM_VERIFY(flag == ARK_SUCCESS, "error in ARKStepSetOrder()");
++   flag = MFEM_ARKode(SetOrder)(sundials_mem, order);
++   MFEM_VERIFY(flag == ARK_SUCCESS,
++               "error in " STR(MFEM_ARKode(SetOrder)) "()");
+ }
+ 
+ void ARKStepSolver::SetERKTableNum(ARKODE_ERKTableID table_id)
+@@ -1749,8 +1816,9 @@ void ARKStepSolver::SetIMEXTableNum(ARKODE_ERKTableID etable_id,
+ 
+ void ARKStepSolver::SetFixedStep(double dt)
+ {
+-   flag = ARKStepSetFixedStep(sundials_mem, dt);
+-   MFEM_VERIFY(flag == ARK_SUCCESS, "error in ARKStepSetFixedStep()");
++   flag = MFEM_ARKode(SetFixedStep)(sundials_mem, dt);
++   MFEM_VERIFY(flag == ARK_SUCCESS,
++               "error in " STR(MFEM_ARKode(SetFixedStep)) "()");
+ }
+ 
+ void ARKStepSolver::PrintInfo() const
+@@ -1772,18 +1840,19 @@ void ARKStepSolver::PrintInfo() const
+                                      &netfails);
+    MFEM_VERIFY(flag == ARK_SUCCESS, "error in ARKStepGetTimestepperStats()");
+ 
+-   flag = ARKStepGetStepStats(sundials_mem,
+-                              &nsteps,
+-                              &hinused,
+-                              &hlast,
+-                              &hcur,
+-                              &tcur);
++   flag = MFEM_ARKode(GetStepStats)(sundials_mem,
++                                    &nsteps,
++                                    &hinused,
++                                    &hlast,
++                                    &hcur,
++                                    &tcur);
+ 
+    // Get nonlinear solver stats
+-   flag = ARKStepGetNonlinSolvStats(sundials_mem,
+-                                    &nniters,
+-                                    &nncfails);
+-   MFEM_VERIFY(flag == ARK_SUCCESS, "error in ARKStepGetNonlinSolvStats()");
++   flag = MFEM_ARKode(GetNonlinSolvStats)(sundials_mem,
++                                          &nniters,
++                                          &nncfails);
++   MFEM_VERIFY(flag == ARK_SUCCESS,
++               "error in " STR(MFEM_ARKode(GetNonlinSolvStats)) "()");
+ 
+    mfem::out <<
+              "ARKStep:\n"
+@@ -1811,7 +1880,7 @@ ARKStepSolver::~ARKStepSolver()
+    SUNMatDestroy(A);
+    SUNLinSolFree(LSA);
+    SUNNonlinSolFree(NLS);
+-   ARKStepFree(&sundials_mem);
++   MFEM_ARKode(Free)(&sundials_mem);
+ }
+ 
+ // ---------------------------------------------------------------------------
+@@ -1834,7 +1903,7 @@ int KINSolver::Mult(const N_Vector u, N_Vector fu, void *user_data)
+ 
+ // Wrapper for computing Jacobian-vector products
+ int KINSolver::GradientMult(N_Vector v, N_Vector Jv, N_Vector u,
+-                            booleantype *new_u, void *user_data)
++                            sunbooleantype *new_u, void *user_data)
+ {
+    const SundialsNVector mfem_v(v);
+    SundialsNVector mfem_Jv(Jv);
+@@ -1874,7 +1943,7 @@ int KINSolver::LinSysSetup(N_Vector u, N_Vector, SUNMatrix J,
+ 
+ // Wrapper for solving linear systems J u = b
+ int KINSolver::LinSysSolve(SUNLinearSolver LS, SUNMatrix, N_Vector u,
+-                           N_Vector b, realtype)
++                           N_Vector b, sunrealtype)
+ {
+    SundialsNVector mfem_u(u), mfem_b(b);
+    KINSolver *self = static_cast<KINSolver*>(GET_CONTENT(LS));
+@@ -1926,28 +1995,36 @@ int KINSolver::PrecSolve(N_Vector uu,
+ 
+ KINSolver::KINSolver(int strategy, bool oper_grad)
+    : global_strategy(strategy), use_oper_grad(oper_grad), y_scale(NULL),
+-     f_scale(NULL), jacobian(NULL), maa(0)
++     f_scale(NULL), jacobian(NULL)
+ {
+    Y = new SundialsNVector();
+    y_scale = new SundialsNVector();
+    f_scale = new SundialsNVector();
+ 
+    // Default abs_tol and print_level
++#if MFEM_SUNDIALS_VERSION < 70000
+    abs_tol     = pow(UNIT_ROUNDOFF, 1.0/3.0);
++#else
++   abs_tol     = pow(SUN_UNIT_ROUNDOFF, 1.0/3.0);
++#endif
+    print_level = 0;
+ }
+ 
+ #ifdef MFEM_USE_MPI
+ KINSolver::KINSolver(MPI_Comm comm, int strategy, bool oper_grad)
+    : global_strategy(strategy), use_oper_grad(oper_grad), y_scale(NULL),
+-     f_scale(NULL), jacobian(NULL), maa(0)
++     f_scale(NULL), jacobian(NULL)
+ {
+    Y = new SundialsNVector(comm);
+    y_scale = new SundialsNVector(comm);
+    f_scale = new SundialsNVector(comm);
+ 
+    // Default abs_tol and print_level
++#if MFEM_SUNDIALS_VERSION < 70000
+    abs_tol     = pow(UNIT_ROUNDOFF, 1.0/3.0);
++#else
++   abs_tol     = pow(SUN_UNIT_ROUNDOFF, 1.0/3.0);
++#endif
+    print_level = 0;
+ }
+ #endif
+@@ -2019,11 +2096,22 @@ void KINSolver::SetOperator(const Operator &op)
+       sundials_mem = KINCreate(Sundials::GetContext());
+       MFEM_VERIFY(sundials_mem, "Error in KINCreate().");
+ 
+-      // Set number of acceleration vectors
+-      if (maa > 0)
++      // Enable Anderson Acceleration
++      if (aa_n > 0)
+       {
+-         flag = KINSetMAA(sundials_mem, maa);
++         flag = KINSetMAA(sundials_mem, aa_n);
+          MFEM_ASSERT(flag == KIN_SUCCESS, "error in KINSetMAA()");
++
++         flag = KINSetDelayAA(sundials_mem, aa_delay);
++         MFEM_ASSERT(flag == KIN_SUCCESS, "error in KINSetDelayAA()");
++
++         flag = KINSetDampingAA(sundials_mem, aa_damping);
++         MFEM_ASSERT(flag == KIN_SUCCESS, "error in KINSetDampingAA()");
++
++#if SUNDIALS_VERSION_MAJOR >= 6
++         flag = KINSetOrthAA(sundials_mem, aa_orth);
++         MFEM_ASSERT(flag == KIN_SUCCESS, "error in KINSetOrthAA()");
++#endif
+       }
+ 
+       // Initialize KINSOL
+@@ -2034,6 +2122,9 @@ void KINSolver::SetOperator(const Operator &op)
+       flag = KINSetUserData(sundials_mem, this);
+       MFEM_ASSERT(flag == KIN_SUCCESS, "error in KINSetUserData()");
+ 
++      flag = KINSetDamping(sundials_mem, fp_damping);
++      MFEM_ASSERT(flag == KIN_SUCCESS, "error in KINSetDamping()");
++
+       // Set the linear solver
+       if (prec || jfnk)
+       {
+@@ -2045,7 +2136,7 @@ void KINSolver::SetOperator(const Operator &op)
+          if (A != NULL) { SUNMatDestroy(A); A = NULL; }
+          if (LSA != NULL) { SUNLinSolFree(LSA); LSA = NULL; }
+ 
+-         LSA = SUNLinSol_SPGMR(*Y, PREC_NONE, 0, Sundials::GetContext());
++         LSA = SUNLinSol_SPGMR(*Y, SUN_PREC_NONE, 0, Sundials::GetContext());
+          MFEM_VERIFY(LSA, "error in SUNLinSol_SPGMR()");
+ 
+          flag = KINSetLinearSolver(sundials_mem, LSA, NULL);
+@@ -2114,12 +2205,12 @@ void KINSolver::SetJFNKSolver(Solver &solver)
+    if (LSA != NULL) { SUNLinSolFree(LSA); LSA = NULL; }
+ 
+    // Setup FGMRES
+-   LSA = SUNLinSol_SPFGMR(*Y, prec ? PREC_RIGHT : PREC_NONE, maxli,
++   LSA = SUNLinSol_SPFGMR(*Y, prec ? SUN_PREC_RIGHT : SUN_PREC_NONE, maxli,
+                           Sundials::GetContext());
+    MFEM_VERIFY(LSA, "error in SUNLinSol_SPFGMR()");
+ 
+    flag = SUNLinSol_SPFGMRSetMaxRestarts(LSA, maxlrs);
+-   MFEM_VERIFY(flag == SUNLS_SUCCESS, "error in SUNLinSol_SPFGMR()");
++   MFEM_VERIFY(flag == SUN_SUCCESS, "error in SUNLinSol_SPFGMR()");
+ 
+    flag = KINSetLinearSolver(sundials_mem, LSA, NULL);
+    MFEM_VERIFY(flag == KIN_SUCCESS, "error in KINSetLinearSolver()");
+@@ -2145,15 +2236,52 @@ void KINSolver::SetMaxSetupCalls(int max_calls)
+    MFEM_ASSERT(flag == KIN_SUCCESS, "error in KINSetMaxSetupCalls()");
+ }
+ 
+-void KINSolver::SetMAA(int m_aa)
++void KINSolver::EnableAndersonAcc(int n, int orth, int delay, double damping)
+ {
+-   // Store internally as maa must be set before calling KINInit() to
+-   // set the maximum acceleration space size.
+-   maa = m_aa;
+-   if (sundials_mem)
++   if (sundials_mem != nullptr)
+    {
+-      flag = KINSetMAA(sundials_mem, maa);
++      if (aa_n < n)
++      {
++         MFEM_ABORT("Subsequent calls to EnableAndersonAcc() must set"
++                    " the subspace size to less or equal to the initially requested size."
++                    " If SetOperator() has already been called, the subspace size can't be"
++                    " increased.");
++      }
++
++      flag = KINSetMAA(sundials_mem, n);
+       MFEM_ASSERT(flag == KIN_SUCCESS, "error in KINSetMAA()");
++
++      flag = KINSetDelayAA(sundials_mem, delay);
++      MFEM_ASSERT(flag == KIN_SUCCESS, "error in KINSetDelayAA()");
++
++      flag = KINSetDampingAA(sundials_mem, damping);
++      MFEM_ASSERT(flag == KIN_SUCCESS, "error in KINSetDampingAA()");
++
++#if SUNDIALS_VERSION_MAJOR >= 6
++      flag = KINSetOrthAA(sundials_mem, orth);
++      MFEM_ASSERT(flag == KIN_SUCCESS, "error in KINSetOrthAA()");
++#else
++      if (orth != KIN_ORTH_MGS)
++      {
++         MFEM_WARNING("SUNDIALS < v6 does not support setting the Anderson"
++                      " acceleration orthogonalization routine!");
++      }
++#endif
++   }
++
++   aa_n = n;
++   aa_delay = delay;
++   aa_damping = damping;
++   aa_orth = orth;
++}
++
++void KINSolver::SetDamping(double damping)
++{
++   fp_damping = damping;
++   if (sundials_mem)
++   {
++      flag = KINSetDamping(sundials_mem, fp_damping);
++      MFEM_ASSERT(flag == KIN_SUCCESS, "error in KINSetDamping()");
+    }
+ }
+ 
+@@ -2239,18 +2367,21 @@ void KINSolver::Mult(Vector &x,
+ 
+    if (rank == 0)
+    {
++#if MFEM_SUNDIALS_VERSION < 70000
+       flag = KINSetPrintLevel(sundials_mem, print_level);
+       MFEM_VERIFY(flag == KIN_SUCCESS, "KINSetPrintLevel() failed!");
++#endif
++      // NOTE: there is no KINSetPrintLevel in SUNDIALS v7!
+ 
+ #ifdef SUNDIALS_BUILD_WITH_MONITORING
+       if (jfnk && print_level)
+       {
+          flag = SUNLinSolSetInfoFile_SPFGMR(LSA, stdout);
+-         MFEM_VERIFY(flag == SUNLS_SUCCESS,
++         MFEM_VERIFY(flag == SUN_SUCCESS,
+                      "error in SUNLinSolSetInfoFile_SPFGMR()");
+ 
+          flag = SUNLinSolSetPrintLevel_SPFGMR(LSA, 1);
+-         MFEM_VERIFY(flag == SUNLS_SUCCESS,
++         MFEM_VERIFY(flag == SUN_SUCCESS,
+                      "error in SUNLinSolSetPrintLevel_SPFGMR()");
+       }
+ #endif
+diff --git a/linalg/sundials.hpp b/linalg/sundials.hpp
+index f34b4deaf7..08a908c24c 100644
+--- a/linalg/sundials.hpp
++++ b/linalg/sundials.hpp
+@@ -54,6 +54,10 @@
+ 
+ #include <functional>
+ 
++#define MFEM_SUNDIALS_VERSION \
++   (SUNDIALS_VERSION_MAJOR*10000 + SUNDIALS_VERSION_MINOR*100 + \
++    SUNDIALS_VERSION_PATCH)
++
+ #if (SUNDIALS_VERSION_MAJOR < 6)
+ 
+ /// (DEPRECATED) Map SUNDIALS version >= 6 datatypes and constants to
+@@ -68,7 +72,30 @@ constexpr ARKODE_ERKTableID ARKODE_FEHLBERG_13_7_8 = FEHLBERG_13_7_8;
+ /// arbitrary type for more compact backwards compatibility
+ using SUNContext = void*;
+ 
+-#endif // SUNDIALS_VERSION_MAJOR < 6
++/// 'sunrealtype' was first introduced in v6.0.0
++typedef realtype sunrealtype;
++/// 'sunbooleantype' was first introduced in v6.0.0
++typedef booleantype sunbooleantype;
++
++/// New constant names introduced in v6.0.0
++enum { SUN_PREC_NONE, SUN_PREC_LEFT, SUN_PREC_RIGHT, SUN_PREC_BOTH };
++
++// KIN_ORTH_MGS was introduced in SUNDIALS v6; here, we define it just so that
++// it can be used as the default option in the second parameter of
++// KINSolver::EnableAndersonAcc -- the actual value of the parameter will be
++// ignored when using SUNDIALS < v6.
++#define KIN_ORTH_MGS 0
++
++#endif // #if SUNDIALS_VERSION_MAJOR < 6
++
++#if (SUNDIALS_VERSION_MAJOR < 7)
++
++/** @brief The enum constant SUN_SUCCESS was added in v7 as a replacement of
++    various *_SUCCESS macros that were removed in v7. */
++enum { SUN_SUCCESS = 0 };
++
++#endif // #if SUNDIALS_VERSION_MAJOR < 7
++
+ 
+ namespace mfem
+ {
+@@ -238,7 +265,14 @@ public:
+ 
+ #ifdef MFEM_USE_MPI
+    /// Returns the MPI communicator for the internal N_Vector x.
+-   inline MPI_Comm GetComm() const { return *static_cast<MPI_Comm*>(N_VGetCommunicator(x)); }
++   inline MPI_Comm GetComm() const
++   {
++#if SUNDIALS_VERSION_MAJOR < 7
++      return *static_cast<MPI_Comm*>(N_VGetCommunicator(x));
++#else
++      return N_VGetCommunicator(x);
++#endif
++   }
+ 
+    /// Returns the MPI global length for the internal N_Vector x.
+    inline long GlobalSize() const { return N_VGetLength(x); }
+@@ -390,24 +424,26 @@ protected:
+    int root_components; /// Number of components in gout
+ 
+    /// Wrapper to compute the ODE rhs function.
+-   static int RHS(realtype t, const N_Vector y, N_Vector ydot, void *user_data);
++   static int RHS(sunrealtype t, const N_Vector y, N_Vector ydot,
++                  void *user_data);
+ 
+    /// Setup the linear system $ A x = b $.
+-   static int LinSysSetup(realtype t, N_Vector y, N_Vector fy, SUNMatrix A,
+-                          booleantype jok, booleantype *jcur,
+-                          realtype gamma, void *user_data, N_Vector tmp1,
++   static int LinSysSetup(sunrealtype t, N_Vector y, N_Vector fy, SUNMatrix A,
++                          sunbooleantype jok, sunbooleantype *jcur,
++                          sunrealtype gamma, void *user_data, N_Vector tmp1,
+                           N_Vector tmp2, N_Vector tmp3);
+ 
+    /// Solve the linear system $ A x = b $.
+    static int LinSysSolve(SUNLinearSolver LS, SUNMatrix A, N_Vector x,
+-                          N_Vector b, realtype tol);
++                          N_Vector b, sunrealtype tol);
+ 
+    /// Prototype to define root finding for CVODE
+-   static int root(realtype t, N_Vector y, realtype *gout, void *user_data);
++   static int root(sunrealtype t, N_Vector y, sunrealtype *gout,
++                   void *user_data);
+ 
+    /// Typedef for root finding functions
+-   typedef std::function<int(realtype t, Vector y, Vector gout, CVODESolver *)>
+-   RootFunction;
++   typedef std::function<int(sunrealtype t, Vector y, Vector gout,
++                             CVODESolver *)> RootFunction;
+ 
+    /// A class member to facilitate pointing to a user-specified root function
+    RootFunction root_func;
+@@ -415,7 +451,8 @@ protected:
+    /// Typedef declaration for error weight functions
+    typedef std::function<int(Vector y, Vector w, CVODESolver*)> EWTFunction;
+ 
+-   /// A class member to facilitate pointing to a user-specified error weight function
++   /** @brief A class member to facilitate pointing to a user-specified error
++       weight function */
+    EWTFunction ewt_func;
+ 
+ public:
+@@ -449,7 +486,7 @@ public:
+        @note If this method is called a second time with a different problem
+        size, then any non-default user-set options will be lost and will need
+        to be set again. */
+-   void Init(TimeDependentOperator &f_);
++   void Init(TimeDependentOperator &f_) override;
+ 
+    /// Integrate the ODE with CVODE using the specified step mode.
+    /** @param[in,out] x  On output, the solution vector at the requested output
+@@ -460,7 +497,7 @@ public:
+        @note On input, the values of @a t and @a dt are used to compute desired
+        output time for the integration, tout = @a t + @a dt.
+    */
+-   virtual void Step(Vector &x, double &t, double &dt);
++   void Step(Vector &x, double &t, double &dt) override;
+ 
+    /** @brief Attach the linear system setup and solve methods from the
+        TimeDependentOperator i.e., SUNImplicitSetup() and SUNImplicitSolve() to
+@@ -525,14 +562,15 @@ protected:
+    int indexB; ///< backward problem index
+ 
+    /// Wrapper to compute the ODE RHS Quadrature function.
+-   static int RHSQ(realtype t, const N_Vector y, N_Vector qdot, void *user_data);
++   static int RHSQ(sunrealtype t, const N_Vector y, N_Vector qdot,
++                   void *user_data);
+ 
+    /// Wrapper to compute the ODE RHS backward function.
+-   static int RHSB(realtype t, N_Vector y,
++   static int RHSB(sunrealtype t, N_Vector y,
+                    N_Vector yB, N_Vector yBdot, void *user_dataB);
+ 
+    /// Wrapper to compute the ODE RHS Backwards Quadrature function.
+-   static int RHSQB(realtype t, N_Vector y, N_Vector yB,
++   static int RHSQB(sunrealtype t, N_Vector y, N_Vector yB,
+                     N_Vector qBdot, void *user_dataB);
+ 
+    /// Error control function
+@@ -586,7 +624,7 @@ public:
+ 
+        @note On input, the values of t and dt are used to compute desired
+        output time for the integration, tout = t + dt. */
+-   virtual void Step(Vector &x, double &t, double &dt);
++   void Step(Vector &x, double &t, double &dt) override;
+ 
+    /// Solve one adjoint time step
+    virtual void StepB(Vector &w, double &t, double &dt);
+@@ -648,15 +686,15 @@ public:
+    void SetSVtolerancesB(double reltol, Vector abstol);
+ 
+    /// Setup the linear system A x = b
+-   static int LinSysSetupB(realtype t, N_Vector y, N_Vector yB, N_Vector fyB,
++   static int LinSysSetupB(sunrealtype t, N_Vector y, N_Vector yB, N_Vector fyB,
+                            SUNMatrix A,
+-                           booleantype jok, booleantype *jcur,
+-                           realtype gamma, void *user_data, N_Vector tmp1,
++                           sunbooleantype jok, sunbooleantype *jcur,
++                           sunrealtype gamma, void *user_data, N_Vector tmp1,
+                            N_Vector tmp2, N_Vector tmp3);
+ 
+    /// Solve the linear system A x = b
+    static int LinSysSolveB(SUNLinearSolver LS, SUNMatrix A, N_Vector x,
+-                           N_Vector b, realtype tol);
++                           N_Vector b, sunrealtype tol);
+ 
+ 
+    /// Destroy the associated CVODES memory and SUNDIALS objects.
+@@ -689,33 +727,35 @@ protected:
+        RHS1 is explicit RHS and RHS2 the implicit RHS for IMEX integration. When
+        purely implicit or explicit only RHS1 is used. */
+    ///@{
+-   static int RHS1(realtype t, const N_Vector y, N_Vector ydot, void *user_data);
+-   static int RHS2(realtype t, const N_Vector y, N_Vector ydot, void *user_data);
++   static int RHS1(sunrealtype t, const N_Vector y, N_Vector ydot,
++                   void *user_data);
++   static int RHS2(sunrealtype t, const N_Vector y, N_Vector ydot,
++                   void *user_data);
+    ///@}
+ 
+    /// Setup the linear system $ A x = b $.
+-   static int LinSysSetup(realtype t, N_Vector y, N_Vector fy, SUNMatrix A,
+-                          SUNMatrix M, booleantype jok, booleantype *jcur,
+-                          realtype gamma, void *user_data, N_Vector tmp1,
++   static int LinSysSetup(sunrealtype t, N_Vector y, N_Vector fy, SUNMatrix A,
++                          SUNMatrix M, sunbooleantype jok, sunbooleantype *jcur,
++                          sunrealtype gamma, void *user_data, N_Vector tmp1,
+                           N_Vector tmp2, N_Vector tmp3);
+ 
+    /// Solve the linear system $ A x = b $.
+    static int LinSysSolve(SUNLinearSolver LS, SUNMatrix A, N_Vector x,
+-                          N_Vector b, realtype tol);
++                          N_Vector b, sunrealtype tol);
+ 
+    /// Setup the linear system $ M x = b $.
+-   static int MassSysSetup(realtype t, SUNMatrix M, void *user_data,
++   static int MassSysSetup(sunrealtype t, SUNMatrix M, void *user_data,
+                            N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
+ 
+    /// Solve the linear system $ M x = b $.
+    static int MassSysSolve(SUNLinearSolver LS, SUNMatrix M, N_Vector x,
+-                           N_Vector b, realtype tol);
++                           N_Vector b, sunrealtype tol);
+ 
+    /// Compute the matrix-vector product $ v = M x $.
+    static int MassMult1(SUNMatrix M, N_Vector x, N_Vector v);
+ 
+    /// Compute the matrix-vector product $v = M_t x $ at time t.
+-   static int MassMult2(N_Vector x, N_Vector v, realtype t,
++   static int MassMult2(N_Vector x, N_Vector v, sunrealtype t,
+                         void* mtimes_data);
+ 
+ public:
+@@ -751,7 +791,7 @@ public:
+        @note If this method is called a second time with a different problem
+        size, then any non-default user-set options will be lost and will need
+        to be set again. */
+-   void Init(TimeDependentOperator &f_);
++   void Init(TimeDependentOperator &f_) override;
+ 
+    /// Integrate the ODE with ARKode using the specified step mode.
+    /**
+@@ -763,7 +803,7 @@ public:
+        @note On input, the values of @a t and @a dt are used to compute desired
+        output time for the integration, tout = @a t + @a dt.
+    */
+-   virtual void Step(Vector &x, double &t, double &dt);
++   void Step(Vector &x, real_t &t, real_t &dt) override;
+ 
+    /** @brief Attach the linear system setup and solve methods from the
+        TimeDependentOperator i.e., SUNImplicitSetup() and SUNImplicitSolve() to
+@@ -850,18 +890,22 @@ protected:
+    bool use_oper_grad;                         ///< use the Jv prod function
+    mutable SundialsNVector *y_scale, *f_scale; ///< scaling vectors
+    const Operator *jacobian;                   ///< stores oper->GetGradient()
+-   int maa;           ///< number of acceleration vectors
+-   bool jfnk = false; ///< enable JFNK
+-   Vector wrk;        ///< Work vector needed for the JFNK PC
+-   int maxli = 5;     ///< Maximum linear iterations
+-   int maxlrs = 0;    ///< Maximum linear solver restarts
++   int aa_n = 0;            ///< number of acceleration vectors
++   int aa_delay;            ///< Anderson Acceleration delay
++   double aa_damping;       ///< Anderson Acceleration damping
++   int aa_orth;             ///< Anderson Acceleration orthogonalization routine
++   double fp_damping = 1.0; ///< Fixed Point or Picard damping parameter
++   bool jfnk = false;       ///< enable JFNK
++   Vector wrk;              ///< Work vector needed for the JFNK PC
++   int maxli = 5;           ///< Maximum linear iterations
++   int maxlrs = 0;          ///< Maximum linear solver restarts
+ 
+    /// Wrapper to compute the nonlinear residual $ F(u) = 0 $.
+    static int Mult(const N_Vector u, N_Vector fu, void *user_data);
+ 
+    /// Wrapper to compute the Jacobian-vector product $ J(u) v = Jv $.
+    static int GradientMult(N_Vector v, N_Vector Jv, N_Vector u,
+-                           booleantype *new_u, void *user_data);
++                           sunbooleantype *new_u, void *user_data);
+ 
+    /// Setup the linear system $ J u = b $.
+    static int LinSysSetup(N_Vector u, N_Vector fu, SUNMatrix J,
+@@ -869,7 +913,7 @@ protected:
+ 
+    /// Solve the linear system $ J u = b $.
+    static int LinSysSolve(SUNLinearSolver LS, SUNMatrix J, N_Vector u,
+-                          N_Vector b, realtype tol);
++                          N_Vector b, sunrealtype tol);
+ 
+    /// Setup the preconditioner.
+    static int PrecSetup(N_Vector uu,
+@@ -916,7 +960,7 @@ public:
+    /** @note If this method is called a second time with a different problem
+        size, then non-default KINSOL-specific options will be lost and will need
+        to be set again. */
+-   virtual void SetOperator(const Operator &op);
++   void SetOperator(const Operator &op) override;
+ 
+    /// Set the linear solver for inverting the Jacobian.
+    /** @note This function assumes that Operator::GetGradient(const Vector &)
+@@ -924,10 +968,10 @@ public:
+              SetOperator(const Operator &).
+ 
+              This method must be called after SetOperator(). */
+-   virtual void SetSolver(Solver &solver);
++   void SetSolver(Solver &solver) override;
+ 
+    /// Equivalent to SetSolver(solver).
+-   virtual void SetPreconditioner(Solver &solver) { SetSolver(solver); }
++   void SetPreconditioner(Solver &solver) override { SetSolver(solver); }
+ 
+    /// Set KINSOL's scaled step tolerance.
+    /** The default tolerance is $ U^\frac{2}{3} $ , where
+@@ -940,13 +984,22 @@ public:
+        @note This method must be called after SetOperator(). */
+    void SetMaxSetupCalls(int max_calls);
+ 
+-   /// Set the number of acceleration vectors to use with KIN_FP or KIN_PICARD.
+-   /** The default is 0.
+-       @ note This method must be called before SetOperator() to set the
+-       maximum size of the acceleration space. The value of @a maa can be
+-       altered after SetOperator() is called but it can't be higher than initial
+-       maximum. */
+-   void SetMAA(int maa);
++   /// Enable Anderson Acceleration for KIN_FP or KIN_PICARD.
++   /** @note Has to be called once before SetOperator() in order to set up the
++       maximum subspace size. Subsequent calls need @a n less or equal to the
++       initial subspace size.
++       @param[in] n Anderson Acceleration subspace size
++       @param[in] orth Anderson Acceleration orthogonalization routine
++       @param[in] delay Anderson Acceleration delay
++       @param[in] damping Anderson Acceleration damping parameter valid from 0 <
++       d <= 1.0. Default is 1.0 (no damping) */
++   void EnableAndersonAcc(int n, int orth = KIN_ORTH_MGS, int delay = 0,
++                          double damping = 1.0);
++
++   /// Specifies the value of the damping parameter in the fixed point or Picard
++   /// iteration.
++   /** param[in] damping fixed point iteration or Picard damping parameter */
++   void SetDamping(double damping);
+ 
+    /// Set the Jacobian Free Newton Krylov flag. The default is false.
+    /** This flag indicates to use JFNK as the linear solver for KINSOL. This
+@@ -967,10 +1020,10 @@ public:
+    void SetLSMaxRestarts(int m) { maxlrs = m; }
+ 
+    /// Set the print level for the KINSetPrintLevel function.
+-   virtual void SetPrintLevel(int print_lvl) { print_level = print_lvl; }
++   void SetPrintLevel(int print_lvl) override { print_level = print_lvl; }
+ 
+    /// This method is not supported and will throw an error.
+-   virtual void SetPrintLevel(PrintLevel);
++   void SetPrintLevel(PrintLevel) override;
+ 
+    /// Solve the nonlinear system $ F(x) = 0 $.
+    /** This method computes the x_scale and fx_scale vectors and calls the
+@@ -981,7 +1034,7 @@ public:
+        @param[in,out] x  On input, initial guess, if @a #iterative_mode = true,
+                          otherwise the initial guess is zero; on output, the
+                          solution */
+-   virtual void Mult(const Vector &b, Vector &x) const;
++   void Mult(const Vector &b, Vector &x) const override;
+ 
+    /// Solve the nonlinear system $ F(x) = 0 $.
+    /** Calls KINSol() to solve the nonlinear system. Before calling KINSol(),

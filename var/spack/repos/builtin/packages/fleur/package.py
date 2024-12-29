@@ -68,11 +68,6 @@ class Fleur(Package):
 
     conflicts("%intel@:16.0.4", msg="ifort version <16.0 will most probably not work correctly")
     conflicts("%gcc@:6.3.0", msg="gfortran is known to work with versions newer than v6.3")
-    conflicts(
-        "%pgi@:18.4.0",
-        msg="You need at least PGI version 18.4 \
-                   but might still run into some problems.",
-    )
     conflicts("~scalapack", when="+elpa", msg="ELPA requires scalapack support")
     conflicts("@:5.0", when="fft=fftw", msg="FFTW interface is supported from Fleur v5.0")
     conflicts("@:5.0", when="+wannier90", msg="wannier90 is supported from Fleur v5.0")
@@ -82,7 +77,7 @@ class Fleur(Package):
     def setup_build_environment(self, env):
         spec = self.spec
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             env.set("CC", spec["mpi"].mpicc, force=True)
             env.set("FC", spec["mpi"].mpifc, force=True)
             env.set("CXX", spec["mpi"].mpicxx, force=True)
@@ -112,43 +107,43 @@ class Fleur(Package):
         options["-includedir"].append(spec["libxml2"].prefix.include)
         options["-includedir"].append(join_path(spec["libxml2"].prefix.include, "libxml2"))
 
-        if "fft=mkl" in spec:
+        if spec.satisfies("fft=mkl"):
             options["-link"].append(spec["intel-mkl"].libs.link_flags)
             options["-libdir"].append(spec["intel-mkl"].prefix.lib)
             options["-includedir"].append(spec["intel-mkl"].prefix.include)
-        if "fft=fftw" in spec:
+        if spec.satisfies("fft=fftw"):
             options["-link"].append(spec["fftw-api"].libs.link_flags)
             options["-libdir"].append(spec["fftw-api"].prefix.lib)
             options["-includedir"].append(spec["fftw-api"].prefix.include)
-        if "+scalapack" in spec:
+        if spec.satisfies("+scalapack"):
             options["-link"].append(spec["scalapack"].libs.link_flags)
             options["-libdir"].append(spec["scalapack"].prefix.lib)
-        if "+external_libxc" in spec:
+        if spec.satisfies("+external_libxc"):
             # Workaround: The fortran library is called libxcf90.a/so
             #    but spec['wannier90'].libs.link_flags return -lxc
             options["-link"].append("-lxcf90")
             options["-libdir"].append(spec["libxc"].prefix.lib)
             options["-includedir"].append(spec["libxc"].prefix.include)
-        if "+hdf5" in spec:
+        if spec.satisfies("+hdf5"):
             options["-link"].append(spec["hdf5"].libs.link_flags)
             options["-libdir"].append(spec["hdf5"].prefix.lib)
             options["-includedir"].append(spec["hdf5"].prefix.include)
-        if "+magma" in spec:
+        if spec.satisfies("+magma"):
             options["-link"].append(spec["magma"].libs.link_flags)
             options["-libdir"].append(spec["magma"].prefix.lib)
             options["-includedir"].append(spec["magma"].prefix.include)
-        if "+wannier90" in spec:
+        if spec.satisfies("+wannier90"):
             # Workaround: The library is not called wannier90.a/so
             #    for this reason spec['wannier90'].libs.link_flags fails!
             options["-link"].append("-lwannier")
             options["-libdir"].append(spec["wannier90"].prefix.lib)
-        if "+spfft" in spec:
+        if spec.satisfies("+spfft"):
             options["-link"].append(spec["spfft"].libs.link_flags)
             # Workaround: The library is installed in /lib64 not /lib
             options["-libdir"].append(spec["spfft"].prefix.lib + "64")
             # Workaround: The library needs spfft.mod in include/spfft path
             options["-includedir"].append(join_path(spec["spfft"].prefix.include, "spfft"))
-        if "+elpa" in spec:
+        if spec.satisfies("+elpa"):
             options["-link"].append(spec["elpa"].libs.link_flags)
             options["-libdir"].append(spec["elpa"].prefix.lib)
             # Workaround: The library needs elpa.mod in include/elpa_%VERS/modules
@@ -172,7 +167,7 @@ class Fleur(Package):
         with working_dir("build"):
             make()
             mkdirp(prefix.bin)
-            if "+mpi" in spec:
+            if spec.satisfies("+mpi"):
                 install("fleur_MPI", prefix.bin)
             else:
                 install("fleur", prefix.bin)

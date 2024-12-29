@@ -32,6 +32,13 @@ class EtsfIo(Package):
     patch("tests_module.patch")
     patch("tests_init.patch")
 
+    def flag_handler(self, name, flags):
+        if name == "fflags":
+            flags.append(self.compiler.f77_pic_flag)
+        elif name == "fcflags":
+            flags.append(self.compiler.fc_pic_flag)
+        return flags, None, None
+
     def install(self, spec, prefix):
         options = ["--prefix=%s" % prefix]
         oapp = options.append

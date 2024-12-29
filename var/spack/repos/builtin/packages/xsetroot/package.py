@@ -18,13 +18,13 @@ class Xsetroot(AutotoolsPackage, XorgPackage):
     version("1.1.2", sha256="9d007f5119be09924ac3a5d2bd506f32e6c164b82633c88d2aff26311e1a2a2b")
     version("1.1.1", sha256="6cdd48757d18835251124138b4a8e4008c3bbc51cf92533aa39c6ed03277168b")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     depends_on("libxmu")
     depends_on("libx11")
     depends_on("libxcursor")
 
     depends_on("xbitmaps")
-    depends_on("xproto@7.0.17:")
+    depends_on("xproto@7.0.17:", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")

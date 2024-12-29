@@ -1,0 +1,11 @@
+--- a/configure.ac
++++ b/configure.ac
+@@ -24,6 +24,8 @@ AM_CONDITIONAL([HAVE_TREE_VECTORIZE], [test x"${tree_vectorize}" = x"true"])
+ 
+ AC_CONFIG_FILES([Makefile])
+ 
++AC_SEARCH_LIBS([__atomic_fetch_and_1], [atomic])
++
+ # GCC tries to be "helpful" and only issue a warning for unrecognized
+ # attributes.  So we compile the test with Werror, so that if the
+ # attribute is not recognized the compilation fails

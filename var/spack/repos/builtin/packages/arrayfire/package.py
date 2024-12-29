@@ -80,7 +80,7 @@ class Arrayfire(CMakePackage, CudaPackage):
             ]
         )
 
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             arch_list = [
                 "{}.{}".format(arch[:-1], arch[-1])
                 for arch in self.spec.variants["cuda_arch"].value

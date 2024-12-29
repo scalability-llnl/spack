@@ -9,14 +9,10 @@ import shutil
 
 import pytest
 
-import spack.concretize
-import spack.paths
 import spack.platforms
 import spack.relocate
 import spack.relocate_text as relocate_text
-import spack.spec
-import spack.store
-import spack.tengine
+import spack.repo
 import spack.util.executable
 
 pytestmark = pytest.mark.not_on_windows("Tests fail on Windows")
@@ -275,7 +271,7 @@ def test_relocate_text_bin_raise_if_new_prefix_is_longer(tmpdir):
     short_prefix = b"/short"
     long_prefix = b"/much/longer"
     fpath = str(tmpdir.join("fakebin"))
-    with open(fpath, "w") as f:
+    with open(fpath, "w", encoding="utf-8") as f:
         f.write("/short")
     with pytest.raises(relocate_text.BinaryTextReplaceError):
         spack.relocate.relocate_text_bin([fpath], {short_prefix: long_prefix})

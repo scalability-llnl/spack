@@ -8,11 +8,14 @@ import copy
 from collections.abc import Mapping
 
 import spack.error
+import spack.repo
 import spack.util.spack_json as sjson
 
 
 def _get_installed_package_names():
     """Returns names of packages installed in the active environment."""
+    import spack.environment
+
     specs = spack.environment.installed_specs()
     return [spec.name for spec in specs]
 

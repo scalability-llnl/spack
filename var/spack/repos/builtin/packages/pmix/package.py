@@ -31,16 +31,16 @@ class Pmix(AutotoolsPackage):
     while maintaining strict separation between it and the standard
     itself."""
 
-    homepage = "https://pmix.org"
-    url = "https://github.com/pmix/pmix/releases/download/v3.1.3/pmix-3.1.3.tar.bz2"
+    homepage = "https://openpmix.github.io/"
+    url = "https://github.com/openpmix/openpmix/releases/download/v5.0.3/pmix-5.0.3.tar.bz2"
     git = "https://github.com/openpmix/openpmix.git"
 
     maintainers("rhc54")
 
     license("BSD-3-Clause-Open-MPI")
 
-    # Branches 4.2 & 5.0 will also need submodules
     version("master", branch="master", submodules=True)
+    version("5.0.3", sha256="3f779434ed59fc3d63e4f77f170605ac3a80cd40b1f324112214b0efbdc34f13")
     version("5.0.2", sha256="28227ff2ba925da2c3fece44502f23a91446017de0f5a58f5cea9370c514b83c")
     version("5.0.1", sha256="d4371792d4ba4c791e1010100b4bf9a65500ababaf5ff25d681f938527a67d4a")
     version("5.0.0", sha256="92a85c4946346816c297ac244fbaf4f723bba87fb7e4424a057c2dabd569928d")
@@ -154,40 +154,46 @@ class Pmix(AutotoolsPackage):
         deprecated=True,
     )
 
-    depends_on("c", type="build")  # generated
-
-    variant(
-        "pmi_backwards_compatibility",
-        default=True,
-        description="Toggle pmi backwards compatibility",
-    )
-
+    variant("docs", default=False, when="@master", description="Build documentation")
+    variant("munge", default=False, description="Enable MUNGE support")
+    variant("python", default=False, when="@4.1.2:", description="Enable Python bindings")
     variant(
         "restful",
         default=False,
         when="@4:",
-        description="Allow a PMIx server to request services from " "a system-level REST server",
+        description="Allow a PMIx server to request services from a system-level REST server",
+    )
+    variant(
+        "pmi_backwards_compatibility",
+        default=True,
+        when="@1.2.5:3",
+        description="Enable PMI backwards compatibility",
     )
 
-    variant("python", default=False, when="@4.1.2:", description="Enable python bindings")
-
-    variant("docs", default=False, description="Build manpages")
-
-    depends_on("m4", type="build", when="@master")
-    depends_on("autoconf", type="build", when="@master")
-    depends_on("automake", type="build", when="@master")
-    depends_on("libtool", type="build", when="@master")
-    depends_on("perl", type="build", when="@master")
-    depends_on("pandoc", type="build", when="+docs")
+    depends_on("c", type="build")
     depends_on("pkgconfig", type="build")
+    depends_on("m4", type="build", when="@master")
+    depends_on("autoconf@2.69:", type="build", when="@master")
+    depends_on("automake@1.13.4:", type="build", when="@master")
+    depends_on("libtool@2.4.2:", type="build", when="@master")
+    depends_on("flex@2.5.39:", type="build", when="@master")
+    depends_on("perl", type="build", when="@master")
+    depends_on("python@3.7:", type="build", when="+docs")
+    depends_on("py-sphinx@5:", type="build", when="+docs")
+    depends_on("py-recommonmark", type="build", when="+docs")
+    depends_on("py-docutils", type="build", when="+docs")
+    depends_on("py-sphinx-rtd-theme", type="build", when="+docs")
 
     depends_on("libevent@2.0.20:")
-    depends_on("hwloc@1.0:1", when="@:2")
-    depends_on("hwloc@1.11:1,2:", when="@3:")
+    depends_on("hwloc@1.11:", when="@3:")
+    depends_on("hwloc@1", when="@:2")
+    depends_on("zlib-api", when="@2:")
     depends_on("curl", when="+restful")
     depends_on("jansson@2.11:", when="+restful")
     depends_on("python", when="+python")
     depends_on("py-cython", when="+python")
+    depends_on("py-setuptools", when="+python")
+    depends_on("munge", when="+munge")
 
     def autoreconf(self, spec, prefix):
         """Only needed when building from git checkout"""
@@ -213,7 +219,13 @@ class Pmix(AutotoolsPackage):
     def configure_args(self):
         spec = self.spec
 
-        config_args = ["--enable-shared", "--enable-static", "--disable-sphinx", "--without-munge"]
+        config_args = ["--enable-shared", "--enable-static"]
+
+        if spec.satisfies("~docs") or spec.satisfies("@4.2.3:5"):
+            config_args.append("--disable-sphinx")
+
+        if spec.satisfies("@2:"):
+            config_args.append("--with-zlib=" + spec["zlib-api"].prefix)
 
         config_args.append("--with-libevent=" + spec["libevent"].prefix)
         config_args.append("--with-hwloc=" + spec["hwloc"].prefix)
@@ -233,14 +245,20 @@ class Pmix(AutotoolsPackage):
 
         config_args.extend(self.enable_or_disable("python-bindings", variant="python"))
 
+        if spec.satisfies("+munge"):
+            config_args.append("--with-munge=" + spec["munge"].prefix)
+        else:
+            config_args.append("--without-munge")
+
+        if spec.satisfies("+restful"):
+            config_args.append("--with-curl=" + spec["curl"].prefix)
+            config_args.append("--with-jansson=" + spec["jansson"].prefix)
+
         config_args.extend(
             self.enable_or_disable(
                 "pmi-backward-compatibility", variant="pmi_backwards_compatibility"
             )
         )
-
-        if "~docs" in self.spec:
-            config_args.append("--disable-man-pages")
 
         # Versions < 2.1.1 have a bug in the test code that *sometimes*
         # causes problems on strict alignment architectures such as

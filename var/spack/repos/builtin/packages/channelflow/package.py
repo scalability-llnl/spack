@@ -76,7 +76,7 @@ class Channelflow(CMakePackage):
         args.append("-DWITH_NETCDF:STRING={0}".format(netcdf_str[spec.variants["netcdf"].value]))
 
         # Set an MPI compiler for parallel builds
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             args.append("-DCMAKE_CXX_COMPILER:PATH={0}".format(spec["mpi"].mpicxx))
 
         return args

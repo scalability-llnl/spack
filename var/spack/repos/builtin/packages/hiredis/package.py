@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import spack.build_systems.cmake
+import spack.build_systems.makefile
 from spack.package import *
 
 
@@ -46,13 +48,17 @@ class Hiredis(MakefilePackage, CMakePackage):
 class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
     @property
     def build_targets(self):
-        use_ssl = 1 if "+ssl" in self.spec else 0
-        run_test_async = 1 if "+test_async" in self.spec else 0
+        use_ssl = 1 if self.spec.satisfies("+ssl") else 0
+        run_test_async = 1 if self.spec.satisfies("+test_async") else 0
         return ["USE_SSL={0}".format(use_ssl), "TEST_ASYNC={0}".format(run_test_async)]
 
     def install(self, pkg, spec, prefix):
         make("PREFIX={0}".format(prefix), "install")
-        if "+test" in self.spec or "+test_async" in self.spec or "+test_ssl" in self.spec:
+        if (
+            self.spec.satisfies("+test")
+            or self.spec.satisfies("+test_async")
+            or self.spec.satisfies("+test_ssl")
+        ):
             make("PREFIX={0}".format(prefix), "test")
 
     @run_after("install")
@@ -63,9 +69,9 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
 
 class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
     def cmake_args(self):
-        build_test = not ("+test" in self.spec)
-        ssl_test = ("+test_ssl" in self.spec) and ("+test" in self.spec)
-        async_test = ("+test_async" in self.spec) and ("+test" in self.spec)
+        build_test = not self.spec.satisfies("+test")
+        ssl_test = self.spec.satisfies("+test_ssl") and self.spec.satisfies("+test")
+        async_test = self.spec.satisfies("+test_async") and self.spec.satisfies("+test")
 
         args = [
             self.define_from_variant("ENABLE_SSL", "ssl"),

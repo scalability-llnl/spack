@@ -36,3 +36,5 @@ class PyAutograd(PythonPackage):
     depends_on("py-setuptools", type="build")
     depends_on("py-future@0.15.2:", type=("build", "run"))
     depends_on("py-numpy@1.12:", type=("build", "run"))
+    # https://github.com/HIPS/autograd/releases/tag/v1.7.0
+    depends_on("py-numpy@:1", when="@:1.6", type=("build", "run"))

@@ -17,6 +17,7 @@ class Gdbm(AutotoolsPackage, GNUMirrorPackage):
 
     license("GPL-3.0-or-later")
 
+    version("1.24", sha256="695e9827fdf763513f133910bc7e6cfdb9187943a4fec943e57449723d2b8dbf")
     version("1.23", sha256="74b1081d21fff13ae4bd7c16e5d6e504a4c26f7cde1dca0d963a484174bbcacd")
     version("1.22", sha256="f366c823a6724af313b6bbe975b2809f9a157e5f6a43612a72949138d161d762")
     version("1.21", sha256="b0b7dbdefd798de7ddccdd8edf6693a30494f7789777838042991ef107339cc2")

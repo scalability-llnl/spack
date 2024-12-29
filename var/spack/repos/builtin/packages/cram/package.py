@@ -10,7 +10,7 @@ class Cram(CMakePackage):
     """Cram runs many small MPI jobs inside one large MPI job."""
 
     homepage = "https://github.com/llnl/cram"
-    url = "http://github.com/llnl/cram/archive/v1.0.1.tar.gz"
+    url = "https://github.com/llnl/cram/archive/v1.0.1.tar.gz"
 
     version("1.0.1", sha256="985888018f6481c3e9ab4f1d1788e25725d8b92a1cf52b1366ee93793614709a")
 

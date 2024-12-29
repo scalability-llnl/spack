@@ -11,7 +11,7 @@ class Mpc(AutotoolsPackage, GNUMirrorPackage):
     with arbitrarily high precision and correct rounding of the
     result."""
 
-    homepage = "http://www.multiprecision.org"
+    homepage = "https://www.multiprecision.org"
     gnu_mirror_path = "mpc/mpc-1.1.0.tar.gz"
     list_url = "http://www.multiprecision.org/mpc/download.html"
 

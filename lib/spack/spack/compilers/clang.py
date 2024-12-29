@@ -16,7 +16,6 @@ f77_mapping = [
     ("gfortran", os.path.join("clang", "gfortran")),
     ("xlf_r", os.path.join("xl_r", "xlf_r")),
     ("xlf", os.path.join("xl", "xlf")),
-    ("pgfortran", os.path.join("pgi", "pgfortran")),
     ("ifort", os.path.join("intel", "ifort")),
 ]
 
@@ -25,24 +24,11 @@ fc_mapping = [
     ("gfortran", os.path.join("clang", "gfortran")),
     ("xlf90_r", os.path.join("xl_r", "xlf90_r")),
     ("xlf90", os.path.join("xl", "xlf90")),
-    ("pgfortran", os.path.join("pgi", "pgfortran")),
     ("ifort", os.path.join("intel", "ifort")),
 ]
 
 
 class Clang(Compiler):
-    # Subclasses use possible names of C compiler
-    cc_names = ["clang"]
-
-    # Subclasses use possible names of C++ compiler
-    cxx_names = ["clang++"]
-
-    # Subclasses use possible names of Fortran 77 compiler
-    f77_names = ["flang-new", "flang"]
-
-    # Subclasses use possible names of Fortran 90 compiler
-    fc_names = ["flang-new", "flang"]
-
     version_argument = "--version"
 
     @property

@@ -17,6 +17,7 @@ class Eztrace(CMakePackage, AutotoolsPackage, CudaPackage):
     license("CECILL-B")
 
     version("master", branch="master")
+    version("develop", branch="dev")
     version("2.1", sha256="ab5076086eced78e4c6cf7736e7765ca1337dec95a881c9270a42b3251aeea19")
     version("2.0", sha256="67bd296f059cdfab303c62f674af3e1e858213d6945bd79cb8ede4a035c0c2d6")
     version("1.1-13", sha256="6144d04fb62b3ccad41af0268cd921161f168d0cca3f6c210c448bb0b07be7e0")
@@ -92,13 +93,13 @@ class CMakeBuilder(cmake.CMakeBuilder):
 
         if spec.satisfies("@2.1: %llvm-openmp-ompt"):
             args.append(self.define("EZTRACE_ENABLE_OMPT", True))
-        if "+starpu" in spec:
+        if spec.satisfies("+starpu"):
             args.append(self.define("EZTRACE_ENABLE_STARPU", True))
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             args.append(self.define("EZTRACE_ENABLE_CUDA", True))
-        if "+netcdf" in spec:
+        if spec.satisfies("+netcdf"):
             args.append(self.define("EZTRACE_ENABLE_NETCDF", True))
-        if "+pnetcdf" in spec:
+        if spec.satisfies("+pnetcdf"):
             args.append(self.define("EZTRACE_ENABLE_PNETCDF", True))
 
         return args

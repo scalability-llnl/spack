@@ -55,6 +55,7 @@ class Bcftools(AutotoolsPackage):
 
     depends_on("gsl", when="+libgsl")
     depends_on("py-matplotlib", when="@1.6:", type="run")
+    depends_on("py-gffutils", when="@1.9:", type="run")
     depends_on("perl", when="@1.8:~perl-filters", type="run")
     depends_on("perl", when="@1.8:+perl-filters", type=("build", "run"))
 
@@ -100,7 +101,7 @@ class Bcftools(AutotoolsPackage):
         options.append("prefix={0}".format(self.prefix))
         options.append("HTSDIR={0}".format(self.spec["htslib"].prefix))
 
-        if "+libgsl" in self.spec:
+        if self.spec.satisfies("+libgsl"):
             options.append("USE_GPL=1")
 
         return options

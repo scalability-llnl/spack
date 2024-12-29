@@ -17,10 +17,12 @@ class SstMacro(AutotoolsPackage):
 
     homepage = "https://github.com/sstsimulator"
     git = "https://github.com/sstsimulator/sst-macro.git"
-    url = "https://github.com/sstsimulator/sst-macro/releases/download/v13.1.0_Final/sstmacro-13.1.0.tar.gz"
+    url = "https://github.com/sstsimulator/sst-macro/releases/download/v14.1.0_Final/sstmacro-14.1.0.tar.gz"
 
     maintainers("berquist")
 
+    version("14.1.0", sha256="241f42f5c460b0e7462592a7f412bda9c9de19ad7a4b62c22f35be4093b57014")
+    version("14.0.0", sha256="3962942268dd9fe6ebd4462e2d6d305ab757f3f510487e84687146a8d461be13")
     version("13.1.0", sha256="022e39daae1067b56c0011dbe87e3234fee4587049fd53671e1ed6b23233f70e")
     version("13.0.0", sha256="410dad4ac0c7a4c0e16c54da308b6c6b631112af18ae2c37585c8a14472987d4")
     version("12.1.0", sha256="ee57e08acfd4b6429a0500d981d468ee6ded2638ec5abec7b47f172388b267f1")

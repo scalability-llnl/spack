@@ -15,7 +15,7 @@ class PyDocutils(PythonPackage):
     easy to read, easy to use, what-you-see-is-what-you-get plaintext
     markup language."""
 
-    homepage = "http://docutils.sourceforge.net/"
+    homepage = "https://docutils.sourceforge.net/"
     pypi = "docutils/docutils-0.15.2.tar.gz"
 
     license("BSD-3-Clause")

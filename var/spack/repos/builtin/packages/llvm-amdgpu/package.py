@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
+import re
+import shutil
 
 from spack.package import *
 
@@ -13,16 +15,20 @@ class LlvmAmdgpu(CMakePackage, CompilerPackage):
 
     homepage = "https://github.com/ROCm/llvm-project"
     git = "https://github.com/ROCm/llvm-project.git"
-    url = "https://github.com/ROCm/llvm-project/archive/rocm-6.1.2.tar.gz"
+    url = "https://github.com/ROCm/llvm-project/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
     executables = [r"amdclang", r"amdclang\+\+", r"amdflang", r"clang.*", r"flang.*", "llvm-.*"]
     generator("ninja")
 
-    maintainers("srekolam", "renjithravindrankannath", "haampie")
+    maintainers("srekolam", "renjithravindrankannath", "haampie", "afzpatel")
 
     license("Apache-2.0")
 
     version("master", branch="amd-stg-open")
+    version("6.3.0", sha256="79580508b039ca6c50dfdfd7c4f6fbcf489fe1931037ca51324818851eea0c1c")
+    version("6.2.4", sha256="7af782bf5835fcd0928047dbf558f5000e7f0207ca39cf04570969343e789528")
+    version("6.2.1", sha256="4840f109d8f267c28597e936c869c358de56b8ad6c3ed4881387cf531846e5a7")
+    version("6.2.0", sha256="12ce17dc920ec6dac0c5484159b3eec00276e4a5b301ab1250488db3b2852200")
     version("6.1.2", sha256="300e9d6a137dcd91b18d5809a316fddb615e0e7f982dc7ef1bb56876dff6e097")
     version("6.1.1", sha256="f1a67efb49f76a9b262e9735d3f75ad21e3bd6a05338c9b15c01e6c625c4460d")
     version("6.1.0", sha256="6bd9912441de6caf6b26d1323e1c899ecd14ff2431874a2f5883d3bc5212db34")
@@ -66,14 +72,21 @@ class LlvmAmdgpu(CMakePackage, CompilerPackage):
 
     provides("libllvm@15", when="@5.3:5.4")
     provides("libllvm@16", when="@5.5:5.6")
-    provides("libllvm@17", when="@5.7:")
+    provides("libllvm@17", when="@5.7:6.1")
+    provides("libllvm@18", when="@6.2:")
 
     depends_on("cmake@3.13.4:", type="build")
     depends_on("python", type="build")
     depends_on("z3", type="link")
     depends_on("zlib-api", type="link")
     depends_on("ncurses+termlib", type="link")
+    depends_on("libxml2", type="link")
     depends_on("pkgconfig", type="build")
+
+    # This flavour of LLVM doesn't work on MacOS, so we should ensure that it
+    # isn't used to satisfy any of the libllvm dependencies on the Darwin
+    # platform.
+    conflicts("platform=darwin")
 
     # OpenMP clang toolchain looks for bitcode files in llvm/bin/../lib
     # as per 5.2.0 llvm code. It used to be llvm/bin/../lib/libdevice.
@@ -100,7 +113,18 @@ class LlvmAmdgpu(CMakePackage, CompilerPackage):
         when="@6.0:",
     )
 
+    # Fix for https://github.com/llvm/llvm-project/issues/78530
+    # Patch from https://github.com/llvm/llvm-project/pull/80071
+    patch(
+        "https://github.com/ROCm/llvm-project/commit/c651b2b0d9d1393fb5191ac3acfe96e5ecc94bbc.patch?full_index=1",
+        sha256="eaf700a5b51d53324a93e5c951bc08b6311ce2053c44c1edfff5119f472d8080",
+        when="@:6.2",
+    )
+
     conflicts("^cmake@3.19.0")
+
+    # https://github.com/spack/spack/issues/45746
+    conflicts("^ninja@1.12:", when="@:6.0")
 
     root_cmakelists_dir = "llvm"
     install_targets = ["clang-tidy", "install"]
@@ -136,6 +160,10 @@ class LlvmAmdgpu(CMakePackage, CompilerPackage):
         when="@master +rocm-device-libs",
     )
     for d_version, d_shasum in [
+        ("6.3.0", "8fd6bcd6a5afd0ae5a59e33b786a525f575183d38c34049c2dab6b9270a1ca3b"),
+        ("6.2.4", "b7aa0055855398d1228c39a6f4feb7d7be921af4f43d82855faf0b531394bb9b"),
+        ("6.2.1", "dbe477b323df636f5e3221471780da156c938ec00dda4b50639aa8d7fb9248f4"),
+        ("6.2.0", "c98090041fa56ca4a260709876e2666f85ab7464db9454b177a189e1f52e0b1a"),
         ("6.1.2", "6eb7a02e5f1e5e3499206b9e74c9ccdd644abaafa2609dea0993124637617866"),
         ("6.1.1", "72841f112f953c16619938273370eb8727ddf6c2e00312856c9fca54db583b99"),
         ("6.1.0", "50386ebcb7ff24449afa2a10c76a059597464f877225c582ba3e097632a43f9c"),
@@ -199,14 +227,18 @@ class LlvmAmdgpu(CMakePackage, CompilerPackage):
             self.define("LIBCXXABI_ENABLE_STATIC", "ON"),
             self.define("LIBCXXABI_INSTALL_STATIC_LIBRARY", "OFF"),
             self.define("LLVM_ENABLE_RTTI", "ON"),
-            self.define("LLVM_TARGETS_TO_BUILD", "AMDGPU;X86"),
             self.define("LLVM_AMDGPU_ALLOW_NPI_TARGETS", "ON"),
             self.define("PACKAGE_VENDOR", "AMD"),
             self.define("CLANG_ENABLE_AMDCLANG", "ON"),
         ]
 
+        if self.spec.target.family == "aarch64":
+            args.append(self.define("LLVM_TARGETS_TO_BUILD", "AMDGPU;AArch64"))
+        else:
+            args.append(self.define("LLVM_TARGETS_TO_BUILD", "AMDGPU;X86"))
+
         # Enable rocm-device-libs as a external project
-        if "+rocm-device-libs" in self.spec:
+        if self.spec.satisfies("+rocm-device-libs"):
             if self.spec.satisfies("@:6.0"):
                 dir = os.path.join(self.stage.source_path, "rocm-device-libs")
             elif self.spec.satisfies("@6.1:"):
@@ -219,10 +251,10 @@ class LlvmAmdgpu(CMakePackage, CompilerPackage):
                 ]
             )
 
-        if "+llvm_dylib" in self.spec:
+        if self.spec.satisfies("+llvm_dylib"):
             args.append(self.define("LLVM_BUILD_LLVM_DYLIB", True))
 
-        if "+link_llvm_dylib" in self.spec:
+        if self.spec.satisfies("+link_llvm_dylib"):
             args.append(self.define("LLVM_LINK_LLVM_DYLIB", True))
             args.append(self.define("CLANG_LINK_CLANG_DYLIB", True))
 
@@ -238,8 +270,13 @@ class LlvmAmdgpu(CMakePackage, CompilerPackage):
             comgrinc_path = os.path.join(self.stage.source_path, "comgr/lib/comgr/include")
         elif self.spec.satisfies("@6.1:"):
             comgrinc_path = os.path.join(self.stage.source_path, "amd/comgr/include")
-        if self.spec.satisfies("@5.6.0:"):
+        if self.spec.satisfies("@5.6.0:6.2"):
             hsainc_path = os.path.join(self.stage.source_path, "hsa-runtime/src/inc")
+        if self.spec.satisfies("@6.3:"):
+            hsainc_path = os.path.join(
+                self.stage.source_path, "hsa-runtime/runtime/hsa-runtime/inc"
+            )
+        if self.spec.satisfies("@5.6.0:"):
             args.append("-DSANITIZER_HSA_INCLUDE_PATH={0}".format(hsainc_path))
             args.append("-DSANITIZER_COMGR_INCLUDE_PATH={0}".format(comgrinc_path))
             args.append("-DSANITIZER_AMDGPU:Bool=ON")
@@ -252,7 +289,7 @@ class LlvmAmdgpu(CMakePackage, CompilerPackage):
             args.append(self.define("LLVM_ENABLE_PROJECTS", llvm_projects))
             args.append(self.define("LLVM_ENABLE_RUNTIMES", llvm_runtimes))
             args.append(self.define("LLVM_ENABLE_LIBCXX", "OFF"))
-            args.append(self.define("CLANG_LINK_FLANG_LEGACY", False))
+            args.append(self.define("CLANG_LINK_FLANG_LEGACY", True))
             args.append(self.define("CMAKE_CXX_STANDARD", 17))
             args.append(self.define("FLANG_INCLUDE_DOCS", False))
             args.append(self.define("LLVM_BUILD_DOCS", "ON"))
@@ -269,9 +306,32 @@ class LlvmAmdgpu(CMakePackage, CompilerPackage):
     # Make sure that the compiler paths are in the LD_LIBRARY_PATH
     def setup_run_environment(self, env):
         llvm_amdgpu_home = self.spec["llvm-amdgpu"].prefix
-        env.prepend_path("LD_LIBRARY_PATH", llvm_amdgpu_home + "/llvm/lib")
+        env.prepend_path("LD_LIBRARY_PATH", llvm_amdgpu_home + "/lib")
 
     # Make sure that the compiler paths are in the LD_LIBRARY_PATH
     def setup_dependent_run_environment(self, env, dependent_spec):
         llvm_amdgpu_home = self.spec["llvm-amdgpu"].prefix
-        env.prepend_path("LD_LIBRARY_PATH", llvm_amdgpu_home + "/llvm/lib")
+        env.prepend_path("LD_LIBRARY_PATH", llvm_amdgpu_home + "/lib")
+
+    @run_after("install")
+    def post_install(self):
+        if self.spec.satisfies("@6.1: +rocm-device-libs"):
+            exe = self.prefix.bin.join("llvm-config")
+            output = Executable(exe)("--version", output=str, error=str)
+            version = re.split("[.]", output)[0]
+            mkdirp(join_path(self.prefix.lib.clang, version, "lib"), "amdgcn")
+            install_tree(
+                self.prefix.amdgcn, join_path(self.prefix.lib.clang, version, "lib", "amdgcn")
+            )
+            shutil.rmtree(self.prefix.amdgcn)
+            os.symlink(
+                join_path(self.prefix.lib.clang, version, "lib", "amdgcn"),
+                os.path.join(self.prefix, "amdgcn"),
+            )
+
+    # Required for enabling asan on dependent packages
+    def setup_dependent_build_environment(self, env, dependent_spec):
+        for root, _, files in os.walk(self.spec["llvm-amdgpu"].prefix):
+            if "libclang_rt.asan-x86_64.so" in files:
+                env.prepend_path("LD_LIBRARY_PATH", root)
+        env.prune_duplicate_paths("LD_LIBRARY_PATH")

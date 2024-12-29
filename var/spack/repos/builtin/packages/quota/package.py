@@ -9,7 +9,7 @@ from spack.package import *
 class Quota(AutotoolsPackage):
     """Linux Diskquota system as part of the Linux kernel."""
 
-    homepage = "https://sourceforge.net/projects/linuxquota"
+    homepage = "https://sourceforge.net/projects/linuxquota/"
     url = (
         "https://udomain.dl.sourceforge.net/project/linuxquota/quota-tools/4.05/quota-4.05.tar.gz"
     )

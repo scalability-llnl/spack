@@ -15,6 +15,7 @@ class PyRequests(PythonPackage):
 
     license("Apache-2.0")
 
+    version("2.32.3", sha256="55365417734eb18255590a9ff9eb97e9e1da868d4ccd6402399eaf68af20a760")
     version("2.32.2", sha256="dd951ff5ecf3e3b3aa26b40703ba77495dab41da839ae72ef3c8e5d8e2433289")
     version("2.31.0", sha256="942c5a758f98d790eaed1a29cb6eefc7ffb0d1cf7af05c3d2791656dbd6ad1e1")
     version("2.28.2", sha256="98b1b2782e3c6c4904938b84c0eb932721069dfdb9134313beff7c83c2df24bf")

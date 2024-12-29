@@ -10,7 +10,6 @@ import pytest
 
 import spack.spec
 import spack.user_environment as uenv
-import spack.util.environment
 from spack.main import SpackCommand
 
 load = SpackCommand("load")

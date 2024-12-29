@@ -8,6 +8,7 @@ import os
 
 import llnl.util.tty as tty
 
+import spack.tengine
 from spack.package import *
 
 
@@ -26,6 +27,8 @@ class Likwid(Package):
 
     license("GPL-3.0-only")
 
+    version("5.4.1", sha256="5773851455dbba489e2e3735931e51547377cd1796c982a5ac88d0f2299c0811")
+    version("5.4.0", sha256="0f2b671c69caa993fedb48187b3bdcc94c22400ec84c926fd0898dbff68aa03e")
     version("5.3.0", sha256="c290e554c4253124ac2ab8b056e14ee4d23966b8c9fbfa10ba81f75ae543ce4e")
     version("5.2.2", sha256="7dda6af722e04a6c40536fc9f89766ce10f595a8569b29e80563767a6a8f940e")
     version("5.2.1", sha256="1b8e668da117f24302a344596336eca2c69d2bc2f49fa228ca41ea0688f6cbc2")
@@ -70,6 +73,11 @@ class Likwid(Package):
         sha256="af4ce278ef20cd1df26d8749a6b0e2716e4286685dae5a5e1eb4af8c383f7d10",
         when="@5.2.0:5.2.2",
     )
+    patch(
+        "https://github.com/RRZE-HPC/likwid/releases/download/v5.4.0/likwid-5.4.0-bstrlib.patch",
+        when="@5.4.0",
+        sha256="81fc733d20098208ec1d35a6d512d287f550050813dcad785a56a5539ec23cce",
+    )
     variant("fortran", default=True, description="with fortran interface")
     variant("cuda", default=False, description="with Nvidia GPU profiling support")
     variant("rocm", default=False, description="with AMD GPU profiling support")
@@ -108,13 +116,13 @@ class Likwid(Package):
         filter_file("^#!/usr/bin/perl", "#!/usr/bin/env perl", *files)
 
     def setup_run_environment(self, env):
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             libs = find_libraries(
                 "libcupti", root=self.spec["cuda"].prefix, shared=True, recursive=True
             )
             for lib in libs.directories:
                 env.append_path("LD_LIBRARY_PATH", lib)
-        if "+rocm" in self.spec:
+        if self.spec.satisfies("+rocm"):
             libs = find_libraries(
                 "librocprofiler64.so.1",
                 root=self.spec["rocprofiler-dev"].prefix,
@@ -176,14 +184,14 @@ class Likwid(Package):
             "ACCESSMODE = {}".format(spec.variants["accessmode"].value),
             "config.mk",
         )
-        if "accessmode=accessdaemon" in spec:
+        if spec.satisfies("accessmode=accessdaemon"):
             # Disable the chown, see the `spack_perms_fix` template and script
             filter_file("^INSTALL_CHOWN .*", "INSTALL_CHOWN =", "config.mk")
         else:
             filter_file("^BUILDFREQ .*", "BUILDFREQ = false", "config.mk")
             filter_file("^BUILDDAEMON .*", "BUILDDAEMON = false", "config.mk")
 
-        if "+fortran" in self.spec:
+        if self.spec.satisfies("+fortran"):
             filter_file("^FORTRAN_INTERFACE .*", "FORTRAN_INTERFACE = true", "config.mk")
             if self.compiler.name == "gcc":
                 makepath = join_path("make", "include_GCC.mk")
@@ -192,7 +200,7 @@ class Likwid(Package):
         else:
             filter_file("^FORTRAN_INTERFACE .*", "FORTRAN_INTERFACE = false", "config.mk")
 
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             filter_file("^NVIDIA_INTERFACE.*", "NVIDIA_INTERFACE = true", "config.mk")
             filter_file("^BUILDAPPDAEMON.*", "BUILDAPPDAEMON = true", "config.mk")
             cudainc = spec["cuda"].prefix.include
@@ -206,7 +214,7 @@ class Likwid(Package):
         else:
             filter_file("^NVIDIA_INTERFACE.*", "NVIDIA_INTERFACE = false", "config.mk")
 
-        if "+rocm" in self.spec:
+        if self.spec.satisfies("+rocm"):
             env["ROCM_HOME"] = spec["rocm-core"].prefix
             filter_file("^ROCM_INTERFACE.*", "ROCM_INTERFACE = true", "config.mk")
             filter_file("^BUILDAPPDAEMON.*", "BUILDAPPDAEMON = true", "config.mk")
@@ -256,7 +264,7 @@ class Likwid(Package):
     # the build log.  See https://github.com/spack/spack/pull/10412.
     @run_after("install")
     def caveats(self):
-        if "accessmode=accessdaemon" in self.spec:
+        if self.spec.satisfies("accessmode=accessdaemon"):
             perm_script = "spack_perms_fix.sh"
             perm_script_path = join_path(self.spec.prefix, perm_script)
             daemons = glob.glob(join_path(self.spec.prefix, "sbin", "*"))

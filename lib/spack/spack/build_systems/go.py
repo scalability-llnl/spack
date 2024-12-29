@@ -3,16 +3,15 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import inspect
-
 import llnl.util.filesystem as fs
 
 import spack.builder
 import spack.package_base
+import spack.phase_callbacks
 from spack.directives import build_system, extends
 from spack.multimethod import when
 
-from ._checks import BaseBuilder, execute_install_time_tests
+from ._checks import BuilderWithDefaults, execute_install_time_tests
 
 
 class GoPackage(spack.package_base.PackageBase):
@@ -34,7 +33,7 @@ class GoPackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("go")
-class GoBuilder(BaseBuilder):
+class GoBuilder(BuilderWithDefaults):
     """The Go builder encodes the most common way of building software with
     a golang go.mod file. It has two phases that can be overridden, if need be:
 
@@ -46,15 +45,26 @@ class GoBuilder(BaseBuilder):
         +-----------------------------------------------+--------------------+
         | **Method**                                    | **Purpose**        |
         +===============================================+====================+
-        | :py:meth:`~.GoBuilder.build_args`             | Specify arguments  |
+        | :py:attr:`~.GoBuilder.build_args`             | Specify arguments  |
         |                                               | to ``go build``    |
         +-----------------------------------------------+--------------------+
-        | :py:meth:`~.GoBuilder.check_args`             | Specify arguments  |
+        | :py:attr:`~.GoBuilder.check_args`             | Specify arguments  |
         |                                               | to ``go test``     |
         +-----------------------------------------------+--------------------+
     """
 
     phases = ("build", "install")
+
+    #: Names associated with package methods in the old build-system format
+    legacy_methods = ("check", "installcheck")
+
+    #: Names associated with package attributes in the old build-system format
+    legacy_attributes = (
+        "build_args",
+        "check_args",
+        "build_directory",
+        "install_time_test_callbacks",
+    )
 
     #: Callback names for install-time test
     install_time_test_callbacks = ["check"]
@@ -82,7 +92,7 @@ class GoBuilder(BaseBuilder):
     def build(self, pkg, spec, prefix):
         """Runs ``go build`` in the source directory"""
         with fs.working_dir(self.build_directory):
-            inspect.getmodule(pkg).go("build", *self.build_args)
+            pkg.module.go("build", *self.build_args)
 
     def install(self, pkg, spec, prefix):
         """Install built binaries into prefix bin."""
@@ -90,9 +100,9 @@ class GoBuilder(BaseBuilder):
             fs.mkdirp(prefix.bin)
             fs.install(pkg.name, prefix.bin)
 
-    spack.builder.run_after("install")(execute_install_time_tests)
+    spack.phase_callbacks.run_after("install")(execute_install_time_tests)
 
     def check(self):
         """Run ``go test .`` in the source directory"""
         with fs.working_dir(self.build_directory):
-            inspect.getmodule(self.pkg).go("test", *self.check_args)
+            self.pkg.module.go("test", *self.check_args)

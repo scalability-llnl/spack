@@ -9,7 +9,7 @@ from spack.package import *
 class OctaveSplines(OctavePackage, SourceforgePackage):
     """Additional spline functions."""
 
-    homepage = "http://octave.sourceforge.net/splines/index.html"
+    homepage = "https://octave.sourceforge.net/splines/index.html"
     sourceforge_mirror_path = "octave/splines-1.3.1.tar.gz"
 
     license("GPL-3.0-or-later")

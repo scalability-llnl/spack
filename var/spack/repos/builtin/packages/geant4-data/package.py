@@ -3,7 +3,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import glob
 import os
 
 from spack.package import *
@@ -47,18 +46,19 @@ class Geant4Data(BundlePackage):
     _datasets = {
         "11.3.0:11.3": [
             "g4ndl@4.7.1",
-            "g4emlow@8.6",
-            "g4photonevaporation@5.7",
-            "g4radioactivedecay@5.6",
+            "g4emlow@8.6.1",
+            "g4photonevaporation@6.1",
+            "g4radioactivedecay@6.1.2",
             "g4particlexs@4.1",
             "g4pii@1.3",
             "g4realsurface@2.2",
             "g4saiddata@2.0",
             "g4abla@3.3",
             "g4incl@1.2",
-            "g4ensdfstate@2.3",
+            "g4ensdfstate@3.0",
+            "g4channeling@1.0",
             "g4nudexlib@1.0",
-            "g4urrpt@1.0",
+            "g4urrpt@1.1",
         ],
         "11.2.2:11.2": [
             "g4ndl@4.7.1",
@@ -204,5 +204,11 @@ class Geant4Data(BundlePackage):
     def install(self, spec, prefix):
         with working_dir(self.datadir, create=True):
             for s in spec.dependencies():
-                for d in glob.glob("{0}/data/*".format(s.prefix.share)):
-                    os.symlink(d, os.path.basename(d))
+                if not s.name.startswith("g4"):
+                    continue
+
+                if not hasattr(s.package, "g4datasetname"):
+                    raise InstallError(f"Dependency `{s.name}` does not expose `g4datasetname`")
+
+                d = "{0}/data/{1}".format(s.prefix.share, s.package.g4datasetname)
+                os.symlink(d, os.path.basename(d))

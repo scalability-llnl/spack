@@ -22,10 +22,10 @@ class Libxkbfile(AutotoolsPackage, XorgPackage):
     version("1.1.0", sha256="2a92adda3992aa7cbad758ef0b8dfeaedebb49338b772c64ddf369d78c1c51d3")
     version("1.0.9", sha256="95df50570f38e720fb79976f603761ae6eff761613eb56f258c3cb6bab4fd5e3")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     depends_on("libx11")
 
-    depends_on("kbproto")
+    depends_on("kbproto", type=("build", "link"))
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")

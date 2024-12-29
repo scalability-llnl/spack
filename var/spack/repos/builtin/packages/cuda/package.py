@@ -23,8 +23,47 @@ from spack.package import *
 #  - package key must be in the form '{os}-{arch}' where 'os' is in the
 #    format returned by platform.system() and 'arch' by platform.machine()
 
-preferred_ver = "11.8.0"
 _versions = {
+    "12.6.3": {
+        "Linux-aarch64": (
+            "213ea63a6357020978a8b0a79a8c9d12a2a5941afa1cdc69d5a3f933fa8bed04",
+            "https://developer.download.nvidia.com/compute/cuda/12.6.3/local_installers/cuda_12.6.3_560.35.05_linux_sbsa.run",
+        ),
+        "Linux-x86_64": (
+            "81d60e48044796d7883aa8a049afe6501b843f2c45639b3703b2378de30d55d3",
+            "https://developer.download.nvidia.com/compute/cuda/12.6.3/local_installers/cuda_12.6.3_560.35.05_linux.run",
+        ),
+    },
+    "12.6.2": {
+        "Linux-aarch64": (
+            "2249408848b705c18b9eadfb5161b52e4e36fcc5753647329cce93db141e5466",
+            "https://developer.download.nvidia.com/compute/cuda/12.6.2/local_installers/cuda_12.6.2_560.35.03_linux_sbsa.run",
+        ),
+        "Linux-x86_64": (
+            "3729a89cb58f7ca6a46719cff110d6292aec7577585a8d71340f0dbac54fb237",
+            "https://developer.download.nvidia.com/compute/cuda/12.6.2/local_installers/cuda_12.6.2_560.35.03_linux.run",
+        ),
+    },
+    "12.6.1": {
+        "Linux-aarch64": (
+            "b39ac88184798e8c313e6ced23dd128f13ab30c199b96bd9c0bee07dbdd31400",
+            "https://developer.download.nvidia.com/compute/cuda/12.6.1/local_installers/cuda_12.6.1_560.35.03_linux_sbsa.run",
+        ),
+        "Linux-x86_64": (
+            "73acce7243519625f259509f5dcff6dc8fbd23dca53b852aa9ce382009e92e9d",
+            "https://developer.download.nvidia.com/compute/cuda/12.6.1/local_installers/cuda_12.6.1_560.35.03_linux.run",
+        ),
+    },
+    "12.6.0": {
+        "Linux-aarch64": (
+            "398db7baca17d51ad5035c606714c96380c965fd1742478c743bc6bbb1d8f63c",
+            "https://developer.download.nvidia.com/compute/cuda/12.6.0/local_installers/cuda_12.6.0_560.28.03_linux_sbsa.run",
+        ),
+        "Linux-x86_64": (
+            "31ab04394e69b14dd8656e2b44c2877db1a0e898dff8a7546a4c628438101b94",
+            "https://developer.download.nvidia.com/compute/cuda/12.6.0/local_installers/cuda_12.6.0_560.28.03_linux.run",
+        ),
+    },
     "12.5.1": {
         "Linux-aarch64": (
             "353e8abc52ca80adf05002b775c7b3a2d2feefcf1c25ae13f8757f9a11efba3e",
@@ -629,13 +668,9 @@ class Cuda(Package):
     skip_version_audit = ["platform=darwin", "platform=windows"]
 
     for ver, packages in _versions.items():
-        key = "{0}-{1}".format(platform.system(), platform.machine())
-        pkg = packages.get(key)
+        pkg = packages.get(f"{platform.system()}-{platform.machine()}")
         if pkg:
-            if ver == preferred_ver:
-                version(ver, sha256=pkg[0], url=pkg[1], expand=False, preferred=True)
-            else:
-                version(ver, sha256=pkg[0], url=pkg[1], expand=False)
+            version(ver, sha256=pkg[0], url=pkg[1], expand=False)
 
     # macOS Mojave drops NVIDIA graphics card support -- official NVIDIA
     # drivers do not exist for Mojave. See
@@ -783,3 +818,6 @@ class Cuda(Package):
 
     # Avoid binding stub libraries by absolute path
     non_bindable_shared_objects = ["stubs"]
+
+    # contains precompiled binaries without rpaths
+    unresolved_libraries = ["*"]

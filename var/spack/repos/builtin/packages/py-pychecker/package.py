@@ -9,7 +9,7 @@ from spack.package import *
 class PyPychecker(PythonPackage):
     """Python source code checking tool."""
 
-    homepage = "http://pychecker.sourceforge.net/"
+    homepage = "https://pychecker.sourceforge.net/"
     url = (
         "http://sourceforge.net/projects/pychecker/files/pychecker/0.8.19/pychecker-0.8.19.tar.gz"
     )

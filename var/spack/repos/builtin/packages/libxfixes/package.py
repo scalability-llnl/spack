@@ -23,13 +23,13 @@ class Libxfixes(AutotoolsPackage, XorgPackage):
     version("5.0.3", sha256="9ab6c13590658501ce4bd965a8a5d32ba4d8b3bb39a5a5bc9901edffc5666570")
     version("5.0.2", sha256="ad8df1ecf3324512b80ed12a9ca07556e561b14256d94216e67a68345b23c981")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     depends_on("libx11@1.6:")
 
-    depends_on("xproto")
-    depends_on("fixesproto@5.0:", when="@5")
-    # depends_on("fixesproto@6.0:", when="@6")
-    depends_on("xextproto")
+    depends_on("xproto", type=("build", "link"))
+    depends_on("fixesproto@5.0:", type=("build", "link"), when="@5")
+    # depends_on("fixesproto@6.0:", type=("build", "link"), when="@6")
+    depends_on("xextproto", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")

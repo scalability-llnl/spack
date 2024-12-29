@@ -8,7 +8,7 @@ from spack.package import *
 class Glew(CMakePackage):
     """The OpenGL Extension Wrangler Library."""
 
-    homepage = "http://glew.sourceforge.net/"
+    homepage = "https://glew.sourceforge.net/"
     url = "https://github.com/nigels-com/glew/releases/download/glew-2.1.0/glew-2.1.0.tgz"
     root_cmakelists_dir = "build/cmake"
 

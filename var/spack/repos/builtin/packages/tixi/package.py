@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import sys
+
 from spack.package import *
 
 
@@ -13,6 +15,8 @@ class Tixi(CMakePackage):
     homepage = "https://github.com/DLR-SC/tixi"
     url = "https://github.com/DLR-SC/tixi/archive/v3.0.3.tar.gz"
     git = "https://github.com/DLR-SC/tixi.git"
+
+    maintainers("melven", "joergbrech")
 
     license("Apache-2.0")
 
@@ -30,17 +34,42 @@ class Tixi(CMakePackage):
         "shared", default=True, description="Enables the build of shared libraries", when="@3.0.3:"
     )
     variant("fortran", default=True, description="Enable Fortran bindings", when="@3.1.1:")
+    variant("python", default=True, description="Add python bindings to PYTHONPATH")
 
-    depends_on("python", type="build")
+    depends_on("python", when="~python", type="build")
+    depends_on("python", when="+python", type=("build", "run"))
+    conflicts("~shared", when="+python")
     depends_on("expat")
     depends_on("curl")
     depends_on("libxml2")
     depends_on("libxslt")
 
+    @property
+    def libs(self):
+        # different library names for tixi@2 and tixi@3
+        libname = "libtixi3" if "@3" in self.spec else "libTIXI"
+        shared = "~shared" not in self.spec
+        return find_libraries(libname, root=self.prefix, shared=shared, recursive=True)
+
     def cmake_args(self):
-        args = []
-        if self.spec.satisfies("+shared"):
-            args.append("-DBUILD_SHARED_LIBS=ON")
-        if self.spec.satisfies("+fortran"):
-            args.append("-DTIXI_ENABLE_FORTRAN=ON")
-        return args
+        return [
+            self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
+            self.define_from_variant("TIXI_ENABLE_FORTRAN", "fortran"),
+        ]
+
+    def setup_run_environment(self, env):
+        """Allow to import tixi3wrapper in python"""
+
+        if "+python" in self.spec:
+            # add tixi3wrapper.py to the PYTHONPATH
+            if "@3" in self.spec:
+                env.prepend_path("PYTHONPATH", self.spec.prefix.share.tixi3.python)
+            else:
+                env.prepend_path("PYTHONPATH", self.spec.prefix.share.tixi.python)
+
+            # allow ctypes to find the tixi library
+            libs = ":".join(self.spec["tixi"].libs.directories)
+            if sys.platform == "darwin":
+                env.prepend_path("DYLD_FALLBACK_LIBRARY_PATH", libs)
+            else:
+                env.prepend_path("LD_LIBRARY_PATH", libs)

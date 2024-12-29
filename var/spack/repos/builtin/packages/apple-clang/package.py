@@ -3,9 +3,10 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
+from spack.pkg.builtin.llvm import LlvmDetection
 
 
-class AppleClang(BundlePackage, CompilerPackage):
+class AppleClang(BundlePackage, LlvmDetection, CompilerPackage):
     """Apple's Clang compiler"""
 
     homepage = "https://developer.apple.com/videos/developer-tools/compiler-and-llvm"
@@ -14,11 +15,7 @@ class AppleClang(BundlePackage, CompilerPackage):
     maintainers("alalazo")
 
     compiler_languages = ["c", "cxx"]
-    c_names = ["clang"]
-    cxx_names = ["clang++"]
-
     compiler_version_regex = r"^Apple (?:LLVM|clang) version ([^ )]+)"
-    compiler_version_argument = "--version"
 
     @classmethod
     def validate_detected_spec(cls, spec, extra_attributes):

@@ -20,12 +20,12 @@ class Libxscrnsaver(AutotoolsPackage, XorgPackage):
     version("1.2.3", sha256="4f74e7e412144591d8e0616db27f433cfc9f45aae6669c6c4bb03e6bf9be809a")
     version("1.2.2", sha256="e12ba814d44f7b58534c0d8521e2d4574f7bf2787da405de4341c3b9f4cc8d96")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     depends_on("libx11")
     depends_on("libxext")
 
-    depends_on("xextproto")
-    depends_on("scrnsaverproto@1.2:")
+    depends_on("xextproto", type="build")
+    depends_on("scrnsaverproto@1.2:", type=("build", "link"))
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")

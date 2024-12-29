@@ -31,6 +31,7 @@ class LinuxPam(AutotoolsPackage):
     variant("lastlog", default=False, description="Build pam_lastlog model")
     variant("regenerate-docu", default=False, description="Regenerate docs")
 
+    depends_on("pkgconfig", type="build")
     depends_on("libtirpc")
     depends_on("libxcrypt")
     depends_on("xauth", when="+xauth")

@@ -12,10 +12,21 @@ class DlaFuture(CMakePackage, CudaPackage, ROCmPackage):
     homepage = "https://github.com/eth-cscs/DLA-Future"
     url = "https://github.com/eth-cscs/DLA-Future/archive/v0.0.0.tar.gz"
     git = "https://github.com/eth-cscs/DLA-Future.git"
-    maintainers = ["rasolca", "albestro", "msimberg", "aurianer"]
+    maintainers = ["rasolca", "albestro", "msimberg", "aurianer", "RMeli"]
 
     license("BSD-3-Clause")
 
+    version("0.7.3", sha256="8c829b72f4ea9c924abdb6fe2ac7489304be4056ab76b8eba226c33ce7b7dc0e")
+    version(
+        "0.7.1",
+        sha256="651129686b7fb04178f230c763b371192f9cb91262ddb9959f722449715bdfe8",
+        deprecated=True,
+    )
+    version(
+        "0.7.0",
+        sha256="40a62bc70b0a06246a16348ce6701ccfab1f0c1ace99684de4bfc6c90776f8c6",
+        deprecated=True,
+    )
     version("0.6.0", sha256="85dfcee36ff28fa44da3134408c40ebd611bccff8a295982a7c78eaf982524d9")
     version("0.5.0", sha256="f964ee2a96bb58b3f0ee4563ae65fcd136e409a7c0e66beda33f926fc9515a8e")
     version("0.4.1", sha256="ba95f26475ad68da1f3a24d091dc1b925525e269e4c83c1eaf1d37d29b526666")
@@ -70,7 +81,13 @@ class DlaFuture(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("blas")
     depends_on("lapack")
     depends_on("scalapack", when="+scalapack")
+
     depends_on("blaspp@2022.05.00:")
+
+    # see https://github.com/eth-cscs/DLA-Future/pull/1181
+    depends_on("blaspp@2024.05.31:", when="@0.6.1:")
+    conflicts("^blaspp@2025.05:", when="@:0.6.0")
+
     depends_on("lapackpp@2022.05.00:")
     depends_on("intel-oneapi-mkl +cluster", when="^[virtuals=scalapack] intel-oneapi-mkl")
 
@@ -88,12 +105,16 @@ class DlaFuture(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("pika@0.17:", when="@0.2.1")
     depends_on("pika@0.18:", when="@0.3")
     depends_on("pika@0.19.1:", when="@0.4.0:")
+    conflicts("^pika@0.28:", when="@:0.6")
+    depends_on("pika@0.30:", when="@0.7.0:")
     depends_on("pika-algorithms@0.1:", when="@:0.2")
     depends_on("pika +mpi")
     depends_on("pika +cuda", when="+cuda")
     depends_on("pika +rocm", when="+rocm")
 
-    conflicts("^pika cxxstd=20", when="+cuda")
+    for cxxstd in ("20", "23"):
+        conflicts(f"^pika cxxstd={cxxstd}", when="@:0.6 +cuda ^pika@:0.29")
+    conflicts("^pika +stdexec", when="@:0.6 +cuda")
 
     depends_on("whip +cuda", when="+cuda")
     depends_on("whip +rocm", when="+rocm")
@@ -119,6 +140,10 @@ class DlaFuture(CMakePackage, CudaPackage, ROCmPackage):
     # Pedantic warnings, triggered by GCC 9 and 10, are always errors until 0.3.1:
     # https://github.com/eth-cscs/DLA-Future/pull/1043
     conflicts("%gcc@9:10", when="@:0.3.0")
+
+    # Compilation failure with ROCm introduced in 0.7.0 and fixed in 0.7.1:
+    # https://github.com/eth-cscs/DLA-Future/pull/1241
+    conflicts("+rocm ^hip@5.6:6.0", when="@0.7.0")
 
     depends_on("hdf5 +cxx+mpi+threadsafe+shared", when="+hdf5")
 
@@ -148,7 +173,7 @@ class DlaFuture(CMakePackage, CudaPackage, ROCmPackage):
         when="@:0.3 %gcc@13:",
     )
     # https://github.com/spack/spack/issues/41511
-    patch("hip_complex_operator_overloads.patch", when="+rocm")
+    patch("hip_complex_operator_overloads.patch", when="@:0.6 +rocm")
 
     def cmake_args(self):
         spec = self.spec
@@ -198,7 +223,7 @@ class DlaFuture(CMakePackage, CudaPackage, ROCmPackage):
                     self.define("MKL_LAPACK_TARGET", f"mkl::mkl_intel_32bit_{mkl_threads}_dyn"),
                 ]
 
-            if "+scalapack" in spec:
+            if spec.satisfies("+scalapack"):
                 try:
                     mpi_provider = spec["mpi"].name
                     if mpi_provider in ["mpich", "cray-mpich", "mvapich", "mvapich2"]:
@@ -222,14 +247,19 @@ class DlaFuture(CMakePackage, CudaPackage, ROCmPackage):
                     )
         else:
             args.append(self.define("DLAF_WITH_MKL", spec["lapack"].name in INTEL_MATH_LIBRARIES))
+            add_dlaf_prefix = lambda x: x if spec.satisfies("@:0.6") else "DLAF_" + x
             args.append(
                 self.define(
-                    "LAPACK_LIBRARY",
+                    add_dlaf_prefix("LAPACK_LIBRARY"),
                     " ".join([spec[dep].libs.ld_flags for dep in ["blas", "lapack"]]),
                 )
             )
-            if "+scalapack" in spec:
-                args.append(self.define("SCALAPACK_LIBRARY", spec["scalapack"].libs.ld_flags))
+            if spec.satisfies("+scalapack"):
+                args.append(
+                    self.define(
+                        add_dlaf_prefix("SCALAPACK_LIBRARY"), spec["scalapack"].libs.ld_flags
+                    )
+                )
 
         args.append(self.define_from_variant("DLAF_WITH_SCALAPACK", "scalapack"))
 
@@ -243,12 +273,12 @@ class DlaFuture(CMakePackage, CudaPackage, ROCmPackage):
         # CUDA/HIP
         args.append(self.define_from_variant("DLAF_WITH_CUDA", "cuda"))
         args.append(self.define_from_variant("DLAF_WITH_HIP", "rocm"))
-        if "+rocm" in spec:
+        if spec.satisfies("+rocm"):
             archs = spec.variants["amdgpu_target"].value
             if "none" not in archs:
                 arch_str = ";".join(archs)
                 args.append(self.define("CMAKE_HIP_ARCHITECTURES", arch_str))
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             archs = spec.variants["cuda_arch"].value
             if "none" not in archs:
                 arch_str = ";".join(archs)

@@ -11,7 +11,7 @@ class Hto4l(MakefilePackage):
     up to NLOPS electroweak accuracy and in presence of dimension-6 operators."""
 
     homepage = "https://www2.pv.infn.it/~hepcomplex/hto4l.html"
-    url = "http://www2.pv.infn.it/~hepcomplex/releases/hto4l/Hto4l-v2.02.tar.bz2"
+    url = "https://www2.pv.infn.it/hepcomplex/releases/hto4l/Hto4l-v2.02.tar.bz2"
 
     maintainers("haralmha")
 

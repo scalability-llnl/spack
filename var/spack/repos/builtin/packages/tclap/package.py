@@ -9,7 +9,7 @@ from spack.package import *
 class Tclap(AutotoolsPackage, SourceforgePackage):
     """Templatized C++ Command Line Parser"""
 
-    homepage = "http://tclap.sourceforge.net"
+    homepage = "https://tclap.sourceforge.net"
     sourceforge_mirror_path = "tclap/tclap-1.2.2.tar.gz"
 
     license("MIT")

@@ -40,8 +40,6 @@ class Pennant(MakefilePackage):
 
         if self.compiler.name == "intel":
             opt += " -fast -fno-alias"
-        if self.compiler.name == "pgi":
-            opt += " -fastsse"
 
         makefile.filter("CXXFLAGS_DEBUG .*", "CXXFLAGS_DEBUG := {0}".format(debug))
         makefile.filter("CXXFLAGS_OPT .*", "CXXFLAGS_OPT := {0}".format(opt))

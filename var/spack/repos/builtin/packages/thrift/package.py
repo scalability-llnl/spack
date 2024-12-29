@@ -18,8 +18,8 @@ class Thrift(Package):
     """
 
     homepage = "https://thrift.apache.org"
-    url = "http://archive.apache.org/dist/thrift/0.16.0/thrift-0.16.0.tar.gz"
-    list_url = "http://archive.apache.org/dist/thrift/"
+    url = "https://archive.apache.org/dist/thrift/0.16.0/thrift-0.16.0.tar.gz"
+    list_url = "https://archive.apache.org/dist/thrift/"
     list_depth = 1
 
     maintainers("thomas-bouvier")
@@ -65,6 +65,7 @@ class Thrift(Package):
     depends_on("ant", when="+java")
 
     extends("python", when="+python")
+    depends_on("python@:3.11.9", when="+python")
     depends_on("py-setuptools", type=("build", "run"), when="+python")
     depends_on("py-six@1.7.2:", type=("build", "run"), when="@0.10.0:+python")
     depends_on("py-tornado", type=("build", "run"), when="+python")

@@ -11,7 +11,7 @@ from spack.package import *
 class Rstudio(CMakePackage):
     """RStudio is an integrated development environment (IDE) for R."""
 
-    homepage = "www.rstudio.com/products/rstudio/"
+    homepage = "https://www.rstudio.com/products/rstudio/"
     url = "https://github.com/rstudio/rstudio/archive/refs/tags/v1.4.1717.tar.gz"
 
     version("1.4.1717", sha256="3af234180fd7cef451aef40faac2c7b52860f14a322244c1c7aede029814d261")

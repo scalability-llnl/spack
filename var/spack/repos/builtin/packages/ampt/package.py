@@ -11,8 +11,8 @@ class Ampt(MakefilePackage):
     """A Multi-Phase Transport (AMPT) model is a Monte Carlo transport model for
     nuclear collisions at relativistic energies."""
 
-    homepage = "http://myweb.ecu.edu/linz/ampt/"
-    url = "http://myweb.ecu.edu/linz/ampt/ampt-v1.26t9b-v2.26t9b.zip"
+    homepage = "https://myweb.ecu.edu/linz/ampt/"
+    url = "https://myweb.ecu.edu/linz/ampt/ampt-v1.26t9b-v2.26t9b.zip"
 
     maintainers("vvolkl")
 

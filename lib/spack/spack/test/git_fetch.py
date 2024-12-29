@@ -12,6 +12,9 @@ import pytest
 from llnl.util.filesystem import mkdirp, touch, working_dir
 
 import spack.config
+import spack.error
+import spack.fetch_strategy
+import spack.platforms
 import spack.repo
 from spack.fetch_strategy import GitFetchStrategy
 from spack.spec import Spec
@@ -390,3 +393,38 @@ def test_gitsubmodules_falsey(
         assert not os.path.isfile(file_path)
         file_path = os.path.join(s.package.stage.source_path, "third_party/submodule1/r0_file_1")
         assert not os.path.isfile(file_path)
+
+
+@pytest.mark.disable_clean_stage_check
+def test_git_sparse_paths_partial_clone(
+    mock_git_repository, git_version, default_mock_concretization, mutable_mock_repo, monkeypatch
+):
+    """
+    Test partial clone of repository when using git_sparse_paths property
+    """
+    type_of_test = "many-directories"
+    sparse_paths = ["dir0"]
+    omitted_paths = ["dir1", "dir2"]
+    t = mock_git_repository.checks[type_of_test]
+    args = copy.copy(t.args)
+    args["git_sparse_paths"] = sparse_paths
+    s = default_mock_concretization("git-test")
+    monkeypatch.setitem(s.package.versions, Version("git"), args)
+    s.package.do_stage()
+    with working_dir(s.package.stage.source_path):
+        # top level directory files are cloned via sparse-checkout
+        assert os.path.isfile("r0_file")
+
+        for p in sparse_paths:
+            assert os.path.isdir(p)
+
+        if git_version < Version("2.26.0.0"):
+            # older versions of git should fall back to a full clone
+            for p in omitted_paths:
+                assert os.path.isdir(p)
+        else:
+            for p in omitted_paths:
+                assert not os.path.isdir(p)
+
+        # fixture file is in the sparse-path expansion tree
+        assert os.path.isfile(t.file)

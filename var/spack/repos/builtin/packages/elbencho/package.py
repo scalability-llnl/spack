@@ -68,11 +68,11 @@ class Elbencho(MakefilePackage):
     def edit(self, spec, prefix):
         os.mkdir(prefix.bin)
         os.environ["INST_PATH"] = prefix.bin
-        if "+s3" in spec:
+        if spec.satisfies("+s3"):
             os.environ["S3_SUPPORT"] = "1"
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             os.environ["CUDA_SUPPORT"] = "1"
-        if "+cufile" in spec:
+        if spec.satisfies("+cufile"):
             os.environ["CUFILE_SUPPORT"] = "1"
         makefile = FileFilter("Makefile")
         makefile.filter(r"\s+/etc/bash_completion.d/", f" {prefix}/etc/bash_completion.d/")

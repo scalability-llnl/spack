@@ -82,29 +82,29 @@ class Cntk(Package):
         args.append("--with-boost=" + spec["boost"].prefix)
         args.append("--with-protobuf=" + spec["protobuf"].prefix)
 
-        if "+debug" in spec:
+        if spec.satisfies("+debug"):
             args.append("--with-buildtype=debug")
         else:
             args.append("--with-buildtype=release")
 
-        if "+1bitsgd" in spec:
+        if spec.satisfies("+1bitsgd"):
             args.append("--1bitsgd=yes")
             args.append("--with-1bitsgd={0}/include".format(spec["cntk1bitsgd"].prefix))
 
-        if "+asgd" in spec:
+        if spec.satisfies("+asgd"):
             args.append("--asgd=yes")
             args.append("--with-multiverso={0}".format(spec["multiverso"].prefix))
         else:
             args.append("--asgd=no")
 
-        if "+opencv" in spec:
+        if spec.satisfies("+opencv"):
             args.append("--with-opencv=" + spec["opencv"].prefix)
 
-        if "+kaldi" in spec:
+        if spec.satisfies("+kaldi"):
             args.append("--with-kaldi=" + spec["kaldi"].prefix)
             args.append("--with-openfst=" + spec["openfst"].prefix)
 
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             args.append("--cuda=yes")
             args.append("--with-cuda={0}".format(spec["cuda"].prefix))
             args.append("--with-cub={0}".format(spec["cub"].prefix.include))

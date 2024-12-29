@@ -5,7 +5,6 @@
 """Service functions and classes to implement the hooks
 for Spack's command extensions.
 """
-import difflib
 import glob
 import importlib
 import os
@@ -24,9 +23,6 @@ import spack.util.path
 _extension_regexp = re.compile(r"spack-(\w[-\w]*)$")
 
 
-# TODO: For consistency we should use spack.cmd.python_name(), but
-#       currently this would create a circular relationship between
-#       spack.cmd and spack.extensions.
 def _python_name(cmd_name):
     return cmd_name.replace("-", "_")
 
@@ -210,8 +206,7 @@ def get_module(cmd_name):
         module = load_command_extension(cmd_name, folder)
         if module:
             return module
-    else:
-        raise CommandNotFoundError(cmd_name)
+    return None
 
 
 def get_template_dirs():
@@ -221,27 +216,6 @@ def get_template_dirs():
     extension_dirs = get_extension_paths()
     extensions = [os.path.join(x, "templates") for x in extension_dirs]
     return extensions
-
-
-class CommandNotFoundError(spack.error.SpackError):
-    """Exception class thrown when a requested command is not recognized as
-    such.
-    """
-
-    def __init__(self, cmd_name):
-        msg = (
-            "{0} is not a recognized Spack command or extension command;"
-            " check with `spack commands`.".format(cmd_name)
-        )
-        long_msg = None
-
-        similar = difflib.get_close_matches(cmd_name, spack.cmd.all_commands())
-
-        if 1 <= len(similar) <= 5:
-            long_msg = "\nDid you mean one of the following commands?\n  "
-            long_msg += "\n  ".join(similar)
-
-        super().__init__(msg, long_msg)
 
 
 class ExtensionNamingError(spack.error.SpackError):

@@ -10,7 +10,7 @@ class Unzip(MakefilePackage):
     """Unzip is a compression and file packaging/archive utility."""
 
     homepage = "http://www.info-zip.org/Zip.html"
-    url = "http://downloads.sourceforge.net/infozip/unzip60.tar.gz"
+    url = "https://downloads.sourceforge.net/infozip/unzip60.tar.gz"
 
     license("custom")
 
@@ -22,16 +22,18 @@ class Unzip(MakefilePackage):
     # clang and oneapi need this patch, likely others
     # There is no problem with it on gcc, so make it a catch all
     patch("configure-cflags.patch")
+    patch("strip.patch")
 
     def get_make_args(self):
         make_args = ["-f", join_path("unix", "Makefile")]
 
         cflags = []
-        cflags.append("-Wno-error=implicit-function-declaration")
-        cflags.append("-Wno-error=implicit-int")
+        if not self.spec.satisfies("%nvhpc"):
+            cflags.append("-Wno-error=implicit-function-declaration")
+            cflags.append("-Wno-error=implicit-int")
         cflags.append("-DLARGE_FILE_SUPPORT")
 
-        make_args.append(f"LOC=\"{' '.join(cflags)}\"")
+        make_args.append(f"LOC={' '.join(cflags)}")
         return make_args
 
     @property

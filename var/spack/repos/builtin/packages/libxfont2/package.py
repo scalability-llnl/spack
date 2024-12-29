@@ -22,13 +22,13 @@ class Libxfont2(AutotoolsPackage, XorgPackage):
     version("2.0.6", sha256="a944df7b6837c8fa2067f6a5fc25d89b0acc4011cd0bc085106a03557fb502fc")
     version("2.0.1", sha256="381b6b385a69343df48a082523c856aed9042fbbc8ee0a6342fb502e4321230a")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     depends_on("libfontenc")
     depends_on("freetype")
 
     depends_on("xtrans")
-    depends_on("xproto")
-    depends_on("fontsproto@2.1.3:")
+    depends_on("xproto", type=("build", "link"))
+    depends_on("fontsproto@2.1.3:", type=("build", "link"))
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")

@@ -15,6 +15,7 @@ from spack.package import *
 
 MACOS_VERSION = macos_version() if sys.platform == "darwin" else None
 LINUX_VERSION = kernel_version() if platform.system() == "Linux" else None
+IS_WINDOWS = sys.platform == "win32"
 
 
 class Qt(Package):
@@ -32,6 +33,7 @@ class Qt(Package):
 
     license("LGPL-3.0-only")
 
+    version("5.15.15", sha256="b423c30fe3ace7402e5301afbb464febfb3da33d6282a37a665be1e51502335e")
     version("5.15.14", sha256="fdd3a4f197d2c800ee0085c721f4bef60951cbda9e9c46e525d1412f74264ed7")
     version("5.15.13", sha256="9550ec8fc758d3d8d9090e261329700ddcd712e2dda97e5fcfeabfac22bea2ca")
     version("5.15.12", sha256="93f2c0889ee2e9cdf30c170d353c3f829de5f29ba21c119167dee5995e48ccce")
@@ -68,14 +70,22 @@ class Qt(Package):
     )
     variant("gtk", default=False, description="Build with gtkplus.")
     variant("gui", default=True, description="Build the Qt GUI module and dependencies")
-    variant("opengl", default=False, description="Build with OpenGL support.")
-    variant("location", default=False, when="+opengl", description="Build the Qt Location module.")
+    # Desktop only on Windows
+    variant("opengl", default=False, description="Build with OpenGL support")
+    for plat in ["linux", "darwin", "freebsd"]:
+        with when(f"platform={plat}"):
+            # webkit support requires qtquick2 which requires a GL implementation beyond what
+            # windows system gl provides.
+            # This is unavailable until we get a hardware accelerated option for EGL 2 on Windows
+            # We can use llvm or angle for this, but those are not hardware accelerated, so are not
+            # as useful for things like paraview
+            variant("webkit", default=False, description="Build the Webkit extension")
+    variant("location", default=False, description="Build the Qt Location module.")
     variant("phonon", default=False, description="Build with phonon support.")
     variant("shared", default=True, description="Build shared libraries.")
     variant("sql", default=True, description="Build with SQL support.")
     variant("ssl", default=True, description="Build with OpenSSL support.")
     variant("tools", default=True, description="Build tools, including Qt Designer.")
-    variant("webkit", default=False, description="Build the Webkit extension")
 
     provides("qmake")
 
@@ -127,6 +137,9 @@ class Qt(Package):
     patch("qt514-isystem.patch", when="@5.14.2")
     # https://bugreports.qt.io/browse/QTBUG-84037
     patch("qt515-quick3d-assimp.patch", when="@5.15:5+opengl")
+    # https://forum.qt.io/topic/130793/a-problem-with-python-path-when-i-try-to-build-qt-from-source-e-program-is-not-recognized-as-an-internal-or-external-command?_=1722965446110&lang=en-US
+    patch("qt515_masm_python.patch", when="@5.15 platform=windows")
+
     # https://bugreports.qt.io/browse/QTBUG-90395
     patch(
         "https://src.fedoraproject.org/rpms/qt5-qtbase/raw/6ae41be8260f0f5403367eb01f7cd8319779674a/f/qt5-qtbase-gcc11.patch",
@@ -171,40 +184,80 @@ class Qt(Package):
     # causing qt to fail in ci.  This increases that limit to 1024.
     patch("qt59-qtbase-qtconfig256.patch", working_dir="qtbase", when="@5.9:5")
 
+    # with gcc@14: RapidJSON fails to build
+    # https://github.com/Tencent/rapidjson/issues/2277
+    # https://github.com/Tencent/rapidjson/pull/719
+    patch(
+        "https://patch-diff.githubusercontent.com/raw/Tencent/rapidjson/pull/719.patch?full_index=1",
+        sha256="ce341a69d6c17852fddd5469b6aabe995fd5e3830379c12746a18c3ae858e0e1",
+        working_dir="qtlocation/src/3rdparty/mapbox-gl-native/deps/rapidjson/1.1.0",
+        when="@5.9.2: %gcc@14:",
+    )
+
     conflicts("%gcc@10:", when="@5.9:5.12.6 +opengl")
     conflicts("%gcc@11:", when="@5.8")
     conflicts("%apple-clang@13:", when="@:5.13")
 
     # Build-only dependencies
-    depends_on("pkgconfig", type="build")
+    for plat in ["linux", "darwin", "freebsd"]:
+        with when(f"platform={plat}"):
+            depends_on("pkgconfig", type="build")
+            depends_on("libsm", when="@3")
+            depends_on("glib", when="@4:")
+            depends_on("libmng")
+            depends_on("assimp@5.0.0:5", when="@5.5:+opengl")
+            depends_on("sqlite+column_metadata", when="+sql", type=("build", "run"))
+            depends_on("inputproto", when="@:5.8")
+    for plat in ["linux", "freebsd"]:
+        with when(f"platform={plat} +gui"):
+            depends_on("fontconfig")
+            depends_on("libsm")
+            depends_on("libx11")
+            depends_on("libxcb")
+            depends_on("libxkbcommon")
+            depends_on("xcb-util-image")
+            depends_on("xcb-util-keysyms")
+            depends_on("xcb-util-renderutil")
+            depends_on("xcb-util-wm")
+            depends_on("libxext")
+            depends_on("libxrender")
+
+        conflicts("+framework", msg="QT cannot be built as a framework except on macOS.")
+
+    with when("platform=windows +sql"):
+        # Windows sqlite has no column_metadata variant unlike all other platforms
+        depends_on("sqlite", type=("build", "run"))
+
+    with when("platform=darwin"):
+        conflicts("@:4.8.6", msg="QT 4 for macOS is only patched for 4.8.7")
+        conflicts(
+            "target=aarch64:",
+            when="@:5.15.3",
+            msg="Apple Silicon requires a very new version of qt",
+        )
+
     depends_on("python", when="@5.7.0:", type="build")
 
     # Dependencies, then variant- and version-specific dependencies
     depends_on("icu4c")
     depends_on("jpeg")
-    depends_on("libmng")
     depends_on("libtiff")
     depends_on("libxml2")
     depends_on("zlib-api")
     depends_on("freetype", when="+gui")
     depends_on("gtkplus", when="+gtk")
-    depends_on("sqlite+column_metadata", when="+sql", type=("build", "run"))
 
     depends_on("libpng@1.2.57", when="@3")
-    depends_on("libsm", when="@3")
     depends_on("pcre+multibyte", when="@5.0:5.8")
-    depends_on("inputproto", when="@:5.8")
 
     with when("+ssl"):
         depends_on("openssl")
         depends_on("openssl@:1.0", when="@4:5.9")
         depends_on("openssl@1.1.1:", when="@5.15.0:")
 
-    depends_on("glib", when="@4:")
     depends_on("libpng", when="@4:")
     depends_on("dbus", when="@4:+dbus")
     depends_on("gl", when="@4:+opengl")
-    depends_on("assimp@5.0.0:5", when="@5.5:+opengl")
 
     depends_on("harfbuzz", when="@5:")
     depends_on("double-conversion", when="@5.7:")
@@ -260,32 +313,6 @@ class Qt(Package):
     conflicts("%oneapi", when="@:5.15.13")
     patch("qt51514-oneapi.patch", when="@5.15.14: %oneapi")
 
-    # Non-macOS dependencies and special macOS constraints
-    if MACOS_VERSION is None:
-        with when("+gui"):
-            depends_on("fontconfig")
-            depends_on("libsm")
-            depends_on("libx11")
-            depends_on("libxcb")
-            depends_on("libxkbcommon")
-            depends_on("xcb-util-image")
-            depends_on("xcb-util-keysyms")
-            depends_on("xcb-util-renderutil")
-            depends_on("xcb-util-wm")
-            depends_on("libxext")
-            depends_on("libxrender")
-
-        conflicts("+framework", msg="QT cannot be built as a framework except on macOS.")
-    else:
-        conflicts(
-            "platform=darwin", when="@:4.8.6", msg="QT 4 for macOS is only patched for 4.8.7"
-        )
-        conflicts(
-            "target=aarch64:",
-            when="@:5.15.3",
-            msg="Apple Silicon requires a very new version of qt",
-        )
-
     # Mapping for compilers/systems in the QT 'mkspecs'
     compiler_mapping = {
         "intel": ("icc",),
@@ -299,7 +326,7 @@ class Qt(Package):
         "fj": ("clang",),
         "gcc": ("g++",),
     }
-    platform_mapping = {"darwin": ("macx")}
+    platform_mapping = {"darwin": ("macx"), "windows": ("win32")}
 
     def url_for_version(self, version):
         # URL keeps getting more complicated with every release
@@ -349,7 +376,8 @@ class Qt(Package):
         return url
 
     def setup_build_environment(self, env):
-        env.set("MAKEFLAGS", "-j{0}".format(make_jobs))
+        if not IS_WINDOWS:
+            env.set("MAKEFLAGS", "-j{0}".format(make_jobs))
         if self.version >= Version("5.11"):
             # QDoc uses LLVM as of 5.11; remove the LLVM_INSTALL_DIR to
             # disable
@@ -371,6 +399,10 @@ class Qt(Package):
         env.set("QTINC", self.prefix.inc)
         env.set("QTLIB", self.prefix.lib)
         env.prepend_path("QT_PLUGIN_PATH", self.prefix.plugins)
+        if IS_WINDOWS:
+            # Force Qt to use the desktop provided GL
+            # on Windows when dependencies are building against Qt
+            env.set("QT_OPENGL", "desktop")
 
     def setup_dependent_package(self, module, dependent_spec):
         module.qmake = Executable(self.spec.prefix.bin.qmake)
@@ -561,18 +593,25 @@ class Qt(Package):
             self.prefix,
             "-v",
             "-opensource",
-            "-{0}opengl".format("" if "+opengl" in spec else "no-"),
             "-{0}".format("debug" if "+debug" in spec else "release"),
             "-confirm-license",
             "-optimized-qmake",
             "-no-pch",
         ]
 
+        # Windows currently only supports the desktop provider for opengl
+        if "+opengl" in spec:
+            config_args.append("-opengl")
+            if IS_WINDOWS:
+                config_args.append("desktop")
+        else:
+            config_args.append("-no-opengl")
+
         use_spack_dep = self._dep_appender_factory(config_args)
 
         if "+gui" in spec:
             use_spack_dep("freetype")
-            if not MACOS_VERSION:
+            if spec.satisfies("platform=linux") or spec.satisfies("platform=freebsd"):
                 config_args.append("-fontconfig")
         else:
             config_args.append("-no-freetype")
@@ -715,7 +754,7 @@ class Qt(Package):
                 # Errors on bluetooth even when bluetooth is disabled...
                 # at least on apple-clang%12
                 config_args.extend(["-skip", "connectivity"])
-        elif "+gui" in spec:
+        elif "+gui" in spec and not IS_WINDOWS:
             # Linux-only QT5 dependencies
             if version < Version("5.9.9"):
                 config_args.append("-system-xcb")
@@ -755,6 +794,9 @@ class Qt(Package):
             if version >= Version("5.15"):
                 config_args.extend(["-skip", "qtlocation"])
 
+        if IS_WINDOWS:
+            config_args.extend(["-skip", "qtspeech"])
+
         if "~opengl" in spec:
             config_args.extend(["-skip", "multimedia"])
             config_args.extend(["-skip", "qt3d"])
@@ -772,10 +814,11 @@ class Qt(Package):
             # v5.9: user-selectable internal-vs-external via -assimp
             # v5.14: additional qtquick3d module uses -assimp
             # v5.15: qtquick3d switched to the -quick3d-assimp option
-            if version >= Version("5.9"):
-                use_spack_dep("assimp")
-            elif version >= Version("5.15"):
-                use_spack_dep("assimp", "quick3d-assimp")
+            if not IS_WINDOWS:
+                if version >= Version("5.9"):
+                    use_spack_dep("assimp")
+                elif version >= Version("5.15"):
+                    use_spack_dep("assimp", "quick3d-assimp")
 
         if MACOS_VERSION and "+opengl" in spec:
             # These options are only valid if 'multimedia' is enabled, i.e.
@@ -788,13 +831,22 @@ class Qt(Package):
             # Not currently working for qt@5
             config_args.extend(["-device-option", "QMAKE_APPLE_DEVICE_ARCHS=arm64"])
 
+        if IS_WINDOWS:
+            global configure
+            configure = Executable("configure.bat")
         configure(*config_args)
 
     def build(self, spec, prefix):
-        make()
+        if IS_WINDOWS:
+            nmake()
+        else:
+            make()
 
     def install(self, spec, prefix):
-        make("install")
+        if IS_WINDOWS:
+            nmake("install")
+        else:
+            make("install")
 
     # Documentation generation requires the doc tools to be installed.
     # @when @run_after currently seems to ignore the 'when' restriction.

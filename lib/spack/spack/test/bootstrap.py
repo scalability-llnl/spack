@@ -9,6 +9,7 @@ import spack.bootstrap
 import spack.bootstrap.config
 import spack.bootstrap.core
 import spack.compilers
+import spack.config
 import spack.environment
 import spack.store
 import spack.util.path

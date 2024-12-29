@@ -6,8 +6,6 @@
 import os
 import sys
 
-from llnl.util import tty
-
 from spack.package import *
 
 
@@ -28,6 +26,7 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
     # Versions
     # ==========================================================================
     version("develop", branch="develop")
+    version("7.2.0", tag="v7.2.0", commit="0eff39663606f2ff280c4059a947ed62ae38180a")
     version("7.1.1", tag="v7.1.1", commit="c28eaa3764a03705d61decb6025b409360e9d53f")
     version("7.0.0", sha256="d762a7950ef4097fbe9d289f67a8fb717a0b9f90f87ed82170eb5c36c0a07989")
     version("6.7.0", sha256="5f113a1564a9d2d98ff95249f4871a4c815a05dbb9b8866a82b13ab158c37adb")
@@ -203,7 +202,6 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
 
     # External libraries incompatible with 64-bit indices
     conflicts("+lapack", when="@3.0.0: +int64")
-    conflicts("+hypre", when="+hypre@:2.6.1a +int64")
 
     # External libraries incompatible with single precision
     conflicts("+klu", when="precision=single")
@@ -348,7 +346,7 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
             args.extend(
                 [
                     define("SUNDIALS_INDEX_SIZE", intsize),
-                    define("SUNDIALS_INDEX_TYPE", "int{}_t".format(intsize)),
+                    define("SUNDIALS_INDEX_TYPE", f"int{intsize}_t"),
                 ]
             )
 
@@ -401,6 +399,7 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
 
         if "+cuda" in spec:
             args.append(define("CMAKE_CUDA_ARCHITECTURES", spec.variants["cuda_arch"].value))
+            args.append(define("CUDAToolkit_ROOT", self.spec["cuda"].prefix))
 
         if "+rocm" in spec:
             args.extend(
@@ -650,7 +649,8 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
 
         cxx_files = [
             "arkode/CXX_parallel/Makefile",
-            "arkode/CXX_serial/Makefile" "cvode/cuda/Makefile",
+            "arkode/CXX_serial/Makefile",
+            "cvode/cuda/Makefile",
             "cvode/raja/Makefile",
             "nvector/cuda/Makefile",
             "nvector/raja/Makefile",
@@ -674,7 +674,7 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
         f2003_files = [
             "arkode/F2003_serial/Makefile",
             "cvode/F2003_serial/Makefile",
-            "cvodes/F2003_serial/Makefike",
+            "cvodes/F2003_serial/Makefile",
             "ida/F2003_serial/Makefile",
             "idas/F2003_serial/Makefile",
             "kinsol/F2003_serial/Makefile",
@@ -736,6 +736,8 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
             # Q: should the result be ordered by dependency?
         else:
             sun_libs = ["libsundials_" + p for p in query_parameters]
+            if self.spec.satisfies("@7:"):
+                sun_libs += ["libsundials_core"]
         is_shared = "+shared" in self.spec
 
         libs = find_libraries(sun_libs, root=self.prefix, shared=is_shared, recursive=True)
@@ -744,119 +746,95 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
 
     @run_after("install")
     @on_package_attributes(run_tests=True)
-    def test_install(self):
-        """Perform make test_install."""
+    def check_test_install(self):
+        """Perform test_install on the build."""
         with working_dir(self.build_directory):
             make("test_install")
-
-    @property
-    def _smoke_tests(self):
-        # smoke_tests tuple: exe, args, purpose, use cmake (true/false)
-        smoke_tests = [
-            ("nvector/serial/test_nvector_serial", ["10", "0"], "Test serial N_Vector", False)
-        ]
-        if "+CVODE" in self.spec:
-            smoke_tests.append(("cvode/serial/cvAdvDiff_bnd", [], "Test CVODE", True))
-
-        if "+cuda" in self.spec:
-            smoke_tests.append(
-                ("nvector/cuda/test_nvector_cuda", ["10", "0", "0"], "Test CUDA N_Vector", True)
-            )
-            if "+CVODE" in self.spec:
-                smoke_tests.append(
-                    ("cvode/cuda/cvAdvDiff_kry_cuda", [], "Test CVODE with CUDA", True)
-                )
-
-        if "+rocm" in self.spec:
-            smoke_tests.append(
-                ("nvector/hip/test_nvector_hip", ["10", "0", "0"], "Test HIP N_Vector", True)
-            )
-            if "+CVODE" in self.spec:
-                smoke_tests.append(
-                    ("cvode/hip/cvAdvDiff_kry_hip", [], "Test CVODE with HIP", True)
-                )
-
-        if "+sycl" in self.spec:
-            smoke_tests.append(
-                ("nvector/sycl/test_nvector_sycl", ["10", "0", "0"], "Test SYCL N_Vector")
-            )
-            if "+CVODE" in self.spec:
-                smoke_tests.append(
-                    ("cvode/sycl/cvAdvDiff_kry_sycl", [], "Test CVODE with SYCL", True)
-                )
-
-        return smoke_tests
 
     @property
     def _smoke_tests_path(self):
         # examples/smoke-tests are cached for testing
         return self.prefix.examples
 
-    # TODO: Replace this method and its 'get' use for cmake path with
-    #   join_path(self.spec['cmake'].prefix.bin, 'cmake') once stand-alone
-    #   tests can access build dependencies through self.spec['cmake'].
-    def cmake_bin(self, set=True):
-        """(Hack) Set/get cmake dependency path."""
-        filepath = join_path(self.install_test_root, "cmake_bin_path.txt")
-        if set:
-            if not os.path.exists(self.install_test_root):
-                mkdirp(self.install_test_root)
-            with open(filepath, "w") as out_file:
-                cmake_bin = join_path(self.spec["cmake"].prefix.bin, "cmake")
-                out_file.write("{0}\n".format(cmake_bin))
-        elif os.path.isfile(filepath):
-            with open(filepath, "r") as in_file:
-                return in_file.read().strip()
-
-    @run_after("install")
-    def setup_smoke_tests(self):
-        if "+examples-install" in self.spec:
-            install_tree(self._smoke_tests_path, join_path(self.install_test_root, "testing"))
-        self.cmake_bin(set=True)
-
-    def build_smoke_tests(self):
-        cmake_bin = self.cmake_bin(set=False)
-
-        if not cmake_bin:
-            tty.msg("Skipping sundials test: cmake_bin_path.txt not found")
-            return
-
+    def run_example(self, exe_path, opts, cmake_bool):
+        """Common sundials test method"""
         if "~examples-install" in self.spec:
-            tty.msg("Skipping sundials test: examples were not installed")
-            return
+            raise SkipTest("Package must be installed with +examples-install")
 
-        for smoke_test in self._smoke_tests:
-            work_dir = join_path(self._smoke_tests_path, os.path.dirname(smoke_test[0]))
-            with working_dir(work_dir):
-                if smoke_test[3]:  # use cmake
-                    self.run_test(exe=cmake_bin, options=["."])
-                self.run_test(exe="make")
+        (dirname, basename) = os.path.split(exe_path)
+        srcpath = join_path(self._smoke_tests_path, dirname)
+        if not os.path.exists(srcpath):
+            raise SkipTest(f"Example '{basename}' source directory not found in {self.version}")
 
-    def run_smoke_tests(self):
-        if "~examples-install" in self.spec:
-            return
+        # copy the example's directory to the test stage
+        mkdirp(dirname)
+        install_tree(srcpath, dirname)
 
-        for smoke_test in self._smoke_tests:
-            self.run_test(
-                exe=join_path(self._smoke_tests_path, smoke_test[0]),
-                options=smoke_test[1],
-                status=[0],
-                installed=True,
-                skip_missing=True,
-                purpose=smoke_test[2],
-            )
+        # build and run the example
+        with working_dir(dirname):
+            if cmake_bool:
+                deps = "sundials mpi"
+                prefixes = ";".join([self.spec[x].prefix for x in deps.split()])
+                cmake = self.spec["cmake"].command
+                cmake("-DCMAKE_PREFIX_PATH=" + prefixes, ".")
 
-    def clean_smoke_tests(self):
-        if "~examples-install" in self.spec:
-            return
+            make = which("make")
+            make()
+            exe = which(basename)
+            exe(*opts)
+            make("clean")
 
-        for smoke_test in self._smoke_tests:
-            work_dir = join_path(self._smoke_tests_path, os.path.dirname(smoke_test[0]))
-            with working_dir(work_dir):
-                self.run_test(exe="make", options=["clean"])
+    def test_nvector_serial(self):
+        """build and run serial N_Vector"""
+        self.run_example(join_path("nvector", "serial", "test_nvector_serial"), ["10", "0"], False)
 
-    def test(self):
-        self.build_smoke_tests()
-        self.run_smoke_tests()
-        self.clean_smoke_tests()
-        return
+    def test_cvadvdiff_serial(self):
+        """build and run serial cvAdvDiff_bnd"""
+        if "+CVODE" not in self.spec:
+            raise SkipTest("Package must be installed with +CVODE")
+
+        self.run_example(join_path("cvode", "serial", "cvAdvDiff_bnd"), [], True)
+
+    def test_nvector_cuda(self):
+        """build and run CUDA N_Vector"""
+        if "+cuda" not in self.spec:
+            raise SkipTest("Package must be installed with +cuda")
+
+        self.run_example(join_path("nvector", "cuda", "test_nvector_cuda"), ["10", "0", "0"], True)
+
+    def test_cvadvdiff_cuda(self):
+        """build and run CUDA cvAdvDiff_kry"""
+        if "+cuda" not in self.spec or "+CVODE" not in self.spec:
+            raise SkipTest("Package must be installed with +cuda+CVODE")
+
+        self.run_example(join_path("cvode", "cuda", "cvAdvDiff_kry_cuda"), [], True)
+
+    def test_nvector_hip(self):
+        """build and run ROCM N_Vector"""
+        if "+rocm" not in self.spec:
+            raise SkipTest("Package must be installed with +rocm")
+
+        self.run_example(join_path("nvector", "hip", "test_nvector_hip"), ["10", "0", "0"], True)
+
+    def test_cvadvdiff_hip(self):
+        """build and run ROCM cvAdvDiff_kry"""
+        if "+rocm" not in self.spec or "+CVODE" not in self.spec:
+            raise SkipTest("Package must be installed with +rocm+CVODE")
+
+        self.run_example(join_path("cvode", "hip", "cvAdvDiff_kry_hip"), [], True)
+
+    def test_nvector_sycl(self):
+        """build and run SYCL N_Vector"""
+        if "+sycl" not in self.spec:
+            raise SkipTest("Package must be installed with +sycl")
+
+        self.run_example(
+            join_path("nvector", "sycl", "test_nvector_sycl"), ["10", "0", "0"], False
+        )
+
+    def test_sycl_cvode(self):
+        """build and run SYCL cvAdvDiff_kry"""
+        if "+sycl" not in self.spec or "+CVODE" not in self.spec:
+            raise SkipTest("Package must be installed with +sycl and +CVODE")
+
+        self.run_example(join_path("cvode", "sycl", "cvAdvDiff_kry_sycl"), [], True)

@@ -52,7 +52,6 @@ class NlohmannJson(CMakePackage):
     # https://github.com/nlohmann/json/releases/tag/v3.3.0
     conflicts("%gcc@:4.8", when="@:3.2.9")
     conflicts("%intel@:16")
-    conflicts("%pgi@:14")
 
     def cmake_args(self):
         return [

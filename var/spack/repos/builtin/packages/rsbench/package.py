@@ -45,7 +45,7 @@ class Rsbench(MakefilePackage):
             cflags += " -ffast-math "
         elif spec.satisfies("%intel"):
             cflags += " -xhost -ansi-alias -no-prec-div "
-        elif spec.satisfies("%pgi") or spec.satisfies("%nvhpc"):
+        elif spec.satisfies("%nvhpc"):
             cflags += " -fastsse "
         elif spec.satisfies("%arm"):
             cflags += " -ffast-math "

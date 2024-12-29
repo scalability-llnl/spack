@@ -11,13 +11,6 @@ from spack.version import Version
 versions = SpackCommand("versions")
 
 
-def test_safe_only_versions():
-    """Only test the safe versions of a package.
-    (Using the deprecated command line argument)
-    """
-    versions("--safe-only", "zlib")
-
-
 def test_safe_versions():
     """Only test the safe versions of a package."""
 

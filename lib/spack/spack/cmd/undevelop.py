@@ -6,6 +6,7 @@
 import llnl.util.tty as tty
 
 import spack.cmd
+import spack.config
 from spack.cmd.common import arguments
 
 description = "remove specs from an environment"

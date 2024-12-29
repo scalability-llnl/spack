@@ -21,12 +21,12 @@ class Libxext(AutotoolsPackage, XorgPackage):
     version("1.3.4", sha256="8ef0789f282826661ff40a8eef22430378516ac580167da35cc948be9041aac1")
     version("1.3.3", sha256="eb0b88050491fef4716da4b06a4d92b4fc9e76f880d6310b2157df604342cfe5")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     depends_on("libx11@1.6:")
 
-    depends_on("xproto@7.0.13:")
-    depends_on("xextproto@7.2:")
+    depends_on("xproto@7.0.13:", type="build")
+    depends_on("xextproto@7.2:", type=("build", "link"))
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")
 

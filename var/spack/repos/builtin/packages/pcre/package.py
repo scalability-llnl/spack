@@ -57,6 +57,10 @@ class Pcre(AutotoolsPackage, CMakePackage):
     variant("pic", default=True, description="Enable position-independent code (PIC)")
     requires("+pic", when="+shared build_system=autotools")
 
+    with when("build_system=cmake"):
+        depends_on("zlib")
+        depends_on("bzip2")
+
 
 class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
     def configure_args(self):

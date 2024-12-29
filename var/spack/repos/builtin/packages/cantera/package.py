@@ -118,7 +118,7 @@ class Cantera(SConsPackage):
             )
 
         # Sundials support
-        if "+sundials" in spec:
+        if spec.satisfies("+sundials"):
             if spec.satisfies("@2.3.0:"):
                 args.append("system_sundials=y")
             else:
@@ -137,7 +137,7 @@ class Cantera(SConsPackage):
             )
 
         # Python module
-        if "+python" in spec:
+        if spec.satisfies("+python"):
             args.extend(["python_package=full", "python_cmd={0}".format(python.path)])
             if spec["python"].satisfies("@3:"):
                 args.extend(["python3_package=y", "python3_cmd={0}".format(python.path)])
@@ -148,7 +148,7 @@ class Cantera(SConsPackage):
             args.append("python3_package=n")
 
         # Matlab toolbox
-        if "+matlab" in spec:
+        if spec.satisfies("+matlab"):
             args.extend(["matlab_toolbox=y", "matlab_path={0}".format(spec["matlab"].prefix)])
         else:
             args.append("matlab_toolbox=n")
@@ -156,7 +156,7 @@ class Cantera(SConsPackage):
         return args
 
     def build_test(self):
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             # Tests will always fail if Python dependencies aren't built
             # In addition, 3 of the tests fail when run in parallel
             scons("test", parallel=False)

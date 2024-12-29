@@ -9,7 +9,7 @@ from spack.package import *
 class Opium(AutotoolsPackage):
     """DFT pseudopotential generation project"""
 
-    homepage = "http://opium.sourceforge.net"
+    homepage = "https://opium.sourceforge.net"
     url = "https://downloads.sourceforge.net/project/opium/opium/opium-v3.8/opium-v3.8-src.tgz"
 
     license("GPL-2.0-or-later")

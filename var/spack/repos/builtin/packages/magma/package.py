@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
+import spack.util.environment
 from spack.package import *
 
 
@@ -14,7 +15,7 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
     """
 
     homepage = "https://icl.utk.edu/magma/"
-    git = "https://bitbucket.org/icl/magma"
+    git = "https://github.com/icl-utk-edu/magma"
     url = "https://icl.utk.edu/projectsfiles/magma/downloads/magma-2.2.0.tar.gz"
     maintainers("stomov", "luszczek", "G-Ragghianti")
 
@@ -66,6 +67,8 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@2.8.0: +rocm ^hip@{ver}")
     depends_on("python", when="@master", type="build")
@@ -82,9 +85,13 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
     # https://bitbucket.org/icl/magma/issues/25/error-cusparsesolveanalysisinfo_t-does-not
     conflicts("^cuda@11:", when="@:2.5.3")
 
+    # currently not compatible with CUDA-12.6
+    # https://github.com/icl-utk-edu/magma/issues/7
+    conflicts("^cuda@12.6:", when="@:2.8.0")
+
     # Many cuda_arch values are not yet recognized by MAGMA's CMakeLists.txt
     for target in [10, 11, 12, 13, 21, 32, 52, 53, 61, 62, 72, 86]:
-        conflicts("cuda_arch={}".format(target))
+        conflicts(f"cuda_arch={target}")
 
     # Some cuda_arch values had support added recently
     conflicts("cuda_arch=37", when="@:2.5", msg="magma: cuda_arch=37 needs a version > 2.5")
@@ -117,14 +124,14 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
         gpu_target = ""
         if "+cuda" in spec:
             cuda_archs = spec.variants["cuda_arch"].value
-            gpu_target = " ".join("sm_{0}".format(i) for i in cuda_archs)
+            gpu_target = " ".join(f"sm_{i}" for i in cuda_archs)
         else:
             gpu_target = spec.variants["amdgpu_target"].value
 
         with open("make.inc", "w") as inc:
             inc.write("FORT = true\n")
-            inc.write("GPU_TARGET = {0}\n".format(gpu_target))
-            inc.write("BACKEND = {0}\n".format(backend))
+            inc.write(f"GPU_TARGET = {gpu_target}\n")
+            inc.write(f"BACKEND = {backend}\n")
 
         make("generate")
 
@@ -155,14 +162,14 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
         if "+cuda" in spec:
             cuda_arch = spec.variants["cuda_arch"].value
             sep = "" if "@:2.2.0" in spec else "_"
-            capabilities = " ".join("sm{0}{1}".format(sep, i) for i in cuda_arch)
+            capabilities = " ".join(f"sm{sep}{i}" for i in cuda_arch)
             options.append(define("GPU_TARGET", capabilities))
             archs = ";".join("%s" % i for i in cuda_arch)
             options.append(define("CMAKE_CUDA_ARCHITECTURES", archs))
 
         if "@2.5.0" in spec:
             options.append(define("MAGMA_SPARSE", False))
-            if spec.compiler.name in ["xl", "xl_r"]:
+            if spec.satisfies("%xl") or spec.satisfies("%xl_r"):
                 options.append(define("CMAKE_DISABLE_FIND_PACKAGE_OpenMP", True))
 
         if "+rocm" in spec:
@@ -191,21 +198,40 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
     def cache_test_sources(self):
         """Copy the example source files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources([self.test_src_dir])
+        cache_extra_test_sources(self, [self.test_src_dir])
 
-    def test(self):
+    def test_c(self):
+        """Run C examples"""
         test_dir = join_path(self.test_suite.current_test_cache_dir, self.test_src_dir)
-        with working_dir(test_dir, create=False):
-            pkg_config_path = "{0}/lib/pkgconfig".format(self.prefix)
+        with working_dir(test_dir):
+            pkg_config_path = self.prefix.lib.pkgconfig
             with spack.util.environment.set_env(PKG_CONFIG_PATH=pkg_config_path):
+
                 make("c")
-                self.run_test("./example_sparse", purpose="MAGMA smoke test - sparse solver")
-                self.run_test(
-                    "./example_sparse_operator", purpose="MAGMA smoke test - sparse operator"
-                )
-                self.run_test("./example_v1", purpose="MAGMA smoke test - legacy v1 interface")
-                self.run_test("./example_v2", purpose="MAGMA smoke test - v2 interface")
-                if "+fortran" in self.spec:
-                    make("fortran")
-                    self.run_test("./example_f", purpose="MAGMA smoke test - Fortran interface")
+                tests = [
+                    ("example_sparse", "sparse solver"),
+                    ("example_sparse_operator", "sparse operator"),
+                    ("example_v1", "legacy v1 interface"),
+                    ("example_v2", "v2 interface"),
+                ]
+
+                for test, desc in tests:
+                    with test_part(self, f"test_c_{test}", purpose=f"Run {desc} example"):
+                        exe = which(test)
+                        exe()
+
+                make("clean")
+
+    def test_fortran(self):
+        """Run Fortran example"""
+        if "+fortran" not in self.spec:
+            raise SkipTest("Package must be installed with +fortran")
+
+        test_dir = join_path(self.test_suite.current_test_cache_dir, self.test_src_dir)
+        with working_dir(test_dir):
+            pkg_config_path = self.prefix.lib.pkgconfig
+            with spack.util.environment.set_env(PKG_CONFIG_PATH=pkg_config_path):
+                make("fortran")
+                example_f = which("example_f")
+                example_f()
                 make("clean")

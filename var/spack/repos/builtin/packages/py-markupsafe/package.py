@@ -32,3 +32,4 @@ class PyMarkupsafe(PythonPackage):
     depends_on("c", type="build")  # generated
 
     depends_on("py-setuptools", type="build")
+    depends_on("python@3.7:", when="@2.0:")

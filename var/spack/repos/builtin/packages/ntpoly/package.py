@@ -21,6 +21,7 @@ class Ntpoly(CMakePackage):
     license("MIT")
 
     version("3.1.0", sha256="71cd6827f20c68e384555dbcfc85422d0690e21d21d7b5d4f7375544a2755271")
+    version("2.7.2", sha256="968571a42e93827617c40c4ceefd29be52447c176309f801bb5a454527fe5f49")
     version("2.3.1", sha256="af8c7690321607fbdee9671b9cb3acbed945148014e0541435858cf82bfd887e")
 
     depends_on("cxx", type="build")  # generated

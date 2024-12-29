@@ -40,13 +40,13 @@ class Latte(CMakePackage):
 
     def cmake_args(self):
         options = []
-        if "+shared" in self.spec:
+        if self.spec.satisfies("+shared"):
             options.append("-DBUILD_SHARED_LIBS=ON")
         else:
             options.append("-DBUILD_SHARED_LIBS=OFF")
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             options.append("-DO_MPI=yes")
-        if "+progress" in self.spec:
+        if self.spec.satisfies("+progress"):
             options.append("-DPROGRESS=yes")
 
         blas_list = ";".join(self.spec["blas"].libs)

@@ -136,5 +136,4 @@ class Fplo(MakefilePackage):
             pattern = "^#!.*/usr/bin/perl"
             repl = "#!{0}".format(self.spec["perl"].command.path)
             files = ["fconv2", "fconvdens2", "fdowngrad.pl", "fout2in", "grBhfat", "grpop"]
-            for file in files:
-                filter_file(pattern, repl, *files, backup=False)
+            filter_file(pattern, repl, *files, backup=False)

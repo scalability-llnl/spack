@@ -62,6 +62,7 @@ class Asio(AutotoolsPackage):
     version("1.16.1", sha256="e40bbd531530f08318b7c7d7e84e457176d8eae6f5ad2e3714dc27b9131ecd35")
     version("1.16.0", sha256="c87410ea62de6245aa239b9ed2057edf01d7f66acc3f5e50add9a29343c87512")
 
+    depends_on("c", type="build")
     depends_on("cxx", type="build")
 
     depends_on("autoconf", type="build")

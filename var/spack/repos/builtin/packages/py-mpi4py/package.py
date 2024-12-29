@@ -2,6 +2,7 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import os
 
 from spack.package import *
 
@@ -16,9 +17,12 @@ class PyMpi4py(PythonPackage):
     pypi = "mpi4py/mpi4py-3.0.3.tar.gz"
     git = "https://github.com/mpi4py/mpi4py.git"
 
-    license("BSD-2-Clause")
+    license("BSD-3-Clause", when="@4:")
+    license("BSD-2-Clause", when="@:3")
 
     version("master", branch="master")
+    version("4.0.1", sha256="f3174b245775d556f4fddb32519a2066ef0592edc810c5b5a59238f9a0a40c89")
+    version("4.0.0", sha256="820d31ae184d69c17d9b5d55b1d524d56be47d2e6cb318ea4f3e7007feff2ccc")
     version("3.1.6", sha256="c8fa625e0f92b082ef955bfb52f19fa6691d29273d7d71135d295aa143dee6cb")
     version("3.1.5", sha256="a706e76db9255135c2fb5d1ef54cb4f7b0e4ad9e33cbada7de27626205f2a153")
     version("3.1.4", sha256="17858f2ebc623220d0120d1fa8d428d033dde749c4bc35b33d81a66ad7f93480")
@@ -33,10 +37,9 @@ class PyMpi4py(PythonPackage):
     version("1.3.1", sha256="e7bd2044aaac5a6ea87a87b2ecc73b310bb6efe5026031e33067ea3c2efc3507")
 
     depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
 
     depends_on("py-setuptools@40.9:", type="build")
+    depends_on("py-cython@3:", when="@4:", type="build")
     depends_on("py-cython@0.27:2", when="@:3.1.6", type="build")
     depends_on("py-cython@0.27:3", when="@master", type="build")
     depends_on("mpi")
@@ -48,3 +51,35 @@ class PyMpi4py(PythonPackage):
     def cythonize(self):
         with working_dir(self.build_directory):
             python(join_path("conf", "cythonize.py"))
+
+    def create_mpi_config_file(self, cfg_fn):
+        """
+        create mpi.cfg file introduced since version 4.0.0.
+        see https://mpi4py.readthedocs.io/en/stable/mpi4py.html#mpi4py.get_config
+        """
+        mpi_spec = self.spec["mpi"]
+        include_dirs = mpi_spec.headers.directories
+        library_dirs = mpi_spec.libs.directories
+        with open(cfg_fn, "w") as cfg:
+            cfg.write("[mpi]\n")
+            cfg.write("mpi_dir              = {}\n".format(mpi_spec.prefix))
+            cfg.write("mpicc                = {}\n".format(mpi_spec.mpicc))
+            cfg.write("mpicxx               = {}\n".format(mpi_spec.mpicxx))
+            cfg.write("\n")
+            cfg.write("## define_macros        =\n")
+            cfg.write("## undef_macros         =\n")
+            cfg.write("include_dirs         = {}\n".format(include_dirs))
+            cfg.write("## libraries            = mpi\n")
+            cfg.write("library_dirs         = {}\n".format(library_dirs))
+            cfg.write("## runtime_library_dirs = %(mpi_dir)s/lib\n")
+            cfg.write("\n")
+            cfg.write("## extra_compile_args   =\n")
+            cfg.write("## extra_link_args      =\n")
+            cfg.write("## extra_objects        =\n")
+
+    @run_after("install", when="@4:")
+    def install_cfg(self):
+        python_dir = join_path(self.prefix, python_platlib, "mpi4py")
+        cfg_fn = join_path(python_dir, "mpi.cfg")
+        if not os.path.isfile(cfg_fn):
+            self.create_mpi_config_file(cfg_fn)

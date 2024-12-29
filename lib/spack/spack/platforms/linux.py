@@ -6,7 +6,6 @@ import platform
 
 import archspec.cpu
 
-import spack.target
 from spack.operating_systems.linux_distro import LinuxDistro
 
 from ._platform import Platform
@@ -18,8 +17,7 @@ class Linux(Platform):
     def __init__(self):
         super().__init__("linux")
 
-        for name in archspec.cpu.TARGETS:
-            self.add_target(name, spack.target.Target(name))
+        self._add_archspec_targets()
 
         # Get specific default
         self.default = archspec.cpu.host().name

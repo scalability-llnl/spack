@@ -9,7 +9,7 @@ from spack.package import *
 class PyRx(PythonPackage):
     """Reactive Extensions (Rx) for Python"""
 
-    homepage = "http://reactivex.io/"
+    homepage = "https://reactivex.io/"
     pypi = "Rx/Rx-3.2.0.tar.gz"
 
     maintainers("dorton21")

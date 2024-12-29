@@ -14,7 +14,7 @@ class Psrchive(AutotoolsPackage):
     single-pulse work, RFI mitigation, etc. These tools are utilized by a
     powerful suite of user-end programs that come with the library."""
 
-    homepage = "http://psrchive.sourceforge.net/"
+    homepage = "https://psrchive.sourceforge.net/"
     url = "https://sourceforge.net/projects/psrchive/files/psrchive/2022-05-14/psrchive-2022-05-14.tar.gz/download"
     git = "https://git.code.sf.net/p/psrchive/code.git"
 

@@ -46,6 +46,12 @@ class Rocksdb(MakefilePackage):
     variant("werror", default=False, description="Build with -Werror")
     variant("rtti", default=False, description="Build with RTTI")
 
+    depends_on("bash", type="build")
+    # Depends on coreutil's install command (e.g., Alpine's Busybox version does not work)
+    depends_on("coreutils", type="build")
+    depends_on("perl", type="build")
+    depends_on("which", type="build")
+
     depends_on("bzip2", when="+bz2")
     depends_on("gflags")
     depends_on("lz4", when="+lz4")

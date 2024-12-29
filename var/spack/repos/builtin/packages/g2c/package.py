@@ -18,13 +18,14 @@ class G2c(CMakePackage):
     maintainers("AlexanderRichert-NOAA", "Hang-Lei-NOAA", "edwardhartnett")
 
     version("develop", branch="develop")
+    version("2.0.0", sha256="39c23bf1219c60101548c8525e3a879c84119558f768081779d404a8caf4cec9")
     version("1.9.0", sha256="5554276e18bdcddf387a08c2dd23f9da310c6598905df6a2a244516c22ded9aa")
     version("1.8.0", sha256="4ce9f5a7cb0950699fe08ebc5a463ab4d09ef550c050391a319308a2494f971f")
     version("1.7.0", sha256="73afba9da382fed73ed8692d77fa037bb313280879cd4012a5e5697dccf55175")
     version("1.6.4", sha256="5129a772572a358296b05fbe846bd390c6a501254588c6a223623649aefacb9d")
     version("1.6.2", sha256="b5384b48e108293d7f764cdad458ac8ce436f26be330b02c69c2a75bb7eb9a2c")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     variant("aec", default=True, description="Use AEC library")
     variant("png", default=True, description="Use PNG library")
@@ -93,5 +94,5 @@ class G2c(CMakePackage):
         env.set("G2C_INC", join_path(self.prefix, "include"))
 
     def check(self):
-        with working_dir(self.builder.build_directory):
+        with working_dir(self.build_directory):
             make("test")

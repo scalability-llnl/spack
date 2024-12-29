@@ -26,7 +26,7 @@ class Hwloc(AutotoolsPackage, CudaPackage, ROCmPackage):
     """
 
     homepage = "https://www.open-mpi.org/projects/hwloc/"
-    url = "https://download.open-mpi.org/release/hwloc/v2.0/hwloc-2.0.2.tar.gz"
+    url = "https://download.open-mpi.org/release/hwloc/v2.11/hwloc-2.11.1.tar.bz2"
     git = "https://github.com/open-mpi/hwloc.git"
 
     maintainers("bgoglin")
@@ -36,12 +36,9 @@ class Hwloc(AutotoolsPackage, CudaPackage, ROCmPackage):
     executables = ["^hwloc-bind$"]
 
     version("master", branch="master")
+    version("2.11.1", sha256="9f320925cfd0daeaf3a3d724c93e127ecac63750c623654dca0298504aac4c2c")
     version("2.10.0", sha256="c7fd8a1404a9719c76aadc642864b9f77aed1dc1fc8882d6af861a9260ba240d")
-    version(
-        "2.9.3",
-        sha256="5985db3a30bbe51234c2cd26ebe4ae9b4c3352ab788b1a464c40c0483bf4de59",
-        preferred=True,
-    )
+    version("2.9.3", sha256="5985db3a30bbe51234c2cd26ebe4ae9b4c3352ab788b1a464c40c0483bf4de59")
     version("2.9.2", sha256="ffb554d5735e0e0a19d1fd4b2b86e771d3b58b2d97f257eedacae67ade5054b3")
     version("2.9.1", sha256="a440e2299f7451dc10a57ddbfa3f116c2a6c4be1bb97c663edd3b9c7b3b3b4cf")
     version("2.9.0", sha256="9d7d3450e0a5fea4cb80ca07dc8db939abb7ab62e2a7bb27f9376447658738ec")
@@ -75,9 +72,6 @@ class Hwloc(AutotoolsPackage, CudaPackage, ROCmPackage):
     version("1.11.1", sha256="b41f877d79b6026640943d57ef25311299378450f2995d507a5e633da711be61")
     version("1.9", sha256="9fb572daef35a1c8608d1a6232a4a9f56846bab2854c50562dfb9a7be294f4e8")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-
     variant("nvml", default=False, description="Support NVML device discovery")
     variant("gl", default=False, description="Support GL device discovery")
     variant("libxml2", default=True, description="Build with libxml2")
@@ -102,10 +96,10 @@ class Hwloc(AutotoolsPackage, CudaPackage, ROCmPackage):
     )
     variant("opencl", default=False, description="Support an OpenCL library at run time")
     variant("rocm", default=False, description="Support ROCm devices")
-    variant(
-        "oneapi-level-zero", default=False, description="Support Intel OneAPI Level Zero devices"
-    )
+    variant("level_zero", default=False, description="Support Intel OneAPI Level Zero devices")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("m4", type="build", when="@master")
     depends_on("autoconf", type="build", when="@master")
@@ -143,10 +137,10 @@ class Hwloc(AutotoolsPackage, CudaPackage, ROCmPackage):
         # variant of llvm-amdgpu depends on hwloc.
         depends_on("llvm-amdgpu", when="+opencl")
 
-    with when("+oneapi-level-zero"):
+    with when("+level_zero"):
         depends_on("oneapi-level-zero")
         # LevelZero support isn't available until hwloc version 2.5.0
-        conflicts("@:2.4.99", msg="hwloc supports Intel OneAPI Level Zero only since 2.5.0")
+        conflicts("@:2.4", msg="hwloc supports Intel OneAPI Level Zero only since 2.5.0")
 
     @classmethod
     def determine_version(cls, exe):
@@ -164,7 +158,18 @@ class Hwloc(AutotoolsPackage, CudaPackage, ROCmPackage):
         return LibraryList(libs)
 
     def configure_args(self):
-        args = []
+        args = [
+            *self.enable_or_disable("netloc"),
+            *self.enable_or_disable("cairo"),
+            *self.enable_or_disable("nvml"),
+            *self.enable_or_disable("gl"),
+            *self.enable_or_disable("cuda"),
+            *self.enable_or_disable("libxml2"),
+            *self.enable_or_disable("libudev"),
+            *self.enable_or_disable("pci"),
+            *self.enable_or_disable("libs"),
+            *self.enable_or_disable("levelzero", variant="level_zero"),
+        ]
 
         # If OpenCL is not enabled, disable it since hwloc might
         # pick up an OpenCL library at build time that is then
@@ -182,25 +187,12 @@ class Hwloc(AutotoolsPackage, CudaPackage, ROCmPackage):
         if "+rocm" not in self.spec:
             args.append("--disable-rsmi")
 
-        if "+rocm" in self.spec:
-            args.append("--with-rocm={0}".format(self.spec["hip"].prefix))
-            args.append("--with-rocm-version={0}".format(self.spec["hip"].version))
+        if self.spec.satisfies("+rocm"):
+            args.append(f'--with-rocm={self.spec["hip"].prefix}')
+            args.append(f'--with-rocm-version={self.spec["hip"].version}')
 
-        args.extend(self.enable_or_disable("netloc"))
-        args.extend(self.enable_or_disable("cairo"))
-        args.extend(self.enable_or_disable("nvml"))
-        args.extend(self.enable_or_disable("gl"))
-        args.extend(self.enable_or_disable("cuda"))
-        args.extend(self.enable_or_disable("libxml2"))
-        args.extend(self.enable_or_disable("libudev"))
-        args.extend(self.enable_or_disable("pci"))
-        args.extend(self.enable_or_disable("libs"))
-
-        if "+cuda" in self.spec:
-            args.append("--with-cuda={0}".format(self.spec["cuda"].prefix))
-            args.append("--with-cuda-version={0}".format(self.spec["cuda"].version))
-
-        if "+oneapi-level-zero" in self.spec:
-            args.append("--enable-levelzero")
+        if self.spec.satisfies("+cuda"):
+            args.append(f'--with-cuda={self.spec["cuda"].prefix}')
+            args.append(f'--with-cuda-version={self.spec["cuda"].version}')
 
         return args

@@ -54,7 +54,7 @@ class Discotec(CMakePackage):
             self.define_from_variant("DISCOTEC_USE_VTK", "vtk"),
             self.define_from_variant("DISCOTEC_WITH_SELALIB", "selalib"),
         ]
-        if "+selalib" in self.spec:
+        if self.spec.satisfies("+selalib"):
             args.append(self.define("SELALIB_DIR", self.spec["selalib"].prefix.cmake))
 
         return args

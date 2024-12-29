@@ -9,7 +9,7 @@ from spack.package import *
 class Setserial(AutotoolsPackage):
     """A utility for configuring serial ports."""
 
-    homepage = "http://setserial.sourceforge.net"
+    homepage = "https://setserial.sourceforge.net"
     url = (
         "https://udomain.dl.sourceforge.net/project/setserial/setserial/2.17/setserial-2.17.tar.gz"
     )

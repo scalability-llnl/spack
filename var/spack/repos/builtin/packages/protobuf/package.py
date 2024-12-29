@@ -16,6 +16,9 @@ class Protobuf(CMakePackage):
 
     license("BSD-3-Clause")
 
+    version("3.28.2", sha256="1b6b6a7a7894f509f099c4469b5d4df525c2f3c9e4009e5b2db5b0f66cb8ee0e")
+    version("3.27.5", sha256="a4aa92d0a207298149bf553d9a3192f3562eb91740086f50fa52331e60fa480c")
+    version("3.26.1", sha256="f3c0830339eaa5036eba8ff8ce7fca5aa3088f7d616f7c3713d946f611ae92bf")
     version("3.25.3", sha256="da82be8acc5347c7918ef806ebbb621b24988f7e1a19b32cd7fc73bc29b59186")
     version("3.24.3", sha256="2c23dee0bdbc36bd43ee457083f8f5560265d0815cc1c56033de3932843262fe")
     version("3.23.3", sha256="5e4b555f72a7e3f143a7aff7262292500bb02c49b174351684bb70fc7f2a6d33")
@@ -77,8 +80,8 @@ class Protobuf(CMakePackage):
     version("3.1.0", sha256="fb2a314f4be897491bb2446697be693d489af645cb0e165a85e7e64e07eb134d")
     version("3.0.2", sha256="a0a265bcc9d4e98c87416e59c33afc37cede9fb277292523739417e449b18c1e")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("shared", default=True, description="Enables the build of shared libraries")
     variant(
@@ -119,6 +122,22 @@ class Protobuf(CMakePackage):
     )
 
     patch("msvc-abseil-target-namespace.patch", when="@3.22 %msvc")
+
+    # Misisng #include "absl/container/internal/layout.h"
+    # See https://github.com/protocolbuffers/protobuf/pull/14042
+    patch(
+        "https://github.com/protocolbuffers/protobuf/commit/e052928c94f5a9a6a6cbdb82e09ab4ee92b7815f.patch?full_index=1",
+        when="@3.22:3.24.3 ^abseil-cpp@20240116:",
+        sha256="20e3cc99a9513b256e219653abe1bfc7d6b6a5413e269676e3d442830f99a1af",
+    )
+
+    # Missing #include "absl/strings/str_cat.h"
+    # See https://github.com/protocolbuffers/protobuf/pull/14054
+    patch(
+        "https://github.com/protocolbuffers/protobuf/commit/38a24729ec94e6576a1425951c898ad0b91ad2d2.patch?full_index=1",
+        when="@3.22:3.24.3 ^abseil-cpp@20240116:",
+        sha256="c061356db31cdce29c8cdd98a3a8219ef048ebc2318d0dec26c1f2c5e5dae29b",
+    )
 
     def fetch_remote_versions(self, *args, **kwargs):
         """Ignore additional source artifacts uploaded with releases,

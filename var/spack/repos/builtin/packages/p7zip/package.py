@@ -11,7 +11,7 @@ class P7zip(MakefilePackage):
     """A Unix port of the 7z file archiver"""
 
     maintainers("vmiheer")
-    homepage = "http://p7zip.sourceforge.net"
+    homepage = "https://p7zip.sourceforge.net"
 
     license("DOC")
 

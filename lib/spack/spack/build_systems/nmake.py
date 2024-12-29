@@ -2,7 +2,6 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import inspect
 from typing import List  # novm
 
 import llnl.util.filesystem as fs
@@ -11,7 +10,7 @@ import spack.builder
 import spack.package_base
 from spack.directives import build_system, conflicts
 
-from ._checks import BaseBuilder
+from ._checks import BuilderWithDefaults
 
 
 class NMakePackage(spack.package_base.PackageBase):
@@ -27,7 +26,7 @@ class NMakePackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("nmake")
-class NMakeBuilder(BaseBuilder):
+class NMakeBuilder(BuilderWithDefaults):
     """The NMake builder encodes the most common way of building software with
     Mircosoft's NMake tool. It has two phases that can be overridden, if need be:
 
@@ -132,9 +131,7 @@ class NMakeBuilder(BaseBuilder):
         if self.makefile_name:
             opts.append("/F{}".format(self.makefile_name))
         with fs.working_dir(self.build_directory):
-            inspect.getmodule(self.pkg).nmake(
-                *opts, *self.build_targets, ignore_quotes=self.ignore_quotes
-            )
+            pkg.module.nmake(*opts, *self.build_targets, ignore_quotes=self.ignore_quotes)
 
     def install(self, pkg, spec, prefix):
         """Run "nmake" on the install targets specified by the builder.
@@ -146,6 +143,4 @@ class NMakeBuilder(BaseBuilder):
             opts.append("/F{}".format(self.makefile_name))
         opts.append(self.define("PREFIX", fs.windows_sfn(prefix)))
         with fs.working_dir(self.build_directory):
-            inspect.getmodule(self.pkg).nmake(
-                *opts, *self.install_targets, ignore_quotes=self.ignore_quotes
-            )
+            pkg.module.nmake(*opts, *self.install_targets, ignore_quotes=self.ignore_quotes)

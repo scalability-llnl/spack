@@ -6,6 +6,7 @@
 import os
 import re
 
+import spack.fetch_strategy
 from spack.package import *
 from spack.util.environment import is_system_path
 
@@ -16,7 +17,7 @@ class Git(AutotoolsPackage):
     projects with speed and efficiency.
     """
 
-    homepage = "http://git-scm.com"
+    homepage = "https://git-scm.com"
     url = "https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.12.0.tar.gz"
     maintainers("jennfshr")
 
@@ -29,6 +30,8 @@ class Git(AutotoolsPackage):
     # Every new git release comes with a corresponding manpage resource:
     # https://www.kernel.org/pub/software/scm/git/git-manpages-{version}.tar.gz
     # https://mirrors.edge.kernel.org/pub/software/scm/git/sha256sums.asc
+    version("2.47.0", sha256="a84a7917e0ab608312834413f01fc01edc7844f9f9002ba69f3b4f4bcb8d937a")
+    version("2.46.2", sha256="65c5689fd44f1d09de7fd8c44de7fef074ddd69dda8b8503d44afb91495ecbce")
     version("2.45.2", sha256="98b26090ed667099a3691b93698d1e213e1ded73d36a2fde7e9125fce28ba234")
     version("2.44.2", sha256="f0655e81c5ecfeef7440aa4fcffa1c1a77eaccf764d6fe29579e9a06eac2cd04")
     version("2.43.5", sha256="324c3b85d668e6afe571b3502035848e4b349dead35188e2b8ab1b96c0cd45ff")
@@ -99,6 +102,8 @@ class Git(AutotoolsPackage):
     depends_on("c", type="build")  # generated
 
     for _version, _sha256_manpage in {
+        "2.47.0": "1a6f1e775dfe324a9b521793cbd2b3bba546442cc2ac2106d4df33dea9005038",
+        "2.46.2": "4bc3774ee4597098977befa4ec30b0f2cbed3b59b756e7cbb59ce1738682d43a",
         "2.45.2": "48c1e2e3ecbb2ce9faa020a19fcdbc6ce64ea25692111b5930686bc0bb4f0e7f",
         "2.45.1": "d9098fd93a3c0ef242814fc856a99886ce31dae2ba457afc416ba4e92af8f8f5",
         "2.44.2": "ee6a7238d5ede18fe21c0cc2131c7fbff1f871c25e2848892ee864d40baf7218",
@@ -185,7 +190,7 @@ class Git(AutotoolsPackage):
         # In that case the node in the DAG gets truncated and git DOES NOT
         # have a gettext dependency.
         spec = self.spec
-        if "+nls" in spec:
+        if spec.satisfies("+nls"):
             if "intl" in spec["gettext"].libs.names:
                 extlib_bits = []
                 if not is_system_path(spec["gettext"].prefix):
@@ -200,7 +205,7 @@ class Git(AutotoolsPackage):
             # For build step:
             env.append_flags("EXTLIBS", curlconfig("--static-libs", output=str).strip())
 
-        if "~perl" in self.spec:
+        if self.spec.satisfies("~perl"):
             env.append_flags("NO_PERL", "1")
 
     def configure_args(self):
@@ -216,14 +221,14 @@ class Git(AutotoolsPackage):
         if self.spec["iconv"].name == "libiconv":
             configure_args.append(f"--with-iconv={self.spec['iconv'].prefix}")
 
-        if "+perl" in self.spec:
+        if self.spec.satisfies("+perl"):
             configure_args.append("--with-perl={0}".format(spec["perl"].command.path))
 
-        if "^pcre" in self.spec:
+        if self.spec.satisfies("^pcre"):
             configure_args.append("--with-libpcre={0}".format(spec["pcre"].prefix))
-        if "^pcre2" in self.spec:
+        if self.spec.satisfies("^pcre2"):
             configure_args.append("--with-libpcre2={0}".format(spec["pcre2"].prefix))
-        if "+tcltk" in self.spec:
+        if self.spec.satisfies("+tcltk"):
             configure_args.append("--with-tcltk={0}".format(self.spec["tk"].prefix.bin.wish))
         else:
             configure_args.append("--without-tcltk")
@@ -241,7 +246,7 @@ class Git(AutotoolsPackage):
 
     def build(self, spec, prefix):
         args = []
-        if "~nls" in self.spec:
+        if self.spec.satisfies("~nls"):
             args.append("NO_GETTEXT=1")
         make(*args)
 
@@ -251,7 +256,7 @@ class Git(AutotoolsPackage):
 
     def install(self, spec, prefix):
         args = ["install"]
-        if "~nls" in self.spec:
+        if self.spec.satisfies("~nls"):
             args.append("NO_GETTEXT=1")
         make(*args)
 
@@ -263,11 +268,26 @@ class Git(AutotoolsPackage):
 
     @run_after("install")
     def install_completions(self):
-        install_tree("contrib/completion", self.prefix.share)
+        mkdirp(bash_completion_path(self.prefix))
+        install(
+            "contrib/completion/git-completion.bash",
+            join_path(bash_completion_path(self.prefix), "git"),
+        )
+
+        mkdirp(zsh_completion_path(self.prefix))
+        filter_file(
+            r"\$bash_completion\/git",
+            join_path(bash_completion_path(self.prefix), "git"),
+            "contrib/completion/git-completion.zsh",
+        )
+        install(
+            "contrib/completion/git-completion.zsh",
+            join_path(zsh_completion_path(self.prefix), "_git"),
+        )
 
     @run_after("install")
     def install_manpages(self):
-        if "~man" in self.spec:
+        if self.spec.satisfies("~man"):
             return
 
         prefix = self.prefix
@@ -279,7 +299,7 @@ class Git(AutotoolsPackage):
 
     @run_after("install")
     def install_subtree(self):
-        if "+subtree" in self.spec:
+        if self.spec.satisfies("+subtree"):
             with working_dir("contrib/subtree"):
                 make_args = ["V=1", "prefix={}".format(self.prefix.bin)]
                 make(" ".join(make_args))
@@ -292,7 +312,7 @@ class Git(AutotoolsPackage):
         # Libs from perl-alien-svn and apr-util are required in
         # LD_LIBRARY_PATH
         # TODO: extend to other platforms
-        if "+svn platform=linux" in self.spec:
+        if self.spec.satisfies("+svn platform=linux"):
             perl_svn = self.spec["perl-alien-svn"]
             env.prepend_path(
                 "LD_LIBRARY_PATH",

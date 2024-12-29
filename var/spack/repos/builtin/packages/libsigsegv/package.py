@@ -36,7 +36,7 @@ class Libsigsegv(AutotoolsPackage, GNUMirrorPackage):
     def setup_tests(self):
         """Copy the build test files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources(self.extra_install_tests)
+        cache_extra_test_sources(self, self.extra_install_tests)
 
     def test_smoke_test(self):
         """build and run smoke test"""

@@ -13,10 +13,13 @@ import pytest
 
 from llnl.util.filesystem import mkdirp, touch, working_dir
 
+import spack.error
+import spack.fetch_strategy
 import spack.patch
 import spack.paths
 import spack.repo
-import spack.util.compression
+import spack.spec
+import spack.stage
 import spack.util.url as url_util
 from spack.spec import Spec
 from spack.stage import Stage
@@ -98,7 +101,7 @@ def test_url_patch(mock_patch_stage, filename, sha256, archive_sha256, config):
         mkdirp(stage.source_path)
         with working_dir(stage.source_path):
             # write a file to be patched
-            with open("foo.txt", "w") as f:
+            with open("foo.txt", "w", encoding="utf-8") as f:
                 f.write(
                     """\
 first line
@@ -108,7 +111,7 @@ second line
             # save it for later comparison
             shutil.copyfile("foo.txt", "foo-original.txt")
             # write the expected result of patching.
-            with open("foo-expected.txt", "w") as f:
+            with open("foo-expected.txt", "w", encoding="utf-8") as f:
                 f.write(
                     """\
 zeroth line
@@ -255,7 +258,7 @@ def test_patched_dependency(mock_packages, install_mockery, mock_fetch):
             configure()
 
             # Make sure the Makefile contains the patched text
-            with open("Makefile") as mf:
+            with open("Makefile", encoding="utf-8") as mf:
                 assert "Patched!" in mf.read()
 
 
@@ -434,7 +437,7 @@ def test_patch_no_file():
 
     patch = spack.patch.Patch(fp, "nonexistent_file", 0, "")
     patch.path = "test"
-    with pytest.raises(spack.patch.NoSuchPatchError, match="No such patch:"):
+    with pytest.raises(spack.error.NoSuchPatchError, match="No such patch:"):
         patch.apply("")
 
 
@@ -444,10 +447,10 @@ def test_patch_no_sha256():
     fp = FakePackage("fake-package", "test", "fake-package")
     url = url_util.path_to_file_url("foo.tgz")
     match = "Compressed patches require 'archive_sha256' and patch 'sha256' attributes: file://"
-    with pytest.raises(spack.patch.PatchDirectiveError, match=match):
+    with pytest.raises(spack.error.PatchDirectiveError, match=match):
         spack.patch.UrlPatch(fp, url, sha256="", archive_sha256="")
     match = "URL patches require a sha256 checksum"
-    with pytest.raises(spack.patch.PatchDirectiveError, match=match):
+    with pytest.raises(spack.error.PatchDirectiveError, match=match):
         spack.patch.UrlPatch(fp, url, sha256="", archive_sha256="abc")
 
 

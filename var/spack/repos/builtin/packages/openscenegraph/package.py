@@ -58,8 +58,8 @@ class Openscenegraph(CMakePackage):
     )  # Qt windowing system was moved into separate osgQt project
     depends_on("qt@4:", when="@3.2:3.5.4")
     depends_on("qt@:4", when="@:3.1")
-    depends_on("libxinerama")
-    depends_on("libxrandr")
+    depends_on("libxinerama", when="platform=linux")
+    depends_on("libxrandr", when="platform=linux")
     depends_on("libpng")
     depends_on("jasper")
     depends_on("libtiff")

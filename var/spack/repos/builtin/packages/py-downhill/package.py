@@ -9,7 +9,7 @@ from spack.package import *
 class PyDownhill(PythonPackage):
     """Stochastic optimization routines for Theano"""
 
-    homepage = "http://github.com/lmjohns3/downhill"
+    homepage = "https://github.com/lmjohns3/downhill"
     pypi = "downhill/downhill-0.4.0.tar.gz"
 
     license("MIT")

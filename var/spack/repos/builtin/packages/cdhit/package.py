@@ -38,9 +38,9 @@ class Cdhit(MakefilePackage):
     def build(self, spec, prefix):
         mkdirp(prefix.bin)
         make_args = []
-        if "~openmp" in spec:
+        if spec.satisfies("~openmp"):
             make_args.append("openmp=no")
-        if "~zlib" in spec:
+        if spec.satisfies("~zlib"):
             make_args.append("zlib=no")
         make(*make_args)
 

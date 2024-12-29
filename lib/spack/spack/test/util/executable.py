@@ -12,6 +12,7 @@ import pytest
 import llnl.util.filesystem as fs
 
 import spack
+import spack.main
 import spack.util.executable as ex
 from spack.hooks.sbang import filter_shebangs_in_directory
 
@@ -29,7 +30,7 @@ def test_read_unicode(tmpdir, working_env):
 
         os.environ["LD_LIBRARY_PATH"] = spack.main.spack_ld_library_path
         # make a script that prints some unicode
-        with open(script_name, "w") as f:
+        with open(script_name, "w", encoding="utf-8") as f:
             f.write(
                 """#!{0}
 print(u'\\xc3')
