@@ -33,6 +33,17 @@ class Sysbench(AutotoolsPackage):
     depends_on("postgresql", when="+pgsql")
     depends_on("zlib-api", type="build")
 
+    phases = ["autoreconf", "configure", "build", "install"]
+
+    @property
+    def zlib_library_path(self):
+        return self.spec["zlib-api"].prefix.lib
+
+    def flag_handler(self, name, flags):
+        if name == "ldflags":
+            flags.append(f"-L{self.zlib_library_path}")
+        return flags, None, None
+
     def configure_args(self):
         args = []
 
