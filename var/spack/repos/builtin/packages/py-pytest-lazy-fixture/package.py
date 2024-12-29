@@ -18,3 +18,6 @@ class PyPytestLazyFixture(PythonPackage):
 
     depends_on("py-setuptools", type="build")
     depends_on("py-pytest@3.2.5:", type=("build", "run"))
+
+    # https://github.com/TvoroG/pytest-lazy-fixture/issues/65
+    depends_on("py-pytest@:7", type=("build", "run"))
