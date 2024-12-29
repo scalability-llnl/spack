@@ -14,12 +14,14 @@ class SstCore(AutotoolsPackage):
 
     homepage = "https://github.com/sstsimulator"
     git = "https://github.com/sstsimulator/sst-core.git"
-    url = "https://github.com/sstsimulator/sst-core/releases/download/v13.1.0_Final/sstcore-13.1.0.tar.gz"
+    url = "https://github.com/sstsimulator/sst-core/releases/download/v14.1.0_Final/sstcore-14.1.0.tar.gz"
 
     maintainers("berquist", "naromero77")
 
     license("BSD-3-Clause")
 
+    version("14.1.0", sha256="9d17c37d1ebdff8d8eb10ab0084eb901c78a7c5a76db15189e3d7fc318fd6f9d")
+    version("14.0.0", sha256="fadc7ee99472ff3ac5d4b3f3e507123e32bd9fb89c4c6b48fbd2dca8aeb8b8d6")
     version("13.1.0", sha256="0a44c62ee0b18a20a3cb089f4e0d43e293dc5adc6c3fa7639d40986cf5b9854c")
     version("13.0.0", sha256="c9d868dcdd75d59bef7c73146709a3b2a52a78f0df5ec2c3dc9f21434c51d935")
     version("12.1.0", sha256="f7530226643439678e2f4183ec4dbadf7750411bdaa44d9443887f81feb97574")

@@ -26,15 +26,6 @@ class Libpciaccess(AutotoolsPackage, XorgPackage):
 
     patch("nvhpc.patch", when="%nvhpc")
 
-    # A known issue exists when building with PGI as documented here:
-    # https://bugs.freedesktop.org/show_bug.cgi?id=94398
-    # https://www.pgroup.com/userforum/viewtopic.php?f=4&t=5126
-    # https://gitlab.freedesktop.org/xorg/lib/libpciaccess/issues/7
-    #
-    # When the ability to use dependencies built by another compiler, using a
-    # libpciaccess built by gcc should be usable by PGI builds.
-    conflicts("%pgi")
-
     conflicts("platform=darwin")
 
     def configure_args(self):

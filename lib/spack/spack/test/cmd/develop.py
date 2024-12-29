@@ -65,6 +65,12 @@ class TestDevelop:
             develop("--no-clone", "-p", str(tmpdir), "mpich@1.0")
             self.check_develop(e, spack.spec.Spec("mpich@=1.0"), str(tmpdir))
 
+    def test_develop_no_version(self, tmpdir):
+        env("create", "test")
+        with ev.read("test") as e:
+            develop("--no-clone", "-p", str(tmpdir), "mpich")
+            self.check_develop(e, spack.spec.Spec("mpich@=main"), str(tmpdir))
+
     def test_develop(self):
         env("create", "test")
         with ev.read("test") as e:

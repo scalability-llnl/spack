@@ -27,7 +27,8 @@ class NetlibXblas(AutotoolsPackage):
 
     version("1.0.248", sha256="b5fe7c71c2da1ed9bcdc5784a12c5fa9fb417577513fe8a38de5de0007f7aaa1")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("m4", type="build")
 
     variant("fortran", default=True, description="Build Fortran interfaces")
     variant("plain_blas", default=True, description="As part of XBLAS, build plain BLAS routines")

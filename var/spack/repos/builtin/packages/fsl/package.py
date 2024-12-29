@@ -6,6 +6,7 @@
 import glob
 import os
 
+import spack.util.environment
 from spack.package import *
 from spack.util.environment import EnvironmentModifications
 

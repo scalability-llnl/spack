@@ -19,7 +19,7 @@ class PyMgmetis(PythonPackage):
 
     depends_on("python@3.7:", type=("build", "run"))
     depends_on("py-setuptools", type="build")
-    depends_on("py-numpy@1.20.0:1.26.4", type=("build", "run"))
+    depends_on("py-numpy@1.20.0:", type=("build", "run"))
     depends_on("py-cython", type=("build"))
     depends_on("py-mpi4py@3.0.3:", type=("build", "run"))
     depends_on("py-pytest")

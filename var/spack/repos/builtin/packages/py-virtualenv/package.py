@@ -14,7 +14,16 @@ class PyVirtualenv(PythonPackage):
     git = "https://github.com/pypa/virtualenv.git"
 
     license("MIT")
-
+    version("20.26.5", sha256="ce489cac131aa58f4b25e321d6d186171f78e6cb13fafbf32a840cee67733ff4")
+    version("20.26.4", sha256="c17f4e0f3e6036e9f26700446f85c76ab11df65ff6d8a9cbfad9f71aabfcf23c")
+    version("20.26.3", sha256="4c43a2a236279d9ea36a0d76f98d84bd6ca94ac4e0f4a3b9d46d05e10fea542a")
+    version("20.26.2", sha256="82bf0f4eebbb78d36ddaee0283d43fe5736b53880b8a8cdcd37390a07ac3741c")
+    version("20.26.1", sha256="604bfdceaeece392802e6ae48e69cec49168b9c5f4a44e483963f9242eb0e78b")
+    version("20.26.0", sha256="ec25a9671a5102c8d2657f62792a27b48f016664c6873f6beed3800008577210")
+    version("20.25.3", sha256="7bb554bbdfeaacc3349fa614ea5bff6ac300fc7c335e9facf3a3bcfc703f45be")
+    version("20.25.2", sha256="fa7edb8428620518010928242ec17aa7132ae435319c29c1651d1cf4c4173aad")
+    version("20.25.1", sha256="e08e13ecdca7a0bd53798f356d5831434afa5b07b93f0abdf0797b7a06ffe197")
+    version("20.25.0", sha256="bf51c0d9c7dd63ea8e44086fa1e4fb1093a31e963b86959257378aef020e1f1b")
     version("20.24.5", sha256="e8361967f6da6fbdf1426483bfe9fca8287c242ac0bc30429905721cefbff752")
     version("20.22.0", sha256="278753c47aaef1a0f14e6db8a4c5e1e040e90aea654d0fc1dc7e0d8a42616cc3")
     version("20.17.1", sha256="f8b927684efc6f1cc206c9db297a570ab9ad0e51c16fa9e45487d36d1905c058")

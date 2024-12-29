@@ -131,7 +131,7 @@ def test_create_template(mock_test_repo, args, name, expected):
     filename = repo.filename_for_package_name(name)
     assert os.path.exists(filename)
 
-    with open(filename, "r") as package_file:
+    with open(filename, "r", encoding="utf-8") as package_file:
         content = package_file.read()
         for entry in expected:
             assert entry in content

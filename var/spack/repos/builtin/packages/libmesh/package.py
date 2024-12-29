@@ -152,7 +152,7 @@ class Libmesh(AutotoolsPackage):
     def configure_args(self):
         options = []
 
-        if "+shared" in self.spec:
+        if self.spec.satisfies("+shared"):
             options.extend(["--enable-shared", "--disable-static"])
         else:
             options.extend(["--disable-shared", "--enable-static"])
@@ -209,44 +209,44 @@ class Libmesh(AutotoolsPackage):
                 options.append("--enable-" + bundled_library + "=no")
 
         # and the ones which are dependencies of other bundled libraries:
-        if "+exodusii" in self.spec or "+netcdf" in self.spec:
+        if self.spec.satisfies("+exodusii") or self.spec.satisfies("+netcdf"):
             options.append("--enable-netcdf=yes")
         else:
             options.append("--enable-netcdf=no")
 
-        if "+vtk" in self.spec:
+        if self.spec.satisfies("+vtk"):
             options.append("--enable-vtk")
             options.append("--with-vtk=%s" % self.spec["vtk"].prefix)
         else:
             options.append("--disable-vtk")
 
         # handle external library dependencies:
-        if "+boost" in self.spec:
+        if self.spec.satisfies("+boost"):
             options.append("--with-boost=%s" % self.spec["boost"].prefix)
         else:
             options.append("--enable-boost=no")
 
-        if "+eigen" in self.spec:
+        if self.spec.satisfies("+eigen"):
             options.append("--with-eigen=%s" % self.spec["eigen"].prefix)
         else:
             options.append("--enable-eigen=no")
 
-        if "+metaphysicl" in self.spec:
+        if self.spec.satisfies("+metaphysicl"):
             options.append("--enable-metaphysicl")
         else:
             options.append("--disable-metaphysicl")
 
-        if "+perflog" in self.spec:
+        if self.spec.satisfies("+perflog"):
             options.append("--enable-perflog")
         else:
             options.append("--disable-perflog")
 
-        if "+blocked" in self.spec:
+        if self.spec.satisfies("+blocked"):
             options.append("--enable-blocked-storage")
         else:
             options.append("--disable-blocked-storage")
 
-        if "+hdf5" in self.spec:
+        if self.spec.satisfies("+hdf5"):
             options.append("--with-hdf5=%s" % self.spec["hdf5"].prefix)
         else:
             options.append("--enable-hdf5=no")
@@ -255,34 +255,34 @@ class Libmesh(AutotoolsPackage):
             if "+netcdf" not in self.spec:
                 options.append("--disable-netcdf-4")
 
-        if "+metis" in self.spec:
+        if self.spec.satisfies("+metis"):
             options.append("--enable-metis")
             options.append("--enable-parmetis")
-            if "+petsc" in self.spec:
+            if self.spec.satisfies("+petsc"):
                 options.append("--with-metis=PETSc")
                 options.append("--with-parmetis=PETSc")
         else:
             options.append("--disable-metis")
 
-        if "+petsc" in self.spec or "+slepc" in self.spec:
+        if self.spec.satisfies("+petsc") or self.spec.satisfies("+slepc"):
             options.append("--enable-petsc=yes")
             options.append("PETSC_DIR=%s" % self.spec["petsc"].prefix)
         else:
             options.append("--enable-petsc=no")
 
-        if "+slepc" in self.spec:
+        if self.spec.satisfies("+slepc"):
             options.append("--enable-slepc=yes")
             options.append("SLEPC_DIR=%s" % self.spec["slepc"].prefix)
         else:
             options.append("--enable-slepc=no")
 
         # and, finally, other things:
-        if "+debug" in self.spec:
+        if self.spec.satisfies("+debug"):
             options.append("--with-methods=dbg")
         else:
             options.append("--with-methods=opt")
 
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             options.append("CC=%s" % self.spec["mpi"].mpicc)
             options.append("CXX=%s" % self.spec["mpi"].mpicxx)
             options.append("--with-mpi=%s" % self.spec["mpi"].prefix)
@@ -293,7 +293,7 @@ class Libmesh(AutotoolsPackage):
             options.append("CC=%s" % self.compiler.cc)
             options.append("CXX=%s" % self.compiler.cxx)
 
-        if "threads=openmp" in self.spec:
+        if self.spec.satisfies("threads=openmp"):
             # OpenMP cannot be used if pthreads is not available: see
             # parallel/threads_pthread.h and parallel/threads.h
             options.append("--enable-openmp=yes")
@@ -302,14 +302,14 @@ class Libmesh(AutotoolsPackage):
         else:
             options.append("--enable-openmp=no")
 
-        if "threads=pthreads" in self.spec:
+        if self.spec.satisfies("threads=pthreads"):
             options.append("--with-thread-model=pthread")
             options.append("--enable-pthreads=yes")
         else:
             if "threads=openmp" not in self.spec:
                 options.append("--enable-pthreads=no")
 
-        if "threads=tbb" in self.spec:
+        if self.spec.satisfies("threads=tbb"):
             options.append("--with-thread-model=tbb")
             options.append("--enable-tbb=yes")
             options.append("--with-tbb=%s" % self.spec["tbb"].prefix)

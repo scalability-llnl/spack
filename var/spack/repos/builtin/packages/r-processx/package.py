@@ -20,6 +20,7 @@ class RProcessx(RPackage):
 
     license("MIT")
 
+    version("3.8.4", sha256="6627672d7fb109f37dc1d0eaef913f4cfc7ad8ac807abf0397e6d37753b1e70b")
     version("3.8.1", sha256="e008472b81d4ca1a37a4ba7dd58e5e944f96ab2e44c8ccc8840d43e9fe99e93c")
     version("3.8.0", sha256="9270d9d26c4314151062801a5c1fc57556b4fcb41dbf3558cb5bd230b18ffb0b")
     version("3.7.0", sha256="de6a8d4135fc53ec35043fbaf6b000dc9597719345595d8479662a39dad55ed3")

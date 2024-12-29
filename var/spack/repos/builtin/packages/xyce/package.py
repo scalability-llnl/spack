@@ -60,8 +60,9 @@ class Xyce(CMakePackage):
         deprecated=True,
     )
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
 
     depends_on("cmake@3.22:", type="build")
     depends_on("flex")
@@ -101,7 +102,9 @@ class Xyce(CMakePackage):
 
     depends_on("python@3:", type=("build", "link", "run"), when="+pymi")
     depends_on("py-pip", type="run", when="+pymi")
-    depends_on("py-pybind11@2.6.1:", type=("build", "link"), when="+pymi")
+    depends_on("py-pybind11@2.6.1:", type=("build", "link"), when="@:7.8 +pymi")
+    depends_on("py-pybind11@2.13:", type=("build", "link"), when="@7.9: +pymi")
+    depends_on("python-venv", when="+pymi")
 
     depends_on(
         "trilinos"
@@ -227,7 +230,11 @@ class Xyce(CMakePackage):
             flags.append("-DXyce_INTRUSIVE_PCE -Wreorder")
         elif name == "ldflags":
             # Fortran lib (assumes clang is built with gfortran!)
-            if spec.compiler.name in ["gcc", "clang", "apple-clang"]:
+            if (
+                spec.satisfies("%gcc")
+                or spec.satisfies("%clang")
+                or spec.satisfies("%apple-clang")
+            ):
                 fc = Executable(self.compiler.fc)
                 libgfortran = fc(
                     "--print-file-name", "libgfortran." + dso_suffix, output=str

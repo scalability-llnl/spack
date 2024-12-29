@@ -24,11 +24,12 @@ class Abinit(AutotoolsPackage):
     programs are provided.
     """
 
-    homepage = "https://www.abinit.org/"
-    url = "https://www.abinit.org/sites/default/files/packages/abinit-10.0.7.tar.gz"
+    homepage = "https://abinit.github.io/abinit_web/"
+    url = "https://forge.abinit.org/abinit-10.0.9.tar.gz"
     license("Apache-2.0")
 
     maintainers("downloadico")
+    version("10.0.9", sha256="17650580295e07895f6c3c4b1f3f0fe0e0f3fea9bab5fd8ce7035b16a62f8e5e")
     version("10.0.7", sha256="a9fc044b33861b7defd50fafd19a73eb6f225e18ae30b23bc731d9c8009c881c")
     version("9.10.5", sha256="a9e0f0e058baa6088ea93d26ada369ccf0fe52dc9d4a865b1c38c20620148cd5")
     version("9.10.3", sha256="3f2a9aebbf1fee9855a09dd687f88d2317b8b8e04f97b2628ab96fb898dce49b")
@@ -41,8 +42,6 @@ class Abinit(AutotoolsPackage):
     version("8.8.2", sha256="15216703bd56a799a249a112b336d07d733627d3756487a4b1cb48ebb625c3e7")
     version("8.6.3", sha256="82e8d071088ab8dc1b3a24380e30b68c544685678314df1213180b449c84ca65")
     version("8.2.2", sha256="e43544a178d758b0deff3011c51ef7c957d7f2df2ce8543366d68016af9f3ea1")
-    # Versions before 8.0.8b are not supported.
-    version("8.0.8b", sha256="37ad5f0f215d2a36e596383cb6e54de3313842a0390ce8d6b48a423d3ee25af2")
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
@@ -210,14 +209,23 @@ class Abinit(AutotoolsPackage):
 
         # BLAS/LAPACK/SCALAPACK-ELPA
         linalg = spec["lapack"].libs + spec["blas"].libs
+
+        # linalg_flavor is selected using the virtual lapack provider
         is_using_intel_libraries = spec["lapack"].name in INTEL_MATH_LIBRARIES
+
+        # These *must* be elifs, otherwise spack's lapack provider is ignored
+        # linalg_flavor ends up as "custom", which is not supported by abinit@9.10.3:
         if is_using_intel_libraries:
             linalg_flavor = "mkl"
-        if spec.satisfies("@9:") and spec.satisfies("^openblas"):
-            linalg_flavor = "openblas"
-        if spec.satisfies("@9:") and spec.satisfies("^fujitsu-ssl2"):
+        # Else, if spack's virtual "lapack" provider is openblas, use it:
+        elif spec.satisfies("@9:") and (
+            spec["lapack"].name == "openblas" or spec.satisfies("^fujitsu-ssl2")
+        ):
             linalg_flavor = "openblas"
         else:
+            # If you need to force custom (and not have it as fallback, like now)
+            # you should likely implement a variant to force it, but it seems that
+            # newer versions do not have it, so it should likely be a fallback:
             linalg_flavor = "custom"
 
         if spec.satisfies("+scalapack"):

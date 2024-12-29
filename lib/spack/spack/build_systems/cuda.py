@@ -110,8 +110,8 @@ class CudaPackage(PackageBase):
 
     depends_on("cuda@5.0:10.2", when="cuda_arch=30")
     depends_on("cuda@5.0:10.2", when="cuda_arch=32")
-    depends_on("cuda@5.0:", when="cuda_arch=35")
-    depends_on("cuda@6.5:", when="cuda_arch=37")
+    depends_on("cuda@5.0:11.8", when="cuda_arch=35")
+    depends_on("cuda@6.5:11.8", when="cuda_arch=37")
 
     depends_on("cuda@6.0:", when="cuda_arch=50")
     depends_on("cuda@6.5:", when="cuda_arch=52")
@@ -131,6 +131,7 @@ class CudaPackage(PackageBase):
     depends_on("cuda@11.8:", when="cuda_arch=89")
 
     depends_on("cuda@12.0:", when="cuda_arch=90")
+    depends_on("cuda@12.0:", when="cuda_arch=90a")
 
     # From the NVIDIA install guide we know of conflicts for particular
     # platforms (linux, darwin), architectures (x86, powerpc) and compilers
@@ -149,7 +150,6 @@ class CudaPackage(PackageBase):
         # minimum supported versions
         conflicts("%gcc@:4", when="+cuda ^cuda@11.0:")
         conflicts("%gcc@:5", when="+cuda ^cuda@11.4:")
-        conflicts("%gcc@:7.2", when="+cuda ^cuda@12.4:")
         conflicts("%clang@:6", when="+cuda ^cuda@12.2:")
 
         # maximum supported version
@@ -180,13 +180,6 @@ class CudaPackage(PackageBase):
         conflicts("%gcc@7:", when="+cuda ^cuda@:9.1 target=x86_64:")
         conflicts("%gcc@8:", when="+cuda ^cuda@:10.0.130 target=x86_64:")
         conflicts("%gcc@9:", when="+cuda ^cuda@:10.2.89 target=x86_64:")
-        conflicts("%pgi@:14.8", when="+cuda ^cuda@:7.0.27 target=x86_64:")
-        conflicts("%pgi@:15.3,15.5:", when="+cuda ^cuda@7.5 target=x86_64:")
-        conflicts("%pgi@:16.2,16.0:16.3", when="+cuda ^cuda@8 target=x86_64:")
-        conflicts("%pgi@:15,18:", when="+cuda ^cuda@9.0:9.1 target=x86_64:")
-        conflicts("%pgi@:16,19:", when="+cuda ^cuda@9.2.88:10.0 target=x86_64:")
-        conflicts("%pgi@:17,20:", when="+cuda ^cuda@10.1.105:10.2.89 target=x86_64:")
-        conflicts("%pgi@:17,21:", when="+cuda ^cuda@11.0.2:11.1.0 target=x86_64:")
         conflicts("%clang@:3.4", when="+cuda ^cuda@:7.5 target=x86_64:")
         conflicts("%clang@:3.7,4:", when="+cuda ^cuda@8.0:9.0 target=x86_64:")
         conflicts("%clang@:3.7,4.1:", when="+cuda ^cuda@9.1 target=x86_64:")
@@ -212,9 +205,6 @@ class CudaPackage(PackageBase):
         conflicts("%gcc@8:", when="+cuda ^cuda@:10.0.130 target=ppc64le:")
         conflicts("%gcc@9:", when="+cuda ^cuda@:10.1.243 target=ppc64le:")
         # officially, CUDA 11.0.2 only supports the system GCC 8.3 on ppc64le
-        conflicts("%pgi", when="+cuda ^cuda@:8 target=ppc64le:")
-        conflicts("%pgi@:16", when="+cuda ^cuda@:9.1.185 target=ppc64le:")
-        conflicts("%pgi@:17", when="+cuda ^cuda@:10 target=ppc64le:")
         conflicts("%clang@4:", when="+cuda ^cuda@:9.0.176 target=ppc64le:")
         conflicts("%clang@5:", when="+cuda ^cuda@:9.1 target=ppc64le:")
         conflicts("%clang@6:", when="+cuda ^cuda@:9.2 target=ppc64le:")
@@ -240,6 +230,11 @@ class CudaPackage(PackageBase):
         conflicts("%intel@19.1:", when="+cuda ^cuda@:10.1")
         conflicts("%intel@19.2:", when="+cuda ^cuda@:11.1.0")
         conflicts("%intel@2021:", when="+cuda ^cuda@:11.4.0")
+
+        # ARM
+        # https://github.com/spack/spack/pull/39666#issuecomment-2377609263
+        # Might need to be expanded to other gcc versions
+        conflicts("%gcc@13.2.0", when="+cuda ^cuda@:12.4 target=aarch64:")
 
         # XL is mostly relevant for ppc64le Linux
         conflicts("%xl@:12,14:", when="+cuda ^cuda@:9.1")

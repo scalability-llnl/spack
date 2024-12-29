@@ -15,6 +15,7 @@ class Prometheus(MakefilePackage):
 
     license("Apache-2.0")
 
+    version("2.55.1", sha256="f48251f5c89eea6d3b43814499d558bacc4829265419ee69be49c5af98f79573")
     version("2.19.2", sha256="d4e84cae2fed6761bb8a80fcc69b6e0e9f274d19dffc0f38fb5845f11da1bbc3")
     version("2.19.1", sha256="b72b9b6bdbae246dcc29ef354d429425eb3c0a6e1596fc8b29b502578a4ce045")
     version("2.18.2", sha256="a26c106c97d81506e3a20699145c11ea2cce936427a0e96eb2fd0dc7cd1945ba")
@@ -26,6 +27,7 @@ class Prometheus(MakefilePackage):
     depends_on("go", type="build")
     depends_on("node-js@11.10.1:", type="build")
     depends_on("yarn", type="build")
+    depends_on("npm", type="build", when="@2.55.1:")
 
     def build(self, spec, prefix):
         make("build", parallel=False)
@@ -34,5 +36,6 @@ class Prometheus(MakefilePackage):
         mkdirp(prefix.bin)
         install("prometheus", prefix.bin)
         install("promtool", prefix.bin)
-        install("tsdb/tsdb", prefix.bin)
+        if spec.satisfies("@:2.19.2"):
+            install("tsdb/tsdb", prefix.bin)
         install_tree("documentation", prefix.documentation)

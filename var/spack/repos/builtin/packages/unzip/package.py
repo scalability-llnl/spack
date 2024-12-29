@@ -28,8 +28,9 @@ class Unzip(MakefilePackage):
         make_args = ["-f", join_path("unix", "Makefile")]
 
         cflags = []
-        cflags.append("-Wno-error=implicit-function-declaration")
-        cflags.append("-Wno-error=implicit-int")
+        if not self.spec.satisfies("%nvhpc"):
+            cflags.append("-Wno-error=implicit-function-declaration")
+            cflags.append("-Wno-error=implicit-int")
         cflags.append("-DLARGE_FILE_SUPPORT")
 
         make_args.append(f"LOC={' '.join(cflags)}")

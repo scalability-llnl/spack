@@ -137,20 +137,20 @@ class LinuxPerf(Package):
         if version >= Version("6.4"):
             args.append("BUILD_NONDISTRO=1")
 
-        if "+libaudit" in spec:
+        if spec.satisfies("+libaudit"):
             checks.add("libaudit")
             args.append("NO_SYSCALL_TABLE=1")  # will look for libaudit
         else:
             checks.add("syscall_table")
             args.append("NO_LIBAUDIT=1")
 
-        if "+debuginfod" in spec:
+        if spec.satisfies("+debuginfod"):
             if version >= Version("5.19"):  # Not in --build-options before that
                 checks.add("debuginfod")
         else:
             args.append("NO_LIBDEBUGINFOD=1")
 
-        if "+python" in spec:
+        if spec.satisfies("+python"):
             checks.add("libpython")
             args.extend(
                 [
@@ -161,22 +161,22 @@ class LinuxPerf(Package):
         else:
             args.append("NO_LIBPYTHON=1")
 
-        if "+perl" in spec:
+        if spec.satisfies("+perl"):
             checks.add("libperl")
         else:
             args.append("NO_LIBPERL=1")
 
-        if "+openssl" in spec:
+        if spec.satisfies("+openssl"):
             checks.add("libcrypto")
         else:
             args.append("NO_LIBCRYPTO=1")
 
-        if "+slang" in spec:
+        if spec.satisfies("+slang"):
             checks.add("libslang")
         else:
             args.append("NO_SLANG=1")
 
-        if "+libpfm4" in spec:
+        if spec.satisfies("+libpfm4"):
             checks.add("libpfm4")
             if version < Version("6.4"):
                 args.append("LIBPFM4=1")
@@ -184,35 +184,35 @@ class LinuxPerf(Package):
             if version >= Version("6.4"):
                 args.append("NO_LIBPFM4=1")
 
-        if "+babeltrace" in spec:
+        if spec.satisfies("+babeltrace"):
             # checks.add("babeltrace")  # Not in --build-options ?
             args.append("LIBBABELTRACE_DIR={}".format(spec["babeltrace"].prefix))
         else:
             args.append("NO_LIBBABELTRACE=1")
 
-        if "+libcap" in spec:
+        if spec.satisfies("+libcap"):
             # checks.add("libcap")  # Not in --build-options ?
             pass
         else:
             args.append("NO_LIBCAP=1")
 
-        if "+numactl" in spec:
+        if spec.satisfies("+numactl"):
             checks.add("libnuma")
         else:
             args.append("NO_LIBNUMA=1")
 
-        if "+xz" in spec:
+        if spec.satisfies("+xz"):
             checks.add("lzma")
         else:
             args.append("NO_LZMA=1")
 
-        if "+zstd" in spec:
+        if spec.satisfies("+zstd"):
             checks.add("zstd")
             args.append("LIBZSTD_DIR={}".format(spec["zstd"].prefix))
         else:
             args.append("NO_LIBZSTD=1")
 
-        if "+libtraceevent" in spec:
+        if spec.satisfies("+libtraceevent"):
             if version >= Version("6.2"):  # Not in --build-options before that
                 checks.add("libtraceevent")
             if version >= Version("6.10"):
@@ -223,7 +223,7 @@ class LinuxPerf(Package):
             if version >= Version("6.2"):
                 args.append("NO_LIBTRACEEVENT=1")
 
-        if "+jvmti" in spec:
+        if spec.satisfies("+jvmti"):
             # checks.add("jvmti")  # Not in --build-options ?
             args.append("JDIR={}".format(spec["java"].prefix))
         else:

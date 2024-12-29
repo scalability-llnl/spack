@@ -25,22 +25,18 @@ class Madgraph5amc(MakefilePackage):
     timeout = {"timeout": 60}
 
     with default_args(fetch_options=timeout):
-        version("3.5.5", sha256="3b4262024cefb8a06082faa9a7ba43484b27a3f2b940a06fbe49c640c5b7ebd7")
+        version("3.5.6", sha256="d4f336196303df748074ac92f251db8e6592fca37b3059c2e0f2a764c7e50975")
         version(
             "2.9.20",
             sha256="09a70e2e8b52e504bcaaa6527d3cec9641b043f5f853f2d11fa3c9970b7efae9",
-            url="https://launchpad.net/mg5amcnlo/lts/2.9.x/+download/MG5_aMC_v2.9.20.tar.gz",
+            preferred=True,
         )
         with default_args(deprecated=True):
             version(
-                "2.9.19",
-                sha256="ec95d40ec8845e57682400ef24a3b769a4d0542e3a849b7c5e10105d0a0f8e61",
-                url="https://launchpad.net/mg5amcnlo/lts/2.9.x/+download/MG5_aMC_v2.9.19.tar.gz",
+                "2.9.19", sha256="ec95d40ec8845e57682400ef24a3b769a4d0542e3a849b7c5e10105d0a0f8e61"
             )
             version(
-                "2.9.17",
-                sha256="6781c515ccc2005a953c35dcf9238632b761a937f1832bdfaa5514510b8c5a17",
-                url="https://launchpad.net/mg5amcnlo/lts/2.9.x/+download/MG5_aMC_v2.9.17.tar.gz",
+                "2.9.17", sha256="6781c515ccc2005a953c35dcf9238632b761a937f1832bdfaa5514510b8c5a17"
             )
             # Older versions have been removed, only the latest LTS versions are available:
             version(

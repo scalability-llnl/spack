@@ -68,11 +68,6 @@ class Fleur(Package):
 
     conflicts("%intel@:16.0.4", msg="ifort version <16.0 will most probably not work correctly")
     conflicts("%gcc@:6.3.0", msg="gfortran is known to work with versions newer than v6.3")
-    conflicts(
-        "%pgi@:18.4.0",
-        msg="You need at least PGI version 18.4 \
-                   but might still run into some problems.",
-    )
     conflicts("~scalapack", when="+elpa", msg="ELPA requires scalapack support")
     conflicts("@:5.0", when="fft=fftw", msg="FFTW interface is supported from Fleur v5.0")
     conflicts("@:5.0", when="+wannier90", msg="wannier90 is supported from Fleur v5.0")

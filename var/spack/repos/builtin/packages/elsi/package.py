@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os.path
 
-from spack.error import NoHeadersError
 from spack.package import *
 
 

@@ -38,7 +38,7 @@ import spack.caches
 import spack.compiler
 import spack.compilers
 import spack.config
-import spack.directives
+import spack.directives_meta
 import spack.environment as ev
 import spack.error
 import spack.modules.common
@@ -62,7 +62,10 @@ import spack.util.web
 import spack.version
 from spack.fetch_strategy import URLFetchStrategy
 from spack.installer import PackageInstaller
+from spack.main import SpackCommand
 from spack.util.pattern import Bunch
+
+mirror_cmd = SpackCommand("mirror")
 
 
 @pytest.fixture(autouse=True)
@@ -104,7 +107,7 @@ def last_two_git_commits(git):
 
 
 def write_file(filename, contents):
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(contents)
 
 
@@ -668,7 +671,7 @@ def mock_uarch_configuration(mock_uarch_json):
     """Create mock dictionaries for the archspec.cpu."""
 
     def load_json():
-        with open(mock_uarch_json) as f:
+        with open(mock_uarch_json, encoding="utf-8") as f:
             return json.load(f)
 
     targets_json = load_json()
@@ -970,12 +973,26 @@ def _return_none(*args):
     return None
 
 
+def _compiler_output(self):
+    return ""
+
+
+def _get_real_version(self):
+    return str(self.version)
+
+
 @pytest.fixture(scope="function", autouse=True)
 def disable_compiler_execution(monkeypatch, request):
     """Disable compiler execution to determine implicit link paths and libc flavor and version.
     To re-enable use `@pytest.mark.enable_compiler_execution`"""
     if "enable_compiler_execution" not in request.keywords:
-        monkeypatch.setattr(spack.compiler.Compiler, "_compile_dummy_c_source", _return_none)
+        monkeypatch.setattr(spack.compiler.Compiler, "_compile_dummy_c_source", _compiler_output)
+        monkeypatch.setattr(spack.compiler.Compiler, "get_real_version", _get_real_version)
+
+
+@pytest.fixture(autouse=True)
+def disable_compiler_output_cache(monkeypatch):
+    monkeypatch.setattr(spack.compiler, "COMPILER_CACHE", spack.compiler.CompilerCache())
 
 
 @pytest.fixture(scope="function")
@@ -987,6 +1004,38 @@ def install_mockery(temporary_store: spack.store.Store, mutable_config, mock_pac
 
     # Wipe out any cached prefix failure locks (associated with the session-scoped mock archive)
     temporary_store.failure_tracker.clear_all()
+
+
+@pytest.fixture(scope="module")
+def temporary_mirror_dir(tmpdir_factory):
+    dir = tmpdir_factory.mktemp("mirror")
+    dir.ensure("build_cache", dir=True)
+    yield str(dir)
+    dir.join("build_cache").remove()
+
+
+@pytest.fixture(scope="function")
+def temporary_mirror(temporary_mirror_dir):
+    mirror_url = url_util.path_to_file_url(temporary_mirror_dir)
+    mirror_cmd("add", "--scope", "site", "test-mirror-func", mirror_url)
+    yield temporary_mirror_dir
+    mirror_cmd("rm", "--scope=site", "test-mirror-func")
+
+
+@pytest.fixture(scope="function")
+def mutable_temporary_mirror_dir(tmpdir_factory):
+    dir = tmpdir_factory.mktemp("mirror")
+    dir.ensure("build_cache", dir=True)
+    yield str(dir)
+    dir.join("build_cache").remove()
+
+
+@pytest.fixture(scope="function")
+def mutable_temporary_mirror(mutable_temporary_mirror_dir):
+    mirror_url = url_util.path_to_file_url(mutable_temporary_mirror_dir)
+    mirror_cmd("add", "--scope", "site", "test-mirror-func", mirror_url)
+    yield mutable_temporary_mirror_dir
+    mirror_cmd("rm", "--scope=site", "test-mirror-func")
 
 
 @pytest.fixture(scope="function")
@@ -1051,7 +1100,7 @@ class ConfigUpdate:
 
     def __call__(self, filename):
         file = os.path.join(self.root_for_conf, filename + ".yaml")
-        with open(file) as f:
+        with open(file, encoding="utf-8") as f:
             config_settings = syaml.load_config(f)
         spack.config.set("modules:default", config_settings)
         mock_config = MockConfig(config_settings, self.writer_key)
@@ -1125,7 +1174,7 @@ def mock_archive(request, tmpdir_factory):
 
     # Create the configure script
     configure_path = str(tmpdir.join(spack.stage._source_path_subdir, "configure"))
-    with open(configure_path, "w") as f:
+    with open(configure_path, "w", encoding="utf-8") as f:
         f.write(
             "#!/bin/sh\n"
             "prefix=$(echo $1 | sed 's/--prefix=//')\n"
@@ -1627,12 +1676,6 @@ def conflict_spec(request):
     return request.param
 
 
-@pytest.fixture(params=["conflict%~"])
-def invalid_spec(request):
-    """Specs that do not parse cleanly due to invalid formatting."""
-    return request.param
-
-
 @pytest.fixture(scope="module")
 def mock_test_repo(tmpdir_factory):
     """Create an empty repository."""
@@ -1705,7 +1748,7 @@ def clear_directive_functions():
     # Make sure any directive functions overidden by tests are cleared before
     # proceeding with subsequent tests that may depend on the original
     # functions.
-    spack.directives.DirectiveMeta._directives_to_be_executed = []
+    spack.directives_meta.DirectiveMeta._directives_to_be_executed = []
 
 
 @pytest.fixture
@@ -1825,7 +1868,7 @@ def mock_curl_configs(mock_config_data, monkeypatch):
                 if basename in config_files:
                     filename = os.path.join(config_data_dir, basename)
 
-                    with open(filename, "r") as f:
+                    with open(filename, "r", encoding="utf-8") as f:
                         lines = f.readlines()
                         write_file(os.path.basename(filename), "".join(lines))
 
@@ -1980,6 +2023,11 @@ def pytest_runtest_setup(item):
     if not_on_windows_marker and sys.platform == "win32":
         pytest.skip(*not_on_windows_marker.args)
 
+    # Skip items marked "only windows" if they're run anywhere but Windows
+    only_windows_marker = item.get_closest_marker(name="only_windows")
+    if only_windows_marker and sys.platform != "win32":
+        pytest.skip(*only_windows_marker.args)
+
 
 def _sequential_executor(*args, **kwargs):
     return spack.util.parallel.SequentialExecutor()
@@ -2010,7 +2058,7 @@ def create_test_repo(tmpdir, pkg_name_content_tuples):
 
     repo_path = str(tmpdir)
     repo_yaml = tmpdir.join("repo.yaml")
-    with open(str(repo_yaml), "w") as f:
+    with open(str(repo_yaml), "w", encoding="utf-8") as f:
         f.write(
             f"""\
 repo:
@@ -2024,7 +2072,7 @@ repo:
     for pkg_name, pkg_str in pkg_name_content_tuples:
         pkg_dir = packages_dir.ensure(pkg_name, dir=True)
         pkg_file = pkg_dir.join("package.py")
-        with open(str(pkg_file), "w") as f:
+        with open(str(pkg_file), "w", encoding="utf-8") as f:
             f.write(pkg_str)
 
     repo_cache = spack.util.file_cache.FileCache(str(tmpdir.join("cache")))

@@ -1359,6 +1359,10 @@ For example, for the ``stackstart`` variant:
     mpileaks stackstart==4   # variant will be propagated to dependencies
     mpileaks stackstart=4    # only mpileaks will have this variant value
 
+Spack also allows variants to be propagated from a package that does
+not have that variant.
+
+
 ^^^^^^^^^^^^^^
 Compiler Flags
 ^^^^^^^^^^^^^^

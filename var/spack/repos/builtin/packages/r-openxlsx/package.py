@@ -18,6 +18,7 @@ class ROpenxlsx(RPackage):
 
     license("MIT")
 
+    version("4.2.6.1", sha256="c208c506a5d6a1d89a18c2b0bedceb467a461939128f2d7916efbf41e7a17aa9")
     version("4.2.5.2", sha256="ee7089e7e5832ef22ee0d0eebf7cca5096ce23afb2bcdb58700be62526fc9b67")
     version("4.2.5.1", sha256="64d224380809d8d19788b02daf9d6dae45262594b81f5e013d37d34daf0945c8")
     version("4.2.5", sha256="65d06d2819b656ac30fc78437ee712a83fb5a7ab750f56268e5c9e578c582519")

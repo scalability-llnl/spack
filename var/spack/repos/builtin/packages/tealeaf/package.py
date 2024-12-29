@@ -47,8 +47,6 @@ class Tealeaf(MakefilePackage):
             targets.append("COMPILER=CRAY")
         elif "%intel" in self.spec:
             targets.append("COMPILER=INTEL")
-        elif "%pgi" in self.spec:
-            targets.append("COMPILER=PGI")
         elif "%xl" in self.spec:
             targets.append("COMPILER=XL")
 

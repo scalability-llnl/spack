@@ -5,7 +5,6 @@
 
 import os
 
-import spack.util.executable
 from spack.package import *
 
 
@@ -22,6 +21,7 @@ class FluxSecurity(AutotoolsPackage):
     license("LGPL-3.0-or-later")
 
     version("master", branch="master")
+    version("0.12.0", sha256="2876d1f10c4f898f2ff10d60ddb446af9c8a913dda69f0136d820ad1fdf28a93")
     version("0.11.0", sha256="d1ef78a871155a252f07e4f0a636eb272d6c2048d5e0e943860dd687c6cf808a")
     version("0.10.0", sha256="b0f39c5e32322f901454469ffd6154019b6dffafc064b55b3e593f70db6a6f68")
     version("0.9.0", sha256="2258120c6f32ca0b5b13b166bae56d9bd82a44c6eeaa6bc6187e4a4419bdbcc0")
@@ -54,7 +54,7 @@ class FluxSecurity(AutotoolsPackage):
                 git("fetch", "--unshallow")
                 git("config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*")
                 git("fetch", "origin")
-            except spack.util.executable.ProcessError:
+            except ProcessError:
                 git("fetch")
 
     def autoreconf(self, spec, prefix):

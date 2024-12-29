@@ -19,6 +19,7 @@ class RMarkdown(RPackage):
 
     license("MIT")
 
+    version("1.13", sha256="385421c674cf5bf2ba04d1df7c16bb5d857bec03755a36321999ac37f5b3cfd9")
     version("1.6", sha256="46228b8d8161ae4b651b4662364eb35a3b91e6a7a457fe99d0e709f2a6f559ea")
     version("1.3", sha256="b1773e94e7b927c3a8540c2704b06e0f7721a0e3538a93abd58fff420ecb30f1")
     version("1.1", sha256="8d8cd47472a37362e615dbb8865c3780d7b7db694d59050e19312f126e5efc1b")

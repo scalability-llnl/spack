@@ -36,7 +36,8 @@ class PyOnnx(PythonPackage):
     version("1.6.0", sha256="3b88c3fe521151651a0403c4d131cb2e0311bd28b753ef692020a432a81ce345")
     version("1.5.0", sha256="1a584a4ef62a6db178c257fffb06a9d8e61b41c0a80bfd8bcd8a253d72c4b0b4")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     # CMakeLists.txt
     depends_on("cmake@3.1:", type="build")
@@ -83,3 +84,18 @@ class PyOnnx(PythonPackage):
         sha256="be12f589bc4113982e4162efcdbd95835a6c161a9a7e10cd1dde026cadedf8aa",
         when="@1.15.0 ^abseil-cpp cxxstd=20",
     )
+
+    # By default, ONNX always uses .setuptools-cmake-build/ under the source path,
+    # so we allow overriding with a build environment variable
+    def patch(self):
+        filter_file(
+            r"^CMAKE_BUILD_DIR = (.*)$",
+            r"CMAKE_BUILD_DIR = os.getenv('CMAKE_BUILD_DIR', default=\1)",
+            "setup.py",
+        )
+
+    def setup_build_environment(self, env):
+        # Build in a similar directory as the CMake packages
+        env.set(
+            "CMAKE_BUILD_DIR", join_path(self.stage.path, f"spack-build-{self.spec.dag_hash(7)}")
+        )

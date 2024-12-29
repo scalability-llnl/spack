@@ -36,6 +36,7 @@ class Apptainer(SingularityBase):
     )
 
     version("main", branch="main")
+    version("1.3.4", sha256="c6ccfdd7c967e5c36dde8711f369c4ac669a16632b79fa0dcaf7e772b7a47397")
     version("1.3.3", sha256="94a274ab4898cdb131f4e3867c4e15f7e16bc2823303d2afcbafee0242f0838d")
     version("1.3.2", sha256="483910727e1a15843b93d9f2db1fc87e27804de9c74da13cc32cd4bd0d35e079")
     # version "1.3.1" has security vulnerability CVE-2024-3727

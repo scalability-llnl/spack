@@ -17,6 +17,7 @@ class RIpred(RPackage):
 
     license("GPL-2.0-or-later")
 
+    version("0.9-15", sha256="a4752de11121262f3f4c43163efa34e05e42cdf4f8496d8897be6f410dc0ee4b")
     version("0.9-14", sha256="81c83dc847d09c3db52ef15e36cd4dac38c50eead1008ddd458b9e89d7528f35")
     version("0.9-13", sha256="6168a062d93c2d3063c064a8f242cd3716dee99822e20363a1801261319c4c98")
     version("0.9-12", sha256="d6e1535704d39415a799d7643141ffa4f6f55597f03e763f4ccd5d8106005843")

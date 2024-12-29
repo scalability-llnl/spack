@@ -20,6 +20,7 @@ class PyUrllib3(PythonPackage):
     version("2.0.7", sha256="c97dfde1f7bd43a71c8d2a58e369e9b2bf692d1334ea9f9cae55add7d0dd0f84")
     version("2.0.6", sha256="b19e1a85d206b56d7df1d5e683df4a7725252a964e3993648dd0fb5a1c157564")
     version("2.0.5", sha256="13abf37382ea2ce6fb744d4dad67838eec857c9f4f57009891805e0b5e123594")
+    version("1.26.20", sha256="40c2dc0c681e47eb8f90e7e27bf6ff7df2e677421fd46756da1161c39ca70d32")
     version("1.26.12", sha256="3fa96cf423e6987997fc326ae8df396db2a8b7c667747d47ddd8ecba91f4a74e")
     version("1.26.6", sha256="f57b4c16c62fa2760b7e3d97c35b255512fb6b59a259730f36ba32ce9f8e342f")
     version("1.25.11", sha256="8d7eaa5a82a1cac232164990f04874c594c9453ec55eef02eab885aa02fc17a2")

@@ -23,6 +23,7 @@ class RLava(RPackage):
 
     license("GPL-3.0-only")
 
+    version("1.8.0", sha256="8db996eeca012c58736f2d3b97f569c03e9361e20f31513c090a9386eb87e87f")
     version("1.7.2.1", sha256="d42b1f5c7e4e76718e4f014c44608295f82b5de0eb25ce8e9b35c40c7839ef2e")
     version("1.7.0", sha256="3078da69f3828812bcd093acc2d1cd2c8cbc8480d81da222ae49a55bcb2e5e24")
     version("1.6.10", sha256="7a88f8a885872e2abb3011c446e9e1c4884cd4dbe6ab4cfe9207538e5560232e")
@@ -32,6 +33,7 @@ class RLava(RPackage):
     version("1.4.7", sha256="d5cbd4835a94855478efb93051eece965db116ead203f4dd4e09d9a12d52f4bf")
 
     depends_on("r@3.0:", type=("build", "run"))
+    depends_on("r-cli", type=("build", "run"), when="@1.7.4:")
     depends_on("r-future-apply", type=("build", "run"), when="@1.6.10:")
     depends_on("r-progressr", type=("build", "run"), when="@1.6.10:")
     depends_on("r-numderiv", type=("build", "run"))

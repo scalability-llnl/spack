@@ -20,6 +20,7 @@ class Qpdf(CMakePackage):
 
     license("Apache-2.0", checked_by="taliaferro")
 
+    version("11.9.1", sha256="2ba4d248f9567a27c146b9772ef5dc93bd9622317978455ffe91b259340d13d1")
     version("11.9.0", sha256="9f5d6335bb7292cc24a7194d281fc77be2bbf86873e8807b85aeccfbff66082f")
 
     depends_on("c", type="build")  # generated

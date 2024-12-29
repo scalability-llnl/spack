@@ -8,8 +8,61 @@ import platform
 
 from spack.build_environment import dso_suffix
 from spack.package import *
+from spack.util.environment import EnvironmentModifications
 
 versions = [
+    {
+        "version": "2025.0.4",
+        "cpp": {
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/84c039b6-2b7d-4544-a745-3fcf8afd643f/intel-dpcpp-cpp-compiler-2025.0.4.20_offline.sh",
+            "sha256": "0537c6e462fe74063cb0b9209a0fd5c0ca3a29b4520d43d382ae27fb3f98b375",
+        },
+        "ftn": {
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/ad42ee3b-7a2f-41cb-b902-689f651920da/intel-fortran-compiler-2025.0.4.21_offline.sh",
+            "sha256": "ad453f1dd68111e7cf7053d6f86fa26d982bd9ab61982cbb6dbe5195fb6feedb",
+        },
+    },
+    {
+        "version": "2025.0.3",
+        "cpp": {
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/1cac4f39-2032-4aa9-86d7-e4f3e40e4277/intel-dpcpp-cpp-compiler-2025.0.3.9_offline.sh",
+            "sha256": "0ca834002b9091dc9988da6798a2eb36ebc5933d8d523ed0fa78a55744c88823",
+        },
+        "ftn": {
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/fafa2df1-4bb1-43f7-87c6-3c82f1bdc712/intel-fortran-compiler-2025.0.3.9_offline.sh",
+            "sha256": "1ad813cf6495ded730646d6c4fd065dcc840875fdea28fcc6bac2cafb8d22c8d",
+        },
+    },
+    {
+        "version": "2025.0.1",
+        "cpp": {
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/4fd7c6b0-853f-458a-a8ec-421ab50a80a6/intel-dpcpp-cpp-compiler-2025.0.1.46_offline.sh",
+            "sha256": "1595397566b59a5c8f81e2c235b6bedd2405dc70309b5bf00ed75827d0f12449",
+        },
+        "ftn": {
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/7ba31291-8a27-426f-88d5-8c2d65316655/intel-fortran-compiler-2025.0.1.41_offline.sh",
+            "sha256": "aa54f019ad8db79f716f880c72784dc117d64e525e4c3b62717bd9d18a6c9060",
+        },
+    },
+    {
+        "version": "2025.0.0",
+        "cpp": {
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/ac92f2bb-4818-4e53-a432-f8b34d502f23/intel-dpcpp-cpp-compiler-2025.0.0.740_offline.sh",
+            "sha256": "04fadf63789acee731895e631db63f65a98b8279db3d0f48bdf0d81e6103bdd8",
+        },
+        "ftn": {
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/69f79888-2d6c-4b20-999e-e99d72af68d4/intel-fortran-compiler-2025.0.0.723_offline.sh",
+            "sha256": "2be6d607ce84f35921228595b118fbc516d28587cbc4e6dcf6b7219e5cd1a9a9",
+        },
+        "nvidia-plugin": {
+            "url": "https://developer.codeplay.com/api/v1/products/download?product=oneapi&variant=nvidia&version=2025.0.0&filters[]=12.0&filters[]=linux",
+            "sha256": "264a43d2e07c08eb31d6483fb1c289a6b148709e48e9a250efc1b1e9a527feb6",
+        },
+        "amd-plugin": {
+            "url": "https://developer.codeplay.com/api/v1/products/download?product=oneapi&variant=amd&version=2025.0.0&filters[]=6.1.0&filters[]=linux",
+            "sha256": "2c5a147e82f0e995b9c0457b53967cc066d5741d675cb64cb9eba8e3c791a064",
+        },
+    },
     {
         "version": "2024.2.1",
         "cpp": {
@@ -23,6 +76,10 @@ versions = [
         "nvidia-plugin": {
             "url": "https://developer.codeplay.com/api/v1/products/download?product=oneapi&variant=nvidia&version=2024.2.1&filters[]=12.0&filters[]=linux",
             "sha256": "2c377027c650291ccd8267cbf75bd3d00c7b11998cc59d5668a02a0cbc2c015f",
+        },
+        "amd-plugin": {
+            "url": "https://developer.codeplay.com/api/v1/products/download?product=oneapi&variant=amd&version=2024.2.1&filters[]=6.1.0&filters[]=linux",
+            "sha256": "fbeb64f959f907cbf3469f4e154b2af6d8ff46fe4fc667c811e04f3872a13823",
         },
     },
     {
@@ -38,6 +95,10 @@ versions = [
         "nvidia-plugin": {
             "url": "https://developer.codeplay.com/api/v1/products/download?product=oneapi&variant=nvidia&version=2024.2.0&filters[]=12.0&filters[]=linux",
             "sha256": "0622df0054364b01e91e7ed72a33cb3281e281db5b0e86579f516b1cc5336b0f",
+        },
+        "amd-plugin": {
+            "url": "https://developer.codeplay.com/api/v1/products/download?product=oneapi&variant=amd&version=2024.2.0&filters[]=6.1.0&filters[]=linux",
+            "sha256": "d1e9d30fa92f3ef606f054d8cbd7c338b3e46f6a9f8472736e29e8ccd9e50688",
         },
     },
     {
@@ -275,6 +336,9 @@ class IntelOneapiCompilers(IntelOneApiPackage, CompilerPackage):
     # Add the nvidia variant
     variant("nvidia", default=False, description="Install NVIDIA plugin for OneAPI")
     conflicts("@:2022.2.1", when="+nvidia", msg="Codeplay NVIDIA plugin requires newer release")
+    # Add the amd variant
+    variant("amd", default=False, description="Install AMD plugin for OneAPI")
+    conflicts("@:2022.2.1", when="+amd", msg="Codeplay AMD plugin requires newer release")
     # TODO: effectively gcc is a direct dependency of intel-oneapi-compilers, but we
     # cannot express that properly. For now, add conflicts for non-gcc compilers
     # instead.
@@ -297,6 +361,14 @@ class IntelOneapiCompilers(IntelOneApiPackage, CompilerPackage):
                 when="@{0}".format(v["version"]),
                 expand=False,
                 **v["nvidia-plugin"],
+            )
+        if "amd-plugin" in v:
+            resource(
+                name="amd-plugin-installer",
+                placement="amd-plugin-installer",
+                when="@{0}".format(v["version"]),
+                expand=False,
+                **v["amd-plugin"],
             )
 
     @property
@@ -336,6 +408,14 @@ class IntelOneapiCompilers(IntelOneApiPackage, CompilerPackage):
         """
         super().setup_run_environment(env)
 
+        # umf is packaged with compiler and not available as a standalone
+        if "~envmods" not in self.spec and self.spec.satisfies("@2025:"):
+            env.extend(
+                EnvironmentModifications.from_sourcing_file(
+                    self.prefix.umf.latest.env.join("vars.sh"), *self.env_script_args
+                )
+            )
+
         env.set("CC", self._llvm_bin.icx)
         env.set("CXX", self._llvm_bin.icpx)
         env.set("F77", self._llvm_bin.ifx)
@@ -363,12 +443,15 @@ class IntelOneapiCompilers(IntelOneApiPackage, CompilerPackage):
             if nvidia_script:
                 if platform.system() == "Linux":
                     bash = Executable("bash")
-                    # Installer writes files in ~/intel set HOME so it goes to prefix
-                    bash.add_default_env("HOME", prefix)
-                    # Installer checks $XDG_RUNTIME_DIR/.bootstrapper_lock_file as well
-                    bash.add_default_env("XDG_RUNTIME_DIR", join_path(self.stage.path, "runtime"))
                     # For NVIDIA plugin installer
                     bash(nvidia_script[0], "-y", "--install-dir", self.prefix)
+        if self.spec.satisfies("+amd"):
+            amd_script = find("amd-plugin-installer", "*")
+            if amd_script:
+                if platform.system() == "Linux":
+                    bash = Executable("bash")
+                    # For AMD plugin installer
+                    bash(amd_script[0], "-y", "--install-dir", self.prefix)
 
     @run_after("install")
     def inject_rpaths(self):
@@ -446,7 +529,11 @@ class IntelOneapiCompilers(IntelOneApiPackage, CompilerPackage):
             llvm_flags.append("-Wno-unused-command-line-argument")
 
         self.write_config_file(common_flags + llvm_flags, self._llvm_bin, ["icx", "icpx"])
-        self.write_config_file(common_flags + classic_flags, self._llvm_bin, ["ifx"])
+        self.write_config_file(
+            common_flags + (llvm_flags if self.spec.satisfies("@2022.1.0:") else classic_flags),
+            self._llvm_bin,
+            ["ifx"],
+        )
         self.write_config_file(common_flags + classic_flags, self._classic_bin, ["ifort"])
         self.write_config_file(common_flags + classic_flags, self._classic_bin, ["icc", "icpc"])
 

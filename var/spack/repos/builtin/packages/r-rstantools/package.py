@@ -19,6 +19,7 @@ class RRstantools(RPackage):
 
     license("GPL-3.0-or-later")
 
+    version("2.4.0", sha256="bff72ca2f0352c6c5d2868823e286fdb73a6ead74508a4124cbcb222c83b4faa")
     version("2.3.1", sha256="82d4f2e884ffc894463bd37765606d5a9bef2ee631758840ec58636acdca6975")
     version("2.2.0", sha256="cb810baeb90c67668361b666c6862df9917aff6aaec63d2c3a485f28407c4eb7")
     version("2.1.1", sha256="c95b15de8ec577eeb24bb5206e7b685d882f88b5e6902efda924b7217f463d2d")

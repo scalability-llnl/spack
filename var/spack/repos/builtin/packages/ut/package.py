@@ -18,6 +18,8 @@ class Ut(CMakePackage):
     license("BSL-1.0")
 
     version("master", branch="master")
+    version("2.1.1", sha256="016ac5ece1808cd1100be72f90da4fa59ea41de487587a3283c6c981381cc216")
+    version("2.1.0", sha256="1c9c35c039ad3a9795a278447db6da0a4ec1a1d223bf7d64687ad28f673b7ae8")
     version("2.0.1", sha256="1e43be17045a881c95cedc843d72fe9c1e53239b02ed179c1e39e041ebcd7dad")
     version("2.0.0", sha256="8b5b11197d1308dfc1fe20efd6a656e0c833dbec2807e2292967f6e2f7c0420f")
     version("1.1.9", sha256="1a666513157905aa0e53a13fac602b5673dcafb04a869100a85cd3f000c2ed0d")

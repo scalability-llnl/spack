@@ -20,5 +20,5 @@ class PerlExtension(PerlPackage):
 
     def install(self, spec, prefix):
         mkdirp(prefix.bin)
-        with open(os.path.join(prefix.bin, "perl-extension"), "w+") as fout:
+        with open(os.path.join(prefix.bin, "perl-extension"), "w+", encoding="utf-8") as fout:
             fout.write(str(spec.version))

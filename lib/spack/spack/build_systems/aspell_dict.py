@@ -7,7 +7,6 @@ import os
 import llnl.util.filesystem as fs
 
 import spack.directives
-import spack.package_base
 import spack.util.executable
 
 from .autotools import AutotoolsBuilder, AutotoolsPackage

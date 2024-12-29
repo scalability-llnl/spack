@@ -9,6 +9,7 @@ import llnl.util.lang
 
 import spack.builder
 import spack.error
+import spack.phase_callbacks
 import spack.relocate
 import spack.spec
 import spack.store
@@ -63,7 +64,7 @@ def apply_macos_rpath_fixups(builder: spack.builder.Builder):
 
 
 def ensure_build_dependencies_or_raise(
-    spec: spack.spec.Spec, dependencies: List[spack.spec.Spec], error_msg: str
+    spec: spack.spec.Spec, dependencies: List[str], error_msg: str
 ):
     """Ensure that some build dependencies are present in the concrete spec.
 
@@ -71,7 +72,7 @@ def ensure_build_dependencies_or_raise(
 
     Args:
         spec: concrete spec to be checked.
-        dependencies: list of abstract specs to be satisfied
+        dependencies: list of package names of required build dependencies
         error_msg: brief error message to be prepended to a longer description
 
     Raises:
@@ -127,8 +128,8 @@ def execute_install_time_tests(builder: spack.builder.Builder):
     builder.pkg.tester.phase_tests(builder, "install", builder.install_time_test_callbacks)
 
 
-class BaseBuilder(spack.builder.Builder):
-    """Base class for builders to register common checks"""
+class BuilderWithDefaults(spack.builder.Builder):
+    """Base class for all specific builders with common callbacks registered."""
 
     # Check that self.prefix is there after installation
-    spack.builder.run_after("install")(sanity_check_prefix)
+    spack.phase_callbacks.run_after("install")(sanity_check_prefix)

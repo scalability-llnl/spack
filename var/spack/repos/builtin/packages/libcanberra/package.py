@@ -46,7 +46,7 @@ class Libcanberra(AutotoolsPackage):
     def configure_args(self):
         args = ["--enable-static"]
 
-        if "+gtk" in self.spec:
+        if self.spec.satisfies("+gtk"):
             args.append("--enable-gtk")
         else:
             args.append("--disable-gtk")

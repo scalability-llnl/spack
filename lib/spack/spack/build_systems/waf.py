@@ -6,9 +6,10 @@ from llnl.util.filesystem import working_dir
 
 import spack.builder
 import spack.package_base
+import spack.phase_callbacks
 from spack.directives import build_system, depends_on
 
-from ._checks import BaseBuilder, execute_build_time_tests, execute_install_time_tests
+from ._checks import BuilderWithDefaults, execute_build_time_tests, execute_install_time_tests
 
 
 class WafPackage(spack.package_base.PackageBase):
@@ -30,7 +31,7 @@ class WafPackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("waf")
-class WafBuilder(BaseBuilder):
+class WafBuilder(BuilderWithDefaults):
     """The WAF builder provides the following phases that can be overridden:
 
     * configure
@@ -136,7 +137,7 @@ class WafBuilder(BaseBuilder):
         """
         pass
 
-    spack.builder.run_after("build")(execute_build_time_tests)
+    spack.phase_callbacks.run_after("build")(execute_build_time_tests)
 
     def install_test(self):
         """Run unit tests after install.
@@ -146,4 +147,4 @@ class WafBuilder(BaseBuilder):
         """
         pass
 
-    spack.builder.run_after("install")(execute_install_time_tests)
+    spack.phase_callbacks.run_after("install")(execute_install_time_tests)

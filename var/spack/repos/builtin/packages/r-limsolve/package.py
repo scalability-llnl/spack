@@ -18,6 +18,7 @@ class RLimsolve(RPackage):
 
     cran = "limSolve"
 
+    version("1.5.7.1", sha256="a5945217bbf512724297883f8d7c65846a11202266b2b6bb3355372935e85b92")
     version("1.5.6", sha256="b97ea9930383634c8112cdbc42f71c4e93fe0e7bfaa8f401921835cb44cb49a0")
 
     depends_on("r@2.10:", type=("build", "run"))

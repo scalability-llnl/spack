@@ -5,6 +5,7 @@
 
 import os
 
+from spack.build_systems import autotools, cmake, python
 from spack.package import *
 
 
@@ -91,7 +92,7 @@ class Faiss(AutotoolsPackage, CMakePackage, CudaPackage):
                 env.append_path("LD_LIBRARY_PATH", os.path.join(python_platlib, "faiss"))
 
 
-class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
+class CMakeBuilder(cmake.CMakeBuilder):
     def cmake_args(self):
         spec = self.spec
         args = [
@@ -113,20 +114,19 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
         super().install(pkg, spec, prefix)
         if spec.satisfies("+python"):
 
-            class CustomPythonPipBuilder(spack.build_systems.python.PythonPipBuilder):
+            class CustomPythonPipBuilder(python.PythonPipBuilder):
                 def __init__(self, pkg, build_dirname):
-                    spack.build_systems.python.PythonPipBuilder.__init__(self, pkg)
+                    python.PythonPipBuilder.__init__(self, pkg)
                     self.build_dirname = build_dirname
 
                 @property
                 def build_directory(self):
                     return os.path.join(self.pkg.stage.path, self.build_dirname, "faiss", "python")
 
-            customPip = CustomPythonPipBuilder(pkg, self.build_dirname)
-            customPip.install(pkg, spec, prefix)
+            CustomPythonPipBuilder(pkg, self.build_dirname).install(pkg, spec, prefix)
 
 
-class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
+class AutotoolsBuilder(autotools.AutotoolsBuilder):
     def configure_args(self):
         args = []
         args.extend(self.with_or_without("cuda", activation_value="prefix"))
@@ -156,8 +156,7 @@ class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
 
         if self.spec.satisfies("+python"):
             with working_dir("python"):
-                args = std_pip_args + ["--prefix=" + prefix, "."]
-                pip(*args)
+                pip(*python.PythonPipBuilder.std_args(pkg), f"--prefix={prefix}", ".")
 
         if "+tests" not in self.spec:
             return

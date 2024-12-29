@@ -10,10 +10,11 @@ class PerlNetSsleay(PerlPackage):
     """Perl extension for using OpenSSL"""
 
     homepage = "https://metacpan.org/pod/Net::SSLeay"
-    url = "http://search.cpan.org/CPAN/authors/id/M/MI/MIKEM/Net-SSLeay-1.82.tar.gz"
+    url = "https://cpan.metacpan.org/authors/id/C/CH/CHRISN/Net-SSLeay-1.94.tar.gz"
 
     license("Artistic-2.0")
 
+    version("1.94", sha256="9d7be8a56d1bedda05c425306cc504ba134307e0c09bda4a788c98744ebcd95d")
     version("1.85", sha256="9d8188b9fb1cae3bd791979c20554925d5e94a138d00414f1a6814549927b0c8")
     version("1.82", sha256="5895c519c9986a5e5af88e3b8884bbdc70e709ee829dc6abb9f53155c347c7e5")
 
@@ -34,3 +35,9 @@ class PerlNetSsleay(PerlPackage):
         with open(config_answers_filename, "r") as f:
             env["OPENSSL_PREFIX"] = self.spec["openssl"].prefix
             perl("Makefile.PL", "INSTALL_BASE={0}".format(prefix), input=f)
+
+    def url_for_version(self, version):
+        if self.spec.satisfies("@1.86:"):
+            return f"https://cpan.metacpan.org/authors/id/C/CH/CHRISN/Net-SSLeay-{version}.tar.gz"
+        else:
+            return f"http://search.cpan.org/CPAN/authors/id/M/MI/MIKEM/Net-SSLeay-{version}.tar.gz"

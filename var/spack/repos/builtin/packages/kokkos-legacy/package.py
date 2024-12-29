@@ -246,7 +246,7 @@ class KokkosLegacy(Package):
             cuda_options_args = []
 
             # PIC
-            if "+pic" in spec:
+            if spec.satisfies("+pic"):
                 g_args.append("--cxxflags=-fPIC")
 
             # C++ standard
@@ -255,19 +255,19 @@ class KokkosLegacy(Package):
                 g_args.append(f"--cxxstandard={cxxstandard}")
 
             # Build Debug
-            if "+debug" in spec:
+            if spec.satisfies("+debug"):
                 g_args.append("--debug")
 
             # Backends
-            if "+serial" in spec:
+            if spec.satisfies("+serial"):
                 g_args.append("--with-serial")
-            if "+openmp" in spec:
+            if spec.satisfies("+openmp"):
                 g_args.append("--with-openmp")
-            if "+pthreads" in spec:
+            if spec.satisfies("+pthreads"):
                 g_args.append("--with-pthread")
-            if "+qthreads" in spec:
+            if spec.satisfies("+qthreads"):
                 g_args.append(f"--with-qthreads={spec['qthreads'].prefix}")
-            if "+cuda" in spec:
+            if spec.satisfies("+cuda"):
                 g_args.append(f"--with-cuda={spec['cuda'].prefix}")
             # Host architectures
             host_arch = spec.variants["host_arch"].value
@@ -282,31 +282,31 @@ class KokkosLegacy(Package):
                 g_args.append(f"--arch={','.join(arch_args)}")
 
             # CUDA options
-            if "+force_uvm" in spec:
+            if spec.satisfies("+force_uvm"):
                 cuda_options_args.append("force_uvm")
-            if "+use_ldg" in spec:
+            if spec.satisfies("+use_ldg"):
                 cuda_options_args.append("use_ldg")
-            if "+rdc" in spec:
+            if spec.satisfies("+rdc"):
                 cuda_options_args.append("rdc")
-            if "+enable_lambda" in spec:
+            if spec.satisfies("+enable_lambda"):
                 cuda_options_args.append("enable_lambda")
             if cuda_options_args:
                 g_args.append(f"--with-cuda-options={','.join(cuda_options_args)}")
 
             # Kokkos options
-            if "+aggressive_vectorization" in spec:
+            if spec.satisfies("+aggressive_vectorization"):
                 kokkos_options_args.append("aggressive_vectorization")
-            if "+disable_profiling" in spec:
+            if spec.satisfies("+disable_profiling"):
                 kokkos_options_args.append("disable_profiling")
-            if "+disable_dualview_modify_check" in spec:
+            if spec.satisfies("+disable_dualview_modify_check"):
                 kokkos_options_args.append("disable_dualview_modify_check")
-            if "+enable_profile_load_print" in spec:
+            if spec.satisfies("+enable_profile_load_print"):
                 kokkos_options_args.append("enable_profile_load_print")
-            if "+compiler_warnings" in spec:
+            if spec.satisfies("+compiler_warnings"):
                 kokkos_options_args.append("compiler_warnings")
-            if "+disable_deprecated_code" in spec:
+            if spec.satisfies("+disable_deprecated_code"):
                 kokkos_options_args.append("disable_deprecated_code")
-            if "+enable_eti" in spec:
+            if spec.satisfies("+enable_eti"):
                 kokkos_options_args.append("enable_eti")
             if kokkos_options_args:
                 g_args.append(f"--with-options={','.join(kokkos_options_args)}")

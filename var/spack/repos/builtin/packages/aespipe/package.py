@@ -10,7 +10,7 @@ class Aespipe(AutotoolsPackage):
     """aespipe program is AES encrypting or decrypting pipe. It reads from
     standard input and writes to standard output."""
 
-    homepage = "https//loop-aes.sourceforge.net/"
+    homepage = "https://sourceforge.net/projects/loop-aes/"
     url = "https://sourceforge.net/projects/loop-aes/files/aespipe/v2.4f/aespipe-v2.4f.tar.bz2"
 
     license("Intel")

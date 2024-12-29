@@ -18,6 +18,7 @@ class PyPyscf(PythonPackage):
 
     license("Apache-2.0")
 
+    version("2.7.0", sha256="ca8efc2f28d72c3130f26a967e7fa8d0bbc4a6b47d16a7c4c732ec85a31b7eec")
     version("2.6.2", sha256="744c89a8e4d38c4b5562f75fa68f9d079faeb23602d255fba0eb6d1bac97bca2")
     version("2.6.1", sha256="faeaeeb0c07fec5018937655511709a9c2445e3d7c421c0fa1ae5d889e4ab455")
     version("2.6.0", sha256="08ff920fedd4b257273d235fb4492535147c1e3154de5ab02b5446de93e200d8")

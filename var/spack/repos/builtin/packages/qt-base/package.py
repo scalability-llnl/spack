@@ -28,6 +28,11 @@ class QtPackage(CMakePackage):
         return _url.format(qualname.lower())
 
     @staticmethod
+    def get_git(qualname):
+        _git = "https://github.com/qt/{}.git"
+        return _git.format(qualname.lower())
+
+    @staticmethod
     def get_list_url(qualname):
         _list_url = "https://github.com/qt/{}/tags"
         return _list_url.format(qualname.lower())
@@ -65,8 +70,14 @@ class QtPackage(CMakePackage):
             if re_qt.match(dep.name):
                 qt_prefix_path.append(self.spec[dep.name].prefix)
 
-        # Now append all qt-* dependency prefixex into a prefix path
+        # Now append all qt-* dependency prefixes into a prefix path
         args.append(self.define("QT_ADDITIONAL_PACKAGES_PREFIX_PATH", ":".join(qt_prefix_path)))
+
+        # Make our CMAKE_INSTALL_RPATH redundant:
+        # for prefix of current package ($ORIGIN/../lib type of rpaths),
+        args.append(self.define("QT_DISABLE_RPATH", True))
+        # for prefixes of dependencies
+        args.append(self.define("QT_NO_DISABLE_CMAKE_INSTALL_RPATH_USE_LINK_PATH", True))
 
         return args
 
@@ -133,6 +144,9 @@ class QtBase(QtPackage):
 
     license("BSD-3-Clause")
 
+    version("6.8.1", sha256="9b81b83e4079d2f79ae057902973fc0ebb10d566ec022f483e7c0f2294acb19c")
+    version("6.8.0", sha256="3e526ceaaf615005bc89a98ee8a52b87db6fefe7155595bf75c40fd82cd1a7ce")
+    version("6.7.3", sha256="65771d1618cab08ec5e9bbfdc265b5d2ce2ccf0373143d7d9d139647a7196aec")
     version("6.7.2", sha256="96b96e4fd0fc306502ed8b94a34cfa0bacc8a25d43c2e958dd6772b28f6b0e42")
     version("6.7.1", sha256="d6950597ce1fc2e1cf374c3aa70c2d72532bb74150e9853d7127af86a8a6c7b4")
     version("6.7.0", sha256="e17f016ec987092423e86d732c0f9786124598877fa00970fd806da113c02ca5")

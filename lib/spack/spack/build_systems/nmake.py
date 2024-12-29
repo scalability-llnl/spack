@@ -10,7 +10,7 @@ import spack.builder
 import spack.package_base
 from spack.directives import build_system, conflicts
 
-from ._checks import BaseBuilder
+from ._checks import BuilderWithDefaults
 
 
 class NMakePackage(spack.package_base.PackageBase):
@@ -26,7 +26,7 @@ class NMakePackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("nmake")
-class NMakeBuilder(BaseBuilder):
+class NMakeBuilder(BuilderWithDefaults):
     """The NMake builder encodes the most common way of building software with
     Mircosoft's NMake tool. It has two phases that can be overridden, if need be:
 

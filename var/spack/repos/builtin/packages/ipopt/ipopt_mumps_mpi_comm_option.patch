@@ -1,0 +1,56 @@
+diff --git a/src/Algorithm/LinearSolvers/IpMumpsSolverInterface.cpp b/src/Algorithm/LinearSolvers/IpMumpsSolverInterface.cpp
+index 62089361..306966b4 100644
+--- a/src/Algorithm/LinearSolvers/IpMumpsSolverInterface.cpp
++++ b/src/Algorithm/LinearSolvers/IpMumpsSolverInterface.cpp
+@@ -97,13 +97,11 @@ MumpsSolverInterface::MumpsSolverInterface()
+    mumps_->job = -1; //initialize mumps
+    mumps_->par = 1; //working host for sequential version
+    mumps_->sym = 2; //general symmetric matrix
+-   mumps_->comm_fortran = USE_COMM_WORLD;
+ 
+ #ifndef IPOPT_MUMPS_NOMUTEX
+    const std::lock_guard<std::mutex> lock(mumps_call_mutex);
+ #endif
+ 
+-   mumps_c(mumps_);
+    mumps_->icntl[2] = 0;  // global info stream
+    mumps_->icntl[3] = 0;  // print level
+    mumps_ptr_ = (void*) mumps_;
+@@ -180,6 +178,11 @@ void MumpsSolverInterface::RegisterOptions(
+       "Threshold to consider a pivot at zero in detection of linearly dependent constraints with MUMPS.",
+       0.0,
+       "This is CNTL(3) in MUMPS.", true);
++   roptions->AddIntegerOption(
++      "mumps_mpi_communicator",
++      "MPI communicator used for matrix operations",
++      USE_COMM_WORLD,
++      "This sets the MPI communicator. MPI_COMM_WORLD is the default. Any other value should be the return value from MPI_Comm_c2f");
+ }
+ 
+ /// give name of MUMPS with version info
+@@ -217,13 +220,24 @@ bool MumpsSolverInterface::InitializeImpl(
+    options.GetIntegerValue("mumps_scaling", mumps_scaling_, prefix);
+    options.GetNumericValue("mumps_dep_tol", mumps_dep_tol_, prefix);
+ 
++   MUMPS_STRUC_C* mumps_ = static_cast<MUMPS_STRUC_C*>(mumps_ptr_);
++
++#ifndef IPOPT_MUMPS_NOMUTEX
++   const std::lock_guard<std::mutex> lock(mumps_call_mutex);
++#endif
++
++   Index mpi_comm;
++   options.GetIntegerValue("mumps_mpi_communicator", mpi_comm, prefix);
++   mumps_->comm_fortran = static_cast<int>(mpi_comm);
++
++   mumps_c(mumps_);
++
+    // Reset all private data
+    initialized_ = false;
+    pivtol_changed_ = false;
+    refactorize_ = false;
+    have_symbolic_factorization_ = false;
+ 
+-   MUMPS_STRUC_C* mumps_ = static_cast<MUMPS_STRUC_C*>(mumps_ptr_);
+    if( !warm_start_same_structure_ )
+    {
+       mumps_->n = 0;

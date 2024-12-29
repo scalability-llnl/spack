@@ -14,6 +14,7 @@ import llnl.util.tty as tty
 import spack.config
 import spack.environment as ev
 import spack.error
+import spack.schema
 import spack.schema.env
 import spack.spec
 import spack.store
@@ -566,7 +567,7 @@ def config_prefer_upstream(args):
 
     # Simply write the config to the specified file.
     existing = spack.config.get("packages", scope=scope)
-    new = spack.config.merge_yaml(existing, pkgs)
+    new = spack.schema.merge_yaml(existing, pkgs)
     spack.config.set("packages", new, scope)
     config_file = spack.config.CONFIG.get_config_filename(scope, section)
 

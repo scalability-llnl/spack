@@ -23,6 +23,7 @@ class RCurl(RPackage):
 
     license("MIT")
 
+    version("5.2.1", sha256="4a7a4d8c08aa1bca2fcd9c58ade7b4b0ea2ed9076d0521071be29baac8adfa90")
     version("5.0.0", sha256="d7f3cac9b513914ffa8f6f64e6fa5dd96c8273378ace6b0c16b71bc6ba59c9b2")
     version("4.3.3", sha256="3567b6acad40dad68acfe07511c853824839d451a50219a96dd6d125ed617c9e")
     version("4.3.2", sha256="90b1facb4be8b6315bb3d272ba2dd90b88973f6ea1ab7f439550230f8500a568")

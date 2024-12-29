@@ -74,4 +74,17 @@ o | libdwarf
 |/
 o libelf
 """
+        or graph_str
+        == r"""o mpileaks
+|\
+| o callpath
+|/|
+| o dyninst
+| |\
+o | | mpich
+ / /
+| o libdwarf
+|/
+o libelf
+"""
     )

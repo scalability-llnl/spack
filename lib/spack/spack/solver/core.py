@@ -44,6 +44,17 @@ def _id(thing: Any) -> Union[str, AspObject]:
         return f'"{str(thing)}"'
 
 
+class AspVar(AspObject):
+    """Represents a variable in an ASP rule, allows for conditionally generating
+    rules"""
+
+    def __init__(self, name: str):
+        self.name = name
+
+    def __str__(self) -> str:
+        return str(self.name)
+
+
 @lang.key_ordering
 class AspFunction(AspObject):
     """A term in the ASP logic program"""
@@ -88,6 +99,8 @@ class AspFunction(AspObject):
             return clingo().Number(arg)
         elif isinstance(arg, AspFunction):
             return clingo().Function(arg.name, [self._argify(x) for x in arg.args], positive=True)
+        elif isinstance(arg, AspVar):
+            return clingo().Variable(arg.name)
         return clingo().String(str(arg))
 
     def symbol(self):

@@ -272,6 +272,43 @@ def test_ld_mode(wrapper_environment):
     assert dump_mode(ld, ["foo.o", "bar.o", "baz.o", "-o", "foo", "-Wl,-rpath,foo"]) == "ld"
 
 
+def test_ld_unterminated_rpath(wrapper_environment):
+    check_args(
+        ld,
+        ["foo.o", "bar.o", "baz.o", "-o", "foo", "-rpath"],
+        ["ld", "--disable-new-dtags", "foo.o", "bar.o", "baz.o", "-o", "foo", "-rpath"],
+    )
+
+
+def test_xlinker_unterminated_rpath(wrapper_environment):
+    check_args(
+        cc,
+        ["foo.o", "bar.o", "baz.o", "-o", "foo", "-Xlinker", "-rpath"],
+        [real_cc]
+        + target_args
+        + [
+            "-Wl,--disable-new-dtags",
+            "foo.o",
+            "bar.o",
+            "baz.o",
+            "-o",
+            "foo",
+            "-Xlinker",
+            "-rpath",
+        ],
+    )
+
+
+def test_wl_unterminated_rpath(wrapper_environment):
+    check_args(
+        cc,
+        ["foo.o", "bar.o", "baz.o", "-o", "foo", "-Wl,-rpath"],
+        [real_cc]
+        + target_args
+        + ["-Wl,--disable-new-dtags", "foo.o", "bar.o", "baz.o", "-o", "foo", "-Wl,-rpath"],
+    )
+
+
 def test_ld_flags(wrapper_environment, wrapper_flags):
     check_args(
         ld,
@@ -349,39 +386,6 @@ def test_fc_flags(wrapper_environment, wrapper_flags):
         + test_args_without_paths
         + spack_fflags
         + spack_cppflags
-        + ["-Wl,--gc-sections"]
-        + spack_ldlibs,
-    )
-
-
-def test_ld_flags_with_redundant_rpaths(wrapper_environment, wrapper_flags):
-    check_args(
-        ld,
-        test_args + test_rpaths,  # ensure thesee are made unique
-        ["ld"]
-        + test_include_paths
-        + test_library_paths
-        + ["--disable-new-dtags"]
-        + test_rpaths
-        + test_args_without_paths
-        + spack_ldlibs,
-    )
-
-
-def test_cc_flags_with_redundant_rpaths(wrapper_environment, wrapper_flags):
-    check_args(
-        cc,
-        test_args + test_wl_rpaths + test_wl_rpaths,  # ensure thesee are made unique
-        [real_cc]
-        + target_args
-        + test_include_paths
-        + ["-Lfoo"]
-        + test_library_paths
-        + ["-Wl,--disable-new-dtags"]
-        + test_wl_rpaths
-        + test_args_without_paths
-        + spack_cppflags
-        + spack_cflags
         + ["-Wl,--gc-sections"]
         + spack_ldlibs,
     )

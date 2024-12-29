@@ -26,6 +26,9 @@ class PyMatplotlib(PythonPackage):
     license("Apache-2.0")
     maintainers("adamjstewart", "rgommers")
 
+    version("3.10.0", sha256="b886d02a581b96704c9d1ffe55709e49b4d2d52709ccebc4be42db856e511278")
+    version("3.9.4", sha256="1e00e8be7393cbdc6fedfa8a6fba02cf3e83814b285db1c60b906a023ba41bc3")
+    version("3.9.3", sha256="cd5dbbc8e25cad5f706845c4d100e2c8b34691b412b93717ce38d8ae803bcfa5")
     version("3.9.2", sha256="96ab43906269ca64a6366934106fa01534454a69e471b7bf3d79083981aaab92")
     version("3.9.1", sha256="de06b19b8db95dd33d0dc17c926c7c9ebed9f572074b6fac4f65068a6814d010")
     version("3.9.0", sha256="e6d29ea6c19e34b30fb7d88b7081f869a03014f66fe06d62cc77d5a6ea88ed7a")
@@ -138,6 +141,7 @@ class PyMatplotlib(PythonPackage):
     # https://matplotlib.org/stable/install/dependencies.html
     # Runtime dependencies
     # Mandatory dependencies
+    depends_on("python@3.10:", when="@3.10:", type=("build", "link", "run"))
     depends_on("python@3.9:", when="@3.8:", type=("build", "link", "run"))
     depends_on("python@3.8:", when="@3.6:", type=("build", "link", "run"))
     depends_on("python", type=("build", "link", "run"))
@@ -182,7 +186,7 @@ class PyMatplotlib(PythonPackage):
         depends_on("py-pyqt4@4.6:", when="backend=" + backend, type="run")
         depends_on("qt+gui", when="backend=" + backend, type="run")
     for backend in ["qt5agg", "qt5cairo"]:
-        depends_on("py-pyqt5", when="backend=" + backend, type="run")
+        depends_on("py-pyqt5@5.12:", when="backend=" + backend, type="run")
         depends_on("qt+gui", when="backend=" + backend, type="run")
     for backend in ["qtagg", "qtcairo"]:
         depends_on("py-pyqt6@6.1:", when="backend=" + backend, type="run")
@@ -234,8 +238,9 @@ class PyMatplotlib(PythonPackage):
 
     # Dependencies for building matplotlib
     # Setup dependencies
-    depends_on("py-meson-python@0.13.1:", when="@3.9:", type="build")
+    depends_on("py-meson-python@0.13.1:0.16", when="@3.9:", type="build")
     depends_on("ninja@1.8.2:", when="@3.9:", type="build")
+    depends_on("py-pybind11@2.13.2:", when="@3.10:", type=("build", "link"))
     depends_on("py-pybind11@2.6:", when="@3.7:", type=("build", "link"))
     depends_on("py-setuptools-scm@7:", when="@3.6:", type="build")
     depends_on("py-setuptools-scm@4:6", when="@3.5", type="build")
@@ -258,7 +263,8 @@ class PyMatplotlib(PythonPackage):
     conflicts("platform=linux", when="backend=macosx", msg=msg)
     conflicts("platform=windows", when="backend=macosx", msg=msg)
 
-    conflicts("^tk@8.6.0:8.6.1")
+    conflicts("tk@8.6.0:8.6.1")
+    conflicts("py-pybind11@2.13.3")
 
     # https://github.com/matplotlib/matplotlib/pull/21662
     patch("matplotlibrc.patch", when="@3.5.0")
@@ -332,7 +338,7 @@ class PyMatplotlib(PythonPackage):
             include.extend(query.headers.directories)
             try:
                 library.extend(query.libs.directories)
-            except spack.error.NoLibrariesError:
+            except NoLibrariesError:
                 pass
 
         # Build uses a mix of Spack's compiler wrapper and the actual compiler,

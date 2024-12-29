@@ -36,6 +36,22 @@ def test_gc_with_build_dependency(mutable_database):
 
 
 @pytest.mark.db
+def test_gc_with_constraints(mutable_database):
+    s_cmake1 = spack.spec.Spec("simple-inheritance ^cmake@3.4.3").concretized()
+    s_cmake2 = spack.spec.Spec("simple-inheritance ^cmake@3.23.1").concretized()
+    PackageInstaller([s_cmake1.package], explicit=True, fake=True).install()
+    PackageInstaller([s_cmake2.package], explicit=True, fake=True).install()
+
+    assert "There are no unused specs." in gc("python")
+
+    assert "Successfully uninstalled cmake@3.4.3" in gc("-y", "cmake@3.4.3")
+    assert "There are no unused specs." in gc("-y", "cmake@3.4.3")
+
+    assert "Successfully uninstalled cmake" in gc("-y", "cmake@3.23.1")
+    assert "There are no unused specs." in gc("-y", "cmake")
+
+
+@pytest.mark.db
 def test_gc_with_environment(mutable_database, mutable_mock_env_path):
     s = spack.spec.Spec("simple-inheritance")
     s.concretize()

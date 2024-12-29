@@ -5,6 +5,7 @@
 
 import subprocess
 
+import spack.compiler
 from spack.package import *
 
 
@@ -38,10 +39,21 @@ class Mapl(CMakePackage):
     version("develop", branch="develop")
     version("main", branch="main")
 
+    version("2.51.1", sha256="337dba3980de1d5e603361ecf8f001c5bf99d0addecbeb5c207f3604183ca623")
+    version("2.51.0", sha256="56213d845f5287e599213aab1dea60bf6b64c29cd8093313639304b270c45676")
+    version("2.50.3", sha256="506f73d511b6a63645bbf953bf04f663da06f5069cb559340786e9fe8eeb170f")
+    version("2.50.2", sha256="1c72f8598cf01bab6ef30c1f461444ba5a13f55c61164b7b3c15efb0cd1096c0")
+    version("2.50.1", sha256="26dd7a3ec82d484d60a559bb90a20ad9a2a717af52c25b6a752dd971aeeb5075")
+    version("2.50.0", sha256="12282e547936f667f85c95d466273dcbaccbd600add72fa5981c0c734ccb1f7d")
+    version("2.49.1", sha256="975e349c7ff8be65d4e63f2a6adf74ca96127628505dbce16c7ba7a3901edc70")
+    version("2.49.0", sha256="fdf4d48bd38abd1059180b123c5d9fdc2781992c783244ddc51ab0f2ef63dd67")
     version("2.48.0", sha256="60a0fc4fd82b1a05050666ae478da7d79d86305aff1643a57bc09cb5347323b7")
+    version("2.47.1.2", sha256="ae9032b4c833887b9ddc932ea9eb7e59e713829f6c39f3152fee4caf2f3ba21f")
+    version("2.47.1.1", sha256="9553e91e0325dfe57856564e9970b3871069f902fb109fcced6ad87151f95be7")
     version("2.47.2", sha256="d4ca384bf249b755454cd486a26bae76944a7cae3a706b9a7c9298825077cac0")
     version("2.47.1", sha256="ca3e94c0caa78a91591fe63603d1836196f5294d4baad7cf1d83b229b3a85916")
     version("2.47.0", sha256="66c862d2ab8bcd6969e9728091dbca54f1f420e97e41424c4ba93ef606088459")
+    version("2.46.4", sha256="f0c169254727d61bfc83beb3abd14f2562480c4cdbd2ad5bc1fe0419828a0ac2")
     version("2.46.3", sha256="333e1382ab744302d28b6f39e7f5504c7919d77d2443d70af952f60cbd8f27e7")
     version("2.46.2", sha256="6d397ad73042355967de8ef5b521d6135c004f96e93ae7b215f9ee325e75c6f0")
     version("2.46.1", sha256="f3090281de6293b484259d58f852c45b98759de8291d36a4950e6d348ece6573")
@@ -64,6 +76,7 @@ class Mapl(CMakePackage):
     version("2.41.0", sha256="1142f9395e161174e3ec1654fba8bda1d0bd93edc7438b1927d8f5d7b42a0a86")
     version("2.40.5", sha256="85b4a4ac0d843398452808b88d7a5c29435aa37b69b91a1f4bee664e9f367b7d")
     version("2.40.4", sha256="fb843b118d6e56cd4fc4b114c4d6f91956d5c8b3d9389ada56da1dfdbc58904f")
+    version("2.40.3.1", sha256="1e5a9d6a84d23febe826b1adcd2c2b1681bcc2e61c2959a8bbf4756357e22187")
     version("2.40.3", sha256="4b82a314c88a035fc2b91395750aa7950d6bee838786178ed16a3f39a1e45519")
     version("2.40.2", sha256="7327f6f5bce6e09e7f7b930013fba86ee7cbfe8ed4c7c087fc9ab5acbf6640fd")
     version("2.40.1", sha256="6f40f946fabea6ba73b0764092e495505d220455b191b4e454736a0a25ee058c")
@@ -150,8 +163,14 @@ class Mapl(CMakePackage):
     resource(
         name="esma_cmake",
         git="https://github.com/GEOS-ESM/ESMA_cmake.git",
+        tag="v3.55.0",
+        when="@2.51:",
+    )
+    resource(
+        name="esma_cmake",
+        git="https://github.com/GEOS-ESM/ESMA_cmake.git",
         tag="v3.51.0",
-        when="@2.48:",
+        when="@2.48:2.50",
     )
     resource(
         name="esma_cmake",
@@ -230,6 +249,11 @@ class Mapl(CMakePackage):
     # builds with gcc 13 from that version onwards
     conflicts("%gcc@13:", when="@:2.44")
 
+    # MAPL can use ifx only from MAPL 2.51 onwards and only supports
+    # ifx 2025.0 and newer due to bugs in ifx
+    conflicts("%oneapi@:2024")
+    conflicts("%oneapi", when="@:2.50")
+
     variant("flap", default=False, description="Build with FLAP support", when="@:2.39")
     variant("pflogger", default=True, description="Build with pFlogger support")
     variant("fargparse", default=True, description="Build with fArgParse support")
@@ -238,6 +262,7 @@ class Mapl(CMakePackage):
     variant("extdata2g", default=True, description="Use ExtData2G")
     variant("pfunit", default=False, description="Build with pFUnit support")
     variant("f2py", default=False, description="Build with f2py support")
+    variant("zstd", default=True, description="Build with ZSTD support", when="@2.49:")
 
     variant(
         "build_type",
@@ -250,14 +275,18 @@ class Mapl(CMakePackage):
     conflicts("+pflogger", when="@:2.40.3 %intel@2021.7:")
     conflicts("+extdata2g", when="@:2.40.3 %intel@2021.7:")
 
-    depends_on("cmake@3.17:", type="build")
+    depends_on("cmake@3.24:", type="build", when="@2.51:")
+    depends_on("cmake@3.23:", type="build", when="@2.50")
+    depends_on("cmake@3.17:", type="build", when="@:2.49")
     depends_on("mpi")
     depends_on("hdf5")
     depends_on("netcdf-c")
+    depends_on("netcdf-c +zstd", when="+zstd")
     depends_on("netcdf-fortran")
 
     # ESMF dependency
     depends_on("esmf@8.6.1:", when="@2.45:")
+    depends_on("esmf@8.6.1:", when="@=2.40.3.1")
     depends_on("esmf@8.6.0", when="@2.44")
     depends_on("esmf@8.5:", when="@2.40:2.43")
     depends_on("esmf@8.4", when="@2.34:2.39")
@@ -369,6 +398,7 @@ class Mapl(CMakePackage):
         # - MVAPICH --> mvapich
         # - HPE MPT --> mpt
         # - Cray MPICH --> mpich
+        # - HPC-X --> openmpi
 
         if self.spec.satisfies("^mpich"):
             args.append(self.define("MPI_STACK", "mpich"))
@@ -384,6 +414,8 @@ class Mapl(CMakePackage):
             args.append(self.define("MPI_STACK", "mpt"))
         elif self.spec.satisfies("^cray-mpich"):
             args.append(self.define("MPI_STACK", "mpich"))
+        elif self.spec.satisfies("^hpcx-mpi"):
+            args.append(self.define("MPI_STACK", "openmpi"))
         else:
             raise InstallError("Unsupported MPI stack")
 
@@ -412,7 +444,7 @@ class Mapl(CMakePackage):
     @run_after("build")
     @on_package_attributes(run_tests=True)
     def check(self):
-        with working_dir(self.builder.build_directory):
+        with working_dir(self.build_directory):
             # The test suite contains a lot of tests. We select only those
             # that are cheap. Note this requires MPI and 6 processes
             ctest("--output-on-failure", "-L", "ESSENTIAL")

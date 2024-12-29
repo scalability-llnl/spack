@@ -32,7 +32,6 @@ class Nut(CMakePackage):
     # which is a C++ template library
     conflicts("%nvhpc")
     conflicts("%intel", when="@serial")
-    conflicts("%pgi", when="@serial")
     conflicts("%xl", when="@serial")
     conflicts("%nag", when="@serial")
     build_targets = ["VERBOSE=on"]

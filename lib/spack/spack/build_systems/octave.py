@@ -7,7 +7,7 @@ import spack.package_base
 from spack.directives import build_system, extends
 from spack.multimethod import when
 
-from ._checks import BaseBuilder
+from ._checks import BuilderWithDefaults
 
 
 class OctavePackage(spack.package_base.PackageBase):
@@ -29,7 +29,7 @@ class OctavePackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("octave")
-class OctaveBuilder(BaseBuilder):
+class OctaveBuilder(BuilderWithDefaults):
     """The octave builder provides the following phases that can be overridden:
 
     1. :py:meth:`~.OctaveBuilder.install`

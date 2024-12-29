@@ -19,6 +19,7 @@ class RFutureApply(RPackage):
 
     cran = "future.apply"
 
+    version("1.11.2", sha256="f4a635b0fa5e0d826d2f8da6bc1fa5bb055e640c29a85c644931d08ab2d81387")
     version("1.10.0", sha256="dee92dd84812fe8c55064c0f0e6d806c0c29848b5a5fc4a7725d6a4b623e94aa")
     version("1.9.1", sha256="4f22ccd5caa62077581c6adc4d35543451e547220270aed3f1abcbaa6a202133")
     version("1.9.0", sha256="6166c1c5ce30b9745059c3d30c8110f7c1d51871e58aa414f195cb1f91c467f5")

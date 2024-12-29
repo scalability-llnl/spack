@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import itertools
-import os.path
 import re
 import sys
 
@@ -120,6 +119,10 @@ class Mvapich(AutotoolsPackage):
 
     with when("process_managers=auto"):
         conflicts("pmi_version=pmi2")
+
+    with when("process_managers=hydra"):
+        conflicts("pmi_version=pmi2")
+        conflicts("pmi_version=pmix")
 
     filter_compiler_wrappers("mpicc", "mpicxx", "mpif77", "mpif90", "mpifort", relative_root="bin")
 
@@ -238,10 +241,6 @@ class Mvapich(AutotoolsPackage):
         self.spec.mpicxx = join_path(self.prefix.bin, "mpicxx")
         self.spec.mpifc = join_path(self.prefix.bin, "mpif90")
         self.spec.mpif77 = join_path(self.prefix.bin, "mpif77")
-        self.spec.mpicxx_shared_libs = [
-            os.path.join(self.prefix.lib, "libmpicxx.{0}".format(dso_suffix)),
-            os.path.join(self.prefix.lib, "libmpi.{0}".format(dso_suffix)),
-        ]
 
     @run_before("configure")
     def die_without_fortran(self):

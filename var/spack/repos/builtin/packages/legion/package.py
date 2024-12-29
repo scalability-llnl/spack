@@ -29,6 +29,7 @@ class Legion(CMakePackage, ROCmPackage):
 
     maintainers("pmccormick", "streichler", "elliottslaughter")
     tags = ["e4s"]
+    version("24.12.0", tag="legion-24.12.0", commit="2f087ebe433a19f9a3abd05382f951027933bad9")
     version("24.09.0", tag="legion-24.09.0", commit="4a03402467547b99530042cfe234ceec2cd31b2e")
     version("24.06.0", tag="legion-24.06.0", commit="3f27977943626ef23038ef0049b7ad1b389caad1")
     version("24.03.0", tag="legion-24.03.0", commit="c61071541218747e35767317f6f89b83f374f264")
@@ -93,7 +94,9 @@ class Legion(CMakePackage, ROCmPackage):
     patch("hip-offload-arch.patch", when="@23.03.0 +rocm")
 
     def patch(self):
-        if "network=gasnet conduit=ofi-slingshot11 ^cray-mpich+wrappers" in self.spec:
+        if self.spec.satisfies(
+            "network=gasnet conduit=ofi-slingshot11 ^[virtuals=mpi] cray-mpich+wrappers"
+        ):
             filter_file(
                 r"--with-mpi-cc=cc",
                 f"--with-mpi-cc={self.spec['mpi'].mpicc}",
@@ -307,6 +310,12 @@ class Legion(CMakePackage, ROCmPackage):
     variant(
         "sysomp", default=False, description="Use system OpenMP implementation instead of Realm's"
     )
+
+    def flag_handler(self, name, flags):
+        if name == "cxxflags":
+            if self.spec.satisfies("%oneapi@2025:"):
+                flags.append("-Wno-error=missing-template-arg-list-after-template-kw")
+        return (flags, None, None)
 
     def cmake_args(self):
         spec = self.spec

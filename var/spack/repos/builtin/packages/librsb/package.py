@@ -44,7 +44,7 @@ class Librsb(AutotoolsPackage):
     variant("verbose", default=False, description="Extra Library Verbosity. Good for learning.")
 
     def setup_build_environment(self, spack_env):
-        if "+asan" in self.spec:
+        if self.spec.satisfies("+asan"):
             spack_env.set("LSAN_OPTIONS", "verbosity=1:log_threads=1")
             spack_env.set("ASAN_OPTS", "detect_leaks=0")
 
@@ -56,25 +56,25 @@ class Librsb(AutotoolsPackage):
             f"CPPFLAGS={self.spec['zlib-api'].headers.include_flags}",
             f"LDFLAGS={self.spec['zlib-api'].libs.search_flags}",
         ]
-        if "+asan" in self.spec:
+        if self.spec.satisfies("+asan"):
             args.append("CFLAGS=-O0 -ggdb -fsanitize=address -fno-omit-frame-pointer")
             args.append("CXXFLAGS=-O0 -ggdb -fsanitize=address -fno-omit-frame-pointer")
             args.append("LIBS=-lasan")
             args.append("FCLIBS=-lasan")
             args.append("--disable-shared")
             args.append("--enable-fortran-linker")
-        if "+debug" in self.spec:
+        if self.spec.satisfies("+debug"):
             args.append("--enable-allocator-wrapper")
             args.append("--enable-debug")
-        if "+native" in self.spec:
+        if self.spec.satisfies("+native"):
             args.append("CFLAGS=-O3 -march=native")
             args.append("CXXFLAGS=-O3 -march=native")
             args.append("FCFLAGS=-O3 -march=native")
-        if "+nospblas" in self.spec:
+        if self.spec.satisfies("+nospblas"):
             args.append("--disable-sparse-blas-interface")
-        if "+serial" in self.spec:
+        if self.spec.satisfies("+serial"):
             args.append("--disable-openmp")
-        if "+verbose" in self.spec:
+        if self.spec.satisfies("+verbose"):
             args.append("--enable-internals-error-verbosity=1")
             args.append("--enable-interface-error-verbosity=1")
         return args

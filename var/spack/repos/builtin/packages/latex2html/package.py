@@ -119,7 +119,7 @@ class Latex2html(AutotoolsPackage):
                 exe = which(p)
                 if exe:
                     args.append("--with-{0}={1}".format(p, str(exe)))
-        if "+svg" in spec:
+        if spec.satisfies("+svg"):
             p = "pdftocairo"
             exe = join_path(spec["poppler"].prefix.bin, p)
             if os.path.exists(exe):

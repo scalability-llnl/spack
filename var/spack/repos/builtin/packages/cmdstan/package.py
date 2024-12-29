@@ -32,7 +32,7 @@ class Cmdstan(MakefilePackage):
     filter_compiler_wrappers("local", relative_root="make")
 
     def edit(self, spec, prefix):
-        if spec.compiler.name == "intel":
+        if spec.satisfies("%intel"):
             cxx_type = "icc"
         else:
             cxx_type = spec.compiler.name

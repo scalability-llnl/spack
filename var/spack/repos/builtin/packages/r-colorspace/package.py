@@ -29,6 +29,7 @@ class RColorspace(RPackage):
 
     license("BSD-3-Clause")
 
+    version("2.1-1", sha256="e721cee5f4d6e4b0fc8eb18265e316b4f856fd3be02f0775a26032663758cd0b")
     version("2.1-0", sha256="04078abb6b54119c90dc7085d62916bf292ccb163e213f9ea70567d1be82614c")
     version("2.0-3", sha256="e75681cc4dd6e4b70303fd96a6d4597065dc6bffcaa4ae4244b73ff19016857f")
     version("2.0-2", sha256="b891cd2ec129ed5f116429345947bcaadc33969758a108521eb0cf36bd12183a")

@@ -76,12 +76,12 @@ class Libceed(MakefilePackage, CudaPackage, ROCmPackage):
         # Use verbose building output
         makeopts = ["V=1"]
 
-        if "@:0.2" in spec:
-            makeopts += ["NDEBUG=%s" % ("" if "+debug" in spec else "1")]
+        if spec.satisfies("@:0.2"):
+            makeopts += ["NDEBUG=%s" % ("" if spec.satisfies("+debug") else "1")]
 
-        elif "@0.4:" in spec:
+        elif spec.satisfies("@0.4:"):
             # Determine options based on the compiler:
-            if "+debug" in spec:
+            if spec.satisfies("+debug"):
                 opt = "-g"
             elif compiler.name == "gcc":
                 opt = "-O3 -g -ffp-contract=fast"
@@ -114,7 +114,7 @@ class Libceed(MakefilePackage, CudaPackage, ROCmPackage):
             if spec.satisfies("@:0.7") and "avx" in self.spec.target:
                 makeopts.append("AVX=1")
 
-            if "+cuda" in spec:
+            if spec.satisfies("+cuda"):
                 makeopts += ["CUDA_DIR=%s" % spec["cuda"].prefix]
                 makeopts += ["CUDA_ARCH=sm_%s" % spec.variants["cuda_arch"].value]
                 if spec.satisfies("@:0.4"):
@@ -128,17 +128,17 @@ class Libceed(MakefilePackage, CudaPackage, ROCmPackage):
                 # Disable CUDA auto-detection:
                 makeopts += ["CUDA_DIR=/disable-cuda"]
 
-            if "+rocm" in spec:
+            if spec.satisfies("+rocm"):
                 makeopts += ["HIP_DIR=%s" % spec["hip"].prefix]
                 amdgpu_target = ",".join(spec.variants["amdgpu_target"].value)
                 makeopts += ["HIP_ARCH=%s" % amdgpu_target]
                 if spec.satisfies("@0.8"):
                     makeopts += ["HIPBLAS_DIR=%s" % spec["hipblas"].prefix]
 
-            if "+libxsmm" in spec:
+            if spec.satisfies("+libxsmm"):
                 makeopts += ["XSMM_DIR=%s" % spec["libxsmm"].prefix]
 
-            if "+magma" in spec:
+            if spec.satisfies("+magma"):
                 makeopts += ["MAGMA_DIR=%s" % spec["magma"].prefix]
 
         return makeopts

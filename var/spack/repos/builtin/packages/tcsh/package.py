@@ -108,6 +108,7 @@ class Tcsh(AutotoolsPackage):
     )
 
     depends_on("ncurses+termlib")
+    depends_on("libxcrypt", when="platform=linux")
 
     @run_after("install")
     def link_csh(self):

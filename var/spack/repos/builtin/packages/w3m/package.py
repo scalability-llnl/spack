@@ -68,7 +68,7 @@ class W3m(AutotoolsPackage):
         values=("gdk-pixbuf", "imlib2"),
         multi=False,
     )
-    depends_on("gdk-pixbuf@2:+x11", when="imagelib=gdk-pixbuf +image")
+    depends_on("gdk-pixbuf@2:", when="imagelib=gdk-pixbuf +image")
     depends_on("imlib2@1.0.5:", when="imagelib=imlib2 +image")
 
     # fix for modern libraries

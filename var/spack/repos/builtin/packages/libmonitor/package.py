@@ -64,10 +64,10 @@ class Libmonitor(AutotoolsPackage):
     def configure_args(self):
         args = []
 
-        if "+hpctoolkit" in self.spec:
+        if self.spec.satisfies("+hpctoolkit"):
             args.append("--enable-client-signals=%s" % self.signals)
 
-        if "+dlopen" in self.spec:
+        if self.spec.satisfies("+dlopen"):
             args.append("--enable-dlfcn")
         else:
             args.append("--disable-dlfcn")

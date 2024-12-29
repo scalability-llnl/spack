@@ -11,7 +11,7 @@ class PyAmrex(CMakePackage, PythonExtension, CudaPackage, ROCmPackage):
     """AMReX Python Bindings with pybind11"""
 
     homepage = "https://amrex-codes.github.io/amrex/"
-    url = "https://github.com/AMReX-Codes/pyamrex/archive/refs/tags/24.08.tar.gz"
+    url = "https://github.com/AMReX-Codes/pyamrex/archive/refs/tags/24.10.tar.gz"
     git = "https://github.com/AMReX-Codes/pyamrex.git"
 
     maintainers("ax3l", "RTSandberg", "sayerhs", "WeiqunZhang")
@@ -19,7 +19,12 @@ class PyAmrex(CMakePackage, PythonExtension, CudaPackage, ROCmPackage):
     license("BSD-3-Clause-LBNL")
 
     version("develop", branch="development")
-    version("24.08", sha256="e7179d88261f64744f392a2194ff2744fe323fe0e21d0742ba60458709a1b47e")
+    version("24.10", sha256="dc1752ed3fbd5113dcfdbddcfe6c3c458e572b288ac9d41ed3ed7db130591d74")
+    version(
+        "24.08",
+        sha256="e7179d88261f64744f392a2194ff2744fe323fe0e21d0742ba60458709a1b47e",
+        deprecated=True,
+    )
     version(
         "24.04",
         sha256="ab85695bb9644b702d0fc84e77205d264d27ba94999cab912c8a3212a7eb77fc",
@@ -32,7 +37,7 @@ class PyAmrex(CMakePackage, PythonExtension, CudaPackage, ROCmPackage):
         deprecated=True,
     )
 
-    for v in ["24.08", "24.04", "24.03"]:
+    for v in ["24.10", "24.08", "24.04", "24.03"]:
         depends_on("amrex@{0}".format(v), when="@{0}".format(v), type=("build", "link"))
 
     variant(
@@ -58,12 +63,14 @@ class PyAmrex(CMakePackage, PythonExtension, CudaPackage, ROCmPackage):
 
     extends("python")
 
+    depends_on("c", type="build")
     depends_on("cxx", type="build")
 
-    depends_on("cmake@3.20:", type="build")
+    depends_on("cmake@3.20:3", type="build", when="@:24.08")
+    depends_on("cmake@3.24:3", type="build", when="@24.09:")
     depends_on("python@3.8:", type=("build", "run"))
     depends_on("py-mpi4py@2.1.0:", type=("build", "run"), when="+mpi")
-    depends_on("py-numpy@1.15.0:1", type=("build", "run"))
+    depends_on("py-numpy@1.15:", type=("build", "run"))
     depends_on("py-packaging@23:", type="build")
     depends_on("py-pip@23:", type="build")
     depends_on("py-setuptools@42:", type="build")

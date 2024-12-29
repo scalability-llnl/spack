@@ -43,7 +43,9 @@ class Ldc(CMakePackage):
 
         args = [
             "-DD_COMPILER:STRING={0}".format(ldmd2),
-            "-DBUILD_SHARED_LIBS:BOOL={0}".format("ON" if "+shared" in self.spec else "OFF"),
+            "-DBUILD_SHARED_LIBS:BOOL={0}".format(
+                "ON" if self.spec.satisfies("+shared") else "OFF"
+            ),
             "-DLDC_INSTALL_LTOPLUGIN:BOOL=ON",
             "-DLDC_BUILD_WITH_LTO:BOOL=OFF",
         ]

@@ -33,8 +33,14 @@ properties: Dict[str, Any] = {
                                     "properties": {
                                         "type": {
                                             "type": "string",
-                                            "enum": ["local", "buildcache", "external"],
+                                            "enum": [
+                                                "local",
+                                                "buildcache",
+                                                "external",
+                                                "environment",
+                                            ],
                                         },
+                                        "path": {"type": "string"},
                                         "include": LIST_OF_SPECS,
                                         "exclude": LIST_OF_SPECS,
                                     },
@@ -55,12 +61,35 @@ properties: Dict[str, Any] = {
             "unify": {
                 "oneOf": [{"type": "boolean"}, {"type": "string", "enum": ["when_possible"]}]
             },
+            "splice": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "explicit": {
+                        "type": "array",
+                        "default": [],
+                        "items": {
+                            "type": "object",
+                            "required": ["target", "replacement"],
+                            "additionalProperties": False,
+                            "properties": {
+                                "target": {"type": "string"},
+                                "replacement": {"type": "string"},
+                                "transitive": {"type": "boolean", "default": False},
+                            },
+                        },
+                    },
+                    "automatic": {"type": "boolean"},
+                },
+            },
             "duplicates": {
                 "type": "object",
                 "properties": {
                     "strategy": {"type": "string", "enum": ["none", "minimal", "full"]}
                 },
             },
+            "timeout": {"type": "integer", "minimum": 0},
+            "error_on_timeout": {"type": "boolean"},
             "os_compatible": {"type": "object", "additionalProperties": {"type": "array"}},
         },
     }

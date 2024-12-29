@@ -28,6 +28,9 @@ class Rpp(CMakePackage):
 
     maintainers("srekolam", "afzpatel")
     license("MIT")
+    version("6.3.0", sha256="130a6bd2fc4278956c6450a3c49243651576b1031e6a485aa62453b9dc3b4d51")
+    version("6.2.4", sha256="e733350e938ce8d2f7d6d43d2bfd0febd270d52673bafa0265ed97bb850289de")
+    version("6.2.1", sha256="5ae9d0c6733ba0e00be1cda13003e98acebd3f86de59e6f1969e297d673f124e")
     version("6.2.0", sha256="69fbebf50b734e055258ea3c5b0399a51babab8f66074166d2b0fc4f1904c09c")
     version("6.1.2", sha256="3a529bdd17b448a9e05a6aac1b5e173a077f4a4a1fd2ed759bcea331acd2829f")
     version("6.1.1", sha256="9ca385c6f208a0bbf2be60ad15697d35371992d49ed30077b69e22090cef657c")
@@ -140,6 +143,7 @@ class Rpp(CMakePackage):
     depends_on("bzip2")
     depends_on("half")
     depends_on("hwloc")
+    depends_on("ffmpeg@:6", when="@6.2:")
     depends_on(
         "opencv@4.5:"
         "+calib3d+features2d+highgui+imgcodecs+imgproc"
@@ -153,7 +157,19 @@ class Rpp(CMakePackage):
 
     with when("+hip"):
         with when("@5.7:"):
-            for ver in ["5.7.0", "5.7.1", "6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0"]:
+            for ver in [
+                "5.7.0",
+                "5.7.1",
+                "6.0.0",
+                "6.0.2",
+                "6.1.0",
+                "6.1.1",
+                "6.1.2",
+                "6.2.0",
+                "6.2.1",
+                "6.2.4",
+                "6.3.0",
+            ]:
                 depends_on("hip@" + ver, when="@" + ver)
         with when("@:1.2"):
             depends_on("hip@5:")

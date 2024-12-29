@@ -41,8 +41,8 @@ class Lorene(MakefilePackage):
 
     def edit(self, spec, prefix):
         blas_libs = spec["blas"].libs.link_flags
-        fftw_incdirs = "-I" + spec["fftw"].prefix.include if "+fftw" in spec else ""
-        fftw_libdirs = "-L" + spec["fftw"].prefix.lib if "+fftw" in spec else ""
+        fftw_incdirs = "-I" + spec["fftw"].prefix.include if spec.satisfies("+fftw") else ""
+        fftw_libdirs = "-L" + spec["fftw"].prefix.lib if spec.satisfies("+fftw") else ""
         fftw_libs = spec["fftw"].libs.link_flags
         gsl_incdirs = "-I" + spec["gsl"].prefix.include
         gsl_libdirs = "-L" + spec["gsl"].prefix.lib
@@ -91,7 +91,7 @@ class Lorene(MakefilePackage):
         # (We could circumvent the build system and simply compile all
         # source files, and do so in parallel.)
         make("cpp", "fortran", "export", *args)
-        if "+bin_star" in spec:
+        if spec.satisfies("+bin_star"):
             with working_dir(join_path("Codes", "Bin_star")):
                 make(
                     "-f",
@@ -111,7 +111,7 @@ class Lorene(MakefilePackage):
         install_tree("Export/C++/Include", prefix.include)
         install_tree("C++/Include", prefix.include)
         mkdirp(prefix.bin)
-        if "+bin_star" in spec:
+        if spec.satisfies("+bin_star"):
             for exe in [
                 "coal",
                 "lit_bin",
@@ -125,5 +125,5 @@ class Lorene(MakefilePackage):
 
     @property
     def libs(self):
-        shared = "+shared" in self.spec
+        shared = self.spec.satisfies("+shared")
         return find_libraries("liblorene*", root=self.prefix, shared=shared, recursive=True)

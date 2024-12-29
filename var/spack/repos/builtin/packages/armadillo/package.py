@@ -13,9 +13,13 @@ class Armadillo(CMakePackage):
 
     homepage = "https://arma.sourceforge.net/"
     url = "http://sourceforge.net/projects/arma/files/armadillo-8.100.1.tar.xz"
+    git = "https://gitlab.com/conradsnicta/armadillo-code.git"
 
     license("Apache-2.0")
 
+    version("14.0.3", sha256="ebd6215eeb01ee412fed078c8a9f7f87d4e1f6187ebcdc1bc09f46095a4f4003")
+    version("14.0.2", sha256="248e2535fc092add6cb7dea94fc86ae1c463bda39e46fd82d2a7165c1c197dff")
+    version("12.8.4", sha256="558fe526b990a1663678eff3af6ec93f79ee128c81a4c8aef27ad328fae61138")
     version("12.8.3", sha256="2922589f6387796504b340da6bb954bef3d87574c298515893289edd2d890151")
     version("12.8.2", sha256="03b62f8c09e4f5d74643b478520741b8e27b55e7e4525978fcae2f5d791ac3bf")
     version("12.8.1", sha256="2781dd3a6cc5f9a49c91a4519dde2b1c24335a5bfe0cc1c9881b6363142452b4")
@@ -27,11 +31,13 @@ class Armadillo(CMakePackage):
     version("8.100.1", sha256="54773f7d828bd3885c598f90122b530ded65d9b195c9034e082baea737cd138d")
     version("7.950.1", sha256="a32da32a0ea420b8397a53e4b40ed279c1a5fc791dd492a2ced81ffb14ad0d1b")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("hdf5", default=False, description="Include HDF5 support")
 
     depends_on("cmake@2.8.12:", type="build")
+    depends_on("cmake@3.5:", type="build", when="@14:")
     depends_on("arpack-ng")  # old arpack causes undefined symbols
     depends_on("blas")
     depends_on("lapack")
@@ -43,14 +49,6 @@ class Armadillo(CMakePackage):
     # E.g. `/path/linux-x86_64/dir` -> `/path/1-x86_64/dir` if/when a linux
     # platform's compiler is adding `#define linux 1`.
     patch("undef_linux.patch", when="platform=linux")
-
-    def flag_handler(self, name, flags):
-        spec = self.spec
-        if name == "ldflags":
-            if spec.satisfies("%apple-clang@15:"):
-                flags.append("-Wl,-ld_classic")
-
-        return (flags, None, None)
 
     def patch(self):
         # Do not include Find{BLAS_type} because we are specifying the
@@ -91,4 +89,9 @@ class Armadillo(CMakePackage):
             self.define("SuperLU_LIBRARY", spec["superlu"].libs.joined(";")),
             # HDF5 support
             self.define("DETECT_HDF5", "ON" if spec.satisfies("+hdf5") else "OFF"),
+            # disable flexiblas support because armadillo will possibly detect system
+            # flexiblas which causes problems. If this is removed, then SuperLU and ARPACK must
+            # also link with Flexiblas. As this does not seem to be needed with the spack
+            # blas and lapack, it is easier to disable
+            self.define("ALLOW_FLEXIBLAS_LINUX", "OFF"),
         ]

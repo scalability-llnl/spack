@@ -33,16 +33,13 @@ class Dock(Package):
             env.set("MPICH_HOME", self.spec["mpi"].prefix)
 
     def install(self, spec, prefix):
-        compiler_targets = {"gcc": "gnu", "intel": "intel", "pgi": "pgi", "sgi": "sgi"}
+        compiler_targets = {"gcc": "gnu", "intel": "intel", "sgi": "sgi"}
 
         if self.compiler.name not in compiler_targets:
             template = "Unsupported compiler {0}! Supported compilers: {1}"
             err = template.format(self.compiler.name, ", ".join(list(compiler_targets.keys())))
 
             raise InstallError(err)
-
-        if self.compiler.name == "pgi" and "+mpi" in spec:
-            raise InstallError("Parallel output is not supported with pgi.")
 
         with working_dir("install"):
             sh_args = ["./configure", compiler_targets[self.compiler.name]]

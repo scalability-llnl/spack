@@ -12,7 +12,7 @@ class Masurca(Package):
     of the de Bruijn graph and Overlap-Layout-Consensus (OLC)
     approaches."""
 
-    homepage = "http://www.genome.umd.edu/masurca.html"
+    homepage = "https://www.genome.umd.edu/masurca.html"
     url = "https://github.com/alekseyzimin/masurca/releases/download/v3.3.1/MaSuRCA-3.3.1.tar.gz"
 
     license("GPL-3.0-only")

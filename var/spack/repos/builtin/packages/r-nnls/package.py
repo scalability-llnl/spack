@@ -17,4 +17,5 @@ class RNnls(RPackage):
 
     license("GPL-2.0-or-later")
 
+    version("1.5", sha256="cd70feb286f86f6dead75da693a8f67c9bd3b91eb738e6e6ac659e3b8c7a3452")
     version("1.4", sha256="0e5d77abae12bc50639d34354f96a8e079408c9d7138a360743b73bd7bce6c1f")

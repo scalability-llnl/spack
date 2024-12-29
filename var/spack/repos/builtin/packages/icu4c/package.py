@@ -5,6 +5,8 @@
 
 import pathlib
 
+import spack.build_systems.autotools
+import spack.build_systems.msbuild
 from spack.package import *
 
 

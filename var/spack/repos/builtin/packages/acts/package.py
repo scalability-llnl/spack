@@ -41,6 +41,15 @@ class Acts(CMakePackage, CudaPackage):
     # Supported Acts versions
     version("main", branch="main")
     version("master", branch="main", deprecated=True)  # For compatibility
+    version("38.1.0", commit="8a20c88808f10bf4fcdfd7c6e077f23614c3ab90", submodules=True)
+    version("38.0.0", commit="0a6b5155e29e3b755bf351b8a76067fff9b4214b", submodules=True)
+    version("37.4.0", commit="4ae9a44f54c854599d1d753222ec36e0b5b4e9c7", submodules=True)
+    version("37.3.0", commit="b3e856d4dadcda7d1a88a9b846ce5a7acd8410c4", submodules=True)
+    version("37.2.0", commit="821144dc40d35b44aee0d7857a0bd1c99e4a3932", submodules=True)
+    version("37.1.0", commit="fa6ad4d52e0bd09cf8c78507fcbb18e9ac2c87a3", submodules=True)
+    version("37.0.1", commit="998b9c9dd42d5160c2540f8fa820505869bfdb79", submodules=True)
+    version("37.0.0", commit="117feaaadc7a2336755274e0cd70ba58a047a1de", submodules=True)
+    version("36.3.2", commit="01e124d253a3c9c9b9f5d2fde16682ce9d4599cd", submodules=True)
     version("36.3.1", commit="b58e5b0c33fb8423ce60a6a45f333edd0d178acd", submodules=True)
     version("36.3.0", commit="3b875cebabdd10462e224279558429f49ed75945", submodules=True)
     version("36.2.0", commit="e2fb53da911dc481969e56d635898a46b8d78df9", submodules=True)
@@ -332,7 +341,7 @@ class Acts(CMakePackage, CudaPackage):
         "tbb",
         default=True,
         description="Build the examples with Threading Building Blocks library",
-        when="@19.8:19,20.1: +examples",
+        when="@19.8:19,20.1:37.2 +examples",
     )
     variant("analysis", default=False, description="Build analysis applications in the examples")
 
@@ -347,6 +356,7 @@ class Acts(CMakePackage, CudaPackage):
         depends_on("actsvg@0.4.35:", when="@28:")
         depends_on("actsvg@0.4.39:", when="@32:")
         depends_on("actsvg@0.4.40:", when="@32.1:")
+        depends_on("actsvg@0.4.50:", when="@37:")
     depends_on("acts-algebra-plugins @0.24:", when="+traccc")
     depends_on("autodiff @0.6:", when="@17: +autodiff")
     depends_on("autodiff @0.5.11:0.5.99", when="@1.2:16 +autodiff")
@@ -359,6 +369,7 @@ class Acts(CMakePackage, CudaPackage):
     depends_on("dd4hep @1.21: +dddetectors +ddrec", when="@20: +dd4hep")
     depends_on("dd4hep +ddg4", when="+dd4hep +geant4 +examples")
     depends_on("detray @0.72.1:", when="+traccc")
+    depends_on("detray @0.75.3:", when="@37: +traccc")
     depends_on("edm4hep @0.4.1:", when="+edm4hep")
     depends_on("edm4hep @0.7:", when="@25: +edm4hep")
     depends_on("eigen @3.3.7:", when="@15.1:")
@@ -375,8 +386,10 @@ class Acts(CMakePackage, CudaPackage):
     depends_on("hepmc3 @3.2.1:", when="+hepmc3")
     depends_on("heppdt", when="+hepmc3 @:4.0")
     depends_on("intel-tbb @2020.1:", when="+examples +tbb")
+    depends_on("intel-tbb @2020.1:", when="+examples @37.3:")
     depends_on("mlpack@3.1.1:", when="+mlpack")
     depends_on("nlohmann-json @3.9.1:", when="@0.14: +json")
+    depends_on("nlohmann-json @3.10.5:", when="@37: +json")
     depends_on("podio @0.6:", when="@25: +edm4hep")
     depends_on("podio @0.16:", when="@30.3: +edm4hep")
     depends_on("podio @:0", when="@:35 +edm4hep")
@@ -417,6 +430,8 @@ class Acts(CMakePackage, CudaPackage):
     conflicts("%gcc@:9", when="cxxstd=20")
     # See https://github.com/acts-project/acts/pull/3512
     conflicts("^boost@1.85.0")
+    # See https://github.com/acts-project/acts/pull/3921
+    conflicts("^edm4hep@0.99:", when="@:37")
 
     def cmake_args(self):
         spec = self.spec
@@ -499,6 +514,8 @@ class Acts(CMakePackage, CudaPackage):
         # Use dependencies provided by spack
         if spec.satisfies("@20.3:"):
             args.append("-DACTS_USE_SYSTEM_LIBS=ON")
+            if spec.satisfies("@35.1:36.0"):
+                args.append("-DACTS_USE_SYSTEM_DFELIBS=OFF")
         else:
             if spec.satisfies("+autodiff"):
                 args.append("-DACTS_USE_SYSTEM_AUTODIFF=ON")

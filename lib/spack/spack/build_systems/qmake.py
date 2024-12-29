@@ -6,9 +6,10 @@ from llnl.util.filesystem import working_dir
 
 import spack.builder
 import spack.package_base
+import spack.phase_callbacks
 from spack.directives import build_system, depends_on
 
-from ._checks import BaseBuilder, execute_build_time_tests
+from ._checks import BuilderWithDefaults, execute_build_time_tests
 
 
 class QMakePackage(spack.package_base.PackageBase):
@@ -30,7 +31,7 @@ class QMakePackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("qmake")
-class QMakeBuilder(BaseBuilder):
+class QMakeBuilder(BuilderWithDefaults):
     """The qmake builder provides three phases that can be overridden:
 
     1. :py:meth:`~.QMakeBuilder.qmake`
@@ -81,4 +82,4 @@ class QMakeBuilder(BaseBuilder):
         with working_dir(self.build_directory):
             self.pkg._if_make_target_execute("check")
 
-    spack.builder.run_after("build")(execute_build_time_tests)
+    spack.phase_callbacks.run_after("build")(execute_build_time_tests)

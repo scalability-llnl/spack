@@ -7,7 +7,7 @@ import os
 import re
 import sys
 
-from spack.build_environment import dso_suffix
+import spack.compilers
 from spack.package import *
 
 
@@ -30,6 +30,7 @@ class Mpich(AutotoolsPackage, CudaPackage, ROCmPackage):
     license("mpich2")
 
     version("develop", submodules=True)
+    version("4.2.3", sha256="7a019180c51d1738ad9c5d8d452314de65e828ee240bcb2d1f80de9a65be88a8")
     version("4.2.2", sha256="883f5bb3aeabf627cb8492ca02a03b191d09836bbe0f599d8508351179781d41")
     version("4.2.1", sha256="23331b2299f287c3419727edc2df8922d7e7abbb9fd0ac74e03b9966f9ad42d7")
     version("4.2.0", sha256="a64a66781b9e5312ad052d32689e23252f745b27ee8818ac2ac0c8209bc0b90e")
@@ -55,10 +56,6 @@ class Mpich(AutotoolsPackage, CudaPackage, ROCmPackage):
     version("3.1.1", sha256="455ccfaf4ec724d2cf5d8bff1f3d26a958ad196121e7ea26504fd3018757652d")
     version("3.1", sha256="fcf96dbddb504a64d33833dc455be3dda1e71c7b3df411dfcf9df066d7c32c39")
     version("3.0.4", sha256="cf638c85660300af48b6f776e5ecd35b5378d5905ec5d34c3da7a27da0acf0b3")
-
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
 
     variant("hwloc", default=True, description="Use external hwloc package")
     variant("hydra", default=True, description="Build the hydra process manager")
@@ -132,9 +129,6 @@ supported, and netmod is ignored if device is ch3:sock.""",
             depends_on("yaksa+cuda", when="+cuda")
             depends_on("yaksa+rocm", when="+rocm")
 
-    conflicts("datatype-engine=yaksa", when="device=ch3")
-    conflicts("datatype-engine=yaksa", when="device=ch3:sock")
-
     variant(
         "hcoll",
         default=False,
@@ -142,9 +136,20 @@ supported, and netmod is ignored if device is ch3:sock.""",
         "collective operations library",
         when="@3.3: device=ch4 netmod=ucx",
     )
-    depends_on("hcoll", when="+hcoll")
 
     variant("xpmem", default=False, when="@3.4:", description="Enable XPMEM support")
+    variant("level_zero", default=False, description="Enable level zero support")
+
+    conflicts("datatype-engine=yaksa", when="device=ch3")
+    conflicts("datatype-engine=yaksa", when="device=ch3:sock")
+    conflicts("datatype-engine=dataloop", when="+cuda")
+    conflicts("datatype-engine=dataloop", when="+rocm")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build", when="+fortran")
+
+    depends_on("hcoll", when="+hcoll")
     depends_on("xpmem", when="+xpmem")
 
     # Todo: cuda can be a conditional variant, but it does not seem to work when
@@ -258,7 +263,6 @@ supported, and netmod is ignored if device is ch3:sock.""",
     depends_on("hwloc@2.0.0:", when="@3.3: +hwloc")
 
     depends_on("libfabric", when="netmod=ofi")
-    depends_on("libfabric fabrics=gni", when="netmod=ofi pmi=cray")
     # The ch3 ofi netmod results in crashes with libfabric 1.7
     # See https://github.com/pmodels/mpich/issues/3665
     depends_on("libfabric@:1.6", when="device=ch3 netmod=ofi")
@@ -300,6 +304,7 @@ supported, and netmod is ignored if device is ch3:sock.""",
     depends_on("python@3.0:", when="@develop", type="build")
 
     depends_on("cray-pmi", when="pmi=cray")
+    depends_on("oneapi-level-zero", when="+level_zero")
 
     conflicts("device=ch4", when="@:3.2")
     conflicts("netmod=ofi", when="@:3.1.4")
@@ -476,11 +481,6 @@ supported, and netmod is ignored if device is ch3:sock.""",
             spec.mpifc = join_path(self.prefix.bin, "mpif90")
             spec.mpif77 = join_path(self.prefix.bin, "mpif77")
 
-        spec.mpicxx_shared_libs = [
-            join_path(self.prefix.lib, "libmpicxx.{0}".format(dso_suffix)),
-            join_path(self.prefix.lib, "libmpi.{0}".format(dso_suffix)),
-        ]
-
     def autoreconf(self, spec, prefix):
         """Not needed usually, configure should be already there"""
         # If configure exists nothing needs to be done
@@ -520,7 +520,12 @@ supported, and netmod is ignored if device is ch3:sock.""",
             "--{0}-ibverbs".format("with" if "+verbs" in spec else "without"),
             "--enable-wrapper-rpath={0}".format("no" if "~wrapperrpath" in spec else "yes"),
             "--with-yaksa={0}".format(spec["yaksa"].prefix if "^yaksa" in spec else "embedded"),
+            *self.with_or_without("ze", variant="level_zero"),
         ]
+
+        # https://github.com/pmodels/mpich/commit/bbfc4cab6ade0b75ef3803a83af1cad4a262a564
+        if self.spec.satisfies("@:4.2 ~hwloc"):
+            config_args += self.enable_or_disable("levelzero", variant="level_zero")
 
         # see https://github.com/pmodels/mpich/issues/5530
         if spec.platform == "darwin":

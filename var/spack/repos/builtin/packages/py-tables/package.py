@@ -31,8 +31,8 @@ class PyTables(PythonPackage):
     depends_on("cxx", type="build")  # generated
 
     variant("zlib", default=True, description="Support for zlib compression")
-    variant("bzip2", default=False, description="Support for bzip2 compression")
-    variant("lzo", default=False, description="Support for lzo compression")
+    variant("bzip2", default=True, description="Support for bzip2 compression")
+    variant("lzo", default=True, description="Support for lzo compression")
 
     # pyproject.toml
     depends_on("py-setuptools@61:", when="@3.9:", type="build")
@@ -64,6 +64,9 @@ class PyTables(PythonPackage):
     # problem in a multithreaded environment.
     depends_on("c-blosc@1.11.1:", when="@3.8:")
     depends_on("c-blosc@1.4.1:", when="@3.3:")
+
+    # blosc2 headers are directly included
+    depends_on("c-blosc2")
 
     depends_on("zlib-api", when="+zlib")
     depends_on("bzip2", when="+bzip2")

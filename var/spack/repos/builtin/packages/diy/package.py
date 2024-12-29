@@ -28,8 +28,8 @@ class Diy(CMakePackage):
     # https://gitlab.kitware.com/diatomic/diy/-/merge_requests/82
     patch(
         "https://gitlab.kitware.com/diatomic/diy/-/commit/1d85dd5205b9f0035840e1840a49ea7028618d16.diff",
-        sha256="047bed205c905064923d7ecf1d03e38c07f3ae0baa0f4afe1b234f68315472d3",
-        when="@3.6:",
+        sha256="8d9ae569c4bf87e450a4d96b9a33c5d226011568ee83537a8cb0d46810839169",
+        when="@3.6",
     )
 
     def cmake_args(self):

@@ -12,6 +12,8 @@ import stat
 import sys
 from typing import Callable, Dict, Optional
 
+from typing_extensions import Literal
+
 from llnl.string import comma_or
 from llnl.util import tty
 from llnl.util.filesystem import (
@@ -33,6 +35,7 @@ from llnl.util.symlink import symlink
 from llnl.util.tty.color import colorize
 
 import spack.config
+import spack.directory_layout
 import spack.paths
 import spack.projections
 import spack.relocate
@@ -50,7 +53,7 @@ __all__ = ["FilesystemView", "YamlFilesystemView"]
 _projections_path = ".spack/projections.yaml"
 
 
-LinkCallbackType = Callable[[str, str, "FilesystemView", Optional["spack.spec.Spec"]], None]
+LinkCallbackType = Callable[[str, str, "FilesystemView", Optional[spack.spec.Spec]], None]
 
 
 def view_symlink(src: str, dst: str, *args, **kwargs) -> None:
@@ -62,7 +65,7 @@ def view_hardlink(src: str, dst: str, *args, **kwargs) -> None:
 
 
 def view_copy(
-    src: str, dst: str, view: "FilesystemView", spec: Optional["spack.spec.Spec"] = None
+    src: str, dst: str, view: "FilesystemView", spec: Optional[spack.spec.Spec] = None
 ) -> None:
     """
     Copy a file from src to dst.
@@ -100,11 +103,16 @@ def view_copy(
 
         spack.relocate.relocate_text(files=[dst], prefixes=prefix_to_projection)
 
-    try:
-        os.chown(dst, src_stat.st_uid, src_stat.st_gid)
-    except OSError:
-        tty.debug(f"Can't change the permissions for {dst}")
+    # The os module on Windows does not have a chown function.
+    if sys.platform != "win32":
+        try:
+            os.chown(dst, src_stat.st_uid, src_stat.st_gid)
+        except OSError:
+            tty.debug(f"Can't change the permissions for {dst}")
 
+
+#: Type alias for link types
+LinkType = Literal["hardlink", "hard", "copy", "relocate", "add", "symlink", "soft"]
 
 #: supported string values for `link_type` in an env, mapped to canonical values
 _LINK_TYPES = {
@@ -120,7 +128,7 @@ _LINK_TYPES = {
 _VALID_LINK_TYPES = sorted(set(_LINK_TYPES.values()))
 
 
-def canonicalize_link_type(link_type: str) -> str:
+def canonicalize_link_type(link_type: LinkType) -> str:
     """Return canonical"""
     canonical = _LINK_TYPES.get(link_type)
     if not canonical:
@@ -130,7 +138,7 @@ def canonicalize_link_type(link_type: str) -> str:
     return canonical
 
 
-def function_for_link_type(link_type: str) -> LinkCallbackType:
+def function_for_link_type(link_type: LinkType) -> LinkCallbackType:
     link_type = canonicalize_link_type(link_type)
     if link_type == "hardlink":
         return view_hardlink
@@ -139,7 +147,7 @@ def function_for_link_type(link_type: str) -> LinkCallbackType:
     elif link_type == "copy":
         return view_copy
 
-    assert False, "invalid link type"  # need mypy Literal values
+    assert False, "invalid link type"
 
 
 class FilesystemView:
@@ -158,12 +166,12 @@ class FilesystemView:
     def __init__(
         self,
         root: str,
-        layout: "spack.directory_layout.DirectoryLayout",
+        layout: spack.directory_layout.DirectoryLayout,
         *,
         projections: Optional[Dict] = None,
         ignore_conflicts: bool = False,
         verbose: bool = False,
-        link_type: str = "symlink",
+        link_type: LinkType = "symlink",
     ):
         """
         Initialize a filesystem view under the given `root` directory with
@@ -180,7 +188,10 @@ class FilesystemView:
 
         # Setup link function to include view
         self.link_type = link_type
-        self.link = ft.partial(function_for_link_type(link_type), view=self)
+        self._link = function_for_link_type(link_type)
+
+    def link(self, src: str, dst: str, spec: Optional[spack.spec.Spec] = None) -> None:
+        self._link(src, dst, self, spec)
 
     def add_specs(self, *specs, **kwargs):
         """
@@ -281,12 +292,12 @@ class YamlFilesystemView(FilesystemView):
     def __init__(
         self,
         root: str,
-        layout: "spack.directory_layout.DirectoryLayout",
+        layout: spack.directory_layout.DirectoryLayout,
         *,
         projections: Optional[Dict] = None,
         ignore_conflicts: bool = False,
         verbose: bool = False,
-        link_type: str = "symlink",
+        link_type: LinkType = "symlink",
     ):
         super().__init__(
             root,
@@ -320,12 +331,12 @@ class YamlFilesystemView(FilesystemView):
     def write_projections(self):
         if self.projections:
             mkdirp(os.path.dirname(self.projections_path))
-            with open(self.projections_path, "w") as f:
+            with open(self.projections_path, "w", encoding="utf-8") as f:
                 f.write(s_yaml.dump_config({"projections": self.projections}))
 
     def read_projections(self):
         if os.path.exists(self.projections_path):
-            with open(self.projections_path, "r") as f:
+            with open(self.projections_path, "r", encoding="utf-8") as f:
                 projections_data = s_yaml.load(f)
                 spack.config.validate(projections_data, spack.schema.projections.schema)
                 return projections_data["projections"]
@@ -423,7 +434,7 @@ class YamlFilesystemView(FilesystemView):
                 self.get_path_meta_folder(spec), spack.store.STORE.layout.manifest_file_name
             )
             try:
-                with open(manifest_file, "r") as f:
+                with open(manifest_file, "r", encoding="utf-8") as f:
                     manifest = s_json.load(f)
             except (OSError, IOError):
                 # if we can't load it, assume it doesn't know about the file.
@@ -827,7 +838,7 @@ class SimpleFilesystemView(FilesystemView):
 #####################
 def get_spec_from_file(filename):
     try:
-        with open(filename, "r") as f:
+        with open(filename, "r", encoding="utf-8") as f:
             return spack.spec.Spec.from_yaml(f)
     except IOError:
         return None

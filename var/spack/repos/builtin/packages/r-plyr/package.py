@@ -21,6 +21,7 @@ class RPlyr(RPackage):
 
     license("MIT")
 
+    version("1.8.9", sha256="15b5e7f711d53bf41b8687923983b8ef424563aa2f74c5195feb5b1df1aee103")
     version("1.8.8", sha256="a73211b4bbe13e4e5e764966a8dd90172c1cc311938dd464d142e1c7a701070c")
     version("1.8.7", sha256="7d9fdaf1157035a49c3661da3bbaa7bfcf782aafe1b98f7b5a68b0520046e87f")
     version("1.8.6", sha256="ea55d26f155443e9774769531daa5d4c20a0697bb53abd832e891b126c935287")

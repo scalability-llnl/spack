@@ -41,8 +41,9 @@ class Enchant(AutotoolsPackage):
     version("2.1.1", sha256="5fad0a1e82ddfed91647e93da5955fc76249760fd51865648a36074dc97d526c")
     version("2.1.0", sha256="2cdda2d9edb62ad895c34be35c598d56ac5b9b9298f3dfdaa2b40a1914d1db7e")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("pkgconfig", type="build", when="platform=linux")
 
     variant("hunspell", default=True, description="Enables hunspell backend")
 

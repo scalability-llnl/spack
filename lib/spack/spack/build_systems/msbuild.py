@@ -10,7 +10,7 @@ import spack.builder
 import spack.package_base
 from spack.directives import build_system, conflicts
 
-from ._checks import BaseBuilder
+from ._checks import BuilderWithDefaults
 
 
 class MSBuildPackage(spack.package_base.PackageBase):
@@ -26,7 +26,7 @@ class MSBuildPackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("msbuild")
-class MSBuildBuilder(BaseBuilder):
+class MSBuildBuilder(BuilderWithDefaults):
     """The MSBuild builder encodes the most common way of building software with
     Mircosoft's MSBuild tool. It has two phases that can be overridden, if need be:
 

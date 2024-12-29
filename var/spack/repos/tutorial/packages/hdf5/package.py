@@ -461,7 +461,7 @@ HDF5 version {version} {version}
 """.format(
                 version=str(spec.version.up_to(3))
             )
-            with open("check.c", "w") as f:
+            with open("check.c", "w", encoding="utf-8") as f:
                 f.write(source)
             if "+mpi" in spec:
                 cc = Executable(spec["mpi"].mpicc)

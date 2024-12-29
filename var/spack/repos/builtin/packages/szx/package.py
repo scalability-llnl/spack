@@ -2,6 +2,8 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import spack.build_systems.autotools
+import spack.build_systems.cmake
 from spack.package import *
 
 

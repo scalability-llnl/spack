@@ -118,39 +118,18 @@ prepend() {
     fi
 }
 
-# contains LISTNAME ELEMENT
+# append LISTNAME ELEMENT [SEP]
 #
-# Test whether LISTNAME contains ELEMENT.
-# Set $? to 1 if LISTNAME does not contain ELEMENT.
-# Set $? to 0 if LISTNAME does not contain ELEMENT.
-contains() {
-    varname="$1"
-    elt="$2"
-
-    setsep "$varname"
-
-    # the list may: 1) only contain the element, 2) start with the element,
-    # 3) contain the element in the middle, or 4) end wtih the element.
-    eval "[ \"\${$varname}\" = \"$elt\" ]" \
-        || eval "[ \"\${$varname#${elt}${sep}}\" != \"\${$varname}\" ]" \
-        || eval "[ \"\${$varname#*${sep}${elt}${sep}}\" != \"\${$varname}\" ]" \
-        || eval "[ \"\${$varname%${sep}${elt}}\" != \"\${$varname}\" ]"
-}
-
-# append LISTNAME ELEMENT [unique]
-#
-# Append ELEMENT to the list stored in the variable LISTNAME.
+# Append ELEMENT to the list stored in the variable LISTNAME,
+# assuming the list is separated by SEP.
 # Handles empty lists and single-element lists.
-#
-# If the third argument is provided and if it is the string 'unique',
-# this will not append if ELEMENT is already in the list LISTNAME.
 append() {
     varname="$1"
     elt="$2"
 
     if empty "$varname"; then
         eval "$varname=\"\${elt}\""
-    elif [ "$3" != "unique" ] || ! contains "$varname" "$elt" ; then
+    else
         # Get the appropriate separator for the list we're appending to.
         setsep "$varname"
         eval "$varname=\"\${$varname}${sep}\${elt}\""
@@ -168,19 +147,8 @@ extend() {
     if [ "$sep" != " " ]; then
         IFS="$sep"
     fi
-    eval "for elt in \${$2}; do append $1 \"$3\${elt}\" ${_append_args}; done"
+    eval "for elt in \${$2}; do append $1 \"$3\${elt}\"; done"
     unset IFS
-}
-
-# extend_unique LISTNAME1 LISTNAME2 [PREFIX]
-#
-# Append the elements stored in the variable LISTNAME2 to the list
-# stored in LISTNAME1, if they are not already present.
-# If PREFIX is provided, prepend it to each element.
-extend_unique() {
-    _append_args="unique"
-    extend "$@"
-    unset _append_args
 }
 
 # preextend LISTNAME1 LISTNAME2 [PREFIX]
@@ -731,8 +699,12 @@ categorize_arguments() {
                         append_path_lists return_rpath_dirs_list "$arg"
                         ;;
                     -rpath|--rpath)
+                        if [ $# -eq 1 ]; then
+                            # -rpath without value: let the linker raise an error.
+                            append return_other_args_list "$1"
+                            break
+                        fi
                         shift
-                        [ $# -eq 0 ] && break  # ignore -rpath without value
                         append_path_lists return_rpath_dirs_list "$1"
                         ;;
                     *)
@@ -964,14 +936,14 @@ esac
 
 # if mode is ccld or ld, extend RPATH lists with the prefix determined above
 if [ -n "$rpath_prefix" ]; then
-    extend_unique args_list spack_store_spack_flags_rpath_dirs_list "$rpath_prefix"
-    extend_unique args_list spack_store_rpath_dirs_list "$rpath_prefix"
+    extend args_list spack_store_spack_flags_rpath_dirs_list "$rpath_prefix"
+    extend args_list spack_store_rpath_dirs_list "$rpath_prefix"
 
-    extend_unique args_list spack_flags_rpath_dirs_list "$rpath_prefix"
-    extend_unique args_list rpath_dirs_list "$rpath_prefix"
+    extend args_list spack_flags_rpath_dirs_list "$rpath_prefix"
+    extend args_list rpath_dirs_list "$rpath_prefix"
 
-    extend_unique args_list system_spack_flags_rpath_dirs_list "$rpath_prefix"
-    extend_unique args_list system_rpath_dirs_list "$rpath_prefix"
+    extend args_list system_spack_flags_rpath_dirs_list "$rpath_prefix"
+    extend args_list system_rpath_dirs_list "$rpath_prefix"
 fi
 
 # Other arguments from the input command

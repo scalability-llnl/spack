@@ -224,6 +224,7 @@ class Binutils(AutotoolsPackage, GNUMirrorPackage):
         return (iflags, None, flags)
 
     def test_binaries(self):
+        """check versions reported by binaries"""
         binaries = [
             "ar",
             "c++filt",

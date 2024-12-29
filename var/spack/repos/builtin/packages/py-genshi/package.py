@@ -21,4 +21,5 @@ class PyGenshi(PythonPackage):
     depends_on("py-six", type=("build", "run", "test"))
 
     def test_testsuite(self):
+        """run unittest suite"""
         python("-m", "unittest", "-v", "genshi.tests.suite")

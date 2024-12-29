@@ -1,0 +1,18 @@
+--- a/CMakeLists.txt	2023-12-04 07:01:57.000000000 -0700
++++ b/CMakeLists.txt	2024-11-08 06:53:55.090900241 -0700
+@@ -21,6 +21,7 @@
+ 
+ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+ set(CMAKE_MACOSX_RPATH 1)
++SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+ 
+ # Compiler-specific compile options
+ if ("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "GNU")
+@@ -79,6 +80,7 @@
+ get_filename_component(netcdf_c_lib_location ${netcdf_c_lib} DIRECTORY)
+ #message (STATUS "netcdf_c_lib_location == ${netcdf_c_lib_location}")
+ 
++SET(CMAKE_INSTALL_RPATH "${netcdf_fortran_lib_location};${netcdf_c_lib_location}")
+ list(APPEND CMAKE_BUILD_RPATH ${netcdf_fortran_lib_location} ${netcdf_c_lib_location})
+ #message("CMAKE_BUILD_RPATH is ${CMAKE_BUILD_RPATH}")
+ add_executable (cprnc ${CPRNC_Fortran_SRCS} ${CPRNC_GenF90_SRCS})

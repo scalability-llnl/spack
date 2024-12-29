@@ -16,6 +16,7 @@ class Bfs(MakefilePackage):
 
     license("0BSD")
 
+    version("4.0.4", sha256="209da9e9f43d8fe30fd689c189ea529e9d6b5358ce84a63a44721003aea3e1ca")
     version("4.0.1", sha256="8117b76b0a967887278a11470cbfa9e7aeae98f11a7eeb136f456ac462e5ba23")
     version("3.1.1", sha256="d73f345c1021e0630e0db930a3fa68dd1f968833037d8471ee1096e5040bf91b")
     version("3.1", sha256="aa6a94231915d3d37e5dd62d194cb58a575a8f45270020f2bdd5ab41e31d1492")

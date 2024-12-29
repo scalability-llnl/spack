@@ -3,7 +3,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import argparse
 import re
 import sys
 
@@ -12,13 +11,12 @@ import llnl.util.tty.color as color
 
 import spack
 import spack.cmd
-import spack.cmd.common.arguments
+import spack.cmd.spec
 import spack.config
 import spack.environment
 import spack.hash_types as ht
 import spack.solver.asp as asp
 import spack.spec
-from spack.cmd.common import arguments
 
 description = "concretize a specs using an ASP solver"
 section = "developer"
@@ -41,42 +39,6 @@ def setup_parser(subparser):
         "  solutions    models found by asp program\n"
         "  all          all of the above",
     )
-
-    # Below are arguments w.r.t. spec display (like spack spec)
-    arguments.add_common_arguments(subparser, ["long", "very_long", "namespaces"])
-
-    install_status_group = subparser.add_mutually_exclusive_group()
-    arguments.add_common_arguments(install_status_group, ["install_status", "no_install_status"])
-
-    subparser.add_argument(
-        "-y",
-        "--yaml",
-        action="store_const",
-        dest="format",
-        default=None,
-        const="yaml",
-        help="print concrete spec as yaml",
-    )
-    subparser.add_argument(
-        "-j",
-        "--json",
-        action="store_const",
-        dest="format",
-        default=None,
-        const="json",
-        help="print concrete spec as json",
-    )
-    subparser.add_argument(
-        "-c",
-        "--cover",
-        action="store",
-        default="nodes",
-        choices=["nodes", "edges", "paths"],
-        help="how extensively to traverse the DAG (default: nodes)",
-    )
-    subparser.add_argument(
-        "-t", "--types", action="store_true", default=False, help="show dependency types"
-    )
     subparser.add_argument(
         "--timers",
         action="store_true",
@@ -86,9 +48,8 @@ def setup_parser(subparser):
     subparser.add_argument(
         "--stats", action="store_true", default=False, help="print out statistics from clingo"
     )
-    subparser.add_argument("specs", nargs=argparse.REMAINDER, help="specs of packages")
 
-    spack.cmd.common.arguments.add_concretizer_args(subparser)
+    spack.cmd.spec.setup_parser(subparser)
 
 
 def _process_result(result, show, required_format, kwargs):
@@ -164,11 +125,12 @@ def solve(parser, args):
 
     # If we have an active environment, pick the specs from there
     env = spack.environment.active_environment()
-    if env and args.specs:
-        msg = "cannot give explicit specs when an environment is active"
-        raise RuntimeError(msg)
-
-    specs = list(env.user_specs) if env else spack.cmd.parse_specs(args.specs)
+    if args.specs:
+        specs = spack.cmd.parse_specs(args.specs)
+    elif env:
+        specs = list(env.user_specs)
+    else:
+        tty.die("spack solve requires at least one spec or an active environment")
 
     solver = asp.Solver()
     output = sys.stdout if "asp" in show else None

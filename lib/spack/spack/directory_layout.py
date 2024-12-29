@@ -141,7 +141,7 @@ class DirectoryLayout:
     def write_spec(self, spec, path):
         """Write a spec out to a file."""
         _check_concrete(spec)
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             # The hash of the projection is the DAG hash which contains
             # the full provenance, so it's availabe if we want it later
             spec.to_json(f, hash=ht.dag_hash)
@@ -153,13 +153,13 @@ class DirectoryLayout:
         """
         env_file = self.env_metadata_path(spec)
         environ = spack.spec.get_host_environment_metadata()
-        with open(env_file, "w") as fd:
+        with open(env_file, "w", encoding="utf-8") as fd:
             sjson.dump(environ, fd)
 
     def read_spec(self, path):
         """Read the contents of a file and parse them as a spec"""
         try:
-            with open(path) as f:
+            with open(path, encoding="utf-8") as f:
                 extension = os.path.splitext(path)[-1].lower()
                 if extension == ".json":
                     spec = spack.spec.Spec.from_json(f)

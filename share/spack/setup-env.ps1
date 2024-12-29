@@ -60,5 +60,6 @@ function global:prompt
     $pth = $(Convert-Path $(Get-Location)) | Split-Path -leaf
     "[spack] PS $pth>"
 }
+[system.console]::title = "Spack"
 Pop-Location
 

@@ -61,12 +61,12 @@ class Libxslt(AutotoolsPackage):
     def configure_args(self):
         args = []
 
-        if "+crypto" in self.spec:
+        if self.spec.satisfies("+crypto"):
             args.append("--with-crypto")
         else:
             args.append("--without-crypto")
 
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             args.append("--with-python={0}".format(self.spec["python"].home))
         else:
             args.append("--without-python")
@@ -76,7 +76,7 @@ class Libxslt(AutotoolsPackage):
     @run_after("install")
     @on_package_attributes(run_tests=True)
     def import_module_test(self):
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             with working_dir("spack-test", create=True):
                 python("-c", "import libxslt")
 

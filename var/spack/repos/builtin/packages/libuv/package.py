@@ -5,6 +5,7 @@
 import sys
 
 import spack.build_systems
+import spack.build_systems.autotools
 from spack.package import *
 
 

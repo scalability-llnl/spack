@@ -26,6 +26,9 @@ class Papyrus(CMakePackage):
 
     depends_on("mpi")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     test_requires_compiler = True
 
     def setup_run_environment(self, env):

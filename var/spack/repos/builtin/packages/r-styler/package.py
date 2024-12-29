@@ -15,6 +15,7 @@ class RStyler(RPackage):
 
     license("MIT")
 
+    version("1.10.3", sha256="adb9c22111a8669bdce6d4a5c09e0ad353e07c3488373484a258028203bfda41")
     version("1.9.1", sha256="c80fa3c062f007645ec820b5b087d4d5784e7797cc88d030ab59fb5823ded0bb")
     version("1.8.1", sha256="15505fa85f0aa2902bc8af3f00b2aeb205d41a92b77bffbd176d657753ee81e9")
     version("1.8.0", sha256="4f8b74c1ac158b0a4433b6008da6bb708f3c9ed1c7fb9bb5d79748858cb484c7")
@@ -24,6 +25,7 @@ class RStyler(RPackage):
 
     depends_on("r@3.4.0:", type=("build", "run"), when="@1.7.0:")
     depends_on("r@3.5.0:", type=("build", "run"), when="@1.8.0:")
+    depends_on("r@3.6.0:", type=("build", "run"), when="@1.10.0:")
     depends_on("r-cli@1.1.0:", type=("build", "run"))
     depends_on("r-cli@3.1.1:", type=("build", "run"), when="@1.7.0:")
     depends_on("r-magrittr@1.0.1:", type=("build", "run"))
@@ -32,6 +34,7 @@ class RStyler(RPackage):
     depends_on("r-r-cache@0.14.0:", type=("build", "run"))
     depends_on("r-r-cache@0.15.0:", type=("build", "run"), when="@1.6.2:")
     depends_on("r-rlang@0.1.1:", type=("build", "run"))
+    depends_on("r-rlang@1.0.0:", type=("build", "run"), when="@1.10.0:")
     depends_on("r-rprojroot@1.1:", type=("build", "run"))
     depends_on("r-vctrs@0.4.1:", type=("build", "run"), when="@1.8.0:")
     depends_on("r-withr@1.0.0:", type=("build", "run"))

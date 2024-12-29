@@ -33,8 +33,18 @@ class Glow(GoPackage):
     version("1.0.2", sha256="2d98c1e780d750b83d8da094de4c2a999c324021906e6d813b7c75d0320243c8")
     version("1.0.1", sha256="78d163bea8e6c13fb343f1e3586e93e0392e5052c408a248cc2f0fcc7aa38618")
 
-    def install(self, spec, prefix):
-        mkdirp(prefix.bin)
-        install("glow", prefix.bin)
-        mkdirp(prefix.completions)
-        install_tree(".", prefix.completions)
+    @run_after("install")
+    def install_completions(self):
+        glow = Executable(self.prefix.bin.glow)
+
+        mkdirp(bash_completion_path(self.prefix))
+        with open(bash_completion_path(self.prefix) / "glow", "w") as file:
+            glow("completion", "bash", output=file)
+
+        mkdirp(fish_completion_path(self.prefix))
+        with open(fish_completion_path(self.prefix) / "glow.fish", "w") as file:
+            glow("completion", "fish", output=file)
+
+        mkdirp(zsh_completion_path(self.prefix))
+        with open(zsh_completion_path(self.prefix) / "_glow", "w") as file:
+            glow("completion", "zsh", output=file)
