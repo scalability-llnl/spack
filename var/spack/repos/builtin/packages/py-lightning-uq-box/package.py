@@ -9,13 +9,14 @@ class PyLightningUqBox(PythonPackage):
     """Lighning-UQ-Box: A toolbox for uncertainty quantification in deep learning."""
 
     homepage = "https://github.com/lightning-uq-box/lightning-uq-box"
-    pypi = "lightning-uq-box/lightning-uq-box-0.1.0.tar.gz"
+    pypi = "lightning-uq-box/lightning_uq_box-0.1.0.tar.gz"
     git = "https://github.com/lightning-uq-box/lightning-uq-box.git"
 
     license("Apache-2.0")
     maintainers("nilsleh", "adamjstewart")
 
     version("main", branch="main")
+    version("0.2.0", sha256="97d994ac5ecdfc5a31e8d256b827115664d615a7623a1eea024754a8d7c3187e")
     version("0.1.0", sha256="ce44860db75b4fbe487a009bee91c886be2e1835edee93479a6a8633ef2152b1")
 
     depends_on("py-setuptools@61:", type="build")
@@ -44,3 +45,11 @@ class PyLightningUqBox(PythonPackage):
         depends_on("py-torchseg@0.0.1:")
         depends_on("py-h5py@3.12.1:", when="@0.2:")
         depends_on("py-ema-pytorch@0.7:", when="@0.2:")
+
+    def url_for_version(self, version):
+        url = "https://files.pythonhosted.org/packages/source/l/lightning-uq-box/{}-{}.tar.gz"
+        if version >= Version("0.2.0"):
+            name = "lightning_uq_box"
+        else:
+            name = "lightning-uq-box"
+        return url.format(name, version)
