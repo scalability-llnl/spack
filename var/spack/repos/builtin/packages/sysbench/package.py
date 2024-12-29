@@ -50,7 +50,7 @@ class Sysbench(AutotoolsPackage):
         args += self.with_or_without("mysql")
         args += self.with_or_without("pgsql")
 
-        return args 
+        return args
 
     def autoreconf(self, spec, prefix):
         which("bash")("./autogen.sh")
