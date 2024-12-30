@@ -15,6 +15,7 @@ class Lis(AutotoolsPackage):
     homepage = "https://www.ssisc.org/lis/index.en.html"
     url = "https://www.ssisc.org/lis/dl/lis-2.0.27.zip"
 
+    version("2.1.7", sha256="cbcfca1dcd514801ef530ea5d158311985108ab6a9f300d31dcbd01d2175b4b2")
     version("2.1.6", sha256="7e2c4c5a1b96d2aa21fe799c073d7ca3cd5be79f350593d83102e37ca9780821")
     version("2.1.5", sha256="4b78335cf85c327976536b8ac584f258dc9ae085e91b5d4a40879422b3e71543")
     version("2.1.4", sha256="d94d634db49fff2368bb615225ee4fdde919c63b7a9bc1f81f7d166a8c105f92")
