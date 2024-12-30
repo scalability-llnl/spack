@@ -197,13 +197,14 @@ class Geant4Data(BundlePackage):
             depends_on(_d, type=("build", "run"), when=_vers)
 
     _datasets_tendl = {
-        "11.0.0:11.3": "g4tendl@1.4",
-        "10.7.2:10.7.4": "g4tendl@1.3.2",
-        "10.7.0:10.7.1": "g4tendl@1.4",
+        "11.0:11.3": "g4tendl@1.4",
+        "10.4:10.7": "g4tendl@1.3.2",
+        "10.3:10.3": "g4tendl@1.3",
+        "10.2:10.2": "g4tendl@1.0",
     }
 
     variant("g4tendl", default=False, description="Enable G4Tendl")
-    conflicts("+g4tendl", when="@:10.6.3", msg="g4tendl not supported for old geant4")
+    conflicts("+g4tendl", when="@:10.2", msg="g4tendl not supported for old geant4")
     with when("+g4tendl"):
         for _vers, _d in _datasets_tendl.items():
             depends_on(_d, type=("build", "run"), when="@" + _vers)
