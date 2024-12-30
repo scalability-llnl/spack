@@ -436,7 +436,7 @@ class Configuration:
 
     def highest(self) -> ConfigScope:
         """Scope with highest precedence"""
-        return next(reversed(self.scopes.values()))  # type: ignore
+        return next(self.scopes.reversed_values())  # type: ignore
 
     @_config_mutator
     def ensure_scope_ordering(self):
@@ -445,13 +445,13 @@ class Configuration:
         # may not be preserved correctly
         if "command_line" in self.scopes:
             # TODO (when dropping python 3.6): self.scopes.move_to_end
-            self.scopes["command_line"] = self.remove_scope("command_line")
+            self.scopes.add("command_line", value=self.remove_scope("command_line"))
 
     @_config_mutator
-    def push_scope(self, scope: ConfigScope) -> None:
+    def push_scope(self, scope: ConfigScope, priority: Optional[int] = None) -> None:
         """Add a higher precedence scope to the Configuration."""
         tty.debug(f"[CONFIGURATION: PUSH SCOPE]: {str(scope)}", level=2)
-        self.scopes.add(scope.name, value=scope)
+        self.scopes.add(scope.name, value=scope, priority=priority)
 
     @_config_mutator
     def pop_scope(self) -> ConfigScope:
