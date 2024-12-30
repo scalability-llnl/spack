@@ -496,7 +496,7 @@ supported, and netmod is ignored if device is ch3:sock.""",
         return flags, None, None
 
     def setup_build_environment(self, env):
-        super().setup_build_environment(env)
+        MpichEnvironmentModifications.setup_build_environment(self, env)
         if "pmi=cray" in self.spec:
             env.set("CRAY_PMI_INCLUDE_OPTS", "-I" + self.spec["cray-pmi"].headers.directories[0])
             env.set("CRAY_PMI_POST_LINK_OPTS", "-L" + self.spec["cray-pmi"].libs.directories[0])

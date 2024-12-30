@@ -213,7 +213,7 @@ class Mvapich2x(MpichEnvironmentModifications, AutotoolsPackage):
 
     def setup_dependent_build_environment(self, env, dependent_spec):
         self.setup_mpi_wrapper_variables(env)
-        super().setup_dependent_build_environment(env, dependent_spec)
+        MpichEnvironmentModifications.setup_dependent_build_environment(self, env, dependent_spec)
 
     def configure_args(self):
         spec = self.spec
