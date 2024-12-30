@@ -211,9 +211,7 @@ class Geant4Data(BundlePackage):
     @property
     def datadir(self):
         spec = self.spec
-        return join_path(
-            spec.prefix.share, "{0}-{1}".format(self.name, self.version.dotted)
-        )
+        return join_path(spec.prefix.share, "{0}-{1}".format(self.name, self.version.dotted))
 
     def install(self, spec, prefix):
         with working_dir(self.datadir, create=True):
@@ -222,9 +220,7 @@ class Geant4Data(BundlePackage):
                     continue
 
                 if not hasattr(s.package, "g4datasetname"):
-                    raise InstallError(
-                        f"Dependency `{s.name}` does not expose `g4datasetname`"
-                    )
+                    raise InstallError(f"Dependency `{s.name}` does not expose `g4datasetname`")
 
                 d = "{0}/data/{1}".format(s.prefix.share, s.package.g4datasetname)
                 os.symlink(d, os.path.basename(d))
