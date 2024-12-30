@@ -200,7 +200,6 @@ class Geant4Data(BundlePackage):
         "11.0:11.3": "g4tendl@1.4",
         "10.4:10.7": "g4tendl@1.3.2",
         "10.3:10.3": "g4tendl@1.3",
-        "10.2:10.2": "g4tendl@1.0",
     }
 
     variant("g4tendl", default=False, description="Enable G4Tendl")
