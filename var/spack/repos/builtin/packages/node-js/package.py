@@ -46,6 +46,7 @@ class NodeJs(Package):
         "22.11.0",
         sha256="24e5130fa7bc1eaab218a0c9cb05e03168fa381bb9e3babddc6a11f655799222",
         preferred=True,
+        sha256="a85ee53aa0a5c2f5ca94fa414cdbceb91eb7d18a77fc498358512c14cc6c6991",
     )
     version("22.4.0", sha256="b62cd83c9a57a11349883f89b1727a16e66c02eb6255a4bf32714ff5d93165f5")
     version("22.3.0", sha256="6326484853093ab6b8f361a267445f4a5bff469042cda11a3585497b13136b55")
@@ -91,14 +92,34 @@ class NodeJs(Package):
     variant(
         "openssl",
         default=True,
-        description="Build with Spacks OpenSSL instead of the bundled version",
+        description="Build with Spack's OpenSSL instead of the bundled version",
     )
     variant(
-        "zlib", default=True, description="Build with Spacks zlib instead of the bundled version"
+        "zlib", default=True, description="Build with Spack's zlib instead of the bundled version"
+    )
+    variant(
+        "cares",
+        default=False,
+        description="Build with Spack's c-ares instead of the bundled version",
+    )
+    variant(
+        "cares",
+        default=True,
+        # for internal c-ares@1.27 or newer build fails on Centos7 due to older glibc
+        when="@18.20.0:18,20.12:20,21.7: os=centos7",
+        description="Build with Spack's c-ares instead of the bundled version",
+    )
+    variant(
+        "libuv",
+        default=False,
+        description="Build with Spack's libuv instead of the bundled version",
     )
 
     # https://github.com/nodejs/node/blob/master/BUILDING.md#unix-and-macos
     depends_on("gmake@3.81:", type="build")
+    # new internal dependency simdutf needs binutils+gas
+    depends_on("binutils+gas", type="build", when="@18.14:18")
+    depends_on("binutils+gas", type="build", when="@19.4:")
     depends_on("python@3.6:3.11", when="@19.1:", type="build")
     depends_on("python@3.6:3.10", when="@16.11:19.0", type="build")
     depends_on("python@3.6:3.9", when="@16.0:16.10", type="build")
@@ -111,6 +132,10 @@ class NodeJs(Package):
     depends_on("icu4c", when="+icu4c")
     depends_on("openssl@1.1:", when="+openssl")
     depends_on("zlib-api", when="+zlib")
+    # internal c-ares fails to build on older machines with older glibc-devel
+    # hence use external lib
+    depends_on("c-ares@1.18.1:", when="+cares")
+    depends_on("libuv", when="+libuv")
 
     # https://github.com/nodejs/node/blob/main/BUILDING.md#supported-toolchains
     conflicts("%gcc@:12.1", when="@23:")
@@ -204,6 +229,24 @@ class NodeJs(Package):
                     "--shared-zlib",
                     "--shared-zlib-includes={0}".format(self.spec["zlib-api"].prefix.include),
                     "--shared-zlib-libpath={0}".format(self.spec["zlib-api"].prefix.lib),
+                ]
+            )
+
+        if "+cares" in self.spec:
+            args.extend(
+                [
+                    "--shared-cares",
+                    "--shared-cares-includes={0}".format(self.spec["c-ares"].prefix.include),
+                    "--shared-cares-libpath={0}".format(self.spec["c-ares"].prefix.lib),
+                ]
+            )
+
+        if "+libuv" in self.spec:
+            args.extend(
+                [
+                    "--shared-libuv",
+                    "--shared-libuv-includes={0}".format(self.spec["libuv"].prefix.include),
+                    "--shared-libuv-libpath={0}".format(self.spec["libuv"].prefix.lib),
                 ]
             )
 

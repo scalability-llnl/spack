@@ -18,6 +18,9 @@ class Npm(Package):
 
     license("Artistic-2.0")
 
+    version("10.8.0", sha256="00f8f31f9847fec0e5615b5571555c3e766a4601431c0817bf6e4b73668571ae")
+    version("10.5.2", sha256="df0a1f7691654b94786013e5d5b80a873a7ffbae9c82c3bec8b5db76bc3b7dfd")
+    version("9.9.3", sha256="d835b2d7293ce928e98bc967a05a3ef5ac48d4ea10bb8fb1a1dd1049dc5ef06e")
     version("9.3.1", sha256="41caa26a340b0562bc5429d28792049c980fe3e872b42b82cad94e8f70e37f40")
     version("8.19.3", sha256="634bf4e0dc87be771ebf48a058629960e979a209c20a51ebdbc4897ca6a25260")
     version("7.24.2", sha256="5b9eeea011f8bc3b76e55cc33339e87213800677f37e0756ad13ef0e9eaccd64")
@@ -26,6 +29,9 @@ class Npm(Package):
     depends_on("cxx", type="build")  # generated
 
     depends_on("node-js", type=("build", "run"))
+    # see https://github.com/npm/cli/blob/v10.0.0/README.md for version constraints
+    depends_on("node-js@14.17:14,16.13:16,18:", type=("build", "run"), when="@9:")
+    depends_on("node-js@18.17:18,20.5:", type=("build", "run"), when="@10.1:")
     depends_on("libvips", when="@:7")
 
     # npm 6.13.4 ships with node-gyp 5.0.5, which contains several Python 3
@@ -89,7 +95,19 @@ class Npm(Package):
     def install(self, spec, prefix):
         # in npm 9, `npm install .` finally works within the repo, so we can just call it.
         node = which("node", required=True)
-        node("bin/npm-cli.js", "install", "-ddd", "--global", f"--prefix={prefix}", ".")
+        if spec.satisfies("@:9.4.1"):
+            node("bin/npm-cli.js", "install", "-ddd", "--global", f"--prefix={prefix}", ".")
+        else:
+            node(
+                "bin/npm-cli.js",
+                "install",
+                "--verbose",
+                "-ddd",
+                "--global",
+                f"--prefix={prefix}",
+                "--install-links",
+                ".",
+            )
 
     def setup_dependent_build_environment(self, env, dependent_spec):
         npm_config_cache_dir = "%s/npm-cache" % dependent_spec.prefix
