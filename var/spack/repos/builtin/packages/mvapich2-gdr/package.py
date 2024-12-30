@@ -6,9 +6,10 @@
 import sys
 
 from spack.package import *
+from spack.pkg.builtin.mpich import MpichEnvironmentModifications
 
 
-class Mvapich2Gdr(AutotoolsPackage):
+class Mvapich2Gdr(MpichEnvironmentModifications, AutotoolsPackage):
     """MVAPICH2-GDR is an optimized version of the MVAPICH2 MPI library for
     GPU-enabled HPC and Deep Learning Applications. MVAPICH2-GDR is not
     installable from source and is only available through a binary mirror.
@@ -146,11 +147,6 @@ class Mvapich2Gdr(AutotoolsPackage):
             )
         return opts
 
-    def setup_build_environment(self, env):
-        # mvapich2 configure fails when F90 and F90FLAGS are set
-        env.unset("F90")
-        env.unset("F90FLAGS")
-
     def setup_run_environment(self, env):
         if "pmi_version=pmi1" in self.spec:
             env.set("SLURM_MPI_TYPE", "pmi1")
@@ -161,28 +157,11 @@ class Mvapich2Gdr(AutotoolsPackage):
 
         # Because MPI functions as a compiler, we need to treat it as one and
         # add its compiler paths to the run environment.
-        self.setup_compiler_environment(env)
+        self.setup_mpi_wrapper_variables(env)
 
     def setup_dependent_build_environment(self, env, dependent_spec):
-        self.setup_compiler_environment(env)
-        dependent_module = dependent_spec.package.module
-        env.set("MPICH_CC", dependent_module.spack_cc)
-        env.set("MPICH_CXX", dependent_module.spack_cxx)
-        env.set("MPICH_F77", dependent_module.spack_f77)
-        env.set("MPICH_F90", dependent_module.spack_fc)
-        env.set("MPICH_FC", dependent_module.spack_fc)
-
-    def setup_compiler_environment(self, env):
-        env.set("MPICC", join_path(self.prefix.bin, "mpicc"))
-        env.set("MPICXX", join_path(self.prefix.bin, "mpicxx"))
-        env.set("MPIF77", join_path(self.prefix.bin, "mpif77"))
-        env.set("MPIF90", join_path(self.prefix.bin, "mpif90"))
-
-    def setup_dependent_package(self, module, dependent_spec):
-        self.spec.mpicc = join_path(self.prefix.bin, "mpicc")
-        self.spec.mpicxx = join_path(self.prefix.bin, "mpicxx")
-        self.spec.mpifc = join_path(self.prefix.bin, "mpif90")
-        self.spec.mpif77 = join_path(self.prefix.bin, "mpif77")
+        self.setup_mpi_wrapper_variables(env)
+        MpichEnvironmentModifications.setup_dependent_build_environment(self, env, dependent_spec)
 
     def configure_args(self):
         spec = self.spec
