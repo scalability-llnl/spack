@@ -81,6 +81,7 @@ class Icu4c(AutotoolsPackage, MSBuildPackage):
     def libs(self):
         return find_libraries("libicu*", root=self.prefix, recursive=True)
 
+
 class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
 
     configure_directory = "source"
