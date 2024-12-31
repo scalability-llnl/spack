@@ -51,3 +51,4 @@ class RIranges(RPackage):
     depends_on("r-s4vectors@0.27.12:", type=("build", "run"), when="@2.24.1:")
     depends_on("r-s4vectors@0.29.19:", type=("build", "run"), when="@2.28.0:")
     depends_on("r-s4vectors@0.33.3:", type=("build", "run"), when="@2.30.0:")
+    depends_on("r-s4vectors@0.43.2:", type=("build", "run"), when="@2.39.2:")
