@@ -25,6 +25,7 @@ class Nim(Package):
 
     version("devel", branch="devel")
     version("2.2.0", sha256="ce9842849c9760e487ecdd1cdadf7c0f2844cafae605401c7c72ae257644893c")
+    version("2.0.14", sha256="d420b955833294b7861e3fb65021dac26d1c19c528c4d6e139ccd379e2c15a43")
     version("2.0.12", sha256="c4887949c5eb8d7f9a9f56f0aeb2bf2140fabf0aee0f0580a319e2a09815733a")
     version("2.0.4", sha256="71526bd07439dc8e378fa1a6eb407eda1298f1f3d4df4476dca0e3ca3cbe3f09")
     version("1.6.20", sha256="ffed047504d1fcaf610f0dd7cf3e027be91a292b0c9c51161504c2f3b984ffb9")
