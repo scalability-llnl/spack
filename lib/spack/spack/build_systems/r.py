@@ -12,6 +12,7 @@ from llnl.util.filesystem import mkdirp
 
 import spack.builder
 import spack.deptypes as dt
+import spack.phase_callbacks
 from spack.dependency import Dependency
 from spack.directives import extends
 from spack.error import SpackError
@@ -106,7 +107,8 @@ class RBuilder(GenericBuilder):
         if package:
             yield package
 
-    def verify_package(self):
+    @spack.phase_callbacks.run_before("install")
+    def _verify_package(self):
         if not self.pkg.run_tests:
             return
 
@@ -204,8 +206,6 @@ class RBuilder(GenericBuilder):
                 "This package requires stricter dependencies than specified:\n\n"
                 + "\n".join(missing_deps)
             )
-
-    spack.builder.run_before("install")(verify_package)
 
     def install(self, pkg, spec, prefix):
         """Installs an R package."""
