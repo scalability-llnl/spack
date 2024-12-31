@@ -18,6 +18,7 @@ class PyOlcfVelocity(PythonPackage):
     license("UNKNOWN", checked_by="AcerP-py")
 
     version("0.1.3", sha256="08bd82d464e8cab6c61cab095d460b927a18e082cadb663bd5f935cf651b5c03")
+    version("0.2.0", sha256="ea67051f328aef82db4f316ce0dbd670d5e49865401d8fb8d31417ad626a5a85")
 
     depends_on("python@3.10:", type=("build", "run"))
 
