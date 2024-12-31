@@ -15,11 +15,10 @@ class Turbovnc(CMakePackage):
 
     license("GPLv2", checked_by="teaguesterling")
 
+    version("3.1.3", sha256="50ec787c716a1649e270cfd79bf57190fe78c874df541bad2876c1fa8e1de393")
     version("3.1.1", sha256="834392e985cf29a6d7d3b21b6b95b8249c1390f2c4bbf716e03945ca9384bbc8")
     version("3.1", sha256="218eaf769c29763d4e6062978b8f2fb5538dc2b232b77d3f094591fe63ddbf65")
     version("3.0.3", sha256="3a3e1bce1d6d41b33b52c51c8546c849db1226f42255f4cef306e7bd9e1cced4")
-    version("3.0.2", sha256="af1d1dbd63e4f2eb3c5c6c7f5fdeea31875c5e720d2d9a41c3a49a7c5736e67b")
-    version("3.0.1", sha256="f0bd45e4e6f8cb8a52b5ccdef70fbc28ba8776591554c166db113eedc914dd86")
 
     generator("ninja")
 
@@ -94,7 +93,7 @@ class Turbovnc(CMakePackage):
     with default_args(type="run"):
         depends_on("xauth")
 
-    conflicts("%gcc@14:", msg="GCC 14+ does not support implicit declarations")
+    conflicts("%gcc@14:", msg="GCC 14+ does not support implicit declarations", when="@:3.1.1")
 
     def cmake_args(self):
         spec = self.spec
