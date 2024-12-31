@@ -26,6 +26,8 @@ class XkeyboardConfig(AutotoolsPackage, XorgPackage):
     depends_on("intltool@0.30:", type="build")
     depends_on("xproto@7.0.20:", type="build")
 
+    provides("xkbdata")
+
     # TODO: missing dependencies
     # xgettext
     # msgmerge
