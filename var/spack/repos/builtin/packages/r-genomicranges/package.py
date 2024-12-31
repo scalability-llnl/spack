@@ -53,6 +53,7 @@ class RGenomicranges(RPackage):
     depends_on("r-iranges@2.17.1:", type=("build", "run"), when="@1.36.1:")
     depends_on("r-iranges@2.23.9:", type=("build", "run"), when="@1.42.0:")
     depends_on("r-iranges@2.31.2:", type=("build", "run"), when="@1.50.1:")
+    depends_on("r-iranges@2.37.1:", type=("build", "run"), when="@1.55.2:")
     depends_on("r-genomeinfodb@1.11.5:", type=("build", "run"))
     depends_on("r-genomeinfodb@1.13.1:", type=("build", "run"), when="@1.30.3:")
     depends_on("r-genomeinfodb@1.15.2:", type=("build", "run"), when="@1.32.7:")
