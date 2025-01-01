@@ -105,6 +105,11 @@ class Libxml2(AutotoolsPackage, NMakePackage):
         sha256="5dc43fed02b443d2563a502a52caafe39477c06fc30b70f786d5ed3eb5aea88d",
         when="@2.9.11:2.9.14",
     )
+
+    # XZ is named liblzma or lzma on Windows depending on build parameters, libxml2s
+    # NMake build systems needs to be adapted to handle this
+    patch("lzma_naming.patch", when="platform=windows build_system=nmake")
+
     build_system(conditional("nmake", when="platform=windows"), "autotools", default="autotools")
 
     def flag_handler(self, name, flags):
@@ -295,4 +300,9 @@ class NMakeBuilder(AnyBuilder, nmake.NMakeBuilder):
             ]
             if spec.satisfies("+python"):
                 opts.append("python=yes")
+            if spec["xz"].satisfies("build_system=cmake"):
+                lzma_name = "lzma.lib"
+            else:
+                lzma_name = "liblzma.lib"
+            opts += [f"LIBLZMA={lzma_name}"]
             cscript("configure.js", *opts)

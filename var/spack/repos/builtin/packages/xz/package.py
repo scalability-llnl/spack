@@ -8,11 +8,12 @@ import os
 import re
 
 from spack.build_systems.autotools import AutotoolsBuilder
+from spack.build_systems.cmake import CMakeBuilder
 from spack.build_systems.msbuild import MSBuildBuilder
 from spack.package import *
 
 
-class Xz(MSBuildPackage, AutotoolsPackage, SourceforgePackage):
+class Xz(MSBuildPackage, AutotoolsPackage, CMakePackage, SourceforgePackage):
     """XZ Utils is free general-purpose data compression software with
     high compression ratio. XZ Utils were written for POSIX-like systems,
     but also work on some not-so-POSIX systems. XZ Utils are the successor
@@ -26,10 +27,19 @@ class Xz(MSBuildPackage, AutotoolsPackage, SourceforgePackage):
 
     executables = [r"^xz$"]
 
-    license("GPL-2.0-or-later AND Public-Domain AND LGPL-2.1-or-later", checked_by="tgamblin")
+    license(
+        "0BSD AND GPL-2.0-or-later AND LGPL-2.1-or-later", when="@5.6:", checked_by="drkrynstrng"
+    )
+    license(
+        "Public-Domain AND GPL-2.0-or-later AND LGPL-2.1-or-later",
+        when="@:5.4",
+        checked_by="tgamblin",
+    )
 
-    # NOTE: don't add XZ 5.6 until this compromise is resolved:
+    version("5.6.3", sha256="a95a49147b2dbb5487517acc0adcd77f9c2032cf00664eeae352405357d14a6c")
+    # NOTE: don't add XZ 5.6.0 or 5.6.1 because of this compromise:
     # https://www.openwall.com/lists/oss-security/2024/03/29/4
+    version("5.4.7", sha256="9976ed9cd0764e962d852d7d519ee1c3a7f87aca3b86e5d021a45650ba3ecb41")
     version("5.4.6", sha256="913851b274e8e1d31781ec949f1c23e8dbcf0ecf6e73a2436dc21769dd3e6f49")
     version("5.4.5", sha256="8ccf5fff868c006f29522e386fb4c6a1b66463fbca65a4cfc3c4bd596e895e79")
     version("5.4.1", sha256="dd172acb53867a68012f94c17389401b2f274a1aa5ae8f84cbfb8b7e383ea8d3")
@@ -43,7 +53,7 @@ class Xz(MSBuildPackage, AutotoolsPackage, SourceforgePackage):
     version("5.2.1", sha256="679148f497e0bff2c1adce42dee5a23f746e71321c33ebb0f641a302e30c2a80")
     version("5.2.0", sha256="f7357d7455a1670229b3cca021da71dd5d13b789db62743c20624bdffc9cc4a5")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     variant("pic", default=False, description="Compile with position independent code.")
 
@@ -62,7 +72,12 @@ class Xz(MSBuildPackage, AutotoolsPackage, SourceforgePackage):
     # prior to 5.2.3, build system is for MinGW only, not currently supported by Spack
     conflicts("platform=windows", when="@:5.2.3")
 
-    build_system(conditional("msbuild", when="platform=windows"), "autotools", default="autotools")
+    build_system(
+        conditional("msbuild", when="@:5.4.7 platform=windows"),
+        conditional("cmake", when="@5.4.7:"),
+        "autotools",
+        default="autotools",
+    )
 
     def flag_handler(self, name, flags):
         if name == "cflags" and "+pic" in self.spec:
@@ -72,7 +87,7 @@ class Xz(MSBuildPackage, AutotoolsPackage, SourceforgePackage):
     @property
     def libs(self):
         return find_libraries(
-            ["liblzma"],
+            ["liblzma", "lzma"],
             root=self.prefix,
             recursive=True,
             shared=self.spec.satisfies("libs=shared"),
@@ -93,6 +108,12 @@ class AutotoolsBuilder(AutotoolsBuilder):
     def darwin_fix(self):
         if self.spec.satisfies("platform=darwin"):
             fix_darwin_install_name(self.prefix.lib)
+
+
+class CMakeBuilder(CMakeBuilder):
+    def cmake_args(self):
+        build_shared = True if "shared" in self.spec else False
+        return [self.define("BUILD_SHARED_LIBS", build_shared)]
 
 
 class MSBuildBuilder(MSBuildBuilder):

@@ -1,0 +1,16 @@
+diff --git a/win32/Makefile.msvc b/win32/Makefile.msvc
+index 80e64e2..09e0249 100644
+--- a/win32/Makefile.msvc
++++ b/win32/Makefile.msvc
+@@ -82,7 +82,10 @@ LIBS = $(LIBS) icuuc.lib icuin.lib icudt.lib
+ LIBS = $(LIBS) zlib.lib
+ !endif
+ !if "$(WITH_LZMA)" == "1"
+-LIBS = $(LIBS) liblzma.lib
++!ifndef LIBLZMA
++LIBLZMA = liblzma.lib
++!endif
++LIBS = $(LIBS) $(LIBLZMA)
+ !endif
+ !if "$(WITH_THREADS)" == "posix"
+ LIBS = $(LIBS) pthreadVC.lib
