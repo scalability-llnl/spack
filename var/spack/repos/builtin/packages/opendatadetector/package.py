@@ -36,4 +36,6 @@ class Opendatadetector(CMakePackage):
 
     def setup_run_environment(self, env):
         env.set("OPENDATADETECTOR_DATA", join_path(self.prefix.share, "OpenDataDetector"))
+
         # Note: ROOT dependency automatically sets up ROOT environment vars
+        # and dd4hep dependency automatically sets LD_LIBRARY_PATH

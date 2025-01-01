@@ -28,3 +28,5 @@ class Hyperfine(CargoPackage):
     depends_on("rust@1.64:", when="@1.16.0:")
     depends_on("rust@1.54:", when="@1.13.0:")
     depends_on("rust@1.46:", when="@1.12.0:")
+
+    depends_on("c", type="build")

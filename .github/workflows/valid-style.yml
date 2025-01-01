@@ -121,27 +121,27 @@ jobs:
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       with:
         repository: haampie/circular-import-fighter
-        ref: 9f60f51bc7134e0be73f27623f1b0357d1718427
+        ref: b5d6ce9be35f602cca7d5a6aa0259fca10639cca
         path: circular-import-fighter
     - name: Install dependencies
       working-directory: circular-import-fighter
       run: make -j dependencies
-    - name: Import cycles before
+    - name: Problematic imports before
       working-directory: circular-import-fighter
-      run: make SPACK_ROOT=../old && cp solution solution.old
-    - name: Import cycles after
+      run: make SPACK_ROOT=../old SUFFIX=.old
+    - name: Problematic imports after
       working-directory: circular-import-fighter
-      run: make clean-graph && make SPACK_ROOT=../new && cp solution solution.new
+      run: make SPACK_ROOT=../new SUFFIX=.new
     - name: Compare import cycles
       working-directory: circular-import-fighter
       run: |
-        edges_before="$(grep -oP 'edges to delete: \K\d+' solution.old)"
-        edges_after="$(grep -oP 'edges to delete: \K\d+' solution.new)"
+        edges_before="$(head -n1 solution.old)"
+        edges_after="$(head -n1 solution.new)"
         if [ "$edges_after" -gt "$edges_before" ]; then
           printf '\033[1;31mImport check failed: %s imports need to be deleted, ' "$edges_after"
           printf 'previously this was %s\033[0m\n'  "$edges_before"
-          printf 'Compare \033[1;97m"Import cycles before"\033[0m and '
-          printf '\033[1;97m"Import cycles after"\033[0m to see problematic imports.\n'
+          printf 'Compare \033[1;97m"Problematic imports before"\033[0m and '
+          printf '\033[1;97m"Problematic imports after"\033[0m.\n'
           exit 1
         else
           printf '\033[1;32mImport check passed: %s <= %s\033[0m\n' "$edges_after" "$edges_before"

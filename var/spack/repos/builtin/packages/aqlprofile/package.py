@@ -9,6 +9,20 @@ import spack.platforms
 from spack.package import *
 
 _versions = {
+    "6.3.0": {
+        "apt": (
+            "af03118e2606aeae0da636af17221fe124d5b955ebf40f0e2518f4a427a0c9bc",
+            "https://repo.radeon.com/rocm/apt/6.3/pool/main/h/hsa-amd-aqlprofile/hsa-amd-aqlprofile_1.0.0.60300-39~20.04_amd64.deb",
+        ),
+        "yum": (
+            "0aef66582b4de4f39c4781da2450c68eff00842ffc6713b141e9ba41630e452d",
+            "https://repo.radeon.com/rocm/rhel8/6.3/main/hsa-amd-aqlprofile-1.0.0.60300-39.el8.x86_64.rpm",
+        ),
+        "zyp": (
+            "6086231326d0a9de1033278995ca0fe635b8081dfd856019ec17c75b08fc6188",
+            "https://repo.radeon.com/rocm/zyp/6.3/main/hsa-amd-aqlprofile-1.0.0.60300-sles155.39.x86_64.rpm",
+        ),
+    },
     "6.2.4": {
         "apt": (
             "614ad0c01b7f18eaa9e8a33fb73b9d8445c8785841ed41b406e129101dea854d",
@@ -246,6 +260,7 @@ class Aqlprofile(Package):
         "6.2.0",
         "6.2.1",
         "6.2.4",
+        "6.3.0",
     ]:
         depends_on(f"hsa-rocr-dev@{ver}", when=f"@{ver}")
 
