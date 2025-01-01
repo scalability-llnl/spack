@@ -160,7 +160,7 @@ class Pmix(AutotoolsPackage):
     variant(
         "restful",
         default=False,
-        when="@4:",
+        when="@4:5.0.4",
         description="Allow a PMIx server to request services from a system-level REST server",
     )
     variant(
