@@ -32,8 +32,7 @@ class Googletest(CMakePackage):
     depends_on("c", type="build")
     depends_on("cxx", type="build")
 
-    variant("absl", default=False, when="@1.12.1:",
-            description="Build with abseil and RE2")
+    variant("absl", default=False, when="@1.12.1:", description="Build with abseil and RE2")
     depends_on("abseil-cpp", when="+absl")
     depends_on("re2", when="+absl")
 
@@ -50,8 +49,6 @@ class Googletest(CMakePackage):
     )
     conflicts("cxxstd=98", when="@1.9:")
     conflicts("cxxstd=11", when="@1.13:")
-
-
 
     def cmake_args(self):
         spec = self.spec
