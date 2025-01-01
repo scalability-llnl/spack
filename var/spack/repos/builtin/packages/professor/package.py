@@ -18,6 +18,7 @@ class Professor(Package):
     # Note: version 2.4.2 tar ball name and content is different from other versions
     version("2.4.1", sha256="98efb19fa1590841dacd4f1e6c26e677cd419091bea69ef638c6111073732684")
     version("2.4.0", sha256="e6b28aa41d5df41d6c948056e7eaa7b47d3e4576f15d6bed8cafba8794e0e22e")
+    version("2.3.4", sha256="86ebfd9902d0bcd7f3037ce3010d1ea5b891a88fe277c73a8526c42ae83293bc")
     version("2.3.3", sha256="60c5ba00894c809e2c31018bccf22935a9e1f51c0184468efbdd5d27b211009f")
 
     depends_on("cxx", type="build")  # generated
@@ -32,6 +33,7 @@ class Professor(Package):
     depends_on("eigen")
     depends_on("py-cython")
     depends_on("py-iminuit")
+    depends_on("py-iminuit@2:", when="@2.4.0:")
     depends_on("py-matplotlib")
     depends_on("py-matplotlib backend=wx", when="+interactive")
     depends_on("root")
