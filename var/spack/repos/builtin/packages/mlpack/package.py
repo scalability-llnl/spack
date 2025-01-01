@@ -30,7 +30,7 @@ class Mlpack(CMakePackage):
 
     depends_on("cxx", type="build")  # generated
 
-    variant("go", default=False, description="Build Go bindings")
+    variant("go", default=False, description="Build Go bindings", when="@4.5.1:")
     variant("julia", default=False, description="Build Julia bindings")
     variant("python", default=False, description="Build Ppython bindings")
     variant("r", default=False, description="Build R bindings")
