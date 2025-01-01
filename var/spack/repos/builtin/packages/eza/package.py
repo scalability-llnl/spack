@@ -21,6 +21,7 @@ class Eza(CargoPackage):
     version("0.15.3", sha256="09093e565913104acb7a8eba974f8067c95566b6fbedf31138c9923a8cfde42f")
 
     depends_on("rust@1.70:", when="@0.15.3:")
+    depends_on("c", type="build")
 
     @run_after("install")
     def install_completions(self):

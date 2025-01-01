@@ -4900,15 +4900,15 @@ If your package has a virtual dependency like ``mpi``, then referring to
 ``spec["mpi"]`` within ``install()`` will get you the concrete ``mpi``
 implementation in your dependency DAG.  That is a spec object just like
 the one passed to install, only the MPI implementations all set some
-additional properties on it to help you out.  E.g., in mvapich2, you'll
+additional properties on it to help you out.  E.g., in openmpi, you'll
 find this:
 
-.. literalinclude:: _spack_root/var/spack/repos/builtin/packages/mvapich2/package.py
-   :pyobject: Mvapich2.setup_dependent_package
+.. literalinclude:: _spack_root/var/spack/repos/builtin/packages/openmpi/package.py
+   :pyobject: Openmpi.setup_dependent_package
 
-That code allows the mvapich2 package to associate an ``mpicc`` property
-with the ``mvapich2`` node in the DAG, so that dependents can access it.
-``openmpi`` and ``mpich`` do similar things.  So, no matter what MPI
+That code allows the ``openmpi`` package to associate an ``mpicc`` property
+with the ``openmpi`` node in the DAG, so that dependents can access it.
+``mvapich2`` and ``mpich`` do similar things.  So, no matter what MPI
 you're using, spec["mpi"].mpicc gets you the location of the MPI
 compilers. This allows us to have a fairly simple polymorphic interface
 for information about virtual dependencies like MPI.
