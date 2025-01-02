@@ -68,7 +68,7 @@ NP      = 14
             spec["fftw"].prefix,
             spec["elpa"].prefix,
             inc_var,
-            f"{spec['elpa'].version}",
+            spec["elpa"].version,
             spec["cereal"].prefix,
         )
 

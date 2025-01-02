@@ -107,7 +107,7 @@ class ParallelNetcdf(AutotoolsPackage):
             return libs
 
         msg = f"Unable to recursively locate {'shared' if shared else 'static'} "
-        msg += "{self.spec.name} libraries in {self.spec.prefix}"
+        msg += f"{self.spec.name} libraries in {self.spec.prefix}"
         raise NoLibrariesError(msg)
 
     @when("@master")

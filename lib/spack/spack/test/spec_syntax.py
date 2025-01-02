@@ -1174,7 +1174,7 @@ def test_parse_specfile_dependency(default_mock_concretization, tmpdir):
         # Should also be accepted: "spack spec ../<cur-dir>/libelf.yaml"
         spec = SpecParser(
             f"libdwarf^..{os.path.sep}{specfile.dirpath().basename}"
-            "{os.path.sep}{specfile.basename}"
+            f"{os.path.sep}{specfile.basename}"
         ).next_spec()
         assert spec["libelf"] == s["libelf"]
 
