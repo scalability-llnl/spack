@@ -81,12 +81,10 @@ class WinSdk(Package):
 
     def install(self, spec, prefix):
         raise RuntimeError(
-            "This package is not installable from Spack\
-            and should be installed on the system prior to Spack use.\
-                If not installed this package should be installed via\
-                    the Visual Studio installer in order to use the \
-                        MSVC compiler on Windows."
-            "If absolutely neccesary this SDK can be installed directly from Microsoft\
-                but this approach is not recommended unless you know what you're doing \
-                    or if you're on Windows 11 you have no choice for the moment."
+            "This package is not installable from Spack and should be installed on the system "
+            "prior to Spack use. If not installed this package should be installed via the Visual "
+            "Studio installer in order to use the MSVC compiler on Windows. If absolutely "
+            "necessary this SDK can be installed directly from Microsoft but this approach is not "
+            "recommended unless you know what you're doing or if you're on Windows 11 you have no "
+            "choice for the moment."
         )

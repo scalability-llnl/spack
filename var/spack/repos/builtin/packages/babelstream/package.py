@@ -86,16 +86,14 @@ class Babelstream(CMakePackage, CudaPackage, ROCmPackage, MakefilePackage):
         values=("cuda", "rocm"),
         default="cuda",
         when="+thrust",
-        description="Which THRUST implementation to use, supported options include option= \
-            - CUDA (via https://github.com/NVIDIA/thrust)\
-            - ROCM (via https://github.com/ROCmSoftwarePlatform/rocThrust)",
+        description="Which THRUST implementation to use",
     )
     variant(
         "thrust_backend",
         values=("cuda", "omp", "tbb"),
         default="cuda",
         when="+thrust",
-        description="Which THRUST implementation to use, supported options include option",
+        description="Which THRUST implementation to use",
     )
 
     # Kokkos variant
@@ -146,8 +144,8 @@ class Babelstream(CMakePackage, CudaPackage, ROCmPackage, MakefilePackage):
         values=("nvhpc", "none"),
         default="none",
         when="+std",
-        description="Enable offloading support (via the non-standard `-stdpar`)\
-                    for the new NVHPC SDK",
+        description="Enable offloading support (via the non-standard `-stdpar`) "
+        "for the new NVHPC SDK",
     )
     variant(
         "std_onedpl_backend",
@@ -161,16 +159,16 @@ class Babelstream(CMakePackage, CudaPackage, ROCmPackage, MakefilePackage):
         values=(True, False),
         default=False,
         when="+std",
-        description="No-op if ONE_TBB_DIR is set. Link against an in-tree oneTBB\
-                    via FetchContent_Declare, see top level CMakeLists.txt for details",
+        description="No-op if ONE_TBB_DIR is set. Link against an in-tree oneTBB "
+        "via FetchContent_Declare, see top level CMakeLists.txt for details",
     )
     variant(
         "std_use_onedpl",
         values=(True, False),
         default=False,
         when="+std",
-        description="Link oneDPL which implements C++17 executor policies\
-                    (via execution_policy_tag) for different backends",
+        description="Link oneDPL which implements C++17 executor policies "
+        "(via execution_policy_tag) for different backends",
     )
     # hip memory mode
     variant(
@@ -186,9 +184,9 @@ class Babelstream(CMakePackage, CudaPackage, ROCmPackage, MakefilePackage):
         values=(True, False),
         default=False,
         when="+tbb",
-        description="Whether to use std::vector<T> for storage or use aligned_alloc. \
-                     C++ vectors are *zero* initialised where as aligned_alloc is \
-                     uninitialised before first use.",
+        description="Whether to use std::vector<T> for storage or use aligned_alloc. "
+        "C++ vectors are *zero* initialised where as aligned_alloc is "
+        "uninitialised before first use.",
     )
 
     # Thrust Conflict
@@ -208,13 +206,7 @@ class Babelstream(CMakePackage, CudaPackage, ROCmPackage, MakefilePackage):
         values=("auto", "affinity", "static", "simple"),
         default="auto",
         when="+tbb",
-        description="Partitioner specifies how a loop template should partition its work among threads.\
-            Possible values are:\
-            AUTO     - Optimize range subdivision based on work-stealing events.\
-            AFFINITY - Proportional splitting that optimizes for cache affinity.\
-            STATIC   - Distribute work uniformly with no additional load balancing.\
-            SIMPLE   - Recursively split its range until it cannot be further subdivided.\
-            See https://spec.oneapi.com/versions/latest/elements/oneTBB/source/algorithms.html#partitioners",
+        description="Specifies how a loop template should partition its work among threads",
     )
 
     # Kokkos & RAJA Dependency

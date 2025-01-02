@@ -167,10 +167,7 @@ class Likwid(Package):
             supported_compilers = {"gcc": "GCCPOWER"}
         if self.compiler.name not in supported_compilers:
             raise RuntimeError(
-                "{0} is not a supported compiler \
-            to compile Likwid".format(
-                    self.compiler.name
-                )
+                "{0} is not a supported compiler to compile Likwid".format(self.compiler.name)
             )
 
         filter_file(
