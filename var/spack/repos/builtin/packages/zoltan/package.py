@@ -88,6 +88,11 @@ class Zoltan(AutotoolsPackage):
         with working_dir(self.configure_directory):
             autoreconf("-ivf")
 
+    def flag_handler(self, name, flags):
+        if self.spec.satisfies("%gcc@14:") and name == "cflags":
+            flags.append("-Wno-error=incompatible-pointer-types")
+        return self.build_system_flags(name, flags)
+
     def configure_args(self):
         spec = self.spec
 
