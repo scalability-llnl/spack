@@ -439,6 +439,7 @@ class Gromacs(CMakePackage, CudaPackage):
     # see https://github.com/spack/spack/releases/tag/v0.20.0
 
     plumed_patches = {
+        "=2023.5": "2.9.2",
         "=2023": "2.9.1",
         "2022.5": "2.8.2:2.9.1",
         "2022.3": "2.8.1",
@@ -546,7 +547,8 @@ class Gromacs(CMakePackage, CudaPackage):
     patch(
         "https://gitlab.com/gromacs/gromacs/-/commit/64740ad3ac2748d6b93f398fef5c5ddcec62bcf2.diff",
         sha256="eedde18f29e7ce9f1a27f524e8ef743084955b3a70c06ef54dc51b90de1cc910",
-        when="@:2023.2")
+        when="@:2023.2",
+    )
 
     filter_compiler_wrappers(
         "*.cmake", relative_root=os.path.join("share", "cmake", "gromacs_mpi")
