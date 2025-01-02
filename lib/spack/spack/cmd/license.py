@@ -162,8 +162,9 @@ def _check_license(lines, path):
         m = re.search(r"SPDX-License-Identifier: ([^\n]*)", line)
         if m and m.group(1) != apache2_mit_spdx:
             print(
-                "{0}: SPDX license identifier mismatch",
-                "(expecting {1}, found {2})".format(path, apache2_mit_spdx, m.group(1))
+                "{0}: SPDX license identifier mismatch (expecting {1}, found {2})".format(
+                    path, apache2_mit_spdx, m.group(1)
+                )
             )
             return SPDX_MISMATCH
 
