@@ -20,6 +20,7 @@ class Gettext(AutotoolsPackage, GNUMirrorPackage):
 
     license("GPL-3.0-or-later AND LGPL-2.1-or-later AND MIT")
 
+    version("0.23.1", sha256="c1f97a72a7385b7e71dd07b5fea6cdaf12c9b88b564976b23bd8c11857af2970")
     version("0.22.5", sha256="fe10c37353213d78a5b83d48af231e005c4da84db5ce88037d88355938259640")
     version("0.22.4", sha256="29217f1816ee2e777fa9a01f9956a14139c0c23cc1b20368f06b2888e8a34116")
     version("0.22.3", sha256="b838228b3f8823a6c1eddf07297197c4db13f7e1b173b9ef93f3f945a63080b6")
@@ -134,10 +135,10 @@ class Gettext(AutotoolsPackage, GNUMirrorPackage):
         else:
             config_args.append("--with-included-libxml")
 
-        if "+bzip2" not in spec:
+        if not spec.satisfies("+bzip2"):
             config_args.append("--without-bzip2")
 
-        if "+xz" not in spec:
+        if not spec.satisfies("+xz"):
             config_args.append("--without-xz")
 
         if spec.satisfies("+libunistring"):
