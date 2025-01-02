@@ -15,11 +15,10 @@ from spack.installer import PackageInstaller
 from spack.spec import Spec
 from spack.test.relocate import text_in_bin
 
-args = ["file"]
 if sys.platform == "darwin":
-    args.extend(["/usr/bin/clang++", "install_name_tool"])
+    required_executables = ["/usr/bin/clang++", "install_name_tool"]
 else:
-    args.extend(["g++", "patchelf"])
+    required_executables = ["g++", "patchelf"]
 
 
 def check_spliced_spec_prefixes(spliced_spec):
@@ -34,7 +33,7 @@ def check_spliced_spec_prefixes(spliced_spec):
                 assert modded_spec.prefix in text
 
 
-@pytest.mark.requires_executables(*args)
+@pytest.mark.requires_executables(*required_executables)
 @pytest.mark.parametrize("transitive", [True, False])
 def test_rewire_db(mock_fetch, install_mockery, transitive):
     """Tests basic rewiring without binary executables."""
@@ -58,7 +57,7 @@ def test_rewire_db(mock_fetch, install_mockery, transitive):
     check_spliced_spec_prefixes(spliced_spec)
 
 
-@pytest.mark.requires_executables(*args)
+@pytest.mark.requires_executables(*required_executables)
 @pytest.mark.parametrize("transitive", [True, False])
 def test_rewire_bin(mock_fetch, install_mockery, transitive):
     """Tests basic rewiring with binary executables."""
@@ -87,7 +86,7 @@ def test_rewire_bin(mock_fetch, install_mockery, transitive):
             assert text_in_bin(dep.prefix, bin_file_path)
 
 
-@pytest.mark.requires_executables(*args)
+@pytest.mark.requires_executables(*required_executables)
 def test_rewire_writes_new_metadata(mock_fetch, install_mockery):
     """Tests that new metadata was written during a rewire.
     Accuracy of metadata is left to other tests."""
@@ -131,7 +130,7 @@ def test_rewire_writes_new_metadata(mock_fetch, install_mockery):
         assert not filecmp.cmp(orig_specfile_path, specfile_path, shallow=False)
 
 
-@pytest.mark.requires_executables(*args)
+@pytest.mark.requires_executables(*required_executables)
 @pytest.mark.parametrize("transitive", [True, False])
 def test_uninstall_rewired_spec(mock_fetch, install_mockery, transitive):
     """Test that rewired packages can be uninstalled as normal."""
@@ -145,7 +144,7 @@ def test_uninstall_rewired_spec(mock_fetch, install_mockery, transitive):
     assert not os.path.exists(spliced_spec.prefix)
 
 
-@pytest.mark.requires_executables(*args)
+@pytest.mark.requires_executables(*required_executables)
 def test_rewire_not_installed_fails(mock_fetch, install_mockery):
     """Tests error when an attempt is made to rewire a package that was not
     previously installed."""
