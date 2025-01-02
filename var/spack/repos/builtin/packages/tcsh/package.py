@@ -19,8 +19,10 @@ class Tcsh(AutotoolsPackage):
     syntax."""
 
     homepage = "https://www.tcsh.org/"
-    url = "http://ftp.funet.fi/pub/mirrors/ftp.astron.com/pub/tcsh/tcsh-6.20.00.tar.gz"
-    list_url = "https://ftp.funet.fi/pub/mirrors/ftp.astron.com/pub/tcsh/old/"
+    urls = [
+        "https://astron.com/pub/tcsh/tcsh-6.24.14.tar.gz",
+        "https://astron.com/pub/tcsh/old/tcsh-6.23.02.tar.gz",
+    ]
 
     license("BSD-3-Clause")
 
