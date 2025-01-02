@@ -82,6 +82,7 @@ class NodeJs(Package):
 
     # python requirements are based according to
     # https://github.com/spack/spack/pull/47942#discussion_r1875624177
+    depends_on("python", type="build")
     depends_on("python@:3.7", when="@13.0.0:13.0.1", type="build")
     depends_on("python@:3.8", when="@13.1.0:14.13.1", type="build")
     depends_on("python@:3.9", when="@14.14.0:14.18.1", type="build")
