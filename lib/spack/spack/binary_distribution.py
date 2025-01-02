@@ -367,7 +367,8 @@ class BinaryCacheIndex:
         on disk under ``_index_cache_root``)."""
         self._init_local_index_cache()
         configured_mirror_urls = [
-            m.fetch_url for m in spack.mirrors.mirror.MirrorCollection(binary=True).values()
+            build_cache_view_prefix(m.fetch_url, m.fetch_view)
+            for m in spack.mirrors.mirror.MirrorCollection(binary=True).values()
         ]
         items_to_remove = []
         spec_cache_clear_needed = False
@@ -506,7 +507,7 @@ class BinaryCacheIndex:
         scheme = urllib.parse.urlparse(mirror_url).scheme
 
         if scheme != "oci" and not web_util.url_exists(
-            url_util.join(mirror_url, BUILD_CACHE_RELATIVE_PATH, spack_db.INDEX_JSON_FILE)
+            url_util.join(mirror_url, spack_db.INDEX_JSON_FILE)
         ):
             return False
 
@@ -575,6 +576,13 @@ def build_cache_keys_relative_path():
 
 def build_cache_prefix(prefix):
     return os.path.join(prefix, build_cache_relative_path())
+
+
+def build_cache_view_prefix(prefix, view):
+    if view is not None:
+        return os.path.join(prefix, build_cache_relative_path(), "views", urllib.parse.quote(view))
+    else:
+        return build_cache_prefix(prefix)
 
 
 def buildinfo_file_name(prefix):
@@ -672,39 +680,50 @@ def sign_specfile(key: str, specfile_path: str) -> str:
     return signed_specfile_path
 
 
-def _read_specs_and_push_index(
+def _read_specs_from_list(
     file_list: List[str],
-    read_method: Callable,
-    cache_prefix: str,
-    db: BuildCacheDatabase,
-    temp_dir: str,
-    concurrency: int,
+    read_method: Callable[[str], str],
+    filter_fn: Callable[[str], bool] = lambda f: True,
+) -> Iterable[spack.spec.Spec]:
+    """Convert a list of specs file paths with read function to a Iterator of specs
+
+    Args:
+        file_list: List of spec files
+        read_method: Method read the spec file contents to a string
+
+    Return:
+        Yields concrete specs created from read spec files
+    """
+    for file in file_list:
+        if not filter_fn(file):
+            continue
+
+        contents = read_method(file)
+        # Need full spec.json name or this gets confused with index.json.
+        if file.endswith(".json.sig"):
+            specfile_json = spack.spec.Spec.extract_json_from_clearsig(contents)
+            yield spack.spec.Spec.from_dict(specfile_json)
+        elif file.endswith(".json"):
+            yield spack.spec.Spec.from_json(contents)
+        else:
+            continue
+
+
+def _read_specs_and_push_index(
+    spec_list: Iterable[spack.spec.Spec], cache_prefix: str, db: BuildCacheDatabase, temp_dir: str
 ):
     """Read all the specs listed in the provided list, using thread given thread parallelism,
         generate the index, and push it to the mirror.
 
     Args:
-        file_list: List of urls or file paths pointing at spec files to read
-        read_method: A function taking a single argument, either a url or a file path,
-            and which reads the spec file at that location, and returns the spec.
+        spec_list: Iterable set of specs to add to database that exist in the cache
         cache_prefix: prefix of the build cache on s3 where index should be pushed.
         db: A spack database used for adding specs and then writing the index.
         temp_dir: Location to write index.json and hash for pushing
-        concurrency: Number of parallel processes to use when fetching
     """
-    for file in file_list:
-        contents = read_method(file)
-        # Need full spec.json name or this gets confused with index.json.
-        if file.endswith(".json.sig"):
-            specfile_json = spack.spec.Spec.extract_json_from_clearsig(contents)
-            fetched_spec = spack.spec.Spec.from_dict(specfile_json)
-        elif file.endswith(".json"):
-            fetched_spec = spack.spec.Spec.from_json(contents)
-        else:
-            continue
-
-        db.add(fetched_spec)
-        db.mark(fetched_spec, "in_buildcache", True)
+    for spec in spec_list:
+        db.add(spec)
+        db.mark(spec, "in_buildcache", True)
 
     # Now generate the index, compute its hash, and push the two files to
     # the mirror.
@@ -821,7 +840,7 @@ def _specs_from_cache_fallback(url: str):
     return file_list, read_fn
 
 
-def _spec_files_from_cache(url: str):
+def _spec_files_from_cache(url: str) -> Tuple[List[str], Callable[[str], str]]:
     """Get a list of all the spec files in the mirror and a function to
     read them.
 
@@ -848,15 +867,13 @@ def _spec_files_from_cache(url: str):
     raise ListMirrorSpecsError("Failed to get list of specs from {0}".format(url))
 
 
-def _url_generate_package_index(url: str, tmpdir: str, concurrency: int = 32):
+def _url_generate_package_index(url: str, tmpdir: str):
     """Create or replace the build cache index on the given mirror.  The
     buildcache index contains an entry for each binary package under the
     cache_prefix.
 
     Args:
         url: Base url of binary mirror.
-        concurrency: The desired threading concurrency to use when fetching the spec files from
-            the mirror.
 
     Return:
         None
@@ -864,6 +881,7 @@ def _url_generate_package_index(url: str, tmpdir: str, concurrency: int = 32):
     url = url_util.join(url, build_cache_relative_path())
     try:
         file_list, read_fn = _spec_files_from_cache(url)
+        spec_list = _read_specs_from_list(file_list, read_fn)
     except ListMirrorSpecsError as e:
         raise GenerateIndexError(f"Unable to generate package index: {e}") from e
 
@@ -873,11 +891,69 @@ def _url_generate_package_index(url: str, tmpdir: str, concurrency: int = 32):
     db._write()
 
     try:
-        _read_specs_and_push_index(
-            file_list, read_fn, url, db, str(db.database_directory), concurrency
-        )
+        _read_specs_and_push_index(spec_list, url, db, str(db.database_directory))
     except Exception as e:
         raise GenerateIndexError(f"Encountered problem pushing package index to {url}: {e}") from e
+
+
+def _url_generate_view_package_index(
+    url: str, view: str, append: bool, specs: List[spack.spec.Spec], tmpdir: str
+):
+    """Create or replace the build cache index on the given mirror.  The
+    buildcache index contains an entry for each binary package under the
+    cache_prefix.
+
+    Args:
+        url: Base url of binary mirror.
+        view: name of the view to generate the index for.
+
+    Return:
+        None
+    """
+    cache_url = url_util.join(url, build_cache_relative_path())
+    try:
+        file_list, read_fn = _spec_files_from_cache(cache_url)
+
+        # Compute the names of all of the spec files associated with the
+        # list of specs to include in the view index.
+        spec_files = [tarball_name(s, ".spec.json.sig") for s in specs]
+        spec_files += [tarball_name(s, ".spec.json") for s in specs]
+
+        # Only add specs that exist in both the cache and the search specs
+        spec_filter = lambda f: any([s in f for s in spec_files])
+
+        spec_list = _read_specs_from_list(file_list, read_fn, spec_filter)
+    except ListMirrorSpecsError as e:
+        raise GenerateIndexError(f"Unable to generate package index: {e}") from e
+
+    tty.debug(f"Retrieving spec descriptor files from {url} to build index")
+
+    db = BuildCacheDatabase(tmpdir)
+    db._write()
+
+    view_url = build_cache_view_prefix(url, view)
+    # Load the current state of the index for append
+    if append:
+        tty.warn(
+            "Appending to a package index does not currently support "
+            "proper locking. This may result in missing specs in the "
+            "index if run asynchronously."
+        )
+        _, _, index_file = web_util.read_from_url(
+            url_util.join(view_url, spack_db.INDEX_JSON_FILE)
+        )
+        tmp_index_file = os.path.join(tmpdir, "tmpindex.json")
+        with open(tmp_index_file, "w", encoding="utf-8") as fp:
+            fp.write(index_file.read().decode())
+
+        db._read_from_file(tmp_index_file)
+
+    try:
+        _read_specs_and_push_index(spec_list, view_url, db, str(db.database_directory))
+    except Exception as e:
+        raise GenerateIndexError(
+            f"Encountered problem pushing view package index to {view_url}: {e}"
+        ) from e
 
 
 def generate_key_index(key_prefix: str, tmpdir: str) -> None:
@@ -2955,7 +3031,7 @@ class DefaultIndexFetcher:
 
     def get_remote_hash(self):
         # Failure to fetch index.json.hash is not fatal
-        url_index_hash = url_util.join(self.url, BUILD_CACHE_RELATIVE_PATH, INDEX_HASH_FILE)
+        url_index_hash = url_util.join(self.url, INDEX_HASH_FILE)
         try:
             response = self.urlopen(urllib.request.Request(url_index_hash, headers=self.headers))
             remote_hash = response.read(64)
@@ -2976,7 +3052,7 @@ class DefaultIndexFetcher:
             return FetchIndexResult(etag=None, hash=None, data=None, fresh=True)
 
         # Otherwise, download index.json
-        url_index = url_util.join(self.url, BUILD_CACHE_RELATIVE_PATH, spack_db.INDEX_JSON_FILE)
+        url_index = url_util.join(self.url, spack_db.INDEX_JSON_FILE)
 
         try:
             response = self.urlopen(urllib.request.Request(url_index, headers=self.headers))

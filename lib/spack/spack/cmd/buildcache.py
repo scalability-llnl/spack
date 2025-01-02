@@ -299,6 +299,20 @@ def setup_parser(subparser: argparse.ArgumentParser):
         "mirror", type=arguments.mirror_name_or_url, help="destination mirror name, path, or URL"
     )
     update_index.add_argument(
+        "--append",
+        default=False,
+        action="store_true",
+        help="append the current environment or specified specs to the current index",
+    )
+    # Add ways to specify which specs to update the view index with
+    update_index_specs_group = update_index.add_mutually_exclusive_group(required=False)
+    update_index_specs_group.add_argument(
+        "--envfile", action="store", help="manifest or lock file (ends with ‘.json’ or ‘.lock’)"
+    )
+    update_index_specs_group.add_argument(
+        "--specfile", action="append", help="Spack spec file of spec to include in index"
+    )
+    update_index.add_argument(
         "-k",
         "--keys",
         default=False,
@@ -749,7 +763,11 @@ def manifest_copy(manifest_file_list, dest_mirror=None):
             copy_buildcache_file(copy_file["src"], dest)
 
 
-def update_index(mirror: spack.mirrors.mirror.Mirror, update_keys=False):
+def update_index_fn(args):
+    """update a buildcache index"""
+
+    mirror = args.mirror
+
     # Special case OCI images for now.
     try:
         image_ref = spack.oci.oci.image_from_mirror(mirror)
@@ -765,11 +783,40 @@ def update_index(mirror: spack.mirrors.mirror.Mirror, update_keys=False):
 
     # Otherwise, assume a normal mirror.
     url = mirror.push_url
+    active_env = ev.active_environment()
 
-    with tempfile.TemporaryDirectory(dir=spack.stage.get_stage_root()) as tmpdir:
-        bindist._url_generate_package_index(url, tmpdir)
+    if mirror.push_view and not (args.specfile or args.envfile or active_env):
+        raise SpackError(
+            "Pushing to a mirror with a view is without specifying an "
+            "environment or specfile is reduntant to the top level mirror index"
+        )
 
-    if update_keys:
+    if mirror.push_view and active_env and not (args.specfile or args.envfile):
+        tty.info("Collecting specs for view index from active" f" environment {active_env.name}")
+
+    if mirror.push_view:
+        # This mirror is pushing a specific view index
+        if args.specfile:
+            view_specs = [spack.spec.Spec.from_specfile(f) for f in args.specfile]
+        else:
+            if args.envfile and os.path.isfile(args.envfile):
+                env = ev.environment_from_name_or_dir(os.path.dirname(args.envfile))
+            elif active_env:
+                env = active_env
+            if env:
+                env = ev.environment_from_name_or_dir(os.path.dirname(args.envfile))
+                view_specs = env.all_concretized_user_specs()
+
+        with tempfile.TemporaryDirectory(dir=spack.stage.get_stage_root()) as tmpdir:
+            bindist._url_generate_view_package_index(
+                url, mirror.push_view, args.append, view_specs, tmpdir
+            )
+    else:
+        with tempfile.TemporaryDirectory(dir=spack.stage.get_stage_root()) as tmpdir:
+            bindist._url_generate_package_index(url, tmpdir)
+
+    # Push keys
+    if args.keys:
         keys_url = url_util.join(
             url, bindist.build_cache_relative_path(), bindist.build_cache_keys_relative_path()
         )
@@ -781,11 +828,6 @@ def update_index(mirror: spack.mirrors.mirror.Mirror, update_keys=False):
             # Do not error out if listing keys went wrong. This usually means that the _gpg path
             # does not exist. TODO: distinguish between this and other errors.
             tty.warn(f"did not update the key index: {e}")
-
-
-def update_index_fn(args):
-    """update a buildcache index"""
-    return update_index(args.mirror, update_keys=args.keys)
 
 
 def buildcache(parser, args):
