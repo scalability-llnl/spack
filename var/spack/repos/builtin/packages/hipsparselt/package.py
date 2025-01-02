@@ -80,9 +80,11 @@ class Hipsparselt(CMakePackage, ROCmPackage):
             "TENSILE_ROCM_OFFLOAD_BUNDLER_PATH",
             f"{self.spec['llvm-amdgpu'].prefix}/bin/clang-offload-bundler",
         )
-        env.set("ROCM_AGENT_ENUMERATOR_PATH", f"{self.spec['rocminfo'].prefix}/bin/rocm_agent_enumerator")
+        env.set(
+            "ROCM_AGENT_ENUMERATOR_PATH",
+            f"{self.spec['rocminfo'].prefix}/bin/rocm_agent_enumerator",
+        )
         env.set("ROCM_SMI_PATH", f"{self.spec['rocm-smi-lib'].prefix}/bin/rocm-smi")
-
 
     def cmake_args(self):
         args = [
