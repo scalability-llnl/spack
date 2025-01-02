@@ -219,6 +219,7 @@ class Geant4(CMakePackage):
     patch("cxx17.patch", when="@10.3 cxxstd=17")
     patch("cxx17_geant4_10_0.patch", level=1, when="@10.4.0 cxxstd=17")
     patch("geant4-10.4.3-cxx17-removed-features.patch", level=1, when="@10.4.3 cxxstd=17")
+    patch("geant4-10.7-cxx20-g3tog4.patch", when="@:10.7 cxxstd=20")
 
     # See https://bugzilla-geant4.kek.jp/show_bug.cgi?id=2556
     patch("package-cache.patch", level=1, when="@10.7.0:11.1.2^cmake@3.17:")
