@@ -35,8 +35,6 @@ class Pmix(AutotoolsPackage):
     url = "https://github.com/openpmix/openpmix/releases/download/v5.0.3/pmix-5.0.3.tar.bz2"
     git = "https://github.com/openpmix/openpmix.git"
 
-    maintainers("rhc54")
-
     license("BSD-3-Clause-Open-MPI")
 
     version("master", branch="master", submodules=True)
