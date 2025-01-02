@@ -204,6 +204,7 @@ class Geant4(CMakePackage):
             depends_on("qt@5.9:", when="@11.2:")
     conflicts("@:11.1 ^[virtuals=qmake] qt-base", msg="Qt6 not supported before 11.2")
 
+    patch("geant4-9.5-wroot.patch")
     # As released, 10.0.4 has inconsistently capitalised filenames
     # in the cmake files; this patch also enables cxxstd 14
     patch("geant4-10.0.4.patch", when="@10.0.4")

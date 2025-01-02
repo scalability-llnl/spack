@@ -1,0 +1,13 @@
+diff --git a/source/externals/g4tools/include/tools/wroot/file b/source/externals/g4tools/include/tools/wroot/file
+index 205e828387..7bd823b444 100644
+--- a/source/externals/g4tools/include/tools/wroot/file
++++ b/source/externals/g4tools/include/tools/wroot/file
+@@ -197,7 +197,7 @@ public: //ifile
+         for(uint32 i=0;i<=nbuffers;i++) {
+           uint32 bufmax = ((i == nbuffers) ? nbytes - nzip : kMAXBUF);
+           uint32 nout;
+-          if(!zip(m_out,func,cxlevel,bufmax,src,bufmax,tgt,nout)) {
++          if(!zip(m_out,func,cxlevel,bufmax,src,bufmax+HDRSIZE,tgt,nout)) {
+             delete [] a_kbuf;
+             a_kbuf = (char*)a_buffer.buf();
+             a_klen = a_buffer.length();
