@@ -1,4 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2025 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -162,7 +162,7 @@ def _check_license(lines, path):
         m = re.search(r"SPDX-License-Identifier: ([^\n]*)", line)
         if m and m.group(1) != apache2_mit_spdx:
             print(
-                "{0}: SPDX license identifier mismatch"
+                "{0}: SPDX license identifier mismatch",
                 "(expecting {1}, found {2})".format(path, apache2_mit_spdx, m.group(1))
             )
             return SPDX_MISMATCH
@@ -176,8 +176,7 @@ def _check_license(lines, path):
                 return error
 
     print(
-        "{0}: the license header at the top of the file does not match the \
-          expected format".format(
+        "{0}: the license header at the top of the file does not match the expected format".format(
             path
         )
     )
