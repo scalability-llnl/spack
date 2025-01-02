@@ -17,6 +17,7 @@ class PyJsonargparse(PythonPackage):
 
     license("MIT")
 
+    version("4.35.0", sha256="815ecd190e4004d2ce69b184fe16915f8f81fd32ae3e479fa37fbb9b89130446")
     version("4.28.0", sha256="ac835a290ef18cc2a5309e6bfa8ada9c5d63f46ff18701583fc8f3e95314679c")
     version("4.27.5", sha256="88ad908387ea5c8285a48e7d94bfd025e6f536b0dbae616d755d701248ab85d9")
     version("4.25.0", sha256="4eaadae69c387a3d83a76b1eaf20ca98d5274d8637f180dca0754ce5405adb6b")
@@ -24,9 +25,7 @@ class PyJsonargparse(PythonPackage):
 
     variant("signatures", default=False, description="Enable signature features")
 
-    depends_on("py-setuptools@65.6.3:", when="@4.25:", type="build")
     depends_on("py-setuptools", type="build")
-    depends_on("py-wheel@0.38.4:", when="@4.25:", type="build")
     depends_on("py-pyyaml@3.13:", type=("build", "run"))
 
     with when("+signatures"):

@@ -65,6 +65,7 @@ class Silo(AutotoolsPackage):
     variant("hzip", default=True, description="Enable hzip support")
     variant("fpzip", default=True, description="Enable fpzip support")
 
+    depends_on("python", type=("build", "link"), when="+python")
     depends_on("perl", type="build")
     depends_on("m4", type="build", when="+shared")
     depends_on("autoconf", type="build", when="+shared")
@@ -129,6 +130,8 @@ class Silo(AutotoolsPackage):
             if spec.satisfies("%oneapi"):
                 flags.append("-Wno-error=int")
                 flags.append("-Wno-error=int-conversion")
+            if spec.satisfies("+python"):
+                flags.append(f"-I {spec['python'].headers.directories[0]}")
             if "+hdf5" in spec:
                 # @:4.10 can use up to the 1.10 API
                 if "@:4.10" in spec:

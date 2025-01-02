@@ -364,7 +364,7 @@ class Python(Package):
                 variants += "~tix"
 
         # Some modules are platform-dependent
-        if sys.platform != "win32":
+        if sys.platform != "win32" and Version(version_str) < Version("3.13"):
             try:
                 python("-c", "import crypt", error=os.devnull)
                 variants += "+crypt"

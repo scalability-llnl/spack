@@ -6,10 +6,11 @@
 import os
 
 from spack.package import *
+from spack.pkg.builtin.mpich import MpichEnvironmentModifications
 from spack.util.module_cmd import get_path_args_from_module_line, module
 
 
-class CrayMpich(Package):
+class CrayMpich(MpichEnvironmentModifications, Package):
     """Cray's MPICH is a high performance and widely portable implementation of
     the Message Passing Interface (MPI) standard."""
 
@@ -72,31 +73,18 @@ class CrayMpich(Package):
 
     def setup_run_environment(self, env):
         if self.spec.satisfies("+wrappers"):
-            env.set("MPICC", join_path(self.prefix.bin, "mpicc"))
-            env.set("MPICXX", join_path(self.prefix.bin, "mpicxx"))
-            env.set("MPIF77", join_path(self.prefix.bin, "mpif77"))
-            env.set("MPIF90", join_path(self.prefix.bin, "mpif90"))
-        elif spack_cc is not None:
-            env.set("MPICC", spack_cc)
-            env.set("MPICXX", spack_cxx)
-            env.set("MPIF77", spack_fc)
-            env.set("MPIF90", spack_fc)
+            self.setup_mpi_wrapper_variables(env)
+            return
 
-    def setup_dependent_build_environment(self, env, dependent_spec):
-        dependent_module = dependent_spec.package.module
-        env.set("MPICH_CC", dependent_module.spack_cc)
-        env.set("MPICH_CXX", dependent_module.spack_cxx)
-        env.set("MPICH_F77", dependent_module.spack_f77)
-        env.set("MPICH_F90", dependent_module.spack_fc)
-        env.set("MPICH_FC", dependent_module.spack_fc)
+        env.set("MPICC", self.compiler.cc)
+        env.set("MPICXX", self.compiler.cxx)
+        env.set("MPIFC", self.compiler.fc)
+        env.set("MPIF77", self.compiler.f77)
 
     def setup_dependent_package(self, module, dependent_spec):
         spec = self.spec
         if spec.satisfies("+wrappers"):
-            spec.mpicc = join_path(self.prefix.bin, "mpicc")
-            spec.mpicxx = join_path(self.prefix.bin, "mpicxx")
-            spec.mpifc = join_path(self.prefix.bin, "mpif90")
-            spec.mpif77 = join_path(self.prefix.bin, "mpif77")
+            MpichEnvironmentModifications.setup_dependent_package(self, module, dependent_spec)
         elif spack_cc is not None:
             spec.mpicc = spack_cc
             spec.mpicxx = spack_cxx

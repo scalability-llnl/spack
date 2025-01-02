@@ -1013,7 +1013,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
         if self.spec.satisfies("languages=c"):
             env.set("CC", self.cc)
 
-        if self.spec.satisfies("languages=cxx"):
+        if self.spec.satisfies("languages=c++"):
             env.set("CXX", self.cxx)
 
         if self.spec.satisfies("languages=fortran"):
