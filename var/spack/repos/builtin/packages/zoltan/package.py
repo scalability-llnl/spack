@@ -87,6 +87,11 @@ class Zoltan(AutotoolsPackage):
         with working_dir(self.configure_directory):
             autoreconf("-ivf")
 
+    def flag_handler(self, name, flags):
+        if self.spec.satisfies("%gcc@14:") and name == "cflags":
+            flags.append("-Wno-error=incompatible-pointer-types")
+        return self.build_system_flags(name, flags)
+
     def configure_args(self):
         spec = self.spec
 
@@ -112,7 +117,7 @@ class Zoltan(AutotoolsPackage):
                 # Although adding to config_libs _should_ suffice, it does not
                 # Add to ldflags as well
                 config_ldflags.append("-lgfortran")
-            if spec.satisfies("%intel"):
+            if spec.satisfies("%intel") or spec.satisfies("%oneapi"):
                 config_libs.append("-lifcore")
 
         if "+int64" in spec:
