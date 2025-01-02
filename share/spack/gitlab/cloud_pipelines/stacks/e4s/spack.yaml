@@ -39,7 +39,7 @@ spack:
       require: "~gui target=x86_64_v3"
     paraview:
       # Don't build GUI support or GLX rendering for HPC/container deployments
-      require: "@5.11 +examples ~qt ^[virtuals=gl] osmesa target=x86_64_v3"
+      require: "+examples ~qt ^[virtuals=gl] osmesa target=x86_64_v3"
 
   specs:
   # CPU
@@ -67,7 +67,7 @@ spack:
   - dxt-explorer
   - dyninst
   - e4s-cl
-  - ecp-data-vis-sdk ~cuda ~rocm +adios2 +ascent +cinema +darshan +faodel +hdf5 +paraview +pnetcdf +sz +unifyfs +veloc +visit +vtkm +zfp # adios2~cuda, ascent~cuda, darshan-runtime, darshan-util, faodel, hdf5, libcatalyst, parallel-netcdf, paraview~cuda, py-cinemasci, sz, unifyfs, veloc, visit, vtk-m, zfp
+  - ecp-data-vis-sdk ~cuda ~rocm +adios2 +ascent +cinema +darshan +faodel +hdf5 +paraview +pnetcdf +sz +unifyfs +veloc +visit +vtkm +zfp # 
   - exaworks
   - fftx
   - flecsi
@@ -79,6 +79,7 @@ spack:
   - geopm-runtime
   - ginkgo
   - globalarrays
+  - glvis
   - gmp
   - gotcha
   - gptune ~mpispawn
@@ -182,8 +183,7 @@ spack:
   - warpx +python
   - zfp
   # --
-  - glvis                           # glvis: https://github.com/spack/spack/issues/42839
-  # - nek5000 +mpi +visit             # nek5000:  Error: AttributeError: 'str' object has no attribute 'propagate': 'VISIT_INSTALL="' + spec["visit"].prefix.bin + '"',
+  # - nek5000 +mpi +visit             # nek5000: KeyError: 'No spec with name visit in nek5000@19.0/4mtjged6gb5yqgzlpjftjxxasqwqdysh'
 
   # PYTHON PACKAGES
   - opencv +python3
@@ -211,10 +211,9 @@ spack:
   - bricks +cuda
   - flux-core +cuda
   - hpctoolkit +cuda
+  - legion +cuda
   - papi +cuda
   - tau +mpi +cuda +syscall
-  # --
-  # - legion +cuda                    # legion: needs NVIDIA driver
 
   # CUDA 80
   - amrex +cuda cuda_arch=80
@@ -225,8 +224,9 @@ spack:
   - chai +cuda cuda_arch=80 ^umpire ~shared
   - chapel +cuda cuda_arch=80
   - cusz +cuda cuda_arch=80
-  - ecp-data-vis-sdk ~rocm +adios2 ~ascent +hdf5 +vtkm +zfp +paraview +cuda cuda_arch=80 # +ascent fails because fides fetch error
-  - exago +mpi +python +raja +hiop ~rocm +cuda cuda_arch=80 ~ipopt ^hiop@1.0.0 ~sparse +mpi +raja ~rocm +cuda cuda_arch=80 #^raja@0.14.0
+  - dealii +cuda cuda_arch=80
+  - ecp-data-vis-sdk ~rocm +adios2 ~ascent +hdf5 +vtkm +zfp ~paraview +cuda cuda_arch=80 # +paraview: FAILED: VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/vtkm/filter/flow/CMakeFiles/vtkm_filter_flow.dir/StreamSurface.cxx.o
+  - exago +mpi +python +raja +hiop ~rocm +cuda cuda_arch=80 ~ipopt ^hiop@1.0.0 ~sparse +mpi +raja ~rocm +cuda cuda_arch=80
   - fftx +cuda cuda_arch=80
   - flecsi +cuda cuda_arch=80
   - ginkgo +cuda cuda_arch=80
@@ -239,6 +239,7 @@ spack:
   - libpressio +bitgrooming +bzip2 +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp +json +remote +netcdf +cusz +mgard +cuda cuda_arch=80 ^cusz +cuda cuda_arch=80
   - magma +cuda cuda_arch=80
   - mfem +cuda cuda_arch=80
+  - mgard +serial +openmp +timing +unstructured +cuda cuda_arch=80
   - omega-h +cuda cuda_arch=80
   - parsec +cuda cuda_arch=80
   - petsc +cuda cuda_arch=80
@@ -255,14 +256,12 @@ spack:
   # INCLUDED IN ECP DAV CUDA
   - adios2 +cuda cuda_arch=80
   # - ascent +cuda cuda_arch=80     # ascent: https://github.com/spack/spack/issues/38045
-  - paraview +cuda cuda_arch=80
+  # - paraview +cuda cuda_arch=80   # paraview: FAILED: VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/vtkm/filter/flow/CMakeFiles/vtkm_filter_flow.dir/StreamSurface.cxx.o
   - vtk-m +cuda cuda_arch=80
   - zfp +cuda cuda_arch=80
   # --
-  # - dealii +cuda cuda_arch=80     # dealii: conflicts with '+cuda ^cuda@12:'
   # - lammps +cuda cuda_arch=80     # lammps: needs NVIDIA driver
-  # - lbann +cuda cuda_arch=80      # lbann: layers/transform/cereal_registration/../permute/cutensor_support.hpp:95:18: error: 'cutensorInit' was not declared in this scope; did you mean 'cutensorPlan_t'?
-  # - mgard +serial +openmp +timing +unstructured +cuda cuda_arch=80 # mgard: https://github.com/spack/spack/issues/44833
+  # - lbann +cuda cuda_arch=80      # dihydrogen: hydrogen/device/gpu/CUB.hpp:41:5: error: reference to 'CachingDeviceAllocator' is ambiguous
   # - upcxx +cuda cuda_arch=80      # upcxx: needs NVIDIA driver
 
   # CUDA 90
@@ -273,6 +272,8 @@ spack:
   - caliper +cuda cuda_arch=90
   - chai +cuda cuda_arch=90 ^umpire ~shared
   - chapel +cuda cuda_arch=90
+  - cusz +cuda cuda_arch=90
+  - ecp-data-vis-sdk ~rocm +adios2 ~ascent +hdf5 +vtkm +zfp ~paraview +cuda cuda_arch=90 # +paraview: issue with cuda@12; +ascent: # ascent: https://github.com/spack/spack/issues/38045; +paraview: VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/vtkm/exec/cuda/internal/ExecutionPolicy.h(121): error: namespace "thrust" has no member "sort"
   - fftx +cuda cuda_arch=90
   - flecsi +cuda cuda_arch=90
   - ginkgo +cuda cuda_arch=90
@@ -282,11 +283,14 @@ spack:
   - hypre +cuda cuda_arch=90
   - kokkos +wrapper +cuda cuda_arch=90
   - kokkos-kernels +cuda cuda_arch=90 ^kokkos +wrapper +cuda cuda_arch=90
+  - libpressio +bitgrooming +bzip2 +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp +json +remote +netcdf +cusz +mgard +cuda cuda_arch=90 ^cusz +cuda cuda_arch=90
   - magma +cuda cuda_arch=90
   - mfem +cuda cuda_arch=90
   - mgard +serial +openmp +timing +unstructured +cuda cuda_arch=90
+  - omega-h +cuda cuda_arch=90
   - parsec +cuda cuda_arch=90
   - petsc +cuda cuda_arch=90
+  - py-torch +cuda cuda_arch=90
   - raja +cuda cuda_arch=90
   - slate +cuda cuda_arch=90
   - slepc +cuda cuda_arch=90
@@ -299,18 +303,13 @@ spack:
   # INCLUDED IN ECP DAV CUDA
   - adios2 +cuda cuda_arch=90
   # - ascent +cuda cuda_arch=90       # ascent: https://github.com/spack/spack/issues/38045
-  # - paraview +cuda cuda_arch=90     # paraview: InstallError: Incompatible cuda_arch=90
+  # - paraview +cuda cuda_arch=90     # paraview: Cannot satisfy 'cuda@:11' and 'cuda@12.0:
   - vtk-m +cuda cuda_arch=90
   - zfp +cuda cuda_arch=90
   # --
-  # - cusz +cuda cuda_arch=90         # cusz: cuda-12.5.0-ndrzb7undvancjdj3fi6bhthdxdo7gr5/targets/x86_64-linux/include/cub/util_device.cuh:202:50: error: 'blockDim' was not declared in this scope
   # - dealii +cuda cuda_arch=90       # dealii: conflicts with '+cuda ^cuda@12:'; dealii: https://github.com/spack/spack/issues/39532
-  # - ecp-data-vis-sdk ~rocm +adios2 +ascent +hdf5 +vtkm +zfp +paraview +cuda cuda_arch=90 # +ascent: # ascent: https://github.com/spack/spack/issues/38045; +paraview: VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/vtkm/exec/cuda/internal/ExecutionPolicy.h(121): error: namespace "thrust" has no member "sort"
   # - lammps +cuda cuda_arch=90       # lammps: needs NVIDIA driver
-  # - lbann +cuda cuda_arch=90        # aluminum: /usr/include/c++/11/bits/basic_string.h:1260: multiple definition of `cub::CUB_200400___CUDA_ARCH_LIST___NS::Debug(cudaError, char const*, int)'; 
-  # - libpressio +bitgrooming +bzip2 +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp +json +remote +netcdf +cusz +mgard +cuda cuda_arch=90 ^cusz +cuda cuda_arch=90 # cusz: cuda-12.5.0-e3rny44pq5z5x3nnoljynbsq5on5fnl3/targets/x86_64-linux/include/cub/util_device.cuh:202:50: error: 'blockDim' was not declared in this scope
-  # - omega-h +cuda cuda_arch=90      # omega-h: https://github.com/spack/spack/issues/39535
-  # - py-torch +cuda cuda_arch=90     # py-torch: FAILED: caffe2/CMakeFiles/torch_cuda.dir/__/aten/src/ATen/native/transformers/cuda/flash_attn/kernels/flash_bwd_hdim256_bf16_sm80.cu.o
+  # - lbann +cuda cuda_arch=90       # dihydrogen: hydrogen/device/gpu/CUB.hpp:41:5: error: reference to 'CachingDeviceAllocator' is ambiguous
   # - upcxx +cuda cuda_arch=90        # upcxx: needs NVIDIA driver
 
   # ROCM NOARCH
@@ -318,16 +317,21 @@ spack:
   - tau +mpi +rocm +syscall           # tau: has issue with `spack env depfile` build
 
   # ROCM 90a
+  - adios2 +kokkos +rocm amdgpu_target=gfx90a
   - amrex +rocm amdgpu_target=gfx90a
+  - arborx +rocm amdgpu_target=gfx90a
+  - cabana +rocm amdgpu_target=gfx90a
   - caliper +rocm amdgpu_target=gfx90a
   - chai +rocm amdgpu_target=gfx90a
-  - ecp-data-vis-sdk +paraview +vtkm +rocm amdgpu_target=gfx90a
+  - ecp-data-vis-sdk ~paraview +vtkm +rocm amdgpu_target=gfx90a # +paraview: CMake Error at VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/CMakeLists.txt:272 (find_package): Could not find a package configuration file provided by "rocthrust" with any of the following names: rocthrustConfig.cmake rocthrust-config.cmake
   - gasnet +rocm amdgpu_target=gfx90a
   - ginkgo +rocm amdgpu_target=gfx90a
   - heffte +rocm amdgpu_target=gfx90a
   - hpx +rocm amdgpu_target=gfx90a
   - hypre +rocm amdgpu_target=gfx90a
+  - kokkos +rocm amdgpu_target=gfx90a
   - lammps +rocm amdgpu_target=gfx90a
+  - legion +rocm amdgpu_target=gfx90a
   - magma ~cuda +rocm amdgpu_target=gfx90a
   - mfem +rocm amdgpu_target=gfx90a
   - raja ~openmp +rocm amdgpu_target=gfx90a
@@ -345,26 +349,21 @@ spack:
   # - hdf5-vol-cache
   # - hdf5-vol-log
   # - libcatalyst
-  - paraview +rocm amdgpu_target=gfx90a
-  # - vtk-m ~openmp +rocm amdgpu_target=gfx90a  # vtk-m: https://github.com/spack/spack/issues/40268
+  # - paraview +rocm amdgpu_target=gfx90a # paraview: CMake Error at VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/CMakeLists.txt:272 (find_package): Could not find a package configuration file provided by "rocthrust" with any of the following names: rocthrustConfig.cmake rocthrust-config.cmake
+  - vtk-m ~openmp +rocm amdgpu_target=gfx90a  # vtk-m: https://github.com/spack/spack/issues/40268
   # --
-  # - adios2 +kokkos +rocm amdgpu_target=gfx90a # +kokkos: https://github.com/spack/spack/issues/44832
-  # - arborx +rocm amdgpu_target=gfx90a         # kokkos: https://github.com/spack/spack/issues/44832
-  # - cabana +rocm amdgpu_target=gfx90a         # kokkos: https://github.com/spack/spack/issues/44832
-  # - chapel +rocm amdgpu_target=gfx90a         # chapel: need chapel >= 2.2 to support ROCm >5.4
-  # - exago +mpi +python +raja +hiop +rocm amdgpu_target=gfx90a ~ipopt cxxflags="-Wno-error=non-pod-varargs" ^hiop@1.0.0 ~sparse +mpi +raja +rocm amdgpu_target=gfx90a # hiop: CMake Error at cmake/FindHiopHipLibraries.cmake:23 (find_package)
+  # - chapel +rocm amdgpu_target=gfx90a         # chapel: lld: error: undefined symbol: llvm.amdgcn.readfirstlane.i32
+  # - exago +mpi +python +raja +hiop +rocm amdgpu_target=gfx90a ~ipopt cxxflags="-Wno-error=non-pod-varargs" ^hiop ~sparse +mpi +raja +rocm amdgpu_target=gfx90a # hiop: CMake Error at cmake/FindHiopHipLibraries.cmake:23 (find_package); By not providing "Findhipfft.cmake" in CMAKE_MODULE_PATH this project has asked CMake to find a package configuration file provided by "hipfft", but CMake did not find one.
   # - fftx +rocm amdgpu_target=gfx90a           # fftx: https://github.com/spack/spack/issues/47034
-  # - kokkos +rocm amdgpu_target=gfx90a         # kokkos: https://github.com/spack/spack/issues/44832
-  # - lbann ~cuda +rocm amdgpu_target=gfx90a    # aluminum: https://github.com/spack/spack/issues/38807
-  # - legion +rocm amdgpu_target=gfx90a         # kokkos: https://github.com/spack/spack/issues/44832
+  # - lbann ~cuda +rocm amdgpu_target=gfx90a    # concretize: Cannot select a single "version" for package "hiptt"
   # - papi +rocm amdgpu_target=gfx90a           # papi: https://github.com/spack/spack/issues/27898
-  # - petsc +rocm amdgpu_target=gfx90a          # petsc: https://github.com/spack/spack/issues/44600
-  # - slepc +rocm amdgpu_target=gfx90a ^petsc +rocm amdgpu_target=gfx90a # petsc: https://github.com/spack/spack/issues/44600
+  # - petsc +rocm amdgpu_target=gfx90a          # petsc: hipblas-6.3.0-brvfa2h47yfpawguzbiac6ijtj3b6bcn/include/hipblas/hipblas.h:40:10: fatal error: 'hipblas-common/hipblas-common.h' file not found
+  # - slepc +rocm amdgpu_target=gfx90a ^petsc +rocm amdgpu_target=gfx90a # slepc: ERROR: Unable to link with PETSc
 
-  # - cp2k +mpi +cuda cuda_arch=80              # cp2k: spack-stage-libxsmm-1.17-r2zqxa24bhufaj5i3ili5se25cw7tioo/spack-src/./src/libxsmm_gemm.c:238: undefined reference to `sgemv_'
-  # - cp2k +mpi +cuda cuda_arch=90              # cp2k: cp2k only supports cuda_arch ('35', '37', '60', '70', '80')
-  # - cp2k +mpi +rocm amdgpu_target=gfx908      # cp2k: "-L{}".format(spec["rocm"].libs.directories[0]),
-  # - cp2k +mpi +rocm amdgpu_target=gfx90a      # cp2k: "-L{}".format(spec["rocm"].libs.directories[0]),
+  # - cp2k +mpi +cuda cuda_arch=80            # cp2k: libxsmm_gemm.c:238: undefined reference to `sgemv_'
+  # - cp2k +mpi +cuda cuda_arch=90            # cp2k: libxsmm_gemm.c:238: undefined reference to `sgemv_'
+  # - cp2k +mpi +rocm amdgpu_target=gfx908    # cp2k: exts/build_dbcsr//Makefile:290: calculate_norms.o] Error 127 (ignored)
+  # - cp2k +mpi +rocm amdgpu_target=gfx90a    # cp2k: exts/build_dbcsr//Makefile:290: calculate_norms.o] Error 127 (ignored)
 
   ci:
     pipeline-gen:
