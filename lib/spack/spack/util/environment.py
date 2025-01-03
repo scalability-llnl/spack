@@ -314,6 +314,10 @@ class SetEnv(NameValueModifier):
         tty.debug(f"SetEnv: {self.name}={str(self.value)}", level=3)
         env[self.name] = str(self.value)
 
+    def shell_command(self):
+        value = str(self.value)
+        print(f"_spack_env_set: {self.name} {value}")
+
 
 class AppendFlagsEnv(NameValueModifier):
     def execute(self, env: MutableMapping[str, str]):
@@ -323,12 +327,19 @@ class AppendFlagsEnv(NameValueModifier):
         else:
             env[self.name] = str(self.value)
 
+    def shell_command(self):
+        value = str(self.value)
+        print(f"_spack_env_append: {self.name} {value}")
+
 
 class UnsetEnv(NameModifier):
     def execute(self, env: MutableMapping[str, str]):
         tty.debug(f"UnsetEnv: {self.name}", level=3)
         # Avoid throwing if the variable was not set
         env.pop(self.name, None)
+
+    def shell_command(self):
+        print(f"_spack_env_unset: {self.name}")
 
 
 class RemoveFlagsEnv(NameValueModifier):
@@ -339,12 +350,20 @@ class RemoveFlagsEnv(NameValueModifier):
         flags = [f for f in flags if f != self.value]
         env[self.name] = self.separator.join(flags)
 
+    def shell_command(self):
+        value = str(self.value)
+        print(f"_spack_env_remove: {self.name} {value} {self.separator}")
+
 
 class SetPath(NameValueModifier):
     def execute(self, env: MutableMapping[str, str]):
         string_path = self.separator.join(str(item) for item in self.value)
         tty.debug(f"SetPath: {self.name}={string_path}", level=3)
         env[self.name] = string_path
+
+    def shell_command(self):
+        value = str(self.value)
+        print(f"_spack_env_set: {self.name} {value}")
 
 
 class AppendPath(NameValueModifier):
@@ -355,6 +374,10 @@ class AppendPath(NameValueModifier):
         directories.append(path_to_os_path(os.path.normpath(self.value)).pop())
         env[self.name] = self.separator.join(directories)
 
+    def shell_command(self):
+        value = str(self.value)
+        print(f"_spack_env_append: {self.name} {value}")
+
 
 class PrependPath(NameValueModifier):
     def execute(self, env: MutableMapping[str, str]):
@@ -363,6 +386,10 @@ class PrependPath(NameValueModifier):
         directories = environment_value.split(self.separator) if environment_value else []
         directories = [path_to_os_path(os.path.normpath(self.value)).pop()] + directories
         env[self.name] = self.separator.join(directories)
+
+    def shell_command(self):
+        value = str(self.value)
+        print(f"_spack_env_prepend: {self.name} {value} {self.separator}")
 
 
 class RemovePath(NameValueModifier):
@@ -376,6 +403,10 @@ class RemovePath(NameValueModifier):
             if x != path_to_os_path(os.path.normpath(self.value)).pop()
         ]
         env[self.name] = self.separator.join(directories)
+
+    def shell_command(self):
+        value = str(self.value)
+        print(f"_spack_env_remove: {self.name} {value} {self.separator}")
 
 
 class DeprioritizeSystemPaths(NameModifier):
@@ -398,6 +429,10 @@ class PruneDuplicatePaths(NameModifier):
             [path_to_os_path(os.path.normpath(x)).pop() for x in directories]
         )
         env[self.name] = self.separator.join(directories)
+
+    def shell_command(self):
+        value = str(self.value)
+        print(f"_spack_env_prune_duplicates: {self.name} {value} {self.separator}")
 
 
 class EnvironmentModifications:
@@ -657,6 +692,8 @@ class EnvironmentModifications:
         """Return shell code to apply the modifications and clears the list."""
         modifications = self.group_by_name()
 
+        print(f"modifications: {modifications}\n{type(modifications)}\n\n")
+
         env = os.environ if env is None else env
         new_env = dict(env.items())
 
@@ -681,6 +718,7 @@ class EnvironmentModifications:
                         value = shlex.quote(value)
                     cmd = _SHELL_SET_STRINGS[shell].format(name, value)
                     cmds += cmd
+        assert False
         return cmds
 
     @staticmethod

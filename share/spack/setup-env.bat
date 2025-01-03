@@ -64,6 +64,7 @@ if not defined EDITOR (
    set EDITOR=notepad
 )
 
+:: Set shell being used
 set "SPACK_SHELL=bat"
 
 @echo **********************************************************************
