@@ -8,8 +8,8 @@ import re
 import shutil
 import sys
 import tempfile
-from urllib.parse import urlparse, urlunparse
 from typing import Dict
+from urllib.parse import urlparse, urlunparse
 
 import llnl.util.filesystem as fs
 import llnl.util.tty.color as clr
@@ -24,13 +24,15 @@ import spack.config as cfg
 import spack.environment as ev
 import spack.hash_types as ht
 import spack.mirrors.mirror
+import spack.paths
+import spack.repo
+import spack.spec
+import spack.stage
+import spack.util.git
 import spack.util.gpg as gpg_util
 import spack.util.timer as timer
 import spack.util.url as url_util
 import spack.util.web as web_util
-import spack.paths
-import spack.repo
-import spack.util.git
 from spack.util.executable import ProcessError
 from spack.version import StandardVersion, VersionList
 
@@ -42,6 +44,7 @@ SPACK_COMMAND = "spack"
 INSTALL_FAIL_CODE = 1
 FAILED_CREATE_BUILDCACHE_CODE = 100
 BUILTIN = re.compile(r"var\/spack\/repos\/builtin\/packages\/([^\/]+)\/package\.py")
+
 
 def deindent(desc):
     return desc.replace("    ", "")
