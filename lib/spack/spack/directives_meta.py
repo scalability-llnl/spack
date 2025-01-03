@@ -5,7 +5,7 @@
 
 import collections.abc
 import functools
-from typing import List, Set
+from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Type, Union
 
 import llnl.util.lang
 
@@ -25,11 +25,13 @@ class DirectiveMeta(type):
 
     # Set of all known directives
     _directive_dict_names: Set[str] = set()
-    _directives_to_be_executed: List[str] = []
-    _when_constraints_from_context: List[str] = []
+    _directives_to_be_executed: List[Callable] = []
+    _when_constraints_from_context: List[spack.spec.Spec] = []
     _default_args: List[dict] = []
 
-    def __new__(cls, name, bases, attr_dict):
+    def __new__(
+        cls: Type["DirectiveMeta"], name: str, bases: tuple, attr_dict: dict
+    ) -> "DirectiveMeta":
         # Initialize the attribute containing the list of directives
         # to be executed. Here we go reversed because we want to execute
         # commands:
@@ -60,7 +62,7 @@ class DirectiveMeta(type):
 
         return super(DirectiveMeta, cls).__new__(cls, name, bases, attr_dict)
 
-    def __init__(cls, name, bases, attr_dict):
+    def __init__(cls: "DirectiveMeta", name: str, bases: tuple, attr_dict: dict):
         # The instance is being initialized: if it is a package we must ensure
         # that the directives are called to set it up.
 
@@ -81,27 +83,27 @@ class DirectiveMeta(type):
         super(DirectiveMeta, cls).__init__(name, bases, attr_dict)
 
     @staticmethod
-    def push_to_context(when_spec):
+    def push_to_context(when_spec: spack.spec.Spec) -> None:
         """Add a spec to the context constraints."""
         DirectiveMeta._when_constraints_from_context.append(when_spec)
 
     @staticmethod
-    def pop_from_context():
+    def pop_from_context() -> spack.spec.Spec:
         """Pop the last constraint from the context"""
         return DirectiveMeta._when_constraints_from_context.pop()
 
     @staticmethod
-    def push_default_args(default_args):
+    def push_default_args(default_args: Dict[str, Any]) -> None:
         """Push default arguments"""
         DirectiveMeta._default_args.append(default_args)
 
     @staticmethod
-    def pop_default_args():
+    def pop_default_args() -> dict:
         """Pop default arguments"""
         return DirectiveMeta._default_args.pop()
 
     @staticmethod
-    def directive(dicts=None):
+    def directive(dicts: Optional[Union[Sequence[str], str]] = None) -> Callable:
         """Decorator for Spack directives.
 
         Spack directives allow you to modify a package while it is being
@@ -156,7 +158,7 @@ class DirectiveMeta(type):
         DirectiveMeta._directive_dict_names |= set(dicts)
 
         # This decorator just returns the directive functions
-        def _decorator(decorated_function):
+        def _decorator(decorated_function: Callable) -> Callable:
             directive_names.append(decorated_function.__name__)
 
             @functools.wraps(decorated_function)

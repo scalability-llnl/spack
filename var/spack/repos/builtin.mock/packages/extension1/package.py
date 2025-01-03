@@ -21,5 +21,5 @@ class Extension1(Package):
 
     def install(self, spec, prefix):
         mkdirp(prefix.bin)
-        with open(os.path.join(prefix.bin, "extension1"), "w+") as fout:
+        with open(os.path.join(prefix.bin, "extension1"), "w+", encoding="utf-8") as fout:
             fout.write(str(spec.version))

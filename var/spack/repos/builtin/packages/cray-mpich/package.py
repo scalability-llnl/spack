@@ -18,6 +18,10 @@ class CrayMpich(Package):
 
     maintainers("haampie")
 
+    version("8.1.25")
+    version("8.1.24")
+    version("8.1.21")
+    version("8.1.14")
     version("8.1.7")
     version("8.1.0")
     version("8.0.16")

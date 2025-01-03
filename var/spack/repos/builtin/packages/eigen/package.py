@@ -15,6 +15,7 @@ class Eigen(CMakePackage, ROCmPackage):
     homepage = "https://eigen.tuxfamily.org/"
     git = "https://gitlab.com/libeigen/eigen.git"
     url = "https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz"
+
     maintainers("HaoZeke")
 
     license("MPL-2.0")
@@ -39,9 +40,12 @@ class Eigen(CMakePackage, ROCmPackage):
     version("3.2.5", sha256="8068bd528a2ff3885eb55225c27237cf5cda834355599f05c2c85345db8338b4")
 
     variant("nightly", description="run Nightly test", default=False)
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
+    # TODO: https://eigen.tuxfamily.org/dox/TopicUsingBlasLapack.html
+
     # Older eigen releases haven't been tested with ROCm
     conflicts("+rocm @:3.4.0")
 
@@ -85,13 +89,20 @@ class Eigen(CMakePackage, ROCmPackage):
         if self.spec.satisfies("@:3.4"):
             # CMake fails without this flag
             # https://gitlab.com/libeigen/eigen/-/issues/1656
-            args += [self.define("BUILD_TESTING", "ON")]
+            args.extend([self.define("BUILD_TESTING", "ON")])
+
         if self.spec.satisfies("+rocm"):
-            args.append(self.define("ROCM_PATH", self.spec["hip"].prefix))
-            args.append(self.define("HIP_PATH", self.spec["hip"].prefix))
-            args.append(self.define("EIGEN_TEST_HIP", "ON"))
+            args.extend(
+                [
+                    self.define("ROCM_PATH", self.spec["hip"].prefix),
+                    self.define("HIP_PATH", self.spec["hip"].prefix),
+                    self.define("EIGEN_TEST_HIP", "ON"),
+                ]
+            )
+
         if self.spec.satisfies("@master") and self.run_tests:
             args.append(self.define("Boost_INCLUDE_DIR", self.spec["boost"].prefix.include))
+
         return args
 
     def check(self):

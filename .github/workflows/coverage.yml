@@ -32,3 +32,4 @@ jobs:
       uses: codecov/codecov-action@05f5a9cfad807516dbbef9929c4a42df3eb78766
       with:
         verbose: true
+        fail_ci_if_error: false

@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from collections import defaultdict
-from typing import NamedTuple, Union
+from typing import Any, Callable, List, NamedTuple, Set, Union
 
 import spack.deptypes as dt
 import spack.spec
@@ -113,6 +113,64 @@ class CoverEdgesVisitor:
 
         self.visited.add(key)
         return self.visitor.neighbors(item)
+
+
+class MixedDepthVisitor:
+    """Visits all unique edges of the sub-DAG induced by direct dependencies of type ``direct``
+    and transitive dependencies of type ``transitive``. An example use for this is traversing build
+    type dependencies non-recursively, and link dependencies recursively."""
+
+    def __init__(
+        self,
+        *,
+        direct: dt.DepFlag,
+        transitive: dt.DepFlag,
+        key: Callable[["spack.spec.Spec"], Any] = id,
+    ) -> None:
+        self.direct_type = direct
+        self.transitive_type = transitive
+        self.key = key
+        self.seen: Set[Any] = set()
+        self.seen_roots: Set[Any] = set()
+
+    def accept(self, item: EdgeAndDepth) -> bool:
+        # Do not accept duplicate root nodes. This only happens if the user starts iterating from
+        # multiple roots and lists one of the roots multiple times.
+        if item.edge.parent is None:
+            node_id = self.key(item.edge.spec)
+            if node_id in self.seen_roots:
+                return False
+            self.seen_roots.add(node_id)
+        return True
+
+    def neighbors(self, item: EdgeAndDepth) -> List[EdgeAndDepth]:
+        # If we're here through an artificial source node, it's a root, and we return all
+        # direct_type  and transitive_type edges. If we're here through a transitive_type edge, we
+        # return all transitive_type edges. To avoid returning the same edge twice:
+        # 1. If we had already encountered the current node through a transitive_type edge, we
+        #    don't need to return transitive_type edges again.
+        # 2. If we encounter the current node through a direct_type edge, and we had already seen
+        #    it through a transitive_type edge, only return the non-transitive_type, direct_type
+        #    edges.
+        node_id = self.key(item.edge.spec)
+        seen = node_id in self.seen
+        is_root = item.edge.parent is None
+        follow_transitive = is_root or bool(item.edge.depflag & self.transitive_type)
+        follow = self.direct_type if is_root else dt.NONE
+
+        if follow_transitive and not seen:
+            follow |= self.transitive_type
+            self.seen.add(node_id)
+        elif follow == dt.NONE:
+            return []
+
+        edges = item.edge.spec.edges_to_dependencies(depflag=follow)
+
+        # filter direct_type edges already followed before becuase they were also transitive_type.
+        if seen:
+            edges = [edge for edge in edges if not edge.depflag & self.transitive_type]
+
+        return sort_edges(edges)
 
 
 def get_visitor_from_args(
@@ -342,9 +400,7 @@ def traverse_topo_edges_generator(edges, visitor, key=id, root=True, all_edges=F
     # maps parent identifier to a list of edges, where None is a special identifier
     # for the artificial root/source.
     node_to_edges = defaultdict(list)
-    for edge in traverse_breadth_first_edges_generator(
-        edges, CoverEdgesVisitor(visitor, key=key), root=True, depth=False
-    ):
+    for edge in traverse_breadth_first_edges_generator(edges, visitor, root=True, depth=False):
         in_edge_count[key(edge.spec)] += 1
         parent_id = key(edge.parent) if edge.parent is not None else None
         node_to_edges[parent_id].append(edge)
@@ -422,9 +478,9 @@ def traverse_edges(
     elif order not in ("post", "pre", "breadth"):
         raise ValueError(f"Unknown order {order}")
 
-    # In topo traversal we need to construct a sub-DAG including all edges even if we are yielding
-    # a subset of them, hence "paths".
-    _cover = "paths" if order == "topo" else cover
+    # In topo traversal we need to construct a sub-DAG including all unique edges even if we are
+    # yielding a subset of them, hence "edges".
+    _cover = "edges" if order == "topo" else cover
     visitor = get_visitor_from_args(_cover, direction, deptype, key, visited)
     root_edges = with_artificial_edges(specs)
 

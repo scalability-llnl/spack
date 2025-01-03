@@ -16,6 +16,7 @@ class PyRuff(PythonPackage):
     license("MIT")
     maintainers("adamjstewart")
 
+    version("0.8.1", sha256="3583db9a6450364ed5ca3f3b4225958b24f78178908d5c4bc0f46251ccca898f")
     version("0.8.0", sha256="a7ccfe6331bf8c8dad715753e157457faf7351c2b69f62f32c165c2dbcbacd44")
     version("0.6.5", sha256="4d32d87fab433c0cf285c3683dd4dae63be05fd7a1d65b3f5bf7cdd05a6b96fb")
     version("0.5.7", sha256="8dfc0a458797f5d9fb622dd0efc52d796f23f0a1493a9527f4e49a550ae9a7e5")

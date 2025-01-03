@@ -16,6 +16,7 @@ class Silo(AutotoolsPackage):
     url = "https://wci.llnl.gov/sites/wci/files/2021-01/silo-4.10.2.tgz"
     maintainers("patrickb314")
 
+    version("main", branch="main")
     version(
         "4.11.1",
         preferred=True,

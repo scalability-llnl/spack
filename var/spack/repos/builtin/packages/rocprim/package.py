@@ -17,6 +17,7 @@ class Rocprim(CMakePackage):
     license("MIT")
 
     maintainers("cgmb", "srekolam", "renjithravindrankannath")
+    version("6.2.4", sha256="c567aa5e3209dd00aefe5052dde8ceb5bcc3a4aeeeb3ad8dc322f8d0791fc07f")
     version("6.2.1", sha256="55cfa8a4224bcd2dcf2298e7938c983a8bb0c1c072fc8295c198e53785b521ac")
     version("6.2.0", sha256="cd9be3a030830c96c940dc69e4a00f2701539a7e10b62ab1181ab83eeef31e57")
     version("6.1.2", sha256="560b65fffb103c11bee710e4eb871fd47dd84dfe99f5762a19c5650e490fd85d")
@@ -74,6 +75,7 @@ class Rocprim(CMakePackage):
         "6.1.2",
         "6.2.0",
         "6.2.1",
+        "6.2.4",
     ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"comgr@{ver}", when=f"@{ver}")

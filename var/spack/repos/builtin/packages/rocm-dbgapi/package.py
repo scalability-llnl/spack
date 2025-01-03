@@ -16,7 +16,7 @@ class RocmDbgapi(CMakePackage):
 
     homepage = "https://github.com/ROCm/ROCdbgapi"
     git = "https://github.com/ROCm/ROCdbgapi.git"
-    url = "https://github.com/ROCm/ROCdbgapi/archive/rocm-6.1.2.tar.gz"
+    url = "https://github.com/ROCm/ROCdbgapi/archive/rocm-6.2.1.tar.gz"
     tags = ["rocm"]
 
     maintainers("srekolam", "renjithravindrankannath", "afzpatel")
@@ -25,6 +25,7 @@ class RocmDbgapi(CMakePackage):
     license("MIT")
 
     version("master", branch="amd-master")
+    version("6.2.4", sha256="004e9ace3ead840e44f98fc033b621d5489a554965deecfdb7df768482068282")
     version("6.2.1", sha256="40064ca031e41ff3c87bfa31406b7192fa65709ab36734eddad87e0ecc01bb80")
     version("6.2.0", sha256="311811ce0970ee83206791c21d539f351ddeac56ce3ff7efbefc830038748c0c")
     version("6.1.2", sha256="6e55839e3d95c2cfe3ff89e3e31da77aeecc74012a17f5308589e8808df78026")
@@ -73,6 +74,7 @@ class RocmDbgapi(CMakePackage):
         "6.1.2",
         "6.2.0",
         "6.2.1",
+        "6.2.4",
         "master",
     ]:
         depends_on(f"hsa-rocr-dev@{ver}", type="build", when=f"@{ver}")
@@ -92,6 +94,7 @@ class RocmDbgapi(CMakePackage):
         "6.1.2",
         "6.2.0",
         "6.2.1",
+        "6.2.4",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 

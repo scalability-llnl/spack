@@ -13,12 +13,13 @@ class RocprofilerDev(CMakePackage):
 
     homepage = "https://github.com/ROCm/rocprofiler"
     git = "https://github.com/ROCm/rocprofiler.git"
-    url = "https://github.com/ROCm/rocprofiler/archive/refs/tags/rocm-6.1.2.tar.gz"
+    url = "https://github.com/ROCm/rocprofiler/archive/refs/tags/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
     maintainers("srekolam", "renjithravindrankannath")
     libraries = ["librocprofiler64"]
     license("MIT")
+    version("6.2.4", sha256="898eae91938c2d08207b615db03a784c7f3090989bcf09260635d18aa5930a2c")
     version("6.2.1", sha256="6eb36dad67e3b294f210e21987c52aec666652cffa87b8af1f8077d5b7812245")
     version("6.2.0", sha256="79b4f29d051e62639b4bf2ca288035514d32e055fc759ff4a82d377bf7ca97ea")
     version("6.1.2", sha256="e6e8771b8c933c16a99192cc215fe964a95e1718ad286520c8272150e184bc06")
@@ -61,13 +62,25 @@ class RocprofilerDev(CMakePackage):
         "6.1.2",
         "6.2.0",
         "6.2.1",
+        "6.2.4",
     ]:
         depends_on(f"hsakmt-roct@{ver}", when=f"@{ver}")
         depends_on(f"hsa-rocr-dev@{ver}", when=f"@{ver}")
         depends_on(f"rocminfo@{ver}", when=f"@{ver}")
         depends_on(f"roctracer-dev-api@{ver}", when=f"@{ver}")
 
-    for ver in ["5.7.0", "5.7.1", "6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1"]:
+    for ver in [
+        "5.7.0",
+        "5.7.1",
+        "6.0.0",
+        "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+    ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"rocm-smi-lib@{ver}", when=f"@{ver}")
 
@@ -85,6 +98,7 @@ class RocprofilerDev(CMakePackage):
         "6.1.2",
         "6.2.0",
         "6.2.1",
+        "6.2.4",
     ]:
         depends_on(f"aqlprofile@{ver}", when=f"@{ver}")
         depends_on(f"comgr@{ver}", when=f"@{ver}")

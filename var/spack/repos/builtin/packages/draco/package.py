@@ -77,6 +77,7 @@ class Draco(CMakePackage):
     depends_on("lapack", when="+lapack")
     depends_on("libquo@1.3.1:", when="@7.4.0:+libquo")
     depends_on("metis", when="+parmetis")
+    depends_on("metis@5:+no_warning", when="@7.19:+parmetis")
     depends_on("parmetis", when="+parmetis")
     depends_on("qt", when="+qt", type=("build", "link", "run"))
     depends_on("superlu-dist@:5", when="@:7.6+superlu_dist")

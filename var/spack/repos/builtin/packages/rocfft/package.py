@@ -21,6 +21,7 @@ class Rocfft(CMakePackage):
 
     license("MIT")
     version("master", branch="master")
+    version("6.2.4", sha256="8ddc4e779a84b73c21b054ae37fec69e5c2f248589c7fb1b84a2197baf6ce995")
     version("6.2.1", sha256="662d56cbc4c40a82e2f320bfc8e48a571a448e19c04a9ce30d3419b47fcf3574")
     version("6.2.0", sha256="c9886ec2c713c502dcde4f5fed3d6e1a7dd019023fb07e82d3b622e66c6f2c36")
     version("6.1.2", sha256="6f54609b0ecb8ceae8b7acd4c8692514c2c2dbaf0f8b199fe990fd4711428193")
@@ -40,7 +41,8 @@ class Rocfft(CMakePackage):
         version("5.3.3", sha256="678c18710578c1fb36a0009311bb79de7607c3468f9102cfba56a866ebb7ff78")
         version("5.3.0", sha256="d655c5541c4aff4267e80e36d002fc3a55c2f84a0ae8631197c12af3bf03fa7d")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     amdgpu_targets = ROCmPackage.amdgpu_targets
 
@@ -91,6 +93,7 @@ class Rocfft(CMakePackage):
         "6.1.2",
         "6.2.0",
         "6.2.1",
+        "6.2.4",
         "master",
     ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")

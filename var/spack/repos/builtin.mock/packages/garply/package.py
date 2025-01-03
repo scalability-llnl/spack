@@ -75,13 +75,13 @@ const int garply_version_minor = %s;
 """
         mkdirp("%s/garply" % prefix.include)
         mkdirp("%s/garply" % self.stage.source_path)
-        with open("%s/garply_version.h" % self.stage.source_path, "w") as f:
+        with open("%s/garply_version.h" % self.stage.source_path, "w", encoding="utf-8") as f:
             f.write(garply_version_h % (self.version[0], self.version[1:]))
-        with open("%s/garply/garply.h" % self.stage.source_path, "w") as f:
+        with open("%s/garply/garply.h" % self.stage.source_path, "w", encoding="utf-8") as f:
             f.write(garply_h)
-        with open("%s/garply/garply.cc" % self.stage.source_path, "w") as f:
+        with open("%s/garply/garply.cc" % self.stage.source_path, "w", encoding="utf-8") as f:
             f.write(garply_cc % prefix.config)
-        with open("%s/garply/garplinator.cc" % self.stage.source_path, "w") as f:
+        with open("%s/garply/garplinator.cc" % self.stage.source_path, "w", encoding="utf-8") as f:
             f.write(garplinator_cc)
         gpp = which(
             "g++",

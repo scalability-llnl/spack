@@ -16,7 +16,11 @@ class PyRay(PythonPackage):
     license("Apache-2.0")
 
     version("2.0.1", sha256="b8b2f0a99d2ac4c001ff11c78b4521b217e2a02df95fb6270fd621412143f28b")
-    version("0.8.7", sha256="2df328f1bcd3eeb4fa33119142ea0d669396f4ab2a3e78db90178757aa61534b")
+    version(
+        "0.8.7",
+        sha256="2df328f1bcd3eeb4fa33119142ea0d669396f4ab2a3e78db90178757aa61534b",
+        deprecated=True,
+    )
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated

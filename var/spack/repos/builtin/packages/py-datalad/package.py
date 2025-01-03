@@ -133,7 +133,7 @@ class PyDatalad(PythonPackage):
     # for version @:0.17
     conflicts("~metadata-extra", when="+full")
 
-    install_time_test_callbacks = ["test", "installtest"]
+    install_time_test_callbacks = ["test_imports", "installtest"]
 
     def installtest(self):
         datalad = Executable(self.prefix.bin.datalad)
