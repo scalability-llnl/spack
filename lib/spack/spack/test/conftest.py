@@ -231,6 +231,84 @@ def mock_git_version_info(git, tmpdir, override_git_repos_cache_path):
     yield repo_path, filename, commits
 
 
+@pytest.fixture
+def mock_git_package_changes(git, tmpdir, override_git_repos_cache_path):
+    """Create a mock git repo with known structure of package edits
+
+    The structure of commits in this repo is as follows::
+
+       o pkg-a: modification to make manual download package
+       |
+       o pkg-a: add v1.2 (from a git ref)
+       |
+       o pkg-a: add v1.1 (from source tarball)
+       |
+       o pkg-a: new package (testing multiple added versions)
+
+    The repo consists of a single package.py file for packageA.
+
+    Important attributes of the repo for test coverage are: multiple package
+    versions are added with some coming from a tarball and some from git refs.
+    """
+    repo_path = str(tmpdir.mkdir("git_repo"))
+    filename = "var/spack/repos/builtin/packages/pkg-a/package.py"
+
+    def commit(message):
+        global commit_counter
+        git(
+            "commit",
+            "--no-gpg-sign",
+            "--date",
+            "2020-01-%02d 12:0:00 +0300" % commit_counter,
+            "-am",
+            message,
+        )
+        commit_counter += 1
+
+    with working_dir(repo_path):
+        git("init")
+
+        git("config", "user.name", "Spack")
+        git("config", "user.email", "spack@spack.io")
+
+        commits = []
+
+        def latest_commit():
+            return git("rev-list", "-n1", "HEAD", output=str, error=str).strip()
+
+        os.makedirs(os.path.dirname(filename))
+
+        # add pkg-a as a new package to the repository
+        shutil.copy2(f"{spack.paths.test_path}/data/conftest/pkgA/01_package.py", filename)
+        git("add", filename)
+        commit("pkg-a: new package")
+        commits.append(latest_commit())
+
+        # add v2.1.5 to pkg-a
+        shutil.copy2(f"{spack.paths.test_path}/data/conftest/pkgA/02_package.py", filename)
+        git("add", filename)
+        commit("pkg-a: add v2.1.5")
+        commits.append(latest_commit())
+
+        # add v2.1.6 to pkg-a
+        shutil.copy2(f"{spack.paths.test_path}/data/conftest/pkgA/03_package.py", filename)
+        git("add", filename)
+        commit("pkg-a: add v2.1.6")
+        commits.append(latest_commit())
+
+        # convert pkg-a to a manual download package
+        shutil.copy2(f"{spack.paths.test_path}/data/conftest/pkgA/04_package.py", filename)
+        git("add", filename)
+        commit("pkg-a: modification to make manual download package")
+        commits.append(latest_commit())
+
+        # The commits are ordered with the last commit first in the list
+        commits = list(reversed(commits))
+
+    # Return the git directory to install, the filename used, and the commits
+    yield repo_path, filename, commits
+
+
 @pytest.fixture(autouse=True)
 def clear_recorded_monkeypatches():
     yield
