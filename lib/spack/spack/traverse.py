@@ -400,8 +400,6 @@ def traverse_topo_edges_generator(edges, visitor, key=id, root=True, all_edges=F
     # maps parent identifier to a list of edges, where None is a special identifier
     # for the artificial root/source.
     node_to_edges = defaultdict(list)
-    # wrap supplied visitor to track visited edges
-    visitor = CoverEdgesVisitor(visitor, key=key, visited=None)
     for edge in traverse_breadth_first_edges_generator(edges, visitor, root=True, depth=False):
         in_edge_count[key(edge.spec)] += 1
         parent_id = key(edge.parent) if edge.parent is not None else None
