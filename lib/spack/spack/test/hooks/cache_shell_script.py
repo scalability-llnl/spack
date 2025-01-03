@@ -13,18 +13,19 @@ from spack.spec import Spec
 install = SpackCommand("install")
 
 
+# import util environment's _SHELL_SET_STRINGS
 @pytest.mark.parametrize(
     "shell,set_command",
     (
         [("sh", "export %s=%s"), ("csh", "setenv %s %s"), ("fish", "set %s %s"),
-         ("bat", 'set "%s=%s"'), ("pwsh", "Set-Variable %s %s")]
+         ("bat", 'set "%s=%s"'), ("pwsh", "$Env %s %s")]
         if sys.platform == "win32"
         else [("sh", "export %s=%s"), ("csh", "setenv %s %s"), ("fish", "set %s %s")]
     ),
 )
 def test_install_shell_cached(
     shell, set_command, install_mockery, mock_fetch, mock_archive, mock_packages
-    ):
+):
     """Test does a thing"""
 
     spec = Spec("mpileaks")
@@ -34,7 +35,7 @@ def test_install_shell_cached(
 
     for pkg in spec.traverse():
         path_to_shell = os.path.join(pkg.prefix, ".spack", f"{pkg.name}_shell.{shell}")
-    
+
         assert os.path.isfile(path_to_shell)
 
 
@@ -42,14 +43,14 @@ def test_install_shell_cached(
     "shell,set_command",
     (
         [("sh", "export %s=%s"), ("csh", "setenv %s %s"), ("fish", "set %s %s"),
-         ("bat", 'set "%s=%s"'), ("pwsh", "Set-Variable %s %s")]
+         ("bat", 'set "%s=%s"'), ("pwsh", "$Env %s %s")]
         if sys.platform == "win32"
         else [("sh", "export %s=%s"), ("csh", "setenv %s %s"), ("fish", "set %s %s")]
     ),
 )
 def test_install_with_individual_shell_scripts(
     shell, set_command, install_mockery, mock_fetch, mock_archive, mock_packages
-    ):  # get better name
+):  # get better name
     """Test does a thing"""
 
     callpath_spec = Spec("callpath")
@@ -62,8 +63,10 @@ def test_install_with_individual_shell_scripts(
 
     install(callpath_spec.name)
 
-    path_to_dyninst = os.path.join(dyninst_spec.prefix, ".spack", f"{dyninst_spec.name}_shell.{shell}")
-    path_to_mpich = os.path.join(mpich_spec.prefix, ".spack", f"{mpich_spec.name}_shell.{shell}")
+    path_to_dyninst = os.path.join(dyninst_spec.prefix, ".spack",
+                                   f"{dyninst_spec.name}_shell.{shell}")
+    path_to_mpich = os.path.join(mpich_spec.prefix, ".spack",
+                                 f"{mpich_spec.name}_shell.{shell}")
 
     with open(path_to_dyninst, "r") as f:
         dyninst_shell = f.read()

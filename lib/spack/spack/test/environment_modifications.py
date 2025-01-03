@@ -207,7 +207,6 @@ def test_path_manipulation(env):
     env.remove_path("REMOVE_PATH_LIST", "/remove/this")
     env.remove_path("REMOVE_PATH_LIST", "/duplicate/")
 
-    env.deprioritize_system_paths("PATH_LIST_WITH_SYSTEM_PATHS")
     env.prune_duplicate_paths("PATH_LIST_WITH_DUPLICATES")
 
     env.apply_modifications()

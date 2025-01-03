@@ -11,7 +11,7 @@ import spack.user_environment as uenv
 
 def post_install(spec, explicit=None):
     """What this does
-    
+
     Args:
         spec:
         explicit:
