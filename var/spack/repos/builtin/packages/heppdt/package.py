@@ -30,3 +30,7 @@ class Heppdt(AutotoolsPackage):
 
     depends_on("cxx", type="build")  # generated
     depends_on("fortran", type="build")  # generated
+
+    def patch(self):
+        # fix csh redirect in /bin/sh script
+        filter_file(r">&", ">", "tests/HepPDT/testPID.sh.in")
