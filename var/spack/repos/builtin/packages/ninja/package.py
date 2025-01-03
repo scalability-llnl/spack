@@ -69,7 +69,7 @@ class Ninja(Package):
 
     def configure(self, spec, prefix):
         if self.run_tests and spec.satisfies("@1.12:"):
-            python("configure.py", "--bootstrap", f"--gtest-source-dir=gtest")
+            python("configure.py", "--bootstrap", "--gtest-source-dir=gtest")
         else:
             python("configure.py", "--bootstrap")
 
