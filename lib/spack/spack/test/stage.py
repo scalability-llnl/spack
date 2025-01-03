@@ -350,22 +350,20 @@ def check_stage_dir_perms(prefix, path):
     # Ensure the path's subdirectories -- to `$user` -- have their parent's
     # perms while those from `$user` on are owned and restricted to the
     # user.
-    assert path.startswith(prefix)
+    assert prefix in path.parents
 
     user = getpass.getuser()
-    prefix_status = os.stat(prefix)
+    prefix_status = prefix.stat()
     uid = getuid()
 
     # Obtain lists of ancestor and descendant paths of the $user node, if any.
     #
     # Skip processing prefix ancestors since no guarantee they will be in the
     # required group (e.g. $TEMPDIR on HPC machines).
-    skip = prefix if prefix.endswith(os.sep) else prefix + os.sep
-    group_paths, user_node, user_paths = partition_path(path.replace(skip, ""), user)
+    group_paths, user_node, user_paths = partition_path(fs_path(path.relative_to(prefix)), user)
 
-    prefix = abstract_path(prefix)
     for p in group_paths:
-        p_status = os.stat(prefix / p)
+        p_status = (prefix / p).stat()
         assert p_status.st_gid == prefix_status.st_gid
         assert p_status.st_mode == prefix_status.st_mode
 
@@ -375,7 +373,7 @@ def check_stage_dir_perms(prefix, path):
         user_paths.insert(0, user_node)
 
     for p in user_paths:
-        p_status = os.stat(prefix / p)
+        p_status = (prefix / p).stat()
         assert uid == p_status.st_uid
         assert p_status.st_mode & stat.S_IRWXU == stat.S_IRWXU
 
@@ -652,35 +650,33 @@ class TestStage:
 
     @pytest.mark.not_on_windows("Windows file permission erroring is not yet supported")
     @pytest.mark.skipif(getuid() == 0, reason="user is root")
-    def test_first_accessible_path(self, tmpdir):
+    def test_first_accessible_path(self, tmp_path):
         """Test _first_accessible_path names."""
-        spack_dir = tmpdir.join("paths")
-        name = str(spack_dir)
-        files = [os.path.join(os.path.sep, "no", "such", "path"), name]
+        spack_path = tmp_path / "paths"
+        files = [concrete_path(os.sep, "no", "such", "path"), spack_path]
 
-        # Ensure the tmpdir path is returned since the user should have access
-        path = spack.stage._first_accessible_path(files)
-        assert path == name
-        assert os.path.isdir(path)
-        check_stage_dir_perms(str(tmpdir), path)
+        # Ensure the tmp_path is returned since the user should have access
+        path = concrete_path(spack.stage._first_accessible_path(files))
+        assert path == spack_path
+        assert path.is_dir()
+        check_stage_dir_perms(tmp_path, path)
 
         # Ensure an existing path is returned
-        spack_subdir = spack_dir.join("existing").ensure(dir=True)
-        subdir = str(spack_subdir)
-        path = spack.stage._first_accessible_path([subdir])
+        subdir = spack_path / "existing"
+        subdir.mkdir(parents=True)
+        path = concrete_path(spack.stage._first_accessible_path([subdir]))
         assert path == subdir
 
         # Ensure a path with a `$user` node has the right permissions
         # for its subdirectories.
         user = getpass.getuser()
-        user_dir = spack_dir.join(user, "has", "paths")
-        user_path = str(user_dir)
-        path = spack.stage._first_accessible_path([user_path])
+        user_path = spack_path / user / "has" / "paths"
+        path = concrete_path(spack.stage._first_accessible_path([user_path]))
         assert path == user_path
-        check_stage_dir_perms(str(tmpdir), path)
+        check_stage_dir_perms(tmp_path, path)
 
         # Cleanup
-        shutil.rmtree(str(name))
+        shutil.rmtree(spack_path)
 
     def test_create_stage_root(self, tmp_path, no_path_access):
         """Test create_stage_root permissions."""

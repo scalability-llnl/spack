@@ -130,15 +130,16 @@ def create_stage_root(path: str) -> None:
 def _first_accessible_path(paths):
     """Find the first path that is accessible, creating it if necessary."""
     for path in paths:
+        path = concrete_path(path)
         try:
             # Ensure the user has access, creating the directory if necessary.
-            if concrete_path(path).exists():
+            if path.exists():
                 if can_access(path):
-                    return path
+                    return fs_path(path)
             else:
                 # Now create the stage root with the proper group/perms.
                 create_stage_root(path)
-                return path
+                return fs_path(path)
 
         except OSError as e:
             tty.debug("OSError while checking stage path %s: %s" % (path, str(e)))
