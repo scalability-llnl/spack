@@ -80,10 +80,10 @@ def create_stage_root(path: str) -> None:
         if not p.exists():
             # Ensure access controls of subdirs created above `$user` inherit
             # from the parent and share the group.
-            par_stat = os.stat(p.parent)
+            par_stat = p.parent.stat()
             mkdirp(p, group=par_stat.st_gid, mode=par_stat.st_mode)
 
-            p_stat = os.stat(p)
+            p_stat = p.stat()
             if par_stat.st_gid != p_stat.st_gid:
                 tty.warn(
                     "Expected {0} to have group {1}, but it is {2}".format(
@@ -154,9 +154,9 @@ def _resolve_paths(candidates):
     Adjustments involve removing extra $user from $tempdir if $tempdir includes
     $user and appending $user if it is not present in the path.
     """
-    temp_path = sup.canonicalize_path("$tempdir")
+    temp_path = abstract_path(sup.canonicalize_path("$tempdir"))
     user = getpass.getuser()
-    tmp_has_usr = user in temp_path.split(os.path.sep)
+    tmp_has_usr = user in temp_path.parts
 
     paths = []
     for path in candidates:

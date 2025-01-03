@@ -683,12 +683,12 @@ class TestStage:
         test_path = tmp_path / "path"
 
         try:
-            if getpass.getuser() in fs_path(test_path).split(os.sep):
+            if getpass.getuser() in test_path.parts:
                 # Simply ensure directory created if tmpdir includes user
                 spack.stage.create_stage_root(test_path)
                 assert test_path.exists()
 
-                p_stat = os.stat(test_path)
+                p_stat = test_path.stat()
                 assert p_stat.st_mode & stat.S_IRWXU == stat.S_IRWXU
             else:
                 # Ensure an OS Error is raised on created, non-user directory
@@ -721,9 +721,9 @@ class TestStage:
         assert spack.stage._resolve_paths(paths) == paths
 
         tempdir = "$tempdir"
-        can_tempdir = canonicalize_path(tempdir)
+        can_tempdir = abstract_path(canonicalize_path(tempdir))
         user = getpass.getuser()
-        temp_has_user = user in can_tempdir.split(os.sep)
+        temp_has_user = user in can_tempdir.parts
         tempdir = abstract_path(tempdir)
         paths = [
             fs_path(tempdir / "stage"),
@@ -732,7 +732,6 @@ class TestStage:
             fs_path(tempdir / "$user" / "stage" / "$user"),
         ]
 
-        can_tempdir = abstract_path(can_tempdir)
         res_paths = [canonicalize_path(p) for p in paths]
         if temp_has_user:
             res_paths[1] = fs_path(can_tempdir)
@@ -799,7 +798,7 @@ def _create_files_from_tree(base, tree):
     for name, content in tree.items():
         sub_base = base / name
         if isinstance(content, dict):
-            os.mkdir(sub_base)
+            sub_base.mkdir()
             _create_files_from_tree(sub_base, content)
         else:
             assert (content is None) or (isinstance(content, str))
@@ -827,7 +826,7 @@ def _create_tree_from_dir_recursive(path):
 def develop_path(tmp_path):
     dir_structure = {"a1": {"b1": None, "b2": "b1content"}, "a2": None}
     srcdir = tmp_path / "test-src"
-    os.mkdir(srcdir)
+    srcdir.mkdir()
     _create_files_from_tree(srcdir, dir_structure)
     yield dir_structure, srcdir
 
