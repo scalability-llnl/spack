@@ -13,8 +13,9 @@ import subprocess
 import tempfile
 import zipfile
 from collections import namedtuple
-from typing import Callable, Dict, List, Set
-from urllib.request import Request
+from typing import Callable, Dict, List, Set, Union
+from urllib.error import HTTPError, URLError
+from urllib.request import HTTPHandler, Request, build_opener
 
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
@@ -40,6 +41,7 @@ import spack.util.web as web_util
 from spack import traverse
 from spack.error import SpackError
 from spack.reporters.cdash import SPACK_CDASH_TIMEOUT
+from spack.version import GitVersion, StandardVersion
 
 from .common import (
     IS_WINDOWS,
@@ -76,6 +78,41 @@ def get_change_revisions():
         # TODO: require more thought outside of that narrow case.
         return "HEAD^", "HEAD"
     return None, None
+
+
+def get_added_versions(
+    checksums_version_dict: Dict[str, Union[StandardVersion, GitVersion]],
+    path: str,
+    from_ref: str = "HEAD~1",
+    to_ref: str = "HEAD",
+) -> List[Union[StandardVersion, GitVersion]]:
+    """Get a list of the versions added between `from_ref` and `to_ref`.
+    Args:
+       checksums_version_dict (Dict): all package versions keyed by known checksums.
+       path (str): path to the package.py
+       from_ref (str): oldest git ref, defaults to `HEAD~1`
+       to_ref (str): newer git ref, defaults to `HEAD`
+    Returns: list of versions added between refs
+    """
+    git_exe = spack.util.git.git(required=True)
+
+    # Gather git diff
+    diff_lines = git_exe("diff", from_ref, to_ref, "--", path, output=str).split("\n")
+
+    # Store added and removed versions
+    added_checksums = set()
+    removed_checksums = set()
+
+    # Scrape diff for modified versions
+    for checksum in checksums_version_dict.keys():
+        for line in diff_lines:
+            if checksum in line:
+                if line.startswith("+"):
+                    added_checksums.add(checksum)
+                if line.startswith("-"):
+                    removed_checksums.add(checksum)
+
+    return [checksums_version_dict[c] for c in added_checksums - removed_checksums]
 
 
 def get_stack_changed(env_path, rev1="HEAD^", rev2="HEAD"):
