@@ -150,8 +150,7 @@ class RocprofilerDev(CMakePackage):
     def patch(self):
         filter_file(
             "${HSA_RUNTIME_LIB_PATH}/../include",
-            "${HSA_RUNTIME_LIB_PATH}/../include ${HSA_KMT_LIB_PATH}/..\
-                     /include",
+            "${HSA_RUNTIME_LIB_PATH}/../include ${HSA_KMT_LIB_PATH}/../include",
             "test/CMakeLists.txt",
             string=True,
         )

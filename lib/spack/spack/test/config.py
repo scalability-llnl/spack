@@ -279,8 +279,10 @@ def test_add_config_path(mutable_config):
     assert "gcc" in compilers
 
     # Try quotes to escape brackets
-    path = "config:install_tree:projections:cmake:\
-'{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}'"
+    path = (
+        "config:install_tree:projections:cmake:"
+        "'{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}'"
+    )
     spack.config.add(path)
     set_value = spack.config.get("config")["install_tree"]["projections"]["cmake"]
     assert set_value == "{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}"

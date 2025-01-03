@@ -612,8 +612,8 @@ class Petsc(Package, CudaPackage, ROCmPackage):
             ("superlu-dist", "superlu_dist", True, True),
             ("scotch", "ptscotch", True, True),
             (
-                "suite-sparse:umfpack,klu,cholmod,btf,ccolamd,colamd,camd,amd, \
-                suitesparseconfig,spqr",
+                "suite-sparse:umfpack,klu,cholmod,btf,ccolamd,colamd,camd,amd,"
+                "suitesparseconfig,spqr",
                 "suitesparse",
                 True,
                 True,

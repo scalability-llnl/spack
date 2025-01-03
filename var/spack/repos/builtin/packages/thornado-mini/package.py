@@ -40,24 +40,19 @@ class ThornadoMini(MakefilePackage):
         file.write(
             "FLINKER_mymachine = %s %s\n" % (self.spec["mpi"].mpifc, self.compiler.openmp_flag)
         )
-        file.write(
-            "DEBUG_mymachine = -g -ffpe-trap=invalid,zero \
-        -fcheck=bounds\n"
-        )
+        file.write("DEBUG_mymachine = -g -ffpe-trap=invalid,zero -fcheck=bounds\n")
         file.write("OPTIMIZE_mymachine = -O2\n")
         file.write("INCLUDE_HDF5_mymachine = \n")
         file.write("INCLUDE_LAPACK_mymachine = \n")
         file.write("LIBRARIES_HDF5_mymachine = \n")
         file.write("LIBRARIES_LAPACK_mymachine = \n")
         file.write(
-            "export FORTRAN_mymachine FLINKER_mymachine \
-        DEBUG_mymachine OPTIMIZE_mymachine\n"
+            "export FORTRAN_mymachine FLINKER_mymachine DEBUG_mymachine OPTIMIZE_mymachine\n"
         )
 
         file.write("all:\n")
         file.write(
-            "\t@$(MAKE) -C $(THORNADO_DIR)/DeleptonizationProblem/Executables \
-        -f Makefile\n"
+            "\t@$(MAKE) -C $(THORNADO_DIR)/DeleptonizationProblem/Executables -f Makefile\n"
         )
 
         file.close()

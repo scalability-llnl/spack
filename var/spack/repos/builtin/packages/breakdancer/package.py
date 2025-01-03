@@ -52,8 +52,7 @@ class Breakdancer(CMakePackage):
     def edit(self):
         # perl tools end up in a silly lib subdirectory, fixing that
         filter_file(
-            r"set\(SUPPORT_LIBDIR lib\/breakdancer-max\$ \
-                    \{EXE_VERSION_SUFFIX\}\)",
+            r"set\(SUPPORT_LIBDIR lib\/breakdancer-max\$ \{EXE_VERSION_SUFFIX\}\)",
             "set(SUPPORT_LIBDIR lib)",
             join_path(self.stage.source_path, "perl", "CMakeLists.txt"),
         )

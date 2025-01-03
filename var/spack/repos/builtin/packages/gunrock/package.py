@@ -87,8 +87,7 @@ class Gunrock(CMakePackage, CudaPackage):
     conflicts(
         "cuda_arch=none",
         when="+cuda",
-        msg='Must specify CUDA compute capabilities of your GPU. \
-See "spack info gunrock"',
+        msg='Must specify CUDA compute capabilities of your GPU. See "spack info gunrock"',
     )
 
     def cmake_args(self):

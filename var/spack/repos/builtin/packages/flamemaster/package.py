@@ -168,11 +168,10 @@ class Flamemaster(CMakePackage):
                 ]
             )
             if self.spec.satisfies("%icc"):
-                cxxflags = "-Ofast -ffast-math -DNDEBUG -march=native\
-                        -mtune=native -funroll-all-loops\
-                        -qopt-multi-version-aggressive -ipo -parallel"
-                cflags = "-Ofast -ffast-math -DNDEBUG -march=native\
-                        -mtune=native -funroll-all-loops -ipo -parallel"
+                cxxflags = "-Ofast -ffast-math -DNDEBUG -march=native -mtune=native "
+                cxxflags += "-funroll-all-loops -qopt-multi-version-aggressive -ipo -parallel"
+                cflags = "-Ofast -ffast-math -DNDEBUG -march=native -mtune=native "
+                cflags += "-funroll-all-loops -ipo -parallel"
                 fcflags = "-Ofast -march=native -mtune=native -ipo -parallel"
                 args.extend(
                     [
