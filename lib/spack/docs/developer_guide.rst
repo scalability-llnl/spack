@@ -326,6 +326,7 @@ make sure to update Spack's `Bash tab completion script
 -------------
 Writing Hooks
 -------------
+.. TODO: Update this
 
 A hook is a callback that makes it easy to design functions that run
 for different events. We do this by way of defining hook types, and then
