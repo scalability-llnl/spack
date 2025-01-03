@@ -32,7 +32,7 @@ class Cfitsio(AutotoolsPackage):
 
     variant("bzip2", default=True, description="Enable bzip2 support")
     variant("fortran", default=True, description="Build with fortran support")
-    variant("shared", default=True, description="Build shared libraries", when="@:4.4")
+    variant("shared", default=True, description="Build shared libraries", when="@:3.46")
 
     depends_on("c", type="build")
     depends_on("fortran", type="build", when="+fortran")
