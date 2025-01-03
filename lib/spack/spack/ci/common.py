@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import codecs
@@ -217,7 +216,7 @@ class CDashHandler:
             "--cdash-upload-url",
             win_quote(self.upload_url),
             "--cdash-build",
-            win_quote(self.build_name),
+            win_quote(self.build_name()),
             "--cdash-site",
             win_quote(self.site),
             "--cdash-buildstamp",
@@ -351,7 +350,7 @@ hash={spec.dag_hash()} arch={spec.architecture} ({self.build_group})"
         configuration = CDashConfiguration(
             upload_url=self.upload_url,
             packages=[spec.name],
-            build=self.build_name,
+            build=self.build_name(),
             site=self.site,
             buildstamp=self.build_stamp,
             track=None,

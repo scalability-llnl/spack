@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os.path
@@ -185,6 +184,7 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         "cuda_lambda": [False, "Activate experimental lambda features"],
         "cuda_ldg_intrinsic": [False, "Use CUDA LDG intrinsics"],
         "cuda_relocatable_device_code": [False, "Enable RDC for CUDA"],
+        "hip_relocatable_device_code": [False, "Enable RDC for HIP"],
         "cuda_uvm": [False, "Enable unified virtual memory (UVM) for CUDA"],
         "debug": [False, "Activate extra debug features - may increase compiletimes"],
         "debug_bounds_check": [False, "Use bounds checking - will increase runtime"],

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -410,6 +409,10 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
     with when("@14.4: +kokkos"):
         depends_on("kokkos+wrapper", when="+wrapper")
         depends_on("kokkos~wrapper", when="~wrapper")
+        depends_on("kokkos+cuda_relocatable_device_code~shared", when="+cuda_rdc")
+        depends_on("kokkos+hip_relocatable_device_code~shared", when="+rocm_rdc")
+        depends_on("kokkos-kernels~shared", when="+cuda_rdc")
+        depends_on("kokkos-kernels~shared", when="+rocm_rdc")
         depends_on("kokkos~complex_align")
         depends_on("kokkos@4.5.00", when="@master:")
         depends_on("kokkos@4.3.01", when="@16")

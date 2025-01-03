@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -364,7 +363,7 @@ class Python(Package):
                 variants += "~tix"
 
         # Some modules are platform-dependent
-        if sys.platform != "win32":
+        if sys.platform != "win32" and Version(version_str) < Version("3.13"):
             try:
                 python("-c", "import crypt", error=os.devnull)
                 variants += "+crypt"
