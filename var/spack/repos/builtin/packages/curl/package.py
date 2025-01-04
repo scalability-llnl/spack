@@ -30,9 +30,14 @@ class Curl(NMakePackage, AutotoolsPackage):
 
     license("curl")
 
-    version("8.10.1", sha256="3763cd97aae41dcf41950d23e87ae23b2edb2ce3a5b0cf678af058c391b6ae31")
+    version("8.11.1", sha256="e9773ad1dfa21aedbfe8e1ef24c9478fa780b1b3d4f763c98dd04629b5e43485")
 
     # Deprecated versions due to CVEs
+    version(
+        "8.10.1",
+        sha256="3763cd97aae41dcf41950d23e87ae23b2edb2ce3a5b0cf678af058c391b6ae31",
+        deprecated=True,
+    )
     version(
         "8.8.0",
         sha256="40d3792d38cfa244d8f692974a567e9a5f3387c547579f1124e95ea2a1020d0d",
