@@ -381,7 +381,7 @@ def traverse_topo_edges_generator(edges, visitor, key=id, root=True, all_edges=F
 
     Arguments:
         edges (list): List of EdgeAndDepth instances
-        visitor: visitor instance that defines the sub-DAG to traverse
+        visitor: visitor that produces unique edges defining the (sub)DAG of interest.
         key: function that takes a spec and outputs a key for uniqueness test.
         root (bool): Yield the root nodes themselves
         all_edges (bool): When ``False`` only one in-edge per node is returned, when

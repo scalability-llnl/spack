@@ -48,8 +48,7 @@ class CbtfKrell(CMakePackage):
     variant(
         "crayfe",
         default=False,
-        description="build only the FE tool using the runtime_dir \
-                         to point to target build.",
+        description="build only the FE tool using the runtime_dir to point to target build.",
     )
 
     # Dependencies for cbtf-krell

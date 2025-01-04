@@ -22,6 +22,17 @@ class RustBootstrap(Package):
     # should update these binary releases as bootstrapping requirements are
     # modified by new releases of Rust.
     rust_releases = {
+        "1.82.0": {
+            "darwin": {
+                "x86_64": "b1a289cabc523f259f65116a41374ac159d72fbbf6c373bd5e545c8e835ceb6a",
+                "aarch64": "49b6d36b308addcfd21ae56c94957688338ba7b8985bff57fc626c8e1b32f62c",
+            },
+            "linux": {
+                "x86_64": "0265c08ae997c4de965048a244605fb1f24a600bbe35047b811c638b8fcf676b",
+                "aarch64": "d7db04fce65b5f73282941f3f1df5893be9810af17eb7c65b2e614461fe31a48",
+                "powerpc64le": "44f3a1e70be33f91927ae8d89a11843a79b8b6124d62a9ddd9030a5275ebc923",
+            },
+        },
         "1.81.0": {
             "darwin": {
                 "x86_64": "f74d8ad24cc3cbfb825da98a08d98319565e4d18ec2c3e9503bf0a33c81ba767",

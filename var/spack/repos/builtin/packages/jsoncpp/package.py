@@ -19,6 +19,7 @@ class Jsoncpp(CMakePackage, MesonPackage):
 
     license("Public-Domain")
 
+    version("1.9.6", sha256="f93b6dd7ce796b13d02c108bc9f79812245a82e577581c4c9aabe57075c90ea2")
     version("1.9.5", sha256="f409856e5920c18d0c2fb85276e24ee607d2a09b5e7d5f0a371368903c275da2")
     version("1.9.4", sha256="e34a628a8142643b976c7233ef381457efad79468c67cb1ae0b83a33d7493999")
     version("1.9.3", sha256="8593c1d69e703563d94d8c12244e2e18893eeb9a8a9f8aa3d09a327aa45c8f7d")
@@ -56,6 +57,7 @@ class Jsoncpp(CMakePackage, MesonPackage):
 
     with when("build_system=meson"):
         depends_on("meson@0.49.0:", type="build")
+        depends_on("meson@0.56.0:", type="build", when="@1.9.6:")
 
     depends_on("python", type="test")
 

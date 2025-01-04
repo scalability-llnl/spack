@@ -76,6 +76,10 @@ class Icu4c(AutotoolsPackage, MSBuildPackage):
             flags.append(getattr(self.compiler, f"cxx{self.spec.variants['cxxstd'].value}_flag"))
         return (None, flags, None)
 
+    @property
+    def libs(self):
+        return find_libraries("libicu*", root=self.prefix, recursive=True)
+
 
 class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
 

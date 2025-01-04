@@ -42,8 +42,7 @@ class Graphblast(MakefilePackage, CudaPackage):
     conflicts(
         "cuda_arch=none",
         when="+cuda",
-        msg='Must specify CUDA compute capabilities of your GPU. \
-See "spack info graphblast"',
+        msg='Must specify CUDA compute capabilities of your GPU. See "spack info graphblast"',
     )
 
     def install(self, spec, prefix):

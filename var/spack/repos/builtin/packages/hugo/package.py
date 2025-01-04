@@ -19,6 +19,7 @@ class Hugo(GoPackage):
 
     license("Apache-2.0")
 
+    version("0.140.2", sha256="45594ddf39d62d227cfd54c19fb9a09ab851cf537caee6138de0ddd4f1f6f117")
     version("0.135.0", sha256="a75c4c684d2125255f214d11b9834a5ec6eb64353f4de2c06952d2b3b7430f0e")
     version("0.127.0", sha256="549c7ebdf2ee6b3107ea10a9fbd9932a91bb3f30f7e8839245f6d8e318aca88c")
     version("0.126.3", sha256="2a1d65b09884e3c57a8705db99487404856c947dd847cf7bb845e0e1825b33ec")

@@ -17,6 +17,7 @@ class Kubectl(GoPackage):
 
     license("Apache-2.0")
 
+    version("1.32.0", sha256="3793859c53f09ebc92e013ea858b8916cc19d7fe288ec95882dada4e5a075d08")
     version("1.31.1", sha256="83094915698a9c24f93d1ffda3f17804a4024d3b65eabf681e77a62b35137208")
     version("1.31.0", sha256="6679eb90815cc4c3bef6c1b93f7a8451bf3f40d003f45ab57fdc9f8c4e8d4b4f")
     version("1.27.1", sha256="3a3f7c6b8cf1d9f03aa67ba2f04669772b1205b89826859f1636062d5f8bec3f")
@@ -24,5 +25,6 @@ class Kubectl(GoPackage):
 
     depends_on("bash", type="build")
     depends_on("go@1.22:", type="build", when="@1.30:")
+    depends_on("go@1.23:", type="build", when="@1.32:")
 
     build_directory = "cmd/kubectl"

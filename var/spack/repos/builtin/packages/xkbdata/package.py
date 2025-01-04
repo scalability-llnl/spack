@@ -15,3 +15,5 @@ class Xkbdata(AutotoolsPackage, XorgPackage):
     version("1.0.1", sha256="5b43ca5219cd4022a158a8d4bfa30308ea5e16c9b5270a64589ebfe7f875f430")
 
     depends_on("xkbcomp", type="build")
+
+    provides("xkbdata-api")

@@ -58,6 +58,9 @@ class Ectrans(CMakePackage):
     depends_on("fiat~mpi", when="~mpi")
     depends_on("fiat+mpi", when="+mpi")
 
+    # https://github.com/ecmwf-ifs/ectrans/issues/194
+    conflicts("%oneapi@2025:", when="@1.3.1:1.5.1")
+
     def cmake_args(self):
         args = [
             self.define_from_variant("ENABLE_MPI", "mpi"),

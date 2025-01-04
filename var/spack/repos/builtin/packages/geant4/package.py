@@ -208,8 +208,6 @@ class Geant4(CMakePackage):
     # As released, 10.0.4 has inconsistently capitalised filenames
     # in the cmake files; this patch also enables cxxstd 14
     patch("geant4-10.0.4.patch", when="@10.0.4")
-    # Fix cmake errors with external CLHEP
-    patch("geant4-10.3-clhep-cmake.patch", when="@10.3")
     # Build failure on clang 15, ubuntu 22: see Geant4 problem report #2444
     # fixed by ascii-V10-07-03
     patch("geant4-10.6.patch", when="@10.0:10.6")
@@ -226,7 +224,8 @@ class Geant4(CMakePackage):
     # (different, simpler approach than upstream Geant4 changes)
     patch("geant4-10.7-cxx20-g3tog4.patch", when="@:10.7 cxxstd=20")
     # Fix member field typo in g4tools wroot: https://bugzilla-geant4.kek.jp/show_bug.cgi?id=2640
-    patch("columns.patch", when="@10.4:11.2.2")
+    patch("columns-10.patch", when="@10.4:10")
+    patch("columns-11.patch", when="@11:11.2.2")
     # Fix navigation errors with twisted tubes: https://bugzilla-geant4.kek.jp/show_bug.cgi?id=2619
     patch("twisted-tubes.patch", when="@11.2.0:11.2.2")
 

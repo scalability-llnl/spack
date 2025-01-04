@@ -197,14 +197,13 @@ def dummy_prefix(tmpdir):
     return str(p)
 
 
-args = ["file"]
 if sys.platform == "darwin":
-    args.extend(["/usr/bin/clang++", "install_name_tool"])
+    required_executables = ["/usr/bin/clang++", "install_name_tool"]
 else:
-    args.extend(["/usr/bin/g++", "patchelf"])
+    required_executables = ["/usr/bin/g++", "patchelf"]
 
 
-@pytest.mark.requires_executables(*args)
+@pytest.mark.requires_executables(*required_executables)
 @pytest.mark.maybeslow
 @pytest.mark.usefixtures(
     "default_config", "cache_directory", "install_dir_default_layout", "temporary_mirror"
@@ -251,7 +250,7 @@ def test_default_rpaths_create_install_default_layout(temporary_mirror_dir):
     buildcache_cmd("list", "-l", "-v")
 
 
-@pytest.mark.requires_executables(*args)
+@pytest.mark.requires_executables(*required_executables)
 @pytest.mark.maybeslow
 @pytest.mark.nomockstage
 @pytest.mark.usefixtures(
@@ -274,7 +273,7 @@ def test_default_rpaths_install_nondefault_layout(temporary_mirror_dir):
     buildcache_cmd("install", "-uf", cspec.name)
 
 
-@pytest.mark.requires_executables(*args)
+@pytest.mark.requires_executables(*required_executables)
 @pytest.mark.maybeslow
 @pytest.mark.nomockstage
 @pytest.mark.usefixtures(
@@ -303,7 +302,7 @@ def test_relative_rpaths_install_default_layout(temporary_mirror_dir):
     buildcache_cmd("install", "-uf", cspec.name)
 
 
-@pytest.mark.requires_executables(*args)
+@pytest.mark.requires_executables(*required_executables)
 @pytest.mark.maybeslow
 @pytest.mark.nomockstage
 @pytest.mark.usefixtures(
@@ -354,7 +353,7 @@ def test_push_and_fetch_keys(mock_gnupghome, tmp_path):
         assert new_keys[0] == fpr
 
 
-@pytest.mark.requires_executables(*args)
+@pytest.mark.requires_executables(*required_executables)
 @pytest.mark.maybeslow
 @pytest.mark.nomockstage
 @pytest.mark.usefixtures(

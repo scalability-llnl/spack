@@ -31,9 +31,9 @@ class Rocsolver(CMakePackage):
     variant(
         "optimal",
         default=True,
-        description="This option improves performance at the cost of increased binary \
-            size and compile time by adding specialized kernels \
-            for small matrix sizes",
+        description="This option improves performance at the cost of increased binary "
+        "size and compile time by adding specialized kernels "
+        "for small matrix sizes",
     )
     variant("asan", default=False, description="Build with address-sanitizer enabled or disabled")
 
