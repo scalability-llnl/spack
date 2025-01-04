@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import itertools
@@ -1174,8 +1173,8 @@ def test_parse_specfile_dependency(default_mock_concretization, tmpdir):
 
         # Should also be accepted: "spack spec ../<cur-dir>/libelf.yaml"
         spec = SpecParser(
-            f"libdwarf^..{os.path.sep}{specfile.dirpath().basename}\
-{os.path.sep}{specfile.basename}"
+            f"libdwarf^..{os.path.sep}{specfile.dirpath().basename}"
+            f"{os.path.sep}{specfile.basename}"
         ).next_spec()
         assert spec["libelf"] == s["libelf"]
 

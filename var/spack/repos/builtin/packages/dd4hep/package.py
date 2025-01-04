@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -191,7 +190,7 @@ class Dd4hep(CMakePackage):
             "DDEve",
             "UtilityApps",
         ]
-        enabled_packages = [p for p in packages if self.spec.variants[package.lower()].value]
+        enabled_packages = [p for p in packages if self.spec.variants[p.lower()].value]
         args.append(self.define("DD4HEP_BUILD_PACKAGES", " ".join(enabled_packages)))
         return args
 

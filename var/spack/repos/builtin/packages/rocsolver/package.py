@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -32,9 +31,9 @@ class Rocsolver(CMakePackage):
     variant(
         "optimal",
         default=True,
-        description="This option improves performance at the cost of increased binary \
-            size and compile time by adding specialized kernels \
-            for small matrix sizes",
+        description="This option improves performance at the cost of increased binary "
+        "size and compile time by adding specialized kernels "
+        "for small matrix sizes",
     )
     variant("asan", default=False, description="Build with address-sanitizer enabled or disabled")
 

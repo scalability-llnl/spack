@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -139,6 +138,11 @@ class Gaudi(CMakePackage):
     # The Intel VTune dependency is taken aside because it requires a license
     depends_on("intel-parallel-studio -mpi +vtune", when="+vtune")
 
+    def patch(self):
+        # ensure an empty pytest.ini is present to prevent finding one
+        # accidentally in a higher directory than the stage directory
+        touch("pytest.ini")
+
     def cmake_args(self):
         args = [
             # Note: gaudi only builds examples when testing enabled
@@ -169,8 +173,12 @@ class Gaudi(CMakePackage):
         # environment as in Gaudi.xenv
         env.prepend_path("PATH", self.prefix.scripts)
         env.prepend_path("PYTHONPATH", self.prefix.python)
-        for d in self.libs.directories:
-            env.prepend_path("LD_LIBRARY_PATH", d)
+
+        # Note: ROOT dependency automatically sets up ROOT environment vars
+
+        # ...but Gaudi additionally requires a path variable about itself
+        for lib_path in [self.prefix.lib, self.prefix.lib64]:
+            env.prepend_path("LD_LIBRARY_PATH", lib_path)
 
     def url_for_version(self, version):
         major = str(version[0])
