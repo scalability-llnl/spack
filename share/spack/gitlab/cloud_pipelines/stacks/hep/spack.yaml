@@ -31,6 +31,7 @@ spack:
   specs:
   # CPU
   - acts +analysis +dd4hep +edm4hep +examples +fatras +geant4 +hepmc3 +podio +pythia8 +python +tgeo cxxstd=20
+  - celeritas +geant4 +hepmc3 +openmp +root +shared +vecgeom cxxstd=20
   - dd4hep +ddalign +ddcad +ddcond +dddetectors +dddigi +ddeve +ddg4 +ddrec +edm4hep +hepmc3 +lcio +utilityapps +xercesc
   - delphes +pythia8
   - edm4hep
