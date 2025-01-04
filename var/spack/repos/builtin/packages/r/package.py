@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -69,8 +68,9 @@ class R(AutotoolsPackage):
     version("3.1.3", sha256="07e98323935baa38079204bfb9414a029704bb9c0ca5ab317020ae521a377312")
     version("3.1.2", sha256="bcd150afcae0e02f6efb5f35a6ab72432be82e849ec52ce0bb89d8c342a8fa7a")
 
-    depends_on("c", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
 
     variant("X", default=False, description="Enable X11 support (TCLTK, PNG, JPEG, TIFF, CAIRO)")
     variant("memory_profiling", default=False, description="Enable memory profiling")
@@ -232,6 +232,20 @@ class R(AutotoolsPackage):
 
     @run_after("install")
     def copy_makeconf(self):
+        # Ensure full library flags are included in Makeconf
+        for _lib, _pkg in [
+            ("lzma", "xz"),
+            ("bz2", "bzip2"),
+            ("z", "zlib-api"),
+            ("tirpc", "libtirpc"),
+            ("icuuc", "icu4c"),
+        ]:
+            filter_file(
+                f"-l{_lib}",
+                f"-L{self.spec[_pkg].libs.directories[0]} -l{_lib}",
+                join_path(self.etcdir, "Makeconf"),
+            )
+
         # Make a copy of Makeconf because it will be needed to properly build R
         # dependencies in Spack.
         src_makeconf = join_path(self.etcdir, "Makeconf")

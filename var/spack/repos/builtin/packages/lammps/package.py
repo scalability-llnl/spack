@@ -1,11 +1,11 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import datetime as dt
 import os
 
 from spack.build_environment import optimization_flags
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -31,9 +31,14 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
     # * patch releases older than a stable release should be marked deprecated=True
     version("develop", branch="develop")
     version(
+        "20240829.1",
+        sha256="3aea41869aa2fb8120fc4814cab645686f969e2eb7c66aa5587e500597d482dc",
+        preferred=True,
+    )
+    version(
         "20240829",
         sha256="6112e0cc352c3140a4874c7f74db3c0c8e30134024164509ecf3772b305fde2e",
-        preferred=True,
+        deprecated=True,
     )
     version(
         "20240627",
@@ -403,6 +408,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         depends_on("fortran", type="build", when=f"+{fc_pkg}")
 
     stable_versions = {
+        "20240829.1",
         "20240829",
         "20230802.4",
         "20230802.3",
@@ -469,6 +475,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         "drude": {"when": "@20210702:"},
         "eff": {"when": "@20210702:"},
         "electrode": {"when": "@20220504:"},
+        "extra-command": {"when": "@20240829:"},
         "extra-compute": {"when": "@20210728:"},
         "extra-dump": {"when": "@20210728:"},
         "extra-fix": {"when": "@20210728:"},
@@ -636,6 +643,13 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         multi=False,
     )
     variant(
+        "heffte",
+        default=False,
+        when="+kspace @20240207:",
+        description="Use heffte as distubuted FFT engine",
+    )
+
+    variant(
         "fft_kokkos",
         default="fftw3",
         when="@20240417: +kspace+kokkos",
@@ -653,15 +667,18 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
     )
     variant("tools", default=False, description="Build LAMMPS tools (msi2lmp, binary2txt, chain)")
 
-    depends_on("cmake@3.16:", when="@20231121:")
+    depends_on("cmake@3.16:", when="@20231121:", type="build")
     depends_on("mpi", when="+mpi")
     depends_on("mpi", when="+mpiio")
     depends_on("fftw-api@3", when="+kspace fft=fftw3")
+    depends_on("heffte", when="+heffte")
+    depends_on("heffte+fftw", when="+heffte fft=fftw3")
+    depends_on("heffte+mkl", when="+heffte fft=mkl")
     depends_on("mkl", when="+kspace fft=mkl")
     depends_on("hipfft", when="+kokkos+kspace+rocm fft_kokkos=hipfft")
     depends_on("fftw-api@3", when="+kokkos+kspace fft_kokkos=fftw3")
     depends_on("mkl", when="+kokkos+kspace fft_kokkos=mkl")
-    depends_on("voropp+pic", when="+voronoi")
+    depends_on("voropp", when="+voronoi")
     depends_on("netcdf-c+mpi", when="+user-netcdf")
     depends_on("netcdf-c+mpi", when="+netcdf")
     depends_on("blas", when="+user-atc")
@@ -884,11 +901,16 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
                     "-O3 -fno-math-errno -fno-unroll-loops "
                     "-fveclib=AMDLIBM -muse-unaligned-vector-move"
                 )
-                if spec.satisfies("%aocc@4.1:"):
+                if spec.satisfies("%aocc@4.1:4.2"):
                     cxx_flags += (
                         " -mllvm -force-gather-overhead-cost=50"
                         " -mllvm -enable-masked-gather-sequence=false"
                     )
+                elif spec.satisfies("%aocc@5.0:"):
+                    cxx_flags += " -mllvm -enable-aggressive-gather"
+                    if spec.target >= "zen5":
+                        cxx_flags += " -fenable-restrict-based-lv"
+
                 # add -fopenmp-simd if OpenMP not already turned on
                 if spec.satisfies("~openmp"):
                     cxx_flags += " -fopenmp-simd"
@@ -916,6 +938,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
 
         if spec.satisfies("+kspace"):
             args.append(self.define_from_variant("FFT", "fft"))
+            args.append(self.define_from_variant("FFT_USE_HEFFTE", "heffte"))
             if spec.satisfies("fft=fftw3 ^armpl-gcc") or spec.satisfies("fft=fftw3 ^acfl"):
                 args.append(self.define("FFTW3_LIBRARY", self.spec["fftw-api"].libs[0]))
                 args.append(
@@ -981,5 +1004,4 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
                 os.environ["LAMMPS_VERSION_FILE"] = join_path(
                     self.stage.source_path, "src", "version.h"
                 )
-                args = std_pip_args + ["--prefix=" + self.prefix, "."]
-                pip(*args)
+                pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")

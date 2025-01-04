@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ class PyPetsc4py(PythonPackage):
     license("BSD-2-Clause")
 
     version("main", branch="main")
+    version("3.22.2", sha256="6c56f62ae8819069062436d362a2cc7e44f700026eed72a903c3803afbe59fc3")
+    version("3.22.1", sha256="a7fd321458b72356e46c4bc5bd93d173c9c2f91018cf21f614a631fe2aa6466a")
     version("3.22.0", sha256="b35fc833d41c7969be8a530494fcc81741d77e0dc33fba2f4050cdbd0ad881ae")
     version("3.21.6", sha256="d7a6d41e1463b04b9711b53b347d15f590f9354fae37aae14ad69100286129aa")
     version("3.21.5", sha256="70e6fa795e9abd8014faec0203cd0cc3efd79f4647c97cafc33776421c9ab1e8")
@@ -70,9 +71,21 @@ class PyPetsc4py(PythonPackage):
     version("3.15.0", sha256="87dcc5ef63a1f0e1a963619f7527e623f52341b2806056b0ef5fdfb0b8b287ad")
     version("3.14.1", sha256="f5f8daf3a4cd1dfc945876b0d83a05b25f3c54e08046312eaa3e3036b24139c0")
     version("3.14.0", sha256="33ac9fb55a541e4c1deabd6e2144da96d5ae70e70c830a55de558000cf3f0ec5")
-    version("3.13.0", sha256="0e11679353c0c2938336a3c8d1a439b853e20d3bccd7d614ad1dbea3ec5cb31f")
-    version("3.12.0", sha256="4c94a1dbbf244b249436b266ac5fa4e67080d205420805deab5ec162b979df8d")
-    version("3.11.0", sha256="ec114b303aadaee032c248a02021e940e43c6437647af0322d95354e6f2c06ad")
+    version(
+        "3.13.0",
+        sha256="0e11679353c0c2938336a3c8d1a439b853e20d3bccd7d614ad1dbea3ec5cb31f",
+        deprecated=True,
+    )
+    version(
+        "3.12.0",
+        sha256="4c94a1dbbf244b249436b266ac5fa4e67080d205420805deab5ec162b979df8d",
+        deprecated=True,
+    )
+    version(
+        "3.11.0",
+        sha256="ec114b303aadaee032c248a02021e940e43c6437647af0322d95354e6f2c06ad",
+        deprecated=True,
+    )
 
     depends_on("c", type="build")  # generated
     depends_on("fortran", type="build")  # generated

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -94,7 +93,7 @@ class MakefileBuilder(MakefileBuilder):
 
     def build(self, pkg, spec, prefix):
         par = True
-        if spec.compiler.name == "nvhpc":
+        if spec.satisfies("%nvhpc"):
             # relocation error when building shared and dynamic libs in
             # parallel
             par = False

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -9,8 +8,7 @@ import sys
 
 import llnl.util.tty as tty
 
-import spack.build_environment
-import spack.util.executable
+from spack.build_systems.cmake import get_cmake_prefix_path
 from spack.package import *
 
 
@@ -258,7 +256,7 @@ class LlvmDoe(CMakePackage, CudaPackage):
             match = version_regex.search(output)
             if match:
                 return match.group(match.lastindex)
-        except spack.util.executable.ProcessError:
+        except ProcessError:
             pass
         except Exception as e:
             tty.debug(e)
@@ -573,7 +571,7 @@ class LlvmDoe(CMakePackage, CudaPackage):
         # unnecessary if we build openmp via LLVM_ENABLE_RUNTIMES
         if self.spec.satisfies("+cuda ~omp_as_runtime"):
             ompdir = "build-bootstrapped-omp"
-            prefix_paths = spack.build_environment.get_cmake_prefix_path(self)
+            prefix_paths = get_cmake_prefix_path(self)
             prefix_paths.append(str(spec.prefix))
             # rebuild libomptarget to get bytecode runtime library files
             with working_dir(ompdir, create=True):

@@ -1,10 +1,10 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import tempfile
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 rocm_dependencies = [
@@ -98,11 +98,13 @@ class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
         depends_on("py-build", when="@0.4.14:")
 
     with default_args(type=("build", "run")):
+        depends_on("python@3.10:", when="@0.4.31:")
+        depends_on("python@3.9:", when="@0.4.14:")
+        depends_on("python@3.8:", when="@0.4.6:")
         # Based on PyPI wheels
-        depends_on("python@3.10:3.12", when="@0.4.31:")
-        depends_on("python@3.9:3.12", when="@0.4.17:0.4.30")
-        depends_on("python@3.9:3.11", when="@0.4.14:0.4.16")
-        depends_on("python@3.8:3.11", when="@0.4.6:0.4.13")
+        depends_on("python@:3.13")
+        depends_on("python@:3.12", when="@:0.4.33")
+        depends_on("python@:3.11", when="@:0.4.16")
 
         # jaxlib/setup.py
         depends_on("py-scipy@1.10:", when="@0.4.31:")
@@ -127,6 +129,10 @@ class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
         sha256="4dfb9f32d4eeb0a0fb3a6f4124c4170e3fe49511f1b768cd634c78d489962275",
         when="@:0.4.25",
     )
+
+    # Might be able to be applied to earlier versions
+    # backports https://github.com/abseil/abseil-cpp/pull/1732
+    patch("jaxxlatsl.patch", when="@0.4.28:0.4.32 target=aarch64:")
 
     conflicts(
         "cuda_arch=none",
@@ -190,7 +196,6 @@ build --local_cpu_resources={make_jobs}
 
         python(*args)
         with working_dir(self.wrapped_package_object.tmp_path):
-            args = std_pip_args + ["--prefix=" + self.prefix, "."]
-            pip(*args)
+            pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")
         remove_linked_tree(self.wrapped_package_object.tmp_path)
         remove_linked_tree(self.wrapped_package_object.buildtmp)

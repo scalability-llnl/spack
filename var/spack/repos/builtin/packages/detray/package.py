@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,14 @@ class Detray(CMakePackage):
 
     license("MPL-2.0", checked_by="stephenswat")
 
+    version("0.86.0", sha256="98350c94e8a2395b8712b7102fd449536857e8158b38a96cc913c79b70301170")
+    version("0.85.0", sha256="a0121a27fd08243d4a6aab060e8ab379ad5129e96775b45f6a683835767fa8e7")
+    version("0.84.0", sha256="b1d133a97dc90b1513f8c1ef235ceaa542d80243028a41f59a79300c7d71eb25")
+    version("0.83.0", sha256="c870a0459d1f9284750f6afbb97c759392e636b56d107f32b9bc891df717a0fe")
+    version("0.82.0", sha256="48794d37496dd5013b755d5d401da7b9d1023fadff86b2a454e5c21e2aaf8c60")
+    version("0.81.0", sha256="821313a7e3ea90fcf5c92153d28bba1f85844e03d7c6b6b98d0b3407adb86357")
+    version("0.80.0", sha256="a12f3e333778ddd20a568b5c8df5b2375f9a4d74caf921822c1864b07b3f8ab7")
+    version("0.79.0", sha256="3b9f18cb003e59795a0e4b1414069ac8558b975714626449293a71bc4398a380")
     version("0.78.0", sha256="ca3a348f4e12ed690c3106197e107b9c393b6902224b2543b00382050864bcf3")
     version("0.77.0", sha256="c2c72f65a7ff2426335b850c0b3cfbbbf666208612b2458c97a534ecf8029cb8")
     version("0.76.1", sha256="54d9abee395e9faf0f56b5d9c137a9990f23712fbcc88fd90af20643bcae635e")
@@ -62,6 +69,7 @@ class Detray(CMakePackage):
 
     depends_on("cmake@3.11:", type="build")
     depends_on("vecmem@1.6.0:")
+    depends_on("vecmem@1.8.0:", when="@0.76:")
     depends_on("covfie@0.10.0:")
     depends_on("nlohmann-json@3.11.0:", when="+json")
     depends_on("dfelibs@20211029:")
@@ -92,6 +100,9 @@ class Detray(CMakePackage):
             self.define_from_variant("DETRAY_SMATRIX_PLUGIN", "smatrix"),
             self.define_from_variant("DETRAY_IO_CSV", "csv"),
             self.define_from_variant("DETRAY_IO_JSON", "json"),
+            self.define_from_variant("DETRAY_VC_PLUGIN", "vc"),
+            self.define_from_variant("DETRAY_VC_AOS_PLUGIN", "vc"),
+            self.define_from_variant("DETRAY_VC_SOA_PLUGIN", "vc"),
             self.define("DETRAY_SVG_DISPLAY", True),
             self.define("DETRAY_SETUP_ACTSVG", True),
             self.define("DETRAY_BUILD_TESTING", False),

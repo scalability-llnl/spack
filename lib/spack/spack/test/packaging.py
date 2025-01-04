@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,7 +23,7 @@ import spack.cmd.buildcache as buildcache
 import spack.config
 import spack.error
 import spack.fetch_strategy
-import spack.mirror
+import spack.mirrors.utils
 import spack.package_base
 import spack.stage
 import spack.util.gpg
@@ -36,8 +35,6 @@ from spack.relocate import (
     macho_find_paths,
     macho_make_paths_normal,
     macho_make_paths_relative,
-    needs_binary_relocation,
-    needs_text_relocation,
     relocate_links,
     relocate_text,
 )
@@ -64,7 +61,7 @@ def test_buildcache(mock_archive, tmp_path, monkeypatch, mutable_config):
 
     # Create the build cache and put it directly into the mirror
     mirror_path = str(tmp_path / "test-mirror")
-    spack.mirror.create(mirror_path, specs=[])
+    spack.mirrors.utils.create(mirror_path, specs=[])
 
     # register mirror with spack config
     mirrors = {"spack-mirror-test": url_util.path_to_file_url(mirror_path)}
@@ -193,16 +190,6 @@ def test_relocate_links(tmpdir):
         assert readlink("to_self_but_relative") == "relative"
 
 
-def test_needs_relocation():
-    assert needs_binary_relocation("application", "x-sharedlib")
-    assert needs_binary_relocation("application", "x-executable")
-    assert not needs_binary_relocation("application", "x-octet-stream")
-    assert not needs_binary_relocation("text", "x-")
-    assert needs_text_relocation("text", "x-")
-    assert not needs_text_relocation("symbolic link to", "x-")
-    assert needs_binary_relocation("application", "x-mach-binary")
-
-
 def test_replace_paths(tmpdir):
     with tmpdir.as_cwd():
         suffix = "dylib" if platform.system().lower() == "darwin" else "so"
@@ -256,7 +243,7 @@ def test_replace_paths(tmpdir):
         ]
 
         for old_libname in old_libnames:
-            with open(old_libname, "a"):
+            with open(old_libname, "a", encoding="utf-8"):
                 os.utime(old_libname, None)
 
         hash2prefix = dict()
@@ -299,7 +286,7 @@ def test_replace_paths(tmpdir):
         ]
 
         for new_libname in new_libnames:
-            with open(new_libname, "a"):
+            with open(new_libname, "a", encoding="utf-8"):
                 os.utime(new_libname, None)
 
         prefix2prefix = dict()

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,6 +10,9 @@ import llnl.util.tty as tty
 #: at what level we should write stack traces or short error messages
 #: this is module-scoped because it needs to be set very early
 debug = 0
+
+#: whether to show a backtrace when an error is printed, enabled with --backtrace.
+SHOW_BACKTRACE = False
 
 
 class SpackError(Exception):
@@ -189,3 +191,10 @@ class StopPhase(SpackError):
 
 def _make_stop_phase(msg, long_msg):
     return StopPhase(msg, long_msg)
+
+
+class MirrorError(SpackError):
+    """Superclass of all mirror-creation related errors."""
+
+    def __init__(self, msg, long_msg=None):
+        super().__init__(msg, long_msg)

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """This package contains modules with hooks for various stages in the
@@ -21,43 +20,41 @@ systems (e.g. modules, lmod, etc.) or to add other custom
 features.
 """
 import importlib
-
-from llnl.util.lang import ensure_last, list_modules
-
-import spack.paths
+import types
+from typing import List, Optional
 
 
 class _HookRunner:
-    #: Stores all hooks on first call, shared among
-    #: all HookRunner objects
-    _hooks = None
+    #: Order in which hooks are executed
+    HOOK_ORDER = [
+        "spack.hooks.module_file_generation",
+        "spack.hooks.licensing",
+        "spack.hooks.sbang",
+        "spack.hooks.windows_runtime_linkage",
+        "spack.hooks.drop_redundant_rpaths",
+        "spack.hooks.absolutify_elf_sonames",
+        "spack.hooks.permissions_setters",
+        "spack.hooks.resolve_shared_libraries",
+        # after all mutations to the install prefix, write metadata
+        "spack.hooks.write_install_manifest",
+        # after all metadata is written
+        "spack.hooks.autopush",
+    ]
+
+    #: Contains all hook modules after first call, shared among all HookRunner objects
+    _hooks: Optional[List[types.ModuleType]] = None
 
     def __init__(self, hook_name):
         self.hook_name = hook_name
 
-    @classmethod
-    def _populate_hooks(cls):
-        # Lazily populate the list of hooks
-        cls._hooks = []
-
-        relative_names = list(list_modules(spack.paths.hooks_path))
-
-        # Ensure that write_install_manifest comes last
-        ensure_last(relative_names, "absolutify_elf_sonames", "write_install_manifest")
-
-        for name in relative_names:
-            module_name = __name__ + "." + name
-            module_obj = importlib.import_module(module_name)
-            cls._hooks.append((module_name, module_obj))
-
     @property
-    def hooks(self):
+    def hooks(self) -> List[types.ModuleType]:
         if not self._hooks:
-            self._populate_hooks()
+            self._hooks = [importlib.import_module(module_name) for module_name in self.HOOK_ORDER]
         return self._hooks
 
     def __call__(self, *args, **kwargs):
-        for _, module in self.hooks:
+        for module in self.hooks:
             if hasattr(module, self.hook_name):
                 hook = getattr(module, self.hook_name)
                 if hasattr(hook, "__call__"):

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,9 @@ class Pika(CMakePackage, CudaPackage, ROCmPackage):
 
     license("BSL-1.0")
 
+    version("0.31.0", sha256="bdbd8e36afb367cc2c7172e5a819c756e4ee20e74dfdec4905f2e84bf097eb7c")
+    version("0.30.1", sha256="b0f3689a3edd30f8d674e19b5134fc5013813f843c45797c1015163e51989ac0")
+    version("0.30.0", sha256="1798bf7de2505bc707bf95716fda8de5630b2e2ae54a6c4ef59f9931394d31cc")
     version("0.29.0", sha256="2c61079f52f3e135a8d0845a993e6e4fb64031fbee9b5cef0ead57efb6175e3c")
     version("0.28.0", sha256="a64ebac04135c0c8d392ddcd8d683fe02e2c0782abfe130754244d58f27ae6cf")
     version("0.27.0", sha256="4a58dc4014edc2074399e4a6ecfa244537c89ce1319b3e14ff3dfe617fb9f9e8")
@@ -117,6 +119,8 @@ class Pika(CMakePackage, CudaPackage, ROCmPackage):
     conflicts("%clang@:8", when="@0.2:")
     conflicts("+stdexec", when="cxxstd=17")
     conflicts("cxxstd=23", when="^cmake@:3.20.2")
+    conflicts("cxxstd=20", when="+cuda ^cmake@:3.25.1")
+    conflicts("cxxstd=23", when="+cuda")
     # nvcc version <= 11 does not support C++20 and newer
     for cxxstd in filter(lambda x: x != "17", cxxstds):
         requires("%nvhpc", when=f"cxxstd={cxxstd} ^cuda@:11")

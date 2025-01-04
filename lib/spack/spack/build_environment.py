@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -44,6 +43,7 @@ import types
 from collections import defaultdict
 from enum import Flag, auto
 from itertools import chain
+from multiprocessing.connection import Connection
 from typing import Callable, Dict, List, Optional, Set, Tuple
 
 import archspec.cpu
@@ -54,9 +54,7 @@ from llnl.util.filesystem import join_path
 from llnl.util.lang import dedupe, stable_partition
 from llnl.util.symlink import symlink
 from llnl.util.tty.color import cescape, colorize
-from llnl.util.tty.log import MultiProcessFd
 
-import spack.build_systems._checks
 import spack.build_systems.cmake
 import spack.build_systems.meson
 import spack.build_systems.python
@@ -91,7 +89,7 @@ from spack.util.environment import (
 )
 from spack.util.executable import Executable
 from spack.util.log_parse import make_log_context, parse_log_events
-from spack.util.module_cmd import load_module, path_from_modules
+from spack.util.module_cmd import load_module
 
 #
 # This can be set by the user to globally disable parallel builds.
@@ -617,13 +615,11 @@ def set_package_py_globals(pkg, context: Context = Context.BUILD):
     """
     module = ModuleChangePropagator(pkg)
 
-    if context == Context.BUILD:
-        module.std_cmake_args = spack.build_systems.cmake.CMakeBuilder.std_args(pkg)
-        module.std_meson_args = spack.build_systems.meson.MesonBuilder.std_args(pkg)
-        module.std_pip_args = spack.build_systems.python.PythonPipBuilder.std_args(pkg)
-
     jobs = spack.config.determine_number_of_jobs(parallel=pkg.parallel)
     module.make_jobs = jobs
+    if context == Context.BUILD:
+        module.std_meson_args = spack.build_systems.meson.MesonBuilder.std_args(pkg)
+        module.std_pip_args = spack.build_systems.python.PythonPipBuilder.std_args(pkg)
 
     # TODO: make these build deps that can be installed if not found.
     module.make = MakeExecutable("make", jobs)
@@ -792,21 +788,6 @@ def get_rpath_deps(pkg: spack.package_base.PackageBase) -> List[spack.spec.Spec]
     return _get_rpath_deps_from_spec(pkg.spec, pkg.transitive_rpaths)
 
 
-def get_rpaths(pkg):
-    """Get a list of all the rpaths for a package."""
-    rpaths = [pkg.prefix.lib, pkg.prefix.lib64]
-    deps = get_rpath_deps(pkg)
-    rpaths.extend(d.prefix.lib for d in deps if os.path.isdir(d.prefix.lib))
-    rpaths.extend(d.prefix.lib64 for d in deps if os.path.isdir(d.prefix.lib64))
-    # Second module is our compiler mod name. We use that to get rpaths from
-    # module show output.
-    if pkg.compiler.modules and len(pkg.compiler.modules) > 1:
-        mod_rpath = path_from_modules([pkg.compiler.modules[1]])
-        if mod_rpath:
-            rpaths.append(mod_rpath)
-    return list(dedupe(filter_system_paths(rpaths)))
-
-
 def load_external_modules(pkg):
     """Traverse a package's spec DAG and load any external modules.
 
@@ -900,6 +881,9 @@ class EnvironmentVisitor:
         elif context == Context.RUN:
             self.root_depflag = dt.RUN | dt.LINK
 
+    def accept(self, item):
+        return True
+
     def neighbors(self, item):
         spec = item.edge.spec
         if spec.dag_hash() in self.root_hashes:
@@ -937,19 +921,21 @@ def effective_deptypes(
     a flag specifying in what way they do so. The list is ordered topologically
     from root to leaf, meaning that environment modifications should be applied
     in reverse so that dependents override dependencies, not the other way around."""
-    visitor = traverse.TopoVisitor(
-        EnvironmentVisitor(*specs, context=context),
-        key=lambda x: x.dag_hash(),
+    topo_sorted_edges = traverse.traverse_topo_edges_generator(
+        traverse.with_artificial_edges(specs),
+        visitor=traverse.CoverEdgesVisitor(
+            EnvironmentVisitor(*specs, context=context), key=traverse.by_dag_hash
+        ),
+        key=traverse.by_dag_hash,
         root=True,
         all_edges=True,
     )
-    traverse.traverse_depth_first_with_visitor(traverse.with_artificial_edges(specs), visitor)
 
     # Dictionary with "no mode" as default value, so it's easy to write modes[x] |= flag.
     use_modes = defaultdict(lambda: UseMode(0))
     nodes_with_type = []
 
-    for edge in visitor.edges:
+    for edge in topo_sorted_edges:
         parent, child, depflag = edge.parent, edge.spec, edge.depflag
 
         # Mark the starting point
@@ -1063,6 +1049,12 @@ class SetupContext:
                     # This includes runtime dependencies, also runtime deps of direct build deps.
                     set_package_py_globals(pkg, context=Context.RUN)
 
+        # Looping over the set of packages a second time
+        # ensures all globals are loaded into the module space prior to
+        # any package setup. This guarantees package setup methods have
+        # access to expected module level definitions such as "spack_cc"
+        for dspec, flag in chain(self.external, self.nonexternal):
+            pkg = dspec.package
             for spec in dspec.dependents():
                 # Note: some specs have dependents that are unreachable from the root, so avoid
                 # setting globals for those.
@@ -1071,6 +1063,15 @@ class SetupContext:
                 dependent_module = ModuleChangePropagator(spec.package)
                 pkg.setup_dependent_package(dependent_module, spec)
                 dependent_module.propagate_changes_to_mro()
+
+        if self.context == Context.BUILD:
+            pkg = self.specs[0].package
+            module = ModuleChangePropagator(pkg)
+            # std_cmake_args is not sufficiently static to be defined
+            # in set_package_py_globals and is deprecated so its handled
+            # here as a special case
+            module.std_cmake_args = spack.build_systems.cmake.CMakeBuilder.std_args(pkg)
+            module.propagate_changes_to_mro()
 
     def get_env_modifications(self) -> EnvironmentModifications:
         """Returns the environment variable modifications for the given input specs and context.
@@ -1141,40 +1142,14 @@ class SetupContext:
                 env.prepend_path("PATH", bin_dir)
 
 
-def get_cmake_prefix_path(pkg):
-    # Note that unlike modifications_from_dependencies, this does not include
-    # any edits to CMAKE_PREFIX_PATH defined in custom
-    # setup_dependent_build_environment implementations of dependency packages
-    build_deps = set(pkg.spec.dependencies(deptype=("build", "test")))
-    link_deps = set(pkg.spec.traverse(root=False, deptype=("link")))
-    build_link_deps = build_deps | link_deps
-    spack_built = []
-    externals = []
-    # modifications_from_dependencies updates CMAKE_PREFIX_PATH by first
-    # prepending all externals and then all non-externals
-    for dspec in pkg.spec.traverse(root=False, order="post"):
-        if dspec in build_link_deps:
-            if dspec.external:
-                externals.insert(0, dspec)
-            else:
-                spack_built.insert(0, dspec)
-
-    ordered_build_link_deps = spack_built + externals
-    cmake_prefix_path_entries = []
-    for spec in ordered_build_link_deps:
-        cmake_prefix_path_entries.extend(spec.package.cmake_prefix_paths)
-
-    return filter_system_paths(cmake_prefix_path_entries)
-
-
 def _setup_pkg_and_run(
     serialized_pkg: "spack.subprocess_context.PackageInstallContext",
     function: Callable,
     kwargs: Dict,
-    write_pipe: multiprocessing.connection.Connection,
-    input_multiprocess_fd: Optional[MultiProcessFd],
-    jsfd1: Optional[MultiProcessFd],
-    jsfd2: Optional[MultiProcessFd],
+    write_pipe: Connection,
+    input_pipe: Optional[Connection],
+    jsfd1: Optional[Connection],
+    jsfd2: Optional[Connection],
 ):
     """Main entry point in the child process for Spack builds.
 
@@ -1216,13 +1191,12 @@ def _setup_pkg_and_run(
     context: str = kwargs.get("context", "build")
 
     try:
-        # We are in the child process. Python sets sys.stdin to
-        # open(os.devnull) to prevent our process and its parent from
-        # simultaneously reading from the original stdin. But, we assume
-        # that the parent process is not going to read from it till we
-        # are done with the child, so we undo Python's precaution.
-        if input_multiprocess_fd is not None:
-            sys.stdin = os.fdopen(input_multiprocess_fd.fd)
+        # We are in the child process. Python sets sys.stdin to open(os.devnull) to prevent our
+        # process and its parent from simultaneously reading from the original stdin. But, we
+        # assume that the parent process is not going to read from it till we are done with the
+        # child, so we undo Python's precaution. closefd=False since Connection has ownership.
+        if input_pipe is not None:
+            sys.stdin = os.fdopen(input_pipe.fileno(), closefd=False)
 
         pkg = serialized_pkg.restore()
 
@@ -1245,7 +1219,7 @@ def _setup_pkg_and_run(
         # objects can't be sent to the parent.
         exc_type = type(e)
         tb = e.__traceback__
-        tb_string = traceback.format_exception(exc_type, e, tb)
+        tb_string = "".join(traceback.format_exception(exc_type, e, tb))
 
         # build up some context from the offending package so we can
         # show that, too.
@@ -1291,8 +1265,8 @@ def _setup_pkg_and_run(
 
     finally:
         write_pipe.close()
-        if input_multiprocess_fd is not None:
-            input_multiprocess_fd.close()
+        if input_pipe is not None:
+            input_pipe.close()
 
 
 def start_build_process(pkg, function, kwargs):
@@ -1319,23 +1293,9 @@ def start_build_process(pkg, function, kwargs):
     If something goes wrong, the child process catches the error and
     passes it to the parent wrapped in a ChildError.  The parent is
     expected to handle (or re-raise) the ChildError.
-
-    This uses `multiprocessing.Process` to create the child process. The
-    mechanism used to create the process differs on different operating
-    systems and for different versions of Python. In some cases "fork"
-    is used (i.e. the "fork" system call) and some cases it starts an
-    entirely new Python interpreter process (in the docs this is referred
-    to as the "spawn" start method). Breaking it down by OS:
-
-    - Linux always uses fork.
-    - Mac OS uses fork before Python 3.8 and "spawn" for 3.8 and after.
-    - Windows always uses the "spawn" start method.
-
-    For more information on `multiprocessing` child process creation
-    mechanisms, see https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods
     """
     read_pipe, write_pipe = multiprocessing.Pipe(duplex=False)
-    input_multiprocess_fd = None
+    input_fd = None
     jobserver_fd1 = None
     jobserver_fd2 = None
 
@@ -1344,14 +1304,13 @@ def start_build_process(pkg, function, kwargs):
     try:
         # Forward sys.stdin when appropriate, to allow toggling verbosity
         if sys.platform != "win32" and sys.stdin.isatty() and hasattr(sys.stdin, "fileno"):
-            input_fd = os.dup(sys.stdin.fileno())
-            input_multiprocess_fd = MultiProcessFd(input_fd)
+            input_fd = Connection(os.dup(sys.stdin.fileno()))
         mflags = os.environ.get("MAKEFLAGS", False)
         if mflags:
             m = re.search(r"--jobserver-[^=]*=(\d),(\d)", mflags)
             if m:
-                jobserver_fd1 = MultiProcessFd(int(m.group(1)))
-                jobserver_fd2 = MultiProcessFd(int(m.group(2)))
+                jobserver_fd1 = Connection(int(m.group(1)))
+                jobserver_fd2 = Connection(int(m.group(2)))
 
         p = multiprocessing.Process(
             target=_setup_pkg_and_run,
@@ -1360,7 +1319,7 @@ def start_build_process(pkg, function, kwargs):
                 function,
                 kwargs,
                 write_pipe,
-                input_multiprocess_fd,
+                input_fd,
                 jobserver_fd1,
                 jobserver_fd2,
             ),
@@ -1380,8 +1339,8 @@ def start_build_process(pkg, function, kwargs):
 
     finally:
         # Close the input stream in the parent process
-        if input_multiprocess_fd is not None:
-            input_multiprocess_fd.close()
+        if input_fd is not None:
+            input_fd.close()
 
     def exitcode_msg(p):
         typ = "exit" if p.exitcode >= 0 else "signal"
@@ -1419,7 +1378,7 @@ def start_build_process(pkg, function, kwargs):
     return child_result
 
 
-CONTEXT_BASES = (spack.package_base.PackageBase, spack.build_systems._checks.BaseBuilder)
+CONTEXT_BASES = (spack.package_base.PackageBase, spack.builder.Builder)
 
 
 def get_package_context(traceback, context=3):
@@ -1468,27 +1427,20 @@ def get_package_context(traceback, context=3):
     # We found obj, the Package implementation we care about.
     # Point out the location in the install method where we failed.
     filename = inspect.getfile(frame.f_code)
-    lineno = frame.f_lineno
-    if os.path.basename(filename) == "package.py":
-        # subtract 1 because we inject a magic import at the top of package files.
-        # TODO: get rid of the magic import.
-        lineno -= 1
-
-    lines = ["{0}:{1:d}, in {2}:".format(filename, lineno, frame.f_code.co_name)]
+    lines = [f"{filename}:{frame.f_lineno}, in {frame.f_code.co_name}:"]
 
     # Build a message showing context in the install method.
     sourcelines, start = inspect.getsourcelines(frame)
 
     # Calculate lineno of the error relative to the start of the function.
-    fun_lineno = lineno - start
+    fun_lineno = frame.f_lineno - start
     start_ctx = max(0, fun_lineno - context)
     sourcelines = sourcelines[start_ctx : fun_lineno + context + 1]
 
     for i, line in enumerate(sourcelines):
         is_error = start_ctx + i == fun_lineno
-        mark = ">> " if is_error else "   "
         # Add start to get lineno relative to start of file, not function.
-        marked = "  {0}{1:-6d}{2}".format(mark, start + start_ctx + i, line.rstrip())
+        marked = f"  {'>> ' if is_error else '   '}{start + start_ctx + i:-6d}{line.rstrip()}"
         if is_error:
             marked = colorize("@R{%s}" % cescape(marked))
         lines.append(marked)

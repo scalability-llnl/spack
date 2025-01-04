@@ -1,9 +1,9 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
+import spack.util.environment
 from spack.package import *
 
 
@@ -67,6 +67,7 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
         "6.1.1",
         "6.1.2",
         "6.2.0",
+        "6.2.1",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@2.8.0: +rocm ^hip@{ver}")
     depends_on("python", when="@master", type="build")
@@ -167,7 +168,7 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
 
         if "@2.5.0" in spec:
             options.append(define("MAGMA_SPARSE", False))
-            if spec.compiler.name in ["xl", "xl_r"]:
+            if spec.satisfies("%xl") or spec.satisfies("%xl_r"):
                 options.append(define("CMAKE_DISABLE_FIND_PACKAGE_OpenMP", True))
 
         if "+rocm" in spec:

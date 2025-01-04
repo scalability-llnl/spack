@@ -1,9 +1,9 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -132,8 +132,7 @@ class PyDgl(CMakePackage, PythonExtension, CudaPackage):
 
     def install(self, spec, prefix):
         with working_dir("python"):
-            args = std_pip_args + ["--prefix=" + prefix, "."]
-            pip(*args)
+            pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")
 
         # Older versions do not install correctly
         if self.spec.satisfies("@:0.4.3"):

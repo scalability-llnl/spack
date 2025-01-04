@@ -1,7 +1,7 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import os
 
 from spack.package import *
 
@@ -20,6 +20,7 @@ class PyMpi4py(PythonPackage):
     license("BSD-2-Clause", when="@:3")
 
     version("master", branch="master")
+    version("4.0.1", sha256="f3174b245775d556f4fddb32519a2066ef0592edc810c5b5a59238f9a0a40c89")
     version("4.0.0", sha256="820d31ae184d69c17d9b5d55b1d524d56be47d2e6cb318ea4f3e7007feff2ccc")
     version("3.1.6", sha256="c8fa625e0f92b082ef955bfb52f19fa6691d29273d7d71135d295aa143dee6cb")
     version("3.1.5", sha256="a706e76db9255135c2fb5d1ef54cb4f7b0e4ad9e33cbada7de27626205f2a153")
@@ -49,3 +50,35 @@ class PyMpi4py(PythonPackage):
     def cythonize(self):
         with working_dir(self.build_directory):
             python(join_path("conf", "cythonize.py"))
+
+    def create_mpi_config_file(self, cfg_fn):
+        """
+        create mpi.cfg file introduced since version 4.0.0.
+        see https://mpi4py.readthedocs.io/en/stable/mpi4py.html#mpi4py.get_config
+        """
+        mpi_spec = self.spec["mpi"]
+        include_dirs = mpi_spec.headers.directories
+        library_dirs = mpi_spec.libs.directories
+        with open(cfg_fn, "w") as cfg:
+            cfg.write("[mpi]\n")
+            cfg.write("mpi_dir              = {}\n".format(mpi_spec.prefix))
+            cfg.write("mpicc                = {}\n".format(mpi_spec.mpicc))
+            cfg.write("mpicxx               = {}\n".format(mpi_spec.mpicxx))
+            cfg.write("\n")
+            cfg.write("## define_macros        =\n")
+            cfg.write("## undef_macros         =\n")
+            cfg.write("include_dirs         = {}\n".format(include_dirs))
+            cfg.write("## libraries            = mpi\n")
+            cfg.write("library_dirs         = {}\n".format(library_dirs))
+            cfg.write("## runtime_library_dirs = %(mpi_dir)s/lib\n")
+            cfg.write("\n")
+            cfg.write("## extra_compile_args   =\n")
+            cfg.write("## extra_link_args      =\n")
+            cfg.write("## extra_objects        =\n")
+
+    @run_after("install", when="@4:")
+    def install_cfg(self):
+        python_dir = join_path(self.prefix, python_platlib, "mpi4py")
+        cfg_fn = join_path(python_dir, "mpi.cfg")
+        if not os.path.isfile(cfg_fn):
+            self.create_mpi_config_file(cfg_fn)

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,12 +15,13 @@ from typing import Dict, List
 import llnl.util.tty as tty
 from llnl.util.lang import dedupe
 
+import spack.paths
 from spack.build_environment import dso_suffix, stat_suffix
 from spack.package import *
 from spack.util.prefix import Prefix
 
 
-def make_pyvenv_cfg(python_spec: "spack.spec.Spec", venv_prefix: str) -> str:
+def make_pyvenv_cfg(python_spec: Spec, venv_prefix: str) -> str:
     """Make a pyvenv_cfg file for a given (real) python command and venv prefix."""
     python_cmd = python_spec.command.path
     lines = [
@@ -47,7 +47,7 @@ class Python(Package):
     url = "https://www.python.org/ftp/python/3.8.0/Python-3.8.0.tgz"
     list_url = "https://www.python.org/ftp/python/"
     list_depth = 1
-    tags = ["windows", "build-tools"]
+    tags = ["windows"]
 
     maintainers("skosukhin", "scheibelp")
 
@@ -59,7 +59,9 @@ class Python(Package):
 
     license("0BSD")
 
+    version("3.13.1", sha256="1513925a9f255ef0793dbf2f78bb4533c9f184bdd0ad19763fd7f47a400a7c55")
     version("3.13.0", sha256="12445c7b3db3126c41190bfdc1c8239c39c719404e844babbd015a1bc3fafcd4")
+    version("3.12.8", sha256="5978435c479a376648cb02854df3b892ace9ed7d32b1fead652712bee9d03a45")
     version("3.12.5", sha256="38dc4e2c261d49c661196066edbfb70fdb16be4a79cc8220c224dfeb5636d405")
     version("3.12.4", sha256="01b3c1c082196f3b33168d344a9c85fb07bfe0e7ecfe77fee4443420d1ce2ad9")
     version("3.12.3", sha256="a6b9459f45a6ebbbc1af44f5762623fa355a0c87208ed417628b379d762dddb0")
@@ -111,116 +113,53 @@ class Python(Package):
     version("3.9.2", sha256="7899e8a6f7946748830d66739f2d8f2b30214dad956e56b9ba216b3de5581519")
     version("3.9.1", sha256="29cb91ba038346da0bd9ab84a0a55a845d872c341a4da6879f462e94c741f117")
     version("3.9.0", sha256="df796b2dc8ef085edae2597a41c1c0a63625ebd92487adaef2fed22b567873e8")
-    version("3.8.19", sha256="c7fa55a36e5c7a19ec37d8f90f60a2197548908c9ac8b31e7c0dbffdd470eeac")
-    version("3.8.18", sha256="7c5df68bab1be81a52dea0cc2e2705ea00553b67107a301188383d7b57320b16")
-    version("3.8.17", sha256="def428fa6cf61b66bcde72e3d9f7d07d33b2e4226f04f9d6fce8384c055113ae")
-    version("3.8.16", sha256="71ca9d935637ed2feb59e90a368361dc91eca472a90acb1d344a2e8178ccaf10")
-    version("3.8.15", sha256="924d46999df82aa2eaa1de5ca51d6800ffb56b4bf52486a28f40634e3362abc4")
-    version("3.8.14", sha256="41f959c480c59211feb55d5a28851a56c7e22d02ef91035606ebb21011723c31")
-    version("3.8.13", sha256="903b92d76354366b1d9c4434d0c81643345cef87c1600adfa36095d7b00eede4")
-    version("3.8.12", sha256="316aa33f3b7707d041e73f246efedb297a70898c4b91f127f66dc8d80c596f1a")
-    version("3.8.11", sha256="b77464ea80cec14581b86aeb7fb2ff02830e0abc7bcdc752b7b4bdfcd8f3e393")
-    version("3.8.10", sha256="b37ac74d2cbad2590e7cd0dd2b3826c29afe89a734090a87bf8c03c45066cb65")
-    version("3.8.9", sha256="9779ec1df000bf86914cdd40860b88da56c1e61db59d37784beca14a259ac9e9")
-    version("3.8.8", sha256="76c0763f048e4f9b861d24da76b7dd5c7a3ba7ec086f40caedeea359263276f7")
-    version("3.8.7", sha256="20e5a04262f0af2eb9c19240d7ec368f385788bba2d8dfba7e74b20bab4d2bac")
-    version("3.8.6", sha256="313562ee9986dc369cd678011bdfd9800ef62fbf7b1496228a18f86b36428c21")
-    version("3.8.5", sha256="015115023c382eb6ab83d512762fe3c5502fa0c6c52ffebc4831c4e1a06ffc49")
-    version("3.8.4", sha256="32c4d9817ef11793da4d0d95b3191c4db81d2e45544614e8449255ca9ae3cc18")
-    version("3.8.3", sha256="6af6d4d2e010f9655518d0fc6738c7ff7069f10a4d2fbd55509e467f092a8b90")
-    version("3.8.2", sha256="e634a7a74776c2b89516b2e013dda1728c89c8149b9863b8cea21946daf9d561")
-    version("3.8.1", sha256="c7cfa39a43b994621b245e029769e9126caa2a93571cee2e743b213cceac35fb")
-    version("3.8.0", sha256="f1069ad3cae8e7ec467aa98a6565a62a48ef196cb8f1455a245a08db5e1792df")
-    version(
-        "3.7.17",
-        sha256="fd50161bc2a04f4c22a0971ff0f3856d98b4bf294f89740a9f06b520aae63b49",
-        deprecated=True,
-    )
-    version(
-        "3.7.16",
-        sha256="0cf2da07fa464636755215415909e22eb1d058817af4824bc15af8390d05fb38",
-        deprecated=True,
-    )
-    version(
-        "3.7.15",
-        sha256="cf2993798ae8430f3af3a00d96d9fdf320719f4042f039380dca79967c25e436",
-        deprecated=True,
-    )
-    version(
-        "3.7.14",
-        sha256="82b2abf8978caa61a9011d166eede831b32de9cbebc0db8162900fa23437b709",
-        deprecated=True,
-    )
-    version(
-        "3.7.13",
-        sha256="e405417f50984bc5870c7e7a9f9aeb93e9d270f5ac67f667a0cd3a09439682b5",
-        deprecated=True,
-    )
-    version(
-        "3.7.12",
-        sha256="33b4daaf831be19219659466d12645f87ecec6eb21d4d9f9711018a7b66cce46",
-        deprecated=True,
-    )
-    version(
-        "3.7.11",
-        sha256="b4fba32182e16485d0a6022ba83c9251e6a1c14676ec243a9a07d3722cd4661a",
-        deprecated=True,
-    )
-    version(
-        "3.7.10",
-        sha256="c9649ad84dc3a434c8637df6963100b2e5608697f9ba56d82e3809e4148e0975",
-        deprecated=True,
-    )
-    version(
-        "3.7.9",
-        sha256="39b018bc7d8a165e59aa827d9ae45c45901739b0bbb13721e4f973f3521c166a",
-        deprecated=True,
-    )
-    version(
-        "3.7.8",
-        sha256="0e25835614dc221e3ecea5831b38fa90788b5389b99b675a751414c858789ab0",
-        deprecated=True,
-    )
-    version(
-        "3.7.7",
-        sha256="8c8be91cd2648a1a0c251f04ea0bb4c2a5570feb9c45eaaa2241c785585b475a",
-        deprecated=True,
-    )
-    version(
-        "3.7.6",
-        sha256="aeee681c235ad336af116f08ab6563361a0c81c537072c1b309d6e4050aa2114",
-        deprecated=True,
-    )
-    version(
-        "3.7.5",
-        sha256="8ecc681ea0600bbfb366f2b173f727b205bb825d93d2f0b286bc4e58d37693da",
-        deprecated=True,
-    )
-    version(
-        "3.7.4",
-        sha256="d63e63e14e6d29e17490abbe6f7d17afb3db182dbd801229f14e55f4157c4ba3",
-        deprecated=True,
-    )
-    version(
-        "3.7.3",
-        sha256="d62e3015f2f89c970ac52343976b406694931742fbde2fed8d1ce8ebb4e1f8ff",
-        deprecated=True,
-    )
-    version(
-        "3.7.2",
-        sha256="f09d83c773b9cc72421abba2c317e4e6e05d919f9bcf34468e192b6a6c8e328d",
-        deprecated=True,
-    )
-    version(
-        "3.7.1",
-        sha256="36c1b81ac29d0f8341f727ef40864d99d8206897be96be73dc34d4739c9c9f06",
-        deprecated=True,
-    )
-    version(
-        "3.7.0",
-        sha256="85bb9feb6863e04fb1700b018d9d42d1caac178559ffa453d7e6a436e259fd0d",
-        deprecated=True,
-    )
+    with default_args(deprecated=True):
+        version(
+            "3.8.19", sha256="c7fa55a36e5c7a19ec37d8f90f60a2197548908c9ac8b31e7c0dbffdd470eeac"
+        )
+        version(
+            "3.8.18", sha256="7c5df68bab1be81a52dea0cc2e2705ea00553b67107a301188383d7b57320b16"
+        )
+        version(
+            "3.8.17", sha256="def428fa6cf61b66bcde72e3d9f7d07d33b2e4226f04f9d6fce8384c055113ae"
+        )
+        version(
+            "3.8.16", sha256="71ca9d935637ed2feb59e90a368361dc91eca472a90acb1d344a2e8178ccaf10"
+        )
+        version(
+            "3.8.15", sha256="924d46999df82aa2eaa1de5ca51d6800ffb56b4bf52486a28f40634e3362abc4"
+        )
+        version(
+            "3.8.14", sha256="41f959c480c59211feb55d5a28851a56c7e22d02ef91035606ebb21011723c31"
+        )
+        version(
+            "3.8.13", sha256="903b92d76354366b1d9c4434d0c81643345cef87c1600adfa36095d7b00eede4"
+        )
+        version(
+            "3.8.12", sha256="316aa33f3b7707d041e73f246efedb297a70898c4b91f127f66dc8d80c596f1a"
+        )
+        version(
+            "3.8.11", sha256="b77464ea80cec14581b86aeb7fb2ff02830e0abc7bcdc752b7b4bdfcd8f3e393"
+        )
+        version(
+            "3.8.10", sha256="b37ac74d2cbad2590e7cd0dd2b3826c29afe89a734090a87bf8c03c45066cb65"
+        )
+        version("3.8.9", sha256="9779ec1df000bf86914cdd40860b88da56c1e61db59d37784beca14a259ac9e9")
+        version("3.8.8", sha256="76c0763f048e4f9b861d24da76b7dd5c7a3ba7ec086f40caedeea359263276f7")
+        version("3.8.7", sha256="20e5a04262f0af2eb9c19240d7ec368f385788bba2d8dfba7e74b20bab4d2bac")
+        version("3.8.6", sha256="313562ee9986dc369cd678011bdfd9800ef62fbf7b1496228a18f86b36428c21")
+        version("3.8.5", sha256="015115023c382eb6ab83d512762fe3c5502fa0c6c52ffebc4831c4e1a06ffc49")
+        version("3.8.4", sha256="32c4d9817ef11793da4d0d95b3191c4db81d2e45544614e8449255ca9ae3cc18")
+        version("3.8.3", sha256="6af6d4d2e010f9655518d0fc6738c7ff7069f10a4d2fbd55509e467f092a8b90")
+        version("3.8.2", sha256="e634a7a74776c2b89516b2e013dda1728c89c8149b9863b8cea21946daf9d561")
+        version("3.8.1", sha256="c7cfa39a43b994621b245e029769e9126caa2a93571cee2e743b213cceac35fb")
+        version("3.8.0", sha256="f1069ad3cae8e7ec467aa98a6565a62a48ef196cb8f1455a245a08db5e1792df")
+        version(
+            "3.7.17", sha256="fd50161bc2a04f4c22a0971ff0f3856d98b4bf294f89740a9f06b520aae63b49"
+        )
+        version(
+            "3.6.15", sha256="54570b7e339e2cfd72b29c7e2fdb47c0b7b18b7412e61de5b463fc087c13b043"
+        )
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
@@ -253,7 +192,6 @@ class Python(Package):
     variant("ssl", default=True, description="Build ssl module")
     variant("sqlite3", default=True, description="Build sqlite3 module")
     variant("dbm", default=True, description="Build dbm module")
-    variant("nis", default=False, description="Build nis module")
     variant("zlib", default=True, description="Build zlib module")
     variant("bz2", default=True, description="Build bz2 module")
     variant("lzma", default=True, description="Build lzma module")
@@ -284,7 +222,6 @@ class Python(Package):
         # https://docs.python.org/3.10/whatsnew/3.10.html#build-changes
         depends_on("sqlite@3.7.15:", when="@3.10:+sqlite3")
         depends_on("gdbm", when="+dbm")  # alternatively ndbm or berkeley-db
-        depends_on("libnsl", when="+nis")
         depends_on("zlib-api", when="+zlib")
         depends_on("bzip2", when="+bz2")
         depends_on("xz libs=shared", when="+lzma")
@@ -299,6 +236,11 @@ class Python(Package):
         depends_on("tix", when="+tix")
         depends_on("libxcrypt", when="+crypt")
 
+    patch(
+        "https://bugs.python.org/file44413/alignment.patch",
+        when="@3.6",
+        sha256="d39bacde16128f380933992ea7f237ac8f70f9cdffb40c051aca3be46dc29bdf",
+    )
     # Python needs to be patched to build extensions w/ mixed C/C++ code:
     # https://github.com/NixOS/nixpkgs/pull/19585/files
     # https://bugs.python.org/issue1222585
@@ -386,7 +328,6 @@ class Python(Package):
             "readline",
             "sqlite3",
             "dbm",
-            "nis",
             "zlib",
             "bz2",
             "lzma",
@@ -424,7 +365,7 @@ class Python(Package):
                 variants += "~tix"
 
         # Some modules are platform-dependent
-        if sys.platform != "win32":
+        if sys.platform != "win32" and Version(version_str) < Version("3.13"):
             try:
                 python("-c", "import crypt", error=os.devnull)
                 variants += "+crypt"
@@ -446,6 +387,29 @@ class Python(Package):
         ff.filter(
             r"^(.*)setup\.py(.*)((build)|(install))(.*)$", r"\1setup.py\2 --no-user-cfg \3\6"
         )
+
+        # disable building the nis module (there is no flag to disable it).
+        if self.spec.satisfies("@3.8:3.10"):
+            filter_file(
+                "if MS_WINDOWS or CYGWIN or HOST_PLATFORM == 'qnx6':",
+                "if True:",
+                "setup.py",
+                string=True,
+            )
+        elif self.spec.satisfies("@3.7"):
+            filter_file(
+                "if host_platform in {'win32', 'cygwin', 'qnx6'}:",
+                "if True:",
+                "setup.py",
+                string=True,
+            )
+        elif self.spec.satisfies("@3.6"):
+            filter_file(
+                "if (host_platform not in ['cygwin', 'qnx6'] and",
+                "if False and",
+                "setup.py",
+                string=True,
+            )
 
     def setup_build_environment(self, env):
         spec = self.spec
@@ -657,6 +621,11 @@ class Python(Package):
                 ]
             )
 
+        # Disable the nis module in the configure script for Python 3.11 and 3.12. It is deleted
+        # in Python 3.13. See ``def patch`` for disabling the nis module in Python 3.10 and older.
+        if spec.satisfies("@3.11:3.12"):
+            config_args.append("py_cv_module_nis=n/a")
+
         # https://docs.python.org/3.8/library/sqlite3.html#f1
         if spec.satisfies("+sqlite3 ^sqlite+dynamic_extensions"):
             config_args.append("--enable-loadable-sqlite-extensions")
@@ -785,10 +754,6 @@ class Python(Package):
             # Ensure that dbm module works
             if "+dbm" in spec:
                 self.command("-c", "import dbm")
-
-            # Ensure that nis module works
-            if "+nis" in spec:
-                self.command("-c", "import nis")
 
             # Ensure that zlib module works
             if "+zlib" in spec:
@@ -1088,7 +1053,7 @@ print(json.dumps(config))
             if lib:
                 return lib
 
-        raise spack.error.NoLibrariesError(
+        raise NoLibrariesError(
             "Unable to find {} libraries with the following names:\n\n* ".format(self.name)
             + "\n* ".join(candidates)
         )
@@ -1114,7 +1079,7 @@ print(json.dumps(config))
                 config_h = headers[0]
                 break
         else:
-            raise spack.error.NoHeadersError(
+            raise NoHeadersError(
                 "Unable to locate {} headers in any of these locations:\n\n* ".format(self.name)
                 + "\n* ".join(candidates)
             )

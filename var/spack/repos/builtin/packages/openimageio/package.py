@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -41,6 +40,9 @@ class Openimageio(CMakePackage):
 
     variant("qt", default=False, description="Build qt viewer")
     depends_on("qt@5.6.0:+opengl", when="+qt")
+
+    variant("ocio", default=False, description="Support video frames")
+    depends_on("opencolorio@2.2:", when="+ocio")
 
     def url_for_version(self, version):
         if version >= Version("2"):

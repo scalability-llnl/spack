@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -7,7 +6,7 @@ import os
 
 import pytest
 
-import spack.build_environment
+import spack.build_systems.cmake as cmake
 import spack.directives
 import spack.error
 import spack.fetch_strategy
@@ -140,7 +139,7 @@ def test_url_for_version_with_no_urls(mock_packages, config):
 def test_custom_cmake_prefix_path(mock_packages, config):
     spec = Spec("depends-on-define-cmake-prefix-paths").concretized()
 
-    assert spack.build_environment.get_cmake_prefix_path(spec.package) == [
+    assert cmake.get_cmake_prefix_path(spec.package) == [
         spec["define-cmake-prefix-paths"].prefix.test
     ]
 

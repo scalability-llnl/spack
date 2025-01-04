@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import glob
@@ -8,7 +7,7 @@ import spack.builder
 import spack.package_base
 from spack.directives import build_system, extends, maintainers
 
-from ._checks import BaseBuilder
+from ._checks import BuilderWithDefaults
 
 
 class RubyPackage(spack.package_base.PackageBase):
@@ -28,7 +27,7 @@ class RubyPackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("ruby")
-class RubyBuilder(BaseBuilder):
+class RubyBuilder(BuilderWithDefaults):
     """The Ruby builder provides two phases that can be overridden if required:
 
     #. :py:meth:`~.RubyBuilder.build`

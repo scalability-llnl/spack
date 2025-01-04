@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -77,7 +76,7 @@ class Fds(MakefilePackage):
 
     def edit(self, spec, prefix):
         env["MKL_ROOT"] = self.spec["mkl"].prefix
-        if spec.compiler.name == "oneapi":
+        if spec.satisfies("%oneapi"):
             env["INTEL_IFORT"] = "ifx"
         makefile = FileFilter("Build/makefile")
         makefile.filter(r"\.\./Scripts", "./Scripts")

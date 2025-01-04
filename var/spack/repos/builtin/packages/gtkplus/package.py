@@ -1,8 +1,9 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import spack.build_systems.autotools
+import spack.build_systems.meson
 from spack.package import *
 
 
@@ -24,6 +25,11 @@ class Gtkplus(AutotoolsPackage, MesonPackage):
     version("3.24.41", sha256="47da61487af3087a94bc49296fd025ca0bc02f96ef06c556e7c8988bd651b6fa")
     version("3.24.29", sha256="f57ec4ade8f15cab0c23a80dcaee85b876e70a8823d9105f067ce335a8268caa")
     version("3.24.26", sha256="2cc1b2dc5cad15d25b6abd115c55ffd8331e8d4677745dd3ce6db725b4fff1e9")
+    version(
+        "3.22.30",
+        sha256="a1a4a5c12703d4e1ccda28333b87ff462741dc365131fbc94c218ae81d9a6567",
+        deprecated=True,
+    )
     version(
         "3.20.10",
         sha256="e81da1af1c5c1fee87ba439770e17272fa5c06e64572939814da406859e56b70",
@@ -58,11 +64,15 @@ class Gtkplus(AutotoolsPackage, MesonPackage):
     # depends_on('docbook-xsl', when='@3.24:', type='build')
     # depends_on('libxslt', when='@3.24:', type='build')
     depends_on("pkgconfig", type="build")
-    depends_on("glib@2.57.2:")
+    depends_on("glib")
+    depends_on("glib@2.49.4:", when="@3.22:")
+    depends_on("glib@2.57.2:", when="@3.24:")
     depends_on("pango@1.41.0:+X")
     depends_on("fribidi@0.19.7:")
-    depends_on("atk@2.35.1:")
-    depends_on("at-spi2-atk@2.15.1:", when="@3:")
+    # atk was also merged into at-spi2-core, but gtk3 doesn't want to build without it
+    depends_on("atk@2.35.1:", when="@:3")
+    # at-spi2-atk was merged into at-spi2-core, but gtk3 is picky
+    depends_on("at-spi2-core@2.46:2.48", when="@:3")
     depends_on("cairo@1.14.0:+X+pdf+gobject")
     depends_on("gdk-pixbuf@2.30.0:")
     depends_on("gobject-introspection@1.39.0:")
@@ -92,7 +102,7 @@ class Gtkplus(AutotoolsPackage, MesonPackage):
             )
 
         # https://gitlab.gnome.org/GNOME/gtk/-/issues/3776
-        if self.spec.satisfies("@3:%gcc@11:"):
+        if self.spec.satisfies("@3.24:%gcc@11:"):
             filter_file("    '-Werror=array-bounds',", "", "meson.build", string=True)
 
     def setup_run_environment(self, env):

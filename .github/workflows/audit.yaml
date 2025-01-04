@@ -28,8 +28,8 @@ jobs:
       run:
         shell: ${{ matrix.system.shell }}
     steps:
-    - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
-    - uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+    - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
       with:
         python-version: ${{inputs.python_version}}
     - name: Install Python packages
@@ -66,7 +66,7 @@ jobs:
           ./share/spack/qa/validate_last_exit.ps1
           spack -d audit externals
           ./share/spack/qa/validate_last_exit.ps1
-    - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
+    - uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b
       if: ${{ inputs.with_coverage == 'true' && runner.os != 'Windows' }}
       with:
         name: coverage-audits-${{ matrix.system.os }}

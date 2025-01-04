@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -15,6 +14,8 @@ from llnl.path import Path, convert_to_platform_path
 from llnl.util.filesystem import HeaderList, LibraryList
 
 import spack.build_environment
+import spack.compiler
+import spack.compilers
 import spack.config
 import spack.deptypes as dt
 import spack.package_base
@@ -514,6 +515,30 @@ def test_setting_dtags_based_on_config(config_setting, expected_flag, config, mo
 
         dtags_to_add = modifications["SPACK_DTAGS_TO_ADD"][0]
         assert dtags_to_add.value == expected_flag
+
+
+def test_module_globals_available_at_setup_dependent_time(
+    monkeypatch, mutable_config, mock_packages, working_env
+):
+    """Spack built package externaltest depends on an external package
+    externaltool. Externaltool's setup_dependent_package needs to be able to
+    access globals on the dependent"""
+
+    def setup_dependent_package(module, dependent_spec):
+        # Make sure set_package_py_globals was already called on
+        # dependents
+        # ninja is always set by the setup context and is not None
+        dependent_module = dependent_spec.package.module
+        assert hasattr(dependent_module, "ninja")
+        assert dependent_module.ninja is not None
+        dependent_spec.package.test_attr = True
+
+    externaltool = spack.spec.Spec("externaltest").concretized()
+    monkeypatch.setattr(
+        externaltool["externaltool"].package, "setup_dependent_package", setup_dependent_package
+    )
+    spack.build_environment.setup_package(externaltool.package, False)
+    assert externaltool.package.test_attr
 
 
 def test_build_jobs_sequential_is_sequential():

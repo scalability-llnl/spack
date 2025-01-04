@@ -1,5 +1,4 @@
-.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-   Spack Project Developers. See the top-level COPYRIGHT file for details.
+.. Copyright Spack Project Developers. See COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -457,11 +456,11 @@ For instance, the following config options,
        tcl:
          all:
            suffixes:
-             ^python@3.12: 'python-3.12'
+             ^python@3: 'python{^python.version}'
              ^openblas: 'openblas'
 
-will add a ``python-3.12`` version string to any packages compiled with
-Python matching the spec, ``python@3.12``. This is useful to know which
+will add a ``python-3.12.1`` version string to any packages compiled with
+Python matching the spec, ``python@3``. This is useful to know which
 version of Python a set of Python extensions is associated with. Likewise, the
 ``openblas`` string is attached to any program that has openblas in the spec,
 most likely via the ``+blas`` variant specification.

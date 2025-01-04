@@ -1,12 +1,10 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 
 from spack.package import *
-from spack.spec import UnsupportedCompilerError
 
 
 class Elemental(CMakePackage):
@@ -94,6 +92,8 @@ class Elemental(CMakePackage):
     patch("elemental_cublas.patch", when="+cublas")
     patch("cmake_0.87.7.patch", when="@0.87.7")
 
+    conflicts("%intel@:17.0.2", when="@:0.87.7")
+
     @property
     def libs(self):
         shared = True if "+shared" in self.spec else False
@@ -101,14 +101,6 @@ class Elemental(CMakePackage):
 
     def cmake_args(self):
         spec = self.spec
-
-        if spec.satisfies("@:0.87.7") and spec.satisfies("%intel@:17.0.2"):
-            raise UnsupportedCompilerError(
-                "Elemental {0} has a known bug with compiler: {1} {2}".format(
-                    spec.version, spec.compiler.name, spec.compiler.version
-                )
-            )
-
         args = [
             "-DCMAKE_INSTALL_MESSAGE:STRING=LAZY",
             "-DCMAKE_C_COMPILER=%s" % spec["mpi"].mpicc,

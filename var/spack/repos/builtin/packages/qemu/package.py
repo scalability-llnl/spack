@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -139,7 +138,7 @@ class Qemu(AutotoolsPackage):
 
     @when("@9:")
     def configure_args(self):
-        return [
+        args = [
             "--disable-bsd-user",
             "--disable-guest-agent",
             "--disable-sdl",
@@ -155,3 +154,11 @@ class Qemu(AutotoolsPackage):
             "--enable-zstd",
             "--disable-docs",
         ]
+        extra_cflags = "-Wno-unknown-warning-option"
+        if self.spec.satisfies("%apple-clang platform=darwin"):
+            # qemu 9: uses pthread_jit_write_protect_np which requires OSX 11.0 or newer
+            extra_cflags += " -mmacosx-version-min=11.0"
+        args.append(f"--extra-cflags={extra_cflags}")
+        args.append(f"--extra-cxxflags={extra_cflags}")
+
+        return args

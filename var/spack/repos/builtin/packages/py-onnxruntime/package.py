@@ -1,8 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -211,6 +211,5 @@ class PyOnnxruntime(CMakePackage, PythonExtension, ROCmPackage):
     @run_after("install")
     def install_python(self):
         """Install everything from build directory."""
-        args = std_pip_args + ["--prefix=" + prefix, "."]
         with working_dir(self.build_directory):
-            pip(*args)
+            pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")

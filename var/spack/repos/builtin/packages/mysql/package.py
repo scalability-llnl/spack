@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -226,3 +225,12 @@ class Mysql(CMakePackage):
 
         if "python" in self.spec and self.spec.satisfies("@:7"):
             self._fix_dtrace_shebang(env)
+
+    @run_before("install")
+    def fixup_mysqlconfig(self):
+        if not self.spec.satisfies("platform=windows"):
+            # mysql uses spack libz but exports -lzlib to its dependencies. Fix that:
+            with working_dir(self.build_directory):
+                for config in ("scripts/mysql_config", "scripts/mysqlclient.pc"):
+                    if os.path.exists(config):
+                        filter_file(" -lzlib ", " -lz ", config)

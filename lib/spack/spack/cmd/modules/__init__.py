@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,7 @@ import spack.error
 import spack.modules
 import spack.modules.common
 import spack.repo
+from spack.cmd import MultipleSpecsMatch, NoSpecMatches
 from spack.cmd.common import arguments
 
 description = "manipulate module files"
@@ -89,18 +89,6 @@ def add_loads_arguments(subparser):
         help="exclude package from output; may be specified multiple times",
     )
     arguments.add_common_arguments(subparser, ["recurse_dependencies"])
-
-
-class MultipleSpecsMatch(Exception):
-    """Raised when multiple specs match a constraint, in a context where
-    this is not allowed.
-    """
-
-
-class NoSpecMatches(Exception):
-    """Raised when no spec matches a constraint, in a context where
-    this is not allowed.
-    """
 
 
 def one_spec_or_raise(specs):
@@ -378,7 +366,10 @@ callbacks = {"refresh": refresh, "rm": rm, "find": find, "loads": loads}
 def modules_cmd(parser, args, module_type, callbacks=callbacks):
     # Qualifiers to be used when querying the db for specs
     constraint_qualifiers = {
-        "refresh": {"installed": True, "known": lambda x: not spack.repo.PATH.exists(x)}
+        "refresh": {
+            "installed": True,
+            "predicate_fn": lambda x: spack.repo.PATH.exists(x.spec.name),
+        }
     }
     query_args = constraint_qualifiers.get(args.subparser_name, {})
 

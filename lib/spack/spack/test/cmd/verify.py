@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,14 +26,14 @@ def test_single_file_verify_cmd(tmpdir):
     fs.mkdirp(filedir)
     fs.mkdirp(metadir)
 
-    with open(filepath, "w") as f:
+    with open(filepath, "w", encoding="utf-8") as f:
         f.write("I'm a file")
 
     data = spack.verify.create_manifest_entry(filepath)
 
     manifest_file = os.path.join(metadir, spack.store.STORE.layout.manifest_file_name)
 
-    with open(manifest_file, "w") as f:
+    with open(manifest_file, "w", encoding="utf-8") as f:
         sjson.dump({filepath: data}, f)
 
     results = verify("-f", filepath, fail_on_error=False)
@@ -42,7 +41,7 @@ def test_single_file_verify_cmd(tmpdir):
     assert not results
 
     os.utime(filepath, (0, 0))
-    with open(filepath, "w") as f:
+    with open(filepath, "w", encoding="utf-8") as f:
         f.write("I changed.")
 
     results = verify("-f", filepath, fail_on_error=False)
@@ -74,7 +73,7 @@ def test_single_spec_verify_cmd(tmpdir, mock_packages, mock_archive, mock_fetch,
     assert not results
 
     new_file = os.path.join(prefix, "new_file_for_verify_test")
-    with open(new_file, "w") as f:
+    with open(new_file, "w", encoding="utf-8") as f:
         f.write("New file")
 
     results = verify("/%s" % hash, fail_on_error=False)

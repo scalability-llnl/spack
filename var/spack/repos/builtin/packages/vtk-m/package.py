@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -7,6 +6,7 @@
 import os
 import sys
 
+from spack.build_systems.cmake import CMakeBuilder
 from spack.package import *
 
 
@@ -52,7 +52,8 @@ class VtkM(CMakePackage, CudaPackage, ROCmPackage):
     version("1.2.0", sha256="44596e88b844e7626248fb8e96a38be25a0e585a22256b1c859208b23ef45171")
     version("1.1.0", sha256="55f42c417d3a41893230b2fd3b5c192daeee689a2193de10bf22a1ef5c24c7ad")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("shared", default=False, description="build shared libs")
 
@@ -85,6 +86,7 @@ class VtkM(CMakePackage, CudaPackage, ROCmPackage):
         description="build openmp support",
     )
     variant("tbb", default=(sys.platform == "darwin"), description="build TBB support")
+    variant("sycl", default=False, description="Build with SYCL backend")
 
     depends_on("cmake@3.12:", type="build")  # CMake >= 3.12
     depends_on("cmake@3.18:", when="+rocm", type="build")  # CMake >= 3.18
@@ -132,6 +134,13 @@ class VtkM(CMakePackage, CudaPackage, ROCmPackage):
     conflicts("+rocm", when="~kokkos", msg="VTK-m does not support HIP without Kokkos")
     conflicts("+rocm", when="+virtuals", msg="VTK-m does not support virtual functions with ROCm")
 
+    # VTK-m uses the Kokkos SYCL backend.
+    # If Kokkos provides multiple backends, the SYCL backend may or
+    # may not be used for VTK-m depending on the default selected by Kokkos
+    depends_on("kokkos +sycl", when="+kokkos +sycl")
+
+    conflicts("+sycl", when="~kokkos", msg="VTK-m does not support SYCL without Kokkos")
+
     # Can build +shared+cuda after @1.7:
     conflicts("+shared", when="@:1.6 +cuda_native")
     conflicts("+cuda~cuda_native~kokkos", msg="Cannot have +cuda without a cuda device")
@@ -162,12 +171,26 @@ class VtkM(CMakePackage, CudaPackage, ROCmPackage):
     # https://gitlab.kitware.com/vtk/vtk-m/-/merge_requests/3259
     patch("mr3259-thrust-is_arithmetic-fix.patch", when="@2.0.0:2.2.0 +cuda ^cuda@12.6:")
 
+    # VTK-m PR#3271
+    # https://gitlab.kitware.com/vtk/vtk-m/-/merge_requests/3271
+    patch("mr3271-contourtree-print-error.patch", when="@2.0:2.2")
+
+    # VTK-m PR#3272
+    # https://gitlab.kitware.com/vtk/vtk-m/-/merge_requests/3272
+    patch("mr3272-bad-mir-table-method.patch", when="@2.0:2.2")
+
     # Disable Thrust patch that is no longer needed in modern Thrust
     patch(
         "https://github.com/Kitware/VTK-m/commit/4a4466e7c8cd44d2be2bd3fe6f359faa8e9547aa.patch?full_index=1",
         sha256="58dc104ba05ec99c359eeec3ac094cdb071053a4250f4ad9d72ef6a356c4346e",
         when="@1.6.0:2.1 +cuda ^cuda@12.5:",
     )
+
+    def flag_handler(self, name, flags):
+        if name == "cxxflags":
+            if self.spec.satisfies("@:2.2.0 %oneapi@2025:"):
+                flags.append("-Wno-error=missing-template-arg-list-after-template-kw")
+        return (flags, None, None)
 
     def cmake_args(self):
         spec = self.spec
@@ -227,7 +250,7 @@ class VtkM(CMakePackage, CudaPackage, ROCmPackage):
                 options.append("-DCMAKE_CUDA_HOST_COMPILER={0}".format(env["SPACK_CXX"]))
 
                 if spec.satisfies("@1.9.0:") and spec.satisfies("^cmake@3.18:"):
-                    options.append(self.builder.define_cuda_architectures(self))
+                    options.append(CMakeBuilder.define_cuda_architectures(self))
 
                 else:
                     # VTKm_CUDA_Architecture only accepts a single CUDA arch
@@ -247,7 +270,7 @@ class VtkM(CMakePackage, CudaPackage, ROCmPackage):
 
             # hip support
             if "+rocm" in spec:
-                options.append(self.builder.define_hip_architectures(self))
+                options.append(CMakeBuilder.define_hip_architectures(self))
 
         return options
 

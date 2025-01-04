@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -10,7 +9,7 @@ class Aespipe(AutotoolsPackage):
     """aespipe program is AES encrypting or decrypting pipe. It reads from
     standard input and writes to standard output."""
 
-    homepage = "https//loop-aes.sourceforge.net/"
+    homepage = "https://sourceforge.net/projects/loop-aes/"
     url = "https://sourceforge.net/projects/loop-aes/files/aespipe/v2.4f/aespipe-v2.4f.tar.bz2"
 
     license("Intel")

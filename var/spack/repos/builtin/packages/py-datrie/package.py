@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,3 +21,8 @@ class PyDatrie(PythonPackage):
     depends_on("py-setuptools@40.8:", type=("build"))
     depends_on("py-cython@0.28:", type="build")
     depends_on("py-pytest-runner", type="build")
+
+    @when("@:0.8.2")
+    def patch(self):
+        # fix failure to compile on gcc-14, https://github.com/pytries/datrie/pull/99
+        filter_file(r"(\s*)(struct AlphaMap:)", r"\1ctypedef \2", "src/cdatrie.pxd")

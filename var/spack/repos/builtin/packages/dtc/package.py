@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,9 +23,9 @@ class Dtc(MakefilePackage):
     # Build error with flex 2.6.3
     #   (convert-dtsv0-lexer.lex.c:398: error: "yywrap" redefined)
     depends_on("flex@2.6.4:", type="build")
-    depends_on("libyaml", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("python", type="build")
+    depends_on("libyaml", type=("build", "link"))
 
     def edit(self, spec, prefix):
         makefile = FileFilter("Makefile")
@@ -35,3 +34,14 @@ class Dtc(MakefilePackage):
             makefile.filter(
                 r"WARNINGS = -Wall", "WARNINGS = -Wall -Wno-unused-command-line-argument"
             )
+
+        if self.spec.satisfies("platform=darwin"):
+            libfdt_makefile = FileFilter("libfdt/Makefile.libfdt")
+            libfdt_makefile.filter(
+                r"LIBFDT_soname = .*", "LIBFDT_soname = libfdt.1.$(SHAREDLIB_EXT)"
+            )
+
+    @run_after("install")
+    def darwin_fix(self):
+        if self.spec.satisfies("platform=darwin"):
+            fix_darwin_install_name(self.prefix.lib)

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,6 +25,8 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
     license("BSD-3-Clause")
 
     version("develop", branch="development")
+    version("24.12", sha256="ca4b41ac73fabb9cf3600b530c9823eb3625f337d9b7b9699c1089e81c67fc67")
+    version("24.11", sha256="31cc37b39f15e02252875815f6066046fc56a479bf459362b9889b0d6a202df6")
     version("24.10", sha256="a2d15e417bd7c41963749338e884d939c80c5f2fcae3279fe3f1b463e3e4208a")
     version("24.09", sha256="a1435d16532d04a1facce9a9ae35d68a57f7cd21a5f22a6590bde3c265ea1449")
     version("24.08", sha256="e09623e715887a19a1f86ed6fdb8335022fd6c03f19372d8f13b55cdeeadf5de")
@@ -134,6 +135,7 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
     )
     variant("eb", default=True, description="Build Embedded Boundary classes", when="@24.10:")
     variant("eb", default=False, description="Build Embedded Boundary classes", when="@:24.09")
+    variant("fft", default=False, description="Build FFT support", when="@24.11:")
     variant("fortran", default=False, description="Build Fortran API")
     variant("linear_solvers", default=True, description="Build linear solvers")
     variant("amrdata", default=False, description="Build data services")
@@ -149,6 +151,9 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
 
     # Build dependencies
     depends_on("mpi", when="+mpi")
+    with when("+fft"):
+        depends_on("rocfft", when="+rocm")
+        depends_on("fftw@3", when="~cuda ~rocm ~sycl")
     with when("+ascent"):
         depends_on("ascent")
         depends_on("ascent +cuda", when="+cuda")
@@ -328,6 +333,9 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
             self.define_from_variant("AMReX_SUNDIALS", "sundials"),
             self.define_from_variant("AMReX_PIC", "pic"),
         ]
+
+        if self.spec.satisfies("+fft"):
+            args.append("-DAMReX_FFT=ON")
 
         if self.spec.satisfies("%fj"):
             args.append("-DCMAKE_Fortran_MODDIR_FLAG=-M")

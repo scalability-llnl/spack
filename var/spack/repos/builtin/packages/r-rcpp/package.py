@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,7 @@ class RRcpp(RPackage):
 
     cran = "Rcpp"
 
+    version("1.0.13", sha256="21fec650c113e57935fd86c7d1be190811f1ae036c1ee203bfbbf3ad5cdb22ce")
     version("1.0.12", sha256="0c7359cc43beee02761aa3df2baccede1182d29d28c9cd49964b609305062bd0")
     version("1.0.11", sha256="df757c3068599c6c05367900bcad93547ba3422d59802dbaca20fd74d4d2fa5f")
     version("1.0.10", sha256="1e65e24a9981251ab5fc4f9fd65fe4eab4ba0255be3400a8c5abe20b62b5d546")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -33,11 +32,12 @@ class Sopt(CMakePackage):
 
     depends_on("cmake@3")
     depends_on("eigen@3.4")
-    depends_on("libtiff@4")
+    depends_on("libtiff@4.7:")
     depends_on("mpi", when="+mpi")
     depends_on("catch2@3.4:3", when="+tests")
     depends_on("benchmark@1.8~performance_counters", when="+benchmarks")
     depends_on("onnx@1.16:", when="+onnxrt")
+    depends_on("py-onnxruntime@1.17.1:", when="+onnxrt")
     depends_on("doxygen@1.8:1.12+graphviz", when="+docs")
 
     patch(

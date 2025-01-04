@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -48,8 +47,6 @@ def activate_header(env, shell, prompt=None, view: Optional[str] = None):
         cmds += 'set "SPACK_ENV=%s"\n' % env.path
         if view:
             cmds += 'set "SPACK_ENV_VIEW=%s"\n' % view
-        # TODO: despacktivate
-        # TODO: prompt
     elif shell == "pwsh":
         cmds += "$Env:SPACK_ENV='%s'\n" % env.path
         if view:

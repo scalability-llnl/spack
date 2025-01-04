@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -154,8 +153,12 @@ class Boost(Package):
         "wave",
     ]
 
+    # Add any extra requirements for specific
+    all_libs_opts = {"charconv": {"when": "@1.85.0:"}, "cobalt": {"when": "@1.84.0:"}}
+
     for lib in all_libs:
-        variant(lib, default=False, description="Compile with {0} library".format(lib))
+        lib_opts = all_libs_opts.get(lib, {})
+        variant(lib, default=False, description="Compile with {0} library".format(lib), **lib_opts)
 
     @property
     def libs(self):
@@ -242,6 +245,7 @@ class Boost(Package):
     depends_on("icu4c cxxstd=14", when="+icu cxxstd=14")
     depends_on("icu4c cxxstd=17", when="+icu cxxstd=17")
     conflicts("cxxstd=98", when="+icu")  # Requires c++11 at least
+    conflicts("+locale ~icu")  # Boost.Locale "strongly recommends" icu, so enforce it
 
     depends_on("python", when="+python")
     # https://github.com/boostorg/python/commit/cbd2d9f033c61d29d0a1df14951f4ec91e7d05cd
@@ -254,7 +258,7 @@ class Boost(Package):
     depends_on("xz", when="+iostreams")
     depends_on("py-numpy", when="+numpy", type=("build", "run"))
     # https://github.com/boostorg/python/issues/431
-    depends_on("py-numpy@:1", when="@:1.85+numpy", type=("build", "run"))
+    depends_on("py-numpy@:1", when="@:1.86+numpy", type=("build", "run"))
 
     # Improve the error message when the context-impl variant is conflicting
     conflicts("context-impl=fcontext", when="@:1.65.0")
@@ -324,11 +328,6 @@ class Boost(Package):
 
     # Patch fix from https://svn.boost.org/trac/boost/ticket/10125
     patch("call_once_variadic.patch", when="@1.54.0:1.55%gcc@5.0:")
-
-    # Patch fix for PGI compiler
-    patch("boost_1.67.0_pgi.patch", when="@1.67.0:1.68%pgi")
-    patch("boost_1.63.0_pgi.patch", when="@1.63.0%pgi")
-    patch("boost_1.63.0_pgi_17.4_workaround.patch", when="@1.63.0%pgi@17.4")
 
     # Patch to override the PGI toolset when using the NVIDIA compilers
     patch("nvhpc-1.74.patch", when="@1.74.0:1.75%nvhpc")
@@ -448,7 +447,6 @@ class Boost(Package):
             filter_file("<define>BOOST_LOG_USE_AVX2", "", "libs/log/build/Jamfile.v2")
             filter_file("dump_ssse3", "", "libs/log/build/Jamfile.v2")
             filter_file("<define>BOOST_LOG_USE_SSSE3", "", "libs/log/build/Jamfile.v2")
-
             filter_file("-fast", "-O1", "tools/build/src/tools/pgi.jam")
             filter_file("-fast", "-O1", "tools/build/src/engine/build.sh")
 
@@ -479,7 +477,6 @@ class Boost(Package):
             "%arm": "clang",
             "%xl": "xlcpp",
             "%xl_r": "xlcpp",
-            "%pgi": "pgi",
             "%nvhpc": "pgi",
             "%fj": "clang",
         }
@@ -624,9 +621,13 @@ class Boost(Package):
                 options.append("runtime-link=shared")
             else:
                 options.append("runtime-link=static")
+
+            # Any lib that is in self.all_libs AND in the variants dictionary
+            # AND is set to False should be added to options in a --without flag
             for lib in self.all_libs:
-                if f"+{lib}" not in spec:
-                    options.append(f"--without-{lib}")
+                if lib not in self.spec.variants.dict or self.spec.satisfies(f"+{lib}"):
+                    continue
+                options.append(f"--without-{lib}")
 
         if not spec.satisfies("@:1.75 %intel") and not spec.satisfies("platform=windows"):
             # When building any version >= 1.76, the toolset must be specified.
@@ -820,18 +821,6 @@ class Boost(Package):
 
     def setup_run_environment(self, env):
         env.set("BOOST_ROOT", self.prefix)
-
-    def setup_dependent_package(self, module, dependent_spec):
-        # Disable find package's config mode for versions of Boost that
-        # didn't provide it. See https://github.com/spack/spack/issues/20169
-        # and https://cmake.org/cmake/help/latest/module/FindBoost.html
-        if self.spec.satisfies("boost@:1.69.0") and dependent_spec.satisfies("build_system=cmake"):
-            args_fn = type(dependent_spec.package.builder).cmake_args
-
-            def _cmake_args(self):
-                return ["-DBoost_NO_BOOST_CMAKE=ON"] + args_fn(self)
-
-            type(dependent_spec.package.builder).cmake_args = _cmake_args
 
     def setup_dependent_build_environment(self, env, dependent_spec):
         if "+context" in self.spec and "context-impl" in self.spec.variants:

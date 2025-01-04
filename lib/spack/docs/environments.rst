@@ -1,5 +1,4 @@
-.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-   Spack Project Developers. See the top-level COPYRIGHT file for details.
+.. Copyright Spack Project Developers. See COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -425,9 +424,13 @@ Developing Packages in a Spack Environment
 
 The ``spack develop`` command allows one to develop Spack packages in
 an environment. It requires a spec containing a concrete version, and
-will configure Spack to install the package from local source. By
-default, it will also clone the package to a subdirectory in the
-environment. This package will have a special variant ``dev_path``
+will configure Spack to install the package from local source. 
+If a version is not provided from the command line interface then spack 
+will automatically pick the highest version the package has defined.
+This means any infinity versions (``develop``, ``main``, ``stable``) will be
+preferred in this selection process.
+By default, ``spack develop`` will also clone the package to a subdirectory in the
+environment for the local source. This package will have a special variant ``dev_path``
 set, and Spack will ensure the package and its dependents are rebuilt
 any time the environment is installed if the package's local source
 code has been modified. Spack's native implementation to check for modifications
@@ -669,6 +672,9 @@ them to the environment.
 Environments can include files or URLs. File paths can be relative or
 absolute. URLs include the path to the text for individual files or
 can be the path to a directory containing configuration files.
+Spack supports ``file``, ``http``, ``https`` and ``ftp`` protocols (or
+schemes). Spack-specific, environment and user path variables may be
+used in these paths. See :ref:`config-file-variables` for more information.
 
 ^^^^^^^^^^^^^^^^^^^^^^^^
 Configuration precedence
@@ -1035,7 +1041,7 @@ file snippet we define a view named ``mpis``, rooted at
 ``/path/to/view`` in which all projections use the package name,
 version, and compiler name to determine the path for a given
 package. This view selects all packages that depend on MPI, and
-excludes those built with the PGI compiler at version 18.5.
+excludes those built with the GCC compiler at version 18.5.
 The root specs with their (transitive) link and run type dependencies
 will be put in the view due to the  ``link: all`` option,
 and the files in the view will be symlinks to the spack install
@@ -1049,7 +1055,7 @@ directories.
        mpis:
          root: /path/to/view
          select: [^mpi]
-         exclude: ['%pgi@18.5']
+         exclude: ['%gcc@18.5']
          projections:
            all: '{name}/{version}-{compiler.name}'
          link: all

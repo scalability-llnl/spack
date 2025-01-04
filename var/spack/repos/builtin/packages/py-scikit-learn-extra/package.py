@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,7 +20,8 @@ class PyScikitLearnExtra(PythonPackage):
 
     version("0.2.0", sha256="3b1bb5fedde47920eb4b3fa0a0c18f80cc7359d9d0496720178788c6153b8019")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     # For upperbound see https://github.com/scikit-learn-contrib/scikit-learn-extra/issues/164
     depends_on("python@3.6:3.10", type=("build", "run"))

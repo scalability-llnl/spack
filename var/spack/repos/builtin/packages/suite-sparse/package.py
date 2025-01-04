@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,7 @@ class SuiteSparse(Package):
 
     license("Apache-2.0")
 
+    version("7.8.3", sha256="ce39b28d4038a09c14f21e02c664401be73c0cb96a9198418d6a98a7db73a259")
     version("7.7.0", sha256="529b067f5d80981f45ddf6766627b8fc5af619822f068f342aab776e683df4f3")
     version("7.3.1", sha256="b512484396a80750acf3082adc1807ba0aabb103c2e09be5691f46f14d0a9718")
     version("7.2.1", sha256="304e959a163ff74f8f4055dade3e0b5498d9aa3b1c483633bb400620f521509f")
@@ -90,8 +90,7 @@ class SuiteSparse(Package):
             msg="suite-sparse needs task_scheduler_init.h dropped in recent tbb libs",
         )
 
-    # This patch removes unsupported flags for pgi compiler
-    patch("pgi.patch", when="%pgi")
+    # This patch removes unsupported flags for nvhpc compiler
     patch("pgi.patch", when="%nvhpc")
 
     # This patch adds '-lm' when linking libgraphblas and when using clang.
@@ -234,8 +233,6 @@ class SuiteSparse(Package):
         # optimizations
         if any([x in spec for x in ("%apple-clang", "%clang", "%gcc", "%intel", "%fj")]):
             make_args += ["CFLAGS+=-fno-common -fexceptions"]
-        elif "%pgi" in spec:
-            make_args += ["CFLAGS+=--exceptions"]
 
         if spack_f77.endswith("xlf") or spack_f77.endswith("xlf_r"):
             make_args += ["CFLAGS+=-DBLAS_NO_UNDERSCORE"]
@@ -249,6 +246,7 @@ class SuiteSparse(Package):
             # Mongoose directory finds libsuitesparseconfig.so in system
             # directories like /usr/lib.
             cmake_args = [
+                "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON",
                 f"-DCMAKE_INSTALL_PREFIX={prefix}",
                 f"-DCMAKE_LIBRARY_PATH={prefix.lib}",
                 f"-DBLAS_ROOT={spec['blas'].prefix}",

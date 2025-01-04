@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -30,6 +29,9 @@ class Pumi(CMakePackage):
     # scorec/core develop branch and we prefer not to expose spack users
     # to the added instability.
     version("master", submodules=True, branch="master")
+    version(
+        "2.2.9", submodules=True, commit="f87525cae7597322edfb2ccf1c7d4437402d9481"
+    )  # tag 2.2.9
     version(
         "2.2.8", submodules=True, commit="736bb87ccd8db51fc499a1b91e53717a88841b1f"
     )  # tag 2.2.8
@@ -79,11 +81,7 @@ class Pumi(CMakePackage):
     depends_on("zoltan+int64", when="+zoltan+int64")
     simbase = "+base"
     simkernels = simbase + "+parasolid+acis+discrete"
-    simfull = (
-        simkernels
-        + "+abstract+adv+advmodel\
-                            +import+paralleladapt+parallelmesh"
-    )
+    simfull = simkernels + "+abstract+adv+advmodel+import+paralleladapt+parallelmesh"
     depends_on("simmetrix-simmodsuite" + simbase, when="simmodsuite=base")
     depends_on("simmetrix-simmodsuite" + simkernels, when="simmodsuite=kernels")
     depends_on("simmetrix-simmodsuite" + simfull, when="simmodsuite=full")
