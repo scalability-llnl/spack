@@ -80,8 +80,9 @@ class Mgis(CMakePackage):
     depends_on("tfel@master", when="@master")
 
     depends_on("py-numpy", when="+python", type=("build", "link", "run"))
+    
     with when("@3.1:"):
-        depends_on("py-pybind11", when="+python_bindings", type=("build", "link", "run"))
+        depends_on("py-pybind11", when="+python", type=("build", "link", "run"))
 
     with when("@1.0:3.0.99"):
         depends_on(
@@ -119,8 +120,13 @@ class Mgis(CMakePackage):
             args.append("-DPYTHON_LIBRARY={0}".format(python.libs[0]))
             args.append("-DPYTHON_INCLUDE_DIR={0}".format(python.headers.directories[0]))
             args.append("-DPython_ADDITIONAL_VERSIONS={0}".format(python.version.up_to(2)))
+
+            with when("@3.1:"):
+                args.append("-Dpybind11_DIR={0}".format(self.spec["py-pybind11"].prefix))
+
             # adding path to boost
-            args.append("-DBOOST_ROOT={0}".format(self.spec["boost"].prefix))
+            with when("@1.0:3.0.99"):
+                args.append("-DBOOST_ROOT={0}".format(self.spec["boost"].prefix))
 
         if "+static" in self.spec:
             args.append("-Denable-static=ON")

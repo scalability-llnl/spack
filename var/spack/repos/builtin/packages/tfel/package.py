@@ -213,9 +213,14 @@ class Tfel(CMakePackage):
             args.append("-DPython_ADDITIONAL_VERSIONS={0}".format(python.version.up_to(2)))
 
         if "+python_bindings" in self.spec:
-            args.append("-DBOOST_ROOT={0}".format(self.spec["boost"].prefix))
-            args.append("-DBoost_NO_SYSTEM_PATHS=ON")
-            args.append("-DBoost_NO_BOOST_CMAKE=ON")
+
+            with when("@5.1:"):
+                args.append("-Dpybind11_DIR={0}".format(self.spec["py-pybind11"].prefix))
+            
+            with when("@2.0.4:5.0.99"):
+                args.append("-DBOOST_ROOT={0}".format(self.spec["boost"].prefix))
+                args.append("-DBoost_NO_SYSTEM_PATHS=ON")
+                args.append("-DBoost_NO_BOOST_CMAKE=ON")
 
         return args
 
