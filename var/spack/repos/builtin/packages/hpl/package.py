@@ -49,8 +49,7 @@ class Hpl(AutotoolsPackage):
     def force_autoreconf(self):
         return self.version == Version("2.3")
 
-    @when("@=2.3")
-    @run_before("autoreconf")
+    @run_before("autoreconf", when="@=2.3")
     def add_timer_to_libhpl(self):
         # Add HPL_timer_walltime to libhpl.a
         filter_file(
