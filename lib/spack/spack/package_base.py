@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """This is where most of the action happens in Spack.
@@ -25,6 +24,8 @@ import time
 import traceback
 import typing
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, Type, TypeVar, Union
+
+from typing_extensions import Literal
 
 import llnl.util.filesystem as fsys
 import llnl.util.tty as tty
@@ -1009,10 +1010,8 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
                 return False
         return True
 
-    # NOTE: return type should be Optional[Literal['all', 'specific', 'none']] in
-    # Python 3.8+, but we still support 3.6.
     @property
-    def keep_werror(self) -> Optional[str]:
+    def keep_werror(self) -> Optional[Literal["all", "specific", "none"]]:
         """Keep ``-Werror`` flags, matches ``config:flags:keep_werror`` to override config.
 
         Valid return values are:
