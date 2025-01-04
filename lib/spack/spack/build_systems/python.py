@@ -17,8 +17,8 @@ import llnl.util.lang as lang
 import llnl.util.tty as tty
 from llnl.util.filesystem import HeaderList, LibraryList, join_path
 
-import spack.builder
 import spack.build_environment
+import spack.builder
 import spack.config
 import spack.context
 import spack.deptypes as dt
