@@ -45,6 +45,10 @@ class Gsoap(AutotoolsPackage, SourceforgePackage):
     depends_on("pkgconfig", type="build")
     depends_on("bison", type="build")
     depends_on("flex", type="build")
+    depends_on("autoconf", type="build")
+    depends_on("automake", type="build")
+    depends_on("libtool", type="build")
+    depends_on("m4", type="build")
 
     def configure_args(self):
         return ["--enable-ipv6"]
