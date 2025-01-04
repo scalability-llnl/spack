@@ -20,6 +20,7 @@ class FluxSecurity(AutotoolsPackage):
     license("LGPL-3.0-or-later")
 
     version("master", branch="master")
+    version("0.13.0", sha256="d61b8d0e6d6c8d7497e9542eadc110c496cbd57ba6a33bfd26271d805bda9869")
     version("0.12.0", sha256="2876d1f10c4f898f2ff10d60ddb446af9c8a913dda69f0136d820ad1fdf28a93")
     version("0.11.0", sha256="d1ef78a871155a252f07e4f0a636eb272d6c2048d5e0e943860dd687c6cf808a")
     version("0.10.0", sha256="b0f39c5e32322f901454469ffd6154019b6dffafc064b55b3e593f70db6a6f68")

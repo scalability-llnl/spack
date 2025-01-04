@@ -18,6 +18,7 @@ class Xxhash(MakefilePackage):
 
     license("BSD-2-Clause")
 
+    version("0.8.3", sha256="aae608dfe8213dfd05d909a57718ef82f30722c392344583d3f39050c7f29a80")
     version("0.8.2", sha256="baee0c6afd4f03165de7a4e67988d16f0f2b257b51d0e3cb91909302a26a79c4")
     version("0.8.1", sha256="3bb6b7d6f30c591dd65aaaff1c8b7a5b94d81687998ca9400082c739a690436c")
     version("0.8.0", sha256="7054c3ebd169c97b64a92d7b994ab63c70dd53a06974f1f630ab782c28db0f4f")

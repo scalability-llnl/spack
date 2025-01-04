@@ -27,8 +27,7 @@ class CbtfArgonavis(CMakePackage):
     variant(
         "crayfe",
         default=False,
-        description="build only the FE tool using the runtime_dir \
-                         to point to target build.",
+        description="build only the FE tool using the runtime_dir to point to target build.",
     )
     variant(
         "runtime", default=False, description="build only the runtime libraries and collectors."

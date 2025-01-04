@@ -208,7 +208,8 @@ class Geant4(CMakePackage):
     patch("geant4-10.0.4.patch", when="@10.0.4")
     # Fix member field typo in g4tools wroot
     # See https://bugzilla-geant4.kek.jp/show_bug.cgi?id=2640
-    patch("columns.patch", when="@10.4:11.2.2")
+    patch("columns-11.patch", when="@11:11.2.2")
+    patch("columns-10.patch", when="@10.4:10")
     # As released, 10.03.03 has issues with respect to using external
     # CLHEP.
     patch("CLHEP-10.03.03.patch", level=1, when="@10.3")

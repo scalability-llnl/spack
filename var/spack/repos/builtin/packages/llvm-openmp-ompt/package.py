@@ -31,8 +31,7 @@ class LlvmOpenmpOmpt(CMakePackage):
     variant(
         "standalone",
         default=False,
-        description="Build llvm openmpi ompt library as a \
-                         stand alone entity.",
+        description="Build llvm openmpi ompt library as a stand alone entity.",
     )
     # variant for building libomptarget
     variant(

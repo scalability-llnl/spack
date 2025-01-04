@@ -16,6 +16,7 @@ class PyTorchgeo(PythonPackage):
     maintainers("adamjstewart", "calebrob6")
 
     version("main", branch="main")
+    version("0.6.2", sha256="82f49f0d18d2c22cc70fc0690641e8dd60e4904a9c50d32c79ebd5020ac10fa7")
     version("0.6.1", sha256="38c930917ea341d05a7a611ff74c017f29482df7455d50e287ea79dec7d0a14b")
     version("0.6.0", sha256="c5b073b3c9ac06cd68e45620bab3a78fb7637fa3563aae4f75f4781ba57aee5a")
     version("0.5.2", sha256="b23df51fe53ebe66c8d555484605a5618985f3680b70275f99ce8665e7203560")
@@ -200,9 +201,11 @@ class PyTorchgeo(PythonPackage):
 
     # https://github.com/microsoft/torchgeo/pull/1123
     conflicts("py-kornia@0.6.10:", when="@:0.4.0")
+    # https://github.com/microsoft/torchgeo/pull/2484
+    conflicts("py-lightning@=2.5.0")
     # https://github.com/Lightning-AI/pytorch-lightning/issues/19977
-    conflicts("py-lightning@2.3", when="@0.4.1:")
+    conflicts("py-lightning@2.3")
     # https://github.com/microsoft/torchgeo/pull/2151
     conflicts("py-numpy@2:", when="@:0.5")
     # https://github.com/rasterio/rasterio/issues/3196
-    conflicts("py-rasterio@1.4:")
+    conflicts("py-rasterio@1.4.0:1.4.2")

@@ -46,8 +46,8 @@ class OpenradiossStarter(CMakePackage):
         "%aocc",
         "%arm",
         policy="one_of",
-        msg="Openradioss-starter can be built using GNU Fortran, Intel Fortran, AOCC, \
-             or Armflang compilers only.",
+        msg="Openradioss-starter can be built using GNU Fortran, Intel Fortran, AOCC, "
+        "or Armflang compilers only.",
     )
 
     build_directory = "starter"

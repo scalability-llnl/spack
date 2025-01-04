@@ -34,11 +34,11 @@ class Pmix(AutotoolsPackage):
     url = "https://github.com/openpmix/openpmix/releases/download/v5.0.3/pmix-5.0.3.tar.bz2"
     git = "https://github.com/openpmix/openpmix.git"
 
-    maintainers("rhc54")
-
     license("BSD-3-Clause-Open-MPI")
 
     version("master", branch="master", submodules=True)
+    version("5.0.5", sha256="a12e148c8ec4b032593a2c465a762e93c43ad715f3ceb9fbc038525613b0c70d")
+    version("5.0.4", sha256="f72d50a5ae9315751684ade8a8e9ac141ae5dd64a8652d594b9bee3531a91376")
     version("5.0.3", sha256="3f779434ed59fc3d63e4f77f170605ac3a80cd40b1f324112214b0efbdc34f13")
     version("5.0.2", sha256="28227ff2ba925da2c3fece44502f23a91446017de0f5a58f5cea9370c514b83c")
     version("5.0.1", sha256="d4371792d4ba4c791e1010100b4bf9a65500ababaf5ff25d681f938527a67d4a")
@@ -159,7 +159,7 @@ class Pmix(AutotoolsPackage):
     variant(
         "restful",
         default=False,
-        when="@4:",
+        when="@4:5.0.4",
         description="Allow a PMIx server to request services from a system-level REST server",
     )
     variant(

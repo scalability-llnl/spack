@@ -111,7 +111,7 @@ class Rccl(CMakePackage):
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 
-    depends_on("googletest@1.11.0:", when="@5.3:")
+    depends_on("googletest@1.11.0:", type="test", when="@5.3:")
 
     @classmethod
     def determine_version(cls, lib):
@@ -138,10 +138,10 @@ class Rccl(CMakePackage):
             args.append(self.define_from_variant("AMDGPU_TARGETS", "amdgpu_target"))
 
         if self.spec.satisfies("^cmake@3.21.0:3.21.2"):
-            args.append(self.define("__skip_rocmclang", "ON"))
+            args.append(self.define("__skip_rocmclang", True))
 
         if self.spec.satisfies("@5.3.0:"):
-            args.append(self.define("BUILD_TESTS", "ON"))
+            args.append(self.define("BUILD_TESTS", self.run_tests))
         return args
 
     def test_unit(self):

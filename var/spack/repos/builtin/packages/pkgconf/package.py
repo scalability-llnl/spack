@@ -18,6 +18,7 @@ class Pkgconf(AutotoolsPackage):
 
     license("ISC")
 
+    version("2.3.0", sha256="3a9080ac51d03615e7c1910a0a2a8df08424892b5f13b0628a204d3fcce0ea8b")
     version("2.2.0", sha256="b06ff63a83536aa8c2f6422fa80ad45e4833f590266feb14eaddfe1d4c853c69")
     version("1.9.5", sha256="1ac1656debb27497563036f7bffc281490f83f9b8457c0d60bcfb638fb6b6171")
     version("1.8.0", sha256="ef9c7e61822b7cb8356e6e9e1dca58d9556f3200d78acab35e4347e9d4c2bbaf")
