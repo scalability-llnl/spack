@@ -80,7 +80,7 @@ class Mgis(CMakePackage):
     depends_on("tfel@master", when="@master")
 
     depends_on("py-numpy", when="+python", type=("build", "link", "run"))
-    
+
     with when("@3.1:"):
         depends_on("py-pybind11", when="+python", type=("build", "link", "run"))
 
@@ -93,7 +93,7 @@ class Mgis(CMakePackage):
         depends_on(
             "boost+python+numpy+exception+container", when="+python", type=("build", "link", "run")
         )
-    
+
     extends("python", when="+python")
 
     def patch(self):

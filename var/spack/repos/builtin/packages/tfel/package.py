@@ -164,7 +164,7 @@ class Tfel(CMakePackage):
             when="+python_bindings",
             type=("build", "link", "run"),
         )
-    
+
     with when("@rliv1.2:rliv5.0"):
         depends_on(
             "boost+python+numpy+exception+container",
