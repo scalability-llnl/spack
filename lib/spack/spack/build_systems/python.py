@@ -243,8 +243,7 @@ class PythonExtension(spack.package_base.PackageBase):
                     self.spec, context=spack.context.Context.RUN
                 )
                 mods = setup_context.get_env_modifications()
-                with mods.set_env():
-                    python("-c", f"import {module}")
+                python("-c", f"import {module}", env=mods)
 
     def update_external_dependencies(self, extendee_spec=None):
         """
