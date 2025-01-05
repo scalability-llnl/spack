@@ -157,9 +157,15 @@ class Tfel(CMakePackage):
 
     with when("@5.1:"):
         depends_on("py-pybind11", when="+python_bindings", type=("build", "link", "run"))
-        
+
     with when("@2.0.4:5.0.99"):
-        # As boost+py has py runtime dependency, boost+py needs types link and run as well:
+        depends_on(
+            "boost+python+numpy+exception+container",
+            when="+python_bindings",
+            type=("build", "link", "run"),
+        )
+        
+    with when("@rliv1.2:rliv5.0"):
         depends_on(
             "boost+python+numpy+exception+container",
             when="+python_bindings",
@@ -214,10 +220,10 @@ class Tfel(CMakePackage):
 
         if "+python_bindings" in self.spec:
 
-            with when("@5.1:"):
+            if "py-pybind11" in self.spec:
                 args.append("-Dpybind11_DIR={0}".format(self.spec["py-pybind11"].prefix))
-            
-            with when("@2.0.4:5.0.99"):
+
+            if "boost" in self.spec:
                 args.append("-DBOOST_ROOT={0}".format(self.spec["boost"].prefix))
                 args.append("-DBoost_NO_SYSTEM_PATHS=ON")
                 args.append("-DBoost_NO_BOOST_CMAKE=ON")

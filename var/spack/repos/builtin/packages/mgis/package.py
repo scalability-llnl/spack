@@ -89,6 +89,11 @@ class Mgis(CMakePackage):
             "boost+python+numpy+exception+container", when="+python", type=("build", "link", "run")
         )
 
+    with when("@rliv-1.0:rliv-3.0"):
+        depends_on(
+            "boost+python+numpy+exception+container", when="+python", type=("build", "link", "run")
+        )
+        
     extends("python", when="+python")
 
     def patch(self):
@@ -121,11 +126,11 @@ class Mgis(CMakePackage):
             args.append("-DPYTHON_INCLUDE_DIR={0}".format(python.headers.directories[0]))
             args.append("-DPython_ADDITIONAL_VERSIONS={0}".format(python.version.up_to(2)))
 
-            with when("@3.1:"):
+            if "py-pybind11" in self.spec:
                 args.append("-Dpybind11_DIR={0}".format(self.spec["py-pybind11"].prefix))
 
-            # adding path to boost
-            with when("@1.0:3.0.99"):
+            if "boost" in self.spec:
+                # adding path to boost
                 args.append("-DBOOST_ROOT={0}".format(self.spec["boost"].prefix))
 
         if "+static" in self.spec:
