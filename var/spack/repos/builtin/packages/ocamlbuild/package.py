@@ -30,6 +30,8 @@ class Ocamlbuild(MakefilePackage):
 
     # Add dependencies if required.
     depends_on("ocaml")
+    depends_on("ocaml@:5.0.0", when="@:0.14.1")
+    depends_on("ocaml@:5.1.1", when="@:0.14.2")
 
     # Installation : https://github.com/ocaml/ocamlbuild/
     def edit(self, spec, prefix):
