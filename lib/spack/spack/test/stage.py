@@ -707,13 +707,13 @@ class TestStage:
         assert spack.stage._resolve_paths([]) == []
 
         # resolved path without user appends user
-        path = abstract_path(os.path.sep)
-        paths = [fs_path(path / "a" / "b" / "c")]
+        path = os.sep / abstract_path("a", "b", "c")
+        paths = [fs_path(path)]
         can_paths = [paths[0]]
         user = getpass.getuser()
 
         if sys.platform != "win32":
-            can_paths = [fs_path(path / "a" / "b" / "c" / user)]
+            can_paths = [fs_path(path / user)]
         assert spack.stage._resolve_paths(paths) == can_paths
 
         # resolved path with node including user does not append user

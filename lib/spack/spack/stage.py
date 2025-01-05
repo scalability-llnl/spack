@@ -11,6 +11,7 @@ import shutil
 import stat
 import sys
 import tempfile
+from pathlib import Path
 from typing import Callable, Dict, Generator, Iterable, List, Optional, Set
 
 import llnl.string
@@ -463,12 +464,12 @@ class Stage(LockableStagingDir):
     @property
     def expanded(self):
         """Returns True if source path expanded; else False."""
-        return os.path.exists(self.source_path)
+        return concrete_path(self.source_path).exists()
 
     @property
     def source_path(self):
         """Returns the well-known source directory path."""
-        return os.path.join(self.path, _source_path_subdir)
+        return fs_path(abstract_path(self.path, _source_path_subdir))
 
     def _generate_fetchers(self, mirror_only=False) -> Generator["fs.FetchStrategy", None, None]:
         fetchers: List[fs.FetchStrategy] = []
@@ -663,7 +664,7 @@ class Stage(LockableStagingDir):
 
         # Make sure we don't end up in a removed directory
         try:
-            os.getcwd()
+            Path.cwd()
         except OSError as e:
             tty.debug(e)
             os.chdir(abstract_path(self.path).name)
@@ -712,7 +713,7 @@ class ResourceStage(Stage):
         target_path = concrete_path(root_stage.source_path, resource.destination)
 
         try:
-            os.makedirs(target_path)
+            concrete_path(target_path).mkdir(parents=True)
         except OSError as err:
             tty.debug(err)
             if err.errno == errno.EEXIST and target_path.is_dir():
