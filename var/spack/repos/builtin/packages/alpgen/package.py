@@ -12,12 +12,17 @@ class Alpgen(CMakePackage, MakefilePackage):
     in hadronic collisions.
     """
 
-    homepage = "http://mlm.home.cern.ch/mlm/alpgen/"
-    url = "http://mlm.home.cern.ch/mlm/alpgen/V2.1/v214.tgz"
+    homepage = "https://web.archive.org/web/20171017025050/http://mlm.home.cern.ch/mlm/alpgen/"
+    url = "https://web.archive.org/web/20171017025050/http://mlm.home.cern.ch/mlm/alpgen/V2.1/v214.tgz"
 
     tags = ["hep"]
 
-    version("2.1.4", sha256="2f43f7f526793fe5f81a3a3e1adeffe21b653a7f5851efc599ed69ea13985c5e")
+    # Deprecated since not available outside of archive.org
+    version(
+        "2.1.4",
+        sha256="2f43f7f526793fe5f81a3a3e1adeffe21b653a7f5851efc599ed69ea13985c5e",
+        deprecated=True,
+    )
 
     build_system("makefile", "cmake", default="makefile")
 
