@@ -34,7 +34,7 @@ import functools
 import os
 import re
 import sys
-from typing import Any, Callable, Dict, Generator, List, Optional, Sequence, Tuple, Union
+from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
 
 import jsonschema
 
@@ -420,23 +420,8 @@ class Configuration:
     # convert to typing.OrderedDict when we drop 3.6, or OrderedDict when we reach 3.9
     scopes: lang.PriorityOrderedMapping[str, ConfigScope]
 
-    def __init__(self, *scopes: ScopeWithOptionalPriority) -> None:
-        """Initialize a configuration with an initial list of scopes.
-
-        Args:
-            scopes: list of scopes to add to this
-                Configuration, ordered from lowest to highest precedence
-
-        """
+    def __init__(self) -> None:
         self.scopes = lang.PriorityOrderedMapping()
-        for item in scopes:
-            if isinstance(item, tuple):
-                priority, scope = item
-            else:
-                priority = ConfigScopePriority.CONFIG_FILES
-                scope = item
-
-            self.push_scope(scope, priority=priority)
         self.format_updates: Dict[str, List[ConfigScope]] = collections.defaultdict(list)
 
     def ensure_unwrapped(self) -> "Configuration":
@@ -825,11 +810,10 @@ def create() -> Configuration:
     it. It is bundled inside a function so that configuration can be
     initialized lazily.
     """
-    cfg = Configuration()
-
     # first do the builtin, hardcoded defaults
-    builtin = InternalConfigScope("_builtin", CONFIG_DEFAULTS)
-    cfg.push_scope(builtin, priority=ConfigScopePriority.BUILTIN)
+    cfg = create_from(
+        (ConfigScopePriority.BUILTIN, InternalConfigScope("_builtin", CONFIG_DEFAULTS))
+    )
 
     # Builtin paths to configuration files in Spack
     configuration_paths = [
@@ -1435,7 +1419,7 @@ def use_configuration(
     global CONFIG
 
     # Normalize input and construct a Configuration object
-    configuration = _config_from(scopes_or_paths)
+    configuration = create_from(*scopes_or_paths)
     CONFIG.clear_caches(), configuration.clear_caches()
 
     saved_config, CONFIG = CONFIG, configuration
@@ -1462,11 +1446,28 @@ def _normalize_input(entry: Union[ScopeWithOptionalPriority, str]) -> ScopeWithP
 
 
 @lang.memoized
-def _config_from(
-    scopes_or_paths: Sequence[Union[ScopeWithOptionalPriority, str]]
-) -> Configuration:
+def create_from(*scopes_or_paths: Union[ScopeWithOptionalPriority, str]) -> Configuration:
+    """Creates a configuration object from the scopes passed in input.
+
+    Args:
+        *scopes_or_paths: either a tuple of (priority, ConfigScope), or a ConfigScope, or a string
+            If priority is not given, it is assumed to be ConfigScopePriority.CONFIG_FILES. If a
+            string is given, a DirectoryConfigScope is created from it.
+
+    Examples:
+
+        >>> builtin_scope = InternalConfigScope("_builtin", {"config": {"build_jobs": 1}})
+        >>> cl_scope = InternalConfigScope("command_line", {"config": {"build_jobs": 10}})
+        >>> cfg = create_from(
+        ...     (ConfigScopePriority.COMMAND_LINE, cl_scope),
+        ...     (ConfigScopePriority.BUILTIN, builtin_scope)
+        ... )
+    """
     scopes_with_priority = [_normalize_input(x) for x in scopes_or_paths]
-    return Configuration(*scopes_with_priority)
+    result = Configuration()
+    for priority, scope in scopes_with_priority:
+        result.push_scope(scope, priority=priority)
+    return result
 
 
 def raw_github_gitlab_url(url: str) -> str:
