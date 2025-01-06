@@ -447,7 +447,7 @@ class Configuration:
 
     @_config_mutator
     def remove_scope(self, scope_name: str) -> Optional[ConfigScope]:
-        """Remove scope by name; has no effect when ``scope_name`` does not exist"""
+        """Removes a scope by name, and returns it. If the scope does not exist, returns None."""
         try:
             scope = self.scopes.remove(scope_name)
             tty.debug(f"[CONFIGURATION: POP SCOPE]: {str(scope)}", level=2)
@@ -462,11 +462,11 @@ class Configuration:
         return (s for s in self.scopes.values() if s.writable)
 
     def highest_precedence_scope(self) -> ConfigScope:
-        """Writable scope with highest precedence."""
+        """Writable scope with the highest precedence."""
         return next(s for s in self.scopes.reversed_values() if s.writable)
 
     def highest_precedence_non_platform_scope(self) -> ConfigScope:
-        """Writable non-platform scope with highest precedence"""
+        """Writable non-platform scope with the highest precedence"""
         return next(
             s for s in self.scopes.reversed_values() if s.writable and not s.is_platform_dependent
         )
