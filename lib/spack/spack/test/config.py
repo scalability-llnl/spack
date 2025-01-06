@@ -712,10 +712,7 @@ def test_mark_internal():
 
 
 def test_internal_config_from_data():
-    config = spack.config.Configuration()
-
-    # add an internal config initialized from an inline dict
-    config.push_scope(
+    config = spack.config.create_from(
         spack.config.InternalConfigScope(
             "_builtin", {"config": {"verify_ssl": False, "build_jobs": 6}}
         )

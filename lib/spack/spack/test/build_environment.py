@@ -546,7 +546,7 @@ def test_build_jobs_sequential_is_sequential():
         spack.config.determine_number_of_jobs(
             parallel=False,
             max_cpus=8,
-            config=spack.config.Configuration(
+            config=spack.config.create_from(
                 spack.config.InternalConfigScope("command_line", {"config": {"build_jobs": 8}}),
                 spack.config.InternalConfigScope("defaults", {"config": {"build_jobs": 8}}),
             ),
@@ -560,7 +560,7 @@ def test_build_jobs_command_line_overrides():
         spack.config.determine_number_of_jobs(
             parallel=True,
             max_cpus=1,
-            config=spack.config.Configuration(
+            config=spack.config.create_from(
                 spack.config.InternalConfigScope("command_line", {"config": {"build_jobs": 10}}),
                 spack.config.InternalConfigScope("defaults", {"config": {"build_jobs": 1}}),
             ),
@@ -571,7 +571,7 @@ def test_build_jobs_command_line_overrides():
         spack.config.determine_number_of_jobs(
             parallel=True,
             max_cpus=100,
-            config=spack.config.Configuration(
+            config=spack.config.create_from(
                 spack.config.InternalConfigScope("command_line", {"config": {"build_jobs": 10}}),
                 spack.config.InternalConfigScope("defaults", {"config": {"build_jobs": 100}}),
             ),
@@ -585,7 +585,7 @@ def test_build_jobs_defaults():
         spack.config.determine_number_of_jobs(
             parallel=True,
             max_cpus=10,
-            config=spack.config.Configuration(
+            config=spack.config.create_from(
                 spack.config.InternalConfigScope("defaults", {"config": {"build_jobs": 1}})
             ),
         )
@@ -595,7 +595,7 @@ def test_build_jobs_defaults():
         spack.config.determine_number_of_jobs(
             parallel=True,
             max_cpus=10,
-            config=spack.config.Configuration(
+            config=spack.config.create_from(
                 spack.config.InternalConfigScope("defaults", {"config": {"build_jobs": 100}})
             ),
         )
