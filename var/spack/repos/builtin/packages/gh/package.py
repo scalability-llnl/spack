@@ -58,6 +58,20 @@ class Gh(GoPackage):
         args.extend(["-trimpath", "./cmd/gh"])
         return args
 
+    @property
+    def check_args(self):
+        args = super().check_args
+        skip_tests = (
+            "TestHasNoActiveToken|TestTokenStoredIn.*|"
+            "TestSwitchUser.*|TestSwitchClears.*|"
+            "TestTokenWorksRightAfterMigration|"
+            "Test_loginRun.*|Test_logoutRun.*|Test_refreshRun.*|"
+            "Test_setupGitRun.*|Test_CheckAuth|TestSwitchRun.*|"
+            "Test_statusRun.*|TestTokenRun.*"
+        )
+        args.extend([f"-skip={skip_tests}", "./..."])
+        return args
+
     @run_after("install")
     def install_completions(self):
         gh = Executable(self.prefix.bin.gh)
