@@ -115,7 +115,15 @@ class SetupEnvironment:
             env.set("OCCA_CUDA_ENABLED", "0")
 
         # Disable hip autodetection for now since it fails on some machines.
-        env.set("OCCA_HIP_ENABLED", "0")
+        if "+rocm" in spec:
+            hip_dir = spec["hip"].prefix
+            hip_libs_list = ["amdhip64"]
+            hip_libs = find_libraries(hip_libs_list, hip_dir, shared=True, recursive=True)
+            env.set("OCCA_INCLUDE_PATH", hip_dir.include)
+            env.set("OCCA_LIBRARY_PATH", ":".join(hip_libs.directories))
+            env.set("OCCA_HIP_ENABLED", "1")
+        else:
+            env.set("OCCA_HIP_ENABLED", "0")
 
         if "+opencl" in spec:
             env.set("OCCA_OPENCL_ENABLED", "1")
