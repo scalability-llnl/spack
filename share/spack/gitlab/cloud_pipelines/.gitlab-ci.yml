@@ -19,10 +19,10 @@ default:
     SPACK_TARGET_PLATFORM: "cray-rhel"
     SPACK_TARGET_ARCH: "x86_64_v3"
 
-# .cray_sles_zen4:
-#   variables:
-#     SPACK_TARGET_PLATFORM: "cray-sles"
-#     SPACK_TARGET_ARCH: "zen4"
+.cray_sles_zen4:
+  variables:
+    SPACK_TARGET_PLATFORM: "cray-sles"
+    SPACK_TARGET_ARCH: "zen4"
 
 .darwin_x86_64:
   variables:
@@ -879,9 +879,9 @@ aws-pcluster-build-neoverse_v1:
   tags: [ "cray-rhel-x86_64_v3", "public" ]
   extends: [ ".generate-cray" ]
 
-# .generate-cray-sles:
-#   tags: [ "cray-sles-zen4", "public" ]
-#   extends: [ ".generate-cray" ]
+.generate-cray-sles:
+  tags: [ "cray-sles-zen4", "public" ]
+  extends: [ ".generate-cray" ]
 
 
 #######################################
@@ -909,25 +909,25 @@ e4s-cray-rhel-build:
 #######################################
 # E4S - Cray SLES
 #######################################
-# .e4s-cray-sles:
-#   extends: [ ".cray_sles_zen4" ]
-#   variables:
-#     SPACK_CI_STACK_NAME: e4s-cray-sles
+.e4s-cray-sles:
+  extends: [ ".cray_sles_zen4" ]
+  variables:
+    SPACK_CI_STACK_NAME: e4s-cray-sles
 
-# e4s-cray-sles-generate:
-#   extends: [ ".generate-cray-sles", ".e4s-cray-sles" ]
+.e4s-cray-sles-generate:
+  extends: [ ".generate-cray-sles", ".e4s-cray-sles" ]
 
-# e4s-cray-sles-build:
-#   allow_failure: true  # libsci_cray.so broken, misses DT_NEEDED for libdl.so
-#   extends: [ ".build", ".e4s-cray-sles" ]
-#   trigger:
-#     include:
-#       - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
-#         job: e4s-cray-sles-generate
-#     strategy: depend
-#   needs:
-#     - artifacts: True
-#       job: e4s-cray-sles-generate
+.e4s-cray-sles-build:
+  allow_failure: true  # libsci_cray.so broken, misses DT_NEEDED for libdl.so
+  extends: [ ".build", ".e4s-cray-sles" ]
+  trigger:
+    include:
+      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
+        job: e4s-cray-sles-generate
+    strategy: depend
+  needs:
+    - artifacts: True
+      job: e4s-cray-sles-generate
 
 #######################################
 # Windows Visualization Tools
