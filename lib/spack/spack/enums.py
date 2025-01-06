@@ -22,4 +22,3 @@ class ConfigScopePriority(enum.IntEnum):
     ENVIRONMENT = 2
     CUSTOM = 3
     COMMAND_LINE = 4
-    OVERRIDE = 5
