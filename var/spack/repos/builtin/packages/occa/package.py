@@ -49,7 +49,7 @@ class Occa(CMakePackage, MakefilePackage, CudaPackage, ROCmPackage):
         default="makefile",
     )
 
-    variant("openmp", default=False, description="Enable support for OpenMP")
+    variant("openmp", default=False, description="Enable support for OpenMP",  when="@1.1.0:")
     variant("debug", default=False, description="Enable a build with debug symbols")
 
     conflicts("%gcc@6:", when="^cuda@:8")
