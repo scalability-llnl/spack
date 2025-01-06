@@ -52,6 +52,7 @@ import spack.schema.config
 import spack.schema.definitions
 import spack.schema.develop
 import spack.schema.env
+import spack.schema.env_vars
 import spack.schema.mirrors
 import spack.schema.modules
 import spack.schema.packages
