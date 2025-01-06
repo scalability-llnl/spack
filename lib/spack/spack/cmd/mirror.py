@@ -684,7 +684,7 @@ def create_mirror_for_all_specs(mirror_specs, path, skip_unstable_versions, thre
     )
     with ThreadPoolExecutor(max_workers=threads) as executor:
         # Submit tasks to the thread pool
-        futures = [
+        _ = [
             executor.submit(
                 create_mirror_for_one_spec,
                 candidate,
