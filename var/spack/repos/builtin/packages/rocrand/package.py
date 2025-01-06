@@ -25,6 +25,7 @@ class Rocrand(CMakePackage):
 
     version("develop", branch="develop")
     version("master", branch="master")
+    version("6.3.1", sha256="80d86c31ec9cb40f5c5532281b42cf99fbc8a81e3ffd3bc8b3bbe4a7e509bf5f")
     version("6.3.0", sha256="396d2dc842c64d29f577365c348fbccd6260a11431eec61f233fdb0f38b7625d")
     version("6.2.4", sha256="94a2ea2413623b427ddf69365b3996c18721456965024c0dfac506a13c8dc547")
     version("6.2.1", sha256="ed07f638b5e30199251ddda6dd9ee53ee0ec49bcf37cc571a3de85c3a9833248")
@@ -128,6 +129,7 @@ class Rocrand(CMakePackage):
         "6.2.1",
         "6.2.4",
         "6.3.0",
+        "6.3.1",
     ]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"rocm-cmake@{ver}:", type="build", when=f"@{ver}")
