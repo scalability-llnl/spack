@@ -147,25 +147,32 @@ class CrayMpich(MpichEnvironmentModifications, Package, CudaPackage, ROCmPackage
         #   /opt/cray/pe/mpich/8.1.28/ofi/<vendor>/<vendor_version>
         #   /opt/cray/pe/mpich/8.1.28/ofi/<vendor>/<vendor_version>/../../../gtl/lib
 
-        gtl_kinds = [
-            [
-                "+rocm",
-                "amdgpu_target",
-                "libmpi_gtl_hsa",
-                set(["gfx906", "gfx908", "gfx90a", "gfx940", "gfx942"]),
-            ],
-            ["+cuda", "cuda_arch", "libmpi_gtl_cuda", set(["70", "80", "90"])],
-        ]
+        gtl_kinds = {
+            "cuda": {
+                "lib": "libmpi_gtl_cuda",
+                "variant": "cuda_arch",
+                "values": {"70", "80", "90"},
+            },
+            "rocm": {
+                "lib": "libmpi_gtl_hsa",
+                "variant": "amdgpu_target",
+                "values": {"gfx906", "gfx908", "gfx90a", "gfx940", "gfx942"},
+            },
+        }
 
-        for gtl_kind in gtl_kinds:
-            if self.spec.satisfies(f"{gtl_kind[0]} {gtl_kind[1]}=*"):
-                accelerator_architecture_set = set(self.spec.variants[gtl_kind[1]].value)
+        for variant, gtl_kind in gtl_kinds.items():
+            arch_variant = gtl_kind["variant"]
+            arch_values = gtl_kind["values"]
+            gtl_lib = gtl_kind["lib"]
+
+            if self.spec.satisfies(f"+{variant} {arch_variant}=*"):
+                accelerator_architecture_set = set(self.spec.variants[arch_variant].value)
 
                 if len(
                     accelerator_architecture_set
-                ) >= 1 and not accelerator_architecture_set.issubset(gtl_kind[3]):
+                ) >= 1 and not accelerator_architecture_set.issubset(arch_values):
                     raise InstallError(
-                        f"cray-mpich variant '{gtl_kind[0]} {gtl_kind[1]}'"
+                        f"cray-mpich variant '+{variant} {arch_variant}'"
                         " was specified but no GTL support could be found for it."
                     )
 
@@ -181,9 +188,9 @@ class CrayMpich(MpichEnvironmentModifications, Package, CudaPackage, ROCmPackage
 
                 if len(gtl_shared_libraries) != 1:
                     raise InstallError(
-                        f"cray-mpich variant '{gtl_kind[0]} {gtl_kind[1]}'"
+                        f"cray-mpich variant '+{variant} {arch_variant}'"
                         " was specified and GTL support was found for it but"
-                        f" the '{gtl_kind[2]}' could not be correctly found on disk."
+                        f" the '{gtl_lib}' could not be correctly found on disk."
                     )
 
                 gtl_library_fullpath = list(gtl_shared_libraries)[0]
