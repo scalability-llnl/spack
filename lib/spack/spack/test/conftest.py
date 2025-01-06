@@ -808,13 +808,11 @@ def mock_wsdk_externals(monkeypatch_session):
 def concretize_scope(mutable_config, tmpdir):
     """Adds a scope for concretization preferences"""
     tmpdir.ensure_dir("concretize")
-    mutable_config.push_scope(
+    with spack.config.override(
         spack.config.DirectoryConfigScope("concretize", str(tmpdir.join("concretize")))
-    )
+    ):
+        yield str(tmpdir.join("concretize"))
 
-    yield str(tmpdir.join("concretize"))
-
-    mutable_config.pop_scope()
     spack.repo.PATH._provider_index = None
 
 

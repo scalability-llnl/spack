@@ -446,14 +446,6 @@ class Configuration:
         self.scopes.add(scope.name, value=scope, priority=priority)
 
     @_config_mutator
-    def pop_scope(self) -> ConfigScope:
-        """Remove the highest precedence scope and return it."""
-        name = next(reversed(self.scopes))
-        scope = self.scopes.remove(name)
-        tty.debug(f"[CONFIGURATION: POP SCOPE]: {str(scope)}", level=2)
-        return scope
-
-    @_config_mutator
     def remove_scope(self, scope_name: str) -> Optional[ConfigScope]:
         """Remove scope by name; has no effect when ``scope_name`` does not exist"""
         try:
