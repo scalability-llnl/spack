@@ -45,7 +45,7 @@ class PyEspresso(CMakePackage):
     patch("2244.patch", when="@4.0.0")
 
     # Support for modern gcc was fixed in 4.2 (https://github.com/espressomd/espresso/pull/3990)
-    conflicts("%gcc@11:", when="@:4.2")
+    conflicts("%gcc@11:", when="@:4.1")
 
     variant("hdf5", default=True, description="Enable HDF5 backend")
 
