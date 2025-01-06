@@ -11,6 +11,7 @@ import os
 import shutil
 import stat
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -187,11 +188,11 @@ def get_stage_path(stage, stage_name):
 #       the `mock_stage` path in `mock_stage_archive`) per discussions in
 #       #12857.  See also #13065.
 @pytest.fixture
-def tmp_build_stage_dir(tmpdir, clear_stage_root):
+def tmp_build_stage_dir(tmp_path, clear_stage_root):
     """Use a temporary test directory for the stage root."""
-    test_path = str(tmpdir.join("stage"))
+    test_path = fs_path(tmp_path / "stage")
     with spack.config.override("config:build_stage", test_path):
-        yield tmpdir, spack.stage.get_stage_root()
+        yield tmp_path, spack.stage.get_stage_root()
 
     shutil.rmtree(test_path)
 
@@ -202,7 +203,7 @@ def mock_stage_archive(tmp_build_stage_dir):
 
     # Mock up a stage area that looks like this:
     #
-    # tmpdir/                test_files_dir
+    # tmp_path/                test_files_dir
     #     stage/             test_stage_path (where stage should be)
     #     <_archive_base>/   archive_dir_path
     #         <_readme_fn>   Optional test_readme (contains _readme_contents)
@@ -211,14 +212,14 @@ def mock_stage_archive(tmp_build_stage_dir):
     #     <_archive_fn>      archive_url = file:///path/to/<_archive_fn>
     #
     def create_stage_archive(expected_file_list=[_include_readme]):
-        tmpdir, test_stage_path = tmp_build_stage_dir
+        tmp_path, test_stage_path = tmp_build_stage_dir
         mkdirp(test_stage_path)
 
         # Create the archive directory and associated file
-        archive_dir = tmpdir.join(_archive_base)
-        archive = tmpdir.join(_archive_fn)
-        archive_url = url_util.path_to_file_url(str(archive))
-        archive_dir.ensure(dir=True)
+        archive_dir = tmp_path / _archive_base
+        archive = tmp_path / _archive_fn
+        archive_url = url_util.path_to_file_url(archive)
+        archive_dir.mkdir(parents=True)
 
         # Create the optional files as requested and make sure expanded
         # archive peers are included.
@@ -229,68 +230,74 @@ def mock_stage_archive(tmp_build_stage_dir):
                 # represent HFS metadata.  Locate in the same directory as the
                 # archive file.
                 tar_args.append(_hidden_fn)
-                fn, contents = (tmpdir.join(_hidden_fn), _hidden_contents)
+                fn, contents = (tmp_path / _hidden_fn, _hidden_contents)
 
             elif _include == _include_readme:
                 # The usual README.txt file is contained in the archive dir.
-                fn, contents = (archive_dir.join(_readme_fn), _readme_contents)
+                fn, contents = (archive_dir / _readme_fn, _readme_contents)
 
             elif _include == _include_extra:
                 # The extra file stands in for exploding tar files so needs
                 # to be in the same directory as the archive file.
                 tar_args.append(_extra_fn)
-                fn, contents = (tmpdir.join(_extra_fn), _extra_contents)
+                fn, contents = (tmp_path / _extra_fn, _extra_contents)
             else:
                 break
 
-            fn.write(contents)
+            fn.write_text(contents, encoding="utf-8")
 
         # Create the archive file
-        with tmpdir.as_cwd():
-            tar = spack.util.executable.which("tar", required=True)
-            tar(*tar_args)
+        cwd = Path.cwd()
+        os.chdir(tmp_path)
+        tar = spack.util.executable.which("tar", required=True)
+        tar(*tar_args)
+        os.chdir(cwd)
 
-        Archive = collections.namedtuple("Archive", ["url", "tmpdir", "stage_path", "archive_dir"])
+        Archive = collections.namedtuple(
+            "Archive", ["url", "tmp_path", "stage_path", "archive_dir"]
+        )
         return Archive(
-            url=archive_url, tmpdir=tmpdir, stage_path=test_stage_path, archive_dir=archive_dir
+            url=archive_url, tmp_path=tmp_path, stage_path=test_stage_path, archive_dir=archive_dir
         )
 
     return create_stage_archive
 
 
 @pytest.fixture
-def mock_noexpand_resource(tmpdir):
-    """Set up a non-expandable resource in the tmpdir prior to staging."""
-    test_resource = tmpdir.join("resource-no-expand.sh")
-    test_resource.write("an example resource")
-    return str(test_resource)
+def mock_noexpand_resource(tmp_path):
+    """Set up a non-expandable resource in the tmp_path prior to staging."""
+    test_resource = tmp_path / "resource-no-expand.sh"
+    test_resource.write_text("an example resource", encoding="utf-8")
+    return test_resource
 
 
 @pytest.fixture
-def mock_expand_resource(tmpdir):
-    """Sets up an expandable resource in tmpdir prior to staging."""
+def mock_expand_resource(tmp_path):
+    """Sets up an expandable resource in tmp_path prior to staging."""
     # Mock up an expandable resource:
     #
-    # tmpdir/                    test_files_dir
+    # tmp_path/                    test_files_dir
     #     resource-expand/       resource source dir
     #         resource-file.txt  resource contents (contains 'test content')
     #     resource.tar.gz        archive of resource content
     #
     subdir = "resource-expand"
-    resource_dir = tmpdir.join(subdir)
-    resource_dir.ensure(dir=True)
+    resource_dir = tmp_path / subdir
+    resource_dir.mkdir(parents=True)
 
     archive_name = "resource.tar.gz"
-    archive = tmpdir.join(archive_name)
-    archive_url = url_util.path_to_file_url(str(archive))
+    archive = tmp_path / archive_name
+    archive_url = url_util.path_to_file_url(archive)
 
     filename = "resource-file.txt"
-    test_file = resource_dir.join(filename)
-    test_file.write("test content\n")
+    test_file = resource_dir / filename
+    test_file.write_text("test content\n", encoding="utf-8")
 
-    with tmpdir.as_cwd():
-        tar = spack.util.executable.which("tar", required=True)
-        tar("czf", str(archive_name), subdir)
+    cwd = Path.cwd()
+    os.chdir(tmp_path)
+    tar = spack.util.executable.which("tar", required=True)
+    tar("czf", archive_name, subdir)
+    os.chdir(cwd)
 
     MockResource = collections.namedtuple("MockResource", ["url", "files"])
 
@@ -684,7 +691,7 @@ class TestStage:
 
         try:
             if getpass.getuser() in test_path.parts:
-                # Simply ensure directory created if tmpdir includes user
+                # Simply ensure directory created if tmp_path includes user
                 spack.stage.create_stage_root(test_path)
                 assert test_path.exists()
 
@@ -787,9 +794,9 @@ class TestStage:
             with Stage(None):
                 pass
 
-    def test_stage_constructor_with_path(self, tmpdir):
+    def test_stage_constructor_with_path(self, tmp_path):
         """Ensure Stage constructor with a path uses it."""
-        testpath = str(tmpdir)
+        testpath = fs_path(tmp_path)
         with Stage("file:///does-not-exist", path=testpath) as stage:
             assert stage.path == testpath
 
