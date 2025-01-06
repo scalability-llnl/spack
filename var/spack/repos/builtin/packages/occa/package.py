@@ -50,7 +50,6 @@ class Occa(CMakePackage, MakefilePackage, CudaPackage, ROCmPackage):
     )
 
     variant("openmp", default=False, description="Enable support for OpenMP")
-    variant("opencl", default=False, description="Enable support for OpenCL")
     variant("debug", default=False, description="Enable a build with debug symbols")
 
     conflicts("%gcc@6:", when="^cuda@:8")
@@ -101,7 +100,7 @@ class SetupEnvironment:
             env.set("CXXFLAGS", " ".join(cxxflags))
 
         # Following only apply to the make build. For each variant, set the
-        # environment variable OCCA_{CUDA,OPENMP,OPENCL}_ENABLED only if the
+        # environment variable OCCA_{CUDA,HIP,OPENMP}_ENABLED only if the
         # variant is enabled. We disable OCCA autodetect as it causes issues
         # on head nodes.
         if "+cuda" in spec:
@@ -125,10 +124,8 @@ class SetupEnvironment:
         else:
             env.set("OCCA_HIP_ENABLED", "0")
 
-        if "+opencl" in spec:
-            env.set("OCCA_OPENCL_ENABLED", "1")
-        else:
-            env.set("OCCA_OPENCL_ENABLED", "0")
+        # Turn-off OpenCL since it fails on some of the machines.
+        env.set("OCCA_OPENCL_ENABLED", "0")
 
         if "+openmp" in spec:
             env.set("OCCA_OPENMP_ENABLED", "1")
@@ -170,10 +167,8 @@ class CMakeBuilder(CMakeBuilder, SetupEnvironment):
         else:
             args.append("-DOCCA_ENABLE_HIP=OFF")
 
-        if "+opencl" in spec:
-            args.append("-DOCCA_ENABLE_OPENCL=ON")
-        else:
-            args.append("-DOCCA_ENABLE_OPENCL=OFF")
+        # Turn-off OpenCL since it fails on some of the machines.
+        args.append("-DOCCA_ENABLE_OPENCL=OFF")
 
         if "+openmp" in spec:
             args.append("-DOCCA_ENABLE_OPENMP=ON")
