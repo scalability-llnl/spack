@@ -81,9 +81,9 @@ class Rivet(AutotoolsPackage):
     # See: https://gitlab.com/hepcedar/rivet/-/merge_requests/904
     # and: https://gitlab.com/hepcedar/rivet/-/merge_requests/912
     conflicts(
-        "^hepmc@3.3.0",
+        "^hepmc@3.1.0,3.2.0,3.3.0",
         when="@:3.1.10,4.0.0 hepmc=3",
-        msg="patch-level zero requires at least 3.1.11 or 4.0.1",
+        msg="HepMC 3.x.0 requires at least 3.1.11 or 4.0.1",
     )
     depends_on("fastjet plugins=cxx")
     depends_on("fastjet@3.4.0:", when="@3.1.7:")
