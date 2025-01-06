@@ -503,9 +503,12 @@ def make_argument_parser(**kwargs):
     return parser
 
 
-def send_warning_to_tty(message, *args):
+def send_warning_to_tty(message, category, filename, lineno, file=None, line=None):
     """Redirects messages to tty.warn."""
-    tty.warn(message)
+    if category is spack.error.SpackAPIWarning:
+        tty.warn(f"{filename}:{lineno}: {message}")
+    else:
+        tty.warn(message)
 
 
 def setup_main_options(args):
