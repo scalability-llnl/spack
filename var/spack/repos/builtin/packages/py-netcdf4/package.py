@@ -55,8 +55,7 @@ class PyNetcdf4(PythonPackage):
     # Therefore, if pkg-config finds hdf5.pc at all (e.g. provided by
     # Ubuntu/Debian package manager), it is definitely not what we need. The
     # following patch disables the usage of pkg-config at all.
-    patch("disable_pkgconf.patch", when="@:1.6.5")
-    patch("disable_pkgconf-1.7.patch", when="@1.7.1.post2:")
+    patch("disable_pkgconf.patch")
 
     # https://github.com/Unidata/netcdf4-python/pull/1322
     patch(
