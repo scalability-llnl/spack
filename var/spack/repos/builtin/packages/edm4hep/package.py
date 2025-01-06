@@ -90,7 +90,7 @@ class Edm4hep(CMakePackage):
     # Corresponding changes in EDM4hep landed with https://github.com/key4hep/EDM4hep/pull/314
     extends("python", when="@0.10.6:")
 
-    conflicts("%clang@:16", when="@0.99.1:")
+    conflicts("%clang@:16", when="@0.99.1:", msg="Incomplete consteval support in clang")
 
     def cmake_args(self):
         args = [
