@@ -71,12 +71,15 @@ class CargoBuilder(BuilderWithDefaults):
     @property
     def build_args(self):
         """Arguments for ``cargo build``."""
-        return []
+        return ["-j", str(self.pkg.module.make_jobs)]
 
     @property
     def check_args(self):
         """Argument for ``cargo test`` during check phase"""
         return []
+
+    def setup_build_environment(self, env):
+        env.set("CARGO_HOME", self.stage.path)
 
     def build(self, pkg, spec, prefix):
         """Runs ``cargo install`` in the source directory"""

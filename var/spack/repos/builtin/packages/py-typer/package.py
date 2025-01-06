@@ -16,6 +16,7 @@ class PyTyper(PythonPackage):
     version("0.15.1", sha256="a0588c0a7fa68a1978a069818657778f86abe6ff5ea6abf472f940a08bfe4f0a")
     version("0.9.0", sha256="50922fd79aea2f4751a8e0408ff10d2662bd0c8bbfa84755a699f3bada2978b2")
     version("0.7.0", sha256="ff797846578a9f2a201b53442aedeb543319466870fbe1c701eab66dd7681165")
+    version("0.5.0", sha256="4c285a5585c94d32c305444af934f0078b6a8ba91464f3f85807c91cd499d195")
 
     with when("@0.15.1:"):
         depends_on("python@3.7:", type=("build", "run"))
