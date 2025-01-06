@@ -153,7 +153,6 @@ class CrayMpich(MpichEnvironmentModifications, Package, CudaPackage, ROCmPackage
                 set(["gfx906", "gfx908", "gfx90a", "gfx940", "gfx942"]),
             ],
             ["+cuda", "cuda_arch", "libmpi_gtl_cuda", set(["70", "80", "90"])],
-            # ["", "", "libmpi_gtl_ze", ["ponteVecchio"]]
         ]
 
         for gtl_kind in gtl_kinds:
