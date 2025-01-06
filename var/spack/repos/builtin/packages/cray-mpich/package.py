@@ -163,11 +163,10 @@ class CrayMpich(MpichEnvironmentModifications, Package, CudaPackage, ROCmPackage
                 if len(
                     accelerator_architecture_set
                 ) >= 1 and not accelerator_architecture_set.issubset(gtl_kind[3]):
-                    tty.error(
+                    raise InstallError(
                         f"cray-mpich variant '{gtl_kind[0]} {gtl_kind[1]}'"
                         " was specified but no GTL support could be found for it."
                     )
-                    break
 
                 mpi_root = os.path.abspath(
                     os.path.join(self.prefix, os.pardir, os.pardir, os.pardir)
@@ -180,12 +179,11 @@ class CrayMpich(MpichEnvironmentModifications, Package, CudaPackage, ROCmPackage
                 )
 
                 if len(gtl_shared_libraries) != 1:
-                    tty.error(
+                    raise InstallError(
                         f"cray-mpich variant '{gtl_kind[0]} {gtl_kind[1]}'"
                         " was specified and GTL support was found for it but"
                         f" the '{gtl_kind[2]}' could not be correctly found on disk."
                     )
-                    break
 
                 gtl_library_fullpath = list(gtl_shared_libraries)[0]
                 tty.debug(f"Selected GTL: {gtl_library_fullpath}")
