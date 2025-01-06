@@ -66,6 +66,7 @@ class Rivet(AutotoolsPackage):
     depends_on("yoda@1.9.8:", when="@3.1.8:")
     depends_on("yoda@1.9.9:", when="@3.1.9:")
     depends_on("yoda@1.9.10:", when="@3.1.10:")
+    depends_on("yoda@1.9.11:", when="@3.1.11:")
     depends_on("yoda@:1", when="@:3")
     depends_on("yoda@2.0.1:", when="@4.0.0:")
 
