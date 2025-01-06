@@ -19,10 +19,7 @@ class Surfer(CargoPackage):
     version("main", branch="main", submodules=True)
 
     version(
-        "0.3.0",
-        tag="v0.3.0",
-        commit="1a6b34c44ea0e5089bd55d0bce1297aa1a02e6ef",
-        submodules=True,
+        "0.3.0", tag="v0.3.0", commit="1a6b34c44ea0e5089bd55d0bce1297aa1a02e6ef", submodules=True
     )
 
     depends_on("rust@1.82:")
@@ -31,6 +28,6 @@ class Surfer(CargoPackage):
 
     def build(self, spec, prefix):
         cargo("build", "--release")
-    
+
     def install(self, spec, prefix):
         cargo("install", "--path", "surfer", "--root", prefix)
