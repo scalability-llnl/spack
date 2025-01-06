@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -57,17 +56,61 @@ class PyPandas(PythonPackage):
     version("1.1.5", sha256="f10fc41ee3c75a474d3bdf68d396f10782d013d7f67db99c0efbfd0acb99701b")
     version("1.1.4", sha256="a979d0404b135c63954dea79e6246c45dd45371a88631cdbb4877d844e6de3b6")
     version("1.1.3", sha256="babbeda2f83b0686c9ad38d93b10516e68cdcd5771007eb80a763e98aaf44613")
-    version("1.1.2", sha256="b64ffd87a2cfd31b40acd4b92cb72ea9a52a48165aec4c140e78fd69c45d1444")
-    version("1.1.1", sha256="53328284a7bb046e2e885fd1b8c078bd896d7fc4575b915d4936f54984a2ba67")
-    version("1.1.0", sha256="b39508562ad0bb3f384b0db24da7d68a2608b9ddc85b1d931ccaaa92d5e45273")
-    version("1.0.5", sha256="69c5d920a0b2a9838e677f78f4dde506b95ea8e4d30da25859db6469ded84fa8")
-    version("1.0.4", sha256="b35d625282baa7b51e82e52622c300a1ca9f786711b2af7cbe64f1e6831f4126")
-    version("1.0.3", sha256="32f42e322fb903d0e189a4c10b75ba70d90958cc4f66a1781ed027f1a1d14586")
-    version("1.0.2", sha256="76334ba36aa42f93b6b47b79cbc32187d3a178a4ab1c3a478c8f4198bcd93a73")
-    version("1.0.1", sha256="3c07765308f091d81b6735d4f2242bb43c332cc3461cae60543df6b10967fe27")
-    version("1.0.0", sha256="3ea6cc86931f57f18b1240572216f09922d91b19ab8a01cf24734394a3db3bec")
-    version("0.25.3", sha256="52da74df8a9c9a103af0a72c9d5fdc8e0183a90884278db7f386b5692a2220a4")
-    version("0.25.2", sha256="ca91a19d1f0a280874a24dca44aadce42da7f3a7edb7e9ab7c7baad8febee2be")
+    version(
+        "1.1.2",
+        sha256="b64ffd87a2cfd31b40acd4b92cb72ea9a52a48165aec4c140e78fd69c45d1444",
+        deprecated=True,
+    )
+    version(
+        "1.1.1",
+        sha256="53328284a7bb046e2e885fd1b8c078bd896d7fc4575b915d4936f54984a2ba67",
+        deprecated=True,
+    )
+    version(
+        "1.1.0",
+        sha256="b39508562ad0bb3f384b0db24da7d68a2608b9ddc85b1d931ccaaa92d5e45273",
+        deprecated=True,
+    )
+    version(
+        "1.0.5",
+        sha256="69c5d920a0b2a9838e677f78f4dde506b95ea8e4d30da25859db6469ded84fa8",
+        deprecated=True,
+    )
+    version(
+        "1.0.4",
+        sha256="b35d625282baa7b51e82e52622c300a1ca9f786711b2af7cbe64f1e6831f4126",
+        deprecated=True,
+    )
+    version(
+        "1.0.3",
+        sha256="32f42e322fb903d0e189a4c10b75ba70d90958cc4f66a1781ed027f1a1d14586",
+        deprecated=True,
+    )
+    version(
+        "1.0.2",
+        sha256="76334ba36aa42f93b6b47b79cbc32187d3a178a4ab1c3a478c8f4198bcd93a73",
+        deprecated=True,
+    )
+    version(
+        "1.0.1",
+        sha256="3c07765308f091d81b6735d4f2242bb43c332cc3461cae60543df6b10967fe27",
+        deprecated=True,
+    )
+    version(
+        "1.0.0",
+        sha256="3ea6cc86931f57f18b1240572216f09922d91b19ab8a01cf24734394a3db3bec",
+        deprecated=True,
+    )
+    version(
+        "0.25.3",
+        sha256="52da74df8a9c9a103af0a72c9d5fdc8e0183a90884278db7f386b5692a2220a4",
+        deprecated=True,
+    )
+    version(
+        "0.25.2",
+        sha256="ca91a19d1f0a280874a24dca44aadce42da7f3a7edb7e9ab7c7baad8febee2be",
+        deprecated=True,
+    )
 
     variant("performance", default=True, description="Build recommended performance dependencies")
     variant("excel", when="@1.4:", default=False, description="Build with support for Excel")

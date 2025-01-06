@@ -1,9 +1,9 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import argparse
+import difflib
 import importlib
 import os
 import re
@@ -23,10 +23,10 @@ import spack.config  # breaks a cycle.
 import spack.environment as ev
 import spack.error
 import spack.extensions
-import spack.parser
 import spack.paths
 import spack.repo
 import spack.spec
+import spack.spec_parser
 import spack.store
 import spack.traverse as traverse
 import spack.user_environment as uenv
@@ -125,6 +125,8 @@ def get_module(cmd_name):
         tty.debug("Imported {0} from built-in commands".format(pname))
     except ImportError:
         module = spack.extensions.get_module(cmd_name)
+        if not module:
+            raise CommandNotFoundError(cmd_name)
 
     attr_setdefault(module, SETUP_PARSER, lambda *args: None)  # null-op
     attr_setdefault(module, DESCRIPTION, "")
@@ -160,12 +162,12 @@ def quote_kvp(string: str) -> str:
     or ``name==``, and we assume the rest of the argument is the value. This covers the
     common cases of passign flags, e.g., ``cflags="-O2 -g"`` on the command line.
     """
-    match = spack.parser.SPLIT_KVP.match(string)
+    match = spack.spec_parser.SPLIT_KVP.match(string)
     if not match:
         return string
 
     key, delim, value = match.groups()
-    return f"{key}{delim}{spack.parser.quote_if_needed(value)}"
+    return f"{key}{delim}{spack.spec_parser.quote_if_needed(value)}"
 
 
 def parse_specs(
@@ -177,7 +179,7 @@ def parse_specs(
     args = [args] if isinstance(args, str) else args
     arg_string = " ".join([quote_kvp(arg) for arg in args])
 
-    specs = spack.parser.parse(arg_string)
+    specs = spack.spec_parser.parse(arg_string)
     if not concretize:
         return specs
 
@@ -691,3 +693,24 @@ def find_environment(args):
 def first_line(docstring):
     """Return the first line of the docstring."""
     return docstring.split("\n")[0]
+
+
+class CommandNotFoundError(spack.error.SpackError):
+    """Exception class thrown when a requested command is not recognized as
+    such.
+    """
+
+    def __init__(self, cmd_name):
+        msg = (
+            f"{cmd_name} is not a recognized Spack command or extension command; "
+            "check with `spack commands`."
+        )
+        long_msg = None
+
+        similar = difflib.get_close_matches(cmd_name, all_commands())
+
+        if 1 <= len(similar) <= 5:
+            long_msg = "\nDid you mean one of the following commands?\n  "
+            long_msg += "\n  ".join(similar)
+
+        super().__init__(msg, long_msg)

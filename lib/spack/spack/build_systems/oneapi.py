@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Common utilities for managing intel oneapi packages."""
@@ -31,6 +30,9 @@ class IntelOneApiPackage(Package):
     # oneAPI license does not allow mirroring outside of the
     # organization (e.g. University/Company).
     redistribute(source=False, binary=False)
+
+    # contains precompiled binaries without rpaths
+    unresolved_libraries = ["*"]
 
     for c in [
         "target=ppc64:",

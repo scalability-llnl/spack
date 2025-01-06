@@ -1,13 +1,10 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import re
 import urllib.parse
 from typing import Optional, Union
-
-import spack.spec
 
 # notice: Docker is more strict (no uppercase allowed). We parse image names *with* uppercase
 # and normalize, so: example.com/Organization/Name -> example.com/organization/name. Tags are
@@ -195,26 +192,12 @@ class ImageReference:
         )
 
 
-def _ensure_valid_tag(tag: str) -> str:
+def ensure_valid_tag(tag: str) -> str:
     """Ensure a tag is valid for an OCI registry."""
     sanitized = re.sub(r"[^\w.-]", "_", tag)
     if len(sanitized) > 128:
         return sanitized[:64] + sanitized[-64:]
     return sanitized
-
-
-def default_tag(spec: "spack.spec.Spec") -> str:
-    """Return a valid, default image tag for a spec."""
-    return _ensure_valid_tag(f"{spec.name}-{spec.version}-{spec.dag_hash()}.spack")
-
-
-#: Default OCI index tag
-default_index_tag = "index.spack"
-
-
-def tag_is_spec(tag: str) -> bool:
-    """Check if a tag is likely a Spec"""
-    return tag.endswith(".spack") and tag != default_index_tag
 
 
 def default_config(architecture: str, os: str):

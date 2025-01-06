@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -72,7 +71,7 @@ class Tar(AutotoolsPackage, GNUMirrorPackage):
         return match.group(1) if match else None
 
     def flag_handler(self, name, flags):
-        if name == "ldflags" and self.spec.satisfies("@1.35"):
+        if name == "ldflags" and self.spec.satisfies("@1.35 ^[virtuals=iconv] libiconv"):
             # https://savannah.gnu.org/bugs/?64441
             flags.append("-liconv")
         return (flags, None, None)

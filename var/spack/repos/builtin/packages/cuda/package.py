@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -818,3 +817,6 @@ class Cuda(Package):
 
     # Avoid binding stub libraries by absolute path
     non_bindable_shared_objects = ["stubs"]
+
+    # contains precompiled binaries without rpaths
+    unresolved_libraries = ["*"]

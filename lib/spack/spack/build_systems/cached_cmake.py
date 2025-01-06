@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections.abc
@@ -324,7 +323,7 @@ class CachedCMakeBuilder(CMakeBuilder):
             + self.initconfig_package_entries()
         )
 
-        with open(self.cache_name, "w") as f:
+        with open(self.cache_name, "w", encoding="utf-8") as f:
             for entry in cache_entries:
                 f.write("%s\n" % entry)
             f.write("\n")

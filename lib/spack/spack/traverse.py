@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -382,7 +381,7 @@ def traverse_topo_edges_generator(edges, visitor, key=id, root=True, all_edges=F
 
     Arguments:
         edges (list): List of EdgeAndDepth instances
-        visitor: visitor instance that defines the sub-DAG to traverse
+        visitor: visitor that produces unique edges defining the (sub)DAG of interest.
         key: function that takes a spec and outputs a key for uniqueness test.
         root (bool): Yield the root nodes themselves
         all_edges (bool): When ``False`` only one in-edge per node is returned, when

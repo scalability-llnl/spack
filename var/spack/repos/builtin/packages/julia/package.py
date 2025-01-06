@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -420,3 +419,7 @@ class Julia(MakefilePackage):
 
         with open("Make.user", "w") as f:
             f.write("\n".join(options) + "\n")
+
+    # julia's sys/package images are lacking rpaths, but this is fine because julia dlopen's them
+    # at which point their dependencies are already loaded. ccalllazyfoo.so is from tests.
+    unresolved_libraries = ["libjulia.so.*", "libjulia-internal.so.*", "ccalllazyfoo.so"]

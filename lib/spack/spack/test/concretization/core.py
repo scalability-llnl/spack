@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import copy
@@ -188,6 +187,8 @@ repo:
 
     packages_dir = repo_dir / "packages"
     root_pkg_str = """
+from spack.package import *
+
 class Root(Package):
     homepage = "http://www.example.com"
     url      = "http://www.example.com/root-1.0.tar.gz"
@@ -202,6 +203,8 @@ class Root(Package):
     package_py.write_text(root_pkg_str)
 
     changing_template = """
+from spack.package import *
+
 class Changing(Package):
     homepage = "http://www.example.com"
     url      = "http://www.example.com/changing-1.0.tar.gz"

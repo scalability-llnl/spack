@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -181,28 +180,20 @@ class Namd(MakefilePackage, CudaPackage, ROCmPackage):
                 if self.spec.satisfies("^charmpp@:6.10.1"):
                     optims_opts = {
                         "gcc": m64
-                        + "-O3 -fexpensive-optimizations \
-                                        -ffast-math -lpthread "
+                        + "-O3 -fexpensive-optimizations -ffast-math -lpthread "
                         + archopt,
                         "intel": "-O2 -ip -qopenmp-simd" + archopt,
                         "clang": m64 + "-O3 -ffast-math -fopenmp " + archopt,
-                        "aocc": m64
-                        + "-O3 -ffp-contract=fast -ffast-math \
-                                        -fopenmp "
-                        + archopt,
+                        "aocc": m64 + "-O3 -ffp-contract=fast -ffast-math -fopenmp " + archopt,
                     }
                 else:
                     optims_opts = {
                         "gcc": m64
-                        + "-O3 -fexpensive-optimizations \
-                                        -ffast-math -lpthread "
+                        + "-O3 -fexpensive-optimizations -ffast-math -lpthread "
                         + archopt,
                         "intel": "-O2 -ip " + archopt,
                         "clang": m64 + "-O3 -ffast-math -fopenmp " + archopt,
-                        "aocc": m64
-                        + "-O3 -ffp-contract=fast \
-                                        -ffast-math "
-                        + archopt,
+                        "aocc": m64 + "-O3 -ffp-contract=fast -ffast-math " + archopt,
                     }
 
                 if self.spec.satisfies("+avxtiles"):

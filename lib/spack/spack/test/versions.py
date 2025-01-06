@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -676,7 +675,7 @@ def test_versions_from_git(git, mock_git_version_info, monkeypatch, mock_package
         with working_dir(repo_path):
             git("checkout", commit)
 
-        with open(os.path.join(repo_path, filename), "r") as f:
+        with open(os.path.join(repo_path, filename), "r", encoding="utf-8") as f:
             expected = f.read()
 
         assert str(comparator) == expected

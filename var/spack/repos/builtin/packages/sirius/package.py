@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,7 +15,7 @@ class Sirius(CMakePackage, CudaPackage, ROCmPackage):
     list_url = "https://github.com/electronic-structure/SIRIUS/releases"
     git = "https://github.com/electronic-structure/SIRIUS.git"
 
-    maintainers("simonpintarelli", "haampie", "dev-zero", "AdhocMan", "toxa81")
+    maintainers("simonpintarelli", "haampie", "dev-zero", "AdhocMan", "toxa81", "RMeli")
 
     license("BSD-2-Clause")
 
@@ -84,8 +83,9 @@ class Sirius(CMakePackage, CudaPackage, ROCmPackage):
         deprecated=True,
     )
 
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("cxx", type="build")
+    depends_on("c", type="build")
+    depends_on("fortran", type="build")
 
     variant("shared", default=True, description="Build shared libraries")
     variant("openmp", default=True, description="Build with OpenMP support")
@@ -130,6 +130,7 @@ class Sirius(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("fftw-api@3")
     depends_on("libxc@3.0.0:")
     depends_on("libxc@4.0.0:", when="@7.2.0:")
+    depends_on("libxc@:6", when="@:7.6.1")
     depends_on("spglib")
     depends_on("hdf5+hl")
     depends_on("pkgconfig", type="build")
@@ -206,7 +207,7 @@ class Sirius(CMakePackage, CudaPackage, ROCmPackage):
         when="+scalapack ^[virtuals=blas,lapack,fftw-api] intel-oneapi-mkl",
     )
 
-    conflicts("intel-mkl", when="@develop")  # TODO: Change to @7.5.3
+    conflicts("intel-mkl", when="@7.6.0:")
     # MKLConfig.cmake introduced in 2021.3
     conflicts("intel-oneapi-mkl@:2021.2", when="^intel-oneapi-mkl")
 
@@ -289,7 +290,7 @@ class Sirius(CMakePackage, CudaPackage, ROCmPackage):
         if spec["blas"].name in INTEL_MATH_LIBRARIES:
             args.append(self.define(cm_label + "USE_MKL", "ON"))
 
-            if spec.satisfies("@develop"):  # TODO: Change to @7.5.3:
+            if spec.satisfies("@7.6.0:"):
                 mkl_mapper = {
                     "threading": {
                         "none": "sequential",
