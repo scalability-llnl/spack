@@ -450,31 +450,6 @@ class EnvironmentModifications:
 
         return Trace(filename=filename, lineno=lineno, context=current_context)
 
-    @contextlib.contextmanager
-    def set_env(self, env: Optional[MutableMapping[str, str]] = None):
-        """Temporarily sets and restores environment variables.
-
-        Args:
-            env: environment to be modified. If None, os.environ will be used.
-        """
-        env = os.environ if env is None else env
-
-        saved = {}
-        for var, value in self.group_by_name().items():
-            if var in env:
-                saved[var] = env[var]
-
-        self.apply_modifications(env)
-
-        yield
-
-        for var, value in self.group_by_name().items():
-            if var in saved:
-                env[var] = saved[var]
-            else:
-                if var in env:
-                    del env[var]
-
     @system_env_normalize
     def set(self, name: str, value: str, *, force: bool = False, raw: bool = False):
         """Stores a request to set an environment variable.
