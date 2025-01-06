@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,7 +20,7 @@ pytestmark = pytest.mark.not_on_windows("MakeExecutable not supported on Windows
 @pytest.fixture(autouse=True)
 def make_executable(tmp_path, working_env):
     make_exe = tmp_path / "make"
-    with open(make_exe, "w") as f:
+    with open(make_exe, "w", encoding="utf-8") as f:
         f.write("#!/bin/sh\n")
         f.write('echo "$@"')
     os.chmod(make_exe, 0o700)

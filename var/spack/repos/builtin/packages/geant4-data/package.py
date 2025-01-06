@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -46,18 +45,19 @@ class Geant4Data(BundlePackage):
     _datasets = {
         "11.3.0:11.3": [
             "g4ndl@4.7.1",
-            "g4emlow@8.6",
-            "g4photonevaporation@5.7",
-            "g4radioactivedecay@5.6",
+            "g4emlow@8.6.1",
+            "g4photonevaporation@6.1",
+            "g4radioactivedecay@6.1.2",
             "g4particlexs@4.1",
             "g4pii@1.3",
             "g4realsurface@2.2",
             "g4saiddata@2.0",
             "g4abla@3.3",
             "g4incl@1.2",
-            "g4ensdfstate@2.3",
+            "g4ensdfstate@3.0",
+            "g4channeling@1.0",
             "g4nudexlib@1.0",
-            "g4urrpt@1.0",
+            "g4urrpt@1.1",
         ],
         "11.2.2:11.2": [
             "g4ndl@4.7.1",

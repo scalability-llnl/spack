@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -38,8 +37,8 @@ class Cgns(CMakePackage):
     version("3.3.1", sha256="81093693b2e21a99c5640b82b267a495625b663d7b8125d5f1e9e7aaa1f8d469")
     version("3.3.0", sha256="8422c67994f8dc6a2f201523a14f6c7d7e16313bdd404c460c16079dbeafc662")
 
-    depends_on("c", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("fortran", type="build", when="+fortran")
 
     variant("hdf5", default=True, description="Enable HDF5 interface")
     variant("fortran", default=False, description="Enable Fortran interface")

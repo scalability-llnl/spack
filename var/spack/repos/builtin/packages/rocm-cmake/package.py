@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,14 +12,16 @@ class RocmCmake(CMakePackage):
 
     homepage = "https://github.com/ROCm/rocm-cmake"
     git = "https://github.com/ROCm/rocm-cmake.git"
-    url = "https://github.com/ROCm/rocm-cmake/archive/rocm-6.1.2.tar.gz"
+    url = "https://github.com/ROCm/rocm-cmake/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
-    maintainers("srekolam", "renjithravindrankannath")
+    maintainers("srekolam", "renjithravindrankannath", "afzpatel")
 
     license("MIT")
 
     version("master", branch="master")
+    version("6.3.0", sha256="45a1b96f85ae28a7f62895ddc4d6648500b883af250f52f6417bafb31b3cc75d")
+    version("6.2.4", sha256="76bfac6fba31a9c4ec196d9b9b2d5ec51b8b68840b3fba8686aa42323d76a425")
     version("6.2.1", sha256="5ea05ad58186ac9bac40ab083c1e769a36ecaed950f82e88863169a25bc6ac8f")
     version("6.2.0", sha256="7b6aaa1bb616669636aa2cd5dbc7fdb7cd05642a8dcc61138e0efb7d0dc7e1a3")
     version("6.1.2", sha256="0757bb90f25d6f1e6bc93bdd1e238f76bbaddf154d66f94f37e40c425dc6d259")
@@ -58,6 +59,8 @@ class RocmCmake(CMakePackage):
         "6.1.2",
         "6.2.0",
         "6.2.1",
+        "6.2.4",
+        "6.3.0",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 
