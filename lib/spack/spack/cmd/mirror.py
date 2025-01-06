@@ -690,7 +690,7 @@ def create_mirror_for_all_specs(mirror_specs, path, skip_unstable_versions, thre
                 candidate,
                 mirror_cache,
                 mirror_stats
-            ) 
+            )
             for candidate in mirror_specs
         ]
     process_mirror_stats(*mirror_stats.stats())
