@@ -66,7 +66,7 @@ class PyEspresso(CMakePackage):
     def cmake_args(self):
         args = []
 
-        if self.spec.version >= Version("4.0.0") and self.spec.version < Version("4.2.0"):
+        if self.spec.satisfies("@4.0:4.1"):
             # 4.1 defaults CUDA options to ON, which this package does not currently support
             # Ideally a future version of the package would add proper CUDA support.
             args.append(self.define("WITH_CUDA", False))
