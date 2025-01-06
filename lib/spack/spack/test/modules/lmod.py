@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -462,7 +461,7 @@ class TestLmod:
         writer = writer_cls(spec, "default", False)
         writer.write()
         assert os.path.exists(writer.layout.modulerc)
-        with open(writer.layout.modulerc) as f:
+        with open(writer.layout.modulerc, encoding="utf-8") as f:
             content = [line.strip() for line in f.readlines()]
         hide_implicit_mpileaks = f'hide_version("{writer.layout.use_name}")'
         assert len([x for x in content if hide_implicit_mpileaks == x]) == 1
@@ -471,7 +470,7 @@ class TestLmod:
         # except for mpich, which is provider for mpi, which is in the hierarchy, and therefore
         # can't be hidden. All other hidden modules should have a 7 character hash (the config
         # hash_length = 0 only applies to exposed modules).
-        with open(writer.layout.filename) as f:
+        with open(writer.layout.filename, encoding="utf-8") as f:
             depends_statements = [line.strip() for line in f.readlines() if "depends_on" in line]
             for dep in spec.dependencies(deptype=("link", "run")):
                 if dep.satisfies("mpi"):
@@ -484,7 +483,7 @@ class TestLmod:
         writer = writer_cls(spec, "default", True)
         writer.write()
         assert os.path.exists(writer.layout.modulerc)
-        with open(writer.layout.modulerc) as f:
+        with open(writer.layout.modulerc, encoding="utf-8") as f:
             content = [line.strip() for line in f.readlines()]
         assert hide_implicit_mpileaks in content  # old, implicit mpileaks is still hidden
         assert f'hide_version("{writer.layout.use_name}")' not in content
@@ -515,7 +514,7 @@ class TestLmod:
         writer_alt2 = writer_cls(spec_alt2, "default", False)
         writer_alt2.write(overwrite=True)
         assert os.path.exists(writer.layout.modulerc)
-        with open(writer.layout.modulerc) as f:
+        with open(writer.layout.modulerc, encoding="utf-8") as f:
             content = [line.strip() for line in f.readlines()]
         hide_cmd = f'hide_version("{writer.layout.use_name}")'
         hide_cmd_alt1 = f'hide_version("{writer_alt1.layout.use_name}")'
@@ -527,7 +526,7 @@ class TestLmod:
         # one version is removed
         writer_alt1.remove()
         assert os.path.exists(writer.layout.modulerc)
-        with open(writer.layout.modulerc) as f:
+        with open(writer.layout.modulerc, encoding="utf-8") as f:
             content = [line.strip() for line in f.readlines()]
         assert len([x for x in content if hide_cmd == x]) == 1
         assert len([x for x in content if hide_cmd_alt1 == x]) == 0

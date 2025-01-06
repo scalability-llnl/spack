@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,7 +26,6 @@ class AwsOfiNccl(AutotoolsPackage):
     version("1.9.2", sha256="f763771e511ae3bc7bb708795f9802867a4a2bc4e4df6a265c7f6a033e9a8b9a")
     version("1.9.1", sha256="3ee01258674e70d6966eb6d319461f9b882afae618e217e0ae7ec03d26169b35")
     version("1.9.0", sha256="8d6d0469110a89b5431836d263860fb60fde7beccb26f553de41dca1feb61b51")
-    version("1.8.1", sha256="beb59959be0f60b891f9549f4df51b394e97e739416c88c3436e75516fe067c8")
     version("1.8.1", sha256="beb59959be0f60b891f9549f4df51b394e97e739416c88c3436e75516fe067c8")
     version("1.8.0", sha256="a2f1750d4908924985335e513186353d0c4d9a5d27b1a759f6aa31a10e74c06d")
     version("1.7.4", sha256="472bbc977ce37d0cf9239b8e366f4f247226a984eb8c487aadd884af53f00e13")
