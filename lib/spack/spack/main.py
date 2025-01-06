@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -504,9 +503,12 @@ def make_argument_parser(**kwargs):
     return parser
 
 
-def send_warning_to_tty(message, *args):
+def send_warning_to_tty(message, category, filename, lineno, file=None, line=None):
     """Redirects messages to tty.warn."""
-    tty.warn(message)
+    if category is spack.error.SpackAPIWarning:
+        tty.warn(f"{filename}:{lineno}: {message}")
+    else:
+        tty.warn(message)
 
 
 def setup_main_options(args):

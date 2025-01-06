@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -869,6 +868,6 @@ class Root(CMakePackage):
         # automatically prepending dependent package library paths to
         # ROOT_LIBRARY_PATH (for @6.26:) or LD_LIBRARY_PATH (for older
         # versions).
-        for lib_path in (dependent_spec.prefix.lib, dependent_spec.prefix.lib64):
+        for lib_path in [dependent_spec.prefix.lib, dependent_spec.prefix.lib64]:
             if os.path.exists(lib_path):
                 env.prepend_path(self.root_library_path, lib_path)

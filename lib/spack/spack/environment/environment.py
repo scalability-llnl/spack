@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections
@@ -3043,11 +3042,13 @@ class EnvironmentManifestFile(collections.abc.Mapping):
         """Add the manifest's scopes to the global configuration search path."""
         for scope in self.env_config_scopes:
             spack.config.CONFIG.push_scope(scope)
+        spack.config.CONFIG.ensure_scope_ordering()
 
     def deactivate_config_scope(self) -> None:
         """Remove any of the manifest's scopes from the global config path."""
         for scope in self.env_config_scopes:
             spack.config.CONFIG.remove_scope(scope.name)
+        spack.config.CONFIG.ensure_scope_ordering()
 
     @contextlib.contextmanager
     def use_config(self):
