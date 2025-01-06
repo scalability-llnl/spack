@@ -19,6 +19,8 @@ class RocmExamples(CMakePackage):
 
     license("MIT")
 
+    version("6.3.0", sha256="809b5212d86d182586d676752b192967aee3bde6df8bbbe67558b221d63f5c7c")
+    version("6.2.4", sha256="510931103e4a40b272123b5c731d2ea795215c6171810beb1d5335d73bcc9b03")
     version("6.2.1", sha256="2e426572aa5f5b44c7893ea256945c8733b79db39cca84754380f40c8b44a563")
     version("6.2.0", sha256="6fb1f954ed32b5c4085c7f071058d278c2e1e8b7b71118ee5e85cf9bbc024df0")
 
@@ -26,7 +28,7 @@ class RocmExamples(CMakePackage):
 
     depends_on("glfw", type="build")
 
-    for ver in ["6.2.1", "6.2.0"]:
+    for ver in ["6.3.0", "6.2.4", "6.2.1", "6.2.0"]:
         depends_on("hip@" + ver, when="@" + ver)
         depends_on("hipcub@" + ver, when="@" + ver)
         depends_on("hiprand@" + ver, when="@" + ver)
