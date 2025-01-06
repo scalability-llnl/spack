@@ -30,6 +30,7 @@ class Hevea(MakefilePackage):
     depends_on("ocaml")
     depends_on("ocamlbuild")
     depends_on("ocaml@4", when="@:2.35")
+    depends_on("ocaml@4.08.0:", when="@2.34:")
 
     def edit(self, spec, prefix):
         env["PREFIX"] = self.spec.prefix
