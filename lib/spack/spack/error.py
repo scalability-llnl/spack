@@ -15,6 +15,10 @@ debug = 0
 SHOW_BACKTRACE = False
 
 
+class SpackAPIWarning(UserWarning):
+    """Warning that formats with file and line number."""
+
+
 class SpackError(Exception):
     """This is the superclass for all Spack errors.
     Subclasses can be found in the modules they have to do with.

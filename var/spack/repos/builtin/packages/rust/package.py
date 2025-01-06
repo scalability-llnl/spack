@@ -206,10 +206,10 @@ class Rust(Package):
         configure(*flags)
 
     def build(self, spec, prefix):
-        python("./x.py", "build")
+        python("./x.py", "build", "-j", str(make_jobs))
 
     def install(self, spec, prefix):
-        python("./x.py", "install")
+        python("./x.py", "install", "-j", str(make_jobs))
 
     # known issue: https://github.com/rust-lang/rust/issues/132604
     unresolved_libraries = ["libz.so.*"]

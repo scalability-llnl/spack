@@ -12,8 +12,8 @@ class Alpgen(CMakePackage, MakefilePackage):
     in hadronic collisions.
     """
 
-    homepage = "http://mlm.home.cern.ch/mlm/alpgen/"
-    url = "http://mlm.home.cern.ch/mlm/alpgen/V2.1/v214.tgz"
+    homepage = "https://alpgen.web.cern.ch/"
+    url = "https://alpgen.web.cern.ch/V2.1/v214.tgz"
 
     tags = ["hep"]
 

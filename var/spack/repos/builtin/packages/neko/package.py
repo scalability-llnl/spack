@@ -10,27 +10,30 @@ class Neko(AutotoolsPackage, CudaPackage, ROCmPackage):
     for high-fidelity computational fluid dynamics
     """
 
-    homepage = "https://github.com/ExtremeFLOW/neko"
+    homepage = "https://neko.cfd"
     git = "https://github.com/ExtremeFLOW/neko.git"
     url = "https://github.com/ExtremeFLOW/neko/releases/download/v0.3.2/neko-0.3.2.tar.gz"
     maintainers("njansson")
 
+    version("develop", branch="develop")
+    version("0.9.1", sha256="098bee5cb807d10cdf2fb56111ba8cbc592882a87e4dae18caf9dbda894611ef")
     version("0.9.0", sha256="3cffe629ada1631d8774fa51d8bb14b95dc0cea21578c0e07e70deb611a5091a")
     version("0.8.1", sha256="ac8162bc18e7112fd21b49c5a9c36f45c7b84896e90738be36a182990798baec")
     version("0.8.0", sha256="09d0b253c8abda9f384bf8f03b17b50d774cb0a1f7b72744a8e863acac516a51")
     version("0.7.2", sha256="5dd17fbae83d0b26dc46fafce4e5444be679cdce9493cef4ff7d504e2f854254")
     version("0.7.1", sha256="c935c3d93b0975db46448045f97aced6ac2cab31a2b8803047f8086f98dcb981")
     version("0.7.0", sha256="fe871e0a79f388073e0b3dc191d1c0d5da3a53883f5b1951d88b9423fc79a53c")
-    version("0.6.1", sha256="6282baaf9c8a201669e274cba23c37922f7ad701ba20ef086442e48f00dabf29")
-    version("0.6.0", sha256="ce37c7cea1a7bf1bf554c5717aa7fed35bbd079ff68c2fc9d3529facc717e31a")
-    version("0.5.2", sha256="8873f5ada106f92f21c9bb13ea8164550bccde9301589b9e7f1c1a82a2efe2b8")
-    version("0.5.1", sha256="8b176bcc9f2d4a6804b68dd93a2f5e02e2dfa986d5c88063bbc72d39e9659cc4")
-    version("0.5.0", sha256="01a745f2e19dd278330889a0dd6c5ab8af49da99c888d95c10adb5accc1cbfc4")
-    version("0.4.3", sha256="ba8fde09cbc052bb4791a03f69c880705615b572982cd3177ee31e4e14931da2")
-    version("0.4.2", sha256="927f926bdbf027c30e8e383e1790e84b60f5a9ed61e48a413092aac2ab24abcc")
-    version("0.3.2", sha256="0628910aa9838a414f2f27d09ea9474d1b3d7dcb5a7715556049a2fdf81a71ae")
-    version("0.3.0", sha256="e46bef72f694e59945514ab8b1ad7d74f87ec9dca2ba2b230e2148662baefdc8")
-    version("develop", branch="develop")
+
+    with default_args(deprecated=True):
+        version("0.6.1", sha256="6282baaf9c8a201669e274cba23c37922f7ad701ba20ef086442e48f00dabf29")
+        version("0.6.0", sha256="ce37c7cea1a7bf1bf554c5717aa7fed35bbd079ff68c2fc9d3529facc717e31a")
+        version("0.5.2", sha256="8873f5ada106f92f21c9bb13ea8164550bccde9301589b9e7f1c1a82a2efe2b8")
+        version("0.5.1", sha256="8b176bcc9f2d4a6804b68dd93a2f5e02e2dfa986d5c88063bbc72d39e9659cc4")
+        version("0.5.0", sha256="01a745f2e19dd278330889a0dd6c5ab8af49da99c888d95c10adb5accc1cbfc4")
+        version("0.4.3", sha256="ba8fde09cbc052bb4791a03f69c880705615b572982cd3177ee31e4e14931da2")
+        version("0.4.2", sha256="927f926bdbf027c30e8e383e1790e84b60f5a9ed61e48a413092aac2ab24abcc")
+        version("0.3.2", sha256="0628910aa9838a414f2f27d09ea9474d1b3d7dcb5a7715556049a2fdf81a71ae")
+        version("0.3.0", sha256="e46bef72f694e59945514ab8b1ad7d74f87ec9dca2ba2b230e2148662baefdc8")
 
     depends_on("c", type="build")  # generated
     depends_on("fortran", type="build")  # generated

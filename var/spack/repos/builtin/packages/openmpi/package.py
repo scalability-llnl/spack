@@ -32,6 +32,7 @@ class Openmpi(AutotoolsPackage, CudaPackage):
     url = "https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.0.tar.bz2"
     list_url = "https://www.open-mpi.org/software/ompi/"
     git = "https://github.com/open-mpi/ompi.git"
+    cxxname = "mpic++"
 
     maintainers("hppritcha", "naughtont3")
 
@@ -885,7 +886,7 @@ with '-Wl,-commons,use_dylibs' and without
         # Because MPI is both a runtime and a compiler, we have to setup the
         # compiler components as part of the run environment.
         env.set("MPICC", join_path(self.prefix.bin, "mpicc"))
-        env.set("MPICXX", join_path(self.prefix.bin, "mpic++"))
+        env.set("MPICXX", join_path(self.prefix.bin, self.cxxname))
         env.set("MPIF77", join_path(self.prefix.bin, "mpif77"))
         env.set("MPIF90", join_path(self.prefix.bin, "mpif90"))
         # Open MPI also has had mpifort since v1.7, so we can set MPIFC to that
@@ -927,7 +928,7 @@ with '-Wl,-commons,use_dylibs' and without
 
     def setup_dependent_package(self, module, dependent_spec):
         self.spec.mpicc = join_path(self.prefix.bin, "mpicc")
-        self.spec.mpicxx = join_path(self.prefix.bin, "mpic++")
+        self.spec.mpicxx = join_path(self.prefix.bin, self.cxxname)
         self.spec.mpifc = join_path(self.prefix.bin, "mpif90")
         self.spec.mpif77 = join_path(self.prefix.bin, "mpif77")
 
