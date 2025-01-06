@@ -1,13 +1,13 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2025 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
 """Schema for env_vars.yaml configuration file.
 
 .. literalinclude:: _spack_root/lib/spack/spack/schema/env_vars.py
-   :lines: 14-
+   :lines: 15-
 """
-
 from typing import Any, Dict
 
 import spack.schema.environment
