@@ -50,7 +50,7 @@ def setup_parser(subparser):
         "--parallel",
         type=int,
         default=16,
-        help="Use a given number of threads to make the mirror (used in combination with -a)"
+        help="Use a given number of threads to make the mirror (used in combination with -a)",
     )
     create_parser.add_argument("-f", "--file", help="file with specs of packages to put in mirror")
     create_parser.add_argument(
