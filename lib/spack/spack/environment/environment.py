@@ -51,6 +51,8 @@ from spack.spec import Spec
 from spack.spec_list import SpecList
 from spack.util.path import substitute_path_variables
 
+from ..enums import ConfigScopePriority
+
 SpecPair = spack.concretize.SpecPair
 
 #: environment variable used to indicate the active environment
@@ -3067,14 +3069,12 @@ class EnvironmentManifestFile(collections.abc.Mapping):
     def prepare_config_scope(self) -> None:
         """Add the manifest's scopes to the global configuration search path."""
         for scope in self.env_config_scopes:
-            spack.config.CONFIG.push_scope(scope)
-        spack.config.CONFIG.ensure_scope_ordering()
+            spack.config.CONFIG.push_scope(scope, priority=ConfigScopePriority.ENVIRONMENT)
 
     def deactivate_config_scope(self) -> None:
         """Remove any of the manifest's scopes from the global config path."""
         for scope in self.env_config_scopes:
             spack.config.CONFIG.remove_scope(scope.name)
-        spack.config.CONFIG.ensure_scope_ordering()
 
     @contextlib.contextmanager
     def use_config(self):

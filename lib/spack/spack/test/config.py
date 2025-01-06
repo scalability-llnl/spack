@@ -33,6 +33,8 @@ import spack.store
 import spack.util.path as spack_path
 import spack.util.spack_yaml as syaml
 
+from ..enums import ConfigScopePriority
+
 # sample config data
 config_low = {
     "config": {
@@ -1445,7 +1447,7 @@ def test_config_path_dsl(path, it_should_work, expected_parsed):
 
 
 @pytest.mark.regression("48254")
-def test_env_activation_preserves_config_scopes(mutable_mock_env_path):
+def test_env_activation_preserves_command_line_scope(mutable_mock_env_path):
     """Check that the "command_line" scope remains the highest priority scope, when we activate,
     or deactivate, environments.
     """
@@ -1469,3 +1471,33 @@ def test_env_activation_preserves_config_scopes(mutable_mock_env_path):
         assert spack.config.CONFIG.highest() == expected_cl_scope
 
     assert spack.config.CONFIG.highest() == expected_cl_scope
+
+
+@pytest.mark.regression("48414")
+def test_env_activation_preserves_config_scopes(mutable_mock_env_path):
+    """Check that the priority of scopes is respected when merging configuration files."""
+    custom_scope = spack.config.InternalConfigScope("custom_scope")
+    spack.config.CONFIG.push_scope(custom_scope, priority=ConfigScopePriority.CUSTOM)
+    expected_scopes = ["custom_scope", "command_line"]
+
+    def highest_priority_scopes(config):
+        return list(config.scopes)[-2:]
+
+    assert highest_priority_scopes(spack.config.CONFIG) == expected_scopes
+    # Creating an environment pushes a new scope
+    ev.create("test")
+    with ev.read("test"):
+        assert highest_priority_scopes(spack.config.CONFIG) == expected_scopes
+
+        # No active environment pops the scope
+        with ev.no_active_environment():
+            assert highest_priority_scopes(spack.config.CONFIG) == expected_scopes
+        assert highest_priority_scopes(spack.config.CONFIG) == expected_scopes
+
+        # Switch the environment to another one
+        ev.create("test-2")
+        with ev.read("test-2"):
+            assert highest_priority_scopes(spack.config.CONFIG) == expected_scopes
+        assert highest_priority_scopes(spack.config.CONFIG) == expected_scopes
+
+    assert highest_priority_scopes(spack.config.CONFIG) == expected_scopes
