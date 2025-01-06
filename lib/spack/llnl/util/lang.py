@@ -1149,7 +1149,7 @@ class PriorityOrderedMapping(Mapping[KT, VT]):
         """Adds a key/value pair to the mapping, with a specific priority.
 
         If the priority is None, then it is assumed to be the highest priority value currently
-        in the container + 1.
+        in the container.
 
         Raises:
               ValueError: when the same priority is already in the mapping
