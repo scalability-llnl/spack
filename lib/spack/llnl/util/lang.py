@@ -13,9 +13,8 @@ import sys
 import traceback
 import typing
 import warnings
-from collections.abc import Mapping
 from datetime import datetime, timedelta
-from typing import Callable, Dict, Iterable, List, Optional, Tuple, TypeVar
+from typing import Callable, Dict, Iterable, List, Mapping, Optional, Tuple, TypeVar
 
 # Ignore emacs backups when listing modules
 ignore_modules = r"^\.#|~$"
