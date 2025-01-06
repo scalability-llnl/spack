@@ -50,8 +50,7 @@ def setup_parser(subparser):
         "--parallel",
         type=int,
         default=16,
-        help="Use a given number of threads to make the mirror"
-        " (used in combination with -a)"
+        help="Use a given number of threads to make the mirror (used in combination with -a)"
     )
     create_parser.add_argument("-f", "--file", help="file with specs of packages to put in mirror")
     create_parser.add_argument(
@@ -650,7 +649,7 @@ def mirror_create(args):
         mirror_specs,
         path=path,
         skip_unstable_versions=args.skip_unstable_versions,
-        threads=args.parallel
+        threads=args.parallel,
     )
 
 
@@ -685,12 +684,7 @@ def create_mirror_for_all_specs(mirror_specs, path, skip_unstable_versions, thre
     with ThreadPoolExecutor(max_workers=threads) as executor:
         # Submit tasks to the thread pool
         _ = [
-            executor.submit(
-                create_mirror_for_one_spec,
-                candidate,
-                mirror_cache,
-                mirror_stats
-            )
+            executor.submit(create_mirror_for_one_spec, candidate, mirror_cache, mirror_stats)
             for candidate in mirror_specs
         ]
     process_mirror_stats(*mirror_stats.stats())
@@ -698,9 +692,7 @@ def create_mirror_for_all_specs(mirror_specs, path, skip_unstable_versions, thre
 
 def create_mirror_for_individual_specs(mirror_specs, path, skip_unstable_versions, threads):
     present, mirrored, error = spack.mirrors.utils.create(
-        path,
-        mirror_specs,
-        skip_unstable_versions
+        path, mirror_specs, skip_unstable_versions
     )
     tty.msg("Summary for mirror in {}".format(path))
     process_mirror_stats(present, mirrored, error)
