@@ -7,7 +7,7 @@ from spack.package import *
 
 class PyNvitop(PythonPackage):
     """
-    An interactive NVIDIA-GPU process viewer and beyond, 
+    An interactive NVIDIA-GPU process viewer and beyond,
     the one-stop solution for GPU process management.
     """
 
@@ -23,4 +23,3 @@ class PyNvitop(PythonPackage):
     depends_on("py-cachetools")
     depends_on("py-termcolor")
     depends_on("py-setuptools")
-
