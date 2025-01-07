@@ -52,7 +52,7 @@ class Wgrib2(MakefilePackage, CMakePackage):
         "AlysonStahl-NOAA", "t-brown", "AlexanderRichert-NOAA", "Hang-Lei-NOAA", "edwardhartnett"
     )
 
-    build_system(conditional("cmake", when="@3.2:"), conditional("makefile", when="@:3.1"))
+    build_system(conditional("cmake", when="@3.2:"), conditional("makefile", when="@:3.1"), default="cmake")
 
     version("develop", branch="develop")
     version("3.5.0", sha256="b27b48228442a08bddc3d511d0c6335afca47252ae9f0e41ef6948f804afa3a1")
