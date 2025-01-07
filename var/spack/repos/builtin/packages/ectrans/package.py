@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -58,6 +57,9 @@ class Ectrans(CMakePackage):
 
     depends_on("fiat~mpi", when="~mpi")
     depends_on("fiat+mpi", when="+mpi")
+
+    # https://github.com/ecmwf-ifs/ectrans/issues/194
+    conflicts("%oneapi@2025:", when="@1.3.1:1.5.1")
 
     def cmake_args(self):
         args = [
