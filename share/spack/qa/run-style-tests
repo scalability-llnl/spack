@@ -26,5 +26,9 @@ fi
 # verify that the code style is correct
 spack style --root-relative "${args[@]}"
 
-# verify that the license headers are present
-spack license verify
+# DH* 20250102 - temporarily comment out until
+# spack-stack-dev is updated from spack develop
+# and includes https://github.com/spack/spack/pull/48352
+## verify that the license headers are present
+#spack license verify
+# *DH
