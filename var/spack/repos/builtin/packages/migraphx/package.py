@@ -111,7 +111,7 @@ class Migraphx(CMakePackage):
         depends_on(f"llvm-amdgpu@{ver}", when=f"@{ver}")
         depends_on(f"rocblas@{ver}", when=f"@{ver}")
         depends_on(f"miopen-hip@{ver}", when=f"@{ver}")
-     for ver in [
+    for ver in [
         "6.0.0",
         "6.0.2",
         "6.1.0",
