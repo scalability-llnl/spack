@@ -471,10 +471,6 @@ class Configuration:
 
     def highest_precedence_scope(self) -> ConfigScope:
         """Writable scope with highest precedence."""
-        if "install" in self.scopes:
-            # Preference is to write into config scope associated with
-            # the installation tree, if it exists for this Configuration
-            return self.scopes["install"]
         return next(s for s in reversed(self.scopes.values()) if s.writable)  # type: ignore
 
     def highest_precedence_non_platform_scope(self) -> ConfigScope:
@@ -846,12 +842,12 @@ def create() -> Configuration:
     # Python package's can register configuration scopes via entry_points
     configuration_paths.extend(config_paths_from_entry_points())
 
-    configuration_paths.append(("install", spack.install_scheme.config()))
-
     # User configuration can override both spack defaults and site config
     # This is disabled if user asks for no local configuration.
     if not disable_local_config:
         configuration_paths.append(("user", spack.paths.user_config_path))
+
+    configuration_paths.append(("install", spack.install_scheme.config()))
 
     # add each scope and its platform-specific directory
     for name, path in configuration_paths:
