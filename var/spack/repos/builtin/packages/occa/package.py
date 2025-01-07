@@ -41,11 +41,11 @@ class Occa(CMakePackage, MakefilePackage, CudaPackage, ROCmPackage):
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
     depends_on("fortran", type="build")  # generated
-    depends_on("cmake@3.30:", type="build", when="build_system=cmake @1.1.10:")
+    depends_on("cmake@3.30:", type="build", when="build_system=cmake")
 
     build_system(
-        conditional("cmake", when="@2.0.0:"),
-        conditional("makefile", when="@:1.2.0"),
+        conditional("cmake", when="@1.1.0:"),
+        conditional("makefile", when="@:1.0.9"),
         default="makefile",
     )
 
