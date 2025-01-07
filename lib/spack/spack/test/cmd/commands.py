@@ -273,6 +273,10 @@ def test_updated_completion_scripts(shell, tmpdir):
 
     commands("--aliases", "--format", shell, "--header", header, "--update", new_script)
 
+    # TODO: changes in this PR add a site-admin config scope. If one runs
+    # `spack commands --update-completion` when this scope is available, it
+    # will add the site-admin scope to the autocompletion scripts, and cause
+    # a discrepancy with the runner
     if not filecmp.cmp(old_script, new_script):
         import difflib
 
