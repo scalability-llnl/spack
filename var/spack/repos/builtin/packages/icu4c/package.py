@@ -72,7 +72,7 @@ class Icu4c(AutotoolsPackage, MSBuildPackage):
         return url.format(version.dashed, version.underscored)
 
     def flag_handler(self, name, flags):
-        if name == "cxxflags":
+        if name == "cxxflags" and not self.spec.platform == "windows":
             # Control of the C++ Standard is via adding the required "-std"
             # flag to CXXFLAGS in env
             flags.append(getattr(self.compiler, f"cxx{self.spec.variants['cxxstd'].value}_flag"))
