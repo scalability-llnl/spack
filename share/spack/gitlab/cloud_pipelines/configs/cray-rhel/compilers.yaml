@@ -1,31 +1,27 @@
 compilers:
 - compiler:
-    spec: cce@15.0.1
+    spec: cce@=18.0.0
     paths:
-      cc: cc
-      cxx: CC
-      f77: ftn
-      fc: ftn
+      cc: /opt/cray/pe/cce/18.0.0/bin/craycc
+      cxx: /opt/cray/pe/cce/18.0.0/bin/crayCC
+      f77: /opt/cray/pe/cce/18.0.0/bin/crayftn
+      fc: /opt/cray/pe/cce/18.0.0/bin/crayftn
     flags: {}
     operating_system: rhel8
-    target: any
-    modules:
-    - PrgEnv-cray/8.3.3
-    - cce/15.0.1
-    environment:
-      set:
-        MACHTYPE: x86_64
-- compiler:
-    spec: gcc@11.2.0
-    paths:
-      cc: gcc
-      cxx: g++
-      f77: gfortran
-      fc: gfortran
-    flags: {}
-    operating_system: rhel8
-    target: any
-    modules:
-    - PrgEnv-gnu
-    - gcc/11.2.0
+    target: x86_64
+    modules: []
     environment: {}
+    extra_rpaths: []
+- compiler:
+    spec: gcc@=8.5.0
+    paths:
+      cc: /usr/bin/gcc
+      cxx: /usr/bin/g++
+      f77: /usr/bin/gfortran
+      fc: /usr/bin/gfortran
+    flags: {}
+    operating_system: rhel8
+    target: x86_64
+    modules: []
+    environment: {}
+    extra_rpaths: []
