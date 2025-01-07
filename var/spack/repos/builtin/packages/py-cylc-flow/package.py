@@ -51,7 +51,7 @@ class PyCylcFlow(PythonPackage):
     depends_on("graphviz+pangocairo", type="run")
 
     # DH* KEEP ALL THIS UNTIL https://github.com/spack/spack/pull/48052 is merged.
-    # Depending on the solution adopted there, we may not some of the stuff below,
+    # Depending on the solution adopted there, we may need some of the stuff below,
     # or none of it.
     # ## cylc at runtime unsets PYTHONPATH, then sets it from CYLC_PYTHONPATH
     # ## https://github.com/cylc/cylc-flow/issues/5124
