@@ -1437,7 +1437,7 @@ _spack_mirror() {
 _spack_mirror_create() {
     if $list_options
     then
-        SPACK_COMPREPLY="-h --help -d --directory -a --all -f --file --exclude-file --exclude-specs --skip-unstable-versions -D --dependencies -n --versions-per-spec --private -U --fresh --reuse --fresh-roots --reuse-deps --deprecated"
+        SPACK_COMPREPLY="-h --help -d --directory -a --all -j --parallel -f --file --exclude-file --exclude-specs --skip-unstable-versions -D --dependencies -n --versions-per-spec --private -U --fresh --reuse --fresh-roots --reuse-deps --deprecated"
     else
         _all_packages
     fi

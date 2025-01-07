@@ -2259,7 +2259,7 @@ complete -c spack -n '__fish_spack_using_command mirror' -s n -l no-checksum -f 
 complete -c spack -n '__fish_spack_using_command mirror' -s n -l no-checksum -d 'do not use checksums to verify downloaded files (unsafe)'
 
 # spack mirror create
-set -g __fish_spack_optspecs_spack_mirror_create h/help d/directory= a/all f/file= exclude-file= exclude-specs= skip-unstable-versions D/dependencies n/versions-per-spec= private U/fresh reuse fresh-roots deprecated
+set -g __fish_spack_optspecs_spack_mirror_create h/help d/directory= a/all j/parallel= f/file= exclude-file= exclude-specs= skip-unstable-versions D/dependencies n/versions-per-spec= private U/fresh reuse fresh-roots deprecated
 complete -c spack -n '__fish_spack_using_command_pos_remainder 0 mirror create' -f -k -a '(__fish_spack_specs)'
 complete -c spack -n '__fish_spack_using_command mirror create' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command mirror create' -s h -l help -d 'show this help message and exit'
@@ -2267,6 +2267,8 @@ complete -c spack -n '__fish_spack_using_command mirror create' -s d -l director
 complete -c spack -n '__fish_spack_using_command mirror create' -s d -l directory -r -d 'directory in which to create mirror'
 complete -c spack -n '__fish_spack_using_command mirror create' -s a -l all -f -a all
 complete -c spack -n '__fish_spack_using_command mirror create' -s a -l all -d 'mirror all versions of all packages in Spack, or all packages in the current environment if there is an active environment (this requires significant time and space)'
+complete -c spack -n '__fish_spack_using_command mirror create' -s j -l parallel -r -f -a parallel
+complete -c spack -n '__fish_spack_using_command mirror create' -s j -l parallel -r -d 'Use a given number of threads to make the mirror (used in combination with -a)'
 complete -c spack -n '__fish_spack_using_command mirror create' -s f -l file -r -f -a file
 complete -c spack -n '__fish_spack_using_command mirror create' -s f -l file -r -d 'file with specs of packages to put in mirror'
 complete -c spack -n '__fish_spack_using_command mirror create' -l exclude-file -r -f -a exclude_file
