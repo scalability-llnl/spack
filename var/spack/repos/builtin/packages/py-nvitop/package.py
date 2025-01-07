@@ -7,7 +7,7 @@ from spack.package import *
 
 class PyNvitop(PythonPackage):
     """
-    An interactive NVIDIA-GPU process viewer and beyond, 
+    An interactive NVIDIA-GPU process viewer and beyond,
     the one-stop solution for GPU process management.
     """
 
