@@ -1144,7 +1144,6 @@ class Task:
 class BuildTask(Task):
     """Class for representing a build task for a package."""
 
-    process_handle: Optional[spack.build_environment.ProcessHandle] = None
     started: bool = False
 
     def start(self):
