@@ -28,6 +28,7 @@ class Libxml2(AutotoolsPackage, NMakePackage):
 
     license("MIT")
 
+    version("2.13.5", sha256="74fc163217a3964257d3be39af943e08861263c4231f9ef5b496b6f6d4c7b2b6")
     version("2.13.4", sha256="65d042e1c8010243e617efb02afda20b85c2160acdbfbcb5b26b80cec6515650")
     version("2.12.9", sha256="59912db536ab56a3996489ea0299768c7bcffe57169f0235e7f962a91f483590")
     version("2.11.9", sha256="780157a1efdb57188ec474dca87acaee67a3a839c2525b2214d318228451809f")
@@ -65,6 +66,7 @@ class Libxml2(AutotoolsPackage, NMakePackage):
 
     depends_on("c", type="build")
 
+    variant("http", default=False, description="Enable HTTP support")
     variant("python", default=False, description="Enable Python support")
     variant("shared", default=True, description="Build shared library")
     variant("pic", default=True, description="Enable position-independent code (PIC)")
@@ -251,6 +253,8 @@ class AutotoolsBuilder(AnyBuilder, autotools.AutotoolsBuilder):
         else:
             args.append("--without-python")
 
+        args.extend(self.with_or_without("http"))
+
         args.extend(self.enable_or_disable("shared"))
         # PIC setting is taken care of above by self.flag_handler()
         args.append("--without-pic")
@@ -294,4 +298,6 @@ class NMakeBuilder(AnyBuilder, nmake.NMakeBuilder):
             ]
             if spec.satisfies("+python"):
                 opts.append("python=yes")
+            if spec.satisfies("+http"):
+                opts.append("http=yes")
             cscript("configure.js", *opts)
