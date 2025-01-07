@@ -35,7 +35,7 @@ class RocprofilerSystems(CMakePackage):
         commit="71a5e271b5e07efd2948fb6e7b451db5e8e40cb8",
         submodules=True,
     )
-    
+
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
     depends_on("fortran", type="build")  # generated
@@ -169,4 +169,3 @@ class RocprofilerSystems(CMakePackage):
             files = glob.glob(pattern)
             if files:
                 env.set("TAU_MAKEFILE", files[0])
-

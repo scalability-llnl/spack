@@ -123,10 +123,7 @@ class Rocblas(CMakePackage):
         depends_on(f"rocminfo@{ver}", type="build", when=f"@{ver}")
         depends_on(f"rocm-cmake@{ver}", type="build", when=f"@{ver}")
 
-    for ver in [
-        "6.3.0",
-        "6.3.1",
-    ]:
+    for ver in ["6.3.0", "6.3.1"]:
         depends_on(f"hipblaslt@{ver}", when=f"@{ver}")
     depends_on("python@3.6:", type="build")
 
