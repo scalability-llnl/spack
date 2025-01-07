@@ -151,7 +151,7 @@ class Wgrib2(MakefilePackage, CMakePackage):
     variant("wmo_validation", default=False, description="WMO validation")
     #    variant("shared", default=False, description="Enable shared library", when="+lib")
     variant("disable_stat", default=False, description="Disable POSIX feature", when="@:3.1")
-    variant("openjpeg", default=False, description="Enable OpenJPEG", when="@:3.1")
+    variant("openjpeg", default=False, description="Enable OpenJPEG")
     variant(
         "enable_docs", default=False, description="Build doxygen documentation", when="@3.4.0:"
     )
