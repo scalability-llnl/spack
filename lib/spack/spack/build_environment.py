@@ -190,6 +190,27 @@ class MakeExecutable(Executable):
         return super().__call__(*args, **kwargs)
 
 
+class UndeclaredDependencyError(spack.error.SpackError):
+    """Raised if a dependency is invoking an executable through a module global, without
+    declaring a dependency on it.
+    """
+
+
+class DeprecatedExecutable:
+    def __init__(self, pkg: str, exe: str, exe_pkg: str) -> None:
+        self.pkg = pkg
+        self.exe = exe
+        self.exe_pkg = exe_pkg
+
+    def __call__(self, *args, **kwargs):
+        raise UndeclaredDependencyError(
+            f"{self.pkg} is using {self.exe} without declaring a dependency on {self.exe_pkg}"
+        )
+
+    def add_default_env(self, key: str, value: str):
+        self.__call__()
+
+
 def clean_environment():
     # Stuff in here sanitizes the build environment to eliminate
     # anything the user has set that may interfere. We apply it immediately
@@ -623,10 +644,9 @@ def set_package_py_globals(pkg, context: Context = Context.BUILD):
         module.std_meson_args = spack.build_systems.meson.MesonBuilder.std_args(pkg)
         module.std_pip_args = spack.build_systems.python.PythonPipBuilder.std_args(pkg)
 
-    # TODO: make these build deps that can be installed if not found.
-    module.make = MakeExecutable("make", jobs=jobs)
-    module.gmake = MakeExecutable("gmake", jobs=jobs)
-    module.ninja = MakeExecutable("ninja", jobs=jobs, supports_jobserver=False)
+    module.make = DeprecatedExecutable(pkg.name, "make", "gmake")
+    module.gmake = DeprecatedExecutable(pkg.name, "gmake", "gmake")
+    module.ninja = DeprecatedExecutable(pkg.name, "ninja", "ninja")
     # TODO: johnwparent: add package or builder support to define these build tools
     # for now there is no entrypoint for builders to define these on their
     # own
