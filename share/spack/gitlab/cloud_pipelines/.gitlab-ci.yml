@@ -14,10 +14,10 @@ default:
   image: { "name": "ghcr.io/spack/e4s-ubuntu-18.04:v2021-10-18", "entrypoint": [""] }
 
 # CI Platform-Arch
-.cray_rhel_zen4:
+.cray_rhel_x86_64_v3:
   variables:
     SPACK_TARGET_PLATFORM: "cray-rhel"
-    SPACK_TARGET_ARCH: "zen4"
+    SPACK_TARGET_ARCH: "x86_64_v3"
 
 .cray_sles_zen4:
   variables:
@@ -884,7 +884,7 @@ aws-pcluster-build-neoverse_v1:
     - cat /proc/meminfo | grep 'MemTotal\|MemFree' || true
 
 .generate-cray-rhel:
-  tags: [ "cray-rhel-zen4", "public" ]
+  tags: [ "cray-rhel-x86_64_v3", "public" ]
   extends: [ ".generate-cray" ]
 
 .generate-cray-sles:
@@ -896,7 +896,7 @@ aws-pcluster-build-neoverse_v1:
 # E4S - Cray RHEL
 #######################################
 .e4s-cray-rhel:
-  extends: [ ".cray_rhel_zen4" ]
+  extends: [ ".cray_rhel_x86_64_v3" ]
   variables:
     SPACK_CI_STACK_NAME: e4s-cray-rhel
 
@@ -904,7 +904,6 @@ e4s-cray-rhel-generate:
   extends: [ ".generate-cray-rhel", ".e4s-cray-rhel" ]
 
 e4s-cray-rhel-build:
-  allow_failure: true  # libsci_cray.so broken, misses DT_NEEDED for libdl.so
   extends: [ ".build", ".e4s-cray-rhel" ]
   trigger:
     include:
@@ -923,10 +922,10 @@ e4s-cray-rhel-build:
   variables:
     SPACK_CI_STACK_NAME: e4s-cray-sles
 
-e4s-cray-sles-generate:
+.e4s-cray-sles-generate:
   extends: [ ".generate-cray-sles", ".e4s-cray-sles" ]
 
-e4s-cray-sles-build:
+.e4s-cray-sles-build:
   allow_failure: true  # libsci_cray.so broken, misses DT_NEEDED for libdl.so
   extends: [ ".build", ".e4s-cray-sles" ]
   trigger:
