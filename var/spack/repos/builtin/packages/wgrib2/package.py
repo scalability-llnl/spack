@@ -27,21 +27,19 @@ variant_map_common = {
     "fortran_api": "MAKE_FTN_API",
     "disable_stat": "DISABLE_STAT",
     "openjpeg": "USE_OPENJPEG",
-    
 }
 
-variant_map_makefile = { 
-    "spectral": "USE_SPECTRAL",
-}
+variant_map_makefile = {"spectral": "USE_SPECTRAL"}
 
-variant_map_cmake = { 
+variant_map_cmake = {
     "netcdf": "USE_NETCDF",
     "disable_timezone": "DISABLE_TIMEZONE",
     "enable_docs": "ENABLE_DOCS",
 }
 
-variant_map_makefile.update(variant_map_common) 
+variant_map_makefile.update(variant_map_common)
 variant_map_cmake.update(variant_map_common)
+
 
 class Wgrib2(MakefilePackage, CMakePackage):
     """Utility for interacting with GRIB2 files"""
@@ -50,7 +48,9 @@ class Wgrib2(MakefilePackage, CMakePackage):
     url = "https://www.ftp.cpc.ncep.noaa.gov/wd51we/wgrib2/wgrib2.tgz.v2.0.8"
     git = "https://github.com/NOAA-EMC/wgrib2"
 
-    maintainers("AlysonStahl-NOAA", "t-brown", "AlexanderRichert-NOAA", "Hang-Lei-NOAA", "edwardhartnett")
+    maintainers(
+        "AlysonStahl-NOAA", "t-brown", "AlexanderRichert-NOAA", "Hang-Lei-NOAA", "edwardhartnett"
+    )
 
     build_system(conditional("cmake", when="@3.2:"), conditional("makefile", when="@:3.1"))
 
@@ -78,22 +78,18 @@ class Wgrib2(MakefilePackage, CMakePackage):
         when="@:3.1",
     )
     variant(
-        "netcdf4", 
-        default=False, 
-        description="Link in netcdf4 library to write netcdf3/4 files",
-        when="@:3.3"
-    )
-    variant(
-        "netcdf", 
-        default=False, 
-        description="Link in netcdf4 library to write netcdf3/4 files",
-        when="@3.4:"
-    )
-    variant(
-        "ipolates",
+        "netcdf4",
         default=False,
-        description="Use to interpolate to new grids",
+        description="Link in netcdf4 library to write netcdf3/4 files",
+        when="@:3.3",
     )
+    variant(
+        "netcdf",
+        default=False,
+        description="Link in netcdf4 library to write netcdf3/4 files",
+        when="@3.4:",
+    )
+    variant("ipolates", default=False, description="Use to interpolate to new grids")
     variant(
         "spectral", default=False, description="Spectral interpolation in -new_grid", when="@:3.1"
     )
@@ -148,7 +144,9 @@ class Wgrib2(MakefilePackage, CMakePackage):
     #    variant("shared", default=False, description="Enable shared library", when="+lib")
     variant("disable_stat", default=False, description="Disable POSIX feature", when="@:3.1")
     variant("openjpeg", default=False, description="Enable OpenJPEG", when="@:3.1")
-    variant("enable_docs", default=False, description="Build doxygen documentation", when="@3.4.0:")
+    variant(
+        "enable_docs", default=False, description="Build doxygen documentation", when="@3.4.0:"
+    )
 
     conflicts("+netcdf3", when="+netcdf4")
     conflicts("+netcdf3", when="+netcdf")
@@ -234,7 +232,6 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
         env.set("COMP_SYS", comp_sys)
 
     def build(self, pkg, spec, prefix):
-        
         make("-j1")
 
         # Move wgrib2 executable to a tempoary directory
@@ -259,7 +256,7 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
             # Need USE_REGEX in addition to MAKE_FTN_API to build lib
             makefile.filter(r"^MAKE_FTN_API=.*", "MAKE_FTN_API=1")
             makefile.filter(r"^USE_REGEX=.*", "USE_REGEX=1")
-            make("lib","-j1")
+            make("lib", "-j1")
             mkdir(join_path("install", "lib"))
             mkdir(join_path("install", "include"))
 
