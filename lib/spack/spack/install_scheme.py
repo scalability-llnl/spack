@@ -65,7 +65,7 @@ def _determine_scheme():
     return _scheme
 
 
-def default_install_location():
+def default_install_location(for_alias=None):
     """
     Selecting install-tree
 
@@ -74,7 +74,10 @@ def default_install_location():
     - otherwise, we are managing installs inside of Spack
     - ... unless the Spack prefix is not writable by us
     """
-    chosen = scheme()
+    if for_alias:
+        chosen = aliases.get(for_alias)
+    else:
+        chosen = scheme()
     if chosen == InstallScheme.OUT_OF_SPACK:
         return _in_user
     elif chosen == InstallScheme.IN_SPACK:
@@ -83,8 +86,8 @@ def default_install_location():
         raise InstallSchemeError(f"Unset or unexpected scheme: {chosen}")
 
 
-def config():
-    root = default_install_location()
+def config(for_alias=None):
+    root = default_install_location(for_alias)
     cfgs = os.path.join(root, "configs")
     return cfgs
 
