@@ -512,6 +512,11 @@ def make_argument_parser(**kwargs):
         action="store_true",
         help="Disable system config scope for end users",
     )
+    parser.add_argument(
+        "--guard-writes-into-spack",
+        action="store_true",
+        help="Warn when Spack tries to write into its own prefix",
+    )
 
     return parser
 
@@ -1000,7 +1005,8 @@ def _main(argv=None):
     cmd_name = args.command[0]
     cmd_name, args.command = resolve_alias(cmd_name, args.command)
 
-    spack.install_scheme.guard_writes_into_spack()
+    if args.guard_writes_into_spack:
+        spack.install_scheme.guard_writes_into_spack()
 
     # set up a bootstrap context, if asked.
     # bootstrap context needs to include parsing the command, b/c things
