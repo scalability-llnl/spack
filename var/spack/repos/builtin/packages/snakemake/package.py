@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -158,6 +157,9 @@ class Snakemake(PythonPackage):
         "http", default=False, description="Downloading of input files from HTTP(s)", when="@:7"
     )
     depends_on("py-requests", when="+http", type=("build", "run"))
+
+    # snakemake.common.tests requires pytest
+    skip_modules = ["snakemake.common.tests"]
 
     def test_run(self):
         """Test if snakemake runs with the version option"""

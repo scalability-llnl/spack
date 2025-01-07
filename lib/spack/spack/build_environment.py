@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -924,7 +923,9 @@ def effective_deptypes(
     in reverse so that dependents override dependencies, not the other way around."""
     topo_sorted_edges = traverse.traverse_topo_edges_generator(
         traverse.with_artificial_edges(specs),
-        visitor=EnvironmentVisitor(*specs, context=context),
+        visitor=traverse.CoverEdgesVisitor(
+            EnvironmentVisitor(*specs, context=context), key=traverse.by_dag_hash
+        ),
         key=traverse.by_dag_hash,
         root=True,
         all_edges=True,

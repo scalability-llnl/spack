@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -90,6 +89,8 @@ class Edm4hep(CMakePackage):
 
     # Corresponding changes in EDM4hep landed with https://github.com/key4hep/EDM4hep/pull/314
     extends("python", when="@0.10.6:")
+
+    conflicts("%clang@:16", when="@0.99.1:", msg="Incomplete consteval support in clang")
 
     def cmake_args(self):
         args = [
