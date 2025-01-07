@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -29,6 +28,7 @@ class Yosys(MakefilePackage):
 
     version("master", branch="master")
 
+    version("0.48", commit="aaa5347494801e9e3870b31387da59da24233f76", submodules=True)
     version("0.47", commit="647d61dd9212365a3cd44db219660b8f90b95cbd", submodules=True)
     version("0.46", commit="e97731b9dda91fa5fa53ed87df7c34163ba59a41", submodules=True)
     version("0.45", commit="9ed031ddd588442f22be13ce608547a5809b62f0", submodules=True)

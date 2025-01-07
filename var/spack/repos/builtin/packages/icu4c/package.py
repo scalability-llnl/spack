@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -76,6 +75,10 @@ class Icu4c(AutotoolsPackage, MSBuildPackage):
             # flag to CXXFLAGS in env
             flags.append(getattr(self.compiler, f"cxx{self.spec.variants['cxxstd'].value}_flag"))
         return (None, flags, None)
+
+    @property
+    def libs(self):
+        return find_libraries("libicu*", root=self.prefix, recursive=True)
 
 
 class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):

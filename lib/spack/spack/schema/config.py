@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Schema for config.yaml configuration file.
@@ -34,6 +33,7 @@ properties: Dict[str, Any] = {
                         "properties": {
                             "type": {"type": "string", "enum": ["rpath", "runpath"]},
                             "bind": {"type": "boolean"},
+                            "missing_library_policy": {"enum": ["error", "warn", "ignore"]},
                         },
                     },
                 ]

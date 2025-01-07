@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,6 +10,8 @@ import shutil
 import stat
 import sys
 from typing import Callable, Dict, Optional
+
+from typing_extensions import Literal
 
 from llnl.string import comma_or
 from llnl.util import tty
@@ -109,6 +110,9 @@ def view_copy(
             tty.debug(f"Can't change the permissions for {dst}")
 
 
+#: Type alias for link types
+LinkType = Literal["hardlink", "hard", "copy", "relocate", "add", "symlink", "soft"]
+
 #: supported string values for `link_type` in an env, mapped to canonical values
 _LINK_TYPES = {
     "hardlink": "hardlink",
@@ -123,7 +127,7 @@ _LINK_TYPES = {
 _VALID_LINK_TYPES = sorted(set(_LINK_TYPES.values()))
 
 
-def canonicalize_link_type(link_type: str) -> str:
+def canonicalize_link_type(link_type: LinkType) -> str:
     """Return canonical"""
     canonical = _LINK_TYPES.get(link_type)
     if not canonical:
@@ -133,7 +137,7 @@ def canonicalize_link_type(link_type: str) -> str:
     return canonical
 
 
-def function_for_link_type(link_type: str) -> LinkCallbackType:
+def function_for_link_type(link_type: LinkType) -> LinkCallbackType:
     link_type = canonicalize_link_type(link_type)
     if link_type == "hardlink":
         return view_hardlink
@@ -142,7 +146,7 @@ def function_for_link_type(link_type: str) -> LinkCallbackType:
     elif link_type == "copy":
         return view_copy
 
-    assert False, "invalid link type"  # need mypy Literal values
+    assert False, "invalid link type"
 
 
 class FilesystemView:
@@ -166,7 +170,7 @@ class FilesystemView:
         projections: Optional[Dict] = None,
         ignore_conflicts: bool = False,
         verbose: bool = False,
-        link_type: str = "symlink",
+        link_type: LinkType = "symlink",
     ):
         """
         Initialize a filesystem view under the given `root` directory with
@@ -292,7 +296,7 @@ class YamlFilesystemView(FilesystemView):
         projections: Optional[Dict] = None,
         ignore_conflicts: bool = False,
         verbose: bool = False,
-        link_type: str = "symlink",
+        link_type: LinkType = "symlink",
     ):
         super().__init__(
             root,

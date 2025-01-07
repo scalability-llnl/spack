@@ -8,6 +8,10 @@ spack:
     reuse: false
     unify: false
 
+  config:
+    shared_linking:
+      missing_library_policy: ignore  # due to use of externals
+
   packages:
     all:
       require: '%gcc'

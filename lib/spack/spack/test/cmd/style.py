@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -238,14 +237,14 @@ def test_external_root(external_style_root, capfd):
     assert "%s Imports are incorrectly sorted" % str(py_file) in output
 
     # mypy error
-    assert 'lib/spack/spack/dummy.py:10: error: Name "Package" is not defined' in output
+    assert 'lib/spack/spack/dummy.py:9: error: Name "Package" is not defined' in output
 
     # black error
     assert "--- lib/spack/spack/dummy.py" in output
     assert "+++ lib/spack/spack/dummy.py" in output
 
     # flake8 error
-    assert "lib/spack/spack/dummy.py:7: [F401] 'os' imported but unused" in output
+    assert "lib/spack/spack/dummy.py:6: [F401] 'os' imported but unused" in output
 
 
 @pytest.mark.skipif(not FLAKE8, reason="flake8 is not installed.")
