@@ -102,9 +102,10 @@ def _most_recent_internal_call():
 
     stack = inspect.stack()
     this_file = str(pathlib.Path(__file__).resolve())
+    spack_prefix = pathlib.Path(paths.prefix).resolve()
     for frame in stack:
         frame_loc = pathlib.Path(frame.filename).resolve()
-        if str(frame_loc) != this_file:
+        if str(frame_loc) != this_file and spack_prefix in frame_loc.parents:
             return frame_loc, frame.lineno
 
     return None, None
