@@ -14,6 +14,8 @@ class PyNvitop(PythonPackage):
     homepage = "https://nvitop.readthedocs.io/"
     pypi = "nvitop/nvitop-1.4.0.tar.gz"
 
+    maintainers("nboelte")
+
     license("Apache-2.0", checked_by="nboelte")
 
     version("1.4.0", sha256="92f313e9bd89fe1a9d54054e92f490f34331f1b7847a89ddaffd6a7fde1437bb")
