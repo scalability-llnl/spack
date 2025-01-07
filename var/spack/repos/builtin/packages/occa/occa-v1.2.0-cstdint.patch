@@ -1,0 +1,12 @@
+diff --git a/src/occa/internal/modes/dpcpp/polyfill.hpp b/src/occa/internal/modes/dpcpp/polyfill.hpp
+index 6aab675b..cb1ff9f7 100644
+--- a/src/occa/internal/modes/dpcpp/polyfill.hpp
++++ b/src/occa/internal/modes/dpcpp/polyfill.hpp
+@@ -8,6 +8,7 @@
+ #include <CL/sycl.hpp>
+ #else
+ #include <vector>
++#include <cstdint>
+ namespace sycl
+ {
+   template <std::size_t N>
