@@ -48,7 +48,7 @@ system_config_path = _get_system_config_path()
 
 #: When Spack is provided by an admin to a user, the admin can
 #: provide a config that only applies for the end-users
-admin_customer_cfg = os.path.join(system_config_path, "admin-customer")
+end_user_cfg_path = os.path.join(system_config_path, "end-user")
 
 #: synonym for prefix
 spack_root = prefix

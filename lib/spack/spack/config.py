@@ -832,7 +832,7 @@ def create() -> Configuration:
     if not disable_local_config:
         configuration_paths.append(("system", spack.paths.system_config_path))
         if end_user_system_scope:
-            configuration_paths.append(("admin-customer", spack.paths.admin_customer_cfg))
+            configuration_paths.append(("end-user", spack.paths.end_user_cfg_path))
 
     # Site configuration is per spack instance, for sites or projects
     # No site-level configs should be checked into spack by default.
