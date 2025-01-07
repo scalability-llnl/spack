@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import sys
-from concurrent.futures import ThreadPoolExecutor
 
 import llnl.util.lang as lang
 import llnl.util.tty as tty
@@ -682,7 +681,6 @@ def create_mirror_for_all_specs(mirror_specs, path, skip_unstable_versions, thre
     mirror_cache, mirror_stats = spack.mirrors.utils.mirror_cache_and_stats(
         path, skip_unstable_versions=skip_unstable_versions
     )
-    #with ThreadPoolExecutor(max_workers=threads) as executor:
     with spack.util.parallel.make_concurrent_executor(jobs=threads) as executor:
         # Submit tasks to the thread pool
         _ = [
