@@ -25,6 +25,7 @@ class Hipblas(CMakePackage, CudaPackage, ROCmPackage):
 
     version("develop", branch="develop")
     version("master", branch="master")
+    version("6.3.1", sha256="77a1845254d738c43a48bc52fa3e94499ed83535b5771408ff476122bc4b7b7c")
     version("6.3.0", sha256="72604c1896e42e65ea2b3e905159af6ec5eede6a353678009c47d0a24f462c92")
     version("6.2.4", sha256="3137ba35e0663d6cceed70086fc6397d9e74803e1711382be62809b91beb2f32")
     version("6.2.1", sha256="b770b6ebd27d5c12ad01827195e996469bfc826e8a2531831df475fc8d7f6b2e")
@@ -81,7 +82,7 @@ class Hipblas(CMakePackage, CudaPackage, ROCmPackage):
 
     depends_on("rocm-cmake@5.2.0:", type="build", when="@5.2.0:5.7")
     depends_on("rocm-cmake@4.5.0:", type="build")
-    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4", "6.3.0"]:
+    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4", "6.3.0", "6.3.1"]:
         depends_on(f"rocm-cmake@{ver}", when=f"+rocm @{ver}")
         depends_on(f"rocm-openmp-extras@{ver}", type="test", when=f"+rocm @{ver}")
 
@@ -107,6 +108,7 @@ class Hipblas(CMakePackage, CudaPackage, ROCmPackage):
         "6.2.1",
         "6.2.4",
         "6.3.0",
+        "6.3.1",
         "master",
         "develop",
     ]:
@@ -115,8 +117,8 @@ class Hipblas(CMakePackage, CudaPackage, ROCmPackage):
     for tgt in ROCmPackage.amdgpu_targets:
         depends_on(f"rocblas amdgpu_target={tgt}", when=f"+rocm amdgpu_target={tgt}")
         depends_on(f"rocsolver amdgpu_target={tgt}", when=f"+rocm amdgpu_target={tgt}")
-
-    depends_on("hipblas-common@6.3.0", when="@6.3.0")
+    for ver in ["6.3.0", "6.3.1"]:
+        depends_on(f"hipblas-common@{ver}", when=f"@{ver}")
 
     @classmethod
     def determine_version(cls, lib):
