@@ -38,6 +38,7 @@ class Occa(CMakePackage, MakefilePackage, CudaPackage, ROCmPackage):
     version("0.2.0", tag="v0.2.0", commit="2eceaa5706ad6cf3a1b153c1f2a8a2fffa2d5945")
     version("0.1.0", tag="v0.1.0", commit="381e886886dc87823769c5f20d0ecb29dd117afa")
 
+    depends_on("hip", when="+rocm")
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
     depends_on("fortran", type="build")  # generated
@@ -49,11 +50,20 @@ class Occa(CMakePackage, MakefilePackage, CudaPackage, ROCmPackage):
         default="makefile",
     )
 
-    variant("openmp", default=False, description="Enable support for OpenMP",  when="@1.1.0:")
+    variant("openmp", default=False, description="Enable support for OpenMP")
     variant("debug", default=False, description="Enable a build with debug symbols")
 
+    # HIP build fails with Make on some systems. So, we disable it when
+    # Make based build is used.
+    conflicts("+rocm", when="@:1.0.9")
+    # OpenMP build fails with Make on some systems. So, we disable it when
+    # Make based build is used.
+    conflicts("+openmp", when="@:1.0.9")
+    # gcc and cuda conflicts.
     conflicts("%gcc@6:", when="^cuda@:8")
     conflicts("%gcc@7:", when="^cuda@:9")
+
+    patch("occa-v1.2.0-cstdint.patch", when="@1.2.0")
 
     @run_after("install")
     def check_install(self):
