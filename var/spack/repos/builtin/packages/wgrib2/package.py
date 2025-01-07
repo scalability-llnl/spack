@@ -3,9 +3,10 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import os
 import re
 
+import spack.build_systems.cmake
+import spack.build_systems.makefile
 from spack.package import *
 
 variant_map_common = {
@@ -61,8 +62,16 @@ class Wgrib2(MakefilePackage, CMakePackage):
     version("3.2.0", sha256="ac3ace77a32c2809cbc4538608ad64aabda2c9c1e44e7851da79764a6eb3c369")
     version("3.1.1", sha256="9236f6afddad76d868c2cfdf5c4227f5bdda5e85ae40c18bafb37218e49bc04a")
     version("3.1.0", sha256="5757ef9016b19ae87491918e0853dce2d3616b14f8c42efe3b2f41219c16b78f")
-    version("2.0.8", sha256="5e6a0d6807591aa2a190d35401606f7e903d5485719655aea1c4866cc2828160")
-    version("2.0.7", sha256="d7f1a4f9872922c62b3c7818c022465532cca1f5666b75d3ac5735f0b2747793")
+    version(
+        "2.0.8",
+        sha256="5e6a0d6807591aa2a190d35401606f7e903d5485719655aea1c4866cc2828160",
+        extension="tar.gz",
+    )
+    version(
+        "2.0.7",
+        sha256="d7f1a4f9872922c62b3c7818c022465532cca1f5666b75d3ac5735f0b2747793",
+        extension="tar.gz",
+    )
 
     def url_for_version(self, version):
         if version >= Version("3.2.0"):
@@ -166,7 +175,7 @@ class Wgrib2(MakefilePackage, CMakePackage):
 
     @when("@:2 ^gmake@4.2:")
     def patch(self):
-        filter_file("\\\#define", "#define", "makefile")
+        filter_file(r"\\#define", "#define", "makefile")
 
     # Use Spack compiler wrapper flags
     def inject_flags(self, name, flags):
