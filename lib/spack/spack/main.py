@@ -501,13 +501,6 @@ def make_argument_parser(**kwargs):
         "--print-shell-vars", action="store", help="print info needed by setup-env.*sh"
     )
     parser.add_argument(
-        "--install-scheme",
-        dest="install_scheme",
-        action="store",
-        default=None,
-        help="specify install scheme",
-    )
-    parser.add_argument(
         "--disable-end-user-config",
         action="store_true",
         help="Disable system config scope for end users",
@@ -586,9 +579,6 @@ def setup_main_options(args):
     # when to use color (takes always, auto, or never)
     if args.color is not None:
         color.set_color_when(args.color)
-
-    if args.install_scheme:
-        spack.install_scheme.set_scheme(args.install_scheme)
 
     if args.disable_end_user_config:
         spack.config.end_user_system_scope = False

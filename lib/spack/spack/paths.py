@@ -81,6 +81,9 @@ default_license_dir = os.path.join(etc_path, "licenses")
 var_path = os.path.join(prefix, "var", "spack")
 
 
+internal_install_tree_root = os.path.join(prefix, "opt", "spack")
+
+
 def user_root():
     """Default install tree and config scope.
 

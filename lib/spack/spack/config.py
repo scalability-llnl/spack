@@ -39,7 +39,6 @@ from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
 from llnl.util import filesystem, lang, tty
 
 import spack.error
-import spack.install_scheme
 import spack.paths
 import spack.platforms
 import spack.schema
@@ -847,7 +846,8 @@ def create() -> Configuration:
     if not disable_local_config:
         configuration_paths.append(("user", spack.paths.user_config_path))
 
-    configuration_paths.append(("install", spack.install_scheme.config()))
+    per_spack_cfg = os.path.join(spack.paths.per_spack_user_root, "config")
+    configuration_paths.append(("per-spack-user", per_spack_cfg))
 
     # add each scope and its platform-specific directory
     for name, path in configuration_paths:
