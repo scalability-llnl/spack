@@ -152,6 +152,8 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
 
     # Build dependencies
     depends_on("mpi", when="+mpi")
+    with when("+linear_solvers"):
+        depends_on("rocsparse", when="@25.01: +rocm")
     with when("+fft"):
         depends_on("rocfft", when="+rocm")
         depends_on("fftw@3", when="~cuda ~rocm ~sycl")
