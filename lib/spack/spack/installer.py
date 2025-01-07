@@ -2113,7 +2113,7 @@ class PackageInstaller:
             """Attempts to start a package installation."""
             pkg, pkg_id, spec = task.pkg, task.pkg_id, task.pkg.spec
             install_status.next_pkg(pkg)
-           # install_status.set_term_title(f"Processing {task.pkg.name}")
+            # install_status.set_term_title(f"Processing {task.pkg.name}")
             tty.debug(f"Processing {pkg_id}: task={task}")
 
             # Skip the installation if the spec is not being installed locally
@@ -2163,7 +2163,7 @@ class PackageInstaller:
                 task.request.overwrite_time = time.time()
 
             # Determine state of installation artifacts and adjust accordingly.
-           # install_status.set_term_title(f"Preparing {task.pkg.name}")
+            # install_status.set_term_title(f"Preparing {task.pkg.name}")
             self._prepare_for_install(task)
 
             # Flag an already installed package
