@@ -1,22 +1,11 @@
 # Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-"""
-This module tracks whether we are installing packages into the Spack
-prefix or outside of it. If we are installing outside of Spack, that
-is controlled by ``$per_spack_user/installs/config``. By default,
-when installing outside of Spack, packages are installed into
-``$per_spack_user``; you can change that with
-``config:install_tree:root``.
-"""
-
 import inspect
 import os
 import pathlib
 import warnings
 
-import spack.error
 import spack.paths as paths
 
 
