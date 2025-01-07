@@ -1,0 +1,11 @@
+diff -ruN spack-src/misc-utils/lsfd.c spack-src-patched/misc-utils/lsfd.c
+--- spack-src/misc-utils/lsfd.c	2024-07-04 07:54:41.236242042 +0000
++++ spack-src-patched/misc-utils/lsfd.c	2025-01-07 01:30:52.719740516 +0000
+@@ -37,6 +37,7 @@
+ #include <sys/uio.h>
+ #include <linux/sched.h>
+ #include <sys/syscall.h>
++#include <errno.h>
+ 
+ #ifdef HAVE_LINUX_KCMP_H
+ #  include <linux/kcmp.h>

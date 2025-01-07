@@ -50,6 +50,8 @@ class UtilLinux(AutotoolsPackage):
 
     depends_on("bash", when="+bash", type="run")
 
+    patch("missing-errno-header.patch", when="@2.40.2")
+
     def url_for_version(self, version):
         url = "https://www.kernel.org/pub/linux/utils/util-linux/v{0}/util-linux-{1}.tar.gz"
         return url.format(version.up_to(2), version)
