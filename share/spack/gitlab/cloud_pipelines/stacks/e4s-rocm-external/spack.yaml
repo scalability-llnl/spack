@@ -207,6 +207,11 @@ spack:
       externals:
       - spec: rocm-core@6.2.1
         prefix: /opt/rocm-6.2.1
+    rocm-openmp-extras:
+      buildable: false
+      externals:
+      - spec: rocm-openmp-extras@6.2.1
+        prefix: /opt/rocm-6.2.1
 
   specs:
   # ROCM NOARCH
@@ -250,6 +255,7 @@ spack:
   # - chapel +rocm amdgpu_target=gfx908         # chapel: need chapel >= 2.2 to support ROCm >5.4
   # - cp2k +mpi +rocm amdgpu_target=gfx908      # cp2k: Error: KeyError: 'No spec with name rocm in... "-L{}".format(spec["rocm"].libs.directories[0]),
   # - exago +mpi +python +raja +hiop +rocm amdgpu_target=gfx908 ~ipopt cxxflags="-Wno-error=non-pod-varargs" ^hiop@1.0.0 ~sparse +mpi +raja +rocm amdgpu_target=gfx908 # raja: https://github.com/spack/spack/issues/44593
+  # - lammps +rocm amdgpu_target=gfx908         # lammps: KeyError: 'No spec with name llvm-amdgpu in rocm-openmp-extras@6.2.1/xafvl6rnd3tjagjvezszdz6itqzcl3zj'
   # - lbann ~cuda +rocm amdgpu_target=gfx908    # aluminum: https://github.com/spack/spack/issues/38807
   # - papi +rocm amdgpu_target=gfx908           # papi: https://github.com/spack/spack/issues/27898
   # - petsc +rocm amdgpu_target=gfx908          # petsc: https://github.com/spack/spack/issues/44600
@@ -294,6 +300,7 @@ spack:
   # - chapel +rocm amdgpu_target=gfx9a          # chapel: need chapel >= 2.2 to support ROCm >5.4
   # - cp2k +mpi +rocm amdgpu_target=gfx90a      # cp2k: Error: KeyError: 'No spec with name rocm in... "-L{}".format(spec["rocm"].libs.directories[0]),
   # - exago +mpi +python +raja +hiop +rocm amdgpu_target=gfx90a ~ipopt cxxflags="-Wno-error=non-pod-varargs" ^hiop@1.0.0 ~sparse +mpi +raja +rocm amdgpu_target=gfx90a # raja: https://github.com/spack/spack/issues/44593
+  # - lammps +rocm amdgpu_target=gfx90a         # lammps: KeyError: 'No spec with name llvm-amdgpu in rocm-openmp-extras@6.2.1/xafvl6rnd3tjagjvezszdz6itqzcl3zj'
   # - lbann ~cuda +rocm amdgpu_target=gfx90a    # aluminum: https://github.com/spack/spack/issues/38807
   # - papi +rocm amdgpu_target=gfx90a           # papi: https://github.com/spack/spack/issues/27898
   # - petsc +rocm amdgpu_target=gfx90a          # petsc: https://github.com/spack/spack/issues/44600

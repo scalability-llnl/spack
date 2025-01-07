@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -31,7 +30,7 @@ class Gmake(Package, GNUMirrorPackage):
         sha256="fc42139fb0d4b4291929788ebaf77e2a4de7eaca95e31f3634ef7d4932051f69",
     )
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     variant("guile", default=False, description="Support GNU Guile for embedded scripting")
 

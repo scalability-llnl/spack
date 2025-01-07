@@ -1,12 +1,10 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
 
 import llnl.util.filesystem as fs
 
-import spack.builder
 from spack.build_systems import autotools, nmake
 from spack.package import *
 
@@ -65,7 +63,7 @@ class Libxml2(AutotoolsPackage, NMakePackage):
         version("2.9.2", sha256="5178c30b151d044aefb1b08bf54c3003a0ac55c59c866763997529d60770d5bc")
         version("2.7.8", sha256="cda23bc9ebd26474ca8f3d67e7d1c4a1f1e7106364b690d822e009fdc3c417ec")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     variant("python", default=False, description="Enable Python support")
     variant("shared", default=True, description="Build shared library")
@@ -225,7 +223,7 @@ class Libxml2(AutotoolsPackage, NMakePackage):
             xmllint("--dtdvalid", dtd_path, data_dir.join("info.xml"))
 
 
-class BaseBuilder(metaclass=spack.builder.PhaseCallbacksMeta):
+class AnyBuilder(BaseBuilder):
     @run_after("install")
     @on_package_attributes(run_tests=True)
     def import_module_test(self):
@@ -234,7 +232,7 @@ class BaseBuilder(metaclass=spack.builder.PhaseCallbacksMeta):
                 python("-c", "import libxml2")
 
 
-class AutotoolsBuilder(BaseBuilder, autotools.AutotoolsBuilder):
+class AutotoolsBuilder(AnyBuilder, autotools.AutotoolsBuilder):
     def configure_args(self):
         spec = self.spec
 
@@ -260,7 +258,7 @@ class AutotoolsBuilder(BaseBuilder, autotools.AutotoolsBuilder):
         return args
 
 
-class NMakeBuilder(BaseBuilder, nmake.NMakeBuilder):
+class NMakeBuilder(AnyBuilder, nmake.NMakeBuilder):
     phases = ("configure", "build", "install")
 
     @property

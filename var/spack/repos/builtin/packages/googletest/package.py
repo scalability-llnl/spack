@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,7 +26,8 @@ class Googletest(CMakePackage):
     version("1.7.0", sha256="f73a6546fdf9fce9ff93a5015e0333a8af3062a152a9ad6bcb772c96687016cc")
     version("1.6.0", sha256="5fbc058e5b662b9c86d93ac76fefb58eec89cbf26144b49669a38ecb62758447")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("gmock", default=True, when="@1.8:", description="Build with gmock")
     variant("pthreads", default=True, description="Build multithreaded version with pthreads")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -87,16 +86,14 @@ class Babelstream(CMakePackage, CudaPackage, ROCmPackage, MakefilePackage):
         values=("cuda", "rocm"),
         default="cuda",
         when="+thrust",
-        description="Which THRUST implementation to use, supported options include option= \
-            - CUDA (via https://github.com/NVIDIA/thrust)\
-            - ROCM (via https://github.com/ROCmSoftwarePlatform/rocThrust)",
+        description="Which THRUST implementation to use",
     )
     variant(
         "thrust_backend",
         values=("cuda", "omp", "tbb"),
         default="cuda",
         when="+thrust",
-        description="Which THRUST implementation to use, supported options include option",
+        description="Which THRUST implementation to use",
     )
 
     # Kokkos variant
@@ -147,8 +144,8 @@ class Babelstream(CMakePackage, CudaPackage, ROCmPackage, MakefilePackage):
         values=("nvhpc", "none"),
         default="none",
         when="+std",
-        description="Enable offloading support (via the non-standard `-stdpar`)\
-                    for the new NVHPC SDK",
+        description="Enable offloading support (via the non-standard `-stdpar`) "
+        "for the new NVHPC SDK",
     )
     variant(
         "std_onedpl_backend",
@@ -162,16 +159,16 @@ class Babelstream(CMakePackage, CudaPackage, ROCmPackage, MakefilePackage):
         values=(True, False),
         default=False,
         when="+std",
-        description="No-op if ONE_TBB_DIR is set. Link against an in-tree oneTBB\
-                    via FetchContent_Declare, see top level CMakeLists.txt for details",
+        description="No-op if ONE_TBB_DIR is set. Link against an in-tree oneTBB "
+        "via FetchContent_Declare, see top level CMakeLists.txt for details",
     )
     variant(
         "std_use_onedpl",
         values=(True, False),
         default=False,
         when="+std",
-        description="Link oneDPL which implements C++17 executor policies\
-                    (via execution_policy_tag) for different backends",
+        description="Link oneDPL which implements C++17 executor policies "
+        "(via execution_policy_tag) for different backends",
     )
     # hip memory mode
     variant(
@@ -187,9 +184,9 @@ class Babelstream(CMakePackage, CudaPackage, ROCmPackage, MakefilePackage):
         values=(True, False),
         default=False,
         when="+tbb",
-        description="Whether to use std::vector<T> for storage or use aligned_alloc. \
-                     C++ vectors are *zero* initialised where as aligned_alloc is \
-                     uninitialised before first use.",
+        description="Whether to use std::vector<T> for storage or use aligned_alloc. "
+        "C++ vectors are *zero* initialised where as aligned_alloc is "
+        "uninitialised before first use.",
     )
 
     # Thrust Conflict
@@ -209,13 +206,7 @@ class Babelstream(CMakePackage, CudaPackage, ROCmPackage, MakefilePackage):
         values=("auto", "affinity", "static", "simple"),
         default="auto",
         when="+tbb",
-        description="Partitioner specifies how a loop template should partition its work among threads.\
-            Possible values are:\
-            AUTO     - Optimize range subdivision based on work-stealing events.\
-            AFFINITY - Proportional splitting that optimizes for cache affinity.\
-            STATIC   - Distribute work uniformly with no additional load balancing.\
-            SIMPLE   - Recursively split its range until it cannot be further subdivided.\
-            See https://spec.oneapi.com/versions/latest/elements/oneTBB/source/algorithms.html#partitioners",
+        description="Specifies how a loop template should partition its work among threads",
     )
 
     # Kokkos & RAJA Dependency
@@ -390,31 +381,28 @@ register_flag_optional(TARGET_PROCESSOR
         Refer to `nvc++ --help` for the full list"
         "")
         """
-        if self.spec.satisfies("+acc~kokkos~raja"):
-            if (self.spec.compiler.name == "nvhpc") or (self.spec.compiler.name == "pgi"):
-                target_device = "gpu" if "cuda_arch" in self.spec.variants else "multicore"
-                if "cuda_arch" in self.spec.variants:
-                    cuda_arch_list = self.spec.variants["cuda_arch"].value
-                    # the architecture value is only number so append cc_ to the name
-                    cuda_arch = "cc" + cuda_arch_list[0]
-                    # args.append(
-                    #     "-DCXX_EXTRA_FLAGS=" + "-target=" + target_device + "-gpu=" + cuda_arch
-                    # )
-                    args.append("-DCUDA_ARCH=" + cuda_arch)
-                else:
-                    # get the cpu architecture value from user
-                    target_processor = str(
-                        self.spec.target
-                    )  # self.spec.variants["cpu_arch"].value[0]
-                    args.append("-DTARGET_PROCESSOR=" + target_processor)
-                    # args.append(
-                    #     "-DCXX_EXTRA_FLAGS="
-                    #     + "-target="
-                    #     + target_device
-                    #     + "-tp="
-                    #     + target_processor
-                    # )
-                args.append("-DTARGET_DEVICE=" + target_device)
+        if self.spec.satisfies("+acc~kokkos~raja %nvhpc"):
+            target_device = "gpu" if "cuda_arch" in self.spec.variants else "multicore"
+            if "cuda_arch" in self.spec.variants:
+                cuda_arch_list = self.spec.variants["cuda_arch"].value
+                # the architecture value is only number so append cc_ to the name
+                cuda_arch = "cc" + cuda_arch_list[0]
+                # args.append(
+                #     "-DCXX_EXTRA_FLAGS=" + "-target=" + target_device + "-gpu=" + cuda_arch
+                # )
+                args.append("-DCUDA_ARCH=" + cuda_arch)
+            else:
+                # get the cpu architecture value from user
+                target_processor = str(self.spec.target)  # self.spec.variants["cpu_arch"].value[0]
+                args.append("-DTARGET_PROCESSOR=" + target_processor)
+                # args.append(
+                #     "-DCXX_EXTRA_FLAGS="
+                #     + "-target="
+                #     + target_device
+                #     + "-tp="
+                #     + target_processor
+                # )
+            args.append("-DTARGET_DEVICE=" + target_device)
         # ===================================
         #    STDdata,STDindices,STDranges
         # ===================================

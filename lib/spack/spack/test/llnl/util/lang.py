@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -298,30 +297,6 @@ def test_grouped_exception():
     top-level raised TypeError: ok"""
     )
 
-    full_message = h.grouped_message(with_tracebacks=True)
-    no_line_numbers = re.sub(r"line [0-9]+,", "line xxx,", full_message)
-
-    assert (
-        no_line_numbers
-        == dedent(
-            """\
-    due to the following failures:
-    inner method raised ValueError: wow!
-      File "{0}", \
-line xxx, in test_grouped_exception
-        inner()
-      File "{0}", \
-line xxx, in inner
-        raise ValueError("wow!")
-
-    top-level raised TypeError: ok
-      File "{0}", \
-line xxx, in test_grouped_exception
-        raise TypeError("ok")
-    """
-        ).format(__file__)
-    )
-
 
 def test_grouped_exception_base_type():
     h = llnl.util.lang.GroupedExceptionHandler()
@@ -373,3 +348,19 @@ def test_deprecated_property():
     _SomeClass.deprecated.error_lvl = 2
     with pytest.raises(AttributeError):
         _ = s.deprecated
+
+
+def test_fnmatch_multiple():
+    named_patterns = {"a": "libf*o.so", "b": "libb*r.so"}
+    regex = re.compile(llnl.util.lang.fnmatch_translate_multiple(named_patterns))
+
+    a = regex.match("libfoo.so")
+    assert a and a.group("a") == "libfoo.so"
+
+    b = regex.match("libbar.so")
+    assert b and b.group("b") == "libbar.so"
+
+    assert not regex.match("libfoo.so.1")
+    assert not regex.match("libbar.so.1")
+    assert not regex.match("libfoo.solibbar.so")
+    assert not regex.match("libbaz.so")

@@ -1,21 +1,20 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-"""
-(DEPRECATED) Used to contain the code for the original concretizer
-"""
+"""High-level functions to concretize list of specs"""
 import sys
 import time
 from contextlib import contextmanager
-from itertools import chain
-from typing import Tuple
+from typing import Iterable, List, Optional, Sequence, Tuple, Union
 
 import llnl.util.tty as tty
 
+import spack.compilers
 import spack.config
 import spack.error
-from spack.spec import Spec
+import spack.repo
+import spack.util.parallel
+from spack.spec import ArchSpec, CompilerSpec, Spec
 
 CHECK_COMPILER_EXISTENCE = True
 
@@ -36,92 +35,63 @@ def enable_compiler_existence_check():
     CHECK_COMPILER_EXISTENCE = saved
 
 
-def find_spec(spec, condition, default=None):
-    """Searches the dag from spec in an intelligent order and looks
-    for a spec that matches a condition"""
-    # First search parents, then search children
-    deptype = ("build", "link")
-    dagiter = chain(
-        spec.traverse(direction="parents", deptype=deptype, root=False),
-        spec.traverse(direction="children", deptype=deptype, root=False),
-    )
-    visited = set()
-    for relative in dagiter:
-        if condition(relative):
-            return relative
-        visited.add(id(relative))
-
-    # Then search all other relatives in the DAG *except* spec
-    for relative in spec.root.traverse(deptype="all"):
-        if relative is spec:
-            continue
-        if id(relative) in visited:
-            continue
-        if condition(relative):
-            return relative
-
-    # Finally search spec itself.
-    if condition(spec):
-        return spec
-
-    return default  # Nothing matched the condition; return default.
+SpecPairInput = Tuple[Spec, Optional[Spec]]
+SpecPair = Tuple[Spec, Spec]
+SpecLike = Union[Spec, str]
+TestsType = Union[bool, Iterable[str]]
 
 
-def concretize_specs_together(*abstract_specs, **kwargs):
+def concretize_specs_together(
+    abstract_specs: Sequence[SpecLike], tests: TestsType = False
+) -> Sequence[Spec]:
     """Given a number of specs as input, tries to concretize them together.
 
     Args:
-        tests (bool or list or set): False to run no tests, True to test
-            all packages, or a list of package names to run tests for some
-        *abstract_specs: abstract specs to be concretized, given either
-            as Specs or strings
-
-    Returns:
-        List of concretized specs
+        abstract_specs: abstract specs to be concretized
+        tests: list of package names for which to consider tests dependencies. If True, all nodes
+            will have test dependencies. If False, test dependencies will be disregarded.
     """
     import spack.solver.asp
 
     allow_deprecated = spack.config.get("config:deprecated", False)
     solver = spack.solver.asp.Solver()
-    result = solver.solve(
-        abstract_specs, tests=kwargs.get("tests", False), allow_deprecated=allow_deprecated
-    )
+    result = solver.solve(abstract_specs, tests=tests, allow_deprecated=allow_deprecated)
     return [s.copy() for s in result.specs]
 
 
-def concretize_together(*spec_list, **kwargs):
+def concretize_together(
+    spec_list: Sequence[SpecPairInput], tests: TestsType = False
+) -> List[SpecPair]:
     """Given a number of specs as input, tries to concretize them together.
 
     Args:
-        tests (bool or list or set): False to run no tests, True to test
-            all packages, or a list of package names to run tests for some
-        *spec_list: list of tuples to concretize. First entry is abstract spec, second entry is
+        spec_list: list of tuples to concretize. First entry is abstract spec, second entry is
             already concrete spec or None if not yet concretized
-
-    Returns:
-        List of tuples of abstract and concretized specs
+        tests: list of package names for which to consider tests dependencies. If True, all nodes
+            will have test dependencies. If False, test dependencies will be disregarded.
     """
     to_concretize = [concrete if concrete else abstract for abstract, concrete in spec_list]
     abstract_specs = [abstract for abstract, _ in spec_list]
-    concrete_specs = concretize_specs_together(*to_concretize, **kwargs)
+    concrete_specs = concretize_specs_together(to_concretize, tests=tests)
     return list(zip(abstract_specs, concrete_specs))
 
 
-def concretize_together_when_possible(*spec_list, **kwargs):
+def concretize_together_when_possible(
+    spec_list: Sequence[SpecPairInput], tests: TestsType = False
+) -> List[SpecPair]:
     """Given a number of specs as input, tries to concretize them together to the extent possible.
 
     See documentation for ``unify: when_possible`` concretization for the precise definition of
     "to the extent possible".
 
     Args:
-        tests (bool or list or set): False to run no tests, True to test
-            all packages, or a list of package names to run tests for some
-        *spec_list: list of tuples to concretize. First entry is abstract spec, second entry is
+        spec_list: list of tuples to concretize. First entry is abstract spec, second entry is
             already concrete spec or None if not yet concretized
-
-    Returns:
-        List of tuples of abstract and concretized specs
+        tests: list of package names for which to consider tests dependencies. If True, all nodes
+            will have test dependencies. If False, test dependencies will be disregarded.
     """
+    import spack.solver.asp
+
     to_concretize = [concrete if concrete else abstract for abstract, concrete in spec_list]
     old_concrete_to_abstract = {
         concrete: abstract for (abstract, concrete) in spec_list if concrete
@@ -131,7 +101,7 @@ def concretize_together_when_possible(*spec_list, **kwargs):
     solver = spack.solver.asp.Solver()
     allow_deprecated = spack.config.get("config:deprecated", False)
     for result in solver.solve_in_rounds(
-        to_concretize, tests=kwargs.get("tests", False), allow_deprecated=allow_deprecated
+        to_concretize, tests=tests, allow_deprecated=allow_deprecated
     ):
         result_by_user_spec.update(result.specs_by_input)
 
@@ -143,19 +113,19 @@ def concretize_together_when_possible(*spec_list, **kwargs):
     ]
 
 
-def concretize_separately(*spec_list, **kwargs):
-    """Given a number of specs as input, tries to concretize them together.
+def concretize_separately(
+    spec_list: Sequence[SpecPairInput], tests: TestsType = False
+) -> List[SpecPair]:
+    """Concretizes the input specs separately from each other.
 
     Args:
-        tests (bool or list or set): False to run no tests, True to test
-            all packages, or a list of package names to run tests for some
-        *spec_list: list of tuples to concretize. First entry is abstract spec, second entry is
+        spec_list: list of tuples to concretize. First entry is abstract spec, second entry is
             already concrete spec or None if not yet concretized
-
-    Returns:
-        List of tuples of abstract and concretized specs
+        tests: list of package names for which to consider tests dependencies. If True, all nodes
+            will have test dependencies. If False, test dependencies will be disregarded.
     """
-    tests = kwargs.get("tests", False)
+    import spack.bootstrap
+
     to_concretize = [abstract for abstract, concrete in spec_list if not concrete]
     args = [
         (i, str(abstract), tests)
@@ -190,13 +160,14 @@ def concretize_separately(*spec_list, **kwargs):
     # TODO: support parallel concretization on macOS and Windows
     num_procs = min(len(args), spack.config.determine_number_of_jobs(parallel=True))
 
+    msg = "Starting concretization"
+    if sys.platform not in ("darwin", "win32") and num_procs > 1:
+        msg += f" pool with {num_procs} processes"
+    tty.msg(msg)
+
     for j, (i, concrete, duration) in enumerate(
         spack.util.parallel.imap_unordered(
-            spack.concretize._concretize_task,
-            args,
-            processes=num_procs,
-            debug=tty.is_debug(),
-            maxtaskperchild=1,
+            _concretize_task, args, processes=num_procs, debug=tty.is_debug(), maxtaskperchild=1
         )
     ):
         ret.append((i, concrete))
@@ -215,7 +186,7 @@ def concretize_separately(*spec_list, **kwargs):
     ]
 
 
-def _concretize_task(packed_arguments) -> Tuple[int, Spec, float]:
+def _concretize_task(packed_arguments: Tuple[int, str, TestsType]) -> Tuple[int, Spec, float]:
     index, spec_str, tests = packed_arguments
     with tty.SuppressOutput(msg_enabled=False):
         start = time.time()
@@ -227,10 +198,10 @@ class UnavailableCompilerVersionError(spack.error.SpackError):
     """Raised when there is no available compiler that satisfies a
     compiler spec."""
 
-    def __init__(self, compiler_spec, arch=None):
-        err_msg = "No compilers with spec {0} found".format(compiler_spec)
+    def __init__(self, compiler_spec: CompilerSpec, arch: Optional[ArchSpec] = None) -> None:
+        err_msg = f"No compilers with spec {compiler_spec} found"
         if arch:
-            err_msg += " for operating system {0} and target {1}.".format(arch.os, arch.target)
+            err_msg += f" for operating system {arch.os} and target {arch.target}."
 
         super().__init__(
             err_msg,

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,6 +25,8 @@ class Fd(CargoPackage):
     depends_on("rust@1.64:", type="build", when="@8.7:")
     depends_on("rust@1.70:", type="build", when="@8.7.1:")
     depends_on("rust@1.77.2:", type="build", when="@10:")
+
+    depends_on("c", type="build")
 
     @run_after("install")
     def install_completions(self):

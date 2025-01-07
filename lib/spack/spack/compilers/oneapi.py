@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -155,10 +154,10 @@ class Oneapi(Compiler):
         # icx+icpx+ifx or icx+icpx+ifort. But to be on the safe side (some users may
         # want to try to swap icpx against icpc, for example), and since the Intel LLVM
         # compilers accept these diag-disable flags, we apply them for all compilers.
-        if self.real_version >= Version("2021") and self.real_version <= Version("2023"):
+        if self.real_version >= Version("2021") and self.real_version < Version("2024"):
             env.append_flags("SPACK_ALWAYS_CFLAGS", "-diag-disable=10441")
             env.append_flags("SPACK_ALWAYS_CXXFLAGS", "-diag-disable=10441")
-        if self.real_version >= Version("2021") and self.real_version <= Version("2024"):
+        if self.real_version >= Version("2021") and self.real_version < Version("2025"):
             env.append_flags("SPACK_ALWAYS_FFLAGS", "-diag-disable=10448")
 
         # 2024 release bumped the libsycl version because of an ABI

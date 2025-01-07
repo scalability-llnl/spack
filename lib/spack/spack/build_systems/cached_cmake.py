@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections.abc
@@ -10,7 +9,7 @@ from typing import Tuple
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
 
-import spack.builder
+import spack.phase_callbacks
 
 from .cmake import CMakeBuilder, CMakePackage
 
@@ -192,7 +191,10 @@ class CachedCMakeBuilder(CMakeBuilder):
 
         entries.append(cmake_cache_path("MPI_C_COMPILER", spec["mpi"].mpicc))
         entries.append(cmake_cache_path("MPI_CXX_COMPILER", spec["mpi"].mpicxx))
-        entries.append(cmake_cache_path("MPI_Fortran_COMPILER", spec["mpi"].mpifc))
+
+        # not all MPIs have Fortran wrappers
+        if hasattr(spec["mpi"], "mpifc"):
+            entries.append(cmake_cache_path("MPI_Fortran_COMPILER", spec["mpi"].mpifc))
 
         # Check for slurm
         using_slurm = False
@@ -321,7 +323,7 @@ class CachedCMakeBuilder(CMakeBuilder):
             + self.initconfig_package_entries()
         )
 
-        with open(self.cache_name, "w") as f:
+        with open(self.cache_name, "w", encoding="utf-8") as f:
             for entry in cache_entries:
                 f.write("%s\n" % entry)
             f.write("\n")
@@ -332,7 +334,7 @@ class CachedCMakeBuilder(CMakeBuilder):
         args.extend(["-C", self.cache_path])
         return args
 
-    @spack.builder.run_after("install")
+    @spack.phase_callbacks.run_after("install")
     def install_cmake_cache(self):
         fs.mkdirp(self.pkg.spec.prefix.share.cmake)
         fs.install(self.cache_path, self.pkg.spec.prefix.share.cmake)
