@@ -8,7 +8,7 @@ from spack.package import *
 
 
 class Rocjpeg(CMakePackage):
-    """rocJPEG is a high-performance jpeg decode SDK for decoding jpeg images 
+    """rocJPEG is a high-performance jpeg decode SDK for decoding jpeg images
     using a hardware-accelerated jpeg decoder on AMD's GPUs."""
 
     homepage = "https://rocm.docs.amd.com/projects/rocJPEG/en/latest/"
@@ -34,7 +34,5 @@ class Rocjpeg(CMakePackage):
         )
 
     def cmake_args(self):
-        args = [
-            self.define("LIBVA_INCLUDE_DIR", self.spec["libva"].prefix.include)
-        ]
+        args = [self.define("LIBVA_INCLUDE_DIR", self.spec["libva"].prefix.include)]
         return args
