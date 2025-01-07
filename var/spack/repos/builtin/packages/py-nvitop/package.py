@@ -24,6 +24,7 @@ class PyNvitop(PythonPackage):
     depends_on("py-psutil@5.6.6:", type=("build", "run"))
     depends_on("py-cachetools@1.0.1:", type=("build", "run"))
     depends_on("py-termcolor@1.0.0:", type=("build", "run"))
+    depends_on("python@3.7:", type=("build", "run"))
     depends_on("py-setuptools", type="build")
     depends_on("py-colorama@0.4:", when="platform=windows", type=("build", "run"))
 
