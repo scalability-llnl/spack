@@ -16,6 +16,7 @@ from llnl.util.lang import dedupe
 
 import spack.paths
 from spack.build_environment import dso_suffix, stat_suffix
+from spack.config import determine_number_of_jobs
 from spack.package import *
 
 
@@ -398,6 +399,10 @@ class Python(Package):
         ff.filter(
             r"^(.*)setup\.py(.*)((build)|(install))(.*)$", r"\1setup.py\2 --no-user-cfg \3\6"
         )
+
+        # limit the number of processes to use for compileall
+        jobs = determine_number_of_jobs(parallel=self.parallel)
+        ff.filter("-j0", f"-j{jobs}")
 
         # disable building the nis module (there is no flag to disable it).
         if self.spec.satisfies("@3.8:3.10"):
