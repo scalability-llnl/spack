@@ -50,7 +50,7 @@ class Wgrib2(MakefilePackage, CMakePackage):
     url = "https://www.ftp.cpc.ncep.noaa.gov/wd51we/wgrib2/wgrib2.tgz.v2.0.8"
     git = "https://github.com/NOAA-EMC/wgrib2"
 
-    maintainers("t-brown", "AlexanderRichert-NOAA", "Hang-Lei-NOAA", "edwardhartnett")
+    maintainers("AlysonStahl-NOAA", "t-brown", "AlexanderRichert-NOAA", "Hang-Lei-NOAA", "edwardhartnett")
 
     build_system(conditional("cmake", when="@3.2:"), conditional("makefile", when="@:3.1"))
 
