@@ -142,7 +142,7 @@ class Root(CMakePackage):
     patch(
         "https://github.com/root-project/root/commit/2f00d6df258906c1f6fe848135a88b836db3077f.patch?full_index=1",
         sha256="8da36032082e65ae246c03558a4c3fd67b157d1d0c6d20adac9de263279d1db6",
-        when="@6.28:6.28.12",
+        when="@6.28.6:6.28.12",
     )
     patch(
         "https://github.com/root-project/root/commit/14838b35600b08278e69bc3d8d8669773bc11399.patch?full_index=1",
