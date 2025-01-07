@@ -299,7 +299,8 @@ class CachedCMakeBuilder(CMakeBuilder):
     def std_initconfig_entries(self):
         cmake_prefix_path_env = os.environ["CMAKE_PREFIX_PATH"]
         cmake_prefix_path = cmake_prefix_path_env.replace(os.pathsep, ";")
-        complete_rpath_list = ""
+        default_rpaths = [self.pkg.spec.prefix.lib, self.pkg.spec.prefix.lib64]
+        complete_rpath_list = ";".join(default_rpaths)
         if "SPACK_COMPILER_EXTRA_RPATHS" in os.environ:
             spack_extra_rpaths_env = os.environ["SPACK_COMPILER_EXTRA_RPATHS"]
             spack_extra_rpaths_path = spack_extra_rpaths_env.replace(os.pathsep, ";")
