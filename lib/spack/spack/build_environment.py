@@ -31,6 +31,7 @@ There are two parts to the build environment:
 Skimming this module is a nice way to get acquainted with the types of
 calls you can make from within the install() function.
 """
+
 import inspect
 import io
 import multiprocessing
@@ -251,7 +252,9 @@ class MakeExecutable(Executable):
         if jobs_env:
             # Caller wants us to set an environment variable to control the parallelism
             jobs_env_jobs = get_effective_jobs(
-                self.jobs, parallel=parallel, supports_jobserver=jobs_env_supports_jobserver
+                self.jobs,
+                parallel=parallel,
+                supports_jobserver=jobs_env_supports_jobserver,
             )
             if jobs_env_jobs is not None:
                 extra_env = kwargs.setdefault("extra_env", {})
@@ -388,7 +391,10 @@ def _add_werror_handling(keep_werror, env):
         replace_flags.append(("-Werror-", "-Wno-error="))
         replace_flags.append(("-Werror", "-Wno-error"))
     env.set("SPACK_COMPILER_FLAGS_KEEP", "|".join(keep_flags))
-    env.set("SPACK_COMPILER_FLAGS_REPLACE", " ".join(["|".join(item) for item in replace_flags]))
+    env.set(
+        "SPACK_COMPILER_FLAGS_REPLACE",
+        " ".join(["|".join(item) for item in replace_flags]),
+    )
 
 
 def set_compiler_environment_variables(pkg, env):
@@ -523,7 +529,9 @@ def optimization_flags(compiler, target):
             tty.debug(str(e))
 
     try:
-        result = target.optimization_flags(compiler.name, compiler_version.dotted_numeric_string)
+        result = target.optimization_flags(
+            compiler.name, compiler_version.dotted_numeric_string
+        )
     except (ValueError, archspec.cpu.UnsupportedMicroarchitecture):
         result = ""
 
@@ -538,7 +546,9 @@ class FilterDefaultDynamicLinkerSearchPaths:
         self.default_path_identifiers: Set[Tuple[int, int]] = set()
         if not dynamic_linker:
             return
-        for path in spack.util.libc.default_search_paths_from_dynamic_linker(dynamic_linker):
+        for path in spack.util.libc.default_search_paths_from_dynamic_linker(
+            dynamic_linker
+        ):
             try:
                 s = os.stat(path)
                 if stat.S_ISDIR(s.st_mode):
@@ -610,7 +620,10 @@ def set_wrapper_variables(pkg, env):
 
     if spack.config.get("config:ccache"):
         # Enable ccache in the compiler wrapper
-        env.set(SPACK_CCACHE_BINARY, spack.util.executable.which_string("ccache", required=True))
+        env.set(
+            SPACK_CCACHE_BINARY,
+            spack.util.executable.which_string("ccache", required=True),
+        )
     else:
         # Avoid cache pollution if a build system forces `ccache <compiler wrapper invocation>`.
         env.set("CCACHE_DISABLE", "1")
@@ -618,7 +631,9 @@ def set_wrapper_variables(pkg, env):
     # Gather information about various types of dependencies
     rpath_hashes = set(s.dag_hash() for s in get_rpath_deps(pkg))
     link_deps = pkg.spec.traverse(root=False, order="topo", deptype=dt.LINK)
-    external_link_deps, nonexternal_link_deps = stable_partition(link_deps, lambda d: d.external)
+    external_link_deps, nonexternal_link_deps = stable_partition(
+        link_deps, lambda d: d.external
+    )
 
     link_dirs = []
     include_dirs = []
@@ -678,7 +693,9 @@ def set_wrapper_variables(pkg, env):
 
     # TODO: implicit_rpaths is prefiltered by is_system_path, that should be removed in favor of
     # just this filter.
-    implicit_rpaths = filter_default_dynamic_linker_search_paths(pkg.compiler.implicit_rpaths())
+    implicit_rpaths = filter_default_dynamic_linker_search_paths(
+        pkg.compiler.implicit_rpaths()
+    )
     if implicit_rpaths:
         env.set("SPACK_COMPILER_IMPLICIT_RPATHS", ":".join(implicit_rpaths))
 
@@ -691,10 +708,16 @@ def set_wrapper_variables(pkg, env):
     }
     spack_managed_dirs.update([os.path.realpath(p) for p in spack_managed_dirs])
 
-    env.set(SPACK_MANAGED_DIRS, "|".join(f'"{p}/"*' for p in sorted(spack_managed_dirs)))
-    is_spack_managed = lambda p: any(p.startswith(store) for store in spack_managed_dirs)
+    env.set(
+        SPACK_MANAGED_DIRS, "|".join(f'"{p}/"*' for p in sorted(spack_managed_dirs))
+    )
+    is_spack_managed = lambda p: any(
+        p.startswith(store) for store in spack_managed_dirs
+    )
     link_dirs_spack, link_dirs_system = stable_partition(link_dirs, is_spack_managed)
-    include_dirs_spack, include_dirs_system = stable_partition(include_dirs, is_spack_managed)
+    include_dirs_spack, include_dirs_system = stable_partition(
+        include_dirs, is_spack_managed
+    )
     rpath_dirs_spack, rpath_dirs_system = stable_partition(rpath_dirs, is_spack_managed)
     env.set(SPACK_LINK_DIRS, ":".join(link_dirs_system))
     env.set(SPACK_INCLUDE_DIRS, ":".join(include_dirs_system))
@@ -829,7 +852,9 @@ def _static_to_shared_library(arch, compiler, static_lib, shared_lib=None, **kwa
         ]
 
         if compat_version:
-            compiler_args.extend(["-compatibility_version", "{0}".format(compat_version)])
+            compiler_args.extend(
+                ["-compatibility_version", "{0}".format(compat_version)]
+            )
 
         if version:
             compiler_args.extend(["-current_version", "{0}".format(version)])
@@ -900,7 +925,9 @@ def load_external_modules(pkg):
 def setup_package(pkg, dirty, context: Context = Context.BUILD):
     """Execute all environment setup routines."""
     if context not in (Context.BUILD, Context.TEST):
-        raise ValueError(f"'context' must be Context.BUILD or Context.TEST - got {context}")
+        raise ValueError(
+            f"'context' must be Context.BUILD or Context.TEST - got {context}"
+        )
 
     # First populate the package.py's module with the relevant globals that could be used in any
     # of the setup_* functions.
@@ -1024,6 +1051,9 @@ def effective_deptypes(
         root=True,
         all_edges=True,
     )
+    traverse.traverse_depth_first_with_visitor(
+        traverse.with_artificial_edges(specs), visitor
+    )
 
     # Dictionary with "no mode" as default value, so it's easy to write modes[x] |= flag.
     use_modes = defaultdict(lambda: UseMode(0))
@@ -1064,7 +1094,9 @@ def effective_deptypes(
                     use_modes[child] |= UseMode.RUNTIME
 
         # Propagate RUNTIME and RUNTIME_EXECUTABLE through link and run deps.
-        if (UseMode.RUNTIME | UseMode.RUNTIME_EXECUTABLE | UseMode.BUILDTIME_DIRECT) & parent_mode:
+        if (
+            UseMode.RUNTIME | UseMode.RUNTIME_EXECUTABLE | UseMode.BUILDTIME_DIRECT
+        ) & parent_mode:
             if dt.LINK & depflag:
                 use_modes[child] |= UseMode.RUNTIME
             if dt.RUN & depflag:
@@ -1098,7 +1130,9 @@ class SetupContext:
         Args:
             specs: single root spec for build/test context, possibly more for run context
             context: build, run, or test"""
-        if (context == Context.BUILD or context == Context.TEST) and not len(specs) == 1:
+        if (context == Context.BUILD or context == Context.TEST) and not len(
+            specs
+        ) == 1:
             raise ValueError("Cannot setup build environment for multiple specs")
         specs_with_type = effective_deptypes(*specs, context=context)
 
@@ -1117,8 +1151,12 @@ class SetupContext:
         self.should_setup_run_env = (
             UseMode.BUILDTIME_DIRECT | UseMode.RUNTIME | UseMode.RUNTIME_EXECUTABLE
         )
-        self.should_setup_dependent_build_env = UseMode.BUILDTIME | UseMode.BUILDTIME_DIRECT
-        self.should_setup_build_env = UseMode.ROOT if context == Context.BUILD else UseMode(0)
+        self.should_setup_dependent_build_env = (
+            UseMode.BUILDTIME | UseMode.BUILDTIME_DIRECT
+        )
+        self.should_setup_build_env = (
+            UseMode.ROOT if context == Context.BUILD else UseMode(0)
+        )
 
         if context == Context.RUN or context == Context.TEST:
             self.should_be_runnable |= UseMode.ROOT
@@ -1126,7 +1164,9 @@ class SetupContext:
 
         # Everything that calls setup_run_environment and setup_dependent_* needs globals set.
         self.should_set_package_py_globals = (
-            self.should_setup_dependent_build_env | self.should_setup_run_env | UseMode.ROOT
+            self.should_setup_dependent_build_env
+            | self.should_setup_run_env
+            | UseMode.ROOT
         )
         # In a build context, the root needs build-specific globals set.
         self.needs_build_context = UseMode.ROOT
@@ -1189,7 +1229,9 @@ class SetupContext:
                 self._make_buildtime_detectable(dspec, env)
 
                 for root in self.specs:  # there is only one root in build context
-                    spack.builder.create(pkg).setup_dependent_build_environment(env, root)
+                    spack.builder.create(pkg).setup_dependent_build_environment(
+                        env, root
+                    )
 
             if self.should_setup_build_env & flag:
                 spack.builder.create(pkg).setup_build_environment(env)
@@ -1216,7 +1258,9 @@ class SetupContext:
 
         return env
 
-    def _make_buildtime_detectable(self, dep: spack.spec.Spec, env: EnvironmentModifications):
+    def _make_buildtime_detectable(
+        self, dep: spack.spec.Spec, env: EnvironmentModifications
+    ):
         if is_system_path(dep.prefix):
             return
 
@@ -1237,10 +1281,7 @@ class SetupContext:
 
 
 class ProcessHandle:
-    """
-    This class manages and monitors the state of a child process for a task
-    used for the building and installation of a package.
-    """
+    """Manages and monitors the state of a child process for package installation."""
 
     def __init__(
         self,
@@ -1250,7 +1291,7 @@ class ProcessHandle:
     ):
         """
         Parameters:
-           pkg: The package to be built and installed through the child process.
+           pkg: The package to be built and installed by the child process.
            process: The child process instance being managed/monitored.
            read_pipe: The pipe used for receiving information from the child process.
         """
@@ -1259,12 +1300,12 @@ class ProcessHandle:
         self.read_pipe = read_pipe
 
     def poll(self) -> bool:
-        """Checks if there is data available to receive from the read pipe"""
+        """Check if there is data available to receive from the read pipe."""
         return self.read_pipe.poll()
 
     def complete(self):
-        """Waits (if needed) for the child process to complete
-        and returns its exit status.
+        """Wait (if needed) for child process to complete
+        and return its exit status.
 
         See ``complete_build_process()``.
         """
@@ -1332,7 +1373,9 @@ def _setup_pkg_and_run(
         if not kwargs.get("fake", False):
             kwargs["unmodified_env"] = os.environ.copy()
             kwargs["env_modifications"] = setup_package(
-                pkg, dirty=kwargs.get("dirty", False), context=Context.from_string(context)
+                pkg,
+                dirty=kwargs.get("dirty", False),
+                context=Context.from_string(context),
             )
         return_value = function(pkg, kwargs)
         write_pipe.send(return_value)
@@ -1363,11 +1406,15 @@ def _setup_pkg_and_run(
                 # 'pkg' is not defined yet
                 pass
         elif context == "test":
-            logfile = os.path.join(pkg.test_suite.stage, pkg.test_suite.test_log_name(pkg.spec))
+            logfile = os.path.join(
+                pkg.test_suite.stage, pkg.test_suite.test_log_name(pkg.spec)
+            )
 
         error_msg = str(e)
         if isinstance(e, (spack.multimethod.NoSuchMethodError, AttributeError)):
-            process = "test the installation" if context == "test" else "build from sources"
+            process = (
+                "test the installation" if context == "test" else "build from sources"
+            )
             error_msg = (
                 "The '{}' package cannot find an attribute while trying to {}. "
                 "This might be due to a change in Spack's package format "
@@ -1406,12 +1453,12 @@ def start_build_process(
     Args:
 
         pkg: package whose environment we should set up the
-             child process for.
+            child process for.
         function: argless function to run in the child
             process.
         kwargs: additional keyword arguments to pass to ``function()``
 
-    Usage:
+    Usage::
 
         def child_fun():
             # do stuff
@@ -1432,7 +1479,11 @@ def start_build_process(
 
     try:
         # Forward sys.stdin when appropriate, to allow toggling verbosity
-        if sys.platform != "win32" and sys.stdin.isatty() and hasattr(sys.stdin, "fileno"):
+        if (
+            sys.platform != "win32"
+            and sys.stdin.isatty()
+            and hasattr(sys.stdin, "fileno")
+        ):
             input_fd = Connection(os.dup(sys.stdin.fileno()))
         mflags = os.environ.get("MAKEFLAGS")
         if mflags:
@@ -1519,12 +1570,17 @@ def complete_build_process(handle: ProcessHandle):
 
     # Fallback. Usually caught beforehand in EOFError above.
     if handle.process.exitcode != 0:
-        raise InstallError(f"The process failed unexpectedly ({exitcode_msg(handle.process)})")
+        raise InstallError(
+            f"The process failed unexpectedly ({exitcode_msg(handle.process)})"
+        )
 
     return child_result
 
 
-CONTEXT_BASES = (spack.package_base.PackageBase, spack.builder.Builder)
+CONTEXT_BASES = (
+    spack.package_base.PackageBase,
+    spack.build_systems._checks.BaseBuilder,
+)
 
 
 def get_package_context(traceback, context=3):
@@ -1632,7 +1688,9 @@ class ChildError(InstallError):
     # context instead of Python context.
     build_errors = [("spack.util.executable", "ProcessError")]
 
-    def __init__(self, msg, module, classname, traceback_string, log_name, log_type, context):
+    def __init__(
+        self, msg, module, classname, traceback_string, log_name, log_type, context
+    ):
         super().__init__(msg)
         self.module = module
         self.name = classname
@@ -1734,7 +1792,12 @@ class ModuleChangePropagator:
     "setup_dependent_package" function during build environment setup.
     """
 
-    _PROTECTED_NAMES = ("package", "current_module", "modules_in_mro", "_set_attributes")
+    _PROTECTED_NAMES = (
+        "package",
+        "current_module",
+        "modules_in_mro",
+        "_set_attributes",
+    )
 
     def __init__(self, package: spack.package_base.PackageBase) -> None:
         self._set_self_attributes("package", package)
