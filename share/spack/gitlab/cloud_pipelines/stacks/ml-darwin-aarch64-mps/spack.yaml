@@ -9,7 +9,7 @@ spack:
       - ~cuda
       - ~rocm
     mpi:
-      require: openmpi
+      require: mpich
     openblas:
       require: ~fortran
 
@@ -85,7 +85,7 @@ spack:
   ci:
     pipeline-gen:
     - build-job-remove:
-        tags: [ spack, public ]
+        tags: [ spack ]
     - build-job:
         variables:
           CI_GPG_KEY_ROOT: /etc/protected-runner

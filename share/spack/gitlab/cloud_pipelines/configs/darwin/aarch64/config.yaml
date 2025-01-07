@@ -1,3 +1,5 @@
 config:
+  build_stage:
+  - $spack/tmp/stage
   install_tree:
     root: $spack/opt/spack

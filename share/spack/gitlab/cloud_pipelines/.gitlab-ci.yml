@@ -426,7 +426,7 @@ developer-tools-aarch64-linux-gnu-build:
     SPACK_CI_STACK_NAME: developer-tools-darwin
 
 developer-tools-darwin-generate:
-  tags: [ "macos-sonoma", "apple-clang-16", "aarch64-macos" ]
+  tags: [ "macos-sequoia", "apple-clang-16", "aarch64-macos" ]
   extends: [ ".developer-tools-darwin", ".generate-base"]
 
 developer-tools-darwin-build:
@@ -686,7 +686,7 @@ ml-linux-aarch64-cuda-build:
     SPACK_CI_STACK_NAME: ml-darwin-aarch64-mps
 
 ml-darwin-aarch64-mps-generate:
-  tags: [ "macos-sonoma", "apple-clang-16", "aarch64-macos" ]
+  tags: [ "macos-sequoia", "apple-clang-16", "aarch64-macos" ]
   extends: [ ".ml-darwin-aarch64-mps", ".generate-base"]
 
 ml-darwin-aarch64-mps-build:
@@ -910,7 +910,7 @@ bootstrap-x86_64-linux-gnu-build:
     SPACK_CI_STACK_NAME: bootstrap-aarch64-darwin
 
 bootstrap-aarch64-darwin-generate:
-  tags: [ "macos-sonoma", "apple-clang-16", "aarch64-macos" ]
+  tags: [ "macos-sequoia", "apple-clang-16", "aarch64-macos" ]
   extends: [.bootstrap-aarch64-darwin, .generate-base]
 
 bootstrap-aarch64-darwin-build:

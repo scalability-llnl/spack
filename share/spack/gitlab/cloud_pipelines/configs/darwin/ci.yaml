@@ -1,6 +1,11 @@
 ci:
+  broken-tests-packages:
+  - mpich
+  - openmpi
   pipeline-gen:
   - build-job:
-      tags: [ "macos-sonoma", "apple-clang-16", "aarch64-macos" ]
+      tags: [ "macos-sequoia", "apple-clang-16", "aarch64-macos" ]
+      after_script-:
+      - - ./bin/spack clean -a
   - build-job-remove:
       image:: macos-run-on-metal
