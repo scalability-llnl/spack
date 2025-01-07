@@ -868,7 +868,7 @@ class Task:
     """Base class for representing a task for a package."""
 
     success_result: Optional[ExecuteResult] = None
-    error_result: Optional[spack.error.InstallError] = None
+    error_result: Optional[BaseException] = None
 
     def __init__(
         self,
@@ -1155,7 +1155,7 @@ class BuildTask(Task):
         dependency represented by the BuildTask."""
         assert not self.started, "Cannot start a task that has already been started."
         self.started = True
-        
+
         install_args = self.request.install_args
         unsigned = install_args.get("unsigned")
         pkg, pkg_id = self.pkg, self.pkg_id
@@ -2255,7 +2255,7 @@ class PackageInstaller:
                 # this overrides a full method, which is ugly.
                 task.use_cache = False  # type: ignore[misc]
                 self._requeue_task(task, install_status)
-                return True
+                return None
 
             except (Exception, SystemExit) as exc:
                 self._update_failed(task, True, exc)
@@ -2302,15 +2302,15 @@ class PackageInstaller:
                 if not task:
                     # no ready tasks
                     break
-                
+
                 try:
                     # Attempt to start the task's package installation
                     start_task(task)
                 except BaseException as e:
-                    # Delegating any exception that happens in start_task() to be 
+                    # Delegating any exception that happens in start_task() to be
                     # handled in complete_task()
                     task.error_result = e
-            
+
             time.sleep(0.1)
             # Check if any tasks have completed and add to list
             done = [task for task in active_tasks if task.poll()]
