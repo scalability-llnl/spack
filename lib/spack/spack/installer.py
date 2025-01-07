@@ -1337,7 +1337,7 @@ class PackageInstaller:
                 run tests for some
             use_cache: Install from binary package, if available.
             verbose: Display verbose build output (by default, suppresses it)
-            concurrent_packages: Number of pkgs that could be concurrently built (using n procs)
+            concurrent_packages: Max packages to be built concurrently
         """
         if isinstance(explicit, bool):
             explicit = {pkg.spec.dag_hash() for pkg in packages} if explicit else set()
@@ -2113,7 +2113,7 @@ class PackageInstaller:
             """Attempts to start a package installation."""
             pkg, pkg_id, spec = task.pkg, task.pkg_id, task.pkg.spec
             install_status.next_pkg(pkg)
-            install_status.set_term_title(f"Processing {task.pkg.name}")
+           # install_status.set_term_title(f"Processing {task.pkg.name}")
             tty.debug(f"Processing {pkg_id}: task={task}")
 
             # Skip the installation if the spec is not being installed locally
@@ -2122,7 +2122,7 @@ class PackageInstaller:
             if _handle_external_and_upstream(pkg, task.explicit):
                 term_status.clear()
                 self._flag_installed(pkg, task.dependents)
-                return None
+                return
 
             # Flag a failed spec.  Do not need an (install) prefix lock since
             # assume using a separate (failed) prefix lock file.
@@ -2134,7 +2134,7 @@ class PackageInstaller:
                 if self.fail_fast:
                     raise spack.error.InstallError(fail_fast_err, pkg=pkg)
 
-                return None
+                return
 
             # Attempt to get a write lock.  If we can't get the lock then
             # another process is likely (un)installing the spec or has
@@ -2153,7 +2153,7 @@ class PackageInstaller:
             # -- failed, installed, or uninstalled -- on the next pass.
             if lock is None:
                 self._requeue_task(task, install_status)
-                return None
+                return
 
             term_status.clear()
 
@@ -2163,7 +2163,7 @@ class PackageInstaller:
                 task.request.overwrite_time = time.time()
 
             # Determine state of installation artifacts and adjust accordingly.
-            install_status.set_term_title(f"Preparing {task.pkg.name}")
+           # install_status.set_term_title(f"Preparing {task.pkg.name}")
             self._prepare_for_install(task)
 
             # Flag an already installed package
@@ -2187,7 +2187,7 @@ class PackageInstaller:
                     # or uninstalled -- on the next pass.
                     self.installed.remove(pkg_id)
                     self._requeue_task(task, install_status)
-                return None
+                return
 
             # Having a read lock on an uninstalled pkg may mean another
             # process completed an uninstall of the software between the
@@ -2200,16 +2200,15 @@ class PackageInstaller:
             if ltype == "read":
                 lock.release_read()
                 self._requeue_task(task, install_status)
-                return None
+                return
 
             # Proceed with the installation since we have an exclusive write
             # lock on the package.
-            # Start a child process for a task that's ready to be installed.
-
             install_status.set_term_title(f"Installing {task.pkg.name}")
             action = self._install_action(task)
 
             if action == InstallAction.INSTALL:
+                # Start a child process for a task that's ready to be installed.
                 task.start()
                 tty.msg(install_msg(pkg_id, self.pid, install_status))
                 active_tasks.append(task)
@@ -2321,7 +2320,6 @@ class PackageInstaller:
         self._clear_removed_tasks()
         if self.build_pq:
             task = self._pop_task()
-            pkg, pkg_id = task.pkg, task.pkg_id
             assert task.priority != 0, "Found ready task after _peek_ready_task returned None"
             # If the spec  has uninstalled dependencies
             # and no active tasks running, then there must be
@@ -2335,11 +2333,11 @@ class PackageInstaller:
             )
             left = [dep_id for dep_id in task.uninstalled_deps if dep_id not in self.installed]
             if not left:
-                tty.warn(f"{pkg_id} does NOT actually have any uninstalled deps left")
+                tty.warn(f"{task.pkg_id} does NOT actually have any uninstalled deps left")
             dep_str = "dependencies" if task.priority > 1 else "dependency"
 
             raise spack.error.InstallError(
-                f"Cannot proceed with {pkg_id}: {task.priority} uninstalled "
+                f"Cannot proceed with {task.pkg_id}: {task.priority} uninstalled "
                 f"{dep_str}: {','.join(task.uninstalled_deps)}",
                 pkg=task.pkg,
             )
