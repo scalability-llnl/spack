@@ -199,12 +199,16 @@ class Geant4Data(BundlePackage):
         "10.3:10.3": "g4tendl@1.3",
     }
 
-    variant("g4tendl", default=True, when="@10.3:", description="Enable G4TENDL")
-    with when("+g4tendl"):
+    variant("tendl", default=True, when="@10.3:", description="Enable G4TENDL")
+    with when("+tendl"):
         for _vers, _d in _datasets_tendl.items():
             depends_on(_d, type=("build", "run"), when="@" + _vers)
-    variant("g4nudexlib", default=True, when="@11.3.0:11.3", description="Enable G4NUDEXLIB")
-    variant("g4urrpt", default=True, when="@11.3.0:11.3", description="Enable G4URRPT")
+    variant("nudexlib", default=True, when="@11.3.0:11.3", description="Enable G4NUDEXLIB")
+    with when("+tendl"):
+        depends_on("g4nudexlib@1.0", type=("build", "run"))
+    variant("urrpt", default=True, when="@11.3.0:11.3", description="Enable G4URRPT")
+    with when("+urrpt"):
+        depends_on("g4urrpt@1.1", type=("build", "run"))
 
     @property
     def datadir(self):
