@@ -9,6 +9,7 @@ variables:
   # PROTECTED_MIRROR_FETCH_DOMAIN: "https://binaries.spack.io"
   PROTECTED_MIRROR_FETCH_DOMAIN: "s3://spack-binaries"
   PROTECTED_MIRROR_PUSH_DOMAIN: "s3://spack-binaries"
+  SPACK_CI_ENABLE_STACKS: "/^(.*darwin.*)$/"
 
 default:
   image: { "name": "ghcr.io/spack/e4s-ubuntu-18.04:v2021-10-18", "entrypoint": [""] }
@@ -74,8 +75,8 @@ default:
     SPACK_CI_SCRIPTS_ROOT: "${CI_PROJECT_DIR}/share/spack/gitlab/cloud_pipelines/scripts"
 
   rules:
-    - if: $SPACK_CI_DISABLE_STACKS =~ /.+/ && $SPACK_CI_STACK_NAME =~ $SPACK_CI_DISABLE_STACKS
-      when: never
+    # - if: $SPACK_CI_DISABLE_STACKS =~ /.+/ && $SPACK_CI_STACK_NAME =~ $SPACK_CI_DISABLE_STACKS
+    #   when: never
     - if: $SPACK_CI_ENABLE_STACKS =~ /.+/ && $SPACK_CI_STACK_NAME !~ $SPACK_CI_ENABLE_STACKS
       when: never
     - if: $CI_COMMIT_REF_NAME == "develop" || $CI_COMMIT_REF_NAME =~ /^releases\/v.*/
