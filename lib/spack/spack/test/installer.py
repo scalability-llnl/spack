@@ -984,7 +984,7 @@ def _install_fail_my_build_exception(installer, task, install_status, **kwargs):
     else:
         # No need for more complex logic here because no splices
         print("starting process for {task.pkg.name}")
-        task.start(install_status)
+        task.start_task(task)
         installer._update_installed(task)
 
 
@@ -1003,7 +1003,7 @@ def test_install_fail_single(install_mockery, mock_fetch, monkeypatch):
     assert not any(pkg_id.startswith("pkg-a-") for pkg_id in installer.installed)
 
 
-def untest_install_fail_multi(install_mockery, mock_fetch, monkeypatch):
+def test_install_fail_multi(install_mockery, mock_fetch, monkeypatch):
     """Test expected results for failure of multiple packages."""
     installer = create_installer(["pkg-a", "pkg-c"], {"fake": True})
 
