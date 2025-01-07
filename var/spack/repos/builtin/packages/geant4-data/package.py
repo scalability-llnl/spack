@@ -204,7 +204,7 @@ class Geant4Data(BundlePackage):
         for _vers, _d in _datasets_tendl.items():
             depends_on(_d, type=("build", "run"), when="@" + _vers)
     variant("nudexlib", default=True, when="@11.3.0:11.3", description="Enable G4NUDEXLIB")
-    with when("+tendl"):
+    with when("+nudexlib"):
         depends_on("g4nudexlib@1.0", type=("build", "run"))
     variant("urrpt", default=True, when="@11.3.0:11.3", description="Enable G4URRPT")
     with when("+urrpt"):
