@@ -78,7 +78,7 @@ def parse_install_tree(config_dict):
 
         projections = {"all": all_projection}
     else:
-        unpadded_root = install_tree.get("root", spack.paths.internal_install_tree_root)
+        unpadded_root = install_tree.get("root", _default_install_location())
         unpadded_root = spack.util.path.canonicalize_path(unpadded_root)
 
         padded_length = install_tree.get("padded_length", False)
@@ -123,6 +123,13 @@ def parse_install_tree(config_dict):
         root = unpadded_root
 
     return root, unpadded_root, projections
+
+
+def _default_install_location():
+    if os.access(spack.paths.prefix, os.W_OK):
+        return spack.paths.internal_install_tree_root
+    else:
+        return os.path.join(spack.paths.per_spack_user_root, "installs")
 
 
 class Store:
