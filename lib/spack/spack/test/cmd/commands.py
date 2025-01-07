@@ -276,7 +276,9 @@ def test_updated_completion_scripts(shell, tmpdir):
     if not filecmp.cmp(old_script, new_script):
         import difflib
 
-        with open(old_script, "r") as f1, open(new_script, "r") as f2:
+        with open(old_script, "r", encoding="utf-8") as f1, open(
+            new_script, "r", encoding="utf-8"
+        ) as f2:
             l1 = f1.readlines()
             l2 = f2.readlines()
         diff = difflib.unified_diff(l1, l2, fromfile=old_script, tofile=new_script)
