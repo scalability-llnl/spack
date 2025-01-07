@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """This module implements Spack's configuration file handling.
@@ -950,12 +949,6 @@ def set(path: str, value: Any, scope: Optional[str] = None) -> None:
     Accepts the path syntax described in ``get()``.
     """
     return CONFIG.set(path, value, scope)
-
-
-def add_default_platform_scope(platform: str) -> None:
-    plat_name = os.path.join("defaults", platform)
-    plat_path = os.path.join(CONFIGURATION_DEFAULTS_PATH[1], platform)
-    CONFIG.push_scope(DirectoryConfigScope(plat_name, plat_path))
 
 
 def scopes() -> Dict[str, ConfigScope]:

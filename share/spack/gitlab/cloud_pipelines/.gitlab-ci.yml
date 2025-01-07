@@ -786,6 +786,29 @@ ml-darwin-aarch64-mps-build:
       job: ml-darwin-aarch64-mps-generate
 
 ########################################
+# High Energy Physics (HEP) - Linux x86_64 (CPU)
+########################################
+.hep:
+  extends: [ ".linux_x86_64_v3" ]
+  variables:
+    SPACK_CI_STACK_NAME: hep
+
+hep-generate:
+  extends: [ ".hep", ".generate-x86_64"]
+  image: ghcr.io/spack/spack/ubuntu22.04-runner-amd64-gcc-11.4:2024.03.01
+
+hep-build:
+  extends: [ ".hep", ".build" ]
+  trigger:
+    include:
+      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
+        job: hep-generate
+    strategy: depend
+  needs:
+    - artifacts: True
+      job: hep-generate
+
+########################################
 # AWS ParallelCluster
 ########################################
 
