@@ -101,6 +101,7 @@ class Podio(CMakePackage):
     depends_on("sio", type=("build", "link"), when="+sio")
     depends_on("catch2@3.0.1:", type=("test"), when="@:0.16.5")
     depends_on("catch2@3.1:", type=("test"), when="@0.16.6:")
+    depends_on("catch2@3.4:", type="test", when="@0.17.1: ^cxxstd=20")
     depends_on("py-graphviz", type=("run"))
     depends_on("py-tabulate", type=("run", "test"), when="@0.16.6:")
 
