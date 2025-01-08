@@ -11,6 +11,8 @@ class PyIminuit(PythonPackage):
     homepage = "http://github.com/scikit-hep/iminuit"
     pypi = "iminuit/iminuit-1.2.tar.gz"
 
+    tags = ["hep"]
+
     license("MIT AND LGPL-2.0-only", checked_by="wdconinc")
 
     version("2.30.1", sha256="2815bfdeb8e7f78185f316b75e2d4b19d0f6993bdc5ff03352ed37b70a796360")
