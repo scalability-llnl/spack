@@ -402,7 +402,7 @@ class Python(Package):
         # limit the number of processes to use for compileall in older Python versions
         # https://github.com/python/cpython/commit/9a7e9f9921804f3f90151ca42703e612697dd430
         if self.spec.satisfies("@:3.11"):
-            ff.filter("-j0 ", f"-j{jobs} ")
+            ff.filter("-j0 ", f"-j{make_jobs} ")
 
         # disable building the nis module (there is no flag to disable it).
         if self.spec.satisfies("@3.8:3.10"):
