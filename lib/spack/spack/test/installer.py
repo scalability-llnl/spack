@@ -978,6 +978,7 @@ class MyBuildException(Exception):
 
 _old_complete_task = None
 
+
 def _install_fail_my_build_exception(installer, task, install_status, **kwargs):
     print(task, task.pkg.name)
     if task.pkg.name == "pkg-a":
@@ -990,13 +991,13 @@ def _install_fail_my_build_exception(installer, task, install_status, **kwargs):
 def test_install_fail_single(install_mockery, mock_fetch, monkeypatch):
     """Test expected results for failure of single package."""
     global _old_complete_task
-    
+
     installer = create_installer(["pkg-a"], {"fake": True})
 
     # Raise a KeyboardInterrupt error to trigger early termination
     _old_complete_task = inst.PackageInstaller._complete_task
     monkeypatch.setattr(inst.PackageInstaller, "_complete_task", _install_fail_my_build_exception)
-    
+
     with pytest.raises(MyBuildException, match="mock internal package build error for pkg-a"):
         installer.install()
 
