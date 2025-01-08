@@ -45,13 +45,13 @@ def setup_parser(subparser):
         " in the current environment if there is an active environment"
         " (this requires significant time and space)",
     )
-    create_parser.add_argument(
-        "-j",
-        "--parallel",
-        type=int,
-        default=1,
-        help="Use a given number of threads to make the mirror (used in combination with -a)",
-    )
+    #create_parser.add_argument(
+    #    "-j",
+    #    "--parallel",
+    #    type=int,
+    #    default=spack.config.determine_number_of_jobs(parallel=True),
+    #    help="Use a given number of threads to make the mirror (used in combination with -a)",
+    #)
     create_parser.add_argument("-f", "--file", help="file with specs of packages to put in mirror")
     create_parser.add_argument(
         "--exclude-file",
@@ -83,6 +83,7 @@ def setup_parser(subparser):
         help="for a private mirror, include non-redistributable packages",
     )
     arguments.add_common_arguments(create_parser, ["specs"])
+    arguments.add_common_arguments(create_parser, ["jobs"])
     arguments.add_concretizer_args(create_parser)
 
     # Destroy
@@ -649,7 +650,7 @@ def mirror_create(args):
         mirror_specs,
         path=path,
         skip_unstable_versions=args.skip_unstable_versions,
-        threads=args.parallel,
+        threads=args.jobs,
     )
 
 
@@ -729,5 +730,7 @@ def mirror(parser, args):
 
     if args.no_checksum:
         spack.config.set("config:checksum", False, scope="command_line")
+    if not args.jobs:
+        args.jobs = spack.config.determine_number_of_jobs(parallel=True)
 
     action[args.mirror_command](args)
