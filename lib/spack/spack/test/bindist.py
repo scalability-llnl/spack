@@ -43,7 +43,6 @@ import spack.util.spack_yaml as syaml
 import spack.util.url as url_util
 import spack.util.web as web_util
 from spack.binary_distribution import CannotListKeys, GenerateIndexError
-from spack.directory_layout import DirectoryLayout
 from spack.paths import test_path
 from spack.spec import Spec
 
@@ -136,35 +135,28 @@ def default_config(tmp_path, config_directory, monkeypatch, install_mockery):
 @pytest.fixture(scope="function")
 def install_dir_default_layout(tmpdir):
     """Hooks a fake install directory with a default layout"""
-    scheme = os.path.join(
-        "${architecture}", "${compiler.name}-${compiler.version}", "${name}-${version}-${hash}"
-    )
-    real_store, real_layout = spack.store.STORE, spack.store.STORE.layout
     opt_dir = tmpdir.join("opt")
-    spack.store.STORE = spack.store.Store(str(opt_dir))
-    spack.store.STORE.layout = DirectoryLayout(str(opt_dir), path_scheme=scheme)
+    original_store, spack.store.STORE = spack.store.STORE, spack.store.Store(str(opt_dir))
     try:
         yield spack.store
     finally:
-        spack.store.STORE = real_store
-        spack.store.STORE.layout = real_layout
+        spack.store.STORE = original_store
 
 
 @pytest.fixture(scope="function")
 def install_dir_non_default_layout(tmpdir):
     """Hooks a fake install directory with a non-default layout"""
-    scheme = os.path.join(
-        "${name}", "${version}", "${architecture}-${compiler.name}-${compiler.version}-${hash}"
-    )
-    real_store, real_layout = spack.store.STORE, spack.store.STORE.layout
     opt_dir = tmpdir.join("opt")
-    spack.store.STORE = spack.store.Store(str(opt_dir))
-    spack.store.STORE.layout = DirectoryLayout(str(opt_dir), path_scheme=scheme)
+    original_store, spack.store.STORE = spack.store.STORE, spack.store.Store(
+        str(opt_dir),
+        projections={
+            "all": "{name}/{version}/{architecture}-{compiler.name}-{compiler.version}-{hash}"
+        },
+    )
     try:
         yield spack.store
     finally:
-        spack.store.STORE = real_store
-        spack.store.STORE.layout = real_layout
+        spack.store.STORE = original_store
 
 
 @pytest.fixture(scope="function")
