@@ -346,7 +346,7 @@ complete -c spack --erase
 # Everything below here is auto-generated.
 
 # spack
-set -g __fish_spack_optspecs_spack h/help H/all-help color= c/config= C/config-scope= d/debug timestamp pdb e/env= D/env-dir= E/no-env use-env-repo k/insecure l/enable-locks L/disable-locks m/mock b/bootstrap p/profile sorted-profile= lines= v/verbose stacktrace t/backtrace V/version print-shell-vars= disable-end-user-config guard-writes-into-spack
+set -g __fish_spack_optspecs_spack h/help H/all-help color= c/config= C/config-scope= d/debug timestamp pdb e/env= D/env-dir= E/no-env use-env-repo k/insecure l/enable-locks L/disable-locks m/mock b/bootstrap p/profile sorted-profile= lines= v/verbose stacktrace t/backtrace V/version print-shell-vars= disable-end-user-config warn-writes-into-spack
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a add -d 'add a spec to an environment'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a arch -d 'print architecture information about this machine'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a audit -d 'audit configuration files, packages, etc.'
@@ -480,8 +480,8 @@ complete -c spack -n '__fish_spack_using_command ' -l print-shell-vars -r -f -a 
 complete -c spack -n '__fish_spack_using_command ' -l print-shell-vars -r -d 'print info needed by setup-env.*sh'
 complete -c spack -n '__fish_spack_using_command ' -l disable-end-user-config -f -a disable_end_user_config
 complete -c spack -n '__fish_spack_using_command ' -l disable-end-user-config -d 'Disable system config scope for end users'
-complete -c spack -n '__fish_spack_using_command ' -l guard-writes-into-spack -f -a guard_writes_into_spack
-complete -c spack -n '__fish_spack_using_command ' -l guard-writes-into-spack -d 'Warn when Spack tries to write into its own prefix'
+complete -c spack -n '__fish_spack_using_command ' -l warn-writes-into-spack -f -a warn_writes_into_spack
+complete -c spack -n '__fish_spack_using_command ' -l warn-writes-into-spack -d 'Warn when Spack tries to write into its own prefix'
 
 # spack add
 set -g __fish_spack_optspecs_spack_add h/help l/list-name=
