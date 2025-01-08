@@ -53,6 +53,7 @@ spack:
   - py-hist
   - py-histbook
   - py-histoprint
+  - py-iminuit
   - py-mplhep
   - py-particle
   - py-uhi
