@@ -3,32 +3,66 @@
 # _spack_env_set VARNAME VALUE
 #
 # Set the VARNAME variable to VALUE.
-_spack_env_set() {}
+_spack_env_set() {
+    VARNAME = $1
+    VALUE = $2
+
+    export ${${VARNAME}}=${VALUE}
+}
 
 # _spack_env_unset VARNAME
 #
 # Unset VARNAME in the environment.
-_spack_env_unset() {}
+_spack_env_unset() {
+    VARNAME = $1
 
-# _spack_env_append_flags VARNAME FLAG SEP
+    export ${${VARNAME}}=""
+}
+
+# _spack_env_append VARNAME VALUE SEP
 #
-# Append FLAG to the flag list in variable VARNAME.
+# Append VALUE to the flag list in variable VARNAME.
 # The list in VARNAME is separated by the SEP character.
-_spack_env_append() {}
+_spack_env_append() {
+    VARNAME = $1
+    VALUE = $2
+    SEP = $3
 
-# _spack_env_prepend_flags VARNAME FLAG SEP
+    export ${${VARNAME}}=${${VARNAME}}${SEP}${VALUE}
+}
+
+# _spack_env_prepend VARNAME VALUE SEP
 #
-# Prepend FLAG to the flag list in variable VARNAME.
+# Prepend VALUE to the flag list in variable VARNAME.
 # The list in VARNAME is separated by the SEP character.
-_spack_env_prepend() {}
+_spack_env_prepend() {
+    VARNAME = $1
+    VALUE = $2
+    SEP = $3
 
-# _spack_env_remove_flags VARNAME FLAG SEP
+    export ${${VARNAME}}=${VALUE}${SEP}${${VARNAME}}
+    # Should the result be a string? Might need quotes
+}
+
+# _spack_env_remove VARNAME VALUE SEP
 #
-# Remove FLAG from the flag list in variable VARNAME.
+# Remove VALUE from the flag list in variable VARNAME.
 # The list in VARNAME is separated by the SEP character.
-_spack_env_remove() {}
+_spack_env_remove() {
+    VARNAME = $1
+    VALUE = $2
+    SEP = $3
 
-# _spack_env_prune_duplicate_paths VARNAME SEP
+    if [ ${${VARNAME}} == ${VALUE} ];
+    then
+        ${${VARNAME}} = ""
+
+    else
+        echo "Find a way to remove the VALUE"
+    fi
+}
+
+# _spack_env_prune_duplicate VARNAME SEP
 #
 # Remove duplicate elements from the list in variable
 # VARNAME, preserving precedence.

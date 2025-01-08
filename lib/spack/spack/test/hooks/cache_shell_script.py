@@ -82,7 +82,7 @@ def test_install_with_individual_shell_scripts(
     "shell,set_command",
     (
         [("sh", "export %s=%s"), ("csh", "setenv %s %s"), ("fish", "set %s %s"),
-         ("bat", 'set "%s=%s"'), ("pwsh", "Set-Variable %s %s")]
+         ("bat", 'set "%s=%s"'), ("pwsh", "$Env %s %s")]
         if sys.platform == "win32"
         else [("sh", "export %s=%s"), ("csh", "setenv %s %s"), ("fish", "set %s %s")]
     ),
@@ -102,8 +102,10 @@ def test_install_multiple_specs(
     install(dyninst_spec.name, hypre_spec.name)
 
     # no overlap in shell sc
-    path_to_dyninst = os.path.join(dyninst_spec.prefix, ".spack", f"{dyninst_spec.name}_shell.{shell}")
-    path_to_hypre = os.path.join(hypre_spec.prefix, ".spack", f"{hypre_spec.name}_shell.{shell}")
+    path_to_dyninst = os.path.join(dyninst_spec.prefix, ".spack",
+                                   f"{dyninst_spec.name}_shell.{shell}")
+    path_to_hypre = os.path.join(hypre_spec.prefix, ".spack",
+                                 f"{hypre_spec.name}_shell.{shell}")
 
     with open(path_to_dyninst, "r") as f:
         dyninst_shell = f.read()
