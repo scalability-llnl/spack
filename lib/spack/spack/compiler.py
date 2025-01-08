@@ -57,6 +57,7 @@ def _get_compiler_version_output(compiler_path, version_arg, ignore_errors=()) -
         output = compiler(version_arg, **compiler_invocation_args)
     else:
         output = compiler(**compiler_invocation_args)
+    assert output is not None, "a string is expected as output"
     return output
 
 

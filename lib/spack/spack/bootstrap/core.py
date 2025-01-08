@@ -494,7 +494,9 @@ def verify_patchelf(patchelf: "spack.util.executable.Executable") -> bool:
 
         patchelf: patchelf executable
     """
-    out = patchelf("--version", output=str, error=os.devnull, fail_on_error=False).strip()
+    out = patchelf("--version", output=str, error=os.devnull, fail_on_error=False)
+    assert out is not None, "a string is expected as output"
+    out = out.strip()
     if patchelf.returncode != 0:
         return False
     parts = out.split(" ")
