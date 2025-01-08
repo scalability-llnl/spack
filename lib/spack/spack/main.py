@@ -510,6 +510,7 @@ def showwarning(message, category, filename, lineno, file=None, line=None):
     else:
         tty.warn(message)
 
+
 def setup_main_options(args):
     """Configure spack globals based on the basic options."""
     # Set up environment based on args.
