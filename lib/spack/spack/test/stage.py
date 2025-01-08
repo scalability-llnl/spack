@@ -84,7 +84,7 @@ def check_expand_archive(stage, stage_name, expected_file_list):
     Ensure the expanded archive directory contains the expected structure and
     files as described in the module-level comments above.
     """
-    stage_path = concrete_path(get_stage_path(stage, stage_name))
+    stage_path = get_stage_path(stage, stage_name)
     archive_dir = spack.stage._source_path_subdir
 
     stage_contents = [path.name for path in stage_path.iterdir()]
@@ -135,14 +135,14 @@ def check_fetch(stage, stage_name):
     Ensure the fetch resulted in a properly placed archive file as described in
     the module-level comments.
     """
-    stage_path = concrete_path(get_stage_path(stage, stage_name))
+    stage_path = get_stage_path(stage, stage_name)
     assert _archive_fn in [path.name for path in stage_path.iterdir()]
     assert fs_path((stage_path / _archive_fn)) == stage.fetcher.archive_file
 
 
 def check_destroy(stage, stage_name):
     """Figure out whether a stage was destroyed correctly."""
-    stage_path = concrete_path(get_stage_path(stage, stage_name))
+    stage_path = get_stage_path(stage, stage_name)
 
     # check that the stage dir/link was removed.
     assert not stage_path.exists()
@@ -154,7 +154,7 @@ def check_destroy(stage, stage_name):
 
 def check_setup(stage, stage_name, archive):
     """Figure out whether a stage was set up correctly."""
-    stage_path = concrete_path(get_stage_path(stage, stage_name))
+    stage_path = get_stage_path(stage, stage_name)
 
     # Ensure stage was created in the spack stage directory
     assert stage_path.is_dir()
@@ -166,22 +166,24 @@ def check_setup(stage, stage_name, archive):
 
     # Make sure the directory is in the place we asked it to
     # be (see setUp, tearDown, and use_tmp)
-    assert fs_path(target).startswith(str(archive.stage_path))
+    assert abstract_path(archive.stage_path) in target.parents
 
 
 def get_stage_path(stage, stage_name):
     """Figure out where a stage should be living. This depends on
     whether it's named.
     """
-    stage_path = abstract_path(spack.stage.get_stage_root())
+    stage_root = concrete_path(spack.stage.get_stage_root())
     if stage_name is not None:
         # If it is a named stage, we know where the stage should be
-        return fs_path(stage_path / stage_name)
+        return stage_root / stage_name
     else:
         # If it's unnamed, ensure that we ran mkdtemp in the right spot.
         assert stage.path is not None
-        assert stage.path.startswith(fs_path(stage_path))
-        return stage.path
+
+        stage_path = concrete_path(stage.path)
+        assert stage_root in stage_path.parents
+        return stage_path
 
 
 # TODO: Revisit use of the following fixture (and potentially leveraging
@@ -612,7 +614,7 @@ class TestStage:
         stage = Stage(archive.url, name=self.stage_name, keep=True)
         with stage:
             pass
-        path = concrete_path(get_stage_path(stage, self.stage_name))
+        path = get_stage_path(stage, self.stage_name)
         assert path.is_dir()
 
     @pytest.mark.disable_clean_stage_check
@@ -627,7 +629,7 @@ class TestStage:
                 raise ThisMustFailHere()
 
         except ThisMustFailHere:
-            path = concrete_path(get_stage_path(stage, self.stage_name))
+            path = get_stage_path(stage, self.stage_name)
             assert path.is_dir()
 
     @pytest.mark.disable_clean_stage_check
@@ -642,7 +644,7 @@ class TestStage:
                 raise ThisMustFailHere()
 
         except ThisMustFailHere:
-            path = concrete_path(get_stage_path(stage, self.stage_name))
+            path = get_stage_path(stage, self.stage_name)
             assert path.is_dir()
 
     def test_source_path_available(self, mock_stage_archive):
