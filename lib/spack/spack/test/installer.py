@@ -976,25 +976,27 @@ class MyBuildException(Exception):
     pass
 
 
+_old_complete_task = None
+
 def _install_fail_my_build_exception(installer, task, install_status, **kwargs):
     print(task, task.pkg.name)
     if task.pkg.name == "pkg-a":
         print("Raising MyBuildException for pkg-a")
         raise MyBuildException("mock internal package build error for pkg-a")
     else:
-        # No need for more complex logic here because no splices
-        print("starting process for {task.pkg.name}")
-        task.start_task(task)
-        installer._update_installed(task)
+        _old_complete_task(installer, task, install_status)
 
 
 def test_install_fail_single(install_mockery, mock_fetch, monkeypatch):
     """Test expected results for failure of single package."""
+    global _old_complete_task
+    
     installer = create_installer(["pkg-a"], {"fake": True})
 
     # Raise a KeyboardInterrupt error to trigger early termination
+    _old_complete_task = inst.PackageInstaller._complete_task
     monkeypatch.setattr(inst.PackageInstaller, "_complete_task", _install_fail_my_build_exception)
-
+    
     with pytest.raises(MyBuildException, match="mock internal package build error for pkg-a"):
         installer.install()
 
@@ -1005,9 +1007,11 @@ def test_install_fail_single(install_mockery, mock_fetch, monkeypatch):
 
 def test_install_fail_multi(install_mockery, mock_fetch, monkeypatch):
     """Test expected results for failure of multiple packages."""
+    global _old_complete_task
     installer = create_installer(["pkg-a", "pkg-c"], {"fake": True})
 
     # Raise a KeyboardInterrupt error to trigger early termination
+    _old_complete_task = inst.PackageInstaller._complete_task
     monkeypatch.setattr(inst.PackageInstaller, "_complete_task", _install_fail_my_build_exception)
 
     with pytest.raises(spack.error.InstallError, match="Installation request failed"):
