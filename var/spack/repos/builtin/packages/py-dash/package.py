@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,5 +21,5 @@ class PyDash(PythonPackage):
     depends_on("py-setuptools", type="build")
     depends_on("py-typing-extensions")
     depends_on("py-flask")
-    depends_on("py-plotly")
+    depends_on("py-plotly@5")
     depends_on("py-importlib-metadata")

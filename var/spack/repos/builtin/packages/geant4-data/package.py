@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -57,8 +56,6 @@ class Geant4Data(BundlePackage):
             "g4incl@1.2",
             "g4ensdfstate@3.0",
             "g4channeling@1.0",
-            "g4nudexlib@1.0",
-            "g4urrpt@1.1",
         ],
         "11.2.2:11.2": [
             "g4ndl@4.7.1",
@@ -195,6 +192,23 @@ class Geant4Data(BundlePackage):
         _vers = "@" + _vers
         for _d in _dsets:
             depends_on(_d, type=("build", "run"), when=_vers)
+
+    _datasets_tendl = {
+        "11.0:11.3": "g4tendl@1.4",
+        "10.4:10.7": "g4tendl@1.3.2",
+        "10.3:10.3": "g4tendl@1.3",
+    }
+
+    variant("tendl", default=True, when="@10.3:", description="Enable G4TENDL")
+    with when("+tendl"):
+        for _vers, _d in _datasets_tendl.items():
+            depends_on(_d, type=("build", "run"), when="@" + _vers)
+    variant("nudexlib", default=True, when="@11.3.0:11.3", description="Enable G4NUDEXLIB")
+    with when("+nudexlib"):
+        depends_on("g4nudexlib@1.0", type=("build", "run"))
+    variant("urrpt", default=True, when="@11.3.0:11.3", description="Enable G4URRPT")
+    with when("+urrpt"):
+        depends_on("g4urrpt@1.1", type=("build", "run"))
 
     @property
     def datadir(self):

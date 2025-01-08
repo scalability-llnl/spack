@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import datetime as dt
@@ -476,6 +475,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         "drude": {"when": "@20210702:"},
         "eff": {"when": "@20210702:"},
         "electrode": {"when": "@20220504:"},
+        "extra-command": {"when": "@20240829:"},
         "extra-compute": {"when": "@20210728:"},
         "extra-dump": {"when": "@20210728:"},
         "extra-fix": {"when": "@20210728:"},

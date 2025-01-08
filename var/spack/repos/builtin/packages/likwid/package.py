@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -168,10 +167,7 @@ class Likwid(Package):
             supported_compilers = {"gcc": "GCCPOWER"}
         if self.compiler.name not in supported_compilers:
             raise RuntimeError(
-                "{0} is not a supported compiler \
-            to compile Likwid".format(
-                    self.compiler.name
-                )
+                "{0} is not a supported compiler to compile Likwid".format(self.compiler.name)
             )
 
         filter_file(
