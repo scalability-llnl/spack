@@ -38,6 +38,8 @@ class PyPygit2(PythonPackage):
 
     depends_on("py-setuptools", type="build")
     # https://www.pygit2.org/install.html#version-numbers
+    depends_on("libgit2@1.8", when="@1.15:")
+    depends_on("libgit2@1.7", when="@1.13:1.14")
     depends_on("libgit2@1.6", when="@1.12")
     depends_on("libgit2@1.5", when="@1.10:1.11")
     depends_on("libgit2@1.4", when="@1.9")
