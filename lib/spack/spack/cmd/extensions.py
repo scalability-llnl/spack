@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -10,10 +9,10 @@ import llnl.util.tty as tty
 from llnl.util.tty.colify import colify
 
 import spack.cmd as cmd
-import spack.cmd.common.arguments as arguments
 import spack.environment as ev
 import spack.repo
 import spack.store
+from spack.cmd.common import arguments
 
 description = "list extensions for package"
 section = "extensions"
@@ -22,7 +21,7 @@ level = "long"
 
 def setup_parser(subparser):
     subparser.epilog = (
-        "If called without argument returns " "the list of all valid extendable packages"
+        "If called without argument returns the list of all valid extendable packages"
     )
     arguments.add_common_arguments(subparser, ["long", "very_long"])
     subparser.add_argument(
@@ -58,7 +57,7 @@ def extensions(parser, args):
 
         extendable_pkgs = []
         for name in spack.repo.all_package_names():
-            pkg_cls = spack.repo.path.get_pkg_class(name)
+            pkg_cls = spack.repo.PATH.get_pkg_class(name)
             if pkg_cls.extendable:
                 extendable_pkgs.append(name)
 
@@ -81,7 +80,7 @@ def extensions(parser, args):
 
     if args.show in ("packages", "all"):
         # List package names of extensions
-        extensions = spack.repo.path.extensions_for(spec)
+        extensions = spack.repo.PATH.extensions_for(spec)
         if not extensions:
             tty.msg("%s has no extensions." % spec.cshort_spec)
         else:
@@ -91,7 +90,7 @@ def extensions(parser, args):
 
     if args.show in ("installed", "all"):
         # List specs of installed extensions.
-        installed = [s.spec for s in spack.store.db.installed_extensions_for(spec)]
+        installed = [s.spec for s in spack.store.STORE.db.installed_extensions_for(spec)]
 
         if args.show == "all":
             print

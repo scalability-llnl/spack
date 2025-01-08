@@ -1,71 +1,113 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Schema for packages.yaml configuration files.
 
 .. literalinclude:: _spack_root/lib/spack/spack/schema/packages.py
-   :lines: 13-
+   :lines: 14-
 """
+from typing import Any, Dict
 
+import spack.schema.environment
+
+from .compilers import extra_rpaths, flags, implicit_rpaths
+
+permissions = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "read": {"type": "string", "enum": ["user", "group", "world"]},
+        "write": {"type": "string", "enum": ["user", "group", "world"]},
+        "group": {"type": "string"},
+    },
+}
+
+variants = {"oneOf": [{"type": "string"}, {"type": "array", "items": {"type": "string"}}]}
+
+requirements = {
+    "oneOf": [
+        # 'require' can be a list of requirement_groups.
+        # each requirement group is a list of one or more
+        # specs. Either at least one or exactly one spec
+        # in the group must be satisfied (depending on
+        # whether you use "any_of" or "one_of",
+        # repectively)
+        {
+            "type": "array",
+            "items": {
+                "oneOf": [
+                    {
+                        "type": "object",
+                        "additionalProperties": False,
+                        "properties": {
+                            "one_of": {"type": "array", "items": {"type": "string"}},
+                            "any_of": {"type": "array", "items": {"type": "string"}},
+                            "spec": {"type": "string"},
+                            "message": {"type": "string"},
+                            "when": {"type": "string"},
+                        },
+                    },
+                    {"type": "string"},
+                ]
+            },
+        },
+        # Shorthand for a single requirement group with
+        # one member
+        {"type": "string"},
+    ]
+}
+
+prefer_and_conflict = {
+    "type": "array",
+    "items": {
+        "oneOf": [
+            {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "spec": {"type": "string"},
+                    "message": {"type": "string"},
+                    "when": {"type": "string"},
+                },
+            },
+            {"type": "string"},
+        ]
+    },
+}
+
+permissions = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "read": {"type": "string", "enum": ["user", "group", "world"]},
+        "write": {"type": "string", "enum": ["user", "group", "world"]},
+        "group": {"type": "string"},
+    },
+}
+
+package_attributes = {
+    "type": "object",
+    "additionalProperties": False,
+    "patternProperties": {r"\w+": {}},
+}
+
+REQUIREMENT_URL = "https://spack.readthedocs.io/en/latest/packages_yaml.html#package-requirements"
 
 #: Properties for inclusion in other schemas
-properties = {
+properties: Dict[str, Any] = {
     "packages": {
         "type": "object",
         "default": {},
         "additionalProperties": False,
-        "patternProperties": {
-            r"\w[\w-]*": {  # package name
+        "properties": {
+            "all": {  # package name
                 "type": "object",
                 "default": {},
                 "additionalProperties": False,
                 "properties": {
-                    "require": {
-                        "oneOf": [
-                            # 'require' can be a list of requirement_groups.
-                            # each requirement group is a list of one or more
-                            # specs. Either at least one or exactly one spec
-                            # in the group must be satisfied (depending on
-                            # whether you use "any_of" or "one_of",
-                            # repectively)
-                            {
-                                "type": "array",
-                                "items": {
-                                    "oneOf": [
-                                        {
-                                            "type": "object",
-                                            "additionalProperties": False,
-                                            "properties": {
-                                                "one_of": {
-                                                    "type": "array",
-                                                    "items": {"type": "string"},
-                                                },
-                                                "any_of": {
-                                                    "type": "array",
-                                                    "items": {"type": "string"},
-                                                },
-                                                "spec": {"type": "string"},
-                                                "message": {"type": "string"},
-                                                "when": {"type": "string"},
-                                            },
-                                        },
-                                        {"type": "string"},
-                                    ]
-                                },
-                            },
-                            # Shorthand for a single requirement group with
-                            # one member
-                            {"type": "string"},
-                        ]
-                    },
-                    "version": {
-                        "type": "array",
-                        "default": [],
-                        # version strings (type should be string, number is still possible
-                        # but deprecated. this is to avoid issues with e.g. 3.10 -> 3.1)
-                        "items": {"anyOf": [{"type": "string"}, {"type": "number"}]},
-                    },
+                    "require": requirements,
+                    "prefer": prefer_and_conflict,
+                    "conflict": prefer_and_conflict,
                     "target": {
                         "type": "array",
                         "default": [],
@@ -78,22 +120,10 @@ properties = {
                         "items": {"type": "string"},
                     },  # compiler specs
                     "buildable": {"type": "boolean", "default": True},
-                    "permissions": {
-                        "type": "object",
-                        "additionalProperties": False,
-                        "properties": {
-                            "read": {"type": "string", "enum": ["user", "group", "world"]},
-                            "write": {"type": "string", "enum": ["user", "group", "world"]},
-                            "group": {"type": "string"},
-                        },
-                    },
+                    "permissions": permissions,
                     # If 'get_full_repo' is promoted to a Package-level
                     # attribute, it could be useful to set it here
-                    "package_attributes": {
-                        "type": "object",
-                        "additionalProperties": False,
-                        "patternProperties": {r"\w+": {}},
-                    },
+                    "package_attributes": package_attributes,
                     "providers": {
                         "type": "object",
                         "default": {},
@@ -106,12 +136,31 @@ properties = {
                             }
                         },
                     },
-                    "variants": {
-                        "oneOf": [
-                            {"type": "string"},
-                            {"type": "array", "items": {"type": "string"}},
-                        ]
+                    "variants": variants,
+                },
+            }
+        },
+        "patternProperties": {
+            r"(?!^all$)(^\w[\w-]*)": {  # package name
+                "type": "object",
+                "default": {},
+                "additionalProperties": False,
+                "properties": {
+                    "require": requirements,
+                    "prefer": prefer_and_conflict,
+                    "conflict": prefer_and_conflict,
+                    "version": {
+                        "type": "array",
+                        "default": [],
+                        # version strings
+                        "items": {"anyOf": [{"type": "string"}, {"type": "number"}]},
                     },
+                    "buildable": {"type": "boolean", "default": True},
+                    "permissions": permissions,
+                    # If 'get_full_repo' is promoted to a Package-level
+                    # attribute, it could be useful to set it here
+                    "package_attributes": package_attributes,
+                    "variants": variants,
                     "externals": {
                         "type": "array",
                         "items": {
@@ -120,7 +169,22 @@ properties = {
                                 "spec": {"type": "string"},
                                 "prefix": {"type": "string"},
                                 "modules": {"type": "array", "items": {"type": "string"}},
-                                "extra_attributes": {"type": "object"},
+                                "extra_attributes": {
+                                    "type": "object",
+                                    "additionalProperties": True,
+                                    "properties": {
+                                        "compilers": {
+                                            "type": "object",
+                                            "patternProperties": {
+                                                r"(^\w[\w-]*)": {"type": "string"}
+                                            },
+                                        },
+                                        "environment": spack.schema.environment.definition,
+                                        "extra_rpaths": extra_rpaths,
+                                        "implicit_rpaths": implicit_rpaths,
+                                        "flags": flags,
+                                    },
+                                },
                             },
                             "additionalProperties": True,
                             "required": ["spec"],
@@ -131,7 +195,6 @@ properties = {
         },
     }
 }
-
 
 #: Full schema with metadata
 schema = {

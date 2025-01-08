@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,6 +10,8 @@ class PyJaracoFunctools(PythonPackage):
 
     homepage = "https://github.com/jaraco/jaraco.functools"
     pypi = "jaraco.functools/jaraco.functools-2.0.tar.gz"
+
+    license("MIT")
 
     version("2.0", sha256="35ba944f52b1a7beee8843a5aa6752d1d5b79893eeb7770ea98be6b637bf9345")
 

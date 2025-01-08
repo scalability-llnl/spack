@@ -1,0 +1,19 @@
+diff --git a/misc/regexp.c b/misc/regexp.c
+index ee7d572..e0b4b47 100644
+--- a/misc/regexp.c
++++ b/misc/regexp.c
+@@ -23,11 +23,11 @@
+ #include <regex.h>
+ 
+ /* Define the variables used for the interface.  */
+-char *loc1;
+-char *loc2;
++char *loc1  __attribute__ ((nocommon));
++char *loc2  __attribute__ ((nocommon));
+ 
+ /* Although we do not support the use we define this variable as well.  */
+-char *locs;
++char *locs  __attribute__ ((nocommon));
+ 
+ 
+ /* Find the next match in STRING.  The compiled regular expression is

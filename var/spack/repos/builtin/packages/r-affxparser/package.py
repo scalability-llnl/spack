@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,7 @@ class RAffxparser(RPackage):
 
     bioc = "affxparser"
 
+    version("1.72.0", commit="6e976af32f77835143f6b4e0c01c6016dc1b331c")
     version("1.70.0", commit="28f94cd3477e9500942be89cbcb5cad1bbb369fe")
     version("1.68.1", commit="821a01a2df18115a3b7864b3f45418255b7123eb")
     version("1.66.0", commit="2ea72d4c924ac14bdd807b23563c8501c226ce3a")
@@ -29,5 +29,8 @@ class RAffxparser(RPackage):
     version("1.52.0", commit="8e0c4b89ee1cb4ff95f58a5dd947249dc718bc58")
     version("1.50.0", commit="01ef641727eadc2cc17b5dbb0b1432364436e3d5")
     version("1.48.0", commit="2461ea88f310b59c4a9a997a4b3dadedbd65a4aa")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r@2.14.0:", type=("build", "run"))

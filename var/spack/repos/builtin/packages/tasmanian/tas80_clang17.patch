@@ -1,0 +1,101 @@
+diff --git a/SparseGrids/tsgGridFourier.cpp b/SparseGrids/tsgGridFourier.cpp
+index 31e75a87..438b0631 100644
+--- a/SparseGrids/tsgGridFourier.cpp
++++ b/SparseGrids/tsgGridFourier.cpp
+@@ -961,7 +961,7 @@ std::vector<double> GridFourier::getCandidateConstructionPoints(std::function<do
+     for(int i=0; i<new_tensors.getNumIndexes(); i++)
+         dynamic_values->addTensor(new_tensors.getIndex(i), [&](int l)->int{ return wrapper.getNumPoints(l); }, tweights[i]);
+ 
+-    return MultiIndexManipulations::indexesToNodes(dynamic_values->getNodesIndexes(), wrapper);
++    return MultiIndexManipulations::getIndexesToNodes(dynamic_values->getNodesIndexes(), wrapper);
+ }
+ std::vector<int> GridFourier::getMultiIndex(const double x[]){
+     std::vector<int> p(num_dimensions);
+diff --git a/SparseGrids/tsgGridGlobal.cpp b/SparseGrids/tsgGridGlobal.cpp
+index dd81ace0..01aa4fa3 100644
+--- a/SparseGrids/tsgGridGlobal.cpp
++++ b/SparseGrids/tsgGridGlobal.cpp
+@@ -473,7 +473,7 @@ std::vector<double> GridGlobal::getCandidateConstructionPoints(std::function<dou
+     for(int i=0; i<new_tensors.getNumIndexes(); i++)
+         dynamic_values->addTensor(new_tensors.getIndex(i), [&](int l)->int{ return wrapper.getNumPoints(l); }, tweights[i]);
+ 
+-    return MultiIndexManipulations::indexesToNodes(dynamic_values->getNodesIndexes(), wrapper);
++    return MultiIndexManipulations::getIndexesToNodes(dynamic_values->getNodesIndexes(), wrapper);
+ }
+ std::vector<int> GridGlobal::getMultiIndex(const double x[]){
+     std::vector<int> p(num_dimensions);
+diff --git a/SparseGrids/tsgGridLocalPolynomial.cpp b/SparseGrids/tsgGridLocalPolynomial.cpp
+index f2cf6809..176736c3 100644
+--- a/SparseGrids/tsgGridLocalPolynomial.cpp
++++ b/SparseGrids/tsgGridLocalPolynomial.cpp
+@@ -576,7 +576,7 @@ void GridLocalPolynomial::expandGrid(const std::vector<int> &point, const std::v
+         surpluses = Data2D<double>(num_outputs, 1, std::vector<double>(value)); // one value is its own surplus
+     }else{ // merge with existing points
+         // compute the surplus for the point
+-        std::vector<double> xnode = MultiIndexManipulations::indexesToNodes(point, *rule);
++        std::vector<double> xnode = MultiIndexManipulations::getIndexesToNodes(point, *rule);
+         std::vector<double> approximation(num_outputs), surp(num_outputs);
+         evaluate(xnode.data(), approximation.data());
+         std::transform(approximation.begin(), approximation.end(), value.begin(), surp.begin(), [&](double e, double v)->double{ return v - e; });
+@@ -755,7 +755,7 @@ void GridLocalPolynomial::updateSurpluses(MultiIndexSet const &work, int max_lev
+         for(int s=0; s<level_size; s++){
+             int i = indexses_for_levels[l][s];
+ 
+-            std::vector<double> x = MultiIndexManipulations::indexesToNodes(work.getIndex(i), num_dimensions, *rule);
++            std::vector<double> x = MultiIndexManipulations::getIndexesToNodes(work.getIndex(i), num_dimensions, *rule);
+             double *surpi = surpluses.getStrip(i);
+ 
+             std::vector<int> monkey_count(max_level + 1);
+@@ -818,7 +818,7 @@ void GridLocalPolynomial::applyTransformationTransposed(double weights[], const
+     for(int l=active_top_level; l>0; l--){
+         for(size_t i=0; i<active_points.size(); i++){
+             if (level[i] == l){
+-                std::vector<double> node = MultiIndexManipulations::indexesToNodes(work.getIndex(active_points[i]), num_dimensions, *rule);
++                std::vector<double> node = MultiIndexManipulations::getIndexesToNodes(work.getIndex(active_points[i]), num_dimensions, *rule);
+ 
+                 std::fill(used.begin(), used.end(), false);
+ 
+@@ -1071,7 +1071,7 @@ void GridLocalPolynomial::getQuadratureWeights(double *weights) const{
+     for(int l=top_level; l>0; l--){
+         for(int i=0; i<num_points; i++){
+             if (level[i] == l){
+-                std::vector<double> node = MultiIndexManipulations::indexesToNodes(work.getIndex(i), num_dimensions, *rule);
++                std::vector<double> node = MultiIndexManipulations::getIndexesToNodes(work.getIndex(i), num_dimensions, *rule);
+ 
+                 std::vector<bool> used(work.getNumIndexes(), false);
+ 
+diff --git a/SparseGrids/tsgGridWavelet.cpp b/SparseGrids/tsgGridWavelet.cpp
+index b043d077..d2f8115c 100644
+--- a/SparseGrids/tsgGridWavelet.cpp
++++ b/SparseGrids/tsgGridWavelet.cpp
+@@ -415,7 +415,7 @@ void GridWavelet::buildInterpolationMatrix() const{
+     for(int b=0; b<num_blocks; b++){
+         int block_end = (b < num_blocks - 1) ? (b+1) * num_chunk : num_points;
+         for(int i=b * num_chunk; i < block_end; i++){
+-            std::vector<double> xi = MultiIndexManipulations::indexesToNodes(work.getIndex(i), (size_t) num_dimensions, rule1D);
++            std::vector<double> xi = MultiIndexManipulations::getIndexesToNodes(work.getIndex(i), (size_t) num_dimensions, rule1D);
+ 
+             // loop over the basis functions to see if supported
+             int numpntr = 0;
+diff --git a/SparseGrids/tsgIndexManipulator.hpp b/SparseGrids/tsgIndexManipulator.hpp
+index 16a1321f..0c27a4cd 100644
+--- a/SparseGrids/tsgIndexManipulator.hpp
++++ b/SparseGrids/tsgIndexManipulator.hpp
+@@ -562,7 +562,7 @@ OutputIteratorLike indexesToNodes(IteratorLike ibegin, size_t num_entries, RuleL
+  * \brief Overload that returns the result in a vector.
+  */
+ template<class IndexList, class RuleLike>
+-std::vector<double> indexesToNodes(IndexList const &list, RuleLike const &rule){
++std::vector<double> getIndexesToNodes(IndexList const &list, RuleLike const &rule){
+     std::vector<double> result(std::distance(list.begin(), list.end()));
+     indexesToNodes(list, rule, result.begin());
+     return result;
+@@ -573,7 +573,7 @@ std::vector<double> indexesToNodes(IndexList const &list, RuleLike const &rule){
+  * \brief Overload that returns the result in a vector.
+  */
+ template<class IteratorLike, class RuleLike>
+-std::vector<double> indexesToNodes(IteratorLike ibegin, size_t num_entries, RuleLike const &rule){
++std::vector<double> getIndexesToNodes(IteratorLike ibegin, size_t num_entries, RuleLike const &rule){
+     std::vector<double> result(num_entries);
+     indexesToNodes(ibegin, num_entries, rule, result.begin());
+     return result;

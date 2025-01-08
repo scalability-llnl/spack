@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -9,9 +8,15 @@ from spack.package import *
 class PyRequests(PythonPackage):
     """Python HTTP for Humans."""
 
-    homepage = "http://python-requests.org"
+    homepage = "https://requests.readthedocs.io"
     pypi = "requests/requests-2.24.0.tar.gz"
+    git = "https://github.com/psf/requests"
 
+    license("Apache-2.0")
+
+    version("2.32.3", sha256="55365417734eb18255590a9ff9eb97e9e1da868d4ccd6402399eaf68af20a760")
+    version("2.32.2", sha256="dd951ff5ecf3e3b3aa26b40703ba77495dab41da839ae72ef3c8e5d8e2433289")
+    version("2.31.0", sha256="942c5a758f98d790eaed1a29cb6eefc7ffb0d1cf7af05c3d2791656dbd6ad1e1")
     version("2.28.2", sha256="98b1b2782e3c6c4904938b84c0eb932721069dfdb9134313beff7c83c2df24bf")
     version("2.28.1", sha256="7c5599b102feddaa661c826c56ab4fee28bfd17f5abca1ebbe3e7f19d7c97983")
     version("2.28.0", sha256="d568723a7ebd25875d8d1eaf5dfa068cd2fc8194b2e483d7b1f7c81918dbec6b")
@@ -30,19 +35,21 @@ class PyRequests(PythonPackage):
 
     variant("socks", default=False, description="SOCKS and HTTP proxy support")
 
-    depends_on("python@2.7:2.8,3.5:", type=("build", "run"))
-    depends_on("python@2.7:2.8,3.6:", type=("build", "run"), when="@2.26.0:2.27")
-    depends_on("python@3.7:", type=("build", "run"), when="@2.28.0:")
+    depends_on("python@3.7:", when="@2.28:", type=("build", "run"))
     depends_on("py-setuptools", type="build")
 
+    depends_on("py-charset-normalizer@2:3", when="@2.28.2:", type=("build", "run"))
+    depends_on("py-charset-normalizer@2", when="@2.26:2.28.1", type=("build", "run"))
+    depends_on("py-idna@2.5:3", when="@2.26:", type=("build", "run"))
+    depends_on("py-idna@2.5:2", when="@2.23:2.25", type=("build", "run"))
+    depends_on("py-idna@2.5:2.8", when="@2.16:2.22", type=("build", "run"))
+    depends_on("py-urllib3@1.21.1:2", when="@2.30:", type=("build", "run"))
+    depends_on("py-urllib3@1.21.1:1.26", when="@2.25:2.29", type=("build", "run"))
+    depends_on("py-urllib3@1.21.1:1.24,1.25.2:1.25", when="@2.16:2.24", type=("build", "run"))
+    depends_on("py-certifi@2017.4.17:", when="@2.16:", type=("build", "run"))
+    depends_on("py-pysocks@1.5.6,1.5.8:", when="+socks", type=("build", "run"))
+
+    # Historical dependencies
     depends_on("py-chardet@3.0.2:4", type=("build", "run"), when="@2.25.1:2.25")
-    depends_on("py-chardet@3.0.2:3", type=("build", "run"), when="@2.23.0:2.25.0")
-    depends_on("py-chardet@3.0.2:3.0", type=("build", "run"), when="@2.16.0:2.22")
-    depends_on("py-charset-normalizer@2.0.0:2.0", type=("build", "run"), when="@2.26.0:")
-    depends_on("py-idna@2.5:3", type=("build", "run"), when="@2.26.0:")
-    depends_on("py-idna@2.5:2", type=("build", "run"), when="@2.23:2.25")
-    depends_on("py-idna@2.5:2.8", type=("build", "run"), when="@2.16.0:2.22")
-    depends_on("py-urllib3@1.21.1:1.26", type=("build", "run"), when="@2.25.0:")
-    depends_on("py-urllib3@1.21.1:1.24,1.25.2:1.25", type=("build", "run"), when="@2.16.0:2.24")
-    depends_on("py-certifi@2017.4.17:", type=("build", "run"), when="@2.16.0:")
-    depends_on("py-pysocks@1.5.6,1.5.8:", type=("build", "run"), when="+socks")
+    depends_on("py-chardet@3.0.2:3", type=("build", "run"), when="@2.23:2.25.0")
+    depends_on("py-chardet@3.0.2:3.0", type=("build", "run"), when="@2.16:2.22")

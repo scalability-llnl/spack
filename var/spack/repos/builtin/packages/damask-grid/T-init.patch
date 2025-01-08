@@ -1,0 +1,11 @@
+--- damask.orig/src/grid/grid_thermal_spectral.f90	2023-06-17 00:35:03.454061742 +0200
++++ damask/src/grid/grid_thermal_spectral.f90	2023-06-17 00:38:50.641104409 +0200
+@@ -110,7 +110,7 @@
+   T_current = discretization_grid_getInitialCondition('T')
+   T_lastInc = T_current
+   T_stagInc = T_current
+-  dotT_lastInc = 0.0_pReal
++  dotT_lastInc = 0.0_pREAL * T_current
+ 
+ !--------------------------------------------------------------------------------------------------
+ ! initialize solver specific parts of PETSc

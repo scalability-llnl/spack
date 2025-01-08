@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,7 +19,7 @@ class DevBuildTestDependent(MakefilePackage):
     depends_on("dev-build-test-install")
 
     def edit(self, spec, prefix):
-        with open(self.filename, "r+") as f:
+        with open(self.filename, "r+", encoding="utf-8") as f:
             assert f.read() == self.original_string
             f.seek(0)
             f.truncate()

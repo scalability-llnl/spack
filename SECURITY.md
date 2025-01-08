@@ -2,24 +2,26 @@
 
 ## Supported Versions
 
-We provide security updates for the following releases.
+We provide security updates for `develop` and for the last two
+stable (`0.x`) release series of Spack. Security updates will be
+made available as patch (`0.x.1`, `0.x.2`, etc.) releases.
+
 For more on Spack's release structure, see
 [`README.md`](https://github.com/spack/spack#releases).
 
-
-| Version | Supported          |
-| ------- | ------------------ |
-| develop | :white_check_mark: |
-| 0.19.x  | :white_check_mark: |
-| 0.18.x  | :white_check_mark: |
-
 ## Reporting a Vulnerability
 
-To report a vulnerability or other security
-issue, email maintainers@spack.io.
+You can report a vulnerability using GitHub's private reporting
+feature:
 
-You can expect to hear back within two days.
-If your security issue is accepted, we will do
-our best to release a fix within a week. If
-fixing the issue will take longer than this,
-we will discuss timeline options with you.
+1. Go to [github.com/spack/spack/security](https://github.com/spack/spack/security).
+2. Click "Report a vulnerability" in the upper right corner of that page.
+3. Fill out the form and submit your draft security advisory.
+
+More details are available in
+[GitHub's docs](https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing/privately-reporting-a-security-vulnerability).
+
+You can expect to hear back about security issues within two days.
+If your security issue is accepted, we will do our best to release
+a fix within a week. If fixing the issue will take longer than
+this, we will discuss timeline options with you.

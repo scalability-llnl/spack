@@ -1,0 +1,21 @@
+diff --git a/cmake/tps.cmake b/cmake/tps.cmake
+index 3732758f6..b3f00bb7a 100644
+--- a/cmake/tps.cmake
++++ b/cmake/tps.cmake
+@@ -211,16 +211,6 @@ endif()
+ if (MSVC)
+      set(CMAKE_REQUIRED_DEFINITIONS "${Trilinos_CXX_COMPILER_FLAGS}")
+ endif()
+-get_target_property(CMAKE_REQUIRED_LIBRARIES Teuchos::all_libs INTERFACE_LINK_LIBRARIES)
+-
+-# Perform an initial check to see if we can compile against Trilinos at all.
+-# This could reveal compiler setup problems and/or Trilinos setup problems.
+-check_include_file_cxx(Teuchos_SerialDenseMatrix.hpp Trilinos_COMPILE_SUCCESS ${OpenMP_CXX_FLAGS})
+-if (NOT Trilinos_COMPILE_SUCCESS)
+-     message(FATAL_ERROR "Unable to compile against Trilinos. It is possible\
+-     Trilinos was not properly configured, or the environment has changed since\
+-     Trilinos was installed. See the CMake log files for more information.")
+-endif()
+ 
+ # After the release of Trilinos 12.12.1, the abstract solver interface in NOX
+ # was changed to include a new method that returns solver statistics.  This

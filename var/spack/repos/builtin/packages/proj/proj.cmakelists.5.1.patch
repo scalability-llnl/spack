@@ -1,0 +1,12 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -159,5 +159,6 @@ add_subdirectory(nad)
+ add_subdirectory(src)
+ add_subdirectory(man)
+ add_subdirectory(cmake)
+-add_subdirectory(test)
+-
++if(PROJ_TESTS)
++  add_subdirectory(test)
++endif(PROJ_TESTS)

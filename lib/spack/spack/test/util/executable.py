@@ -1,34 +1,37 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 import sys
+from pathlib import PurePath
 
 import pytest
 
 import llnl.util.filesystem as fs
 
 import spack
+import spack.main
 import spack.util.executable as ex
 from spack.hooks.sbang import filter_shebangs_in_directory
 
 
 def test_read_unicode(tmpdir, working_env):
-    script_name = "print_unicode.py"
-    # read the unicode back in and see whether things work
-    if sys.platform == "win32":
-        script = ex.Executable("%s %s" % (sys.executable, script_name))
-    else:
-        script = ex.Executable("./%s" % script_name)
     with tmpdir.as_cwd():
+        script_name = "print_unicode.py"
+        # read the unicode back in and see whether things work
+        if sys.platform == "win32":
+            script = ex.Executable("%s" % (sys.executable))
+            script_args = [script_name]
+        else:
+            script = ex.Executable("./%s" % script_name)
+            script_args = []
+
         os.environ["LD_LIBRARY_PATH"] = spack.main.spack_ld_library_path
         # make a script that prints some unicode
-        with open(script_name, "w") as f:
+        with open(script_name, "w", encoding="utf-8") as f:
             f.write(
                 """#!{0}
-from __future__ import print_function
 print(u'\\xc3')
 """.format(
                     sys.executable
@@ -39,7 +42,7 @@ print(u'\\xc3')
         fs.set_executable(script_name)
         filter_shebangs_in_directory(".", [script_name])
 
-        assert "\xc3" == script(output=str).strip()
+        assert "\xc3" == script(*script_args, output=str).strip()
 
 
 def test_which_relative_path_with_slash(tmpdir, working_env):
@@ -69,7 +72,7 @@ def test_which_with_slash_ignores_path(tmpdir, working_env):
 
     path = str(tmpdir.join("exe"))
     wrong_path = str(tmpdir.join("bin", "exe"))
-    os.environ["PATH"] = os.path.dirname(wrong_path)
+    os.environ["PATH"] = str(PurePath(wrong_path).parent)
 
     with tmpdir.as_cwd():
         if sys.platform == "win32":
@@ -86,8 +89,8 @@ def test_which_with_slash_ignores_path(tmpdir, working_env):
         assert exe.path == path
 
 
-def test_which(tmpdir):
-    os.environ["PATH"] = str(tmpdir)
+def test_which(tmpdir, monkeypatch):
+    monkeypatch.setenv("PATH", str(tmpdir))
     assert ex.which("spack-test-exe") is None
 
     with pytest.raises(ex.CommandNotFoundError):

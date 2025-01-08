@@ -2,8 +2,6 @@
 #
 # SPDX-License-Identifier: Python-2.0
 "Usage: unparse.py <path to source file>"
-from __future__ import print_function, unicode_literals
-
 import ast
 import sys
 from contextlib import contextmanager
@@ -87,28 +85,11 @@ class Unparser:
 
         Arguments:
             py_ver_consistent (bool): if True, generate unparsed code that is
-                consistent between Python 2.7 and 3.5-3.10.
+                consistent between Python versions 3.5-3.11.
 
-        Consistency is achieved by:
-            1. Ensuring that *args and **kwargs are always the last arguments,
-               regardless of the python version, because Python 2's AST does not
-               have sufficient information to reconstruct star-arg order.
-            2. Always unparsing print as a function.
-            3. Unparsing Python3 unicode literals the way Python 2 would.
-
-        Without these changes, the same source can generate different code for Python 2
-        and Python 3, depending on subtle AST differences.  The first of these two
-        causes this module to behave differently from Python 3.8+'s `ast.unparse()`
-
-        One place where single source will generate an inconsistent AST is with
-        multi-argument print statements, e.g.::
-
-            print("foo", "bar", "baz")
-
-        In Python 2, this prints a tuple; in Python 3, it is the print function with
-        multiple arguments.  Use ``from __future__ import print_function`` to avoid
-        this inconsistency.
-
+        For legacy reasons, consistency is achieved by unparsing Python3 unicode literals
+        the way Python 2 would. This preserved Spack package hash consistency during the
+        python2/3 transition
         """
         self.future_imports = []
         self._indent = 0
@@ -289,71 +270,6 @@ class Unparser:
             self.write(", ")
             self.dispatch(node.msg)
 
-    def visit_Exec(self, node):
-        self.fill("exec ")
-        self.dispatch(node.body)
-        if node.globals:
-            self.write(" in ")
-            self.dispatch(node.globals)
-        if node.locals:
-            self.write(", ")
-            self.dispatch(node.locals)
-
-    def visit_Print(self, node):
-        # Use print function so that python 2 unparsing is consistent with 3
-        if self._py_ver_consistent:
-            self.fill("print")
-            with self.delimit("(", ")"):
-                values = node.values
-
-                # Can't tell print(foo, bar, baz) and print((foo, bar, baz)) apart in
-                # python 2 and 3, so treat them the same to make hashes consistent.
-                # Single-tuple print are rare and unlikely to affect package hashes,
-                # esp. as they likely print to stdout.
-                if len(values) == 1 and isinstance(values[0], ast.Tuple):
-                    values = node.values[0].elts
-
-                do_comma = False
-                for e in values:
-                    if do_comma:
-                        self.write(", ")
-                    else:
-                        do_comma = True
-                    self.dispatch(e)
-
-                if not node.nl:
-                    if do_comma:
-                        self.write(", ")
-                    else:
-                        do_comma = True
-                    self.write("end=''")
-
-                if node.dest:
-                    if do_comma:
-                        self.write(", ")
-                    else:
-                        do_comma = True
-                    self.write("file=")
-                    self.dispatch(node.dest)
-
-        else:
-            # unparse Python 2 print statements
-            self.fill("print ")
-
-            do_comma = False
-            if node.dest:
-                self.write(">>")
-                self.dispatch(node.dest)
-                do_comma = True
-            for e in node.values:
-                if do_comma:
-                    self.write(", ")
-                else:
-                    do_comma = True
-                self.dispatch(e)
-            if not node.nl:
-                self.write(",")
-
     def visit_Global(self, node):
         self.fill("global ")
         interleave(lambda: self.write(", "), self.write, node.names)
@@ -412,31 +328,6 @@ class Unparser:
             with self.block():
                 self.dispatch(node.finalbody)
 
-    def visit_TryExcept(self, node):
-        self.fill("try")
-        with self.block():
-            self.dispatch(node.body)
-
-        for ex in node.handlers:
-            self.dispatch(ex)
-        if node.orelse:
-            self.fill("else")
-            with self.block():
-                self.dispatch(node.orelse)
-
-    def visit_TryFinally(self, node):
-        if len(node.body) == 1 and isinstance(node.body[0], ast.TryExcept):
-            # try-except-finally
-            self.dispatch(node.body)
-        else:
-            self.fill("try")
-            with self.block():
-                self.dispatch(node.body)
-
-        self.fill("finally")
-        with self.block():
-            self.dispatch(node.finalbody)
-
     def visit_ExceptHandler(self, node):
         self.fill("except")
         if node.type:
@@ -454,6 +345,10 @@ class Unparser:
             self.fill("@")
             self.dispatch(deco)
         self.fill("class " + node.name)
+        if getattr(node, "type_params", False):
+            self.write("[")
+            interleave(lambda: self.write(", "), self.dispatch, node.type_params)
+            self.write("]")
         with self.delimit_if("(", ")", condition=node.bases or node.keywords):
             comma = False
             for e in node.bases:
@@ -468,21 +363,6 @@ class Unparser:
                 else:
                     comma = True
                 self.dispatch(e)
-            if sys.version_info[:2] < (3, 5):
-                if node.starargs:
-                    if comma:
-                        self.write(", ")
-                    else:
-                        comma = True
-                    self.write("*")
-                    self.dispatch(node.starargs)
-                if node.kwargs:
-                    if comma:
-                        self.write(", ")
-                    else:
-                        comma = True
-                    self.write("**")
-                    self.dispatch(node.kwargs)
         with self.block():
             self.dispatch(node.body)
 
@@ -499,6 +379,10 @@ class Unparser:
             self.dispatch(deco)
         def_str = fill_suffix + " " + node.name
         self.fill(def_str)
+        if getattr(node, "type_params", False):
+            self.write("[")
+            interleave(lambda: self.write(", "), self.dispatch, node.type_params)
+            self.write("]")
         with self.delimit("(", ")"):
             self.dispatch(node.args)
         if getattr(node, "returns", False):
@@ -670,9 +554,7 @@ class Unparser:
 
     def _fstring_JoinedStr(self, node, write):
         for value in node.values:
-            print("   ", value)
             meth = getattr(self, "_fstring_" + type(value).__name__)
-            print(meth)
             meth(value, write)
 
     def _fstring_Str(self, node, write):
@@ -713,11 +595,6 @@ class Unparser:
 
     def visit_NameConstant(self, node):
         self.write(repr(node.value))
-
-    def visit_Repr(self, node):
-        self.write("`")
-        self.dispatch(node.value)
-        self.write("`")
 
     def _write_constant(self, value):
         if isinstance(value, (float, complex)):
@@ -962,65 +839,28 @@ class Unparser:
         self.set_precedence(_Precedence.ATOM, node.func)
 
         args = node.args
-        if self._py_ver_consistent:
-            # make print(a, b, c) and print((a, b, c)) equivalent, since you can't
-            # tell them apart between Python 2 and 3. See _Print() for more details.
-            if getattr(node.func, "id", None) == "print":
-                if len(node.args) == 1 and isinstance(node.args[0], ast.Tuple):
-                    args = node.args[0].elts
-
         self.dispatch(node.func)
+
         with self.delimit("(", ")"):
             comma = False
 
-            # starred arguments last in Python 3.5+, for consistency w/earlier versions
-            star_and_kwargs = []
-            move_stars_last = sys.version_info[:2] >= (3, 5)
+            # NOTE: this code is no longer compatible with python versions 2.7:3.4
+            # If you run on python@:3.4, you will see instability in package hashes
+            # across python versions
 
             for e in args:
-                if move_stars_last and isinstance(e, ast.Starred):
-                    star_and_kwargs.append(e)
+                if comma:
+                    self.write(", ")
                 else:
-                    if comma:
-                        self.write(", ")
-                    else:
-                        comma = True
-                    self.dispatch(e)
+                    comma = True
+                self.dispatch(e)
 
             for e in node.keywords:
-                # starting from Python 3.5 this denotes a kwargs part of the invocation
-                if e.arg is None and move_stars_last:
-                    star_and_kwargs.append(e)
+                if comma:
+                    self.write(", ")
                 else:
-                    if comma:
-                        self.write(", ")
-                    else:
-                        comma = True
-                    self.dispatch(e)
-
-            if move_stars_last:
-                for e in star_and_kwargs:
-                    if comma:
-                        self.write(", ")
-                    else:
-                        comma = True
-                    self.dispatch(e)
-
-            if sys.version_info[:2] < (3, 5):
-                if node.starargs:
-                    if comma:
-                        self.write(", ")
-                    else:
-                        comma = True
-                    self.write("*")
-                    self.dispatch(node.starargs)
-                if node.kwargs:
-                    if comma:
-                        self.write(", ")
-                    else:
-                        comma = True
-                    self.write("**")
-                    self.dispatch(node.kwargs)
+                    comma = True
+                self.dispatch(e)
 
     def visit_Subscript(self, node):
         self.set_precedence(_Precedence.ATOM, node.value)
@@ -1096,16 +936,10 @@ class Unparser:
                 self.write(", ")
             self.write("*")
             if node.vararg:
-                if hasattr(node.vararg, "arg"):
-                    self.write(node.vararg.arg)
-                    if node.vararg.annotation:
-                        self.write(": ")
-                        self.dispatch(node.vararg.annotation)
-                else:
-                    self.write(node.vararg)
-                    if getattr(node, "varargannotation", None):
-                        self.write(": ")
-                        self.dispatch(node.varargannotation)
+                self.write(node.vararg.arg)
+                if node.vararg.annotation:
+                    self.write(": ")
+                    self.dispatch(node.vararg.annotation)
 
         # keyword-only arguments
         if getattr(node, "kwonlyargs", False):
@@ -1125,16 +959,10 @@ class Unparser:
                 first = False
             else:
                 self.write(", ")
-            if hasattr(node.kwarg, "arg"):
-                self.write("**" + node.kwarg.arg)
-                if node.kwarg.annotation:
-                    self.write(": ")
-                    self.dispatch(node.kwarg.annotation)
-            else:
-                self.write("**" + node.kwarg)
-                if getattr(node, "kwargannotation", None):
-                    self.write(": ")
-                    self.dispatch(node.kwargannotation)
+            self.write("**" + node.kwarg.arg)
+            if node.kwarg.annotation:
+                self.write(": ")
+                self.dispatch(node.kwarg.annotation)
 
     def visit_keyword(self, node):
         if node.arg is None:
@@ -1249,3 +1077,27 @@ class Unparser:
         with self.require_parens(_Precedence.BOR, node):
             self.set_precedence(pnext(_Precedence.BOR), *node.patterns)
             interleave(lambda: self.write(" | "), self.dispatch, node.patterns)
+
+    def visit_TypeAlias(self, node):
+        self.fill("type ")
+        self.dispatch(node.name)
+        if node.type_params:
+            self.write("[")
+            interleave(lambda: self.write(", "), self.dispatch, node.type_params)
+            self.write("]")
+        self.write(" = ")
+        self.dispatch(node.value)
+
+    def visit_TypeVar(self, node):
+        self.write(node.name)
+        if node.bound:
+            self.write(": ")
+            self.dispatch(node.bound)
+
+    def visit_TypeVarTuple(self, node):
+        self.write("*")
+        self.write(node.name)
+
+    def visit_ParamSpec(self, node):
+        self.write("**")
+        self.write(node.name)

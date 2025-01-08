@@ -1,7 +1,8 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
+import os.path
 
 from spack.package import *
 
@@ -15,6 +16,12 @@ class SuiteSparse(Package):
     url = "https://github.com/DrTimothyAldenDavis/SuiteSparse/archive/v4.5.3.tar.gz"
     git = "https://github.com/DrTimothyAldenDavis/SuiteSparse.git"
 
+    license("Apache-2.0")
+
+    version("7.8.3", sha256="ce39b28d4038a09c14f21e02c664401be73c0cb96a9198418d6a98a7db73a259")
+    version("7.7.0", sha256="529b067f5d80981f45ddf6766627b8fc5af619822f068f342aab776e683df4f3")
+    version("7.3.1", sha256="b512484396a80750acf3082adc1807ba0aabb103c2e09be5691f46f14d0a9718")
+    version("7.2.1", sha256="304e959a163ff74f8f4055dade3e0b5498d9aa3b1c483633bb400620f521509f")
     version("5.13.0", sha256="59c6ca2959623f0c69226cf9afb9a018d12a37fab3a8869db5f6d7f83b6b147d")
     version("5.12.0", sha256="5fb0064a3398111976f30c5908a8c0b40df44c6dd8f0cc4bfa7b9e45d8c647de")
     version("5.11.0", sha256="fdd957ed06019465f7de73ce931afaf5d40e96e14ae57d91f60868b8c123c4c8")
@@ -36,6 +43,10 @@ class SuiteSparse(Package):
     version("4.5.6", sha256="1c7b7a265a1d6c606095eb8aa3cb8e27821f1b7f5bc04f28df6d62906e02f4e4")
     version("4.5.5", sha256="80d1d9960a6ec70031fecfe9adfe5b1ccd8001a7420efb50d6fa7326ef14af91")
     version("4.5.3", sha256="b6965f9198446a502cde48fb0e02236e75fa5700b94c7306fc36599d57b563f4")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant(
         "pic",
@@ -63,6 +74,7 @@ class SuiteSparse(Package):
     depends_on("gmp", when="@5.8.0:")
     depends_on("m4", type="build", when="@5.0.0:")
     depends_on("cmake", when="+graphblas @5.2.0:", type="build")
+    depends_on("cmake@3.22:", when="@6:", type="build")
     depends_on("metis@5.1.0", when="@4.5.1:")
 
     with when("+tbb"):
@@ -72,14 +84,13 @@ class SuiteSparse(Package):
         # related stuff (which have long been deprecated).  This appears to be
         # rather problematic for suite-sparse (see e.g.
         # https://github.com/DrTimothyAldenDavis/SuiteSparse/blob/master/SPQR/Source/spqr_parallel.cpp)
-        depends_on("intel-tbb@:2020 build_system=makefile", when="^intel-tbb")
+        depends_on("intel-tbb@:2020 build_system=makefile", when="^[virtuals=tbb] intel-tbb")
         conflicts(
             "^intel-oneapi-tbb@2021:",
             msg="suite-sparse needs task_scheduler_init.h dropped in recent tbb libs",
         )
 
-    # This patch removes unsupported flags for pgi compiler
-    patch("pgi.patch", when="%pgi")
+    # This patch removes unsupported flags for nvhpc compiler
     patch("pgi.patch", when="%nvhpc")
 
     # This patch adds '-lm' when linking libgraphblas and when using clang.
@@ -115,36 +126,48 @@ class SuiteSparse(Package):
             return
 
         symbols = (
-            "dtrsv_",
-            "dgemv_",
-            "dtrsm_",
+            "cgemm_",
+            "cgemv_",
+            "cherk_",
+            "cpotrf_",
+            "ctrsm_",
+            "ctrsv_",
             "dgemm_",
-            "dsyrk_",
+            "dgemv_",
             "dger_",
-            "dscal_",
-            "dpotrf_",
-            "ztrsv_",
-            "zgemv_",
-            "ztrsm_",
-            "zgemm_",
-            "zherk_",
-            "zgeru_",
-            "zscal_",
-            "zpotrf_",
-            "dnrm2_",
             "dlarf_",
+            "dlarfb_",
             "dlarfg_",
             "dlarft_",
-            "dlarfb_",
+            "dnrm2_",
+            "dpotrf_",
+            "dscal_",
+            "dsyrk_",
+            "dtrsm_",
+            "dtrsv_",
             "dznrm2_",
+            "sgemm_",
+            "sgemv_",
+            "spotrf_",
+            "ssyrk_",
+            "strsm_",
+            "strsv_",
+            "zgemm_",
+            "zgemv_",
+            "zgeru_",
+            "zherk_",
             "zlarf_",
+            "zlarfb_",
             "zlarfg_",
             "zlarft_",
-            "zlarfb_",
+            "zpotrf_",
+            "zscal_",
+            "ztrsm_",
+            "ztrsv_",
         )
 
         for symbol in symbols:
-            args.append("CFLAGS+=-D{0}={1}{2}".format(symbol, symbol, suffix))
+            args.append(f"CFLAGS+=-D{symbol}={symbol}{suffix}")
 
     def install(self, spec, prefix):
         # The build system of SuiteSparse is quite old-fashioned.
@@ -166,23 +189,24 @@ class SuiteSparse(Package):
             # completely disabled. See
             # [SuiteSparse/SuiteSparse_config/SuiteSparse_config.mk] for more.
             "CUDA=no",
-            "CUDA_PATH=%s" % (spec["cuda"].prefix if "+cuda" in spec else ""),
-            "CFOPENMP=%s" % (self.compiler.openmp_flag if "+openmp" in spec else ""),
-            "CFLAGS=-O3 %s" % cc_pic_flag,
+            f"CUDA_PATH={spec['cuda'].prefix if '+cuda' in spec else ''}",
+            f"CFOPENMP={self.compiler.openmp_flag if '+openmp' in spec else ''}",
+            f"CFLAGS=-O3 {cc_pic_flag}",
             # Both FFLAGS and F77FLAGS are used in SuiteSparse makefiles;
             # FFLAGS is used in CHOLMOD, F77FLAGS is used in AMD and UMFPACK.
-            "FFLAGS=%s" % f77_pic_flag,
-            "F77FLAGS=%s" % f77_pic_flag,
+            f"FFLAGS={f77_pic_flag}",
+            f"F77FLAGS={f77_pic_flag}",
             # use Spack's metis in CHOLMOD/Partition module,
             # otherwise internal Metis will be compiled
-            "MY_METIS_LIB=%s" % spec["metis"].libs.ld_flags,
-            "MY_METIS_INC=%s" % spec["metis"].prefix.include,
+            f"MY_METIS_LIB={spec['metis'].libs.ld_flags}",
+            f"MY_METIS_INC={spec['metis'].prefix.include}",
             # Make sure Spack's Blas/Lapack is used. Otherwise System's
             # Blas/Lapack might be picked up. Need to add -lstdc++, following
             # with the TCOV path of SparseSuite 4.5.1's Suitesparse_config.mk,
             # even though this fix is ugly
-            "BLAS=%s" % (spec["blas"].libs.ld_flags + (" -lstdc++" if "@4.5.1" in spec else "")),
-            "LAPACK=%s" % spec["lapack"].libs.ld_flags,
+            f"BLAS={spec['blas'].libs.ld_flags + (' -lstdc++' if '@4.5.1' in spec else '')}",
+            f"LAPACK={spec['lapack'].libs.ld_flags}",
+            f"JOBS={make_jobs}",
         ]
 
         # Recent versions require c11 but some demos do not get the c11 from
@@ -191,7 +215,7 @@ class SuiteSparse(Package):
         # not an issue because c11 or newer is their default. However, for some
         # compilers (e.g. xlc) the c11 flag is necessary.
         if spec.satisfies("@5.4:5.7.1") and ("%xl" in spec or "%xl_r" in spec):
-            make_args += ["CFLAGS+=%s" % self.compiler.c11_flag]
+            make_args += [f"CFLAGS+={self.compiler.c11_flag}"]
 
         # 64bit blas in UMFPACK:
         if (
@@ -209,29 +233,59 @@ class SuiteSparse(Package):
         # optimizations
         if any([x in spec for x in ("%apple-clang", "%clang", "%gcc", "%intel", "%fj")]):
             make_args += ["CFLAGS+=-fno-common -fexceptions"]
-        elif "%pgi" in spec:
-            make_args += ["CFLAGS+=--exceptions"]
 
         if spack_f77.endswith("xlf") or spack_f77.endswith("xlf_r"):
             make_args += ["CFLAGS+=-DBLAS_NO_UNDERSCORE"]
 
         # Intel TBB in SuiteSparseQR
         if "+tbb" in spec:
-            make_args += ["SPQR_CONFIG=-DHAVE_TBB", "TBB=%s" % spec["tbb"].libs.ld_flags]
+            make_args += ["SPQR_CONFIG=-DHAVE_TBB", f"TBB={spec['tbb'].libs.ld_flags}"]
 
         if "@5.3:" in spec:
             # Without CMAKE_LIBRARY_PATH defined, the CMake file in the
             # Mongoose directory finds libsuitesparseconfig.so in system
             # directories like /usr/lib.
-            make_args += [
-                "CMAKE_OPTIONS=-DCMAKE_INSTALL_PREFIX=%s" % prefix
-                + " -DCMAKE_LIBRARY_PATH=%s" % prefix.lib
+            cmake_args = [
+                "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON",
+                f"-DCMAKE_INSTALL_PREFIX={prefix}",
+                f"-DCMAKE_LIBRARY_PATH={prefix.lib}",
+                f"-DBLAS_ROOT={spec['blas'].prefix}",
+                f"-DLAPACK_ROOT={spec['lapack'].prefix}",
+                # *_LIBRARIES is critical to pick up static
+                # libraries (if intended) and also to avoid
+                # unintentional system blas/lapack packages
+                f'-DBLAS_LIBRARIES="{";".join(spec["blas"].libs)}"',
+                f'-DLAPACK_LIBRARIES="{";".join(spec["lapack"].libs)}"',
+                "-DCMAKE_VERBOSE_MAKEFILE=ON",
             ]
+            if spec.satisfies("@:7.3"):
+                cmake_args += [
+                    f"-DNOPENMP={'OFF' if '+openmp' in spec else 'ON'}",
+                    f"-DENABLE_CUDA={'ON' if '+cuda' in spec else 'OFF'}",
+                ]
+            else:
+                cmake_args += [
+                    f"-DSUITESPARSE_USE_OPENMP={'ON' if '+openmp' in spec else 'OFF'}",
+                    f"-DSUITESPARSE_USE_CUDA={'ON' if '+cuda' in spec else 'OFF'}",
+                ]
+            make_args += [f"CMAKE_OPTIONS={' '.join(cmake_args)}"]
 
         if spec.satisfies("%gcc platform=darwin"):
             make_args += ["LDLIBS=-lm"]
 
-        make_args.append("INSTALL=%s" % prefix)
+        if "%cce" in spec:
+            # Assume the proper Cray CCE module (cce) is loaded:
+            craylibs_var = "CRAYLIBS_" + str(spec.target.family).upper()
+            craylibs_path = env.get(craylibs_var, None)
+            if not craylibs_path:
+                raise InstallError(
+                    f"The environment variable {craylibs_var} is not defined.\n"
+                    "\tMake sure the 'cce' module is in the compiler spec."
+                )
+            env.setdefault("LDFLAGS", "")
+            env["LDFLAGS"] += " -Wl,-rpath," + craylibs_path
+
+        make_args.append(f"INSTALL={prefix}")
 
         # Filter the targets we're interested in
         targets = [
@@ -253,14 +307,27 @@ class SuiteSparse(Package):
         targets.extend(["SPQR"])
         if spec.satisfies("+graphblas"):
             targets.append("GraphBLAS")
-        if spec.satisfies("@5.8.0:"):
+        if spec.satisfies("@5.8.0:6"):
             targets.append("SLIP_LU")
 
         # Finally make and install
-        make("-C", "SuiteSparse_config", "config", *make_args)
+        if spec.satisfies("@6:"):
+            make("-C", "SuiteSparse_config", *make_args)
+        else:
+            make("-C", "SuiteSparse_config", "config", *make_args)
         for target in targets:
             make("-C", target, "library", *make_args)
             make("-C", target, "install", *make_args)
+
+        # Starting with v7.4.0 headers are installed in a subdirectory called
+        # 'suitesparse' by default. For backward compatibility, after
+        # installation, we create links for all files from 'suitesparse' in the
+        # containing directory, '<prefix>/include':
+        if spec.satisfies("@7.4:"):
+            with working_dir(prefix.include):
+                for f in find("suitesparse", "*", recursive=False):
+                    sf = os.path.basename(f)
+                    symlink(join_path("suitesparse", sf), sf)
 
     @run_after("install")
     def fix_darwin_install(self):
@@ -294,5 +361,10 @@ class SuiteSparse(Package):
         query_parameters = self.spec.last_query.extra_parameters
         comps = all_comps if not query_parameters else query_parameters
         return find_libraries(
-            ["lib" + c for c in comps], root=self.prefix.lib, shared=True, recursive=False
+            # Libraries may be installed under both `lib/` and `lib64/`,
+            # don't force searching under `lib/` only.
+            ["lib" + c for c in comps],
+            root=self.prefix,
+            shared=True,
+            recursive=True,
         )

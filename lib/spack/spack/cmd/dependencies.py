@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -9,11 +8,10 @@ import llnl.util.tty as tty
 from llnl.util.tty.colify import colify
 
 import spack.cmd
-import spack.cmd.common.arguments as arguments
 import spack.environment as ev
 import spack.package_base
-import spack.repo
 import spack.store
+from spack.cmd.common import arguments
 
 description = "show dependencies of a package"
 section = "basic"
@@ -26,8 +24,8 @@ def setup_parser(subparser):
         "--installed",
         action="store_true",
         default=False,
-        help="List installed dependencies of an installed spec, "
-        "instead of possible dependencies of a package.",
+        help="list installed dependencies of an installed spec "
+        "instead of possible dependencies of a package",
     )
     subparser.add_argument(
         "-t",
@@ -60,7 +58,7 @@ def dependencies(parser, args):
         format_string = "{name}{@version}{%compiler}{/hash:7}"
         if sys.stdout.isatty():
             tty.msg("Dependencies of %s" % spec.format(format_string, color=True))
-        deps = spack.store.db.installed_relatives(
+        deps = spack.store.STORE.db.installed_relatives(
             spec, "children", args.transitive, deptype=args.deptype
         )
         if deps:
@@ -74,7 +72,7 @@ def dependencies(parser, args):
             spec,
             transitive=args.transitive,
             expand_virtuals=args.expand_virtuals,
-            deptype=args.deptype,
+            depflag=args.deptype,
         )
 
         if spec.name in dependencies:

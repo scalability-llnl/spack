@@ -1,0 +1,69 @@
+From d8a55fe10f0f88087d67a9d7bb1fce47fda8d86f Mon Sep 17 00:00:00 2001
+From: Afzal Patel <Afzal.Patel@amd.com>
+Date: Thu, 1 Feb 2024 18:06:40 +0000
+Subject: [PATCH] Disable tests and add fPIC compile option
+
+---
+ CMakeLists.txt | 27 ++++-----------------------
+ 1 file changed, 4 insertions(+), 23 deletions(-)
+
+diff git a/CMakeLists.txt b/CMakeLists.txt
+index 99fb394..63e65ca 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -44,7 +44,7 @@ endif()
+
+ set(CMAKE_CXX_STANDARD 17)
+ set(CMAKE_CXX_STANDARD_REQUIRED ON)
+-add_compile_options(-Wall)
++add_compile_options(-Wall -fPIC)
+
+ set(THREADS_PREFER_PTHREAD_FLAG ON)
+
+@@ -162,17 +162,17 @@ add_subdirectory(src)
+
+ if(${LIBRARY_TYPE} STREQUAL SHARED)
+   # Build samples
+-  add_subdirectory(samples)
++  # add_subdirectory(samples)
+
+   # Build tests
+-  add_subdirectory(tests)
++  # add_subdirectory(tests)
+ endif()
+
+ # Build Plugins
+ add_subdirectory(plugin)
+
+ # Build tests
+-add_subdirectory(${TEST_DIR} ${PROJECT_BINARY_DIR}/test)
++# add_subdirectory(${TEST_DIR} ${PROJECT_BINARY_DIR}/test)
+
+ # Installation and packaging
+ set(DEST_NAME ${ROCPROFILER_NAME})
+@@ -238,25 +238,6 @@ install(
+   DESTINATION ${CMAKE_INSTALL_LIBDIR}/${ROCPROFILER_NAME}
+   COMPONENT runtime)
+
+-# librocprof-tool.so
+-install(
+-  FILES ${PROJECT_BINARY_DIR}/test/librocprof-tool.so
+-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/${ROCPROFILER_NAME}
+-  COMPONENT runtime)
+-
+-install(
+-  FILES ${PROJECT_BINARY_DIR}/test/rocprof-ctrl
+-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/${ROCPROFILER_NAME}
+-  PERMISSIONS
+-    OWNER_READ
+-    OWNER_WRITE
+-    OWNER_EXECUTE
+-    GROUP_READ
+-    GROUP_EXECUTE
+-    WORLD_READ
+-    WORLD_EXECUTE
+-  COMPONENT runtime)
+-
+ # File reorg Backward compatibility
+ option(FILE_REORG_BACKWARD_COMPATIBILITY
+        "Enable File Reorg with backward compatibility" ON)

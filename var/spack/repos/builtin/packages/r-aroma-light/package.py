@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,7 @@ class RAromaLight(RPackage):
 
     bioc = "aroma.light"
 
+    version("3.30.0", commit="a1882c2126622cb389a7ef1ef5b5c565e603a282")
     version("3.28.0", commit="7749dd7033e9885ec2546a5cac0562bac2fea04d")
     version("3.26.0", commit="7ead7517a77bc8b4b4b42aace69957a17e8fe016")
     version("3.24.0", commit="3ff48b8f546acc9803b3c652363cac78d3b81ae5")

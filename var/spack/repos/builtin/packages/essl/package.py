@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -22,13 +21,15 @@ class Essl(BundlePackage):
         multi=False,
     )
     variant("cuda", default=False, description="CUDA acceleration")
+    variant("lapackforessl", default=False, description="Provides lapackforessl lapack library")
 
     provides("blas")
+    provides("lapack", when="+lapackforessl")
 
     conflicts(
         "+cuda",
         when="+ilp64",
-        msg="ESSL+cuda+ilp64 cannot combine CUDA acceleration" " 64 bit integers",
+        msg="ESSL+cuda+ilp64 cannot combine CUDA acceleration 64 bit integers",
     )
 
     conflicts(
@@ -43,18 +44,18 @@ class Essl(BundlePackage):
         spec = self.spec
         prefix = self.prefix
 
-        if "+ilp64" in spec:
+        if spec.satisfies("+ilp64"):
             essl_lib = ["libessl6464"]
         else:
             essl_lib = ["libessl"]
 
         if spec.satisfies("threads=openmp"):
             # ESSL SMP support requires XL or Clang OpenMP library
-            if "%xl" in spec or "%xl_r" in spec or "%clang" in spec:
-                if "+ilp64" in spec:
+            if spec.satisfies("%xl") or spec.satisfies("%xl_r") or spec.satisfies("%clang"):
+                if spec.satisfies("+ilp64"):
                     essl_lib = ["libesslsmp6464"]
                 else:
-                    if "+cuda" in spec:
+                    if spec.satisfies("+cuda"):
                         essl_lib = ["libesslsmpcuda"]
                     else:
                         essl_lib = ["libesslsmp"]
@@ -62,4 +63,11 @@ class Essl(BundlePackage):
         essl_root = prefix.lib64
         essl_libs = find_libraries(essl_lib, root=essl_root, shared=True)
 
+        return essl_libs
+
+    @property
+    def lapack_libs(self):
+        essl_libs = find_libraries(
+            ["liblapackforessl", "liblapackforessl_"], root=self.prefix.lib64, shared=True
+        )
         return essl_libs

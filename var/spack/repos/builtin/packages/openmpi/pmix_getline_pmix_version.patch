@@ -1,0 +1,52 @@
+diff --git a/3rd-party/prrte/src/mca/ess/base/ess_base_bootstrap.c b/3rd-party/prrte/src/mca/ess/base/ess_base_bootstrap.c
+index 48ce664915..f37bd7bea2 100644
+--- a/3rd-party/prrte/src/mca/ess/base/ess_base_bootstrap.c
++++ b/3rd-party/prrte/src/mca/ess/base/ess_base_bootstrap.c
+@@ -68,7 +68,7 @@ static pmix_status_t regex_parse_value_range(char *base, char *range,
+                                              char ***names);
+ static pmix_status_t read_file(char *regexp, char ***names);
+ 
+-#if PMIX_NUMERIC_VERSION < 0x00040208
++#if PMIX_NUMERIC_VERSION < 0x00040205
+ static char *pmix_getline(FILE *fp)
+ {
+     char *ret, *buff;
+diff --git a/3rd-party/prrte/src/mca/ras/base/ras_base_allocate.c b/3rd-party/prrte/src/mca/ras/base/ras_base_allocate.c
+index bc9db628f5..858f1397fb 100644
+--- a/3rd-party/prrte/src/mca/ras/base/ras_base_allocate.c
++++ b/3rd-party/prrte/src/mca/ras/base/ras_base_allocate.c
+@@ -59,7 +59,7 @@
+ 
+ #include "src/mca/ras/base/ras_private.h"
+ 
+-#if PMIX_NUMERIC_VERSION < 0x00040208
++#if PMIX_NUMERIC_VERSION < 0x00040205
+ static char *pmix_getline(FILE *fp)
+ {
+     char *ret, *buff;
+diff --git a/3rd-party/prrte/src/mca/rmaps/rank_file/rmaps_rank_file.c b/3rd-party/prrte/src/mca/rmaps/rank_file/rmaps_rank_file.c
+index b8316e0a8e..dfd0b847d0 100644
+--- a/3rd-party/prrte/src/mca/rmaps/rank_file/rmaps_rank_file.c
++++ b/3rd-party/prrte/src/mca/rmaps/rank_file/rmaps_rank_file.c
+@@ -71,7 +71,7 @@ static int prte_rmaps_rf_process_lsf_affinity_hostfile(prte_job_t *jdata, prte_r
+ 
+ char *prte_rmaps_rank_file_slot_list = NULL;
+ 
+-#if PMIX_NUMERIC_VERSION < 0x00040208
++#if PMIX_NUMERIC_VERSION < 0x00040205
+ static char *pmix_getline(FILE *fp)
+ {
+     char *ret, *buff;
+diff --git a/3rd-party/prrte/src/mca/rmaps/seq/rmaps_seq.c b/3rd-party/prrte/src/mca/rmaps/seq/rmaps_seq.c
+index 555aa39c42..356fb72aa9 100644
+--- a/3rd-party/prrte/src/mca/rmaps/seq/rmaps_seq.c
++++ b/3rd-party/prrte/src/mca/rmaps/seq/rmaps_seq.c
+@@ -109,7 +109,7 @@ static bool quickmatch(prte_node_t *nd, char *name)
+     return false;
+ }
+ 
+-#if PMIX_NUMERIC_VERSION < 0x00040208
++#if PMIX_NUMERIC_VERSION < 0x00040205
+ static char *pmix_getline(FILE *fp)
+ {
+     char *ret, *buff;

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,8 +27,15 @@ class Plumed(AutotoolsPackage):
     git = "https://github.com/plumed/plumed2.git"
     maintainers("marcodelapierre")
 
+    license("LGPL-3.0-or-later")
+
     version("master", branch="master")
 
+    version("2.9.2", sha256="301fbc958374f81d9b8c7a1eac73095f6dded52cce73ce33d64bdbebf51ac63d")
+    version("2.9.1", sha256="e24563ad1eb657611918e0c978d9c5212340f128b4f1aa5efbd439a0b2e91b58")
+    version("2.9.0", sha256="612d2387416b5f82dd8545709921440370e144fd46cef633654cf0ee43bac5f8")
+
+    version("2.8.3", sha256="e98da486e252cdf290b0b5b2f3f021409ea0d2d775ab609a6ad68fc1ab143a3b")
     version("2.8.2", sha256="a2064bacba1dde36b05aaf351ba4b7e6d30a165b332b0a83b7a6db04b477be9f")
     version("2.8.1", sha256="f56bc9266c8a47241385c595717c2734a9b67148a7f4122b808bc0733710173e")
     version("2.8.0", sha256="8357eca6f280125037ad4e7c427f96f2af2f60ddfedce1a2e36e1e1cc3bff32b")
@@ -58,18 +64,59 @@ class Plumed(AutotoolsPackage):
     version("2.5.2", sha256="85d10cc46e2e37c7719cf51c0931278f56c2c8f8a9d86188b2bf97c2535a2ab4")
     version("2.5.1", sha256="de309980dcfd6f6e0e70e138856f4bd9eb4d8a513906a5e6389f18a5af7f2eba")
     version("2.5.0", sha256="53e08187ec9f8af2326fa84407e34644a7c51d2af93034309fb70675eee5e4f7")
-    version("2.4.6", sha256="c22ad19f5cd36ce9fe4ba0b53158fc2a3d985c48fc04606e3f3b3e835b994cb3")
 
-    version("2.4.4", sha256="1e5c24109314481fad404da97d61c7339b219e27e120c9c80bacc79c9f6a51a8")
-    version("2.4.2", sha256="528ce57f1f5330480bcd403140166a4580efd2acaea39c85dfeca5e2cd649321")
-    version("2.4.1", sha256="f00410ebdd739c2ddf55fcd714ff4bd88a1029e02d2fc9cea0b5fca34e0fc4eb")
+    # These versions don't build in CI.
+    version(
+        "2.4.6",
+        sha256="c22ad19f5cd36ce9fe4ba0b53158fc2a3d985c48fc04606e3f3b3e835b994cb3",
+        deprecated=True,
+    )
+    version(
+        "2.4.4",
+        sha256="1e5c24109314481fad404da97d61c7339b219e27e120c9c80bacc79c9f6a51a8",
+        deprecated=True,
+    )
+    version(
+        "2.4.2",
+        sha256="528ce57f1f5330480bcd403140166a4580efd2acaea39c85dfeca5e2cd649321",
+        deprecated=True,
+    )
+    version(
+        "2.4.1",
+        sha256="f00410ebdd739c2ddf55fcd714ff4bd88a1029e02d2fc9cea0b5fca34e0fc4eb",
+        deprecated=True,
+    )
 
-    version("2.3.5", sha256="a6a66ca4582c1aecc6138c96be015e13cd06a718e8446b2f13e610fe34602e4f")
-    version("2.3.3", sha256="ac058ff529f207d5b4169fb5a87bdb3c77307dfef1ac543ad8b6c74c5de7fc91")
-    version("2.3.0", sha256="b1c8a54a313a0569e27e36420770074f35406453f73de70e55c424652abeddf1")
+    version(
+        "2.3.5",
+        sha256="a6a66ca4582c1aecc6138c96be015e13cd06a718e8446b2f13e610fe34602e4f",
+        deprecated=True,
+    )
+    version(
+        "2.3.3",
+        sha256="ac058ff529f207d5b4169fb5a87bdb3c77307dfef1ac543ad8b6c74c5de7fc91",
+        deprecated=True,
+    )
+    version(
+        "2.3.0",
+        sha256="b1c8a54a313a0569e27e36420770074f35406453f73de70e55c424652abeddf1",
+        deprecated=True,
+    )
 
-    version("2.2.4", sha256="d7a1dba34a7fe03f23e8d39ab6e15b230c4851373fdceb3602e2de26ea53ce37")
-    version("2.2.3", sha256="2db19c5f6a2918833941d0bf47b5431d0865529d786df797ccc966d763ed7b0c")
+    version(
+        "2.2.4",
+        sha256="d7a1dba34a7fe03f23e8d39ab6e15b230c4851373fdceb3602e2de26ea53ce37",
+        deprecated=True,
+    )
+    version(
+        "2.2.3",
+        sha256="2db19c5f6a2918833941d0bf47b5431d0865529d786df797ccc966d763ed7b0c",
+        deprecated=True,
+    )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # Variants. PLUMED by default builds a number of optional modules.
     # The ones listed here are not built by default for various reasons,
@@ -145,7 +192,7 @@ class Plumed(AutotoolsPackage):
     )
 
     # Dependencies. LAPACK and BLAS are recommended but not essential.
-    depends_on("zlib")
+    depends_on("zlib-api")
     depends_on("blas")
     depends_on("lapack")
     # For libmatheval support through the 'function' module
@@ -210,11 +257,12 @@ class Plumed(AutotoolsPackage):
         # provided by optimized libraries due to linking order
         filter_file("-lgslcblas", "", "configure.ac")
 
+    @when("@2.5:")
     def patch(self):
         # Ensure Spack's wrappers are used to compile the Python interface
         env = (
-            'CXX={0} LDSHARED="{0} -pthread -shared" '
-            'LDCXXSHARED="{0} -pthread -shared"'.format(spack_cxx)
+            'CC="{0}" LDSHARED="{0} -pthread -shared" '
+            'CXX="{1}" LDCXXSHARED="{1} -pthread -shared"'.format(spack_cc, spack_cxx)
         )
         filter_file(
             "plumed_program_name=plumed",

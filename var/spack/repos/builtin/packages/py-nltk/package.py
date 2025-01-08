@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,14 +13,30 @@ class PyNltk(PythonPackage):
     homepage = "https://www.nltk.org/"
     pypi = "nltk/nltk-3.5.zip"
 
+    license("Apache-2.0")
+
+    version("3.9.1", sha256="87d127bd3de4bd89a4f81265e5fa59cb1b199b27440175370f7417d2bc7ae868")
+    version("3.8.1", sha256="1834da3d0682cba4f2cede2f9aad6b0fafb6461ba451db0efb6f9c39798d64d3")
     version("3.5", sha256="845365449cd8c5f9731f7cb9f8bd6fd0767553b9d53af9eb1b3abf7700936b35")
+
+    def url_for_version(self, version):
+        url = "https://pypi.io/packages/source/n/nltk/nltk-{0}.{1}"
+        extension = "zip"
+        if version >= Version("3.9.1"):
+            extension = "tar.gz"
+        return url.format(version.dotted, extension)
+
+    maintainers("meyersbs")
 
     variant("data", default=False, description="Download the NLTK data")
 
+    depends_on("python@3.8:", when="@3.9.1:", type=("build", "run"))
+    depends_on("python@3.7:", when="@3.8.1:", type=("build", "run"))
     depends_on("python@3.5:", type=("build", "run"))
-    depends_on("py-setuptools", type=("build", "run"))
+    depends_on("py-setuptools", type="build")
     depends_on("py-joblib", type=("build", "run"))
     depends_on("py-click", type=("build", "run"))
+    depends_on("py-regex@2021.8.3:", when="@3.8.1:", type=("build", "run"))
     depends_on("py-regex", type=("build", "run"))
     depends_on("py-tqdm", type=("build", "run"))
 
@@ -33,6 +48,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/misc",
         placement="perluniprops",
     )
+
     resource(
         name="mwa_ppdb",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/misc/mwa_ppdb.zip",
@@ -41,14 +57,25 @@ class PyNltk(PythonPackage):
         destination="nltk_data/misc",
         placement="mwa_ppdb",
     )
+
     resource(
         name="punkt",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/tokenizers/punkt.zip",
-        when="+data",
-        sha256="9a74e3cc0057021b12984c07cc5e46cb746385cf90f49b7d6fe806fb71610144",
+        when="+data@:3.8.1",
+        sha256="51c3078994aeaf650bfc8e028be4fb42b4a0d177d41c012b6a983979653660ec",
         destination="nltk_data/tokenizers",
         placement="punkt",
     )
+
+    resource(
+        name="punkt_tab",
+        url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/tokenizers/punkt_tab.zip",
+        when="+data@3.8.2:",
+        sha256="c2b16c23d738effbdc5789d7aa601397c13ba2819bf922fb904687f3f16657ed",
+        destination="nltk_data/tokenizers",
+        placement="punkt_tab",
+    )
+
     resource(
         name="rslp",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/stemmers/rslp.zip",
@@ -57,6 +84,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/stemmers",
         placement="rslp",
     )
+
     resource(
         name="porter_test",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/stemmers/porter_test.zip",
@@ -65,6 +93,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/stemmers",
         placement="porter_test",
     )
+
     resource(
         name="snowball_data",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/stemmers/snowball_data.zip",
@@ -73,6 +102,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/stemmers",
         placement="snowball_data",
     )
+
     resource(
         name="maxent_ne_chunker",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/chunkers/maxent_ne_chunker.zip",
@@ -81,6 +111,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/chunkers",
         placement="maxent_ne_chunker",
     )
+
     resource(
         name="moses_sample",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/models/moses_sample.zip",
@@ -89,6 +120,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/models",
         placement="moses_sample",
     )
+
     resource(
         name="bllip_wsj_no_aux",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/models/bllip_wsj_no_aux.zip",
@@ -97,6 +129,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/models",
         placement="bllip_wsj_no_aux",
     )
+
     resource(
         name="word2vec_sample",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/models/word2vec_sample.zip",
@@ -105,6 +138,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/models",
         placement="word2vec_sample",
     )
+
     resource(
         name="wmt15_eval",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/models/wmt15_eval.zip",
@@ -113,6 +147,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/models",
         placement="wmt15_eval",
     )
+
     resource(
         name="spanish_grammars",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/grammars/spanish_grammars.zip",
@@ -121,6 +156,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/grammars",
         placement="spanish_grammars",
     )
+
     resource(
         name="sample_grammars",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/grammars/sample_grammars.zip",
@@ -129,6 +165,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/grammars",
         placement="sample_grammars",
     )
+
     resource(
         name="large_grammars",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/grammars/large_grammars.zip",
@@ -137,6 +174,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/grammars",
         placement="large_grammars",
     )
+
     resource(
         name="book_grammars",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/grammars/book_grammars.zip",
@@ -145,6 +183,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/grammars",
         placement="book_grammars",
     )
+
     resource(
         name="basque_grammars",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/grammars/basque_grammars.zip",
@@ -153,6 +192,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/grammars",
         placement="basque_grammars",
     )
+
     resource(
         name="maxent_treebank_pos_tagger",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/taggers/maxent_treebank_pos_tagger.zip",
@@ -161,6 +201,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/taggers",
         placement="maxent_treebank_pos_tagger",
     )
+
     resource(
         name="averaged_perceptron_tagger",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/taggers/averaged_perceptron_tagger.zip",
@@ -169,6 +210,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/taggers",
         placement="averaged_perceptron_tagger",
     )
+
     resource(
         name="averaged_perceptron_tagger_ru",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/taggers/averaged_perceptron_tagger_ru.zip",
@@ -177,14 +219,16 @@ class PyNltk(PythonPackage):
         destination="nltk_data/taggers",
         placement="averaged_perceptron_tagger_ru",
     )
+
     resource(
         name="universal_tagset",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/taggers/universal_tagset.zip",
         when="+data",
-        sha256="fb3b295a7b636d3f50e2bd3f9bd4c84eb99eaf36ff475ea406bdecd247f8f962",
+        sha256="d490e1ae8f5625dcdfdda04be15c22a2aade8c2561a36a61edcdf0c7d6aa8352",
         destination="nltk_data/taggers",
         placement="universal_tagset",
     )
+
     resource(
         name="vader_lexicon",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/sentiment/vader_lexicon.zip",
@@ -193,6 +237,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/sentiment",
         placement="vader_lexicon",
     )
+
     resource(
         name="lin_thesaurus",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/lin_thesaurus.zip",
@@ -201,6 +246,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="lin_thesaurus",
     )
+
     resource(
         name="movie_reviews",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/movie_reviews.zip",
@@ -209,6 +255,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="movie_reviews",
     )
+
     resource(
         name="problem_reports",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/problem_reports.zip",
@@ -217,6 +264,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="problem_reports",
     )
+
     resource(
         name="pros_cons",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/pros_cons.zip",
@@ -225,6 +273,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="pros_cons",
     )
+
     resource(
         name="masc_tagged",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/masc_tagged.zip",
@@ -233,6 +282,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="masc_tagged",
     )
+
     resource(
         name="sentence_polarity",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/sentence_polarity.zip",
@@ -241,6 +291,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="sentence_polarity",
     )
+
     resource(
         name="webtext",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/webtext.zip",
@@ -249,6 +300,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="webtext",
     )
+
     resource(
         name="nps_chat",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/nps_chat.zip",
@@ -257,6 +309,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="nps_chat",
     )
+
     resource(
         name="city_database",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/city_database.zip",
@@ -265,6 +318,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="city_database",
     )
+
     resource(
         name="europarl_raw",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/europarl_raw.zip",
@@ -273,6 +327,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="europarl_raw",
     )
+
     resource(
         name="biocreative_ppi",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/biocreative_ppi.zip",
@@ -281,6 +336,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="biocreative_ppi",
     )
+
     resource(
         name="verbnet3",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/verbnet3.zip",
@@ -289,6 +345,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="verbnet3",
     )
+
     resource(
         name="pe08",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/pe08.zip",
@@ -297,6 +354,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="pe08",
     )
+
     resource(
         name="pil",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/pil.zip",
@@ -305,6 +363,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="pil",
     )
+
     resource(
         name="crubadan",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/crubadan.zip",
@@ -313,6 +372,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="crubadan",
     )
+
     resource(
         name="gutenberg",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/gutenberg.zip",
@@ -321,6 +381,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="gutenberg",
     )
+
     resource(
         name="propbank",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/propbank.zip",
@@ -329,6 +390,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="propbank",
     )
+
     resource(
         name="machado",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/machado.zip",
@@ -337,6 +399,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="machado",
     )
+
     resource(
         name="state_union",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/state_union.zip",
@@ -345,6 +408,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="state_union",
     )
+
     resource(
         name="twitter_samples",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/twitter_samples.zip",
@@ -353,6 +417,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="twitter_samples",
     )
+
     resource(
         name="semcor",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/semcor.zip",
@@ -361,6 +426,25 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="semcor",
     )
+
+    resource(
+        name="wordnet31",
+        url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/wordnet31.zip",
+        when="+data",
+        sha256="2a9e7da7d0c17ad875e4171a4d28ae17ab6969c7d67f1cf0f59d65c66d0fdd37",
+        destination="nltk_data/corpora",
+        placement="wordnet31",
+    )
+
+    resource(
+        name="extended_omw",
+        url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/extended_omw.zip",
+        when="+data",
+        sha256="c59b90f2902c351eeb0ce97a49a1b7cf73d4e2f5b05cbda0e903eb20b5ee168a",
+        destination="nltk_data/corpora",
+        placement="extended_omw",
+    )
+
     resource(
         name="names",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/names.zip",
@@ -369,6 +453,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="names",
     )
+
     resource(
         name="ptb",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/ptb.zip",
@@ -377,6 +462,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="ptb",
     )
+
     resource(
         name="nombank.1.0",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/nombank.1.0.zip",
@@ -385,6 +471,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="nombank.1.0",
     )
+
     resource(
         name="floresta",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/floresta.zip",
@@ -393,6 +480,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="floresta",
     )
+
     resource(
         name="comtrans",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/comtrans.zip",
@@ -401,6 +489,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="comtrans",
     )
+
     resource(
         name="knbc",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/knbc.zip",
@@ -409,6 +498,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="knbc",
     )
+
     resource(
         name="mac_morpho",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/mac_morpho.zip",
@@ -417,6 +507,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="mac_morpho",
     )
+
     resource(
         name="swadesh",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/swadesh.zip",
@@ -425,6 +516,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="swadesh",
     )
+
     resource(
         name="rte",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/rte.zip",
@@ -433,6 +525,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="rte",
     )
+
     resource(
         name="toolbox",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/toolbox.zip",
@@ -441,6 +534,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="toolbox",
     )
+
     resource(
         name="jeita",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/jeita.zip",
@@ -449,6 +543,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="jeita",
     )
+
     resource(
         name="product_reviews_1",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/product_reviews_1.zip",
@@ -457,6 +552,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="product_reviews_1",
     )
+
     resource(
         name="omw",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/omw.zip",
@@ -465,6 +561,16 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="omw",
     )
+
+    resource(
+        name="wordnet2022",
+        url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/wordnet2022.zip",
+        when="+data",
+        sha256="5ccbb3382b9d147d4acac12645b3d6f375d1f5e4cd037fedadef74d069a8ee3f",
+        destination="nltk_data/corpora",
+        placement="wordnet2022",
+    )
+
     resource(
         name="sentiwordnet",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/sentiwordnet.zip",
@@ -473,6 +579,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="sentiwordnet",
     )
+
     resource(
         name="product_reviews_2",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/product_reviews_2.zip",
@@ -481,6 +588,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="product_reviews_2",
     )
+
     resource(
         name="abc",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/abc.zip",
@@ -489,6 +597,16 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="abc",
     )
+
+    resource(
+        name="wordnet2021",
+        url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/wordnet2021.zip",
+        when="+data",
+        sha256="d7ef7d289da4dd0f33f07d9745856adc74689a53a8fa9be5dcfd3c87c5da24db",
+        destination="nltk_data/corpora",
+        placement="wordnet2021",
+    )
+
     resource(
         name="udhr2",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/udhr2.zip",
@@ -497,6 +615,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="udhr2",
     )
+
     resource(
         name="senseval",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/senseval.zip",
@@ -505,6 +624,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="senseval",
     )
+
     resource(
         name="words",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/words.zip",
@@ -513,6 +633,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="words",
     )
+
     resource(
         name="framenet_v15",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/framenet_v15.zip",
@@ -521,6 +642,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="framenet_v15",
     )
+
     resource(
         name="unicode_samples",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/unicode_samples.zip",
@@ -529,6 +651,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="unicode_samples",
     )
+
     resource(
         name="kimmo",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/kimmo.zip",
@@ -537,6 +660,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="kimmo",
     )
+
     resource(
         name="framenet_v17",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/framenet_v17.zip",
@@ -545,6 +669,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="framenet_v17",
     )
+
     resource(
         name="chat80",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/chat80.zip",
@@ -553,6 +678,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="chat80",
     )
+
     resource(
         name="qc",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/qc.zip",
@@ -561,14 +687,16 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="qc",
     )
+
     resource(
         name="inaugural",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/inaugural.zip",
         when="+data",
-        sha256="a6c099af7f5b5ad2a03f1e4ea3f5ff7699779b9d4327152110af462da210bd1f",
+        sha256="7c5fb5793e31fbeae12bf1aa0ffda5336468f07cedb50654c6d31ca384e2046b",
         destination="nltk_data/corpora",
         placement="inaugural",
     )
+
     resource(
         name="wordnet",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/wordnet.zip",
@@ -577,14 +705,16 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="wordnet",
     )
+
     resource(
         name="stopwords",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/stopwords.zip",
         when="+data",
-        sha256="3fc8d3d4c6e3d5ba6e23a66920dd3fde611cc3edf6e1fd80159a7965f47bea09",
+        sha256="15c94179887425ca1bedc265608cab9f27d650211f709bb929e320990a4b01d1",
         destination="nltk_data/corpora",
         placement="stopwords",
     )
+
     resource(
         name="verbnet",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/verbnet.zip",
@@ -593,6 +723,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="verbnet",
     )
+
     resource(
         name="shakespeare",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/shakespeare.zip",
@@ -601,6 +732,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="shakespeare",
     )
+
     resource(
         name="ycoe",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/ycoe.zip",
@@ -609,6 +741,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="ycoe",
     )
+
     resource(
         name="ieer",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/ieer.zip",
@@ -617,6 +750,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="ieer",
     )
+
     resource(
         name="cess_cat",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/cess_cat.zip",
@@ -625,6 +759,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="cess_cat",
     )
+
     resource(
         name="switchboard",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/switchboard.zip",
@@ -633,6 +768,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="switchboard",
     )
+
     resource(
         name="comparative_sentences",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/comparative_sentences.zip",
@@ -641,6 +777,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="comparative_sentences",
     )
+
     resource(
         name="subjectivity",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/subjectivity.zip",
@@ -649,6 +786,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="subjectivity",
     )
+
     resource(
         name="udhr",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/udhr.zip",
@@ -657,6 +795,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="udhr",
     )
+
     resource(
         name="pl196x",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/pl196x.zip",
@@ -665,6 +804,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="pl196x",
     )
+
     resource(
         name="paradigms",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/paradigms.zip",
@@ -673,6 +813,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="paradigms",
     )
+
     resource(
         name="gazetteers",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/gazetteers.zip",
@@ -681,6 +822,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="gazetteers",
     )
+
     resource(
         name="timit",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/timit.zip",
@@ -689,6 +831,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="timit",
     )
+
     resource(
         name="treebank",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/treebank.zip",
@@ -697,14 +840,16 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="treebank",
     )
+
     resource(
         name="sinica_treebank",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/sinica_treebank.zip",
         when="+data",
-        sha256="5506ddf646d5c3fb0a5fffdb53330ec8465f6468499f08d86f77d2df01d5b35e",
+        sha256="395958a28f06d92ce1de0f0cf1bb17dc4a5cc882d27487447252ad615641e9ba",
         destination="nltk_data/corpora",
         placement="sinica_treebank",
     )
+
     resource(
         name="opinion_lexicon",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/opinion_lexicon.zip",
@@ -713,6 +858,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="opinion_lexicon",
     )
+
     resource(
         name="ppattach",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/ppattach.zip",
@@ -721,6 +867,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="ppattach",
     )
+
     resource(
         name="dependency_treebank",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/dependency_treebank.zip",
@@ -729,6 +876,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="dependency_treebank",
     )
+
     resource(
         name="reuters",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/reuters.zip",
@@ -737,6 +885,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="reuters",
     )
+
     resource(
         name="genesis",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/genesis.zip",
@@ -745,6 +894,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="genesis",
     )
+
     resource(
         name="cess_esp",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/cess_esp.zip",
@@ -753,6 +903,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="cess_esp",
     )
+
     resource(
         name="conll2007",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/conll2007.zip",
@@ -761,6 +912,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="conll2007",
     )
+
     resource(
         name="nonbreaking_prefixes",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/nonbreaking_prefixes.zip",
@@ -769,6 +921,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="nonbreaking_prefixes",
     )
+
     resource(
         name="dolch",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/dolch.zip",
@@ -777,6 +930,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="dolch",
     )
+
     resource(
         name="smultron",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/smultron.zip",
@@ -785,6 +939,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="smultron",
     )
+
     resource(
         name="alpino",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/alpino.zip",
@@ -793,6 +948,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="alpino",
     )
+
     resource(
         name="wordnet_ic",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/wordnet_ic.zip",
@@ -801,6 +957,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="wordnet_ic",
     )
+
     resource(
         name="brown",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/brown.zip",
@@ -809,6 +966,16 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="brown",
     )
+
+    resource(
+        name="bcp47",
+        url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/bcp47.zip",
+        when="+data",
+        sha256="435d986fd9de0ae540a34e0978dbbaf5d1db7576b2bc7571da71cf6a01c8dfaa",
+        destination="nltk_data/corpora",
+        placement="bcp47",
+    )
+
     resource(
         name="panlex_swadesh",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/panlex_swadesh.zip",
@@ -817,6 +984,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="panlex_swadesh",
     )
+
     resource(
         name="conll2000",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/conll2000.zip",
@@ -825,6 +993,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="conll2000",
     )
+
     resource(
         name="universal_treebanks_v20",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/universal_treebanks_v20.zip",
@@ -833,6 +1002,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="universal_treebanks_v20",
     )
+
     resource(
         name="brown_tei",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/brown_tei.zip",
@@ -841,6 +1011,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="brown_tei",
     )
+
     resource(
         name="cmudict",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/cmudict.zip",
@@ -849,6 +1020,16 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="cmudict",
     )
+
+    resource(
+        name="omw-1.4",
+        url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/omw-1.4.zip",
+        when="+data",
+        sha256="3b941e664852f3297b6040236626065796a2aaf7d7f9eec8779a3beaa1096c2d",
+        destination="nltk_data/corpora",
+        placement="omw-1.4",
+    )
+
     resource(
         name="mte_teip5",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/mte_teip5.zip",
@@ -857,6 +1038,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="mte_teip5",
     )
+
     resource(
         name="indian",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/indian.zip",
@@ -865,6 +1047,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="indian",
     )
+
     resource(
         name="conll2002",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/conll2002.zip",
@@ -873,6 +1056,7 @@ class PyNltk(PythonPackage):
         destination="nltk_data/corpora",
         placement="conll2002",
     )
+
     resource(
         name="tagsets",
         url="https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/help/tagsets.zip",

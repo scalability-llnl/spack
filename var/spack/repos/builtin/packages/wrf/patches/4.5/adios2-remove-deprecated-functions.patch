@@ -1,0 +1,16 @@
+diff --git a/external/io_adios2/wrf_io.F90 b/external/io_adios2/wrf_io.F90
+index 99e9bfe2..3d5fdd68 100644
+--- a/external/io_adios2/wrf_io.F90
++++ b/external/io_adios2/wrf_io.F90
+@@ -1599,9 +1599,9 @@ subroutine ext_adios2_ioinit(SysDepInfo, Status)
+   !look for adios2 xml runtime configuration
+   INQUIRE(FILE="adios2.xml", EXIST=file_exists)  
+   if(file_exists) then
+-    call adios2_init(adios, 'adios2.xml', MPI_COMM_WORLD, adios2_debug_mode_on, stat)
++    call adios2_init(adios, 'adios2.xml', MPI_COMM_WORLD, stat)
+   else
+-    call adios2_init(adios, MPI_COMM_WORLD, adios2_debug_mode_on, stat)
++    call adios2_init(adios, MPI_COMM_WORLD, stat)
+   endif
+   call adios2_err(stat,Status)
+   if(Status /= WRF_NO_ERR) then

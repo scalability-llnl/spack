@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,11 @@ class RGenomeinfodbdata(RPackage):
     bioc = "GenomeInfoDbData"
     url = "https://bioconductor.org/packages/release/data/annotation/src/contrib/GenomeInfoDbData_0.99.0.tar.gz"
 
+    version(
+        "1.2.10",
+        url="https://bioconductor.org/packages/3.17/data/annotation/src/contrib/GenomeInfoDbData_1.2.10.tar.gz",
+        sha256="74c5db556d163e8f512d55f5c0d8ce315fb13ac822d31b4b030c20036d58f864",
+    )
     version(
         "1.2.9",
         url="https://bioconductor.org/packages/3.16/data/annotation/src/contrib/GenomeInfoDbData_1.2.9.tar.gz",
@@ -42,3 +46,4 @@ class RGenomeinfodbdata(RPackage):
 
     depends_on("r@3.5:", type=("build", "run"), when="@1.2.1:")
     depends_on("r@3.3:", type=("build", "run"), when="@0.99.0:1.1.0")
+    depends_on("r@3.5.0:", type=("build", "run"), when="@1.2.10:")

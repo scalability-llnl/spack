@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -41,16 +40,16 @@
 
 # prevent infinite recursion when spack shells out (e.g., on cray for modules)
 if [ -n "${_sp_initializing:-}" ]; then
-    exit 0
+    return 0
 fi
 export _sp_initializing=true
 
 
 _spack_shell_wrapper() {
-    # Store LD_LIBRARY_PATH variables from spack shell function
+    # Store DYLD_* variables from spack shell function
     # This is necessary because MacOS System Integrity Protection clears
     # variables that affect dyld on process start.
-    for var in LD_LIBRARY_PATH DYLD_LIBRARY_PATH DYLD_FALLBACK_LIBRARY_PATH; do
+    for var in DYLD_LIBRARY_PATH DYLD_FALLBACK_LIBRARY_PATH; do
         eval "if [ -n \"\${${var}-}\" ]; then export SPACK_$var=\${${var}}; fi"
     done
 
@@ -98,7 +97,7 @@ _spack_shell_wrapper() {
             if [ "$_sp_arg" = "-h" ] || [ "$_sp_arg" = "--help" ]; then
                 command spack cd -h
             else
-                LOC="$(spack location $_sp_arg "$@")"
+                LOC="$(SPACK_COLOR="${SPACK_COLOR:-always}" spack location $_sp_arg "$@")"
                 if [ -d "$LOC" ] ; then
                     cd "$LOC"
                 else
@@ -126,8 +125,7 @@ _spack_shell_wrapper() {
                         # Space needed here to differentiate between `-h`
                         # argument and environments with "-h" in the name.
                         # Also see: https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html#Shell-Parameter-Expansion
-                        if [ -z ${1+x} ] || \
-                           [ "${_a#* --sh}" != "$_a" ] || \
+                        if [ "${_a#* --sh}" != "$_a" ] || \
                            [ "${_a#* --csh}" != "$_a" ] || \
                            [ "${_a#* -h}" != "$_a" ] || \
                            [ "${_a#* --help}" != "$_a" ];
@@ -136,7 +134,7 @@ _spack_shell_wrapper() {
                             command spack env activate "$@"
                         else
                             # Actual call to activate: source the output.
-                            stdout="$(command spack $_sp_flags env activate --sh "$@")" || return
+                            stdout="$(SPACK_COLOR="${SPACK_COLOR:-always}" command spack $_sp_flags env activate --sh "$@")" || return
                             eval "$stdout"
                         fi
                         ;;
@@ -158,7 +156,7 @@ _spack_shell_wrapper() {
                             command spack env deactivate -h
                         else
                             # No args: source the output of the command.
-                            stdout="$(command spack $_sp_flags env deactivate --sh)" || return
+                            stdout="$(SPACK_COLOR="${SPACK_COLOR:-always}" command spack $_sp_flags env deactivate --sh)" || return
                             eval "$stdout"
                         fi
                         ;;
@@ -186,7 +184,7 @@ _spack_shell_wrapper() {
                 # Args contain --sh, --csh, or -h/--help: just execute.
                 command spack $_sp_flags $_sp_subcommand "$@"
             else
-                stdout="$(command spack $_sp_flags $_sp_subcommand --sh "$@")" || return
+                stdout="$(SPACK_COLOR="${SPACK_COLOR:-always}" command spack $_sp_flags $_sp_subcommand --sh "$@")" || return
                 eval "$stdout"
             fi
             ;;
@@ -215,9 +213,9 @@ _spack_pathadd() {
     # Do the actual prepending here.
     eval "_pa_oldvalue=\${${_pa_varname}:-}"
 
-    _pa_canonical=":$_pa_oldvalue:"
+    _pa_canonical="$_pa_oldvalue:"
     if [ -d "$_pa_new_path" ] && \
-       [ "${_pa_canonical#*:${_pa_new_path}:}" = "${_pa_canonical}" ];
+       [ "${_pa_canonical#$_pa_new_path:}" = "$_pa_canonical" ];
     then
         if [ -n "$_pa_oldvalue" ]; then
             eval "export $_pa_varname=\"$_pa_new_path:$_pa_oldvalue\""

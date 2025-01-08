@@ -1,5 +1,4 @@
-# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,10 +13,12 @@ class CRaft(AutotoolsPackage):
     git = "https://github.com/canonical/raft.git"
     url = "https://github.com/canonical/raft/archive/refs/tags/v0.17.1.tar.gz"
 
-    maintainers = ["mdorier"]
+    maintainers("mdorier")
 
     version("master", branch="master")
     version("0.17.1", sha256="e31c7fafbdd5f94913161c5d64341a203364e512524b47295c97a91e83c4198b")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

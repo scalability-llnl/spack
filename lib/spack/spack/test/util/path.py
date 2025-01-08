@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,7 @@ padded_lines = [
     "==> [2021-06-23-15:59:05.020387] './configure' '--prefix=/Users/gamblin2/padding-log-test/opt/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_pla/darwin-bigsur-skylake/apple-clang-12.0.5/zlib-1.2.11-74mwnxgn6nujehpyyalhwizwojwn5zga",  # noqa: E501
     "/Users/gamblin2/Workspace/spack/lib/spack/env/clang/clang -dynamiclib -install_name /Users/gamblin2/padding-log-test/opt/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_pla/darwin-bigsur-skylake/apple-clang-12.0.5/zlib-1.2.11-74mwnxgn6nujehpyyalhwizwojwn5zga/lib/libz.1.dylib -compatibility_version 1 -current_version 1.2.11 -fPIC -O2 -fPIC -DHAVE_HIDDEN -o libz.1.2.11.dylib adler32.lo crc32.lo deflate.lo infback.lo inffast.lo inflate.lo inftrees.lo trees.lo zutil.lo compress.lo uncompr.lo gzclose.lo gzlib.lo gzread.lo gzwrite.lo  -lc",  # noqa: E501
     "rm -f /Users/gamblin2/padding-log-test/opt/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_pla/darwin-bigsur-skylake/apple-clang-12.0.5/zlib-1.2.11-74mwnxgn6nujehpyyalhwizwojwn5zga/lib/libz.a",  # noqa: E501
+    "rm -f /Users/gamblin2/padding-log-test/opt/__spack_path_placeholder__/__spack_path_placeholder___/darwin-bigsur-skylake/apple-clang-12.0.5/zlib-1.2.11-74mwnxgn6nujehpyyalhwizwojwn5zga/lib/libz.a",  # noqa: E501
 ]
 
 
@@ -26,24 +26,23 @@ fixed_lines = [
     "==> [2021-06-23-15:59:05.020387] './configure' '--prefix=/Users/gamblin2/padding-log-test/opt/[padded-to-512-chars]/darwin-bigsur-skylake/apple-clang-12.0.5/zlib-1.2.11-74mwnxgn6nujehpyyalhwizwojwn5zga",  # noqa: E501
     "/Users/gamblin2/Workspace/spack/lib/spack/env/clang/clang -dynamiclib -install_name /Users/gamblin2/padding-log-test/opt/[padded-to-512-chars]/darwin-bigsur-skylake/apple-clang-12.0.5/zlib-1.2.11-74mwnxgn6nujehpyyalhwizwojwn5zga/lib/libz.1.dylib -compatibility_version 1 -current_version 1.2.11 -fPIC -O2 -fPIC -DHAVE_HIDDEN -o libz.1.2.11.dylib adler32.lo crc32.lo deflate.lo infback.lo inffast.lo inflate.lo inftrees.lo trees.lo zutil.lo compress.lo uncompr.lo gzclose.lo gzlib.lo gzread.lo gzwrite.lo  -lc",  # noqa: E501
     "rm -f /Users/gamblin2/padding-log-test/opt/[padded-to-512-chars]/darwin-bigsur-skylake/apple-clang-12.0.5/zlib-1.2.11-74mwnxgn6nujehpyyalhwizwojwn5zga/lib/libz.a",  # noqa: E501
+    "rm -f /Users/gamblin2/padding-log-test/opt/[padded-to-91-chars]/darwin-bigsur-skylake/apple-clang-12.0.5/zlib-1.2.11-74mwnxgn6nujehpyyalhwizwojwn5zga/lib/libz.a",  # noqa: E501
 ]
 
 
-def test_sanitze_file_path(tmpdir):
-    """Test filtering illegal characters out of potential file paths"""
-    # *nix illegal files characters are '/' and none others
-    illegal_file_path = str(tmpdir) + "//" + "abcdefghi.txt"
+def test_sanitize_filename():
+    """Test filtering illegal characters out of potential filenames"""
+    sanitized = sup.sanitize_filename("""a<b>cd/?e:f"g|h*i.\0txt""")
     if sys.platform == "win32":
-        # Windows has a larger set of illegal characters
-        illegal_file_path = os.path.join(tmpdir, 'a<b>cd?e:f"g|h*i.txt')
-    real_path = sup.sanitize_file_path(illegal_file_path)
-    assert real_path == os.path.join(str(tmpdir), "abcdefghi.txt")
+        assert sanitized == "a_b_cd__e_f_g_h_i._txt"
+    else:
+        assert sanitized == """a<b>cd_?e:f"g|h*i._txt"""
 
 
 # This class pertains to path string padding manipulation specifically
 # which is used for binary caching. This functionality is not supported
 # on Windows as of yet.
-@pytest.mark.skipif(sys.platform == "win32", reason="Padding funtionality unsupported on Windows")
+@pytest.mark.not_on_windows("Padding funtionality unsupported on Windows")
 class TestPathPadding:
     @pytest.mark.parametrize("padded,fixed", zip(padded_lines, fixed_lines))
     def test_padding_substitution(self, padded, fixed):
@@ -108,6 +107,15 @@ class TestPathPadding:
         tty.msg("here is a long path: %s/with/a/suffix" % long_path)
         out, err = capfd.readouterr()
         assert padding_string not in out
+
+    def test_pad_on_path_sep_boundary(self):
+        """Ensure that padded paths do not end with path separator."""
+        pad_length = len(sup.SPACK_PATH_PADDING_CHARS)
+        padded_length = 128
+        remainder = padded_length % (pad_length + 1)
+        path = "a" * (remainder - 1)
+        result = sup.add_padding(path, padded_length)
+        assert 128 == len(result) and not result.endswith(os.path.sep)
 
 
 @pytest.mark.parametrize("debug", [1, 2])

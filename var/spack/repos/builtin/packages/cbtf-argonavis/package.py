@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,18 +14,20 @@ class CbtfArgonavis(CMakePackage):
     homepage = "https://sourceforge.net/p/cbtf/wiki/Home/"
     git = "https://github.com/OpenSpeedShop/cbtf-argonavis.git"
 
-    maintainers = ["jgalarowicz"]
+    maintainers("jgalarowicz")
 
     version("develop", branch="master")
     version("1.9.4.1", branch="1.9.4.1")
     version("1.9.4", branch="1.9.4")
     version("1.9.3", branch="1.9.3")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "crayfe",
         default=False,
-        description="build only the FE tool using the runtime_dir \
-                         to point to target build.",
+        description="build only the FE tool using the runtime_dir to point to target build.",
     )
     variant(
         "runtime", default=False, description="build only the runtime libraries and collectors."

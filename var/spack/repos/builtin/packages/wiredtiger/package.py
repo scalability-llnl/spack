@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,11 +14,14 @@ class Wiredtiger(AutotoolsPackage):
 
     version("10.0.0", sha256="4830107ac744c0459ef99697652aa3e655c2122005a469a49d221e692fb834a5")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("python@3:", type=("build", "run"), when="+python")
     depends_on("swig", type=("build", "run"), when="+python")
     depends_on("lz4", when="+lz4")
     depends_on("snappy", when="+snappy")
-    depends_on("zlib", when="+zlib")
+    depends_on("zlib-api", when="+zlib")
     depends_on("zstd", when="+zstd")
     depends_on("rsync", type="build")
 

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,7 +18,7 @@ class Survey(CMakePackage):
     available for tools inside current MPI implementations including:
     MPICH, MVAPICH, MPT, and OpenMPI. It also supports multiple
     architectures and has been tested on machines based on Intel,
-    AMD, ARM, and IBM P8/9 processors and integrated GPUs.
+    AMD, ARM, and IBM P8/9 processors and integrated NVIDIA GPUs.
 
     Survey is a licensed product with the source not openly available.
     To access the survey source and build with spack please contact:
@@ -27,13 +26,16 @@ class Survey(CMakePackage):
                      jeg@trenzasynergy.com
     """
 
-    homepage = "http://www.trenzasynergy.com"
+    homepage = "https://www.trenzasynergy.com"
     git = "ssh://git@gitlab.com/trenza/survey.git"
 
     maintainers("jgalarowicz")
 
     version("master", branch="master")
-    version("1.0.7", branch="1.0.7")
+    version("1.0.9", branch="1.0.9")
+    version("1.0.8.1", branch="1.0.8.1")
+    version("1.0.8", tag="1.0.8")
+    version("1.0.7", tag="1.0.7")
     version("1.0.6", tag="1.0.6")
     version("1.0.5", tag="1.0.5")
     version("1.0.4", tag="1.0.4")
@@ -44,6 +46,7 @@ class Survey(CMakePackage):
     version("1.0.0", branch="1.0.0")
 
     variant("mpi", default=False, description="Enable mpi, build MPI data collector")
+    variant("debug", default=False, description="Build a debug survey version")
 
     variant(
         "tls_model",
@@ -60,12 +63,13 @@ class Survey(CMakePackage):
     depends_on("libmonitor@2021.11.08+commrank", type=("build", "link", "run"), when="@1.0.3:")
 
     depends_on("papi@5:", type=("build", "link", "run"))
-    depends_on("gotcha@master", type=("build", "link", "run"))
-    depends_on("llvm-openmp@9.0.0", type=("build", "link", "run"), when="@:1.0.2")
-    depends_on("llvm-openmp@12.0.1", type=("build", "link", "run"), when="@1.0.3:")
+    depends_on("gotcha@master", type=("build", "link"), when="@:1.0.7")
+    depends_on("gotcha@1.0.4", type=("build", "link"), when="@1.0.8:")
+    depends_on("llvm-openmp@9.0.0", type=("build", "link"), when="@:1.0.2")
+    depends_on("llvm-openmp@12.0.1", type=("build", "link"), when="@1.0.3:")
 
     # MPI Installation
-    depends_on("mpi", when="+mpi")
+    depends_on("mpi", type="build", when="+mpi")
 
     depends_on("python@3:", type=("build", "run"))
     depends_on("py-setuptools", type="build")
@@ -79,6 +83,11 @@ class Survey(CMakePackage):
     depends_on("py-matplotlib", type=("build", "run"), when="@1.0.3:")
     depends_on("py-more-itertools", type=("build", "run"), when="@1.0.4:")
     depends_on("py-versioneer", type=("build", "run"), when="@1.0.5:")
+    depends_on("py-filelock", type=("build", "run"), when="@1.0.7:")
+    depends_on("py-zipp", type=("build", "run"), when="@1.0.7:")
+    depends_on("py-humanize", type=("build", "run"), when="@1.0.8:")
+    depends_on("py-importlib-resources", type=("build", "run"), when="@1.0.8:")
+    depends_on("py-gitpython", type=("build", "run"), when="@1.0.9:")
 
     extends("python")
 
@@ -114,6 +123,11 @@ class Survey(CMakePackage):
         if "+mpi" in spec:
             mpi_options = self.get_mpi_cmake_options(spec)
             cmake_args.extend(mpi_options)
+
+        if "+debug" in spec:
+            cmake_args.append("-DCMAKE_C_FLAGS=-g -O2")
+            cmake_args.append("-DCMAKE_CXX_FLAGS=-g -O2")
+            cmake_args.append("-DCMAKE_BUILD_TYPE=Custom")
 
         return cmake_args
 

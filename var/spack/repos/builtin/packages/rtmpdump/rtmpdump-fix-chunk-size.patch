@@ -1,0 +1,48 @@
+https://git.alpinelinux.org/aports/commit/main/rtmpdump/fix-chunk-size.patch?id=bf39fb1177ee77eee6c214a7393cc0054958ce08
+https://git.alpinelinux.org/aports/commit/main/rtmpdump/fix-chunk-size.patch?id=69bc162319b12e9b6c6d3ea345dbf7c218753594
+diff --git a/librtmp/rtmp.c b/librtmp/rtmp.c
+index a2863b0..ac1b3be 100644
+--- a/librtmp/rtmp.c
++++ b/librtmp/rtmp.c
+@@ -2077,6 +2077,29 @@ RTMP_SendClientBW(RTMP *r)
+ }
+ 
+ static int
++SendClientChunkSize(RTMP *r, int chunkSize)
++{
++  RTMPPacket packet;
++  char pbuf[256], *pend = pbuf + sizeof(pbuf);
++  int ret;
++
++  packet.m_nChannel = 0x02;	/* control channel (invoke) */
++  packet.m_headerType = RTMP_PACKET_SIZE_LARGE;
++  packet.m_packetType = RTMP_PACKET_TYPE_CHUNK_SIZE;
++  packet.m_nTimeStamp = 0;
++  packet.m_nInfoField2 = 0;
++  packet.m_hasAbsTimestamp = 0;
++  packet.m_body = pbuf + RTMP_MAX_HEADER_SIZE;
++
++  packet.m_nBodySize = 4;
++
++  AMF_EncodeInt32(packet.m_body, pend, chunkSize);
++  ret = RTMP_SendPacket(r, &packet, FALSE);
++  r->m_outChunkSize = chunkSize;
++  return ret;
++}
++
++static int
+ SendBytesReceived(RTMP *r)
+ {
+   RTMPPacket packet;
+@@ -3349,6 +3372,11 @@ HandleChangeChunkSize(RTMP *r, const RTMPPacket *packet)
+       r->m_inChunkSize = AMF_DecodeInt32(packet->m_body);
+       RTMP_Log(RTMP_LOGDEBUG, "%s, received: chunk size change to %d", __FUNCTION__,
+ 	  r->m_inChunkSize);
++      if (r->Link.protocol & RTMP_FEATURE_WRITE)
++        {
++          RTMP_Log(RTMP_LOGDEBUG, "%s, updating outChunkSize too", __FUNCTION__);
++          SendClientChunkSize(r, r->m_inChunkSize);
++        }
+     }
+ }
+ 

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,7 @@ class RRtracklayer(RPackage):
 
     bioc = "rtracklayer"
 
+    version("1.60.0", commit="de35bc03116fc7ad30f0e425b41715c3cb2e783b")
     version("1.58.0", commit="54a74972c08775fdf1e83e6e22cd0b8fad677fc1")
     version("1.56.1", commit="4c6d2201fcb102d471bd88f4f51cc34317669955")
     version("1.56.0", commit="1d70f7dc464ad87a1fde61588cd9ae0cb86b6e86")
@@ -28,6 +28,8 @@ class RRtracklayer(RPackage):
     version("1.40.6", commit="ba9a6e711504a702147383bc7abfcc36eb304df7")
     version("1.38.3", commit="f20db703c09dc7e808c09e9b78c15aec9e546248")
     version("1.36.6", commit="8c0ac7230f94e0c5a981acbb178c8de70e968131")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r@3.3:", type=("build", "run"))
     depends_on("r-genomicranges@1.21.20:", type=("build", "run"))
@@ -57,5 +59,5 @@ class RRtracklayer(RPackage):
     depends_on("r-genomicalignments@1.15.6:", type=("build", "run"), when="@1.40.6:")
     depends_on("r-biocio", type=("build", "run"), when="@1.54.0:")
     depends_on("r-restfulr@0.0.13:", type=("build", "run"), when="@1.54.0:")
-    depends_on("zlib")
+    depends_on("zlib-api")
     depends_on("openssl")

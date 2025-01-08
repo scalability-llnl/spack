@@ -1,20 +1,18 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import filecmp
 import os
 import shutil
-import subprocess
-import sys
 
 import pytest
 
 import spack.cmd
+import spack.cmd.commands
 import spack.main
 import spack.paths
-from spack.cmd.commands import _positional_to_subroutine
+from spack.cmd.commands import _dest_to_fish_complete, _positional_to_subroutine
 
 commands = spack.main.SpackCommand("commands", subprocess=True)
 
@@ -57,6 +55,24 @@ def test_subcommands():
     assert "spack view symlink" in out2
     assert "spack rm" in out2
     assert "spack compiler add" in out2
+
+
+@pytest.mark.not_on_windows("subprocess not supported on Windows")
+def test_override_alias():
+    """Test that spack commands cannot be overriden by aliases."""
+
+    install = spack.main.SpackCommand("install", subprocess=True)
+    instal = spack.main.SpackCommand("instal", subprocess=True)
+
+    out = install(fail_on_error=False, global_args=["-c", "config:aliases:install:find"])
+    assert "install requires a package argument or active environment" in out
+    assert "Alias 'install' (mapping to 'find') attempts to override built-in command" in out
+
+    out = install(fail_on_error=False, global_args=["-c", "config:aliases:foo bar:find"])
+    assert "Alias 'foo bar' (mapping to 'find') contains a space, which is not supported" in out
+
+    out = instal(fail_on_error=False, global_args=["-c", "config:aliases:instal:find"])
+    assert "install requires a package argument or active environment" not in out
 
 
 def test_rst():
@@ -139,22 +155,6 @@ def test_update_with_header(tmpdir):
     commands("--update", str(update_file), "--header", str(filename))
 
 
-@pytest.mark.xfail
-def test_no_pipe_error():
-    """Make sure we don't see any pipe errors when piping output."""
-
-    proc = subprocess.Popen(
-        ["spack", "commands", "--format=rst"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
-
-    # Call close() on stdout to cause a broken pipe
-    proc.stdout.close()
-    proc.wait()
-    stderr = proc.stderr.read().decode("utf-8")
-
-    assert "Broken pipe" not in stderr
-
-
 def test_bash_completion():
     """Test the bash completion writer."""
     out1 = commands("--format=bash")
@@ -185,26 +185,60 @@ def test_bash_completion():
     assert "_spack_compiler_add() {" in out2
 
 
-def test_update_completion_arg(tmpdir, monkeypatch):
-    mock_infile = tmpdir.join("spack-completion.in")
-    mock_bashfile = tmpdir.join("spack-completion.bash")
+def test_fish_completion():
+    """Test the fish completion writer."""
+    out1 = commands("--format=fish")
+
+    # Make sure header not included
+    assert "function __fish_spack_argparse" not in out1
+    assert "complete -c spack --erase" not in out1
+
+    # Make sure subcommands appear
+    assert "__fish_spack_using_command remove" in out1
+    assert "__fish_spack_using_command compiler find" in out1
+
+    # Make sure aliases don't appear
+    assert "__fish_spack_using_command rm" not in out1
+    assert "__fish_spack_using_command compiler add" not in out1
+
+    # Make sure options appear
+    assert "-s h -l help" in out1
+
+    # Make sure subcommands are called
+    for complete_cmd in _dest_to_fish_complete.values():
+        assert complete_cmd in out1
+
+    out2 = commands("--aliases", "--format=fish")
+
+    # Make sure aliases appear
+    assert "__fish_spack_using_command rm" in out2
+    assert "__fish_spack_using_command compiler add" in out2
+
+
+@pytest.mark.parametrize("shell", ["bash", "fish"])
+def test_update_completion_arg(shell, tmpdir, monkeypatch):
+    """Test the update completion flag."""
+
+    tmpdir.join(shell).mkdir()
+    mock_infile = tmpdir.join(shell).join(f"spack-completion.{shell}")
+    mock_outfile = tmpdir.join(f"spack-completion.{shell}")
 
     mock_args = {
-        "bash": {
+        shell: {
             "aliases": True,
-            "format": "bash",
+            "format": shell,
             "header": str(mock_infile),
-            "update": str(mock_bashfile),
+            "update": str(mock_outfile),
         }
     }
 
     # make a mock completion file missing the --update-completion argument
     real_args = spack.cmd.commands.update_completion_args
-    shutil.copy(real_args["bash"]["header"], mock_args["bash"]["header"])
-    with open(real_args["bash"]["update"]) as old:
+    shutil.copy(real_args[shell]["header"], mock_args[shell]["header"])
+    with open(real_args[shell]["update"], encoding="utf-8") as old:
         old_file = old.read()
-        with open(mock_args["bash"]["update"], "w") as mock:
-            mock.write(old_file.replace("--update-completion", ""))
+        with open(mock_args[shell]["update"], "w", encoding="utf-8") as mock:
+            mock.write(old_file.replace("update-completion", ""))
 
     monkeypatch.setattr(spack.cmd.commands, "update_completion_args", mock_args)
 
@@ -214,16 +248,15 @@ def test_update_completion_arg(tmpdir, monkeypatch):
         local_commands("--update-completion", "-a")
 
     # ensure arg is restored
-    assert "--update-completion" not in mock_bashfile.read()
+    assert "update-completion" not in mock_outfile.read()
     local_commands("--update-completion")
-    assert "--update-completion" in mock_bashfile.read()
+    assert "update-completion" in mock_outfile.read()
 
 
 # Note: this test is never expected to be supported on Windows
-@pytest.mark.skipif(
-    sys.platform == "win32", reason="bash completion script generator fails on windows"
-)
-def test_updated_completion_scripts(tmpdir):
+@pytest.mark.not_on_windows("Shell completion script generator fails on windows")
+@pytest.mark.parametrize("shell", ["bash", "fish"])
+def test_updated_completion_scripts(shell, tmpdir):
     """Make sure our shell tab completion scripts remain up-to-date."""
 
     msg = (
@@ -233,12 +266,11 @@ def test_updated_completion_scripts(tmpdir):
         "and adding the changed files to your pull request."
     )
 
-    for shell in ["bash"]:  # 'zsh', 'fish']:
-        header = os.path.join(spack.paths.share_path, shell, "spack-completion.in")
-        script = "spack-completion.{0}".format(shell)
-        old_script = os.path.join(spack.paths.share_path, script)
-        new_script = str(tmpdir.join(script))
+    header = os.path.join(spack.paths.share_path, shell, f"spack-completion.{shell}")
+    script = "spack-completion.{0}".format(shell)
+    old_script = os.path.join(spack.paths.share_path, script)
+    new_script = str(tmpdir.join(script))
 
-        commands("--aliases", "--format", shell, "--header", header, "--update", new_script)
+    commands("--aliases", "--format", shell, "--header", header, "--update", new_script)
 
-        assert filecmp.cmp(old_script, new_script), msg
+    assert filecmp.cmp(old_script, new_script), msg

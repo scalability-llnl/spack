@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -9,7 +8,7 @@ import sys
 
 import pytest
 
-from llnl.util.filesystem import HeaderList, LibraryList, find, find_headers, find_libraries
+from llnl.util.filesystem import HeaderList, LibraryList, find_headers, find_libraries
 
 import spack.paths
 
@@ -66,7 +65,7 @@ plat_shared_ext = "dll" if sys.platform == "win32" else "so"
 plat_apple_shared_ext = "dylib"
 
 
-class TestLibraryList(object):
+class TestLibraryList:
     def test_repr(self, library_list):
         x = eval(repr(library_list))
         assert library_list == x
@@ -134,7 +133,7 @@ class TestLibraryList(object):
         assert a == "/dir1/liblapack.%s" % plat_static_ext
 
         b = library_list[:]
-        assert type(b) == type(library_list)
+        assert type(b) is type(library_list)
         assert library_list == b
         assert library_list is not b
 
@@ -152,11 +151,11 @@ class TestLibraryList(object):
         assert both == both + both
 
         # Always produce an instance of LibraryList
-        assert type(library_list + pylist) == type(library_list)
-        assert type(pylist + library_list) == type(library_list)
+        assert type(library_list + pylist) is type(library_list)
+        assert type(pylist + library_list) is type(library_list)
 
 
-class TestHeaderList(object):
+class TestHeaderList:
     def test_repr(self, header_list):
         x = eval(repr(header_list))
         assert header_list == x
@@ -219,7 +218,7 @@ class TestHeaderList(object):
         assert a == "/dir1/Python.h"
 
         b = header_list[:]
-        assert type(b) == type(header_list)
+        assert type(b) is type(header_list)
         assert header_list == b
         assert header_list is not b
 
@@ -237,8 +236,8 @@ class TestHeaderList(object):
         assert h == h + h
 
         # Always produce an instance of HeaderList
-        assert type(header_list + pylist) == type(header_list)
-        assert type(pylist + header_list) == type(header_list)
+        assert type(header_list + pylist) is type(header_list)
+        assert type(pylist + header_list) is type(header_list)
 
 
 #: Directory where the data for the test below is stored
@@ -324,33 +323,3 @@ def test_searching_order(search_fn, search_list, root, kwargs):
 
     # List should be empty here
     assert len(rlist) == 0
-
-
-@pytest.mark.parametrize(
-    "root,search_list,kwargs,expected",
-    [
-        (
-            search_dir,
-            "*/*bar.tx?",
-            {"recursive": False},
-            [
-                os.path.join(search_dir, os.path.join("a", "foobar.txt")),
-                os.path.join(search_dir, os.path.join("b", "bar.txp")),
-                os.path.join(search_dir, os.path.join("c", "bar.txt")),
-            ],
-        ),
-        (
-            search_dir,
-            "*/*bar.tx?",
-            {"recursive": True},
-            [
-                os.path.join(search_dir, os.path.join("a", "foobar.txt")),
-                os.path.join(search_dir, os.path.join("b", "bar.txp")),
-                os.path.join(search_dir, os.path.join("c", "bar.txt")),
-            ],
-        ),
-    ],
-)
-def test_find_with_globbing(root, search_list, kwargs, expected):
-    matches = find(root, search_list, **kwargs)
-    assert sorted(matches) == sorted(expected)

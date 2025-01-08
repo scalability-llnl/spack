@@ -1,52 +1,54 @@
 spack:
   view: false
   packages:
-    cmake:
-      variants: ~ownlibs
-    mesa:
-      require: "+glx +osmesa +opengl ~opengles +llvm"
-    libosmesa:
-      require: ^mesa +osmesa
-    libglx:
-      require: ^mesa +glx
-    ospray:
-      require: "@2.8.0 +denoiser +mpi"
-    llvm:
-      require: "@14:"
-      # Minimize LLVM
-      variants: ~lldb~lld~internal_unwind~polly~compiler-rt~gold
     all:
       require: target=x86_64_v3
+    cmake:
+      variants: ~ownlibs
+    ecp-data-vis-sdk:
+      require:
+      - "+ascent +adios2 +cinema +darshan +faodel +hdf5 +pnetcdf +sensei +sz +unifyfs +veloc +vtkm +zfp"
+    hdf5:
+      require:
+      - "@1.14"
+    mesa:
+      require:
+      - "+glx +osmesa +opengl ~opengles +llvm"
+    libglx:
+      require: "mesa +glx"
+    ospray:
+      require:
+      - "@2.8.0"
+      - "+denoiser +mpi"
+    llvm:
+      require: ["@14:"]
+      # Minimize LLVM
+      variants: ~lldb~lld~libomptarget~polly~gold libunwind=none compiler-rt=none
+    libllvm:
+      require: ["^llvm"]
+    visit:
+      require: ["@3.4.1"]
+
+  concretizer:
+    unify: when_possible
 
   definitions:
   - paraview_specs:
     - matrix:
-      - - paraview
-      - - +qt~osmesa # GUI Support w/ GLX Rendering
-        - ~qt~osmesa # GLX Rendering
-        - ~qt+osmesa # OSMesa Rendering
+      - - paraview +raytracing +adios2 +fides
+      - - +qt ^[virtuals=gl] glx # GUI Support w/ GLX Rendering
+        - ~qt ^[virtuals=gl] glx # GLX Rendering
+        - ^[virtuals=gl] osmesa # OSMesa Rendering
   - visit_specs:
     - matrix:
       - - visit
-      - - +gui~osmesa # GUI Support w/ GLX Rendering
-        - ~gui~osmesa # GLX Rendering
-        - ~gui+osmesa # OSMesa Rendering
+      - - ~gui ^[virtuals=gl] glx
+        - ~gui ^[virtuals=gl] osmesa
+        - +gui ^[virtuals=gl] glx # GUI Support w/ GLX Rendering
   - sdk_base_spec:
     - matrix:
-      - - ecp-data-vis-sdk
-            +ascent
-            +adios2
-            +cinema
-            +darshan
-            +faodel
-            +hdf5
-            +pnetcdf
-            +sensei
-            +sz
-            +unifyfs
-            +veloc
-            +vtkm
-            +zfp
+      - - ecp-data-vis-sdk +ascent +adios2 +cinema +darshan +faodel +hdf5 +pnetcdf
+          +sensei +sz +unifyfs +veloc +vtkm +zfp
       - - ~cuda ~rocm
         # Current testing of GPU supported configurations
         # is provided in the E4S stack
@@ -54,22 +56,20 @@ spack:
         # - ~cuda +rocm
 
   specs:
-    # Test ParaView builds with different GL backends
-    - matrix:
-      - [$sdk_base_spec]
-      - [$^paraview_specs]
-      - - ^hdf5@1.14 # Non-VisIt can build HDF5 1.14
-    # Test ParaView builds with differnt GL backends
-    - matrix:
-      - [$sdk_base_spec]
-      - [$^visit_specs]
-
-  mirrors: { "mirror": "s3://spack-binaries/develop/data-vis-sdk" }
+    # Test ParaView and VisIt builds with different GL backends
+  - matrix:
+    - [$sdk_base_spec]
+    - ["+paraview ~visit"]
+    - [$^paraview_specs]
+  - matrix:
+    - [$sdk_base_spec]
+    - ["~paraview +visit"]
+    - [$^visit_specs]
 
   ci:
     pipeline-gen:
     - build-job:
-        image: { "name": "ecpe4s/ubuntu20.04-runner-x86_64:2023-01-01", "entrypoint": [""] }
+        image: {name: ghcr.io/spack/ubuntu20.04-runner-x86_64:2023-01-01, entrypoint: [''] }
 
   cdash:
-    build-group:: Data and Vis SDK
+    'build-group:': Data and Vis SDK

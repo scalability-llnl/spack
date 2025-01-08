@@ -1,12 +1,11 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
 
 
-class Rclone(Package):
+class Rclone(GoPackage):
     """Rclone is a command line program to sync files and directories
     to and from various cloud storage providers"""
 
@@ -15,7 +14,20 @@ class Rclone(Package):
 
     maintainers("alecbcs")
 
+    license("MIT")
+
+    version("1.68.1", sha256="c5d45b83dd008d08a0903eebf1578a11a40a77152226e22ce5e9287b9db05579")
+    version("1.65.2", sha256="1305c913ac3684d02ce2bade0a23a2115c1ec03c9447d1562bb6cd9fa2573412")
+    version("1.65.1", sha256="904b906cc465dd679a00487497e3891d33fca6b6e25c184400bccfb248344f39")
+    version("1.65.0", sha256="45ec732d50b2517dc2c860317a3bf79867634a8143e4a441a3e399434ad6c141")
+    version("1.64.2", sha256="0c74d8fb887691e04e865e3b6bc32e8af47c3e54a9922ffdbed38c8323e281c9")
+    version("1.64.1", sha256="670e18960efd34bae9d1a0152a54f16ba0c6b8fad728d7ff4ea8b141ef1ed93d")
+    version("1.64.0", sha256="fb08b2b7c991ade4019a561f9bb75683b8d0daa45226efbc9937639775977203")
+    version("1.63.1", sha256="0d8bf8b7460681f7906096a9d37eedecc5a1d1d3ad17652e68f0c6de104c2412")
+    version("1.63.0", sha256="88ed9c876b03d2cc745463903ac5233e441cd56d0d1031906bc8381af11ea0c8")
     version("1.62.2", sha256="340371f94604e6771cc4a2c91e37d1bf00a524deab520340440fb0968e783f63")
+    version("1.62.1", sha256="3bb03c08f11fda276c953544487558c3c0bfe14f89796b9eaa108a334d854ed1")
+    version("1.62.0", sha256="2a04a254f60255c10998f74be9d320740df82525a7d16d8ceebab57627137b44")
     version("1.61.1", sha256="34b5f52047741c7bbf54572c02cc9998489c4736a753af3c99255296b1af125d")
     version("1.59.1", sha256="db3860e4549af28d87aa83f2035a57c5d081b179e40d4c828db19c3c3545831e")
     version("1.58.1", sha256="4d1d50a5b4888aa8eca10624073759ab8376c8b1acb38a238831d40074792524")
@@ -27,54 +39,21 @@ class Rclone(Package):
     version("1.55.1", sha256="25da7fc5c9269b3897f27b0d946919df595c6dda1b127085fda0fe32aa59d29d")
     version("1.55.0", sha256="75accdaedad3b82edc185dc8824a19a59c30dc6392de7074b6cd98d1dc2c9040")
 
-    # https://nvd.nist.gov/vuln/detail/CVE-2020-28924
-    version(
-        "1.51.0",
-        sha256="3eb5b7ffce17e56fadb29bf854666723a14c93fedc02046c7f34c792dbd227ee",
-        deprecated=True,
-    )
-    version(
-        "1.50.2",
-        sha256="6dd8998a72514d3820d241ae46dc609c0305b742aee3db6aaf6017b46c996091",
-        deprecated=True,
-    )
-    version(
-        "1.50.1",
-        sha256="48d6c80883427469682b4d97099d7631cf3b67aa85e652c254423bd1422ce216",
-        deprecated=True,
-    )
-    version(
-        "1.50.0",
-        sha256="f901fd1752aae6116d94fd08d010a70d94535257c2d23caa505e631cce1e802a",
-        deprecated=True,
-    )
-    version(
-        "1.49.5",
-        sha256="abd2c83d71c63a4b0a30b1980b942868e707d05e14ae76ad39abf5cc5a5fde63",
-        deprecated=True,
-    )
-    version(
-        "1.49.4",
-        sha256="070afc85e4e9921151d7cb67247db8f0ff2f06fcf2652c43a42fa6e1e35847af",
-        deprecated=True,
-    )
-    version(
-        "1.43",
-        sha256="d30527b00cecb4e5e7188dddb78e5cec62d67cf2422dab82190db58512b5a4e3",
-        deprecated=True,
-    )
+    depends_on("go@1.14:", type="build")
+    depends_on("go@1.17:", type="build", when="@1.58:")
+    depends_on("go@1.18:", type="build", when="@1.62:")
+    depends_on("go@1.19:", type="build", when="@1.63:")
+    depends_on("go@1.20:", type="build", when="@1.66:")
+    depends_on("go@1.21:", type="build", when="@1.68:")
 
-    depends_on("go@1.15:", type="build")
+    @run_after("install")
+    def install_completions(self):
+        rclone = Executable(self.prefix.bin.rclone)
 
-    phases = ["build", "install"]
+        mkdirp(bash_completion_path(self.prefix))
+        mkdirp(fish_completion_path(self.prefix))
+        mkdirp(zsh_completion_path(self.prefix))
 
-    def setup_build_environment(self, env):
-        # Point GOPATH at the top of the staging dir for the build step.
-        env.prepend_path("GOPATH", self.stage.path)
-
-    def build(self, spec, prefix):
-        go("build")
-
-    def install(self, spec, prefix):
-        mkdirp(prefix.bin)
-        install("rclone", prefix.bin)
+        rclone("genautocomplete", "bash", str(bash_completion_path(self.prefix) / "rclone"))
+        rclone("genautocomplete", "fish", str(fish_completion_path(self.prefix) / "rclone.fish"))
+        rclone("genautocomplete", "zsh", str(zsh_completion_path(self.prefix) / "_rclone"))

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,6 +10,8 @@ class PyPynrrd(PythonPackage):
 
     homepage = "https://github.com/mhe/pynrrd"
     pypi = "pynrrd/pynrrd-0.4.0.tar.gz"
+
+    license("MIT")
 
     version("1.0.0", sha256="4eb4caba03fbca1b832114515e748336cb67bce70c7f3ae36bfa2e135fc990d2")
 

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,14 @@ class RProdlim(RPackage):
 
     cran = "prodlim"
 
+    license("GPL-2.0-or-later")
+
+    version(
+        "2024.06.25", sha256="46961f654171aa7ef0ff94b23508ed59f6a438c3a3ba0d338cc3730224406764"
+    )
+    version(
+        "2023.03.31", sha256="5510454f8511ca956666f27dfb77d875c56b9166188c33f22cd22b7615797800"
+    )
     version(
         "2019.11.13", sha256="6809924f503a14681de84730489cdaf9240d7951c64f5b98ca37dc1ce7809b0f"
     )
@@ -26,6 +33,8 @@ class RProdlim(RPackage):
 
     depends_on("r@2.9.0:", type=("build", "run"))
     depends_on("r-rcpp@0.11.5:", type=("build", "run"))
+    depends_on("r-diagram", type=("build", "run"), when="@2023.03.31:")
+    depends_on("r-data-table", type=("build", "run"), when="@2023.03.31:")
     depends_on("r-survival", type=("build", "run"))
     depends_on("r-kernsmooth", type=("build", "run"))
     depends_on("r-lava", type=("build", "run"))

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,9 +15,13 @@ class RDownlit(RPackage):
 
     cran = "downlit"
 
+    license("MIT")
+
+    version("0.4.4", sha256="55c377dcee4adc48c1060e14079f3d1832453d066a2cf070530caa210c48f828")
     version("0.4.2", sha256="33dff66909104d1a5ba8e57b1288986e82b61fd5e91dce0cd358d53724b37e3c")
 
     depends_on("r@3.4.0:", type=("build", "run"))
+    depends_on("r@4.0.0:", type=("build", "run"), when="@0.4.4:")
     depends_on("r-brio", type=("build", "run"))
     depends_on("r-desc", type=("build", "run"))
     depends_on("r-digest", type=("build", "run"))

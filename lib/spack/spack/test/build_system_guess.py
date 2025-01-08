@@ -1,9 +1,6 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-import sys
 
 import pytest
 
@@ -11,8 +8,6 @@ import spack.cmd.create
 import spack.stage
 import spack.util.executable
 import spack.util.url as url_util
-
-pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="does not run on windows")
 
 
 @pytest.fixture(
@@ -60,6 +55,6 @@ def test_build_systems(url_and_build_system):
     url, build_system = url_and_build_system
     with spack.stage.Stage(url) as stage:
         stage.fetch()
-        guesser = spack.cmd.create.BuildSystemGuesser()
-        guesser(stage, url)
+        guesser = spack.cmd.create.BuildSystemAndLanguageGuesser()
+        guesser(stage.archive_file, url)
         assert build_system == guesser.build_system

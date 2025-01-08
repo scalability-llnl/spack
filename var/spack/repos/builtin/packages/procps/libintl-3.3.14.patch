@@ -1,0 +1,10 @@
+--- a/Makefile.am	2023-06-29 14:12:25.671539354 -0500
++++ b/Makefile.am	2023-06-29 14:26:58.852425405 -0500
+@@ -1,6 +1,5 @@
+-CYGWINFLAGS =
++CYGWINFLAGS = $(LTLIBINTL)
+ if CYGWIN
+-CYGWINFLAGS += -lintl
+ usrbin_exec_PROGRAMS =
+ endif
+ 

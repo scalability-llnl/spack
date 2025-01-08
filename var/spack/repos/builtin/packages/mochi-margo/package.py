@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,9 +13,14 @@ class MochiMargo(AutotoolsPackage):
     git = "https://github.com/mochi-hpc/mochi-margo.git"
     url = "https://github.com/mochi-hpc/mochi-margo/archive/v0.9.tar.gz"
 
-    maintainers("carns", "mdorier", "fbudin69500", "chuckatkins")
+    maintainers("carns", "mdorier", "fbudin69500")
 
     version("main", branch="main")
+    version("0.17.0", sha256="5c456cdc2e3156f902e5068468ee6d061eb252dcfdfcb2b570726e9cf84fc2e8")
+    version("0.16.0", sha256="5fb7ea3633b5bcc735e605dba27187ea893958bf86b8928184028735a338c61b")
+    version("0.15.0", sha256="f962f02ddaae125eaf15bf89126ee47b4f852d366b14248d2d67a0be8f661224")
+    version("0.14.1", sha256="69229a9126b76aff7fd47e25c4a8f72804f101c5c603c4e4ef93f4fb7a1b6662")
+    version("0.14.0", sha256="ff0e3fa786630b63280606243c35f1ea3a25fa2ba6f08bf9065cab9fcc7fa1c7")
     version("0.13.1", sha256="cff1decb94089cd0f9c0930b02092838679827b09ce4a2f3a359d59caee28782")
     version("0.13", sha256="9a5a4aa81ceb10e010fbad6c7bb8d39d082fe6e61ed33b2b2d2b056917f401d8")
     version("0.12.1", sha256="ff9d0f8722aff17737cd63f27758314b2ed78e518cd45d1fb9f0e3b7ccbcef50")
@@ -53,6 +57,8 @@ class MochiMargo(AutotoolsPackage):
     version("0.4.3", sha256="61a634d6983bee2ffa06e1e2da4c541cb8f56ddd9dd9f8e04e8044fb38657475")
     version("0.4.2", sha256="91085e28f50e373b9616e1ae5c3c8d40a19a7d3776259592d8f361766890bcaa")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("json-c", when="@0.9:")
     depends_on("autoconf@2.65:", type=("build"))
     depends_on("m4", type=("build"))
@@ -64,6 +70,10 @@ class MochiMargo(AutotoolsPackage):
     # "breadcrumb" support not available in mercury-1.0
     depends_on("mercury@1.0.0:", type=("build", "link", "run"), when="@:0.5.1")
     depends_on("mercury@2.0.0:", type=("build", "link", "run"), when="@0.5.2:")
+
+    # Fix pthread detection
+    # https://github.com/mochi-hpc/mochi-margo/pull/177
+    patch("mochi-margo-pthreads.patch", when="@0.9:0.9.7")
 
     def autoreconf(self, spec, prefix):
         sh = which("sh")

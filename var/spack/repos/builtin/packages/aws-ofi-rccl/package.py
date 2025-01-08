@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,15 +10,19 @@ class AwsOfiRccl(AutotoolsPackage):
     libfabric as a network provider while running AMD's RCCL based
     applications."""
 
-    homepage = "https://github.com/ROCmSoftwarePlatform/aws-ofi-rccl"
-    git = "https://github.com/ROCmSoftwarePlatform/aws-ofi-rccl.git"
-    url = "https://github.com/ROCmSoftwarePlatform/aws-ofi-rccl.git"
+    homepage = "https://github.com/ROCm/aws-ofi-rccl"
+    git = "https://github.com/ROCm/aws-ofi-rccl.git"
+    url = "https://github.com/ROCm/aws-ofi-rccl.git"
     tags = ["rocm"]
 
     maintainers("bvanessen")
 
+    license("Apache-2.0")
+
     version("cxi", branch="cxi", preferred=True)
     version("master", branch="master")
+
+    depends_on("c", type="build")  # generated
 
     variant("trace", default=False, description="Enable printing trace messages")
     variant("tests", default=False, description="Build tests")
@@ -35,12 +38,12 @@ class AwsOfiRccl(AutotoolsPackage):
     # To enable this plug-in to work with RCCL add it to the LD_LIBRARY_PATH
     def setup_run_environment(self, env):
         aws_ofi_rccl_home = self.spec["aws-ofi-rccl"].prefix
-        env.append_path("LD_LIBRARY_PATH", aws_ofi_rccl_home.lib)
+        env.prepend_path("LD_LIBRARY_PATH", aws_ofi_rccl_home.lib)
 
     # To enable this plug-in to work with RCCL add it to the LD_LIBRARY_PATH
     def setup_dependent_run_environment(self, env, dependent_spec):
         aws_ofi_rccl_home = self.spec["aws-ofi-rccl"].prefix
-        env.append_path("LD_LIBRARY_PATH", aws_ofi_rccl_home.lib)
+        env.prepend_path("LD_LIBRARY_PATH", aws_ofi_rccl_home.lib)
 
     def configure_args(self):
         spec = self.spec

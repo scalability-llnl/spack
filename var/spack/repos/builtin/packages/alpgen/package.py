@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -13,10 +12,9 @@ class Alpgen(CMakePackage, MakefilePackage):
     in hadronic collisions.
     """
 
-    homepage = "http://mlm.home.cern.ch/mlm/alpgen/"
-    url = "http://mlm.home.cern.ch/mlm/alpgen/V2.1/v214.tgz"
+    homepage = "https://alpgen.web.cern.ch/"
+    url = "https://alpgen.web.cern.ch/V2.1/v214.tgz"
 
-    maintainers("iarspider")
     tags = ["hep"]
 
     version("2.1.4", sha256="2f43f7f526793fe5f81a3a3e1adeffe21b653a7f5851efc599ed69ea13985c5e")

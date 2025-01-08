@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,6 +10,8 @@ class PyPylatex(PythonPackage):
 
     homepage = "https://github.com/JelteF/PyLaTeX"
     pypi = "PyLaTeX/PyLaTeX-1.4.1.tar.gz"
+
+    license("MIT")
 
     version("1.4.1", sha256="d3c12efb8b260771260443dce78d1e9089c09f9d0b92e6273dfca0bf5e7302fb")
 

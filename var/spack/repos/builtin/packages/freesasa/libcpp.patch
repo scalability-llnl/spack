@@ -1,0 +1,21 @@
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 140259f..4e2ed3f 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -1,6 +1,5 @@
+ AM_LDFLAGS =
+ AM_CFLAGS =
+-freesasa_LDADD = -lc++
+ AM_CPPFLAGS = -I$(top_srcdir)/third-party/gemmi/include/
+ 
+ if COND_GCOV
+@@ -29,7 +28,7 @@ libfreesasa_a_SOURCES = classifier.c classifier.h \
+        selection.h selection.c $(lp_output)
+ freesasa_SOURCES = main.cc cif.cc cif.hh
+ example_SOURCES = example.c
+-freesasa_LDADD += libfreesasa.a
++freesasa_LDADD = libfreesasa.a
+ example_LDADD = libfreesasa.a
+ 
+ lp_output = lexer.c lexer.h parser.c parser.h
+

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,16 +13,22 @@ class YamlCpp(CMakePackage):
     """A YAML parser and emitter in C++"""
 
     homepage = "https://github.com/jbeder/yaml-cpp"
-    url = "https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.5.3.tar.gz"
+    url = "https://github.com/jbeder/yaml-cpp/archive/0.8.0.tar.gz"
     git = "https://github.com/jbeder/yaml-cpp.git"
     maintainers("eschnett")
 
+    license("MIT")
+
     version("develop", branch="master")
+    version("0.8.0", sha256="fbe74bbdcee21d656715688706da3c8becfd946d92cd44705cc6098bb23b3a16")
     version("0.7.0", sha256="43e6a9fcb146ad871515f0d0873947e5d497a1c9c60c58cb102a97b47208b7c3")
     version("0.6.3", sha256="77ea1b90b3718aa0c324207cb29418f5bced2354c2e483a9523d98c3460af1ed")
     version("0.6.2", sha256="e4d8560e163c3d875fd5d9e5542b5fd5bec810febdcba61481fe5fc4e6b1fd05")
     version("0.5.3", sha256="decc5beabb86e8ed9ebeb04358d5363a5c4f72d458b2c788cb2f3ac9c19467b2")
     version("0.3.0", sha256="ab8d0e07aa14f10224ed6682065569761f363ec44bc36fcdb2946f6d38fe5a89")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("shared", default=True, description="Build shared instead of static libraries")
     variant("pic", default=True, description="Build with position independent code")
@@ -82,8 +87,10 @@ class YamlCpp(CMakePackage):
         return options
 
     def url_for_version(self, version):
-        url = "https://github.com/jbeder/yaml-cpp/archive/{0}-{1}.tar.gz"
+        url = "https://github.com/jbeder/yaml-cpp/archive/{0}.tar.gz"
         if version < Version("0.5.3"):
-            return url.format("release", version)
+            return url.format(f"release-{version}")
+        elif version < Version("0.8.0"):
+            return url.format(f"yaml-cpp-{version}")
         else:
-            return url.format("yaml-cpp", version)
+            return url.format(version)

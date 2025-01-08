@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,30 +16,32 @@ class Evtgen(CMakePackage):
 
     maintainers("vvolkl")
 
+    version("02.02.03", sha256="b642700b703190e3304edb98ff464622db5d03c1cfc5d275ba4a628227d7d6d0")
+    version("02.02.02", sha256="e543d1213cd5003124139d0dc7eee9247b0b9d44154ff8a88bac52ba91c5dfc9")
+    version("02.02.01", sha256="1fcae56c6b27b89c4a2f4b224d27980607442185f5570e961f6334a3543c6e77")
     version("02.02.00", sha256="0c626e51cb17e799ad0ffd0beea5cb94d7ac8a5f8777b746aa1944dd26071ecf")
     version("02.00.00", sha256="02372308e1261b8369d10538a3aa65fe60728ab343fcb64b224dac7313deb719")
-    # switched to cmake in 02.00.00
-    version(
-        "01.07.00",
-        sha256="2648f1e2be5f11568d589d2079f22f589c283a2960390bbdb8d9d7f71bc9c014",
-        deprecated=True,
-    )
+
+    depends_on("cxx", type="build")  # generated
 
     variant("pythia8", default=True, description="Build with pythia8")
     variant("tauola", default=False, description="Build with tauola")
     variant("photos", default=False, description="Build with photos")
+    variant("sherpa", default=False, description="build with sherpa")
     variant("hepmc3", default=False, description="Link with hepmc3 (instead of hepmc)")
 
-    patch("g2c.patch", when="@01.07.00")
     patch("evtgen-2.0.0.patch", when="@02.00.00 ^pythia8@8.304:")
 
     depends_on("hepmc", when="~hepmc3")
     depends_on("hepmc3", when="+hepmc3")
+    depends_on("pythia8@:8.309", when="@:02.02.00 +pythia8")
     depends_on("pythia8", when="+pythia8")
     depends_on("tauola~hepmc3", when="+tauola~hepmc3")
     depends_on("photos~hepmc3", when="+photos~hepmc3")
     depends_on("tauola+hepmc3", when="+tauola+hepmc3")
     depends_on("photos+hepmc3", when="+photos+hepmc3")
+    depends_on("sherpa@2:", when="@02.02.01: +sherpa")
+    depends_on("sherpa@:2", when="@:02 +sherpa")
 
     conflicts(
         "^pythia8+evtgen",
@@ -50,7 +51,6 @@ class Evtgen(CMakePackage):
         "that cannot be resolved at the moment! "
         "Use evtgen+pythia8^pythia8~evtgen.",
     )
-    conflicts("+hepmc3", when="@:01", msg="hepmc3 support was added in 02.00.00")
 
     @property
     def root_cmakelists_dir(self):
@@ -68,6 +68,7 @@ class Evtgen(CMakePackage):
         args.append(self.define_from_variant("EVTGEN_PYTHIA", "pythia8"))
         args.append(self.define_from_variant("EVTGEN_TAUOLA", "tauola"))
         args.append(self.define_from_variant("EVTGEN_PHOTOS", "photos"))
+        args.append(self.define_from_variant("EVTGEN_SHERPA", "sherpa"))
         args.append(self.define_from_variant("EVTGEN_HEPMC3", "hepmc3"))
 
         return args
@@ -81,51 +82,6 @@ class Evtgen(CMakePackage):
             return
 
         filter_file("-shared", "-dynamiclib -undefined dynamic_lookup", "make.inc")
-
-    # Taken from AutotoolsPackage
-    def configure(self, spec, prefix):
-        """Runs configure with the arguments specified in
-        :py:meth:`~.AutotoolsPackage.configure_args`
-        and an appropriately set prefix.
-        """
-        options = getattr(self, "configure_flag_args", [])
-        options += ["--prefix={0}".format(prefix)]
-        options += self.configure_args()
-
-        with working_dir(self.build_directory, create=True):
-            inspect.getmodule(self).configure(*options)
-
-    @when("@:01")
-    def configure_args(self):
-        args = []
-
-        args.append("--hepmcdir=%s" % self.spec["hepmc"].prefix)
-        if "+pythia8" in self.spec:
-            args.append("--pythiadir=%s" % self.spec["pythia8"].prefix)
-        if "+photos" in self.spec:
-            args.append("--photosdir=%s" % self.spec["photos"].prefix)
-        if "+tauola" in self.spec:
-            args.append("--tauoladir=%s" % self.spec["tauola"].prefix)
-
-        return args
-
-    @when("@:01")
-    def cmake(self, spec, prefix):
-        pass
-
-    @when("@:01")
-    def build(self, spec, prefix):
-        self.configure(spec, prefix)
-        # avoid parallel compilation errors
-        # due to libext_shared depending on lib_shared
-        with working_dir(self.build_directory):
-            make("lib_shared")
-            make("all")
-
-    @when("@:01")
-    def install(self, spec, prefix):
-        with working_dir(self.build_directory):
-            make("install")
 
     def setup_run_environment(self, env):
         env.set("EVTGEN", self.prefix.share)

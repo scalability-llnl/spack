@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,10 @@ class REmmeans(RPackage):
 
     cran = "emmeans"
 
+    license("GPL-2.0-only OR GPL-3.0-only")
+
+    version("1.10.4", sha256="66653623c5984f99ba481a8611d6cf3b829e577f07bbe4043f279a3f8fbadcc3")
+    version("1.8.5", sha256="5c88b415b5a42d8c1aa63af090c4987326530ea6d0e60bab9b5fb7e99a982415")
     version("1.8.2", sha256="785973457d8a6547df489f87b62987d44a68c4b9018661d38ca11ee34e49d209")
     version("1.8.1-1", sha256="79fc5e44255427b038d0dbe2c9887d84984baacb11bb9a9078cd8d0dca2e6577")
     version("1.7.4-1", sha256="f7a33a2b54ad13d6e39ee6c58004f83a9edb06e8dc8282180440610eb18be721")
@@ -33,6 +36,6 @@ class REmmeans(RPackage):
     depends_on("r-estimability@1.4.1:", type=("build", "run"), when="@1.8.1-1:")
     depends_on("r-numderiv", type=("build", "run"))
     depends_on("r-mvtnorm", type=("build", "run"))
-    depends_on("r-xtable@1.8-2:", type=("build", "run"))
 
     depends_on("r-plyr", type=("build", "run"), when="@:1.6")
+    depends_on("r-xtable@1.8-2:", type=("build", "run"), when="@:1.8.2")

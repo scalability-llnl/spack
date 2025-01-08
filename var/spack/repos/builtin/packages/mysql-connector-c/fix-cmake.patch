@@ -1,0 +1,12 @@
+--- a/cmake/install_macros.cmake
++++ /dev/null
+@@ -362,8 +362,8 @@
+         CONFIGURATIONS Release RelWithDebInfo
+         COMPONENT ${ARG_COMPONENT}
+         OPTIONAL)
+-    ENDIF()
+   ENDFOREACH()
++  ENDIF()
+ 
+ ENDFUNCTION()
+ 

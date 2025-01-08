@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -169,11 +168,10 @@ class Flamemaster(CMakePackage):
                 ]
             )
             if self.spec.satisfies("%icc"):
-                cxxflags = "-Ofast -ffast-math -DNDEBUG -march=native\
-                        -mtune=native -funroll-all-loops\
-                        -qopt-multi-version-aggressive -ipo -parallel"
-                cflags = "-Ofast -ffast-math -DNDEBUG -march=native\
-                        -mtune=native -funroll-all-loops -ipo -parallel"
+                cxxflags = "-Ofast -ffast-math -DNDEBUG -march=native -mtune=native "
+                cxxflags += "-funroll-all-loops -qopt-multi-version-aggressive -ipo -parallel"
+                cflags = "-Ofast -ffast-math -DNDEBUG -march=native -mtune=native "
+                cflags += "-funroll-all-loops -ipo -parallel"
                 fcflags = "-Ofast -march=native -mtune=native -ipo -parallel"
                 args.extend(
                     [
@@ -242,7 +240,7 @@ class Flamemaster(CMakePackage):
         args.append("-DEIGEN_INTEGRATION:BOOL=%s" % ("ON" if "+eigen" in spec else "OFF"))
         args.append("-DINSTALL_EIGEN:BOOL=%s" % ("ON" if "+eigen" in spec else "OFF"))
 
-        if "^amdlibflame" in spec:
+        if spec.satisfies("[virtuals=lapack] ^amdlibflame"):
             args.append("-DBLA_VENDOR=FLAME")
 
         args.append("-DFLAMEMASTER_INSTALL_PREFIX:PATH={0}".format(spec.prefix))

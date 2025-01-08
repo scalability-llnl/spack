@@ -1,15 +1,15 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
 import posixpath
 import sys
 
+from llnl.path import convert_to_posix_path
+
 import spack.paths
 import spack.util.executable
 from spack.spec import Spec
-from spack.util.path import convert_to_posix_path
 
 description = "generate Windows installer"
 section = "admin"
@@ -30,7 +30,7 @@ def txt_to_rtf(file_path):
         return str.replace("\n", "\\par")
 
     contents = ""
-    with open(file_path, "r+") as f:
+    with open(file_path, "r+", encoding="utf-8") as f:
         for line in f.readlines():
             contents += line_to_rtf(line)
     return rtf_header.format(contents)
@@ -39,7 +39,7 @@ def txt_to_rtf(file_path):
 def setup_parser(subparser):
     spack_source_group = subparser.add_mutually_exclusive_group(required=True)
     spack_source_group.add_argument(
-        "-v", "--spack-version", default="", help="download given spack version e.g. 0.16.0"
+        "-v", "--spack-version", default="", help="download given spack version"
     )
     spack_source_group.add_argument(
         "-s", "--spack-source", default="", help="full path to spack source"
@@ -49,9 +49,8 @@ def setup_parser(subparser):
         "-g",
         "--git-installer-verbosity",
         default="",
-        choices=set(["SILENT", "VERYSILENT"]),
-        help="Level of verbosity provided by bundled Git Installer.\
-             Default is fully verbose",
+        choices=["SILENT", "VERYSILENT"],
+        help="level of verbosity provided by bundled git installer (default is fully verbose)",
         required=False,
         action="store",
         dest="git_verbosity",
@@ -93,7 +92,7 @@ def make_installer(parser, args):
         rtf_spack_license = txt_to_rtf(spack_license)
         spack_license = posixpath.join(source_dir, "LICENSE.rtf")
 
-        with open(spack_license, "w") as rtf_license:
+        with open(spack_license, "w", encoding="utf-8") as rtf_license:
             written = rtf_license.write(rtf_spack_license)
             if written == 0:
                 raise RuntimeError("Failed to generate properly formatted license file")

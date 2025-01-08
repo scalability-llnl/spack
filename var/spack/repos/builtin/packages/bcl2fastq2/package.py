@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,8 @@ class Bcl2fastq2(Package):
 
     homepage = "https://support.illumina.com/downloads/bcl2fastq-conversion-software-v2-20.html"
 
+    license("BSD-3-Clause")
+
     version(
         "2.20.0.422", sha256="8dd3044767d044aa4ce46de0de562b111c44e5b8b7348e04e665eb1b4f101fe3"
     )
@@ -41,7 +42,7 @@ class Bcl2fastq2(Package):
     depends_on("libxml2@2.7.8")
     depends_on("libxslt@1.1.26~crypto")
     depends_on("libgcrypt")
-    depends_on("zlib")
+    depends_on("zlib-api")
 
     # Their cmake macros don't set the flag when they find a library
     # that makes them happy.
@@ -49,6 +50,8 @@ class Bcl2fastq2(Package):
     # After finding the libxslt bits, cmake still needs to wire in the
     # libexslt bits.
     patch("cxxConfigure-cmake.patch")
+    # -msse2 isn't valid for arm
+    patch("cxxConfigure-aarch64.patch", when="target=aarch64:")
 
     root_cmakelists_dir = "src"
 
@@ -70,7 +73,7 @@ class Bcl2fastq2(Package):
         # wrap (decorate) the standard expand_archive step with a
         # helper, then call the real do_stage().
         self.stage.expand_archive = self.unpack_it(self.stage.expand_archive)
-        super(Bcl2fastq2, self).do_stage(mirror_only)
+        super().do_stage(mirror_only)
 
     def unpack_it(self, f):
         def wrap():

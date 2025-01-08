@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,5 +21,5 @@ class Extension2(Package):
 
     def install(self, spec, prefix):
         mkdirp(prefix.bin)
-        with open(os.path.join(prefix.bin, "extension2"), "w+") as fout:
+        with open(os.path.join(prefix.bin, "extension2"), "w+", encoding="utf-8") as fout:
             fout.write(str(spec.version))

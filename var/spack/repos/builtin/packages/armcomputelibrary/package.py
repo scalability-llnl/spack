@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -30,7 +29,9 @@ class Armcomputelibrary(SConsPackage):
     url = "https://github.com/ARM-software/ComputeLibrary/archive/refs/tags/v23.02.zip"
     git = "https://github.com/ARM-software/ComputeLibrary.git"
 
-    maintainers = ["annop-w"]
+    maintainers("annop-w")
+
+    license("MIT")
 
     version("23.02", sha256="bed1b24047ce00155e552204bc3983e86f46775414c554a34a7ece931d67ec62")
     version("22.11", sha256="2f70f54d84390625222503ea38650c00c49d4b70bc86a6b9aeeebee9d243865f")
@@ -42,12 +43,12 @@ class Armcomputelibrary(SConsPackage):
 
     phases = ["build"]
 
-    variant("build_type", default="release", values=("release", "debug"))
+    variant("build_type", default="release", values=("release", "debug"), description="Build type")
     variant(
         "threads",
         default="cppthreads",
         values=("cppthreads", "openmp"),
-        description="Enable C++11 threads/OpenMP backend. OpenMP backend only"
+        description="Enable C++11 threads/OpenMP backend. OpenMP backend only "
         "works when building with g++ and not clang++.",
     )
     variant(

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,9 @@ class PyPyflakes(PythonPackage):
     homepage = "https://github.com/PyCQA/pyflakes"
     pypi = "pyflakes/pyflakes-2.4.0.tar.gz"
 
+    license("MIT")
+
+    version("3.1.0", sha256="a0aae034c444db0071aa077972ba4768d40c830d9539fd45bf4cd3f8f6992efc")
     version("3.0.1", sha256="ec8b276a6b60bd80defed25add7e439881c19e64850afd9b346283d4165fd0fd")
     version("2.5.0", sha256="491feb020dca48ccc562a8c0cbe8df07ee13078df59813b83959cbdada312ea3")
     version("2.4.0", sha256="05a85c2872edf37a4ed30b0cce2f6093e1d0581f8c19d7393122da7e25b2b24c")

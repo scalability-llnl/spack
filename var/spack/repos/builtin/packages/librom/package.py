@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,11 +12,17 @@ class Librom(AutotoolsPackage):
     homepage = "https://github.com/LLNL/libROM"
     git = "https://github.com/LLNL/libROM.git"
 
+    license("Apache-2.0")
+
     version("develop", branch="master")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("lapack")
     depends_on("mpi")
-    depends_on("zlib")
+    depends_on("zlib-api")
     depends_on("libszip")
     depends_on("hdf5")
     depends_on("perl")
@@ -34,7 +39,7 @@ class Librom(AutotoolsPackage):
         args = [
             "--with-lapack={0}".format(spec["lapack"].prefix),
             "--with-lapack-libs={0}".format(spec["lapack"].libs.ld_flags),
-            "--with-zlib={0}".format(spec["zlib"].prefix),
+            "--with-zlib={0}".format(spec["zlib-api"].prefix),
             "--with-szlib={0}".format(spec["libszip"].prefix),
             "--with-hdf5={0}".format(spec["hdf5"].prefix),
             "--with-MPICC={0}".format(spec["mpi"].mpicc),

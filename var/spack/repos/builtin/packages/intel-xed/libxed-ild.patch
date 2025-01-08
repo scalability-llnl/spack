@@ -1,0 +1,32 @@
+Fixes a bug where libxed-ild didn't understand some instructions.
+
+https://github.com/intelxed/xed/issues/298
+
+
+diff --git a/src/dec/xed-ild.c b/src/dec/xed-ild.c
+index 8bf7cbe..0ab90ac 100644
+--- a/src/dec/xed-ild.c
++++ b/src/dec/xed-ild.c
+@@ -1385,6 +1385,7 @@ void xed_ild_lookup_init(void) {
+ void xed_ild_init(void) {
+     init_prefix_table();
+     xed_ild_lookup_init();
++    xed_init_chip_model_info();
+ #if defined(XED_EXTENSION_XOP_DEFINED) 
+     xed_ild_chip_init();
+ #endif
+diff --git a/xed_mbuild.py b/xed_mbuild.py
+index db34179..5a7842c 100755
+--- a/xed_mbuild.py
++++ b/xed_mbuild.py
+@@ -1081,7 +1081,8 @@ def build_xed_ild_library(env, lib_env, lib_dag, sources_to_replace):
+                        'xed-ild-disp-l3.c',         # generated
+                        'xed-ild-eosz.c',            # generated
+                        'xed-ild-easz.c',            # generated
+-                       'xed-ild-imm-l3.c']          # generated
++                       'xed-ild-imm-l3.c',          # generated
++                       'xed-error-enum.c',]         # generated
+     common_objs = lib_env.make_obj(common_sources)
+     
+     ild_objs += xbc.build_dir_join(lib_env, common_objs)
+

@@ -1,0 +1,21 @@
+diff --git a/src/MAKE/Makefile.auto b/src/MAKE/Makefile.auto
+index 239f886..8f42e73 100644
+--- a/src/MAKE/Makefile.auto
++++ b/src/MAKE/Makefile.auto
+@@ -816,12 +816,14 @@ ifeq ($(USE_VTK), "ON")
+             endif
+         endif
+     endif
+-    open_bracket := (
+-    close_bracket := )
++    open_bracket := ("
++    close_bracket := ")
++    message := message
+     space :=
+     space +=
+     VTK_TMP := $(subst $(open_bracket),$(space),$(VTK_TMP))
+     VTK_TMP := $(subst $(close_bracket),$(space),$(VTK_TMP))
++    VTK_TMP := $(subst $(message),$(space),$(VTK_TMP))
+     VTK_MAJOR_VERSION := $(patsubst "%",%,$(word $(words $(VTK_TMP)),$(VTK_TMP)))
+     ifeq ($(AUTO_DEBUG),1)
+         $(shell $(ECHO) "#vtk_major_version: $(VTK_MAJOR_VERSION)" >> $(AUTO_LOG_FILE))

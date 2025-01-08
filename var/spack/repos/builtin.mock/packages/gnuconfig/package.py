@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,10 +23,10 @@ class Gnuconfig(Package):
         config_guess = join_path(prefix, "config.guess")
 
         # Create files
-        with open(config_sub, "w") as f:
+        with open(config_sub, "w", encoding="utf-8") as f:
             f.write("#!/bin/sh\necho gnuconfig version of config.sub")
 
-        with open(config_guess, "w") as f:
+        with open(config_guess, "w", encoding="utf-8") as f:
             f.write("#!/bin/sh\necho gnuconfig version of config.guess")
 
         # Make executable

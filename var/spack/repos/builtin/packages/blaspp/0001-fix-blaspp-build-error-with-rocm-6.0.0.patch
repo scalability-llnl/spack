@@ -1,0 +1,50 @@
+From a75f399bfa77680e7736d126ef3e5a520e1a1702 Mon Sep 17 00:00:00 2001
+From: sreenivasa murthy kolam <sreenivasamurthy.kolam@amd.com>
+Date: Wed, 17 Jan 2024 12:55:06 +0000
+Subject: [PATCH] fix build error with rocm-6.0.0 by adding extra parameters
+ for rocblas function calls rocblas_ztrmm() ,rocblas_strmm(),
+ rocblas_ctrmm(),rocblas_dtrmm()
+
+---
+ src/rocblas_wrappers.cc | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/rocblas_wrappers.cc b/src/rocblas_wrappers.cc
+index 0e01a95..44ab150 100644
+--- a/src/rocblas_wrappers.cc
++++ b/src/rocblas_wrappers.cc
+@@ -667,6 +667,7 @@ void trmm(
+             m, n,
+             &alpha,
+             dA, ldda,
++            dB, lddb,
+             dB, lddb ) );
+ }
+ 
+@@ -686,6 +687,7 @@ void trmm(
+             m, n,
+             &alpha,
+             dA, ldda,
++            dB, lddb,
+             dB, lddb ) );
+ }
+ 
+@@ -705,6 +707,7 @@ void trmm(
+             m, n,
+             (rocblas_float_complex*) &alpha,
+             (rocblas_float_complex*) dA, ldda,
++            (rocblas_float_complex*) dB, lddb,
+             (rocblas_float_complex*) dB, lddb ) );
+ }
+ 
+@@ -724,6 +727,7 @@ void trmm(
+             m, n,
+             (rocblas_double_complex*) &alpha,
+             (rocblas_double_complex*) dA, ldda,
++            (rocblas_double_complex*) dB, lddb,
+             (rocblas_double_complex*) dB, lddb ) );
+ }
+ 
+-- 
+2.39.3
+

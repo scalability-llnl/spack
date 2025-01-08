@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,30 +17,37 @@ class Qmcpack(CMakePackage, CudaPackage):
     maintainers("ye-luo")
     tags = ["ecp", "ecp-apps"]
 
+    license("CC0-1.0")
+
     # This download method is untrusted, and is not recommended by the
     # Spack manual. However, it is easier to maintain because github hashes
     # can occasionally change.
     # NOTE: 12/19/2017 QMCPACK 3.0.0 does not build properly with Spack.
     version("develop")
-    version("3.16.0", tag="v3.16.0")
-    version("3.15.0", tag="v3.15.0")
-    version("3.14.0", tag="v3.14.0")
-    version("3.13.0", tag="v3.13.0")
-    version("3.12.0", tag="v3.12.0")
-    version("3.11.0", tag="v3.11.0")
-    version("3.10.0", tag="v3.10.0")
-    version("3.9.2", tag="v3.9.2")
-    version("3.9.1", tag="v3.9.1")
-    version("3.9.0", tag="v3.9.0")
-    version("3.8.0", tag="v3.8.0")
-    version("3.7.0", tag="v3.7.0")
-    version("3.6.0", tag="v3.6.0")
-    version("3.5.0", tag="v3.5.0")
-    version("3.4.0", tag="v3.4.0")
-    version("3.3.0", tag="v3.3.0")
-    version("3.2.0", tag="v3.2.0")
-    version("3.1.1", tag="v3.1.1")
-    version("3.1.0", tag="v3.1.0")
+    version("3.17.1", tag="v3.17.1", commit="9d0d968139fc33f71dbf9159f526dd7b47f10a3b")
+    version("3.17.0", tag="v3.17.0", commit="9049a90626d1fe3c431f55c56a7197f8a13d5fc6")
+    version("3.16.0", tag="v3.16.0", commit="5b7544c40be105b0aafa1602601ccb0cf23ea547")
+    version("3.15.0", tag="v3.15.0", commit="690350ae148a1345b57e610f240d800384514d69")
+    version("3.14.0", tag="v3.14.0", commit="dbe4cebbd5f88ce42bf2deab5e571e64398e07ed")
+    version("3.13.0", tag="v3.13.0", commit="5f4ba013eceaf437530d5792dac5c08760d51c96")
+    version("3.12.0", tag="v3.12.0", commit="262d1915135aaf5786d9481765f79f48d3309533")
+    version("3.11.0", tag="v3.11.0", commit="129b7d88497b27de9efd4f2cf56d83b97541f0f0")
+    version("3.10.0", tag="v3.10.0", commit="f775d65b313b16b4ab22ecad40a968c0a6675ddc")
+    version("3.9.2", tag="v3.9.2", commit="8064ebfec9a8dd88748e8864013168c9aa7e05dd")
+    version("3.9.1", tag="v3.9.1", commit="e53d0b905ca2870c8c58b14437165addc6a6296f")
+    version("3.9.0", tag="v3.9.0", commit="a5c74d4327e4ba84c097fd904ce2b696bf2735ae")
+    version("3.8.0", tag="v3.8.0", commit="6abbff0b825dae52097f7965bdb549f84aed75cb")
+    version("3.7.0", tag="v3.7.0", commit="bc47a435682751c26c2695a005684d95f700bebb")
+    version("3.6.0", tag="v3.6.0", commit="91aca74ecb4e64bdccc7e05b28eda4653f8c07ff")
+    version("3.5.0", tag="v3.5.0", commit="1009b07ad6fa873d71a0755747e6a7f610eb169b")
+    version("3.4.0", tag="v3.4.0", commit="2d4b3d01224f7a4868da71d715e831341b2e7e5e")
+    version("3.3.0", tag="v3.3.0", commit="ff1599015f0695a75436f2942f257d3a29b8b752")
+    version("3.2.0", tag="v3.2.0", commit="d531f6b35fbab9ab2b80e9222f694b66e08bdd9d")
+    version("3.1.1", tag="v3.1.1", commit="07611637f823187ac5133d6e2249cdb86b92b04d")
+    version("3.1.0", tag="v3.1.0", commit="146d920cf33590eac6a7a976f88871c1fe6418a6")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     # These defaults match those in the QMCPACK manual
     variant(
@@ -138,7 +144,6 @@ class Qmcpack(CMakePackage, CudaPackage):
     cpp14_warning = "QMCPACK v3.6.0 or later requires a " "compiler with support for C++14"
     conflicts("%gcc@:4", when="@3.6.0:", msg=cpp14_warning)
     conflicts("%intel@:17", when="@3.6.0:", msg=cpp14_warning)
-    conflicts("%pgi@:17", when="@3.6.0:", msg=cpp14_warning)
     conflicts("%clang@:3.4", when="@3.6.0:", msg=cpp14_warning)
 
     conflicts("+afqmc", when="@:3.6.0", msg="AFQMC not recommended before v3.7")
@@ -160,7 +165,6 @@ class Qmcpack(CMakePackage, CudaPackage):
         "Intel compiler when linking against Intel MKL"
     )
     conflicts("%gcc", when="@:3.4.0 ^intel-mkl", msg=mkl_warning)
-    conflicts("%pgi", when="@:3.4.0 ^intel-mkl", msg=mkl_warning)
     conflicts("%llvm", when="@:3.4.0 ^intel-mkl", msg=mkl_warning)
 
     # Dependencies match those in the QMCPACK manual.
@@ -374,7 +378,7 @@ class Qmcpack(CMakePackage, CudaPackage):
         # Next two environment variables were introduced in QMCPACK 3.5.0
         # Prior to v3.5.0, these lines should be benign but CMake
         # may issue a warning.
-        if "^mkl" in spec:
+        if spec["lapack"].name in INTEL_MATH_LIBRARIES:
             args.append("-DENABLE_MKL=1")
             args.append("-DMKL_ROOT=%s" % env["MKLROOT"])
         else:
@@ -387,7 +391,6 @@ class Qmcpack(CMakePackage, CudaPackage):
         else:
             args.append("-DBUILD_PPCONVERT=0")
 
-        args.append(self.define("Python3_EXECUTABLE", self.spec["python"].command.path))
         return args
 
     # QMCPACK needs custom install method for the following reason:

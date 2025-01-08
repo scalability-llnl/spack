@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class Bowtie(MakefilePackage):
 
     homepage = "https://sourceforge.net/projects/bowtie-bio/"
     url = "https://github.com/BenLangmead/bowtie/archive/v1.2.0.tar.gz"
+
+    license("Artistic-2.0")
 
     version("1.3.1", sha256="147d9fe9652f7c5f351bfc0eb012e06981986fb43bd6bdfe88a95c02eabc6573")
     version("1.3.0", sha256="d7c2d982a67884909f284a0ff150b56b20127cd7a1ced461c3c4c03e6a6374c5")
@@ -40,6 +41,9 @@ class Bowtie(MakefilePackage):
         url="https://downloads.sourceforge.net/project/bowtie-bio/bowtie/1.2.0/bowtie-1.2-source.zip",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # 1.2.2 and 1.2.2_p1 fail to build with %gcc@8.3.0
     # with and without issue-87 patch
     conflicts("%gcc@8:", when="@1.2.2")
@@ -48,7 +52,7 @@ class Bowtie(MakefilePackage):
     variant("tbb", default=False, description="Use Intel thread building block")
 
     depends_on("tbb", when="+tbb")
-    depends_on("zlib")
+    depends_on("zlib-api")
 
     # See: https://github.com/BenLangmead/bowtie/issues/87, a
     # different fix is in the FreeBSD ports/package tree
@@ -69,7 +73,7 @@ class Bowtie(MakefilePackage):
         makefile.filter("CXX = .*", "CPP = " + env["CXX"])
 
     def build(self, spec, prefix):
-        if "+tbb" in spec:
+        if spec.satisfies("+tbb"):
             make()
         else:
             make("NO_TBB=1")

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,12 +12,16 @@ class EnvironmentModules(Package):
     """
 
     homepage = "https://cea-hpc.github.io/modules/"
-    url = "https://github.com/cea-hpc/modules/releases/download/v5.2.0/modules-5.2.0.tar.gz"
+    url = "https://github.com/cea-hpc/modules/releases/download/v5.5.0/modules-5.5.0.tar.gz"
     git = "https://github.com/cea-hpc/modules.git"
 
     maintainers("xdelaruelle")
 
     version("main", branch="main")
+    version("5.5.0", sha256="ad0e360c7adc2515a99836863d98499b3ad89cd7548625499b20293845b040cb")
+    version("5.4.0", sha256="586245cbf9420866078d8c28fce8ef4f192530c69a0f368f51e848340dcf3b90")
+    version("5.3.1", sha256="d02f9ce4f8baf6c99edceb7c73bfdd1e97d77bcc4725810b86efed9f58dda962")
+    version("5.3.0", sha256="21b8daa0181044ef65097a1e3517af1f24e7c7343cc5bdaf70be11e3cb0edb51")
     version("5.2.0", sha256="48f9f10864303df628a48cab17074820a6251ad8cd7d66dd62aa7798af479254")
     version("5.1.1", sha256="1985f79e0337f63d6564b08db0238cf96a276a4184def822bb8ad37996dc8295")
     version("5.1.0", sha256="1ab1e859b9c8bca8a8d332945366567fae4cf8dd7e312a689daaff46e7ffa949")
@@ -55,17 +58,26 @@ class EnvironmentModules(Package):
         url="http://prdownloads.sourceforge.net/modules/modules-3.2.10.tar.gz",
     )
 
+    depends_on("c", type="build")  # generated
+
     variant("X", default=True, description="Build with X functionality")
 
-    depends_on("autoconf", type="build", when="@main")
-    depends_on("automake", type="build", when="@main")
-    depends_on("libtool", type="build", when="@main")
-    depends_on("m4", type="build", when="@main")
+    depends_on("util-linux", type=("build", "run"), when="@5.5:")
+    depends_on("less", type=("build", "run"), when="@4.1:")
+    with when("@main"):
+        depends_on("autoconf", type="build")
+        depends_on("automake", type="build")
+        depends_on("libtool", type="build")
+        depends_on("m4", type="build")
+        depends_on("python", type="build")
+        depends_on("py-sphinx@1.0:", type="build")
+        depends_on("gzip", type="build")
 
     # Dependencies:
     depends_on("tcl", type=("build", "link", "run"))
     depends_on("tcl@8.4:", type=("build", "link", "run"), when="@4.0.0:4.8")
-    depends_on("tcl@8.5:", type=("build", "link", "run"), when="@5.0.0:")
+    depends_on("tcl@8.5:8", type=("build", "link", "run"), when="@5.0.0:5.4.0")
+    depends_on("tcl@8.5:", type=("build", "link", "run"), when="@5.5.0:")
 
     def install(self, spec, prefix):
         tcl = spec["tcl"]
@@ -82,10 +94,13 @@ class EnvironmentModules(Package):
         if not spec.satisfies("@4.5.2"):
             config_args.extend(["--disable-dependency-tracking", "--disable-silent-rules"])
 
-        if "~X" in spec:
+        if spec.satisfies("~X"):
             config_args = ["--without-x"] + config_args
 
-        if "@4.4.0:4.8" in self.spec:
+        if self.spec.satisfies("@5.5.0:"):
+            config_args.extend(["--enable-conflict-unload"])
+
+        if self.spec.satisfies("@4.4.0:4.8"):
             config_args.extend(
                 [
                     "--with-icase=search",
@@ -94,13 +109,13 @@ class EnvironmentModules(Package):
                 ]
             )
 
-        if "@4.3.0:4.8" in self.spec:
+        if self.spec.satisfies("@4.3.0:4.8"):
             config_args.extend(["--enable-color"])
 
-        if "@4.2.0:4.8" in self.spec:
+        if self.spec.satisfies("@4.2.0:4.8"):
             config_args.extend(["--enable-auto-handling"])
 
-        if "@4.1.0:" in self.spec:
+        if self.spec.satisfies("@4.1.0:"):
             config_args.extend(
                 [
                     # Variables in quarantine are empty during module command
@@ -110,17 +125,17 @@ class EnvironmentModules(Package):
                 ]
             )
 
-        if "@4.0.0:4.8" in self.spec:
+        if self.spec.satisfies("@4.0.0:4.8"):
             config_args.extend(["--disable-compat-version"])
 
-        if "@4.0.0:" in self.spec:
+        if self.spec.satisfies("@4.0.0:"):
             config_args.extend(["--with-tclsh={0}".format(tcl.prefix.bin.tclsh)])
 
-        if "@3.2.10" in self.spec:
+        if self.spec.satisfies("@3.2.10"):
             # See: https://sourceforge.net/p/modules/bugs/62/
             config_args.extend(["--disable-debug", "CPPFLAGS=-DUSE_INTERP_ERRORLINE"])
 
-        if "@:3.2" in self.spec:
+        if self.spec.satisfies("@:3.2"):
             config_args.extend(
                 [
                     "--without-tclx",
@@ -129,6 +144,12 @@ class EnvironmentModules(Package):
                     "--disable-versioning",
                 ]
             )
+
+        if self.spec.satisfies("@5.5:"):
+            config_args.append(f"--with-logger={str(self.spec['util-linux'].prefix.bin.logger)}")
+
+        if self.spec.satisfies("@4.1:"):
+            config_args.append(f"--with-pager={str(self.spec['less'].prefix.bin.less)}")
 
         configure(*config_args)
         make()

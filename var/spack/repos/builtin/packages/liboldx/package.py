@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,8 @@ class Liboldx(AutotoolsPackage, XorgPackage):
     xorg_mirror_path = "lib/liboldX-1.0.1.tar.gz"
 
     version("1.0.1", sha256="74322dbf04df69787485eb24b16e12783dfc3454befaf18482ead51bd7b55dc8")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("libx11")
 

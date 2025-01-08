@@ -1,9 +1,6 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-from __future__ import division, print_function
 
 import urllib.parse
 from collections import defaultdict
@@ -14,6 +11,7 @@ from llnl.util import tty
 import spack.fetch_strategy as fs
 import spack.repo
 import spack.spec
+import spack.url
 import spack.util.crypto as crypto
 from spack.url import (
     UndetectableNameError,
@@ -28,7 +26,6 @@ from spack.url import (
     substitution_offsets,
 )
 from spack.util.naming import simplify_name
-from spack.util.web import find_versions_of_archive
 
 description = "debugging tool for url parsing"
 section = "developer"
@@ -141,7 +138,7 @@ def url_parse(args):
     if args.spider:
         print()
         tty.msg("Spidering for versions:")
-        versions = find_versions_of_archive(url)
+        versions = spack.url.find_versions_of_archive(url)
 
         if not versions:
             print("  Found no versions for {0}".format(name))
@@ -157,7 +154,7 @@ def url_list(args):
     urls = set()
 
     # Gather set of URLs from all packages
-    for pkg_cls in spack.repo.path.all_package_classes():
+    for pkg_cls in spack.repo.PATH.all_package_classes():
         url = getattr(pkg_cls, "url", None)
         urls = url_list_parsing(args, urls, url, pkg_cls)
 
@@ -194,7 +191,7 @@ def url_summary(args):
     tty.msg("Generating a summary of URL parsing in Spack...")
 
     # Loop through all packages
-    for pkg_cls in spack.repo.path.all_package_classes():
+    for pkg_cls in spack.repo.PATH.all_package_classes():
         urls = set()
         pkg = pkg_cls(spack.spec.Spec(pkg_cls.name))
 
@@ -290,7 +287,7 @@ def url_stats(args):
     # dictionary of issue type -> package -> descriptions
     issues = defaultdict(lambda: defaultdict(lambda: []))
 
-    class UrlStats(object):
+    class UrlStats:
         def __init__(self):
             self.total = 0
             self.schemes = defaultdict(lambda: 0)
@@ -338,10 +335,10 @@ def url_stats(args):
     version_stats = UrlStats()
     resource_stats = UrlStats()
 
-    for pkg_cls in spack.repo.path.all_package_classes():
+    for pkg_cls in spack.repo.PATH.all_package_classes():
         npkgs += 1
 
-        for v in pkg_cls.versions:
+        for v in list(pkg_cls.versions):
             try:
                 pkg = pkg_cls(spack.spec.Spec(pkg_cls.name))
                 fetcher = fs.for_package_version(pkg, v)

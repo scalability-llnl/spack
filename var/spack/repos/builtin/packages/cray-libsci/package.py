@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -13,6 +12,8 @@ class CrayLibsci(Package):
     homepage = "https://docs.nersc.gov/development/libraries/libsci/"
     has_code = False  # Skip attempts to fetch source that is not available
 
+    version("23.02.1.1")
+    version("22.11.1.2")
     version("21.08.1.2")
     version("20.06.1")
     version("20.03.1")
@@ -24,6 +25,9 @@ class CrayLibsci(Package):
     version("16.07.1")
     version("16.06.1")
     version("16.03.1")
+
+    conflicts("platform=windows")
+    conflicts("platform=darwin")
 
     variant("shared", default=True, description="enable shared libs")
     variant("openmp", default=False, description="link with openmp")
@@ -61,11 +65,11 @@ class CrayLibsci(Package):
         compiler = self.spec.compiler.name
 
         lib = []
-        if "+openmp" in self.spec and "+mpi" in self.spec:
+        if self.spec.satisfies("+openmp") and self.spec.satisfies("+mpi"):
             lib = ["libsci_{0}_mpi_mp", "libsci_{0}_mp"]
-        elif "+openmp" in self.spec:
+        elif self.spec.satisfies("+openmp"):
             lib = ["libsci_{0}_mp"]
-        elif "+mpi" in self.spec:
+        elif self.spec.satisfies("+mpi"):
             lib = ["libsci_{0}_mpi", "libsci_{0}"]
         else:
             lib = ["libsci_{0}"]

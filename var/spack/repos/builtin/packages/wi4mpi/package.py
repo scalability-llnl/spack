@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,8 @@ class Wi4mpi(CMakePackage):
     url = "https://github.com/cea-hpc/wi4mpi/archive/v3.4.1.tar.gz"
     maintainers("adrien-cotte", "marcjoos-cea")
 
+    license("CECILL-B")
+
     version("3.6.4", sha256="be1732a1aed1e2946873951a344b572f11f2a55cd06c634580a9398b5877e22a")
     version("3.6.3", sha256="c327babc892cc3c2bdddfacf3011e6fcb7e00a04e814de31f5e707cba3199c5c")
     version("3.6.2", sha256="4b784d27decfff9cbd29f072ba75bb0f6c471d6edc7f1037df1ab7ccbcceffba")
@@ -25,6 +26,10 @@ class Wi4mpi(CMakePackage):
     version("3.2.2", sha256="23ac69740577d66a68ddd5360670f0a344e3c47a5d146033c63a67e54e56c66f")
     version("3.2.1", sha256="0d928cb930b6cb1ae648eca241db59812ee0e5c041faf2f57728bbb6ee4e36df")
     version("3.2.0", sha256="3322f6823dbec1d58a1fcf163b2bcdd7b9cd75dc6c7f78865fc6cb0a91bf6f94")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
     variant(
         "build_type",
         default="Release",
@@ -41,8 +46,6 @@ class Wi4mpi(CMakePackage):
             compiler = "INTEL"
         elif "%clang" in self.spec:
             compiler = "LLVM"
-        elif "%pgi" in self.spec:
-            compiler = "PGI"
         else:
             tty.error("Could not determine compiler used")
         wi4mpi_build_type = "RELEASE"

@@ -1,0 +1,26 @@
+diff --git a/ctest/Makefile b/ctest/Makefile
+index 0fb2450d28..9e85d23b96 100644
+--- a/ctest/Makefile
++++ b/ctest/Makefile
+@@ -208,7 +208,7 @@ FLDFLAGS = $(FFLAGS:-fPIC=) $(LDFLAGS)
+ ifeq ($(USE_OPENMP), 1)
+ ifeq ($(F_COMPILER), GFORTRAN)
+ ifeq ($(C_COMPILER), CLANG)
+-CEXTRALIB = -lomp
++CEXTRALIB += -lomp
+ endif
+ endif
+ ifeq ($(F_COMPILER), NAG)
+diff --git a/test/Makefile b/test/Makefile
+index 923f1537c2..46a7b11583 100644
+--- a/test/Makefile
++++ b/test/Makefile
+@@ -265,7 +265,7 @@ FLDFLAGS = $(FFLAGS:-fPIC=) $(LDFLAGS)
+ ifeq ($(USE_OPENMP), 1)
+ ifeq ($(F_COMPILER), GFORTRAN)
+ ifeq ($(C_COMPILER), CLANG)
+-CEXTRALIB = -lomp
++CEXTRALIB += -lomp
+ endif
+ endif
+ ifeq ($(F_COMPILER), NAG)

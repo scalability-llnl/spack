@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,13 @@ class Fpm(Package):
 
     maintainers("awvwgk")
 
+    license("MIT")
+
+    version("0.10.0", sha256="00d687e17bdada4dcae0ff1ea2e01bad287dcc77a74c3bbde0c9ff9633b655bb")
+    version("0.9.0", sha256="484debabd7d22186ac41f865ddf63475c279a61a51aaff5636ed615860b5b8d7")
+    version("0.8.2", sha256="67fd8f4f78d19662c61855f531465e347ab0bc913ba59bd419f75f4022d2cd70")
+    version("0.8.1", sha256="0bd978bb1d3f2a3297d82a0d6ac009746a466cfa9a59ba3b6513b74e5ce4b7bf")
+    version("0.8.0", sha256="d63162a2ab013c19cefc938e52717c30f78e04de94384d4589c55a48be2724f1")
     version("0.7.0", sha256="536dec7d4502221734683b15e6ff64a6ab3f9910df122d18f851c9a68711f91f")
     version("0.6.0", sha256="365516f66b116a112746af043e8eccb3d854d6feb1fad0507c570433dacbf7be")
     version("0.5.0", sha256="e4a06956d2300f9aa1d06bd3323670480e946549617582e32684ded6921a921e")
@@ -34,14 +40,17 @@ class Fpm(Package):
     depends_on("curl", type="build")
     depends_on("git@1.8.5:", type="build")
 
+    depends_on("c", type="build")
+    depends_on("fortran", type="build")
+
     def setup_build_environment(self, env):
-        if "@0.4.0" in self.spec:
+        if self.spec.satisfies("@0.4.0"):
             env.set("FPM_C_COMPILER", self.compiler.cc)
 
         env.set("FPM_CC", self.compiler.cc)
 
         fflags = "-O3"
-        if "+openmp" in self.spec:
+        if self.spec.satisfies("+openmp"):
             fflags += " " + self.compiler.openmp_flag
         env.set("FFLAGS", fflags)
 

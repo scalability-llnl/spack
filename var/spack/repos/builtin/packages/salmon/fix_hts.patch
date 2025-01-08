@@ -1,0 +1,11 @@
+--- a/cmake/Modules/Findlibstadenio.cmake
++++ /dev/null
+@@ -13,7 +13,7 @@ find_path(STADEN_INCLUDE_DIR io_lib
+ find_library(STADEN_LIBRARY NAMES staden-read libstaden-read 
+   HINTS ${STADEN_ROOT} ENV STADEN_ROOT PATH_SUFFIXES lib lib64)
+ 
+-find_library(HTSCODEC_LIBRARY NAMES htscodecs libhtscodecs
++find_library(HTSCODEC_LIBRARY NAMES htscodecs libhtscodecs hts
+   HINTS ${STADEN_ROOT} ENV STADEN_ROOT PATH_SUFFIXES lib lib64)
+ 
+ if(STADEN_INCLUDE_DIR)

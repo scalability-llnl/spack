@@ -1,0 +1,36 @@
+From 80e4739fb53b0b7e02dae48b928d8b8247992763 Mon Sep 17 00:00:00 2001
+From: Vicente Adolfo Bolea Sanchez <vicente.bolea@kitware.com>
+Date: Thu, 2 Nov 2023 12:18:49 -0400
+Subject: [PATCH] cmake: find threads package first
+
+---
+ cmake/DetectOptions.cmake | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/cmake/DetectOptions.cmake b/cmake/DetectOptions.cmake
+index 3f511e02a..615995b71 100644
+--- a/cmake/DetectOptions.cmake
++++ b/cmake/DetectOptions.cmake
+@@ -67,6 +67,9 @@ function(lists_get_prefix listVars outVar)
+   set(${outVar} "${prefix}" PARENT_SCOPE)
+ endfunction()
+ 
++# Multithreading
++find_package(Threads REQUIRED)
++
+ # Blosc2
+ if(ADIOS2_USE_Blosc2 STREQUAL AUTO)
+   # Prefect CONFIG mode
+@@ -554,9 +557,6 @@ if(AWSSDK_FOUND)
+     set(ADIOS2_HAVE_AWSSDK TRUE)
+ endif()
+ 
+-# Multithreading
+-find_package(Threads REQUIRED)
+-
+ # Floating point detection
+ include(CheckTypeRepresentation)
+ 
+-- 
+2.35.3
+

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Classes and functions to manage package tags"""
@@ -8,11 +7,14 @@ import copy
 from collections.abc import Mapping
 
 import spack.error
+import spack.repo
 import spack.util.spack_json as sjson
 
 
 def _get_installed_package_names():
     """Returns names of packages installed in the active environment."""
+    import spack.environment
+
     specs = spack.environment.installed_specs()
     return [spec.name for spec in specs]
 
@@ -32,10 +34,10 @@ def packages_with_tags(tags, installed, skip_empty):
     """
     tag_pkgs = collections.defaultdict(lambda: list)
     spec_names = _get_installed_package_names() if installed else []
-    keys = spack.repo.path.tag_index if tags is None else tags
+    keys = spack.repo.PATH.tag_index if tags is None else tags
     for tag in keys:
         packages = [
-            name for name in spack.repo.path.tag_index[tag] if not installed or name in spec_names
+            name for name in spack.repo.PATH.tag_index[tag] if not installed or name in spec_names
         ]
         if packages or not skip_empty:
             tag_pkgs[tag] = packages

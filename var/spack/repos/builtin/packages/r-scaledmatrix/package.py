@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,7 @@ class RScaledmatrix(RPackage):
 
     bioc = "ScaledMatrix"
 
+    version("1.8.0", commit="122f2c43d496bd420f0aff7cd96728a11bd7fa07")
     version("1.6.0", commit="45a29d3662e2766f973b281ed86ce2654be84b70")
     version("1.4.1", commit="15e2efcb6b11e26c31ef2d44968355f71cc1f4fc")
     version("1.4.0", commit="32e6e918bc7bb64bbf75613d353ca268c7d04292")

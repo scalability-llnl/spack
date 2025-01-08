@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -29,6 +28,7 @@ class RSnprelate(RPackage):
 
     bioc = "SNPRelate"
 
+    version("1.34.0", commit="27a7c9658b974f9887f48a4a3ed1a7621b141488")
     version("1.32.0", commit="2e8cc807baa74fca5137148b672f3945c36689b2")
     version("1.30.1", commit="baef8a71d3908287a2307768348c02db0720d125")
     version("1.28.0", commit="8fcd837f4627a3bb77cb8d992b2baedd0589d123")
@@ -38,6 +38,9 @@ class RSnprelate(RPackage):
     version("1.14.0", commit="9501cbfc411aa320e58654a865fda2e9077977af")
     version("1.12.2", commit="dce2e2b6f36483a9f905bb5df6ae834a9f1136fe")
     version("1.10.2", commit="3f5c4010871df742e7a460586b38ad0c2fd37aeb")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r@2.15:", type=("build", "run"))
     depends_on("r-gdsfmt@1.8.3:", type=("build", "run"))

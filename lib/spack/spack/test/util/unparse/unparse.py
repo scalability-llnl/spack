@@ -12,9 +12,7 @@ import pytest
 
 import spack.util.unparse
 
-pytestmark = pytest.mark.skipif(
-    sys.platform == "win32", reason="Test module unsupported on Windows"
-)
+pytestmark = pytest.mark.not_on_windows("Test module unsupported on Windows")
 
 
 def read_pyfile(filename):

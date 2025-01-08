@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,6 +10,8 @@ class PyConan(PythonPackage):
 
     homepage = "https://conan.io/"
     pypi = "conan/conan-1.52.0.tar.gz"
+
+    license("MIT")
 
     version("1.52.0", sha256="184761f16d00fde17615e60125d2f14fca692ffba7666cc7d6d834fc3858cf82")
 

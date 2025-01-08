@@ -1,0 +1,28 @@
+From d4afbed86fc4f9925e55367267b3796a522ba5d5 Mon Sep 17 00:00:00 2001
+From: Renjith Ravindran <Renjith.RavindranKannath@amd.com>
+Date: Sun, 14 Jan 2024 10:20:21 +0000
+Subject: [PATCH] Change HIP_PLATFORM from HCC to AMD and NVCC to NVIDIA
+
+---
+ include/sundials/sundials_hip_policies.hpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/sundials/sundials_hip_policies.hpp b/include/sundials/sundials_hip_policies.hpp
+index d759bbc..f6dfe41 100644
+--- a/include/sundials/sundials_hip_policies.hpp
++++ b/include/sundials/sundials_hip_policies.hpp
+@@ -30,9 +30,9 @@ namespace sundials
+ namespace hip
+ {
+ 
+-#if defined(__HIP_PLATFORM_HCC__)
++#if defined(__HIP_PLATFORM_AMD__)
+ constexpr const sunindextype WARP_SIZE = 64;
+-#elif defined(__HIP_PLATFORM_NVCC__)
++#elif defined(__HIP_PLATFORM_NVIDIA__)
+ constexpr const sunindextype WARP_SIZE = 32;
+ #endif
+ constexpr const sunindextype MAX_BLOCK_SIZE = 1024;
+-- 
+2.39.3
+

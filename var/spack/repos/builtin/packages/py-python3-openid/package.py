@@ -1,5 +1,4 @@
-# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PyPython3Openid(PythonPackage):
 
     homepage = "https://github.com/necaris/python3-openid"
     pypi = "python3-openid/python3-openid-3.2.0.tar.gz"
+
+    license("Apache-2.0")
 
     version("3.2.0", sha256="33fbf6928f401e0b790151ed2b5290b02545e8775f982485205a066f874aaeaf")
 

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,8 @@ class Qtgraph(QMakePackage):
 
     version("develop", branch="master")
     version("1.0.0.0", branch="1.0.0.0")
+
+    depends_on("cxx", type="build")  # generated
 
     # qtgraph depends on these packages
     depends_on("qt@5.10.0:", when="@1.0.0.0:")

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """
@@ -8,10 +7,14 @@ depfiles from an environment.
 """
 
 import os
+import re
+import shlex
 from enum import Enum
 from typing import List, Optional
 
+import spack.deptypes as dt
 import spack.environment.environment as ev
+import spack.paths
 import spack.spec
 import spack.traverse as traverse
 
@@ -35,7 +38,9 @@ class UseBuildCache(Enum):
 def _deptypes(use_buildcache: UseBuildCache):
     """What edges should we follow for a given node? If it's a cache-only
     node, then we can drop build type deps."""
-    return ("link", "run") if use_buildcache == UseBuildCache.ONLY else ("build", "link", "run")
+    return (
+        dt.LINK | dt.RUN if use_buildcache == UseBuildCache.ONLY else dt.BUILD | dt.LINK | dt.RUN
+    )
 
 
 class DepfileNode:
@@ -45,8 +50,8 @@ class DepfileNode:
     def __init__(
         self, target: spack.spec.Spec, prereqs: List[spack.spec.Spec], buildcache: UseBuildCache
     ):
-        self.target = target
-        self.prereqs = prereqs
+        self.target = MakefileSpec(target)
+        self.prereqs = list(MakefileSpec(x) for x in prereqs)
         if buildcache == UseBuildCache.ONLY:
             self.buildcache_flag = "--use-buildcache=only"
         elif buildcache == UseBuildCache.NEVER:
@@ -68,13 +73,13 @@ class DepfileSpecVisitor:
         self.adjacency_list: List[DepfileNode] = []
         self.pkg_buildcache = pkg_buildcache
         self.deps_buildcache = deps_buildcache
-        self.deptypes_root = _deptypes(pkg_buildcache)
-        self.deptypes_deps = _deptypes(deps_buildcache)
+        self.depflag_root = _deptypes(pkg_buildcache)
+        self.depflag_deps = _deptypes(deps_buildcache)
 
     def neighbors(self, node):
         """Produce a list of spec to follow from node"""
-        deptypes = self.deptypes_root if node.depth == 0 else self.deptypes_deps
-        return traverse.sort_edges(node.edge.spec.edges_to_dependencies(deptype=deptypes))
+        depflag = self.depflag_root if node.depth == 0 else self.depflag_deps
+        return traverse.sort_edges(node.edge.spec.edges_to_dependencies(depflag=depflag))
 
     def accept(self, node):
         self.adjacency_list.append(
@@ -87,6 +92,32 @@ class DepfileSpecVisitor:
 
         # We already accepted this
         return True
+
+
+class MakefileSpec(object):
+    """Limited interface to spec to help generate targets etc. without
+    introducing unwanted special characters.
+    """
+
+    _pattern = None
+
+    def __init__(self, spec):
+        self.spec = spec
+
+    def safe_name(self):
+        return self.safe_format("{name}-{version}-{hash}")
+
+    def spec_hash(self):
+        return self.spec.dag_hash()
+
+    def safe_format(self, format_str):
+        unsafe_result = self.spec.format(format_str)
+        if not MakefileSpec._pattern:
+            MakefileSpec._pattern = re.compile(r"[^A-Za-z0-9_.-]")
+        return MakefileSpec._pattern.sub("_", unsafe_result)
+
+    def unsafe_format(self, format_str):
+        return self.spec.format(format_str)
 
 
 class MakefileModel:
@@ -114,7 +145,7 @@ class MakefileModel:
         self.env_path = env.path
 
         # These specs are built in the default target.
-        self.roots = roots
+        self.roots = list(MakefileSpec(x) for x in roots)
 
         # The SPACK_PACKAGE_IDS variable is "exported", which can be used when including
         # generated makefiles to add post-install hooks, like pushing to a buildcache,
@@ -131,17 +162,19 @@ class MakefileModel:
         # And here we collect a tuple of (target, prereqs, dag_hash, nice_name, buildcache_flag)
         self.make_adjacency_list = [
             (
-                self._safe_name(item.target),
-                " ".join(self._install_target(self._safe_name(s)) for s in item.prereqs),
-                item.target.dag_hash(),
-                item.target.format("{name}{@version}{%compiler}{variants}{arch=architecture}"),
+                item.target.safe_name(),
+                " ".join(self._install_target(s.safe_name()) for s in item.prereqs),
+                item.target.spec_hash(),
+                item.target.unsafe_format(
+                    "{name}{@version}{%compiler}{variants}{arch=architecture}"
+                ),
                 item.buildcache_flag,
             )
             for item in adjacency_list
         ]
 
         # Root specs without deps are the prereqs for the environment target
-        self.root_install_targets = [self._install_target(self._safe_name(s)) for s in roots]
+        self.root_install_targets = [self._install_target(s.safe_name()) for s in self.roots]
 
         self.jobserver_support = "+" if jobserver else ""
 
@@ -157,16 +190,13 @@ class MakefileModel:
         self.phony_convenience_targets: List[str] = []
 
         for node in adjacency_list:
-            tgt = self._safe_name(node.target)
+            tgt = node.target.safe_name()
             self.all_pkg_identifiers.append(tgt)
             self.all_install_related_targets.append(self._install_target(tgt))
             self.all_install_related_targets.append(self._install_deps_target(tgt))
             if make_prefix is None:
                 self.phony_convenience_targets.append(os.path.join("install", tgt))
                 self.phony_convenience_targets.append(os.path.join("install-deps", tgt))
-
-    def _safe_name(self, spec: spack.spec.Spec) -> str:
-        return spec.format("{name}-{version}-{hash}")
 
     def _target(self, name: str) -> str:
         # The `all` and `clean` targets are phony. It doesn't make sense to
@@ -197,11 +227,16 @@ class MakefileModel:
             "install_deps_target": self._target("install-deps"),
             "any_hash_target": self._target("%"),
             "jobserver_support": self.jobserver_support,
+            "spack_script": shlex.quote(spack.paths.spack_script),
             "adjacency_list": self.make_adjacency_list,
             "phony_convenience_targets": " ".join(self.phony_convenience_targets),
             "pkg_ids_variable": self.pkg_identifier_variable,
             "pkg_ids": " ".join(self.all_pkg_identifiers),
         }
+
+    @property
+    def empty(self):
+        return len(self.roots) == 0
 
     @staticmethod
     def from_env(
@@ -225,15 +260,10 @@ class MakefileModel:
             jobserver: when enabled, make will invoke Spack with jobserver support. For
                 dry-run this should be disabled.
         """
-        # If no specs are provided as a filter, build all the specs in the environment.
-        if filter_specs:
-            entrypoints = [env.matching_spec(s) for s in filter_specs]
-        else:
-            entrypoints = [s for _, s in env.concretized_specs()]
-
+        roots = env.all_matching_specs(*filter_specs) if filter_specs else env.concrete_roots()
         visitor = DepfileSpecVisitor(pkg_buildcache, dep_buildcache)
         traverse.traverse_breadth_first_with_visitor(
-            entrypoints, traverse.CoverNodesVisitor(visitor, key=lambda s: s.dag_hash())
+            roots, traverse.CoverNodesVisitor(visitor, key=lambda s: s.dag_hash())
         )
 
-        return MakefileModel(env, entrypoints, visitor.adjacency_list, make_prefix, jobserver)
+        return MakefileModel(env, roots, visitor.adjacency_list, make_prefix, jobserver)

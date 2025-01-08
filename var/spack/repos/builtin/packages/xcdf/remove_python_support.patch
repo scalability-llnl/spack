@@ -1,0 +1,12 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 3270f47..e5648d2 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -45,7 +45,6 @@ SET (XCDF_PATCH_VERSION  1 CACHE STRING "Patch number")
+ # ------------------------------------------------------------------------------
+ SET (CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+ INCLUDE (Utility)
+-INCLUDE (Python)
+ 
+ INCLUDE_DIRECTORIES (${CMAKE_SOURCE_DIR}/include)
+ INCLUDE_DIRECTORIES (${CMAKE_SOURCE_DIR}/include/utility)

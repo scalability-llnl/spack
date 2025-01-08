@@ -1,0 +1,94 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index ca88a4d..30118fc 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -64,13 +64,27 @@ if (SR_PEDANTIC)
+     endif()
+ endif()
+ 
++set(REDISPP_LIB_DIR ${CMAKE_SOURCE_DIR}/install/lib CACHE PATH "path to redis++")
++set(REDISPP_INC_DIR ${CMAKE_SOURCE_DIR}/install/include CACHE PATH
++    "path to redis++ headers")
++
++set(HIREDIS_LIB_DIR ${CMAKE_SOURCE_DIR}/install/lib CACHE PATH "path to hiredis")
++set(HIREDIS_INC_DIR ${CMAKE_SOURCE_DIR}/install/include CACHE PATH
++    "path to hiredis headers")
++
++message("USING REDIS++ PATH: ${REDISPP_LIB_DIR}")
++message("USING REDIS++ INCLUDE PATH: ${REDISPP_INC_DIR}")
++
++message("USING HIREDIS PATH: ${HIREDIS_LIB_DIR}")
++message("USING HIREDIS INCLUDE PATH: ${HIREDIS_INC_DIR}")
++
+ # Bring in third-party libaries needed for the SmartRedis library
+ find_library(REDISPP redis++
+-    PATHS ${CMAKE_SOURCE_DIR}/install/lib NO_DEFAULT_PATH
++    PATHS ${REDISPP_LIB_DIR} NO_DEFAULT_PATH
+     REQUIRED STATIC
+ )
+ find_library(HIREDIS hiredis
+-    PATHS ${CMAKE_SOURCE_DIR}/install/lib NO_DEFAULT_PATH
++    PATHS ${HIREDIS_LIB_DIR} NO_DEFAULT_PATH
+     REQUIRED STATIC
+ )
+ find_package(Threads REQUIRED)
+@@ -121,7 +135,8 @@ set(CLIENT_SRC
+ # Define include directories for header files
+ include_directories(SYSTEM
+     include
+-    install/include
++    ${REDISPP_INC_DIR}
++    ${HIREDIS_INC_DIR}
+ )
+ 
+ # Build the Fortran library
+@@ -177,8 +192,8 @@ install(TARGETS smartredis
+ # Build the Python library for SmartRedis
+ if(SR_PYTHON)
+ 	message("-- Python client build enabled")
+-	add_subdirectory(${CMAKE_SOURCE_DIR}/third-party/pybind
+-                     ${CMAKE_SOURCE_DIR}/third-party/pybind/build)
++    set(pybind11_DIR ${CMAKE_SOURCE_DIR}/third-party/pybind/tools)
++    find_package(pybind11)
+ 
+ 	pybind11_add_module(smartredisPy
+ 	                    src/python/src/pyclient.cpp
+diff --git a/setup.py b/setup.py
+index 90493ee..dd075db 100644
+--- a/setup.py
++++ b/setup.py
+@@ -73,14 +73,6 @@ class CMakeBuild(build_ext):
+             env.get('CXXFLAGS', ''),
+             self.distribution.get_version())
+ 
+-        # Build dependencies
+-        print('-'*10, 'Building third-party dependencies', '-'*40)
+-        subprocess.check_call(
+-            [self.make, "deps"],
+-            cwd=source_directory,
+-            shell=False
+-        )
+-
+         # Run CMake config step
+         print('-'*10, 'Configuring build', '-'*40)
+         config_args = [
+@@ -90,7 +82,19 @@ class CMakeBuild(build_ext):
+             '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + str(build_directory),
+             '-DPYTHON_EXECUTABLE=' + sys.executable,
+             '-DSR_PYTHON=ON',
++            '-Dpybind11_DIR=' + str(os.getenv('PYBIND11_TOOLS')),
+         ]
++
++        for setting in [
++            "REDISPP_LIB_DIR",
++            "REDISPP_INC_DIR",
++            "HIREDIS_LIB_DIR",
++            "HIREDIS_INC_DIR",
++        ]:
++            val = os.getenv(setting)
++            if val is not None:
++                config_args.append(f"-D{setting}={val}")
++
+         subprocess.check_call(
+             [self.cmake] + config_args,
+             cwd=source_directory,

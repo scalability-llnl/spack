@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,7 @@ class CodeServer(Package):
     homepage = "https://coder.com/docs/code-server/latest"
     url = "https://github.com/coder/code-server/releases/download/v4.4.0/code-server-4.4.0-linux-amd64.tar.gz"
 
+    version("4.12.0", sha256="d50ee947c4144a6ff2656e664ecbb3f70b75168b8a6e8c3eef47787f3c240c26")
     version("4.11.0", sha256="4eb233054941ec298caec6fc84dfba0a72c1bc5fadc0fe4896b10f3f4a291d51")
     version("4.10.1", sha256="f34ce611a9c058982a5e9d200fdf009788e3a564e970b053f4145574bce21b09")
     version("4.4.0", sha256="e3dd265acb18c2230c72d19bbce619ac5c1bd800ebb26e5e169c4d613069500d")
@@ -50,6 +50,9 @@ class CodeServer(Package):
     version("3.1.1", sha256="5dd922d28b2e351c146081849d987fb1e439ee7d53b941434b2eecb2a194da71")
     version("3.1.0", sha256="5ef85c8f280ce781a176a8b77386b333efe892755a5c325a1782e4eac6016e59")
     version("3.0.2", sha256="04367cfeb23991f3dc3f1ef8e3dfe5e9d683bb50c9e1fa69e3c21757facfd7ee")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     def url_for_version(self, version):
         if version <= Version("3.2.0"):

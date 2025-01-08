@@ -1,10 +1,7 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import os
 import re
-import shutil
 
 from spack.package import *
 
@@ -13,40 +10,52 @@ class Fzf(MakefilePackage):
     """fzf is a general-purpose command-line fuzzy finder."""
 
     homepage = "https://github.com/junegunn/fzf"
-    url = "https://github.com/junegunn/fzf/archive/0.17.5.tar.gz"
+    url = "https://github.com/junegunn/fzf/archive/v0.54.0.tar.gz"
+
+    maintainers("alecbcs")
 
     executables = ["^fzf$"]
 
-    version("0.22.0", sha256="3090748bb656333ed98490fe62133760e5da40ba4cd429a8142b4a0b69d05586")
-    version("0.17.5", sha256="de3b39758e01b19bbc04ee0d5107e14052d3a32ce8f40d4a63d0ed311394f7ee")
-    version("0.17.4", sha256="a4b009638266b116f422d159cd1e09df64112e6ae3490964db2cd46636981ff0")
-    version("0.17.3", sha256="e843904417adf926613431e4403fded24fade56269446e92aac6ff1db86af81e")
-    version("0.17.1", sha256="9c881e55780c0f56b5a30b87df756634d853bfd3938e7e53cb2df6ed63aa84a7")
-    version("0.17.0-2", sha256="a084415231b452b92a6b8aa87a69c0c02ee59bfe95774bf0d4fcc9a6251ece20")
-    version("0.17.0", sha256="23569faf64cd6831c09aad7030c8b4bace0eb7a979c580b33cc4e4f9ff303e29")
-    version("0.16.11", sha256="e3067d4ad58d7be51eba9a35c06518cd7145c0cc297882796c7e40285f268a99")
-    version("0.16.10", sha256="a6b9d8abcba4239d30201cc7911e9c305a5cd750081ce5cd389f8e7425f4dc93")
-    version("0.16.9", sha256="dd9434576c68313481613a5bd52dbf623eee37a5c87f7bb66ca71ac8add5ff94")
-    version("0.16.8", sha256="daef99f67cff3dad261dbcf2aef995bb78b360bcc7098d7230cb11674e1ee1d4")
+    license("MIT")
 
-    depends_on("go@1.11:", type="build")
+    version("0.57.0", sha256="d4e8e25fad2d3f75943b403c40b61326db74b705bf629c279978fdd0ceb1f97c")
+    version("0.56.2", sha256="1d67edb3e3ffbb14fcbf786bfcc0b5b8d87db6a0685135677b8ef4c114d2b864")
+    version("0.55.0", sha256="805383f71bca7f8fb271ecd716852aea88fd898d5027d58add9e43df6ea766da")
+    version("0.54.3", sha256="6413f3916f8058b396820f9078b1336d94c72cbae39c593b1d16b83fcc4fdf74")
+    version("0.53.0", sha256="d45abbfb64f21913c633d46818d9d3eb3d7ebc7e94bd16f45941958aa5480e1d")
+    version("0.52.1", sha256="96848746ca78249c1fdd16f170776ce2f667097b60e4ffbd5ecdbd7dfac72ef9")
+    version("0.48.1", sha256="c8dbb545d651808ef4e1f51edba177fa918ea56ac53376c690dc6f2dd0156a71")
+    version("0.47.0", sha256="bc566cb4630418bc9981898d3350dbfddc114637a896acaa8d818a51945bdf30")
+    version("0.46.1", sha256="b0d640be3ae79980fdf461096f7d9d36d38ec752e25f8c4d2ca3ca6c041c2491")
+    version("0.45.0", sha256="f0dd5548f80fe7f80d9277bb8fe252ac6e42a41e76fc85ce0f3af702cd987600")
+    version("0.44.1", sha256="295f3aec9519f0cf2dce67a14e94d8a743d82c19520e5671f39c71c9ea04f90c")
+    version("0.42.0", sha256="743c1bfc7851b0796ab73c6da7db09d915c2b54c0dd3e8611308985af8ed3df2")
+    version("0.41.1", sha256="982682eaac377c8a55ae8d7491fcd0e888d6c13915d01da9ebb6b7c434d7f4b5")
+    version("0.40.0", sha256="9597f297a6811d300f619fff5aadab8003adbcc1566199a43886d2ea09109a65")
+
+    depends_on("go@1.17:", type="build")
+    depends_on("go@1.20:", type="build", when="@0.49.0:")
 
     variant("vim", default=False, description="Install vim plugins for fzf")
 
-    patch("github_mirrors.patch", when="@:0.17.5")
-
     @classmethod
     def determine_version(cls, exe):
-        candidate = Executable(exe)("--version", output=str, error=str)
-        match = re.match(r"(^[\d.]+)", candidate)
+        output = Executable(exe)("--version", output=str, error=str)
+        match = re.match(r"(^[\d.]+)", output)
         return match.group(1) if match else None
 
-    @when("@:0.17.5")
-    def patch(self):
-        glide_home = os.path.join(self.build_directory, "glide_home")
-        os.environ["GLIDE_HOME"] = glide_home
-        shutil.rmtree(glide_home, ignore_errors=True)
-        os.mkdir(glide_home)
+    def url_for_version(self, version):
+        base = "refs/tags/v" if self.spec.satisfies("@:0.53.0") else ""
+        return f"https://github.com/junegunn/fzf/archive/{base}{version}.tar.gz"
+
+    def setup_build_environment(self, env):
+        # Point GOPATH at the top of the staging dir for the build step.
+        env.prepend_path("GOPATH", self.stage.path)
+
+        # Set required environment variables since we
+        # are not using git to pull down the repository.
+        env.set("FZF_VERSION", self.spec.version)
+        env.set("FZF_REVISION", "tarball")
 
     def install(self, spec, prefix):
         make("install")
@@ -54,8 +63,9 @@ class Fzf(MakefilePackage):
         mkdir(prefix.bin)
         install("bin/fzf", prefix.bin)
 
-    @run_after("install")
-    def post_install(self):
-        if "+vim" in self.spec:
-            mkdir(self.prefix.plugin)
-            install("plugin/fzf.vim", self.prefix.plugin)
+        mkdirp(prefix.share.fzf.shell)
+        install_tree("shell", prefix.share.fzf.shell)
+
+        if spec.satisfies("+vim"):
+            mkdirp(prefix.share.fzf.plugins)
+            install("plugin/fzf.vim", prefix.share.fzf.plugins)

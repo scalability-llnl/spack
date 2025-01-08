@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,9 @@ class RSnakecase(RPackage):
 
     cran = "snakecase"
 
+    license("GPL-3.0-only")
+
+    version("0.11.1", sha256="2a5f9791337ca42e392f23fb873eb44f74810583e9aa7c62fda2f28f9e750821")
     version("0.11.0", sha256="998420a58391ac85785e60bcdf6fd6927c82758ad2859a9a73a0e57299e8c1cf")
 
     depends_on("r@3.2:", type=("build", "run"))

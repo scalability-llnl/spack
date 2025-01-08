@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,7 @@ class RPathview(RPackage):
 
     bioc = "pathview"
 
+    version("1.40.0", commit="6546c6139f797bdff2fcc0645030a5de3588f2eb")
     version("1.38.0", commit="8229376ffd45278b74a6e4ccfb3abea8992667f7")
     version("1.36.1", commit="f2e86b106c1cd91aac703337f968b7593a61c68d")
     version("1.36.0", commit="4f6be090a4089b5259d8e796d62f9830e2d63943")

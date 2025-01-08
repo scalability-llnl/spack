@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,15 +16,31 @@ class Qgis(CMakePackage):
 
     maintainers("adamjstewart", "Sinan81")
 
-    version("3.28.3", sha256="a09124f46465a520f6d735306ba3954c339b84aa396d6f52b476b82edcc4fe0e")
-    # Prefer latest long term release
+    license("GPL-2.0-or-later")
+    version("3.40.1", sha256="53110464c9f5ba5562c437e1563ab36dad2f218e6e7d1c0cfbe5b6effe241c8e")
+    #  version 3.36 isn't building right now.
     version(
-        "3.22.16",
-        sha256="dbd1f8a639291bb2492eea61e4ef96079d7b27d3dfa538dab8cd98f31429254a",
+        "3.36.0",
+        sha256="1b64bc92660bf07edc6b6478fc6a13656149e87d92eabe5c3db9493072506e2c",
+        deprecated=True,
+    )
+    # Prefer latest LTR
+    version(
+        "3.34.13",
+        sha256="a8873ca9bae346bae48ef3fe3eed702ef1f06d951201464464a64019302ba50b",
         preferred=True,
     )
+    version("3.34.4", sha256="7d1c5fafff13f508a9bcf6244c9666f891351deb1ace2aedcc63504f070c5ce4")
+    version("3.34.0", sha256="348a2df4c4520813a319b7f72546b3823e044cacd28646ba189b56a49c7d1b5f")
+    version("3.28.15", sha256="217342ba2232cc8fe5bf8f3671c2b3d6daf5504c33006b67424373e70d568dfa")
+    version("3.28.12", sha256="d6d0ea39ed3433d553f8b83324dc14cfa90f8caaf766fa484791df9169800f25")
+    version("3.28.11", sha256="c5eb703893c7f98de051c45d677c4a34b40f986db51782a4930ddefad4e193b4")
+    version("3.28.10", sha256="cff867e97909bbc2facce6343770dcb1b61fc6e4855f57783e30bf63d51c5218")
+    version("3.28.3", sha256="a09124f46465a520f6d735306ba3954c339b84aa396d6f52b476b82edcc4fe0e")
+    version("3.22.16", sha256="dbd1f8a639291bb2492eea61e4ef96079d7b27d3dfa538dab8cd98f31429254a")
     version("3.22.0", sha256="cf0c169863f332aab67d8c4943e14b73a564f0254bf54015f5826c6427e6785b")
     version("3.18.2", sha256="1913e4d5596bbc8b7d143f3defb18bf376f750a71f334f69d76af5deca7ecc5d")
+    version("3.16.16", sha256="ccd2f404534fcb00b5e17863375462090c9575e68b32ce50b2e7e925d1e01a49")
     version("3.16.12", sha256="65e9634b5c885c98f3555cf77bc2e3fae5e19279aa17e3f6626ff5d7455fd2b9")
     version("3.16.5", sha256="525f469ad6e40dd7a8f09ebab5eb6a2dffc45939b99b7d937750cc04ed78d61c")
     version("3.14.16", sha256="c9915c2e577f1812a2b35b678b123c58407e07824d73e5ec0dda13db7ca75c04")
@@ -49,6 +64,9 @@ class Qgis(CMakePackage):
     version("3.4.15", sha256="81c93b72adbea41bd765294c0cdb09476a632d8b3f90101abc409ca9ea7fb04d")
     version("3.4.14", sha256="e138716c7ea84011d3b28fb9c75e6a79322fb66f532246393571906a595d7261")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("3d", default=False, description="Build QGIS 3D library")
     variant("analysis", default=True, description="Build QGIS analysis library")
     variant("apidoc", default=False, description="Build QGIS API doxygen documentation")
@@ -60,6 +78,7 @@ class Qgis(CMakePackage):
         "custom_widgets", default=False, description="Build QGIS custom widgets for Qt Designer"
     )
     variant("desktop", default=True, description="Build QGIS desktop")
+    # variant("draco", default=True, description="Build with DRACO support") #TODO
     variant("georeferencer", default=True, description="Build GeoReferencer plugin")
     variant("globe", default=False, description="Build Globe plugin")
     variant("grass7", default=False, description="Build with GRASS providers and plugin")
@@ -74,6 +93,7 @@ class Qgis(CMakePackage):
     )
     variant("oauth2_plugin", default=True, description="Build OAuth2 authentication method plugin")
     variant("oracle", default=False, description="Build with Oracle support")
+    variant("pdal", default=False, description="Build with PDAL support")
     variant("postgresql", default=True, description="Build with PostreSQL support")
     variant(
         "py_compile",
@@ -110,9 +130,15 @@ class Qgis(CMakePackage):
     depends_on("proj@4.4.0:")
     depends_on("proj@4.9.3:", when="@3.8.2:")
     depends_on("proj@7.2:", when="@3.28:")
+    depends_on("proj@:8", when="@3.28")  # build fails with proj@9
+    # fails to build with proj 9.4+ until the backported patch in 3.34.5
+    # https://github.com/qgis/QGIS/pull/56761
+    depends_on("proj@:9.3", when="@:3.34.4")
     depends_on("py-psycopg2", type=("build", "run"))  # TODO: is build dependency necessary?
     depends_on("py-pyqt4", when="@2")
     depends_on("py-pyqt5@5.3:", when="@3")
+    depends_on("py-sip", type="build")
+    depends_on("py-pyqt-builder", type="build", when="^py-sip@5:")
     depends_on("py-requests", type=("build", "run"))  # TODO: is build dependency necessary?
     depends_on("python@3.0.0:", type=("build", "run"), when="@3")
     depends_on("python@3.6:", type=("build", "run"), when="@3.18:")
@@ -120,14 +146,17 @@ class Qgis(CMakePackage):
     depends_on("qca@2.2.1:")
     depends_on("qjson")
     depends_on("qscintilla +python")
-    depends_on("qt+dbus")
-    depends_on("qt+dbus@5.12.0:", when="@3.20:")
-    depends_on("qt+dbus@5.14.0:", when="@3.28:")
+    depends_on("qt+dbus+location")
+    depends_on("qt+dbus+location@5.12.0:", when="@3.20:")
+    depends_on("qt+dbus+location@5.14.0:", when="@3.28:")
+    depends_on("qt+dbus+location@5.15.2:", when="@3.36:")
     depends_on("qtkeychain@0.5:", when="@3:")
     depends_on("qwt@5:")
     depends_on("qwtpolar")
     depends_on("sqlite@3.0.0: +column_metadata")
+    depends_on("pdal", when="+pdal")
     depends_on("protobuf", when="@3.16.4:")
+    depends_on("protobuf@:3.21", when="@:3.28")
     depends_on("zstd", when="@3.22:")
 
     # Runtime python dependencies, not mentioned in install instructions
@@ -161,13 +190,38 @@ class Qgis(CMakePackage):
     depends_on("qt@5.9.0:", when="@3.10.0:")
     depends_on("qtkeychain@:1.5", when="^qt@4")
     depends_on("qt@:4", when="@2")
-    # Help concretizer
-    # +qsci_api is implied by qscintilla+python dependency
-    depends_on("py-pyqt5@5.3: +qsci_api", when="@3")
 
     patch("pyqt5.patch", when="@:3.14 ^qt@5")
-    patch("pyqt5_3165x.patch", when="@3.16.5:3.21 ^qt@5")
-    patch("pyqt5_322x.patch", when="@3.22: ^qt@5")
+    patch("pyqt5_3165x.patch", when="@3.16.5:3.21 ^qt@5 ^py-sip@4")
+    patch("pyqt5_322x.patch", when="@3.22: ^qt@5 ^py-sip@4")
+
+    @run_before("cmake", when="^py-pyqt5")
+    def fix_pyqt5_cmake(self):
+        cmfile = FileFilter(join_path("cmake", "FindPyQt5.cmake"))
+        pyqtpath = join_path(self.spec["py-pyqt5"].package.module.python_platlib, "PyQt5")
+        cmfile.filter(
+            'SET(PYQT5_MOD_DIR "${Python_SITEARCH}/PyQt5")',
+            'SET(PYQT5_MOD_DIR "' + pyqtpath + '")',
+            string=True,
+        )
+        cmfile.filter(
+            'SET(PYQT5_SIP_DIR "${Python_SITEARCH}/PyQt5/bindings")',
+            'SET(PYQT5_SIP_DIR "' + pyqtpath + '/bindings")',
+            string=True,
+        )
+
+    @run_before("build")
+    def fix_qsci_sip(self):
+        if "^py-pyqt5" in self.spec:
+            pyqtx = "PyQt5"
+        elif "^py-pyqt6" in self.spec:
+            pyqtx = "PyQt6"
+
+        sip_inc_dir = join_path(
+            self.spec["qscintilla"].package.module.python_platlib, pyqtx, "bindings"
+        )
+        with open(join_path("python", "gui", "pyproject.toml.in"), "a") as tomlfile:
+            tomlfile.write(f'\n[tool.sip.project]\nsip-include-dirs = ["{sip_inc_dir}"]\n')
 
     def cmake_args(self):
         spec = self.spec
@@ -188,6 +242,7 @@ class Qgis(CMakePackage):
                 "-DLIBZIP_INCLUDE_DIR=" + self.spec["libzip"].prefix.include,
                 "-DLIBZIP_CONF_INCLUDE_DIR=" + self.spec["libzip"].prefix.lib.libzip.include,
                 "-DGDAL_CONFIG_PREFER_PATH=" + self.spec["gdal"].prefix.bin,
+                "-DGDAL_CONFIG=" + join_path(self.spec["gdal"].prefix.bin, "gdal-config"),
                 "-DGEOS_CONFIG_PREFER_PATH=" + self.spec["geos"].prefix.bin,
                 "-DGSL_CONFIG_PREFER_PATH=" + self.spec["gsl"].prefix.bin,
                 "-DPOSTGRES_CONFIG_PREFER_PATH=" + self.spec["postgresql"].prefix.bin,
@@ -209,6 +264,7 @@ class Qgis(CMakePackage):
                     "TRUE" if "+custom_widgets" in spec else "FALSE"
                 ),
                 "-DWITH_DESKTOP={0}".format("TRUE" if "+desktop" in spec else "FALSE"),
+                "-DWITH_DRACO={0}".format("TRUE" if "+draco" in spec else "FALSE"),
                 "-DWITH_GEOREFERENCER={0}".format("TRUE" if "+georeferencer" in spec else "FALSE"),
                 "-DWITH_GLOBE={0}".format("TRUE" if "+globe" in spec else "FALSE"),
                 "-DWITH_GUI={0}".format("TRUE" if "+gui" in spec else "FALSE"),
@@ -216,6 +272,7 @@ class Qgis(CMakePackage):
                 self.define_from_variant("WITH_INTERNAL_O2", "internal_o2"),
                 "-DWITH_OAUTH2_PLUGIN={0}".format("TRUE" if "+oauth2_plugin" in spec else "FALSE"),
                 "-DWITH_ORACLE={0}".format("TRUE" if "+oracle" in spec else "FALSE"),
+                "-DWITH_PDAL={0}".format("TRUE" if "+pdal" in spec else "FALSE"),
                 "-DWITH_POSTGRESQL={0}".format("TRUE" if "+postgresql" in spec else "FALSE"),
                 "-DWITH_PY_COMPILE={0}".format("TRUE" if "+py_compile" in spec else "FALSE"),
                 "-DWITH_QSCIAPI={0}".format("TRUE" if "+qsciapi" in spec else "FALSE"),

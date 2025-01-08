@@ -1,0 +1,19 @@
+--- a/src/lib_proj.cmake	2024-06-12 13:07:41
++++ b/src/lib_proj.cmake	2024-06-12 13:08:16
+@@ -404,8 +404,14 @@
+ 
+ if(TIFF_ENABLED)
+   target_compile_definitions(proj PRIVATE -DTIFF_ENABLED)
+-  target_include_directories(proj PRIVATE ${TIFF_INCLUDE_DIR})
+-  target_link_libraries(proj PRIVATE ${TIFF_LIBRARY})
++  if( CMAKE_VERSION VERSION_LESS 3.11 AND CMAKE_CROSSCOMPILING )
++      # Hack needed for ubuntu:18.04 mingw64 cross compiling to avoid
++      # -isystem to be emitted (similar to https://discourse.cmake.org/t/use-of-isystem/1574)
++      target_include_directories(proj PRIVATE ${TIFF_INCLUDE_DIRS})
++      target_link_libraries(proj PRIVATE ${TIFF_LIBRARIES})
++  else()
++      target_link_libraries(proj PRIVATE TIFF::TIFF)
++  endif()
+ endif()
+ 
+ if(CURL_ENABLED)

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -8,203 +7,141 @@ This test checks the binary packaging infrastructure
 """
 import argparse
 import os
+import pathlib
 import platform
 import shutil
-import stat
-import sys
+import urllib.error
 from collections import OrderedDict
 
 import pytest
 
-from llnl.util.filesystem import mkdirp
-from llnl.util.symlink import symlink
+from llnl.util import filesystem as fs
+from llnl.util.symlink import readlink, symlink
 
 import spack.binary_distribution as bindist
 import spack.cmd.buildcache as buildcache
+import spack.config
+import spack.error
+import spack.fetch_strategy
+import spack.mirrors.utils
 import spack.package_base
-import spack.repo
-import spack.store
+import spack.stage
 import spack.util.gpg
 import spack.util.url as url_util
-from spack.fetch_strategy import FetchStrategyComposite, URLFetchStrategy
+from spack.fetch_strategy import URLFetchStrategy
+from spack.installer import PackageInstaller
 from spack.paths import mock_gpg_keys_path
 from spack.relocate import (
-    ensure_binary_is_relocatable,
     macho_find_paths,
     macho_make_paths_normal,
     macho_make_paths_relative,
-    needs_binary_relocation,
-    needs_text_relocation,
     relocate_links,
     relocate_text,
 )
 from spack.spec import Spec
 
-pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="does not run on windows")
-
-
-def fake_fetchify(url, pkg):
-    """Fake the URL for a package so it downloads from a file."""
-    fetcher = FetchStrategyComposite()
-    fetcher.append(URLFetchStrategy(url))
-    pkg.fetcher = fetcher
+pytestmark = pytest.mark.not_on_windows("does not run on windows")
 
 
 @pytest.mark.usefixtures("install_mockery", "mock_gnupghome")
-def test_buildcache(mock_archive, tmpdir):
-    # tweak patchelf to only do a download
-    pspec = Spec("patchelf").concretized()
-    pkg = pspec.package
-    fake_fetchify(pkg.fetcher, pkg)
-    mkdirp(os.path.join(pkg.prefix, "bin"))
-    patchelfscr = os.path.join(pkg.prefix, "bin", "patchelf")
-    f = open(patchelfscr, "w")
-    body = """#!/bin/bash
-echo $PATH"""
-    f.write(body)
-    f.close()
-    st = os.stat(patchelfscr)
-    os.chmod(patchelfscr, st.st_mode | stat.S_IEXEC)
-
-    # Install the test package
-    spec = Spec("trivial-install-test-package")
-    spec.concretize()
-    assert spec.concrete
-    pkg = spec.package
-    fake_fetchify(mock_archive.url, pkg)
-    pkg.do_install()
+def test_buildcache(mock_archive, tmp_path, monkeypatch, mutable_config):
+    # Install a test package
+    spec = Spec("trivial-install-test-package").concretized()
+    monkeypatch.setattr(spec.package, "fetcher", URLFetchStrategy(url=mock_archive.url))
+    PackageInstaller([spec.package], explicit=True).install()
     pkghash = "/" + str(spec.dag_hash(7))
 
     # Put some non-relocatable file in there
-    filename = os.path.join(spec.prefix, "dummy.txt")
-    with open(filename, "w") as script:
-        script.write(spec.prefix)
+    dummy_txt = pathlib.Path(spec.prefix) / "dummy.txt"
+    dummy_txt.write_text(spec.prefix)
 
     # Create an absolute symlink
     linkname = os.path.join(spec.prefix, "link_to_dummy.txt")
-    symlink(filename, linkname)
+    symlink(dummy_txt, linkname)
 
-    # Create the build cache  and
-    # put it directly into the mirror
-    mirror_path = os.path.join(str(tmpdir), "test-mirror")
-    spack.mirror.create(mirror_path, specs=[])
+    # Create the build cache and put it directly into the mirror
+    mirror_path = str(tmp_path / "test-mirror")
+    spack.mirrors.utils.create(mirror_path, specs=[])
 
     # register mirror with spack config
     mirrors = {"spack-mirror-test": url_util.path_to_file_url(mirror_path)}
     spack.config.set("mirrors", mirrors)
 
-    stage = spack.stage.Stage(mirrors["spack-mirror-test"], name="build_cache", keep=True)
-    stage.create()
+    with spack.stage.Stage(mirrors["spack-mirror-test"], name="build_cache", keep=True):
+        parser = argparse.ArgumentParser()
+        buildcache.setup_parser(parser)
 
-    # setup argument parser
-    parser = argparse.ArgumentParser()
-    buildcache.setup_parser(parser)
+        create_args = ["create", "-f", "--rebuild-index", mirror_path, pkghash]
+        # Create a private key to sign package with if gpg2 available
+        spack.util.gpg.create(
+            name="test key 1",
+            expires="0",
+            email="spack@googlegroups.com",
+            comment="Spack test key",
+        )
 
-    create_args = ["create", "-a", "-f", "-d", mirror_path, pkghash]
-    # Create a private key to sign package with if gpg2 available
-    spack.util.gpg.create(
-        name="test key 1", expires="0", email="spack@googlegroups.com", comment="Spack test key"
-    )
+        args = parser.parse_args(create_args)
+        buildcache.buildcache(parser, args)
+        # trigger overwrite warning
+        buildcache.buildcache(parser, args)
 
-    create_args.insert(create_args.index("-a"), "--rebuild-index")
+        # Uninstall the package
+        spec.package.do_uninstall(force=True)
 
-    args = parser.parse_args(create_args)
-    buildcache.buildcache(parser, args)
-    # trigger overwrite warning
-    buildcache.buildcache(parser, args)
+        install_args = ["install", "-f", pkghash]
+        args = parser.parse_args(install_args)
+        # Test install
+        buildcache.buildcache(parser, args)
 
-    # Uninstall the package
-    pkg.do_uninstall(force=True)
+        files = os.listdir(spec.prefix)
 
-    install_args = ["install", "-a", "-f", pkghash]
-    args = parser.parse_args(install_args)
-    # Test install
-    buildcache.buildcache(parser, args)
+        assert "link_to_dummy.txt" in files
+        assert "dummy.txt" in files
 
-    files = os.listdir(spec.prefix)
+        # Validate the relocation information
+        buildinfo = bindist.read_buildinfo_file(spec.prefix)
+        assert buildinfo["relocate_textfiles"] == ["dummy.txt"]
+        assert buildinfo["relocate_links"] == ["link_to_dummy.txt"]
 
-    assert "link_to_dummy.txt" in files
-    assert "dummy.txt" in files
+        args = parser.parse_args(["keys"])
+        buildcache.buildcache(parser, args)
 
-    # Validate the relocation information
-    buildinfo = bindist.read_buildinfo_file(spec.prefix)
-    assert buildinfo["relocate_textfiles"] == ["dummy.txt"]
-    assert buildinfo["relocate_links"] == ["link_to_dummy.txt"]
+        args = parser.parse_args(["list"])
+        buildcache.buildcache(parser, args)
 
-    # create build cache with relative path
-    create_args.insert(create_args.index("-a"), "-f")
-    create_args.insert(create_args.index("-a"), "-r")
-    args = parser.parse_args(create_args)
-    buildcache.buildcache(parser, args)
+        args = parser.parse_args(["list"])
+        buildcache.buildcache(parser, args)
 
-    # Uninstall the package
-    pkg.do_uninstall(force=True)
+        args = parser.parse_args(["list", "trivial"])
+        buildcache.buildcache(parser, args)
 
-    args = parser.parse_args(install_args)
-    buildcache.buildcache(parser, args)
+        # Copy a key to the mirror to have something to download
+        shutil.copyfile(mock_gpg_keys_path + "/external.key", mirror_path + "/external.key")
 
-    # test overwrite install
-    install_args.insert(install_args.index("-a"), "-f")
-    args = parser.parse_args(install_args)
-    buildcache.buildcache(parser, args)
+        args = parser.parse_args(["keys"])
+        buildcache.buildcache(parser, args)
 
-    files = os.listdir(spec.prefix)
-    assert "link_to_dummy.txt" in files
-    assert "dummy.txt" in files
-    #    assert os.path.realpath(
-    #        os.path.join(spec.prefix, 'link_to_dummy.txt')
-    #    ) == os.path.realpath(os.path.join(spec.prefix, 'dummy.txt'))
+        args = parser.parse_args(["keys", "-f"])
+        buildcache.buildcache(parser, args)
 
-    args = parser.parse_args(["keys"])
-    buildcache.buildcache(parser, args)
-
-    args = parser.parse_args(["list"])
-    buildcache.buildcache(parser, args)
-
-    args = parser.parse_args(["list"])
-    buildcache.buildcache(parser, args)
-
-    args = parser.parse_args(["list", "trivial"])
-    buildcache.buildcache(parser, args)
-
-    # Copy a key to the mirror to have something to download
-    shutil.copyfile(mock_gpg_keys_path + "/external.key", mirror_path + "/external.key")
-
-    args = parser.parse_args(["keys"])
-    buildcache.buildcache(parser, args)
-
-    args = parser.parse_args(["keys", "-f"])
-    buildcache.buildcache(parser, args)
-
-    args = parser.parse_args(["keys", "-i", "-t"])
-    buildcache.buildcache(parser, args)
-
-    # unregister mirror with spack config
-    mirrors = {}
-    spack.config.set("mirrors", mirrors)
-    shutil.rmtree(mirror_path)
-    stage.destroy()
+        args = parser.parse_args(["keys", "-i", "-t"])
+        buildcache.buildcache(parser, args)
 
 
-@pytest.mark.usefixtures("install_mockery")
-def test_relocate_text(tmpdir):
-    spec = Spec("trivial-install-test-package")
-    spec.concretize()
-    with tmpdir.as_cwd():
-        # Validate the text path replacement
-        old_dir = "/home/spack/opt/spack"
-        filename = "dummy.txt"
-        with open(filename, "w") as script:
-            script.write(old_dir)
-            script.close()
-        filenames = [filename]
-        new_dir = "/opt/rh/devtoolset/"
-        # Singleton dict doesn't matter if Ordered
-        relocate_text(filenames, {old_dir: new_dir})
-        with open(filename, "r") as script:
-            for line in script:
-                assert new_dir in line
-        ensure_binary_is_relocatable(os.path.realpath(filename))
+def test_relocate_text(tmp_path):
+    """Tests that a text file containing the original directory of an installation, can be
+    relocated to a target directory.
+    """
+    original_dir = "/home/spack/opt/spack"
+    relocation_dir = "/opt/rh/devtoolset/"
+    dummy_txt = tmp_path / "dummy.txt"
+    dummy_txt.write_text(original_dir)
+
+    relocate_text([str(dummy_txt)], {original_dir: relocation_dir})
+    text = dummy_txt.read_text()
+
+    assert relocation_dir in text
+    assert original_dir not in text
 
 
 def test_relocate_links(tmpdir):
@@ -212,7 +149,14 @@ def test_relocate_links(tmpdir):
 
     own_prefix_path = str(tmpdir.join("prefix_a", "file"))
     dep_prefix_path = str(tmpdir.join("prefix_b", "file"))
+    new_own_prefix_path = str(tmpdir.join("new_prefix_a", "file"))
+    new_dep_prefix_path = str(tmpdir.join("new_prefix_b", "file"))
     system_path = os.path.join(os.path.sep, "system", "path")
+
+    fs.touchp(own_prefix_path)
+    fs.touchp(new_own_prefix_path)
+    fs.touchp(dep_prefix_path)
+    fs.touchp(new_dep_prefix_path)
 
     # Old prefixes to new prefixes
     prefix_to_prefix = OrderedDict(
@@ -238,23 +182,12 @@ def test_relocate_links(tmpdir):
         relocate_links(["to_self", "to_dependency", "to_system"], prefix_to_prefix)
 
         # These two are relocated
-        assert os.readlink("to_self") == str(tmpdir.join("new_prefix_a", "file"))
-        assert os.readlink("to_dependency") == str(tmpdir.join("new_prefix_b", "file"))
+        assert readlink("to_self") == str(tmpdir.join("new_prefix_a", "file"))
+        assert readlink("to_dependency") == str(tmpdir.join("new_prefix_b", "file"))
 
         # These two are not.
-        assert os.readlink("to_system") == system_path
-        assert os.readlink("to_self_but_relative") == "relative"
-
-
-def test_needs_relocation():
-    assert needs_binary_relocation("application", "x-sharedlib")
-    assert needs_binary_relocation("application", "x-executable")
-    assert not needs_binary_relocation("application", "x-octet-stream")
-    assert not needs_binary_relocation("text", "x-")
-    assert needs_text_relocation("text", "x-")
-    assert not needs_text_relocation("symbolic link to", "x-")
-
-    assert needs_binary_relocation("application", "x-mach-binary")
+        assert readlink("to_system") == system_path
+        assert readlink("to_self_but_relative") == "relative"
 
 
 def test_replace_paths(tmpdir):
@@ -266,41 +199,41 @@ def test_replace_paths(tmpdir):
         hash_d = "hukkosc7ahff7o65h6cdhvcoxm57d4bw"
         hash_loco = "zy4oigsc4eovn5yhr2lk4aukwzoespob"
 
-        prefix2hash = dict()
+        prefix2hash = {}
 
-        old_spack_dir = os.path.join("%s" % tmpdir, "Users", "developer", "spack")
-        mkdirp(old_spack_dir)
+        old_spack_dir = os.path.join(f"{tmpdir}", "Users", "developer", "spack")
+        fs.mkdirp(old_spack_dir)
 
-        oldprefix_a = os.path.join("%s" % old_spack_dir, "pkgA-%s" % hash_a)
-        oldlibdir_a = os.path.join("%s" % oldprefix_a, "lib")
-        mkdirp(oldlibdir_a)
+        oldprefix_a = os.path.join(f"{old_spack_dir}", f"pkgA-{hash_a}")
+        oldlibdir_a = os.path.join(f"{oldprefix_a}", "lib")
+        fs.mkdirp(oldlibdir_a)
         prefix2hash[str(oldprefix_a)] = hash_a
 
-        oldprefix_b = os.path.join("%s" % old_spack_dir, "pkgB-%s" % hash_b)
-        oldlibdir_b = os.path.join("%s" % oldprefix_b, "lib")
-        mkdirp(oldlibdir_b)
+        oldprefix_b = os.path.join(f"{old_spack_dir}", f"pkgB-{hash_b}")
+        oldlibdir_b = os.path.join(f"{oldprefix_b}", "lib")
+        fs.mkdirp(oldlibdir_b)
         prefix2hash[str(oldprefix_b)] = hash_b
 
-        oldprefix_c = os.path.join("%s" % old_spack_dir, "pkgC-%s" % hash_c)
-        oldlibdir_c = os.path.join("%s" % oldprefix_c, "lib")
-        oldlibdir_cc = os.path.join("%s" % oldlibdir_c, "C")
-        mkdirp(oldlibdir_c)
+        oldprefix_c = os.path.join(f"{old_spack_dir}", f"pkgC-{hash_c}")
+        oldlibdir_c = os.path.join(f"{oldprefix_c}", "lib")
+        oldlibdir_cc = os.path.join(f"{oldlibdir_c}", "C")
+        fs.mkdirp(oldlibdir_c)
         prefix2hash[str(oldprefix_c)] = hash_c
 
-        oldprefix_d = os.path.join("%s" % old_spack_dir, "pkgD-%s" % hash_d)
-        oldlibdir_d = os.path.join("%s" % oldprefix_d, "lib")
-        mkdirp(oldlibdir_d)
+        oldprefix_d = os.path.join(f"{old_spack_dir}", f"pkgD-{hash_d}")
+        oldlibdir_d = os.path.join(f"{oldprefix_d}", "lib")
+        fs.mkdirp(oldlibdir_d)
         prefix2hash[str(oldprefix_d)] = hash_d
 
-        oldprefix_local = os.path.join("%s" % tmpdir, "usr", "local")
-        oldlibdir_local = os.path.join("%s" % oldprefix_local, "lib")
-        mkdirp(oldlibdir_local)
+        oldprefix_local = os.path.join(f"{tmpdir}", "usr", "local")
+        oldlibdir_local = os.path.join(f"{oldprefix_local}", "lib")
+        fs.mkdirp(oldlibdir_local)
         prefix2hash[str(oldprefix_local)] = hash_loco
-        libfile_a = "libA.%s" % suffix
-        libfile_b = "libB.%s" % suffix
-        libfile_c = "libC.%s" % suffix
-        libfile_d = "libD.%s" % suffix
-        libfile_loco = "libloco.%s" % suffix
+        libfile_a = f"libA.{suffix}"
+        libfile_b = f"libB.{suffix}"
+        libfile_c = f"libC.{suffix}"
+        libfile_d = f"libD.{suffix}"
+        libfile_loco = f"libloco.{suffix}"
         old_libnames = [
             os.path.join(oldlibdir_a, libfile_a),
             os.path.join(oldlibdir_b, libfile_b),
@@ -310,38 +243,38 @@ def test_replace_paths(tmpdir):
         ]
 
         for old_libname in old_libnames:
-            with open(old_libname, "a"):
+            with open(old_libname, "a", encoding="utf-8"):
                 os.utime(old_libname, None)
 
         hash2prefix = dict()
 
-        new_spack_dir = os.path.join("%s" % tmpdir, "Users", "Shared", "spack")
-        mkdirp(new_spack_dir)
+        new_spack_dir = os.path.join(f"{tmpdir}", "Users", "Shared", "spack")
+        fs.mkdirp(new_spack_dir)
 
-        prefix_a = os.path.join(new_spack_dir, "pkgA-%s" % hash_a)
+        prefix_a = os.path.join(new_spack_dir, f"pkgA-{hash_a}")
         libdir_a = os.path.join(prefix_a, "lib")
-        mkdirp(libdir_a)
+        fs.mkdirp(libdir_a)
         hash2prefix[hash_a] = str(prefix_a)
 
-        prefix_b = os.path.join(new_spack_dir, "pkgB-%s" % hash_b)
+        prefix_b = os.path.join(new_spack_dir, f"pkgB-{hash_b}")
         libdir_b = os.path.join(prefix_b, "lib")
-        mkdirp(libdir_b)
+        fs.mkdirp(libdir_b)
         hash2prefix[hash_b] = str(prefix_b)
 
-        prefix_c = os.path.join(new_spack_dir, "pkgC-%s" % hash_c)
+        prefix_c = os.path.join(new_spack_dir, f"pkgC-{hash_c}")
         libdir_c = os.path.join(prefix_c, "lib")
         libdir_cc = os.path.join(libdir_c, "C")
-        mkdirp(libdir_cc)
+        fs.mkdirp(libdir_cc)
         hash2prefix[hash_c] = str(prefix_c)
 
-        prefix_d = os.path.join(new_spack_dir, "pkgD-%s" % hash_d)
+        prefix_d = os.path.join(new_spack_dir, f"pkgD-{hash_d}")
         libdir_d = os.path.join(prefix_d, "lib")
-        mkdirp(libdir_d)
+        fs.mkdirp(libdir_d)
         hash2prefix[hash_d] = str(prefix_d)
 
-        prefix_local = os.path.join("%s" % tmpdir, "usr", "local")
+        prefix_local = os.path.join(f"{tmpdir}", "usr", "local")
         libdir_local = os.path.join(prefix_local, "lib")
-        mkdirp(libdir_local)
+        fs.mkdirp(libdir_local)
         hash2prefix[hash_loco] = str(prefix_local)
 
         new_libnames = [
@@ -353,7 +286,7 @@ def test_replace_paths(tmpdir):
         ]
 
         for new_libname in new_libnames:
-            with open(new_libname, "a"):
+            with open(new_libname, "a", encoding="utf-8"):
                 os.utime(new_libname, None)
 
         prefix2prefix = dict()
@@ -410,10 +343,10 @@ def test_replace_paths(tmpdir):
         out_dict = macho_find_paths(
             [oldlibdir_a, oldlibdir_b, oldlibdir_c, oldlibdir_cc, oldlibdir_local],
             [
-                "@rpath/%s" % libfile_a,
-                "@rpath/%s" % libfile_b,
-                "@rpath/%s" % libfile_c,
-                "@rpath/%s" % libfile_loco,
+                f"@rpath/{libfile_a}",
+                f"@rpath/{libfile_b}",
+                f"@rpath/{libfile_c}",
+                f"@rpath/{libfile_loco}",
             ],
             None,
             old_spack_dir,
@@ -421,10 +354,10 @@ def test_replace_paths(tmpdir):
         )
 
         assert out_dict == {
-            "@rpath/%s" % libfile_a: "@rpath/%s" % libfile_a,
-            "@rpath/%s" % libfile_b: "@rpath/%s" % libfile_b,
-            "@rpath/%s" % libfile_c: "@rpath/%s" % libfile_c,
-            "@rpath/%s" % libfile_loco: "@rpath/%s" % libfile_loco,
+            f"@rpath/{libfile_a}": f"@rpath/{libfile_a}",
+            f"@rpath/{libfile_b}": f"@rpath/{libfile_b}",
+            f"@rpath/{libfile_c}": f"@rpath/{libfile_c}",
+            f"@rpath/{libfile_loco}": f"@rpath/{libfile_loco}",
             oldlibdir_a: libdir_a,
             oldlibdir_b: libdir_b,
             oldlibdir_c: libdir_c,
@@ -434,15 +367,15 @@ def test_replace_paths(tmpdir):
 
         out_dict = macho_find_paths(
             [oldlibdir_a, oldlibdir_b, oldlibdir_d, oldlibdir_local],
-            ["@rpath/%s" % libfile_a, "@rpath/%s" % libfile_b, "@rpath/%s" % libfile_loco],
+            [f"@rpath/{libfile_a}", f"@rpath/{libfile_b}", f"@rpath/{libfile_loco}"],
             None,
             old_spack_dir,
             prefix2prefix,
         )
         assert out_dict == {
-            "@rpath/%s" % libfile_a: "@rpath/%s" % libfile_a,
-            "@rpath/%s" % libfile_b: "@rpath/%s" % libfile_b,
-            "@rpath/%s" % libfile_loco: "@rpath/%s" % libfile_loco,
+            f"@rpath/{libfile_a}": f"@rpath/{libfile_a}",
+            f"@rpath/{libfile_b}": f"@rpath/{libfile_b}",
+            f"@rpath/{libfile_loco}": f"@rpath/{libfile_loco}",
             oldlibdir_a: libdir_a,
             oldlibdir_b: libdir_b,
             oldlibdir_d: libdir_d,
@@ -536,7 +469,7 @@ def test_macho_make_paths():
 
 
 @pytest.fixture()
-def mock_download():
+def mock_download(monkeypatch):
     """Mock a failing download strategy."""
 
     class FailedDownloadStrategy(spack.fetch_strategy.FetchStrategy):
@@ -545,47 +478,37 @@ def mock_download():
 
         def fetch(self):
             raise spack.fetch_strategy.FailedDownloadError(
-                "<non-existent URL>", "This FetchStrategy always fails"
+                urllib.error.URLError("This FetchStrategy always fails")
             )
-
-    fetcher = FetchStrategyComposite()
-    fetcher.append(FailedDownloadStrategy())
 
     @property
     def fake_fn(self):
-        return fetcher
+        return FailedDownloadStrategy()
 
-    orig_fn = spack.package_base.PackageBase.fetcher
-    spack.package_base.PackageBase.fetcher = fake_fn
-    yield
-    spack.package_base.PackageBase.fetcher = orig_fn
+    monkeypatch.setattr(spack.package_base.PackageBase, "fetcher", fake_fn)
 
 
 @pytest.mark.parametrize(
     "manual,instr", [(False, False), (False, True), (True, False), (True, True)]
 )
 @pytest.mark.disable_clean_stage_check
-def test_manual_download(
-    install_mockery, mock_download, default_mock_concretization, monkeypatch, manual, instr
-):
+def test_manual_download(mock_download, default_mock_concretization, monkeypatch, manual, instr):
     """
     Ensure expected fetcher fail message based on manual download and instr.
     """
 
     @property
     def _instr(pkg):
-        return "Download instructions for {0}".format(pkg.spec.name)
+        return f"Download instructions for {pkg.spec.name}"
 
-    spec = default_mock_concretization("a")
-    pkg = spec.package
-
-    pkg.manual_download = manual
+    spec = default_mock_concretization("pkg-a")
+    spec.package.manual_download = manual
     if instr:
         monkeypatch.setattr(spack.package_base.PackageBase, "download_instr", _instr)
 
-    expected = pkg.download_instr if manual else "All fetchers failed"
-    with pytest.raises(spack.util.web.FetchError, match=expected):
-        pkg.do_fetch()
+    expected = spec.package.download_instr if manual else "All fetchers failed"
+    with pytest.raises(spack.error.FetchError, match=expected):
+        spec.package.do_fetch()
 
 
 @pytest.fixture()
@@ -597,25 +520,51 @@ def fetching_not_allowed(monkeypatch):
         def fetch(self):
             raise Exception("Sources are fetched but shouldn't have been")
 
-    fetcher = FetchStrategyComposite()
-    fetcher.append(FetchingNotAllowed())
-    monkeypatch.setattr(spack.package_base.PackageBase, "fetcher", fetcher)
+    monkeypatch.setattr(spack.package_base.PackageBase, "fetcher", FetchingNotAllowed())
 
 
-def test_fetch_without_code_is_noop(
-    default_mock_concretization, install_mockery, fetching_not_allowed
-):
+def test_fetch_without_code_is_noop(default_mock_concretization, fetching_not_allowed):
     """do_fetch for packages without code should be a no-op"""
-    pkg = default_mock_concretization("a").package
+    pkg = default_mock_concretization("pkg-a").package
     pkg.has_code = False
     pkg.do_fetch()
 
 
-def test_fetch_external_package_is_noop(
-    default_mock_concretization, install_mockery, fetching_not_allowed
-):
+def test_fetch_external_package_is_noop(default_mock_concretization, fetching_not_allowed):
     """do_fetch for packages without code should be a no-op"""
-    spec = default_mock_concretization("a")
+    spec = default_mock_concretization("pkg-a")
     spec.external_path = "/some/where"
     assert spec.external
     spec.package.do_fetch()
+
+
+@pytest.mark.parametrize(
+    "relocation_dict",
+    [
+        {"/foo/bar/baz": "/a/b/c", "/foo/bar": "/a/b"},
+        # Ensure correctness does not depend on the ordering of the dict
+        {"/foo/bar": "/a/b", "/foo/bar/baz": "/a/b/c"},
+    ],
+)
+def test_macho_relocation_with_changing_projection(relocation_dict):
+    """Tests that prefix relocation is computed correctly when the prefixes to be relocated
+    contain a directory and its subdirectories.
+
+    This happens when relocating to a new place AND changing the store projection. In that case we
+    might have a relocation dict like:
+
+    /foo/bar/baz/ -> /a/b/c
+    /foo/bar -> /a/b
+
+    What we need to check is that we don't end up in situations where we relocate to a mixture of
+    the two schemes, like /a/b/baz.
+    """
+    original_rpath = "/foo/bar/baz/abcdef"
+    result = macho_find_paths(
+        [original_rpath],
+        deps=[],
+        idpath=None,
+        old_layout_root="/foo",
+        prefix_to_prefix=relocation_dict,
+    )
+    assert result[original_rpath] == "/a/b/c/abcdef"

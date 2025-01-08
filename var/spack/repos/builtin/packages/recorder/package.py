@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,9 @@ class Recorder(AutotoolsPackage):
     version("2.1.6", sha256="35985a0cb456d806952bf68f05127026f0dd8e26f70d725ae5cc37f109600889")
     version("2.1.5", sha256="6d2f8b942f61da498e25327e79c1a25b2244f4f78a9cf5482fb4aaa32d7332a1")
     version("2.1.4", sha256="f66756595a7f310929c247ae03fd08a18d9843f578fffa1e3072f557bf5a158e")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("posix", default=True, description="Enable POSIX level tracing.")
     variant(

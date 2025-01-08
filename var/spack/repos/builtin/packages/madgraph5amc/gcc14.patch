@@ -1,0 +1,38 @@
+From b470cfe805e747204a86eedada1d90aae1ebceec Mon Sep 17 00:00:00 2001
+From: Joseph C Wang <joequant@gmail.com>
+Date: Sat, 24 Aug 2024 00:36:46 +0800
+Subject: [PATCH] add compile flags for gcc14 compilation
+
+This disables pointer mismatch warnings which are now errors in
+gcc14.
+---
+ vendor/StdHEP/mcfio/src/GNUmakefile  | 2 +-
+ vendor/StdHEP/src/stdhep/GNUmakefile | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/vendor/StdHEP/mcfio/src/GNUmakefile b/vendor/StdHEP/mcfio/src/GNUmakefile
+index 591007abe3..14862ba79e 100644
+--- a/vendor/StdHEP/mcfio/src/GNUmakefile
++++ b/vendor/StdHEP/mcfio/src/GNUmakefile
+@@ -13,7 +13,7 @@ BINDIR = ../../bin
+ include ../arch_mcfio
+ 
+ FFLAGS += -std=legacy
+-CFLAGS += -Wno-implicit-function-declaration
++CFLAGS += -Wno-implicit-function-declaration -Wno-incompatible-pointer-types
+ 
+ FINC = -I.
+ CINC = -I. -I/usr/include/tirpc
+diff --git a/vendor/StdHEP/src/stdhep/GNUmakefile b/vendor/StdHEP/src/stdhep/GNUmakefile
+index b1d7591ef0..d0421788c9 100644
+--- a/vendor/StdHEP/src/stdhep/GNUmakefile
++++ b/vendor/StdHEP/src/stdhep/GNUmakefile
+@@ -8,7 +8,7 @@ STDHEP_DIR = ../..
+ #this has been added by MZ
+ FFLAGS+= -fd-lines-as-code -fPIE
+ FFLAGS += -std=legacy
+-CFLAGS += -Wno-implicit-function-declaration
++CFLAGS += -Wno-implicit-function-declaration -Wno-incompatible-pointer-types
+ 
+ SLIB = $(STDHEP_DIR)/lib
+ SBIN = $(STDHEP_DIR)/bin

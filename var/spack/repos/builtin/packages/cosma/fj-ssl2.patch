@@ -1,0 +1,104 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 1fd1e55..41a041b 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -19,7 +19,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS "YES") # always write compile_commands.json
+ 
+ set(COSMA_GPU_BACKENDS_LIST "CUDA" "ROCM")
+ set(COSMA_SCALAPACK_LIST "OFF" "MKL" "CRAY_LIBSCI" "CUSTOM")
+-set(COSMA_BLAS_LIST   "auto" "MKL" "OPENBLAS" "CRAY_LIBSCI" "CUSTOM" "BLIS" "ATLAS" "CUDA" "ROCM" "OFF")
++set(COSMA_BLAS_LIST   "auto" "MKL" "SSL2" "OPENBLAS" "CRAY_LIBSCI" "CUSTOM" "BLIS" "ATLAS" "CUDA" "ROCM" "OFF")
+ option(COSMA_WITH_TESTS "Generate the test target." ON)
+ option(COSMA_WITH_APPS "Generate the miniapp targets." ON)
+ option(COSMA_WITH_BENCHMARKS "Generate the benchmark targets." ON)
+@@ -45,7 +45,7 @@ if (COSMA_BLAS MATCHES "CUDA|ROCM")
+   set(COSMA_GPU_BACKEND ${COSMA_BLAS})
+ else()
+   if(COSMA_BLAS STREQUAL "OFF")
+-    message(FATAL_ERROR "A Blas implementation is needed when running on CPU only: choices are : auto, MKL, OPENBLAS, CRAY_LIBSCI, CUSTOM, BLIS, ATLAS, FLEXIBLAS, ARMPL, GenericBLAS")
++    message(FATAL_ERROR "A Blas implementation is needed when running on CPU only: choices are : auto, MKL, SSL2, OPENBLAS, CRAY_LIBSCI, CUSTOM, BLIS, ATLAS, FLEXIBLAS, ARMPL, GenericBLAS")
+   else()
+     set(COSMA_BLAS_VENDOR ${COSMA_BLAS})
+   endif()
+@@ -190,6 +190,7 @@ install(FILES "${cosma_BINARY_DIR}/cosmaConfig.cmake"
+   "${cosma_BINARY_DIR}/cosmaConfigVersion.cmake"
+   "${cosma_BINARY_DIR}/cosmaConfigVersion.cmake"
+   "${cosma_SOURCE_DIR}/cmake/FindMKL.cmake"
++  "${cosma_SOURCE_DIR}/cmake/FindSSL2.cmake"
+   "${cosma_SOURCE_DIR}/cmake/FindBlas.cmake"
+   "${cosma_SOURCE_DIR}/cmake/FindSCALAPACK.cmake"
+   "${cosma_SOURCE_DIR}/cmake/FindOPENBLAS.cmake"
+diff --git a/cmake/FindBlas.cmake b/cmake/FindBlas.cmake
+index aef956c..3c47561 100644
+--- a/cmake/FindBlas.cmake
++++ b/cmake/FindBlas.cmake
+@@ -14,6 +14,7 @@ endif()
+ set(COSMA_BLAS_VENDOR_LIST
+   "auto"
+   "MKL"
++  "SSL2"
+   "OPENBLAS"
+   "FLEXIBLAS"
+   "ARMPL"
+diff --git a/cmake/FindSSL2.cmake b/cmake/FindSSL2.cmake
+new file mode 100644
+index 0000000..f0e11bf
+--- /dev/null
++++ b/cmake/FindSSL2.cmake
+@@ -0,0 +1,56 @@
++#.rst:
++# FindSSL2
++# -----------
++#
++# This module tries to find the SSL2 library.
++#
++# The following variables are set
++#
++# ::
++#
++#   SSL2_FOUND           - True if ssl2 is found
++#   SSL2_LIBRARIES       - The required libraries
++#   SSL2_INCLUDE_DIRS    - The required include directory
++#
++# The following import target is created
++#
++# ::
++#
++#   SSL2::ssl2
++
++#set paths to look for library from ROOT variables.If new policy is set, find_library() automatically uses them.
++# if(NOT POLICY CMP0074)
++set(_SSL2_PATHS ${SSL2_ROOT}
++                 $ENV{SSL2_ROOT}
++                 $ENV{SSL2ROOT}
++                 $ENV{SSL2_DIR}
++                 $ENV{SSL2DIR})
++# endif()
++
++find_library(
++    COSMA_SSL2_LINK_LIBRARIES
++    NAMES "fjlapackex"
++    HINTS ${_SSL2_PATHS}
++    PATH_SUFFIXES "lib64"
++)
++find_path(
++    COSMA_SSL2_INCLUDE_DIRS
++    NAMES "cblas.h" 
++    HINTS ${_SSL2_PATHS}
++    PATH_SUFFIXES "include"
++)
++
++# check if found
++include(FindPackageHandleStandardArgs)
++find_package_handle_standard_args(SSL2 REQUIRED_VARS COSMA_SSL2_INCLUDE_DIRS COSMA_SSL2_LINK_LIBRARIES)
++
++# add target to link against
++if(NOT TARGET cosma::BLAS::SSL2::ssl2)
++  add_library(cosma::BLAS::SSL2::ssl2 INTERFACE IMPORTED)
++  add_library(cosma::BLAS::SSL2::blas ALIAS cosma::BLAS::SSL2::ssl2)
++endif()
++set_property(TARGET cosma::BLAS::SSL2::ssl2 PROPERTY INTERFACE_LINK_LIBRARIES ${COSMA_SSL2_LINK_LIBRARIES})
++set_property(TARGET cosma::BLAS::SSL2::ssl2 PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${COSMA_SSL2_INCLUDE_DIRS})
++
++# prevent clutter in cache
++MARK_AS_ADVANCED(SSL2_FOUND SSL2_LIBRARIES SSL2_INCLUDE_DIRS)

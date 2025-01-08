@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,7 +12,11 @@ class Trimal(MakefilePackage):
     homepage = "https://github.com/scapella/trimal"
     url = "https://github.com/scapella/trimal/archive/v1.4.1.tar.gz"
 
+    license("GPL-3.0-or-later")
+
     version("1.4.1", sha256="cb8110ca24433f85c33797b930fa10fe833fa677825103d6e7f81dd7551b9b4e")
+
+    depends_on("cxx", type="build")  # generated
 
     build_directory = "source"
 

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,11 +12,11 @@ class PyFormulaic(PythonPackage):
     homepage = "https://github.com/matthewwardrop/formulaic"
     pypi = "formulaic/formulaic-0.2.4.tar.gz"
 
+    version("0.6.1", sha256="5b20b2130436dc8bf5ea604e69d88d44b3be4d8ea20bfea96d982fa1f6bb762b")
     version("0.5.2", sha256="25b1e1c8dff73f0b11c0028a6ab350222de6bbc47b316ccb770cec16189cef53")
     version("0.2.4", sha256="15b71ea8972fb451f80684203cddd49620fc9ed5c2e35f31e0874e9c41910d1a")
 
     depends_on("python@3.7.2:", when="@5:", type=("build", "run"))
-    depends_on("python@3.6:", type=("build", "run"))
     depends_on("py-hatchling", when="@0.5:", type="build")
     depends_on("py-hatch-vcs", when="@0.5:", type="build")
     depends_on("py-setuptools", when="@:0.3.2", type="build")

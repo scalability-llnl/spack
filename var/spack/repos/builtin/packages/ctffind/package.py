@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class Ctffind(AutotoolsPackage):
     homepage = "https://grigoriefflab.umassmed.edu/ctffind4"
     url = "https://grigoriefflab.umassmed.edu/system/tdf?path=ctffind-4.1.8.tar.gz&file=1&type=node&id=26"
 
+    license("BSD-3-Clause")
+
     version(
         "4.1.14",
         sha256="db17b2ebeb3c3b2b3764e42b820cd50d19ccccf6956c64257bfe5d5ba6b40cb5",
@@ -23,6 +24,8 @@ class Ctffind(AutotoolsPackage):
         extension="tar.gz",
     )
 
+    depends_on("cxx", type="build")  # generated
+
     def url_for_version(self, version):
         url = "https://grigoriefflab.umassmed.edu/system/tdf?path=ctffind-{0}.tar.gz&file=1&type=node&id=26"
         return url.format(version)
@@ -33,12 +36,14 @@ class Ctffind(AutotoolsPackage):
     depends_on("jpeg")
 
     patch("configure.patch", when="@4.1.8")
-    patch("power9.patch", when="@4.1.14 target=power9le")
+    patch("no_sincos_asm.patch", when="@4.1.14 target=power9le")
+    patch("no_sincos_asm.patch", when="@4.1.14 target=aarch64:")
+    patch("fix_return_types.patch", when="@4.1.13:4.1.14")
 
     def configure_args(self):
         config_args = []
 
-        if "^mkl" in self.spec:
+        if self.spec["fftw-api"].name in INTEL_MATH_LIBRARIES:
             config_args.extend(
                 [
                     "--enable-mkl",

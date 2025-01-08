@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,10 @@ class RDplyr(RPackage):
 
     cran = "dplyr"
 
+    license("MIT")
+
+    version("1.1.4", sha256="cf730414d5d4ab387b4e9890a4b1df9d17a3903488e8da8df1cf2e11e44558cb")
+    version("1.1.2", sha256="c220c38a3a44977c43eeae3d9aef90e8bb297150cad0993ea8d3cc13150096e3")
     version("1.0.10", sha256="3ab639f627b4e439052df18f193f0ccab223225a4ae2ff8c18aba4f9807e0f2b")
     version("1.0.9", sha256="e2e1f7312618b4e32ada9a1da79cef32eaec12acd408c973a6b069c6be4fb46b")
     version("1.0.7", sha256="d2fe3aedbce02fdddce09a8a80f85f5918a9d1f15f792ad4a98f254959d7123d")
@@ -34,26 +37,35 @@ class RDplyr(RPackage):
     depends_on("r@3.2.0:", type=("build", "run"), when="@0.8.1:")
     depends_on("r@3.3.0:", type=("build", "run"), when="@1.0.3:")
     depends_on("r@3.4.0:", type=("build", "run"), when="@1.0.9:")
+    depends_on("r@3.5.0:", type=("build", "run"), when="@1.1.2:")
     depends_on("r-generics", type=("build", "run"), when="@1.0.3:")
     depends_on("r-glue@1.3.0:", type=("build", "run"))
     depends_on("r-glue@1.3.2:", type=("build", "run"), when="@1.0.3:")
     depends_on("r-lifecycle@0.2.0:", type=("build", "run"), when="@1.0.3:")
     depends_on("r-lifecycle@1.0.0:", type=("build", "run"), when="@1.0.5:")
     depends_on("r-lifecycle@1.0.1:", type=("build", "run"), when="@1.0.9:")
+    depends_on("r-lifecycle@1.0.3:", type=("build", "run"), when="@1.1.2:")
+    depends_on("r-cli@3.4.0:", type=("build", "run"), when="@1.1.2:")
     depends_on("r-magrittr@1.5:", type=("build", "run"))
     depends_on("r-r6", type=("build", "run"))
     depends_on("r-rlang@0.4.0:", type=("build", "run"))
     depends_on("r-rlang@0.4.9:", type=("build", "run"), when="@1.0.3:")
     depends_on("r-rlang@0.4.10:", type=("build", "run"), when="@1.0.5:")
     depends_on("r-rlang@1.0.2:", type=("build", "run"), when="@1.0.9:")
+    depends_on("r-rlang@1.1.0:", type=("build", "run"), when="@1.1.2:")
     depends_on("r-tibble@2.0.0:", type=("build", "run"))
     depends_on("r-tibble@2.1.3:", type=("build", "run"), when="@1.0.3:")
+    depends_on("r-tibble@3.2.0:", type=("build", "run"), when="@1.1.2:")
     depends_on("r-tidyselect@0.2.5:", type=("build", "run"))
     depends_on("r-tidyselect@1.1.0:", type=("build", "run"), when="@1.0.3:")
     depends_on("r-tidyselect@1.1.1:", type=("build", "run"), when="@1.0.9:")
+    depends_on("r-tidyselect@1.2.0:", type=("build", "run"), when="@1.1.2:")
     depends_on("r-vctrs@0.3.5:", type=("build", "run"), when="@1.0.3:")
     depends_on("r-vctrs@0.4.1:", type=("build", "run"), when="@1.0.9:")
+    depends_on("r-vctrs@0.6.0:", type=("build", "run"), when="@1.1.2:")
+    depends_on("r-vctrs@0.6.4:", type=("build", "run"), when="@1.1.4:")
     depends_on("r-pillar@1.5.1:", type=("build", "run"), when="@1.0.6:")
+    depends_on("r-pillar@1.9.0:", type=("build", "run"), when="@1.1.2:")
 
     depends_on("r-assertthat@0.2.0:", type=("build", "run"), when="@:0.8.3")
     depends_on("r-bindrcpp@0.2.0:", type=("build", "run"), when="@:0.7.9")
@@ -61,5 +73,4 @@ class RDplyr(RPackage):
     depends_on("r-rcpp@1.0.1:", type=("build", "run"), when="@:0.8.3")
     depends_on("r-bh", type=("build", "run"), when="@:0.8.3")
     depends_on("r-plogr@0.2.0:", type=("build", "run"), when="@0.7.0:0.8.3")
-    depends_on("r-ellipsis", type=("build", "run"), when="@1.0.3:")
-    depends_on("r-ellipsis", when="@:1.0.9")
+    depends_on("r-ellipsis", type=("build", "run"), when="@1.0.3:1.0.9")

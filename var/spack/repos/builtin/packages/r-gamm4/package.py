@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,8 @@ class RGamm4(RPackage):
     from 'mgcv', using 'lme4' for estimation."""
 
     cran = "gamm4"
+
+    license("GPL-2.0-or-later")
 
     version("0.2-6", sha256="57c5b66582b2adc32f6a3bb6a259f5b95198e283a96d966a6007e8e48b380c89")
 

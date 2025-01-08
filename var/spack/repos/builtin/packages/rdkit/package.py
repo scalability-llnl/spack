@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,8 +13,12 @@ class Rdkit(CMakePackage):
     homepage = "https://www.rdkit.org"
     url = "https://github.com/rdkit/rdkit/archive/refs/tags/Release_2021_03_2.tar.gz"
 
-    maintainers("bvanessen")
+    maintainers("bvanessen", "RMeli")
 
+    license("BSD-3-Clause")
+
+    version("2024_03_3", sha256="52f79c6bf1d446cdb5c86a35de655d96bad0c52a5f4ecbe15f08eaf334e6f76a")
+    version("2023_03_1", sha256="db346afbd0ba52c843926a2a62f8a38c7b774ffab37eaf382d789a824f21996c")
     version("2022_09_5", sha256="2efe7ce3b527df529ed3e355e2aaaf14623e51876be460fa4ad2b7f7ad54c9b1")
     version("2021_09_5", sha256="f720b3f6292c4cd0a412a073d848ffac01a43960082e33ee54b68798de0cbfa1")
     version("2021_09_4", sha256="ce192e85bbdc1dcf24d327197229099c8625ee20ef022fcbd980791fdbfc7203")
@@ -43,19 +46,67 @@ class Rdkit(CMakePackage):
     version("2020_09_1", sha256="ac105498be52ff77f7e9328c41d0e61a2318cac0789d6efc30f5f50dc78a992c")
     version("2020_03_6", sha256="a3663295a149aa0307ace6d1995094d0334180bc8f892fa325558a110154272b")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("freetype", default=True, description="Build freetype support")
 
-    depends_on("python@3:")
+    with when("@2022_09_5:"):
+        variant(
+            "python",
+            default=True,
+            when="@2022_09_5:",
+            description="Build standard Python wrappers",
+        )
+        variant("contrib", default=False, description="Build Contrib directory")
+        variant("freesasa", default=False, description="Build freesasa wrapper")
+        variant("coordgen", default=True, description="Build coordgen wrapper")
+        variant("maeparser", default=True, description="Build MAE parser wrapper")
+        variant("yaehmop", default=True, description="Build YAeHMOP wrapper")
+        variant("xyz2mol", default=False, description="Build support for RDKit xyz2mol")
+        variant("descriptors3d", default=True, description="Build 3D descriptors calculators")
+
+        depends_on("freesasa", when="+freesasa")
+        depends_on("coordgen", when="+coordgen")
+        depends_on("maeparser", when="+maeparser")
+        depends_on("eigen@3:", when="+descriptors3d")
+        depends_on("python@3:", when="+python")
+        depends_on("py-numpy", when="+python")
+        # https://github.com/rdkit/rdkit/issues/7477
+        depends_on("py-numpy@:1", when="@:2024.03.3+python")
+
+        extends("python", when="+python")
+
+        conflicts("+xyz2mol", when="~yaehmop", msg="XY2MOL requires YAeHMOP")
+
     depends_on("boost@1.53.0: +python +serialization +iostreams +system")
-
-    depends_on("py-numpy")
     depends_on("sqlite")
-
     depends_on("freetype", when="@2020_09_1: +freetype")
 
-    extends("python")
+    with when("@:2021_09_5"):
+        depends_on("python@3:")
+        depends_on("py-numpy")
+        # https://github.com/rdkit/rdkit/issues/7477
+        depends_on("py-numpy@:1")
+        extends("python")
 
     def cmake_args(self):
-        args = ["-DCMAKE_CXX_STANDARD=14", "-DRDK_INSTALL_INTREE=OFF"]
-        args.append(self.define_from_variant("RDK_BUILD_FREETYPE_SUPPORT", "freetype"))
+        args = [
+            "-DRDK_INSTALL_INTREE=OFF",
+            self.define_from_variant("RDK_BUILD_FREETYPE_SUPPORT", "freetype"),
+        ]
+        if "@2022_09_5:" in self.spec:
+            args.extend(
+                [
+                    self.define_from_variant("RDK_BUILD_PYTHON_WRAPPERS", "python"),
+                    self.define_from_variant("RDK_BUILD_CONTRIB", "contrib"),
+                    self.define_from_variant("RDK_BUILD_FREESASA_SUPPORT", "freesasa"),
+                    self.define_from_variant("RDK_BUILD_COORDGEN_SUPPORT", "coordgen"),
+                    self.define_from_variant("RDK_BUILD_MAEPARSER_SUPPORT", "maeparser"),
+                    self.define_from_variant("RDK_BUILD_XYZ2MOL_SUPPORT", "xyz2mol"),
+                    self.define_from_variant("RDK_BUILD_DESCRIPTORS3D", "descriptors3d"),
+                ]
+            )
+
         return args

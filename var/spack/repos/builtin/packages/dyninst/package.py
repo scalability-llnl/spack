@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,7 +18,10 @@ class Dyninst(CMakePackage):
 
     tags = ["e4s"]
 
+    license("LGPL-2.1-or-later")
+
     version("master", branch="master")
+    version("13.0.0", sha256="1bc48d26478b677a6c090c25586a447507bd1b4cf88d369bd61820005ce1be39")
     version("12.3.0", sha256="956b0378d2badb765a7e677c0b66c0b8b8cacca7631222bfe7a27b369abf7dd4")
     version("12.2.1", sha256="c304af3c6191e92acd27350fd9b7b02899767a0e38abb3a08a378abe01d1ef01")
     version("12.2.0", sha256="84c37efc1b220110af03f8fbb6ab295628b445c873b5115db91b64443e445a5d")
@@ -32,11 +34,24 @@ class Dyninst(CMakePackage):
     version("10.2.0", sha256="4212b93bef4563c7de7dce4258e899bcde52315a571087e87fde9f8040123b43")
     version("10.1.0", sha256="4a121d70c1bb020408a7a697d74602e18250c3c85800f230566fcccd593c0129")
     version("10.0.0", sha256="542fccf5c57c4fe784b1a9a9e3db01d40b16ad04e7174dc6f7eb23440485ba06")
-    version("9.3.2", tag="v9.3.2", deprecated=True)
-    version("9.3.0", tag="v9.3.0", deprecated=True)
-    version("9.2.0", tag="v9.2.0", deprecated=True)
-    version("9.1.0", tag="v9.1.0", deprecated=True)
-    version("8.2.1", tag="v8.2.1", deprecated=True)
+    version(
+        "9.3.2", tag="v9.3.2", commit="5d2ddacb273682daa014ae22f17f3575e05b411e", deprecated=True
+    )
+    version(
+        "9.3.0", tag="v9.3.0", commit="9b8e9c1f16d4616b827d2d36955604a8e3fb915c", deprecated=True
+    )
+    version(
+        "9.2.0", tag="v9.2.0", commit="3a6ad66df7294417cf61618acdcfcc0fecccb045", deprecated=True
+    )
+    version(
+        "9.1.0", tag="v9.1.0", commit="df6d090061bae7ff2ba5a6bd57bb2ecbf538ef7a", deprecated=True
+    )
+    version(
+        "8.2.1", tag="v8.2.1", commit="939afcbad1a8273636a3686a31b51dae4f1f0c11", deprecated=True
+    )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "openmp",
@@ -54,7 +69,8 @@ class Dyninst(CMakePackage):
     depends_on("boost@1.61.0:" + boost_libs, when="@10.1.0:")
     depends_on("boost@1.61.0:1.69" + boost_libs, when="@:10.0")
     depends_on("boost@1.67.0:" + boost_libs, when="@11.0.0:")
-    depends_on("boost@1.70.0:" + boost_libs, when="@12:")
+    depends_on("boost@1.70.0:" + boost_libs, when="@12:12.3.0")
+    depends_on("boost@1.71.0:" + boost_libs, when="@13:")
 
     depends_on("libiberty+pic")
 
@@ -71,12 +87,19 @@ class Dyninst(CMakePackage):
     # libdwarf before that.
     depends_on("libdwarf", when="@:9")
 
-    # findtbb.cmake in the dynist repo does not work with recent tbb
-    # package layout. Need to use tbb provided config instead.
-    conflicts("intel-tbb@2021.1:")
-    conflicts("intel-oneapi-tbb@2021.1:")
-    conflicts("intel-parallel-studio", when="@12.0.0:")
-    depends_on("tbb@2018.6.0:", when="@10.0.0:")
+    with when("@:12.3.0"):
+        # findtbb.cmake in the dynist repo does not work with recent tbb
+        # package layout. Need to use tbb provided config instead.
+        conflicts("^intel-tbb@2021.1:")
+        conflicts("^intel-oneapi-tbb@2021.1:")
+        conflicts("^intel-parallel-studio")
+
+    depends_on("intel-tbb@2019.9:", when="@13.0.0:")
+    depends_on("tbb@2018.6.0:", when="@10.0.0:12.3.0")
+
+    with when("@13.0.0:"):
+        depends_on("cmake@3.14.0:", type="build")
+        conflicts("cmake@3.19.0")
 
     depends_on("cmake@3.4.0:", type="build", when="@10.1.0:")
     depends_on("cmake@3.0.0:", type="build", when="@10.0.0:10.0")
@@ -86,8 +109,13 @@ class Dyninst(CMakePackage):
     patch("stackanalysis_h.patch", when="@9.2.0")
     patch("v9.3.2-auto.patch", when="@9.3.2 %gcc@:4.7")
     patch("tribool.patch", when="@9.3.0:10.0.0 ^boost@1.69:")
+    patch(
+        "missing_include_deque.patch",
+        when="@10.0.0:12.2.0",
+        sha256="0064d8d51bd01bd0035e1ebc49276f627ce6366d4524c92cf47d3c09b0031f96",
+    )
 
-    requires("%gcc", msg="dyninst builds only with GCC")
+    requires("%gcc", when="@:13.0.0", msg="dyninst builds only with GCC")
 
     # No Mac support (including apple-clang)
     conflicts("platform=darwin", msg="macOS is not supported")
@@ -115,19 +143,19 @@ class Dyninst(CMakePackage):
             self.define("LibIberty_LIBRARIES", spec["libiberty"].libs),
         ]
 
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             args.append("-DUSE_OpenMP=ON")
         else:
             args.append("-DUSE_OpenMP=OFF")
 
-        if "+static" in spec:
+        if spec.satisfies("+static"):
             args.append("-DENABLE_STATIC_LIBS=YES")
         else:
             args.append("-DENABLE_STATIC_LIBS=NO")
 
         # Make sure Dyninst doesn't try to build its own dependencies
         # outside of Spack
-        if spec.satisfies("@10.2.0:"):
+        if spec.satisfies("@10.2.0:12.3.0"):
             args.append("-DSTERILE_BUILD=ON")
 
         return args
@@ -170,16 +198,25 @@ class Dyninst(CMakePackage):
 
         # Openmp applies to version 10.x or later.
         if spec.satisfies("@10.0.0:"):
-            if "+openmp" in spec:
+            if spec.satisfies("+openmp"):
                 args.append("-DUSE_OpenMP=ON")
             else:
                 args.append("-DUSE_OpenMP=OFF")
 
         # Static libs started with version 9.1.0.
         if spec.satisfies("@9.1.0:"):
-            if "+static" in spec:
+            if spec.satisfies("+static"):
                 args.append("-DENABLE_STATIC_LIBS=1")
             else:
                 args.append("-DENABLE_STATIC_LIBS=NO")
 
         return args
+
+    def test_ptls(self):
+        """Run parseThat on /bin/ls to rewrite with basic instrumentation"""
+        parseThat = which(self.prefix.bin.parseThat)
+        os.environ["DYNINSTAPI_RT_LIB"] = join_path(self.prefix.lib, "libdyninstAPI_RT.so")
+        parseThat(
+            "--binary-edit={0:s}".format(join_path(self.test_suite.stage, "ls.rewritten")),
+            "/bin/ls",
+        )

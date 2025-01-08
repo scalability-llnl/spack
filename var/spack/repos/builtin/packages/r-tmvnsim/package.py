@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,4 +20,9 @@ class RTmvnsim(RPackage):
 
     cran = "tmvnsim"
 
+    license("GPL-2.0-only")
+
     version("1.0-2", sha256="97f63d0bab3b240cc7bdbe6e6e74e90ad25a4382a345ee51a26fe3959edeba0f")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated

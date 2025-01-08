@@ -1,0 +1,21 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index d0e8ed18..3225509c 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -366,10 +366,13 @@ else()
+   endif()
+ endif()
+ 
+-include(ExaGOCheckPython)
+ if(EXAGO_ENABLE_PYTHON)
++  include(ExaGOCheckPython)
+   add_subdirectory(interfaces/python)
+ endif()
+ 
+-# Build tests
+-add_subdirectory(tests)
++if(EXAGO_RUN_TESTS)
++  # Build tests
++  add_subdirectory(tests)
++endif()
++

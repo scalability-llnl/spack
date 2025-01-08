@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,49 +15,46 @@ class Qscintilla(QMakePackage):
     homepage = "https://www.riverbankcomputing.com/software/qscintilla/intro"
     url = "https://www.riverbankcomputing.com/static/Downloads/QScintilla/2.12.0/QScintilla_src-2.12.0.tar.gz"
 
-    # Directory structure is changed in latest release, logic is lost
-    version(
-        "2.12.0",
-        sha256="a4cc9e7d2130ecfcdb18afb43b813ef122473f6f35deff747415fbc2fe0c60ed",
-        url="https://www.riverbankcomputing.com/static/Downloads/QScintilla/2.12.0/QScintilla_src-2.12.0.tar.gz",
-    )
+    license("GPL-3.0-only")
 
-    # Last standard release dates back to 2021/11/23
-    version(
-        "2.11.6",
-        sha256="e7346057db47d2fb384467fafccfcb13aa0741373c5d593bc72b55b2f0dd20a7",
-        preferred=True,
-        url="https://www.riverbankcomputing.com/static/Downloads/QScintilla/2.11.6/QScintilla-2.11.6.tar.gz",
-    )
-    version(
-        "2.11.2",
-        sha256="029bdc476a069fda2cea3cd937ba19cc7fa614fb90578caef98ed703b658f4a1",
-        url="https://www.riverbankcomputing.com/static/Downloads/QScintilla/2.11.2/QScintilla_gpl-2.11.2.tar.gz",
-    )
-    version(
-        "2.10.2",
-        sha256="14b31d20717eed95ea9bea4cd16e5e1b72cee7ebac647cba878e0f6db6a65ed0",
-        url="https://www.riverbankcomputing.com/static/Downloads/QScintilla/2.10.2/QScintilla-2.10.2.tar.gz",
-    )
+    version("2.14.1", sha256="dfe13c6acc9d85dfcba76ccc8061e71a223957a6c02f3c343b30a9d43a4cdd4d")
+    version("2.14.0", sha256="449353928340300804c47b3785c3e62096f918a723d5eed8a5439764e6507f4c")
+    version("2.13.4", sha256="890c261f31e116f426b0ea03a136d44fc89551ebfd126d7b0bdf8a7197879986")
+    version("2.13.3", sha256="711d28e37c8fccaa8229e8e39a5b3b2d97f3fffc63da10b71c71b84fa3649398")
+    version("2.12.0", sha256="2116181cce3076aa4897e36182532d0e6768081fb0cf6dcdd5be720519ab1434")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("designer", default=False, description="Enable pluging for Qt-Designer")
     variant("python", default=False, description="Build python bindings")
 
-    depends_on("qt+opengl", when="+python")
-    depends_on("qt")
-    depends_on("py-pyqt5 +qsci_api", type=("build", "run"), when="+python ^qt@5")
-    depends_on("py-pyqt4 +qsci_api", type=("build", "run"), when="+python ^qt@4")
+    depends_on("qmake")
+    with when("+python"):
+        depends_on("qt+opengl", when="^[virtuals=qmake] qt")
+        depends_on("qt-base +opengl", when="^[virtuals=qmake] qt-base")
+
+    depends_on("py-pyqt6", type=("build", "run"), when="+python ^qt-base")
+    depends_on("py-pyqt-builder", type="build", when="+python")
+    depends_on("py-pyqt5", type=("build", "run"), when="+python ^qt@5")
     depends_on("python", type=("build", "run"), when="+python")
     # adter install inquires py-sip variant : so we need to have it
     depends_on("py-sip", type="build", when="~python")
 
     extends("python", when="+python")
-    build_directory = "Qt4Qt5"
+
+    # https://www.riverbankcomputing.com/static/Downloads/QScintilla/2.12.0/ChangeLog
+    conflicts("^qt@4", when="@2.12:")
+
+    build_directory = "src"  # was Qt4Qt5 before 2.12.0
 
     def qmake_args(self):
         # below, DEFINES ... gets rid of ...regex...errors during build
         # although, there shouldn't be such errors since we use '-std=c++11'
         args = ["CONFIG+=-std=c++11", "DEFINES+=NO_CXX11_REGEX=1"]
+        # by default, the package tries to build with accessibility support, and fails
+        # possibly there's a bug somewhere that needs to be fixed
+        if "^qt-base" in self.spec:
+            args.append("DEFINES+=QT_NO_ACCESSIBILITY")
         return args
 
     # When INSTALL_ROOT is unset, qscintilla is installed under qt_prefix
@@ -72,92 +68,82 @@ class Qscintilla(QMakePackage):
     # Fix install prefix
     @run_after("qmake")
     def fix_install_path(self):
-        makefile = FileFilter(join_path("Qt4Qt5", "Makefile"))
-        makefile.filter(r"\$\(INSTALL_ROOT\)" + self.spec["qt"].prefix, "$(INSTALL_ROOT)")
+        makefile = FileFilter(join_path(self.build_directory, "Makefile"))
+        makefile.filter(
+            "$(INSTALL_ROOT)" + self.spec["qmake"].prefix, "$(INSTALL_ROOT)", string=True
+        )
 
-    @run_after("install")
-    def postinstall(self):
+    @run_after("install", when="+designer")
+    def make_designer(self):
         # Make designer plugin
-        if "+designer" in self.spec:
-            with working_dir(os.path.join(self.stage.source_path, "designer-Qt4Qt5")):
-                qscipro = FileFilter("designer.pro")
-                qscipro.filter("TEMPLATE = lib", "TEMPLATE = lib\nINCLUDEPATH += ../Qt4Qt5\n")
+        with working_dir(os.path.join(self.stage.source_path, "designer")):
+            # TODO: qmake fails with qt6
+            qmake("designer.pro", "INCLUDEPATH+=../src")
+            make()
+            makefile = FileFilter("Makefile")
+            makefile.filter(
+                "$(INSTALL_ROOT)" + self.spec["qmake"].prefix, "$(INSTALL_ROOT)", string=True
+            )
+            make("install")
 
-                qmake()
-                make()
-                makefile = FileFilter("Makefile")
-                makefile.filter(r"\$\(INSTALL_ROOT\)" + self.spec["qt"].prefix, "$(INSTALL_ROOT)")
-                make("install")
+    @run_after("install", when="+python")
+    def make_qsci_python(self):
+        if "^py-pyqt5" in self.spec:
+            qtx = "qt5"
+            py_pyqtx = "py-pyqt5"
+            pyqtx = "PyQt5"
+            ftoml = "pyproject-qt5.toml"
+        elif "^py-pyqt6" in self.spec:
+            qtx = "qt6"
+            py_pyqtx = "py-pyqt6"
+            pyqtx = "PyQt6"
+            ftoml = "pyproject-qt6.toml"
 
-    @run_after("install")
-    def make_qsci(self):
-        if "+python" in self.spec:
-            if "^py-pyqt4" in self.spec:
-                py_pyqtx = "py-pyqt4"
-                pyqtx = "PyQt4"
-            elif "^py-pyqt5" in self.spec:
-                py_pyqtx = "py-pyqt5"
-                pyqtx = "PyQt5"
+        with working_dir(join_path(self.stage.source_path, "Python")):
+            copy(ftoml, "pyproject.toml")
+            sip_inc_dir = join_path(
+                self.spec[py_pyqtx].package.module.python_platlib, pyqtx, "bindings"
+            )
 
-            with working_dir(join_path(self.stage.source_path, "Python")):
-                pydir = join_path(python_platlib, pyqtx)
-                mkdirp(os.path.join(self.prefix.share.sip, pyqtx))
-                python = self.spec["python"].command
-                python(
-                    "configure.py",
-                    "--pyqt=" + pyqtx,
-                    "--sip=" + self.spec["py-sip"].prefix.bin.sip,
-                    "--qsci-incdir=" + self.spec.prefix.include,
-                    "--qsci-libdir=" + self.spec.prefix.lib,
-                    "--qsci-sipdir=" + os.path.join(self.prefix.share.sip, pyqtx),
-                    "--apidir=" + self.prefix.share.qsci,
-                    "--destdir=" + pydir,
-                    "--pyqt-sipdir=" + os.path.join(self.spec[py_pyqtx].prefix.share.sip, pyqtx),
-                    "--sip-incdir="
-                    + join_path(
-                        self.spec["py-sip"].prefix.include,
-                        "python" + str(self.spec["python"].version.up_to(2)),
-                    ),
-                    "--stubsdir=" + pydir,
-                )
-
-                # Fix build errors
-                # "QAbstractScrollArea: No such file or directory"
-                # "qprinter.h: No such file or directory"
-                # ".../Qsci.so: undefined symbol: _ZTI10Qsci...."
-                qscipro = FileFilter("Qsci/Qsci.pro")
-                if "^qt@4" in self.spec:
-                    qtx = "qt4"
-                elif "^qt@5" in self.spec:
-                    qtx = "qt5"
-
+            with open("pyproject.toml", "a") as tomlfile:
+                # https://pyqt-builder.readthedocs.io/en/latest/pyproject_toml.html
+                tomlfile.write(f'\n[tool.sip.project]\nsip-include-dirs = ["{sip_inc_dir}"]\n')
+                # add widgets and printsupport to Qsci.pro
+                # also add link statement to fix "undefined symbol _Z...Qsciprinter...
                 link_qscilibs = "LIBS += -L" + self.prefix.lib + " -lqscintilla2_" + qtx
-                qscipro.filter(
-                    "TEMPLATE = lib",
-                    "TEMPLATE = lib\nQT += widgets" + "\nQT += printsupport\n" + link_qscilibs,
+                tomlfile.write(
+                    f"""
+[tool.sip.builder]
+qmake-settings = ["QT += widgets", "QT += printsupport", "{link_qscilibs}"]
+"""
                 )
 
-                make()
+            mkdirp(os.path.join(self.prefix.share.sip, pyqtx))
 
-                # Fix installation prefixes
-                makefile = FileFilter("Makefile")
-                makefile.filter(r"\$\(INSTALL_ROOT\)", "")
-                makefile = FileFilter("Qsci/Makefile")
-                makefile.filter(r"\$\(INSTALL_ROOT\)", "")
+            sip_build = Executable(self.spec["py-sip"].prefix.bin.join("sip-build"))
+            sip_build(
+                "--target-dir=" + python_platlib,
+                "--qsci-include-dir=" + self.spec.prefix.include,
+                "--qsci-library-dir=" + self.spec.prefix.lib,
+                "--api-dir=" + self.prefix.share.qsci,
+                "--verbose",
+            )
 
-                if "@2.11:" in self.spec:
-                    make("install", parallel=False)
-                else:
-                    make("install")
+            makefile = FileFilter(join_path("build", "Qsci", "Makefile"))
+            makefile.filter("$(INSTALL_ROOT)", "", string=True)
+            make("install", "-C", join_path("build", "Qsci"))
 
-    @run_after("install")
-    def extend_path_setup(self):
-        if self.spec["py-sip"].satisfies("@:4"):
-            # See github issue #14121 and PR #15297
-            module = self.spec["py-sip"].variants["module"].value
-            if module != "sip":
-                module = module.split(".")[0]
-                with working_dir(python_platlib):
-                    with open(os.path.join(module, "__init__.py"), "w") as f:
-                        f.write("from pkgutil import extend_path\n")
-                        f.write("__path__ = extend_path(__path__, __name__)\n")
+            makefile = FileFilter(join_path("build", "Makefile"))
+            makefile.filter("$(INSTALL_ROOT)", "", string=True)
+            make("install", "-C", "build/")
+
+    def test_python_import(self):
+        """check Qsci import"""
+        if self.spec.satisfies("~python"):
+            raise SkipTest("Package must be installed with +python")
+
+        python = self.spec["python"].command
+        if "^py-pyqt5" in self.spec:
+            python("-c", "import PyQt5.Qsci")
+        if "^py-pyqt6" in self.spec:
+            python("-c", "import PyQt6.Qsci")

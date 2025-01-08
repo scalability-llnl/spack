@@ -1,0 +1,8 @@
+--- spack-src/external/submodule_commit_hash_records.org	2023-11-15 18:38:47.485317449 -0300
++++ spack-src/external/submodule_commit_hash_records	2023-11-15 18:39:02.661861757 -0300
+@@ -5,4 +5,4 @@
+ 82005cbb65bdf5d32ca021848eec8f19da956a77 mbd
+ f72ab25fa4ea755c1b4b230ae8074b47d5509c70 pw2qmcpack
+ 1d6b187374a2d50b509e5e79e2cab01a79ff7ce1 wannier90
+-f5823521ad8fdd8b8e9e29197eedb354f9b9146d qe-gipaw
++eccee44d3caf1c930fb72ad9c741fbb743eabf45 qe-gipaw

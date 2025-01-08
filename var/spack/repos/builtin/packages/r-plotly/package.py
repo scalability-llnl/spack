@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,9 @@ class RPlotly(RPackage):
 
     cran = "plotly"
 
+    license("MIT")
+
+    version("4.10.4", sha256="cfa995b7ed55d31a196707a3ae6ea352dd907cef3058a3bf1956fde39366d867")
     version("4.10.1", sha256="ac0921a1cba24e17a0f3a0a28b7a40ac930e17fe5caa9c3973c9a8d1e20c367a")
     version("4.10.0", sha256="bd995c654dbc8c09a84adaba8def99766919e3894caf18b551bb26b2f591389a")
     version("4.9.3", sha256="d44d1a16d96de28bc2d36f1c897384215eeec44d109546c6e9c2707db0880120")

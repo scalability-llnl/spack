@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,10 @@ class CBlosc(CMakePackage):
     homepage = "https://www.blosc.org"
     url = "https://github.com/Blosc/c-blosc/archive/v1.11.1.tar.gz"
 
+    license("BSD-3-Clause")
+
+    version("1.21.5", sha256="32e61961bbf81ffea6ff30e9d70fca36c86178afd3e3cfa13376adec8c687509")
+    version("1.21.4", sha256="e72bd03827b8564bbb3dc3ea0d0e689b4863871ce3861d946f2efd7a186ecf3e")
     version("1.21.2", sha256="e5b4ddb4403cbbad7aab6e9ff55762ef298729c8a793c6147160c771959ea2aa")
     version("1.21.1", sha256="f387149eab24efa01c308e4cba0f59f64ccae57292ec9c794002232f7903b55b")
     version("1.21.0", sha256="b0ef4fda82a1d9cbd11e0f4b9685abf14372db51703c595ecd4d76001a8b342d")
@@ -29,11 +32,14 @@ class CBlosc(CMakePackage):
     version("1.8.1", sha256="1abf048634c37aeca53eeb6a9248ea235074077028d12b3560eccf1dff7143b8")
     version("1.8.0", sha256="e0f8b9e12e86776a1b037385826c55006da6e2ae4973dac5b5ad3cfcf01e9043")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("avx2", default=True, description="Enable AVX2 support")
 
     depends_on("cmake@2.8.10:", type="build")
     depends_on("snappy")
-    depends_on("zlib")
+    depends_on("zlib-api")
     depends_on("zstd")
     depends_on("lz4")
 
@@ -47,7 +53,7 @@ class CBlosc(CMakePackage):
     def cmake_args(self):
         args = []
 
-        if "+avx2" in self.spec:
+        if self.spec.satisfies("+avx2"):
             args.append("-DDEACTIVATE_AVX2=OFF")
         else:
             args.append("-DDEACTIVATE_AVX2=ON")

@@ -1,0 +1,61 @@
+--- a/boost/mpl/quote.hpp	2022-09-29 11:47:28.395587000 -0600
++++ b/boost/mpl/quote.hpp	2022-09-29 11:47:35.363536000 -0600
+@@ -119,7 +119,7 @@
+ #define i_ BOOST_PP_FRAME_ITERATION(1)
+ 
+ template<
+-      template< BOOST_MPL_PP_PARAMS(i_, typename P) > class F
++      template< BOOST_MPL_PP_PARAMS(i_, typename T) > class F
+     , typename Tag = void_
+     >
+ struct BOOST_PP_CAT(quote,i_)
+
+--- a/boost/mpl/aux_/preprocessed/gcc/quote.hpp	2022-09-29 12:39:47.776457000 -0600
++++ b/boost/mpl/aux_/preprocessed/gcc/quote.hpp	2022-09-29 12:40:15.807044000 -0600
+@@ -24,7 +24,7 @@
+ };
+ 
+ template<
+-      template< typename P1 > class F
++      template< typename T1 > class F
+     , typename Tag = void_
+     >
+ struct quote1
+@@ -41,7 +41,7 @@
+ };
+ 
+ template<
+-      template< typename P1, typename P2 > class F
++      template< typename T1, typename T2 > class F
+     , typename Tag = void_
+     >
+ struct quote2
+@@ -58,7 +58,7 @@
+ };
+ 
+ template<
+-      template< typename P1, typename P2, typename P3 > class F
++      template< typename T1, typename T2, typename T3 > class F
+     , typename Tag = void_
+     >
+ struct quote3
+@@ -75,7 +75,7 @@
+ };
+ 
+ template<
+-      template< typename P1, typename P2, typename P3, typename P4 > class F
++      template< typename T1, typename T2, typename T3, typename T4 > class F
+     , typename Tag = void_
+     >
+ struct quote4
+@@ -96,8 +96,8 @@
+ 
+ template<
+       template<
+-          typename P1, typename P2, typename P3, typename P4
+-        , typename P5
++          typename T1, typename T2, typename T3, typename T4
++        , typename T5
+         >
+       class F
+     , typename Tag = void_

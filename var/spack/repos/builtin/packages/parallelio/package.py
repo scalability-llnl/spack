@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,12 @@ class Parallelio(CMakePackage):
 
     maintainers("jedwards4b")
 
+    license("Apache-2.0")
+
+    version("2.6.3", sha256="a483eb1cfa88ace8c6266e02741771c984e846dd732e86c72c3fdeae942b4299")
+    version("2.6.2", sha256="c318894f0230197458917e932ec66301b4407a744df481e9c6a6d9d85f7e5ab1")
+    version("2.6.1", sha256="83d3108d2b9db8219aa6b6ee333cfc12b2a588bcfc781587df5f8b24a716a6eb")
+    version("2.6.0", sha256="e56a980c71c7f57f396a88beae08f1670d4adf59be6411cd573fe85868ef98c0")
     version("2.5.10", sha256="fac694827c81434a7766976711ba7179940e361e8ed0c189c7b397fd44d401de")
     version("2.5.9", sha256="e5dbc153d8637111de3a51a9655660bf15367d55842de78240dcfc024380553d")
     version("2.5.8", sha256="f2584fb4310ff7da39d51efbe3f334efd0ac53ae2995e5fc157decccc0570a89")
@@ -25,16 +30,27 @@ class Parallelio(CMakePackage):
     version("2.5.3", sha256="205a0a128fd5262700efc230b3380dc5ab10e74bc5d273ae05db76c9d95487ca")
     version("2.5.2", sha256="935bc120ef3bf4fe09fb8bfdf788d05fb201a125d7346bf6b09e27ac3b5f345c")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("pnetcdf", default=False, description="enable pnetcdf")
     variant("timing", default=False, description="enable GPTL timing")
-    variant("shared", default=True, description="Build shared libraries")
+    variant("ncint", default=False, description="enable netcdf integration", when="@2.6.0:")
+    variant("shared", default=True, description="build shared libraries")
     variant("logging", default=False, description="enable verbose logging")
     variant(
         "fortran", default=True, description="enable fortran interface (requires netcdf fortran)"
     )
     variant("mpi", default=True, description="Use mpi to build, otherwise use mpi-serial")
 
+    # This patch addresses building pio2.6.1 with serial netcdf, the issue is netcdf filters
+    patch("serial261.patch", when="@2.6.1")
     patch("remove_redefinition_of_mpi_offset.patch", when="@:2.5.6")
+
+    # This patch addresses an issue when compiling pio2.6.0 with a serial netcdf library.
+    # netcdf4 filters are only available with the parallel build of netcdf.
+    patch("pio_260.patch", when="@2.6.0")
 
     depends_on("cmake@3.7:", type="build")
     depends_on("mpi", when="+mpi")
@@ -45,9 +61,19 @@ class Parallelio(CMakePackage):
     depends_on("parallel-netcdf", type="link", when="+pnetcdf")
 
     resource(name="genf90", git="https://github.com/PARALLELIO/genf90.git", tag="genf90_200608")
+    resource(
+        name="CMake_Fortran_utils",
+        git="https://github.com/CESM-Development/CMake_Fortran_utils.git",
+        tag="CMake_Fortran_utils_150308",
+    )
 
     # Allow argument mismatch in gfortran versions > 10 for mpi library compatibility
     patch("gfortran.patch", when="@:2.5.8 +fortran %gcc@10:")
+
+    @run_after("install", when="platform=darwin")
+    def darwin_install_name(self):
+        # The shared library is not installed correctly on Darwin; fix this
+        fix_darwin_install_name(self.prefix.lib)
 
     def cmake_args(self):
         define = self.define
@@ -63,6 +89,8 @@ class Parallelio(CMakePackage):
             define_from_variant("BUILD_SHARED_LIBS", "shared"),
             define("PIO_ENABLE_EXAMPLES", False),
         ]
+        if spec.satisfies("+ncint"):
+            args.extend([define("PIO_ENABLE_NETCDF_INTEGRATION", True)])
         if spec.satisfies("+pnetcdf"):
             args.extend([define("PnetCDF_C_PATH", spec["parallel-netcdf"].prefix)])
         if spec.satisfies("+fortran"):

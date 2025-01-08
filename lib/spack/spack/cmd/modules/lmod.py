@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -8,6 +7,7 @@ import functools
 import spack.cmd.common.arguments
 import spack.cmd.modules
 import spack.config
+import spack.modules
 import spack.modules.lmod
 
 
@@ -30,7 +30,7 @@ def add_command(parser, command_dict):
 
 
 def setdefault(module_type, specs, args):
-    """Set the default module file, when multiple are present"""
+    """set the default module file, when multiple are present"""
     # For details on the underlying mechanism see:
     #
     # https://lmod.readthedocs.io/en/latest/060_locating.html#marking-a-version-as-default

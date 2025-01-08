@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,7 +18,7 @@ class MultivalueVariant(Package):
     variant(
         "foo",
         description="Multi-valued variant",
-        values=any_combination_of("bar", "baz", "barbaz"),
+        values=any_combination_of("bar", "baz", "barbaz", "fee"),
     )
 
     variant(
@@ -40,5 +39,5 @@ class MultivalueVariant(Package):
 
     depends_on("mpi")
     depends_on("callpath")
-    depends_on("a")
-    depends_on("a@1.0", when="fee=barbaz")
+    depends_on("pkg-a")
+    depends_on("pkg-a@1.0", when="fee=barbaz")

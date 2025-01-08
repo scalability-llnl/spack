@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,6 +10,8 @@ class Miranda(AutotoolsPackage):
 
     homepage = "http://www.microrna.org/microrna/getDownloads.do"
     url = "https://cbio.mskcc.org/microrna_data/miRanda-aug2010.tar.gz"
+
+    license("GPL-2.0-only")
 
     version(
         "3.3a",

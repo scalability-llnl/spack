@@ -1,0 +1,15 @@
+diff --git a/manual/stdio.texi b/manual/stdio.texi
+index be769a5..7b436f0 100644
+--- a/manual/stdio.texi
++++ b/manual/stdio.texi
+@@ -3137,7 +3137,7 @@ The postfix tag corresponds to bytes, kilobytes, megabytes, gigabytes,
+ etc.  The full table is:
+ 
+ @ifinfo
+-@multitable @hsep @vsep {' '} {2^10 (1024)} {zetta} {Upper} {10^24 (1000)}
++@multitable {' '} {2^10 (1024)} {zetta} {Upper} {10^24 (1000)}
+ @item low @tab Multiplier  @tab From  @tab Upper @tab Multiplier
+ @item ' ' @tab 1           @tab       @tab ' '   @tab 1
+ @item k   @tab 2^10 (1024) @tab kilo  @tab K     @tab 10^3 (1000)
+-- 
+1.8.0.1

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,7 +13,11 @@ class Mira(AutotoolsPackage):
     homepage = "https://sourceforge.net/projects/mira-assembler/"
     url = "https://downloads.sourceforge.net/project/mira-assembler/MIRA/stable/mira-4.0.2.tar.bz2"
 
+    license("GPL-2.0-or-later")
+
     version("4.0.2", sha256="a32cb2b21e0968a5536446287c895fe9e03d11d78957554e355c1080b7b92a80")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("boost@1.46:")
 

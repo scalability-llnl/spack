@@ -1,0 +1,389 @@
+{
+  "verified": [
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "riu2vekwzrloc3fktlf6v7kwv6fja7lp",
+          "7527bc4d2d75671162fe0db3de04c5d3e1e6ab7991dfd85442c302c698febb45"
+        ]
+      ],
+      "python": "python@3.10.13",
+      "spec": "clingo-bootstrap%apple-clang platform=darwin target=aarch64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "sgf6pgn4ihfcbxutxhevp36n3orfpdkw",
+          "958531adcb449094bca7703f8f08d0f55a18f9a4c0f10a175ae4190d20982891"
+        ]
+      ],
+      "python": "python@3.11.5",
+      "spec": "clingo-bootstrap%apple-clang platform=darwin target=aarch64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "ie4wlhhnb4snroymbnjksajwvoid6omx",
+          "4af14c3375a211ead3d2b4a31b59683744adcb79b820cc0c6b168ab162a7d983"
+        ]
+      ],
+      "python": "python@3.12.0",
+      "spec": "clingo-bootstrap%apple-clang platform=darwin target=aarch64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "5ke32podcipzxxwrj6uzm324bxegbwca",
+          "a4106c42ee68d07c3d954ab73fe305ca4204f44d90b58fd91a8f784d9b96e7e3"
+        ]
+      ],
+      "python": "python@3.6",
+      "spec": "clingo-bootstrap%apple-clang platform=darwin target=aarch64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "scu4cnnf5axmjgozqc7cccpqnj5nc5tj",
+          "54de4ca141b92222c8f1729e9e336c8a71dad9efa641e76438fcfb79bb58fc7f"
+        ]
+      ],
+      "python": "python@3.7.17",
+      "spec": "clingo-bootstrap%apple-clang platform=darwin target=aarch64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "ajbswc25irhmhbc4qibdcr6ohsvpcdku",
+          "8b9e7af163a4259256eca4b4a1a92b5d95463a5cf467be2a11c64ab536ca5b04"
+        ]
+      ],
+      "python": "python@3.8.18",
+      "spec": "clingo-bootstrap%apple-clang platform=darwin target=aarch64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "vwkuxa5z4pj7vviwsmrpw2r6kbbqej2p",
+          "a3f10024ff859e15b79ccd06c970a5f0e6ba11b0eae423f096ec9a35863816d2"
+        ]
+      ],
+      "python": "python@3.9.18",
+      "spec": "clingo-bootstrap%apple-clang platform=darwin target=aarch64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "attdjmyzpfnhoobadw55pgg4hwkyp7zk",
+          "f3258af3a648b47f12285dd3f048b685ed652b2b55b53861ac9913926de0f1c3"
+        ]
+      ],
+      "python": "python@3.10",
+      "spec": "clingo-bootstrap%apple-clang platform=darwin target=x86_64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "w4vnbsxjgkhsmgwozudzcsqlvccjsec4",
+          "19322c2c951fc80234963ac068c78442df57ac63055325b24a39ab705d27a5b9"
+        ]
+      ],
+      "python": "python@3.11",
+      "spec": "clingo-bootstrap%apple-clang platform=darwin target=x86_64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "dw7ez2xcx6e5dxo3n4jin7pdbo3ihwtw",
+          "c368edda4b3c8fd767f5f0f098ea416864b088c767dc43135df49cf5f6ef4c93"
+        ]
+      ],
+      "python": "python@3.12",
+      "spec": "clingo-bootstrap%apple-clang platform=darwin target=x86_64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "audrlxaw3ny3kyjkf6kqywumhokcxh3p",
+          "db2f44966ec104ffe57c0911f0b1e0d3d052753f4c46c30c0890dfb26d547b09"
+        ]
+      ],
+      "python": "python@3.6",
+      "spec": "clingo-bootstrap%apple-clang platform=darwin target=x86_64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "al7brxvvvhih5nlxvtfkavufqc3pe5t2",
+          "4e09b6d50d42c898e075fd20f7c7eddf91cb80edfd2d1326d26fd779e4d1ffed"
+        ]
+      ],
+      "python": "python@3.7",
+      "spec": "clingo-bootstrap%apple-clang platform=darwin target=x86_64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "v3ctpkyogl542wjibng6m2h2426spjbb",
+          "d9ceb4f9ca23ef1dcc33872e5410ccfef6ea0360247d3e8faedf1751fb1ae4ca"
+        ]
+      ],
+      "python": "python@3.8",
+      "spec": "clingo-bootstrap%apple-clang platform=darwin target=x86_64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "zxo5ih5ac6r7lj6miwyx36ot7s6a4dcw",
+          "f8f5e124d0e7bada34ff687a05e80b2fe207ce4d26205dab09b144edb148f05e"
+        ]
+      ],
+      "python": "python@3.9",
+      "spec": "clingo-bootstrap%apple-clang platform=darwin target=x86_64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "wki4qcy3wzpoxav3auxt2u7yb4sk3xcc",
+          "f5b9251eb51c60a71f7a0359c252f48c1a1121c426e1e6f9181808c626cb5fef"
+        ]
+      ],
+      "python": "python@3.10.13",
+      "spec": "clingo-bootstrap%gcc platform=linux target=aarch64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "gun6hbksmsecau5wjyrmxodq4hxievzx",
+          "28839ec43db444d6725bde3fcff99adadf61a392d967041fb16f0ffc0afa2f9d"
+        ]
+      ],
+      "python": "python@3.11.5",
+      "spec": "clingo-bootstrap%gcc platform=linux target=aarch64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "er73owosuqfmmkxvuw3f7sqnvvj6s4xp",
+          "99264d48c290256bf16e202c155bf3f8c88fdbbe9894d901344d0db7258abce3"
+        ]
+      ],
+      "python": "python@3.12.0",
+      "spec": "clingo-bootstrap%gcc platform=linux target=aarch64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "kv6l7qttuzk7zxkxi5fhff52qso3pj7m",
+          "59aa052e89d3c698fdd35e30ac21a896c8e49bbcc2f589a8f777bd5dafff2af7"
+        ]
+      ],
+      "python": "python@3.6",
+      "spec": "clingo-bootstrap%gcc platform=linux target=aarch64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "uw5o2z753otspa3lmmy2bdodh5munkir",
+          "7a8b6359ce83463541ff68c221296fe9875adf28ea2b2c1416229750cf4935d2"
+        ]
+      ],
+      "python": "python@3.7.17",
+      "spec": "clingo-bootstrap%gcc platform=linux target=aarch64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "d63pp2l453bfygh6q7afwdj5mw7lhsns",
+          "425bef3a8605732b2fbe74cdd77ef6a359cbdb62800490bbd05620a57da35b0c"
+        ]
+      ],
+      "python": "python@3.8.18",
+      "spec": "clingo-bootstrap%gcc platform=linux target=aarch64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "nap44jiznzwlma6n75uxbpznppazs7av",
+          "316d940ca9af8c6b3bc50f8fdaadba02b0e955c4f24345a63a1a6715b01a752c"
+        ]
+      ],
+      "python": "python@3.9.18",
+      "spec": "clingo-bootstrap%gcc platform=linux target=aarch64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "qhvnw4yowmk2tofg3u7a4uomisktgzw5",
+          "d30ec81385377521dd2d1ac091546cc2dec6a852ad31f35c24c65919f94fbf64"
+        ]
+      ],
+      "python": "python@3.10.13",
+      "spec": "clingo-bootstrap%gcc platform=linux target=ppc64le"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "b3y37ryfuhjq6ljbkq7piglsafg5stgw",
+          "3c2f9cca3a6d37685fdf7d7dffb7a0505336c32562715069004631c446e46a7c"
+        ]
+      ],
+      "python": "python@3.11.5",
+      "spec": "clingo-bootstrap%gcc platform=linux target=ppc64le"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "dbloojtq5kcfd3pjmj4pislgpzrcvjpn",
+          "f8aeba80e6c106b769adba164702db94e077255fe1a22d6d265ccc3172b4ab1a"
+        ]
+      ],
+      "python": "python@3.12.0",
+      "spec": "clingo-bootstrap%gcc platform=linux target=ppc64le"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "gtlngzdb7iggcjmaottob54qi3b24blt",
+          "3efc534ba293ee51156971b8c19a597ebcb237b003c98e3c215a49a88064dfd1"
+        ]
+      ],
+      "python": "python@3.6",
+      "spec": "clingo-bootstrap%gcc platform=linux target=ppc64le"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "4ab4wobwa7bvhlkrmhdp2dwgtcq5rpzo",
+          "3dc6539a989701ec1d83d644a79953af912c11fe6046a8d720970faf8e477991"
+        ]
+      ],
+      "python": "python@3.7.17",
+      "spec": "clingo-bootstrap%gcc platform=linux target=ppc64le"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "fgout3h4mt4i64xaovqrpcsdy3ly2aml",
+          "ade67f0623e941b16f2dd531270b4863de8befd56a9a47bd87af85345bc8bed6"
+        ]
+      ],
+      "python": "python@3.8.18",
+      "spec": "clingo-bootstrap%gcc platform=linux target=ppc64le"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "5fv2q4agg4b4g53f4zhnymrbv6ogiwpy",
+          "18047d48538a770f014cce73756258c1a320d4ac143abef3c5d8bc09dd7a03cc"
+        ]
+      ],
+      "python": "python@3.9.18",
+      "spec": "clingo-bootstrap%gcc platform=linux target=ppc64le"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "smkmkb5xqz4v2f7tl22g4e2ghamglox5",
+          "a850c80c7a48dab506f807cc936b9e54e6f5640fe96543ff58281c046140f112"
+        ]
+      ],
+      "python": "python@3.10.13",
+      "spec": "clingo-bootstrap%gcc platform=linux target=x86_64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "55qeu52pkt5shpwd7ulugv7wzt5j7vqd",
+          "e5e1a10b3b2d543b1555f5caef9ac1a9ccdcddb36a1278d3bf68bf0e9f490626"
+        ]
+      ],
+      "python": "python@3.11.5",
+      "spec": "clingo-bootstrap%gcc platform=linux target=x86_64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "zcw5ieomfwwpzpzpabetix2plfqzpvwd",
+          "ed409165109488d13afe8ef12edd3b373ed08967903dc802889523b5d3bccd14"
+        ]
+      ],
+      "python": "python@3.12.0",
+      "spec": "clingo-bootstrap%gcc platform=linux target=x86_64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "t4yf34cuvquqp5xd66zybmcfyhwbdlsf",
+          "b14e26e86bcfdac98b3a55109996265683f32910d3452e034ddc0d328bf62d67"
+        ]
+      ],
+      "python": "python@3.6",
+      "spec": "clingo-bootstrap%gcc platform=linux target=x86_64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "grkrpj76lxsxa753uzndwfmrj3pwvyhp",
+          "11a535d4a8a9dbb18c2f995e10bc90b27b6ebc61f7ac2090f15db9b4f9be1a64"
+        ]
+      ],
+      "python": "python@3.7.17",
+      "spec": "clingo-bootstrap%gcc platform=linux target=x86_64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "zowwoarrf3hvo6i3iereolfujr42iyro",
+          "154d3a725f02c1775644d99a0b74f9e2cdf6736989a264ccfd5d9a8bce77a16b"
+        ]
+      ],
+      "python": "python@3.8.18",
+      "spec": "clingo-bootstrap%gcc platform=linux target=x86_64"
+    },
+    {
+      "binaries": [
+        [
+          "clingo-bootstrap",
+          "bhqgwuvef354fwuxq7heeighavunpber",
+          "399dec8cb6b8cd1b03737e68ea32e6ed69030b57e5f05d983e8856024143ea78"
+        ]
+      ],
+      "python": "python@3.9.18",
+      "spec": "clingo-bootstrap%gcc platform=linux target=x86_64"
+    }
+  ]
+}

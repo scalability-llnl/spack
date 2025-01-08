@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,6 +26,7 @@ class RStanheaders(RPackage):
 
     cran = "StanHeaders"
 
+    version("2.32.10", sha256="c3125b8d7dc4c6b7082258b2fa6c9530c2e4714c89ffd08b8e72f4c9f4108582")
     version("2.21.0-7", sha256="27546e064f0e907e031d9185ad55245d118d82fbe3074ecb1d76fae8b9f2336b")
     version("2.21.0-6", sha256="a0282a054d0e6ab310ec7edcffa953b77c7e4a858d9ac7028aab1b4fb4ce8cf3")
     version("2.18.1-10", sha256="8a9f7e22105428e97d14f44f75395c37cf8c809de148d279c620024452b3565a")
@@ -37,5 +37,7 @@ class RStanheaders(RPackage):
     depends_on("r+X", type=("build", "run"))
     depends_on("r@3.4.0:", type=("build", "run"), when="@2.18.0:")
     depends_on("r-rcppparallel@5.0.1:", type=("build", "run"), when="@2.21.0:")
+    depends_on("r-rcppparallel@5.1.4:", type=("build", "run"), when="@2.26.25:")
     depends_on("r-rcppeigen", type=("build", "run"), when="@2.21.0:")
+    depends_on("r-rcppeigen@0.3.4.0.0:", type=("build", "run"), when="@2.32.8:")
     depends_on("pandoc", type="build")

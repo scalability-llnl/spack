@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -29,7 +28,7 @@ class AsperaCli(Package):
         # Update destination path
         filter_file(
             "INSTALL_DIR=~/.aspera",
-            "INSTALL_DIR=%s" % prefix,
+            f"INSTALL_DIR={prefix}",
             runfile,
             string=True,
             stop_at="__ARCHIVE_FOLLOWS__",

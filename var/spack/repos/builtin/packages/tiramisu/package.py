@@ -1,5 +1,4 @@
-# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -18,8 +17,13 @@ class Tiramisu(CMakePackage, CudaPackage, PythonExtension):
 
     generator("ninja")
 
+    license("MIT")
+
     version("master", branch="master")
     version("2023-2-8", commit="2cd0c43cc1656bfa43cfb6e81d06f770cbf7251e")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("python", default=True, description="Install python bindings.")
     extends("python", when="+python")
@@ -55,10 +59,7 @@ class Tiramisu(CMakePackage, CudaPackage, PythonExtension):
             self.define("USE_FLEXNLP", False),
         ]
         if "+python" in spec:
-            args += [
-                self.define("Tiramisu_INSTALL_PYTHONDIR", python_platlib),
-                self.define("Python3_EXECUTABLE", spec["python"].command.path),
-            ]
+            args += [self.define("Tiramisu_INSTALL_PYTHONDIR", python_platlib)]
         return args
 
     @property

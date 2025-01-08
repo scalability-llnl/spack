@@ -29,7 +29,6 @@ spack:
 
   - target:
     - 'target=aarch64'
-    - 'target=neoverse_n1'
 
   specs:
 
@@ -37,8 +36,6 @@ spack:
     - - $radiuss
     - - $compiler
     - - $target
-
-  mirrors: { "mirror": "s3://spack-binaries/develop/radiuss-aws-aarch64" }
 
   ci:
     pipeline-gen:

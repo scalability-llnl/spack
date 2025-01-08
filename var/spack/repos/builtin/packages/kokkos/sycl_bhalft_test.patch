@@ -1,0 +1,14 @@
+diff -ruN spack-src/core/unit_test/TestNumericTraits.hpp spack-src-patched/core/unit_test/TestNumericTraits.hpp
+--- spack-src/core/unit_test/TestNumericTraits.hpp	2023-11-20 13:26:46.000000000 -0800
++++ spack-src-patched/core/unit_test/TestNumericTraits.hpp	2023-11-28 12:06:44.216150685 -0800
+@@ -110,8 +110,8 @@
+ 
+   KOKKOS_FUNCTION void operator()(Epsilon, int, int& e) const {
+     using Kokkos::Experimental::epsilon;
+-    auto const eps = epsilon<T>::value;
+-    auto const one = T(1);
++    T const eps = epsilon<T>::value;
++    T const one = 1;
+     // Avoid higher precision intermediate representation
+     compare() = one + eps;
+     e += (int)!(compare() != one);

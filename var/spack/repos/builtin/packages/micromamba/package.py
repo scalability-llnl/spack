@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,17 +22,18 @@ class Micromamba(CMakePackage):
 
     maintainers("charmoniumQ")
 
+    license("BSD-3-Clause")
+
+    version("1.4.2", sha256="dce034908d02d991c5e9aadeb9d01f139d027ba199aaeb1d47d543e3f24895d1")
     version("1.1.0", sha256="e2392cd90221234ae8ea92b37f40829fbe36d80278056269aa1994a5efe7f530")
+
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "linkage",
         default="dynamic",
         description=f"See MICROMAMBA_LINKAGE in {linkage_url}.",
-        values=(
-            "dynamic",
-            "static",
-            # "full_static",
-        ),
+        values=("dynamic", conditional("static", when="@1.1.0")),
         multi=False,
     )
 
@@ -48,8 +48,8 @@ class Micromamba(CMakePackage):
         depends_on("yaml-cpp", type="link")
         depends_on("libreproc+cxx+shared", type="link")
         depends_on("tl-expected@2022-11-24", type="link")
-        depends_on("fmt", type="link")
-        depends_on("spdlog", type="link")
+        depends_on("fmt@9.1.0", type="link")
+        depends_on("spdlog@1.11.0", type="link")
 
         # https://github.com/mamba-org/mamba/blob/micromamba-1.0.0/libmamba/include/mamba/core/validate.hpp#L13
         depends_on("nlohmann-json", type="link")
@@ -60,6 +60,9 @@ class Micromamba(CMakePackage):
         # https://github.com/mamba-org/mamba/blob/micromamba-1.0.0/micromamba/src/common_options.hpp#L12
         depends_on("cli11@2.2:", type="link")
 
+        depends_on("zstd build_system=cmake", type="link", when="@1.4.0:")
+
+        # 1.4.2 made the static build the old "full_static" build and it needs some work.
     with when("linkage=static"):
         # When linkage is static, BUILD_STATIC=ON
         # and then
@@ -78,8 +81,8 @@ class Micromamba(CMakePackage):
         depends_on("yaml-cpp", type="link")
         depends_on("libreproc+cxx", type="link")
         depends_on("tl-expected@2022-11-24", type="link")
-        depends_on("fmt", type="link")
-        depends_on("spdlog", type="link")
+        depends_on("fmt@9.1.0", type="link")
+        depends_on("spdlog@1.11.0", type="link")
         depends_on("nlohmann-json", type="link")
         depends_on("cpp-termcolor", type="link")
         depends_on("cli11@2.2:", type="link")
@@ -110,7 +113,7 @@ class Micromamba(CMakePackage):
             depends_on("bzip2", type="link")
             depends_on("lz4", type="link")
             depends_on("zstd", type="link")
-            depends_on("zlib", type="link")
+            depends_on("zlib-api", type="link")
             depends_on("xz libs=static", type="link")
             depends_on("lzo", type="link")
             depends_on("libsolv+conda~shared", type="link")

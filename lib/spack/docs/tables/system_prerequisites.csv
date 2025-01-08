@@ -1,16 +1,13 @@
 Name, Supported Versions, Notes, Requirement Reason
-Python, 3.6--3.11, , Interpreter for Spack
+Python, 3.6--3.12, , Interpreter for Spack
 C/C++ Compilers, , , Building software
-make, , , Build software
 patch, , , Build software
-bash, , , Compiler wrappers
 tar, , , Extract/create archives
 gzip, , , Compress/Decompress archives
 unzip, , , Compress/Decompress archives
 bzip2, , , Compress/Decompress archives
 xz, , , Compress/Decompress archives
 zstd, , Optional, Compress/Decompress archives
-file, , , Create/Use Buildcaches
 lsb-release, , , Linux: identify operating system version
 gnupg2, , , Sign/Verify Buildcaches
 git, , , Manage Software Repositories

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,7 @@ class RXvector(RPackage):
 
     bioc = "XVector"
 
+    version("0.40.0", commit="875b4b4469e125737bee42362e7a3c75edd642f1")
     version("0.38.0", commit="8cad08446091dcc7cd759e880c0f3e47228278dd")
     version("0.36.0", commit="ff6f818ff4357eb9bf00654de9e0f508a5285408")
     version("0.34.0", commit="06adb25ac51c707b90fb8e0637fa06df237a863c")
@@ -24,6 +24,8 @@ class RXvector(RPackage):
     version("0.20.0", commit="a83a7ea01f6a710f0ba7d9fb021cfa795b291cb4")
     version("0.18.0", commit="27acf47282c9880b54d04dff46c1e50f0c87fa6b")
     version("0.16.0", commit="54615888e1a559da4a81de33e934fc0f1c3ad99f")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r@2.8.0:", type=("build", "run"))
     depends_on("r@4.0.0:", type=("build", "run"), when="@0.34.0:")
@@ -40,4 +42,4 @@ class RXvector(RPackage):
     depends_on("r-iranges@2.15.12:", type=("build", "run"), when="@0.22.0:")
     depends_on("r-iranges@2.23.9:", type=("build", "run"), when="@0.30.0:")
     depends_on("r-zlibbioc", type=("build", "run"))
-    depends_on("zlib")
+    depends_on("zlib-api")

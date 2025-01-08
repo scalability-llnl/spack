@@ -1,0 +1,55 @@
+diff -Naur a/config/zen4/make_defs.mk b/config/zen4/make_defs.mk
+--- a/config/zen4/make_defs.mk	2022-11-12 13:05:45.000000000 +0000
++++ b/config/zen4/make_defs.mk	2023-05-12 14:40:10.848359434 +0000
+@@ -73,6 +73,15 @@
+ 
+ 
+ # gcc 11.0 or later:
++ifeq ($(shell test $(GCC_VERSION) -ge 13; echo $$?),0)
++ifneq ($(DEBUG_TYPE),noopt)
++CKOPTFLAGS     := -O2 -fgcse-after-reload -fipa-cp-clone -floop-interchange -floop-unroll-and-jam -fpeel-loops -fpredictive-commoning -fsplit-loops -fsplit-paths -ftree-loop-distribution -funswitch-loops -fvect-cost-model=dynamic -fversion-loops-for-strides -fomit-frame-pointer
++endif
++
++CKVECFLAGS     +=  -march=znver4 -mfpmath=sse
++CRVECFLAGS     +=  -march=znver4
++
++else
+ ifeq ($(shell test $(GCC_VERSION) -ge 11; echo $$?),0)
+ # Update CKOPTFLAGS for gcc 11+ to use O3 optimization without
+ # -ftree-partial-pre flag. This flag results in suboptimal code
+@@ -100,6 +109,7 @@
+ endif # GCC 8
+ endif # GCC 9
+ endif # GCC 11
++endif # GCC 13
+ else
+ ifeq ($(CC_VENDOR),clang)
+ 
+@@ -132,6 +142,16 @@
+ #if compiling with clang
+ VENDOR_STRING := $(strip $(shell ${CC_VENDOR} --version | egrep -o '[0-9]+\.[0-9]+\.?[0-9]*'))
+ CC_MAJOR := $(shell (echo ${VENDOR_STRING} | cut -d. -f1))
++#clang 16 or later:
++ifeq ($(shell test $(CC_MAJOR) -ge 16; echo $$?),0)
++CKVECFLAGS += -march=znver4
++CRVECFLAGS += -march=znver4
++else
++#clang 12 or later:
++ifeq ($(shell test $(CC_MAJOR) -ge 12; echo $$?),0)
++CKVECFLAGS += -march=znver3 -mavx512f -mavx512dq -mavx512bw -mavx512vl -mavx512vnni -mavx512bf16 -mfpmath=sse -falign-loops=64
++CRVECFLAGS += -march=znver3
++else
+ #clang 9.0 or later:
+ ifeq ($(shell test $(CC_MAJOR) -ge 9; echo $$?),0)
+ CKVECFLAGS += -march=znver2
+@@ -139,7 +159,9 @@
+ else
+ CKVECFLAGS += -march=znver1
+ CRVECFLAGS += -march=znver1
+-endif # ge 9
++endif # clang 9
++endif # clang 12
++endif # clang 16
+ endif # aocc 2
+ endif # aocc 3
+ endif # aocc 4

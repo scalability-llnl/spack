@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,10 +14,18 @@ class Opencv(CMakePackage, CudaPackage):
     homepage = "https://opencv.org/"
     url = "https://github.com/opencv/opencv/archive/4.5.0.tar.gz"
     git = "https://github.com/opencv/opencv.git"
+    find_python_hints = False  # opencv uses custom OpenCVDetectPython.cmake
 
-    maintainers("bvanessen", "adamjstewart", "glennpj")
+    maintainers("bvanessen", "adamjstewart")
+
+    license("BSD-3-Clause")
 
     version("master", branch="master")
+    version("4.10.0", sha256="b2171af5be6b26f7a06b1229948bbb2bdaa74fcf5cd097e0af6378fce50a6eb9")
+    version("4.9.0", sha256="ddf76f9dffd322c7c3cb1f721d0887f62d747b82059342213138dc190f28bc6c")
+    version("4.8.1", sha256="62f650467a60a38794d681ae7e66e3e8cfba38f445e0bf87867e2f2cdc8be9d5")
+    version("4.8.0", sha256="cbf47ecc336d2bff36b0dcd7d6c179a9bb59e805136af6b9670ca944aef889bd")
+    version("4.7.0", sha256="8df0079cdbe179748a18d44731af62a245a45ebf5085223dc03133954c662973")
     version("4.6.0", sha256="1ec1cba65f9f20fe5a41fda1586e01c70ea0c9a6d7b67c9e13edf0cfe2239277")
     version("4.5.5", sha256="a1cfdcf6619387ca9e232687504da996aaa9f7b5689986b8331ec02cb61d28ad")
     version("4.5.4", sha256="c20bb83dd790fc69df9f105477e24267706715a9d3c705ca1e7f613c7b3bad3d")
@@ -40,6 +47,9 @@ class Opencv(CMakePackage, CudaPackage):
     version("3.4.0", sha256="678cc3d2d1b3464b512b084a8cca1fad7de207c7abdf2caa1fed636c13e916da")
     version("3.3.1", sha256="5dca3bb0d661af311e25a72b04a7e4c22c47c1aa86eb73e70063cd378a2aa6ee")
     version("3.3.0", sha256="8bb312b9d9fd17336dc1f8b3ac82f021ca50e2034afc866098866176d985adc6")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     contrib_vers = [
         "3.3.0",
@@ -63,6 +73,11 @@ class Opencv(CMakePackage, CudaPackage):
         "4.5.4",
         "4.5.5",
         "4.6.0",
+        "4.7.0",
+        "4.8.0",
+        "4.8.1",
+        "4.9.0",
+        "4.10.0",
     ]
     for cv in contrib_vers:
         resource(
@@ -244,6 +259,8 @@ class Opencv(CMakePackage, CudaPackage):
         depends_on("python@3.2:", type=("build", "link", "run"))
         depends_on("py-setuptools", type="build")
         depends_on("py-numpy", type=("build", "run"))
+        # https://github.com/opencv/opencv/issues/25455
+        depends_on("py-numpy@:1", when="@:4.9", type=("build", "run"))
         extends("python", when="+python3")
 
     with when("+stitching"):
@@ -474,6 +491,7 @@ class Opencv(CMakePackage, CudaPackage):
 
     with when("+hdf"):
         depends_on("hdf5")
+        depends_on("mpi", when="^hdf5+mpi")
 
     with when("+hfs"):
         with when("+cuda"):
@@ -691,6 +709,7 @@ class Opencv(CMakePackage, CudaPackage):
         "mfx",
         "ngraph",
         "nvcuvid",  # disabled, details: https://github.com/opencv/opencv/issues/14850
+        "nvcuvenc",  # disabled, depends on nvcuvid being enabled
         "opencl_svm",
         "openclamdblas",
         "openclamdfft",
@@ -727,7 +746,7 @@ class Opencv(CMakePackage, CudaPackage):
     depends_on("cmake@3.5.1:", type="build")
     depends_on("python@2.7:2.8,3.2:", type="build")
     depends_on("java", type="build")
-    depends_on("zlib@1.2.3:")
+    depends_on("zlib-api")
 
     # Optional 3rd party components (dependencies)
     depends_on("clp", when="+clp")
@@ -740,8 +759,9 @@ class Opencv(CMakePackage, CudaPackage):
     depends_on("cudnn@:7.3", when="@3.3.1:3.4+cudnn")
     depends_on("cudnn@:6", when="@:3.3.0+cudnn")
     depends_on("eigen", when="+eigen")
-    depends_on("ffmpeg+avresample", when="+ffmpeg")
-    depends_on("ffmpeg@:4+avresample", when="@:4.5+ffmpeg")
+    depends_on("ffmpeg", when="+ffmpeg")
+    depends_on("ffmpeg@:5", when="@:4.7+ffmpeg")
+    depends_on("ffmpeg@:4+avresample", when="@:4.6+ffmpeg")
     depends_on("gdal", when="+gdal")
     depends_on("gtkplus", when="+gtk")
     depends_on("hpx", when="+hpx")
@@ -772,41 +792,31 @@ class Opencv(CMakePackage, CudaPackage):
     # using `OCV_OPTION(WITH_* ...)`
     conflicts("+android_mediandk", when="platform=darwin", msg="Android only")
     conflicts("+android_mediandk", when="platform=linux", msg="Android only")
-    conflicts("+android_mediandk", when="platform=cray", msg="Android only")
     conflicts("+android_native_camera", when="platform=darwin", msg="Android only")
     conflicts("+android_native_camera", when="platform=linux", msg="Android only")
-    conflicts("+android_native_camera", when="platform=cray", msg="Android only")
     conflicts("+avfoundation", when="platform=linux", msg="iOS/macOS only")
-    conflicts("+avfoundation", when="platform=cray", msg="iOS/macOS only")
     conflicts("+cap_ios", when="platform=darwin", msg="iOS only")
     conflicts("+cap_ios", when="platform=linux", msg="iOS only")
-    conflicts("+cap_ios", when="platform=cray", msg="iOS only")
     conflicts("+carotene", when="target=x86:", msg="ARM/AARCH64 only")
     conflicts("+carotene", when="target=x86_64:", msg="ARM/AARCH64 only")
     conflicts("+cpufeatures", when="platform=darwin", msg="Android only")
     conflicts("+cpufeatures", when="platform=linux", msg="Android only")
-    conflicts("+cpufeatures", when="platform=cray", msg="Android only")
     conflicts("+cublas", when="~cuda")
     conflicts("+cudnn", when="~cuda")
     conflicts("+cufft", when="~cuda")
     conflicts("+directx", when="platform=darwin", msg="Windows only")
     conflicts("+directx", when="platform=linux", msg="Windows only")
-    conflicts("+directx", when="platform=cray", msg="Windows only")
     conflicts("+dshow", when="platform=darwin", msg="Windows only")
     conflicts("+dshow", when="platform=linux", msg="Windows only")
-    conflicts("+dshow", when="platform=cray", msg="Windows only")
     conflicts("+gtk", when="platform=darwin", msg="Linux only")
     conflicts("+ipp", when="target=aarch64:", msg="x86 or x86_64 only")
     conflicts("+jasper", when="+openjpeg")
     conflicts("+msmf", when="platform=darwin", msg="Windows only")
     conflicts("+msmf", when="platform=linux", msg="Windows only")
-    conflicts("+msmf", when="platform=cray", msg="Windows only")
     conflicts("+msmf_dxva", when="platform=darwin", msg="Windows only")
     conflicts("+msmf_dxva", when="platform=linux", msg="Windows only")
-    conflicts("+msmf_dxva", when="platform=cray", msg="Windows only")
     conflicts("+opencl_d3d11_nv", when="platform=darwin", msg="Windows only")
     conflicts("+opencl_d3d11_nv", when="platform=linux", msg="Windows only")
-    conflicts("+opencl_d3d11_nv", when="platform=cray", msg="Windows only")
     conflicts("+opengl", when="~qt")
     conflicts("+tengine", when="platform=darwin", msg="Linux only")
     conflicts("+tengine", when="target=x86:", msg="ARM/AARCH64 only")
@@ -814,7 +824,6 @@ class Opencv(CMakePackage, CudaPackage):
     conflicts("+v4l", when="platform=darwin", msg="Linux only")
     conflicts("+win32ui", when="platform=darwin", msg="Windows only")
     conflicts("+win32ui", when="platform=linux", msg="Windows only")
-    conflicts("+win32ui", when="platform=cray", msg="Windows only")
 
     # https://github.com/opencv/opencv/wiki/ChangeLog#version460
     conflicts("%gcc@12:", when="@:4.5")
@@ -822,35 +831,40 @@ class Opencv(CMakePackage, CudaPackage):
 
     @classmethod
     def determine_version(cls, lib):
-        ver = None
         for ext in library_extensions:
-            pattern = None
             if ext == "dylib":
                 # Darwin switches the order of the version compared to Linux
-                pattern = re.compile(r"lib(\S*?)_(\S*)\.(\d+\.\d+\.\d+)\.%s" % ext)
+                pattern = re.compile(r"libopencv_(\S*?)\.(\d+\.\d+\.\d+)\.%s" % ext)
             else:
-                pattern = re.compile(r"lib(\S*?)_(\S*)\.%s\.(\d+\.\d+\.\d+)" % ext)
+                pattern = re.compile(r"libopencv_(\S*?)\.%s\.(\d+\.\d+\.\d+)" % ext)
             match = pattern.search(lib)
             if match:
-                ver = match.group(3)
-        return ver
+                return match.group(2)
 
     @classmethod
     def determine_variants(cls, libs, version_str):
         variants = []
-        remaining_modules = set(Opencv.modules)
+        remaining_modules = set(cls.modules + cls.contrib_modules)
+        contrib_module_set = set(cls.contrib_modules)
+        has_contrib = False
         for lib in libs:
             for ext in library_extensions:
                 pattern = None
                 if ext == "dylib":
                     # Darwin switches the order of the version compared to Linux
-                    pattern = re.compile(r"lib(\S*?)_(\S*)\.(\d+\.\d+\.\d+)\.%s" % ext)
+                    pattern = re.compile(r"libopencv_(\S*)\.(\d+\.\d+\.\d+)\.%s" % ext)
                 else:
-                    pattern = re.compile(r"lib(\S*?)_(\S*)\.%s\.(\d+\.\d+\.\d+)" % ext)
+                    pattern = re.compile(r"libopencv_(\S*)\.%s\.(\d+\.\d+\.\d+)" % ext)
                 match = pattern.search(lib)
-                if match and not match.group(2) == "core":
-                    variants.append("+" + match.group(2))
-                    remaining_modules.remove(match.group(2))
+                if match:
+                    name = match.group(1)
+                    if name in contrib_module_set:
+                        has_contrib = True
+                    if name in remaining_modules:
+                        variants.append("+" + name)
+                        remaining_modules.remove(name)
+        if has_contrib:
+            variants.append("+contrib")
 
         # If libraries are not found, mark those variants as disabled
         for mod in remaining_modules:
@@ -932,7 +946,7 @@ class Opencv(CMakePackage, CudaPackage):
             args.append(self.define("ENABLE_VSX", True))
 
         # Media I/O
-        zlib = spec["zlib"]
+        zlib = spec["zlib-api"]
         args.extend(
             [
                 self.define("BUILD_ZLIB", False),
@@ -1013,14 +1027,13 @@ class Opencv(CMakePackage, CudaPackage):
             )
 
         # Python
-        python_exe = spec["python"].command.path
         python_lib = spec["python"].libs[0]
         python_include_dir = spec["python"].headers.directories[0]
 
         if "+python3" in spec:
             args.extend(
                 [
-                    self.define("PYTHON3_EXECUTABLE", python_exe),
+                    self.define("PYTHON3_EXECUTABLE", python.path),
                     self.define("PYTHON3_LIBRARY", python_lib),
                     self.define("PYTHON3_INCLUDE_DIR", python_include_dir),
                     self.define("PYTHON2_EXECUTABLE", ""),

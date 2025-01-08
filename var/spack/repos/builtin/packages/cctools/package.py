@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -32,6 +31,9 @@ class Cctools(AutotoolsPackage):
     version("7.0.18", sha256="5b6f3c87ae68dd247534a5c073eb68cb1a60176a7f04d82699fbc05e649a91c2")
     version("6.1.1", sha256="97f073350c970d6157f80891b3bf6d4f3eedb5f031fea386dc33e22f22b8af9d")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("openssl")
     depends_on("perl+shared", type=("build", "run"))
     depends_on("python", type=("build", "run"))
@@ -39,7 +41,7 @@ class Cctools(AutotoolsPackage):
     depends_on("gettext")  # Corrects python linking of -lintl flag.
     depends_on("swig")
     # depends_on('xrootd')
-    depends_on("zlib")
+    depends_on("zlib-api")
     patch("arm.patch", when="target=aarch64:")
     patch("cctools_7.0.18.python.patch", when="@7.0.18")
     patch("cctools_6.1.1.python.patch", when="@6.1.1")
@@ -90,7 +92,9 @@ class Cctools(AutotoolsPackage):
             args.append("--with-{0}-path=no".format(p))
 
         # point these bits at the Spack installations
-        for p in ["openssl", "perl", "readline", "swig", "zlib"]:
+        for p in ["openssl", "perl", "readline", "swig"]:
             args.append("--with-{0}-path={1}".format(p, self.spec[p].prefix))
+
+        args.append("--with-zlib-path={0}".format(self.spec["zlib-api"].prefix))
 
         return args

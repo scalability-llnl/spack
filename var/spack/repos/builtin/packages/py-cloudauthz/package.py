@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PyCloudauthz(PythonPackage):
 
     homepage = "https://github.com/galaxyproject/cloudauthz"
     pypi = "cloudauthz/cloudauthz-0.6.0.tar.gz"
+
+    license("MIT")
 
     version("0.6.0", sha256="7e62f3ae04b1842540ca484717d40bd9ec17c6764dd842c1f73f6290b9b54ac1")
 

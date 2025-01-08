@@ -1,18 +1,28 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import spack.build_systems.cmake
+import spack.build_systems.generic
 from spack.package import *
 
 
-class Thrust(Package):
+class Thrust(Package, CMakePackage):
     """Thrust is a parallel algorithms library
     which resembles the C++ Standard Template Library (STL)."""
 
     homepage = "https://thrust.github.io"
     url = "https://github.com/NVIDIA/thrust/archive/1.12.0.tar.gz"
+    git = "https://github.com/NVIDIA/thrust.git"
 
+    license("BSL-1.0")
+
+    # to support CMake build system package installation, Thrust
+    # submodules must be downloaded, which aren't included in tarballs
+    version("1.17.2", commit="1ac51f2b6219ff17d15d93f2e0be85038556f346", submodules=True)
+    version("1.17.1", commit="4dd337f41622f5624359d6a958e3cb6ac7c6f57e", submodules=True)
+    version("1.17.0", commit="6a3078c64cab0e2f276340fa5dcafa0d758ed890", submodules=True)
+    # versions prior to 1.17 install from tarballs
     version("1.16.0", sha256="93b9553e3ee544e05395022bea67e6d600f8f3eb680950ec7cf73c0f55162487")
     version("1.15.0", sha256="0eeaf5a77cd7cb143f3443bd96b215ae1c4eacf18a712762e6a5c85213f80cc2")
     version("1.14.0", sha256="ddba9f3ed47b1a33562a4aea2d000a2ca2abcd45ff760af12aa81b8b7e492962")
@@ -43,7 +53,32 @@ class Thrust(Package):
     version("1.8.3", sha256="2254200512fde7f4fd0fc74306286e192ea6ac9037576dbd31309c0579229dbb")
     version("1.8.2", sha256="83bc9e7b769daa04324c986eeaf48fcb53c2dda26bcc77cb3c07f4b1c359feb8")
 
-    def install(self, spec, prefix):
+    depends_on("cxx", type="build")  # generated
+
+    # leave the build system of pre-1.17 as originally implemented,
+    # but use CMake for newer versions
+    build_system(
+        conditional("cmake", when="@1.17:"), conditional("generic", when="@:1.16"), default="cmake"
+    )
+
+    # minimum CMake version is 3.15 for plain package installation (no
+    # examples, tests, etc)
+    depends_on("cmake@3.15:", when="@1.17:", type="build")
+
+
+class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
+    def cmake_args(self):
+        return [
+            self.define("THRUST_ENABLE_HEADER_TESTING", "OFF"),
+            self.define("THRUST_ENABLE_TESTING", "OFF"),
+            self.define("THRUST_ENABLE_EXAMPLES", "OFF"),
+            self.define("THRUST_ENABLE_BENCHMARKS", "OFF"),
+            self.define("THRUST_INCLUDE_CUB_CMAKE", "OFF"),
+        ]
+
+
+class GenericBuilder(spack.build_systems.generic.GenericBuilder):
+    def install(self, pkg, spec, prefix):
         install_tree("doc", join_path(prefix, "doc"))
         install_tree("examples", join_path(prefix, "examples"))
         install_tree("thrust", join_path(prefix, "include", "thrust"))

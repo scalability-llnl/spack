@@ -1,0 +1,22 @@
+diff --git a/GaudiHive/src/FetchLeavesFromFile.cpp b/GaudiHive/src/FetchLeavesFromFile.cpp
+index 55c60e6a1..5ed8efa91 100644
+--- a/GaudiHive/src/FetchLeavesFromFile.cpp
++++ b/GaudiHive/src/FetchLeavesFromFile.cpp
+@@ -67,7 +67,7 @@ namespace Gaudi {
+         DataObject* obj = nullptr;
+         evtSvc()
+             ->retrieveObject( m_rootNode, obj )
+-            .orThrow( fmt::format( "failed to retrieve {} from {}", m_rootNode.value(), m_dataSvcName ), name() );
++            .orThrow( fmt::format( "failed to retrieve {} from {}", m_rootNode.value(), m_dataSvcName.value() ), name() );
+       }
+       // result
+       IDataStoreLeaves::LeavesList all_leaves;
+@@ -93,7 +93,7 @@ namespace Gaudi {
+                           ->retrieveObject( reg->identifier(), obj )
+                           .orElse( [&]() {
+                             failure_msg =
+-                                fmt::format( "failed to retrieve {} from {}", reg->identifier(), m_dataSvcName );
++                                fmt::format( "failed to retrieve {} from {}", reg->identifier(), m_dataSvcName.value() );
+                             // we do not really care about the exception we throw because traverseSubTree will just use
+                             // it to abort the traversal
+                             throw GaudiException( failure_msg, name(), StatusCode::FAILURE );

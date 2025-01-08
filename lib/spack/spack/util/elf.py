@@ -1,58 +1,63 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import bisect
 import re
 import struct
-from collections import namedtuple
 from struct import calcsize, unpack, unpack_from
+from typing import BinaryIO, Callable, Dict, List, NamedTuple, Optional, Pattern, Tuple
 
-ElfHeader = namedtuple(
-    "ElfHeader",
-    [
-        "e_type",
-        "e_machine",
-        "e_version",
-        "e_entry",
-        "e_phoff",
-        "e_shoff",
-        "e_flags",
-        "e_ehsize",
-        "e_phentsize",
-        "e_phnum",
-        "e_shentsize",
-        "e_shnum",
-        "e_shstrndx",
-    ],
-)
 
-SectionHeader = namedtuple(
-    "SectionHeader",
-    [
-        "sh_name",
-        "sh_type",
-        "sh_flags",
-        "sh_addr",
-        "sh_offset",
-        "sh_size",
-        "sh_link",
-        "sh_info",
-        "sh_addralign",
-        "sh_entsize",
-    ],
-)
+class ElfHeader(NamedTuple):
+    e_type: int
+    e_machine: int
+    e_version: int
+    e_entry: int
+    e_phoff: int
+    e_shoff: int
+    e_flags: int
+    e_ehsize: int
+    e_phentsize: int
+    e_phnum: int
+    e_shentsize: int
+    e_shnum: int
+    e_shstrndx: int
 
-ProgramHeader32 = namedtuple(
-    "ProgramHeader32",
-    ["p_type", "p_offset", "p_vaddr", "p_paddr", "p_filesz", "p_memsz", "p_flags", "p_align"],
-)
 
-ProgramHeader64 = namedtuple(
-    "ProgramHeader64",
-    ["p_type", "p_flags", "p_offset", "p_vaddr", "p_paddr", "p_filesz", "p_memsz", "p_align"],
-)
+class SectionHeader(NamedTuple):
+    sh_name: int
+    sh_type: int
+    sh_flags: int
+    sh_addr: int
+    sh_offset: int
+    sh_size: int
+    sh_link: int
+    sh_info: int
+    sh_addralign: int
+    sh_entsize: int
+
+
+class ProgramHeader32(NamedTuple):
+    p_type: int
+    p_offset: int
+    p_vaddr: int
+    p_paddr: int
+    p_filesz: int
+    p_memsz: int
+    p_flags: int
+    p_align: int
+
+
+class ProgramHeader64(NamedTuple):
+    p_type: int
+    p_flags: int
+    p_offset: int
+    p_vaddr: int
+    p_paddr: int
+    p_filesz: int
+    p_memsz: int
+    p_align: int
 
 
 class ELF_CONSTANTS:
@@ -75,8 +80,33 @@ class ELF_CONSTANTS:
     SHT_STRTAB = 3
 
 
-class ElfFile(object):
+class ElfFile:
     """Parsed ELF file."""
+
+    is_64_bit: bool
+    is_little_endian: bool
+    byte_order: str
+    elf_hdr: ElfHeader
+    pt_load: List[Tuple[int, int]]
+    has_pt_interp: bool
+    pt_interp_p_offset: int
+    pt_interp_p_filesz: int
+    pt_interp_str: bytes
+    has_pt_dynamic: bool
+    pt_dynamic_p_offset: int
+    pt_dynamic_p_filesz: int
+    pt_dynamic_strtab_offset: int
+    has_rpath: bool
+    dt_rpath_offset: int
+    dt_rpath_str: bytes
+    rpath_strtab_offset: int
+    is_runpath: bool
+    has_needed: bool
+    dt_needed_strtab_offsets: List[int]
+    dt_needed_strs: List[bytes]
+    has_soname: bool
+    dt_soname_strtab_offset: int
+    dt_soname_str: bytes
 
     __slots__ = [
         "is_64_bit",
@@ -120,13 +150,13 @@ class ElfFile(object):
         self.has_pt_interp = False
 
 
-def parse_c_string(byte_string, start=0):
+def parse_c_string(byte_string: bytes, start: int = 0) -> bytes:
     """
     Retrieve a C-string at a given offset in a byte string
 
     Arguments:
-        byte_string (bytes): String
-        start (int): Offset into the string
+        byte_string: String
+        start: Offset into the string
 
     Returns:
         bytes: A copy of the C-string excluding the terminating null byte
@@ -137,15 +167,15 @@ def parse_c_string(byte_string, start=0):
     return byte_string[start:str_end]
 
 
-def read_exactly(f, num_bytes, msg):
+def read_exactly(f: BinaryIO, num_bytes: int, msg: str) -> bytes:
     """
     Read exactly num_bytes at the current offset, otherwise raise
     a parsing error with the given error message.
 
     Arguments:
         f: file handle
-        num_bytes (int): Number of bytes to read
-        msg (str): Error to show when bytes cannot be read
+        num_bytes: Number of bytes to read
+        msg: Error to show when bytes cannot be read
 
     Returns:
         bytes: the ``num_bytes`` bytes that were read.
@@ -156,19 +186,18 @@ def read_exactly(f, num_bytes, msg):
     return data
 
 
-def parse_program_headers(f, elf):
+def parse_program_headers(f: BinaryIO, elf: ElfFile) -> None:
     """
     Parse program headers
 
     Arguments:
         f: file handle
-        elf (ElfFile): ELF file parser data
+        elf: ELF file parser data
     """
     # Forward to the program header
     f.seek(elf.elf_hdr.e_phoff)
 
     # Here we have to make a mapping from virtual address to offset in the file.
-    ProgramHeader = ProgramHeader64 if elf.is_64_bit else ProgramHeader32
     ph_fmt = elf.byte_order + ("LLQQQQQQ" if elf.is_64_bit else "LLLLLLLL")
     ph_size = calcsize(ph_fmt)
     ph_num = elf.elf_hdr.e_phnum
@@ -176,28 +205,31 @@ def parse_program_headers(f, elf):
     # Read all program headers in one go
     data = read_exactly(f, ph_num * ph_size, "Malformed program header")
 
+    ProgramHeader = ProgramHeader64 if elf.is_64_bit else ProgramHeader32
+
     for i in range(ph_num):
-        ph = ProgramHeader._make(unpack_from(ph_fmt, data, i * ph_size))
+        # mypy currently does not understand the union of two named tuples with equal fields
+        ph = ProgramHeader(*unpack_from(ph_fmt, data, i * ph_size))
 
         # Skip segments of size 0; we don't distinguish between missing segment and
         # empty segments. I've see an empty PT_DYNAMIC section for an ELF file that
         # contained debug data.
-        if ph.p_filesz == 0:
+        if ph.p_filesz == 0:  # type: ignore
             continue
 
         # For PT_LOAD entries: Save offsets and virtual addrs of the loaded ELF segments
         # This way we can map offsets by virtual address to offsets in the file.
-        if ph.p_type == ELF_CONSTANTS.PT_LOAD:
-            elf.pt_load.append((ph.p_offset, ph.p_vaddr))
+        if ph.p_type == ELF_CONSTANTS.PT_LOAD:  # type: ignore
+            elf.pt_load.append((ph.p_offset, ph.p_vaddr))  # type: ignore
 
-        elif ph.p_type == ELF_CONSTANTS.PT_INTERP:
-            elf.pt_interp_p_offset = ph.p_offset
-            elf.pt_interp_p_filesz = ph.p_filesz
+        elif ph.p_type == ELF_CONSTANTS.PT_INTERP:  # type: ignore
+            elf.pt_interp_p_offset = ph.p_offset  # type: ignore
+            elf.pt_interp_p_filesz = ph.p_filesz  # type: ignore
             elf.has_pt_interp = True
 
-        elif ph.p_type == ELF_CONSTANTS.PT_DYNAMIC:
-            elf.pt_dynamic_p_offset = ph.p_offset
-            elf.pt_dynamic_p_filesz = ph.p_filesz
+        elif ph.p_type == ELF_CONSTANTS.PT_DYNAMIC:  # type: ignore
+            elf.pt_dynamic_p_offset = ph.p_offset  # type: ignore
+            elf.pt_dynamic_p_filesz = ph.p_filesz  # type: ignore
             elf.has_pt_dynamic = True
 
     # The linker sorts PT_LOAD segments by vaddr, but let's do it just to be sure, since
@@ -205,27 +237,27 @@ def parse_program_headers(f, elf):
     elf.pt_load.sort(key=lambda x: x[1])
 
 
-def parse_pt_interp(f, elf):
+def parse_pt_interp(f: BinaryIO, elf: ElfFile) -> None:
     """
     Parse the interpreter (i.e. absolute path to the dynamic linker)
 
     Arguments:
         f: file handle
-        elf (ElfFile): ELF file parser data
+        elf: ELF file parser data
     """
     f.seek(elf.pt_interp_p_offset)
     data = read_exactly(f, elf.pt_interp_p_filesz, "Malformed PT_INTERP entry")
     elf.pt_interp_str = parse_c_string(data)
 
 
-def find_strtab_size_at_offset(f, elf, offset):
+def find_strtab_size_at_offset(f: BinaryIO, elf: ElfFile, offset: int) -> int:
     """
     Retrieve the size of a string table section at a particular known offset
 
     Arguments:
         f: file handle
-        elf (ElfFile): ELF file parser data
-        offset (int): offset of the section in the file (i.e. ``sh_offset``)
+        elf: ELF file parser data
+        offset: offset of the section in the file (i.e. ``sh_offset``)
 
     Returns:
         int: the size of the string table in bytes
@@ -235,50 +267,49 @@ def find_strtab_size_at_offset(f, elf, offset):
     f.seek(elf.elf_hdr.e_shoff)
     for _ in range(elf.elf_hdr.e_shnum):
         data = read_exactly(f, section_hdr_size, "Malformed section header")
-        sh = SectionHeader._make(unpack(section_hdr_fmt, data))
+        sh = SectionHeader(*unpack(section_hdr_fmt, data))
         if sh.sh_type == ELF_CONSTANTS.SHT_STRTAB and sh.sh_offset == offset:
             return sh.sh_size
 
     raise ElfParsingError("Could not determine strtab size")
 
 
-def retrieve_strtab(f, elf, offset):
+def retrieve_strtab(f: BinaryIO, elf: ElfFile, offset: int) -> bytes:
     """
     Read a full string table at the given offset, which
     requires looking it up in the section headers.
 
     Arguments:
-        elf (ElfFile): ELF file parser data
-        vaddr (int): virtual address
+        elf: ELF file parser data
+        vaddr: virtual address
 
-    Returns:
-        bytes: file offset
+    Returns: file offset
     """
     size = find_strtab_size_at_offset(f, elf, offset)
     f.seek(offset)
     return read_exactly(f, size, "Could not read string table")
 
 
-def vaddr_to_offset(elf, vaddr):
+def vaddr_to_offset(elf: ElfFile, vaddr: int) -> int:
     """
     Given a virtual address, find the corresponding offset in the ELF file itself.
 
     Arguments:
-        elf (ElfFile): ELF file parser data
-        vaddr (int): virtual address
+        elf: ELF file parser data
+        vaddr: virtual address
     """
     idx = bisect.bisect_right([p_vaddr for (p_offset, p_vaddr) in elf.pt_load], vaddr) - 1
     p_offset, p_vaddr = elf.pt_load[idx]
     return p_offset - p_vaddr + vaddr
 
 
-def parse_pt_dynamic(f, elf):
+def parse_pt_dynamic(f: BinaryIO, elf: ElfFile) -> None:
     """
     Parse the dynamic section of an ELF file
 
     Arguments:
         f: file handle
-        elf (ElfFile): ELF file parse data
+        elf: ELF file parse data
     """
     dynamic_array_fmt = elf.byte_order + ("qQ" if elf.is_64_bit else "lL")
     dynamic_array_size = calcsize(dynamic_array_fmt)
@@ -347,7 +378,7 @@ def parse_pt_dynamic(f, elf):
         elf.dt_rpath_str = parse_c_string(string_table, elf.rpath_strtab_offset)
 
 
-def parse_header(f, elf):
+def parse_header(f: BinaryIO, elf: ElfFile) -> None:
     # Read the 32/64 bit class independent part of the header and validate
     e_ident = f.read(16)
 
@@ -374,10 +405,12 @@ def parse_header(f, elf):
     elf_header_fmt = elf.byte_order + ("HHLQQQLHHHHHH" if elf.is_64_bit else "HHLLLLLHHHHHH")
     hdr_size = calcsize(elf_header_fmt)
     data = read_exactly(f, hdr_size, "ELF header malformed")
-    elf.elf_hdr = ElfHeader._make(unpack(elf_header_fmt, data))
+    elf.elf_hdr = ElfHeader(*unpack(elf_header_fmt, data))
 
 
-def _do_parse_elf(f, interpreter=True, dynamic_section=True):
+def _do_parse_elf(
+    f: BinaryIO, interpreter: bool = True, dynamic_section: bool = True, only_header: bool = False
+) -> ElfFile:
     # We don't (yet?) allow parsing ELF files at a nonzero offset, we just
     # jump to absolute offsets as they are specified in the ELF file.
     if f.tell() != 0:
@@ -385,6 +418,9 @@ def _do_parse_elf(f, interpreter=True, dynamic_section=True):
 
     elf = ElfFile()
     parse_header(f, elf)
+
+    if only_header:
+        return elf
 
     # We don't handle anything but executables and shared libraries now.
     if elf.elf_hdr.e_type not in (ELF_CONSTANTS.ET_EXEC, ELF_CONSTANTS.ET_DYN):
@@ -403,104 +439,255 @@ def _do_parse_elf(f, interpreter=True, dynamic_section=True):
     return elf
 
 
-def parse_elf(f, interpreter=False, dynamic_section=False):
+def parse_elf(
+    f: BinaryIO,
+    interpreter: bool = False,
+    dynamic_section: bool = False,
+    only_header: bool = False,
+) -> ElfFile:
     """Given a file handle f for an ELF file opened in binary mode, return an ElfFile
     object that is stores data about rpaths"""
     try:
-        return _do_parse_elf(f, interpreter, dynamic_section)
+        return _do_parse_elf(f, interpreter, dynamic_section, only_header)
     except (DeprecationWarning, struct.error):
         # According to the docs old versions of Python can throw DeprecationWarning
         # instead of struct.error.
         raise ElfParsingError("Malformed ELF file")
 
 
-def get_rpaths(path):
-    """Returns list of rpaths of the given file as UTF-8 strings, or None if the file
-    does not have any rpaths."""
+def get_rpaths(path: str) -> Optional[List[str]]:
+    """Returns list of rpaths of the given file as UTF-8 strings, or None if not set."""
     try:
         with open(path, "rb") as f:
             elf = parse_elf(f, interpreter=False, dynamic_section=True)
+            return elf.dt_rpath_str.decode("utf-8").split(":") if elf.has_rpath else None
     except ElfParsingError:
         return None
 
+
+def get_interpreter(path: str) -> Optional[str]:
+    """Returns the interpreter of the given file as UTF-8 string, or None if not set."""
+    try:
+        with open(path, "rb") as f:
+            elf = parse_elf(f, interpreter=True, dynamic_section=False)
+            return elf.pt_interp_str.decode("utf-8") if elf.has_pt_interp else None
+    except ElfParsingError:
+        return None
+
+
+def _delete_dynamic_array_entry(
+    f: BinaryIO, elf: ElfFile, should_delete: Callable[[int, int], bool]
+) -> None:
+    f.seek(elf.pt_dynamic_p_offset)
+    dynamic_array_fmt = elf.byte_order + ("qQ" if elf.is_64_bit else "lL")
+    dynamic_array_size = calcsize(dynamic_array_fmt)
+    new_offset = elf.pt_dynamic_p_offset  # points to the new dynamic array
+    old_offset = elf.pt_dynamic_p_offset  # points to the current dynamic array
+    for _ in range(elf.pt_dynamic_p_filesz // dynamic_array_size):
+        data = read_exactly(f, dynamic_array_size, "Malformed dynamic array entry")
+        tag, val = unpack(dynamic_array_fmt, data)
+
+        if tag == ELF_CONSTANTS.DT_NULL or not should_delete(tag, val):
+            if new_offset != old_offset:
+                f.seek(new_offset)
+                f.write(data)
+                f.seek(old_offset + dynamic_array_size)
+            new_offset += dynamic_array_size
+
+        if tag == ELF_CONSTANTS.DT_NULL:
+            break
+
+        old_offset += dynamic_array_size
+
+
+def delete_rpath(path: str) -> None:
+    """Modifies a binary to remove the rpath. It zeros out the rpath string and also drops the
+    DT_R(UN)PATH entry from the dynamic section, so it doesn't show up in 'readelf -d file', nor
+    in 'strings file'."""
+    with open(path, "rb+") as f:
+        elf = parse_elf(f, interpreter=False, dynamic_section=True)
+
+        if not elf.has_rpath:
+            return
+
+        # Zero out the rpath *string* in the binary
+        new_rpath_string = b"\x00" * len(elf.dt_rpath_str)
+        rpath_offset = elf.pt_dynamic_strtab_offset + elf.rpath_strtab_offset
+        f.seek(rpath_offset)
+        f.write(new_rpath_string)
+
+        # Delete DT_RPATH / DT_RUNPATH entries from the dynamic section
+        _delete_dynamic_array_entry(
+            f, elf, lambda tag, _: tag == ELF_CONSTANTS.DT_RPATH or tag == ELF_CONSTANTS.DT_RUNPATH
+        )
+
+
+def delete_needed_from_elf(f: BinaryIO, elf: ElfFile, needed: bytes) -> None:
+    """Delete a needed library from the dynamic section of an ELF file"""
+    if not elf.has_needed or needed not in elf.dt_needed_strs:
+        return
+
+    offset = elf.dt_needed_strtab_offsets[elf.dt_needed_strs.index(needed)]
+
+    _delete_dynamic_array_entry(
+        f, elf, lambda tag, val: tag == ELF_CONSTANTS.DT_NEEDED and val == offset
+    )
+
+
+class CStringType:
+    PT_INTERP = 1
+    RPATH = 2
+
+
+class UpdateCStringAction:
+    def __init__(self, old_value: bytes, new_value: bytes, offset: int):
+        self.old_value = old_value
+        self.new_value = new_value
+        self.offset = offset
+
+    @property
+    def inplace(self) -> bool:
+        return len(self.new_value) <= len(self.old_value)
+
+    def apply(self, f: BinaryIO) -> None:
+        assert self.inplace
+
+        f.seek(self.offset)
+        f.write(self.new_value)
+
+        # We zero out the bits we shortened because (a) it should be a
+        # C-string and (b) it's nice not to have spurious parts of old
+        # paths in the output of `strings file`. Note that we're all
+        # good when pad == 0; the original terminating null is used.
+        f.write(b"\x00" * (len(self.old_value) - len(self.new_value)))
+
+
+def _get_rpath_substitution(
+    elf: ElfFile, regex: Pattern, substitutions: Dict[bytes, bytes]
+) -> Optional[UpdateCStringAction]:
+    """Make rpath substitutions in-place."""
+    # If there's no RPATH, then there's no need to replace anything.
     if not elf.has_rpath:
         return None
 
-    # If it does, split the string in components
-    rpath = elf.dt_rpath_str
-    rpath = rpath.decode("utf-8")
-    return rpath.split(":")
+    # Get the non-empty rpaths. Sometimes there's a bunch of trailing
+    # colons ::::: used for padding, we don't add them back to make it
+    # more likely that the string doesn't grow.
+    rpaths = list(filter(len, elf.dt_rpath_str.split(b":")))
+
+    num_rpaths = len(rpaths)
+
+    if num_rpaths == 0:
+        return None
+
+    changed = False
+    for i in range(num_rpaths):
+        old_rpath = rpaths[i]
+        match = regex.match(old_rpath)
+        if match:
+            changed = True
+            rpaths[i] = substitutions[match.group()] + old_rpath[match.end() :]
+
+    # Nothing to replace!
+    if not changed:
+        return None
+
+    return UpdateCStringAction(
+        old_value=elf.dt_rpath_str,
+        new_value=b":".join(rpaths),
+        # The rpath is at a given offset in the string table used by the dynamic section.
+        offset=elf.pt_dynamic_strtab_offset + elf.rpath_strtab_offset,
+    )
 
 
-def replace_rpath_in_place_or_raise(path, substitutions):
+def _get_pt_interp_substitution(
+    elf: ElfFile, regex: Pattern, substitutions: Dict[bytes, bytes]
+) -> Optional[UpdateCStringAction]:
+    """Make interpreter substitutions in-place."""
+    if not elf.has_pt_interp:
+        return None
+
+    match = regex.match(elf.pt_interp_str)
+    if not match:
+        return None
+
+    return UpdateCStringAction(
+        old_value=elf.pt_interp_str,
+        new_value=substitutions[match.group()] + elf.pt_interp_str[match.end() :],
+        offset=elf.pt_interp_p_offset,
+    )
+
+
+def substitute_rpath_and_pt_interp_in_place_or_raise(
+    path: str, substitutions: Dict[bytes, bytes]
+) -> bool:
+    """Returns true if the rpath and interpreter were modified, false if there was nothing to do.
+    Raises ElfCStringUpdatesFailed if the ELF file cannot be updated in-place. This exception
+    contains a list of actions to perform with other tools. The file is left untouched in this
+    case."""
     regex = re.compile(b"|".join(re.escape(p) for p in substitutions.keys()))
 
     try:
         with open(path, "rb+") as f:
-            elf = parse_elf(f, interpreter=False, dynamic_section=True)
+            elf = parse_elf(f, interpreter=True, dynamic_section=True)
 
-            # If there's no RPATH, then there's no need to replace anything.
-            if not elf.has_rpath:
+            # Get the actions to perform.
+            rpath = _get_rpath_substitution(elf, regex, substitutions)
+            pt_interp = _get_pt_interp_substitution(elf, regex, substitutions)
+
+            # Nothing to do.
+            if not rpath and not pt_interp:
                 return False
 
-            # Get the non-empty rpaths. Sometimes there's a bunch of trailing
-            # colons ::::: used for padding, we don't add them back to make it
-            # more likely that the string doesn't grow.
-            rpaths = list(filter(len, elf.dt_rpath_str.split(b":")))
+            # If we can't update in-place, leave it to other tools, don't do partial updates.
+            if rpath and not rpath.inplace or pt_interp and not pt_interp.inplace:
+                raise ElfCStringUpdatesFailed(rpath, pt_interp)
 
-            num_rpaths = len(rpaths)
+            # Otherwise, apply the updates.
+            if rpath:
+                rpath.apply(f)
 
-            if num_rpaths == 0:
-                return False
+            if pt_interp:
+                pt_interp.apply(f)
 
-            changed = False
-            for i in range(num_rpaths):
-                old_rpath = rpaths[i]
-                match = regex.match(old_rpath)
-                if match:
-                    changed = True
-                    rpaths[i] = substitutions[match.group()] + old_rpath[match.end() :]
-
-            # Nothing to replace!
-            if not changed:
-                return False
-
-            new_rpath_string = b":".join(rpaths)
-
-            pad = len(elf.dt_rpath_str) - len(new_rpath_string)
-
-            if pad < 0:
-                raise ElfDynamicSectionUpdateFailed(elf.dt_rpath_str, new_rpath_string)
-
-            # We zero out the bits we shortened because (a) it should be a
-            # C-string and (b) it's nice not to have spurious parts of old
-            # paths in the output of `strings file`. Note that we're all
-            # good when pad == 0; the original terminating null is used.
-            new_rpath_string += b"\x00" * pad
-
-            # The rpath is at a given offset in the string table used by the
-            # dynamic section.
-            rpath_offset = elf.pt_dynamic_strtab_offset + elf.rpath_strtab_offset
-
-            f.seek(rpath_offset)
-            f.write(new_rpath_string)
             return True
 
     except ElfParsingError:
-        # This just means the file wasnt an elf file, so there's no point
+        # This just means the file wasn't an elf file, so there's no point
         # in updating its rpath anyways; ignore this problem.
         return False
 
 
-class ElfDynamicSectionUpdateFailed(Exception):
-    def __init__(self, old, new):
-        self.old = old
-        self.new = new
-        super(ElfDynamicSectionUpdateFailed, self).__init__(
-            "New rpath {} is longer than old rpath {}".format(
-                new.decode("utf-8"), old.decode("utf-8")
-            )
-        )
+def pt_interp(path: str) -> Optional[str]:
+    """Retrieve the interpreter of an executable at `path`."""
+    try:
+        with open(path, "rb") as f:
+            elf = parse_elf(f, interpreter=True)
+    except (OSError, ElfParsingError):
+        return None
+
+    if not elf.has_pt_interp:
+        return None
+
+    return elf.pt_interp_str.decode("utf-8")
+
+
+def get_elf_compat(path):
+    """Get a triplet (EI_CLASS, EI_DATA, e_machine) from an ELF file, which can be used to see if
+    two ELF files are compatible."""
+    # On ELF platforms supporting, we try to be a bit smarter when it comes to shared
+    # libraries, by dropping those that are not host compatible.
+    with open(path, "rb") as f:
+        elf = parse_elf(f, only_header=True)
+        return (elf.is_64_bit, elf.is_little_endian, elf.elf_hdr.e_machine)
+
+
+class ElfCStringUpdatesFailed(Exception):
+    def __init__(
+        self, rpath: Optional[UpdateCStringAction], pt_interp: Optional[UpdateCStringAction]
+    ):
+        self.rpath = rpath
+        self.pt_interp = pt_interp
 
 
 class ElfParsingError(Exception):

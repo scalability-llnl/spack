@@ -1,0 +1,68 @@
+https://bugs.gentoo.org/833491
+
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -752,7 +752,6 @@ ELSE()
+-    FIND_PACKAGE(ilmbase)
+     FIND_PACKAGE(Inventor)
+     FIND_PACKAGE(Jasper)
+-    FIND_PACKAGE(OpenEXR)
++    FIND_PACKAGE(OpenEXR CONFIG)
+     FIND_PACKAGE(OpenCascade)
+     FIND_PACKAGE(COLLADA)
+     FIND_PACKAGE(FBX)
+--- a/src/osgPlugins/CMakeLists.txt
++++ b/src/osgPlugins/CMakeLists.txt
+@@ -105,7 +105,7 @@ ENDIF()
+ IF(JASPER_FOUND)
+     ADD_PLUGIN_DIRECTORY(jp2)
+ ENDIF()
+-IF(OPENEXR_FOUND AND ZLIB_FOUND AND OSG_CPP_EXCEPTIONS_AVAILABLE)
++IF(OpenEXR_FOUND AND ZLIB_FOUND AND OSG_CPP_EXCEPTIONS_AVAILABLE)
+     ADD_PLUGIN_DIRECTORY(exr)
+ ENDIF()
+ IF(GIFLIB_FOUND)
+--- a/src/osgPlugins/exr/CMakeLists.txt
++++ b/src/osgPlugins/exr/CMakeLists.txt
+@@ -1,9 +1,7 @@
+-INCLUDE_DIRECTORIES( ${ILMBASE_INCLUDE_DIR}/OpenEXR )
+-INCLUDE_DIRECTORIES( ${OPENEXR_INCLUDE_DIR}/OpenEXR )
+-
+ SET(TARGET_SRC ReaderWriterEXR.cpp )
+ 
+-SET(TARGET_LIBRARIES_VARS ${OPENEXR_LIBRARIES_VARS} ${ILMBASE_LIBRARIES_VARS} ZLIB_LIBRARIES)
++SET(OPENEXR_LIBRARIES_VARS OpenEXR::OpenEXR)
++SET(TARGET_LIBRARIES_VARS OPENEXR_LIBRARIES_VARS ZLIB_LIBRARIES)
+ 
+ IF(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+     REMOVE_CXX_FLAG(-Wshadow)
+--- a/src/osgPlugins/exr/ReaderWriterEXR.cpp
++++ b/src/osgPlugins/exr/ReaderWriterEXR.cpp
+@@ -41,11 +41,11 @@ public:
+       {
+         return _inStream->read(c,n).good();
+       };
+-      virtual Int64    tellg ()
++      virtual uint64_t    tellg ()
+       {
+           return _inStream->tellg();
+       };
+-      virtual void    seekg (Int64 pos)
++      virtual void    seekg (uint64_t pos)
+       {
+         _inStream->seekg(pos);
+       };
+@@ -69,11 +69,11 @@ public:
+       {
+         _outStream->write(c,n);
+       };
+-      virtual Int64    tellp ()
++      virtual uint64_t    tellp ()
+       {
+         return _outStream->tellp();
+       };
+-      virtual void seekp (Int64 pos)
++      virtual void seekp (uint64_t pos)
+       {
+         _outStream->seekp(pos);
+       };

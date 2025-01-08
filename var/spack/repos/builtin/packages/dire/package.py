@@ -1,10 +1,8 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
-from spack.pkg.builtin.boost import Boost
 
 
 class Dire(Package):
@@ -23,17 +21,15 @@ class Dire(Package):
 
     version("2.004", sha256="8cc1213b58fec744fdaa50834560a14b141de99efb2c3e3d3d47f3d6d84b179f")
 
-    depends_on("zlib")
+    depends_on("cxx", type="build")  # generated
 
-    # TODO: replace this with an explicit list of components of Boost,
-    # for instance depends_on('boost +filesystem')
-    # See https://github.com/spack/spack/pull/22303 for reference
-    depends_on(Boost.with_default_variants)
+    depends_on("zlib-api")
+
     depends_on("lhapdf")
     depends_on("hepmc")
     depends_on("pythia8@8.226:")
 
-    conflicts("pythia8@8.301:", msg="Dire is included in Pythia8 since version 8.301")
+    conflicts("^pythia8@8.301:", msg="Dire is included in Pythia8 since version 8.301")
 
     def install(self, spec, prefix):
         configure_args = ["--prefix={0}".format(prefix)]

@@ -1,7 +1,8 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
+import re
 
 from spack.package import *
 
@@ -14,22 +15,40 @@ class Swan(MakefilePackage):
     features. This list reflects on the scientific relevance of
     the development of SWAN."""
 
-    homepage = "http://swanmodel.sourceforge.net/"
-    url = "https://cfhcable.dl.sourceforge.net/project/swanmodel/swan/41.31/swan4131.tar.gz"
+    homepage = "https://swanmodel.sourceforge.net/"
+    url = "https://swanmodel.sourceforge.io/download/zip/swan4145.tar.gz"
 
-    maintainers("lhxone")
+    maintainers("lhxone", "stevenrbrandt")
 
-    version("4131", sha256="cd3ba1f0d79123f1b7d42a43169f07575b59b01e604c5e66fbc09769e227432e")
+    # This is very important
+    parallel = False
+
+    version(
+        "4145",
+        preferred=True,
+        sha256="4cced2250f11f5cff3417d1f541f5e3cdd09fa1bc4fd986e0d0917bfb88b1e2a",
+    )
+
+    version("4141", sha256="5d411e6602bd4ef764f6c7d23e5e25b588e955cb21a606d6d8a7bc4c9393aa0a")
+
+    depends_on("fortran", type="build")  # generated
 
     depends_on("mpi")
     depends_on("netcdf-fortran")
-    depends_on("libfabric")
+    depends_on("perl", type="build")
 
     def edit(self, spec, prefix):
-        env["FC"] = "gfortran"
+        fc = re.sub(r".*[\\/]", "", env["FC"])
+        mpifc = re.sub(r".*[\\/]", "", spec["mpi"].mpifc)
+
+        # Must not be the full path to the compiler or platform.pl gets confused
+        env["FC"] = fc
+        env["F90_MPI"] = mpifc
+
         m = FileFilter("platform.pl")
-        m.filter("F90_MPI = .*", 'F90_MPI = mpifort\\n";')
-        m.filter("NETCDFROOT =", "NETCDFROOT = {0}" + spec["netcdf-fortran"].prefix)
+        m.filter("F90_MPI = .*", "F90_MPI = " + mpifc + '\\n";')
+        m.filter("NETCDFROOT =", "NETCDFROOT = " + spec["netcdf-fortran"].prefix)
+        m.filter(r"-lnetcdf\b", "")
 
     def build(self, spec, prefix):
         make("config")

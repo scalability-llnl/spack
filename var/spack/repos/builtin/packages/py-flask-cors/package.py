@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,9 @@ class PyFlaskCors(PythonPackage):
     homepage = "https://flask-cors.corydolphin.com/en/latest/index.html"
     pypi = "Flask-Cors/Flask-Cors-3.0.10.tar.gz"
 
+    license("MIT")
+
+    version("4.0.0", sha256="f268522fcb2f73e2ecdde1ef45e2fd5c71cc48fe03cffb4b441c6d1b40684eb0")
     version("3.0.10", sha256="b60839393f3b84a0f3746f6cdca56c1ad7426aa738b70d6c61375857823181de")
 
     depends_on("py-setuptools", type="build")

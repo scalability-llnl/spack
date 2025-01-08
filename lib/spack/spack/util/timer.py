@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,34 +12,32 @@ import collections
 import sys
 import time
 from contextlib import contextmanager
-from typing import Dict
+from typing import Callable, Dict, List
 
 from llnl.util.lang import pretty_seconds_formatter
 
 import spack.util.spack_json as sjson
 
-Interval = collections.namedtuple("Interval", ("begin", "end"))
+TimerEvent = collections.namedtuple("TimerEvent", ("time", "running", "label"))
+TimeTracker = collections.namedtuple("TimeTracker", ("total", "start", "count", "path"))
 
 #: name for the global timer (used in start(), stop(), duration() without arguments)
 global_timer_name = "_global"
 
 
-class NullTimer(object):
-    """Timer interface that does nothing, useful in for "tell
-    don't ask" style code when timers are optional."""
-
-    def start(self, name=global_timer_name):
+class BaseTimer:
+    def start(self, name=None):
         pass
 
-    def stop(self, name=global_timer_name):
+    def stop(self, name=None):
         pass
 
-    def duration(self, name=global_timer_name):
+    def duration(self, name=None):
         return 0.0
 
     @contextmanager
     def measure(self, name):
-        yield
+        yield self
 
     @property
     def phases(self):
@@ -53,23 +50,28 @@ class NullTimer(object):
         pass
 
 
-#: instance of a do-nothing timer
-NULL_TIMER = NullTimer()
+class NullTimer(BaseTimer):
+    """Timer interface that does nothing, useful in for "tell
+    don't ask" style code when timers are optional."""
+
+    pass
 
 
-class Timer(object):
+class Timer(BaseTimer):
     """Simple interval timer"""
 
-    def __init__(self, now=time.time):
+    def __init__(self, now: Callable[[], float] = time.time):
         """
         Arguments:
             now: function that gives the seconds since e.g. epoch
         """
         self._now = now
-        self._timers: Dict[str, Interval] = collections.OrderedDict()
+        self._timers: Dict[str, TimeTracker] = {}
+        self._timer_stack: List[str] = []
 
-        # _global is the overal timer since the instance was created
-        self._timers[global_timer_name] = Interval(self._now(), end=None)
+        self._events: List[TimerEvent] = []
+        # Push start event
+        self._events.append(TimerEvent(self._now(), True, global_timer_name))
 
     def start(self, name=global_timer_name):
         """
@@ -79,7 +81,7 @@ class Timer(object):
             name (str): Optional name of the timer. When no name is passed, the
                 global timer is started.
         """
-        self._timers[name] = Interval(self._now(), None)
+        self._events.append(TimerEvent(self._now(), True, name))
 
     def stop(self, name=global_timer_name):
         """
@@ -90,10 +92,7 @@ class Timer(object):
             name (str): Optional name of the timer. When no name is passed, all
                 timers are stopped.
         """
-        interval = self._timers.get(name, None)
-        if not interval:
-            return
-        self._timers[name] = Interval(interval.begin, self._now())
+        self._events.append(TimerEvent(self._now(), False, name))
 
     def duration(self, name=global_timer_name):
         """
@@ -107,13 +106,13 @@ class Timer(object):
         Returns:
             float: duration of timer.
         """
-        try:
-            interval = self._timers[name]
-        except KeyError:
+        self._flatten()
+        if name in self._timers:
+            if name in self._timer_stack:
+                return self._timers[name].total + (self._now() - self._timers[name].start)
+            return self._timers[name].total
+        else:
             return 0.0
-        # Take either the interval end, the global timer, or now.
-        end = interval.end or self._timers[global_timer_name].end or self._now()
-        return end - interval.begin
 
     @contextmanager
     def measure(self, name):
@@ -123,23 +122,72 @@ class Timer(object):
         Arguments:
             name (str): Name of the timer
         """
-        begin = self._now()
-        yield
-        self._timers[name] = Interval(begin, self._now())
+        self.start(name)
+        yield self
+        self.stop(name)
 
     @property
     def phases(self):
         """Get all named timers (excluding the global/total timer)"""
-        return [k for k in self._timers.keys() if k != global_timer_name]
+        self._flatten()
+        return [k for k in self._timers.keys() if not k == global_timer_name]
 
-    def write_json(self, out=sys.stdout):
+    def _flatten(self):
+        for event in self._events:
+            if event.running:
+                if event.label not in self._timer_stack:
+                    self._timer_stack.append(event.label)
+                # Only start the timer if it is on top of the stack
+                # restart doesn't work after a subtimer is started
+                if event.label == self._timer_stack[-1]:
+                    timer_path = "/".join(self._timer_stack[1:])
+                    tracker = self._timers.get(
+                        event.label, TimeTracker(0.0, event.time, 0, timer_path)
+                    )
+                    assert tracker.path == timer_path
+                    self._timers[event.label] = TimeTracker(
+                        tracker.total, event.time, tracker.count, tracker.path
+                    )
+            else:  # if not event.running:
+                if event.label in self._timer_stack:
+                    index = self._timer_stack.index(event.label)
+                    for label in self._timer_stack[index:]:
+                        tracker = self._timers[label]
+                        self._timers[label] = TimeTracker(
+                            tracker.total + (event.time - tracker.start),
+                            None,
+                            tracker.count + 1,
+                            tracker.path,
+                        )
+                    self._timer_stack = self._timer_stack[: max(0, index)]
+        # clear events
+        self._events = []
+
+    def write_json(self, out=sys.stdout, extra_attributes={}):
         """Write a json object with times to file"""
-        phases = [{"name": p, "seconds": self.duration(p)} for p in self.phases]
-        times = {"phases": phases, "total": {"seconds": self.duration()}}
-        out.write(sjson.dump(times))
+        self._flatten()
+        data = {
+            "total": self._timers[global_timer_name].total,
+            "phases": [
+                {
+                    "name": phase,
+                    "path": self._timers[phase].path,
+                    "seconds": self._timers[phase].total,
+                    "count": self._timers[phase].count,
+                }
+                for phase in self.phases
+            ],
+        }
+        if extra_attributes:
+            data.update(extra_attributes)
+        if out:
+            out.write(sjson.dump(data))
+        else:
+            return data
 
     def write_tty(self, out=sys.stdout):
-        """Write a human-readable summary of timings"""
+        """Write a human-readable summary of timings (depth is 1)"""
+        self._flatten()
 
         times = [self.duration(p) for p in self.phases]
 
@@ -153,3 +201,7 @@ class Timer(object):
         # Write to out
         for name, duration in formatted:
             out.write(f"    {name:10s} {pretty_seconds(duration):>10s}\n")
+
+
+#: instance of a do-nothing timer
+NULL_TIMER = NullTimer()

@@ -1,0 +1,123 @@
+commit 4a531bb0b3b582cb693de9f76d2d97d970f9a5d5
+Author: H.J. Lu <hongjiu.lu@intel.com>
+Date:   Fri Dec 24 20:14:37 2010 -0500
+
+    Remove `.ctors' and `.dtors' output sections
+
+diff --git a/config.h.in b/config.h.in
+index 18bf01a38c..9e797eb5b7 100644
+--- a/config.h.in
++++ b/config.h.in
+@@ -201,6 +201,9 @@
+ /* Define if multi-arch DSOs should be generated.  */
+ #undef USE_MULTIARCH
+ 
++/* Define if `.ctors' and `.dtors' sections shouldn't be used.  */
++#define NO_CTORS_DTORS_SECTIONS
++
+ /*
+ ^L */
+ 
+diff --git a/elf/sofini.c b/elf/sofini.c
+index 5e06f0ca92..13e74b7903 100644
+--- a/elf/sofini.c
++++ b/elf/sofini.c
+@@ -1,12 +1,14 @@
+ /* Finalizer module for ELF shared C library.  This provides terminating
+    null pointer words in the `.ctors' and `.dtors' sections.  */
+ 
++#ifndef NO_CTORS_DTORS_SECTIONS
+ static void (*const __CTOR_END__[1]) (void)
+      __attribute__ ((used, section (".ctors")))
+      = { 0 };
+ static void (*const __DTOR_END__[1]) (void)
+      __attribute__ ((used, section (".dtors")))
+      = { 0 };
++#endif
+ 
+ /* Terminate the frame unwind info section with a 4byte 0 as a sentinel;
+    this would be the 'length' field in a real FDE.  */
+diff --git a/elf/soinit.c b/elf/soinit.c
+index 6fecbb5674..1db676af01 100644
+--- a/elf/soinit.c
++++ b/elf/soinit.c
+@@ -3,6 +3,7 @@
+    the `.ctors' and `.dtors' sections so the lists are terminated, and
+    calling those lists of functions.  */
+ 
++#ifndef NO_CTORS_DTORS_SECTIONS
+ #include <libc-internal.h>
+ #include <stdlib.h>
+ 
+@@ -40,3 +41,4 @@ __libc_fini (void)
+ 
+ void (*_fini_ptr) (void) __attribute__ ((section (".fini_array")))
+      = &__libc_fini;
++#endif
+diff --git a/sysdeps/i386/init-first.c b/sysdeps/i386/init-first.c
+index c6355a8b7b..2af042fe4b 100644
+--- a/sysdeps/i386/init-first.c
++++ b/sysdeps/i386/init-first.c
+@@ -59,7 +59,9 @@ _init (int argc, ...)
+ {
+   init (&argc);
+ 
++#ifndef NO_CTORS_DTORS_SECTIONS
+   __libc_global_ctors ();
++#endif
+ }
+ #endif
+ 
+diff --git a/sysdeps/mach/hurd/i386/init-first.c b/sysdeps/mach/hurd/i386/init-first.c
+index f9a7a58deb..60823bd789 100644
+--- a/sysdeps/mach/hurd/i386/init-first.c
++++ b/sysdeps/mach/hurd/i386/init-first.c
+@@ -92,7 +92,7 @@ posixland_init (int argc, char **argv, char **envp)
+   __getopt_clean_environment (envp);
+ #endif
+ 
+-#ifdef SHARED
++#if defined SHARED && !defined NO_CTORS_DTORS_SECTIONS
+   __libc_global_ctors ();
+ #endif
+ }
+diff --git a/sysdeps/mach/hurd/powerpc/init-first.c b/sysdeps/mach/hurd/powerpc/init-first.c
+index 20fa1d4f12..21b5054b0a 100644
+--- a/sysdeps/mach/hurd/powerpc/init-first.c
++++ b/sysdeps/mach/hurd/powerpc/init-first.c
+@@ -82,7 +82,7 @@ posixland_init (int argc, char **argv, char **envp)
+   __getopt_clean_environment (__environ);
+ #endif
+ 
+-#ifdef SHARED
++#if defined SHARED && !defined NO_CTORS_DTORS_SECTIONS
+   __libc_global_ctors ();
+ #endif
+ }
+diff --git a/sysdeps/sh/init-first.c b/sysdeps/sh/init-first.c
+index d816625ef4..1f3a821fea 100644
+--- a/sysdeps/sh/init-first.c
++++ b/sysdeps/sh/init-first.c
+@@ -59,7 +59,9 @@ _init (int argc, ...)
+ {
+   init (&argc);
+ 
++#ifndef NO_CTORS_DTORS_SECTIONS
+   __libc_global_ctors ();
++#endif
+ }
+ #endif
+ 
+diff --git a/sysdeps/unix/sysv/linux/init-first.c b/sysdeps/unix/sysv/linux/init-first.c
+index 7b2333d4bf..a60212f4ed 100644
+--- a/sysdeps/unix/sysv/linux/init-first.c
++++ b/sysdeps/unix/sysv/linux/init-first.c
+@@ -93,7 +93,7 @@ _init (int argc, char **argv, char **envp)
+   __getopt_clean_environment (envp);
+ #endif
+ 
+-#ifdef SHARED
++#if defined SHARED && !defined NO_CTORS_DTORS_SECTIONS
+   __libc_global_ctors ();
+ #endif
+ }

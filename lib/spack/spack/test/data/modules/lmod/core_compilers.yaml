@@ -1,0 +1,5 @@
+enable:
+  - lmod
+lmod:
+  core_compilers:
+    - 'clang@15.0.0'

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,8 +18,10 @@ class HpcxMpi(Package):
 
     provides("mpi")
 
+    requires("platform=linux")
+
     def install(self, spec, prefix):
-        raise InstallError("HPC-X MPI is not buildable, it is for external " "specs only.")
+        raise InstallError("HPC-X MPI is not buildable, it is for external specs only.")
 
     def setup_dependent_package(self, module, dependent_spec):
         # This works for AOCC (AMD), Intel and GNU.

@@ -1,0 +1,30 @@
+From c84b07de81cc24e9ac411fc404c54a9a5120029c Mon Sep 17 00:00:00 2001
+From: Benjamin Kaufmann <benjamin.kaufmann@teufel.de>
+Date: Wed, 22 Nov 2023 08:13:46 +0100
+Subject: [PATCH] mt: Make condition_variable::native_handle() conditional.
+
+* According to the C++ standard, the presence and semantics of
+  std::condition_variable::native_handle (and native_handle_type) is
+  implementation-defined. E.g., starting with VS 2022 17.8, Microsoft's
+  implementation no longer provides them at all.
+---
+ clasp/mt/mutex.h | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/clasp/clasp/mt/mutex.h b/clasp/clasp/mt/mutex.h
+index 2439888..ade899c 100644
+--- a/clasp/clasp/mt/mutex.h
++++ b/clasp/clasp/mt/mutex.h
+@@ -39,7 +39,11 @@ struct condition_variable : private std::condition_variable {
+ 	using base_type::notify_one;
+ 	using base_type::notify_all;
+ 	using base_type::wait;
+-	using base_type::native_handle;
++
++	template <typename X = std::condition_variable>
++	inline auto native_handle() -> typename X::native_handle_type {
++		return X::native_handle();
++	}
+ 
+ 	inline bool wait_for(unique_lock<mutex>& lock, double timeInSecs) {
+ 		return base_type::wait_for(lock, std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::duration<double>(timeInSecs)))

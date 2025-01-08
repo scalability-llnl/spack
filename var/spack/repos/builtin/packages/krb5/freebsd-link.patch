@@ -1,0 +1,11 @@
+--- a/src/config/shlib.conf
++++ b/src/config/shlib.conf
+@@ -327,7 +327,7 @@ mips-*-netbsd*)
+ 	CC_LINK_SHARED='$(CC) $(PROG_LIBPATH) $(PROG_RPATH_FLAGS) $(CFLAGS) $(LDFLAGS)'
+ 	CXX_LINK_SHARED='$(CXX) $(PROG_LIBPATH) $(PROG_RPATH_FLAGS) $(CXXFLAGS) $(LDFLAGS)'
+ 	SHLIBEXT=.so
+-	LDCOMBINE='ld -Bshareable'
++	LDCOMBINE='$(CC) -shared'
+ 	SHLIB_RPATH_FLAGS='--enable-new-dtags -rpath $(SHLIB_RDIRS)'
+ 	SHLIB_EXPFLAGS='$(SHLIB_RPATH_FLAGS) $(SHLIB_DIRS) $(SHLIB_EXPLIBS)'
+ 	CC_LINK_STATIC='$(CC) $(PROG_LIBPATH) $(CFLAGS) $(LDFLAGS)'

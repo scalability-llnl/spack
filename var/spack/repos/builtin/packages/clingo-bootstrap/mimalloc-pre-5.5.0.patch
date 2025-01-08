@@ -1,0 +1,39 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index f11e6e2..209970b 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -164,6 +164,7 @@ if (CLINGO_BUILD_WITH_LUA)
+         set_property(TARGET Lua::Lua PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${LUA_INCLUDE_DIR}")
+     endif()
+ endif()
++find_package(mimalloc REQUIRED)
+ find_package(BISON "2.5")
+ find_package(RE2C "0.13")
+ if (PYCLINGO_USE_CFFI AND Python_Development_FOUND)
+diff --git a/libclingo/CMakeLists.txt b/libclingo/CMakeLists.txt
+index 83acc22..51d5762 100644
+--- a/libclingo/CMakeLists.txt
++++ b/libclingo/CMakeLists.txt
+@@ -50,7 +50,7 @@ else()
+ endif()
+ 
+ add_library(libclingo ${clingo_lib_type} ${header} ${source})
+-target_link_libraries(libclingo PRIVATE libgringo libclasp)
++target_link_libraries(libclingo PRIVATE mimalloc-static libgringo libclasp)
+ target_include_directories(libclingo
+     PUBLIC
+     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
+diff --git a/libclingo/src/clingo_app.cc b/libclingo/src/clingo_app.cc
+index 3e4d14c..fcfc9ea 100644
+--- a/libclingo/src/clingo_app.cc
++++ b/libclingo/src/clingo_app.cc
+@@ -27,6 +27,9 @@
+ #include <clasp/parser.h>
+ #include <climits>
+ 
++#include <mimalloc-new-delete.h>
++
++
+ namespace Gringo {
+ 
+ // {{{ declaration of ClingoApp

@@ -1,0 +1,606 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 7a750b2..e281439 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -68,15 +68,14 @@ endif(rocblas_FOUND)
+ # variables since we will pass them as cmake params appropriately, and 
+ # all find_packages relevant to this build will be in ROCM path hence appending it to CMAKE_PREFIX_PATH 
+ set(ROCM_PATH "/opt/rocm" CACHE PATH "ROCM install path")
+-set(CMAKE_INSTALL_PREFIX "/opt/rocm" CACHE PATH "CMAKE installation directory")
+-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/rvs")
++set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+-set(CPACK_PACKAGING_INSTALL_PREFIX "/opt/rocm" CACHE PATH "Prefix used in built packages")
++set(CPACK_PACKAGING_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
+ list(APPEND CMAKE_PREFIX_PATH "${ROCM_PATH}")
+-set(ROCR_INC_DIR "${ROCM_PATH}/include" CACHE PATH "Contains header files exported by ROC Runtime" FORCE)
+-set(ROCR_LIB_DIR "${ROCM_PATH}/lib" CACHE PATH "Contains library files exported by ROC Runtime" FORCE)
+-set(HIP_INC_DIR "${ROCM_PATH}" CACHE PATH "Contains header files exported by ROC Runtime")
+-set(ROCT_INC_DIR "${ROCM_PATH}/include" CACHE PATH "Contains header files exported by ROC Trunk" FORCE)
++set(ROCR_INC_DIR "${HSA_PATH}/include" CACHE PATH "Contains header files exported by ROC Runtime")
++set(ROCR_LIB_DIR "${HSA_PATH}/lib" CACHE PATH "Contains library files exported by ROC Runtime")
++set(HIP_INC_DIR "${HIP_PATH}" CACHE PATH "Contains header files exported by ROC Runtime")
++set(ROCT_INC_DIR "${ROCM_PATH}/include" CACHE PATH "Contains header files exported by ROC Trunk")
+ 
+ add_definitions(-DROCM_PATH="${ROCM_PATH}")
+ add_definitions(-DRVS_LIB_PATH="${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/rvs")
+@@ -420,8 +419,8 @@ if (RVS_ROCBLAS EQUAL 1)
+   set(ROCBLAS_INC_DIR "${CMAKE_BINARY_DIR}/rvs_rblas-src/build/release/rocblas-install")
+   set(ROCBLAS_LIB_DIR "${CMAKE_BINARY_DIR}/rvs_rblas-src/build/release/rocblas-install/lib/")
+ else()
+-  set(ROCBLAS_INC_DIR "${ROCM_PATH}/include")
+-  set(ROCBLAS_LIB_DIR "${ROCM_PATH}/lib")
++  set(ROCBLAS_INC_DIR "${ROCBLAS_DIR}/include")
++  set(ROCBLAS_LIB_DIR "${ROCBLAS_DIR}/lib")
+ endif()
+ 
+ if (RVS_ROCMSMI EQUAL 1)
+@@ -436,8 +435,8 @@ else()
+     set(ROCM_SMI_LIB_DIR "${ROCM_PATH}/rocm_smi/lib")
+   else()
+     message( STATUS "ROCBLAS REORG Enabled Version: ${RVS_ROCBLAS_VERSION_FLAT}" )
+-    set(ROCM_SMI_INC_DIR "${ROCM_PATH}/include")
+-    set(ROCM_SMI_LIB_DIR "${ROCM_PATH}/lib")
++    set(ROCM_SMI_INC_DIR "${ROCM_SMI_DIR}/include")
++    set(ROCM_SMI_LIB_DIR "${ROCM_SMI_DIR}/lib")
+   endif()
+ endif()
+ set(ROCM_SMI_LIB "rocm_smi64" CACHE STRING "rocm_smi library name")
+diff --git a/babel.so/CMakeLists.txt b/babel.so/CMakeLists.txt
+index f163dae..fa85b38 100644
+--- a/babel.so/CMakeLists.txt
++++ b/babel.so/CMakeLists.txt
+@@ -107,13 +107,13 @@ set(HIP_HCC_LIB "amdhip64")
+ add_compile_options(-DRVS_ROCBLAS_VERSION_FLAT=${RVS_ROCBLAS_VERSION_FLAT})
+ 
+ # Determine Roc Runtime header files are accessible
+-if(NOT EXISTS ${HIP_INC_DIR}/include/hip/hip_runtime.h)
+-  message("ERROR: ROC Runtime headers can't be found under specified path. Please set HIP_INC_DIR path. Current value is : " ${HIP_INC_DIR})
++if(NOT EXISTS ${HIP_PATH}/include/hip/hip_runtime.h)
++	message("ERROR: ROC Runtime headers can't be found under specified path. Please set HIP_PATH path. Current value is : " ${HIP_PATH})
+   RETURN()
+ endif()
+ 
+-if(NOT EXISTS ${HIP_INC_DIR}/include/hip/hip_runtime_api.h)
+-  message("ERROR: ROC Runtime headers can't be found under specified path. Please set HIP_INC_DIR path. Current value is : " ${HIP_INC_DIR})
++if(NOT EXISTS ${HIP_PATH}/include/hip/hip_runtime_api.h)
++	message("ERROR: ROC Runtime headers can't be found under specified path. Please set HIP_PATH path. Current value is : " ${HIP_PATH})
+   RETURN()
+ endif()
+ 
+@@ -133,16 +133,16 @@ if(DEFINED RVS_ROCMSMI)
+ endif()
+ 
+ 
+-if(NOT EXISTS "${ROCR_LIB_DIR}/lib${HIP_HCC_LIB}.so")
+-  message("ERROR: ROC Runtime libraries can't be found under specified path. Please set ROCR_LIB_DIR path. Current value is : " ${ROCR_LIB_DIR})
++if(NOT EXISTS "${HIP_PATH}/lib/lib${HIP_HCC_LIB}.so")
++	message("ERROR: ROC Runtime libraries can't be found under specified path. Please set HIP_PATH path. Current value is : " ${HIP_PATH})
+   RETURN()
+ endif()
+ 
+ ## define include directories
+-include_directories(./ ../ ${ROCR_INC_DIR} ${HIP_INC_DIR})
++include_directories(./ ../ ${HIP_PATH})
+ 
+ # Add directories to look for library files to link
+-link_directories(${RVS_LIB_DIR} ${ROCR_LIB_DIR} ${ROCBLAS_LIB_DIR} ${ASAN_LIB_PATH})
++link_directories(${RVS_LIB_DIR} ${HIP_PATH}/lib/ ${ROCBLAS_LIB_DIR} ${ASAN_LIB_PATH} ${ROCM_SMI_LIB_DIR})
+ ## additional libraries
+ set (PROJECT_LINK_LIBS rvslib libpthread.so libpci.so libm.so)
+ 
+@@ -154,7 +154,7 @@ add_library( ${RVS_TARGET} SHARED ${SOURCES})
+ set_target_properties(${RVS_TARGET} PROPERTIES
+         SUFFIX .so.${LIB_VERSION_STRING}
+         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+-target_link_libraries(${RVS_TARGET} ${PROJECT_LINK_LIBS} ${HIP_HCC_LIB} ${ROCBLAS_LIB})
++target_link_libraries(${RVS_TARGET} ${PROJECT_LINK_LIBS} ${HIP_HCC_LIB} ${ROCBLAS_LIB} ${ROCBLAS_LIB_DIR}/librocblas.so ${HSAKMT_LIB_DIR}/libhsakmt.a ${HSA_PATH}/lib/libhsa-runtime64.so)
+ add_dependencies(${RVS_TARGET} rvslib)
+ 
+ add_custom_command(TARGET ${RVS_TARGET} POST_BUILD
+diff --git a/cmake_modules/tests_unit.cmake b/cmake_modules/tests_unit.cmake
+index e0e9f88..7321e0a 100644
+--- a/cmake_modules/tests_unit.cmake
++++ b/cmake_modules/tests_unit.cmake
+@@ -27,7 +27,7 @@
+ ## define additional unit testing include directories
+ include_directories(${UT_INC})
+ ## define additional unit testing lib directories
+-link_directories(${UT_LIB} ${RVS_LIB_DIR})
++link_directories(${UT_LIB} ${RVS_LIB_DIR} ${ROCM_SMI_LIB_DIR})
+ 
+ file(GLOB TESTSOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test/test*.cpp )
+ #message ( "TESTSOURCES: ${TESTSOURCES}" )
+@@ -45,6 +45,7 @@ FOREACH(SINGLE_TEST ${TESTSOURCES})
+   )
+   target_link_libraries(${TEST_NAME}
+     ${UT_LINK_LIBS}  rvslibut rvslib gtest_main gtest pthread pci
++    ${ROCBLAS_LIB_DIR}/librocblas.so ${HSAKMT_LIB_DIR}/libhsakmt.a ${HSA_PATH}/lib/libhsa-runtime64.so
+   )
+   target_compile_definitions(${TEST_NAME} PUBLIC RVS_UNIT_TEST)
+   if(DEFINED tcd.${TEST_NAME})
+diff --git a/edp.so/CMakeLists.txt b/edp.so/CMakeLists.txt
+index 7dd34ea..7978abe 100644
+--- a/edp.so/CMakeLists.txt
++++ b/edp.so/CMakeLists.txt
+@@ -134,11 +134,11 @@ if(NOT EXISTS "${ROCR_LIB_DIR}/lib${HIP_HCC_LIB}.so")
+ endif()
+ 
+ ## define include directories
+-include_directories(./ ../ ${ROCR_INC_DIR} ${ROCBLAS_INC_DIR} ${HIP_INC_DIR})
++include_directories(./ ../ ${ROCR_INC_DIR} ${ROCBLAS_INC_DIR} ${HIP_INC_DIR} ${YAML_CPP_INCLUDE_DIRS})
+ # Add directories to look for library files to link
+-link_directories(${RVS_LIB_DIR} ${ROCR_LIB_DIR} ${ROCBLAS_LIB_DIR})
++link_directories(${RVS_LIB_DIR} ${ROCR_LIB_DIR} ${ROCBLAS_LIB_DIR} ${ROCM_SMI_LIB_DIR})
+ ## additional libraries
+-set (PROJECT_LINK_LIBS rvslib libpthread.so libpciaccess.so libpci.so libm.so)
++set (PROJECT_LINK_LIBS rvslib libpthread.so libpciaccess.so libpci.so libm.so ${ROCBLAS_LIB_DIR}/librocblas.so ${HSAKMT_LIB_DIR}/libhsakmt.a ${HSA_PATH}/lib/libhsa-runtime64.so)
+ 
+ ## define source files
+ set (SOURCES src/rvs_module.cpp src/action.cpp src/edp_worker.cpp )
+diff --git a/gm.so/CMakeLists.txt b/gm.so/CMakeLists.txt
+index d3caa84..73b83ce 100644
+--- a/gm.so/CMakeLists.txt
++++ b/gm.so/CMakeLists.txt
+@@ -118,11 +118,11 @@ if(DEFINED RVS_ROCMSMI)
+ endif()
+ 
+ ## define include directories
+-include_directories(./ ../ ${ROCM_SMI_INC_DIR})
++include_directories(./ ../ ${ROCM_SMI_INC_DIR} ${YAML_CPP_INCLUDE_DIRS})
+ # Add directories to look for library files to link
+ link_directories(${RVS_LIB_DIR} ${ROCM_SMI_LIB_DIR} ${ASAN_LIB_PATH})
+ ## additional libraries
+-set (PROJECT_LINK_LIBS rvslib libpthread.so libpci.so libm.so)
++set (PROJECT_LINK_LIBS rvslib libpthread.so libpci.so libm.so librocm_smi64.so ${ROCBLAS_LIB_DIR}/librocblas.so ${HSAKMT_LIB_DIR}/libhsakmt.a ${HSA_PATH}/lib/libhsa-runtime64.so)
+ 
+ ## define source files
+ set(SOURCES  src/rvs_module.cpp src/action.cpp src/worker.cpp)
+@@ -133,7 +133,7 @@ add_library( ${RVS_TARGET} SHARED ${SOURCES})
+ set_target_properties(${RVS_TARGET} PROPERTIES
+         SUFFIX .so.${LIB_VERSION_STRING}
+         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+-target_link_libraries(${RVS_TARGET} ${PROJECT_LINK_LIBS} ${ROCM_SMI_LIB})
++target_link_libraries(${RVS_TARGET} ${PROJECT_LINK_LIBS})
+ add_dependencies(${RVS_TARGET} rvslib)
+ 
+ add_custom_command(TARGET ${RVS_TARGET} POST_BUILD
+diff --git a/gpup.so/CMakeLists.txt b/gpup.so/CMakeLists.txt
+index 43d337a..a234feb 100644
+--- a/gpup.so/CMakeLists.txt
++++ b/gpup.so/CMakeLists.txt
+@@ -109,11 +109,11 @@ else()
+ endif()
+ 
+ ## define include directories
+-include_directories(./ ../ include ../include)
++include_directories(./ ../ include ../include ${YAML_CPP_INCLUDE_DIRS})
+ # Add directories to look for library files to link
+-link_directories(${RVS_LIB_DIR} ${ASAN_LIB_PATH})
++link_directories(${RVS_LIB_DIR} ${ASAN_LIB_PATH} ${ROCM_SMI_LIB_DIR})
+ ## additional libraries
+-set (PROJECT_LINK_LIBS rvslib libpci.so libm.so)
++set (PROJECT_LINK_LIBS rvslib libpci.so libm.so ${ROCBLAS_LIB_DIR}/librocblas.so ${HSAKMT_LIB_DIR}/libhsakmt.a ${HSA_PATH}/lib/libhsa-runtime64.so) 
+ 
+ ## define source files
+ set(SOURCES src/rvs_module.cpp src/action.cpp)
+@@ -124,7 +124,7 @@ set_target_properties(${RVS_TARGET} PROPERTIES
+         SUFFIX .so.${LIB_VERSION_STRING}
+         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+ 
+-target_link_libraries(${RVS_TARGET} ${PROJECT_LINK_LIBS} )
++target_link_libraries(${RVS_TARGET} ${PROJECT_LINK_LIBS})
+ add_dependencies(${RVS_TARGET} rvslib)
+ 
+ add_custom_command(TARGET ${RVS_TARGET} POST_BUILD
+diff --git a/gst.so/CMakeLists.txt b/gst.so/CMakeLists.txt
+index fd346ce..cb8c4b6 100644
+--- a/gst.so/CMakeLists.txt
++++ b/gst.so/CMakeLists.txt
+@@ -137,17 +137,17 @@ if(DEFINED RVS_ROCMSMI)
+ endif()
+ 
+ 
+-if(NOT EXISTS "${ROCR_LIB_DIR}/lib${HIP_HCC_LIB}.so")
++if(NOT EXISTS "${HIP_INC_DIR}/lib/lib${HIP_HCC_LIB}.so")
+   message("ERROR: ROC Runtime libraries can't be found under specified path. Please set ROCR_LIB_DIR path. Current value is : " ${ROCR_LIB_DIR})
+   RETURN()
+ endif()
+ 
+ ## define include directories
+-include_directories(./ ../ ${ROCR_INC_DIR} ${ROCBLAS_INC_DIR} ${HIP_INC_DIR})
++include_directories(./ ../ ${ROCR_INC_DIR} ${ROCBLAS_INC_DIR} ${HIP_INC_DIR} ${YAML_CPP_INCLUDE_DIRS})
+ # Add directories to look for library files to link
+-link_directories(${RVS_LIB_DIR} ${ROCR_LIB_DIR} ${ROCBLAS_LIB_DIR} ${ASAN_LIB_PATH})
++link_directories(${RVS_LIB_DIR} ${ROCR_LIB_DIR} ${HIP_INC_DIR}/lib/ ${ROCBLAS_LIB_DIR} ${ASAN_LIB_PATH} ${ROCM_SMI_LIB_DIR})
+ ## additional libraries
+-set (PROJECT_LINK_LIBS rvslib libpthread.so libpci.so libm.so)
++set (PROJECT_LINK_LIBS rvslib libpthread.so libpci.so libm.so ${ROCBLAS_LIB_DIR}/librocblas.so ${HSAKMT_LIB_DIR}/libhsakmt.a ${HSA_PATH}/lib/libhsa-runtime64.so)
+ 
+ ## define source files
+ set(SOURCES src/rvs_module.cpp src/action.cpp src/gst_worker.cpp)
+@@ -157,7 +157,7 @@ add_library( ${RVS_TARGET} SHARED ${SOURCES})
+ set_target_properties(${RVS_TARGET} PROPERTIES
+         SUFFIX .so.${LIB_VERSION_STRING}
+         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+-target_link_libraries(${RVS_TARGET} ${PROJECT_LINK_LIBS} ${HIP_HCC_LIB} ${ROCBLAS_LIB})
++target_link_libraries(${RVS_TARGET} ${PROJECT_LINK_LIBS} ${HIP_HCC_LIB} ${ROCBLAS_LIB} )
+ add_dependencies(${RVS_TARGET} rvslib)
+ 
+ add_custom_command(TARGET ${RVS_TARGET} POST_BUILD
+diff --git a/iet.so/CMakeLists.txt b/iet.so/CMakeLists.txt
+index a85ca98..252e565 100644
+--- a/iet.so/CMakeLists.txt
++++ b/iet.so/CMakeLists.txt
+@@ -140,7 +140,7 @@ if(DEFINED RVS_ROCMSMI)
+   endif()
+ endif()
+ 
+-if(NOT EXISTS "${ROCR_LIB_DIR}/lib${HIP_HCC_LIB}.so")
++if(NOT EXISTS "${HIP_INC_DIR}/lib/lib${HIP_HCC_LIB}.so")
+   message("ERROR: ROC Runtime libraries can't be found under specified path. Please set ROCR_LIB_DIR path. Current value is : " ${ROCR_LIB_DIR})
+   RETURN()
+ endif()
+@@ -159,7 +159,7 @@ include_directories(./ ../ ${ROCM_SMI_INC_DIR} ${ROCBLAS_INC_DIR} ${ROCR_INC_DIR
+ # Add directories to look for library files to link
+ link_directories(${RVS_LIB_DIR} ${ROCR_LIB_DIR} ${ROCBLAS_LIB_DIR} ${ROCM_SMI_LIB_DIR} ${ASAN_LIB_PATH})
+ ## additional libraries
+-set (PROJECT_LINK_LIBS rvslib libpthread.so libpci.so libm.so)
++set (PROJECT_LINK_LIBS rvslib libpthread.so libpci.so libm.so librocm_smi64.so ${ROCBLAS_LIB_DIR}/librocblas.so ${HSAKMT_LIB_DIR}/libhsakmt.a ${HSA_PATH}/lib/libhsa-runtime64.so)
+ 
+ set(SOURCES src/rvs_module.cpp src/action.cpp src/iet_worker.cpp )
+ 
+@@ -168,7 +168,7 @@ add_library( ${RVS_TARGET} SHARED ${SOURCES})
+ set_target_properties(${RVS_TARGET} PROPERTIES
+         SUFFIX .so.${LIB_VERSION_STRING}
+         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+-target_link_libraries(${RVS_TARGET} ${PROJECT_LINK_LIBS} ${HIP_HCC_LIB} ${ROCBLAS_LIB} ${ROCM_SMI_LIB})
++target_link_libraries(${RVS_TARGET} ${PROJECT_LINK_LIBS} ${HIP_INC_DIR}/lib/ ${HIP_HCC_LIB} ${ROCBLAS_LIB})
+ add_dependencies(${RVS_TARGET} rvslib)
+ 
+ add_custom_command(TARGET ${RVS_TARGET} POST_BUILD
+diff --git a/mem.so/CMakeLists.txt b/mem.so/CMakeLists.txt
+index 5133337..2462bbc 100644
+--- a/mem.so/CMakeLists.txt
++++ b/mem.so/CMakeLists.txt
+@@ -134,7 +134,7 @@ if(DEFINED RVS_ROCMSMI)
+ endif()
+ 
+ 
+-if(NOT EXISTS "${ROCR_LIB_DIR}/lib${HIP_HCC_LIB}.so")
++if(NOT EXISTS "${HIP_INC_DIR}/lib/lib${HIP_HCC_LIB}.so")
+   message("ERROR: ROC Runtime libraries can't be found under specified path. Please set ROCR_LIB_DIR path. Current value is : " ${ROCR_LIB_DIR})
+   RETURN()
+ endif()
+@@ -143,9 +143,9 @@ endif()
+ include_directories(./ ../ ${ROCR_INC_DIR} ${HIP_INC_DIR})
+ 
+ # Add directories to look for library files to link
+-link_directories(${RVS_LIB_DIR} ${ROCR_LIB_DIR} ${ROCBLAS_LIB_DIR} ${ASAN_LIB_PATH})
++link_directories(${RVS_LIB_DIR} ${ROCR_LIB_DIR} ${HIP_INC_DIR}/lib ${ROCBLAS_LIB_DIR} ${ASAN_LIB_PATH} ${ROCM_SMI_LIB_DIR})
+ ## additional libraries
+-set (PROJECT_LINK_LIBS rvslib libpthread.so libpci.so libm.so)
++set (PROJECT_LINK_LIBS rvslib libpthread.so libpci.so libm.so ${ROCBLAS_LIB_DIR}/librocblas.so ${HSAKMT_LIB_DIR}/libhsakmt.a ${HSA_PATH}/lib/libhsa-runtime64.so)
+ 
+ ## define source files
+ set(SOURCES src/rvs_module.cpp src/action.cpp src/rvs_memtest.cpp src/rvs_memworker.cpp)
+diff --git a/pbqt.so/CMakeLists.txt b/pbqt.so/CMakeLists.txt
+index 5ae675a..892b6ac 100644
+--- a/pbqt.so/CMakeLists.txt
++++ b/pbqt.so/CMakeLists.txt
+@@ -136,11 +136,11 @@ if(NOT EXISTS ${ROCR_LIB_DIR}/${CORE_RUNTIME_LIBRARY}.so)
+ endif()
+ 
+ ## define include directories
+-include_directories(./ ../ pci ${ROCR_INC_DIR})
++include_directories(./ ../ pci ${ROCR_INC_DIR} ${YAML_CPP_INCLUDE_DIRS})
+ # Add directories to look for library files to link
+-link_directories(${RVS_LIB_DIR} ${ROCR_LIB_DIR} ${ROCT_LIB_DIR} ${ASAN_LIB_PATH})
++link_directories(${RVS_LIB_DIR} ${ROCR_LIB_DIR} ${HSAKMT_LIB_DIR} ${ROCT_LIB_DIR} ${ASAN_LIB_PATH} ${ROCM_SMI_LIB_DIR})
+ ## additional libraries
+-set (PROJECT_LINK_LIBS rvslib libpthread.so libpci.so libm.so)
++set (PROJECT_LINK_LIBS rvslib libpthread.so libpci.so libm.so ${ROCBLAS_LIB_DIR}/librocblas.so ${HSAKMT_LIB_DIR}/libhsakmt.a ${HSA_PATH}/lib/libhsa-runtime64.so)
+ 
+ ## define source files
+ set(SOURCES src/rvs_module.cpp src/action.cpp src/action_run.cpp
+diff --git a/pebb.so/CMakeLists.txt b/pebb.so/CMakeLists.txt
+index c4e2964..7a6b368 100644
+--- a/pebb.so/CMakeLists.txt
++++ b/pebb.so/CMakeLists.txt
+@@ -139,9 +139,9 @@ endif()
+ ## define include directories
+ include_directories(./ ../ pci ${ROCR_INC_DIR})
+ # Add directories to look for library files to link
+-link_directories(${RVS_LIB_DIR} ${ROCR_LIB_DIR} ${ROCT_LIB_DIR} ${ASAN_LIB_PATH})
++link_directories(${RVS_LIB_DIR} ${ROCR_LIB_DIR} ${HSAKMT_LIB_DIR} ${ROCT_LIB_DIR} ${ASAN_LIB_PATH} ${ROCM_SMI_LIB_DIR} )
+ ## additional libraries
+-set (PROJECT_LINK_LIBS rvslib libpthread.so libpci.so libm.so)
++set (PROJECT_LINK_LIBS rvslib libpthread.so libpci.so libm.so ${ROCBLAS_LIB_DIR}/librocblas.so ${HSAKMT_LIB_DIR}/libhsakmt.a ${HSA_PATH}/lib/libhsa-runtime64.so)
+ 
+ ## define source files
+ set(SOURCES src/rvs_module.cpp src/action.cpp src/action_run.cpp
+diff --git a/peqt.so/CMakeLists.txt b/peqt.so/CMakeLists.txt
+index ead507d..567358b 100644
+--- a/peqt.so/CMakeLists.txt
++++ b/peqt.so/CMakeLists.txt
+@@ -107,9 +107,9 @@ else()
+ endif()
+ 
+ ## define include directories
+-include_directories(./ ../)
++include_directories(./ ../ ${HSA_PATH})
+ # Add directories to look for library files to link
+-link_directories(${RVS_LIB_DIR} ${ASAN_LIB_PATH})
++link_directories(${RVS_LIB_DIR} ${HSA_PATH}/lib/ ${HSAKMT_LIB_DIR} ${ASAN_LIB_PATH} ${ROCM_SMI_LIB_DIR} ${YAML_CPP_INCLUDE_DIRS})
+ ## additional libraries
+ set (PROJECT_LINK_LIBS rvslib libpci.so libm.so)
+ 
+@@ -121,7 +121,7 @@ add_library( ${RVS_TARGET} SHARED ${SOURCES})
+ set_target_properties(${RVS_TARGET} PROPERTIES
+         SUFFIX .so.${LIB_VERSION_STRING}
+         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+-target_link_libraries(${RVS_TARGET} ${PROJECT_LINK_LIBS} )
++target_link_libraries(${RVS_TARGET} ${PROJECT_LINK_LIBS} ${ROCBLAS_LIB_DIR}/librocblas.so ${HSAKMT_LIB_DIR}/libhsakmt.a ${HSA_PATH}/lib/libhsa-runtime64.so)
+ add_dependencies(${RVS_TARGET} rvslib)
+ 
+ add_custom_command(TARGET ${RVS_TARGET} POST_BUILD
+diff --git a/perf.so/CMakeLists.txt b/perf.so/CMakeLists.txt
+index 518dac9..02d2245 100644
+--- a/perf.so/CMakeLists.txt
++++ b/perf.so/CMakeLists.txt
+@@ -137,7 +137,7 @@ if(DEFINED RVS_ROCMSMI)
+ endif()
+ 
+ 
+-if(NOT EXISTS "${ROCR_LIB_DIR}/lib${HIP_HCC_LIB}.so")
++if(NOT EXISTS "${HIP_INC_DIR}/lib/lib${HIP_HCC_LIB}.so")
+   message("ERROR: ROC Runtime libraries can't be found under specified path. Please set ROCR_LIB_DIR path. Current value is : " ${ROCR_LIB_DIR})
+   RETURN()
+ endif()
+@@ -145,9 +145,9 @@ endif()
+ ## define include directories
+ include_directories(./ ../ ${ROCR_INC_DIR} ${ROCBLAS_INC_DIR} ${HIP_INC_DIR})
+ # Add directories to look for library files to link
+-link_directories(${RVS_LIB_DIR} ${ROCR_LIB_DIR} ${ROCBLAS_LIB_DIR} ${ASAN_LIB_PATH})
++link_directories(${RVS_LIB_DIR} ${ROCR_LIB_DIR} ${HIP_INC_DIR}/lib ${ROCBLAS_LIB_DIR} ${ASAN_LIB_PATH} ${ROCM_SMI_LIB_DIR})
+ ## additional libraries
+-set (PROJECT_LINK_LIBS rvslib libpthread.so libpci.so libm.so)
++set (PROJECT_LINK_LIBS rvslib libpthread.so libpci.so libm.so ${ROCBLAS_LIB_DIR}/librocblas.so ${HSAKMT_LIB_DIR}/libhsakmt.a ${HSA_PATH}/lib/libhsa-runtime64.so)
+ 
+ ## define source files
+ set(SOURCES src/rvs_module.cpp src/action.cpp src/perf_worker.cpp)
+@@ -157,7 +157,7 @@ add_library( ${RVS_TARGET} SHARED ${SOURCES})
+ set_target_properties(${RVS_TARGET} PROPERTIES
+         SUFFIX .so.${LIB_VERSION_STRING}
+         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+-target_link_libraries(${RVS_TARGET} ${PROJECT_LINK_LIBS} ${HIP_HCC_LIB} ${ROCBLAS_LIB})
++target_link_libraries(${RVS_TARGET} ${PROJECT_LINK_LIBS})
+ add_dependencies(${RVS_TARGET} rvslib)
+ 
+ add_custom_command(TARGET ${RVS_TARGET} POST_BUILD
+diff --git a/pesm.so/CMakeLists.txt b/pesm.so/CMakeLists.txt
+index 1f27f34..20a8bed 100644
+--- a/pesm.so/CMakeLists.txt
++++ b/pesm.so/CMakeLists.txt
+@@ -107,11 +107,11 @@ else()
+ endif()
+ 
+ ## define include directories
+-include_directories(./ ../ pci)
++include_directories(./ ../ pci ${YAML_CPP_INCLUDE_DIRS})
+ # Add directories to look for library files to link
+-link_directories(${RVS_LIB_DIR} ${ROCR_LIB_DIR} ${ROCBLAS_LIB_DIR} ${ASAN_LIB_PATH})
++link_directories(${RVS_LIB_DIR} ${ROCR_LIB_DIR} ${ROCBLAS_LIB_DIR} ${ASAN_LIB_PATH} ${ROCM_SMI_LIB_DIR})
+ ## additional libraries
+-set (PROJECT_LINK_LIBS libpthread.so libpci.so libm.so)
++set (PROJECT_LINK_LIBS libpthread.so libpci.so libm.so ${PROJECT_LINK_LIBS} ${ROCBLAS_LIB_DIR}/librocblas.so ${HSAKMT_LIB_DIR}/libhsakmt.a ${HSA_PATH}/lib/libhsa-runtime64.so)
+ 
+ ## define source files
+ set(SOURCES  src/rvs_module.cpp src/action.cpp src/worker.cpp)
+@@ -121,7 +121,7 @@ add_library( ${RVS_TARGET} SHARED ${SOURCES})
+ set_target_properties(${RVS_TARGET} PROPERTIES
+         SUFFIX .so.${LIB_VERSION_STRING}
+         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+-target_link_libraries(${RVS_TARGET} rvslib ${PROJECT_LINK_LIBS} )
++target_link_libraries(${RVS_TARGET} rvslib ${PROJECT_LINK_LIBS})
+ add_dependencies(${RVS_TARGET} rvslib)
+ 
+ add_custom_command(TARGET ${RVS_TARGET} POST_BUILD
+diff --git a/rcqt.so/CMakeLists.txt b/rcqt.so/CMakeLists.txt
+index c0099ab..8d92982 100644
+--- a/rcqt.so/CMakeLists.txt
++++ b/rcqt.so/CMakeLists.txt
+@@ -108,11 +108,11 @@ else()
+ endif()
+ 
+ ## define include directories
+-include_directories(./ ../)
++include_directories(./ ../ ${YAML_CPP_INCLUDE_DIRS})
+ # Add directories to look for library files to link
+-link_directories(${RVS_LIB_DIR} ${ASAN_LIB_PATH})
++link_directories(${RVS_LIB_DIR} ${ASAN_LIB_PATH} ${ASAN_LIB_PATH} ${HSAKMT_LIB_DIR} ${ROCM_SMI_LIB_DIR})
+ ## additional libraries
+-set (PROJECT_LINK_LIBS rvslib)
++set (PROJECT_LINK_LIBS rvslib ${ROCBLAS_LIB_DIR}/librocblas.so ${HSAKMT_LIB_DIR}/libhsakmt.a ${HSA_PATH}/lib/libhsa-runtime64.so)
+ 
+ ## define source files
+ set(SOURCES 
+diff --git a/rvs/CMakeLists.txt b/rvs/CMakeLists.txt
+index 0dbd41b..3a0f7ab 100644
+--- a/rvs/CMakeLists.txt
++++ b/rvs/CMakeLists.txt
+@@ -113,21 +113,22 @@ else()
+ endif()
+ 
+ ## define include directories
+-include_directories(./ ../ ${YAML_CPP_INCLUDE_DIRS})
++include_directories(./ ../ ${YAML_INC_DIR})
+ ## define lib directories
+-link_directories(${CMAKE_CURRENT_BINARY_DIR} ${RVS_LIB_DIR} ${ROCT_LIB_DIR} ${ROCBLAS_LIB_DIR} ${ROCM_SMI_LIB_DIR} ${ASAN_LIB_PATH})
++link_directories(${CMAKE_CURRENT_BINARY_DIR} ${RVS_LIB_DIR} ${RVS_LIB_DIR}/.. ${ASAN_LIB_PATH} ${ROCM_SMI_LIB_DIR} ${YAML_CPP_LIBRARIES} ${ROCT_LIB_DIR} ${ROCBLAS_LIB_DIR} )
+ 
+ ## additional libraries
+-set(ROCBLAS_LIB "rocblas")
+-set(ROC_THUNK_NAME "hsakmt")
+-set(CORE_RUNTIME_NAME "hsa-runtime")
++set(ROCBLAS_LIB "${ROCBLAS_LIB_DIR}/librocblas.so")
++set(ROC_THUNK_NAME "${HSAKMT_LIB_DIR}/libhsakmt.a")
++set(CORE_RUNTIME_NAME "${HSA_PATH}/lib/libhsa-runtime64.so")
++set(YAML_CPP_LIB "${YAML_INC_DIR}/../lib64/libyaml-cpp.a")
+ set(CORE_RUNTIME_TARGET "${CORE_RUNTIME_NAME}64")
+-set(PROJECT_LINK_LIBS libdl.so libpthread.so libpci.so ${YAML_CPP_LIBRARIES})
++set(PROJECT_LINK_LIBS libdl.so libpthread.so libpci.so)
+ 
+ ## define target
+ add_executable(${RVS_TARGET} src/rvs.cpp)
+ target_link_libraries(${RVS_TARGET} rvslib
+-  ${ROCBLAS_LIB} ${ROCM_SMI_LIB} ${ROC_THUNK_NAME} ${CORE_RUNTIME_TARGET} ${PROJECT_LINK_LIBS})
++  ${ROCBLAS_LIB} ${ROCM_SMI_LIB} ${ROC_THUNK_NAME} ${PROJECT_LINK_LIBS} ${CORE_RUNTIME_NAME} ${YAML_CPP_LIB})
+ add_dependencies(${RVS_TARGET} rvslib)
+ 
+ install(TARGETS ${RVS_TARGET}
+diff --git a/rvs/tests.cmake b/rvs/tests.cmake
+index 38ae3fb..0d62675 100644
+--- a/rvs/tests.cmake
++++ b/rvs/tests.cmake
+@@ -41,7 +41,8 @@ link_directories(${RVS_LIB_DIR} ${ROCBLAS_LIB_DIR} ${ROCM_SMI_LIB_DIR} ${ROCT_LI
+ ## define target for "test-to-fail"
+ add_executable(${RVS_TARGET}fail src/rvs.cpp)
+ target_link_libraries(${RVS_TARGET}fail rvslib rvslibut ${PROJECT_LINK_LIBS}
+-  ${ROCM_SMI_LIB} ${ROCBLAS_LIB} ${ROC_THUNK_NAME} ${CORE_RUNTIME_TARGET})
++  ${ROCM_SMI_LIB} ${ROCBLAS_LIB} ${ROC_THUNK_NAME} ${CORE_RUNTIME_TARGET}
++  ${ROCBLAS_LIB_DIR}/librocblas.so ${HSAKMT_LIB_DIR}/libhsakmt.a ${HSA_PATH}/lib/libhsa-runtime64.so)
+ 
+ target_compile_definitions(${RVS_TARGET}fail PRIVATE RVS_INVERT_RETURN_STATUS)
+ set_target_properties(${RVS_TARGET}fail PROPERTIES
+@@ -187,7 +188,7 @@ add_test(NAME unit.ttf.rvs.config.noconfig
+ )
+ 
+ ## define include directories
+-include_directories(${UT_INC})
++include_directories(${UT_INC} ${YAML_INC_DIR})
+ ## define lib directories
+ link_directories(${UT_LIB} ${ROCBLAS_LIB_DIR} ${ROCM_SMI_LIB_DIR} ${ROCT_LIB_DIR})
+ ## additional libraries for unit tests
+@@ -211,6 +212,7 @@ FOREACH(SINGLE_TEST ${TESTSOURCES})
+     ${PROJECT_TEST_LINK_LIBS}
+     rvslib rvslibut gtest_main gtest pthread
+     ${ROCM_SMI_LIB} ${ROCBLAS_LIB} ${ROC_THUNK_NAME} ${CORE_RUNTIME_TARGET}
++    ${ROCBLAS_LIB_DIR}/librocblas.so ${HSAKMT_LIB_DIR}/libhsakmt.a ${HSA_PATH}/lib/libhsa-runtime64.so
+   )
+   add_dependencies(${TEST_NAME} rvs_gtest_target)
+ 
+diff --git a/rvslib/CMakeLists.txt b/rvslib/CMakeLists.txt
+index 8d29590..d52aee3 100644
+--- a/rvslib/CMakeLists.txt
++++ b/rvslib/CMakeLists.txt
+@@ -116,7 +116,7 @@ endif()
+ 
+ ## define include directories
+ include_directories(./ ../ ../rvs
+-  ${ROCM_SMI_INC_DIR} ${ROCR_INC_DIR} ${ROCBLAS_INC_DIR} ${HIP_INC_DIR})
++  ${ROCM_SMI_INC_DIR} ${HIP_PATH} ${ROCBLAS_INC_DIR} ${YAML_INC_DIR})
+ 
+ link_directories(${ASAN_LIB_PATH} ${ROCM_SMI_LIB_DIR})
+ 
+diff --git a/smqt.so/CMakeLists.txt b/smqt.so/CMakeLists.txt
+index 042586f..0133c00 100644
+--- a/smqt.so/CMakeLists.txt
++++ b/smqt.so/CMakeLists.txt
+@@ -106,11 +106,11 @@ else()
+ endif()
+ 
+ ## define include directories
+-include_directories(./ ../ pci)
++include_directories(./ ../ pci ${YAML_CPP_INCLUDE_DIRS})
+ # Add directories to look for library files to link
+-link_directories(${RVS_LIB_DIR} ${ASAN_LIB_PATH})
++link_directories(${RVS_LIB_DIR} ${ASAN_LIB_PATH} ${ROCM_SMI_LIB_DIR})
+ ## additional libraries
+-set (PROJECT_LINK_LIBS rvslib libpci.so libm.so)
++set (PROJECT_LINK_LIBS rvslib libpci.so libm.so ${ROCBLAS_LIB_DIR}/librocblas.so ${HSAKMT_LIB_DIR}/libhsakmt.a ${HSA_PATH}/lib/libhsa-runtime64.so)
+ 
+ ## define source files
+ set(SOURCES src/rvs_module.cpp src/action.cpp)
+diff --git a/testif.so/CMakeLists.txt b/testif.so/CMakeLists.txt
+index 4cba0f9..34b491e 100644
+--- a/testif.so/CMakeLists.txt
++++ b/testif.so/CMakeLists.txt
+@@ -108,11 +108,11 @@ endif()
+ 
+ 
+ ## define include directories
+-include_directories(./ ../ pci)
++include_directories(./ ../ pci ${YAML_CPP_INCLUDE_DIRS})
+ # Add directories to look for library files to link
+-link_directories(${RVS_LIB_DIR} ${ROCR_LIB_DIR} ${ROCBLAS_LIB_DIR} ${ASAN_LIB_PATH})
++link_directories(${RVS_LIB_DIR} ${ROCBLAS_LIB_DIR} ${ASAN_LIB_PATH} ${ROCM_SMI_LIB_DIR})
+ ## additional libraries
+-set (PROJECT_LINK_LIBS libpthread.so libpci.so libm.so)
++set (PROJECT_LINK_LIBS libpthread.so libpci.so libm.so ${ROCBLAS_LIB_DIR}/librocblas.so ${HSAKMT_LIB_DIR}/libhsakmt.a ${HSA_PATH}/lib/libhsa-runtime64.so)
+ 
+ ## define source files
+ ## set(SOURCES  src/rvs_module.cpp src/action.cpp src/worker.cpp)
+@@ -124,7 +124,7 @@ add_library( ${RVS_TARGET} SHARED src/rvs_module_no_if_methods.cpp)
+ set_target_properties(${RVS_TARGET} PROPERTIES
+         SUFFIX .so.${LIB_VERSION_STRING}
+         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+-target_link_libraries(${RVS_TARGET} rvslib ${PROJECT_LINK_LIBS} )
++target_link_libraries(${RVS_TARGET} rvslib ${PROJECT_LINK_LIBS})
+ add_dependencies(${RVS_TARGET} rvslib)
+ 
+ add_custom_command(TARGET ${RVS_TARGET} POST_BUILD
+@@ -145,7 +145,7 @@ add_library( ${RVS_TARGET} SHARED src/rvs_module_no_if0.cpp)
+ set_target_properties(${RVS_TARGET} PROPERTIES
+         SUFFIX .so.${LIB_VERSION_STRING}
+         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+-target_link_libraries(${RVS_TARGET} rvslib ${PROJECT_LINK_LIBS} )
++target_link_libraries(${RVS_TARGET} rvslib ${PROJECT_LINK_LIBS})
+ add_dependencies(${RVS_TARGET} rvslib)
+ 
+ add_custom_command(TARGET ${RVS_TARGET} POST_BUILD
+@@ -166,7 +166,7 @@ add_library( ${RVS_TARGET} SHARED src/rvs_module_no_if0_methods.cpp)
+ set_target_properties(${RVS_TARGET} PROPERTIES
+         SUFFIX .so.${LIB_VERSION_STRING}
+         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+-target_link_libraries(${RVS_TARGET} rvslib ${PROJECT_LINK_LIBS} )
++target_link_libraries(${RVS_TARGET} rvslib ${PROJECT_LINK_LIBS})
+ add_dependencies(${RVS_TARGET} rvslib)
+ 
+ add_custom_command(TARGET ${RVS_TARGET} POST_BUILD
+@@ -187,7 +187,7 @@ add_library( ${RVS_TARGET} SHARED src/rvs_module_no_if1.cpp)
+ set_target_properties(${RVS_TARGET} PROPERTIES
+         SUFFIX .so.${LIB_VERSION_STRING}
+         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+-target_link_libraries(${RVS_TARGET} rvslib ${PROJECT_LINK_LIBS} )
++target_link_libraries(${RVS_TARGET} rvslib ${PROJECT_LINK_LIBS})
+ add_dependencies(${RVS_TARGET} rvslib)
+ 
+ add_custom_command(TARGET ${RVS_TARGET} POST_BUILD
+@@ -208,7 +208,7 @@ add_library( ${RVS_TARGET} SHARED src/rvs_module_no_if1_methods.cpp)
+ set_target_properties(${RVS_TARGET} PROPERTIES
+         SUFFIX .so.${LIB_VERSION_STRING}
+         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+-target_link_libraries(${RVS_TARGET} rvslib ${PROJECT_LINK_LIBS} )
++target_link_libraries(${RVS_TARGET} rvslib ${PROJECT_LINK_LIBS})
+ add_dependencies(${RVS_TARGET} rvslib)
+ 
+ add_custom_command(TARGET ${RVS_TARGET} POST_BUILD
+@@ -229,7 +229,7 @@ add_library( ${RVS_TARGET} SHARED src/rvs_module_fail_init.cpp)
+ set_target_properties(${RVS_TARGET} PROPERTIES
+         SUFFIX .so.${LIB_VERSION_STRING}
+         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+-target_link_libraries(${RVS_TARGET} rvslib ${PROJECT_LINK_LIBS} )
++target_link_libraries(${RVS_TARGET} rvslib ${PROJECT_LINK_LIBS})
+ add_dependencies(${RVS_TARGET} rvslib)
+ 
+ add_custom_command(TARGET ${RVS_TARGET} POST_BUILD
+@@ -250,7 +250,7 @@ add_library( ${RVS_TARGET} SHARED src/rvs_module_fail_create_action.cpp)
+ set_target_properties(${RVS_TARGET} PROPERTIES
+         SUFFIX .so.${LIB_VERSION_STRING}
+         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+-target_link_libraries(${RVS_TARGET} rvslib ${PROJECT_LINK_LIBS} )
++target_link_libraries(${RVS_TARGET} rvslib ${PROJECT_LINK_LIBS})
+ add_dependencies(${RVS_TARGET} rvslib)
+ 
+ add_custom_command(TARGET ${RVS_TARGET} POST_BUILD

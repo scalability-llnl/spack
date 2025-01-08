@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,17 +17,19 @@ class GpuBurn(MakefilePackage, CudaPackage):
     version("1.1", sha256="9876dbf7ab17b3072e9bc657034ab39bdedb219478f57c4e93314c78ae2d6376")
     version("1.0", sha256="d55994f0bee8dabf021966dbe574ef52be1e43386faeee91318dd4ebb36aa74a")
 
+    depends_on("cxx", type="build")  # generated
+
     # This package uses CudaPackage to pick up the cuda_arch variant. A side
     # effect is that it also picks up the cuda variant, but cuda is required
     # for gpu-burn so is not really a variant.
-    variant("cuda", "True", description="Use CUDA; must be true")
+    variant("cuda", default=True, description="Use CUDA; must be true")
 
     conflicts("~cuda", msg="gpu-burn requires cuda")
     conflicts("cuda_arch=none", msg="must select a CUDA architecture")
 
     def edit(self, spec, prefix):
         # update cuda architecture if necessary
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             cuda_arch = self.spec.variants["cuda_arch"].value
             archflag = " ".join(CudaPackage.cuda_flags(cuda_arch))
             with open("Makefile", "w") as fh:

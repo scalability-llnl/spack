@@ -1,5 +1,4 @@
-.. Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-   Spack Project Developers. See the top-level COPYRIGHT file for details.
+.. Copyright Spack Project Developers. See COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -144,6 +143,25 @@ When set to ``true`` (default) Spack will verify certificates of remote
 hosts when making ``ssl`` connections.  Set to ``false`` to disable, and
 tools like ``curl`` will use their ``--insecure`` options.  Disabling
 this can expose you to attacks.  Use at your own risk.
+
+--------------------
+``ssl_certs``
+--------------------
+
+Path to custom certificats for SSL verification. The value can be a 
+filesytem path, or an environment variable that expands to an absolute file path.
+The default value is set to the environment variable ``SSL_CERT_FILE``
+to use the same syntax used by many other applications that automatically
+detect custom certificates.
+When ``url_fetch_method:curl`` the ``config:ssl_certs`` should resolve to
+a single file.  Spack will then set the environment variable ``CURL_CA_BUNDLE``
+in the subprocess calling ``curl``.
+If ``url_fetch_method:urllib`` then files and directories are supported i.e. 
+``config:ssl_certs:$SSL_CERT_FILE`` or ``config:ssl_certs:$SSL_CERT_DIR``
+will work.
+In all cases the expanded path must be absolute for Spack to use the certificates.
+Certificates relative to an environment can be created by prepending the path variable
+with the Spack configuration variable``$env``.
 
 --------------------
 ``checksum``
@@ -292,14 +310,29 @@ It is also worth noting that:
          non_bindable_shared_objects = ["libinterface.so"]
 
 ----------------------
-``terminal_title``
+``install_status``
 ----------------------
 
-By setting this option to ``true``, Spack will update the terminal's title to
-provide information about its current progress as well as the current and
-total package numbers.
+When set to ``true``, Spack will show information about its current progress
+as well as the current and total package numbers. Progress is shown both
+in the terminal title and inline. Setting it to ``false`` will not show any
+progress information.
 
 To work properly, this requires your terminal to reset its title after
 Spack has finished its work, otherwise Spack's status information will
 remain in the terminal's title indefinitely. Most terminals should already
 be set up this way and clear Spack's status information.
+
+-----------
+``aliases``
+-----------
+
+Aliases can be used to define new Spack commands. They can be either shortcuts
+for longer commands or include specific arguments for convenience. For instance,
+if users want to use ``spack install``'s ``-v`` argument all the time, they can
+create a new alias called ``inst`` that will always call ``install -v``:
+
+.. code-block:: yaml
+
+   aliases:
+     inst: install -v

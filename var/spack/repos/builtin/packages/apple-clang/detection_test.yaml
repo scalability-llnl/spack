@@ -1,0 +1,48 @@
+paths:
+# Apple Clang on MacBook Pro (Catalina)
+- layout:
+  - executables:
+    - "bin/clang"
+    - "bin/clang++"
+    script: |
+      echo "Apple clang version 11.0.0 (clang-1100.0.33.8)"
+      echo "Target: x86_64-apple-darwin19.5.0"
+      echo "Thread model: posix"
+      echo "InstalledDir: /Library/Developer/CommandLineTools/usr/bin"
+  platforms: ["darwin"]
+  results:
+  - spec: 'apple-clang@11.0.0'
+    extra_attributes:
+      compilers:
+        c: ".*/bin/clang"
+        cxx: ".*/bin/clang[+][+]"
+
+# Apple Clang on Apple M1 (Ventura)
+- layout:
+  - executables:
+    - "bin/clang"
+    - "bin/clang++"
+    script: |
+      echo "Apple clang version 15.0.0 (clang-1500.0.40.1)"
+      echo "Target: arm64-apple-darwin22.6.0"
+      echo "Thread model: posix"
+      echo "InstalledDir: /Library/Developer/CommandLineTools/usr/bin"
+  platforms: ["darwin"]
+  results:
+  - spec: 'apple-clang@15.0.0'
+    extra_attributes:
+      compilers:
+        c: ".*/bin/clang"
+        cxx: ".*/bin/clang[+][+]"
+
+# Test that missing a compiler prevents the package from being detected
+- layout:
+  - executables:
+    - "bin/clang"
+    script: |
+      echo "Apple clang version 11.0.0 (clang-1100.0.33.8)"
+      echo "Target: x86_64-apple-darwin19.5.0"
+      echo "Thread model: posix"
+      echo "InstalledDir: /Library/Developer/CommandLineTools/usr/bin"
+  platforms: ["darwin"]
+  results: []

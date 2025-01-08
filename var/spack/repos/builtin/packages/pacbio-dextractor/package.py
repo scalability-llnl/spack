@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,8 @@ class PacbioDextractor(MakefilePackage):
     git = "https://github.com/PacificBiosciences/DEXTRACTOR.git"
 
     version("2016-08-09", commit="89726800346d0bed15d98dcc577f4c7733aab4b1")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("hdf5")
     depends_on("gmake", type="build")

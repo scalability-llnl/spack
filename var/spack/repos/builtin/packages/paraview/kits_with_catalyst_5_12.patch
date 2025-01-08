@@ -1,0 +1,21 @@
+From 65ec5b0604576474141def0ba7f0c7b94f6b32ee Mon Sep 17 00:00:00 2001
+From: Ryan Krattiger <ryan.krattiger@kitware.com>
+Date: Fri, 8 Mar 2024 09:17:03 -0600
+
+---
+ VTK/IO/CatalystConduit/vtk.module | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/VTK/IO/CatalystConduit/vtk.module b/VTK/IO/CatalystConduit/vtk.module
+index c67f5a099d5..18e706e8c9f 100644
+--- a/VTK/IO/CatalystConduit/vtk.module
++++ b/VTK/IO/CatalystConduit/vtk.module
+@@ -5,7 +5,7 @@ LIBRARY_NAME
+ DESCRIPTION
+   Catalyst implementation for VTK, including Conduit to/from VTK conversion.
+ KIT
+-  VTK::IO
++  VTK::Parallel
+ SPDX_LICENSE_IDENTIFIER
+   BSD-3-Clause
+ SPDX_COPYRIGHT_TEXT

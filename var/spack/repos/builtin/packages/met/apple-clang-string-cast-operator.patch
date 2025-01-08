@@ -1,0 +1,20 @@
+--- a/src/basic/vx_log/concat_string.h	2023-03-31 10:07:46
++++ b/src/basic/vx_log/concat_string.h	2023-06-02 16:26:06
+@@ -146,7 +146,7 @@
+ 
+       void chomp(const char *);   //  removes trailing suffix, if possible
+ 
+-      operator const std::string () const;
++      operator std::string () const;
+ 
+       bool startswith(const char *) const;
+       bool   endswith(const char *) const;
+@@ -205,7 +205,7 @@
+ inline bool         ConcatString::empty()        const { return ( s ?  s->empty() : true ); }
+ inline bool         ConcatString::nonempty()     const { return ( s ? !s->empty() : false ); }
+ 
+-inline              ConcatString::operator const std::string () const { return ( s ? *s : 0 ); }
++inline              ConcatString::operator std::string () const { return ( s ? *s : 0 ); }
+ 
+ 
+ ////////////////////////////////////////////////////////////////////////

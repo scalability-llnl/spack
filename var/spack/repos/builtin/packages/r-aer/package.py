@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,7 @@ class RAer(RPackage):
 
     cran = "AER"
 
+    version("1.2-12", sha256="55c7b0f17ecd0dc6e1c54ab09b40e89676f44658eaad444c818133fae8d1ea86")
     version("1.2-10", sha256="650a5fb54a8addf8c86f1e0f88f4fac5349731bc5bf34762a991022140eedbdc")
     version("1.2-9", sha256="3b79390b14766419fc1e8912689bc462d4beb01aff9dad26d628aed69d04540d")
     version("1.2-7", sha256="3aee5c606313710c2dca6c1e9b2c20a145aa33f2a3ecc5cfcec66c8e91838a93")

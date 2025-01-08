@@ -1,9 +1,4 @@
 spack:
-  config:
-    # allow deprecated versions in concretizations
-    # required for zlib
-    deprecated: true
-
   view: false
   packages:
     all:
@@ -13,49 +8,50 @@ spack:
   definitions:
   - gcc_system_packages:
     - matrix:
-      - - zlib
-        - zlib@1.2.8
-        - zlib@1.2.8 cflags=-O3
+      - - zlib-ng
+        - zlib-ng@2.0.7
+        - zlib-ng@2.0.7 cflags=-O3
         - tcl
-        - tcl ^zlib@1.2.8 cflags=-O3
+        - tcl ^zlib-ng@2.0.7 cflags=-O3
         - hdf5
         - hdf5~mpi
         - hdf5+hl+mpi ^mpich
         - trilinos
         - trilinos +hdf5 ^hdf5+hl+mpi ^mpich
-        - gcc@12.1.0
+        - gcc@12.3.0
         - mpileaks
-        - lmod
-        - macsio@1.1+scr^scr@2.0.0~fortran^silo~fortran^hdf5~fortran
-      - ['%gcc@11.3.0']
+        - lmod@8.7.18
+        - environment-modules
+        - macsio@1.1+scr ^scr@2.0.0~fortran ^silo~fortran ^hdf5~fortran
+        - julia@1.9 ^llvm ~clang ~gold ~lldb ~lua ~polly compiler-rt=none libcxx=none libunwind=none targets=x86 ^openblas threads=openmp
+        - vim
+      - ['%gcc@11']
   - gcc_old_packages:
-    - zlib%gcc@10.4.0
+    - zlib-ng%gcc@10
   - clang_packages:
     - matrix:
-      - [zlib, tcl ^zlib@1.2.8]
-      - ['%clang@14.0.0']
+      - [zlib-ng, tcl ^zlib-ng@2.0.7]
+      - ['%clang@14']
   - gcc_spack_built_packages:
     - matrix:
       - [netlib-scalapack]
       - [^mpich, ^openmpi]
       - [^openblas, ^netlib-lapack]
-      - ['%gcc@12.1.0']
+      - ['%gcc@12']
     - matrix:
-      - [py-scipy^openblas, armadillo^openblas, netlib-lapack, openmpi, mpich, elpa^mpich]
-      - ['%gcc@12.1.0']
+      - [py-scipy ^openblas, armadillo ^openblas, netlib-lapack, openmpi, mpich, elpa ^mpich]
+      - ['%gcc@12']
   specs:
   - $gcc_system_packages
   - $gcc_old_packages
   - $clang_packages
   - $gcc_spack_built_packages
 
-  mirrors:
-    mirror: s3://spack-binaries/develop/tutorial
   ci:
     pipeline-gen:
     - build-job:
         image:
-          name: ghcr.io/spack/tutorial-ubuntu-22.04:v2023-05-07
+          name: ghcr.io/spack/tutorial-ubuntu-22.04:v2023-10-30
           entrypoint: ['']
   cdash:
     build-group: Spack Tutorial

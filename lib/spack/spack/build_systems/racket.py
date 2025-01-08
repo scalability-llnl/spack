@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -10,7 +9,8 @@ import llnl.util.lang as lang
 import llnl.util.tty as tty
 
 import spack.builder
-from spack.build_environment import SPACK_NO_PARALLEL_MAKE, determine_number_of_jobs
+from spack.build_environment import SPACK_NO_PARALLEL_MAKE
+from spack.config import determine_number_of_jobs
 from spack.directives import build_system, extends, maintainers
 from spack.package_base import PackageBase
 from spack.util.environment import env_flag
@@ -63,7 +63,7 @@ class RacketBuilder(spack.builder.Builder):
 
     @property
     def subdirectory(self):
-        if self.racket_name:
+        if self.pkg.racket_name:
             return "pkgs/{0}".format(self.pkg.racket_name)
         return None
 
@@ -92,7 +92,7 @@ class RacketBuilder(spack.builder.Builder):
                 "--copy",
                 "-i",
                 "-j",
-                str(determine_number_of_jobs(parallel)),
+                str(determine_number_of_jobs(parallel=parallel)),
                 "--",
                 os.getcwd(),
             ]

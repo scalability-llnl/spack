@@ -1,10 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import glob
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -14,11 +14,13 @@ class PyTensorboardDataServer(PythonPackage):
     homepage = "https://github.com/tensorflow/tensorboard/tree/master/tensorboard/data/server"
     git = "https://github.com/tensorflow/tensorboard"
 
+    license("Apache-2.0")
+
     version("0.7.0", commit="f1cb31c86d871e0258250248ab9488575410e784")
     version("0.6.1", commit="6acf0be88b5727e546dd64a8b9b12d790601d561")
 
     depends_on("py-setuptools", type="build")
-    depends_on("rust+rustfmt", type="build")
+    depends_on("rust+dev", type="build")
 
     # https://github.com/tensorflow/tensorboard/issues/5713
     patch(
@@ -58,5 +60,4 @@ class PyTensorboardDataServer(PythonPackage):
             )
 
         wheel = glob.glob("*.whl")[0]
-        args = std_pip_args + ["--prefix=" + prefix, wheel]
-        pip(*args)
+        pip(*PythonPipBuilder.std_args(self), f"--prefix={prefix}", wheel)

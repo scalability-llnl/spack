@@ -1,0 +1,76 @@
+From a9f33beccc72e113d95e97b9461e39e87e356d97 Mon Sep 17 00:00:00 2001
+From: Ben Wibking <ben@wibking.com>
+Date: Sun, 10 Dec 2023 16:42:49 -0500
+Subject: [PATCH] fix missing header includes for QSurfaceFormat
+
+---
+ src/tools/examples/avtexamples/qtviswinExample.C   | 1 +
+ src/tools/examples/avtexamples/qtvtkExample.C      | 1 +
+ src/tools/examples/avtexamples/qvtkopenglExample.C | 1 +
+ src/tools/examples/mcurvit/main.C                  | 1 +
+ src/viewer/main/viewer.C                           | 1 +
+ 5 files changed, 5 insertions(+)
+
+diff --git a/src/tools/examples/avtexamples/qtviswinExample.C b/src/tools/examples/avtexamples/qtviswinExample.C
+index 27c54fcd18..1b8d651c1d 100644
+--- a/src/tools/examples/avtexamples/qtviswinExample.C
++++ b/src/tools/examples/avtexamples/qtviswinExample.C
+@@ -5,6 +5,7 @@
+ #include <QtVisWindow.h>
+ 
+ #include <QApplication>
++#include <QSurfaceFormat>
+ 
+ #include <visit-config.h> // For LIB_VERSION_LE
+ #if LIB_VERSION_LE(VTK, 8,1,0)
+diff --git a/src/tools/examples/avtexamples/qtvtkExample.C b/src/tools/examples/avtexamples/qtvtkExample.C
+index 478e9842a9..41e19ff305 100644
+--- a/src/tools/examples/avtexamples/qtvtkExample.C
++++ b/src/tools/examples/avtexamples/qtvtkExample.C
+@@ -5,6 +5,7 @@
+ #include <GUIWindow2.h>
+ 
+ #include <QApplication>
++#include <QSurfaceFormat>
+ 
+ #include <visit-config.h> // For LIB_VERSION_LE
+ #if LIB_VERSION_LE(VTK,8,1,0)
+diff --git a/src/tools/examples/avtexamples/qvtkopenglExample.C b/src/tools/examples/avtexamples/qvtkopenglExample.C
+index f25cad6ed2..180c760fca 100644
+--- a/src/tools/examples/avtexamples/qvtkopenglExample.C
++++ b/src/tools/examples/avtexamples/qvtkopenglExample.C
+@@ -5,6 +5,7 @@
+ #include <GUIWindow.h>
+ 
+ #include <QApplication>
++#include <QSurfaceFormat>
+ 
+ #include <visit-config.h> // For LIB_VERSION_LE
+ #if LIB_VERSION_LE(VTK, 8,1,0)
+diff --git a/src/tools/examples/mcurvit/main.C b/src/tools/examples/mcurvit/main.C
+index bc5a54ed73..e877cc0099 100644
+--- a/src/tools/examples/mcurvit/main.C
++++ b/src/tools/examples/mcurvit/main.C
+@@ -4,6 +4,7 @@
+ 
+ #include <QApplication>
+ #include <QDir>
++#include <QSurfaceFormat>
+ 
+ #include <visit-config.h> // For LIB_VERSION_LE
+ #if LIB_VERSION_LE(VTK, 8,1,0)
+diff --git a/src/viewer/main/viewer.C b/src/viewer/main/viewer.C
+index ea7e1f3768..7b0b209f46 100644
+--- a/src/viewer/main/viewer.C
++++ b/src/viewer/main/viewer.C
+@@ -12,6 +12,7 @@
+ 
+ #include <qapplication.h>
+ #include <QStringList>
++#include <QSurfaceFormat>
+ 
+ #include <VisItViewer.h>
+ #include <AppearanceAttributes.h>
+-- 
+2.43.0
+

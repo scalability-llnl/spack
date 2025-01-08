@@ -1,26 +1,49 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import tempfile
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
 class PyKeras(PythonPackage):
-    """Deep Learning for humans.
+    """Multi-backend Keras.
 
-    Keras is a deep learning API written in Python, running on top of the machine
-    learning platform TensorFlow. It was developed with a focus on enabling fast
-    experimentation. Being able to go from idea to result as fast as possible is
-    key to doing good research.
+    Keras 3 is a new multi-backend implementation of the Keras API,
+    with support for TensorFlow, JAX, and PyTorch.
     """
 
     homepage = "https://keras.io"
     git = "https://github.com/keras-team/keras.git"
-    url = "https://github.com/keras-team/keras/archive/refs/tags/v2.7.0.tar.gz"
+    pypi = "keras/keras-3.0.0.tar.gz"
 
+    maintainers("adamjstewart")
+    license("Apache-2.0")
+
+    version("3.7.0", sha256="a4451a5591e75dfb414d0b84a3fd2fb9c0240cc87ebe7e397f547ce10b0e67b7")
+    version("3.6.0", sha256="405727525a3522ed8f9ec0b46e0667e4c65fcf714a067322c16a00d902ded41d")
+    version("3.5.0", sha256="53ae4f9472ec9d9c6941c82a3fda86969724ace3b7630a94ba0a1f17ba1065c3")
+    version("3.4.1", sha256="34cd9aeaa008914715149234c215657ca758e1b473bd2aab2e211ac967d1f8fe")
+    version("3.4.0", sha256="c4b05b150b1c4df27b4a17efd137b2d5e20f385f146fd48636791d675e75059d")
+    version("3.3.3", sha256="f2fdffc8434fd77045cf8fb21816dbaa2308d5f76974ca924b2f60b40433b1a0")
+    version("3.3.2", sha256="e7e2ccba2dfe2cf10b82e3c75ea971b82a4c62560dc562c43b33f7790127c92f")
+    version("3.3.1", sha256="03531beb01b108b867683762ceaacd0f28efc40cb92eee3c8c988b80cf718bbe")
+    version("3.3.0", sha256="46763bd84696aa5e326734ee0ccfde12bef73b27f1e5e241bbf539cb6411e78d")
+    version("3.2.1", sha256="966abbf0dfc1f9725f6293fb2a04ec83f56cd2a800990b38d1a03041255214a7")
+    version("3.2.0", sha256="e3ff572c872ebb24d2ae62d4e12c3579ccd0019d0f0adaf3cb7dc610e77e84c1")
+    version("3.1.1", sha256="55558ea228dc38e7667874fd2e83eaf7faeb026e2e8615b36a8616830f7e303b")
+    version("3.1.0", sha256="cac46e053f0493da313e7c9b16379a532b1a38f9f19c7a5fe4578759f4c6aa4d")
+    version("3.0.5", sha256="df3d3795e12c3f6035e811c43c13f1eb41e37241796a0fea120ede4ebe1c4496")
+    version("3.0.4", sha256="ff2204792582e3889c51c77722cc6e8258dbb1ece7db192f5a9bcd1887cf3385")
+    version("3.0.3", sha256="1e455a82be63b7fb4f699e26bd1e04b7dbcbf66fa3a799117afca9ab067b5d61")
+    version("3.0.2", sha256="526b6c053cdd880a33467c5bfd5c460a5bdc0c58869c2683171c2dec2ad3c2d0")
+    version("3.0.1", sha256="d993721510fa654582132192193f69b1b3165418a6e00a73c3edce615b3cc672")
+    version("3.0.0", sha256="82a9fa4b32a049b38151d11188ed15d74f21f853f163e78da0950dce1f244ccc")
+    version("2.15.0", sha256="b281ce09226576e0593b8dab0d9e5d42c334e053ce6f4f154dc6cd745ab93d2f")
+    version("2.14.0", sha256="a845d446b6ae626f61dde5ab2fa952530b6c17b4f9ed03e9362bd20172d00cca")
+    version("2.13.1", sha256="b3591493cce75a69adef7b192cec6be222e76e2386d132cd4e34aa190b0ecbd5")
     version("2.12.0", sha256="6336cebb6b2b0a91f7efd3ff3a9db3a94f2abccf07a40323138afb80826aec62")
     version("2.11.0", sha256="e7a7c4199ac76ea750d145c1d84ae1b932e68b9bca34e83596bd66b2fc2ad79e")
     version("2.10.0", sha256="b1d8d9358700f4a585455854a142d88cc987419c1638ef935b440842d593ad04")
@@ -28,7 +51,6 @@ class PyKeras(PythonPackage):
     version("2.8.0", sha256="5e777b0101d8385d3a90fc9056f1b2f6313f2c830d2e8181828b300c9229ec0c")
     version("2.7.0", sha256="7502746467ab15184e2e267f13fbb2c3f33ba24f8e02a097d229ba376dabaa04")
     version("2.6.0", sha256="15586a3f3e1ed9182e6e0d4c0dbd052dfb7250e779ceb7e24f8839db5c63fcae")
-    version("2.5.0", commit="9c266106163390f173625c4e7b1ccb03ae145ffc", deprecated=True)
     version("2.4.3", sha256="fedd729b52572fb108a98e3d97e1bac10a81d3917d2103cc20ab2a5f03beb973")
     version("2.4.2", sha256="e26bc51b7b8fb7add452cdf6fba77d6509e6c78b9d9ef5fd32fe132c6d9182d2")
     version("2.4.1", sha256="e282cc9c5c996043b21d045765c0c5bf541c1879232a97a574c51af0ce132cb1")
@@ -41,167 +63,103 @@ class PyKeras(PythonPackage):
     version("2.2.2", sha256="468d98da104ec5c3dbb10c2ef6bb345ab154f6ca2d722d4c250ef4d6105de17a")
     version("2.2.1", sha256="0d3cb14260a3fa2f4a5c4c9efa72226ffac3b4c50135ba6edaf2b3d1d23b11ee")
     version("2.2.0", sha256="5b8499d157af217f1a5ee33589e774127ebc3e266c833c22cb5afbb0ed1734bf")
-    version(
-        "2.1.6",
-        sha256="c14af1081242c25617ade7eb62121d58d01f16e1e744bae9fc4f1f95a417716e",
-        deprecated=True,
-    )
-    version(
-        "2.1.5",
-        sha256="907ad29add1fff27342a9f4fe3e60003d450d3af41a38f22f629c7736fc8399d",
-        deprecated=True,
-    )
-    version(
-        "2.1.4",
-        sha256="7ee1fcc79072ac904a4f008d715bcb78c60250ae3cd41d99e268c60ade8d0d3a",
-        deprecated=True,
-    )
-    version(
-        "2.1.3",
-        sha256="7ca3a381523bad40a6922e88951a316664cb088fd01cea07e5ec8ada3327e3c7",
-        deprecated=True,
-    )
-    version(
-        "2.1.2",
-        sha256="3ee56fc129d9d00b1916046e50056047836f97ada59df029e5661fb34442d5e8",
-        deprecated=True,
-    )
-    version(
-        "2.1.1",
-        sha256="f0ca2458c60d9711edf4291230b31795307ad3781cb6232ff4792b53c8f55123",
-        deprecated=True,
-    )
-    version(
-        "2.1.0",
-        sha256="67a0d66c20fff99312fc280e34c8f6dc3dbb027d4a33c13c79bec3c1173f6909",
-        deprecated=True,
-    )
-    version(
-        "2.0.9",
-        sha256="6b8572cf1b4a22fd0120b7c23382ba4fa04a6f0397e02af1249be9a7309d1767",
-        deprecated=True,
-    )
-    version(
-        "2.0.8",
-        sha256="899dc6aaed366f20100b9f80cf1093ea5b43eecc74afd1dc63a4e48dfa776ab9",
-        deprecated=True,
-    )
-    version(
-        "2.0.7",
-        sha256="a6c72ee2b94be1ffefe7e77b69582b9827211f0c356b2189459711844d3634c0",
-        deprecated=True,
-    )
-    version(
-        "2.0.6",
-        sha256="0519480abe4ad18b2c2d1bc580eab75edd82c95083d341a1157952f4b00019bb",
-        deprecated=True,
-    )
-    version(
-        "2.0.5",
-        sha256="cbce24758530e070fe1b403d6d21391cbea78c037b70bf6afc1ca9f1f8269eff",
-        deprecated=True,
-    )
-    version(
-        "2.0.4",
-        sha256="1cbe62af6821963321b275d5598fd94e63c11feaa1d4deaa79c9eb9ee0e1d68a",
-        deprecated=True,
-    )
-    version(
-        "2.0.3",
-        sha256="398dbd4a95e9d3ab2b2941d3e0c19362d397a2a6c3a667ab89d3d6aad30997f4",
-        deprecated=True,
-    )
-    version(
-        "2.0.2",
-        sha256="53fd0a6e9eaca2563e13d2266eac2da478fa25092de3c665aa26e380a8126841",
-        deprecated=True,
-    )
-    version(
-        "2.0.1",
-        sha256="c5c2727518f76606794363c01430f4992e482b4ab0dc6a8fa137c896855c09a8",
-        deprecated=True,
-    )
-    version(
-        "2.0.0",
-        sha256="02846dceb36e98368f47ca090d0f5fe6828e22ece10668a07047bea4c92b157f",
-        deprecated=True,
-    )
-    version(
-        "1.2.2",
-        sha256="d2b18c4336eb9c4f0d03469870257efa7980a9b036c9d46dcf4d49e7f4487e2d",
-        deprecated=True,
-    )
-    version(
-        "1.2.1",
-        sha256="6adce75b2050608e6683c3046ef938bfdc5bfcd4c6b6c522df5e50d18e0ac7c6",
-        deprecated=True,
-    )
-    version(
-        "1.2.0",
-        sha256="33d5297cd0c280640dc5c075466995c05911bc1da35c83ae57b2a48188b605e2",
-        deprecated=True,
-    )
-    version(
-        "1.1.2",
-        sha256="cfde0a424961ead4982a7ebefd77d8ca382810b5a69b566fa64c57d8f340eeb4",
-        deprecated=True,
-    )
-    version(
-        "1.1.1",
-        sha256="be1b67f62e5119f6f24a239a865dc47e6d9aa93b97b506ba34cab7353dbc23b6",
-        deprecated=True,
-    )
-    version(
-        "1.1.0",
-        sha256="36d83b027ba9d2c9da8e1eefc28f600ca93dc03423e033b633cbac9061af8a5d",
-        deprecated=True,
+
+    variant(
+        "backend",
+        default="tensorflow",
+        description="backend library",
+        values=["tensorflow", "jax", "torch"],
+        multi=False,
+        when="@3:",
     )
 
-    # Supported Python versions listed in multiple places:
-    # * keras/tools/pip_package/setup.py
-    # * CONTRIBUTING.md
-    # * PKG-INFO
-    depends_on("python@3.8:", type=("build", "run"), when="@2.12:")
-    depends_on("python@3.7:", type=("build", "run"), when="@2.7:")
-    depends_on("python@3.6:", type=("build", "run"), when="@2.4:")
-    depends_on("py-setuptools", type="build")
+    with default_args(type="build"):
+        # pyproject.toml
+        depends_on("py-setuptools@61:", when="@3.7:")
+        depends_on("py-setuptools")
 
-    # Required dependencies listed in multiple places:
-    # * BUILD
-    # * WORKSPACE
-    depends_on("py-absl-py", type=("build", "run"), when="@2.6:")
-    depends_on("py-h5py", type=("build", "run"))
-    depends_on("py-numpy", type=("build", "run"))
-    depends_on("py-pandas", type=("build", "run"), when="@2.0.9:")
-    depends_on("pil", type=("build", "run"))
-    depends_on("py-portpicker", type=("build", "run"), when="@2.10:")
-    depends_on("py-pydot", type=("build", "run"))
-    depends_on("py-scipy", type=("build", "run"))
-    depends_on("py-six", type=("build", "run"))
-    for minor_ver in range(5, 13):
-        depends_on(
-            "py-tensorflow@2.{}".format(minor_ver),
-            type=("build", "run"),
-            when="@2.{}".format(minor_ver),
-        )
-        depends_on(
-            "py-tensorboard@2.{}".format(minor_ver),
-            type=("build", "run"),
-            when="@2.{}".format(minor_ver),
-        )
-    depends_on("py-pyyaml", type=("build", "run"))
-    depends_on("bazel", type="build", when="@2.5:")
-    depends_on("protobuf", type="build", when="@2.5:")
-    depends_on("py-theano", type=("build", "run"), when="@:2.0.7")
+    with default_args(type=("build", "run")):
+        # pyproject.toml
+        depends_on("python@3.9:", when="@3:")
+        depends_on("python@3.8:", when="@2.12:")
+        depends_on("py-absl-py", when="@2.6:")
+        depends_on("py-numpy")
+        depends_on("py-rich", when="@3:")
+        depends_on("py-namex@0.0.8:", when="@3.3.3:")
+        depends_on("py-namex", when="@3:")
+        depends_on("py-h5py")
+        depends_on("py-optree", when="@3.1:")
+        depends_on("py-ml-dtypes", when="@3.0.5:")
+        depends_on("py-packaging", when="@3.4:")
+
+        # requirements-common.txt
+        depends_on("py-scipy")
+        depends_on("py-pandas")
+        depends_on("py-requests", when="@3:")
+        depends_on("py-protobuf", when="@3:")
+
+        # requirements-tensorflow-cuda.txt
+        with when("backend=tensorflow"):
+            depends_on("py-tensorflow@2.18", when="@3.7:")
+            depends_on("py-tensorflow@2.17", when="@3.5:3.6")
+            depends_on("py-tensorflow@2.16.1:2.16", when="@3.0:3.4")
+
+        # requirements-jax-cuda.txt
+        with when("backend=jax"):
+            depends_on("py-jax@0.4.28", when="@3.6:")
+            depends_on("py-jax@0.4.23", when="@3.0.5:3.5")
+            depends_on("py-jax", when="@3:")
+
+        # requirements-torch-cuda.txt
+        with when("backend=torch"):
+            depends_on("py-torch@2.5.1", when="@3.7:")
+            depends_on("py-torch@2.4.1", when="@3.6")
+            depends_on("py-torch@2.4.0", when="@3.5")
+            depends_on("py-torch@2.2.1", when="@3.1:3.4")
+            depends_on("py-torch@2.1.2", when="@3.0.3:3.0.5")
+            depends_on("py-torch@2.1.1", when="@3.0.1:3.0.2")
+            depends_on("py-torch@2.1.0", when="@3.0.0")
+            depends_on("py-torchvision@0.20.1", when="@3.7:")
+            depends_on("py-torchvision@0.19.1", when="@3.6")
+            depends_on("py-torchvision@0.19.0", when="@3.5")
+            depends_on("py-torchvision@0.17.1", when="@3.1:3.4")
+            depends_on("py-torchvision@0.16.2", when="@3.0.3:3.0.5")
+            depends_on("py-torchvision@0.16.1", when="@3.0.1:3.0.2")
+            depends_on("py-torchvision@0.16.0", when="@3.0.0")
+
+    # Historical dependencies
+    with default_args(type="build"):
+        depends_on("bazel", when="@2.5:2")
+        depends_on("protobuf", when="@2.5:2")
+
+    with default_args(type=("build", "run")):
+        depends_on("pil", when="@:2")
+        depends_on("py-dm-tree", when="@3.0")
+        # https://github.com/keras-team/keras/issues/19691
+        depends_on("py-numpy@:1", when="@:3.4")
+        depends_on("py-portpicker", when="@2.10:2")
+        depends_on("py-pydot", when="@:2")
+        depends_on("py-pyyaml", when="@:2")
+        depends_on("py-six", when="@:2")
+
+        for minor_ver in range(6, 16):
+            depends_on("py-tensorflow@2.{}".format(minor_ver), when="@2.{}".format(minor_ver))
+            depends_on("py-tensorboard@2.{}".format(minor_ver), when="@2.{}".format(minor_ver))
 
     def url_for_version(self, version):
-        if version >= Version("2.6"):
-            return super(PyKeras, self).url_for_version(version)
+        if version >= Version("3"):
+            url = "https://files.pythonhosted.org/packages/source/k/keras/keras-{}.tar.gz"
+        elif version >= Version("2.6"):
+            url = "https://github.com/keras-team/keras/archive/refs/tags/v{}.tar.gz"
         else:
-            url = "https://pypi.io/packages/source/K/Keras/Keras-{0}.tar.gz"
-            return url.format(version.dotted)
+            url = "https://files.pythonhosted.org/packages/source/k/keras/Keras-{}.tar.gz"
+        return url.format(version)
 
-    @when("@2.5:")
+    def setup_run_environment(self, env):
+        if self.spec.satisfies("@3:"):
+            env.set("KERAS_BACKEND", self.spec.variants["backend"].value)
+
+    @when("@2.5:2")
     def patch(self):
         infile = join_path(self.package_dir, "protobuf_build.patch")
         with open(infile, "r") as source_file:
@@ -216,7 +174,7 @@ class PyKeras(PythonPackage):
             string=True,
         )
 
-    @when("@2.5:")
+    @when("@2.5:2")
     def install(self, spec, prefix):
         self.tmp_path = tempfile.mkdtemp(prefix="spack")
         env["HOME"] = self.tmp_path
@@ -233,14 +191,7 @@ class PyKeras(PythonPackage):
             "--jobs={0}".format(make_jobs),
             # Enable verbose output for failures
             "--verbose_failures",
-            # Show (formatted) subcommands being executed
-            "--subcommands=pretty_print",
             "--spawn_strategy=local",
-            # Ask bazel to explain what it's up to
-            # Needs a filename as argument
-            "--explain=explainlogfile.txt",
-            # Increase verbosity of explanation,
-            "--verbose_explanations",
             # bazel uses system PYTHONPATH instead of spack paths
             "--action_env",
             "PYTHONPATH={0}".format(env["PYTHONPATH"]),
@@ -254,6 +205,5 @@ class PyKeras(PythonPackage):
         build_pip_package("--src", buildpath)
 
         with working_dir(buildpath):
-            args = std_pip_args + ["--prefix=" + prefix, "."]
-            pip(*args)
+            pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")
         remove_linked_tree(self.tmp_path)

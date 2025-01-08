@@ -1,0 +1,31 @@
+From 099ac638f41d9224f649fe23a64783bb408a2b09 Mon Sep 17 00:00:00 2001
+From: Sreenivasa Murthy Kolam <sreenivasamurthy.kolam@amd.com>
+Date: Wed, 30 Aug 2023 09:41:15 +0000
+Subject: [PATCH] add rocm-smi-lib path for building tests
+
+---
+ test/CMakeLists.txt | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/test/CMakeLists.txt b/test/CMakeLists.txt
+index 85f98d0..269f517 100644
+--- a/test/CMakeLists.txt
++++ b/test/CMakeLists.txt
+@@ -69,11 +69,12 @@ function(add_rocwmma_test TEST_TARGET TEST_SOURCE)
+ 
+   list(APPEND TEST_SOURCE ${ARGN})
+   add_executable(${TEST_TARGET} ${TEST_SOURCE})
+-  target_link_libraries(${TEST_TARGET} rocwmma gtest)
++  target_link_libraries(${TEST_TARGET} rocwmma gtest ${ROCM_SMI_DIR}/lib)
+   target_link_libraries(${TEST_TARGET} OpenMP::OpenMP_CXX "-L${HIP_CLANG_ROOT}/lib" "-Wl,-rpath=${HIP_CLANG_ROOT}/lib")
+   target_include_directories(${TEST_TARGET} PRIVATE
+                              ${CMAKE_CURRENT_SOURCE_DIR}
+-                             ${ROCWMMA_TEST_INCLUDE_DIRS})
++                             ${ROCWMMA_TEST_INCLUDE_DIRS}
++			     ${ROCM_SMI_DIR}/include)
+ 
+   # Add support to include extended test coverage
+   if(ROCWMMA_BUILD_EXTENDED_TESTS)
+-- 
+2.39.3
+

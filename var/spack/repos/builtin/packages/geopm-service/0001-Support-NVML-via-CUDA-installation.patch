@@ -1,0 +1,28 @@
+From cea9ceba3996e58af24c614c91a3d8721f0d8406 Mon Sep 17 00:00:00 2001
+From: Brad Geltz <brad.geltz@intel.com>
+Date: Thu, 14 Dec 2023 16:35:02 -0800
+Subject: [PATCH] Support NVML via CUDA installation
+
+Signed-off-by: Brad Geltz <brad.geltz@intel.com>
+---
+ configure.ac | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/service/configure.ac b/service/configure.ac
+index f9eb56d50..e8b523006 100644
+--- a/service/configure.ac
++++ b/service/configure.ac
+@@ -264,8 +264,8 @@ AC_ARG_WITH([nvml], [AS_HELP_STRING([--with-nvml=PATH],
+             [specify directory for installed nvml package.])])
+ if test "x$with_nvml" != x; then
+   AM_CPPFLAGS="$AM_CPPFLAGS -I$with_nvml/include"
+-  LD_LIBRARY_PATH="$with_nvml/lib64:$with_nvml/lib:$LD_LIBRARY_PATH"
+-  AM_LDFLAGS="$AM_LDFLAGS -L$with_nvml/lib -L$with_nvml/lib64"
++  LD_LIBRARY_PATH="$with_nvml/lib64:$with_nvml/lib:$with_nvml/lib/stubs:$LD_LIBRARY_PATH"
++  AM_LDFLAGS="$AM_LDFLAGS -L$with_nvml/lib -L$with_nvml/lib64 -L$with_nvml/lib/stubs"
+ fi
+
+ AC_ARG_WITH([dcgm], [AS_HELP_STRING([--with-dcgm=PATH],
+--
+2.26.2
+

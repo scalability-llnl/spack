@@ -1,0 +1,24 @@
+From a31d3766f5a7a3a3e20d5bc0c315ad6295a82298 Mon Sep 17 00:00:00 2001
+From: Afzal Patel <afzal.patel@amd.com>
+Date: Wed, 17 Jan 2024 11:50:18 -0800
+Subject: [PATCH] Changed required version of rocthrust to 3 for rocm 6.0
+
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 8c3c99a..1af6d13 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -22,7 +22,7 @@ if(Kokkos_ENABLE_HIP AND ARBORX_ENABLE_ROCTHRUST)
+   # Require at least rocThrust-2.10.5 (that comes with ROCm 3.9) because
+   # rocPRIM dependency is not set properly in exported configuration for
+   # earlier versions
+-  find_package(rocthrust 2.10.5 REQUIRED CONFIG)
++  find_package(rocthrust 3 REQUIRED CONFIG)
+   target_link_libraries(ArborX INTERFACE roc::rocthrust)
+ endif()
+
+--
+2.25.1

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,7 @@ class RSiggenes(RPackage):
 
     bioc = "siggenes"
 
+    version("1.74.0", commit="02e0e825eae0e1fa8ffda0c826ddc176cb67cb0a")
     version("1.72.0", commit="4f93d1a28087c941b275e6c6bae9e42d721cf422")
     version("1.70.0", commit="c263daa14cf87c61b41e3a9e88573ba339c66179")
     version("1.68.0", commit="a29bf02b19cc9003c8401608831232b7c2af26e7")

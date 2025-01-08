@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,11 +20,22 @@ class W3m(AutotoolsPackage):
     # Feel free to use Debian's branch as you need.
     # Currently, Arch and Ubuntu (and Debian derivatives) use Debian's branch.
     # Also, Gentoo, Fedora and openSUSE switched to Debian's branch.
-    homepage = "http://w3m.sourceforge.net/index.en.html"
-    url = "https://downloads.sourceforge.net/project/w3m/w3m/w3m-0.5.3/w3m-0.5.3.tar.gz"
+    homepage = "https://w3m.sourceforge.net/index.en.html"
+    url = "https://salsa.debian.org/debian/w3m/-/archive/upstream/0.5.3+git20230121/w3m-upstream-0.5.3+git20230121.tar.gz"
+    git = "https://salsa.debian.org/debian/w3m.git"
+
     maintainers("ronin_gw")
 
+    license("MIT")
+
+    version(
+        "0.5.3.git20230121",
+        sha256="8f0592e1cf7cf1de053e22c114cd79b85ebdb8dab925be7d343a130343b97c25",
+    )
     version("0.5.3", sha256="e994d263f2fd2c22febfbe45103526e00145a7674a0fda79c822b97c2770a9e3")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     # mandatory dependency
     depends_on("bdw-gc")
@@ -57,12 +67,19 @@ class W3m(AutotoolsPackage):
         values=("gdk-pixbuf", "imlib2"),
         multi=False,
     )
-    depends_on("gdk-pixbuf@2:+x11", when="imagelib=gdk-pixbuf +image")
+    depends_on("gdk-pixbuf@2:", when="imagelib=gdk-pixbuf +image")
     depends_on("imlib2@1.0.5:", when="imagelib=imlib2 +image")
 
     # fix for modern libraries
-    patch("fix_redef.patch")
-    patch("fix_gc.patch")
+    patch("fix_redef.patch", when="@=0.5.3")
+    patch("fix_gc.patch", when="@=0.5.3")
+
+    def url_for_version(self, version):
+        if ".git" in version.string:
+            v = version.string.replace(".git", "+git")
+            return f"https://salsa.debian.org/debian/w3m/-/archive/upstream/{v}/w3m-upstream-{v}.tar.gz"
+        else:
+            return f"https://downloads.sourceforge.net/project/w3m/w3m/w3m-{version}/w3m-{version}.tar.gz"
 
     def patch(self):
         # w3m is not developed since 2012, everybody is doing this:

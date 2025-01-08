@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,10 @@ class Flibcpp(CMakePackage):
     git = "https://github.com/swig-fortran/flibcpp.git"
     url = "https://github.com/swig-fortran/flibcpp/archive/v1.0.1.tar.gz"
 
+    test_requires_compiler = True
+
+    license("MIT")
+
     version("1.0.2", sha256="e2c11c1f58ca830eb7ac7f25d66fc3502c4a8d994192ee30c63a1c3b51aac241")
     version("1.0.1", sha256="8569c71eab0257097a6aa666a6d86bdcb6cd6e31244d32cc5b2478d0e936ca7a")
     version("0.5.2", sha256="b9b4eb6431d5b56a54c37f658df7455eafd3d204a5534903b127e0c8a1c9b827")
@@ -21,6 +24,9 @@ class Flibcpp(CMakePackage):
     version("0.4.1", sha256="5c9a11af391fcfc95dd11b95338cff19ed8104df66d42b00ae54f6cde4da5bdf")
     version("0.4.0", sha256="ccb0acf58a4480977fdb3c62a0bd267297c1dfa687a142ea8822474c38aa322b")
     version("0.3.1", sha256="871570124122c18018478275d5040b4b787d1966e50ee95b634b0b5e0cd27e91")
+
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("doc", default=False, description="Build and install documentation")
     variant("shared", default=True, description="Build shared libraries")
@@ -66,32 +72,25 @@ class Flibcpp(CMakePackage):
     def setup_smoke_tests(self):
         """Copy the example source files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources([self.examples_src_dir])
+        cache_extra_test_sources(self, [self.examples_src_dir])
 
     @property
     def cached_tests_work_dir(self):
         """The working directory for cached test sources."""
         return join_path(self.test_suite.current_test_cache_dir, self.examples_src_dir)
 
-    def test(self):
-        """Perform stand-alone/smoke tests."""
+    def test_examples(self):
+        """build and run examples"""
         cmake_args = [
             self.define("CMAKE_PREFIX_PATH", self.prefix),
             self.define("CMAKE_Fortran_COMPILER", self.compiler.fc),
         ]
         cmake_args.append(self.cached_tests_work_dir)
+        cmake = which(self.spec["cmake"].prefix.bin.cmake)
+        make = which("make")
+        sh = which("sh")
 
-        self.run_test(
-            "cmake", cmake_args, purpose="test: calling cmake", work_dir=self.cached_tests_work_dir
-        )
-
-        self.run_test(
-            "make", [], purpose="test: building the tests", work_dir=self.cached_tests_work_dir
-        )
-
-        self.run_test(
-            "run-examples.sh",
-            [],
-            purpose="test: running the examples",
-            work_dir=self.cached_tests_work_dir,
-        )
+        with working_dir(self.cached_tests_work_dir):
+            cmake(*cmake_args)
+            make()
+            sh("run-examples.sh")

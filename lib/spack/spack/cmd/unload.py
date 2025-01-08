@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -7,10 +6,11 @@ import os
 import sys
 
 import spack.cmd
-import spack.cmd.common.arguments as arguments
+import spack.cmd.common
 import spack.error
+import spack.store
 import spack.user_environment as uenv
-import spack.util.environment
+from spack.cmd.common import arguments
 
 description = "remove package from the user environment"
 section = "user environment"
@@ -51,27 +51,34 @@ def setup_parser(subparser):
         const="bat",
         help="print bat commands to load the package",
     )
+    shells.add_argument(
+        "--pwsh",
+        action="store_const",
+        dest="shell",
+        const="pwsh",
+        help="print pwsh commands to load the package",
+    )
 
     subparser.add_argument(
-        "-a", "--all", action="store_true", help="unload all loaded Spack packages."
+        "-a", "--all", action="store_true", help="unload all loaded Spack packages"
     )
 
 
 def unload(parser, args):
-    """Unload spack packages from the user environment."""
+    """unload spack packages from the user environment"""
     if args.specs and args.all:
         raise spack.error.SpackError(
-            "Cannot specify specs on command line" " when unloading all specs with '--all'"
+            "Cannot specify specs on command line when unloading all specs with '--all'"
         )
 
-    hashes = os.environ.get(uenv.spack_loaded_hashes_var, "").split(":")
+    hashes = os.environ.get(uenv.spack_loaded_hashes_var, "").split(os.pathsep)
     if args.specs:
         specs = [
             spack.cmd.disambiguate_spec_from_hashes(spec, hashes)
             for spec in spack.cmd.parse_specs(args.specs)
         ]
     else:
-        specs = spack.store.db.query(hashes=hashes)
+        specs = spack.store.STORE.db.query(hashes=hashes)
 
     if not args.shell:
         specs_str = " ".join(args.specs) or "SPECS"
@@ -81,9 +88,8 @@ def unload(parser, args):
         )
         return 1
 
-    env_mod = spack.util.environment.EnvironmentModifications()
+    env_mod = uenv.environment_modifications_for_specs(*specs).reversed()
     for spec in specs:
-        env_mod.extend(uenv.environment_modifications_for_spec(spec).reversed())
         env_mod.remove_path(uenv.spack_loaded_hashes_var, spec.dag_hash())
     cmds = env_mod.shell_modifications(args.shell)
 

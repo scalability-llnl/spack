@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,9 @@ class RCluster(RPackage):
 
     cran = "cluster"
 
+    license("GPL-2.0-or-later")
+
+    version("2.1.6", sha256="d1c50efafd35a55387cc5b36086b97d5591e0b33c48dc718005d2f5907113164")
     version("2.1.4", sha256="c6f10ceca29a176ba833f24ebf71fd451629052c2338398ba286df5689d6f5b6")
     version("2.1.3", sha256="a3ad7a9455d634c4e0c6ccf8ea7a3a392a0ecf9c2bdb368d127ffa68a93164a9")
     version("2.1.2", sha256="5c8aa760fb6dda4fcfe6196e561ffcd2dc12b1a6c7659cb90be2cde747311499")

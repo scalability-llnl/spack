@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,19 +12,28 @@ class Gunrock(CMakePackage, CudaPackage):
     homepage = "https://gunrock.github.io/docs/"
     git = "https://github.com/gunrock/gunrock.git"
 
+    license("Apache-2.0")
+
     version("master", submodules=True)
-    version("1.2", submodules=True, tag="v1.2")
+    version("1.2", submodules=True, tag="v1.2", commit="5ee3df50c45f702eb247ef1abcea7a490b60b2ea")
     # v1.1 build is broken. See:
     # https://github.com/gunrock/gunrock/issues/777
-    version("1.1", submodules=True, tag="v1.1")
-    version("1.0", submodules=True, tag="v1.0")
-    version("0.5.1", submodules=True, tag="v0.5.1")
-    version("0.5", submodules=True, tag="v0.5")
-    version("0.4", submodules=True, tag="v0.4")
-    version("0.3.1", submodules=True, tag="v0.3.1")
-    version("0.3", submodules=True, tag="v0.3")
-    version("0.2", submodules=True, tag="v0.2")
-    version("0.1", submodules=True, tag="v0.1")
+    version("1.1", submodules=True, tag="v1.1", commit="7c197d6a498806fcfffd1f9304c663379a77f5e4")
+    version("1.0", submodules=True, tag="v1.0", commit="04279c89f394b97c81c63ad286048893e02f769e")
+    version(
+        "0.5.1", submodules=True, tag="v0.5.1", commit="0c9a96dd64ddeecae9208644631983fc889b32b4"
+    )
+    version("0.5", submodules=True, tag="v0.5", commit="91a6218868ecdab7986ef42b4b76ff17eec61ca3")
+    version("0.4", submodules=True, tag="v0.4", commit="4c33a0d5a7ad7e468362c9c081a567450a78ab97")
+    version(
+        "0.3.1", submodules=True, tag="v0.3.1", commit="897f170e3006e58c9a602201e5f9fc56162a3cb9"
+    )
+    version("0.3", submodules=True, tag="v0.3", commit="0b146a70f52f699a2a50d1b1aa26b92c45e834d7")
+    version("0.2", submodules=True, tag="v0.2", commit="f9d85343ee68c65567184d74021b9483cd142ea0")
+    version("0.1", submodules=True, tag="v0.1", commit="4c00284f6b7d490a83fa7afe5cdff60923316448")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("cuda", default=True, description="Build with Cuda support")
 
@@ -79,8 +87,7 @@ class Gunrock(CMakePackage, CudaPackage):
     conflicts(
         "cuda_arch=none",
         when="+cuda",
-        msg='Must specify CUDA compute capabilities of your GPU. \
-See "spack info gunrock"',
+        msg='Must specify CUDA compute capabilities of your GPU. See "spack info gunrock"',
     )
 
     def cmake_args(self):
@@ -154,5 +161,5 @@ See "spack info gunrock"',
         with working_dir(self.build_directory):
             install_tree("lib", prefix.lib)
             # bin dir is created only if tests/examples are built
-            if "+tests" in spec:
+            if spec.satisfies("+tests"):
                 install_tree("bin", prefix.bin)

@@ -1,0 +1,81 @@
+From 7e2e390e468db44c8540d2510841a22d146fa6ed Mon Sep 17 00:00:00 2001
+From: Howard Pritchard <howardp@lanl.gov>
+Date: Tue, 7 Nov 2023 10:06:47 -0500
+Subject: [PATCH] accelerator: build components as dso's by default
+
+also need to switch rcache/gpsum and rcache/rgpusum
+
+to DSO by default.
+
+Fix a problem in opal_mca.m4 where the enable-mca-dso list wasn't being
+processed correctly starting with 5.0.0.
+
+related to #12036
+
+Signed-off-by: Howard Pritchard <howardp@lanl.gov>
+
+diff --git a/config/opal_mca.m4 b/config/opal_mca.m4
+index 935b8c65..b425fe63 100644
+--- a/config/opal_mca.m4
++++ b/config/opal_mca.m4
+@@ -13,7 +13,7 @@ dnl                         All rights reserved.
+ dnl Copyright (c) 2010-2021 Cisco Systems, Inc.  All rights reserved
+ dnl Copyright (c) 2013-2017 Intel, Inc. All rights reserved.
+ dnl Copyright (c) 2018-2022 Amazon.com, Inc. or its affiliates.  All Rights reserved.
+-dnl Copyright (c) 2021      Triad National Security, LLC. All rights
++dnl Copyright (c) 2021-2023 Triad National Security, LLC. All rights
+ dnl                         reserved.
+ dnl $COPYRIGHT$
+ dnl
+@@ -167,6 +167,9 @@ of type-component pairs.  For example, --enable-mca-no-build=pml-ob1])
+     # Second, set the DSO_all and STATIC_all variables.  conflict
+     # resolution (prefer static) is done in the big loop below
+     #
++    # Exception here is the components of the accelerator framework,
++    # which by default are built to be dynamic, except for null.
++    #
+     AC_MSG_CHECKING([which components should be run-time loadable])
+     if test "$enable_static" != "no"; then
+         DSO_all=0
+@@ -174,9 +177,6 @@ of type-component pairs.  For example, --enable-mca-no-build=pml-ob1])
+     elif test "$OPAL_ENABLE_DLOPEN_SUPPORT" = 0; then
+         DSO_all=0
+         msg="none (dlopen disabled)"
+-    elif test -z "$enable_mca_dso"; then
+-        DSO_all=0
+-        msg=default
+     elif test "$enable_mca_dso" = "no"; then
+         DSO_all=0
+         msg=none
+@@ -184,15 +184,19 @@ of type-component pairs.  For example, --enable-mca-no-build=pml-ob1])
+         DSO_all=1
+         msg=all
+     else
+-        DSO_all=0
+-        ifs_save="$IFS"
+-        IFS="${IFS}$PATH_SEPARATOR,"
+-        msg=
+-        for item in $enable_mca_dso; do
+-            AS_VAR_SET([AS_TR_SH([DSO_$item])], [1])
+-            msg="$item $msg"
+-        done
+-        IFS="$ifs_save"
++       msg=
++       if test -z "$enable_mca_dso"; then
++           enable_mca_dso="accelerator-cuda,accelerator-rocm,accelerator-ze,btl-smcuda,rcache-gpusm,rcache-rgpusm"
++           msg="(default)"
++       fi
++       DSO_all=0
++       ifs_save="$IFS"
++       IFS="${IFS}$PATH_SEPARATOR,"
++       for item in $enable_mca_dso; do
++           AS_VAR_SET([AS_TR_SH([DSO_$item])], [1])
++           msg="$item $msg"
++       done
++       IFS="$ifs_save"
+     fi
+     AC_MSG_RESULT([$msg])
+     unset msg
+-- 
+2.35.3
+

@@ -1,0 +1,14 @@
+https://bugs.gentoo.org/669574
+diff --git a/librtmp/rtmp.c b/librtmp/rtmp.c
+index 5311a8a..79fefae 100644
+--- a/librtmp/rtmp.c
++++ b/librtmp/rtmp.c
+@@ -2854,7 +2854,7 @@ HandleCtrl(RTMP *r, const RTMPPacket *packet)
+   if (nType == 0x1A)
+     {
+       RTMP_Log(RTMP_LOGDEBUG, "%s, SWFVerification ping received: ", __FUNCTION__);
+-      if (packet->m_nBodySize > 2 && packet->m_body[2] > 0x01)
++      if (packet->m_nBodySize > 2 && packet->m_body[2] > 0x02)
+ 	{
+ 	  RTMP_Log(RTMP_LOGERROR,
+             "%s: SWFVerification Type %d request not supported! Patches welcome...",

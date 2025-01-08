@@ -1,0 +1,11 @@
+--- a/main.cpp	2022-05-02 15:00:00 +0800
++++ b/main.cpp	2022-05-02 15:01:00 +0800
+@@ -415,7 +415,7 @@
+ 												MDirection::Ref(MDirection::J2000))();
+ 	std::vector<Muvw> uvws(antennas.size());
+ 	MEpoch time(MVEpoch(-1.0));
+-	for(unsigned row=0; row!=std::min(set.nrow(),50u); ++row)
++	for(unsigned row=0; row!=std::min(static_cast<unsigned int>(set.nrow()),50u); ++row)
+ 	{
+ 		if(fieldIdCol(row) == fieldIndex)
+ 		{

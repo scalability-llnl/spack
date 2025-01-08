@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,47 +17,38 @@ class Orca(Package):
     set up a mirror, see https://spack.readthedocs.io/en/latest/mirrors.html"""
 
     homepage = "https://cec.mpg.de"
-    url = "file://{0}/orca_4_0_1_2_linux_x86-64_openmpi202.tar.zst".format(os.getcwd())
     maintainers("snehring")
     manual_download = True
 
-    version(
-        "5.0.3-f.1",
-        sha256="dea377459d61ef7d7e822e366420197ee2a4864991dfcdc4ea1a683f9be26c7f",
-        url="file://{0}/orca-5.0.3-f.1_linux_x86-64_shared_openmpi41.tar.xz".format(os.getcwd()),
-    )
-    version(
-        "5.0.3",
-        sha256="b8b9076d1711150a6d6cb3eb30b18e2782fa847c5a86d8404b9339faef105043",
-        url="file://{0}/orca_5_0_3_linux_x86-64_shared_openmpi411.tar.xz".format(os.getcwd()),
-    )
-    version(
-        "4.2.1",
-        sha256="9bbb3bfdca8220b417ee898b27b2885508d8c82799adfa63dde9e72eab49a6b2",
-        expand=False,
-    )
-    version(
-        "4.2.0",
-        sha256="55a5ca5aaad03396ac5ada2f14b61ffa735fdc2d98355e272465e07a6749d399",
-        expand=False,
-    )
-    version(
-        "4.0.1.2",
-        sha256="cea442aa99ec0d7ffde65014932196b62343f7a6191b4bfc438bfb38c03942f7",
-        expand=False,
-    )
+    license("LGPL-2.1-or-later")
 
-    depends_on("zstd", when="@:4.2.1", type="build")
+    version(
+        "avx2-6.0.1", sha256="f31f98256a0c6727b6ddfe50aa3ac64c45549981138d670a57e90114b4b9c9d2"
+    )
+    version("6.0.1", sha256="5e9b49588375e0ce5bc32767127cc725f5425917804042cdecdfd5c6b965ef61")
+    version(
+        "avx2-6.0.0", sha256="02c21294efe7b1b721e26cb90f98ee15ad682d02807201b7d217dfe67905a2fd"
+    )
+    version("6.0.0", sha256="219bd1deb6d64a63cb72471926cb81665cbbcdec19f9c9549761be67d49a29c6")
+    version("5.0.4", sha256="c4ea5aea60da7bcb18a6b7042609206fbeb2a765c6fa958c5689d450b588b036")
+    version("5.0.3", sha256="b8b9076d1711150a6d6cb3eb30b18e2782fa847c5a86d8404b9339faef105043")
+    version("4.2.1", sha256="a84b6d2706f0ddb2f3750951864502a5c49d081836b00164448b1d81c577f51a")
+    version("4.2.0", sha256="01096466e41a5232e5a18af7400e48c02a6e489f0d5d668a90cdd2746e8e22e2")
+
     depends_on("libevent", type="run")
     depends_on("libpciaccess", type="run")
 
     # Map Orca version with the required OpenMPI version
+    # OpenMPI@4.1.1 has issues in pmix environments, hence 4.1.2 here
     openmpi_versions = {
-        "4.0.1.2": "2.0.2",
         "4.2.0": "3.1.4",
         "4.2.1": "3.1.4",
         "5.0.3": "4.1.2",
-        "5.0.3-f.1": "4.1.2",
+        "5.0.4": "4.1.2",
+        "6.0.0": "4.1.6",
+        "6.0.1": "4.1.6",
+        "avx2-6.0.0": "4.1.6",
+        "avx2-6.0.1": "4.1.6",
     }
     for orca_version, openmpi_version in openmpi_versions.items():
         depends_on(
@@ -66,28 +56,25 @@ class Orca(Package):
         )
 
     def url_for_version(self, version):
-        out = "file://{0}/orca_{1}_linux_x86-64_openmpi{2}.tar.zst"
-        return out.format(os.getcwd(), version.underscored, self.openmpi_versions[version.string])
+        openmpi_version = self.openmpi_versions[version.string].replace(".", "")
+        if openmpi_version == "412":
+            openmpi_version = "411"
+
+        ver_parts = version.string.split("-")
+        ver_underscored = ver_parts[-1].replace(".", "_")
+        features = ver_parts[:-1] + ["shared"]
+        feature_text = "_".join(features)
+
+        url = f"file://{os.getcwd()}/orca_{ver_underscored}_linux_x86-64_{feature_text}_openmpi{openmpi_version}.tar.xz"
+        if self.spec.satisfies("@=avx2-6.0.1"):
+            url = f"file://{os.getcwd()}/orca_{ver_underscored}_linux_x86-64_shared_openmpi{openmpi_version}_avx2.tar.xz"
+
+        return url
 
     def install(self, spec, prefix):
         mkdirp(prefix.bin)
 
-        if self.spec.satisfies("@:4.2.1"):
-            vername = os.path.basename(self.stage.archive_file).split(".")[0]
-
-            zstd = which("zstd")
-            zstd("-d", self.stage.archive_file, "-o", vername + ".tar")
-
-            tar = which("tar")
-            tar("-xvf", vername + ".tar")
-
-            # there are READMEs in there but they don't hurt anyone
-            install_tree(vername, prefix.bin)
-        if self.spec.satisfies("@5.0.3-f.1"):
-            install_tree("bin", prefix.bin)
-            install_tree("lib", prefix.lib)
-        else:
-            install_tree(".", prefix.bin)
+        install_tree(".", prefix.bin)
 
         # Check "mpirun" usability when building against OpenMPI
         # with Slurm scheduler and add a "mpirun" wrapper that
@@ -97,9 +84,7 @@ class Orca(Package):
             install(mpirun_srun, prefix.bin.mpirun)
 
     def setup_run_environment(self, env):
-        # In 5.0.3-f.1 an RPATH is set to $ORGIN/../lib
-        if not self.spec.satisfies("@5.0.3-f.1"):
-            env.prepend_path("LD_LIBRARY_PATH", self.prefix.bin)
-            env.prepend_path("LD_LIBRARY_PATH", self.spec["libevent"].prefix.lib)
-            env.prepend_path("LD_LIBRARY_PATH", self.spec["libpciaccess"].prefix.lib)
-            env.prepend_path("LD_LIBRARY_PATH", self.spec["openmpi"].prefix.lib)
+        env.prepend_path("LD_LIBRARY_PATH", self.prefix.bin)
+        env.prepend_path("LD_LIBRARY_PATH", self.spec["libevent"].prefix.lib)
+        env.prepend_path("LD_LIBRARY_PATH", self.spec["libpciaccess"].prefix.lib)
+        env.prepend_path("LD_LIBRARY_PATH", self.spec["openmpi"].prefix.lib)

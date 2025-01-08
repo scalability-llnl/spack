@@ -1265,27 +1265,29 @@ class LinuxDistribution:
             match = _DISTRO_RELEASE_BASENAME_PATTERN.match(basename)
         else:
             try:
-                basenames = [
-                    basename
-                    for basename in os.listdir(self.etc_dir)
-                    if basename not in _DISTRO_RELEASE_IGNORE_BASENAMES
-                    and os.path.isfile(os.path.join(self.etc_dir, basename))
-                ]
+                with os.scandir(self.etc_dir) as it:
+                    etc_files = [
+                        p.path for p in it
+                        if p.is_file() and p.name not in _DISTRO_RELEASE_IGNORE_BASENAMES
+                    ]
                 # We sort for repeatability in cases where there are multiple
                 # distro specific files; e.g. CentOS, Oracle, Enterprise all
                 # containing `redhat-release` on top of their own.
-                basenames.sort()
+                etc_files.sort()
             except OSError:
                 # This may occur when /etc is not readable but we can't be
                 # sure about the *-release files. Check common entries of
                 # /etc for information. If they turn out to not be there the
                 # error is handled in `_parse_distro_release_file()`.
-                basenames = _DISTRO_RELEASE_BASENAMES
-            for basename in basenames:
-                match = _DISTRO_RELEASE_BASENAME_PATTERN.match(basename)
+                etc_files = [
+                    os.path.join(self.etc_dir, basename)
+                    for basename in _DISTRO_RELEASE_BASENAMES
+                ]
+
+            for filepath in etc_files:
+                match = _DISTRO_RELEASE_BASENAME_PATTERN.match(os.path.basename(filepath))
                 if match is None:
                     continue
-                filepath = os.path.join(self.etc_dir, basename)
                 distro_info = self._parse_distro_release_file(filepath)
                 # The name is always present if the pattern matches.
                 if "name" not in distro_info:

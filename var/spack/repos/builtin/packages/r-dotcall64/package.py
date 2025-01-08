@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,7 @@ class RDotcall64(RPackage):
 
     cran = "dotCall64"
 
+    version("1.1-1", sha256="21b8d7d747c07aaf8a82d61ec98fe0539afcaa5a565d9c2fc55be65b6af2c91b")
     version("1.0-2", sha256="e0c7728aebbea5ebf06dfeefae4fc0a240e6dde7c2bf13f2ed041b91d337a4ac")
     version("1.0-1", sha256="f10b28fcffb9453b1d8888a72c8fd2112038b5ac33e02a481492c7bd249aa5c6")
     version("1.0-0", sha256="69318dc6b8aecc54d4f789c8105e672198363b395f1a764ebaeb54c0473d17ad")

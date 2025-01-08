@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,10 +10,13 @@ from spack.package import *
 class Rstudio(CMakePackage):
     """RStudio is an integrated development environment (IDE) for R."""
 
-    homepage = "www.rstudio.com/products/rstudio/"
+    homepage = "https://www.rstudio.com/products/rstudio/"
     url = "https://github.com/rstudio/rstudio/archive/refs/tags/v1.4.1717.tar.gz"
 
     version("1.4.1717", sha256="3af234180fd7cef451aef40faac2c7b52860f14a322244c1c7aede029814d261")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("notebook", default=False, description="Enable notebook support.")
 

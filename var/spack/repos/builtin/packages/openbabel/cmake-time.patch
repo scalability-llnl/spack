@@ -1,0 +1,15 @@
+diff --git a/src/config.h.cmake b/src/config.h.cmake
+index 1c59c6769..26e5dde94 100644
+--- a/src/config.h.cmake
++++ b/src/config.h.cmake
+@@ -182,8 +182,8 @@
+ #define OB_MODULE_PATH "@OB_MODULE_PATH@"
+ 
+ #ifndef TIME_WITH_SYS_TIME
+-  #ifdef HAVE_SYS_TIME
+-    #ifdef HAVE_TIME
++  #ifdef HAVE_SYS_TIME_H
++    #ifdef HAVE_TIME_H
+       #define TIME_WITH_SYS_TIME 1
+     #else
+       #define TIME_WITH_SYS_TIME 0

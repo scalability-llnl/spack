@@ -1,0 +1,22 @@
+From 47b03fd4b4ce7bc51d5b56397e52e6da3c5f3f36 Mon Sep 17 00:00:00 2001
+From: Martin Kroeker <martin@ruby.chemie.uni-freiburg.de>
+Date: Sat, 18 Nov 2023 23:45:02 +0100
+Subject: [PATCH] Copy XCode15-specific workaround to Fortran flags to fix
+ build of tests
+
+---
+ Makefile.system | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Makefile.system b/Makefile.system
+index 1b84195e45..ff06e503cb 100644
+--- a/Makefile.system
++++ b/Makefile.system
+@@ -407,6 +407,7 @@ XCVER = $(shell pkgutil --pkg-info=com.apple.pkg.CLTools_Executables |awk '/vers
+ endif
+ ifeq (x$(XCVER), x 15)
+ CCOMMON_OPT += -Wl,-ld_classic
++FCOMMON_OPT += -Wl,-ld_classic
+ endif
+ endif
+ 

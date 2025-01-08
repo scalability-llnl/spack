@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,9 +19,11 @@ class Scantailor(CMakePackage):
 
     version("0.2.7", sha256="3e27647621d43638888a268902f8fa098b06a70a5da5d0623b1c11220a367910")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("qt@5:")
     depends_on("libjpeg")
-    depends_on("zlib")
+    depends_on("zlib-api")
     depends_on("libpng")
     depends_on("libtiff")
     depends_on("boost@1.35:")

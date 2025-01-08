@@ -65,9 +65,6 @@ algorithms that duplicate the way CTest scrapes log files.  To keep this
 up to date with CTest, just make sure the ``*_matches`` and
 ``*_exceptions`` lists are kept up to date with CTest's build handler.
 """
-from __future__ import print_function
-from __future__ import division
-
 import re
 import math
 import multiprocessing
@@ -211,7 +208,7 @@ _file_line_matches = [
 ]
 
 
-class LogEvent(object):
+class LogEvent:
     """Class representing interesting events (e.g., errors) in a build log."""
     def __init__(self, text, line_no,
                  source_file=None, source_line_no=None,
@@ -348,7 +345,7 @@ def _parse_unpack(args):
     return _parse(*args)
 
 
-class CTestLogParser(object):
+class CTestLogParser:
     """Log file parser that extracts errors and warnings."""
     def __init__(self, profile=False):
         # whether to record timing information

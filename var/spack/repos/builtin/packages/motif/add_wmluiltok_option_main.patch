@@ -1,0 +1,8 @@
+diff -Naur motif-2.3.8/tools/wml/wmluiltok.l motif-2.3.8_patched/tools/wml/wmluiltok.l
+--- motif-2.3.8/tools/wml/wmluiltok.l   2024-01-18 17:19:43.997764906 -0600
++++ motif-2.3.8_patched/tools/wml/wmluiltok.l   2024-01-18 17:19:13.998702374 -0600
+@@ -1,3 +1,4 @@
++%option main
+ %{
+ /*
+  * Motif

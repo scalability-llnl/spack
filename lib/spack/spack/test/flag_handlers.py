@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -8,7 +7,6 @@ import os
 import pytest
 
 import spack.build_environment
-import spack.repo
 import spack.spec
 from spack.package import build_system_flags, env_flags, inject_flags
 
@@ -29,7 +27,7 @@ def add_o3_to_build_system_cflags(pkg, name, flags):
 
 
 @pytest.mark.usefixtures("config", "mock_packages")
-class TestFlagHandlers(object):
+class TestFlagHandlers:
     def test_no_build_system_flags(self, temp_env):
         # Test that both autotools and cmake work getting no build_system flags
         s1 = spack.spec.Spec("cmake-client").concretized()
@@ -121,7 +119,6 @@ class TestFlagHandlers(object):
             "-DCMAKE_EXE_LINKER_FLAGS=-mthreads",
             "-DCMAKE_MODULE_LINKER_FLAGS=-mthreads",
             "-DCMAKE_SHARED_LINKER_FLAGS=-mthreads",
-            "-DCMAKE_STATIC_LINKER_FLAGS=-mthreads",
         }
 
     def test_ld_libs_cmake(self, temp_env):

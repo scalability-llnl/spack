@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class CppTermcolor(CMakePackage):
     maintainers("haampie")
 
     version("2.0.0", sha256="4a73a77053822ca1ed6d4a2af416d31028ec992fb0ffa794af95bd6216bb6a20")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3.0:", type="build")
 

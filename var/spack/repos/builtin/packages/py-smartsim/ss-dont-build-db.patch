@@ -1,0 +1,27 @@
+diff --git a/setup.py b/setup.py
+index 6758bec..499567e 100644
+--- a/setup.py
++++ b/setup.py
+@@ -134,14 +134,14 @@ class InstallPlatlib(install):
+ class SmartSimBuild(build_py):
+ 
+     def run(self):
+-        database_builder = builder.DatabaseBuilder(build_env(),
+-                                             build_env.MALLOC,
+-                                             build_env.JOBS)
+-        if not database_builder.is_built:
+-            database_builder.build_from_git(versions.REDIS_URL,
+-                                         versions.REDIS)
+-
+-            database_builder.cleanup()
++        # database_builder = builder.DatabaseBuilder(build_env(),
++        #                                      build_env.MALLOC,
++        #                                      build_env.JOBS)
++        # if not database_builder.is_built:
++        #     database_builder.build_from_git(versions.REDIS_URL,
++        #                                  versions.REDIS)
++        #
++        #     database_builder.cleanup()
+ 
+         # run original build_py command
+         super().run()

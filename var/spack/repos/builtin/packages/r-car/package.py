@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,9 @@ class RCar(RPackage):
 
     cran = "car"
 
+    license("GPL-2.0-or-later")
+
+    version("3.1-2", sha256="89263491977ac8e9406b2f4b1638bf06c7ddd1b0e0e3ecda4be61420474674c8")
     version("3.1-1", sha256="8fc55815eed7e46a32b54da9e0bfa4b74a8d082d73d896e3372f2a413b6bd2bc")
     version("3.1-0", sha256="bd52b4eaea46ce828fccd93445301d06ebd265e2ffff796064875a8c0f0aea21")
     version("3.0-13", sha256="d35ae8da80284c9e4471ff13e7100c3cdc1809fd06f813cd223a3958e29e47eb")
@@ -39,5 +41,4 @@ class RCar(RPackage):
     depends_on("r-lme4@1.1-27.1:", type=("build", "run"), when="@3.0-11:")
     depends_on("r-nlme", type=("build", "run"), when="@3.0:")
     depends_on("r-scales", type=("build", "run"), when="@3.1-1:")
-    depends_on("r-maptools", type=("build", "run"), when="@3.0:")
-    depends_on("r-maptools", when="@:3.1-0")
+    depends_on("r-maptools", type=("build", "run"), when="@3.0:3.1-0")

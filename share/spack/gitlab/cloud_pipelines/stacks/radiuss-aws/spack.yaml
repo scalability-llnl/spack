@@ -28,7 +28,7 @@ spack:
     - mfem +cuda ^hypre+cuda
     - raja
     - raja +cuda
-    - umpire 
+    - umpire
     - umpire +cuda
 
   - compiler:
@@ -43,8 +43,6 @@ spack:
     - - $radiuss
     - - $compiler
     - - $target
-
-  mirrors: { "mirror": "s3://spack-binaries/develop/radiuss-aws" }
 
   ci:
     pipeline-gen:

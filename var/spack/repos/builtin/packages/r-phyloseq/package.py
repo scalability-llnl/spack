@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,9 @@ class RPhyloseq(RPackage):
 
     bioc = "phyloseq"
 
+    license("LiLiQ-R-1.1")
+
+    version("1.44.0", commit="03b74f7d7aa866f5f9a84c7368da57b7a168967e")
     version("1.42.0", commit="de6be71fe9902bdfe7791163acb7b67d238424dc")
     version("1.40.0", commit="20bb27d5e6e0d4368978a15671b829990b1f4568")
     version("1.38.0", commit="1e2409a6ed3c23e308275098c2dc9fdba9d5e5f6")

@@ -1,11 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 """Test class methods on Package objects.
 
-This doesn't include methods on package *instances* (like do_install(),
+This doesn't include methods on package *instances* (like do_patch(),
 etc.).  Only methods like ``possible_dependencies()`` that deal with the
 static DSL metadata for packages.
 """
@@ -17,11 +16,16 @@ import pytest
 
 import llnl.util.filesystem as fs
 
+import spack.compilers
+import spack.deptypes as dt
+import spack.error
 import spack.install_test
+import spack.package
 import spack.package_base
 import spack.repo
+import spack.spec
 from spack.build_systems.generic import Package
-from spack.installer import InstallError
+from spack.error import InstallError
 
 
 @pytest.fixture(scope="module")
@@ -36,6 +40,7 @@ def mpileaks_possible_deps(mock_packages, mpi_names):
         "low-priority-provider": set(),
         "dyninst": set(["libdwarf", "libelf"]),
         "fake": set(),
+        "intel-parallel-studio": set(),
         "libdwarf": set(["libelf"]),
         "libelf": set(),
         "mpich": set(),
@@ -48,7 +53,7 @@ def mpileaks_possible_deps(mock_packages, mpi_names):
 
 
 def test_possible_dependencies(mock_packages, mpileaks_possible_deps):
-    pkg_cls = spack.repo.path.get_pkg_class("mpileaks")
+    pkg_cls = spack.repo.PATH.get_pkg_class("mpileaks")
     expanded_possible_deps = pkg_cls.possible_dependencies(expand_virtuals=True)
     assert mpileaks_possible_deps == expanded_possible_deps
     assert {
@@ -62,14 +67,15 @@ def test_possible_dependencies(mock_packages, mpileaks_possible_deps):
 
 
 def test_possible_direct_dependencies(mock_packages, mpileaks_possible_deps):
-    pkg_cls = spack.repo.path.get_pkg_class("mpileaks")
+    pkg_cls = spack.repo.PATH.get_pkg_class("mpileaks")
     deps = pkg_cls.possible_dependencies(transitive=False, expand_virtuals=False)
     assert {"callpath": set(), "mpi": set(), "mpileaks": {"callpath", "mpi"}} == deps
 
 
 def test_possible_dependencies_virtual(mock_packages, mpi_names):
     expected = dict(
-        (name, set(spack.repo.path.get_pkg_class(name).dependencies)) for name in mpi_names
+        (name, set(dep for dep in spack.repo.PATH.get_pkg_class(name).dependencies_by_name()))
+        for name in mpi_names
     )
 
     # only one mock MPI has a dependency
@@ -79,29 +85,29 @@ def test_possible_dependencies_virtual(mock_packages, mpi_names):
 
 
 def test_possible_dependencies_missing(mock_packages):
-    pkg_cls = spack.repo.path.get_pkg_class("missing-dependency")
+    pkg_cls = spack.repo.PATH.get_pkg_class("missing-dependency")
     missing = {}
     pkg_cls.possible_dependencies(transitive=True, missing=missing)
     assert {"this-is-a-missing-dependency"} == missing["missing-dependency"]
 
 
 def test_possible_dependencies_with_deptypes(mock_packages):
-    dtbuild1 = spack.repo.path.get_pkg_class("dtbuild1")
+    dtbuild1 = spack.repo.PATH.get_pkg_class("dtbuild1")
 
     assert {
         "dtbuild1": {"dtrun2", "dtlink2"},
         "dtlink2": set(),
         "dtrun2": set(),
-    } == dtbuild1.possible_dependencies(deptype=("link", "run"))
+    } == dtbuild1.possible_dependencies(depflag=dt.LINK | dt.RUN)
 
     assert {
         "dtbuild1": {"dtbuild2", "dtlink2"},
         "dtbuild2": set(),
         "dtlink2": set(),
-    } == dtbuild1.possible_dependencies(deptype=("build"))
+    } == dtbuild1.possible_dependencies(depflag=dt.BUILD)
 
     assert {"dtbuild1": {"dtlink2"}, "dtlink2": set()} == dtbuild1.possible_dependencies(
-        deptype=("link")
+        depflag=dt.LINK
     )
 
 
@@ -139,19 +145,19 @@ def setup_install_test(source_paths, test_root):
     "spec,sources,extras,expect",
     [
         (
-            "a",
+            "pkg-a",
             ["example/a.c"],  # Source(s)
             ["example/a.c"],  # Extra test source
             ["example/a.c"],
         ),  # Test install dir source(s)
         (
-            "b",
+            "pkg-b",
             ["test/b.cpp", "test/b.hpp", "example/b.txt"],  # Source(s)
             ["test"],  # Extra test source
             ["test/b.cpp", "test/b.hpp"],
         ),  # Test install dir source
         (
-            "c",
+            "pkg-c",
             ["examples/a.py", "examples/b.py", "examples/c.py", "tests/d.py"],
             ["examples/b.py", "tests"],
             ["examples/b.py", "tests/d.py"],
@@ -199,7 +205,7 @@ def test_cache_extra_sources(install_mockery, spec, sources, extras, expect):
 
 
 def test_cache_extra_sources_fails(install_mockery):
-    s = spack.spec.Spec("a").concretized()
+    s = spack.spec.Spec("pkg-a").concretized()
     s.package.spec.concretize()
 
     with pytest.raises(InstallError) as exc_info:
@@ -223,7 +229,7 @@ def test_package_url_and_urls():
         url = "https://www.example.com/url-package-1.0.tgz"
         urls = ["https://www.example.com/archive"]
 
-    s = spack.spec.Spec("a")
+    s = spack.spec.Spec("pkg-a")
     with pytest.raises(ValueError, match="defines both"):
         URLsPackage(s)
 
@@ -233,7 +239,7 @@ def test_package_license():
         extendees = None  # currently a required attribute for is_extension()
         license_files = None
 
-    s = spack.spec.Spec("a")
+    s = spack.spec.Spec("pkg-a")
     pkg = LicensedPackage(s)
     assert pkg.global_license_file is None
 
@@ -246,30 +252,24 @@ class BaseTestPackage(Package):
 
 
 def test_package_version_fails():
-    s = spack.spec.Spec("a")
+    s = spack.spec.Spec("pkg-a")
     pkg = BaseTestPackage(s)
     with pytest.raises(ValueError, match="does not have a concrete version"):
         pkg.version()
 
 
 def test_package_tester_fails():
-    s = spack.spec.Spec("a")
+    s = spack.spec.Spec("pkg-a")
     pkg = BaseTestPackage(s)
     with pytest.raises(ValueError, match="without concrete version"):
         pkg.tester()
 
 
 def test_package_fetcher_fails():
-    s = spack.spec.Spec("a")
+    s = spack.spec.Spec("pkg-a")
     pkg = BaseTestPackage(s)
     with pytest.raises(ValueError, match="without concrete version"):
         pkg.fetcher
-
-
-def test_package_no_extendees():
-    s = spack.spec.Spec("a")
-    pkg = BaseTestPackage(s)
-    assert pkg.extendee_args is None
 
 
 def test_package_test_no_compilers(mock_packages, monkeypatch, capfd):
@@ -278,64 +278,10 @@ def test_package_test_no_compilers(mock_packages, monkeypatch, capfd):
 
     monkeypatch.setattr(spack.compilers, "compilers_for_spec", compilers)
 
-    s = spack.spec.Spec("a")
+    s = spack.spec.Spec("pkg-a")
     pkg = BaseTestPackage(s)
     pkg.test_requires_compiler = True
     pkg.do_test()
     error = capfd.readouterr()[1]
     assert "Skipping tests for package" in error
     assert "test requires missing compiler" in error
-
-
-# TODO (post-34236): Remove when remove deprecated run_test(), etc.
-@pytest.mark.parametrize(
-    "msg,installed,purpose,expected",
-    [
-        ("do-nothing", False, "test: echo", "do-nothing"),
-        ("not installed", True, "test: echo not installed", "expected in prefix"),
-    ],
-)
-def test_package_run_test_install(
-    install_mockery_mutable_config, mock_fetch, capfd, msg, installed, purpose, expected
-):
-    """Confirm expected outputs from run_test for installed/not installed exe."""
-    s = spack.spec.Spec("trivial-smoke-test").concretized()
-    pkg = s.package
-
-    pkg.run_test(
-        "echo", msg, expected=[expected], installed=installed, purpose=purpose, work_dir="."
-    )
-    output = capfd.readouterr()[0]
-    assert expected in output
-
-
-# TODO (post-34236): Remove when remove deprecated run_test(), etc.
-@pytest.mark.parametrize(
-    "skip,failures,status",
-    [
-        (True, 0, str(spack.install_test.TestStatus.SKIPPED)),
-        (False, 1, str(spack.install_test.TestStatus.FAILED)),
-    ],
-)
-def test_package_run_test_missing(
-    install_mockery_mutable_config, mock_fetch, capfd, skip, failures, status
-):
-    """Confirm expected results from run_test for missing exe when skip or not."""
-    s = spack.spec.Spec("trivial-smoke-test").concretized()
-    pkg = s.package
-
-    pkg.run_test("no-possible-program", skip_missing=skip)
-    output = capfd.readouterr()[0]
-    assert len(pkg.tester.test_failures) == failures
-    assert status in output
-
-
-# TODO (post-34236): Remove when remove deprecated run_test(), etc.
-def test_package_run_test_fail_fast(install_mockery_mutable_config, mock_fetch):
-    """Confirm expected exception when run_test with fail_fast enabled."""
-    s = spack.spec.Spec("trivial-smoke-test").concretized()
-    pkg = s.package
-
-    with spack.config.override("config:fail_fast", True):
-        with pytest.raises(spack.install_test.TestFailure, match="Failed to find executable"):
-            pkg.run_test("no-possible-program")

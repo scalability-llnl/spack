@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,11 @@ class PyRich(PythonPackage):
     homepage = "https://github.com/willmcgugan/rich"
     pypi = "rich/rich-9.4.0.tar.gz"
 
+    license("MIT")
+
+    version("13.7.1", sha256="9be308cb1fe2f1f57d67ce99e95af38a1e2bc71ad9813b0e247cf7ffbcc3a432")
+    version("13.4.2", sha256="d653d6bccede5844304c605d5aac802c7cf9621efd700b46c7ec2b51ea914898")
+    version("12.6.0", sha256="ba3a3775974105c221d31141f2c116f4fd65c5ceb0698657a11e9f295ec93fd0")
     version("12.5.1", sha256="63a5c5ce3673d3d5fbbf23cd87e11ab84b6b451436f1b7f19ec54b6bc36ed7ca")
     version("10.14.0", sha256="8bfe4546d56b4131298d3a9e571a0742de342f1593770bd0d4707299f772a0af")
     version("10.9.0", sha256="ba285f1c519519490034284e6a9d2e6e3f16dc7690f2de3d9140737d81304d22")
@@ -30,15 +34,20 @@ class PyRich(PythonPackage):
     version("9.5.0", sha256="a65a9d003cb6e87e6fa5d1b53bff6f43a8d7475524c58873acdbf5bba0683fa3")
     version("9.4.0", sha256="bde23a1761373fed2802502ff98292c5d735a5389ed96f4fe1be5fb4c2cde8ea")
 
-    depends_on("python@3.6:", type=("build", "run"))
-    depends_on("python@3.6.2:3", when="@10.14.0:", type=("build", "run"))
-    depends_on("python@3.6.3:3", when="@12.5.1:", type=("build", "run"))
+    depends_on("python@3.7:", when="@13:", type=("build", "run"))
+    depends_on("python@3.6.3:3", when="@12.2.1:12", type=("build", "run"))
+    depends_on("python@3.6.2:3", when="@10.14.0:12", type=("build", "run"))
     depends_on("py-poetry-core@1:", type="build")
-    depends_on("py-typing-extensions@4", when="@12.5.1: ^python@:3.8", type=("build", "run"))
+
+    depends_on("py-typing-extensions@4", when="@12.2: ^python@:3.8", type=("build", "run"))
     depends_on(
-        "py-typing-extensions@3.7.4:4", when="@10.14.0: ^python@:3.7", type=("build", "run")
+        "py-typing-extensions@3.7.4:4", when="@10.14:12.1 ^python@:3.7", type=("build", "run")
     )
-    depends_on("py-typing-extensions@3.7.4:3", when="@:10.13.0", type=("build", "run"))
-    depends_on("py-pygments@2.6:2", type=("build", "run"))
-    depends_on("py-commonmark@0.9.0:0.9", type=("build", "run"))
-    depends_on("py-colorama@0.4.0:0.4", type=("build", "run"), when="@:10.14.0")
+    depends_on("py-typing-extensions@3.7.4:3", when="@:10.13", type=("build", "run"))
+    depends_on("py-pygments@2.13:2", when="@13.3.2:", type=("build", "run"))
+    depends_on("py-pygments@2.6:2", when="@:13.2", type=("build", "run"))
+    depends_on("py-markdown-it-py@2.2:", when="@13.3.2:", type=("build", "run"))
+
+    # Historical dependencies
+    depends_on("py-commonmark@0.9.0:0.9", when="@:13.1", type=("build", "run"))
+    depends_on("py-colorama@0.4.0:0.4", when="@:10.14.0", type=("build", "run"))

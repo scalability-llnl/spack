@@ -1,8 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import warnings
+
 import llnl.util.tty as tty
+import llnl.util.tty.colify
 import llnl.util.tty.color as cl
 
 import spack.audit
@@ -20,6 +22,15 @@ def setup_parser(subparser):
     # Audit configuration files
     sp.add_parser("configs", help="audit configuration files")
 
+    # Audit package recipes
+    external_parser = sp.add_parser("externals", help="check external detection in packages")
+    external_parser.add_argument(
+        "--list",
+        action="store_true",
+        dest="list_externals",
+        help="if passed, list which packages have detection tests",
+    )
+
     # Https and other linting
     https_parser = sp.add_parser("packages-https", help="check https in packages")
     https_parser.add_argument(
@@ -29,7 +40,7 @@ def setup_parser(subparser):
     # Audit package recipes
     pkg_parser = sp.add_parser("packages", help="audit package recipes")
 
-    for group in [pkg_parser, https_parser]:
+    for group in [pkg_parser, https_parser, external_parser]:
         group.add_argument(
             "name",
             metavar="PKG",
@@ -42,12 +53,14 @@ def setup_parser(subparser):
 
 
 def configs(parser, args):
-    reports = spack.audit.run_group(args.subcommand)
-    _process_reports(reports)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        reports = spack.audit.run_group(args.subcommand)
+        _process_reports(reports)
 
 
 def packages(parser, args):
-    pkgs = args.name or spack.repo.path.all_package_names()
+    pkgs = args.name or spack.repo.PATH.all_package_names()
     reports = spack.audit.run_group(args.subcommand, pkgs=pkgs)
     _process_reports(reports)
 
@@ -57,8 +70,20 @@ def packages_https(parser, args):
     if not args.check_all and not args.name:
         tty.die("Please specify one or more packages to audit, or --all.")
 
-    pkgs = args.name or spack.repo.path.all_package_names()
+    pkgs = args.name or spack.repo.PATH.all_package_names()
     reports = spack.audit.run_group(args.subcommand, pkgs=pkgs)
+    _process_reports(reports)
+
+
+def externals(parser, args):
+    if args.list_externals:
+        msg = "@*{The following packages have detection tests:}"
+        tty.msg(cl.colorize(msg))
+        llnl.util.tty.colify.colify(spack.audit.packages_with_detection_tests(), indent=2)
+        return
+
+    pkgs = args.name or spack.repo.PATH.all_package_names()
+    reports = spack.audit.run_group(args.subcommand, pkgs=pkgs, debug_log=tty.debug)
     _process_reports(reports)
 
 
@@ -78,6 +103,7 @@ def list(parser, args):
 def audit(parser, args):
     subcommands = {
         "configs": configs,
+        "externals": externals,
         "packages": packages,
         "packages-https": packages_https,
         "list": list,
@@ -88,15 +114,11 @@ def audit(parser, args):
 def _process_reports(reports):
     for check, errors in reports:
         if errors:
-            msg = "{0}: {1} issue{2} found".format(
-                check, len(errors), "" if len(errors) == 1 else "s"
-            )
-            header = "@*b{" + msg + "}"
-            print(cl.colorize(header))
+            status = f"{len(errors)} issue{'' if len(errors) == 1 else 's'} found"
+            print(cl.colorize(f"{check}: @*r{{{status}}}"))
+            numdigits = len(str(len(errors)))
             for idx, error in enumerate(errors):
-                print(str(idx + 1) + ". " + str(error))
+                print(f"{idx + 1:>{numdigits}}. {error}")
             raise SystemExit(1)
         else:
-            msg = "{0}: 0 issues found.".format(check)
-            header = "@*b{" + msg + "}"
-            print(cl.colorize(header))
+            print(cl.colorize(f"{check}: @*g{{passed}}"))

@@ -1,16 +1,16 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 
-import spack.util.executable
+from spack.build_systems.autotools import AutotoolsBuilder
+from spack.build_systems.cmake import CMakeBuilder
 from spack.package import *
 
 
-class FluxSched(AutotoolsPackage):
-    """A scheduler for flux-core (pre-alpha)"""
+class FluxSched(CMakePackage, AutotoolsPackage):
+    """A scheduler for flux-core"""
 
     homepage = "https://github.com/flux-framework/flux-sched"
     url = "https://github.com/flux-framework/flux-sched/releases/download/v0.5.0/flux-sched-0.5.0.tar.gz"
@@ -19,7 +19,24 @@ class FluxSched(AutotoolsPackage):
 
     maintainers("grondo")
 
+    license("LGPL-3.0-only")
+
     version("master", branch="master")
+    version("0.40.0", sha256="1484befcf8628b0af7833bf550d0bb3864db32b70f2c1bb363c35e30ada1ecc5")
+    version("0.39.0", sha256="7e87029f8ad17b9286096e4e2d44982b5d6634908aefde3282497bdd3f44f2f8")
+    version("0.38.0", sha256="0cb3efbd490256b28df580bb14f8e89c02084a9126e0b1754d6334a99ecfa969")
+    version("0.37.0", sha256="b354d451183fcb8455e6a61d31e18c7f4af13e16a86b71216738f0991a7bcd50")
+    version("0.36.1", sha256="0ee37ed364912f3f5a48ed5b5f5f21cb86cda43ff357486695b9454c217ad8b8")
+    version("0.36.0", sha256="c20814eae65b6eb9f2c919dbcc216dd4b87f038a341cf99510cca88d43631c41")
+    version("0.35.0", sha256="38fde51464f4e34ecbd1e4fbbf00267f96b639db5987257a7ad07f811e2f09d2")
+    version("0.34.0", sha256="10c03d78fa2302de7ddf9599ea59fb7a2dc7ccf6f526fd9fbfc9e3ff6ba39713")
+    version("0.33.1", sha256="d0a1e504226d69fa8a247e9090d94ccc5e5f5fb028aab805f9cd95379bd8b1b3")
+    version("0.33.0", sha256="d2e97121aed29bb1c6bfac602d890edb2f0a18d5303205b266a33c66fff1d61c")
+    version("0.32.0", sha256="f0b88881f0154057de3dd5485a3e1cfc0b9b64c98052bda7d5fed7c05b5e02f3")
+    version("0.31.0", sha256="4440156b7f2d43e3db2cbfa0dbc43671074c397525f6b97e3748c3d96a035cdb")
+    version("0.30.0", sha256="1ccb2e53f4caede0233f19b2707e868f0cee9d2c957a06f97c22936ba9a43552")
+    version("0.29.0", sha256="b93b18788e677535aa8ef945cdbeeced6d1408a4d16cb4a816ead53f31dd78d2")
+    version("0.28.0", sha256="9431c671bed5d76fd95b4a4a7f36224d4bf76f416a2a1a5c4908f3ca790d434d")
     version("0.27.0", sha256="1e131924440c904fa0c925b7aa14c47b97f4e67b43af7efd2ebc0ef7ce90eb7c")
     version("0.26.0", sha256="184faec800cf45952ef79bda113f710bf91a05be584034d36a3234627d4a54c7")
     version("0.25.0", sha256="a984b238d8b6968ef51f1948a550bf57887bf3da8002dcd1734ce26afc4bff07")
@@ -32,20 +49,15 @@ class FluxSched(AutotoolsPackage):
     version("0.19.0", sha256="8dffa8eaec95a81286f621639ef851c52dc4c562d365971233bbd91100c31ed2")
     version("0.18.0", sha256="a4d8a6444fdb7b857b26f47fdea57992b486c9522f4ff92d5a6f547d95b586ae")
     version("0.17.0", sha256="5acfcb757e2294a92eaa91be58ba9b42736b88b42d2937de4a78f4642b1c4933")
-    version("0.16.0", sha256="08313976161c141b9b34e2d44d5a08d1b11302e22d60aeaf878eef84d4bd2884")
-    version("0.15.0", sha256="ff24d26997f91af415f98734b8117291f5a5001e86dac865b56b3d72980c80c8")
-    version("0.14.0", sha256="2808f42032b917823d69cd26103c9238694416e2f30c6d39c11c670927ed232a")
-    version("0.13.0", sha256="ba17fc0451239fe31a1524b6a270741873f59a5057514d2524fd3e9215c47a82")
-    version("0.12.0", sha256="b41ecaebba254abfb5a7995fd9100bd45a59d4ad0a79bdca8b3db02785d97b1d")
-    version("0.11.0", sha256="6a0e3c0678f85da8724e5399b02be9686311c835617f6036235ef54b489cc336")
-    version("0.10.0", sha256="5944927774709b5f52ddf64a0e825d9b0f24c9dea890b5504b87a8576d217cf6")
-    version("0.9.0", sha256="0e1eb408a937c2843bdaaed915d4d7e2ea763b98c31e7b849a96a74758d66a21")
-    version("0.8.0", sha256="45bc3cefb453d19c0cb289f03692fba600a39045846568d258e4b896ca19ca0d")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     # Avoid the infinite symlink issue
     # This workaround is documented in PR #3543
     build_directory = "spack-build"
 
+    variant("docs", default=False, description="Build flux manpages and docs")
     variant("cuda", default=False, description="Build dependencies with support for CUDA")
 
     # Needs to be seen if tis is needed once we remove the default variants
@@ -61,14 +73,13 @@ class FluxSched(AutotoolsPackage):
     depends_on("yaml-cpp@0.6.3")
     depends_on("uuid")
     depends_on("pkgconfig")
+    conflicts("%gcc@:9.3", when="@0.34:")
+    conflicts("%gcc@:11", when="@0.37:", msg="gcc version must be 12 or higher")
+    conflicts("%clang@:14", when="@0.37:", msg="clang must be version 15 or higher")
+    depends_on("py-sphinx@1.6.3:", when="+docs", type="build")
 
     depends_on("flux-core", type=("build", "link", "run"))
     depends_on("flux-core+cuda", when="+cuda", type=("build", "run", "link"))
-    depends_on("flux-core@0.16.0:0.16", when="@0.8.0", type=("build", "run", "link"))
-    depends_on("flux-core@0.22.0", when="@0.14.0", type=("build", "run", "link"))
-    depends_on("flux-core@0.23.0:0.25", when="@0.15.0", type=("build", "run", "link"))
-    depends_on("flux-core@0.26.0:", when="@0.16.0", type=("build", "run", "link"))
-    depends_on("flux-core@0.28.0:", when="@0.17.0", type=("build", "run", "link"))
     depends_on("flux-core@0.29.0:", when="@0.18.0", type=("build", "run", "link"))
     depends_on("flux-core@0.30.0:", when="@0.19.0", type=("build", "run", "link"))
     depends_on("flux-core@0.31.0:", when="@0.19.0", type=("build", "run", "link"))
@@ -79,6 +90,18 @@ class FluxSched(AutotoolsPackage):
     depends_on("autoconf", type="build", when="@master")
     depends_on("automake", type="build", when="@master")
     depends_on("libtool", type="build", when="@master")
+
+    # Set default to cmake so master (and branches) use it
+    build_system(
+        conditional("cmake", when="@0.29.0:"),
+        conditional("autotools", when="@:0.28.0"),
+        default="cmake",
+    )
+
+    # Required dependencies
+    with when("build_system=cmake"):
+        generator("ninja")
+        depends_on("cmake@3.18:", type="build")
 
     # Disable t5000-valgrind.t by default due to false positives not yet
     # in the suppressions file. (This patch will be in v0.21.0)
@@ -116,7 +139,7 @@ class FluxSched(AutotoolsPackage):
                 git("fetch", "--unshallow")
                 git("config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*")
                 git("fetch", "origin")
-            except spack.util.executable.ProcessError:
+            except ProcessError:
                 git("fetch")
 
     def autoreconf(self, spec, prefix):
@@ -135,19 +158,6 @@ class FluxSched(AutotoolsPackage):
         filter_file("NULL", "nullptr", "resource/schema/sched_data.hpp")
         filter_file("size_t", "std::size_t", "resource/planner/planner.h")
 
-    def configure_args(self):
-        args = []
-        if self.spec.satisfies("@0.9.0:"):
-            args.append("CXXFLAGS=-Wno-uninitialized")
-        if self.spec.satisfies("%clang@12:"):
-            args.append("CXXFLAGS=-Wno-defaulted-function-deleted")
-        if self.spec.satisfies("%oneapi"):
-            args.append("CXXFLAGS=-Wno-tautological-constant-compare")
-        # flux-sched's ax_boost is sometimes weird about non-system locations
-        # explicitly setting the path guarantees success
-        args.append("--with-boost={0}".format(self.spec["boost"].prefix))
-        return args
-
     @property
     def lua_version(self):
         return self.spec["lua"].version.up_to(2)
@@ -161,6 +171,12 @@ class FluxSched(AutotoolsPackage):
         return os.path.join("lib", "lua", str(self.lua_version))
 
     def setup_run_environment(self, env):
+        # If this package is external, we expect the external provider to set
+        # things like LUA paths. So, we early return. If the package is not
+        # external, properly set these environment variables to make sure the
+        # user environment is configured correctly
+        if self.spec.external:
+            return
         env.prepend_path(
             "LUA_PATH", os.path.join(self.spec.prefix, self.lua_share_dir, "?.lua"), separator=";"
         )
@@ -170,5 +186,39 @@ class FluxSched(AutotoolsPackage):
 
         env.prepend_path("FLUX_MODULE_PATH", self.prefix.lib.flux.modules)
         env.prepend_path("FLUX_MODULE_PATH", self.prefix.lib.flux.modules.sched)
+        # On some systems modules are in lib64 and lib
+        env.prepend_path("FLUX_MODULE_PATH", self.prefix.lib64.flux.modules)
+        env.prepend_path("FLUX_MODULE_PATH", self.prefix.lib64.flux.modules.sched)
         env.prepend_path("FLUX_EXEC_PATH", self.prefix.libexec.flux.cmd)
         env.prepend_path("FLUX_RC_EXTRA", self.prefix.etc.flux)
+
+
+class CMakeBuilder(CMakeBuilder):
+    def cmake_args(self):
+        args = []
+        ver_in_src = os.path.exists(os.path.join(self.stage.source_path, "flux-sched.ver"))
+        # flux-sched before v0.33 does not correctly set the version even when the file is present.
+        if self.spec.satisfies("@:0.33") or not ver_in_src:
+            # ref_version only exists on git versions
+            try:
+                ver = self.spec.version.ref_version
+            except AttributeError:
+                ver = self.spec.version
+            args.append(self.define("FLUX_SCHED_VER", ver))
+        args.append(self.define_from_variant("ENABLE_DOCS", "docs"))
+        return args
+
+
+class AutotoolsBuilder(AutotoolsBuilder):
+    def configure_args(self):
+        args = []
+        if self.spec.satisfies("@0.9.0:"):
+            args.append("CXXFLAGS=-Wno-uninitialized")
+        if self.spec.satisfies("%clang@12:"):
+            args.append("CXXFLAGS=-Wno-defaulted-function-deleted")
+        if self.spec.satisfies("%oneapi"):
+            args.append("CXXFLAGS=-Wno-tautological-constant-compare")
+        # flux-sched's ax_boost is sometimes weird about non-system locations
+        # explicitly setting the path guarantees success
+        args.append("--with-boost={0}".format(self.spec["boost"].prefix))
+        return args

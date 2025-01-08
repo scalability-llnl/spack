@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,9 +16,13 @@ class Rarpd(MakefilePackage):
 
     maintainers("jcpunk")
 
+    license("GPL-2.0-only")
+
     version(
         "0.981107-fixes", sha256="92b44adc4a061dcedeb01f7e1c1700374199cccceef1a798de97303d387bb4c2"
     )
+
+    depends_on("c", type="build")  # generated
 
     @property
     def install_targets(self):

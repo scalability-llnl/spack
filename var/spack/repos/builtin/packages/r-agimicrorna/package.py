@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,7 @@ class RAgimicrorna(RPackage):
 
     bioc = "AgiMicroRna"
 
+    version("2.50.0", commit="a812b0f4f215b093ca685889b65de60c6701b695")
     version("2.48.0", commit="4c163b1b730150a3a60a3815bd8c08fa04d71fc1")
     version("2.46.0", commit="8c6d73e1c3f1f9cc019bdb219b19e6179bb1efe4")
     version("2.44.0", commit="8b308baa3b1b0afc0855ea263630a288689e3864")

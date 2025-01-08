@@ -1,0 +1,24 @@
+diff --git a/include/camp/resource.hpp b/include/camp/resource.hpp
+index 58df206..763aa20 100644
+--- a/include/camp/resource.hpp
++++ b/include/camp/resource.hpp
+@@ -12,6 +12,7 @@ http://github.com/llnl/camp
+ #define __CAMP_RESOURCE_HPP
+ 
+ #include <cstring>
++#include <stdexcept>
+ #include <memory>
+ #include <mutex>
+ #include <type_traits>
+diff --git a/include/camp/resource/host.hpp b/include/camp/resource/host.hpp
+index c765175..4428c57 100644
+--- a/include/camp/resource/host.hpp
++++ b/include/camp/resource/host.hpp
+@@ -13,6 +13,7 @@ http://github.com/llnl/camp
+ 
+ #include "camp/resource/event.hpp"
+ #include "camp/resource/platform.hpp"
++#include <cstdlib>
+ 
+ namespace camp
+ {

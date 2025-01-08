@@ -1,17 +1,16 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 """Schema for projections.yaml configuration file.
 
 .. literalinclude:: _spack_root/lib/spack/spack/schema/projections.py
-   :lines: 13-
+   :lines: 14-
 """
-
+from typing import Any, Dict
 
 #: Properties for inclusion in other schemas
-properties = {
+properties: Dict[str, Any] = {
     "projections": {"type": "object", "patternProperties": {r"all|\w[\w-]*": {"type": "string"}}}
 }
 

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,8 +12,12 @@ class Nnvm(CMakePackage):
     homepage = "https://github.com/dmlc/nnvm"
     git = "https://github.com/dmlc/nnvm.git"
 
+    license("Apache-2.0")
+
     version("master", branch="master")
     version("20170418", commit="b279286304ac954098d94a2695bca599e832effb")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("shared", default=True, description="Build a shared NNVM lib.")
 

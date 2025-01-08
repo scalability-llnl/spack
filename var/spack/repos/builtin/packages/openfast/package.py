@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,8 +13,15 @@ class Openfast(CMakePackage):
 
     maintainers("jrood-nrel")
 
+    license("Apache-2.0")
+
     version("develop", branch="dev")
     version("master", branch="main")
+    version("3.5.4", tag="v3.5.4")
+    version("3.5.3", tag="v3.5.3")
+    version("3.4.1", tag="v3.4.1")
+    version("3.4.0", tag="v3.4.0")
+    version("3.3.0", tag="v3.3.0")
     version("3.2.1", tag="v3.2.1")
     version("3.2.0", tag="v3.2.0")
     version("3.1.0", tag="v3.1.0")
@@ -29,6 +35,12 @@ class Openfast(CMakePackage):
     version("2.0.0", tag="v2.0.0")
     version("1.0.0", tag="v1.0.0")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
+    patch("hub_seg_fault.patch", when="@2.7:3.2")
+
     variant("shared", default=True, description="Build shared libraries")
     variant("double-precision", default=True, description="Treat REAL as double precision")
     variant("dll-interface", default=True, description="Enable dynamic library loading interface")
@@ -36,18 +48,21 @@ class Openfast(CMakePackage):
     variant("pic", default=True, description="Position independent code")
     variant("openmp", default=False, description="Enable OpenMP support")
     variant("netcdf", default=False, description="Enable NetCDF support")
+    variant("rosco", default=False, description="Build ROSCO controller")
+    variant("fastfarm", default=False, description="Enable FAST.Farm capabilities")
+    variant("fpe-trap", default=False, description="Enable FPE trap in compiler options")
 
-    # Dependencies for OpenFAST Fortran
     depends_on("blas")
     depends_on("lapack")
-
-    # Additional dependencies when compiling C++ library
     depends_on("mpi", when="+cxx")
-    depends_on("yaml-cpp", when="+cxx")
+    depends_on("yaml-cpp@0.6.0:0.6.3", when="+cxx")
     depends_on("hdf5+mpi+cxx+hl", when="+cxx")
-    depends_on("zlib", when="+cxx")
+    depends_on("zlib-api", when="+cxx")
     depends_on("libxml2", when="+cxx")
     depends_on("netcdf-c", when="+cxx+netcdf")
+    depends_on("rosco", when="+rosco")
+
+    conflicts("~cxx", when="+netcdf")
 
     def cmake_args(self):
         spec = self.spec
@@ -62,7 +77,10 @@ class Openfast(CMakePackage):
                 self.define_from_variant("DOUBLE_PRECISION", "double-precision"),
                 self.define_from_variant("USE_DLL_INTERFACE", "dll-interface"),
                 self.define_from_variant("BUILD_OPENFAST_CPP_API", "cxx"),
+                self.define_from_variant("BUILD_OPENFAST_CPP_DRIVER", "cxx"),
                 self.define_from_variant("CMAKE_POSITION_INDEPENDENT_CODE", "pic"),
+                self.define_from_variant("BUILD_FASTFARM", "fastfarm"),
+                self.define_from_variant("FPE_TRAP_ENABLED", "fpe-trap"),
             ]
         )
 

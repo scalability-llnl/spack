@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,10 +23,17 @@ class Abinit(AutotoolsPackage):
     programs are provided.
     """
 
-    homepage = "https://www.abinit.org/"
-    url = "https://www.abinit.org/sites/default/files/packages/abinit-8.6.3.tar.gz"
+    homepage = "https://abinit.github.io/abinit_web/"
+    url = "https://forge.abinit.org/abinit-10.0.9.tar.gz"
+    license("Apache-2.0")
 
-    version("9.8.3", sha256="65fb93217336a72d1554cc6991127203958cc7df59921782251a86569e33a357")
+    maintainers("downloadico")
+    version("10.0.9", sha256="17650580295e07895f6c3c4b1f3f0fe0e0f3fea9bab5fd8ce7035b16a62f8e5e")
+    version("10.0.7", sha256="a9fc044b33861b7defd50fafd19a73eb6f225e18ae30b23bc731d9c8009c881c")
+    version("9.10.5", sha256="a9e0f0e058baa6088ea93d26ada369ccf0fe52dc9d4a865b1c38c20620148cd5")
+    version("9.10.3", sha256="3f2a9aebbf1fee9855a09dd687f88d2317b8b8e04f97b2628ab96fb898dce49b")
+    version("9.8.4", sha256="a086d5045f0093b432e6a044d5f71f7edf5a41a62d67b3677cb0751d330c564a")
+    version("9.8.3", sha256="de823878aea2c20098f177524fbb4b60de9b1b5971b2e835ec244dfa3724589b")
     version("9.6.1", sha256="b6a12760fd728eb4aacca431ae12150609565bedbaa89763f219fcd869f79ac6")
     version("9.4.2", sha256="d40886f5c8b138bb4aa1ca05da23388eb70a682790cfe5020ecce4db1b1a76bc")
     version("8.10.3", sha256="ed626424b4472b93256622fbb9c7645fa3ffb693d4b444b07d488771ea7eaa75")
@@ -35,8 +41,10 @@ class Abinit(AutotoolsPackage):
     version("8.8.2", sha256="15216703bd56a799a249a112b336d07d733627d3756487a4b1cb48ebb625c3e7")
     version("8.6.3", sha256="82e8d071088ab8dc1b3a24380e30b68c544685678314df1213180b449c84ca65")
     version("8.2.2", sha256="e43544a178d758b0deff3011c51ef7c957d7f2df2ce8543366d68016af9f3ea1")
-    # Versions before 8.0.8b are not supported.
-    version("8.0.8b", sha256="37ad5f0f215d2a36e596383cb6e54de3313842a0390ce8d6b48a423d3ee25af2")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("mpi", default=True, description="Builds with MPI support. Requires MPI2+")
     variant("openmp", default=False, description="Enables OpenMP threads. Use threaded FFTW3")
@@ -84,6 +92,11 @@ class Abinit(AutotoolsPackage):
     # libxml2
     depends_on("libxml2", when="@9:+libxml2")
 
+    # If the Intel suite is used for Lapack, it must be used for fftw and vice-versa
+    for _intel_pkg in INTEL_MATH_LIBRARIES:
+        requires(f"^[virtuals=fftw-api] {_intel_pkg}", when=f"^[virtuals=lapack]   {_intel_pkg}")
+        requires(f"^[virtuals=lapack]   {_intel_pkg}", when=f"^[virtuals=fftw-api] {_intel_pkg}")
+
     # Cannot ask for +scalapack if it does not depend on MPI
     conflicts("+scalapack", when="~mpi")
 
@@ -100,11 +113,7 @@ class Abinit(AutotoolsPackage):
     # TODO: The logic here can be reversed with the new concretizer. Instead of
     # using `conflicts`, `depends_on` could be used instead.
     for fftw in ["amdfftw", "cray-fftw", "fujitsu-fftw", "fftw"]:
-        conflicts(
-            "+openmp",
-            when="^{0}~openmp".format(fftw),
-            msg="Need to request {0} +openmp".format(fftw),
-        )
+        conflicts("+openmp", when=f"^{fftw}~openmp", msg=f"Need to request {fftw} +openmp")
 
     mkl_message = "Need to set dependent variant to threads=openmp"
     conflicts("+openmp", when="^intel-mkl threads=none", msg=mkl_message)
@@ -120,7 +129,7 @@ class Abinit(AutotoolsPackage):
     )
 
     patch("rm_march_settings.patch", when="@:8")
-    patch("rm_march_settings_v9.patch", when="@9:")
+    patch("rm_march_settings_v9.patch", when="@9")
 
     # Fix detection of Fujitsu compiler
     # Fix configure not to collect the option that causes an error
@@ -135,164 +144,175 @@ class Abinit(AutotoolsPackage):
         options += self.with_or_without("libxml2")
 
         oapp = options.append
-        if "@:8" in spec:
-            oapp("--enable-optim={0}".format(self.spec.variants["optimization-flavor"].value))
+        if spec.satisfies("@:8"):
+            oapp(f"--enable-optim={self.spec.variants['optimization-flavor'].value}")
         else:
-            oapp("--with-optim-flavor={0}".format(self.spec.variants["optimization-flavor"].value))
+            oapp(f"--with-optim-flavor={self.spec.variants['optimization-flavor'].value}")
 
-        if "+wannier90" in spec:
-            if "@:8" in spec:
-                oapp(
-                    "--with-wannier90-libs=-L{0}".format(
-                        spec["wannier90"].prefix.lib + " -lwannier -lm"
-                    )
-                )
-                oapp("--with-wannier90-incs=-I{0}".format(spec["wannier90"].prefix.modules))
-                oapp("--with-wannier90-bins={0}".format(spec["wannier90"].prefix.bin))
+        if spec.satisfies("+wannier90"):
+            if spec.satisfies("@:8"):
+                oapp(f"--with-wannier90-libs=-L{spec['wannier90'].prefix.lib} -lwannier -lm")
+                oapp(f"--with-wannier90-incs=-I{spec['wannier90'].prefix.modules}")
+                oapp(f"--with-wannier90-bins={spec['wannier90'].prefix.bin}")
                 oapp("--enable-connectors")
                 oapp("--with-dft-flavor=atompaw+libxc+wannier90")
+            elif spec.satisfies("@:9.8"):
+                options.extend(
+                    [
+                        f"WANNIER90_CPPFLAGS=-I{spec['wannier90'].prefix.modules}",
+                        f"WANNIER90_LIBS=-L{spec['wannier90'].prefix.lib} -lwannier",
+                    ]
+                )
             else:
                 options.extend(
                     [
-                        "WANNIER90_CPPFLAGS=-I{0}".format(spec["wannier90"].prefix.modules),
-                        "WANNIER90_LIBS=-L{0} {1}".format(
-                            spec["wannier90"].prefix.lib, "-lwannier"
-                        ),
+                        f"WANNIER90_CPPFLAGS=-I{spec['wannier90'].prefix.modules}",
+                        f"WANNIER90_LIBS=-L{spec['wannier90'].prefix.lib}",
+                        "WANNIER90_LDFLAGS=-lwannier",
                     ]
                 )
         else:
-            if "@:9.8" in spec:
-                oapp("--with-fftw={0}".format(spec["fftw-api"].prefix))
-                oapp("--with-hdf5={0}".format(spec["hdf5"].prefix))
+            if spec.satisfies("@:9.8"):
+                oapp(f"--with-fftw={spec['fftw-api'].prefix}")
+                oapp(f"--with-hdf5={spec['hdf5'].prefix}")
 
-            if "@:8" in spec:
+            if spec.satisfies("@:8"):
                 oapp("--with-dft-flavor=atompaw+libxc")
             else:
                 "--without-wannier90",
 
-        if "+mpi" in spec:
-            oapp("CC={0}".format(spec["mpi"].mpicc))
-            oapp("CXX={0}".format(spec["mpi"].mpicxx))
-            oapp("FC={0}".format(spec["mpi"].mpifc))
+        if spec.satisfies("+mpi"):
+            oapp(f"CC={spec['mpi'].mpicc}")
+            oapp(f"CXX={spec['mpi'].mpicxx}")
+            oapp(f"FC={spec['mpi'].mpifc}")
+            if spec.satisfies("@9.8:"):
+                oapp(f"F90={spec['mpi'].mpifc}")
 
             # MPI version:
             # let the configure script auto-detect MPI support from mpi_prefix
-            if "@:8" in spec:
+            if spec.satisfies("@:8"):
                 oapp("--enable-mpi=yes")
             else:
                 oapp("--with-mpi")
         else:
-            if "@:8" in spec:
+            if spec.satisfies("@:8"):
                 oapp("--enable-mpi=no")
             else:
                 oapp("--without-mpi")
 
         # Activate OpenMP in Abinit Fortran code.
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             oapp("--enable-openmp=yes")
         else:
             oapp("--enable-openmp=no")
 
         # BLAS/LAPACK/SCALAPACK-ELPA
         linalg = spec["lapack"].libs + spec["blas"].libs
-        if "^mkl" in spec:
+
+        # linalg_flavor is selected using the virtual lapack provider
+        is_using_intel_libraries = spec["lapack"].name in INTEL_MATH_LIBRARIES
+
+        # These *must* be elifs, otherwise spack's lapack provider is ignored
+        # linalg_flavor ends up as "custom", which is not supported by abinit@9.10.3:
+        if is_using_intel_libraries:
             linalg_flavor = "mkl"
-        elif "@9:" in spec and "^openblas" in spec:
-            linalg_flavor = "openblas"
-        elif "@9:" in spec and "^fujitsu-ssl2" in spec:
+        # Else, if spack's virtual "lapack" provider is openblas, use it:
+        elif spec.satisfies("@9:") and (
+            spec["lapack"].name == "openblas" or spec.satisfies("^fujitsu-ssl2")
+        ):
             linalg_flavor = "openblas"
         else:
+            # If you need to force custom (and not have it as fallback, like now)
+            # you should likely implement a variant to force it, but it seems that
+            # newer versions do not have it, so it should likely be a fallback:
             linalg_flavor = "custom"
 
-        if "+scalapack" in spec:
+        if spec.satisfies("+scalapack"):
             linalg = spec["scalapack"].libs + linalg
-            if "@:8" in spec:
-                linalg_flavor = "scalapack+{0}".format(linalg_flavor)
+            if spec.satisfies("@:8"):
+                linalg_flavor = f"scalapack+{linalg_flavor}"
 
-        if "@:8" in spec:
-            oapp("--with-linalg-libs={0}".format(linalg.ld_flags))
+        if spec.satisfies("@:8"):
+            oapp(f"--with-linalg-libs={linalg.ld_flags}")
         else:
-            oapp("LINALG_LIBS={0}".format(linalg.ld_flags))
+            oapp(f"LINALG_LIBS={linalg.ld_flags}")
 
-        oapp("--with-linalg-flavor={0}".format(linalg_flavor))
+        oapp(f"--with-linalg-flavor={linalg_flavor}")
 
-        if "^mkl" in spec:
+        if is_using_intel_libraries:
             fftflavor = "dfti"
         else:
-            if "+openmp" in spec:
+            if spec.satisfies("+openmp"):
                 fftflavor, fftlibs = "fftw3-threads", "-lfftw3_omp -lfftw3 -lfftw3f"
             else:
                 fftflavor, fftlibs = "fftw3", "-lfftw3 -lfftw3f"
 
-        oapp("--with-fft-flavor={0}".format(fftflavor))
+        oapp(f"--with-fft-flavor={fftflavor}")
 
-        if "@:8" in spec:
-            if "^mkl" in spec:
-                oapp("--with-fft-incs={0}".format(spec["fftw-api"].headers.cpp_flags))
-                oapp("--with-fft-libs={0}".format(spec["fftw-api"].libs.ld_flags))
+        if spec.satisfies("@:8"):
+            if is_using_intel_libraries:
+                oapp(f"--with-fft-incs={spec['fftw-api'].headers.cpp_flags}")
+                oapp(f"--with-fft-libs={spec['fftw-api'].libs.ld_flags}")
             else:
                 options.extend(
                     [
-                        "--with-fft-incs={0}".format(spec["fftw-api"].headers.cpp_flags),
-                        "--with-fft-libs=-L{0} {1}".format(spec["fftw-api"].prefix.lib, fftlibs),
+                        f"--with-fft-incs={spec['fftw-api'].headers.cpp_flags}",
+                        f"--with-fft-libs=-L{spec['fftw-api'].prefix.lib} {fftlibs}",
                     ]
                 )
         else:
-            if "^mkl" in spec:
+            if is_using_intel_libraries:
                 options.extend(
                     [
-                        "FFT_CPPFLAGS={0}".format(spec["fftw-api"].headers.cpp_flags),
-                        "FFT_LIBs={0}".format(spec["fftw-api"].libs.ld_flags),
+                        f"FFT_CPPFLAGS={spec['fftw-api'].headers.cpp_flags}",
+                        f"FFT_LIBs={spec['fftw-api'].libs.ld_flags}",
                     ]
                 )
             else:
                 options.extend(
                     [
-                        "FFTW3_CPPFLAGS={0}".format(spec["fftw-api"].headers.cpp_flags),
-                        "FFTW3_LIBS=-L{0} {1}".format(spec["fftw-api"].prefix.lib, fftlibs),
+                        f"FFTW3_CPPFLAGS={spec['fftw-api'].headers.cpp_flags}",
+                        f"FFTW3_LIBS=-L{spec['fftw-api'].prefix.lib} {fftlibs}",
                     ]
                 )
 
         # LibXC library
         libxc = spec["libxc:fortran"]
-        if "@:8" in spec:
+        if spec.satisfies("@:8"):
             options.extend(
                 [
-                    "--with-libxc-incs={0}".format(libxc.headers.cpp_flags),
-                    "--with-libxc-libs={0}".format(libxc.libs.ld_flags + " -lm"),
+                    f"--with-libxc-incs={libxc.headers.cpp_flags}",
+                    f"--with-libxc-libs={libxc.libs.ld_flags + ' -lm'}",
                 ]
             )
         else:
-            oapp("--with-libxc={0}".format(libxc.prefix))
+            oapp(f"--with-libxc={libxc.prefix}")
 
         # Netcdf4/HDF5
         hdf5 = spec["hdf5:hl"]
         netcdfc = spec["netcdf-c"]
         netcdff = spec["netcdf-fortran:shared"]
-        if "@:8" in spec:
+        if spec.satisfies("@:8"):
             oapp("--with-trio-flavor=netcdf")
             # Since version 8, Abinit started to use netcdf4 + hdf5 and we have
             # to link with the high level HDF5 library
             options.extend(
                 [
-                    "--with-netcdf-incs={0}".format(
+                    "--with-netcdf-incs={}".format(
                         netcdfc.headers.cpp_flags + " " + netcdff.headers.cpp_flags
                     ),
-                    "--with-netcdf-libs={0}".format(
+                    "--with-netcdf-libs={}".format(
                         netcdff.libs.ld_flags + " " + hdf5.libs.ld_flags
                     ),
                 ]
             )
         else:
             options.extend(
-                [
-                    "--with-netcdf={0}".format(netcdfc.prefix),
-                    "--with-netcdf-fortran={0}".format(netcdff.prefix),
-                ]
+                [f"--with-netcdf={netcdfc.prefix}", f"--with-netcdf-fortran={netcdff.prefix}"]
             )
 
         if self.spec.satisfies("%fj"):
-            oapp("FCFLAGS_MODDIR=-M{0}".format(join_path(self.stage.source_path, "src/mods")))
+            oapp(f"FCFLAGS_MODDIR=-M{join_path(self.stage.source_path, 'src/mods')}")
 
         return options
 
@@ -305,10 +325,20 @@ class Abinit(AutotoolsPackage):
         # the tests directly execute abinit. thus failing with MPI
         # TODO: run tests in tests/ via the builtin runtests.py
         #       requires Python with numpy, pyyaml, pandas
-        if "~mpi" in self.spec:
+        if self.spec.satisfies("~mpi"):
             make("tests_in")
+
+    # Abinit assumes the *old* behavior of HDF5 where the library flags to link
+    # to the library were stored in the lib/libhdf5.settings file.
+    # Spack already knows how to link to HDF5, disable this check in configure
+    def patch(self):
+        filter_file(
+            r"sd_hdf5_libs_extra=.*",
+            "sd_hdf5_libs_extra=%s" % self.spec["hdf5"].libs.ld_flags,
+            "configure",
+        )
 
     def install(self, spec, prefix):
         make("install")
-        if "+install-tests" in spec:
+        if spec.satisfies("+install-tests"):
             install_tree("tests", spec.prefix.tests)

@@ -1,0 +1,22 @@
+diff --git a/src/cdo_module.cc b/src/cdo_module_patched.cc
+index dc408d9..f50c2d3 100644
+--- a/src/cdo_module.cc
++++ b/src/cdo_module_patched.cc
+@@ -1,4 +1,5 @@
+ #include "cdo_module.h"
++#include <algorithm>
+ 
+ oper_t::oper_t() : help(default_help) {}
+ 
+diff --git a/src/cdo_options.cc b/src/cdo_options_patched.cc
+index 465f1f9..0684e78 100644
+--- a/src/cdo_options.cc
++++ b/src/cdo_options_patched.cc
+@@ -12,6 +12,7 @@
+ #include "cdo_output.h"
+ 
+ #include <cstring>
++#include <algorithm>
+ 
+ namespace cdo
+ {

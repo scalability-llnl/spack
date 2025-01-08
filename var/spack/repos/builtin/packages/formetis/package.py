@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,7 +13,14 @@ class Formetis(CMakePackage):
 
     maintainers("sethrj")
 
+    test_requires_compiler = True
+
+    license("MIT")
+
     version("0.0.2", sha256="0067c03ca822f4a3955751acb470f21eed489256e2ec5ff24741eb2b638592f1")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("mpi", default=False, description="Enable ParMETIS support")
     variant("shared", default=True, description="Build shared libraries")
@@ -46,37 +52,28 @@ class Formetis(CMakePackage):
     def setup_smoke_tests(self):
         """Copy the example source files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources([self.examples_src_dir])
+        cache_extra_test_sources(self, [self.examples_src_dir])
 
     @property
     def cached_tests_work_dir(self):
         """The working directory for cached test sources."""
         return join_path(self.test_suite.current_test_cache_dir, self.examples_src_dir)
 
-    def test(self):
-        """Perform stand-alone/smoke tests on the installed package."""
+    def test_metis(self):
+        """build and run metis"""
         cmake_args = [
             self.define("CMAKE_PREFIX_PATH", self.prefix),
             self.define("CMAKE_Fortran_COMPILER", self.compiler.fc),
             self.define("METIS_ROOT", self.spec["metis"].prefix),
         ]
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             cmake_args.append(self.define("ParMETIS_ROOT", self.spec["parmetis"].prefix))
         cmake_args.append(self.cached_tests_work_dir)
+        cmake = which(self.spec["cmake"].prefix.bin.cmake)
+        make = which("make")
 
-        self.run_test(
-            "cmake", cmake_args, purpose="test: calling cmake", work_dir=self.cached_tests_work_dir
-        )
-
-        self.run_test(
-            "make", [], purpose="test: building the tests", work_dir=self.cached_tests_work_dir
-        )
-
-        self.run_test(
-            "metis",
-            [],
-            [],
-            purpose="test: checking the installation",
-            installed=False,
-            work_dir=self.cached_tests_work_dir,
-        )
+        with working_dir(self.cached_tests_work_dir):
+            cmake(*cmake_args)
+            make()
+            metis = which("metis")
+            metis()

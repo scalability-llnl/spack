@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,8 +20,6 @@ class Fplo(MakefilePackage):
     homepage = "https://www.fplo.de/"
     url = "file://{0}/FPLO22.00-62.tar.gz".format(os.getcwd())
     manual_download = True
-
-    maintainers("glennpj")
 
     version("22.00-62", sha256="0d1d4e9c1e8e41900901e26c3cd08ee39dcfdeb3f2c4c8862055eaf704b6d69e")
 
@@ -85,7 +82,7 @@ class Fplo(MakefilePackage):
         filter_file(r"^\s*F90\s*=.*", "F90=" + spack_fc, *files)
 
         # patch for 64 bit integers
-        if "^mkl+ilp64" in spec:
+        if spec["mkl"].satisfies("+ilp64"):
             setuphelper = FileFilter(join_path(self.build_directory, "PYTHON", "setuphelper.py"))
             setuphelper.filter("mkl 64bit integer 32bit", "mkl 64bit integer 64bit")
 
@@ -138,5 +135,4 @@ class Fplo(MakefilePackage):
             pattern = "^#!.*/usr/bin/perl"
             repl = "#!{0}".format(self.spec["perl"].command.path)
             files = ["fconv2", "fconvdens2", "fdowngrad.pl", "fout2in", "grBhfat", "grpop"]
-            for file in files:
-                filter_file(pattern, repl, *files, backup=False)
+            filter_file(pattern, repl, *files, backup=False)

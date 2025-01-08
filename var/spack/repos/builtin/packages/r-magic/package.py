@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,8 @@ class RMagic(RPackage):
     to the often-heard comment "I thought R was just for statistics"."""
 
     cran = "magic"
+
+    license("GPL-2.0-only")
 
     version("1.6-1", sha256="ca79ec7ae92b736cb128556c081abf547f49956c326e053a76579889cbcb7976")
     version("1.6-0", sha256="4516d48c9618e3f395db873e886f5deb3b66b32ebe10d4c26c1420ac848acbbf")

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PyRefgenconf(PythonPackage):
 
     homepage = "https://github.com/refgenie/refgenconf"
     pypi = "refgenconf/refgenconf-0.12.2.tar.gz"
+
+    license("BSD-2-Clause")
 
     version("0.12.2", sha256="6c9f9ecd8b91b4f75a535cfbdbdfb136f2dc9e9864142d07aa0352c61cf0cf78")
 

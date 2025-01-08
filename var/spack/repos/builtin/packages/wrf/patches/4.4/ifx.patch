@@ -1,0 +1,57 @@
+diff --git a/arch/configure.defaults b/arch/configure.defaults
+index 6aa210d7..a3224d34 100644
+--- a/arch/configure.defaults
++++ b/arch/configure.defaults
+@@ -1962,6 +1962,51 @@ RLFLAGS		=
+ CC_TOOLS        =      $(SCC) 
+ NETCDFPAR_BUILD	=      CONFIGURE_NETCDFPAR_BUILD
+ 
++###########################################################
++#ARCH    Linux KNL x86_64 ppc64le i486 i586 i686, ifx compiler with icx #serial smpar dmpar dm+sm
++#
++DESCRIPTION     =       INTEL ($SFC/$SCC): SKX/ICX
++DMPARALLEL      =        1
++OMPCPP          =        -D_OPENMP
++OMP             =         -fiopenmp
++OMPCC           =         -fiopenmp
++SFC             =        ifx
++SCC             =        icx
++CCOMP           =        icx
++DM_FC           =       $(MPIF90)
++DM_CC           =       $(MPICC)
++FC              =       time $(DM_FC)
++CC              =       $(DM_CC) -DFSEEKO64_OK 
++LD              =       $(FC)
++RWORDSIZE       =       $(NATIVE_RWORDSIZE)
++PROMOTION       =       -real-size `expr 8 \* $(RWORDSIZE)` -i4
++ARCH_LOCAL      =       -DNONSTANDARD_SYSTEM_FUNC -DRPC_TYPES=2 -DXEON_SIMD
++CFLAGS_LOCAL    =       -w -flto -O3 -Wno-implicit-function-declaration -Wno-implicit-int
++LDFLAGS_LOCAL   =       -flto -fuse-ld=lld -i_use-path
++CPLUSPLUSLIB    =       
++ESMF_LDFLAG     =       $(CPLUSPLUSLIB)
++FCOPTIM         =       -O3
++FCREDUCEDOPT	=       $(FCOPTIM)
++FCNOOPT		=       -O3
++FCDEBUG         =       # -g $(FCNOOPT) -traceback # -fpe0 -check noarg_temp_created,bounds,format,output_conversion,pointers,uninit -ftrapuv -unroll0 -u
++FORMAT_FIXED    =       -FI
++FORMAT_FREE     =       -FR
++FCSUFFIX        =
++BYTESWAPIO      =       -convert big_endian
++RECORDLENGTH    =       -assume byterecl
++FCBASEOPTS_NO_G =       -O3 -flto -w -ftz -align array64byte -fno-alias $(FORMAT_FREE) $(BYTESWAPIO) -fp-model fast=2 -fimf-use-svml=true -vec-threshold0
++FCBASEOPTS      =       $(FCBASEOPTS_NO_G) $(FCDEBUG)
++MODULE_SRCH_FLAG =     
++TRADFLAG        =      -traditional-cpp
++CPP             =      /lib/cpp -P -nostdinc
++AR              =      ar
++ARFLAGS         =      ru
++M4              =      m4
++RANLIB          =      ranlib
++RLFLAGS		=	
++CC_TOOLS        =      $(SCC) -Wno-implicit-function-declaration -Wno-implicit-int
++NETCDFPAR_BUILD	=      echo SKIPPING
++
+ ###########################################################
+ #ARCH    CYGWIN_NT i686 x86_64 Cygwin, gfortran compiler with gcc  #serial smpar dmpar dm+sm
+ #
+

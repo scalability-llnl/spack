@@ -1,0 +1,100 @@
+From 8fce7378ed8ce994107568449806cd99274ab22b Mon Sep 17 00:00:00 2001
+From: Andrew Elble <aweits@rit.edu>
+Date: Mon, 21 Oct 2024 19:42:31 -0400
+Subject: [PATCH] patchit
+
+---
+ ...ch-for-Abseil-to-fix-build-on-Jetson.patch | 68 +++++++++++++++++++
+ third_party/xla/workspace.bzl                 |  1 +
+ 2 files changed, 69 insertions(+)
+ create mode 100644 third_party/xla/0001-Add-patch-for-Abseil-to-fix-build-on-Jetson.patch
+
+diff --git a/third_party/xla/0001-Add-patch-for-Abseil-to-fix-build-on-Jetson.patch b/third_party/xla/0001-Add-patch-for-Abseil-to-fix-build-on-Jetson.patch
+new file mode 100644
+index 000000000000..5138a045082b
+--- /dev/null
++++ b/third_party/xla/0001-Add-patch-for-Abseil-to-fix-build-on-Jetson.patch
+@@ -0,0 +1,68 @@
++From 40da87a0476436ca1da2eafe08935787a05e9a61 Mon Sep 17 00:00:00 2001
++From: David Dunleavy <ddunleavy@google.com>
++Date: Mon, 5 Aug 2024 11:42:53 -0700
++Subject: [PATCH] Add patch for Abseil to fix build on Jetson
++
++Patches in https://github.com/abseil/abseil-cpp/commit/372124e6af36a540e74a2ec31d79d7297a831f98
++
++PiperOrigin-RevId: 659627531
++---
++ .../tsl/third_party/absl/nvidia_jetson.patch  | 35 +++++++++++++++++++
++ .../tsl/third_party/absl/workspace.bzl        |  1 +
++ 2 files changed, 36 insertions(+)
++ create mode 100644 third_party/tsl/third_party/absl/nvidia_jetson.patch
++
++diff --git a/third_party/tsl/third_party/absl/nvidia_jetson.patch b/third_party/tsl/third_party/absl/nvidia_jetson.patch
++new file mode 100644
++index 000000000000..5328c3a0d605
++--- /dev/null
+++++ b/third_party/tsl/third_party/absl/nvidia_jetson.patch
++@@ -0,0 +1,35 @@
+++From 372124e6af36a540e74a2ec31d79d7297a831f98 Mon Sep 17 00:00:00 2001
+++From: =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Bastien?= <frederic.bastien@gmail.com>
+++Date: Thu, 1 Aug 2024 12:38:52 -0700
+++Subject: [PATCH] PR #1732: Fix build on NVIDIA Jetson board. Fix #1665
+++
+++Imported from GitHub PR https://github.com/abseil/abseil-cpp/pull/1732
+++
+++Fix build on NVIDIA Jetson board. Fix #1665
+++
+++This patch is already used by the spark project.
+++I'm fixing this as this break the build of Tensorflow and JAX on Jetson board.
+++Merge 7db2d2ab9fbed1f0fabad10a6ec73533ba71bfff into 6b8ebb35c0414ef5a2b6fd4a0f59057e41beaff9
+++
+++Merging this change closes #1732
+++
+++COPYBARA_INTEGRATE_REVIEW=https://github.com/abseil/abseil-cpp/pull/1732 from nouiz:fix_neon_on_jetson 7db2d2ab9fbed1f0fabad10a6ec73533ba71bfff
+++PiperOrigin-RevId: 658501520
+++Change-Id: If502ede4efc8c877fb3fed227eca6dc7622dd181
+++---
+++ absl/base/config.h | 2 +-
+++ 1 file changed, 1 insertion(+), 1 deletion(-)
+++
+++diff --git a/absl/base/config.h b/absl/base/config.h
+++index 97c9a22a109..ab1e9860a91 100644
+++--- a/absl/base/config.h
++++++ b/absl/base/config.h
+++@@ -926,7 +926,7 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
+++ // https://llvm.org/docs/CompileCudaWithLLVM.html#detecting-clang-vs-nvcc-from-code
+++ #ifdef ABSL_INTERNAL_HAVE_ARM_NEON
+++ #error ABSL_INTERNAL_HAVE_ARM_NEON cannot be directly set
+++-#elif defined(__ARM_NEON) && !defined(__CUDA_ARCH__)
++++#elif defined(__ARM_NEON) && !(defined(__NVCC__) && defined(__CUDACC__))
+++ #define ABSL_INTERNAL_HAVE_ARM_NEON 1
+++ #endif
+++ 
++diff --git a/third_party/tsl/third_party/absl/workspace.bzl b/third_party/tsl/third_party/absl/workspace.bzl
++index 06f75166ce4b..9565a82c3319 100644
++--- a/third_party/tsl/third_party/absl/workspace.bzl
+++++ b/third_party/tsl/third_party/absl/workspace.bzl
++@@ -44,4 +44,5 @@ def repo():
++         system_link_files = SYS_LINKS,
++         strip_prefix = "abseil-cpp-{commit}".format(commit = ABSL_COMMIT),
++         urls = tf_mirror_urls("https://github.com/abseil/abseil-cpp/archive/{commit}.tar.gz".format(commit = ABSL_COMMIT)),
+++        patch_file = ["//third_party/absl:nvidia_jetson.patch"],
++     )
++-- 
++2.31.1
++
+diff --git a/third_party/xla/workspace.bzl b/third_party/xla/workspace.bzl
+index af52e7671507..70481bc970a5 100644
+--- a/third_party/xla/workspace.bzl
++++ b/third_party/xla/workspace.bzl
+@@ -29,6 +29,7 @@ def repo():
+         name = "xla",
+         sha256 = XLA_SHA256,
+         strip_prefix = "xla-{commit}".format(commit = XLA_COMMIT),
++	patch_file = ["//third_party/xla:0001-Add-patch-for-Abseil-to-fix-build-on-Jetson.patch"],
+         urls = tf_mirror_urls("https://github.com/openxla/xla/archive/{commit}.tar.gz".format(commit = XLA_COMMIT)),
+     )
+ 
+-- 
+2.31.1
+

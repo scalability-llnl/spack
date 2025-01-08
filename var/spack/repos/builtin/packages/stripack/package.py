@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,11 @@ class Stripack(MakefilePackage):
     """
 
     homepage = "https://people.sc.fsu.edu/~jburkardt/f_src/stripack/stripack.html"
+
+    maintainers("cessenat")
+
+    license("MIT")
+
     version(
         "develop",
         sha256="26c074bc46fb8549d7a42ec713636798297d7327c8f3ce0ba2d3348a501ffa7c",
@@ -64,7 +68,7 @@ class Stripack(MakefilePackage):
             fflags += ["-qrealsize=8"]
         elif satisfies("%fj"):
             fflags += ["-CcdRR8"]
-        elif satisfies("%pgi") or satisfies("%nvhpc"):
+        elif satisfies("%nvhpc"):
             fflags += ["-r8"]
         fflags += [self.compiler.fc_pic_flag]
         make("all", "FFLAGS={0}".format(" ".join(fflags)))

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,8 +19,14 @@ class Openloops(Package):
 
     tags = ["hep"]
 
+    license("GPL-3.0-only")
+
     version("2.1.2", sha256="f52575cae3d70b6b51a5d423e9cd0e076ed5961afcc015eec00987e64529a6ae")
     version("2.1.1", sha256="f1c47ece812227eab584e2c695fef74423d2f212873f762b8658f728685bcb91")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     all_processes = [
         "tbln",
@@ -268,12 +273,16 @@ class Openloops(Package):
             f.write("fortran_compiler = {0}\n".format(env["SPACK_FC"]))
             if self.spec.satisfies("@1.3.1") and not is_intel:
                 f.write("gfortran_f_flags = -ffree-line-length-none\n")
-            if self.spec.satisfies("@2.1.1:") and not is_intel:
+            if self.spec.satisfies("@2.1.1") and not is_intel:
                 f.write("gfortran_f_flags = -ffree-line-length-none " + "-fdollar-ok ")
                 if self.spec.target.family == "aarch64":
                     f.write("-mcmodel=small\n")
                 else:
                     f.write("-mcmodel=medium\n")
+            if self.spec.satisfies("@2.1.2:") and not is_intel:
+                f.write("gfortran_f_flags = -ffree-line-length-none " + "-fdollar-ok\n")
+                if self.spec.target.family == "aarch64":
+                    f.write("cmodel = small\n")
 
         if self.spec.satisfies("@:1 processes=lcg.coll"):
             copy(join_path(os.path.dirname(__file__), "sft1.coll"), "lcg.coll")

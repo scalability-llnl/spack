@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,9 @@ class RPillar(RPackage):
 
     cran = "pillar"
 
+    license("MIT")
+
+    version("1.9.0", sha256="f23eb486c087f864c2b4072d5cba01d5bebf2f554118bcba6886d8dbceb87acc")
     version("1.8.1", sha256="2f06a7cc9e5638390c9b98a6ec9a9ec1beec0f2b9dbdfa42e39a5ab2456d87ec")
     version("1.7.0", sha256="7841f89658cc8935568c0ff24dc480b4481bac896de2f6447050abc4360a13bb")
     version("1.6.5", sha256="22fbf1ba0677fbd15cb35729fe4e97fab751a4c1de3eb8a4694f86b2be411bdb")
@@ -42,8 +44,8 @@ class RPillar(RPackage):
     depends_on("r-vctrs", type=("build", "run"), when="@1.4.0:")
     depends_on("r-vctrs@0.2.0:", type=("build", "run"), when="@1.4.7:")
     depends_on("r-vctrs@0.3.8:", type=("build", "run"), when="@1.6.1:")
-    depends_on("r-crayon@1.3.4:", type=("build", "run"))
-    depends_on("r-crayon", when="@:1.7.0")
-    depends_on("r-ellipsis", type=("build", "run"), when="@1.4.7:")
-    depends_on("r-ellipsis@0.3.2", type=("build", "run"), when="@1.6.1:")
-    depends_on("r-ellipsis", when="@:1.7.0")
+    depends_on("r-vctrs@0.5.0:", type=("build", "run"), when="@1.9.0:")
+
+    depends_on("r-crayon@1.3.4:", type=("build", "run"), when="@:1.7.0")
+    depends_on("r-ellipsis", type=("build", "run"), when="@1.4.7:1.7.0")
+    depends_on("r-ellipsis@0.3.2", type=("build", "run"), when="@1.6.1:1.7.0")

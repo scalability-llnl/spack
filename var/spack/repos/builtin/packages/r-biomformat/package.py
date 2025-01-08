@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,7 @@ class RBiomformat(RPackage):
 
     bioc = "biomformat"
 
+    version("1.28.0", commit="9240e78dc378abcf6c62ef8dbf2e60f7241232a3")
     version("1.26.0", commit="f851ba2428b57769f6fbb287874bad0dc84dd69c")
     version("1.24.0", commit="4e14692dbcc34c3bd51defd74c728df5de9d0829")
     version("1.22.0", commit="ab7c6411a038fec010baa72e663f362fd972cb34")

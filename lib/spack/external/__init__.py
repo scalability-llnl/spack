@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,7 +17,7 @@ archspec
 
 * Homepage: https://pypi.python.org/pypi/archspec
 * Usage: Labeling, comparison and detection of microarchitectures
-* Version: 0.2.0-dev (commit d02dadbac4fa8f3a60293c4fbfd59feadaf546dc)
+* Version: 0.2.5 (commit 38ce485258ffc4fc6dd6688f8dc90cb269478c47)
 
 astunparse
 ----------------

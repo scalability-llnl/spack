@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -8,7 +7,7 @@ We try to maintain compatibility with RPM's version semantics
 where it makes sense.
 """
 import os
-import sys
+import pathlib
 
 import pytest
 
@@ -16,7 +15,9 @@ from llnl.util.filesystem import working_dir
 
 import spack.package_base
 import spack.spec
+import spack.version
 from spack.version import (
+    EmptyRangeError,
     GitVersion,
     StandardVersion,
     Version,
@@ -26,6 +27,7 @@ from spack.version import (
     is_git_version,
     ver,
 )
+from spack.version.git_ref_lookup import SEMVER_REGEX
 
 
 def assert_ver_lt(a, b):
@@ -211,12 +213,24 @@ def test_nums_and_patch():
     assert_ver_gt("=6.5p1", "=5.6p1")
 
 
-def test_rc_versions():
-    assert_ver_gt("=6.0.rc1", "=6.0")
-    assert_ver_lt("=6.0", "=6.0.rc1")
+def test_prereleases():
+    # pre-releases are special: they are less than final releases
+    assert_ver_lt("=6.0alpha", "=6.0alpha0")
+    assert_ver_lt("=6.0alpha0", "=6.0alpha1")
+    assert_ver_lt("=6.0alpha1", "=6.0alpha2")
+    assert_ver_lt("=6.0alpha2", "=6.0beta")
+    assert_ver_lt("=6.0beta", "=6.0beta0")
+    assert_ver_lt("=6.0beta0", "=6.0beta1")
+    assert_ver_lt("=6.0beta1", "=6.0beta2")
+    assert_ver_lt("=6.0beta2", "=6.0rc")
+    assert_ver_lt("=6.0rc", "=6.0rc0")
+    assert_ver_lt("=6.0rc0", "=6.0rc1")
+    assert_ver_lt("=6.0rc1", "=6.0rc2")
+    assert_ver_lt("=6.0rc2", "=6.0")
 
 
 def test_alpha_beta():
+    # these are not pre-releases, but ordinary string components.
     assert_ver_gt("=10b2", "=10a1")
     assert_ver_lt("=10a2", "=10b2")
 
@@ -273,6 +287,39 @@ def test_version_ranges():
 
     assert_ver_lt("1.2:1.4", "1.5:1.6")
     assert_ver_gt("1.5:1.6", "1.2:1.4")
+
+
+def test_version_range_with_prereleases():
+    # 1.2.1: means from the 1.2.1 release onwards
+    assert_does_not_satisfy("1.2.1alpha1", "1.2.1:")
+    assert_does_not_satisfy("1.2.1beta2", "1.2.1:")
+    assert_does_not_satisfy("1.2.1rc3", "1.2.1:")
+
+    # Pre-releases of 1.2.1 are included in the 1.2.0: range
+    assert_satisfies("1.2.1alpha1", "1.2.0:")
+    assert_satisfies("1.2.1beta1", "1.2.0:")
+    assert_satisfies("1.2.1rc3", "1.2.0:")
+
+    # In Spack 1.2 and 1.2.0 are distinct with 1.2 < 1.2.0. So a lowerbound on 1.2 includes
+    # pre-releases of 1.2.0 as well.
+    assert_satisfies("1.2.0alpha1", "1.2:")
+    assert_satisfies("1.2.0beta2", "1.2:")
+    assert_satisfies("1.2.0rc3", "1.2:")
+
+    # An upperbound :1.1 does not include 1.2.0 pre-releases
+    assert_does_not_satisfy("1.2.0alpha1", ":1.1")
+    assert_does_not_satisfy("1.2.0beta2", ":1.1")
+    assert_does_not_satisfy("1.2.0rc3", ":1.1")
+
+    assert_satisfies("1.2.0alpha1", ":1.2")
+    assert_satisfies("1.2.0beta2", ":1.2")
+    assert_satisfies("1.2.0rc3", ":1.2")
+
+    # You can also construct ranges from prereleases
+    assert_satisfies("1.2.0alpha2:1.2.0beta1", "1.2.0alpha1:1.2.0beta2")
+    assert_satisfies("1.2.0", "1.2.0alpha1:")
+    assert_satisfies("=1.2.0", "1.2.0alpha1:")
+    assert_does_not_satisfy("=1.2.0", ":1.2.0rc345")
 
 
 def test_contains():
@@ -415,12 +462,12 @@ def test_basic_version_satisfaction():
     assert_satisfies("4.7.3", "4.7.3")
 
     assert_satisfies("4.7.3", "4.7")
-    assert_satisfies("4.7.3b2", "4.7")
-    assert_satisfies("4.7b6", "4.7")
+    assert_satisfies("4.7.3v2", "4.7")
+    assert_satisfies("4.7v6", "4.7")
 
     assert_satisfies("4.7.3", "4")
-    assert_satisfies("4.7.3b2", "4")
-    assert_satisfies("4.7b6", "4")
+    assert_satisfies("4.7.3v2", "4")
+    assert_satisfies("4.7v6", "4")
 
     assert_does_not_satisfy("4.8.0", "4.9")
     assert_does_not_satisfy("4.8", "4.9")
@@ -431,12 +478,12 @@ def test_basic_version_satisfaction_in_lists():
     assert_satisfies(["4.7.3"], ["4.7.3"])
 
     assert_satisfies(["4.7.3"], ["4.7"])
-    assert_satisfies(["4.7.3b2"], ["4.7"])
-    assert_satisfies(["4.7b6"], ["4.7"])
+    assert_satisfies(["4.7.3v2"], ["4.7"])
+    assert_satisfies(["4.7v6"], ["4.7"])
 
     assert_satisfies(["4.7.3"], ["4"])
-    assert_satisfies(["4.7.3b2"], ["4"])
-    assert_satisfies(["4.7b6"], ["4"])
+    assert_satisfies(["4.7.3v2"], ["4"])
+    assert_satisfies(["4.7v6"], ["4"])
 
     assert_does_not_satisfy(["4.8.0"], ["4.9"])
     assert_does_not_satisfy(["4.8"], ["4.9"])
@@ -505,6 +552,11 @@ def test_formatted_strings():
         assert v.dotted.joined.string == "123b"
 
 
+def test_dotted_numeric_string():
+    assert Version("1a2b3").dotted_numeric_string == "1.0.2.0.3"
+    assert Version("1a2b3alpha4").dotted_numeric_string == "1.0.2.0.3.0.4"
+
+
 def test_up_to():
     v = Version("1.23-4_5b")
 
@@ -546,9 +598,21 @@ def test_repr_and_str():
     check_repr_and_str("R2016a.2-3_4")
 
 
+@pytest.mark.parametrize(
+    "version_str", ["1.2string3", "1.2-3xyz_4-alpha.5", "1.2beta", "1_x_rc-4"]
+)
+def test_stringify_version(version_str):
+    v = Version(version_str)
+    v.string = None
+    assert str(v) == version_str
+
+    v.string = None
+    assert v.string == version_str
+
+
 def test_len():
     a = Version("1.2.3.4")
-    assert len(a) == len(a.version)
+    assert len(a) == len(a.version[0])
     assert len(a) == 4
     b = Version("2018.0")
     assert len(b) == 2
@@ -597,11 +661,10 @@ def test_invalid_versions(version_str):
         Version(version_str)
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="Not supported on Windows (yet)")
 def test_versions_from_git(git, mock_git_version_info, monkeypatch, mock_packages):
     repo_path, filename, commits = mock_git_version_info
     monkeypatch.setattr(
-        spack.package_base.PackageBase, "git", "file://%s" % repo_path, raising=False
+        spack.package_base.PackageBase, "git", pathlib.Path(repo_path).as_uri(), raising=False
     )
 
     for commit in commits:
@@ -612,13 +675,12 @@ def test_versions_from_git(git, mock_git_version_info, monkeypatch, mock_package
         with working_dir(repo_path):
             git("checkout", commit)
 
-        with open(os.path.join(repo_path, filename), "r") as f:
+        with open(os.path.join(repo_path, filename), "r", encoding="utf-8") as f:
             expected = f.read()
 
         assert str(comparator) == expected
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="Not supported on Windows (yet)")
 @pytest.mark.parametrize(
     "commit_idx,expected_satisfies,expected_not_satisfies",
     [
@@ -642,7 +704,7 @@ def test_git_hash_comparisons(
     """Check that hashes compare properly to versions"""
     repo_path, filename, commits = mock_git_version_info
     monkeypatch.setattr(
-        spack.package_base.PackageBase, "git", "file://%s" % repo_path, raising=False
+        spack.package_base.PackageBase, "git", pathlib.Path(repo_path).as_uri(), raising=False
     )
 
     spec = spack.spec.Spec(f"git-test-commit@{commits[commit_idx]}").concretized()
@@ -653,12 +715,11 @@ def test_git_hash_comparisons(
         assert not spec.satisfies(item)
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="Not supported on Windows (yet)")
 def test_git_ref_comparisons(mock_git_version_info, install_mockery, mock_packages, monkeypatch):
     """Check that hashes compare properly to versions"""
     repo_path, filename, commits = mock_git_version_info
     monkeypatch.setattr(
-        spack.package_base.PackageBase, "git", "file://%s" % repo_path, raising=False
+        spack.package_base.PackageBase, "git", pathlib.Path(repo_path).as_uri(), raising=False
     )
 
     # Spec based on tag v1.0
@@ -674,6 +735,25 @@ def test_git_ref_comparisons(mock_git_version_info, install_mockery, mock_packag
     assert spec_branch.satisfies("@1.2")
     assert spec_branch.satisfies("@1.1:1.3")
     assert str(spec_branch.version) == "git.1.x=1.2"
+
+
+def test_git_branch_with_slash():
+    class MockLookup(object):
+        def get(self, ref):
+            assert ref == "feature/bar"
+            return "1.2", 0
+
+    v = spack.version.from_string("git.feature/bar")
+    assert isinstance(v, GitVersion)
+    v.attach_lookup(MockLookup())
+
+    # Create a version range
+    test_number_version = spack.version.from_string("1.2")
+    v.satisfies(test_number_version)
+
+    serialized = VersionList([v]).to_dict()
+    v_deserialized = VersionList.from_dict(serialized)
+    assert v_deserialized[0].ref == "feature/bar"
 
 
 @pytest.mark.parametrize(
@@ -697,9 +777,9 @@ def test_version_range_nonempty():
 
 
 def test_empty_version_range_raises():
-    with pytest.raises(ValueError):
+    with pytest.raises(EmptyRangeError, match="2:1.0 is an empty range"):
         assert VersionRange("2", "1.0")
-    with pytest.raises(ValueError):
+    with pytest.raises(EmptyRangeError, match="2:1.0 is an empty range"):
         assert ver("2:1.0")
 
 
@@ -787,7 +867,6 @@ def test_version_intersects_satisfies_semantic(lhs_str, rhs_str, expected):
         ),
     ],
 )
-@pytest.mark.skipif(sys.platform == "win32", reason="Not supported on Windows (yet)")
 def test_git_versions_without_explicit_reference(
     spec_str,
     tested_intersects,
@@ -798,7 +877,7 @@ def test_git_versions_without_explicit_reference(
 ):
     repo_path, filename, commits = mock_git_version_info
     monkeypatch.setattr(
-        spack.package_base.PackageBase, "git", "file://%s" % repo_path, raising=False
+        spack.package_base.PackageBase, "git", pathlib.Path(repo_path).as_uri(), raising=False
     )
     spec = spack.spec.Spec(spec_str)
 
@@ -889,6 +968,13 @@ def test_version_list_normalization():
     assert ver("1.0:2.0,=1.0,ref=1.0") == ver(["1.0:2.0"])
 
 
+def test_version_list_connected_union_of_disjoint_ranges():
+    # Make sure that we also simplify lists of ranges if their intersection is empty, but their
+    # union is connected.
+    assert ver("1.0:2.0,2.1,2.2:3,4:6") == ver(["1.0:6"])
+    assert ver("1.0:1.2,1.3:2") == ver("1.0:1.5,1.6:2")
+
+
 @pytest.mark.parametrize("version", ["=1.2", "git.ref=1.2", "1.2"])
 def test_version_comparison_with_list_fails(version):
     vlist = VersionList(["=1.3"])
@@ -933,9 +1019,9 @@ def test_inclusion_upperbound():
     assert is_specific.intersects(upperbound) and is_range.intersects(upperbound)
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="Not supported on Windows (yet)")
+@pytest.mark.not_on_windows("Not supported on Windows (yet)")
 def test_git_version_repo_attached_after_serialization(
-    mock_git_version_info, mock_packages, monkeypatch
+    mock_git_version_info, mock_packages, config, monkeypatch
 ):
     """Test that a GitVersion instance can be serialized and deserialized
     without losing its repository reference.
@@ -953,8 +1039,10 @@ def test_git_version_repo_attached_after_serialization(
     assert spack.spec.Spec.from_dict(spec.to_dict()).satisfies("@1.0")
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="Not supported on Windows (yet)")
-def test_resolved_git_version_is_shown_in_str(mock_git_version_info, mock_packages, monkeypatch):
+@pytest.mark.not_on_windows("Not supported on Windows (yet)")
+def test_resolved_git_version_is_shown_in_str(
+    mock_git_version_info, mock_packages, config, monkeypatch
+):
     """Test that a GitVersion from a commit without a user supplied version is printed
     as <hash>=<version>, and not just <hash>."""
     repo_path, _, commits = mock_git_version_info
@@ -968,9 +1056,31 @@ def test_resolved_git_version_is_shown_in_str(mock_git_version_info, mock_packag
     assert str(spec.version) == f"{commit}=1.0-git.1"
 
 
-def test_unresolvable_git_versions_error(mock_packages):
+def test_unresolvable_git_versions_error(config, mock_packages):
     """Test that VersionLookupError is raised when a git prop is not set on a package."""
     with pytest.raises(VersionLookupError):
         # The package exists, but does not have a git property set. When dereferencing
         # the version, we should get VersionLookupError, not a generic AttributeError.
         spack.spec.Spec(f"git-test-commit@{'a' * 40}").version.ref_version
+
+
+@pytest.mark.parametrize(
+    "tag,expected",
+    [
+        ("v100.2.3", "100.2.3"),
+        ("v1.2.3", "1.2.3"),
+        ("v1.2.3-pre.release+build.1", "1.2.3-pre.release+build.1"),
+        ("v1.2.3+build.1", "1.2.3+build.1"),
+        ("v1.2.3+build_1", None),
+        ("v1.2.3-pre.release", "1.2.3-pre.release"),
+        ("v1.2.3-pre_release", None),
+        ("1.2.3", "1.2.3"),
+        ("1.2.3.", None),
+    ],
+)
+def test_semver_regex(tag, expected):
+    result = SEMVER_REGEX.search(tag)
+    if expected is None:
+        assert result is None
+    else:
+        assert result.group() == expected

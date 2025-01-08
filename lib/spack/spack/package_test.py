@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -40,7 +39,7 @@ def compare_output(current_output, blessed_output):
 
 def compare_output_file(current_output, blessed_output_file):
     """Same as above, but when the blessed output is given as a file."""
-    with open(blessed_output_file, "r") as f:
+    with open(blessed_output_file, "r", encoding="utf-8") as f:
         blessed_output = f.read()
 
     compare_output(current_output, blessed_output)

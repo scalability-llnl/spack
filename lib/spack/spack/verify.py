@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import base64
@@ -9,8 +8,8 @@ import stat
 from typing import Any, Dict
 
 import llnl.util.tty as tty
+from llnl.util.symlink import readlink
 
-import spack.filesystem_view
 import spack.store
 import spack.util.file_permissions as fp
 import spack.util.spack_json as sjson
@@ -38,7 +37,7 @@ def create_manifest_entry(path: str) -> Dict[str, Any]:
     data: Dict[str, Any] = {"mode": s.st_mode, "owner": s.st_uid, "group": s.st_gid}
 
     if stat.S_ISLNK(s.st_mode):
-        data["dest"] = os.readlink(path)
+        data["dest"] = readlink(path)
 
     elif stat.S_ISREG(s.st_mode):
         data["hash"] = compute_hash(path)
@@ -50,7 +49,9 @@ def create_manifest_entry(path: str) -> Dict[str, Any]:
 
 def write_manifest(spec):
     manifest_file = os.path.join(
-        spec.prefix, spack.store.layout.metadata_dir, spack.store.layout.manifest_file_name
+        spec.prefix,
+        spack.store.STORE.layout.metadata_dir,
+        spack.store.STORE.layout.manifest_file_name,
     )
 
     if not os.path.exists(manifest_file):
@@ -63,7 +64,7 @@ def write_manifest(spec):
                 manifest[path] = create_manifest_entry(path)
         manifest[spec.prefix] = create_manifest_entry(spec.prefix)
 
-        with open(manifest_file, "w") as f:
+        with open(manifest_file, "w", encoding="utf-8") as f:
             sjson.dump(manifest, f)
 
         fp.set_permissions_by_spec(manifest_file, spec)
@@ -88,7 +89,7 @@ def check_entry(path, data):
     # instead of `lstat(...).st_mode`. So, ignore mode errors for symlinks.
     if not stat.S_ISLNK(s.st_mode) and s.st_mode != data["mode"]:
         res.add_error(path, "mode")
-    elif stat.S_ISLNK(s.st_mode) and os.readlink(path) != data.get("dest"):
+    elif stat.S_ISLNK(s.st_mode) and readlink(path) != data.get("dest"):
         res.add_error(path, "link")
     elif stat.S_ISREG(s.st_mode):
         # Check file contents against hash and listed as file
@@ -107,14 +108,14 @@ def check_file_manifest(filename):
     dirname = os.path.dirname(filename)
 
     results = VerificationResults()
-    while spack.store.layout.metadata_dir not in os.listdir(dirname):
+    while spack.store.STORE.layout.metadata_dir not in os.listdir(dirname):
         if dirname == os.path.sep:
             results.add_error(filename, "not owned by any package")
             return results
         dirname = os.path.dirname(dirname)
 
     manifest_file = os.path.join(
-        dirname, spack.store.layout.metadata_dir, spack.store.layout.manifest_file_name
+        dirname, spack.store.STORE.layout.metadata_dir, spack.store.STORE.layout.manifest_file_name
     )
 
     if not os.path.exists(manifest_file):
@@ -122,7 +123,7 @@ def check_file_manifest(filename):
         return results
 
     try:
-        with open(manifest_file, "r") as f:
+        with open(manifest_file, "r", encoding="utf-8") as f:
             manifest = sjson.load(f)
     except Exception:
         results.add_error(filename, "manifest corrupted")
@@ -140,7 +141,7 @@ def check_spec_manifest(spec):
 
     results = VerificationResults()
     manifest_file = os.path.join(
-        prefix, spack.store.layout.metadata_dir, spack.store.layout.manifest_file_name
+        prefix, spack.store.STORE.layout.metadata_dir, spack.store.STORE.layout.manifest_file_name
     )
 
     if not os.path.exists(manifest_file):
@@ -148,7 +149,7 @@ def check_spec_manifest(spec):
         return results
 
     try:
-        with open(manifest_file, "r") as f:
+        with open(manifest_file, "r", encoding="utf-8") as f:
             manifest = sjson.load(f)
     except Exception:
         results.add_error(prefix, "manifest corrupted")
@@ -177,7 +178,7 @@ def check_spec_manifest(spec):
     return results
 
 
-class VerificationResults(object):
+class VerificationResults:
     def __init__(self):
         self.errors = {}
 

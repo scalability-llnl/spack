@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,8 @@ class BlisBase(MakefilePackage):
     of the library in the 'amdblis' package.
     """
 
+    maintainers("jeffhammond")
+
     depends_on("python@2.7:2.8,3.4:", type=("build", "run"))
 
     variant(
@@ -26,6 +27,7 @@ class BlisBase(MakefilePackage):
         multi=False,
     )
 
+    variant("ilp64", default=False, description="Force 64-bit Fortran native integers")
     variant("blas", default=True, description="BLAS compatibility")
     variant("cblas", default=True, description="CBLAS compatibility")
     variant(
@@ -46,18 +48,22 @@ class BlisBase(MakefilePackage):
     provides("blas", when="+cblas")
 
     conflicts("%nvhpc")
-    conflicts("%pgi")
 
     def configure_args(self):
         spec = self.spec
         config_args = ["--enable-threading={0}".format(spec.variants["threads"].value)]
 
-        if "+cblas" in spec:
+        if spec.satisfies("+ilp64"):
+            config_args.append("--blas-int-size=64")
+        else:
+            config_args.append("--blas-int-size=32")
+
+        if spec.satisfies("+cblas"):
             config_args.append("--enable-cblas")
         else:
             config_args.append("--disable-cblas")
 
-        if "+blas" in spec:
+        if spec.satisfies("+blas"):
             config_args.append("--enable-blas")
         else:
             config_args.append("--disable-blas")
@@ -113,7 +119,10 @@ class Blis(BlisBase):
     url = "https://github.com/flame/blis/archive/0.7.0.tar.gz"
     git = "https://github.com/flame/blis.git"
 
+    license("BSD-3-Clause")
+
     version("master", branch="master")
+    version("1.0", sha256="9c12972aa1e50f64ca61684eba6828f2f3dd509384b1e41a1e8a9aedea4b16a6")
     version("0.9.0", sha256="1135f664be7355427b91025075562805cdc6cc730d3173f83533b2c5dcc2f308")
     version("0.8.1", sha256="729694128719801e82fae7b5f2489ab73e4a467f46271beff09588c9265a697b")
     version("0.8.0", sha256="5e05868c4a6cf5032a7492f8861653e939a8f907a4fa524bbb6e14394e170a3d")
@@ -126,6 +135,10 @@ class Blis(BlisBase):
     version("0.3.1", sha256="957f28d47c5cf71ffc62ce8cc1277e17e44d305b1c2fa8506b0b55617a9f28e4")
     version("0.3.0", sha256="d34d17df7bdc2be8771fe0b7f867109fd10437ac91e2a29000a4a23164c7f0da")
     version("0.2.2", sha256="4a7ecb56034fb20e9d1d8b16e2ef587abbc3d30cb728e70629ca7e795a7998e8")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # Problems with permissions on installed libraries:
     # https://github.com/flame/blis/issues/343

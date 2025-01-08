@@ -1,0 +1,21 @@
+From 052b624e113912bb97bad877b81ddba22d37ba96 Mon Sep 17 00:00:00 2001
+From: Harmen Stoppels <harmenstoppels@gmail.com>
+Date: Sun, 9 Jul 2023 21:36:07 +0200
+Subject: [PATCH] Don't put `@LIBS@` in pc file
+
+---
+ libssh2.pc.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libssh2.pc.in b/libssh2.pc.in
+index 4fdfaa924..9cbebb7f0 100644
+--- a/libssh2.pc.in
++++ b/libssh2.pc.in
+@@ -15,6 +15,6 @@ URL: https://www.libssh2.org/
+ Description: Library for SSH-based communication
+ Version: @LIBSSH2VER@
+ Requires.private: @LIBSREQUIRED@
+-Libs: -L${libdir} -lssh2 @LIBS@
++Libs: -L${libdir} -lssh2
+ Libs.private: @LIBS@
+ Cflags: -I${includedir}

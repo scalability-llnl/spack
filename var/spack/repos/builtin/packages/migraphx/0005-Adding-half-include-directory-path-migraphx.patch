@@ -1,0 +1,48 @@
+From 612664789657444daa88f8f28a183928e01595d0 Mon Sep 17 00:00:00 2001
+From: Renjith Ravindran <Renjith.RavindranKannath@amd.com>
+Date: Mon, 25 Sep 2023 19:30:19 +0000
+Subject: [PATCH] Adding-half-include-directory-path
+
+---
+ CMakeLists.txt            | 4 +++-
+ cmake/PythonModules.cmake | 2 +-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 4601cdd..9cd48ad 100755
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -51,7 +51,7 @@ set(CMAKE_BUILD_RPATH "${CMAKE_BINARY_DIR}/lib")
+ project(migraphx)
+ find_package(ROCM REQUIRED)
+ 
+-find_path(HALF_INCLUDE_DIR half.hpp PATH_SUFFIXES half)
++find_path(HALF_INCLUDE_DIR half.hpp)
+ if (NOT HALF_INCLUDE_DIR)
+     message(FATAL_ERROR "Could not find half.hpp - Please check that the install path of half.hpp has been added to CMAKE_PREFIX_PATH")
+ else()
+@@ -272,6 +272,8 @@ add_subdirectory(docs)
+ add_subdirectory(test)
+ add_subdirectory(tools)
+ 
++target_include_directories(migraphx PUBLIC "${NLOHMANN_JSON_INCLUDE} ${HALF_INCLUDE_DIR}")
++
+ set(DEST_DIR ${CMAKE_BINARY_DIR})
+ file(GLOB backend_files ${CMAKE_SOURCE_DIR}/src/py/backend/*.py)
+ file(MAKE_DIRECTORY ${DEST_DIR}/lib/onnx_migraphx)
+diff --git a/cmake/PythonModules.cmake b/cmake/PythonModules.cmake
+index b5818ce..b4bfbb3 100755
+--- a/cmake/PythonModules.cmake
++++ b/cmake/PythonModules.cmake
+@@ -76,7 +76,7 @@ function(py_add_module NAME)
+     )
+ 
+ endfunction()
+-set(PYTHON_SEARCH_VERSIONS 2.7 3.5 3.6 3.7 3.8 3.9 3.10)
++set(PYTHON_SEARCH_VERSIONS 3.5 3.6 3.7 3.8 3.9 3.10)
+ set(PYTHON_DISABLE_VERSIONS "" CACHE STRING "")
+ foreach(PYTHON_DISABLE_VERSION ${PYTHON_DISABLE_VERSIONS})
+     list(REMOVE_ITEM PYTHON_SEARCH_VERSIONS ${PYTHON_DISABLE_VERSION})
+-- 
+2.31.1
+

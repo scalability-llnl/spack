@@ -1,9 +1,6 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-from __future__ import print_function
 
 import argparse
 import itertools
@@ -14,11 +11,10 @@ import llnl.util.tty as tty
 from llnl.util.tty.colify import colify
 
 import spack.cmd
-import spack.cmd.common.arguments as arguments
-import spack.paths
 import spack.repo
 import spack.util.executable as exe
 import spack.util.package_hash as ph
+from spack.cmd.common import arguments
 
 description = "query packages associated with particular git revisions"
 section = "developer"
@@ -60,7 +56,7 @@ def setup_parser(subparser):
         "--type",
         action="store",
         default="C",
-        help="Types of changes to show (A: added, R: removed, " "C: changed); default is 'C'",
+        help="types of changes to show (A: added, R: removed, C: changed); default is 'C'",
     )
 
     rm_parser = sp.add_parser("removed", help=pkg_removed.__doc__)
@@ -83,7 +79,7 @@ def setup_parser(subparser):
         "--canonical",
         action="store_true",
         default=False,
-        help="dump canonical source as used by package hash.",
+        help="dump canonical source as used by package hash",
     )
     arguments.add_common_arguments(source_parser, ["spec"])
 
@@ -145,7 +141,7 @@ def pkg_source(args):
         tty.die("spack pkg source requires exactly one spec")
 
     spec = specs[0]
-    filename = spack.repo.path.filename_for_package_name(spec.name)
+    filename = spack.repo.PATH.filename_for_package_name(spec.name)
 
     # regular source dump -- just get the package and print its contents
     if args.canonical:
@@ -153,7 +149,7 @@ def pkg_source(args):
         content = ph.canonical_source(spec)
     else:
         message = "Source for %s:" % filename
-        with open(filename) as f:
+        with open(filename, encoding="utf-8") as f:
             content = f.read()
 
     if sys.stdout.isatty():
@@ -171,7 +167,9 @@ def pkg_hash(args):
 
 def get_grep(required=False):
     """Get a grep command to use with ``spack pkg grep``."""
-    return exe.which(os.environ.get("SPACK_GREP") or "grep", required=required)
+    grep = exe.which(os.environ.get("SPACK_GREP") or "grep", required=required)
+    grep.ignore_quotes = True  # allow `spack pkg grep '"quoted string"'` without warning
+    return grep
 
 
 def pkg_grep(args, unknown_args):
@@ -186,7 +184,7 @@ def pkg_grep(args, unknown_args):
     grouper = lambda e: e[0] // 500
 
     # set up iterator and save the first group to ensure we don't end up with a group of size 1
-    groups = itertools.groupby(enumerate(spack.repo.path.all_package_paths()), grouper)
+    groups = itertools.groupby(enumerate(spack.repo.PATH.all_package_paths()), grouper)
     if not groups:
         return 0  # no packages to search
 

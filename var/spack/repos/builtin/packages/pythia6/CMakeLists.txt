@@ -102,7 +102,6 @@ pythia_test( main73 )
 pythia_test( main75 )
 pythia_test( main77 )
 pythia_test( main78 )
-pythia_test( main81 )
 
 # these examples take a while to run
 if( run_long_tests )

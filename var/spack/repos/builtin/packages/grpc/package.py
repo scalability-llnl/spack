@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -8,11 +7,22 @@ from spack.package import *
 class Grpc(CMakePackage):
     """A high performance, open-source universal RPC framework."""
 
-    maintainers("nazavode")
-
     homepage = "https://grpc.io"
-    url = "https://github.com/grpc/grpc/archive/v1.39.0.tar.gz"
+    url = "https://github.com/grpc/grpc/archive/v1.59.1.tar.gz"
 
+    license("Apache-2.0 AND BSD-3-Clause AND MIT")
+
+    version("1.66.1", sha256="79ed4ab72fa9589b20f8b0b76c16e353e4cfec1d773d33afad605d97b5682c61")
+    version("1.64.0", sha256="d5509e40fb24f6390deeef8a88668124f4ec77d2ebb3b1a957b235a2f08b70c0")
+    version("1.63.0", sha256="493d9905aa09124c2f44268b66205dd013f3925a7e82995f36745974e97af609")
+    version("1.62.2", sha256="e5d5e0dd96fe9452fe24cc8c827381dca484c54d171fb512a198025fec81a3c8")
+    version("1.61.2", sha256="86f8773434c4b8a4b64c67c91a19a90991f0da0ba054bbeb299dc1bc95fad1e9")
+    version("1.59.1", sha256="916f88a34f06b56432611aaa8c55befee96d0a7b7d7457733b9deeacbc016f99")
+    version("1.55.0", sha256="9cf1a69a921534ac0b760dcbefb900f3c2f735f56070bf0536506913bb5bfd74")
+    version("1.50.0", sha256="76900ab068da86378395a8e125b5cc43dfae671e09ff6462ddfef18676e2165a")
+    version("1.47.0", sha256="271bdc890bf329a8de5b65819f0f9590a5381402429bca37625b63546ed19e54")
+    version("1.46.0", sha256="67423a4cd706ce16a88d1549297023f0f9f0d695a96dd684adc21e67b021f9bc")
+    version("1.45.0", sha256="ec19657a677d49af59aa806ec299c070c882986c9fcc022b1c22c2a3caf01bcd")
     version("1.44.0", sha256="8c05641b9f91cbc92f51cc4a5b3a226788d7a63f20af4ca7aaca50d92cc94a0d")
     version("1.39.0", sha256="b16992aa1c949c10d5d5ce2a62f9d99fa7de77da2943e643fb66dcaf075826d6")
     version("1.38.1", sha256="f60e5b112913bf776a22c16a3053cc02cf55e60bf27a959fd54d7aaf8e2da6e8")
@@ -36,6 +46,9 @@ class Grpc(CMakePackage):
     version("1.24.3", sha256="c84b3fa140fcd6cce79b3f9de6357c5733a0071e04ca4e65ba5f8d306f10f033")
     version("1.23.1", sha256="dd7da002b15641e4841f20a1f3eb1e359edb69d5ccf8ac64c362823b05f523d9")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     variant("shared", default=False, description="Build shared instead of static libraries")
     variant(
         "codegen",
@@ -51,11 +64,17 @@ class Grpc(CMakePackage):
     )
 
     depends_on("protobuf")
+    depends_on("protobuf@3.22:", when="@1.55:")
     depends_on("openssl")
-    depends_on("zlib")
+    depends_on("zlib-api")
     depends_on("c-ares")
-    depends_on("abseil-cpp", when="@1.27:")
-    depends_on("re2+pic", when="@1.33.1:")
+
+    with when("@1.27:"):
+        depends_on("abseil-cpp")
+        # missing includes: https://github.com/grpc/grpc/commit/bc044174401a0842b36b8682936fc93b5041cf88
+        depends_on("abseil-cpp@:20230802", when="@:1.61")
+
+    depends_on("re2+pic@2023-09-01", when="@1.33.1:")
 
     def cmake_args(self):
         args = [

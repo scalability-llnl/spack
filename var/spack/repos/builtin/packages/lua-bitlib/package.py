@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -10,7 +9,7 @@ from spack.package import *
 class LuaBitlib(LuaPackage):
     """Lua-jit-like bitwise operations for lua"""
 
-    homepage = "http://luaforge.net/projects/bitlib"
+    homepage = "https://luaforge.net/projects/bitlib"
     url = "https://luarocks.org/manifests/luarocks/bitlib-23-2.src.rock"
 
     version(

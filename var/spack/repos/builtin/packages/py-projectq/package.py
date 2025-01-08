@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,9 +18,13 @@ class PyProjectq(PythonPackage):
     homepage = "https://projectq.ch"
     git = "https://github.com/projectq-framework/projectq.git"
 
+    license("Apache-2.0")
+
     # Versions
     version("develop", branch="develop")
     version("0.3.6", commit="fa484fe037a3a1772127bbd00fe4628ddba34611")
+
+    depends_on("cxx", type="build")  # generated
 
     # Dependencies
     depends_on("py-setuptools", type=("build"))

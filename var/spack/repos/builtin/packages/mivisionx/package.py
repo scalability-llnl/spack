@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,9 +12,9 @@ class Mivisionx(CMakePackage):
 
     homepage = "https://github.com/GPUOpen-ProfessionalCompute-Libraries/MIVisionX"
     git = "https://github.com/GPUOpen-ProfessionalCompute-Libraries/MIVisionX.git"
-    url = "https://github.com/GPUOpen-ProfessionalCompute-Libraries/MIVisionX/archive/rocm-5.4.0.tar.gz"
+    url = "https://github.com/GPUOpen-ProfessionalCompute-Libraries/MIVisionX/archive/rocm-6.1.2.tar.gz"
 
-    maintainers("srekolam", "renjithravindrankannath")
+    maintainers("srekolam", "renjithravindrankannath", "afzpatel")
     tags = ["rocm"]
 
     def url_for_version(self, version):
@@ -25,92 +24,31 @@ class Mivisionx(CMakePackage):
         url = "https://github.com/GPUOpen-ProfessionalCompute-Libraries/MIVisionX/archive/rocm-{0}.tar.gz"
         return url.format(version)
 
-    version("5.4.3", sha256="4da82974962a70c326ce2427c664517b1efdff436efe222e6bc28817c222a082")
-    version("5.4.0", sha256="caa28a30972704ddbf1a87cefdc0b0a35381d369961c43973d473a1573bd35cc")
-    version("5.3.3", sha256="378fafcb327e17e0e11fe1d1029d1740d84aaef0fd59614ed7376499b3d716f6")
-    version("5.3.0", sha256="58e68f1c78bbe5694e42bf61be177f9e94bfd3e0c113ec6284493c8684836c58")
-    version("5.2.3", sha256="bbcdb5808d2bc880486dffa89f4111fb4b1d6dfe9b11fcd46fbd17939d057cf0")
-    version("5.2.1", sha256="201996b31f59a8d5e4cc3f17d17a5b81158a34d2a1c833b65ccc3dceb21d176f")
-    version("5.2.0", sha256="fee620a1edd3bce18b2cec9ef26ec2afe0a85d6da8a37ed713ab0d1342382503")
-    version("5.1.3", sha256="62591d5caedc13832c3ccef629a88d9c2a43c884daad1124ddcb9c5f7d5470e9")
-    version("5.1.0", sha256="e082415cc2fb859c53a6d6e5d72ca4529f6b4d56a4abe274dc374faaa5910513")
-    version(
-        "5.0.2",
-        sha256="da730c2347b7f2d0cb7a262f8305750988f18e9f1eb206cf297bacaab2f6b408",
-        deprecated=True,
-    )
-    version(
-        "5.0.0",
-        sha256="935113feb71eced2b5f21fffc2a90a188b4ef2fe009c50f0445504cb27fbc58c",
-        deprecated=True,
-    )
-    version(
-        "4.5.2",
-        sha256="26fd7fbd2e319bf4a8657900ad2f81bba1ae66745c2ba95f2f87e33903cfe69c",
-        deprecated=True,
-    )
-    version(
-        "4.5.0",
-        sha256="518834893d3fcdb7ecff179b3f3992ca1aacb30b6d95711c74918abb6f80b925",
-        deprecated=True,
-    )
-    version(
-        "4.3.1",
-        sha256="d77d63c0f148870dcd2a39a823e94b28adef9e84d2c37dfc3b05db5de4d7af83",
-        deprecated=True,
-    )
-    version(
-        "4.3.0",
-        sha256="31f6ab9fb7f40b23d4b24c9a70f809623720943e0492c3d357dd22dcfa50efb2",
-        deprecated=True,
-    )
-    version(
-        "4.2.0",
-        sha256="172857b1b340373ae81ed6aa241559aa781e32250e75c82d7ba3c002930a8a3a",
-        deprecated=True,
-    )
-    version(
-        "4.1.0",
-        sha256="0b431a49807682b9a81adac6a64160a0712ddaa3963e0f05595c93b92be777ea",
-        deprecated=True,
-    )
-    version(
-        "4.0.0",
-        sha256="e09d4890b729740ded056b3974daea84c8eb1fc93714c52bf89f853c2eef1fb5",
-        deprecated=True,
-    )
-    version(
-        "3.10.0",
-        sha256="8a67fae77a05ef60a501e64a572a7bd2ccb9243518b1414112ccd1d1f78d08c8",
-        deprecated=True,
-    )
-    version(
-        "3.9.0",
-        sha256="892812cc6e6977ed8cd4b69c63f4c17be43b83c78eeafd9549236c17f6eaa2af",
-        deprecated=True,
-    )
-    version(
-        "3.8.0",
-        sha256="4e177a9b5dcae671d6ea9f0686cf5f73fcd1e3feb3c50425c8c6d43ac5d77feb",
-        deprecated=True,
-    )
-    version(
-        "3.7.0",
-        sha256="3ce13c6449739c653139fc121411d94eaa9d764d3d339c4c78fab4b8aa199965",
-        deprecated=True,
-    )
-    version(
-        "1.7",
-        sha256="ff77142fd4d4a93136fd0ac17348861f10e8f5d5f656fa9dacee08d8fcd2b1d8",
-        deprecated=True,
-    )
+    license("MIT")
 
-    variant(
-        "build_type",
-        default="Release",
-        values=("Release", "Debug", "RelWithDebInfo"),
-        description="CMake build type",
-    )
+    version("6.3.0", sha256="bc16881eae11140025b8fbd00bc741763548d41345dbe954c8d8659f4dccfe9e")
+    version("6.2.4", sha256="7e65dc83f1b85e089c1218dff57211e64f3586bcb4415bda4798e4a434cba216")
+    version("6.2.1", sha256="591fe23ee1e2ab49f29aeeb835b5045e4ba00165c604ddfaa26bd8eb56cb367d")
+    version("6.2.0", sha256="ce28ac3aef76f28869c4dad9ffd9ef090e0b54ac58088f1f1eef803641125b51")
+    version("6.1.2", sha256="0afa664931f566b7f5a3abd474dd641e56077529a2a5d7c788f5e6700e957ed6")
+    version("6.1.1", sha256="3483b5167c47047cca78581cc6c9685138f9b5b25edb11618b720814788fc2a0")
+    version("6.1.0", sha256="f18a72c4d12c36ab50f9c3a5c22fc3641feb11c99fed513540a16a65cd149fd1")
+    version("6.0.2", sha256="e39521b3109aa0900f652ae95a4421df0fa29fd57e816268cc6602d243c50779")
+    version("6.0.0", sha256="01324a12f21ea0e29a4d7d7c60498ba9231723569fedcdd90f28ddffb5e0570e")
+    version("5.7.1", sha256="bfc074bc32ebe84c72149ee6abb30b5b6499023d5b98269232de82e35d0505a8")
+    version("5.7.0", sha256="07e4ec8a8c06a9a8bb6394a043c9c3e7176acd3b462a16de91ef9518a64df9ba")
+    version("5.6.1", sha256="b2ff95c1488e244f379482631dae4f9ab92d94a513d180e03607aa1e184b5b0a")
+    version("5.6.0", sha256="34c184e202b1a6da2398b66e33c384d5bafd8f8291089c18539715c5cb73eb1f")
+    version("5.5.1", sha256="e8209f87a57c4222003a936240e7152bbfa496862113358f29d4c3e80d4cdf56")
+    version("5.5.0", sha256="af266550ecccad80f08954f23e47e8264eb338b0928a5314bd6efca349fc5a14")
+    with default_args(deprecated=True):
+        version("5.4.3", sha256="4da82974962a70c326ce2427c664517b1efdff436efe222e6bc28817c222a082")
+        version("5.4.0", sha256="caa28a30972704ddbf1a87cefdc0b0a35381d369961c43973d473a1573bd35cc")
+        version("5.3.3", sha256="378fafcb327e17e0e11fe1d1029d1740d84aaef0fd59614ed7376499b3d716f6")
+        version("5.3.0", sha256="58e68f1c78bbe5694e42bf61be177f9e94bfd3e0c113ec6284493c8684836c58")
+
+    depends_on("cxx", type="build")  # generated
+
     # Adding 2 variants OPENCL ,HIP which HIP as default. earlier to 5.0.0,OPENCL
     # was the default but has change dto HIP from 5.0.0 onwards.
     # when tested with HIP as true for versions before 5.1.0, build errors were encountered
@@ -118,147 +56,252 @@ class Mivisionx(CMakePackage):
 
     variant("opencl", default=False, description="Use OPENCL as the backend")
     variant("hip", default=True, description="Use HIP as backend")
+    variant("add_tests", default=False, description="add tests and samples folder")
+    variant("asan", default=False, description="Build with address-sanitizer enabled or disabled")
+
+    conflicts("+asan", when="os=rhel9")
+    conflicts("+asan", when="os=centos7")
+    conflicts("+asan", when="os=centos8")
+
+    patch("0001-add-half-include-path.patch", when="@5.5")
+    patch("0001-add-half-include-path-5.6.patch", when="@5.6:6.1")
+    patch("0002-add-half-include-path-for-tests.patch", when="@5.5:6.0 +add_tests")
+    patch("0002-add-half-include-path-for-tests-6.1.0.patch", when="@6.1 +add_tests")
+    patch("0002-add-half-include-path-for-tests-6.2.0.patch", when="@6.2.0: +add_tests")
+
+    patch(
+        "https://github.com/GPUOpen-ProfessionalCompute-Libraries/MIVisionX/commit/da24882438b91a0ae1feee23206b75c1a1256887.patch?full_index=1",
+        sha256="41caff199224f904ef5dc2cd9c5602d6cfa41eba6af0fcc782942a09dd202ab4",
+        when="@5.6",
+    )
+
+    conflicts("+opencl", when="@5.6.0:")
+    conflicts("+add_tests", when="@:5.4")
 
     def patch(self):
-        if self.spec.satisfies("@4.2.0"):
-            filter_file(
-                "${ROCM_PATH}/opencl",
-                self.spec["rocm-opencl"].prefix,
-                "amd_openvx/cmake/FindOpenCL.cmake",
-                string=True,
-            )
-            filter_file(
-                "/opt/rocm/mivisionx/include",
-                self.spec["mivisionx"].prefix.include,
-                "utilities/mv_deploy/CMakeLists.txt",
-                string=True,
-            )
-        if self.spec.satisfies("@4.5.0:5.1 + hip"):
-            filter_file(
-                "${ROCM_PATH}/miopen",
-                self.spec["miopen-hip"].prefix.miopen,
-                "amd_openvx_extensions/CMakeLists.txt",
-                string=True,
-            )
-            filter_file(
-                "${ROCM_PATH}/bin",
-                self.spec["hip"].prefix.bin,
-                "amd_openvx/openvx/hipvx/CMakeLists.txt",
-                string=True,
-            )
-            filter_file(
-                "${ROCM_PATH}/bin",
-                self.spec["hip"].prefix.bin,
-                "amd_openvx_extensions/amd_nn/nn_hip/CMakeLists.txt",
-                string=True,
-            )
         if self.spec.satisfies("@5.1.3: + hip"):
             filter_file(
-                "${ROCM_PATH}/include/miopen/config.h",
+                r"${ROCM_PATH}/include/miopen/config.h",
                 "{0}/include/miopen/config.h".format(self.spec["miopen-hip"].prefix),
                 "amd_openvx_extensions/CMakeLists.txt",
                 string=True,
             )
         if self.spec.satisfies("@5.1.3: + opencl"):
             filter_file(
-                "${ROCM_PATH}/include/miopen/config.h",
+                r"${ROCM_PATH}/include/miopen/config.h",
                 "{0}/include/miopen/config.h".format(self.spec["miopen-opencl"].prefix),
                 "amd_openvx_extensions/CMakeLists.txt",
                 string=True,
             )
         if self.spec.satisfies("@5.3.0: + hip"):
             filter_file(
-                "${ROCM_PATH}/llvm/bin/clang++",
+                r"${ROCM_PATH}/llvm/bin/clang++",
                 "{0}/bin/clang++".format(self.spec["llvm-amdgpu"].prefix),
                 "amd_openvx/openvx/hipvx/CMakeLists.txt",
+                "amd_openvx_extensions/amd_nn/nn_hip/CMakeLists.txt",
+                string=True,
+            )
+        if self.spec.satisfies("@5.5.0:6.1 + hip"):
+            filter_file(
+                r"${ROCM_PATH}/llvm/bin/clang++",
+                "{0}/bin/clang++".format(self.spec["llvm-amdgpu"].prefix),
+                "rocAL/rocAL/rocAL_hip/CMakeLists.txt",
+                string=True,
+            )
+        if self.spec.satisfies("@5.5.0:6.0.0 +add_tests"):
+            filter_file(
+                r"${ROCM_PATH}/include/mivisionx",
+                "{0}/include/mivisionx".format(self.spec.prefix),
+                "samples/inference/mv_objdetect/CMakeLists.txt",
                 string=True,
             )
             filter_file(
-                "${ROCM_PATH}/llvm/bin/clang++",
-                "{0}/bin/clang++".format(self.spec["llvm-amdgpu"].prefix),
-                "amd_openvx_extensions/amd_nn/nn_hip/CMakeLists.txt",
+                r"${ROCM_PATH}/lib",
+                "{0}/lib".format(self.spec.prefix),
+                "samples/inference/mv_objdetect/CMakeLists.txt",
+                string=True,
+            )
+        if self.spec.satisfies("@6.1.0: +add_tests"):
+            filter_file(
+                r"${ROCM_PATH}/include/mivisionx",
+                "{0}/include/mivisionx".format(self.spec.prefix),
+                "samples/mv_objdetect/CMakeLists.txt",
+                string=True,
+            )
+            filter_file(
+                r"${ROCM_PATH}/lib",
+                "{0}/lib".format(self.spec.prefix),
+                "samples/mv_objdetect/CMakeLists.txt",
+                string=True,
+            )
+
+        if self.spec.satisfies("@:6.1 +add_tests"):
+            filter_file(
+                r"${ROCM_PATH}/${CMAKE_INSTALL_INCLUDEDIR}/mivisionx/rocal",
+                "{0}/include/mivisionx/rocal".format(self.spec.prefix),
+                "utilities/rocAL/rocAL_unittests/CMakeLists.txt",
+                "utilities/rocAL/rocAL_video_unittests/CMakeLists.txt",
+                string=True,
+            )
+            filter_file(
+                r"${ROCM_PATH}/lib",
+                "{0}/lib".format(self.spec.prefix),
+                "utilities/rocAL/rocAL_unittests/CMakeLists.txt",
+                "utilities/rocAL/rocAL_video_unittests/CMakeLists.txt",
+                string=True,
+            )
+        if self.spec.satisfies("+add_tests"):
+            filter_file(
+                r"${ROCM_PATH}/include/mivisionx",
+                "{0}/include/mivisionx".format(self.spec.prefix),
+                "tests/amd_migraphx_tests/mnist/CMakeLists.txt",
+                "tests/amd_migraphx_tests/resnet50/CMakeLists.txt",
+                "model_compiler/python/nnir_to_clib.py",
+                string=True,
+            )
+            filter_file(
+                r"${ROCM_PATH}/lib",
+                "{0}/lib".format(self.spec.prefix),
+                "tests/amd_migraphx_tests/mnist/CMakeLists.txt",
+                "tests/amd_migraphx_tests/resnet50/CMakeLists.txt",
+                string=True,
+            )
+            filter_file(
+                r"/opt/rocm",
+                "{0}".format(self.spec.prefix),
+                "model_compiler/python/nnir_to_clib.py",
                 string=True,
             )
 
     depends_on("cmake@3.5:", type="build")
     depends_on("ffmpeg@:4", type="build", when="@:5.3")
-    depends_on("ffmpeg@4.4:", type="build", when="@5.4:")
+    depends_on("ffmpeg@4.4", type="build", when="@5.4:")
     depends_on("protobuf@:3", type="build")
-    depends_on(
-        "opencv@:3.4"
-        "+calib3d+features2d+highgui+imgcodecs+imgproc"
-        "+video+videoio+flann+photo+objdetect",
-        type="build",
-        when="@:5.2",
-    )
     depends_on(
         "opencv@4.5:"
         "+calib3d+features2d+highgui+imgcodecs+imgproc"
-        "+video+videoio+flann+photo+objdetect",
+        "+video+videoio+flann+photo+objdetect+png+jpeg",
         type="build",
         when="@5.3:",
     )
-    depends_on("rocm-opencl@3.5.0", when="@1.7+opencl")
-    depends_on("rocm-cmake@3.5.0", type="build", when="@1.7")
-    depends_on("miopen-opencl@3.5.0", when="@1.7+opencl")
-    depends_on("miopengemm@1.1.6", when="@1.7+opencl")
-    depends_on("openssl", when="@4.0.0:")
-    depends_on("libjpeg-turbo", type="build")
+    depends_on("openssl")
+    depends_on("libjpeg-turbo@2.0.6+partial_decoder", type="build", when="@:6.2.0")
+    depends_on("rpp@1.2.0", when="@5.5:5.6")
+    depends_on("lmdb", when="@5.5:")
+    depends_on("py-setuptools", when="@5.6:")
+    depends_on("py-wheel", when="@5.6:")
+    depends_on("py-pybind11", when="@5.6:")
+    depends_on("py-google-api-python-client", when="+add_tests")
+    depends_on("py-protobuf@3.20.3", type=("build", "run"), when="+add_tests")
+    depends_on("py-future", when="+add_tests")
+    depends_on("py-numpy", when="+add_tests")
+    depends_on("py-pytz", when="+add_tests")
+    depends_on("rapidjson", when="@5.7:")
 
-    conflicts("^cmake@3.22:", when="@:5.0.0")
     # need to choose atleast one backend and both cannot be set
     # HIP as backend did not build for older releases 5.1.0 where
     # OPENCL was default backend.
     conflicts("+opencl+hip")
-    conflicts("+hip", when="@:5.1.0")
 
     with when("+opencl"):
-        for ver in [
-            "3.7.0",
-            "3.8.0",
-            "3.9.0",
-            "3.10.0",
-            "4.0.0",
-            "4.1.0",
-            "4.2.0",
-            "4.3.0",
-            "4.3.1",
-            "4.5.0",
-            "4.5.2",
-            "5.0.0",
-            "5.0.2",
-            "5.1.0",
-            "5.1.3",
-            "5.2.0",
-            "5.2.1",
-            "5.2.3",
-            "5.3.0",
-            "5.3.3",
-            "5.4.0",
-            "5.4.3",
-        ]:
-            depends_on("rocm-opencl@" + ver, when="@" + ver)
-            depends_on("miopengemm@" + ver, when="@" + ver)
-            depends_on("miopen-opencl@" + ver, when="@" + ver)
+        for ver in ["5.3.0", "5.3.3", "5.4.0", "5.4.3", "5.5.0", "5.5.1"]:
+            depends_on(f"rocm-opencl@{ver}", when=f"@{ver}")
+            depends_on(f"miopengemm@{ver}", when=f"@{ver}")
+            depends_on(f"miopen-opencl@{ver}", when=f"@{ver}")
     with when("+hip"):
         for ver in [
-            "4.5.0",
-            "4.5.2",
-            "5.0.0",
-            "5.0.2",
-            "5.1.0",
-            "5.1.3",
-            "5.2.0",
-            "5.2.1",
-            "5.2.3",
             "5.3.0",
             "5.3.3",
             "5.4.0",
             "5.4.3",
+            "5.5.0",
+            "5.5.1",
+            "5.6.0",
+            "5.6.1",
+            "5.7.0",
+            "5.7.1",
+            "6.0.0",
+            "6.0.2",
+            "6.1.0",
+            "6.1.1",
+            "6.1.2",
+            "6.2.0",
+            "6.2.1",
+            "6.2.4",
+            "6.3.0",
         ]:
-            depends_on("miopen-hip@" + ver, when="@" + ver)
-        for ver in ["5.3.3", "5.4.0", "5.4.3"]:
-            depends_on("migraphx@" + ver, when="@" + ver)
+            depends_on(f"miopen-hip@{ver}", when=f"@{ver}")
+        for ver in [
+            "5.3.3",
+            "5.4.0",
+            "5.4.3",
+            "5.5.0",
+            "5.5.1",
+            "5.6.0",
+            "5.6.1",
+            "5.7.0",
+            "5.7.1",
+            "6.0.0",
+            "6.0.2",
+            "6.1.0",
+            "6.1.1",
+            "6.1.2",
+            "6.2.0",
+            "6.2.1",
+            "6.2.4",
+            "6.3.0",
+        ]:
+            depends_on(f"migraphx@{ver}", when=f"@{ver}")
+            depends_on(f"hip@{ver}", when=f"@{ver}")
+
+    for ver in [
+        "5.5.0",
+        "5.5.1",
+        "5.6.0",
+        "5.6.1",
+        "5.7.0",
+        "5.7.1",
+        "6.0.0",
+        "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+    ]:
+        depends_on(f"rocm-core@{ver}", when=f"@{ver}")
+        depends_on("python@3.5:", type="build")
+
+    for ver in [
+        "5.7.0",
+        "5.7.1",
+        "6.0.0",
+        "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+    ]:
+        depends_on(f"rpp@{ver}", when=f"@{ver}")
+
+    def setup_run_environment(self, env):
+        env.set("MIVISIONX_MODEL_COMPILER_PATH", self.spec.prefix.libexec.mivisionx.model_compiler)
+        if self.spec.satisfies("@6.1:"):
+            env.prepend_path("LD_LIBRARY_PATH", self.spec["hsa-rocr-dev"].prefix.lib)
+
+    def setup_build_environment(self, env):
+        if self.spec.satisfies("+asan"):
+            env.set("CC", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang")
+            env.set("CXX", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang++")
+            env.set("ASAN_OPTIONS", "detect_leaks=0")
+            env.set("CFLAGS", "-fsanitize=address -shared-libasan")
+            env.set("CXXFLAGS", "-fsanitize=address -shared-libasan")
+            env.set("LDFLAGS", "-fuse-ld=lld")
 
     def flag_handler(self, name, flags):
         spec = self.spec
@@ -280,4 +323,25 @@ class Mivisionx(CMakePackage):
             args.append(self.define("HIP_PATH", spec["hip"].prefix))
         if self.spec.satisfies("~hip~opencl"):
             args.append(self.define("BACKEND", "CPU"))
+        if self.spec.satisfies("@5.5:"):
+            args.append(
+                self.define("AMDRPP_LIBRARIES", "{0}/lib/librpp.so".format(spec["rpp"].prefix))
+            )
+            args.append(
+                self.define("AMDRPP_INCLUDE_DIRS", "{0}/include/rpp".format(spec["rpp"].prefix))
+            )
+            args.append(self.define("CMAKE_INSTALL_PREFIX_PYTHON", spec.prefix))
+        if self.spec.satisfies("@5.5:6.2.0"):
+            args.append(
+                self.define(
+                    "TurboJpeg_LIBRARIES_DIRS", "{0}/lib64".format(spec["libjpeg-turbo"].prefix)
+                )
+            )
         return args
+
+    @run_after("install")
+    def add_tests(self):
+        if self.spec.satisfies("+add_tests"):
+            install_tree("tests", self.spec.prefix.tests)
+            install_tree("samples", self.spec.prefix.samples)
+            install_tree("utilities", self.spec.prefix.utilities)

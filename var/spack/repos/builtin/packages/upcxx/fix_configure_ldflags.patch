@@ -1,0 +1,26 @@
+diff --git a/configure b/configure
+index 27c35a43..b0f3cbe9 100755
+--- a/configure
++++ b/configure
+@@ -1168,7 +1168,7 @@ if [[ $UPCXX_CUDA -eq 1 ]]; then
+   # check that the CUDA Driver API is linkable, adding explicit link flags if needed
+   echo -e "#include <cuda.h>\n#include <cuda_runtime_api.h>\nint main() { cuInit(0); return 0; }" >| conftest.cpp
+   for ldextra in '' '-lcuda' '-framework CUDA' 'FAIL'; do
+-    eval $CXX $UPCXX_CUDA_CPPFLAGS conftest.cpp -o conftest.exe $UPCXX_CUDA_LIBFLAGS $ldextra &> /dev/null
++    eval $CXX $UPCXX_CUDA_CPPFLAGS $LDFLAGS conftest.cpp -o conftest.exe $UPCXX_CUDA_LIBFLAGS $ldextra &> /dev/null
+     if [[ $? -eq 0 ]] && ( ./conftest.exe 2>/dev/null ); then
+       [[ -n "$ldextra" ]] && UPCXX_CUDA_LIBFLAGS+=" $ldextra"
+       break
+diff --git a/utils/system-checks.sh b/utils/system-checks.sh
+index 728792d0..e065f636 100644
+--- a/utils/system-checks.sh
++++ b/utils/system-checks.sh
+@@ -493,7 +493,7 @@ _EOF
+         check_maybe_c_compiler
+         return 2
+     fi
+-    if ! (set -x; eval $CXX $CXXFLAGS $CXXSTDFLAG -o conftest.o conftest-cc.o conftest-cxx.o -lm) >> $DETAIL_LOG 2>&1 ; then
++    if ! (set -x; eval $CXX $CXXFLAGS $CXXSTDFLAG $LDFLAGS -o conftest.o conftest-cc.o conftest-cxx.o -lm) >> $DETAIL_LOG 2>&1 ; then
+         echo "ERROR: CXX=$CXX failed to link object files produced by CC=$CC and CXX=$CXX"
+         echo "ERROR: See $DETAIL_LOG for details. Last four lines are as follows:"
+         tail -4 $DETAIL_LOG

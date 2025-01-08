@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,9 @@ class Cminpack(CMakePackage):
 
     version("master", branch="master")
     version("1.3.6", sha256="3c07fd21308c96477a2c900032e21d937739c233ee273b4347a0d4a84a32d09f")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("shared", default=False, description="Build shared libraries")
     variant("blas", default=True, description="Compile with BLAS")

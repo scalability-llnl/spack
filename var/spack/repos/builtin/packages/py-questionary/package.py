@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,8 @@ class PyQuestionary(PythonPackage):
 
     homepage = "https://github.com/tmbo/questionary"
     pypi = "questionary/questionary-1.9.0.tar.gz"
+
+    license("MIT")
 
     version("1.9.0", sha256="a050fdbb81406cddca679a6f492c6272da90cb09988963817828f697cf091c55")
 

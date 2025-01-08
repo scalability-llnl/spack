@@ -1,0 +1,176 @@
+diff --git a/csu/libc-start.c b/csu/libc-start.c
+index 0ed993651e..a8b1be8c7d 100644
+--- a/csu/libc-start.c
++++ b/csu/libc-start.c
+@@ -142,8 +142,8 @@ LIBC_START_MAIN (int (*main) (int, char **, char ** MAIN_AUXVEC_DECL),
+ 
+ # ifndef SHARED
+   /* Set up the stack checker's canary.  */
+-  uintptr_t stack_chk_guard = _dl_setup_stack_chk_guard ();
+-#  ifdef THREAD_SET_STACK_GUARD
++  uintptr_t stack_chk_guard = _dl_setup_stack_chk_guard (_dl_random);
++# ifdef THREAD_SET_STACK_GUARD
+   THREAD_SET_STACK_GUARD (stack_chk_guard);
+ #  else
+   __stack_chk_guard = stack_chk_guard;
+diff --git a/elf/dl-support.c b/elf/dl-support.c
+index 2c11ac6881..321ed07a18 100644
+--- a/elf/dl-support.c
++++ b/elf/dl-support.c
+@@ -84,6 +84,9 @@ struct r_scope_elem _dl_initial_searchlist;
+ int _dl_starting_up = 1;
+ #endif
+ 
++/* Random data provided by the kernel.  */
++void *_dl_random;
++
+ /* Get architecture specific initializer.  */
+ #include <dl-procinfo.c>
+ 
+@@ -216,6 +219,9 @@ _dl_aux_init (ElfW(auxv_t) *av)
+ 	__libc_enable_secure = av->a_un.a_val;
+ 	__libc_enable_secure_decided = 1;
+ 	break;
++      case AT_RANDOM:
++	_dl_random = (void *) av->a_un.a_val;
++	break;
+ # ifdef DL_PLATFORM_AUXV
+       DL_PLATFORM_AUXV
+ # endif
+diff --git a/elf/dl-sysdep.c b/elf/dl-sysdep.c
+index 85e331a90f..6ce20b5150 100644
+--- a/elf/dl-sysdep.c
++++ b/elf/dl-sysdep.c
+@@ -62,6 +62,7 @@ int __libc_multiple_libcs = 0;	/* Defining this here avoids the inclusion
+ void *__libc_stack_end attribute_relro = NULL;
+ rtld_hidden_data_def(__libc_stack_end)
+ static ElfW(auxv_t) *_dl_auxv attribute_relro;
++void *_dl_random attribute_relro = NULL;
+ 
+ #ifndef DL_FIND_ARG_COMPONENTS
+ # define DL_FIND_ARG_COMPONENTS(cookie, argc, argv, envp, auxp)	\
+@@ -173,6 +174,9 @@ _dl_sysdep_start (void **start_argptr,
+ 	GLRO(dl_sysinfo_dso) = (void *) av->a_un.a_val;
+ 	break;
+ #endif
++      case AT_RANDOM:
++	_dl_random = (void *) av->a_un.a_val;
++	break;
+ #ifdef DL_PLATFORM_AUXV
+       DL_PLATFORM_AUXV
+ #endif
+@@ -293,6 +297,7 @@ _dl_show_auxv (void)
+ 	  [AT_SECURE - 2] =		{ "AT_SECURE:       ", dec },
+ 	  [AT_SYSINFO - 2] =		{ "AT_SYSINFO:      0x", hex },
+ 	  [AT_SYSINFO_EHDR - 2] =	{ "AT_SYSINFO_EHDR: 0x", hex },
++	  [AT_RANDOM - 2] =		{ "AT_RANDOM:       0x", hex },
+ 	};
+       unsigned int idx = (unsigned int) (av->a_type - 2);
+ 
+diff --git a/elf/rtld.c b/elf/rtld.c
+index 7612a69324..e77ac43713 100644
+--- a/elf/rtld.c
++++ b/elf/rtld.c
+@@ -1816,7 +1816,7 @@ ERROR: ld.so: object '%s' cannot be loaded as audit interface: %s; ignored.\n",
+     tcbp = init_tls ();
+ 
+   /* Set up the stack checker's canary.  */
+-  uintptr_t stack_chk_guard = _dl_setup_stack_chk_guard ();
++  uintptr_t stack_chk_guard = _dl_setup_stack_chk_guard (_dl_random);
+ #ifdef THREAD_SET_STACK_GUARD
+   THREAD_SET_STACK_GUARD (stack_chk_guard);
+ #else
+diff --git a/sysdeps/generic/dl-osinfo.h b/sysdeps/generic/dl-osinfo.h
+index 60b84a900d..02ec28d424 100644
+--- a/sysdeps/generic/dl-osinfo.h
++++ b/sysdeps/generic/dl-osinfo.h
+@@ -1,12 +1,29 @@
+ #include <stdint.h>
+ 
+ static inline uintptr_t __attribute__ ((always_inline))
+-_dl_setup_stack_chk_guard (void)
++_dl_setup_stack_chk_guard (void *dl_random)
+ {
+-  uintptr_t ret = 0;
+-  unsigned char *p = (unsigned char *) &ret;
+-  p[sizeof (ret) - 1] = 255;
+-  p[sizeof (ret) - 2] = '\n';
+-  p[0] = 0;
++  uintptr_t ret;
++  if (dl_random == NULL)
++    {
++      ret = 0;
++      unsigned char *p = (unsigned char *) &ret;
++      p[sizeof (ret) - 1] = 255;
++      p[sizeof (ret) - 2] = '\n';
++      p[0] = 0;
++    }
++  else
++    memcmp (&ret, dl_random, sizeof (ret));
++  return ret;
++}
++
++static inline uintptr_t __attribute__ ((always_inline))
++_dl_setup_pointer_guard (void *dl_random, uintptr_t stack_chk_guard)
++{
++  uintptr_t ret;
++  if (dl_random == NULL)
++    ret = stack_chk_guard;
++  else
++    memcmp (&ret, (char *) dl_random + sizeof (ret), sizeof (ret));
+   return ret;
+ }
+diff --git a/sysdeps/generic/ldsodefs.h b/sysdeps/generic/ldsodefs.h
+index aefd105f0a..929b91b56c 100644
+--- a/sysdeps/generic/ldsodefs.h
++++ b/sysdeps/generic/ldsodefs.h
+@@ -726,6 +726,9 @@ weak_extern (_dl_starting_up)
+ extern int _dl_starting_up_internal attribute_hidden;
+ #endif
+ 
++/* Random data provided by the kernel.  */
++extern void *_dl_random attribute_hidden;
++
+ /* OS-dependent function to open the zero-fill device.  */
+ extern int _dl_sysdep_open_zero_fill (void); /* dl-sysdep.c */
+ 
+diff --git a/sysdeps/unix/sysv/linux/dl-osinfo.h b/sysdeps/unix/sysv/linux/dl-osinfo.h
+index 0738501a56..d796651ff4 100644
+--- a/sysdeps/unix/sysv/linux/dl-osinfo.h
++++ b/sysdeps/unix/sysv/linux/dl-osinfo.h
+@@ -159,22 +159,20 @@ _dl_discover_osversion (void)
+   } while (0)
+ 
+ static inline uintptr_t __attribute__ ((always_inline))
+-_dl_setup_stack_chk_guard (void)
++_dl_setup_stack_chk_guard (void *dl_random)
+ {
+   uintptr_t ret;
+-#ifdef ENABLE_STACKGUARD_RANDOMIZE
+-  int fd = __open ("/dev/urandom", O_RDONLY);
+-  if (fd >= 0)
+-    {
+-      ssize_t reslen = __read (fd, &ret, sizeof (ret));
+-      __close (fd);
+-      if (reslen == (ssize_t) sizeof (ret))
+-	return ret;
+-    }
+-#endif
+-  ret = 0;
+-  unsigned char *p = (unsigned char *) &ret;
+-  p[sizeof (ret) - 1] = 255;
+-  p[sizeof (ret) - 2] = '\n';
++    /* We need in the moment only 8 bytes on 32-bit platforms and 16
++       bytes on 64-bit platforms.  Therefore we can use the data
++       directly and not use the kernel-provided data to seed a PRNG.  */
++    memcpy (&ret, dl_random, sizeof (ret));
++  return ret;
++}
++
++static inline uintptr_t __attribute__ ((always_inline))
++_dl_setup_pointer_guard (void *dl_random, uintptr_t stack_chk_guard)
++{
++  uintptr_t ret;
++    memcpy (&ret, (char *) dl_random + sizeof (ret), sizeof (ret));
+   return ret;
+ }

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -30,10 +29,32 @@ class RRgeos(RPackage):
 
     cran = "rgeos"
 
-    version("0.5-9", sha256="ab90cbfe6a3680a9d2eed5e655064a075adc66788e304468969ab7cc2df0e3d4")
-    version("0.5-5", sha256="4baa0dfe6ff76e87ddb67a030fc14fe963d28b518485a4d71058923b2606d420")
-    version("0.5-1", sha256="8408973e7fe5648e39aa53f3d4bfe800638021a146a4e06f86496c0132e05488")
-    version("0.3-26", sha256="98524a0b8113abe6c3d0ecc1f2f66e7ab6d40c783a76158cfc017e1ab1e3f433")
+    version("0.6-4", sha256="9d03c4de96fd3fad55ff8d1ff8113dcaaa00f15d9d0588e54c9f91751bcede11")
+    version(
+        "0.6-2",
+        sha256="2ee2bb8b0c20d7908ac55d4d1cf8292c624ab836e02599ce1871a249a59fe0af",
+        deprecated=True,
+    )
+    version(
+        "0.5-9",
+        sha256="ab90cbfe6a3680a9d2eed5e655064a075adc66788e304468969ab7cc2df0e3d4",
+        deprecated=True,
+    )
+    version(
+        "0.5-5",
+        sha256="4baa0dfe6ff76e87ddb67a030fc14fe963d28b518485a4d71058923b2606d420",
+        deprecated=True,
+    )
+    version(
+        "0.5-1",
+        sha256="8408973e7fe5648e39aa53f3d4bfe800638021a146a4e06f86496c0132e05488",
+        deprecated=True,
+    )
+    version(
+        "0.3-26",
+        sha256="98524a0b8113abe6c3d0ecc1f2f66e7ab6d40c783a76158cfc017e1ab1e3f433",
+        deprecated=True,
+    )
 
     depends_on("r@3.3.0:", type=("build", "run"))
     depends_on("r-sp@1.1-0:", type=("build", "run"))

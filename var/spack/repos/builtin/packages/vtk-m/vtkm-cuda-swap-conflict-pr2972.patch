@@ -1,0 +1,63 @@
+diff -ruN spack-src/vtkm/exec/cuda/internal/ExecutionPolicy.h spack-src-patched/vtkm/exec/cuda/internal/ExecutionPolicy.h
+--- spack-src/vtkm/exec/cuda/internal/ExecutionPolicy.h	2022-10-11 12:07:59.000000000 -0700
++++ spack-src-patched/vtkm/exec/cuda/internal/ExecutionPolicy.h	2023-07-06 17:23:35.898388363 -0700
+@@ -17,6 +17,7 @@
+ #include <vtkm/exec/cuda/internal/ThrustPatches.h>
+ VTKM_THIRDPARTY_PRE_INCLUDE
+ #include <thrust/execution_policy.h>
++#include <thrust/sort.h>
+ #include <thrust/system/cuda/execution_policy.h>
+ #include <thrust/system/cuda/memory.h>
+ VTKM_THIRDPARTY_POST_INCLUDE
+diff -ruN spack-src/vtkm/Swap.h spack-src-patched/vtkm/Swap.h
+--- spack-src/vtkm/Swap.h	2022-10-11 12:07:59.000000000 -0700
++++ spack-src-patched/vtkm/Swap.h	2023-07-06 17:25:31.623393290 -0700
+@@ -24,21 +24,31 @@
+ 
+ /// Performs a swap operation. Safe to call from cuda code.
+ #if defined(VTKM_CUDA)
++// CUDA 12 adds a `cub::Swap` function that creates ambiguity with `vtkm::Swap`.
++// This happens when a function from the `cub` namespace is called with an object of a class
++// defined in the `vtkm` namespace as an argument. If that function has an unqualified call to
++// `Swap`, it results in ADL being used, causing the templated functions `cub::Swap` and
++// `vtkm::Swap` to conflict.
++#if defined(VTKM_CUDA_VERSION_MAJOR) && (VTKM_CUDA_VERSION_MAJOR >= 12) && \
++  defined(VTKM_CUDA_DEVICE_PASS)
++using cub::Swap;
++#else
+ template <typename T>
+-VTKM_EXEC_CONT void Swap(T& a, T& b)
++VTKM_EXEC_CONT inline void Swap(T& a, T& b)
+ {
+-  using namespace thrust;
++  using thrust::swap;
+   swap(a, b);
+ }
++#endif
+ #elif defined(VTKM_HIP)
+ template <typename T>
+-__host__ void Swap(T& a, T& b)
++__host__ inline void Swap(T& a, T& b)
+ {
+-  using namespace std;
++  using std::swap;
+   swap(a, b);
+ }
+ template <typename T>
+-__device__ void Swap(T& a, T& b)
++__device__ inline void Swap(T& a, T& b)
+ {
+   T temp = a;
+   a = b;
+@@ -46,9 +56,9 @@
+ }
+ #else
+ template <typename T>
+-VTKM_EXEC_CONT void Swap(T& a, T& b)
++VTKM_EXEC_CONT inline void Swap(T& a, T& b)
+ {
+-  using namespace std;
++  using std::swap;
+   swap(a, b);
+ }
+ #endif

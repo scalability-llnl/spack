@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -10,14 +9,13 @@ import shutil
 import llnl.util.filesystem
 import llnl.util.tty as tty
 
-import spack.bootstrap
 import spack.caches
-import spack.cmd.common.arguments as arguments
-import spack.cmd.test
+import spack.cmd
 import spack.config
-import spack.repo
 import spack.stage
+import spack.store
 import spack.util.path
+from spack.cmd.common import arguments
 from spack.paths import lib_path, var_path
 
 description = "remove temporary build files and/or downloaded archives"
@@ -105,7 +103,9 @@ def clean(parser, args):
 
     # Then do the cleaning falling through the cases
     if args.specs:
-        specs = spack.cmd.parse_specs(args.specs, concretize=True)
+        specs = spack.cmd.parse_specs(args.specs, concretize=False)
+        specs = spack.cmd.matching_specs_from_env(specs)
+
         for spec in specs:
             msg = "Cleaning build stage [{0}]"
             tty.msg(msg.format(spec.short_spec))
@@ -114,22 +114,18 @@ def clean(parser, args):
     if args.stage:
         tty.msg("Removing all temporary build stages")
         spack.stage.purge()
-        # Temp directory where buildcaches are extracted
-        extract_tmp = os.path.join(spack.store.layout.root, ".tmp")
-        if os.path.exists(extract_tmp):
-            tty.debug("Removing {0}".format(extract_tmp))
-            shutil.rmtree(extract_tmp)
+
     if args.downloads:
         tty.msg("Removing cached downloads")
-        spack.caches.fetch_cache.destroy()
+        spack.caches.FETCH_CACHE.destroy()
 
     if args.failures:
         tty.msg("Removing install failure marks")
-        spack.installer.clear_failures()
+        spack.store.STORE.failure_tracker.clear_all()
 
     if args.misc_cache:
         tty.msg("Removing cached information on repositories")
-        spack.caches.misc_cache.destroy()
+        spack.caches.MISC_CACHE.destroy()
 
     if args.python_cache:
         tty.msg("Removing python cache files")

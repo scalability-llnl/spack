@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,10 @@ class Subversion(AutotoolsPackage):
 
     tags = ["build-tools"]
 
+    # internal lz4, x509, and utf8proc code have different licenses.
+    license("Apache-2.0 AND BSD-3-Clause AND BSD-2-Clause AND MIT", checked_by="tgamblin")
+
+    version("1.14.2", sha256="fd826afad03db7a580722839927dc664f3e93398fe88b66905732c8530971353")
     version("1.14.1", sha256="dee2796abaa1f5351e6cc2a60b1917beb8238af548b20d3e1ec22760ab2f0cad")
     version("1.14.0", sha256="ef3d1147535e41874c304fb5b9ea32745fbf5d7faecf2ce21d4115b567e937d0")
     version("1.13.0", sha256="daad440c03b8a86fcca804ea82217bb1902cfcae1b7d28c624143c58dcb96931")
@@ -33,6 +36,9 @@ class Subversion(AutotoolsPackage):
     version("1.8.17", sha256="1b2cb9a0ca454035e55b114ee91c6433b9ede6c2893f2fb140939094d33919e4")
     version("1.8.13", sha256="17e8900a877ac9f0d5ef437c20df437fec4eb2c5cb9882609d2277e2312da52c")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("serf", default=True, description="Serf HTTP client library")
     variant("perl", default=False, description="Build with Perl bindings")
     variant("apxs", default=True, description="Build with APXS")
@@ -40,7 +46,7 @@ class Subversion(AutotoolsPackage):
 
     depends_on("apr")
     depends_on("apr-util")
-    depends_on("zlib")
+    depends_on("zlib-api")
     depends_on("sqlite@3.8.2:")
     depends_on("expat")
     depends_on("lz4", when="@1.10:")
@@ -66,7 +72,7 @@ class Subversion(AutotoolsPackage):
                 spec["expat"].libs.directories[0],
                 spec["expat"].libs.names[0],
             ),
-            "--with-zlib={0}".format(spec["zlib"].prefix),
+            "--with-zlib={0}".format(spec["zlib-api"].prefix),
             "--without-apxs",
             "--without-trang",
             "--without-doxygen",

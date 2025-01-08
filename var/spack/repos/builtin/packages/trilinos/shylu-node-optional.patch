@@ -1,0 +1,10 @@
+diff -ruN spack-src/packages/shylu/cmake/Dependencies.cmake spack-src-patched/packages/shylu/cmake/Dependencies.cmake
+--- spack-src/packages/shylu/cmake/Dependencies.cmake	2023-08-01 15:08:54.000000000 -0700
++++ spack-src-patched/packages/shylu/cmake/Dependencies.cmake	2023-09-22 12:53:28.755219076 -0700
+@@ -1,4 +1,5 @@
+-SET(LIB_REQUIRED_DEP_PACKAGES ShyLU_DD ShyLU_Node)
++SET(LIB_REQUIRED_DEP_PACKAGES ShyLU_DD)
++SET(LIB_OPTIONAL_DEP_PACKAGES ShyLU_Node)
+ SET(LIB_OPTIONAL_DEP_PACKAGES)
+ SET(TEST_REQUIRED_DEP_PACKAGES)
+ SET(TEST_OPTIONAL_DEP_PACKAGES)

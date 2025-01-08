@@ -1,22 +1,35 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
 import re
+import sys
 from tempfile import NamedTemporaryFile
 
+import spack.build_systems.autotools
+import spack.build_systems.nmake
 import spack.platforms
 from spack.package import *
 
+is_windows = sys.platform == "win32"
 
-class Sqlite(AutotoolsPackage):
+
+class Sqlite(AutotoolsPackage, NMakePackage):
     """SQLite is a C-language library that implements a small, fast,
     self-contained, high-reliability, full-featured, SQL database engine.
     """
 
     homepage = "https://www.sqlite.org"
+    tags = ["windows"]
 
+    license("blessing")
+
+    version("3.46.0", sha256="6f8e6a7b335273748816f9b3b62bbdc372a889de8782d7f048c653a447417a7d")
+    version("3.45.3", sha256="b2809ca53124c19c60f42bf627736eae011afdcc205bb48270a5ee9a38191531")
+    version("3.45.1", sha256="cd9c27841b7a5932c9897651e20b86c701dd740556989b01ca596fcfa3d49a0a")
+    version("3.44.2", sha256="1c6719a148bc41cf0f2bbbe3926d7ce3f5ca09d878f1246fcc20767b175bb407")
+    version("3.43.2", sha256="6d422b6f62c4de2ca80d61860e3a3fb693554d2f75bb1aaca743ccc4d6f609f0")
+    version("3.42.0", sha256="7abcfd161c6e2742ca5c6c0895d1f853c940f203304a0b49da4e1eca5d088ca6")
     version("3.40.1", sha256="2c5dea207fa508d765af1ef620b637dcb06572afa6f01f0815bd5bbf864b33d9")
     version("3.40.0", sha256="0333552076d2700c75352256e91c78bf5cd62491589ba0c69aed0a81868980e7")
     version("3.39.4", sha256="f31d445b48e67e284cf206717cc170ab63cbe4fd7f79a82793b772285e78fdbb")
@@ -42,23 +55,43 @@ class Sqlite(AutotoolsPackage):
     version("3.27.1", sha256="54a92b8ff73ff6181f89b9b0c08949119b99e8cccef93dbef90e852a8b10f4f8")
     version("3.27.0", sha256="dbfb0fb4fc32569fa427d3658e888f5e3b84a0952f706ccab1fd7c62a54f10f0")
     version("3.26.0", sha256="5daa6a3fb7d1e8c767cd59c4ded8da6e4b00c61d3b466d0685e35c4dd6d7bf5d")
+
+    depends_on("c", type="build")  # generated
     # All versions prior to 3.26.0 are vulnerable to Magellan when FTS
     # is enabled, see https://blade.tencent.com/magellan/index_en.html
 
+    # no hard readline dep on Windows + no variant support, makefile has minimal to no options
+    for plat in ["linux", "darwin", "freebsd"]:
+        variant(
+            "column_metadata",
+            default=True,
+            description="Build with COLUMN_METADATA",
+            when=f"platform={plat}",
+        )
+        variant(
+            "dynamic_extensions",
+            default=True,
+            description="Support loadable extensions",
+            when=f"platform={plat}",
+        )
+
+        depends_on("readline", when=f"platform={plat}")
+
+    variant("fts", default=True, description="Include fts4 and fts5 support")
+
+    # functions variant is always available on Windows platform, otherwise is tied
+    # to +dynamic_extensions
+    function_condition = "platform=windows" if is_windows else "+dynamic_extensions"
     variant(
         "functions",
-        default=False,
-        when="+dynamic_extensions",
+        default=is_windows,
         description="Provide mathematical and string extension functions for SQL "
         "queries using the loadable extensions mechanism",
+        when=f"{function_condition}",
     )
-    variant("fts", default=True, description="Include fts4 and fts5 support")
-    variant("column_metadata", default=True, description="Build with COLUMN_METADATA")
-    variant("dynamic_extensions", default=True, description="Support loadable extensions")
     variant("rtree", default=True, description="Build with Rtree module")
-
-    depends_on("readline")
-    depends_on("zlib")
+    depends_on("zlib-api")
+    depends_on("tcl", when="platform=windows")
 
     # See https://blade.tencent.com/magellan/index_en.html
     conflicts("+fts", when="@:3.25")
@@ -84,6 +117,10 @@ class Sqlite(AutotoolsPackage):
     # Starting version 3.21.0 SQLite doesn't use the built-ins if Intel
     # compiler is used.
     patch("remove_overflow_builtins.patch", when="@3.17.0:3.20%intel")
+
+    patch("quote_compiler_in_makefile.patch", when="platform=windows")
+
+    build_system("autotools", "nmake")
 
     executables = ["^sqlite3$"]
 
@@ -148,11 +185,15 @@ class Sqlite(AutotoolsPackage):
         return all_variants
 
     def url_for_version(self, version):
-        full_version = list(version.version) + [0 * (4 - len(version.version))]
-        version_string = str(full_version[0]) + "".join(["%02d" % v for v in full_version[1:]])
+        if len(version) < 3:
+            raise ValueError(f"Unsupported sqlite version: {version}")
         # See https://www.sqlite.org/chronology.html for version -> year
         # correspondence.
-        if version >= Version("3.37.2"):
+        if version >= Version("3.45.0"):
+            year = "2024"
+        elif version >= Version("3.41.0"):
+            year = "2023"
+        elif version >= Version("3.37.2"):
             year = "2022"
         elif version >= Version("3.34.1"):
             year = "2021"
@@ -173,17 +214,42 @@ class Sqlite(AutotoolsPackage):
         elif version >= Version("3.7.16"):
             year = "2013"
         else:
-            raise ValueError("Unsupported version {0}".format(version))
-        return "https://www.sqlite.org/{0}/sqlite-autoconf-{1}.tar.gz".format(year, version_string)
+            raise ValueError(f"Unsupported sqlite version {version}")
+        return f"https://www.sqlite.org/{year}/sqlite-autoconf-{version[0]}{version[1]:02}{version[2]:02}00.tar.gz"
 
     @property
     def libs(self):
-        return find_libraries("libsqlite3", root=self.prefix.lib)
+        prefix = "lib" if sys.platform != "win32" else ""
+        return find_libraries(f"{prefix}sqlite3", root=self.prefix.lib, runtime=False)
 
-    def get_arch(self):
-        host_platform = spack.platforms.host()
-        return str(host_platform.target("default_target"))
+    def test_example(self):
+        """check example table dump"""
 
+        test_data_dir = self.test_suite.current_test_data_dir
+        db_filename = test_data_dir.join("packages.db")
+
+        # Ensure the database only contains one table
+        sqlite3 = which(self.prefix.bin.sqlite3)
+        out = sqlite3(db_filename, ".tables", output=str.split, error=str.split)
+        assert "packages" in out
+
+        # Ensure the database dump matches expectations, where special
+        # characters are replaced with spaces in the expected and actual
+        # output to avoid pattern errors.
+        expected = get_escaped_text_output(test_data_dir.join("dump.out"))
+        out = sqlite3(db_filename, ".dump", output=str.split, error=str.split)
+        check_outputs(expected, out)
+
+    def test_version(self):
+        """ensure version is expected"""
+        vers_str = str(self.spec.version)
+
+        sqlite3 = which(self.prefix.bin.sqlite3)
+        out = sqlite3("-version", output=str.split, error=str.split)
+        assert vers_str in out
+
+
+class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
     def configure_args(self):
         args = []
 
@@ -205,13 +271,17 @@ class Sqlite(AutotoolsPackage):
 
         return args
 
+    def get_arch(self):
+        host_platform = spack.platforms.host()
+        return str(host_platform.target("default_target"))
+
     @run_after("install")
     def build_libsqlitefunctions(self):
         if "+functions" in self.spec:
             libraryname = "libsqlitefunctions." + dso_suffix
             cc = Executable(spack_cc)
             cc(
-                self.compiler.cc_pic_flag,
+                self.pkg.compiler.cc_pic_flag,
                 "-lm",
                 "-shared",
                 "extension-functions.c",
@@ -220,53 +290,39 @@ class Sqlite(AutotoolsPackage):
             )
             install(libraryname, self.prefix.lib)
 
-    def _test_example(self):
-        """Ensure a sequence of commands on example db are successful."""
 
-        test_data_dir = self.test_suite.current_test_data_dir
-        db_filename = test_data_dir.join("packages.db")
-        exe = "sqlite3"
+class NMakeBuilder(spack.build_systems.nmake.NMakeBuilder):
+    @property
+    def makefile_name(self):
+        return "Makefile.msc"
 
-        # Ensure the database only contains one table
-        expected = "packages"
-        reason = 'test: ensuring only table is "{0}"'.format(expected)
-        self.run_test(
-            exe,
-            [db_filename, ".tables"],
-            expected,
-            installed=True,
-            purpose=reason,
-            skip_missing=False,
+    def nmake_args(self):
+        enable_fts = "1" if "+fts" in self.spec else "0"
+        enable_rtree = "1" if "+rtree" in self.spec else "0"
+        enable_functions = "1" if "+functions" in self.spec else "0"
+
+        opts = (
+            "OPTS="
+            f"-DSQLITE_ENABLE_FTS3={enable_fts} "
+            f"-DSQLITE_ENABLE_FTS4={enable_fts} "
+            f"-DSQLITE_ENABLE_FTS5={enable_fts} "
+            f"-DSQLITE_ENABLE_RTREE={enable_rtree} "
+            "-DSQLITE_ENABLE_JSON1=1 "
+            "-DSQLITE_ENABLE_GEOPOLY=1 "
+            "-DSQLITE_ENABLE_SESSION=1 "
+            "-DSQLITE_ENABLE_PREUPDATE_HOOK=1 "
+            "-DSQLITE_ENABLE_SERIALIZE=1 "
+            f"-DSQLITE_ENABLE_MATH_FUNCTIONS={enable_functions}"
         )
 
-        # Ensure the database dump matches expectations, where special
-        # characters are replaced with spaces in the expected and actual
-        # output to avoid pattern errors.
-        reason = "test: checking dump output"
-        expected = get_escaped_text_output(test_data_dir.join("dump.out"))
-        self.run_test(
-            exe,
-            [db_filename, ".dump"],
-            expected,
-            installed=True,
-            purpose=reason,
-            skip_missing=False,
-        )
+        return ["USE_NATIVE_LIBPATHS=1", "DYNAMIC_SHELL=1", opts]
 
-    def _test_version(self):
-        """Perform version check on the installed package."""
-        exe = "sqlite3"
-        vers_str = str(self.spec.version)
-
-        reason = "test: ensuring version of {0} is {1}".format(exe, vers_str)
-        self.run_test(
-            exe, "-version", vers_str, installed=True, purpose=reason, skip_missing=False
-        )
-
-    def test(self):
-        """Perform smoke tests on the installed package."""
-        # Perform a simple version check
-        self._test_version()
-
-        # Run a sequence of operations
-        self._test_example()
+    def install(self, pkg, spec, prefix):
+        with working_dir(self.build_directory):
+            mkdirp(prefix.include)
+            mkdirp(prefix.lib)
+            mkdirp(prefix.bin)
+            install(f"{self.build_directory}\\*.exe", prefix.bin)
+            install(f"{self.build_directory}\\*.dll", prefix.bin)
+            install(f"{self.build_directory}\\*.lib", prefix.lib)
+            install(f"{self.build_directory}\\*.h", prefix.include)

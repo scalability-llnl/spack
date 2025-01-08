@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,14 +10,25 @@ class Repeatmodeler(Package):
     package."""
 
     homepage = "https://www.repeatmasker.org/RepeatModeler/"
-    url = "https://www.repeatmasker.org/RepeatModeler/RepeatModeler-open-1.0.11.tar.gz"
+    url = "https://github.com/Dfam-consortium/RepeatModeler/archive/refs/tags/2.0.4.tar.gz"
 
-    version("1.0.11", sha256="7ff0d588b40f9ad5ce78876f3ab8d2332a20f5128f6357413f741bb7fa172193")
+    maintainers("snehring")
+
+    license("OSL-2.1")
+
+    version("2.0.4", sha256="94aad46cc70911d48de3001836fc3165adb95b2b282b5c53ab0d1da98c27a6b6")
+    version(
+        "1.0.11",
+        sha256="7ff0d588b40f9ad5ce78876f3ab8d2332a20f5128f6357413f741bb7fa172193",
+        url="https://www.repeatmasker.org/RepeatModeler/RepeatModeler-open-1.0.11.tar.gz",
+    )
 
     depends_on("perl", type=("build", "run"))
     depends_on("perl-json", type=("build", "run"))
     depends_on("perl-uri", type=("build", "run"))
     depends_on("perl-libwww-perl", type=("build", "run"))
+    depends_on("perl-file-which", type=("build", "run"), when="@2.0.4:")
+    depends_on("perl-devel-size", type=("build", "run"), when="@2.0.4:")
 
     depends_on("repeatmasker", type="run")
     depends_on("recon+repeatmasker", type="run")
@@ -27,36 +37,47 @@ class Repeatmodeler(Package):
     depends_on("nseg", type="run")
     depends_on("ncbi-rmblastn", type="run")
 
-    def install(self, spec, prefix):
-        # like repeatmasker, another interactive installer
-        # questions:
-        #   1. <enter to continue>
-        #   2. <perl path, default is OK>
-        #   3. <source path, default is OK>
-        #   4. RepeatMasker bin path
-        #   5. RECON bin path
-        #   6. RepeatScout bin path
-        #   7. Nseg bin path
-        #   8. trf bin path
-        #   9. Add a search engine:
-        #        1. RMBlast -> Path, Default? (Y/N)
-        #        2. WUBlast/ABBlast -> Path, Default? (Y/N)
-        #        3. Done
+    # "optional" dependencies that it still wants
+    depends_on("cdhit", type="run", when="@2.0.4:")
+    depends_on("genometools", type="run", when="@2.0.4:")
+    depends_on("mafft", type="run", when="@2.0.4:")
+    depends_on("ninja-phylogeny", type="run", when="@2.0.4:")
+    depends_on("blat", type="run", when="@2.0.4:")
+    depends_on("ltr-retriever", type="run", when="@2.0.4:")
 
-        config_answers = [
-            "",
-            "",
-            "",
-            spec["repeatmasker"].prefix.bin,
-            spec["recon"].prefix.bin,
-            spec["repeatscout"].prefix.bin,
-            spec["nseg"].prefix.bin,
-            spec["trf"].prefix.bin,
-            "1",
-            spec["ncbi-rmblastn"].prefix.bin,
-            "Y",
-            "3",
-        ]
+    def install(self, spec, prefix):
+        # interactive configuration script
+        if spec.satisfies("@1.0.11"):
+            config_answers = [
+                "",
+                "",
+                "",
+                spec["repeatmasker"].prefix.bin,
+                spec["recon"].prefix.bin,
+                spec["repeatscout"].prefix.bin,
+                spec["nseg"].prefix.bin,
+                spec["trf"].prefix.bin,
+                "1",
+                spec["ncbi-rmblastn"].prefix.bin,
+                "Y",
+                "3",
+            ]
+        elif spec.satisfies("@2.0.4:"):
+            config_answers = [
+                "",
+                spec["repeatmasker"].prefix.bin,
+                spec["recon"].prefix.bin,
+                spec["repeatscout"].prefix.bin,
+                spec["trf"].prefix.bin,
+                spec["cdhit"].prefix.bin,
+                spec["blat"].prefix.bin,
+                spec["ncbi-rmblastn"].prefix.bin,
+                "y",
+                spec["genometools"].prefix.bin,
+                spec["ltr-retriever"].prefix.bin,
+                spec["mafft"].prefix.bin,
+                spec["ninja-phylogeny"].prefix.bin,
+            ]
 
         config_filename = "spack-config.in"
 

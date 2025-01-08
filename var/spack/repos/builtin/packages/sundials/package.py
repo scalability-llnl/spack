@@ -1,12 +1,9 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 import sys
-
-from llnl.util import tty
 
 from spack.package import *
 
@@ -17,16 +14,26 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
 
     homepage = "https://computing.llnl.gov/projects/sundials"
     url = "https://github.com/LLNL/sundials/releases/download/v2.7.0/sundials-2.7.0.tar.gz"
-    git = "https://github.com/llnl/sundials.git"
+    git = "https://github.com/LLNL/sundials.git"
     tags = ["radiuss", "e4s"]
     test_requires_compiler = True
 
     maintainers("balos1", "cswoodward", "gardner48")
+    license("BSD-3-Clause")
 
     # ==========================================================================
     # Versions
     # ==========================================================================
     version("develop", branch="develop")
+    version("7.2.1", tag="v7.2.1", commit="5c53be85c88f63c5201c130b8cb2c686615cfb03")
+    version("7.2.0", tag="v7.2.0", commit="0eff39663606f2ff280c4059a947ed62ae38180a")
+    version("7.1.1", tag="v7.1.1", commit="c28eaa3764a03705d61decb6025b409360e9d53f")
+    version("7.0.0", sha256="d762a7950ef4097fbe9d289f67a8fb717a0b9f90f87ed82170eb5c36c0a07989")
+    version("6.7.0", sha256="5f113a1564a9d2d98ff95249f4871a4c815a05dbb9b8866a82b13ab158c37adb")
+    version("6.6.2", sha256="08f8223a5561327e44c072e46faa7f665c0c0bc8cd7e45d23f486c3d24c65009")
+    version("6.6.1", sha256="21f71e4aef95b18f954c8bbdc90b62877443950533d595c68051ab768b76984b")
+    version("6.6.0", sha256="f90029b8da846c8faff5530fd1fa4847079188d040554f55c1d5d1e04743d29d")
+    version("6.5.1", sha256="4252303805171e4dbdd19a01e52c1dcfe0dafc599c3cfedb0a5c2ffb045a8a75")
     version("6.5.0", sha256="4e0b998dff292a2617e179609b539b511eb80836f5faacf800e688a886288502")
     version("6.4.1", sha256="7bf10a8d2920591af3fba2db92548e91ad60eb7241ab23350a9b1bc51e05e8d0")
     version("6.4.0", sha256="0aff803a12c6d298d05b56839197dd09858631864017e255ed89e28b49b652f1")
@@ -56,6 +63,10 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
     version("2.7.0", sha256="d39fcac7175d701398e4eb209f7e92a5b30a78358d4a0c0fcc23db23c11ba104")
     version("2.6.2", sha256="d8ed0151509dd2b0f317b318a4175f8b95a174340fc3080b8c20617da8aa4d2f")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # ==========================================================================
     # Variants
     # ==========================================================================
@@ -78,10 +89,10 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
         values=("99", "11", "14", "17"),
     )
 
-    # Logging
+    # Logging (default=0 when "@6.2.0:6.7.0", default=2 when "@7.0.0:")
     variant(
         "logging-level",
-        default="0",
+        default="2",
         description="logging level\n 0 = no logging,\n 1 = errors,\n "
         "2 = errors + warnings,\n 3 = errors + "
         "warnings + info,\n 4 = errors + warnings + info + debugging, "
@@ -91,12 +102,12 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
         when="@6.2.0:",
     )
 
-    # MPI logging
+    # MPI logging (option removed in 7.0)
     variant(
         "logging-mpi",
         default="OFF",
         description="enable MPI support in the logger",
-        when="@6.2.0:",
+        when="@6.2.0:6.7.0",
     )
 
     # Real type
@@ -159,10 +170,11 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
     variant("examples", default=True, description="Enable examples")
     variant("examples-install", default=True, description="Install examples")
 
-    # Generic (std-c) math libraries (UNIX only)
+    # Generic (std-c) math libraries (UNIX only) (option removed in 7.0)
     variant(
         "generic-math",
         default=True,
+        when="@:6.7.0",
         description="Use generic (std-c) math libraries on unix systems",
     )
 
@@ -190,7 +202,6 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
 
     # External libraries incompatible with 64-bit indices
     conflicts("+lapack", when="@3.0.0: +int64")
-    conflicts("+hypre", when="+hypre@:2.6.1a +int64")
 
     # External libraries incompatible with single precision
     conflicts("+klu", when="precision=single")
@@ -215,8 +226,7 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
     # ==========================================================================
 
     # Build dependencies
-    depends_on("cmake@3.12:", type="build")
-    depends_on("cmake@3.18:", when="+cuda", type="build")
+    depends_on("cmake@3.18:", type="build")
 
     # MPI related dependencies
     depends_on("mpi", when="+mpi")
@@ -276,8 +286,16 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
     # ==========================================================================
     # Patches
     # ==========================================================================
+    # https://github.com/LLNL/sundials/pull/434
+    # https://github.com/LLNL/sundials/pull/437
+    patch("sundials-hip-platform.patch", when="@7.0.0 +rocm")
+
     # https://github.com/spack/spack/issues/29526
     patch("nvector-pic.patch", when="@6.1.0:6.2.0 +rocm")
+
+    # Backward compatibility is stopped from ROCm 6.0
+    # Need to follow the changes similar to PR https://github.com/LLNL/RAJA/pull/1568
+    patch("Change-HIP_PLATFORM-from-HCC-to-AMD-and-NVCC-to-NVIDIA.patch", when="^hip@6.0 +rocm")
 
     # remove OpenMP header file and function from hypre vector test code
     patch("test_nvector_parhyp.patch", when="@2.7.0:3.0.0")
@@ -288,6 +306,12 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
     patch("remove-links-to-OpenMP-vector.patch", when="@5.5.0:5.7.0")
     # fix issues with exported PETSc target(s) in SUNDIALSConfig.cmake
     patch("sundials-v5.8.0.patch", when="@5.8.0")
+
+    def flag_handler(self, name, flags):
+        if name == "cxxflags":
+            if self.spec.satisfies("+sycl"):
+                flags.append("-fsycl")
+        return (flags, None, None)
 
     # ==========================================================================
     # SUNDIALS Settings
@@ -322,7 +346,7 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
             args.extend(
                 [
                     define("SUNDIALS_INDEX_SIZE", intsize),
-                    define("SUNDIALS_INDEX_TYPE", "int{}_t".format(intsize)),
+                    define("SUNDIALS_INDEX_TYPE", f"int{intsize}_t"),
                 ]
             )
 
@@ -375,6 +399,7 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
 
         if "+cuda" in spec:
             args.append(define("CMAKE_CUDA_ARCHITECTURES", spec.variants["cuda_arch"].value))
+            args.append(define("CUDAToolkit_ROOT", self.spec["cuda"].prefix))
 
         if "+rocm" in spec:
             args.extend(
@@ -624,7 +649,8 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
 
         cxx_files = [
             "arkode/CXX_parallel/Makefile",
-            "arkode/CXX_serial/Makefile" "cvode/cuda/Makefile",
+            "arkode/CXX_serial/Makefile",
+            "cvode/cuda/Makefile",
             "cvode/raja/Makefile",
             "nvector/cuda/Makefile",
             "nvector/raja/Makefile",
@@ -648,7 +674,7 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
         f2003_files = [
             "arkode/F2003_serial/Makefile",
             "cvode/F2003_serial/Makefile",
-            "cvodes/F2003_serial/Makefike",
+            "cvodes/F2003_serial/Makefile",
             "ida/F2003_serial/Makefile",
             "idas/F2003_serial/Makefile",
             "kinsol/F2003_serial/Makefile",
@@ -710,6 +736,8 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
             # Q: should the result be ordered by dependency?
         else:
             sun_libs = ["libsundials_" + p for p in query_parameters]
+            if self.spec.satisfies("@7:"):
+                sun_libs += ["libsundials_core"]
         is_shared = "+shared" in self.spec
 
         libs = find_libraries(sun_libs, root=self.prefix, shared=is_shared, recursive=True)
@@ -718,106 +746,95 @@ class Sundials(CMakePackage, CudaPackage, ROCmPackage):
 
     @run_after("install")
     @on_package_attributes(run_tests=True)
-    def test_install(self):
-        """Perform make test_install."""
+    def check_test_install(self):
+        """Perform test_install on the build."""
         with working_dir(self.build_directory):
             make("test_install")
-
-    @property
-    def _smoke_tests(self):
-        # smoke_tests tuple: exe, args, purpose, use cmake (true/false)
-        smoke_tests = [
-            ("nvector/serial/test_nvector_serial", ["10", "0"], "Test serial N_Vector", False)
-        ]
-        if "+CVODE" in self.spec:
-            smoke_tests.append(("cvode/serial/cvAdvDiff_bnd", [], "Test CVODE", True))
-
-        if "+cuda" in self.spec:
-            smoke_tests.append(
-                ("nvector/cuda/test_nvector_cuda", ["10", "0", "0"], "Test CUDA N_Vector", True)
-            )
-            if "+CVODE" in self.spec:
-                smoke_tests.append(
-                    ("cvode/cuda/cvAdvDiff_kry_cuda", [], "Test CVODE with CUDA", True)
-                )
-
-        if "+rocm" in self.spec:
-            smoke_tests.append(
-                ("nvector/hip/test_nvector_hip", ["10", "0", "0"], "Test HIP N_Vector", True)
-            )
-            if "+CVODE" in self.spec:
-                smoke_tests.append(
-                    ("cvode/hip/cvAdvDiff_kry_hip", [], "Test CVODE with HIP", True)
-                )
-
-        if "+sycl" in self.spec:
-            smoke_tests.append(
-                ("nvector/sycl/test_nvector_sycl", ["10", "0", "0"], "Test SYCL N_Vector")
-            )
-            if "+CVODE" in self.spec:
-                smoke_tests.append(
-                    ("cvode/sycl/cvAdvDiff_kry_sycl", [], "Test CVODE with SYCL", True)
-                )
-
-        return smoke_tests
 
     @property
     def _smoke_tests_path(self):
         # examples/smoke-tests are cached for testing
         return self.prefix.examples
 
-    # TODO: Replace this method and its 'get' use for cmake path with
-    #   join_path(self.spec['cmake'].prefix.bin, 'cmake') once stand-alone
-    #   tests can access build dependencies through self.spec['cmake'].
-    def cmake_bin(self, set=True):
-        """(Hack) Set/get cmake dependency path."""
-        filepath = join_path(self.install_test_root, "cmake_bin_path.txt")
-        if set:
-            with open(filepath, "w") as out_file:
-                cmake_bin = join_path(self.spec["cmake"].prefix.bin, "cmake")
-                out_file.write("{0}\n".format(cmake_bin))
-        elif os.path.isfile(filepath):
-            with open(filepath, "r") as in_file:
-                return in_file.read().strip()
+    def run_example(self, exe_path, opts, cmake_bool):
+        """Common sundials test method"""
+        if "~examples-install" in self.spec:
+            raise SkipTest("Package must be installed with +examples-install")
 
-    @run_after("install")
-    def setup_smoke_tests(self):
-        install_tree(self._smoke_tests_path, join_path(self.install_test_root, "testing"))
-        self.cmake_bin(set=True)
+        (dirname, basename) = os.path.split(exe_path)
+        srcpath = join_path(self._smoke_tests_path, dirname)
+        if not os.path.exists(srcpath):
+            raise SkipTest(f"Example '{basename}' source directory not found in {self.version}")
 
-    def build_smoke_tests(self):
-        cmake_bin = self.cmake_bin(set=False)
+        # copy the example's directory to the test stage
+        mkdirp(dirname)
+        install_tree(srcpath, dirname)
 
-        if not cmake_bin:
-            tty.msg("Skipping sundials test: cmake_bin_path.txt not found")
-            return
+        # build and run the example
+        with working_dir(dirname):
+            if cmake_bool:
+                deps = "sundials mpi"
+                prefixes = ";".join([self.spec[x].prefix for x in deps.split()])
+                cmake = self.spec["cmake"].command
+                cmake("-DCMAKE_PREFIX_PATH=" + prefixes, ".")
 
-        for smoke_test in self._smoke_tests:
-            work_dir = join_path(self._smoke_tests_path, os.path.dirname(smoke_test[0]))
-            with working_dir(work_dir):
-                if smoke_test[3]:  # use cmake
-                    self.run_test(exe=cmake_bin, options=["."])
-                self.run_test(exe="make")
+            make = which("make")
+            make()
+            exe = which(basename)
+            exe(*opts)
+            make("clean")
 
-    def run_smoke_tests(self):
-        for smoke_test in self._smoke_tests:
-            self.run_test(
-                exe=join_path(self._smoke_tests_path, smoke_test[0]),
-                options=smoke_test[1],
-                status=[0],
-                installed=True,
-                skip_missing=True,
-                purpose=smoke_test[2],
-            )
+    def test_nvector_serial(self):
+        """build and run serial N_Vector"""
+        self.run_example(join_path("nvector", "serial", "test_nvector_serial"), ["10", "0"], False)
 
-    def clean_smoke_tests(self):
-        for smoke_test in self._smoke_tests:
-            work_dir = join_path(self._smoke_tests_path, os.path.dirname(smoke_test[0]))
-            with working_dir(work_dir):
-                self.run_test(exe="make", options=["clean"])
+    def test_cvadvdiff_serial(self):
+        """build and run serial cvAdvDiff_bnd"""
+        if "+CVODE" not in self.spec:
+            raise SkipTest("Package must be installed with +CVODE")
 
-    def test(self):
-        self.build_smoke_tests()
-        self.run_smoke_tests()
-        self.clean_smoke_tests()
-        return
+        self.run_example(join_path("cvode", "serial", "cvAdvDiff_bnd"), [], True)
+
+    def test_nvector_cuda(self):
+        """build and run CUDA N_Vector"""
+        if "+cuda" not in self.spec:
+            raise SkipTest("Package must be installed with +cuda")
+
+        self.run_example(join_path("nvector", "cuda", "test_nvector_cuda"), ["10", "0", "0"], True)
+
+    def test_cvadvdiff_cuda(self):
+        """build and run CUDA cvAdvDiff_kry"""
+        if "+cuda" not in self.spec or "+CVODE" not in self.spec:
+            raise SkipTest("Package must be installed with +cuda+CVODE")
+
+        self.run_example(join_path("cvode", "cuda", "cvAdvDiff_kry_cuda"), [], True)
+
+    def test_nvector_hip(self):
+        """build and run ROCM N_Vector"""
+        if "+rocm" not in self.spec:
+            raise SkipTest("Package must be installed with +rocm")
+
+        self.run_example(join_path("nvector", "hip", "test_nvector_hip"), ["10", "0", "0"], True)
+
+    def test_cvadvdiff_hip(self):
+        """build and run ROCM cvAdvDiff_kry"""
+        if "+rocm" not in self.spec or "+CVODE" not in self.spec:
+            raise SkipTest("Package must be installed with +rocm+CVODE")
+
+        self.run_example(join_path("cvode", "hip", "cvAdvDiff_kry_hip"), [], True)
+
+    def test_nvector_sycl(self):
+        """build and run SYCL N_Vector"""
+        if "+sycl" not in self.spec:
+            raise SkipTest("Package must be installed with +sycl")
+
+        self.run_example(
+            join_path("nvector", "sycl", "test_nvector_sycl"), ["10", "0", "0"], False
+        )
+
+    def test_sycl_cvode(self):
+        """build and run SYCL cvAdvDiff_kry"""
+        if "+sycl" not in self.spec or "+CVODE" not in self.spec:
+            raise SkipTest("Package must be installed with +sycl and +CVODE")
+
+        self.run_example(join_path("cvode", "sycl", "cvAdvDiff_kry_sycl"), [], True)

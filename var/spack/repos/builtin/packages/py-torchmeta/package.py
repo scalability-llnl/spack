@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,8 @@ class PyTorchmeta(PythonPackage):
 
     homepage = "https://github.com/tristandeleu/pytorch-meta"
     pypi = "torchmeta/torchmeta-1.7.0.tar.gz"
+
+    license("MIT")
 
     version("1.7.0", sha256="148d42b6a1ec27970408f7bcb97cf1cb203f8699214e06424fe43d78faa848d9")
 

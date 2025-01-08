@@ -1,10 +1,6 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-# Need this because of spack.util.string
-from __future__ import absolute_import
 
 import io
 import itertools
@@ -166,7 +162,7 @@ class InvalidModuleNameError(spack.error.SpackError):
     """Raised when we encounter a bad module name."""
 
     def __init__(self, name):
-        super(InvalidModuleNameError, self).__init__("Invalid module name: " + name)
+        super().__init__("Invalid module name: " + name)
         self.name = name
 
 
@@ -174,14 +170,12 @@ class InvalidFullyQualifiedModuleNameError(spack.error.SpackError):
     """Raised when we encounter a bad full package name."""
 
     def __init__(self, name):
-        super(InvalidFullyQualifiedModuleNameError, self).__init__(
-            "Invalid fully qualified package name: " + name
-        )
+        super().__init__("Invalid fully qualified package name: " + name)
         self.name = name
 
 
-class NamespaceTrie(object):
-    class Element(object):
+class NamespaceTrie:
+    class Element:
         def __init__(self, value):
             self.value = value
 

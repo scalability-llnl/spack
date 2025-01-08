@@ -1,0 +1,25 @@
+From 5fb5d82637c1b547b800b5994a1f5342b3224da4 Mon Sep 17 00:00:00 2001
+From: Rosen Penev <rosenp@gmail.com>
+Date: Sat, 12 Aug 2023 11:46:14 -0700
+Subject: [PATCH] fix compilation with GCC7
+
+CTAD is not working here.
+
+Signed-off-by: Rosen Penev <rosenp@gmail.com>
+---
+ src/patchelf.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/patchelf.cc b/src/patchelf.cc
+index 82b4b46c..d6000160 100644
+--- a/src/patchelf.cc
++++ b/src/patchelf.cc
+@@ -2069,7 +2069,7 @@ void ElfFile<ElfFileParamNames>::rebuildGnuHashTable(span<char> strTab, span<Elf
+     // all tables that refer to symbols through indexes in the symbol table
+     auto reorderSpan = [] (auto dst, auto& old2new)
+     {
+-        std::vector tmp(dst.begin(), dst.end());
++        std::vector<std::remove_reference_t<decltype(dst[0])>> tmp(dst.begin(), dst.end());
+         for (size_t i = 0; i < tmp.size(); ++i)
+             dst[old2new[i]] = tmp[i];
+     };

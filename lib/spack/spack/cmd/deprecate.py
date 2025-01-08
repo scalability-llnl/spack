@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Deprecate one Spack install in favor of another
@@ -13,22 +12,21 @@ place.
 It is up to the user to ensure binary compatibility between the deprecated
 installation and its deprecator.
 """
-from __future__ import print_function
-
 import argparse
-import os
 
 import llnl.util.tty as tty
 from llnl.util.symlink import symlink
 
 import spack.cmd
-import spack.cmd.common.arguments as arguments
 import spack.environment as ev
+import spack.installer
 import spack.store
-from spack.database import InstallStatuses
+from spack.cmd.common import arguments
 from spack.error import SpackError
 
-description = "Replace one package with another via symlinks"
+from ..enums import InstallRecordStatus
+
+description = "replace one package with another via symlinks"
 section = "admin"
 level = "long"
 
@@ -48,7 +46,7 @@ def setup_parser(sp):
         action="store_true",
         default=True,
         dest="dependencies",
-        help="Deprecate dependencies (default)",
+        help="deprecate dependencies (default)",
     )
     deps.add_argument(
         "-D",
@@ -56,7 +54,7 @@ def setup_parser(sp):
         action="store_false",
         default=True,
         dest="dependencies",
-        help="Do not deprecate dependencies",
+        help="do not deprecate dependencies",
     )
 
     install = sp.add_mutually_exclusive_group()
@@ -66,7 +64,7 @@ def setup_parser(sp):
         action="store_true",
         default=False,
         dest="install",
-        help="Concretize and install deprecator spec",
+        help="concretize and install deprecator spec",
     )
     install.add_argument(
         "-I",
@@ -74,16 +72,11 @@ def setup_parser(sp):
         action="store_false",
         default=False,
         dest="install",
-        help="Deprecator spec must already be installed (default)",
+        help="deprecator spec must already be installed (default)",
     )
 
     sp.add_argument(
-        "-l",
-        "--link-type",
-        type=str,
-        default="soft",
-        choices=["soft", "hard"],
-        help="Type of filesystem link to use for deprecation (default soft)",
+        "-l", "--link-type", type=str, default=None, choices=["soft", "hard"], help="(deprecated)"
     )
 
     sp.add_argument(
@@ -93,14 +86,21 @@ def setup_parser(sp):
 
 def deprecate(parser, args):
     """Deprecate one spec in favor of another"""
+    if args.link_type is not None:
+        tty.warn("The --link-type option is deprecated and will be removed in a future release.")
+
     env = ev.active_environment()
     specs = spack.cmd.parse_specs(args.specs)
 
     if len(specs) != 2:
         raise SpackError("spack deprecate requires exactly two specs")
 
-    install_query = [InstallStatuses.INSTALLED, InstallStatuses.DEPRECATED]
-    deprecate = spack.cmd.disambiguate_spec(specs[0], env, local=True, installed=install_query)
+    deprecate = spack.cmd.disambiguate_spec(
+        specs[0],
+        env,
+        local=True,
+        installed=(InstallRecordStatus.INSTALLED | InstallRecordStatus.DEPRECATED),
+    )
 
     if args.install:
         deprecator = specs[1].concretized()
@@ -132,7 +132,7 @@ def deprecate(parser, args):
         already_deprecated = []
         already_deprecated_for = []
         for spec in all_deprecate:
-            deprecated_for = spack.store.db.deprecator(spec)
+            deprecated_for = spack.store.STORE.db.deprecator(spec)
             if deprecated_for:
                 already_deprecated.append(spec)
                 already_deprecated_for.append(deprecated_for)
@@ -146,7 +146,5 @@ def deprecate(parser, args):
         if not answer:
             tty.die("Will not deprecate any packages.")
 
-    link_fn = os.link if args.link_type == "hard" else symlink
-
     for dcate, dcator in zip(all_deprecate, all_deprecators):
-        dcate.package.do_deprecate(dcator, link_fn)
+        spack.installer.deprecate(dcate, dcator, symlink)

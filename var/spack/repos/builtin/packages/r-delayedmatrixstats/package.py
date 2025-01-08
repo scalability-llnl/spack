@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,7 @@ class RDelayedmatrixstats(RPackage):
 
     bioc = "DelayedMatrixStats"
 
+    version("1.22.0", commit="e820ab9a72963badc539e38fa79dbaeab95b2d2c")
     version("1.20.0", commit="1ed14250e8731e60bccb44946cafad4c2b3ac5b0")
     version("1.18.1", commit="9c4658d11fc20b7d88e05b9c52140c2ca8a65768")
     version("1.18.0", commit="50c9aab259b6e8f68abf44b78122662a41c8bf47")

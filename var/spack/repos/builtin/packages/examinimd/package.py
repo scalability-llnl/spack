@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -43,14 +42,14 @@ class Examinimd(MakefilePackage):
         # Append Kokkos
         targets.append("KOKKOS_PATH={0}".format(self.spec["kokkos-legacy"].prefix))
         # Set kokkos device
-        if "openmp" in self.spec:
+        if self.spec.satisfies("openmp"):
             targets.append("KOKKOS_DEVICES=OpenMP")
-        elif "pthreads" in self.spec:
+        elif self.spec.satisfies("pthreads"):
             targets.append("KOKKOS_DEVICES=Pthread")
         else:
             targets.append("KOKKOS_DEVICES=Serial")
         # Set MPI as needed
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             targets.append("MPI=1")
             targets.append("CXX = {0}".format(self.spec["mpi"].mpicxx))
         else:

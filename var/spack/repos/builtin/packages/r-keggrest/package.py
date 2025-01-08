@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,7 @@ class RKeggrest(RPackage):
 
     bioc = "KEGGREST"
 
+    version("1.40.0", commit="1bdb0b57d7e9b708da14d2847c2a17ca35500b21")
     version("1.38.0", commit="4dfbff9f6662227bd49d64d18a342f469dd88ad3")
     version("1.36.3", commit="1827cde76863aa80c83264a0dd95514654358df3")
     version("1.36.0", commit="591818bbc9195bfd0657cf4f5c7c771ea7f86830")

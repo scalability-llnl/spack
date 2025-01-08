@@ -1,0 +1,37 @@
+--- ./unix/configure.old	2009-04-16 19:25:12.000000000 +0000
++++ ./unix/configure	2023-07-14 09:35:33.735000149 +0000
+@@ -383,7 +383,7 @@
+ do
+   echo Check for $func
+   echo "int main(){ $func(); return 0; }" > conftest.c
+-  $CC $BFLAG -o conftest conftest.c >/dev/null 2>/dev/null
++  $CC $BFLAG $CFLAGS -o conftest conftest.c >/dev/null 2>/dev/null
+   [ $? -ne 0 ] && CFLAGSR="${CFLAGSR} -DNO_`echo $func | tr '[a-z]' '[A-Z]'`"
+ done
+
+@@ -395,14 +395,14 @@
+   echo "int main() { lchmod(\"${temp_file}\", 0666); }" \
+ ) > conftest.c
+ ln -s "${temp_link}" "${temp_file}" && \
+- $CC $BFLAG -o conftest conftest.c >/dev/null 2>/dev/null && \
++ $CC $CFLAGS $BFLAG -o conftest conftest.c >/dev/null 2>/dev/null && \
+  ./conftest
+ [ $? -ne 0 ] && CFLAGSR="${CFLAGSR} -DNO_LCHMOD"
+ rm -f "${temp_file}"
+
+ echo Check for memset
+ echo "int main(){ char k; memset(&k,0,0); return 0; }" > conftest.c
+-$CC -o conftest conftest.c >/dev/null 2>/dev/null
++$CC $CFLAGS -o conftest conftest.c >/dev/null 2>/dev/null
+ [ $? -ne 0 ] && CFLAGSR="${CFLAGSR} -DZMEM"
+
+ echo Check for errno declaration
+@@ -422,7 +422,7 @@
+ int main() { return closedir(opendir(".")); }
+ _EOF_
+
+-$CC -o conftest conftest.c >/dev/null 2>/dev/null
++$CC $CFLAGS -o conftest conftest.c >/dev/null 2>/dev/null
+ if [ $? -ne 0 ]; then
+   OPT=""
+   for lib in ndir dir ucb bsd BSD PW x dirent

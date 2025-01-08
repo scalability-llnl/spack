@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,29 +16,35 @@ class AoclSparse(CMakePackage):
     LICENSING INFORMATION: By downloading, installing and using this software,
     you agree to the terms and conditions of the AMD AOCL-Sparse license agreement.
     You may obtain a copy of this license agreement from
-    https://www.amd.com/en/developer/aocl/sparse/sparse-libraries-4-0-eula.html
-    https://www.amd.com/en/developer/aocl/sparse/sparse-libraries-eula.html
+    https://www.amd.com/en/developer/aocl/sparse/eula/sparse-libraries-4-2-eula.html
+    https://www.amd.com/en/developer/aocl/sparse/eula/sparse-libraries-eula.html
     """
 
     _name = "aocl-sparse"
     homepage = "https://www.amd.com/en/developer/aocl/sparse.html"
+    git = "https://github.com/amd/aocl-sparse"
     url = "https://github.com/amd/aocl-sparse/archive/3.0.tar.gz"
-    git = "https://github.com/amd/aocl-sparse.git"
 
     maintainers("amd-toolchain-support")
 
+    license("MIT")
+
+    version(
+        "5.0",
+        sha256="7528970f41ae60563df9fe1f8cc74a435be1566c01868a603ab894e9956c3c94",
+        preferred=True,
+    )
+    version("4.2", sha256="03cd67adcfea4a574fece98b60b4aba0a6e5a9c8f608ff1ccc1fb324a7185538")
+    version("4.1", sha256="35ef437210bc25fdd802b462eaca830bfd928f962569b91b592f2866033ef2bb")
     version("4.0", sha256="68524e441fdc7bb923333b98151005bed39154d9f4b5e8310b5c37de1d69c2c3")
     version("3.2", sha256="db7d681a8697d6ef49acf3e97e8bec35b048ce0ad74549c3b738bbdff496618f")
     version("3.1", sha256="8536f06095c95074d4297a3d2910654085dd91bce82e116c10368a9f87e9c7b9")
     version("3.0", sha256="1d04ba16e04c065051af916b1ed9afce50296edfa9b1513211a7378e1d6b952e")
     version("2.2", sha256="33c2ed6622cda61d2613ee63ff12c116a6cd209c62e54307b8fde986cd65f664")
 
-    variant(
-        "build_type",
-        default="Release",
-        description="CMake build type",
-        values=("Debug", "Release"),
-    )
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=True, description="Build shared library")
     variant("ilp64", default=False, description="Build with ILP64 support")
     variant("examples", default=False, description="Build sparse examples")
@@ -51,10 +56,29 @@ class AoclSparse(CMakePackage):
         when="@4.0: target=zen4:",
         description="Enable experimental AVX512 support",
     )
+    variant("openmp", default=True, when="@4.2:", description="Enable OpenMP support")
 
+    for vers in ["4.1", "4.2", "5.0"]:
+        with when(f"@={vers}"):
+            depends_on(f"amdblis@={vers}")
+            depends_on(f"amdlibflame@={vers}")
+            if Version(vers) >= Version("4.2"):
+                depends_on(f"aocl-utils@={vers}")
+
+    depends_on("amdblis threads=openmp", when="+openmp")
+    depends_on("amdlibflame threads=openmp", when="+openmp")
+    depends_on("amdblis threads=none", when="~openmp")
+    depends_on("amdlibflame threads=none", when="~openmp")
     depends_on("boost", when="+benchmarks")
     depends_on("boost", when="@2.2")
-    depends_on("cmake@3.5:", type="build")
+    depends_on("cmake@3.22:", type="build")
+
+    @property
+    def libs(self):
+        """find libaoclsparse libs function"""
+        return find_libraries(
+            "libaoclsparse", root=self.prefix, shared="+shared" in self.spec, recursive=True
+        )
 
     @property
     def build_directory(self):
@@ -76,17 +100,7 @@ class AoclSparse(CMakePackage):
         """Runs ``cmake`` in the build directory"""
         spec = self.spec
 
-        args = [
-            "../..",
-            "-DCMAKE_INSTALL_PREFIX:PATH={0}".format(spec.prefix),
-            "-DCMAKE_CXX_COMPILER={0}".format(os.path.basename(spack_cxx)),
-        ]
-
-        if spec.variants["build_type"].value == "Debug":
-            args.append("-DCMAKE_BUILD_TYPE=Debug")
-        else:
-            args.append("-DCMAKE_BUILD_TYPE=Release")
-
+        args = []
         args.append(self.define_from_variant("BUILD_SHARED_LIBS", "shared"))
         args.append(self.define_from_variant("BUILD_CLIENTS_SAMPLES", "examples"))
         args.append(self.define_from_variant("BUILD_CLIENTS_TESTS", "unit_tests"))
@@ -95,6 +109,20 @@ class AoclSparse(CMakePackage):
 
         if spec.satisfies("@3.0:"):
             args.append(self.define_from_variant("BUILD_ILP64", "ilp64"))
+
+        if spec.satisfies("@4.0:"):
+            args.append(f"-DAOCL_BLIS_LIB={self.spec['amdblis'].libs}")
+            args.append("-DAOCL_BLIS_INCLUDE_DIR={0}/blis".format(spec["amdblis"].prefix.include))
+            args.append(f"-DAOCL_LIBFLAME={spec['amdlibflame'].libs}")
+            args.append(
+                "-DAOCL_LIBFLAME_INCLUDE_DIR={0}".format(spec["amdlibflame"].prefix.include)
+            )
+
+        if spec.satisfies("@4.2:"):
+            args.append(f"-DAOCL_UTILS_LIB={spec['aocl-utils'].libs}")
+            args.append("-DAOCL_UTILS_INCLUDE_DIR={0}".format(spec["aocl-utils"].prefix.include))
+
+        args.append(self.define_from_variant("SUPPORT_OMP", "openmp"))
 
         return args
 

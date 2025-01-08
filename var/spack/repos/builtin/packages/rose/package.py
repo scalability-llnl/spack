@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,8 @@ class Rose(AutotoolsPackage):
     # --------------------------------------------------------------------------
     # ROSE Versions
     # --------------------------------------------------------------------------
+
+    license("BSD-3-Clause")
 
     version("0.9.13.0", sha256="64092793dfd38d476152696721e29a410bb31dc3eeb6064c7520087aa8c904a6")
 

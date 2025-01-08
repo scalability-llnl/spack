@@ -1,0 +1,15 @@
+--- a/pspBLAS/src/pspUtility/pspBasicTool.F90	2023-11-01 10:34:05.000000000 +0900
++++ b/pspBLAS/src/pspUtility/pspBasicTool.F90	2023-11-01 10:34:39.000000000 +0900
+@@ -15,9 +15,9 @@ MODULE pspBasicTool
+   use pspVariable
+   ! This module contains routines for indexing, generating, copying, transforming (sparse) data
+ 
+-#ifdef HAVE_MPI
+-  include 'mpif.h'
+-#endif
++!#ifdef HAVE_MPI
++!  include 'mpif.h'
++!#endif
+ 
+   private
+ 

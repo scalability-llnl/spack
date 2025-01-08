@@ -1,14 +1,13 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import collections
 import itertools
 import os.path
-import posixpath
-from typing import Any, Dict
+from typing import Dict, List, Optional, Tuple
 
+import llnl.util.filesystem as fs
 import llnl.util.lang as lang
 
 import spack.compilers
@@ -23,18 +22,19 @@ from .common import BaseConfiguration, BaseContext, BaseFileLayout, BaseModuleFi
 
 
 #: lmod specific part of the configuration
-def configuration(module_set_name):
-    config_path = "modules:%s:lmod" % module_set_name
-    config = spack.config.get(config_path, {})
-    return config
+def configuration(module_set_name: str) -> dict:
+    return spack.config.get(f"modules:{module_set_name}:lmod", {})
 
 
 # Caches the configuration {spec_hash: configuration}
-configuration_registry: Dict[str, Any] = {}
+configuration_registry: Dict[Tuple[str, str, bool], BaseConfiguration] = {}
 
 
-def make_configuration(spec, module_set_name, explicit):
+def make_configuration(
+    spec: spack.spec.Spec, module_set_name: str, explicit: Optional[bool] = None
+) -> BaseConfiguration:
     """Returns the lmod configuration for spec"""
+    explicit = bool(spec._installed_explicitly()) if explicit is None else explicit
     key = (spec.dag_hash(), module_set_name, explicit)
     try:
         return configuration_registry[key]
@@ -44,19 +44,21 @@ def make_configuration(spec, module_set_name, explicit):
         )
 
 
-def make_layout(spec, module_set_name, explicit):
+def make_layout(
+    spec: spack.spec.Spec, module_set_name: str, explicit: Optional[bool] = None
+) -> BaseFileLayout:
     """Returns the layout information for spec"""
-    conf = make_configuration(spec, module_set_name, explicit)
-    return LmodFileLayout(conf)
+    return LmodFileLayout(make_configuration(spec, module_set_name, explicit))
 
 
-def make_context(spec, module_set_name, explicit):
+def make_context(
+    spec: spack.spec.Spec, module_set_name: str, explicit: Optional[bool] = None
+) -> BaseContext:
     """Returns the context information for spec"""
-    conf = make_configuration(spec, module_set_name, explicit)
-    return LmodContext(conf)
+    return LmodContext(make_configuration(spec, module_set_name, explicit))
 
 
-def guess_core_compilers(name, store=False):
+def guess_core_compilers(name, store=False) -> List[spack.spec.CompilerSpec]:
     """Guesses the list of core compilers installed in the system.
 
     Args:
@@ -64,21 +66,19 @@ def guess_core_compilers(name, store=False):
             modules.yaml configuration file
 
     Returns:
-        List of core compilers, if found, or None
+        List of found core compilers
     """
     core_compilers = []
-    for compiler_config in spack.compilers.all_compilers_config():
+    for compiler in spack.compilers.all_compilers():
         try:
-            compiler = compiler_config["compiler"]
             # A compiler is considered to be a core compiler if any of the
             # C, C++ or Fortran compilers reside in a system directory
             is_system_compiler = any(
-                os.path.dirname(x) in spack.util.environment.SYSTEM_DIRS
-                for x in compiler["paths"].values()
-                if x is not None
+                os.path.dirname(getattr(compiler, x, "")) in spack.util.environment.SYSTEM_DIRS
+                for x in ("cc", "cxx", "f77", "fc")
             )
             if is_system_compiler:
-                core_compilers.append(str(compiler["spec"]))
+                core_compilers.append(compiler.spec)
         except (KeyError, TypeError, AttributeError):
             continue
 
@@ -89,22 +89,19 @@ def guess_core_compilers(name, store=False):
         modules_cfg = spack.config.get(
             "modules:" + name, {}, scope=spack.config.default_modify_scope()
         )
-        modules_cfg.setdefault("lmod", {})["core_compilers"] = core_compilers
+        modules_cfg.setdefault("lmod", {})["core_compilers"] = [str(x) for x in core_compilers]
         spack.config.set("modules:" + name, modules_cfg, scope=spack.config.default_modify_scope())
 
-    return core_compilers or None
+    return core_compilers
 
 
 class LmodConfiguration(BaseConfiguration):
     """Configuration class for lmod module files."""
 
-    # Note: Posixpath is used here as well as below as opposed to
-    # os.path.join due to spack.spec.Spec.format
-    # requiring forward slash path seperators at this stage
-    default_projections = {"all": posixpath.join("{name}", "{version}")}
+    default_projections = {"all": "{name}/{version}"}
 
     @property
-    def core_compilers(self):
+    def core_compilers(self) -> List[spack.spec.CompilerSpec]:
         """Returns the list of "Core" compilers
 
         Raises:
@@ -112,14 +109,18 @@ class LmodConfiguration(BaseConfiguration):
                 specified in the configuration file or the sequence
                 is empty
         """
-        value = configuration(self.name).get("core_compilers") or guess_core_compilers(
-            self.name, store=True
-        )
+        compilers = [
+            spack.spec.CompilerSpec(c) for c in configuration(self.name).get("core_compilers", [])
+        ]
 
-        if not value:
+        if not compilers:
+            compilers = guess_core_compilers(self.name, store=True)
+
+        if not compilers:
             msg = 'the key "core_compilers" must be set in modules.yaml'
             raise CoreCompilersNotFoundError(msg)
-        return value
+
+        return compilers
 
     @property
     def core_specs(self):
@@ -132,6 +133,7 @@ class LmodConfiguration(BaseConfiguration):
         return configuration(self.name).get("filter_hierarchy_specs", {})
 
     @property
+    @lang.memoized
     def hierarchy_tokens(self):
         """Returns the list of tokens that are part of the modulefile
         hierarchy. 'compiler' is always present.
@@ -140,7 +142,7 @@ class LmodConfiguration(BaseConfiguration):
 
         # Check if all the tokens in the hierarchy are virtual specs.
         # If not warn the user and raise an error.
-        not_virtual = [t for t in tokens if t != "compiler" and not spack.repo.path.is_virtual(t)]
+        not_virtual = [t for t in tokens if t != "compiler" and not spack.repo.PATH.is_virtual(t)]
         if not_virtual:
             msg = "Non-virtual specs in 'hierarchy' list for lmod: {0}\n"
             msg += "Please check the 'modules.yaml' configuration files"
@@ -156,6 +158,7 @@ class LmodConfiguration(BaseConfiguration):
         return tokens
 
     @property
+    @lang.memoized
     def requires(self):
         """Returns a dictionary mapping all the requirements of this spec
         to the actual provider. 'compiler' is always present among the
@@ -197,11 +200,11 @@ class LmodConfiguration(BaseConfiguration):
 
         # If it is in the list of supported compilers family -> compiler
         if self.spec.name in spack.compilers.supported_compilers():
-            provides["compiler"] = spack.spec.CompilerSpec(self.spec.format("{name}{@version}"))
+            provides["compiler"] = spack.spec.CompilerSpec(self.spec.format("{name}{@versions}"))
         elif self.spec.name in spack.compilers.package_name_to_compiler_name:
             # If it is the package for a supported compiler, but of a different name
             cname = spack.compilers.package_name_to_compiler_name[self.spec.name]
-            provides["compiler"] = spack.spec.CompilerSpec("%s@%s" % (cname, self.spec.version))
+            provides["compiler"] = spack.spec.CompilerSpec(cname, self.spec.versions)
 
         # All the other tokens in the hierarchy must be virtual dependencies
         for x in self.hierarchy_tokens:
@@ -222,9 +225,17 @@ class LmodConfiguration(BaseConfiguration):
         return available
 
     @property
+    @lang.memoized
     def missing(self):
         """Returns the list of tokens that are not available."""
         return [x for x in self.hierarchy_tokens if x not in self.available]
+
+    @property
+    def hidden(self):
+        # Never hide a module that opens a hierarchy
+        if any(self.spec.package.provides(x) for x in self.hierarchy_tokens):
+            return False
+        return super().hidden
 
 
 class LmodFileLayout(BaseFileLayout):
@@ -261,12 +272,16 @@ class LmodFileLayout(BaseFileLayout):
         hierarchy_name = os.path.join(*parts)
 
         # Compute the absolute path
-        fullname = os.path.join(
+        return os.path.join(
             self.arch_dirname,  # root for lmod files on this architecture
             hierarchy_name,  # relative path
-            ".".join([self.use_name, self.extension]),  # file name
+            f"{self.use_name}.{self.extension}",  # file name
         )
-        return fullname
+
+    @property
+    def modulerc(self):
+        """Returns the modulerc file associated with current module file"""
+        return os.path.join(os.path.dirname(self.filename), f".modulerc.{self.extension}")
 
     def token_to_path(self, name, value):
         """Transforms a hierarchy token into the corresponding path part.
@@ -278,26 +293,28 @@ class LmodFileLayout(BaseFileLayout):
         Returns:
             str: part of the path associated with the service
         """
+
         # General format for the path part
-        path_part_fmt = os.path.join("{token.name}", "{token.version}")
+        def path_part_fmt(token):
+            return fs.polite_path([f"{token.name}", f"{token.version}"])
 
         # If we are dealing with a core compiler, return 'Core'
         core_compilers = self.conf.core_compilers
-        if name == "compiler" and str(value) in core_compilers:
+        if name == "compiler" and any(
+            spack.spec.CompilerSpec(value).satisfies(c) for c in core_compilers
+        ):
             return "Core"
 
-        # CompilerSpec does not have an hash, as we are not allowed to
+        # CompilerSpec does not have a hash, as we are not allowed to
         # use different flavors of the same compiler
         if name == "compiler":
-            return path_part_fmt.format(token=value)
+            return path_part_fmt(token=value)
 
         # In case the hierarchy token refers to a virtual provider
-        # we need to append an hash to the version to distinguish
+        # we need to append a hash to the version to distinguish
         # among flavors of the same library (e.g. openblas~openmp vs.
         # openblas+openmp)
-        path = path_part_fmt.format(token=value)
-        path = "-".join([path, value.dag_hash(length=7)])
-        return path
+        return f"{path_part_fmt(token=value)}-{value.dag_hash(length=7)}"
 
     @property
     def available_path_parts(self):
@@ -309,10 +326,10 @@ class LmodFileLayout(BaseFileLayout):
         # List of services that are part of the hierarchy
         hierarchy = self.conf.hierarchy_tokens
         # Tokenize each part that is both in the hierarchy and available
-        parts = [self.token_to_path(x, available[x]) for x in hierarchy if x in available]
-        return parts
+        return [self.token_to_path(x, available[x]) for x in hierarchy if x in available]
 
     @property
+    @lang.memoized
     def unlocked_paths(self):
         """Returns a dictionary mapping conditions to a list of unlocked
         paths.
@@ -424,9 +441,10 @@ class LmodContext(BaseContext):
         return self.conf.missing
 
     @tengine.context_property
+    @lang.memoized
     def unlocked_paths(self):
         """Returns the list of paths that are unlocked unconditionally."""
-        layout = make_layout(self.spec, self.conf.name, self.conf.explicit)
+        layout = make_layout(self.spec, self.conf.name)
         return [os.path.join(*parts) for parts in layout.unlocked_paths[None]]
 
     @tengine.context_property
@@ -434,7 +452,7 @@ class LmodContext(BaseContext):
         """Returns the list of paths that are unlocked conditionally.
         Each item in the list is a tuple with the structure (condition, path).
         """
-        layout = make_layout(self.spec, self.conf.name, self.conf.explicit)
+        layout = make_layout(self.spec, self.conf.name)
         value = []
         conditional_paths = layout.unlocked_paths
         conditional_paths.pop(None)
@@ -456,7 +474,11 @@ class LmodContext(BaseContext):
 class LmodModulefileWriter(BaseModuleFileWriter):
     """Writer class for lmod module files."""
 
-    default_template = posixpath.join("modules", "modulefile.lua")
+    default_template = "modules/modulefile.lua"
+
+    modulerc_header = []
+
+    hide_cmd_format = 'hide_version("%s")'
 
 
 class CoreCompilersNotFoundError(spack.error.SpackError, KeyError):

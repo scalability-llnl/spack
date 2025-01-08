@@ -1,10 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Manages the details on the images used in the various stages."""
 import json
 import os.path
+import shlex
 import sys
 
 import llnl.util.filesystem as fs
@@ -26,7 +26,7 @@ def data():
     if not _data:
         json_dir = os.path.abspath(os.path.dirname(__file__))
         json_file = os.path.join(json_dir, "images.json")
-        with open(json_file) as f:
+        with open(json_file, encoding="utf-8") as f:
             _data = json.load(f)
     return _data
 
@@ -49,10 +49,7 @@ def build_info(image, spack_version):
     if not build_image:
         return None, None
 
-    # Translate version from git to docker if necessary
-    build_tag = image_data["build_tags"].get(spack_version, spack_version)
-
-    return build_image, build_tag
+    return build_image, spack_version
 
 
 def os_package_manager_for(image):
@@ -130,8 +127,11 @@ def checkout_command(url, ref, enforce_sha, verify):
     if enforce_sha or verify:
         ref = _verify_ref(url, ref, enforce_sha)
 
-    command = (
-        "git clone {0} . && git fetch origin {1}:container_branch &&"
-        " git checkout container_branch "
-    ).format(url, ref)
-    return command
+    return " && ".join(
+        [
+            "git init --quiet",
+            f"git remote add origin {shlex.quote(url)}",
+            f"git fetch --depth=1 origin {shlex.quote(ref)}",
+            "git checkout --detach FETCH_HEAD",
+        ]
+    )

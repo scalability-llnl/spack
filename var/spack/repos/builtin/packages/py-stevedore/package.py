@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,6 +10,8 @@ class PyStevedore(PythonPackage):
 
     homepage = "https://docs.openstack.org/stevedore/latest/"
     pypi = "stevedore/stevedore-1.28.0.tar.gz"
+
+    license("Apache-2.0")
 
     version("4.0.0", sha256="f82cc99a1ff552310d19c379827c2c64dd9f85a38bcd5559db2470161867b786")
     version("3.5.0", sha256="f40253887d8712eaa2bb0ea3830374416736dc8ec0e22f5a65092c1174c44335")

@@ -1,9 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
+
+from llnl.util.filesystem import find_first
 
 from spack.package import *
 
@@ -16,6 +17,8 @@ class Tk(AutotoolsPackage, SourceforgePackage):
 
     homepage = "https://www.tcl.tk"
     sourceforge_mirror_path = "tcl/tk8.6.5-src.tar.gz"
+
+    license("TCL")
 
     version("8.6.11", sha256="5228a8187a7f70fa0791ef0f975270f068ba9557f57456f51eb02d9d4ea31282")
     version("8.6.10", sha256="63df418a859d0a463347f95ded5cd88a3dd3aaa1ceecaeee362194bc30f3e386")
@@ -89,14 +92,17 @@ class Tk(AutotoolsPackage, SourceforgePackage):
         with working_dir(self.prefix.bin):
             symlink("wish{0}".format(self.version.up_to(2)), "wish")
 
-    def test(self):
-        self.run_test(self.spec["tk"].command.path, ["-h"], purpose="test wish command")
+    def test_tk_help(self):
+        """run tk help"""
+        tk = self.spec["tk"].command
+        tk("-h")
 
+    def test_tk_load(self):
+        """check that tk can be loaded"""
         test_data_dir = self.test_suite.current_test_data_dir
         test_file = test_data_dir.join("test.tcl")
-        self.run_test(
-            self.spec["tcl"].command.path, test_file, purpose="test that tk can be loaded"
-        )
+        tcl = self.spec["tcl"].command
+        tcl(test_file)
 
     @property
     def command(self):
@@ -118,6 +124,18 @@ class Tk(AutotoolsPackage, SourceforgePackage):
             ["libtk{0}".format(self.version.up_to(2))], root=self.prefix, recursive=True
         )
 
+    def _find_script_dir(self):
+        # Put more-specific prefixes first
+        check_prefixes = [
+            join_path(self.prefix, "share", "tk{0}".format(self.version.up_to(2))),
+            self.prefix,
+        ]
+        for prefix in check_prefixes:
+            result = find_first(prefix, "tk.tcl")
+            if result:
+                return os.path.dirname(result)
+        raise RuntimeError("Cannot locate tk.tcl")
+
     def setup_run_environment(self, env):
         """Set TK_LIBRARY to the directory containing tk.tcl.
 
@@ -127,7 +145,7 @@ class Tk(AutotoolsPackage, SourceforgePackage):
         """
         # When using tkinter from within spack provided python+tkinter,
         # python will not be able to find Tk unless TK_LIBRARY is set.
-        env.set("TK_LIBRARY", os.path.dirname(sorted(find(self.prefix, "tk.tcl"))[0]))
+        env.set("TK_LIBRARY", self._find_script_dir())
 
     def setup_dependent_build_environment(self, env, dependent_spec):
         """Set TK_LIBRARY to the directory containing tk.tcl.
@@ -136,4 +154,4 @@ class Tk(AutotoolsPackage, SourceforgePackage):
 
         * https://www.tcl-lang.org/man/tcl/TkCmd/tkvars.htm
         """
-        env.set("TK_LIBRARY", os.path.dirname(sorted(find(self.prefix, "tk.tcl"))[0]))
+        env.set("TK_LIBRARY", self._find_script_dir())

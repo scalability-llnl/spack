@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,8 @@ class RThreejs(RPackage):
     'three.js' visualization library ("https://threejs.org/")."""
 
     cran = "threejs"
+
+    license("MIT")
 
     version("0.3.3", sha256="76c759c8b20fb34f4f7a01cbd1b961296e1f19f4df6dded69aae7f1bca80219c")
     version("0.3.1", sha256="71750b741672a435ecf749b69c72f0681aa8bb795e317f4e3056d5e33f6d79e8")

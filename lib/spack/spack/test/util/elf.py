@@ -1,11 +1,9 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
 import io
-from collections import OrderedDict
 
 import pytest
 
@@ -14,6 +12,7 @@ import llnl.util.filesystem as fs
 import spack.platforms
 import spack.util.elf as elf
 import spack.util.executable
+from spack.hooks.drop_redundant_rpaths import drop_redundant_rpaths
 
 
 # note that our elf parser is platform independent... but I guess creating an elf file
@@ -36,9 +35,9 @@ def test_elf_parsing_shared_linking(linker_flag, is_runpath, tmpdir):
 
     with fs.working_dir(str(tmpdir)):
         # Create a library to link to so we can force a dynamic section in an ELF file
-        with open("foo.c", "w") as f:
+        with open("foo.c", "w", encoding="utf-8") as f:
             f.write("int foo(){return 0;}")
-        with open("bar.c", "w") as f:
+        with open("bar.c", "w", encoding="utf-8") as f:
             f.write("int foo(); int _start(){return foo();}")
 
         # Create library and executable linking to it.
@@ -119,43 +118,86 @@ def test_parser_doesnt_deal_with_nonzero_offset():
         elf.parse_elf(elf_at_offset_one)
 
 
+def test_only_header():
+    # When passing only_header=True parsing a file that is literally just a header
+    # without any sections/segments should not error.
+
+    # 32 bit
+    elf_32 = elf.parse_elf(io.BytesIO(b"\x7fELF\x01\x01" + b"\x00" * 46), only_header=True)
+    assert not elf_32.is_64_bit
+    assert elf_32.is_little_endian
+
+    # 64 bit
+    elf_64 = elf.parse_elf(io.BytesIO(b"\x7fELF\x02\x01" + b"\x00" * 58), only_header=True)
+    assert elf_64.is_64_bit
+    assert elf_64.is_little_endian
+
+
 @pytest.mark.requires_executables("gcc")
 @skip_unless_linux
-def test_elf_get_and_replace_rpaths(binary_with_rpaths):
-    long_rpaths = ["/very/long/prefix-a/x", "/very/long/prefix-b/y"]
-    executable = str(binary_with_rpaths(rpaths=long_rpaths))
-
-    # Before
-    assert elf.get_rpaths(executable) == long_rpaths
-
-    replacements = OrderedDict(
-        [
-            (b"/very/long/prefix-a", b"/short-a"),
-            (b"/very/long/prefix-b", b"/short-b"),
-            (b"/very/long", b"/dont"),
-        ]
+def test_elf_get_and_replace_rpaths_and_pt_interp(binary_with_rpaths):
+    long_paths = ["/very/long/prefix-a/x", "/very/long/prefix-b/y"]
+    executable = str(
+        binary_with_rpaths(rpaths=long_paths, dynamic_linker="/very/long/prefix-b/lib/ld.so")
     )
 
+    # Before
+    assert elf.get_rpaths(executable) == long_paths
+
+    replacements = {
+        b"/very/long/prefix-a": b"/short-a",
+        b"/very/long/prefix-b": b"/short-b",
+        b"/very/long": b"/dont",
+    }
+
     # Replace once: should modify the file.
-    assert elf.replace_rpath_in_place_or_raise(executable, replacements)
+    assert elf.substitute_rpath_and_pt_interp_in_place_or_raise(executable, replacements)
 
     # Replace twice: nothing to be done.
-    assert not elf.replace_rpath_in_place_or_raise(executable, replacements)
+    assert not elf.substitute_rpath_and_pt_interp_in_place_or_raise(executable, replacements)
 
     # Verify the rpaths were modified correctly
     assert elf.get_rpaths(executable) == ["/short-a/x", "/short-b/y"]
+    assert elf.get_interpreter(executable) == "/short-b/lib/ld.so"
 
     # Going back to long rpaths should fail, since we've added trailing \0
     # bytes, and replacement can't assume it can write back in repeated null
     # bytes -- it may correspond to zero-length strings for example.
-    with pytest.raises(
-        elf.ElfDynamicSectionUpdateFailed,
-        match="New rpath /very/long/prefix-a/x:/very/long/prefix-b/y is "
-        "longer than old rpath /short-a/x:/short-b/y",
-    ):
-        elf.replace_rpath_in_place_or_raise(
-            executable,
-            OrderedDict(
-                [(b"/short-a", b"/very/long/prefix-a"), (b"/short-b", b"/very/long/prefix-b")]
-            ),
+    with pytest.raises(elf.ElfCStringUpdatesFailed) as info:
+        elf.substitute_rpath_and_pt_interp_in_place_or_raise(
+            executable, {b"/short-a": b"/very/long/prefix-a", b"/short-b": b"/very/long/prefix-b"}
         )
+
+    assert info.value.rpath is not None
+    assert info.value.pt_interp is not None
+    assert info.value.rpath.old_value == b"/short-a/x:/short-b/y"
+    assert info.value.rpath.new_value == b"/very/long/prefix-a/x:/very/long/prefix-b/y"
+    assert info.value.pt_interp.old_value == b"/short-b/lib/ld.so"
+    assert info.value.pt_interp.new_value == b"/very/long/prefix-b/lib/ld.so"
+
+
+@pytest.mark.requires_executables("gcc")
+@skip_unless_linux
+def test_drop_redundant_rpath(tmpdir, binary_with_rpaths):
+    """Test the post install hook that drops redundant rpath entries"""
+
+    # Use existing and non-existing dirs in tmpdir
+    non_existing_dirs = [str(tmpdir.join("a")), str(tmpdir.join("b"))]
+    existing_dirs = [str(tmpdir.join("c")), str(tmpdir.join("d"))]
+    all_dirs = non_existing_dirs + existing_dirs
+
+    tmpdir.ensure("c", dir=True)
+    tmpdir.ensure("d", dir=True)
+
+    # Create a binary with rpaths to both existing and non-existing dirs
+    binary = binary_with_rpaths(rpaths=all_dirs)
+
+    # Verify that the binary has all the rpaths
+    # sometimes compilers add extra rpaths, so we test for a subset
+    assert set(all_dirs).issubset(elf.get_rpaths(binary))
+
+    # Test whether the right rpaths are dropped
+    drop_redundant_rpaths(binary)
+    new_rpaths = elf.get_rpaths(binary)
+    assert set(existing_dirs).issubset(new_rpaths)
+    assert set(non_existing_dirs).isdisjoint(new_rpaths)

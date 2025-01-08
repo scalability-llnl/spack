@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,42 +15,52 @@ class Moab(AutotoolsPackage):
     mesh in chunks rather than through individual entities, while also
     versatile enough to support individual entity access."""
 
-    homepage = "https://bitbucket.org/fathomteam/moab"
+    homepage = "https://sigma.mcs.anl.gov/moab-library"
     git = "https://bitbucket.org/fathomteam/moab.git"
-    url = "https://ftp.mcs.anl.gov/pub/fathom/moab-5.0.0.tar.gz"
+    url = "https://web.cels.anl.gov/projects/sigma/downloads/moab/moab-5.5.1.tar.gz"
 
     maintainers("vijaysm", "iulian787")
 
+    license("LGPL-3.0-only")
+
     version("develop", branch="develop")
     version("master", branch="master")
+    version("5.5.1", sha256="67b6ed3a13c235cec16f60f8f46f9bf0371fd321cf36dea113d0e09f09d0d438")
+    version("5.5.0", sha256="58969f8a1b209ec9036c08c53a6b7078b368eb3bf99d0368a4de5a2f2a8db678")
+    version("5.4.1", sha256="3625e25321bf37f88d98438f5d56c280b2774172602d8b6eb6c34eedf37686fc")
+    version("5.4.0", sha256="a30d2a1911fbf214ae0175b0856e0475c0077dc51ea5914c850d631155a72952")
+    version("5.3.1", sha256="2404fab2d84f87be72b57cfef5ea237bfa444aaca059e66a158f22134956fe54")
     version("5.3.0", sha256="51c31ccbcaa76d9658a44452b9a39f076b795b27a1c9f408fc3d0eea97e032ef")
     version("5.2.1", sha256="60d31762be3f0e5c89416c764e844ec88dac294169b59a5ead3c316b50f85c29")
     version("5.2.0", sha256="805ed3546deff39e076be4d1f68aba1cf0dda8c34ce43e1fc179d1aff57c5d5d")
     version("5.1.0", sha256="0371fc25d2594589e95700739f01614f097b6157fb6023ed8995e582726ca658")
-    version("5.0.2", commit="01d05b1805236ef44da36f67eb2701095f2e33c7")
-    version("5.0.1", commit="6cc12bd4ae3fa7c9ad81c595e4d38fa84f0884be")
     version("5.0.0", sha256="df5d5eb8c0d0dbb046de2e60aa611f276cbf007c9226c44a24ed19c570244e64")
     version("4.9.2", sha256="26611b8cc24f6b7df52eb4ecbd31523d61523da0524b5a2d066a7656e2e82ac5")
     version("4.9.1", sha256="b26cee46c096157323cafe047ad58616e16ebdb1e06caf6878673817cb4410cf")
     version("4.9.0", sha256="267a7c05da847e4ea856db2c649a5484fb7bdc132ab56721ca50ee69a7389f4d")
     version("4.8.2", sha256="b105cff42930058dc14eabb9a25e979df7289b175732fe319d2494e83e09e968")
 
-    variant("mpi", default=True, description="enable mpi support")
-    variant("hdf5", default=True, description="Required to enable the hdf5 (default I/O) format")
-    variant("netcdf", default=False, description="Required to enable the ExodusII reader/writer.")
-    variant("pnetcdf", default=False, description="Enable pnetcdf (AKA parallel-netcdf) support")
-    variant("zoltan", default=False, description="Enable zoltan support")
-    variant("cgm", default=False, description="Enable common geometric module")
-    variant("metis", default=True, description="Enable metis link")
-    variant("parmetis", default=True, description="Enable parmetis link")
-    variant("irel", default=False, description="Enable irel interface")
-    variant("fbigeom", default=False, description="Enable fbigeom interface")
-    variant("coupler", default=True, description="Enable mbcoupler tool")
-    variant("dagmc", default=False, description="Enable dagmc tool")
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
-    variant("debug", default=False, description="enable debug symbols")
+    variant("mpi", default=True, description="Enable MPI parallelism support")
+    variant("hdf5", default=True, description="Enable the HDF5 (default I/O) format")
+    variant("netcdf", default=False, description="Enable the ExodusII reader/writer support")
+    variant("pnetcdf", default=False, description="Enable parallel-Netcdf library support")
+    variant("zoltan", default=True, description="Enable Zoltan partitioner support")
+    variant("eigen", default=True, description="Enable Eigen template library for linear algebra")
+    variant("cgm", default=False, description="Enable the Common Geometry Module")
+    variant("metis", default=False, description="Enable Metis partitioner")
+    variant("parmetis", default=False, description="Enable Parmetis partitioner")
+    variant("irel", default=False, description="Enable iRel interface")
+    variant("fbigeom", default=False, description="Enable FBiGeom interface")
+    variant("coupler", default=False, description="Enable mbcoupler tool")
+    variant("dagmc", default=False, description="Enable DagMC tool")
+
+    variant("debug", default=False, description="Enable debug symbols in libraries")
     variant("shared", default=False, description="Enables the build of shared libraries")
-    variant("fortran", default=True, description="Enable Fortran support")
+    variant("fortran", default=False, description="Enable Fortran support")
 
     conflicts("+irel", when="~cgm")
     conflicts("+pnetcdf", when="~mpi")
@@ -80,6 +89,7 @@ class Moab(AutotoolsPackage):
     depends_on("cgm", when="+cgm")
     depends_on("metis", when="+metis")
     depends_on("parmetis", when="+parmetis")
+    depends_on("eigen", when="+eigen")
     # FIXME it seems that zoltan needs to be built without fortran
     depends_on("zoltan~fortran", when="+zoltan")
 
@@ -120,12 +130,11 @@ class Moab(AutotoolsPackage):
                 options.append("--with-parmetis=%s" % spec["parmetis"].prefix)
             else:
                 options.append("--without-parmetis")
-        #          FIXME: --without-mpi does not configure right
-        #       else:
-        #           options.append('--without-mpi')
 
         options.append("--with-blas=%s" % spec["blas"].libs.ld_flags)
         options.append("--with-lapack=%s" % spec["lapack"].libs.ld_flags)
+        if "+eigen" in spec:
+            options.append("--with-eigen3=%s" % spec["eigen"].prefix.include.eigen3)
 
         if "+hdf5" in spec:
             options.append("--with-hdf5=%s" % spec["hdf5"].prefix)
@@ -199,7 +208,6 @@ class Moab(AutotoolsPackage):
 
         return options
 
-    # FIXME Run the install phase with -j 1.  There seems to be a problem with
-    # parallel installations of examples
+    # Run the install phase in parallel
     def install(self, spec, prefix):
-        make("install", parallel=False)
+        make("install", parallel=True)

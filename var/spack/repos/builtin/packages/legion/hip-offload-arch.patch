@@ -1,0 +1,24 @@
+diff -ruN spack-src/CMakeLists.txt spack-src-patched/CMakeLists.txt
+--- spack-src/CMakeLists.txt	2023-05-18 14:18:00.897162488 -0400
++++ spack-src-patched/CMakeLists.txt	2023-05-18 14:20:09.532413649 -0400
+@@ -495,7 +495,7 @@
+     if("${Legion_HIP_ARCH}" STREQUAL "")
+       set(HIP_GENCODE "")
+     else()
+-      set(HIP_GENCODE "--offload-target=${Legion_HIP_ARCH}")
++      set(HIP_GENCODE "--offload-arch=${Legion_HIP_ARCH}")
+     endif()
+   endif()
+ 
+diff -ruN spack-src/runtime/runtime.mk spack-src-patched/runtime/runtime.mk
+--- spack-src/runtime/runtime.mk	2023-05-18 14:18:00.969164248 -0400
++++ spack-src-patched/runtime/runtime.mk	2023-05-18 14:20:51.317470176 -0400
+@@ -499,7 +499,7 @@
+       HIPCC_FLAGS	+= -O2
+     endif
+     ifneq ($(strip $(HIP_ARCH)),)
+-      HIPCC_FLAGS	+= --offload-target=$(HIP_ARCH)
++      HIPCC_FLAGS	+= --offload-arch=$(HIP_ARCH)
+     endif
+     LEGION_LD_FLAGS	+= -lm -L$(HIP_PATH)/lib -lamdhip64
+   else ifeq ($(strip $(HIP_TARGET)),CUDA)

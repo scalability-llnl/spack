@@ -1,0 +1,25 @@
+# Fix some issues with hdf-eos2 configure script
+# configure (according to config.log) would find the jpeg
+# and libz libs, but then abort complaining they were not
+# found because HAVE_LIBJPEG, etc not set (the script just
+# appended the lines to confdefs.h but not set in the environment
+# of the running script and script tests the env variable)
+diff -Naur spack-src/configure spack-src.patched/configure
+--- spack-src/configure	2023-12-18 14:56:50.796875000 -0500
++++ spack-src.patched/configure	2023-12-18 15:01:50.780038643 -0500
+@@ -12488,6 +12488,7 @@
+ _ACEOF
+ 
+   LIBS="-ljpeg $LIBS"
++  HAVE_LIBJPEG=1
+ 
+ else
+ 
+@@ -12863,6 +12864,7 @@
+ _ACEOF
+ 
+   LIBS="-lz $LIBS"
++  HAVE_LIBZ=1
+ 
+ else
+ 

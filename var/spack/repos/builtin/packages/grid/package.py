@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,7 +14,11 @@ class Grid(AutotoolsPackage):
 
     maintainers("giordano")
 
+    license("GPL-2.0-only")
+
     version("develop", branch="develop")
+
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "comms",
@@ -73,12 +76,12 @@ class Grid(AutotoolsPackage):
         args = ["--with-gmp", "--with-mpfr"]
 
         if spec.satisfies("^intel-mkl"):
-            if "+fftw" in spec or "+lapack" in spec:
+            if spec.satisfies("+fftw") or spec.satisfies("+lapack"):
                 args.append("--enable-mkl")
         else:
-            if "+fftw" in spec:
+            if spec.satisfies("+fftw"):
                 args.append("--with-fftw={0}".format(self.spec["fftw-api"].prefix))
-            if "+lapack" in spec:
+            if spec.satisfies("+lapack"):
                 args.append("--enable-lapack={0}".format(self.spec["lapack"].prefix))
                 # lapack is searched only as `-llapack`, so anything else
                 # wouldn't be found, causing an error.

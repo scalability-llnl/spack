@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class Ladot(Package):
 
     homepage = "https://brighten.bigw.org/projects/ladot/"
     url = "https://brighten.bigw.org/projects/ladot/ladot-1.2.tar.gz"
+
+    license("GPL-2.0-or-later")
 
     version("1.2", sha256="f829eeca829b82c0315cd87bffe410bccab96309b86b1c883b3ddaa93170f25e")
 

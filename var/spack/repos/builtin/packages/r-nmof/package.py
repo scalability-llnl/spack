@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,7 @@ class RNmof(RPackage):
 
     cran = "NMOF"
 
+    version("2.8-0", sha256="6dc53a9be41e673e9b2fcb2783aa82090db5455f079b8aac4c388d679f6ec28a")
     version("2.7-1", sha256="b03e309df35b3fb0980c8a171e1cd1c69739fa6ab7a8992c043166fae4644e23")
     version("2.7-0", sha256="11eeda730262418f22d24d8f72d363a05ac4c3c1130b88f4eafb1b8d81c83160")
     version("2.5-1", sha256="0468ba72364cbdf90781824dfb1a60324203e2248d93cb6f1ffd6eb0d271f390")
@@ -27,3 +27,4 @@ class RNmof(RPackage):
     version("1.6-0", sha256="5484cd43c28aaf23d560c2dde8bcd8dd440a205d2214eb50e02fe0bb42ec2755")
 
     depends_on("r@2.14:", type=("build", "run"))
+    depends_on("r@3.5:", type=("build", "run"), when="@2.8-0:")

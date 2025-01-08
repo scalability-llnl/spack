@@ -1,0 +1,25 @@
+--- config/rootrc.in_ORIG	2023-11-28 08:32:42.696061390 +0100
++++ config/rootrc.in	2023-11-28 08:32:47.672727920 +0100
+@@ -217,7 +217,7 @@
+ # Type of tree viewer: TTreeViewer or RTreeViewer
+ TreeViewer.Name:             TTreeViewer
+ # Type of Browser: TRootBrowser or TRootBrowserLite
+-Browser.Name:                @root_browser_class@
++Browser.Name:                TRootBrowser
+ # Browser Options (plugins)
+ # F: File browser E: Text Editor H: HTML browser
+ # C: Canvas I: I/O redirection P: Proof G: GL viewer
+
+--- config/rootrc.in_ORIG	2023-11-28 08:18:11.686085190 +0100
++++ config/rootrc.in	2023-11-28 08:18:15.839418409 +0100
+@@ -247,8 +247,8 @@
+ WebGui.HttpPortMax:         9800
+ # Exact IP iddress to bind bind http server (default - empty)
+ WebGui.HttpBind:
+-# Use only loopback address to bind http server (default - no)
+-WebGui.HttpLoopback:        no
++# Use only loopback address to bind http server (default - yes)
++WebGui.HttpLoopback:        yes
+ # Use https protocol for the http server (default - no)
+ WebGui.UseHttps:            no
+ WebGui.ServerCert:          rootserver.pem

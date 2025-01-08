@@ -70,17 +70,8 @@ features = [
 [tool.black]
 line-length = 99
 target-version = ['py36', 'py37', 'py38', 'py39', 'py310']
-include = '''
-    \.pyi?$
-'''
-extend-exclude = '''
-/(
-    \.git
-  | \.mypy_cache
-  | ^lib/spack/external/
-  | ^opt/
-)/
-'''
+include = '(lib/spack|var/spack/repos)/.*\.pyi?$|bin/spack$'
+extend-exclude = 'lib/spack/external'
 skip_magic_trailing_comma = true
 
 [tool.isort]
@@ -141,12 +132,31 @@ ignore_missing_imports = true
   ignore_errors = true
   ignore_missing_imports = true
 
-  # pytest (which we depend on) optionally imports numpy, which requires Python 3.8 in
-  # recent versions. mypy still imports its .pyi file, which has positional-only
-  # arguments, which don't work in 3.7, which causes mypy to bail out early if you have
-  # numpy installed.
+  # Spack imports a number of external packages, and they *may* require Python 3.8 or
+  # higher in recent versions. This can cause mypy to fail because we check for 3.7
+  # compatibility. We could restrict mypy to run for the oldest supported version (3.7),
+  # but that means most developers won't be able to run mypy, which means it'll fail
+  # more in CI. Instead, we exclude these imported packages from mypy checking.
   [[tool.mypy.overrides]]
-  module = 'numpy'
+  module = [
+      'IPython',
+      'altgraph',
+      'attr',
+      'boto3',
+      'botocore',
+      'distro',
+      'importlib.metadata',
+      'jinja2',
+      'jsonschema',
+      'macholib',
+      'markupsafe',
+      'numpy',
+      'pkg_resources',
+      'pyristent',
+      'pytest',
+      'ruamel.yaml',
+      'six',
+  ]
   follow_imports = 'skip'
   follow_imports_for_stubs = true
 
@@ -154,7 +164,7 @@ ignore_missing_imports = true
 useLibraryCodeForTypes = true
 reportMissingImports = true
 reportWildcardImportFromLibrary = false
-include = ['lib/spack']
+include = ['lib/spack', 'var/spack/repos']
 ignore = ['lib/spack/external']
 extraPaths = ['lib/spack', 'lib/spack/external']
 
@@ -192,6 +202,14 @@ exclude_lines = [
     'if __name__ == .__main__.:',
 ]
 ignore_errors = true
+
+[tool.coverage.paths]
+source = [
+    ".",
+    "/Users/runner/work/spack/spack",
+    "/System/Volumes/Data/home/runner/work/spack/spack",
+    "D:\\a\\spack\\spack",
+]
 
 [tool.coverage.html]
 directory = "htmlcov"

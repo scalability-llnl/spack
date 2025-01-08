@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,11 +11,13 @@ class Sjpeg(CMakePackage):
     homepage = "https://github.com/webmproject/sjpeg"
     git = "https://github.com/webmproject/sjpeg.git"
 
+    license("Apache-2.0")
+
     version("master", branch="master")
 
     depends_on("cmake@2.8.7:", type="build")
     # TODO: these dependencies seem to be optional?
-    # depends_on("zlib")
+    # depends_on("zlib-api")
     # depends_on("libpng")
     # depends_on("jpeg")
     # depends_on("gl")

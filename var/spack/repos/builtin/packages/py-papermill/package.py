@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,6 +10,8 @@ class PyPapermill(PythonPackage):
 
     homepage = "https://github.com/nteract/papermill"
     pypi = "papermill/papermill-2.4.0.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("2.4.0", sha256="6f8f8a9b06b39677f207c09100c8d386bcf592f0cbbdda9f0f50e81445697627")
 

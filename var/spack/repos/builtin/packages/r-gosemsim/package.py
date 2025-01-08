@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,7 @@ class RGosemsim(RPackage):
 
     bioc = "GOSemSim"
 
+    version("2.26.0", commit="ef3d5a7fb37b43603de4f43aa4fecadaa47f93e0")
     version("2.24.0", commit="ed7334f3cf3ac7ce5be76003934c29b598089f4d")
     version("2.22.0", commit="fd74aeba2371ebf9db0595cf18674441bdac9618")
     version("2.20.0", commit="fa82442aaa4ad1a8dacc05ee2c54f5e5e770a794")
@@ -28,6 +28,8 @@ class RGosemsim(RPackage):
     version("2.6.2", commit="2ffe78e89276e804306554965fc0799318ec56ed")
     version("2.4.1", commit="0656e845860d14e054670ffc246a1c53f699299c")
     version("2.2.0", commit="247434790e6c8cf99e5643f569390362b8c87c52")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r@3.3.2:", type=("build", "run"))
     depends_on("r@3.4.0:", type=("build", "run"), when="@2.8.0:")

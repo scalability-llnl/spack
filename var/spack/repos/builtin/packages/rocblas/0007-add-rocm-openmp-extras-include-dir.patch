@@ -1,0 +1,20 @@
+diff --git a/clients/gtest/CMakeLists.txt b/clients/gtest/CMakeLists.txt
+index 55e9bbe..32b350c 100644
+--- a/clients/gtest/CMakeLists.txt
++++ b/clients/gtest/CMakeLists.txt
+@@ -164,6 +164,7 @@ target_include_directories( rocblas-test
+     $<BUILD_INTERFACE:${BLAS_INCLUDE_DIR}>
+     $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}> # may be blank if not used
+     $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
++    $<BUILD_INTERFACE:${ROCM_OPENMP_EXTRAS_DIR}/include>
+ )
+ target_include_directories( rocblas_v3-test
+   SYSTEM PRIVATE
+@@ -171,6 +172,7 @@ target_include_directories( rocblas_v3-test
+     $<BUILD_INTERFACE:${BLAS_INCLUDE_DIR}>
+     $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}> # may be blank if not used
+     $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
++    $<BUILD_INTERFACE:${ROCM_OPENMP_EXTRAS_DIR}/include>
+ )
+
+ if( BUILD_FORTRAN_CLIENTS )

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,7 @@ class REnsembldb(RPackage):
 
     bioc = "ensembldb"
 
+    version("2.24.0", commit="45a79a438fde11b0d244b071e6ae2b652100be03")
     version("2.22.0", commit="4dda178a14e080c643bbd8c4dd6378bfe4e6ee9f")
     version("2.20.2", commit="ac1fb8389efd88099600af298d6bb3384206f9ed")
     version("2.20.1", commit="e547d184730cfe5e65f59e4f3512395fb1cdba1a")

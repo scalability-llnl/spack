@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -30,6 +29,7 @@ spec expression syntax:
       @c{@min:max}                      version range (inclusive)
       @c{@min:}                         version <min> or higher
       @c{@:max}                         up to version <max> (inclusive)
+      @c{@=version}                     exact version
 
     compilers:
       @g{%compiler}                     build with <compiler>
@@ -49,7 +49,7 @@ spec expression syntax:
       @B{++}, @r{--}, @r{~~}, @B{==}                propagate variants to package dependencies
 
     architecture variants:
-      @m{platform=platform}             linux, darwin, cray, etc.
+      @m{platform=platform}             linux, darwin, freebsd, windows
       @m{os=operating_system}           specific <operating_system>
       @m{target=target}                 specific <target> processor
       @m{arch=platform-os-target}       shortcut for all three above
@@ -77,8 +77,8 @@ spec expression syntax:
       boxlib @B{dim=2}                  boxlib built for 2 dimensions
       libdwarf @g{%intel} ^libelf@g{%gcc}
           libdwarf, built with intel compiler, linked to libelf built with gcc
-      mvapich2 @g{%pgi} @B{fabrics=psm,mrail,sock}
-          mvapich2, built with pgi compiler, with support for multiple fabrics
+      mvapich2 @g{%gcc} @B{fabrics=psm,mrail,sock}
+          mvapich2, built with gcc compiler, with support for multiple fabrics
 """
 
 

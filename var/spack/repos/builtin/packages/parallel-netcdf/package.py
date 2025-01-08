@@ -1,9 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
+
+import llnl.util.tty as tty
 
 from spack.package import *
 
@@ -27,13 +28,15 @@ class ParallelNetcdf(AutotoolsPackage):
 
     def url_for_version(self, version):
         if version >= Version("1.11.0"):
-            url = "https://parallel-netcdf.github.io/Release/pnetcdf-{0}.tar.gz"
+            url = f"https://parallel-netcdf.github.io/Release/pnetcdf-{version.dotted}.tar.gz"
         else:
-            url = "https://parallel-netcdf.github.io/Release/parallel-netcdf-{0}.tar.gz"
+            url = f"https://parallel-netcdf.github.io/Release/parallel-netcdf-{version.dotted}.tar.gz"
 
-        return url.format(version.dotted)
+        return url
 
     version("master", branch="master")
+    version("1.14.0", sha256="575f189fb01c53f93b3d6ae0e506f46e19694807c81af0b9548e947995acf704")
+    version("1.13.0", sha256="aba0f1c77a51990ba359d0f6388569ff77e530ee574e40592a1e206ed9b2c491")
     version("1.12.3", sha256="439e359d09bb93d0e58a6e3f928f39c2eae965b6c97f64e67cd42220d6034f77")
     version("1.12.2", sha256="3ef1411875b07955f519a5b03278c31e566976357ddfc74c2493a1076e7d7c74")
     version("1.12.1", sha256="56f5afaa0ddc256791c405719b6436a83b92dcd5be37fe860dea103aee8250a2")
@@ -47,11 +50,17 @@ class ParallelNetcdf(AutotoolsPackage):
     version("1.7.0", sha256="52f0d106c470a843c6176318141f74a21e6ece3f70ee8fe261c6b93e35f70a94")
     version("1.6.1", sha256="8cf1af7b640475e3cc931e5fbcfe52484c5055f2fab526691933c02eda388aae")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("cxx", default=True, description="Build the C++ Interface")
     variant("fortran", default=True, description="Build the Fortran Interface")
     variant("pic", default=True, description="Produce position-independent code (for shared libs)")
     variant("shared", default=True, description="Enable shared library")
     variant("burstbuffer", default=False, description="Enable burst buffer feature")
+    variant("examples", default=False, description="Install example programs")
+    conflicts("+examples", when="@:1.12")
 
     depends_on("mpi")
 
@@ -97,10 +106,9 @@ class ParallelNetcdf(AutotoolsPackage):
         if libs:
             return libs
 
-        msg = "Unable to recursively locate {0} {1} libraries in {2}"
-        raise spack.error.NoLibrariesError(
-            msg.format("shared" if shared else "static", self.spec.name, self.spec.prefix)
-        )
+        msg = f"Unable to recursively locate {'shared' if shared else 'static'} "
+        msg += f"{self.spec.name} libraries in {self.spec.prefix}"
+        raise NoLibrariesError(msg)
 
     @when("@master")
     def autoreconf(self, spec, prefix):
@@ -117,33 +125,36 @@ class ParallelNetcdf(AutotoolsPackage):
 
         flags = {"CFLAGS": [], "CXXFLAGS": [], "FFLAGS": [], "FCFLAGS": []}
 
-        if "+pic" in self.spec:
+        if self.spec.satisfies("+pic"):
             flags["CFLAGS"].append(self.compiler.cc_pic_flag)
             flags["CXXFLAGS"].append(self.compiler.cxx_pic_flag)
             flags["FFLAGS"].append(self.compiler.f77_pic_flag)
             flags["FCFLAGS"].append(self.compiler.fc_pic_flag)
 
         # https://github.com/Parallel-NetCDF/PnetCDF/issues/61
-        if self.spec.satisfies("%gcc@10:"):
+        if self.spec.satisfies("@:1.12.1%gcc@10:"):
             flags["FFLAGS"].append("-fallow-argument-mismatch")
             flags["FCFLAGS"].append("-fallow-argument-mismatch")
 
         for key, value in sorted(flags.items()):
             if value:
-                args.append("{0}={1}".format(key, " ".join(value)))
+                args.append(f"{key}={' '.join(value)}")
 
-        if self.version >= Version("1.8"):
+        if self.spec.satisfies("@1.8:"):
             args.append("--enable-relax-coord-bound")
 
-        if self.version >= Version("1.9"):
+        if self.spec.satisfies("@1.9:"):
             args += self.enable_or_disable("shared")
             args.extend(["--enable-static", "--disable-silent-rules"])
 
         if self.spec.satisfies("%nag+fortran+shared"):
             args.extend(["ac_cv_prog_fc_v=-Wl,-v", "ac_cv_prog_f77_v=-Wl,-v"])
 
-        if "+burstbuffer" in self.spec:
+        if self.spec.satisfies("+burstbuffer"):
             args.append("--enable-burst-buffering")
+
+        if self.spec.satisfies("+examples"):
+            args.append("--enable-install-examples")
 
         return args
 
@@ -153,46 +164,46 @@ class ParallelNetcdf(AutotoolsPackage):
     def cache_test_sources(self):
         """Copy the example source files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources([self.examples_src_dir])
+        cache_extra_test_sources(self, [self.examples_src_dir])
 
-    def test(self):
+    def test_column_wise(self):
+        """build and run column_wise"""
         test_dir = join_path(self.test_suite.current_test_cache_dir, self.examples_src_dir)
         # pnetcdf has many examples to serve as a suitable smoke check.
         # column_wise was chosen based on the E4S test suite. Other
         # examples should work as well.
         test_exe = "column_wise"
         options = [
-            "{0}.cpp".format(test_exe),
+            f"{test_exe}.cpp",
             "-o",
             test_exe,
             "-lpnetcdf",
-            "-L{0}".format(self.prefix.lib),
-            "-I{0}".format(self.prefix.include),
+            f"-L{self.prefix.lib}",
+            f"-I{self.prefix.include}",
         ]
-        reason = "test: compiling and linking pnetcdf example"
-        self.run_test(
-            self.spec["mpi"].mpicxx,
-            options,
-            [],
-            installed=False,
-            purpose=reason,
-            work_dir=test_dir,
-        )
-        mpiexe_list = [
-            self.spec["mpi"].prefix.bin.srun,
-            self.spec["mpi"].prefix.bin.mpirun,
-            self.spec["mpi"].prefix.bin.mpiexec,
-        ]
-        for mpiexe in mpiexe_list:
-            if os.path.isfile(mpiexe):
-                self.run_test(
-                    mpiexe,
-                    ["-n", "1", test_exe],
-                    [],
-                    installed=False,
-                    purpose="test: pnetcdf smoke test",
-                    skip_missing=True,
-                    work_dir=test_dir,
-                )
-                break
-        self.run_test("rm", ["-f", test_exe], work_dir=test_dir)
+
+        with working_dir(test_dir):
+            mpicxx = which(self.spec["mpi"].prefix.bin.mpicxx)
+            mpicxx(*options)
+
+            mpiexe_list = [
+                "srun",
+                self.spec["mpi"].prefix.bin.mpirun,
+                self.spec["mpi"].prefix.bin.mpiexec,
+            ]
+
+            for mpiexe in mpiexe_list:
+                tty.info(f"Attempting to build and launch with {os.path.basename(mpiexe)}")
+                try:
+                    args = ["--immediate=30"] if mpiexe == "srun" else []
+                    args += ["-n", "1", test_exe]
+                    exe = which(mpiexe)
+                    exe(*args)
+                    rm = which("rm")
+                    rm("-f", "column_wise")
+                    return
+
+                except (Exception, ProcessError) as err:
+                    tty.info(f"Skipping {mpiexe}: {str(err)}")
+
+        assert False, "No MPI executable was found"

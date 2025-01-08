@@ -1,46 +1,58 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 import re
-import shlex
 import subprocess
 import sys
+from pathlib import Path, PurePath
 
 import llnl.util.tty as tty
 
 import spack.error
-from spack.util.path import Path, format_os_path, path_to_os_path, system_path_filter
+import spack.util.environment
 
-__all__ = ["Executable", "which", "ProcessError"]
+__all__ = ["Executable", "which", "which_string", "ProcessError"]
 
 
-class Executable(object):
+class Executable:
     """Class representing a program that can be run on the command line."""
 
     def __init__(self, name):
-        # necesary here for the shlex call to succeed
-        name = format_os_path(name, mode=Path.unix)
-        self.exe = shlex.split(str(name))
-        # filter back to platform dependent path
-        self.exe = path_to_os_path(*self.exe)
-        self.default_env = {}
-        from spack.util.environment import EnvironmentModifications  # no cycle
+        file_path = str(Path(name))
+        if sys.platform != "win32" and name.startswith("."):
+            # pathlib strips the ./ from relative paths so it must be added back
+            file_path = os.path.join(".", file_path)
+        self.exe = [file_path]
 
-        self.default_envmod = EnvironmentModifications()
+        self.default_env = {}
+
+        self.default_envmod = spack.util.environment.EnvironmentModifications()
         self.returncode = None
+        self.ignore_quotes = False
 
         if not self.exe:
             raise ProcessError("Cannot construct executable for '%s'" % name)
 
-    @system_path_filter
-    def add_default_arg(self, arg):
-        """Add a default argument to the command."""
-        self.exe.append(arg)
+    def add_default_arg(self, *args):
+        """Add default argument(s) to the command."""
+        self.exe.extend(args)
 
-    @system_path_filter
+    def with_default_args(self, *args):
+        """Same as add_default_arg, but returns a copy of the executable."""
+        new = self.copy()
+        new.add_default_arg(*args)
+        return new
+
+    def copy(self):
+        """Return a copy of this Executable."""
+        new = Executable(self.exe[0])
+        new.exe[:] = self.exe
+        new.default_env.update(self.default_env)
+        new.default_envmod.extend(self.default_envmod)
+        return new
+
     def add_default_env(self, key, value):
         """Set an environment variable when the command is run.
 
@@ -70,7 +82,7 @@ class Executable(object):
         Returns:
             str: The basename of the executable
         """
-        return os.path.basename(self.path)
+        return PurePath(self.path).name
 
     @property
     def path(self):
@@ -79,7 +91,7 @@ class Executable(object):
         Returns:
             str: The path to the executable
         """
-        return self.exe[0]
+        return str(PurePath(self.exe[0]))
 
     def __call__(self, *args, **kwargs):
         """Run this executable in a subprocess.
@@ -102,6 +114,8 @@ class Executable(object):
                 an exception even if ``fail_on_error`` is set to ``True``
             ignore_quotes (bool): If False, warn users that quotes are not needed
                 as Spack does not use a shell. Defaults to False.
+            timeout (int or float): The number of seconds to wait before killing
+                the child process
             input: Where to read stdin from
             output: Where to send stdout
             error: Where to send stderr
@@ -122,6 +136,29 @@ class Executable(object):
         By default, the subprocess inherits the parent's file descriptors.
 
         """
+
+        def process_cmd_output(out, err):
+            result = None
+            if output in (str, str.split) or error in (str, str.split):
+                result = ""
+                if output in (str, str.split):
+                    if sys.platform == "win32":
+                        outstr = str(out.decode("ISO-8859-1"))
+                    else:
+                        outstr = str(out.decode("utf-8"))
+                    result += outstr
+                    if output is str.split:
+                        sys.stdout.write(outstr)
+                if error in (str, str.split):
+                    if sys.platform == "win32":
+                        errstr = str(err.decode("ISO-8859-1"))
+                    else:
+                        errstr = str(err.decode("utf-8"))
+                    result += errstr
+                    if error is str.split:
+                        sys.stderr.write(errstr)
+            return result
+
         # Environment
         env_arg = kwargs.get("env", None)
 
@@ -130,17 +167,15 @@ class Executable(object):
         self.default_envmod.apply_modifications(env)
         env.update(self.default_env)
 
-        from spack.util.environment import EnvironmentModifications  # no cycle
-
         # Apply env argument
-        if isinstance(env_arg, EnvironmentModifications):
+        if isinstance(env_arg, spack.util.environment.EnvironmentModifications):
             env_arg.apply_modifications(env)
         elif env_arg:
             env.update(env_arg)
 
         # Apply extra env
         extra_env = kwargs.get("extra_env", {})
-        if isinstance(extra_env, EnvironmentModifications):
+        if isinstance(extra_env, spack.util.environment.EnvironmentModifications):
             extra_env.apply_modifications(env)
         else:
             env.update(extra_env)
@@ -151,7 +186,8 @@ class Executable(object):
 
         fail_on_error = kwargs.pop("fail_on_error", True)
         ignore_errors = kwargs.pop("ignore_errors", ())
-        ignore_quotes = kwargs.pop("ignore_quotes", False)
+        ignore_quotes = kwargs.pop("ignore_quotes", self.ignore_quotes)
+        timeout = kwargs.pop("timeout", None)
 
         # If they just want to ignore one error code, make it a tuple.
         if isinstance(ignore_errors, int):
@@ -166,15 +202,15 @@ class Executable(object):
 
         def streamify(arg, mode):
             if isinstance(arg, str):
-                return open(arg, mode), True
+                return open(arg, mode), True  # pylint: disable=unspecified-encoding
             elif arg in (str, str.split):
                 return subprocess.PIPE, False
             else:
                 return arg, False
 
-        ostream, close_ostream = streamify(output, "w")
-        estream, close_estream = streamify(error, "w")
-        istream, close_istream = streamify(input, "r")
+        ostream, close_ostream = streamify(output, "wb")
+        estream, close_estream = streamify(error, "wb")
+        istream, close_istream = streamify(input, "rb")
 
         if not ignore_quotes:
             quoted_args = [arg for arg in args if re.search(r'^".*"$|^\'.*\'$', arg)]
@@ -198,28 +234,9 @@ class Executable(object):
             proc = subprocess.Popen(
                 cmd, stdin=istream, stderr=estream, stdout=ostream, env=env, close_fds=False
             )
-            out, err = proc.communicate()
+            out, err = proc.communicate(timeout=timeout)
 
-            result = None
-            if output in (str, str.split) or error in (str, str.split):
-                result = ""
-                if output in (str, str.split):
-                    if sys.platform == "win32":
-                        outstr = str(out.decode("ISO-8859-1"))
-                    else:
-                        outstr = str(out.decode("utf-8"))
-                    result += outstr
-                    if output is str.split:
-                        sys.stdout.write(outstr)
-                if error in (str, str.split):
-                    if sys.platform == "win32":
-                        errstr = str(err.decode("ISO-8859-1"))
-                    else:
-                        errstr = str(err.decode("utf-8"))
-                    result += errstr
-                    if error is str.split:
-                        sys.stderr.write(errstr)
-
+            result = process_cmd_output(out, err)
             rc = self.returncode = proc.returncode
             if fail_on_error and rc != 0 and (rc not in ignore_errors):
                 long_msg = cmd_line_string
@@ -235,7 +252,11 @@ class Executable(object):
             return result
 
         except OSError as e:
-            raise ProcessError("%s: %s" % (self.exe[0], e.strerror), "Command: " + cmd_line_string)
+            message = "Command: " + cmd_line_string
+            if " " in self.exe[0]:
+                message += "\nDid you mean to add a space to the command?"
+
+            raise ProcessError("%s: %s" % (self.exe[0], e.strerror), message)
 
         except subprocess.CalledProcessError as e:
             if fail_on_error:
@@ -244,6 +265,18 @@ class Executable(object):
                     "\nExit status %d when invoking command: %s"
                     % (proc.returncode, cmd_line_string),
                 )
+        except subprocess.TimeoutExpired as te:
+            proc.kill()
+            out, err = proc.communicate()
+            result = process_cmd_output(out, err)
+            long_msg = cmd_line_string + f"\n{result}"
+            if fail_on_error:
+                raise ProcessTimeoutError(
+                    f"\nProcess timed out after {timeout}s. "
+                    "We expected the following command to run quickly but it did not, "
+                    f"please report this as an issue: {long_msg}",
+                    long_message=long_msg,
+                ) from te
 
         finally:
             if close_ostream:
@@ -269,39 +302,51 @@ class Executable(object):
         return " ".join(self.exe)
 
 
-@system_path_filter
 def which_string(*args, **kwargs):
     """Like ``which()``, but return a string instead of an ``Executable``."""
     path = kwargs.get("path", os.environ.get("PATH", ""))
     required = kwargs.get("required", False)
 
+    if isinstance(path, list):
+        paths = [Path(str(x)) for x in path]
+
     if isinstance(path, str):
-        path = path.split(os.pathsep)
+        paths = [Path(x) for x in path.split(os.pathsep)]
 
-    for name in args:
-        win_candidates = []
-        if sys.platform == "win32" and (not name.endswith(".exe") and not name.endswith(".bat")):
-            win_candidates = [name + ext for ext in [".exe", ".bat"]]
-        candidate_names = [name] if not win_candidates else win_candidates
+    def get_candidate_items(search_item):
+        if sys.platform == "win32" and not search_item.suffix:
+            return [search_item.parent / (search_item.name + ext) for ext in [".exe", ".bat"]]
 
+        return [Path(search_item)]
+
+    def add_extra_search_paths(paths):
+        with_parents = []
+        with_parents.extend(paths)
         if sys.platform == "win32":
-            new_path = path[:]
-            for p in path:
-                if os.path.basename(p) == "bin":
-                    new_path.append(os.path.dirname(p))
-            path = new_path
+            for p in paths:
+                if p.name == "bin":
+                    with_parents.append(p.parent)
+        return with_parents
 
-        for candidate_name in candidate_names:
-            if os.path.sep in candidate_name:
-                exe = os.path.abspath(candidate_name)
-                if os.path.isfile(exe) and os.access(exe, os.X_OK):
-                    return exe
-            else:
-                for directory in path:
-                    directory = path_to_os_path(directory).pop()
-                    exe = os.path.join(directory, candidate_name)
-                    if os.path.isfile(exe) and os.access(exe, os.X_OK):
-                        return exe
+    for search_item in args:
+        search_paths = []
+        search_paths.extend(paths)
+        if search_item.startswith("."):
+            # we do this because pathlib will strip any leading ./
+            search_paths.insert(0, Path.cwd())
+        search_paths = add_extra_search_paths(search_paths)
+
+        search_item = Path(search_item)
+        candidate_items = get_candidate_items(Path(search_item))
+
+        for candidate_item in candidate_items:
+            for directory in search_paths:
+                exe = directory / candidate_item
+                try:
+                    if exe.is_file() and os.access(str(exe), os.X_OK):
+                        return str(exe)
+                except OSError:
+                    pass
 
     if required:
         raise CommandNotFoundError("spack requires '%s'. Make sure it is in your path." % args[0])
@@ -326,11 +371,16 @@ def which(*args, **kwargs):
         Executable: The first executable that is found in the path
     """
     exe = which_string(*args, **kwargs)
-    return Executable(shlex.quote(exe)) if exe else None
+    return Executable(exe) if exe else None
 
 
 class ProcessError(spack.error.SpackError):
     """ProcessErrors are raised when Executables exit with an error code."""
+
+
+class ProcessTimeoutError(ProcessError):
+    """ProcessTimeoutErrors are raised when Executable calls with a
+    specified timeout exceed that time"""
 
 
 class CommandNotFoundError(spack.error.SpackError):

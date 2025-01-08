@@ -1,0 +1,23 @@
+From d6b6df173dc43625c22f23503b22253db35848e2 Mon Sep 17 00:00:00 2001
+From: Harmen Stoppels <me@harmenstoppels.nl>
+Date: Tue, 19 Sep 2023 21:36:24 +0200
+Subject: [PATCH] cythonize 0.29.x: use force=None as default instead of
+ force=False
+
+---
+ Cython/Build/Dependencies.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Cython/Build/Dependencies.py b/Cython/Build/Dependencies.py
+index 28c48ed8c3b..92fa96aa013 100644
+--- a/Cython/Build/Dependencies.py
++++ b/Cython/Build/Dependencies.py
+@@ -878,7 +878,7 @@ class Extension_setuptools(Extension): pass
+ 
+ 
+ # This is the user-exposed entry point.
+-def cythonize(module_list, exclude=None, nthreads=0, aliases=None, quiet=False, force=False, language=None,
++def cythonize(module_list, exclude=None, nthreads=0, aliases=None, quiet=False, force=None, language=None,
+               exclude_failures=False, **options):
+     """
+     Compile a set of source modules into C/C++ files and return a list of distutils

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,9 @@ class RGeoquery(RPackage):
 
     bioc = "GEOquery"
 
+    license("MIT")
+
+    version("2.68.0", commit="7995c579b068f98ebf3f1cd2cfd0575c3d73530c")
     version("2.66.0", commit="00a954e9f8223607b43cf112943ab575d03a0eb6")
     version("2.64.2", commit="e9b7f075a4a6a952660443ca93ed392d7a4fd6d7")
     version("2.62.2", commit="1966c108fe8a58ac39ef53c3c452fd160efa526e")

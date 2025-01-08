@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -12,9 +11,15 @@ class Polymake(Package):
     homepage = "https://polymake.org/doku.php"
     url = "https://polymake.org/lib/exe/fetch.php/download/polymake-3.0r1.tar.bz2"
 
+    license("GPL-2.0-or-later")
+
     version("3.5", sha256="c649f8536ccef5a5e22b82c514a09278ebcd99d0815aa7170461fe12843109bd")
     version("3.0r2", sha256="e7c0f8e3a45ea288d2fb4ae781a1dcea913ef9c275fed401632cdb11a672d6dc")
     version("3.0r1", sha256="cdc223716b1cc3f4f3cc126089a438f9d12390caeed78291a87565717c7b504d")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # Note: Could also be built with nauty instead of bliss
     depends_on("bliss")

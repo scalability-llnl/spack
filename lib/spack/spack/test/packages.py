@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -7,8 +6,11 @@ import os
 
 import pytest
 
+import spack.build_systems.cmake as cmake
 import spack.directives
+import spack.error
 import spack.fetch_strategy
+import spack.package_base
 import spack.repo
 from spack.paths import mock_packages_path
 from spack.spec import Spec
@@ -18,26 +20,26 @@ from spack.version import VersionChecksumError
 
 def pkg_factory(name):
     """Return a package object tied to an abstract spec"""
-    pkg_cls = spack.repo.path.get_pkg_class(name)
+    pkg_cls = spack.repo.PATH.get_pkg_class(name)
     return pkg_cls(Spec(name))
 
 
 @pytest.mark.usefixtures("config", "mock_packages")
-class TestPackage(object):
+class TestPackage:
     def test_load_package(self):
-        spack.repo.path.get_pkg_class("mpich")
+        spack.repo.PATH.get_pkg_class("mpich")
 
     def test_package_name(self):
-        pkg_cls = spack.repo.path.get_pkg_class("mpich")
+        pkg_cls = spack.repo.PATH.get_pkg_class("mpich")
         assert pkg_cls.name == "mpich"
 
     def test_package_filename(self):
-        repo = spack.repo.Repo(mock_packages_path)
+        repo = spack.repo.from_path(mock_packages_path)
         filename = repo.filename_for_package_name("mpich")
         assert filename == os.path.join(mock_packages_path, "packages", "mpich", "package.py")
 
     def test_nonexisting_package_filename(self):
-        repo = spack.repo.Repo(mock_packages_path)
+        repo = spack.repo.from_path(mock_packages_path)
         filename = repo.filename_for_package_name("some-nonexisting-package")
         assert filename == os.path.join(
             mock_packages_path, "packages", "some-nonexisting-package", "package.py"
@@ -61,14 +63,15 @@ class TestPackage(object):
         import spack.pkg.builtin.mock.mpich as mp  # noqa: F401
         from spack.pkg.builtin import mock  # noqa: F401
 
-    def test_inheritance_of_diretives(self):
-        pkg_cls = spack.repo.path.get_pkg_class("simple-inheritance")
+    def test_inheritance_of_directives(self):
+        pkg_cls = spack.repo.PATH.get_pkg_class("simple-inheritance")
 
         # Check dictionaries that should have been filled by directives
-        assert len(pkg_cls.dependencies) == 3
-        assert "cmake" in pkg_cls.dependencies
-        assert "openblas" in pkg_cls.dependencies
-        assert "mpi" in pkg_cls.dependencies
+        dependencies = pkg_cls.dependencies_by_name()
+        assert len(dependencies) == 3
+        assert "cmake" in dependencies
+        assert "openblas" in dependencies
+        assert "mpi" in dependencies
         assert len(pkg_cls.provided) == 2
 
         # Check that Spec instantiation behaves as we expect
@@ -125,18 +128,18 @@ def test_urls_for_versions(mock_packages, config):
 
 def test_url_for_version_with_no_urls(mock_packages, config):
     spec = Spec("git-test")
-    pkg_cls = spack.repo.path.get_pkg_class(spec.name)
-    with pytest.raises(spack.package_base.NoURLError):
+    pkg_cls = spack.repo.PATH.get_pkg_class(spec.name)
+    with pytest.raises(spack.error.NoURLError):
         pkg_cls(spec).url_for_version("1.0")
 
-    with pytest.raises(spack.package_base.NoURLError):
+    with pytest.raises(spack.error.NoURLError):
         pkg_cls(spec).url_for_version("1.1")
 
 
 def test_custom_cmake_prefix_path(mock_packages, config):
     spec = Spec("depends-on-define-cmake-prefix-paths").concretized()
 
-    assert spack.build_environment.get_cmake_prefix_path(spec.package) == [
+    assert cmake.get_cmake_prefix_path(spec.package) == [
         spec["define-cmake-prefix-paths"].prefix.test
     ]
 
@@ -258,6 +261,7 @@ def test_git_url_top_level_git_versions(version_str, tag, commit, branch):
     assert fetcher.tag == tag
     assert fetcher.commit == commit
     assert fetcher.branch == branch
+    assert fetcher.url == pkg_factory("git-url-top-level").git
 
 
 @pytest.mark.usefixtures("mock_packages", "config")
@@ -314,7 +318,18 @@ def test_fetch_options(version_str, digest_end, extra_options):
 
 def test_package_deprecated_version(mock_packages, mock_fetch, mock_stage):
     spec = Spec("deprecated-versions")
-    pkg_cls = spack.repo.path.get_pkg_class(spec.name)
+    pkg_cls = spack.repo.PATH.get_pkg_class(spec.name)
 
     assert spack.package_base.deprecated_version(pkg_cls, "1.1.0")
     assert not spack.package_base.deprecated_version(pkg_cls, "1.0.0")
+
+
+def test_package_can_have_sparse_checkout_properties(mock_packages, mock_fetch, mock_stage):
+    spec = Spec("git-sparsepaths-pkg")
+    pkg_cls = spack.repo.PATH.get_pkg_class(spec.name)
+    assert hasattr(pkg_cls, "git_sparse_paths")
+
+    fetcher = spack.fetch_strategy.for_package_version(pkg_cls(spec), "1.0")
+    assert isinstance(fetcher, spack.fetch_strategy.GitFetchStrategy)
+    assert hasattr(fetcher, "git_sparse_paths")
+    assert fetcher.git_sparse_paths == pkg_cls.git_sparse_paths

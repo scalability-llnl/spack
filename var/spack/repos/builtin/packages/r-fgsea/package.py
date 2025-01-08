@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,9 @@ class RFgsea(RPackage):
 
     bioc = "fgsea"
 
+    license("MIT")
+
+    version("1.26.0", commit="102b439e2208ae415dc19d3d1ac8936f9c5999f1")
     version("1.24.0", commit="ac74ccd935c15623b8584caa791835aec514144b")
     version("1.22.0", commit="e4e203aa64faa984e0406fed5d87a422d9df92f2")
     version("1.20.0", commit="b704f81687dc16afdaafc6d30108c62a067856b2")
@@ -26,6 +28,8 @@ class RFgsea(RPackage):
     version("1.4.1", commit="73de5ff364e520ac99507a9ee5a61a0d23d3c44e")
     version("1.2.1", commit="99b04eef664204d0dca4b9f8027cd7eefb006b72")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@3.3:", type=("build", "run"))
     depends_on("r-rcpp", type=("build", "run"))
     depends_on("r-data-table", type=("build", "run"))
@@ -34,6 +38,7 @@ class RFgsea(RPackage):
     depends_on("r-cowplot", type=("build", "run"), when="@1.24.0:")
     depends_on("r-fastmatch", type=("build", "run"))
     depends_on("r-matrix", type=("build", "run"), when="@1.6.0:")
+    depends_on("r-scales", type=("build", "run"), when="@1.26.0:")
     depends_on("r-bh", type=("build", "run"), when="@1.10.1:")
-    depends_on("r-gridextra", type=("build", "run"))
-    depends_on("r-gridextra", when="@:1.22.0")
+
+    depends_on("r-gridextra", type=("build", "run"), when="@:1.22.0")

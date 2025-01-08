@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,9 @@ class PyPythonGitlab(PythonPackage):
     homepage = "https://github.com/gpocentek/python-gitlab"
     pypi = "python-gitlab/python-gitlab-0.19.tar.gz"
 
+    license("LGPL-3.0-or-later")
+
+    version("3.15.0", sha256="c9e65eb7612a9fbb8abf0339972eca7fd7a73d4da66c9b446ffe528930aff534")
     version("3.9.0", sha256="5fc5e88f81f366e11851cb8b4b9a5b827491ce20ba7585446b74c9b097726ba3")
     version("2.10.1", sha256="7afa7d7c062fa62c173190452265a30feefb844428efc58ea5244f3b9fc0d40f")
     version("1.8.0", sha256="a6b03bc53f6e2e22b88d5ff9772b1bb360570ec82752f1def3d6eb60cda093e7")
@@ -21,11 +23,15 @@ class PyPythonGitlab(PythonPackage):
     version("0.16", sha256="2c50dc0bd3ed7c6b1edb6e556b0f0109493ae9dfa46e3bffcf3e5e67228d7d53")
 
     depends_on("python@3.7:", when="@3:", type=("build", "run"))
-    depends_on("python@3.6:", when="@2:", type=("build", "run"))
     depends_on("py-setuptools", type="build")
-    depends_on("py-requests-toolbelt@0.9.1:", when="@2.6.0:", type=("build", "run"))
-    depends_on("py-requests@2.25.0:", when="@2.10.1:", type=("build", "run"))
-    depends_on("py-requests@2.22.0:", when="@2.0.0:", type=("build", "run"))
-    depends_on("py-requests@2.4.2:", when="@1.4.0:", type=("build", "run"))
-    depends_on("py-requests@1.0:", type=("build", "run"))
+
+    depends_on("py-requests@2.25:", when="@2.10.1:", type=("build", "run"))
+    depends_on("py-requests@2.22:", when="@2:", type=("build", "run"))
+    depends_on("py-requests@2.4.2:", when="@1.4:", type=("build", "run"))
+    depends_on("py-requests@1:", type=("build", "run"))
+    depends_on("py-requests-toolbelt@0.10.1:", when="@3.13:", type=("build", "run"))
+    depends_on("py-requests-toolbelt@0.9.1:", when="@2.6:", type=("build", "run"))
+    depends_on("py-typing-extensions@4:", when="@3.14: ^python@:3.7", type=("build", "run"))
+
+    # Historical dependencies
     depends_on("py-six", when="@:1", type=("build", "run"))

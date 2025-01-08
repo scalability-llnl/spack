@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -62,8 +61,7 @@ class GenemarkEt(Package):
             pattern = "^#!.*/usr/bin/perl"
             repl = "#!{0}".format(self.spec["perl"].command.path)
             files = glob.iglob("*.pl")
-            for file in files:
-                filter_file(pattern, repl, *files, backup=False)
+            filter_file(pattern, repl, *files, backup=False)
 
     def setup_run_environment(self, env):
         env.prepend_path("PERL5LIB", self.prefix.lib)

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,9 +13,19 @@ class Optipng(AutotoolsPackage, SourceforgePackage):
     integrity checks and corrections.
     """
 
-    homepage = "http://optipng.sourceforge.net/"
+    homepage = "https://optipng.sourceforge.net/"
     sourceforge_mirror_path = "optipng/optipng-0.7.7.tar.gz"
 
-    version("0.7.7", sha256="4f32f233cef870b3f95d3ad6428bfe4224ef34908f1b42b0badf858216654452")
+    license("Zlib")
+
+    version("0.7.8", sha256="25a3bd68481f21502ccaa0f4c13f84dcf6b20338e4c4e8c51f2cefbd8513398c")
+    with default_args(deprecated=True):
+        # https://nvd.nist.gov/vuln/detail/CVE-2023-43907
+        version("0.7.7", sha256="4f32f233cef870b3f95d3ad6428bfe4224ef34908f1b42b0badf858216654452")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # See https://github.com/imagemin/optipng-bin/issues/97
-    patch("for_aarch64.patch", when="target=aarch64:")
+    patch("for_aarch64_0.7.7.patch", when="@0.7.7")
+    patch("for_aarch64_0.7.8.patch", when="@0.7.8:")

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,11 +11,14 @@ class Bart(MakefilePackage, CudaPackage):
     homepage = "https://mrirecon.github.io/bart/"
     url = "https://github.com/mrirecon/bart/archive/v0.5.00.tar.gz"
 
-    maintainers("glennpj")
+    license("BSD-3-Clause")
 
     version("0.7.00", sha256="a16afc4b632c703d95b5c34e47acd82fafc19f51f9aff442373eecfef08bfc41")
     version("0.6.00", sha256="dbbd33d1e3ed3324fe21f90a3b62cb51765fe369f21df100b46a32004928f18d")
     version("0.5.00", sha256="30eedcda0f0ef3808157542e0d67df5be49ee41e4f41487af5c850632788f643")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     # patch to fix build with MKL
     patch(
@@ -50,7 +52,7 @@ class Bart(MakefilePackage, CudaPackage):
         if spec["blas"].name == "openblas":
             env["OPENBLAS"] = "1"
 
-        if "^mkl" in spec:
+        elif spec["blas"].name in INTEL_MATH_LIBRARIES:
             env["MKL"] = "1"
             env["MKL_BASE"] = spec["mkl"].prefix.mkl
         else:
@@ -59,7 +61,7 @@ class Bart(MakefilePackage, CudaPackage):
         if "^netlib-lapack+lapacke" not in spec:
             env["NOLAPACKE"] = "1"
 
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             cuda_arch = self.spec.variants["cuda_arch"].value
             env["CUDA"] = "1"
             env["CUDA_BASE"] = spec["cuda"].prefix
@@ -76,7 +78,7 @@ class Bart(MakefilePackage, CudaPackage):
         install("python/cfl.py", python_platlib)
         install("python/wslsupport.py", python_platlib)
 
-        if "^python@3:" in spec:
+        if spec.satisfies("^python@3:"):
             install("python/bartview3.py", join_path(prefix.bin, "bartview"))
             filter_file(r"#!/usr/bin/python3", "#!/usr/bin/env python", prefix.bin.bartview)
         else:

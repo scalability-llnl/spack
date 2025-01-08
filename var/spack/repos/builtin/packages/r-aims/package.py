@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,7 @@ class RAims(RPackage):
 
     bioc = "AIMS"
 
+    version("1.32.0", commit="019415a6362e805465d43c157606e1774aed9e51")
     version("1.30.0", commit="2ab61159c5aa0902cc33fc1502f7853b66912cce")
     version("1.28.0", commit="84608df638b5694c08158ed77ad2c8a64c4e594b")
     version("1.26.0", commit="5dcf60eb4cdcf563ea848482c9c488f465c27bbd")

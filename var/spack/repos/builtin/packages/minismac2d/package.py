@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,8 @@ class Minismac2d(MakefilePackage):
     tags = ["proxy-app"]
 
     version("2.0", sha256="ec01b74c06a2c0386efbbb61b14305327342a08fb92bf52e76f60a2063adf065")
+
+    depends_on("fortran", type="build")  # generated
 
     depends_on("mpi")
 

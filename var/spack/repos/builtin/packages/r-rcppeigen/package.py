@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,6 +24,9 @@ class RRcppeigen(RPackage):
 
     cran = "RcppEigen"
 
+    license("MPL-2.0")
+
+    version("0.3.4.0.1", sha256="25ed48f148b50aaadd92752d73e3eefe00ab4ecd4ae5662ae91a9ff3f72a4e26")
     version("0.3.3.9.3", sha256="5873a47fd6587d916f86119ab140c6736abf80ac45d06ff1c9d198708e7d1c76")
     version("0.3.3.9.2", sha256="2547e794d5a6fb8d9fbadf19e64afa0bcf413cc69ecf3f428995fa5a0fced493")
     version("0.3.3.9.1", sha256="8a0486249b778a4275a1168fc89fc7fc49c2bb031cb14b50a50089acae7fe962")
@@ -34,6 +36,7 @@ class RRcppeigen(RPackage):
     version("0.3.2.9.0", sha256="25affba9065e3c12d67b1934d1ce97a928a4011a7738f7b90f0e9830409ec93b")
     version("0.3.2.8.1", sha256="ceccb8785531c5c23f9232b594e5372c214a114a08ec759115e946badd08d681")
 
-    depends_on("r-matrix@1.1-0:", type=("build", "run"))
     depends_on("r-rcpp@0.11.0:", type=("build", "run"))
     depends_on("r@3.6.0:", type=("build", "run"), when="@0.3.3.9.3:")
+
+    depends_on("r-matrix@1.1-0:", type=("build", "run"), when="@:0.3.3.9.3")

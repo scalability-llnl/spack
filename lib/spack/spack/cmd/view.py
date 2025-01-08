@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -33,18 +32,20 @@ All operations on views are performed via proxy objects such as
 YamlFilesystemView.
 
 """
+import sys
+
 import llnl.util.tty as tty
 from llnl.util.link_tree import MergeConflictError
 
 import spack.cmd
 import spack.environment as ev
+import spack.filesystem_view as fsv
 import spack.schema.projections
 import spack.store
 from spack.config import validate
-from spack.filesystem_view import YamlFilesystemView, view_func_parser
 from spack.util import spack_yaml as s_yaml
 
-description = "project packages to a compact naming scheme on the filesystem."
+description = "project packages to a compact naming scheme on the filesystem"
 section = "environments"
 level = "short"
 
@@ -70,7 +71,7 @@ def disambiguate_in_view(specs, view):
         return matching_in_view[0] if matching_in_view else matching_specs[0]
 
     # make function always return a list to keep consistency between py2/3
-    return list(map(squash, map(spack.store.db.query, specs)))
+    return list(map(squash, map(spack.store.STORE.db.query, specs)))
 
 
 def setup_parser(sp):
@@ -81,7 +82,7 @@ def setup_parser(sp):
         "--verbose",
         action="store_true",
         default=False,
-        help="If not verbose only warnings/errors will be printed.",
+        help="if not verbose only warnings/errors will be printed",
     )
     sp.add_argument(
         "-e",
@@ -95,7 +96,7 @@ def setup_parser(sp):
         "--dependencies",
         choices=["true", "false", "yes", "no"],
         default="true",
-        help="Link/remove/list dependencies.",
+        help="link/remove/list dependencies",
     )
 
     ssp = sp.add_subparsers(metavar="ACTION", dest="action")
@@ -137,12 +138,11 @@ def setup_parser(sp):
         if cmd in ("symlink", "hardlink", "copy"):
             # invalid for remove/statlink, for those commands the view needs to
             # already know its own projections.
-            help_msg = "Initialize view using projections from file."
             act.add_argument(
                 "--projection-file",
                 dest="projection_file",
                 type=spack.cmd.extant_file,
-                help=help_msg,
+                help="initialize view using projections from file",
             )
 
         if cmd == "remove":
@@ -150,7 +150,7 @@ def setup_parser(sp):
             act.add_argument(
                 "--no-remove-dependents",
                 action="store_true",
-                help="Do not remove dependents of specified specs.",
+                help="do not remove dependents of specified specs",
             )
 
             # with all option, spec is an optional argument
@@ -179,14 +179,19 @@ def setup_parser(sp):
 
 
 def view(parser, args):
-    "Produce a view of a set of packages."
+    """Produce a view of a set of packages."""
+
+    if sys.platform == "win32" and args.action in ("hardlink", "hard"):
+        # Hard-linked views are not yet allowed on Windows.
+        # See https://github.com/spack/spack/pull/46335#discussion_r1757411915
+        tty.die("Hard linking is not supported on Windows. Please use symlinks or copy methods.")
 
     specs = spack.cmd.parse_specs(args.specs)
     path = args.path[0]
 
     if args.action in actions_link and args.projection_file:
         # argparse confirms file exists
-        with open(args.projection_file, "r") as f:
+        with open(args.projection_file, "r", encoding="utf-8") as f:
             projections_data = s_yaml.load(f)
             validate(projections_data, spack.schema.projections.schema)
             ordered_projections = projections_data["projections"]
@@ -194,17 +199,13 @@ def view(parser, args):
         ordered_projections = {}
 
     # What method are we using for this view
-    if args.action in actions_link:
-        link_fn = view_func_parser(args.action)
-    else:
-        link_fn = view_func_parser("symlink")
-
-    view = YamlFilesystemView(
+    link_type = args.action if args.action in actions_link else "symlink"
+    view = fsv.YamlFilesystemView(
         path,
-        spack.store.layout,
+        spack.store.STORE.layout,
         projections=ordered_projections,
         ignore_conflicts=getattr(args, "ignore_conflicts", False),
-        link=link_fn,
+        link_type=link_type,
         verbose=args.verbose,
     )
 

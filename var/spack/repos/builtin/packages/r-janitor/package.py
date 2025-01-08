@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,9 @@ class RJanitor(RPackage):
 
     cran = "janitor"
 
+    license("MIT")
+
+    version("2.2.0", sha256="29d5d0185e4e824bb38f905b158162a12f52dc01c2e8a487fc730ce46bf6baae")
     version("2.1.0", sha256="d60615940fbe174f67799c8abc797f27928eca4ac180418527c5897a4aaad826")
     version("1.2.0", sha256="5e15a2292c65c5ddd6160289dec2604b05a813651a2be0d7854ace4548a32b8c")
     version("1.1.1", sha256="404b41f56e571fab4c95ef62e79cb4f3bb34d5bb6e4ea737e748ff269536176b")
@@ -30,6 +32,7 @@ class RJanitor(RPackage):
     depends_on("r@3.1.2:", type=("build", "run"))
     depends_on("r-dplyr@0.7.0:", type=("build", "run"))
     depends_on("r-dplyr@1.0.0:", type=("build", "run"), when="@2.1.0:")
+    depends_on("r-hms", type=("build", "run"), when="@2.2.0:")
     depends_on("r-lifecycle", type=("build", "run"), when="@2.1.0:")
     depends_on("r-lubridate", type=("build", "run"), when="@2.1.0:")
     depends_on("r-magrittr", type=("build", "run"))

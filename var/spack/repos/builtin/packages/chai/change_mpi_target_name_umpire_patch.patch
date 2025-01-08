@@ -1,0 +1,13 @@
+diff --git a/cmake/thirdparty/SetupChaiThirdparty.cmake b/cmake/thirdparty/SetupChaiThirdparty.cmake
+index d0be864..a8b33f0 100644
+--- a/cmake/thirdparty/SetupChaiThirdparty.cmake
++++ b/cmake/thirdparty/SetupChaiThirdparty.cmake
+@@ -12,7 +12,7 @@ if (NOT TARGET umpire)
+     find_package(umpire REQUIRED)
+ 
+     if (ENABLE_MPI)
+-      set(UMPIRE_DEPENDS mpi)
++      set(UMPIRE_DEPENDS MPI::MPI_CXX)
+     else()
+       set(UMPIRE_DEPENDS)
+     endif()

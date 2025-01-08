@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,246 +26,23 @@ it's never been told about that version before.
 """
 import io
 import os
+import pathlib
 import re
-from urllib.parse import urlsplit, urlunsplit
+from typing import Any, Dict, Optional, Sequence, Union
 
-import llnl.util.tty as tty
+import llnl.url
+from llnl.path import convert_to_posix_path
 from llnl.util.tty.color import cescape, colorize
 
 import spack.error
-import spack.util.compression as comp
-import spack.util.path as spath
+import spack.util.web
 import spack.version
-
 
 #
 # Note: We call the input to most of these functions a "path" but the functions
 # work on paths and URLs.  There's not a good word for both of these, but
 # "path" seemed like the most generic term.
 #
-def find_list_urls(url):
-    r"""Find good list URLs for the supplied URL.
-
-    By default, returns the dirname of the archive path.
-
-    Provides special treatment for the following websites, which have a
-    unique list URL different from the dirname of the download URL:
-
-    =========  =======================================================
-    GitHub     https://github.com/<repo>/<name>/releases
-    GitLab     https://gitlab.\*/<repo>/<name>/tags
-    BitBucket  https://bitbucket.org/<repo>/<name>/downloads/?tab=tags
-    CRAN       https://\*.r-project.org/src/contrib/Archive/<name>
-    PyPI       https://pypi.org/simple/<name>/
-    LuaRocks   https://luarocks.org/modules/<repo>/<name>
-    =========  =======================================================
-
-    Note: this function is called by `spack versions`, `spack checksum`,
-    and `spack create`, but not by `spack fetch` or `spack install`.
-
-    Parameters:
-        url (str): The download URL for the package
-
-    Returns:
-        set: One or more list URLs for the package
-    """
-
-    url_types = [
-        # GitHub
-        # e.g. https://github.com/llnl/callpath/archive/v1.0.1.tar.gz
-        (r"(.*github\.com/[^/]+/[^/]+)", lambda m: m.group(1) + "/releases"),
-        # GitLab API endpoint
-        # e.g. https://gitlab.dkrz.de/api/v4/projects/k202009%2Flibaec/repository/archive.tar.gz?sha=v1.0.2
-        (
-            r"(.*gitlab[^/]+)/api/v4/projects/([^/]+)%2F([^/]+)",
-            lambda m: m.group(1) + "/" + m.group(2) + "/" + m.group(3) + "/tags",
-        ),
-        # GitLab non-API endpoint
-        # e.g. https://gitlab.dkrz.de/k202009/libaec/uploads/631e85bcf877c2dcaca9b2e6d6526339/libaec-1.0.0.tar.gz
-        (r"(.*gitlab[^/]+/(?!api/v4/projects)[^/]+/[^/]+)", lambda m: m.group(1) + "/tags"),
-        # BitBucket
-        # e.g. https://bitbucket.org/eigen/eigen/get/3.3.3.tar.bz2
-        (r"(.*bitbucket.org/[^/]+/[^/]+)", lambda m: m.group(1) + "/downloads/?tab=tags"),
-        # CRAN
-        # e.g. https://cran.r-project.org/src/contrib/Rcpp_0.12.9.tar.gz
-        # e.g. https://cloud.r-project.org/src/contrib/rgl_0.98.1.tar.gz
-        (
-            r"(.*\.r-project\.org/src/contrib)/([^_]+)",
-            lambda m: m.group(1) + "/Archive/" + m.group(2),
-        ),
-        # PyPI
-        # e.g. https://pypi.io/packages/source/n/numpy/numpy-1.19.4.zip
-        # e.g. https://www.pypi.io/packages/source/n/numpy/numpy-1.19.4.zip
-        # e.g. https://pypi.org/packages/source/n/numpy/numpy-1.19.4.zip
-        # e.g. https://pypi.python.org/packages/source/n/numpy/numpy-1.19.4.zip
-        # e.g. https://files.pythonhosted.org/packages/source/n/numpy/numpy-1.19.4.zip
-        # e.g. https://pypi.io/packages/py2.py3/o/opencensus-context/opencensus_context-0.1.1-py2.py3-none-any.whl
-        (
-            r"(?:pypi|pythonhosted)[^/]+/packages/[^/]+/./([^/]+)",
-            lambda m: "https://pypi.org/simple/" + m.group(1) + "/",
-        ),
-        # LuaRocks
-        # e.g. https://luarocks.org/manifests/gvvaughan/lpeg-1.0.2-1.src.rock
-        # e.g. https://luarocks.org/manifests/openresty/lua-cjson-2.1.0-1.src.rock
-        (
-            r"luarocks[^/]+/(?:modules|manifests)/(?P<org>[^/]+)/"
-            + r"(?P<name>.+?)-[0-9.-]*\.src\.rock",
-            lambda m: "https://luarocks.org/modules/"
-            + m.group("org")
-            + "/"
-            + m.group("name")
-            + "/",
-        ),
-    ]
-
-    list_urls = set([os.path.dirname(url)])
-
-    for pattern, fun in url_types:
-        match = re.search(pattern, url)
-        if match:
-            list_urls.add(fun(match))
-
-    return list_urls
-
-
-def strip_query_and_fragment(path):
-    try:
-        components = urlsplit(path)
-        stripped = components[:3] + (None, None)
-
-        query, frag = components[3:5]
-        suffix = ""
-        if query:
-            suffix += "?" + query
-        if frag:
-            suffix += "#" + frag
-
-        return (urlunsplit(stripped), suffix)
-
-    except ValueError:
-        tty.debug("Got error parsing path %s" % path)
-        return (path, "")  # Ignore URL parse errors here
-
-
-def strip_version_suffixes(path):
-    """Some tarballs contain extraneous information after the version:
-
-    * ``bowtie2-2.2.5-source``
-    * ``libevent-2.0.21-stable``
-    * ``cuda_8.0.44_linux.run``
-
-    These strings are not part of the version number and should be ignored.
-    This function strips those suffixes off and returns the remaining string.
-    The goal is that the version is always the last thing in ``path``:
-
-    * ``bowtie2-2.2.5``
-    * ``libevent-2.0.21``
-    * ``cuda_8.0.44``
-
-    Args:
-        path (str): The filename or URL for the package
-
-    Returns:
-        str: The ``path`` with any extraneous suffixes removed
-    """
-    # NOTE: This could be done with complicated regexes in parse_version_offset
-    # NOTE: The problem is that we would have to add these regexes to the end
-    # NOTE: of every single version regex. Easier to just strip them off
-    # NOTE: permanently
-
-    suffix_regexes = [
-        # Download type
-        r"[Ii]nstall",
-        r"all",
-        r"code",
-        r"[Ss]ources?",
-        r"file",
-        r"full",
-        r"single",
-        r"with[a-zA-Z_-]+",
-        r"rock",
-        r"src(_0)?",
-        r"public",
-        r"bin",
-        r"binary",
-        r"run",
-        r"[Uu]niversal",
-        r"jar",
-        r"complete",
-        r"dynamic",
-        r"oss",
-        r"gem",
-        r"tar",
-        r"sh",
-        # Download version
-        r"release",
-        r"bin",
-        r"stable",
-        r"[Ff]inal",
-        r"rel",
-        r"orig",
-        r"dist",
-        r"\+",
-        # License
-        r"gpl",
-        # Arch
-        # Needs to come before and after OS, appears in both orders
-        r"ia32",
-        r"intel",
-        r"amd64",
-        r"linux64",
-        r"x64",
-        r"64bit",
-        r"x86[_-]64",
-        r"i586_64",
-        r"x86",
-        r"i[36]86",
-        r"ppc64(le)?",
-        r"armv?(7l|6l|64)",
-        # Other
-        r"cpp",
-        r"gtk",
-        r"incubating",
-        # OS
-        r"[Ll]inux(_64)?",
-        r"LINUX",
-        r"[Uu]ni?x",
-        r"[Ss]un[Oo][Ss]",
-        r"[Mm]ac[Oo][Ss][Xx]?",
-        r"[Oo][Ss][Xx]",
-        r"[Dd]arwin(64)?",
-        r"[Aa]pple",
-        r"[Ww]indows",
-        r"[Ww]in(64|32)?",
-        r"[Cc]ygwin(64|32)?",
-        r"[Mm]ingw",
-        r"centos",
-        # Arch
-        # Needs to come before and after OS, appears in both orders
-        r"ia32",
-        r"intel",
-        r"amd64",
-        r"linux64",
-        r"x64",
-        r"64bit",
-        r"x86[_-]64",
-        r"i586_64",
-        r"x86",
-        r"i[36]86",
-        r"ppc64(le)?",
-        r"armv?(7l|6l|64)?",
-        # PyPI
-        r"[._-]py[23].*\.whl",
-        r"[._-]cp[23].*\.whl",
-        r"[._-]win.*\.exe",
-    ]
-
-    for regex in suffix_regexes:
-        # Remove the suffix from the end of the path
-        # This may be done multiple times
-        path = re.sub(r"[._-]?" + regex + "$", "", path)
-
-    return path
 
 
 def strip_name_suffixes(path, version):
@@ -341,69 +117,6 @@ def strip_name_suffixes(path, version):
     return path
 
 
-def split_url_extension(path):
-    """Some URLs have a query string, e.g.:
-
-    1. https://github.com/losalamos/CLAMR/blob/packages/PowerParser_v2.0.7.tgz?raw=true
-    2. http://www.apache.org/dyn/closer.cgi?path=/cassandra/1.2.0/apache-cassandra-1.2.0-rc2-bin.tar.gz
-    3. https://gitlab.kitware.com/vtk/vtk/repository/archive.tar.bz2?ref=v7.0.0
-
-    In (1), the query string needs to be stripped to get at the
-    extension, but in (2) & (3), the filename is IN a single final query
-    argument.
-
-    This strips the URL into three pieces: ``prefix``, ``ext``, and ``suffix``.
-    The suffix contains anything that was stripped off the URL to
-    get at the file extension.  In (1), it will be ``'?raw=true'``, but
-    in (2), it will be empty. In (3) the suffix is a parameter that follows
-    after the file extension, e.g.:
-
-    1. ``('https://github.com/losalamos/CLAMR/blob/packages/PowerParser_v2.0.7', '.tgz', '?raw=true')``
-    2. ``('http://www.apache.org/dyn/closer.cgi?path=/cassandra/1.2.0/apache-cassandra-1.2.0-rc2-bin', '.tar.gz', None)``
-    3. ``('https://gitlab.kitware.com/vtk/vtk/repository/archive', '.tar.bz2', '?ref=v7.0.0')``
-    """
-    prefix, ext, suffix = path, "", ""
-
-    # Strip off sourceforge download suffix.
-    # e.g. https://sourceforge.net/projects/glew/files/glew/2.0.0/glew-2.0.0.tgz/download
-    prefix, suffix = spath.find_sourceforge_suffix(path)
-
-    ext = comp.extension_from_path(prefix)
-    if ext is not None:
-        prefix = comp.strip_extension(prefix)
-
-    else:
-        prefix, suf = strip_query_and_fragment(prefix)
-        ext = comp.extension_from_path(prefix)
-        prefix = comp.strip_extension(prefix)
-        suffix = suf + suffix
-        if ext is None:
-            ext = ""
-
-    return prefix, ext, suffix
-
-
-def determine_url_file_extension(path):
-    """This returns the type of archive a URL refers to.  This is
-    sometimes confusing because of URLs like:
-
-    (1) https://github.com/petdance/ack/tarball/1.93_02
-
-    Where the URL doesn't actually contain the filename.  We need
-    to know what type it is so that we can appropriately name files
-    in mirrors.
-    """
-    match = re.search(r"github.com/.+/(zip|tar)ball/", path)
-    if match:
-        if match.group(1) == "zip":
-            return "zip"
-        elif match.group(1) == "tar":
-            return "tar.gz"
-
-    prefix, ext, suffix = split_url_extension(path)
-    return ext
-
-
 def parse_version_offset(path):
     """Try to extract a version string from a filename or URL.
 
@@ -426,13 +139,13 @@ def parse_version_offset(path):
     # path:   The prefix of the URL, everything before the ext and suffix
     # ext:    The file extension
     # suffix: Any kind of query string that begins with a '?'
-    path, ext, suffix = split_url_extension(path)
+    path, ext, suffix = llnl.url.split_url_extension(path)
 
     # stem:   Everything from path after the final '/'
     original_stem = os.path.basename(path)
 
     # Try to strip off anything after the version number
-    stem = strip_version_suffixes(original_stem)
+    stem = llnl.url.strip_version_suffixes(original_stem)
 
     # Assumptions:
     #
@@ -544,7 +257,9 @@ def parse_version_offset(path):
         # 9th Pass: Version in path
         # github.com/repo/name/releases/download/vver/name
         # e.g. https://github.com/nextflow-io/nextflow/releases/download/v0.20.1/nextflow
+        # e.g. https://gitlab.com/hpctoolkit/hpcviewer/-/releases/2024.02/downloads/hpcviewer.tgz
         (r"github\.com/[^/]+/[^/]+/releases/download/[a-zA-Z+._-]*v?(\d[\da-zA-Z._-]*)/", path),
+        (r"gitlab\.com/[^/]+/.+/-/releases/[a-zA-Z+._-]*v?(\d[\da-zA-Z._-]*)/downloads/", path),
         # e.g. ftp://ftp.ncbi.nlm.nih.gov/blast/executables/legacy.NOTSUPPORTED/2.2.26/ncbi.tar.gz
         (r"(\d[\da-zA-Z._-]*)/[^/]+$", path),
     ]
@@ -571,20 +286,19 @@ def parse_version_offset(path):
     raise UndetectableVersionError(original_path)
 
 
-def parse_version(path):
+def parse_version(path: str) -> spack.version.StandardVersion:
     """Try to extract a version string from a filename or URL.
 
     Args:
-        path (str): The filename or URL for the package
+        path: The filename or URL for the package
 
-    Returns:
-        spack.version.Version: The version of the package
+    Returns: The version of the package
 
     Raises:
         UndetectableVersionError: If the URL does not match any regexes
     """
     version, start, length, i, regex = parse_version_offset(path)
-    return spack.version.Version(version)
+    return spack.version.StandardVersion.from_string(version)
 
 
 def parse_name_offset(path, v=None):
@@ -620,7 +334,7 @@ def parse_name_offset(path, v=None):
     # path:   The prefix of the URL, everything before the ext and suffix
     # ext:    The file extension
     # suffix: Any kind of query string that begins with a '?'
-    path, ext, suffix = split_url_extension(path)
+    path, ext, suffix = llnl.url.split_url_extension(path)
 
     # stem:   Everything from path after the final '/'
     original_stem = os.path.basename(path)
@@ -733,28 +447,6 @@ def parse_name_and_version(path):
     ver = parse_version(path)
     name = parse_name(path, ver)
     return (name, ver)
-
-
-def insensitize(string):
-    """Change upper and lowercase letters to be case insensitive in
-    the provided string.  e.g., 'a' becomes '[Aa]', 'B' becomes
-    '[bB]', etc.  Use for building regexes."""
-
-    def to_ins(match):
-        char = match.group(1)
-        return "[%s%s]" % (char.lower(), char.upper())
-
-    return re.sub(r"([a-zA-Z])", to_ins, string)
-
-
-def cumsum(elts, init=0, fn=lambda x: x):
-    """Return cumulative sum of result of fn on each element in elts."""
-    sums = []
-    s = init
-    for i, e in enumerate(elts):
-        sums.append(s)
-        s += fn(e)
-    return sums
 
 
 def find_all(substring, string):
@@ -912,11 +604,127 @@ def color_url(path, **kwargs):
     return colorize(out.getvalue())
 
 
+def find_versions_of_archive(
+    archive_urls: Union[str, Sequence[str]],
+    list_url: Optional[str] = None,
+    list_depth: int = 0,
+    concurrency: Optional[int] = 32,
+    reference_package: Optional[Any] = None,
+) -> Dict[spack.version.StandardVersion, str]:
+    """Scrape web pages for new versions of a tarball. This function prefers URLs in the
+    following order: links found on the scraped page that match a url generated by the
+    reference package, found and in the archive_urls list, found and derived from those
+    in the archive_urls list, and if none are found for a version then the item in the
+    archive_urls list is included for the version.
+
+    Args:
+        archive_urls: URL or sequence of URLs for different versions of a package. Typically these
+            are just the tarballs from the package file itself. By default, this searches the
+            parent directories of archives.
+        list_url: URL for a listing of archives. Spack will scrape these pages for download links
+            that look like the archive URL.
+        list_depth: max depth to follow links on list_url pages. Defaults to 0.
+        concurrency: maximum number of concurrent requests
+        reference_package: a spack package used as a reference for url detection. Uses the
+            url_for_version method on the package to produce reference urls which, if found, are
+            preferred.
+    """
+    if isinstance(archive_urls, str):
+        archive_urls = [archive_urls]
+
+    # Generate a list of list_urls based on archive urls and any
+    # explicitly listed list_url in the package
+    list_urls = set()
+    if list_url is not None:
+        list_urls.add(list_url)
+    for aurl in archive_urls:
+        list_urls |= llnl.url.find_list_urls(aurl)
+
+    # Add '/' to the end of the URL. Some web servers require this.
+    additional_list_urls = set()
+    for lurl in list_urls:
+        if not lurl.endswith("/"):
+            additional_list_urls.add(lurl + "/")
+    list_urls |= additional_list_urls
+
+    # Grab some web pages to scrape.
+    _, links = spack.util.web.spider(list_urls, depth=list_depth, concurrency=concurrency)
+
+    # Scrape them for archive URLs
+    regexes = []
+    for aurl in archive_urls:
+        # This creates a regex from the URL with a capture group for
+        # the version part of the URL.  The capture group is converted
+        # to a generic wildcard, so we can use this to extract things
+        # on a page that look like archive URLs.
+        url_regex = wildcard_version(aurl)
+
+        # We'll be a bit more liberal and just look for the archive
+        # part, not the full path.
+        # this is a URL so it is a posixpath even on Windows
+        url_regex = pathlib.PurePosixPath(url_regex).name
+
+        # We need to add a / to the beginning of the regex to prevent
+        # Spack from picking up similarly named packages like:
+        #   https://cran.r-project.org/src/contrib/pls_2.6-0.tar.gz
+        #   https://cran.r-project.org/src/contrib/enpls_5.7.tar.gz
+        #   https://cran.r-project.org/src/contrib/autopls_1.3.tar.gz
+        #   https://cran.r-project.org/src/contrib/matrixpls_1.0.4.tar.gz
+        url_regex = "/" + url_regex
+
+        # We need to add a $ anchor to the end of the regex to prevent
+        # Spack from picking up signature files like:
+        #   .asc
+        #   .md5
+        #   .sha256
+        #   .sig
+        # However, SourceForge downloads still need to end in '/download'.
+        url_regex += r"(\/download)?"
+        # PyPI adds #sha256=... to the end of the URL
+        url_regex += "(#sha256=.*)?"
+        url_regex += "$"
+
+        regexes.append(url_regex)
+
+    regexes = [re.compile(r) for r in regexes]
+    # Build a dict version -> URL from any links that match the wildcards.
+    # Walk through archive_url links first.
+    # Any conflicting versions will be overwritten by the list_url links.
+    versions: Dict[spack.version.StandardVersion, str] = {}
+    matched = set()
+    for url in sorted(links):
+        url = convert_to_posix_path(url)
+        if any(r.search(url) for r in regexes):
+            try:
+                ver = parse_version(url)
+                if ver in matched:
+                    continue
+                versions[ver] = url
+                # prevent this version from getting overwritten
+                if reference_package is not None:
+                    if url == reference_package.url_for_version(ver):
+                        matched.add(ver)
+                else:
+                    extrapolated_urls = [substitute_version(u, ver) for u in archive_urls]
+                    if url in extrapolated_urls:
+                        matched.add(ver)
+            except UndetectableVersionError:
+                continue
+
+    for url in archive_urls:
+        url = convert_to_posix_path(url)
+        ver = parse_version(url)
+        if ver not in versions:
+            versions[ver] = url
+
+    return versions
+
+
 class UrlParseError(spack.error.SpackError):
     """Raised when the URL module can't parse something correctly."""
 
     def __init__(self, msg, path):
-        super(UrlParseError, self).__init__(msg)
+        super().__init__(msg)
         self.path = path
 
 
@@ -924,13 +732,11 @@ class UndetectableVersionError(UrlParseError):
     """Raised when we can't parse a version from a string."""
 
     def __init__(self, path):
-        super(UndetectableVersionError, self).__init__("Couldn't detect version in: " + path, path)
+        super().__init__("Couldn't detect version in: " + path, path)
 
 
 class UndetectableNameError(UrlParseError):
     """Raised when we can't parse a package name from a string."""
 
     def __init__(self, path):
-        super(UndetectableNameError, self).__init__(
-            "Couldn't parse package name in: " + path, path
-        )
+        super().__init__("Couldn't parse package name in: " + path, path)

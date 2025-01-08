@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,7 +14,7 @@ class Mumax(MakefilePackage, CudaPackage):
     homepage = "https://mumax.github.io"
     url = "https://github.com/mumax/3/archive/v3.10.tar.gz"
 
-    maintainers("glennpj")
+    license("CC-BY-3.0")
 
     version(
         "3.10",
@@ -59,7 +58,7 @@ class Mumax(MakefilePackage, CudaPackage):
         return join_path(self.gopath, "src/github.com/mumax/3")
 
     def do_stage(self, mirror_only=False):
-        super(Mumax, self).do_stage(mirror_only)
+        super().do_stage(mirror_only)
         if not os.path.exists(self.mumax_gopath_dir):
             # Need to move source to $GOPATH and then symlink the original
             # stage directory

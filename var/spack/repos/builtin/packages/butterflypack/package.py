@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,7 +24,11 @@ class Butterflypack(CMakePackage):
     url = "https://github.com/liuyangzhuan/ButterflyPACK/archive/v2.2.0.tar.gz"
     maintainers("liuyangzhuan")
 
+    license("BSD-3-Clause-LBNL")
+
     version("master", branch="master")
+    version("3.2.0", sha256="0f1570947f0a7c0e130bbec3abbb2fa275ae453dc3f428e7a3a2265fecafe1ae")
+    version("2.4.0", sha256="12d04e7101b2c8292b5c62d9f42b5cd1e8a3c5af639d2665596e3e4255fd0804")
     version("2.2.2", sha256="73f67073e4291877f1eee19483a8a7b3c761eaf79a75805d52105ceedead85ea")
     version("2.2.1", sha256="4cedc2896a6b368773ce4f9003aa2c0230baf56a4464a6b899a155e01406a232")
     version("2.2.0", sha256="1ce5b8461b3c4f488cee6396419e8a6f0a1bcf95254f24d7c27bfa53b391c30b")
@@ -38,6 +41,10 @@ class Butterflypack(CMakePackage):
     version("1.0.3", sha256="acf9bc98dd7fea31ab73756b68b3333228b53ab0e85400a8250fcc749a1a6656")
     version("1.0.1", sha256="e8ada37466a19f49e13456b150700d4c3afaad2ddbe3678f4e933f9d556a24a5")
     version("1.0.0", sha256="86c5eb09a18522367d63ce2bacf67ca1c9813ef351a1443baaab3c53f0d77232")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("shared", default=True, description="Build shared libraries")
     variant("openmp", default=True, description="add OpenMP support")
@@ -54,9 +61,9 @@ class Butterflypack(CMakePackage):
     # https://github.com/spack/spack/issues/31818
     patch("qopenmp-for-oneapi.patch", when="@2.1.1 %oneapi")
 
-    patch("longline.patch", when="%fj")
-    patch("fjfortran.patch", when="%fj")
-    patch("isnan.patch", when="%fj")
+    patch("longline.patch", when="@1.2.0 %fj")
+    patch("fjfortran.patch", when="@1.2.0 %fj")
+    patch("isnan.patch", when="@1.2.0 %fj")
 
     def cmake_args(self):
         spec = self.spec
@@ -72,9 +79,15 @@ class Butterflypack(CMakePackage):
             self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
         ]
         args.append("-Denable_openmp=%s" % ("ON" if "+openmp" in spec else "OFF"))
-        if "%cce" in spec:
+        if spec.satisfies("%cce"):
             # Assume the proper Cray CCE module (cce) is loaded:
-            craylibs_path = env["CRAYLIBS_" + env["MACHTYPE"].capitalize()]
+            craylibs_var = "CRAYLIBS_" + str(spec.target.family).upper()
+            craylibs_path = env.get(craylibs_var, None)
+            if not craylibs_path:
+                raise InstallError(
+                    f"The environment variable {craylibs_var} is not defined.\n"
+                    "\tMake sure the 'cce' module is in the compiler spec."
+                )
             env.setdefault("LDFLAGS", "")
             env["LDFLAGS"] += " -Wl,-rpath," + craylibs_path
 
