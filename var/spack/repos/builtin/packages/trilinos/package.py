@@ -422,6 +422,8 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
         depends_on("kokkos-kernels@4.3.01", when="@16")
         depends_on("kokkos-kernels@4.2.01", when="@15.1:15")
         depends_on("kokkos-kernels@4.1.00", when="@15.0")
+        depends_on("kokkos+openmp", when="+openmp")
+        depends_on("kokkos-kernels+openmp", when="+openmp")
 
         for a in CudaPackage.cuda_arch_values:
             arch_str = f"+cuda cuda_arch={a}"
