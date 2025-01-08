@@ -17,9 +17,12 @@ class PyArrow(PythonPackage):
     homepage = "https://arrow.readthedocs.io/en/latest/"
     pypi = "arrow/arrow-0.16.0.tar.gz"
 
+    maintainers("climbfuji")
+
     license("Apache-2.0")
 
-    version("1.3.0", sha256="d4540617648cb5f895730f1ad8c82a65f2dad0166f57b75f3ca54759c4d67a85")
+    # https://github.com/spack/spack/issues/48477
+    # version("1.3.0", sha256="d4540617648cb5f895730f1ad8c82a65f2dad0166f57b75f3ca54759c4d67a85")
     version("1.2.3", sha256="3934b30ca1b9f292376d9db15b19446088d12ec58629bc3f0da28fd55fb633a1")
     version("1.2.2", sha256="05caf1fd3d9a11a1135b2b6f09887421153b94558e5ef4d090b567b47173ac2b")
     version("1.2.1", sha256="c2dde3c382d9f7e6922ce636bf0b318a7a853df40ecb383b29192e6c5cc82840")
