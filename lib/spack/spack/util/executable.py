@@ -7,7 +7,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path, PurePath
-from typing import Dict, Optional, Sequence, Union
+from typing import Dict, Optional, Sequence, TextIO, Union
 
 import llnl.util.tty as tty
 
@@ -87,7 +87,7 @@ class Executable:
         timeout: Optional[int] = None,
         env: Optional[Union[Dict[str, str], EnvironmentModifications]] = None,
         extra_env: Optional[Union[Dict[str, str], EnvironmentModifications]] = None,
-        input=None,
+        input: Optional[TextIO] = None,
         output=None,
         error=None,
         _dump_env: Optional[Dict[str, str]] = None,
@@ -114,7 +114,6 @@ class Executable:
         Accepted values for input, output, and error:
 
         * python streams, e.g. open Python file objects, or ``os.devnull``
-        * filenames, which will be automatically opened for writing
         * ``str``, as in the Python string type. If you set these to ``str``,
           output and error will be written to pipes and returned as a string.
           If both ``output`` and ``error`` are set to ``str``, then one string
@@ -123,6 +122,10 @@ class Executable:
         * ``str.split``, as in the ``split`` method of the Python string type.
           Behaves the same as ``str``, except that value is also written to
           ``stdout`` or ``stderr``.
+
+        For output and error it's also accepted:
+
+        * filenames, which will be automatically opened for writing
 
         By default, the subprocess inherits the parent's file descriptors.
         """
