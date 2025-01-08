@@ -6,6 +6,7 @@ import copy
 import typing
 
 import jsonschema
+import jsonschema.exceptions
 
 import llnl.util.lang
 
@@ -17,7 +18,7 @@ class DeprecationMessage(typing.NamedTuple):
     error: bool
 
 
-class NonFatalValidationError(jsonschema.ValidationError):
+class NonFatalValidationError(jsonschema.exceptions.ValidationError):
     """A validation error that should only produce a warning."""
 
 
