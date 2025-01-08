@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import errno
@@ -992,7 +991,7 @@ def interactive_version_filter(
             editor(filepath, exec_fn=executable)
 
             # Read back in
-            with open(filepath, "r") as f:
+            with open(filepath, "r", encoding="utf-8") as f:
                 orig_url_dict, url_dict = url_dict, {}
                 for line in f:
                     line = line.strip()

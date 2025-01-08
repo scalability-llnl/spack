@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -1031,7 +1030,7 @@ class Repo:
     def _read_config(self) -> Dict[str, str]:
         """Check for a YAML config file in this db's root directory."""
         try:
-            with open(self.config_file) as reponame_file:
+            with open(self.config_file, encoding="utf-8") as reponame_file:
                 yaml_data = syaml.load(reponame_file)
 
                 if (
@@ -1365,7 +1364,7 @@ def create_repo(root, namespace=None, subdir=packages_dir_name):
         packages_path = os.path.join(root, subdir)
 
         fs.mkdirp(packages_path)
-        with open(config_path, "w") as config:
+        with open(config_path, "w", encoding="utf-8") as config:
             config.write("repo:\n")
             config.write(f"  namespace: '{namespace}'\n")
             if subdir != packages_dir_name:
@@ -1492,7 +1491,7 @@ class MockRepositoryBuilder:
         text = template.render(context)
         package_py = self.recipe_filename(name)
         fs.mkdirp(os.path.dirname(package_py))
-        with open(package_py, "w") as f:
+        with open(package_py, "w", encoding="utf-8") as f:
             f.write(text)
 
     def remove(self, name):

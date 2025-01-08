@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -743,7 +742,7 @@ def rst(args: Namespace, out: IO) -> None:
     # extract cross-refs of the form `_cmd-spack-<cmd>:` from rst files
     documented_commands: Set[str] = set()
     for filename in args.rst_files:
-        with open(filename) as f:
+        with open(filename, encoding="utf-8") as f:
             for line in f:
                 match = re.match(r"\.\. _cmd-(spack-.*):", line)
                 if match:
@@ -815,7 +814,7 @@ def prepend_header(args: Namespace, out: IO) -> None:
     if not args.header:
         return
 
-    with open(args.header) as header:
+    with open(args.header, encoding="utf-8") as header:
         out.write(header.read())
 
 
@@ -836,7 +835,7 @@ def _commands(parser: ArgumentParser, args: Namespace) -> None:
 
     if args.update:
         tty.msg(f"Updating file: {args.update}")
-        with open(args.update, "w") as f:
+        with open(args.update, "w", encoding="utf-8") as f:
             prepend_header(args, f)
             formatter(args, f)
 

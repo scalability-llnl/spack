@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -92,12 +91,11 @@ class Edm4hep(CMakePackage):
     extends("python", when="@0.10.6:")
 
     def cmake_args(self):
-        args = []
-        # C++ Standard
-        args.append(self.define("CMAKE_CXX_STANDARD", self.spec.variants["cxxstd"].value))
-        args.append(self.define("BUILD_TESTING", self.run_tests))
-        if self.spec.satisfies("@0.99.2: +json"):
-            args.append(self.define_from_variant("EDM4HEP_WITH_JSON", "json"))
+        args = [
+            self.define_from_variant("CMAKE_CXX_STANDARD", "cxxstd"),
+            self.define("BUILD_TESTING", self.run_tests),
+            self.define_from_variant("EDM4HEP_WITH_JSON", "json"),
+        ]
         return args
 
     def setup_run_environment(self, env):

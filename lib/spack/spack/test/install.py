@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -224,7 +223,7 @@ def test_install_times(install_mockery, mock_fetch, mutable_mock_repo):
     assert os.path.isfile(install_times)
 
     # Ensure the phases are included
-    with open(install_times, "r") as timefile:
+    with open(install_times, "r", encoding="utf-8") as timefile:
         times = sjson.load(timefile.read())
 
     # The order should be maintained
@@ -552,7 +551,7 @@ def test_log_install_with_build_files(install_mockery, monkeypatch):
     assert not os.path.exists(os.path.join(archive_dir, "missing"))
 
     expected_errs = ["OUTSIDE SOURCE PATH", "FAILED TO ARCHIVE"]  # for '..'  # for rel_config
-    with open(os.path.join(archive_dir, "errors.txt"), "r") as fd:
+    with open(os.path.join(archive_dir, "errors.txt"), "r", encoding="utf-8") as fd:
         for ln, expected in zip(fd, expected_errs):
             assert expected in ln
 
@@ -609,7 +608,7 @@ def test_install_from_binary_with_missing_patch_succeeds(
 
     # Create an install dir for it
     os.makedirs(os.path.join(s.prefix, ".spack"))
-    with open(os.path.join(s.prefix, ".spack", "spec.json"), "w") as f:
+    with open(os.path.join(s.prefix, ".spack", "spec.json"), "w", encoding="utf-8") as f:
         s.to_json(f)
 
     # And register it in the database

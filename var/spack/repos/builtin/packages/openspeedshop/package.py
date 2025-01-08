@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -45,8 +44,7 @@ class Openspeedshop(CMakePackage):
     variant(
         "crayfe",
         default=False,
-        description="build only the FE tool using the runtime_dir \
-                         to point to target build.",
+        description="build only the FE tool using the runtime_dir to point to target build.",
     )
     variant("cuda", default=False, description="build with cuda packages included.")
 
@@ -68,26 +66,22 @@ class Openspeedshop(CMakePackage):
     variant(
         "openmpi",
         default=False,
-        description="Build mpi collector for openmpi \
-                         MPI when variant is enabled.",
+        description="Build mpi collector for openmpi MPI when variant is enabled.",
     )
     variant(
         "mpt",
         default=False,
-        description="Build mpi collector for SGI \
-                         MPT MPI when variant is enabled.",
+        description="Build mpi collector for SGI MPT MPI when variant is enabled.",
     )
     variant(
         "mvapich2",
         default=False,
-        description="Build mpi collector for mvapich2\
-                         MPI when variant is enabled.",
+        description="Build mpi collector for mvapich2 MPI when variant is enabled.",
     )
     variant(
         "mpich2",
         default=False,
-        description="Build mpi collector for mpich2\
-                         MPI when variant is enabled.",
+        description="Build mpi collector for mpich2 MPI when variant is enabled.",
     )
 
     depends_on("cmake@3.0.2:", type="build")

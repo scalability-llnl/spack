@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -67,18 +66,66 @@ class PyNumpy(PythonPackage):
     version("1.19.5", sha256="a76f502430dd98d7546e1ea2250a7360c065a5fdea52b2dffe8ae7180909b6f4")
     version("1.19.4", sha256="141ec3a3300ab89c7f2b0775289954d193cc8edb621ea05f99db9cb181530512")
     version("1.19.3", sha256="35bf5316af8dc7c7db1ad45bec603e5fb28671beb98ebd1d65e8059efcfd3b72")
-    version("1.19.2", sha256="0d310730e1e793527065ad7dde736197b705d0e4c9999775f212b03c44a8484c")
-    version("1.19.1", sha256="b8456987b637232602ceb4d663cb34106f7eb780e247d51a260b84760fd8f491")
-    version("1.19.0", sha256="76766cc80d6128750075378d3bb7812cf146415bd29b588616f72c943c00d598")
-    version("1.18.5", sha256="34e96e9dae65c4839bd80012023aadd6ee2ccb73ce7fdf3074c62f301e63120b")
-    version("1.18.4", sha256="bbcc85aaf4cd84ba057decaead058f43191cc0e30d6bc5d44fe336dc3d3f4509")
-    version("1.18.3", sha256="e46e2384209c91996d5ec16744234d1c906ab79a701ce1a26155c9ec890b8dc8")
-    version("1.18.2", sha256="e7894793e6e8540dbeac77c87b489e331947813511108ae097f1715c018b8f3d")
-    version("1.18.1", sha256="b6ff59cee96b454516e47e7721098e6ceebef435e3e21ac2d6c3b8b02628eb77")
-    version("1.18.0", sha256="a9d72d9abaf65628f0f31bbb573b7d9304e43b1e6bbae43149c17737a42764c4")
-    version("1.17.5", sha256="16507ba6617f62ae3c6ab1725ae6f550331025d4d9a369b83f6d5a470446c342")
-    version("1.17.4", sha256="f58913e9227400f1395c7b800503ebfdb0772f1c33ff8cb4d6451c06cabdf316")
-    version("1.17.3", sha256="a0678793096205a4d784bd99f32803ba8100f639cf3b932dc63b21621390ea7e")
+    version(
+        "1.19.2",
+        sha256="0d310730e1e793527065ad7dde736197b705d0e4c9999775f212b03c44a8484c",
+        deprecated=True,
+    )
+    version(
+        "1.19.1",
+        sha256="b8456987b637232602ceb4d663cb34106f7eb780e247d51a260b84760fd8f491",
+        deprecated=True,
+    )
+    version(
+        "1.19.0",
+        sha256="76766cc80d6128750075378d3bb7812cf146415bd29b588616f72c943c00d598",
+        deprecated=True,
+    )
+    version(
+        "1.18.5",
+        sha256="34e96e9dae65c4839bd80012023aadd6ee2ccb73ce7fdf3074c62f301e63120b",
+        deprecated=True,
+    )
+    version(
+        "1.18.4",
+        sha256="bbcc85aaf4cd84ba057decaead058f43191cc0e30d6bc5d44fe336dc3d3f4509",
+        deprecated=True,
+    )
+    version(
+        "1.18.3",
+        sha256="e46e2384209c91996d5ec16744234d1c906ab79a701ce1a26155c9ec890b8dc8",
+        deprecated=True,
+    )
+    version(
+        "1.18.2",
+        sha256="e7894793e6e8540dbeac77c87b489e331947813511108ae097f1715c018b8f3d",
+        deprecated=True,
+    )
+    version(
+        "1.18.1",
+        sha256="b6ff59cee96b454516e47e7721098e6ceebef435e3e21ac2d6c3b8b02628eb77",
+        deprecated=True,
+    )
+    version(
+        "1.18.0",
+        sha256="a9d72d9abaf65628f0f31bbb573b7d9304e43b1e6bbae43149c17737a42764c4",
+        deprecated=True,
+    )
+    version(
+        "1.17.5",
+        sha256="16507ba6617f62ae3c6ab1725ae6f550331025d4d9a369b83f6d5a470446c342",
+        deprecated=True,
+    )
+    version(
+        "1.17.4",
+        sha256="f58913e9227400f1395c7b800503ebfdb0772f1c33ff8cb4d6451c06cabdf316",
+        deprecated=True,
+    )
+    version(
+        "1.17.3",
+        sha256="a0678793096205a4d784bd99f32803ba8100f639cf3b932dc63b21621390ea7e",
+        deprecated=True,
+    )
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
@@ -269,7 +316,8 @@ class PyNumpy(PythonPackage):
     @when("@1.26:")
     def config_settings(self, spec, prefix):
         blas, lapack = self.blas_lapack_pkg_config()
-        return {
+
+        settings = {
             "builddir": "build",
             "compile-args": f"-j{make_jobs}",
             "setup-args": {
@@ -282,6 +330,22 @@ class PyNumpy(PythonPackage):
                 # "-Dcpu-dispatch": "none",
             },
         }
+
+        # Disable AVX512 features for Intel Classic compilers
+        # https://numpy.org/doc/stable/reference/simd/build-options.html
+        # https://github.com/numpy/numpy/issues/27840
+        # https://github.com/matplotlib/matplotlib/issues/28762
+        archs = ("x86_64_v4:", "cannonlake:", "mic_knl")
+        if any([self.spec.satisfies(f"target={arch} %intel") for arch in archs]):
+            intel_setup_args = {
+                "-Dcpu-dispatch": (
+                    "MAX -AVX512F -AVX512CD -AVX512_KNL -AVX512_KNM -AVX512_SKX "
+                    + "-AVX512_CLX -AVX512_CNL -AVX512_ICL -AVX512_SPR"
+                )
+            }
+            settings["setup-args"].update(intel_setup_args)
+
+        return settings
 
     def blas_lapack_site_cfg(self) -> None:
         """Write a site.cfg file to configure BLAS/LAPACK."""

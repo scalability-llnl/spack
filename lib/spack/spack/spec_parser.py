@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Parser for spec literals
@@ -57,12 +56,11 @@ thing.  Spack uses ~variant in directory names and in the canonical form of
 specs to avoid ambiguity.  Both are provided because ~ can cause shell
 expansion when it is the first character in an id typed on the command line.
 """
-import enum
 import json
 import pathlib
 import re
 import sys
-from typing import Iterator, List, Match, Optional
+from typing import Iterator, List, Optional
 
 from llnl.util.tty import color
 
@@ -70,9 +68,8 @@ import spack.deptypes
 import spack.error
 import spack.spec
 import spack.version
-from spack.error import SpecSyntaxError
+from spack.tokenize import Token, TokenBase, Tokenizer
 
-IS_WINDOWS = sys.platform == "win32"
 #: Valid name for specs and variants. Here we are not using
 #: the previous "w[\w.-]*" since that would match most
 #: characters that can be part of a word in any language
@@ -87,21 +84,8 @@ NAME = r"[a-zA-Z_0-9][a-zA-Z_0-9\-.]*"
 
 HASH = r"[a-zA-Z_0-9]+"
 
-#: A filename starts either with a "." or a "/" or a "{name}/,
-# or on Windows, a drive letter followed by a colon and "\"
-# or "." or {name}\
-WINDOWS_FILENAME = r"(?:\.|[a-zA-Z0-9-_]*\\|[a-zA-Z]:\\)(?:[a-zA-Z0-9-_\.\\]*)(?:\.json|\.yaml)"
-UNIX_FILENAME = r"(?:\.|\/|[a-zA-Z0-9-_]*\/)(?:[a-zA-Z0-9-_\.\/]*)(?:\.json|\.yaml)"
-if not IS_WINDOWS:
-    FILENAME = UNIX_FILENAME
-else:
-    FILENAME = WINDOWS_FILENAME
-
 #: These are legal values that *can* be parsed bare, without quotes on the command line.
 VALUE = r"(?:[a-zA-Z_0-9\-+\*.,:=\~\/\\]+)"
-
-#: Variant/flag values that match this can be left unquoted in Spack output
-NO_QUOTES_NEEDED = re.compile(r"^[a-zA-Z0-9,/_.-]+$")
 
 #: Quoted values can be *anything* in between quotes, including escaped quotes.
 QUOTED_VALUE = r"(?:'(?:[^']|(?<=\\)')*'|\"(?:[^\"]|(?<=\\)\")*\")"
@@ -113,60 +97,21 @@ VERSION_LIST = rf"(?:{VERSION_RANGE}|{VERSION})(?:\s*,\s*(?:{VERSION_RANGE}|{VER
 #: Regex with groups to use for splitting (optionally propagated) key-value pairs
 SPLIT_KVP = re.compile(rf"^({NAME})(==?)(.*)$")
 
+#: A filename starts either with a "." or a "/" or a "{name}/, or on Windows, a drive letter
+#: followed by a colon and "\" or "." or {name}\
+WINDOWS_FILENAME = r"(?:\.|[a-zA-Z0-9-_]*\\|[a-zA-Z]:\\)(?:[a-zA-Z0-9-_\.\\]*)(?:\.json|\.yaml)"
+UNIX_FILENAME = r"(?:\.|\/|[a-zA-Z0-9-_]*\/)(?:[a-zA-Z0-9-_\.\/]*)(?:\.json|\.yaml)"
+FILENAME = WINDOWS_FILENAME if sys.platform == "win32" else UNIX_FILENAME
+
 #: Regex to strip quotes. Group 2 will be the unquoted string.
 STRIP_QUOTES = re.compile(r"^(['\"])(.*)\1$")
 
-
-def strip_quotes_and_unescape(string: str) -> str:
-    """Remove surrounding single or double quotes from string, if present."""
-    match = STRIP_QUOTES.match(string)
-    if not match:
-        return string
-
-    # replace any escaped quotes with bare quotes
-    quote, result = match.groups()
-    return result.replace(rf"\{quote}", quote)
+#: Values that match this (e.g., variants, flags) can be left unquoted in Spack output
+NO_QUOTES_NEEDED = re.compile(r"^[a-zA-Z0-9,/_.-]+$")
 
 
-def quote_if_needed(value: str) -> str:
-    """Add quotes around the value if it requires quotes.
-
-    This will add quotes around the value unless it matches ``NO_QUOTES_NEEDED``.
-
-    This adds:
-    * single quotes by default
-    * double quotes around any value that contains single quotes
-
-    If double quotes are used, we json-escpae the string. That is, we escape ``\\``,
-    ``"``, and control codes.
-
-    """
-    if NO_QUOTES_NEEDED.match(value):
-        return value
-
-    return json.dumps(value) if "'" in value else f"'{value}'"
-
-
-class TokenBase(enum.Enum):
-    """Base class for an enum type with a regex value"""
-
-    def __new__(cls, *args, **kwargs):
-        # See
-        value = len(cls.__members__) + 1
-        obj = object.__new__(cls)
-        obj._value_ = value
-        return obj
-
-    def __init__(self, regex):
-        self.regex = regex
-
-    def __str__(self):
-        return f"{self._name_}"
-
-
-class TokenType(TokenBase):
+class SpecTokens(TokenBase):
     """Enumeration of the different token kinds in the spec grammar.
-
     Order of declaration is extremely important, since text containing specs is parsed with a
     single regex obtained by ``"|".join(...)`` of all the regex in the order of declaration.
     """
@@ -196,79 +141,24 @@ class TokenType(TokenBase):
     DAG_HASH = rf"(?:/(?:{HASH}))"
     # White spaces
     WS = r"(?:\s+)"
-
-
-class ErrorTokenType(TokenBase):
-    """Enum with regexes for error analysis"""
-
-    # Unexpected character
+    # Unexpected character(s)
     UNEXPECTED = r"(?:.[\s]*)"
 
 
-class Token:
-    """Represents tokens; generated from input by lexer and fed to parse()."""
-
-    __slots__ = "kind", "value", "start", "end"
-
-    def __init__(
-        self, kind: TokenBase, value: str, start: Optional[int] = None, end: Optional[int] = None
-    ):
-        self.kind = kind
-        self.value = value
-        self.start = start
-        self.end = end
-
-    def __repr__(self):
-        return str(self)
-
-    def __str__(self):
-        return f"({self.kind}, {self.value})"
-
-    def __eq__(self, other):
-        return (self.kind == other.kind) and (self.value == other.value)
-
-
-#: List of all the regexes used to match spec parts, in order of precedence
-TOKEN_REGEXES = [rf"(?P<{token}>{token.regex})" for token in TokenType]
-#: List of all valid regexes followed by error analysis regexes
-ERROR_HANDLING_REGEXES = TOKEN_REGEXES + [
-    rf"(?P<{token}>{token.regex})" for token in ErrorTokenType
-]
-#: Regex to scan a valid text
-ALL_TOKENS = re.compile("|".join(TOKEN_REGEXES))
-#: Regex to analyze an invalid text
-ANALYSIS_REGEX = re.compile("|".join(ERROR_HANDLING_REGEXES))
+#: Tokenizer that includes all the regexes in the SpecTokens enum
+SPEC_TOKENIZER = Tokenizer(SpecTokens)
 
 
 def tokenize(text: str) -> Iterator[Token]:
     """Return a token generator from the text passed as input.
 
     Raises:
-        SpecTokenizationError: if we can't tokenize anymore, but didn't reach the
-            end of the input text.
+        SpecTokenizationError: when unexpected characters are found in the text
     """
-    scanner = ALL_TOKENS.scanner(text)  # type: ignore[attr-defined]
-    match: Optional[Match] = None
-    for match in iter(scanner.match, None):
-        # The following two assertions are to help mypy
-        msg = (
-            "unexpected value encountered during parsing. Please submit a bug report "
-            "at https://github.com/spack/spack/issues/new/choose"
-        )
-        assert match is not None, msg
-        assert match.lastgroup is not None, msg
-        yield Token(
-            TokenType.__members__[match.lastgroup], match.group(), match.start(), match.end()
-        )
-
-    if match is None and not text:
-        # We just got an empty string
-        return
-
-    if match is None or match.end() != len(text):
-        scanner = ANALYSIS_REGEX.scanner(text)  # type: ignore[attr-defined]
-        matches = [m for m in iter(scanner.match, None)]  # type: ignore[var-annotated]
-        raise SpecTokenizationError(matches, text)
+    for token in SPEC_TOKENIZER.tokenize(text):
+        if token.kind == SpecTokens.UNEXPECTED:
+            raise SpecTokenizationError(list(SPEC_TOKENIZER.tokenize(text)), text)
+        yield token
 
 
 class TokenContext:
@@ -286,7 +176,7 @@ class TokenContext:
         """Advance one token"""
         self.current_token, self.next_token = self.next_token, next(self.token_stream, None)
 
-    def accept(self, kind: TokenType):
+    def accept(self, kind: SpecTokens):
         """If the next token is of the specified kind, advance the stream and return True.
         Otherwise return False.
         """
@@ -295,8 +185,23 @@ class TokenContext:
             return True
         return False
 
-    def expect(self, *kinds: TokenType):
+    def expect(self, *kinds: SpecTokens):
         return self.next_token and self.next_token.kind in kinds
+
+
+class SpecTokenizationError(spack.error.SpecSyntaxError):
+    """Syntax error in a spec string"""
+
+    def __init__(self, tokens: List[Token], text: str):
+        message = f"unexpected characters in the spec string\n{text}\n"
+
+        underline = ""
+        for token in tokens:
+            is_error = token.kind == SpecTokens.UNEXPECTED
+            underline += ("^" if is_error else " ") * (token.end - token.start)
+
+        message += color.colorize(f"@*r{{{underline}}}")
+        super().__init__(message)
 
 
 class SpecParser:
@@ -306,13 +211,13 @@ class SpecParser:
 
     def __init__(self, literal_str: str):
         self.literal_str = literal_str
-        self.ctx = TokenContext(filter(lambda x: x.kind != TokenType.WS, tokenize(literal_str)))
+        self.ctx = TokenContext(filter(lambda x: x.kind != SpecTokens.WS, tokenize(literal_str)))
 
     def tokens(self) -> List[Token]:
         """Return the entire list of token from the initial text. White spaces are
         filtered out.
         """
-        return list(filter(lambda x: x.kind != TokenType.WS, tokenize(self.literal_str)))
+        return list(filter(lambda x: x.kind != SpecTokens.WS, tokenize(self.literal_str)))
 
     def next_spec(
         self, initial_spec: Optional["spack.spec.Spec"] = None
@@ -339,14 +244,14 @@ class SpecParser:
         initial_spec = initial_spec or spack.spec.Spec()
         root_spec = SpecNodeParser(self.ctx, self.literal_str).parse(initial_spec)
         while True:
-            if self.ctx.accept(TokenType.START_EDGE_PROPERTIES):
+            if self.ctx.accept(SpecTokens.START_EDGE_PROPERTIES):
                 edge_properties = EdgeAttributeParser(self.ctx, self.literal_str).parse()
                 edge_properties.setdefault("depflag", 0)
                 edge_properties.setdefault("virtuals", ())
                 dependency = self._parse_node(root_spec)
                 add_dependency(dependency, **edge_properties)
 
-            elif self.ctx.accept(TokenType.DEPENDENCY):
+            elif self.ctx.accept(SpecTokens.DEPENDENCY):
                 dependency = self._parse_node(root_spec)
                 add_dependency(dependency, depflag=0, virtuals=())
 
@@ -394,7 +299,7 @@ class SpecNodeParser:
         Return
             The object passed as argument
         """
-        if not self.ctx.next_token or self.ctx.expect(TokenType.DEPENDENCY):
+        if not self.ctx.next_token or self.ctx.expect(SpecTokens.DEPENDENCY):
             return initial_spec
 
         if initial_spec is None:
@@ -402,17 +307,17 @@ class SpecNodeParser:
 
         # If we start with a package name we have a named spec, we cannot
         # accept another package name afterwards in a node
-        if self.ctx.accept(TokenType.UNQUALIFIED_PACKAGE_NAME):
+        if self.ctx.accept(SpecTokens.UNQUALIFIED_PACKAGE_NAME):
             initial_spec.name = self.ctx.current_token.value
 
-        elif self.ctx.accept(TokenType.FULLY_QUALIFIED_PACKAGE_NAME):
+        elif self.ctx.accept(SpecTokens.FULLY_QUALIFIED_PACKAGE_NAME):
             parts = self.ctx.current_token.value.split(".")
             name = parts[-1]
             namespace = ".".join(parts[:-1])
             initial_spec.name = name
             initial_spec.namespace = namespace
 
-        elif self.ctx.accept(TokenType.FILENAME):
+        elif self.ctx.accept(SpecTokens.FILENAME):
             return FileParser(self.ctx).parse(initial_spec)
 
         def raise_parsing_error(string: str, cause: Optional[Exception] = None):
@@ -427,7 +332,7 @@ class SpecNodeParser:
                 raise_parsing_error(str(e), e)
 
         while True:
-            if self.ctx.accept(TokenType.COMPILER):
+            if self.ctx.accept(SpecTokens.COMPILER):
                 if self.has_compiler:
                     raise_parsing_error("Spec cannot have multiple compilers")
 
@@ -435,7 +340,7 @@ class SpecNodeParser:
                 initial_spec.compiler = spack.spec.CompilerSpec(compiler_name.strip(), ":")
                 self.has_compiler = True
 
-            elif self.ctx.accept(TokenType.COMPILER_AND_VERSION):
+            elif self.ctx.accept(SpecTokens.COMPILER_AND_VERSION):
                 if self.has_compiler:
                     raise_parsing_error("Spec cannot have multiple compilers")
 
@@ -446,9 +351,9 @@ class SpecNodeParser:
                 self.has_compiler = True
 
             elif (
-                self.ctx.accept(TokenType.VERSION_HASH_PAIR)
-                or self.ctx.accept(TokenType.GIT_VERSION)
-                or self.ctx.accept(TokenType.VERSION)
+                self.ctx.accept(SpecTokens.VERSION_HASH_PAIR)
+                or self.ctx.accept(SpecTokens.GIT_VERSION)
+                or self.ctx.accept(SpecTokens.VERSION)
             ):
                 if self.has_version:
                     raise_parsing_error("Spec cannot have multiple versions")
@@ -459,32 +364,32 @@ class SpecNodeParser:
                 initial_spec.attach_git_version_lookup()
                 self.has_version = True
 
-            elif self.ctx.accept(TokenType.BOOL_VARIANT):
+            elif self.ctx.accept(SpecTokens.BOOL_VARIANT):
                 variant_value = self.ctx.current_token.value[0] == "+"
                 add_flag(self.ctx.current_token.value[1:].strip(), variant_value, propagate=False)
 
-            elif self.ctx.accept(TokenType.PROPAGATED_BOOL_VARIANT):
+            elif self.ctx.accept(SpecTokens.PROPAGATED_BOOL_VARIANT):
                 variant_value = self.ctx.current_token.value[0:2] == "++"
                 add_flag(self.ctx.current_token.value[2:].strip(), variant_value, propagate=True)
 
-            elif self.ctx.accept(TokenType.KEY_VALUE_PAIR):
+            elif self.ctx.accept(SpecTokens.KEY_VALUE_PAIR):
                 match = SPLIT_KVP.match(self.ctx.current_token.value)
                 assert match, "SPLIT_KVP and KEY_VALUE_PAIR do not agree."
 
                 name, _, value = match.groups()
                 add_flag(name, strip_quotes_and_unescape(value), propagate=False)
 
-            elif self.ctx.accept(TokenType.PROPAGATED_KEY_VALUE_PAIR):
+            elif self.ctx.accept(SpecTokens.PROPAGATED_KEY_VALUE_PAIR):
                 match = SPLIT_KVP.match(self.ctx.current_token.value)
                 assert match, "SPLIT_KVP and PROPAGATED_KEY_VALUE_PAIR do not agree."
 
                 name, _, value = match.groups()
                 add_flag(name, strip_quotes_and_unescape(value), propagate=True)
 
-            elif self.ctx.expect(TokenType.DAG_HASH):
+            elif self.ctx.expect(SpecTokens.DAG_HASH):
                 if initial_spec.abstract_hash:
                     break
-                self.ctx.accept(TokenType.DAG_HASH)
+                self.ctx.accept(SpecTokens.DAG_HASH)
                 initial_spec.abstract_hash = self.ctx.current_token.value[1:]
 
             else:
@@ -534,7 +439,7 @@ class EdgeAttributeParser:
     def parse(self):
         attributes = {}
         while True:
-            if self.ctx.accept(TokenType.KEY_VALUE_PAIR):
+            if self.ctx.accept(SpecTokens.KEY_VALUE_PAIR):
                 name, value = self.ctx.current_token.value.split("=", maxsplit=1)
                 name = name.strip("'\" ")
                 value = value.strip("'\" ").split(",")
@@ -546,7 +451,7 @@ class EdgeAttributeParser:
                     )
                     raise SpecParsingError(msg, self.ctx.current_token, self.literal_str)
             # TODO: Add code to accept bool variants here as soon as use variants are implemented
-            elif self.ctx.accept(TokenType.END_EDGE_PROPERTIES):
+            elif self.ctx.accept(SpecTokens.END_EDGE_PROPERTIES):
                 break
             else:
                 msg = "unexpected token in edge attributes"
@@ -601,25 +506,7 @@ def parse_one_or_raise(
     return result
 
 
-class SpecTokenizationError(SpecSyntaxError):
-    """Syntax error in a spec string"""
-
-    def __init__(self, matches, text):
-        message = "unexpected tokens in the spec string\n"
-        message += f"{text}"
-
-        underline = "\n"
-        for match in matches:
-            if match.lastgroup == str(ErrorTokenType.UNEXPECTED):
-                underline += f"{'^' * (match.end() - match.start())}"
-                continue
-            underline += f"{' ' * (match.end() - match.start())}"
-
-        message += color.colorize(f"@*r{{{underline}}}")
-        super().__init__(message)
-
-
-class SpecParsingError(SpecSyntaxError):
+class SpecParsingError(spack.error.SpecSyntaxError):
     """Error when parsing tokens"""
 
     def __init__(self, message, token, text):
@@ -627,3 +514,33 @@ class SpecParsingError(SpecSyntaxError):
         underline = f"\n{' '*token.start}{'^'*(token.end - token.start)}"
         message += color.colorize(f"@*r{{{underline}}}")
         super().__init__(message)
+
+
+def strip_quotes_and_unescape(string: str) -> str:
+    """Remove surrounding single or double quotes from string, if present."""
+    match = STRIP_QUOTES.match(string)
+    if not match:
+        return string
+
+    # replace any escaped quotes with bare quotes
+    quote, result = match.groups()
+    return result.replace(rf"\{quote}", quote)
+
+
+def quote_if_needed(value: str) -> str:
+    """Add quotes around the value if it requires quotes.
+
+    This will add quotes around the value unless it matches ``NO_QUOTES_NEEDED``.
+
+    This adds:
+    * single quotes by default
+    * double quotes around any value that contains single quotes
+
+    If double quotes are used, we json-escape the string. That is, we escape ``\\``,
+    ``"``, and control codes.
+
+    """
+    if NO_QUOTES_NEEDED.match(value):
+        return value
+
+    return json.dumps(value) if "'" in value else f"'{value}'"

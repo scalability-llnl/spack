@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,3 +27,5 @@ class Hyperfine(CargoPackage):
     depends_on("rust@1.64:", when="@1.16.0:")
     depends_on("rust@1.54:", when="@1.13.0:")
     depends_on("rust@1.46:", when="@1.12.0:")
+
+    depends_on("c", type="build")

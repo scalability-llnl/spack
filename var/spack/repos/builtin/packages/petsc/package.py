@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -80,24 +79,96 @@ class Petsc(Package, CudaPackage, ROCmPackage):
     version("3.14.2", sha256="87a04fd05cac20a2ec47094b7d18b96e0651257d8c768ced2ef7db270ecfb9cb")
     version("3.14.1", sha256="0b4681165a9af96594c794b97ac6993452ec902726679f6b50bb450f89d230ed")
     version("3.14.0", sha256="a8f9caba03e0d57d8452c08505cf96be5f6949adaa266e819382162c03ddb9c5")
-    version("3.13.6", sha256="67ca2cf3040d08fdc51d27f660ea3157732b24c2f47aae1b19d63f62a39842c2")
-    version("3.13.5", sha256="10fc542dab961c8b17db35ad3a208cb184c237fc84e183817e38e6c7ab4b8732")
-    version("3.13.4", sha256="8d470cba1ceb9638694550134a2f23aac85ed7249cb74992581210597d978b94")
-    version("3.13.3", sha256="dc744895ee6b9c4491ff817bef0d3abd680c5e3c25e601be44240ce65ab4f337")
-    version("3.13.2", sha256="6083422a7c5b8e89e5e4ccf64acade9bf8ab70245e25bca3a3da03caf74602f1")
-    version("3.13.1", sha256="74a895e44e2ff1146838aaccb7613e7626d99e0eed64ca032c87c72d084efac3")
-    version("3.13.0", sha256="f0ea543a54145c5d1387e25b121c3fd1b1ca834032c5a33f6f1d929e95bdf0e5")
-    version("3.12.5", sha256="d676eb67e79314d6cca6422d7c477d2b192c830b89d5edc6b46934f7453bcfc0")
-    version("3.12.4", sha256="56a941130da93bbacb3cfa74dcacea1e3cd8e36a0341f9ced09977b1457084c3")
-    version("3.12.3", sha256="91f77d7b0f54056f085b9e27938922db3d9bb1734a2e2a6d26f43d3e6c0cf631")
-    version("3.12.2", sha256="d874b2e198c4cb73551c2eca1d2c5d27da710be4d00517adb8f9eb3d6d0375e8")
-    version("3.12.1", sha256="b72d895d0f4a79acb13ebc782b47b26d10d4e5706d399f533afcd5b3dba13737")
-    version("3.12.0", sha256="ba9ecf69783c7ebf05bd1c91dd1d4b38bf09b7a2d5f9a774aa6bb46deff7cb14")
-    version("3.11.4", sha256="319cb5a875a692a67fe5b1b90009ba8f182e21921ae645d38106544aff20c3c1")
-    version("3.11.3", sha256="199ad9650a9f58603b49e7fff7cd003ceb03aa231e5d37d0bf0496c6348eca81")
-    version("3.11.2", sha256="4d244dd7d1565d6534e776445fcf6977a6ee2a8bb2be4a36ac1e0fc1f9ad9cfa")
-    version("3.11.1", sha256="cb627f99f7ce1540ebbbf338189f89a5f1ecf3ab3b5b0e357f9e46c209f1fb23")
-    version("3.11.0", sha256="b3bed2a9263193c84138052a1b92d47299c3490dd24d1d0bf79fb884e71e678a")
+    version(
+        "3.13.6",
+        sha256="67ca2cf3040d08fdc51d27f660ea3157732b24c2f47aae1b19d63f62a39842c2",
+        deprecated=True,
+    )
+    version(
+        "3.13.5",
+        sha256="10fc542dab961c8b17db35ad3a208cb184c237fc84e183817e38e6c7ab4b8732",
+        deprecated=True,
+    )
+    version(
+        "3.13.4",
+        sha256="8d470cba1ceb9638694550134a2f23aac85ed7249cb74992581210597d978b94",
+        deprecated=True,
+    )
+    version(
+        "3.13.3",
+        sha256="dc744895ee6b9c4491ff817bef0d3abd680c5e3c25e601be44240ce65ab4f337",
+        deprecated=True,
+    )
+    version(
+        "3.13.2",
+        sha256="6083422a7c5b8e89e5e4ccf64acade9bf8ab70245e25bca3a3da03caf74602f1",
+        deprecated=True,
+    )
+    version(
+        "3.13.1",
+        sha256="74a895e44e2ff1146838aaccb7613e7626d99e0eed64ca032c87c72d084efac3",
+        deprecated=True,
+    )
+    version(
+        "3.13.0",
+        sha256="f0ea543a54145c5d1387e25b121c3fd1b1ca834032c5a33f6f1d929e95bdf0e5",
+        deprecated=True,
+    )
+    version(
+        "3.12.5",
+        sha256="d676eb67e79314d6cca6422d7c477d2b192c830b89d5edc6b46934f7453bcfc0",
+        deprecated=True,
+    )
+    version(
+        "3.12.4",
+        sha256="56a941130da93bbacb3cfa74dcacea1e3cd8e36a0341f9ced09977b1457084c3",
+        deprecated=True,
+    )
+    version(
+        "3.12.3",
+        sha256="91f77d7b0f54056f085b9e27938922db3d9bb1734a2e2a6d26f43d3e6c0cf631",
+        deprecated=True,
+    )
+    version(
+        "3.12.2",
+        sha256="d874b2e198c4cb73551c2eca1d2c5d27da710be4d00517adb8f9eb3d6d0375e8",
+        deprecated=True,
+    )
+    version(
+        "3.12.1",
+        sha256="b72d895d0f4a79acb13ebc782b47b26d10d4e5706d399f533afcd5b3dba13737",
+        deprecated=True,
+    )
+    version(
+        "3.12.0",
+        sha256="ba9ecf69783c7ebf05bd1c91dd1d4b38bf09b7a2d5f9a774aa6bb46deff7cb14",
+        deprecated=True,
+    )
+    version(
+        "3.11.4",
+        sha256="319cb5a875a692a67fe5b1b90009ba8f182e21921ae645d38106544aff20c3c1",
+        deprecated=True,
+    )
+    version(
+        "3.11.3",
+        sha256="199ad9650a9f58603b49e7fff7cd003ceb03aa231e5d37d0bf0496c6348eca81",
+        deprecated=True,
+    )
+    version(
+        "3.11.2",
+        sha256="4d244dd7d1565d6534e776445fcf6977a6ee2a8bb2be4a36ac1e0fc1f9ad9cfa",
+        deprecated=True,
+    )
+    version(
+        "3.11.1",
+        sha256="cb627f99f7ce1540ebbbf338189f89a5f1ecf3ab3b5b0e357f9e46c209f1fb23",
+        deprecated=True,
+    )
+    version(
+        "3.11.0",
+        sha256="b3bed2a9263193c84138052a1b92d47299c3490dd24d1d0bf79fb884e71e678a",
+        deprecated=True,
+    )
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
@@ -230,7 +301,8 @@ class Petsc(Package, CudaPackage, ROCmPackage):
     # older versions of petsc did not support mumps when +int64
     conflicts("+mumps", when="@:3.12+int64")
 
-    filter_compiler_wrappers("petscvariables", relative_root="lib/petsc/conf")
+    filter_compiler_wrappers("petscvariables", "reconfigure*.py", relative_root="lib/petsc/conf")
+    filter_compiler_wrappers("petsc.pc", "PETSc.pc", relative_root="lib/pkgconfig")
 
     @run_before("configure")
     def check_fortran_compiler(self):
@@ -540,8 +612,8 @@ class Petsc(Package, CudaPackage, ROCmPackage):
             ("superlu-dist", "superlu_dist", True, True),
             ("scotch", "ptscotch", True, True),
             (
-                "suite-sparse:umfpack,klu,cholmod,btf,ccolamd,colamd,camd,amd, \
-                suitesparseconfig,spqr",
+                "suite-sparse:umfpack,klu,cholmod,btf,ccolamd,colamd,camd,amd,"
+                "suitesparseconfig,spqr",
                 "suitesparse",
                 True,
                 True,

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -270,13 +269,18 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
         elif self.pkg.compiler.name == "intel" or self.pkg.compiler.name == "oneapi":
             env.set("ESMF_COMPILER", "intel")
         elif self.pkg.compiler.name in ["clang", "apple-clang"]:
-            env.set("ESMF_COMPILER", "gfortranclang")
-            with self.pkg.compiler.compiler_environment():
-                gfortran_major_version = int(
-                    spack.compiler.get_compiler_version_output(
-                        self.pkg.compiler.fc, "-dumpversion"
-                    ).split(".")[0]
-                )
+            if "flang" in self.pkg.compiler.fc:
+                env.set("ESMF_COMPILER", "llvm")
+            elif "gfortran" in self.pkg.compiler.fc:
+                env.set("ESMF_COMPILER", "gfortranclang")
+                with self.pkg.compiler.compiler_environment():
+                    gfortran_major_version = int(
+                        spack.compiler.get_compiler_version_output(
+                            self.pkg.compiler.fc, "-dumpversion"
+                        ).split(".")[0]
+                    )
+            else:
+                raise InstallError("Unsupported C/C++/Fortran compiler combination")
         elif self.pkg.compiler.name == "nag":
             env.set("ESMF_COMPILER", "nag")
         elif self.pkg.compiler.name == "nvhpc":
@@ -309,6 +313,7 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
 
         if (
             self.pkg.compiler.name in ["gcc", "clang", "apple-clang"]
+            and "gfortran" in self.pkg.compiler.fc
             and gfortran_major_version >= 10
             and (self.spec.satisfies("@:8.2.99") or self.spec.satisfies("@8.3.0b09"))
         ):

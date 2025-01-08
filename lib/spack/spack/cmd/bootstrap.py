@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os.path
@@ -29,7 +28,7 @@ level = "long"
 
 
 # Tarball to be downloaded if binary packages are requested in a local mirror
-BINARY_TARBALL = "https://github.com/spack/spack-bootstrap-mirrors/releases/download/v0.4/bootstrap-buildcache.tar.gz"
+BINARY_TARBALL = "https://github.com/spack/spack-bootstrap-mirrors/releases/download/v0.6/bootstrap-buildcache.tar.gz"
 
 #: Subdirectory where to create the mirror
 LOCAL_MIRROR_DIR = "bootstrap_cache"
@@ -51,9 +50,9 @@ BINARY_METADATA = {
     },
 }
 
-CLINGO_JSON = "$spack/share/spack/bootstrap/github-actions-v0.4/clingo.json"
-GNUPG_JSON = "$spack/share/spack/bootstrap/github-actions-v0.4/gnupg.json"
-PATCHELF_JSON = "$spack/share/spack/bootstrap/github-actions-v0.4/patchelf.json"
+CLINGO_JSON = "$spack/share/spack/bootstrap/github-actions-v0.6/clingo.json"
+GNUPG_JSON = "$spack/share/spack/bootstrap/github-actions-v0.6/gnupg.json"
+PATCHELF_JSON = "$spack/share/spack/bootstrap/github-actions-v0.6/patchelf.json"
 
 # Metadata for a generated source mirror
 SOURCE_METADATA = {
@@ -419,7 +418,7 @@ def _mirror(args):
         metadata_rel_dir = os.path.join("metadata", subdir)
         metadata_yaml = os.path.join(args.root_dir, metadata_rel_dir, "metadata.yaml")
         llnl.util.filesystem.mkdirp(os.path.dirname(metadata_yaml))
-        with open(metadata_yaml, mode="w") as f:
+        with open(metadata_yaml, mode="w", encoding="utf-8") as f:
             spack.util.spack_yaml.dump(metadata, stream=f)
         return os.path.dirname(metadata_yaml), metadata_rel_dir
 

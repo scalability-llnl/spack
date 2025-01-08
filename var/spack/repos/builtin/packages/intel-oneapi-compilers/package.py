@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,6 +10,17 @@ from spack.package import *
 from spack.util.environment import EnvironmentModifications
 
 versions = [
+    {
+        "version": "2025.0.4",
+        "cpp": {
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/84c039b6-2b7d-4544-a745-3fcf8afd643f/intel-dpcpp-cpp-compiler-2025.0.4.20_offline.sh",
+            "sha256": "0537c6e462fe74063cb0b9209a0fd5c0ca3a29b4520d43d382ae27fb3f98b375",
+        },
+        "ftn": {
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/ad42ee3b-7a2f-41cb-b902-689f651920da/intel-fortran-compiler-2025.0.4.21_offline.sh",
+            "sha256": "ad453f1dd68111e7cf7053d6f86fa26d982bd9ab61982cbb6dbe5195fb6feedb",
+        },
+    },
     {
         "version": "2025.0.3",
         "cpp": {
@@ -398,7 +408,7 @@ class IntelOneapiCompilers(IntelOneApiPackage, CompilerPackage):
         super().setup_run_environment(env)
 
         # umf is packaged with compiler and not available as a standalone
-        if "~envmods" not in self.spec:
+        if "~envmods" not in self.spec and self.spec.satisfies("@2025:"):
             env.extend(
                 EnvironmentModifications.from_sourcing_file(
                     self.prefix.umf.latest.env.join("vars.sh"), *self.env_script_args

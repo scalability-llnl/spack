@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -56,11 +55,11 @@ def test_read_spec_from_signed_json():
         assert spec_to_check.name == "zlib"
         assert spec_to_check._hash == "g7otk5dra3hifqxej36m5qzm7uyghqgb"
 
-    with open(spec_path) as fd:
+    with open(spec_path, encoding="utf-8") as fd:
         s = Spec.from_signed_json(fd)
         check_spec(s)
 
-    with open(spec_path) as fd:
+    with open(spec_path, encoding="utf-8") as fd:
         s = Spec.from_signed_json(fd.read())
         check_spec(s)
 
@@ -304,7 +303,7 @@ def reverse_all_dicts(data):
 
 
 def check_specs_equal(original_spec, spec_yaml_path):
-    with open(spec_yaml_path, "r") as fd:
+    with open(spec_yaml_path, "r", encoding="utf-8") as fd:
         spec_yaml = fd.read()
         spec_from_yaml = Spec.from_yaml(spec_yaml)
         return original_spec.eq_dag(spec_from_yaml)

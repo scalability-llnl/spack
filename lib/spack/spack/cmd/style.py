@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import argparse
@@ -415,8 +414,8 @@ def _run_import_check(
         pretty_path = file if root_relative else cwd_relative(file, root, working_dir)
 
         try:
-            with open(file, "r") as f:
-                contents = open(file, "r").read()
+            with open(file, "r", encoding="utf-8") as f:
+                contents = f.read()
             parsed = ast.parse(contents)
         except Exception:
             exit_code = 1
@@ -448,7 +447,7 @@ def _run_import_check(
         if not fix or not to_add and not to_remove:
             continue
 
-        with open(file, "r") as f:
+        with open(file, "r", encoding="utf-8") as f:
             lines = f.readlines()
 
         if to_add:
@@ -468,7 +467,7 @@ def _run_import_check(
         for statement in to_remove:
             new_contents = new_contents.replace(f"{statement}\n", "")
 
-        with open(file, "w") as f:
+        with open(file, "w", encoding="utf-8") as f:
             f.write(new_contents)
 
     return exit_code

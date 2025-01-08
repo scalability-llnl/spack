@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,7 +20,7 @@ import llnl.util.lang
 
 import spack.config
 import spack.mirrors.mirror
-import spack.parser
+import spack.tokenize
 import spack.util.web
 
 from .image import ImageReference
@@ -57,7 +56,7 @@ quoted_pair = rf"\\([{HTAB}{SP}{VCHAR}{obs_text}])"
 quoted_string = rf'"(?:({qdtext}*)|{quoted_pair})*"'
 
 
-class TokenType(spack.parser.TokenBase):
+class WwwAuthenticateTokens(spack.tokenize.TokenBase):
     AUTH_PARAM = rf"({token}){BWS}={BWS}({token}|{quoted_string})"
     # TOKEN68 = r"([A-Za-z0-9\-._~+/]+=*)"  # todo... support this?
     TOKEN = rf"{tchar}+"
@@ -68,9 +67,7 @@ class TokenType(spack.parser.TokenBase):
     ANY = r"."
 
 
-TOKEN_REGEXES = [rf"(?P<{token}>{token.regex})" for token in TokenType]
-
-ALL_TOKENS = re.compile("|".join(TOKEN_REGEXES))
+WWW_AUTHENTICATE_TOKENIZER = spack.tokenize.Tokenizer(WwwAuthenticateTokens)
 
 
 class State(Enum):
@@ -79,18 +76,6 @@ class State(Enum):
     AUTH_PARAM = auto()
     NEXT_IN_LIST = auto()
     AUTH_PARAM_OR_SCHEME = auto()
-
-
-def tokenize(input: str):
-    scanner = ALL_TOKENS.scanner(input)  # type: ignore[attr-defined]
-
-    for match in iter(scanner.match, None):  # type: ignore[var-annotated]
-        yield spack.parser.Token(
-            TokenType.__members__[match.lastgroup],  # type: ignore[attr-defined]
-            match.group(),  # type: ignore[attr-defined]
-            match.start(),  # type: ignore[attr-defined]
-            match.end(),  # type: ignore[attr-defined]
-        )
 
 
 class Challenge:
@@ -128,7 +113,7 @@ def parse_www_authenticate(input: str):
     unquote = lambda s: _unquote(r"\1", s[1:-1])
 
     mode: State = State.CHALLENGE
-    tokens = tokenize(input)
+    tokens = WWW_AUTHENTICATE_TOKENIZER.tokenize(input)
 
     current_challenge = Challenge()
 
@@ -141,36 +126,36 @@ def parse_www_authenticate(input: str):
         return key, value
 
     while True:
-        token: spack.parser.Token = next(tokens)
+        token: spack.tokenize.Token = next(tokens)
 
         if mode == State.CHALLENGE:
-            if token.kind == TokenType.EOF:
+            if token.kind == WwwAuthenticateTokens.EOF:
                 raise ValueError(token)
-            elif token.kind == TokenType.TOKEN:
+            elif token.kind == WwwAuthenticateTokens.TOKEN:
                 current_challenge.scheme = token.value
                 mode = State.AUTH_PARAM_LIST_START
             else:
                 raise ValueError(token)
 
         elif mode == State.AUTH_PARAM_LIST_START:
-            if token.kind == TokenType.EOF:
+            if token.kind == WwwAuthenticateTokens.EOF:
                 challenges.append(current_challenge)
                 break
-            elif token.kind == TokenType.COMMA:
+            elif token.kind == WwwAuthenticateTokens.COMMA:
                 # Challenge without param list, followed by another challenge.
                 challenges.append(current_challenge)
                 current_challenge = Challenge()
                 mode = State.CHALLENGE
-            elif token.kind == TokenType.SPACE:
+            elif token.kind == WwwAuthenticateTokens.SPACE:
                 # A space means it must be followed by param list
                 mode = State.AUTH_PARAM
             else:
                 raise ValueError(token)
 
         elif mode == State.AUTH_PARAM:
-            if token.kind == TokenType.EOF:
+            if token.kind == WwwAuthenticateTokens.EOF:
                 raise ValueError(token)
-            elif token.kind == TokenType.AUTH_PARAM:
+            elif token.kind == WwwAuthenticateTokens.AUTH_PARAM:
                 key, value = extract_auth_param(token.value)
                 current_challenge.params.append((key, value))
                 mode = State.NEXT_IN_LIST
@@ -178,22 +163,22 @@ def parse_www_authenticate(input: str):
                 raise ValueError(token)
 
         elif mode == State.NEXT_IN_LIST:
-            if token.kind == TokenType.EOF:
+            if token.kind == WwwAuthenticateTokens.EOF:
                 challenges.append(current_challenge)
                 break
-            elif token.kind == TokenType.COMMA:
+            elif token.kind == WwwAuthenticateTokens.COMMA:
                 mode = State.AUTH_PARAM_OR_SCHEME
             else:
                 raise ValueError(token)
 
         elif mode == State.AUTH_PARAM_OR_SCHEME:
-            if token.kind == TokenType.EOF:
+            if token.kind == WwwAuthenticateTokens.EOF:
                 raise ValueError(token)
-            elif token.kind == TokenType.TOKEN:
+            elif token.kind == WwwAuthenticateTokens.TOKEN:
                 challenges.append(current_challenge)
                 current_challenge = Challenge(token.value)
                 mode = State.AUTH_PARAM_LIST_START
-            elif token.kind == TokenType.AUTH_PARAM:
+            elif token.kind == WwwAuthenticateTokens.AUTH_PARAM:
                 key, value = extract_auth_param(token.value)
                 current_challenge.params.append((key, value))
                 mode = State.NEXT_IN_LIST

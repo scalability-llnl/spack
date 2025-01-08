@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -10,10 +9,10 @@ import pytest
 import spack.deptypes as dt
 import spack.directives
 import spack.error
-import spack.parser
 import spack.paths
 import spack.solver.asp
 import spack.spec
+import spack.spec_parser
 import spack.store
 import spack.variant
 import spack.version as vn
@@ -639,7 +638,7 @@ class TestSpecSemantics:
         ],
     )
     def test_propagate_reserved_variant_names(self, spec_string):
-        with pytest.raises(spack.parser.SpecParsingError, match="Propagation"):
+        with pytest.raises(spack.spec_parser.SpecParsingError, match="Propagation"):
             Spec(spec_string)
 
     def test_unsatisfiable_multi_value_variant(self, default_mock_concretization):
@@ -1004,11 +1003,11 @@ class TestSpecSemantics:
 
     def test_combination_of_wildcard_or_none(self):
         # Test that using 'none' and another value raises
-        with pytest.raises(spack.parser.SpecParsingError, match="cannot be combined"):
+        with pytest.raises(spack.spec_parser.SpecParsingError, match="cannot be combined"):
             Spec("multivalue-variant foo=none,bar")
 
         # Test that using wildcard and another value raises
-        with pytest.raises(spack.parser.SpecParsingError, match="cannot be combined"):
+        with pytest.raises(spack.spec_parser.SpecParsingError, match="cannot be combined"):
             Spec("multivalue-variant foo=*,bar")
 
     def test_errors_in_variant_directive(self):

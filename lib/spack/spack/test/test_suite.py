@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections
@@ -25,7 +24,7 @@ def _true(*args, **kwargs):
 
 def ensure_results(filename, expected, present=True):
     assert os.path.exists(filename)
-    with open(filename, "r") as fd:
+    with open(filename, "r", encoding="utf-8") as fd:
         lines = fd.readlines()
         have = False
         for line in lines:
@@ -75,7 +74,7 @@ def test_write_test_result(mock_packages, mock_test_stage):
     results_file = test_suite.results_file
     test_suite.write_test_result(spec, result)
 
-    with open(results_file, "r") as f:
+    with open(results_file, "r", encoding="utf-8") as f:
         lines = f.readlines()
         assert len(lines) == 1
 
@@ -437,7 +436,7 @@ def test_write_tested_status(
 
     pkg.tester.tested_file = tmpdir.join("test-log.txt")
     pkg.tester.write_tested_status()
-    with open(pkg.tester.tested_file, "r") as f:
+    with open(pkg.tester.tested_file, "r", encoding="utf-8") as f:
         status = int(f.read().strip("\n"))
         assert TestStatus(status) == expected
 
@@ -459,7 +458,7 @@ def test_write_tested_status_no_repeats(tmpdir, install_mockery, mock_fetch, moc
     # The test should NOT result in a ValueError: invalid literal for int()
     # with base 10: '2\n2' (i.e., the results being appended instead of
     # written to the file).
-    with open(pkg.tester.tested_file, "r") as f:
+    with open(pkg.tester.tested_file, "r", encoding="utf-8") as f:
         status = int(f.read().strip("\n"))
         assert TestStatus(status) == TestStatus.PASSED
 
@@ -476,7 +475,7 @@ INSERT INTO packages VALUES('xsdk',0,'http://xsdk.info');
 COMMIT;
 """
     filename = tmpdir.join("special.txt")
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(contents)
 
     expected = spack.install_test.get_escaped_text_output(filename)
