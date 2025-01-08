@@ -17,7 +17,6 @@ import spack.config
 import spack.hash_types as ht
 import spack.projections
 import spack.spec
-import spack.store
 import spack.util.spack_json as sjson
 from spack.error import SpackError
 
@@ -91,7 +90,6 @@ class DirectoryLayout:
         hash_length: Optional[int] = None,
     ) -> None:
         self.root = root
-        self.check_upstream = True
         projections = projections or default_projections
         self.projections = {key: projection.lower() for key, projection in projections.items()}
 
@@ -274,13 +272,6 @@ class DirectoryLayout:
 
         if spec.external:
             return spec.external_path
-        if self.check_upstream:
-            upstream, record = spack.store.STORE.db.query_by_spec_hash(spec.dag_hash())
-            if upstream:
-                raise SpackError(
-                    "Internal error: attempted to call path_for_spec on"
-                    " upstream-installed package."
-                )
 
         path = self.relative_path_for_spec(spec)
         assert not path.startswith(self.root)
