@@ -105,25 +105,22 @@ def test_schema_validation(meta_schema, config_name):
 
 def test_deprecated_properties(module_suffixes_schema):
     # Test that an error is reported when 'error: True'
-    msg_fmt = r"{name} is deprecated"
     module_suffixes_schema["deprecatedProperties"] = [
-        {"names": ["tcl"], "message": msg_fmt, "error": True}
+        {"names": ["tcl"], "message": r"{name} is deprecated", "error": True}
     ]
-    v = spack.schema.Validator(module_suffixes_schema)
     data = {"tcl": {"all": {"suffixes": {"^python": "py"}}}}
 
-    expected_match = "tcl is deprecated"
-    with pytest.raises(jsonschema.ValidationError, match=expected_match):
-        v.validate(data)
+    with pytest.raises(jsonschema.ValidationError, match="tcl is deprecated") as e:
+        assert not isinstance(e, spack.schema.NonFatalValidationError)
+        spack.schema.Validator(module_suffixes_schema).validate(data)
 
-    # Test that just a warning is reported when 'error: False'
+    # Test that just a non fatal error is reported when 'error: False'
     module_suffixes_schema["deprecatedProperties"] = [
-        {"names": ["tcl"], "message": msg_fmt, "error": False}
+        {"names": ["tcl"], "message": r"{name} is deprecated", "error": False}
     ]
-    v = spack.schema.Validator(module_suffixes_schema)
-    data = {"tcl": {"all": {"suffixes": {"^python": "py"}}}}
-    # The next validation doesn't raise anymore
-    v.validate(data)
+
+    with pytest.raises(spack.schema.NonFatalValidationError, match="tcl is deprecated"):
+        spack.schema.Validator(module_suffixes_schema).validate(data)
 
 
 def test_ordereddict_merge_order():

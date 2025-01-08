@@ -7,6 +7,7 @@ import typing
 
 import jsonschema
 import jsonschema.exceptions
+import jsonschema.validators
 
 import llnl.util.lang
 
