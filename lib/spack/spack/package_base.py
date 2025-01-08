@@ -767,6 +767,10 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         self.win_rpath = fsys.WindowsSimulatedRPath(self)
         super().__init__()
 
+    def __getitem__(self, key: str) -> "PackageBase":
+        result = self.spec[key].package
+        return result
+
     @classmethod
     def dependency_names(cls):
         return _subkeys(cls.dependencies)
