@@ -206,6 +206,7 @@ nitpick_ignore = [
     ("py:class", "TextIO"),
     ("py:class", "hashlib._Hash"),
     ("py:class", "concurrent.futures._base.Executor"),
+    ("py:class", "jsonschema.exceptions.ValidationError"),
     # Spack classes that are private and we don't want to expose
     ("py:class", "spack.provider_index._IndexBase"),
     ("py:class", "spack.repo._PrependFileLoader"),
