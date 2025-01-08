@@ -11,6 +11,8 @@ class PyHistoprint(PythonPackage):
     homepage = "https://github.com/scikit-hep/histoprint"
     pypi = "histoprint/histoprint-2.2.0.tar.gz"
 
+    tags = ["hep"]
+
     license("MIT", checked_by="wdconinc")
 
     version("2.6.0", sha256="e1df729350455b457e97f20883537ae74522879e7c33c609df12f247cca4a21d")
