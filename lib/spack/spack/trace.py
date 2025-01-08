@@ -72,7 +72,7 @@ def _guard_writes(event, args):
             _attempted_modify_internal(f"mkdir {abs_path}")
 
 
-def guard_writes_into_spack():
+def warn_writes_into_spack():
     import sys
 
     if sys.version_info[:2] >= (3, 8):
