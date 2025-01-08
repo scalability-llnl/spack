@@ -34,7 +34,10 @@ import functools
 import os
 import re
 import sys
+import warnings
 from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
+
+import jsonschema
 
 from llnl.util import filesystem, lang, tty
 
@@ -1048,7 +1051,6 @@ def validate(
     This leverages the line information (start_mark, end_mark) stored
     on Spack YAML structures.
     """
-    import jsonschema
 
     try:
         spack.schema.Validator(schema).validate(data)
@@ -1057,7 +1059,12 @@ def validate(
             line_number = e.instance.lc.line + 1
         else:
             line_number = None
-        raise ConfigFormatError(e, data, filename, line_number) from e
+        exception = ConfigFormatError(e, data, filename, line_number)
+
+        if isinstance(e, spack.schema.NonFatalValidationError):
+            warnings.warn(str(exception))
+        else:
+            raise exception from e
     # return the validated data so that we can access the raw data
     # mostly relevant for environments
     return data

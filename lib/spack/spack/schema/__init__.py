@@ -4,7 +4,8 @@
 """This module contains jsonschema files for all of Spack's YAML formats."""
 import copy
 import typing
-import warnings
+
+import jsonschema
 
 import llnl.util.lang
 
@@ -16,14 +17,14 @@ class DeprecationMessage(typing.NamedTuple):
     error: bool
 
 
-# jsonschema is imported lazily as it is heavy to import
-# and increases the start-up time
+class NonFatalValidationError(jsonschema.ValidationError):
+    """A validation error that should only produce a warning."""
+
+
 def _make_validator():
-    import jsonschema
 
     def _validate_spec(validator, is_spec, instance, schema):
         """Check if the attributes on instance are valid specs."""
-        import jsonschema
 
         import spack.spec_parser
 
@@ -56,15 +57,18 @@ def _make_validator():
 
         # Process issues
         errors = []
+        warnings = []
         for name in issues:
             msg = deprecations[name].message.format(name=name)
             if deprecations[name].error:
                 errors.append(msg)
             else:
-                warnings.warn(msg)
+                warnings.append(msg)
 
         if errors:
             yield jsonschema.ValidationError("\n".join(errors))
+        if warnings:
+            yield NonFatalValidationError("\n".join(warnings))
 
     return jsonschema.validators.extend(
         jsonschema.Draft4Validator,
