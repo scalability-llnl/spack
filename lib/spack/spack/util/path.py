@@ -200,11 +200,12 @@ def concrete_path(*path_strings):
     return Path(*path_strings)
 
 
-def fs_path(path_object):
-    """Cast path object to path underlying representation (str | bytes).
-    If str or byte is passed in, it is returned unchanged. If an input is not
-    a str, byte, or PathLike object it will return a TypeError."""
-    return os.fspath(path_object)
+def fs_path(path):
+    """Return underlying path representation of path-like object.
+
+    If parameter is str or byte, it is returned unchanged. If path-like object it
+    returns underlying representation. Otherwise, a TypeError will be raised."""
+    return os.fspath(path)
 
 
 def substitute_path_variables(path):
