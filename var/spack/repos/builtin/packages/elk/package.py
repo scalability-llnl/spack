@@ -13,6 +13,7 @@ class Elk(MakefilePackage):
     homepage = "https://elk.sourceforge.io/"
     url = "https://sourceforge.net/projects/elk/files/elk-3.3.17.tgz"
 
+    version("10.2.4", sha256="015e1d2a04a6c8335af2e5f5adaae143c6c0287f34772e069834a691bb15ac9d")
     version("8.3.22", sha256="1c31f09b7c09d6b24e775d4f0d5e1e8871f95a7656ee4ca21ac17dbe7ea16277")
     version("7.2.42", sha256="73f03776dbf9b2147bfcc5b7c062af5befa0944608f6fc4b6a1e590615400fc6")
     version("7.1.14", sha256="7c2ff30f4b1d72d5dc116de9d70761f2c206700c69d85dd82a17a5a6374453d2")
@@ -51,6 +52,8 @@ class Elk(MakefilePackage):
     )
     #  check that if fft=mkl then linalg=mkl and vice versa.
 
+    patch("LIBs.patch", when="@10.2.4", level=2)
+
     conflicts("linalg=mkl", when="fft=fftw")
     conflicts("linalg=mkl", when="fft=internal")
     conflicts("linalg=blis", when="@:3")
@@ -81,6 +84,7 @@ class Elk(MakefilePackage):
     depends_on("mkl", when="fft=mkl")
 
     depends_on("mpi@2:", when="+mpi")
+    depends_on("libxc@6:", when="@10.2:+libxc")
     depends_on("libxc@5:", when="@7:+libxc")
     depends_on("libxc@:3", when="@:3+libxc")
     depends_on("wannier90", when="+w90")
@@ -100,7 +104,7 @@ class Elk(MakefilePackage):
             "SRC_OBLAS": "oblas_stub.f90",
             "SRC_OMP": "omp_stub.f90",
             "SRC_BLIS": "blis_stub.f90",
-            "SRC_libxc": "libxcifc_stub.f90",
+            "SRC_LIBXC": "libxcifc_stub.f90",
             "SRC_FFT": "zfftifc.f90",
             "SRC_W90S": "w90_stub.f90",
             "F90": spack_fc,
@@ -164,8 +168,8 @@ class Elk(MakefilePackage):
         if "fft=internal" in spec:
             self.build_targets.append("fft")
         elif "fft=fftw" in spec:
-            config["LIB_FFT"] = spec["fftw"].libs.ld_flags
-            config["SRC_FFT"] = "zfftifc_fftw.f90"
+            config["LIB_FFT"] = " ".join( [ spec["fftw"].libs.ld_flags, "-lfftw3f" ] )
+            config["SRC_FFT"] = " zfftifc_fftw.f90 cfftifc_fftw.f90 "
         elif "fft=mkl" in spec:
             config["LIB_FFT"] = spec["mkl"].libs.ld_flags
             config["SRC_FFT"] = "mkl_dfti.f90 zfftifc_mkl.f90"
@@ -183,16 +187,26 @@ class Elk(MakefilePackage):
         print(self.build_targets)
         # Libxc support
         if "+libxc" in spec:
-            config["LIB_libxc"] = " ".join(
-                [
-                    join_path(spec["libxc"].prefix.lib, "libxcf90.so"),
-                    join_path(spec["libxc"].prefix.lib, "libxc.so"),
-                ]
-            )
-            if self.spec.satisfies("@7:"):
-                config["SRC_libxc"] = "libxcf90.f90 libxcifc.f90"
+            if self.spec.satisfies("@10:"):
+                config["LIB_LIBXC"] = " ".join(
+                    [
+                        join_path(spec["libxc"].prefix.lib, "libxcf03.so"),
+                        join_path(spec["libxc"].prefix.lib, "libxc.so"),
+                    ]
+                )
             else:
-                config["SRC_libxc"] = "libxc_funcs.f90 libxc.f90 libxcifc.f90"
+                config["LIB_LIBXC"] = " ".join(
+                    [
+                        join_path(spec["libxc"].prefix.lib, "libxcf90.so"),
+                        join_path(spec["libxc"].prefix.lib, "libxc.so"),
+                    ]
+                )
+            if self.spec.satisfies("@10:"):
+                config["SRC_LIBXC"] = "libxcf03.f90 libxcifc.f90"
+            elif self.spec.satisfies("@7:"):
+                config["SRC_LIBXC"] = "libxcf90.f90 libxcifc.f90"
+            else:
+                config["SRC_LIBXC"] = "libxc_funcs.f90 libxc.f90 libxcifc.f90"
 
         # Write configuration options to include file
         with open("make.inc", "w") as inc:
@@ -201,6 +215,7 @@ class Elk(MakefilePackage):
 
     def build(self, spec, prefix):
         with working_dir(self.build_directory + "/src"):
+            make("libxcifc.o")
             make(*self.build_targets)
             make("-C", "eos")
             make("-C", "spacegroup")

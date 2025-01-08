@@ -1,0 +1,12 @@
+diff -urN a/elk-10.2.4/src/Makefile b/elk-10.2.4/src/Makefile
+--- a/elk-10.2.4/src/Makefile	2024-12-16 11:43:15.000000000 +0200
++++ b/elk-10.2.4/src/Makefile	2024-12-19 11:46:26.000000000 +0200
+@@ -227,7 +227,7 @@
+ # Targets
+ #-------------------------------------------------------------------------------
+ elk:	$(OBJ)
+-	$(F90) $(F90_OPTS) -o $(EXE) $(OBJ) $(F90_LIB) $(LIB_LIBXC) $(LIB_W90)
++	$(F90) $(F90_OPTS) -o $(EXE) $(OBJ) $(F90_LIB) $(LIB_LIBXC) $(LIB_FFT) $(LIB_LPK) $(LIB_W90)
+ 
+ all:	elk
+ 
