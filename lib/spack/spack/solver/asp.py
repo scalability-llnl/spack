@@ -7,6 +7,7 @@ import copy
 import enum
 import functools
 import hashlib
+import io
 import itertools
 import json
 import os
@@ -14,22 +15,12 @@ import pathlib
 import pprint
 import re
 import sys
+import tempfile
 import types
 import typing
 import warnings
 from contextlib import contextmanager
-from typing import (
-    Callable,
-    Dict,
-    Iterator,
-    List,
-    NamedTuple,
-    Optional,
-    Set,
-    Tuple,
-    Type,
-    Union,
-)
+from typing import Callable, Dict, Iterator, List, NamedTuple, Optional, Set, Tuple, Type, Union
 
 import archspec.cpu
 
@@ -48,12 +39,14 @@ import spack.environment as ev
 import spack.error
 import spack.package_base
 import spack.package_prefs
+import spack.paths
 import spack.platforms
 import spack.repo
 import spack.spec
 import spack.store
 import spack.util.crypto
 import spack.util.libc
+import spack.util.lock as lk
 import spack.util.path
 import spack.util.timer
 import spack.variant as vt
@@ -642,20 +635,52 @@ class ConcretizationCache:
                 "config:concretization_cache", spack.paths.default_conc_cache_path
             )
         self.root = pathlib.Path(spack.util.path.canonicalize_path(root))
+        self._cache_manifest = self.root / ".cache_manifest"
+        self._lock = lk.Lock(str(self.root / "manifest_lock"))
 
     def cleanup(self):
         # TODO: determine a better default
-        entry_limit = spack.config.get("config:concretization_cache_limit", 1000)
-        # TODO: Rewrite this to use a metadata file
-        entries = [x for x in self.cache_entries()]
-        entry_count = len(entries)
-        if entry_count > entry_limit:
-            cache_value_key = lambda x: x.stat().st_mtime
-            entries = sorted(entries, key=cache_value_key, reverse=True)
-            # prune the oldest 10%
-            # TODO: make this configurable?
-            for i in range(entry_count // 10):
-                self._safe_remove(entries[i])
+        entry_limit = spack.config.get("config:concretization_cache_entry_limit", 1000)
+        bytes_limit = spack.config.get("config:concretization_cache_byte_limit", 3e8)
+        with lk.WriteTransaction(self._lock):
+            with open(self._cache_manifest, "r+", encoding="utf-8") as f:
+                if len(f.readline()) == 0:
+                    # if the manifest is empty, done bother
+                    # with cleanup, there's nothing in the cache
+                    return
+                f.seek(0)
+                count, bytes = self._sanitize_read(f.readline())
+                entry_count = int(count)
+                manifest_bytes = int(bytes)
+                pruned = False
+                if entry_count > entry_limit:
+                    pruned = True
+                    # prune the oldest 10% or until we have removed 10% of
+                    # total bytes starting from oldest entry
+                    # TODO: make this configurable?
+                    prune_count = entry_count // 10
+                    lines_to_prune = f.readlines(prune_count)
+                    for line in lines_to_prune:
+                        sha, cache_entry_bytes = self._sanitize_read(line)
+                        cache_path = self.root / sha[:2] / sha
+                        if self._safe_remove(cache_path):
+                            entry_count -= 1
+                            manifest_bytes -= int(cache_entry_bytes)
+                elif manifest_bytes > bytes_limit:
+                    pruned = True
+                    # take 10% of current size off
+                    prune_amount = manifest_bytes // 10
+                    total_pruned = 0
+                    while total_pruned < prune_amount:
+                        sha, manifest_cache_bytes = self._sanitize_read(f.readline())
+                        entry_bytes = int(manifest_cache_bytes)
+                        cache_path = self.root / sha[:2] / sha
+                        if self._safe_remove(cache_path):
+                            entry_count -= 1
+                            entry_bytes -= entry_bytes
+                            total_pruned += entry_bytes
+                if pruned:
+                    self._write_manifest(f, entry_count, manifest_bytes)
         for cache_dir in self.root.iterdir():
             if cache_dir.is_dir() and not any(cache_dir.iterdir()):
                 self._safe_remove(cache_dir)
@@ -670,22 +695,34 @@ class ConcretizationCache:
                         yield cache_entry
                     else:
                         raise RuntimeError(
-                            f"Improperly formed concretization cache. "
-                            "Directory {cache_entry.name} is improperly located "
+                            "Improperly formed concretization cache. "
+                            f"Directory {cache_entry.name} is improperly located "
                             "within the concretization cache."
                         )
 
-    def _results_from_cache(self, cache_path: pathlib.Path) -> Result:
+    def _sanitize_read(self, line):
+        return line.strip("\n").split(" ")
+
+    def _write_manifest(self, manifest_file, entry_count, entry_bytes):
+        persisted_entries = manifest_file.readlines()
+        manifest_file.truncate(0)
+        manifest_file.write(f"{entry_count} {entry_bytes}\n")
+        manifest_file.writelines(persisted_entries)
+
+    def _results_from_cache(self, cache_path: pathlib.Path) -> Union[Result, None]:
         """Returns a Results object from the concretizer cache
 
         Reads the cache hit and uses `Result`'s own deserializer
         to produce a new Result object
         """
-        cache_entry = json.loads(cache_path.read_text())
-        result_json = cache_entry["results"]
-        return Result.from_dict(result_json)
+        cache_str = self._safe_read(cache_path)
+        if cache_str:
+            cache_entry = json.loads(cache_path.read_text())
+            result_json = cache_entry["results"]
+            return Result.from_dict(result_json)
+        return None
 
-    def _stats_from_cache(self, cache_path: pathlib.Path):
+    def _stats_from_cache(self, cache_path: pathlib.Path) -> Union[List, None]:
         """Returns concretization statistic from the
         concretization associated with the cache.
 
@@ -693,7 +730,10 @@ class ConcretizationCache:
         statistics covering the cached concretization run
         and returns the Python data structures
         """
-        return json.loads(cache_path.read_text())["statistics"]
+        cache_str = self._safe_read(cache_path)
+        if cache_str:
+            return json.loads(cache_str)["statistics"]
+        return None
 
     def _prefix_digest(self, problem: str) -> Tuple[str, str]:
         """Return the first two characters of, and the full, sha256 of the given asp problem"""
@@ -706,6 +746,21 @@ class ConcretizationCache:
         entry for the given problem"""
         prefix, digest = self._prefix_digest(problem)
         return self.root / prefix / digest
+
+    def _update_manifest(self, cache_path: pathlib.Path, bytes_written: int):
+        self._cache_manifest.touch(exist_ok=True)
+        with open(self._cache_manifest, "r+", encoding="utf-8") as f:
+            # check if manifest is empty
+            if len(f.readline()) == 0:
+                count, cache_bytes = 0, 0
+            else:
+                f.seek(0)
+                count, cache_bytes = self._sanitize_read(f.readline())
+                f.seek(0)
+            new_stats = f"{int(count)+1} {int(cache_bytes)+bytes_written}\n"
+            f.write(new_stats)
+            f.seek(0, io.SEEK_END)
+            f.write(f"{cache_path.name} {bytes_written}\n")
 
     def _safe_remove(self, cache_dir: pathlib.Path):
         try:
@@ -724,11 +779,19 @@ class ConcretizationCache:
         except FileNotFoundError:
             tty.debug(f"Unable to read cache entry, {str(cache_path)} does not exist")
 
-    def _safe_write(self, cache_path: pathlib.Path, output:str):
+    def _safe_write(self, cache_path: pathlib.Path, output: str):
         try:
-            return cache_path.write_text(output)
+            with tempfile.NamedTemporaryFile("w+", delete=False) as tf:
+                bytes_out = tf.write(output)
+                tf.close()
+                os.rename(tf.name, cache_path)
+            with lk.WriteTransaction(self._lock):
+                self._update_manifest(cache_path, bytes_out)
+            return bytes_out
         except FileExistsError:
-            tty.debug(f"Cache entry {str(cache_path)} exists already, created by another Spack process")
+            tty.debug(
+                f"Cache entry {str(cache_path)} exists already, created by another Spack process"
+            )
         return 0
 
     @contextmanager
@@ -1090,10 +1153,10 @@ class PyclingoDriver:
         full_path = lambda x: os.path.join(parent_dir, x)
         abs_control_files = [full_path(x) for x in control_files]
         for ctrl_file in abs_control_files:
-            with open(ctrl_file, "r+") as f:
+            with open(ctrl_file, "r+", encoding="utf-8") as f:
                 problem_repr += "\n" + f.read()
 
-        result, concretization_stats = spack.caches.CONC_CACHE.fetch(problem_repr)
+        result, concretization_stats = CONC_CACHE.fetch(problem_repr)
         timer.stop("cache-check")
         if not result:
             timer.start("load")
@@ -1135,7 +1198,9 @@ class PyclingoDriver:
                 finished = handle.wait(time_limit)
                 if not finished:
                     specs_str = ", ".join(llnl.util.lang.elide_list([str(s) for s in specs], 4))
-                    header = f"Spack is taking more than {time_limit} seconds to solve for {specs_str}"
+                    header = (
+                        f"Spack is taking more than {time_limit} seconds to solve for {specs_str}"
+                    )
                     if error_on_timeout:
                         raise UnsatisfiableSpecError(f"{header}, stopping concretization")
                     warnings.warn(f"{header}, using the best configuration found so far")
@@ -1191,7 +1256,7 @@ class PyclingoDriver:
                     f"https://github.com/spack/spack/issues\n\t{unsolved_str}"
                 )
 
-            spack.caches.CONC_CACHE.store(problem_repr, result, self.control.statistics)
+            CONC_CACHE.store(problem_repr, result, self.control.statistics)
             concretization_stats = self.control.statistics
         if output.timers:
             timer.write_tty()
