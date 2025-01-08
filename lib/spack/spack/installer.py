@@ -2226,8 +2226,11 @@ class PackageInstaller:
             keep_prefix = install_args.get("keep_prefix")
             action = self._install_action(task)
             try:
-                self._complete_task(task, install_status)
-                active_tasks.remove(task)
+                try:
+                    self._complete_task(task, install_status)
+                finally:
+                    # Remove task from active_tasks on error or success
+                    active_tasks.remove(task)
 
                 # If we installed then we should keep the prefix
                 stop_before_phase = getattr(pkg, "stop_before_phase", None)
