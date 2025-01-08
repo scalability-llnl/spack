@@ -38,13 +38,13 @@ import spack.cmd
 import spack.config
 import spack.environment as ev
 import spack.error
-import spack.install_scheme
 import spack.modules
 import spack.paths
 import spack.platforms
 import spack.repo
 import spack.spec
 import spack.store
+import spack.trace
 import spack.util.debug
 import spack.util.environment
 import spack.util.lock
@@ -996,7 +996,7 @@ def _main(argv=None):
     cmd_name, args.command = resolve_alias(cmd_name, args.command)
 
     if args.guard_writes_into_spack:
-        spack.install_scheme.guard_writes_into_spack()
+        spack.trace.guard_writes_into_spack()
 
     # set up a bootstrap context, if asked.
     # bootstrap context needs to include parsing the command, b/c things
