@@ -63,7 +63,7 @@ class PyIminuit(PythonPackage):
     depends_on("cmake@3.13:", type="build", when="@2:")
     depends_on("cmake@3.15:", type="build", when="@2.22:")
 
-    $ Historical dependencies
+    # Historical dependencies
     with when("@:2.27"):
         depends_on("py-typing-extensions", when="@2.21: ^python@:3.8", type=("build", "run"))
         depends_on("py-typing-extensions@3.7.4:", when="@2.26: ^python@:3.8", type=("build", "run"))
