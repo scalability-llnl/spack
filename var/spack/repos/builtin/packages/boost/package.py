@@ -138,7 +138,6 @@ class Boost(Package):
         "math",
         "mpi",
         "nowide",
-        "parser",
         "program_options",
         "python",
         "random",
@@ -156,11 +155,7 @@ class Boost(Package):
     ]
 
     # Add any extra requirements for specific
-    all_libs_opts = {
-        "charconv": {"when": "@1.85.0:"},
-        "cobalt": {"when": "@1.84.0:"},
-        "parser": {"when": "@1.87.0:"},
-    }
+    all_libs_opts = {"charconv": {"when": "@1.85.0:"}, "cobalt": {"when": "@1.84.0:"}}
 
     for lib in all_libs:
         lib_opts = all_libs_opts.get(lib, {})
