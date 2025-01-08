@@ -452,7 +452,7 @@ class Root(CMakePackage):
         "cxxstd=20", when="@:6.28.02", msg="C++20 support requires root version at least 6.28.04"
     )
 
-    conflicts("%gcc@10:", when="cxxstd=20")
+    conflicts("%gcc@:10", when="cxxstd=20")
 
     # See https://github.com/root-project/root/issues/11128
     conflicts("%clang@16:", when="@:6.26.07", msg="clang 16+ support was added in root 6.26.08")
