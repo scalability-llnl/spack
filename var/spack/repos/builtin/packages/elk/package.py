@@ -175,7 +175,7 @@ class Elk(MakefilePackage):
         if spec.satisfies("fft=internal"):
             self.build_targets.append("fft")
         elif spec.satisfies("fft=fftw"):
-            config["LIB_FFT"] = " ".join( [ spec["fftw"].libs.ld_flags, "-lfftw3f" ] )
+            config["LIB_FFT"] = " ".join([ spec["fftw"].libs.ld_flags, "-lfftw3f" ])
             config["SRC_FFT"] = " zfftifc_fftw.f90 cfftifc_fftw.f90 "
         elif spec.satisfies("fft=mkl"):
             config["LIB_FFT"] = spec["mkl"].libs.ld_flags
