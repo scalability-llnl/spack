@@ -279,25 +279,25 @@ def mock_git_package_changes(git, tmpdir, override_git_repos_cache_path):
         os.makedirs(os.path.dirname(filename))
 
         # add pkg-a as a new package to the repository
-        shutil.copy2(f"{spack.paths.test_path}/data/conftest/pkgA/01_package.py", filename)
+        shutil.copy2(f"{spack.paths.test_path}/data/conftest/pkgA/package-0.txt", filename)
         git("add", filename)
         commit("pkg-a: new package")
         commits.append(latest_commit())
 
         # add v2.1.5 to pkg-a
-        shutil.copy2(f"{spack.paths.test_path}/data/conftest/pkgA/02_package.py", filename)
+        shutil.copy2(f"{spack.paths.test_path}/data/conftest/pkgA/package-1.txt", filename)
         git("add", filename)
         commit("pkg-a: add v2.1.5")
         commits.append(latest_commit())
 
         # add v2.1.6 to pkg-a
-        shutil.copy2(f"{spack.paths.test_path}/data/conftest/pkgA/03_package.py", filename)
+        shutil.copy2(f"{spack.paths.test_path}/data/conftest/pkgA/package-2.txt", filename)
         git("add", filename)
         commit("pkg-a: add v2.1.6")
         commits.append(latest_commit())
 
         # convert pkg-a to a manual download package
-        shutil.copy2(f"{spack.paths.test_path}/data/conftest/pkgA/04_package.py", filename)
+        shutil.copy2(f"{spack.paths.test_path}/data/conftest/pkgA/package-3.txt", filename)
         git("add", filename)
         commit("pkg-a: modification to make manual download package")
         commits.append(latest_commit())
