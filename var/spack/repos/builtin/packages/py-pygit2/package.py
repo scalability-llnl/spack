@@ -11,9 +11,20 @@ class PyPygit2(PythonPackage):
     """
 
     homepage = "https://www.pygit2.org/"
-    pypi = "pygit2/pygit2-1.12.2.tar.gz"
+    pypi = "pygit2/pygit2-1.16.0.tar.gz"
 
-    version("1.12.1", sha256="56e85d0e66de957d599d1efb2409d39afeefd8f01009bfda0796b42a4b678358")
+    version("1.16.0", sha256="7b29a6796baa15fc89d443ac8d51775411d9b1e5b06dc40d458c56c8576b48a2")
+    version("1.15.1", sha256="e1fe8b85053d9713043c81eccc74132f9e5b603f209e80733d7955eafd22eb9d")
+    version("1.15.0", sha256="a635525ffc74128669de2f63460a94c9d5609634a4875c0aafce510fdeec17ac")
+    version("1.14.1", sha256="ec5958571b82a6351785ca645e5394c31ae45eec5384b2fa9c4e05dde3597ad6")
+    version("1.14.0", sha256="f529ed9660edbf9b625ccae7e51098ef73662e61496609009772d4627a826aa8")
+    version("1.13.3", sha256="0257c626011e4afb99bdb20875443f706f84201d4c92637f02215b98eac13ded")
+    version("1.13.2", sha256="75c7eb86b47c70f6f1434bcf3b5eb41f4e8006a15cee6bef606651b97d23788c")
+    version("1.13.1", sha256="d8e6d540aad9ded1cf2c6bda31ba48b1e20c18525807dbd837317bef4dccb994")
+    version("1.13.0", sha256="6dde37436fab14264ad3d6cbc5aae3fd555eb9a9680a7bfdd6e564cd77b5e2b8")
+    version("1.12.2", sha256="56e85d0e66de957d599d1efb2409d39afeefd8f01009bfda0796b42a4b678358")
+    version("1.12.1", sha256="8218922abedc88a65d5092308d533ca4c4ed634aec86a3493d3bdf1a25aeeff3")
+    version("1.12.0", sha256="e9440d08665e35278989939590a53f37a938eada4f9446844930aa2ee30d73be")
     version("1.11.1", sha256="793f583fd33620f0ac38376db0f57768ef2922b89b459e75b1ac440377eb64ec")
     version("1.6.0", sha256="7aacea4e57011777f4774421228e5d0ddb9a6ddb87ac4b542346d17ab12a4d62")
     version("1.4.0", sha256="cbeb38ab1df9b5d8896548a11e63aae8a064763ab5f1eabe4475e6b8a78ee1c8")
