@@ -49,39 +49,3 @@ class PyCylcFlow(PythonPackage):
     # We want at least the pangocairo variant for
     # graphviz so that we can create output as png.
     depends_on("graphviz+pangocairo", type="run")
-
-    # DH* KEEP ALL THIS UNTIL https://github.com/spack/spack/pull/48052 is merged.
-    # Depending on the solution adopted there, we may need some of the stuff below,
-    # or none of it.
-    # ## cylc at runtime unsets PYTHONPATH, then sets it from CYLC_PYTHONPATH
-    # ## https://github.com/cylc/cylc-flow/issues/5124
-    # #def setup_run_environment(self, env):
-    # #
-    # #    def add_dependencies_to_cylc_pythonpath(spec):
-    # #        cylc_pythonpaths = []
-    # #        pyver = spec["python"].version.up_to(2)
-    # #        pydir = join_path("python{0}".format(pyver), "site-packages")
-    # #        for dep in spec.dependencies(deptype="run"):
-    # #            if dep.name.startswith("py-"):
-    # #                cylc_pythonpaths = add_dependencies_to_cylc_pythonpath(dep) + cylc_pythonpaths  # noqa: E501
-    # #        cylc_pythonpaths = [ join_path(dep.prefix.lib, pydir) for dep in spec.dependencies(deptype="run") if dep.name.startswith("py-") ] + cylc_pythonpaths  # noqa: E501
-    # #        return cylc_pythonpaths
-    # #
-    # #    cylc_pythonpaths = add_dependencies_to_cylc_pythonpath(self.spec)
-    # #    # Remove duplicates
-    # #    cylc_pythonpaths = list(set(cylc_pythonpaths))
-    # #    #cylc_pythonpaths = [ join_path(dep.prefix.lib, pydir) for dep in self.spec.dependencies(deptype="run") if dep.name.startswith("py-") ]  # noqa: E501
-    # #    env.set("CYLC_PYTHONPATH", ":".join(cylc_pythonpaths))
-    # #
-    # ## We need to filter this out, spack knows what it is doing.
-    # #@run_after("install")
-    # #def fix_cylc_pythonpath_mangling(self):
-    # #    python_version = self.spec["python"].version.up_to(2)
-    # #    pydir = join_path(self.prefix.lib, "python{0}".format(python_version), "site-packages")
-    # #    cylc_dot_py = join_path(pydir, "cylc/flow/scripts/cylc.py")
-    # #    filter_file(
-    # #        r"^pythonpath_manip\(\)$",
-    # #        "# spack knows what it is doing, skip 'pythonpath_manip()'",
-    # #        cylc_dot_py,
-    # #    )
-    # *DH
