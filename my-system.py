@@ -11,7 +11,6 @@ import archspec.cpu
 
 from llnl.util.filesystem import mkdirp
 
-import spack.cmd
 import spack.config as config
 import spack.environment as ev
 import spack.platforms
