@@ -19,11 +19,14 @@ class Xnedit(MakefilePackage):
     """
 
     homepage = "https://www.unixwork.de/xnedit/"
-    url = "https://github.com/unixwork/xnedit/archive/refs/tags/v1.5.2.tar.gz"
+    url = "https://github.com/unixwork/xnedit/archive/refs/tags/v1.6.1.tar.gz"
     git = "https://github.com/unixwork/xnedit.git"
 
     maintainers("davekeeshan")
 
+    version("1.6.1", sha256="46489fa3017f5e40da810170b33c681affd3cd4dff1dbd0f8a4c51f8285ca5c4")
+    version("1.6.0", sha256="197e635fc1aa8e4ff2dcd2375efac597975f04170c3eace3280c4054bbbc57ac")
+    version("1.5.3", sha256="89421abbcb91f27e122b874769ca60021802735ea527fc6ae5b3d50061f81120")
     version("1.5.2", sha256="2f9710b661f8ec5d371a3385fa480c7424e2f863938a8e2ae71cb17397be3f91")
     version("1.5.1", sha256="c871589e912ed9f9a02cc57932f5bb9694ec91cc5487be0cd55e7d3aade372d6")
     version("1.5.0", sha256="054f0805405bfc0304e5d27aaac7f4d89b9f028b9e408bf8c079669ddb89df00")
