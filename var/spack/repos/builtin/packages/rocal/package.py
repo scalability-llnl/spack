@@ -106,7 +106,11 @@ class Rocal(CMakePackage):
             self.define("CMAKE_INSTALL_PREFIX_PYTHON", self.spec.prefix),
         ]
         if "@6.3.0:" in self.spec:
-            args.append(self.define("CMAKE_CXX_FLAGS", "-I{0} -I{1}".format(abspath,rapidjsonpath)))
+            args.append(
+                self.define(
+                    "CMAKE_CXX_FLAGS", "-I{0} -I{1}".format(abspath, rapidjsonpath)
+                )
+            )
         return args
 
     def check(self):
