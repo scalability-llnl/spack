@@ -46,7 +46,7 @@ class Toybox(MakefilePackage):
     depends_on("bash", type="build")
     depends_on("sed", type="build")
     depends_on("openssl", type="link", when="+ssl")
-    depends_on("zlib", type="link", when="+zlib")
+    depends_on("zlib-api", type="link", when="+zlib")
 
     # CVE-2022-32298
     patch(
@@ -54,7 +54,7 @@ class Toybox(MakefilePackage):
         sha256="2c6ffad53102db23b620fd883636daad15c70a08c72f802a1fbcf96c331280cc",
         when="@=0.8.7",
     )
-
+    # Fixes segfault when building with more recent toolchains.
     patch(
         "https://github.com/landley/toybox/commit/78289203031afc23585035c362beec10db54958d.patch?full_index=1",
         sha256="a27a831eb80f9d46809f619b52018eb2e481758581f7a6932423b95422f23911",
@@ -68,7 +68,7 @@ class Toybox(MakefilePackage):
             env.set("V", 1)  # Verbose
 
         if self.spec.satisfies("+static"):
-            env.set("LDFLAGS", "--static")
+            env.append_flags("LDFLAGS", "--static")
 
     def edit(self, spec, prefix):
         if spec.satisfies("platform=darwin"):
