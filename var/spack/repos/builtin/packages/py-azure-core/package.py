@@ -15,6 +15,7 @@ class PyAzureCore(PythonPackage):
 
     license("MIT")
 
+    version("1.30.2", sha256="a14dc210efcd608821aa472d9fb8e8d035d29b68993819147bc290a8ac224472")
     version("1.30.0", sha256="6f3a7883ef184722f6bd997262eddaf80cfe7e5b3e0caaaf8db1695695893d35")
     version("1.29.7", sha256="2944faf1a7ff1558b1f457cabf60f279869cabaeef86b353bed8eb032c7d8c5e")
     version("1.29.2", sha256="beb0fe88d1043d8457318e8fb841d9caa648211092eda213c16b376401f3710d")
@@ -26,8 +27,9 @@ class PyAzureCore(PythonPackage):
     version("1.7.0", sha256="a66da240a287f447f9867f54ba09ea235895cec13ea38c5f490ce4eedefdd75c")
     version("1.6.0", sha256="d10b74e783cff90d56360e61162afdd22276d62dc9467e657ae866449eae7648")
 
-    # https://github.com/Azure/azure-sdk-for-python/blob/azure-core_1.30.0/sdk/core/azure-core/setup.py
+    # https://github.com/Azure/azure-sdk-for-python/blob/azure-core_1.30.2/sdk/core/azure-core/setup.py
 
+    depends_on("python@3.8:", type=("build", "run"), when="@1.30.2:")
     depends_on("py-setuptools", type="build")
     depends_on("py-anyio@3:4", when="@1.29.6", type=("build", "run"))
     depends_on("py-requests@2.21:", when="@1.29.6:", type=("build", "run"))

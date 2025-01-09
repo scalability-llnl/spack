@@ -19,22 +19,12 @@ class Libpciaccess(AutotoolsPackage, XorgPackage):
     version("0.13.5", sha256="fe26ec788732b4ef60b550f2d3fa51c605d27f646e18ecec878f061807a3526e")
     version("0.13.4", sha256="74d92bda448e6fdb64fee4e0091255f48d625d07146a121653022ed3a0ca1f2f")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
-    depends_on("libtool", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("util-macros", type="build")
 
     patch("nvhpc.patch", when="%nvhpc")
-
-    # A known issue exists when building with PGI as documented here:
-    # https://bugs.freedesktop.org/show_bug.cgi?id=94398
-    # https://www.pgroup.com/userforum/viewtopic.php?f=4&t=5126
-    # https://gitlab.freedesktop.org/xorg/lib/libpciaccess/issues/7
-    #
-    # When the ability to use dependencies built by another compiler, using a
-    # libpciaccess built by gcc should be usable by PGI builds.
-    conflicts("%pgi")
 
     conflicts("platform=darwin")
 

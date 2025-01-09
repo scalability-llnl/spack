@@ -1267,7 +1267,7 @@ Git fetching supports the following parameters to ``version``:
   This feature requires ``git`` to be version ``2.25.0`` or later but is useful for
   large repositories that have separate portions that can be built independently.
   If paths provided are directories then all the subdirectories and associated files
-  will also be cloned. 
+  will also be cloned.
 
 Only one of ``tag``, ``branch``, or ``commit`` can be used at a time.
 
@@ -1367,8 +1367,8 @@ Submodules
   git-submodule``.
 
 Sparse-Checkout
-  You can supply ``git_sparse_paths`` at the package or version level to utilize git's 
-  sparse-checkout feature. This will only clone the paths that are specified in the 
+  You can supply ``git_sparse_paths`` at the package or version level to utilize git's
+  sparse-checkout feature. This will only clone the paths that are specified in the
   ``git_sparse_paths`` attribute for the package along with the files in the top level directory.
   This feature allows you to only clone what you need from a large repository.
   Note that this is a newer feature in git and requries git ``2.25.0`` or greater.
@@ -1928,71 +1928,29 @@ to the empty list.
 String. A URL pointing to license setup instructions for the software.
 Defaults to the empty string.
 
-For example, let's take a look at the package for the PGI compilers.
+For example, let's take a look at the Arm Forge package.
 
 .. code-block:: python
 
    # Licensing
    license_required = True
-   license_comment  = "#"
-   license_files    = ["license.dat"]
-   license_vars     = ["PGROUPD_LICENSE_FILE", "LM_LICENSE_FILE"]
-   license_url      = "http://www.pgroup.com/doc/pgiinstall.pdf"
+   license_comment = "#"
+   license_files = ["licences/Licence"]
+   license_vars = [
+       "ALLINEA_LICENSE_DIR",
+       "ALLINEA_LICENCE_DIR",
+       "ALLINEA_LICENSE_FILE",
+       "ALLINEA_LICENCE_FILE",
+   ]
+   license_url = "https://developer.arm.com/documentation/101169/latest/Use-Arm-Licence-Server"
 
-As you can see, PGI requires a license. Its license manager, FlexNet, uses
-the ``#`` symbol to denote a comment. It expects the license file to be
-named ``license.dat`` and to be located directly in the installation prefix.
-If you would like the installation file to be located elsewhere, simply set
-``PGROUPD_LICENSE_FILE`` or ``LM_LICENSE_FILE`` after installation. For
-further instructions on installation and licensing, see the URL provided.
+Arm Forge requires a license. Its license manager uses the ``#`` symbol to denote a comment.
+It expects the license file to be named ``License`` and to be located in a ``licenses`` directory
+in the installation prefix.
 
-Let's walk through a sample PGI installation to see exactly what Spack is
-and isn't capable of. Since PGI does not provide a download URL, it must
-be downloaded manually. It can either be added to a mirror or located in
-the current directory when ``spack install pgi`` is run. See :ref:`mirrors`
-for instructions on setting up a mirror.
-
-After running ``spack install pgi``, the first thing that will happen is
-Spack will create a global license file located at
-``$SPACK_ROOT/etc/spack/licenses/pgi/license.dat``. It will then open up the
-file using :ref:`your favorite editor <controlling-the-editor>`. It will look like
-this:
-
-.. code-block:: sh
-
-   # A license is required to use pgi.
-   #
-   # The recommended solution is to store your license key in this global
-   # license file. After installation, the following symlink(s) will be
-   # added to point to this file (relative to the installation prefix):
-   #
-   #   license.dat
-   #
-   # Alternatively, use one of the following environment variable(s):
-   #
-   #   PGROUPD_LICENSE_FILE
-   #   LM_LICENSE_FILE
-   #
-   # If you choose to store your license in a non-standard location, you may
-   # set one of these variable(s) to the full pathname to the license file, or
-   # port@host if you store your license keys on a dedicated license server.
-   # You will likely want to set this variable in a module file so that it
-   # gets loaded every time someone tries to use pgi.
-   #
-   # For further information on how to acquire a license, please refer to:
-   #
-   #   http://www.pgroup.com/doc/pgiinstall.pdf
-   #
-   # You may enter your license below.
-
-You can add your license directly to this file, or tell FlexNet to use a
-license stored on a separate license server. Here is an example that
-points to a license server called licman1:
-
-.. code-block:: none
-
-   SERVER licman1.mcs.anl.gov 00163eb7fba5 27200
-   USE_SERVER
+If you would like the installation file to be located elsewhere, simply set ``ALLINEA_LICENSE_DIR`` or
+one of the other license variables after installation. For further instructions on installation and
+licensing, see the URL provided.
 
 If your package requires the license to install, you can reference the
 location of this global license using ``self.global_license_file``.
@@ -2392,7 +2350,7 @@ by the ``--jobs`` option:
 .. code-block:: python
    :emphasize-lines: 7, 11
    :linenos:
- 
+
    class Xios(Package):
       ...
       def install(self, spec, prefix):
@@ -2503,15 +2461,14 @@ with. For example, suppose that in the ``libdwarf`` package you write:
 
    depends_on("libelf@0.8")
 
-Now ``libdwarf`` will require ``libelf`` at *exactly* version ``0.8``.
-You can also specify a requirement for a particular variant or for
-specific compiler flags:
+Now ``libdwarf`` will require ``libelf`` in the range ``0.8``, which
+includes patch versions ``0.8.1``, ``0.8.2``, etc. Apart from version
+restrictions, you can also specify variants if this package requires
+optional features of the dependency.
 
 .. code-block:: python
 
-   depends_on("libelf@0.8+debug")
-   depends_on("libelf debug=True")
-   depends_on("libelf cppflags='-fPIC'")
+   depends_on("libelf@0.8 +parser +pic")
 
 Both users *and* package authors can use the same spec syntax to refer
 to different package configurations. Users use the spec syntax on the
@@ -2519,46 +2476,82 @@ command line to find installed packages or to install packages with
 particular constraints, and package authors can use specs to describe
 relationships between packages.
 
-^^^^^^^^^^^^^^
-Version ranges
-^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Specifying backward and forward compatibility
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Although some packages require a specific version for their dependencies,
-most can be built with a range of versions. For example, if you are
-writing a package for a legacy Python module that only works with Python
-2.4 through 2.6, this would look like:
+Packages are often compatible with a range of versions of their
+dependencies. This is typically referred to as backward and forward
+compatibility. Spack allows you to specify this in the ``depends_on``
+directive using version ranges.
 
-.. code-block:: python
-
-   depends_on("python@2.4:2.6")
-
-Version ranges in Spack are *inclusive*, so ``2.4:2.6`` means any version
-greater than or equal to ``2.4`` and up to and including any ``2.6.x``. If
-you want to specify that a package works with any version of Python 3 (or
-higher), this would look like:
+**Backwards compatibility** means that the package requires at least a
+certain version of its dependency:
 
 .. code-block:: python
 
-   depends_on("python@3:")
+   depends_on("python@3.10:")
 
-Here we leave out the upper bound. If you want to say that a package
-requires Python 2, you can similarly leave out the lower bound:
+In this case, the package requires Python 3.10 or newer.
 
-.. code-block:: python
-
-   depends_on("python@:2")
-
-Notice that we didn't use ``@:3``. Version ranges are *inclusive*, so
-``@:3`` means "up to and including any 3.x version".
-
-You can also simply write
+Commonly, packages drop support for older versions of a dependency as
+they release new versions. In Spack you can conveniently add every
+backward compatibility rule as a separate line:
 
 .. code-block:: python
 
-   depends_on("python@2.7")
+   # backward compatibility with Python
+   depends_on("python@3.8:")
+   depends_on("python@3.9:", when="@1.2:")
+   depends_on("python@3.10:", when="@1.4:")
 
-to tell Spack that the package needs Python 2.7.x. This is equivalent to
-``@2.7:2.7``.
+This means that in general we need Python 3.8 or newer; from version
+1.2 onwards we need Python 3.9 or newer; from version 1.4 onwards we
+need Python 3.10 or newer. Notice that it's fine to have overlapping
+ranges in the ``when`` clauses.
+
+**Forward compatibility** means that the package requires at most a
+certain version of its dependency. Forward compatibility rules are
+necessary when there are breaking changes in the dependency that the
+package cannot handle. In Spack we often add forward compatibility
+bounds only at the time a new, breaking version of a dependency is
+released. As with backward compatibility, it is typical to see a list
+of forward compatibility bounds in a package file as seperate lines:
+
+.. code-block:: python
+
+   # forward compatibility with Python
+   depends_on("python@:3.12", when="@:1.10")
+   depends_on("python@:3.13", when="@:1.12")
+
+Notice how the ``:`` now appears before the version number both in the
+dependency and in the ``when`` clause. This tells Spack that in general
+we need Python 3.13 or older up to version ``1.12.x``, and up to version
+``1.10.x`` we need Python 3.12 or older. Said differently, forward compatibility
+with Python 3.13 was added in version 1.11, while version 1.13 added forward
+compatibility with Python 3.14.
+
+Notice that a version range ``@:3.12`` includes *any* patch version
+number ``3.12.x``, which is often useful when specifying forward compatibility
+bounds.
+
+So far we have seen open-ended version ranges, which is by far the most
+common use case. It is also possible to specify both a lower and an upper bound
+on the version of a dependency, like this:
+
+.. code-block:: python
+
+   depends_on("python@3.10:3.12")
+
+There is short syntax to specify that a package is compatible with say any
+``3.x`` version:
+
+.. code-block:: python
+
+   depends_on("python@3")
+
+The above is equivalent to ``depends_on("python@3:3")``, which means at least
+Python version 3 and at most any version ``3.x.y``.
 
 In very rare cases, you may need to specify an exact version, for example
 if you need to distinguish between ``3.2`` and ``3.2.1``:
@@ -2932,9 +2925,9 @@ make sense during the build phase may not be needed at runtime, and vice versa. 
 it makes sense to let a dependency set the environment variables for its dependents. To allow all
 this, Spack provides four different methods that can be overridden in a package:
 
-1. :meth:`setup_build_environment <spack.builder.Builder.setup_build_environment>`
+1. :meth:`setup_build_environment <spack.builder.BaseBuilder.setup_build_environment>`
 2. :meth:`setup_run_environment <spack.package_base.PackageBase.setup_run_environment>`
-3. :meth:`setup_dependent_build_environment <spack.builder.Builder.setup_dependent_build_environment>`
+3. :meth:`setup_dependent_build_environment <spack.builder.BaseBuilder.setup_dependent_build_environment>`
 4. :meth:`setup_dependent_run_environment <spack.package_base.PackageBase.setup_dependent_run_environment>`
 
 The Qt package, for instance, uses this call:
@@ -5144,7 +5137,7 @@ other checks.
      - Not applicable
    * - :ref:`PythonPackage <pythonpackage>`
      - Not applicable
-     - ``test`` (module imports)
+     - ``test_imports`` (module imports)
    * - :ref:`QMakePackage <qmakepackage>`
      - ``check`` (``make check``)
      - Not applicable
@@ -5153,7 +5146,7 @@ other checks.
      - Not applicable
    * - :ref:`SIPPackage <sippackage>`
      - Not applicable
-     - ``test`` (module imports)
+     - ``test_imports`` (module imports)
    * - :ref:`WafPackage <wafpackage>`
      - ``build_test`` (must be overridden)
      - ``install_test`` (must be overridden)
@@ -5385,7 +5378,7 @@ by build recipes. Examples of checking :ref:`variant settings <variants>` and
     determine whether it needs to also set up build dependencies (see
     :ref:`test-build-tests`).
 
-The ``MyPackage`` package below provides two basic test examples: 
+The ``MyPackage`` package below provides two basic test examples:
 ``test_example`` and ``test_example2``.  The first runs the installed
 ``example`` and ensures its output contains an expected string. The second
 runs ``example2`` without checking output so is only concerned with confirming
@@ -5702,7 +5695,7 @@ subdirectory of the installation prefix. They are automatically copied to
 the appropriate relative paths under the test stage directory prior to
 executing stand-alone tests.
 
-.. tip:: 
+.. tip::
 
     *Perform test-related conversions once when copying files.*
 
@@ -7078,6 +7071,46 @@ might write:
    CXXFLAGS += -I$DWARF_PREFIX/include
    CXXFLAGS += -L$DWARF_PREFIX/lib
 
+.. _abi_compatibility:
+
+----------------------------
+Specifying ABI Compatibility
+----------------------------
+
+Packages can include ABI-compatibility information using the
+``can_splice`` directive. For example, if ``Foo`` version 1.1 can
+always replace version 1.0, then the package could have:
+
+.. code-block:: python
+
+   can_splice("foo@1.0", when="@1.1")
+
+For virtual packages, packages can also specify ABI-compabitiliby with
+other packages providing the same virtual. For example, ``zlib-ng``
+could specify:
+
+.. code-block:: python
+
+   can_splice("zlib@1.3.1", when="@2.2+compat")
+
+Some packages have ABI-compatibility that is dependent on matching
+variant values, either for all variants or for some set of
+ABI-relevant variants. In those cases, it is not necessary to specify
+the full combinatorial explosion. The ``match_variants`` keyword can
+cover all single-value variants.
+
+.. code-block:: python
+
+   can_splice("foo@1.1", when="@1.2", match_variants=["bar"])  # any value for bar as long as they're the same
+   can_splice("foo@1.2", when="@1.3", match_variants="*")  # any variant values if all single-value variants match
+
+The concretizer will use ABI compatibility to determine automatic
+splices when :ref:`automatic splicing<automatic_splicing>` is enabled.
+
+.. note::
+
+   The ``can_splice`` directive is experimental, and may be replaced
+   by a higher-level interface in future versions of Spack.
 
 .. _package_class_structure:
 

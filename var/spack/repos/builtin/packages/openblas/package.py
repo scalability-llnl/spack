@@ -26,6 +26,7 @@ class Openblas(CMakePackage, MakefilePackage):
     license("BSD-3-Clause")
 
     version("develop", branch="develop")
+    version("0.3.28", sha256="f1003466ad074e9b0c8d421a204121100b0751c96fc6fcf3d1456bd12f8a00a1")
     version("0.3.27", sha256="aa2d68b1564fe2b13bc292672608e9cdeeeb6dc34995512e65c3b10f4599e897")
     version("0.3.26", sha256="4e6e4f5cb14c209262e33e6816d70221a2fe49eb69eaf0a06f065598ac602c68")
     version("0.3.25", sha256="4c25cb30c4bb23eddca05d7d0a85997b8db6144f5464ba7f8c09ce91e2f35543")
@@ -60,10 +61,6 @@ class Openblas(CMakePackage, MakefilePackage):
     version("0.2.17", sha256="0fe836dfee219ff4cadcc3567fb2223d9e0da5f60c7382711fb9e2c35ecf0dbf")
     version("0.2.16", sha256="766f350d0a4be614812d535cead8c816fc3ad3b9afcd93167ea5e4df9d61869b")
     version("0.2.15", sha256="73c40ace5978282224e5e122a41c8388c5a19e65a6f2329c2b7c0b61bacc9044")
-
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
 
     variant(
         "fortran",
@@ -105,6 +102,14 @@ class Openblas(CMakePackage, MakefilePackage):
     provides("blas", "lapack")
     provides("lapack@3.9.1:", when="@0.3.15:")
     provides("lapack@3.7.0", when="@0.2.20")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
+    depends_on("perl", when="@:0.3.20", type="build")
+
+    # https://github.com/OpenMathLib/OpenBLAS/pull/4879
+    patch("openblas-0.3.28-thread-buffer.patch", when="@0.3.28")
 
     # https://github.com/OpenMathLib/OpenBLAS/pull/4328
     patch("xcode15-fortran.patch", when="@0.3.25 %apple-clang@15:")
@@ -264,17 +269,16 @@ class Openblas(CMakePackage, MakefilePackage):
         msg="Visual Studio does not support OpenBLAS dynamic dispatch features",
     )
 
-    depends_on("perl", type="build")
+    conflicts("target=x86_64_v4:", when="%intel@2021")
 
     build_system("makefile", "cmake", default="makefile")
 
     def flag_handler(self, name, flags):
         spec = self.spec
-        iflags = []
         if name == "cflags":
             if spec.satisfies("@0.3.20: %oneapi") or spec.satisfies("@0.3.20: %arm"):
-                iflags.append("-Wno-error=implicit-function-declaration")
-        return (iflags, None, None)
+                flags.append("-Wno-error=implicit-function-declaration")
+        return (flags, None, None)
 
     @classmethod
     def determine_version(cls, lib):
@@ -542,6 +546,9 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
 
         if self.spec.satisfies("+bignuma"):
             make_defs.append("BIGNUMA=1")
+
+        if not self.spec.satisfies("target=x86_64_v4:"):
+            make_defs.append("NO_AVX512=1")
 
         # Avoid that NUM_THREADS gets initialized with the host's number of CPUs.
         if self.spec.satisfies("threads=openmp") or self.spec.satisfies("threads=pthreads"):

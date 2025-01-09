@@ -17,14 +17,13 @@ from contextlib import contextmanager
 import pytest
 
 import spack.binary_distribution
-import spack.cmd.buildcache
 import spack.database
 import spack.environment as ev
 import spack.error
 import spack.oci.opener
 import spack.spec
 from spack.main import SpackCommand
-from spack.oci.image import Digest, ImageReference, default_config, default_manifest, default_tag
+from spack.oci.image import Digest, ImageReference, default_config, default_manifest
 from spack.oci.oci import blob_exists, get_manifest_and_config, upload_blob, upload_manifest
 from spack.test.oci.mock_registry import DummyServer, InMemoryOCIRegistry, create_opener
 from spack.util.archive import gzip_compressed_tarfile
@@ -70,8 +69,8 @@ def test_buildcache_tag(install_mockery, mock_fetch, mutable_mock_env_path):
     """Tests whether we can create an OCI image from a full environment with multiple roots."""
     env("create", "test")
     with ev.read("test"):
-        install("--add", "libelf")
-        install("--add", "trivial-install-test-package")
+        install("--fake", "--add", "libelf")
+        install("--fake", "--add", "trivial-install-test-package")
 
     registry = InMemoryOCIRegistry("example.com")
 
@@ -84,7 +83,7 @@ def test_buildcache_tag(install_mockery, mock_fetch, mutable_mock_env_path):
         name = ImageReference.from_string("example.com/image:full_env")
 
         with ev.read("test") as e:
-            specs = e.all_specs()
+            specs = [x for x in e.all_specs() if not x.external]
 
         manifest, config = get_manifest_and_config(name)
 
@@ -101,7 +100,7 @@ def test_buildcache_tag(install_mockery, mock_fetch, mutable_mock_env_path):
 
         name = ImageReference.from_string("example.com/image:single_spec")
         manifest, config = get_manifest_and_config(name)
-        assert len(manifest["layers"]) == 1
+        assert len(manifest["layers"]) == len([x for x in libelf.traverse() if not x.external])
 
 
 def test_buildcache_push_with_base_image_command(mutable_database, tmpdir):
@@ -140,7 +139,7 @@ def test_buildcache_push_with_base_image_command(mutable_database, tmpdir):
         # Save the config file
         config["rootfs"]["diff_ids"] = [str(tar_digest)]
         config_file = tmpdir.join("config.json")
-        with open(config_file, "w") as f:
+        with open(config_file, "w", encoding="utf-8") as f:
             f.write(json.dumps(config))
 
         config_digest = Digest.from_sha256(
@@ -337,7 +336,7 @@ def test_best_effort_upload(mutable_database: spack.database.Database, monkeypat
 
         # Verify that manifests of mpich/libdwarf are missing due to upload failure.
         for name in without_manifest:
-            tagged_img = image.with_tag(default_tag(mpileaks[name]))
+            tagged_img = image.with_tag(spack.binary_distribution._oci_default_tag(mpileaks[name]))
             with pytest.raises(urllib.error.HTTPError, match="404"):
                 get_manifest_and_config(tagged_img)
 
@@ -348,8 +347,14 @@ def test_best_effort_upload(mutable_database: spack.database.Database, monkeypat
         for s in mpileaks.traverse():
             if s.name in without_manifest:
                 continue
+
+            if s.external:
+                continue
+
             # This should not raise a 404.
-            manifest, _ = get_manifest_and_config(image.with_tag(default_tag(s)))
+            manifest, _ = get_manifest_and_config(
+                image.with_tag(spack.binary_distribution._oci_default_tag(s))
+            )
 
             # Collect layer digests
             pkg_to_all_digests[s.name] = {layer["digest"] for layer in manifest["layers"]}
@@ -359,6 +364,10 @@ def test_best_effort_upload(mutable_database: spack.database.Database, monkeypat
         for s in mpileaks.traverse():
             if s.name in without_manifest:
                 continue
+
+            if s.external:
+                continue
+
             expected_digests = {
                 pkg_to_own_digest[t.name]
                 for t in s.traverse(deptype=("link", "run"), root=True)

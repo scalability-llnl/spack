@@ -14,7 +14,7 @@ class SstDumpi(AutotoolsPackage):
     information, and PAPI counters.
     """
 
-    homepage = "http://sst.sandia.gov/about_dumpi.html"
+    homepage = "https://github.com/sstsimulator/sst-dumpi"
     url = "https://github.com/sstsimulator/sst-dumpi/archive/refs/tags/v13.0.0_Final.tar.gz"
     git = "https://github.com/sstsimulator/sst-dumpi.git"
 

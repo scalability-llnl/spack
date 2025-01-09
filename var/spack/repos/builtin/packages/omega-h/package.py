@@ -20,17 +20,27 @@ class OmegaH(CMakePackage, CudaPackage):
     tags = ["e4s"]
     version("main", branch="main")
     version(
-        "scorec.10.7.0",
+        "10.8.6-scorec",
+        commit="a730c78e516d7f6cca4f8b4e4e0a5eb8020f9ad9",
+        git="https://github.com/SCOREC/omega_h.git",
+    )
+    version(
+        "10.8.5-scorec",
+        commit="62026fc305356abb5e02a9fce3fead9cf5077fbe",
+        git="https://github.com/SCOREC/omega_h.git",
+    )
+    version(
+        "10.7.0-scorec",
         commit="0e5de8618c3370f702e08c1b1af476dbbc118892",
         git="https://github.com/SCOREC/omega_h.git",
     )
     version(
-        "scorec.10.6.0",
+        "10.6.0-scorec",
         commit="f376fad4741b55a4b2482218eb3437d719b7c72e",
         git="https://github.com/SCOREC/omega_h.git",
     )
     version(
-        "scorec.10.1.0",
+        "10.1.0-scorec",
         commit="e88912368e101d940f006019585701a704295ab0",
         git="https://github.com/SCOREC/omega_h.git",
     )
@@ -68,20 +78,19 @@ class OmegaH(CMakePackage, CudaPackage):
     depends_on("trilinos +kokkos", when="+trilinos")
     depends_on("kokkos", when="+kokkos")
     depends_on("zlib-api", when="+zlib")
-    # Note: '+cuda' and 'cuda_arch' variants are added by the CudaPackage
-    depends_on("cuda", when="+cuda")
-    conflicts(
-        "^cuda@11.2",
-        when="@scorec.10.1.0:",
-        msg="Thrust is broken in CUDA = 11.2.* see https://github.com/sandialabs/omega_h/issues/366",
-    )
-    # the sandia repo has a fix for cuda > 11.2 support
-    #  see github.com/sandialabs/omega_h/pull/373
-    conflicts(
-        "^cuda@11.2",
-        when="@:9.34.4",
-        msg="Thrust is broken in CUDA = 11.2.* see https://github.com/sandialabs/omega_h/issues/366",
-    )
+
+    with when("+cuda"):
+        # https://github.com/SCOREC/omega_h/commit/40a2d36d0b747a7147aeed238a0323f40b227cb2
+        depends_on("cuda@11.4:", when="@10.8.3:")
+
+        # https://github.com/SCOREC/omega_h/commit/c2109d2900696974ee66c3fbe6a1ec0e93b66cb6
+        depends_on("cuda@:11", when="@:10.6")
+
+        # Single, broken CUDA version.
+        conflicts("^cuda@11.2", msg="See https://github.com/sandialabs/omega_h/issues/366")
+
+    # https://github.com/SCOREC/omega_h/pull/118
+    conflicts("@10.5:10.8.5 +cuda~kokkos")
 
     # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=86610
     conflicts("%gcc@8:8.2", when="@:9.22.1")
@@ -109,9 +118,8 @@ class OmegaH(CMakePackage, CudaPackage):
             args.append("-DBUILD_SHARED_LIBS:BOOL=OFF")
         if "+mpi" in self.spec:
             args.append("-DOmega_h_USE_MPI:BOOL=ON")
-            ver = self.spec.version
             # old versions don't call find_package(MPI)
-            if ver < Version("9.33.2") and "scorec" not in str(ver):
+            if self.spec.satisfies("@:9.33.1"):
                 args.append("-DCMAKE_CXX_COMPILER:FILEPATH={0}".format(self.spec["mpi"].mpicxx))
         else:
             args.append("-DOmega_h_USE_MPI:BOOL=OFF")
@@ -120,7 +128,7 @@ class OmegaH(CMakePackage, CudaPackage):
             cuda_arch_list = self.spec.variants["cuda_arch"].value
             cuda_arch = cuda_arch_list[0]
             if cuda_arch != "none":
-                if "scorec" in str(self.spec.version):
+                if self.spec.satisfies("@10:"):
                     args.append("-DOmega_h_CUDA_ARCH={0}".format(cuda_arch))
                 else:
                     args.append("-DCMAKE_CUDA_FLAGS=-arch=sm_{0}".format(cuda_arch))

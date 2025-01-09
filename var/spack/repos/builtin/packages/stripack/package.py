@@ -69,7 +69,7 @@ class Stripack(MakefilePackage):
             fflags += ["-qrealsize=8"]
         elif satisfies("%fj"):
             fflags += ["-CcdRR8"]
-        elif satisfies("%pgi") or satisfies("%nvhpc"):
+        elif satisfies("%nvhpc"):
             fflags += ["-r8"]
         fflags += [self.compiler.fc_pic_flag]
         make("all", "FFLAGS={0}".format(" ".join(fflags)))

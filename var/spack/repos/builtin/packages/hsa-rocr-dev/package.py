@@ -17,13 +17,16 @@ class HsaRocrDev(CMakePackage):
 
     homepage = "https://github.com/ROCm/ROCR-Runtime"
     git = "https://github.com/ROCm/ROCR-Runtime.git"
-    url = "https://github.com/ROCm/ROCR-Runtime/archive/rocm-6.0.2.tar.gz"
+    url = "https://github.com/ROCm/ROCR-Runtime/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
     maintainers("srekolam", "renjithravindrankannath", "haampie")
     libraries = ["libhsa-runtime64"]
 
     version("master", branch="master")
+    version("6.2.4", sha256="b7aa0055855398d1228c39a6f4feb7d7be921af4f43d82855faf0b531394bb9b")
+    version("6.2.1", sha256="dbe477b323df636f5e3221471780da156c938ec00dda4b50639aa8d7fb9248f4")
+    version("6.2.0", sha256="c98090041fa56ca4a260709876e2666f85ab7464db9454b177a189e1f52e0b1a")
     version("6.1.2", sha256="6eb7a02e5f1e5e3499206b9e74c9ccdd644abaafa2609dea0993124637617866")
     version("6.1.1", sha256="72841f112f953c16619938273370eb8727ddf6c2e00312856c9fca54db583b99")
     version("6.1.0", sha256="50386ebcb7ff24449afa2a10c76a059597464f877225c582ba3e097632a43f9c")
@@ -41,7 +44,8 @@ class HsaRocrDev(CMakePackage):
         version("5.3.3", sha256="aca88d90f169f35bd65ce3366b8670c7cdbe3abc0a2056eab805d0192cfd7130")
         version("5.3.0", sha256="b51dbedbe73390e0be748b92158839c82d7fa0e514fede60aa7696dc498facf0")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("shared", default=True, description="Build shared or static library")
     variant("image", default=True, description="build with or without image support")
@@ -73,6 +77,9 @@ class HsaRocrDev(CMakePackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
         "master",
     ]:
         depends_on(f"hsakmt-roct@{ver}", when=f"@{ver}")
@@ -92,6 +99,9 @@ class HsaRocrDev(CMakePackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 
@@ -139,6 +149,8 @@ class HsaRocrDev(CMakePackage):
             args.append(self.define("ROCM_PATCH_VERSION", "60000"))
         if self.spec.satisfies("@6.1"):
             args.append(self.define("ROCM_PATCH_VERSION", "60100"))
+        if self.spec.satisfies("@6.2"):
+            args.append(self.define("ROCM_PATCH_VERSION", "60200"))
         if self.spec.satisfies("@5.7.0:"):
             args.append(self.define_from_variant("ADDRESS_SANITIZER", "asan"))
 

@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import spack.build_systems.meson
 from spack.package import *
 
 
@@ -28,6 +29,7 @@ class WaylandProtocols(MesonPackage, AutotoolsPackage):
 
     license("MIT")
 
+    version("1.37", sha256="c3b215084eb4cf318415533554c2c2714e58ed75847d7c3a8e50923215ffbbf3")
     version("1.36", sha256="c839dd4325565fd59a93d6cde17335357328f66983c2e1fb03c33e92d6918b17")
     version("1.35", sha256="6e62dfa92ce82487d107b76064cfe2d7ca107c87c239ea9036a763d79c09105a")
     version("1.34", sha256="cd3cc9dedb838e6fc8f55bbeb688e8569ffac7df53bc59dbfac8acbb39267f05")

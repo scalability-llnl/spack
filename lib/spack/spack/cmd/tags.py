@@ -9,8 +9,8 @@ import llnl.string
 import llnl.util.tty as tty
 import llnl.util.tty.colify as colify
 
+import spack.environment
 import spack.repo
-import spack.store
 import spack.tag
 
 description = "show package tags and associated packages"

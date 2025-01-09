@@ -20,6 +20,10 @@ class CrayMpich(Package, CudaPackage, ROCmPackage):
 
     maintainers("etiennemlb", "haampie")
 
+    version("8.1.25")
+    version("8.1.24")
+    version("8.1.21")
+    version("8.1.14")
     version("8.1.7")
     version("8.1.0")
     version("8.0.16")
@@ -135,7 +139,6 @@ class CrayMpich(Package, CudaPackage, ROCmPackage):
 
         return libs
 
-    # @memoized
     @property
     def gtl_lib(self):
         # GPU transport Layer (GTL) handling background:

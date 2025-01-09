@@ -22,6 +22,18 @@ class IntelOneapiMpi(IntelOneApiLibraryPackage):
     homepage = "https://software.intel.com/content/www/us/en/develop/tools/oneapi/components/mpi-library.html"
 
     version(
+        "2021.14.1",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/1acd5e79-796c-401a-ab31-a3dc7b20c6a2/intel-mpi-2021.14.1.7_offline.sh",
+        sha256="6459b9fc81fad9b9955de7fd9904e67fcf2ada3564ce0a74b9c14ea8fb533ddf",
+        expand=False,
+    )
+    version(
+        "2021.14.0",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/4b14b28c-2ca6-4559-a0ca-8a157627e0c8/intel-mpi-2021.14.0.791_offline.sh",
+        sha256="81ea7aaf8039c134b4df40bab1423a269425d26bb90ac05f7decac39719d21f3",
+        expand=False,
+    )
+    version(
         "2021.13.1",
         url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/364c798c-4cad-4c01-82b5-e1edd1b476af/l_mpi_oneapi_p_2021.13.1.769_offline.sh",
         sha256="be61c4792d25bd4a1b5f7b808c06a9f4676f1b247d7605ac6d3c6cffdb8f19b7",
@@ -157,15 +169,15 @@ class IntelOneapiMpi(IntelOneApiLibraryPackage):
 
     @property
     def env_script_args(self):
-        if "+external-libfabric" in self.spec:
+        if self.spec.satisfies("+external-libfabric"):
             return ("-i_mpi_ofi_internal=0",)
         else:
             return ()
 
     def wrapper_names(self):
-        if "+generic-names" in self.spec:
+        if self.spec.satisfies("+generic-names"):
             return ["mpicc", "mpicxx", "mpif77", "mpif90", "mpifc"]
-        elif "+classic-names" in self.spec:
+        elif self.spec.satisfies("+classic-names"):
             return ["mpiicc", "mpiicpc", "mpiifort", "mpiifort", "mpiifort"]
         else:
             return ["mpiicx", "mpiicpx", "mpiifx", "mpiifx", "mpiifx"]
@@ -202,14 +214,14 @@ class IntelOneapiMpi(IntelOneApiLibraryPackage):
     @property
     def libs(self):
         libs = []
-        if "+ilp64" in self.spec:
+        if self.spec.satisfies("+ilp64"):
             libs += find_libraries("libmpi_ilp64", self.component_prefix.lib.release)
         libs += find_libraries(["libmpicxx", "libmpifort"], self.component_prefix.lib)
         libs += find_libraries("libmpi", self.component_prefix.lib.release)
         libs += find_system_libraries(["libdl", "librt", "libpthread"])
 
         # Find libfabric for libmpi.so
-        if "+external-libfabric" in self.spec:
+        if self.spec.satisfies("+external-libfabric"):
             libs += self.spec["libfabric"].libs
         else:
             libs += find_libraries(["libfabric"], self.component_prefix.libfabric.lib)

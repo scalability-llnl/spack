@@ -101,7 +101,7 @@ class Molgw(MakefilePackage):
         if "+scalapack" in spec:
             flags["FC"] = "{0}".format(spec["mpi"].mpifc)
         else:
-            flags["FC"] = self.compiler.fc_names[0]
+            flags["FC"] = self.compiler.fc
 
         # Set FCFLAGS
         if self.compiler.flags.get("fflags") is not None:

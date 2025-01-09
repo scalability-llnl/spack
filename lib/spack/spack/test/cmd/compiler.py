@@ -10,6 +10,7 @@ import pytest
 
 import spack.cmd.compiler
 import spack.compilers
+import spack.config
 import spack.main
 import spack.spec
 import spack.util.pattern
@@ -81,34 +82,6 @@ def test_compiler_find_without_paths(no_compilers_yaml, working_env, mock_execut
     assert "gcc" in output
 
 
-@pytest.mark.regression("17589")
-def test_compiler_find_no_apple_gcc(no_compilers_yaml, working_env, mock_executable):
-    """Tests that Spack won't mistake Apple's GCC as a "real" GCC, since it's really
-    Clang with a few tweaks.
-    """
-    gcc_path = mock_executable(
-        "gcc",
-        output="""
-if [ "$1" = "-dumpversion" ]; then
-    echo "4.2.1"
-elif [ "$1" = "--version" ]; then
-    echo "Configured with: --prefix=/dummy"
-    echo "Apple clang version 11.0.0 (clang-1100.0.33.16)"
-    echo "Target: x86_64-apple-darwin18.7.0"
-    echo "Thread model: posix"
-    echo "InstalledDir: /dummy"
-else
-    echo "clang: error: no input files"
-fi
-""",
-    )
-
-    os.environ["PATH"] = str(gcc_path.parent)
-    output = compiler("find", "--scope=site")
-
-    assert "gcc" not in output
-
-
 @pytest.mark.regression("37996")
 def test_compiler_remove(mutable_config, mock_packages):
     """Tests that we can remove a compiler from configuration."""
@@ -131,7 +104,7 @@ def test_removing_compilers_from_multiple_scopes(mutable_config, mock_packages):
 
 
 @pytest.mark.not_on_windows("Cannot execute bash script on Windows")
-def test_compiler_add(mutable_config, mock_packages, mock_executable):
+def test_compiler_add(mutable_config, mock_executable):
     """Tests that we can add a compiler to configuration."""
     expected_version = "4.5.3"
     gcc_path = mock_executable(
@@ -149,7 +122,12 @@ done
 
     compilers_before_find = set(spack.compilers.all_compiler_specs())
     args = spack.util.pattern.Bunch(
-        all=None, compiler_spec=None, add_paths=[str(root_dir)], scope=None, mixed_toolchain=False
+        all=None,
+        compiler_spec=None,
+        add_paths=[str(root_dir)],
+        scope=None,
+        mixed_toolchain=False,
+        jobs=1,
     )
     spack.cmd.compiler.compiler_find(args)
     compilers_after_find = set(spack.compilers.all_compiler_specs())
@@ -229,7 +207,7 @@ def test_compiler_find_path_order(no_compilers_yaml, working_env, compilers_dir)
     for name in ("gcc-8", "g++-8", "gfortran-8"):
         shutil.copy(compilers_dir / name, new_dir / name)
     # Set PATH to have the new folder searched first
-    os.environ["PATH"] = "{}:{}".format(str(new_dir), str(compilers_dir))
+    os.environ["PATH"] = f"{str(new_dir)}:{str(compilers_dir)}"
 
     compiler("find", "--scope=site")
 

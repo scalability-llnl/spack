@@ -15,7 +15,7 @@ class Rabbitmq(Package):
     """
 
     homepage = "https://www.rabbitmq.com/"
-    url = "http://www.rabbitmq.com/releases/rabbitmq-server/v3.6.15/rabbitmq-server-generic-unix-3.6.15.tar.xz"
+    url = "https://www.rabbitmq.com/releases/rabbitmq-server/v3.6.15/rabbitmq-server-generic-unix-3.6.15.tar.xz"
 
     license("BSD-2-Clause")
 

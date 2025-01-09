@@ -3,9 +3,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import inspect
-import os.path
-
 import spack.build_systems.cmake
 import spack.build_systems.makefile
 from spack.package import *
@@ -94,7 +91,7 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
 
         substitutions.append(("@FLDFLAGS", fldflags.lstrip()))
 
-        template = join_path(os.path.dirname(inspect.getmodule(self).__file__), "make.inc")
+        template = join_path(os.path.dirname(__file__), "make.inc")
         makefile = join_path(pkg.stage.source_path, "make.inc")
         copy(template, makefile)
         for key, value in substitutions:

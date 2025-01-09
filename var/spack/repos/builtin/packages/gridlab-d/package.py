@@ -42,7 +42,7 @@ class GridlabD(AutotoolsPackage):
     def configure_args(self):
         args = []
 
-        if "+helics" in self.spec:
+        if self.spec.satisfies("+helics"):
             # Taken from
             # https://github.com/GMLC-TDC/HELICS-Tutorial/tree/master/setup
             args.append("--with-helics=" + self.spec["helics"].prefix)

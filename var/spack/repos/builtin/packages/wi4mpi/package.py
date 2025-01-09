@@ -47,8 +47,6 @@ class Wi4mpi(CMakePackage):
             compiler = "INTEL"
         elif "%clang" in self.spec:
             compiler = "LLVM"
-        elif "%pgi" in self.spec:
-            compiler = "PGI"
         else:
             tty.error("Could not determine compiler used")
         wi4mpi_build_type = "RELEASE"

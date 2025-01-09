@@ -33,6 +33,8 @@ All operations on views are performed via proxy objects such as
 YamlFilesystemView.
 
 """
+import sys
+
 import llnl.util.tty as tty
 from llnl.util.link_tree import MergeConflictError
 
@@ -178,14 +180,19 @@ def setup_parser(sp):
 
 
 def view(parser, args):
-    "Produce a view of a set of packages."
+    """Produce a view of a set of packages."""
+
+    if sys.platform == "win32" and args.action in ("hardlink", "hard"):
+        # Hard-linked views are not yet allowed on Windows.
+        # See https://github.com/spack/spack/pull/46335#discussion_r1757411915
+        tty.die("Hard linking is not supported on Windows. Please use symlinks or copy methods.")
 
     specs = spack.cmd.parse_specs(args.specs)
     path = args.path[0]
 
     if args.action in actions_link and args.projection_file:
         # argparse confirms file exists
-        with open(args.projection_file, "r") as f:
+        with open(args.projection_file, "r", encoding="utf-8") as f:
             projections_data = s_yaml.load(f)
             validate(projections_data, spack.schema.projections.schema)
             ordered_projections = projections_data["projections"]

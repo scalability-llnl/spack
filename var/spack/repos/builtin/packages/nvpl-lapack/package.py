@@ -22,8 +22,9 @@ class NvplLapack(Package):
 
     license("UNKNOWN")
 
-    version("0.2.0.1", sha256="7054f775b18916ee662c94ad7682ace53debbe8ee36fa926000fe412961edb0b")
+    version("0.2.3.1", sha256="25927df133c5486fd71d5976c93917c96e62275a78dffc354bcaf1b022f56f8e")
     version("0.2.2.1", sha256="cdfbf69517a044e99e3e6231c8b2f4e845fd0de57775ccad6b4b0b4fe7e91e84")
+    version("0.2.0.1", sha256="7054f775b18916ee662c94ad7682ace53debbe8ee36fa926000fe412961edb0b")
 
     provides("lapack")
 

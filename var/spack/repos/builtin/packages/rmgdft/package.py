@@ -55,7 +55,6 @@ class Rmgdft(CMakePackage, CudaPackage):
     compiler_warning14 = "RMGDFT 4.0.0 or later requires a compiler with support for C++14"
     conflicts("%gcc@:4", when="@3.6.0:", msg=compiler_warning14)
     conflicts("%intel@:17", when="@3.6.0:", msg=compiler_warning14)
-    conflicts("%pgi@:17", when="@3.6.0:", msg=compiler_warning14)
     conflicts("%llvm@:3.4", when="@3.6.0:", msg=compiler_warning14)
 
     # RMGDFT 5.0.0 requires C++17 and increase the minimum gcc to 8

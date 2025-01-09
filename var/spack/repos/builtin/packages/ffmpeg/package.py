@@ -16,15 +16,14 @@ class Ffmpeg(AutotoolsPackage):
 
     maintainers("xjrc")
 
-    license("GPL-2.0-or-later AND LGPL-2.1-or-later")
+    license("LGPL-2.1-or-later", when="~gpl", checked_by="wdconinc")
+    license("LGPL-2.1-or-later AND GPL-2.0-or-later", when="+gpl", checked_by="wdconinc")
 
     version("master", branch="master")
+    version("7.1", sha256="fd59e6160476095082e94150ada5a6032d7dcc282fe38ce682a00c18e7820528")
+    version("7.0.2", sha256="1ed250407ea8f955cca2f1139da3229fbc13032a0802e4b744be195865ff1541")
     version("7.0", sha256="a24d9074bf5523a65aaa9e7bd02afe4109ce79d69bd77d104fed3dab4b934d7a")
-    version(
-        "6.1.1",
-        sha256="5e3133939a61ef64ac9b47ffd29a5ea6e337a4023ef0ad972094b4da844e3a20",
-        preferred=True,
-    )
+    version("6.1.1", sha256="5e3133939a61ef64ac9b47ffd29a5ea6e337a4023ef0ad972094b4da844e3a20")
     version("6.0", sha256="47d062731c9f66a78380e35a19aac77cebceccd1c7cc309b9c82343ffc430c3d")
     version("5.1.4", sha256="c3c1e316bf91468738dd0aff6eb1faab409f1edcd34fd1a4213626439bc5d743")
     version("5.1.3", sha256="5d5bef6a11f0c500588f9870ec965a30acc0d54d8b1e535da6554a32902d236d")
@@ -51,7 +50,7 @@ class Ffmpeg(AutotoolsPackage):
     variant(
         "gpl",
         default=True,
-        description="allow use of GPL code, the resulting libs " "and binaries will be under GPL",
+        description="allow use of GPL code, the resulting libs and binaries will be under GPL",
     )
     variant("version3", default=True, description="upgrade (L)GPL to version 3")
     variant(
@@ -183,7 +182,6 @@ class Ffmpeg(AutotoolsPackage):
 
     @when("@:6.0 %apple-clang@15:")
     def setup_build_environment(self, env):
-        env.append_flags("LDFLAGS", "-Wl,-ld_classic")
         if self.spec.satisfies("@:3"):
             env.append_flags("CFLAGS", "-Wno-error=incompatible-function-pointer-types")
 

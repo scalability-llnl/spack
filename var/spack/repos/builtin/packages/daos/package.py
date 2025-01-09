@@ -55,7 +55,7 @@ class Daos(SConsPackage):
     def build_args(self, spec, prefix):
         args = ["PREFIX={0}".format(prefix), "USE_INSTALLED=all"]
 
-        if "+debug" in spec:
+        if spec.satisfies("+debug"):
             args.append("--debug=explain,findlibs,includes")
 
         # Construct ALT_PREFIX and make sure that '/usr' is last.

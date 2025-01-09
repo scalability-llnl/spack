@@ -30,5 +30,5 @@ class Libgain(AutotoolsPackage):
 
     @property
     def libs(self):
-        shared = "+shared" in self.spec
+        shared = self.spec.satisfies("+shared")
         return find_libraries("libGaIn", root=self.prefix, shared=shared, recursive=True)

@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
 
+import llnl.util.tty as tty
+
 from spack.package import *
 
 
@@ -21,6 +23,11 @@ class Petsc(Package, CudaPackage, ROCmPackage):
     tags = ["e4s"]
 
     version("main", branch="main")
+    version("3.22.2", sha256="83624de0178b42d37ca1f7f905e1093556c6919fe5accd3e9f11d00a66e11256")
+    version("3.22.1", sha256="7117d3ae6827f681ed9737939d4e86896b4751e27cca941bb07e5703f19a0a7b")
+    version("3.22.0", sha256="2c03f7c0f7ad2649240d4989355cf7fb7f211b75156cd7d424e1d9dd7dfb290b")
+    version("3.21.6", sha256="cb2dc00742a89cf8acf9ff8aae189e6864e8b90f4997f087be6e54ff39c30d74")
+    version("3.21.5", sha256="4eb1ec04c1a8988bd524f71f8d7d980dc1853d5be8791c0f19f3c09eef71fdd2")
     version("3.21.4", sha256="a9ae076d4617c7d84ce2bed37194022319c19f19b3930edf148b2bc8ecf2248d")
     version("3.21.3", sha256="6d9ceb99d84d275250c614192dad45955d4a7610e12d8292a07dc49403556d26")
     version("3.21.2", sha256="a1ac62b6204bdf2f7f9b637abf45e6cff24d372d4d3d3702c50e157bdb56eb21")
@@ -73,24 +80,96 @@ class Petsc(Package, CudaPackage, ROCmPackage):
     version("3.14.2", sha256="87a04fd05cac20a2ec47094b7d18b96e0651257d8c768ced2ef7db270ecfb9cb")
     version("3.14.1", sha256="0b4681165a9af96594c794b97ac6993452ec902726679f6b50bb450f89d230ed")
     version("3.14.0", sha256="a8f9caba03e0d57d8452c08505cf96be5f6949adaa266e819382162c03ddb9c5")
-    version("3.13.6", sha256="67ca2cf3040d08fdc51d27f660ea3157732b24c2f47aae1b19d63f62a39842c2")
-    version("3.13.5", sha256="10fc542dab961c8b17db35ad3a208cb184c237fc84e183817e38e6c7ab4b8732")
-    version("3.13.4", sha256="8d470cba1ceb9638694550134a2f23aac85ed7249cb74992581210597d978b94")
-    version("3.13.3", sha256="dc744895ee6b9c4491ff817bef0d3abd680c5e3c25e601be44240ce65ab4f337")
-    version("3.13.2", sha256="6083422a7c5b8e89e5e4ccf64acade9bf8ab70245e25bca3a3da03caf74602f1")
-    version("3.13.1", sha256="74a895e44e2ff1146838aaccb7613e7626d99e0eed64ca032c87c72d084efac3")
-    version("3.13.0", sha256="f0ea543a54145c5d1387e25b121c3fd1b1ca834032c5a33f6f1d929e95bdf0e5")
-    version("3.12.5", sha256="d676eb67e79314d6cca6422d7c477d2b192c830b89d5edc6b46934f7453bcfc0")
-    version("3.12.4", sha256="56a941130da93bbacb3cfa74dcacea1e3cd8e36a0341f9ced09977b1457084c3")
-    version("3.12.3", sha256="91f77d7b0f54056f085b9e27938922db3d9bb1734a2e2a6d26f43d3e6c0cf631")
-    version("3.12.2", sha256="d874b2e198c4cb73551c2eca1d2c5d27da710be4d00517adb8f9eb3d6d0375e8")
-    version("3.12.1", sha256="b72d895d0f4a79acb13ebc782b47b26d10d4e5706d399f533afcd5b3dba13737")
-    version("3.12.0", sha256="ba9ecf69783c7ebf05bd1c91dd1d4b38bf09b7a2d5f9a774aa6bb46deff7cb14")
-    version("3.11.4", sha256="319cb5a875a692a67fe5b1b90009ba8f182e21921ae645d38106544aff20c3c1")
-    version("3.11.3", sha256="199ad9650a9f58603b49e7fff7cd003ceb03aa231e5d37d0bf0496c6348eca81")
-    version("3.11.2", sha256="4d244dd7d1565d6534e776445fcf6977a6ee2a8bb2be4a36ac1e0fc1f9ad9cfa")
-    version("3.11.1", sha256="cb627f99f7ce1540ebbbf338189f89a5f1ecf3ab3b5b0e357f9e46c209f1fb23")
-    version("3.11.0", sha256="b3bed2a9263193c84138052a1b92d47299c3490dd24d1d0bf79fb884e71e678a")
+    version(
+        "3.13.6",
+        sha256="67ca2cf3040d08fdc51d27f660ea3157732b24c2f47aae1b19d63f62a39842c2",
+        deprecated=True,
+    )
+    version(
+        "3.13.5",
+        sha256="10fc542dab961c8b17db35ad3a208cb184c237fc84e183817e38e6c7ab4b8732",
+        deprecated=True,
+    )
+    version(
+        "3.13.4",
+        sha256="8d470cba1ceb9638694550134a2f23aac85ed7249cb74992581210597d978b94",
+        deprecated=True,
+    )
+    version(
+        "3.13.3",
+        sha256="dc744895ee6b9c4491ff817bef0d3abd680c5e3c25e601be44240ce65ab4f337",
+        deprecated=True,
+    )
+    version(
+        "3.13.2",
+        sha256="6083422a7c5b8e89e5e4ccf64acade9bf8ab70245e25bca3a3da03caf74602f1",
+        deprecated=True,
+    )
+    version(
+        "3.13.1",
+        sha256="74a895e44e2ff1146838aaccb7613e7626d99e0eed64ca032c87c72d084efac3",
+        deprecated=True,
+    )
+    version(
+        "3.13.0",
+        sha256="f0ea543a54145c5d1387e25b121c3fd1b1ca834032c5a33f6f1d929e95bdf0e5",
+        deprecated=True,
+    )
+    version(
+        "3.12.5",
+        sha256="d676eb67e79314d6cca6422d7c477d2b192c830b89d5edc6b46934f7453bcfc0",
+        deprecated=True,
+    )
+    version(
+        "3.12.4",
+        sha256="56a941130da93bbacb3cfa74dcacea1e3cd8e36a0341f9ced09977b1457084c3",
+        deprecated=True,
+    )
+    version(
+        "3.12.3",
+        sha256="91f77d7b0f54056f085b9e27938922db3d9bb1734a2e2a6d26f43d3e6c0cf631",
+        deprecated=True,
+    )
+    version(
+        "3.12.2",
+        sha256="d874b2e198c4cb73551c2eca1d2c5d27da710be4d00517adb8f9eb3d6d0375e8",
+        deprecated=True,
+    )
+    version(
+        "3.12.1",
+        sha256="b72d895d0f4a79acb13ebc782b47b26d10d4e5706d399f533afcd5b3dba13737",
+        deprecated=True,
+    )
+    version(
+        "3.12.0",
+        sha256="ba9ecf69783c7ebf05bd1c91dd1d4b38bf09b7a2d5f9a774aa6bb46deff7cb14",
+        deprecated=True,
+    )
+    version(
+        "3.11.4",
+        sha256="319cb5a875a692a67fe5b1b90009ba8f182e21921ae645d38106544aff20c3c1",
+        deprecated=True,
+    )
+    version(
+        "3.11.3",
+        sha256="199ad9650a9f58603b49e7fff7cd003ceb03aa231e5d37d0bf0496c6348eca81",
+        deprecated=True,
+    )
+    version(
+        "3.11.2",
+        sha256="4d244dd7d1565d6534e776445fcf6977a6ee2a8bb2be4a36ac1e0fc1f9ad9cfa",
+        deprecated=True,
+    )
+    version(
+        "3.11.1",
+        sha256="cb627f99f7ce1540ebbbf338189f89a5f1ecf3ab3b5b0e357f9e46c209f1fb23",
+        deprecated=True,
+    )
+    version(
+        "3.11.0",
+        sha256="b3bed2a9263193c84138052a1b92d47299c3490dd24d1d0bf79fb884e71e678a",
+        deprecated=True,
+    )
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
@@ -182,6 +261,16 @@ class Petsc(Package, CudaPackage, ROCmPackage):
             when="@3.20.0",
             sha256="ba327f8b2a0fa45209dfb7a4278f3e9a323965b5a668be204c1c77c17a963a7f",
         )
+        patch(
+            "https://gitlab.com/petsc/petsc/-/commit/20d5ecbf88175ced320006c488dcefa2efb1e67f.diff",
+            when="@3.21 ^hip@6:",
+            sha256="2904ea20c71e2f21b8475513c3e5de7465e328e2485ae706b003aa79314e3e7c",
+        )
+        patch(
+            "https://gitlab.com/petsc/petsc/-/commit/bdb83d9f3e3c55b3bd4c8732bfe2066c23f10f61.diff",
+            when="@3.21 ^hip@6:",
+            sha256="89cf2c9a01d4a3233c889dd98496a29bf43db1bc69195892f9e5405c537b87e3",
+        )
         patch("hip-5.6.0-for-3.18.diff", when="@3.18:3.19 ^hipsparse@5.6.0")
         patch("hip-5.7-plus-for-3.18.diff", when="@3.18:3.19 ^hipsparse@5.7:")
         patch(
@@ -252,6 +341,7 @@ class Petsc(Package, CudaPackage, ROCmPackage):
     depends_on("hip", when="+rocm")
 
     with when("+rocm"):
+        depends_on("rocm-core")
         depends_on("hipblas")
         depends_on("hipsparse")
         depends_on("hipsolver")
@@ -262,10 +352,11 @@ class Petsc(Package, CudaPackage, ROCmPackage):
         depends_on("rocthrust")
         depends_on("rocprim")
 
-    # Build dependencies
-    depends_on("python@2.6:2.8,3.4:3.8", when="@:3.13", type="build")
-    depends_on("python@2.6:2.8,3.4:", when="@3.14:3.17", type="build")
-    depends_on("python@3.4:", when="@3.18:", type="build")
+    with default_args(type="build"):
+        depends_on("python@2.6:2.8,3.4:")
+        depends_on("python@3.4:", when="@3.18:")
+        depends_on("python@:3.8", when="@:3.13")
+        depends_on("python@:3.12", when="@:3.21")  # import xdrlib
 
     # Other dependencies
     depends_on("metis@5:~int64+real64", when="@:3.7+metis~int64+double")
@@ -356,7 +447,10 @@ class Petsc(Package, CudaPackage, ROCmPackage):
     depends_on("libyaml", when="+libyaml")
     depends_on("hwloc", when="+hwloc")
     depends_on("kokkos", when="+kokkos")
+    depends_on("kokkos~complex_align", when="+kokkos+complex")
     depends_on("kokkos-kernels", when="+kokkos")
+    conflicts("kokkos@4.5:", when="@:3.22")
+    conflicts("kokkos-kernels@4.5:", when="@:3.22")
     for cuda_arch in CudaPackage.cuda_arch_values:
         depends_on(
             "kokkos+cuda+cuda_lambda cuda_arch=%s" % cuda_arch,
@@ -496,6 +590,9 @@ class Petsc(Package, CudaPackage, ROCmPackage):
         else:
             hdf5libs = ":hl"
 
+        if "+exodusii+fortran" in spec and "+fortran" in spec:
+            options.append("--with-exodusii-fortran-bindings")
+
         # tuple format (spacklibname, petsclibname, useinc, uselib)
         # default: 'gmp', => ('gmp', 'gmp', True, True)
         # any other combination needs a full tuple
@@ -535,7 +632,7 @@ class Petsc(Package, CudaPackage, ROCmPackage):
             ("parallel-netcdf", "pnetcdf", True, True),
             ("moab", "moab", False, False),
             ("random123", "random123", False, False),
-            "exodusii",
+            ("exodusii", "exodusii", False, False),
             "cgns",
             "memkind",
             "p4est",
@@ -601,7 +698,7 @@ class Petsc(Package, CudaPackage, ROCmPackage):
                 hip_arch = spec.variants["amdgpu_target"].value
                 options.append("--with-hip-arch={0}".format(hip_arch[0]))
             hip_pkgs = ["hipsparse", "hipblas", "hipsolver", "rocsparse", "rocsolver", "rocblas"]
-            hip_ipkgs = hip_pkgs + ["rocthrust", "rocprim"]
+            hip_ipkgs = hip_pkgs + ["rocthrust", "rocprim", "rocm-core"]
             hip_lpkgs = hip_pkgs
             if spec.satisfies("^rocrand@5.1:"):
                 hip_ipkgs.extend(["rocrand"])

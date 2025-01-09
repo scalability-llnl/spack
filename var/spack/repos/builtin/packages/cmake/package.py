@@ -4,10 +4,12 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
+import pathlib
 import re
 import sys
 
 import spack.build_environment
+from spack.build_systems.cmake import get_cmake_prefix_path
 from spack.package import *
 
 
@@ -29,6 +31,13 @@ class Cmake(Package):
     license("BSD-3-Clause")
 
     version("master", branch="master")
+    version("3.31.2", sha256="42abb3f48f37dbd739cdfeb19d3712db0c5935ed5c2aef6c340f9ae9114238a2")
+    version("3.31.1", sha256="c4fc2a9bd0cd5f899ccb2fb81ec422e175090bc0de5d90e906dd453b53065719")
+    version("3.31.0", sha256="300b71db6d69dcc1ab7c5aae61cbc1aa2778a3e00cbd918bc720203e311468c3")
+    version("3.30.6", sha256="a7aa25cdd8545156fe0fec95ebbd53cb2b5173a8717e227f6e8a755185c168cf")
+    version("3.30.5", sha256="9f55e1a40508f2f29b7e065fa08c29f82c402fa0402da839fffe64a25755a86d")
+    version("3.30.4", sha256="c759c97274f1e7aaaafcb1f0d261f9de9bf3a5d6ecb7e2df616324a46fe704b2")
+    version("3.30.3", sha256="6d5de15b6715091df7f5441007425264bdd477809f80333fdf95f846aaff88e4")
     version("3.30.2", sha256="46074c781eccebc433e98f0bbfa265ca3fd4381f245ca3b140e7711531d60db2")
     version("3.30.1", sha256="df9b3c53e3ce84c3c1b7c253e5ceff7d8d1f084ff0673d048f260e04ccb346e1")
     version("3.30.0", sha256="157e5be6055c154c34f580795fe5832f260246506d32954a971300ed7899f579")
@@ -114,6 +123,23 @@ class Cmake(Package):
         values=("Debug", "Release", "RelWithDebInfo", "MinSizeRel"),
     )
 
+    # We default ownlibs to true because it greatly speeds up the CMake
+    # build, and CMake is built frequently. Also, CMake is almost always
+    # a build dependency, and its libs will not interfere with others in
+    # the build.
+    variant("ownlibs", default=True, description="Use CMake-provided third-party libraries")
+    variant(
+        "doc",
+        default=False,
+        description="Enables the generation of html and man page documentation",
+    )
+    variant(
+        "ncurses",
+        default=sys.platform != "win32",
+        description="Enables the build of the ncurses gui",
+    )
+    variant("qtgui", default=False, description="Enables the build of the Qt GUI")
+
     # Revert the change that introduced a regression when parsing mpi link
     # flags, see: https://gitlab.kitware.com/cmake/cmake/issues/19516
     patch("cmake-revert-findmpi-link-flag-list.patch", when="@3.15.0")
@@ -139,21 +165,13 @@ class Cmake(Package):
     depends_on("gmake", when="platform=darwin")
     depends_on("gmake", when="platform=freebsd")
 
-    # We default ownlibs to true because it greatly speeds up the CMake
-    # build, and CMake is built frequently. Also, CMake is almost always
-    # a build dependency, and its libs will not interfere with others in
-    # the build.
-    variant("ownlibs", default=True, description="Use CMake-provided third-party libraries")
-    variant(
-        "doc",
-        default=False,
-        description="Enables the generation of html and man page documentation",
-    )
-    variant(
-        "ncurses",
-        default=sys.platform != "win32",
-        description="Enables the build of the ncurses gui",
-    )
+    depends_on("qt", when="+qtgui")
+    # Qt depends on libmng, which is a CMake package;
+    # ensure we build using a non CMake build system
+    # when libmng is build as a transitive dependency of CMake
+    for plat in ["linux", "darwin", "freebsd"]:
+        with when(f"platform={plat}"):
+            depends_on("libmng build_system=autotools", when="+qtgui")
 
     # See https://gitlab.kitware.com/cmake/cmake/-/issues/21135
     conflicts(
@@ -183,9 +201,9 @@ class Cmake(Package):
     with when("~ownlibs"):
         depends_on("expat")
         # expat/zlib are used in CMake/CTest, so why not require them in libarchive.
-        for plat in ["darwin", "linux"]:
+        for plat in ["darwin", "linux", "freebsd"]:
             with when("platform=%s" % plat):
-                depends_on("libarchive@3.1.0: xar=expat compression=zlib")
+                depends_on("libarchive@3.1.0: xar=expat compression=bz2lib,lzma,zlib,zstd")
                 depends_on("libarchive@3.3.3:", when="@3.15.0:")
                 depends_on("libuv@1.0.0:1.10", when="@3.7.0:3.10.3")
                 depends_on("libuv@1.10.0:1.10", when="@3.11.0:3.11")
@@ -220,7 +238,7 @@ class Cmake(Package):
     patch("fujitsu_add_linker_option.patch", when="%fj")
 
     # Remove -A from the C++ flags we use when CXX_EXTENSIONS is OFF
-    # Should be fixed in 3.19.
+    # Should be fixed in 3.19. This patch is needed also for nvhpc.
     # https://gitlab.kitware.com/cmake/cmake/-/merge_requests/5025
     patch("pgi-cxx-ansi.patch", when="@3.15:3.18")
 
@@ -311,16 +329,27 @@ class Cmake(Package):
 
             # Whatever +/~ownlibs, use system curl.
             args.append("--system-curl")
-            args.append("--no-qt-gui")
 
             if spec.satisfies("+doc"):
                 args.append("--sphinx-html")
                 args.append("--sphinx-man")
 
+            if spec.satisfies("+qtgui"):
+                args.append("--qt-gui")
+            else:
+                args.append("--no-qt-gui")
+
             # Now for CMake arguments to pass after the initial bootstrap
             args.append("--")
         else:
             args.append("-DCMAKE_INSTALL_PREFIX=%s" % self.prefix)
+
+        # Make CMake find its own dependencies.
+        prefixes = get_cmake_prefix_path(self)
+        rpaths = [
+            pathlib.Path(self.prefix, "lib").as_posix(),
+            pathlib.Path(self.prefix, "lib64").as_posix(),
+        ]
 
         args.extend(
             [
@@ -329,17 +358,10 @@ class Cmake(Package):
                 # inside a ctest environment
                 "-DCMake_TEST_INSTALL=OFF",
                 f"-DBUILD_CursesDialog={'ON' if '+ncurses' in spec else 'OFF'}",
-            ]
-        )
-
-        # Make CMake find its own dependencies.
-        rpaths = spack.build_environment.get_rpaths(self)
-        prefixes = spack.build_environment.get_cmake_prefix_path(self)
-        args.extend(
-            [
+                f"-DBUILD_QtDialog={'ON' if spec.satisfies('+qtgui') else 'OFF'}",
                 "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON",
-                "-DCMAKE_INSTALL_RPATH={0}".format(";".join(str(v) for v in rpaths)),
-                "-DCMAKE_PREFIX_PATH={0}".format(";".join(str(v) for v in prefixes)),
+                f"-DCMAKE_INSTALL_RPATH={';'.join(rpaths)}",
+                f"-DCMAKE_PREFIX_PATH={';'.join(str(v) for v in prefixes)}",
             ]
         )
 

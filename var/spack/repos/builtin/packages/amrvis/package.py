@@ -57,7 +57,7 @@ class Amrvis(MakefilePackage):
 
     # Only doing gcc and clang at the moment.
     # Intel currently fails searching for mpiicc, mpiicpc, etc.
-    for comp in ["%intel", "%cce", "%nag", "%pgi", "%xl", "%xl_r"]:
+    for comp in ["%intel", "%cce", "%nag", "%xl", "%xl_r"]:
         conflicts(comp, msg="Amrvis currently only builds with gcc and clang")
 
     # Need to clone AMReX into Amrvis because Amrvis uses AMReX's source

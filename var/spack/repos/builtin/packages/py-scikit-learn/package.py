@@ -19,6 +19,8 @@ class PyScikitLearn(PythonPackage):
 
     version("main", branch="main")
     version("master", branch="main", deprecated=True)
+    version("1.6.0", sha256="9d58481f9f7499dff4196927aedd4285a0baec8caa3790efbe205f13de37dd6e")
+    version("1.5.2", sha256="b4237ed7b3fdd0a4882792e68ef2545d5baa50aca3bb45aa7df468138ad8f94d")
     version("1.5.1", sha256="0ea5d40c0e3951df445721927448755d3fe1d80833b0b7308ebff5d2a45e6414")
     version("1.5.0", sha256="789e3db01c750ed6d496fa2db7d50637857b451e57bcae863bff707c1247bef7")
     version("1.4.2", sha256="daa1c471d95bad080c6e44b4946c9390a4842adc3082572c20e4f8884e39e959")
@@ -39,21 +41,44 @@ class PyScikitLearn(PythonPackage):
     version("0.24.2", sha256="d14701a12417930392cd3898e9646cf5670c190b933625ebe7511b1f7d7b8736")
     version("0.24.1", sha256="a0334a1802e64d656022c3bfab56a73fbd6bf4b1298343f3688af2151810bbdf")
     version("0.24.0", sha256="076369634ee72b5a5941440661e2f306ff4ac30903802dc52031c7e9199ac640")
-    version("0.23.2", sha256="20766f515e6cd6f954554387dfae705d93c7b544ec0e6c6a5d8e006f6f7ef480")
-    version("0.23.1", sha256="e3fec1c8831f8f93ad85581ca29ca1bb88e2da377fb097cf8322aa89c21bc9b8")
-    version("0.23.0", sha256="639a53df6273acc6a7510fb0c658b94e0c70bb13dafff9d14932c981ff9baff4")
     version(
-        "0.22.2.post1", sha256="57538d138ba54407d21e27c306735cbd42a6aae0df6a5a30c7a6edde46b0017d"
+        "0.23.2",
+        sha256="20766f515e6cd6f954554387dfae705d93c7b544ec0e6c6a5d8e006f6f7ef480",
+        deprecated=True,
     )
-    version("0.22.1", sha256="51ee25330fc244107588545c70e2f3570cfc4017cff09eed69d6e1d82a212b7d")
-    version("0.22", sha256="314abf60c073c48a1e95feaae9f3ca47a2139bd77cebb5b877c23a45c9e03012")
+    version(
+        "0.23.1",
+        sha256="e3fec1c8831f8f93ad85581ca29ca1bb88e2da377fb097cf8322aa89c21bc9b8",
+        deprecated=True,
+    )
+    version(
+        "0.23.0",
+        sha256="639a53df6273acc6a7510fb0c658b94e0c70bb13dafff9d14932c981ff9baff4",
+        deprecated=True,
+    )
+    version(
+        "0.22.2.post1",
+        sha256="57538d138ba54407d21e27c306735cbd42a6aae0df6a5a30c7a6edde46b0017d",
+        deprecated=True,
+    )
+    version(
+        "0.22.1",
+        sha256="51ee25330fc244107588545c70e2f3570cfc4017cff09eed69d6e1d82a212b7d",
+        deprecated=True,
+    )
+    version(
+        "0.22",
+        sha256="314abf60c073c48a1e95feaae9f3ca47a2139bd77cebb5b877c23a45c9e03012",
+        deprecated=True,
+    )
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     # Based on PyPI wheel availability
     with default_args(type=("build", "link", "run")):
-        depends_on("python@3.9:3.12", when="@1.4:")
+        depends_on("python@3.9:3.13", when="@1.5.2:")
+        depends_on("python@3.9:3.12", when="@1.4:1.5.1")
         depends_on("python@3.8:3.12", when="@1.3.1:1.3")
         depends_on("python@3.8:3.11", when="@1.1.3:1.3.0")
         depends_on("python@3.8:3.10", when="@1.1.0:1.1.2")

@@ -12,15 +12,14 @@ import os.path
 import pickle
 import re
 import shlex
+import subprocess
 import sys
 from functools import wraps
-from typing import Any, Callable, Dict, List, MutableMapping, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, MutableMapping, Optional, Tuple, Union
 
 from llnl.path import path_to_os_path, system_path_filter
 from llnl.util import tty
 from llnl.util.lang import dedupe
-
-from .executable import Executable, which
 
 if sys.platform == "win32":
     SYSTEM_PATHS = [
@@ -91,7 +90,7 @@ def is_system_path(path: Path) -> bool:
     return bool(path) and (os.path.normpath(path) in SYSTEM_DIRS)
 
 
-def filter_system_paths(paths: List[Path]) -> List[Path]:
+def filter_system_paths(paths: Iterable[Path]) -> List[Path]:
     """Returns a copy of the input where system paths are filtered out."""
     return [p for p in paths if not is_system_path(p)]
 
@@ -186,7 +185,7 @@ def dump_environment(path: Path, environment: Optional[MutableMapping[str, str]]
     hidden_vars = {"PS1", "PWD", "OLDPWD", "TERM_SESSION_ID"}
 
     file_descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-    with os.fdopen(file_descriptor, "w") as env_file:
+    with os.fdopen(file_descriptor, "w", encoding="utf-8") as env_file:
         for var, val in sorted(use_env.items()):
             env_file.write(
                 "".join(
@@ -1034,8 +1033,6 @@ def environment_after_sourcing_files(
         source_command = kwargs.get("source_command", "source")
     concatenate_on_success = kwargs.get("concatenate_on_success", "&&")
 
-    shell = Executable(shell_cmd)
-
     def _source_single_file(file_and_args, environment):
         shell_options_list = shell_options.split()
 
@@ -1043,26 +1040,21 @@ def environment_after_sourcing_files(
         source_file.extend(x for x in file_and_args)
         source_file = " ".join(source_file)
 
-        # If the environment contains 'python' use it, if not
-        # go with sys.executable. Below we just need a working
-        # Python interpreter, not necessarily sys.executable.
-        python_cmd = which("python3", "python", "python2")
-        python_cmd = python_cmd.path if python_cmd else sys.executable
-
         dump_cmd = "import os, json; print(json.dumps(dict(os.environ)))"
-        dump_environment_cmd = python_cmd + f' -E -c "{dump_cmd}"'
+        dump_environment_cmd = sys.executable + f' -E -c "{dump_cmd}"'
 
         # Try to source the file
         source_file_arguments = " ".join(
             [source_file, suppress_output, concatenate_on_success, dump_environment_cmd]
         )
-        output = shell(
-            *shell_options_list,
-            source_file_arguments,
-            output=str,
+
+        with subprocess.Popen(
+            [shell_cmd, *shell_options_list, source_file_arguments],
             env=environment,
-            ignore_quotes=True,
-        )
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        ) as shell:
+            output, _ = shell.communicate()
 
         return json.loads(output)
 

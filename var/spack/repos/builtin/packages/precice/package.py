@@ -116,7 +116,6 @@ class Precice(CMakePackage):
     conflicts("%apple-clang@:5")
     conflicts("%clang@:3.7")
     conflicts("%intel@:16")
-    conflicts("%pgi@:17.3")
 
     def xsdk_tpl_args(self):
         return [

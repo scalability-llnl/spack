@@ -74,8 +74,8 @@ class Lhapdfsets(BundlePackage):
     @classmethod
     def determine_spec_details(cls, prefix, exes_in_prefix):
         path = os.environ.get("LHAPDF_DATA_PATH", None)
+        if not path:
+            return None
         # unfortunately the sets are not versioned -
         # just hardcode the current version and hope it is fine
-        s = Spec.from_detection("lhapdfsets@6.3.0")
-        s.external_path = path
-        return s if path else None
+        return Spec.from_detection("lhapdfsets@6.3.0", external_path=path)

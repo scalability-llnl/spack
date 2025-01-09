@@ -6,9 +6,9 @@
 import pytest
 
 import spack.cmd.diff
-import spack.config
 import spack.main
-import spack.store
+import spack.repo
+import spack.spec
 import spack.util.spack_json as sjson
 from spack.test.conftest import create_test_repo
 
@@ -20,6 +20,8 @@ find_cmd = spack.main.SpackCommand("find")
 _p1 = (
     "p1",
     """\
+from spack.package import *
+
 class P1(Package):
     version("1.0")
 
@@ -35,6 +37,8 @@ class P1(Package):
 _p2 = (
     "p2",
     """\
+from spack.package import *
+
 class P2(Package):
     version("1.0")
 
@@ -48,6 +52,8 @@ class P2(Package):
 _p3 = (
     "p3",
     """\
+from spack.package import *
+
 class P3(Package):
     version("1.0")
 
@@ -58,6 +64,8 @@ class P3(Package):
 _i1 = (
     "i1",
     """\
+from spack.package import *
+
 class I1(Package):
     version("1.0")
 
@@ -73,6 +81,8 @@ class I1(Package):
 _i2 = (
     "i2",
     """\
+from spack.package import *
+
 class I2(Package):
     version("1.0")
 
@@ -89,6 +99,8 @@ class I2(Package):
 _p4 = (
     "p4",
     """\
+from spack.package import *
+
 class P4(Package):
     version("1.0")
 

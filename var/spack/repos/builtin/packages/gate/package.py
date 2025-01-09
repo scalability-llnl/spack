@@ -55,7 +55,7 @@ class Gate(CMakePackage):
     def cmake_args(self):
         args = []
 
-        if "+rtk" in self.spec:
+        if self.spec.satisfies("+rtk"):
             args.extend(["-DGATE_USE_ITK=ON", "-DGATE_USE_RTK=ON"])
         else:
             args.extend(["-DGATE_USE_ITK=OFF", "-DGATE_USE_RTK=OFF"])

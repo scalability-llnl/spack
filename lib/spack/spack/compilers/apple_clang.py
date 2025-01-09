@@ -8,7 +8,6 @@ import llnl.util.lang
 
 import spack.compiler
 import spack.compilers.clang
-import spack.util.executable
 from spack.version import Version
 
 

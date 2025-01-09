@@ -102,8 +102,6 @@ class Zoltan(AutotoolsPackage):
         config_incdirs = []
 
         # PGI runtime libraries
-        if "%pgi" in spec:
-            config_ldflags.append("-pgf90libs")
         # NVHPC runtime libraries
         if "%nvhpc" in spec:
             config_ldflags.append("-fortranlibs")

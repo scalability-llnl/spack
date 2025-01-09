@@ -52,12 +52,12 @@ class Libkml(CMakePackage):
 
         args = []
 
-        if "+java" in spec:
+        if spec.satisfies("+java"):
             args.append("-DWITH_JAVA:BOOL=ON")
         else:
             args.append("-DWITH_JAVA:BOOL=OFF")
 
-        if "+python" in spec:
+        if spec.satisfies("+python"):
             args.append("-DWITH_PYTHON:BOOL=ON")
         else:
             args.append("-DWITH_PYTHON:BOOL=OFF")

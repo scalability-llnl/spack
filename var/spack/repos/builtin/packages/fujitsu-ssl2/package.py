@@ -35,25 +35,25 @@ class FujitsuSsl2(Package):
         spec = self.spec
         libslist = []
         if spec.target == "a64fx":  # Build with SVE support
-            if "+parallel" in spec:  # parallel
+            if spec.satisfies("+parallel"):  # parallel
                 libslist.append("libfjlapackexsve.so")
             else:
                 libslist.append("libfjlapacksve.so")
         else:
-            if "+parallel" in spec:  # parallel
+            if spec.satisfies("+parallel"):  # parallel
                 libslist.append("libfjlapackex.so")
             else:
                 libslist.append("libfjlapack.so")
 
-        if "+parallel" in spec:  # parallel
+        if spec.satisfies("+parallel"):  # parallel
             libslist.extend(["libfjomphk.so", "libfjomp.so"])
 
         if spec.target == "a64fx":  # Build with SVE support
-            if "+parallel" in spec:  # parallel
+            if spec.satisfies("+parallel"):  # parallel
                 libslist.append("libssl2mtexsve.a")
             libslist.append("libssl2mtsve.a")
         else:
-            if "+parallel" in spec:  # parallel
+            if spec.satisfies("+parallel"):  # parallel
                 libslist.append("libssl2mtex.a")
             libslist.append("libssl2mt.a")
 
@@ -81,7 +81,7 @@ class FujitsuSsl2(Package):
         libslist = []
         if spec.target == "a64fx":  # Build with SVE support
             libslist.append("libfjscalapacksve.so")
-            if "+parallel" in spec:  # parallel
+            if spec.satisfies("+parallel"):  # parallel
                 libslist.append("libfjlapackexsve.so")
             else:
                 libslist.append("libfjlapacksve.so")
@@ -89,7 +89,7 @@ class FujitsuSsl2(Package):
 
         else:
             libslist.append("libfjscalapack.so")
-            if "+parallel" in spec:  # parallel
+            if spec.satisfies("+parallel"):  # parallel
                 libslist.append("libfjlapackex.so")
             else:
                 libslist.append("libfjlapack.so")
@@ -97,15 +97,15 @@ class FujitsuSsl2(Package):
 
         libslist.extend(["libmpi_usempi_ignore_tkr.so", "libmpi_mpifh.so"])
 
-        if "+parallel" in spec:  # parallel
+        if spec.satisfies("+parallel"):  # parallel
             libslist.extend(["libfjomphk.so", "libfjomp.so"])
 
         if spec.target == "a64fx":  # Build with SVE support
-            if "+parallel" in spec:  # parallel
+            if spec.satisfies("+parallel"):  # parallel
                 libslist.append("libssl2mtexsve.a")
             libslist.append("libssl2mtsve.a")
         else:
-            if "+parallel" in spec:  # parallel
+            if spec.satisfies("+parallel"):  # parallel
                 libslist.append("libssl2mtex.a")
             libslist.append("libssl2mt.a")
 

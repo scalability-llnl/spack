@@ -14,7 +14,7 @@ class QuantumEspresso(CMakePackage, Package):
     pseudopotentials.
     """
 
-    homepage = "http://quantum-espresso.org"
+    homepage = "https://quantum-espresso.org"
     url = "https://gitlab.com/QEF/q-e/-/archive/qe-6.6/q-e-qe-6.6.tar.gz"
     git = "https://gitlab.com/QEF/q-e.git"
 
@@ -25,6 +25,7 @@ class QuantumEspresso(CMakePackage, Package):
     license("GPL-2.0-only")
 
     version("develop", branch="develop")
+    version("7.4", sha256="b15dcfe25f4fbf15ccd34c1194021e90996393478226e601d876f7dea481d104")
     version("7.3.1", sha256="2c58b8fadfe4177de5a8b69eba447db5e623420b070dea6fd26c1533b081d844")
     version("7.3", sha256="edc2a0f3315c69966df4f82ec86ab9f682187bc9430ef6d2bacad5f27f08972c")
     version("7.2", sha256="b348a4a7348b66a73545d9ca317a2645755c98d343c1cfe8def475ad030808c0")
@@ -225,11 +226,6 @@ class QuantumEspresso(CMakePackage, Package):
         # EPW doesn't gets along well with OpenMPI 2.x.x
         conflicts("^openmpi@2.0.0:2", msg="OpenMPI version incompatible with EPW")
 
-        # EPW also doesn't gets along well with PGI 17.x + OpenMPI 1.10.7
-        conflicts(
-            "^openmpi@1.10.7%pgi@17.0:17.12", msg="PGI+OpenMPI version combo incompatible with EPW"
-        )
-
     variant(
         "environ",
         default=False,
@@ -300,6 +296,19 @@ class QuantumEspresso(CMakePackage, Package):
 
     conflicts("@6.5:", when="+environ", msg="6.4.x is the latest QE series supported by Environ")
 
+    conflicts(
+        "@:7.3.0",
+        when="build_system=generic %oneapi",
+        msg="Support for ifx has been added to configure in release 7.3.1",
+    )
+    # Fixed in https://github.com/libmbd/libmbd/pull/60, which will be part of the next release
+    conflicts(
+        "@7.3.1",
+        when="%oneapi@2024.1:",
+        msg="ifx added f_c_string in the ISO_C_BINDING module since version 2024.1 which conflicts"
+        + "with the libmbd provided one.",
+    )
+
     # 7.3 - a compile-time problem fixed in 7.3.1
     patch_url = "https://gitlab.com/QEF/q-e/-/commit/b98ff7539e5731728d2d49ac01021a57f2594027.diff"
     patch_checksum = "04c125d249d1f076abe04bc4de39bd3b44a41a78d6233b638a17bd96f91443d5"
@@ -332,6 +341,11 @@ class QuantumEspresso(CMakePackage, Package):
     patch_url = "https://raw.githubusercontent.com/QMCPACK/qmcpack/v3.13.0/external_codes/quantum_espresso/add_pw2qmcpack_to_qe-6.7.0.diff"
     patch_checksum = "72564c168231dd4a1279a74e76919af701d47cee9a851db6e205753004fe9bb5"
     patch(patch_url, sha256=patch_checksum, when="@6.7+qmcpack")
+
+    # 6.6
+    patch_url = "https://gitlab.com/QEF/q-e/-/commit/081409ea90cba0ddc07bea5ac29e3cd422c67d3d.diff"
+    patch_checksum = "f43b7411e535629d9ef564a2e1695359df2651ecbdbca563f7265412afc2228a"
+    patch(patch_url, sha256=patch_checksum, when="@6.6:7.3.1")
 
     # 6.4.1
     patch_url = "https://raw.githubusercontent.com/QMCPACK/qmcpack/v3.13.0/external_codes/quantum_espresso/add_pw2qmcpack_to_qe-6.4.1.diff"

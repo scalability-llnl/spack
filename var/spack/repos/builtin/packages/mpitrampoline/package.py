@@ -84,9 +84,9 @@ class Mpitrampoline(CMakePackage):
     def setup_run_environment(self, env):
         # Because MPI implementations provide compilers, they have to add to
         # their run environments the code to make the compilers available.
-        env.set("MPITRAMPOLINE_CC", self.compiler.cc_names[0])
-        env.set("MPITRAMPOLINE_CXX", self.compiler.cxx_names[0])
-        env.set("MPITRAMPOLINE_FC", self.compiler.fc_names[0])
+        env.set("MPITRAMPOLINE_CC", self.compiler.cc)
+        env.set("MPITRAMPOLINE_CXX", self.compiler.cxx)
+        env.set("MPITRAMPOLINE_FC", self.compiler.fc)
         env.set("MPICC", join_path(self.prefix.bin, "mpicc"))
         env.set("MPICXX", join_path(self.prefix.bin, "mpicxx"))
         env.set("MPIF77", join_path(self.prefix.bin, "mpifc"))

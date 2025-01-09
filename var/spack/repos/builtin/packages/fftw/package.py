@@ -79,7 +79,7 @@ class FftwBase(AutotoolsPackage):
             os.rename("fftw/config.h", "fftw/config.h.SPACK_RENAMED")
 
     def autoreconf(self, spec, prefix):
-        if "+pfft_patches" in spec:
+        if spec.satisfies("+pfft_patches"):
             autoreconf = which("autoreconf")
             autoreconf("-ifv")
 
@@ -114,13 +114,13 @@ class FftwBase(AutotoolsPackage):
             options.append("--enable-type-prefix")
 
         # Variants that affect every precision
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             options.append("--enable-openmp")
             if spec.satisfies("@:2"):
                 # TODO: libtool strips CFLAGS, so 2.x libxfftw_threads
                 #       isn't linked to the openmp library. Patch Makefile?
                 options.insert(0, "CFLAGS=" + self.compiler.openmp_flag)
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             options.append("--enable-mpi")
 
         # Specific SIMD support.
@@ -129,12 +129,8 @@ class FftwBase(AutotoolsPackage):
         # float only
         float_simd_features = ["altivec", "sse", "neon"]
 
-        # Workaround PGI compiler bug when avx2 is enabled
-        if spec.satisfies("%pgi") and "avx2" in simd_features:
-            simd_features.remove("avx2")
-
         # Workaround NVIDIA/PGI compiler bug when avx512 is enabled
-        if spec.satisfies("%nvhpc") or spec.satisfies("%pgi"):
+        if spec.satisfies("%nvhpc"):
             if "avx512" in simd_features:
                 simd_features.remove("avx512")
 
@@ -247,7 +243,11 @@ class Fftw(FftwBase):
     provides("fftw-api@3", when="@3:")
 
     patch("pfft-3.3.9.patch", when="@3.3.9:+pfft_patches", level=0)
+    patch(
+        "https://github.com/FFTW/fftw3/commit/f69fef7aa546d4477a2a3fd7f13fa8b2f6c54af7.patch?full_index=1",
+        sha256="872cff9a7d346e91a108ffd3540bfcebeb8cf86c7f40f6b31fd07a80267cbf53",
+        when="@3.3.7:",
+    )
     patch("pfft-3.3.5.patch", when="@3.3.5:3.3.8+pfft_patches", level=0)
     patch("pfft-3.3.4.patch", when="@3.3.4+pfft_patches", level=0)
-    patch("pgi-3.3.6-pl2.patch", when="@3.3.6-pl2%pgi", level=0)
     patch("intel-configure.patch", when="@3:3.3.8%intel", level=0)

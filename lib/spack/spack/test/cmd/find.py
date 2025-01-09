@@ -14,9 +14,14 @@ import pytest
 import spack.cmd as cmd
 import spack.cmd.find
 import spack.environment as ev
+import spack.repo
+import spack.store
 import spack.user_environment as uenv
+from spack.enums import InstallRecordStatus
 from spack.main import SpackCommand
 from spack.spec import Spec
+from spack.test.conftest import create_test_repo
+from spack.test.utilities import SpackCommandArgs
 from spack.util.pattern import Bunch
 
 find = SpackCommand("find")
@@ -69,11 +74,11 @@ def test_query_arguments():
 
     q_args = query_arguments(args)
     assert "installed" in q_args
-    assert "known" in q_args
+    assert "predicate_fn" in q_args
     assert "explicit" in q_args
-    assert q_args["installed"] == ["installed"]
-    assert q_args["known"] is any
-    assert q_args["explicit"] is any
+    assert q_args["installed"] == InstallRecordStatus.INSTALLED
+    assert q_args["predicate_fn"] is None
+    assert q_args["explicit"] is None
     assert "start_date" in q_args
     assert "end_date" not in q_args
     assert q_args["install_tree"] == "all"
@@ -334,7 +339,6 @@ def test_find_command_basic_usage(database):
     assert "mpileaks" in output
 
 
-@pytest.mark.not_on_windows("envirnment is not yet supported on windows")
 @pytest.mark.regression("9875")
 def test_find_prefix_in_env(
     mutable_mock_env_path, install_mockery, mock_fetch, mock_packages, mock_archive
@@ -353,7 +357,7 @@ def test_find_specs_include_concrete_env(mutable_mock_env_path, mutable_mock_rep
     path = tmpdir.join("spack.yaml")
 
     with tmpdir.as_cwd():
-        with open(str(path), "w") as f:
+        with open(str(path), "w", encoding="utf-8") as f:
             f.write(
                 """\
 spack:
@@ -368,7 +372,7 @@ spack:
     test1.write()
 
     with tmpdir.as_cwd():
-        with open(str(path), "w") as f:
+        with open(str(path), "w", encoding="utf-8") as f:
             f.write(
                 """\
 spack:
@@ -397,7 +401,7 @@ def test_find_specs_nested_include_concrete_env(mutable_mock_env_path, mutable_m
     path = tmpdir.join("spack.yaml")
 
     with tmpdir.as_cwd():
-        with open(str(path), "w") as f:
+        with open(str(path), "w", encoding="utf-8") as f:
             f.write(
                 """\
 spack:
@@ -453,3 +457,150 @@ def test_environment_with_version_range_in_compiler_doesnt_fail(tmp_path):
     with test_environment:
         output = find()
     assert "zlib%gcc@12.1.0" in output
+
+
+_pkga = (
+    "a0",
+    """\
+from spack.package import *
+
+class A0(Package):
+    version("1.2")
+    version("1.1")
+
+    depends_on("b0")
+    depends_on("c0")
+""",
+)
+
+
+_pkgb = (
+    "b0",
+    """\
+from spack.package import *
+
+class B0(Package):
+    version("1.2")
+    version("1.1")
+""",
+)
+
+
+_pkgc = (
+    "c0",
+    """\
+from spack.package import *
+
+class C0(Package):
+    version("1.2")
+    version("1.1")
+
+    tags = ["tag0", "tag1"]
+""",
+)
+
+
+_pkgd = (
+    "d0",
+    """\
+from spack.package import *
+
+class D0(Package):
+    version("1.2")
+    version("1.1")
+
+    depends_on("c0")
+    depends_on("e0")
+""",
+)
+
+
+_pkge = (
+    "e0",
+    """\
+from spack.package import *
+
+class E0(Package):
+    tags = ["tag1", "tag2"]
+
+    version("1.2")
+    version("1.1")
+""",
+)
+
+
+@pytest.fixture
+def _create_test_repo(tmpdir, mutable_config):
+    r"""
+      a0  d0
+     / \ / \
+    b0  c0  e0
+    """
+    yield create_test_repo(tmpdir, [_pkga, _pkgb, _pkgc, _pkgd, _pkge])
+
+
+@pytest.fixture
+def test_repo(_create_test_repo, monkeypatch, mock_stage):
+    with spack.repo.use_repositories(_create_test_repo) as mock_repo_path:
+        yield mock_repo_path
+
+
+def test_find_concretized_not_installed(
+    mutable_mock_env_path, install_mockery, mock_fetch, test_repo, mock_archive
+):
+    """Test queries against installs of specs against fake repo.
+
+    Given A, B, C, D, E, create an environment and install A.
+    Add and concretize (but do not install) D.
+    Test a few queries after force uninstalling a dependency of A (but not
+    A itself).
+    """
+    add = SpackCommand("add")
+    concretize = SpackCommand("concretize")
+    uninstall = SpackCommand("uninstall")
+
+    def _query(_e, *args):
+        return spack.cmd.find._find_query(SpackCommandArgs("find")(*args), _e)
+
+    def _nresults(_qresult):
+        return len(_qresult[0]), len(_qresult[1])
+
+    env("create", "test")
+    with ev.read("test") as e:
+        install("--fake", "--add", "a0")
+
+        assert _nresults(_query(e)) == (3, 0)
+        assert _nresults(_query(e, "--explicit")) == (1, 0)
+
+        add("d0")
+        concretize("--reuse")
+
+        # At this point d0 should use existing c0, but d/e
+        # are not installed in the env
+
+        # --explicit, --deprecated, --start-date, etc. are all
+        # filters on records, and therefore don't apply to
+        # concretized-but-not-installed results
+        assert _nresults(_query(e, "--explicit")) == (1, 2)
+
+        assert _nresults(_query(e)) == (3, 2)
+        assert _nresults(_query(e, "-c", "d0")) == (0, 1)
+
+        uninstall("-f", "-y", "b0")
+
+        # b0 is now missing (it is not installed, but has an
+        # installed parent)
+
+        assert _nresults(_query(e)) == (2, 3)
+        # b0 is "double-counted" here: it meets the --missing
+        # criteria, and also now qualifies as a
+        # concretized-but-not-installed spec
+        assert _nresults(_query(e, "--missing")) == (3, 3)
+        assert _nresults(_query(e, "--only-missing")) == (1, 3)
+
+        # Tags are not attached to install records, so they
+        # can modify the concretized-but-not-installed results
+
+        assert _nresults(_query(e, "--tag=tag0")) == (1, 0)
+        assert _nresults(_query(e, "--tag=tag1")) == (1, 1)
+        assert _nresults(_query(e, "--tag=tag2")) == (0, 1)

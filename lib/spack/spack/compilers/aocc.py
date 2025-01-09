@@ -13,18 +13,6 @@ from spack.version import ver
 
 
 class Aocc(Compiler):
-    # Subclasses use possible names of C compiler
-    cc_names = ["clang"]
-
-    # Subclasses use possible names of C++ compiler
-    cxx_names = ["clang++"]
-
-    # Subclasses use possible names of Fortran 77 compiler
-    f77_names = ["flang"]
-
-    # Subclasses use possible names of Fortran 90 compiler
-    fc_names = ["flang"]
-
     version_argument = "--version"
 
     @property
@@ -128,5 +116,5 @@ class Aocc(Compiler):
     def _handle_default_flag_addtions(self):
         # This is a known issue for AOCC 3.0 see:
         # https://developer.amd.com/wp-content/resources/AOCC-3.0-Install-Guide.pdf
-        if self.real_version.satisfies(ver("3.0.0")):
+        if self.version.satisfies(ver("3.0.0")):
             return "-Wno-unused-command-line-argument " "-mllvm -eliminate-similar-expr=false"

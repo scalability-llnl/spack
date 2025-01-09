@@ -2,10 +2,7 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
 # ----------------------------------------------------------------------------
-from llnl.util import tty
-
 from spack.package import *
 
 
@@ -35,24 +32,35 @@ class AoclCrypto(CMakePackage):
 
     _name = "aocl-crypto"
     homepage = "https://www.amd.com/en/developer/aocl/cryptography.html"
-    git = "https://github.com/amd/aocl-crypto"
-    url = "https://github.com/amd/aocl-crypto/archive/refs/tags/4.2.tar.gz"
+    url = "https://github.com/amd/aocl-crypto/archive/4.2.tar.gz"
+    git = "https://github.com/amd/aocl-crypto/"
 
     maintainers("amd-toolchain-support")
+
     version(
-        "4.2",
-        sha256="2bdbedd8ab1b28632cadff237f4abd776e809940ad3633ad90fc52ce225911fe",
+        "5.0",
+        sha256="b15e609943f9977e13f2d5839195bb7411c843839a09f0ad47f78f57e8821c23",
         preferred=True,
     )
+    version("4.2", sha256="2bdbedd8ab1b28632cadff237f4abd776e809940ad3633ad90fc52ce225911fe")
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
     variant("examples", default=False, description="Build examples")
+    variant("ipp", default=False, description="Build Intel IPP library")
 
-    depends_on("cmake@3.15:", type="build")
-    depends_on("openssl@3.0.0:")
+    # Removed dependency on lsb_release
+    patch(
+        "lsb_release.patch",
+        sha256="b61d6d2518276c56d37e8c64d18488081af70f29a62f315ecbd23664e0e440b9",
+        when="@5.0",
+    )
+
+    depends_on("cmake@3.22:", type="build")
+    depends_on("openssl@3.1.5:")
+    depends_on("intel-oneapi-ippcp@2021.12.0:", when="+ipp")
     depends_on("p7zip", type="build")
-    for vers in ["4.2"]:
+    for vers in ["4.2", "5.0"]:
         with when(f"@={vers}"):
             depends_on(f"aocl-utils@={vers}")
 
@@ -75,22 +83,22 @@ class AoclCrypto(CMakePackage):
     def cmake_args(self):
         """Runs ``cmake`` in the build directory"""
         spec = self.spec
-        if not (
-            spec.satisfies(r"%aocc@4.1:4.2")
-            or spec.satisfies(r"%gcc@12.2:13.1")
-            or spec.satisfies(r"%clang@16:17")
-        ):
-            tty.warn(
-                "AOCL has been tested to work with the following compilers "
-                "versions - gcc@12.2:13.1, aocc@4.1:4.2, and clang@16:17 "
-                "see the following aocl userguide for details: "
-                "https://www.amd.com/content/dam/amd/en/documents/developer/version-4-2-documents/aocl/aocl-4-2-user-guide.pdf"
-            )
 
-        args = ["-DCMAKE_C_COMPILER=%s" % spack_cc, "-DCMAKE_CXX_COMPILER=%s" % spack_cxx]
-        args.append(self.define_from_variant("ALCP_ENABLE_EXAMPLES", "examples"))
-        args.append("-DOPENSSL_INSTALL_DIR=" + spec["openssl"].prefix)
-        args.append("-DENABLE_AOCL_UTILS=ON")
-        args.append("-DAOCL_UTILS_INSTALL_DIR=" + spec["aocl-utils"].prefix)
+        args = [
+            self.define_from_variant("ALCP_ENABLE_EXAMPLES", "examples"),
+            self.define("ENABLE_AOCL_UTILS", True),
+            self.define("AOCL_UTILS_INSTALL_DIR", spec["aocl-utils"].prefix),
+            self.define("CMAKE_INSTALL_LIBDIR", "lib"),
+            self.define("ALCP_ENABLE_DYNAMIC_COMPILER_PICK", False),
+        ]
+
+        compat_libs = ["openssl"]
+        args.append(self.define("OPENSSL_INSTALL_DIR", spec["openssl"].prefix))
+
+        if "+ipp" in spec:
+            compat_libs.append("ipp")
+            args.append(self.define("IPP_INSTALL_DIR", spec["intel-oneapi-ippcp"].prefix))
+
+        args.append(self.define("AOCL_COMPAT_LIBS", ",".join(compat_libs)))
 
         return args

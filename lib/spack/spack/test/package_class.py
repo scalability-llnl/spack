@@ -5,7 +5,7 @@
 
 """Test class methods on Package objects.
 
-This doesn't include methods on package *instances* (like do_install(),
+This doesn't include methods on package *instances* (like do_patch(),
 etc.).  Only methods like ``possible_dependencies()`` that deal with the
 static DSL metadata for packages.
 """
@@ -17,13 +17,16 @@ import pytest
 
 import llnl.util.filesystem as fs
 
+import spack.compilers
 import spack.deptypes as dt
+import spack.error
 import spack.install_test
+import spack.package
 import spack.package_base
 import spack.repo
 import spack.spec
 from spack.build_systems.generic import Package
-from spack.installer import InstallError
+from spack.error import InstallError
 
 
 @pytest.fixture(scope="module")
@@ -283,55 +286,3 @@ def test_package_test_no_compilers(mock_packages, monkeypatch, capfd):
     error = capfd.readouterr()[1]
     assert "Skipping tests for package" in error
     assert "test requires missing compiler" in error
-
-
-# TODO (post-34236): Remove when remove deprecated run_test(), etc.
-@pytest.mark.parametrize(
-    "msg,installed,purpose,expected",
-    [
-        ("do-nothing", False, "test: echo", "do-nothing"),
-        ("not installed", True, "test: echo not installed", "expected in prefix"),
-    ],
-)
-def test_package_run_test_install(
-    install_mockery, mock_fetch, capfd, msg, installed, purpose, expected
-):
-    """Confirm expected outputs from run_test for installed/not installed exe."""
-    s = spack.spec.Spec("trivial-smoke-test").concretized()
-    pkg = s.package
-
-    pkg.run_test(
-        "echo", msg, expected=[expected], installed=installed, purpose=purpose, work_dir="."
-    )
-    output = capfd.readouterr()[0]
-    assert expected in output
-
-
-# TODO (post-34236): Remove when remove deprecated run_test(), etc.
-@pytest.mark.parametrize(
-    "skip,failures,status",
-    [
-        (True, 0, str(spack.install_test.TestStatus.SKIPPED)),
-        (False, 1, str(spack.install_test.TestStatus.FAILED)),
-    ],
-)
-def test_package_run_test_missing(install_mockery, mock_fetch, capfd, skip, failures, status):
-    """Confirm expected results from run_test for missing exe when skip or not."""
-    s = spack.spec.Spec("trivial-smoke-test").concretized()
-    pkg = s.package
-
-    pkg.run_test("no-possible-program", skip_missing=skip)
-    output = capfd.readouterr()[0]
-    assert len(pkg.tester.test_failures) == failures
-    assert status in output
-
-
-# TODO (post-34236): Remove when remove deprecated run_test(), etc.
-def test_package_run_test_fail_fast(install_mockery, mock_fetch):
-    """Confirm expected exception when run_test with fail_fast enabled."""
-    s = spack.spec.Spec("trivial-smoke-test").concretized()
-    pkg = s.package
-
-    with spack.config.override("config:fail_fast", True):
-        with pytest.raises(spack.install_test.TestFailure, match="Failed to find executable"):
-            pkg.run_test("no-possible-program")

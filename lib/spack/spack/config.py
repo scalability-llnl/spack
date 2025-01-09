@@ -39,6 +39,7 @@ from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
 
 from llnl.util import filesystem, lang, tty
 
+import spack.error
 import spack.paths
 import spack.platforms
 import spack.schema
@@ -48,17 +49,19 @@ import spack.schema.ci
 import spack.schema.compilers
 import spack.schema.concretizer
 import spack.schema.config
+import spack.schema.definitions
+import spack.schema.develop
 import spack.schema.env
 import spack.schema.mirrors
 import spack.schema.modules
 import spack.schema.packages
 import spack.schema.repos
 import spack.schema.upstreams
+import spack.schema.view
 
 # Hacked yaml for configuration files preserves line numbers.
 import spack.util.spack_yaml as syaml
 import spack.util.web as web_util
-from spack.error import SpackError
 from spack.util.cpus import cpus_available
 
 #: Dict from section names -> schema for that section
@@ -165,7 +168,7 @@ class DirectoryConfigScope(ConfigScope):
 
     def _write_section(self, section: str) -> None:
         if not self.writable:
-            raise ConfigError(f"Cannot write to immutable scope {self}")
+            raise spack.error.ConfigError(f"Cannot write to immutable scope {self}")
 
         filename = self.get_section_filename(section)
         data = self.get_section(section)
@@ -176,7 +179,7 @@ class DirectoryConfigScope(ConfigScope):
 
         try:
             filesystem.mkdirp(self.path)
-            with open(filename, "w") as f:
+            with open(filename, "w", encoding="utf-8") as f:
                 syaml.dump_config(data, stream=f, default_flow_style=False)
         except (syaml.SpackYAMLError, OSError) as e:
             raise ConfigFileError(f"cannot write to '{filename}'") from e
@@ -277,7 +280,7 @@ class SingleFileScope(ConfigScope):
 
     def _write_section(self, section: str) -> None:
         if not self.writable:
-            raise ConfigError(f"Cannot write to immutable scope {self}")
+            raise spack.error.ConfigError(f"Cannot write to immutable scope {self}")
         data_to_write: Optional[YamlConfigDict] = self._raw_data
 
         # If there is no existing data, this section SingleFileScope has never
@@ -311,7 +314,7 @@ class SingleFileScope(ConfigScope):
             filesystem.mkdirp(parent)
 
             tmp = os.path.join(parent, f".{os.path.basename(self.path)}.tmp")
-            with open(tmp, "w") as f:
+            with open(tmp, "w", encoding="utf-8") as f:
                 syaml.dump_config(data_to_write, stream=f, default_flow_style=False)
             filesystem.rename(tmp, self.path)
 
@@ -423,6 +426,10 @@ class Configuration:
         for scope in scopes:
             self.push_scope(scope)
         self.format_updates: Dict[str, List[ConfigScope]] = collections.defaultdict(list)
+
+    def ensure_unwrapped(self) -> "Configuration":
+        """Ensure we unwrap this object from any dynamic wrapper (like Singleton)"""
+        return self
 
     @_config_mutator
     def push_scope(self, scope: ConfigScope) -> None:
@@ -612,7 +619,7 @@ class Configuration:
             if changed:
                 self.format_updates[section].append(scope)
 
-            merged_section = merge_yaml(merged_section, data)
+            merged_section = spack.schema.merge_yaml(merged_section, data)
 
         # no config files -- empty config.
         if section not in merged_section:
@@ -673,7 +680,7 @@ class Configuration:
         while len(parts) > 1:
             key = parts.pop(0)
 
-            if _override(key):
+            if spack.schema.override(key):
                 new = type(data[key])()
                 del data[key]
             else:
@@ -686,7 +693,7 @@ class Configuration:
                 data[key] = new
             data = new
 
-        if _override(parts[0]):
+        if spack.schema.override(parts[0]):
             data.pop(parts[0], None)
 
         # update new value
@@ -705,13 +712,13 @@ class Configuration:
             data[section] = self.get_config(section, scope=scope)
             syaml.dump_config(data, stream=sys.stdout, default_flow_style=False, blame=blame)
         except (syaml.SpackYAMLError, OSError) as e:
-            raise ConfigError(f"cannot read '{section}' configuration") from e
+            raise spack.error.ConfigError(f"cannot read '{section}' configuration") from e
 
 
 @contextlib.contextmanager
 def override(
     path_or_scope: Union[ConfigScope, str], value: Optional[Any] = None
-) -> Generator[Union[lang.Singleton, Configuration], None, None]:
+) -> Generator[Configuration, None, None]:
     """Simple way to override config settings within a context.
 
     Arguments:
@@ -749,13 +756,7 @@ def override(
         assert scope is overrides
 
 
-#: configuration scopes added on the command line set by ``spack.main.main()``
-COMMAND_LINE_SCOPES: List[str] = []
-
-
-def _add_platform_scope(
-    cfg: Union[Configuration, lang.Singleton], name: str, path: str, writable: bool = True
-) -> None:
+def _add_platform_scope(cfg: Configuration, name: str, path: str, writable: bool = True) -> None:
     """Add a platform-specific subdirectory for the current platform."""
     platform = spack.platforms.host().name
     scope = DirectoryConfigScope(
@@ -787,32 +788,6 @@ def config_paths_from_entry_points() -> List[Tuple[str, str]]:
             if config_path and os.path.exists(config_path):
                 config_paths.append(("plugin-%s" % entry_point.name, str(config_path)))
     return config_paths
-
-
-def _add_command_line_scopes(
-    cfg: Union[Configuration, lang.Singleton], command_line_scopes: List[str]
-) -> None:
-    """Add additional scopes from the --config-scope argument, either envs or dirs."""
-    import spack.environment.environment as env  # circular import
-
-    for i, path in enumerate(command_line_scopes):
-        name = f"cmd_scope_{i}"
-
-        if env.exists(path):  # managed environment
-            manifest = env.EnvironmentManifestFile(env.root(path))
-        elif env.is_env_dir(path):  # anonymous environment
-            manifest = env.EnvironmentManifestFile(path)
-        elif os.path.isdir(path):  # directory with config files
-            cfg.push_scope(DirectoryConfigScope(name, path, writable=False))
-            _add_platform_scope(cfg, name, path, writable=False)
-            continue
-        else:
-            raise ConfigError(f"Invalid configuration scope: {path}")
-
-        for scope in manifest.env_config_scopes:
-            scope.name = f"{name}:{scope.name}"
-            scope.writable = False
-            cfg.push_scope(scope)
 
 
 def create() -> Configuration:
@@ -861,18 +836,11 @@ def create() -> Configuration:
         # Each scope can have per-platfom overrides in subdirectories
         _add_platform_scope(cfg, name, path)
 
-    # add command-line scopes
-    _add_command_line_scopes(cfg, COMMAND_LINE_SCOPES)
-
-    # we make a special scope for spack commands so that they can
-    # override configuration options.
-    cfg.push_scope(InternalConfigScope("command_line"))
-
     return cfg
 
 
 #: This is the singleton configuration instance for Spack.
-CONFIG: Union[Configuration, lang.Singleton] = lang.Singleton(create)
+CONFIG: Configuration = lang.Singleton(create)  # type: ignore
 
 
 def add_from_file(filename: str, scope: Optional[str] = None) -> None:
@@ -902,7 +870,7 @@ def add_from_file(filename: str, scope: Optional[str] = None) -> None:
 
             value = data[section]
             existing = get(section, scope=scope)
-            new = merge_yaml(existing, value)
+            new = spack.schema.merge_yaml(existing, value)
 
             # We cannot call config.set directly (set is a type)
             CONFIG.set(section, new, scope)
@@ -954,7 +922,7 @@ def add(fullpath: str, scope: Optional[str] = None) -> None:
         value: List[str] = [value]  # type: ignore[no-redef]
 
     # merge value into existing
-    new = merge_yaml(existing, value)
+    new = spack.schema.merge_yaml(existing, value)
     CONFIG.set(path, new, scope)
 
 
@@ -1019,7 +987,7 @@ def change_or_add(
 
     if found:
         update_fn(section)
-        spack.config.set(section_name, section, scope=scope)
+        CONFIG.set(section_name, section, scope=scope)
         return
 
     # If no scope meets the criteria specified by ``find_fn``,
@@ -1032,14 +1000,14 @@ def change_or_add(
             break
 
     if found:
-        spack.config.set(section_name, section, scope=scope)
+        CONFIG.set(section_name, section, scope=scope)
         return
 
     # If no scopes define any config for the named section, then
     # modify the highest-priority scope.
     scope, section = configs_by_section[0]
     update_fn(section)
-    spack.config.set(section_name, section, scope=scope)
+    CONFIG.set(section_name, section, scope=scope)
 
 
 def update_all(section_name: str, change_fn: Callable[[str], bool]) -> None:
@@ -1051,7 +1019,7 @@ def update_all(section_name: str, change_fn: Callable[[str], bool]) -> None:
     for scope, section in configs_by_section:
         modified = change_fn(section)
         if modified:
-            spack.config.set(section_name, section, scope=scope)
+            CONFIG.set(section_name, section, scope=scope)
 
 
 def _validate_section_name(section: str) -> None:
@@ -1090,7 +1058,7 @@ def validate(
 
 
 def read_config_file(
-    filename: str, schema: Optional[YamlConfigDict] = None
+    path: str, schema: Optional[YamlConfigDict] = None
 ) -> Optional[YamlConfigDict]:
     """Read a YAML configuration file.
 
@@ -1100,21 +1068,9 @@ def read_config_file(
     # to preserve flexibility in calling convention (don't need to provide
     # schema when it's not necessary) while allowing us to validate against a
     # known schema when the top-level key could be incorrect.
-
-    if not os.path.exists(filename):
-        # Ignore nonexistent files.
-        tty.debug(f"Skipping nonexistent config path {filename}", level=3)
-        return None
-
-    elif not os.path.isfile(filename):
-        raise ConfigFileError(f"Invalid configuration. {filename} exists but is not a file.")
-
-    elif not os.access(filename, os.R_OK):
-        raise ConfigFileError(f"Config file is not readable: {filename}")
-
     try:
-        tty.debug(f"Reading config from file {filename}")
-        with open(filename) as f:
+        with open(path, encoding="utf-8") as f:
+            tty.debug(f"Reading config from file {path}")
             data = syaml.load_config(f)
 
         if data:
@@ -1125,52 +1081,19 @@ def read_config_file(
 
         return data
 
-    except StopIteration:
-        raise ConfigFileError(f"Config file is empty or is not a valid YAML dict: {filename}")
+    except FileNotFoundError:
+        # Ignore nonexistent files.
+        tty.debug(f"Skipping nonexistent config path {path}", level=3)
+        return None
+
+    except OSError as e:
+        raise ConfigFileError(f"Path is not a file or is not readable: {path}: {str(e)}") from e
+
+    except StopIteration as e:
+        raise ConfigFileError(f"Config file is empty or is not a valid YAML dict: {path}") from e
 
     except syaml.SpackYAMLError as e:
         raise ConfigFileError(str(e)) from e
-
-    except OSError as e:
-        raise ConfigFileError(f"Error reading configuration file {filename}: {str(e)}") from e
-
-
-def _override(string: str) -> bool:
-    """Test if a spack YAML string is an override.
-
-    See ``spack_yaml`` for details.  Keys in Spack YAML can end in `::`,
-    and if they do, their values completely replace lower-precedence
-    configs instead of merging into them.
-
-    """
-    return hasattr(string, "override") and string.override
-
-
-def _append(string: str) -> bool:
-    """Test if a spack YAML string is an override.
-
-    See ``spack_yaml`` for details.  Keys in Spack YAML can end in `+:`,
-    and if they do, their values append lower-precedence
-    configs.
-
-    str, str : concatenate strings.
-    [obj], [obj] : append lists.
-
-    """
-    return getattr(string, "append", False)
-
-
-def _prepend(string: str) -> bool:
-    """Test if a spack YAML string is an override.
-
-    See ``spack_yaml`` for details.  Keys in Spack YAML can end in `+:`,
-    and if they do, their values prepend lower-precedence
-    configs.
-
-    str, str : concatenate strings.
-    [obj], [obj] : prepend lists. (default behavior)
-    """
-    return getattr(string, "prepend", False)
 
 
 def _mark_internal(data, name):
@@ -1232,7 +1155,7 @@ def get_valid_type(path):
                     return types[schema_type]()
     else:
         return type(None)
-    raise ConfigError(f"Cannot determine valid type for path '{path}'.")
+    raise spack.error.ConfigError(f"Cannot determine valid type for path '{path}'.")
 
 
 def remove_yaml(dest, source):
@@ -1275,7 +1198,7 @@ def remove_yaml(dest, source):
             unmerge = sk in dest
             old_dest_value = dest.pop(sk, None)
 
-            if unmerge and not spack.config._override(sk):
+            if unmerge and not spack.schema.override(sk):
                 dest[sk] = remove_yaml(old_dest_value, sv)
 
         return dest
@@ -1283,81 +1206,6 @@ def remove_yaml(dest, source):
     # If we reach here source and dest are either different types or are
     # not both lists or dicts: replace with source.
     return dest
-
-
-def merge_yaml(dest, source, prepend=False, append=False):
-    """Merges source into dest; entries in source take precedence over dest.
-
-    This routine may modify dest and should be assigned to dest, in
-    case dest was None to begin with, e.g.:
-
-       dest = merge_yaml(dest, source)
-
-    In the result, elements from lists from ``source`` will appear before
-    elements of lists from ``dest``. Likewise, when iterating over keys
-    or items in merged ``OrderedDict`` objects, keys from ``source`` will
-    appear before keys from ``dest``.
-
-    Config file authors can optionally end any attribute in a dict
-    with `::` instead of `:`, and the key will override that of the
-    parent instead of merging.
-
-    `+:` will extend the default prepend merge strategy to include string concatenation
-    `-:` will change the merge strategy to append, it also includes string concatentation
-    """
-
-    def they_are(t):
-        return isinstance(dest, t) and isinstance(source, t)
-
-    # If source is None, overwrite with source.
-    if source is None:
-        return None
-
-    # Source list is prepended (for precedence)
-    if they_are(list):
-        if append:
-            # Make sure to copy ruamel comments
-            dest[:] = [x for x in dest if x not in source] + source
-        else:
-            # Make sure to copy ruamel comments
-            dest[:] = source + [x for x in dest if x not in source]
-        return dest
-
-    # Source dict is merged into dest.
-    elif they_are(dict):
-        # save dest keys to reinsert later -- this ensures that  source items
-        # come *before* dest in OrderdDicts
-        dest_keys = [dk for dk in dest.keys() if dk not in source]
-
-        for sk, sv in source.items():
-            # always remove the dest items. Python dicts do not overwrite
-            # keys on insert, so this ensures that source keys are copied
-            # into dest along with mark provenance (i.e., file/line info).
-            merge = sk in dest
-            old_dest_value = dest.pop(sk, None)
-
-            if merge and not _override(sk):
-                dest[sk] = merge_yaml(old_dest_value, sv, _prepend(sk), _append(sk))
-            else:
-                # if sk ended with ::, or if it's new, completely override
-                dest[sk] = copy.deepcopy(sv)
-
-        # reinsert dest keys so they are last in the result
-        for dk in dest_keys:
-            dest[dk] = dest.pop(dk)
-
-        return dest
-
-    elif they_are(str):
-        # Concatenate strings in prepend mode
-        if prepend:
-            return source + dest
-        elif append:
-            return dest + source
-
-    # If we reach here source and dest are either different types or are
-    # not both lists or dicts: replace with source.
-    return copy.copy(source)
 
 
 class ConfigPath:
@@ -1712,40 +1560,48 @@ def get_mark_from_yaml_data(obj):
     return mark
 
 
-def parse_spec_from_yaml_string(string: str) -> "spack.spec.Spec":
-    """Parse a spec from YAML and add file/line info to errors, if it's available.
-
-    Parse a ``Spec`` from the supplied string, but also intercept any syntax errors and
-    add file/line information for debugging using file/line annotations from the string.
-
-    Arguments:
-        string: a string representing a ``Spec`` from config YAML.
-
+def determine_number_of_jobs(
+    *,
+    parallel: bool = False,
+    max_cpus: int = cpus_available(),
+    config: Optional[Configuration] = None,
+) -> int:
     """
+    Packages that require sequential builds need 1 job. Otherwise we use the
+    number of jobs set on the command line. If not set, then we use the config
+    defaults (which is usually set through the builtin config scope), but we
+    cap to the number of CPUs available to avoid oversubscription.
+
+    Parameters:
+        parallel: true when package supports parallel builds
+        max_cpus: maximum number of CPUs to use (defaults to cpus_available())
+        config: configuration object (defaults to global config)
+    """
+    if not parallel:
+        return 1
+
+    cfg = config or CONFIG
+
+    # Command line overrides all
     try:
-        spec = spack.spec.Spec(string)
-        return spec
-    except spack.parser.SpecSyntaxError as e:
-        mark = spack.config.get_mark_from_yaml_data(string)
-        if mark:
-            msg = f"{mark.name}:{mark.line + 1}: {str(e)}"
-            raise spack.parser.SpecSyntaxError(msg) from e
-        raise e
+        command_line = cfg.get("config:build_jobs", default=None, scope="command_line")
+        if command_line is not None:
+            return command_line
+    except ValueError:
+        pass
+
+    return min(max_cpus, cfg.get("config:build_jobs", 16))
 
 
-class ConfigError(SpackError):
-    """Superclass for all Spack config related errors."""
-
-
-class ConfigSectionError(ConfigError):
+class ConfigSectionError(spack.error.ConfigError):
     """Error for referring to a bad config section name in a configuration."""
 
 
-class ConfigFileError(ConfigError):
+class ConfigFileError(spack.error.ConfigError):
     """Issue reading or accessing a configuration file."""
 
 
-class ConfigFormatError(ConfigError):
+class ConfigFormatError(spack.error.ConfigError):
     """Raised when a configuration format does not match its schema."""
 
     def __init__(

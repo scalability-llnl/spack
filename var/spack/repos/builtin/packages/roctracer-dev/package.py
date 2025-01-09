@@ -22,6 +22,9 @@ class RoctracerDev(CMakePackage, ROCmPackage):
     libraries = ["libroctracer64"]
 
     license("MIT")
+    version("6.2.4", sha256="b94c7db8ac57a4a1d7f8115020c36551220c20f33289fd06830495b4914a7d7b")
+    version("6.2.1", sha256="9e69c90b9dc650e0d8642ec675082c9566e576285a725c3a5d07a37cebb18810")
+    version("6.2.0", sha256="2fc39f47161f41cc041cd5ee4b1bb0e9832508650e832434056423fec3739735")
     version("6.1.2", sha256="073e67e728d5eda16d7944f3abd96348b3f278e9f36cab3ac22773ebaad0d2d6")
     version("6.1.1", sha256="9cb77fd700a0d615056f0db1e9500b73bd0352214f33bdac520e25b9125a926a")
     version("6.1.0", sha256="3f8e296c4d04123a7177d815ca166e978b085ad7c816ac298e6bb47a299fa187")
@@ -39,7 +42,8 @@ class RoctracerDev(CMakePackage, ROCmPackage):
         version("5.3.3", sha256="f2cb1e6bb69ea1a628c04f984741f781ae1d8498dc58e15795bb03015f924d13")
         version("5.3.0", sha256="36f1da60863a113bb9fe2957949c661f00a702e249bb0523cda1fb755c053808")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("asan", default=False, description="Build with address-sanitizer enabled or disabled")
 
@@ -63,11 +67,15 @@ class RoctracerDev(CMakePackage, ROCmPackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
     ]:
         depends_on(f"hsakmt-roct@{ver}", when=f"@{ver}")
         depends_on(f"hsa-rocr-dev@{ver}", when=f"@{ver}")
         depends_on(f"rocminfo@{ver}", when=f"@{ver}")
         depends_on(f"hip@{ver}", when=f"@{ver}")
+
     for ver in ["5.3.0", "5.3.3", "5.4.0", "5.4.3"]:
         depends_on(f"rocprofiler-dev@{ver}", when=f"@{ver}")
 
@@ -83,10 +91,14 @@ class RoctracerDev(CMakePackage, ROCmPackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 
     patch("0001-include-rocprofiler-dev-path.patch", when="@5.3:5.4")
+    patch("0002-use-clang-18.patch", when="@6.2")
 
     @classmethod
     def determine_version(cls, lib):

@@ -72,8 +72,6 @@ spack:
     # TensorFlow
     - py-tensorflow
     - py-tensorflow-datasets
-    # version 2.16 is not available
-    # - py-tensorflow-estimator
     - py-tensorflow-hub
     - py-tensorflow-metadata
     - py-tensorflow-probability
@@ -86,7 +84,7 @@ spack:
     pipeline-gen:
     - build-job:
         image:
-          name: ghcr.io/spack/ubuntu-22.04:v2024-05-07
+          name: ghcr.io/spack/ubuntu-24.04:v2024-09-05-v2
           entrypoint: ['']
 
   cdash:

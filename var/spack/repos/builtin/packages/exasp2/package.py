@@ -48,7 +48,7 @@ class Exasp2(MakefilePackage):
     def build_targets(self):
         targets = []
         spec = self.spec
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             targets.append("PARALLEL=MPI")
             targets.append("MPICC={0}".format(spec["mpi"].mpicc))
             targets.append("MPI_LIB=-L" + spec["mpi"].prefix.lib + " -lmpi")

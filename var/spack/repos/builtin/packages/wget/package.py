@@ -40,6 +40,8 @@ class Wget(AutotoolsPackage, GNUMirrorPackage):
 
     depends_on("gnutls", when="ssl=gnutls")
     depends_on("openssl", when="ssl=openssl")
+    # OpenSSL 3.0 is not supported by wget, openssl@3.1: works:
+    conflicts("openssl@3.0", when="ssl=openssl")
 
     depends_on("gettext", type="build")
     depends_on("python@3:", type="build", when="+python")

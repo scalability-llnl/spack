@@ -44,7 +44,7 @@ class Pulseaudio(AutotoolsPackage):
     depends_on("libcap")
     depends_on("iconv")
     depends_on("libsndfile@1.0.18:")
-    depends_on("libtool@2.4:")  # links to libltdl.so
+    depends_on("libtool@2.4:", type="link")  # links to libltdl.so
     depends_on("libsm", when="+x11")
     depends_on("uuid", when="+x11")
     depends_on("libx11", when="+x11")

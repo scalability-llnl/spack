@@ -17,6 +17,7 @@ class RGgsci(RPackage):
 
     license("GPL-3.0-or-later")
 
+    version("3.2.0", sha256="41d8ed4c01c3740028bdf2ba9c5550f1142061e4a40c93b1d2160719c59c3c4a")
     version("3.0.0", sha256="8901316516d78f82a2a8685d93ba479424bcfd8cb5e28a28adbd50e68964e129")
     version("2.9", sha256="4af14e6f3657134c115d5ac5e65a2ed74596f9a8437c03255447cd959fe9e33c")
     version("2.8", sha256="b4ce7adce7ef23edf777866086f98e29b2b45b58fed085bbd1ffe6ab52d74ae8")

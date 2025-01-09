@@ -8,7 +8,6 @@ import llnl.util.filesystem as fs
 
 import spack.container.images
 import spack.main
-import spack.platforms
 
 containerize = spack.main.SpackCommand("containerize")
 
@@ -27,7 +26,6 @@ def test_listing_possible_os():
         assert expected_os in output
 
 
-@pytest.mark.not_on_windows("test unsupported on Windows")
 @pytest.mark.maybeslow
 @pytest.mark.requires_executables("git")
 def test_bootstrap_phase(minimal_configuration, config_dumper, capsys):

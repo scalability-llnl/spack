@@ -7,9 +7,10 @@ import os
 import sys
 
 import spack.cmd
+import spack.cmd.common
 import spack.error
+import spack.store
 import spack.user_environment as uenv
-import spack.util.environment
 from spack.cmd.common import arguments
 
 description = "remove package from the user environment"

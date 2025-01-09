@@ -12,7 +12,6 @@ import llnl.util.tty as tty
 from llnl.util.tty.colify import colify
 
 import spack.cmd
-import spack.paths
 import spack.repo
 import spack.util.executable as exe
 import spack.util.package_hash as ph
@@ -151,7 +150,7 @@ def pkg_source(args):
         content = ph.canonical_source(spec)
     else:
         message = "Source for %s:" % filename
-        with open(filename) as f:
+        with open(filename, encoding="utf-8") as f:
             content = f.read()
 
     if sys.stdout.isatty():

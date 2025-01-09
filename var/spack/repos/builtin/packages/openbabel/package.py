@@ -12,7 +12,7 @@ class Openbabel(CMakePackage):
     search, convert, analyze, or store data from molecular modeling, chemistry,
     solid-state materials, biochemistry, or related areas."""
 
-    homepage = "https://openbabel.org/wiki/Main_Page"
+    homepage = "https://openbabel.org/index.html"
     url = "https://github.com/openbabel/openbabel/archive/openbabel-3-0-0.tar.gz"
     git = "https://github.com/openbabel/openbabel.git"
 

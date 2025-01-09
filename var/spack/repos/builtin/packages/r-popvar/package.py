@@ -22,6 +22,7 @@ class RPopvar(RPackage):
 
     cran = "PopVar"
 
+    version("1.3.1", sha256="adb0f6705b7bb984272db31f8ac6612100f7970aa7d0e5cfdef76124dd33ac98")
     version("1.3.0", sha256="3145c41c9aa1588d47aaf76c082e6b1c2fd95cf5014b98bd2867cbf2cec782f9")
     version("1.2.1", sha256="5e3df79634ab63708a431e4b8e6794675972ac6c58d2bc615726aa0f142f5f25")
 

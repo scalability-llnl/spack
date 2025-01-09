@@ -16,5 +16,7 @@ class PyHatchJupyterBuilder(PythonPackage):
 
     version("0.8.3", sha256="0dbd14a8aef6636764f88a8fd1fcc9a91921e5c50356e6aab251782f264ae960")
 
+    depends_on("npm", type="run")
+
     depends_on("python@3.8:", type=("build", "run"))
     depends_on("py-hatchling@1.5:", type=("build", "run"))

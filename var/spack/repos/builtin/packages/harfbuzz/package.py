@@ -2,9 +2,13 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import sys
+
 import spack.build_systems.autotools
 import spack.build_systems.meson
 from spack.package import *
+
+IS_WINDOWS = sys.platform == "win32"
 
 
 class Harfbuzz(MesonPackage, AutotoolsPackage):
@@ -20,6 +24,9 @@ class Harfbuzz(MesonPackage, AutotoolsPackage):
 
     license("MIT")
 
+    version("10.1.0", sha256="6ce3520f2d089a33cef0fc48321334b8e0b72141f6a763719aaaecd2779ecb82")
+    version("10.0.1", sha256="b2cb13bd351904cb9038f907dc0dee0ae07127061242fe3556b2795c4e9748fc")
+    version("10.0.0", sha256="c2dfe016ad833a5043ecc6579043f04e8e6d50064e02ad449bb466e6431e3e04")
     version("9.0.0", sha256="a41b272ceeb920c57263ec851604542d9ec85ee3030506d94662067c7b6ab89e")
     version("8.5.0", sha256="77e4f7f98f3d86bf8788b53e6832fb96279956e1c3961988ea3d4b7ca41ddc27")
     version("8.4.0", sha256="af4ea73e25ab748c8c063b78c2f88e48833db9b2ac369e29bd115702e789755e")
@@ -84,12 +91,15 @@ class Harfbuzz(MesonPackage, AutotoolsPackage):
         description="Enable CoreText shaper backend on macOS",
     )
 
-    depends_on("pkgconfig", type="build")
-    depends_on("glib")
-    depends_on("gobject-introspection")
+    for plat in ["linux", "darwin", "freebsd"]:
+        with when(f"platform={plat}"):
+            depends_on("pkgconfig", type="build")
+            depends_on("glib")
+            depends_on("gobject-introspection")
+            depends_on("cairo+pdf+ft")
+
     depends_on("icu4c")
     depends_on("freetype")
-    depends_on("cairo+pdf+ft")
     depends_on("zlib-api")
     depends_on("graphite2", when="+graphite2")
 
@@ -111,9 +121,9 @@ class Harfbuzz(MesonPackage, AutotoolsPackage):
         if name == "cxxflags":
             flags.append(self.compiler.cxx11_flag)
         if name == "cflags":
-            if "%pgi" not in self.spec and self.spec.satisfies("%gcc@:5.1"):
+            if self.spec.satisfies("%gcc@:5.1"):
                 flags.append("-std=gnu99")
-        return (None, None, flags)
+        return None, None, flags
 
     def setup_run_environment(self, env):
         env.prepend_path("GI_TYPELIB_PATH", join_path(self.prefix.lib, "girepository-1.0"))
@@ -137,13 +147,16 @@ class MesonBuilder(spack.build_systems.meson.MesonBuilder, SetupEnvironment):
     def meson_args(self):
         graphite2 = "enabled" if self.pkg.spec.satisfies("+graphite2") else "disabled"
         coretext = "enabled" if self.pkg.spec.satisfies("+coretext") else "disabled"
-        return [
+        config_args = [
             # disable building of gtk-doc files following #9885 and #9771
             "-Ddocs=disabled",
             "-Dfreetype=enabled",
             f"-Dgraphite2={graphite2}",
             f"-Dcoretext={coretext}",
         ]
+        if IS_WINDOWS:
+            config_args.extend(["-Dcairo=disabled", "-Dglib=disabled"])
+        return config_args
 
 
 class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder, SetupEnvironment):

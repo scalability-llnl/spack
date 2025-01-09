@@ -18,6 +18,9 @@ class PyTorchaudio(PythonPackage):
     maintainers("adamjstewart")
 
     version("main", branch="main")
+    version("2.5.1", tag="v2.5.1", commit="1661daf10599ca8889f092ec37814fabbe202bb0")
+    version("2.5.0", tag="v2.5.0", commit="56bc006d56a0d4960de6a1e0b6340cba4eda05cd")
+    version("2.4.1", tag="v2.4.1", commit="e8cbe17769796ce963fbc71b8990f1474774e6d2")
     version("2.4.0", tag="v2.4.0", commit="69d40773dc4ed86643820c21a8a880e4d074a46e")
     version("2.3.1", tag="v2.3.1", commit="3edcf69e78a3c9a3077a11159861422440ec7d4a")
     version("2.3.0", tag="v2.3.0", commit="952ea7457bcc3ed0669e7741ff23015c426d6322")
@@ -43,24 +46,38 @@ class PyTorchaudio(PythonPackage):
     version("0.8.1", tag="v0.8.1", commit="e4e171a51714b2b2bd79e1aea199c3f658eddf9a")
     version("0.8.0", tag="v0.8.0", commit="099d7883c6b7af1d1c3b416191e5f3edf492e104")
     version("0.7.2", tag="v0.7.2", commit="a853dff25de36cc637b1f02029343790d2dd0199")
-    version("0.7.0", tag="v0.7.0", commit="ac17b64f4daedd45d0495e2512e22eaa6e5b7eeb")
-    version("0.6.0", tag="v0.6.0", commit="f17ae39ff9da0df8f795fef2fcc192f298f81268")
-    version("0.5.1", tag="v0.5.1", commit="71434798460a4ceca9d42004567ef419c62a612e")
-    version("0.5.0", tag="v0.5.0", commit="09494ea545738538f9db2dceeffe10d421060ee5")
-    version("0.4.0", tag="v0.4.0", commit="8afed303af3de41f3586007079c0534543c8f663")
+    version(
+        "0.7.0", tag="v0.7.0", commit="ac17b64f4daedd45d0495e2512e22eaa6e5b7eeb", deprecated=True
+    )
+    version(
+        "0.6.0", tag="v0.6.0", commit="f17ae39ff9da0df8f795fef2fcc192f298f81268", deprecated=True
+    )
+    version(
+        "0.5.1", tag="v0.5.1", commit="71434798460a4ceca9d42004567ef419c62a612e", deprecated=True
+    )
+    version(
+        "0.5.0", tag="v0.5.0", commit="09494ea545738538f9db2dceeffe10d421060ee5", deprecated=True
+    )
+    version(
+        "0.4.0", tag="v0.4.0", commit="8afed303af3de41f3586007079c0534543c8f663", deprecated=True
+    )
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
 
     with default_args(type=("build", "link", "run")):
         # Based on PyPI wheel availability
-        depends_on("python@3.8:3.12", when="@2.2:")
+        depends_on("python@3.9:3.12", when="@2.5:")
+        depends_on("python@3.8:3.12", when="@2.2:2.4")
         depends_on("python@3.8:3.11", when="@2.0:2.1")
         depends_on("python@:3.10", when="@0.12:0")
         depends_on("python@:3.9", when="@0.7.2:0.11")
         depends_on("python@:3.8", when="@:0.7.0")
 
         depends_on("py-torch@main", when="@main")
+        depends_on("py-torch@2.5.1", when="@2.5.1")
+        depends_on("py-torch@2.5.0", when="@2.5.0")
+        depends_on("py-torch@2.4.1", when="@2.4.1")
         depends_on("py-torch@2.4.0", when="@2.4.0")
         depends_on("py-torch@2.3.1", when="@2.3.1")
         depends_on("py-torch@2.3.0", when="@2.3.0")
@@ -97,6 +114,9 @@ class PyTorchaudio(PythonPackage):
     depends_on("cmake@3.5:", when="@0.8:", type="build")
     depends_on("ninja", when="@0.8:", type="build")
 
+    # prior to 2.1 ffmpeg was vendored
+    depends_on("ffmpeg@:6", when="@2.1:")
+
     # setup.py
     depends_on("py-setuptools", type="build")
     depends_on("py-pybind11", when="@0.12:", type=("build", "link"))
@@ -104,11 +124,45 @@ class PyTorchaudio(PythonPackage):
     depends_on("sox")
 
     # https://github.com/pytorch/audio/pull/3811
-    depends_on("cuda@:12.4", when="^py-torch+cuda")
+    patch(
+        "https://github.com/pytorch/audio/pull/3811.patch?full_index=1",
+        sha256="34dce3403abb03f62827e8a1efcdb2bf7742477a01f155ebb9c7fefe9588b132",
+        when="@2.2:",
+    )
+    conflicts("^cuda@12.5:", when="@:2.1")
+
+    def patch(self):
+        # Add missing rpaths, which requires patching due to hardcoded cmake_args
+        if self.spec.satisfies("@0.8:"):
+            rpaths = [f"{python_platlib}/torchaudio/lib", f"{python_platlib}/torio/lib"]
+            cmake_args = [
+                f"-DCMAKE_INSTALL_RPATH={';'.join(rpaths)}",
+                "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON",
+            ]
+            cmake_str = ", ".join(f"'{arg}'" for arg in cmake_args)
+            filter_file(
+                "cmake_args = [",
+                f"cmake_args = [{cmake_str},",
+                "tools/setup_helpers/extension.py",
+                string=True,
+            )
+
+    def flag_handler(self, name, flags):
+        # https://github.com/pytorch/vision/issues/8653
+        if name == "ldflags":
+            if self.spec.satisfies("%apple-clang@15:"):
+                flags.append("-Wl,-ld_classic")
+        return (flags, None, None)
 
     def setup_build_environment(self, env):
         # tools/setup_helpers/extension.py
         env.set("BUILD_SOX", 0)
+
+        if self.spec.satisfies("@2.1:"):
+            env.set("FFMPEG_ROOT", self.spec["ffmpeg"].prefix)
+        else:
+            # a specific ffmpeg is built but not installed, so just disable
+            env.set("USE_FFMPEG", "0")
 
         if "+cuda" in self.spec["py-torch"]:
             env.set("USE_CUDA", 1)

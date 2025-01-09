@@ -10,8 +10,9 @@ import sys
 import llnl.util.tty as tty
 from llnl.util.lang import classproperty
 
-import spack.build_environment
-import spack.util.executable
+import spack.compilers
+from spack.build_systems.cmake import get_cmake_prefix_path
+from spack.operating_systems.mac_os import macos_sdk_path
 from spack.package import *
 from spack.package_base import PackageBase
 
@@ -28,9 +29,9 @@ class LlvmDetection(PackageBase):
         # Executables like lldb-vscode-X are daemon listening on some port and would hang Spack
         # during detection. clang-cl, clang-cpp, etc. are dev tools that we don't need to test
         reject = re.compile(
-            r"-(vscode|cpp|cl|gpu|tidy|rename|scan-deps|format|refactor|offload|"
+            r"-(vscode|cpp|cl|ocl|gpu|tidy|rename|scan-deps|format|refactor|offload|"
             r"check|query|doc|move|extdef|apply|reorder|change-namespace|"
-            r"include-fixer|import-test)"
+            r"include-fixer|import-test|dap|server)"
         )
         return [x for x in exes_in_prefix if not reject.search(x)]
 
@@ -56,6 +57,12 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
     license("Apache-2.0")
 
     version("main", branch="main")
+    version("19.1.5", sha256="e2204b9903cd9d7ee833a2f56a18bef40a33df4793e31cc090906b32cbd8a1f5")
+    version("19.1.4", sha256="010e1fd3cabee8799bd2f8a6fbc68f28207494f315cf9da7057a2820f79fd531")
+    version("19.1.3", sha256="e5106e2bef341b3f5e41340e4b6c6a58259f4021ad801acf14e88f1a84567b05")
+    version("19.1.2", sha256="622cb6c5e95a3bb7e9876c4696a65671f235bd836cfd0c096b272f6c2ada41e7")
+    version("19.1.1", sha256="115dfd98a353d05bffdab3f80db22f159da48aca0124e8c416f437adcd54b77f")
+    version("19.1.0", sha256="0a08341036ca99a106786f50f9c5cb3fbe458b3b74cab6089fd368d0edb2edfe")
     version("18.1.8", sha256="09c08693a9afd6236f27a2ebae62cda656eba19021ef3f94d59e931d662d4856")
     version("18.1.7", sha256="b60df7cbe02cef2523f7357120fb0d46cbb443791cde3a5fb36b82c335c0afc9")
     version("18.1.6", sha256="01390edfae5b809e982b530ff9088e674c62b13aa92cb9dc1e067fa2cf501083")
@@ -165,8 +172,12 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
         "or as a project (with the compiler in use)",
     )
 
+    variant("offload", default=True, when="@19:", description="Build the Offload subproject")
+    conflicts("+offload", when="~clang")
+
     variant("libomptarget", default=True, description="Build the OpenMP offloading library")
     conflicts("+libomptarget", when="~clang")
+    conflicts("+libomptarget", when="~offload @19:")
     for _p in ["darwin", "windows"]:
         conflicts("+libomptarget", when="platform={0}".format(_p))
     del _p
@@ -273,6 +284,8 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
     conflicts("+z3", when="~clang")
     conflicts("+lua", when="@:10")
     conflicts("+lua", when="~lldb")
+    # Python distutils were removed with 3.12 and are required to build LLVM <= 14
+    conflicts("^python@3.12:", when="@:14")
 
     variant(
         "zstd",
@@ -281,6 +294,8 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
         description="Enable zstd support for static analyzer / lld",
     )
 
+    provides("libllvm@19", when="@19.0.0:19")
+    provides("libllvm@18", when="@18.0.0:18")
     provides("libllvm@17", when="@17.0.0:17")
     provides("libllvm@16", when="@16.0.0:16")
     provides("libllvm@15", when="@15.0.0:15")
@@ -414,6 +429,19 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
 
     # cuda_arch value must be specified
     conflicts("cuda_arch=none", when="+cuda", msg="A value for cuda_arch must be specified.")
+
+    # clang/test/Misc/target-invalid-cpu-note.c
+    conflicts("cuda_arch=10")
+    conflicts("cuda_arch=11")
+    conflicts("cuda_arch=12")
+    conflicts("cuda_arch=13")
+    conflicts("cuda_arch=75", when="@:13")
+    conflicts("cuda_arch=80", when="@:13")
+    conflicts("cuda_arch=86", when="@:13")
+    conflicts("cuda_arch=87", when="@:15")
+    conflicts("cuda_arch=89", when="@:15")
+    conflicts("cuda_arch=90", when="@:15")
+    conflicts("cuda_arch=90a", when="@:17")
 
     # LLVM bug https://bugs.llvm.org/show_bug.cgi?id=48234
     # CMake bug: https://gitlab.kitware.com/cmake/cmake/-/issues/21469
@@ -648,7 +676,7 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
 
     @classproperty
     def executables(cls):
-        return super().executables + ["ld.lld", "lldb"]
+        return super().executables + [r"^ld\.lld(-\d+)?$", r"^lldb(-\d+)?$"]
 
     @classmethod
     def determine_version(cls, exe):
@@ -662,7 +690,7 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
             match = re.search(cls.compiler_version_regex, output)
             if match:
                 return match.group(match.lastindex)
-        except spack.util.executable.ProcessError:
+        except ProcessError:
             pass
         except Exception as e:
             tty.debug(e)
@@ -713,7 +741,7 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
         if self.spec.external:
             return self.spec.extra_attributes["compilers"].get("c", None)
         result = None
-        if "+clang" in self.spec:
+        if self.spec.satisfies("+clang"):
             result = os.path.join(self.spec.prefix.bin, "clang")
         return result
 
@@ -724,7 +752,7 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
         if self.spec.external:
             return self.spec.extra_attributes["compilers"].get("cxx", None)
         result = None
-        if "+clang" in self.spec:
+        if self.spec.satisfies("+clang"):
             result = os.path.join(self.spec.prefix.bin, "clang++")
         return result
 
@@ -735,7 +763,7 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
         if self.spec.external:
             return self.spec.extra_attributes["compilers"].get("fc", None)
         result = None
-        if "+flang" in self.spec:
+        if self.spec.satisfies("+flang"):
             result = os.path.join(self.spec.prefix.bin, "flang")
         return result
 
@@ -746,7 +774,7 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
         if self.spec.external:
             return self.spec.extra_attributes["compilers"].get("f77", None)
         result = None
-        if "+flang" in self.spec:
+        if self.spec.satisfies("+flang"):
             result = os.path.join(self.spec.prefix.bin, "flang")
         return result
 
@@ -796,11 +824,15 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
                     os.symlink(bin, sym)
             env.prepend_path("PATH", self.stage.path)
 
+        if self.spec.satisfies("platform=darwin"):
+            # set the SDKROOT so the bootstrap compiler finds its C++ headers
+            env.set("SDKROOT", macos_sdk_path())
+
     def setup_run_environment(self, env):
-        if "+clang" in self.spec:
+        if self.spec.satisfies("+clang"):
             env.set("CC", join_path(self.spec.prefix.bin, "clang"))
             env.set("CXX", join_path(self.spec.prefix.bin, "clang++"))
-        if "+flang" in self.spec:
+        if self.spec.satisfies("+flang"):
             env.set("FC", join_path(self.spec.prefix.bin, "flang"))
             env.set("F77", join_path(self.spec.prefix.bin, "flang"))
 
@@ -842,7 +874,7 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
         projects = []
         runtimes = []
 
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             cmake_args.extend(
                 [
                     define("CUDA_TOOLKIT_ROOT_DIR", spec["cuda"].prefix),
@@ -856,7 +888,7 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
                     ),
                 ]
             )
-            if "openmp=runtime" in spec:
+            if spec.satisfies("openmp=runtime"):
                 cmake_args.append(define("LIBOMPTARGET_NVPTX_ENABLE_BCLIB", True))
         else:
             # still build libomptarget but disable cuda
@@ -876,8 +908,10 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
             # finding libhsa and enabling the AMDGPU plugin. Since we don't support this yet,
             # disable explicitly. See commit a05a0c3c2f8eefc80d84b7a87a23a4452d4a3087.
             cmake_args.append(define("LIBOMPTARGET_BUILD_AMDGPU_PLUGIN", False))
+            if "python" in spec:  # lit's Python needs to be set with this variable
+                cmake_args.append(define("python_executable", spec["python"].command.path))
 
-        if "+lldb" in spec:
+        if spec.satisfies("+lldb"):
             projects.append("lldb")
             cmake_args.extend(
                 [
@@ -888,59 +922,65 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
                     define("LLDB_ENABLE_LZMA", True),
                 ]
             )
-            if spec["ncurses"].satisfies("+termlib"):
-                cmake_args.append(define("LLVM_ENABLE_TERMINFO", True))
+            if spec.satisfies("@19:"):
+                cmake_args.append(define("LLDB_CURSES_LIBS", spec["ncurses"].libs))
             else:
-                cmake_args.append(define("LLVM_ENABLE_TERMINFO", False))
+                if spec["ncurses"].satisfies("+termlib"):
+                    cmake_args.append(define("LLVM_ENABLE_TERMINFO", True))
+                else:
+                    cmake_args.append(define("LLVM_ENABLE_TERMINFO", False))
             if spec.version >= Version("10"):
                 cmake_args.append(from_variant("LLDB_ENABLE_PYTHON", "python"))
             else:
-                cmake_args.append(define("LLDB_DISABLE_PYTHON", "~python" in spec))
+                cmake_args.append(define("LLDB_DISABLE_PYTHON", spec.satisfies("~python")))
             if spec.satisfies("@5.0.0: +python"):
                 cmake_args.append(define("LLDB_USE_SYSTEM_SIX", True))
-        else:
+        elif spec.satisfies("@:19"):
             cmake_args.append(define("LLVM_ENABLE_TERMINFO", False))
 
-        if "+gold" in spec:
+        if spec.satisfies("+gold"):
             cmake_args.append(define("LLVM_BINUTILS_INCDIR", spec["binutils"].prefix.include))
 
-        if "+clang" in spec:
+        if spec.satisfies("+clang"):
             projects.append("clang")
             projects.append("clang-tools-extra")
-            if "openmp=runtime" in spec:
+            if spec.satisfies("openmp=runtime"):
                 runtimes.append("openmp")
-            elif "openmp=project" in spec:
+            elif spec.satisfies("openmp=project"):
                 projects.append("openmp")
 
-            if "+libomptarget" in spec:
+            if spec.satisfies("+offload"):
+                runtimes.append("offload")
+
+            if spec.satisfies("+libomptarget"):
                 cmake_args.append(define("OPENMP_ENABLE_LIBOMPTARGET", True))
             else:
                 cmake_args.append(define("OPENMP_ENABLE_LIBOMPTARGET", False))
 
-            if "@8" in spec:
+            if spec.satisfies("@8"):
                 cmake_args.append(from_variant("CLANG_ANALYZER_ENABLE_Z3_SOLVER", "z3"))
-            elif "@9:" in spec:
+            elif spec.satisfies("@9:"):
                 cmake_args.append(from_variant("LLVM_ENABLE_Z3_SOLVER", "z3"))
 
-        if "+flang" in spec:
+        if spec.satisfies("+flang"):
             projects.append("flang")
-        if "+lld" in spec:
+        if spec.satisfies("+lld"):
             projects.append("lld")
-        if "compiler-rt=runtime" in spec:
+        if spec.satisfies("compiler-rt=runtime"):
             runtimes.append("compiler-rt")
-        elif "compiler-rt=project" in spec:
+        elif spec.satisfies("compiler-rt=project"):
             projects.append("compiler-rt")
-        if "libcxx=runtime" in spec:
+        if spec.satisfies("libcxx=runtime"):
             runtimes.extend(["libcxx", "libcxxabi"])
-        elif "libcxx=project" in spec:
+        elif spec.satisfies("libcxx=project"):
             projects.extend(["libcxx", "libcxxabi"])
-        if "+mlir" in spec:
+        if spec.satisfies("+mlir"):
             projects.append("mlir")
-        if "libunwind=runtime" in spec:
+        if spec.satisfies("libunwind=runtime"):
             runtimes.append("libunwind")
-        elif "libunwind=project" in spec:
+        elif spec.satisfies("libunwind=project"):
             projects.append("libunwind")
-        if "+polly" in spec:
+        if spec.satisfies("+polly"):
             projects.append("polly")
             cmake_args.append(define("LINK_POLLY_INTO_TOOLS", True))
 
@@ -954,6 +994,14 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
                 # CMAKE_INSTALL_RPATH to it, which fails. Statically link libc++abi.a
                 # into libc++.so, linking with -lc++ or -stdlib=libc++ is enough.
                 define("LIBCXX_ENABLE_STATIC_ABI_LIBRARY", True),
+                # Make sure that CMake does not pick host-installed tools for the build
+                # Until #45535 is merged, prevent CMake from delivering incompatible
+                # system tools like python3.12 to older LLVM versions like LLVM-14:
+                define("CMAKE_FIND_PACKAGE_PREFER_CONFIG", True),
+                define("CMAKE_FIND_USE_PACKAGE_ROOT_PATH", False),
+                define("CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY", False),
+                define("CMAKE_FIND_USE_PACKAGE_REGISTRY", False),
+                define("CMAKE_FIND_USE_SYSTEM_PATH", False),
             ]
         )
 
@@ -970,13 +1018,26 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
             cmake_args.append(define("LLDB_USE_SYSTEM_DEBUGSERVER", True))
 
         # LLDB test suite requires libc++
-        if "libcxx=none" in spec:
+        if spec.satisfies("libcxx=none"):
             cmake_args.append(define("LLDB_INCLUDE_TESTS", False))
 
         # Enable building with CLT [and not require full Xcode]
         # https://github.com/llvm/llvm-project/issues/57037
         if self.spec.satisfies("@15.0.0: platform=darwin"):
-            cmake_args.append(define("BUILTINS_CMAKE_ARGS", "-DCOMPILER_RT_ENABLE_IOS=OFF"))
+            cmake_args.append(
+                define(
+                    "BUILTINS_CMAKE_ARGS",
+                    ";".join(
+                        [f"-DCOMPILER_RT_ENABLE_{os}=OFF" for os in ("IOS", "WATCHOS", "TVOS")]
+                    ),
+                )
+            )
+
+        if self.spec.satisfies("platform=darwin"):
+            cmake_args.append(define("LLVM_ENABLE_LIBCXX", True))
+            cmake_args.append(define("DEFAULT_SYSROOT", macos_sdk_path()))
+            # without this libc++ headers are not fond during compiler-rt build
+            cmake_args.append(define("LLVM_BUILD_EXTERNAL_COMPILER_RT", True))
 
         # Semicolon seperated list of projects to enable
         cmake_args.append(define("LLVM_ENABLE_PROJECTS", projects))
@@ -1032,9 +1093,9 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
         define = self.define
 
         # unnecessary if we build openmp via LLVM_ENABLE_RUNTIMES
-        if "+cuda openmp=project" in self.spec:
+        if self.spec.satisfies("+cuda openmp=project"):
             ompdir = "build-bootstrapped-omp"
-            prefix_paths = spack.build_environment.get_cmake_prefix_path(self)
+            prefix_paths = get_cmake_prefix_path(self)
             prefix_paths.append(str(spec.prefix))
             # rebuild libomptarget to get bytecode runtime library files
             with working_dir(ompdir, create=True):
@@ -1058,13 +1119,13 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
                 cmake(*cmake_args)
                 ninja()
                 ninja("install")
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             if spec.version < Version("17.0.0"):
                 # llvm bindings were removed in v17:
                 # https://releases.llvm.org/17.0.1/docs/ReleaseNotes.html#changes-to-the-python-bindings
                 install_tree("llvm/bindings/python", python_platlib)
 
-            if "+clang" in self.spec:
+            if self.spec.satisfies("+clang"):
                 install_tree("clang/bindings/python", python_platlib)
 
         with working_dir(self.build_directory):
@@ -1092,6 +1153,17 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
             return ret.split()
         else:
             return ret
+
+    @property
+    def unresolved_libraries(self):
+        # libomptarget at 14 and older has a hard-coded rpath that lacks hwloc's path
+        # https://github.com/llvm/llvm-project/commit/dc52712a063241bd0d3a0473b4e7ed870e41921f
+        if self.spec.satisfies("@:14 +libomptarget"):
+            return ["*"]
+
+        # TODO: for newer llvm there are still issues with runtimes for omp we
+        # have to add rpaths to `bin/llvm-omp-*` and `share/gdb/python/ompd/ompdModule.so`.
+        return ["libpython*.so.*", "libomp.so*", "libomptarget*.so*", "libunwind.so.*"]
 
 
 def get_gcc_install_dir_flag(spec: Spec, compiler) -> Optional[str]:

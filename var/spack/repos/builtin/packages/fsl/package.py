@@ -6,6 +6,7 @@
 import glob
 import os
 
+import spack.util.environment
 from spack.package import *
 from spack.util.environment import EnvironmentModifications
 
@@ -111,7 +112,7 @@ class Fsl(Package, CudaPackage):
         vtk_settings.filter(r"(^VTKDIR_LIB)\s*=.*", r"\1 = {0}".format(vtk_lib_dir))
         vtk_settings.filter(r"(^VTKSUFFIX)\s*=.*", r"\1 = -{0}".format(vtk_suffix))
 
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             cuda_arch = self.spec.variants["cuda_arch"].value
             cuda_gencode = " ".join(self.cuda_flags(cuda_arch))
             cuda_installation = self.spec["cuda"].prefix

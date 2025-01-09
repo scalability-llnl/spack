@@ -31,7 +31,7 @@ class Funhpc(CMakePackage):
     def cmake_args(self):
         spec = self.spec
         options = ["-DGTEST_ROOT=%s" % spec["googletest"].prefix]
-        if "+pic" in spec:
+        if spec.satisfies("+pic"):
             options += ["-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true"]
         return options
 

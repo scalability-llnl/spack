@@ -50,5 +50,5 @@ class Homer(Package):
         perl("configureHomer.pl", "-local")
 
         # download extra data if requested
-        if "+data" in spec:
+        if spec.satisfies("+data"):
             perl("configureHomer.pl", "-install", "-all")

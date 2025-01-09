@@ -33,6 +33,8 @@ class Msmpi(Package):
 
     patch("ifort_compat.patch")
 
+    requires("platform=windows")
+
     @classmethod
     def determine_version(cls, exe):
         # MSMPI is typically MS only, don't detect on other platforms

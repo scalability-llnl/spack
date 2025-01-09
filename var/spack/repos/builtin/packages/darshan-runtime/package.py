@@ -25,6 +25,7 @@ class DarshanRuntime(AutotoolsPackage):
     test_requires_compiler = True
 
     version("main", branch="main", submodules=True)
+    version("3.4.6", sha256="092b35e7af859af903dce0c51bcb5d3901dd0d9ad79d1b2f3282692407f032ee")
     version("3.4.5", sha256="1c017ac635fab5ee0e87a6b52c5c7273962813569495cb1dd3b7cfa6e19f6ed0")
     version("3.4.4", sha256="d9c9df5aca94dc5ca3d56fd763bec2f74771d35126d61cb897373d2166ccd867")
     version("3.4.3", sha256="dca5f9f9b0ead55a8724b218071ecbb5c4f2ef6027eaade3a6477256930ccc2c")
@@ -58,6 +59,7 @@ class DarshanRuntime(AutotoolsPackage):
     depends_on("zlib-api")
     depends_on("hdf5", when="+hdf5")
     depends_on("parallel-netcdf", when="+parallel-netcdf")
+    depends_on("lustre", when="+lustre")
     depends_on("papi", when="+apxc")
     depends_on("autoconf", type="build", when="@main")
     depends_on("automake", type="build", when="@main")
@@ -76,6 +78,7 @@ class DarshanRuntime(AutotoolsPackage):
         description="Compile with Parallel NetCDF module",
         when="@3.4.1:",
     )
+    variant("lustre", default=False, description="Compile with Lustre module", when="@3.1:")
     variant("apmpi", default=False, description="Compile with AutoPerf MPI module", when="@3.3:")
     variant(
         "apmpi_sync",
@@ -87,10 +90,18 @@ class DarshanRuntime(AutotoolsPackage):
     variant(
         "scheduler",
         default="NONE",
-        description="queue system scheduler JOB ID",
+        description="Queue system scheduler JOB ID",
         values=("NONE", "cobalt", "pbs", "sge", "slurm"),
         multi=False,
     )
+    variant(
+        "log_path",
+        values=str,
+        default="none",
+        description="Path to centralized, formatted Darshan log directory",
+    )
+    variant("mmap_logs", default=False, description="Use mmap to store Darshan log data")
+    variant("group_readable_logs", default=False, description="Write group-readable logs")
 
     @property
     def configure_directory(self):
@@ -101,46 +112,56 @@ class DarshanRuntime(AutotoolsPackage):
         extra_args = []
 
         job_id = "NONE"
-        if "+slurm" in spec:
+        if spec.satisfies("scheduler=slurm"):
             job_id = "SLURM_JOBID"
-        if "+cobalt" in spec:
+        elif spec.satisfies("scheduler=cobalt"):
             job_id = "COBALT_JOBID"
-        if "+pbs" in spec:
+        elif spec.satisfies("scheduler=pbs"):
             job_id = "PBS_JOBID"
-        if "+sge" in spec:
+        elif spec.satisfies("scheduler=sge"):
             job_id = "JOB_ID"
 
-        if "+hdf5" in spec:
+        if spec.satisfies("+hdf5"):
             if self.version < Version("3.3.2"):
                 extra_args.append("--enable-hdf5-mod=%s" % spec["hdf5"].prefix)
             else:
                 extra_args.append("--enable-hdf5-mod")
-        if "+parallel-netcdf" in spec:
+        if spec.satisfies("+parallel-netcdf"):
             extra_args.append("--enable-pnetcdf-mod")
-        if "+apmpi" in spec:
+        if spec.satisfies("+lustre"):
+            extra_args.append("--enable-lustre-mod")
+        else:
+            extra_args.append("--disable-lustre-mod")
+        if spec.satisfies("+apmpi"):
             extra_args.append("--enable-apmpi-mod")
-        if "+apmpi_sync" in spec:
+        if spec.satisfies("+apmpi_sync"):
             extra_args.extend(["--enable-apmpi-mod", "--enable-apmpi-coll-sync"])
-        if "+apxc" in spec:
+        if spec.satisfies("+apxc"):
             extra_args.append("--enable-apxc-mod")
+        if spec.satisfies("+group_readable_logs"):
+            extra_args.append("--enable-group-readable-logs")
+        if spec.satisfies("+mmap_logs"):
+            extra_args.append("--enable-mmap-logs")
+        log_path = self.spec.variants["log_path"].value
+        if log_path != "none":
+            extra_args.append("--with-log-path=" + log_path)
+        else:
+            extra_args.append("--with-log-path-by-env=DARSHAN_LOG_DIR_PATH")
 
         extra_args.append("--with-mem-align=8")
-        extra_args.append("--with-log-path-by-env=DARSHAN_LOG_DIR_PATH")
         extra_args.append("--with-jobid-env=%s" % job_id)
         extra_args.append("--with-zlib=%s" % spec["zlib-api"].prefix)
 
-        if "+mpi" in spec:
-            extra_args.append("CC=%s" % self.spec["mpi"].mpicc)
-        else:
-            extra_args.append("CC=%s" % self.compiler.cc)
+        if "+mpi" not in spec:
             extra_args.append("--without-mpi")
 
         return extra_args
 
     def setup_run_environment(self, env):
-        # default path for log file, could be user or site specific setting
-        darshan_log_dir = os.environ["HOME"]
-        env.set("DARSHAN_LOG_DIR_PATH", darshan_log_dir)
+        if self.spec.variants["log_path"].value == "none":
+            # set a default path for log file that can be overrode by user
+            darshan_log_dir = os.environ["HOME"]
+            env.set("DARSHAN_LOG_DIR_PATH", darshan_log_dir)
 
     @property
     def basepath(self):

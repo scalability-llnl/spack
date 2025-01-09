@@ -26,6 +26,25 @@ class IntelOneapiMkl(IntelOneApiLibraryPackage):
     )
 
     version(
+        "2025.0.1",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/246ea40e-5aa7-42a4-81fa-0c029dc8650f/intel-onemkl-2025.0.1.16_offline.sh",
+        sha256="bd86677aa17499c89ca7a3c3c83b73f0644147e4f1d2a218b45a7349cf582f4a",
+        expand=False,
+    )
+    version(
+        "2025.0.0",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/79153e0f-74d7-45af-b8c2-258941adf58a/intel-onemkl-2025.0.0.940_offline.sh",
+        sha256="c0fe8c43718c56858df96ad469b22d9d5e5c1aa4b872e34c6cbebfb17bd15b9c",
+        expand=False,
+    )
+    version(
+        "2024.2.2",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/89a381f6-f85d-4dda-ae62-30d51470f53c/l_onemkl_p_2024.2.2.17_offline.sh",
+        sha256="6b64ab95567bee53d6cf7e78f9f7b15695902fb9da0d20c29e638ad001b6b348",
+        expand=False,
+        preferred=True,
+    )
+    version(
         "2024.2.1",
         url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/6e00e368-b61d-4f87-a409-9b510c022a37/l_onemkl_p_2024.2.1.105_offline.sh",
         sha256="adfb1391f87a0a638772ac3146db92126a4accf4da1fe8707a000b27dd2448ef",
@@ -271,7 +290,7 @@ class IntelOneapiMkl(IntelOneApiLibraryPackage):
         try:
             if self.spec.satisfies("+cluster ^mpi"):
                 resolved_libs = resolved_libs + self.spec["mpi"].libs
-        except spack.error.NoLibrariesError:
+        except NoLibrariesError:
             pass
 
         if self.spec.satisfies("threads=openmp"):

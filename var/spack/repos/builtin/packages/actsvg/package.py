@@ -20,6 +20,11 @@ class Actsvg(CMakePackage):
 
     license("MPL-2.0")
 
+    version("0.4.50", sha256="c97fb1cc75cbf23caebd3c6fb8716354bdbd0a77ad39dc43dae963692f3256e1")
+    version("0.4.48", sha256="0f230c31c64b939e4d311afd997dbaa87a375454cf1595661a449b97943412c9")
+    version("0.4.47", sha256="11924fddbdd01f6337875797dc3a97b62be565688e678485e992bcfc9bfb142f")
+    version("0.4.46", sha256="0b75e91de240aeac8b91cd4fb8e314d0ab2a4b220048fb373dee9352d571b792")
+    version("0.4.45", sha256="402ca863e453055e5abc65a37908f44b03b15f90c694807d78627d7800d2e39c")
     version("0.4.44", sha256="6eda7306b8b863e1860e090f328ac6e7982dc2d3b3d674db2799c13007ffd07f")
     version("0.4.43", sha256="e2aef32185db37cfdc023282b25c003e63dc974a11118ab2040bd30b2d346147")
     version("0.4.42", sha256="a8439d50b469ccc4428973507db1adf56aa68b34900ce0c6077ddb92a133a4f2")
@@ -36,6 +41,7 @@ class Actsvg(CMakePackage):
 
     variant("examples", default=False, description="Build the example applications")
     variant("meta", default=True, description="Build the meta level interface")
+    variant("python", default=True, when="@0.4.39:", description="Build the python bindings")
     variant(
         "web", default=True, when="@0.4.36:", description="Build the webpage builder interface"
     )
@@ -43,11 +49,13 @@ class Actsvg(CMakePackage):
     depends_on("boost +program_options", type="test")
     depends_on("boost +program_options", when="+examples")
     depends_on("googletest", when="+examples")
+    depends_on("python@3.8:", when="+python")
 
     def cmake_args(self):
         args = [
             self.define_from_variant("ACTSVG_BUILD_EXAMPLES", "examples"),
             self.define_from_variant("ACTSVG_BUILD_META", "meta"),
+            self.define_from_variant("ACTSVG_BUILD_PYTHON_BINDINGS", "python"),
             self.define_from_variant("ACTSVG_BUILD_WEB", "web"),
             self.define("ACTSVG_BUILD_TESTING", self.run_tests),
         ]

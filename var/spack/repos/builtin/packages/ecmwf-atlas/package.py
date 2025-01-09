@@ -22,6 +22,8 @@ class EcmwfAtlas(CMakePackage):
 
     version("master", branch="master")
     version("develop", branch="develop")
+    version("0.40.0", sha256="9aa2c8945a04aff3d50f752147e2b7cf0992c33e7e5a0e7bcd6fe575b0f853b0")
+    version("0.39.0", sha256="bdfc37b5f3f871651b1bb47ae4742988b03858037e36fdca775e220e3abe3bd6")
     version("0.38.1", sha256="c6868deb483c1d6c241aae92f8af63f3351062c2611c9163e8a9bbf6c97a9798")
     version("0.38.0", sha256="befe3bfc045bc0783126efb72ed55db9f205eaf176e1b8a2059eaaaaacc4880a")
     version("0.36.0", sha256="39bf748aa7b22df80b9791fbb6b4351ed9a9f85587b58fc3225314278a2a68f8")
@@ -86,7 +88,7 @@ class EcmwfAtlas(CMakePackage):
         if self.spec.satisfies("@0.35:"):
             args.append(self.define_from_variant("ENABLE_ECTRANS", "trans"))
             args.append(self.define_from_variant("ENABLE_TESSELATION", "tesselation"))
-        if "~shared" in self.spec:
+        if self.spec.satisfies("~shared"):
             args.append("-DBUILD_SHARED_LIBS=OFF")
         return args
 

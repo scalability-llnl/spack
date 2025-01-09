@@ -11,7 +11,7 @@ from spack.package import *
 class Open3d(CMakePackage, CudaPackage):
     """Open3D: A Modern Library for 3D Data Processing."""
 
-    homepage = "http://www.open3d.org/"
+    homepage = "https://www.open3d.org/"
     url = "https://github.com/isl-org/Open3D/archive/refs/tags/v0.13.0.tar.gz"
     git = "https://github.com/isl-org/Open3D.git"
 

@@ -20,7 +20,7 @@ class Vtk(CMakePackage):
     url = "https://www.vtk.org/files/release/9.0/VTK-9.0.0.tar.gz"
     list_url = "https://www.vtk.org/download/"
 
-    maintainers("danlipsa", "vicentebolea")
+    maintainers("chuckatkins", "danlipsa", "johnwparent")
 
     license("BSD-3-Clause")
 
@@ -54,8 +54,9 @@ class Vtk(CMakePackage):
     version("6.3.0", sha256="92a493354c5fa66bea73b5fc014154af5d9f3f6cee8d20a826f4cd5d4b0e8a5e")
     version("6.1.0", sha256="bd7df10a479606d529a8b71f466c44a2bdd11fd534c62ce0aa44fad91883fa34")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("pkgconfig", type="build", when="platform=linux")
 
     # VTK7 defaults to OpenGL2 rendering backend
     variant("opengl2", default=True, description="Enable OpenGL2 backend")
@@ -86,14 +87,15 @@ class Vtk(CMakePackage):
 
     conflicts("%gcc@13", when="@9.2")
 
-    with when("+python"):
-        # Depend on any Python, add bounds below.
-        extends("python@2.7:", type=("build", "run"))
-        depends_on("python@:3.7", when="@:8.2.0", type=("build", "run"))
-        # Python 3.8 support from vtk 9 and patched 8.2
-        depends_on("python@:3.8", when="@:8.2.1a", type=("build", "run"))
-        # Python 3.10 support from vtk 9.2
-        depends_on("python@:3.9", when="@:9.1", type=("build", "run"))
+    # Based on PyPI wheel availability
+    with when("+python"), default_args(type=("build", "link", "run")):
+        depends_on("python@:3.13")
+        depends_on("python@:3.12", when="@:9.3")
+        depends_on("python@:3.11", when="@:9.2")
+        depends_on("python@:3.10", when="@:9.2.2")
+        depends_on("python@:3.9", when="@:9.1")
+        depends_on("python@:3.8", when="@:9.0.1")
+        depends_on("python@:3.7", when="@:8.2.0")
 
     # We need mpi4py if buidling python wrappers and using MPI
     depends_on("py-mpi4py", when="+python+mpi", type="run")
@@ -131,10 +133,21 @@ class Vtk(CMakePackage):
     patch("vtk_movie_link_ogg.patch", when="@8.2")
     patch("vtk_use_sqlite_name_vtk_expects.patch", when="@8.2")
     patch("vtk_proj_include_no_strict.patch", when="@9: platform=windows")
+    # allow proj to be detected via a CMake produced export config file
+    # failing that, falls back on standard library detection
+    # required for VTK to build against modern proj/more robustly
+    patch("vtk_findproj_config.patch", when="@9:")
+    # adds a fake target alias'ing the hdf5 target to prevent
+    # checks for that target from falling on VTK's empty stub target
+    # Required to consume netcdf and hdf5 both built
+    # with CMake from VTK
     # a patch with the same name is also applied to paraview
     # the two patches are the same but for the path to the files they patch
-    patch("vtk_alias_hdf5.patch", when="@9: platform=windows")
-    patch("vtk_findproj_config.patch", when="platform=windows")
+    patch("vtk_alias_hdf5.patch", when="@9:")
+    # VTK 9.0 on Windows uses dll instead of lib for hdf5-hl target, which fails linking. Can't
+    # be fixed by bumping CMake lower bound, because VTK vendors FindHDF5.cmake. Various other
+    # patches to FindHDF5.cmake are missing, so add conflict instead of a series of patches.
+    conflicts("@9.0 platform=windows")
     depends_on("libxt", when="^[virtuals=gl] glx platform=linux")
 
     # VTK will need Qt5OpenGL, and qt needs '-opengl' for that

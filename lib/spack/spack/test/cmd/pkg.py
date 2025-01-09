@@ -10,8 +10,10 @@ import pytest
 
 from llnl.util.filesystem import mkdirp, working_dir
 
+import spack.cmd
 import spack.cmd.pkg
 import spack.main
+import spack.paths
 import spack.repo
 import spack.util.file_cache
 
@@ -57,21 +59,21 @@ def mock_pkg_git_repo(git, tmp_path_factory):
 
         # add commit with mockpkg-a, mockpkg-b, mockpkg-c packages
         mkdirp("mockpkg-a", "mockpkg-b", "mockpkg-c")
-        with open("mockpkg-a/package.py", "w") as f:
+        with open("mockpkg-a/package.py", "w", encoding="utf-8") as f:
             f.write(pkg_template.format(name="PkgA"))
-        with open("mockpkg-b/package.py", "w") as f:
+        with open("mockpkg-b/package.py", "w", encoding="utf-8") as f:
             f.write(pkg_template.format(name="PkgB"))
-        with open("mockpkg-c/package.py", "w") as f:
+        with open("mockpkg-c/package.py", "w", encoding="utf-8") as f:
             f.write(pkg_template.format(name="PkgC"))
         git("add", "mockpkg-a", "mockpkg-b", "mockpkg-c")
         git("-c", "commit.gpgsign=false", "commit", "-m", "add mockpkg-a, mockpkg-b, mockpkg-c")
 
         # remove mockpkg-c, add mockpkg-d
-        with open("mockpkg-b/package.py", "a") as f:
+        with open("mockpkg-b/package.py", "a", encoding="utf-8") as f:
             f.write("\n# change mockpkg-b")
         git("add", "mockpkg-b")
         mkdirp("mockpkg-d")
-        with open("mockpkg-d/package.py", "w") as f:
+        with open("mockpkg-d/package.py", "w", encoding="utf-8") as f:
             f.write(pkg_template.format(name="PkgD"))
         git("add", "mockpkg-d")
         git("rm", "-rf", "mockpkg-c")
@@ -121,7 +123,7 @@ def test_mock_packages_path(mock_packages):
 def test_pkg_add(git, mock_pkg_git_repo):
     with working_dir(mock_pkg_git_repo):
         mkdirp("mockpkg-e")
-        with open("mockpkg-e/package.py", "w") as f:
+        with open("mockpkg-e/package.py", "w", encoding="utf-8") as f:
             f.write(pkg_template.format(name="PkgE"))
 
     pkg("add", "mockpkg-e")
@@ -255,7 +257,7 @@ def test_pkg_source(mock_packages):
     fake_source = pkg("source", "fake")
 
     fake_file = spack.repo.PATH.filename_for_package_name("fake")
-    with open(fake_file) as f:
+    with open(fake_file, encoding="utf-8") as f:
         contents = f.read()
         assert fake_source == contents
 
@@ -310,7 +312,20 @@ def test_pkg_grep(mock_packages, capfd):
     output, _ = capfd.readouterr()
     assert output.strip() == "\n".join(
         spack.repo.PATH.get_pkg_class(name).module.__file__
-        for name in ["splice-a", "splice-h", "splice-t", "splice-vh", "splice-z"]
+        for name in [
+            "depends-on-manyvariants",
+            "manyvariants",
+            "splice-a",
+            "splice-depends-on-t",
+            "splice-h",
+            "splice-t",
+            "splice-vh",
+            "splice-vt",
+            "splice-z",
+            "virtual-abi-1",
+            "virtual-abi-2",
+            "virtual-abi-multi",
+        ]
     )
 
     # ensure that this string isn't fouhnd

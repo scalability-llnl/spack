@@ -5,7 +5,6 @@
 import sys
 
 from spack.package import *
-from spack.util.executable import which_string
 
 
 class Ninja(Package):

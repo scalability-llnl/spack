@@ -19,6 +19,11 @@ class Pika(CMakePackage, CudaPackage, ROCmPackage):
 
     license("BSL-1.0")
 
+    version("0.31.0", sha256="bdbd8e36afb367cc2c7172e5a819c756e4ee20e74dfdec4905f2e84bf097eb7c")
+    version("0.30.1", sha256="b0f3689a3edd30f8d674e19b5134fc5013813f843c45797c1015163e51989ac0")
+    version("0.30.0", sha256="1798bf7de2505bc707bf95716fda8de5630b2e2ae54a6c4ef59f9931394d31cc")
+    version("0.29.0", sha256="2c61079f52f3e135a8d0845a993e6e4fb64031fbee9b5cef0ead57efb6175e3c")
+    version("0.28.0", sha256="a64ebac04135c0c8d392ddcd8d683fe02e2c0782abfe130754244d58f27ae6cf")
     version("0.27.0", sha256="4a58dc4014edc2074399e4a6ecfa244537c89ce1319b3e14ff3dfe617fb9f9e8")
     version("0.26.1", sha256="d7cc842238754019abdb536e22325e9a57186cd2ac8cc9c7140a5385f9d730f6")
     version("0.26.0", sha256="bbec5472c71006c1f55e7946c8dc517dae76c41cacb36fa98195312c74a1bb9a")
@@ -68,11 +73,12 @@ class Pika(CMakePackage, CudaPackage, ROCmPackage):
         description="Use the specified C++ standard when building",
     )
 
+    mallocs = ("system", "jemalloc", "mimalloc", "tbbmalloc", "tcmalloc")
     variant(
         "malloc",
         default="mimalloc",
         description="Define which allocator will be linked in",
-        values=("system", "jemalloc", "mimalloc", "tbbmalloc", "tcmalloc"),
+        values=mallocs,
     )
 
     default_generic_coroutines = True
@@ -104,7 +110,6 @@ class Pika(CMakePackage, CudaPackage, ROCmPackage):
     )
 
     # Build dependencies
-    depends_on("git", type="build")
     depends_on("cmake@3.18:", type="build")
     depends_on("cmake@3.22:", when="@0.8:", type="build")
 
@@ -115,6 +120,8 @@ class Pika(CMakePackage, CudaPackage, ROCmPackage):
     conflicts("%clang@:8", when="@0.2:")
     conflicts("+stdexec", when="cxxstd=17")
     conflicts("cxxstd=23", when="^cmake@:3.20.2")
+    conflicts("cxxstd=20", when="+cuda ^cmake@:3.25.1")
+    conflicts("cxxstd=23", when="+cuda")
     # nvcc version <= 11 does not support C++20 and newer
     for cxxstd in filter(lambda x: x != "17", cxxstds):
         requires("%nvhpc", when=f"cxxstd={cxxstd} ^cuda@:11")
@@ -125,20 +132,31 @@ class Pika(CMakePackage, CudaPackage, ROCmPackage):
     # https://github.com/pika-org/pika/issues/686
     conflicts("^fmt@10:", when="@:0.15 +cuda")
     conflicts("^fmt@10:", when="@:0.15 +rocm")
+    # https://github.com/pika-org/pika/pull/1074
+    conflicts("^fmt@11:", when="@:0.23")
     depends_on("spdlog@1.9.2:", when="@0.25:")
     depends_on("hwloc@1.11.5:")
+    # https://github.com/pika-org/pika/issues/1223
+    conflicts("^hwloc@2.11:", when="@:0.27 target=aarch64:")
 
     depends_on("gperftools", when="malloc=tcmalloc")
     depends_on("jemalloc", when="malloc=jemalloc")
     depends_on("mimalloc", when="malloc=mimalloc")
     depends_on("tbb", when="malloc=tbbmalloc")
+    for malloc in filter(lambda x: x != "system", mallocs):
+        conflicts("^apex +gperftools", when=f"+apex malloc={malloc}")
+        conflicts("^apex +jemalloc", when=f"+apex malloc={malloc}")
 
     depends_on("apex", when="+apex")
     depends_on("cuda@11:", when="+cuda")
     depends_on("hip@5.2:", when="@0.8: +rocm")
+    # https://github.com/pika-org/pika/issues/1238
+    conflicts("%gcc@13:", when="+rocm")
     depends_on("hipblas", when="@:0.8 +rocm")
     depends_on("mpi", when="+mpi")
-    depends_on("stdexec", when="+stdexec")
+    with when("+stdexec"):
+        depends_on("stdexec")
+        depends_on("stdexec@24.09:", when="@0.29:")
     depends_on("rocblas", when="+rocm")
     depends_on("rocsolver", when="@0.5: +rocm")
     depends_on("tracy-client", when="+tracy")

@@ -9,7 +9,7 @@ from spack.package import *
 class PyJupyterServerMathjax(PythonPackage):
     """MathJax resources as a Jupyter Server Extension."""
 
-    homepage = "http://jupyter.org/"
+    homepage = "https://jupyter.org/"
     pypi = "jupyter_server_mathjax/jupyter_server_mathjax-0.2.3.tar.gz"
 
     license("BSD-3-Clause")

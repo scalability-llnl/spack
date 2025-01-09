@@ -13,7 +13,7 @@ class Quicksilver(MakefilePackage):
 
     tags = ["proxy-app"]
 
-    homepage = "https://codesign.llnl.gov/quicksilver.php"
+    homepage = "https://asc.llnl.gov/codes/proxy-apps/quicksilver"
     url = "https://github.com/LLNL/Quicksilver/tarball/V1.0"
     git = "https://github.com/LLNL/Quicksilver.git"
 

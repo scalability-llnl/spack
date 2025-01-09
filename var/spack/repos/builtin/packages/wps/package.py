@@ -95,7 +95,6 @@ class Wps(Package):
                 "dmpar": "19",
                 "dmpar_NO_GRIB2": "20",
             },
-            "pgi": {"serial": "5", "serial_NO_GRIB2": "6", "dmpar": "7", "dmpar_NO_GRIB2": "8"},
         }
 
         try:

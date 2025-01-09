@@ -22,6 +22,8 @@ class FujitsuMpi(Package):
         msg="currently only supports Fujitsu, Clang, or GCC compilers",
     )
 
+    requires("platform=linux")
+
     def install(self, spec, prefix):
         raise InstallError("Fujitsu MPI is not installable; it is vendor supplied")
 

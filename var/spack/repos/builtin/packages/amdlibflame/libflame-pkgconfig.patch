@@ -1,0 +1,29 @@
+diff -Naru a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt	2024-02-26 18:26:37.000000000 +0000
++++ b/CMakeLists.txt	2024-03-19 20:48:44.099094687 +0000
+@@ -1197,3 +1197,12 @@
+         PROPERTY ADDITIONAL_CLEAN_FILES 
+ 		${CMAKE_SOURCE_DIR}/build/FLA_config.h ${CMAKE_SOURCE_DIR}/include/
+ )
++
++# pkgconfig file
++set (prefix ${CMAKE_INSTALL_PREFIX})
++set (VERSION 4.2)
++configure_file (flame.pc.in flame.pc @ONLY)
++install (FILES
++         ${CMAKE_CURRENT_BINARY_DIR}/flame.pc
++         DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/pkgconfig
++         COMPONENT Development)
+diff -Naru a/flame.pc.in b/flame.pc.in
+--- a/flame.pc.in	1970-01-01 00:00:00.000000000 +0000
++++ b/flame.pc.in	2024-03-19 20:48:51.112058421 +0000
+@@ -0,0 +1,9 @@
++prefix=@prefix@
++libdir=${prefix}/lib
++includedir=${prefix}/include
++
++Name: libFLAME
++Description: AMD-optimized libFLAME library
++Version: @VERSION@
++Libs: -L${libdir} -lflame
++Cflags: -I${includedir}

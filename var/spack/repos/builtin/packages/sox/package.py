@@ -14,7 +14,7 @@ class Sox(AutotoolsPackage):
 
     version("14.4.2", sha256="81a6956d4330e75b5827316e44ae381e6f1e8928003c6aa45896da9041ea149c")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     variant("mp3", default=False, description="Build with mp3 support")
 
@@ -24,3 +24,10 @@ class Sox(AutotoolsPackage):
     depends_on("opus")
     depends_on("lame", when="+mp3")
     depends_on("libmad", when="+mp3")
+
+    def flag_handler(self, name, flags):
+        # https://github.com/Homebrew/homebrew-core/blob/master/Formula/s/sox.rb
+        if name == "cflags":
+            if self.spec.satisfies("%apple-clang@15:"):
+                flags.append("-Wno-incompatible-function-pointer-types")
+        return (flags, None, None)

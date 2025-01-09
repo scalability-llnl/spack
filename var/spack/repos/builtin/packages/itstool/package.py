@@ -11,8 +11,8 @@ class Itstool(AutotoolsPackage):
     rules from the W3C Internationalization Tag Set (ITS) to determine what
     to translate and how to separate it into PO file messages."""
 
-    homepage = "http://itstool.org/"
-    url = "http://files.itstool.org/itstool/itstool-2.0.2.tar.bz2"
+    homepage = "https://itstool.org/"
+    url = "https://files.itstool.org/itstool/itstool-2.0.2.tar.bz2"
 
     maintainers("agoodLANL")
 

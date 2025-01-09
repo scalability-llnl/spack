@@ -12,6 +12,8 @@ from llnl.util.filesystem import getuid, touch
 
 import spack
 import spack.cmd.external
+import spack.config
+import spack.cray_manifest
 import spack.detection
 import spack.detection.path
 import spack.repo
@@ -44,7 +46,7 @@ def test_find_external_single_package(mock_executable):
 
     assert len(specs_by_package) == 1 and "cmake" in specs_by_package
     detected_spec = specs_by_package["cmake"]
-    assert len(detected_spec) == 1 and detected_spec[0].spec == Spec("cmake@1.foo")
+    assert len(detected_spec) == 1 and detected_spec[0] == Spec("cmake@1.foo")
 
 
 def test_find_external_two_instances_same_package(mock_executable):
@@ -61,10 +63,10 @@ def test_find_external_two_instances_same_package(mock_executable):
     )
 
     assert len(detected_specs) == 2
-    spec_to_path = {e.spec: e.prefix for e in detected_specs}
+    spec_to_path = {s: s.external_path for s in detected_specs}
     assert spec_to_path[Spec("cmake@1.foo")] == (
         spack.detection.executable_prefix(str(cmake1.parent))
-    )
+    ), spec_to_path
     assert spec_to_path[Spec("cmake@3.17.2")] == (
         spack.detection.executable_prefix(str(cmake2.parent))
     )
@@ -72,8 +74,8 @@ def test_find_external_two_instances_same_package(mock_executable):
 
 def test_find_external_update_config(mutable_config):
     entries = [
-        spack.detection.DetectedPackage(Spec.from_detection("cmake@1.foo"), "/x/y1/"),
-        spack.detection.DetectedPackage(Spec.from_detection("cmake@3.17.2"), "/x/y2/"),
+        Spec.from_detection("cmake@1.foo", external_path="/x/y1"),
+        Spec.from_detection("cmake@3.17.2", external_path="/x/y2"),
     ]
     pkg_to_entries = {"cmake": entries}
 
@@ -84,8 +86,8 @@ def test_find_external_update_config(mutable_config):
     cmake_cfg = pkgs_cfg["cmake"]
     cmake_externals = cmake_cfg["externals"]
 
-    assert {"spec": "cmake@1.foo", "prefix": "/x/y1/"} in cmake_externals
-    assert {"spec": "cmake@3.17.2", "prefix": "/x/y2/"} in cmake_externals
+    assert {"spec": "cmake@1.foo", "prefix": "/x/y1"} in cmake_externals
+    assert {"spec": "cmake@3.17.2", "prefix": "/x/y2"} in cmake_externals
 
 
 def test_get_executables(working_env, mock_executable):
@@ -221,21 +223,19 @@ def test_find_external_manifest_failure(mutable_config, mutable_mock_repo, tmpdi
     assert "Skipping manifest and continuing" in output
 
 
-def test_find_external_merge(mutable_config, mutable_mock_repo):
-    """Check that 'spack find external' doesn't overwrite an existing spec
-    entry in packages.yaml.
-    """
+def test_find_external_merge(mutable_config, mutable_mock_repo, tmp_path):
+    """Checks that 'spack find external' doesn't overwrite an existing spec in packages.yaml."""
     pkgs_cfg_init = {
         "find-externals1": {
-            "externals": [{"spec": "find-externals1@1.1", "prefix": "/preexisting-prefix/"}],
+            "externals": [{"spec": "find-externals1@1.1", "prefix": "/preexisting-prefix"}],
             "buildable": False,
         }
     }
 
     mutable_config.update_config("packages", pkgs_cfg_init)
     entries = [
-        spack.detection.DetectedPackage(Spec.from_detection("find-externals1@1.1"), "/x/y1/"),
-        spack.detection.DetectedPackage(Spec.from_detection("find-externals1@1.2"), "/x/y2/"),
+        Spec.from_detection("find-externals1@1.1", external_path="/x/y1"),
+        Spec.from_detection("find-externals1@1.2", external_path="/x/y2"),
     ]
     pkg_to_entries = {"find-externals1": entries}
     scope = spack.config.default_modify_scope("packages")
@@ -245,8 +245,8 @@ def test_find_external_merge(mutable_config, mutable_mock_repo):
     pkg_cfg = pkgs_cfg["find-externals1"]
     pkg_externals = pkg_cfg["externals"]
 
-    assert {"spec": "find-externals1@1.1", "prefix": "/preexisting-prefix/"} in pkg_externals
-    assert {"spec": "find-externals1@1.2", "prefix": "/x/y2/"} in pkg_externals
+    assert {"spec": "find-externals1@1.1", "prefix": "/preexisting-prefix"} in pkg_externals
+    assert {"spec": "find-externals1@1.2", "prefix": "/x/y2"} in pkg_externals
 
 
 def test_list_detectable_packages(mutable_config, mutable_mock_repo):
@@ -272,7 +272,7 @@ def test_overriding_prefix(mock_executable, mutable_config, monkeypatch):
 
     assert len(detected_specs) == 1
 
-    gcc = detected_specs[0].spec
+    gcc = detected_specs[0]
     assert gcc.name == "gcc"
     assert gcc.external_path == os.path.sep + os.path.join("opt", "gcc", "bin")
 

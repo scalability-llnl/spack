@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
+import spack.util.environment
 from spack.package import *
 
 
@@ -14,7 +15,7 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
     """
 
     homepage = "https://icl.utk.edu/magma/"
-    git = "https://bitbucket.org/icl/magma"
+    git = "https://github.com/icl-utk-edu/magma"
     url = "https://icl.utk.edu/projectsfiles/magma/downloads/magma-2.2.0.tar.gz"
     maintainers("stomov", "luszczek", "G-Ragghianti")
 
@@ -66,6 +67,8 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@2.8.0: +rocm ^hip@{ver}")
     depends_on("python", when="@master", type="build")
@@ -81,6 +84,10 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
     # https://bitbucket.org/icl/magma/issues/22/cuda-11-changes-issue
     # https://bitbucket.org/icl/magma/issues/25/error-cusparsesolveanalysisinfo_t-does-not
     conflicts("^cuda@11:", when="@:2.5.3")
+
+    # currently not compatible with CUDA-12.6
+    # https://github.com/icl-utk-edu/magma/issues/7
+    conflicts("^cuda@12.6:", when="@:2.8.0")
 
     # Many cuda_arch values are not yet recognized by MAGMA's CMakeLists.txt
     for target in [10, 11, 12, 13, 21, 32, 52, 53, 61, 62, 72, 86]:
@@ -162,7 +169,7 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
 
         if "@2.5.0" in spec:
             options.append(define("MAGMA_SPARSE", False))
-            if spec.compiler.name in ["xl", "xl_r"]:
+            if spec.satisfies("%xl") or spec.satisfies("%xl_r"):
                 options.append(define("CMAKE_DISABLE_FIND_PACKAGE_OpenMP", True))
 
         if "+rocm" in spec:

@@ -21,24 +21,20 @@ import spack.config
 import spack.deptypes as dt
 import spack.environment as ev
 import spack.error
-import spack.mirror
+import spack.mirrors.mirror
 import spack.oci.oci
-import spack.oci.opener
-import spack.relocate
-import spack.repo
 import spack.spec
 import spack.stage
 import spack.store
-import spack.user_environment
-import spack.util.crypto
 import spack.util.parallel
 import spack.util.url as url_util
 import spack.util.web as web_util
 from spack import traverse
 from spack.cmd import display_specs
 from spack.cmd.common import arguments
-from spack.oci.image import ImageReference
 from spack.spec import Spec, save_dependency_specfiles
+
+from ..enums import InstallRecordStatus
 
 description = "create, download and install binary packages"
 section = "packaging"
@@ -314,7 +310,10 @@ def setup_parser(subparser: argparse.ArgumentParser):
 
 def _matching_specs(specs: List[Spec]) -> List[Spec]:
     """Disambiguate specs and return a list of matching specs"""
-    return [spack.cmd.disambiguate_spec(s, ev.active_environment(), installed=any) for s in specs]
+    return [
+        spack.cmd.disambiguate_spec(s, ev.active_environment(), installed=InstallRecordStatus.ANY)
+        for s in specs
+    ]
 
 
 def _format_spec(spec: Spec) -> str:
@@ -392,13 +391,8 @@ def push_fn(args):
     else:
         roots = spack.cmd.require_active_env(cmd_name="buildcache push").concrete_roots()
 
-    mirror: spack.mirror.Mirror = args.mirror
-
-    # Check if this is an OCI image.
-    try:
-        target_image = spack.oci.oci.image_from_mirror(mirror)
-    except ValueError:
-        target_image = None
+    mirror = args.mirror
+    assert isinstance(mirror, spack.mirrors.mirror.Mirror)
 
     push_url = mirror.push_url
 
@@ -409,12 +403,11 @@ def push_fn(args):
         unsigned = not (args.key or args.signed)
 
     # For OCI images, we require dependencies to be pushed for now.
-    if target_image:
-        if not unsigned:
-            tty.warn(
-                "Code signing is currently not supported for OCI images. "
-                "Use --unsigned to silence this warning."
-            )
+    if mirror.push_url.startswith("oci://") and not unsigned:
+        tty.warn(
+            "Code signing is currently not supported for OCI images. "
+            "Use --unsigned to silence this warning."
+        )
         unsigned = True
 
     # Select a signing key, or None if unsigned.
@@ -445,49 +438,17 @@ def push_fn(args):
                     (s, PackageNotInstalledError("package not installed")) for s in not_installed
                 )
 
-    with bindist.default_push_context() as (tmpdir, executor):
-        if target_image:
-            base_image = ImageReference.from_string(args.base_image) if args.base_image else None
-            skipped, base_images, checksums, upload_errors = bindist._push_oci(
-                target_image=target_image,
-                base_image=base_image,
-                installed_specs_with_deps=specs,
-                force=args.force,
-                tmpdir=tmpdir,
-                executor=executor,
-            )
-
-            if upload_errors:
-                failed.extend(upload_errors)
-
-            # Apart from creating manifests for each individual spec, we allow users to create a
-            # separate image tag for all root specs and their runtime dependencies.
-            elif args.tag:
-                tagged_image = target_image.with_tag(args.tag)
-                # _push_oci may not populate base_images if binaries were already in the registry
-                for spec in roots:
-                    bindist._oci_update_base_images(
-                        base_image=base_image,
-                        target_image=target_image,
-                        spec=spec,
-                        base_image_cache=base_images,
-                    )
-                bindist._oci_put_manifest(
-                    base_images, checksums, tagged_image, tmpdir, None, None, *roots
-                )
-                tty.info(f"Tagged {tagged_image}")
-
-        else:
-            skipped, upload_errors = bindist._push(
-                specs,
-                out_url=push_url,
-                force=args.force,
-                update_index=args.update_index,
-                signing_key=signing_key,
-                tmpdir=tmpdir,
-                executor=executor,
-            )
-            failed.extend(upload_errors)
+    with bindist.make_uploader(
+        mirror=mirror,
+        force=args.force,
+        update_index=args.update_index,
+        signing_key=signing_key,
+        base_image=args.base_image,
+    ) as uploader:
+        skipped, upload_errors = uploader.push(specs=specs)
+        failed.extend(upload_errors)
+        if not upload_errors and args.tag:
+            uploader.tag(args.tag, roots)
 
     if skipped:
         if len(specs) == 1:
@@ -499,7 +460,7 @@ def push_fn(args):
                 "The following {} specs were skipped as they already exist in the buildcache:\n"
                 "    {}\n"
                 "    Use --force to overwrite them.".format(
-                    len(skipped), ", ".join(elide_list(skipped, 5))
+                    len(skipped), ", ".join(elide_list([_format_spec(s) for s in skipped], 5))
                 )
             )
 
@@ -519,13 +480,6 @@ def push_fn(args):
                 )
             ),
         )
-
-    # Update the OCI index if requested
-    if target_image and len(skipped) < len(specs) and args.update_index:
-        with tempfile.TemporaryDirectory(
-            dir=spack.stage.get_stage_root()
-        ) as tmpdir, spack.util.parallel.make_concurrent_executor() as executor:
-            bindist._oci_update_index(target_image, tmpdir, executor)
 
 
 def install_fn(args):
@@ -777,7 +731,7 @@ def manifest_copy(manifest_file_list, dest_mirror=None):
     deduped_manifest = {}
 
     for manifest_path in manifest_file_list:
-        with open(manifest_path) as fd:
+        with open(manifest_path, encoding="utf-8") as fd:
             manifest = json.loads(fd.read())
             for spec_hash, copy_list in manifest.items():
                 # Last duplicate hash wins
@@ -796,7 +750,7 @@ def manifest_copy(manifest_file_list, dest_mirror=None):
             copy_buildcache_file(copy_file["src"], dest)
 
 
-def update_index(mirror: spack.mirror.Mirror, update_keys=False):
+def update_index(mirror: spack.mirrors.mirror.Mirror, update_keys=False):
     # Special case OCI images for now.
     try:
         image_ref = spack.oci.oci.image_from_mirror(mirror)
@@ -814,7 +768,7 @@ def update_index(mirror: spack.mirror.Mirror, update_keys=False):
     url = mirror.push_url
 
     with tempfile.TemporaryDirectory(dir=spack.stage.get_stage_root()) as tmpdir:
-        bindist.generate_package_index(url, tmpdir)
+        bindist._url_generate_package_index(url, tmpdir)
 
     if update_keys:
         keys_url = url_util.join(

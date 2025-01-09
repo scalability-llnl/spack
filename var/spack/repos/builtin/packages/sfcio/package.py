@@ -19,11 +19,14 @@ class Sfcio(CMakePackage):
     maintainers("AlexanderRichert-NOAA", "Hang-Lei-NOAA", "edwardhartnett")
 
     version("develop", branch="develop")
+    version("1.4.2", sha256="bfde52320b836886a766ff8d0d6707b8a533c903b947f8b49250c544aaccaaac")
     version("1.4.1", sha256="d9f900cf18ec1a839b4128c069b1336317ffc682086283443354896746b89c59")
 
     depends_on("fortran", type="build")
 
     depends_on("pfunit", type="test")
+
+    conflicts("%oneapi", when="@:1.4.1", msg="Requires @1.4.2: for Intel oneAPI")
 
     def cmake_args(self):
         args = [self.define("ENABLE_TESTS", self.run_tests)]
@@ -43,5 +46,5 @@ class Sfcio(CMakePackage):
         return (None, None, flags)
 
     def check(self):
-        with working_dir(self.builder.build_directory):
+        with working_dir(self.build_directory):
             make("test")

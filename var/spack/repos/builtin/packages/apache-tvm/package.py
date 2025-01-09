@@ -18,7 +18,11 @@ class ApacheTvm(CMakePackage, CudaPackage):
 
     license("Apache-2.0", checked_by="alex391")
 
-    version("0.16.0", sha256="55e2629c39248ef3b1ee280e34a960182bd17bea7ae0d0fa132bbdaaf5aba1ac")
+    version(
+        "0.16.0",
+        sha256="55e2629c39248ef3b1ee280e34a960182bd17bea7ae0d0fa132bbdaaf5aba1ac",
+        deprecated=True,
+    )
 
     variant("llvm", default=True, description="Build with llvm for CPU codegen")
 
@@ -26,7 +30,9 @@ class ApacheTvm(CMakePackage, CudaPackage):
     depends_on("cxx", type="build")
     depends_on("cmake@3.18:", type="build")
     depends_on("python@3.7:3.8", type=("build", "run"))
-    depends_on("llvm@4:", type="build", when="+llvm")
+    depends_on("zlib-api", type=("link", "run"))
+    depends_on("ncurses", type=("link", "run"))
+    depends_on("llvm@4:18.1.8", type="build", when="+llvm")
     depends_on("cuda@8:", when="+cuda")
 
     def cmake_args(self):

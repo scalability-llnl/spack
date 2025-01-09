@@ -19,7 +19,9 @@ class Cpuinfo(CMakePackage):
     license("BSD-2-Clause")
 
     version("main", branch="main")
-    version("2023-11-04", commit="d6860c477c99f1fce9e28eb206891af3c0e1a1d7")  # py-torch@2.3:
+    version("2024-09-06", commit="094fc30b9256f54dad5ad23bcbfb5de74781422f")  # py-torch@2.5.1:
+    version("2024-08-30", commit="fa1c679da8d19e1d87f20175ae1ec10995cd3dd3")  # py-torch@2.5.0
+    version("2023-11-04", commit="d6860c477c99f1fce9e28eb206891af3c0e1a1d7")  # py-torch@2.3:2.4
     version("2023-01-13", commit="6481e8bef08f606ddd627e4d3be89f64d62e1b8a")  # py-torch@2.1:2.2
     version("2022-08-19", commit="8ec7bd91ad0470e61cf38f618cc1f270dede599c")  # py-torch@1.13:2.0
     version("2020-12-17", commit="5916273f79a21551890fd3d56fc5375a78d1598d")  # py-torch@1.8:1.12
@@ -30,8 +32,8 @@ class Cpuinfo(CMakePackage):
     version("2018-05-13", commit="1e6c8c99d27f2b5eb9d2e6231055c6a4115b85e5")  # py-torch@0.4.1
     version("2018-04-04", commit="831dc28341b5f20d13e840caf87eaba644d82643")  # py-torch@:0.4.0
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     generator("ninja")
     depends_on("cmake@3.5:", type="build")

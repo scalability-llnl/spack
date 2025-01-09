@@ -5,8 +5,6 @@
 
 import os
 
-from llnl.util import tty
-
 from spack.package import *
 
 
@@ -33,10 +31,11 @@ class AoclSparse(CMakePackage):
     license("MIT")
 
     version(
-        "4.2",
-        sha256="03cd67adcfea4a574fece98b60b4aba0a6e5a9c8f608ff1ccc1fb324a7185538",
+        "5.0",
+        sha256="7528970f41ae60563df9fe1f8cc74a435be1566c01868a603ab894e9956c3c94",
         preferred=True,
     )
+    version("4.2", sha256="03cd67adcfea4a574fece98b60b4aba0a6e5a9c8f608ff1ccc1fb324a7185538")
     version("4.1", sha256="35ef437210bc25fdd802b462eaca830bfd928f962569b91b592f2866033ef2bb")
     version("4.0", sha256="68524e441fdc7bb923333b98151005bed39154d9f4b5e8310b5c37de1d69c2c3")
     version("3.2", sha256="db7d681a8697d6ef49acf3e97e8bec35b048ce0ad74549c3b738bbdff496618f")
@@ -58,16 +57,29 @@ class AoclSparse(CMakePackage):
         when="@4.0: target=zen4:",
         description="Enable experimental AVX512 support",
     )
+    variant("openmp", default=True, when="@4.2:", description="Enable OpenMP support")
 
-    for vers in ["4.1", "4.2"]:
+    for vers in ["4.1", "4.2", "5.0"]:
         with when(f"@={vers}"):
             depends_on(f"amdblis@={vers}")
             depends_on(f"amdlibflame@={vers}")
             if Version(vers) >= Version("4.2"):
                 depends_on(f"aocl-utils@={vers}")
+
+    depends_on("amdblis threads=openmp", when="+openmp")
+    depends_on("amdlibflame threads=openmp", when="+openmp")
+    depends_on("amdblis threads=none", when="~openmp")
+    depends_on("amdlibflame threads=none", when="~openmp")
     depends_on("boost", when="+benchmarks")
     depends_on("boost", when="@2.2")
-    depends_on("cmake@3.15:", type="build")
+    depends_on("cmake@3.22:", type="build")
+
+    @property
+    def libs(self):
+        """find libaoclsparse libs function"""
+        return find_libraries(
+            "libaoclsparse", root=self.prefix, shared="+shared" in self.spec, recursive=True
+        )
 
     @property
     def build_directory(self):
@@ -89,18 +101,6 @@ class AoclSparse(CMakePackage):
         """Runs ``cmake`` in the build directory"""
         spec = self.spec
 
-        if not (
-            spec.satisfies(r"%aocc@3.2:4.2")
-            or spec.satisfies(r"%gcc@12.2:13.1")
-            or spec.satisfies(r"%clang@15:17")
-        ):
-            tty.warn(
-                "AOCL has been tested to work with the following compilers "
-                "versions - gcc@12.2:13.1, aocc@3.2:4.2, and clang@15:17 "
-                "see the following aocl userguide for details: "
-                "https://www.amd.com/content/dam/amd/en/documents/developer/version-4-2-documents/aocl/aocl-4-2-user-guide.pdf"
-            )
-
         args = []
         args.append(self.define_from_variant("BUILD_SHARED_LIBS", "shared"))
         args.append(self.define_from_variant("BUILD_CLIENTS_SAMPLES", "examples"))
@@ -111,21 +111,19 @@ class AoclSparse(CMakePackage):
         if spec.satisfies("@3.0:"):
             args.append(self.define_from_variant("BUILD_ILP64", "ilp64"))
 
-        if self.spec.satisfies("@4.1:"):
+        if spec.satisfies("@4.0:"):
             args.append(f"-DAOCL_BLIS_LIB={self.spec['amdblis'].libs}")
+            args.append("-DAOCL_BLIS_INCLUDE_DIR={0}/blis".format(spec["amdblis"].prefix.include))
+            args.append(f"-DAOCL_LIBFLAME={spec['amdlibflame'].libs}")
             args.append(
-                "-DAOCL_BLIS_INCLUDE_DIR={0}/blis".format(self.spec["amdblis"].prefix.include)
-            )
-            args.append(f"-DAOCL_LIBFLAME={self.spec['amdlibflame'].libs}")
-            args.append(
-                "-DAOCL_LIBFLAME_INCLUDE_DIR={0}".format(self.spec["amdlibflame"].prefix.include)
+                "-DAOCL_LIBFLAME_INCLUDE_DIR={0}".format(spec["amdlibflame"].prefix.include)
             )
 
-        if self.spec.satisfies("@4.2:"):
-            args.append(f"-DAOCL_UTILS_LIB={self.spec['aocl-utils'].libs}")
-            args.append(
-                "-DAOCL_UTILS_INCLUDE_DIR={0}".format(self.spec["aocl-utils"].prefix.include)
-            )
+        if spec.satisfies("@4.2:"):
+            args.append(f"-DAOCL_UTILS_LIB={spec['aocl-utils'].libs}")
+            args.append("-DAOCL_UTILS_INCLUDE_DIR={0}".format(spec["aocl-utils"].prefix.include))
+
+        args.append(self.define_from_variant("SUPPORT_OMP", "openmp"))
 
         return args
 

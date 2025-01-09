@@ -16,15 +16,18 @@ class RocmDbgapi(CMakePackage):
 
     homepage = "https://github.com/ROCm/ROCdbgapi"
     git = "https://github.com/ROCm/ROCdbgapi.git"
-    url = "https://github.com/ROCm/ROCdbgapi/archive/rocm-6.1.2.tar.gz"
+    url = "https://github.com/ROCm/ROCdbgapi/archive/rocm-6.2.1.tar.gz"
     tags = ["rocm"]
 
-    maintainers("srekolam", "renjithravindrankannath")
+    maintainers("srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["librocm-dbgapi"]
 
     license("MIT")
 
     version("master", branch="amd-master")
+    version("6.2.4", sha256="004e9ace3ead840e44f98fc033b621d5489a554965deecfdb7df768482068282")
+    version("6.2.1", sha256="40064ca031e41ff3c87bfa31406b7192fa65709ab36734eddad87e0ecc01bb80")
+    version("6.2.0", sha256="311811ce0970ee83206791c21d539f351ddeac56ce3ff7efbefc830038748c0c")
     version("6.1.2", sha256="6e55839e3d95c2cfe3ff89e3e31da77aeecc74012a17f5308589e8808df78026")
     version("6.1.1", sha256="425a6cf6a3942c2854c1f5e7717bed906cf6c3753b46c44476f54bfef6188dac")
     version("6.1.0", sha256="0985405b6fd44667a7ce8914aa39a7e651613e037e649fbdbfa2adcf744a2d50")
@@ -51,6 +54,7 @@ class RocmDbgapi(CMakePackage):
     depends_on("cxx", type="build")  # generated
     depends_on("cmake@3:", type="build")
     depends_on("hwdata", when="@5.5.0:")
+    depends_on("pciutils", when="@5.5.0:")
 
     for ver in [
         "5.3.0",
@@ -68,6 +72,9 @@ class RocmDbgapi(CMakePackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
         "master",
     ]:
         depends_on(f"hsa-rocr-dev@{ver}", type="build", when=f"@{ver}")
@@ -85,6 +92,9 @@ class RocmDbgapi(CMakePackage):
         "6.1.0",
         "6.1.1",
         "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 
@@ -117,4 +127,6 @@ class RocmDbgapi(CMakePackage):
         args = []
         if self.spec.satisfies("@5.3.0:"):
             args.append(self.define("CMAKE_INSTALL_LIBDIR", "lib"))
+        if self.spec.satisfies("@5.5.0:"):
+            args.append(self.define("PCI_IDS_PATH", self.spec["pciutils"].prefix.share))
         return args

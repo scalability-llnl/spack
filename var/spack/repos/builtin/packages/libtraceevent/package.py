@@ -38,13 +38,13 @@ class Libtraceevent(MakefilePackage):
     @property
     def build_targets(self):
         result = self.common_targets + ["all"]
-        if "+doc" in self.spec:
+        if self.spec.satisfies("+doc"):
             result.append("doc")
         return result
 
     @property
     def install_targets(self):
         result = self.common_targets + ["install"]
-        if "+doc" in self.spec:
+        if self.spec.satisfies("+doc"):
             result.append("doc-install")
         return result

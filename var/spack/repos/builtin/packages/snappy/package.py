@@ -14,6 +14,7 @@ class Snappy(CMakePackage):
 
     license("BSD-3-Clause")
 
+    version("1.2.1", sha256="736aeb64d86566d2236ddffa2865ee5d7a82d26c9016b36218fcc27ea4f09f86")
     version("1.1.10", sha256="49d831bffcc5f3d01482340fe5af59852ca2fe76c3e05df0e67203ebbe0f1d90")
     version("1.1.9", sha256="75c1fbb3d618dd3a0483bff0e26d0a92b495bbe5059c8b4f1c962b478b6e06e7")
     version("1.1.8", sha256="16b677f07832a612b0836178db7f374e414f94657c138e6993cbfc5dcc58651f")

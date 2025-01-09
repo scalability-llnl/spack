@@ -6,6 +6,7 @@ import itertools
 
 import pytest
 
+from spack.installer import PackageInstaller
 from spack.spec import Spec
 from spack.spec_list import SpecList
 
@@ -200,8 +201,7 @@ class TestSpecList:
         # Put mpich in the database so it can be referred to by hash.
         mpich_1 = Spec("mpich+debug").concretized()
         mpich_2 = Spec("mpich~debug").concretized()
-        mpich_1.package.do_install(fake=True)
-        mpich_2.package.do_install(fake=True)
+        PackageInstaller([mpich_1.package, mpich_2.package], explicit=True, fake=True).install()
 
         # Create matrix and exclude +debug, which excludes the first mpich after its abstract hash
         # is resolved.

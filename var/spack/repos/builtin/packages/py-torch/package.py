@@ -17,15 +17,17 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     git = "https://github.com/pytorch/pytorch.git"
     submodules = True
 
-    maintainers("adamjstewart")
-
     # Exact set of modules is version- and variant-specific, just attempt to import the
     # core libraries to ensure that the package was successfully installed.
     import_modules = ["torch", "torch.autograd", "torch.nn", "torch.utils"]
 
     license("BSD-3-Clause")
+    maintainers("adamjstewart")
 
     version("main", branch="main")
+    version("2.5.1", tag="v2.5.1", commit="a8d6afb511a69687bbb2b7e88a3cf67917e1697e")
+    version("2.5.0", tag="v2.5.0", commit="32f585d9346e316e554c8d9bf7548af9f62141fc")
+    version("2.4.1", tag="v2.4.1", commit="ee1b6804381c57161c477caa380a840a84167676")
     version("2.4.0", tag="v2.4.0", commit="d990dada86a8ad94882b5c23e859b88c0c255bda")
     version("2.3.1", tag="v2.3.1", commit="63d5e9221bedd1546b7d364b5ce4171547db12a9")
     version("2.3.0", tag="v2.3.0", commit="97ff6cfd9c86c5c09d7ce775ab64ec5c99230f5d")
@@ -51,11 +53,21 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     version("1.8.1", tag="v1.8.1", commit="56b43f4fec1f76953f15a627694d4bba34588969")
     version("1.8.0", tag="v1.8.0", commit="37c1f4a7fef115d719104e871d0cf39434aa9d56")
     version("1.7.1", tag="v1.7.1", commit="57bffc3a8e4fee0cce31e1ff1f662ccf7b16db57")
-    version("1.7.0", tag="v1.7.0", commit="e85d494707b835c12165976b8442af54b9afcb26")
-    version("1.6.0", tag="v1.6.0", commit="b31f58de6fa8bbda5353b3c77d9be4914399724d")
-    version("1.5.1", tag="v1.5.1", commit="3c31d73c875d9a4a6ea8a843b9a0d1b19fbe36f3")
-    version("1.5.0", tag="v1.5.0", commit="4ff3872a2099993bf7e8c588f7182f3df777205b")
-    version("1.4.1", tag="v1.4.1", commit="74044638f755cd8667bedc73da4dbda4aa64c948")
+    version(
+        "1.7.0", tag="v1.7.0", commit="e85d494707b835c12165976b8442af54b9afcb26", deprecated=True
+    )
+    version(
+        "1.6.0", tag="v1.6.0", commit="b31f58de6fa8bbda5353b3c77d9be4914399724d", deprecated=True
+    )
+    version(
+        "1.5.1", tag="v1.5.1", commit="3c31d73c875d9a4a6ea8a843b9a0d1b19fbe36f3", deprecated=True
+    )
+    version(
+        "1.5.0", tag="v1.5.0", commit="4ff3872a2099993bf7e8c588f7182f3df777205b", deprecated=True
+    )
+    version(
+        "1.4.1", tag="v1.4.1", commit="74044638f755cd8667bedc73da4dbda4aa64c948", deprecated=True
+    )
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
@@ -136,7 +148,8 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     # Required dependencies
     # Based on PyPI wheel availability
     with default_args(type=("build", "link", "run")):
-        depends_on("python@3.8:3.12", when="@2.2:")
+        depends_on("python@3.9:3.13", when="@2.5:")
+        depends_on("python@3.8:3.12", when="@2.2:2.4")
         depends_on("python@3.8:3.11", when="@2.0:2.1")
         depends_on("python@:3.10", when="@1.11:1")
         depends_on("python@:3.9", when="@1.7.1:1.10")
@@ -185,7 +198,9 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     # depends_on("xnnpack@2021-02-22", when="@1.8:1.9+xnnpack")
     # depends_on("xnnpack@2020-03-23", when="@1.6:1.7+xnnpack")
     depends_on("benchmark", when="@1.6:+test")
-    depends_on("cpuinfo@2023-11-04", when="@2.3:")
+    depends_on("cpuinfo@2024-09-06", when="@2.5.1:")
+    depends_on("cpuinfo@2024-08-30", when="@2.5.0")
+    depends_on("cpuinfo@2023-11-04", when="@2.3:2.4")
     depends_on("cpuinfo@2023-01-13", when="@2.1:2.2")
     depends_on("cpuinfo@2022-08-19", when="@1.13:2.0")
     depends_on("cpuinfo@2020-12-17", when="@1.8:1.12")
@@ -229,12 +244,13 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     depends_on("pthreadpool@2020-10-05", when="@1.8")
     depends_on("pthreadpool@2020-06-15", when="@1.6:1.7")
     with default_args(type=("build", "link", "run")):
-        depends_on("py-pybind11@2.12.0", when="@2.3:")
-        depends_on("py-pybind11@2.11.0", when="@2.1:2.2")
-        depends_on("py-pybind11@2.10.1", when="@2.0")
-        depends_on("py-pybind11@2.10.0", when="@1.13:1")
-        depends_on("py-pybind11@2.6.2", when="@1.8:1.12")
-        depends_on("py-pybind11@2.3.0", when="@:1.7")
+        depends_on("py-pybind11@2.13.5:", when="@2.5:")
+        depends_on("py-pybind11@2.12.0:", when="@2.3:2.4")
+        depends_on("py-pybind11@2.11.0:", when="@2.1:2.2")
+        depends_on("py-pybind11@2.10.1:", when="@2.0")
+        depends_on("py-pybind11@2.10.0:", when="@1.13:1")
+        depends_on("py-pybind11@2.6.2:", when="@1.8:1.12")
+        depends_on("py-pybind11@2.3.0:", when="@:1.7")
     depends_on("sleef@3.6.0_2024-03-20", when="@2.4:")
     depends_on("sleef@3.5.1_2020-12-22", when="@1.8:2.3")
     depends_on("sleef@3.4.0_2019-07-30", when="@1.6:1.7")
@@ -480,10 +496,10 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
 
     def torch_cuda_arch_list(self, env):
         if "+cuda" in self.spec:
-            torch_cuda_arch = ";".join(
-                "{0:.1f}".format(float(i) / 10.0) for i in self.spec.variants["cuda_arch"].value
+            torch_cuda_arch = CudaPackage.compute_capabilities(
+                self.spec.variants["cuda_arch"].value
             )
-            env.set("TORCH_CUDA_ARCH_LIST", torch_cuda_arch)
+            env.set("TORCH_CUDA_ARCH_LIST", ";".join(torch_cuda_arch))
 
     def setup_build_environment(self, env):
         """Set environment variables used to control the build.
@@ -525,6 +541,7 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
 
         enable_or_disable("cuda")
         if "+cuda" in self.spec:
+            env.set("CUDA_TOOLKIT_ROOT_DIR", self.spec["cuda"].prefix)  # Linux/macOS
             env.set("CUDA_HOME", self.spec["cuda"].prefix)  # Linux/macOS
             env.set("CUDA_PATH", self.spec["cuda"].prefix)  # Windows
             self.torch_cuda_arch_list(env)
@@ -676,10 +693,6 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
             env.set("BUILD_CUSTOM_PROTOBUF", "ON")
         else:
             env.set("BUILD_CUSTOM_PROTOBUF", "OFF")
-
-        # https://github.com/pytorch/pytorch/issues/111086
-        if self.spec.satisfies("%apple-clang@15:"):
-            env.append_flags("LDFLAGS", "-Wl,-ld_classic")
 
     def setup_run_environment(self, env):
         self.torch_cuda_arch_list(env)

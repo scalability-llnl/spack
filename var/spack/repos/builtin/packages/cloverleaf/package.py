@@ -96,10 +96,6 @@ class Cloverleaf(MakefilePackage):
             targets.append("CFLAGS_INTEL=")
         elif self.spec.satisfies("%aocc"):
             targets.append("COMPILER=AOCC")
-        elif self.spec.satisfies("%pgi"):
-            targets.append("COMPILER=PGI")
-            targets.append("FLAGS_PGI=")
-            targets.append("CFLAGS_PGI=")
         elif self.spec.satisfies("%xl"):
             targets.append("COMPILER=XLF")
             targets.append("FLAGS_XLF=")

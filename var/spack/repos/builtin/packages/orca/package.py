@@ -23,6 +23,13 @@ class Orca(Package):
 
     license("LGPL-2.1-or-later")
 
+    version(
+        "avx2-6.0.1", sha256="f31f98256a0c6727b6ddfe50aa3ac64c45549981138d670a57e90114b4b9c9d2"
+    )
+    version("6.0.1", sha256="5e9b49588375e0ce5bc32767127cc725f5425917804042cdecdfd5c6b965ef61")
+    version(
+        "avx2-6.0.0", sha256="02c21294efe7b1b721e26cb90f98ee15ad682d02807201b7d217dfe67905a2fd"
+    )
     version("6.0.0", sha256="219bd1deb6d64a63cb72471926cb81665cbbcdec19f9c9549761be67d49a29c6")
     version("5.0.4", sha256="c4ea5aea60da7bcb18a6b7042609206fbeb2a765c6fa958c5689d450b588b036")
     version("5.0.3", sha256="b8b9076d1711150a6d6cb3eb30b18e2782fa847c5a86d8404b9339faef105043")
@@ -40,6 +47,9 @@ class Orca(Package):
         "5.0.3": "4.1.2",
         "5.0.4": "4.1.2",
         "6.0.0": "4.1.6",
+        "6.0.1": "4.1.6",
+        "avx2-6.0.0": "4.1.6",
+        "avx2-6.0.1": "4.1.6",
     }
     for orca_version, openmpi_version in openmpi_versions.items():
         depends_on(
@@ -47,10 +57,20 @@ class Orca(Package):
         )
 
     def url_for_version(self, version):
-        openmpi_version = self.openmpi_versions[str(version.dotted)].replace(".", "")
+        openmpi_version = self.openmpi_versions[version.string].replace(".", "")
         if openmpi_version == "412":
             openmpi_version = "411"
-        return f"file://{os.getcwd()}/orca_{version.underscored}_linux_x86-64_shared_openmpi{openmpi_version}.tar.xz"
+
+        ver_parts = version.string.split("-")
+        ver_underscored = ver_parts[-1].replace(".", "_")
+        features = ver_parts[:-1] + ["shared"]
+        feature_text = "_".join(features)
+
+        url = f"file://{os.getcwd()}/orca_{ver_underscored}_linux_x86-64_{feature_text}_openmpi{openmpi_version}.tar.xz"
+        if self.spec.satisfies("@=avx2-6.0.1"):
+            url = f"file://{os.getcwd()}/orca_{ver_underscored}_linux_x86-64_shared_openmpi{openmpi_version}_avx2.tar.xz"
+
+        return url
 
     def install(self, spec, prefix):
         mkdirp(prefix.bin)

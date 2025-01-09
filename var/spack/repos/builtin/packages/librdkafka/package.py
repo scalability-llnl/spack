@@ -15,6 +15,8 @@ class Librdkafka(AutotoolsPackage):
 
     license("BSD-2-Clause")
 
+    version("2.6.0", sha256="abe0212ecd3e7ed3c4818a4f2baf7bf916e845e902bb15ae48834ca2d36ac745")
+    version("2.5.3", sha256="eaa1213fdddf9c43e28834d9a832d9dd732377d35121e42f875966305f52b8ff")
     version("2.2.0", sha256="af9a820cbecbc64115629471df7c7cecd40403b6c34bfdbb9223152677a47226")
     version("2.1.1", sha256="7be1fc37ab10ebdc037d5c5a9b35b48931edafffae054b488faaff99e60e0108")
     version("2.1.0", sha256="d8e76c4b1cde99e283a19868feaaff5778aa5c6f35790036c5ef44bc5b5187aa")
@@ -29,3 +31,6 @@ class Librdkafka(AutotoolsPackage):
 
     depends_on("zstd")
     depends_on("lz4")
+    depends_on("curl")
+    depends_on("openssl")
+    depends_on("zlib")

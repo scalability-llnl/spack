@@ -25,6 +25,14 @@ class PkgA(AutotoolsPackage):
 
     variant("bvv", default=True, description="The good old BV variant")
 
+    variant(
+        "libs",
+        default="shared",
+        values=("shared", "static"),
+        multi=True,
+        description="Type of libraries to install",
+    )
+
     depends_on("pkg-b", when="foobar=bar")
     depends_on("test-dependency", type="test")
 

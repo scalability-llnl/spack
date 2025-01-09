@@ -5,9 +5,13 @@
 
 import itertools
 import os
+import re
 import sys
+from subprocess import Popen
 
 from spack.package import *
+
+IS_WINDOWS = sys.platform == "win32"
 
 
 class Paraview(CMakePackage, CudaPackage, ROCmPackage):
@@ -31,13 +35,12 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
 
     version("master", branch="master", submodules=True)
     version(
-        "5.13.0-RC1", sha256="00aea2bbaf2eacd288a6cc95c1f4ed1a8a4965f27548b53ae473c1ee7caec30e"
-    )
-    version(
-        "5.12.1",
-        sha256="927f880c13deb6dde4172f4727d2b66f5576e15237b35778344f5dd1ddec863e",
+        "5.13.1",
+        sha256="a16503ce37b999c2967d84234596e7bf67ac98221851a288bb1399c7e1dc2004",
         preferred=True,
     )
+    version("5.13.0", sha256="886f530bebd6b24c6a7f8a5f4b1afa72c53d4737ccaa4b5fd5946b4e5a758c91")
+    version("5.12.1", sha256="927f880c13deb6dde4172f4727d2b66f5576e15237b35778344f5dd1ddec863e")
     version("5.12.0", sha256="d289afe7b48533e2ca4a39a3b48d3874bfe67cf7f37fdd2131271c57e64de20d")
     version("5.11.2", sha256="5c5d2f922f30d91feefc43b4a729015dbb1459f54c938896c123d2ac289c7a1e")
     version("5.11.1", sha256="5cc2209f7fa37cd3155d199ff6c3590620c12ca4da732ef7698dec37fa8dbb34")
@@ -85,8 +88,10 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
     variant("nvindex", default=False, description="Enable the pvNVIDIAIndeX plugin")
     variant("tbb", default=False, description="Enable multi-threaded parallelism with TBB")
     variant("adios2", default=False, description="Enable ADIOS2 support", when="@5.8:")
+    variant("fides", default=False, description="Enable Fides support", when="@5.9:")
     variant("visitbridge", default=False, description="Enable VisItBridge support")
     variant("raytracing", default=False, description="Enable Raytracing support")
+    variant("cdi", default=False, description="Enable CDI support")
     variant(
         "openpmd",
         default=False,
@@ -126,6 +131,9 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
 
     conflicts("~hdf5", when="+visitbridge")
     conflicts("+adios2", when="@:5.10 ~mpi")
+    conflicts("+fides", when="~adios2", msg="Fides needs ADIOS2")
+    conflicts("+fides", when="use_vtkm=off", msg="Fides needs VTK-m")
+    conflicts("+fides", when="use_vtkm=default", msg="Fides needs VTK-m")
     conflicts("+openpmd", when="~adios2 ~hdf5", msg="openPMD needs ADIOS2 and/or HDF5")
     conflicts("~shared", when="+cuda")
     conflicts("+cuda", when="@5.8:5.10")
@@ -182,8 +190,11 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
     # Starting from cmake@3.18, CUDA architecture managament can be delegated to CMake.
     # Hence, it is possible to rely on it instead of relying on custom logic updates from VTK-m for
     # newer architectures (wrt mapping).
-    for _arch in [arch for arch in CudaPackage.cuda_arch_values if int(arch) > 86]:
-        conflicts("cmake@:3.17", when=f"cuda_arch={_arch}")
+    pattern = re.compile(r"\d+")
+    for _arch in CudaPackage.cuda_arch_values:
+        _number = re.match(pattern, _arch).group()
+        if int(_number) > 86:
+            conflicts("cmake@:3.17", when=f"cuda_arch={_arch}")
 
     # We only support one single Architecture
     for _arch, _other_arch in itertools.permutations(CudaPackage.cuda_arch_values, 2):
@@ -218,20 +229,30 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("tbb", when="+tbb")
 
     depends_on("mpi", when="+mpi")
-    depends_on("qt+opengl", when="@5.3.0:+qt+opengl2")
-    depends_on("qt~opengl", when="@5.3.0:+qt~opengl2")
+    conflicts("mpi", when="~mpi")
+
     depends_on("qt@:4", when="@:5.2.0+qt")
+    depends_on("qt+sql", when="+qt")
+    with when("+qt"):
+        depends_on("qt+opengl", when="@5.3.0:+opengl2")
+        depends_on("qt~opengl", when="@5.3.0:~opengl2")
 
     depends_on("gl@3.2:", when="+opengl2")
     depends_on("gl@1.2:", when="~opengl2")
     depends_on("glew")
     depends_on("libxt", when="platform=linux ^[virtuals=gl] glx")
 
-    requires("^[virtuals=gl] glx", when="+qt", msg="Qt support requires GLX")
+    for plat in ["linux", "darwin", "freebsd"]:
+        with when(f"platform={plat}"):
+            requires(
+                "^[virtuals=gl] glx", when="+qt", msg="Qt support requires GLX on non Windows"
+            )
 
     depends_on("ospray@2.1:2", when="+raytracing")
     depends_on("openimagedenoise", when="+raytracing")
     depends_on("ospray +mpi", when="+raytracing +mpi")
+
+    depends_on("cdi", when="+cdi")
 
     depends_on("bzip2")
     depends_on("double-conversion")
@@ -257,7 +278,7 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("libtheora")
     depends_on("libtiff")
     depends_on("netcdf-c")
-    depends_on("pegtl")
+    depends_on("pegtl@2.8.3")
     depends_on("protobuf@3.4:")
     # Paraview 5.10 can't build with protobuf > 3.18
     # https://github.com/spack/spack/issues/37437
@@ -288,6 +309,8 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
     # and pre-5.9 is unable to handle that.
     depends_on("pugixml@:1.10", when="@:5.8")
     depends_on("pugixml", when="@5.9:")
+    # 5.13 uses 'remove_children': https://github.com/spack/spack/issues/47098
+    depends_on("pugixml@1.11:", when="@5.13:")
 
     # ParaView depends on cli11 due to changes in MR
     # https://gitlab.kitware.com/paraview/paraview/-/merge_requests/4951
@@ -301,6 +324,9 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
     # v8.1.0 is required for VTK::GeoVis
     # https://gitlab.kitware.com/vtk/vtk/-/merge_requests/8474
     depends_on("proj@8.1.0", when="@5.11:")
+
+    # Patches to vendored VTK-m are needed for forward compat with CUDA 12 (mr 2972 and 3259)
+    depends_on("cuda@:11", when="+cuda")
 
     patch("stl-reader-pv440.patch", when="@4.4.0")
 
@@ -557,10 +583,16 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
         if "+adios2" in spec:
             cmake_args.extend(["-DPARAVIEW_ENABLE_ADIOS2:BOOL=ON"])
 
+        if "+fides" in spec:
+            cmake_args.append("-DPARAVIEW_ENABLE_FIDES:BOOL=ON")
+
         # The assumed qt version changed to QT5 (as of paraview 5.2.1),
         # so explicitly specify which QT major version is actually being used
         if spec.satisfies("+qt"):
             cmake_args.extend(["-DPARAVIEW_QT_VERSION=%s" % spec["qt"].version[0]])
+            if IS_WINDOWS:
+                # Windows does not currently support Qt Quick
+                cmake_args.append("-DVTK_MODULE_ENABLE_VTK_GUISupportQtQuick:STRING=NO")
 
         if "+fortran" in spec:
             cmake_args.append("-DPARAVIEW_USE_FORTRAN:BOOL=ON")
@@ -583,11 +615,9 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
         else:
             cmake_args.append("-DPARAVIEW_ENABLE_PYTHON:BOOL=OFF")
 
+        cmake_args.append("-DPARAVIEW_USE_MPI:BOOL=%s" % variant_bool("+mpi"))
         if "+mpi" in spec:
-            mpi_args = [
-                "-DPARAVIEW_USE_MPI:BOOL=ON",
-                "-DMPIEXEC:FILEPATH=%s/bin/mpiexec" % spec["mpi"].prefix,
-            ]
+            mpi_args = ["-DMPIEXEC:FILEPATH=%s/bin/mpiexec" % spec["mpi"].prefix]
             if not sys.platform == "win32":
                 mpi_args.extend(
                     [
@@ -705,4 +735,59 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
         cmake_args.append(self.define_from_variant("VTK_ENABLE_OSPRAY", "raytracing"))
         cmake_args.append(self.define_from_variant("VTKOSPRAY_ENABLE_DENOISER", "raytracing"))
 
+        # CDI
+        cmake_args.append(self.define_from_variant("PARAVIEW_PLUGIN_ENABLE_CDIReader", "cdi"))
+        cmake_args.append(self.define_from_variant("PARAVIEW_PLUGIN_AUTOLOAD_CDIReader", "cdi"))
+
         return cmake_args
+
+    def test_smoke_test(self):
+        """Simple smoke test for ParaView"""
+        spec = self.spec
+
+        pvserver = Executable(spec["paraview"].prefix.bin.pvserver)
+        pvserver("--help")
+
+    def test_pvpython(self):
+        """Test pvpython"""
+        spec = self.spec
+
+        if "~python" in spec:
+            raise SkipTest("Package must be installed with +python")
+
+        pvpython = Executable(spec["paraview"].prefix.bin.pvpython)
+        pvpython("-c", "import paraview")
+
+    def test_mpi_ensemble(self):
+        """Test MPI ParaView Client/Server ensemble"""
+        spec = self.spec
+
+        if "~mpi" in spec or "~python" in spec:
+            raise SkipTest("Package must be installed with +mpi and +python")
+
+        mpirun = spec["mpi"].prefix.bin.mpirun
+        pvserver = spec["paraview"].prefix.bin.pvserver
+        pvpython = Executable(spec["paraview"].prefix.bin.pvpython)
+
+        with working_dir("smoke_test_build", create=True):
+            with Popen(
+                [mpirun, "-np", "3", pvserver, "--mpi", "--force-offscreen-rendering"]
+            ) as servers:
+                pvpython(
+                    "--force-offscreen-rendering",
+                    "-c",
+                    "from paraview.simple import *;"
+                    "Connect('127.0.0.1');"
+                    "sphere = Sphere(ThetaResolution=16, PhiResolution=32);"
+                    "sphere_remote = servermanager.Fetch(sphere);"
+                    "Show(sphere);"
+                    "Render()",
+                )
+                servers.terminate()
+
+    @run_after("install")
+    @on_package_attributes(run_tests=True)
+    def build_test(self):
+        self.test_smoke_test()
+        self.test_pvpython()
+        self.test_mpi_ensemble()

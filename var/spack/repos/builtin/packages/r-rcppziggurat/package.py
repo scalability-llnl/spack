@@ -23,6 +23,7 @@ class RRcppziggurat(RPackage):
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
 
+    depends_on("r@3.0.0:", type=("build", "run"), when="@0.1.6:")
     depends_on("r-rcpp", type=("build", "run"))
     depends_on("r-rcppgsl", type=("build", "run"))
 

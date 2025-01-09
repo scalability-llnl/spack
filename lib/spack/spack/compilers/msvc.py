@@ -8,7 +8,7 @@ import re
 import subprocess
 import sys
 import tempfile
-from typing import Dict, List
+from typing import Dict
 
 import archspec.cpu
 
@@ -117,18 +117,6 @@ def get_valid_fortran_pth():
 
 
 class Msvc(Compiler):
-    # Subclasses use possible names of C compiler
-    cc_names: List[str] = ["cl"]
-
-    # Subclasses use possible names of C++ compiler
-    cxx_names: List[str] = ["cl"]
-
-    # Subclasses use possible names of Fortran 77 compiler
-    f77_names: List[str] = ["ifx"]
-
-    # Subclasses use possible names of Fortran 90 compiler
-    fc_names: List[str] = ["ifx"]
-
     # Named wrapper links within build_env_path
     # Due to the challenges of supporting compiler wrappers
     # in Windows, we leave these blank, and dynamically compute
@@ -224,6 +212,30 @@ class Msvc(Compiler):
         self.msvc_compiler_environment = CmdCall(*env_cmds)
 
     @property
+    def cxx11_flag(self):
+        return "/std:c++11"
+
+    @property
+    def cxx14_flag(self):
+        return "/std:c++14"
+
+    @property
+    def cxx17_flag(self):
+        return "/std:c++17"
+
+    @property
+    def cxx20_flag(self):
+        return "/std:c++20"
+
+    @property
+    def c11_flag(self):
+        return "/std:c11"
+
+    @property
+    def c17_flag(self):
+        return "/std:c17"
+
+    @property
     def msvc_version(self):
         """This is the VCToolset version *NOT* the actual version of the cl compiler
         For CL version, query `Msvc.cl_version`"""
@@ -280,6 +292,17 @@ class Msvc(Compiler):
         toolset_ver = self.vc_toolset_ver
         vs22_toolset = Version(toolset_ver) > Version("142")
         return toolset_ver if not vs22_toolset else "143"
+
+    @property
+    def visual_studio_version(self):
+        """The four digit Visual Studio version (i.e. 2019 or 2022)
+
+        Note: This differs from the msvc version or toolset version as
+        those properties track the compiler and build tools version
+        respectively, whereas this tracks the VS release associated
+        with a given MSVC compiler.
+        """
+        return re.search(r"[0-9]{4}", self.cc).group(0)
 
     def _compiler_version(self, compiler):
         """Returns version object for given compiler"""
@@ -369,7 +392,3 @@ class Msvc(Compiler):
             )
         clp = spack.util.executable.which_string("cl", path=sps)
         return cls.default_version(clp) if clp else fc_ver
-
-    @classmethod
-    def f77_version(cls, f77):
-        return cls.fc_version(f77)

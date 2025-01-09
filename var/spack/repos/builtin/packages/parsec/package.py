@@ -15,7 +15,7 @@ class Parsec(CMakePackage, CudaPackage):
     parallel execution of micro-tasks on distributed, heterogeneous systems.
     """
 
-    homepage = "https://icl.utk.edu/dte"
+    homepage = "https://github.com/icldisco/parsec"
     git = "https://github.com/icldisco/parsec.git"
     url = "https://github.com/ICLDisco/parsec/archive/refs/tags/parsec-3.0.2012.tar.gz"
     list_url = "https://github.com/ICLDisco/parsec/tags"
@@ -27,20 +27,12 @@ class Parsec(CMakePackage, CudaPackage):
     license("BSD-3-Clause-Open-MPI")
 
     version("master", branch="master")
-    version(
-        "3.0.2209",
-        sha256="67d383d076991484cb2a265f56420abdea7cc1f329c63ac65a3e96fbfb6cc295",
-        url="https://bitbucket.org/icldistcomp/parsec/get/parsec-3.0.2209.tar.bz2",
-    )
-    version(
-        "3.0.2012",
-        sha256="f565bcfffe106be8237b6aea3e83a5770607b7236606414b6f270244fa6ec3bc",
-        url="https://bitbucket.org/icldistcomp/parsec/get/parsec-3.0.2012.tar.bz2",
-    )
+    version("3.0.2209", sha256="67d383d076991484cb2a265f56420abdea7cc1f329c63ac65a3e96fbfb6cc295")
+    version("3.0.2012", sha256="7a8403ca67305738f3974cbc7a51b64c4ec353ae9170f2468262a9a52035eff6")
     version(
         "1.1.0",
-        sha256="d2928033c121000ae0a554f1e7f757c1f22274a8b74457ecd52744ae1f70b95a",
-        url="https://bitbucket.org/icldistcomp/parsec/get/v1.1.0.tar.bz2",
+        sha256="d1e038713f2c1cd7db6765c891408d85648c46ee23e780fbd5e941b53c9eef85",
+        url="https://github.com/ICLDisco/parsec/archive/refs/tags/v1.1.0.tar.gz",
     )
 
     variant(

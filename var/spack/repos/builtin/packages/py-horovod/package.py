@@ -13,121 +13,51 @@ class PyHorovod(PythonPackage, CudaPackage):
 
     homepage = "https://github.com/horovod"
     git = "https://github.com/horovod/horovod.git"
-
-    maintainers("adamjstewart", "aweits", "tgaddair", "thomas-bouvier")
+    submodules = True
 
     license("Apache-2.0")
+    maintainers("adamjstewart", "aweits", "tgaddair", "thomas-bouvier")
 
-    version("master", branch="master", submodules=True)
-    version(
-        "0.28.1", tag="v0.28.1", commit="1d217b59949986d025f6db93c49943fb6b6cc78f", submodules=True
-    )
-    version(
-        "0.28.0", tag="v0.28.0", commit="587d72004736209a93ebda8cec0acdb7870db583", submodules=True
-    )
-    version(
-        "0.27.0", tag="v0.27.0", commit="bfaca90d5cf66780a97d8799d4e1573855b64560", submodules=True
-    )
-    version(
-        "0.26.1", tag="v0.26.1", commit="34604870eabd9dc670c222deb1da9acc6b9d7c03", submodules=True
-    )
-    version(
-        "0.26.0", tag="v0.26.0", commit="c638dcec972750d4a75b229bc208cff9dc76b00a", submodules=True
-    )
-    version(
-        "0.25.0", tag="v0.25.0", commit="48e0affcba962831668cd1222866af2d632920c2", submodules=True
-    )
-    version(
-        "0.24.3", tag="v0.24.3", commit="a2d9e280c1210a8e364a7dc83ca6c2182fefa99d", submodules=True
-    )
-    version(
-        "0.24.2", tag="v0.24.2", commit="b4c191c8d05086842517b3836285a85c6f96ab22", submodules=True
-    )
-    version(
-        "0.24.1", tag="v0.24.1", commit="ebd135098571722469bb6290a6d098a9e1c96574", submodules=True
-    )
-    version(
-        "0.24.0", tag="v0.24.0", commit="b089df66a29d3ba6672073eef3d42714d9d3626b", submodules=True
-    )
-    version(
-        "0.23.0", tag="v0.23.0", commit="66ad6d5a3586decdac356e8ec95c204990bbc3d6", submodules=True
-    )
-    version(
-        "0.22.1", tag="v0.22.1", commit="93a2f2583ed63391a904aaeb03b602729be90f15", submodules=True
-    )
-    version(
-        "0.22.0", tag="v0.22.0", commit="3ff94801fbb4dbf6bc47c23888c93cad4887435f", submodules=True
-    )
-    version(
-        "0.21.3", tag="v0.21.3", commit="6916985c9df111f36864724e2611827f64de8e11", submodules=True
-    )
-    version(
-        "0.21.2", tag="v0.21.2", commit="c64b1d60c6bad7834f3315f12707f8ebf11c9c3d", submodules=True
-    )
-    version(
-        "0.21.1", tag="v0.21.1", commit="a9dea74abc1f0b8e81cd2b6dd9fe81e2c4244e39", submodules=True
-    )
-    version(
-        "0.21.0", tag="v0.21.0", commit="7d71874258fc8625ad8952defad0ea5b24531248", submodules=True
-    )
-    version(
-        "0.20.3", tag="v0.20.3", commit="b3c4d81327590c9064d544622b6250d9a19ce2c2", submodules=True
-    )
-    version(
-        "0.20.2", tag="v0.20.2", commit="cef4393eb980d4137bb91256da4dd847b7f44d1c", submodules=True
-    )
-    version(
-        "0.20.1", tag="v0.20.1", commit="4099c2b7f34f709f0db1c09f06b2594d7b4b9615", submodules=True
-    )
-    version(
-        "0.20.0", tag="v0.20.0", commit="396c1319876039ad8f5a56c007a020605ccb8277", submodules=True
-    )
-    version(
-        "0.19.5", tag="v0.19.5", commit="b52e4b3e6ce5b1b494b77052878a0aad05c2e3ce", submodules=True
-    )
-    version(
-        "0.19.4", tag="v0.19.4", commit="31f1f700b8fa6d3b6df284e291e302593fbb4fa3", submodules=True
-    )
-    version(
-        "0.19.3", tag="v0.19.3", commit="ad63bbe9da8b41d0940260a2dd6935fa0486505f", submodules=True
-    )
-    version(
-        "0.19.2", tag="v0.19.2", commit="f8fb21e0ceebbdc6ccc069c43239731223d2961d", submodules=True
-    )
-    version(
-        "0.19.1", tag="v0.19.1", commit="9ad69e78e83c34568743e8e97b1504c6c7af34c3", submodules=True
-    )
-    version(
-        "0.19.0", tag="v0.19.0", commit="1a805d9b20224069b294f361e47f5d9b55f426ff", submodules=True
-    )
-    version(
-        "0.18.2", tag="v0.18.2", commit="bb2134b427e0e0c5a83624d02fafa4f14de623d9", submodules=True
-    )
-    version(
-        "0.18.1", tag="v0.18.1", commit="0008191b3e61b5dfccddabe0129bbed7cd544c56", submodules=True
-    )
-    version(
-        "0.18.0", tag="v0.18.0", commit="a639de51e9a38d5c1f99f458c045aeaebe70351e", submodules=True
-    )
-    version(
-        "0.17.1", tag="v0.17.1", commit="399e70adc0f74184b5848d9a46b9b6ad67b5fe6d", submodules=True
-    )
-    version(
-        "0.17.0", tag="v0.17.0", commit="2fed0410774b480ad19057320be9027be06b309e", submodules=True
-    )
-    version(
-        "0.16.4", tag="v0.16.4", commit="2aac48c95c035bee7d68f9aff30e59319f46c21e", submodules=True
-    )
-    version(
-        "0.16.3", tag="v0.16.3", commit="30a2148784478415dc31d65a6aa08d237f364b42", submodules=True
-    )
-    version(
-        "0.16.2", tag="v0.16.2", commit="217774652eeccfcd60aa6e268dfd6b766d71b768", submodules=True
-    )
+    version("master", branch="master")
+    version("0.28.1", tag="v0.28.1", commit="1d217b59949986d025f6db93c49943fb6b6cc78f")
+    version("0.28.0", tag="v0.28.0", commit="587d72004736209a93ebda8cec0acdb7870db583")
+    version("0.27.0", tag="v0.27.0", commit="bfaca90d5cf66780a97d8799d4e1573855b64560")
+    version("0.26.1", tag="v0.26.1", commit="34604870eabd9dc670c222deb1da9acc6b9d7c03")
+    version("0.26.0", tag="v0.26.0", commit="c638dcec972750d4a75b229bc208cff9dc76b00a")
+    version("0.25.0", tag="v0.25.0", commit="48e0affcba962831668cd1222866af2d632920c2")
+    version("0.24.3", tag="v0.24.3", commit="a2d9e280c1210a8e364a7dc83ca6c2182fefa99d")
+    version("0.24.2", tag="v0.24.2", commit="b4c191c8d05086842517b3836285a85c6f96ab22")
+    version("0.24.1", tag="v0.24.1", commit="ebd135098571722469bb6290a6d098a9e1c96574")
+    version("0.24.0", tag="v0.24.0", commit="b089df66a29d3ba6672073eef3d42714d9d3626b")
+    version("0.23.0", tag="v0.23.0", commit="66ad6d5a3586decdac356e8ec95c204990bbc3d6")
+    version("0.22.1", tag="v0.22.1", commit="93a2f2583ed63391a904aaeb03b602729be90f15")
+    version("0.22.0", tag="v0.22.0", commit="3ff94801fbb4dbf6bc47c23888c93cad4887435f")
+    version("0.21.3", tag="v0.21.3", commit="6916985c9df111f36864724e2611827f64de8e11")
+    version("0.21.2", tag="v0.21.2", commit="c64b1d60c6bad7834f3315f12707f8ebf11c9c3d")
+    version("0.21.1", tag="v0.21.1", commit="a9dea74abc1f0b8e81cd2b6dd9fe81e2c4244e39")
+    version("0.21.0", tag="v0.21.0", commit="7d71874258fc8625ad8952defad0ea5b24531248")
+    version("0.20.3", tag="v0.20.3", commit="b3c4d81327590c9064d544622b6250d9a19ce2c2")
+    version("0.20.2", tag="v0.20.2", commit="cef4393eb980d4137bb91256da4dd847b7f44d1c")
+    version("0.20.1", tag="v0.20.1", commit="4099c2b7f34f709f0db1c09f06b2594d7b4b9615")
+    version("0.20.0", tag="v0.20.0", commit="396c1319876039ad8f5a56c007a020605ccb8277")
+    version("0.19.5", tag="v0.19.5", commit="b52e4b3e6ce5b1b494b77052878a0aad05c2e3ce")
+    version("0.19.4", tag="v0.19.4", commit="31f1f700b8fa6d3b6df284e291e302593fbb4fa3")
+    version("0.19.3", tag="v0.19.3", commit="ad63bbe9da8b41d0940260a2dd6935fa0486505f")
+    version("0.19.2", tag="v0.19.2", commit="f8fb21e0ceebbdc6ccc069c43239731223d2961d")
+    version("0.19.1", tag="v0.19.1", commit="9ad69e78e83c34568743e8e97b1504c6c7af34c3")
+    version("0.19.0", tag="v0.19.0", commit="1a805d9b20224069b294f361e47f5d9b55f426ff")
+    version("0.18.2", tag="v0.18.2", commit="bb2134b427e0e0c5a83624d02fafa4f14de623d9")
+    version("0.18.1", tag="v0.18.1", commit="0008191b3e61b5dfccddabe0129bbed7cd544c56")
+    version("0.18.0", tag="v0.18.0", commit="a639de51e9a38d5c1f99f458c045aeaebe70351e")
+    version("0.17.1", tag="v0.17.1", commit="399e70adc0f74184b5848d9a46b9b6ad67b5fe6d")
+    version("0.17.0", tag="v0.17.0", commit="2fed0410774b480ad19057320be9027be06b309e")
+    version("0.16.4", tag="v0.16.4", commit="2aac48c95c035bee7d68f9aff30e59319f46c21e")
+    version("0.16.3", tag="v0.16.3", commit="30a2148784478415dc31d65a6aa08d237f364b42")
+    version("0.16.2", tag="v0.16.2", commit="217774652eeccfcd60aa6e268dfd6b766d71b768")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
 
     # https://github.com/horovod/horovod/blob/master/docs/install.rst
     variant(
@@ -232,7 +162,20 @@ class PyHorovod(PythonPackage, CudaPackage):
         "controllers=gloo", when="@:0.20.0 platform=darwin", msg="Gloo cannot be compiled on MacOS"
     )
     # https://github.com/horovod/horovod/issues/3996
-    conflicts("^py-torch@2.1:")
+    patch(
+        "https://github.com/horovod/horovod/pull/3998.patch?full_index=1",
+        sha256="9ecd4e8e315764afab20f2086e24baccf8178779a3c663196b24dc55a23a6aca",
+        when="@0.25:0.28.1",
+    )
+    conflicts("^py-torch@2.1:", when="@:0.24")
+
+    # https://github.com/horovod/horovod/pull/3957
+    patch(
+        "https://github.com/horovod/horovod/pull/3957.patch?full_index=1",
+        sha256="9e22e312c0cbf224b4135ba70bd4fd2e4170d8316c996643e360112abaac8f93",
+        when="@0.21:0.28.1",
+    )
+    conflicts("%gcc@13:", when="@:0.20")
 
     # https://github.com/horovod/horovod/pull/1835
     patch("fma.patch", when="@0.19.0:0.19.1")

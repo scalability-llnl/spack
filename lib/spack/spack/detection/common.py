@@ -6,9 +6,9 @@
 function to update packages.yaml given a list of detected packages.
 
 Ideally, each detection method should be placed in a specific subpackage
-and implement at least a function that returns a list of DetectedPackage
-objects. The update in packages.yaml can then be done using the function
-provided here.
+and implement at least a function that returns a list of specs.
+
+The update in packages.yaml can then be done using the function provided here.
 
 The module also contains other functions that might be useful across different
 detection mechanisms.
@@ -17,36 +17,21 @@ import glob
 import itertools
 import os
 import os.path
+import pathlib
 import re
 import sys
-from typing import Dict, List, NamedTuple, Optional, Set, Tuple, Union
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 import llnl.util.tty
 
 import spack.config
+import spack.error
 import spack.operating_systems.windows_os as winOs
+import spack.schema
 import spack.spec
+import spack.util.environment
 import spack.util.spack_yaml
 import spack.util.windows_registry
-
-
-class DetectedPackage(NamedTuple):
-    """Information on a package that has been detected."""
-
-    #: Spec that was detected
-    spec: spack.spec.Spec
-    #: Prefix of the spec
-    prefix: str
-
-    def __reduce__(self):
-        return DetectedPackage.restore, (str(self.spec), self.prefix, self.spec.extra_attributes)
-
-    @staticmethod
-    def restore(
-        spec_str: str, prefix: str, extra_attributes: Optional[Dict[str, str]]
-    ) -> "DetectedPackage":
-        spec = spack.spec.Spec.from_detection(spec_str=spec_str, extra_attributes=extra_attributes)
-        return DetectedPackage(spec=spec, prefix=prefix)
 
 
 def _externals_in_packages_yaml() -> Set[spack.spec.Spec]:
@@ -63,7 +48,7 @@ ExternalEntryType = Union[str, Dict[str, str]]
 
 
 def _pkg_config_dict(
-    external_pkg_entries: List[DetectedPackage],
+    external_pkg_entries: List["spack.spec.Spec"],
 ) -> Dict[str, Union[bool, List[Dict[str, ExternalEntryType]]]]:
     """Generate a package specific config dict according to the packages.yaml schema.
 
@@ -83,22 +68,19 @@ def _pkg_config_dict(
     pkg_dict = spack.util.spack_yaml.syaml_dict()
     pkg_dict["externals"] = []
     for e in external_pkg_entries:
-        if not _spec_is_valid(e.spec):
+        if not _spec_is_valid(e):
             continue
 
         external_items: List[Tuple[str, ExternalEntryType]] = [
-            ("spec", str(e.spec)),
-            ("prefix", e.prefix),
+            ("spec", str(e)),
+            ("prefix", pathlib.Path(e.external_path).as_posix()),
         ]
-        if e.spec.external_modules:
-            external_items.append(("modules", e.spec.external_modules))
+        if e.external_modules:
+            external_items.append(("modules", e.external_modules))
 
-        if e.spec.extra_attributes:
+        if e.extra_attributes:
             external_items.append(
-                (
-                    "extra_attributes",
-                    spack.util.spack_yaml.syaml_dict(e.spec.extra_attributes.items()),
-                )
+                ("extra_attributes", spack.util.spack_yaml.syaml_dict(e.extra_attributes.items()))
             )
 
         # external_items.extend(e.spec.extra_attributes.items())
@@ -219,34 +201,33 @@ def library_prefix(library_dir: str) -> str:
 
 
 def update_configuration(
-    detected_packages: Dict[str, List[DetectedPackage]],
+    detected_packages: Dict[str, List["spack.spec.Spec"]],
     scope: Optional[str] = None,
     buildable: bool = True,
 ) -> List[spack.spec.Spec]:
     """Add the packages passed as arguments to packages.yaml
 
     Args:
-        detected_packages: list of DetectedPackage objects to be added
+        detected_packages: list of specs to be added
         scope: configuration scope where to add the detected packages
         buildable: whether the detected packages are buildable or not
     """
     predefined_external_specs = _externals_in_packages_yaml()
     pkg_to_cfg, all_new_specs = {}, []
     for package_name, entries in detected_packages.items():
-        new_entries = [e for e in entries if (e.spec not in predefined_external_specs)]
+        new_entries = [s for s in entries if s not in predefined_external_specs]
 
         pkg_config = _pkg_config_dict(new_entries)
         external_entries = pkg_config.get("externals", [])
         assert not isinstance(external_entries, bool), "unexpected value for external entry"
 
-        all_new_specs.extend([spack.spec.Spec(x["spec"]) for x in external_entries])
+        all_new_specs.extend(new_entries)
         if buildable is False:
             pkg_config["buildable"] = False
         pkg_to_cfg[package_name] = pkg_config
 
     pkgs_cfg = spack.config.get("packages", scope=scope)
-
-    pkgs_cfg = spack.config.merge_yaml(pkgs_cfg, pkg_to_cfg)
+    pkgs_cfg = spack.schema.merge_yaml(pkgs_cfg, pkg_to_cfg)
     spack.config.set("packages", pkgs_cfg, scope=scope)
 
     return all_new_specs
@@ -266,7 +247,7 @@ def set_virtuals_nonbuildable(virtuals: Set[str], scope: Optional[str] = None) -
     # Update the provided scope
     spack.config.set(
         "packages",
-        spack.config.merge_yaml(spack.config.get("packages", scope=scope), new_config),
+        spack.schema.merge_yaml(spack.config.get("packages", scope=scope), new_config),
         scope=scope,
     )
 

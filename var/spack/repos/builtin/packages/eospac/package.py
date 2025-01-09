@@ -23,8 +23,22 @@ class Eospac(Package):
     # - alpha and beta versions are marked with 'deprecated=True' to help
     #   spack's version comparison.
     version(
+        "6.5.12",
+        sha256="62d5f4a6a30c9acb426bd6bd972edc7fad392e5b941f950126ed0d3be5fd5162",
+        url="https://laws.lanl.gov/projects/data/eos/get_file.php?package=eospac&filename=eospac_v6.5.12_39364aabc75c3312022b12e6d16d6a31f1f8945f.tgz",
+    )
+    version(
+        "6.5.11",
+        sha256="ed821b5a1bf45df1443d5f72d86190317ed9f5bad6a7c73e23bb4365bd76e24c",
+        url="https://laws.lanl.gov/projects/data/eos/get_file.php?package=eospac&filename=eospac_v6.5.11_e87627a204786491b3316d7fe3bda14dd9b52ce7.tgz",
+    )
+    version(
+        "6.5.10",
+        sha256="ddf8475ec41df1102ac9d85404a1954e39d8e410f0f2babafabd218cba9812eb",
+        url="https://laws.lanl.gov/projects/data/eos/get_file.php?package=eospac&filename=eospac_v6.5.10_3bf1ad6aab64ad0c665a48978315ba2383ab294f.tgz",
+    )
+    version(
         "6.5.9",
-        preferred=True,
         sha256="54df29b1dc3b35c654ef2ebfbfa42d960a230cfb2d3c04a75ba93d3a789a312a",
         url="https://laws.lanl.gov/projects/data/eos/get_file.php?package=eospac&filename=eospac_v6.5.9_4c633156bacc7b721bdd2735e40e09984a4d60a3.tgz",
     )
@@ -159,11 +173,11 @@ class Eospac(Package):
             # This looks goofy because eospac does not actually respect the
             # value of DO_OFFLOAD and instead only attempts to check for its
             # existence; a quirk of eospac.
-            if "+offload" in spec:
+            if spec.satisfies("+offload"):
                 compilerArgs.append("DO_OFFLOAD=1")
             # Eospac depends on fcommon behavior
             #   but gcc@10 flipped to default fno-common
-            if "%gcc@10:" in spec:
+            if spec.satisfies("%gcc@10:"):
                 compilerArgs.append("CFLAGS=-fcommon")
             if self.run_tests:
                 make("check", *compilerArgs)

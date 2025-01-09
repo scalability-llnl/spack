@@ -27,186 +27,191 @@ spack:
     comgr:
       buildable: false
       externals:
-      - spec: comgr@6.1.2
-        prefix: /opt/rocm-6.1.2/
+      - spec: comgr@6.2.1
+        prefix: /opt/rocm-6.2.1/
     hip-rocclr:
       buildable: false
       externals:
-      - spec: hip-rocclr@6.1.2
-        prefix: /opt/rocm-6.1.2/hip
+      - spec: hip-rocclr@6.2.1
+        prefix: /opt/rocm-6.2.1/hip
     hipblas:
       buildable: false
       externals:
-      - spec: hipblas@6.1.2
-        prefix: /opt/rocm-6.1.2/
+      - spec: hipblas@6.2.1
+        prefix: /opt/rocm-6.2.1/
     hipcub:
       buildable: false
       externals:
-      - spec: hipcub@6.1.2
-        prefix: /opt/rocm-6.1.2/
+      - spec: hipcub@6.2.1
+        prefix: /opt/rocm-6.2.1/
     hipfft:
       buildable: false
       externals:
-      - spec: hipfft@6.1.2
-        prefix: /opt/rocm-6.1.2/
+      - spec: hipfft@6.2.1
+        prefix: /opt/rocm-6.2.1/
     hipsparse:
       buildable: false
       externals:
-      - spec: hipsparse@6.1.2
-        prefix: /opt/rocm-6.1.2/
+      - spec: hipsparse@6.2.1
+        prefix: /opt/rocm-6.2.1/
     miopen-hip:
       buildable: false
       externals:
-      - spec: miopen-hip@6.1.2
-        prefix: /opt/rocm-6.1.2/
+      - spec: miopen-hip@6.2.1
+        prefix: /opt/rocm-6.2.1/
     miopengemm:
       buildable: false
       externals:
-      - spec: miopengemm@6.1.2
-        prefix: /opt/rocm-6.1.2/
+      - spec: miopengemm@6.2.1
+        prefix: /opt/rocm-6.2.1/
     rccl:
       buildable: false
       externals:
-      - spec: rccl@6.1.2
-        prefix: /opt/rocm-6.1.2/
+      - spec: rccl@6.2.1
+        prefix: /opt/rocm-6.2.1/
     rocblas:
       buildable: false
       externals:
-      - spec: rocblas@6.1.2
-        prefix: /opt/rocm-6.1.2/
+      - spec: rocblas@6.2.1
+        prefix: /opt/rocm-6.2.1/
     rocfft:
       buildable: false
       externals:
-      - spec: rocfft@6.1.2
-        prefix: /opt/rocm-6.1.2/
+      - spec: rocfft@6.2.1
+        prefix: /opt/rocm-6.2.1/
     rocm-clang-ocl:
       buildable: false
       externals:
-      - spec: rocm-clang-ocl@6.1.2
-        prefix: /opt/rocm-6.1.2/
+      - spec: rocm-clang-ocl@6.2.1
+        prefix: /opt/rocm-6.2.1/
     rocm-cmake:
       buildable: false
       externals:
-      - spec: rocm-cmake@6.1.2
-        prefix: /opt/rocm-6.1.2/
+      - spec: rocm-cmake@6.2.1
+        prefix: /opt/rocm-6.2.1/
     rocm-dbgapi:
       buildable: false
       externals:
-      - spec: rocm-dbgapi@6.1.2
-        prefix: /opt/rocm-6.1.2/
+      - spec: rocm-dbgapi@6.2.1
+        prefix: /opt/rocm-6.2.1/
     rocm-debug-agent:
       buildable: false
       externals:
-      - spec: rocm-debug-agent@6.1.2
-        prefix: /opt/rocm-6.1.2/
+      - spec: rocm-debug-agent@6.2.1
+        prefix: /opt/rocm-6.2.1/
     rocm-device-libs:
       buildable: false
       externals:
-      - spec: rocm-device-libs@6.1.2
-        prefix: /opt/rocm-6.1.2/
+      - spec: rocm-device-libs@6.2.1
+        prefix: /opt/rocm-6.2.1/
     rocm-gdb:
       buildable: false
       externals:
-      - spec: rocm-gdb@6.1.2
-        prefix: /opt/rocm-6.1.2/
+      - spec: rocm-gdb@6.2.1
+        prefix: /opt/rocm-6.2.1/
     rocm-opencl:
       buildable: false
       externals:
-      - spec: rocm-opencl@6.1.2
-        prefix: /opt/rocm-6.1.2/opencl
+      - spec: rocm-opencl@6.2.1
+        prefix: /opt/rocm-6.2.1/opencl
     rocm-smi-lib:
       buildable: false
       externals:
-      - spec: rocm-smi-lib@6.1.2
-        prefix: /opt/rocm-6.1.2/
+      - spec: rocm-smi-lib@6.2.1
+        prefix: /opt/rocm-6.2.1/
     hip:
       buildable: false
       externals:
-      - spec: hip@6.1.2
-        prefix: /opt/rocm-6.1.2
+      - spec: hip@6.2.1
+        prefix: /opt/rocm-6.2.1
         extra_attributes:
           compilers:
-            c: /opt/rocm-6.1.2/llvm/bin/clang++
-            c++: /opt/rocm-6.1.2/llvm/bin/clang++
-            hip: /opt/rocm-6.1.2/hip/bin/hipcc
+            c: /opt/rocm-6.2.1/llvm/bin/clang++
+            c++: /opt/rocm-6.2.1/llvm/bin/clang++
+            hip: /opt/rocm-6.2.1/hip/bin/hipcc
     hipify-clang:
       buildable: false
       externals:
-      - spec: hipify-clang@6.1.2
-        prefix: /opt/rocm-6.1.2
+      - spec: hipify-clang@6.2.1
+        prefix: /opt/rocm-6.2.1
     llvm-amdgpu:
       buildable: false
       externals:
-      - spec: llvm-amdgpu@6.1.2
-        prefix: /opt/rocm-6.1.2/llvm
+      - spec: llvm-amdgpu@6.2.1
+        prefix: /opt/rocm-6.2.1/llvm
         extra_attributes:
           compilers:
-            c: /opt/rocm-6.1.2/llvm/bin/clang++
-            cxx: /opt/rocm-6.1.2/llvm/bin/clang++
+            c: /opt/rocm-6.2.1/llvm/bin/clang++
+            cxx: /opt/rocm-6.2.1/llvm/bin/clang++
     hsakmt-roct:
       buildable: false
       externals:
-      - spec: hsakmt-roct@6.1.2
-        prefix: /opt/rocm-6.1.2/
+      - spec: hsakmt-roct@6.2.1
+        prefix: /opt/rocm-6.2.1/
     hsa-rocr-dev:
       buildable: false
       externals:
-      - spec: hsa-rocr-dev@6.1.2
-        prefix: /opt/rocm-6.1.2/
+      - spec: hsa-rocr-dev@6.2.1
+        prefix: /opt/rocm-6.2.1/
         extra_atributes:
           compilers:
-            c: /opt/rocm-6.1.2/llvm/bin/clang++
-            cxx: /opt/rocm-6.1.2/llvm/bin/clang++
+            c: /opt/rocm-6.2.1/llvm/bin/clang++
+            cxx: /opt/rocm-6.2.1/llvm/bin/clang++
     roctracer-dev-api:
       buildable: false
       externals:
-      - spec: roctracer-dev-api@6.1.2
-        prefix: /opt/rocm-6.1.2
+      - spec: roctracer-dev-api@6.2.1
+        prefix: /opt/rocm-6.2.1
     roctracer-dev:
       buildable: false
       externals:
       - spec: roctracer-dev@4.5.3
-        prefix: /opt/rocm-6.1.2
+        prefix: /opt/rocm-6.2.1
     rocprim:
       buildable: false
       externals:
-      - spec: rocprim@6.1.2
-        prefix: /opt/rocm-6.1.2
+      - spec: rocprim@6.2.1
+        prefix: /opt/rocm-6.2.1
     rocrand:
       buildable: false
       externals:
-      - spec: rocrand@6.1.2
-        prefix: /opt/rocm-6.1.2
+      - spec: rocrand@6.2.1
+        prefix: /opt/rocm-6.2.1
     hipsolver:
       buildable: false
       externals:
-      - spec: hipsolver@6.1.2
-        prefix: /opt/rocm-6.1.2
+      - spec: hipsolver@6.2.1
+        prefix: /opt/rocm-6.2.1
     rocsolver:
       buildable: false
       externals:
-      - spec: rocsolver@6.1.2
-        prefix: /opt/rocm-6.1.2
+      - spec: rocsolver@6.2.1
+        prefix: /opt/rocm-6.2.1
     rocsparse:
       buildable: false
       externals:
-      - spec: rocsparse@6.1.2
-        prefix: /opt/rocm-6.1.2
+      - spec: rocsparse@6.2.1
+        prefix: /opt/rocm-6.2.1
     rocthrust:
       buildable: false
       externals:
-      - spec: rocthrust@6.1.2
-        prefix: /opt/rocm-6.1.2
+      - spec: rocthrust@6.2.1
+        prefix: /opt/rocm-6.2.1
     rocprofiler-dev:
       buildable: false
       externals:
-      - spec: rocprofiler-dev@6.1.2
-        prefix: /opt/rocm-6.1.2
+      - spec: rocprofiler-dev@6.2.1
+        prefix: /opt/rocm-6.2.1
     rocm-core:
       buildable: false
       externals:
-      - spec: rocm-core@6.1.2
-        prefix: /opt/rocm-6.1.2
+      - spec: rocm-core@6.2.1
+        prefix: /opt/rocm-6.2.1
+    rocm-openmp-extras:
+      buildable: false
+      externals:
+      - spec: rocm-openmp-extras@6.2.1
+        prefix: /opt/rocm-6.2.1
 
   specs:
   # ROCM NOARCH
@@ -221,6 +226,7 @@ spack:
   - caliper +rocm amdgpu_target=gfx908
   - chai +rocm amdgpu_target=gfx908
   - ecp-data-vis-sdk +paraview +vtkm +rocm amdgpu_target=gfx908
+  - fftx +rocm amdgpu_target=gfx908
   - gasnet +rocm amdgpu_target=gfx908
   - ginkgo +rocm amdgpu_target=gfx908
   - heffte +rocm amdgpu_target=gfx908
@@ -249,6 +255,7 @@ spack:
   # - chapel +rocm amdgpu_target=gfx908         # chapel: need chapel >= 2.2 to support ROCm >5.4
   # - cp2k +mpi +rocm amdgpu_target=gfx908      # cp2k: Error: KeyError: 'No spec with name rocm in... "-L{}".format(spec["rocm"].libs.directories[0]),
   # - exago +mpi +python +raja +hiop +rocm amdgpu_target=gfx908 ~ipopt cxxflags="-Wno-error=non-pod-varargs" ^hiop@1.0.0 ~sparse +mpi +raja +rocm amdgpu_target=gfx908 # raja: https://github.com/spack/spack/issues/44593
+  # - lammps +rocm amdgpu_target=gfx908         # lammps: KeyError: 'No spec with name llvm-amdgpu in rocm-openmp-extras@6.2.1/xafvl6rnd3tjagjvezszdz6itqzcl3zj'
   # - lbann ~cuda +rocm amdgpu_target=gfx908    # aluminum: https://github.com/spack/spack/issues/38807
   # - papi +rocm amdgpu_target=gfx908           # papi: https://github.com/spack/spack/issues/27898
   # - petsc +rocm amdgpu_target=gfx908          # petsc: https://github.com/spack/spack/issues/44600
@@ -264,6 +271,7 @@ spack:
   - caliper +rocm amdgpu_target=gfx90a
   - chai +rocm amdgpu_target=gfx90a
   - ecp-data-vis-sdk +paraview +vtkm +rocm amdgpu_target=gfx90a
+  - fftx +rocm amdgpu_target=gfx90a
   - gasnet +rocm amdgpu_target=gfx90a
   - ginkgo +rocm amdgpu_target=gfx90a
   - heffte +rocm amdgpu_target=gfx90a
@@ -292,6 +300,7 @@ spack:
   # - chapel +rocm amdgpu_target=gfx9a          # chapel: need chapel >= 2.2 to support ROCm >5.4
   # - cp2k +mpi +rocm amdgpu_target=gfx90a      # cp2k: Error: KeyError: 'No spec with name rocm in... "-L{}".format(spec["rocm"].libs.directories[0]),
   # - exago +mpi +python +raja +hiop +rocm amdgpu_target=gfx90a ~ipopt cxxflags="-Wno-error=non-pod-varargs" ^hiop@1.0.0 ~sparse +mpi +raja +rocm amdgpu_target=gfx90a # raja: https://github.com/spack/spack/issues/44593
+  # - lammps +rocm amdgpu_target=gfx90a         # lammps: KeyError: 'No spec with name llvm-amdgpu in rocm-openmp-extras@6.2.1/xafvl6rnd3tjagjvezszdz6itqzcl3zj'
   # - lbann ~cuda +rocm amdgpu_target=gfx90a    # aluminum: https://github.com/spack/spack/issues/38807
   # - papi +rocm amdgpu_target=gfx90a           # papi: https://github.com/spack/spack/issues/27898
   # - petsc +rocm amdgpu_target=gfx90a          # petsc: https://github.com/spack/spack/issues/44600
@@ -302,7 +311,7 @@ spack:
   ci:
     pipeline-gen:
     - build-job:
-        image: ecpe4s/ubuntu22.04-runner-amd64-gcc-11.4-rocm6.1.2:2024.07.22
+        image: ghcr.io/spack/spack/ubuntu22.04-runner-amd64-gcc-11.4-rocm6.2.1:2024.10.08
 
   cdash:
     build-group: E4S ROCm External

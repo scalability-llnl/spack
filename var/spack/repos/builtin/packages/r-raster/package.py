@@ -18,6 +18,7 @@ class RRaster(RPackage):
 
     license("GPL-3.0-or-later")
 
+    version("3.6-26", sha256="c65777225a46ada699e70098f54c60cf191d15e454fac9440aca439a4dbd5592")
     version("3.6-20", sha256="7e5be49f4e37a2c14a3b87661b252956643b959146cbdb08e983660c1d59a813")
     version("3.6-3", sha256="9f06e0f7c36258790a97421b3a26d98c9b6a2cb702f941e58ab0b18f21b0c3c6")
     version("3.5-15", sha256="29c7d3c5d34284f8b5a2ddc9989fbcf092ce209d5eb5310ebc772b5ebdfdd685")
@@ -37,3 +38,4 @@ class RRaster(RPackage):
     depends_on("r-terra@1.5-12:", type=("build", "run"), when="@3.5-15:")
     depends_on("r-terra@1.6-16:", type=("build", "run"), when="@3.6-3:")
     depends_on("r-terra@1.6-41:", type=("build", "run"), when="@3.6-20:")
+    depends_on("r-terra@1.7-29:", type=("build", "run"), when="@3.6-23:")

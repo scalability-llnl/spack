@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
+import spack.variant
 from spack.package import *
 
 
@@ -21,6 +22,9 @@ class Hipsparselt(CMakePackage, ROCmPackage):
     maintainers("srekolam", "afzpatel", "renjithravindrankannath")
 
     license("MIT")
+    version("6.2.4", sha256="7b007b346f89fac9214ad8541b3276105ce1cac14d6f95a8a504b5a5381c8184")
+    version("6.2.1", sha256="a23287bc759442aebaccce0306f5e3938865240e13553847356c25c54214a0d4")
+    version("6.2.0", sha256="a25a3ce0ed3cc616b1a4e38bfdd5e68463bb9fe791a56d1367b8a6373bb63d12")
     version("6.1.2", sha256="a5a01fec7bc6e1f4792ccd5c8eaee7b42deac315c54298a7ce5265e5551e8640")
     version("6.1.1", sha256="ca6da099d9e385ffce2b68404f395a93b199af1592037cf52c620f9148a6a78d")
     version("6.1.0", sha256="66ade6de4fd19d144cab27214352faf5b00bbe12afe59472efb441b16d090265")
@@ -43,7 +47,7 @@ class Hipsparselt(CMakePackage, ROCmPackage):
     )
     variant("asan", default=False, description="Build with address-sanitizer enabled or disabled")
 
-    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2"]:
+    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4"]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"hipsparse@{ver}", when=f"@{ver}")
         depends_on(f"rocm-openmp-extras@{ver}", when=f"@{ver}", type="test")
@@ -64,6 +68,7 @@ class Hipsparselt(CMakePackage, ROCmPackage):
     # tensorlite subdir of hipblas . Also adds hipsparse and msgpack include directories
     # for 6.1.0 release.
     patch("0001-update-llvm-path-add-hipsparse-include-dir-for-spack-6.1.patch", when="@6.1")
+    patch("0001-update-llvm-path-add-hipsparse-include-dir-for-spack-6.2.patch", when="@6.2")
 
     def setup_build_environment(self, env):
         env.set("CXX", self.spec["hip"].hipcc)

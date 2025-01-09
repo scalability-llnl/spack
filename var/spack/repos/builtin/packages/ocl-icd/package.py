@@ -16,6 +16,7 @@ class OclIcd(AutotoolsPackage):
 
     license("BSD-2-Clause")
 
+    version("2.3.2", sha256="ec47d7dcd961ea06695b067e8b7edb82e420ddce03e0081a908c62fd0b8535c5")
     version("2.3.1", sha256="a32b67c2d52ffbaf490be9fc18b46428ab807ab11eff7664d7ff75e06cfafd6d")
     version("2.3.0", sha256="469f592ccd9b0547fb7212b17e1553b203d178634c20d3416640c0209e3ddd50")
     version("2.2.14", sha256="46df23608605ad548e80b11f4ba0e590cef6397a079d2f19adf707a7c2fbfe1b")

@@ -10,13 +10,14 @@ from spack.package import *
 class PyDamask(PythonPackage):
     """Pre- and post-processing tools for DAMASK"""
 
-    homepage = "https://damask.mpie.de"
-    url = "https://damask.mpie.de/download/damask-3.0.0.tar.xz"
+    homepage = "https://damask-multiphysics.org"
+    url = "https://damask-multiphysics.org/download/damask-3.0.0.tar.xz"
 
     maintainers("MarDiehl")
 
     license("AGPL-3.0-or-later")
 
+    version("3.0.1", sha256="3db1231f6763356e71b3bb91f66f1abb4fdae2721ce85754fc468446f3d74882")
     version("3.0.0", sha256="aaebc65b3b10e6c313132ee97cfed427c115079b7e438cc0727c5207e159019f")
     version(
         "3.0.0-beta2", sha256="513567b4643f39e27ae32b9f75463fc6f388c1548d42f0393cc87ba02d075f6a"

@@ -23,6 +23,17 @@ class RustBootstrap(Package):
     # should update these binary releases as bootstrapping requirements are
     # modified by new releases of Rust.
     rust_releases = {
+        "1.81.0": {
+            "darwin": {
+                "x86_64": "f74d8ad24cc3cbfb825da98a08d98319565e4d18ec2c3e9503bf0a33c81ba767",
+                "aarch64": "60a41dea4ae0f4006325745a6400e6fdc3e08ad3f924fac06f04c238cf23f4ec",
+            },
+            "linux": {
+                "x86_64": "4ca7c24e573dae2f382d8d266babfddc307155e1a0a4025f3bc11db58a6cab3e",
+                "aarch64": "ef4da9c1ecd56bbbb36f42793524cce3062e6a823ae22cb679a945c075c7755b",
+                "powerpc64le": "bf98b27de08a2fd5a2202a2b621b02bfde2a6fde397df2a735d018aeffcdc5e2",
+            },
+        },
         "1.78.0": {
             "darwin": {
                 "x86_64": "6c91ed3bd90253961fcb4a2991b8b22e042e2aaa9aba9f389f1e17008171d898",
@@ -122,6 +133,12 @@ class RustBootstrap(Package):
         if os in rust_releases[release] and target in rust_releases[release][os]:
             version(release, sha256=rust_releases[release][os][target])
 
+    # rust-ldd and libLLVM both depend on zlib, which is not vendored.
+    depends_on("zlib-api")
+    depends_on("zlib-ng +shared", when="^[virtuals=zlib-api] zlib-ng")
+    depends_on("zlib +shared", when="^[virtuals=zlib-api] zlib")
+    depends_on("patchelf@0.13:", when="platform=linux", type="build")
+
     def url_for_version(self, version):
         if self.os not in ("linux", "darwin"):
             return None
@@ -139,6 +156,15 @@ class RustBootstrap(Package):
 
         url = "https://static.rust-lang.org/dist/rust-{0}-{1}-{2}.tar.gz"
         return url.format(version, target, os)
+
+    @run_before("install", when="platform=linux")
+    def fixup_rpaths(self):
+        # set rpaths of libLLVM.so and rust-ldd to zlib's lib directory
+        rpaths = self.spec["zlib-api"].libs.directories
+
+        for binary in find(self.stage.source_path, ["libLLVM.so.*", "rust-lld"]):
+            patchelf = Executable("patchelf")
+            patchelf("--add-rpath", ":".join(rpaths), binary)
 
     def install(self, spec, prefix):
         install_script = Executable("./install.sh")

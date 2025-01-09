@@ -25,6 +25,9 @@ class Gxsview(QMakePackage):
     license("LGPL-3.0-only")
 
     version(
+        "2024.03.15", sha256="5a6e6384a79fc2f39370846814f049b6c4c32f418cb00363cfb18bc1b6598d3a"
+    )
+    version(
         "2023.05.29", sha256="1e768fd7afd22198b7f73adeb42f4ccf7e0ff68996a3843b1ea138225c4c1da3"
     )
     version(
@@ -40,12 +43,17 @@ class Gxsview(QMakePackage):
     depends_on("fontconfig")
     depends_on("qt@5.14.0:+opengl+gui")
     depends_on("vtk@8.0:+qt+opengl2")  # +mpi+python are optional
+    depends_on("vtk@9:+qt+opengl2", when="@2024.03.15:")
     conflicts("%gcc@:7.2.0", msg="Requires C++17 compiler support")  # need C++17 standard
+    conflicts("qt@6:", msg="Qt 6 support is not yet achieved")
+    conflicts("qt-base@6:", msg="Qt 6 support is not yet achieved")  # required for clingo
 
     patch("vtk9.patch", when="^vtk@9:")
     # gcc11 compilation rule for std::numeric_limits,
     # avoid "numeric_limits" is not a member of "std"
     patch("gcc11.patch", when="@2021.07.01 %gcc@11:")
+    # sets fontconfig inc/lib, removes useless stuffs
+    patch("vtk90.patch", when="@2024.03.15")
 
     build_directory = "gui"
 
@@ -57,16 +65,19 @@ class Gxsview(QMakePackage):
         if not os.path.exists(vtk_include_dir):
             vtk_include_dir = join_path(self.spec["vtk"].prefix.include, "vtk")
             args.append("VTK_NO_VER_SUFFIX=ON")
+        fontconfig = self.spec["fontconfig"]
         args.extend(
             [
                 "VTK_LIB_DIR={0}".format(vtk_lib_dir),
                 "VTK_INC_DIR={0}".format(vtk_include_dir),
                 "VTK_MAJOR_VER={0}".format(str(vtk_suffix)),
+                "FONTCONFIG_LIBDIR={0}".format(fontconfig.prefix.lib),
+                "FONTCONFIG_INCDIR={0}".format(fontconfig.prefix.include),
             ]
         )
         # Below to avoid undefined reference to `std::filesystem::__cxx11::path::_M_split_cmpts()'
         if self.spec.satisfies("%gcc@8.0:8.9") or self.spec.satisfies("%fj"):
-            if "^vtk@9:" in self.spec:
+            if self.spec.satisfies("^vtk@9:"):
                 fic = "vtk9.pri"
             else:
                 fic = "vtk8.pri"

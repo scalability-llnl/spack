@@ -7,6 +7,7 @@ import os.path
 import re
 import sys
 
+import spack.compilers
 from spack.package import *
 
 

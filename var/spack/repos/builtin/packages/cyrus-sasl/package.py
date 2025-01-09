@@ -23,6 +23,14 @@ class CyrusSasl(AutotoolsPackage):
     version("2.1.24", sha256="1df15c492f7ecb90be49531a347b3df21b041c2e0325dcc4fc5a6e98384c40dd")
     version("2.1.23", sha256="b1ec43f62d68446a6a5879925c63d94e26089c5a46cd83e061dd685d014c7d1f")
 
+    # ensure include time.h, https://github.com/cyrusimap/cyrus-sasl/pull/709
+    patch(
+        "https://github.com/cyrusimap/cyrus-sasl/commit/266f0acf7f5e029afbb3e263437039e50cd6c262.patch?full_index=1",
+        sha256="819342fe68475ac1690136ff4ce9b73c028f433ae150898add36f724a8e2274b",
+        when="@2.1.27:2.1.28",
+    )
+    conflicts("%gcc@14:", when="@:2.1.26")
+
     depends_on("c", type="build")  # generated
 
     depends_on("m4", type="build")

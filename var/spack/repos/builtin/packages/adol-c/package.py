@@ -153,3 +153,8 @@ class AdolC(AutotoolsPackage):
                     join_path(source_directory, "ADOL-C", "examples", "additional_examples")
                 ):
                     Executable("./checkpointing/checkpointing")()
+
+    @property
+    def libs(self):
+        """The name of the library differs from the package name => own libs handling."""
+        return find_libraries(["libadolc"], root=self.prefix, shared=True, recursive=True)

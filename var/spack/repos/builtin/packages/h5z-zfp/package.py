@@ -34,7 +34,7 @@ class H5zZfp(CMakePackage):
     def make_defs(self):
         cc = spack_cc
         fc = spack_fc
-        if "^hdf5+mpi" in self.spec:
+        if self.spec.satisfies("^hdf5+mpi"):
             cc = self.spec["mpi"].mpicc
             fc = self.spec["mpi"].mpifc
         make_defs = [
@@ -44,7 +44,7 @@ class H5zZfp(CMakePackage):
             "ZFP_HOME=%s" % self.spec["zfp"].prefix,
         ]
 
-        if "+fortran" in self.spec and fc:
+        if self.spec.satisfies("+fortran") and fc:
             make_defs += ["FC=%s" % fc]
         else:
             make_defs += ["FC="]

@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
-from spack.pkg.builtin.boost import Boost
 
 
 class Cbtf(CMakePackage):
@@ -48,12 +47,7 @@ class Cbtf(CMakePackage):
     # for rpc
     depends_on("libtirpc", type="link")
 
-    depends_on("boost@1.70.0:")
-
-    # TODO: replace this with an explicit list of components of Boost,
-    # for instance depends_on('boost +filesystem')
-    # See https://github.com/spack/spack/pull/22303 for reference
-    depends_on(Boost.with_default_variants)
+    depends_on("boost@1.70.0:1.84.0+date_time+filesystem+test+thread")
 
     # For MRNet
     depends_on("mrnet@5.0.1-3:+lwthreads", when="@develop")

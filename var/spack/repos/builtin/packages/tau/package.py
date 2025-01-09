@@ -28,6 +28,7 @@ class Tau(Package):
     license("MIT")
 
     version("master", branch="master")
+    version("2.34", sha256="229ab425e0532e635a0be76d60b8aa613adf7596d15a9ced0b87e7f243bb2132")
     version("2.33.2", sha256="8ee81fe75507612379f70033183bed2a90e1245554b2a78196b6c5145da44f27")
     version("2.33.1", sha256="13cc5138e110932f34f02ddf548db91d8219ccb7ff9a84187f0790e40a502403")
     version("2.33", sha256="04d9d67adb495bc1ea56561f33c5ce5ba44f51cc7f64996f65bd446fac5483d9")
@@ -79,23 +80,39 @@ class Tau(Package):
     variant("pdt", default=True, description="Use PDT for source code instrumentation")
     variant("comm", default=False, description=" Generate profiles with MPI communicator info")
     variant("python", default=False, description="Activates Python support")
-    variant("likwid", default=False, description="Activates LIKWID support")
+    variant("likwid", default=False, description="Activates LIKWID support", when="@2.27")
     variant("ompt", default=False, description="Activates OMPT instrumentation")
     variant("opari", default=False, description="Activates Opari2 instrumentation")
     variant("shmem", default=False, description="Activates SHMEM support")
     variant("gasnet", default=False, description="Activates GASNET support")
     variant("cuda", default=False, description="Activates CUDA support")
-    variant("rocm", default=False, description="Activates ROCm support")
-    variant("level_zero", default=False, description="Activates Intel OneAPI Level Zero support")
-    variant("rocprofiler", default=False, description="Activates ROCm rocprofiler support")
-    variant("roctracer", default=False, description="Activates ROCm roctracer support")
-    variant("rocprofv2", default=False, description="Activates ROCm rocprofiler support")
+    variant("rocm", default=False, description="Activates ROCm support", when="@2.28:")
+    variant(
+        "level_zero",
+        default=False,
+        description="Activates Intel OneAPI Level Zero support",
+        when="@2.30:",
+    )
+    variant(
+        "rocprofiler",
+        default=False,
+        description="Activates ROCm rocprofiler support",
+        when="@2.29.1:",
+    )
+    variant(
+        "roctracer", default=False, description="Activates ROCm roctracer support", when="@2.28.1:"
+    )
+    variant(
+        "rocprofv2", default=False, description="Activates ROCm rocprofiler support", when="@2.34:"
+    )
     variant("opencl", default=False, description="Activates OpenCL support")
     variant("fortran", default=darwin_default, description="Activates Fortran support")
     variant("io", default=True, description="Activates POSIX I/O support")
-    variant("adios2", default=False, description="Activates ADIOS2 output support")
+    variant(
+        "adios2", default=False, description="Activates ADIOS2 output support", when="@2.26.3:"
+    )
     variant("sqlite", default=False, description="Activates SQLite3 output support")
-    variant("syscall", default=False, description="Activates syscall wrapper")
+    variant("syscall", default=False, description="Activates syscall wrapper", when="@2.33:")
     variant(
         "profileparam",
         default=False,
@@ -204,25 +221,21 @@ class Tau(Package):
         #     ('CC', 'CXX' and 'FC')
         # 4 - if no -cc=<compiler> -cxx=<compiler> is passed tau is built with
         #     system compiler silently
-        # (regardless of what %<compiler> is used in the spec)
-        # 5 - On cray gnu compilers are not provied by self.compilers
-        #     Checking GCC_PATH will work if spack loads the gcc module
-        #
-        # In the following we give TAU what he expects and put compilers into
-        # PATH
-        compiler_path = os.path.dirname(self.compiler.cc)
-        if not compiler_path and self.compiler.cc_names[0] == "gcc":
-            compiler_path = os.environ.get("GCC_PATH", "")
-            if compiler_path:
-                compiler_path = compiler_path + "/bin/"
-        os.environ["PATH"] = ":".join([compiler_path, os.environ["PATH"]])
-        compiler_options = [
-            "-c++=%s" % os.path.basename(self.compiler.cxx),
-            "-cc=%s" % os.path.basename(self.compiler.cc),
-        ]
+        compiler_flags: Dict[str, str] = {
+            flag: os.path.basename(getattr(self.compiler, compiler))
+            for flag, compiler in (("-cc", "cc"), ("-c++", "cxx"), ("-fortran", "fc"))
+            if getattr(self.compiler, compiler)
+        }
 
-        if "+fortran" in spec and self.compiler.fc:
-            compiler_options.append("-fortran=%s" % os.path.basename(self.compiler.fc))
+        if "~fortran" in spec:
+            compiler_flags.pop("-fortran", None)
+
+        # tau does not understand `craycc`, `crayCC`, `crayftn`, strip off the `cray` prefix
+        for flag, value in compiler_flags.items():
+            if value.startswith("cray"):
+                compiler_flags[flag] = value[4:]
+
+        compiler_options = [f"{flag}={value}" for flag, value in compiler_flags.items()]
 
         ##########
 
@@ -415,8 +428,14 @@ class Tau(Package):
         # Link arch-specific directories into prefix since there is
         # only one arch per prefix the way spack installs.
         self.link_tau_arch_dirs()
-        # TAU may capture Spack's internal compiler wrapper. Replace
-        # it with the correct compiler.
+        # TAU may capture Spack's internal compiler wrapper. Fixed
+        # by filter_compiler_wrappers. Switch back the environment
+        # variables the filter uses.
+        if "+mpi" in spec:
+            env["CC"] = spack_cc
+            env["CXX"] = spack_cxx
+            env["FC"] = spack_fc
+            env["F77"] = spack_f77
 
     def link_tau_arch_dirs(self):
         for subdir in os.listdir(self.prefix):
@@ -583,3 +602,6 @@ class Tau(Package):
         ):
             rocm_test_dir = join_path(self.test_suite.current_test_cache_dir, self.rocm_test)
             self._run_rocm_test("test_rocm", "Testing rocm", rocm_test_dir)
+
+    # tau contains various prebuilt binaries with missing system dependencies
+    unresolved_libraries = ["*"]

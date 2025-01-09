@@ -15,6 +15,7 @@ class RDbi(RPackage):
 
     cran = "DBI"
 
+    version("1.2.3", sha256="cf6708a7566a80929f06575aa345fae354714159ed5fab5db14306fc5d0d2dbe")
     version("1.1.3", sha256="38bb33753da5bddb78893a5228a5d269dae3bf16f21dc5d9853ac9c24d31428d")
     version("1.1.2", sha256="56ec377d471c76ac234ddfd313bd01a050c99fb6fa5f704f5333b34a5d714f58")
     version("1.1.1", sha256="572ab3b8a6421d0ac3e7665c4c842826f1723af98fca25d4f43edb419e771344")

@@ -12,7 +12,7 @@ class BigdftPsolver(AutotoolsPackage, CudaPackage):
     of BigDFT code, and it can also be used separately and linked to other codes."""
 
     homepage = "https://bigdft.org/"
-    url = "https://gitlab.com/l_sim/bigdft-suite/-/archive/1.9.2/bigdft-suite-1.9.2.tar.gz"
+    url = "https://gitlab.com/l_sim/bigdft-suite/-/archive/1.9.5/bigdft-suite-1.9.5.tar.gz"
     git = "https://gitlab.com/l_sim/bigdft-suite.git"
 
     version("develop", branch="devel")
@@ -23,16 +23,15 @@ class BigdftPsolver(AutotoolsPackage, CudaPackage):
     version("1.9.1", sha256="3c334da26d2a201b572579fc1a7f8caad1cbf971e848a3e10d83bc4dc8c82e41")
     version("1.9.0", sha256="4500e505f5a29d213f678a91d00a10fef9dc00860ea4b3edf9280f33ed0d1ac8")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
 
     variant("mpi", default=True, description="Enable MPI support")
     variant("openmp", default=True, description="Enable OpenMP support")
     variant("scalapack", default=True, description="Enable SCALAPACK support")
-    variant(
-        "shared", default=True, description="Build shared libraries"
-    )  # Not default in bigdft, but is typically the default expectation
+    # Not default in bigdft, but is typically the default expectation:
+    variant("shared", default=True, description="Build shared libraries")
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
@@ -97,7 +96,7 @@ class BigdftPsolver(AutotoolsPackage, CudaPackage):
         else:
             args.append("--without-openmp")
 
-        args.append(f"--with-atlab-libs={spec['bigdft-atlab'].prefix.lib}")
+        args.append(f"--with-atlab-libs={spec['bigdft-atlab'].libs.ld_flags}")
 
         if spec.satisfies("+cuda"):
             args.append("--enable-cuda-gpu")

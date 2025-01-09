@@ -9,6 +9,7 @@ from typing import List
 import llnl.util.tty as tty
 
 import spack.cmd
+import spack.spec
 
 display_args = {"long": True, "show_flags": False, "variants": False, "indent": 4}
 

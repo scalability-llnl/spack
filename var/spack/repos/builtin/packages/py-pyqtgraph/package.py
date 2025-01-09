@@ -10,7 +10,7 @@ class PyPyqtgraph(PythonPackage):
     """PyQtGraph is a pure-python graphics and GUI library intended for use in mathematics,
     scientific, and engineering applications"""
 
-    homepage = "http://www.pyqtgraph.org/"
+    homepage = "https://www.pyqtgraph.org/"
     pypi = "pyqtgraph/pyqtgraph-0.13.3.tar.gz"
 
     license("MIT", checked_by="A-N-Other")

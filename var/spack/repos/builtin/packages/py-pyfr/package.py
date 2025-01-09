@@ -12,7 +12,7 @@ class PyPyfr(PythonPackage, CudaPackage, ROCmPackage):
     advection-diffusion type problems on streaming architectures
     using the Flux Reconstruction approach of Huynh."""
 
-    homepage = "http://www.pyfr.org/"
+    homepage = "https://www.pyfr.org/"
     pypi = "pyfr/pyfr-1.13.0.tar.gz"
     git = "https://github.com/PyFR/PyFR/"
     maintainers("MichaelLaufer")

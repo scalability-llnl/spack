@@ -22,6 +22,7 @@ class RRspectra(RPackage):
 
     cran = "RSpectra"
 
+    version("0.16-2", sha256="a2f149d79519fee79dabe1b174dfb847a916045315d5927a93cc6b005522aa7e")
     version("0.16-1", sha256="cba5d3403d6a7d0e27abf6279fbfea6e0d0fe36b28c688bbadb8eafb3841329a")
     version("0.16-0", sha256="aaf1cfc9ffe3a4c6684247899924e1c18306971dfef4bae1dc596a2fb42a64a9")
     version("0.15-0", sha256="1ad5698201007044a0420cb10b7c48e94312a8a1d22b9d946d5de1c6743969a9")

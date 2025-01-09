@@ -2,6 +2,7 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
 from spack.package import *
 
 
@@ -29,10 +30,28 @@ class Grep(AutotoolsPackage):
     depends_on("pcre2", when="@3.8:+pcre")
     depends_on("pcre", when="@:3.7+pcre")
 
+    # For spack external find
+    executables = ["^grep$"]
+
+    @classmethod
+    def determine_version(cls, exe):
+        version_string = Executable(exe)("--version", output=str, error=str).split("\n")[0]
+        # Linux
+        if "GNU grep" in version_string:
+            return version_string.lstrip("grep (GNU grep)").strip()
+        # macOS
+        elif "BSD grep, GNU compatible" in version_string:
+            return (
+                version_string.lstrip("grep (BSD grep, GNU compatible)").rstrip("-FreeBSD").strip()
+            )
+        # Don't know how to handle this version of grep, don't add it
+        else:
+            return None
+
     def configure_args(self):
         args = []
 
-        if "+pcre" in self.spec:
+        if self.spec.satisfies("+pcre"):
             args.append("--enable-perl-regexp")
         else:
             args.append("--disable-perl-regexp")

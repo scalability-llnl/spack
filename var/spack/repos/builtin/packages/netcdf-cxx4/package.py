@@ -12,14 +12,19 @@ class NetcdfCxx4(CMakePackage):
     sharing of array-oriented scientific data. This is the C++ distribution."""
 
     homepage = "https://www.unidata.ucar.edu/software/netcdf"
-    url = "ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-cxx4-4.3.1.tar.gz"
+    url = "https://downloads.unidata.ucar.edu/netcdf-cxx/4.3.1/netcdf-cxx4-4.3.1.tar.gz"
 
     maintainers("WardF")
 
     license("Apache-2.0")
 
     version("4.3.1", sha256="6a1189a181eed043b5859e15d5c080c30d0e107406fbb212c8fb9814e90f3445")
-    version("4.3.0", sha256="e34fbc6aba243ec82c23e9ee99db2430555ada849c54c1f3ab081b0ddd0f5f30")
+    version(
+        "4.3.0",
+        sha256="25da1c97d7a01bc4cee34121c32909872edd38404589c0427fefa1301743f18f",
+        url="https://github.com/Unidata/netcdf-cxx4/archive/refs/tags/v4.3.0.tar.gz",
+        deprecated=True,
+    )
 
     variant("shared", default=True, description="Enable shared library")
     variant("pic", default=True, description="Produce position-independent code (for shared libs)")
@@ -39,6 +44,9 @@ class NetcdfCxx4(CMakePackage):
 
     filter_compiler_wrappers("ncxx4-config", relative_root="bin")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     def flag_handler(self, name, flags):
         if name == "cflags" and "+pic" in self.spec:
             flags.append(self.compiler.cc_pic_flag)
@@ -57,7 +65,7 @@ class NetcdfCxx4(CMakePackage):
             return libs
 
         msg = "Unable to recursively locate {0} {1} libraries in {2}"
-        raise spack.error.NoLibrariesError(
+        raise NoLibrariesError(
             msg.format("shared" if shared else "static", self.spec.name, self.spec.prefix)
         )
 

@@ -9,7 +9,7 @@ from spack.package import *
 class Pblat(MakefilePackage):
     """Parallelized blat with multi-threads support"""
 
-    homepage = "http://icebert.github.io/pblat/"
+    homepage = "https://icebert.github.io/pblat/"
     url = "https://github.com/icebert/pblat/archive/refs/tags/2.5.1.tar.gz"
 
     # `pblat` shares the license for Jim Kent's `blat`. For-profit users must visit:

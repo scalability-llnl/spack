@@ -11,7 +11,7 @@ class PyPysimdjson(PythonPackage):
     JSON parser. If SIMD instructions are unavailable a fallback parser
     is used, making pysimdjson safe to use anywhere."""
 
-    homepage = "http://github.com/TkTech/pysimdjson"
+    homepage = "https://github.com/TkTech/pysimdjson"
     pypi = "pysimdjson/pysimdjson-4.0.3.tar.gz"
 
     maintainers("haralmha")

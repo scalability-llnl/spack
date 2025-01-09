@@ -2,7 +2,6 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import concurrent.futures
 import errno
 import getpass
 import glob
@@ -17,6 +16,7 @@ from typing import Callable, Dict, Generator, Iterable, List, Optional, Set
 
 import llnl.string
 import llnl.util.lang
+import llnl.util.symlink
 import llnl.util.tty as tty
 from llnl.util.filesystem import (
     can_access,
@@ -34,17 +34,17 @@ from llnl.util.tty.color import colorize
 import spack.caches
 import spack.config
 import spack.error
-import spack.fetch_strategy as fs
-import spack.mirror
-import spack.paths
+import spack.mirrors.layout
+import spack.mirrors.utils
 import spack.resource
 import spack.spec
-import spack.stage
 import spack.util.crypto
 import spack.util.lock
+import spack.util.parallel
 import spack.util.path as sup
 import spack.util.pattern as pattern
 import spack.util.url as url_util
+from spack import fetch_strategy as fs  # breaks a cycle
 from spack.util.crypto import bit_length, prefix_bits
 from spack.util.editor import editor, executable
 from spack.version import StandardVersion, VersionList
@@ -354,8 +354,8 @@ class Stage(LockableStagingDir):
         url_or_fetch_strategy,
         *,
         name=None,
-        mirror_paths: Optional[spack.mirror.MirrorLayout] = None,
-        mirrors: Optional[Iterable[spack.mirror.Mirror]] = None,
+        mirror_paths: Optional["spack.mirrors.layout.MirrorLayout"] = None,
+        mirrors: Optional[Iterable["spack.mirrors.mirror.Mirror"]] = None,
         keep=False,
         path=None,
         lock=True,
@@ -364,36 +364,30 @@ class Stage(LockableStagingDir):
         """Create a stage object.
         Parameters:
           url_or_fetch_strategy
-              URL of the archive to be downloaded into this stage, OR
-              a valid FetchStrategy.
+              URL of the archive to be downloaded into this stage, OR a valid FetchStrategy.
 
           name
-              If a name is provided, then this stage is a named stage
-              and will persist between runs (or if you construct another
-              stage object later).  If name is not provided, then this
+              If a name is provided, then this stage is a named stage and will persist between runs
+              (or if you construct another stage object later).  If name is not provided, then this
               stage will be given a unique name automatically.
 
           mirror_paths
-              If provided, Stage will search Spack's mirrors for
-              this archive at each of the provided relative mirror paths
-              before using the default fetch strategy.
+              If provided, Stage will search Spack's mirrors for this archive at each of the
+              provided relative mirror paths before using the default fetch strategy.
 
           keep
-              By default, when used as a context manager, the Stage
-              is deleted on exit when no exceptions are raised.
-              Pass True to keep the stage intact even if no
-              exceptions are raised.
+              By default, when used as a context manager, the Stage is deleted on exit when no
+              exceptions are raised. Pass True to keep the stage intact even if no exceptions are
+              raised.
 
          path
               If provided, the stage path to use for associated builds.
 
          lock
-              True if the stage directory file lock is to be used, False
-              otherwise.
+              True if the stage directory file lock is to be used, False otherwise.
 
          search_fn
-              The search function that provides the fetch strategy
-              instance.
+              The search function that provides the fetch strategy instance.
         """
         super().__init__(name, path, keep, lock)
 
@@ -419,26 +413,27 @@ class Stage(LockableStagingDir):
 
         self.srcdir = None
 
-        self.mirror_paths = mirror_paths
+        self.mirror_layout = mirror_paths
         self.mirrors = list(mirrors) if mirrors else []
+        # Allow users the disable both mirrors and download cache
+        self.default_fetcher_only = False
 
     @property
     def expected_archive_files(self):
         """Possible archive file paths."""
-        paths = []
         fnames = []
         expanded = True
         if isinstance(self.default_fetcher, fs.URLFetchStrategy):
             expanded = self.default_fetcher.expand_archive
             fnames.append(url_util.default_download_filename(self.default_fetcher.url))
 
-        if self.mirror_paths:
-            fnames.extend(os.path.basename(x) for x in self.mirror_paths)
+        if self.mirror_layout:
+            fnames.append(os.path.basename(self.mirror_layout.path))
 
-        paths.extend(os.path.join(self.path, f) for f in fnames)
+        paths = [os.path.join(self.path, f) for f in fnames]
         if not expanded:
-            # If the download file is not compressed, the "archive" is a
-            # single file placed in Stage.source_path
+            # If the download file is not compressed, the "archive" is a single file placed in
+            # Stage.source_path
             paths.extend(os.path.join(self.source_path, f) for f in fnames)
 
         return paths
@@ -471,14 +466,8 @@ class Stage(LockableStagingDir):
         """Returns the well-known source directory path."""
         return os.path.join(self.path, _source_path_subdir)
 
-    def disable_mirrors(self):
-        """The Stage will not attempt to look for the associated fetcher
-        target in any of Spack's mirrors (including the local download cache).
-        """
-        self.mirror_paths = None
-
-    def _generate_fetchers(self, mirror_only=False) -> Generator[fs.FetchStrategy, None, None]:
-        fetchers = []
+    def _generate_fetchers(self, mirror_only=False) -> Generator["fs.FetchStrategy", None, None]:
+        fetchers: List[fs.FetchStrategy] = []
         if not mirror_only:
             fetchers.append(self.default_fetcher)
 
@@ -495,27 +484,26 @@ class Stage(LockableStagingDir):
         # TODO: move mirror logic out of here and clean it up!
         # TODO: Or @alalazo may have some ideas about how to use a
         # TODO: CompositeFetchStrategy here.
-        if self.mirror_paths and self.mirrors:
+        if not self.default_fetcher_only and self.mirror_layout and self.mirrors:
             # Add URL strategies for all the mirrors with the digest
             # Insert fetchers in the order that the URLs are provided.
             fetchers[:0] = (
                 fs.from_url_scheme(
-                    url_util.join(mirror.fetch_url, rel_path),
+                    url_util.join(mirror.fetch_url, *self.mirror_layout.path.split(os.sep)),
                     checksum=digest,
                     expand=expand,
                     extension=extension,
                 )
                 for mirror in self.mirrors
-                if not mirror.fetch_url.startswith("oci://")
-                for rel_path in self.mirror_paths
+                if not mirror.fetch_url.startswith("oci://")  # no support for mirrors yet
             )
 
-        if self.mirror_paths and self.default_fetcher.cachable:
-            fetchers[:0] = (
+        if not self.default_fetcher_only and self.mirror_layout and self.default_fetcher.cachable:
+            fetchers.insert(
+                0,
                 spack.caches.FETCH_CACHE.fetcher(
-                    rel_path, digest, expand=expand, extension=extension
-                )
-                for rel_path in self.mirror_paths
+                    self.mirror_layout.path, digest, expand=expand, extension=extension
+                ),
             )
 
         yield from fetchers
@@ -611,41 +599,42 @@ class Stage(LockableStagingDir):
             self.fetcher.check()
 
     def cache_local(self):
-        spack.caches.FETCH_CACHE.store(self.fetcher, self.mirror_paths.storage_path)
+        spack.caches.FETCH_CACHE.store(self.fetcher, self.mirror_layout.path)
 
-    def cache_mirror(self, mirror, stats):
+    def cache_mirror(
+        self, mirror: "spack.caches.MirrorCache", stats: "spack.mirrors.utils.MirrorStats"
+    ) -> None:
         """Perform a fetch if the resource is not already cached
 
         Arguments:
-            mirror (spack.caches.MirrorCache): the mirror to cache this Stage's
-                resource in
-            stats (spack.mirror.MirrorStats): this is updated depending on whether the
-                caching operation succeeded or failed
+            mirror: the mirror to cache this Stage's resource in
+            stats: this is updated depending on whether the caching operation succeeded or failed
         """
         if isinstance(self.default_fetcher, fs.BundleFetchStrategy):
-            # BundleFetchStrategy has no source to fetch. The associated
-            # fetcher does nothing but the associated stage may still exist.
-            # There is currently no method available on the fetcher to
-            # distinguish this ('cachable' refers to whether the fetcher
-            # refers to a resource with a fixed ID, which is not the same
-            # concept as whether there is anything to fetch at all) so we
-            # must examine the type of the fetcher.
+            # BundleFetchStrategy has no source to fetch. The associated fetcher does nothing but
+            # the associated stage may still exist. There is currently no method available on the
+            # fetcher to distinguish this ('cachable' refers to whether the fetcher refers to a
+            # resource with a fixed ID, which is not the same concept as whether there is anything
+            # to fetch at all) so we must examine the type of the fetcher.
             return
 
-        if mirror.skip_unstable_versions and not fs.stable_target(self.default_fetcher):
+        elif mirror.skip_unstable_versions and not fs.stable_target(self.default_fetcher):
             return
 
-        absolute_storage_path = os.path.join(mirror.root, self.mirror_paths.storage_path)
+        elif not self.mirror_layout:
+            return
+
+        absolute_storage_path = os.path.join(mirror.root, self.mirror_layout.path)
 
         if os.path.exists(absolute_storage_path):
             stats.already_existed(absolute_storage_path)
         else:
             self.fetch()
             self.check()
-            mirror.store(self.fetcher, self.mirror_paths.storage_path)
+            mirror.store(self.fetcher, self.mirror_layout.path)
             stats.added(absolute_storage_path)
 
-        mirror.symlink(self.mirror_paths)
+        self.mirror_layout.make_alias(mirror.root)
 
     def expand_archive(self):
         """Changes to the stage directory and attempt to expand the downloaded
@@ -653,9 +642,9 @@ class Stage(LockableStagingDir):
         downloaded."""
         if not self.expanded:
             self.fetcher.expand()
-            tty.debug("Created stage in {0}".format(self.path))
+            tty.debug(f"Created stage in {self.path}")
         else:
-            tty.debug("Already staged {0} in {1}".format(self.name, self.path))
+            tty.debug(f"Already staged {self.name} in {self.path}")
 
     def restage(self):
         """Removes the expanded archive path if it exists, then re-expands
@@ -681,7 +670,7 @@ class Stage(LockableStagingDir):
 class ResourceStage(Stage):
     def __init__(
         self,
-        fetch_strategy: fs.FetchStrategy,
+        fetch_strategy: "fs.FetchStrategy",
         root: Stage,
         resource: spack.resource.Resource,
         **kwargs,
@@ -992,8 +981,8 @@ def interactive_version_filter(
             data = buffer.getvalue().encode("utf-8")
 
             short_hash = hashlib.sha1(data).hexdigest()[:7]
-            filename = f"{spack.stage.stage_prefix}versions-{short_hash}.txt"
-            filepath = os.path.join(spack.stage.get_stage_root(), filename)
+            filename = f"{stage_prefix}versions-{short_hash}.txt"
+            filepath = os.path.join(get_stage_root(), filename)
 
             # Write contents
             with open(filepath, "wb") as f:
@@ -1003,7 +992,7 @@ def interactive_version_filter(
             editor(filepath, exec_fn=executable)
 
             # Read back in
-            with open(filepath, "r") as f:
+            with open(filepath, "r", encoding="utf-8") as f:
                 orig_url_dict, url_dict = url_dict, {}
                 for line in f:
                     line = line.strip()
@@ -1145,7 +1134,7 @@ def get_checksums_for_versions(
         if checksum is not None:
             version_hashes[version] = checksum
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=concurrency) as executor:
+    with spack.util.parallel.make_concurrent_executor(concurrency, require_fork=False) as executor:
         results = []
         for url, version in search_arguments:
             future = executor.submit(_fetch_and_checksum, url, fetch_options, keep_stage)
@@ -1179,13 +1168,15 @@ def _fetch_and_checksum(url, options, keep_stage, action_fn=None):
         with Stage(url_or_fs, keep=keep_stage) as stage:
             # Fetch the archive
             stage.fetch()
-            if action_fn is not None:
+            archive = stage.archive_file
+            assert archive is not None, f"Archive not found for {url}"
+            if action_fn is not None and archive:
                 # Only run first_stage_function the first time,
                 # no need to run it every time
-                action_fn(stage, url)
+                action_fn(archive, url)
 
             # Checksum the archive and add it to the list
-            checksum = spack.util.crypto.checksum(hashlib.sha256, stage.archive_file)
+            checksum = spack.util.crypto.checksum(hashlib.sha256, archive)
         return checksum, None
     except fs.FailedDownloadError:
         return None, f"[WORKER] Failed to fetch {url}"

@@ -94,7 +94,7 @@ class Flann(CMakePackage):
             "src/python/CMakeLists.txt",
         )
         # Fix the install location so that spack activate works
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             filter_file("share/flann/python", python_platlib, "src/python/CMakeLists.txt")
         # Hack. Don't install setup.py
         filter_file("install( FILES", "# install( FILES", "src/python/CMakeLists.txt", string=True)

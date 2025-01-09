@@ -130,6 +130,5 @@ class Kicad(CMakePackage):
         for ver, lib, checksum in self.resource_list:
             if self.spec.version == Version(ver):
                 with working_dir("kicad-{0}-{1}".format(lib, ver)):
-                    args = std_cmake_args
-                    cmake(*args)
+                    cmake(*self.std_cmake_args)
                     make("install")

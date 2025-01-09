@@ -40,7 +40,7 @@ class Form(AutotoolsPackage):
     def configure_args(self):
         args = []
         args += self.with_or_without("gmp", "prefix")
-        if "+zlib" in self.spec:
+        if self.spec.satisfies("+zlib"):
             args.append("--with-zlib=%s" % self.spec["zlib-api"].prefix)
         else:
             args.append("--without-zlib")

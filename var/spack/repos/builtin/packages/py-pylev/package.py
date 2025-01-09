@@ -9,7 +9,7 @@ from spack.package import *
 class PyPylev(PythonPackage):
     """A pure Python Levenshtein implementation that's not freaking GPL'd."""
 
-    homepage = "http://github.com/toastdriven/pylev"
+    homepage = "https://github.com/toastdriven/pylev"
     pypi = "pylev/pylev-1.4.0.tar.gz"
 
     license("BSD-3-Clause")

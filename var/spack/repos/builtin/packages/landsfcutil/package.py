@@ -19,11 +19,14 @@ class Landsfcutil(CMakePackage):
     maintainers("edwardhartnett", "AlexanderRichert-NOAA", "Hang-Lei-NOAA")
 
     version("develop", branch="develop")
+    version("2.4.2", sha256="ac0ee4edaab3d273d9a6acffea8aa8a5b363366c3ade3e32539c057e84e4fa73")
     version("2.4.1", sha256="831c5005a480eabe9a8542b4deec838c2650f6966863ea2711cc0cc5db51ca14")
 
     depends_on("fortran", type="build")
 
     depends_on("pfunit", type="test")
+
+    conflicts("%oneapi", when="@:2.4.1", msg="Requires @2.4.2: for Intel oneAPI")
 
     def cmake_args(self):
         args = [self.define("ENABLE_TESTS", self.run_tests)]
@@ -45,5 +48,5 @@ class Landsfcutil(CMakePackage):
         return (None, None, flags)
 
     def check(self):
-        with working_dir(self.builder.build_directory):
+        with working_dir(self.build_directory):
             make("test")

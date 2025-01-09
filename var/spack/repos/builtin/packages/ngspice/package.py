@@ -22,6 +22,7 @@ class Ngspice(AutotoolsPackage):
 
     # Master version by default adds the experimental adms feature
     version("master", branch="master")
+    version("43", sha256="14dd6a6f08531f2051c13ae63790a45708bd43f3e77886a6a84898c297b13699")
     version("42", sha256="737fe3846ab2333a250dfadf1ed6ebe1860af1d8a5ff5e7803c772cc4256e50a")
     version("41", sha256="1ce219395d2f50c33eb223a1403f8318b168f1e6d1015a7db9dbf439408de8c4")
     version("40", sha256="e303ca7bc0f594e2d6aa84f68785423e6bf0c8dad009bb20be4d5742588e890d")
@@ -175,3 +176,7 @@ class Ngspice(AutotoolsPackage):
             if "debug=yes" in self.spec:
                 flags.append("-g")
         return (None, None, flags)
+
+    def setup_run_environment(self, env):
+        if "build=lib" in self.spec:
+            env.prepend_path("LD_LIBRARY_PATH", self.prefix.lib)

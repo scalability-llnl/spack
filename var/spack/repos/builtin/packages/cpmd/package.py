@@ -78,6 +78,7 @@ class Cpmd(MakefilePackage):
         install_tree(".", prefix)
 
     def test_cpmd(self):
+        """check cpmd.x outputs"""
         test_dir = self.test_suite.current_test_data_dir
         test_file = join_path(test_dir, "1-h2o-pbc-geoopt.inp")
         opts = []

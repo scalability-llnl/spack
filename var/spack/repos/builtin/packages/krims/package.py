@@ -68,10 +68,10 @@ class Krims(CMakePackage):
         args = [
             "-DAUTOCHECKOUT_MISSING_REPOS=OFF",
             #
-            "-DBUILD_SHARED_LIBS=" + str("+shared" in spec),
+            "-DBUILD_SHARED_LIBS=" + str(spec.satisfies("+shared")),
             # TODO Hard-disable tests for now, since rapidcheck not in Spack
             "-DKRIMS_ENABLE_TESTS=OFF",
-            "-DKRIMS_ENABLE_EXAMPLES=" + str("+examples" in spec),
+            "-DKRIMS_ENABLE_EXAMPLES=" + str(spec.satisfies("+examples")),
         ]
 
         return args

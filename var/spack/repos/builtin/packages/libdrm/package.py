@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import spack.build_systems.autotools
+import spack.build_systems.meson
 from spack.package import *
 
 
@@ -19,6 +21,7 @@ class Libdrm(AutotoolsPackage, MesonPackage):
 
     license("MIT")
 
+    version("2.4.123", sha256="a2b98567a149a74b0f50e91e825f9c0315d86e7be9b74394dae8b298caadb79e")
     version("2.4.122", sha256="d9f5079b777dffca9300ccc56b10a93588cdfbc9dde2fae111940dfb6292f251")
     version("2.4.121", sha256="909084a505d7638887f590b70791b3bbd9069c710c948f5d1f1ce6d080cdfcab")
     version("2.4.120", sha256="3bf55363f76c7250946441ab51d3a6cc0ae518055c0ff017324ab76cdefb327a")
@@ -98,6 +101,6 @@ class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
 class MesonBuilder(spack.build_systems.meson.MesonBuilder):
     def meson_args(self):
         if self.spec.satisfies("@:2.4.112"):
-            return ["-Dman-pages=" + ("true" if "+docs" in self.spec else "false")]
+            return ["-Dman-pages=" + ("true" if self.spec.satisfies("+docs") else "false")]
         else:
-            return ["-Dman-pages=" + ("enabled" if "+docs" in self.spec else "disabled")]
+            return ["-Dman-pages=" + ("enabled" if self.spec.satisfies("+docs") else "disabled")]

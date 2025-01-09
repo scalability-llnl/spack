@@ -168,13 +168,11 @@ class Augustus(MakefilePackage):
             pattern = "^#!.*"
             repl = f"#!{self.spec['perl'].command.path}"
             files = glob.glob("*.pl")
-            for file in files:
-                filter_file(pattern, repl, *files, backup=False)
+            filter_file(pattern, repl, *files, backup=False)
 
             repl = f"#!{self.spec['python'].command.path}"
             files = glob.glob("*.py")
-            for file in files:
-                filter_file(pattern, repl, *files, backup=False)
+            filter_file(pattern, repl, *files, backup=False)
 
     def setup_build_environment(self, env):
         htslib = self.spec["htslib"].prefix

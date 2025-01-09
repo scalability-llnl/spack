@@ -9,7 +9,7 @@ from spack.package import *
 class PyXrootdpyfs(PythonPackage):
     """XRootDPyFS is a PyFilesystem interface to XRootD."""
 
-    homepage = "http://github.com/inveniosoftware/xrootdpyfs/"
+    homepage = "https://github.com/inveniosoftware/xrootdpyfs/"
     pypi = "xrootdpyfs/xrootdpyfs-0.2.2.tar.gz"
 
     version("0.2.2", sha256="43698c260f3ec52320c6bfac8dd3e7c2be7d28e9e9f58edf4f916578114e82bf")

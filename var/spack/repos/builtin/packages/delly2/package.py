@@ -43,7 +43,7 @@ class Delly2(MakefilePackage):
     depends_on("bcftools", type="run")
 
     def edit(self, spec, prefix):
-        if "+openmp" in self.spec:
+        if self.spec.satisfies("+openmp"):
             env["PARALLEL"] = "1"
         # Only want to build delly source, not submodules. Build fails
         # using provided submodules, succeeds with existing spack recipes.

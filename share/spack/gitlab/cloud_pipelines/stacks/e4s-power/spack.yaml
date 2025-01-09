@@ -15,14 +15,10 @@ spack:
       variants: +mpi cuda_arch=70
     binutils:
       variants: +ld +gold +headers +libiberty ~nls
-    elfutils:
-      variants: ~nls
     hdf5:
       variants: +fortran +hl +shared
     libfabric:
       variants: fabrics=sockets,tcp,udp,rxm
-    libunwind:
-      variants: +pic +xz
     openblas:
       variants: threads=openmp
     trilinos:
@@ -42,8 +38,6 @@ spack:
       require: "~tcmalloc %gcc@9.4.0 target=ppc64le"
     tbb:
       require: intel-tbb
-    libffi:
-      require: "@3.4.4 %gcc@9.4.0 target=ppc64le"
     vtk-m:
       require: "+examples %gcc@9.4.0 target=ppc64le"
     cuda:
@@ -77,6 +71,7 @@ spack:
   - dxt-explorer
   - dyninst
   - exaworks
+  - fftx
   - flecsi
   - flit
   - flux-core
@@ -117,6 +112,7 @@ spack:
   - netlib-scalapack
   - nrm
   - nvhpc
+  - nwchem
   - omega-h
   - openfoam
   - openmpi
@@ -182,7 +178,7 @@ spack:
   # - ecp-data-vis-sdk ~cuda ~rocm +adios2 +ascent +cinema +darshan +faodel +hdf5 ~paraview +pnetcdf +sz +unifyfs +veloc ~visit +vtkm +zfp # +visit: libext, libxkbfile, libxrender, libxt, silo (https://github.com/spack/spack/issues/39538), cairo
   # --
   # - dealii                                # fltk: https://github.com/spack/spack/issues/38791
-  # - geopm                                 # geopm: https://github.com/spack/spack/issues/38798
+  # - geopm-runtime                         # cairo: *** No autoreconf found, please install it ***
   # - glvis                                 # glvis: https://github.com/spack/spack/issues/42839
   # - libpressio +bitgrooming +bzip2 ~cuda ~cusz +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp # py-numcodecs: gcc: error: unrecognized command line option '-mno-sse2'; did you mean '-mno-isel'? gcc: error: unrecognized command line option '-mno-avx2'
   # - phist +mpi                            # ghost@develop: gcc-9: error: unrecognized command line option '-march=native'; did you mean '-mcpu=native'?

@@ -17,9 +17,10 @@ class Onnx(CMakePackage):
     url = "https://github.com/onnx/onnx/archive/refs/tags/v1.9.0.tar.gz"
     git = "https://github.com/onnx/onnx.git"
 
-    license("Apache-2.0")
+    license("Apache-2.0", checked_by="wdconinc")
 
     version("master", branch="master")
+    version("1.16.2", sha256="84fc1c3d6133417f8a13af6643ed50983c91dacde5ffba16cc8bb39b22c2acbb")
     version("1.16.1", sha256="0e6aa2c0a59bb2d90858ad0040ea1807117cc2f05b97702170f18e6cd6b66fb3")
     version("1.16.0", sha256="0ce153e26ce2c00afca01c331a447d86fbf21b166b640551fe04258b4acfc6a4")
     version("1.15.0", sha256="c757132e018dd0dd171499ef74fca88b74c5430a20781ec53da19eb7f937ef68")
@@ -61,7 +62,7 @@ class Onnx(CMakePackage):
         "1.1.0_2018-04-19", commit="7e1bed51cc508a25b22130de459830b5d5063c41"
     )  # py-torch@0.4.0
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("cxx", type="build")
 
     generator("ninja")
     depends_on("cmake@3.1:", type="build")
@@ -70,9 +71,18 @@ class Onnx(CMakePackage):
 
     def patch(self):
         if self.spec.satisfies("@1.13:1.14 ^protobuf@3.22:"):
-            filter_file("CMAKE_CXX_STANDARD 11", "CMAKE_CXX_STANDARD 14", "CMakeLists.txt")
+            # CMAKE_CXX_STANDARD is overridden in CMakeLists.txt until 1.14
+            cxxstd = self.spec["abseil-cpp"].variants["cxxstd"].value
+            filter_file("CMAKE_CXX_STANDARD 11", f"CMAKE_CXX_STANDARD {cxxstd}", "CMakeLists.txt")
 
     def cmake_args(self):
-        # Try to get ONNX to use the same version of python as the spec is using
-        args = ["-DPY_VERSION={0}".format(self.spec["python"].version.up_to(2))]
+        args = [
+            # Try to get ONNX to use the same version of python as the spec is using
+            self.define("PY_VERSION", self.spec["python"].version.up_to(2)),
+            self.define("ONNX_BUILD_TESTS", self.run_tests),
+        ]
+        if self.spec.satisfies("@1.15: ^protobuf@3.22:"):
+            # CMAKE_CXX_STANDARD can be set on command line as of 1.15
+            cxxstd = self.spec["abseil-cpp"].variants["cxxstd"].value
+            args.append(self.define("CMAKE_CXX_STANDARD", cxxstd))
         return args

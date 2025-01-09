@@ -27,7 +27,7 @@ def data():
     if not _data:
         json_dir = os.path.abspath(os.path.dirname(__file__))
         json_file = os.path.join(json_dir, "images.json")
-        with open(json_file) as f:
+        with open(json_file, encoding="utf-8") as f:
             _data = json.load(f)
     return _data
 

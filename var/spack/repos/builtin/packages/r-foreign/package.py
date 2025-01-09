@@ -18,6 +18,7 @@ class RForeign(RPackage):
 
     license("GPL-2.0-or-later")
 
+    version("0.8-87", sha256="1a24acf4c8e87acc740599e950388b88e5beab7e54f699a015366fbd86db2856")
     version("0.8-84", sha256="17edf302c7568a122dc496a61a4a886ef7c02224a235d945b473611c79c98549")
     version("0.8-83", sha256="87eae73f780b6bbcf0a45b3e21d1c87be0404aa2d5b455df92ab45516030721b")
     version("0.8-82", sha256="f8ed0684d59bec7f3a39cde1aa5ec7b3e6e36aaecacb28120c9c54f7b13f80fb")

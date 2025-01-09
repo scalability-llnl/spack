@@ -9,6 +9,8 @@ In a normal Spack installation, this is invoked from the bin/spack script
 after the system path is set up.
 """
 import argparse
+
+# import spack.modules.common
 import inspect
 import io
 import operator
@@ -32,21 +34,20 @@ import llnl.util.tty.colify
 import llnl.util.tty.color as color
 from llnl.util.tty.log import log_output
 
+import spack
 import spack.cmd
 import spack.config
 import spack.environment as ev
+import spack.error
 import spack.modules
 import spack.paths
 import spack.platforms
 import spack.repo
-import spack.solver.asp
 import spack.spec
 import spack.store
 import spack.util.debug
 import spack.util.environment
-import spack.util.git
-import spack.util.path
-from spack.error import SpackError
+import spack.util.lock
 
 #: names of profile statistics
 stat_names = pstats.Stats.sort_arg_dict_default
@@ -98,73 +99,13 @@ section_order = {
 #: Properties that commands are required to set.
 required_command_properties = ["level", "section", "description"]
 
-#: Recorded directory where spack command was originally invoked
-spack_working_dir = None
 spack_ld_library_path = os.environ.get("LD_LIBRARY_PATH", "")
-
-#: Whether to print backtraces on error
-SHOW_BACKTRACE = False
-
-
-def set_working_dir():
-    """Change the working directory to getcwd, or spack prefix if no cwd."""
-    global spack_working_dir
-    try:
-        spack_working_dir = os.getcwd()
-    except OSError:
-        os.chdir(spack.paths.prefix)
-        spack_working_dir = spack.paths.prefix
 
 
 def add_all_commands(parser):
     """Add all spack subcommands to the parser."""
     for cmd in spack.cmd.all_commands():
         parser.add_command(cmd)
-
-
-def get_spack_commit():
-    """Get the Spack git commit sha.
-
-    Returns:
-        (str or None) the commit sha if available, otherwise None
-    """
-    git_path = os.path.join(spack.paths.prefix, ".git")
-    if not os.path.exists(git_path):
-        return None
-
-    git = spack.util.git.git()
-    if not git:
-        return None
-
-    rev = git(
-        "-C",
-        spack.paths.prefix,
-        "rev-parse",
-        "HEAD",
-        output=str,
-        error=os.devnull,
-        fail_on_error=False,
-    )
-    if git.returncode != 0:
-        return None
-
-    match = re.match(r"[a-f\d]{7,}$", rev)
-    return match.group(0) if match else None
-
-
-def get_version():
-    """Get a descriptive version of this instance of Spack.
-
-    Outputs '<PEP440 version> (<git commit sha>)'.
-
-    The commit sha is only added when available.
-    """
-    version = spack.spack_version
-    commit = get_spack_commit()
-    if commit:
-        version += " ({0})".format(commit)
-
-    return version
 
 
 def index_commands():
@@ -547,6 +488,7 @@ def make_argument_parser(**kwargs):
         help="add stacktraces to all printed statements",
     )
     parser.add_argument(
+        "-t",
         "--backtrace",
         action="store_true",
         default="SPACK_BACKTRACE" in os.environ,
@@ -582,8 +524,7 @@ def setup_main_options(args):
 
     if args.debug or args.backtrace:
         spack.error.debug = True
-        global SHOW_BACKTRACE
-        SHOW_BACKTRACE = True
+        spack.error.SHOW_BACKTRACE = True
 
     if args.debug:
         spack.util.debug.register_interrupt_handler()
@@ -810,6 +751,8 @@ def print_setup_info(*info):
     This is in ``main.py`` to make it fast; the setup scripts need to
     invoke spack in login scripts, and it needs to be quick.
     """
+    import spack.modules.common
+
     shell = "csh" if "csh" in info else "sh"
 
     def shell_set(var, value):
@@ -914,6 +857,33 @@ def resolve_alias(cmd_name: str, cmd: List[str]) -> Tuple[str, List[str]]:
     return cmd_name, cmd
 
 
+def add_command_line_scopes(
+    cfg: spack.config.Configuration, command_line_scopes: List[str]
+) -> None:
+    """Add additional scopes from the --config-scope argument, either envs or dirs.
+
+    Args:
+        cfg: configuration instance
+        command_line_scopes: list of configuration scope paths
+
+    Raises:
+        spack.error.ConfigError: if the path is an invalid configuration scope
+    """
+    for i, path in enumerate(command_line_scopes):
+        name = f"cmd_scope_{i}"
+        scopes = ev.environment_path_scopes(name, path)
+        if scopes is None:
+            if os.path.isdir(path):  # directory with config files
+                cfg.push_scope(spack.config.DirectoryConfigScope(name, path, writable=False))
+                spack.config._add_platform_scope(cfg, name, path, writable=False)
+                continue
+            else:
+                raise spack.error.ConfigError(f"Invalid configuration scope: {path}")
+
+        for scope in scopes:
+            cfg.push_scope(scope)
+
+
 def _main(argv=None):
     """Logic for the main entry point for the Spack command.
 
@@ -954,7 +924,7 @@ def _main(argv=None):
 
     # version is special as it does not require a command or loading and additional infrastructure
     if args.version:
-        print(get_version())
+        print(spack.get_version())
         return 0
 
     # ------------------------------------------------------------------------
@@ -966,13 +936,6 @@ def _main(argv=None):
 
     # Make spack load / env activate work on macOS
     restore_macos_dyld_vars()
-
-    # make spack.config aware of any command line configuration scopes
-    if args.config_scopes:
-        spack.config.COMMAND_LINE_SCOPES = args.config_scopes
-
-    # ensure options on spack command come before everything
-    setup_main_options(args)
 
     # activate an environment if one was specified on the command line
     env_format_error = None
@@ -986,6 +949,12 @@ def _main(argv=None):
             # `spack config edit` can still work with a bad environment.
             e.print_context()
             env_format_error = e
+
+    # Push scopes from the command line last
+    if args.config_scopes:
+        add_command_line_scopes(spack.config.CONFIG, args.config_scopes)
+    spack.config.CONFIG.push_scope(spack.config.InternalConfigScope("command_line"))
+    setup_main_options(args)
 
     # ------------------------------------------------------------------------
     # Things that require configuration should go below here
@@ -1039,7 +1008,7 @@ def finish_parse_and_run(parser, cmd_name, main_args, env_format_error):
             raise env_format_error
 
     # many operations will fail without a working directory.
-    set_working_dir()
+    spack.paths.set_working_dir()
 
     # now we can actually execute the command.
     if main_args.spack_profile or main_args.sorted_profile:
@@ -1069,24 +1038,24 @@ def main(argv=None):
     try:
         return _main(argv)
 
-    except SpackError as e:
+    except spack.error.SpackError as e:
         tty.debug(e)
         e.die()  # gracefully die on any SpackErrors
 
     except KeyboardInterrupt:
-        if spack.config.get("config:debug") or SHOW_BACKTRACE:
+        if spack.config.get("config:debug") or spack.error.SHOW_BACKTRACE:
             raise
         sys.stderr.write("\n")
         tty.error("Keyboard interrupt.")
         return signal.SIGINT.value
 
     except SystemExit as e:
-        if spack.config.get("config:debug") or SHOW_BACKTRACE:
+        if spack.config.get("config:debug") or spack.error.SHOW_BACKTRACE:
             traceback.print_exc()
         return e.code
 
     except Exception as e:
-        if spack.config.get("config:debug") or SHOW_BACKTRACE:
+        if spack.config.get("config:debug") or spack.error.SHOW_BACKTRACE:
             raise
         tty.error(e)
         return 3

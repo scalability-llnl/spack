@@ -12,8 +12,9 @@ from pathlib import Path, PurePath
 import llnl.util.tty as tty
 
 import spack.error
+import spack.util.environment
 
-__all__ = ["Executable", "which", "ProcessError"]
+__all__ = ["Executable", "which", "which_string", "ProcessError"]
 
 
 class Executable:
@@ -27,9 +28,8 @@ class Executable:
         self.exe = [file_path]
 
         self.default_env = {}
-        from spack.util.environment import EnvironmentModifications  # no cycle
 
-        self.default_envmod = EnvironmentModifications()
+        self.default_envmod = spack.util.environment.EnvironmentModifications()
         self.returncode = None
         self.ignore_quotes = False
 
@@ -168,17 +168,15 @@ class Executable:
         self.default_envmod.apply_modifications(env)
         env.update(self.default_env)
 
-        from spack.util.environment import EnvironmentModifications  # no cycle
-
         # Apply env argument
-        if isinstance(env_arg, EnvironmentModifications):
+        if isinstance(env_arg, spack.util.environment.EnvironmentModifications):
             env_arg.apply_modifications(env)
         elif env_arg:
             env.update(env_arg)
 
         # Apply extra env
         extra_env = kwargs.get("extra_env", {})
-        if isinstance(extra_env, EnvironmentModifications):
+        if isinstance(extra_env, spack.util.environment.EnvironmentModifications):
             extra_env.apply_modifications(env)
         else:
             env.update(extra_env)
@@ -205,15 +203,15 @@ class Executable:
 
         def streamify(arg, mode):
             if isinstance(arg, str):
-                return open(arg, mode), True
+                return open(arg, mode), True  # pylint: disable=unspecified-encoding
             elif arg in (str, str.split):
                 return subprocess.PIPE, False
             else:
                 return arg, False
 
-        ostream, close_ostream = streamify(output, "w")
-        estream, close_estream = streamify(error, "w")
-        istream, close_istream = streamify(input, "r")
+        ostream, close_ostream = streamify(output, "wb")
+        estream, close_estream = streamify(error, "wb")
+        istream, close_istream = streamify(input, "rb")
 
         if not ignore_quotes:
             quoted_args = [arg for arg in args if re.search(r'^".*"$|^\'.*\'$', arg)]
@@ -275,9 +273,9 @@ class Executable:
             long_msg = cmd_line_string + f"\n{result}"
             if fail_on_error:
                 raise ProcessTimeoutError(
-                    f"\nProcess timed out after {timeout}s"
-                    f"We expected the following command to run quickly but\
-it did not, please report this as an issue: {long_msg}",
+                    f"\nProcess timed out after {timeout}s. "
+                    "We expected the following command to run quickly but it did not, "
+                    f"please report this as an issue: {long_msg}",
                     long_message=long_msg,
                 ) from te
 

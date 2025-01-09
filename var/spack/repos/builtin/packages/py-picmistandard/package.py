@@ -11,11 +11,12 @@ class PyPicmistandard(PythonPackage):
 
     homepage = "https://picmi-standard.github.io"
     git = "https://github.com/picmi-standard/picmi.git"
-    pypi = "picmistandard/picmistandard-0.29.0.tar.gz"
+    pypi = "picmistandard/picmistandard-0.30.0.tar.gz"
 
     maintainers("ax3l", "dpgrote", "RemiLehe")
 
     version("master", branch="master")
+    version("0.30.0", sha256="28b892b242e0cc044ad987d6bdc12811fe4a478d5096d6bc5989038ee9d9dab6")
     version("0.29.0", sha256="dc0bf3ddd3635df9935ac569b3085de387150c4f8e9851897078bb12d123dde8")
     version("0.28.0", sha256="aa980b0fb49fc3ff9c7e32b5927b3700c4660aefbf96567bac1f8c9c93bb7831")
     version("0.26.0", sha256="b22689f576d064bf0cd8f435621e912359fc2ee9347350eab845d2d36ebb62eb")
@@ -49,14 +50,7 @@ class PyPicmistandard(PythonPackage):
         deprecated=True,
     )
 
-    depends_on("python@3.6:", type=("build", "run"))
-    depends_on("py-numpy@1.15:", type=("build", "run"))
-    depends_on("py-scipy@1.5:", type=("build", "run"))
+    depends_on("python@3.8:", type=("build", "run"))
+    depends_on("py-numpy@1.15:1", type=("build", "run"))
+    depends_on("py-scipy@1.5:1", type=("build", "run"))
     depends_on("py-setuptools", type="build")
-
-    @property
-    def build_directory(self):
-        if self.spec.satisfies("@develop") or self.spec.satisfies("@0.0.16"):
-            return "PICMI_Python"
-        else:
-            return "./"

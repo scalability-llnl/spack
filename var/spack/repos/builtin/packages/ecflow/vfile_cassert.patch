@@ -1,0 +1,10 @@
+--- a/Viewer/ecflowUI/src/VFile.cpp	2024-08-28 12:20:27.000000000 +0000
++++ b/Viewer/ecflowUI/src/VFile.cpp	2024-08-28 12:20:51.000000000 +0000
+@@ -9,6 +9,7 @@
+ 
+ #include "VFile.hpp"
+ 
++#include <cassert>
+ #include <cstdio>
+ #include <cstdlib>
+ #include <cstring>

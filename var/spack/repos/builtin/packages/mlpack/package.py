@@ -20,6 +20,7 @@ class Mlpack(CMakePackage):
 
     license("BSD-3-Clause", checked_by="wdconinc")
 
+    version("4.5.0", sha256="aab70aee10c134ef3fe568843fe4b3bb5e8901af30ea666f57462ad950682317")
     version("4.4.0", sha256="61c604026d05af26c244b0e47024698bbf150dfcc9d77b64057941d7d64d6cf6")
     version("4.3.0", sha256="08cd54f711fde66fc3b6c9db89dc26776f9abf1a6256c77cfa3556e2a56f1a3d")
     version("4.2.1", sha256="2d2b8d61dc2e3179e0b6fefd5c217c57aa168c4d0b9c6868ddb94f6395a80dd5")
@@ -39,6 +40,7 @@ class Mlpack(CMakePackage):
     # CMakeLists.txt
     depends_on("cmake@3.6:", type="build")
     depends_on("armadillo@9.800:")
+    depends_on("armadillo@10.8:", when="@4.5:")
     depends_on("ensmallen@2.10.0:")
     depends_on("cereal@1.1.2:")
 
@@ -58,10 +60,13 @@ class Mlpack(CMakePackage):
         # ref: src/mlpack/bindings/python/CMakeLists.txt
         depends_on("py-cython@0.24:")
         depends_on("py-numpy")
+        depends_on("py-numpy@:1", when="@:4.4.0")
         depends_on("py-pandas@0.15.0:")
         # ref: src/mlpack/bindings/python/PythonInstall.cmake
         depends_on("py-pip")
         depends_on("py-wheel")
+        # ref: src/mlpack/bindings/python/setup.py.in
+        depends_on("py-setuptools", type="build")
     with when("+r"):
         # ref: src/mlpack/bindings/R/CMakeLists.txt
         depends_on("r@4.0:")

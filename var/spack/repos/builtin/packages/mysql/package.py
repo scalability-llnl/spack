@@ -226,3 +226,12 @@ class Mysql(CMakePackage):
 
         if "python" in self.spec and self.spec.satisfies("@:7"):
             self._fix_dtrace_shebang(env)
+
+    @run_before("install")
+    def fixup_mysqlconfig(self):
+        if not self.spec.satisfies("platform=windows"):
+            # mysql uses spack libz but exports -lzlib to its dependencies. Fix that:
+            with working_dir(self.build_directory):
+                for config in ("scripts/mysql_config", "scripts/mysqlclient.pc"):
+                    if os.path.exists(config):
+                        filter_file(" -lzlib ", " -lz ", config)

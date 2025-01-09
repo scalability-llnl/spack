@@ -27,6 +27,9 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
 
     version("master", branch="master")
     version(
+        "2024.10.29", sha256="e729fad51f44b1340c0f64ac0f862026121183a3c8d731874f0a11a3b5053223"
+    )
+    version(
         "2024.05.31", sha256="9c5d4d6779d8935b6fe41031b46e11ab92102f13c5f684022287c8616661b775"
     )
     version(
@@ -89,6 +92,7 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
     for val in ROCmPackage.amdgpu_targets:
         depends_on("blaspp +rocm amdgpu_target=%s" % val, when="amdgpu_target=%s" % val)
         depends_on("lapackpp +rocm amdgpu_target=%s" % val, when="amdgpu_target=%s" % val)
+    depends_on("lapackpp@2024.10.26:", when="@2024.10.29:")
     depends_on("lapackpp@2024.05.31:", when="@2024.05.31:")
     depends_on("lapackpp@2023.11.05:", when="@2023.11.05:")
     depends_on("lapackpp@2023.08.25:", when="@2023.08.25:")
@@ -122,6 +126,12 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
     conflicts("+cuda", when="+sycl", msg=backend_msg)
     conflicts("+sycl", when="@:2022.07.00", msg="SYCL support requires SLATE version 2023.08.25")
     conflicts("^hip@5.6.0:", when="@:2023.08.25", msg="Incompatible version of HIP/ROCm")
+
+    def flag_handler(self, name, flags):
+        if name == "cxxflags":
+            if self.spec.satisfies("%oneapi@2025:"):
+                flags.append("-Wno-error=missing-template-arg-list-after-template-kw")
+        return (flags, None, None)
 
     def cmake_args(self):
         spec = self.spec

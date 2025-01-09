@@ -7,6 +7,7 @@ import argparse
 import copy
 import os
 import re
+import shlex
 import sys
 from argparse import ArgumentParser, Namespace
 from typing import IO, Any, Callable, Dict, Iterable, List, Optional, Sequence, Set, Tuple, Union
@@ -16,8 +17,10 @@ from llnl.util.argparsewriter import ArgparseRstWriter, ArgparseWriter, Command
 from llnl.util.tty.colify import colify
 
 import spack.cmd
+import spack.config
 import spack.main
 import spack.paths
+import spack.platforms
 from spack.main import section_descriptions
 
 description = "list available spack commands"
@@ -139,7 +142,7 @@ class SpackArgparseRstWriter(ArgparseRstWriter):
 
         cmd = self.parser.prog.replace(" ", "-")
         if cmd in self.documented:
-            string += "\n:ref:`More documentation <cmd-{0}>`\n".format(cmd)
+            string = f"{string}\n:ref:`More documentation <cmd-{cmd}>`\n"
 
         return string
 
@@ -249,33 +252,27 @@ class BashCompletionWriter(ArgparseWriter):
             Function body.
         """
         if positionals:
-            return """
+            return f"""
     if $list_options
     then
-        {0}
+        {self.optionals(optionals)}
     else
-        {1}
+        {self.positionals(positionals)}
     fi
-""".format(
-                self.optionals(optionals), self.positionals(positionals)
-            )
+"""
         elif subcommands:
-            return """
+            return f"""
     if $list_options
     then
-        {0}
+        {self.optionals(optionals)}
     else
-        {1}
+        {self.subcommands(subcommands)}
     fi
-""".format(
-                self.optionals(optionals), self.subcommands(subcommands)
-            )
+"""
         else:
-            return """
-    {0}
-""".format(
-                self.optionals(optionals)
-            )
+            return f"""
+    {self.optionals(optionals)}
+"""
 
     def positionals(self, positionals: Sequence[str]) -> str:
         """Return the syntax for reporting positional arguments.
@@ -304,7 +301,7 @@ class BashCompletionWriter(ArgparseWriter):
         Returns:
             Syntax for optional flags.
         """
-        return 'SPACK_COMPREPLY="{0}"'.format(" ".join(optionals))
+        return f'SPACK_COMPREPLY="{" ".join(optionals)}"'
 
     def subcommands(self, subcommands: Sequence[str]) -> str:
         """Return the syntax for reporting subcommands.
@@ -315,7 +312,7 @@ class BashCompletionWriter(ArgparseWriter):
         Returns:
             Syntax for subcommand parsers
         """
-        return 'SPACK_COMPREPLY="{0}"'.format(" ".join(subcommands))
+        return f'SPACK_COMPREPLY="{" ".join(subcommands)}"'
 
 
 # Map argument destination names to their complete commands
@@ -395,7 +392,7 @@ def _fish_dest_get_complete(prog: str, dest: str) -> Optional[str]:
     subcmd = s[1] if len(s) == 2 else ""
 
     for (prog_key, pos_key), value in _dest_to_fish_complete.items():
-        if subcmd.startswith(prog_key) and re.match("^" + pos_key + "$", dest):
+        if subcmd.startswith(prog_key) and re.match(f"^{pos_key}$", dest):
             return value
     return None
 
@@ -427,24 +424,6 @@ class FishCompletionWriter(ArgparseWriter):
             + self.complete(cmd.prog, positionals, optionals, subcommands)
         )
 
-    def _quote(self, string: str) -> str:
-        """Quote string and escape special characters if necessary.
-
-        Args:
-            string: Input string.
-
-        Returns:
-            Quoted string.
-        """
-        # Goal here is to match fish_indent behavior
-
-        # Strings without spaces (or other special characters) do not need to be escaped
-        if not any([sub in string for sub in [" ", "'", '"']]):
-            return string
-
-        string = string.replace("'", r"\'")
-        return f"'{string}'"
-
     def optspecs(
         self,
         prog: str,
@@ -463,7 +442,7 @@ class FishCompletionWriter(ArgparseWriter):
         optspec_var = "__fish_spack_optspecs_" + prog.replace(" ", "_").replace("-", "_")
 
         if optionals is None:
-            return "set -g %s\n" % optspec_var
+            return f"set -g {optspec_var}\n"
 
         # Build optspec by iterating over options
         args = []
@@ -490,11 +469,11 @@ class FishCompletionWriter(ArgparseWriter):
             long = [f[2:] for f in flags if f.startswith("--")]
 
             while len(short) > 0 and len(long) > 0:
-                arg = "%s/%s%s" % (short.pop(), long.pop(), required)
+                arg = f"{short.pop()}/{long.pop()}{required}"
             while len(short) > 0:
-                arg = "%s/%s" % (short.pop(), required)
+                arg = f"{short.pop()}/{required}"
             while len(long) > 0:
-                arg = "%s%s" % (long.pop(), required)
+                arg = f"{long.pop()}{required}"
 
             args.append(arg)
 
@@ -503,7 +482,7 @@ class FishCompletionWriter(ArgparseWriter):
         # indicate that such subcommand exists.
         args = " ".join(args)
 
-        return "set -g %s %s\n" % (optspec_var, args)
+        return f"set -g {optspec_var} {args}\n"
 
     @staticmethod
     def complete_head(
@@ -524,12 +503,14 @@ class FishCompletionWriter(ArgparseWriter):
         subcmd = s[1] if len(s) == 2 else ""
 
         if index is None:
-            return "complete -c %s -n '__fish_spack_using_command %s'" % (s[0], subcmd)
+            return f"complete -c {s[0]} -n '__fish_spack_using_command {subcmd}'"
         elif nargs in [argparse.ZERO_OR_MORE, argparse.ONE_OR_MORE, argparse.REMAINDER]:
-            head = "complete -c %s -n '__fish_spack_using_command_pos_remainder %d %s'"
+            return (
+                f"complete -c {s[0]} -n '__fish_spack_using_command_pos_remainder "
+                f"{index} {subcmd}'"
+            )
         else:
-            head = "complete -c %s -n '__fish_spack_using_command_pos %d %s'"
-        return head % (s[0], index, subcmd)
+            return f"complete -c {s[0]} -n '__fish_spack_using_command_pos {index} {subcmd}'"
 
     def complete(
         self,
@@ -597,25 +578,18 @@ class FishCompletionWriter(ArgparseWriter):
 
             if choices is not None:
                 # If there are choices, we provide a completion for all possible values.
-                commands.append(head + " -f -a %s" % self._quote(" ".join(choices)))
+                commands.append(f"{head} -f -a {shlex.quote(' '.join(choices))}")
             else:
                 # Otherwise, we try to find a predefined completion for it
                 value = _fish_dest_get_complete(prog, args)
                 if value is not None:
-                    commands.append(head + " " + value)
+                    commands.append(f"{head} {value}")
 
         return "\n".join(commands) + "\n"
 
     def prog_comment(self, prog: str) -> str:
-        """Return a comment line for the command.
-
-        Args:
-            prog: Program name.
-
-        Returns:
-            Comment line.
-        """
-        return "\n# %s\n" % prog
+        """Return a comment line for the command."""
+        return f"\n# {prog}\n"
 
     def optionals(
         self,
@@ -658,28 +632,28 @@ class FishCompletionWriter(ArgparseWriter):
             for f in flags:
                 if f.startswith("--"):
                     long = f[2:]
-                    prefix += " -l %s" % long
+                    prefix = f"{prefix} -l {long}"
                 elif f.startswith("-"):
                     short = f[1:]
                     assert len(short) == 1
-                    prefix += " -s %s" % short
+                    prefix = f"{prefix} -s {short}"
 
             # Check if option require argument.
             # Currently multi-argument options are not supported, so we treat it like one argument.
             if nargs != 0:
-                prefix += " -r"
+                prefix = f"{prefix} -r"
 
             if dest is not None:
                 # If there are choices, we provide a completion for all possible values.
-                commands.append(prefix + " -f -a %s" % self._quote(" ".join(dest)))
+                commands.append(f"{prefix} -f -a {shlex.quote(' '.join(dest))}")
             else:
                 # Otherwise, we try to find a predefined completion for it
                 value = _fish_dest_get_complete(prog, dest)
                 if value is not None:
-                    commands.append(prefix + " " + value)
+                    commands.append(f"{prefix} {value}")
 
             if help:
-                commands.append(prefix + " -d %s" % self._quote(help))
+                commands.append(f"{prefix} -d {shlex.quote(help)}")
 
         return "\n".join(commands) + "\n"
 
@@ -697,11 +671,11 @@ class FishCompletionWriter(ArgparseWriter):
         head = self.complete_head(prog, 0)
 
         for _, subcommand, help in subcommands:
-            command = head + " -f -a %s" % self._quote(subcommand)
+            command = f"{head} -f -a {shlex.quote(subcommand)}"
 
             if help is not None and len(help) > 0:
                 help = help.split("\n")[0]
-                command += " -d %s" % self._quote(help)
+                command = f"{command} -d {shlex.quote(help)}"
 
             commands.append(command)
 
@@ -747,7 +721,7 @@ def rst_index(out: IO) -> None:
 
         for i, cmd in enumerate(sorted(commands)):
             description = description.capitalize() if i == 0 else ""
-            ref = ":ref:`%s <spack-%s>`" % (cmd, cmd)
+            ref = f":ref:`{cmd} <spack-{cmd}>`"
             comma = "," if i != len(commands) - 1 else ""
             bar = "| " if i % 8 == 0 else "  "
             out.write(line % (description, bar + ref + comma))
@@ -769,7 +743,7 @@ def rst(args: Namespace, out: IO) -> None:
     # extract cross-refs of the form `_cmd-spack-<cmd>:` from rst files
     documented_commands: Set[str] = set()
     for filename in args.rst_files:
-        with open(filename) as f:
+        with open(filename, encoding="utf-8") as f:
             for line in f:
                 match = re.match(r"\.\. _cmd-(spack-.*):", line)
                 if match:
@@ -841,7 +815,7 @@ def prepend_header(args: Namespace, out: IO) -> None:
     if not args.header:
         return
 
-    with open(args.header) as header:
+    with open(args.header, encoding="utf-8") as header:
         out.write(header.read())
 
 
@@ -858,11 +832,11 @@ def _commands(parser: ArgumentParser, args: Namespace) -> None:
 
     # check header first so we don't open out files unnecessarily
     if args.header and not os.path.exists(args.header):
-        tty.die("No such file: '%s'" % args.header)
+        tty.die(f"No such file: '{args.header}'")
 
     if args.update:
-        tty.msg("Updating file: %s" % args.update)
-        with open(args.update, "w") as f:
+        tty.msg(f"Updating file: {args.update}")
+        with open(args.update, "w", encoding="utf-8") as f:
             prepend_header(args, f)
             formatter(args, f)
 

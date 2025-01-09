@@ -41,14 +41,17 @@ class Fpm(Package):
     depends_on("curl", type="build")
     depends_on("git@1.8.5:", type="build")
 
+    depends_on("c", type="build")
+    depends_on("fortran", type="build")
+
     def setup_build_environment(self, env):
-        if "@0.4.0" in self.spec:
+        if self.spec.satisfies("@0.4.0"):
             env.set("FPM_C_COMPILER", self.compiler.cc)
 
         env.set("FPM_CC", self.compiler.cc)
 
         fflags = "-O3"
-        if "+openmp" in self.spec:
+        if self.spec.satisfies("+openmp"):
             fflags += " " + self.compiler.openmp_flag
         env.set("FFLAGS", fflags)
 

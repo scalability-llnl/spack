@@ -24,9 +24,21 @@ class PyNumba(PythonPackage):
     version("0.55.2", sha256="e428d9e11d9ba592849ccc9f7a009003eb7d30612007e365afe743ce7118c6f4")
     version("0.55.1", sha256="03e9069a2666d1c84f93b00dbd716fb8fedde8bb2c6efafa2f04842a46442ea3")
     version("0.54.0", sha256="bad6bd98ab2e41c34aa9c80b8d9737e07d92a53df4f74d3ada1458b0b516ccff")
-    version("0.51.1", sha256="1e765b1a41535684bf3b0465c1d0a24dcbbff6af325270c8f4dad924c0940160")
-    version("0.50.1", sha256="89e81b51b880f9b18c82b7095beaccc6856fcf84ba29c4f0ced42e4e5748a3a7")
-    version("0.48.0", sha256="9d21bc77e67006b5723052840c88cc59248e079a907cc68f1a1a264e1eaba017")
+    version(
+        "0.51.1",
+        sha256="1e765b1a41535684bf3b0465c1d0a24dcbbff6af325270c8f4dad924c0940160",
+        deprecated=True,
+    )
+    version(
+        "0.50.1",
+        sha256="89e81b51b880f9b18c82b7095beaccc6856fcf84ba29c4f0ced42e4e5748a3a7",
+        deprecated=True,
+    )
+    version(
+        "0.48.0",
+        sha256="9d21bc77e67006b5723052840c88cc59248e079a907cc68f1a1a264e1eaba017",
+        deprecated=True,
+    )
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated

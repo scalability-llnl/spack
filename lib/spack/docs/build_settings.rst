@@ -166,3 +166,106 @@ while `py-numpy` still needs an older version:
 
 Up to Spack v0.20 ``duplicates:strategy:none`` was the default (and only) behavior. From Spack v0.21 the
 default behavior is ``duplicates:strategy:minimal``.
+
+--------
+Splicing
+--------
+
+The ``splice`` key covers config attributes for splicing specs in the solver.
+
+"Splicing" is a method for replacing a dependency with another spec
+that provides the same package or virtual. There are two types of
+splices, referring to different behaviors for shared dependencies
+between the root spec and the new spec replacing a dependency:
+"transitive" and "intransitive". A "transitive" splice is one that
+resolves all conflicts by taking the dependency from the new node. An
+"intransitive" splice is one that resolves all conflicts by taking the
+dependency from the original root. From a theory perspective, hybrid
+splices are possible but are not modeled by Spack.
+
+All spliced specs retain a ``build_spec`` attribute that points to the
+original Spec before any splice occurred. The ``build_spec`` for a
+non-spliced spec is itself.
+
+The figure below shows examples of transitive and intransitive splices:
+
+.. figure:: images/splices.png
+   :align: center
+
+The concretizer can be configured to explicitly splice particular
+replacements for a target spec. Splicing will allow the user to make
+use of generically built public binary caches, while swapping in
+highly optimized local builds for performance critical components
+and/or components that interact closely with the specific hardware
+details of the system. The most prominent candidate for splicing is
+MPI providers. MPI packages have relatively well-understood ABI
+characteristics, and most High Performance Computing facilities deploy
+highly optimized MPI packages tailored to their particular
+hardware. The following config block configures Spack to replace
+whatever MPI provider each spec was concretized to use with the
+particular package of ``mpich`` with the hash that begins ``abcdef``.
+
+.. code-block:: yaml
+
+   concretizer:
+     splice:
+       explicit:
+       - target: mpi
+         replacement: mpich/abcdef
+         transitive: false
+
+.. warning::
+
+   When configuring an explicit splice, you as the user take on the
+   responsibility for ensuring ABI compatibility between the specs
+   matched by the target and the replacement you provide. If they are
+   not compatible, Spack will not warn you and your application will
+   fail to run.
+
+The ``target`` field of an explicit splice can be any abstract
+spec. The ``replacement`` field must be a spec that includes the hash
+of a concrete spec, and the replacement must either be the same
+package as the target, provide the virtual that is the target, or
+provide a virtual that the target provides. The ``transitive`` field
+is optional -- by default, splices will be transitive.
+
+.. note::
+
+   With explicit splices configured, it is possible for Spack to
+   concretize to a spec that does not satisfy the input. For example,
+   with the config above ``hdf5 ^mvapich2`` will concretize to user
+   ``mpich/abcdef`` instead of ``mvapich2`` as the MPI provider. Spack
+   will warn the user in this case, but will not fail the
+   concretization.
+
+.. _automatic_splicing:
+
+^^^^^^^^^^^^^^^^^^
+Automatic Splicing
+^^^^^^^^^^^^^^^^^^
+
+The Spack solver can be configured to do automatic splicing for
+ABI-compatible packages. Automatic splices are enabled in the concretizer
+config section
+
+.. code-block:: yaml
+
+   concretizer:
+     splice:
+       automatic: True
+
+Packages can include ABI-compatibility information using the
+``can_splice`` directive. See :ref:`the packaging
+guide<abi_compatibility>` for instructions on specifying ABI
+compatibility using the ``can_splice`` directive.
+
+.. note::
+
+   The ``can_splice`` directive is experimental and may be changed in
+   future versions.
+
+When automatic splicing is enabled, the concretizer will combine any
+number of ABI-compatible specs if possible to reuse installed packages
+and packages available from binary caches. The end result of these
+specs is equivalent to a series of transitive/intransitive splices,
+but the series may be non-obvious.

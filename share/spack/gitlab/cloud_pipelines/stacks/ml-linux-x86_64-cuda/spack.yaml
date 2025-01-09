@@ -54,7 +54,8 @@ spack:
     - py-torchfile
     - py-torchgeo
     - py-torchmetrics
-    - py-torchtext
+    # torchtext requires older pytorch, which requires older cuda, which doesn't support newer GCC
+    # - py-torchtext
     - py-torchvision
     - py-vector-quantize-pytorch
 
@@ -71,19 +72,19 @@ spack:
     # TensorFlow
     - py-tensorflow
     - py-tensorflow-datasets
-    - py-tensorflow-estimator
     - py-tensorflow-hub
     - py-tensorflow-metadata
     - py-tensorflow-probability
 
     # XGBoost
-    - py-xgboost
+    # xgboost requires older cuda, which doesn't support newer GCC
+    # - py-xgboost
 
   ci:
     pipeline-gen:
     - build-job:
         image:
-          name: ghcr.io/spack/ubuntu-22.04:v2024-05-07
+          name: ghcr.io/spack/ubuntu-24.04:v2024-09-05-v2
           entrypoint: ['']
 
   cdash:

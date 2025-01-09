@@ -44,7 +44,8 @@ class ClingoBootstrap(Clingo):
         patch("mimalloc.patch", when="@5.5.0:")
         patch("mimalloc-pre-5.5.0.patch", when="@:5.4")
         # ensure we hide libstdc++ with custom operator new/delete symbols
-        patch("version-script.patch")
+        patch("version-script.patch", when="@spack,5.5:5.6")
+        patch("version-script-5.4.patch", when="@5.2:5.4")
 
     # CMake at version 3.16.0 or higher has the possibility to force the
     # Python interpreter, which is crucial to build against external Python
@@ -75,15 +76,13 @@ class ClingoBootstrap(Clingo):
         return self.define("CLINGO_BUILD_PY_SHARED", "OFF")
 
     def cmake_args(self):
-        args = super().cmake_args()
-        args.append(self.define("CLINGO_BUILD_APPS", False))
-        return args
+        return [*super().cmake_args(), self.define("CLINGO_BUILD_APPS", False)]
 
     @run_before("cmake", when="+optimized")
     def pgo_train(self):
-        if self.spec.compiler.name == "clang":
+        if self.spec.satisfies("%clang"):
             llvm_profdata = which("llvm-profdata", required=True)
-        elif self.spec.compiler.name == "apple-clang":
+        elif self.spec.satisfies("%apple-clang"):
             llvm_profdata = Executable(
                 Executable("xcrun")("-find", "llvm-profdata", output=str).strip()
             )
@@ -119,7 +118,7 @@ class ClingoBootstrap(Clingo):
         # Clean the build dir.
         rmtree(self.build_directory, ignore_errors=True)
 
-        if self.spec.compiler.name in ("clang", "apple-clang"):
+        if self.spec.satisfies("%clang") or self.spec.satisfies("apple-clang"):
             # merge reports
             use_report = join_path(reports, "merged.prof")
             raw_files = glob.glob(join_path(reports, "*.profraw"))
@@ -136,9 +135,7 @@ class ClingoBootstrap(Clingo):
         cmake.add_default_envmod(use_mods)
 
     def setup_build_environment(self, env):
-        if self.spec.satisfies("%apple-clang"):
-            env.append_flags("CFLAGS", "-mmacosx-version-min=10.13")
-            env.append_flags("CXXFLAGS", "-mmacosx-version-min=10.13")
-            env.append_flags("LDFLAGS", "-mmacosx-version-min=10.13")
-        elif self.spec.compiler.name in ("gcc", "clang") and "+static_libstdcpp" in self.spec:
+        if (
+            self.spec.satisfies("%gcc") or self.spec.satisfies("%clang")
+        ) and "+static_libstdcpp" in self.spec:
             env.append_flags("LDFLAGS", "-static-libstdc++ -static-libgcc -Wl,--exclude-libs,ALL")

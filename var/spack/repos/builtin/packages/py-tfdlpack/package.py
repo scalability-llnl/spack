@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -40,8 +41,7 @@ class PyTfdlpack(CMakePackage, PythonExtension):
 
     def install(self, spec, prefix):
         with working_dir("python"):
-            args = std_pip_args + ["--prefix=" + prefix, "."]
-            pip(*args)
+            pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")
 
     def setup_run_environment(self, env):
         # Prevent TensorFlow from taking over the whole GPU

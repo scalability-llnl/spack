@@ -76,7 +76,7 @@ class Mptensor(CMakePackage):
             print("Skipping copy of stand-alone test files: requires +mpi build")
             return
 
-        self.cache_extra_test_sources(".")
+        cache_extra_test_sources(self, ".")
 
         # Clean cached makefiles now so only done once
         print("Converting cached Makefile for stand-alone test use")

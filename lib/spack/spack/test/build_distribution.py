@@ -9,30 +9,34 @@ import os.path
 import pytest
 
 import spack.binary_distribution as bd
-import spack.main
+import spack.mirrors.mirror
 import spack.spec
-import spack.util.url
+from spack.installer import PackageInstaller
 
 pytestmark = pytest.mark.not_on_windows("does not run on windows")
 
 
 def test_build_tarball_overwrite(install_mockery, mock_fetch, monkeypatch, tmp_path):
     spec = spack.spec.Spec("trivial-install-test-package").concretized()
-    spec.package.do_install(fake=True)
+    PackageInstaller([spec.package], fake=True).install()
 
     specs = [spec]
 
-    # Runs fine the first time, second time it's a no-op
-    out_url = spack.util.url.path_to_file_url(str(tmp_path))
-    skipped = bd.push_or_raise(specs, out_url, signing_key=None)
-    assert not skipped
+    # populate cache, everything is new
+    mirror = spack.mirrors.mirror.Mirror.from_local_path(str(tmp_path))
+    with bd.make_uploader(mirror) as uploader:
+        skipped = uploader.push_or_raise(specs)
+        assert not skipped
 
-    skipped = bd.push_or_raise(specs, out_url, signing_key=None)
-    assert skipped == specs
+    # should skip all
+    with bd.make_uploader(mirror) as uploader:
+        skipped = uploader.push_or_raise(specs)
+        assert skipped == specs
 
-    # Should work fine with force=True
-    skipped = bd.push_or_raise(specs, out_url, signing_key=None, force=True)
-    assert not skipped
+    # with force=True none should be skipped
+    with bd.make_uploader(mirror, force=True) as uploader:
+        skipped = uploader.push_or_raise(specs)
+        assert not skipped
 
     # Remove the tarball, which should cause push to push.
     os.remove(
@@ -42,5 +46,6 @@ def test_build_tarball_overwrite(install_mockery, mock_fetch, monkeypatch, tmp_p
         / bd.tarball_name(spec, ".spack")
     )
 
-    skipped = bd.push_or_raise(specs, out_url, signing_key=None)
-    assert not skipped
+    with bd.make_uploader(mirror) as uploader:
+        skipped = uploader.push_or_raise(specs)
+        assert not skipped

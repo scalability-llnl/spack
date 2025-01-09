@@ -128,7 +128,7 @@ class Elfutils(AutotoolsPackage, SourcewarePackage):
         else:
             args.append("--program-prefix=''")
 
-        if "@0.182:" in spec:
+        if spec.satisfies("@0.182:"):
             args.append("--with-zstd=%s" % spec["zstd"].prefix)
 
         if spec.satisfies("@0.183:"):
@@ -137,7 +137,7 @@ class Elfutils(AutotoolsPackage, SourcewarePackage):
             else:
                 args.append("--without-libiconv-prefix")
 
-        if "+nls" in spec:
+        if spec.satisfies("+nls"):
             # Prior to 0.183, only msgfmt is used from gettext.
             if spec.satisfies("@0.183:"):
                 if "intl" not in spec["gettext"].libs.names:
@@ -147,7 +147,7 @@ class Elfutils(AutotoolsPackage, SourcewarePackage):
         else:
             args.append("--disable-nls")
 
-        if "+debuginfod" in spec:
+        if spec.satisfies("+debuginfod"):
             args.append("--enable-debuginfod")
             if spec.satisfies("@0.181:"):
                 args.append("--enable-libdebuginfod")

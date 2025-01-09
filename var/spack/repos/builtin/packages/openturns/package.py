@@ -27,44 +27,61 @@ class Openturns(CMakePackage):
     version("1.19", sha256="1d61cb6ce8ec1121db9f1e9fb490aaa056d2ff250db26df05d2e3e30ceb32344")
     version("1.18", sha256="1840d3fd8b38fd5967b1fa04e49d8f760c2c497400430e97623595ca48754ae0")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-
     variant("python", default=True, description="Build Python bindings")
     variant("libxml2", default=False, description="Use LibXML2 for XML support")
 
-    extends("python", when="+python")
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
-    depends_on("mpi", type=("build", "run"))
-    depends_on("lapack", type=("build", "run"))
     depends_on("cmake@2.8:", type="build")
-    depends_on("swig", type=("build", "run"))
-    depends_on("py-numpy@1.7:", type=("build", "run"))
-    depends_on("py-pandas", type=("build", "run"))
-    depends_on("py-matplotlib", type=("build", "run"))
-    depends_on("boost+system+serialization+thread", type=("build", "run"))
-    depends_on("intel-tbb", type=("build", "run"))
-    depends_on("py-cloudpickle", type=("build", "run"))
-    depends_on("py-urllib3", type=("build", "run"))
-    depends_on("libxml2", type=("build", "run"), when="+libxml2")
+    depends_on("bison", type="build")
+    depends_on("flex", type="build")
+
+    depends_on("lapack")
+    depends_on("boost+system+serialization+thread")
+    depends_on("intel-tbb")
+    depends_on("libxml2", when="+libxml2")
+
+    with when("+python"):
+        extends("python")
+        depends_on("swig")
+        depends_on("py-numpy@1.7:", type=("build", "run"))
+        depends_on("py-pandas", type=("build", "run"))
+        depends_on("py-matplotlib", type=("build", "run"))
+        depends_on("py-cloudpickle", type=("build", "run"))
+        depends_on("py-urllib3", type=("build", "run"))
 
     def cmake_args(self):
-        spec = self.spec
-
         args = [
-            "-DCMAKE_C_COMPILER=%s" % spec["mpi"].mpicc,
-            "-DCMAKE_CXX_COMPILER=%s" % spec["mpi"].mpicxx,
-            "-DCMAKE_INSTALL_LIBDIR:STRING=%s" % self.prefix.lib,
-            "-DCMAKE_INSTALL_BINDIR:STRING=%s" % self.prefix.bin,
-            "-DLAPACK_LIBRARIES=%s" % spec["lapack"].libs.joined(";"),
+            self.define("USE_BISON", True),
+            self.define("USE_BOOST", True),
+            self.define("USE_FLEX", True),
+            self.define("USE_OPENMP", True),
+            self.define("USE_TBB", True),
+            self.define("LAPACK_LIBRARIES", list(self.spec["lapack"].libs)),
+            self.define_from_variant("USE_LIBXML2", "libxml2"),
+            # disable optional features explicitly
+            self.define("USE_BONMIN", False),
+            self.define("USE_CERES", False),
+            self.define("USE_CMINPACK", False),
+            self.define("USE_CUBA", False),
+            self.define("USE_DLIB", False),
+            self.define("USE_DOXYGEN", False),
+            self.define("USE_HDF5", False),
+            self.define("USE_HMAT", False),
+            self.define("USE_IPOPT", False),
+            self.define("USE_MPC", False),
+            self.define("USE_MPFR", False),
+            self.define("USE_MUPARSER", False),
+            self.define("USE_NANOFLANN", False),
+            self.define("USE_NLOPT", False),
+            self.define("USE_PAGMO", False),
+            self.define("USE_PRIMESIEVE", False),
+            self.define("USE_SPECTRA", False),
+            self.define("USE_SPHINX", False),
         ]
 
-        if "+python" in spec:
-            args.extend(
-                [
-                    # By default installs to the python prefix
-                    "-DPYTHON_SITE_PACKAGES={0}".format(python_platlib)
-                ]
-            )
+        if self.spec.satisfies("+python"):
+            args.append(self.define("PYTHON_SITE_PACKAGES", python_platlib))
 
         return args

@@ -11,7 +11,7 @@ class PyFalcon(PythonPackage):
     building large-scale app backends and microservices."""
 
     homepage = "https://github.com/falconry/falcon"
-    url = "https://github.com/falconry/falcon/archive/3.0.0a2.tar.gz"
+    url = "https://github.com/falconry/falcon/archive/refs/tags/3.0.0a2.tar.gz"
 
     license("Apache-2.0")
 

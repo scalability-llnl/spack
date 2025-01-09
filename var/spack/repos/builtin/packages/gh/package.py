@@ -16,6 +16,15 @@ class Gh(GoPackage):
 
     license("MIT")
 
+    version("2.63.2", sha256="2578a8b1f00cb292a8094793515743f2a86e02b8d0b18d6b95959ddbeebd6b8d")
+    version("2.63.1", sha256="b9a90118dfb46204dbcc0d09c2073d48f35b6f640b4db33fbaa24892fed56c8d")
+    version("2.63.0", sha256="c5309db9707c9e64ebe264e1e2d0f893ecead9056d680b39a565aaa5513d2947")
+    version("2.62.0", sha256="8b0d44a7fccd0c768d5ef7c3fbd274851b5752084e47761f146852de6539193e")
+    version("2.61.0", sha256="bf134281db2b65827426e3ad186de55cb04d0f92051ca2e6bd8a7d47aabe5b18")
+    version("2.60.1", sha256="9e9337c2564894c4cd32b2ac419611263c3e870e95567811365aacd4be5dd51d")
+    version("2.60.0", sha256="1936a80a668caef437b2f409eaa10e48613a3502db7da9eea011b163769218a7")
+    version("2.59.0", sha256="d24ed01e5aa1e8f42b397333462f9cd5c54e4845a5142044381fc8eb713fa001")
+    version("2.58.0", sha256="90894536c797147586db775d06ec2040c45cd7eef941f7ccbea46f4e5997c81c")
     version("2.50.0", sha256="683d0dee90e1d24a6673d13680e0d41963ddc6dd88580ab5119acec790d1b4d7")
     version("2.49.2", sha256="e839ea302ad99b70ce3efcb903f938ecbbb919798e49bc2f2034ad506ae0b0f5")
     version("2.43.1", sha256="1ea3f451fb7002c1fb95a7fab21e9ab16591058492628fe264c5878e79ec7c90")
@@ -42,11 +51,26 @@ class Gh(GoPackage):
     depends_on("go@1.19:", type="build", when="@2.21.0:")
     depends_on("go@1.21:", type="build", when="@2.33.0:")
     depends_on("go@1.22:", type="build", when="@2.47.0:")
+    depends_on("go@1.22.5:", type="build", when="@2.56.0:")
 
-
-class GoBuilder(spack.build_systems.go.GoBuilder):
     @property
     def build_args(self):
         args = super().build_args
         args.extend(["-trimpath", "./cmd/gh"])
         return args
+
+    @run_after("install")
+    def install_completions(self):
+        gh = Executable(self.prefix.bin.gh)
+
+        mkdirp(bash_completion_path(self.prefix))
+        with open(bash_completion_path(self.prefix) / "gh", "w") as file:
+            gh("completion", "-s", "bash", output=file)
+
+        mkdirp(fish_completion_path(self.prefix))
+        with open(fish_completion_path(self.prefix) / "gh.fish", "w") as file:
+            gh("completion", "-s", "fish", output=file)
+
+        mkdirp(zsh_completion_path(self.prefix))
+        with open(zsh_completion_path(self.prefix) / "_gh", "w") as file:
+            gh("completion", "-s", "zsh", output=file)

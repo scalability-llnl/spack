@@ -21,6 +21,7 @@ The available directives are:
   * ``conflicts``
   * ``depends_on``
   * ``extends``
+  * ``license``
   * ``patch``
   * ``provides``
   * ``resource``
@@ -32,23 +33,21 @@ The available directives are:
 """
 import collections
 import collections.abc
-import functools
 import os.path
 import re
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, Set, Tuple, Union
+from typing import Any, Callable, List, Optional, Tuple, Type, Union
 
-import llnl.util.lang
 import llnl.util.tty.color
 
 import spack.deptypes as dt
-import spack.error
+import spack.fetch_strategy
+import spack.package_base
 import spack.patch
 import spack.spec
-import spack.url
 import spack.util.crypto
 import spack.variant
 from spack.dependency import Dependency
-from spack.fetch_strategy import from_kwargs
+from spack.directives_meta import DirectiveError, DirectiveMeta
 from spack.resource import Resource
 from spack.version import (
     GitVersion,
@@ -58,14 +57,10 @@ from spack.version import (
     VersionLookupError,
 )
 
-if TYPE_CHECKING:
-    import spack.package_base
-
 __all__ = [
     "DirectiveError",
-    "DirectiveMeta",
-    "DisableRedistribute",
     "version",
+    "conditional",
     "conflicts",
     "depends_on",
     "extends",
@@ -78,39 +73,23 @@ __all__ = [
     "build_system",
     "requires",
     "redistribute",
+    "can_splice",
 ]
-
-#: These are variant names used by Spack internally; packages can't use them
-reserved_names = [
-    "arch",
-    "architecture",
-    "dev_path",
-    "namespace",
-    "operating_system",
-    "os",
-    "patches",
-    "platform",
-    "target",
-]
-
-#: Names of possible directives. This list is mostly populated using the @directive decorator.
-#: Some directives leverage others and in that case are not automatically added.
-directive_names = ["build_system"]
 
 _patch_order_index = 0
 
 
 SpecType = str
 DepType = Union[Tuple[str, ...], str]
-WhenType = Optional[Union["spack.spec.Spec", str, bool]]
-Patcher = Callable[[Union["spack.package_base.PackageBase", Dependency]], None]
-PatchesType = Optional[Union[Patcher, str, List[Union[Patcher, str]]]]
+WhenType = Optional[Union[spack.spec.Spec, str, bool]]
+Patcher = Callable[[Union[Type[spack.package_base.PackageBase], Dependency]], None]
+PatchesType = Union[Patcher, str, List[Union[Patcher, str]]]
 
 
 SUPPORTED_LANGUAGES = ("fortran", "cxx", "c")
 
 
-def _make_when_spec(value: WhenType) -> Optional["spack.spec.Spec"]:
+def _make_when_spec(value: WhenType) -> Optional[spack.spec.Spec]:
     """Create a ``Spec`` that indicates when a directive should be applied.
 
     Directives with ``when`` specs, e.g.:
@@ -155,220 +134,7 @@ def _make_when_spec(value: WhenType) -> Optional["spack.spec.Spec"]:
     return spack.spec.Spec(value)
 
 
-class DirectiveMeta(type):
-    """Flushes the directives that were temporarily stored in the staging
-    area into the package.
-    """
-
-    # Set of all known directives
-    _directive_dict_names: Set[str] = set()
-    _directives_to_be_executed: List[str] = []
-    _when_constraints_from_context: List[str] = []
-    _default_args: List[dict] = []
-
-    def __new__(cls, name, bases, attr_dict):
-        # Initialize the attribute containing the list of directives
-        # to be executed. Here we go reversed because we want to execute
-        # commands:
-        # 1. in the order they were defined
-        # 2. following the MRO
-        attr_dict["_directives_to_be_executed"] = []
-        for base in reversed(bases):
-            try:
-                directive_from_base = base._directives_to_be_executed
-                attr_dict["_directives_to_be_executed"].extend(directive_from_base)
-            except AttributeError:
-                # The base class didn't have the required attribute.
-                # Continue searching
-                pass
-
-        # De-duplicates directives from base classes
-        attr_dict["_directives_to_be_executed"] = [
-            x for x in llnl.util.lang.dedupe(attr_dict["_directives_to_be_executed"])
-        ]
-
-        # Move things to be executed from module scope (where they
-        # are collected first) to class scope
-        if DirectiveMeta._directives_to_be_executed:
-            attr_dict["_directives_to_be_executed"].extend(
-                DirectiveMeta._directives_to_be_executed
-            )
-            DirectiveMeta._directives_to_be_executed = []
-
-        return super(DirectiveMeta, cls).__new__(cls, name, bases, attr_dict)
-
-    def __init__(cls, name, bases, attr_dict):
-        # The instance is being initialized: if it is a package we must ensure
-        # that the directives are called to set it up.
-
-        if "spack.pkg" in cls.__module__:
-            # Ensure the presence of the dictionaries associated with the directives.
-            # All dictionaries are defaultdicts that create lists for missing keys.
-            for d in DirectiveMeta._directive_dict_names:
-                setattr(cls, d, {})
-
-            # Lazily execute directives
-            for directive in cls._directives_to_be_executed:
-                directive(cls)
-
-            # Ignore any directives executed *within* top-level
-            # directives by clearing out the queue they're appended to
-            DirectiveMeta._directives_to_be_executed = []
-
-        super(DirectiveMeta, cls).__init__(name, bases, attr_dict)
-
-    @staticmethod
-    def push_to_context(when_spec):
-        """Add a spec to the context constraints."""
-        DirectiveMeta._when_constraints_from_context.append(when_spec)
-
-    @staticmethod
-    def pop_from_context():
-        """Pop the last constraint from the context"""
-        return DirectiveMeta._when_constraints_from_context.pop()
-
-    @staticmethod
-    def push_default_args(default_args):
-        """Push default arguments"""
-        DirectiveMeta._default_args.append(default_args)
-
-    @staticmethod
-    def pop_default_args():
-        """Pop default arguments"""
-        return DirectiveMeta._default_args.pop()
-
-    @staticmethod
-    def directive(dicts=None):
-        """Decorator for Spack directives.
-
-        Spack directives allow you to modify a package while it is being
-        defined, e.g. to add version or dependency information.  Directives
-        are one of the key pieces of Spack's package "language", which is
-        embedded in python.
-
-        Here's an example directive:
-
-        .. code-block:: python
-
-            @directive(dicts='versions')
-            version(pkg, ...):
-                ...
-
-        This directive allows you write:
-
-        .. code-block:: python
-
-            class Foo(Package):
-                version(...)
-
-        The ``@directive`` decorator handles a couple things for you:
-
-          1. Adds the class scope (pkg) as an initial parameter when
-             called, like a class method would.  This allows you to modify
-             a package from within a directive, while the package is still
-             being defined.
-
-          2. It automatically adds a dictionary called "versions" to the
-             package so that you can refer to pkg.versions.
-
-        The ``(dicts='versions')`` part ensures that ALL packages in Spack
-        will have a ``versions`` attribute after they're constructed, and
-        that if no directive actually modified it, it will just be an
-        empty dict.
-
-        This is just a modular way to add storage attributes to the
-        Package class, and it's how Spack gets information from the
-        packages to the core.
-        """
-        global directive_names
-
-        if isinstance(dicts, str):
-            dicts = (dicts,)
-
-        if not isinstance(dicts, collections.abc.Sequence):
-            message = "dicts arg must be list, tuple, or string. Found {0}"
-            raise TypeError(message.format(type(dicts)))
-
-        # Add the dictionary names if not already there
-        DirectiveMeta._directive_dict_names |= set(dicts)
-
-        # This decorator just returns the directive functions
-        def _decorator(decorated_function):
-            directive_names.append(decorated_function.__name__)
-
-            @functools.wraps(decorated_function)
-            def _wrapper(*args, **_kwargs):
-                # First merge default args with kwargs
-                kwargs = dict()
-                for default_args in DirectiveMeta._default_args:
-                    kwargs.update(default_args)
-                kwargs.update(_kwargs)
-
-                # Inject when arguments from the context
-                if DirectiveMeta._when_constraints_from_context:
-                    # Check that directives not yet supporting the when= argument
-                    # are not used inside the context manager
-                    if decorated_function.__name__ == "version":
-                        msg = (
-                            'directive "{0}" cannot be used within a "when"'
-                            ' context since it does not support a "when=" '
-                            "argument"
-                        )
-                        msg = msg.format(decorated_function.__name__)
-                        raise DirectiveError(msg)
-
-                    when_constraints = [
-                        spack.spec.Spec(x) for x in DirectiveMeta._when_constraints_from_context
-                    ]
-                    if kwargs.get("when"):
-                        when_constraints.append(spack.spec.Spec(kwargs["when"]))
-                    when_spec = spack.spec.merge_abstract_anonymous_specs(*when_constraints)
-
-                    kwargs["when"] = when_spec
-
-                # If any of the arguments are executors returned by a
-                # directive passed as an argument, don't execute them
-                # lazily. Instead, let the called directive handle them.
-                # This allows nested directive calls in packages.  The
-                # caller can return the directive if it should be queued.
-                def remove_directives(arg):
-                    directives = DirectiveMeta._directives_to_be_executed
-                    if isinstance(arg, (list, tuple)):
-                        # Descend into args that are lists or tuples
-                        for a in arg:
-                            remove_directives(a)
-                    else:
-                        # Remove directives args from the exec queue
-                        remove = next((d for d in directives if d is arg), None)
-                        if remove is not None:
-                            directives.remove(remove)
-
-                # Nasty, but it's the best way I can think of to avoid
-                # side effects if directive results are passed as args
-                remove_directives(args)
-                remove_directives(list(kwargs.values()))
-
-                # A directive returns either something that is callable on a
-                # package or a sequence of them
-                result = decorated_function(*args, **kwargs)
-
-                # ...so if it is not a sequence make it so
-                values = result
-                if not isinstance(values, collections.abc.Sequence):
-                    values = (values,)
-
-                DirectiveMeta._directives_to_be_executed.extend(values)
-
-                # wrapped function returns same result as original so
-                # that we can nest directives
-                return result
-
-            return _wrapper
-
-        return _decorator
-
-
-SubmoduleCallback = Callable[["spack.package_base.PackageBase"], Union[str, List[str], bool]]
+SubmoduleCallback = Callable[[spack.package_base.PackageBase], Union[str, List[str], bool]]
 directive = DirectiveMeta.directive
 
 
@@ -453,7 +219,7 @@ def version(
     return lambda pkg: _execute_version(pkg, ver, **kwargs)
 
 
-def _execute_version(pkg, ver, **kwargs):
+def _execute_version(pkg: Type[spack.package_base.PackageBase], ver: Union[str, int], **kwargs):
     if (
         (any(s in kwargs for s in spack.util.crypto.hashes) or "checksum" in kwargs)
         and hasattr(pkg, "has_code")
@@ -484,12 +250,12 @@ def _execute_version(pkg, ver, **kwargs):
 
 
 def _depends_on(
-    pkg: "spack.package_base.PackageBase",
-    spec: "spack.spec.Spec",
+    pkg: Type[spack.package_base.PackageBase],
+    spec: spack.spec.Spec,
     *,
     when: WhenType = None,
     type: DepType = dt.DEFAULT_TYPES,
-    patches: PatchesType = None,
+    patches: Optional[PatchesType] = None,
 ):
     when_spec = _make_when_spec(when)
     if not when_spec:
@@ -531,6 +297,13 @@ def _depends_on(
     deps_by_name = pkg.dependencies.setdefault(when_spec, {})
     dependency = deps_by_name.get(spec.name)
 
+    if spec.dependencies():
+        raise DirectiveError(
+            f"the '^' sigil cannot be used in 'depends_on' directives. Please reformulate "
+            f"the directive below as multiple directives:\n\n"
+            f'\tdepends_on("{spec}", when="{when_spec}")\n'
+        )
+
     if not dependency:
         dependency = Dependency(pkg, spec, depflag=depflag)
         deps_by_name[spec.name] = dependency
@@ -564,7 +337,7 @@ def conflicts(conflict_spec: SpecType, when: WhenType = None, msg: Optional[str]
         msg (str): optional user defined message
     """
 
-    def _execute_conflicts(pkg: "spack.package_base.PackageBase"):
+    def _execute_conflicts(pkg: Type[spack.package_base.PackageBase]):
         # If when is not specified the conflict always holds
         when_spec = _make_when_spec(when)
         if not when_spec:
@@ -583,7 +356,7 @@ def depends_on(
     spec: SpecType,
     when: WhenType = None,
     type: DepType = dt.DEFAULT_TYPES,
-    patches: PatchesType = None,
+    patches: Optional[PatchesType] = None,
 ):
     """Creates a dict of deps with specs defining when they apply.
 
@@ -605,21 +378,16 @@ def depends_on(
         assert type == "build", "languages must be of 'build' type"
         return _language(lang_spec_str=spec, when=when)
 
-    def _execute_depends_on(pkg: "spack.package_base.PackageBase"):
+    def _execute_depends_on(pkg: Type[spack.package_base.PackageBase]):
         _depends_on(pkg, dep_spec, when=when, type=type, patches=patches)
 
     return _execute_depends_on
 
 
-#: Store whether a given Spec source/binary should not be redistributed.
-class DisableRedistribute:
-    def __init__(self, source, binary):
-        self.source = source
-        self.binary = binary
-
-
 @directive("disable_redistribute")
-def redistribute(source=None, binary=None, when: WhenType = None):
+def redistribute(
+    source: Optional[bool] = None, binary: Optional[bool] = None, when: WhenType = None
+):
     """Can be used inside a Package definition to declare that
     the package source and/or compiled binaries should not be
     redistributed.
@@ -634,7 +402,10 @@ def redistribute(source=None, binary=None, when: WhenType = None):
 
 
 def _execute_redistribute(
-    pkg: "spack.package_base.PackageBase", source=None, binary=None, when: WhenType = None
+    pkg: Type[spack.package_base.PackageBase],
+    source: Optional[bool],
+    binary: Optional[bool],
+    when: WhenType,
 ):
     if source is None and binary is None:
         return
@@ -664,7 +435,7 @@ def _execute_redistribute(
         if not binary:
             disable.binary = True
     else:
-        pkg.disable_redistribute[when_spec] = DisableRedistribute(
+        pkg.disable_redistribute[when_spec] = spack.package_base.DisableRedistribute(
             source=not source, binary=not binary
         )
 
@@ -710,9 +481,7 @@ def provides(*specs: SpecType, when: WhenType = None):
         when: condition when this provides clause needs to be considered
     """
 
-    def _execute_provides(pkg: "spack.package_base.PackageBase"):
-        import spack.parser  # Avoid circular dependency
-
+    def _execute_provides(pkg: Type[spack.package_base.PackageBase]):
         when_spec = _make_when_spec(when)
         if not when_spec:
             return
@@ -734,6 +503,43 @@ def provides(*specs: SpecType, when: WhenType = None):
             provided_set.add(provided_spec)
 
     return _execute_provides
+
+
+@directive("splice_specs")
+def can_splice(
+    target: SpecType, *, when: SpecType, match_variants: Union[None, str, List[str]] = None
+):
+    """Packages can declare whether they are ABI-compatible with another package
+    and thus can be spliced into concrete versions of that package.
+
+    Args:
+        target: The spec that the current package is ABI-compatible with.
+
+        when: An anonymous spec constraining current package for when it is
+            ABI-compatible with target.
+
+        match_variants: A list of variants that must match
+            between target spec and current package, with special value '*'
+            which matches all variants. Example: a variant is defined on both
+            packages called json, and they are ABI-compatible whenever they agree on
+            the json variant (regardless of whether it is turned on or off).  Note
+            that this cannot be applied to multi-valued variants and multi-valued
+            variants will be skipped by '*'.
+    """
+
+    def _execute_can_splice(pkg: Type[spack.package_base.PackageBase]):
+        when_spec = _make_when_spec(when)
+        if isinstance(match_variants, str) and match_variants != "*":
+            raise ValueError(
+                "* is the only valid string for match_variants "
+                "if looking to provide a single variant, use "
+                f"[{match_variants}] instead"
+            )
+        if when_spec is None:
+            return
+        pkg.splice_specs[when_spec] = (spack.spec.Spec(target), match_variants)
+
+    return _execute_can_splice
 
 
 @directive("patches")
@@ -762,10 +568,10 @@ def patch(
             compressed URL patches)
     """
 
-    def _execute_patch(pkg_or_dep: Union["spack.package_base.PackageBase", Dependency]):
-        pkg = pkg_or_dep
-        if isinstance(pkg, Dependency):
-            pkg = pkg.pkg
+    def _execute_patch(
+        pkg_or_dep: Union[Type[spack.package_base.PackageBase], Dependency]
+    ) -> None:
+        pkg = pkg_or_dep.pkg if isinstance(pkg_or_dep, Dependency) else pkg_or_dep
 
         if hasattr(pkg, "has_code") and not pkg.has_code:
             raise UnsupportedPackageDirective(
@@ -809,6 +615,15 @@ def patch(
     return _execute_patch
 
 
+def conditional(*values: List[Any], when: Optional[WhenType] = None):
+    """Conditional values that can be used in variant declarations."""
+    # _make_when_spec returns None when the condition is statically false.
+    when = _make_when_spec(when)
+    return spack.variant.ConditionalVariantValues(
+        spack.variant.ConditionalValue(x, when=when) for x in values
+    )
+
+
 @directive("variants")
 def variant(
     name: str,
@@ -846,7 +661,7 @@ def variant(
         msg += " @*r{{[{0}, variant '{1}']}}"
         return llnl.util.tty.color.colorize(msg.format(pkg.name, name))
 
-    if name in reserved_names:
+    if name in spack.variant.reserved_names:
 
         def _raise_reserved_name(pkg):
             msg = "The name '%s' is reserved by Spack" % name
@@ -905,80 +720,80 @@ def variant(
 
     def _execute_variant(pkg):
         when_spec = _make_when_spec(when)
-        when_specs = [when_spec]
 
         if not re.match(spack.spec.IDENTIFIER_RE, name):
             directive = "variant"
             msg = "Invalid variant name in {0}: '{1}'"
             raise DirectiveError(directive, msg.format(pkg.name, name))
 
-        if name in pkg.variants:
-            # We accumulate when specs, but replace the rest of the variant
-            # with the newer values
-            _, orig_when = pkg.variants[name]
-            when_specs += orig_when
-
-        pkg.variants[name] = (
-            spack.variant.Variant(name, default, description, values, multi, validator, sticky),
-            when_specs,
+        # variants are stored by condition then by name (so only the last variant of a
+        # given name takes precedence *per condition*).
+        # NOTE: variant defaults and values can conflict if when conditions overlap.
+        variants_by_name = pkg.variants.setdefault(when_spec, {})
+        variants_by_name[name] = spack.variant.Variant(
+            name=name,
+            default=default,
+            description=description,
+            values=values,
+            multi=multi,
+            validator=validator,
+            sticky=sticky,
+            precedence=pkg.num_variant_definitions(),
         )
 
     return _execute_variant
 
 
 @directive("resources")
-def resource(**kwargs):
-    """Define an external resource to be fetched and staged when building the
-    package. Based on the keywords present in the dictionary the appropriate
-    FetchStrategy will be used for the resource. Resources are fetched and
-    staged in their own folder inside spack stage area, and then moved into
-    the stage area of the package that needs them.
+def resource(
+    *,
+    name: Optional[str] = None,
+    destination: str = "",
+    placement: Optional[str] = None,
+    when: WhenType = None,
+    # additional kwargs are as for `version()`
+    **kwargs,
+):
+    """Define an external resource to be fetched and staged when building the package.
+    Based on the keywords present in the dictionary the appropriate FetchStrategy will
+    be used for the resource. Resources are fetched and staged in their own folder
+    inside spack stage area, and then moved into the stage area of the package that
+    needs them.
 
-    List of recognized keywords:
+    Keyword Arguments:
+        name: name for the resource
+        when: condition defining when the resource is needed
+        destination: path, relative to the package stage area, to which resource should be moved
+        placement: optionally rename the expanded resource inside the destination directory
 
-    * 'when' : (optional) represents the condition upon which the resource is
-      needed
-    * 'destination' : (optional) path where to move the resource. This path
-      must be relative to the main package stage area.
-    * 'placement' : (optional) gives the possibility to fine tune how the
-      resource is moved into the main package stage area.
     """
 
     def _execute_resource(pkg):
-        when = kwargs.get("when")
         when_spec = _make_when_spec(when)
         if not when_spec:
             return
 
-        destination = kwargs.get("destination", "")
-        placement = kwargs.get("placement", None)
-
         # Check if the path is relative
         if os.path.isabs(destination):
-            message = (
-                "The destination keyword of a resource directive " "can't be an absolute path.\n"
-            )
-            message += "\tdestination : '{dest}\n'".format(dest=destination)
-            raise RuntimeError(message)
+            msg = "The destination keyword of a resource directive can't be an absolute path.\n"
+            msg += f"\tdestination : '{destination}\n'"
+            raise RuntimeError(msg)
 
         # Check if the path falls within the main package stage area
         test_path = "stage_folder_root"
-        normalized_destination = os.path.normpath(
-            os.path.join(test_path, destination)
-        )  # Normalized absolute path
+
+        # Normalized absolute path
+        normalized_destination = os.path.normpath(os.path.join(test_path, destination))
 
         if test_path not in normalized_destination:
-            message = (
-                "The destination folder of a resource must fall "
-                "within the main package stage directory.\n"
-            )
-            message += "\tdestination : '{dest}'\n".format(dest=destination)
-            raise RuntimeError(message)
+            msg = "Destination of a resource must be within the package stage directory.\n"
+            msg += f"\tdestination : '{destination}'\n"
+            raise RuntimeError(msg)
 
         resources = pkg.resources.setdefault(when_spec, [])
-        name = kwargs.get("name")
-        fetcher = from_kwargs(**kwargs)
-        resources.append(Resource(name, fetcher, destination, placement))
+        resources.append(
+            Resource(name, spack.fetch_strategy.from_kwargs(**kwargs), destination, placement)
+        )
 
     return _execute_resource
 
@@ -1010,7 +825,9 @@ def maintainers(*names: str):
     return _execute_maintainer
 
 
-def _execute_license(pkg, license_identifier: str, when):
+def _execute_license(
+    pkg: Type[spack.package_base.PackageBase], license_identifier: str, when: WhenType
+):
     # If when is not specified the license always holds
     when_spec = _make_when_spec(when)
     if not when_spec:
@@ -1074,7 +891,7 @@ def requires(*requirement_specs: str, policy="one_of", when=None, msg=None):
         msg: optional user defined message
     """
 
-    def _execute_requires(pkg: "spack.package_base.PackageBase"):
+    def _execute_requires(pkg: Type[spack.package_base.PackageBase]):
         if policy not in ("one_of", "any_of"):
             err_msg = (
                 f"the 'policy' argument of the 'requires' directive in {pkg.name} is set "
@@ -1099,7 +916,7 @@ def requires(*requirement_specs: str, policy="one_of", when=None, msg=None):
 def _language(lang_spec_str: str, *, when: Optional[Union[str, bool]] = None):
     """Temporary implementation of language virtuals, until compilers are proper dependencies."""
 
-    def _execute_languages(pkg: "spack.package_base.PackageBase"):
+    def _execute_languages(pkg: Type[spack.package_base.PackageBase]):
         when_spec = _make_when_spec(when)
         if not when_spec:
             return
@@ -1108,10 +925,6 @@ def _language(lang_spec_str: str, *, when: Optional[Union[str, bool]] = None):
         languages.add(lang_spec_str)
 
     return _execute_languages
-
-
-class DirectiveError(spack.error.SpackError):
-    """This is raised when something is wrong with a package directive."""
 
 
 class DependencyError(DirectiveError):

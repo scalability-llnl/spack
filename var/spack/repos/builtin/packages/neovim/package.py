@@ -19,6 +19,7 @@ class Neovim(CMakePackage):
 
     version("master", branch="master")
     version("stable", tag="stable", commit="d772f697a281ce9c58bf933997b87c7f27428a60")
+    version("0.10.2", sha256="546cb2da9fffbb7e913261344bbf4cf1622721f6c5a67aa77609e976e78b8e89")
     version("0.10.0", sha256="372ea2584b0ea2a5a765844d95206bda9e4a57eaa1a2412a9a0726bab750f828")
     version("0.9.5", sha256="fe74369fc30a32ec7a086b1013acd0eacd674e7570eb1acc520a66180c9e9719")
     version("0.9.4", sha256="148356027ee8d586adebb6513a94d76accc79da9597109ace5c445b09d383093")
@@ -143,6 +144,8 @@ class Neovim(CMakePackage):
         depends_on("cmake@3.13:", type="build")
         depends_on("libvterm@0.3.3:")
         depends_on("tree-sitter@0.20.9:")
+    with when("@master"):
+        depends_on("utf8proc", type="link")
 
     # Support for `libvterm@0.2:` has been added in neovim@0.8.0
     # term: Add support for libvterm >= 0.2 (https://github.com/neovim/neovim/releases/tag/v0.8.0)

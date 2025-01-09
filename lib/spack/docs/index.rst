@@ -12,10 +12,6 @@
 Spack
 ===================
 
-.. epigraph::
-
-   `These are docs for the Spack package manager. For sphere packing, see` `pyspack <https://pyspack.readthedocs.io>`_.
-
 Spack is a package management tool designed to support multiple
 versions and configurations of software on a wide variety of platforms
 and environments.  It was designed for large supercomputing centers,
@@ -39,9 +35,14 @@ package:
 
 .. code-block:: console
 
-   $ git clone -c feature.manyFiles=true https://github.com/spack/spack.git
+   $ git clone -c feature.manyFiles=true --depth=2 https://github.com/spack/spack.git
    $ cd spack/bin
    $ ./spack install libelf
+
+.. note::
+   ``-c feature.manyFiles=true`` improves git's performance on repositories with 1,000+ files.
+
+   ``--depth=2`` prunes the git history to reduce the size of the Spack installation.
 
 If you're new to spack and want to start using it, see :doc:`getting_started`,
 or refer to the full manual below.

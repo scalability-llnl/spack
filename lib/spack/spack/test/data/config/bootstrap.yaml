@@ -1,5 +1,5 @@
 bootstrap:
   sources:
   - name: 'github-actions'
-    metadata: $spack/share/spack/bootstrap/github-actions-v0.5
+    metadata: $spack/share/spack/bootstrap/github-actions-v0.6
   trusted: {}

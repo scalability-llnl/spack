@@ -16,6 +16,7 @@ import inspect
 import io
 import json
 import os
+import pickle
 
 import pytest
 import ruamel.yaml
@@ -55,11 +56,11 @@ def test_read_spec_from_signed_json():
         assert spec_to_check.name == "zlib"
         assert spec_to_check._hash == "g7otk5dra3hifqxej36m5qzm7uyghqgb"
 
-    with open(spec_path) as fd:
+    with open(spec_path, encoding="utf-8") as fd:
         s = Spec.from_signed_json(fd)
         check_spec(s)
 
-    with open(spec_path) as fd:
+    with open(spec_path, encoding="utf-8") as fd:
         s = Spec.from_signed_json(fd.read())
         check_spec(s)
 
@@ -303,7 +304,7 @@ def reverse_all_dicts(data):
 
 
 def check_specs_equal(original_spec, spec_yaml_path):
-    with open(spec_yaml_path, "r") as fd:
+    with open(spec_yaml_path, "r", encoding="utf-8") as fd:
         spec_yaml = fd.read()
         spec_from_yaml = Spec.from_yaml(spec_yaml)
         return original_spec.eq_dag(spec_from_yaml)
@@ -551,3 +552,26 @@ d: *id001
 e: *id002
 """
     )
+
+
+@pytest.mark.parametrize(
+    "spec_str",
+    [
+        "hdf5 ++mpi",
+        "hdf5 cflags==-g",
+        "hdf5 foo==bar",
+        "hdf5~~mpi++shared",
+        "hdf5 cflags==-g foo==bar cxxflags==-O3",
+        "hdf5 cflags=-g foo==bar cxxflags==-O3",
+    ],
+)
+def test_pickle_roundtrip_for_abstract_specs(spec_str):
+    """Tests that abstract specs correctly round trip when pickled.
+
+    This test compares both spec objects and their string representation, due to some
+    inconsistencies in how `Spec.__eq__` is implemented.
+    """
+    s = spack.spec.Spec(spec_str)
+    t = pickle.loads(pickle.dumps(s))
+    assert s == t
+    assert str(s) == str(t)

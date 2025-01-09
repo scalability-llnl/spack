@@ -30,6 +30,7 @@ class RRgeos(RPackage):
 
     cran = "rgeos"
 
+    version("0.6-4", sha256="9d03c4de96fd3fad55ff8d1ff8113dcaaa00f15d9d0588e54c9f91751bcede11")
     version(
         "0.6-2",
         sha256="2ee2bb8b0c20d7908ac55d4d1cf8292c624ab836e02599ce1871a249a59fe0af",

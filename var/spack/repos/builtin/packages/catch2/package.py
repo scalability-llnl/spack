@@ -22,6 +22,7 @@ class Catch2(CMakePackage):
     version("develop", branch="devel")
 
     # Releases
+    version("3.7.1", sha256="c991b247a1a0d7bb9c39aa35faf0fe9e19764213f28ffba3109388e62ee0269c")
     version("3.6.0", sha256="485932259a75c7c6b72d4b874242c489ea5155d17efa345eb8cc72159f49f356")
     version("3.5.4", sha256="b7754b711242c167d8f60b890695347f90a1ebc95949a045385114165d606dbb")
     version("3.4.0", sha256="122928b814b75717316c71af69bd2b43387643ba076a6ec16e7882bfb2dfacbb")

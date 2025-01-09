@@ -45,11 +45,12 @@ class Eccodes(CMakePackage):
     git = "https://github.com/ecmwf/eccodes.git"
     list_url = "https://confluence.ecmwf.int/display/ECC/Releases"
 
-    maintainers("skosukhin", "victoria-cherkas", "dominichofer", "climbfuji")
+    maintainers("skosukhin", "victoria-cherkas", "climbfuji")
 
     license("Apache-2.0")
 
     version("develop", branch="develop")
+    version("2.38.0", sha256="96a21fbe8ca3aa4c31bb71bbd378b7fd130cbc0f7a477567d70e66a000ff68d9")
     version("2.34.0", sha256="3cd208c8ddad132789662cf8f67a9405514bfefcacac403c0d8c84507f303aba")
     version("2.33.0", sha256="bdcec8ce63654ec6803400c507f01220a9aa403a45fa6b5bdff7fdcc44fd7daf")
     version("2.32.1", sha256="ad2ac1bf36577b1d35c4a771b4d174a06f522a1e5ef6c1f5e53a795fb624863e")
@@ -301,7 +302,7 @@ class Eccodes(CMakePackage):
             return libs
 
         msg = "Unable to recursively locate {0} {1} libraries in {2}"
-        raise spack.error.NoLibrariesError(
+        raise NoLibrariesError(
             msg.format("shared" if shared else "static", self.spec.name, self.spec.prefix)
         )
 
@@ -337,7 +338,7 @@ class Eccodes(CMakePackage):
             self.define("ENABLE_EXTRA_TESTS", False),
         ]
 
-        if "+netcdf" in self.spec:
+        if self.spec.satisfies("+netcdf"):
             # Prevent possible overriding by environment variables NETCDF_ROOT, NETCDF_DIR, and
             # NETCDF_PATH:
             args.append(self.define("NETCDF_PATH", self.spec["netcdf-c"].prefix))
@@ -350,10 +351,10 @@ class Eccodes(CMakePackage):
         if jp2k == "openjpeg":
             args.append(self.define("OPENJPEG_PATH", self.spec["openjpeg"].prefix))
 
-        if "+png" in self.spec:
+        if self.spec.satisfies("+png"):
             args.append(self.define("ZLIB_ROOT", self.spec["zlib-api"].prefix))
 
-        if "+aec" in self.spec:
+        if self.spec.satisfies("+aec"):
             # Prevent overriding by environment variables AEC_DIR and AEC_PATH:
             args.append(self.define("AEC_DIR", self.spec["libaec"].prefix))
 

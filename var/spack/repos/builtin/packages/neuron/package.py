@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_environment import optimization_flags
 from spack.package import *
 
 
@@ -149,7 +150,7 @@ class Neuron(CMakePackage):
 
         # add cpu arch specific optimisation flags to CMake so that they are passed
         # to embedded Makefile that neuron has for compiling MOD files
-        compilation_flags = self.spec.architecture.target.optimization_flags(self.spec.compiler)
+        compilation_flags = optimization_flags(self.compiler, self.spec.target)
         args.append(self.define("CMAKE_CXX_FLAGS", compilation_flags))
 
         return args

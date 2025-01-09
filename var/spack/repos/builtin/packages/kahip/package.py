@@ -69,6 +69,8 @@ class Kahip(CMakePackage):
     patch("fix-sconstruct-for-py3.patch", when="@2:2.10 ^python@3:")
     patch("fix-sconstruct-for-py3-v2.00.patch", when="@2.00 ^python@3:")
 
+    patch("cstdint.patch", when="@3:")
+
     # 'when' decorators to override new CMake build approach (old build was SConstruct).
     @when("@:2.10")
     def patch(self):

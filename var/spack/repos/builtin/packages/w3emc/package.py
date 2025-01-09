@@ -56,7 +56,6 @@ class W3emc(CMakePackage):
     )
 
     conflicts("+shared +extradeps", msg="Shared library cannot be built with unknown dependencies")
-    conflicts("+shared ~pic", msg="Shared library requires PIC")
 
     depends_on("bufr", when="@2.10: +bufr")
     depends_on("bacio", when="@2.9.2:")
@@ -96,5 +95,5 @@ class W3emc(CMakePackage):
         return args
 
     def check(self):
-        with working_dir(self.builder.build_directory):
+        with working_dir(self.build_directory):
             make("test")

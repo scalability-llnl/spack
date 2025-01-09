@@ -84,7 +84,7 @@ class Bzip2(Package, SourcewarePackage):
         filter_file(r"^CC=gcc", "CC={0}".format(spack_cc), "Makefile-libbz2_so")
 
         # The Makefiles use GCC flags that are incompatible with PGI
-        if self.spec.satisfies("%pgi") or self.spec.satisfies("%nvhpc@:20.11"):
+        if self.spec.satisfies("%nvhpc@:20.11"):
             filter_file("-Wall -Winline", "-Minform=inform", "Makefile")
             filter_file("-Wall -Winline", "-Minform=inform", "Makefile-libbz2_so")
 

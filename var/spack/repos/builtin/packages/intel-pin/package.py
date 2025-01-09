@@ -19,6 +19,26 @@ class IntelPin(Package):
     license("MIT")
 
     version(
+        "3.31",
+        sha256="82216144e3df768f0203b671ff48605314f13266903eb42dac01b91310eba956",
+        url="https://software.intel.com/sites/landingpage/pintool/downloads/pin-external-3.31-98869-gfa6f126a8-gcc-linux.tar.gz",
+    )
+    version(
+        "3.30",
+        sha256="be4f1130445c3fc4d83b7afad85c421d418f60013c33e8ee457bc7c9c194de1b",
+        url="https://software.intel.com/sites/landingpage/pintool/downloads/pin-3.30-98830-g1d7b601b3-gcc-linux.tar.gz",
+    )
+    version(
+        "3.29",
+        sha256="45c2a68d4b2184117584a55db17b44c86f9476e9cb8109b2fae50a965b1ea64f",
+        url="https://software.intel.com/sites/landingpage/pintool/downloads/pin-3.29-98790-g1a445fcd1-gcc-linux.tar.gz",
+    )
+    version(
+        "3.28",
+        sha256="5a5a3337f3f16176b97edcd3366b561936e1068fba4ebcfed4b836d81d45847b",
+        url="https://software.intel.com/sites/landingpage/pintool/downloads/pin-3.28-98749-g6643ecee5-gcc-linux.tar.gz",
+    )
+    version(
         "3.27",
         sha256="e7d44d25668632007d5a109e5033415e91db543b8ce9e665893a05e852b67707",
         url="https://software.intel.com/sites/landingpage/pintool/downloads/pin-3.27-98718-gbeaa5d51e-gcc-linux.tar.gz",

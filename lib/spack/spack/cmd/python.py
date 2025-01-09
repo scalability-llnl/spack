@@ -78,8 +78,8 @@ def python(parser, args, unknown_args):
 
     # Run user choice of interpreter
     if args.python_interpreter == "ipython":
-        return spack.cmd.python.ipython_interpreter(args)
-    return spack.cmd.python.python_interpreter(args)
+        return ipython_interpreter(args)
+    return python_interpreter(args)
 
 
 def ipython_interpreter(args):
@@ -94,7 +94,7 @@ def ipython_interpreter(args):
     if "PYTHONSTARTUP" in os.environ:
         startup_file = os.environ["PYTHONSTARTUP"]
         if os.path.isfile(startup_file):
-            with open(startup_file) as startup:
+            with open(startup_file, encoding="utf-8") as startup:
                 exec(startup.read())
 
     # IPython can also support running a script OR command, not both
@@ -126,7 +126,7 @@ def python_interpreter(args):
         if "PYTHONSTARTUP" in os.environ:
             startup_file = os.environ["PYTHONSTARTUP"]
             if os.path.isfile(startup_file):
-                with open(startup_file) as startup:
+                with open(startup_file, encoding="utf-8") as startup:
                     console.runsource(startup.read(), startup_file, "exec")
         if args.python_command:
             propagate_exceptions_from(console)

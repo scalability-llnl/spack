@@ -63,7 +63,7 @@ class Sw4(MakefilePackage):
                 os.environ["EXTRA_LINK_FLAGS"] += spec["llvm-openmp"].libs.ld_flags + " "
 
         # From spack/trilinos
-        if spec.compiler.name in ["clang", "apple-clang", "gcc"]:
+        if spec.satisfies("%gcc") or spec.satisfies("%clang") or spec.satisfies("%apple-clang"):
             fc = Executable(self.compiler.fc)
             libgfortran = fc("--print-file-name", "libgfortran." + dso_suffix, output=str).strip()
             if libgfortran == "libgfortran." + dso_suffix:

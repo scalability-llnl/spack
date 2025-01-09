@@ -1482,7 +1482,6 @@
         "cldemote",
         "movdir64b",
         "movdiri",
-        "pdcm",
         "serialize",
         "waitpkg"
       ],
@@ -2237,6 +2236,84 @@
 	]
       }
     },
+    "zen5": {
+      "from": ["zen4"],
+      "vendor": "AuthenticAMD",
+      "features": [
+        "abm",
+        "aes",
+        "avx",
+        "avx2",
+        "avx512_bf16",
+        "avx512_bitalg",
+        "avx512bw",
+        "avx512cd",
+        "avx512dq",
+        "avx512f",
+        "avx512ifma",
+        "avx512vbmi",
+        "avx512_vbmi2",
+        "avx512vl",
+        "avx512_vnni",
+        "avx512_vp2intersect",
+        "avx512_vpopcntdq",
+        "avx_vnni",
+        "bmi1",
+        "bmi2",
+        "clflushopt",
+        "clwb",
+        "clzero",
+        "cppc",
+        "cx16",
+        "f16c",
+        "flush_l1d",
+        "fma",
+        "fsgsbase",
+        "gfni",
+        "ibrs_enhanced",
+        "mmx",
+        "movbe",
+        "movdir64b",
+        "movdiri",
+        "pclmulqdq",
+        "popcnt",
+        "rdseed",
+        "sse",
+        "sse2",
+        "sse4_1",
+        "sse4_2",
+        "sse4a",
+        "ssse3",
+        "tsc_adjust",
+        "vaes",
+        "vpclmulqdq",
+        "xsavec",
+        "xsaveopt"
+      ],
+      "compilers": {
+        "gcc": [
+          {
+            "versions": "14.1:",
+            "name": "znver5",
+            "flags": "-march={name} -mtune={name}"
+          }
+        ],
+        "aocc": [
+          {
+            "versions": "5.0:",
+            "name": "znver5",
+            "flags": "-march={name} -mtune={name}"
+          }
+        ],
+        "clang": [
+          {
+            "versions": "19.1:",
+            "name": "znver5",
+            "flags": "-march={name} -mtune={name}"
+          }
+        ]
+      }
+    },
     "ppc64": {
       "from": [],
       "vendor": "generic",
@@ -2844,8 +2921,7 @@
           "asimdrdm",
           "lrcpc",
           "dcpop",
-          "asimddp",
-          "ssbs"
+          "asimddp"
       ],
       "compilers" : {
           "gcc": [
@@ -2942,7 +3018,6 @@
           "uscat",
           "ilrcpc",
           "flagm",
-          "ssbs",
           "dcpodp",
           "svei8mm",
           "svebf16",
@@ -3010,7 +3085,7 @@
               },
               {
                   "versions": "11:",
-                  "flags" : "-march=armv8.4-a+sve+ssbs+fp16+bf16+crypto+i8mm+rng"
+                  "flags" : "-march=armv8.4-a+sve+fp16+bf16+crypto+i8mm+rng"
               },
               {
                   "versions": "12:",
@@ -3066,7 +3141,6 @@
 	  "uscat",
 	  "ilrcpc",
 	  "flagm",
-	  "ssbs",
 	  "sb",
 	  "dcpodp",
 	  "sve2",
@@ -3179,7 +3253,6 @@
 	  "uscat",
 	  "ilrcpc",
 	  "flagm",
-	  "ssbs",
 	  "sb",
 	  "dcpodp",
 	  "sve2",

@@ -75,7 +75,7 @@ class Freefem(AutotoolsPackage):
             "CXXFLAGS=%s" % " ".join(spec.compiler_flags["cxxflags"]),
         ]
 
-        if "+petsc" in spec:
+        if spec.satisfies("+petsc"):
             options.append("--with-petsc=%s" % spec["petsc"].prefix.lib.petsc.conf.petscvariables)
             options.append("--with-slepc-ldflags=%s" % spec["slepc"].libs.ld_flags)
             options.append("--with-slepc-include=%s" % spec["slepc"].headers.include_flags)

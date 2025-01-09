@@ -83,7 +83,7 @@ class Wgl(Package):
         return variants
 
     def _spec_arch_to_sdk_arch(self):
-        spec_arch = str(self.spec.architecture.target.microarchitecture.family).lower()
+        spec_arch = str(self.spec.architecture.target.family).lower()
         _64bit = "64" in spec_arch
         arm = "arm" in spec_arch
         if arm:

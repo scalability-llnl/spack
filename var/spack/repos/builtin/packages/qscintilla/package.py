@@ -137,11 +137,12 @@ class Qscintilla(QMakePackage):
             make("install", "-C", "build/")
 
     def test_python_import(self):
-        if "+python" in self.spec:
-            python = self.spec["python"].command
-            if "^py-pyqt5" in self.spec:
-                python("-c", "import PyQt5.Qsci")
-            if "^py-pyqt6" in self.spec:
-                python("-c", "import PyQt6.Qsci")
-        else:
-            print("qscintilla ins't built with python, skipping import test")
+        """check Qsci import"""
+        if self.spec.satisfies("~python"):
+            raise SkipTest("Package must be installed with +python")
+
+        python = self.spec["python"].command
+        if "^py-pyqt5" in self.spec:
+            python("-c", "import PyQt5.Qsci")
+        if "^py-pyqt6" in self.spec:
+            python("-c", "import PyQt6.Qsci")

@@ -43,6 +43,12 @@ class Dakota(CMakePackage):
     license("LGPL-2.1-or-later")
 
     version(
+        "6.20.0",
+        tag="v6.20.0",
+        commit="494027b37264ec9268f2de8649d071de0232c534",
+        submodules=submodules,
+    )
+    version(
         "6.19.0",
         tag="v6.19.0",
         commit="603f448b916a8f629d258922e26e7e40dcaaf8ce",
@@ -58,9 +64,9 @@ class Dakota(CMakePackage):
     version("6.9", sha256="989b689278964b96496e3058b8ef5c2724d74bcd232f898fe450c51eba7fe0c2")
     version("6.3", sha256="0fbc310105860d77bb5c96de0e8813d75441fca1a5e6dfaf732aa095c4488d52")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
 
     variant("shared", default=True, description="Enables the build of shared libraries")
     variant("mpi", default=True, description="Activates MPI support")
@@ -76,7 +82,7 @@ class Dakota(CMakePackage):
     depends_on("python", when="+python")
     depends_on("perl-data-dumper", type="build", when="@6.12:")
     depends_on("boost@:1.68.0", when="@:6.12")
-    depends_on("boost@1.69.0:", when="@6.18:")
+    depends_on("boost@1.69.0:1.84.0", when="@6.18:6.20")
     depends_on("boost +filesystem +program_options +regex +serialization +system")
 
     # TODO: replace this with an explicit list of components of Boost,
@@ -86,6 +92,19 @@ class Dakota(CMakePackage):
     depends_on("cmake@2.8.9:", type="build")
     depends_on("cmake@3.17:", type="build", when="@6.18:")
 
+    # dakota@:6.20 don't compile with gcc@13, and it is currently the latest version:
+    conflicts("%gcc@13:")
+    # dakota@:6.12 don't compile with gcc@12:
+    conflicts("%gcc@12:", when="@:6.12")
+    # dakota@:6.9 don't compile with gcc@11:
+    conflicts("%gcc@11:", when="@:6.9")
+
+    def flag_handler(self, name, flags):
+        # from gcc@10, dakota@:6.12 need an extra flag
+        if self.spec.satisfies("@:6.12 %gcc@10:") and name == "fflags":
+            flags.append("-fallow-argument-mismatch")
+        return (flags, None, None)
+
     def cmake_args(self):
         spec = self.spec
 
@@ -94,7 +113,7 @@ class Dakota(CMakePackage):
             self.define_from_variant("DAKOTA_PYTHON", "python"),
         ]
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             args.extend(
                 [
                     "-DDAKOTA_HAVE_MPI:BOOL=ON",

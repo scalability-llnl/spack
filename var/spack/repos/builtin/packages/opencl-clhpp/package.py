@@ -27,7 +27,8 @@ class OpenclClhpp(CMakePackage):
     version("2.0.10", sha256="fa27456295c3fa534ce824eb0314190a8b3ebd3ba4d93a0b1270fc65bf378f2b")
     version("2.0.9", sha256="ba8ac4977650d833804f208a1b0c198006c65c5eac7c83b25dc32cea6199f58c")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     root_cmakelists_dir = "include"
 

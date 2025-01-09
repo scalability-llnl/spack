@@ -40,9 +40,9 @@ packages:
       jpeg: [libjpeg-turbo, libjpeg]
       lapack: [openblas, amdlibflame]
       libc: [glibc, musl]
-      libgfortran: [ gcc-runtime ]
+      libgfortran: [gcc-runtime]
       libglx: [mesa+glx]
-      libifcore: [ intel-oneapi-runtime ]
+      libifcore: [intel-oneapi-runtime]
       libllvm: [llvm]
       lua-lang: [lua, lua-luajit-openresty, lua-luajit]
       luajit: [lua-luajit-openresty, lua-luajit]
@@ -72,3 +72,15 @@ packages:
     permissions:
       read: world
       write: user
+  cray-mpich:
+    buildable: false
+  cray-mvapich2:
+    buildable: false
+  egl:
+    buildable: false
+  fujitsu-mpi:
+    buildable: false
+  hpcx-mpi:
+    buildable: false
+  spectrum-mpi:
+    buildable: false

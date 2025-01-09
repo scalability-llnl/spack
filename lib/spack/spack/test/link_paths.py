@@ -30,7 +30,7 @@ def allow_nonexistent_paths(monkeypatch):
 
 
 def check_link_paths(filename, paths):
-    with open(os.path.join(datadir, filename)) as file:
+    with open(os.path.join(datadir, filename), encoding="utf-8") as file:
         output = file.read()
     detected_paths = _parse_non_system_link_dirs(output)
 
@@ -65,17 +65,6 @@ def test_icc16_link_paths():
                 prefix, "gcc", "gcc-4.9.3", "lib64", "gcc", "x86_64-unknown-linux-gnu", "4.9.3"
             ),
             os.path.join(prefix, "gcc", "gcc-4.9.3", "lib64"),
-        ],
-    )
-
-
-def test_pgi_link_paths():
-    check_link_paths(
-        "pgcc-16.3.txt",
-        [
-            os.path.join(
-                root, "usr", "tce", "packages", "pgi", "pgi-16.3", "linux86-64", "16.3", "lib"
-            )
         ],
     )
 

@@ -30,7 +30,8 @@ class Fftx(CMakePackage, CudaPackage, ROCmPackage):
     version("1.1.0", sha256="a6f95605abc11460bbf51839727a456a31488e27e12a970fc29a1b8c42f4e3b5")
     version("1.0.3", sha256="b5ff275facce4a2fbabd0aecc65dd55b744794f2e07cd8cfa91363001c664896")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     depends_on("spiral-software+fftx+simt+jit+mpi")
     # depend only on spiral-software, but spiral-software must be installed with variants:
@@ -43,9 +44,9 @@ class Fftx(CMakePackage, CudaPackage, ROCmPackage):
         #  What config should be built -- driven by spec
         spec = self.spec
         backend = "CPU"
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             backend = "CUDA"
-        if "+rocm" in spec:
+        if spec.satisfies("+rocm"):
             backend = "HIP"
         self.build_config = "-D_codegen=%s" % backend
 
@@ -58,7 +59,7 @@ class Fftx(CMakePackage, CudaPackage, ROCmPackage):
         spec = self.spec
         args = ["-DSPIRAL_HOME:STRING={0}".format(spec["spiral-software"].prefix)]
         args.append("-DCMAKE_INSTALL_PREFIX:PATH={0}".format(self.prefix))
-        if "+rocm" in spec:
+        if spec.satisfies("+rocm"):
             args.append("-DCMAKE_CXX_COMPILER={0}".format(self.spec["hip"].hipcc))
         args.append(self.build_config)
 

@@ -28,6 +28,8 @@ class Mrbayes(AutotoolsPackage):
         "readline", default=False, description="Enable readline library, not recommended with MPI"
     )
 
+    conflicts("+readline", when="+mpi", msg="MPI and readline support are exclusive")
+
     depends_on("libbeagle", when="+beagle")
     depends_on("mpi", when="+mpi")
     depends_on("readline", when="+readline")

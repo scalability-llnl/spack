@@ -25,4 +25,4 @@ class RRcppprogress(RPackage):
 
     depends_on("cxx", type="build")  # generated
 
-    depends_on("r-rcpp@0.9.4:", type=("build", "run"), when="@:0.4")
+    depends_on("r-rcpp@0.9.4:", type=("build", "run"), when="@:0.4.0")

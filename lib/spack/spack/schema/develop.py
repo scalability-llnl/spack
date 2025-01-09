@@ -13,6 +13,7 @@ properties: Dict[str, Any] = {
             r"\w[\w-]*": {
                 "type": "object",
                 "additionalProperties": False,
+                "required": ["spec"],
                 "properties": {"spec": {"type": "string"}, "path": {"type": "string"}},
             }
         },

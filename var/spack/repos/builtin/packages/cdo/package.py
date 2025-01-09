@@ -21,6 +21,16 @@ class Cdo(AutotoolsPackage):
     maintainers("skosukhin", "Try2Code")
 
     version(
+        "2.4.4",
+        sha256="49f50bd18dacd585e9518cfd4f55548f692426edfb3b27ddcd1c653eab53d063",
+        url="https://code.mpimet.mpg.de/attachments/download/29649/cdo-2.4.4.tar.gz",
+    )
+    version(
+        "2.4.3",
+        sha256="4a608b70ee1907b45e149ad44033bb47d35b7da96096553193bd362ca9d445eb",
+        url="https://code.mpimet.mpg.de/attachments/download/29616/cdo-2.4.3.tar.gz",
+    )
+    version(
         "2.4.2",
         sha256="4df1fe2b8f92f54c27eb9f399edfab40d9322005a6732ca1524ef5c1627ac4e7",
         url="https://code.mpimet.mpg.de/attachments/download/29481/cdo-2.4.2.tar.gz",
@@ -164,6 +174,20 @@ class Cdo(AutotoolsPackage):
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
     depends_on("fortran", type="build")  # generated
+
+    # patches
+    # see https://code.mpimet.mpg.de/boards/1/topics/15594
+    patch(
+        "add_algorithm_header.patch",
+        when="@2.4.0:2.4.2 %gcc@14:",
+        sha256="0bc20d2fcb14d8e4010d4222297f259eb7b4220effd97555ed3f027e63cf8b30",
+    )
+    patch(
+        "add_algorithm_header_222.patch",
+        when="@2.2.2:2.3.0 %gcc@14:",
+        sha256="db0d9bd32bbee01d914c1dbebd751403e9c918fafd540fd6ecc6a2f27e0900cf",
+    )
+    conflicts("%gcc@14:", when="@:2.2.0", msg="Compilation with gcc@14: requires cdo@2.2.2:")
 
     variant("netcdf", default=True, description="Enable NetCDF support")
     variant(

@@ -15,17 +15,11 @@ from urllib.request import Request
 
 import llnl.util.tty as tty
 
-import spack.binary_distribution
-import spack.config
-import spack.error
 import spack.fetch_strategy
-import spack.mirror
+import spack.mirrors.layout
+import spack.mirrors.mirror
 import spack.oci.opener
-import spack.repo
-import spack.spec
 import spack.stage
-import spack.traverse
-import spack.util.crypto
 import spack.util.url
 
 from .image import Digest, ImageReference
@@ -35,11 +29,6 @@ class Blob(NamedTuple):
     compressed_digest: Digest
     uncompressed_digest: Digest
     size: int
-
-
-def create_tarball(spec: spack.spec.Spec, tarfile_path):
-    buildinfo = spack.binary_distribution.get_buildinfo_dict(spec)
-    return spack.binary_distribution._do_create_tarball(tarfile_path, spec.prefix, buildinfo)
 
 
 def with_query_param(url: str, param: str, value: str) -> str:
@@ -225,7 +214,7 @@ def upload_manifest(
     return digest, size
 
 
-def image_from_mirror(mirror: spack.mirror.Mirror) -> ImageReference:
+def image_from_mirror(mirror: spack.mirrors.mirror.Mirror) -> ImageReference:
     """Given an OCI based mirror, extract the URL and image name from it"""
     url = mirror.push_url
     if not url.startswith("oci://"):
@@ -397,5 +386,8 @@ def make_stage(
     # is the `oci-layout` and `index.json` files, which are
     # required by the spec.
     return spack.stage.Stage(
-        fetch_strategy, mirror_paths=spack.mirror.OCILayout(digest), name=digest.digest, keep=keep
+        fetch_strategy,
+        mirror_paths=spack.mirrors.layout.OCILayout(digest),
+        name=digest.digest,
+        keep=keep,
     )

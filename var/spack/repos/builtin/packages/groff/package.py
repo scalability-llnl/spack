@@ -82,7 +82,7 @@ class Groff(AutotoolsPackage, GNUMirrorPackage):
     def configure_args(self):
         args = ["--disable-silent-rules"]
         args.extend(self.with_or_without("x"))
-        if "@1.22.4:" in self.spec:
+        if self.spec.satisfies("@1.22.4:"):
             args.extend(self.with_or_without("uchardet"))
         if self.spec["iconv"].name == "libiconv":
             args.append(f"--with-libiconv-prefix={self.spec['iconv'].prefix}")

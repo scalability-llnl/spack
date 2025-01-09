@@ -20,6 +20,7 @@ class RRanger(RPackage):
 
     license("GPL-3.0-only")
 
+    version("0.16.0", sha256="0395f93afdb807a7882c1fa8f183a26a871c5168ea0903566951298ef1138589")
     version("0.15.1", sha256="4d65d9ee7c5f2704a0e303a27222c02aa53e49f3c28dc0b4451371e37ada2b2e")
     version("0.14.1", sha256="5d99401d555da1cfb11c70e59d1bb545ce48720073a06a2a32eb396f622dee1b")
     version("0.13.1", sha256="60934f0accc21edeefddbb4ddebfdd7cd10a3d3e90b31aa2e6e4b7f50d632d0a")

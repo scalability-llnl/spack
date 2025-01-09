@@ -21,6 +21,26 @@ from spack.util.prefix import Prefix
 #  - package key must be in the form '{os}-{arch}' where 'os' is in the
 #    format returned by platform.system() and 'arch' by platform.machine()
 _versions = {
+    "24.11": {
+        "Linux-aarch64": (
+            "f2f64e5dec5e90dad5e12a31a992172b0aa19abf872ef1c54a1a437c7008eefb",
+            "https://developer.download.nvidia.com/hpc-sdk/24.11/nvhpc_2024_2411_Linux_aarch64_cuda_multi.tar.gz",
+        ),
+        "Linux-x86_64": (
+            "0c27d66ed0e2d3007d30ac904922a9abf96475197dc0f4dcc6316d235a1dc0c3",
+            "https://developer.download.nvidia.com/hpc-sdk/24.11/nvhpc_2024_2411_Linux_x86_64_cuda_multi.tar.gz",
+        ),
+    },
+    "24.9": {
+        "Linux-aarch64": (
+            "8d900f798ef806c64993fd4fedf2c2c812dd1ccdbac2a0d33fabcd0cd36f19cf",
+            "https://developer.download.nvidia.com/hpc-sdk/24.9/nvhpc_2024_249_Linux_aarch64_cuda_multi.tar.gz",
+        ),
+        "Linux-x86_64": (
+            "30c493350cf67481e84cea60a3a869e01fa0bcb71df8e898266273fbdf0a7f26",
+            "https://developer.download.nvidia.com/hpc-sdk/24.9/nvhpc_2024_249_Linux_x86_64_cuda_multi.tar.gz",
+        ),
+    },
     "24.7": {
         "Linux-aarch64": (
             "256ae392ed961162f3f6dc633498db2b68441103a6192f5d4a1c18fa96e992e7",
@@ -406,7 +426,7 @@ class Nvhpc(Package, CompilerPackage):
     homepage = "https://developer.nvidia.com/hpc-sdk"
 
     maintainers("samcmill")
-    tags = ["e4s"]
+    tags = ["e4s", "compiler"]
 
     skip_version_audit = ["platform=darwin", "platform=windows"]
 

@@ -1,0 +1,26 @@
+
+m 70c457c9d087f83e5587c0d2f65a284a5cbafa1e Mon Sep 17 00:00:00 2001
+From: Afzal Patel <Afzal.Patel@amd.com>
+Date: Wed, 14 Aug 2024 16:58:27 +0000
+Subject: [PATCH] Use clang version 18
+
+---
+ test/CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/test/CMakeLists.txt b/test/CMakeLists.txt
+index 95563d5..c9a50b9 100644
+--- a/test/CMakeLists.txt
++++ b/test/CMakeLists.txt
+@@ -34,7 +34,7 @@ if(DEFINED ROCM_PATH)
+ endif()
+ find_package(HIP REQUIRED MODULE)
+
+-find_package(Clang REQUIRED CONFIG
++find_package(Clang 18 REQUIRED CONFIG
+              PATHS "${ROCM_PATH}"
+              PATH_SUFFIXES "llvm/lib/cmake/clang")
+
+--
+2.43.5
+

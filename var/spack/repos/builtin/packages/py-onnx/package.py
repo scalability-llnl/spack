@@ -19,8 +19,9 @@ class PyOnnx(PythonPackage):
     homepage = "https://github.com/onnx/onnx"
     pypi = "Onnx/onnx-1.6.0.tar.gz"
 
-    license("Apache-2.0")
+    license("Apache-2.0", checked_by="wdconinc")
 
+    version("1.16.2", sha256="b33a282b038813c4b69e73ea65c2909768e8dd6cc10619b70632335daf094646")
     version("1.16.1", sha256="8299193f0f2a3849bfc069641aa8e4f93696602da8d165632af8ee48ec7556b6")
     version("1.16.0", sha256="237c6987c6c59d9f44b6136f5819af79574f8d96a760a1fa843bede11f3822f7")
     version("1.15.0", sha256="b18461a7d38f286618ca2a6e78062a2a9c634ce498e631e708a8041b00094825")
@@ -35,7 +36,8 @@ class PyOnnx(PythonPackage):
     version("1.6.0", sha256="3b88c3fe521151651a0403c4d131cb2e0311bd28b753ef692020a432a81ce345")
     version("1.5.0", sha256="1a584a4ef62a6db178c257fffb06a9d8e61b41c0a80bfd8bcd8a253d72c4b0b4")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     # CMakeLists.txt
     depends_on("cmake@3.1:", type="build")
@@ -44,6 +46,7 @@ class PyOnnx(PythonPackage):
     # requirements.txt
     depends_on("py-setuptools@64:", type="build")
     depends_on("py-setuptools", type="build")
+    depends_on("protobuf")
     depends_on("py-protobuf@3.20.2:", type=("build", "run"), when="@1.15:")
     depends_on("py-protobuf@3.20.2:3", type=("build", "run"), when="@1.13")
     depends_on("py-protobuf@3.12.2:3.20.1", type=("build", "run"), when="@1.12")
@@ -55,10 +58,11 @@ class PyOnnx(PythonPackage):
     # https://github.com/protocolbuffers/protobuf/pull/8794, fixed in
     # https://github.com/onnx/onnx/pull/3112
     depends_on("py-protobuf@:3.17", type=("build", "run"), when="@:1.8")
-    depends_on("py-protobuf+cpp", type=("build", "run"))
     depends_on("py-numpy", type=("build", "run"))
     depends_on("py-numpy@1.16.6:", type=("build", "run"), when="@1.8.1:1.13")
     depends_on("py-numpy@1.20:", type=("build", "run"), when="@1.16.0:")
+    depends_on("py-numpy@1.21:", type=("build", "run"), when="@1.16.2:")
+    depends_on("py-numpy@:1", type=("build", "run"), when="@:1.16")
 
     # Historical dependencies
     depends_on("py-six", type=("build", "run"), when="@:1.8.1")
@@ -67,3 +71,31 @@ class PyOnnx(PythonPackage):
 
     # 'python_out' does not recognize dllexport_decl.
     patch("remove_dllexport_decl.patch", when="@:1.6.0")
+
+    # Switch the CMAKE_CXX_STANDARD to 17 if abseil-cpp has been built with
+    # either of those. (abseil-cpp is pulled in via protobuf)
+    patch(
+        "https://github.com/onnx/onnx/commit/1f6e43cb4d7366b2dffa7f70ae88198306e12c6c.patch?full_index=1",
+        sha256="be12f589bc4113982e4162efcdbd95835a6c161a9a7e10cd1dde026cadedf8aa",
+        when="@1.15.0 ^abseil-cpp cxxstd=17",
+    )
+    patch(
+        "https://github.com/onnx/onnx/commit/1f6e43cb4d7366b2dffa7f70ae88198306e12c6c.patch?full_index=1",
+        sha256="be12f589bc4113982e4162efcdbd95835a6c161a9a7e10cd1dde026cadedf8aa",
+        when="@1.15.0 ^abseil-cpp cxxstd=20",
+    )
+
+    # By default, ONNX always uses .setuptools-cmake-build/ under the source path,
+    # so we allow overriding with a build environment variable
+    def patch(self):
+        filter_file(
+            r"^CMAKE_BUILD_DIR = (.*)$",
+            r"CMAKE_BUILD_DIR = os.getenv('CMAKE_BUILD_DIR', default=\1)",
+            "setup.py",
+        )
+
+    def setup_build_environment(self, env):
+        # Build in a similar directory as the CMake packages
+        env.set(
+            "CMAKE_BUILD_DIR", join_path(self.stage.path, f"spack-build-{self.spec.dag_hash(7)}")
+        )

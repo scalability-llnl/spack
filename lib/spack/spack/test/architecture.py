@@ -8,11 +8,9 @@ import pytest
 
 import archspec.cpu
 
-import spack.compilers
 import spack.concretize
 import spack.operating_systems
 import spack.platforms
-import spack.target
 from spack.spec import ArchSpec, Spec
 
 
@@ -84,25 +82,6 @@ def test_operating_system_conversion_to_dict():
 
 
 @pytest.mark.parametrize(
-    "cpu_flag,target_name",
-    [
-        # Test that specific flags can be used in queries
-        ("ssse3", "haswell"),
-        ("popcnt", "nehalem"),
-        ("avx512f", "skylake_avx512"),
-        ("avx512ifma", "icelake"),
-        # Test that proxy flags can be used in queries too
-        ("sse3", "nehalem"),
-        ("avx512", "skylake_avx512"),
-        ("avx512", "icelake"),
-    ],
-)
-def test_target_container_semantic(cpu_flag, target_name):
-    target = spack.target.Target(target_name)
-    assert cpu_flag in target
-
-
-@pytest.mark.parametrize(
     "item,architecture_str",
     [
         # We can search the architecture string representation
@@ -116,67 +95,6 @@ def test_target_container_semantic(cpu_flag, target_name):
 def test_arch_spec_container_semantic(item, architecture_str):
     architecture = ArchSpec(architecture_str)
     assert item in architecture
-
-
-@pytest.mark.parametrize(
-    "compiler_spec,target_name,expected_flags",
-    [
-        # Homogeneous compilers
-        ("gcc@4.7.2", "ivybridge", "-march=core-avx-i -mtune=core-avx-i"),
-        ("clang@3.5", "x86_64", "-march=x86-64 -mtune=generic"),
-        ("apple-clang@9.1.0", "x86_64", "-march=x86-64"),
-        # Mixed toolchain
-        ("clang@8.0.0", "broadwell", ""),
-    ],
-)
-@pytest.mark.filterwarnings("ignore:microarchitecture specific")
-def test_optimization_flags(compiler_spec, target_name, expected_flags, compiler_factory):
-    target = spack.target.Target(target_name)
-    compiler_dict = compiler_factory(spec=compiler_spec, operating_system="")["compiler"]
-    if compiler_spec == "clang@8.0.0":
-        compiler_dict["paths"] = {
-            "cc": "/path/to/clang-8",
-            "cxx": "/path/to/clang++-8",
-            "f77": "/path/to/gfortran-9",
-            "fc": "/path/to/gfortran-9",
-        }
-    compiler = spack.compilers.compiler_from_dict(compiler_dict)
-
-    opt_flags = target.optimization_flags(compiler)
-    assert opt_flags == expected_flags
-
-
-@pytest.mark.parametrize(
-    "compiler_str,real_version,target_str,expected_flags",
-    [
-        ("gcc@=9.2.0", None, "haswell", "-march=haswell -mtune=haswell"),
-        # Check that custom string versions are accepted
-        ("gcc@=10foo", "9.2.0", "icelake", "-march=icelake-client -mtune=icelake-client"),
-        # Check that we run version detection (4.4.0 doesn't support icelake)
-        ("gcc@=4.4.0-special", "9.2.0", "icelake", "-march=icelake-client -mtune=icelake-client"),
-        # Check that the special case for Apple's clang is treated correctly
-        # i.e. it won't try to detect the version again
-        ("apple-clang@=9.1.0", None, "x86_64", "-march=x86-64"),
-    ],
-)
-def test_optimization_flags_with_custom_versions(
-    compiler_str,
-    real_version,
-    target_str,
-    expected_flags,
-    monkeypatch,
-    mutable_config,
-    compiler_factory,
-):
-    target = spack.target.Target(target_str)
-    compiler_dict = compiler_factory(spec=compiler_str, operating_system="redhat6")
-    mutable_config.set("compilers", [compiler_dict])
-    if real_version:
-        monkeypatch.setattr(spack.compiler.Compiler, "get_real_version", lambda x: real_version)
-    compiler = spack.compilers.compiler_from_dict(compiler_dict["compiler"])
-
-    opt_flags = target.optimization_flags(compiler)
-    assert opt_flags == expected_flags
 
 
 @pytest.mark.regression("15306")

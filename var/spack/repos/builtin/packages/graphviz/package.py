@@ -15,7 +15,7 @@ MACOS_VERSION = macos_version() if sys.platform == "darwin" else None
 class Graphviz(AutotoolsPackage):
     """Graph Visualization Software"""
 
-    homepage = "http://www.graphviz.org"
+    homepage = "https://www.graphviz.org"
     git = "https://gitlab.com/graphviz/graphviz.git"
     url = "https://gitlab.com/graphviz/graphviz/-/archive/2.46.0/graphviz-2.46.0.tar.bz2"
 
@@ -164,7 +164,7 @@ class Graphviz(AutotoolsPackage):
         # Set MACOSX_DEPLOYMENT_TARGET to 10.x due to old configure
         super().setup_build_environment(env)
 
-        if "+quartz" in self.spec:
+        if self.spec.satisfies("+quartz"):
             env.set("OBJC", self.compiler.cc)
 
     @when("%clang platform=darwin")
@@ -209,7 +209,7 @@ class Graphviz(AutotoolsPackage):
                 args.append("--with-{0}includedir={1}".format(var, spec[var].prefix.include))
                 args.append("--with-{0}libdir={1}".format(var, spec[var].prefix.lib))
 
-        if "+zlib" in spec:
+        if spec.satisfies("+zlib"):
             args.append("--with-zlibincludedir={}".format(spec["zlib-api"].prefix.include))
             args.append("--with-zliblibdir={}".format(spec["zlib-api"].prefix.lib))
 

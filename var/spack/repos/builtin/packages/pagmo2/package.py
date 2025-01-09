@@ -22,7 +22,8 @@ class Pagmo2(CMakePackage):
     version("master", branch="master")
     version("2.18.0", sha256="5ad40bf3aa91857a808d6b632d9e1020341a33f1a4115d7a2b78b78fd063ae31")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     depends_on("boost+system+serialization+thread")
     depends_on("intel-tbb")

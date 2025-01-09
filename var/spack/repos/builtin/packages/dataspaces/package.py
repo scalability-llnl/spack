@@ -52,7 +52,7 @@ class Dataspaces(AutotoolsPackage):
 
         env.set("CFLAGS", self.compiler.cc_pic_flag)
 
-        if "%gcc@10:" in self.spec:
+        if self.spec.satisfies("%gcc@10:"):
             env.set("FCFLAGS", "-fallow-argument-mismatch")
 
     def configure_args(self):

@@ -15,6 +15,7 @@ class RPlotrix(RPackage):
 
     license("GPL-2.0-or-later")
 
+    version("3.8-4", sha256="e6a22d93ab61c67af21cbbe1fe333c06934cf576a44745bf2beee59bceaae8d6")
     version("3.8-2", sha256="bb72953102889cea41cd6521874e35d2458ebd10aab97ba6f262e102cac0bc1f")
     version("3.7-8", sha256="8ccd1f7e656413b9956cea614c986ce9cc61366deba356afb38cee6672a59480")
     version("3.7-6", sha256="83d5f7574592953288b4fe39c4c0dd7670d097598ad7f6bddbb0687a32954e46")

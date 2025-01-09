@@ -11,7 +11,7 @@ class PyNetpyne(PythonPackage):
     parallel simulation, optimization and analysis of multiscale
     biological neuronal networks in NEURON."""
 
-    homepage = "http://www.netpyne.org/"
+    homepage = "https://www.netpyne.org/"
     url = "https://github.com/suny-downstate-medical-center/netpyne/archive/refs/tags/v1.0.3.1.tar.gz"
     git = "https://github.com/suny-downstate-medical-center/netpyne.git"
 

@@ -32,6 +32,8 @@ class Plumed(AutotoolsPackage):
 
     version("master", branch="master")
 
+    version("2.9.2", sha256="301fbc958374f81d9b8c7a1eac73095f6dded52cce73ce33d64bdbebf51ac63d")
+    version("2.9.1", sha256="e24563ad1eb657611918e0c978d9c5212340f128b4f1aa5efbd439a0b2e91b58")
     version("2.9.0", sha256="612d2387416b5f82dd8545709921440370e144fd46cef633654cf0ee43bac5f8")
 
     version("2.8.3", sha256="e98da486e252cdf290b0b5b2f3f021409ea0d2d775ab609a6ad68fc1ab143a3b")
@@ -260,8 +262,8 @@ class Plumed(AutotoolsPackage):
     def patch(self):
         # Ensure Spack's wrappers are used to compile the Python interface
         env = (
-            'CXX={0} LDSHARED="{0} -pthread -shared" '
-            'LDCXXSHARED="{0} -pthread -shared"'.format(spack_cxx)
+            'CC="{0}" LDSHARED="{0} -pthread -shared" '
+            'CXX="{1}" LDCXXSHARED="{1} -pthread -shared"'.format(spack_cc, spack_cxx)
         )
         filter_file(
             "plumed_program_name=plumed",

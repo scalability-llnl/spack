@@ -13,11 +13,12 @@ from glob import glob
 import llnl.util.tty as tty
 from llnl.util.filesystem import working_dir
 
-import spack.config
+import spack
 import spack.paths
 import spack.platforms
+import spack.spec
+import spack.store
 import spack.util.git
-from spack.main import get_version
 from spack.util.executable import which
 
 description = "debugging commands for troubleshooting Spack"
@@ -89,7 +90,7 @@ def report(args):
     host_os = host_platform.operating_system("frontend")
     host_target = host_platform.target("frontend")
     architecture = spack.spec.ArchSpec((str(host_platform), str(host_os), str(host_target)))
-    print("* **Spack:**", get_version())
+    print("* **Spack:**", spack.get_version())
     print("* **Python:**", platform.python_version())
     print("* **Platform:**", architecture)
 

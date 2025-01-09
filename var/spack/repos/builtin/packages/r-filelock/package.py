@@ -16,8 +16,7 @@ class RFilelock(RPackage):
 
     license("MIT")
 
+    version("1.0.3", sha256="2dcd0ec453f5ec4d96f69b0c472569d57d3c5f9956a82a48492ee02f12071137")
     version("1.0.2", sha256="ac2915950789b16c43a625a2b8dab6ba423588db4a7d0daa75b74518b82b1403")
 
-    depends_on("r-callr@2.0.0:", type=("build", "run"))
-    depends_on("r-covr", type=("build", "run"))
-    depends_on("r-testthat", type=("build", "run"))
+    depends_on("r@3.4:", type=("build", "run"), when="@1.0.3:")

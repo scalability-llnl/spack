@@ -2,7 +2,6 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import inspect
 import itertools
 import os
 import re
@@ -10,18 +9,20 @@ import sys
 
 import pytest
 
+import spack.binary_distribution
 import spack.cmd
 import spack.platforms.test
+import spack.repo
 import spack.spec
-import spack.variant
-from spack.parser import (
+from spack.spec_parser import (
     UNIX_FILENAME,
     WINDOWS_FILENAME,
     SpecParser,
+    SpecParsingError,
     SpecTokenizationError,
-    Token,
-    TokenType,
+    SpecTokens,
 )
+from spack.tokenize import Token
 
 FAIL_ON_WINDOWS = pytest.mark.xfail(
     sys.platform == "win32",
@@ -36,7 +37,7 @@ FAIL_ON_UNIX = pytest.mark.xfail(
 
 def simple_package_name(name):
     """A simple package name in canonical form"""
-    return name, [Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value=name)], name
+    return name, [Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value=name)], name
 
 
 def dependency_with_version(text):
@@ -45,17 +46,17 @@ def dependency_with_version(text):
     return (
         text,
         [
-            Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value=root.strip()),
-            Token(TokenType.DEPENDENCY, value="^"),
-            Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value=dependency.strip()),
-            Token(TokenType.VERSION, value=f"@{version}"),
+            Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value=root.strip()),
+            Token(SpecTokens.DEPENDENCY, value="^"),
+            Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value=dependency.strip()),
+            Token(SpecTokens.VERSION, value=f"@{version}"),
         ],
         text,
     )
 
 
 def compiler_with_version_range(text):
-    return text, [Token(TokenType.COMPILER_AND_VERSION, value=text)], text
+    return text, [Token(SpecTokens.COMPILER_AND_VERSION, value=text)], text
 
 
 @pytest.fixture()
@@ -87,40 +88,40 @@ def specfile_for(default_mock_concretization):
         simple_package_name("3dtk"),
         simple_package_name("ns-3-dev"),
         # Single token anonymous specs
-        ("%intel", [Token(TokenType.COMPILER, value="%intel")], "%intel"),
-        ("@2.7", [Token(TokenType.VERSION, value="@2.7")], "@2.7"),
-        ("@2.7:", [Token(TokenType.VERSION, value="@2.7:")], "@2.7:"),
-        ("@:2.7", [Token(TokenType.VERSION, value="@:2.7")], "@:2.7"),
-        ("+foo", [Token(TokenType.BOOL_VARIANT, value="+foo")], "+foo"),
-        ("~foo", [Token(TokenType.BOOL_VARIANT, value="~foo")], "~foo"),
-        ("-foo", [Token(TokenType.BOOL_VARIANT, value="-foo")], "~foo"),
+        ("%intel", [Token(SpecTokens.COMPILER, value="%intel")], "%intel"),
+        ("@2.7", [Token(SpecTokens.VERSION, value="@2.7")], "@2.7"),
+        ("@2.7:", [Token(SpecTokens.VERSION, value="@2.7:")], "@2.7:"),
+        ("@:2.7", [Token(SpecTokens.VERSION, value="@:2.7")], "@:2.7"),
+        ("+foo", [Token(SpecTokens.BOOL_VARIANT, value="+foo")], "+foo"),
+        ("~foo", [Token(SpecTokens.BOOL_VARIANT, value="~foo")], "~foo"),
+        ("-foo", [Token(SpecTokens.BOOL_VARIANT, value="-foo")], "~foo"),
         (
             "platform=test",
-            [Token(TokenType.KEY_VALUE_PAIR, value="platform=test")],
+            [Token(SpecTokens.KEY_VALUE_PAIR, value="platform=test")],
             "arch=test-None-None",
         ),
         # Multiple tokens anonymous specs
         (
             "languages=go @4.2:",
             [
-                Token(TokenType.KEY_VALUE_PAIR, value="languages=go"),
-                Token(TokenType.VERSION, value="@4.2:"),
+                Token(SpecTokens.KEY_VALUE_PAIR, value="languages=go"),
+                Token(SpecTokens.VERSION, value="@4.2:"),
             ],
             "@4.2: languages=go",
         ),
         (
             "@4.2:     languages=go",
             [
-                Token(TokenType.VERSION, value="@4.2:"),
-                Token(TokenType.KEY_VALUE_PAIR, value="languages=go"),
+                Token(SpecTokens.VERSION, value="@4.2:"),
+                Token(SpecTokens.KEY_VALUE_PAIR, value="languages=go"),
             ],
             "@4.2: languages=go",
         ),
         (
             "^zlib",
             [
-                Token(TokenType.DEPENDENCY, value="^"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="zlib"),
+                Token(SpecTokens.DEPENDENCY, value="^"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="zlib"),
             ],
             "^zlib",
         ),
@@ -128,31 +129,31 @@ def specfile_for(default_mock_concretization):
         (
             "openmpi ^hwloc",
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="openmpi"),
-                Token(TokenType.DEPENDENCY, value="^"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="hwloc"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="openmpi"),
+                Token(SpecTokens.DEPENDENCY, value="^"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="hwloc"),
             ],
             "openmpi ^hwloc",
         ),
         (
             "openmpi ^hwloc ^libunwind",
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="openmpi"),
-                Token(TokenType.DEPENDENCY, value="^"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="hwloc"),
-                Token(TokenType.DEPENDENCY, value="^"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="libunwind"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="openmpi"),
+                Token(SpecTokens.DEPENDENCY, value="^"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="hwloc"),
+                Token(SpecTokens.DEPENDENCY, value="^"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="libunwind"),
             ],
             "openmpi ^hwloc ^libunwind",
         ),
         (
             "openmpi      ^hwloc^libunwind",
             [  # White spaces are tested
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="openmpi"),
-                Token(TokenType.DEPENDENCY, value="^"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="hwloc"),
-                Token(TokenType.DEPENDENCY, value="^"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="libunwind"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="openmpi"),
+                Token(SpecTokens.DEPENDENCY, value="^"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="hwloc"),
+                Token(SpecTokens.DEPENDENCY, value="^"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="libunwind"),
             ],
             "openmpi ^hwloc ^libunwind",
         ),
@@ -160,9 +161,9 @@ def specfile_for(default_mock_concretization):
         (
             "foo %bar@1.0 @2.0",
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="foo"),
-                Token(TokenType.COMPILER_AND_VERSION, value="%bar@1.0"),
-                Token(TokenType.VERSION, value="@2.0"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="foo"),
+                Token(SpecTokens.COMPILER_AND_VERSION, value="%bar@1.0"),
+                Token(SpecTokens.VERSION, value="@2.0"),
             ],
             "foo@2.0%bar@1.0",
         ),
@@ -175,32 +176,32 @@ def specfile_for(default_mock_concretization):
         (
             "mvapich_foo ^_openmpi@1.2:1.4,1.6%intel@12.1+debug~qt_4 ^stackwalker@8.1_1e",
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="mvapich_foo"),
-                Token(TokenType.DEPENDENCY, value="^"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="_openmpi"),
-                Token(TokenType.VERSION, value="@1.2:1.4,1.6"),
-                Token(TokenType.COMPILER_AND_VERSION, value="%intel@12.1"),
-                Token(TokenType.BOOL_VARIANT, value="+debug"),
-                Token(TokenType.BOOL_VARIANT, value="~qt_4"),
-                Token(TokenType.DEPENDENCY, value="^"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="stackwalker"),
-                Token(TokenType.VERSION, value="@8.1_1e"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="mvapich_foo"),
+                Token(SpecTokens.DEPENDENCY, value="^"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="_openmpi"),
+                Token(SpecTokens.VERSION, value="@1.2:1.4,1.6"),
+                Token(SpecTokens.COMPILER_AND_VERSION, value="%intel@12.1"),
+                Token(SpecTokens.BOOL_VARIANT, value="+debug"),
+                Token(SpecTokens.BOOL_VARIANT, value="~qt_4"),
+                Token(SpecTokens.DEPENDENCY, value="^"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="stackwalker"),
+                Token(SpecTokens.VERSION, value="@8.1_1e"),
             ],
             "mvapich_foo ^_openmpi@1.2:1.4,1.6%intel@12.1+debug~qt_4 ^stackwalker@8.1_1e",
         ),
         (
             "mvapich_foo ^_openmpi@1.2:1.4,1.6%intel@12.1~qt_4 debug=2 ^stackwalker@8.1_1e",
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="mvapich_foo"),
-                Token(TokenType.DEPENDENCY, value="^"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="_openmpi"),
-                Token(TokenType.VERSION, value="@1.2:1.4,1.6"),
-                Token(TokenType.COMPILER_AND_VERSION, value="%intel@12.1"),
-                Token(TokenType.BOOL_VARIANT, value="~qt_4"),
-                Token(TokenType.KEY_VALUE_PAIR, value="debug=2"),
-                Token(TokenType.DEPENDENCY, value="^"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="stackwalker"),
-                Token(TokenType.VERSION, value="@8.1_1e"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="mvapich_foo"),
+                Token(SpecTokens.DEPENDENCY, value="^"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="_openmpi"),
+                Token(SpecTokens.VERSION, value="@1.2:1.4,1.6"),
+                Token(SpecTokens.COMPILER_AND_VERSION, value="%intel@12.1"),
+                Token(SpecTokens.BOOL_VARIANT, value="~qt_4"),
+                Token(SpecTokens.KEY_VALUE_PAIR, value="debug=2"),
+                Token(SpecTokens.DEPENDENCY, value="^"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="stackwalker"),
+                Token(SpecTokens.VERSION, value="@8.1_1e"),
             ],
             "mvapich_foo ^_openmpi@1.2:1.4,1.6%intel@12.1~qt_4 debug=2 ^stackwalker@8.1_1e",
         ),
@@ -208,17 +209,17 @@ def specfile_for(default_mock_concretization):
             "mvapich_foo ^_openmpi@1.2:1.4,1.6%intel@12.1 cppflags=-O3 +debug~qt_4 "
             "^stackwalker@8.1_1e",
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="mvapich_foo"),
-                Token(TokenType.DEPENDENCY, value="^"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="_openmpi"),
-                Token(TokenType.VERSION, value="@1.2:1.4,1.6"),
-                Token(TokenType.COMPILER_AND_VERSION, value="%intel@12.1"),
-                Token(TokenType.KEY_VALUE_PAIR, value="cppflags=-O3"),
-                Token(TokenType.BOOL_VARIANT, value="+debug"),
-                Token(TokenType.BOOL_VARIANT, value="~qt_4"),
-                Token(TokenType.DEPENDENCY, value="^"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="stackwalker"),
-                Token(TokenType.VERSION, value="@8.1_1e"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="mvapich_foo"),
+                Token(SpecTokens.DEPENDENCY, value="^"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="_openmpi"),
+                Token(SpecTokens.VERSION, value="@1.2:1.4,1.6"),
+                Token(SpecTokens.COMPILER_AND_VERSION, value="%intel@12.1"),
+                Token(SpecTokens.KEY_VALUE_PAIR, value="cppflags=-O3"),
+                Token(SpecTokens.BOOL_VARIANT, value="+debug"),
+                Token(SpecTokens.BOOL_VARIANT, value="~qt_4"),
+                Token(SpecTokens.DEPENDENCY, value="^"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="stackwalker"),
+                Token(SpecTokens.VERSION, value="@8.1_1e"),
             ],
             "mvapich_foo ^_openmpi@1.2:1.4,1.6%intel@12.1 cppflags=-O3 +debug~qt_4 "
             "^stackwalker@8.1_1e",
@@ -227,51 +228,51 @@ def specfile_for(default_mock_concretization):
         (
             "yaml-cpp@0.1.8%intel@12.1 ^boost@3.1.4",
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="yaml-cpp"),
-                Token(TokenType.VERSION, value="@0.1.8"),
-                Token(TokenType.COMPILER_AND_VERSION, value="%intel@12.1"),
-                Token(TokenType.DEPENDENCY, value="^"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="boost"),
-                Token(TokenType.VERSION, value="@3.1.4"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="yaml-cpp"),
+                Token(SpecTokens.VERSION, value="@0.1.8"),
+                Token(SpecTokens.COMPILER_AND_VERSION, value="%intel@12.1"),
+                Token(SpecTokens.DEPENDENCY, value="^"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="boost"),
+                Token(SpecTokens.VERSION, value="@3.1.4"),
             ],
             "yaml-cpp@0.1.8%intel@12.1 ^boost@3.1.4",
         ),
         (
             r"builtin.yaml-cpp%gcc",
             [
-                Token(TokenType.FULLY_QUALIFIED_PACKAGE_NAME, value="builtin.yaml-cpp"),
-                Token(TokenType.COMPILER, value="%gcc"),
+                Token(SpecTokens.FULLY_QUALIFIED_PACKAGE_NAME, value="builtin.yaml-cpp"),
+                Token(SpecTokens.COMPILER, value="%gcc"),
             ],
             "yaml-cpp%gcc",
         ),
         (
             r"testrepo.yaml-cpp%gcc",
             [
-                Token(TokenType.FULLY_QUALIFIED_PACKAGE_NAME, value="testrepo.yaml-cpp"),
-                Token(TokenType.COMPILER, value="%gcc"),
+                Token(SpecTokens.FULLY_QUALIFIED_PACKAGE_NAME, value="testrepo.yaml-cpp"),
+                Token(SpecTokens.COMPILER, value="%gcc"),
             ],
             "yaml-cpp%gcc",
         ),
         (
             r"builtin.yaml-cpp@0.1.8%gcc@7.2.0 ^boost@3.1.4",
             [
-                Token(TokenType.FULLY_QUALIFIED_PACKAGE_NAME, value="builtin.yaml-cpp"),
-                Token(TokenType.VERSION, value="@0.1.8"),
-                Token(TokenType.COMPILER_AND_VERSION, value="%gcc@7.2.0"),
-                Token(TokenType.DEPENDENCY, value="^"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="boost"),
-                Token(TokenType.VERSION, value="@3.1.4"),
+                Token(SpecTokens.FULLY_QUALIFIED_PACKAGE_NAME, value="builtin.yaml-cpp"),
+                Token(SpecTokens.VERSION, value="@0.1.8"),
+                Token(SpecTokens.COMPILER_AND_VERSION, value="%gcc@7.2.0"),
+                Token(SpecTokens.DEPENDENCY, value="^"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="boost"),
+                Token(SpecTokens.VERSION, value="@3.1.4"),
             ],
             "yaml-cpp@0.1.8%gcc@7.2.0 ^boost@3.1.4",
         ),
         (
             r"builtin.yaml-cpp ^testrepo.boost ^zlib",
             [
-                Token(TokenType.FULLY_QUALIFIED_PACKAGE_NAME, value="builtin.yaml-cpp"),
-                Token(TokenType.DEPENDENCY, value="^"),
-                Token(TokenType.FULLY_QUALIFIED_PACKAGE_NAME, value="testrepo.boost"),
-                Token(TokenType.DEPENDENCY, value="^"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="zlib"),
+                Token(SpecTokens.FULLY_QUALIFIED_PACKAGE_NAME, value="builtin.yaml-cpp"),
+                Token(SpecTokens.DEPENDENCY, value="^"),
+                Token(SpecTokens.FULLY_QUALIFIED_PACKAGE_NAME, value="testrepo.boost"),
+                Token(SpecTokens.DEPENDENCY, value="^"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="zlib"),
             ],
             "yaml-cpp ^boost ^zlib",
         ),
@@ -279,60 +280,60 @@ def specfile_for(default_mock_concretization):
         (
             r"mvapich ^stackwalker ^_openmpi",  # Dependencies are reordered
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="mvapich"),
-                Token(TokenType.DEPENDENCY, value="^"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="stackwalker"),
-                Token(TokenType.DEPENDENCY, value="^"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="_openmpi"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="mvapich"),
+                Token(SpecTokens.DEPENDENCY, value="^"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="stackwalker"),
+                Token(SpecTokens.DEPENDENCY, value="^"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="_openmpi"),
             ],
             "mvapich ^_openmpi ^stackwalker",
         ),
         (
             r"y~f+e~d+c~b+a",  # Variants are reordered
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="y"),
-                Token(TokenType.BOOL_VARIANT, value="~f"),
-                Token(TokenType.BOOL_VARIANT, value="+e"),
-                Token(TokenType.BOOL_VARIANT, value="~d"),
-                Token(TokenType.BOOL_VARIANT, value="+c"),
-                Token(TokenType.BOOL_VARIANT, value="~b"),
-                Token(TokenType.BOOL_VARIANT, value="+a"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="y"),
+                Token(SpecTokens.BOOL_VARIANT, value="~f"),
+                Token(SpecTokens.BOOL_VARIANT, value="+e"),
+                Token(SpecTokens.BOOL_VARIANT, value="~d"),
+                Token(SpecTokens.BOOL_VARIANT, value="+c"),
+                Token(SpecTokens.BOOL_VARIANT, value="~b"),
+                Token(SpecTokens.BOOL_VARIANT, value="+a"),
             ],
             "y+a~b+c~d+e~f",
         ),
-        ("@:", [Token(TokenType.VERSION, value="@:")], r""),
-        ("@1.6,1.2:1.4", [Token(TokenType.VERSION, value="@1.6,1.2:1.4")], r"@1.2:1.4,1.6"),
+        ("@:", [Token(SpecTokens.VERSION, value="@:")], r""),
+        ("@1.6,1.2:1.4", [Token(SpecTokens.VERSION, value="@1.6,1.2:1.4")], r"@1.2:1.4,1.6"),
         (
             r"os=fe",  # Various translations associated with the architecture
-            [Token(TokenType.KEY_VALUE_PAIR, value="os=fe")],
+            [Token(SpecTokens.KEY_VALUE_PAIR, value="os=fe")],
             "arch=test-redhat6-None",
         ),
         (
             r"os=default_os",
-            [Token(TokenType.KEY_VALUE_PAIR, value="os=default_os")],
+            [Token(SpecTokens.KEY_VALUE_PAIR, value="os=default_os")],
             "arch=test-debian6-None",
         ),
         (
             r"target=be",
-            [Token(TokenType.KEY_VALUE_PAIR, value="target=be")],
+            [Token(SpecTokens.KEY_VALUE_PAIR, value="target=be")],
             f"arch=test-None-{spack.platforms.test.Test.default}",
         ),
         (
             r"target=default_target",
-            [Token(TokenType.KEY_VALUE_PAIR, value="target=default_target")],
+            [Token(SpecTokens.KEY_VALUE_PAIR, value="target=default_target")],
             f"arch=test-None-{spack.platforms.test.Test.default}",
         ),
         (
             r"platform=linux",
-            [Token(TokenType.KEY_VALUE_PAIR, value="platform=linux")],
+            [Token(SpecTokens.KEY_VALUE_PAIR, value="platform=linux")],
             r"arch=linux-None-None",
         ),
         # Version hash pair
         (
             rf"develop-branch-version@{'abc12'*8}=develop",
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="develop-branch-version"),
-                Token(TokenType.VERSION_HASH_PAIR, value=f"@{'abc12'*8}=develop"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="develop-branch-version"),
+                Token(SpecTokens.VERSION_HASH_PAIR, value=f"@{'abc12'*8}=develop"),
             ],
             rf"develop-branch-version@{'abc12'*8}=develop",
         ),
@@ -340,40 +341,40 @@ def specfile_for(default_mock_concretization):
         (
             r"x ^y@foo ^y@foo",
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="x"),
-                Token(TokenType.DEPENDENCY, value="^"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="y"),
-                Token(TokenType.VERSION, value="@foo"),
-                Token(TokenType.DEPENDENCY, value="^"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="y"),
-                Token(TokenType.VERSION, value="@foo"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="x"),
+                Token(SpecTokens.DEPENDENCY, value="^"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="y"),
+                Token(SpecTokens.VERSION, value="@foo"),
+                Token(SpecTokens.DEPENDENCY, value="^"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="y"),
+                Token(SpecTokens.VERSION, value="@foo"),
             ],
             r"x ^y@foo",
         ),
         (
             r"x ^y@foo ^y+bar",
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="x"),
-                Token(TokenType.DEPENDENCY, value="^"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="y"),
-                Token(TokenType.VERSION, value="@foo"),
-                Token(TokenType.DEPENDENCY, value="^"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="y"),
-                Token(TokenType.BOOL_VARIANT, value="+bar"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="x"),
+                Token(SpecTokens.DEPENDENCY, value="^"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="y"),
+                Token(SpecTokens.VERSION, value="@foo"),
+                Token(SpecTokens.DEPENDENCY, value="^"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="y"),
+                Token(SpecTokens.BOOL_VARIANT, value="+bar"),
             ],
             r"x ^y@foo+bar",
         ),
         (
             r"x ^y@foo +bar ^y@foo",
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="x"),
-                Token(TokenType.DEPENDENCY, value="^"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="y"),
-                Token(TokenType.VERSION, value="@foo"),
-                Token(TokenType.BOOL_VARIANT, value="+bar"),
-                Token(TokenType.DEPENDENCY, value="^"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="y"),
-                Token(TokenType.VERSION, value="@foo"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="x"),
+                Token(SpecTokens.DEPENDENCY, value="^"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="y"),
+                Token(SpecTokens.VERSION, value="@foo"),
+                Token(SpecTokens.BOOL_VARIANT, value="+bar"),
+                Token(SpecTokens.DEPENDENCY, value="^"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="y"),
+                Token(SpecTokens.VERSION, value="@foo"),
             ],
             r"x ^y@foo+bar",
         ),
@@ -381,43 +382,43 @@ def specfile_for(default_mock_concretization):
         (
             r"_openmpi +debug-qt_4",  # Parse as a single bool variant
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="_openmpi"),
-                Token(TokenType.BOOL_VARIANT, value="+debug-qt_4"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="_openmpi"),
+                Token(SpecTokens.BOOL_VARIANT, value="+debug-qt_4"),
             ],
             r"_openmpi+debug-qt_4",
         ),
         (
             r"_openmpi +debug -qt_4",  # Parse as two variants
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="_openmpi"),
-                Token(TokenType.BOOL_VARIANT, value="+debug"),
-                Token(TokenType.BOOL_VARIANT, value="-qt_4"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="_openmpi"),
+                Token(SpecTokens.BOOL_VARIANT, value="+debug"),
+                Token(SpecTokens.BOOL_VARIANT, value="-qt_4"),
             ],
             r"_openmpi+debug~qt_4",
         ),
         (
             r"_openmpi +debug~qt_4",  # Parse as two variants
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="_openmpi"),
-                Token(TokenType.BOOL_VARIANT, value="+debug"),
-                Token(TokenType.BOOL_VARIANT, value="~qt_4"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="_openmpi"),
+                Token(SpecTokens.BOOL_VARIANT, value="+debug"),
+                Token(SpecTokens.BOOL_VARIANT, value="~qt_4"),
             ],
             r"_openmpi+debug~qt_4",
         ),
         # Key value pairs with ":" and "," in the value
         (
             r"target=:broadwell,icelake",
-            [Token(TokenType.KEY_VALUE_PAIR, value="target=:broadwell,icelake")],
+            [Token(SpecTokens.KEY_VALUE_PAIR, value="target=:broadwell,icelake")],
             r"arch=None-None-:broadwell,icelake",
         ),
         # Hash pair version followed by a variant
         (
             f"develop-branch-version@git.{'a' * 40}=develop+var1+var2",
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="develop-branch-version"),
-                Token(TokenType.VERSION_HASH_PAIR, value=f"@git.{'a' * 40}=develop"),
-                Token(TokenType.BOOL_VARIANT, value="+var1"),
-                Token(TokenType.BOOL_VARIANT, value="+var2"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="develop-branch-version"),
+                Token(SpecTokens.VERSION_HASH_PAIR, value=f"@git.{'a' * 40}=develop"),
+                Token(SpecTokens.BOOL_VARIANT, value="+var1"),
+                Token(SpecTokens.BOOL_VARIANT, value="+var2"),
             ],
             f"develop-branch-version@git.{'a' * 40}=develop+var1+var2",
         ),
@@ -428,98 +429,101 @@ def specfile_for(default_mock_concretization):
         compiler_with_version_range("%gcc@10.1.0,12.2.1:"),
         compiler_with_version_range("%gcc@:8.4.3,10.2.1:12.1.0"),
         # Special key value arguments
-        ("dev_path=*", [Token(TokenType.KEY_VALUE_PAIR, value="dev_path=*")], "dev_path='*'"),
+        ("dev_path=*", [Token(SpecTokens.KEY_VALUE_PAIR, value="dev_path=*")], "dev_path='*'"),
         (
             "dev_path=none",
-            [Token(TokenType.KEY_VALUE_PAIR, value="dev_path=none")],
+            [Token(SpecTokens.KEY_VALUE_PAIR, value="dev_path=none")],
             "dev_path=none",
         ),
         (
             "dev_path=../relpath/work",
-            [Token(TokenType.KEY_VALUE_PAIR, value="dev_path=../relpath/work")],
+            [Token(SpecTokens.KEY_VALUE_PAIR, value="dev_path=../relpath/work")],
             "dev_path=../relpath/work",
         ),
         (
             "dev_path=/abspath/work",
-            [Token(TokenType.KEY_VALUE_PAIR, value="dev_path=/abspath/work")],
+            [Token(SpecTokens.KEY_VALUE_PAIR, value="dev_path=/abspath/work")],
             "dev_path=/abspath/work",
         ),
         # One liner for flags like 'a=b=c' that are injected
         (
             "cflags=a=b=c",
-            [Token(TokenType.KEY_VALUE_PAIR, value="cflags=a=b=c")],
+            [Token(SpecTokens.KEY_VALUE_PAIR, value="cflags=a=b=c")],
             "cflags='a=b=c'",
         ),
         (
             "cflags=a=b=c",
-            [Token(TokenType.KEY_VALUE_PAIR, value="cflags=a=b=c")],
+            [Token(SpecTokens.KEY_VALUE_PAIR, value="cflags=a=b=c")],
             "cflags='a=b=c'",
         ),
         (
             "cflags=a=b=c+~",
-            [Token(TokenType.KEY_VALUE_PAIR, value="cflags=a=b=c+~")],
+            [Token(SpecTokens.KEY_VALUE_PAIR, value="cflags=a=b=c+~")],
             "cflags='a=b=c+~'",
         ),
         (
             "cflags=-Wl,a,b,c",
-            [Token(TokenType.KEY_VALUE_PAIR, value="cflags=-Wl,a,b,c")],
+            [Token(SpecTokens.KEY_VALUE_PAIR, value="cflags=-Wl,a,b,c")],
             "cflags=-Wl,a,b,c",
         ),
         # Multi quoted
         (
             'cflags=="-O3 -g"',
-            [Token(TokenType.PROPAGATED_KEY_VALUE_PAIR, value='cflags=="-O3 -g"')],
+            [Token(SpecTokens.PROPAGATED_KEY_VALUE_PAIR, value='cflags=="-O3 -g"')],
             "cflags=='-O3 -g'",
         ),
         # Whitespace is allowed in version lists
-        ("@1.2:1.4 , 1.6 ", [Token(TokenType.VERSION, value="@1.2:1.4 , 1.6")], "@1.2:1.4,1.6"),
+        ("@1.2:1.4 , 1.6 ", [Token(SpecTokens.VERSION, value="@1.2:1.4 , 1.6")], "@1.2:1.4,1.6"),
         # But not in ranges. `a@1:` and `b` are separate specs, not a single `a@1:b`.
         (
             "a@1: b",
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="a"),
-                Token(TokenType.VERSION, value="@1:"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="b"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="a"),
+                Token(SpecTokens.VERSION, value="@1:"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="b"),
             ],
             "a@1:",
         ),
         (
             "% intel @ 12.1:12.6 + debug",
             [
-                Token(TokenType.COMPILER_AND_VERSION, value="% intel @ 12.1:12.6"),
-                Token(TokenType.BOOL_VARIANT, value="+ debug"),
+                Token(SpecTokens.COMPILER_AND_VERSION, value="% intel @ 12.1:12.6"),
+                Token(SpecTokens.BOOL_VARIANT, value="+ debug"),
             ],
             "%intel@12.1:12.6+debug",
         ),
         (
             "@ 12.1:12.6 + debug - qt_4",
             [
-                Token(TokenType.VERSION, value="@ 12.1:12.6"),
-                Token(TokenType.BOOL_VARIANT, value="+ debug"),
-                Token(TokenType.BOOL_VARIANT, value="- qt_4"),
+                Token(SpecTokens.VERSION, value="@ 12.1:12.6"),
+                Token(SpecTokens.BOOL_VARIANT, value="+ debug"),
+                Token(SpecTokens.BOOL_VARIANT, value="- qt_4"),
             ],
             "@12.1:12.6+debug~qt_4",
         ),
         (
             "@10.4.0:10,11.3.0:target=aarch64:",
             [
-                Token(TokenType.VERSION, value="@10.4.0:10,11.3.0:"),
-                Token(TokenType.KEY_VALUE_PAIR, value="target=aarch64:"),
+                Token(SpecTokens.VERSION, value="@10.4.0:10,11.3.0:"),
+                Token(SpecTokens.KEY_VALUE_PAIR, value="target=aarch64:"),
             ],
             "@10.4.0:10,11.3.0: arch=None-None-aarch64:",
         ),
         (
             "@:0.4 % nvhpc",
-            [Token(TokenType.VERSION, value="@:0.4"), Token(TokenType.COMPILER, value="% nvhpc")],
+            [
+                Token(SpecTokens.VERSION, value="@:0.4"),
+                Token(SpecTokens.COMPILER, value="% nvhpc"),
+            ],
             "@:0.4%nvhpc",
         ),
         (
             "^[virtuals=mpi] openmpi",
             [
-                Token(TokenType.START_EDGE_PROPERTIES, value="^["),
-                Token(TokenType.KEY_VALUE_PAIR, value="virtuals=mpi"),
-                Token(TokenType.END_EDGE_PROPERTIES, value="]"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="openmpi"),
+                Token(SpecTokens.START_EDGE_PROPERTIES, value="^["),
+                Token(SpecTokens.KEY_VALUE_PAIR, value="virtuals=mpi"),
+                Token(SpecTokens.END_EDGE_PROPERTIES, value="]"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="openmpi"),
             ],
             "^[virtuals=mpi] openmpi",
         ),
@@ -527,34 +531,48 @@ def specfile_for(default_mock_concretization):
         (
             "^[virtuals=mpi] openmpi+foo ^[virtuals=lapack] openmpi+bar",
             [
-                Token(TokenType.START_EDGE_PROPERTIES, value="^["),
-                Token(TokenType.KEY_VALUE_PAIR, value="virtuals=mpi"),
-                Token(TokenType.END_EDGE_PROPERTIES, value="]"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="openmpi"),
-                Token(TokenType.BOOL_VARIANT, value="+foo"),
-                Token(TokenType.START_EDGE_PROPERTIES, value="^["),
-                Token(TokenType.KEY_VALUE_PAIR, value="virtuals=lapack"),
-                Token(TokenType.END_EDGE_PROPERTIES, value="]"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="openmpi"),
-                Token(TokenType.BOOL_VARIANT, value="+bar"),
+                Token(SpecTokens.START_EDGE_PROPERTIES, value="^["),
+                Token(SpecTokens.KEY_VALUE_PAIR, value="virtuals=mpi"),
+                Token(SpecTokens.END_EDGE_PROPERTIES, value="]"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="openmpi"),
+                Token(SpecTokens.BOOL_VARIANT, value="+foo"),
+                Token(SpecTokens.START_EDGE_PROPERTIES, value="^["),
+                Token(SpecTokens.KEY_VALUE_PAIR, value="virtuals=lapack"),
+                Token(SpecTokens.END_EDGE_PROPERTIES, value="]"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="openmpi"),
+                Token(SpecTokens.BOOL_VARIANT, value="+bar"),
             ],
             "^[virtuals=lapack,mpi] openmpi+bar+foo",
         ),
         (
             "^[deptypes=link,build] zlib",
             [
-                Token(TokenType.START_EDGE_PROPERTIES, value="^["),
-                Token(TokenType.KEY_VALUE_PAIR, value="deptypes=link,build"),
-                Token(TokenType.END_EDGE_PROPERTIES, value="]"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="zlib"),
+                Token(SpecTokens.START_EDGE_PROPERTIES, value="^["),
+                Token(SpecTokens.KEY_VALUE_PAIR, value="deptypes=link,build"),
+                Token(SpecTokens.END_EDGE_PROPERTIES, value="]"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="zlib"),
             ],
             "^[deptypes=build,link] zlib",
         ),
         (
+            "^[deptypes=link] zlib ^[deptypes=build] zlib",
+            [
+                Token(SpecTokens.START_EDGE_PROPERTIES, value="^["),
+                Token(SpecTokens.KEY_VALUE_PAIR, value="deptypes=link"),
+                Token(SpecTokens.END_EDGE_PROPERTIES, value="]"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="zlib"),
+                Token(SpecTokens.START_EDGE_PROPERTIES, value="^["),
+                Token(SpecTokens.KEY_VALUE_PAIR, value="deptypes=build"),
+                Token(SpecTokens.END_EDGE_PROPERTIES, value="]"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="zlib"),
+            ],
+            "^[deptypes=link] zlib ^[deptypes=build] zlib",
+        ),
+        (
             "git-test@git.foo/bar",
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, "git-test"),
-                Token(TokenType.GIT_VERSION, "@git.foo/bar"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, "git-test"),
+                Token(SpecTokens.GIT_VERSION, "@git.foo/bar"),
             ],
             "git-test@git.foo/bar",
         ),
@@ -562,24 +580,24 @@ def specfile_for(default_mock_concretization):
         (
             "zlib ++foo",
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, "zlib"),
-                Token(TokenType.PROPAGATED_BOOL_VARIANT, "++foo"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, "zlib"),
+                Token(SpecTokens.PROPAGATED_BOOL_VARIANT, "++foo"),
             ],
             "zlib++foo",
         ),
         (
             "zlib ~~foo",
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, "zlib"),
-                Token(TokenType.PROPAGATED_BOOL_VARIANT, "~~foo"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, "zlib"),
+                Token(SpecTokens.PROPAGATED_BOOL_VARIANT, "~~foo"),
             ],
             "zlib~~foo",
         ),
         (
             "zlib foo==bar",
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, "zlib"),
-                Token(TokenType.PROPAGATED_KEY_VALUE_PAIR, "foo==bar"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, "zlib"),
+                Token(SpecTokens.PROPAGATED_KEY_VALUE_PAIR, "foo==bar"),
             ],
             "zlib foo==bar",
         ),
@@ -597,49 +615,49 @@ def test_parse_single_spec(spec_str, tokens, expected_roundtrip, mock_git_test_p
         (
             "mvapich emacs",
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="mvapich"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="emacs"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="mvapich"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="emacs"),
             ],
             ["mvapich", "emacs"],
         ),
         (
             "mvapich cppflags='-O3 -fPIC' emacs",
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="mvapich"),
-                Token(TokenType.KEY_VALUE_PAIR, value="cppflags='-O3 -fPIC'"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="emacs"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="mvapich"),
+                Token(SpecTokens.KEY_VALUE_PAIR, value="cppflags='-O3 -fPIC'"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="emacs"),
             ],
             ["mvapich cppflags='-O3 -fPIC'", "emacs"],
         ),
         (
             "mvapich cppflags=-O3 emacs",
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="mvapich"),
-                Token(TokenType.KEY_VALUE_PAIR, value="cppflags=-O3"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="emacs"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="mvapich"),
+                Token(SpecTokens.KEY_VALUE_PAIR, value="cppflags=-O3"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="emacs"),
             ],
             ["mvapich cppflags=-O3", "emacs"],
         ),
         (
             "mvapich emacs @1.1.1 %intel cflags=-O3",
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="mvapich"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="emacs"),
-                Token(TokenType.VERSION, value="@1.1.1"),
-                Token(TokenType.COMPILER, value="%intel"),
-                Token(TokenType.KEY_VALUE_PAIR, value="cflags=-O3"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="mvapich"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="emacs"),
+                Token(SpecTokens.VERSION, value="@1.1.1"),
+                Token(SpecTokens.COMPILER, value="%intel"),
+                Token(SpecTokens.KEY_VALUE_PAIR, value="cflags=-O3"),
             ],
             ["mvapich", "emacs @1.1.1 %intel cflags=-O3"],
         ),
         (
             'mvapich cflags="-O3 -fPIC" emacs^ncurses%intel',
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="mvapich"),
-                Token(TokenType.KEY_VALUE_PAIR, value='cflags="-O3 -fPIC"'),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="emacs"),
-                Token(TokenType.DEPENDENCY, value="^"),
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="ncurses"),
-                Token(TokenType.COMPILER, value="%intel"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="mvapich"),
+                Token(SpecTokens.KEY_VALUE_PAIR, value='cflags="-O3 -fPIC"'),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="emacs"),
+                Token(SpecTokens.DEPENDENCY, value="^"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="ncurses"),
+                Token(SpecTokens.COMPILER, value="%intel"),
             ],
             ['mvapich cflags="-O3 -fPIC"', "emacs ^ncurses%intel"],
         ),
@@ -700,7 +718,7 @@ def test_parse_multiple_specs(text, tokens, expected_specs):
     ],
 )
 def test_cli_spec_roundtrip(args, expected):
-    if inspect.isclass(expected) and issubclass(expected, BaseException):
+    if isinstance(expected, type) and issubclass(expected, BaseException):
         with pytest.raises(expected):
             spack.cmd.parse_specs(args)
         return
@@ -733,20 +751,20 @@ def test_error_reporting(text, expected_in_error):
 @pytest.mark.parametrize(
     "text,tokens",
     [
-        ("/abcde", [Token(TokenType.DAG_HASH, value="/abcde")]),
+        ("/abcde", [Token(SpecTokens.DAG_HASH, value="/abcde")]),
         (
             "foo/abcde",
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="foo"),
-                Token(TokenType.DAG_HASH, value="/abcde"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="foo"),
+                Token(SpecTokens.DAG_HASH, value="/abcde"),
             ],
         ),
         (
             "foo@1.2.3 /abcde",
             [
-                Token(TokenType.UNQUALIFIED_PACKAGE_NAME, value="foo"),
-                Token(TokenType.VERSION, value="@1.2.3"),
-                Token(TokenType.DAG_HASH, value="/abcde"),
+                Token(SpecTokens.UNQUALIFIED_PACKAGE_NAME, value="foo"),
+                Token(SpecTokens.VERSION, value="@1.2.3"),
+                Token(SpecTokens.DAG_HASH, value="/abcde"),
             ],
         ),
     ],
@@ -865,8 +883,8 @@ def test_ambiguous_hash(mutable_database):
 
     assert x1 != x2  # doesn't hold when only the dag hash is modified.
 
-    mutable_database.add(x1, directory_layout=None)
-    mutable_database.add(x2, directory_layout=None)
+    mutable_database.add(x1)
+    mutable_database.add(x2)
 
     # ambiguity in first hash character
     s1 = SpecParser("/x").next_spec()
@@ -991,6 +1009,8 @@ def test_disambiguate_hash_by_spec(spec1, spec2, constraint, mock_packages, monk
         ("x target=be platform=test os=be os=fe", "'platform'"),
         # Dependencies
         ("^[@foo] zlib", "edge attributes"),
+        ("x ^[deptypes=link]foo ^[deptypes=run]foo", "conflicting dependency types"),
+        ("x ^[deptypes=build,link]foo ^[deptypes=link]foo", "conflicting dependency types"),
         # TODO: Remove this as soon as use variants are added and we can parse custom attributes
         ("^[foo=bar] zlib", "edge attributes"),
         # Propagating reserved names generates a parse error
@@ -1005,7 +1025,7 @@ def test_disambiguate_hash_by_spec(spec1, spec2, constraint, mock_packages, monk
     ],
 )
 def test_error_conditions(text, match_string):
-    with pytest.raises(spack.parser.SpecParsingError, match=match_string):
+    with pytest.raises(SpecParsingError, match=match_string):
         SpecParser(text).next_spec()
 
 

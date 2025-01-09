@@ -18,6 +18,7 @@ class RSeqinr(RPackage):
 
     license("GPL-2.0-or-later")
 
+    version("4.2-36", sha256="931a62a091a7aaaa5efadb1fe85f29e861e2506b75710ba3a6be9b58cb14b225")
     version("4.2-30", sha256="faf8fe533867eeef57fddfa6592e19d5984954d0670c6c7dbeab6411d55fee4b")
     version("4.2-16", sha256="c4f3253832fc255197bdce7b4dd381db606c6b787d2e888751b4963acf3a4032")
     version("4.2-8", sha256="584b34e9dec0320cef02096eb356a0f6115bbd24356cf62e67356963e9d5e9f7")

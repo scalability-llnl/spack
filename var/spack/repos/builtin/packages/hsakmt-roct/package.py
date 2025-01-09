@@ -16,12 +16,15 @@ class HsakmtRoct(CMakePackage):
 
     homepage = "https://github.com/ROCm/ROCT-Thunk-Interface"
     git = "https://github.com/ROCm/ROCT-Thunk-Interface.git"
-    url = "https://github.com/ROCm/ROCT-Thunk-Interface/archive/rocm-6.1.0.tar.gz"
+    url = "https://github.com/ROCm/ROCT-Thunk-Interface/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
     maintainers("srekolam", "renjithravindrankannath")
 
     version("master", branch="master")
+    version("6.2.4", sha256="5c71655e3a1b9d1404dc8cb64b9d2fadd27e67606aaa8aec0c325768d8c483c0")
+    version("6.2.1", sha256="bba5dd8cce595d94d6a8e467dbd6de9e921f81e665ca8aac1e346e0ade7620f0")
+    version("6.2.0", sha256="73df98ca2be8a887cb76554c23f148ef6556bdbccfac99f34111fa1f87fd7c5d")
     version("6.1.2", sha256="097a5b7eb136300667b36bd35bf55e4a283a1ed04e614cf24dddca0a65c86389")
     version("6.1.1", sha256="c586d8a04fbd9a7bc0a15e0a6a161a07f88f654402bb11694bd8aebc343c00f0")
     version("6.1.0", sha256="1085055068420821f7a7adb816692412b5fb38f89d67b9edb9995198f39e2f31")
@@ -64,7 +67,10 @@ class HsakmtRoct(CMakePackage):
         "6.0.2",
         "6.1.0",
         "6.1.1",
-        "6.1.0",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
     ]:
         depends_on(f"rocm-core@{ver}", when=f"@{ver}")
         depends_on(f"llvm-amdgpu@{ver}", type="test", when=f"@{ver}")
