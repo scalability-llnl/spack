@@ -36,12 +36,26 @@ class Ninja(Package):
     version("1.7.2", sha256="2edda0a5421ace3cf428309211270772dd35a91af60c96f93f90df6bc41b16d9")
     version("1.6.0", sha256="b43e88fb068fe4d92a3dfd9eb4d19755dae5c33415db2e9b7b61b4659009cde7")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    # ninja@1.12: needs googletest source, but 1.12 itself needs a patch to use it
+    resource(
+        name="googletest",
+        url="https://github.com/google/googletest/archive/refs/tags/release-1.12.1.tar.gz",
+        sha256="81964fe578e9bd7c94dfdb09c8e4d6e6759e19967e397dbea48d1c10e45d0df2",
+        placement="gtest",
+        when="@1.12:",
+    )
+    patch(
+        "https://github.com/ninja-build/ninja/commit/f14a949534d673f847c407644441c8f37e130ce9.patch?full_index=1",
+        sha256="93f4bb3234c3af04e2454c6f0ef2eca3107edd4537a70151ea66f1a1d4c22dad",
+        when="@1.12",
+    )
 
     variant(
         "re2c", default=not sys.platform == "win32", description="Enable buidling Ninja with re2c"
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("python", type="build")
     depends_on("re2c@0.11.3:", type="build", when="+re2c")
@@ -54,7 +68,10 @@ class Ninja(Package):
         return output.strip()
 
     def configure(self, spec, prefix):
-        python("configure.py", "--bootstrap")
+        if self.run_tests and spec.satisfies("@1.12:"):
+            python("configure.py", "--bootstrap", "--gtest-source-dir=gtest")
+        else:
+            python("configure.py", "--bootstrap")
 
     @run_after("configure")
     @on_package_attributes(run_tests=True)
