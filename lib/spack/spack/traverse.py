@@ -446,72 +446,45 @@ DirectionType = Literal["children", "parents"]
 @overload
 def traverse_edges(
     specs: Sequence["spack.spec.Spec"],
-    root: bool = True,
-    order: OrderType = "pre",
-    cover: CoverType = "nodes",
-    direction: DirectionType = "children",
-    deptype: Union[dt.DepFlag, dt.DepTypes] = "all",
+    *,
+    root: bool = ...,
+    order: OrderType = ...,
+    cover: CoverType = ...,
+    direction: DirectionType = ...,
+    deptype: Union[dt.DepFlag, dt.DepTypes] = ...,
     depth: Literal[False] = False,
-    key: Callable[["spack.spec.Spec"], Any] = id,
-    visited: Optional[Set[Any]] = None,
+    key: Callable[["spack.spec.Spec"], Any] = ...,
+    visited: Optional[Set[Any]] = ...,
 ) -> Iterable["spack.spec.DependencySpec"]: ...
 
 
 @overload
 def traverse_edges(
     specs: Sequence["spack.spec.Spec"],
-    root: bool = True,
-    order: OrderType = "pre",
-    cover: CoverType = "nodes",
-    direction: DirectionType = "children",
-    deptype: Union[dt.DepFlag, dt.DepTypes] = "all",
     *,
+    root: bool = ...,
+    order: OrderType = ...,
+    cover: CoverType = ...,
+    direction: DirectionType = ...,
+    deptype: Union[dt.DepFlag, dt.DepTypes] = ...,
     depth: Literal[True],
-    key: Callable[["spack.spec.Spec"], Any] = id,
-    visited: Optional[Set[Any]] = None,
+    key: Callable[["spack.spec.Spec"], Any] = ...,
+    visited: Optional[Set[Any]] = ...,
 ) -> Iterable[Tuple[int, "spack.spec.DependencySpec"]]: ...
 
 
 @overload
 def traverse_edges(
     specs: Sequence["spack.spec.Spec"],
-    root: bool,
-    order: OrderType,
-    cover: CoverType,
-    direction: DirectionType,
-    deptype: Union[dt.DepFlag, dt.DepTypes],
-    depth: Literal[True],
-    key: Callable[["spack.spec.Spec"], Any] = id,
-    visited: Optional[Set[Any]] = None,
-) -> Iterable[Tuple[int, "spack.spec.DependencySpec"]]: ...
-
-
-@overload
-def traverse_edges(
-    specs: Sequence["spack.spec.Spec"],
-    root: bool = True,
-    order: OrderType = "pre",
-    cover: CoverType = "nodes",
-    direction: DirectionType = "children",
-    deptype: Union[dt.DepFlag, dt.DepTypes] = "all",
     *,
+    root: bool = ...,
+    order: OrderType = ...,
+    cover: CoverType = ...,
+    direction: DirectionType = ...,
+    deptype: Union[dt.DepFlag, dt.DepTypes] = ...,
     depth: bool,
-    key: Callable[["spack.spec.Spec"], Any] = id,
-    visited: Optional[Set[Any]] = None,
-) -> Iterable[Union["spack.spec.DependencySpec", Tuple[int, "spack.spec.DependencySpec"]]]: ...
-
-
-@overload
-def traverse_edges(
-    specs: Sequence["spack.spec.Spec"],
-    root: bool,
-    order: OrderType,
-    cover: CoverType,
-    direction: DirectionType,
-    deptype: Union[dt.DepFlag, dt.DepTypes],
-    depth: bool,
-    key: Callable[["spack.spec.Spec"], Any] = id,
-    visited: Optional[Set[Any]] = None,
+    key: Callable[["spack.spec.Spec"], Any] = ...,
+    visited: Optional[Set[Any]] = ...,
 ) -> Iterable[Union["spack.spec.DependencySpec", Tuple[int, "spack.spec.DependencySpec"]]]: ...
 
 
@@ -586,77 +559,51 @@ def traverse_edges(
 @overload
 def traverse_nodes(
     specs: Sequence["spack.spec.Spec"],
-    root: bool = True,
-    order: OrderType = "pre",
-    cover: CoverType = "nodes",
-    direction: DirectionType = "children",
-    deptype: Union[dt.DepFlag, dt.DepTypes] = "all",
+    *,
+    root: bool = ...,
+    order: OrderType = ...,
+    cover: CoverType = ...,
+    direction: DirectionType = ...,
+    deptype: Union[dt.DepFlag, dt.DepTypes] = ...,
     depth: Literal[False] = False,
-    key: Callable[["spack.spec.Spec"], Any] = id,
-    visited: Optional[Set[Any]] = None,
+    key: Callable[["spack.spec.Spec"], Any] = ...,
+    visited: Optional[Set[Any]] = ...,
 ) -> Iterable["spack.spec.Spec"]: ...
 
 
 @overload
 def traverse_nodes(
     specs: Sequence["spack.spec.Spec"],
-    root: bool = True,
-    order: OrderType = "pre",
-    cover: CoverType = "nodes",
-    direction: DirectionType = "children",
-    deptype: Union[dt.DepFlag, dt.DepTypes] = "all",
     *,
+    root: bool = ...,
+    order: OrderType = ...,
+    cover: CoverType = ...,
+    direction: DirectionType = ...,
+    deptype: Union[dt.DepFlag, dt.DepTypes] = ...,
     depth: Literal[True],
-    key: Callable[["spack.spec.Spec"], Any] = id,
-    visited: Optional[Set[Any]] = None,
+    key: Callable[["spack.spec.Spec"], Any] = ...,
+    visited: Optional[Set[Any]] = ...,
 ) -> Iterable[Tuple[int, "spack.spec.Spec"]]: ...
 
 
 @overload
 def traverse_nodes(
     specs: Sequence["spack.spec.Spec"],
-    root: bool,
-    order: OrderType,
-    cover: CoverType,
-    direction: DirectionType,
-    deptype: Union[dt.DepFlag, dt.DepTypes],
-    depth: Literal[True],
-    key: Callable[["spack.spec.Spec"], Any] = id,
-    visited: Optional[Set[Any]] = None,
-) -> Iterable[Tuple[int, "spack.spec.Spec"]]: ...
-
-
-@overload
-def traverse_nodes(
-    specs: Sequence["spack.spec.Spec"],
-    root: bool = True,
-    order: OrderType = "pre",
-    cover: CoverType = "nodes",
-    direction: DirectionType = "children",
-    deptype: Union[dt.DepFlag, dt.DepTypes] = "all",
     *,
+    root: bool = ...,
+    order: OrderType = ...,
+    cover: CoverType = ...,
+    direction: DirectionType = ...,
+    deptype: Union[dt.DepFlag, dt.DepTypes] = ...,
     depth: bool,
-    key: Callable[["spack.spec.Spec"], Any] = id,
-    visited: Optional[Set[Any]] = None,
-) -> Iterable[Union["spack.spec.Spec", Tuple[int, "spack.spec.Spec"]]]: ...
-
-
-@overload
-def traverse_nodes(
-    specs: Sequence["spack.spec.Spec"],
-    root: bool,
-    order: OrderType,
-    cover: CoverType,
-    direction: DirectionType,
-    deptype: Union[dt.DepFlag, dt.DepTypes],
-    depth: bool,
-    key: Callable[["spack.spec.Spec"], Any] = id,
-    visited: Optional[Set[Any]] = None,
+    key: Callable[["spack.spec.Spec"], Any] = ...,
+    visited: Optional[Set[Any]] = ...,
 ) -> Iterable[Union["spack.spec.Spec", Tuple[int, "spack.spec.Spec"]]]: ...
 
 
 def traverse_nodes(
     specs: Sequence["spack.spec.Spec"],
+    *,
     root: bool = True,
     order: OrderType = "pre",
     cover: CoverType = "nodes",
@@ -693,7 +640,17 @@ def traverse_nodes(
         By default :class:`~spack.spec.Spec`, or a tuple ``(depth, Spec)`` if depth is
         set to ``True``.
     """
-    for item in traverse_edges(specs, root, order, cover, direction, deptype, depth, key, visited):
+    for item in traverse_edges(
+        specs,
+        root=root,
+        order=order,
+        cover=cover,
+        direction=direction,
+        deptype=deptype,
+        depth=depth,
+        key=key,
+        visited=visited,
+    ):
         yield (item[0], item[1].spec) if depth else item.spec  # type: ignore
 
 

@@ -1949,45 +1949,34 @@ class Spec:
     @overload
     def traverse(
         self,
-        root: bool = True,
-        order: spack.traverse.OrderType = "pre",
-        cover: spack.traverse.CoverType = "nodes",
-        direction: spack.traverse.DirectionType = "children",
-        deptype: Union[dt.DepFlag, dt.DepTypes] = "all",
+        *,
+        root: bool = ...,
+        order: spack.traverse.OrderType = ...,
+        cover: spack.traverse.CoverType = ...,
+        direction: spack.traverse.DirectionType = ...,
+        deptype: Union[dt.DepFlag, dt.DepTypes] = ...,
         depth: Literal[False] = False,
-        key: Callable[["Spec"], Any] = id,
-        visited: Optional[Set[Any]] = None,
+        key: Callable[["Spec"], Any] = ...,
+        visited: Optional[Set[Any]] = ...,
     ) -> Iterable["Spec"]: ...
 
     @overload
     def traverse(
         self,
-        root: bool = True,
-        order: spack.traverse.OrderType = "pre",
-        cover: spack.traverse.CoverType = "nodes",
-        direction: spack.traverse.DirectionType = "children",
-        deptype: Union[dt.DepFlag, dt.DepTypes] = "all",
         *,
+        root: bool = ...,
+        order: spack.traverse.OrderType = ...,
+        cover: spack.traverse.CoverType = ...,
+        direction: spack.traverse.DirectionType = ...,
+        deptype: Union[dt.DepFlag, dt.DepTypes] = ...,
         depth: Literal[True],
-        key: Callable[["Spec"], Any] = id,
-        visited: Optional[Set[Any]] = None,
-    ) -> Iterable[Tuple[int, "Spec"]]: ...
-
-    @overload
-    def traverse(
-        self,
-        root: bool,
-        order: spack.traverse.OrderType,
-        cover: spack.traverse.CoverType,
-        direction: spack.traverse.DirectionType,
-        deptype: Union[dt.DepFlag, dt.DepTypes],
-        depth: Literal[True],
-        key: Callable[["Spec"], Any] = id,
-        visited: Optional[Set[Any]] = None,
+        key: Callable[["Spec"], Any] = ...,
+        visited: Optional[Set[Any]] = ...,
     ) -> Iterable[Tuple[int, "Spec"]]: ...
 
     def traverse(
         self,
+        *,
         root: bool = True,
         order: spack.traverse.OrderType = "pre",
         cover: spack.traverse.CoverType = "nodes",
@@ -2013,45 +2002,34 @@ class Spec:
     @overload
     def traverse_edges(
         self,
-        root: bool = True,
-        order: spack.traverse.OrderType = "pre",
-        cover: spack.traverse.CoverType = "nodes",
-        direction: spack.traverse.DirectionType = "children",
-        deptype: Union[dt.DepFlag, dt.DepTypes] = "all",
+        *,
+        root: bool = ...,
+        order: spack.traverse.OrderType = ...,
+        cover: spack.traverse.CoverType = ...,
+        direction: spack.traverse.DirectionType = ...,
+        deptype: Union[dt.DepFlag, dt.DepTypes] = ...,
         depth: Literal[False] = False,
-        key: Callable[["Spec"], Any] = id,
-        visited: Optional[Set[Any]] = None,
+        key: Callable[["Spec"], Any] = ...,
+        visited: Optional[Set[Any]] = ...,
     ) -> Iterable[DependencySpec]: ...
 
     @overload
     def traverse_edges(
         self,
-        root: bool = True,
-        order: spack.traverse.OrderType = "pre",
-        cover: spack.traverse.CoverType = "nodes",
-        direction: spack.traverse.DirectionType = "children",
-        deptype: Union[dt.DepFlag, dt.DepTypes] = "all",
         *,
+        root: bool = ...,
+        order: spack.traverse.OrderType = ...,
+        cover: spack.traverse.CoverType = ...,
+        direction: spack.traverse.DirectionType = ...,
+        deptype: Union[dt.DepFlag, dt.DepTypes] = ...,
         depth: Literal[True],
-        key: Callable[["Spec"], Any] = id,
-        visited: Optional[Set[Any]] = None,
-    ) -> Iterable[Tuple[int, DependencySpec]]: ...
-
-    @overload
-    def traverse_edges(
-        self,
-        root: bool,
-        order: spack.traverse.OrderType,
-        cover: spack.traverse.CoverType,
-        direction: spack.traverse.DirectionType,
-        deptype: Union[dt.DepFlag, dt.DepTypes],
-        depth: Literal[True],
-        key: Callable[["Spec"], Any] = id,
-        visited: Optional[Set[Any]] = None,
+        key: Callable[["Spec"], Any] = ...,
+        visited: Optional[Set[Any]] = ...,
     ) -> Iterable[Tuple[int, DependencySpec]]: ...
 
     def traverse_edges(
         self,
+        *,
         root: bool = True,
         order: spack.traverse.OrderType = "pre",
         cover: spack.traverse.CoverType = "nodes",
