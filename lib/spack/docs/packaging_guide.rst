@@ -1,5 +1,4 @@
-.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-   Spack Project Developers. See the top-level COPYRIGHT file for details.
+.. Copyright Spack Project Developers. See COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -237,8 +236,7 @@ for details):
 .. code-block:: python
    :linenos:
 
-   # Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-   # Spack Project Developers. See the top-level COPYRIGHT file for details.
+   # Copyright Spack Project Developers. See COPYRIGHT file for details.
    #
    # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -1267,7 +1265,7 @@ Git fetching supports the following parameters to ``version``:
   This feature requires ``git`` to be version ``2.25.0`` or later but is useful for
   large repositories that have separate portions that can be built independently.
   If paths provided are directories then all the subdirectories and associated files
-  will also be cloned. 
+  will also be cloned.
 
 Only one of ``tag``, ``branch``, or ``commit`` can be used at a time.
 
@@ -1367,8 +1365,8 @@ Submodules
   git-submodule``.
 
 Sparse-Checkout
-  You can supply ``git_sparse_paths`` at the package or version level to utilize git's 
-  sparse-checkout feature. This will only clone the paths that are specified in the 
+  You can supply ``git_sparse_paths`` at the package or version level to utilize git's
+  sparse-checkout feature. This will only clone the paths that are specified in the
   ``git_sparse_paths`` attribute for the package along with the files in the top level directory.
   This feature allows you to only clone what you need from a large repository.
   Note that this is a newer feature in git and requries git ``2.25.0`` or greater.
@@ -1928,71 +1926,29 @@ to the empty list.
 String. A URL pointing to license setup instructions for the software.
 Defaults to the empty string.
 
-For example, let's take a look at the package for the PGI compilers.
+For example, let's take a look at the Arm Forge package.
 
 .. code-block:: python
 
    # Licensing
    license_required = True
-   license_comment  = "#"
-   license_files    = ["license.dat"]
-   license_vars     = ["PGROUPD_LICENSE_FILE", "LM_LICENSE_FILE"]
-   license_url      = "http://www.pgroup.com/doc/pgiinstall.pdf"
+   license_comment = "#"
+   license_files = ["licences/Licence"]
+   license_vars = [
+       "ALLINEA_LICENSE_DIR",
+       "ALLINEA_LICENCE_DIR",
+       "ALLINEA_LICENSE_FILE",
+       "ALLINEA_LICENCE_FILE",
+   ]
+   license_url = "https://developer.arm.com/documentation/101169/latest/Use-Arm-Licence-Server"
 
-As you can see, PGI requires a license. Its license manager, FlexNet, uses
-the ``#`` symbol to denote a comment. It expects the license file to be
-named ``license.dat`` and to be located directly in the installation prefix.
-If you would like the installation file to be located elsewhere, simply set
-``PGROUPD_LICENSE_FILE`` or ``LM_LICENSE_FILE`` after installation. For
-further instructions on installation and licensing, see the URL provided.
+Arm Forge requires a license. Its license manager uses the ``#`` symbol to denote a comment.
+It expects the license file to be named ``License`` and to be located in a ``licenses`` directory
+in the installation prefix.
 
-Let's walk through a sample PGI installation to see exactly what Spack is
-and isn't capable of. Since PGI does not provide a download URL, it must
-be downloaded manually. It can either be added to a mirror or located in
-the current directory when ``spack install pgi`` is run. See :ref:`mirrors`
-for instructions on setting up a mirror.
-
-After running ``spack install pgi``, the first thing that will happen is
-Spack will create a global license file located at
-``$SPACK_ROOT/etc/spack/licenses/pgi/license.dat``. It will then open up the
-file using :ref:`your favorite editor <controlling-the-editor>`. It will look like
-this:
-
-.. code-block:: sh
-
-   # A license is required to use pgi.
-   #
-   # The recommended solution is to store your license key in this global
-   # license file. After installation, the following symlink(s) will be
-   # added to point to this file (relative to the installation prefix):
-   #
-   #   license.dat
-   #
-   # Alternatively, use one of the following environment variable(s):
-   #
-   #   PGROUPD_LICENSE_FILE
-   #   LM_LICENSE_FILE
-   #
-   # If you choose to store your license in a non-standard location, you may
-   # set one of these variable(s) to the full pathname to the license file, or
-   # port@host if you store your license keys on a dedicated license server.
-   # You will likely want to set this variable in a module file so that it
-   # gets loaded every time someone tries to use pgi.
-   #
-   # For further information on how to acquire a license, please refer to:
-   #
-   #   http://www.pgroup.com/doc/pgiinstall.pdf
-   #
-   # You may enter your license below.
-
-You can add your license directly to this file, or tell FlexNet to use a
-license stored on a separate license server. Here is an example that
-points to a license server called licman1:
-
-.. code-block:: none
-
-   SERVER licman1.mcs.anl.gov 00163eb7fba5 27200
-   USE_SERVER
+If you would like the installation file to be located elsewhere, simply set ``ALLINEA_LICENSE_DIR`` or
+one of the other license variables after installation. For further instructions on installation and
+licensing, see the URL provided.
 
 If your package requires the license to install, you can reference the
 location of this global license using ``self.global_license_file``.
@@ -2392,7 +2348,7 @@ by the ``--jobs`` option:
 .. code-block:: python
    :emphasize-lines: 7, 11
    :linenos:
- 
+
    class Xios(Package):
       ...
       def install(self, spec, prefix):
@@ -2967,9 +2923,9 @@ make sense during the build phase may not be needed at runtime, and vice versa. 
 it makes sense to let a dependency set the environment variables for its dependents. To allow all
 this, Spack provides four different methods that can be overridden in a package:
 
-1. :meth:`setup_build_environment <spack.builder.Builder.setup_build_environment>`
+1. :meth:`setup_build_environment <spack.builder.BaseBuilder.setup_build_environment>`
 2. :meth:`setup_run_environment <spack.package_base.PackageBase.setup_run_environment>`
-3. :meth:`setup_dependent_build_environment <spack.builder.Builder.setup_dependent_build_environment>`
+3. :meth:`setup_dependent_build_environment <spack.builder.BaseBuilder.setup_dependent_build_environment>`
 4. :meth:`setup_dependent_run_environment <spack.package_base.PackageBase.setup_dependent_run_environment>`
 
 The Qt package, for instance, uses this call:
@@ -4942,15 +4898,15 @@ If your package has a virtual dependency like ``mpi``, then referring to
 ``spec["mpi"]`` within ``install()`` will get you the concrete ``mpi``
 implementation in your dependency DAG.  That is a spec object just like
 the one passed to install, only the MPI implementations all set some
-additional properties on it to help you out.  E.g., in mvapich2, you'll
+additional properties on it to help you out.  E.g., in openmpi, you'll
 find this:
 
-.. literalinclude:: _spack_root/var/spack/repos/builtin/packages/mvapich2/package.py
-   :pyobject: Mvapich2.setup_dependent_package
+.. literalinclude:: _spack_root/var/spack/repos/builtin/packages/openmpi/package.py
+   :pyobject: Openmpi.setup_dependent_package
 
-That code allows the mvapich2 package to associate an ``mpicc`` property
-with the ``mvapich2`` node in the DAG, so that dependents can access it.
-``openmpi`` and ``mpich`` do similar things.  So, no matter what MPI
+That code allows the ``openmpi`` package to associate an ``mpicc`` property
+with the ``openmpi`` node in the DAG, so that dependents can access it.
+``mvapich2`` and ``mpich`` do similar things.  So, no matter what MPI
 you're using, spec["mpi"].mpicc gets you the location of the MPI
 compilers. This allows us to have a fairly simple polymorphic interface
 for information about virtual dependencies like MPI.
@@ -5179,7 +5135,7 @@ other checks.
      - Not applicable
    * - :ref:`PythonPackage <pythonpackage>`
      - Not applicable
-     - ``test`` (module imports)
+     - ``test_imports`` (module imports)
    * - :ref:`QMakePackage <qmakepackage>`
      - ``check`` (``make check``)
      - Not applicable
@@ -5188,7 +5144,7 @@ other checks.
      - Not applicable
    * - :ref:`SIPPackage <sippackage>`
      - Not applicable
-     - ``test`` (module imports)
+     - ``test_imports`` (module imports)
    * - :ref:`WafPackage <wafpackage>`
      - ``build_test`` (must be overridden)
      - ``install_test`` (must be overridden)
@@ -5420,7 +5376,7 @@ by build recipes. Examples of checking :ref:`variant settings <variants>` and
     determine whether it needs to also set up build dependencies (see
     :ref:`test-build-tests`).
 
-The ``MyPackage`` package below provides two basic test examples: 
+The ``MyPackage`` package below provides two basic test examples:
 ``test_example`` and ``test_example2``.  The first runs the installed
 ``example`` and ensures its output contains an expected string. The second
 runs ``example2`` without checking output so is only concerned with confirming
@@ -5737,7 +5693,7 @@ subdirectory of the installation prefix. They are automatically copied to
 the appropriate relative paths under the test stage directory prior to
 executing stand-alone tests.
 
-.. tip:: 
+.. tip::
 
     *Perform test-related conversions once when copying files.*
 
@@ -7113,6 +7069,46 @@ might write:
    CXXFLAGS += -I$DWARF_PREFIX/include
    CXXFLAGS += -L$DWARF_PREFIX/lib
 
+.. _abi_compatibility:
+
+----------------------------
+Specifying ABI Compatibility
+----------------------------
+
+Packages can include ABI-compatibility information using the
+``can_splice`` directive. For example, if ``Foo`` version 1.1 can
+always replace version 1.0, then the package could have:
+
+.. code-block:: python
+
+   can_splice("foo@1.0", when="@1.1")
+
+For virtual packages, packages can also specify ABI-compabitiliby with
+other packages providing the same virtual. For example, ``zlib-ng``
+could specify:
+
+.. code-block:: python
+
+   can_splice("zlib@1.3.1", when="@2.2+compat")
+
+Some packages have ABI-compatibility that is dependent on matching
+variant values, either for all variants or for some set of
+ABI-relevant variants. In those cases, it is not necessary to specify
+the full combinatorial explosion. The ``match_variants`` keyword can
+cover all single-value variants.
+
+.. code-block:: python
+
+   can_splice("foo@1.1", when="@1.2", match_variants=["bar"])  # any value for bar as long as they're the same
+   can_splice("foo@1.2", when="@1.3", match_variants="*")  # any variant values if all single-value variants match
+
+The concretizer will use ABI compatibility to determine automatic
+splices when :ref:`automatic splicing<automatic_splicing>` is enabled.
+
+.. note::
+
+   The ``can_splice`` directive is experimental, and may be replaced
+   by a higher-level interface in future versions of Spack.
 
 .. _package_class_structure:
 

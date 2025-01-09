@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -19,6 +18,7 @@ class Mercury(CMakePackage):
     license("GPL-2.0-only")
 
     version("master", branch="master", submodules=True)
+    version("2.4.0", sha256="8926cd177f6e3c04e8ae1683d42f7c8b27163a93d4d99a305fe497fa8ca86e79")
     version("2.3.1", sha256="36182d49f2db7e2b075240cab4aaa1d4ec87a7756450c87643ededd1e6f16104")
     version("2.3.0", sha256="e9e62ce1bb2fd482f0e85ad75fa255d9750c6fed50ba441a03de93b3b8eae742")
     version("2.2.0", sha256="e66490cf63907c3959bbb2932b5aaf51d96a481b17f0935f409f3a862eff97f6")
@@ -160,5 +160,5 @@ class Mercury(CMakePackage):
     def check(self):
         """Unit tests fail when run in parallel."""
 
-        with working_dir(self.builder.build_directory):
+        with working_dir(self.build_directory):
             make("test", parallel=False)

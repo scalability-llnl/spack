@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -56,7 +55,6 @@ from llnl.util.lang import dedupe, stable_partition
 from llnl.util.symlink import symlink
 from llnl.util.tty.color import cescape, colorize
 
-import spack.build_systems._checks
 import spack.build_systems.cmake
 import spack.build_systems.meson
 import spack.build_systems.python
@@ -883,6 +881,9 @@ class EnvironmentVisitor:
         elif context == Context.RUN:
             self.root_depflag = dt.RUN | dt.LINK
 
+    def accept(self, item):
+        return True
+
     def neighbors(self, item):
         spec = item.edge.spec
         if spec.dag_hash() in self.root_hashes:
@@ -920,19 +921,21 @@ def effective_deptypes(
     a flag specifying in what way they do so. The list is ordered topologically
     from root to leaf, meaning that environment modifications should be applied
     in reverse so that dependents override dependencies, not the other way around."""
-    visitor = traverse.TopoVisitor(
-        EnvironmentVisitor(*specs, context=context),
-        key=lambda x: x.dag_hash(),
+    topo_sorted_edges = traverse.traverse_topo_edges_generator(
+        traverse.with_artificial_edges(specs),
+        visitor=traverse.CoverEdgesVisitor(
+            EnvironmentVisitor(*specs, context=context), key=traverse.by_dag_hash
+        ),
+        key=traverse.by_dag_hash,
         root=True,
         all_edges=True,
     )
-    traverse.traverse_depth_first_with_visitor(traverse.with_artificial_edges(specs), visitor)
 
     # Dictionary with "no mode" as default value, so it's easy to write modes[x] |= flag.
     use_modes = defaultdict(lambda: UseMode(0))
     nodes_with_type = []
 
-    for edge in visitor.edges:
+    for edge in topo_sorted_edges:
         parent, child, depflag = edge.parent, edge.spec, edge.depflag
 
         # Mark the starting point
@@ -1375,7 +1378,7 @@ def start_build_process(pkg, function, kwargs):
     return child_result
 
 
-CONTEXT_BASES = (spack.package_base.PackageBase, spack.build_systems._checks.BaseBuilder)
+CONTEXT_BASES = (spack.package_base.PackageBase, spack.builder.Builder)
 
 
 def get_package_context(traceback, context=3):
@@ -1424,27 +1427,20 @@ def get_package_context(traceback, context=3):
     # We found obj, the Package implementation we care about.
     # Point out the location in the install method where we failed.
     filename = inspect.getfile(frame.f_code)
-    lineno = frame.f_lineno
-    if os.path.basename(filename) == "package.py":
-        # subtract 1 because we inject a magic import at the top of package files.
-        # TODO: get rid of the magic import.
-        lineno -= 1
-
-    lines = ["{0}:{1:d}, in {2}:".format(filename, lineno, frame.f_code.co_name)]
+    lines = [f"{filename}:{frame.f_lineno}, in {frame.f_code.co_name}:"]
 
     # Build a message showing context in the install method.
     sourcelines, start = inspect.getsourcelines(frame)
 
     # Calculate lineno of the error relative to the start of the function.
-    fun_lineno = lineno - start
+    fun_lineno = frame.f_lineno - start
     start_ctx = max(0, fun_lineno - context)
     sourcelines = sourcelines[start_ctx : fun_lineno + context + 1]
 
     for i, line in enumerate(sourcelines):
         is_error = start_ctx + i == fun_lineno
-        mark = ">> " if is_error else "   "
         # Add start to get lineno relative to start of file, not function.
-        marked = "  {0}{1:-6d}{2}".format(mark, start + start_ctx + i, line.rstrip())
+        marked = f"  {'>> ' if is_error else '   '}{start + start_ctx + i:-6d}{line.rstrip()}"
         if is_error:
             marked = colorize("@R{%s}" % cescape(marked))
         lines.append(marked)

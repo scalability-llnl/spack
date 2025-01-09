@@ -1,0 +1,37 @@
+diff --git a/src/FJcore.cc b/src/FJcore.cc
+index c60108e2..afd32eee 100644
+--- a/src/FJcore.cc
++++ b/src/FJcore.cc
+@@ -730,14 +730,10 @@ FJCORE_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
+ class ClosestPair2D : public ClosestPair2DBase {
+ public:
+   ClosestPair2D(const std::vector<Coord2D> & positions, 
+-		const Coord2D & left_corner, const Coord2D & right_corner) {
+-    _initialize(positions, left_corner, right_corner, positions.size());
+-  };
++		const Coord2D & left_corner, const Coord2D & right_corner);
+   ClosestPair2D(const std::vector<Coord2D> & positions, 
+ 		const Coord2D & left_corner, const Coord2D & right_corner,
+-		const unsigned int max_size) {
+-    _initialize(positions, left_corner, right_corner, max_size);
+-  };
++		const unsigned int max_size);
+   void closest_pair(unsigned int & ID1, unsigned int & ID2, 
+ 		    double & distance2) const;
+   void remove(unsigned int ID);
+@@ -808,6 +804,15 @@ public:
+     return coord.distance2(other.coord);
+   };
+ };
++inline ClosestPair2D::ClosestPair2D(const std::vector<Coord2D> & positions, 
++  const Coord2D & left_corner, const Coord2D & right_corner) {
++  _initialize(positions, left_corner, right_corner, positions.size());
++};
++inline ClosestPair2D::ClosestPair2D(const std::vector<Coord2D> & positions, 
++  const Coord2D & left_corner, const Coord2D & right_corner,
++  const unsigned int max_size) {
++  _initialize(positions, left_corner, right_corner, max_size);
++};
+ inline bool floor_ln2_less(unsigned x, unsigned y) {
+   if (x>y) return false;
+   return (x < (x^y)); // beware of operator precedence...

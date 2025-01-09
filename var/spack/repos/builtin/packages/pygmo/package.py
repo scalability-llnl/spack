@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,7 +20,8 @@ class Pygmo(CMakePackage):
     version("master", branch="master")
     version("2.18.0", sha256="9f081cc973297894af09f713f889870ac452bfb32b471f9f7ba08a5e0bb9a125")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("shared", default=True, description="Build shared libraries")
 

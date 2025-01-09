@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -116,7 +115,6 @@ class Precice(CMakePackage):
     conflicts("%apple-clang@:5")
     conflicts("%clang@:3.7")
     conflicts("%intel@:16")
-    conflicts("%pgi@:17.3")
 
     def xsdk_tpl_args(self):
         return [

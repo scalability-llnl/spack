@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import copy
@@ -7,9 +6,7 @@ import os
 import os.path
 import sys
 
-import spack.platforms
 import spack.util.environment
-import spack.util.executable
 from spack.build_environment import dso_suffix
 from spack.build_systems import cmake, makefile
 from spack.package import *
@@ -59,9 +56,11 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     version("7.1", sha256="ccd711a09a426145440e666310dd01cc5772ab103493c4ae6a3470898cd0addb")
     version("master", branch="master", submodules="True")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
+
+    generator("ninja")
 
     variant("mpi", default=True, description="Enable MPI support")
     variant("openmp", default=True, description="Enable OpenMP support")
@@ -242,6 +241,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
 
         with when("@2024.2:"):
             depends_on("dla-future-fortran@0.1.0:")
+            depends_on("dla-future-fortran@0.2.0:", when="@2025.1:")
 
             # Use a direct dependency on dla-future so that constraints can be expressed
             # WARN: In the concretizer output, dla-future will appear as dependency of CP2K
@@ -434,7 +434,6 @@ class MakefileBuilder(makefile.MakefileBuilder):
         optimization_flags = {
             "gcc": ["-O2", "-funroll-loops", "-ftree-vectorize"],
             "intel": ["-O2", "-pc64", "-unroll"],
-            "pgi": ["-fast"],
             "nvhpc": ["-fast"],
             "cce": ["-O2"],
             "xl": ["-O3"],
@@ -483,7 +482,7 @@ class MakefileBuilder(makefile.MakefileBuilder):
             ]
         elif spec.satisfies("%aocc") or spec.satisfies("%rocmcc"):
             fcflags += ["-ffree-form", "-Mbackslash"]
-        elif spec.satisfies("%pgi") or spec.satisfies("%nvhpc"):
+        elif spec.satisfies("%nvhpc"):
             fcflags += ["-Mfreeform", "-Mextend"]
         elif spec.satisfies("%cce"):
             fcflags += ["-emf", "-ffree", "-hflex_mp=strict"]

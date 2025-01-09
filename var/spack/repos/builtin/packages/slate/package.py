@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -7,10 +6,10 @@ from spack.package import *
 
 
 class Slate(CMakePackage, CudaPackage, ROCmPackage):
-    """The Software for Linear Algebra Targeting Exascale (SLATE) project is
-    to provide fundamental dense linear algebra capabilities to the US
+    """The Software for Linear Algebra Targeting Exascale (SLATE) project
+    provides fundamental dense linear algebra capabilities to the US
     Department of Energy and to the high-performance computing (HPC) community
-    at large. To this end, SLATE will provide basic dense matrix operations
+    at large. To this end, SLATE provides basic dense matrix operations
     (e.g., matrix multiplication, rank-k update, triangular solve), linear
     systems solvers, least square solvers, singular value and eigenvalue
     solvers."""
@@ -126,6 +125,12 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
     conflicts("+cuda", when="+sycl", msg=backend_msg)
     conflicts("+sycl", when="@:2022.07.00", msg="SYCL support requires SLATE version 2023.08.25")
     conflicts("^hip@5.6.0:", when="@:2023.08.25", msg="Incompatible version of HIP/ROCm")
+
+    def flag_handler(self, name, flags):
+        if name == "cxxflags":
+            if self.spec.satisfies("%oneapi@2025:"):
+                flags.append("-Wno-error=missing-template-arg-list-after-template-kw")
+        return (flags, None, None)
 
     def cmake_args(self):
         spec = self.spec
