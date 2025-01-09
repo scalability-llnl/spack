@@ -796,7 +796,9 @@ def scopes_from_paths(
     required: List[str] = [],
 ) -> List[ConfigScope]:
     """Load included config scopes
+
     Scopes are added in reverse order so that highest-precedence scopes are last.
+
     Args:
         includes: list of paths to be included
         name_prefix: environment's name prefix
@@ -804,6 +806,7 @@ def scopes_from_paths(
         relative_root: path to root directory for relative paths or ``None``
             if relative paths are not supported
         required: list of paths that are required
+
     Raises:
         ValueError: included path has an unsupported URL scheme, is required
             but does not exist, or is not allowed to be relative
