@@ -297,31 +297,40 @@ class T1(Package):
 )
 
 
+all_pkgs = [
+    _pkgx1,
+    _pkgx2,
+    _pkgx3,
+    _pkgx4,
+    _pkgy1,
+    _pkgy2,
+    _pkgy3,
+    _pkgy4,
+    _pkgz1,
+    _pkgz2,
+    _pkgz3,
+    _pkgw1,
+    _pkgw2,
+    _pkgw3,
+    _pkgw4,
+    _pkgt1,
+    _pkgt2,
+    _pkgt3,
+    _pkgt4,
+]
+
+
+def _add_import(pkg_def):
+    return "from spack.package import *\n" + pkg_def
+
+
+all_pkgs = list((x, _add_import(y)) for (x, y) in all_pkgs)
+
+
 @pytest.fixture
 def _create_test_repo(tmpdir, mutable_config):
     yield create_test_repo(
-        tmpdir,
-        [
-            _pkgx1,
-            _pkgx2,
-            _pkgx3,
-            _pkgx4,
-            _pkgy1,
-            _pkgy2,
-            _pkgy3,
-            _pkgy4,
-            _pkgz1,
-            _pkgz2,
-            _pkgz3,
-            _pkgw1,
-            _pkgw2,
-            _pkgw3,
-            _pkgw4,
-            _pkgt1,
-            _pkgt2,
-            _pkgt3,
-            _pkgt4,
-        ],
+        tmpdir, all_pkgs
     )
 
 
