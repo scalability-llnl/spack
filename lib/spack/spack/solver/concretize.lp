@@ -1,5 +1,4 @@
-% Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-% Spack Project Developers. See the top-level COPYRIGHT file for details.
+% Copyright Spack Project Developers. See COPYRIGHT file for details.
 %
 % SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -1003,6 +1002,8 @@ variant_default_not_used(node(ID, Package), Variant, Value)
      node_has_variant(node(ID, Package), Variant, _),
      not attr("variant_value", node(ID, Package), Variant, Value),
      not propagate(node(ID, Package), variant_value(Variant, _, _)),
+     % variant set explicitly don't count for this metric
+     not attr("variant_set", node(ID, Package), Variant, _),
      attr("node", node(ID, Package)).
 
 % The variant is set in an external spec

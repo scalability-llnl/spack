@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,16 +10,6 @@ class PyPyzmq(PythonPackage):
 
     homepage = "https://github.com/zeromq/pyzmq"
     pypi = "pyzmq/pyzmq-22.3.0.tar.gz"
-
-    skip_modules = [
-        # Requires zmq.backend.cffi._cffi
-        "zmq.backend.cffi",
-        # Requires tornado
-        "zmq.eventloop",
-        "zmq.green.eventloop",
-        # Requires pytest
-        "zmq.tests",
-    ]
 
     license("BSD-3-Clause")
 
@@ -35,7 +24,11 @@ class PyPyzmq(PythonPackage):
     version("18.0.1", sha256="8b319805f6f7c907b101c864c3ca6cefc9db8ce0791356f180b1b644c7347e4c")
     version("17.1.2", sha256="a72b82ac1910f2cf61a49139f4974f994984475f771b0faa730839607eeedddf")
     version("16.0.2", sha256="0322543fff5ab6f87d11a8a099c4c07dd8a1719040084b6ce9162bcdf5c45c9d")
-    version("14.7.0", sha256="77994f80360488e7153e64e5959dc5471531d1648e3a4bff14a714d074a38cc2")
+    version(
+        "14.7.0",
+        sha256="77994f80360488e7153e64e5959dc5471531d1648e3a4bff14a714d074a38cc2",
+        deprecated=True,
+    )
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
@@ -94,12 +87,9 @@ include_dirs = {2}
                 )
             )
 
-    def setup_build_environment(self, env):
-        # Needed for `spack install --test=root py-pyzmq`
-        # Fixes import failure for zmq.backend.cffi
-        # https://github.com/zeromq/pyzmq/issues/395#issuecomment-22041019
-        env.prepend_path("C_INCLUDE_PATH", self.spec["libzmq"].headers.directories[0])
-        env.prepend_path("LIBRARY_PATH", self.spec["libzmq"].libs.directories[0])
-
-    # Needed for `spack test run py-pyzmq`
-    setup_run_environment = setup_build_environment
+    @property
+    def import_modules(self):
+        # importing zmq mutates the install prefix, meaning spack install --test=root py-pyzmq
+        # would result in a different install prefix than spack install py-pyzmq. Therefore do not
+        # run any import tests.
+        return [] if self.spec.satisfies("@:20") else ["zmq"]

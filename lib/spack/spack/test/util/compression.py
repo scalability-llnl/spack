@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -66,7 +65,7 @@ def test_native_unpacking(tmpdir_factory, archive_file_and_extension):
         util(archive_file)
         files = os.listdir(os.getcwd())
         assert len(files) == 1
-        with open(files[0], "r") as f:
+        with open(files[0], "r", encoding="utf-8") as f:
             contents = f.read()
         assert "TEST" in contents
 
@@ -87,7 +86,7 @@ def test_system_unpacking(tmpdir_factory, archive_file_and_extension, compr_supp
         util(archive_file)
         files = os.listdir(os.getcwd())
         assert len(files) == 1
-        with open(files[0], "r") as f:
+        with open(files[0], "r", encoding="utf-8") as f:
             contents = f.read()
         assert "TEST" in contents
 

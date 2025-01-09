@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -82,9 +81,8 @@ class Visit(CMakePackage):
     depends_on("fortran", type="build")  # generated
 
     root_cmakelists_dir = "src"
+    # Prefer ninja generator
     generator("ninja", "make")
-    # Temporary fix for now due to issue installing with ninja generator
-    conflicts("generator=ninja", when="+python")
 
     variant("gui", default=True, description="Enable VisIt's GUI")
     variant("adios2", default=True, description="Enable ADIOS2 file format")
@@ -118,6 +116,7 @@ class Visit(CMakePackage):
 
     # Add dectection for py-pip and enable python extensions with building with GUI
     patch("19958-enable-python-and-check-pip.patch", when="@3.4:3.4.1 +python")
+    patch("20127-remove-relink-visitmodule-py-setup.patch", when="@3.4.1 +python")
 
     conflicts(
         "+gui", when="^[virtuals=gl] osmesa", msg="GUI cannot be activated with OSMesa front-end"
@@ -411,3 +410,6 @@ class Visit(CMakePackage):
         output = Executable(exe)("-version", output=str, error=str)
         match = re.search(r"\s*(\d[\d\.]+)\.", output)
         return match.group(1) if match else None
+
+    # see https://github.com/visit-dav/visit/issues/20055
+    unresolved_libraries = ["*"]

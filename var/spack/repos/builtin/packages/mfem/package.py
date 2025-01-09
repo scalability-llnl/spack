@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -702,8 +701,10 @@ class Mfem(Package, CudaPackage, ROCmPackage):
         if "+mpi" in spec:
             options += ["MPICXX=%s" % spec["mpi"].mpicxx]
             hypre = spec["hypre"]
-            # The hypre package always links with 'blas' and 'lapack'.
-            all_hypre_libs = hypre.libs + hypre["lapack"].libs + hypre["blas"].libs
+            all_hypre_libs = hypre.libs
+            if "+lapack" in hypre:
+                all_hypre_libs += hypre["lapack"].libs + hypre["blas"].libs
+
             hypre_gpu_libs = ""
             if "+cuda" in hypre:
                 hypre_gpu_libs = " -lcusparse -lcurand -lcublas"
