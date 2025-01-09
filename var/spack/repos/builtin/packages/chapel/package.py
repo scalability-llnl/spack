@@ -1,11 +1,13 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 import subprocess
 
+import llnl.util.lang
+
+import spack.platforms
 import spack.platforms.cray
 from spack.package import *
 from spack.util.environment import is_system_path, set_env
@@ -96,7 +98,6 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
         "intel": "intel",
         "llvm": "llvm",
         "oneapi": "intel",
-        "pgi": "pgi",
         "rocmcc": "clang",
         "unset": "unset",
     }
@@ -553,7 +554,6 @@ class Chapel(AutotoolsPackage, CudaPackage, ROCmPackage):
         "%intel",
         "%llvm",
         "%oneapi",
-        "%pgi",
         "%rocmcc",
         policy="one_of",
     )

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -47,10 +46,10 @@ def test_view_with_spec_not_contributing_files(mock_packages, tmpdir):
     os.makedirs(os.path.join(b.prefix, ".spack"))
 
     # Add files to b's prefix, but not to a's
-    with open(b.prefix.file, "w") as f:
+    with open(b.prefix.file, "w", encoding="utf-8") as f:
         f.write("file 1")
 
-    with open(b.prefix.subdir.file, "w") as f:
+    with open(b.prefix.subdir.file, "w", encoding="utf-8") as f:
         f.write("file 2")
 
     # In previous versions of Spack we incorrectly called add_files_to_view

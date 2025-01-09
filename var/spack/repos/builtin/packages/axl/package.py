@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -46,7 +45,8 @@ class Axl(CMakePackage):
         deprecated=True,
     )
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     depends_on("kvtree")
     depends_on("zlib-api", type="link")
@@ -75,8 +75,8 @@ class Axl(CMakePackage):
     variant(
         "bbapi_fallback",
         default=False,
-        description="Using BBAPI, if source or destination don't support \
-            file extents then fallback to pthreads",
+        description="Using BBAPI, if source or destination don't support "
+        "file extents then fallback to pthreads",
     )
 
     variant("dw", default=False, description="Enable Cray DataWarp support")

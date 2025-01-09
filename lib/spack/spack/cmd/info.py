@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,6 +10,7 @@ import llnl.util.tty as tty
 import llnl.util.tty.color as color
 from llnl.util.tty.colify import colify
 
+import spack.builder
 import spack.deptypes as dt
 import spack.fetch_strategy as fs
 import spack.install_test
@@ -202,11 +202,13 @@ def print_namespace(pkg, args):
 def print_phases(pkg, args):
     """output installation phases"""
 
-    if hasattr(pkg.builder, "phases") and pkg.builder.phases:
+    builder = spack.builder.create(pkg)
+
+    if hasattr(builder, "phases") and builder.phases:
         color.cprint("")
         color.cprint(section_title("Installation Phases:"))
         phase_str = ""
-        for phase in pkg.builder.phases:
+        for phase in builder.phases:
             phase_str += "    {0}".format(phase)
         color.cprint(phase_str)
 

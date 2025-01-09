@@ -6,20 +6,31 @@ spack:
     cmake:
       variants: ~ownlibs
     ecp-data-vis-sdk:
-      require: "+ascent +adios2 +cinema +darshan +faodel +hdf5 +pnetcdf +sensei +sz +unifyfs +veloc +vtkm +zfp"
+      require:
+      - "+ascent +adios2 +cinema +darshan +faodel +hdf5 +pnetcdf +sensei +sz +unifyfs +veloc +vtkm +zfp"
     hdf5:
       require:
-      - one_of: ['@1.14', '@1.12']
+      - "@1.14"
     mesa:
-      require: "+glx +osmesa +opengl ~opengles +llvm"
+      require:
+      - "+glx +osmesa +opengl ~opengles +llvm"
     libglx:
       require: "mesa +glx"
     ospray:
-      require: '@2.8.0 +denoiser +mpi'
+      require:
+      - "@2.8.0"
+      - "+denoiser +mpi"
     llvm:
-      require: '@14:'
+      require: ["@14:"]
       # Minimize LLVM
       variants: ~lldb~lld~libomptarget~polly~gold libunwind=none compiler-rt=none
+    libllvm:
+      require: ["^llvm"]
+    visit:
+      require: ["@3.4.1"]
+
+  concretizer:
+    unify: when_possible
 
   definitions:
   - paraview_specs:
@@ -30,11 +41,10 @@ spack:
         - ^[virtuals=gl] osmesa # OSMesa Rendering
   - visit_specs:
     - matrix:
-      - - visit~gui
-      - - ^[virtuals=gl] glx # GLX Rendering
-        - ^[virtuals=gl] osmesa # OSMesa Rendering
-        # VisIt GUI does not work with Qt 5.14.2
-        # - +gui ^[virtuals=gl] glx # GUI Support w/ GLX Rendering
+      - - visit
+      - - ~gui ^[virtuals=gl] glx
+        - ~gui ^[virtuals=gl] osmesa
+        - +gui ^[virtuals=gl] glx # GUI Support w/ GLX Rendering
   - sdk_base_spec:
     - matrix:
       - - ecp-data-vis-sdk +ascent +adios2 +cinema +darshan +faodel +hdf5 +pnetcdf

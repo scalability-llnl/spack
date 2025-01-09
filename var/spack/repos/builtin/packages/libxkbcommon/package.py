@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import spack.build_systems.autotools
@@ -54,7 +53,7 @@ class Libxkbcommon(MesonPackage, AutotoolsPackage):
     depends_on("pkgconfig@0.9.0:", type="build")
     depends_on("bison", type="build")
     depends_on("util-macros")
-    depends_on("xkbdata")
+    depends_on("xkbdata-api")
     depends_on("libxcb@1.10:")
     depends_on("libxml2", when="@1:")
 
@@ -65,7 +64,7 @@ class Libxkbcommon(MesonPackage, AutotoolsPackage):
 class MesonBuilder(spack.build_systems.meson.MesonBuilder):
     def meson_args(self):
         args = [
-            "-Dxkb-config-root={0}".format(self.spec["xkbdata"].prefix),
+            "-Dxkb-config-root={0}".format(self.spec["xkbdata-api"].prefix),
             "-Denable-docs=false",
             "-Denable-wayland=" + str(self.spec.satisfies("+wayland")),
         ]
@@ -80,6 +79,6 @@ class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
     def configure_args(self):
         """Configure arguments are passed using meson_args functions"""
         return [
-            "--with-xkb-config-root={0}".format(self.spec["xkbdata"].prefix),
+            "--with-xkb-config-root={0}".format(self.spec["xkbdata-api"].prefix),
             "--disable-docs",
         ] + self.enable_or_disable("wayland")
