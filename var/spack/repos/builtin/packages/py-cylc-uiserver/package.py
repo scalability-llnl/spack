@@ -17,7 +17,8 @@ class PyCylcUiserver(PythonPackage):
 
     license("GPL-3.0-or-later")
 
-    # 1.5.1 not on PyPI server?
+    # Version 1.5.1 is available at PyPI, but not at the URL that is considered canonical by Spack
+    # https://github.com/spack/spack/issues/48479
     version("1.5.1", commit="3a41c6fbefbcea33c41410f3698de8b62c9871b8")
     version("1.3.0", sha256="f3526e470c7ac2b61bf69e9b8d17fc7a513392219d28baed9b1166dcc7033d7a")
 
