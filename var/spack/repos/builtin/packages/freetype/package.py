@@ -105,9 +105,18 @@ class AutotoolsBuilder(AutotoolsBuilder):
         args.extend(self.with_or_without("pic"))
         return args
 
+    # https://github.com/spack/spack/issues/48293
     def setup_build_environment(self, env):
         if self.spec.satisfies("+pic"):
             env.set("CFLAGS", "-fPIC")
+        if self.spec["zlib-api"].external:
+            env.append_path(
+                "PKG_CONFIG_PATH",
+                os.path.dirname(find_first(self.spec["zlib-api"].prefix, "zlib.pc", bfs_depth=10)),
+            )
+
+    # https://github.com/spack/spack/issues/48293
+    def setup_dependent_build_environment(self, env, dependent_spec):
         if self.spec["zlib-api"].external:
             env.append_path(
                 "PKG_CONFIG_PATH",
