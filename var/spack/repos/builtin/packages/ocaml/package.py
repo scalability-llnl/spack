@@ -78,7 +78,10 @@ class Ocaml(Package):
                     string=True,
                 )
 
-        configure(*(base_args), f"CC={self.compiler.cc}")
+        if self.spec.satisfies("@4.8.0:"):
+            base_args += [f"CC={self.compiler.cc}"]
+
+        configure(*(base_args))
 
         make("world.opt")
         make("install", "PREFIX={0}".format(prefix))
