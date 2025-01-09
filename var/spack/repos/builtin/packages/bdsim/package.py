@@ -37,7 +37,4 @@ class Bdsim(CMakePackage):
     depends_on("flex")
     depends_on("bison")
 
-    def cmake_args(self):
-        args = []
-        args.append(f"-DCMAKE_CXX_STANDARD={self.spec['root'].variants['cxxstd'].value}")
-        return args
+    # The C++ standard is set to be the same as the one used for ROOT
