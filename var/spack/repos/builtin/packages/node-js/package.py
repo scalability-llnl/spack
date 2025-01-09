@@ -103,6 +103,13 @@ class NodeJs(Package):
     # See https://github.com/nodejs/node/issues/52223
     patch("fix-old-glibc-random-headers.patch", when="^glibc@:2.24")
 
+    # https://github.com/nodejs/node/issues/55596
+    # This patch is not sufficient, however, therefore
+    # add a conflict with this particular version of gcc
+    # until https://github.com/spack/spack/issues/48492 is resolved
+    patch("wasm-compiler-gcc11p2.patch", when="@21: %gcc@11.2")
+    conflicts("%gcc@11.2", when="@21:")
+
     def setup_build_environment(self, env):
         # Force use of experimental Python 3 support
         env.set("PYTHON", self.spec["python"].command.path)
