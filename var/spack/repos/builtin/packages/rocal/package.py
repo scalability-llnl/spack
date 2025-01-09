@@ -107,9 +107,7 @@ class Rocal(CMakePackage):
         ]
         if "@6.3.0:" in self.spec:
             args.append(
-                self.define(
-                    "CMAKE_CXX_FLAGS", "-I{0} -I{1}".format(abspath, rapidjsonpath)
-                )
+                self.define("CMAKE_CXX_FLAGS", "-I{0} -I{1}".format(abspath, rapidjsonpath))
             )
         return args
 
