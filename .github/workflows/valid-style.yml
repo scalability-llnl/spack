@@ -20,7 +20,7 @@ jobs:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
     - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
       with:
-        python-version: '3.11'
+        python-version: '3.13'
         cache: 'pip'
     - name: Install Python Packages
       run: |
@@ -39,7 +39,7 @@ jobs:
         fetch-depth: 0
     - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
       with:
-        python-version: '3.11'
+        python-version: '3.13'
         cache: 'pip'
     - name: Install Python packages
       run: |
@@ -58,7 +58,7 @@ jobs:
     secrets: inherit
     with:
       with_coverage: ${{ inputs.with_coverage }}
-      python_version: '3.11'
+      python_version: '3.13'
   # Check that spack can bootstrap the development environment on Python 3.6 - RHEL8
   bootstrap-dev-rhel8:
     runs-on: ubuntu-latest
