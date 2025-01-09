@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -2101,7 +2100,6 @@ complete -c spack -n '__fish_spack_using_command install' -l deprecated -d 'allo
 set -g __fish_spack_optspecs_spack_license h/help root=
 complete -c spack -n '__fish_spack_using_command_pos 0 license' -f -a list-files -d 'list files in spack that should have license headers'
 complete -c spack -n '__fish_spack_using_command_pos 0 license' -f -a verify -d 'verify that files in spack have the right license header'
-complete -c spack -n '__fish_spack_using_command_pos 0 license' -f -a update-copyright-year -d 'update copyright for the current year in all licensed files'
 complete -c spack -n '__fish_spack_using_command license' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command license' -s h -l help -d 'show this help message and exit'
 complete -c spack -n '__fish_spack_using_command license' -l root -r -f -a root
@@ -2116,11 +2114,6 @@ complete -c spack -n '__fish_spack_using_command license list-files' -s h -l hel
 set -g __fish_spack_optspecs_spack_license_verify h/help
 complete -c spack -n '__fish_spack_using_command license verify' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command license verify' -s h -l help -d 'show this help message and exit'
-
-# spack license update-copyright-year
-set -g __fish_spack_optspecs_spack_license_update_copyright_year h/help
-complete -c spack -n '__fish_spack_using_command license update-copyright-year' -s h -l help -f -a help
-complete -c spack -n '__fish_spack_using_command license update-copyright-year' -s h -l help -d 'show this help message and exit'
 
 # spack list
 set -g __fish_spack_optspecs_spack_list h/help r/repo= d/search-description format= v/virtuals t/tag= count update=

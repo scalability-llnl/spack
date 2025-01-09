@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -8,10 +7,11 @@ import os
 import llnl.util.tty as tty
 
 from spack.package import *
+from spack.pkg.builtin.mpich import MpichEnvironmentModifications
 from spack.util.module_cmd import get_path_args_from_module_line, module
 
 
-class CrayMpich(Package, CudaPackage, ROCmPackage):
+class CrayMpich(MpichEnvironmentModifications, Package, CudaPackage, ROCmPackage):
     """Cray's MPICH is a high performance and widely portable implementation of
     the Message Passing Interface (MPI) standard."""
 
@@ -20,6 +20,8 @@ class CrayMpich(Package, CudaPackage, ROCmPackage):
 
     maintainers("etiennemlb", "haampie")
 
+    version("8.1.30")
+    version("8.1.28")
     version("8.1.25")
     version("8.1.24")
     version("8.1.21")
@@ -74,31 +76,18 @@ class CrayMpich(Package, CudaPackage, ROCmPackage):
 
     def setup_run_environment(self, env):
         if self.spec.satisfies("+wrappers"):
-            env.set("MPICC", join_path(self.prefix.bin, "mpicc"))
-            env.set("MPICXX", join_path(self.prefix.bin, "mpicxx"))
-            env.set("MPIF77", join_path(self.prefix.bin, "mpif77"))
-            env.set("MPIF90", join_path(self.prefix.bin, "mpif90"))
-        elif spack_cc is not None:
-            env.set("MPICC", spack_cc)
-            env.set("MPICXX", spack_cxx)
-            env.set("MPIF77", spack_f77)
-            env.set("MPIF90", spack_fc)
+            self.setup_mpi_wrapper_variables(env)
+            return
 
-    def setup_dependent_build_environment(self, env, dependent_spec):
-        dependent_module = dependent_spec.package.module
-        env.set("MPICH_CC", dependent_module.spack_cc)
-        env.set("MPICH_CXX", dependent_module.spack_cxx)
-        env.set("MPICH_F77", dependent_module.spack_f77)
-        env.set("MPICH_F90", dependent_module.spack_fc)
-        env.set("MPICH_FC", dependent_module.spack_fc)
+        env.set("MPICC", self.compiler.cc)
+        env.set("MPICXX", self.compiler.cxx)
+        env.set("MPIFC", self.compiler.fc)
+        env.set("MPIF77", self.compiler.f77)
 
     def setup_dependent_package(self, module, dependent_spec):
         spec = self.spec
         if spec.satisfies("+wrappers"):
-            spec.mpicc = join_path(self.prefix.bin, "mpicc")
-            spec.mpicxx = join_path(self.prefix.bin, "mpicxx")
-            spec.mpifc = join_path(self.prefix.bin, "mpif90")
-            spec.mpif77 = join_path(self.prefix.bin, "mpif77")
+            MpichEnvironmentModifications.setup_dependent_package(self, module, dependent_spec)
         elif spack_cc is not None:
             spec.mpicc = spack_cc
             spec.mpicxx = spack_cxx
@@ -158,29 +147,34 @@ class CrayMpich(Package, CudaPackage, ROCmPackage):
         #   /opt/cray/pe/mpich/8.1.28/ofi/<vendor>/<vendor_version>
         #   /opt/cray/pe/mpich/8.1.28/ofi/<vendor>/<vendor_version>/../../../gtl/lib
 
-        gtl_kinds = [
-            [
-                "+rocm",
-                "amdgpu_target",
-                "libmpi_gtl_hsa",
-                set(["gfx906", "gfx908", "gfx90a", "gfx940", "gfx942"]),
-            ],
-            ["+cuda", "cuda_arch", "libmpi_gtl_cuda", set(["70", "80", "90"])],
-            # ["", "", "libmpi_gtl_ze", ["ponteVecchio"]]
-        ]
+        gtl_kinds = {
+            "cuda": {
+                "lib": "libmpi_gtl_cuda",
+                "variant": "cuda_arch",
+                "values": {"70", "80", "90"},
+            },
+            "rocm": {
+                "lib": "libmpi_gtl_hsa",
+                "variant": "amdgpu_target",
+                "values": {"gfx906", "gfx908", "gfx90a", "gfx940", "gfx942"},
+            },
+        }
 
-        for gtl_kind in gtl_kinds:
-            if self.spec.satisfies(f"{gtl_kind[0]} {gtl_kind[1]}=*"):
-                accelerator_architecture_set = set(self.spec.variants[gtl_kind[1]].value)
+        for variant, gtl_kind in gtl_kinds.items():
+            arch_variant = gtl_kind["variant"]
+            arch_values = gtl_kind["values"]
+            gtl_lib = gtl_kind["lib"]
+
+            if self.spec.satisfies(f"+{variant} {arch_variant}=*"):
+                accelerator_architecture_set = set(self.spec.variants[arch_variant].value)
 
                 if len(
                     accelerator_architecture_set
-                ) >= 1 and not accelerator_architecture_set.issubset(gtl_kind[3]):
-                    tty.error(
-                        f"cray-mpich variant '{gtl_kind[0]} {gtl_kind[1]}'"
+                ) >= 1 and not accelerator_architecture_set.issubset(arch_values):
+                    raise InstallError(
+                        f"cray-mpich variant '+{variant} {arch_variant}'"
                         " was specified but no GTL support could be found for it."
                     )
-                    break
 
                 mpi_root = os.path.abspath(
                     os.path.join(self.prefix, os.pardir, os.pardir, os.pardir)
@@ -193,12 +187,11 @@ class CrayMpich(Package, CudaPackage, ROCmPackage):
                 )
 
                 if len(gtl_shared_libraries) != 1:
-                    tty.error(
-                        f"cray-mpich variant '{gtl_kind[0]} {gtl_kind[1]}'"
+                    raise InstallError(
+                        f"cray-mpich variant '+{variant} {arch_variant}'"
                         " was specified and GTL support was found for it but"
-                        f" the '{gtl_kind[2]}' could not be correctly found on disk."
+                        f" the '{gtl_lib}' could not be correctly found on disk."
                     )
-                    break
 
                 gtl_library_fullpath = list(gtl_shared_libraries)[0]
                 tty.debug(f"Selected GTL: {gtl_library_fullpath}")
