@@ -51,7 +51,7 @@ class PyIminuit(PythonPackage):
     depends_on("python@3.9:", type=("build", "run"), when="@2.28.0:")
     # Bundled pybind11@:2.92 until 2.21 fails to compile with python@3.11:
     # See https://github.com/pybind/pybind11/pull/3368
-    depends_on("python@:3.12", type=("build", "run"), when="@:2.21")
+    depends_on("python@:3.10", type=("build", "run"), when="@:2.21")
     with when("@2.22:"):
         depends_on("py-scikit-build-core@0.3:+pyproject", type="build")
         depends_on("py-scikit-build-core@0.5:+pyproject", type="build", when="@2.26:")
