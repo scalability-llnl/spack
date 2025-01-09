@@ -294,8 +294,8 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     depends_on("spglib", when="+spglib")
 
     depends_on("dftd4@3.6.0:", when="+dftd4")
-    # DFTB4 support is broken in CP2K @:2025.1 with CMake
-    conflicts("+dftb4", when="@:2025.1 build_system=cmake")
+    # DFTD4 support is broken in CP2K @:2025.1 with CMake
+    conflicts("+dftd4", when="@:2025.1 build_system=cmake")
 
     with when("build_system=cmake"):
         depends_on("cmake@3.22:", type="build")
