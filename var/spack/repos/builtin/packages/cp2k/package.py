@@ -294,6 +294,8 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     depends_on("spglib", when="+spglib")
 
     depends_on("dftd4@3.6.0:", when="+dftd4")
+    # DFTB4 support is broken in CP2K @:2025.1 with CMake
+    conflicts("+dftb4", when="@:2025.1 build_system=cmake")
 
     with when("build_system=cmake"):
         depends_on("cmake@3.22:", type="build")
@@ -625,6 +627,12 @@ class MakefileBuilder(makefile.MakefileBuilder):
             spglib = spec["spglib"].libs
             ldflags += [spglib.search_flags]
             libs.append(spglib.ld_flags)
+
+        if spec.satisfies("+dftd4"):
+            cppflags += ["-D__DFTD4"]
+            dftd4 = spec["dftd4"].libs
+            ldflags += [dftd4.search_flags]
+            libs.append(dftd4.ld_flags)
 
         cc = spack_cc if "~mpi" in spec else spec["mpi"].mpicc
         cxx = spack_cxx if "~mpi" in spec else spec["mpi"].mpicxx
