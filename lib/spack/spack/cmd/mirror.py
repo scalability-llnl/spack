@@ -45,13 +45,6 @@ def setup_parser(subparser):
         " in the current environment if there is an active environment"
         " (this requires significant time and space)",
     )
-    #create_parser.add_argument(
-    #    "-j",
-    #    "--parallel",
-    #    type=int,
-    #    default=spack.config.determine_number_of_jobs(parallel=True),
-    #    help="Use a given number of threads to make the mirror (used in combination with -a)",
-    #)
     create_parser.add_argument("-f", "--file", help="file with specs of packages to put in mirror")
     create_parser.add_argument(
         "--exclude-file",
