@@ -34,7 +34,7 @@ class Armadillo(CMakePackage):
     depends_on("c", type="build")
     depends_on("cxx", type="build")
 
-    variant("hdf5", default=False, description="Include HDF5 support")
+    variant("hdf5", default=False, description="Include HDF5 support", when="@:10")
 
     depends_on("cmake@2.8.12:", type="build")
     depends_on("cmake@3.5:", type="build", when="@14:")
