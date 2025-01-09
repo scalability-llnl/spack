@@ -37,8 +37,6 @@ class Bdsim(CMakePackage):
     depends_on("flex")
     depends_on("bison")
 
-    patch("c++-standard.patch", when="@:1.7.7")
-
     def cmake_args(self):
         args = []
         args.append(f"-DCMAKE_CXX_STANDARD={self.spec['root'].variants['cxxstd'].value}")
