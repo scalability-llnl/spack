@@ -70,8 +70,9 @@ class Thepeg(AutotoolsPackage):
     depends_on("hepmc3", when="hepmc=3")
     conflicts("hepmc=3", when="@:2.1", msg="HepMC3 support was added in 2.2.0")
     depends_on("fastjet", when="@2.0.0:")
-    depends_on("rivet@:3 hepmc=2", when="@2.0.3: +rivet hepmc=2")
-    depends_on("rivet@:3 hepmc=3", when="@2.0.3: +rivet hepmc=3")
+    depends_on("rivet hepmc=2", when="@2.0.3: +rivet hepmc=2")
+    depends_on("rivet hepmc=3", when="@2.0.3: +rivet hepmc=3")
+    depends_on("rivet@:3", when="@:2.2 +rivet")
     depends_on("boost +test", when="@2.1.1:")
 
     depends_on("autoconf", type="build")

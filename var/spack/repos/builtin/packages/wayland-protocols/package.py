@@ -10,8 +10,8 @@ class WaylandProtocols(MesonPackage, AutotoolsPackage):
     """wayland-protocols contains Wayland protocols that add functionality not
     available in the Wayland core protocol. Such protocols either add
     completely new functionality, or extend the functionality of some other
-    protocol either in Wayland core, or some other protocol i
-    n wayland-protocols."""
+    protocol either in Wayland core, or some other protocol in
+    wayland-protocols."""
 
     homepage = "https://wayland.freedesktop.org/"
     url = "https://gitlab.freedesktop.org/wayland/wayland-protocols/-/archive/1.20/wayland-protocols-1.20.tar.gz"
@@ -28,6 +28,8 @@ class WaylandProtocols(MesonPackage, AutotoolsPackage):
 
     license("MIT")
 
+    version("1.39", sha256="42c16435dfc83f320ff727b6d446bb0d4feb361dc11796a2c5d3c0fb6532a517")
+    version("1.38", sha256="a6069948458a1d86cea2b33a9735e67d7524118c32c388d75efb881a9e9d2cd9")
     version("1.37", sha256="c3b215084eb4cf318415533554c2c2714e58ed75847d7c3a8e50923215ffbbf3")
     version("1.36", sha256="c839dd4325565fd59a93d6cde17335357328f66983c2e1fb03c33e92d6918b17")
     version("1.35", sha256="6e62dfa92ce82487d107b76064cfe2d7ca107c87c239ea9036a763d79c09105a")
@@ -54,6 +56,7 @@ class WaylandProtocols(MesonPackage, AutotoolsPackage):
 
     with when("build_system=meson"):
         depends_on("meson@0.55:")
+        depends_on("meson@0.58:", when="@1.38:")
 
     depends_on("pkgconfig", type="build")
     depends_on("wayland")

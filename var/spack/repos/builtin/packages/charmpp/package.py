@@ -278,9 +278,7 @@ class Charmpp(Package):
         if not ("backend=mpi" in self.spec) or not ("backend=netlrts" in self.spec):
             if self.spec.satisfies("+pthreads"):
                 raise InstallError(
-                    "The pthreads option is only\
-                                    available on the Netlrts and MPI \
-                                    network layers."
+                    "The pthreads option is only available on the Netlrts and MPI network layers."
                 )
 
         if (
@@ -290,10 +288,8 @@ class Charmpp(Package):
         ):
             if self.spec.satisfies("pmi=none"):
                 raise InstallError(
-                    "The UCX/OFI/GNI backends need \
-                                    PMI to run. Please add pmi=... \
-                                    Note that PMIx is the preferred \
-                                    option."
+                    "The UCX/OFI/GNI backends need PMI to run. Please add pmi=... "
+                    "Note that PMIx is the preferred option."
                 )
 
         if (
@@ -303,10 +299,8 @@ class Charmpp(Package):
         ):
             if self.spec.satisfies("^openmpi"):
                 raise InstallError(
-                    "To use any process management \
-                                    interface other than PMIx, \
-                                    a non OpenMPI based MPI must be \
-                                    present on the system"
+                    "To use any process management interface other than PMIx, "
+                    "a non OpenMPI based MPI must be present on the system"
                 )
 
         target = spec.variants["build-target"].value

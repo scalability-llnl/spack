@@ -29,8 +29,11 @@ class IsaacServer(CMakePackage):
 
     depends_on("cxx", type="build")  # generated
 
-    # variant('gstreamer', default=False, description= \
-    #         'Support for RTP streams, e.g. to Twitch or Youtube')
+    # variant(
+    #     "gstreamer",
+    #     default=False,
+    #     description="Support for RTP streams, e.g. to Twitch or Youtube"
+    # )
 
     depends_on("cmake@3.3:", type="build")
     depends_on("jpeg", type="link")

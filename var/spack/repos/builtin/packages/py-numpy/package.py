@@ -316,7 +316,8 @@ class PyNumpy(PythonPackage):
     @when("@1.26:")
     def config_settings(self, spec, prefix):
         blas, lapack = self.blas_lapack_pkg_config()
-        return {
+
+        settings = {
             "builddir": "build",
             "compile-args": f"-j{make_jobs}",
             "setup-args": {
@@ -329,6 +330,22 @@ class PyNumpy(PythonPackage):
                 # "-Dcpu-dispatch": "none",
             },
         }
+
+        # Disable AVX512 features for Intel Classic compilers
+        # https://numpy.org/doc/stable/reference/simd/build-options.html
+        # https://github.com/numpy/numpy/issues/27840
+        # https://github.com/matplotlib/matplotlib/issues/28762
+        archs = ("x86_64_v4:", "cannonlake:", "mic_knl")
+        if any([self.spec.satisfies(f"target={arch} %intel") for arch in archs]):
+            intel_setup_args = {
+                "-Dcpu-dispatch": (
+                    "MAX -AVX512F -AVX512CD -AVX512_KNL -AVX512_KNM -AVX512_SKX "
+                    + "-AVX512_CLX -AVX512_CNL -AVX512_ICL -AVX512_SPR"
+                )
+            }
+            settings["setup-args"].update(intel_setup_args)
+
+        return settings
 
     def blas_lapack_site_cfg(self) -> None:
         """Write a site.cfg file to configure BLAS/LAPACK."""

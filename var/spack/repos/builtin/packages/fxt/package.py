@@ -57,8 +57,7 @@ class Fxt(AutotoolsPackage):
                 subprocess.check_call("./autogen.sh")
             else:
                 raise RuntimeError(
-                    "Neither configure nor autogen.sh script exist.\
-                FxT Cannot configure."
+                    "Neither configure nor autogen.sh script exist. FxT Cannot configure."
                 )
 
     def configure_args(self):

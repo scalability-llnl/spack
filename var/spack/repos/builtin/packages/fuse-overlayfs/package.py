@@ -14,6 +14,7 @@ class FuseOverlayfs(AutotoolsPackage):
 
     license("GPL-2.0-or-later")
 
+    version("1.14", sha256="0779d1ee8fbb6adb48df40e54efa9c608e1d7bbd844800a4c32c110d5fcbe9f2")
     version("1.13", sha256="96d10344921d5796bcba7a38580ae14a53c4e60399bb90b238ac5a10b3bb65b2")
     version("1.10", sha256="4351eaed7cf26a5012c14c6e0fc883ef65a7b5dcc95ba129ce485904106c25a9")
     version("1.7.1", sha256="fe2c076aed7b8669e7970301a99c0b197759b611035d8199de4c0add7d2fb2b4")

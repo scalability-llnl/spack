@@ -21,6 +21,9 @@ class PyParticle(PythonPackage):
     license("BSD-3-Clause")
 
     version("master", branch="master")
+    version("0.25.2", sha256="1fa4bbee38bfeaef08a40b2779b4c30c5ce4fa2865a10c02acfe90679b4e61e9")
+    version("0.25.1", sha256="9706748e95a706dffd49426db393298197fe1af819721c5d2c6e515764a1fb01")
+    version("0.25.0", sha256="8e2d5fa36555e6af218b66e97b9585b1d4f52085785d96c067736f0b2e57f5ad")
     version("0.24.0", sha256="8ab4b5dd4547ba2dae8354955a435210892a575dff46f323cac6cf40600b976a")
     version("0.23.1", sha256="eee28b0e846bfea4dfd70e9ec5ffe3244613db08b6b6a9b773f55a4310752fab")
     version("0.23.0", sha256="d810f8fc27deb8e7fd64174017d9607d50522249c0973a0008e580f93db11750")

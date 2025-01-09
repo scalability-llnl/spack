@@ -232,8 +232,10 @@ class CDashHandler:
 
         Returns: (str) given spec's CDash build name."""
         if spec:
-            build_name = f"{spec.name}@{spec.version}%{spec.compiler} \
-hash={spec.dag_hash()} arch={spec.architecture} ({self.build_group})"
+            build_name = (
+                f"{spec.name}@{spec.version}%{spec.compiler} "
+                f"hash={spec.dag_hash()} arch={spec.architecture} ({self.build_group})"
+            )
             tty.debug(f"Generated CDash build name ({build_name}) from the {spec.name}")
             return build_name
 

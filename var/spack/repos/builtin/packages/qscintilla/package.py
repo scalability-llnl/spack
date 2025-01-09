@@ -112,8 +112,10 @@ class Qscintilla(QMakePackage):
                 # also add link statement to fix "undefined symbol _Z...Qsciprinter...
                 link_qscilibs = "LIBS += -L" + self.prefix.lib + " -lqscintilla2_" + qtx
                 tomlfile.write(
-                    f'\n[tool.sip.builder]\nqmake-settings = \
-                    ["QT += widgets", "QT += printsupport", "{link_qscilibs}"]\n'
+                    f"""
+[tool.sip.builder]
+qmake-settings = ["QT += widgets", "QT += printsupport", "{link_qscilibs}"]
+"""
                 )
 
             mkdirp(os.path.join(self.prefix.share.sip, pyqtx))

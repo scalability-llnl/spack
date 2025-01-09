@@ -43,7 +43,6 @@ import spack.util.spack_yaml as syaml
 import spack.util.url as url_util
 import spack.util.web as web_util
 from spack.binary_distribution import CannotListKeys, GenerateIndexError
-from spack.directory_layout import DirectoryLayout
 from spack.paths import test_path
 from spack.spec import Spec
 
@@ -136,35 +135,28 @@ def default_config(tmp_path, config_directory, monkeypatch, install_mockery):
 @pytest.fixture(scope="function")
 def install_dir_default_layout(tmpdir):
     """Hooks a fake install directory with a default layout"""
-    scheme = os.path.join(
-        "${architecture}", "${compiler.name}-${compiler.version}", "${name}-${version}-${hash}"
-    )
-    real_store, real_layout = spack.store.STORE, spack.store.STORE.layout
     opt_dir = tmpdir.join("opt")
-    spack.store.STORE = spack.store.Store(str(opt_dir))
-    spack.store.STORE.layout = DirectoryLayout(str(opt_dir), path_scheme=scheme)
+    original_store, spack.store.STORE = spack.store.STORE, spack.store.Store(str(opt_dir))
     try:
         yield spack.store
     finally:
-        spack.store.STORE = real_store
-        spack.store.STORE.layout = real_layout
+        spack.store.STORE = original_store
 
 
 @pytest.fixture(scope="function")
 def install_dir_non_default_layout(tmpdir):
     """Hooks a fake install directory with a non-default layout"""
-    scheme = os.path.join(
-        "${name}", "${version}", "${architecture}-${compiler.name}-${compiler.version}-${hash}"
-    )
-    real_store, real_layout = spack.store.STORE, spack.store.STORE.layout
     opt_dir = tmpdir.join("opt")
-    spack.store.STORE = spack.store.Store(str(opt_dir))
-    spack.store.STORE.layout = DirectoryLayout(str(opt_dir), path_scheme=scheme)
+    original_store, spack.store.STORE = spack.store.STORE, spack.store.Store(
+        str(opt_dir),
+        projections={
+            "all": "{name}/{version}/{architecture}-{compiler.name}-{compiler.version}-{hash}"
+        },
+    )
     try:
         yield spack.store
     finally:
-        spack.store.STORE = real_store
-        spack.store.STORE.layout = real_layout
+        spack.store.STORE = original_store
 
 
 @pytest.fixture(scope="function")
@@ -197,14 +189,13 @@ def dummy_prefix(tmpdir):
     return str(p)
 
 
-args = ["file"]
 if sys.platform == "darwin":
-    args.extend(["/usr/bin/clang++", "install_name_tool"])
+    required_executables = ["/usr/bin/clang++", "install_name_tool"]
 else:
-    args.extend(["/usr/bin/g++", "patchelf"])
+    required_executables = ["/usr/bin/g++", "patchelf"]
 
 
-@pytest.mark.requires_executables(*args)
+@pytest.mark.requires_executables(*required_executables)
 @pytest.mark.maybeslow
 @pytest.mark.usefixtures(
     "default_config", "cache_directory", "install_dir_default_layout", "temporary_mirror"
@@ -251,7 +242,7 @@ def test_default_rpaths_create_install_default_layout(temporary_mirror_dir):
     buildcache_cmd("list", "-l", "-v")
 
 
-@pytest.mark.requires_executables(*args)
+@pytest.mark.requires_executables(*required_executables)
 @pytest.mark.maybeslow
 @pytest.mark.nomockstage
 @pytest.mark.usefixtures(
@@ -274,7 +265,7 @@ def test_default_rpaths_install_nondefault_layout(temporary_mirror_dir):
     buildcache_cmd("install", "-uf", cspec.name)
 
 
-@pytest.mark.requires_executables(*args)
+@pytest.mark.requires_executables(*required_executables)
 @pytest.mark.maybeslow
 @pytest.mark.nomockstage
 @pytest.mark.usefixtures(
@@ -303,7 +294,7 @@ def test_relative_rpaths_install_default_layout(temporary_mirror_dir):
     buildcache_cmd("install", "-uf", cspec.name)
 
 
-@pytest.mark.requires_executables(*args)
+@pytest.mark.requires_executables(*required_executables)
 @pytest.mark.maybeslow
 @pytest.mark.nomockstage
 @pytest.mark.usefixtures(
@@ -354,7 +345,7 @@ def test_push_and_fetch_keys(mock_gnupghome, tmp_path):
         assert new_keys[0] == fpr
 
 
-@pytest.mark.requires_executables(*args)
+@pytest.mark.requires_executables(*required_executables)
 @pytest.mark.maybeslow
 @pytest.mark.nomockstage
 @pytest.mark.usefixtures(

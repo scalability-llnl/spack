@@ -50,8 +50,7 @@ class HermesShm(CMakePackage):
     depends_on("mochi-thallium+cereal@0.10.1", when="+mochi")
     depends_on("cereal", when="+cereal")
     depends_on(
-        "boost@1.7: +context +fiber +coroutine +regex +system \
-    +filesystem +serialization +pic +math",
+        "boost@1.7:+context+fiber+coroutine+regex+system+filesystem+serialization+pic+math",
         when="+boost",
     )
     depends_on("mpi", when="+mpiio")

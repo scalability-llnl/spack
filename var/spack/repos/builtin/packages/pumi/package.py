@@ -81,11 +81,7 @@ class Pumi(CMakePackage):
     depends_on("zoltan+int64", when="+zoltan+int64")
     simbase = "+base"
     simkernels = simbase + "+parasolid+acis+discrete"
-    simfull = (
-        simkernels
-        + "+abstract+adv+advmodel\
-                            +import+paralleladapt+parallelmesh"
-    )
+    simfull = simkernels + "+abstract+adv+advmodel+import+paralleladapt+parallelmesh"
     depends_on("simmetrix-simmodsuite" + simbase, when="simmodsuite=base")
     depends_on("simmetrix-simmodsuite" + simkernels, when="simmodsuite=kernels")
     depends_on("simmetrix-simmodsuite" + simfull, when="simmodsuite=full")

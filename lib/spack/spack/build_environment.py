@@ -923,7 +923,9 @@ def effective_deptypes(
     in reverse so that dependents override dependencies, not the other way around."""
     topo_sorted_edges = traverse.traverse_topo_edges_generator(
         traverse.with_artificial_edges(specs),
-        visitor=EnvironmentVisitor(*specs, context=context),
+        visitor=traverse.CoverEdgesVisitor(
+            EnvironmentVisitor(*specs, context=context), key=traverse.by_dag_hash
+        ),
         key=traverse.by_dag_hash,
         root=True,
         all_edges=True,

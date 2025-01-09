@@ -20,6 +20,7 @@ class Latex2html(AutotoolsPackage):
     license("GPL-2.0-only")
 
     version("master", branch="master")
+    version("2024.2", sha256="d99c5963d802edf1516a6301a5275edd54014bea2ca924f8752aacab0cdd23fd")
     version("2024", sha256="554a51f83431683521b9e47a19edf07c90960feb040048a08ad8301bdca2c6fa")
     version("2023.2", sha256="2a3f50621a71c9c0c425fb6709ae69bb2cf4df4bfe72ac661c2ea302e5aba185")
     version("2022.2", sha256="b1d5bba7bab7d0369d1241f2d8294137a52b7cb7df11239bfa15ec0a2546c093")

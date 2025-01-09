@@ -75,8 +75,8 @@ class Axl(CMakePackage):
     variant(
         "bbapi_fallback",
         default=False,
-        description="Using BBAPI, if source or destination don't support \
-            file extents then fallback to pthreads",
+        description="Using BBAPI, if source or destination don't support "
+        "file extents then fallback to pthreads",
     )
 
     variant("dw", default=False, description="Enable Cray DataWarp support")

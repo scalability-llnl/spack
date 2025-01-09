@@ -20,6 +20,7 @@ class Nlopt(CMakePackage):
     license("LGPL-2.1-or-later")
 
     version("master", branch="master")
+    version("2.9.1", sha256="1e6c33f8cbdc4138d525f3326c231f14ed50d99345561e85285638c49b64ee93")
     version("2.8.0", sha256="e02a4956a69d323775d79fdaec7ba7a23ed912c7d45e439bc933d991ea3193fd")
     version("2.7.1", sha256="db88232fa5cef0ff6e39943fc63ab6074208831dc0031cf1545f6ecd31ae2a1a")
     version("2.7.0", sha256="b881cc2a5face5139f1c5a30caf26b7d3cb43d69d5e423c9d78392f99844499f")
@@ -43,6 +44,7 @@ class Nlopt(CMakePackage):
 
     depends_on("cmake@3.0:", type="build", when="@master")
     depends_on("python", when="+python", type=("build", "run"))
+    depends_on("python@:3.12", when="+python @:2.8", type=("build", "run"))
     depends_on("py-numpy", when="+python", type=("build", "run"))
     depends_on("swig", when="+python")
     depends_on("guile", when="+guile")

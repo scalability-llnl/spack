@@ -158,6 +158,9 @@ class Snakemake(PythonPackage):
     )
     depends_on("py-requests", when="+http", type=("build", "run"))
 
+    # snakemake.common.tests requires pytest
+    skip_modules = ["snakemake.common.tests"]
+
     def test_run(self):
         """Test if snakemake runs with the version option"""
         Executable(self.prefix.bin.snakemake)("--version")

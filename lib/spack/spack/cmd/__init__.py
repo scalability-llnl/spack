@@ -171,7 +171,9 @@ def quote_kvp(string: str) -> str:
 
 
 def parse_specs(
-    args: Union[str, List[str]], concretize: bool = False, tests: bool = False
+    args: Union[str, List[str]],
+    concretize: bool = False,
+    tests: spack.concretize.TestsType = False,
 ) -> List[spack.spec.Spec]:
     """Convenience function for parsing arguments from specs.  Handles common
     exceptions and dies if there are errors.
@@ -183,11 +185,13 @@ def parse_specs(
     if not concretize:
         return specs
 
-    to_concretize = [(s, None) for s in specs]
+    to_concretize: List[spack.concretize.SpecPairInput] = [(s, None) for s in specs]
     return _concretize_spec_pairs(to_concretize, tests=tests)
 
 
-def _concretize_spec_pairs(to_concretize, tests=False):
+def _concretize_spec_pairs(
+    to_concretize: List[spack.concretize.SpecPairInput], tests: spack.concretize.TestsType = False
+) -> List[spack.spec.Spec]:
     """Helper method that concretizes abstract specs from a list of abstract,concrete pairs.
 
     Any spec with a concrete spec associated with it will concretize to that spec. Any spec
@@ -198,7 +202,7 @@ def _concretize_spec_pairs(to_concretize, tests=False):
     # Special case for concretizing a single spec
     if len(to_concretize) == 1:
         abstract, concrete = to_concretize[0]
-        return [concrete or abstract.concretized()]
+        return [concrete or abstract.concretized(tests=tests)]
 
     # Special case if every spec is either concrete or has an abstract hash
     if all(

@@ -15,6 +15,8 @@ class Cfitsio(AutotoolsPackage):
 
     license("custom")
 
+    version("4.5.0", sha256="e4854fc3365c1462e493aa586bfaa2f3d0bb8c20b75a524955db64c27427ce09")
+    version("4.4.1", sha256="66a1dc3f21800f9eeabd9eac577b91fcdd9aabba678fbba3b8527319110d1d25")
     version("4.4.0", sha256="95900cf95ae760839e7cb9678a7b2fad0858d6ac12234f934bd1cb6bfc246ba9")
     version("4.3.0", sha256="fdadc01d09cf9f54253802c5ec87eb10de51ce4130411415ae88c30940621b8b")
     version("4.2.0", sha256="eba53d1b3f6e345632bb09a7b752ec7ced3d63ec5153a848380f3880c5d61889")
@@ -28,17 +30,18 @@ class Cfitsio(AutotoolsPackage):
     version("3.41", sha256="a556ac7ea1965545dcb4d41cfef8e4915eeb8c0faa1b52f7ff70870f8bb5734c")
     version("3.37", sha256="092897c6dae4dfe42d91d35a738e45e8236aa3d8f9b3ffc7f0e6545b8319c63a")
 
-    depends_on("c", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
-
     variant("bzip2", default=True, description="Enable bzip2 support")
-    variant("shared", default=True, description="Build shared libraries")
+    variant("fortran", default=True, description="Build with fortran support")
+    variant("shared", default=True, description="Build shared libraries", when="@:3.46")
+
+    depends_on("c", type="build")
+    depends_on("fortran", type="build", when="+fortran")
 
     depends_on("curl")
     depends_on("bzip2", when="+bzip2")
 
     def url_for_version(self, version):
-        if version >= Version("3.47"):
+        if self.spec.satisfies("@3.47:"):
             return super().url_for_version(version)
 
         url = "http://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio{0}0.tar.gz"
@@ -48,7 +51,11 @@ class Cfitsio(AutotoolsPackage):
         spec = self.spec
         extra_args = []
         if spec.satisfies("+bzip2"):
-            extra_args.append(f"--with-bzip2={spec['bzip2'].prefix}"),
+            extra_args.append(f"--with-bzip2={spec['bzip2'].prefix}")
+        if spec.satisfies("@:4.4 ~fortran"):
+            extra_args.append("FC=none")
+        if spec.satisfies("@4.5: ~fortran"):
+            extra_args.append("--without-fortran")
         return extra_args
 
     @property

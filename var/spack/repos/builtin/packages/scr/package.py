@@ -165,8 +165,8 @@ class Scr(CMakePackage):
         "bbapi_fallback",
         default=False,
         when="@3: +bbapi",
-        description="Using BBAPI, if source or destination don't support \
-            file extents then fallback to pthreads",
+        description="Using BBAPI, if source or destination don't support "
+        "file extents then fallback to pthreads",
     )
     depends_on("axl+bbapi+bbapi_fallback", when="@3: +bbapi_fallback")
 
@@ -189,8 +189,8 @@ class Scr(CMakePackage):
 
     # Enabling SCR logging is a WIP, for which this will be needed
     # MySQL currently having build issues
-    # variant('mysql', default=False, description='Build with MySQL to allow for \
-    #        capturing SCR and syslog messages in a database')
+    # variant('mysql', default=False, description='Build with MySQL to allow for '
+    #         'capturing SCR and syslog messages in a database')
     # depends_on('mysql', when='+mysql')
 
     variant("shared", default=True, when="@3:", description="Build with shared libraries")

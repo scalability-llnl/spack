@@ -17,6 +17,7 @@ class PyScipy(PythonPackage):
     license("BSD-3-Clause")
 
     version("main", branch="main")
+    version("1.15.0", sha256="300742e2cc94e36a2880ebe464a1c8b4352a7b0f3e36ec3d2ac006cdbe0219ac")
     version("1.14.1", sha256="5a275584e726026a5699459aa72f828a610821006228e841b94275c4a7c08417")
     version("1.14.0", sha256="b5923f48cb840380f9854339176ef21763118a7300a88203ccd0bdd26e58527b")
     version("1.13.1", sha256="095a87a0312b08dfd6a6155cbbd310a8c51800fc931b8c0b84003014b874ed3c")
@@ -115,6 +116,7 @@ class PyScipy(PythonPackage):
         depends_on("py-cython@0.29.21:2", when="@1.9.0:1.9.1")
         depends_on("py-cython@0.29.18:2", when="@1.7:1.8")
         with default_args(type=("build", "link")):
+            depends_on("py-pybind11@2.13.2:", when="@1.15:")
             depends_on("py-pybind11@2.12:", when="@1.13:")
             depends_on("py-pybind11@2.10.4:", when="@1.11:")
             depends_on("py-pybind11@2.10.1:", when="@1.10:")
@@ -131,7 +133,8 @@ class PyScipy(PythonPackage):
 
     # Run dependencies
     with default_args(type=("build", "link", "run")):
-        depends_on("py-numpy@1.23.5:2.2", when="@1.14:")
+        depends_on("py-numpy@1.23.5:2.4", when="@1.15:")
+        depends_on("py-numpy@1.23.5:2.2", when="@1.14")
         depends_on("py-numpy@1.22.4:2.2", when="@1.13")
         depends_on("py-numpy@1.22.4:1.28", when="@1.12")
         depends_on("py-numpy@1.21.6:1.27", when="@1.11")

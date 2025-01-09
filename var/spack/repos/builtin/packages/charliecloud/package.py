@@ -157,20 +157,19 @@ class Charliecloud(AutotoolsPackage):
         which("bash")("autogen.sh")
 
     def configure_args(self):
-        args = []
-        py_path = self.spec["python"].command.path
-        args.append("--with-python={0}".format(py_path))
+        args = [f"--with-python={self.spec['python'].command.path}"]
 
         if self.spec.satisfies("+docs"):
-            sphinx_bin = "{0}".format(self.spec["py-sphinx"].prefix.bin)
+            sphinx_bin = f"{self.spec['py-sphinx'].prefix.bin}"
             args.append("--enable-html")
-            args.append("--with-sphinx-build={0}".format(sphinx_bin.join("sphinx-build")))
+            args.append(f"--with-sphinx-build={sphinx_bin.join('sphinx-build')}")
         else:
             args.append("--disable-html")
 
         if self.spec.satisfies("+squashfuse"):
-            squashfuse_prefix = "{0}".format(self.spec["squashfuse"].prefix)
-            args.append("--with-libsquashfuse={0}".format(squashfuse_prefix))
+            args.append(f"--with-libsquashfuse={self.spec['squashfuse'].prefix}")
+        else:
+            args.append("--with-libsquashfuse=no")
 
         return args
 

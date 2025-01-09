@@ -14,6 +14,7 @@ class PyTimm(PythonPackage):
     license("Apache-2.0")
     maintainers("adamjstewart")
 
+    version("1.0.12", sha256="9da490683bd06302ec40e1892f1ccf87985f033e41f3580887d886b9aee9449a")
     version("1.0.11", sha256="a005f72b87e67ed30cdbf405a9ffd4e723360c780a43b1cefe266af8ecc9d151")
     version("0.9.7", sha256="2bfb1029e90b72e65eb9c75556169815f2e82257eaa1f6ebd623a4b4a52867a2")
     version("0.9.5", sha256="669835f0030cfb2412c464b7b563bb240d4d41a141226afbbf1b457e4f18cff1")
@@ -32,15 +33,15 @@ class PyTimm(PythonPackage):
     with default_args(type=("build", "run")):
         # https://github.com/huggingface/pytorch-image-models/issues/1530
         # https://github.com/huggingface/pytorch-image-models/pull/1649
-        depends_on("python@:3.10", when="@:0.6.12", type=("build", "run"))
+        depends_on("python@:3.10", when="@:0.6.12")
 
-        depends_on("py-torch@1.7:", when="@0.6:", type=("build", "run"))
-        depends_on("py-torch@1.4:", type=("build", "run"))
-        depends_on("py-torchvision", type=("build", "run"))
-        depends_on("py-pyyaml", when="@0.6:", type=("build", "run"))
-        depends_on("py-huggingface-hub", when="@0.6:", type=("build", "run"))
-        depends_on("py-safetensors", when="@0.9:", type=("build", "run"))
+        depends_on("py-torch@1.7:", when="@0.6:")
+        depends_on("py-torch@1.4:")
+        depends_on("py-torchvision")
+        depends_on("py-pyyaml", when="@0.6:")
+        depends_on("py-huggingface-hub", when="@0.6:")
+        depends_on("py-safetensors", when="@0.9:")
 
         # https://github.com/rwightman/pytorch-image-models/pull/1256
-        depends_on("pil@:9", when="@:0.5", type=("build", "run"))
-        depends_on("py-numpy", when="@:0.5", type=("build", "run"))
+        depends_on("pil@:9", when="@:0.5")
+        depends_on("py-numpy", when="@:0.5")

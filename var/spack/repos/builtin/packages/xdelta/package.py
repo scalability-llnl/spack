@@ -33,9 +33,6 @@ class Xdelta(AutotoolsPackage):
             bash = which("bash")
             bash(
                 "-c",
-                "aclocal && autoreconf --install \
-                    && libtoolize \
-                    && autoconf \
-                    && automake --add-missing \
-                    && automake",
+                "aclocal && autoreconf --install && libtoolize && autoconf && "
+                "automake --add-missing && automake",
             )

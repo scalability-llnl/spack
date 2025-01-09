@@ -52,26 +52,24 @@ class Abacus(MakefilePackage):
             inc_var = "-"
             system_var = "ELPA_LIB = -L${ELPA_LIB_DIR} -lelpa -Wl,-rpath=${ELPA_LIB_DIR}"
 
-        tempInc = (
-            "\
-FORTRAN = ifort\n\
-CPLUSPLUS = icpc\n\
-CPLUSPLUS_MPI = mpiicpc\n\
-LAPACK_DIR = $(MKLROOT)\n\
-FFTW_DIR = %s\n\
-ELPA_DIR = %s\n\
-ELPA_INCLUDE = -I${ELPA_DIR}/include/elpa%s%s\n\
-CEREAL_DIR = %s\n\
-OBJ_DIR = obj\n\
-OBJ_DIR_serial = obj\n\
-NP      = 14\n"
-            % (
-                spec["fftw"].prefix,
-                spec["elpa"].prefix,
-                inc_var,
-                f"{spec['elpa'].version}",
-                spec["cereal"].prefix,
-            )
+        tempInc = """
+FORTRAN = ifort
+CPLUSPLUS = icpc
+CPLUSPLUS_MPI = mpiicpc
+LAPACK_DIR = $(MKLROOT)
+FFTW_DIR = %s
+ELPA_DIR = %s
+ELPA_INCLUDE = -I${ELPA_DIR}/include/elpa%s%s
+CEREAL_DIR = %s
+OBJ_DIR = obj
+OBJ_DIR_serial = obj
+NP      = 14
+""" % (
+            spec["fftw"].prefix,
+            spec["elpa"].prefix,
+            inc_var,
+            spec["elpa"].version,
+            spec["cereal"].prefix,
         )
 
         with open(self.build_directory + "/Makefile.vars", "w") as f:
