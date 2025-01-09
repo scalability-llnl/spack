@@ -4,13 +4,9 @@
 
 import pytest
 
-import spack.build_systems.generic
 import spack.config
-import spack.error
-import spack.package_base
 import spack.repo
 import spack.util.spack_yaml as syaml
-import spack.version
 from spack.main import SpackCommand
 from spack.spec import Spec
 from spack.test.conftest import create_test_repo
@@ -329,9 +325,7 @@ all_pkgs = list((x, _add_import(y)) for (x, y) in all_pkgs)
 
 @pytest.fixture
 def _create_test_repo(tmpdir, mutable_config):
-    yield create_test_repo(
-        tmpdir, all_pkgs
-    )
+    yield create_test_repo(tmpdir, all_pkgs)
 
 
 @pytest.fixture
@@ -392,6 +386,7 @@ packages:
     - spec: "~v1"
       when: "@2.0"
 """
+    len(conf_str)
     # update_packages_config(conf_str)
 
     # Spec("w4@2.0").concretized()
