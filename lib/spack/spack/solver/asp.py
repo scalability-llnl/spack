@@ -5,6 +5,7 @@ import collections
 import collections.abc
 import copy
 import enum
+import errno
 import functools
 import hashlib
 import io
@@ -562,7 +563,7 @@ class Result:
         ret["optimal"] = self.optimal
         ret["warnings"] = self.warnings
         ret["nmodels"] = self.nmodels
-        ret["abstract_specs"] = [x.to_dict() for x in self.abstract_specs]
+        ret["abstract_specs"] = [str(x) for x in self.abstract_specs]
         ret["satisfiable"] = self.satisfiable
         serial_answers = []
         for answer in self.answers:
@@ -576,7 +577,7 @@ class Result:
         ret["specs_by_input"] = {}
         input_specs = {} if not self.specs_by_input else self.specs_by_input
         for input, spec in input_specs.items():
-            ret["specs_by_input"][json.dumps(input.to_dict())] = spec.to_dict()
+            ret["specs_by_input"][str(input)] = spec.to_dict()
         return ret
 
     @staticmethod
@@ -588,15 +589,18 @@ class Result:
             pkg = dict["pkg"]
             return NodeArgument(id=id, pkg=pkg)
 
-        def _dict_to_spec(dict):
-            return spack.spec.Spec.from_dict(dict)
+        def _str_to_spec(spec_str):
+            return spack.spec.Spec(spec_str)
+
+        def _dict_to_spec(spec_dict):
+            return spack.spec.Spec.from_dict(spec_dict)
 
         asp = obj.get("asp")
         spec_list = obj.get("abstract_specs")
         if not spec_list:
             raise RuntimeError("Invalid json for concretization Result object")
         if spec_list:
-            spec_list = [_dict_to_spec(x) for x in spec_list]
+            spec_list = [_str_to_spec(x) for x in spec_list]
         result = Result(spec_list, asp)
         result.criteria = obj.get("criteria")
         result.optimal = obj.get("optimal")
@@ -616,7 +620,7 @@ class Result:
         result._concrete_specs_by_input = {}
         result._concrete_specs = []
         for input, spec in obj.get("specs_by_input", {}).items():
-            result._concrete_specs_by_input[_dict_to_spec(json.loads(input))] = _dict_to_spec(spec)
+            result._concrete_specs_by_input[_str_to_spec(input)] = _dict_to_spec(spec)
             result._concrete_specs.append(_dict_to_spec(spec))
         return result
 
@@ -771,6 +775,10 @@ class ConcretizationCache:
             return True
         except FileNotFoundError:
             tty.debug(f"Unable to remove cache dir entry: {str(cache_dir)}, it does not exist")
+        except OSError as e:
+            if e.errno == errno.ENOTEMPTY:
+                # there exists another cache entry in this directory, don't clean yet
+                pass
         return False
 
     def _safe_read(self, cache_path: pathlib.Path):
@@ -821,6 +829,7 @@ class ConcretizationCache:
         Hash membership is computed based on the sha256 of the provided asp
         problem.
         """
+        import pdb; pdb.set_trace()
         cache_path = self._cache_path(problem)
         with self._create_cache_entry(cache_path):
             cache_dict = {"results": result.to_dict(), "statistics": statistics}
