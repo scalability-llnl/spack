@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -634,11 +633,6 @@ def ensure_debug(monkeypatch):
     yield
 
     tty.set_debug(current_debug_level)
-
-
-@pytest.fixture(autouse=sys.platform == "win32", scope="session")
-def platform_config():
-    spack.config.add_default_platform_scope(spack.platforms.real_host().name)
 
 
 @pytest.fixture
