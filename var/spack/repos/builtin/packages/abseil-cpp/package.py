@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -94,7 +93,7 @@ class AbseilCpp(CMakePackage):
     depends_on("cmake@3.5:", when="@20190312:", type="build")
     depends_on("cmake@3.1:", type="build")
 
-    depends_on("googletest", type="build", when="@20220623:")
+    depends_on("googletest~absl", type="test", when="@20220623:")
 
     def cmake_args(self):
         run_tests = self.run_tests and self.spec.satisfies("@20220623:")

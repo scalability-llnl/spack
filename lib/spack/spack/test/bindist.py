@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import filecmp
@@ -23,7 +22,7 @@ import pytest
 
 import archspec.cpu
 
-from llnl.util.filesystem import copy_tree, join_path, visit_directory_tree
+from llnl.util.filesystem import copy_tree, join_path
 from llnl.util.symlink import readlink
 
 import spack.binary_distribution as bindist
@@ -43,8 +42,7 @@ import spack.util.gpg
 import spack.util.spack_yaml as syaml
 import spack.util.url as url_util
 import spack.util.web as web_util
-from spack.binary_distribution import CannotListKeys, GenerateIndexError, get_buildfile_manifest
-from spack.directory_layout import DirectoryLayout
+from spack.binary_distribution import CannotListKeys, GenerateIndexError
 from spack.paths import test_path
 from spack.spec import Spec
 
@@ -137,35 +135,28 @@ def default_config(tmp_path, config_directory, monkeypatch, install_mockery):
 @pytest.fixture(scope="function")
 def install_dir_default_layout(tmpdir):
     """Hooks a fake install directory with a default layout"""
-    scheme = os.path.join(
-        "${architecture}", "${compiler.name}-${compiler.version}", "${name}-${version}-${hash}"
-    )
-    real_store, real_layout = spack.store.STORE, spack.store.STORE.layout
     opt_dir = tmpdir.join("opt")
-    spack.store.STORE = spack.store.Store(str(opt_dir))
-    spack.store.STORE.layout = DirectoryLayout(str(opt_dir), path_scheme=scheme)
+    original_store, spack.store.STORE = spack.store.STORE, spack.store.Store(str(opt_dir))
     try:
         yield spack.store
     finally:
-        spack.store.STORE = real_store
-        spack.store.STORE.layout = real_layout
+        spack.store.STORE = original_store
 
 
 @pytest.fixture(scope="function")
 def install_dir_non_default_layout(tmpdir):
     """Hooks a fake install directory with a non-default layout"""
-    scheme = os.path.join(
-        "${name}", "${version}", "${architecture}-${compiler.name}-${compiler.version}-${hash}"
-    )
-    real_store, real_layout = spack.store.STORE, spack.store.STORE.layout
     opt_dir = tmpdir.join("opt")
-    spack.store.STORE = spack.store.Store(str(opt_dir))
-    spack.store.STORE.layout = DirectoryLayout(str(opt_dir), path_scheme=scheme)
+    original_store, spack.store.STORE = spack.store.STORE, spack.store.Store(
+        str(opt_dir),
+        projections={
+            "all": "{name}/{version}/{architecture}-{compiler.name}-{compiler.version}-{hash}"
+        },
+    )
     try:
         yield spack.store
     finally:
-        spack.store.STORE = real_store
-        spack.store.STORE.layout = real_layout
+        spack.store.STORE = original_store
 
 
 @pytest.fixture(scope="function")
@@ -198,14 +189,13 @@ def dummy_prefix(tmpdir):
     return str(p)
 
 
-args = ["file"]
 if sys.platform == "darwin":
-    args.extend(["/usr/bin/clang++", "install_name_tool"])
+    required_executables = ["/usr/bin/clang++", "install_name_tool"]
 else:
-    args.extend(["/usr/bin/g++", "patchelf"])
+    required_executables = ["/usr/bin/g++", "patchelf"]
 
 
-@pytest.mark.requires_executables(*args)
+@pytest.mark.requires_executables(*required_executables)
 @pytest.mark.maybeslow
 @pytest.mark.usefixtures(
     "default_config", "cache_directory", "install_dir_default_layout", "temporary_mirror"
@@ -252,7 +242,7 @@ def test_default_rpaths_create_install_default_layout(temporary_mirror_dir):
     buildcache_cmd("list", "-l", "-v")
 
 
-@pytest.mark.requires_executables(*args)
+@pytest.mark.requires_executables(*required_executables)
 @pytest.mark.maybeslow
 @pytest.mark.nomockstage
 @pytest.mark.usefixtures(
@@ -275,7 +265,7 @@ def test_default_rpaths_install_nondefault_layout(temporary_mirror_dir):
     buildcache_cmd("install", "-uf", cspec.name)
 
 
-@pytest.mark.requires_executables(*args)
+@pytest.mark.requires_executables(*required_executables)
 @pytest.mark.maybeslow
 @pytest.mark.nomockstage
 @pytest.mark.usefixtures(
@@ -304,7 +294,7 @@ def test_relative_rpaths_install_default_layout(temporary_mirror_dir):
     buildcache_cmd("install", "-uf", cspec.name)
 
 
-@pytest.mark.requires_executables(*args)
+@pytest.mark.requires_executables(*required_executables)
 @pytest.mark.maybeslow
 @pytest.mark.nomockstage
 @pytest.mark.usefixtures(
@@ -355,7 +345,7 @@ def test_push_and_fetch_keys(mock_gnupghome, tmp_path):
         assert new_keys[0] == fpr
 
 
-@pytest.mark.requires_executables(*args)
+@pytest.mark.requires_executables(*required_executables)
 @pytest.mark.maybeslow
 @pytest.mark.nomockstage
 @pytest.mark.usefixtures(
@@ -623,60 +613,21 @@ def test_FetchCacheError_pretty_printing_single():
     assert str_e.rstrip() == str_e
 
 
-def test_build_manifest_visitor(tmpdir):
-    dir = "directory"
-    file = os.path.join("directory", "file")
-
-    with tmpdir.as_cwd():
-        # Create a file inside a directory
-        os.mkdir(dir)
-        with open(file, "wb") as f:
-            f.write(b"example file")
-
-        # Symlink the dir
-        os.symlink(dir, "symlink_to_directory")
-
-        # Symlink the file
-        os.symlink(file, "symlink_to_file")
-
-        # Hardlink the file
-        os.link(file, "hardlink_of_file")
-
-        # Hardlinked symlinks: seems like this is only a thing on Linux,
-        # on Darwin the symlink *target* is hardlinked, on Linux the
-        # symlink *itself* is hardlinked.
-        if sys.platform.startswith("linux"):
-            os.link("symlink_to_file", "hardlink_of_symlink_to_file")
-            os.link("symlink_to_directory", "hardlink_of_symlink_to_directory")
-
-    visitor = bindist.BuildManifestVisitor()
-    visit_directory_tree(str(tmpdir), visitor)
-
-    # We de-dupe hardlinks of files, so there should really be just one file
-    assert len(visitor.files) == 1
-
-    # We do not de-dupe symlinks, cause it's unclear how to update symlinks
-    # in-place, preserving inodes.
-    if sys.platform.startswith("linux"):
-        assert len(visitor.symlinks) == 4  # includes hardlinks of symlinks.
-    else:
-        assert len(visitor.symlinks) == 2
-
-    with tmpdir.as_cwd():
-        assert not any(os.path.islink(f) or os.path.isdir(f) for f in visitor.files)
-        assert all(os.path.islink(f) for f in visitor.symlinks)
-
-
-def test_text_relocate_if_needed(install_mockery, temporary_store, mock_fetch, monkeypatch, capfd):
+def test_text_relocate_if_needed(install_mockery, temporary_store, mock_fetch, tmp_path):
     install_cmd("needs-text-relocation")
+    spec = temporary_store.db.query_one("needs-text-relocation")
+    tgz_path = tmp_path / "relocatable.tar.gz"
+    bindist.create_tarball(spec, str(tgz_path))
 
-    specs = temporary_store.db.query("needs-text-relocation")
-    assert len(specs) == 1
-    manifest = get_buildfile_manifest(specs[0])
+    # extract the .spack/binary_distribution file
+    with tarfile.open(tgz_path) as tar:
+        entry_name = next(x for x in tar.getnames() if x.endswith(".spack/binary_distribution"))
+        bd_file = tar.extractfile(entry_name)
+        manifest = syaml.load(bd_file)
 
-    assert join_path("bin", "exe") in manifest["text_to_relocate"]
-    assert join_path("bin", "otherexe") not in manifest["text_to_relocate"]
-    assert join_path("bin", "secretexe") not in manifest["text_to_relocate"]
+    assert join_path("bin", "exe") in manifest["relocate_textfiles"]
+    assert join_path("bin", "otherexe") not in manifest["relocate_textfiles"]
+    assert join_path("bin", "secretexe") not in manifest["relocate_textfiles"]
 
 
 def test_etag_fetching_304():
@@ -917,7 +868,7 @@ def test_tarball_doesnt_include_buildinfo_twice(tmp_path: Path):
     tarball = str(tmp_path / "prefix.tar.gz")
 
     bindist._do_create_tarball(
-        tarfile_path=tarball, binaries_dir=str(p), buildinfo={"metadata": "new"}
+        tarfile_path=tarball, prefix=str(p), buildinfo={"metadata": "new"}, prefixes_to_relocate=[]
     )
 
     expected_prefix = str(p).lstrip("/")
@@ -926,7 +877,10 @@ def test_tarball_doesnt_include_buildinfo_twice(tmp_path: Path):
     # and that the tarball contains the new one, not the old one.
     with tarfile.open(tarball) as tar:
         assert syaml.load(tar.extractfile(f"{expected_prefix}/.spack/binary_distribution")) == {
-            "metadata": "new"
+            "metadata": "new",
+            "relocate_binaries": [],
+            "relocate_textfiles": [],
+            "relocate_links": [],
         }
         assert tar.getnames() == [
             *_all_parents(expected_prefix),
@@ -951,11 +905,15 @@ def test_reproducible_tarball_is_reproducible(tmp_path: Path):
 
     # Create a tarball with a certain mtime of bin/app
     os.utime(app, times=(0, 0))
-    bindist._do_create_tarball(tarball_1, binaries_dir=str(p), buildinfo=buildinfo)
+    bindist._do_create_tarball(
+        tarball_1, prefix=str(p), buildinfo=buildinfo, prefixes_to_relocate=[]
+    )
 
     # Do it another time with different mtime of bin/app
     os.utime(app, times=(10, 10))
-    bindist._do_create_tarball(tarball_2, binaries_dir=str(p), buildinfo=buildinfo)
+    bindist._do_create_tarball(
+        tarball_2, prefix=str(p), buildinfo=buildinfo, prefixes_to_relocate=[]
+    )
 
     # They should be bitwise identical:
     assert filecmp.cmp(tarball_1, tarball_2, shallow=False)
@@ -1001,7 +959,7 @@ def test_tarball_normalized_permissions(tmpdir):
     ) as f:
         f.write("hello world")
 
-    bindist._do_create_tarball(tarball, binaries_dir=p.strpath, buildinfo={})
+    bindist._do_create_tarball(tarball, prefix=p.strpath, buildinfo={}, prefixes_to_relocate=[])
 
     expected_prefix = p.strpath.lstrip("/")
 
@@ -1120,7 +1078,7 @@ def test_tarfile_of_spec_prefix(tmpdir):
     file = tmpdir.join("example.tar")
 
     with tarfile.open(file, mode="w") as tar:
-        bindist.tarfile_of_spec_prefix(tar, prefix.strpath)
+        bindist.tarfile_of_spec_prefix(tar, prefix.strpath, prefixes_to_relocate=[])
 
     expected_prefix = prefix.strpath.lstrip("/")
 
