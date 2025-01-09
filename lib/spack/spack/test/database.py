@@ -7,11 +7,11 @@ import datetime
 import functools
 import json
 import os
+import pathlib
 import re
 import shutil
 import sys
 
-import py.path
 import pytest
 
 import spack.subprocess_context
@@ -48,17 +48,17 @@ pytestmark = pytest.mark.db
 def writable(database):
     """Allow a database to be written inside this context manager."""
     old_lock, old_is_upstream = database.lock, database.is_upstream
-    db_root = py.path.LocalPath(database.root)
+    db_root = pathlib.Path(database.root)
 
     try:
         # this is safe on all platforms during tests (tests get their own tmpdirs)
         database.lock = spack.util.lock.Lock(str(database._lock_path), enable=False)
         database.is_upstream = False
-        db_root.chmod(mode=0o755, rec=1)
+        db_root.chmod(mode=0o755)
         with database.write_transaction():
             yield
     finally:
-        db_root.chmod(mode=0o555, rec=1)
+        db_root.chmod(mode=0o555)
         database.lock = old_lock
         database.is_upstream = old_is_upstream
 
@@ -72,7 +72,7 @@ def upstream_and_downstream_db(tmpdir, gen_mock_layout):
 
     """
     mock_db_root = tmpdir.mkdir("mock_db_root")
-    mock_db_root.chmod(0o555, rec=1)
+    mock_db_root.chmod(0o555)
 
     upstream_db = spack.database.Database(
         str(mock_db_root), is_upstream=True, layout=gen_mock_layout("/a/")
@@ -81,7 +81,7 @@ def upstream_and_downstream_db(tmpdir, gen_mock_layout):
         upstream_db._write()
 
     downstream_db_root = tmpdir.mkdir("mock_downstream_db_root")
-    downstream_db_root.chmod(0o755, rec=1)
+    downstream_db_root.chmod(0o755)
 
     downstream_db = spack.database.Database(
         str(downstream_db_root), upstream_dbs=[upstream_db], layout=gen_mock_layout("/b/")
@@ -987,7 +987,7 @@ def test_database_works_with_empty_dir(tmpdir):
     db_dir = tmpdir.ensure_dir(".spack-db")
     db_dir.ensure("lock")
     db_dir.ensure_dir("failures")
-    tmpdir.chmod(mode=0o555, rec=1)
+    tmpdir.chmod(mode=0o555)
     db = spack.database.Database(str(tmpdir))
     with db.read_transaction():
         db.query()
