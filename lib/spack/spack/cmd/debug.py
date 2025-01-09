@@ -72,8 +72,8 @@ def create_db_tarball(args):
     wd = os.path.dirname(str(spack.store.STORE.root))
     with working_dir(wd):
         files = [spack.store.STORE.db._index_path]
-        files += glob("%s/*/*/*/.spack/spec.json" % base)
-        files += glob("%s/*/*/*/.spack/spec.yaml" % base)
+        files += glob("%s/*/*/.spack/spec.json" % base)
+        files += glob("%s/*/*/.spack/spec.yaml" % base)
         files = [os.path.relpath(f) for f in files]
 
         args = ["-czf", tarball_path]
