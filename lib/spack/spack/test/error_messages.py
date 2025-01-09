@@ -401,5 +401,8 @@ packages:
 # Short error message: this reencodes test_errmsg_requirements_cfg
 # in terms of package `requires`, and demonstrates that the message
 # is still lacking in detail
+# (Jan. 9th update) something has changed so that this now generates
+# a good error message, this was not true for 14cb20e from Oct. 15th
+# 2024
 def test_errmsg_requirements_2(concretize_scope, test_repo):
     Spec("t4@:2.0 ^t2+v1").concretized()
