@@ -288,6 +288,9 @@ class Boost(Package):
     # boost-python in 1.72.0 broken with cxxstd=98
     conflicts("cxxstd=98", when="+mpi+python @1.72.0")
 
+    # boost-mpi depends on boost-python since 1.87.0
+    conflicts("~python", when="+mpi @1.87.0:")
+
     # Container's Extended Allocators were not added until 1.56.0
     conflicts("+container", when="@:1.55")
 
