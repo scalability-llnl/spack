@@ -1967,7 +1967,21 @@ class Spec:
         cover: spack.traverse.CoverType = "nodes",
         direction: spack.traverse.DirectionType = "children",
         deptype: Union[dt.DepFlag, dt.DepTypes] = "all",
-        depth: Literal[True] = True,
+        *,
+        depth: Literal[True],
+        key: Callable[["Spec"], Any] = id,
+        visited: Optional[Set[Any]] = None,
+    ) -> Iterable[Tuple[int, "Spec"]]: ...
+
+    @overload
+    def traverse(
+        self,
+        root: bool,
+        order: spack.traverse.OrderType,
+        cover: spack.traverse.CoverType,
+        direction: spack.traverse.DirectionType,
+        deptype: Union[dt.DepFlag, dt.DepTypes],
+        depth: Literal[True],
         key: Callable[["Spec"], Any] = id,
         visited: Optional[Set[Any]] = None,
     ) -> Iterable[Tuple[int, "Spec"]]: ...
@@ -2017,7 +2031,21 @@ class Spec:
         cover: spack.traverse.CoverType = "nodes",
         direction: spack.traverse.DirectionType = "children",
         deptype: Union[dt.DepFlag, dt.DepTypes] = "all",
-        depth: Literal[True] = True,
+        *,
+        depth: Literal[True],
+        key: Callable[["Spec"], Any] = id,
+        visited: Optional[Set[Any]] = None,
+    ) -> Iterable[Tuple[int, DependencySpec]]: ...
+
+    @overload
+    def traverse_edges(
+        self,
+        root: bool,
+        order: spack.traverse.OrderType,
+        cover: spack.traverse.CoverType,
+        direction: spack.traverse.DirectionType,
+        deptype: Union[dt.DepFlag, dt.DepTypes],
+        depth: Literal[True],
         key: Callable[["Spec"], Any] = id,
         visited: Optional[Set[Any]] = None,
     ) -> Iterable[Tuple[int, DependencySpec]]: ...
