@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,19 +18,24 @@ class Pace(CMakePackage):
     `Phys Rev B 99 014104 (2019)<https://doi.org/10.1103/PhysRevB.99.014104>`__ for details.
     """
 
-    maintainers("hjjvandam")
+    maintainers("hjjvandam", "rbberger")
 
     homepage = (
         "https://www.icams.de/institute/departments-groups/atomistic-modelling-and-simulation/"
     )
     git = "https://github.com/ICAMS/lammps-user-pace.git"
-    url = "https://github.com/ICAMS/lammps-user-pace/archive/e2d941286da81a286adf60cc9ddd2c794dc4a6f2.tar.gz"
 
-    # See https://spdx.org/licenses/ for a list. Upon manually verifying
-    # the license, set checked_by to your Github username.
     license("GPL-2.0-or-later", checked_by="hjjvandam")
+    version("main", branch="main")
     version(
-        "2024.11.9",
-        sha256="fac15d79d981353627305f7759c92b64022740f0a8b8c47dc7125967f4650c70",
-        url="https://github.com/ICAMS/lammps-user-pace/archive/e2d941286da81a286adf60cc9ddd2c794dc4a6f2.tar.gz",
+        "2023.11.25.2", tag="v.2023.11.25.fix2", commit="e60e850359b918ca93a5e9329548a58d31f4b12b"
     )
+
+    variant("pic", default=True, description="Build position independent code")
+
+    depends_on("yaml-cpp")
+    depends_on("cnpy")
+
+    def cmake_args(self):
+        args = [self.define_from_variant("CMAKE_POSITION_INDEPENDENT_CODE", "pic")]
+        return args
