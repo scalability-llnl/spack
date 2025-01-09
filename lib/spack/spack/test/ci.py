@@ -15,7 +15,6 @@ import spack.paths as spack_paths
 import spack.repo as repo
 import spack.spec
 import spack.util.git
-import spack.util.gpg
 from spack.spec import Spec
 from spack.version import Version
 
