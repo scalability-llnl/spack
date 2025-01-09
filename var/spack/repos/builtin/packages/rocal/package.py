@@ -25,6 +25,7 @@ class Rocal(CMakePackage):
     depends_on("libjpeg-turbo@3.0.2:", when="@6.2.1:")
     depends_on("rapidjson")
     depends_on("ffmpeg@4.4:")
+    depends_on("abseil-cpp", when="@6.3:")
 
     for ver in ["6.2.0", "6.2.1", "6.2.4", "6.3.0", "6.3.1"]:
         depends_on(f"mivisionx@{ver}", when=f"@{ver}")
@@ -96,12 +97,16 @@ class Rocal(CMakePackage):
         )
 
     def cmake_args(self):
+        abspath = self.spec["abseil-cpp"].prefix.include
+        rapidjsonpath = self.spec["rapidjson"].prefix.include
         args = [
             self.define("AMDRPP_PATH", self.spec["rpp"].prefix),
             self.define("TURBO_JPEG_PATH", self.spec["libjpeg-turbo"].prefix),
             self.define("MIVisionX_PATH", self.spec["mivisionx"].prefix),
             self.define("CMAKE_INSTALL_PREFIX_PYTHON", self.spec.prefix),
         ]
+        if "@6.3.0:" in self.spec:
+            args.append(self.define("CMAKE_CXX_FLAGS", "-I{0} -I{1}".format(abspath,rapidjsonpath)))
         return args
 
     def check(self):
