@@ -7,7 +7,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path, PurePath
-from typing import Dict, Optional, Sequence, TextIO, Union
+from typing import Callable, Dict, Optional, Sequence, TextIO, Type, Union, overload
 
 import llnl.util.tty as tty
 
@@ -78,6 +78,7 @@ class Executable:
         """Returns the executable path"""
         return str(PurePath(self.exe[0]))
 
+    @overload
     def __call__(
         self,
         *args: str,
@@ -88,8 +89,55 @@ class Executable:
         env: Optional[Union[Dict[str, str], EnvironmentModifications]] = None,
         extra_env: Optional[Union[Dict[str, str], EnvironmentModifications]] = None,
         input: Optional[TextIO] = None,
-        output=None,
-        error=None,
+        output: Union[Optional[TextIO], str] = None,
+        error: Union[Optional[TextIO], str] = None,
+        _dump_env: Optional[Dict[str, str]] = None,
+    ) -> None: ...
+
+    @overload
+    def __call__(
+        self,
+        *args: str,
+        fail_on_error: bool = True,
+        ignore_errors: Union[int, Sequence[int]] = (),
+        ignore_quotes: Optional[bool] = None,
+        timeout: Optional[int] = None,
+        env: Optional[Union[Dict[str, str], EnvironmentModifications]] = None,
+        extra_env: Optional[Union[Dict[str, str], EnvironmentModifications]] = None,
+        input: Optional[TextIO] = None,
+        output: Union[Type[str], Callable] = ...,
+        error: Union[Optional[TextIO], str, Type[str], Callable] = None,
+        _dump_env: Optional[Dict[str, str]] = None,
+    ) -> str: ...
+
+    @overload
+    def __call__(
+        self,
+        *args: str,
+        fail_on_error: bool = True,
+        ignore_errors: Union[int, Sequence[int]] = (),
+        ignore_quotes: Optional[bool] = None,
+        timeout: Optional[int] = None,
+        env: Optional[Union[Dict[str, str], EnvironmentModifications]] = None,
+        extra_env: Optional[Union[Dict[str, str], EnvironmentModifications]] = None,
+        input: Optional[TextIO] = None,
+        output: Union[Optional[TextIO], str, Type[str], Callable] = None,
+        error: Union[Type[str], Callable] = ...,
+        _dump_env: Optional[Dict[str, str]] = None,
+    ) -> str: ...
+
+    def __call__(
+        self,
+        *args: str,
+        fail_on_error: bool = True,
+        ignore_errors: Union[int, Sequence[int]] = (),
+        ignore_quotes: Optional[bool] = None,
+        timeout: Optional[int] = None,
+        env: Optional[Union[Dict[str, str], EnvironmentModifications]] = None,
+        extra_env: Optional[Union[Dict[str, str], EnvironmentModifications]] = None,
+        input: Optional[TextIO] = None,
+        output: Union[Optional[TextIO], str, Type[str], Callable] = None,
+        error: Union[Optional[TextIO], str, Type[str], Callable] = None,
         _dump_env: Optional[Dict[str, str]] = None,
     ) -> Optional[str]:
         """Runs this executable in a subprocess.
