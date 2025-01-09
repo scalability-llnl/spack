@@ -14,8 +14,7 @@ import tempfile
 import zipfile
 from collections import namedtuple
 from typing import Callable, Dict, List, Set, Union
-from urllib.error import HTTPError, URLError
-from urllib.request import HTTPHandler, Request, build_opener
+from urllib.request import Request
 
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty

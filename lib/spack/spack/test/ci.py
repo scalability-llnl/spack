@@ -17,7 +17,6 @@ import spack.error
 import spack.paths as spack_paths
 import spack.repo as repo
 import spack.util.git
-from spack.spec import Spec
 from spack.test.conftest import MockHTTPResponse
 from spack.version import Version
 
