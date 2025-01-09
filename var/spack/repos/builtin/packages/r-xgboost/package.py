@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,9 @@ class RXgboost(RPackage):
 
     cran = "xgboost"
 
+    license("Apache-2.0 OR custom")
+
+    version("1.7.8.1", sha256="394d6fd00b2fe97549c7a7e6598df86448cdfbd7c0af45b0c17f7b9e81bc1be9")
     version("1.7.5.1", sha256="4ec0833f206f84e5983e9f373ea64903bec488f751fba6f75a6f4702b1c965bc")
     version("1.6.0.1", sha256="9ae99a20997e1b02ffd21cabada2a55e53f5754746238ee900de5eb6cd964ebd")
     version("1.5.0.2", sha256="4750b9a289d8cb685291939eed7c493bb42c5cc154ef98e13100abb1727eab13")
@@ -38,9 +40,6 @@ class RXgboost(RPackage):
     depends_on("r-jsonlite@1.0:", type=("build", "run"), when="@1.5.0.2:")
     depends_on("gmake", type="build")
 
-    # This is not listed as required, but installation fails without it
-    # ERROR: dependency 'stringr' is not available for package 'xgboost'
-    depends_on("r-stringr", type=("build", "run"))
-
+    depends_on("r-stringr", type=("build", "run"), when="@:0.7")
     depends_on("r-stringi@0.5.2:", type=("build", "run"), when="@:0.90.0.2")
     depends_on("r-magrittr@1.5:", type=("build", "run"), when="@:1.3.2.1")

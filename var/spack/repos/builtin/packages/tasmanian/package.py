@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,7 +11,7 @@ class Tasmanian(CMakePackage, CudaPackage, ROCmPackage):
     interpolation as well as parameter calibration."""
 
     homepage = "https://ornl.github.io/TASMANIAN/stable/"
-    url = "https://github.com/ORNL/TASMANIAN/archive/v8.0.tar.gz"
+    url = "https://github.com/ORNL/TASMANIAN/archive/v8.1.tar.gz"
     git = "https://github.com/ORNL/TASMANIAN.git"
 
     tags = ["e4s"]
@@ -22,17 +21,20 @@ class Tasmanian(CMakePackage, CudaPackage, ROCmPackage):
 
     version("develop", branch="master")
 
+    version("8.1", sha256="e870d26ebe9e5038a8bb75710e47a66f3040c5ad34d03c2fc993b984240d247b")
     version("8.0", sha256="248c941346150bf6cfb386ba86b69bd4697f4fc93bff0e8d5f57e555614fd534")
     version("7.9", sha256="decba62e6bbccf1bc26c6e773a8d4fd51d7f3e3e534ddd386ec41300694ce5cc")
     version("7.7", sha256="85fb3a7b302ea21a3b700712767a59a623d9ab93da03308fa47d4413654c3878")
-    version("7.5", sha256="d621bd36dced4db86ef638693ba89b336762e7a3d7fedb3b5bcefb03390712b3")
 
-    # Tasmanian is backwards compatible, no need to use 7.3 from back in 2020
+    # when adding a new version, deprecate an old one, this gives us 3 - 4 years of support
     version(
-        "7.3",
-        sha256="5bd1dd89cc5c84506f6900b6569b17e50becd73eb31ec85cfa11d6f1f912c4fa",
+        "7.5",
+        sha256="d621bd36dced4db86ef638693ba89b336762e7a3d7fedb3b5bcefb03390712b3",
         deprecated=True,
     )
+
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("xsdkflags", default=False, description="enable XSDK defaults for Tasmanian")
 
@@ -114,17 +116,12 @@ class Tasmanian(CMakePackage, CudaPackage, ROCmPackage):
             args.append("-DBLAS_LIBRARIES={0}".format(spec["blas"].libs.joined(";")))
             args.append("-DLAPACK_LIBRARIES={0}".format(spec["lapack"].libs.joined(";")))
 
-        if spec.satisfies("+python"):
-            args.append(
-                "-DPYTHON_EXECUTABLE:FILEPATH={0}".format(self.spec["python"].command.path)
-            )
-
         return args
 
     @run_after("install")
     def setup_smoke_test(self):
         install_tree(
-            self.prefix.share.Tasmanian.testing, join_path(self.install_test_root, "testing")
+            self.prefix.share.Tasmanian.testing, join_path(install_test_root(self), "testing")
         )
 
     def test_make_test(self):

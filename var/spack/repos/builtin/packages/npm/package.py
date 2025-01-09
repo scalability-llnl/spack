@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,10 +15,14 @@ class Npm(Package):
     url = "https://registry.npmjs.org/npm/-/npm-9.3.1.tgz"
     git = "https://github.com/npm/cli.git"
 
+    license("Artistic-2.0")
+
     version("9.3.1", sha256="41caa26a340b0562bc5429d28792049c980fe3e872b42b82cad94e8f70e37f40")
     version("8.19.3", sha256="634bf4e0dc87be771ebf48a058629960e979a209c20a51ebdbc4897ca6a25260")
     version("7.24.2", sha256="5b9eeea011f8bc3b76e55cc33339e87213800677f37e0756ad13ef0e9eaccd64")
     version("6.14.18", sha256="c9b15f277e2a0b1b57e05bad04504296a27024555d56c2aa967f862e957ad2ed")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("node-js", type=("build", "run"))
     depends_on("libvips", when="@:7")

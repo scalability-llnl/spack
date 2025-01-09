@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,8 @@ class PyInquirerpy(PythonPackage):
 
     homepage = "https://github.com/kazhala/InquirerPy"
     pypi = "inquirerpy/InquirerPy-0.3.4.tar.gz"
+
+    license("MIT")
 
     version("0.3.4", sha256="89d2ada0111f337483cb41ae31073108b2ec1e618a49d7110b0d7ade89fc197e")
 

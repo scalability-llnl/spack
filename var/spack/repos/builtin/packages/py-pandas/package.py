@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,8 +14,16 @@ class PyPandas(PythonPackage):
     homepage = "https://pandas.pydata.org/"
     pypi = "pandas/pandas-1.2.0.tar.gz"
 
-    maintainers("adamjstewart")
+    skip_modules = ["pandas.tests", "pandas.plotting._matplotlib", "pandas.core._numba.kernels"]
 
+    license("Apache-2.0")
+    maintainers("adamjstewart", "rgommers")
+
+    version("2.2.3", sha256="4f18ba62b61d7e192368b84517265a99b4d7ee8912f8708660fb4a366cc82667")
+    version("2.2.2", sha256="9e79019aba43cb4fda9e4d983f8e88ca0373adbb697ae9c6c43093218de28b54")
+    version("2.2.1", sha256="0ab90f87093c13f3e8fa45b48ba9f39181046e8f3317d3aadb2fffbb1b978572")
+    version("2.2.0", sha256="30b83f7c3eb217fb4d1b494a57a2fda5444f17834f5df2de6b2ffff68dc3c8e2")
+    version("2.1.4", sha256="fcb68203c833cc735321512e13861358079a96c174a61f5116a1de89c58c0ef7")
     version("2.1.3", sha256="22929f84bca106921917eb73c1521317ddd0a4c71b395bcf767a106e3494209f")
     version("2.1.2", sha256="52897edc2774d2779fbeb6880d2cfb305daa0b1a29c16b91f531a18918a6e0f3")
     version("2.1.1", sha256="fecb198dc389429be557cde50a2d46da8434a17fe37d7d41ff102e3987fd947b")
@@ -49,115 +56,152 @@ class PyPandas(PythonPackage):
     version("1.1.5", sha256="f10fc41ee3c75a474d3bdf68d396f10782d013d7f67db99c0efbfd0acb99701b")
     version("1.1.4", sha256="a979d0404b135c63954dea79e6246c45dd45371a88631cdbb4877d844e6de3b6")
     version("1.1.3", sha256="babbeda2f83b0686c9ad38d93b10516e68cdcd5771007eb80a763e98aaf44613")
-    version("1.1.2", sha256="b64ffd87a2cfd31b40acd4b92cb72ea9a52a48165aec4c140e78fd69c45d1444")
-    version("1.1.1", sha256="53328284a7bb046e2e885fd1b8c078bd896d7fc4575b915d4936f54984a2ba67")
-    version("1.1.0", sha256="b39508562ad0bb3f384b0db24da7d68a2608b9ddc85b1d931ccaaa92d5e45273")
-    version("1.0.5", sha256="69c5d920a0b2a9838e677f78f4dde506b95ea8e4d30da25859db6469ded84fa8")
-    version("1.0.4", sha256="b35d625282baa7b51e82e52622c300a1ca9f786711b2af7cbe64f1e6831f4126")
-    version("1.0.3", sha256="32f42e322fb903d0e189a4c10b75ba70d90958cc4f66a1781ed027f1a1d14586")
-    version("1.0.2", sha256="76334ba36aa42f93b6b47b79cbc32187d3a178a4ab1c3a478c8f4198bcd93a73")
-    version("1.0.1", sha256="3c07765308f091d81b6735d4f2242bb43c332cc3461cae60543df6b10967fe27")
-    version("1.0.0", sha256="3ea6cc86931f57f18b1240572216f09922d91b19ab8a01cf24734394a3db3bec")
-    version("0.25.3", sha256="52da74df8a9c9a103af0a72c9d5fdc8e0183a90884278db7f386b5692a2220a4")
-    version("0.25.2", sha256="ca91a19d1f0a280874a24dca44aadce42da7f3a7edb7e9ab7c7baad8febee2be")
-    version("0.25.1", sha256="cb2e197b7b0687becb026b84d3c242482f20cbb29a9981e43604eb67576da9f6")
-    version("0.25.0", sha256="914341ad2d5b1ea522798efa4016430b66107d05781dbfe7cf05eba8f37df995")
-    version("0.24.2", sha256="4f919f409c433577a501e023943e582c57355d50a724c589e78bc1d551a535a2")
-    version("0.24.1", sha256="435821cb2501eabbcee7e83614bd710940dc0cf28b5afbc4bdb816c31cec71af")
-    version("0.23.4", sha256="5b24ca47acf69222e82530e89111dd9d14f9b970ab2cd3a1c2c78f0c4fbba4f4")
+    version(
+        "1.1.2",
+        sha256="b64ffd87a2cfd31b40acd4b92cb72ea9a52a48165aec4c140e78fd69c45d1444",
+        deprecated=True,
+    )
+    version(
+        "1.1.1",
+        sha256="53328284a7bb046e2e885fd1b8c078bd896d7fc4575b915d4936f54984a2ba67",
+        deprecated=True,
+    )
+    version(
+        "1.1.0",
+        sha256="b39508562ad0bb3f384b0db24da7d68a2608b9ddc85b1d931ccaaa92d5e45273",
+        deprecated=True,
+    )
+    version(
+        "1.0.5",
+        sha256="69c5d920a0b2a9838e677f78f4dde506b95ea8e4d30da25859db6469ded84fa8",
+        deprecated=True,
+    )
+    version(
+        "1.0.4",
+        sha256="b35d625282baa7b51e82e52622c300a1ca9f786711b2af7cbe64f1e6831f4126",
+        deprecated=True,
+    )
+    version(
+        "1.0.3",
+        sha256="32f42e322fb903d0e189a4c10b75ba70d90958cc4f66a1781ed027f1a1d14586",
+        deprecated=True,
+    )
+    version(
+        "1.0.2",
+        sha256="76334ba36aa42f93b6b47b79cbc32187d3a178a4ab1c3a478c8f4198bcd93a73",
+        deprecated=True,
+    )
+    version(
+        "1.0.1",
+        sha256="3c07765308f091d81b6735d4f2242bb43c332cc3461cae60543df6b10967fe27",
+        deprecated=True,
+    )
+    version(
+        "1.0.0",
+        sha256="3ea6cc86931f57f18b1240572216f09922d91b19ab8a01cf24734394a3db3bec",
+        deprecated=True,
+    )
+    version(
+        "0.25.3",
+        sha256="52da74df8a9c9a103af0a72c9d5fdc8e0183a90884278db7f386b5692a2220a4",
+        deprecated=True,
+    )
+    version(
+        "0.25.2",
+        sha256="ca91a19d1f0a280874a24dca44aadce42da7f3a7edb7e9ab7c7baad8febee2be",
+        deprecated=True,
+    )
 
+    variant("performance", default=True, description="Build recommended performance dependencies")
     variant("excel", when="@1.4:", default=False, description="Build with support for Excel")
 
-    # Required dependencies
-    # https://pandas.pydata.org/pandas-docs/stable/getting_started/install.html#python-version-support
-    depends_on("python@3.9:3.12", when="@2.1.1:", type=("build", "run"))
-    depends_on("python@3.9:3.11", when="@2.1.0", type=("build", "run"))
-    depends_on("python@3.8:3.11", when="@1.5:2.0", type=("build", "run"))
-    depends_on("python@3.8:3.10", when="@1.4", type=("build", "run"))
-    depends_on("python@:3.10", when="@1.3.3:1.3", type=("build", "run"))
-    depends_on("python@:3.9", when="@1.1.3:1.3.2", type=("build", "run"))
-    depends_on("python@:3.8", when="@0.25.2:1.1.2", type=("build", "run"))
-    depends_on("python@:3.7", when="@:0.25.1", type=("build", "run"))
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
-    # pyproject.toml
-    depends_on("py-meson-python@0.13.1", when="@2.1:", type="build")
-    depends_on("meson@1.2.1", when="@2.1.1:", type="build")
-    depends_on("meson@1.0.1", when="@2.1.0", type="build")
-    depends_on("py-cython@0.29.33:2", when="@2:", type="build")
-    depends_on("py-cython@0.29.32:2", when="@1.4.4:", type="build")
-    depends_on("py-cython@0.29.30:2", when="@1.4.3:", type="build")
-    depends_on("py-cython@0.29.24:2", when="@1.3.4:", type="build")
-    depends_on("py-cython@0.29.21:2", when="@1.1.3:", type="build")
-    depends_on("py-cython@0.29.16:2", when="@1.1:", type="build")
-    depends_on("py-cython@0.29.13:2", when="@1:", type="build")
-    depends_on("py-versioneer+toml", when="@2:", type="build")
+    with default_args(type="build"):
+        depends_on("py-meson-python@0.13.1:", when="@2.1:")
+        depends_on("meson@1.2.1:", when="@2.1.1:")
+        depends_on("meson@1.0.1:", when="@2.1.0")
+        depends_on("py-cython@3.0.5:", when="@2.2:")
+        depends_on("py-cython@0.29.33:2", when="@2.0:2.1")
+        depends_on("py-cython@0.29.32:2", when="@1.4.4:1")
+        depends_on("py-cython@0.29.30:2", when="@1.4.3")
+        depends_on("py-cython@0.29.24:2", when="@1.3.4:1.4.2")
+        depends_on("py-cython@0.29.21:2", when="@1.1.3:1.3.3")
+        depends_on("py-cython@0.29.16:2", when="@1.1.0:1.1.2")
+        depends_on("py-cython@0.29.13:2", when="@1.0")
+        depends_on("py-versioneer+toml", when="@2:")
 
-    # https://pandas.pydata.org/pandas-docs/stable/getting_started/install.html#dependencies
-    depends_on("py-numpy@1.22.4:2", when="@2.1.2:", type=("build", "run"))
-    depends_on("py-numpy@1.22.4:", when="@2.1:", type=("build", "run"))
-    depends_on("py-numpy@1.20.3:", when="@1.5:", type=("build", "run"))
-    depends_on("py-numpy@1.18.5:", when="@1.4:", type=("build", "run"))
-    depends_on("py-numpy@1.17.3:", when="@1.3:", type=("build", "run"))
-    depends_on("py-numpy@1.16.5:", when="@1.2:", type=("build", "run"))
-    depends_on("py-numpy@1.15.4:", when="@1.1:", type=("build", "run"))
-    depends_on("py-numpy@1.13.3:", when="@0.25:", type=("build", "run"))
-    depends_on("py-numpy", type=("build", "run"))
-    # 'NUMPY_IMPORT_ARRAY_RETVAL' was removed in numpy@1.19
-    depends_on("py-numpy@:1.18", when="@:0.25", type=("build", "run"))
-    depends_on("py-python-dateutil@2.8.2:", when="@2:", type=("build", "run"))
-    depends_on("py-python-dateutil@2.8.1:", when="@1.4:", type=("build", "run"))
-    depends_on("py-python-dateutil@2.7.3:", when="@1.1:", type=("build", "run"))
-    depends_on("py-python-dateutil@2.6.1:", when="@0.25:", type=("build", "run"))
-    depends_on("py-python-dateutil", type=("build", "run"))
-    depends_on("py-pytz@2020.1:", when="@1.4:", type=("build", "run"))
-    depends_on("py-pytz@2017.3:", when="@1.2:", type=("build", "run"))
-    depends_on("py-pytz@2017.2:", type=("build", "run"))
-    depends_on("py-tzdata@2022.1:", when="@2:", type=("build", "run"))
+        # Historical dependencies
+        depends_on("py-setuptools@61:", when="@2.0")
+        depends_on("py-setuptools@51:", when="@1.3.2:1")
+        depends_on("py-setuptools@38.6:", when="@1.3.0:1.3.1")
+        depends_on("py-setuptools@24.2:", when="@:1.2")
 
-    # Recommended dependencies
-    # https://pandas.pydata.org/pandas-docs/stable/getting_started/install.html#performance-dependencies-recommended
-    depends_on("py-numexpr@2.8.0:", when="@2.1:", type=("build", "run"))
-    depends_on("py-numexpr@2.7.3:", when="@1.5:", type=("build", "run"))
-    depends_on("py-numexpr@2.7.1:", when="@1.4:", type=("build", "run"))
-    depends_on("py-numexpr@2.7.0:", when="@1.3:", type=("build", "run"))
-    depends_on("py-numexpr@2.6.8:", when="@1.2:", type=("build", "run"))
-    depends_on("py-numexpr@2.6.2:", when="@0.25:", type=("build", "run"))
-    depends_on("py-numexpr", type=("build", "run"))
-    depends_on("py-bottleneck@1.3.4:", when="@2.1:", type=("build", "run"))
-    depends_on("py-bottleneck@1.3.2:", when="@1.5:", type=("build", "run"))
-    depends_on("py-bottleneck@1.3.1:", when="@1.4:", type=("build", "run"))
-    depends_on("py-bottleneck@1.2.1:", when="@0.25:", type=("build", "run"))
-    depends_on("py-bottleneck", type=("build", "run"))
-    depends_on("py-numba@0.55.2:", when="@2.1:", type=("build", "run"))
-    depends_on("py-numba@0.53.1:", when="@2.0:", type=("build", "run"))
+    with default_args(type=("build", "run")):
+        # Based on PyPI wheel availability
+        depends_on("python@3.9:", when="@2.1:")
+        depends_on("python@3.8:", when="@1.4:")
 
-    # Optional dependencies
-    # https://pandas.pydata.org/pandas-docs/stable/getting_started/install.html#optional-dependencies
+        depends_on("python@:3.13")
+        depends_on("python@:3.12", when="@:2.2.2")
+        depends_on("python@:3.11", when="@:2.1.0")
+        depends_on("python@:3.10", when="@:1.4")
+        depends_on("python@:3.9", when="@:1.3.2")
+        depends_on("python@:3.8", when="@:1.1.2")
 
-    # Excel dependencies for 1.4+ (not coded up for earlier versions)
-    depends_on("py-odfpy@1.4.1:", type=("run"), when="@2.0: +excel")
-    depends_on("py-openpyxl@3.0.10:", type=("run"), when="@2.1: +excel")
-    depends_on("py-openpyxl@3.0.7:", type=("run"), when="@1.5: +excel")
-    depends_on("py-openpyxl@3.0.3:", type=("run"), when="@1.4: +excel")
-    depends_on("py-pyxlsb@1.0.9:", type=("run"), when="@2.1: +excel")
-    depends_on("py-pyxlsb@1.0.8:", type=("run"), when="@1.5: +excel")
-    depends_on("py-pyxlsb@1.0.6:", type=("run"), when="@1.4: +excel")
-    depends_on("py-xlrd@2.0.1:", type=("run"), when="@1.4: +excel")
-    depends_on("py-xlwt@1.3.0:", type=("run"), when="@1.4:1.5 +excel")
-    depends_on("py-xlsxwriter@3.0.3:", type=("run"), when="@2.1: +excel")
-    depends_on("py-xlsxwriter@1.4.3:", type=("run"), when="@1.5: +excel")
-    depends_on("py-xlsxwriter@1.2.2:", type=("run"), when="@1.4: +excel")
+        depends_on("py-numpy@1.22.4:", when="@2.1:")
+        depends_on("py-numpy@1.20.3:", when="@1.5:")
+        depends_on("py-numpy@1.18.5:", when="@1.4")
+        depends_on("py-numpy@1.17.3:", when="@1.3")
+        depends_on("py-numpy@1.16.5:", when="@1.2")
+        depends_on("py-numpy@1.15.4:", when="@1.1")
+        depends_on("py-numpy@1.13.3:", when="@1.0")
+        # 'NUMPY_IMPORT_ARRAY_RETVAL' was removed in numpy@1.19
+        depends_on("py-numpy@1.13.3:1.18", when="@0.25")
+        # https://github.com/pandas-dev/pandas/issues/55519
+        depends_on("py-numpy@:1", when="@:2.2.1")
+        depends_on("py-python-dateutil@2.8.2:", when="@2:")
+        depends_on("py-python-dateutil@2.8.1:", when="@1.4:")
+        depends_on("py-python-dateutil@2.7.3:", when="@1.1:")
+        depends_on("py-python-dateutil@2.6.1:", when="@0.25:")
+        depends_on("py-python-dateutil")
+        depends_on("py-pytz@2020.1:", when="@1.4:")
+        depends_on("py-pytz@2017.3:", when="@1.2:")
+        depends_on("py-pytz@2017.2:")
+        depends_on("py-tzdata@2022.1:", when="@2:")
 
-    # Historical dependencies
-    depends_on("py-setuptools@61:", when="@2.0", type="build")
-    depends_on("py-setuptools@51:", when="@1.3.2:1", type="build")
-    depends_on("py-setuptools@38.6:", when="@1.3.0:1.3.1", type="build")
-    depends_on("py-setuptools@24.2:", when="@:1.2", type="build")
+    with default_args(type="run"):
+        with when("+performance"):
+            depends_on("py-bottleneck@1.3.4:", when="@2.1:")
+            depends_on("py-bottleneck@1.3.2:", when="@1.5:")
+            depends_on("py-bottleneck@1.3.1:", when="@1.4:")
+            depends_on("py-bottleneck@1.2.1:", when="@0.25:")
+            depends_on("py-numba@0.55.2:", when="@2.1:")
+            depends_on("py-numba@0.53.1:", when="@2.0:")
+            depends_on("py-numexpr@2.8.0:", when="@2.1:")
+            depends_on("py-numexpr@2.7.3:", when="@1.5:")
+            depends_on("py-numexpr@2.7.1:", when="@1.4:")
+            depends_on("py-numexpr@2.7.0:", when="@1.3:")
+            depends_on("py-numexpr@2.6.8:", when="@1.2:")
+            depends_on("py-numexpr@2.6.2:", when="@0.25:")
 
-    skip_modules = ["pandas.tests", "pandas.plotting._matplotlib", "pandas.core._numba.kernels"]
-
-    def flag_handler(self, name, flags):
-        if name == "cflags":
-            if self.spec.satisfies("@0.24.2 %oneapi"):
-                flags.append("-Wno-error=implicit-function-declaration")
-        return (flags, None, None)
+        with when("+excel"):
+            # Excel dependencies for 1.4+ (not coded up for earlier versions)
+            depends_on("py-odfpy@1.4.1:", when="@2.0:")
+            depends_on("py-openpyxl@3.1:", when="@2.2:")
+            depends_on("py-openpyxl@3.0.10:", when="@2.1:")
+            depends_on("py-openpyxl@3.0.7:", when="@1.5:")
+            depends_on("py-openpyxl@3.0.3:", when="@1.4:")
+            depends_on("py-python-calamine@0.1.7:", when="@2.2:")
+            depends_on("py-pyxlsb@1.0.10:", when="@2.2:")
+            depends_on("py-pyxlsb@1.0.9:", when="@2.1:")
+            depends_on("py-pyxlsb@1.0.8:", when="@1.5:")
+            depends_on("py-pyxlsb@1.0.6:", when="@1.4:")
+            depends_on("py-xlrd@2.0.1:", when="@2.2:")
+            depends_on("py-xlrd@2.0.1:", when="@1.4:")
+            depends_on("py-xlwt@1.3.0:", when="@1.4:1.5")
+            depends_on("py-xlsxwriter@3.0.5:", when="@2.2:")
+            depends_on("py-xlsxwriter@3.0.3:", when="@2.1:")
+            depends_on("py-xlsxwriter@1.4.3:", when="@1.5:")
+            depends_on("py-xlsxwriter@1.2.2:", when="@1.4:")

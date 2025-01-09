@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,6 +27,8 @@ class Knem(AutotoolsPackage):
         sha256="50d3c4a20c140108b8ce47aaafd0ade0927d6f507e1b5cc690dd6bddeef30f60",
         url="https://gitlab.inria.fr/knem/knem/uploads/59375c38537e6ff2d94209f190c54aa6/knem-1.1.3.tar.gz",
     )
+
+    depends_on("c", type="build")  # generated
 
     variant("hwloc", default=True, description="Enable hwloc in the user-space tools")
 

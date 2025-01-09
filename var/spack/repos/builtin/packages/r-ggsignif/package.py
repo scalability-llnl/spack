@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class RGgsignif(RPackage):
     adds the annotation to the plot."""
 
     cran = "ggsignif"
+
+    license("GPL-3.0-only OR custom")
 
     version("0.6.4", sha256="112051af425a0c0f2998ce187dacad066bc16f55af01e3e7b76d62ff6954b20a")
     version("0.6.3", sha256="ca8545b25590e531512a90a18449a2cbab945f7434a1d60188c41f7d1839a7a9")

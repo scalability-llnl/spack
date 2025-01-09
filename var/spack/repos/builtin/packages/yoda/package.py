@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,14 @@ class Yoda(AutotoolsPackage):
 
     tags = ["hep"]
 
+    license("GPL-3.0-or-later")
+
+    version("2.0.2", sha256="31a41413641189814ff3c6bbb96ac5d17d2b68734fe327d06794cdbd3a540399")
+    version("2.0.1", sha256="ae5a78eaae5574a5159d4058839d0983c9923558bfc88fbce21d251fd925d260")
+    version("2.0.0", sha256="680f43dabebb3167ce1c5dee72d1c2c285c3190751245aa51e3260a005a99575")
+    version("1.9.11", sha256="a9c632f45925e30a3c75cd23a1a04aa4f527419256a4dad499f9c4f026477b5e")
+    version("1.9.10", sha256="0a708ee9d704945d3387cc437b15ffddf382c70fe5bab39ed2bdbf83c2c28c6f")
+    version("1.9.9", sha256="ebcad55369a1cedcee3a2de059407c851652ba44495113f5c09d8c2e57f516aa")
     version("1.9.8", sha256="7bc3062468abba50aff3ecb8b22ce677196036009890688ef4533aaa7f92e6e4")
     version("1.9.7", sha256="8d07bb04dcb79364858718a18203452d8d9fa00029fa94239eafa8529032b8ff")
     version("1.9.6", sha256="21523fa2f6b6c8f3348959f3a948734a930ca25951d3c9190b4424e13735f2a4")
@@ -63,6 +70,9 @@ class Yoda(AutotoolsPackage):
     version("1.0.5", sha256="ba72bc3943a1b39fa63900570948199cf5ed5c7523f2c4af4740e51b098f1794")
     version("1.0.4", sha256="697fe397c69689feecb2a731e19b2ff85e19343b8198c4f18a7064c4f7123950")
     version("1.0.3", sha256="6a1d1d75d9d74da457726ea9463c1b0b6ba38d4b43ef54e1c33f885e70fdae4b")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("root", default=False, description="Enable ROOT interface")
 

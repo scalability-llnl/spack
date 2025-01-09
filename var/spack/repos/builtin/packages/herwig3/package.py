@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,9 +13,16 @@ class Herwig3(AutotoolsPackage):
 
     tags = ["hep"]
 
+    license("GPL-3.0-only")
+
+    version("7.3.0", sha256="2624819d2dff105ba952ea1b5cf12eb6f4926d4951774a41907699e2f567686c")
     version("7.2.3", sha256="5599899379b01b09e331a2426d78d39b7f6ec126db2543e9d340aefe6aa50f84")
     version("7.2.2", sha256="53e06b386df5bc20fe268b6c8ba50f1e62b6744e577d383ec836ea3fc672c383")
     version("7.2.1", sha256="d4fff32f21c5c08a4b2e563c476b079859c2c8e3b78d853a8a60da96d5eea686")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
@@ -27,7 +33,12 @@ class Herwig3(AutotoolsPackage):
     depends_on("thepeg@2.2.1", when="@7.2.1")
     depends_on("thepeg@2.2.2", when="@7.2.2")
     depends_on("thepeg@2.2.3", when="@7.2.3")
+    depends_on("thepeg@2.3.0", when="@7.3.0")
     depends_on("evtgen")
+    conflicts(
+        "^evtgen ~photos ~pythia8 ~sherpa ~tauola",
+        msg="At least one external EvtGen component required",
+    )
 
     depends_on("boost +math+test")
     depends_on("python", type=("build", "run"))

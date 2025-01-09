@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,7 +12,11 @@ class KvasirMpl(Package):
     homepage = "https://github.com/kvasir-io/mpl"
     git = "https://github.com/kvasir-io/mpl.git"
 
+    license("BSL-1.0")
+
     version("develop", branch="development")
+
+    depends_on("cxx", type="build")  # generated
 
     def install(self, spec, prefix):
         install_tree("src", prefix.include)

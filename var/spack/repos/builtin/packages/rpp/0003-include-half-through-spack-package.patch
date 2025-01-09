@@ -1,0 +1,61 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 137896e..ca82e98 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -129,6 +129,9 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
+ # OpenMP
+ find_package(OpenMP REQUIRED)
++find_path(HALF_INCLUDE_DIR half.hpp)
++message(STATUS "HALF_INCLUDE_DIR: ${HALF_INCLUDE_DIR}")
++
+ if(APPLE)
+     if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+         set(OpenMP_C "${CMAKE_C_COMPILER}")
+@@ -278,6 +281,7 @@ target_include_directories(${PROJECT_NAME}
+     PUBLIC
+         ${CMAKE_CURRENT_SOURCE_DIR}/include
+         ${ROCM_PATH}/include
++        ${HALF_INCLUDE_DIR}
+     PRIVATE
+         ${CMAKE_CURRENT_SOURCE_DIR}/src/include/cpu
+         ${CMAKE_CURRENT_SOURCE_DIR}/src/include/common
+diff --git a/src/modules/CMakeLists.txt b/src/modules/CMakeLists.txt
+index 2a64d77..80c5686 100644
+--- a/src/modules/CMakeLists.txt
++++ b/src/modules/CMakeLists.txt
+@@ -81,6 +81,8 @@ if("${TIME_INFO}" STREQUAL "1")
+ endif()
+
+ # Backend specific settings
++find_path(HALF_INCLUDE_DIR half.hpp)
++message(STATUS "HALF_INCLUDE_DIR: ${HALF_INCLUDE_DIR}")
+
+ if( "${BACKEND}" STREQUAL "HIP")
+     # Add HIP kernels
+@@ -99,7 +101,7 @@ if( "${BACKEND}" STREQUAL "HIP")
+     # Add HIP specific includes
+     set(ROCM_INC ${ROCM_PATH}/include/)
+     list(APPEND HIP_LOCAL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/src/include/hip/ ${CMAKE_SOURCE_DIR}/src/include/common/)
+-    set(INCLUDE_LIST ${ROCM_INC} ${HIP_LOCAL_INCLUDE_DIRS} ${INCLUDE_LIST})
++    set(INCLUDE_LIST ${ROCM_INC} ${HIP_LOCAL_INCLUDE_DIRS} ${INCLUDE_LIST} ${HALF_INCLUDE_DIR})
+ elseif( "${BACKEND}" STREQUAL "OCL")
+     # Add OpenCL kernels
+     file(GLOB MOD_CL_CPP "cl/*.cpp" )
+@@ -114,7 +116,7 @@ elseif( "${BACKEND}" STREQUAL "OCL")
+     # Add OpenCL specific includes
+     set(ROCM_INC ${ROCM_PATH}/include/)
+     list(APPEND OCL_LOCAL_INCLUDE_LIST ${CMAKE_SOURCE_DIR}/src/include/cl/ ${CMAKE_SOURCE_DIR}/src/include/common/)
+-    set(INCLUDE_LIST ${ROCM_INC} ${OCL_LOCAL_INCLUDE_LIST} ${INCLUDE_LIST})
++    set(INCLUDE_LIST ${ROCM_INC} ${OCL_LOCAL_INCLUDE_LIST} ${INCLUDE_LIST} ${HALF_INCLUDE_DIR})
+ elseif( "${BACKEND}" STREQUAL "CPU")
+     # Add CPU specific includes
+     set(INCLUDE_LIST ${CMAKE_SOURCE_DIR}/src/include/common/)
+@@ -136,6 +138,7 @@ target_include_directories( ${PROJECT_NAME}
+     PUBLIC
+         ${CMAKE_SOURCE_DIR}/include
+         ${ROCM_INC}
++        ${HALF_INCLUDE_DIR}
+     PRIVATE
+         ${CMAKE_SOURCE_DIR}/src/include/cpu
+         ${CMAKE_SOURCE_DIR}/src/include/common

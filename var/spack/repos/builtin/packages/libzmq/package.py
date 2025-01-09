@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,8 @@ class Libzmq(AutotoolsPackage):
 
     maintainers("dennisklein")
 
+    license("MPL-2.0")
+
     version("master", branch="master")
     version("4.3.5", sha256="6653ef5910f17954861fe72332e68b03ca6e4d9c7160eb3a8de5a5a913bfab43")
     version("4.3.4", sha256="c593001a89f5a85dd2ddf564805deb860e02471171b3f204944857336295c3e5")
@@ -32,6 +33,9 @@ class Libzmq(AutotoolsPackage):
     version("4.0.7", sha256="e00b2967e074990d0538361cc79084a0a92892df2c6e7585da34e4c61ee47b03")
     version("4.0.6", sha256="28a2a9c9b77014c39087a498942449df18bb9885cdb63334833525a1d19f2894")
     version("4.0.5", sha256="3bc93c5f67370341428364ce007d448f4bb58a0eaabd0a60697d8086bc43342b")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "libsodium",

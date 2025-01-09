@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,6 +10,9 @@ class RTseries(RPackage):
 
     cran = "tseries"
 
+    license("GPL-2.0-only")
+
+    version("0.10-57", sha256="18754bb7642728916e30e67cb75462a296699b9b1f2ef1fb9803199f00f89bee")
     version("0.10-53", sha256="ec388ee6d022752bbebbecbf22d793d31f3734982e3f2e3ffd8dde14bffcca56")
     version("0.10-52", sha256="9399c8dbedb3b44b8b3b854f6e8867e0a14f3727a7aa66ec9c6eff069ead8f45")
     version("0.10-51", sha256="a55f20704883710ab58ea479e20cf0f263c50d54282f693793cda4af664c207f")
@@ -21,6 +23,8 @@ class RTseries(RPackage):
     version("0.10-42", sha256="827f79858715c700e8cabd2c27853ba88ad0e05eb043bc94e126b155a75546c4")
 
     depends_on("r@2.10.0:", type=("build", "run"))
+    depends_on("r@3.4.0:", type=("build", "run"), when="@0.10-57:")
+    depends_on("r-jsonlite", type=("build", "run"), when="@0.10-54:")
     depends_on("r-quadprog", type=("build", "run"))
     depends_on("r-zoo", type=("build", "run"))
     depends_on("r-quantmod@0.4-9:", type=("build", "run"))

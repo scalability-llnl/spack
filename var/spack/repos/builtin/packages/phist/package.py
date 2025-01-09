@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,7 +20,7 @@ class Phist(CMakePackage):
     """
 
     homepage = "https://bitbucket.org/essex/phist/"
-    url = "https://bitbucket.org/essex/phist/get/phist-1.11.2.tar.gz"
+    url = "https://bitbucket.org/essex/phist/get/phist-1.12.1.tar.gz"
     git = "https://bitbucket.org/essex/phist.git"
 
     maintainers("jthies")
@@ -31,8 +30,13 @@ class Phist(CMakePackage):
     # to provide 'mpi' like this: spack install phist ^mpich %gcc@7.5.0
     # Failure of this command to succeed breaks spack's gitlab CI pipelines!
 
+    license("BSD-3-Clause")
+
     version("develop", branch="devel")
     version("master", branch="master")
+
+    # fixes for tpetra/ghost, clang/Intel-LLVM
+    version("1.12.1", sha256="6b8fe8a994bf6baf698aa691fc2cbecd62cc60219073e48bfe6fd954c0303b9f")
 
     # compatible with trilinos@14:
     version("1.12.0", sha256="0f02e39b16d14cf7c47a3c468e788c7c0e71857eb1c0a4edb601e1e5b67e8668")
@@ -68,6 +72,10 @@ class Phist(CMakePackage):
     version("1.6.1", sha256="4ed4869f24f920a494aeae0f7d1d94fe9efce55ebe0d298a5948c9603e07994d")
     version("1.6.0", sha256="667a967b37d248242c275226c96efc447ef73a2b15f241c6a588d570d7fac07b")
     version("1.4.3", sha256="9cc1c7ba7f7a04e94f4497da14199e4631a0d02d0e4187f3e16f4c242dc777c1")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant(
         name="kernel_lib",
@@ -134,6 +142,9 @@ class Phist(CMakePackage):
         description="generate Fortran 2003 bindings (requires Python3 and " "a Fortran compiler)",
     )
 
+    # Build error with LLVM and recent Trilinos, fixed in phist-1.12.1
+    conflicts("%clang", when="kernel_lib=tpetra @:1.12.0")
+    conflicts("%oneapi", when="kernel_lib=tpetra @:1.12.0")
     # Trilinos 14 had some tpetra/kokkos API changes that are reflected in the phist 1.12 tag
     conflicts("^trilinos@14:", when="@:1.11.2")
     # Build error with cray-libsci because they define macro 'I', workaround in phist-1.11.2
@@ -235,6 +246,13 @@ class Phist(CMakePackage):
         test.filter("1 2 3 12", "1 2 3")
         test.filter("12/", "6/")
         test.filter("TEST_DRIVERS_NUM_THREADS 6", "TEST_DRIVERS_NUM_THREADS 3")
+        # Avoid finding external modules like:
+        #    /opt/rocm/llvm/include/iso_fortran_env.mod
+        filter_file(
+            "use iso_fortran_env",
+            "use, intrinsic :: iso_fortran_env",
+            "drivers/matfuncs/matpde3d.F90",
+        )
 
     def setup_build_environment(self, env):
         env.set("SPACK_SBANG", sbang.sbang_install_path())
@@ -304,7 +322,7 @@ class Phist(CMakePackage):
                 tty.warn("========================== %s =======================" % hint)
                 try:
                     make("check")
-                except spack.util.executable.ProcessError:
+                except ProcessError:
                     raise InstallError("run-test of phist ^mpich: Hint: " + hint)
             else:
                 make("check")
@@ -312,6 +330,7 @@ class Phist(CMakePackage):
     @run_after("install")
     @on_package_attributes(run_tests=True)
     def test_install(self):
+        """run 'make test_install'"""
         # The build script of test_install expects the sources to be copied here:
         install_tree(
             join_path(self.stage.source_path, "exampleProjects"),

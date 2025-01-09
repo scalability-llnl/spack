@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,9 @@ class RAdespatial(RPackage):
 
     cran = "adespatial"
 
+    license("GPL-2.0-or-later")
+
+    version("0.3-23", sha256="70e0878b13212f9c450bf1e2bd1c5be87a1e24fed942941855a8dd2dd0c05f33")
     version("0.3-21", sha256="4ff65f9bc05892a2d37d34ab2b77dbd24f980adc891f5f94f8e56aec771ea79f")
     version("0.3-20", sha256="f88e009563087c52af5be490bd111cc38b0b70437bbfa189e846080a069b64eb")
     version("0.3-19", sha256="db50f1c42961e40bcef6d714a89a09b1345dab2dd013cea8e2122fdf99d5d223")

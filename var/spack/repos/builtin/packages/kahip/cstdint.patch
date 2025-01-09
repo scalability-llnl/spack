@@ -1,0 +1,11 @@
+diff -Naur spack-src/lib/io/mmap_graph_io.h spack-src/lib/io/mmap_graph_io.patched.h
+--- spack-src/lib/io/mmap_graph_io.h	2024-08-22 17:56:05.689983013 +0200
++++ spack-src/lib/io/mmap_graph_io.patched.h	2024-08-22 17:58:10.915413214 +0200
+@@ -1,6 +1,7 @@
+ #pragma once
+ 
+ #include <cctype>
++#include <cstdint>
+ #include <cstring>
+ #include <fcntl.h>
+ #include <fstream>

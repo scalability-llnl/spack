@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,17 @@ class QtDeclarative(QtPackage):
     url = QtPackage.get_url(__qualname__)
     list_url = QtPackage.get_list_url(__qualname__)
 
+    license("BSD-3-Clause")
+
+    version("6.8.1", sha256="c3f41f5de5b2f02aa31bc5668f617f65d9adb3fb1939679b2a57a73a98c36ed6")
+    version("6.8.0", sha256="d28e15cec7754ee16588deace17ee83d75e2613f4751a79dd60c277721f7480f")
+    version("6.7.3", sha256="f39fa4e7e3b4011e52fc55fbde5f41e61815bffea432869abc9b90aa4de07613")
+    version("6.7.2", sha256="3b91d1b75f22221f39b93647d73c9fe7fc4b9c8d45ff0cec402626eab15d8dd8")
+    version("6.7.1", sha256="fdf4099cbced3ce56e5151122ae1eb924886492f9fc2eb6a353d60a23e8fde14")
+    version("6.7.0", sha256="dc3fec16cbe0f706b2b6114e5dbb884269543f2d679a0a3a63b4f686156adf73")
+    version("6.6.3", sha256="34757cb6f2960aaee2849ff9fabe3ec06499fb07f41ab4f9351ce602b85bebd3")
+    version("6.6.2", sha256="6079545e04e7704fcab8e50687e1ee9df8d3bb43288a1602ff0f142e640a5b51")
+    version("6.6.1", sha256="b1f5a75c2ea967d21b2c45f56ba1de66e2bf14a581b2f0d8e776441f1bebd0e7")
     version("6.6.0", sha256="2e52ef00736a9954426adf454cfb365fabdffb5703c814c188bc866cbf9f4dad")
     version("6.5.3", sha256="563924e58ac517492acb1952af0fb950cd54045ef6d61b98de06fac728239811")
     version("6.5.2", sha256="8b9eed849c90fb301d5399c545c2c926c18dc889d724df2b284253152a2ee139")
@@ -28,6 +38,9 @@ class QtDeclarative(QtPackage):
     version("6.3.0", sha256="b7316d6c195fdc31ecbf5ca2acf2888737539919a02ff8f11a911432d50c17ac")
     version("6.2.4", sha256="cd939d99c37e7723268804b9516e32f8dd64b985d847469c78b66b5f4481c548")
     version("6.2.3", sha256="eda82abfe685a6ab5664e4268954622ccd05cc9ec8fb16eaa453c54900591baf")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     # Testing requires +network
     depends_on("qt-base +network", type="test")

@@ -1,0 +1,24 @@
+From 869c2dc4b88aa5beb5ab0e57aba85d0c520e7074 Mon Sep 17 00:00:00 2001
+From: Afzal Patel <Afzal.Patel@amd.com>
+Date: Fri, 2 Feb 2024 14:16:12 +0000
+Subject: [PATCH] Disable tests
+
+---
+ CMakeLists.txt | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 9d52082..6f35926 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -176,8 +176,8 @@ endif()
+ enable_testing()
+
+ # Temporarily for CI to work
+-set(ROCPROFILER_BUILD_TESTS ON)
+-set(ROCPROFILER_BUILD_CI ON)
++set(ROCPROFILER_BUILD_TESTS OFF)
++set(ROCPROFILER_BUILD_CI OFF)
+
+ if(ROCPROFILER_BUILD_CI)
+     include(CTest)

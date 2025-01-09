@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os.path
@@ -14,7 +13,8 @@ import spack.bootstrap.core
 import spack.config
 import spack.environment as ev
 import spack.main
-import spack.mirror
+import spack.mirrors.utils
+import spack.spec
 
 _bootstrap = spack.main.SpackCommand("bootstrap")
 
@@ -169,7 +169,7 @@ def test_remove_and_add_a_source(mutable_config):
     assert not sources
 
     # Add it back and check we restored the initial state
-    _bootstrap("add", "github-actions", "$spack/share/spack/bootstrap/github-actions-v0.5")
+    _bootstrap("add", "github-actions", "$spack/share/spack/bootstrap/github-actions-v0.6")
     sources = spack.bootstrap.core.bootstrapping_sources()
     assert len(sources) == 1
 
@@ -181,8 +181,8 @@ def test_bootstrap_mirror_metadata(mutable_config, linux_os, monkeypatch, tmpdir
     `spack bootstrap add`. Here we don't download data, since that would be an
     expensive operation for a unit test.
     """
-    old_create = spack.mirror.create
-    monkeypatch.setattr(spack.mirror, "create", lambda p, s: old_create(p, []))
+    old_create = spack.mirrors.utils.create
+    monkeypatch.setattr(spack.mirrors.utils, "create", lambda p, s: old_create(p, []))
     monkeypatch.setattr(spack.spec.Spec, "concretized", lambda p: p)
 
     # Create the mirror in a temporary folder

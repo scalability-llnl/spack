@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -70,6 +69,10 @@ class Samrai(AutotoolsPackage):
     # See https://github.com/spack/spack/pull/22303 for reference
     depends_on(Boost.with_default_variants, when="@3.0.0:3.11.99", type="build")
     depends_on("silo+mpi", when="+silo")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
 
     # don't build SAMRAI 3+ with tools with gcc
     patch("no-tool-build.patch", when="@3.0.0:%gcc")

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,10 +18,17 @@ class Ectrans(CMakePackage):
 
     maintainers("climbfuji")
 
+    license("Apache-2.0")
+
     version("develop", branch="develop", no_cache=True)
     version("main", branch="main", no_cache=True)
+    version("1.5.0", sha256="8b2b24d1988b92dc3793b29142946614fca9e9c70163ee207d2a123494430fde")
+    version("1.4.0", sha256="1364827511a2eb11716aaee85062c3ab0e6b5d5dca7a7b9c364e1c43482b8691")
     version("1.2.0", sha256="2ee6dccc8bbfcc23faada1d957d141f24e41bb077c1821a7bc2b812148dd336c")
     version("1.1.0", sha256="3c9848bb65033fbe6d791084ee347b3adf71d5dfe6d3c11385000017b6469a3e")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant(
         "build_type",
@@ -51,6 +57,9 @@ class Ectrans(CMakePackage):
 
     depends_on("fiat~mpi", when="~mpi")
     depends_on("fiat+mpi", when="+mpi")
+
+    # https://github.com/ecmwf-ifs/ectrans/issues/194
+    conflicts("%oneapi@2025:", when="@1.3.1:1.5.1")
 
     def cmake_args(self):
         args = [

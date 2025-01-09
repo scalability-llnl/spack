@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,8 +17,12 @@ class Nut(CMakePackage):
 
     tags = ["proxy-app"]
 
+    license("GPL-2.0-or-later")
+
     version("master", branch="master")
     version("0.1.1", sha256="9f1dca4a9d7003b170fd57d6720228ff25471616cf884e033652e90c49c089bb")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3.0:", type="build")
     depends_on("random123")
@@ -28,7 +31,6 @@ class Nut(CMakePackage):
     # which is a C++ template library
     conflicts("%nvhpc")
     conflicts("%intel", when="@serial")
-    conflicts("%pgi", when="@serial")
     conflicts("%xl", when="@serial")
     conflicts("%nag", when="@serial")
     build_targets = ["VERBOSE=on"]

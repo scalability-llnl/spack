@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,7 @@ class RRmpi(RPackage):
 
     cran = "Rmpi"
 
+    version("0.7-2", sha256="8591fa9f50de52535a32b36e7ed142c6ca4e03fdfdbef79a1e27a63ed5322eef")
     version("0.7-1", sha256="17dae27dea9317aacabc2255dfcf2538fb3195472cedd521256ced9a20dd2dc1")
     version("0.6-9.2", sha256="358ac1af97402e676f209261a231f36a35e60f0301edf8ca53dac11af3c3bd1a")
     version("0.6-9", sha256="b2e1eac3e56f6b26c7ce744b29d8994ab6507ac88df64ebbb5af439414651ee6")
@@ -24,10 +24,13 @@ class RRmpi(RPackage):
     depends_on("mpi")
 
     # The following MPI types are not supported
-    conflicts("^intel-mpi")
-    conflicts("^intel-parallel-studio")
-    conflicts("^mvapich2")
-    conflicts("^spectrum-mpi")
+    conflicts("^[virtuals=mpi] intel-mpi")
+    conflicts("^[virtuals=mpi] intel-parallel-studio")
+    conflicts("^[virtuals=mpi] mvapich2")
+    conflicts("^[virtuals=mpi] spectrum-mpi")
+
+    # Rmpi's Open MPI implementation depends on v4.x ORTE runtime environment
+    conflicts("^[virtuals=mpi] openmpi@5:")
 
     def configure_args(self):
         spec = self.spec

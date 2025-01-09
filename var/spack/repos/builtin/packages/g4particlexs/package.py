@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,7 @@ class G4particlexs(Package):
     maintainers("drbenmorgan")
 
     # Only versions relevant to Geant4 releases built by spack are added
+    version("4.1", sha256="07ae1e048e9ac8e7f91f6696497dd55bd50ccc822d97af1a0b9e923212a6d7d1")
     version("4.0", sha256="9381039703c3f2b0fd36ab4999362a2c8b4ff9080c322f90b4e319281133ca95")
     version("3.1.1", sha256="66c17edd6cb6967375d0497add84c2201907a25e33db782ebc26051d38f2afda")
     version("3.1", sha256="404da84ead165e5cccc0bb795222f6270c9bf491ef4a0fd65195128b27f0e9cd")
@@ -27,11 +27,11 @@ class G4particlexs(Package):
 
     def install(self, spec, prefix):
         mkdirp(join_path(prefix.share, "data"))
-        install_path = join_path(prefix.share, "data", "G4PARTICLEXS{0}".format(self.version))
+        install_path = join_path(prefix.share, "data", self.g4datasetname)
         install_tree(self.stage.source_path, install_path)
 
     def setup_dependent_run_environment(self, env, dependent_spec):
-        install_path = join_path(self.prefix.share, "data", "G4PARTICLEXS{0}".format(self.version))
+        install_path = join_path(self.prefix.share, "data", self.g4datasetname)
         env.set("G4PARTICLEXSDATA", install_path)
 
     def url_for_version(self, version):
@@ -39,3 +39,8 @@ class G4particlexs(Package):
         return (
             "http://geant4-data.web.cern.ch/geant4-data/datasets/G4PARTICLEXS.%s.tar.gz" % version
         )
+
+    @property
+    def g4datasetname(self):
+        spec = self.spec
+        return "G4PARTICLEXS{0}".format(spec.version)

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import pytest
@@ -19,14 +18,23 @@ import spack.config
         (["missing-dependency"], ["PKG-DIRECTIVES", "PKG-PROPERTIES"]),
         # The package use a non existing variant in a depends_on directive
         (["wrong-variant-in-depends-on"], ["PKG-DIRECTIVES", "PKG-PROPERTIES"]),
+        # This package has a GitHub pull request commit patch URL
+        (["invalid-github-pull-commits-patch-url"], ["PKG-DIRECTIVES", "PKG-PROPERTIES"]),
         # This package has a GitHub patch URL without full_index=1
         (["invalid-github-patch-url"], ["PKG-DIRECTIVES", "PKG-PROPERTIES"]),
         # This package has invalid GitLab patch URLs
         (["invalid-gitlab-patch-url"], ["PKG-DIRECTIVES", "PKG-PROPERTIES"]),
         # This package has invalid GitLab patch URLs
         (["invalid-selfhosted-gitlab-patch-url"], ["PKG-DIRECTIVES", "PKG-PROPERTIES"]),
-        # This package has a stand-alone 'test*' method in build-time callbacks
-        (["fail-test-audit"], ["PKG-DIRECTIVES", "PKG-PROPERTIES"]),
+        # This package has a stand-alone test method in build-time callbacks
+        (["fail-test-audit"], ["PKG-PROPERTIES"]),
+        # This package implements and uses several deprecated stand-alone
+        # test methods
+        (["fail-test-audit-deprecated"], ["PKG-DEPRECATED-ATTRIBUTES"]),
+        # This package has stand-alone test methods without non-trivial docstrings
+        (["fail-test-audit-docstring"], ["PKG-PROPERTIES"]),
+        # This package has a stand-alone test method without an implementation
+        (["fail-test-audit-impl"], ["PKG-PROPERTIES"]),
         # This package has no issues
         (["mpileaks"], None),
         # This package has a conflict with a trigger which cannot constrain the constraint
@@ -39,7 +47,7 @@ def test_package_audits(packages, expected_errors, mock_packages):
 
     # Check that errors were reported only for the expected failure
     actual_errors = [check for check, errors in reports if errors]
-    msg = [str(e) for _, errors in reports for e in errors]
+    msg = "\n".join([str(e) for _, errors in reports for e in errors])
     if expected_errors:
         assert expected_errors == actual_errors, msg
     else:

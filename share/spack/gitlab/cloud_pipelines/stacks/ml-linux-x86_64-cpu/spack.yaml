@@ -2,8 +2,10 @@ spack:
   view: false
   packages:
     all:
-      require: target=x86_64_v3
-      variants: ~cuda~rocm
+      require:
+      - target=x86_64_v3
+      - ~cuda
+      - ~rocm
     mpi:
       require: openmpi
 
@@ -19,13 +21,12 @@ spack:
     - py-jaxlib
 
     # Keras
-    - py-keras
+    - py-keras backend=tensorflow
+    - py-keras backend=jax
+    - py-keras backend=torch
     - py-keras-applications
     - py-keras-preprocessing
     - py-keras2onnx
-
-    # MXNet
-    - mxnet
 
     # PyTorch
     - py-botorch
@@ -66,21 +67,18 @@ spack:
     # TensorFlow
     - py-tensorflow
     - py-tensorflow-datasets
-    - py-tensorflow-estimator
     - py-tensorflow-hub
     - py-tensorflow-metadata
     - py-tensorflow-probability
 
     # XGBoost
     - py-xgboost
-    # - r-xgboost
-    - xgboost
 
   ci:
     pipeline-gen:
     - build-job:
         image:
-          name: ghcr.io/spack/linux-ubuntu22.04-x86_64_v2:v2023-07-01
+          name: ghcr.io/spack/ubuntu-24.04:v2024-09-05-v2
           entrypoint: ['']
 
   cdash:

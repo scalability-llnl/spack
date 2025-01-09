@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,8 +22,14 @@ class Zoltan(AutotoolsPackage):
     homepage = "https://sandialabs.github.io/Zoltan/"
     url = "https://github.com/sandialabs/Zoltan/archive/v3.83.tar.gz"
 
+    license("Unlicense")
+
     version("3.901", sha256="030c22d9f7532d3076e40cba1f03a63b2ee961d8cc9a35149af4a3684922a910")
     version("3.83", sha256="17320a9f08e47f30f6f3846a74d15bfea6f3c1b937ca93c0ab759ca02c40e56c")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     patch("notparallel.patch", when="@3.8")
 
@@ -82,6 +87,11 @@ class Zoltan(AutotoolsPackage):
         with working_dir(self.configure_directory):
             autoreconf("-ivf")
 
+    def flag_handler(self, name, flags):
+        if self.spec.satisfies("%gcc@14:") and name == "cflags":
+            flags.append("-Wno-error=incompatible-pointer-types")
+        return self.build_system_flags(name, flags)
+
     def configure_args(self):
         spec = self.spec
 
@@ -96,8 +106,6 @@ class Zoltan(AutotoolsPackage):
         config_incdirs = []
 
         # PGI runtime libraries
-        if "%pgi" in spec:
-            config_ldflags.append("-pgf90libs")
         # NVHPC runtime libraries
         if "%nvhpc" in spec:
             config_ldflags.append("-fortranlibs")
@@ -109,7 +117,7 @@ class Zoltan(AutotoolsPackage):
                 # Although adding to config_libs _should_ suffice, it does not
                 # Add to ldflags as well
                 config_ldflags.append("-lgfortran")
-            if spec.satisfies("%intel"):
+            if spec.satisfies("%intel") or spec.satisfies("%oneapi"):
                 config_libs.append("-lifcore")
 
         if "+int64" in spec:

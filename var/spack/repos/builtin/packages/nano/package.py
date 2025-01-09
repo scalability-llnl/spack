@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,9 +13,16 @@ class Nano(AutotoolsPackage):
     list_url = "https://www.nano-editor.org/dist/"
     list_depth = 1
 
+    license("GPL-3.0-or-later", checked_by="wdconinc")
+
+    # 8.x
+    version("8.2", sha256="d5ad07dd862facae03051c54c6535e54c7ed7407318783fcad1ad2d7076fffeb")
+    version("8.1", sha256="93b3e3e9155ae389fe9ccf9cb7ab380eac29602835ba3077b22f64d0f0cbe8cb")
+    version("8.0", sha256="c17f43fc0e37336b33ee50a209c701d5beb808adc2d9f089ca831b40539c9ac4")
     # 7.x
     version("7.2", sha256="86f3442768bd2873cec693f83cdf80b4b444ad3cc14760b74361474fc87a4526")
     # 6.x
+    version("6.4", sha256="4199ae8ca78a7796de56de1a41b821dc47912c0307e9816b56cc317df34661c0")
     version("6.3", sha256="eb532da4985672730b500f685dbaab885a466d08fbbf7415832b95805e6f8687")
     version("6.2", sha256="2bca1804bead6aaf4ad791f756e4749bb55ed860eec105a97fba864bc6a77cb3")
     version("6.1", sha256="3d57ec893fbfded12665b7f0d563d74431fc43abeaccacedea23b66af704db40")
@@ -78,6 +84,11 @@ class Nano(AutotoolsPackage):
     version("2.6.2", sha256="22f79cc635458e0c0d110d211576f1edc03b112a62d73b914826a46547a6ac27")
     version("2.6.1", sha256="45721fa6d6128068895ad71a6967ff7398d11b064b3f888e5073c97a2b6e9a81")
 
+    depends_on("c", type="build")
+
+    depends_on("pkgconfig", type="build")
+    depends_on("gettext@0.18.3:")
+    depends_on("gettext@0.20:", when="@8.1:")
     depends_on("ncurses")
 
     def url_for_version(self, version):

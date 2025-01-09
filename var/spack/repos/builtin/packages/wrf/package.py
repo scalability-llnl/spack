@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -8,6 +7,7 @@ import re
 import sys
 import time
 from os.path import basename
+from pathlib import Path
 from subprocess import PIPE, Popen
 
 from llnl.util import tty
@@ -70,6 +70,21 @@ class Wrf(Package):
     tags = ["windows"]
 
     version(
+        "4.6.1",
+        sha256="b8ec11b240a3cf1274b2bd609700191c6ec84628e4c991d3ab562ce9dc50b5f2",
+        url="https://github.com/wrf-model/WRF/releases/download/v4.6.1/v4.6.1.tar.gz",
+    )
+    version(
+        "4.6.0",
+        sha256="1bb010f9e20b40d33d9df55a602ea9eb54c5444a7316c00a95e1cc44b209021e",
+        url="https://github.com/wrf-model/WRF/releases/download/v4.6.0/v4.6.0.tar.gz",
+    )
+    version(
+        "4.5.2",
+        sha256="408ba6aa60d9cd51d6bad2fa075a3d37000eb581b5d124162885b049c892bbdc",
+        url="https://github.com/wrf-model/WRF/releases/download/v4.5.2/v4.5.2.tar.gz",
+    )
+    version(
         "4.5.1",
         sha256="9d557c34c105db4d41e727843ecb19199233c7cf82c5369b34a2ce8efe65e2d1",
         url="https://github.com/wrf-model/WRF/releases/download/v4.5.1/v4.5.1.tar.gz",
@@ -100,6 +115,9 @@ class Wrf(Package):
         sha256="a04f5c425bedd262413ec88192a0f0896572cc38549de85ca120863c43df047a",
         url="https://github.com/wrf-model/WRF/archive/V3.9.1.1.tar.gz",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant(
         "build_type",
@@ -158,22 +176,22 @@ class Wrf(Package):
     patch("patches/4.0/tirpc_detect.patch", when="@4.0")
     patch("patches/4.0/add_aarch64.patch", when="@4.0")
 
-    patch("patches/4.2/arch.Config.pl.patch", when="@4.2:")
+    patch("patches/4.2/arch.Config.pl.patch", when="@4.2:4.5.1")
     patch("patches/4.2/arch.configure.defaults.patch", when="@=4.2")
     patch("patches/4.2/4.2.2_arch.configure.defaults.patch", when="@4.2.2")
     patch("patches/4.2/arch.conf_tokens.patch", when="@4.2:")
     patch("patches/4.2/arch.postamble.patch", when="@4.2")
     patch("patches/4.2/configure.patch", when="@4.2:4.3.3")
-    patch("patches/4.2/external.io_netcdf.makefile.patch", when="@4.2:")
+    patch("patches/4.2/external.io_netcdf.makefile.patch", when="@4.2:4.5.1")
     patch("patches/4.2/var.gen_be.Makefile.patch", when="@4.2:")
     patch("patches/4.2/Makefile.patch", when="@4.2")
     patch("patches/4.2/tirpc_detect.patch", when="@4.2")
     patch("patches/4.2/add_aarch64.patch", when="@4.2:4.3.1 %gcc target=aarch64:")
     patch("patches/4.2/add_aarch64_acfl.patch", when="@4.2:4.3.1 %arm target=aarch64:")
     patch("patches/4.2/configure_aocc_2.3.patch", when="@4.2 %aocc@:2.4.0")
-    patch("patches/4.2/configure_aocc_3.0.patch", when="@4.2: %aocc@3.0.0:3.2.0")
-    patch("patches/4.2/hdf5_fix.patch", when="@4.2: %aocc")
-    patch("patches/4.2/derf_fix.patch", when="@4.2 %aocc")
+    patch("patches/4.2/configure_aocc_3.0.patch", when="@4.2 %aocc@3.0.0:3.2.0")
+    patch("patches/4.2/hdf5_fix.patch", when="@4.2:4.5.1 %aocc")
+    patch("patches/4.2/derf_fix.patch", when="@=4.2 %aocc")
     patch(
         "patches/4.2/add_tools_flags_acfl2304.patch",
         when="@4.2:4.4.2 %arm@23.04.1: target=aarch64:",
@@ -182,14 +200,14 @@ class Wrf(Package):
     patch("patches/4.3/add_aarch64.patch", when="@4.3.2:4.4.2 %gcc target=aarch64:")
     patch("patches/4.3/add_aarch64_acfl.patch", when="@4.3.2:4.4.2 %arm target=aarch64:")
 
-    patch("patches/4.4/arch.postamble.patch", when="@4.4:")
+    patch("patches/4.4/arch.postamble.patch", when="@4.4:4.5.1")
     patch("patches/4.4/configure.patch", when="@4.4:4.4.2")
     patch("patches/4.4/ifx.patch", when="@4.4: %oneapi")
 
     patch("patches/4.5/configure.patch", when="@4.5:")
     # Fix WRF to remove deprecated ADIOS2 functions
     # https://github.com/wrf-model/WRF/pull/1860
-    patch("patches/4.5/adios2-remove-deprecated-functions.patch", when="@4.5: ^adios2@2.9:")
+    patch("patches/4.5/adios2-remove-deprecated-functions.patch", when="@=4.5.0 ^adios2@2.9:")
 
     # Various syntax fixes found by FPT tool
     patch(
@@ -199,9 +217,9 @@ class Wrf(Package):
     )
     patch("patches/4.2/configure_fujitsu.patch", when="@4 %fj")
 
-    patch("patches/4.3/Makefile.patch", when="@4.3:")
+    patch("patches/4.3/Makefile.patch", when="@4.3:4.5.1")
     patch("patches/4.3/arch.postamble.patch", when="@4.3:4.3.3")
-    patch("patches/4.3/fujitsu.patch", when="@4.3: %fj")
+    patch("patches/4.3/fujitsu.patch", when="@4.3:4.4 %fj")
     # Syntax errors in physics routines
     patch(
         "https://github.com/wrf-model/WRF/commit/7c6fd575b7a8fe5715b07b38db160e606c302956.patch?full_index=1",
@@ -215,13 +233,13 @@ class Wrf(Package):
     )
     # Add ARM compiler support
     patch(
-        "https://github.com/wrf-model/WRF/pull/1888/commits/4a084e03575da65f254917ef5d8eb39074abd3fc.patch",
-        sha256="c522c4733720df9a18237c06d8ab6199fa9674d78375b644aec7017cb38af9c5",
+        "https://github.com/wrf-model/WRF/commit/4a084e03575da65f254917ef5d8eb39074abd3fc.patch?full_index=1",
+        sha256="2d06d709074ded9bd6842aa83c0dfdad5a4e4e2df99e2e5d4a82579f0486117e",
         when="@4.5: %arm",
     )
     patch(
-        "https://github.com/wrf-model/WRF/pull/1888/commits/6087d9192f7f91967147e50f5bc8b9e49310cf98.patch",
-        sha256="f82a18cf7334e0cbbfdf4ef3aa91ca26d4a372709f114ce0116b3fbb136ffac6",
+        "https://github.com/wrf-model/WRF/commit/6087d9192f7f91967147e50f5bc8b9e49310cf98.patch?full_index=1",
+        sha256="7c6487aefaa6cda0fff3976e78da07b09d2ba6c005d649f35a0f8f1694a0b2bb",
         when="@4.5: %arm",
     )
 
@@ -250,6 +268,20 @@ class Wrf(Package):
     depends_on("m4", type="build")
     depends_on("libtool", type="build")
     depends_on("adios2", when="@4.5: +adios2")
+
+    requires(
+        "%gcc",
+        "%intel",
+        "%arm",
+        "%aocc",
+        "%fj",
+        "%oneapi",
+        policy="one_of",
+        msg="WRF supports only the GCC, Intel, AMD of Fujitsu compilers",
+    )
+    conflicts(
+        "%oneapi", when="@:4.3", msg="Intel oneapi compiler patch only added for version 4.4"
+    )
     phases = ["configure", "build", "install"]
 
     def setup_run_environment(self, env):
@@ -258,7 +290,13 @@ class Wrf(Package):
         env.append_path("PATH", self.prefix.tools)
 
     def setup_build_environment(self, env):
-        env.set("NETCDF", self.spec["netcdf-c"].prefix)
+        # From 4.5.2 the split-netcdf patches are not needed,
+        # just tell the build system where netcdf and netcdf-c are:
+        if self.spec.satisfies("@4.5.2:"):
+            env.set("NETCDF", self.spec["netcdf-fortran"].prefix)
+            env.set("NETCDF_C", self.spec["netcdf-c"].prefix)
+        else:
+            env.set("NETCDF", self.spec["netcdf-c"].prefix)
         if "+pnetcdf" in self.spec:
             env.set("PNETCDF", self.spec["parallel-netcdf"].prefix)
         # Add WRF-Chem module
@@ -292,6 +330,26 @@ class Wrf(Package):
 
         filter_file("^#!/bin/csh -f", "#!/usr/bin/env csh", *files)
         filter_file("^#!/bin/csh", "#!/usr/bin/env csh", *files)
+
+    @run_before("configure", when="%aocc@4:")
+    def create_aocc_config(self):
+        param = {
+            "MPICC": self.spec["mpi"].mpicc,
+            "MPIFC": self.spec["mpi"].mpifc,
+            "CTSM_SUBST": (
+                "-DWRF_USE_CLM" if self.spec.satisfies("@:4.2.2") else "CONFIGURE_D_CTSM"
+            ),
+            "NETCDFPAR_BUILD": (
+                "CONFIGURE_NETCDFPAR_BUILD" if self.spec.satisfies("@4.4.0:") else ""
+            ),
+        }
+
+        zen_conf = (Path(__file__).parent / "aocc_config.inc").read_text().format(**param)
+
+        if self.spec.satisfies("@4.0:"):
+            filter_file("#insert new stanza here", zen_conf, "arch/configure.defaults")
+        else:
+            filter_file("#insert new stanza here", zen_conf, "arch/configure_new.defaults")
 
     def answer_configure_question(self, outputbuf):
         # Platform options question:
@@ -360,6 +418,15 @@ class Wrf(Package):
             config.filter("^DM_FC.*mpif90", "DM_FC = {0}".format(self.spec["mpi"].mpifc))
             config.filter("^DM_CC.*mpicc", "DM_CC = {0}".format(self.spec["mpi"].mpicc))
 
+        if self.spec.satisfies("@:4.0.3 %intel@2018:"):
+            config.filter(r"-openmp", "-qopenmp")
+
+        if self.spec.satisfies("%gcc@14:"):
+            config.filter(
+                "^CFLAGS_LOCAL(.*?)=([^#\n\r]*)(.*)$", r"CFLAGS_LOCAL\1= \2 -fpermissive \3"
+            )
+            config.filter("^CC_TOOLS(.*?)=([^#\n\r]*)(.*)$", r"CC_TOOLS\1=\2 -fpermissive \3")
+
     @run_before("configure")
     def fortran_check(self):
         if not self.compiler.fc:
@@ -369,11 +436,6 @@ class Wrf(Package):
     def configure(self, spec, prefix):
         # Remove broken default options...
         self.do_configure_fixup()
-
-        if self.spec.compiler.name not in ["intel", "gcc", "arm", "aocc", "fj", "oneapi"]:
-            raise InstallError(
-                "Compiler %s not currently supported for WRF build." % self.spec.compiler.name
-            )
 
         p = Popen("./configure", stdin=PIPE, stdout=PIPE, stderr=PIPE)
         if sys.platform != "win32":

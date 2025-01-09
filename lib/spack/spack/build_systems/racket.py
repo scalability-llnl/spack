@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -11,9 +10,9 @@ import llnl.util.tty as tty
 
 import spack.builder
 from spack.build_environment import SPACK_NO_PARALLEL_MAKE
+from spack.config import determine_number_of_jobs
 from spack.directives import build_system, extends, maintainers
 from spack.package_base import PackageBase
-from spack.util.cpus import determine_number_of_jobs
 from spack.util.environment import env_flag
 from spack.util.executable import Executable, ProcessError
 

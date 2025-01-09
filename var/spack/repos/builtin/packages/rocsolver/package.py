@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,12 +12,12 @@ class Rocsolver(CMakePackage):
     """rocSOLVER is a work-in-progress implementation of a
     subset of LAPACK functionality on the ROCm platform."""
 
-    homepage = "https://github.com/ROCmSoftwarePlatform/rocSOLVER"
-    git = "https://github.com/ROCmSoftwarePlatform/rocSOLVER.git"
-    url = "https://github.com/ROCmSoftwarePlatform/rocSOLVER/archive/rocm-5.5.0.tar.gz"
+    homepage = "https://github.com/ROCm/rocSOLVER"
+    git = "https://github.com/ROCm/rocSOLVER.git"
+    url = "https://github.com/ROCm/rocSOLVER/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
-    maintainers("cgmb", "srekolam", "renjithravindrankannath", "haampie")
+    maintainers("cgmb", "srekolam", "renjithravindrankannath", "haampie", "afzpatel")
     libraries = ["librocsolver"]
 
     amdgpu_targets = ROCmPackage.amdgpu_targets
@@ -32,143 +31,65 @@ class Rocsolver(CMakePackage):
     variant(
         "optimal",
         default=True,
-        description="This option improves performance at the cost of increased binary \
-            size and compile time by adding specialized kernels \
-            for small matrix sizes",
+        description="This option improves performance at the cost of increased binary "
+        "size and compile time by adding specialized kernels "
+        "for small matrix sizes",
     )
+    variant("asan", default=False, description="Build with address-sanitizer enabled or disabled")
+
+    conflicts("+asan", when="os=rhel9")
+    conflicts("+asan", when="os=centos7")
+    conflicts("+asan", when="os=centos8")
+
+    license("BSD-2-Clause")
 
     version("develop", branch="develop")
     version("master", branch="master")
+    version("6.3.0", sha256="48861f7b86379f2b825c0496d1d9318c6e29426d083b361c10f685b0ddd66274")
+    version("6.2.4", sha256="022863df6a9d51bd216e56dd4dc7d437584e48304cfdbc9c5751be1abfd7c73f")
+    version("6.2.1", sha256="e1c19cd25f7119c116d1c63e2384e9c47a4ff7ae14bb42dfcef766a4d3a011d5")
+    version("6.2.0", sha256="74cb799dcddfcbd6ee05398003416dbccd3d06d7f4b23e4324baac3f15440162")
+    version("6.1.2", sha256="8cb45b6a4ed819b8e952c0bfdd8bf7dd941478ac656bea42a6d6751f459e66ea")
+    version("6.1.1", sha256="3bbba30fa7f187676caf858f66c2345e4dcc81b9546eca4a726c0b159dad22bd")
+    version("6.1.0", sha256="f1d7a4edf14ed0b2e2f74aa5cbc9db0c3b0dd31e50bbada1586cb353a28fe015")
+    version("6.0.2", sha256="781d5df2886ab0d5087a215a33ac390dd27653b2a9b4a620c7d51b0ae56f63d2")
+    version("6.0.0", sha256="5fcaba96f3efafc2ecc3f4ec104095d96545c16e1b9f95410bd571cb0fc643ae")
+    version("5.7.1", sha256="83e0c137b8690dbeb2e85d9e25415d96bd06979f09f2b10b2aff8e4c9f833fa4")
+    version("5.7.0", sha256="bb16d360f14b34fe6e8a6b8ddc6e631672a5ffccbdcb25f0ce319edddd7f9682")
     version("5.6.1", sha256="6a8f366218aee599a0e56755030f94ee690b34f30e6d602748632226c5dc21bb")
     version("5.6.0", sha256="54baa7f35f3c53da9005054e6f7aeecece5526dafcb277af32cbcb3996b0cbbc")
     version("5.5.1", sha256="8bf843e42d2e89203ea5fdb6e6082cea90da8d02920ab4c09bcc2b6f69909760")
     version("5.5.0", sha256="6775aa5b96731208c12c5b450cf218d4c262a80b7ea20c2c3034c448bb2ca4d2")
-    version("5.4.3", sha256="5308b68ea72f465239a4bb2ed1a0507f0df7c98d3df3fd1f392e6d9ed7975232")
-    version("5.4.0", sha256="69690839cb649dee43353b739d3e6b2312f3d965dfe66705c0ea910e57c6a8cb")
-    version("5.3.3", sha256="d2248b5e2e0b20e08dd1ee5408e38deb02ecd28096dc7c7f2539351df6cb6ad5")
-    version("5.3.0", sha256="4569f860d240d50e94e77d498050f5cafe5ad11daddaead3e7e9eaa1957878a7")
-    version("5.2.3", sha256="b278a1640f31fb1905f18dc5127d57e2b1d36fd2b4f39ae811b5537fa6ce87d4")
-    version("5.2.1", sha256="74c127efaefec70a14dff6fa0e92276f38a6c313bf1271d68d03a4222d1fc3b6")
-    version("5.2.0", sha256="94d46ebe1266eaa05df50c1789dc27d3f2dbf3cb5af156e757777a82ed6ef356")
-    version("5.1.3", sha256="5a8f3b95ac9a131c31538196e954ea53b863009c092cce0c0ef869a0cd5dd554")
-    version("5.1.0", sha256="88de515a6e75eaa3c50c9c8ae1e7ae8e3b46e712e388f44f79b63fefa9fc0831")
-    version(
-        "5.0.2",
-        sha256="298e0903f1ba8074055ab072690f967062d6e06a9371574de23e4e38d2997688",
-        deprecated=True,
-    )
-    version(
-        "5.0.0",
-        sha256="d444ad5348eb8a2c04646ceae6923467a0e775441f2c73150892e228e585b2e1",
-        deprecated=True,
-    )
-    version(
-        "4.5.2",
-        sha256="4639322bd1e77fedfdeb9032633bde6211a0b1cc16a612db7754f873f18a492f",
-        deprecated=True,
-    )
-    version(
-        "4.5.0",
-        sha256="0295862da941f31f4d43b19195b79331bd17f5968032f75c89d2791a6f8c1e8c",
-        deprecated=True,
-    )
-    version(
-        "4.3.1",
-        sha256="c6e7468d7041718ce6e1c7f50ec80a552439ac9cfed2dc3f753ae417dda5724f",
-        deprecated=True,
-    )
-    version(
-        "4.3.0",
-        sha256="63cc88dd285c0fe01ec2394321ec3b4e1e59bb98ce05b06e4b4d8fadcf1ff028",
-        deprecated=True,
-    )
-    version(
-        "4.2.0",
-        sha256="e9ef72d7c29e7c36bf02be63a64ca23b444e1ca71751749f7d66647873d9fdea",
-        deprecated=True,
-    )
-    version(
-        "4.1.0",
-        sha256="da5cc800dabf7367b02b73c93780b2967f112bb45232e4b06e5fd07b4d5b8d88",
-        deprecated=True,
-    )
-    version(
-        "4.0.0",
-        sha256="be9a52644c276813f76d78f2c11eddaf8c2d7f9dd04f4570f23d328ad30d5880",
-        deprecated=True,
-    )
-    version(
-        "3.10.0",
-        sha256="bc72483656b6b23a1e321913a580ca460da3bc5976404647536a01857f178dd2",
-        deprecated=True,
-    )
-    version(
-        "3.9.0",
-        sha256="85fd77fe5acf5af518d11e90e2c03ee0c5abd61071cea86ef5df09f944879648",
-        deprecated=True,
-    )
-    version(
-        "3.8.0",
-        sha256="72aa74284944d8b454088e8c8d74cf05464a4e2e46d33a57017ddd009113025e",
-        deprecated=True,
-    )
-    version(
-        "3.7.0",
-        sha256="8c1c630595952806e658c539fd0f3056bd45bafc22b57f0dd10141abefbe4595",
-        deprecated=True,
-    )
-    version(
-        "3.5.0",
-        sha256="d655e8c762fb9e123b9fd7200b4258512ceef69973de4d0588c815bc666cb358",
-        deprecated=True,
-    )
+    with default_args(deprecated=True):
+        version("5.4.3", sha256="5308b68ea72f465239a4bb2ed1a0507f0df7c98d3df3fd1f392e6d9ed7975232")
+        version("5.4.0", sha256="69690839cb649dee43353b739d3e6b2312f3d965dfe66705c0ea910e57c6a8cb")
+        version("5.3.3", sha256="d2248b5e2e0b20e08dd1ee5408e38deb02ecd28096dc7c7f2539351df6cb6ad5")
+        version("5.3.0", sha256="4569f860d240d50e94e77d498050f5cafe5ad11daddaead3e7e9eaa1957878a7")
 
-    depends_on("cmake@3.8:", type="build", when="@4.1.0:")
-    depends_on("cmake@3.5:", type="build")
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
+    depends_on("cmake@3.8:", type="build")
     depends_on("fmt@7:", type="build", when="@4.5.0:")
+    depends_on("fmt@7:8.0.1", type="test", when="@5.6:")
 
     depends_on("googletest@1.10.0:", type="test")
     depends_on("netlib-lapack@3.7.1:", type="test")
 
-    patch("link-clients-blas.patch", when="@4.3.0:4.3.2")
-    # Backport https://github.com/ROCmSoftwarePlatform/rocSOLVER/commit/2bbfb8976f6e4d667499c77e41a6433850063e88
-    patch("fmt-8.1-compatibility.patch", when="@4.5.0:5.1.3")
     # Maximize compatibility with other libraries that are using fmt.
     patch("fmt-9-compatibility.patch", when="@5.2.0:5.5")
 
-    def check(self):
-        exe = join_path(self.build_directory, "clients", "staging", "rocsolver-test")
-        self.run_test(exe, options=["--gtest_filter=checkin*-*known_bug*"])
-
-    depends_on("hip@4.1.0:", when="@4.1.0:")
+    depends_on("hip")
     depends_on("rocm-cmake@master", type="build", when="@master:")
     depends_on("rocm-cmake@4.5.0:", type="build", when="@4.5.0:")
     depends_on("rocm-cmake@4.3.0:", type="build", when="@4.3.0:")
     depends_on("rocm-cmake@3.5.0:", type="build")
+    depends_on("rocsparse@5.2:", when="@5.6:")
 
     for ver in ["master", "develop"]:
-        depends_on("rocblas@" + ver, when="@" + ver)
+        depends_on(f"rocblas@{ver}", when=f"@{ver}")
 
     for ver in [
-        "3.5.0",
-        "3.7.0",
-        "3.8.0",
-        "3.9.0",
-        "3.10.0",
-        "4.0.0",
-        "4.1.0",
-        "4.2.0",
-        "4.3.0",
-        "4.3.1",
-        "4.5.0",
-        "4.5.2",
-        "5.0.0",
-        "5.0.2",
-        "5.1.0",
-        "5.1.3",
-        "5.2.0",
-        "5.2.1",
-        "5.2.3",
         "5.3.0",
         "5.3.3",
         "5.4.0",
@@ -177,55 +98,48 @@ class Rocsolver(CMakePackage):
         "5.5.1",
         "5.6.0",
         "5.6.1",
+        "5.7.0",
+        "5.7.1",
+        "6.0.0",
+        "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
     ]:
-        depends_on("hip@" + ver, when="@" + ver)
-        depends_on("rocblas@" + ver, when="@" + ver)
-    for ver in ["5.6.0", "5.6.1"]:
-        depends_on("rocsparse@5.2:", when="@5.6:")
+        depends_on(f"hip@{ver}", when=f"@{ver}")
+        depends_on(f"rocblas@{ver}", when=f"@{ver}")
 
     for tgt in itertools.chain(["auto"], amdgpu_targets):
-        depends_on("rocblas amdgpu_target={0}".format(tgt), when="amdgpu_target={0}".format(tgt))
+        depends_on(f"rocblas amdgpu_target={tgt}", when=f"amdgpu_target={tgt}")
 
     @classmethod
     def determine_version(cls, lib):
         match = re.search(r"lib\S*\.so\.\d+\.\d+\.(\d)(\d\d)(\d\d)", lib)
         if match:
-            ver = "{0}.{1}.{2}".format(
+            return "{0}.{1}.{2}".format(
                 int(match.group(1)), int(match.group(2)), int(match.group(3))
             )
-        else:
-            ver = None
-        return ver
+        return None
 
     def cmake_args(self):
         args = [
             self.define("BUILD_CLIENTS_SAMPLES", "OFF"),
             self.define("BUILD_CLIENTS_TESTS", self.run_tests),
             self.define("BUILD_CLIENTS_BENCHMARKS", "OFF"),
+            self.define_from_variant("OPTIMAL", "optimal"),
+            self.define("ROCSOLVER_EMBED_FMT", "ON"),
         ]
-        if self.spec.satisfies("@4.1.0"):
-            incl = self.spec["rocblas"].prefix
-            args.append(self.define("CMAKE_CXX_FLAGS", "-I{0}/rocblas/include".format(incl)))
-
-        if self.spec.satisfies("@3.7.0:"):
-            args.append(self.define_from_variant("OPTIMAL", "optimal"))
 
         tgt = self.spec.variants["amdgpu_target"]
         if "auto" not in tgt:
-            if "@:3.8.0" in self.spec:
-                args.append(
-                    self.define(
-                        "CMAKE_CXX_FLAGS", "--amdgpu-target={0}".format(",".join(tgt.value))
-                    )
-                )
-            else:
-                args.append(self.define_from_variant("AMDGPU_TARGETS", "amdgpu_target"))
+            args.append(self.define_from_variant("AMDGPU_TARGETS", "amdgpu_target"))
 
         if self.spec.satisfies("^cmake@3.21.0:3.21.2"):
             args.append(self.define("__skip_rocmclang", "ON"))
-
-        if self.spec.satisfies("@4.5.0:"):
-            args.append(self.define("ROCSOLVER_EMBED_FMT", "ON"))
 
         if self.spec.satisfies("@5.2.0:"):
             args.append(self.define("BUILD_FILE_REORG_BACKWARD_COMPATIBILITY", True))
@@ -236,3 +150,16 @@ class Rocsolver(CMakePackage):
 
     def setup_build_environment(self, env):
         env.set("CXX", self.spec["hip"].hipcc)
+        if self.spec.satisfies("+asan"):
+            env.set("CC", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang")
+            env.set("CXX", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang++")
+            env.set("ASAN_OPTIONS", "detect_leaks=0")
+            env.set("CFLAGS", "-fsanitize=address -shared-libasan")
+            env.set("CXXFLAGS", "-fsanitize=address -shared-libasan")
+            env.set("LDFLAGS", "-fuse-ld=lld")
+
+    @run_after("build")
+    @on_package_attributes(run_tests=True)
+    def check_build(self):
+        exe = Executable(join_path(self.build_directory, "clients", "staging", "rocsolver-test"))
+        exe("--gtest_filter=checkin*-*known_bug*")

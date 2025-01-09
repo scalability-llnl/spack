@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,12 +13,14 @@ import jsonschema.exceptions
 import llnl.util.tty as tty
 
 import spack.cmd
+import spack.compilers
 import spack.deptypes as dt
 import spack.error
 import spack.hash_types as hash_types
 import spack.platforms
 import spack.repo
 import spack.spec
+import spack.store
 from spack.schema.cray_manifest import schema as manifest_schema
 
 #: Cray systems can store a Spack-compatible description of system
@@ -130,7 +131,7 @@ def spec_from_entry(entry):
         variant_strs = list()
         for name, value in entry["parameters"].items():
             # TODO: also ensure that the variant value is valid?
-            if not (name in pkg_cls.variants):
+            if not pkg_cls.has_variant(name):
                 tty.debug(
                     "Omitting variant {0} for entry {1}/{2}".format(
                         name, entry["name"], entry["hash"][:7]
@@ -209,7 +210,7 @@ def entries_to_specs(entries):
 def read(path, apply_updates):
     decode_exception_type = json.decoder.JSONDecodeError
     try:
-        with open(path, "r") as json_file:
+        with open(path, "r", encoding="utf-8") as json_file:
             json_data = json.load(json_file)
 
         jsonschema.validate(json_data, manifest_schema)
@@ -227,7 +228,7 @@ def read(path, apply_updates):
     if apply_updates and compilers:
         for compiler in compilers:
             try:
-                spack.compilers.add_compilers_to_config([compiler], init_config=False)
+                spack.compilers.add_compilers_to_config([compiler])
             except Exception:
                 warnings.warn(
                     f"Could not add compiler {str(compiler.spec)}: "
@@ -237,7 +238,7 @@ def read(path, apply_updates):
                 tty.debug(f"Include this\n{traceback.format_exc()}")
     if apply_updates:
         for spec in specs.values():
-            spack.store.STORE.db.add(spec, directory_layout=None)
+            spack.store.STORE.db.add(spec)
 
 
 class ManifestValidationError(spack.error.SpackError):

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -10,10 +9,10 @@ from typing import List
 import llnl.util.tty as tty
 
 import spack.cmd
-import spack.cmd.common.arguments as arguments
 import spack.cmd.common.confirmation as confirmation
 import spack.environment as ev
 import spack.spec
+from spack.cmd.common import arguments
 
 description = "remove specs from the concretized lockfile of an environment"
 section = "environments"
@@ -99,5 +98,5 @@ def deconcretize(parser, args):
             " Use `spack deconcretize --all` to deconcretize ALL specs.",
         )
 
-    specs = spack.cmd.parse_specs(args.specs) if args.specs else [any]
+    specs = spack.cmd.parse_specs(args.specs) if args.specs else [None]
     deconcretize_specs(args, specs)

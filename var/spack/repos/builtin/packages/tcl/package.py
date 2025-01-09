@@ -1,17 +1,34 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
+import sys
 
 from llnl.util.filesystem import find_first
 
+import spack.build_systems.autotools
+import spack.build_systems.nmake
 from spack.package import *
 from spack.util.environment import is_system_path
 
+is_windows = sys.platform == "win32"
 
-class Tcl(AutotoolsPackage, SourceforgePackage):
+
+def find_script_dir(spec: Spec) -> str:
+    # Put more-specific prefixes first
+    check_prefixes = [
+        join_path(spec.prefix, "share", "tcl{0}".format(spec.package.version.up_to(2))),
+        spec.prefix,
+    ]
+    for prefix in check_prefixes:
+        result = find_first(prefix, "init.tcl")
+        if result:
+            return os.path.dirname(result)
+    raise RuntimeError("Cannot locate init.tcl")
+
+
+class Tcl(AutotoolsPackage, NMakePackage, SourceforgePackage):
     """Tcl (Tool Command Language) is a very powerful but easy to learn dynamic
     programming language, suitable for a very wide range of uses, including web and
     desktop applications, networking, administration, testing and many more. Open source
@@ -20,6 +37,9 @@ class Tcl(AutotoolsPackage, SourceforgePackage):
 
     homepage = "https://www.tcl.tk/"
     sourceforge_mirror_path = "tcl/tcl8.6.11-src.tar.gz"
+    tags = ["windows"]
+
+    license("TCL")
 
     version("8.6.12", sha256="26c995dd0f167e48b11961d891ee555f680c175f7173ff8cb829f4ebcde4c1a6")
     version("8.6.11", sha256="8c0486668586672c5693d7d95817cb05a18c5ecca2f40e2836b9578064088258")
@@ -31,57 +51,36 @@ class Tcl(AutotoolsPackage, SourceforgePackage):
     version("8.6.3", sha256="6ce0778de0d50daaa9c345d7c1fd1288fb658f674028812e7eeee992e3051005")
     version("8.5.19", sha256="d3f04456da873d17f02efc30734b0300fb6c3b85028d445fe284b83253a6db18")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     extendable = True
 
     depends_on("zlib-api")
 
-    configure_directory = "unix"
+    if sys.platform != "win32":
+        filter_compiler_wrappers("tclConfig.sh", relative_root="lib")
 
-    filter_compiler_wrappers("tclConfig.sh", relative_root="lib")
-
-    def install(self, spec, prefix):
-        with working_dir(self.build_directory):
-            make("install")
-
-            # https://wiki.tcl-lang.org/page/kitgen
-            if self.spec.satisfies("@8.6:"):
-                make("install-headers")
-
-            # Some applications like Expect require private Tcl headers.
-            make("install-private-headers")
-
-            # Copy source to install tree
-            # A user-provided install option might re-do this
-            # https://github.com/spack/spack/pull/4102/files
-            installed_src = join_path(self.spec.prefix, "share", self.name, "src")
-            stage_src = os.path.realpath(self.stage.source_path)
-            install_tree(stage_src, installed_src)
-
-            # Replace stage dir -> installed src dir in tclConfig
-            filter_file(
-                stage_src,
-                installed_src,
-                join_path(self.spec["tcl"].libs.directories[0], "tclConfig.sh"),
-            )
-
-        # Don't install binaries in src/ tree
-        with working_dir(join_path(installed_src, self.configure_directory)):
-            make("clean")
-
-    @run_after("install")
-    def symlink_tclsh(self):
-        with working_dir(self.prefix.bin):
-            symlink("tclsh{0}".format(self.version.up_to(2)), "tclsh")
-
+    build_system("autotools", "nmake")
+    patch("tcl-quote-cc-path.patch", when="platform=windows")
     # ========================================================================
     # Set up environment to make install easy for tcl extensions.
     # ========================================================================
 
     @property
+    def _tcl_name(self):
+        ver_suffix = self.version.up_to(2)
+        win_suffix = ""
+        if is_windows:
+            if self.spec.satisfies("@:8.7"):
+                win_suffix = "t"
+            ver_suffix = ver_suffix.joined
+        return f"{ver_suffix}{win_suffix}"
+
+    @property
     def libs(self):
-        return find_libraries(
-            ["libtcl{0}".format(self.version.up_to(2))], root=self.prefix, recursive=True
-        )
+        lib = "lib" if not is_windows else ""
+        return find_libraries([f"{lib}tcl{self._tcl_name}"], root=self.prefix, recursive=True)
 
     @property
     def command(self):
@@ -93,21 +92,8 @@ class Tcl(AutotoolsPackage, SourceforgePackage):
         # Although we symlink tclshX.Y to tclsh, we also need to support external
         # installations that may not have this symlink, or may have multiple versions
         # of Tcl installed in the same directory.
-        return Executable(
-            os.path.realpath(self.prefix.bin.join("tclsh{0}".format(self.version.up_to(2))))
-        )
-
-    def _find_script_dir(self):
-        # Put more-specific prefixes first
-        check_prefixes = [
-            join_path(self.prefix, "share", "tcl{0}".format(self.version.up_to(2))),
-            self.prefix,
-        ]
-        for prefix in check_prefixes:
-            result = find_first(prefix, "init.tcl")
-            if result:
-                return os.path.dirname(result)
-        raise RuntimeError("Cannot locate init.tcl")
+        exe = ".exe" if is_windows else ""
+        return Executable(os.path.realpath(self.prefix.bin.join(f"tclsh{self._tcl_name}{exe}")))
 
     def setup_run_environment(self, env):
         """Set TCL_LIBRARY to the directory containing init.tcl.
@@ -118,7 +104,41 @@ class Tcl(AutotoolsPackage, SourceforgePackage):
         """
         # When using tkinter from within spack provided python+tkinter,
         # python will not be able to find Tcl unless TCL_LIBRARY is set.
-        env.set("TCL_LIBRARY", self._find_script_dir())
+        env.set("TCL_LIBRARY", find_script_dir(self.spec))
+
+    def setup_dependent_run_environment(self, env, dependent_spec):
+        """Set TCLLIBPATH to include the tcl-shipped directory for
+        extensions and any other tcl extension it depends on.
+
+        For further info see:
+
+        * https://wiki.tcl-lang.org/page/TCLLIBPATH
+        """
+        if dependent_spec.package.extends(self.spec):
+            # Tcl libraries may be installed in lib or lib64, see #19546
+            for lib in ["lib", "lib64"]:
+                tcllibpath = join_path(dependent_spec.prefix, lib)
+                if os.path.exists(tcllibpath):
+                    env.prepend_path("TCLLIBPATH", tcllibpath, separator=" ")
+
+
+class AnyBuilder(BaseBuilder):
+    @run_after("install")
+    def symlink_tclsh(self):
+        # There's some logic regarding this suffix in the build system
+        # but the way Spack builds tcl, the Windows suffix is always 't'
+        # unless the version is >= 8.7, in which case there is no suffix
+        # if the build is ever switched to static, this will need to change
+        # to be "s[t]"
+        win_suffix = ""
+        ver_suffix = self.pkg.version.up_to(2)
+        if is_windows:
+            win_suffix = "t" if self.spec.satisfies("@:8.7") else ""
+            win_suffix += ".exe"
+            ver_suffix = ver_suffix.joined
+
+        with working_dir(self.prefix.bin):
+            symlink(f"tclsh{ver_suffix}{win_suffix}", "tclsh")
 
     def setup_dependent_build_environment(self, env, dependent_spec):
         """Set TCL_LIBRARY to the directory containing init.tcl.
@@ -130,15 +150,15 @@ class Tcl(AutotoolsPackage, SourceforgePackage):
         * https://wiki.tcl-lang.org/page/TCL_LIBRARY
         * https://wiki.tcl-lang.org/page/TCLLIBPATH
         """
-        env.set("TCL_LIBRARY", self._find_script_dir())
+        env.set("TCL_LIBRARY", find_script_dir(self.spec))
 
         # If we set TCLLIBPATH, we must also ensure that the corresponding
         # tcl is found in the build environment. This to prevent cases
         # where a system provided tcl is run against the standard libraries
         # of a Spack built tcl. See issue #7128 that relates to python but
         # it boils down to the same situation we have here.
-        if not is_system_path(self.prefix.bin):
-            env.prepend_path("PATH", self.prefix.bin)
+        if not is_system_path(self.spec.prefix.bin):
+            env.prepend_path("PATH", self.spec.prefix.bin)
 
         # WARNING: paths in $TCLLIBPATH must be *space* separated,
         # its value is meant to be a Tcl list, *not* an env list
@@ -160,17 +180,51 @@ class Tcl(AutotoolsPackage, SourceforgePackage):
                 if os.path.exists(tcllibpath):
                     env.prepend_path("TCLLIBPATH", tcllibpath, separator=" ")
 
-    def setup_dependent_run_environment(self, env, dependent_spec):
-        """Set TCLLIBPATH to include the tcl-shipped directory for
-        extensions and any other tcl extension it depends on.
 
-        For further info see:
+class AutotoolsBuilder(AnyBuilder, spack.build_systems.autotools.AutotoolsBuilder):
+    configure_directory = "unix"
 
-        * https://wiki.tcl-lang.org/page/TCLLIBPATH
-        """
-        if dependent_spec.package.extends(self.spec):
-            # Tcl libraries may be installed in lib or lib64, see #19546
-            for lib in ["lib", "lib64"]:
-                tcllibpath = join_path(dependent_spec.prefix, lib)
-                if os.path.exists(tcllibpath):
-                    env.prepend_path("TCLLIBPATH", tcllibpath, separator=" ")
+    def install(self, pkg, spec, prefix):
+        with working_dir(self.build_directory):
+            make("install")
+
+            # https://wiki.tcl-lang.org/page/kitgen
+            if self.spec.satisfies("@8.6:"):
+                make("install-headers")
+
+            # Some applications like Expect require private Tcl headers.
+            make("install-private-headers")
+
+            # Copy source to install tree
+            # A user-provided install option might re-do this
+            # https://github.com/spack/spack/pull/4102/files
+            installed_src = join_path(self.spec.prefix, "share", pkg.name, "src")
+            stage_src = os.path.realpath(pkg.stage.source_path)
+            install_tree(stage_src, installed_src)
+
+            # Replace stage dir -> installed src dir in tclConfig
+            filter_file(
+                stage_src,
+                installed_src,
+                join_path(self.spec["tcl"].libs.directories[0], "tclConfig.sh"),
+            )
+
+        # Don't install binaries in src/ tree
+        with working_dir(join_path(installed_src, self.configure_directory)):
+            make("clean")
+
+
+class NMakeBuilder(AnyBuilder, spack.build_systems.nmake.NMakeBuilder):
+    build_targets = ["all"]
+    install_targets = ["install"]
+
+    @property
+    def makefile_root(self):
+        return f"{self.stage.source_path}\\win"
+
+    @property
+    def makefile_name(self):
+        return "makefile.vc"
+
+    def nmake_install_args(self):
+        return [self.define("INSTALLDIR", self.spec.prefix)]

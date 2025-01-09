@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -119,7 +118,7 @@ def test_dump_environment(prepare_environment_for_tests, shell_as, shell, tmpdir
     os.environ["TEST_ENV_VAR"] = test_paths
     dumpfile_path = str(tmpdir.join("envdump.txt"))
     envutil.dump_environment(dumpfile_path)
-    with open(dumpfile_path, "r") as dumpfile:
+    with open(dumpfile_path, "r", encoding="utf-8") as dumpfile:
         if shell == "pwsh":
             assert "$Env:TEST_ENV_VAR={}\n".format(test_paths) in list(dumpfile)
         elif shell == "bat":
@@ -147,7 +146,8 @@ def test_reverse_environment_modifications(working_env):
 
     reversal = to_reverse.reversed()
 
-    os.environ = start_env.copy()
+    os.environ.clear()
+    os.environ.update(start_env)
 
     print(os.environ)
     to_reverse.apply_modifications()
@@ -159,22 +159,13 @@ def test_reverse_environment_modifications(working_env):
     assert os.environ == start_env
 
 
-def test_escape_double_quotes_in_shell_modifications():
-    to_validate = envutil.EnvironmentModifications()
+def test_shell_modifications_are_properly_escaped():
+    """Test that variable values are properly escaped so that they can safely be eval'd."""
+    changes = envutil.EnvironmentModifications()
+    changes.set("VAR", "$PATH")
+    changes.append_path("VAR", "$ANOTHER_PATH")
+    changes.set("RM_RF", "$(rm -rf /)")
 
-    to_validate.set("VAR", "$PATH")
-    to_validate.append_path("VAR", "$ANOTHER_PATH")
-
-    to_validate.set("QUOTED_VAR", '"MY_VAL"')
-
-    if sys.platform == "win32":
-        cmds = to_validate.shell_modifications(shell="bat")
-        assert r'set "VAR=$PATH;$ANOTHER_PATH"' in cmds
-        assert r'set "QUOTED_VAR="MY_VAL"' in cmds
-        cmds = to_validate.shell_modifications(shell="pwsh")
-        assert "$Env:VAR='$PATH;$ANOTHER_PATH'" in cmds
-        assert "$Env:QUOTED_VAR='\"MY_VAL\"'" in cmds
-    else:
-        cmds = to_validate.shell_modifications()
-        assert 'export VAR="$PATH:$ANOTHER_PATH"' in cmds
-        assert r'export QUOTED_VAR="\"MY_VAL\""' in cmds
+    script = changes.shell_modifications(shell="sh")
+    assert f"export VAR='$PATH{os.pathsep}$ANOTHER_PATH'" in script
+    assert "export RM_RF='$(rm -rf /)'" in script

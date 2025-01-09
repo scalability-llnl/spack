@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -12,6 +11,8 @@ class Miniocli(MakefilePackage):
 
     homepage = "https://docs.min.io/docs/minio-client-complete-guide.html"
     url = "https://github.com/minio/mc/archive/refs/tags/RELEASE.2022-02-02T02-03-24Z.tar.gz"
+
+    license("AGPL-3.0-only")
 
     version(
         "2023-06-28",

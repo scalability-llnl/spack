@@ -1,0 +1,32 @@
+From 120af1b2483868ebdc2ee5f137418d23c14178ad Mon Sep 17 00:00:00 2001
+From: Renjith Ravindran <Renjith.RavindranKannath@amd.com>
+Date: Wed, 10 Jan 2024 04:28:15 +0000
+Subject: [PATCH] Remove hipblas clients file installation
+
+---
+ clients/CMakeLists.txt | 12 ------------
+ 1 file changed, 12 deletions(-)
+
+diff --git a/clients/CMakeLists.txt b/clients/CMakeLists.txt
+index 8206ad7..6a59808 100644
+--- a/clients/CMakeLists.txt
++++ b/clients/CMakeLists.txt
+@@ -135,15 +135,3 @@ add_custom_command( OUTPUT "${HIPBLAS_GENTEST}"
+ 
+ add_custom_target( hipblas-common DEPENDS "${HIPBLAS_COMMON}" "${HIPBLAS_TEMPLATE}" "${HIPBLAS_SMOKE}" "${HIPBLAS_GENTEST}" )
+ 
+-if( BUILD_CLIENTS_TESTS OR BUILD_CLIENTS_BENCHMARKS )
+-  rocm_install(
+-    FILES ${HIPBLAS_COMMON} ${HIPBLAS_TEMPLATE} ${HIPBLAS_SMOKE}
+-    DESTINATION "${CMAKE_INSTALL_BINDIR}"
+-    COMPONENT clients-common
+-  )
+-  rocm_install(
+-    PROGRAMS ${HIPBLAS_GENTEST}
+-    DESTINATION "${CMAKE_INSTALL_BINDIR}"
+-    COMPONENT clients-common
+-  )
+-endif()
+-- 
+2.39.3
+

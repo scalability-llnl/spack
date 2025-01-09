@@ -1,0 +1,41 @@
+From f9b5b4ceacc57b72cb9f4a3b3ab31d8143771548 Mon Sep 17 00:00:00 2001
+From: sreenivasa murthy kolam <sreenivasamurthy.kolam@amd.com>
+Date: Fri, 1 Dec 2023 06:10:36 +0000
+Subject: [PATCH] Linking hsakmt, libdrm and numactl libraries
+
+---
+ .../openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt  | 3 ++-
+ .../openmp/libomptarget/plugins/amdgpu/CMakeLists.txt          | 3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/rocm-openmp-extras/llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt b/rocm-openmp-extras/llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt
+index f918206..06656f1 100644
+--- a/rocm-openmp-extras/llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt
++++ b/rocm-openmp-extras/llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt
+@@ -22,7 +22,8 @@ endif()
+ # libhsakmt.a
+ find_library ( HSAKMT_LIB libhsakmt.a REQURIED HINTS ${CMAKE_INSTALL_PREFIX} PATHS /opt/rocm)
+ get_filename_component ( HSAKMT_LIB_PATH ${HSAKMT_LIB} DIRECTORY )
+-link_directories (${HSAKMT_LIB_PATH})
++link_directories (${HSAKMT_LIB_PATH} ${HSAKMT_LIB64} ${HSAKMT_LIB} ${LIBDRM_LIB} ${NUMACTL_DIR}/lib)
++include_directories(${HSAKMT_INC_PATH})
+ 
+ # lib_amdgpu
+ pkg_check_modules(drm_amdgpu REQUIRED IMPORTED_TARGET libdrm_amdgpu)
+diff --git a/rocm-openmp-extras/llvm-project/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt b/rocm-openmp-extras/llvm-project/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt
+index 8f1fc98..c230b00 100644
+--- a/rocm-openmp-extras/llvm-project/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt
++++ b/rocm-openmp-extras/llvm-project/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt
+@@ -36,7 +36,8 @@ endif()
+ # libhsakmt.a
+ find_library ( HSAKMT_LIB libhsakmt.a REQURIED HINTS ${CMAKE_INSTALL_PREFIX} PATHS /opt/rocm)
+ get_filename_component ( HSAKMT_LIB_PATH ${HSAKMT_LIB} DIRECTORY )
+-link_directories (${HSAKMT_LIB_PATH})
++link_directories (${HSAKMT_LIB_PATH} ${HSAKMT_LIB64} ${HSAKMT_LIB} ${LIBDRM_LIB} ${NUMACTL_DIR}/lib)
++include_directories(${HSAKMT_INC_PATH})
+ 
+ # lib_drm_amdgpu
+ pkg_check_modules(drm_amdgpu REQUIRED IMPORTED_TARGET libdrm_amdgpu)
+-- 
+2.39.3
+

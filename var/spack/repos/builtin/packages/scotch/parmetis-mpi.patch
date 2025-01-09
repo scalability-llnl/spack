@@ -1,0 +1,127 @@
+diff --git a/src/libscotchmetis/parmetis_dgraph_order_f.c b/src/libscotchmetis/parmetis_dgraph_order_f.c
+index 44c2ede..549a834 100644
+--- a/src/libscotchmetis/parmetis_dgraph_order_f.c
++++ b/src/libscotchmetis/parmetis_dgraph_order_f.c
+@@ -46,7 +46,7 @@
+ /**                # Version 6.0  : from : 13 sep 2012     **/
+ /**                                 to   : 18 may 2019     **/
+ /**                # Version 7.0  : from : 21 jan 2023     **/
+-/**                                 to   : 21 jan 2023     **/
++/**                                 to   : 30 jun 2023     **/
+ /**                                                        **/
+ /************************************************************/
+ 
+@@ -76,11 +76,14 @@ const SCOTCH_Num * const    numflag,                    \
+ const SCOTCH_Num * const    options,                    \
+ SCOTCH_Num * const          order,                      \
+ SCOTCH_Num * const          sizes,                      \
+-MPI_Comm * const            commptr,                    \
++const MPI_Fint * const      commptr,                    \
+ int * const                 revaptr),                   \
+ (vtxdist, xadj, adjncy, numflag, options, order, sizes, commptr, revaptr))
+ {
+-  *revaptr = SCOTCH_ParMETIS_V3_NodeND (vtxdist, xadj, adjncy, numflag, options, order, sizes, commptr);
++  MPI_Comm            commdat;
++
++  commdat = MPI_Comm_f2c (*commptr);
++  *revaptr = SCOTCH_ParMETIS_V3_NodeND (vtxdist, xadj, adjncy, numflag, options, order, sizes, &commdat);
+ }
+ 
+ /*******************/
+@@ -101,10 +104,13 @@ const SCOTCH_Num * const    numflag,                                \
+ const SCOTCH_Num * const    options,                                \
+ SCOTCH_Num * const          order,                                  \
+ SCOTCH_Num * const          sizes,                                  \
+-MPI_Comm * const            commptr),                               \
++const MPI_Fint * const      commptr),                               \
+ (vtxdist, xadj, adjncy, numflag, options, order, sizes, commptr))
+ {
+-  METISNAMEU (ParMETIS_V3_NodeND) (vtxdist, xadj, adjncy, numflag, options, order, sizes, commptr);
++  MPI_Comm            commdat;
++
++  commdat = MPI_Comm_f2c (*commptr);
++  METISNAMEU (ParMETIS_V3_NodeND) (vtxdist, xadj, adjncy, numflag, options, order, sizes, &commdat);
+ }
+ 
+ #endif /* SCOTCH_METIS_PREFIX */
+diff --git a/src/libscotchmetis/parmetis_dgraph_part_f.c b/src/libscotchmetis/parmetis_dgraph_part_f.c
+index 2b76818..3bf66af 100644
+--- a/src/libscotchmetis/parmetis_dgraph_part_f.c
++++ b/src/libscotchmetis/parmetis_dgraph_part_f.c
+@@ -44,7 +44,7 @@
+ /**                # Version 6.0  : from : 13 sep 2012     **/
+ /**                                 to   : 18 may 2019     **/
+ /**                # Version 7.0  : from : 21 jan 2023     **/
+-/**                                 to   : 21 jan 2023     **/
++/**                                 to   : 30 jun 2023     **/
+ /**                                                        **/
+ /************************************************************/
+ 
+@@ -81,12 +81,15 @@ const float * const         ubvec,                          \
+ const SCOTCH_Num * const    options,                        \
+ SCOTCH_Num * const          edgecut,                        \
+ SCOTCH_Num * const          part,                           \
+-MPI_Comm * const            commptr,                        \
++const MPI_Fint * const      commptr,                        \
+ int * const                 revaptr),                       \
+ (vtxdist, xadj, adjncy, vwgt, adjwgt, wgtflag, numflag, ncon, nparts, tpwgts, ubvec, options, edgecut, part, commptr, revaptr))
+ {
++  MPI_Comm            commdat;
++
++  commdat = MPI_Comm_f2c (*commptr);
+   *revaptr = SCOTCH_ParMETIS_V3_PartKway (vtxdist, xadj, adjncy, vwgt, adjwgt, wgtflag, numflag,
+-                                          ncon, nparts, tpwgts, ubvec, options, edgecut, part, commptr);
++                                          ncon, nparts, tpwgts, ubvec, options, edgecut, part, &commdat);
+ }
+ 
+ /*
+@@ -111,12 +114,15 @@ const float * const         ubvec,                                  \
+ const SCOTCH_Num * const    options,                                \
+ SCOTCH_Num * const          edgecut,                                \
+ SCOTCH_Num * const          part,                                   \
+-MPI_Comm * const            commptr,                                \
++const MPI_Fint * const      commptr,                                \
+ int * const                 revaptr),                               \
+ (vtxdist, xadj, adjncy, vwgt, adjwgt, wgtflag, numflag, ndims, xyz, ncon, nparts, tpwgts, ubvec, options, edgecut, part, commptr, revaptr))
+ {
++  MPI_Comm            commdat;
++
++  commdat = MPI_Comm_f2c (*commptr);
+   *revaptr = SCOTCH_ParMETIS_V3_PartGeomKway (vtxdist, xadj, adjncy, vwgt, adjwgt, wgtflag, numflag,
+-                                              ndims, xyz, ncon, nparts, tpwgts, ubvec, options, edgecut, part, commptr);
++                                              ndims, xyz, ncon, nparts, tpwgts, ubvec, options, edgecut, part, &commdat);
+ }
+ 
+ /*******************/
+@@ -144,10 +150,13 @@ const float * const         ubvec,                                      \
+ const SCOTCH_Num * const    options,                                    \
+ SCOTCH_Num * const          edgecut,                                    \
+ SCOTCH_Num * const          part,                                       \
+-MPI_Comm * const            commptr),                                   \
++const MPI_Fint * const      commptr),                                   \
+ (vtxdist, xadj, adjncy, vwgt, adjwgt, wgtflag, numflag, ncon, nparts, tpwgts, ubvec, options, edgecut, part, commptr))
+ {
+-  METISNAMEU (ParMETIS_V3_PartKway) (vtxdist, xadj, adjncy, vwgt, adjwgt, wgtflag, numflag, ncon, nparts, tpwgts, ubvec, options, edgecut, part, commptr);
++  MPI_Comm            commdat;
++
++  commdat = MPI_Comm_f2c (*commptr);
++  METISNAMEU (ParMETIS_V3_PartKway) (vtxdist, xadj, adjncy, vwgt, adjwgt, wgtflag, numflag, ncon, nparts, tpwgts, ubvec, options, edgecut, part, &commdat);
+ }
+ 
+ /*
+@@ -172,10 +181,13 @@ const float * const         ubvec,
+ const SCOTCH_Num * const    options,                                            \
+ SCOTCH_Num * const          edgecut,                                            \
+ SCOTCH_Num * const          part,                                               \
+-MPI_Comm * const            commptr),                                           \
++const MPI_Fint * const      commptr),                                           \
+ (vtxdist, xadj, adjncy, vwgt, adjwgt, wgtflag, numflag, ndims, xyz, ncon, nparts, tpwgts, ubvec, options, edgecut, part, commptr))
+ {
+-  METISNAMEU (ParMETIS_V3_PartGeomKway) (vtxdist, xadj, adjncy, vwgt, adjwgt, wgtflag, numflag, ndims, xyz, ncon, nparts, tpwgts, ubvec, options, edgecut, part, commptr);
++  MPI_Comm            commdat;
++
++  commdat = MPI_Comm_f2c (*commptr);
++  METISNAMEU (ParMETIS_V3_PartGeomKway) (vtxdist, xadj, adjncy, vwgt, adjwgt, wgtflag, numflag, ndims, xyz, ncon, nparts, tpwgts, ubvec, options, edgecut, part, &commdat);
+ }
+ 
+ #endif /* SCOTCH_METIS_PREFIX */

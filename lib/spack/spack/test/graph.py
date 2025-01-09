@@ -1,39 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import io
 
 import spack.graph
-import spack.repo
 import spack.spec
-
-
-def test_static_graph_mpileaks(config, mock_packages):
-    """Test a static spack graph for a simple package."""
-    s = spack.spec.Spec("mpileaks").normalized()
-
-    stream = io.StringIO()
-    spack.graph.static_graph_dot([s], out=stream)
-
-    dot = stream.getvalue()
-
-    assert '  "mpileaks" [label="mpileaks"]\n' in dot
-    assert '  "dyninst" [label="dyninst"]\n' in dot
-    assert '  "callpath" [label="callpath"]\n' in dot
-    assert '  "libelf" [label="libelf"]\n' in dot
-    assert '  "libdwarf" [label="libdwarf"]\n' in dot
-
-    mpi_providers = spack.repo.PATH.providers_for("mpi")
-    for spec in mpi_providers:
-        assert ('"mpileaks" -> "%s"' % spec.name) in dot
-        assert ('"callpath" -> "%s"' % spec.name) in dot
-
-    assert '  "dyninst" -> "libdwarf"\n' in dot
-    assert '  "callpath" -> "dyninst"\n' in dot
-    assert '  "libdwarf" -> "libelf"\n' in dot
-    assert '  "mpileaks" -> "callpath"\n' in dot
-    assert '  "dyninst" -> "libelf"\n' in dot
 
 
 def test_dynamic_dot_graph_mpileaks(default_mock_concretization):
@@ -99,6 +70,19 @@ o | callpath
 o dyninst
 |\
 o | libdwarf
+|/
+o libelf
+"""
+        or graph_str
+        == r"""o mpileaks
+|\
+| o callpath
+|/|
+| o dyninst
+| |\
+o | | mpich
+ / /
+| o libdwarf
 |/
 o libelf
 """

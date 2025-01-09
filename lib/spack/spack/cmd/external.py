@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import argparse
@@ -7,19 +6,21 @@ import errno
 import os
 import re
 import sys
-from typing import List, Optional
+from typing import List, Optional, Set
 
 import llnl.util.tty as tty
 import llnl.util.tty.colify as colify
 
 import spack
 import spack.cmd
-import spack.cmd.common.arguments
 import spack.config
 import spack.cray_manifest as cray_manifest
 import spack.detection
 import spack.error
-import spack.util.environment
+import spack.package_base
+import spack.repo
+import spack.spec
+from spack.cmd.common import arguments
 
 description = "manage external packages in Spack configuration"
 section = "config"
@@ -28,8 +29,6 @@ level = "short"
 
 def setup_parser(subparser):
     sp = subparser.add_subparsers(metavar="SUBCOMMAND", dest="external_command")
-
-    scopes = spack.config.scopes()
 
     find_parser = sp.add_parser("find", help="add external packages to packages.yaml")
     find_parser.add_argument(
@@ -48,15 +47,14 @@ def setup_parser(subparser):
     )
     find_parser.add_argument(
         "--scope",
-        choices=scopes,
-        metavar=spack.config.SCOPES_METAVAR,
-        default=spack.config.default_modify_scope("packages"),
+        action=arguments.ConfigScope,
+        default=lambda: spack.config.default_modify_scope("packages"),
         help="configuration scope to modify",
     )
     find_parser.add_argument(
         "--all", action="store_true", help="search for all packages that Spack knows about"
     )
-    spack.cmd.common.arguments.add_common_arguments(find_parser, ["tags", "jobs"])
+    arguments.add_common_arguments(find_parser, ["tags", "jobs"])
     find_parser.add_argument("packages", nargs=argparse.REMAINDER)
     find_parser.epilog = (
         'The search is by default on packages tagged with the "build-tools" or '
@@ -140,14 +138,26 @@ def external_find(args):
         candidate_packages, path_hints=args.path, max_workers=args.jobs
     )
 
-    new_entries = spack.detection.update_configuration(
+    new_specs = spack.detection.update_configuration(
         detected_packages, scope=args.scope, buildable=not args.not_buildable
     )
-    if new_entries:
+
+    # If the user runs `spack external find --not-buildable mpich` we also mark `mpi` non-buildable
+    # to avoid that the concretizer picks a different mpi provider.
+    if new_specs and args.not_buildable:
+        virtuals: Set[str] = {
+            virtual.name
+            for new_spec in new_specs
+            for virtual_specs in spack.repo.PATH.get_pkg_class(new_spec.name).provided.values()
+            for virtual in virtual_specs
+        }
+        new_virtuals = spack.detection.set_virtuals_nonbuildable(virtuals, scope=args.scope)
+        new_specs.extend(spack.spec.Spec(name) for name in new_virtuals)
+
+    if new_specs:
         path = spack.config.CONFIG.get_config_filename(args.scope, "packages")
-        msg = "The following specs have been detected on this system and added to {0}"
-        tty.msg(msg.format(path))
-        spack.cmd.display_specs(new_entries)
+        tty.msg(f"The following specs have been detected on this system and added to {path}")
+        spack.cmd.display_specs(new_specs)
     else:
         tty.msg("No new external packages detected")
 
@@ -155,9 +165,9 @@ def external_find(args):
 def packages_to_search_for(
     *, names: Optional[List[str]], tags: List[str], exclude: Optional[List[str]]
 ):
-    result = []
-    for current_tag in tags:
-        result.extend(spack.repo.PATH.packages_with_tags(current_tag, full=True))
+    result = list(
+        {pkg for tag in tags for pkg in spack.repo.PATH.packages_with_tags(tag, full=True)}
+    )
 
     if names:
         # Match both fully qualified and unqualified

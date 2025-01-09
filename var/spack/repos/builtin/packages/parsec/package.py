@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #
@@ -15,7 +14,7 @@ class Parsec(CMakePackage, CudaPackage):
     parallel execution of micro-tasks on distributed, heterogeneous systems.
     """
 
-    homepage = "https://icl.utk.edu/dte"
+    homepage = "https://github.com/icldisco/parsec"
     git = "https://github.com/icldisco/parsec.git"
     url = "https://github.com/ICLDisco/parsec/archive/refs/tags/parsec-3.0.2012.tar.gz"
     list_url = "https://github.com/ICLDisco/parsec/tags"
@@ -24,21 +23,15 @@ class Parsec(CMakePackage, CudaPackage):
 
     test_requires_compiler = True
 
+    license("BSD-3-Clause-Open-MPI")
+
     version("master", branch="master")
-    version(
-        "3.0.2209",
-        sha256="67d383d076991484cb2a265f56420abdea7cc1f329c63ac65a3e96fbfb6cc295",
-        url="https://bitbucket.org/icldistcomp/parsec/get/parsec-3.0.2209.tar.bz2",
-    )
-    version(
-        "3.0.2012",
-        sha256="f565bcfffe106be8237b6aea3e83a5770607b7236606414b6f270244fa6ec3bc",
-        url="https://bitbucket.org/icldistcomp/parsec/get/parsec-3.0.2012.tar.bz2",
-    )
+    version("3.0.2209", sha256="67d383d076991484cb2a265f56420abdea7cc1f329c63ac65a3e96fbfb6cc295")
+    version("3.0.2012", sha256="7a8403ca67305738f3974cbc7a51b64c4ec353ae9170f2468262a9a52035eff6")
     version(
         "1.1.0",
-        sha256="d2928033c121000ae0a554f1e7f757c1f22274a8b74457ecd52744ae1f70b95a",
-        url="https://bitbucket.org/icldistcomp/parsec/get/v1.1.0.tar.bz2",
+        sha256="d1e038713f2c1cd7db6765c891408d85648c46ee23e780fbd5e941b53c9eef85",
+        url="https://github.com/ICLDisco/parsec/archive/refs/tags/v1.1.0.tar.gz",
     )
 
     variant(
@@ -102,17 +95,29 @@ class Parsec(CMakePackage, CudaPackage):
                 warn += "https://bitbucket.org/icldistcomp/parsec/issues"
                 tty.msg(warn)
 
-    def test(self):
-        """Compile and run a user program with the installed library"""
-        with working_dir(join_path(self.install_test_root, "contrib/build_with_parsec")):
-            self.run_test(
-                "cmake", options=["."], purpose="Check if CMake can find PaRSEC and its targets"
-            )
-            self.run_test("make", purpose="Check if tests can compile")
-            self.run_test("./dtd_test_allreduce")
-            self.run_test("./write_check")
+    contrib_dir = join_path("contrib", "build_with_parsec")
+
+    def test_contrib(self):
+        """build and run contrib examples"""
+        with working_dir(join_path(self.test_suite.current_test_cache_dir, self.contrib_dir)):
+            cmake = self.spec["cmake"].command
+            args = [
+                "-Wno-dev",
+                f"-DCMAKE_C_COMPILER={self.spec['mpi'].mpicc}",
+                f"-DCMAKE_PREFIX_PATH={self.prefix}",
+                ".",
+            ]
+            if "+cuda" in self.spec:
+                args.append("-DCUDA_TOOLKIT_ROOT_DIR:STRING=" + self.spec["cuda"].prefix)
+
+            cmake(*args)
+            make()
+
+            for name in ["dtd_test_allreduce", "write_check"]:
+                with test_part(self, f"test_contrib_{name}", f"run {name}"):
+                    exe = which(name)
+                    exe()
 
     @run_after("install")
     def cache_test_sources(self):
-        srcs = ["contrib/build_with_parsec"]
-        self.cache_extra_test_sources(srcs)
+        cache_extra_test_sources(self, self.contrib_dir)

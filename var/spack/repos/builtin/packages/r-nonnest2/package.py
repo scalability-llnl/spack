@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,9 @@ class RNonnest2(RPackage):
 
     cran = "nonnest2"
 
+    license("GPL-2.0-only OR GPL-3.0-only")
+
+    version("0.5-7", sha256="e440c2464b3bd3b452e02583bb280eecba6acecf0f2c04b6b9fe4dcdd128db3e")
     version("0.5-5", sha256="027f510e322122fc75c936251a95ddd392f96047ac86e0fae6cf8f883ac7aab5")
 
     depends_on("r@3.0.0:", type=("build", "run"))

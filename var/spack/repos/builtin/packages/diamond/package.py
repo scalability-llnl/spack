@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,11 @@ class Diamond(CMakePackage):
     url = "https://github.com/bbuchfink/diamond/archive/v2.0.9.tar.gz"
     maintainers("snehring")
 
+    license("GPL-3.0-only")
+
+    version("2.1.10", sha256="c6ede5df30d9d496af314e740964c35a0e358458d9c8d9b8dd517d69828d9981")
+    version("2.1.9", sha256="4cde9df78c63e8aef9df1e3265cd06a93ce1b047d6dba513a1437719b70e9d88")
+    version("2.1.8", sha256="b6088259f2bc92d1f9dc4add44590cff68321bcbf91eefbc295a3525118b9415")
     version("2.1.7", sha256="2dcaba0e79ecb02c3d2a6816d317e714767118a9a056721643abff4c586ca95b")
     version("2.1.6", sha256="852d27c7535d53f1ce59db0625ff23ac3bf17e57f7a3b1c46c08718f77e19c54")
     version("2.0.15", sha256="cc8e1f3fd357d286cf6585b21321bd25af69aae16ae1a8f605ea603c1886ffa4")
@@ -32,10 +36,41 @@ class Diamond(CMakePackage):
     version("0.8.38", sha256="582a7932f3aa73b0eac2275dd773818665f0b067b32a79ff5a13b0e3ca375f60")
     version("0.8.26", sha256="00d2be32dad76511a767ab8e917962c0ecc572bc808080be60dec028df45439f")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
+    depends_on("blas", when="+eigen")
+    depends_on("blast-plus", when="+blast")
+    depends_on("eigen", when="+eigen")
+    depends_on("lapack", when="+eigen")
     depends_on("zlib-api")
+    depends_on("zstd", when="+zstd")
+
+    variant("zstd", default=False, description="Bulid with zstd support", when="@2.1.0:")
+    variant("blast", default=True, description="Build with blast db support", when="@2.1.0:")
+    variant("eigen", default=False, description="Build with Eigen support", when="@2.1.0:")
+
+    requires("+zstd", when="+blast", msg="blast support requires zstd")
 
     conflicts("target=aarch64:", when="@:0.9.25")
 
     # fix error [-Wc++11-narrowing]
     # Ref: https://github.com/bbuchfink/diamond/commit/155e076d662b0e9268e2b00bef6d33d90aede7ff
     patch("fix_narrowing_error.patch", when="@:0.9.25")
+
+    def cmake_args(self):
+        args = [
+            self.define_from_variant("WITH_ZSTD", "zstd"),
+            self.define_from_variant("EIGEN_BLAS", "eigen"),
+        ]
+        if self.spec.satisfies("+blast"):
+            args.extend(
+                [
+                    self.define(
+                        "BLAST_INCLUDE_DIR",
+                        join_path(self.spec["blast-plus"].prefix.include, "ncbi-tools++"),
+                    ),
+                    self.define("BLAST_LIBRARY_DIR", self.spec["blast-plus"].prefix.lib),
+                ]
+            )
+        return args

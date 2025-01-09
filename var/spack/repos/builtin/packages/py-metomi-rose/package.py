@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,7 +13,11 @@ class PyMetomiRose(PythonPackage):
 
     maintainers("LydDeb")
 
+    license("GPL-3.0-only")
+
     version("2.1.0", sha256="1b60135a434fe4325d364a57e8f5e81e90f39b373b9d68733458c1adc2513c05")
+
+    depends_on("fortran", type="build")  # generated
 
     depends_on("py-setuptools", type="build")
     depends_on("py-aiofiles", type=("build", "run"))

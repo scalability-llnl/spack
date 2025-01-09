@@ -1,0 +1,14 @@
+--- a/pyproject.toml	2024-03-19 15:58:20.000000000 -0600
++++ b/pyproject.toml	2024-03-19 15:59:15.000000000 -0600
+@@ -5,6 +5,11 @@
+ [tool.jupyter-packaging.builder]
+ factory = "jupyter_packaging.npm_builder"
+ 
++# Injected by spack to solve problems with hidden npm/node dependencies
++# https://github.com/spack/spack/issues/41899
++[tool.jupyter-packaging.build-args]
++npm = "/dev/null"
++
+ [tool.check-manifest]
+ ignore = ["tbump.toml", ".*", "*.yml", "package-lock.json", "bootstrap*", "conftest.py"]
+ 

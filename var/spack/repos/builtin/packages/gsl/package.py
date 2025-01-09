@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,9 @@ class Gsl(AutotoolsPackage, GNUMirrorPackage):
     homepage = "https://www.gnu.org/software/gsl"
     gnu_mirror_path = "gsl/gsl-2.3.tar.gz"
 
+    license("GPL-3.0-or-later")
+
+    version("2.8", sha256="6a99eeed15632c6354895b1dd542ed5a855c0f15d9ad1326c6fe2b2c9e423190")
     version("2.7.1", sha256="dcb0fbd43048832b757ff9942691a8dd70026d5da0ff85601e52687f6deeb34b")
     version("2.7", sha256="efbbf3785da0e53038be7907500628b466152dbc3c173a87de1b5eba2e23602b")
     version("2.6", sha256="b782339fc7a38fe17689cb39966c4d821236c28018b6593ddb6fd59ee40786a8")
@@ -28,13 +30,16 @@ class Gsl(AutotoolsPackage, GNUMirrorPackage):
     version("2.0", sha256="e361f0b19199b5e6c21922e9f16adf7eca8dd860842802424906d0f83485ca2d")
     version("1.16", sha256="73bc2f51b90d2a780e6d266d43e487b3dbd78945dd0b04b14ca5980fe28d2f53")
 
+    depends_on("c", type="build")  # generated
+
     variant("external-cblas", default=False, description="Build against external blas")
     variant("shared", default=True, description="Build shared library")
     variant("pic", default=True, description="Enable position-independent code (PIC)")
 
     # from https://dev.gentoo.org/~mgorny/dist/gsl-2.3-cblas.patch.bz2
     patch("gsl-2.3-cblas.patch", when="@2.3:2.5+external-cblas")
-    patch("gsl-2.6-cblas.patch", when="@2.6: +external-cblas")
+    patch("gsl-2.6-cblas.patch", when="@2.6:2.7 +external-cblas")
+    patch("gsl-2.8-cblas.patch", when="@2.8: +external-cblas")
 
     conflicts("+external-cblas", when="@:2.2")
 

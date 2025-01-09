@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,8 @@ class PyGraphqlRelay(PythonPackage):
     pypi = "graphql-relay/graphql-relay-2.0.1.tar.gz"
 
     maintainers("LydDeb")
+
+    license("MIT")
 
     version("2.0.1", sha256="870b6b5304123a38a0b215a79eace021acce5a466bf40cd39fa18cb8528afabb")
 

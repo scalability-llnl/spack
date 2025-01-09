@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PyBotocore(PythonPackage):
     homepage = "https://github.com/boto/botocore"
     pypi = "botocore/botocore-1.13.44.tar.gz"
 
+    version("1.34.162", sha256="adc23be4fb99ad31961236342b7cbf3c0bfc62532cd02852196032e8c0d682f3")
+    version("1.34.44", sha256="b0f40c54477e8e0a5c43377a927b8959a86bb8824aaef2d28db7c9c367cdefaa")
     version("1.31.41", sha256="4dad7c5a5e70940de54ebf8de3955450c1f092f43cacff8103819d1e7d5374fa")
     version("1.29.84", sha256="a36f7f6f8eae5dbd4a1cc8cb6fc747f6315500541181eff2093ee0529fc8e4bc")
     version("1.29.76", sha256="c2f67b6b3f8acf2968eafca06526f07b9fb0d27bac4c68a635d51abb675134a7")
@@ -45,4 +46,11 @@ class PyBotocore(PythonPackage):
     depends_on("py-urllib3@1.20:1.25", type=("build", "run"), when="@:1.14.11")
     depends_on("py-urllib3@1.20:1.25", type=("build", "run"), when="@1.14.12:1.18")
     depends_on("py-urllib3@1.25.4:1.25", type=("build", "run"), when="@1.19.0:1.19.15")
-    depends_on("py-urllib3@1.25.4:1.26", type=("build", "run"), when="@1.19.16:")
+    depends_on("py-urllib3@1.25.4:1.26", type=("build", "run"), when="@1.19.16:1.31.61")
+    depends_on("py-urllib3@1.25.4:1.26", type=("build", "run"), when="@1.31.62: ^python@:3.9")
+    depends_on(
+        "py-urllib3@1.25.4:2.0", type=("build", "run"), when="@1.31.62:1.34.62 ^python@3.10:"
+    )
+    depends_on(
+        "py-urllib3@1.25.4:2.1,2.2.1:2", type=("build", "run"), when="@1.34.63: ^python@3.10:"
+    )

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,8 @@ class PyStdlibList(PythonPackage):
     docs to get said lists."""
 
     pypi = "stdlib-list/stdlib-list-0.6.0.tar.gz"
+
+    license("MIT")
 
     version("0.6.0", sha256="133cc99104f5a4e1604dc88ebb393529bd4c2b99ae7e10d46c0b596f3c67c3f0")
 

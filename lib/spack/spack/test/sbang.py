@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,8 +16,8 @@ import pytest
 
 import llnl.util.filesystem as fs
 
+import spack.config
 import spack.hooks.sbang as sbang
-import spack.paths
 import spack.store
 import spack.util.spack_yaml as syaml
 from spack.util.executable import which
@@ -72,34 +71,34 @@ class ScriptDirectory:
 
         # Script with short shebang
         self.short_shebang = os.path.join(self.tempdir, "short")
-        with open(self.short_shebang, "w") as f:
+        with open(self.short_shebang, "w", encoding="utf-8") as f:
             f.write(short_line)
             f.write(last_line)
         self.make_executable(self.short_shebang)
 
         # Script with long shebang
         self.long_shebang = os.path.join(self.tempdir, "long")
-        with open(self.long_shebang, "w") as f:
+        with open(self.long_shebang, "w", encoding="utf-8") as f:
             f.write(long_line)
             f.write(last_line)
         self.make_executable(self.long_shebang)
 
         # Non-executable script with long shebang
         self.nonexec_long_shebang = os.path.join(self.tempdir, "nonexec_long")
-        with open(self.nonexec_long_shebang, "w") as f:
+        with open(self.nonexec_long_shebang, "w", encoding="utf-8") as f:
             f.write(long_line)
             f.write(last_line)
 
         # Lua script with long shebang
         self.lua_shebang = os.path.join(self.tempdir, "lua")
-        with open(self.lua_shebang, "w") as f:
+        with open(self.lua_shebang, "w", encoding="utf-8") as f:
             f.write(lua_line)
             f.write(last_line)
         self.make_executable(self.lua_shebang)
 
         # Lua occurring in text, not in shebang
         self.lua_textbang = os.path.join(self.tempdir, "lua_in_text")
-        with open(self.lua_textbang, "w") as f:
+        with open(self.lua_textbang, "w", encoding="utf-8") as f:
             f.write(short_line)
             f.write(lua_in_text)
             f.write(last_line)
@@ -107,14 +106,14 @@ class ScriptDirectory:
 
         # Luajit script with long shebang
         self.luajit_shebang = os.path.join(self.tempdir, "luajit")
-        with open(self.luajit_shebang, "w") as f:
+        with open(self.luajit_shebang, "w", encoding="utf-8") as f:
             f.write(luajit_line)
             f.write(last_line)
         self.make_executable(self.luajit_shebang)
 
         # Luajit occuring in text, not in shebang
         self.luajit_textbang = os.path.join(self.tempdir, "luajit_in_text")
-        with open(self.luajit_textbang, "w") as f:
+        with open(self.luajit_textbang, "w", encoding="utf-8") as f:
             f.write(short_line)
             f.write(luajit_in_text)
             f.write(last_line)
@@ -122,14 +121,14 @@ class ScriptDirectory:
 
         # Node script with long shebang
         self.node_shebang = os.path.join(self.tempdir, "node")
-        with open(self.node_shebang, "w") as f:
+        with open(self.node_shebang, "w", encoding="utf-8") as f:
             f.write(node_line)
             f.write(last_line)
         self.make_executable(self.node_shebang)
 
         # Node occuring in text, not in shebang
         self.node_textbang = os.path.join(self.tempdir, "node_in_text")
-        with open(self.node_textbang, "w") as f:
+        with open(self.node_textbang, "w", encoding="utf-8") as f:
             f.write(short_line)
             f.write(node_in_text)
             f.write(last_line)
@@ -137,14 +136,14 @@ class ScriptDirectory:
 
         # php script with long shebang
         self.php_shebang = os.path.join(self.tempdir, "php")
-        with open(self.php_shebang, "w") as f:
+        with open(self.php_shebang, "w", encoding="utf-8") as f:
             f.write(php_line)
             f.write(last_line)
         self.make_executable(self.php_shebang)
 
         # php occuring in text, not in shebang
         self.php_textbang = os.path.join(self.tempdir, "php_in_text")
-        with open(self.php_textbang, "w") as f:
+        with open(self.php_textbang, "w", encoding="utf-8") as f:
             f.write(short_line)
             f.write(php_in_text)
             f.write(last_line)
@@ -152,7 +151,7 @@ class ScriptDirectory:
 
         # Script already using sbang.
         self.has_sbang = os.path.join(self.tempdir, "shebang")
-        with open(self.has_sbang, "w") as f:
+        with open(self.has_sbang, "w", encoding="utf-8") as f:
             f.write(sbang_line)
             f.write(long_line)
             f.write(last_line)
@@ -206,35 +205,35 @@ def test_shebang_handling(script_dir, sbang_line):
     sbang.filter_shebangs_in_directory(script_dir.tempdir)
 
     # Make sure this is untouched
-    with open(script_dir.short_shebang, "r") as f:
+    with open(script_dir.short_shebang, "r", encoding="utf-8") as f:
         assert f.readline() == short_line
         assert f.readline() == last_line
 
     # Make sure this got patched.
-    with open(script_dir.long_shebang, "r") as f:
+    with open(script_dir.long_shebang, "r", encoding="utf-8") as f:
         assert f.readline() == sbang_line
         assert f.readline() == long_line
         assert f.readline() == last_line
 
     # Make sure this is untouched
-    with open(script_dir.nonexec_long_shebang, "r") as f:
+    with open(script_dir.nonexec_long_shebang, "r", encoding="utf-8") as f:
         assert f.readline() == long_line
         assert f.readline() == last_line
 
     # Make sure this got patched.
-    with open(script_dir.lua_shebang, "r") as f:
+    with open(script_dir.lua_shebang, "r", encoding="utf-8") as f:
         assert f.readline() == sbang_line
         assert f.readline() == lua_line_patched
         assert f.readline() == last_line
 
     # Make sure this got patched.
-    with open(script_dir.luajit_shebang, "r") as f:
+    with open(script_dir.luajit_shebang, "r", encoding="utf-8") as f:
         assert f.readline() == sbang_line
         assert f.readline() == luajit_line_patched
         assert f.readline() == last_line
 
     # Make sure this got patched.
-    with open(script_dir.node_shebang, "r") as f:
+    with open(script_dir.node_shebang, "r", encoding="utf-8") as f:
         assert f.readline() == sbang_line
         assert f.readline() == node_line_patched
         assert f.readline() == last_line
@@ -247,7 +246,7 @@ def test_shebang_handling(script_dir, sbang_line):
     assert filecmp.cmp(script_dir.php_textbang, os.path.join(script_dir.tempdir, "php_in_text"))
 
     # Make sure this is untouched
-    with open(script_dir.has_sbang, "r") as f:
+    with open(script_dir.has_sbang, "r", encoding="utf-8") as f:
         assert f.readline() == sbang_line
         assert f.readline() == long_line
         assert f.readline() == last_line
@@ -340,7 +339,7 @@ def run_test_install_sbang(group):
 
     # put an invalid file in for sbang
     fs.mkdirp(sbang_bin_dir)
-    with open(sbang_path, "w") as f:
+    with open(sbang_path, "w", encoding="utf-8") as f:
         f.write("foo")
 
     sbang.install_sbang()
@@ -442,10 +441,10 @@ def test_shebang_exceeds_spack_shebang_limit(shebang_limits_system_8_spack_16, t
 
 def test_sbang_hook_handles_non_writable_files_preserving_permissions(tmpdir):
     path = str(tmpdir.join("file.sh"))
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         f.write(long_line)
     os.chmod(path, 0o555)
     sbang.filter_shebang(path)
-    with open(path, "r") as f:
+    with open(path, "r", encoding="utf-8") as f:
         assert "sbang" in f.readline()
     assert os.stat(path).st_mode & 0o777 == 0o555

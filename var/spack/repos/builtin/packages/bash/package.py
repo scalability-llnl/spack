@@ -1,12 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import re
 
 from spack.package import *
-from spack.util.environment import is_system_path
 
 
 class Bash(AutotoolsPackage, GNUMirrorPackage):
@@ -15,11 +13,15 @@ class Bash(AutotoolsPackage, GNUMirrorPackage):
     homepage = "https://www.gnu.org/software/bash/"
     gnu_mirror_path = "bash/bash-5.0.tar.gz"
 
+    license("GPL-3.0-or-later")
+
     version("5.2", sha256="a139c166df7ff4471c5e0733051642ee5556c1cc8a4a78f145583c5c81ab32fb")
     version("5.1", sha256="cc012bc860406dcf42f64431bcd3d2fa7560c02915a601aba9cd597a39329baa")
     version("5.0", sha256="b4a80f2ac66170b2913efbfb9f2594f1f76c7b1afd11f799e22035d63077fb4d")
     version("4.4", sha256="d86b3392c1202e8ff5a423b302e6284db7f8f435ea9f39b5b1b20fd3ac36dfcb")
     version("4.3", sha256="afc687a28e0e24dc21b988fa159ff9dbcf6b7caa92ade8645cc6d5605cd024d4")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("ncurses")
     depends_on("readline@8.2:", when="@5.2:")
@@ -43,6 +45,28 @@ class Bash(AutotoolsPackage, GNUMirrorPackage):
         ("5.2", "013", "094b4fd81bc488a26febba5d799689b64d52a5505b63e8ee854f48d356bc7ce6"),
         ("5.2", "014", "3ef9246f2906ef1e487a0a3f4c647ae1c289cbd8459caa7db5ce118ef136e624"),
         ("5.2", "015", "ef73905169db67399a728e238a9413e0d689462cb9b72ab17a05dba51221358a"),
+        ("5.2", "016", "155853bc5bd10e40a9bea369fb6f50a203a7d0358e9e32321be0d9fa21585915"),
+        ("5.2", "017", "1c48cecbc9b7b4217990580203b7e1de19c4979d0bd2c0e310167df748df2c89"),
+        ("5.2", "018", "4641dd49dd923b454dd0a346277907090410f5d60a29a2de3b82c98e49aaaa80"),
+        ("5.2", "019", "325c26860ad4bba8558356c4ab914ac57e7b415dac6f5aae86b9b05ccb7ed282"),
+        ("5.2", "020", "b6fc252aeb95ce67c9b017d29d81e8a5e285db4bf20d4ec8cdca35892be5c01d"),
+        ("5.2", "021", "8334b88117ad047598f23581aeb0c66c0248cdd77abc3b4e259133aa307650cd"),
+        ("5.2", "022", "78b5230a49594ec30811e72dcd0f56d1089710ec7828621022d08507aa57e470"),
+        ("5.2", "023", "af905502e2106c8510ba2085aa2b56e64830fc0fdf6ee67ebb459ac11696dcd3"),
+        ("5.2", "024", "971534490117eb05d97d7fd81f5f9d8daf927b4d581231844ffae485651b02c3"),
+        ("5.2", "025", "5138f487e7cf71a6323dc81d22419906f1535b89835cc2ff68847e1a35613075"),
+        ("5.2", "026", "96ee1f549aa0b530521e36bdc0ba7661602cfaee409f7023cac744dd42852eac"),
+        ("5.2", "027", "e12a890a2e4f0d9c6ec1ce65b73da4fe116c8e4209bac8ac9dc4cd96f486ab39"),
+        ("5.2", "028", "6042780ba2893daca4a3f0f9b65728592cd7bb6d4cebe073855a6aad4d63aac1"),
+        ("5.2", "029", "125cacb37e625471924b3ee06c54cb1bf21b3b7fe0e569d24a681b0ec4a29987"),
+        ("5.2", "030", "c3ff73230e123acdb5ac216921a386df8f74340459533d776d02811a1f76698f"),
+        ("5.2", "031", "c2d1b7be2df771126105020af7fafa00fffd4deff4a4e45d60fc6a235bcba795"),
+        ("5.2", "032", "7b9c77daeca93ff711781d7537234166e83ed9835ce1ee7dcd5742319c372a16"),
+        ("5.2", "033", "013ec6cc10ad98060a7c34ed5c11187bcc5bf4510f32de0d545db89a9a52a2e2"),
+        ("5.2", "034", "899fbb3b338048fe52a9c8252bf65ef1194cdff4f7a3fb3316f5f2396143232e"),
+        ("5.2", "035", "821a0a47fa692bb0a39482728b1b396bf951e2912768fea6f3026c813c1913e5"),
+        ("5.2", "036", "15c93f4936a5e5b88301f3ede767a23d3dd19635af2f3a91fb4cc0e560ca9057"),
+        ("5.2", "037", "8a2c1c3b5125d9ae5b47882f7d2ddf9648805f8c67c13aa5ea7efeac475cda94"),
         ("5.1", "001", "ebb07b3dbadd98598f078125d0ae0d699295978a5cdaef6282fe19adef45b5fa"),
         ("5.1", "002", "15ea6121a801e48e658ceee712ea9b88d4ded022046a6147550790caf04f5dbe"),
         ("5.1", "003", "22f2cc262f056b22966281babf4b0a2f84cb7dd2223422e5dcd013c3dcbab6b1"),
@@ -185,10 +209,13 @@ class Bash(AutotoolsPackage, GNUMirrorPackage):
             "--enable-readline",
             "--with-installed-readline",
         ]
-        if spec["iconv"].name == "libc":
+        if spec["iconv"].name == "libiconv":
+            args.append(f"--with-libiconv-prefix={spec['iconv'].prefix}")
+        else:
             args.append("--without-libiconv-prefix")
-        elif not is_system_path(spec["iconv"].prefix):
-            args.append("--with-libiconv-prefix={0}".format(spec["iconv"].prefix))
+        # bash malloc relies on sbrk which fails intentionally in musl
+        if spec.satisfies("^[virtuals=libc] musl"):
+            args.append("--without-bash-malloc")
         return args
 
     def check(self):

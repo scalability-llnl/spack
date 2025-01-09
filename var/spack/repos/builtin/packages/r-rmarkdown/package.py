@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,9 @@ class RRmarkdown(RPackage):
 
     cran = "rmarkdown"
 
+    license("GPL-3.0-only")
+
+    version("2.28", sha256="a102a503a92d4203038c5a0675451daf9460df18efcabd5c23283ecefe75a085")
     version("2.21", sha256="c25b20a422d11a115c93460f41c488874002154abb349b14e0d6518682fdac28")
     version("2.17", sha256="aa576c458ec4c2e8468aaa4e3f60202d8d9c7ef54fa01d6b2d243bffee08c4be")
     version("2.16", sha256="d3d34e0419c419d3ab20eb60952a0f0f4c391d202277af55dcd673d25561fa71")
@@ -36,7 +38,7 @@ class RRmarkdown(RPackage):
     depends_on("r-jquerylib", type=("build", "run"), when="@2.11:")
     depends_on("r-jsonlite", type=("build", "run"))
     depends_on("r-knitr@1.22:", type=("build", "run"))
-    depends_on("r-stringr@1.2.0:", type=("build", "run"), when="@1.6:")
+    depends_on("r-knitr@1.43:", type=("build", "run"), when="@2.26:")
     depends_on("r-tinytex@0.11:", type=("build", "run"), when="@1.10:")
     depends_on("r-tinytex@0.31:", type=("build", "run"), when="@2.8:")
     depends_on("r-xfun", type=("build", "run"), when="@1.13:")
@@ -52,3 +54,4 @@ class RRmarkdown(RPackage):
     depends_on("r-mime", type=("build", "run"), when="@1.8:1.14")
     depends_on("r-catools", type=("build", "run"), when="@:1.7")
     depends_on("r-base64enc", type=("build", "run"), when="@:1.14")
+    depends_on("r-stringr@1.2.0:", type=("build", "run"), when="@1.6:2.25")

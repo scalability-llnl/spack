@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,8 +13,12 @@ class Nvtx(Package, PythonExtension):
 
     maintainers("thomas-bouvier")
 
+    license("Apache-2.0")
+
     version("develop", branch="dev")
     version("3.1.0", sha256="dc4e4a227d04d3da46ad920dfee5f7599ac8d6b2ee1809c9067110fb1cc71ced")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("python", default=True, description="Install Python bindings.")
     extends("python", when="+python")
@@ -44,6 +47,5 @@ class Nvtx(Package, PythonExtension):
 
         install("./nvtx-config.cmake", prefix)  # added by the patch above
 
-        args = std_pip_args + ["--prefix=" + prefix, "."]
         with working_dir(self.build_directory):
-            pip(*args)
+            pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")

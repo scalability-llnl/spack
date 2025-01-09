@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,32 +22,43 @@ class Openssh(AutotoolsPackage):
 
     tags = ["core-packages"]
 
+    license("SSH-OpenSSH")
+
+    version("9.9p1", sha256="b343fbcdbff87f15b1986e6e15d6d4fc9a7d36066be6b7fb507087ba8f966c02")
+    version("9.8p1", sha256="dd8bd002a379b5d499dfb050dd1fa9af8029e80461f4bb6c523c49973f5a39f3")
+    version("9.7p1", sha256="490426f766d82a2763fcacd8d83ea3d70798750c7bd2aff2e57dc5660f773ffd")
+    version("9.6p1", sha256="910211c07255a8c5ad654391b40ee59800710dd8119dd5362de09385aa7a777c")
     version("9.5p1", sha256="f026e7b79ba7fb540f75182af96dc8a8f1db395f922bbc9f6ca603672686086b")
     version("9.4p1", sha256="3608fd9088db2163ceb3e600c85ab79d0de3d221e59192ea1923e23263866a85")
     version("9.3p1", sha256="e9baba7701a76a51f3d85a62c383a3c9dcd97fa900b859bc7db114c1868af8a8")
-    version("9.2p1", sha256="3f66dbf1655fb45f50e1c56da62ab01218c228807b21338d634ebcdf9d71cf46")
-    version("9.1p1", sha256="19f85009c7e3e23787f0236fbb1578392ab4d4bf9f8ec5fe6bc1cd7e8bfdd288")
-    version("9.0p1", sha256="03974302161e9ecce32153cfa10012f1e65c8f3750f573a73ab1befd5972a28a")
-    version("8.9p1", sha256="fd497654b7ab1686dac672fb83dfb4ba4096e8b5ffcdaccd262380ae58bec5e7")
-    version("8.8p1", sha256="4590890ea9bb9ace4f71ae331785a3a5823232435161960ed5fc86588f331fe9")
-    version("8.7p1", sha256="7ca34b8bb24ae9e50f33792b7091b3841d7e1b440ff57bc9fabddf01e2ed1e24")
-    version("8.6p1", sha256="c3e6e4da1621762c850d03b47eed1e48dff4cc9608ddeb547202a234df8ed7ae")
-    version("8.5p1", sha256="f52f3f41d429aa9918e38cf200af225ccdd8e66f052da572870c89737646ec25")
-    version("8.4p1", sha256="5a01d22e407eb1c05ba8a8f7c654d388a13e9f226e4ed33bd38748dafa1d2b24")
-    version("8.3p1", sha256="f2befbe0472fe7eb75d23340eb17531cb6b3aac24075e2066b41f814e12387b2")
-    version("8.1p1", sha256="02f5dbef3835d0753556f973cd57b4c19b6b1f6cd24c03445e23ac77ca1b93ff")
-    version("7.9p1", sha256="6b4b3ba2253d84ed3771c8050728d597c91cfce898713beb7b64a305b6f11aad")
-    version("7.6p1", sha256="a323caeeddfe145baaa0db16e98d784b1fbc7dd436a6bf1f479dfd5cd1d21723")
-    version("7.5p1", sha256="9846e3c5fab9f0547400b4d2c017992f914222b3fd1f8eee6c7dc6bc5e59f9f0")
-    version("7.4p1", sha256="1b1fc4a14e2024293181924ed24872e6f2e06293f3e8926a376b8aec481f19d1")
-    version("7.3p1", sha256="3ffb989a6dcaa69594c3b550d4855a5a2e1718ccdde7f5e36387b424220fbecc")
-    version("7.2p2", sha256="a72781d1a043876a224ff1b0032daa4094d87565a68528759c1c2cab5482548c")
-    version("7.1p2", sha256="dd75f024dcf21e06a0d6421d582690bf987a1f6323e32ad6619392f3bfde6bbd")
-    version("7.0p1", sha256="fd5932493a19f4c81153d812ee4e042b49bbd3b759ab3d9344abecc2bc1485e5")
-    version("6.9p1", sha256="6e074df538f357d440be6cf93dc581a21f22d39e236f217fcd8eacbb6c896cfe")
-    version("6.8p1", sha256="3ff64ce73ee124480b5bf767b9830d7d3c03bbcb6abe716b78f0192c37ce160e")
-    version("6.7p1", sha256="b2f8394eae858dabbdef7dac10b99aec00c95462753e80342e530bbb6f725507")
-    version("6.6p1", sha256="48c1f0664b4534875038004cc4f3555b8329c2a81c1df48db5c517800de203bb")
+    with default_args(deprecated=True):
+        # https://nvd.nist.gov/vuln/detail/CVE-2023-38408
+        version("9.2p1", sha256="3f66dbf1655fb45f50e1c56da62ab01218c228807b21338d634ebcdf9d71cf46")
+        version("9.1p1", sha256="19f85009c7e3e23787f0236fbb1578392ab4d4bf9f8ec5fe6bc1cd7e8bfdd288")
+        version("9.0p1", sha256="03974302161e9ecce32153cfa10012f1e65c8f3750f573a73ab1befd5972a28a")
+        version("8.9p1", sha256="fd497654b7ab1686dac672fb83dfb4ba4096e8b5ffcdaccd262380ae58bec5e7")
+        version("8.8p1", sha256="4590890ea9bb9ace4f71ae331785a3a5823232435161960ed5fc86588f331fe9")
+        version("8.7p1", sha256="7ca34b8bb24ae9e50f33792b7091b3841d7e1b440ff57bc9fabddf01e2ed1e24")
+        version("8.6p1", sha256="c3e6e4da1621762c850d03b47eed1e48dff4cc9608ddeb547202a234df8ed7ae")
+        version("8.5p1", sha256="f52f3f41d429aa9918e38cf200af225ccdd8e66f052da572870c89737646ec25")
+        version("8.4p1", sha256="5a01d22e407eb1c05ba8a8f7c654d388a13e9f226e4ed33bd38748dafa1d2b24")
+        version("8.3p1", sha256="f2befbe0472fe7eb75d23340eb17531cb6b3aac24075e2066b41f814e12387b2")
+        version("8.1p1", sha256="02f5dbef3835d0753556f973cd57b4c19b6b1f6cd24c03445e23ac77ca1b93ff")
+        version("7.9p1", sha256="6b4b3ba2253d84ed3771c8050728d597c91cfce898713beb7b64a305b6f11aad")
+        version("7.6p1", sha256="a323caeeddfe145baaa0db16e98d784b1fbc7dd436a6bf1f479dfd5cd1d21723")
+        version("7.5p1", sha256="9846e3c5fab9f0547400b4d2c017992f914222b3fd1f8eee6c7dc6bc5e59f9f0")
+        version("7.4p1", sha256="1b1fc4a14e2024293181924ed24872e6f2e06293f3e8926a376b8aec481f19d1")
+        version("7.3p1", sha256="3ffb989a6dcaa69594c3b550d4855a5a2e1718ccdde7f5e36387b424220fbecc")
+        version("7.2p2", sha256="a72781d1a043876a224ff1b0032daa4094d87565a68528759c1c2cab5482548c")
+        version("7.1p2", sha256="dd75f024dcf21e06a0d6421d582690bf987a1f6323e32ad6619392f3bfde6bbd")
+        version("7.0p1", sha256="fd5932493a19f4c81153d812ee4e042b49bbd3b759ab3d9344abecc2bc1485e5")
+        version("6.9p1", sha256="6e074df538f357d440be6cf93dc581a21f22d39e236f217fcd8eacbb6c896cfe")
+        version("6.8p1", sha256="3ff64ce73ee124480b5bf767b9830d7d3c03bbcb6abe716b78f0192c37ce160e")
+        version("6.7p1", sha256="b2f8394eae858dabbdef7dac10b99aec00c95462753e80342e530bbb6f725507")
+        version("6.6p1", sha256="48c1f0664b4534875038004cc4f3555b8329c2a81c1df48db5c517800de203bb")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "gssapi", default=True, description="Enable authentication via Kerberos through GSSAPI"
@@ -89,7 +99,13 @@ class Openssh(AutotoolsPackage):
     patch(
         "https://raw.githubusercontent.com/Homebrew/patches/d8b2d8c2612fd251ac6de17bf0cc5174c3aab94c/openssh/patch-sshd.c-apple-sandbox-named-external.diff",
         sha256="3505c58bf1e584c8af92d916fe5f3f1899a6b15cc64a00ddece1dc0874b2f78f",
-        when="platform=darwin",
+        when="@:9.7p1 platform=darwin",
+    )
+    # same as above, but against sshd-session.c instead of sshd.c
+    patch(
+        "https://raw.githubusercontent.com/Homebrew/patches/aa6c71920318f97370d74f2303d6aea387fb68e4/openssh/patch-sshd.c-apple-sandbox-named-external.diff",
+        sha256="3f06fc03bcbbf3e6ba6360ef93edd2301f73efcd8069e516245aea7c4fb21279",
+        when="@9.8p1: platform=darwin",
     )
 
     @classmethod
@@ -104,9 +120,13 @@ class Openssh(AutotoolsPackage):
         # #39599: fix configure to parse zlib 1.3's version number to prevent build fail
         filter_file(r"if \(n != 3 && n != 4\)", "if (n < 2)", "configure")
 
-        # https://github.com/Homebrew/homebrew-core/blob/7aabdeb30506be9b01708793ae553502c115dfc8/Formula/o/openssh.rb#L71-L77
-        if self.spec.target.family == "x86_64" and self.spec.platform == "darwin":
-            filter_file(r"-fzero-call-used-regs=all", "-fzero-call-used-regs=used", "configure")
+        # Clang-based compilers (known at least 14-17) may randomly mis-compile
+        # openssh according to this thread even when -fzero-call-used-regs=used:
+        # https://www.mail-archive.com/openssh-bugs@mindrot.org/msg17461.html
+        # Therefore, remove -fzero-call-used-regs=all for these compilers:
+        spec = self.spec
+        if spec.version < Version("9.6p1") and self.compiler.name.endswith(("clang", "oneapi")):
+            filter_file("-fzero-call-used-regs=all", "", "configure")
 
     def configure_args(self):
         # OpenSSH's privilege separation path defaults to /var/empty. At

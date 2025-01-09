@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,8 @@ class Procps(AutotoolsPackage):
     git = "https://gitlab.com/procps-ng/procps.git"
     url = "https://gitlab.com/procps-ng/procps/-/archive/v4.0.3/procps-v4.0.3.tar.gz"
 
+    license("GPL-2.0-or-later")
+
     version("master", branch="master")
     version("4.0.4", sha256="3214fab0f817d169f2c117842ba635bafb1cd6090273e311a8b5c6fc393ddb9d")
     version("4.0.3", sha256="14cc21219c45d196772274ea3f194f6d668b6cc667fbde9ee6d8039121b73fa6")
@@ -26,6 +27,8 @@ class Procps(AutotoolsPackage):
     version("3.3.16", sha256="7f09945e73beac5b12e163a7ee4cae98bcdd9a505163b6a060756f462907ebbc")
     version("3.3.15", sha256="14dfa751517dd844efa9f492e3ad8071f908a269c6aea643b9a1759235fa2053")
     version("3.3.14", sha256="1ff716e7bde6b3841b8519831690b10b644ed344490369c55e410edc8db2fe18")
+
+    depends_on("c", type="build")  # generated
 
     variant("nls", default=True, description="Enable Native Language Support.")
 
@@ -68,9 +71,9 @@ class Procps(AutotoolsPackage):
         else:
             args.append("--disable-nls")
 
-        if spec["iconv"].name == "libc":
+        if spec["iconv"].name == "libiconv":
+            args.append(f"--with-libiconv-prefix={spec['iconv'].prefix}")
+        else:
             args.append("--without-libiconv-prefix")
-        elif not is_system_path(spec["iconv"].prefix):
-            args.append("--with-libiconv-prefix={0}".format(spec["iconv"].prefix))
 
         return args

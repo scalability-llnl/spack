@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,9 @@ class RLocfit(RPackage):
 
     cran = "locfit"
 
+    license("GPL-2.0-or-later")
+
+    version("1.5-9.10", sha256="4c20661814993a87ca435f42b0814bacb87c5a9ccc2ff55e4cae718cb176ac06")
     version("1.5-9.7", sha256="48e5fcd089fbc609d8e4c62c390425fba1dd167ad95ae0bddc175cbbe1517aff")
     version("1.5-9.6", sha256="1ee89e4003cb769feae61ada7ac0a971df30644824f7ed84a21dd5719f713476")
     version("1.5-9.5", sha256="fd9f2bad9d8beec8be4843dc80e38ebe0f388835a7003490f67e57eeb9e6de23")

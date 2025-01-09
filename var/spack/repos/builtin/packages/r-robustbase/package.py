@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,9 @@ class RRobustbase(RPackage):
 
     cran = "robustbase"
 
+    license("GPL-2.0-or-later")
+
+    version("0.99-4", sha256="a978d04fcd4bee7a4ebfa9f05e9abb4a1ca4d970867229a90698bed2fbf40cbc")
     version("0.95-1", sha256="862cd26db3ecdf34ab47c52d355fd65ffebbff448aea17999a9b95a1f13ba3ea")
     version("0.95-0", sha256="5cfaea1c46df6d45086614fea5f152c8da8ebfcadf33bb8df5b82e742eef9724")
     version("0.93-9", sha256="d75fb5075463fec61d063bced7003936e9198492328b6fae15f67e8415713c45")

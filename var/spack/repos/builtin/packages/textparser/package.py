@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,8 +12,14 @@ class Textparser(CMakePackage):
     homepage = "https://github.com/avr-aics-riken/TextParser"
     git = "https://github.com/avr-aics-riken/TextParser.git"
 
+    license("BSD-2-Clause")
+
     version("master", branch="master")
     version("1.8.8", commit="31ec1f23df21611d0765c27a6458fdbbf4cde66d")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("mpi", default=True, description="Activate MPI support")
     variant("fapi", default=False, description="This option is for building Fortran API.")

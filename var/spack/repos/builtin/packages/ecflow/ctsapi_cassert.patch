@@ -1,0 +1,10 @@
+--- a/Base/src/cts/CtsApi.hpp	2024-02-10 02:32:48.001444742 +0000
++++ b/Base/src/cts/CtsApi.hpp	2024-02-10 02:33:09.161119010 +0000
+@@ -16,6 +16,7 @@
+ //============================================================================
+ #include <string>
+ #include <vector>
++#include <cassert>
+
+ #include "CheckPt.hpp"
+ #include "NodeFwd.hpp"

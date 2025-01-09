@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,13 +20,17 @@ class RTinytiger(RPackage):
 
     maintainers("jgaeb")
 
+    license("MIT")
+
+    version("0.0.9", sha256="fe9b1098a2d1d4722f8a7657a9244afcd3d6b7f4f112fc6a92c2fb75da07de59")
     version("0.0.4", sha256="818328b5095d9e8b302f1a04d004cd3ec6e62d945dbd757fe15e9ab768a7459e")
     version("0.0.3", sha256="841d92dd4185b9bff5eef0d3635805c5a3efb1bc4ff0a1101ef264417e37921c")
 
     depends_on("r@2.0.0:", type=("build", "run"))
     depends_on("r@2.10:", type=("build", "run"), when="@0.0.4:")
-    depends_on("r-rlang")
     depends_on("r-cli")
     depends_on("r-glue")
     depends_on("r-curl")
     depends_on("r-sf")
+
+    depends_on("r-rlang", type=("build", "run"), when="@:0.0.8")

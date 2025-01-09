@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,7 +14,7 @@ class Treesub(Package):
     occurred on a given branch. Originally written for colleagues at
     the MRC NIMR."""
 
-    homepage = "https:/github.com/tamuri/treesub"
+    homepage = "https://github.com/tamuri/treesub"
     url = "https://github.com/tamuri/treesub/archive/v0.2.tar.gz"
 
     version("0.2", sha256="58b0d2638cf9ae1ad8705df26a57c32b52a69f50e7954debbd678c82772fdc56")

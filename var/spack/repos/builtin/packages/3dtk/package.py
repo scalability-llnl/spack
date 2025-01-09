@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,7 +14,7 @@ class _3dtk(CMakePackage):
     plane extraction software, etc. Several file formats for the point clouds
     are natively supported, new formats can be implemented easily."""
 
-    homepage = "http://slam6d.sourceforge.net/"
+    homepage = "https://slam6d.sourceforge.net/"
     # Repo seems to be in the process of switching to git:
     # https://github.com/3DTK/3DTK
 

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,8 @@ class Dicom3tools(MakefilePackage):
         "1.00.snapshot.20210306100017",
         sha256="3cc2d6056e349e0ac6a093d231d8f4dd7a77e26ed29c1ebaca945dd5e56c1520",
     )
+
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "uid_root",

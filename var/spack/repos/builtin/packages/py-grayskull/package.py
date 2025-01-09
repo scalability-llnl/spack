@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,9 @@ class PyGrayskull(PythonPackage):
     homepage = "https://github.com/conda/grayskull"
     pypi = "grayskull/grayskull-2.5.0.tar.gz"
 
+    license("Apache-2.0")
+
+    version("2.7.3", sha256="9396245439584b92d656fdefb03d6911b5987f91a5ae714772ddcb338768cbb9")
     version("2.5.0", sha256="b021138655be550fd1b93b8db08b9c66169fac9cba6bcdad1411263e12fc703f")
 
     depends_on("python@3.8:", type=("build", "run"))

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,7 +18,11 @@ class RArrangements(RPackage):
 
     cran = "arrangements"
 
+    license("MIT")
+
     version("1.1.9", sha256="e9b5dcb185ec9b28201b196384b04a8d5a15f4ddb9e0b0b2a0c718635ff7345b")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r@3.4.0:", type=("build", "run"))
     depends_on("r-gmp", type=("build", "run"))

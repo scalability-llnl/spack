@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,11 @@ class PyWebsocketClient(PythonPackage):
     homepage = "https://github.com/websocket-client/websocket-client.git"
     pypi = "websocket-client/websocket-client-0.57.0.tar.gz"
 
+    license("Apache-2.0")
+
+    version("1.8.0", sha256="3239df9f44da632f96012472805d40a23281a991027ce11d2f45a6f24ac4c3da")
+    version("1.7.0", sha256="10e511ea3a8c744631d3bd77e61eb17ed09304c413ad42cf6ddfa4c7787e8fe6")
+    version("1.6.4", sha256="b3324019b3c28572086c4a319f91d1dcd44e6e11cd340232978c684a7650d0df")
     version("1.6.3", sha256="3aad25d31284266bcfcfd1fd8a743f63282305a364b8d0948a43bd606acc652f")
     version("1.5.1", sha256="3f09e6d8230892547132177f575a4e3e73cfdf06526e20cc02aa1c3b47184d40")
     version("1.4.1", sha256="f9611eb65c8241a67fb373bef040b3cf8ad377a9f6546a12b620b6511e8ea9ef")
@@ -29,7 +33,7 @@ class PyWebsocketClient(PythonPackage):
 
     def url_for_version(self, version):
         url = "https://files.pythonhosted.org/packages/source/w/{0}/{0}-{1}.tar.gz"
-        if version >= Version("0.59.0"):
+        if self.spec.satisfies("@0.59.0:1.7"):
             letter = "websocket-client"
         else:
             letter = "websocket_client"

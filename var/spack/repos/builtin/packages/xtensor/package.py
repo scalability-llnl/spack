@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,8 @@ class Xtensor(CMakePackage):
 
     maintainers("ax3l")
 
+    license("BSD-3-Clause")
+
     version("develop", branch="master")
     version("0.24.1", sha256="dd1bf4c4eba5fbcf386abba2627fcb4a947d14a806c33fde82d0cc1194807ee4")
     version("0.24.0", sha256="37738aa0865350b39f048e638735c05d78b5331073b6329693e8b8f0902df713")
@@ -24,6 +25,8 @@ class Xtensor(CMakePackage):
     version("0.20.7", sha256="b45290d1bb0d6cef44771e7482f1553b2aa54dbf99ef9406fec3eb1e4d01d52b")
     version("0.15.1", sha256="2f4ac632f7aa8c8e9da99ebbfc949d9129b4d644f715ef16c27658bf4fddcdd3")
     version("0.13.1", sha256="f9ce4cd2110386d49e3f36bbab62da731c557b6289be19bc172bd7209b92a6bc")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("xsimd", default=True, description="Enable SIMD intrinsics")
     variant("tbb", default=True, description="Enable TBB parallelization")
@@ -48,7 +51,6 @@ class Xtensor(CMakePackage):
     conflicts("%gcc@:4.8")
     conflicts("%clang@:3.5")
     # untested: conflicts('%intel@:15')
-    # untested: conflicts('%pgi@:14')
 
     def cmake_args(self):
         args = [

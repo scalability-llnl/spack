@@ -1,58 +1,107 @@
 spack:
   view: false
-
   definitions:
-  - compiler_specs:
-    - gcc
-    - gettext
-
-  - compiler_target:
-    - '%gcc@7.3.1 target=aarch64'
-
-  - optimized_configs:
+  - apps:
     - gromacs
-    # - lammps
-    # - mpas-model
-    - openfoam
-    - palace
-    # - py-devito
-    # - quantum-espresso
-    # - wrf
-
-  - optimized_libs:
+    - mpas-model
     - mpich
-    - openmpi
-
+    - openfoam
+    - quantum-espresso
+    - wrf
+  - targets:
+    - target=neoverse_v1
   specs:
   - matrix:
-    - - $compiler_specs
-    - - $compiler_target
-  - $optimized_configs
-  - $optimized_libs
-
+    - [$apps]
+    - [$targets]
   ci:
     pipeline-gen:
     - build-job:
-        image: { "name": "ghcr.io/spack/pcluster-amazonlinux-2:v2023-05-25", "entrypoint": [""] }
-        tags: ["aarch64"]
+        image: {name: ghcr.io/spack/pcluster-amazonlinux-2:v2024-10-07, entrypoint: ['']}
+        tags: [aarch64]
         before_script:
         - - . "./share/spack/setup-env.sh"
           - . /etc/profile.d/modules.sh
           - spack --version
           - spack arch
-        # Use gcc from local container buildcache
-        - - spack buildcache rebuild-index /bootstrap/local-cache/
-          - sed -i.bkp s/"spack install gcc"/"spack install --cache-only --reuse gcc"/ /bootstrap/postinstall.sh
-          - spack mirror add local-cache /bootstrap/local-cache
-          - spack gpg trust /bootstrap/public-key
-          - diff /bootstrap/postinstall.sh /bootstrap/postinstall.sh.bkp || echo Done
-        - - /bin/bash "${SPACK_ARTIFACTS_ROOT}/postinstall.sh" -fg
-          - spack config --scope site add "packages:all:target:[${SPACK_TARGET_ARCH}]"
+          - export PATH=/home/software/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeh/linux-amzn2-aarch64/gcc-7.3.1/binutils-2.37-2yxz3xsjfmesxujxtlrgcctxlyilynmp/bin:$PATH
     - signing-job:
         before_script:
-          # Do not distribute Intel & ARM binaries
-          - - for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/ | grep intel-oneapi | awk '{print $4}' | sed -e 's?^.*build_cache/??g'); do aws s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/$i; done
-            - for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/ | grep armpl | awk '{print $4}' | sed -e 's?^.*build_cache/??g'); do aws s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/$i; done
-
+            # Do not distribute Intel & ARM binaries
+        - - for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/ | grep intel-oneapi | awk '{print $4}' | sed -e 's?^.*build_cache/??g'); do aws s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/$i; done
+          - for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/ | grep armpl | awk '{print $4}' | sed -e 's?^.*build_cache/??g'); do aws s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/$i; done
   cdash:
     build-group: AWS Packages
+  config:
+    shared_linking:
+      missing_library_policy: ignore  # due to use of externals
+  compilers:
+  - compiler:
+      environment: {}
+      extra_rpaths: []
+      flags: {}
+      modules: []
+      operating_system: amzn2
+      paths:
+        cc: /home/software/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeh/linux-amzn2-aarch64/gcc-7.3.1/gcc-12.4.0-v6wxye6ijzrxnzxftcwnpu3psohsjl2b/bin/gcc
+        cxx: /home/software/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeh/linux-amzn2-aarch64/gcc-7.3.1/gcc-12.4.0-v6wxye6ijzrxnzxftcwnpu3psohsjl2b/bin/g++
+        f77: /home/software/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeh/linux-amzn2-aarch64/gcc-7.3.1/gcc-12.4.0-v6wxye6ijzrxnzxftcwnpu3psohsjl2b/bin/gfortran
+        fc: /home/software/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeh/linux-amzn2-aarch64/gcc-7.3.1/gcc-12.4.0-v6wxye6ijzrxnzxftcwnpu3psohsjl2b/bin/gfortran
+      spec: gcc@=12.4.0
+      target: aarch64
+  packages:
+    acfl:
+      require:
+      - '%gcc target=aarch64'
+    gromacs:
+      require:
+      - gromacs@2024.3 %gcc ^armpl-gcc ^openmpi
+    libfabric:
+      buildable: true
+      externals:
+      - prefix: /opt/amazon/efa/
+        spec: libfabric@1.17.0
+      require:
+      - fabrics=shm,efa
+    llvm:
+      variants: ~lldb
+    mpas-model:
+      require:
+      - precision=single %gcc ^parallelio+pnetcdf
+    mpich:
+      require:
+      - mpich pmi=pmi2 device=ch4 netmod=ofi +slurm
+    nvhpc:
+      require:
+      - nvhpc %gcc target=aarch64
+    openfoam:
+      require:
+      - openfoam ^scotch@6.0.9
+    openmpi:
+      variants: ~atomics ~cuda ~cxx ~cxx_exceptions ~internal-hwloc ~java +legacylaunchers ~lustre ~memchecker +pmi +romio ~singularity +vt +wrapper-rpath fabrics=ofi schedulers=slurm
+      require: '@4:'
+    # Palace does not build correctly with armpl until https://github.com/awslabs/palace/pull/207 is merged into a version.
+    # palace:
+    #   require:
+    #     - one_of: ["palace cxxflags=\"-include cstdint\" ^fmt@9.1.0"]
+    pmix:
+      require: 'pmix@3:'
+    quantum-espresso:
+      require:
+      - quantum-espresso@6.6 %gcc ^armpl-gcc
+    slurm:
+      buildable: false
+      externals:
+      - prefix: /opt/slurm
+        spec: slurm@22.05.8 +pmix
+    all:
+      compiler: [gcc, arm, nvhpc, clang]
+      providers:
+        blas: [armpl-gcc, openblas]
+        fftw-api: [armpl-gcc, fftw]
+        lapack: [armpl-gcc, openblas]
+        mpi: [openmpi, mpich]
+        scalapack: [netlib-scalapack]
+      permissions:
+        read: world
+        write: user

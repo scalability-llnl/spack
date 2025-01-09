@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,6 +24,7 @@ class RCairo(RPackage):
 
     cran = "Cairo"
 
+    version("1.6-2", sha256="6b6f4c6f93178a1295860a9dc6dc45e60fec70f684d5c8d0b59baf5b8dd44d62")
     version("1.6-0", sha256="c762ac1d8daa4af527342360c256ed742de4e3031d997e9e59c9a369fcafb7d3")
     version("1.5-15", sha256="bb3ab1ff6431c15eb01a66ddf90695cd9a2af3d5a384753f5180cd0401d2e89d")
     version("1.5-14", sha256="067751face3b5771e72f9fb49bfeefb3a7bbecc060b672ab4393cb5935204c7b")
@@ -34,5 +34,14 @@ class RCairo(RPackage):
 
     depends_on("r+X", type=("build", "run"))
     depends_on("r@2.4.0:", type=("build", "run"))
-    depends_on("cairo@1.2:")
+    # "The Cairo package requires cairo library 1.2.0 or higher with PNG support enabled"
+    # See https://www.rforge.net/Cairo/
+    depends_on("cairo@1.2: +png")
+    # Disabled PDF support results in compilation failures in 1.6-1:1.6-2
+    # See https://github.com/s-u/Cairo/pull/48
+    depends_on("cairo +pdf", type=("build", "run"), when="@1.6-1:1.6-2")
+    # When cairo +ft, must also have +fc, for cairo_ft_font_face_create_for_pattern test
+    conflicts(
+        "^cairo ~fc", when="^cairo +ft", msg="For cairo freetype support, also need fontconfig."
+    )
     depends_on("libxt")

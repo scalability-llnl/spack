@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,8 @@ class Augustus(MakefilePackage):
 
     homepage = "https://bioinf.uni-greifswald.de/augustus/"
     url = "https://github.com/Gaius-Augustus/Augustus/archive/v3.3.4.tar.gz"
+
+    license("Artistic-1.0")
 
     # Releases have moved to github
     version("3.5.0", sha256="5ed6ce6106303b800c5e91d37a250baff43b20824657b853ae04d11ad8bdd686")
@@ -35,6 +36,9 @@ class Augustus(MakefilePackage):
         sha256="a1af128aefd228dea0c46d6f5234910fdf068a2b9133175ca8da3af639cb4514",
         url="https://bioinf.uni-greifswald.de/augustus/binaries/old/augustus-3.2.3.tar.gz",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("perl", type=("build", "run"))
     depends_on("python", when="@3.3.1:", type=("build", "run"))
@@ -64,7 +68,7 @@ class Augustus(MakefilePackage):
     def edit(self, spec, prefix):
         # Set compile commands for each compiler and
         # Fix for using 'boost' on Spack. (only after ver.3.3.1-tag1)
-        if "@3.3.1-tag1:3.4.0" in spec:
+        if spec.satisfies("@3.3.1-tag1:3.4.0"):
             with working_dir(join_path("auxprogs", "utrrnaseq", "Debug")):
                 filter_file("g++", spack_cxx, "makefile", string=True)
                 filter_file(
@@ -103,22 +107,22 @@ class Augustus(MakefilePackage):
             makefile = FileFilter("Makefile")
             makefile.filter("BAMTOOLS = .*", f"BAMTOOLS = {bamtools}")
             makefile.filter("INCLUDES = *", "INCLUDES = -I$(BAMTOOLS)/include/bamtools ")
-            if "bamtools@2.5:" in spec:
+            if spec.satisfies("bamtools@2.5:"):
                 makefile.filter(
                     "LIBS = -lbamtools -lz", "LIBS = $(BAMTOOLS)/lib64" "/libbamtools.a -lz"
                 )
-            if "bamtools@:2.4" in spec:
+            if spec.satisfies("bamtools@:2.4"):
                 makefile.filter(
                     "LIBS = -lbamtools -lz", "LIBS = $(BAMTOOLS)/lib/bamtools" "/libbamtools.a -lz"
                 )
         with working_dir(join_path("auxprogs", "bam2hints")):
             makefile = FileFilter("Makefile")
             makefile.filter("/usr/include/bamtools", f"{bamtools}/include/bamtools")
-            if "bamtools@2.5:" in spec:
+            if spec.satisfies("bamtools@2.5:"):
                 makefile.filter(
                     "LIBS = -lbamtools -lz", f"LIBS = {bamtools}/lib64/libbamtools.a -lz"
                 )
-            if "bamtools@:2.4" in spec:
+            if spec.satisfies("bamtools@:2.4"):
                 makefile.filter(
                     "LIBS = -lbamtools -lz", f"LIBS = {bamtools}/lib/bamtools/libbamtools.a -lz"
                 )
@@ -146,7 +150,7 @@ class Augustus(MakefilePackage):
             with working_dir("src"):
                 makefile = FileFilter("Makefile")
                 makefile.filter(r"/usr/include/mysql\+\+", f"{mysqlpp}/include/mysql++")
-                if "^mariadb-c-client" in spec:
+                if spec.satisfies("^mariadb-c-client"):
                     makefile.filter("/usr/include/mysql", f"{mysql}/include/mariadb")
                 else:
                     makefile.filter("/usr/include/mysql", f"{mysql}/include/mysql")
@@ -163,22 +167,20 @@ class Augustus(MakefilePackage):
             pattern = "^#!.*"
             repl = f"#!{self.spec['perl'].command.path}"
             files = glob.glob("*.pl")
-            for file in files:
-                filter_file(pattern, repl, *files, backup=False)
+            filter_file(pattern, repl, *files, backup=False)
 
             repl = f"#!{self.spec['python'].command.path}"
             files = glob.glob("*.py")
-            for file in files:
-                filter_file(pattern, repl, *files, backup=False)
+            filter_file(pattern, repl, *files, backup=False)
 
     def setup_build_environment(self, env):
         htslib = self.spec["htslib"].prefix
         bamtools = self.spec["bamtools"].prefix
 
-        if "@3.4.0" in self.spec:
+        if self.spec.satisfies("@3.4.0"):
             env.set("HTSLIBDIR", htslib)
 
-        if "@3.5.0:" in self.spec:
+        if self.spec.satisfies("@3.5.0:"):
             env.set("HTSLIB_INSTALL_DIR", htslib)
             env.set("BAMTOOLS_INSTALL_DIR", bamtools)
 

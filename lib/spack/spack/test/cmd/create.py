@@ -1,14 +1,14 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
+import tarfile
 
 import pytest
 
 import spack.cmd.create
-import spack.util.editor
+import spack.url
 from spack.main import SpackCommand
 from spack.url import UndetectableNameError
 from spack.util.executable import which
@@ -27,7 +27,11 @@ create = SpackCommand("create")
             [r"TestNamedPackage(Package)", r"def install(self"],
         ),
         (["file://example.tar.gz"], "example", [r"Example(Package)", r"def install(self"]),
-        (["-n", "test-license"], "test-license", [r'license("UNKNOWN")']),
+        (
+            ["-n", "test-license"],
+            "test-license",
+            [r'license("UNKNOWN", checked_by="github_user1")'],
+        ),
         # Template-specific cases
         (
             ["-t", "autoreconf", "/test-autoreconf"],
@@ -126,7 +130,7 @@ def test_create_template(mock_test_repo, args, name, expected):
     filename = repo.filename_for_package_name(name)
     assert os.path.exists(filename)
 
-    with open(filename, "r") as package_file:
+    with open(filename, "r", encoding="utf-8") as package_file:
         content = package_file.read()
         for entry in expected:
             assert entry in content
@@ -150,24 +154,24 @@ def test_create_template_bad_name(mock_test_repo, name, expected):
 
 def test_build_system_guesser_no_stage():
     """Test build system guesser when stage not provided."""
-    guesser = spack.cmd.create.BuildSystemGuesser()
+    guesser = spack.cmd.create.BuildSystemAndLanguageGuesser()
 
     # Ensure get the expected build system
     with pytest.raises(AttributeError, match="'NoneType' object has no attribute"):
         guesser(None, "/the/url/does/not/matter")
 
 
-def test_build_system_guesser_octave():
+def test_build_system_guesser_octave(tmp_path):
     """
     Test build system guesser for the special case, where the same base URL
     identifies the build system rather than guessing the build system from
     files contained in the archive.
     """
     url, expected = "downloads.sourceforge.net/octave/", "octave"
-    guesser = spack.cmd.create.BuildSystemGuesser()
+    guesser = spack.cmd.create.BuildSystemAndLanguageGuesser()
 
     # Ensure get the expected build system
-    guesser(None, url)
+    guesser(str(tmp_path / "archive.tar.gz"), url)
     assert guesser.build_system == expected
 
     # Also ensure get the correct template
@@ -203,3 +207,40 @@ def test_get_name_error(monkeypatch, capsys):
 def test_no_url():
     """Test creation of package without a URL."""
     create("--skip-editor", "-n", "create-new-package")
+
+
+@pytest.mark.parametrize(
+    "source_files,languages",
+    [
+        (["fst.c", "snd.C"], ["c", "cxx"]),
+        (["fst.c", "snd.cxx"], ["c", "cxx"]),
+        (["fst.F", "snd.cc"], ["cxx", "fortran"]),
+        (["fst.f", "snd.c"], ["c", "fortran"]),
+        (["fst.jl", "snd.py"], []),
+    ],
+)
+def test_language_and_build_system_detection(tmp_path, source_files, languages):
+    """Test that languages are detected from tarball, and the build system is guessed from the
+    most top-level build system file."""
+
+    def add(tar: tarfile.TarFile, name: str, type):
+        tarinfo = tarfile.TarInfo(name)
+        tarinfo.type = type
+        tar.addfile(tarinfo)
+
+    tarball = str(tmp_path / "example.tar.gz")
+
+    with tarfile.open(tarball, "w:gz") as tar:
+        add(tar, "./third-party/", tarfile.DIRTYPE)
+        add(tar, "./third-party/example/", tarfile.DIRTYPE)
+        add(tar, "./third-party/example/CMakeLists.txt", tarfile.REGTYPE)  # false positive
+        add(tar, "./configure", tarfile.REGTYPE)  # actual build system
+        add(tar, "./src/", tarfile.DIRTYPE)
+        for file in source_files:
+            add(tar, f"src/{file}", tarfile.REGTYPE)
+
+    guesser = spack.cmd.create.BuildSystemAndLanguageGuesser()
+    guesser(str(tarball), "https://example.com")
+
+    assert guesser.build_system == "autotools"
+    assert guesser.languages == languages

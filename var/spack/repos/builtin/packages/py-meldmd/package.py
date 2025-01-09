@@ -1,10 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -15,8 +15,12 @@ class PyMeldmd(CMakePackage, PythonExtension, CudaPackage):
     homepage = "http://meldmd.org/"
     url = "https://github.com/maccallumlab/meld/archive/refs/tags/0.4.20.tar.gz"
 
+    license("LGPL-3.0-or-later")
+
     version("0.6.1", sha256="aae8e5bfbdacc1e6de61768a3298314c51575cda477a511e98dc11f5730fd918")
     version("0.4.20", sha256="8c8d2b713f8dc0ecc137d19945b3957e12063c8dda569696e47c8820eeac6c92")
+
+    depends_on("cxx", type="build")  # generated
 
     extends("python")
 
@@ -48,11 +52,10 @@ class PyMeldmd(CMakePackage, PythonExtension, CudaPackage):
 
     @run_after("install")
     def install_python(self):
-        args = std_pip_args + ["--prefix=" + prefix, "."]
-        pip(*args)
+        pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")
         with working_dir(join_path(self.build_directory, "python")):
             make("MeldPluginPatch")
-            pip(*args)
+            pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")
         for _, _, files in os.walk(self.spec["openmm"].prefix.lib.plugins):
             for f in files:
                 os.symlink(

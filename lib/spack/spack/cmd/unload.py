@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -7,10 +6,11 @@ import os
 import sys
 
 import spack.cmd
-import spack.cmd.common.arguments as arguments
+import spack.cmd.common
 import spack.error
+import spack.store
 import spack.user_environment as uenv
-import spack.util.environment
+from spack.cmd.common import arguments
 
 description = "remove package from the user environment"
 section = "user environment"
@@ -71,7 +71,7 @@ def unload(parser, args):
             "Cannot specify specs on command line when unloading all specs with '--all'"
         )
 
-    hashes = os.environ.get(uenv.spack_loaded_hashes_var, "").split(":")
+    hashes = os.environ.get(uenv.spack_loaded_hashes_var, "").split(os.pathsep)
     if args.specs:
         specs = [
             spack.cmd.disambiguate_spec_from_hashes(spec, hashes)

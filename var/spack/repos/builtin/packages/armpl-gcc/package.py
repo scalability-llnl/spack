@@ -1,10 +1,11 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 
+import spack.error
+import spack.platforms
 from spack.package import *
 
 _os_map_before_23 = {
@@ -21,9 +22,10 @@ _os_map_before_23 = {
     "amzn2023": "RHEL-7",
 }
 
-_os_map = {
+_os_map_before_24 = {
     "ubuntu20.04": "Ubuntu-20.04",
     "ubuntu22.04": "Ubuntu-22.04",
+    "debian12": "Ubuntu-22.04",
     "sles15": "SLES-15",
     "centos7": "RHEL-7",
     "centos8": "RHEL-8",
@@ -36,7 +38,33 @@ _os_map = {
     "amzn2023": "AmazonLinux-2023",
 }
 
+_os_pkg_map = {
+    "ubuntu20.04": "deb",
+    "ubuntu22.04": "deb",
+    "debian12": "deb",
+    "sles15": "rpm",
+    "centos7": "rpm",
+    "centos8": "rpm",
+    "rhel7": "rpm",
+    "rhel8": "rpm",
+    "rhel9": "rpm",
+    "rocky8": "rpm",
+    "rocky9": "rpm",
+    "amzn2": "rpm",
+    "amzn2023": "rpm",
+}
+
 _versions = {
+    "24.10": {
+        "deb": ("2be772d41c0e8646e24c4f57e188e96f2dd8934966ae560c74fa905cbde5e1bc"),
+        "macOS": ("04e794409867e6042ed0f487bbaf47cc6edd527dc6ddad67160f1dba83906969"),
+        "rpm": ("055d4b3c63d990942d453a8720d029be7e604646218ffc3262321683f51f23aa"),
+    },
+    "24.04": {
+        "deb": ("a323074cd08af82f4d79988cc66088b18e47dea4b93323b1b8a0f994f769f2f0"),
+        "macOS": ("228bf3a2c25dbd45c2f89c78f455ee3c7dfb25e121c20d2765138b5174e688dc"),
+        "rpm": ("d3917523034cf5a35e4f31f9a8bf4e53e7cc97892e89739d5757cb65ce40dc2e"),
+    },
     "23.10_gcc-12.2": {
         "RHEL-7": ("e5e2c69ad281a676f2a06c835fbf31d4f9fdf46aa3f3f7c8aafff46985f64902"),
         "RHEL-8": ("cc0f3572ead93d1e31797b7a39a40cff3414878df9bd24a452bf4877dc35ca4c"),
@@ -227,28 +255,33 @@ _versions = {
 }
 
 
-def get_os(ver):
+def get_os_or_pkg_manager(ver):
     platform = spack.platforms.host()
     if platform.name == "darwin":
         return "macOS"
     if ver.startswith("22."):
         return _os_map_before_23.get(platform.default_os, "")
+    elif ver.startswith("23."):
+        return _os_map_before_24.get(platform.default_os, "RHEL-7")
     else:
-        return _os_map.get(platform.default_os, "RHEL-7")
+        return _os_pkg_map.get(platform.default_os, "rpm")
 
 
-def get_package_url(version):
-    base_url = "https://developer.arm.com/-/media/Files/downloads/hpc/arm-performance-libraries/"
+def get_package_url_before_24(version):
+    base_url = "https://developer.arm.com/-/media/Files/downloads/hpc/arm-performance-libraries"
     armpl_version = version.split("_")[0]
     armpl_version_dashed = armpl_version.replace(".", "-")
     compiler_version = version.split("_", 1)[1]
-    os = get_os(armpl_version)
+    os = get_os_or_pkg_manager(armpl_version)
     if os == "macOS":
         if armpl_version.startswith("23.06"):
-            return f"{base_url}{armpl_version_dashed}/armpl_{armpl_version}_{compiler_version}.dmg"
+            return (
+                f"{base_url}/{armpl_version_dashed}/"
+                f"armpl_{armpl_version}_{compiler_version}.dmg"
+            )
         else:
             filename = f"arm-performance-libraries_{armpl_version}_macOS.dmg"
-            return f"{base_url}{armpl_version_dashed}/macos/{filename}"
+            return f"{base_url}/{armpl_version_dashed}/macos/{filename}"
     filename = f"arm-performance-libraries_{armpl_version}_{os}_{compiler_version}.tar"
     os_short = ""
     if armpl_version.startswith("22.0."):
@@ -257,11 +290,51 @@ def get_package_url(version):
         os_short = os.split(".")[0].lower()
         if "amazonlinux" in os_short:
             os_short = os_short.replace("amazonlinux", "al")
-    return f"{base_url}{armpl_version_dashed}/{os_short}/{filename}"
+    return f"{base_url}/{armpl_version_dashed}/{os_short}/{filename}"
+
+
+def get_package_url_from_24(version):
+    base_url = (
+        "https://developer.arm.com/-/cdn-downloads/permalink/Arm-Performance-Libraries/Version"
+    )
+    pkg_system = get_os_or_pkg_manager(version)
+
+    extension = "tgz" if pkg_system == "macOS" else "tar"
+
+    full_name_library = f"arm-performance-libraries_{version}_{pkg_system}"
+
+    if pkg_system != "macOS":
+        full_name_library = f"{full_name_library}_gcc"
+    file_name = f"{full_name_library}.{extension}"
+
+    url_parts = f"{base_url}_{version}/{file_name}"
+    return url_parts
+
+
+def get_package_url(version):
+    if version[:2] >= "24":
+        return get_package_url_from_24(version)
+    else:
+        return get_package_url_before_24(version)
 
 
 def get_armpl_prefix(spec):
-    return os.path.join(spec.prefix, "armpl_" + spec.version.string)
+    armpl_dir = [
+        d
+        for d in os.listdir(spec.prefix)
+        if os.path.isdir(os.path.join(spec.prefix, d)) and d.startswith("armpl_")
+    ][0]
+    return os.path.join(spec.prefix, armpl_dir)
+
+
+def get_armpl_suffix(spec):
+    suffix = ""
+    if spec.satisfies("@24:"):
+        suffix += "_ilp64" if spec.satisfies("+ilp64") else "_lp64"
+    else:
+        suffix += "_ilp64" if spec.satisfies("+ilp64") else ""
+    suffix += "_mp" if spec.satisfies("threads=openmp") else ""
+    return suffix
 
 
 class ArmplGcc(Package):
@@ -269,12 +342,10 @@ class ArmplGcc(Package):
     high-performance computing applications on Arm processors."""
 
     homepage = "https://developer.arm.com/tools-and-software/server-and-hpc/downloads/arm-performance-libraries"
-    url = "https://developer.arm.com/-/media/Files/downloads/hpc/arm-performance-libraries/23-04-1/ubuntu-22/arm-performance-libraries_23.04.1_Ubuntu-22.04_gcc-12.2.tar"
-
-    maintainers("annop-w")
+    maintainers("paolotricerri")
 
     for ver, packages in _versions.items():
-        key = get_os(ver)
+        key = get_os_or_pkg_manager(ver)
         sha256sum = packages.get(key)
         url = get_package_url(ver)
         if sha256sum:
@@ -319,6 +390,8 @@ class ArmplGcc(Package):
     conflicts("%gcc@:7", when="@22.0.1_gcc-8.2")
     conflicts("%gcc@:6", when="@22.0.1_gcc-7.5")
 
+    conflicts("%msvc", msg="Not compatible with MSVC compiler.")
+
     variant("ilp64", default=False, description="use ilp64 specific Armpl library")
     variant("shared", default=True, description="enable shared libs")
     variant(
@@ -339,10 +412,17 @@ class ArmplGcc(Package):
             hdiutil = which("hdiutil")
             # Mount image
             mountpoint = os.path.join(self.stage.path, "mount")
-            hdiutil("attach", "-mountpoint", mountpoint, self.stage.archive_file)
+            if spec.satisfies("@:23"):
+                dmg_file = self.stage.archive_file
+            else:
+                # The archive file only extracts to one .dmg file
+                dmg_file = os.path.join(
+                    self.stage.source_path, os.listdir(self.stage.source_path)[0]
+                )
+            hdiutil("attach", "-mountpoint", mountpoint, dmg_file)
             try:
                 # Run installer
-                exe_name = f"armpl_{spec.version.string}_install.sh"
+                exe_name = [f for f in os.listdir(mountpoint) if f.endswith(".sh")][0]
                 installer = Executable(os.path.join(mountpoint, exe_name))
                 installer("-y", f"--install_dir={prefix}")
             finally:
@@ -357,15 +437,15 @@ class ArmplGcc(Package):
         with when("@23:"):
             armpl_version = spec.version.string.split("_")[0]
 
-        exe = Executable(f"./arm-performance-libraries_{armpl_version}_{get_os(armpl_version)}.sh")
+        exe = Executable(
+            f"./arm-performance-libraries_{armpl_version}_"
+            f"{get_os_or_pkg_manager(armpl_version)}.sh"
+        )
         exe("--accept", "--force", "--install-to", prefix)
 
     @property
     def lib_suffix(self):
-        suffix = ""
-        suffix += "_ilp64" if self.spec.satisfies("+ilp64") else ""
-        suffix += "_mp" if self.spec.satisfies("threads=openmp") else ""
-        return suffix
+        return get_armpl_suffix(self.spec)
 
     @property
     def blas_libs(self):
@@ -401,7 +481,10 @@ class ArmplGcc(Package):
     def headers(self):
         armpl_dir = get_armpl_prefix(self.spec)
 
-        suffix = "include" + self.lib_suffix
+        if self.spec.satisfies("@24:"):
+            suffix = "include"
+        else:
+            suffix = "include" + self.lib_suffix
 
         incdir = join_path(armpl_dir, suffix)
 
@@ -419,7 +502,9 @@ class ArmplGcc(Package):
     @run_after("install")
     def check_install(self):
         armpl_dir = get_armpl_prefix(self.spec)
-        armpl_example_dir = join_path(armpl_dir, "examples")
+        suffix = get_armpl_suffix(self.spec)
+        armpl_example_dir = join_path(armpl_dir, f"examples{suffix}")
+
         # run example makefile
         if self.spec.platform == "darwin":
             # Fortran examples on MacOS requires flang-new which is

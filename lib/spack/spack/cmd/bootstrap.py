@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os.path
@@ -15,13 +14,13 @@ import spack
 import spack.bootstrap
 import spack.bootstrap.config
 import spack.bootstrap.core
-import spack.cmd.common.arguments
 import spack.config
-import spack.main
-import spack.mirror
+import spack.mirrors.utils
 import spack.spec
 import spack.stage
 import spack.util.path
+import spack.util.spack_yaml
+from spack.cmd.common import arguments
 
 description = "manage bootstrap configuration"
 section = "system"
@@ -29,7 +28,7 @@ level = "long"
 
 
 # Tarball to be downloaded if binary packages are requested in a local mirror
-BINARY_TARBALL = "https://github.com/spack/spack-bootstrap-mirrors/releases/download/v0.4/bootstrap-buildcache.tar.gz"
+BINARY_TARBALL = "https://github.com/spack/spack-bootstrap-mirrors/releases/download/v0.6/bootstrap-buildcache.tar.gz"
 
 #: Subdirectory where to create the mirror
 LOCAL_MIRROR_DIR = "bootstrap_cache"
@@ -51,9 +50,9 @@ BINARY_METADATA = {
     },
 }
 
-CLINGO_JSON = "$spack/share/spack/bootstrap/github-actions-v0.4/clingo.json"
-GNUPG_JSON = "$spack/share/spack/bootstrap/github-actions-v0.4/gnupg.json"
-PATCHELF_JSON = "$spack/share/spack/bootstrap/github-actions-v0.4/patchelf.json"
+CLINGO_JSON = "$spack/share/spack/bootstrap/github-actions-v0.6/clingo.json"
+GNUPG_JSON = "$spack/share/spack/bootstrap/github-actions-v0.6/gnupg.json"
+PATCHELF_JSON = "$spack/share/spack/bootstrap/github-actions-v0.6/patchelf.json"
 
 # Metadata for a generated source mirror
 SOURCE_METADATA = {
@@ -68,12 +67,8 @@ SOURCE_METADATA = {
 
 
 def _add_scope_option(parser):
-    scopes = spack.config.scopes()
     parser.add_argument(
-        "--scope",
-        choices=scopes,
-        metavar=spack.config.SCOPES_METAVAR,
-        help="configuration scope to read/modify",
+        "--scope", action=arguments.ConfigScope, help="configuration scope to read/modify"
     )
 
 
@@ -106,7 +101,7 @@ def setup_parser(subparser):
     disable.add_argument("name", help="name of the source to be disabled", nargs="?", default=None)
 
     reset = sp.add_parser("reset", help="reset bootstrapping configuration to Spack defaults")
-    spack.cmd.common.arguments.add_common_arguments(reset, ["yes_to_all"])
+    arguments.add_common_arguments(reset, ["yes_to_all"])
 
     root = sp.add_parser("root", help="get/set the root bootstrap directory")
     _add_scope_option(root)
@@ -169,7 +164,7 @@ def _reset(args):
         if not ok_to_continue:
             raise RuntimeError("Aborting")
 
-    for scope in spack.config.CONFIG.file_scopes:
+    for scope in spack.config.CONFIG.writable_scopes:
         # The default scope should stay untouched
         if scope.name == "defaults":
             continue
@@ -404,7 +399,7 @@ def _mirror(args):
         llnl.util.tty.set_msg_enabled(False)
         spec = spack.spec.Spec(spec_str).concretized()
         for node in spec.traverse():
-            spack.mirror.create(mirror_dir, [node])
+            spack.mirrors.utils.create(mirror_dir, [node])
         llnl.util.tty.set_msg_enabled(True)
 
     if args.binary_packages:
@@ -423,7 +418,7 @@ def _mirror(args):
         metadata_rel_dir = os.path.join("metadata", subdir)
         metadata_yaml = os.path.join(args.root_dir, metadata_rel_dir, "metadata.yaml")
         llnl.util.filesystem.mkdirp(os.path.dirname(metadata_yaml))
-        with open(metadata_yaml, mode="w") as f:
+        with open(metadata_yaml, mode="w", encoding="utf-8") as f:
             spack.util.spack_yaml.dump(metadata, stream=f)
         return os.path.dirname(metadata_yaml), metadata_rel_dir
 

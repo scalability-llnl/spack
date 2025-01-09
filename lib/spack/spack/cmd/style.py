@@ -1,20 +1,22 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import argparse
+import ast
 import os
 import re
 import sys
 from itertools import zip_longest
+from typing import Dict, List, Optional
 
 import llnl.util.tty as tty
 import llnl.util.tty.color as color
 from llnl.util.filesystem import working_dir
 
 import spack.paths
+import spack.repo
 import spack.util.git
-from spack.util.executable import which
+from spack.util.executable import Executable, which
 
 description = "runs source code style checks on spack"
 section = "developer"
@@ -36,10 +38,7 @@ exclude_directories = [os.path.relpath(spack.paths.external_path, spack.paths.pr
 #: double-check the results of other tools (if, e.g., --fix was provided)
 #: The list maps an executable name to a method to ensure the tool is
 #: bootstrapped or present in the environment.
-tool_names = ["isort", "black", "flake8", "mypy"]
-
-#: tools we run in spack style
-tools = {}
+tool_names = ["import", "isort", "black", "flake8", "mypy"]
 
 #: warnings to ignore in mypy
 mypy_ignores = [
@@ -61,13 +60,27 @@ def is_package(f):
 
 #: decorator for adding tools to the list
 class tool:
-    def __init__(self, name, required=False):
+    def __init__(self, name: str, required: bool = False, external: bool = True) -> None:
         self.name = name
+        self.external = external
         self.required = required
 
     def __call__(self, fun):
-        tools[self.name] = (fun, self.required)
+        self.fun = fun
+        tools[self.name] = self
         return fun
+
+    @property
+    def installed(self) -> bool:
+        return bool(which(self.name)) if self.external else True
+
+    @property
+    def executable(self) -> Optional[Executable]:
+        return which(self.name) if self.external else None
+
+
+#: tools we run in spack style
+tools: Dict[str, tool] = {}
 
 
 def changed_files(base="develop", untracked=True, all_files=False, root=None):
@@ -176,22 +189,22 @@ def setup_parser(subparser):
         "-t",
         "--tool",
         action="append",
-        help="specify which tools to run (default: %s)" % ",".join(tool_names),
+        help="specify which tools to run (default: %s)" % ", ".join(tool_names),
     )
     tool_group.add_argument(
         "-s",
         "--skip",
         metavar="TOOL",
         action="append",
-        help="specify tools to skip (choose from %s)" % ",".join(tool_names),
+        help="specify tools to skip (choose from %s)" % ", ".join(tool_names),
     )
 
     subparser.add_argument("files", nargs=argparse.REMAINDER, help="specific files to check")
 
 
-def cwd_relative(path, args):
+def cwd_relative(path, root, initial_working_dir):
     """Translate prefix-relative path to current working directory-relative."""
-    return os.path.relpath(os.path.join(args.root, path), args.initial_working_dir)
+    return os.path.relpath(os.path.join(root, path), initial_working_dir)
 
 
 def rewrite_and_print_output(
@@ -201,7 +214,10 @@ def rewrite_and_print_output(
 
     # print results relative to current working directory
     def translate(match):
-        return replacement.format(cwd_relative(match.group(1), args), *list(match.groups()[1:]))
+        return replacement.format(
+            cwd_relative(match.group(1), args.root, args.initial_working_dir),
+            *list(match.groups()[1:]),
+        )
 
     for line in output.split("\n"):
         if not line:
@@ -220,7 +236,7 @@ def print_style_header(file_list, args, tools_to_run):
     # translate modified paths to cwd_relative if needed
     paths = [filename.strip() for filename in file_list]
     if not args.root_relative:
-        paths = [cwd_relative(filename, args) for filename in paths]
+        paths = [cwd_relative(filename, args.root, args.initial_working_dir) for filename in paths]
 
     tty.msg("Modified files", *paths)
     sys.stdout.flush()
@@ -307,8 +323,6 @@ def run_isort(isort_cmd, file_list, args):
 
     packages_isort_args = (
         "--rm",
-        "spack",
-        "--rm",
         "spack.pkgkit",
         "--rm",
         "spack.package_defs",
@@ -352,17 +366,137 @@ def run_black(black_cmd, file_list, args):
     return returncode
 
 
+def _module_part(root: str, expr: str):
+    parts = expr.split(".")
+    # spack.pkg is for repositories, don't try to resolve it here.
+    if ".".join(parts[:2]) == spack.repo.ROOT_PYTHON_NAMESPACE:
+        return None
+    while parts:
+        f1 = os.path.join(root, "lib", "spack", *parts) + ".py"
+        f2 = os.path.join(root, "lib", "spack", *parts, "__init__.py")
+
+        if (
+            os.path.exists(f1)
+            # ensure case sensitive match
+            and f"{parts[-1]}.py" in os.listdir(os.path.dirname(f1))
+            or os.path.exists(f2)
+        ):
+            return ".".join(parts)
+        parts.pop()
+    return None
+
+
+def _run_import_check(
+    file_list: List[str],
+    *,
+    fix: bool,
+    root_relative: bool,
+    root=spack.paths.prefix,
+    working_dir=spack.paths.prefix,
+    out=sys.stdout,
+):
+    if sys.version_info < (3, 9):
+        print("import check requires Python 3.9 or later")
+        return 0
+
+    is_use = re.compile(r"(?<!from )(?<!import )(?:llnl|spack)\.[a-zA-Z0-9_\.]+")
+
+    # redundant imports followed by a `# comment` are ignored, cause there can be legimitate reason
+    # to import a module: execute module scope init code, or to deal with circular imports.
+    is_abs_import = re.compile(r"^import ((?:llnl|spack)\.[a-zA-Z0-9_\.]+)$", re.MULTILINE)
+
+    exit_code = 0
+
+    for file in file_list:
+        to_add = set()
+        to_remove = []
+
+        pretty_path = file if root_relative else cwd_relative(file, root, working_dir)
+
+        try:
+            with open(file, "r", encoding="utf-8") as f:
+                contents = f.read()
+            parsed = ast.parse(contents)
+        except Exception:
+            exit_code = 1
+            print(f"{pretty_path}: could not parse", file=out)
+            continue
+
+        for m in is_abs_import.finditer(contents):
+            if contents.count(m.group(1)) == 1:
+                to_remove.append(m.group(0))
+                exit_code = 1
+                print(f"{pretty_path}: redundant import: {m.group(1)}", file=out)
+
+        # Clear all strings to avoid matching comments/strings etc.
+        for node in ast.walk(parsed):
+            if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                node.value = ""
+
+        filtered_contents = ast.unparse(parsed)  # novermin
+        for m in is_use.finditer(filtered_contents):
+            module = _module_part(root, m.group(0))
+            if not module or module in to_add:
+                continue
+            if re.search(rf"import {re.escape(module)}\b(?!\.)", contents):
+                continue
+            to_add.add(module)
+            exit_code = 1
+            print(f"{pretty_path}: missing import: {module} ({m.group(0)})", file=out)
+
+        if not fix or not to_add and not to_remove:
+            continue
+
+        with open(file, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+
+        if to_add:
+            # insert missing imports before the first import, delegate ordering to isort
+            for node in parsed.body:
+                if isinstance(node, (ast.Import, ast.ImportFrom)):
+                    first_line = node.lineno
+                    break
+            else:
+                print(f"{pretty_path}: could not fix", file=out)
+                continue
+            lines.insert(first_line, "\n".join(f"import {x}" for x in to_add) + "\n")
+
+        new_contents = "".join(lines)
+
+        # remove redundant imports
+        for statement in to_remove:
+            new_contents = new_contents.replace(f"{statement}\n", "")
+
+        with open(file, "w", encoding="utf-8") as f:
+            f.write(new_contents)
+
+    return exit_code
+
+
+@tool("import", external=False)
+def run_import_check(import_check_cmd, file_list, args):
+    exit_code = _run_import_check(
+        file_list,
+        fix=args.fix,
+        root_relative=args.root_relative,
+        root=args.root,
+        working_dir=args.initial_working_dir,
+    )
+    print_tool_result("import", exit_code)
+    return exit_code
+
+
 def validate_toolset(arg_value):
     """Validate --tool and --skip arguments (sets of optionally comma-separated tools)."""
     tools = set(",".join(arg_value).split(","))  # allow args like 'isort,flake8'
     for tool in tools:
         if tool not in tool_names:
-            tty.die("Invaild tool: '%s'" % tool, "Choose from: %s" % ", ".join(tool_names))
+            tty.die("Invalid tool: '%s'" % tool, "Choose from: %s" % ", ".join(tool_names))
     return tools
 
 
-def missing_tools(tools_to_run):
-    return [t for t in tools_to_run if which(t) is None]
+def missing_tools(tools_to_run: List[str]) -> List[str]:
+    return [t for t in tools_to_run if not tools[t].installed]
 
 
 def _bootstrap_dev_dependencies():
@@ -417,9 +551,9 @@ def style(parser, args):
 
         print_style_header(file_list, args, tools_to_run)
         for tool_name in tools_to_run:
-            run_function, required = tools[tool_name]
+            tool = tools[tool_name]
             print_tool_header(tool_name)
-            return_code |= run_function(which(tool_name), file_list, args)
+            return_code |= tool.fun(tool.executable, file_list, args)
 
     if return_code == 0:
         tty.msg(color.colorize("@*{spack style checks were clean}"))

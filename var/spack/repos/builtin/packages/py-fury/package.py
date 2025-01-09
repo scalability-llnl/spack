@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,6 +10,8 @@ class PyFury(PythonPackage):
 
     homepage = "https://github.com/fury-gl/fury"
     pypi = "fury/fury-0.7.1.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("0.7.1", sha256="bc7bdbdf1632f317f40c717c2f34a6b8424ce5abda3ebda31a058c0b725a316a")
 

@@ -1,20 +1,21 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 """Tests for ``llnl/util/filesystem.py``"""
 import filecmp
 import os
+import pathlib
 import shutil
 import stat
 import sys
+from contextlib import contextmanager
 
 import pytest
 
 import llnl.util.filesystem as fs
 import llnl.util.symlink
-from llnl.util.symlink import SymlinkError, _windows_can_symlink, islink, symlink
+from llnl.util.symlink import _windows_can_symlink, islink, readlink, symlink
 
 import spack.paths
 
@@ -181,7 +182,7 @@ class TestCopyTree:
 
             assert os.path.exists("dest/a/b2")
             with fs.working_dir("dest/a"):
-                assert os.path.exists(os.readlink("b2"))
+                assert os.path.exists(readlink("b2"))
 
             assert os.path.realpath("dest/f/2") == os.path.abspath("dest/a/b/2")
             assert os.path.realpath("dest/2") == os.path.abspath("dest/1")
@@ -274,14 +275,14 @@ class TestInstallTree:
                 assert not os.path.islink("dest/2")
             check_added_exe_permissions("source/2", "dest/2")
 
-    @pytest.mark.skipif(sys.platform == "win32", reason="Broken symlinks not allowed on Windows")
+    @pytest.mark.not_on_windows("Broken symlinks not allowed on Windows")
     def test_allow_broken_symlinks(self, stage):
         """Test installing with a broken symlink."""
         with fs.working_dir(str(stage)):
-            symlink("nonexistant.txt", "source/broken", allow_broken_symlinks=True)
-            fs.install_tree("source", "dest", symlinks=True, allow_broken_symlinks=True)
+            symlink("nonexistant.txt", "source/broken")
+            fs.install_tree("source", "dest", symlinks=True)
             assert os.path.islink("dest/broken")
-            assert not os.path.exists(os.readlink("dest/broken"))
+            assert not os.path.exists(readlink("dest/broken"))
 
     def test_glob_src(self, stage):
         """Test using a glob as the source."""
@@ -332,7 +333,7 @@ def test_move_transaction_commit(tmpdir):
         fake_library.write("Other content.")
 
     assert not os.path.lexists(backup)
-    with open(str(tmpdir.join("lib", "libfoo.so")), "r") as f:
+    with open(str(tmpdir.join("lib", "libfoo.so")), "r", encoding="utf-8") as f:
         assert "Other content." == f.read()
 
 
@@ -350,7 +351,7 @@ def test_move_transaction_rollback(tmpdir):
         pass
 
     assert not os.path.lexists(backup)
-    with open(str(tmpdir.join("lib", "libfoo.so")), "r") as f:
+    with open(str(tmpdir.join("lib", "libfoo.so")), "r", encoding="utf-8") as f:
         assert "Initial content." == f.read()
 
 
@@ -504,9 +505,7 @@ def test_filter_files_with_different_encodings(regex, replacement, filename, tmp
     # This should not raise exceptions
     fs.filter_file(regex, replacement, target_file, **keyword_args)
     # Check the strings have been replaced
-    extra_kwargs = {"errors": "surrogateescape"}
-
-    with open(target_file, mode="r", **extra_kwargs) as f:
+    with open(target_file, mode="r", encoding="utf-8", errors="surrogateescape") as f:
         assert replacement in f.read()
 
 
@@ -556,9 +555,7 @@ def test_filter_files_multiple(tmpdir):
     fs.filter_file(r"\<string.h\>", "<unistd.h>", target_file)
     fs.filter_file(r"\<stdio.h\>", "<unistd.h>", target_file)
     # Check the strings have been replaced
-    extra_kwargs = {"errors": "surrogateescape"}
-
-    with open(target_file, mode="r", **extra_kwargs) as f:
+    with open(target_file, mode="r", encoding="utf-8", errors="surrogateescape") as f:
         assert "<malloc.h>" not in f.read()
         assert "<string.h>" not in f.read()
         assert "<stdio.h>" not in f.read()
@@ -583,7 +580,7 @@ def test_filter_files_start_stop(tmpdir):
     fs.filter_file("B", "X", target_file, string=True, start_at="X", stop_at="C")
     fs.filter_file(r"C|D", "X", target_file, start_at="X", stop_at="E")
 
-    with open(target_file, mode="r") as f:
+    with open(target_file, mode="r", encoding="utf-8") as f:
         assert all("X" == line.strip() for line in f.readlines())
 
 
@@ -754,93 +751,6 @@ def test_is_nonsymlink_exe_with_shebang(tmpdir):
         assert not fs.is_nonsymlink_exe_with_shebang("symlink_to_executable_script")
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="Unix-only test.")
-def test_lexists_islink_isdir(tmpdir):
-    root = str(tmpdir)
-
-    # Create a directory and a file, an a bunch of symlinks.
-    dir = os.path.join(root, "dir")
-    file = os.path.join(root, "file")
-    nonexistent = os.path.join(root, "does_not_exist")
-    symlink_to_dir = os.path.join(root, "symlink_to_dir")
-    symlink_to_file = os.path.join(root, "symlink_to_file")
-    dangling_symlink = os.path.join(root, "dangling_symlink")
-    symlink_to_dangling_symlink = os.path.join(root, "symlink_to_dangling_symlink")
-    symlink_to_symlink_to_dir = os.path.join(root, "symlink_to_symlink_to_dir")
-    symlink_to_symlink_to_file = os.path.join(root, "symlink_to_symlink_to_file")
-
-    os.mkdir(dir)
-    with open(file, "wb") as f:
-        f.write(b"file")
-
-    symlink("dir", symlink_to_dir)
-    symlink("file", symlink_to_file)
-    symlink("does_not_exist", dangling_symlink)
-    symlink("dangling_symlink", symlink_to_dangling_symlink)
-    symlink("symlink_to_dir", symlink_to_symlink_to_dir)
-    symlink("symlink_to_file", symlink_to_symlink_to_file)
-
-    assert fs.lexists_islink_isdir(dir) == (True, False, True)
-    assert fs.lexists_islink_isdir(file) == (True, False, False)
-    assert fs.lexists_islink_isdir(nonexistent) == (False, False, False)
-    assert fs.lexists_islink_isdir(symlink_to_dir) == (True, True, True)
-    assert fs.lexists_islink_isdir(symlink_to_file) == (True, True, False)
-    assert fs.lexists_islink_isdir(symlink_to_dangling_symlink) == (True, True, False)
-    assert fs.lexists_islink_isdir(symlink_to_symlink_to_dir) == (True, True, True)
-    assert fs.lexists_islink_isdir(symlink_to_symlink_to_file) == (True, True, False)
-
-
-@pytest.mark.skipif(sys.platform != "win32", reason="For Windows Only")
-@pytest.mark.parametrize("win_can_symlink", [True, False])
-def test_lexists_islink_isdir_windows(tmpdir, monkeypatch, win_can_symlink):
-    """Run on windows without elevated privileges to test junctions and hard links which have
-    different results from the lexists_islink_isdir method.
-    """
-    if win_can_symlink and not _windows_can_symlink():
-        pytest.skip("Cannot test dev mode behavior without dev mode enabled.")
-    with tmpdir.as_cwd():
-        monkeypatch.setattr(llnl.util.symlink, "_windows_can_symlink", lambda: win_can_symlink)
-        dir = str(tmpdir.join("dir"))
-        file = str(tmpdir.join("file"))
-        nonexistent = str(tmpdir.join("does_not_exist"))
-        symlink_to_dir = str(tmpdir.join("symlink_to_dir"))
-        symlink_to_file = str(tmpdir.join("symlink_to_file"))
-        dangling_symlink = str(tmpdir.join("dangling_symlink"))
-        symlink_to_dangling_symlink = str(tmpdir.join("symlink_to_dangling_symlink"))
-        symlink_to_symlink_to_dir = str(tmpdir.join("symlink_to_symlink_to_dir"))
-        symlink_to_symlink_to_file = str(tmpdir.join("symlink_to_symlink_to_file"))
-
-        os.mkdir(dir)
-        assert fs.lexists_islink_isdir(dir) == (True, False, True)
-
-        symlink("dir", symlink_to_dir)
-        assert fs.lexists_islink_isdir(dir) == (True, False, True)
-        assert fs.lexists_islink_isdir(symlink_to_dir) == (True, True, True)
-
-        with open(file, "wb") as f:
-            f.write(b"file")
-        assert fs.lexists_islink_isdir(file) == (True, False, False)
-
-        symlink("file", symlink_to_file)
-        if win_can_symlink:
-            assert fs.lexists_islink_isdir(file) == (True, False, False)
-        else:
-            assert fs.lexists_islink_isdir(file) == (True, True, False)
-        assert fs.lexists_islink_isdir(symlink_to_file) == (True, True, False)
-
-        with pytest.raises(SymlinkError):
-            symlink("does_not_exist", dangling_symlink)
-            symlink("dangling_symlink", symlink_to_dangling_symlink)
-
-        symlink("symlink_to_dir", symlink_to_symlink_to_dir)
-        symlink("symlink_to_file", symlink_to_symlink_to_file)
-
-        assert fs.lexists_islink_isdir(nonexistent) == (False, False, False)
-        assert fs.lexists_islink_isdir(symlink_to_dangling_symlink) == (False, False, False)
-        assert fs.lexists_islink_isdir(symlink_to_symlink_to_dir) == (True, True, True)
-        assert fs.lexists_islink_isdir(symlink_to_symlink_to_file) == (True, True, False)
-
-
 class RegisterVisitor(fs.BaseDirectoryVisitor):
     """A directory visitor that keeps track of all visited paths"""
 
@@ -996,3 +906,352 @@ def test_find_first_file(tmpdir, bfs_depth):
 
     # Should find first dir
     assert os.path.samefile(fs.find_first(root, "a", bfs_depth=bfs_depth), os.path.join(root, "a"))
+
+
+def test_rename_dest_exists(tmpdir):
+    @contextmanager
+    def setup_test_files():
+        a = tmpdir.join("a", "file1")
+        b = tmpdir.join("a", "file2")
+        fs.touchp(a)
+        fs.touchp(b)
+        with open(a, "w", encoding="utf-8") as oa, open(b, "w", encoding="utf-8") as ob:
+            oa.write("I am A")
+            ob.write("I am B")
+        yield a, b
+        shutil.rmtree(tmpdir.join("a"))
+
+    @contextmanager
+    def setup_test_dirs():
+        a = tmpdir.join("d", "a")
+        b = tmpdir.join("d", "b")
+        fs.mkdirp(a)
+        fs.mkdirp(b)
+        yield a, b
+        shutil.rmtree(tmpdir.join("d"))
+
+    # test standard behavior of rename
+    # smoke test
+    with setup_test_files() as files:
+        a, b = files
+        fs.rename(str(a), str(b))
+        assert os.path.exists(b)
+        assert not os.path.exists(a)
+        with open(b, "r", encoding="utf-8") as ob:
+            content = ob.read()
+        assert content == "I am A"
+
+    # test relatitve paths
+    # another sanity check/smoke test
+    with setup_test_files() as files:
+        a, b = files
+        with fs.working_dir(str(tmpdir)):
+            fs.rename(os.path.join("a", "file1"), os.path.join("a", "file2"))
+            assert os.path.exists(b)
+            assert not os.path.exists(a)
+            with open(b, "r", encoding="utf-8") as ob:
+                content = ob.read()
+            assert content == "I am A"
+
+    # Test rename symlinks to same file
+    c = tmpdir.join("a", "file1")
+    a = tmpdir.join("a", "link1")
+    b = tmpdir.join("a", "link2")
+    fs.touchp(c)
+    symlink(c, a)
+    symlink(c, b)
+    fs.rename(str(a), str(b))
+    assert os.path.exists(b)
+    assert not os.path.exists(a)
+    assert os.path.realpath(b) == c
+    shutil.rmtree(tmpdir.join("a"))
+
+    # test rename onto itself
+    a = tmpdir.join("a", "file1")
+    b = a
+    fs.touchp(a)
+    with open(a, "w", encoding="utf-8") as oa:
+        oa.write("I am A")
+    fs.rename(str(a), str(b))
+    # check a, or b, doesn't matter, same file
+    assert os.path.exists(a)
+    # ensure original file was not duplicated
+    assert len(os.listdir(tmpdir.join("a"))) == 1
+    with open(a, "r", encoding="utf-8") as oa:
+        assert oa.read()
+    shutil.rmtree(tmpdir.join("a"))
+
+    # test rename onto symlink
+    # to directory from symlink to directory
+    # (this is something spack does when regenerating views)
+    with setup_test_dirs() as dirs:
+        a, b = dirs
+        link1 = tmpdir.join("f", "link1")
+        link2 = tmpdir.join("f", "link2")
+        fs.mkdirp(tmpdir.join("f"))
+        symlink(a, link1)
+        symlink(b, link2)
+        fs.rename(str(link1), str(link2))
+        assert os.path.exists(link2)
+        assert os.path.realpath(link2) == a
+        shutil.rmtree(tmpdir.join("f"))
+
+
+@pytest.mark.only_windows("Test is for Windows specific behavior")
+def test_windows_sfn(tmpdir):
+    # first check some standard Windows locations
+    # we know require sfn names
+    # this is basically a smoke test
+    # ensure spaces are replaced + path abbreviated
+    assert fs.windows_sfn("C:\\Program Files (x86)") == "C:\\PROGRA~2"
+    # ensure path without spaces is still properly shortened
+    assert fs.windows_sfn("C:\\ProgramData") == "C:\\PROGRA~3"
+
+    # test user created paths
+    # ensure longer path with spaces is properly abbreviated
+    a = tmpdir.join("d", "this is a test", "a", "still test")
+    # ensure longer path is properly abbreviated
+    b = tmpdir.join("d", "long_path_with_no_spaces", "more_long_path")
+    # ensure path not in need of abbreviation is properly roundtripped
+    c = tmpdir.join("d", "this", "is", "short")
+    # ensure paths that are the same in the first six letters
+    # are incremented post tilde
+    d = tmpdir.join("d", "longerpath1")
+    e = tmpdir.join("d", "longerpath2")
+    fs.mkdirp(a)
+    fs.mkdirp(b)
+    fs.mkdirp(c)
+    fs.mkdirp(d)
+    fs.mkdirp(e)
+    # check only for path of path we can control,
+    # pytest prefix may or may not be mangled by windows_sfn
+    # based on user/pytest config
+    assert "d\\THISIS~1\\a\\STILLT~1" in fs.windows_sfn(a)
+    assert "d\\LONG_P~1\\MORE_L~1" in fs.windows_sfn(b)
+    assert "d\\this\\is\\short" in fs.windows_sfn(c)
+    assert "d\\LONGER~1" in fs.windows_sfn(d)
+    assert "d\\LONGER~2" in fs.windows_sfn(e)
+    shutil.rmtree(tmpdir.join("d"))
+
+
+@pytest.fixture
+def dir_structure_with_things_to_find(tmpdir):
+    """
+    <root>/
+        dir_one/
+            file_one
+        dir_two/
+        dir_three/
+            dir_four/
+                file_two
+            file_three
+        file_four
+    """
+    dir_one = tmpdir.join("dir_one").ensure(dir=True)
+    tmpdir.join("dir_two").ensure(dir=True)
+    dir_three = tmpdir.join("dir_three").ensure(dir=True)
+    dir_four = dir_three.join("dir_four").ensure(dir=True)
+
+    locations = {}
+    locations["file_one"] = str(dir_one.join("file_one").ensure())
+    locations["file_two"] = str(dir_four.join("file_two").ensure())
+    locations["file_three"] = str(dir_three.join("file_three").ensure())
+    locations["file_four"] = str(tmpdir.join("file_four").ensure())
+
+    return str(tmpdir), locations
+
+
+def test_find_path_glob_matches(dir_structure_with_things_to_find):
+    root, locations = dir_structure_with_things_to_find
+    # both file name and path match
+    assert (
+        fs.find(root, "file_two")
+        == fs.find(root, "*/*/file_two")
+        == fs.find(root, "dir_t*/*/*two")
+        == [locations["file_two"]]
+    )
+    # ensure that * does not match directory separators
+    assert fs.find(root, "dir*file_two") == []
+    # ensure that file name matches after / are matched from the start of the file name
+    assert fs.find(root, "*/ile_two") == []
+    # file name matches exist, but not with these paths
+    assert fs.find(root, "dir_one/*/*two") == fs.find(root, "*/*/*/*/file_two") == []
+
+
+def test_find_max_depth(dir_structure_with_things_to_find):
+    root, locations = dir_structure_with_things_to_find
+
+    # Make sure the paths we use to verify are absolute
+    assert os.path.isabs(locations["file_one"])
+
+    assert set(fs.find(root, "file_*", max_depth=0)) == {locations["file_four"]}
+    assert set(fs.find(root, "file_*", max_depth=1)) == {
+        locations["file_one"],
+        locations["file_three"],
+        locations["file_four"],
+    }
+    assert set(fs.find(root, "file_two", max_depth=2)) == {locations["file_two"]}
+    assert not set(fs.find(root, "file_two", max_depth=1))
+    assert set(fs.find(root, "file_two")) == {locations["file_two"]}
+    assert set(fs.find(root, "file_*")) == set(locations.values())
+
+
+def test_find_max_depth_relative(dir_structure_with_things_to_find):
+    """find_max_depth should return absolute paths even if the provided path is relative."""
+    root, locations = dir_structure_with_things_to_find
+    with fs.working_dir(root):
+        assert set(fs.find(".", "file_*", max_depth=0)) == {locations["file_four"]}
+        assert set(fs.find(".", "file_two", max_depth=2)) == {locations["file_two"]}
+
+
+@pytest.mark.parametrize("recursive,max_depth", [(False, -1), (False, 1)])
+def test_max_depth_and_recursive_errors(tmpdir, recursive, max_depth):
+    root = str(tmpdir)
+    error_str = "cannot be set if recursive is False"
+    with pytest.raises(ValueError, match=error_str):
+        fs.find(root, ["some_file"], recursive=recursive, max_depth=max_depth)
+
+    with pytest.raises(ValueError, match=error_str):
+        fs.find_libraries(["some_lib"], root, recursive=recursive, max_depth=max_depth)
+
+
+@pytest.fixture(params=[True, False])
+def complex_dir_structure(request, tmpdir):
+    """
+    "lx-dy" means "level x, directory y"
+    "lx-fy" means "level x, file y"
+    "lx-sy" means "level x, symlink y"
+
+    <root>/
+        l1-d1/
+            l2-d1/
+                l3-d2/
+                    l4-f1
+                l3-d4/
+                    l4-f2
+                l3-s1 -> l1-d2 # points to directory above l2-d1
+                l3-s3 -> l1-d1 # cyclic link
+        l1-d2/
+            l2-d2/
+                l3-f3
+            l2-f1
+            l2-s3 -> l2-d2
+        l1-s3 -> l3-d4 # a link that "skips" a directory level
+        l1-s4 -> l2-s3 # a link to a link to a dir
+    """
+    use_junctions = request.param
+    if sys.platform == "win32" and not use_junctions and not _windows_can_symlink():
+        pytest.skip("This Windows instance is not configured with symlink support")
+    elif sys.platform != "win32" and use_junctions:
+        pytest.skip("Junctions are a Windows-only feature")
+
+    l1_d1 = tmpdir.join("l1-d1").ensure(dir=True)
+    l2_d1 = l1_d1.join("l2-d1").ensure(dir=True)
+    l3_d2 = l2_d1.join("l3-d2").ensure(dir=True)
+    l3_d4 = l2_d1.join("l3-d4").ensure(dir=True)
+    l1_d2 = tmpdir.join("l1-d2").ensure(dir=True)
+    l2_d2 = l1_d2.join("l2-d2").ensure(dir=True)
+
+    if use_junctions:
+        link_fn = llnl.util.symlink._windows_create_junction
+    else:
+        link_fn = os.symlink
+
+    link_fn(l1_d2, pathlib.Path(l2_d1) / "l3-s1")
+    link_fn(l1_d1, pathlib.Path(l2_d1) / "l3-s3")
+    link_fn(l3_d4, pathlib.Path(tmpdir) / "l1-s3")
+    l2_s3 = pathlib.Path(l1_d2) / "l2-s3"
+    link_fn(l2_d2, l2_s3)
+    link_fn(l2_s3, pathlib.Path(tmpdir) / "l1-s4")
+
+    locations = {
+        "l4-f1": str(l3_d2.join("l4-f1").ensure()),
+        "l4-f2-full": str(l3_d4.join("l4-f2").ensure()),
+        "l4-f2-link": str(pathlib.Path(tmpdir) / "l1-s3" / "l4-f2"),
+        "l2-f1": str(l1_d2.join("l2-f1").ensure()),
+        "l2-f1-link": str(pathlib.Path(tmpdir) / "l1-d1" / "l2-d1" / "l3-s1" / "l2-f1"),
+        "l3-f3-full": str(l2_d2.join("l3-f3").ensure()),
+        "l3-f3-link-l1": str(pathlib.Path(tmpdir) / "l1-s4" / "l3-f3"),
+    }
+
+    return str(tmpdir), locations
+
+
+def test_find_max_depth_symlinks(complex_dir_structure):
+    root, locations = complex_dir_structure
+    root = pathlib.Path(root)
+    assert set(fs.find(root, "l4-f1")) == {locations["l4-f1"]}
+    assert set(fs.find(root / "l1-s3", "l4-f2", max_depth=0)) == {locations["l4-f2-link"]}
+    assert set(fs.find(root / "l1-d1", "l2-f1")) == {locations["l2-f1-link"]}
+    # File is accessible via symlink and subdir, the link path will be
+    # searched first, and the directory will not be searched again when
+    # it is encountered the second time (via not-link) in the traversal
+    assert set(fs.find(root, "l4-f2")) == {locations["l4-f2-link"]}
+    # File is accessible only via the dir, so the full file path should
+    # be reported
+    assert set(fs.find(root / "l1-d1", "l4-f2")) == {locations["l4-f2-full"]}
+    # Check following links to links
+    assert set(fs.find(root, "l3-f3")) == {locations["l3-f3-link-l1"]}
+
+
+def test_find_max_depth_multiple_and_repeated_entry_points(complex_dir_structure):
+    root, locations = complex_dir_structure
+
+    fst = str(pathlib.Path(root) / "l1-d1" / "l2-d1")
+    snd = str(pathlib.Path(root) / "l1-d2")
+    nonexistent = str(pathlib.Path(root) / "nonexistent")
+
+    assert set(fs.find([fst, snd, fst, snd, nonexistent], ["l*-f*"], max_depth=1)) == {
+        locations["l2-f1"],
+        locations["l4-f1"],
+        locations["l4-f2-full"],
+        locations["l3-f3-full"],
+    }
+
+
+def test_multiple_patterns(complex_dir_structure):
+    root, _ = complex_dir_structure
+    paths = fs.find(root, ["l2-f1", "l*-d*/l3-f3", "*-f*", "*/*-f*"])
+    # There shouldn't be duplicate results with multiple, overlapping patterns
+    assert len(set(paths)) == len(paths)
+    # All files should be found
+    filenames = [os.path.basename(p) for p in paths]
+    assert set(filenames) == {"l2-f1", "l3-f3", "l4-f1", "l4-f2"}
+    # They are ordered by first matching pattern (this is a bit of an implementation detail,
+    # and we could decide to change the exact order in the future)
+    assert filenames[0] == "l2-f1"
+    assert filenames[1] == "l3-f3"
+
+
+def test_find_input_types(tmp_path: pathlib.Path):
+    """test that find only accepts sequences and instances of pathlib.Path and str for root, and
+    only sequences and instances of str for patterns. In principle mypy catches these issues, but
+    it is not enabled on all call-sites."""
+    (tmp_path / "file.txt").write_text("")
+    assert (
+        fs.find(tmp_path, "file.txt")
+        == fs.find(str(tmp_path), "file.txt")
+        == fs.find([tmp_path, str(tmp_path)], "file.txt")
+        == fs.find((tmp_path, str(tmp_path)), "file.txt")
+        == fs.find(tmp_path, "file.txt")
+        == fs.find(tmp_path, ["file.txt"])
+        == fs.find(tmp_path, ("file.txt",))
+        == [str(tmp_path / "file.txt")]
+    )
+
+    with pytest.raises(TypeError):
+        fs.find(tmp_path, pathlib.Path("file.txt"))  # type: ignore
+
+    with pytest.raises(TypeError):
+        fs.find(1, "file.txt")  # type: ignore
+
+
+def test_edit_in_place_through_temporary_file(tmp_path):
+    (tmp_path / "example.txt").write_text("Hello")
+    current_ino = os.stat(tmp_path / "example.txt").st_ino
+    with fs.edit_in_place_through_temporary_file(tmp_path / "example.txt") as temporary:
+        os.unlink(temporary)
+        with open(temporary, "w", encoding="utf-8") as f:
+            f.write("World")
+    assert (tmp_path / "example.txt").read_text() == "World"
+    assert os.stat(tmp_path / "example.txt").st_ino == current_ino

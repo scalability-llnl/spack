@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,10 +16,14 @@ class Conquest(MakefilePackage):
     # notify when the package is updated.
     maintainers("davidbowler", "tkoskela", "ilectra")
 
+    license("MIT")
+
     version("1.2", sha256="74d974f20ec15ff31d97cd42aae6dbe95288eedfa785896d5872b9ff44ee7ae2")
     version("1.1", sha256="772e058f073cccfee45521aa62bb13192ab07cb2979b6076ddbf21ba22f9ba5d")
     version("master", branch="master")
     version("develop", branch="develop")
+
+    depends_on("fortran", type="build")  # generated
 
     depends_on("blas")
     depends_on("lapack")
@@ -62,7 +65,7 @@ class Conquest(MakefilePackage):
         fflags = "-O3 -fallow-argument-mismatch"
         ldflags = ""
 
-        if "+openmp" in self.spec:
+        if self.spec.satisfies("+openmp"):
             fflags += " " + self.compiler.openmp_flag
             ldflags += " " + self.compiler.openmp_flag
 
@@ -90,7 +93,7 @@ class Conquest(MakefilePackage):
         defs_file.filter(".*FFT_LIB=.*", f"FFT_LIB={fftw_ld}")
         defs_file.filter(".*XC_LIB=.*", f"XC_LIB={libxc_ld} -lxcf90 -lxc")
 
-        if "+openmp" in self.spec:
+        if self.spec.satisfies("+openmp"):
             defs_file.filter("OMP_DUMMY = DUMMY", "OMP_DUMMY = ")
 
         if self.spec.variants["mult_kern"].value != "default":

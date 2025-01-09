@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os.path
@@ -8,7 +7,10 @@ import pytest
 
 from llnl.util.filesystem import touch
 
+import spack.builder
 import spack.paths
+import spack.repo
+import spack.spec
 
 
 @pytest.fixture()
@@ -161,6 +163,23 @@ def test_install_time_test_callback(tmpdir, config, mock_packages, mock_stage):
     for phase_fn in builder:
         phase_fn.execute()
 
-    with open(s.package.tester.test_log_file, "r") as f:
+    with open(s.package.tester.test_log_file, "r", encoding="utf-8") as f:
         results = f.read().replace("\n", " ")
         assert "PyTestCallback test" in results
+
+
+@pytest.mark.regression("43097")
+@pytest.mark.usefixtures("builder_test_repository", "config")
+def test_mixins_with_builders(working_env):
+    """Tests that run_after and run_before callbacks are accumulated correctly,
+    when mixins are used with builders.
+    """
+    s = spack.spec.Spec("builder-and-mixins").concretized()
+    builder = spack.builder.create(s.package)
+
+    # Check that callbacks added by the mixin are in the list
+    assert any(fn.__name__ == "before_install" for _, fn in builder.run_before_callbacks)
+    assert any(fn.__name__ == "after_install" for _, fn in builder.run_after_callbacks)
+
+    # Check that callback from the GenericBuilder are in the list too
+    assert any(fn.__name__ == "sanity_check_prefix" for _, fn in builder.run_after_callbacks)

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,8 @@ class AdolC(AutotoolsPackage):
     git = "https://github.com/coin-or/ADOL-C.git"
     maintainers("jppelteret")
 
+    license("EPL-1.0")
+
     version("master", branch="master")
     version("2.7.2", sha256="701e0856baae91b98397960d5e0a87a549988de9d4002d0e9a56fa08f5455f6e")
     version("2.7.1", sha256="a05422cc7faff5700e134e113822d1934fb540ad247e63778524d5d6d75bb0ef")
@@ -27,6 +28,9 @@ class AdolC(AutotoolsPackage):
     version("2.5.2", sha256="390edb1513f749b2dbf6fb90db12ce786f6532af80e589f161ff43646b3a78a6")
     version("2.5.1", sha256="dedb93c3bb291366d799014b04b6d1ec63ca4e7216edf16167776c07961e3b4a")
     version("2.5.0", sha256="9d51c426d831884aac8f418be410c001eb62f3a11cb8f30c66af0b842edffb96")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "advanced_branching",
@@ -82,12 +86,12 @@ class AdolC(AutotoolsPackage):
 
         configure_args = []
 
-        if "+boost" in spec:
+        if spec.satisfies("+boost"):
             configure_args.append(f"--with-boost={spec['boost'].prefix}")
         else:
             configure_args.append("--with-boost=no")
 
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             configure_args.append(f"--with-openmp-flag={self.compiler.openmp_flag}")
 
         configure_args.extend(
@@ -102,14 +106,14 @@ class AdolC(AutotoolsPackage):
 
         # We can simply use the bundled examples to check
         # whether Adol-C works as expected
-        if "+examples" in spec:
+        if spec.satisfies("+examples"):
             configure_args.extend(
                 [
                     "--enable-docexa",  # Documented examples
                     "--enable-addexa",  # Additional examples
                 ]
             )
-            if "+openmp" in spec:
+            if spec.satisfies("+openmp"):
                 configure_args.append("--enable-parexa")  # Parallel examples
 
         return configure_args
@@ -125,11 +129,11 @@ class AdolC(AutotoolsPackage):
         install(config_h, join_path(prefix.include, "adolc"))
 
         # Install documentation to {prefix}/share
-        if "+doc" in spec:
+        if spec.satisfies("+doc"):
             install_tree(join_path("ADOL-C", "doc"), join_path(prefix.share, "doc"))
 
         # Install examples to {prefix}/share
-        if "+examples" in spec:
+        if spec.satisfies("+examples"):
             install_tree(join_path("ADOL-C", "examples"), join_path(prefix.share, "examples"))
 
             # Run some examples that don't require user input
@@ -143,8 +147,13 @@ class AdolC(AutotoolsPackage):
             ):
                 Executable("./checkpointing/checkpointing")()
 
-            if "+openmp" in spec:
+            if spec.satisfies("+openmp"):
                 with working_dir(
                     join_path(source_directory, "ADOL-C", "examples", "additional_examples")
                 ):
                     Executable("./checkpointing/checkpointing")()
+
+    @property
+    def libs(self):
+        """The name of the library differs from the package name => own libs handling."""
+        return find_libraries(["libadolc"], root=self.prefix, shared=True, recursive=True)

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,8 +11,16 @@ class Igraph(CMakePackage, AutotoolsPackage):
     homepage = "https://igraph.org/"
     url = "https://github.com/igraph/igraph/releases/download/0.7.1/igraph-0.7.1.tar.gz"
 
+    license("GPL-2.0-or-later")
+
+    version("0.10.15", sha256="03ba01db0544c4e32e51ab66f2356a034394533f61b4e14d769b9bbf5ad5e52c")
+    version("0.10.13", sha256="c6dc44324f61f52c098bedb81f6a602365d39d692d5068ca4fc3734b2a15e64c")
     version("0.10.6", sha256="99bf91ee90febeeb9a201f3e0c1d323c09214f0b5f37a4290dc3b63f52839d6d")
     version("0.7.1", sha256="d978030e27369bf698f3816ab70aa9141e9baf81c56cc4f55efbe5489b46b0df")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("shared", default=False, description="Enable shared build")
 
@@ -44,7 +51,7 @@ class Igraph(CMakePackage, AutotoolsPackage):
             "-DBLA_VENDOR=OpenBLAS",
         ]
 
-        if "+shared" in self.spec:
+        if self.spec.satisfies("+shared"):
             args.append("-DBUILD_SHARED_LIBS=ON")
         else:
             args.append("-DBUILD_SHARED_LIBS=OFF")

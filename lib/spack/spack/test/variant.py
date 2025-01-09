@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import numbers
@@ -7,8 +6,12 @@ import numbers
 import pytest
 
 import spack.error
+import spack.repo
+import spack.spec
 import spack.variant
+from spack.spec import Spec, VariantMap
 from spack.variant import (
+    AbstractVariant,
     BoolValuedVariant,
     DuplicateVariantError,
     InconsistentValidationError,
@@ -18,7 +21,6 @@ from spack.variant import (
     SingleValuedVariant,
     UnsatisfiableVariantSpecError,
     Variant,
-    VariantMap,
     disjoint_sets,
 )
 
@@ -541,7 +543,7 @@ class TestVariant:
         )
         # Valid vspec, shouldn't raise
         vspec = a.make_variant("bar")
-        a.validate_or_raise(vspec)
+        a.validate_or_raise(vspec, "test-package")
 
         # Multiple values are not allowed
         with pytest.raises(MultipleValuesInExclusiveVariantError):
@@ -550,16 +552,16 @@ class TestVariant:
         # Inconsistent vspec
         vspec.name = "FOO"
         with pytest.raises(InconsistentValidationError):
-            a.validate_or_raise(vspec)
+            a.validate_or_raise(vspec, "test-package")
 
         # Valid multi-value vspec
         a.multi = True
         vspec = a.make_variant("bar,baz")
-        a.validate_or_raise(vspec)
+        a.validate_or_raise(vspec, "test-package")
         # Add an invalid value
         vspec.value = "bar,baz,barbaz"
         with pytest.raises(InvalidVariantValueError):
-            a.validate_or_raise(vspec)
+            a.validate_or_raise(vspec, "test-package")
 
     def test_callable_validator(self):
         def validator(x):
@@ -570,12 +572,12 @@ class TestVariant:
 
         a = Variant("foo", default=1024, description="", values=validator, multi=False)
         vspec = a.make_default()
-        a.validate_or_raise(vspec)
+        a.validate_or_raise(vspec, "test-package")
         vspec.value = 2056
-        a.validate_or_raise(vspec)
+        a.validate_or_raise(vspec, "test-package")
         vspec.value = "foo"
         with pytest.raises(InvalidVariantValueError):
-            a.validate_or_raise(vspec)
+            a.validate_or_raise(vspec, "test-package")
 
     def test_representation(self):
         a = Variant(
@@ -583,11 +585,22 @@ class TestVariant:
         )
         assert a.allowed_values == "bar, baz, foobar"
 
+    def test_str(self):
+        string = str(
+            Variant(
+                "foo", default="", description="", values=("bar", "baz", "foobar"), multi=False
+            )
+        )
+        assert "'foo'" in string
+        assert "default=''" in string
+        assert "description=''" in string
+        assert "values=('foo', 'bar', 'baz') in string"
+
 
 class TestVariantMapTest:
-    def test_invalid_values(self):
+    def test_invalid_values(self) -> None:
         # Value with invalid type
-        a = VariantMap(None)
+        a = VariantMap(Spec())
         with pytest.raises(TypeError):
             a["foo"] = 2
 
@@ -606,17 +619,17 @@ class TestVariantMapTest:
         with pytest.raises(KeyError):
             a["bar"] = MultiValuedVariant("foo", "bar")
 
-    def test_set_item(self):
+    def test_set_item(self) -> None:
         # Check that all the three types of variants are accepted
-        a = VariantMap(None)
+        a = VariantMap(Spec())
 
         a["foo"] = BoolValuedVariant("foo", True)
         a["bar"] = SingleValuedVariant("bar", "baz")
         a["foobar"] = MultiValuedVariant("foobar", "a, b, c, d, e")
 
-    def test_substitute(self):
+    def test_substitute(self) -> None:
         # Check substitution of a key that exists
-        a = VariantMap(None)
+        a = VariantMap(Spec())
         a["foo"] = BoolValuedVariant("foo", True)
         a.substitute(SingleValuedVariant("foo", "bar"))
 
@@ -625,15 +638,15 @@ class TestVariantMapTest:
         with pytest.raises(KeyError):
             a.substitute(BoolValuedVariant("bar", True))
 
-    def test_satisfies_and_constrain(self):
+    def test_satisfies_and_constrain(self) -> None:
         # foo=bar foobar=fee feebar=foo
-        a = VariantMap(None)
+        a = VariantMap(Spec())
         a["foo"] = MultiValuedVariant("foo", "bar")
         a["foobar"] = SingleValuedVariant("foobar", "fee")
         a["feebar"] = SingleValuedVariant("feebar", "foo")
 
         # foo=bar,baz foobar=fee shared=True
-        b = VariantMap(None)
+        b = VariantMap(Spec())
         b["foo"] = MultiValuedVariant("foo", "bar, baz")
         b["foobar"] = SingleValuedVariant("foobar", "fee")
         b["shared"] = BoolValuedVariant("shared", True)
@@ -645,7 +658,7 @@ class TestVariantMapTest:
         assert not b.satisfies(a)
 
         # foo=bar,baz foobar=fee feebar=foo shared=True
-        c = VariantMap(None)
+        c = VariantMap(Spec())
         c["foo"] = MultiValuedVariant("foo", "bar, baz")
         c["foobar"] = SingleValuedVariant("foobar", "fee")
         c["feebar"] = SingleValuedVariant("feebar", "foo")
@@ -654,8 +667,8 @@ class TestVariantMapTest:
         assert a.constrain(b)
         assert a == c
 
-    def test_copy(self):
-        a = VariantMap(None)
+    def test_copy(self) -> None:
+        a = VariantMap(Spec())
         a["foo"] = BoolValuedVariant("foo", True)
         a["bar"] = SingleValuedVariant("bar", "baz")
         a["foobar"] = MultiValuedVariant("foobar", "a, b, c, d, e")
@@ -663,13 +676,30 @@ class TestVariantMapTest:
         c = a.copy()
         assert a == c
 
-    def test_str(self):
-        c = VariantMap(None)
+    def test_str(self) -> None:
+        c = VariantMap(Spec())
         c["foo"] = MultiValuedVariant("foo", "bar, baz")
         c["foobar"] = SingleValuedVariant("foobar", "fee")
         c["feebar"] = SingleValuedVariant("feebar", "foo")
         c["shared"] = BoolValuedVariant("shared", True)
         assert str(c) == "+shared feebar=foo foo=bar,baz foobar=fee"
+
+    def test_concrete(self, mock_packages, config) -> None:
+        spec = Spec("pkg-a")
+        vm = VariantMap(spec)
+        assert not vm.concrete
+
+        # concrete if associated spec is concrete
+        spec.concretize()
+        assert vm.concrete
+
+        # concrete if all variants are present (even if spec not concrete)
+        spec._mark_concrete(False)
+        assert spec.variants.concrete
+
+        # remove a variant to test the condition
+        del spec.variants["foo"]
+        assert not spec.variants.concrete
 
 
 def test_disjoint_set_initialization_errors():
@@ -731,6 +761,188 @@ def test_disjoint_set_fluent_methods():
 @pytest.mark.regression("32694")
 @pytest.mark.parametrize("other", [True, False])
 def test_conditional_value_comparable_to_bool(other):
-    value = spack.variant.Value("98", when="@1.0")
+    value = spack.variant.ConditionalValue("98", when=Spec("@1.0"))
     comparison = value == other
     assert comparison is False
+
+
+@pytest.mark.regression("40405")
+def test_wild_card_valued_variants_equivalent_to_str():
+    """
+    There was a bug prioro to PR 40406 in that variants with wildcard values "*"
+    were being overwritten in the variant constructor.
+    The expected/appropriate behavior is for it to behave like value=str and this
+    test demonstrates that the two are now equivalent
+    """
+    str_var = spack.variant.Variant(
+        name="str_var",
+        default="none",
+        values=str,
+        description="str variant",
+        multi=True,
+        validator=None,
+    )
+
+    wild_var = spack.variant.Variant(
+        name="wild_var",
+        default="none",
+        values="*",
+        description="* variant",
+        multi=True,
+        validator=None,
+    )
+
+    several_arbitrary_values = ("doe", "re", "mi")
+    # "*" case
+    wild_output = wild_var.make_variant(several_arbitrary_values)
+    wild_var.validate_or_raise(wild_output, "test-package")
+    # str case
+    str_output = str_var.make_variant(several_arbitrary_values)
+    str_var.validate_or_raise(str_output, "test-package")
+    # equivalence each instance already validated
+    assert str_output.value == wild_output.value
+
+
+def test_variant_definitions(mock_packages):
+    pkg = spack.repo.PATH.get_pkg_class("variant-values")
+
+    # two variant names
+    assert len(pkg.variant_names()) == 2
+    assert "build_system" in pkg.variant_names()
+    assert "v" in pkg.variant_names()
+
+    # this name doesn't exist
+    assert len(pkg.variant_definitions("no-such-variant")) == 0
+
+    # there are 4 definitions but one is completely shadowed by another
+    assert len(pkg.variants) == 4
+
+    # variant_items ignores the shadowed definition
+    assert len(list(pkg.variant_items())) == 3
+
+    # variant_definitions also ignores the shadowed definition
+    defs = [vdef for _, vdef in pkg.variant_definitions("v")]
+    assert len(defs) == 2
+    assert defs[0].default == "foo"
+    assert defs[0].values == ("foo",)
+
+    assert defs[1].default == "bar"
+    assert defs[1].values == ("foo", "bar")
+
+
+@pytest.mark.parametrize(
+    "pkg_name,value,spec,def_ids",
+    [
+        ("variant-values", "foo", "", [0, 1]),
+        ("variant-values", "bar", "", [1]),
+        ("variant-values", "foo", "@1.0", [0]),
+        ("variant-values", "foo", "@2.0", [1]),
+        ("variant-values", "foo", "@3.0", [1]),
+        ("variant-values", "foo", "@4.0", []),
+        ("variant-values", "bar", "@2.0", [1]),
+        ("variant-values", "bar", "@3.0", [1]),
+        ("variant-values", "bar", "@4.0", []),
+        # now with a global override
+        ("variant-values-override", "bar", "", [0]),
+        ("variant-values-override", "bar", "@1.0", [0]),
+        ("variant-values-override", "bar", "@2.0", [0]),
+        ("variant-values-override", "bar", "@3.0", [0]),
+        ("variant-values-override", "bar", "@4.0", [0]),
+        ("variant-values-override", "baz", "", [0]),
+        ("variant-values-override", "baz", "@2.0", [0]),
+        ("variant-values-override", "baz", "@3.0", [0]),
+        ("variant-values-override", "baz", "@4.0", [0]),
+    ],
+)
+def test_prevalidate_variant_value(mock_packages, pkg_name, value, spec, def_ids):
+    pkg = spack.repo.PATH.get_pkg_class(pkg_name)
+
+    all_defs = [vdef for _, vdef in pkg.variant_definitions("v")]
+
+    valid_defs = spack.variant.prevalidate_variant_value(
+        pkg, SingleValuedVariant("v", value), spack.spec.Spec(spec)
+    )
+    assert len(valid_defs) == len(def_ids)
+
+    for vdef, i in zip(valid_defs, def_ids):
+        assert vdef is all_defs[i]
+
+
+@pytest.mark.parametrize(
+    "pkg_name,value,spec",
+    [
+        ("variant-values", "baz", ""),
+        ("variant-values", "bar", "@1.0"),
+        ("variant-values", "bar", "@4.0"),
+        ("variant-values", "baz", "@3.0"),
+        ("variant-values", "baz", "@4.0"),
+        # and with override
+        ("variant-values-override", "foo", ""),
+        ("variant-values-override", "foo", "@1.0"),
+        ("variant-values-override", "foo", "@2.0"),
+        ("variant-values-override", "foo", "@3.0"),
+        ("variant-values-override", "foo", "@4.0"),
+    ],
+)
+def test_strict_invalid_variant_values(mock_packages, pkg_name, value, spec):
+    pkg = spack.repo.PATH.get_pkg_class(pkg_name)
+
+    with pytest.raises(spack.variant.InvalidVariantValueError):
+        spack.variant.prevalidate_variant_value(
+            pkg, SingleValuedVariant("v", value), spack.spec.Spec(spec), strict=True
+        )
+
+
+@pytest.mark.parametrize(
+    "pkg_name,spec,satisfies,def_id",
+    [
+        ("variant-values", "@1.0", "v=foo", 0),
+        ("variant-values", "@2.0", "v=bar", 1),
+        ("variant-values", "@3.0", "v=bar", 1),
+        ("variant-values-override", "@1.0", "v=baz", 0),
+        ("variant-values-override", "@2.0", "v=baz", 0),
+        ("variant-values-override", "@3.0", "v=baz", 0),
+    ],
+)
+def test_concretize_variant_default_with_multiple_defs(
+    mock_packages, config, pkg_name, spec, satisfies, def_id
+):
+    pkg = spack.repo.PATH.get_pkg_class(pkg_name)
+    pkg_defs = [vdef for _, vdef in pkg.variant_definitions("v")]
+
+    spec = spack.spec.Spec(f"{pkg_name}{spec}").concretized()
+    assert spec.satisfies(satisfies)
+    assert spec.package.get_variant("v") is pkg_defs[def_id]
+
+
+@pytest.mark.parametrize(
+    "spec,variant_name,after",
+    [
+        # dev_path is a special case
+        ("foo dev_path=/path/to/source", "dev_path", SingleValuedVariant),
+        # reserved name: won't be touched
+        ("foo patches=2349dc44", "patches", AbstractVariant),
+        # simple case -- one definition applies
+        ("variant-values@1.0 v=foo", "v", SingleValuedVariant),
+        # simple, but with bool valued variant
+        ("pkg-a bvv=true", "bvv", BoolValuedVariant),
+        # variant doesn't exist at version
+        ("variant-values@4.0 v=bar", "v", spack.spec.InvalidVariantForSpecError),
+        # multiple definitions, so not yet knowable
+        ("variant-values@2.0 v=bar", "v", AbstractVariant),
+    ],
+)
+def test_substitute_abstract_variants(mock_packages, spec, variant_name, after):
+    spec = Spec(spec)
+
+    # all variants start out as AbstractVariant
+    assert isinstance(spec.variants[variant_name], AbstractVariant)
+
+    if issubclass(after, Exception):
+        # if we're checking for an error, use pytest.raises
+        with pytest.raises(after):
+            spack.spec.substitute_abstract_variants(spec)
+    else:
+        # ensure that the type of the variant on the spec has been narrowed (or not)
+        spack.spec.substitute_abstract_variants(spec)
+        assert isinstance(spec.variants[variant_name], after)

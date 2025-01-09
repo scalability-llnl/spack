@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -19,6 +18,14 @@ class KokkosNvccWrapper(Package):
 
     maintainers("Rombur")
 
+    license("BSD-3-Clause")
+
+    version("4.4.01", sha256="3f7096d17eaaa4004c7497ac082bf1ae3ff47b5104149e54af021a89414c3682")
+    version("4.4.00", sha256="c638980cb62c34969b8c85b73e68327a2cb64f763dd33e5241f5fd437170205a")
+    version("4.3.01", sha256="5998b7c732664d6b5e219ccc445cd3077f0e3968b4be480c29cd194b4f45ec70")
+    version("4.3.00", sha256="53cf30d3b44dade51d48efefdaee7a6cf109a091b702a443a2eda63992e5fe0d")
+    version("4.2.01", sha256="cbabbabba021d00923fb357d2e1b905dda3838bd03c885a6752062fe03c67964")
+    version("4.2.00", sha256="ac08765848a0a6ac584a0a46cd12803f66dd2a2c2db99bb17c06ffc589bf5be8")
     version("4.1.00", sha256="cf725ea34ba766fdaf29c884cfe2daacfdc6dc2d6af84042d1c78d0f16866275")
     version("4.0.01", sha256="bb942de8afdd519fd6d5d3974706bfc22b6585a62dd565c12e53bdb82cd154f0")
     version("4.0.00", sha256="1829a423883d4b44223c7c3a53d3c51671145aad57d7d23e6a1a4bebf710dcf6")
@@ -39,6 +46,10 @@ class KokkosNvccWrapper(Package):
     version("3.0.00", sha256="c00613d0194a4fbd0726719bbed8b0404ed06275f310189b3493f5739042a92b")
     version("master", branch="master")
     version("develop", branch="develop")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("cuda")
 

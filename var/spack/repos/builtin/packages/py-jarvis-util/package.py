@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,7 @@ class PyJarvisUtil(PythonPackage):
     url = "https://github.com/scs-lab/jarvis-util/archive/refs/tags/v0.0.1.tar.gz"
     maintainers("lukemartinlogan", "hyoklee")
 
+    version("master", branch="master")
     version("0.0.1", sha256="1c5fbbfec410f1df8dc28edc87dd4421c3708f5bd22bf7ef010138d5c4a1ff8f")
 
     depends_on("py-setuptools", type="build")

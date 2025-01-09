@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -10,19 +9,20 @@ from spack.package import *
 class XsdkExamples(CMakePackage, CudaPackage, ROCmPackage):
     """xSDK Examples show usage of libraries in the xSDK package."""
 
-    homepage = "http://xsdk.info"
+    homepage = "https://xsdk.info"
     url = "https://github.com/xsdk-project/xsdk-examples/archive/v0.1.0.tar.gz"
     git = "https://github.com/xsdk-project/xsdk-examples"
 
     maintainers("balay", "luszczek", "balos1", "shuds13", "v-dobrev")
 
-    version("develop", branch="master")
-    version("0.4.0", sha256="de54e02e0222420976a2f4cf0a6230e4bb625b443c66500fa1441032db206df9")
     version(
-        "0.3.0",
-        sha256="e7444a403c0a69eeeb34a4068be4d6f4e5b54cbfd275629019b9236a538a739e",
+        "0.4.0",
+        sha256="de54e02e0222420976a2f4cf0a6230e4bb625b443c66500fa1441032db206df9",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("xsdk+cuda", when="+cuda")
     depends_on("xsdk~cuda", when="~cuda")
@@ -35,18 +35,18 @@ class XsdkExamples(CMakePackage, CudaPackage, ROCmPackage):
             "xsdk+rocm amdgpu_target={0}".format(ac_), when="+rocm amdgpu_target={0}".format(ac_)
         )
 
-    depends_on("xsdk@develop", when="@develop")
     # Use ^dealii~hdf5 because of HDF5 linking issue in deal.II 9.4.0.
     # Disable 'arborx' to remove the 'kokkos' dependency which conflicts with
     # the internal Kokkos used by 'trilinos':
-    depends_on("xsdk@0.8.0 ~arborx ^mfem+pumi ^dealii~hdf5", when="@0.4.0")
-    depends_on("xsdk@0.8.0 ^mfem+strumpack", when="@0.4.0 ^xsdk+strumpack")
-    depends_on("xsdk@0.8.0 ^mfem+ginkgo", when="@0.4.0 ^xsdk+ginkgo")
-    depends_on("xsdk@0.8.0 ^mfem+hiop", when="@0.4.0 ^xsdk+hiop")
-    depends_on("xsdk@0.8.0 ^sundials+magma", when="@0.4.0 +cuda")
-    depends_on("xsdk@0.7.0", when="@0.3.0")
-    depends_on("xsdk@0.7.0 ^mfem+strumpack", when="@0.3.0 ^xsdk+strumpack")
-    depends_on("xsdk@0.7.0 ^sundials+magma", when="@0.3.0 +cuda")
+    with when("@0.4.0"):
+        depends_on("xsdk@0.8.0 ~arborx")
+        depends_on("mfem+pumi")
+        depends_on("dealii~hdf5")
+        depends_on("mfem+strumpack", when="^xsdk+strumpack")
+        depends_on("mfem+ginkgo", when="^xsdk+ginkgo")
+        depends_on("mfem+hiop", when="^xsdk+hiop")
+        depends_on("sundials+magma", when="+cuda")
+
     depends_on("mpi")
     depends_on("cmake@3.21:", type="build", when="@0.3.0:")
 
@@ -100,5 +100,5 @@ class XsdkExamples(CMakePackage, CudaPackage, ROCmPackage):
         return args
 
     def check(self):
-        with working_dir(self.builder.build_directory):
+        with working_dir(self.build_directory):
             ctest("--output-on-failure")

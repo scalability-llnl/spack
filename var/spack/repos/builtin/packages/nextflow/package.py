@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,36 @@ class Nextflow(Package):
 
     maintainers("dialvarezs", "marcodelapierre")
 
+    version(
+        "24.10.3",
+        sha256="01110949bb3256bf6cbf1d4b3ea17369491b3f693b6d86a0c9ab8171b1619ba0",
+        expand=False,
+    )
+    version(
+        "24.10.2",
+        sha256="e12bf1fc1e11629f2aef22a9a6ddecc31522bcd5988d1c48d263de699b4e5289",
+        expand=False,
+    )
+    version(
+        "24.10.0",
+        sha256="e848918fb9b85762822c078435d9ff71979a88cccff81ce5babd75d5eee52fe6",
+        expand=False,
+    )
+    version(
+        "24.04.3",
+        sha256="e258f6395a38f044eb734cba6790af98b561aa521f63e2701fe95c050986e11c",
+        expand=False,
+    )
+    version(
+        "24.04.1",
+        sha256="d1199179e31d0701d86e6c38afa9ccade93f62d545e800824be7767a130510ba",
+        expand=False,
+    )
+    version(
+        "23.10.1",
+        sha256="9abc54f1ffb2b834a8135d44300404552d1e27719659cbb635199898677b660a",
+        expand=False,
+    )
     version(
         "23.10.0",
         sha256="4b7fba61ecc6d53a6850390bb435455a54ae4d0c3108199f88b16b49e555afdd",
@@ -172,7 +201,7 @@ class Nextflow(Package):
         deprecated=True,
     )
 
-    depends_on("java")
+    depends_on("java", type="run")
 
     def install(self, spec, prefix):
         mkdirp(prefix.bin)

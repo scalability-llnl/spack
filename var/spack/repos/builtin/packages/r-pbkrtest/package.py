@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,9 @@ class RPbkrtest(RPackage):
 
     cran = "pbkrtest"
 
+    license("GPL-2.0-or-later")
+
+    version("0.5.3", sha256="b03e5156fef6a4a2ea67c1d15c051799e63acafef2f89962c580645266e6ba63")
     version("0.5.2", sha256="8e79adf035a0fcf3c82145ad55847497379e009f7be880ba3007ebeb2e69b6e3")
     version("0.5.1", sha256="b2a3452003d93890f122423b3f2487dcb6925440f5b8a05578509e98b6aec7c5")
     version("0.5-0.1", sha256="f56525488c6efe4a5cbf849bf9a82747041478605b166c29bad54e464e46f469")
@@ -33,12 +35,14 @@ class RPbkrtest(RPackage):
     depends_on("r@3.2.3:", type=("build", "run"), when="@0.4-6:")
     depends_on("r@3.5.0:", type=("build", "run"), when="@0.5-0.1:")
     depends_on("r@4.1.0:", type=("build", "run"), when="@0.5.2:")
+    depends_on("r@4.2.0:", type=("build", "run"), when="@0.5.3:")
     depends_on("r-lme4@1.1-10:", type=("build", "run"))
-    depends_on("r-lme4@1.1.31:", type=("build", "run"), when="@0.5.2:")
+    depends_on("r-lme4@1.1-31:", type=("build", "run"), when="@0.5.2:")
     depends_on("r-broom", type=("build", "run"), when="@0.5-0.1:")
+    depends_on("r-doby", type=("build", "run"), when="@0.5.3:")
     depends_on("r-dplyr", type=("build", "run"), when="@0.5-0.1:")
     depends_on("r-mass", type=("build", "run"))
-    depends_on("r-matrix@1.2.3:", type=("build", "run"))
+    depends_on("r-matrix@1.2-3:", type=("build", "run"))
     depends_on("r-numderiv", type=("build", "run"), when="@0.5-0.1:")
     depends_on("r-knitr", type=("build", "run"), when="@0.5-0.1:0.5.1")
     depends_on("r-magrittr", type=("build", "run"), when="@0.5-0.1:0.5.1")

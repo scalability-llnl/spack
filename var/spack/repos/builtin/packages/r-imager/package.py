@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,9 @@ class RImager(RPackage):
 
     cran = "imager"
 
+    license("LGPL-3.0-only")
+
+    version("1.0.2", sha256="7c849086cb17d6c5aefc106217363e14afbcda2a9e0120687d40805b5e1c566a")
     version("0.42.19", sha256="187abccba648ecece5e466ca6333acd5c8fdd1476daa2d04d5fa9ec5400ae1e2")
     version("0.42.13", sha256="d90a9893d11190ba249c7fae5bd6517a77907efbce2941452cb2aec57bb5cf7f")
     version("0.42.11", sha256="47f8b7ff8d05a5191e30ad1869f12a62bdbe3142b22b12a6032dec9b5f8532a8")
@@ -27,8 +29,10 @@ class RImager(RPackage):
 
     depends_on("r+X")
     depends_on("r@2.10.0:", type=("build", "run"))
+    depends_on("r@4.0.0:", type=("build", "run"), when="@1.0.0:")
     depends_on("r-magrittr", type=("build", "run"))
     depends_on("r-rcpp@0.11.5:", type=("build", "run"))
+    depends_on("r-rcpp@1.0.0:", type=("build", "run"), when="@1.0.1:")
     depends_on("r-stringr", type=("build", "run"))
     depends_on("r-png", type=("build", "run"))
     depends_on("r-jpeg", type=("build", "run"))

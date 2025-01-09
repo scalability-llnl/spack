@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -9,8 +8,7 @@ import sys
 
 import llnl.util.tty as tty
 
-import spack.build_environment
-import spack.util.executable
+from spack.build_systems.cmake import get_cmake_prefix_path
 from spack.package import *
 
 
@@ -28,8 +26,6 @@ class LlvmDoe(CMakePackage, CudaPackage):
 
     generator("ninja")
 
-    family = "compiler"  # Used by lmod
-
     version("doe", branch="doe", preferred=True)
     version("upstream", branch="llvm.org/main")
     version("bolt", branch="bolt/main")
@@ -37,6 +33,10 @@ class LlvmDoe(CMakePackage, CudaPackage):
     version("pragma-clang-loop", branch="sollve/pragma-clang-loop")
     version("pragma-omp-tile", branch="sollve/pragma-omp-tile")
     version("13.0.0", branch="llvm.org/llvmorg-13.0.0")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # NOTE: The debug version of LLVM is an order of magnitude larger than
     # the release version, and may take up 20-30 GB of space. If you want
@@ -185,7 +185,6 @@ class LlvmDoe(CMakePackage, CudaPackage):
 
     # code signing is only necessary on macOS",
     conflicts("+code_signing", when="platform=linux")
-    conflicts("+code_signing", when="platform=cray")
 
     conflicts(
         "+code_signing",
@@ -257,7 +256,7 @@ class LlvmDoe(CMakePackage, CudaPackage):
             match = version_regex.search(output)
             if match:
                 return match.group(match.lastindex)
-        except spack.util.executable.ProcessError:
+        except ProcessError:
             pass
         except Exception as e:
             tty.debug(e)
@@ -308,7 +307,7 @@ class LlvmDoe(CMakePackage, CudaPackage):
         if self.spec.external:
             return self.spec.extra_attributes["compilers"].get("c", None)
         result = None
-        if "+clang" in self.spec:
+        if self.spec.satisfies("+clang"):
             result = os.path.join(self.spec.prefix.bin, "clang")
         return result
 
@@ -319,7 +318,7 @@ class LlvmDoe(CMakePackage, CudaPackage):
         if self.spec.external:
             return self.spec.extra_attributes["compilers"].get("cxx", None)
         result = None
-        if "+clang" in self.spec:
+        if self.spec.satisfies("+clang"):
             result = os.path.join(self.spec.prefix.bin, "clang++")
         return result
 
@@ -330,7 +329,7 @@ class LlvmDoe(CMakePackage, CudaPackage):
         if self.spec.external:
             return self.spec.extra_attributes["compilers"].get("fc", None)
         result = None
-        if "+flang" in self.spec:
+        if self.spec.satisfies("+flang"):
             result = os.path.join(self.spec.prefix.bin, "flang")
         return result
 
@@ -341,7 +340,7 @@ class LlvmDoe(CMakePackage, CudaPackage):
         if self.spec.external:
             return self.spec.extra_attributes["compilers"].get("f77", None)
         result = None
-        if "+flang" in self.spec:
+        if self.spec.satisfies("+flang"):
             result = os.path.join(self.spec.prefix.bin, "flang")
         return result
 
@@ -391,10 +390,10 @@ class LlvmDoe(CMakePackage, CudaPackage):
             env.prepend_path("PATH", self.stage.path)
 
     def setup_run_environment(self, env):
-        if "+clang" in self.spec:
+        if self.spec.satisfies("+clang"):
             env.set("CC", join_path(self.spec.prefix.bin, "clang"))
             env.set("CXX", join_path(self.spec.prefix.bin, "clang++"))
-        if "+flang" in self.spec:
+        if self.spec.satisfies("+flang"):
             env.set("FC", join_path(self.spec.prefix.bin, "flang"))
             env.set("F77", join_path(self.spec.prefix.bin, "flang"))
 
@@ -405,13 +404,11 @@ class LlvmDoe(CMakePackage, CudaPackage):
         define = self.define
         from_variant = self.define_from_variant
 
-        python = spec["python"]
         cmake_args = [
             define("LLVM_REQUIRES_RTTI", True),
             define("LLVM_ENABLE_RTTI", True),
             define("LLVM_ENABLE_EH", True),
             define("CLANG_DEFAULT_OPENMP_RUNTIME", "libomp"),
-            define("PYTHON_EXECUTABLE", python.command.path),
             define("LIBOMP_USE_HWLOC", True),
             define("LIBOMP_HWLOC_INSTALL_DIR", spec["hwloc"].prefix),
         ]
@@ -420,15 +417,10 @@ class LlvmDoe(CMakePackage, CudaPackage):
         if version_suffix != "none":
             cmake_args.append(define("LLVM_VERSION_SUFFIX", version_suffix))
 
-        if python.version >= Version("3"):
-            cmake_args.append(define("Python3_EXECUTABLE", python.command.path))
-        else:
-            cmake_args.append(define("Python2_EXECUTABLE", python.command.path))
-
         projects = []
         runtimes = []
 
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             cmake_args.extend(
                 [
                     define("CUDA_TOOLKIT_ROOT_DIR", spec["cuda"].prefix),
@@ -442,7 +434,7 @@ class LlvmDoe(CMakePackage, CudaPackage):
                     ),
                 ]
             )
-            if "+omp_as_runtime" in spec:
+            if spec.satisfies("+omp_as_runtime"):
                 cmake_args.extend(
                     [
                         define("LIBOMPTARGET_NVPTX_ENABLE_BCLIB", True),
@@ -465,21 +457,21 @@ class LlvmDoe(CMakePackage, CudaPackage):
 
         cmake_args.append(from_variant("LIBOMPTARGET_ENABLE_DEBUG", "omp_debug"))
 
-        if "+lldb" in spec:
+        if spec.satisfies("+lldb"):
             if spec.version >= Version("10"):
                 cmake_args.append(from_variant("LLDB_ENABLE_PYTHON", "python"))
             else:
-                cmake_args.append(define("LLDB_DISABLE_PYTHON", "~python" in spec))
+                cmake_args.append(define("LLDB_DISABLE_PYTHON", spec.satisfies("~python")))
             if spec.satisfies("@5.0.0: +python"):
                 cmake_args.append(define("LLDB_USE_SYSTEM_SIX", True))
 
-        if "+gold" in spec:
+        if spec.satisfies("+gold"):
             cmake_args.append(define("LLVM_BINUTILS_INCDIR", spec["binutils"].prefix.include))
 
-        if "+clang" in spec:
+        if spec.satisfies("+clang"):
             projects.append("clang")
             projects.append("clang-tools-extra")
-            if "+omp_as_runtime" in spec:
+            if spec.satisfies("+omp_as_runtime"):
                 runtimes.append("openmp")
             else:
                 projects.append("openmp")
@@ -491,22 +483,22 @@ class LlvmDoe(CMakePackage, CudaPackage):
             if self.spec.satisfies("@9:"):
                 cmake_args.append(define("LLVM_ENABLE_Z3_SOLVER", self.spec.satisfies("@9:+z3")))
 
-        if "+flang" in spec:
+        if spec.satisfies("+flang"):
             projects.append("flang")
-        if "+lldb" in spec:
+        if spec.satisfies("+lldb"):
             projects.append("lldb")
-        if "+lld" in spec:
+        if spec.satisfies("+lld"):
             projects.append("lld")
-        if "+compiler-rt" in spec:
+        if spec.satisfies("+compiler-rt"):
             projects.append("compiler-rt")
-        if "+libcxx" in spec:
+        if spec.satisfies("+libcxx"):
             projects.append("libcxx")
             projects.append("libcxxabi")
-        if "+mlir" in spec:
+        if spec.satisfies("+mlir"):
             projects.append("mlir")
-        if "+internal_unwind" in spec:
+        if spec.satisfies("+internal_unwind"):
             projects.append("libunwind")
-        if "+polly" in spec:
+        if spec.satisfies("+polly"):
             projects.append("polly")
             cmake_args.append(define("LINK_POLLY_INTO_TOOLS", True))
 
@@ -550,13 +542,13 @@ class LlvmDoe(CMakePackage, CudaPackage):
             projects.remove("openmp")
             projects.append("bolt")
             cmake_args.append("-DLIBOMP_USE_BOLT_DEFAULT=ON")
-            if "+argobots" in spec and spec.satisfies("@bolt"):
+            if spec.satisfies("+argobots") and spec.satisfies("@bolt"):
                 cmake_args.append("-DLIBOMP_USE_ARGOBOTS=ON")
 
         if self.compiler.name == "gcc":
             cmake_args.append(define("GCC_INSTALL_PREFIX", self.compiler.prefix))
 
-        # if spec.satisfies("platform=cray") or spec.satisfies("platform=linux"):
+        # if spec.satisfies("platform=linux"):
         #     cmake_args.append("-DCMAKE_BUILD_WITH_INSTALL_RPATH=1")
 
         if self.spec.satisfies("~code_signing platform=darwin"):
@@ -577,9 +569,9 @@ class LlvmDoe(CMakePackage, CudaPackage):
         define = self.define
 
         # unnecessary if we build openmp via LLVM_ENABLE_RUNTIMES
-        if "+cuda ~omp_as_runtime" in self.spec:
+        if self.spec.satisfies("+cuda ~omp_as_runtime"):
             ompdir = "build-bootstrapped-omp"
-            prefix_paths = spack.build_environment.get_cmake_prefix_path(self)
+            prefix_paths = get_cmake_prefix_path(self)
             prefix_paths.append(str(spec.prefix))
             # rebuild libomptarget to get bytecode runtime library files
             with working_dir(ompdir, create=True):
@@ -606,10 +598,10 @@ class LlvmDoe(CMakePackage, CudaPackage):
                 cmake(*cmake_args)
                 ninja()
                 ninja("install")
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             install_tree("llvm/bindings/python", python_platlib)
 
-            if "+clang" in self.spec:
+            if self.spec.satisfies("+clang"):
                 install_tree("clang/bindings/python", python_platlib)
 
         with working_dir(self.build_directory):

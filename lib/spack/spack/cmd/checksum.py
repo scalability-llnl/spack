@@ -1,10 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import re
 import sys
+from typing import Dict, Optional
 
 import llnl.string
 import llnl.util.lang
@@ -14,13 +14,17 @@ import spack.cmd
 import spack.repo
 import spack.spec
 import spack.stage
-import spack.util.crypto
 import spack.util.web as web_util
 from spack.cmd.common import arguments
-from spack.package_base import PackageBase, deprecated_version, preferred_version
+from spack.package_base import (
+    ManualDownloadRequiredError,
+    PackageBase,
+    deprecated_version,
+    preferred_version,
+)
 from spack.util.editor import editor
 from spack.util.format import get_version_lines
-from spack.version import Version
+from spack.version import StandardVersion, Version
 
 description = "checksum available versions of a package"
 section = "packaging"
@@ -84,28 +88,30 @@ def checksum(parser, args):
     spec = spack.spec.Spec(args.package)
 
     # Get the package we're going to generate checksums for
-    pkg = spack.repo.PATH.get_pkg_class(spec.name)(spec)
+    pkg: PackageBase = spack.repo.PATH.get_pkg_class(spec.name)(spec)
 
-    versions = [Version(v) for v in args.versions]
+    # Skip manually downloaded packages
+    if pkg.manual_download:
+        raise ManualDownloadRequiredError(pkg.download_instr)
 
-    # Define placeholder for remote versions.
-    # This'll help reduce redundant work if we need to check for the existance
-    # of remote versions more than once.
-    remote_versions = None
+    versions = [StandardVersion.from_string(v) for v in args.versions]
+
+    # Define placeholder for remote versions. This'll help reduce redundant work if we need to
+    # check for the existence of remote versions more than once.
+    remote_versions: Optional[Dict[StandardVersion, str]] = None
 
     # Add latest version if requested
     if args.latest:
-        remote_versions = pkg.fetch_remote_versions(args.jobs)
+        remote_versions = pkg.fetch_remote_versions(concurrency=args.jobs)
         if len(remote_versions) > 0:
-            latest_version = sorted(remote_versions.keys(), reverse=True)[0]
-            versions.append(latest_version)
+            versions.append(max(remote_versions.keys()))
 
-    # Add preferred version if requested
+    # Add preferred version if requested (todo: exclude git versions)
     if args.preferred:
         versions.append(preferred_version(pkg))
 
     # Store a dict of the form version -> URL
-    url_dict = {}
+    url_dict: Dict[StandardVersion, str] = {}
 
     for version in versions:
         if deprecated_version(pkg, version):
@@ -115,16 +121,16 @@ def checksum(parser, args):
         if url is not None:
             url_dict[version] = url
             continue
-        # if we get here, it's because no valid url was provided by the package
-        # do expensive fallback to try to recover
+        # If we get here, it's because no valid url was provided by the package. Do expensive
+        # fallback to try to recover
         if remote_versions is None:
-            remote_versions = pkg.fetch_remote_versions(args.jobs)
+            remote_versions = pkg.fetch_remote_versions(concurrency=args.jobs)
         if version in remote_versions:
             url_dict[version] = remote_versions[version]
 
     if len(versions) <= 0:
         if remote_versions is None:
-            remote_versions = pkg.fetch_remote_versions(args.jobs)
+            remote_versions = pkg.fetch_remote_versions(concurrency=args.jobs)
         url_dict = remote_versions
 
     # A spidered URL can differ from the package.py *computed* URL, pointing to different tarballs.
@@ -175,7 +181,7 @@ def checksum(parser, args):
     print()
 
     if args.add_to_package:
-        add_versions_to_package(pkg, version_lines)
+        add_versions_to_package(pkg, version_lines, args.batch)
 
 
 def print_checksum_status(pkg: PackageBase, version_hashes: dict):
@@ -221,7 +227,7 @@ def print_checksum_status(pkg: PackageBase, version_hashes: dict):
         tty.die("Invalid checksums found.")
 
 
-def add_versions_to_package(pkg: PackageBase, version_lines: str):
+def add_versions_to_package(pkg: PackageBase, version_lines: str, is_batch: bool):
     """
     Add checksumed versions to a package's instructions and open a user's
     editor so they may double check the work of the function.
@@ -246,7 +252,7 @@ def add_versions_to_package(pkg: PackageBase, version_lines: str):
         if match:
             new_versions.append((Version(match.group(1)), ver_line))
 
-    with open(filename, "r+") as f:
+    with open(filename, "r+", encoding="utf-8") as f:
         contents = f.read()
         split_contents = version_statement_re.split(contents)
 
@@ -274,5 +280,5 @@ def add_versions_to_package(pkg: PackageBase, version_lines: str):
         tty.msg(f"Added {num_versions_added} new versions to {pkg.name}")
         tty.msg(f"Open {filename} to review the additions.")
 
-    if sys.stdout.isatty():
+    if sys.stdout.isatty() and not is_batch:
         editor(filename)

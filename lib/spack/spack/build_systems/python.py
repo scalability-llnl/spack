@@ -1,18 +1,21 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import inspect
+
+import functools
+import operator
 import os
 import re
 import shutil
-from typing import Optional
+import stat
+from typing import Dict, Iterable, List, Mapping, Optional, Tuple
 
 import archspec
 
 import llnl.util.filesystem as fs
 import llnl.util.lang as lang
 import llnl.util.tty as tty
+from llnl.util.filesystem import HeaderList, LibraryList, join_path
 
 import spack.builder
 import spack.config
@@ -20,19 +23,26 @@ import spack.deptypes as dt
 import spack.detection
 import spack.multimethod
 import spack.package_base
+import spack.phase_callbacks
+import spack.platforms
+import spack.repo
 import spack.spec
 import spack.store
-from spack.directives import build_system, depends_on, extends, maintainers
+from spack.directives import build_system, depends_on, extends
 from spack.error import NoHeadersError, NoLibrariesError
 from spack.install_test import test_part
+from spack.spec import Spec
+from spack.util.prefix import Prefix
 
-from ._checks import BaseBuilder, execute_install_time_tests
+from ._checks import BuilderWithDefaults, execute_install_time_tests
 
 
-def _flatten_dict(dictionary):
+def _flatten_dict(dictionary: Mapping[str, object]) -> Iterable[str]:
     """Iterable that yields KEY=VALUE paths through a dictionary.
+
     Args:
         dictionary: Possibly nested dictionary of arbitrary keys and values.
+
     Yields:
         A single path through the dictionary.
     """
@@ -47,10 +57,8 @@ def _flatten_dict(dictionary):
 
 
 class PythonExtension(spack.package_base.PackageBase):
-    maintainers("adamjstewart")
-
     @property
-    def import_modules(self):
+    def import_modules(self) -> Iterable[str]:
         """Names of modules that the Python package provides.
 
         These are used to test whether or not the installation succeeded.
@@ -65,7 +73,7 @@ class PythonExtension(spack.package_base.PackageBase):
         detected, this property can be overridden by the package.
 
         Returns:
-            list: list of strings of module names
+            List of strings of module names.
         """
         modules = []
         pkg = self.spec["python"].package
@@ -102,16 +110,22 @@ class PythonExtension(spack.package_base.PackageBase):
         return modules
 
     @property
-    def skip_modules(self):
+    def skip_modules(self) -> Iterable[str]:
         """Names of modules that should be skipped when running tests.
 
         These are a subset of import_modules. If a module has submodules,
         they are skipped as well (meaning a.b is skipped if a is contained).
 
         Returns:
-            list: list of strings of module names
+            List of strings of module names.
         """
         return []
+
+    @property
+    def bindir(self) -> str:
+        """Path to Python package's bindir, bin on unix like OS's Scripts on Windows"""
+        windows = self.spec.satisfies("platform=windows")
+        return join_path(self.spec.prefix, "Scripts" if windows else "bin")
 
     def view_file_conflicts(self, view, merge_map):
         """Report all file conflicts, excepting special cases for python.
@@ -131,31 +145,57 @@ class PythonExtension(spack.package_base.PackageBase):
         return conflicts
 
     def add_files_to_view(self, view, merge_map, skip_if_exists=True):
+        # Patch up shebangs if the package extends Python and we put a Python interpreter in the
+        # view.
         if not self.extendee_spec:
             return super().add_files_to_view(view, merge_map, skip_if_exists)
 
+        python, *_ = self.spec.dependencies("python-venv") or self.spec.dependencies("python")
+
+        if python.external:
+            return super().add_files_to_view(view, merge_map, skip_if_exists)
+
+        # We only patch shebangs in the bin directory.
+        copied_files: Dict[Tuple[int, int], str] = {}  # File identifier -> source
+        delayed_links: List[Tuple[str, str]] = []  # List of symlinks from merge map
         bin_dir = self.spec.prefix.bin
-        python_prefix = self.extendee_spec.prefix
-        python_is_external = self.extendee_spec.external
-        global_view = fs.same_path(python_prefix, view.get_projection_for_spec(self.spec))
+
         for src, dst in merge_map.items():
-            if os.path.exists(dst):
+            if skip_if_exists and os.path.lexists(dst):
                 continue
-            elif global_view or not fs.path_contains_subdirectory(src, bin_dir):
+
+            if not fs.path_contains_subdirectory(src, bin_dir):
                 view.link(src, dst)
-            elif not os.path.islink(src):
+                continue
+
+            s = os.lstat(src)
+
+            # Symlink is delayed because we may need to re-target if its target is copied in view
+            if stat.S_ISLNK(s.st_mode):
+                delayed_links.append((src, dst))
+                continue
+
+            # If it's executable and has a shebang, copy and patch it.
+            if (s.st_mode & 0b111) and fs.has_shebang(src):
+                copied_files[(s.st_dev, s.st_ino)] = dst
                 shutil.copy2(src, dst)
-                is_script = fs.is_nonsymlink_exe_with_shebang(src)
-                if is_script and not python_is_external:
-                    fs.filter_file(
-                        python_prefix,
-                        os.path.abspath(view.get_projection_for_spec(self.spec)),
-                        dst,
-                    )
+                fs.filter_file(
+                    python.prefix, os.path.abspath(view.get_projection_for_spec(self.spec)), dst
+                )
             else:
-                orig_link_target = os.path.realpath(src)
-                new_link_target = os.path.abspath(merge_map[orig_link_target])
-                view.link(new_link_target, dst)
+                view.link(src, dst)
+
+        # Finally re-target the symlinks that point to copied files.
+        for src, dst in delayed_links:
+            try:
+                s = os.stat(src)
+                target = copied_files[(s.st_dev, s.st_ino)]
+            except (OSError, KeyError):
+                target = None
+            if target:
+                os.symlink(os.path.relpath(target, os.path.dirname(dst)), dst)
+            else:
+                view.link(src, dst, spec=self.spec)
 
     def remove_files_from_view(self, view, merge_map):
         ignore_namespace = False
@@ -171,26 +211,25 @@ class PythonExtension(spack.package_base.PackageBase):
                 ignore_namespace = True
 
         bin_dir = self.spec.prefix.bin
-        global_view = self.extendee_spec.prefix == view.get_projection_for_spec(self.spec)
 
         to_remove = []
         for src, dst in merge_map.items():
             if ignore_namespace and namespace_init(dst):
                 continue
 
-            if global_view or not fs.path_contains_subdirectory(src, bin_dir):
+            if not fs.path_contains_subdirectory(src, bin_dir):
                 to_remove.append(dst)
             else:
                 os.remove(dst)
 
         view.remove_files(to_remove)
 
-    def test_imports(self):
+    def test_imports(self) -> None:
         """Attempts to import modules of the installed package."""
 
         # Make sure we are importing the installed modules,
         # not the ones in the source directory
-        python = inspect.getmodule(self).python
+        python = self.module.python
         for module in self.import_modules:
             with test_part(
                 self,
@@ -277,9 +316,9 @@ class PythonExtension(spack.package_base.PackageBase):
         )
 
         python_externals_detected = [
-            d.spec
-            for d in python_externals_detection.get("python", [])
-            if d.prefix == self.spec.external_path
+            spec
+            for spec in python_externals_detection.get("python", [])
+            if spec.external_path == self.spec.external_path
         ]
         if python_externals_detected:
             return python_externals_detected[0]
@@ -300,7 +339,7 @@ class PythonPackage(PythonExtension):
     legacy_buildsystem = "python_pip"
 
     #: Callback names for install-time test
-    install_time_test_callbacks = ["test"]
+    install_time_test_callbacks = ["test_imports"]
 
     build_system("python_pip")
 
@@ -315,64 +354,82 @@ class PythonPackage(PythonExtension):
     py_namespace: Optional[str] = None
 
     @lang.classproperty
-    def homepage(cls):
+    def homepage(cls) -> Optional[str]:  # type: ignore[override]
         if cls.pypi:
             name = cls.pypi.split("/")[0]
-            return "https://pypi.org/project/" + name + "/"
+            return f"https://pypi.org/project/{name}/"
+        return None
 
     @lang.classproperty
-    def url(cls):
+    def url(cls) -> Optional[str]:
         if cls.pypi:
-            return "https://files.pythonhosted.org/packages/source/" + cls.pypi[0] + "/" + cls.pypi
+            return f"https://files.pythonhosted.org/packages/source/{cls.pypi[0]}/{cls.pypi}"
+        return None
 
     @lang.classproperty
-    def list_url(cls):
+    def list_url(cls) -> Optional[str]:  # type: ignore[override]
         if cls.pypi:
             name = cls.pypi.split("/")[0]
-            return "https://pypi.org/simple/" + name + "/"
+            return f"https://pypi.org/simple/{name}/"
+        return None
 
     @property
-    def headers(self):
+    def python_spec(self) -> Spec:
+        """Get python-venv if it exists or python otherwise."""
+        python, *_ = self.spec.dependencies("python-venv") or self.spec.dependencies("python")
+        return python
+
+    @property
+    def headers(self) -> HeaderList:
         """Discover header files in platlib."""
 
         # Remove py- prefix in package name
         name = self.spec.name[3:]
 
-        # Headers may be in either location
+        # Headers should only be in include or platlib, but no harm in checking purelib too
         include = self.prefix.join(self.spec["python"].package.include).join(name)
-        platlib = self.prefix.join(self.spec["python"].package.platlib).join(name)
-        headers = fs.find_all_headers(include) + fs.find_all_headers(platlib)
+        python = self.python_spec
+        platlib = self.prefix.join(python.package.platlib).join(name)
+        purelib = self.prefix.join(python.package.purelib).join(name)
+
+        headers_list = map(fs.find_all_headers, [include, platlib, purelib])
+        headers = functools.reduce(operator.add, headers_list)
 
         if headers:
             return headers
 
-        msg = "Unable to locate {} headers in {} or {}"
-        raise NoHeadersError(msg.format(self.spec.name, include, platlib))
+        msg = "Unable to locate {} headers in {}, {}, or {}"
+        raise NoHeadersError(msg.format(self.spec.name, include, platlib, purelib))
 
     @property
-    def libs(self):
+    def libs(self) -> LibraryList:
         """Discover libraries in platlib."""
 
         # Remove py- prefix in package name
         name = self.spec.name[3:]
 
-        root = self.prefix.join(self.spec["python"].package.platlib).join(name)
+        # Libraries should only be in platlib, but no harm in checking purelib too
+        python = self.python_spec
+        platlib = self.prefix.join(python.package.platlib).join(name)
+        purelib = self.prefix.join(python.package.purelib).join(name)
 
-        libs = fs.find_all_libraries(root, recursive=True)
+        find_all_libraries = functools.partial(fs.find_all_libraries, recursive=True)
+        libs_list = map(find_all_libraries, [platlib, purelib])
+        libs = functools.reduce(operator.add, libs_list)
 
         if libs:
             return libs
 
-        msg = "Unable to recursively locate {} libraries in {}"
-        raise NoLibrariesError(msg.format(self.spec.name, root))
+        msg = "Unable to recursively locate {} libraries in {} or {}"
+        raise NoLibrariesError(msg.format(self.spec.name, platlib, purelib))
 
 
 @spack.builder.builder("python_pip")
-class PythonPipBuilder(BaseBuilder):
+class PythonPipBuilder(BuilderWithDefaults):
     phases = ("install",)
 
     #: Names associated with package methods in the old build-system format
-    legacy_methods = ("test",)
+    legacy_methods = ("test_imports",)
 
     #: Same as legacy_methods, but the signature is different
     legacy_long_methods = ("install_options", "global_options", "config_settings")
@@ -381,10 +438,10 @@ class PythonPipBuilder(BaseBuilder):
     legacy_attributes = ("archive_files", "build_directory", "install_time_test_callbacks")
 
     #: Callback names for install-time test
-    install_time_test_callbacks = ["test"]
+    install_time_test_callbacks = ["test_imports"]
 
     @staticmethod
-    def std_args(cls):
+    def std_args(cls) -> List[str]:
         return [
             # Verbose
             "-vvv",
@@ -409,7 +466,7 @@ class PythonPipBuilder(BaseBuilder):
         ]
 
     @property
-    def build_directory(self):
+    def build_directory(self) -> str:
         """The root directory of the Python package.
 
         This is usually the directory containing one of the following files:
@@ -420,52 +477,54 @@ class PythonPipBuilder(BaseBuilder):
         """
         return self.pkg.stage.source_path
 
-    def config_settings(self, spec, prefix):
+    def config_settings(self, spec: Spec, prefix: Prefix) -> Mapping[str, object]:
         """Configuration settings to be passed to the PEP 517 build backend.
 
         Requires pip 22.1 or newer for keys that appear only a single time,
         or pip 23.1 or newer if the same key appears multiple times.
 
         Args:
-            spec (spack.spec.Spec): build spec
-            prefix (spack.util.prefix.Prefix): installation prefix
+            spec: Build spec.
+            prefix: Installation prefix.
 
         Returns:
-            dict: Possibly nested dictionary of KEY, VALUE settings
+            Possibly nested dictionary of KEY, VALUE settings.
         """
         return {}
 
-    def install_options(self, spec, prefix):
+    def install_options(self, spec: Spec, prefix: Prefix) -> Iterable[str]:
         """Extra arguments to be supplied to the setup.py install command.
 
         Requires pip 23.0 or older.
 
         Args:
-            spec (spack.spec.Spec): build spec
-            prefix (spack.util.prefix.Prefix): installation prefix
+            spec: Build spec.
+            prefix: Installation prefix.
 
         Returns:
-            list: list of options
+            List of options.
         """
         return []
 
-    def global_options(self, spec, prefix):
+    def global_options(self, spec: Spec, prefix: Prefix) -> Iterable[str]:
         """Extra global options to be supplied to the setup.py call before the install
         or bdist_wheel command.
 
         Deprecated in pip 23.1.
 
         Args:
-            spec (spack.spec.Spec): build spec
-            prefix (spack.util.prefix.Prefix): installation prefix
+            spec: Build spec.
+            prefix: Installation prefix.
 
         Returns:
-            list: list of options
+            List of options.
         """
         return []
 
-    def install(self, pkg, spec, prefix):
+    def install(self, pkg: PythonPackage, spec: Spec, prefix: Prefix) -> None:
         """Install everything from build directory."""
+        pip = spec["python"].command
+        pip.add_default_arg("-m", "pip")
 
         args = PythonPipBuilder.std_args(pkg) + [f"--prefix={prefix}"]
 
@@ -481,15 +540,7 @@ class PythonPipBuilder(BaseBuilder):
         else:
             args.append(".")
 
-        pip = spec["python"].command
-        # Hide user packages, since we don't have build isolation. This is
-        # necessary because pip / setuptools may run hooks from arbitrary
-        # packages during the build. There is no equivalent variable to hide
-        # system packages, so this is not reliable for external Python.
-        pip.add_default_env("PYTHONNOUSERSITE", "1")
-        pip.add_default_arg("-m")
-        pip.add_default_arg("pip")
         with fs.working_dir(self.build_directory):
             pip(*args)
 
-    spack.builder.run_after("install")(execute_install_time_tests)
+    spack.phase_callbacks.run_after("install")(execute_install_time_tests)

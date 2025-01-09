@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -7,11 +6,57 @@ import errno
 import math
 import os
 import shutil
+from typing import IO, Optional, Tuple
 
 from llnl.util.filesystem import mkdirp, rename
 
 from spack.error import SpackError
 from spack.util.lock import Lock, ReadTransaction, WriteTransaction
+
+
+def _maybe_open(path: str) -> Optional[IO[str]]:
+    try:
+        return open(path, "r", encoding="utf-8")
+    except OSError as e:
+        if e.errno != errno.ENOENT:
+            raise
+        return None
+
+
+class ReadContextManager:
+    def __init__(self, path: str) -> None:
+        self.path = path
+
+    def __enter__(self) -> Optional[IO[str]]:
+        """Return a file object for the cache if it exists."""
+        self.cache_file = _maybe_open(self.path)
+        return self.cache_file
+
+    def __exit__(self, type, value, traceback):
+        if self.cache_file:
+            self.cache_file.close()
+
+
+class WriteContextManager:
+    def __init__(self, path: str) -> None:
+        self.path = path
+        self.tmp_path = f"{self.path}.tmp"
+
+    def __enter__(self) -> Tuple[Optional[IO[str]], IO[str]]:
+        """Return (old_file, new_file) file objects, where old_file is optional."""
+        self.old_file = _maybe_open(self.path)
+        self.new_file = open(self.tmp_path, "w", encoding="utf-8")
+        return self.old_file, self.new_file
+
+    def __exit__(self, type, value, traceback):
+        if self.old_file:
+            self.old_file.close()
+        self.new_file.close()
+
+        if value:
+            os.remove(self.tmp_path)
+        else:
+            rename(self.tmp_path, self.path)
 
 
 class FileCache:
@@ -107,7 +152,8 @@ class FileCache:
                cache_file.read()
 
         """
-        return ReadTransaction(self._get_lock(key), acquire=lambda: open(self.cache_path(key)))
+        path = self.cache_path(key)
+        return ReadTransaction(self._get_lock(key), acquire=lambda: ReadContextManager(path))
 
     def write_transaction(self, key):
         """Get a write transaction on a file cache item.
@@ -117,40 +163,11 @@ class FileCache:
         moves the file into place on top of the old file atomically.
 
         """
-        filename = self.cache_path(key)
-        if os.path.exists(filename) and not os.access(filename, os.W_OK):
-            raise CacheError(
-                "Insufficient permissions to write to file cache at {0}".format(filename)
-            )
+        path = self.cache_path(key)
+        if os.path.exists(path) and not os.access(path, os.W_OK):
+            raise CacheError(f"Insufficient permissions to write to file cache at {path}")
 
-        # TODO: this nested context manager adds a lot of complexity and
-        # TODO: is pretty hard to reason about in llnl.util.lock. At some
-        # TODO: point we should just replace it with functions and simplify
-        # TODO: the locking code.
-        class WriteContextManager:
-            def __enter__(cm):
-                cm.orig_filename = self.cache_path(key)
-                cm.orig_file = None
-                if os.path.exists(cm.orig_filename):
-                    cm.orig_file = open(cm.orig_filename, "r")
-
-                cm.tmp_filename = self.cache_path(key) + ".tmp"
-                cm.tmp_file = open(cm.tmp_filename, "w")
-
-                return cm.orig_file, cm.tmp_file
-
-            def __exit__(cm, type, value, traceback):
-                if cm.orig_file:
-                    cm.orig_file.close()
-                cm.tmp_file.close()
-
-                if value:
-                    os.remove(cm.tmp_filename)
-
-                else:
-                    rename(cm.tmp_filename, cm.orig_filename)
-
-        return WriteTransaction(self._get_lock(key), acquire=WriteContextManager)
+        return WriteTransaction(self._get_lock(key), acquire=lambda: WriteContextManager(path))
 
     def mtime(self, key) -> float:
         """Return modification time of cache file, or -inf if it does not exist.

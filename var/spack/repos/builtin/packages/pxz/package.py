@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class Pxz(MakefilePackage):
         "4.999.9beta.20091201git",
         sha256="df69f91103db6c20f0b523bb7f026d86ee662c49fe714647ed63f918cd39767a",
     )
+
+    depends_on("c", type="build")  # generated
 
     depends_on("xz")
 

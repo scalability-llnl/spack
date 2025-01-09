@@ -8,9 +8,13 @@ spack:
     reuse: false
     unify: false
 
+  config:
+    shared_linking:
+      missing_library_policy: ignore  # due to use of externals
+
   packages:
     all:
-      require: '%cce'
+      require: "%cce@18.0.0 target=x86_64_v3"
       compiler: [cce]
       providers:
         blas: [cray-libsci]
@@ -18,35 +22,32 @@ spack:
         mpi: [cray-mpich]
         tbb: [intel-tbb]
         scalapack: [netlib-scalapack]
-      target: [zen4]
       variants: +mpi
-
+    ncurses:
+      require: +termlib ldflags=-Wl,--undefined-version
     tbb:
       require: "intel-tbb"
     binutils:
       variants: +ld +gold +headers +libiberty ~nls
     boost:
       variants: +python +filesystem +iostreams +system
-    cuda:
-      version: [11.7.0]
     elfutils:
-      variants: +bzip2 ~nls +xz
+      variants: ~nls
+      require: "%gcc"
+    gcc-runtime:
       require: "%gcc"
     hdf5:
       variants: +fortran +hl +shared
     libfabric:
       variants: fabrics=sockets,tcp,udp,rxm
-    libunwind:
-      variants: +pic +xz
+    mgard:
+      require:
+        - "@2023-01-10:"
     mpich:
       variants: ~wrapperrpath
-    ncurses:
-      variants: +termlib
     paraview:
       # Don't build GUI support or GLX rendering for HPC/container deployments
-      require: "@5.11 ~qt+osmesa"
-    python:
-      version: [3.8.13]
+      require: "~qt ^[virtuals=gl] osmesa"
     trilinos:
       require:
       - one_of: [+amesos +amesos2 +anasazi +aztec +boost +epetra +epetraext +ifpack
@@ -57,12 +58,6 @@ spack:
       - one_of: [~ml ~muelu ~zoltan2 ~teko, +ml +muelu +zoltan2 +teko]
       - one_of: [+superlu-dist, ~superlu-dist]
       - one_of: [+shylu, ~shylu]
-    xz:
-      variants: +pic
-    mesa:
-      version: [21.3.8]
-    unzip:
-      require: "%gcc"
 
   specs:
   # CPU
@@ -70,62 +65,43 @@ spack:
   - aml
   - arborx
   - argobots
-  - bolt
-  - butterflypack
   - boost +python +filesystem +iostreams +system
   - cabana
-  - caliper
-  - chai ~benchmarks ~tests
-  - charliecloud
+  - chai
   - conduit
   - datatransferkit
   - flecsi
   - flit
-  - flux-core
-  - fortrilinos
   - ginkgo
   - globalarrays
   - gmp
   - gotcha
   - h5bench
   - hdf5-vol-async
-  - hdf5-vol-cache
+  - hdf5-vol-cache cflags=-Wno-error=incompatible-function-pointer-types
   - hdf5-vol-log
   - heffte +fftw
-  - hpx max_cpu_count=512 networking=mpi
   - hypre
   - kokkos +openmp
   - kokkos-kernels +openmp
-  - lammps
   - legion
   - libnrm
-  - libpressio +bitgrooming +bzip2 ~cuda ~cusz +fpzip +hdf5 +libdistributed
-    +lua +openmp +python +sz +sz3 +unix +zfp +json +remote +netcdf +mgard
   - libquo
   - libunwind
   - mercury
   - metall
   - mfem
-  - mgard +serial +openmp +timing +unstructured ~cuda
   - mpark-variant
-  - mpifileutils ~xattr
+  - mpifileutils ~xattr cflags=-Wno-error=implicit-function-declaration
   - nccmp
   - nco
-  - netlib-scalapack
-  - omega-h
-  - openmpi
-  - openpmd-api
-  - papi
+  - netlib-scalapack cflags=-Wno-error=implicit-function-declaration
+  - openpmd-api ^adios2~mgard
   - papyrus
   - pdt
   - petsc
-  - plumed
   - precice
   - pumi
-  - py-h5py +mpi
-  - py-h5py ~mpi
-  - py-libensemble +mpi +nlopt
-  - py-petsc4py
   - qthreads scheduler=distrib
   - raja
   - slate ~cuda
@@ -138,8 +114,7 @@ spack:
   - swig@4.0.2-fortran
   - sz3
   - tasmanian
-  - tau +mpi +python
-  - trilinos@13.0.1 +belos +ifpack2 +stokhos
+  - trilinos +belos +ifpack2 +stokhos
   - turbine
   - umap
   - umpire
@@ -148,28 +123,47 @@ spack:
 
   # - alquimia            # pflotran: petsc-3.19.4-c6pmpdtpzarytxo434zf76jqdkhdyn37/lib/petsc/conf/rules:169: material_aux.o] Error 1: fortran errors
   # - amrex               # disabled temporarily pending resolution of unreproducible CI failure
-  # - archer              # subsumed by llvm +omp_tsan
   # - axom                # axom: CMake Error at axom/sidre/cmake_install.cmake:154 (file): file INSTALL cannot find "/tmp/gitlab-runner-2/spack-stage/spack-stage-axom-0.8.1-jvol6riu34vuyqvrd5ft2gyhrxdqvf63/spack-build-jvol6ri/lib/fortran/axom_spio.mod": No such file or directory.
+  # - bolt                # ld.lld: error: CMakeFiles/bolt-omp.dir/kmp_gsupport.cpp.o: symbol GOMP_atomic_end@@GOMP_1.0 has undefined version GOMP_1.0
   # - bricks              # bricks: clang-15: error: clang frontend command failed with exit code 134 (use -v to see invocation)
+  # - butterflypack ^netlib-scalapack cflags=-Wno-error=implicit-function-declaration # ftn-2116 ftn: INTERNAL "driver" was terminated due to receipt of signal 01:  Hangup.
+  # - caliper             # papi: papi_internal.c:124:3: error: use of undeclared identifier '_papi_hwi_my_thread'; did you mean '_papi_hwi_read'?
+  # - charliecloud        # libxcrypt-4.4.35: ld.lld: error: version script assignment of 'XCRYPT_2.0' to symbol 'xcrypt_r' failed: symbol not defined
+  # - cp2k +mpi           # libxsmm: ftn-78 ftn: ERROR in command linel; The -f option has an invalid argument, "tree-vectorize".
   # - dealii              # llvm@14.0.6: ?; intel-tbb@2020.3: clang-15: error: unknown argument: '-flifetime-dse=1'; assimp@5.2.5: clang-15: error: clang frontend command failed with exit code 134 (use -v to see invocation)
   # - dyninst             # requires %gcc
   # - ecp-data-vis-sdk ~cuda ~rocm +adios2 +ascent +cinema +darshan +faodel +hdf5 +paraview +pnetcdf +sz +unifyfs +veloc ~visit +vtkm +zfp ^hdf5@1.14 # llvm@14.0.6: ?;
   # - exaworks            # rust: ld.lld: error: relocation R_X86_64_32 cannot be used against local symbol; recompile with -fPIC'; defined in /opt/cray/pe/cce/15.0.1/cce/x86_64/lib/no_mmap.o, referenced by /opt/cray/pe/cce/15.0.1/cce/x86_64/lib/no_mmap.o:(__no_mmap_for_malloc)
+  # - flux-core           # libxcrypt-4.4.35: ld.lld: error: version script assignment of 'XCRYPT_2.0' to symbol 'xcrypt_r' failed: symbol not defined
+  # - fortrilinos         # trilinos-14.0.0: packages/teuchos/core/src/Teuchos_BigUIntDecl.hpp:67:8: error: no type named 'uint32_t' in namespace 'std'
   # - gasnet              # configure error: User requested --enable-ofi but I don't know how to build ofi programs for your system
   # - gptune              # py-scipy: meson.build:82:0: ERROR: Unknown compiler(s): [['/home/gitlab-runner-3/builds/dWfnZWPh/0/spack/spack/lib/spack/env/cce/ftn']]
   # - hpctoolkit          # dyninst requires %gcc
+  # - hpx max_cpu_count=512 networking=mpi  # libxcrypt-4.4.35
+  # - lammps              # lammps-20240829.1: Reversed (or previously applied) patch detected!  Assume -R? [n] 
+  # - libpressio +bitgrooming +bzip2 ~cuda ~cusz +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp +json +remote +netcdf +mgard # mgard: 
+  # - mgard +serial +openmp +timing +unstructured ~cuda # mgard
   # - nrm                 # py-scipy: meson.build:82:0: ERROR: Unknown compiler(s): [['/home/gitlab-runner-3/builds/dWfnZWPh/0/spack/spack/lib/spack/env/cce/ftn']]
   # - nvhpc               # requires %gcc
+  # - omega-h             # trilinos-13.4.1: packages/kokkos/core/src/impl/Kokkos_MemoryPool.cpp:112:48: error: unknown type name 'uint32_t'
+  # - openmpi             # libxcrypt-4.4.35: ld.lld: error: version script assignment of 'XCRYPT_2.0' to symbol 'xcrypt_r' failed: symbol not defined
+  # - papi                # papi_internal.c:124:3: error: use of undeclared identifier '_papi_hwi_my_thread'; did you mean '_papi_hwi_read'?
   # - parsec ~cuda        # parsec: parsec/fortran/CMakeFiles/parsec_fortran.dir/parsecf.F90.o: ftn-2103 ftn: WARNING in command line. The -W extra option is not supported or invalid and will be ignored.
   # - phist               # fortran_bindings/CMakeFiles/phist_fort.dir/phist_testing.F90.o: ftn-78 ftn: ERROR in command line. The -f option has an invalid argument, "no-math-errno".
   # - plasma              # %cce conflict
+  # - plumed              # libxcrypt-4.4.35: ld.lld: error: version script assignment of 'XCRYPT_2.0' to symbol 'xcrypt_r' failed: symbol not defined
+  # - py-h5py +mpi        # libxcrypt-4.4.35: ld.lld: error: version script assignment of 'XCRYPT_2.0' to symbol 'xcrypt_r' failed: symbol not defined
+  # - py-h5py ~mpi        # libxcrypt-4.4.35: ld.lld: error: version script assignment of 'XCRYPT_2.0' to symbol 'xcrypt_r' failed: symbol not defined
   # - py-jupyterhub       # rust: ld.lld: error: relocation R_X86_64_32 cannot be used against local symbol; recompile with -fPIC'; defined in /opt/cray/pe/cce/15.0.1/cce/x86_64/lib/no_mmap.o, referenced by /opt/cray/pe/cce/15.0.1/cce/x86_64/lib/no_mmap.o:(__no_mmap_for_malloc)
-  # - py-warpx            # py-scipy: meson.build:82:0: ERROR: Unknown compiler(s): [['/home/gitlab-runner-3/builds/dWfnZWPh/0/spack/spack/lib/spack/env/cce/ftn']]
+  # - py-libensemble +mpi +nlopt  # libxcrypt-4.4.35: ld.lld: error: version script assignment of 'XCRYPT_2.0' to symbol 'xcrypt_r' failed: symbol not defined
+  # - py-petsc4py         # libxcrypt-4.4.35: ld.lld: error: version script assignment of 'XCRYPT_2.0' to symbol 'xcrypt_r' failed: symbol not defined
   # - quantum-espresso    # quantum-espresso: CMake Error at cmake/FindSCALAPACK.cmake:503 (message): A required library with SCALAPACK API not found.  Please specify library
   # - scr                 # scr: make[2]: *** [examples/CMakeFiles/test_ckpt_F.dir/build.make:112: examples/test_ckpt_F] Error 1: /opt/cray/pe/cce/15.0.1/binutils/x86_64/x86_64-pc-linux-gnu/bin/ld: /opt/cray/pe/mpich/8.1.25/ofi/cray/10.0/lib/libmpi_cray.so: undefined reference to `PMI_Barrier'
   # - strumpack ~slate    # strumpack: [test/CMakeFiles/test_HSS_seq.dir/build.make:117: test/test_HSS_seq] Error 1: ld.lld: error: undefined reference due to --no-allow-shlib-undefined: mpi_abort_
+  # - tau +mpi +python    # libelf: configure: error: installation or configuration problem: C compiler cannot create executables.; papi: papi_internal.c:124:3: error: use of undeclared identifier '_papi_hwi_my_thread'; did you mean '_papi_hwi_read'?
   # - upcxx               # upcxx: configure error: User requested --enable-ofi but I don't know how to build ofi programs for your system
   # - variorum            # variorum: /opt/cray/pe/cce/15.0.1/binutils/x86_64/x86_64-pc-linux-gnu/bin/ld: /opt/cray/pe/lib64/libpals.so.0: undefined reference to `json_array_append_new@@libjansson.so.4'
+  # - warpx +python       # py-scipy: meson.build:82:0: ERROR: Unknown compiler(s): [['/home/gitlab-runner-3/builds/dWfnZWPh/0/spack/spack/lib/spack/env/cce/ftn']]
   # - xyce +mpi +shared +pymi +pymi_static_tpls ^trilinos~shylu # openblas: ftn-2307 ftn: ERROR in command line: The "-m" option must be followed by 0, 1, 2, 3 or 4.; make[2]: *** [<builtin>: spotrf2.o] Error 1; make[1]: *** [Makefile:27: lapacklib] Error 2; make: *** [Makefile:250: netlib] Error 2
 
   cdash:

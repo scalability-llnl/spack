@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,8 +23,12 @@ class Rpm(AutotoolsPackage):
     maintainers("haampie")
 
     version("master", branch="master")
+    version("4.18.2", sha256="8be0a812b2e707c72ae486b54db18ae211dd4158ad35e32b308d662c59a75e85")
     version("4.16.1.2", sha256="3d2807807a8ccaa92a8ced74e09b5bf5b2417a5bbf9bee4abc7c6aa497547bf3")
     version("4.16.0", sha256="a62b744e3404b107e8467e1a36ff0f2bf9e5c1b748dbfeb36db54bbb859446ea")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "crypto",
@@ -56,8 +59,8 @@ class Rpm(AutotoolsPackage):
     # Always required
     depends_on("popt")
 
-    # Without this file patch, we don't detect lua
-    depends_on("lua+pcfile@5.3.5:", when="+lua")
+    # support for embedded Lua interpreter
+    depends_on("lua@5.3.5:", when="+lua")
 
     # Enable POSIX.1e draft 15 file capabilities support
     depends_on("libcap", when="+posix")
@@ -90,14 +93,16 @@ class Rpm(AutotoolsPackage):
     depends_on("bzip2")
     depends_on("gzip")
     depends_on("xz")
-    depends_on("lzma")
-    depends_on("zstd", when="+zstd")
+    with when("+zstd"):
+        depends_on("zstd")
+        depends_on("zstd@1.3.8:", when="@4.17:")
 
     # java jar dependency analysis (already requirement for lua)
     depends_on("unzip", type="run")
 
     # Build dependencies
     depends_on("doxygen", type="build")
+    depends_on("pandoc", type="build", when="@4.17:")
     depends_on("pkgconfig", type="build")
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,13 +14,18 @@ from spack.package import *
 class _7zip(SourceforgePackage, Package):
     """7-Zip is a file archiver for Windows"""
 
-    homepage = "https://sourceforge.net/projects/sevenzip"
+    homepage = "https://sourceforge.net/projects/sevenzip/"
     sourceforge_mirror_path = "sevenzip/files/7z2107-src.tar.xz"
     tags = ["windows"]
 
     executables = ["7z"]
 
+    license("LGPL-2.0-only")
+
     version("21.07", sha256="213d594407cb8efcba36610b152ca4921eda14163310b43903d13e68313e1e39")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "link_type",
@@ -35,7 +39,6 @@ class _7zip(SourceforgePackage, Package):
 
     conflicts("platform=linux")
     conflicts("platform=darwin")
-    conflicts("platform=cray")
 
     # TODO: Patch on WinSDK version 10.0.20348.0 when SDK is introduced to Spack
     # This patch solves a known bug in that SDK version on the 7zip side

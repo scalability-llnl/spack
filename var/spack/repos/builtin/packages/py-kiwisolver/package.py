@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ class PyKiwisolver(PythonPackage):
     version("1.2.0", sha256="247800260cd38160c362d211dcaf4ed0f7816afb5efe56544748b21d6ad6d17f")
     version("1.1.0", sha256="53eaed412477c836e1b9522c19858a8557d6e595077830146182225613b11a75")
     version("1.0.1", sha256="ce3be5d520b4d2c3e5eeb4cd2ef62b9b9ab8ac6b6fedbaa0e39cdb6f50644278")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("python@2.7:2.8,3.4:", type=("build", "run"))
     depends_on("python@3.6:", type=("build", "run"), when="@1.2.0:")

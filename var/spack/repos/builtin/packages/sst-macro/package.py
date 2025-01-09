@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,12 +16,16 @@ class SstMacro(AutotoolsPackage):
 
     homepage = "https://github.com/sstsimulator"
     git = "https://github.com/sstsimulator/sst-macro.git"
-    url = "https://github.com/sstsimulator/sst-macro/releases/download/v13.0.0_Final/sstmacro-13.0.0.tar.gz"
+    url = "https://github.com/sstsimulator/sst-macro/releases/download/v14.1.0_Final/sstmacro-14.1.0.tar.gz"
 
     maintainers("berquist")
 
+    version("14.1.0", sha256="241f42f5c460b0e7462592a7f412bda9c9de19ad7a4b62c22f35be4093b57014")
+    version("14.0.0", sha256="3962942268dd9fe6ebd4462e2d6d305ab757f3f510487e84687146a8d461be13")
+    version("13.1.0", sha256="022e39daae1067b56c0011dbe87e3234fee4587049fd53671e1ed6b23233f70e")
     version("13.0.0", sha256="410dad4ac0c7a4c0e16c54da308b6c6b631112af18ae2c37585c8a14472987d4")
     version("12.1.0", sha256="ee57e08acfd4b6429a0500d981d468ee6ded2638ec5abec7b47f172388b267f1")
+    version("12.0.1", sha256="1491a149f4554777a6c3aa62730b3cd1a24c43a8d3d7fb61edfb4fe5c773aed8")
     version("12.0.0", sha256="259237a47cf341830ce3956cfadfd6e77ff1824da05da4a7b212fc5867ce64b2")
     version("11.1.0", sha256="4b1226e75e2e99faa42b218461d85e8e17c1d4f333dd973e72a5dc052328d34c")
     version("11.0.0", sha256="30367baed670b5b501320a068671556c9071286a0f0c478f9994a30d8fe5bdea")
@@ -40,20 +43,23 @@ class SstMacro(AutotoolsPackage):
     version("master", branch="master")
     version("develop", branch="devel")
 
-    depends_on("autoconf@1.68:", type="build", when="@master:")
-    depends_on("automake@1.11.1:", type="build", when="@master:")
-    depends_on("libtool@1.2.4:", type="build", when="@master:")
-    depends_on("m4", type="build", when="@master:")
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
+    for version_name in ("master", "develop"):
+        depends_on("autoconf@1.68:", type="build", when="@{}".format(version_name))
+        depends_on("automake@1.11.1:", type="build", when="@{}".format(version_name))
+        depends_on("libtool@1.2.4:", type="build", when="@{}".format(version_name))
+        depends_on("m4", type="build", when="@{}".format(version_name))
 
     depends_on("binutils", type="build")
     depends_on("zlib-api", type=("build", "link"))
     depends_on("otf2", when="+otf2")
     depends_on("llvm+clang@5:9", when="+skeletonizer")
     depends_on("mpi", when="+pdes_mpi")
-    depends_on("sst-core@develop", when="@develop+core")
-    depends_on("sst-core@master", when="@master+core")
-    depends_on("sst-core@10.1.0", when="@10.1.0+core")
-    depends_on("sst-core@10.0.0", when="@10.0.0+core")
+    # Allow mismatch between core dependency version and current macro version.
+    depends_on("sst-core", when="+core")
     depends_on("gettext")
 
     variant("pdes_threads", default=True, description="Enable thread-parallel PDES simulation")
@@ -75,6 +81,7 @@ class SstMacro(AutotoolsPackage):
     # force out-of-source builds
     build_directory = "spack-build"
 
+    @when("@develop,master")
     def autoreconf(self, spec, prefix):
         bash = which("bash")
         bash("./bootstrap.sh")

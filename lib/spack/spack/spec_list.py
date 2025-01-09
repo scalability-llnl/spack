@@ -1,10 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import itertools
 from typing import List
 
+import spack.spec
 import spack.variant
 from spack.error import SpackError
 from spack.spec import Spec
@@ -107,6 +107,20 @@ class SpecList:
         self._constraints = None
         self._specs = None
 
+    def replace(self, idx: int, spec: str):
+        """Replace the existing spec at the index with the new one.
+
+        Args:
+            idx: index of the spec to replace in the speclist
+            spec: new spec
+        """
+        self.yaml_list[idx] = spec
+
+        # invalidate cache variables when we change the list
+        self._expanded_list = None
+        self._constraints = None
+        self._specs = None
+
     def extend(self, other, copy_reference=True):
         self.yaml_list.extend(other.yaml_list)
         self._expanded_list = None
@@ -148,6 +162,7 @@ class SpecList:
                 if isinstance(item, str) and item.startswith("$"):
                     # replace the reference and apply the sigil if needed
                     name, sigil = self._parse_reference(item)
+
                     referent = [
                         _sigilify(item, sigil) for item in self._reference[name].specs_as_yaml_list
                     ]
@@ -197,10 +212,7 @@ def _expand_matrix_constraints(matrix_config):
     results = []
     for combo in itertools.product(*expanded_rows):
         # Construct a combined spec to test against excludes
-        flat_combo = [constraint for constraint_list in combo for constraint in constraint_list]
-
-        # Resolve abstract hashes so we can exclude by their concrete properties
-        flat_combo = [Spec(x).lookup_hash() for x in flat_combo]
+        flat_combo = [Spec(constraint) for constraints in combo for constraint in constraints]
 
         test_spec = flat_combo[0].copy()
         for constraint in flat_combo[1:]:
@@ -213,10 +225,12 @@ def _expand_matrix_constraints(matrix_config):
         # Catch exceptions because we want to be able to operate on
         # abstract specs without needing package information
         try:
-            spack.variant.substitute_abstract_variants(test_spec)
+            spack.spec.substitute_abstract_variants(test_spec)
         except spack.variant.UnknownVariantError:
             pass
-        if any(test_spec.satisfies(x) for x in excludes):
+
+        # Resolve abstract hashes for exclusion criteria
+        if any(test_spec.lookup_hash().satisfies(x) for x in excludes):
             continue
 
         if sigil:

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,8 @@ class RRsamtools(RPackage):
 
     bioc = "Rsamtools"
 
+    license("MIT")
+
     version("2.16.0", commit="3eb6d03acecb8d640ec5201cacdc322e9e0c2445")
     version("2.14.0", commit="8302eb7fa1c40384f1af5855222d94f2efbdcad1")
     version("2.12.0", commit="d6a65dd57c5a17e4c441a27492e92072f69b175e")
@@ -28,6 +29,9 @@ class RRsamtools(RPackage):
     version("1.32.3", commit="0aa3f134143b045aa423894de81912becf64e4c2")
     version("1.30.0", commit="61b365fe3762e796b3808cec7238944b7f68d7a6")
     version("1.28.0", commit="dfa5b6abef68175586f21add7927174786412472")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r@3.5.0:", type=("build", "run"), when="@2.10.0:")
     depends_on("r-genomeinfodb@1.1.3:", type=("build", "run"))
@@ -53,3 +57,8 @@ class RRsamtools(RPackage):
 
     # this is not a listed dependency but is needed
     depends_on("curl")
+    depends_on("zlib-api")
+
+    def patch(self):
+        with working_dir("src"):
+            filter_file(r"(^PKG_LIBS=)(\$\(RHTSLIB_LIBS\))", "\\1\\2 -lz", "Makevars")

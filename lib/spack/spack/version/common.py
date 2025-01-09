@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,14 @@ COMMIT_VERSION = re.compile(r"^[a-f0-9]{40}$")
 infinity_versions = ["stable", "trunk", "head", "master", "main", "develop"]
 
 iv_min_len = min(len(s) for s in infinity_versions)
+
+ALPHA = 0
+BETA = 1
+RC = 2
+FINAL = 3
+
+PRERELEASE_TO_STRING = ["alpha", "beta", "rc"]
+STRING_TO_PRERELEASE = {"alpha": ALPHA, "beta": BETA, "rc": RC, "final": FINAL}
 
 
 def is_git_version(string: str) -> bool:

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,9 @@ class RUsethis(RPackage):
 
     cran = "usethis"
 
+    license("MIT")
+
+    version("3.0.0", sha256="98f850f9ceaae37eb16ccd1232275b4e8f818c115c67151fa99096c477f7ccb5")
     version("2.1.6", sha256="31dc6707577065ac1d4acb7d4cbf135942727c5cc2699092198c544be86f6818")
     version("2.1.5", sha256="7d539e16ecdc1cd45ba1a215d42d8b9c16bc38280ddd27048003dbb37b16f052")
     version("2.0.0", sha256="22aa2b59f36a8701a4648554c7b0e010253bf917a0f431f06efac7d8a6b59854")
@@ -24,6 +26,7 @@ class RUsethis(RPackage):
 
     depends_on("r@3.2:", type=("build", "run"))
     depends_on("r@3.4:", type=("build", "run"), when="@2.1.5:")
+    depends_on("r@3.6:", type=("build", "run"), when="@2.2.0:")
     depends_on("r-cli", type=("build", "run"), when="@1.6.1:")
     depends_on("r-cli@3.0.1:", type=("build", "run"), when="@2.1.5:")
     depends_on("r-clipr@0.3.0:", type=("build", "run"))
@@ -31,6 +34,7 @@ class RUsethis(RPackage):
     depends_on("r-curl@2.7:", type=("build", "run"))
     depends_on("r-desc", type=("build", "run"))
     depends_on("r-desc@1.4.0:", type=("build", "run"), when="@2.1.5:")
+    depends_on("r-desc@1.4.2:", type=("build", "run"), when="@2.2.0:")
     depends_on("r-fs@1.3.0:", type=("build", "run"))
     depends_on("r-gert@1.0.2:", type=("build", "run"), when="@2.0.0:")
     depends_on("r-gert@1.4.1:", type=("build", "run"), when="@2.1.5:")
@@ -48,6 +52,7 @@ class RUsethis(RPackage):
     depends_on("r-rlang@0.4.3:", type=("build", "run"), when="@1.6.1:")
     depends_on("r-rlang@0.4.10:", type=("build", "run"), when="@2.1.5:")
     depends_on("r-rlang@1.0.0:", type=("build", "run"), when="@2.1.6:")
+    depends_on("r-rlang@1.1.0:", type=("build", "run"), when="@2.2.0:")
     depends_on("r-rprojroot@1.2:", type=("build", "run"))
     depends_on("r-rstudioapi", type=("build", "run"))
     depends_on("r-whisker", type=("build", "run"))

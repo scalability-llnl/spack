@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import pickle
@@ -25,7 +24,7 @@ def test_error_when_multiple_specs_are_given():
     assert "only takes one spec" in output
 
 
-@pytest.mark.parametrize("args", [("--", "/bin/bash", "-c", "echo test"), ("--",), ()])
+@pytest.mark.parametrize("args", [("--", "/bin/sh", "-c", "echo test"), ("--",), ()])
 @pytest.mark.usefixtures("config", "mock_packages", "working_env")
 def test_build_env_requires_a_spec(args):
     output = build_env(*args, fail_on_error=False)
@@ -35,12 +34,12 @@ def test_build_env_requires_a_spec(args):
 _out_file = "env.out"
 
 
-@pytest.mark.parametrize("shell", ["pwsh", "bat"] if sys.platform == "win32" else ["bash"])
+@pytest.mark.parametrize("shell", ["pwsh", "bat"] if sys.platform == "win32" else ["sh"])
 @pytest.mark.usefixtures("config", "mock_packages", "working_env")
 def test_dump(shell_as, shell, tmpdir):
     with tmpdir.as_cwd():
         build_env("--dump", _out_file, "zlib")
-        with open(_out_file) as f:
+        with open(_out_file, encoding="utf-8") as f:
             if shell == "pwsh":
                 assert any(line.startswith("$Env:PATH") for line in f.readlines())
             elif shell == "bat":

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,7 +14,12 @@ class Pkgconf(AutotoolsPackage):
     homepage = "http://pkgconf.org/"
     # URL must remain http:// so Spack can bootstrap curl
     url = "https://distfiles.ariadne.space/pkgconf/pkgconf-1.6.3.tar.xz"
+    tags = ["build-tools"]
 
+    license("ISC")
+
+    version("2.3.0", sha256="3a9080ac51d03615e7c1910a0a2a8df08424892b5f13b0628a204d3fcce0ea8b")
+    version("2.2.0", sha256="b06ff63a83536aa8c2f6422fa80ad45e4833f590266feb14eaddfe1d4c853c69")
     version("1.9.5", sha256="1ac1656debb27497563036f7bffc281490f83f9b8457c0d60bcfb638fb6b6171")
     version("1.8.0", sha256="ef9c7e61822b7cb8356e6e9e1dca58d9556f3200d78acab35e4347e9d4c2bbaf")
     version("1.7.4", sha256="d73f32c248a4591139a6b17777c80d4deab6b414ec2b3d21d0a24be348c476ab")
@@ -29,16 +33,12 @@ class Pkgconf(AutotoolsPackage):
     version("1.3.10", sha256="62577d265fa9415a57a77a59dede5526b7ece3ef59a750434b281b262f0c1da9")
     version("1.3.8", sha256="fc06f058e6905435481f649865ca51000192c91808f307b1053ca5e859cb1488")
 
+    depends_on("c", type="build")  # generated
+
     provides("pkgconfig")
 
     # https://github.com/spack/spack/issues/11704
     patch("nvhpc.patch", when="@1.7.3%nvhpc")
-
-    # TODO: Add a package for the kyua testing framework
-    # depends_on('kyua', type='test')
-
-    # https://github.com/spack/spack/issues/3525
-    conflicts("%pgi")
 
     tags = ["build-tools"]
 
@@ -68,5 +68,5 @@ class Pkgconf(AutotoolsPackage):
 
     @run_after("install")
     def link_pkg_config(self):
-        symlink("pkgconf", "{0}/pkg-config".format(self.prefix.bin))
-        symlink("pkgconf.1", "{0}/pkg-config.1".format(self.prefix.share.man.man1))
+        symlink("pkgconf", f"{self.prefix.bin}/pkg-config")
+        symlink("pkgconf.1", f"{self.prefix.share.man.man1}/pkg-config.1")

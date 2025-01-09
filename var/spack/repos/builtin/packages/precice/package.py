@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,7 +19,14 @@ class Precice(CMakePackage):
 
     tags = ["e4s"]
 
+    license("LGPL-3.0-or-later")
+
     version("develop", branch="develop")
+    version("3.1.2", sha256="e06d5e183f584c51812dcddf958210d1195bea38fa2df13be72303dcb06c869b")
+    version("3.1.1", sha256="fe759293942ebc9cb2e6127f356a8c795ab7383c1b074595994ebc92466e478d")
+    version("3.1.0", sha256="11e7d3d4055ee30852c0e83692ca7563acaa095bd223ebdbd5c8c851b3646d37")
+    version("3.0.0", sha256="efe6cf505d9305af89c6da1fdba246199a75a1c63a6a22103773ed95341879ba")
+    version("2.5.1", sha256="a5a37d3430eac395e885eb9cbbed9d0980a15e96c3e44763a3769fa7301e3b3a")
     version("2.5.0", sha256="76ec6ee0d1a66f6f3d3d2d11f03cfc5aa7ef4d9e5deb9b7a4b4455ec7f796c00")
     version("2.4.0", sha256="762e603fbcaa96c4fb0b378b7cb6789d09da0cf6193325603e5eeb13e4c7601c")
     version("2.3.0", sha256="57bab08e8b986f5faa364689d470940dbd9c138e5cfa7b861793e7db56b89da3")
@@ -40,6 +46,10 @@ class Precice(CMakePackage):
     version("1.4.0", sha256="3499bfc0941fb9f004d5e32eb63d64f93e17b4057fab3ada1cde40c8311bd466")
     version("1.3.0", sha256="610322ba1b03df8e8f7d060d57a6a5afeabd5db4e8c4a638d04ba4060a3aec96")
     version("1.2.0", sha256="0784ecd002092949835151b90393beb6e9e7a3e9bd78ffd40d18302d6da4b05b")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
     # Skip version 1.1.1 entirely, the cmake was lacking install.
 
     variant("mpi", default=True, description="Enable MPI support")
@@ -64,16 +74,19 @@ class Precice(CMakePackage):
     depends_on("cmake@3.5:", type="build")
     depends_on("cmake@3.10.2:", type="build", when="@1.4:")
     depends_on("cmake@3.16.3:", type="build", when="@2.4:")
+    depends_on("cmake@3.22.1:", type="build", when="@3.2:")
     depends_on("pkgconfig", type="build", when="@2.2:")
 
     # Boost components
-    depends_on("boost+filesystem+log+program_options+system+test+thread")
+    depends_on("boost+log+program_options+system+test+thread")
+    depends_on("boost+filesystem", when="@:3.0.0")
     depends_on("boost+signals", when="@:2.3")
 
     # Baseline versions
     depends_on("boost@1.60.0:")
     depends_on("boost@1.65.1:", when="@1.4:")
     depends_on("boost@1.71.0:", when="@2.4:")
+    depends_on("boost@1.74.0:", when="@3.2:")
 
     # Forward compatibility
     depends_on("boost@:1.72", when="@:2.0.2")
@@ -81,21 +94,27 @@ class Precice(CMakePackage):
     depends_on("boost@:1.78", when="@:2.3.0")
 
     depends_on("eigen@3.2:")
+    depends_on("eigen@3.4:", when="@3.2:")
     depends_on("eigen@:3.3.7", type="build", when="@:1.5")  # bug in prettyprint
+
     depends_on("libxml2")
+    depends_on("libxml2@:2.11.99", type="build", when="@:2.5.0")
+
     depends_on("mpi", when="+mpi")
+
     depends_on("petsc@3.6:", when="+petsc")
     depends_on("petsc@3.12:", when="+petsc@2.1.0:")
+    depends_on("petsc@3.15:", when="+petsc@3.2:")
 
     depends_on("python@3:", when="+python", type=("build", "run"))
     depends_on("py-numpy@1.17:", when="+python", type=("build", "run"))
+    depends_on("py-numpy@1.21.5:", when="+python@3.2:", type=("build", "run"))
 
     # We require C++14 compiler support
     conflicts("%gcc@:4")
     conflicts("%apple-clang@:5")
     conflicts("%clang@:3.7")
     conflicts("%intel@:16")
-    conflicts("%pgi@:17.3")
 
     def xsdk_tpl_args(self):
         return [
@@ -170,11 +189,12 @@ class Precice(CMakePackage):
             cmake_args.extend(["-DPETSC_DIR=%s" % spec["petsc"].prefix, "-DPETSC_ARCH=."])
 
         # Python
-        if "+python" in spec:
+        if "@:2.3 +python" in spec:
+            # 2.4.0 and higher use find_package(Python3).
             python_library = spec["python"].libs[0]
             python_include = spec["python"].headers.directories[0]
             numpy_include = join_path(
-                spec["py-numpy"].prefix, spec["python"].package.platlib, "numpy", "core", "include"
+                spec["py-numpy"].package.module.python_platlib, "numpy", "core", "include"
             )
             cmake_args.extend(
                 [

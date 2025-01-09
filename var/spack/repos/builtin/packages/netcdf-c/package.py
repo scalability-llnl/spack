@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -9,7 +8,6 @@ import sys
 
 from llnl.util.lang import dedupe
 
-import spack.builder
 from spack.build_systems import autotools, cmake
 from spack.package import *
 from spack.util.environment import filter_system_paths
@@ -25,6 +23,8 @@ class NetcdfC(CMakePackage, AutotoolsPackage):
     url = "https://github.com/Unidata/netcdf-c/archive/refs/tags/v4.8.1.tar.gz"
 
     maintainers("skosukhin", "WardF")
+
+    license("BSD-3-Clause")
 
     version("main", branch="main")
     version("4.9.2", sha256="bc104d101278c68b303359b3dc4192f81592ae8640f1aee486921138f7f88cb7")
@@ -51,14 +51,20 @@ class NetcdfC(CMakePackage, AutotoolsPackage):
     version("4.3.3.1", sha256="f2ee78eb310637c007f001e7c18e2d773d23f3455242bde89647137b7344c2e2")
     version("4.3.3", sha256="3f16e21bc3dfeb3973252b9addf5defb48994f84fc9c9356081f871526a680e7")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     with when("build_system=cmake"):
         # TODO: document why we need to revert https://github.com/Unidata/netcdf-c/pull/1731
         #  with the following patch:
         patch("4.8.1-win-hdf5-with-zlib.patch", when="@4.8.1: platform=windows")
 
-        # TODO: fetch from the upstream repo once https://github.com/Unidata/netcdf-c/pull/2595
-        #  is accepted:
-        patch("netcdfc-mpi-win-support.patch", when="platform=windows")
+        # TODO: https://github.com/Unidata/netcdf-c/pull/2595 contains some of the changes
+        # made in this patch but is not sufficent to replace the patch. There is currently
+        # no upstream PR (or set of PRs) covering all changes in this path.
+        # When #2595 lands, this patch should be updated to include only
+        # the changes not incorporated into that PR
+        patch("netcdfc_correct_and_export_link_interface.patch")
 
     # Some of the patches touch configure.ac and, therefore, require forcing the autoreconf stage:
     _force_autoreconf_when = []
@@ -129,6 +135,7 @@ class NetcdfC(CMakePackage, AutotoolsPackage):
     variant("fsync", default=False, description="Enable fsync support")
     variant("nczarr_zip", default=False, description="Enable NCZarr zipfile format storage")
     variant("optimize", default=True, description="Enable -O2 for a more optimized lib")
+    variant("logging", default=False, description="Enable logging")
 
     variant("szip", default=True, description="Enable Szip compression plugin")
     variant("blosc", default=True, description="Enable Blosc compression plugin")
@@ -159,7 +166,7 @@ class NetcdfC(CMakePackage, AutotoolsPackage):
 
     # The man files are included in the release tarballs starting version 4.5.0 but they are not
     # needed for the Windows platform:
-    for __p in ["darwin", "cray", "linux"]:
+    for __p in ["darwin", "linux"]:
         with when("platform={0}".format(__p)):
             # It is possible to install the package with CMake and without M4 on a non-Windows
             # platform but some of the man files will not be installed in that case (even if they
@@ -242,10 +249,10 @@ class NetcdfC(CMakePackage, AutotoolsPackage):
     # later is required for netCDF-4 compression. However, zlib became a direct dependency only
     # starting NetCDF 4.9.0 (for the deflate plugin):
     depends_on("zlib-api", when="@4.9.0:+shared")
-    depends_on("zlib@1.2.5:", when="^zlib")
+    depends_on("zlib@1.2.5:", when="^[virtuals=zlib-api] zlib")
 
     # Use the vendored bzip2 on Windows:
-    for __p in ["darwin", "cray", "linux"]:
+    for __p in ["darwin", "linux"]:
         depends_on("bzip2", when="@4.9.0:+shared platform={0}".format(__p))
     del __p
 
@@ -282,7 +289,7 @@ class NetcdfC(CMakePackage, AutotoolsPackage):
             env.append_path("HDF5_PLUGIN_PATH", self.prefix.plugins)
 
     def flag_handler(self, name, flags):
-        if self.builder.build_system == "autotools":
+        if self.spec.satisfies("build_system=autotools"):
             if name == "cflags":
                 if "+pic" in self.spec:
                     flags.append(self.compiler.cc_pic_flag)
@@ -296,9 +303,8 @@ class NetcdfC(CMakePackage, AutotoolsPackage):
         return find_libraries("libnetcdf", root=self.prefix, shared=shared, recursive=True)
 
 
-class BaseBuilder(metaclass=spack.builder.PhaseCallbacksMeta):
+class AnyBuilder(BaseBuilder):
     def setup_dependent_build_environment(self, env, dependent_spec):
-        self.pkg.setup_run_environment(env)
         # Some packages, e.g. ncview, refuse to build if the compiler path returned by nc-config
         # differs from the path to the compiler that the package should be built with. Therefore,
         # we have to shadow nc-config from self.prefix.bin, which references the real compiler,
@@ -321,7 +327,7 @@ class BaseBuilder(metaclass=spack.builder.PhaseCallbacksMeta):
     filter_compiler_wrappers("nc-config", relative_root="bin")
 
 
-class CMakeBuilder(BaseBuilder, cmake.CMakeBuilder):
+class CMakeBuilder(AnyBuilder, cmake.CMakeBuilder):
     def cmake_args(self):
         base_cmake_args = [
             self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
@@ -333,6 +339,7 @@ class CMakeBuilder(BaseBuilder, cmake.CMakeBuilder):
             self.define("ENABLE_PARALLEL_TESTS", False),
             self.define_from_variant("ENABLE_FSYNC", "fsync"),
             self.define("ENABLE_LARGE_FILE_SUPPORT", True),
+            self.define_from_variant("NETCDF_ENABLE_LOGGING", "logging"),
         ]
         if "+parallel-netcdf" in self.pkg.spec:
             base_cmake_args.append(self.define("ENABLE_PNETCDF", True))
@@ -341,10 +348,33 @@ class CMakeBuilder(BaseBuilder, cmake.CMakeBuilder):
         if "platform=windows" in self.pkg.spec:
             # Enforce the usage of the vendored version of bzip2 on Windows:
             base_cmake_args.append(self.define("Bz2_INCLUDE_DIRS", ""))
+        if "+shared" in self.pkg.spec["hdf5"]:
+            base_cmake_args.append(self.define("NC_FIND_SHARED_LIBS", True))
+        else:
+            base_cmake_args.append(self.define("NC_FIND_SHARED_LIBS", False))
         return base_cmake_args
 
+    @run_after("install")
+    def patch_hdf5_pkgconfigcmake(self):
+        """
+        Incorrect hdf5 library names are put in the package config files
+        due to incorrectly using hdf5 target names
+        https://github.com/spack/spack/pull/42878
+        """
+        if sys.platform == "win32":
+            return
 
-class AutotoolsBuilder(BaseBuilder, autotools.AutotoolsBuilder):
+        pkgconfig_file = find(self.prefix, "netcdf.pc", recursive=True)
+        ncconfig_file = find(self.prefix, "nc-config", recursive=True)
+        settingsconfig_file = find(self.prefix, "libnetcdf.settings", recursive=True)
+
+        files = pkgconfig_file + ncconfig_file + settingsconfig_file
+        config = "shared" if self.spec.satisfies("+shared") else "static"
+        filter_file(f"hdf5-{config}", "hdf5", *files, ignore_absent=True)
+        filter_file(f"hdf5_hl-{config}", "hdf5_hl", *files, ignore_absent=True)
+
+
+class AutotoolsBuilder(AnyBuilder, autotools.AutotoolsBuilder):
     @property
     def force_autoreconf(self):
         return any(self.spec.satisfies(s) for s in self.pkg._force_autoreconf_when)
@@ -404,6 +434,8 @@ class AutotoolsBuilder(BaseBuilder, autotools.AutotoolsBuilder):
 
         config_args += self.enable_or_disable("fsync")
 
+        config_args += self.enable_or_disable("logging")
+
         if any(self.spec.satisfies(s) for s in ["+mpi", "+parallel-netcdf", "^hdf5+mpi~shared"]):
             config_args.append("CC={0}".format(self.spec["mpi"].mpicc))
 
@@ -432,7 +464,7 @@ class AutotoolsBuilder(BaseBuilder, autotools.AutotoolsBuilder):
                 # introduced by the configure script:
                 if "+szip" in hdf:
                     extra_libs.append(hdf["szip"].libs)
-                if "+external-xdr" in hdf:
+                if "+external-xdr ^libtirpc" in hdf:
                     extra_libs.append(hdf["rpc"].libs)
                 extra_libs.append(hdf["zlib-api"].libs)
 
@@ -441,7 +473,7 @@ class AutotoolsBuilder(BaseBuilder, autotools.AutotoolsBuilder):
         if "~shared" in hdf5:
             if "+szip" in hdf5:
                 extra_libs.append(hdf5["szip"].libs)
-            extra_libs.append(hdf5["zlib"].libs)
+            extra_libs.append(hdf5["zlib-api"].libs)
 
         if self.spec.satisfies("@4.9.0:+shared"):
             lib_search_dirs.extend(self.spec["zlib-api"].libs.directories)

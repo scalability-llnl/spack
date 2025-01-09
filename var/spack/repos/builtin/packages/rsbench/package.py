@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,9 +13,13 @@ class Rsbench(MakefilePackage):
     homepage = "https://github.com/ANL-CESAR/RSBench"
     url = "https://github.com/ANL-CESAR/RSBench/archive/v2.tar.gz"
 
+    version("13", sha256="4ddba1fe2f657103e5e50199b7dd2eab62069ddf17350489c18238908dd73b61")
     version("12", sha256="2e437dbdaf7bf12bb9ade429d46a9e74fd519fc4686777a452770790d0546499")
     version("2", sha256="1e97a38a863836e98cedc5cc669f8fdcaed905fafdc921d2bce32319b3e157ff")
     version("0", sha256="95c06cf4cb6f396f9964d5e4b58a477bf9d7131cd39804480f1cb74e9310b271")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     tags = ["proxy-app"]
 
@@ -31,24 +34,25 @@ class Rsbench(MakefilePackage):
 
     @property
     def build_targets(self):
+        spec = self.spec
         targets = []
 
         cflags = "-std=gnu99 -O3"
         ldflags = "-lm"
 
-        if self.compiler.name == "gcc":
+        if spec.satisfies("%gcc"):
             cflags += " -ffast-math "
-        elif self.compiler.name == "intel":
+        elif spec.satisfies("%intel"):
             cflags += " -xhost -ansi-alias -no-prec-div "
-        elif self.compiler.name == "pgi" or self.compiler.name == "nvhpc":
+        elif spec.satisfies("%nvhpc"):
             cflags += " -fastsse "
-        elif self.compiler.name == "arm":
+        elif spec.satisfies("%arm"):
             cflags += " -ffast-math "
 
         cflags += self.compiler.openmp_flag
 
-        targets.append("CFLAGS={0}".format(cflags))
-        targets.append("LDFLAGS={0}".format(ldflags))
+        targets.append(f"CFLAGS={cflags}")
+        targets.append(f"LDFLAGS={ldflags}")
 
         return targets
 

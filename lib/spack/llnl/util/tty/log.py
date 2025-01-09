@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,9 +17,10 @@ import sys
 import threading
 import traceback
 from contextlib import contextmanager
+from multiprocessing.connection import Connection
 from threading import Thread
 from types import ModuleType
-from typing import Optional
+from typing import Callable, Optional
 
 import llnl.util.tty as tty
 
@@ -33,8 +33,23 @@ except ImportError:
     pass
 
 
+esc, bell, lbracket, bslash, newline = r"\x1b", r"\x07", r"\[", r"\\", r"\n"
+# Ansi Control Sequence Introducers (CSI) are a well-defined format
+# Standard ECMA-48: Control Functions for Character-Imaging I/O Devices, section 5.4
+# https://www.ecma-international.org/wp-content/uploads/ECMA-48_5th_edition_june_1991.pdf
+csi_pre = f"{esc}{lbracket}"
+csi_param, csi_inter, csi_post = r"[0-?]", r"[ -/]", r"[@-~]"
+ansi_csi = f"{csi_pre}{csi_param}*{csi_inter}*{csi_post}"
+# General ansi escape sequences have well-defined prefixes,
+#  but content and suffixes are less reliable.
+# Conservatively assume they end with either "<ESC>\" or "<BELL>",
+#  with no intervening "<ESC>"/"<BELL>" keys or newlines
+esc_pre = f"{esc}[@-_]"
+esc_content = f"[^{esc}{bell}{newline}]"
+esc_post = f"(?:{esc}{bslash}|{bell})"
+ansi_esc = f"{esc_pre}{esc_content}*{esc_post}"
 # Use this to strip escape sequences
-_escape = re.compile(r"\x1b[^m]*m|\x1b\[?1034h|\x1b\][0-9]+;[^\x07]*\x07")
+_escape = re.compile(f"{ansi_csi}|{ansi_esc}")
 
 # control characters for enabling/disabling echo
 #
@@ -329,49 +344,6 @@ class FileWrapper:
             self.file.close()
 
 
-class MultiProcessFd:
-    """Return an object which stores a file descriptor and can be passed as an
-    argument to a function run with ``multiprocessing.Process``, such that
-    the file descriptor is available in the subprocess."""
-
-    def __init__(self, fd):
-        self._connection = None
-        self._fd = None
-        if sys.version_info >= (3, 8):
-            self._connection = multiprocessing.connection.Connection(fd)
-        else:
-            self._fd = fd
-
-    @property
-    def fd(self):
-        if self._connection:
-            return self._connection._handle
-        else:
-            return self._fd
-
-    def close(self):
-        if self._connection:
-            self._connection.close()
-        else:
-            os.close(self._fd)
-
-
-def close_connection_and_file(multiprocess_fd, file):
-    # MultiprocessFd is intended to transmit a FD
-    # to a child process, this FD is then opened to a Python File object
-    # (using fdopen). In >= 3.8, MultiprocessFd encapsulates a
-    # multiprocessing.connection.Connection; Connection closes the FD
-    # when it is deleted, and prints a warning about duplicate closure if
-    # it is not explicitly closed. In < 3.8, MultiprocessFd encapsulates a
-    # simple FD; closing the FD here appears to conflict with
-    # closure of the File object (in < 3.8 that is). Therefore this needs
-    # to choose whether to close the File or the Connection.
-    if sys.version_info >= (3, 8):
-        multiprocess_fd.close()
-    else:
-        file.close()
-
-
 @contextmanager
 def replace_environment(env):
     """Replace the current environment (`os.environ`) with `env`.
@@ -529,22 +501,20 @@ class nixlog:
         # forcing debug output.
         self._saved_debug = tty._debug
 
-        # OS-level pipe for redirecting output to logger
-        read_fd, write_fd = os.pipe()
+        # Pipe for redirecting output to logger
+        read_fd, self.write_fd = multiprocessing.Pipe(duplex=False)
 
-        read_multiprocess_fd = MultiProcessFd(read_fd)
-
-        # Multiprocessing pipe for communication back from the daemon
+        # Pipe for communication back from the daemon
         # Currently only used to save echo value between uses
-        self.parent_pipe, child_pipe = multiprocessing.Pipe()
+        self.parent_pipe, child_pipe = multiprocessing.Pipe(duplex=False)
 
         # Sets a daemon that writes to file what it reads from a pipe
         try:
             # need to pass this b/c multiprocessing closes stdin in child.
-            input_multiprocess_fd = None
+            input_fd = None
             try:
                 if sys.stdin.isatty():
-                    input_multiprocess_fd = MultiProcessFd(os.dup(sys.stdin.fileno()))
+                    input_fd = Connection(os.dup(sys.stdin.fileno()))
             except BaseException:
                 # just don't forward input if this fails
                 pass
@@ -553,9 +523,9 @@ class nixlog:
                 self.process = multiprocessing.Process(
                     target=_writer_daemon,
                     args=(
-                        input_multiprocess_fd,
-                        read_multiprocess_fd,
-                        write_fd,
+                        input_fd,
+                        read_fd,
+                        self.write_fd,
                         self.echo,
                         self.log_file,
                         child_pipe,
@@ -566,9 +536,9 @@ class nixlog:
                 self.process.start()
 
         finally:
-            if input_multiprocess_fd:
-                input_multiprocess_fd.close()
-            read_multiprocess_fd.close()
+            if input_fd:
+                input_fd.close()
+            read_fd.close()
 
         # Flush immediately before redirecting so that anything buffered
         # goes to the original stream
@@ -586,9 +556,9 @@ class nixlog:
             self._saved_stderr = os.dup(sys.stderr.fileno())
 
             # redirect to the pipe we created above
-            os.dup2(write_fd, sys.stdout.fileno())
-            os.dup2(write_fd, sys.stderr.fileno())
-            os.close(write_fd)
+            os.dup2(self.write_fd.fileno(), sys.stdout.fileno())
+            os.dup2(self.write_fd.fileno(), sys.stderr.fileno())
+            self.write_fd.close()
 
         else:
             # Handle I/O the Python way. This won't redirect lower-level
@@ -601,7 +571,7 @@ class nixlog:
             self._saved_stderr = sys.stderr
 
             # create a file object for the pipe; redirect to it.
-            pipe_fd_out = os.fdopen(write_fd, "w")
+            pipe_fd_out = os.fdopen(self.write_fd.fileno(), "w", closefd=False)
             sys.stdout = pipe_fd_out
             sys.stderr = pipe_fd_out
 
@@ -637,6 +607,7 @@ class nixlog:
         else:
             sys.stdout = self._saved_stdout
             sys.stderr = self._saved_stderr
+            self.write_fd.close()
 
         # print log contents in parent if needed.
         if self.log_file.write_in_parent:
@@ -790,7 +761,7 @@ class winlog:
             self.reader = open(self.logfile, mode="rb+")
 
             # Dup stdout so we can still write to it after redirection
-            self.echo_writer = open(os.dup(sys.stdout.fileno()), "w")
+            self.echo_writer = open(os.dup(sys.stdout.fileno()), "w", encoding=sys.stdout.encoding)
             # Redirect stdout and stderr to write to logfile
             self.stderr.redirect_stream(self.writer.fileno())
             self.stdout.redirect_stream(self.writer.fileno())
@@ -850,14 +821,14 @@ class winlog:
 
 
 def _writer_daemon(
-    stdin_multiprocess_fd,
-    read_multiprocess_fd,
-    write_fd,
-    echo,
-    log_file_wrapper,
-    control_pipe,
-    filter_fn,
-):
+    stdin_fd: Optional[Connection],
+    read_fd: Connection,
+    write_fd: Connection,
+    echo: bool,
+    log_file_wrapper: FileWrapper,
+    control_fd: Connection,
+    filter_fn: Optional[Callable[[str], str]],
+) -> None:
     """Daemon used by ``log_output`` to write to a log file and to ``stdout``.
 
     The daemon receives output from the parent process and writes it both
@@ -894,43 +865,40 @@ def _writer_daemon(
     ``StringIO`` in the parent. This is mainly for testing.
 
     Arguments:
-        stdin_multiprocess_fd (int): input from the terminal
-        read_multiprocess_fd (int): pipe for reading from parent's redirected
-            stdout
-        echo (bool): initial echo setting -- controlled by user and
-            preserved across multiple writer daemons
-        log_file_wrapper (FileWrapper): file to log all output
-        control_pipe (Pipe): multiprocessing pipe on which to send control
-            information to the parent
-        filter_fn (callable, optional): function to filter each line of output
+        stdin_fd: optional input from the terminal
+        read_fd: pipe for reading from parent's redirected stdout
+        echo: initial echo setting -- controlled by user and preserved across multiple writer
+            daemons
+        log_file_wrapper: file to log all output
+        control_pipe: multiprocessing pipe on which to send control information to the parent
+        filter_fn: optional function to filter each line of output
 
     """
-    # If this process was forked, then it will inherit file descriptors from
-    # the parent process. This process depends on closing all instances of
-    # write_fd to terminate the reading loop, so we close the file descriptor
-    # here. Forking is the process spawning method everywhere except Mac OS
-    # for Python >= 3.8 and on Windows
-    if sys.version_info < (3, 8) or sys.platform != "darwin":
-        os.close(write_fd)
+    # This process depends on closing all instances of write_pipe to terminate the reading loop
+    write_fd.close()
 
     # 1. Use line buffering (3rd param = 1) since Python 3 has a bug
-    # that prevents unbuffered text I/O.
-    # 2. Python 3.x before 3.7 does not open with UTF-8 encoding by default
-    in_pipe = os.fdopen(read_multiprocess_fd.fd, "r", 1, encoding="utf-8")
+    #    that prevents unbuffered text I/O. [needs citation]
+    # 2. Enforce a UTF-8 interpretation of build process output with errors replaced by '?'.
+    #    The downside is that the log file will not contain the exact output of the build process.
+    # 3. closefd=False because Connection has "ownership"
+    read_file = os.fdopen(
+        read_fd.fileno(), "r", 1, encoding="utf-8", errors="replace", closefd=False
+    )
 
-    if stdin_multiprocess_fd:
-        stdin = os.fdopen(stdin_multiprocess_fd.fd)
+    if stdin_fd:
+        stdin_file = os.fdopen(stdin_fd.fileno(), closefd=False)
     else:
-        stdin = None
+        stdin_file = None
 
     # list of streams to select from
-    istreams = [in_pipe, stdin] if stdin else [in_pipe]
+    istreams = [read_file, stdin_file] if stdin_file else [read_file]
     force_echo = False  # parent can force echo for certain output
 
     log_file = log_file_wrapper.unwrap()
 
     try:
-        with keyboard_input(stdin) as kb:
+        with keyboard_input(stdin_file) as kb:
             while True:
                 # fix the terminal settings if we recently came to
                 # the foreground
@@ -943,12 +911,12 @@ def _writer_daemon(
                 # Allow user to toggle echo with 'v' key.
                 # Currently ignores other chars.
                 # only read stdin if we're in the foreground
-                if stdin in rlist and not _is_background_tty(stdin):
+                if stdin_file and stdin_file in rlist and not _is_background_tty(stdin_file):
                     # it's possible to be backgrounded between the above
                     # check and the read, so we ignore SIGTTIN here.
                     with ignore_signal(signal.SIGTTIN):
                         try:
-                            if stdin.read(1) == "v":
+                            if stdin_file.read(1) == "v":
                                 echo = not echo
                         except IOError as e:
                             # If SIGTTIN is ignored, the system gives EIO
@@ -957,16 +925,12 @@ def _writer_daemon(
                             if e.errno != errno.EIO:
                                 raise
 
-                if in_pipe in rlist:
+                if read_file in rlist:
                     line_count = 0
                     try:
                         while line_count < 100:
                             # Handle output from the calling process.
-                            try:
-                                line = _retry(in_pipe.readline)()
-                            except UnicodeDecodeError:
-                                # installs like --test=root gpgme produce non-UTF8 logs
-                                line = "<line lost: output was not encoded as UTF-8>\n"
+                            line = _retry(read_file.readline)()
 
                             if not line:
                                 return
@@ -980,6 +944,13 @@ def _writer_daemon(
                                 output_line = clean_line
                                 if filter_fn:
                                     output_line = filter_fn(clean_line)
+                                enc = sys.stdout.encoding
+                                if enc != "utf-8":
+                                    # On Python 3.6 and 3.7-3.14 with non-{utf-8,C} locale stdout
+                                    # may not be able to handle utf-8 output. We do an inefficient
+                                    # dance of re-encoding with errors replaced, so stdout.write
+                                    # does not raise.
+                                    output_line = output_line.encode(enc, "replace").decode(enc)
                                 sys.stdout.write(output_line)
 
                             # Stripped output to log file.
@@ -992,7 +963,7 @@ def _writer_daemon(
                                 if xoff in controls:
                                     force_echo = False
 
-                            if not _input_available(in_pipe):
+                            if not _input_available(read_file):
                                 break
                     finally:
                         if line_count > 0:
@@ -1007,14 +978,14 @@ def _writer_daemon(
     finally:
         # send written data back to parent if we used a StringIO
         if isinstance(log_file, io.StringIO):
-            control_pipe.send(log_file.getvalue())
+            control_fd.send(log_file.getvalue())
         log_file_wrapper.close()
-        close_connection_and_file(read_multiprocess_fd, in_pipe)
-        if stdin_multiprocess_fd:
-            close_connection_and_file(stdin_multiprocess_fd, stdin)
+        read_fd.close()
+        if stdin_fd:
+            stdin_fd.close()
 
         # send echo value back to the parent so it can be preserved.
-        control_pipe.send(echo)
+        control_fd.send(echo)
 
 
 def _retry(function):

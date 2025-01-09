@@ -15,7 +15,7 @@ concretizer:
   # as possible, rather than building. If `false`, we'll always give you a fresh
   # concretization. If `dependencies`, we'll only reuse dependencies but
   # give you a fresh concretization for your root specs.
-  reuse: dependencies
+  reuse: true
   # Options that tune which targets are considered for concretization. The
   # concretization process is very sensitive to the number targets, and the time
   # needed to reach a solution increases noticeably with the number of targets
@@ -39,6 +39,27 @@ concretizer:
   # Option to deal with possible duplicate nodes (i.e. different nodes from the same package) in the DAG.
   duplicates:
     # "none": allows a single node for any package in the DAG.
-    # "minimal": allows the duplication of 'build-tools' nodes only (e.g. py-setuptools, cmake etc.)
+    # "minimal": allows the duplication of 'build-tools' nodes only
+    # (e.g. py-setuptools, cmake etc.)
     # "full" (experimental): allows separation of the entire build-tool stack (e.g. the entire "cmake" subDAG)
     strategy: minimal
+  # Option to specify compatibility between operating systems for reuse of compilers and packages
+  # Specified as a key: [list] where the key is the os that is being targeted, and the list contains the OS's
+  # it can reuse. Note this is a directional compatibility so mutual compatibility between two OS's
+  # requires two entries i.e. os_compatible: {sonoma: [monterey], monterey: [sonoma]}
+  os_compatible: {}
+
+  # Option to specify whether to support splicing. Splicing allows for
+  # the relinking of concrete package dependencies in order to better
+  # reuse already built packages with ABI compatible dependencies
+  splice:
+    explicit: []
+    automatic: false
+  # Maximum time, in seconds, allowed for the 'solve' phase. If set to 0, there is no time limit.
+  timeout: 0
+  # If set to true, exceeding the timeout will always result in a concretization error. If false,
+  # the best (suboptimal) model computed before the timeout is used.
+  #
+  # Setting this to false yields unreproducible results, so we advise to use that value only
+  # for debugging purposes (e.g. check which constraints can help Spack concretize faster).
+  error_on_timeout: true

@@ -1,16 +1,18 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections
 import os
+import sys
 
 import pytest
 
 from llnl.util.filesystem import join_path, mkdirp, touch
 
+import spack.config
 import spack.install_test
 import spack.spec
+import spack.util.executable
 from spack.install_test import TestStatus
 from spack.util.executable import which
 
@@ -22,7 +24,7 @@ def _true(*args, **kwargs):
 
 def ensure_results(filename, expected, present=True):
     assert os.path.exists(filename)
-    with open(filename, "r") as fd:
+    with open(filename, "r", encoding="utf-8") as fd:
         lines = fd.readlines()
         have = False
         for line in lines:
@@ -72,7 +74,7 @@ def test_write_test_result(mock_packages, mock_test_stage):
     results_file = test_suite.results_file
     test_suite.write_test_result(spec, result)
 
-    with open(results_file, "r") as f:
+    with open(results_file, "r", encoding="utf-8") as f:
         lines = f.readlines()
         assert len(lines) == 1
 
@@ -291,7 +293,7 @@ def test_process_test_parts(mock_packages):
     assert "test suite is missing" in str(exc_info)
 
 
-def test_test_part_fail(tmpdir, install_mockery_mutable_config, mock_fetch, mock_test_stage):
+def test_test_part_fail(tmpdir, install_mockery, mock_fetch, mock_test_stage):
     """Confirm test_part with a ProcessError results in FAILED status."""
     s = spack.spec.Spec("trivial-smoke-test").concretized()
     pkg = s.package
@@ -307,7 +309,7 @@ def test_test_part_fail(tmpdir, install_mockery_mutable_config, mock_fetch, mock
         assert status == TestStatus.FAILED
 
 
-def test_test_part_pass(install_mockery_mutable_config, mock_fetch, mock_test_stage):
+def test_test_part_pass(install_mockery, mock_fetch, mock_test_stage):
     """Confirm test_part that succeeds results in PASSED status."""
     s = spack.spec.Spec("trivial-smoke-test").concretized()
     pkg = s.package
@@ -315,15 +317,18 @@ def test_test_part_pass(install_mockery_mutable_config, mock_fetch, mock_test_st
     name = "test_echo"
     msg = "nothing"
     with spack.install_test.test_part(pkg, name, "echo"):
-        echo = which("echo")
-        echo(msg)
+        if sys.platform == "win32":
+            print(msg)
+        else:
+            echo = which("echo")
+            echo(msg)
 
     for part_name, status in pkg.tester.test_parts.items():
         assert part_name.endswith(name)
         assert status == TestStatus.PASSED
 
 
-def test_test_part_skip(install_mockery_mutable_config, mock_fetch, mock_test_stage):
+def test_test_part_skip(install_mockery, mock_fetch, mock_test_stage):
     """Confirm test_part that raises SkipTest results in test status SKIPPED."""
     s = spack.spec.Spec("trivial-smoke-test").concretized()
     pkg = s.package
@@ -337,9 +342,7 @@ def test_test_part_skip(install_mockery_mutable_config, mock_fetch, mock_test_st
         assert status == TestStatus.SKIPPED
 
 
-def test_test_part_missing_exe_fail_fast(
-    tmpdir, install_mockery_mutable_config, mock_fetch, mock_test_stage
-):
+def test_test_part_missing_exe_fail_fast(tmpdir, install_mockery, mock_fetch, mock_test_stage):
     """Confirm test_part with fail fast enabled raises exception."""
     s = spack.spec.Spec("trivial-smoke-test").concretized()
     pkg = s.package
@@ -360,9 +363,7 @@ def test_test_part_missing_exe_fail_fast(
         assert status == TestStatus.FAILED
 
 
-def test_test_part_missing_exe(
-    tmpdir, install_mockery_mutable_config, mock_fetch, mock_test_stage
-):
+def test_test_part_missing_exe(tmpdir, install_mockery, mock_fetch, mock_test_stage):
     """Confirm test_part with missing executable fails."""
     s = spack.spec.Spec("trivial-smoke-test").concretized()
     pkg = s.package
@@ -396,7 +397,7 @@ def test_test_part_missing_exe(
     ],
 )
 def test_embedded_test_part_status(
-    install_mockery_mutable_config, mock_fetch, mock_test_stage, current, substatuses, expected
+    install_mockery, mock_fetch, mock_test_stage, current, substatuses, expected
 ):
     """Check to ensure the status of the enclosing test part reflects summary of embedded parts."""
 
@@ -424,7 +425,7 @@ def test_embedded_test_part_status(
     ],
 )
 def test_write_tested_status(
-    tmpdir, install_mockery_mutable_config, mock_fetch, mock_test_stage, statuses, expected
+    tmpdir, install_mockery, mock_fetch, mock_test_stage, statuses, expected
 ):
     """Check to ensure the status of the enclosing test part reflects summary of embedded parts."""
     s = spack.spec.Spec("trivial-smoke-test").concretized()
@@ -435,15 +436,13 @@ def test_write_tested_status(
 
     pkg.tester.tested_file = tmpdir.join("test-log.txt")
     pkg.tester.write_tested_status()
-    with open(pkg.tester.tested_file, "r") as f:
+    with open(pkg.tester.tested_file, "r", encoding="utf-8") as f:
         status = int(f.read().strip("\n"))
         assert TestStatus(status) == expected
 
 
 @pytest.mark.regression("37840")
-def test_write_tested_status_no_repeats(
-    tmpdir, install_mockery_mutable_config, mock_fetch, mock_test_stage
-):
+def test_write_tested_status_no_repeats(tmpdir, install_mockery, mock_fetch, mock_test_stage):
     """Emulate re-running the same stand-alone tests a second time."""
     s = spack.spec.Spec("trivial-smoke-test").concretized()
     pkg = s.package
@@ -459,7 +458,7 @@ def test_write_tested_status_no_repeats(
     # The test should NOT result in a ValueError: invalid literal for int()
     # with base 10: '2\n2' (i.e., the results being appended instead of
     # written to the file).
-    with open(pkg.tester.tested_file, "r") as f:
+    with open(pkg.tester.tested_file, "r", encoding="utf-8") as f:
         status = int(f.read().strip("\n"))
         assert TestStatus(status) == TestStatus.PASSED
 
@@ -476,7 +475,7 @@ INSERT INTO packages VALUES('xsdk',0,'http://xsdk.info');
 COMMIT;
 """
     filename = tmpdir.join("special.txt")
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(contents)
 
     expected = spack.install_test.get_escaped_text_output(filename)
@@ -501,25 +500,27 @@ def test_find_required_file(tmpdir):
 
     # First just find a single path
     results = spack.install_test.find_required_file(
-        tmpdir.join("c"), filename, expected=1, recursive=True
+        str(tmpdir.join("c")), filename, expected=1, recursive=True
     )
     assert isinstance(results, str)
 
     # Ensure none file if do not recursively search that directory
     with pytest.raises(spack.install_test.SkipTest, match="Expected 1"):
         spack.install_test.find_required_file(
-            tmpdir.join("c"), filename, expected=1, recursive=False
+            str(tmpdir.join("c")), filename, expected=1, recursive=False
         )
 
     # Now make sure we get all of the files
-    results = spack.install_test.find_required_file(tmpdir, filename, expected=3, recursive=True)
+    results = spack.install_test.find_required_file(
+        str(tmpdir), filename, expected=3, recursive=True
+    )
     assert isinstance(results, list) and len(results) == 3
 
 
 def test_packagetest_fails(mock_packages):
     MyPackage = collections.namedtuple("MyPackage", ["spec"])
 
-    s = spack.spec.Spec("a")
+    s = spack.spec.Spec("pkg-a")
     pkg = MyPackage(s)
     with pytest.raises(ValueError, match="require a concrete package"):
         spack.install_test.PackageTest(pkg)

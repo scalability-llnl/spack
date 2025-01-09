@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,11 +22,16 @@ class Pumi(CMakePackage):
 
     tags = ["e4s"]
 
+    license("BSD-3-Clause")
+
     # We will use the scorec/core master branch as the 'nightly' version
     # of pumi in spack.  The master branch is more stable than the
     # scorec/core develop branch and we prefer not to expose spack users
     # to the added instability.
     version("master", submodules=True, branch="master")
+    version(
+        "2.2.9", submodules=True, commit="f87525cae7597322edfb2ccf1c7d4437402d9481"
+    )  # tag 2.2.9
     version(
         "2.2.8", submodules=True, commit="736bb87ccd8db51fc499a1b91e53717a88841b1f"
     )  # tag 2.2.8
@@ -42,6 +46,10 @@ class Pumi(CMakePackage):
     version("2.2.1", commit="cd826205db21b8439026db1f6af61a8ed4a18564")  # tag 2.2.1
     version("2.2.0", commit="8c7e6f13943893b2bc1ece15003e4869a0e9634f")  # tag 2.2.0
     version("2.1.0", commit="840fbf6ec49a63aeaa3945f11ddb224f6055ac9f")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("int64", default=False, description="Enable 64bit mesh entity ids")
     variant("shared", default=False, description="Build shared libraries")
@@ -63,17 +71,17 @@ class Pumi(CMakePackage):
         "Disable the check for testing new versions.",
     )
 
+    depends_on("cxx", type="build")
+    depends_on("c", type="build")
+    depends_on("fortran", type="build", when="+fortran")
+
     depends_on("mpi")
     depends_on("cmake@3:", type="build")
     depends_on("zoltan", when="+zoltan")
     depends_on("zoltan+int64", when="+zoltan+int64")
     simbase = "+base"
     simkernels = simbase + "+parasolid+acis+discrete"
-    simfull = (
-        simkernels
-        + "+abstract+adv+advmodel\
-                            +import+paralleladapt+parallelmesh"
-    )
+    simfull = simkernels + "+abstract+adv+advmodel+import+paralleladapt+parallelmesh"
     depends_on("simmetrix-simmodsuite" + simbase, when="simmodsuite=base")
     depends_on("simmetrix-simmodsuite" + simkernels, when="simmodsuite=kernels")
     depends_on("simmetrix-simmodsuite" + simfull, when="simmodsuite=full")
@@ -109,25 +117,34 @@ class Pumi(CMakePackage):
                 args.append("-DSIM_DISCRETE=ON")
         return args
 
-    def test(self):
-        if self.spec.version <= Version("2.2.6"):
-            return
-        exe = "uniform"
-        options = ["../testdata/pipe.dmg", "../testdata/pipe.smb", "pipe_unif.smb"]
-        expected = "mesh pipe_unif.smb written"
-        description = "testing pumi uniform mesh refinement"
-        self.run_test(exe, options, expected, purpose=description, work_dir=self.prefix.bin)
+    def test_partition(self):
+        """Testing pumi mesh partitioning"""
+        if self.spec.satisfies("@:2.2.6"):
+            raise SkipTest("Package must be installed as version @2.2.7 or later")
 
-        mpiexec = Executable(join_path(self.spec["mpi"].prefix.bin, "mpiexec")).command
-        mpiopt = ["-n", "2"]
-        exe = ["split"]
-        options = ["../testdata/pipe.dmg", "../testdata/pipe.smb", "pipe_2_.smb", "2"]
-        expected = "mesh pipe_2_.smb written"
-        description = "testing pumi mesh partitioning"
-        self.run_test(
-            mpiexec,
-            mpiopt + exe + options,
-            expected,
-            purpose=description,
-            work_dir=self.prefix.bin,
-        )
+        options = [
+            "-n",
+            "2",
+            join_path(self.prefix.bin, "split"),
+            join_path(self.prefix.share.testdata, "pipe.dmg"),
+            join_path(self.prefix.share.testdata, "pipe.smb"),
+            "pipe_2_.smb",
+            "2",
+        ]
+        exe = which(self.spec["mpi"].prefix.bin.mpiexec)
+        out = exe(*options, output=str.split, error=str.split)
+        assert "mesh pipe_2_.smb written" in out
+
+    def test_refine(self):
+        """Testing pumi uniform mesh refinement"""
+        if self.spec.satisfies("@:2.2.6"):
+            raise SkipTest("Package must be installed as version @2.2.7 or later")
+
+        options = [
+            join_path(self.prefix.share.testdata, "pipe.dmg"),
+            join_path(self.prefix.share.testdata, "pipe.smb"),
+            "pipe_unif.smb",
+        ]
+        exe = which(self.prefix.bin.uniform)
+        out = exe(*options, output=str.split, error=str.split)
+        assert "mesh pipe_unif.smb written" in out

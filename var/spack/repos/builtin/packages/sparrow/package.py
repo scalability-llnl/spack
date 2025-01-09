@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -34,6 +33,8 @@ class Sparrow(CMakePackage):
         sha256="70636871694c9363ae3fb2df5050bddb22667b71d875d5a7e9afd872f6a2b65d",
         deprecated=True,
     )
+
+    depends_on("cxx", type="build")  # generated
 
     resource(
         name="dev",

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,7 +16,12 @@ class MelissaApi(CMakePackage):
     git = "https://gitlab.inria.fr/melissa/melissa.git"
     maintainers("robcaulk", "mschouler", "raffino")
 
+    license("BSD-3-Clause")
+
     version("develop", branch="develop")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("cmake@3.7.2:", type="build")
     depends_on("libzmq@4.1.5:")

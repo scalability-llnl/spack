@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,9 +15,15 @@ class Xdmf3(CMakePackage):
     homepage = "https://xdmf.org"
     git = "https://gitlab.kitware.com/xdmf/xdmf.git"
 
+    license("BSD-3-Clause")
+
     # There is no official release of XDMF and development has largely ceased,
     # but the current version, 3.x, is maintained on the master branch.
     version("2019-01-14", commit="8d9c98081d89ac77a132d56bc8bef53581db4078")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("shared", default=True, description="Enable shared libraries")
     variant("mpi", default=True, description="Enable MPI")

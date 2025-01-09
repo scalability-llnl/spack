@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,9 @@ class RRvest(RPackage):
 
     cran = "rvest"
 
+    license("MIT")
+
+    version("1.0.4", sha256="7d707c6b2994cf7b6c1d665bec872d2ef5c55f30e7c343c447a8a386a6049ca6")
     version("1.0.3", sha256="a465ef7391afaa3c26eebe8c61db02314ac04c4d8de5aa53f090716763d21c1e")
     version("1.0.2", sha256="89bb477e0944c80298a52ccf650db8f6377fd7ed3c1bc7034d000f695fdf05a4")
     version("0.3.6", sha256="6a2ee3a25d2d738031edbc1b5e2410f2a4538dfbb9705af145f9039504b902fa")
@@ -24,15 +26,19 @@ class RRvest(RPackage):
     depends_on("r@3.0.1:", type=("build", "run"))
     depends_on("r@3.1:", type=("build", "run"), when="@0.3.3")
     depends_on("r@3.2:", type=("build", "run"), when="@0.3.4:")
+    depends_on("r@3.6:", type=("build", "run"), when="@1.0.4:")
     depends_on("r-cli", type=("build", "run"), when="@1.0.3:")
     depends_on("r-glue", type=("build", "run"), when="@1.0.3:")
     depends_on("r-httr@0.5:", type=("build", "run"))
     depends_on("r-lifecycle@1.0.0:", type=("build", "run"), when="@1:")
+    depends_on("r-lifecycle@1.0.3:", type=("build", "run"), when="@1.0.4:")
     depends_on("r-magrittr", type=("build", "run"))
     depends_on("r-rlang@0.4.10:", type=("build", "run"), when="@1:")
     depends_on("r-rlang@1.0.0:", type=("build", "run"), when="@1.0.3:")
+    depends_on("r-rlang@1.1.0:", type=("build", "run"), when="@1.0.4:")
     depends_on("r-selectr", type=("build", "run"))
     depends_on("r-tibble", type=("build", "run"), when="@1:")
     depends_on("r-xml2", type=("build", "run"))
     depends_on("r-xml2@1.3:", type=("build", "run"), when="@1:")
-    depends_on("r-withr", type=("build", "run"), when="@1.0.3:")
+
+    depends_on("r-withr", type=("build", "run"), when="@1.0.3")

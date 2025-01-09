@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -32,17 +31,25 @@ class RSpatstatModel(RPackage):
 
     cran = "spatstat.model"
 
+    version("3.3-1", sha256="5c1c969b5f2bbfdfe91ad31cd912f31b91ec9cc7651ecec86c1d7a562161afa7")
     version("3.2-3", sha256="8ad7d2644773571a5c579ceebb98b735dccc97e9b4b109ea39b4ce3faedb14ea")
 
     depends_on("r@3.5.0:", type=("build", "run"))
     depends_on("r-spatstat-data@3.0:", type=("build", "run"))
+    depends_on("r-spatstat-data@3.0-4:", type=("build", "run"), when="@3.2-11:")
     depends_on("r-spatstat-geom@3.0-5:", type=("build", "run"))
+    depends_on("r-spatstat-geom@3.3-0:", type=("build", "run"), when="@3.3-1:")
     depends_on("r-spatstat-random@3.1-4:", type=("build", "run"))
+    depends_on("r-spatstat-random@3.3-0:", type=("build", "run"), when="@3.3-1:")
     depends_on("r-spatstat-explore@3.1-0:", type=("build", "run"))
+    depends_on("r-spatstat-explore@3.3-0:", type=("build", "run"), when="@3.3-1:")
     depends_on("r-nlme", type=("build", "run"))
     depends_on("r-rpart", type=("build", "run"))
+    depends_on("r-spatstat-univar@3.0-0:", type=("build", "run"), when="@3.3-1:")
     depends_on("r-spatstat-utils@3.0-2:", type=("build", "run"))
+    depends_on("r-spatstat-utils@3.0-5:", type=("build", "run"), when="@3.3-1:")
     depends_on("r-spatstat-sparse@3.0:", type=("build", "run"))
+    depends_on("r-spatstat-sparse@3.1-0:", type=("build", "run"), when="@3.3-1:")
     depends_on("r-mgcv", type=("build", "run"))
     depends_on("r-matrix", type=("build", "run"))
     depends_on("r-abind", type=("build", "run"))

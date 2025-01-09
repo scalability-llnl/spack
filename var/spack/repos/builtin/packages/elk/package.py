@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,8 @@ class Elk(MakefilePackage):
     homepage = "https://elk.sourceforge.io/"
     url = "https://sourceforge.net/projects/elk/files/elk-3.3.17.tgz"
 
+    license("LGPL-3.0-or-later")
+
     version("8.3.22", sha256="1c31f09b7c09d6b24e775d4f0d5e1e8871f95a7656ee4ca21ac17dbe7ea16277")
     version("7.2.42", sha256="73f03776dbf9b2147bfcc5b7c062af5befa0944608f6fc4b6a1e590615400fc6")
     version("7.1.14", sha256="7c2ff30f4b1d72d5dc116de9d70761f2c206700c69d85dd82a17a5a6374453d2")
@@ -22,6 +23,9 @@ class Elk(MakefilePackage):
         sha256="c9b87ae4ef367ed43afc2d43eb961745668e40670995e8e24c13db41b7e85d73",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # what linear algebra packages to use? the choices are
     # internal - use internal libraries
@@ -68,7 +72,12 @@ class Elk(MakefilePackage):
     depends_on("lapack", when="linalg=generic")
 
     depends_on("mkl", when="linalg=mkl")
-    depends_on("mkl threads=openmp", when="linalg=mkl +openmp")
+    with when("linalg=mkl +openmp"):
+        depends_on("intel-mkl threads=openmp", when="^[virtuals=mkl] intel-mkl")
+        depends_on("intel-oneapi-mkl threads=openmp", when="^[virtuals=mkl] intel-oneapi-mkl")
+        depends_on(
+            "intel-parallel-studio threads=openmp", when="^[virtuals=mkl] intel-parallel-studio"
+        )
 
     depends_on("openblas", when="linalg=openblas")
     depends_on("openblas threads=openmp", when="linalg=openblas +openmp")
@@ -115,8 +124,6 @@ class Elk(MakefilePackage):
             flags = "-O3 -ffast-math -funroll-loops"
             if spec.satisfies("%gcc@10:"):
                 flags += " -fallow-argument-mismatch "
-        elif self.compiler.name == "pgi":
-            flags = "-O3 -lpthread"
         elif self.compiler.name == "g95":
             flags = "-O3 -fno-second-underscore"
         elif self.compiler.name == "nag":
@@ -126,7 +133,7 @@ class Elk(MakefilePackage):
         config["F90_OPTS"] = flags
         config["F77_OPTS"] = flags
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             config["F90"] = spec["mpi"].mpifc
             config["F77"] = spec["mpi"].mpif77
             config["SRC_MPI"] = " "
@@ -136,7 +143,7 @@ class Elk(MakefilePackage):
             config["SRC_MPI"] = "mpi_stub.f90"
 
         # OpenMP support
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             config["F90_OPTS"] += " " + self.compiler.openmp_flag
             config["F77_OPTS"] += " " + self.compiler.openmp_flag
             config["SRC_OMP"] = " "
@@ -144,29 +151,29 @@ class Elk(MakefilePackage):
         # BLAS/LAPACK support
         # Note: openblas must be compiled with OpenMP support
         # if the +openmp variant is chosen
-        if "linalg=internal" in spec:
+        if spec.satisfies("linalg=internal"):
             self.build_targets.append("blas")
             self.build_targets.append("lapack")
-        if "linalg=generic" in spec:
+        if spec.satisfies("linalg=generic"):
             blas = spec["blas"].libs.joined()
             lapack = spec["lapack"].libs.joined()
             config["LIB_LPK"] = " ".join([lapack, blas])
-        if "linalg=openblas" in spec:
+        if spec.satisfies("linalg=openblas"):
             config["LIB_LPK"] = spec["openblas"].libs.ld_flags
             config["SRC_OBLAS"] = " "
-        if "linalg=mkl" in spec:
+        if spec.satisfies("linalg=mkl"):
             config["LIB_LPK"] = spec["mkl"].libs.ld_flags
             config["SRC_MKL"] = " "
-        if "linalg=blis" in spec:
+        if spec.satisfies("linalg=blis"):
             config["LIB_LPK"] = " ".join(["lapack.a ", spec["blis"].libs.ld_flags])
             config["SRC_BLIS"] = " "
         # FFT
-        if "fft=internal" in spec:
+        if spec.satisfies("fft=internal"):
             self.build_targets.append("fft")
-        elif "fft=fftw" in spec:
+        elif spec.satisfies("fft=fftw"):
             config["LIB_FFT"] = spec["fftw"].libs.ld_flags
             config["SRC_FFT"] = "zfftifc_fftw.f90"
-        elif "fft=mkl" in spec:
+        elif spec.satisfies("fft=mkl"):
             config["LIB_FFT"] = spec["mkl"].libs.ld_flags
             config["SRC_FFT"] = "mkl_dfti.f90 zfftifc_mkl.f90"
             cp = which("cp")
@@ -182,7 +189,7 @@ class Elk(MakefilePackage):
         self.build_targets.append("elk")
         print(self.build_targets)
         # Libxc support
-        if "+libxc" in spec:
+        if spec.satisfies("+libxc"):
             config["LIB_libxc"] = " ".join(
                 [
                     join_path(spec["libxc"].prefix.lib, "libxcf90.so"),

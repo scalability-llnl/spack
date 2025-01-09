@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,8 @@ class PyCssParser(PythonPackage):
     pypi = "css-parser/css-parser-1.0.9.tar.gz"
 
     maintainers("LydDeb")
+
+    license("LGPL-3.0-or-later")
 
     version("1.0.9", sha256="196db822cef22745af6a58d180cf8206949ced58b48f5f3ee98f1de1627495bb")
 

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,8 +18,14 @@ class Cloverleaf(MakefilePackage):
 
     tags = ["proxy-app"]
 
+    license("LGPL-3.0-or-later")
+
     version("master", branch="master", submodules=True)
     version("1.1", sha256="de87f7ee6b917e6b3d243ccbbe620370c62df890e3ef7bdbab46569b57be132f")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant(
         "build",
@@ -52,15 +57,15 @@ class Cloverleaf(MakefilePackage):
     def type_of_build(self):
         build = "ref"
 
-        if "build=cuda" in self.spec:
+        if self.spec.satisfies("build=cuda"):
             build = "CUDA"
-        elif "build=mpi_only" in self.spec:
+        elif self.spec.satisfies("build=mpi_only"):
             build = "MPI"
-        elif "build=openacc_cray" in self.spec:
+        elif self.spec.satisfies("build=openacc_cray"):
             build = "OpenACC_CRAY"
-        elif "build=openmp_only" in self.spec:
+        elif self.spec.satisfies("build=openmp_only"):
             build = "OpenMP"
-        elif "build=serial" in self.spec:
+        elif self.spec.satisfies("build=serial"):
             build = "Serial"
 
         return build
@@ -69,42 +74,38 @@ class Cloverleaf(MakefilePackage):
     def build_targets(self):
         targets = ["--directory=CloverLeaf_{0}".format(self.type_of_build)]
 
-        if "mpi" in self.spec:
+        if self.spec.satisfies("^mpi"):
             targets.append("MPI_COMPILER={0}".format(self.spec["mpi"].mpifc))
             targets.append("C_MPI_COMPILER={0}".format(self.spec["mpi"].mpicc))
         else:
             targets.append("MPI_COMPILER=f90")
             targets.append("C_MPI_COMPILER=cc")
 
-        if "%gcc" in self.spec:
+        if self.spec.satisfies("%gcc"):
             targets.append("COMPILER=GNU")
             targets.append("FLAGS_GNU=")
             targets.append("CFLAGS_GNU=")
-        elif "%cce" in self.spec:
+        elif self.spec.satisfies("%cce"):
             targets.append("COMPILER=CRAY")
             targets.append("FLAGS_CRAY=")
             targets.append("CFLAGS_CRAY=")
-        elif "%intel" in self.spec:
+        elif self.spec.satisfies("%intel"):
             targets.append("COMPILER=INTEL")
             targets.append("FLAGS_INTEL=")
             targets.append("CFLAGS_INTEL=")
-        elif "%aocc" in self.spec:
+        elif self.spec.satisfies("%aocc"):
             targets.append("COMPILER=AOCC")
-        elif "%pgi" in self.spec:
-            targets.append("COMPILER=PGI")
-            targets.append("FLAGS_PGI=")
-            targets.append("CFLAGS_PGI=")
-        elif "%xl" in self.spec:
+        elif self.spec.satisfies("%xl"):
             targets.append("COMPILER=XLF")
             targets.append("FLAGS_XLF=")
             targets.append("CFLAGS_XLF=")
 
         # Explicit mention of else clause is not working as expected
         # So, not mentioning them
-        if "+debug" in self.spec:
+        if self.spec.satisfies("+debug"):
             targets.append("DEBUG=1")
 
-        if "+ieee" in self.spec:
+        if self.spec.satisfies("+ieee"):
             targets.append("IEEE=1")
 
         return targets

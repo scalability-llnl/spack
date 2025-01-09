@@ -1,10 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import sys
 
 import spack.build_systems.meson
+import spack.variant
 from spack.package import *
 
 
@@ -18,13 +18,17 @@ class Mesa(MesonPackage):
     git = "https://gitlab.freedesktop.org/mesa/mesa.git"
     url = "https://archive.mesa3d.org/mesa-20.2.1.tar.xz"
 
-    version("main", branch="main")
+    license("MIT AND SGI-B-2.0 AND BSL-1.0")
 
+    version("main", branch="main")
     version(
-        "23.0.3",
-        sha256="386362a5d80df3b096636b67f340e1ce67b705b44767d5bdd11d2ed1037192d5",
+        "23.3.6",
+        sha256="cd3d6c60121dea73abbae99d399dc2facaecde1a8c6bd647e6d85410ff4b577b",
         preferred=True,
     )
+    version("23.2.1", sha256="64de0616fc2d801f929ab1ac2a4f16b3e2783c4309a724c8a259b20df8bbc1cc")
+    version("23.1.9", sha256="295ba27c28146ed09214e8ce79afa1659edf9d142decc3c91f804552d64f7510")
+    version("23.0.3", sha256="386362a5d80df3b096636b67f340e1ce67b705b44767d5bdd11d2ed1037192d5")
     version("23.0.2", sha256="1b7d3399fc6f16f030361f925d33ebc7600cbf98094582f54775b6a1180529e7")
     version("22.3.2", sha256="c15df758a8795f53e57f2a228eb4593c22b16dffd9b38f83901f76cd9533140b")
     version("22.2.5", sha256="850f063146f8ebb262aec04f666c2c1e5623f2a1987dda24e4361b17b912c73b")
@@ -45,7 +49,12 @@ class Mesa(MesonPackage):
     version("20.3.4", sha256="dc21a987ec1ff45b278fe4b1419b1719f1968debbb80221480e44180849b4084")
     version("20.2.1", sha256="d1a46d9a3f291bc0e0374600bdcb59844fa3eafaa50398e472a36fc65fd0244a")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("meson@0.52:", type="build")
+    depends_on("meson@0.54:", type="build", when="@23:")
+    depends_on("meson@0.60:", type="build", when="@23.1:")
 
     depends_on("pkgconfig", type="build")
     depends_on("bison", type="build")
@@ -58,6 +67,7 @@ class Mesa(MesonPackage):
     depends_on("unwind")
     depends_on("expat")
     depends_on("zlib-api")
+    depends_on("libxml2")
 
     # Internal options
     variant("llvm", default=True, description="Enable LLVM.")
@@ -98,22 +108,22 @@ class Mesa(MesonPackage):
 
     # Provides
     provides("libglx", when="+glx")
-
     # provides('egl@1.5', when='+egl')
-    provides("libosmesa", when="+osmesa")
 
     # Variant dependencies
     with when("+llvm"):
         depends_on("libllvm@6:")
         depends_on("libllvm@:11", when="@:20")
         depends_on("libllvm@:12", when="@:21")
+        depends_on("libllvm@:17", when="@:23")
 
-    depends_on("libx11", when="+glx")
-    depends_on("libxcb", when="+glx")
-    depends_on("libxext", when="+glx")
-    depends_on("libxt", when="+glx")
-    depends_on("xrandr", when="+glx")
-    depends_on("glproto@1.4.14:", when="+glx")
+    with when("+glx"):
+        depends_on("libx11")
+        depends_on("libxcb")
+        depends_on("libxext")
+        depends_on("libxt")
+        depends_on("xrandr")
+        depends_on("glproto@1.4.14:")
 
     # version specific issue
     # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=96130
@@ -297,6 +307,7 @@ class MesonBuilder(spack.build_systems.meson.MesonBuilder):
         # Add the remaining list args
         args.append("-Dplatforms=" + ",".join(args_platforms))
         args.append("-Dgallium-drivers=" + ",".join(args_gallium_drivers))
-        args.append("-Ddri-drivers=" + ",".join(args_dri_drivers))
+        if args_dri_drivers:
+            args.append("-Ddri-drivers=" + ",".join(args_dri_drivers))
 
         return args

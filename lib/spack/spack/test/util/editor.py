@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -46,7 +45,7 @@ def _make_exe(tmpdir_factory, name, contents=None):
         name += ".exe"
     path = str(tmpdir_factory.mktemp("%s_exe" % name).join(name))
     if contents is not None:
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             f.write("#!/bin/sh\n%s\n" % contents)
         set_executable(path)
     return path

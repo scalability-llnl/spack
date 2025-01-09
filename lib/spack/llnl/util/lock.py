@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -96,8 +95,8 @@ class OpenFileTracker:
         Arguments:
           path: path to lock file we want a filehandle for
         """
-        # Open writable files as 'r+' so we can upgrade to write later
-        os_mode, fh_mode = (os.O_RDWR | os.O_CREAT), "r+"
+        # Open writable files as rb+ so we can upgrade to write later
+        os_mode, fh_mode = (os.O_RDWR | os.O_CREAT), "rb+"
 
         pid = os.getpid()
         open_file = None  # OpenFile object, if there is one
@@ -124,7 +123,7 @@ class OpenFileTracker:
                 # we know path exists but not if it's writable. If it's read-only,
                 # only open the file for reading (and fail if we're trying to get
                 # an exclusive (write) lock on it)
-                os_mode, fh_mode = os.O_RDONLY, "r"
+                os_mode, fh_mode = os.O_RDONLY, "rb"
 
             fd = os.open(path, os_mode)
             fh = os.fdopen(fd, fh_mode)
@@ -243,7 +242,7 @@ class Lock:
                 helpful for distinguishing between different Spack locks.
         """
         self.path = path
-        self._file: Optional[IO] = None
+        self._file: Optional[IO[bytes]] = None
         self._reads = 0
         self._writes = 0
 
@@ -329,9 +328,9 @@ class Lock:
             self._ensure_parent_directory()
             self._file = FILE_TRACKER.get_fh(self.path)
 
-        if LockType.to_module(op) == fcntl.LOCK_EX and self._file.mode == "r":
+        if LockType.to_module(op) == fcntl.LOCK_EX and self._file.mode == "rb":
             # Attempt to upgrade to write lock w/a read-only file.
-            # If the file were writable, we'd have opened it 'r+'
+            # If the file were writable, we'd have opened it rb+
             raise LockROFileError(self.path)
 
         self._log_debug(
@@ -426,7 +425,7 @@ class Lock:
 
         line = self._file.read()
         if line:
-            pid, host = line.strip().split(",")
+            pid, host = line.decode("utf-8").strip().split(",")
             _, _, pid = pid.rpartition("=")
             _, _, self.host = host.rpartition("=")
             self.pid = int(pid)
@@ -442,7 +441,7 @@ class Lock:
 
         # write pid, host to disk to sync over FS
         self._file.seek(0)
-        self._file.write("pid=%s,host=%s" % (self.pid, self.host))
+        self._file.write(f"pid={self.pid},host={self.host}".encode("utf-8"))
         self._file.truncate()
         self._file.flush()
         os.fsync(self._file.fileno())
@@ -813,10 +812,6 @@ class LockDowngradeError(LockError):
     def __init__(self, path):
         msg = "Cannot downgrade lock from write to read on file: %s" % path
         super().__init__(msg)
-
-
-class LockLimitError(LockError):
-    """Raised when exceed maximum attempts to acquire a lock."""
 
 
 class LockTimeoutError(LockError):

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,9 @@ class Sosflow(CMakePackage):
     git = "https://github.com/cdwdirect/sos_flow.git"
 
     version("spack", tag="spack-build-v0.9901", commit="57c77f18af88b01615d5900124f9cfd1770c8241")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("libevpath")
     depends_on("sqlite@3:")

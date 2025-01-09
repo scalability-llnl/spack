@@ -1,11 +1,11 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os.path
 
-from llnl.util import lang, tty
+import llnl.util.lang as lang
 
+import spack.build_systems.cmake
 from spack.package import *
 
 
@@ -15,36 +15,140 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
 
     homepage = "https://github.com/kokkos/kokkos"
     git = "https://github.com/kokkos/kokkos.git"
-    url = "https://github.com/kokkos/kokkos/archive/3.6.00.tar.gz"
+    url = "https://github.com/kokkos/kokkos/releases/download/4.4.01/kokkos-4.4.01.tar.gz"
 
     tags = ["e4s"]
 
     test_requires_compiler = True
 
-    maintainers("janciesko", "crtrott")
+    maintainers("cedricchevalier19", "nmm0", "lucbv")
+
+    license("Apache-2.0 WITH LLVM-exception")
 
     version("master", branch="master")
     version("develop", branch="develop")
-    version("4.1.00", sha256="cf725ea34ba766fdaf29c884cfe2daacfdc6dc2d6af84042d1c78d0f16866275")
-    version("4.0.01", sha256="bb942de8afdd519fd6d5d3974706bfc22b6585a62dd565c12e53bdb82cd154f0")
-    version("4.0.00", sha256="1829a423883d4b44223c7c3a53d3c51671145aad57d7d23e6a1a4bebf710dcf6")
-    version("3.7.02", sha256="5024979f06bc8da2fb696252a66297f3e0e67098595a0cc7345312b3b4aa0f54")
-    version("3.7.01", sha256="0481b24893d1bcc808ec68af1d56ef09b82a1138a1226d6be27c3b3c3da65ceb")
-    version("3.7.00", sha256="62e3f9f51c798998f6493ed36463f66e49723966286ef70a9dcba329b8443040")
-    version("3.6.01", sha256="1b80a70c5d641da9fefbbb652e857d7c7a76a0ebad1f477c253853e209deb8db")
-    version("3.6.00", sha256="53b11fffb53c5d48da5418893ac7bc814ca2fde9c86074bdfeaa967598c918f4")
-    version("3.5.00", sha256="748f06aed63b1e77e3653cd2f896ef0d2c64cb2e2d896d9e5a57fec3ff0244ff")
-    version("3.4.01", sha256="146d5e233228e75ef59ca497e8f5872d9b272cb93e8e9cdfe05ad34a23f483d1")
-    version("3.4.00", sha256="2e4438f9e4767442d8a55e65d000cc9cde92277d415ab4913a96cd3ad901d317")
-    version("3.3.01", sha256="4919b00bb7b6eb80f6c335a32f98ebe262229d82e72d3bae6dd91aaf3d234c37")
-    version("3.3.00", sha256="170b9deaa1943185e928f8fcb812cd4593a07ed7d220607467e8f0419e147295")
-    version("3.2.01", sha256="9e27a3d8f81559845e190d60f277d84d6f558412a3df3301d9545e91373bcaf1")
-    version("3.2.00", sha256="05e1b4dd1ef383ca56fe577913e1ff31614764e65de6d6f2a163b2bddb60b3e9")
-    version("3.1.01", sha256="ff5024ebe8570887d00246e2793667e0d796b08c77a8227fe271127d36eec9dd")
-    version("3.1.00", sha256="b935c9b780e7330bcb80809992caa2b66fd387e3a1c261c955d622dae857d878")
-    version("3.0.00", sha256="c00613d0194a4fbd0726719bbed8b0404ed06275f310189b3493f5739042a92b")
+
+    version("4.5.01", sha256="52d003ffbbe05f30c89966e4009c017efb1662b02b2b73190670d3418719564c")
+    version("4.5.00", sha256="cbfb742feeb9e649db9eca0394e6ca9a22aa017a1e6aab8576990772a0e3135b")
+    version("4.4.01", sha256="3413f0cb39912128d91424ebd92e8832009e7eeaf6fa8da58e99b0d37860d972")
+    version("4.4.00", sha256="0b46372f38c48aa088411ac1b7c173a5c90f0fdb69ab40271827688fc134f58b")
+
+    version(
+        "4.3.01",
+        sha256="5998b7c732664d6b5e219ccc445cd3077f0e3968b4be480c29cd194b4f45ec70",
+        url="https://github.com/kokkos/kokkos/archive/4.3.01.tar.gz",
+    )
+    version(
+        "4.3.00",
+        sha256="53cf30d3b44dade51d48efefdaee7a6cf109a091b702a443a2eda63992e5fe0d",
+        url="https://github.com/kokkos/kokkos/archive/4.3.00.tar.gz",
+    )
+    version(
+        "4.2.01",
+        sha256="cbabbabba021d00923fb357d2e1b905dda3838bd03c885a6752062fe03c67964",
+        url="https://github.com/kokkos/kokkos/archive/4.2.01.tar.gz",
+    )
+    version(
+        "4.2.00",
+        sha256="ac08765848a0a6ac584a0a46cd12803f66dd2a2c2db99bb17c06ffc589bf5be8",
+        url="https://github.com/kokkos/kokkos/archive/4.2.00.tar.gz",
+    )
+    version(
+        "4.1.00",
+        sha256="cf725ea34ba766fdaf29c884cfe2daacfdc6dc2d6af84042d1c78d0f16866275",
+        url="https://github.com/kokkos/kokkos/archive/4.1.00.tar.gz",
+    )
+    version(
+        "4.0.01",
+        sha256="bb942de8afdd519fd6d5d3974706bfc22b6585a62dd565c12e53bdb82cd154f0",
+        url="https://github.com/kokkos/kokkos/archive/4.0.01.tar.gz",
+    )
+    version(
+        "4.0.00",
+        sha256="1829a423883d4b44223c7c3a53d3c51671145aad57d7d23e6a1a4bebf710dcf6",
+        url="https://github.com/kokkos/kokkos/archive/4.0.00.tar.gz",
+    )
+    version(
+        "3.7.02",
+        sha256="5024979f06bc8da2fb696252a66297f3e0e67098595a0cc7345312b3b4aa0f54",
+        url="https://github.com/kokkos/kokkos/archive/3.7.02.tar.gz",
+    )
+    version(
+        "3.7.01",
+        sha256="0481b24893d1bcc808ec68af1d56ef09b82a1138a1226d6be27c3b3c3da65ceb",
+        url="https://github.com/kokkos/kokkos/archive/3.7.01.tar.gz",
+    )
+    version(
+        "3.7.00",
+        sha256="62e3f9f51c798998f6493ed36463f66e49723966286ef70a9dcba329b8443040",
+        url="https://github.com/kokkos/kokkos/archive/3.7.00.tar.gz",
+    )
+    version(
+        "3.6.01",
+        sha256="1b80a70c5d641da9fefbbb652e857d7c7a76a0ebad1f477c253853e209deb8db",
+        url="https://github.com/kokkos/kokkos/archive/3.6.01.tar.gz",
+    )
+    version(
+        "3.6.00",
+        sha256="53b11fffb53c5d48da5418893ac7bc814ca2fde9c86074bdfeaa967598c918f4",
+        url="https://github.com/kokkos/kokkos/archive/3.6.00.tar.gz",
+    )
+    version(
+        "3.5.00",
+        sha256="748f06aed63b1e77e3653cd2f896ef0d2c64cb2e2d896d9e5a57fec3ff0244ff",
+        url="https://github.com/kokkos/kokkos/archive/3.5.00.tar.gz",
+    )
+    version(
+        "3.4.01",
+        sha256="146d5e233228e75ef59ca497e8f5872d9b272cb93e8e9cdfe05ad34a23f483d1",
+        url="https://github.com/kokkos/kokkos/archive/3.4.01.tar.gz",
+    )
+    version(
+        "3.4.00",
+        sha256="2e4438f9e4767442d8a55e65d000cc9cde92277d415ab4913a96cd3ad901d317",
+        url="https://github.com/kokkos/kokkos/archive/3.4.00.tar.gz",
+    )
+    version(
+        "3.3.01",
+        sha256="4919b00bb7b6eb80f6c335a32f98ebe262229d82e72d3bae6dd91aaf3d234c37",
+        url="https://github.com/kokkos/kokkos/archive/3.3.01.tar.gz",
+    )
+    version(
+        "3.3.00",
+        sha256="170b9deaa1943185e928f8fcb812cd4593a07ed7d220607467e8f0419e147295",
+        url="https://github.com/kokkos/kokkos/archive/3.3.00.tar.gz",
+    )
+    version(
+        "3.2.01",
+        sha256="9e27a3d8f81559845e190d60f277d84d6f558412a3df3301d9545e91373bcaf1",
+        url="https://github.com/kokkos/kokkos/archive/3.2.01.tar.gz",
+    )
+    version(
+        "3.2.00",
+        sha256="05e1b4dd1ef383ca56fe577913e1ff31614764e65de6d6f2a163b2bddb60b3e9",
+        url="https://github.com/kokkos/kokkos/archive/3.2.00.tar.gz",
+    )
+    version(
+        "3.1.01",
+        sha256="ff5024ebe8570887d00246e2793667e0d796b08c77a8227fe271127d36eec9dd",
+        url="https://github.com/kokkos/kokkos/archive/3.1.01.tar.gz",
+    )
+    version(
+        "3.1.00",
+        sha256="b935c9b780e7330bcb80809992caa2b66fd387e3a1c261c955d622dae857d878",
+        url="https://github.com/kokkos/kokkos/archive/3.1.00.tar.gz",
+    )
+    version(
+        "3.0.00",
+        sha256="c00613d0194a4fbd0726719bbed8b0404ed06275f310189b3493f5739042a92b",
+        url="https://github.com/kokkos/kokkos/archive/3.0.00.tar.gz",
+    )
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")  # Kokkos requires a C++ compiler
 
     depends_on("cmake@3.16:", type="build")
+    conflicts("cmake@3.28", when="@:4.2.01 +cuda")
 
     devices_variants = {
         "cuda": [False, "Whether to build CUDA backend"],
@@ -58,9 +162,12 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
     conflicts("+rocm", when="@:3.0")
     conflicts("+sycl", when="@:3.3")
     conflicts("+openmptarget", when="@:3.5")
+    conflicts(
+        "".join([f"~{d}" for d in devices_variants]),
+        msg="Kokkos requires at least one active backend",
+    )
 
     # https://github.com/spack/spack/issues/29052
-    conflicts("@:3.5 +sycl", when="%dpcpp@2022:")
     conflicts("@:3.5 +sycl", when="%oneapi@2022:")
 
     tpls_variants = {
@@ -73,10 +180,12 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
     options_variants = {
         "aggressive_vectorization": [False, "Aggressively vectorize loops"],
         "compiler_warnings": [False, "Print all compiler warnings"],
+        "complex_align": [True, "Align complex numbers"],
         "cuda_constexpr": [False, "Activate experimental constexpr features"],
         "cuda_lambda": [False, "Activate experimental lambda features"],
         "cuda_ldg_intrinsic": [False, "Use CUDA LDG intrinsics"],
         "cuda_relocatable_device_code": [False, "Enable RDC for CUDA"],
+        "hip_relocatable_device_code": [False, "Enable RDC for HIP"],
         "cuda_uvm": [False, "Enable unified virtual memory (UVM) for CUDA"],
         "debug": [False, "Activate extra debug features - may increase compiletimes"],
         "debug_bounds_check": [False, "Use bounds checking - will increase runtime"],
@@ -155,6 +264,8 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         "gfx906": "vega906",
         "gfx908": "vega908",
         "gfx90a": "vega90A",
+        "gfx940": "amd_gfx940",
+        "gfx942": "amd_gfx942",
         "gfx1030": "navi1030",
         "gfx1100": "navi1100",
     }
@@ -189,6 +300,8 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
     for dev, (dflt, desc) in devices_variants.items():
         variant(dev, default=dflt, description=desc)
     conflicts("+cuda", when="+rocm", msg="CUDA and ROCm are not compatible in Kokkos.")
+    depends_on("intel-oneapi-dpl", when="+sycl")
+    depends_on("rocthrust", when="@4.3: +rocm")
 
     for opt, (dflt, desc) in options_variants.items():
         variant(opt, default=dflt, description=desc, when=("+cuda" if "cuda" in opt else None))
@@ -198,10 +311,17 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         depends_on(tpl, when="+%s" % tpl)
 
     variant("wrapper", default=False, description="Use nvcc-wrapper for CUDA build")
+    variant(
+        "cmake_lang",
+        default=False,
+        description="Use CMake language support for CUDA/HIP",
+        when="@3.6:",
+    )
     depends_on("kokkos-nvcc-wrapper", when="+wrapper")
     depends_on("kokkos-nvcc-wrapper@develop", when="@develop+wrapper")
     depends_on("kokkos-nvcc-wrapper@master", when="@master+wrapper")
     conflicts("+wrapper", when="~cuda")
+    conflicts("+wrapper", when="+cmake_lang")
 
     cxxstds = ["11", "14", "17", "20"]
     variant("cxxstd", default="17", values=cxxstds, multi=False, description="C++ standard")
@@ -212,6 +332,10 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
 
     conflicts("+cuda", when="cxxstd=17 ^cuda@:10")
     conflicts("+cuda", when="cxxstd=20 ^cuda@:11")
+
+    # Expose a way to disable CudaMallocAsync that can cause problems
+    # with some MPI such as cray-mpich
+    variant("alloc_async", default=False, description="Use CudaMallocAsync", when="@4.2: +cuda")
 
     # SYCL and OpenMPTarget require C++17 or higher
     for cxxstdver in cxxstds[: cxxstds.index("17")]:
@@ -234,6 +358,13 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
 
     # Patches
     patch("hpx_profiling_fences.patch", when="@3.5.00 +hpx")
+    patch("sycl_bhalft_test.patch", when="@4.2.00 +sycl")
+    # adds amd_gfx940 support to Kokkos 4.2.00 (upstreamed in https://github.com/kokkos/kokkos/pull/6671)
+    patch(
+        "https://github.com/rbberger/kokkos/commit/293319c5844f4d8eea51eb9cd1457115a5016d3f.patch?full_index=1",
+        sha256="145619e87dbf26b66ea23e76906576e2a854a3b09f2a2dd70363e61419fa6a6e",
+        when="@4.2.00",
+    )
 
     variant("shared", default=True, description="Build shared libraries")
 
@@ -243,6 +374,13 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
     filter_compiler_wrappers(
         "KokkosConfigCommon.cmake", relative_root=os.path.join("lib64", "cmake", "Kokkos")
     )
+
+    # sanity check
+    sanity_check_is_file = [
+        join_path("include", "KokkosCore_config.h"),
+        join_path("include", "Kokkos_Core.hpp"),
+    ]
+    sanity_check_is_dir = ["bin", "include"]
 
     @classmethod
     def get_microarch(cls, target):
@@ -264,7 +402,7 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         variant_to_cmake_option = {"rocm": "hip"}
         for variant_name in cmake_options:
             opt = variant_to_cmake_option.get(variant_name, variant_name)
-            optname = "Kokkos_%s_%s" % (cmake_prefix, opt.upper())
+            optname = f"Kokkos_{cmake_prefix}_{opt.upper()}"
             # Explicitly enable or disable
             option = self.define_from_variant(optname, variant_name)
             if option:
@@ -281,18 +419,21 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         from_variant = self.define_from_variant
 
         if spec.satisfies("~wrapper+cuda") and not (
-            spec.satisfies("%clang") or spec.satisfies("%cce")
+            spec.satisfies("%clang") or spec.satisfies("%cce") or spec.satisfies("+cmake_lang")
         ):
-            raise InstallError("Kokkos requires +wrapper when using +cuda" "without clang")
+            raise InstallError(
+                "Kokkos requires +wrapper when using +cuda without %clang, %cce or +cmake_lang"
+            )
 
         options = [
             from_variant("CMAKE_POSITION_INDEPENDENT_CODE", "pic"),
             from_variant("CMAKE_CXX_STANDARD", "cxxstd"),
             from_variant("BUILD_SHARED_LIBS", "shared"),
+            from_variant("Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE", "cmake_lang"),
         ]
 
         spack_microarches = []
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             if isinstance(spec.variants["cuda_arch"].value, str):
                 cuda_arch = spec.variants["cuda_arch"].value
             else:
@@ -308,7 +449,7 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         if kokkos_microarch_name:
             spack_microarches.append(kokkos_microarch_name)
 
-        if "+rocm" in spec:
+        if spec.satisfies("+rocm"):
             for amdgpu_target in spec.variants["amdgpu_target"].value:
                 if amdgpu_target != "none":
                     if amdgpu_target in self.amdgpu_arch_map:
@@ -332,34 +473,39 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
             if spec.variants[tpl].value:
                 options.append(self.define(tpl + "_DIR", spec[tpl].prefix))
 
-        if "+rocm" in self.spec:
-            options.append(self.define("CMAKE_CXX_COMPILER", self.spec["hip"].hipcc))
-        elif "+wrapper" in self.spec:
+        if self.spec.satisfies("+wrapper"):
             options.append(
                 self.define("CMAKE_CXX_COMPILER", self.spec["kokkos-nvcc-wrapper"].kokkos_cxx)
             )
+        elif "+rocm" in self.spec:
+            if "+cmake_lang" in self.spec:
+                options.append(
+                    self.define(
+                        "CMAKE_HIP_COMPILER",
+                        join_path(self.spec["llvm-amdgpu"].prefix.bin, "amdclang++"),
+                    )
+                )
+                options.append(from_variant("CMAKE_HIP_STANDARD", "cxxstd"))
+            else:
+                options.append(self.define("CMAKE_CXX_COMPILER", self.spec["hip"].hipcc))
+            options.append(self.define("Kokkos_ENABLE_ROCTHRUST", True))
+        elif "+cuda" in self.spec and "+cmake_lang" in self.spec:
+            options.append(
+                self.define("CMAKE_CUDA_COMPILER", join_path(self.spec["cuda"].prefix.bin, "nvcc"))
+            )
+            options.append(from_variant("CMAKE_CUDA_STANDARD", "cxxstd"))
 
         if self.spec.satisfies("%oneapi") or self.spec.satisfies("%intel"):
             options.append(self.define("CMAKE_CXX_FLAGS", "-fp-model=precise"))
+
+        options.append(
+            self.define_from_variant("Kokkos_ENABLE_IMPL_CUDA_MALLOC_ASYNC", "alloc_async")
+        )
 
         # Remove duplicate options
         return lang.dedupe(options)
 
     test_script_relative_path = join_path("scripts", "spack_test")
-
-    # TODO: Replace this method and its 'get' use for cmake path with
-    #   join_path(self.spec['cmake'].prefix.bin, 'cmake') once stand-alone
-    #   tests can access build dependencies through self.spec['cmake'].
-    def cmake_bin(self, set=True):
-        """(Hack) Set/get cmake dependency path."""
-        filepath = join_path(self.install_test_root, "cmake_bin_path.txt")
-        if set:
-            with open(filepath, "w") as out_file:
-                cmake_bin = join_path(self.spec["cmake"].prefix.bin, "cmake")
-                out_file.write("{0}\n".format(cmake_bin))
-        elif os.path.isfile(filepath):
-            with open(filepath, "r") as in_file:
-                return in_file.read().strip()
 
     @run_after("install")
     def setup_build_tests(self):
@@ -373,47 +519,29 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
             cmake_source_path,
             "-DSPACK_PACKAGE_SOURCE_DIR:PATH={0}".format(self.stage.source_path),
             "-DSPACK_PACKAGE_TEST_ROOT_DIR:PATH={0}".format(
-                join_path(self.install_test_root, cmake_out_path)
+                join_path(install_test_root(self), cmake_out_path)
             ),
             "-DSPACK_PACKAGE_INSTALL_DIR:PATH={0}".format(self.prefix),
         ]
         cmake(*cmake_args)
-        self.cache_extra_test_sources(cmake_out_path)
-        self.cmake_bin(set=True)
+        cache_extra_test_sources(self, cmake_out_path)
 
-    def build_tests(self, cmake_path):
-        """Build test."""
-        cmake_bin = self.cmake_bin(set=False)
-
-        if not cmake_bin:
-            tty.msg("Skipping kokkos test: cmake_bin_path.txt not found")
-            return
-
-        cmake_args = [cmake_path, "-DEXECUTABLE_OUTPUT_PATH=" + cmake_path]
-
-        if not self.run_test(cmake_bin, options=cmake_args, purpose="Generate the Makefile"):
-            tty.warn("Skipping kokkos test: failed to generate Makefile")
-            return
-
-        if not self.run_test("make", purpose="Build test software"):
-            tty.warn("Skipping kokkos test: failed to build test")
-
-    def run_tests(self, cmake_path):
-        """Run test."""
-        if not self.run_test(
-            "make", options=[cmake_path, "test"], purpose="Checking ability to execute."
-        ):
-            tty.warn("Failed to run kokkos test")
-
-    def test(self):
-        # Skip if unsupported version
+    def test_run(self):
+        """Test if kokkos builds and runs"""
         cmake_path = join_path(
             self.test_suite.current_test_cache_dir, self.test_script_relative_path, "out"
         )
 
         if not os.path.exists(cmake_path):
-            tty.warn("Skipping smoke tests: {0} is missing".format(cmake_path))
-            return
+            raise SkipTest(f"{cmake_path} is missing")
 
-        self.build_tests(cmake_path)
-        self.run_tests(cmake_path)
+        cmake = self.spec["cmake"].command
+        cmake_args = ["-DEXECUTABLE_OUTPUT_PATH=" + cmake_path]
+        if self.spec.satisfies("+rocm"):
+            prefix_paths = ";".join(spack.build_systems.cmake.get_cmake_prefix_path(self))
+            cmake_args.append("-DCMAKE_PREFIX_PATH={0}".format(prefix_paths))
+
+        cmake(cmake_path, *cmake_args)
+        make = which("make")
+        make()
+        make(cmake_path, "test")

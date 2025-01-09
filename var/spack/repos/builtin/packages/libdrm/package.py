@@ -1,21 +1,33 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import spack.build_systems.autotools
+import spack.build_systems.meson
 from spack.package import *
 
 
-class Libdrm(Package):
+class Libdrm(AutotoolsPackage, MesonPackage):
     """A userspace library for accessing the DRM, direct rendering manager,
     on Linux, BSD and other systems supporting the ioctl interface."""
 
     homepage = "https://dri.freedesktop.org/libdrm/"
     url = "https://dri.freedesktop.org/libdrm/libdrm-2.4.101.tar.xz"
     list_url = "https://dri.freedesktop.org/libdrm/"
+    git = "https://gitlab.freedesktop.org/mesa/drm"
 
     maintainers("wdconinc")
 
+    license("MIT")
+
+    version("2.4.123", sha256="a2b98567a149a74b0f50e91e825f9c0315d86e7be9b74394dae8b298caadb79e")
+    version("2.4.122", sha256="d9f5079b777dffca9300ccc56b10a93588cdfbc9dde2fae111940dfb6292f251")
+    version("2.4.121", sha256="909084a505d7638887f590b70791b3bbd9069c710c948f5d1f1ce6d080cdfcab")
+    version("2.4.120", sha256="3bf55363f76c7250946441ab51d3a6cc0ae518055c0ff017324ab76cdefb327a")
+    version("2.4.119", sha256="0a49f12f09b5b6e68eaaaff3f02ca7cff9aa926939b212d343161d3e8ac56291")
+    version("2.4.118", sha256="a777bd85f2b5fc9c57f886c82058300578317cafdbc77d0a769d7e9a9567ab88")
+    version("2.4.117", sha256="a2888d69e3eb1c8a77adc08a75a60fbae01f0d208d26f034d1a12e362361242b")
+    version("2.4.116", sha256="46c53f40735ea3d26d614297f155f6131a510624a24274f654f6469ca905339a")
     version("2.4.115", sha256="554cfbfe0542bddb391b4e3e05bfbbfc3e282b955bd56218d21c0616481f65eb")
     version("2.4.114", sha256="3049cf843a47d12e5eeefbc3be3496d782fa09f42346bf0b7defe3d1e598d026")
     version("2.4.113", sha256="7fd7eb2967f63beb4606f22d50e277d993480d05ef75dd88a9bd8e677323e5e1")
@@ -32,15 +44,24 @@ class Libdrm(Package):
     version("2.4.59", sha256="ed9d03a92c2d80e6310cc350db3430620f1659ae084a07c6824cee7bc81ae8fa")
     version("2.4.33", sha256="bd2a8fecf28616f2157ca33ede691c139cc294ed2d0c4244b62ca7d22e98e5a4")
 
+    depends_on("c", type="build")
+
     variant("docs", default=False, description="Build man pages")
 
     depends_on("pkgconfig", type="build")
     depends_on("libpciaccess@0.10:")
     depends_on("libpthread-stubs")
 
-    # 2.4.90 is the first version to use meson, spack defaults to meson since
-    # 2.4.101.
-    depends_on("meson", type="build", when="@2.4.101:")
+    # 2.4.90 is the first version to use meson, but spack supports meson since 2.4.101.
+    build_system(
+        conditional("meson", when="@2.4.101:"),
+        conditional("autotools", when="@:2.4.100"),
+        default="meson",
+    )
+
+    with when("build_system=meson"):
+        depends_on("meson@0.53:", type="build", when="@2.4.101:")
+        depends_on("meson@0.59:", type="build", when="@2.4.117:")
 
     # >= 2.4.104 uses reStructuredText for man pages.
     with when("@2.4.104: +docs"):
@@ -58,24 +79,8 @@ class Libdrm(Package):
         else:
             return self.list_url + "libdrm-%s.tar.xz" % version
 
-    def meson_args(self):
-        if self.version <= Version("2.4.112"):
-            return ["-Dman-pages=" + ("true" if "+docs" in self.spec else "false")]
-        else:
-            return ["-Dman-pages=" + ("enabled" if "+docs" in self.spec else "disabled")]
 
-    def install(self, spec, prefix):
-        with working_dir("spack-build", create=True):
-            args = []
-            args.extend(std_meson_args)
-            args.extend(self.meson_args())
-            meson("..", *args)
-            ninja("-v")
-            if self.run_tests:
-                ninja("test")
-            ninja("install")
-
-    @when("@:2.4.100")
+class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
     def configure_args(self):
         args = []
         args.append("--enable-static")
@@ -91,12 +96,10 @@ class Libdrm(Package):
             args.append("CFLAGS=-fcommon")
         return args
 
-    @when("@:2.4.100")
-    def install(self, spec, prefix):
-        configure("--prefix={0}".format(prefix), *self.configure_args())
-        make()
-        if self.run_tests:
-            make("check")
-        make("install")
-        if self.run_tests:
-            make("installcheck")
+
+class MesonBuilder(spack.build_systems.meson.MesonBuilder):
+    def meson_args(self):
+        if self.spec.satisfies("@:2.4.112"):
+            return ["-Dman-pages=" + ("true" if self.spec.satisfies("+docs") else "false")]
+        else:
+            return ["-Dman-pages=" + ("enabled" if self.spec.satisfies("+docs") else "disabled")]

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,7 +21,36 @@ class LinaroForge(Package):
     homepage = "https://www.linaroforge.com"
     maintainers("kenche-linaro")
 
-    if platform.machine() in ["aarch64", "arm64"]:
+    if platform.machine() == "aarch64":
+        version(
+            "24.1.1", sha256="ad02a8912650bdca6f50de12c2b6fb471730a5f38f3c58fe91d48429337d3a10"
+        )
+        version("24.1", sha256="e297d0c19c95d4db842187eb38882db094094ec667d854aaf396e11a81bffe0b")
+        version(
+            "24.0.6", sha256="a7f9f71e4352be3680854611fe433a9974fcb8a327ac65ca3bc950c956eac6e4"
+        )
+        version(
+            "24.0.5", sha256="fc0c80ce9f66c6966faaca77de0f13e26da564c853e5bfc1e8acd17b65bc2ba0"
+        )
+        version(
+            "24.0.4", sha256="d126e4690f7c9bf21e541721dac51dcee1f336a882211426bf98a15d80671e3d"
+        )
+        version(
+            "24.0.3", sha256="5030c5c23824963f82e94ed606e47cce802393fa4cb7757966818baa7012aa21"
+        )
+        version(
+            "24.0.2", sha256="8346eb0375910498a83baff6833256c8221c2c06737670687bcf9f1497d9ede9"
+        )
+        version(
+            "24.0.1", sha256="d9d8e8fd56894032ea98a5ff7885c16c0522a192d9cbf4e131581c65e34efb82"
+        )
+        version("24.0", sha256="ee631177f5289127f0d3d99b600d437b4bd40c34c1c15388288b72543dc420ad")
+        version(
+            "23.1.2", sha256="8c01f4768a8f784f0bfa78c82dbd39e5077bbc6880b6f3c3704019eecfca5b3a"
+        )
+        version(
+            "23.1.1", sha256="6e95a9c9f894caad073e58590733c4ce4489aec0d8db6553050e71a59e41e6f8"
+        )
         version("23.1", sha256="c9889b95729f97bcffaf0f15b930efbd27081b7cf2ebc958eede3a186cc4d93a")
         version(
             "23.0.4", sha256="a19e6b247badaa52f78815761f71fb95a565024b7f79bdfb2f602f18b47a881c"
@@ -40,10 +68,14 @@ class LinaroForge(Package):
         version(
             "22.1.4", sha256="4e2af481a37b4c99dba0de6fac75ac945316955fc4170d06e321530adea7ac9f"
         )
-        version(
-            "21.1.3", sha256="4a4ff7372aad5a31fc9e18b7b6c493691ab37d8d44a3158584e62d1ab82b0eeb"
-        )
     elif platform.machine() == "ppc64le":
+        # N.B. support for ppc64le was dropped in 24.0
+        version(
+            "23.1.2", sha256="5c588a6b7391d75cced4016936d0c5a00023431269339432738ff33b860487b3"
+        )
+        version(
+            "23.1.1", sha256="9d4dfa440ef1cc9c6a7cb4f7eeec49fc77f0b6b75864fbe018a41783ac5fc5df"
+        )
         version("23.1", sha256="39a522c1d9a29f0a35bba5201f3e23c56d87543410505df30c85128816dd455b")
         version(
             "23.0.4", sha256="927c1ba733cf63027243060586b196f8262e545d898712044c359a6af6fc5795"
@@ -64,10 +96,36 @@ class LinaroForge(Package):
         version(
             "22.0.4", sha256="f4cb5bcbaa67f9209299fe4653186a2829760b8b16a2883913aa43766375b04c"
         )
-        version(
-            "21.1.3", sha256="eecbc5686d60994c5468b2d7cd37bebe5d9ac0ba37bd1f98fbfc69b071db541e"
-        )
     elif platform.machine() == "x86_64":
+        version(
+            "24.1.1", sha256="b58b59f0b4ccf50eb48753d740172f71941b1fbe132dea96d35c6dad58cd9b96"
+        )
+        version("24.1", sha256="0b96878ab73c20b39c4730ed15f24ca86dc5985637ff5d8e68f55e1e802e5fe3")
+        version(
+            "24.0.6", sha256="eab198b964862b4664359ccbec1edb27c2dd3b9fa82bcb4e14fc616a2b0341da"
+        )
+        version(
+            "24.0.5", sha256="da0d4d6fa9120b5e7c4a248795b7f5da32c4987588ecb7406213c8c9846af2bc"
+        )
+        version(
+            "24.0.4", sha256="001e7b7cd796d8e807971b99a9ca233c24f8fcd6eee4e9b4bbb0ec8560d44f08"
+        )
+        version(
+            "24.0.3", sha256="1796559fb86220d5e17777215d3820f4b04aba271782276b81601d5065284526"
+        )
+        version(
+            "24.0.2", sha256="e2ad12273d568560e948a9bcdd49b830a2309f247b146bf36579053f99ec59a3"
+        )
+        version(
+            "24.0.1", sha256="70aa6b610d181c12be10e57d2fd3439261e2c6cb23d9f1f33303b85f04cb7bf2"
+        )
+        version("24.0", sha256="5976067e3de14d0838e1069021a4a4a96d048824454668779473ff0776d66a01")
+        version(
+            "23.1.2", sha256="675d2d8e4510afefa0405eecb46ac8bf440ff35a5a40d5507dc12d29678a22bf"
+        )
+        version(
+            "23.1.1", sha256="6dcd39fc582088eb4b13233ae1e9b38e12bfa07babf77d89b869473a3c2b66e6"
+        )
         version("23.1", sha256="31185d5f9855fd03701089907cdf7b38eb72c484ee730f8341decbbd8f9b5930")
         version(
             "23.0.4", sha256="41a81840a273ea9a232efb4f031149867c5eff7a6381d787e18195f1171caac4"
@@ -87,9 +145,6 @@ class LinaroForge(Package):
         )
         version(
             "22.0.4", sha256="a2c8c1da38b9684d7c4656a98b3fc42777b03fd474cd0bf969324804f47587e5"
-        )
-        version(
-            "21.1.3", sha256="03dc82f1d075deb6f08d1e3e6592dc9b630d406c08a1316d89c436b5874f3407"
         )
 
     variant(

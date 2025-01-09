@@ -1,12 +1,11 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 import re
 
-import llnl.util.tty as tty
+from llnl.util import tty
 
 from spack.package import *
 
@@ -39,58 +38,53 @@ class Go(Package):
 
     maintainers("alecbcs")
 
-    version("1.21.3", sha256="186f2b6f8c8b704e696821b09ab2041a5c1ee13dcbc3156a13adcf75931ee488")
+    license("BSD-3-Clause")
 
-    # Deprecated Versions
-    # https://nvd.nist.gov/vuln/detail/CVE-2023-39533
+    version("1.23.4", sha256="ad345ac421e90814293a9699cca19dd5238251c3f687980bbcae28495b263531")
+    version("1.23.3", sha256="8d6a77332487557c6afa2421131b50f83db4ae3c579c3bc72e670ee1f6968599")
+    version("1.23.2", sha256="36930162a93df417d90bd22c6e14daff4705baac2b02418edda671cdfa9cd07f")
+    version("1.23.1", sha256="6ee44e298379d146a5e5aa6b1c5b5d5f5d0a3365eabdd70741e6e21340ec3b0d")
+    version("1.22.8", sha256="df12c23ebf19dea0f4bf46a22cbeda4a3eca6f474f318390ce774974278440b8")
+    version("1.22.7", sha256="66432d87d85e0cfac3edffe637d5930fc4ddf5793313fe11e4a0f333023c879f")
+    version("1.22.6", sha256="9e48d99d519882579917d8189c17e98c373ce25abaebb98772e2927088992a51")
+    version("1.22.4", sha256="fed720678e728a7ca30ba8d1ded1caafe27d16028fab0232b8ba8e22008fb784")
+
+    # https://nvd.nist.gov/vuln/detail/CVE-2024-24790
+    # https://nvd.nist.gov/vuln/detail/CVE-2024-24789
     version(
-        "1.20.6",
-        sha256="62ee5bc6fb55b8bae8f705e0cb8df86d6453626b4ecf93279e2867092e0b7f70",
-        deprecated=True,
-    )
-    # https://nvd.nist.gov/vuln/detail/CVE-2023-29405
-    version(
-        "1.20.4",
-        sha256="9f34ace128764b7a3a4b238b805856cc1b2184304df9e5690825b0710f4202d6",
-        deprecated=True,
-    )
-    version(
-        "1.20.3",
-        sha256="e447b498cde50215c4f7619e5124b0fc4e25fb5d16ea47271c47f278e7aa763a",
-        deprecated=True,
-    )
-    version(
-        "1.19.11",
-        sha256="e25c9ab72d811142b7f41ff6da5165fec2d1be5feec3ef2c66bc0bdecb431489",
+        "1.22.2",
+        sha256="374ea82b289ec738e968267cac59c7d5ff180f9492250254784b2044e90df5a9",
         deprecated=True,
     )
     version(
-        "1.19.9",
-        sha256="131190a4697a70c5b1d232df5d3f55a3f9ec0e78e40516196ffb3f09ae6a5744",
+        "1.22.1",
+        sha256="79c9b91d7f109515a25fc3ecdaad125d67e6bdb54f6d4d98580f46799caea321",
         deprecated=True,
     )
     version(
-        "1.19.8",
-        sha256="1d7a67929dccafeaf8a29e55985bc2b789e0499cb1a17100039f084e3238da2f",
-        deprecated=True,
-    )
-    # https://nvd.nist.gov/vuln/detail/CVE-2023-24538
-    version(
-        "1.20.2",
-        sha256="4d0e2850d197b4ddad3bdb0196300179d095bb3aefd4dfbc3b36702c3728f8ab",
+        "1.22.0",
+        sha256="4d196c3d41a0d6c1dfc64d04e3cc1f608b0c436bd87b7060ce3e23234e1f4d5c",
         deprecated=True,
     )
     version(
-        "1.19.7",
-        sha256="775bdf285ceaba940da8a2fe20122500efd7a0b65dbcee85247854a8d7402633",
+        "1.21.6",
+        sha256="124926a62e45f78daabbaedb9c011d97633186a33c238ffc1e25320c02046248",
+        deprecated=True,
+    )
+    version(
+        "1.21.5",
+        sha256="285cbbdf4b6e6e62ed58f370f3f6d8c30825d6e56c5853c66d3c23bcdb09db19",
         deprecated=True,
     )
 
     provides("golang")
 
-    depends_on("git", type=("build", "link", "run"))
+    depends_on("bash", type="build")
+    depends_on("sed", type="build")
+    depends_on("grep", type="build")
     depends_on("go-or-gccgo-bootstrap", type="build")
     depends_on("go-or-gccgo-bootstrap@1.17.13:", type="build", when="@1.20:")
+    depends_on("go-or-gccgo-bootstrap@1.20.6:", type="build", when="@1.22:")
 
     phases = ["build", "install"]
 
@@ -104,7 +98,7 @@ class Go(Package):
         return match.group(1) if match else None
 
     def setup_build_environment(self, env):
-        env.set("GOROOT_FINAL", self.spec.prefix)
+        env.set("GOROOT_FINAL", self.spec.prefix.go)
         # We need to set CC/CXX_FOR_TARGET, otherwise cgo will use the
         # internal Spack wrappers and fail.
         env.set("CC_FOR_TARGET", self.compiler.cc)
@@ -112,13 +106,15 @@ class Go(Package):
         env.set("GOMAXPROCS", make_jobs)
 
     def build(self, spec, prefix):
+        # Build script depend on bash
         bash = which("bash")
 
         with working_dir("src"):
             bash(f"{'all' if self.run_tests else 'make'}.bash")
 
     def install(self, spec, prefix):
-        install_tree(".", prefix)
+        install_tree(".", prefix.go)
+        os.symlink(prefix.go.bin, prefix.bin)
 
     def setup_dependent_package(self, module, dependent_spec):
         """Called before go modules' build(), install() methods.

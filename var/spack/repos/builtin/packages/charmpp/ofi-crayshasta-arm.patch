@@ -1,0 +1,13 @@
+diff --git a/src/arch/ofi-crayshasta/conv-mach.h b/src/arch/ofi-crayshasta/conv-mach.h
+index 61d295df3..9e15fd2a9 100644
+--- a/src/arch/ofi-crayshasta/conv-mach.h
++++ b/src/arch/ofi-crayshasta/conv-mach.h
+@@ -74,7 +74,7 @@
+ #define CMK_LBDB_ON					   1
+ 
+ #define CMK_64BIT                      1
+-#define CMK_AMD64                      1
++#define CMK_ARM                        1
+ 
+ /* Other possible definitions:
+ 

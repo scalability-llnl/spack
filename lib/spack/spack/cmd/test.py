@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,12 +14,13 @@ from llnl.util import lang, tty
 from llnl.util.tty import colify
 
 import spack.cmd
-import spack.cmd.common.arguments as arguments
+import spack.config
 import spack.environment as ev
 import spack.install_test
-import spack.package_base
 import spack.repo
 import spack.report
+import spack.store
+from spack.cmd.common import arguments
 
 description = "run spack's tests for an install"
 section = "admin"
@@ -164,7 +164,7 @@ def test_run(args):
     if args.fail_fast:
         spack.config.set("config:fail_fast", True, scope="command_line")
 
-    explicit = args.explicit or any
+    explicit = args.explicit or None
     explicit_str = "explicitly " if args.explicit else ""
 
     # Get specs to test
@@ -228,7 +228,7 @@ def create_reporter(args, specs_to_test, test_suite):
 
 def test_list(args):
     """list installed packages with available tests"""
-    tagged = set(spack.repo.PATH.packages_with_tags(*args.tag)) if args.tag else set()
+    tagged = spack.repo.PATH.packages_with_tags(*args.tag) if args.tag else set()
 
     def has_test_and_tags(pkg_class):
         tests = spack.install_test.test_functions(pkg_class)
@@ -345,7 +345,7 @@ def _report_suite_results(test_suite, args, constraints):
         tty.msg("{0} for test suite '{1}'{2}:".format(results_desc, test_suite.name, matching))
 
         results = {}
-        with open(test_suite.results_file, "r") as f:
+        with open(test_suite.results_file, "r", encoding="utf-8") as f:
             for line in f:
                 pkg_id, status = line.split()
                 results[pkg_id] = status
@@ -370,7 +370,7 @@ def _report_suite_results(test_suite, args, constraints):
                     spec = test_specs[pkg_id]
                     log_file = test_suite.log_file_for_spec(spec)
                     if os.path.isfile(log_file):
-                        with open(log_file, "r") as f:
+                        with open(log_file, "r", encoding="utf-8") as f:
                             msg += "\n{0}".format("".join(f.readlines()))
                 tty.msg(msg)
 

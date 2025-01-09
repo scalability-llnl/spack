@@ -1,0 +1,70 @@
+From 039f025988871b36b46867db67ea82c52a645409 Mon Sep 17 00:00:00 2001
+From: sreenivasa murthy kolam <sreenivasamurthy.kolam@amd.com>
+Date: Thu, 8 Feb 2024 09:35:38 +0000
+Subject: [PATCH] Handle the hipsparse api changes for rocm 6.0
+
+---
+ .../impls/aij/seq/seqhipsparse/aijhipsparse.hip.cpp  | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/src/mat/impls/aij/seq/seqhipsparse/aijhipsparse.hip.cpp b/src/mat/impls/aij/seq/seqhipsparse/aijhipsparse.hip.cpp
+index e6f878f..411b24e 100644
+--- a/src/mat/impls/aij/seq/seqhipsparse/aijhipsparse.hip.cpp
++++ b/src/mat/impls/aij/seq/seqhipsparse/aijhipsparse.hip.cpp
+@@ -1258,7 +1258,7 @@ static PetscErrorCode MatSolve_SeqAIJHIPSPARSE_ILU0(Mat fact, Vec b, Vec x)
+   /* Solve L*y = b */
+   PetscCallHIPSPARSE(hipsparseDnVecSetValues(fs->dnVecDescr_X, (void *)barray));
+   PetscCallHIPSPARSE(hipsparseDnVecSetValues(fs->dnVecDescr_Y, fs->Y));
+-  #if PETSC_PKG_HIP_VERSION_EQ(5, 6, 31061)                                                                                                       // i.e., 5.6.0
++  #if (PETSC_PKG_HIP_VERSION_EQ(5, 6, 31061)||PETSC_PKG_HIP_VERSION_EQ(6, 0, 32830)||PETSC_PKG_HIP_VERSION_EQ(6, 0, 32831))
+   PetscCallHIPSPARSE(hipsparseSpSV_solve(fs->handle, HIPSPARSE_OPERATION_NON_TRANSPOSE, &PETSC_HIPSPARSE_ONE, fs->spMatDescr_L,                   /* L Y = X */
+                                          fs->dnVecDescr_X, fs->dnVecDescr_Y, hipsparse_scalartype, HIPSPARSE_SPSV_ALG_DEFAULT, fs->spsvDescr_L)); // hipsparseSpSV_solve() secretely uses the external buffer used in hipsparseSpSV_analysis()!
+   #else
+@@ -1267,7 +1267,7 @@ static PetscErrorCode MatSolve_SeqAIJHIPSPARSE_ILU0(Mat fact, Vec b, Vec x)
+   #endif
+   /* Solve U*x = y */
+   PetscCallHIPSPARSE(hipsparseDnVecSetValues(fs->dnVecDescr_X, xarray));
+-  #if PETSC_PKG_HIP_VERSION_EQ(5, 6, 31061)                                                                                     // i.e., 5.6.0
++  #if (PETSC_PKG_HIP_VERSION_EQ(5, 6, 31061)||PETSC_PKG_HIP_VERSION_EQ(6, 0, 32830)||PETSC_PKG_HIP_VERSION_EQ(6, 0, 32831))
+   PetscCallHIPSPARSE(hipsparseSpSV_solve(fs->handle, HIPSPARSE_OPERATION_NON_TRANSPOSE, &PETSC_HIPSPARSE_ONE, fs->spMatDescr_U, /* U X = Y */
+                                          fs->dnVecDescr_Y, fs->dnVecDescr_X, hipsparse_scalartype, HIPSPARSE_SPSV_ALG_DEFAULT, fs->spsvDescr_U));
+   #else
+@@ -1316,7 +1316,7 @@ static PetscErrorCode MatSolveTranspose_SeqAIJHIPSPARSE_ILU0(Mat fact, Vec b, Ve
+   /* Solve Ut*y = b */
+   PetscCallHIPSPARSE(hipsparseDnVecSetValues(fs->dnVecDescr_X, (void *)barray));
+   PetscCallHIPSPARSE(hipsparseDnVecSetValues(fs->dnVecDescr_Y, fs->Y));
+-  #if PETSC_PKG_HIP_VERSION_EQ(5, 6, 31061)                                                                                 // i.e., 5.6.0
++  #if (PETSC_PKG_HIP_VERSION_EQ(5, 6, 31061)||PETSC_PKG_HIP_VERSION_EQ(6, 0, 32830)||PETSC_PKG_HIP_VERSION_EQ(6, 0, 32831))
+   PetscCallHIPSPARSE(hipsparseSpSV_solve(fs->handle, HIPSPARSE_OPERATION_TRANSPOSE, &PETSC_HIPSPARSE_ONE, fs->spMatDescr_U, /* Ut Y = X */
+                                          fs->dnVecDescr_X, fs->dnVecDescr_Y, hipsparse_scalartype, HIPSPARSE_SPSV_ALG_DEFAULT, fs->spsvDescr_Ut));
+   #else
+@@ -1325,7 +1325,7 @@ static PetscErrorCode MatSolveTranspose_SeqAIJHIPSPARSE_ILU0(Mat fact, Vec b, Ve
+   #endif
+   /* Solve Lt*x = y */
+   PetscCallHIPSPARSE(hipsparseDnVecSetValues(fs->dnVecDescr_X, xarray));
+-  #if PETSC_PKG_HIP_VERSION_EQ(5, 6, 31061)                                                                                 // i.e., 5.6.0
++  #if (PETSC_PKG_HIP_VERSION_EQ(5, 6, 31061)||PETSC_PKG_HIP_VERSION_EQ(6, 0, 32830)||PETSC_PKG_HIP_VERSION_EQ(6, 0, 32831))
+   PetscCallHIPSPARSE(hipsparseSpSV_solve(fs->handle, HIPSPARSE_OPERATION_TRANSPOSE, &PETSC_HIPSPARSE_ONE, fs->spMatDescr_L, /* Lt X = Y */
+                                          fs->dnVecDescr_Y, fs->dnVecDescr_X, hipsparse_scalartype, HIPSPARSE_SPSV_ALG_DEFAULT, fs->spsvDescr_Lt));
+   #else
+@@ -1559,7 +1559,7 @@ static PetscErrorCode MatSolve_SeqAIJHIPSPARSE_ICC0(Mat fact, Vec b, Vec x)
+   /* Solve L*y = b */
+   PetscCallHIPSPARSE(hipsparseDnVecSetValues(fs->dnVecDescr_X, (void *)barray));
+   PetscCallHIPSPARSE(hipsparseDnVecSetValues(fs->dnVecDescr_Y, fs->Y));
+-  #if PETSC_PKG_HIP_VERSION_EQ(5, 6, 31061)                                                                                     // i.e., 5.6.0
++  #if (PETSC_PKG_HIP_VERSION_EQ(5, 6, 31061)||PETSC_PKG_HIP_VERSION_EQ(6, 0, 32830)||PETSC_PKG_HIP_VERSION_EQ(6, 0, 32831))
+   PetscCallHIPSPARSE(hipsparseSpSV_solve(fs->handle, HIPSPARSE_OPERATION_NON_TRANSPOSE, &PETSC_HIPSPARSE_ONE, fs->spMatDescr_L, /* L Y = X */
+                                          fs->dnVecDescr_X, fs->dnVecDescr_Y, hipsparse_scalartype, HIPSPARSE_SPSV_ALG_DEFAULT, fs->spsvDescr_L));
+   #else
+@@ -1568,7 +1568,7 @@ static PetscErrorCode MatSolve_SeqAIJHIPSPARSE_ICC0(Mat fact, Vec b, Vec x)
+   #endif
+   /* Solve Lt*x = y */
+   PetscCallHIPSPARSE(hipsparseDnVecSetValues(fs->dnVecDescr_X, xarray));
+-  #if PETSC_PKG_HIP_VERSION_EQ(5, 6, 31061)                                                                                 // i.e., 5.6.0
++  #if (PETSC_PKG_HIP_VERSION_EQ(5, 6, 31061)||PETSC_PKG_HIP_VERSION_EQ(6, 0, 32830)||PETSC_PKG_HIP_VERSION_EQ(6, 0, 32831))
+   PetscCallHIPSPARSE(hipsparseSpSV_solve(fs->handle, HIPSPARSE_OPERATION_TRANSPOSE, &PETSC_HIPSPARSE_ONE, fs->spMatDescr_L, /* Lt X = Y */
+                                          fs->dnVecDescr_Y, fs->dnVecDescr_X, hipsparse_scalartype, HIPSPARSE_SPSV_ALG_DEFAULT, fs->spsvDescr_Lt));
+   #else
+-- 
+2.39.3
+

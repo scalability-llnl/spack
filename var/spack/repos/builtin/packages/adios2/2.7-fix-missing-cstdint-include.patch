@@ -1,0 +1,24 @@
+From abbe0f81d78403a62444b1a76222b9a226fd17c6 Mon Sep 17 00:00:00 2001
+From: Vicente Adolfo Bolea Sanchez <vicente.bolea@kitware.com>
+Date: Mon, 22 Apr 2024 20:52:49 -0700
+Subject: [PATCH] fix py11bind stdint dep
+
+---
+ thirdparty/pybind11/pybind11/include/pybind11/pybind11.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/thirdparty/pybind11/pybind11/include/pybind11/pybind11.h b/thirdparty/pybind11/pybind11/include/pybind11/pybind11.h
+index fa98f7c18..6992c3d55 100644
+--- a/thirdparty/pybind11/pybind11/include/pybind11/pybind11.h
++++ b/thirdparty/pybind11/pybind11/include/pybind11/pybind11.h
+@@ -47,6 +47,7 @@
+ #include "detail/class.h"
+ #include "detail/init.h"
+ 
++#include <cstdint>
+ #include <memory>
+ #include <vector>
+ #include <string>
+-- 
+2.35.3
+

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,7 +12,12 @@ class Ethminer(CMakePackage):
     homepage = "https://github.com/ethereum-mining/ethminer"
     url = "https://github.com/ethereum-mining/ethminer/archive/v0.12.0.tar.gz"
 
+    license("GPL-3.0-or-later")
+
     version("0.12.0", sha256="71122c8aa1be2c29e46d7f07961fa760b1eb390e4d9a2a21cf900f6482a8755a")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("opencl", default=True, description="Enable OpenCL mining.")
     variant("cuda", default=False, description="Enable CUDA mining.")

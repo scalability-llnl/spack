@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -9,8 +8,10 @@ from spack.package import *
 class PyPythonsollya(PythonPackage):
     """Python wrapper for the Sollya library"""
 
-    homepage = "Python wrapper for the Sollya library"
+    homepage = "https://gitlab.com/metalibm-dev/pythonsollya"
     url = "https://gitlab.com/metalibm-dev/pythonsollya/-/archive/release-0.4.0-alpha0/pythonsollya-release-0.4.0-alpha0.tar.gz"
+
+    license("CECILL-2.1")
 
     version(
         "0.4.0-alpha0", sha256="faac899744c92b1d20980cadef309cd5610d79722322e97940ff142c207c41b5"
@@ -32,9 +33,4 @@ class PyPythonsollya(PythonPackage):
 
     @run_before("install")
     def patch(self):
-        filter_file(
-            "PYTHON ?= python2",
-            "PYTHON ?= " + self.spec["python"].command.path,
-            "GNUmakefile",
-            string=True,
-        )
+        filter_file("PYTHON ?= python2", f"PYTHON ?= {python.path}", "GNUmakefile", string=True)

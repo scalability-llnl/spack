@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import spack.paths
@@ -32,8 +31,8 @@ class OldSbang(Package):
 """.format(
             spack.store.STORE.unpadded_root, prefix.bin
         )
-        with open("%s/sbang-style-1.sh" % self.prefix.bin, "w") as f:
+        with open("%s/sbang-style-1.sh" % self.prefix.bin, "w", encoding="utf-8") as f:
             f.write(sbang_style_1)
 
-        with open("%s/sbang-style-2.sh" % self.prefix.bin, "w") as f:
+        with open("%s/sbang-style-2.sh" % self.prefix.bin, "w", encoding="utf-8") as f:
             f.write(sbang_style_2)

@@ -1,17 +1,37 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
 """Schema for compilers.yaml configuration file.
 
 .. literalinclude:: _spack_root/lib/spack/spack/schema/compilers.py
-   :lines: 13-
+   :lines: 15-
 """
+from typing import Any, Dict
+
 import spack.schema.environment
 
+flags: Dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "cflags": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+        "cxxflags": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+        "fflags": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+        "cppflags": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+        "ldflags": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+        "ldlibs": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+    },
+}
+
+
+extra_rpaths: Dict[str, Any] = {"type": "array", "default": [], "items": {"type": "string"}}
+
+implicit_rpaths: Dict[str, Any] = {
+    "anyOf": [{"type": "array", "items": {"type": "string"}}, {"type": "boolean"}]
+}
+
 #: Properties for inclusion in other schemas
-properties = {
+properties: Dict[str, Any] = {
     "compilers": {
         "type": "array",
         "items": {
@@ -34,37 +54,20 @@ properties = {
                                 "fc": {"anyOf": [{"type": "string"}, {"type": "null"}]},
                             },
                         },
-                        "flags": {
-                            "type": "object",
-                            "additionalProperties": False,
-                            "properties": {
-                                "cflags": {"anyOf": [{"type": "string"}, {"type": "null"}]},
-                                "cxxflags": {"anyOf": [{"type": "string"}, {"type": "null"}]},
-                                "fflags": {"anyOf": [{"type": "string"}, {"type": "null"}]},
-                                "cppflags": {"anyOf": [{"type": "string"}, {"type": "null"}]},
-                                "ldflags": {"anyOf": [{"type": "string"}, {"type": "null"}]},
-                                "ldlibs": {"anyOf": [{"type": "string"}, {"type": "null"}]},
-                            },
-                        },
+                        "flags": flags,
                         "spec": {"type": "string"},
                         "operating_system": {"type": "string"},
                         "target": {"type": "string"},
                         "alias": {"anyOf": [{"type": "string"}, {"type": "null"}]},
                         "modules": {
-                            "anyOf": [{"type": "string"}, {"type": "null"}, {"type": "array"}]
-                        },
-                        "implicit_rpaths": {
                             "anyOf": [
+                                {"type": "null"},
                                 {"type": "array", "items": {"type": "string"}},
-                                {"type": "boolean"},
                             ]
                         },
+                        "implicit_rpaths": implicit_rpaths,
                         "environment": spack.schema.environment.definition,
-                        "extra_rpaths": {
-                            "type": "array",
-                            "default": [],
-                            "items": {"type": "string"},
-                        },
+                        "extra_rpaths": extra_rpaths,
                     },
                 }
             },

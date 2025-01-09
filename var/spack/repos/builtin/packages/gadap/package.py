@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,7 +13,11 @@ class Gadap(AutotoolsPackage):
 
     maintainers("vanderwb")
 
+    license("GPL-2.0-only")
+
     version("2.0", sha256="ae9a989ca00ec29fb40616383d170883f07c022456db338399982a8a94ec0100")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("curl@7.18.0:")
     depends_on("libdap4")

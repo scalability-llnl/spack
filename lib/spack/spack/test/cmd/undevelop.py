@@ -1,11 +1,6 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-
-import pytest
-
 import spack.environment as ev
 import spack.spec
 from spack.main import SpackCommand
@@ -14,14 +9,12 @@ undevelop = SpackCommand("undevelop")
 env = SpackCommand("env")
 concretize = SpackCommand("concretize")
 
-pytestmark = pytest.mark.not_on_windows("does not run on windows")
 
-
-def test_undevelop(tmpdir, config, mock_packages, mutable_mock_env_path):
+def test_undevelop(tmpdir, mutable_config, mock_packages, mutable_mock_env_path):
     # setup environment
     envdir = tmpdir.mkdir("env")
     with envdir.as_cwd():
-        with open("spack.yaml", "w") as f:
+        with open("spack.yaml", "w", encoding="utf-8") as f:
             f.write(
                 """\
 spack:
@@ -46,11 +39,11 @@ spack:
     assert not after.satisfies("dev_path=*")
 
 
-def test_undevelop_nonexistent(tmpdir, config, mock_packages, mutable_mock_env_path):
+def test_undevelop_nonexistent(tmpdir, mutable_config, mock_packages, mutable_mock_env_path):
     # setup environment
     envdir = tmpdir.mkdir("env")
     with envdir.as_cwd():
-        with open("spack.yaml", "w") as f:
+        with open("spack.yaml", "w", encoding="utf-8") as f:
             f.write(
                 """\
 spack:

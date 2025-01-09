@@ -1,20 +1,21 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_systems import cmake
 from spack.package import *
 
 
-class Libbson(Package):
+class Libbson(AutotoolsPackage, CMakePackage):
     """libbson is a library providing useful routines related to building,
     parsing, and iterating BSON documents."""
 
     homepage = "https://github.com/mongodb/mongo-c-driver"
-    url = "https://github.com/mongodb/mongo-c-driver/releases/download/1.16.2/mongo-c-driver-1.16.2.tar.gz"
+    url = "https://github.com/mongodb/mongo-c-driver/archive/refs/tags/1.25.0.tar.gz"
 
     maintainers("michaelkuhn")
 
+    version("1.27.2", sha256="a53010803e2df097a2ea756be6ece34c8f52cda2c18e6ea21115097b75f5d4bf")
     version("1.24.4", sha256="2f4a3e8943bfe3b8672c2053f88cf74acc8494dc98a45445f727901eee141544")
     version("1.23.4", sha256="209406c91fcf7c63aa633179a0a6b1b36ba237fb77e0470fd81f7299a408e334")
     version("1.23.3", sha256="c8f951d4f965d455f37ae2e10b72914736fc0f25c4ffc14afc3cbadd1a574ef6")
@@ -33,52 +34,48 @@ class Libbson(Package):
     version("1.7.0", sha256="442d89e89dfb43bba1f65080dc61fdcba01dcb23468b2842c1dbdd4acd6049d3")
     version("1.6.3", sha256="e9e4012a9080bdc927b5060b126a2c82ca11e71ebe7f2152d079fa2ce461a7fb")
     version("1.6.2", sha256="aad410123e4bd8a9804c3c3d79e03344e2df104872594dc2cf19605d492944ba")
-    version("1.6.1", sha256="5f160d44ea42ce9352a7a3607bc10d3b4b22d3271763aa3b3a12665e73e3a02d")
+    version(
+        "1.6.1",
+        sha256="5f160d44ea42ce9352a7a3607bc10d3b4b22d3271763aa3b3a12665e73e3a02d",
+        deprecated=True,
+    )
 
-    depends_on("cmake@3.1:", type="build", when="@1.10.0:")
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
-    depends_on("autoconf", type="build", when="@1.6.1")
-    depends_on("automake", type="build", when="@1.6.1")
-    depends_on("libtool", type="build", when="@1.6.1")
-    depends_on("m4", type="build", when="@1.6.1")
+    with when("build_system=cmake"):
+        depends_on("cmake@3.1:", type="build")
+
+    with when("build_system=autotools"):
+        depends_on("autoconf", type="build", when="@1.6.1")
+        depends_on("automake", type="build", when="@1.6.1")
+        depends_on("libtool", type="build", when="@1.6.1")
+
+    build_system(
+        conditional("cmake", when="@1.10:"),
+        conditional("autotools", when="@:1.9"),
+        default="cmake",
+    )
 
     def url_for_version(self, version):
+        if version >= Version("1.25.0"):
+            return f"https://github.com/mongodb/mongo-c-driver/archive/refs/tags/{version}.tar.gz"
         if version >= Version("1.10.0"):
-            url = "https://github.com/mongodb/mongo-c-driver/releases/download/{0}/mongo-c-driver-{0}.tar.gz"
+            return f"https://github.com/mongodb/mongo-c-driver/releases/download/{version}/mongo-c-driver-{version}.tar.gz"
         else:
-            url = "https://github.com/mongodb/libbson/releases/download/{0}/libbson-{0}.tar.gz"
-
-        return url.format(version)
-
-    def cmake_args(self):
-        args = ["-DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF", "-DENABLE_MONGOC=OFF"]
-
-        return args
-
-    def install(self, spec, prefix):
-        with working_dir("spack-build", create=True):
-            # We cannot simply do
-            #   cmake('..', *std_cmake_args, *self.cmake_args())
-            # because that is not Python 2 compatible. Instead, collect
-            # arguments into a temporary buffer first.
-            args = []
-            args.extend(std_cmake_args)
-            args.extend(self.cmake_args())
-            cmake("..", *args)
-            make()
-            make("install")
+            return f"https://github.com/mongodb/libbson/releases/download/{version}/libbson-{version}.tar.gz"
 
     @property
     def force_autoreconf(self):
         # 1.6.1 tarball is broken
         return self.spec.satisfies("@1.6.1")
 
-    @when("@:1.9")
-    def install(self, spec, prefix):
-        configure("--prefix={0}".format(prefix))
-        make()
-        if self.run_tests:
-            make("check")
-        make("install")
-        if self.run_tests:
-            make("installcheck")
+
+class CMakeBuilder(cmake.CMakeBuilder):
+    def cmake_args(self):
+        return [
+            self.define("ENABLE_AUTOMATIC_INIT_AND_CLEANUP", False),
+            self.define("ENABLE_MONGOC", False),
+            self.define("MONGO_USE_CCACHE", False),
+            self.define("MONGO_USE_LLD", False),
+        ]

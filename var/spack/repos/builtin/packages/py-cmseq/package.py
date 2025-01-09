@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,8 @@ class PyCmseq(PythonPackage):
 
     homepage = "https://github.com/SegataLab/cmseq"
     pypi = "CMSeq/CMSeq-1.0.4.tar.gz"
+
+    license("MIT")
 
     version("1.0.4", sha256="93038a6dba826e29a66df3ec8ab2b3e3872acac7af9df245e4a5a624584aca5c")
 

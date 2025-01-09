@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -8,7 +7,8 @@ from typing import List
 import llnl.util.lang
 
 import spack.builder
-import spack.installer
+import spack.error
+import spack.phase_callbacks
 import spack.relocate
 import spack.spec
 import spack.store
@@ -34,7 +34,7 @@ def sanity_check_prefix(builder: spack.builder.Builder):
             if not predicate(abs_path):
                 msg = "Install failed for {0}. No such {1} in prefix: {2}"
                 msg = msg.format(pkg.name, filetype, path)
-                raise spack.installer.InstallError(msg)
+                raise spack.error.InstallError(msg)
 
     check_paths(pkg.sanity_check_is_file, "file", os.path.isfile)
     check_paths(pkg.sanity_check_is_dir, "directory", os.path.isdir)
@@ -42,7 +42,7 @@ def sanity_check_prefix(builder: spack.builder.Builder):
     ignore_file = llnl.util.lang.match_predicate(spack.store.STORE.layout.hidden_file_regexes)
     if all(map(ignore_file, os.listdir(pkg.prefix))):
         msg = "Install failed for {0}.  Nothing was installed!"
-        raise spack.installer.InstallError(msg.format(pkg.name))
+        raise spack.error.InstallError(msg.format(pkg.name))
 
 
 def apply_macos_rpath_fixups(builder: spack.builder.Builder):
@@ -63,7 +63,7 @@ def apply_macos_rpath_fixups(builder: spack.builder.Builder):
 
 
 def ensure_build_dependencies_or_raise(
-    spec: spack.spec.Spec, dependencies: List[spack.spec.Spec], error_msg: str
+    spec: spack.spec.Spec, dependencies: List[str], error_msg: str
 ):
     """Ensure that some build dependencies are present in the concrete spec.
 
@@ -71,7 +71,7 @@ def ensure_build_dependencies_or_raise(
 
     Args:
         spec: concrete spec to be checked.
-        dependencies: list of abstract specs to be satisfied
+        dependencies: list of package names of required build dependencies
         error_msg: brief error message to be prepended to a longer description
 
     Raises:
@@ -127,8 +127,8 @@ def execute_install_time_tests(builder: spack.builder.Builder):
     builder.pkg.tester.phase_tests(builder, "install", builder.install_time_test_callbacks)
 
 
-class BaseBuilder(spack.builder.Builder):
-    """Base class for builders to register common checks"""
+class BuilderWithDefaults(spack.builder.Builder):
+    """Base class for all specific builders with common callbacks registered."""
 
     # Check that self.prefix is there after installation
-    spack.builder.run_after("install")(sanity_check_prefix)
+    spack.phase_callbacks.run_after("install")(sanity_check_prefix)

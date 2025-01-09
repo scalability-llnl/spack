@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,7 @@ class RRrblup(RPackage):
 
     cran = "rrBLUP"
 
+    version("4.6.3", sha256="cd2a257ecb8252f352fd09189b538db62e4de4a51091cf392c18966c3f0c80cd")
     version("4.6.2", sha256="860f5e3f889593b6737f386743a2679322ec7d3557bea8e25482fd6cb745adff")
     version("4.6.1", sha256="e9230e74cc430a83ac5567071cb1c7f00b35c368f7d79bcc1cfde7225446c4db")
     version("4.6", sha256="28b475a1466fcdc1780caace75cf34155338fda496cebd5799315598a4bc84af")

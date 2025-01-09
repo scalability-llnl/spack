@@ -1,21 +1,19 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import re
-from textwrap import dedent
 
 import pytest
 
+import spack.config
 import spack.environment as ev
 import spack.error
-import spack.parser
 import spack.spec
 import spack.store
 from spack.main import SpackCommand, SpackCommandError
 
-pytestmark = pytest.mark.usefixtures("config", "mutable_mock_repo")
+pytestmark = pytest.mark.usefixtures("mutable_config", "mutable_mock_repo")
 
 spec = SpackCommand("spec")
 
@@ -31,8 +29,7 @@ def test_spec():
     assert "mpich@3.0.4" in output
 
 
-@pytest.mark.only_clingo("Known failure of the original concretizer")
-def test_spec_concretizer_args(mutable_config, mutable_database):
+def test_spec_concretizer_args(mutable_database, do_not_check_runtimes_on_reuse):
     """End-to-end test of CLI concretizer prefs.
 
     It's here to make sure that everything works from CLI
@@ -59,7 +56,7 @@ def test_spec_concretizer_args(mutable_config, mutable_database):
 def test_spec_parse_dependency_variant_value():
     """Verify that we can provide multiple key=value variants to multiple separate
     packages within a spec string."""
-    output = spec("multivalue-variant fee=barbaz ^ a foobar=baz")
+    output = spec("multivalue-variant fee=barbaz ^ pkg-a foobar=baz")
 
     assert "fee=barbaz" in output
     assert "foobar=baz" in output
@@ -72,42 +69,6 @@ def test_spec_parse_cflags_quoting():
 
     assert ["-Os", "-pipe"] == gh_flagged.compiler_flags["cflags"]
     assert ["-flto", "-Os"] == gh_flagged.compiler_flags["cxxflags"]
-
-
-def test_spec_parse_unquoted_flags_report():
-    """Verify that a useful error message is produced if unquoted compiler flags are
-    provided."""
-    # This should fail during parsing, since /usr/include is interpreted as a spec hash.
-    with pytest.raises(spack.error.SpackError) as cm:
-        # We don't try to figure out how many following args were intended to be part of
-        # cflags, we just explain how to fix it for the immediate next arg.
-        spec("gcc cflags=-Os -pipe -other-arg-that-gets-ignored cflags=-I /usr/include")
-    # Verify that the generated error message is nicely formatted.
-
-    expected_message = dedent(
-        '''\
-    Some compiler or linker flags were provided without quoting their arguments,
-    which now causes spack to try to parse the *next* argument as a spec component
-    such as a variant instead of an additional compiler or linker flag. If the
-    intent was to set multiple flags, try quoting them together as described below.
-
-    Possible flag quotation errors (with the correctly-quoted version after the =>):
-    (1) cflags=-Os -pipe => cflags="-Os -pipe"
-    (2) cflags=-I /usr/include => cflags="-I /usr/include"'''
-    )
-
-    assert expected_message in str(cm.value)
-
-    # Verify that the same unquoted cflags report is generated in the error message even
-    # if it fails during concretization, not just during parsing.
-    with pytest.raises(spack.error.SpackError) as cm:
-        spec("gcc cflags=-Os -pipe")
-    cm = str(cm.value)
-    assert cm.startswith(
-        'trying to set variant "pipe" in package "gcc", but the package has no such '
-        'variant [happened during concretization of gcc cflags="-Os" ~pipe]'
-    )
-    assert cm.endswith('(1) cflags=-Os -pipe => cflags="-Os -pipe"')
 
 
 def test_spec_yaml():
@@ -134,7 +95,7 @@ def test_spec_json():
     assert "mpich" in mpileaks
 
 
-def test_spec_format(database, config):
+def test_spec_format(mutable_database):
     output = spec("--format", "{name}-{^mpi.name}", "mpileaks^mpich")
     assert output.rstrip("\n") == "mpileaks-mpich"
 
@@ -180,11 +141,11 @@ def test_spec_returncode():
 
 
 def test_spec_parse_error():
-    with pytest.raises(spack.parser.SpecSyntaxError) as e:
+    with pytest.raises(spack.error.SpecSyntaxError) as e:
         spec("1.15:")
 
     # make sure the error is formatted properly
-    error_msg = "unexpected tokens in the spec string\n1.15:\n    ^"
+    error_msg = "unexpected characters in the spec string\n1.15:\n    ^"
     assert error_msg in str(e.value)
 
 
@@ -218,3 +179,43 @@ def test_spec_version_assigned_git_ref_as_version(name, version, error):
     else:
         output = spec(name + "@" + version)
         assert version in output
+
+
+@pytest.mark.parametrize(
+    "unify, spec_hash_args, match, error",
+    [
+        # success cases with unfiy:true
+        (True, ["mpileaks_mpich"], "mpich", None),
+        (True, ["mpileaks_zmpi"], "zmpi", None),
+        (True, ["mpileaks_mpich", "dyninst"], "mpich", None),
+        (True, ["mpileaks_zmpi", "dyninst"], "zmpi", None),
+        # same success cases with unfiy:false
+        (False, ["mpileaks_mpich"], "mpich", None),
+        (False, ["mpileaks_zmpi"], "zmpi", None),
+        (False, ["mpileaks_mpich", "dyninst"], "mpich", None),
+        (False, ["mpileaks_zmpi", "dyninst"], "zmpi", None),
+        # cases with unfiy:false
+        (True, ["mpileaks_mpich", "mpileaks_zmpi"], "callpath, mpileaks", spack.error.SpecError),
+        (False, ["mpileaks_mpich", "mpileaks_zmpi"], "zmpi", None),
+    ],
+)
+def test_spec_unification_from_cli(
+    install_mockery, mutable_config, mutable_database, unify, spec_hash_args, match, error
+):
+    """Ensure specs grouped together on the CLI are concretized together when unify:true."""
+    spack.config.set("concretizer:unify", unify)
+
+    db = spack.store.STORE.db
+    spec_lookup = {
+        "mpileaks_mpich": db.query_one("mpileaks ^mpich").dag_hash(),
+        "mpileaks_zmpi": db.query_one("mpileaks ^zmpi").dag_hash(),
+        "dyninst": db.query_one("dyninst").dag_hash(),
+    }
+
+    hashes = [f"/{spec_lookup[name]}" for name in spec_hash_args]
+    if error:
+        with pytest.raises(error, match=match):
+            output = spec(*hashes)
+    else:
+        output = spec(*hashes)
+        assert match in output

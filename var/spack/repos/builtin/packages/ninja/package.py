@@ -1,11 +1,9 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import sys
 
 from spack.package import *
-from spack.util.executable import which_string
 
 
 class Ninja(Package):
@@ -22,8 +20,12 @@ class Ninja(Package):
 
     executables = ["^ninja$"]
 
+    license("Apache-2.0")
+
     version("kitware", branch="features-for-fortran", git="https://github.com/Kitware/ninja.git")
     version("master", branch="master")
+    version("1.12.1", sha256="821bdff48a3f683bc4bb3b6f0b5fe7b2d647cf65d52aeb63328c91a6c6df285a")
+    version("1.12.0", sha256="8b2c86cd483dc7fcb7975c5ec7329135d210099a89bc7db0590a07b0bbfe49a5")
     version("1.11.1", sha256="31747ae633213f1eda3842686f83c2aa1412e0f5691d1c14dbbcc67fe7400cea")
     version("1.11.0", sha256="3c6ba2e66400fe3f1ae83deb4b235faf3137ec20bd5b08c29bfc368db143e4c6")
     version("1.10.2", sha256="ce35865411f0490368a8fc383f29071de6690cbadc27704734978221f25e2bed")
@@ -34,9 +36,26 @@ class Ninja(Package):
     version("1.7.2", sha256="2edda0a5421ace3cf428309211270772dd35a91af60c96f93f90df6bc41b16d9")
     version("1.6.0", sha256="b43e88fb068fe4d92a3dfd9eb4d19755dae5c33415db2e9b7b61b4659009cde7")
 
+    # ninja@1.12: needs googletest source, but 1.12 itself needs a patch to use it
+    resource(
+        name="googletest",
+        url="https://github.com/google/googletest/archive/refs/tags/release-1.12.1.tar.gz",
+        sha256="81964fe578e9bd7c94dfdb09c8e4d6e6759e19967e397dbea48d1c10e45d0df2",
+        placement="gtest",
+        when="@1.12:",
+    )
+    patch(
+        "https://github.com/ninja-build/ninja/commit/f14a949534d673f847c407644441c8f37e130ce9.patch?full_index=1",
+        sha256="93f4bb3234c3af04e2454c6f0ef2eca3107edd4537a70151ea66f1a1d4c22dad",
+        when="@1.12",
+    )
+
     variant(
         "re2c", default=not sys.platform == "win32", description="Enable buidling Ninja with re2c"
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("python", type="build")
     depends_on("re2c@0.11.3:", type="build", when="+re2c")
@@ -49,13 +68,16 @@ class Ninja(Package):
         return output.strip()
 
     def configure(self, spec, prefix):
-        python("configure.py", "--bootstrap")
+        if self.run_tests and spec.satisfies("@1.12:"):
+            python("configure.py", "--bootstrap", "--gtest-source-dir=gtest")
+        else:
+            python("configure.py", "--bootstrap")
 
     @run_after("configure")
     @on_package_attributes(run_tests=True)
     def configure_test(self):
         ninja = Executable("./ninja")
-        ninja("-j{0}".format(make_jobs), "ninja_test")
+        ninja(f"-j{make_jobs}", "ninja_test")
         ninja_test = Executable("./ninja_test")
         ninja_test()
 

@@ -1,5 +1,5 @@
 concretizer:
-  # reuse is missing on purpose, see "test_concretizer_arguments"
+  reuse: true
   targets:
     granularity: microarchitectures
     host_compatible: false

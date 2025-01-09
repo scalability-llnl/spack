@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,7 +10,7 @@ class Xproxymanagementprotocol(AutotoolsPackage, XorgPackage):
     way for application servers to easily locate proxy services available to
     them."""
 
-    homepage = "https://cgit.freedesktop.org/xorg/proto/pmproto"
+    homepage = "https://gitlab.freedesktop.org/xorg/proto/pmproto"
     xorg_mirror_path = "proto/xproxymanagementprotocol-1.0.3.tar.gz"
 
     version("1.0.3", sha256="c1501045ec781f36b6f867611ab2b4e81be542f5c669b2fd0cc4ec1340c42bcf")

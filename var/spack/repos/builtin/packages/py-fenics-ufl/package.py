@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,7 +17,13 @@ class PyFenicsUfl(PythonPackage):
     git = "https://github.com/FEniCS/ufl.git"
     maintainers("chrisrichardson", "garth-wells", "jhale")
 
+    license("LGPL-3.0-or-later")
+
     version("main", branch="main")
+    version("2024.2.0", sha256="d9353d23ccbdd9887f8d6edab74c04fe06d818da972072081dbf0c25bc86f5a7")
+    version(
+        "2024.1.0.post1", sha256="6e38e93a2c8417271c9fb316e0d0ea5fe1101c6a37b2496fff8290e7ea7ead74"
+    )
     version("2023.2.0", sha256="d1d3209e8ebd4bd70513c26890f51823bac90edc956233c47bd8e686e064436e")
     version(
         "2023.1.1.post0", sha256="9e6e87f1447635029cec42604f62a76bba84899beb4b8822af10389d1f93a9b6"

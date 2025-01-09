@@ -1,9 +1,6 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-from os import symlink
 
 from spack.package import *
 
@@ -16,6 +13,8 @@ class LtrRetriever(Package):
     url = "https://github.com/oushujun/LTR_retriever/archive/v2.8.7.tar.gz"
 
     maintainers("snehring")
+
+    license("GPL-3.0-only")
 
     version("2.9.4", sha256="a9f4668113d2d75ab97cd85b456f11b00afd4876848a8ef099622ec0d9e505e7")
     version("2.8.7", sha256="29ca6f699c57b5e964aa0ee6c7d3e1e4cd5362dadd789e5f0e8c82fe0bb29369")
@@ -40,9 +39,7 @@ class LtrRetriever(Package):
                 "^TEsorter=.*$", "TEsorter={}".format(spec["py-tesorter"].prefix.bin), "paths"
             )
 
-        mkdirp(prefix.opt)
-        mkdirp(prefix.bin)
+        install_tree(".", prefix)
 
-        install_tree(".", prefix.opt.ltr_retriever)
-
-        symlink(prefix.opt.ltr_retriever.LTR_retriever, prefix.bin.LTR_retriever)
+    def setup_run_environment(self, env):
+        env.prepend_path("PATH", self.prefix)

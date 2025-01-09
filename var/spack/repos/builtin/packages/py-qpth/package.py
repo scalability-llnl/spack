@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,6 +10,8 @@ class PyQpth(PythonPackage):
 
     homepage = "https://github.com/locuslab/qpth"
     pypi = "qpth/qpth-0.0.15.tar.gz"
+
+    license("Apache-2.0")
 
     version("0.0.15", sha256="99d8ec5a35877c18543875a7d5b7fc9af1fa9a4d4b0888011c1ecf42ad9d521c")
 

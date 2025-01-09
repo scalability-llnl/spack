@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -19,6 +18,8 @@ class CrosstoolNg(AutotoolsPackage):
 
     version("1.26.0", sha256="e8ce69c5c8ca8d904e6923ccf86c53576761b9cf219e2e69235b139c8e1b74fc")
     version("1.25.0", sha256="68162f342243cd4189ed7c1f4e3bb1302caa3f2cbbf8331879bd01fe06c60cd3")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("ncurses")
 

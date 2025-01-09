@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,8 @@ class PyDevito(PythonPackage):
 
     homepage = "https://www.devitoproject.org/"
     pypi = "devito/devito-4.8.1.tar.gz"
+
+    license("MIT")
 
     version("4.8.1", sha256="56d0957a3226ed2a81c408107a614f04faa896d42c83a8b2bd1c8b1100adf51d")
 

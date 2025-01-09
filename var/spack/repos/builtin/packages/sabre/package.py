@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,7 +19,11 @@ class Sabre(MakefilePackage):
     homepage = "https://github.com/najoshi/sabre"
     git = "https://github.com/najoshi/sabre.git"
 
+    license("MIT")
+
     version("2013-09-27", commit="039a55e500ba07b7e6432ea6ec2ddcfb3471d949")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("zlib-api")
 

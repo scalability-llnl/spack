@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -21,26 +20,30 @@ class Superlu(CMakePackage, Package):
 
     test_requires_compiler = True
 
+    license("BSD-3-Clause")
+
+    version("7.0.0", sha256="d7b91d4e0bb52644ca74c1a4dd466a694ddf1244a7bbf93cb453e8ca1f6527eb")
+    version("6.0.1", sha256="6c5a3a9a224cb2658e9da15a6034eed44e45f6963f5a771a6b4562f7afb8f549")
     version("6.0.0", sha256="5c199eac2dc57092c337cfea7e422053e8f8229f24e029825b0950edd1d17e8e")
-    version(
-        "5.3.0",
-        sha256="3e464afa77335de200aeb739074a11e96d9bef6d0b519950cfa6684c4be1f350",
-        preferred=True,
-    )
-    version("5.2.2", sha256="470334a72ba637578e34057f46948495e601a5988a602604f5576367e606a28c")
-    version("5.2.1", sha256="28fb66d6107ee66248d5cf508c79de03d0621852a0ddeba7301801d3d859f463")
-    version(
-        "4.3",
-        sha256="169920322eb9b9c6a334674231479d04df72440257c17870aaa0139d74416781",
-        deprecated=True,
-        url="https://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_4.3.tar.gz",
-    )
-    version(
-        "4.2",
-        sha256="5a06e19bf5a597405dfeea39fe92aa8c5dd41da73c72c7187755a75f581efb28",
-        deprecated=True,
-        url="https://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_4.2.tar.gz",
-    )
+    version("5.3.0", sha256="3e464afa77335de200aeb739074a11e96d9bef6d0b519950cfa6684c4be1f350")
+
+    with default_args(deprecated=True):
+        version("5.2.2", sha256="470334a72ba637578e34057f46948495e601a5988a602604f5576367e606a28c")
+        version("5.2.1", sha256="28fb66d6107ee66248d5cf508c79de03d0621852a0ddeba7301801d3d859f463")
+        version(
+            "4.3",
+            sha256="169920322eb9b9c6a334674231479d04df72440257c17870aaa0139d74416781",
+            url="https://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_4.3.tar.gz",
+        )
+        version(
+            "4.2",
+            sha256="5a06e19bf5a597405dfeea39fe92aa8c5dd41da73c72c7187755a75f581efb28",
+            url="https://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_4.2.tar.gz",
+        )
+
+    depends_on("c", type="build")
+    depends_on("fortran", type="build", when="+fortran")
+    depends_on("metis", when="@6:")
 
     build_system(
         conditional("cmake", when="@5:"), conditional("generic", when="@:4"), default="cmake"
@@ -49,6 +52,7 @@ class Superlu(CMakePackage, Package):
     requires("build_system=cmake", when="platform=windows")
 
     variant("pic", default=True, description="Build with position independent code")
+    variant("fortran", default=True, description="Build fortran interface")
 
     depends_on("blas")
     conflicts(
@@ -81,7 +85,7 @@ class Superlu(CMakePackage, Package):
             superlu()
 
 
-class BaseBuilder(metaclass=spack.builder.PhaseCallbacksMeta):
+class AnyBuilder(BaseBuilder):
     @run_after("install")
     def setup_standalone_tests(self):
         """Set up and copy example source files after the package is installed
@@ -113,7 +117,7 @@ class BaseBuilder(metaclass=spack.builder.PhaseCallbacksMeta):
         filter_file(r"include \.\./" + filename, "include ./" + filename, makefile)
 
         # Cache the examples directory for use by stand-alone tests
-        self.pkg.cache_extra_test_sources(self.pkg.examples_src_dir)
+        cache_extra_test_sources(self.pkg, self.pkg.examples_src_dir)
 
     def _make_hdr_for_test(self, lib):
         """Standard configure arguments for make.inc"""
@@ -135,7 +139,7 @@ class BaseBuilder(metaclass=spack.builder.PhaseCallbacksMeta):
         ]
 
 
-class CMakeBuilder(BaseBuilder, spack.build_systems.cmake.CMakeBuilder):
+class CMakeBuilder(AnyBuilder, spack.build_systems.cmake.CMakeBuilder):
     def cmake_args(self):
         if self.pkg.version > Version("5.2.1"):
             _blaslib_key = "enable_internal_blaslib"
@@ -146,11 +150,21 @@ class CMakeBuilder(BaseBuilder, spack.build_systems.cmake.CMakeBuilder):
             self.define("CMAKE_INSTALL_LIBDIR", self.prefix.lib),
             self.define_from_variant("CMAKE_POSITION_INDEPENDENT_CODE", "pic"),
             self.define("enable_tests", self.pkg.run_tests),
+            self.define_from_variant("enable_fortran", "fortran"),
         ]
+
+        if self.spec.satisfies("@6:"):
+            args.extend(
+                [
+                    self.define("TPL_ENABLE_METISLIB", True),
+                    self.define("TPL_METIS_INCLUDE_DIRS", self.spec["metis"].prefix.include),
+                    self.define("TPL_METIS_LIBRARIES", self.spec["metis"].libs),
+                ]
+            )
         return args
 
 
-class GenericBuilder(BaseBuilder, spack.build_systems.generic.GenericBuilder):
+class GenericBuilder(AnyBuilder, spack.build_systems.generic.GenericBuilder):
     def install(self, pkg, spec, prefix):
         """Use autotools before version 5"""
         # Define make.inc file

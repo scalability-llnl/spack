@@ -1,5 +1,4 @@
-.. Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-   Spack Project Developers. See the top-level COPYRIGHT file for details.
+.. Copyright Spack Project Developers. See COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,10 +10,6 @@
 ===================
 Spack
 ===================
-
-.. epigraph::
-
-   `These are docs for the Spack package manager. For sphere packing, see` `pyspack <https://pyspack.readthedocs.io>`_.
 
 Spack is a package management tool designed to support multiple
 versions and configurations of software on a wide variety of platforms
@@ -39,9 +34,14 @@ package:
 
 .. code-block:: console
 
-   $ git clone -c feature.manyFiles=true https://github.com/spack/spack.git
+   $ git clone -c feature.manyFiles=true --depth=2 https://github.com/spack/spack.git
    $ cd spack/bin
    $ ./spack install libelf
+
+.. note::
+   ``-c feature.manyFiles=true`` improves git's performance on repositories with 1,000+ files.
+
+   ``--depth=2`` prunes the git history to reduce the size of the Spack installation.
 
 If you're new to spack and want to start using it, see :doc:`getting_started`,
 or refer to the full manual below.

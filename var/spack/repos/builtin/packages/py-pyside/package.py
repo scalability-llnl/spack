@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,10 +22,18 @@ class PyPyside(PythonPackage):
     # Meanwhile, developers have moved onto pyside2 (for Qt5),
     # and show little interest in certifying PySide 1.2.4 for Python.
     version(
-        "1.2.4", sha256="1421bc1bf612c396070de9e1ffe227c07c1f3129278bc7d30c754b5146be2433"
+        "1.2.4",
+        sha256="1421bc1bf612c396070de9e1ffe227c07c1f3129278bc7d30c754b5146be2433",
+        deprecated=True,
     )  # rpath problems
 
-    version("1.2.2", sha256="53129fd85e133ef630144c0598d25c451eab72019cdcb1012f2aec773a3f25be")
+    version(
+        "1.2.2",
+        sha256="53129fd85e133ef630144c0598d25c451eab72019cdcb1012f2aec773a3f25be",
+        deprecated=True,
+    )
+
+    depends_on("cxx", type="build")  # generated
 
     # to prevent error: 'PyTypeObject' {aka 'struct _typeobject'} has no member
     # named 'tp_print'

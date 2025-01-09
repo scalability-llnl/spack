@@ -1,0 +1,7 @@
+ci:
+  pipeline-gen:
+  - any-job:
+      variables:
+        SPACK_TARGET_ARCH: neoverse_v2
+  - build-job:
+      tags: ["neoverse_v2"]

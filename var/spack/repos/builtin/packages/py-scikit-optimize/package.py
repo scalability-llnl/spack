@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,8 @@ class PyScikitOptimize(PythonPackage):
     git = "https://github.com/scikit-optimize/scikit-optimize.git"
 
     maintainers("liuyangzhuan")
+
+    license("BSD-3-Clause")
 
     version("master", branch="master")
     version("0.9.0", sha256="77d8c9e64947fc9f5cc05bbc6aed7b8a9907871ae26fe11997fd67be90f26008")

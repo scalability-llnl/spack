@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PyArgcomplete(PythonPackage):
     homepage = "https://github.com/kislyuk/argcomplete"
     pypi = "argcomplete/argcomplete-1.12.0.tar.gz"
 
+    version("3.5.0", sha256="4349400469dccfb7950bb60334a680c58d88699bff6159df61251878dc6bf74b")
+    version("3.1.6", sha256="3b1f07d133332547a53c79437527c00be48cca3807b1d4ca5cab1b26313386a6")
     version("3.1.2", sha256="d5d1e5efd41435260b8f85673b74ea2e883affcbec9f4230c582689e8e78251b")
     version("3.0.8", sha256="b9ca96448e14fa459d7450a4ab5a22bbf9cee4ba7adddf03e65c398b5daeea28")
     version("2.0.0", sha256="6372ad78c89d662035101418ae253668445b391755cfe94ea52f1b9d22425b20")

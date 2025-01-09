@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,9 +15,12 @@ import pytest
 
 import spack
 import spack.cmd
+import spack.cmd.external
 import spack.compilers
-import spack.config
 import spack.cray_manifest as cray_manifest
+import spack.platforms
+import spack.platforms.test
+import spack.solver.asp
 import spack.spec
 import spack.store
 from spack.cray_manifest import compiler_from_entry, entries_to_specs
@@ -346,7 +348,7 @@ def test_read_cray_manifest(
     """
     with tmpdir.as_cwd():
         test_db_fname = "external-db.json"
-        with open(test_db_fname, "w") as db_file:
+        with open(test_db_fname, "w", encoding="utf-8") as db_file:
             json.dump(manifest_content, db_file)
         cray_manifest.read(test_db_fname, True)
         query_specs = spack.store.STORE.db.query("openmpi")
@@ -381,7 +383,7 @@ def test_read_cray_manifest_add_compiler_failure(
 
     with tmpdir.as_cwd():
         test_db_fname = "external-db.json"
-        with open(test_db_fname, "w") as db_file:
+        with open(test_db_fname, "w", encoding="utf-8") as db_file:
             json.dump(manifest_content, db_file)
         cray_manifest.read(test_db_fname, True)
         query_specs = spack.store.STORE.db.query("openmpi")
@@ -395,7 +397,7 @@ def test_read_cray_manifest_twice_no_compiler_duplicates(
 ):
     with tmpdir.as_cwd():
         test_db_fname = "external-db.json"
-        with open(test_db_fname, "w") as db_file:
+        with open(test_db_fname, "w", encoding="utf-8") as db_file:
             json.dump(manifest_content, db_file)
 
         # Read the manifest twice
@@ -415,7 +417,7 @@ def test_read_old_manifest_v1_2(tmpdir, mutable_config, mock_packages, mutable_d
     """
     manifest_dir = str(tmpdir.mkdir("manifest_dir"))
     manifest_file_path = os.path.join(manifest_dir, "test.json")
-    with open(manifest_file_path, "w") as manifest_file:
+    with open(manifest_file_path, "w", encoding="utf-8") as manifest_file:
         manifest_file.write(
             """\
 {
@@ -435,7 +437,7 @@ def test_convert_validation_error(tmpdir, mutable_config, mock_packages, mutable
     manifest_dir = str(tmpdir.mkdir("manifest_dir"))
     # Does not parse as valid JSON
     invalid_json_path = os.path.join(manifest_dir, "invalid-json.json")
-    with open(invalid_json_path, "w") as f:
+    with open(invalid_json_path, "w", encoding="utf-8") as f:
         f.write(
             """\
 {
@@ -448,7 +450,7 @@ def test_convert_validation_error(tmpdir, mutable_config, mock_packages, mutable
     # Valid JSON, but does not conform to schema (schema-version is not a string
     # of length > 0)
     invalid_schema_path = os.path.join(manifest_dir, "invalid-schema.json")
-    with open(invalid_schema_path, "w") as f:
+    with open(invalid_schema_path, "w", encoding="utf-8") as f:
         f.write(
             """\
 {
@@ -471,7 +473,7 @@ def directory_with_manifest(tmpdir, manifest_content):
     """Create a manifest file in a directory. Used by 'spack external'."""
     with tmpdir.as_cwd():
         test_db_fname = "external-db.json"
-        with open(test_db_fname, "w") as db_file:
+        with open(test_db_fname, "w", encoding="utf-8") as db_file:
             json.dump(manifest_content, db_file)
 
     yield str(tmpdir)
@@ -488,3 +490,23 @@ def test_find_external_nonempty_default_manifest_dir(
     spack.cmd.external._collect_and_consume_cray_manifest_files(ignore_default_dir=False)
     specs = spack.store.STORE.db.query("hwloc")
     assert any(x.dag_hash() == "hwlocfakehashaaa" for x in specs)
+
+
+def test_reusable_externals_cray_manifest(
+    tmpdir, mutable_config, mock_packages, temporary_store, manifest_content
+):
+    """The concretizer should be able to reuse specs imported from a manifest without a
+    externals config entry in packages.yaml"""
+    with tmpdir.as_cwd():
+        with open("external-db.json", "w", encoding="utf-8") as f:
+            json.dump(manifest_content, f)
+        cray_manifest.read(path="external-db.json", apply_updates=True)
+
+        # Get any imported spec
+        spec = temporary_store.db.query_local()[0]
+
+        # Reusable if imported locally
+        assert spack.solver.asp._is_reusable(spec, packages={}, local=True)
+
+        # If cray manifest entries end up in a build cache somehow, they are not reusable
+        assert not spack.solver.asp._is_reusable(spec, packages={}, local=False)

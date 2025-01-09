@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 # adapted from official quantum espresso package
@@ -17,6 +16,8 @@ class QESirius(CMakePackage):
 
     maintainers("simonpintarelli")
 
+    license("GPL-2.0-or-later")
+
     version("develop-ristretto", branch="ristretto", preferred=True, submodules=True)
     version(
         "6.7-rc1-sirius",
@@ -25,7 +26,10 @@ class QESirius(CMakePackage):
         submodules=True,
     )
 
-    variant("mpi", default=True, description="Builds with MPI support")
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("openmp", default=True, description="Enables OpenMP support")
     variant("libxc", default=False, description="Support functionals through libxc")
     variant("sirius_apps", default=False, description="Build SIRIUS standalone binaries")
@@ -45,7 +49,7 @@ class QESirius(CMakePackage):
     depends_on("sirius +openmp", when="+openmp")
     depends_on("sirius@develop", when="@develop-ristretto")
 
-    depends_on("mpi", when="+mpi")
+    depends_on("mpi")
     depends_on("elpa", when="+elpa")
     depends_on("libxc", when="+libxc")
     depends_on("fftw-api@3")
@@ -54,12 +58,7 @@ class QESirius(CMakePackage):
     depends_on("git", type="build")
     depends_on("pkgconfig", type="build")
 
-    conflicts("~mpi", when="+scalapack", msg="SCALAPACK requires MPI support")
-    conflicts("~scalapack", when="+elpa", msg="ELPA requires SCALAPACK support")
-
-    with when("+mpi"):
-        depends_on("mpi")
-        variant("scalapack", default=True, description="Enables scalapack support")
+    variant("scalapack", default=True, description="Enables scalapack support")
 
     with when("+scalapack"):
         depends_on("scalapack")
@@ -70,9 +69,9 @@ class QESirius(CMakePackage):
     depends_on("hdf5@1.8.16:+fortran+hl~mpi", when="hdf5=serial")
 
     with when("+openmp"):
-        depends_on("fftw+openmp", when="^fftw")
-        depends_on("openblas threads=openmp", when="^openblas")
-        depends_on("intel-mkl threads=openmp", when="^intel-mkl")
+        depends_on("fftw+openmp", when="^[virtuals=fftw-api] fftw")
+        depends_on("openblas threads=openmp", when="^[virtuals=blas] openblas")
+        depends_on("intel-mkl threads=openmp", when="^[virtuals=blas] intel-mkl")
 
     def cmake_args(self):
         args = [
@@ -80,7 +79,7 @@ class QESirius(CMakePackage):
             "-DQE_ENABLE_CUDA=OFF",
             "-DQE_LAPACK_INTERNAL=OFF",
             "-DQE_ENABLE_DOC=OFF",
-            self.define_from_variant("QE_ENABLE_MPI", "mpi"),
+            "-DQE_ENABLE_MPI=ON",
             self.define_from_variant("QE_ENABLE_OPENMP", "openmp"),
             self.define_from_variant("QE_ENABLE_ELPA", "elpa"),
             self.define_from_variant("QE_ENABLE_LIBXC", "libxc"),

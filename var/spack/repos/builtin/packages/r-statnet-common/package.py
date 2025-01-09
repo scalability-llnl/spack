@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,7 @@ class RStatnetCommon(RPackage):
 
     cran = "statnet.common"
 
+    version("4.9.0", sha256="a485dc6e363a993d87336fbd1027adb1cd7b9103447fd63904cae4dc3bfc2dd7")
     version("4.8.0", sha256="def999130673fbcb315fecf3620a2559864f51961a828625aa5cd5fded7946f0")
     version("4.7.0", sha256="b69731a606b56b729b1917375efafb572b960ce5000a0fc2ec5222fd7d80a1b3")
     version("4.6.0", sha256="ddad51128b50d465e1d1aca3a53b452810b9ba578e96b08b8f50f5850d7bb21d")

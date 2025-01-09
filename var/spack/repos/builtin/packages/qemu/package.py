@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,10 @@ class Qemu(AutotoolsPackage):
 
     maintainers("anderbubble")
 
+    # Docs say TCG is "under a BSD license" but all the headers for TCG have the MIT license.
+    license("GPL-2.0-only AND LGPL-2.1-only AND MIT", checked_by="tgamblin")
+
+    version("9.1.0", sha256="816b7022a8ba7c2ac30e2e0cf973e826f6bcc8505339603212c5ede8e94d7834")
     version("4.1.1", sha256="ed6fdbbdd272611446ff8036991e9b9f04a2ab2e3ffa9e79f3bab0eb9a95a1d2")
     version("4.1.0", sha256="656e60218689bdeec69903087fd7582d5d3e72238d02f4481d8dc6d79fd909c6")
     version("4.0.1", sha256="f2674dd6053ef1d48593aa1f0a50c5ac9039f7a059ecb6f9b8307f3fb2fcedad")
@@ -101,6 +104,61 @@ class Qemu(AutotoolsPackage):
     version("0.10.0", sha256="cd554729fa9d0ec17164afbc1cea62d02bde3db8e16db3fd1b8e71d8e1b3dd41")
     version("0.9.1", sha256="a9655a471d0649f5540b890447b35849c162d9b986bf2bbddcb68461748e0f42")
 
-    depends_on("glib@2.40:")
-    depends_on("pixman@0.21.8:")
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("pkgconfig", type="build")
+    depends_on("py-tomli", when="@9:", type="build")
+    depends_on("meson@1.1.0:", when="@9:", type="build")
+
+    depends_on("bison", when="@9:")
+    depends_on("bzip2", when="@9:")
+    depends_on("capstone", when="@9:")
+    depends_on("dtc", when="@9:")
+    depends_on("flex", when="@9:")
+    depends_on("glib@2.40:")
+    depends_on("gnutls", when="@9:")
+    depends_on("libslirp", when="@9:")
+    depends_on("libssh", when="@9:")
+    depends_on("libusb", when="@9:")
+    depends_on("lzo", when="@9:")
+    depends_on("ncurses", when="@9:")
+    depends_on("nettle", when="@9:")
+    depends_on("pixman@0.21.8:")
+    depends_on("snappy", when="@9:")
+    depends_on("vde", when="@9:")
+    depends_on("zlib", when="@9:")
+    depends_on("zstd", when="@9:")
+
+    # linux deps not needed on darwin
+    depends_on("elfutils", when="@9: platform=linux")
+    depends_on("libcap-ng", when="@9: platform=linux")
+
+    build_directory = "build"
+
+    @when("@9:")
+    def configure_args(self):
+        args = [
+            "--disable-bsd-user",
+            "--disable-guest-agent",
+            "--disable-sdl",
+            "--disable-bsd-user",
+            "--disable-guest-agent",
+            "--enable-slirp",
+            "--enable-capstone",
+            "--enable-curses",
+            "--enable-fdt=system",
+            "--enable-libssh",
+            "--enable-vde",
+            "--enable-virtfs",
+            "--enable-zstd",
+            "--disable-docs",
+        ]
+        extra_cflags = "-Wno-unknown-warning-option"
+        if self.spec.satisfies("%apple-clang platform=darwin"):
+            # qemu 9: uses pthread_jit_write_protect_np which requires OSX 11.0 or newer
+            extra_cflags += " -mmacosx-version-min=11.0"
+        args.append(f"--extra-cflags={extra_cflags}")
+        args.append(f"--extra-cxxflags={extra_cflags}")
+
+        return args

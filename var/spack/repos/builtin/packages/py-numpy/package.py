@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,7 +18,18 @@ class PyNumpy(PythonPackage):
 
     maintainers("adamjstewart", "rgommers")
 
+    license("BSD-3-Clause")
+
     version("main", branch="main")
+    version("2.2.0", sha256="140dd80ff8981a583a60980be1a655068f8adebf7a45a06a6858c873fcdcd4a0")
+    version("2.1.2", sha256="13532a088217fa624c99b843eeb54640de23b3414b14aa66d023805eb731066c")
+    version("2.1.1", sha256="d0cf7d55b1051387807405b3898efafa862997b4cba8aa5dbe657be794afeafd")
+    version("2.1.0", sha256="7dc90da0081f7e1da49ec4e398ede6a8e9cc4f5ebe5f9e06b443ed889ee9aaa2")
+    version("2.0.2", sha256="883c987dee1880e2a864ab0dc9892292582510604156762362d9326444636e78")
+    version("2.0.1", sha256="485b87235796410c3519a699cfe1faab097e509e90ebb05dcd098db2ae87e7b3")
+    version("2.0.0", sha256="cf5d1c9e6837f8af9f92b6bd3e86d513cdc11f60fd62185cc49ec7d1aba34864")
+    version("1.26.4", sha256="2a02aba9ed12e4ac4eb3ea9421c420301a0c6460d9830d74a9df87efa4912010")
+    version("1.26.3", sha256="697df43e2b6310ecc9d95f05d5ef20eacc09c7c4ecc9da3f235d39e71b7da1e4")
     version("1.26.2", sha256="f65738447676ab5777f11e6bbbdb8ce11b785e105f690bc45966574816b6d3ea")
     version("1.26.1", sha256="c8c6c72d4a9f831f328efb1312642a1cafafaa88981d9ab76368d50d07d93cbe")
     version("1.26.0", sha256="f93fc78fe8bf15afe2b8d6b6499f1c73953169fad1e9a8dd086cdff3190e7fdf")
@@ -56,78 +66,117 @@ class PyNumpy(PythonPackage):
     version("1.19.5", sha256="a76f502430dd98d7546e1ea2250a7360c065a5fdea52b2dffe8ae7180909b6f4")
     version("1.19.4", sha256="141ec3a3300ab89c7f2b0775289954d193cc8edb621ea05f99db9cb181530512")
     version("1.19.3", sha256="35bf5316af8dc7c7db1ad45bec603e5fb28671beb98ebd1d65e8059efcfd3b72")
-    version("1.19.2", sha256="0d310730e1e793527065ad7dde736197b705d0e4c9999775f212b03c44a8484c")
-    version("1.19.1", sha256="b8456987b637232602ceb4d663cb34106f7eb780e247d51a260b84760fd8f491")
-    version("1.19.0", sha256="76766cc80d6128750075378d3bb7812cf146415bd29b588616f72c943c00d598")
-    version("1.18.5", sha256="34e96e9dae65c4839bd80012023aadd6ee2ccb73ce7fdf3074c62f301e63120b")
-    version("1.18.4", sha256="bbcc85aaf4cd84ba057decaead058f43191cc0e30d6bc5d44fe336dc3d3f4509")
-    version("1.18.3", sha256="e46e2384209c91996d5ec16744234d1c906ab79a701ce1a26155c9ec890b8dc8")
-    version("1.18.2", sha256="e7894793e6e8540dbeac77c87b489e331947813511108ae097f1715c018b8f3d")
-    version("1.18.1", sha256="b6ff59cee96b454516e47e7721098e6ceebef435e3e21ac2d6c3b8b02628eb77")
-    version("1.18.0", sha256="a9d72d9abaf65628f0f31bbb573b7d9304e43b1e6bbae43149c17737a42764c4")
-    version("1.17.5", sha256="16507ba6617f62ae3c6ab1725ae6f550331025d4d9a369b83f6d5a470446c342")
-    version("1.17.4", sha256="f58913e9227400f1395c7b800503ebfdb0772f1c33ff8cb4d6451c06cabdf316")
-    version("1.17.3", sha256="a0678793096205a4d784bd99f32803ba8100f639cf3b932dc63b21621390ea7e")
-    version("1.17.2", sha256="73615d3edc84dd7c4aeb212fa3748fb83217e00d201875a47327f55363cef2df")
-    version("1.17.1", sha256="f11331530f0eff69a758d62c2461cd98cdc2eae0147279d8fc86e0464eb7e8ca")
-    version("1.17.0", sha256="951fefe2fb73f84c620bec4e001e80a80ddaa1b84dce244ded7f1e0cbe0ed34a")
-    version("1.16.6", sha256="e5cf3fdf13401885e8eea8170624ec96225e2174eb0c611c6f26dd33b489e3ff")
-    version("1.16.5", sha256="8bb452d94e964b312205b0de1238dd7209da452343653ab214b5d681780e7a0c")
-    version("1.16.4", sha256="7242be12a58fec245ee9734e625964b97cf7e3f2f7d016603f9e56660ce479c7")
-    version("1.16.3", sha256="78a6f89da87eeb48014ec652a65c4ffde370c036d780a995edaeb121d3625621")
-    version("1.16.2", sha256="6c692e3879dde0b67a9dc78f9bfb6f61c666b4562fd8619632d7043fb5b691b0")
-    version("1.16.1", sha256="31d3fe5b673e99d33d70cfee2ea8fe8dccd60f265c3ed990873a88647e3dd288")
-    version("1.16.0", sha256="cb189bd98b2e7ac02df389b6212846ab20661f4bafe16b5a70a6f1728c1cc7cb")
-    version("1.15.4", sha256="3d734559db35aa3697dadcea492a423118c5c55d176da2f3be9c98d4803fc2a7")
-    version("1.15.3", sha256="1c0c80e74759fa4942298044274f2c11b08c86230b25b8b819e55e644f5ff2b6")
-    version("1.15.2", sha256="27a0d018f608a3fe34ac5e2b876f4c23c47e38295c47dd0775cc294cd2614bc1")
-    version("1.15.2", sha256="27a0d018f608a3fe34ac5e2b876f4c23c47e38295c47dd0775cc294cd2614bc1")
-    version("1.15.1", sha256="7b9e37f194f8bcdca8e9e6af92e2cbad79e360542effc2dd6b98d63955d8d8a3")
-    version("1.15.0", sha256="f28e73cf18d37a413f7d5de35d024e6b98f14566a10d82100f9dc491a7d449f9")
-    version("1.14.6", sha256="1250edf6f6c43e1d7823f0967416bc18258bb271dc536298eb0ea00a9e45b80a")
-    version("1.14.5", sha256="a4a433b3a264dbc9aa9c7c241e87c0358a503ea6394f8737df1683c7c9a102ac")
+    version(
+        "1.19.2",
+        sha256="0d310730e1e793527065ad7dde736197b705d0e4c9999775f212b03c44a8484c",
+        deprecated=True,
+    )
+    version(
+        "1.19.1",
+        sha256="b8456987b637232602ceb4d663cb34106f7eb780e247d51a260b84760fd8f491",
+        deprecated=True,
+    )
+    version(
+        "1.19.0",
+        sha256="76766cc80d6128750075378d3bb7812cf146415bd29b588616f72c943c00d598",
+        deprecated=True,
+    )
+    version(
+        "1.18.5",
+        sha256="34e96e9dae65c4839bd80012023aadd6ee2ccb73ce7fdf3074c62f301e63120b",
+        deprecated=True,
+    )
+    version(
+        "1.18.4",
+        sha256="bbcc85aaf4cd84ba057decaead058f43191cc0e30d6bc5d44fe336dc3d3f4509",
+        deprecated=True,
+    )
+    version(
+        "1.18.3",
+        sha256="e46e2384209c91996d5ec16744234d1c906ab79a701ce1a26155c9ec890b8dc8",
+        deprecated=True,
+    )
+    version(
+        "1.18.2",
+        sha256="e7894793e6e8540dbeac77c87b489e331947813511108ae097f1715c018b8f3d",
+        deprecated=True,
+    )
+    version(
+        "1.18.1",
+        sha256="b6ff59cee96b454516e47e7721098e6ceebef435e3e21ac2d6c3b8b02628eb77",
+        deprecated=True,
+    )
+    version(
+        "1.18.0",
+        sha256="a9d72d9abaf65628f0f31bbb573b7d9304e43b1e6bbae43149c17737a42764c4",
+        deprecated=True,
+    )
+    version(
+        "1.17.5",
+        sha256="16507ba6617f62ae3c6ab1725ae6f550331025d4d9a369b83f6d5a470446c342",
+        deprecated=True,
+    )
+    version(
+        "1.17.4",
+        sha256="f58913e9227400f1395c7b800503ebfdb0772f1c33ff8cb4d6451c06cabdf316",
+        deprecated=True,
+    )
+    version(
+        "1.17.3",
+        sha256="a0678793096205a4d784bd99f32803ba8100f639cf3b932dc63b21621390ea7e",
+        deprecated=True,
+    )
 
-    depends_on("python@3.9:3.12", when="@1.26:", type=("build", "link", "run"))
-    depends_on("python@3.9:3.11", when="@1.25", type=("build", "link", "run"))
-    depends_on("python@3.8:3.11", when="@1.23.2:1.24", type=("build", "link", "run"))
-    depends_on("python@3.8:3.10", when="@1.22:1.23.1", type=("build", "link", "run"))
-    depends_on("python@:3.10", when="@1.21.2:1.21", type=("build", "link", "run"))
-    depends_on("python@:3.9", when="@1.19.3:1.21.1", type=("build", "link", "run"))
-    depends_on("python@:3.8", when="@1.17.3:1.19.2", type=("build", "link", "run"))
-    depends_on("python@:3.7", when="@1.14.5:1.17.2", type=("build", "link", "run"))
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
-    depends_on("py-cython@0.29.34:3", when="@1.26:", type="build")
-    depends_on("py-cython@0.29.34:2", when="@1.25", type="build")
-    depends_on("py-cython@0.29.30:2", when="@1.22.4:1.24", type="build")
-    depends_on("py-cython@0.29.24:2", when="@1.21.2:1.22.3", type="build")
-    depends_on("py-cython@0.29.21:2", when="@1.19.1:1.21.1", type="build")
-    depends_on("py-cython@0.29.14:2", when="@1.18.1:1.19.0", type="build")
-    depends_on("py-cython@0.29.13:2", when="@1.18.0", type="build")
-    depends_on("py-pyproject-metadata@0.7.1:", when="@1.26:", type="build")
-    depends_on("py-tomli@1:", when="@1.26: ^python@:3.10", type="build")
-    depends_on("py-setuptools@60:", when="@1.26: ^python@3.12:", type="build")
-    # https://github.com/spack/spack/pull/32078
-    depends_on("py-setuptools@:63", when="@:1.25", type=("build", "run"))
-    depends_on("py-setuptools@:59", when="@:1.22.1", type=("build", "run"))
-    depends_on("py-colorama", when="@1.26: platform=windows", type="build")
+    # Based on PyPI wheel availability
+    with default_args(type=("build", "link", "run")):
+        depends_on("python@3.10:3.13", when="@2.1:")
+        depends_on("python@3.9:3.12", when="@1.26:2.0")
+        depends_on("python@3.9:3.11", when="@1.25")
+        depends_on("python@3.8:3.11", when="@1.23.2:1.24")
+        depends_on("python@3.8:3.10", when="@1.22:1.23.1")
+        depends_on("python@:3.10", when="@1.21.2:1.21")
+        depends_on("python@:3.9", when="@1.19.3:1.21.1")
+        depends_on("python@:3.8", when="@1.17.3:1.19.2")
 
-    # Required to use --config-settings
-    depends_on("py-pip@23.1:", when="@1.26:", type="build")
-    # meson is vendored, ninja and pkgconfig are not
-    depends_on("ninja@1.8.2:", when="@1.26:", type="build")
-    depends_on("pkgconfig", when="@1.26:", type="build")
+    with default_args(type="build"):
+        # Required to use --config-settings
+        depends_on("py-pip@23.1:", when="@1.26:")
+
+        # Build dependencies (do not include upper bound unless known issues)
+        depends_on("py-cython@3.0.6:", when="@2:")
+        depends_on("py-cython@0.29.34:", when="@1.26:")
+        depends_on("py-cython@0.29.34:2", when="@1.25")
+        depends_on("py-cython@0.29.30:2", when="@1.22.4:1.24")
+        depends_on("py-cython@0.29.24:2", when="@1.21.2:1.22.3")
+        depends_on("py-cython@0.29.21:2", when="@1.19.1:1.21.1")
+        depends_on("py-cython@0.29.14:2", when="@1.18.1:1.19.0")
+        depends_on("py-cython@0.29.13:2", when="@1.18.0")
+        depends_on("py-meson-python@0.15:", when="@1.26.4:")
+
     depends_on("blas")
     depends_on("lapack")
 
-    # test_requirements.txt
-    depends_on("py-nose@1.0.0:", when="@:1.14", type="test")
-    depends_on("py-pytest", when="@1.15:", type="test")
-    depends_on("py-hypothesis", when="@1.19:", type="test")
-    depends_on("py-typing-extensions@4.2:", when="@1.23:", type="test")
+    # requirements/test_requirements.txt
+    with default_args(type="test"):
+        depends_on("py-pytest")
+        depends_on("py-hypothesis", when="@1.19:")
+        depends_on("py-typing-extensions@4.2:", when="@1.23:")
 
-    # Allows you to specify order of BLAS/LAPACK preference
-    # https://github.com/numpy/numpy/pull/13132
-    patch("blas-lapack-order.patch", when="@1.15:1.16")
+    # Historical dependencies
+    with default_args(type="build"):
+        depends_on("py-pyproject-metadata@0.7.1:", when="@1.26.0:1.26.3")
+        depends_on("py-tomli@1:", when="@1.26.0:1.26.3 ^python@:3.10")
+        depends_on("py-setuptools@60:", when="@1.26.0:1.26.3 ^python@3.12:")
+        depends_on("py-colorama", when="@1.26.0:1.26.3 platform=windows")
+        depends_on("ninja@1.8.2:", when="@1.26.0:1.26.3")
+        depends_on("pkgconfig", when="@1.26.0:1.26.3")
+
+    with default_args(type=("build", "run")):
+        depends_on("py-setuptools@:63", when="@:1.25")
+        depends_on("py-setuptools@:59", when="@:1.22.1")
 
     # Add Fujitsu Fortran compiler
     patch("add_fj_compiler.patch", when="@1.19.3:1.19.5%fj")
@@ -137,7 +186,6 @@ class PyNumpy(PythonPackage):
     patch("check_executables.patch", when="@1.20.0:")
     patch("check_executables2.patch", when="@1.19.0:1.19.5")
     patch("check_executables3.patch", when="@1.16.0:1.18.5")
-    patch("check_executables4.patch", when="@1.14.0:1.15.4")
 
     # Backport bug fix for f2py's define for threading when building with Mingw
     patch(
@@ -153,9 +201,20 @@ class PyNumpy(PythonPackage):
         when="@1.22.0:1.22.3",
     )
 
+    # Patch to fix AVX512 build flags on Intel Classic Compiler
+    # See https://github.com/spack/spack/issues/42204
+    # Numpy before 1.26 did not use meson, so the patch does not work for older versions
+    with when("%intel"):
+        patch(
+            "https://github.com/numpy/numpy/commit/953cc2dfc0f0e063a01778d1392c931d9031c469.patch?full_index=1",
+            sha256="fe42a018a69cfafb7c4efc183a7c73835a298e45a8f9a585cb411170871ff596",
+            when="@1.26:1.26.3",
+        )
+
     # meson.build
     # https://docs.scipy.org/doc/scipy/dev/toolchain.html#compilers
     conflicts("%gcc@:8.3", when="@1.26:", msg="NumPy requires GCC >= 8.4")
+    conflicts("%gcc@:6.4", when="@1.23:", msg="NumPy requires GCC >= 6.5")
     conflicts("%gcc@:4.7", msg="NumPy requires GCC >= 4.8")
     conflicts(
         "%msvc@:19.19",
@@ -174,6 +233,8 @@ class PyNumpy(PythonPackage):
     # See https://github.com/numpy/numpy/issues/22011
     conflicts("%intel", when="@1.23.0:1.23.3")
     conflicts("%oneapi", when="@1.23.0:1.23.3")
+    # https://github.com/spack/spack/pull/44735
+    conflicts("%oneapi", when="@2:")
 
     @property
     def archive_files(self):
@@ -255,7 +316,8 @@ class PyNumpy(PythonPackage):
     @when("@1.26:")
     def config_settings(self, spec, prefix):
         blas, lapack = self.blas_lapack_pkg_config()
-        return {
+
+        settings = {
             "builddir": "build",
             "compile-args": f"-j{make_jobs}",
             "setup-args": {
@@ -268,6 +330,22 @@ class PyNumpy(PythonPackage):
                 # "-Dcpu-dispatch": "none",
             },
         }
+
+        # Disable AVX512 features for Intel Classic compilers
+        # https://numpy.org/doc/stable/reference/simd/build-options.html
+        # https://github.com/numpy/numpy/issues/27840
+        # https://github.com/matplotlib/matplotlib/issues/28762
+        archs = ("x86_64_v4:", "cannonlake:", "mic_knl")
+        if any([self.spec.satisfies(f"target={arch} %intel") for arch in archs]):
+            intel_setup_args = {
+                "-Dcpu-dispatch": (
+                    "MAX -AVX512F -AVX512CD -AVX512_KNL -AVX512_KNM -AVX512_SKX "
+                    + "-AVX512_CLX -AVX512_CNL -AVX512_ICL -AVX512_SPR"
+                )
+            }
+            settings["setup-args"].update(intel_setup_args)
+
+        return settings
 
     def blas_lapack_site_cfg(self) -> None:
         """Write a site.cfg file to configure BLAS/LAPACK."""
@@ -363,42 +441,36 @@ class PyNumpy(PythonPackage):
             if "^netlib-lapack" in spec or "^cray-libsci" in spec:
                 # netlib and Cray require blas and lapack listed
                 # separately so that scipy can find them
-                if spec.satisfies("+blas"):
-                    f.write("[blas]\n")
-                    f.write("libraries = {0}\n".format(blas_lib_names))
-                    write_library_dirs(f, blas_lib_dirs)
-                    f.write("include_dirs = {0}\n".format(blas_header_dirs))
-                if spec.satisfies("+lapack"):
-                    f.write("[lapack]\n")
-                    f.write("libraries = {0}\n".format(lapack_lib_names))
-                    write_library_dirs(f, lapack_lib_dirs)
-                    f.write("include_dirs = {0}\n".format(lapack_header_dirs))
+                f.write("[blas]\n")
+                f.write("libraries = {0}\n".format(blas_lib_names))
+                write_library_dirs(f, blas_lib_dirs)
+                f.write("include_dirs = {0}\n".format(blas_header_dirs))
+                f.write("[lapack]\n")
+                f.write("libraries = {0}\n".format(lapack_lib_names))
+                write_library_dirs(f, lapack_lib_dirs)
+                f.write("include_dirs = {0}\n".format(lapack_header_dirs))
 
             if "^fujitsu-ssl2" in spec:
-                if spec.satisfies("+blas"):
-                    f.write("[blas]\n")
-                    f.write("libraries = {0}\n".format(spec["blas"].libs.names[0]))
-                    write_library_dirs(f, blas_lib_dirs)
-                    f.write("include_dirs = {0}\n".format(blas_header_dirs))
-                    f.write("extra_link_args = {0}\n".format(self.spec["blas"].libs.ld_flags))
-                if spec.satisfies("+lapack"):
-                    f.write("[lapack]\n")
-                    f.write("libraries = {0}\n".format(spec["lapack"].libs.names[0]))
-                    write_library_dirs(f, lapack_lib_dirs)
-                    f.write("include_dirs = {0}\n".format(lapack_header_dirs))
-                    f.write("extra_link_args = {0}\n".format(self.spec["lapack"].libs.ld_flags))
+                f.write("[blas]\n")
+                f.write("libraries = {0}\n".format(spec["blas"].libs.names[0]))
+                write_library_dirs(f, blas_lib_dirs)
+                f.write("include_dirs = {0}\n".format(blas_header_dirs))
+                f.write("extra_link_args = {0}\n".format(self.spec["blas"].libs.ld_flags))
+                f.write("[lapack]\n")
+                f.write("libraries = {0}\n".format(spec["lapack"].libs.names[0]))
+                write_library_dirs(f, lapack_lib_dirs)
+                f.write("include_dirs = {0}\n".format(lapack_header_dirs))
+                f.write("extra_link_args = {0}\n".format(self.spec["lapack"].libs.ld_flags))
 
             if "^armpl-gcc" in spec or "^acfl" in spec:
-                if spec.satisfies("+blas"):
-                    f.write("[blas]\n")
-                    f.write("libraries = {0}\n".format(blas_lib_names))
-                    write_library_dirs(f, blas_lib_dirs)
-                    f.write("include_dirs = {0}\n".format(blas_header_dirs))
-                if spec.satisfies("+lapack"):
-                    f.write("[lapack]\n")
-                    f.write("libraries = {0}\n".format(lapack_lib_names))
-                    write_library_dirs(f, lapack_lib_dirs)
-                    f.write("include_dirs = {0}\n".format(lapack_header_dirs))
+                f.write("[blas]\n")
+                f.write("libraries = {0}\n".format(blas_lib_names))
+                write_library_dirs(f, blas_lib_dirs)
+                f.write("include_dirs = {0}\n".format(blas_header_dirs))
+                f.write("[lapack]\n")
+                f.write("libraries = {0}\n".format(lapack_lib_names))
+                write_library_dirs(f, lapack_lib_dirs)
+                f.write("include_dirs = {0}\n".format(lapack_header_dirs))
 
     @when("@:1.25")
     @run_before("install")
@@ -407,9 +479,11 @@ class PyNumpy(PythonPackage):
 
     @when("@1.26:")
     def setup_build_environment(self, env):
-        # https://github.com/scipy/scipy/issues/19357
-        if self.spec.satisfies("%apple-clang@15:"):
-            env.append_flags("LDFLAGS", "-Wl,-ld_classic")
+        if self.spec.satisfies("%msvc"):
+            # For meson build system, compiler paths must be in quotes
+            # to prevent paths from being split by spaces.
+            env.set("CC", f'"{self.compiler.cc}"')
+            env.set("CXX", f'"{self.compiler.cxx}"')
 
     @when("@:1.25")
     def setup_build_environment(self, env):

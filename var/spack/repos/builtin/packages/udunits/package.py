@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,8 @@ class Udunits(AutotoolsPackage):
     url = "https://artifacts.unidata.ucar.edu/repository/downloads-udunits/2.2.28/udunits-2.2.28.tar.gz"
 
     maintainers("AlexanderRichert-NOAA")
+
+    license("UCAR")
 
     # Unidata now only provides the latest version of each X.Y branch.
     # Older 2.2 versions have been deprecated accordingly but are still
@@ -33,6 +34,8 @@ class Udunits(AutotoolsPackage):
         sha256="a154d1f8428c24e92723f9e50bdb5cc00827e3f5ff9cba64d33e5409f5c03455",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
 
     depends_on("expat")
 

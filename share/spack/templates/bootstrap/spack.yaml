@@ -17,6 +17,8 @@ spack:
       root: {{ store_path }}
       padded_length: 0
 
+    install_status: false
+
   packages:
     python:
       buildable: false

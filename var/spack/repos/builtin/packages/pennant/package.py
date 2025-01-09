@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,6 +24,8 @@ class Pennant(MakefilePackage):
     version("0.5", sha256="21ef5889731fad0075f9dab8ffa97af8fd8ff87f6a5fe6434916b6e28cf64e43")
     version("0.4", sha256="65b81b92ed6fdbe407310948dd76ffb48cca155ee05c1f990a649faf81b45bb0")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("mpi", default=True, description="Build with MPI support")
     variant("openmp", default=True, description="Build with OpenMP support")
     variant("debug", default=False, description="Enable debug")
@@ -38,8 +39,6 @@ class Pennant(MakefilePackage):
 
         if self.compiler.name == "intel":
             opt += " -fast -fno-alias"
-        if self.compiler.name == "pgi":
-            opt += " -fastsse"
 
         makefile.filter("CXXFLAGS_DEBUG .*", "CXXFLAGS_DEBUG := {0}".format(debug))
         makefile.filter("CXXFLAGS_OPT .*", "CXXFLAGS_OPT := {0}".format(opt))

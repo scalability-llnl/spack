@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,12 +17,21 @@ class XercesC(AutotoolsPackage):
     homepage = "https://xerces.apache.org/xerces-c"
     url = "https://archive.apache.org/dist/xerces/c/3/sources/xerces-c-3.2.1.tar.bz2"
 
-    version("3.2.4", sha256="74aa626fc71e729ee227602870dd29a5a01cd8c9c1c7330837a51da2eb5722cc")
-    version("3.2.3", sha256="45c2329e684405f2b8854ecbddfb8d5b055cdf0fe4d35736cc352c504989bbb6")
-    version("3.2.2", sha256="1f2a4d1dbd0086ce0f52b718ac0fa4af3dc1ce7a7ff73a581a05fbe78a82bce0")
-    version("3.2.1", sha256="a36b6e162913ec218cfb84772d2535d43c3365355a601d45d4b8ce11f0ece0da")
-    version("3.1.4", sha256="9408f12c1628ecf80730bedbe8b2caad810edd01bb4c66f77b60c873e8cc6891")
-    version("3.1.3", sha256="fc5e5e0247b108b8d64d75aeb124cabdee9b7fcd725a89fe2242b4637b25c1fa")
+    license("Apache-2.0")
+
+    version("3.3.0", sha256="ef752578587e26013a933f16d76305c9b43ca32f869e3d3426986e03efb01d64")
+    version("3.2.5", sha256="1db4028c9b7f1f778efbf4a9462d65e13f9938f2c22f9e9994e12c49ba97e252")
+    with default_args(deprecated=True):
+        # https://nvd.nist.gov/vuln/detail/CVE-2018-1311
+        version("3.2.4", sha256="74aa626fc71e729ee227602870dd29a5a01cd8c9c1c7330837a51da2eb5722cc")
+        version("3.2.3", sha256="45c2329e684405f2b8854ecbddfb8d5b055cdf0fe4d35736cc352c504989bbb6")
+        version("3.2.2", sha256="1f2a4d1dbd0086ce0f52b718ac0fa4af3dc1ce7a7ff73a581a05fbe78a82bce0")
+        version("3.2.1", sha256="a36b6e162913ec218cfb84772d2535d43c3365355a601d45d4b8ce11f0ece0da")
+        version("3.1.4", sha256="9408f12c1628ecf80730bedbe8b2caad810edd01bb4c66f77b60c873e8cc6891")
+        version("3.1.3", sha256="fc5e5e0247b108b8d64d75aeb124cabdee9b7fcd725a89fe2242b4637b25c1fa")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     # Whilst still using Autotools, can use full cxxstd with 'default'
     # If build is moved to CMake, then will also need a patch to Xerces-C's

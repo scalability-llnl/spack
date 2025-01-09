@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,8 @@ class Fairmq(CMakePackage):
     git = "https://github.com/FairRootGroup/FairMQ.git"
     maintainers("dennisklein", "ChristianTackeGSI")
 
+    license("LGPL-3.0-or-later")
+
     version("dev", branch="dev", submodules=True, get_full_repo=True)
     with default_args(submodules=True, no_cache=True):
         # no_cache=True is currently needed, because FairMQ's build system
@@ -23,6 +24,8 @@ class Fairmq(CMakePackage):
         version("1.7.0", tag="v1.7.0", commit="d1c99f7e150c1177dc1cab1b2adc16475cade24e")
         version("1.6.0", tag="v1.6.0", commit="42d27af20fb5cbbbc0b0fdfef1c981d51a8baf87")
         version("1.5.0", tag="v1.5.0", commit="c8fde17b6a10a467035590fd800bb693f50c4826")
+
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "autobind", default=True, when="@1.7:", description="Override the channel autoBind default"

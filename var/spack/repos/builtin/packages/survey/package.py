@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,13 +26,14 @@ class Survey(CMakePackage):
                      jeg@trenzasynergy.com
     """
 
-    homepage = "http://www.trenzasynergy.com"
+    homepage = "https://www.trenzasynergy.com"
     git = "ssh://git@gitlab.com/trenza/survey.git"
 
     maintainers("jgalarowicz")
 
     version("master", branch="master")
     version("1.0.9", branch="1.0.9")
+    version("1.0.8.1", branch="1.0.8.1")
     version("1.0.8", tag="1.0.8")
     version("1.0.7", tag="1.0.7")
     version("1.0.6", tag="1.0.6")
@@ -69,7 +69,7 @@ class Survey(CMakePackage):
     depends_on("llvm-openmp@12.0.1", type=("build", "link"), when="@1.0.3:")
 
     # MPI Installation
-    depends_on("mpi", when="+mpi")
+    depends_on("mpi", type="build", when="+mpi")
 
     depends_on("python@3:", type=("build", "run"))
     depends_on("py-setuptools", type="build")

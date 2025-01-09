@@ -1,36 +1,43 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import contextlib
+import hashlib
 import itertools
+import json
 import os
 import platform
 import re
 import shutil
 import sys
 import tempfile
-from typing import List, Optional, Sequence
+from typing import Dict, List, Optional, Sequence
 
 import llnl.path
 import llnl.util.lang
 import llnl.util.tty as tty
 from llnl.util.filesystem import path_contains_subdirectory, paths_containing_libs
 
-import spack.compilers
+import spack.caches
 import spack.error
+import spack.schema.environment
 import spack.spec
 import spack.util.executable
+import spack.util.libc
 import spack.util.module_cmd
 import spack.version
 from spack.util.environment import filter_system_paths
+from spack.util.file_cache import FileCache
 
 __all__ = ["Compiler"]
 
+PATH_INSTANCE_VARS = ["cc", "cxx", "f77", "fc"]
+FLAG_INSTANCE_VARS = ["cflags", "cppflags", "cxxflags", "fflags"]
+
 
 @llnl.util.lang.memoized
-def _get_compiler_version_output(compiler_path, version_arg, ignore_errors=()):
+def _get_compiler_version_output(compiler_path, version_arg, ignore_errors=()) -> str:
     """Invokes the compiler at a given path passing a single
     version argument and returns the output.
 
@@ -53,7 +60,7 @@ def _get_compiler_version_output(compiler_path, version_arg, ignore_errors=()):
     return output
 
 
-def get_compiler_version_output(compiler_path, *args, **kwargs):
+def get_compiler_version_output(compiler_path, *args, **kwargs) -> str:
     """Wrapper for _get_compiler_version_output()."""
     # This ensures that we memoize compiler output by *absolute path*,
     # not just executable name. If we don't do this, and the path changes
@@ -107,7 +114,6 @@ def _parse_link_paths(string):
     """
     lib_search_paths = False
     raw_link_dirs = []
-    tty.debug("parsing implicit link info")
     for line in string.splitlines():
         if lib_search_paths:
             if line.startswith("\t"):
@@ -122,7 +128,7 @@ def _parse_link_paths(string):
             continue
         if _LINKER_LINE_IGNORE.match(line):
             continue
-        tty.debug("linker line: %s" % line)
+        tty.debug(f"implicit link dirs: link line: {line}")
 
         next_arg = False
         for arg in line.split():
@@ -138,15 +144,12 @@ def _parse_link_paths(string):
             link_dir_arg = _LINK_DIR_ARG.match(arg)
             if link_dir_arg:
                 link_dir = link_dir_arg.group("dir")
-                tty.debug("linkdir: %s" % link_dir)
                 raw_link_dirs.append(link_dir)
 
             link_dir_arg = _LIBPATH_ARG.match(arg)
             if link_dir_arg:
                 link_dir = link_dir_arg.group("dir")
-                tty.debug("libpath: %s", link_dir)
                 raw_link_dirs.append(link_dir)
-    tty.debug("found raw link dirs: %s" % ", ".join(raw_link_dirs))
 
     implicit_link_dirs = list()
     visited = set()
@@ -156,7 +159,7 @@ def _parse_link_paths(string):
             implicit_link_dirs.append(normalized_path)
             visited.add(normalized_path)
 
-    tty.debug("found link dirs: %s" % ", ".join(implicit_link_dirs))
+    tty.debug(f"implicit link dirs: result: {', '.join(implicit_link_dirs)}")
     return implicit_link_dirs
 
 
@@ -201,18 +204,6 @@ class Compiler:
     C++, and Fortran compilers.  Subclasses should implement
     support for specific compilers, their possible names, arguments,
     and how to identify the particular type of compiler."""
-
-    # Subclasses use possible names of C compiler
-    cc_names: List[str] = []
-
-    # Subclasses use possible names of C++ compiler
-    cxx_names: List[str] = []
-
-    # Subclasses use possible names of Fortran 77 compiler
-    f77_names: List[str] = []
-
-    # Subclasses use possible names of Fortran 90 compiler
-    fc_names: List[str] = []
 
     # Optional prefix regexes for searching for this type of compiler.
     # Prefixes are sometimes used for toolchains
@@ -281,18 +272,13 @@ class Compiler:
     def opt_flags(self):
         return ["-O", "-O0", "-O1", "-O2", "-O3"]
 
-    # Cray PrgEnv name that can be used to load this compiler
-    PrgEnv: Optional[str] = None
-    # Name of module used to switch versions of this compiler
-    PrgEnv_compiler: Optional[str] = None
-
     def __init__(
         self,
         cspec,
         operating_system,
         target,
         paths,
-        modules=None,
+        modules: Optional[List[str]] = None,
         alias=None,
         environment=None,
         extra_rpaths=None,
@@ -307,6 +293,7 @@ class Compiler:
         self.environment = environment or {}
         self.extra_rpaths = extra_rpaths or []
         self.enable_implicit_rpaths = enable_implicit_rpaths
+        self.cache = COMPILER_CACHE
 
         self.cc = paths[0]
         self.cxx = paths[1]
@@ -333,6 +320,40 @@ class Compiler:
         # caching value for compiler reported version
         # used for version checks for API, e.g. C++11 flag
         self._real_version = None
+
+    def __eq__(self, other):
+        return (
+            self.cc == other.cc
+            and self.cxx == other.cxx
+            and self.fc == other.fc
+            and self.f77 == other.f77
+            and self.spec == other.spec
+            and self.operating_system == other.operating_system
+            and self.target == other.target
+            and self.flags == other.flags
+            and self.modules == other.modules
+            and self.environment == other.environment
+            and self.extra_rpaths == other.extra_rpaths
+            and self.enable_implicit_rpaths == other.enable_implicit_rpaths
+        )
+
+    def __hash__(self):
+        return hash(
+            (
+                self.cc,
+                self.cxx,
+                self.fc,
+                self.f77,
+                self.spec,
+                self.operating_system,
+                self.target,
+                str(self.flags),
+                str(self.modules),
+                str(self.environment),
+                str(self.extra_rpaths),
+                self.enable_implicit_rpaths,
+            )
+        )
 
     def verify_executables(self):
         """Raise an error if any of the compiler executables is not valid.
@@ -373,27 +394,50 @@ class Compiler:
 
         E.g. C++11 flag checks.
         """
-        if not self._real_version:
-            try:
-                real_version = spack.version.Version(self.get_real_version())
-                if real_version == spack.version.Version("unknown"):
-                    return self.version
-                self._real_version = real_version
-            except spack.util.executable.ProcessError:
-                self._real_version = self.version
-        return self._real_version
+        real_version_str = self.cache.get(self).real_version
+        if not real_version_str or real_version_str == "unknown":
+            return self.version
 
-    def implicit_rpaths(self):
+        return spack.version.StandardVersion.from_string(real_version_str)
+
+    def implicit_rpaths(self) -> List[str]:
         if self.enable_implicit_rpaths is False:
             return []
 
-        # Put CXX first since it has the most linking issues
-        # And because it has flags that affect linking
-        exe_paths = [x for x in [self.cxx, self.cc, self.fc, self.f77] if x]
-        link_dirs = self._get_compiler_link_paths(exe_paths)
+        output = self.compiler_verbose_output
+
+        if not output:
+            return []
+
+        link_dirs = _parse_non_system_link_dirs(output)
 
         all_required_libs = list(self.required_libs) + Compiler._all_compiler_rpath_libraries
         return list(paths_containing_libs(link_dirs, all_required_libs))
+
+    @property
+    def default_dynamic_linker(self) -> Optional[str]:
+        """Determine default dynamic linker from compiler link line"""
+        output = self.compiler_verbose_output
+
+        if not output:
+            return None
+
+        return spack.util.libc.parse_dynamic_linker(output)
+
+    @property
+    def default_libc(self) -> Optional["spack.spec.Spec"]:
+        """Determine libc targeted by the compiler from link line"""
+        # technically this should be testing the target platform of the compiler, but we don't have
+        # that, so stick to host platform for now.
+        if sys.platform in ("darwin", "win32"):
+            return None
+
+        dynamic_linker = self.default_dynamic_linker
+
+        if not dynamic_linker:
+            return None
+
+        return spack.util.libc.libc_from_dynamic_linker(dynamic_linker)
 
     @property
     def required_libs(self):
@@ -403,52 +447,45 @@ class Compiler:
         # By default every compiler returns the empty list
         return []
 
-    def _get_compiler_link_paths(self, paths):
-        first_compiler = next((c for c in paths if c), None)
-        if not first_compiler:
-            return []
-        if not self.verbose_flag:
-            # In this case there is no mechanism to learn what link directories
-            # are used by the compiler
-            return []
+    @property
+    def compiler_verbose_output(self) -> Optional[str]:
+        """Verbose output from compiling a dummy C source file. Output is cached."""
+        return self.cache.get(self).c_compiler_output
 
-        # What flag types apply to first_compiler, in what order
-        flags = ["cppflags", "ldflags"]
-        if first_compiler == self.cc:
-            flags = ["cflags"] + flags
-        elif first_compiler == self.cxx:
-            flags = ["cxxflags"] + flags
+    def _compile_dummy_c_source(self) -> Optional[str]:
+        if self.cc:
+            cc = self.cc
+            ext = "c"
         else:
-            flags.append("fflags")
+            cc = self.cxx
+            ext = "cc"
+
+        if not cc or not self.verbose_flag:
+            return None
 
         try:
             tmpdir = tempfile.mkdtemp(prefix="spack-implicit-link-info")
             fout = os.path.join(tmpdir, "output")
-            fin = os.path.join(tmpdir, "main.c")
+            fin = os.path.join(tmpdir, f"main.{ext}")
 
-            with open(fin, "w+") as csource:
+            with open(fin, "w", encoding="utf-8") as csource:
                 csource.write(
-                    "int main(int argc, char* argv[]) { " "(void)argc; (void)argv; return 0; }\n"
+                    "int main(int argc, char* argv[]) { (void)argc; (void)argv; return 0; }\n"
                 )
-            compiler_exe = spack.util.executable.Executable(first_compiler)
-            for flag_type in flags:
-                for flag in self.flags.get(flag_type, []):
-                    compiler_exe.add_default_arg(flag)
+            cc_exe = spack.util.executable.Executable(cc)
+            for flag_type in ["cflags" if cc == self.cc else "cxxflags", "cppflags", "ldflags"]:
+                cc_exe.add_default_arg(*self.flags.get(flag_type, []))
 
-            output = ""
             with self.compiler_environment():
-                output = str(
-                    compiler_exe(self.verbose_flag, fin, "-o", fout, output=str, error=str)
-                )  # str for py2
-            return _parse_non_system_link_dirs(output)
+                return cc_exe(self.verbose_flag, fin, "-o", fout, output=str, error=str)
         except spack.util.executable.ProcessError as pe:
             tty.debug("ProcessError: Command exited with non-zero status: " + pe.long_message)
-            return []
+            return None
         finally:
             shutil.rmtree(tmpdir, ignore_errors=True)
 
     @property
-    def verbose_flag(self):
+    def verbose_flag(self) -> Optional[str]:
         """
         This property should be overridden in the compiler subclass if a
         verbose flag is available.
@@ -531,7 +568,7 @@ class Compiler:
     # Note: This is not a class method. The class methods are used to detect
     # compilers on PATH based systems, and do not set up the run environment of
     # the compiler. This method can be called on `module` based systems as well
-    def get_real_version(self):
+    def get_real_version(self) -> str:
         """Query the compiler for its version.
 
         This is the "real" compiler version, regardless of what is in the
@@ -541,14 +578,17 @@ class Compiler:
         modifications) to enable the compiler to run properly on any platform.
         """
         cc = spack.util.executable.Executable(self.cc)
-        with self.compiler_environment():
-            output = cc(
-                self.version_argument,
-                output=str,
-                error=str,
-                ignore_errors=tuple(self.ignore_version_errors),
-            )
-            return self.extract_version_from_output(output)
+        try:
+            with self.compiler_environment():
+                output = cc(
+                    self.version_argument,
+                    output=str,
+                    error=str,
+                    ignore_errors=tuple(self.ignore_version_errors),
+                )
+                return self.extract_version_from_output(output)
+        except spack.util.executable.ProcessError:
+            return "unknown"
 
     @property
     def prefix(self):
@@ -575,7 +615,7 @@ class Compiler:
 
     @classmethod
     @llnl.util.lang.memoized
-    def extract_version_from_output(cls, output):
+    def extract_version_from_output(cls, output: str) -> str:
         """Extracts the version from compiler's output."""
         match = re.search(cls.version_regex, output)
         return match.group(1) if match else "unknown"
@@ -583,18 +623,6 @@ class Compiler:
     @classmethod
     def cc_version(cls, cc):
         return cls.default_version(cc)
-
-    @classmethod
-    def cxx_version(cls, cxx):
-        return cls.default_version(cxx)
-
-    @classmethod
-    def f77_version(cls, f77):
-        return cls.default_version(f77)
-
-    @classmethod
-    def fc_version(cls, fc):
-        return cls.default_version(fc)
 
     @classmethod
     def search_regexps(cls, language):
@@ -646,8 +674,8 @@ class Compiler:
 
     @contextlib.contextmanager
     def compiler_environment(self):
-        # yield immediately if no modules
-        if not self.modules:
+        # Avoid modifying os.environ if possible.
+        if not self.modules and not self.environment:
             yield
             return
 
@@ -657,24 +685,40 @@ class Compiler:
         try:
             # load modules and set env variables
             for module in self.modules:
-                # On cray, mic-knl module cannot be loaded without cce module
-                # See: https://github.com/spack/spack/issues/3153
-                if os.environ.get("CRAY_CPU_TARGET") == "mic-knl":
-                    spack.util.module_cmd.load_module("cce")
                 spack.util.module_cmd.load_module(module)
 
             # apply other compiler environment changes
-            env = spack.util.environment.EnvironmentModifications()
-            env.extend(spack.schema.environment.parse(self.environment))
-            env.apply_modifications()
+            spack.schema.environment.parse(self.environment).apply_modifications()
 
             yield
-        except BaseException:
-            raise
         finally:
             # Restore environment regardless of whether inner code succeeded
             os.environ.clear()
             os.environ.update(backup_env)
+
+    def to_dict(self):
+        flags_dict = {fname: " ".join(fvals) for fname, fvals in self.flags.items()}
+        flags_dict.update(
+            {attr: getattr(self, attr, None) for attr in FLAG_INSTANCE_VARS if hasattr(self, attr)}
+        )
+        result = {
+            "spec": str(self.spec),
+            "paths": {attr: getattr(self, attr, None) for attr in PATH_INSTANCE_VARS},
+            "flags": flags_dict,
+            "operating_system": str(self.operating_system),
+            "target": str(self.target),
+            "modules": self.modules or [],
+            "environment": self.environment or {},
+            "extra_rpaths": self.extra_rpaths or [],
+        }
+
+        if self.enable_implicit_rpaths is not None:
+            result["implicit_rpaths"] = self.enable_implicit_rpaths
+
+        if self.alias:
+            result["alias"] = self.alias
+
+        return result
 
 
 class CompilerAccessError(spack.error.SpackError):
@@ -700,3 +744,113 @@ class UnsupportedCompilerFlag(spack.error.SpackError):
             )
             + " implement the {0} property and submit a pull request or issue.".format(flag_name),
         )
+
+
+class CompilerCacheEntry:
+    """Deserialized cache entry for a compiler"""
+
+    __slots__ = ("c_compiler_output", "real_version")
+
+    def __init__(self, c_compiler_output: Optional[str], real_version: str):
+        self.c_compiler_output = c_compiler_output
+        self.real_version = real_version
+
+    @property
+    def empty(self) -> bool:
+        """Sometimes the compiler is temporarily broken, preventing us from getting output. The
+        call site determines if that is a problem."""
+        return self.c_compiler_output is None
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Optional[str]]):
+        if not isinstance(data, dict):
+            raise ValueError(f"Invalid {cls.__name__} data")
+        c_compiler_output = data.get("c_compiler_output")
+        real_version = data.get("real_version")
+        if not isinstance(real_version, str) or not isinstance(
+            c_compiler_output, (str, type(None))
+        ):
+            raise ValueError(f"Invalid {cls.__name__} data")
+        return cls(c_compiler_output, real_version)
+
+
+class CompilerCache:
+    """Base class for compiler output cache. Default implementation does not cache anything."""
+
+    def value(self, compiler: Compiler) -> Dict[str, Optional[str]]:
+        return {
+            "c_compiler_output": compiler._compile_dummy_c_source(),
+            "real_version": compiler.get_real_version(),
+        }
+
+    def get(self, compiler: Compiler) -> CompilerCacheEntry:
+        return CompilerCacheEntry.from_dict(self.value(compiler))
+
+
+class FileCompilerCache(CompilerCache):
+    """Cache for compiler output, which is used to determine implicit link paths, the default libc
+    version, and the compiler version."""
+
+    name = os.path.join("compilers", "compilers.json")
+
+    def __init__(self, cache: "FileCache") -> None:
+        self.cache = cache
+        self.cache.init_entry(self.name)
+        self._data: Dict[str, Dict[str, Optional[str]]] = {}
+
+    def _get_entry(self, key: str, *, allow_empty: bool) -> Optional[CompilerCacheEntry]:
+        try:
+            entry = CompilerCacheEntry.from_dict(self._data[key])
+            return entry if allow_empty or not entry.empty else None
+        except ValueError:
+            del self._data[key]
+        except KeyError:
+            pass
+        return None
+
+    def get(self, compiler: Compiler) -> CompilerCacheEntry:
+        # Cache hit
+        try:
+            with self.cache.read_transaction(self.name) as f:
+                assert f is not None
+                self._data = json.loads(f.read())
+                assert isinstance(self._data, dict)
+        except (json.JSONDecodeError, AssertionError):
+            self._data = {}
+
+        key = self._key(compiler)
+        value = self._get_entry(key, allow_empty=False)
+        if value is not None:
+            return value
+
+        # Cache miss
+        with self.cache.write_transaction(self.name) as (old, new):
+            try:
+                assert old is not None
+                self._data = json.loads(old.read())
+                assert isinstance(self._data, dict)
+            except (json.JSONDecodeError, AssertionError):
+                self._data = {}
+
+            # Use cache entry that may have been created by another process in the meantime.
+            entry = self._get_entry(key, allow_empty=True)
+
+            # Finally compute the cache entry
+            if entry is None:
+                self._data[key] = self.value(compiler)
+                entry = CompilerCacheEntry.from_dict(self._data[key])
+
+            new.write(json.dumps(self._data, separators=(",", ":")))
+
+            return entry
+
+    def _key(self, compiler: Compiler) -> str:
+        as_bytes = json.dumps(compiler.to_dict(), separators=(",", ":")).encode("utf-8")
+        return hashlib.sha256(as_bytes).hexdigest()
+
+
+def _make_compiler_cache():
+    return FileCompilerCache(spack.caches.MISC_CACHE)
+
+
+COMPILER_CACHE: CompilerCache = llnl.util.lang.Singleton(_make_compiler_cache)  # type: ignore

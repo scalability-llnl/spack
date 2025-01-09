@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,10 @@ class Hdf(AutotoolsPackage):
     version("4.2.13", sha256="be9813c1dc3712c2df977d4960e1f13f20f447dfa8c3ce53331d610c1f470483")
     version("4.2.12", sha256="dd419c55e85d1a0e13f3ea5ed35d00710033ccb16c85df088eb7925d486e040c")
     version("4.2.11", sha256="c3f7753b2fb9b27d09eced4d2164605f111f270c9a60b37a578f7de02de86d24")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("szip", default=False, description="Enable szip support")
     variant(
@@ -117,28 +120,28 @@ class Hdf(AutotoolsPackage):
         elif "static" in query_parameters:
             shared = False
         else:
-            shared = "+shared" in self.spec
+            shared = self.spec.satisfies("+shared")
 
         libs = find_libraries(libraries, root=self.prefix, shared=shared, recursive=True)
 
         if not libs:
             msg = "Unable to recursively locate {0} {1} libraries in {2}"
-            raise spack.error.NoLibrariesError(
+            raise NoLibrariesError(
                 msg.format("shared" if shared else "static", self.spec.name, self.spec.prefix)
             )
 
         if not shared and "transitive" in query_parameters:
             libs += self.spec["jpeg:transitive"].libs
             libs += self.spec["zlib:transitive"].libs
-            if "+szip" in self.spec:
+            if self.spec.satisfies("+szip"):
                 libs += self.spec["szip:transitive"].libs
-            if "+external-xdr" in self.spec and self.spec["rpc"].name != "libc":
+            if self.spec.satisfies("+external-xdr") and self.spec["rpc"].name == "libtirpc":
                 libs += self.spec["rpc:transitive"].libs
 
         return libs
 
     def flag_handler(self, name, flags):
-        if "+pic" in self.spec:
+        if self.spec.satisfies("+pic"):
             if name == "cflags":
                 flags.append(self.compiler.cc_pic_flag)
             elif name == "fflags":
@@ -146,10 +149,14 @@ class Hdf(AutotoolsPackage):
 
         if name == "cflags":
             # https://forum.hdfgroup.org/t/help-building-hdf4-with-clang-error-implicit-declaration-of-function-test-mgr-szip-is-invalid-in-c99/7680
-            if self.spec.satisfies("@:4.2.15 %apple-clang") or self.spec.satisfies("%clang@16:"):
+            if (
+                self.spec.satisfies("@:4.2.15 %apple-clang")
+                or self.spec.satisfies("%clang@16:")
+                or self.spec.satisfies("%oneapi")
+            ):
                 flags.append("-Wno-error=implicit-function-declaration")
 
-            if self.spec.satisfies("%clang@16:"):
+            if self.spec.satisfies("%clang@16:") or self.spec.satisfies("%apple-clang@15:"):
                 flags.append("-Wno-error=implicit-int")
 
         return flags, None, None
@@ -167,14 +174,14 @@ class Hdf(AutotoolsPackage):
         config_args += self.enable_or_disable("fortran")
         config_args += self.enable_or_disable("java")
 
-        if "+szip" in self.spec:
+        if self.spec.satisfies("+szip"):
             config_args.append("--with-szlib=%s" % self.spec["szip"].prefix)
         else:
             config_args.append("--without-szlib")
 
-        if "~external-xdr" in self.spec:
+        if self.spec.satisfies("~external-xdr"):
             config_args.append("--enable-hdf4-xdr")
-        elif self.spec["rpc"].name != "libc":
+        elif self.spec["rpc"].name == "libtirpc":
             # We should not specify '--disable-hdf4-xdr' due to a bug in the
             # configure script.
             config_args.append("LIBS=%s" % self.spec["rpc"].libs.link_flags)
@@ -210,7 +217,7 @@ class Hdf(AutotoolsPackage):
     def setup_build_tests(self):
         """Copy the build test files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources(self.extra_install_tests)
+        cache_extra_test_sources(self, self.extra_install_tests)
 
     def _check_version_match(self, exe):
         """Ensure exe version check yields spec version."""

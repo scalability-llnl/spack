@@ -17,33 +17,58 @@ concurrency:
 jobs:
   # Run audits on all the packages in the built-in repository
   package-audits:
-    runs-on: ${{ matrix.operating_system }}
+    runs-on: ${{ matrix.system.os }}
     strategy:
       matrix:
-        operating_system: ["ubuntu-latest", "macos-latest"]
+        system:
+        - { os: windows-latest, shell: 'powershell Invoke-Expression -Command "./share/spack/qa/windows_test_setup.ps1"; {0}' }
+        - { os: ubuntu-latest, shell: bash }
+        - { os: macos-latest, shell: bash }
+    defaults:
+      run:
+        shell: ${{ matrix.system.shell }}
     steps:
-    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # @v2
-    - uses: actions/setup-python@65d7f2d534ac1bc67fcd62888c5f4f3d2cb2b236 # @v2
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+    - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
       with:
         python-version: ${{inputs.python_version}}
     - name: Install Python packages
       run: |
         pip install --upgrade pip setuptools pytest coverage[toml]
+    - name: Setup for Windows run
+      if: runner.os == 'Windows'
+      run: |
+        python -m pip install --upgrade pywin32
     - name: Package audits (with coverage)
-      if: ${{ inputs.with_coverage == 'true' }}
+      env:
+          COVERAGE_FILE: coverage/.coverage-audits-${{ matrix.system.os }}
+      if: ${{ inputs.with_coverage == 'true' && runner.os != 'Windows' }}
       run: |
           . share/spack/setup-env.sh
           coverage run $(which spack) audit packages
-          coverage run $(which spack) audit externals        
+          coverage run $(which spack) audit configs
+          coverage run $(which spack) -d audit externals
           coverage combine
-          coverage xml
     - name: Package audits (without coverage)
-      if: ${{ inputs.with_coverage == 'false' }}
+      if: ${{ inputs.with_coverage == 'false' && runner.os != 'Windows' }}
       run: |
           . share/spack/setup-env.sh
-          $(which spack) audit packages
-          $(which spack) audit externals
-    - uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d # @v2.1.0
-      if: ${{ inputs.with_coverage == 'true' }}
+          spack -d audit packages
+          spack -d audit configs
+          spack -d audit externals
+    - name: Package audits (without coverage)
+      if: ${{ runner.os == 'Windows' }}
+      run: |
+          . share/spack/setup-env.sh
+          spack -d audit packages
+          ./share/spack/qa/validate_last_exit.ps1
+          spack -d audit configs
+          ./share/spack/qa/validate_last_exit.ps1
+          spack -d audit externals
+          ./share/spack/qa/validate_last_exit.ps1
+    - uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b
+      if: ${{ inputs.with_coverage == 'true' && runner.os != 'Windows' }}
       with:
-        flags: unittests,audits
+        name: coverage-audits-${{ matrix.system.os }}
+        path: coverage
+        include-hidden-files: true

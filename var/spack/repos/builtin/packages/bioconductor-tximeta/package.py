@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,7 +18,11 @@ class BioconductorTximeta(RPackage):
 
     bioc = "tximeta"
 
-    version("1.18.1", sha256="ee486fc4b2352e2998a3c0c2064449ebcf09b5815f982597ea58311dc8064408")
+    version(
+        "1.18.1",
+        sha256="ee486fc4b2352e2998a3c0c2064449ebcf09b5815f982597ea58311dc8064408",
+        deprecated=True,
+    )
 
     depends_on("r", type=("build", "run"))
     depends_on("r-annotationdbi")

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,8 +22,32 @@ class Eospac(Package):
     # - alpha and beta versions are marked with 'deprecated=True' to help
     #   spack's version comparison.
     version(
+        "6.5.12",
+        sha256="62d5f4a6a30c9acb426bd6bd972edc7fad392e5b941f950126ed0d3be5fd5162",
+        url="https://laws.lanl.gov/projects/data/eos/get_file.php?package=eospac&filename=eospac_v6.5.12_39364aabc75c3312022b12e6d16d6a31f1f8945f.tgz",
+    )
+    version(
+        "6.5.11",
+        sha256="ed821b5a1bf45df1443d5f72d86190317ed9f5bad6a7c73e23bb4365bd76e24c",
+        url="https://laws.lanl.gov/projects/data/eos/get_file.php?package=eospac&filename=eospac_v6.5.11_e87627a204786491b3316d7fe3bda14dd9b52ce7.tgz",
+    )
+    version(
+        "6.5.10",
+        sha256="ddf8475ec41df1102ac9d85404a1954e39d8e410f0f2babafabd218cba9812eb",
+        url="https://laws.lanl.gov/projects/data/eos/get_file.php?package=eospac&filename=eospac_v6.5.10_3bf1ad6aab64ad0c665a48978315ba2383ab294f.tgz",
+    )
+    version(
+        "6.5.9",
+        sha256="54df29b1dc3b35c654ef2ebfbfa42d960a230cfb2d3c04a75ba93d3a789a312a",
+        url="https://laws.lanl.gov/projects/data/eos/get_file.php?package=eospac&filename=eospac_v6.5.9_4c633156bacc7b721bdd2735e40e09984a4d60a3.tgz",
+    )
+    version(
+        "6.5.8",
+        sha256="4e2c5db150bf7f45b5615c034848b9256f8659bcde95f097e446c226c70c6d96",
+        url="https://laws.lanl.gov/projects/data/eos/get_file.php?package=eospac&filename=eospac_v6.5.8_052127ccd65148632bd1258764f455c692a4dfc1.tgz",
+    )
+    version(
         "6.5.7",
-        preferred=True,
         sha256="e59bd449bf97ce977309c6fc8a54fa30f4db9b2ca3e21f996095d78e23799e42",
         url="https://laws.lanl.gov/projects/data/eos/get_file.php?package=eospac&filename=eospac_v6.5.7_9a867a15ae4137d22e1b52199d6a46b486fc4376.tgz",
     )
@@ -118,6 +141,10 @@ class Eospac(Package):
         url="http://laws.lanl.gov/projects/data/eos/get_file.php?package=eospac&filename=eospac_v6.3.1_r20161202150449.tgz",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # This patch allows the use of spack's compile wrapper 'flang'
     patch("flang.patch", when="@:6.4.0beta.2%clang")
     patch("frt.patch", when="%fj")
@@ -145,11 +172,11 @@ class Eospac(Package):
             # This looks goofy because eospac does not actually respect the
             # value of DO_OFFLOAD and instead only attempts to check for its
             # existence; a quirk of eospac.
-            if "+offload" in spec:
+            if spec.satisfies("+offload"):
                 compilerArgs.append("DO_OFFLOAD=1")
             # Eospac depends on fcommon behavior
             #   but gcc@10 flipped to default fno-common
-            if "%gcc@10:" in spec:
+            if spec.satisfies("%gcc@10:"):
                 compilerArgs.append("CFLAGS=-fcommon")
             if self.run_tests:
                 make("check", *compilerArgs)

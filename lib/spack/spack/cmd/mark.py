@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -8,12 +7,10 @@ import sys
 from llnl.util import tty
 
 import spack.cmd
-import spack.cmd.common.arguments as arguments
-import spack.error
-import spack.package_base
-import spack.repo
 import spack.store
-from spack.database import InstallStatuses
+from spack.cmd.common import arguments
+
+from ..enums import InstallRecordStatus
 
 description = "mark packages as explicitly or implicitly installed"
 section = "admin"
@@ -70,8 +67,7 @@ def find_matching_specs(specs, allow_multiple_matches=False):
     has_errors = False
 
     for spec in specs:
-        install_query = [InstallStatuses.INSTALLED]
-        matching = spack.store.STORE.db.query_local(spec, installed=install_query)
+        matching = spack.store.STORE.db.query_local(spec, installed=InstallRecordStatus.INSTALLED)
         # For each spec provided, make sure it refers to only one package.
         # Fail and ask user to be unambiguous if it doesn't
         if not allow_multiple_matches and len(matching) > 1:
@@ -83,8 +79,8 @@ def find_matching_specs(specs, allow_multiple_matches=False):
             has_errors = True
 
         # No installed package matches the query
-        if len(matching) == 0 and spec is not any:
-            tty.die("{0} does not match any installed packages.".format(spec))
+        if len(matching) == 0 and spec is not None:
+            tty.die(f"{spec} does not match any installed packages.")
 
         specs_from_cli.extend(matching)
 
@@ -101,8 +97,9 @@ def do_mark(specs, explicit):
         specs (list): list of specs to be marked
         explicit (bool): whether to mark specs as explicitly installed
     """
-    for spec in specs:
-        spack.store.STORE.db.update_explicit(spec, explicit)
+    with spack.store.STORE.db.write_transaction():
+        for spec in specs:
+            spack.store.STORE.db.mark(spec, "explicit", explicit)
 
 
 def mark_specs(args, specs):
@@ -119,6 +116,6 @@ def mark(parser, args):
             "  Use `spack mark --all` to mark ALL packages.",
         )
 
-    # [any] here handles the --all case by forcing all specs to be returned
-    specs = spack.cmd.parse_specs(args.specs) if args.specs else [any]
+    # [None] here handles the --all case by forcing all specs to be returned
+    specs = spack.cmd.parse_specs(args.specs) if args.specs else [None]
     mark_specs(args, specs)

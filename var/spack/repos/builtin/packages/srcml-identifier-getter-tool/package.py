@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,9 +15,11 @@ class SrcmlIdentifierGetterTool(CMakePackage):
 
     version("2022-10-17", commit="01394c247ae6f61cc5864a9697e72e3623d8e7fb", submodules=True)
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("libxml2")
     depends_on("zlib-api")
-    depends_on("lzma")
+    depends_on("xz")
 
     def install(self, spec, prefix):
         super().install(spec, prefix)

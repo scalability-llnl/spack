@@ -1,16 +1,14 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import inspect
-
 from llnl.util.filesystem import working_dir
 
 import spack.builder
 import spack.package_base
+import spack.phase_callbacks
 from spack.directives import build_system, depends_on
 
-from ._checks import BaseBuilder, execute_build_time_tests
+from ._checks import BuilderWithDefaults, execute_build_time_tests
 
 
 class QMakePackage(spack.package_base.PackageBase):
@@ -32,7 +30,7 @@ class QMakePackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("qmake")
-class QMakeBuilder(BaseBuilder):
+class QMakeBuilder(BuilderWithDefaults):
     """The qmake builder provides three phases that can be overridden:
 
     1. :py:meth:`~.QMakeBuilder.qmake`
@@ -66,21 +64,21 @@ class QMakeBuilder(BaseBuilder):
     def qmake(self, pkg, spec, prefix):
         """Run ``qmake`` to configure the project and generate a Makefile."""
         with working_dir(self.build_directory):
-            inspect.getmodule(self.pkg).qmake(*self.qmake_args())
+            pkg.module.qmake(*self.qmake_args())
 
     def build(self, pkg, spec, prefix):
         """Make the build targets"""
         with working_dir(self.build_directory):
-            inspect.getmodule(self.pkg).make()
+            pkg.module.make()
 
     def install(self, pkg, spec, prefix):
         """Make the install targets"""
         with working_dir(self.build_directory):
-            inspect.getmodule(self.pkg).make("install")
+            pkg.module.make("install")
 
     def check(self):
         """Search the Makefile for a ``check:`` target and runs it if found."""
         with working_dir(self.build_directory):
             self.pkg._if_make_target_execute("check")
 
-    spack.builder.run_after("build")(execute_build_time_tests)
+    spack.phase_callbacks.run_after("build")(execute_build_time_tests)

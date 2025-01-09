@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,7 +19,7 @@ class WhenDirectivesTrue(Package):
         when=True,
     )
     extends("extendee", when=True)
-    depends_on("b", when=True)
+    depends_on("pkg-b", when=True)
     conflicts("@1.0", when=True)
     resource(
         url="http://www.example.com/example-1.0-resource.tar.gz",

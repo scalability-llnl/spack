@@ -1,10 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 import re
+import sys
 
 from spack.package import *
 
@@ -12,11 +12,11 @@ from spack.package import *
 class RocmOpencl(CMakePackage):
     """OpenCL: Open Computing Language on ROCclr"""
 
-    homepage = "https://github.com/RadeonOpenCompute/ROCm-OpenCL-Runtime"
-    git = "https://github.com/RadeonOpenCompute/ROCm-OpenCL-Runtime.git"
+    homepage = "https://github.com/ROCm/ROCm-OpenCL-Runtime"
+    git = "https://github.com/ROCm/ROCm-OpenCL-Runtime.git"
     tags = ["rocm"]
 
-    maintainers("srekolam", "renjithravindrankannath")
+    maintainers("srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["libOpenCL"]
 
     def url_for_version(self, version):
@@ -24,98 +24,53 @@ class RocmOpencl(CMakePackage):
             return (
                 "https://github.com/RadeonOpenCompute/ROCm-OpenCL-Runtime/archive/roc-3.5.0.tar.gz"
             )
-
-        url = "https://github.com/RadeonOpenCompute/ROCm-OpenCL-Runtime/archive/rocm-{0}.tar.gz"
+        elif version <= Version("5.6.1"):
+            url = (
+                "https://github.com/RadeonOpenCompute/ROCm-OpenCL-Runtime/archive/rocm-{0}.tar.gz"
+            )
+        else:
+            url = "https://github.com/ROCm/clr/archive/refs/tags/rocm-{0}.tar.gz"
         return url.format(version)
 
+    license("MIT")
+
     version("master", branch="main")
+    version("6.3.0", sha256="829e61a5c54d0c8325d02b0191c0c8254b5740e63b8bfdb05eec9e03d48f7d2c")
+    version("6.2.4", sha256="0a3164af7f997a4111ade634152957378861b95ee72d7060eb01c86c87208c54")
+    version("6.2.1", sha256="e9cff3a8663defdbda833d49c9e7160171eca14dc285ffe4061378607d6c890d")
+    version("6.2.0", sha256="620e4c6a7f05651cc7a170bc4700fef8cae002420307a667c638b981d00b25e8")
+    version("6.1.2", sha256="1a1e21640035d957991559723cd093f0c7e202874423667d2ba0c7662b01fea4")
+    version("6.1.1", sha256="2db02f335c9d6fa69befcf7c56278e5cecfe3db0b457eaaa41206c2585ef8256")
+    version("6.1.0", sha256="49b23eef621f4e8e528bb4de8478a17436f42053a2f7fde21ff221aa683205c7")
+    version("6.0.2", sha256="cb8ac610c8d4041b74fb3129c084f1e7b817ce1a5a9943feca1fa7531dc7bdcc")
+    version("6.0.0", sha256="798b55b5b5fb90dd19db54f136d8d8e1da9ae1e408d5b12b896101d635f97e50")
+    version("5.7.1", sha256="c78490335233a11b4d8a5426ace7417c555f5e2325de10422df06c0f0f00f7eb")
+    version("5.7.0", sha256="bc2447cb6fd86dff6a333b04e77ce85755104d9011a14a044af53caf02449573")
     version("5.6.1", sha256="ec26049f7d93c95050c27ba65472736665ec7a40f25920a868616b2970f6b845")
     version("5.6.0", sha256="52ab260d00d279c2a86c353901ffd88ee61b934ad89e9eb480f210656705f04e")
     version("5.5.1", sha256="a8a62a7c6fc5398406d2203b8cb75621a24944688e545d917033d87de2724498")
     version("5.5.0", sha256="0df9fa0b8aa0c8e6711d34eec0fdf1ed356adcd9625bc8f1ce9b3e72090f3e4f")
-    version("5.4.3", sha256="b0f8339c844a2e62773bd85cd1e7c5ecddfe71d7c8e8d604e1a1d60900c30873")
-    version("5.4.0", sha256="a294639478e76c75dac0e094b418f9bd309309b07faf6af126cdfad9aab3c5c7")
-    version("5.3.3", sha256="cab394e6ef16c35bab8de29a66b96a7dc0e7d1297aaacba3718fa1d369233c9f")
-    version("5.3.0", sha256="d251e2efe95dc12f536ce119b2587bed64bbda013969fa72be58062788044a9e")
-    version("5.2.3", sha256="932ea3cd268410010c0830d977a30ef9c14b8c37617d3572a062b5d4595e2b94")
-    version("5.2.1", sha256="eb4ff433f8894ca659802f81792646034f8088b47aca6ad999292bcb8d6381d5")
-    version("5.2.0", sha256="80f73387effdcd987a150978775a87049a976aa74f5770d4420847b004dd59f0")
-    version("5.1.3", sha256="44a7fac721abcd93470e1a7e466bdea0c668c253dee93e4f1ea9a72dbce4ba31")
-    version("5.1.0", sha256="362d81303048cf7ed5d2f69fb65ed65425bc3da4734fff83e3b8fbdda51b0927")
-    version(
-        "5.0.2",
-        sha256="3edb1992ba28b4a7f82dd66fbd121f62bd859c1afb7ceb47fa856bd68feedc95",
-        deprecated=True,
-    )
-    version(
-        "5.0.0",
-        sha256="2aa3a628b336461f83866c4e76225ef5338359e31f802987699d6308515ae1be",
-        deprecated=True,
-    )
-    version(
-        "4.5.2",
-        sha256="96b43f314899707810db92149caf518bdb7cf39f7c0ad86e98ad687ffb0d396d",
-        deprecated=True,
-    )
-    version(
-        "4.5.0",
-        sha256="3a163aed24619b3faf5e8ba17325bdcedd1667a904ea20914ac6bdd33fcdbca8",
-        deprecated=True,
-    )
-    version(
-        "4.3.1",
-        sha256="7f98f7d4707b4392f8aa7017aaca9e27cb20263428a1a81fb7ec7c552e60c4ca",
-        deprecated=True,
-    )
-    version(
-        "4.3.0",
-        sha256="d37bddcc6835b6c0fecdf4d02c204ac1d312076f3eef2b1faded1c4c1bc651e9",
-        deprecated=True,
-    )
-    version(
-        "4.2.0",
-        sha256="18133451948a83055ca5ebfb5ba1bd536ed0bcb611df98829f1251a98a38f730",
-        deprecated=True,
-    )
-    version(
-        "4.1.0",
-        sha256="0729e6c2adf1e3cf649dc6e679f9cb936f4f423f4954ad9852857c0a53ef799c",
-        deprecated=True,
-    )
-    version(
-        "4.0.0",
-        sha256="d43ea5898c6b9e730b5efabe8367cc136a9260afeac5d0fe85b481d625dd7df1",
-        deprecated=True,
-    )
-    version(
-        "3.10.0",
-        sha256="3aa9dc5a5f570320b04b35ee129ce9ff21062d2770df934c6c307913f975e93d",
-        deprecated=True,
-    )
-    version(
-        "3.9.0",
-        sha256="286ff64304905384ce524cd8794c28aee216befd6c9267d4187a12e5a21e2daf",
-        deprecated=True,
-    )
-    version(
-        "3.8.0",
-        sha256="7f75dd1abf3d771d554b0e7b0a7d915ab5f11a74962c92b013ee044a23c1270a",
-        deprecated=True,
-    )
-    version(
-        "3.7.0",
-        sha256="283e1dfe4c3d2e8af4d677ed3c20e975393cdb0856e3ccd77b9c7ed2a151650b",
-        deprecated=True,
-    )
-    version(
-        "3.5.0",
-        sha256="511b617d5192f2d4893603c1a02402b2ac9556e9806ff09dd2a91d398abf39a0",
-        deprecated=True,
-    )
+    with default_args(deprecated=True):
+        version("5.4.3", sha256="b0f8339c844a2e62773bd85cd1e7c5ecddfe71d7c8e8d604e1a1d60900c30873")
+        version("5.4.0", sha256="a294639478e76c75dac0e094b418f9bd309309b07faf6af126cdfad9aab3c5c7")
+        version("5.3.3", sha256="cab394e6ef16c35bab8de29a66b96a7dc0e7d1297aaacba3718fa1d369233c9f")
+        version("5.3.0", sha256="d251e2efe95dc12f536ce119b2587bed64bbda013969fa72be58062788044a9e")
+
+    variant("asan", default=False, description="Build with address-sanitizer enabled or disabled")
+
+    conflicts("+asan", when="os=rhel9")
+    conflicts("+asan", when="os=centos7")
+    conflicts("+asan", when="os=centos8")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3:", type="build")
     depends_on("gl@4.5:", type="link")
-    depends_on("numactl", type="link", when="@3.7.0:")
+    depends_on("numactl", type="link")
+    depends_on("libx11", when="+asan")
+    depends_on("xproto", when="+asan")
+    depends_on("opencl-icd-loader@2024.05.08", when="@6.2:")
 
     for d_version, d_shasum in [
         ("5.6.1", "cc9a99c7e4de3d9360c0a471b27d626e84a39c9e60e0aff1e8e1500d82391819"),
@@ -126,64 +81,33 @@ class RocmOpencl(CMakePackage):
         ("5.4.0", "46a1579310b3ab9dc8948d0fb5bed4c6b312f158ca76967af7ab69e328d43138"),
         ("5.3.3", "f8133a5934f9c53b253d324876d74f08a19e2f5b073bc94a62fe64b0d2183a18"),
         ("5.3.0", "2bf14116b5e2270928265f5d417b3d0f0f2e13cbc8ec5eb8c80d4d4a58ff7e94"),
-        ("5.2.3", "0493c414d4db1af8e1eb30a651d9512044644244488ebb13478c2138a7612998"),
-        ("5.2.1", "465ca9fa16869cd89dab8c2d66d9b9e3c14f744bbedaa1d215b0746d77a500ba"),
-        ("5.2.0", "37f5fce04348183bce2ece8bac1117f6ef7e710ca68371ff82ab08e93368bafb"),
-        ("5.1.3", "ddee63cdc6515c90bab89572b13e1627b145916cb8ede075ef8446cbb83f0a48"),
-        ("5.1.0", "f4f265604b534795a275af902b2c814f416434d9c9e16db81b3ed5d062187dfa"),
-        ("5.0.2", "34decd84652268dde865f38e66f8fb4750a08c2457fea52ad962bced82a03e5e"),
-        ("5.0.0", "6b72faf8819628a5c109b2ade515ab9009606d10f11316f0d7e4c4c998d7f724"),
-        ("4.5.2", "6581916a3303a31f76454f12f86e020fb5e5c019f3dbb0780436a8f73792c4d1"),
-        ("4.5.0", "ca8d6305ff0e620d9cb69ff7ac3898917db9e9b6996a7320244b48ab6511dd8e"),
     ]:
         resource(
             name="rocclr",
-            url="https://github.com/ROCm-Developer-Tools/ROCclr/archive/rocm-{0}.tar.gz".format(
-                d_version
-            ),
+            url=f"https://github.com/ROCm/ROCclr/archive/rocm-{d_version}.tar.gz",
             sha256=d_shasum,
             expand=True,
             destination="",
             placement="rocclr",
-            when="@{0}".format(d_version),
+            when=f"@{d_version}",
         )
+    # For avx build, the start address of values_ buffer in KernelParameters is not
+    # correct as it is computed based on 16-byte alignment.
+    patch(
+        "https://github.com/ROCm/clr/commit/c4f773db0b4ccbbeed4e3d6c0f6bff299c2aa3f0.patch?full_index=1",
+        sha256="5bb9b0e08888830ccf3a0a658529fe25f4ee62b5b8890f349bf2cc914236eb2f",
+        when="@5.7:6.0",
+    )
+    patch(
+        "https://github.com/ROCm/clr/commit/7868876db742fb4d44483892856a66d2993add03.patch?full_index=1",
+        sha256="7668b2a710baf4cb063e6b00280fb75c4c3e0511575e8298a9c7ae5143f60b33",
+        when="@5.7:6.0",
+    )
+
     # Patch to set package installation path for OpenCL.
-    patch("0001-fix-build-error-rocm-opencl-5.1.0.patch", when="@5.1.0:5.1")
+    patch("0001-fix-build-error-rocm-opencl-5.1.0.patch", when="@5.1")
 
     for ver in [
-        "3.5.0",
-        "3.7.0",
-        "3.8.0",
-        "3.9.0",
-        "3.10.0",
-        "4.0.0",
-        "4.1.0",
-        "4.2.0",
-        "4.3.0",
-        "4.3.1",
-        "master",
-    ]:
-        depends_on("hip-rocclr@" + ver, type="build", when="@" + ver)
-    for ver in [
-        "3.5.0",
-        "3.7.0",
-        "3.8.0",
-        "3.9.0",
-        "3.10.0",
-        "4.0.0",
-        "4.1.0",
-        "4.2.0",
-        "4.3.0",
-        "4.3.1",
-        "4.5.0",
-        "4.5.2",
-        "5.0.0",
-        "5.0.2",
-        "5.1.0",
-        "5.1.3",
-        "5.2.0",
-        "5.2.1",
-        "5.2.3",
         "5.3.0",
         "5.3.3",
         "5.4.0",
@@ -192,60 +116,84 @@ class RocmOpencl(CMakePackage):
         "5.5.1",
         "5.6.0",
         "5.6.1",
+        "5.7.0",
+        "5.7.1",
+        "6.0.0",
+        "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
         "master",
     ]:
-        depends_on("comgr@" + ver, type="build", when="@" + ver)
-        depends_on("hsa-rocr-dev@" + ver, type="link", when="@" + ver)
+        depends_on(f"comgr@{ver}", type="build", when=f"@{ver}")
+        depends_on(f"hsa-rocr-dev@{ver}", type="link", when=f"@{ver}")
 
-    for ver in ["5.5.0", "5.5.1", "5.6.0", "5.6.1"]:
-        depends_on("rocm-core@" + ver, when="@" + ver)
+    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4", "6.3.0"]:
+        depends_on(f"aqlprofile@{ver}", type="link", when=f"@{ver}")
+
+    for ver in [
+        "5.5.0",
+        "5.5.1",
+        "5.6.0",
+        "5.6.1",
+        "5.7.0",
+        "5.7.1",
+        "6.0.0",
+        "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
+    ]:
+        depends_on(f"rocm-core@{ver}", when=f"@{ver}")
 
     @classmethod
     def determine_version(cls, lib):
         match = re.search(r"lib\S*\.so\.\d+\.\d+\.(\d)(\d\d)(\d\d)", lib)
         if match:
-            ver = "{0}.{1}.{2}".format(
+            return "{0}.{1}.{2}".format(
                 int(match.group(1)), int(match.group(2)), int(match.group(3))
             )
-        else:
-            ver = None
-        return ver
-
-    def flag_handler(self, name, flags):
-        # The includes are messed up in ROCm 3.5.0:
-        # ROCM-OpenCL-Runtime uses flat includes
-        # and the find_package(ROCclr) bit it
-        # commented out. So instead we provide
-        # all the includes...
-
-        if self.spec.satisfies("@:4.3.2") and name in ("cflags", "cxxflags"):
-            rocclr = self.spec["hip-rocclr"].prefix
-            extra_includes = [
-                "include",
-                "include/compiler/lib/include",
-                "include/elf",
-                "compiler/lib",
-                "compiler/lib/include",
-                "elf/utils/libelf",
-                "elf/utils/common",
-            ]
-
-            for p in extra_includes:
-                flag = "-I {0}".format(join_path(rocclr, p))
-                flags.append(flag)
-
-        return (flags, None, None)
+        return None
 
     def cmake_args(self):
         args = ["-DUSE_COMGR_LIBRARY=yes", "-DBUILD_TESTS=ON"]
-        if self.spec.satisfies("@:4.3.0"):
-            "-DROCclr_DIR={0}".format(self.spec["hip-rocclr"].prefix),
-            "-DLIBROCclr_STATIC_DIR={0}/lib".format
-            (self.spec["hip-rocclr"].prefix)
-        if "@4.5.0:" in self.spec:
+        if self.spec.satisfies("@:5.6"):
             args.append(self.define("ROCCLR_PATH", self.stage.source_path + "/rocclr"))
             args.append(self.define("AMD_OPENCL_PATH", self.stage.source_path))
+        if self.spec.satisfies("@5.7:"):
+            args.append(self.define("CLR_BUILD_HIP", False))
+            args.append(self.define("CLR_BUILD_OCL", True))
+        if self.spec.satisfies("+asan"):
+            args.append(
+                self.define(
+                    "CMAKE_CXX_FLAGS",
+                    f"-I{self.spec['libx11'].prefix.include} "
+                    f"-I{self.spec['mesa'].prefix.include} "
+                    f"-I{self.spec['xproto'].prefix.include}",
+                )
+            )
+        if self.spec.satisfies("@6.2:"):
+            args.append(self.define("BUILD_ICD", False))
+            args.append(self.define("AMD_ICD_LIBRARY_DIR", self.spec["opencl-icd-loader"].prefix))
+
         return args
+
+    def setup_build_environment(self, env):
+        if self.spec.satisfies("+asan"):
+            env.set("CC", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang")
+            env.set("CXX", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang++")
+            env.set("ASAN_OPTIONS", "detect_leaks=0")
+            env.set("CFLAGS", "-fsanitize=address -shared-libasan")
+            env.set("CXXFLAGS", "-fsanitize=address -shared-libasan")
+            env.set("LDFLAGS", "-fuse-ld=lld")
 
     def setup_run_environment(self, env):
         env.prepend_path("LD_LIBRARY_PATH", self.prefix.lib),
@@ -260,13 +208,15 @@ class RocmOpencl(CMakePackage):
         with open(join_path(vendor_config_path, config_file_name), "w") as f:
             f.write("libamdocl64.so")
 
-    test_src_dir = "tests/ocltst"
+    def test_ocltst(self):
+        """Run ocltst checks"""
+        test_dir = "tests/ocltst" if sys.platform == "win32" else "share/opencl/ocltst"
 
-    def test(self):
-        test_dir = join_path(self.spec["rocm-opencl"].prefix, self.test_src_dir)
-        with working_dir(test_dir, create=True):
-            os.environ["LD_LIBRARY_PATH"] += os.pathsep + test_dir
-            args = ["-m", "liboclruntime.so", "-A", "oclruntime.exclude"]
-            self.run_test("ocltst", args)
-            args = ["-m", "liboclperf.so", "-A", "oclperf.exclude"]
-            self.run_test("ocltst", args)
+        os.environ["LD_LIBRARY_PATH"] += os.pathsep + join_path(self.prefix, test_dir)
+
+        ocltst = which(join_path(self.prefix, test_dir, "ocltst"))
+        with test_part(self, "test_ocltst_runtime", purpose="check runtime"):
+            ocltst("-m", "liboclruntime.so", "-A", "oclruntime.exclude")
+
+        with test_part(self, "test_ocltst_perf", purpose="check perf"):
+            ocltst("-m", "liboclperf.so", "-A", "oclperf.exclude")

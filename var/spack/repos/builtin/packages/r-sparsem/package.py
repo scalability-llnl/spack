@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,7 @@ class RSparsem(RPackage):
 
     cran = "SparseM"
 
+    version("1.84-2", sha256="2580fdbb8679e76c92b9f0c5bd9bb503c4cb6a750ef6ae96595441690ce98665")
     version("1.81", sha256="bd838f381ace680fa38508ff70b3d83cb9ffa28ac1ab568509249bca53c34b33")
     version("1.78", sha256="d6b79ec881a10c91cb03dc23e6e783080ded9db4f2cb723755aa0d7d29a8b432")
     version("1.77", sha256="a9329fef14ae4fc646df1f4f6e57efb0211811599d015f7bc04c04285495d45c")

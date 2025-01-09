@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,11 @@ class Netcdf95(CMakePackage):
 
     maintainers("RemiLacroix-IDRIS")
 
+    license("GPL-3.0-only")
+
     version("0.3", tag="v0.3", commit="5b8db6bb66a22b6a080589ee1c11521ee3cae550", submodules=True)
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("netcdf-fortran")

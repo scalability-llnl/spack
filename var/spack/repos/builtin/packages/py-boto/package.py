@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PyBoto(PythonPackage):
 
     homepage = "https://github.com/boto/boto"
     url = "https://github.com/boto/boto/archive/2.49.0.tar.gz"
+
+    license("MIT")
 
     version("2.49.0", sha256="3dbefd4f4542f85a323d4f54601f31ed4d362fc87945245f32e4a85029513314")
 

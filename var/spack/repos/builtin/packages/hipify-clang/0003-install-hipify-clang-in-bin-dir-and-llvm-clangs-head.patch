@@ -1,0 +1,22 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 02df74d..a645aa4 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -184,7 +184,7 @@ if (NOT HIPIFY_CLANG_TESTS_ONLY)
+     # Install all folders under clang/version/ in CMAKE_INSTALL_PREFIX path.
+     install(
+       DIRECTORY ${LLVM_DIR}/../../clang/${LIB_CLANG_RES}/
+-      DESTINATION .
++      DESTINATION ${CMAKE_INSTALL_PREFIX}/include
+       COMPONENT clang-resource-headers
+       FILES_MATCHING
+       PATTERN "*.h"
+@@ -199,7 +199,7 @@ if (NOT HIPIFY_CLANG_TESTS_ONLY)
+ # install all folders under clang/version/ in CMAKE_INSTALL_PREFIX path
+ install(
+     DIRECTORY ${LLVM_DIR}/../../clang/${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}/
+-    DESTINATION .
++    DESTINATION ${CMAKE_INSTALL_PREFIX}/include
+     COMPONENT clang-resource-headers
+     FILES_MATCHING
+     PATTERN "*.h"

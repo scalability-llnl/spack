@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class GsiNcdiag(CMakePackage):
     version("1.1.1", sha256="26fc10cf448dd62daa1385e38921d338778416342956c478337e6c6d1b20bf8c")
     version("1.1.0", sha256="9195801301209d6f93890944d58ffee4e24a4e35502ab27560a8c440ee53df4c")
     version("1.0.0", sha256="7251d6139c2bc1580db5f7f019e10a4c73d188ddd52ccf21ecc9e39d50a6af51")
+
+    depends_on("fortran", type="build")  # generated
 
     variant("serial", default=True, description="Enable Serial NetCDF diagnostics")
 

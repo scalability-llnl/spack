@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,7 +14,12 @@ class PyFiona(PythonPackage):
 
     maintainers("adamjstewart")
 
+    license("BSD-3-Clause")
+
     version("master", branch="master")
+    version("1.10.1", sha256="b00ae357669460c6491caba29c2022ff0acfcbde86a95361ea8ff5cd14a86b68")
+    version("1.10.0", sha256="3529fd46d269ff3f70aeb9316a93ae95cf2f87d7e148a8ff0d68532bf81ff7ae")
+    version("1.9.6", sha256="791b3494f8b218c06ea56f892bd6ba893dfa23525347761d066fb7738acda3b1")
     version("1.9.5", sha256="99e2604332caa7692855c2ae6ed91e1fffdf9b59449aa8032dd18e070e59a2f7")
     version("1.9.4", sha256="49f18cbcd3b1f97128c1bb038c3451b2e1be25baa52f02ce906c25cf75af95b6")
     version("1.9.3", sha256="60f3789ad9633c3a26acf7cbe39e82e3c7a12562c59af1d599fc3e4e8f7f8f25")
@@ -27,34 +31,38 @@ class PyFiona(PythonPackage):
     version("1.8.20", sha256="a70502d2857b82f749c09cb0dea3726787747933a2a1599b5ab787d74e3c143b")
     version("1.8.18", sha256="b732ece0ff8886a29c439723a3e1fc382718804bb057519d537a81308854967a")
 
-    # pyproject.toml
-    depends_on("python@:3.10", when="@1.8.21", type=("build", "link", "run"))
-    depends_on("python@:3.9", when="@:1.8.20", type=("build", "link", "run"))
-    depends_on("py-cython", type="build")
-    # Overly strict version requirements
-    # depends_on("py-cython@3.0.2:3", when="@1.9.5:", type="build")
-    # depends_on("py-cython@0.29.29:0.29", when="@1.9.0:1.9.4", type="build")
-    depends_on("py-setuptools@67.8:", when="@1.9.5:", type="build")
-    depends_on("py-setuptools@61:", when="@1.9:", type="build")
-    depends_on("py-attrs@19.2:", when="@1.9:", type=("build", "run"))
-    depends_on("py-attrs@17:", type=("build", "run"))
-    depends_on("py-certifi", type=("build", "run"))
-    depends_on("py-click@8", when="@1.9:", type=("build", "run"))
-    depends_on("py-click@4:", type=("build", "run"))
-    depends_on("py-click-plugins@1:", type=("build", "run"))
-    depends_on("py-cligj@0.5:", type=("build", "run"))
-    depends_on("py-importlib-metadata", when="@1.9.2: ^python@:3.9", type=("build", "run"))
-    depends_on("py-six", when="@1.9.4:", type=("build", "run"))
-    depends_on("py-six@1.7:", when="@:1.8", type=("build", "run"))
-    depends_on("py-setuptools", when="@:1.9.1,1.9.5:", type="run")
+    with default_args(type=("build", "link", "run")):
+        depends_on("python@:3.10", when="@1.8.21")
+        depends_on("python@:3.9", when="@:1.8.20")
 
-    # setup.py or release notes
-    depends_on("gdal@3.1:", when="@1.9:", type=("build", "link", "run"))
-    depends_on("gdal@1.8:", type=("build", "link", "run"))
+        # setup.py or release notes
+        depends_on("gdal@3.4:", when="@1.10:")
+        depends_on("gdal@3.1:", when="@1.9:")
+        depends_on("gdal@1.8:")
 
-    # Historical dependencies
-    depends_on("py-munch@2.3.2:", when="@1.9.0:1.9.3", type=("build", "run"))
-    depends_on("py-munch", when="@:1.8", type=("build", "run"))
+    with default_args(type="build"):
+        depends_on("py-setuptools@67.8:", when="@1.9.5:")
+        depends_on("py-setuptools@61:", when="@1.9:")
+        depends_on("py-cython@3.0.2:3", when="@1.9.5:")
+        depends_on("py-cython@0.29.29:0.29", when="@1.9.0:1.9.4")
+        depends_on("py-cython")
+
+    with default_args(type=("build", "run")):
+        depends_on("py-attrs@19.2:", when="@1.9:")
+        depends_on("py-attrs@17:")
+        depends_on("py-certifi")
+        depends_on("py-click@8", when="@1.9:")
+        depends_on("py-click@4:")
+        depends_on("py-click-plugins@1:")
+        depends_on("py-cligj@0.5:")
+        depends_on("py-importlib-metadata", when="@1.9.2: ^python@:3.9")
+
+        # Historical dependencies
+        depends_on("py-munch@2.3.2:", when="@1.9.0:1.9.3")
+        depends_on("py-munch", when="@:1.8")
+        depends_on("py-setuptools", when="@:1.9.1,1.9.5")
+        depends_on("py-six", when="@1.9.4:1.9")
+        depends_on("py-six@1.7:", when="@:1.8")
 
     def url_for_version(self, version):
         url = "https://files.pythonhosted.org/packages/source/{0}/{0}iona/{0}iona-{1}.tar.gz"

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,8 @@ class Portage(CMakePackage):
     # tarballs don't have submodules, so use git tags
     version("3.0.0", sha256="7a5a21ffbc35fa54a5136d937cfda6f836c7496ff2b5adf54deb4107501333da")
     version("master", branch="master", submodules=True)
+
+    depends_on("cxx", type="build")  # generated
 
     variant("mpi", default=True, description="Support MPI")
     variant("tangram", default=False, description="Use Tangram interface reconstruction package")

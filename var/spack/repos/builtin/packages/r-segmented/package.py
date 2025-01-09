@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,9 @@ class RSegmented(RPackage):
 
     cran = "segmented"
 
+    license("GPL-2.0-or-later")
+
+    version("2.1-1", sha256="6723b0114b1142a7587f712d7a58ce0bebfb53864b84fa1e5d9d7824b17903dd")
     version("1.6-4", sha256="472c08ae3eb1c4e784aba45f3e745b0e946bef77c26fbb9f103fd35e1a349191")
     version("1.6-1", sha256="f609ca311c8ca45a7b0776b47d9df06aa175c4f17f8e7e9b33c64902ee00d56f")
     version("1.6-0", sha256="6baf7f0a4f5d37b945312d28fcbca47cc3c171d097c43a28cf7ffc998a4ce569")
@@ -31,5 +33,6 @@ class RSegmented(RPackage):
     version("0.5-2.2", sha256="3aa7136370dd77911ba8e061b5215560d120bc71f355eeadc0856389dfecb2f1")
     version("0.5-1.4", sha256="b1dc5f79ccc076c2943b15fe4f339368afa241797b7e80c91b62132cfa66809c")
 
+    depends_on("r@3.5.0:", type=("build", "run"), when="@2.0-3:")
     depends_on("r-mass", type=("build", "run"), when="@1.4-0:")
     depends_on("r-nlme", type=("build", "run"), when="@1.6-0:")

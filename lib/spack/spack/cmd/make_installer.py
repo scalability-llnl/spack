@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -31,7 +30,7 @@ def txt_to_rtf(file_path):
         return str.replace("\n", "\\par")
 
     contents = ""
-    with open(file_path, "r+") as f:
+    with open(file_path, "r+", encoding="utf-8") as f:
         for line in f.readlines():
             contents += line_to_rtf(line)
     return rtf_header.format(contents)
@@ -93,7 +92,7 @@ def make_installer(parser, args):
         rtf_spack_license = txt_to_rtf(spack_license)
         spack_license = posixpath.join(source_dir, "LICENSE.rtf")
 
-        with open(spack_license, "w") as rtf_license:
+        with open(spack_license, "w", encoding="utf-8") as rtf_license:
             written = rtf_license.write(rtf_spack_license)
             if written == 0:
                 raise RuntimeError("Failed to generate properly formatted license file")

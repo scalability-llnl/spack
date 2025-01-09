@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,6 +25,9 @@ class CloverleafRef(MakefilePackage):
         "1.1", sha256="0ac87accf81d85b959e5da839e6b0659afb3a2840a13f5da113a1c34eeb87942"
     )  # commit "5667c3a"
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant(
         "ieee", default=False, description="Build with IEEE754 compliant floating point operations"
     )
@@ -42,9 +44,9 @@ class CloverleafRef(MakefilePackage):
         targets.append("MPI_COMPILER={0}".format(self.spec["mpi"].mpifc))
         targets.append("C_MPI_COMPILER={0}".format(self.spec["mpi"].mpicc))
 
-        if "+debug" in self.spec:
+        if self.spec.satisfies("+debug"):
             targets.append("DEBUG=1")
-        if "+ieee" in self.spec:
+        if self.spec.satisfies("+ieee"):
             targets.append("IEEE=1")
 
         # Work around for bug in Makefiles for versions 1.3 and 1.1 (mis-defined as -openmp)
@@ -94,14 +96,8 @@ class CloverleafRef(MakefilePackage):
             targets.append("COMPILER=CRAY")
             targets.append("OMP_CRAY=-fopenmp")
 
-        elif self.spec.satisfies("%pgi"):
-            targets.append("COMPILER=PGI")
-
         elif self.spec.satisfies("%xl"):
             targets.append("COMPILER=XLF")
-
-        else:
-            raise ValueError("Compiler {} not supported".format(self.spec.compiler.name))
 
         return targets
 

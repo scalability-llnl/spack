@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,8 @@ class Screen(AutotoolsPackage, GNUMirrorPackage):
 
     homepage = "https://www.gnu.org/software/screen/"
     gnu_mirror_path = "screen/screen-4.3.1.tar.gz"
+
+    license("GPL-3.0-or-later")
 
     version("4.9.1", sha256="26cef3e3c42571c0d484ad6faf110c5c15091fbf872b06fa7aa4766c7405ac69")
     version("4.9.0", sha256="f9335281bb4d1538ed078df78a20c2f39d3af9a4e91c57d084271e0289c730f4")
@@ -34,6 +35,8 @@ class Screen(AutotoolsPackage, GNUMirrorPackage):
     version("3.7.4", sha256="65d33ad60c7e18f0c527654574ba1e630a8d4da106f377264a0ec3fa953d22cf")
     version("3.7.2", sha256="6a882385d2810b8220b9e03c75c5fa184dcbd1afdb95974bbac396bb749a6cc0")
     version("3.7.1", sha256="0cd5b1a2cbba6bb2f2bc2145aec650abf02541fd3a2071117a99e4982f6e01da")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("ncurses")
     depends_on("autoconf", type="build", when="@4.9.0:")

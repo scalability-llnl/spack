@@ -8,6 +8,10 @@ spack:
     reuse: false
     unify: false
 
+  config:
+    shared_linking:
+      missing_library_policy: ignore  # due to use of externals
+
   packages:
     all:
       require: '%gcc'
@@ -29,7 +33,7 @@ spack:
     cuda:
       version: [11.7.0]
     elfutils:
-      variants: +bzip2 ~nls +xz
+      variants: ~nls
       require: "%gcc"
     hdf5:
       variants: +fortran +hl +shared
@@ -43,9 +47,7 @@ spack:
       variants: +termlib
     paraview:
       # Don't build GUI support or GLX rendering for HPC/container deployments
-      require: "@5.11 ~qt+osmesa"
-    python:
-      version: [3.8.13]
+      require: "@5.11 ~qt ^[virtuals=gl] osmesa"
     trilinos:
       require:
       - one_of: [+amesos +amesos2 +anasazi +aztec +boost +epetra +epetraext +ifpack
@@ -71,8 +73,9 @@ spack:
   - butterflypack
   - boost +python +filesystem +iostreams +system
   - cabana
-  - chai ~benchmarks ~tests
+  - chai
   - conduit
+  # - cp2k +mpi         # cp2k: Error: Type mismatch between actual argument at (1) and actual argument at (2) (LOGICAL(4)/COMPLEX(4)).
   - datatransferkit
   - flecsi
   - fortrilinos
@@ -147,7 +150,6 @@ spack:
   # HOLDING THESE BACK UNTIL CRAY SLES CAPACITY IS EXPANDED AT UO
   # - alquimia
   # - amrex
-  # - archer
   # - axom
   # - bricks
   # - dealii
@@ -163,13 +165,13 @@ spack:
   # - phist
   # - plasma
   # - py-jupyterhub
-  # - py-warpx
   # - quantum-espresso
   # - scr
   # - strumpack ~slate
   # - upcxx
   # - variorum
   # - xyce +mpi +shared +pymi +pymi_static_tpls ^trilinos~shylu
+  # - warpx +python
 
   cdash:
     build-group: E4S Cray SLES

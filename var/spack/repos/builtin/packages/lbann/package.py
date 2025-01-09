@@ -1,11 +1,11 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 import socket
 
+import spack.platforms.cray
 from spack.package import *
 
 
@@ -22,6 +22,8 @@ class Lbann(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     maintainers("bvanessen")
 
+    license("Apache-2.0")
+
     version("develop", branch="develop")
     version("benchmarking", branch="benchmarking")
     version("0.104", sha256="a847c7789082ab623ed5922ab1248dd95f5f89d93eed44ac3d6a474703bbc0bf")
@@ -31,6 +33,8 @@ class Lbann(CachedCMakePackage, CudaPackage, ROCmPackage):
         sha256="3734a76794991207e2dd2221f05f0e63a86ddafa777515d93d99d48629140f1a",
         deprecated=True,
     )
+
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "build_type",
@@ -71,7 +75,9 @@ class Lbann(CachedCMakePackage, CudaPackage, ROCmPackage):
     variant("vtune", default=False, description="Builds with support for Intel VTune")
     variant("onednn", default=False, description="Support for OneDNN")
     variant("onnx", default=False, description="Support for exporting models into ONNX format")
-    variant("nvshmem", default=False, description="Support for NVSHMEM", when="+distconv")
+    variant(
+        "nvshmem", default=False, sticky=True, description="Support for NVSHMEM", when="+distconv"
+    )
     variant(
         "python",
         default=True,
@@ -144,6 +150,17 @@ class Lbann(CachedCMakePackage, CudaPackage, ROCmPackage):
     # Add Aluminum variants
     depends_on("aluminum@master", when="@develop")
 
+    # Note that while Aluminum typically includes the dependency for the AWS OFI
+    # plugins, if Aluminum is pre-built, LBANN needs to make sure that the module
+    # is loaded
+    with when("+cuda"):
+        if spack.platforms.cray.slingshot_network():
+            depends_on("aws-ofi-nccl")  # Note: NOT a CudaPackage
+
+    with when("+rocm"):
+        if spack.platforms.cray.slingshot_network():
+            depends_on("aws-ofi-rccl")
+
     depends_on("hdf5+mpi", when="+distconv")
 
     for arch in CudaPackage.cuda_arch_values:
@@ -151,13 +168,15 @@ class Lbann(CachedCMakePackage, CudaPackage, ROCmPackage):
         depends_on("aluminum cuda_arch=%s" % arch, when="+cuda cuda_arch=%s" % arch)
         depends_on("dihydrogen cuda_arch=%s" % arch, when="+cuda cuda_arch=%s" % arch)
         depends_on("nccl cuda_arch=%s" % arch, when="+cuda cuda_arch=%s" % arch)
+        depends_on("hwloc cuda_arch=%s" % arch, when="+cuda cuda_arch=%s" % arch)
 
     # variants +rocm and amdgpu_targets are not automatically passed to
     # dependencies, so do it manually.
     for val in ROCmPackage.amdgpu_targets:
-        depends_on("hydrogen amdgpu_target=%s" % val, when="amdgpu_target=%s" % val)
-        depends_on("aluminum amdgpu_target=%s" % val, when="amdgpu_target=%s" % val)
-        depends_on("dihydrogen amdgpu_target=%s" % val, when="amdgpu_target=%s" % val)
+        depends_on("hydrogen amdgpu_target=%s" % val, when="+rocm amdgpu_target=%s" % val)
+        depends_on("aluminum amdgpu_target=%s" % val, when="+rocm amdgpu_target=%s" % val)
+        depends_on("dihydrogen amdgpu_target=%s" % val, when="+rocm amdgpu_target=%s" % val)
+        depends_on(f"hwloc amdgpu_target={val}", when=f"+rocm amdgpu_target={val}")
 
     depends_on("roctracer-dev", when="+rocm +distconv")
 
@@ -166,8 +185,8 @@ class Lbann(CachedCMakePackage, CudaPackage, ROCmPackage):
     depends_on("hipcub", when="+rocm")
     depends_on("mpi")
     depends_on("hwloc@1.11:")
-    depends_on("hwloc +cuda +nvml", when="+cuda")
-    depends_on("hwloc@2.3.0:", when="+rocm")
+    depends_on("hwloc +cuda +nvml ~rocm", when="+cuda")
+    depends_on("hwloc@2.3.0: +rocm ~cuda", when="+rocm")
     depends_on("hiptt", when="+rocm")
 
     depends_on("half", when="+half")
@@ -206,9 +225,9 @@ class Lbann(CachedCMakePackage, CudaPackage, ROCmPackage):
     depends_on("python@3: +shared", type=("build", "run"), when="+pfe")
     extends("python", when="+pfe")
     depends_on("py-setuptools", type="build", when="+pfe")
-    depends_on("py-protobuf+cpp@3.10.0:4.21.12", type=("build", "run"), when="+pfe")
+    depends_on("py-protobuf@3.10.0:4.21.12", type=("build", "run"), when="+pfe")
 
-    depends_on("protobuf+shared@3.10.0:3.21.12")
+    depends_on("protobuf@3.10.0:3.21.12")
     depends_on("zlib-api", when="^protobuf@3.11.0:")
 
     # using cereal@1.3.1 and above requires changing the
@@ -223,7 +242,7 @@ class Lbann(CachedCMakePackage, CudaPackage, ROCmPackage):
     depends_on("onnx", when="+onnx")
     depends_on("nvshmem", when="+nvshmem")
 
-    depends_on("spdlog@1.11.0")
+    depends_on("spdlog@1.11.0:1.12.0")
     depends_on("zstr")
 
     depends_on("caliper+adiak+mpi", when="+caliper")
@@ -246,7 +265,7 @@ class Lbann(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     @property
     def libs(self):
-        shared = True if "+shared" in self.spec else False
+        shared = True if self.spec.satisfies("+shared") else False
         return find_libraries("liblbann", root=self.prefix, shared=shared, recursive=True)
 
     @property
@@ -266,21 +285,42 @@ class Lbann(CachedCMakePackage, CudaPackage, ROCmPackage):
         spec = self.spec
         entries = super().initconfig_compiler_entries()
         entries.append(cmake_cache_string("CMAKE_CXX_STANDARD", "17"))
-        entries.append(cmake_cache_option("BUILD_SHARED_LIBS", "+shared" in spec))
+        entries.append(cmake_cache_option("BUILD_SHARED_LIBS", spec.satisfies("+shared")))
         if not spec.satisfies("^cmake@3.23.0"):
             # There is a bug with using Ninja generator in this version
             # of CMake
             entries.append(cmake_cache_option("CMAKE_EXPORT_COMPILE_COMMANDS", True))
 
+        entries.append(cmake_cache_string("CMAKE_INSTALL_RPATH_USE_LINK_PATH", "ON"))
+        linker_flags = "-Wl,--disable-new-dtags"
+        entries.append(cmake_cache_string("CMAKE_EXE_LINKER_FLAGS", linker_flags))
+        entries.append(cmake_cache_string("CMAKE_SHARED_LINKER_FLAGS", linker_flags))
+
         # Use lld high performance linker
-        if "+lld" in spec:
-            entries.append(cmake_cache_string("CMAKE_EXE_LINKER_FLAGS", "-fuse-ld=lld"))
-            entries.append(cmake_cache_string("CMAKE_SHARED_LINKER_FLAGS", "-fuse-ld=lld"))
+        if spec.satisfies("+lld"):
+            entries.append(
+                cmake_cache_string(
+                    "CMAKE_EXE_LINKER_FLAGS", "{0} -fuse-ld=lld".format(linker_flags)
+                )
+            )
+            entries.append(
+                cmake_cache_string(
+                    "CMAKE_SHARED_LINKER_FLAGS", "{0} -fuse-ld=lld".format(linker_flags)
+                )
+            )
 
         # Use gold high performance linker
-        if "+gold" in spec:
-            entries.append(cmake_cache_string("CMAKE_EXE_LINKER_FLAGS", "-fuse-ld=gold"))
-            entries.append(cmake_cache_string("CMAKE_SHARED_LINKER_FLAGS", "-fuse-ld=gold"))
+        if spec.satisfies("+gold"):
+            entries.append(
+                cmake_cache_string(
+                    "CMAKE_EXE_LINKER_FLAGS", "{0} -fuse-ld=gold".format(linker_flags)
+                )
+            )
+            entries.append(
+                cmake_cache_string(
+                    "CMAKE_SHARED_LINKER_FLAGS", "{0} -fuse-ld=gold".format(linker_flags)
+                )
+            )
 
         # Set the generator in the cached config
         if self.spec.satisfies("generator=make"):
@@ -299,7 +339,7 @@ class Lbann(CachedCMakePackage, CudaPackage, ROCmPackage):
         spec = self.spec
         entries = super().initconfig_hardware_entries()
 
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             if self.spec.satisfies("%clang"):
                 for flag in self.spec.compiler_flags["cxxflags"]:
                     if "gcc-toolchain" in flag:
@@ -317,10 +357,6 @@ class Lbann(CachedCMakePackage, CudaPackage, ROCmPackage):
                 entries.append(
                     cmake_cache_string("CMAKE_CUDA_FLAGS", "-allow-unsupported-compiler")
                 )
-
-        if "+rocm" in spec:
-            if "platform=cray" in spec:
-                entries.append(cmake_cache_option("MPI_ASSUME_NO_BUILTIN_MPI", True))
 
         return entries
 
@@ -356,19 +392,17 @@ class Lbann(CachedCMakePackage, CudaPackage, ROCmPackage):
         entries.append(cmake_cache_option("LBANN_WITH_ALUMINUM", True))
         entries.append(cmake_cache_option("LBANN_WITH_CONDUIT", True))
         entries.append(cmake_cache_option("LBANN_WITH_HWLOC", True))
-        entries.append(cmake_cache_option("LBANN_WITH_ROCTRACER", "+rocm +distconv" in spec))
+        entries.append(
+            cmake_cache_option("LBANN_WITH_ROCTRACER", spec.satisfies("+rocm +distconv"))
+        )
         entries.append(cmake_cache_option("LBANN_WITH_TBINF", False))
         entries.append(
             cmake_cache_string("LBANN_DATATYPE", "{0}".format(spec.variants["dtype"].value))
         )
         entries.append(cmake_cache_option("protobuf_MODULE_COMPATIBLE", True))
 
-        if spec.satisfies("^python") and "+pfe" in spec:
-            entries.append(
-                cmake_cache_path(
-                    "LBANN_PFE_PYTHON_EXECUTABLE", "{0}/python3".format(spec["python"].prefix.bin)
-                )
-            )
+        if spec.satisfies("+pfe ^python"):
+            entries.append(cmake_cache_path("LBANN_PFE_PYTHON_EXECUTABLE", python.path))
             entries.append(
                 cmake_cache_string("LBANN_PFE_PYTHONPATH", env["PYTHONPATH"])
             )  # do NOT need to sub ; for : because

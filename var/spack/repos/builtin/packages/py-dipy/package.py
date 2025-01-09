@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,8 @@ class PyDipy(PythonPackage):
 
     version("1.7.0", sha256="59bb647128aae7793215c813bb8ea35dae260ac9f0d938c724064f0af5a05cc3")
     version("1.4.1", sha256="b4bf830feae751f3f985d54cb71031fc35cea612838320f1f74246692b8a3cc0")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("python@3.6:", type=("build", "run"))
     depends_on("python@:3.9", type=("build", "run"), when="@:1.4")

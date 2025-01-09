@@ -1,18 +1,20 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Common utilities for managing intel oneapi packages."""
-import getpass
 import os
 import platform
 import shutil
-from os.path import basename, dirname, isdir
+from os.path import basename, isdir
 
-from llnl.util.filesystem import find_headers, find_libraries, join_path, mkdirp
+from llnl.util import tty
+from llnl.util.filesystem import HeaderList, LibraryList, find_libraries, join_path, mkdirp
 from llnl.util.link_tree import LinkTree
 
-from spack.directives import conflicts, variant
+import spack.util.path
+from spack.build_environment import dso_suffix
+from spack.directives import conflicts, license, redistribute, variant
+from spack.error import InstallError
 from spack.util.environment import EnvironmentModifications
 from spack.util.executable import Executable
 
@@ -23,18 +25,21 @@ class IntelOneApiPackage(Package):
     """Base class for Intel oneAPI packages."""
 
     homepage = "https://software.intel.com/oneapi"
+    license("https://intel.ly/393CijO")
 
     # oneAPI license does not allow mirroring outside of the
     # organization (e.g. University/Company).
-    redistribute_source = False
+    redistribute(source=False, binary=False)
+
+    # contains precompiled binaries without rpaths
+    unresolved_libraries = ["*"]
 
     for c in [
         "target=ppc64:",
         "target=ppc64le:",
         "target=aarch64:",
-        "platform=darwin:",
-        "platform=cray:",
-        "platform=windows:",
+        "platform=darwin",
+        "platform=windows",
     ]:
         conflicts(c, msg="This package in only available for x86_64 and Linux")
 
@@ -56,9 +61,20 @@ class IntelOneApiPackage(Package):
         raise NotImplementedError
 
     @property
+    def v2_layout_versions(self):
+        """Version that implements the v2 directory layout."""
+        raise NotImplementedError
+
+    @property
+    def v2_layout(self):
+        """Returns true if this version implements the v2 directory layout."""
+        return self.spec.satisfies(self.v2_layout_versions)
+
+    @property
     def component_prefix(self):
         """Path to component <prefix>/<component>/<version>."""
-        return self.prefix.join(join_path(self.component_dir, self.spec.version))
+        v = self.spec.version.up_to(2) if self.v2_layout else self.spec.version
+        return self.prefix.join(self.component_dir).join(str(v))
 
     @property
     def env_script_args(self):
@@ -85,7 +101,7 @@ class IntelOneApiPackage(Package):
             # with other install depends on the userid. For root, we
             # delete the installercache before and after install. For
             # non root we redefine the HOME environment variable.
-            if getpass.getuser() == "root":
+            if spack.util.path.get_user() == "root":
                 shutil.rmtree("/var/intel/installercache", ignore_errors=True)
 
             bash = Executable("bash")
@@ -108,12 +124,13 @@ class IntelOneApiPackage(Package):
                 self.prefix,
             )
 
-            if getpass.getuser() == "root":
+            if spack.util.path.get_user() == "root":
                 shutil.rmtree("/var/intel/installercache", ignore_errors=True)
 
         # Some installers have a bug and do not return an error code when failing
-        if not isdir(join_path(self.prefix, self.component_dir)):
-            raise RuntimeError("install failed")
+        install_dir = self.component_prefix
+        if not isdir(install_dir):
+            raise RuntimeError("install failed to directory: {0}".format(install_dir))
 
     def setup_run_environment(self, env):
         """Adds environment variables to the generated module file.
@@ -128,7 +145,7 @@ class IntelOneApiPackage(Package):
         if "~envmods" not in self.spec:
             env.extend(
                 EnvironmentModifications.from_sourcing_file(
-                    join_path(self.component_prefix, "env", "vars.sh"), *self.env_script_args
+                    self.component_prefix.env.join("vars.sh"), *self.env_script_args
                 )
             )
 
@@ -167,19 +184,80 @@ class IntelOneApiLibraryPackage(IntelOneApiPackage):
 
     """
 
+    def openmp_libs(self):
+        """Supply LibraryList for linking OpenMP"""
+
+        # NB: Hunting down explicit library files may be the Spack way of
+        # doing things, but it is better to add the compiler defined option
+        # e.g. -fopenmp
+
+        # If other packages use openmp, then all the packages need to
+        # support the same ABI. Spack usually uses the same compiler
+        # for all the packages, but you can force it if necessary:
+        #
+        # e.g. spack install blaspp%oneapi@2024 ^intel-oneapi-mkl%oneapi@2024
+        #
+        if self.spec.satisfies("%intel") or self.spec.satisfies("%oneapi"):
+            libname = "libiomp5"
+        elif self.spec.satisfies("%gcc"):
+            libname = "libgomp"
+        elif self.spec.satisfies("%clang"):
+            libname = "libomp"
+        else:
+            raise InstallError(
+                "OneAPI package with OpenMP threading requires one of %clang, %gcc, %oneapi, "
+                "or %intel"
+            )
+
+        # query the compiler for the library path
+        with self.compiler.compiler_environment():
+            omp_lib_path = Executable(self.compiler.cc)(
+                "--print-file-name", f"{libname}.{dso_suffix}", output=str
+            ).strip()
+
+        # Newer versions of clang do not give the full path to libomp. If that's
+        # the case, look in a path relative to the compiler where libomp is
+        # typically found. If it's not found there, error out.
+        if not os.path.exists(omp_lib_path) and self.spec.satisfies("%clang"):
+            compiler_root = os.path.dirname(os.path.dirname(os.path.realpath(self.compiler.cc)))
+            omp_lib_path_compiler = os.path.join(compiler_root, "lib", f"{libname}.{dso_suffix}")
+            if os.path.exists(omp_lib_path_compiler):
+                omp_lib_path = omp_lib_path_compiler
+
+        # if the compiler cannot find the file, it returns the input path
+        if not os.path.exists(omp_lib_path):
+            raise InstallError(f"OneAPI package cannot locate OpenMP library: {omp_lib_path}")
+
+        omp_libs = LibraryList(omp_lib_path)
+        tty.info(f"OneAPI package requires OpenMP library: {omp_libs}")
+        return omp_libs
+
+    # find_headers uses heuristics to determine the include directory
+    # that does not work for oneapi packages. Use explicit directories
+    # instead.
+    def header_directories(self, dirs):
+        h = HeaderList([])
+        h.directories = dirs
+        # trilinos passes the directories to cmake, and cmake requires
+        # that the directory exists
+        for dir in dirs:
+            if not isdir(dir):
+                raise RuntimeError(f"{dir} does not exist")
+        return h
+
     @property
     def headers(self):
-        include_path = join_path(self.component_prefix, "include")
-        return find_headers("*", include_path, recursive=True)
+        # This should match the directories added to CPATH by
+        # env/vars.sh for the component
+        return self.header_directories([self.component_prefix.include])
 
     @property
     def libs(self):
-        lib_path = join_path(self.component_prefix, "lib", "intel64")
-        lib_path = lib_path if isdir(lib_path) else dirname(lib_path)
-        return find_libraries("*", root=lib_path, shared=True, recursive=True)
+        # for v2_layout all libraries are in the top level, v1 sometimes put them in intel64
+        return find_libraries("*", root=self.component_prefix.lib, recursive=not self.v2_layout)
 
 
-class IntelOneApiLibraryPackageWithSdk(IntelOneApiPackage):
+class IntelOneApiLibraryPackageWithSdk(IntelOneApiLibraryPackage):
     """Base class for Intel oneAPI library packages with SDK components.
 
     Contains some convenient default implementations for libraries
@@ -190,22 +268,12 @@ class IntelOneApiLibraryPackageWithSdk(IntelOneApiPackage):
     """
 
     @property
-    def include(self):
-        return join_path(self.component_prefix, "sdk", "include")
-
-    @property
     def headers(self):
-        return find_headers("*", self.include, recursive=True)
-
-    @property
-    def lib(self):
-        lib_path = join_path(self.component_prefix, "sdk", "lib64")
-        lib_path = lib_path if isdir(lib_path) else dirname(lib_path)
-        return lib_path
+        return self.header_directories([self.component_prefix.sdk.include])
 
     @property
     def libs(self):
-        return find_libraries("*", root=self.lib, shared=True, recursive=True)
+        return find_libraries("*", self.component_prefix.sdk.lib64)
 
 
 class IntelOneApiStaticLibraryList:

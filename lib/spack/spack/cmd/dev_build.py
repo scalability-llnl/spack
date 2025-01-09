@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -8,10 +7,13 @@ import sys
 
 import llnl.util.tty as tty
 
+import spack.build_environment
 import spack.cmd
-import spack.cmd.common.arguments as arguments
+import spack.cmd.common.arguments
 import spack.config
 import spack.repo
+from spack.cmd.common import arguments
+from spack.installer import PackageInstaller
 
 description = "developer build: build from code in current working directory"
 section = "build"
@@ -19,7 +21,7 @@ level = "long"
 
 
 def setup_parser(subparser):
-    arguments.add_common_arguments(subparser, ["jobs"])
+    arguments.add_common_arguments(subparser, ["jobs", "no_checksum", "spec"])
     subparser.add_argument(
         "-d",
         "--source-path",
@@ -34,7 +36,6 @@ def setup_parser(subparser):
         dest="ignore_deps",
         help="do not try to install dependencies of requested packages",
     )
-    arguments.add_common_arguments(subparser, ["no_checksum", "deprecated"])
     subparser.add_argument(
         "--keep-prefix",
         action="store_true",
@@ -63,7 +64,6 @@ def setup_parser(subparser):
         choices=["root", "all"],
         help="run tests on only root packages or all packages",
     )
-    arguments.add_common_arguments(subparser, ["spec"])
 
     stop_group = subparser.add_mutually_exclusive_group()
     stop_group.add_argument(
@@ -125,18 +125,15 @@ def dev_build(self, args):
     if args.no_checksum:
         spack.config.set("config:checksum", False, scope="command_line")
 
-    if args.deprecated:
-        spack.config.set("config:deprecated", True, scope="command_line")
-
     tests = False
     if args.test == "all":
         tests = True
     elif args.test == "root":
         tests = [spec.name for spec in specs]
 
-    spec.package.do_install(
+    PackageInstaller(
+        [spec.package],
         tests=tests,
-        make_jobs=args.jobs,
         keep_prefix=args.keep_prefix,
         install_deps=not args.ignore_deps,
         verbose=not args.quiet,
@@ -144,7 +141,7 @@ def dev_build(self, args):
         stop_before=args.before,
         skip_patch=args.skip_patch,
         stop_at=args.until,
-    )
+    ).install()
 
     # drop into the build environment of the package?
     if args.shell is not None:

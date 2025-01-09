@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -229,6 +228,8 @@ def post_install(spec, explicit=None):
     $spack_prefix/bin/sbang instead of something longer than the
     shebang limit.
     """
+    if sys.platform == "win32":
+        return
     if spec.external:
         tty.debug("SKIP: shebang filtering [external package]")
         return

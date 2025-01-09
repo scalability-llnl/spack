@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,11 +12,15 @@ class Apex(CMakePackage):
 
     maintainers("khuck")
     homepage = "https://uo-oaciss.github.io/apex"
-    url = "https://github.com/UO-OACISS/apex/archive/v2.6.2.tar.gz"
+    url = "https://github.com/UO-OACISS/apex/archive/v2.6.4.tar.gz"
     git = "https://github.com/UO-OACISS/apex"
 
     version("develop", branch="develop")
     version("master", branch="master")
+    version("2.7.1", sha256="5a31f5d790908e3b266e85abd03ea6affef8001c1276f8b883a55fda7a213aae")
+    version("2.7.0", sha256="81cd7e8dbea35cec2360d6404e20f7527f66410614f06a73c8c782ac2cfdb0b0")
+    version("2.6.5", sha256="2ba29a1198c904ac209fc6bc02962304a1416443b249f34ef96889aff39644ce")
+    version("2.6.4", sha256="281a673f447762a488577beaa60e48d88cb6354f220457cf8f05c1de2e1fce70")
     version("2.6.3", sha256="7fef12937d3bd1271a01abe44cb931b1d63823fb5c74287a332f3012ed7297d5")
     version("2.6.2", sha256="0c3ec26631db7925f50cf4e8920a778b57d11913f239a0eb964081f925129725")
     version("2.6.1", sha256="511dbab0af541489052a3d6379c48f9577e51654491d3b2c8545020e9d29fb29")
@@ -63,13 +66,17 @@ class Apex(CMakePackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # Disable some default dependencies on Darwin/OSX
     darwin_default = False
     if sys.platform != "darwin":
         darwin_default = True
 
     # Enable by default
-    variant("activeharmony", default=True, description="Enables Active Harmony support")
+    variant("activeharmony", default=False, description="Enables Active Harmony support")
     variant("plugins", default=True, description="Enables Policy Plugin support")
     variant("binutils", default=darwin_default, description="Enables Binutils support")
     variant("otf2", default=True, description="Enables OTF2 support")
@@ -80,21 +87,25 @@ class Apex(CMakePackage):
     )
     variant("openmp", default=darwin_default, description="Enables OpenMP support")
     variant("papi", default=darwin_default, description="Enables PAPI support")
+    variant("kokkos", default=True, description="Enables Kokkos support")
 
     # Disable by default
     variant("cuda", default=False, description="Enables CUDA support")
     variant("hip", default=False, description="Enables ROCm/HIP support")
     variant("sycl", default=False, description="Enables Intel SYCL support (Level0)")
-    variant("boost", default=False, description="Enables Boost support")
     variant("jemalloc", default=False, description="Enables JEMalloc support")
     variant("lmsensors", default=False, description="Enables LM-Sensors support")
     variant("mpi", default=False, description="Enables MPI support")
+    variant("starpu", default=False, description="Enables StarPU support")
+    variant("opencl", default=False, description="Enables OpenCL support", when="@2.7:")
     variant("tests", default=False, description="Build Unit Tests")
     variant("examples", default=False, description="Build Examples")
 
     # Dependencies
     depends_on("zlib-api")
     depends_on("cmake@3.10.0:", type="build")
+    depends_on("cmake@3.20.1:", type="build", when="@2.6.2:")
+    depends_on("kokkos+pic+tuning", type="build", when="+kokkos")
     depends_on("binutils@2.33:+libiberty+headers", when="+binutils")
     depends_on("gettext", when="+binutils ^binutils+nls")
     depends_on("activeharmony@4.6:", when="+activeharmony")
@@ -110,14 +121,24 @@ class Apex(CMakePackage):
     depends_on("sycl", when="+sycl")
     depends_on("roctracer-dev", when="+hip")
     depends_on("rocm-smi-lib", when="+hip")
-    depends_on("boost@1.54: +exception+chrono+system+atomic+container+regex+thread", when="+boost")
 
     # Conflicts
     conflicts("+jemalloc", when="+gperftools")
     conflicts("+plugins", when="~activeharmony")
+    # Compatibility fixed in 2.6.0 with
+    # https://github.com/UO-OACISS/apex/commit/4a7bdbb93367c3b1172ccb978825c67316f8bf4a
+    conflicts("^otf2@3:", when="@:2.5")
 
     # https://github.com/UO-OACISS/apex/pull/177#issuecomment-1726322959
     conflicts("+openmp", when="%gcc")
+
+    # Up to 2.6.3 Kokkos support is always enabled. In 2.6.4 and 2.6.5 there is
+    # a CMake option to disable Kokkos support but it doesn't work:
+    # https://github.com/UO-OACISS/apex/issues/180.
+    conflicts("~kokkos", when="@:2.6.5")
+
+    # Disable OpenCL when using SYCL support
+    conflicts("+opencl", when="+sycl")
 
     # Patches
 
@@ -131,7 +152,7 @@ class Apex(CMakePackage):
         # CMake variables were updated in version 2.3.0, to make
         prefix = "APEX_WITH"
         test_prefix = "APEX_"
-        if "@2.2.0" in spec:
+        if spec.satisfies("@2.2.0"):
             prefix = "USE"
             test_prefix = ""
 
@@ -140,6 +161,7 @@ class Apex(CMakePackage):
         args.append(self.define_from_variant("APEX_WITH_CUDA", "cuda"))
         args.append(self.define_from_variant("APEX_WITH_HIP", "hip"))
         args.append(self.define_from_variant("APEX_WITH_LEVEL0", "sycl"))
+        args.append(self.define_from_variant("APEX_WITH_OPENCL", "opencl"))
         args.append(self.define_from_variant(prefix + "_MPI", "mpi"))
         args.append(self.define_from_variant(prefix + "_OMPT", "openmp"))
         args.append(self.define_from_variant(prefix + "_OTF2", "otf2"))
@@ -148,35 +170,33 @@ class Apex(CMakePackage):
         args.append(self.define_from_variant(prefix + "_LM_SENSORS", "lmsensors"))
         args.append(self.define_from_variant(prefix + "_TCMALLOC", "gperftools"))
         args.append(self.define_from_variant(prefix + "_JEMALLOC", "jemalloc"))
+        args.append(self.define_from_variant(prefix + "_KOKKOS", "kokkos"))
         args.append(self.define_from_variant(test_prefix + "BUILD_TESTS", "tests"))
         args.append(self.define_from_variant(test_prefix + "BUILD_EXAMPLES", "examples"))
 
-        if "+activeharmony" in spec:
+        if spec.satisfies("+activeharmony"):
             args.append("-DACTIVEHARMONY_ROOT={0}".format(spec["activeharmony"].prefix))
 
-        if "+binutils" in spec:
+        if spec.satisfies("+binutils"):
             args.append("-DBFD_ROOT={0}".format(spec["binutils"].prefix))
 
-        if "+binutils ^binutils+nls" in spec:
+        if spec.satisfies("+binutils ^binutils+nls"):
             if "intl" in self.spec["gettext"].libs.names:
                 args.append("-DCMAKE_SHARED_LINKER_FLAGS=-lintl")
 
-        if "+otf2" in spec:
+        if spec.satisfies("+otf2"):
             args.append("-DOTF2_ROOT={0}".format(spec["otf2"].prefix))
 
-        if "+papi" in spec:
+        if spec.satisfies("+papi"):
             args.append("-DPAPI_ROOT={0}".format(spec["papi"].prefix))
 
-        if "+gperftools" in spec:
+        if spec.satisfies("+gperftools"):
             args.append("-DGPERFTOOLS_ROOT={0}".format(spec["gperftools"].prefix))
 
-        if "+jemalloc" in spec:
+        if spec.satisfies("+jemalloc"):
             args.append("-DJEMALLOC_ROOT={0}".format(spec["jemalloc"].prefix))
 
-        if "+boost" in spec:
-            args.append("-DBOOST_ROOT={0}".format(spec["boost"].prefix))
-
-        if "+hip" in spec:
+        if spec.satisfies("+hip"):
             args.append("-DROCM_ROOT={0}".format(spec["hip"].prefix))
             args.append("-DROCTRACER_ROOT={0}".format(spec["roctracer-dev"].prefix))
             args.append("-DROCTX_ROOT={0}".format(spec["roctracer-dev"].prefix))

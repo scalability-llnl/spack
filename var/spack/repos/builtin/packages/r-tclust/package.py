@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,9 @@ class RTclust(RPackage):
 
     cran = "tclust"
 
+    license("GPL-3.0-only")
+
+    version("2.0-4", sha256="a6667167778b974afc968340161171a7911415bcc1220dc7f0f350552f560578")
     version("1.5-4", sha256="2b55da5e351c5054c9627f57a43084518a138a1d8097e35a364db0eff63471a8")
     version("1.5-2", sha256="492674b30a465e5f4a22ba0ce5556ed4d8e57b29090f9b5b94ad655d064e6f8b")
     version("1.5-1", sha256="73328b30774bb0767d613d7f2b60b75706b19fab864c712645ea18181f1af327")
@@ -28,3 +30,10 @@ class RTclust(RPackage):
     version("1.1-02", sha256="f73c0d7a495552f901b710cf34e114c0ba401d5a17c48156313245904bcccad4")
 
     depends_on("r@2.12.0:", type=("build", "run"))
+    depends_on("r@3.6.2:", type=("build", "run"), when="@1.5-6:")
+
+    depends_on("r-doparallel", type=("build", "run"), when="@2.0:")
+    depends_on("r-foreach", type=("build", "run"), when="@2.0:")
+    depends_on("r-mass", type=("build", "run"), when="@2.0:")
+    depends_on("r-rcpp@1.0.7:", type=("build", "run"), when="@2.0:")
+    depends_on("r-rcpparmadillo", type=("build", "run"), when="@2.0:")

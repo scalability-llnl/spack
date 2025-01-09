@@ -1,19 +1,20 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import inspect
 from typing import List
 
 import llnl.util.filesystem as fs
 
 import spack.builder
 import spack.package_base
+import spack.phase_callbacks
+import spack.spec
+import spack.util.prefix
 from spack.directives import build_system, conflicts, depends_on
 from spack.multimethod import when
 
 from ._checks import (
-    BaseBuilder,
+    BuilderWithDefaults,
     apply_macos_rpath_fixups,
     execute_build_time_tests,
     execute_install_time_tests,
@@ -21,7 +22,7 @@ from ._checks import (
 
 
 class MakefilePackage(spack.package_base.PackageBase):
-    """Specialized class for packages built using a Makefiles."""
+    """Specialized class for packages built using Makefiles."""
 
     #: This attribute is used in UI queries that need to know the build
     #: system base class
@@ -37,7 +38,7 @@ class MakefilePackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("makefile")
-class MakefileBuilder(BaseBuilder):
+class MakefileBuilder(BuilderWithDefaults):
     """The Makefile builder encodes the most common way of building software with
     Makefiles. It has three phases that can be overridden, if need be:
 
@@ -92,35 +93,50 @@ class MakefileBuilder(BaseBuilder):
     install_time_test_callbacks = ["installcheck"]
 
     @property
-    def build_directory(self):
+    def build_directory(self) -> str:
         """Return the directory containing the main Makefile."""
         return self.pkg.stage.source_path
 
-    def edit(self, pkg, spec, prefix):
+    def edit(
+        self,
+        pkg: spack.package_base.PackageBase,
+        spec: spack.spec.Spec,
+        prefix: spack.util.prefix.Prefix,
+    ) -> None:
         """Edit the Makefile before calling make. The default is a no-op."""
         pass
 
-    def build(self, pkg, spec, prefix):
+    def build(
+        self,
+        pkg: spack.package_base.PackageBase,
+        spec: spack.spec.Spec,
+        prefix: spack.util.prefix.Prefix,
+    ) -> None:
         """Run "make" on the build targets specified by the builder."""
         with fs.working_dir(self.build_directory):
-            inspect.getmodule(self.pkg).make(*self.build_targets)
+            pkg.module.make(*self.build_targets)
 
-    def install(self, pkg, spec, prefix):
+    def install(
+        self,
+        pkg: spack.package_base.PackageBase,
+        spec: spack.spec.Spec,
+        prefix: spack.util.prefix.Prefix,
+    ) -> None:
         """Run "make" on the install targets specified by the builder."""
         with fs.working_dir(self.build_directory):
-            inspect.getmodule(self.pkg).make(*self.install_targets)
+            pkg.module.make(*self.install_targets)
 
-    spack.builder.run_after("build")(execute_build_time_tests)
+    spack.phase_callbacks.run_after("build")(execute_build_time_tests)
 
-    def check(self):
+    def check(self) -> None:
         """Run "make" on the ``test`` and ``check`` targets, if found."""
         with fs.working_dir(self.build_directory):
             self.pkg._if_make_target_execute("test")
             self.pkg._if_make_target_execute("check")
 
-    spack.builder.run_after("install")(execute_install_time_tests)
+    spack.phase_callbacks.run_after("install")(execute_install_time_tests)
 
-    def installcheck(self):
+    def installcheck(self) -> None:
         """Searches the Makefile for an ``installcheck`` target
         and runs it if found.
         """
@@ -128,4 +144,4 @@ class MakefileBuilder(BaseBuilder):
             self.pkg._if_make_target_execute("installcheck")
 
     # On macOS, force rpaths for shared library IDs and remove duplicate rpaths
-    spack.builder.run_after("install", when="platform=darwin")(apply_macos_rpath_fixups)
+    spack.phase_callbacks.run_after("install", when="platform=darwin")(apply_macos_rpath_fixups)

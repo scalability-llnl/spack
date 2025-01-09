@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,11 +15,21 @@ class R(AutotoolsPackage):
     Please consult the R project homepage for further information."""
 
     homepage = "https://www.r-project.org"
-    url = "https://cloud.r-project.org/src/base/R-3/R-3.4.3.tar.gz"
+    url = "https://cloud.r-project.org/src/base/R-4/R-4.4.0.tar.gz"
 
     extendable = True
 
+    executables = ["^R$"]
+
+    license("GPL-2.0-or-later")
+
+    version("4.4.1", sha256="b4cb675deaaeb7299d3b265d218cde43f192951ce5b89b7bb1a5148a36b2d94d")
+    version("4.4.0", sha256="ace4125f9b976d2c53bcc5fca30c75e30d4edc401584859cbadb080e72b5f030")
+    version("4.3.3", sha256="80851231393b85bf3877ee9e39b282e750ed864c5ec60cbd68e6e139f0520330")
+    version("4.3.2", sha256="b3f5760ac2eee8026a3f0eefcb25b47723d978038eee8e844762094c860c452a")
+    version("4.3.1", sha256="8dd0bf24f1023c6f618c3b317383d291b4a494f40d73b983ac22ffea99e4ba99")
     version("4.3.0", sha256="45dcc48b6cf27d361020f77fde1a39209e997b81402b3663ca1c010056a6a609")
+    version("4.2.3", sha256="55e4a9a6d43be314e2c03d0266a6fa5444afdce50b303bfc3b82b3979516e074")
     version("4.2.2", sha256="0ff62b42ec51afa5713caee7c4fde7a0c45940ba39bef8c5c9487fef0c953df5")
     version("4.2.1", sha256="4d52db486d27848e54613d4ee977ad952ec08ce17807e1b525b10cd4436c643f")
     version("4.2.0", sha256="38eab7719b7ad095388f06aa090c5a2b202791945de60d3e2bb0eab1f5097488")
@@ -59,6 +68,10 @@ class R(AutotoolsPackage):
     version("3.1.3", sha256="07e98323935baa38079204bfb9414a029704bb9c0ca5ab317020ae521a377312")
     version("3.1.2", sha256="bcd150afcae0e02f6efb5f35a6ab72432be82e849ec52ce0bb89d8c342a8fa7a")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
+
     variant("X", default=False, description="Enable X11 support (TCLTK, PNG, JPEG, TIFF, CAIRO)")
     variant("memory_profiling", default=False, description="Enable memory profiling")
     variant("rmath", default=False, description="Build standalone Rmath library")
@@ -80,7 +93,7 @@ class R(AutotoolsPackage):
     depends_on("xz")
     depends_on("which", type=("build", "run"))
     depends_on("zlib-api")
-    depends_on("zlib@1.2.5:", when="^zlib")
+    depends_on("zlib@1.2.5:", when="^[virtuals=zlib-api] zlib")
     depends_on("texinfo", type="build")
 
     with when("+X"):
@@ -103,7 +116,36 @@ class R(AutotoolsPackage):
     # temporary fix to lower the optimization level.
     patch("change_optflags_tmp.patch", when="%fj@4.1.0")
 
+    # Make R use a symlink to which in Sys.which, otherwise an absolute path
+    # gets stored as compressed byte code, which is not relocatable
+    patch("relocate-which.patch")
+
+    # CVE-2024-27322 Patch only needed in R 4.3.3 and below; doesn't apply to R older than 3.5.0.
+    patch(
+        "https://github.com/r-devel/r-svn/commit/f7c46500f455eb4edfc3656c3fa20af61b16abb7.patch?full_index=1",
+        sha256="56c77763cb104aa9cb63420e585da63cb2c23bc03fa3ef9d088044eeff9d7380",
+        when="@3.5.0:4.3.3",
+    )
+
     build_directory = "spack-build"
+
+    @classmethod
+    def determine_version(cls, exe):
+        output = Executable(exe)("--version", output=str, error=str)
+        # R version 4.3.3 (2024-02-29) -- "Angel Food Cake"
+        match = re.search(r"^R version ([^\s]+)", output)
+        return match.group(1) if match else None
+
+    @classmethod
+    def determine_variants(cls, exes, version):
+        variants = []
+        for exe in exes:
+            output = Executable(exe)("CMD", "config", "--all", output=str, error=str)
+
+            if "-lX11" in output:
+                variants.append("+X")
+
+        return variants
 
     # R custom URL version
     def url_for_version(self, version):
@@ -118,7 +160,7 @@ class R(AutotoolsPackage):
     @run_after("install")
     def install_rmath(self):
         if "+rmath" in self.spec:
-            with working_dir("src/nmath/standalone"):
+            with working_dir(join_path(self.build_directory, "src", "nmath", "standalone")):
                 make()
                 make("install", parallel=False)
 
@@ -190,6 +232,20 @@ class R(AutotoolsPackage):
 
     @run_after("install")
     def copy_makeconf(self):
+        # Ensure full library flags are included in Makeconf
+        for _lib, _pkg in [
+            ("lzma", "xz"),
+            ("bz2", "bzip2"),
+            ("z", "zlib-api"),
+            ("tirpc", "libtirpc"),
+            ("icuuc", "icu4c"),
+        ]:
+            filter_file(
+                f"-l{_lib}",
+                f"-L{self.spec[_pkg].libs.directories[0]} -l{_lib}",
+                join_path(self.etcdir, "Makeconf"),
+            )
+
         # Make a copy of Makeconf because it will be needed to properly build R
         # dependencies in Spack.
         src_makeconf = join_path(self.etcdir, "Makeconf")
@@ -255,8 +311,3 @@ class R(AutotoolsPackage):
 
         # Add variable for library directry
         module.r_lib_dir = join_path(dependent_spec.prefix, self.r_lib_dir)
-
-        # Make the site packages directory for extensions, if it does not exist
-        # already.
-        if dependent_spec.package.is_extension:
-            mkdirp(module.r_lib_dir)

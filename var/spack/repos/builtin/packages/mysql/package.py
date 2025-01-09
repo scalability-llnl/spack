@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,7 @@ class Mysql(CMakePackage):
     homepage = "https://www.mysql.com/"
     url = "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.15.tar.gz"
 
+    version("8.0.35", sha256="917c5ed38704e99211185ce4be24e33a8c19c91241ed73af4181a6f38d1574c2")
     version("8.0.29", sha256="512170fa6f78a694d6f18d197e999d2716ee68dc541d7644dd922a3663407266")
     version("8.0.19", sha256="a62786d67b5e267eef928003967b4ccfe362d604b80f4523578e0688f5b9f834")
     version("8.0.18", sha256="4cb39a315298eb243c25c53c184b3682b49c2a907a1d8432ba0620534806ade8")
@@ -49,10 +49,13 @@ class Mysql(CMakePackage):
     version("5.6.43", sha256="1c95800bf0e1b7a19a37d37fbc5023af85c6bc0b41532433b3a886263a1673ef")
     version("5.5.62", sha256="b1e7853bc1f04aabf6771e0ad947f35ac8d237f4b35d0706d1095c9526ff99d7")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("client_only", default=False, description="Build and install client only.")
     variant(
         "cxxstd",
-        default="14",
+        default="17",
         values=("98", "11", "14", "17"),
         multi=False,
         description="Use the specified C++ standard when building.",
@@ -67,6 +70,7 @@ class Mysql(CMakePackage):
     provides("mysql-client")
 
     # https://dev.mysql.com/doc/refman/8.0/en/source-installation.html
+    # https://dev.mysql.com/doc/refman/8.0/en/source-configuration-options.html
 
     # See CMAKE_MINIMUM_REQUIRED in CMakeLists.txt
     depends_on("cmake@3.1.0:", type="build", when="@5.7.0:5.7 platform=win32")
@@ -83,6 +87,8 @@ class Mysql(CMakePackage):
 
     # Each version of MySQL requires a specific version of boost
     # See BOOST_PACKAGE_NAME in cmake/boost.cmake
+    # 8.0.35
+    depends_on("boost@1.77.0 cxxstd=17", type="build", when="@8.0.35 cxxstd=17")
     # 8.0.29
     depends_on("boost@1.77.0 cxxstd=98", type="build", when="@8.0.29 cxxstd=98")
     depends_on("boost@1.77.0 cxxstd=11", type="build", when="@8.0.29 cxxstd=11")
@@ -124,9 +130,21 @@ class Mysql(CMakePackage):
     # See https://github.com/spack/spack/pull/22303 for reference
     depends_on(Boost.with_default_variants, when="@5.7:")
 
+    with when("@8.0.35:"):
+        depends_on("openssl@3:")
+        requires("cxxstd=17")
+
+    depends_on("zstd", when="@8.0.18:")
+
+    depends_on("patchelf", type="build")
+    depends_on("curl")
+    depends_on("zlib-api")
+    depends_on("libevent")
+    depends_on("lz4")
+
     depends_on("rpcsvc-proto")
     depends_on("ncurses")
-    depends_on("openssl")
+    depends_on("openssl@:2", when="@:8.0.29")
     depends_on("libtirpc", when="@5.7.0: platform=linux")
     depends_on("libedit", type=["build", "run"])
     depends_on("perl", type=["build", "test"], when="@:7")
@@ -150,14 +168,28 @@ class Mysql(CMakePackage):
 
     def cmake_args(self):
         spec = self.spec
-        options = []
-        if "boost" in spec:
-            options.append("-DBOOST_ROOT={0}".format(spec["boost"].prefix))
-        if "+client_only" in self.spec:
-            options.append("-DWITHOUT_SERVER:BOOL=ON")
-        options.append("-DWITH_EDITLINE=system")
-        options.append("-Dlibedit_INCLUDE_DIR={0}".format(spec["libedit"].prefix.include))
-        options.append("-Dlibedit_LIBRARY={0}".format(spec["libedit"].libs.directories[0]))
+        options = [
+            self.define("REPRODUCIBLE_BUILD", True),
+            self.define("WITH_CURL", spec["curl"].prefix),
+            self.define("WITH_EDITLINE", "system"),
+            self.define("WITH_LIBEVENT", "system"),
+            self.define("WITH_LZ4", "system"),
+            self.define("WITH_SSL", spec["openssl"].prefix),
+            self.define("WITH_ZLIB", "system"),
+            self.define_from_variant("WITHOUT_SERVER", "client_only"),
+        ]
+
+        if spec.satisfies("@5.7:"):
+            options.extend(
+                [
+                    self.define("WITH_BOOST", spec["boost"].prefix),
+                    self.define("LOCAL_BOOST_DIR", spec["boost"].prefix),
+                ]
+            )
+
+        if spec.satisfies("@8.0.18:"):
+            options.extend([self.define("WITH_ZSTD", "system")])
+
         return options
 
     def _fix_dtrace_shebang(self, env):
@@ -173,7 +205,7 @@ class Mysql(CMakePackage):
         copy(dtrace, dtrace_copy)
         filter_file(
             "^#!/usr/bin/python",
-            "#!/usr/bin/env {0}".format(os.path.basename(self.spec["python"].command)),
+            "#!/usr/bin/env {0}".format(os.path.basename(str(self.spec["python"].command))),
             dtrace_copy,
         )
         # To have our own copy of dtrace in PATH, we need to
@@ -191,5 +223,14 @@ class Mysql(CMakePackage):
             if int(cxxstd) > 14:
                 env.append_flags("CXXFLAGS", "-Wno-error=register")
 
-        if "python" in self.spec.flat_dependencies() and self.spec.satisfies("@:7"):
+        if "python" in self.spec and self.spec.satisfies("@:7"):
             self._fix_dtrace_shebang(env)
+
+    @run_before("install")
+    def fixup_mysqlconfig(self):
+        if not self.spec.satisfies("platform=windows"):
+            # mysql uses spack libz but exports -lzlib to its dependencies. Fix that:
+            with working_dir(self.build_directory):
+                for config in ("scripts/mysql_config", "scripts/mysqlclient.pc"):
+                    if os.path.exists(config):
+                        filter_file(" -lzlib ", " -lz ", config)

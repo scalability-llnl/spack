@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -10,9 +9,12 @@ import pytest
 
 from llnl.util.filesystem import mkdirp, working_dir
 
+import spack.cmd
 import spack.cmd.pkg
 import spack.main
+import spack.paths
 import spack.repo
+import spack.util.file_cache
 
 #: new fake package template
 pkg_template = """\
@@ -28,19 +30,20 @@ class {name}(Package):
         pass
 """
 
-abc = set(("pkg-a", "pkg-b", "pkg-c"))
-abd = set(("pkg-a", "pkg-b", "pkg-d"))
+abc = {"mockpkg-a", "mockpkg-b", "mockpkg-c"}
+abd = {"mockpkg-a", "mockpkg-b", "mockpkg-d"}
 
 
 # Force all tests to use a git repository *in* the mock packages repo.
 @pytest.fixture(scope="module")
-def mock_pkg_git_repo(git, tmpdir_factory):
+def mock_pkg_git_repo(git, tmp_path_factory):
     """Copy the builtin.mock repo and make a mutable git repo inside it."""
-    tmproot = tmpdir_factory.mktemp("mock_pkg_git_repo")
-    repo_path = tmproot.join("builtin.mock")
+    root_dir = tmp_path_factory.mktemp("mock_pkg_git_repo")
+    repo_dir = root_dir / "builtin.mock"
+    shutil.copytree(spack.paths.mock_packages_path, str(repo_dir))
 
-    shutil.copytree(spack.paths.mock_packages_path, str(repo_path))
-    mock_repo = spack.repo.RepoPath(str(repo_path))
+    repo_cache = spack.util.file_cache.FileCache(str(root_dir / "cache"))
+    mock_repo = spack.repo.RepoPath(str(repo_dir), cache=repo_cache)
     mock_repo_packages = mock_repo.repos[0].packages_path
 
     with working_dir(mock_repo_packages):
@@ -53,29 +56,35 @@ def mock_pkg_git_repo(git, tmpdir_factory):
         git("config", "user.name", "Spack Testing")
         git("-c", "commit.gpgsign=false", "commit", "-m", "initial mock repo commit")
 
-        # add commit with pkg-a, pkg-b, pkg-c packages
-        mkdirp("pkg-a", "pkg-b", "pkg-c")
-        with open("pkg-a/package.py", "w") as f:
+        # add commit with mockpkg-a, mockpkg-b, mockpkg-c packages
+        mkdirp("mockpkg-a", "mockpkg-b", "mockpkg-c")
+        with open("mockpkg-a/package.py", "w", encoding="utf-8") as f:
             f.write(pkg_template.format(name="PkgA"))
-        with open("pkg-b/package.py", "w") as f:
+        with open("mockpkg-b/package.py", "w", encoding="utf-8") as f:
             f.write(pkg_template.format(name="PkgB"))
-        with open("pkg-c/package.py", "w") as f:
+        with open("mockpkg-c/package.py", "w", encoding="utf-8") as f:
             f.write(pkg_template.format(name="PkgC"))
-        git("add", "pkg-a", "pkg-b", "pkg-c")
-        git("-c", "commit.gpgsign=false", "commit", "-m", "add pkg-a, pkg-b, pkg-c")
+        git("add", "mockpkg-a", "mockpkg-b", "mockpkg-c")
+        git("-c", "commit.gpgsign=false", "commit", "-m", "add mockpkg-a, mockpkg-b, mockpkg-c")
 
-        # remove pkg-c, add pkg-d
-        with open("pkg-b/package.py", "a") as f:
-            f.write("\n# change pkg-b")
-        git("add", "pkg-b")
-        mkdirp("pkg-d")
-        with open("pkg-d/package.py", "w") as f:
+        # remove mockpkg-c, add mockpkg-d
+        with open("mockpkg-b/package.py", "a", encoding="utf-8") as f:
+            f.write("\n# change mockpkg-b")
+        git("add", "mockpkg-b")
+        mkdirp("mockpkg-d")
+        with open("mockpkg-d/package.py", "w", encoding="utf-8") as f:
             f.write(pkg_template.format(name="PkgD"))
-        git("add", "pkg-d")
-        git("rm", "-rf", "pkg-c")
-        git("-c", "commit.gpgsign=false", "commit", "-m", "change pkg-b, remove pkg-c, add pkg-d")
+        git("add", "mockpkg-d")
+        git("rm", "-rf", "mockpkg-c")
+        git(
+            "-c",
+            "commit.gpgsign=false",
+            "commit",
+            "-m",
+            "change mockpkg-b, remove mockpkg-c, add mockpkg-d",
+        )
 
-    with spack.repo.use_repositories(str(repo_path)):
+    with spack.repo.use_repositories(str(repo_dir)):
         yield mock_repo_packages
 
 
@@ -86,12 +95,11 @@ def mock_pkg_names():
     # Be sure to include virtual packages since packages with stand-alone
     # tests may inherit additional tests from the virtuals they provide,
     # such as packages that implement `mpi`.
-    names = set(
+    return {
         name
         for name in repo.all_package_names(include_virtuals=True)
-        if not name.startswith("pkg-")
-    )
-    return names
+        if not name.startswith("mockpkg-")
+    }
 
 
 def split(output):
@@ -113,17 +121,17 @@ def test_mock_packages_path(mock_packages):
 
 def test_pkg_add(git, mock_pkg_git_repo):
     with working_dir(mock_pkg_git_repo):
-        mkdirp("pkg-e")
-        with open("pkg-e/package.py", "w") as f:
+        mkdirp("mockpkg-e")
+        with open("mockpkg-e/package.py", "w", encoding="utf-8") as f:
             f.write(pkg_template.format(name="PkgE"))
 
-    pkg("add", "pkg-e")
+    pkg("add", "mockpkg-e")
 
     with working_dir(mock_pkg_git_repo):
         try:
-            assert "A  pkg-e/package.py" in git("status", "--short", output=str)
+            assert "A  mockpkg-e/package.py" in git("status", "--short", output=str)
         finally:
-            shutil.rmtree("pkg-e")
+            shutil.rmtree("mockpkg-e")
             # Removing a package mid-run disrupts Spack's caching
             if spack.repo.PATH.repos[0]._fast_package_checker:
                 spack.repo.PATH.repos[0]._fast_package_checker.invalidate()
@@ -138,10 +146,10 @@ def test_pkg_list(mock_pkg_git_repo, mock_pkg_names):
     assert sorted(mock_pkg_names) == sorted(out)
 
     out = split(pkg("list", "HEAD^"))
-    assert sorted(mock_pkg_names.union(["pkg-a", "pkg-b", "pkg-c"])) == sorted(out)
+    assert sorted(mock_pkg_names.union(["mockpkg-a", "mockpkg-b", "mockpkg-c"])) == sorted(out)
 
     out = split(pkg("list", "HEAD"))
-    assert sorted(mock_pkg_names.union(["pkg-a", "pkg-b", "pkg-d"])) == sorted(out)
+    assert sorted(mock_pkg_names.union(["mockpkg-a", "mockpkg-b", "mockpkg-d"])) == sorted(out)
 
     # test with three dots to make sure pkg calls `git merge-base`
     out = split(pkg("list", "HEAD^^..."))
@@ -151,25 +159,25 @@ def test_pkg_list(mock_pkg_git_repo, mock_pkg_names):
 @pytest.mark.not_on_windows("stdout format conflict")
 def test_pkg_diff(mock_pkg_git_repo, mock_pkg_names):
     out = split(pkg("diff", "HEAD^^", "HEAD^"))
-    assert out == ["HEAD^:", "pkg-a", "pkg-b", "pkg-c"]
+    assert out == ["HEAD^:", "mockpkg-a", "mockpkg-b", "mockpkg-c"]
 
     out = split(pkg("diff", "HEAD^^", "HEAD"))
-    assert out == ["HEAD:", "pkg-a", "pkg-b", "pkg-d"]
+    assert out == ["HEAD:", "mockpkg-a", "mockpkg-b", "mockpkg-d"]
 
     out = split(pkg("diff", "HEAD^", "HEAD"))
-    assert out == ["HEAD^:", "pkg-c", "HEAD:", "pkg-d"]
+    assert out == ["HEAD^:", "mockpkg-c", "HEAD:", "mockpkg-d"]
 
 
 @pytest.mark.not_on_windows("stdout format conflict")
 def test_pkg_added(mock_pkg_git_repo):
     out = split(pkg("added", "HEAD^^", "HEAD^"))
-    assert ["pkg-a", "pkg-b", "pkg-c"] == out
+    assert ["mockpkg-a", "mockpkg-b", "mockpkg-c"] == out
 
     out = split(pkg("added", "HEAD^^", "HEAD"))
-    assert ["pkg-a", "pkg-b", "pkg-d"] == out
+    assert ["mockpkg-a", "mockpkg-b", "mockpkg-d"] == out
 
     out = split(pkg("added", "HEAD^", "HEAD"))
-    assert ["pkg-d"] == out
+    assert ["mockpkg-d"] == out
 
     out = split(pkg("added", "HEAD", "HEAD"))
     assert out == []
@@ -184,7 +192,7 @@ def test_pkg_removed(mock_pkg_git_repo):
     assert out == []
 
     out = split(pkg("removed", "HEAD^", "HEAD"))
-    assert out == ["pkg-c"]
+    assert out == ["mockpkg-c"]
 
 
 @pytest.mark.not_on_windows("stdout format conflict")
@@ -196,34 +204,34 @@ def test_pkg_changed(mock_pkg_git_repo):
     assert out == []
 
     out = split(pkg("changed", "--type", "a", "HEAD^^", "HEAD^"))
-    assert out == ["pkg-a", "pkg-b", "pkg-c"]
+    assert out == ["mockpkg-a", "mockpkg-b", "mockpkg-c"]
 
     out = split(pkg("changed", "--type", "r", "HEAD^^", "HEAD^"))
     assert out == []
 
     out = split(pkg("changed", "--type", "ar", "HEAD^^", "HEAD^"))
-    assert out == ["pkg-a", "pkg-b", "pkg-c"]
+    assert out == ["mockpkg-a", "mockpkg-b", "mockpkg-c"]
 
     out = split(pkg("changed", "--type", "arc", "HEAD^^", "HEAD^"))
-    assert out == ["pkg-a", "pkg-b", "pkg-c"]
+    assert out == ["mockpkg-a", "mockpkg-b", "mockpkg-c"]
 
     out = split(pkg("changed", "HEAD^", "HEAD"))
-    assert out == ["pkg-b"]
+    assert out == ["mockpkg-b"]
 
     out = split(pkg("changed", "--type", "c", "HEAD^", "HEAD"))
-    assert out == ["pkg-b"]
+    assert out == ["mockpkg-b"]
 
     out = split(pkg("changed", "--type", "a", "HEAD^", "HEAD"))
-    assert out == ["pkg-d"]
+    assert out == ["mockpkg-d"]
 
     out = split(pkg("changed", "--type", "r", "HEAD^", "HEAD"))
-    assert out == ["pkg-c"]
+    assert out == ["mockpkg-c"]
 
     out = split(pkg("changed", "--type", "ar", "HEAD^", "HEAD"))
-    assert out == ["pkg-c", "pkg-d"]
+    assert out == ["mockpkg-c", "mockpkg-d"]
 
     out = split(pkg("changed", "--type", "arc", "HEAD^", "HEAD"))
-    assert out == ["pkg-b", "pkg-c", "pkg-d"]
+    assert out == ["mockpkg-b", "mockpkg-c", "mockpkg-d"]
 
     # invalid type argument
     with pytest.raises(spack.main.SpackCommandError):
@@ -248,7 +256,7 @@ def test_pkg_source(mock_packages):
     fake_source = pkg("source", "fake")
 
     fake_file = spack.repo.PATH.filename_for_package_name("fake")
-    with open(fake_file) as f:
+    with open(fake_file, encoding="utf-8") as f:
         contents = f.read()
         assert fake_source == contents
 
@@ -289,7 +297,7 @@ def test_pkg_canonical_source(mock_packages):
 
 
 def test_pkg_hash(mock_packages):
-    output = pkg("hash", "a", "b").strip().split()
+    output = pkg("hash", "pkg-a", "pkg-b").strip().split()
     assert len(output) == 2 and all(len(elt) == 32 for elt in output)
 
     output = pkg("hash", "multimethod").strip().split()
@@ -303,7 +311,20 @@ def test_pkg_grep(mock_packages, capfd):
     output, _ = capfd.readouterr()
     assert output.strip() == "\n".join(
         spack.repo.PATH.get_pkg_class(name).module.__file__
-        for name in ["splice-a", "splice-h", "splice-t", "splice-vh", "splice-z"]
+        for name in [
+            "depends-on-manyvariants",
+            "manyvariants",
+            "splice-a",
+            "splice-depends-on-t",
+            "splice-h",
+            "splice-t",
+            "splice-vh",
+            "splice-vt",
+            "splice-z",
+            "virtual-abi-1",
+            "virtual-abi-2",
+            "virtual-abi-multi",
+        ]
     )
 
     # ensure that this string isn't fouhnd

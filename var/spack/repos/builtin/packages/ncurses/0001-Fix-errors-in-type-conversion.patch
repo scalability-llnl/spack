@@ -1,0 +1,153 @@
+From 6e12cb73e23e8e9488c6db1c4710bb4b3d2b48c3 Mon Sep 17 00:00:00 2001
+From: Adam Jiang <jiang.adam@gmail.com>
+Date: Fri, 1 Aug 2014 19:58:40 +0900
+Subject: [PATCH 1/2] Fix errors in type conversion
+
+Basically, converting to 'void*' is not a good idea. However, if that
+conversion is unavoidable, it should be done in a proper way. 'const_cast'
+itself could not convert type 'T*' to 'void *', this patch adds
+'reintepret_cast' to do it correctly.
+
+At the same time, function that returns on 'const' member like 'void*' should
+not be declared as 'const'.
+---
+ c++/cursesf.h | 12 +++++++-----
+ c++/cursesm.h | 10 +++++-----
+ c++/cursesp.h |  9 +++++----
+ 3 files changed, 17 insertions(+), 14 deletions(-)
+
+diff --git a/c++/cursesf.h b/c++/cursesf.h
+index 70a30c3..23b3022 100644
+--- a/c++/cursesf.h
++++ b/c++/cursesf.h
+@@ -673,7 +673,8 @@ protected:
+ 		   const T* p_UserData = STATIC_CAST(T*)(0))
+     : NCursesForm(nlines,ncols,begin_y,begin_x) {
+       if (form)
+-	set_user (const_cast<void *>(p_UserData));
++	set_user (const_cast<void *>(reinterpret_cast<const void*>
++				     (p_UserData)));
+   }
+ 
+ public:
+@@ -683,7 +684,7 @@ public:
+ 		   bool autoDelete_Fields=FALSE)
+     : NCursesForm (Fields, with_frame, autoDelete_Fields) {
+       if (form)
+-	set_user (const_cast<void *>(p_UserData));
++	set_user (const_cast<void *>(reinterpret_cast<const void*>(p_UserData)));
+   };
+ 
+   NCursesUserForm (NCursesFormField Fields[],
+@@ -697,19 +698,20 @@ public:
+     : NCursesForm (Fields, nlines, ncols, begin_y, begin_x,
+ 		   with_frame, autoDelete_Fields) {
+       if (form)
+-	set_user (const_cast<void *>(p_UserData));
++	set_user (const_cast<void *>(reinterpret_cast<const void*>
++				     (p_UserData)));
+   };
+ 
+   virtual ~NCursesUserForm() {
+   };
+ 
+-  inline T* UserData (void) const {
++  inline T* UserData (void) {
+     return reinterpret_cast<T*>(get_user ());
+   };
+ 
+   inline virtual void setUserData (const T* p_UserData) {
+     if (form)
+-      set_user (const_cast<void *>(p_UserData));
++      set_user (const_cast<void *>(reinterpret_cast<const void*>(p_UserData)));
+   }
+ 
+ };
+diff --git a/c++/cursesm.h b/c++/cursesm.h
+index d9c2273..545ed49 100644
+--- a/c++/cursesm.h
++++ b/c++/cursesm.h
+@@ -631,7 +631,7 @@ protected:
+ 		   const T* p_UserData = STATIC_CAST(T*)(0))
+     : NCursesMenu(nlines,ncols,begin_y,begin_x) {
+       if (menu)
+-	set_user (const_cast<void *>(p_UserData));
++	set_user (const_cast<void *>(reinterpret_cast<const void*>(p_UserData)));
+   }
+ 
+ public:
+@@ -641,7 +641,7 @@ public:
+ 		   bool autoDelete_Items=FALSE)
+     : NCursesMenu (Items, with_frame, autoDelete_Items) {
+       if (menu)
+-	set_user (const_cast<void *>(p_UserData));
++	set_user (const_cast<void *>(reinterpret_cast<const void*>(p_UserData)));
+   };
+ 
+   NCursesUserMenu (NCursesMenuItem Items[],
+@@ -653,19 +653,19 @@ public:
+ 		   bool with_frame=FALSE)
+     : NCursesMenu (Items, nlines, ncols, begin_y, begin_x, with_frame) {
+       if (menu)
+-	set_user (const_cast<void *>(p_UserData));
++	set_user (const_cast<void *>(reinterpret_cast<const void*>(p_UserData)));
+   };
+ 
+   virtual ~NCursesUserMenu() {
+   };
+ 
+-  inline T* UserData (void) const {
++  inline T* UserData (void) {
+     return reinterpret_cast<T*>(get_user ());
+   };
+ 
+   inline virtual void setUserData (const T* p_UserData) {
+     if (menu)
+-      set_user (const_cast<void *>(p_UserData));
++      set_user (const_cast<void *>(reinterpret_cast<const void*>(p_UserData)));
+   }
+ };
+ 
+diff --git a/c++/cursesp.h b/c++/cursesp.h
+index 9b63d6d..661e4a9 100644
+--- a/c++/cursesp.h
++++ b/c++/cursesp.h
+@@ -236,7 +236,8 @@ public:
+     : NCursesPanel (nlines, ncols, begin_y, begin_x)
+   {
+       if (p)
+-	set_user (const_cast<void *>(p_UserData));
++	set_user (const_cast<void *>(reinterpret_cast<const void*>
++				     (p_UserData)));
+   };
+   // This creates an user panel of the requested size with associated
+   // user data pointed to by p_UserData.
+@@ -244,14 +245,14 @@ public:
+   NCursesUserPanel(const T* p_UserData = STATIC_CAST(T*)(0)) : NCursesPanel()
+   {
+     if (p)
+-      set_user(const_cast<void *>(p_UserData));
++      set_user(const_cast<void *>(reinterpret_cast<const void*>(p_UserData)));
+   };
+   // This creates an user panel associated with the ::stdscr and user data
+   // pointed to by p_UserData.
+ 
+   virtual ~NCursesUserPanel() {};
+ 
+-  T* UserData (void) const
++  T* UserData (void)
+   {
+     return reinterpret_cast<T*>(get_user ());
+   };
+@@ -260,7 +261,7 @@ public:
+   virtual void setUserData (const T* p_UserData)
+   {
+     if (p)
+-      set_user (const_cast<void *>(p_UserData));
++      set_user (const_cast<void *>(reinterpret_cast<const void*>(p_UserData)));
+   }
+   // Associate the user panel with the user data pointed to by p_UserData.
+ };
+-- 
+1.8.5.2 (Apple Git-48)
+

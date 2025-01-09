@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,11 +17,13 @@ class Thrift(Package):
     """
 
     homepage = "https://thrift.apache.org"
-    url = "http://archive.apache.org/dist/thrift/0.16.0/thrift-0.16.0.tar.gz"
-    list_url = "http://archive.apache.org/dist/thrift/"
+    url = "https://archive.apache.org/dist/thrift/0.16.0/thrift-0.16.0.tar.gz"
+    list_url = "https://archive.apache.org/dist/thrift/"
     list_depth = 1
 
     maintainers("thomas-bouvier")
+
+    license("Apache-2.0")
 
     version("0.18.1", sha256="04c6f10e5d788ca78e13ee2ef0d2152c7b070c0af55483d6b942e29cff296726")
     version("0.17.0", sha256="b272c1788bb165d99521a2599b31b97fa69e5931d099015d91ae107a0b0cc58f")
@@ -32,6 +33,9 @@ class Thrift(Package):
     version("0.11.0", sha256="c4ad38b6cb4a3498310d405a91fef37b9a8e79a50cd0968148ee2524d2fa60c2")
     version("0.10.0", sha256="2289d02de6e8db04cbbabb921aeb62bfe3098c4c83f36eec6c31194301efa10b")
     version("0.9.3", sha256="b0740a070ac09adde04d43e852ce4c320564a292f26521c46b78e0641564969e")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("pic", default=True, description="Build position independent code")
     variant("c", default=True, description="Build support for C-family languages")
@@ -60,6 +64,7 @@ class Thrift(Package):
     depends_on("ant", when="+java")
 
     extends("python", when="+python")
+    depends_on("python@:3.11.9", when="+python")
     depends_on("py-setuptools", type=("build", "run"), when="+python")
     depends_on("py-six@1.7.2:", type=("build", "run"), when="@0.10.0:+python")
     depends_on("py-tornado", type=("build", "run"), when="+python")

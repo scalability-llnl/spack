@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -31,6 +30,11 @@ def test_write_and_read_cache_file(file_cache):
         assert text == "foobar\n"
 
 
+def test_read_before_init(file_cache):
+    with file_cache.read_transaction("test.yaml") as stream:
+        assert stream is None
+
+
 @pytest.mark.not_on_windows("Locks not supported on Windows")
 def test_failed_write_and_read_cache_file(file_cache):
     """Test failing to write then attempting to read a cached file."""
@@ -45,11 +49,6 @@ def test_failed_write_and_read_cache_file(file_cache):
 
     # File does not exist
     assert not file_cache.init_entry("test.yaml")
-
-    # Attempting to read will cause a FileNotFoundError
-    with pytest.raises(FileNotFoundError, match=r"test\.yaml"):
-        with file_cache.read_transaction("test.yaml"):
-            pass
 
 
 def test_write_and_remove_cache_file(file_cache):

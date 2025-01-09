@@ -1,5 +1,4 @@
-.. Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-   Spack Project Developers. See the top-level COPYRIGHT file for details.
+.. Copyright Spack Project Developers. See COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -146,6 +145,15 @@ example, the ``bash`` shell is used to run the ``autogen.sh`` script.
 
    def autoreconf(self, spec, prefix):
        which("bash")("autogen.sh")
+
+If the ``package.py`` has build instructions in a separate
+:ref:`builder class <multiple_build_systems>`, the signature for a phase changes slightly:
+
+.. code-block:: python
+
+   class AutotoolsBuilder(AutotoolsBuilder):
+      def autoreconf(self, pkg, spec, prefix):
+         which("bash")("autogen.sh")
 
 """""""""""""""""""""""""""""""""""""""
 patching configure or Makefile.in files

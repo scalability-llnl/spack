@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,7 +23,10 @@ class Axl(CMakePackage):
 
     maintainers("CamStan", "gonsie")
 
+    license("MIT")
+
     version("main", branch="main")
+    version("0.9.0", sha256="da2d74092fb230754a63db3cd5ba72a233ee8153dec28cc604fa8465280299ba")
     version("0.8.0", sha256="9fcd4eae143a67ff02622feda2a541b85e9a108749c039faeb473cbbc2330459")
     version("0.7.1", sha256="526a055c072c85cc989beca656717e06b128f148fda8eb19d1d9b43a3325b399")
     version("0.7.0", sha256="840ef61eadc9aa277d128df08db4cdf6cfa46b8fcf47b0eee0972582a61fbc50")
@@ -43,6 +45,9 @@ class Axl(CMakePackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     depends_on("kvtree")
     depends_on("zlib-api", type="link")
 
@@ -60,6 +65,9 @@ class Axl(CMakePackage):
         validator=async_api_validator,
     )
 
+    variant("mpi", default=True, description="Build with MPI support", when="@0.7.1:")
+    depends_on("mpi", when="@0.7.1: +mpi")
+
     variant("pthreads", default=True, description="Enable Pthread support", when="@0.6:")
 
     variant("bbapi", default=True, description="Enable IBM BBAPI support")
@@ -67,8 +75,8 @@ class Axl(CMakePackage):
     variant(
         "bbapi_fallback",
         default=False,
-        description="Using BBAPI, if source or destination don't support \
-            file extents then fallback to pthreads",
+        description="Using BBAPI, if source or destination don't support "
+        "file extents then fallback to pthreads",
     )
 
     variant("dw", default=False, description="Enable Cray DataWarp support")
@@ -81,6 +89,10 @@ class Axl(CMakePackage):
         spec = self.spec
         args = []
         args.append(self.define("WITH_KVTREE_PREFIX", spec["kvtree"].prefix))
+
+        args.append(self.define_from_variant("MPI"))
+        if spec.satisfies("+mpi"):
+            args.append(self.define("MPI_C_COMPILER", spec["mpi"].mpicc))
 
         if spec.satisfies("@:0.3.0"):
             apis = list(spec.variants["async_api"].value)
@@ -98,9 +110,6 @@ class Axl(CMakePackage):
             args.append(self.define_from_variant("ENABLE_IBM_BBAPI", "bbapi"))
             args.append(self.define_from_variant("ENABLE_CRAY_DW", "dw"))
             args.append(self.define_from_variant("BUILD_SHARED_LIBS", "shared"))
-        else:
-            if spec.satisfies("platform=cray"):
-                args.append(self.define("AXL_LINK_STATIC", True))
 
         if spec.satisfies("@0.6.0:"):
             args.append(self.define_from_variant("ENABLE_PTHREADS", "pthreads"))

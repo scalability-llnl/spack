@@ -1,0 +1,56 @@
+From d94cc49d93800b7b50d2582b28a2b6c84fdb166b Mon Sep 17 00:00:00 2001
+From: sreenivasa murthy kolam <sreenivasamurthy.kolam@amd.com>
+Date: Thu, 20 Jun 2024 10:17:09 +0000
+Subject: [PATCH] changes to cmakelists.txt to include half and turbo-jpeg
+
+---
+ utilities/test_suite/HIP/CMakeLists.txt  | 4 ++--
+ utilities/test_suite/HOST/CMakeLists.txt | 5 ++++-
+ 2 files changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/utilities/test_suite/HIP/CMakeLists.txt b/utilities/test_suite/HIP/CMakeLists.txt
+index b8bf361..bfac5ec 100644
+--- a/utilities/test_suite/HIP/CMakeLists.txt
++++ b/utilities/test_suite/HIP/CMakeLists.txt
+@@ -80,7 +80,7 @@ if (hip_FOUND AND OpenCV_FOUND)
+ 
+     add_executable(Tensor_hip Tensor_hip.cpp)
+     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGPU_SUPPORT=1 -DRPP_BACKEND_HIP=1 -std=gnu++17")
+-    target_link_libraries(Tensor_hip ${OpenCV_LIBS} -lturbojpeg -lrpp ${hip_LIBRARIES} pthread ${LINK_LIBRARY_LIST} hip::device)
++    target_link_libraries(Tensor_hip ${OpenCV_LIBS} -lrpp ${hip_LIBRARIES} pthread ${LINK_LIBRARY_LIST} hip::device)
+ else()
+     message(FATAL_ERROR "-- ${Red}Error: OpenCV and hip must be installed to install ${PROJECT_NAME} successfully!${ColourReset}")
+ endif()
+@@ -96,4 +96,4 @@ if(NIFTI_FOUND AND OpenCV_FOUND)
+     target_link_libraries(Tensor_voxel_hip ${OpenCV_LIBS} -lturbojpeg -lrpp ${hip_LIBRARIES} pthread ${LINK_LIBRARY_LIST} hip::device ${NIFTI_PACKAGE_PREFIX}NIFTI::${NIFTI_PACKAGE_PREFIX}niftiio)
+ else()
+     message("-- ${Yellow}Warning: libniftiio must be installed to install ${PROJECT_NAME}/Tensor_voxel_hip successfully!${ColourReset}")
+-endif()
+\ No newline at end of file
++endif()
+diff --git a/utilities/test_suite/HOST/CMakeLists.txt b/utilities/test_suite/HOST/CMakeLists.txt
+index 43be2b2..c119f28 100644
+--- a/utilities/test_suite/HOST/CMakeLists.txt
++++ b/utilities/test_suite/HOST/CMakeLists.txt
+@@ -69,6 +69,9 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS} -ggdb -O0")
+ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+ set(LINK_LIBRARY_LIST ${LINK_LIBRARY_LIST} OpenMP::OpenMP_CXX)
+ 
++find_path(HALF_INCLUDE_DIR half.hpp)
++include_directories(${HALF_INCLUDE_DIR})
++
+ if(TurboJpeg_FOUND)
+     message("-- ${Green}${PROJECT_NAME} set to build with rpp and TurboJpeg${ColourReset}")
+     include_directories(${TurboJpeg_INCLUDE_DIRS})
+@@ -85,7 +88,7 @@ if (OpenCV_FOUND)
+ 
+     add_executable(Tensor_host Tensor_host.cpp)
+     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++17")
+-    target_link_libraries(Tensor_host ${OpenCV_LIBS} -lturbojpeg -lrpp pthread ${LINK_LIBRARY_LIST})
++    target_link_libraries(Tensor_host ${OpenCV_LIBS} -lrpp pthread ${LINK_LIBRARY_LIST})
+ else()
+     message("-- ${Red}Error: OpenCV must be installed to install ${PROJECT_NAME} successfully!${ColourReset}")
+ endif()
+-- 
+2.39.3
+

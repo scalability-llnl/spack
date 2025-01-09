@@ -13,20 +13,19 @@ concurrency:
 
 
 jobs:
-  # Validate that the code can be run on all the Python versions
-  # supported by Spack
+  # Validate that the code can be run on all the Python versions supported by Spack
   validate:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-    - uses: actions/setup-python@65d7f2d534ac1bc67fcd62888c5f4f3d2cb2b236
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+    - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
       with:
-        python-version: '3.11'
+        python-version: '3.13'
         cache: 'pip'
     - name: Install Python Packages
       run: |
         pip install --upgrade pip setuptools
-        pip install -r .github/workflows/style/requirements.txt
+        pip install -r .github/workflows/requirements/style/requirements.txt
     - name: vermin (Spack's Core)
       run: vermin --backport importlib --backport argparse --violations --backport typing -t=3.6- -vvv lib/spack/spack/ lib/spack/llnl/ bin/
     - name: vermin (Repositories)
@@ -35,30 +34,31 @@ jobs:
   style:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       with:
         fetch-depth: 0
-    - uses: actions/setup-python@65d7f2d534ac1bc67fcd62888c5f4f3d2cb2b236
+    - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
       with:
-        python-version: '3.11'
+        python-version: '3.13'
         cache: 'pip'
     - name: Install Python packages
       run: |
         pip install --upgrade pip setuptools
-        pip install -r .github/workflows/style/requirements.txt
+        pip install -r .github/workflows/requirements/style/requirements.txt
     - name: Setup git configuration
       run: |
         # Need this for the git tests to succeed.
         git --version
-        . .github/workflows/setup_git.sh
+        . .github/workflows/bin/setup_git.sh
     - name: Run style tests
       run: |
           share/spack/qa/run-style-tests
   audit:
     uses: ./.github/workflows/audit.yaml
+    secrets: inherit
     with:
       with_coverage: ${{ inputs.with_coverage }}
-      python_version: '3.11'
+      python_version: '3.13'
   # Check that spack can bootstrap the development environment on Python 3.6 - RHEL8
   bootstrap-dev-rhel8:
     runs-on: ubuntu-latest
@@ -69,13 +69,13 @@ jobs:
           dnf install -y \
               bzip2 curl file gcc-c++ gcc gcc-gfortran git gnupg2 gzip \
               make patch tcl unzip which xz
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # @v2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: Setup repo and non-root user
         run: |
           git --version
-          git config --global --add safe.directory /__w/spack/spack
+          git config --global --add safe.directory '*'
           git fetch --unshallow
-          . .github/workflows/setup_git.sh
+          . .github/workflows/bin/setup_git.sh
           useradd spack-test
           chown -R spack-test .
       - name: Bootstrap Spack development environment
@@ -84,5 +84,83 @@ jobs:
           source share/spack/setup-env.sh
           spack debug report
           spack -d bootstrap now --dev
-          spack style -t black
+          spack -d style -t black
           spack unit-test -V
+  # Check we don't make the situation with circular imports worse
+  import-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: julia-actions/setup-julia@v2
+      with:
+        version: '1.10'
+    - uses: julia-actions/cache@v2
+
+    # PR: use the base of the PR as the old commit
+    - name: Checkout PR base commit
+      if: github.event_name == 'pull_request'
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      with:
+        ref: ${{ github.event.pull_request.base.sha }}
+        path: old
+    # not a PR: use the previous commit as the old commit
+    - name: Checkout previous commit
+      if: github.event_name != 'pull_request'
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      with:
+        fetch-depth: 2
+        path: old
+    - name: Checkout previous commit
+      if: github.event_name != 'pull_request'
+      run: git -C old reset --hard HEAD^
+
+    - name: Checkout new commit
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      with:
+        path: new
+    - name: Install circular import checker
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      with:
+        repository: haampie/circular-import-fighter
+        ref: b5d6ce9be35f602cca7d5a6aa0259fca10639cca
+        path: circular-import-fighter
+    - name: Install dependencies
+      working-directory: circular-import-fighter
+      run: make -j dependencies
+    - name: Problematic imports before
+      working-directory: circular-import-fighter
+      run: make SPACK_ROOT=../old SUFFIX=.old
+    - name: Problematic imports after
+      working-directory: circular-import-fighter
+      run: make SPACK_ROOT=../new SUFFIX=.new
+    - name: Compare import cycles
+      working-directory: circular-import-fighter
+      run: |
+        edges_before="$(head -n1 solution.old)"
+        edges_after="$(head -n1 solution.new)"
+        if [ "$edges_after" -gt "$edges_before" ]; then
+          printf '\033[1;31mImport check failed: %s imports need to be deleted, ' "$edges_after"
+          printf 'previously this was %s\033[0m\n'  "$edges_before"
+          printf 'Compare \033[1;97m"Problematic imports before"\033[0m and '
+          printf '\033[1;97m"Problematic imports after"\033[0m.\n'
+          exit 1
+        else
+          printf '\033[1;32mImport check passed: %s <= %s\033[0m\n' "$edges_after" "$edges_before"
+        fi
+
+  # Further style checks from pylint
+  pylint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+      - name: Install Python packages
+        run: |
+          pip install --upgrade pip setuptools pylint
+      - name: Pylint (Spack Core)
+        run: |
+          pylint -j 4 --disable=all --enable=unspecified-encoding --ignore-paths=lib/spack/external lib

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,8 @@ class Qmcpack(CMakePackage, CudaPackage):
     git = "https://github.com/QMCPACK/qmcpack.git"
     maintainers("ye-luo")
     tags = ["ecp", "ecp-apps"]
+
+    license("CC0-1.0")
 
     # This download method is untrusted, and is not recommended by the
     # Spack manual. However, it is easier to maintain because github hashes
@@ -44,6 +45,9 @@ class Qmcpack(CMakePackage, CudaPackage):
     version("3.2.0", tag="v3.2.0", commit="d531f6b35fbab9ab2b80e9222f694b66e08bdd9d")
     version("3.1.1", tag="v3.1.1", commit="07611637f823187ac5133d6e2249cdb86b92b04d")
     version("3.1.0", tag="v3.1.0", commit="146d920cf33590eac6a7a976f88871c1fe6418a6")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     # These defaults match those in the QMCPACK manual
     variant(
@@ -140,7 +144,6 @@ class Qmcpack(CMakePackage, CudaPackage):
     cpp14_warning = "QMCPACK v3.6.0 or later requires a " "compiler with support for C++14"
     conflicts("%gcc@:4", when="@3.6.0:", msg=cpp14_warning)
     conflicts("%intel@:17", when="@3.6.0:", msg=cpp14_warning)
-    conflicts("%pgi@:17", when="@3.6.0:", msg=cpp14_warning)
     conflicts("%clang@:3.4", when="@3.6.0:", msg=cpp14_warning)
 
     conflicts("+afqmc", when="@:3.6.0", msg="AFQMC not recommended before v3.7")
@@ -162,7 +165,6 @@ class Qmcpack(CMakePackage, CudaPackage):
         "Intel compiler when linking against Intel MKL"
     )
     conflicts("%gcc", when="@:3.4.0 ^intel-mkl", msg=mkl_warning)
-    conflicts("%pgi", when="@:3.4.0 ^intel-mkl", msg=mkl_warning)
     conflicts("%llvm", when="@:3.4.0 ^intel-mkl", msg=mkl_warning)
 
     # Dependencies match those in the QMCPACK manual.
@@ -389,7 +391,6 @@ class Qmcpack(CMakePackage, CudaPackage):
         else:
             args.append("-DBUILD_PPCONVERT=0")
 
-        args.append(self.define("Python3_EXECUTABLE", self.spec["python"].command.path))
         return args
 
     # QMCPACK needs custom install method for the following reason:

@@ -1,17 +1,17 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import ast
+from typing import Optional
 
-import spack.directives
+import spack.directives_meta
 import spack.error
+import spack.fetch_strategy
 import spack.package_base
 import spack.repo
 import spack.spec
 import spack.util.hash
-import spack.util.naming
 from spack.util.unparse import unparse
 
 
@@ -82,7 +82,7 @@ class RemoveDirectives(ast.NodeTransformer):
                 node.value
                 and isinstance(node.value, ast.Call)
                 and isinstance(node.value.func, ast.Name)
-                and node.value.func.id in spack.directives.directive_names
+                and node.value.func.id in spack.directives_meta.directive_names
             )
             else node
         )
@@ -301,44 +301,46 @@ class ResolveMultiMethods(ast.NodeTransformer):
         return func
 
 
-def canonical_source(spec, filter_multimethods=True, source=None):
+def canonical_source(
+    spec, filter_multimethods: bool = True, source: Optional[bytes] = None
+) -> str:
     """Get canonical source for a spec's package.py by unparsing its AST.
 
     Arguments:
-        filter_multimethods (bool): By default, filter multimethods out of the
-            AST if they are known statically to be unused. Supply False to disable.
-        source (str): Optionally provide a string to read python code from.
+        filter_multimethods: By default, filter multimethods out of the AST if they are known
+            statically to be unused. Supply False to disable.
+        source: Optionally provide a string to read python code from.
     """
     return unparse(package_ast(spec, filter_multimethods, source=source), py_ver_consistent=True)
 
 
-def package_hash(spec, source=None):
+def package_hash(spec, source: Optional[bytes] = None) -> str:
     """Get a hash of a package's canonical source code.
 
     This function is used to determine whether a spec needs a rebuild when a
     package's source code changes.
 
     Arguments:
-        source (str): Optionally provide a string to read python code from.
+        source: Optionally provide a string to read python code from.
 
     """
     source = canonical_source(spec, filter_multimethods=True, source=source)
     return spack.util.hash.b32_hash(source)
 
 
-def package_ast(spec, filter_multimethods=True, source=None):
+def package_ast(spec, filter_multimethods: bool = True, source: Optional[bytes] = None) -> ast.AST:
     """Get the AST for the ``package.py`` file corresponding to ``spec``.
 
     Arguments:
-        filter_multimethods (bool): By default, filter multimethods out of the
-            AST if they are known statically to be unused. Supply False to disable.
-        source (str): Optionally provide a string to read python code from.
+        filter_multimethods: By default, filter multimethods out of the AST if they are known
+            statically to be unused. Supply False to disable.
+        source: Optionally provide a string to read python code from.
     """
     spec = spack.spec.Spec(spec)
 
     if source is None:
         filename = spack.repo.PATH.filename_for_package_name(spec.name)
-        with open(filename) as f:
+        with open(filename, "rb") as f:
             source = f.read()
 
     # create an AST

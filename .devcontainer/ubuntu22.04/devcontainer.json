@@ -1,0 +1,5 @@
+{
+  "name": "Ubuntu 22.04",
+  "image": "ghcr.io/spack/ubuntu-22.04:v2024-05-07",
+  "postCreateCommand": "./.devcontainer/postCreateCommand.sh"
+}

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,12 +23,15 @@ class Kealib(CMakePackage):
     """
 
     homepage = "http://www.kealib.org/"
-    url = "https://github.com/ubarsc/kealib/releases/download/kealib-1.5.2/kealib-1.5.2.tar.gz"
+    url = "https://github.com/ubarsc/kealib/releases/download/kealib-1.5.3/kealib-1.5.3.tar.gz"
     git = "https://github.com/ubarsc/kealib"
 
     maintainers("gillins", "neilflood", "petebunting")
 
+    license("MIT")
+
     version("develop", git=git)
+    version("1.5.3", sha256="32b2e3c90553a03cf1e8d03781c3710500ca919bca674bc370e86f15338ee93e")
     version("1.5.2", sha256="c4e17c472761a39e45184b5fa687395b319ac75430e0f6584dbf4cec6e335572")
     version("1.5.1", sha256="06cd547b1e40394b9539beaf6982bd249e8ee93d6150295e9cd9161d00829657")
     version("1.5.0", sha256="d19a0fb051019f87fe413bda76472bf4fff8fca52ede92e0ffd983caeafd05b8")
@@ -40,6 +42,8 @@ class Kealib(CMakePackage):
     version("1.4.9", sha256="1c80489f17114a229097c2e8c61d5e4c82ea63ae631c81a817fef95cfd527174")
     version("1.4.8", sha256="0f24d8478865abcb17865c8f49c0370095726c529b8ac373ffae018ad3d40a02")
     version("1.4.7", sha256="ec38751b3b555d3a26f0c7445f2d2cd9d7c3a3502237519a206a50cb58df56ec")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3.5:", type="build")
     depends_on("hdf5+cxx+hl", when="@:1.5.1")

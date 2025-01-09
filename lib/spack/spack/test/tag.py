@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Tests for tag index cache files."""
@@ -7,7 +6,7 @@ import io
 
 import pytest
 
-import spack.cmd.install
+import spack.repo
 import spack.tag
 from spack.main import SpackCommand
 
@@ -153,7 +152,7 @@ def test_tag_no_tags(mock_packages):
 
 
 def test_tag_update_package(mock_packages):
-    mock_index = spack.repo.PATH.tag_index
+    mock_index = mock_packages.tag_index
     index = spack.tag.TagIndex(repository=mock_packages)
     for name in spack.repo.all_package_names():
         index.update_package(name)

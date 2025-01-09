@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -45,7 +44,7 @@ class Codes(AutotoolsPackage):
             "PKG_CONFIG_PATH=%s/pkgconfig" % spec["ross"].prefix.lib,
         ]
 
-        if "+dumpi" in spec:
+        if spec.satisfies("+dumpi"):
             config_args.extend(["--with-dumpi=%s" % spec["sst-dumpi"].prefix])
 
         return config_args

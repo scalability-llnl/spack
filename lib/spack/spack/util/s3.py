@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -25,7 +24,7 @@ def get_s3_session(url, method="fetch"):
     from botocore.exceptions import ClientError
 
     # Circular dependency
-    from spack.mirror import MirrorCollection
+    from spack.mirrors.mirror import MirrorCollection
 
     global s3_client_cache
 
@@ -87,27 +86,24 @@ def _parse_s3_endpoint_url(endpoint_url):
 def get_mirror_s3_connection_info(mirror, method):
     """Create s3 config for session/client from a Mirror instance (or just set defaults
     when no mirror is given.)"""
-    from spack.mirror import Mirror
+    from spack.mirrors.mirror import Mirror
 
     s3_connection = {}
     s3_client_args = {"use_ssl": spack.config.get("config:verify_ssl")}
 
     # access token
     if isinstance(mirror, Mirror):
-        access_token = mirror.get_access_token(method)
-        if access_token:
-            s3_connection["aws_session_token"] = access_token
+        credentials = mirror.get_credentials(method)
+        if credentials:
+            if "access_token" in credentials:
+                s3_connection["aws_session_token"] = credentials["access_token"]
 
-        # access pair
-        access_pair = mirror.get_access_pair(method)
-        if access_pair and access_pair[0] and access_pair[1]:
-            s3_connection["aws_access_key_id"] = access_pair[0]
-            s3_connection["aws_secret_access_key"] = access_pair[1]
+            if "access_pair" in credentials:
+                s3_connection["aws_access_key_id"] = credentials["access_pair"][0]
+                s3_connection["aws_secret_access_key"] = credentials["access_pair"][1]
 
-        # profile
-        profile = mirror.get_profile(method)
-        if profile:
-            s3_connection["profile_name"] = profile
+            if "profile" in credentials:
+                s3_connection["profile_name"] = credentials["profile"]
 
         # endpoint url
         endpoint_url = mirror.get_endpoint_url(method) or os.environ.get("S3_ENDPOINT_URL")

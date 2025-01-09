@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,7 +20,15 @@ class Fds(MakefilePackage):
     url = "https://github.com/firemodels/fds/archive/refs/tags/FDS-6.8.0.tar.gz"
     git = "https://github.com/firemodels/fds.git"
 
+    version("6.9.1", commit="889da6ae08d08dae680f7c0d8de66a3ad1c65375")
+    version("6.9.0", commit="63395692607884566fdedb5db4b5b4d98d3bcafb")
     version("6.8.0", commit="886e0096535519b7358a3c4393c91da3caee5072")
+
+    variant("openmp", default=False, description="Enable OpenMP support")
+
+    conflicts("%gcc", when="+openmp", msg="GCC already provides OpenMP support")
+
+    depends_on("fortran", type="build")  # generated
 
     depends_on("mpi")
     depends_on("mkl")
@@ -69,7 +76,7 @@ class Fds(MakefilePackage):
 
     def edit(self, spec, prefix):
         env["MKL_ROOT"] = self.spec["mkl"].prefix
-        if spec.compiler.name == "oneapi":
+        if spec.satisfies("%oneapi"):
             env["INTEL_IFORT"] = "ifx"
         makefile = FileFilter("Build/makefile")
         makefile.filter(r"\.\./Scripts", "./Scripts")
@@ -84,11 +91,12 @@ class Fds(MakefilePackage):
         mpi_prefix = mpi_mapping[spec["mpi"].name]
         compiler_prefix = compiler_mapping[spec.compiler.name]
         platform_prefix = platform_mapping[spec.architecture.platform]
-        return ["{}_{}_{}".format(mpi_prefix, compiler_prefix, platform_prefix)]
+        openmp_prefix = "_openmp" if "+openmp" in spec else ""
+        return [f"{mpi_prefix}_{compiler_prefix}_{platform_prefix}{openmp_prefix}"]
 
     def install(self, spec, prefix):
         mkdirp(prefix.bin)
         with working_dir(self.build_directory):
             install("*.mod", prefix.bin)
             install("*.o", prefix.bin)
-            install("fds_" + self.build_targets[0], prefix.bin + "/fds")
+            install("fds_" + self.build_targets[0], join_path(prefix.bin, "fds"))

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,9 @@ class Texinfo(AutotoolsPackage, GNUMirrorPackage):
 
     tags = ["build-tools"]
 
+    license("GPL-3.0-or-later")
+
+    version("7.1", sha256="dd5710b3a53ac002644677a06145748e260592a35be182dc830ebebb79c5d5a0")
     version("7.0.3", sha256="3cc5706fb086b895e1dc2b407aade9f95a3a233ff856273e2b659b089f117683")
     version("7.0", sha256="9261d4ee11cdf6b61895e213ffcd6b746a61a64fe38b9741a3aaa73125b35170")
     version("6.8", sha256="8e09cf753ad1833695d2bac0f57dc3bd6bcbbfbf279450e1ba3bc2d7fb297d08")
@@ -34,6 +36,9 @@ class Texinfo(AutotoolsPackage, GNUMirrorPackage):
     version("5.2", sha256="6b8ca30e9b6f093b54fe04439e5545e564c63698a806a48065c0bba16994cf74")
     version("5.1", sha256="50e8067f9758bb2bf175b69600082ac4a27c464cb4bcd48a578edd3127216600")
     version("5.0", sha256="2c579345a39a2a0bb4b8c28533f0b61356504a202da6a25d17d4d866af7f5803")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("perl")
     depends_on("ncurses")
@@ -59,7 +64,7 @@ class Texinfo(AutotoolsPackage, GNUMirrorPackage):
     def build_targets(self):
         targets = []
         if self.spec.satisfies("@7.0:"):
-            targets.append("CFLAGS={}".format(self.compiler.c11_flag))
+            targets.append(f"CFLAGS={self.compiler.c11_flag}")
         return targets
 
     def setup_build_environment(self, env):

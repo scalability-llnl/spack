@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -48,6 +47,9 @@ class RSpatstat(RPackage):
 
     cran = "spatstat"
 
+    license("GPL-2.0-or-later")
+
+    version("3.1-1", sha256="5649309818c6e76c8b8ee7b66a25dcbd2b358d90da56f67dd961b5cf9ff55512")
     version("3.0-5", sha256="b926ed55dfeb95b09fb441f44d85204277eee00e42ac258c0a08baa1ce263bb1")
     version("2.3-4", sha256="4ea0f8d70b926b92bf4a06521f985a0bb6d573619f5d526957c87860ccb999da")
     version("2.3-0", sha256="da02443722f2c7ef9d59a2799b7b8002c94cecf73f2b0d2b29280d39f49c4c06")
@@ -57,23 +59,31 @@ class RSpatstat(RPackage):
     depends_on("r@3.3:", type=("build", "run"))
     depends_on("r@3.5.0:", type=("build", "run"), when="@2.3-0:")
     depends_on("r-spatstat-model@3.2-3:", type=("build", "run"), when="@3.0-5:")
+    depends_on("r-spatstat-model@3.3-0:", type=("build", "run"), when="@3.1-1:")
     depends_on("r-spatstat-explore@3.1-0:", type=("build", "run"), when="@3.0-5:")
+    depends_on("r-spatstat-explore@3.3-0:", type=("build", "run"), when="@3.1-1:")
     depends_on("r-spatstat-data@1.4-2:", type=("build", "run"))
     depends_on("r-spatstat-data@2.1-0:", type=("build", "run"), when="@2.3-0:")
     depends_on("r-spatstat-data@2.1-2:", type=("build", "run"), when="@2.3-4:")
     depends_on("r-spatstat-data@3.0-1:", type=("build", "run"), when="@3.0-5:")
+    depends_on("r-spatstat-data@3.1-0:", type=("build", "run"), when="@3.1-1:")
     depends_on("r-spatstat-geom@2.3-0:", type=("build", "run"), when="@2.3-0:")
     depends_on("r-spatstat-geom@2.4-0:", type=("build", "run"), when="@2.3-4:")
     depends_on("r-spatstat-geom@3.1-0:", type=("build", "run"), when="@3.0-5:")
+    depends_on("r-spatstat-geom@3.3-0:", type=("build", "run"), when="@3.1-1:")
     depends_on("r-spatstat-random@2.2-0:", type=("build", "run"), when="@2.3-4:")
     depends_on("r-spatstat-random@3.1-4:", type=("build", "run"), when="@3.0-5:")
+    depends_on("r-spatstat-random@3.3-0:", type=("build", "run"), when="@3.1-1:")
     depends_on("r-spatstat-linnet@2.3-0:", type=("build", "run"), when="@2.3-0:")
     depends_on("r-spatstat-linnet@2.3-2:", type=("build", "run"), when="@2.3-4:")
     depends_on("r-spatstat-linnet@3.1-0:", type=("build", "run"), when="@3.0-5:")
+    depends_on("r-spatstat-linnet@3.2-0:", type=("build", "run"), when="@3.1-1:")
+    depends_on("r-spatstat-univar@3.0-0:", type=("build", "run"), when="@3.1-1:")
     depends_on("r-spatstat-utils@1.17:", type=("build", "run"))
     depends_on("r-spatstat-utils@2.2-0:", type=("build", "run"), when="@2.3-0:")
     depends_on("r-spatstat-utils@2.3-0:", type=("build", "run"), when="@2.3-4:")
     depends_on("r-spatstat-utils@3.0-2:", type=("build", "run"), when="@3.0-5:")
+    depends_on("r-spatstat-utils@3.0-5:", type=("build", "run"), when="@3.1-1:")
 
     depends_on("r-rpart", type=("build", "run"), when="@:1.64-1")
     depends_on("r-nlme", type=("build", "run"), when="@:1.64-1")

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,6 +10,13 @@ import llnl.util.tty as tty
 #: at what level we should write stack traces or short error messages
 #: this is module-scoped because it needs to be set very early
 debug = 0
+
+#: whether to show a backtrace when an error is printed, enabled with --backtrace.
+SHOW_BACKTRACE = False
+
+
+class SpackAPIWarning(UserWarning):
+    """Warning that formats with file and line number."""
 
 
 class SpackError(Exception):
@@ -132,3 +138,67 @@ class UnsatisfiableSpecError(SpecError):
 
 class FetchError(SpackError):
     """Superclass for fetch-related errors."""
+
+
+class NoSuchPatchError(SpackError):
+    """Raised when a patch file doesn't exist."""
+
+
+class PatchDirectiveError(SpackError):
+    """Raised when the wrong arguments are suppled to the patch directive."""
+
+
+class PatchLookupError(NoSuchPatchError):
+    """Raised when a patch file cannot be located from sha256."""
+
+
+class SpecSyntaxError(Exception):
+    """Base class for Spec syntax errors"""
+
+
+class PackageError(SpackError):
+    """Raised when something is wrong with a package definition."""
+
+    def __init__(self, message, long_msg=None):
+        super().__init__(message, long_msg)
+
+
+class NoURLError(PackageError):
+    """Raised when someone tries to build a URL for a package with no URLs."""
+
+    def __init__(self, cls):
+        super().__init__("Package %s has no version with a URL." % cls.__name__)
+
+
+class InstallError(SpackError):
+    """Raised when something goes wrong during install or uninstall.
+
+    The error can be annotated with a ``pkg`` attribute to allow the
+    caller to get the package for which the exception was raised.
+    """
+
+    def __init__(self, message, long_msg=None, pkg=None):
+        super().__init__(message, long_msg)
+        self.pkg = pkg
+
+
+class ConfigError(SpackError):
+    """Superclass for all Spack config related errors."""
+
+
+class StopPhase(SpackError):
+    """Pickle-able exception to control stopped builds."""
+
+    def __reduce__(self):
+        return _make_stop_phase, (self.message, self.long_message)
+
+
+def _make_stop_phase(msg, long_msg):
+    return StopPhase(msg, long_msg)
+
+
+class MirrorError(SpackError):
+    """Superclass of all mirror-creation related errors."""
+
+    def __init__(self, msg, long_msg=None):
+        super().__init__(msg, long_msg)

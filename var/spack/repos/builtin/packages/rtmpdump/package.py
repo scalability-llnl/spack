@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,8 @@ class Rtmpdump(MakefilePackage):
     license("GPL-2.0-or-later")
 
     version("2021-02-19", commit="f1b83c10d8beb43fcc70a6e88cf4325499f25857")
+
+    depends_on("c", type="build")  # generated
 
     variant("tls", default="openssl", description="TLS backend", values=("gnutls", "openssl"))
 

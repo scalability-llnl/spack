@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -7,10 +6,10 @@ from spack.package import *
 
 
 class Slate(CMakePackage, CudaPackage, ROCmPackage):
-    """The Software for Linear Algebra Targeting Exascale (SLATE) project is
-    to provide fundamental dense linear algebra capabilities to the US
+    """The Software for Linear Algebra Targeting Exascale (SLATE) project
+    provides fundamental dense linear algebra capabilities to the US
     Department of Energy and to the high-performance computing (HPC) community
-    at large. To this end, SLATE will provide basic dense matrix operations
+    at large. To this end, SLATE provides basic dense matrix operations
     (e.g., matrix multiplication, rank-k update, triangular solve), linear
     systems solvers, least square solvers, singular value and eigenvalue
     solvers."""
@@ -23,7 +22,18 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
     tags = ["e4s"]
     test_requires_compiler = True
 
+    license("BSD-3-Clause")
+
     version("master", branch="master")
+    version(
+        "2024.10.29", sha256="e729fad51f44b1340c0f64ac0f862026121183a3c8d731874f0a11a3b5053223"
+    )
+    version(
+        "2024.05.31", sha256="9c5d4d6779d8935b6fe41031b46e11ab92102f13c5f684022287c8616661b775"
+    )
+    version(
+        "2023.11.05", sha256="d3d925adec137ef4b7d876b2d7d0f8f2ff9d8485fa4125454a42f5da4ac026f3"
+    )
     version(
         "2023.08.25", sha256="0894d8669ed88358cc7c4cb7b77d8467336613245a7b843f3504e9224632ce0e"
     )
@@ -46,6 +56,12 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
         "2020.10.00", sha256="ff58840cdbae2991d100dfbaf3ef2f133fc2f43fc05f207dc5e38a41137882ab"
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
+    patch("omp.patch", when="@2023.11.05")
+
     variant(
         "mpi", default=True, description="Build with MPI support (without MPI is experimental)."
     )
@@ -56,7 +72,7 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
     # The runtime dependency on cmake is needed by the stand-alone tests (spack test).
     depends_on("cmake", type="run")
 
-    depends_on("mpi", when="+mpi")
+    depends_on("mpi")
     depends_on("intel-oneapi-mkl threads=openmp", when="+sycl")
     depends_on("blas")
     depends_on("blaspp ~cuda", when="~cuda")
@@ -75,16 +91,25 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
     for val in ROCmPackage.amdgpu_targets:
         depends_on("blaspp +rocm amdgpu_target=%s" % val, when="amdgpu_target=%s" % val)
         depends_on("lapackpp +rocm amdgpu_target=%s" % val, when="amdgpu_target=%s" % val)
+    depends_on("lapackpp@2024.10.26:", when="@2024.10.29:")
+    depends_on("lapackpp@2024.05.31:", when="@2024.05.31:")
+    depends_on("lapackpp@2023.11.05:", when="@2023.11.05:")
     depends_on("lapackpp@2023.08.25:", when="@2023.08.25:")
     depends_on("lapackpp@2022.07.00:", when="@2022.07.00:")
     depends_on("lapackpp@2022.05.00:", when="@2022.05.00:")
     depends_on("lapackpp@2021.04.00:", when="@2021.05.01:")
     depends_on("lapackpp@2020.10.02", when="@2020.10.00")
     depends_on("lapackpp@master", when="@master")
-    depends_on("scalapack", type="test")
+    depends_on("scalapack", when="@:2022.07.00", type="test")
+    depends_on("python", type="test")
     depends_on("hipify-clang", when="@:2021.05.02 +rocm ^hip@5:")
+    depends_on("comgr", when="+rocm")
+    depends_on("rocblas", when="+rocm")
+    depends_on("rocsolver", when="+rocm")
 
     requires("%oneapi", when="+sycl", msg="slate+sycl must be compiled with %oneapi")
+    requires("+mpi", msg="MPI is required (use of the 'mpi' variant is deprecated)")
+    requires("+openmp", msg="OpenMP is required (use of the 'openmp' variant is deprecated)")
 
     cpp_17_msg = "Requires C++17 compiler support"
     conflicts("%gcc@:5", msg=cpp_17_msg)
@@ -99,6 +124,13 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
     conflicts("+rocm", when="+sycl", msg=backend_msg)
     conflicts("+cuda", when="+sycl", msg=backend_msg)
     conflicts("+sycl", when="@:2022.07.00", msg="SYCL support requires SLATE version 2023.08.25")
+    conflicts("^hip@5.6.0:", when="@:2023.08.25", msg="Incompatible version of HIP/ROCm")
+
+    def flag_handler(self, name, flags):
+        if name == "cxxflags":
+            if self.spec.satisfies("%oneapi@2025:"):
+                flags.append("-Wno-error=missing-template-arg-list-after-template-kw")
+        return (flags, None, None)
 
     def cmake_args(self):
         spec = self.spec
@@ -115,10 +147,8 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
 
         config = [
             "-Dbuild_tests=%s" % self.run_tests,
-            "-Duse_openmp=%s" % ("+openmp" in spec),
             "-DBUILD_SHARED_LIBS=%s" % ("+shared" in spec),
             backend_config,
-            "-Duse_mpi=%s" % ("+mpi" in spec),
         ]
         if "+cuda" in spec:
             archs = ";".join(spec.variants["cuda_arch"].value)
@@ -127,8 +157,8 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
             archs = ";".join(spec.variants["amdgpu_target"].value)
             config.append("-DCMAKE_HIP_ARCHITECTURES=%s" % archs)
 
-        if self.run_tests:
-            config.append("-DSCALAPACK_LIBRARIES=%s" % spec["scalapack"].libs.joined(";"))
+        slibs = spec["scalapack"].libs.joined(";") if "scalapack" in spec else "none"
+        config.append(f"-DSCALAPACK_LIBRARIES={slibs}")
         return config
 
     @run_after("install")
@@ -137,7 +167,7 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
             return
         """Copy the example source files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources(["examples"])
+        cache_extra_test_sources(self, ["examples"])
 
     def mpi_launcher(self):
         searchpath = [self.spec["mpi"].prefix.bin]
@@ -148,23 +178,26 @@ class Slate(CMakePackage, CudaPackage, ROCmPackage):
         commands = ["srun", "mpirun", "mpiexec"]
         return which(*commands, path=searchpath) or which(*commands)
 
-    def test(self):
+    def test_example(self):
+        """build and run slate example"""
+
         if self.spec.satisfies("@2020.10.00") or "+mpi" not in self.spec:
-            print("Skipping: stand-alone tests")
-            return
+            raise SkipTest("Package must be installed with +mpi and version @2021.05.01 or later")
 
         test_dir = join_path(self.test_suite.current_test_cache_dir, "examples", "build")
         with working_dir(test_dir, create=True):
-            cmake_bin = join_path(self.spec["cmake"].prefix.bin, "cmake")
-            deps = "blaspp lapackpp mpi"
+            cmake = self.spec["cmake"].command
+
+            # This package must directly depend on all packages listed here.
+            # Otherwise, it will not work when some packages are external to spack.
+            deps = "slate blaspp lapackpp mpi"
             if self.spec.satisfies("+rocm"):
-                deps += " rocblas hip llvm-amdgpu comgr hsa-rocr-dev rocsolver"
+                deps += " rocblas hip llvm-amdgpu comgr hsa-rocr-dev rocsolver "
             prefixes = ";".join([self.spec[x].prefix for x in deps.split()])
-            self.run_test(cmake_bin, ["-DCMAKE_PREFIX_PATH=" + prefixes, ".."])
+
+            cmake("-DCMAKE_PREFIX_PATH=" + prefixes, "..")
+            make = which("make")
             make()
-            test_args = ["-n", "4", "./ex05_blas"]
             launcher = self.mpi_launcher()
-            if not launcher:
-                raise RuntimeError("Cannot run tests due to absence of MPI launcher")
-            self.run_test(launcher.command, test_args, purpose="SLATE smoke test")
-            make("clean")
+            assert launcher is not None, "Cannot run tests due to absence of MPI launcher"
+            launcher("-n", "4", "./ex05_blas")

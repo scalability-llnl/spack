@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,8 @@ class Gmic(MakefilePackage):
 
     homepage = "https://gmic.eu/"
     git = "https://github.com/GreycLab/gmic.git"
+
+    license("CECILL-2.1")
 
     version("develop", branch="master")
     version("3.1.6", tag="v.3.1.6")

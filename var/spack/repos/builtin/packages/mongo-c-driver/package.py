@@ -1,19 +1,22 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_systems import autotools, cmake
 from spack.package import *
 
 
-class MongoCDriver(Package):
+class MongoCDriver(AutotoolsPackage, CMakePackage):
     """libmongoc is a client library written in C for MongoDB."""
 
     homepage = "https://github.com/mongodb/mongo-c-driver"
-    url = "https://github.com/mongodb/mongo-c-driver/releases/download/1.7.0/mongo-c-driver-1.7.0.tar.gz"
+    url = "https://github.com/mongodb/mongo-c-driver/archive/refs/tags/1.25.0.tar.gz"
 
     maintainers("michaelkuhn")
 
+    license("Apache-2.0")
+
+    version("1.27.2", sha256="a53010803e2df097a2ea756be6ece34c8f52cda2c18e6ea21115097b75f5d4bf")
     version("1.24.4", sha256="2f4a3e8943bfe3b8672c2053f88cf74acc8494dc98a45445f727901eee141544")
     version("1.23.3", sha256="c8f951d4f965d455f37ae2e10b72914736fc0f25c4ffc14afc3cbadd1a574ef6")
     version("1.21.0", sha256="840ff79480070f98870743fbb332e2c10dd021b6b9c952d08010efdda4d70ee4")
@@ -30,7 +33,14 @@ class MongoCDriver(Package):
     version("1.7.0", sha256="48a0dbd44fef2124b51cf501f06be269b1a39452303b880b37473a6030c6e023")
     version("1.6.3", sha256="82df03de117a3ccf563b9eccfd2e5365df8f215a36dea7446d439969033ced7b")
     version("1.6.2", sha256="7ec27e9be4da2bf9e4b316374f8c29f816f0a0f019b984411777e9681e17f70e")
-    version("1.6.1", sha256="1bdfb27944c6da8e56da209a5d56efac70df1f8c4ca4498b46f75bf3f9360898")
+    version(
+        "1.6.1",
+        sha256="1bdfb27944c6da8e56da209a5d56efac70df1f8c4ca4498b46f75bf3f9360898",
+        deprecated=True,
+    )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("ssl", default=True, description="Enable SSL support.")
     variant("snappy", default=True, description="Enable Snappy support.")
@@ -43,16 +53,32 @@ class MongoCDriver(Package):
         when="@1.8.1",
     )
 
-    depends_on("cmake@3.1:", type="build", when="@1.10.0:")
+    with when("build_system=cmake"):
+        depends_on("cmake@3.1:", type="build")
 
-    depends_on("autoconf", type="build", when="@1.8.1")
-    depends_on("automake", type="build", when="@1.8.1")
-    depends_on("libtool", type="build", when="@1.8.1")
-    depends_on("m4", type="build", when="@1.8.1")
+    with when("build_system=autotools"):
+        depends_on("autoconf", type="build", when="@1.8.1")
+        depends_on("automake", type="build", when="@1.8.1")
+        depends_on("libtool", type="build", when="@1.8.1")
+
+    build_system(
+        conditional("cmake", when="@1.10:"),
+        conditional("autotools", when="@:1.9"),
+        default="cmake",
+    )
+
+    def url_for_version(self, version):
+        if version >= Version("1.25.0"):
+            return f"https://github.com/mongodb/mongo-c-driver/archive/refs/tags/{version}.tar.gz"
+        if version >= Version("1.10.0"):
+            return f"https://github.com/mongodb/mongo-c-driver/releases/download/{version}/mongo-c-driver-{version}.tar.gz"
+        else:
+            return f"https://github.com/mongodb/libbson/releases/download/{version}/libbson-{version}.tar.gz"
 
     depends_on("pkgconfig", type="build")
 
     # When updating mongo-c-driver, libbson has to be kept in sync.
+    depends_on("libbson@1.27", when="@1.27")
     depends_on("libbson@1.24", when="@1.24")
     depends_on("libbson@1.23", when="@1.23")
     depends_on("libbson@1.21", when="@1.21")
@@ -68,56 +94,42 @@ class MongoCDriver(Package):
     depends_on("zlib-api", when="+zlib")
     depends_on("zstd", when="+zstd")
 
-    def cmake_args(self):
-        spec = self.spec
-
-        args = ["-DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF"]
-
-        if spec.satisfies("@1.24:"):
-            args.append("-DUSE_SYSTEM_LIBBSON=ON")
-        else:
-            args.append("-DENABLE_BSON=SYSTEM")
-
-        if "+ssl" in spec:
-            args.append("-DENABLE_SSL=OPENSSL")
-        else:
-            args.append("-DENABLE_SSL=OFF")
-
-        if "+snappy" in spec:
-            args.append("-DENABLE_SNAPPY=ON")
-        else:
-            args.append("-DENABLE_SNAPPY=OFF")
-
-        if "+zlib" in spec:
-            args.append("-DENABLE_ZLIB=SYSTEM")
-        else:
-            args.append("-DENABLE_ZLIB=OFF")
-
-        if "+zstd" in spec:
-            args.append("-DENABLE_ZSTD=ON")
-        else:
-            args.append("-DENABLE_ZSTD=OFF")
-
-        return args
-
-    def install(self, spec, prefix):
-        with working_dir("spack-build", create=True):
-            # We cannot simply do
-            #   cmake('..', *std_cmake_args, *self.cmake_args())
-            # because that is not Python 2 compatible. Instead, collect
-            # arguments into a temporary buffer first.
-            args = []
-            args.extend(std_cmake_args)
-            args.extend(self.cmake_args())
-            cmake("..", *args)
-            make()
-            make("install")
-
     @property
     def force_autoreconf(self):
         # Run autoreconf due to build system patch
         return self.spec.satisfies("@1.8.1")
 
+
+class CMakeBuilder(cmake.CMakeBuilder):
+    def cmake_args(self):
+        args = [
+            self.define("ENABLE_AUTOMATIC_INIT_AND_CLEANUP", False),
+            self.define("ENABLE_MONGOC", True),
+            self.define("MONGO_USE_CCACHE", False),
+            self.define("MONGO_USE_LLD", False),
+            self.define_from_variant("ENABLE_SNAPPY", "snappy"),
+            self.define_from_variant("ENABLE_ZSTD", "zstd"),
+        ]
+
+        if self.spec.satisfies("@1.24:"):
+            args.append(self.define("USE_SYSTEM_LIBBSON", True))
+        else:
+            args.append(self.define("ENABLE_BSON", "SYSTEM"))
+
+        if self.spec.satisfies("+ssl"):
+            args.append(self.define("ENABLE_SSL", "OPENSSL"))
+        else:
+            args.append(self.define("ENABLE_SSL", False))
+
+        if self.spec.satisfies("+zlib"):
+            args.append(self.define("ENABLE_ZLIB", "SYSTEM"))
+        else:
+            args.append(self.define("ENABLE_ZLIB", False))
+
+        return args
+
+
+class AutotoolsBuilder(autotools.AutotoolsBuilder):
     def configure_args(self):
         spec = self.spec
 
@@ -141,13 +153,3 @@ class MongoCDriver(Package):
                 args.append("--with-zlib=system")
 
         return args
-
-    @when("@:1.9")
-    def install(self, spec, prefix):
-        configure("--prefix={0}".format(prefix), *self.configure_args())
-        make()
-        if self.run_tests:
-            make("check")
-        make("install")
-        if self.run_tests:
-            make("installcheck")

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,8 +13,13 @@ class Xxdiff(MakefilePackage):
 
     maintainers("vanderwb")
 
+    license("GPL-2.0-or-later")
+
     version("master", branch="master")
     version("2023-01-10", commit="604300ea9875611726ba885fb14f872b964df579")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("flex@2.5.31:", type="build")
     depends_on("bison", type="build")

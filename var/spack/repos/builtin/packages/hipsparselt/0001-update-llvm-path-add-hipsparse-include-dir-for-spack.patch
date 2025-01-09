@@ -1,0 +1,92 @@
+From c0ffe6cb718325634c353dec2894ac90ad6ea5e4 Mon Sep 17 00:00:00 2001
+From: sreenivasa murthy kolam <sreenivasamurthy.kolam@amd.com>
+Date: Wed, 8 May 2024 10:25:43 +0000
+Subject: [PATCH] changes to find the llvm_path for spack and add
+ hipsparse_include_dirs
+
+---
+ CMakeLists.txt                 | 2 +-
+ clients/gtest/CMakeLists.txt   | 1 +
+ clients/samples/CMakeLists.txt | 4 ++++
+ library/CMakeLists.txt         | 2 ++
+ library/src/CMakeLists.txt     | 4 ++--
+ 5 files changed, 10 insertions(+), 3 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 050826e..4cc2ee9 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -185,7 +185,7 @@ else()
+         set( tensile_fork "ROCmSoftwarePlatform" CACHE STRING "Tensile fork to use" )
+         file (STRINGS "tensilelite_tag.txt" read_tensile_tag)
+         set( tensile_tag ${read_tensile_tag} CACHE STRING "Tensile tag to download" )
+-        virtualenv_install("git+https://github.com/${tensile_fork}/hipBLASLt.git@${tensile_tag}#subdirectory=tensilelite")
++        virtualenv_install("git+https://github.com/ROCm/hipBLASLt.git@spack-change-tensilelite#subdirectory=tensilelite")
+ 
+         message (STATUS "using GIT Tensile fork=${tensile_fork} from branch=${tensile_tag}")
+       endif()
+diff --git a/clients/gtest/CMakeLists.txt b/clients/gtest/CMakeLists.txt
+index 2057db0..6085133 100644
+--- a/clients/gtest/CMakeLists.txt
++++ b/clients/gtest/CMakeLists.txt
+@@ -53,6 +53,7 @@ target_include_directories( hipsparselt-test
+     $<BUILD_INTERFACE:${BLAS_INCLUDE_DIR}>
+     $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}> # may be blank if not used
+     $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
++    $<BUILD_INTERFACE:${HIPSPARSE_INCLUDE_DIRS}>
+ )
+ message("BLIS_INCLUDE_DIR=" ${BLIS_INCLUDE_DIR})
+ target_link_libraries( hipsparselt-test PRIVATE ${BLAS_LIBRARY} ${GTEST_BOTH_LIBRARIES} roc::hipsparselt )
+diff --git a/clients/samples/CMakeLists.txt b/clients/samples/CMakeLists.txt
+index 6b303d5..a06fdc2 100644
+--- a/clients/samples/CMakeLists.txt
++++ b/clients/samples/CMakeLists.txt
+@@ -50,6 +50,10 @@ foreach( exe ${sample_list_all} )
+       $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
+       )
+ 
++  target_include_directories( ${exe}
++    SYSTEM PRIVATE
++      $<BUILD_INTERFACE:${HIPSPARSE_INCLUDE_DIRS}>
++      )
+   if( CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+     # GCC or hip-clang needs specific flags to turn on f16c intrinsics
+     target_compile_options( ${exe} PRIVATE -mf16c )
+diff --git a/library/CMakeLists.txt b/library/CMakeLists.txt
+index aac8506..bc13d51 100644
+--- a/library/CMakeLists.txt
++++ b/library/CMakeLists.txt
+@@ -58,6 +58,8 @@ include(src/CMakeLists.txt)
+ # Create hipSPARSELt library
+ add_library(hipsparselt ${hipsparselt_source} ${hipsparselt_headers_public})
+ add_library(roc::hipsparselt ALIAS hipsparselt)
++target_include_directories( hipsparselt PRIVATE ${HIPSPARSE_INCLUDE_DIRS} )
++target_include_directories( hipsparselt PRIVATE ${MSGPACK_DIR}/include )
+ 
+ # Target compile definitions
+ if(NOT BUILD_CUDA)
+diff --git a/library/src/CMakeLists.txt b/library/src/CMakeLists.txt
+index 85f7cde..94d2274 100755
+--- a/library/src/CMakeLists.txt
++++ b/library/src/CMakeLists.txt
+@@ -61,7 +61,7 @@ if(NOT BUILD_CUDA)
+     if(Tensile_CPU_THREADS MATCHES "^[0-9]+$")
+       # only including threads argument if number
+       TensileCreateLibraryFiles(
+-        "${CMAKE_CURRENT_SOURCE_DIR}/src/hcc_detail/rocsparselt/src/spmm/Tensile/Logic/${Tensile_LOGIC}"
++        "${CMAKE_CURRENT_SOURCE_DIR}/src/hcc_detail/rocsparselt/src/spmm/Tensile/Logic"
+         "${PROJECT_BINARY_DIR}/Tensile"
+         ARCHITECTURE        ${Tensile_ARCHITECTURE}
+         CODE_OBJECT_VERSION ${Tensile_CODE_OBJECT_VERSION}
+@@ -72,7 +72,7 @@ if(NOT BUILD_CUDA)
+       )
+     else()
+       TensileCreateLibraryFiles(
+-        "${CMAKE_CURRENT_SOURCE_DIR}/src/hcc_detail/rocsparselt/src/spmm/Tensile/Logic/${Tensile_LOGIC}"
++        "${CMAKE_CURRENT_SOURCE_DIR}/src/hcc_detail/rocsparselt/src/spmm/Tensile/Logic"
+         "${PROJECT_BINARY_DIR}/Tensile"
+         ARCHITECTURE        ${Tensile_ARCHITECTURE}
+         CODE_OBJECT_VERSION ${Tensile_CODE_OBJECT_VERSION}
+-- 
+2.39.3
+

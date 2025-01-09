@@ -1,10 +1,9 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
-from spack.variant import _ConditionalVariantValues
+from spack.variant import ConditionalVariantValues
 
 
 class Geant4(CMakePackage):
@@ -20,8 +19,12 @@ class Geant4(CMakePackage):
 
     executables = ["^geant4-config$"]
 
-    maintainers("drbenmorgan")
+    maintainers("drbenmorgan", "sethrj")
 
+    version("11.3.0", sha256="d9d71daff8890a7b5e0e33ea9a65fe6308ad6713000b43ba6705af77078e7ead")
+    version("11.2.2", sha256="3a8d98c63fc52578f6ebf166d7dffaec36256a186d57f2520c39790367700c8d")
+    version("11.2.1", sha256="76c9093b01128ee2b45a6f4020a1bcb64d2a8141386dea4674b5ae28bcd23293")
+    version("11.2.0", sha256="9ff544739b243a24dac8f29a4e7aab4274fc0124fd4e1c4972018213dc6991ee")
     version("11.1.3", sha256="5d9a05d4ccf8b975649eab1d615fc1b8dce5937e01ab9e795bffd04149240db6")
     version("11.1.2", sha256="e9df8ad18c445d9213f028fd9537e174d6badb59d94bab4eeae32f665beb89af")
     version("11.1.1", sha256="c5878634da9ba6765ce35a469b2893044f4a6598aa948733da8436cdbfeef7d2")
@@ -44,6 +47,9 @@ class Geant4(CMakePackage):
     version("10.4.3", sha256="67f3bb6405a2c77e573936c2b933f5a4a33915aa379626a2eb3012009b91e1da")
     version("10.4.0", sha256="e919b9b0a88476e00c0b18ab65d40e6a714b55ee4778f66bac32a5396c22aa74")
     version("10.3.3", sha256="bcd36a453da44de9368d1d61b0144031a58e4b43a6d2d875e19085f2700a89d8")
+    version("10.0.4", sha256="97f3744366b00143d1eed52f8786823034bbe523f45998106f798af61d83f863")
+
+    depends_on("cxx", type="build")
 
     _cxxstd_values = (
         conditional("11", "14", when="@:10"),
@@ -59,20 +65,57 @@ class Geant4(CMakePackage):
     )
 
     variant("threads", default=True, description="Build with multithreading")
-    variant("vecgeom", default=False, description="Enable vecgeom support")
+    variant("vecgeom", default=False, description="Enable vecgeom support", when="@10.4:")
     variant("opengl", default=False, description="Optional OpenGL support")
     variant("x11", default=False, description="Optional X11 support")
     variant("motif", default=False, description="Optional motif support")
     variant("qt", default=False, description="Enable Qt support")
+    variant("hdf5", default=False, description="Enable HDF5 support", when="@10.4:")
     variant("python", default=False, description="Enable Python bindings", when="@10.6.2:11.0")
     variant("tbb", default=False, description="Use TBB as a tasking backend", when="@11:")
+    variant("timemory", default=False, description="Use TiMemory for profiling", when="@9.5:")
     variant("vtk", default=False, description="Enable VTK support", when="@11:")
+
+    # For most users, obtaining the Geant4 data via Spack will be useful; the
+    # sticky, default-enabled `+data` variant ensures that this happens.
+    # Furthermore, if this variant is enabled, Spack will automatically set the
+    # necessary environment variables to ensure that the Geant4 code runs
+    # correctly.
+    #
+    # However, the Geant4 data is also large and it is, on many machines used
+    # in HEP, already available via e.g. CVMFS. In these cases, users can save
+    # network bandwidth by using externally supplied Geant4 data. This can be
+    # done in two different ways.
+    #
+    # The first is to declare the Geant4 data directories as externals. This
+    # can be done by manually adding them to the `packages.yaml` file, e.g.:
+    #
+    # ```
+    # g4radioactivedecay:
+    #   externals:
+    #   - spec: g4radioactivedecay@5.6
+    #     prefix: <PREFIX>
+    #     buildable: False
+    # ```
+    #
+    # Where <PREFIX> is a path such that <PREFIX>/share/data/<DATASET><VERSION>
+    # exists.
+    #
+    # Alternatively, the `~data` variant can be supplied; in this case, Spack
+    # will not attempt to use the `geant4-data` spec at all. It is then
+    # essential to set up the `GEANT4_DATA_DIR` environment variable manually
+    # at runtime; see the Geant4 installation guide for more information:
+    # https://geant4-userdoc.web.cern.ch/UsersGuides/InstallationGuide/html/postinstall.html
+    variant(
+        "data", default=True, sticky=True, description="Enable downloading of the data directory"
+    )
 
     depends_on("cmake@3.16:", type="build", when="@11.0.0:")
     depends_on("cmake@3.8:", type="build", when="@10.6.0:")
     depends_on("cmake@3.5:", type="build")
 
     for _vers in [
+        "10.0.4",
         "10.3.3",
         "10.4.0",
         "10.4.3",
@@ -86,15 +129,19 @@ class Geant4(CMakePackage):
         "10.7.2",
         "10.7.3",
         "10.7.4",
-        "11.0.0:11.0",
-        "11.1:",
+        "11.0",
+        "11.1",
+        "11.2.0:11.2.1",
+        "11.2.2:11.2",
+        "11.3:",
     ]:
-        depends_on("geant4-data@" + _vers, type="run", when="@" + _vers)
+        depends_on("geant4-data@" + _vers, type="run", when="+data @" + _vers)
 
     depends_on("expat")
     depends_on("zlib-api")
 
     depends_on("tbb", when="+tbb")
+    depends_on("timemory@3.2:", when="+timemory")
     depends_on("vtk@8.2:", when="+vtk")
 
     # Python, with boost requirement dealt with in cxxstd section
@@ -102,24 +149,30 @@ class Geant4(CMakePackage):
     extends("python", when="+python")
 
     # CLHEP version requirements to be reviewed
+    depends_on("clhep@2.4.7.1:", when="@11.3:")
     depends_on("clhep@2.4.6.0:", when="@11.1:")
     depends_on("clhep@2.4.5.1:", when="@11.0.0:")
     depends_on("clhep@2.4.4.0:", when="@10.7.0:")
-    depends_on("clhep@2.3.3.0:", when="@10.3.3:10.6")
+    depends_on("clhep@2.3.3.0:", when="@10.3:10.6")
+    depends_on("clhep@2.1.2.3", when="@:10.2")
 
     # Vecgeom specific versions for each Geant4 version
     with when("+vecgeom"):
-        depends_on("vecgeom@1.2.0:", when="@11.1:")
+        depends_on("vecgeom@1.2.8:", when="@11.3:")
+        depends_on("vecgeom@1.2.6:", when="@11.2:")
+        depends_on("vecgeom@1.2.0:", when="@11.1")
         depends_on("vecgeom@1.1.18:1.1", when="@11.0.0:11.0")
         depends_on("vecgeom@1.1.8:1.1", when="@10.7.0:10.7")
         depends_on("vecgeom@1.1.5", when="@10.6.0:10.6")
         depends_on("vecgeom@1.1.0", when="@10.5.0:10.5")
         depends_on("vecgeom@0.5.2", when="@10.4.0:10.4")
-        depends_on("vecgeom@0.3rc", when="@10.3.0:10.3")
+
+    with when("+hdf5"):
+        depends_on("hdf5 +threadsafe")
 
     def std_when(values):
         for v in values:
-            if isinstance(v, _ConditionalVariantValues):
+            if isinstance(v, ConditionalVariantValues):
                 for c in v:
                     yield (c.value, c.when)
             else:
@@ -142,18 +195,39 @@ class Geant4(CMakePackage):
     depends_on("libx11", when="+x11")
     depends_on("libxmu", when="+x11")
     depends_on("motif", when="+motif")
-    depends_on("qt@5: +opengl", when="+qt")
+    with when("+qt"):
+        depends_on("qmake")
+        with when("^[virtuals=qmake] qt-base"):
+            depends_on("qt-base +accessibility +gui +opengl")
+        with when("^[virtuals=qmake] qt"):
+            depends_on("qt@5: +opengl")
+            depends_on("qt@5.9:", when="@11.2:")
+    conflicts("@:11.1 ^[virtuals=qmake] qt-base", msg="Qt6 not supported before 11.2")
 
-    # As released, 10.03.03 has issues with respect to using external
-    # CLHEP.
-    patch("CLHEP-10.03.03.patch", level=1, when="@10.3.3")
-    # These patches can be applied independent of the cxxstd value?
-    patch("cxx17.patch", when="@:10.3 cxxstd=17")
-    patch("cxx17_geant4_10_0.patch", level=1, when="@10.4.0 cxxstd=17")
-    patch("geant4-10.4.3-cxx17-removed-features.patch", level=1, when="@10.4.3 cxxstd=17")
+    # CMAKE PROBLEMS #
+    # As released, 10.0.4 has inconsistently capitalised filenames
+    # in the cmake files; this patch also enables cxxstd 14
+    patch("geant4-10.0.4.patch", when="@10.0.4")
+    # Build failure on clang 15, ubuntu 22: see Geant4 problem report #2444
+    # fixed by ascii-V10-07-03
+    patch("geant4-10.6.patch", when="@10.0:10.6")
+    # Enable "17" cxxstd option in CMake (2 different filenames)
+    patch("geant4-10.3-cxx17-cmake.patch", when="@10.3 cxxstd=17")
+    patch("geant4-10.4-cxx17-cmake.patch", when="@10.4:10.4.2 cxxstd=17")
+    # Fix exported cmake: https://bugzilla-geant4.kek.jp/show_bug.cgi?id=2556
+    patch("package-cache.patch", when="@10.7.0:11.1.2^cmake@3.17:")
 
-    # See https://bugzilla-geant4.kek.jp/show_bug.cgi?id=2556
-    patch("package-cache.patch", level=1, when="@10.7.0:11.1.2^cmake@3.17:")
+    # BUILD ERRORS #
+    # Fix C++17: add -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES C++ flag
+    patch("geant4-10.4.3-cxx17-removed-features.patch", when="@10.4.3 cxxstd=17")
+    # Fix C++20: build error due to removed-in-C++20 `ostream::operator>>(char*)`
+    # (different, simpler approach than upstream Geant4 changes)
+    patch("geant4-10.7-cxx20-g3tog4.patch", when="@:10.7 cxxstd=20")
+    # Fix member field typo in g4tools wroot: https://bugzilla-geant4.kek.jp/show_bug.cgi?id=2640
+    patch("columns-10.patch", when="@10.4:10")
+    patch("columns-11.patch", when="@11:11.2.2")
+    # Fix navigation errors with twisted tubes: https://bugzilla-geant4.kek.jp/show_bug.cgi?id=2619
+    patch("twisted-tubes.patch", when="@11.2.0:11.2.2")
 
     # NVHPC: "thread-local declaration follows non-thread-local declaration"
     conflicts("%nvhpc", when="+threads")
@@ -231,8 +305,11 @@ class Geant4(CMakePackage):
         # Use the correct C++ standard option for the requested version
         if spec.version >= Version("11.0"):
             options.append(self.define_from_variant("CMAKE_CXX_STANDARD", "cxxstd"))
-        else:
+        elif spec.version >= Version("10.3"):
             options.append(self.define_from_variant("GEANT4_BUILD_CXXSTD", "cxxstd"))
+        else:
+            cxxstd = spec.variants["cxxstd"].value
+            options.append(self.define("GEANT4_BUILD_CXXSTD", f"c++{cxxstd}"))
 
         if spec.version >= Version("10.6"):
             # When building a downstream library/app outside of Spack, make
@@ -243,34 +320,42 @@ class Geant4(CMakePackage):
         options.append(self.define_from_variant("GEANT4_BUILD_MULTITHREADED", "threads"))
         options.append(self.define_from_variant("GEANT4_USE_TBB", "tbb"))
 
-        if "+threads" in spec:
+        if spec.satisfies("+threads"):
             # Locked at global-dynamic to allow use cases that load the
             # geant4 libs at application runtime
-            options.append("-DGEANT4_BUILD_TLS_MODEL=global-dynamic")
+            options.append(self.define("GEANT4_BUILD_TLS_MODEL", "global-dynamic"))
+
+        # Profiling
+        options.append(self.define_from_variant("GEANT4_USE_TIMEMORY", "timemory"))
 
         # Never install the data with geant4, but point to the dependent
         # geant4-data's install directory to correctly set up the
         # Geant4Config.cmake values for Geant4_DATASETS .
         options.append(self.define("GEANT4_INSTALL_DATA", False))
-        options.append(self.define("GEANT4_INSTALL_DATADIR", self.datadir))
+        if spec.satisfies("+data"):
+            options.append(self.define("GEANT4_INSTALL_DATADIR", self.datadir))
 
         # Vecgeom
-        if "+vecgeom" in spec:
+        if spec.satisfies("+vecgeom"):
             options.append(self.define("GEANT4_USE_USOLIDS", True))
             options.append(self.define("USolids_DIR", spec["vecgeom"].prefix.lib.CMake.USolids))
 
         # Visualization options
         if "platform=darwin" not in spec:
-            if "+x11" in spec and "+opengl" in spec:
+            if spec.satisfies("+x11 +opengl"):
                 options.append(self.define("GEANT4_USE_OPENGL_X11", True))
-            if "+motif" in spec and "+opengl" in spec:
+            if spec.satisfies("+motif +opengl"):
                 options.append(self.define("GEANT4_USE_XM", True))
-            if "+x11" in spec:
+            if spec.satisfies("+x11"):
                 options.append(self.define("GEANT4_USE_RAYTRACER_X11", True))
 
-        if "+qt" in spec:
+        if spec.satisfies("+qt"):
             options.append(self.define("GEANT4_USE_QT", True))
-            options.append(self.define("QT_QMAKE_EXECUTABLE", spec["qt"].prefix.bin.qmake))
+            if spec.satisfies("^[virtuals=qmake] qt-base"):
+                options.append(self.define("GEANT4_USE_QT_QT6", True))
+            options.append(self.define("QT_QMAKE_EXECUTABLE", spec["qmake"].prefix.bin.qmake))
+
+        options.append(self.define_from_variant("GEANT4_USE_HDF5", "hdf5"))
 
         options.append(self.define_from_variant("GEANT4_USE_VTK", "vtk"))
 

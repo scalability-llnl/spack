@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PyFqdn(PythonPackage):
 
     homepage = "https://github.com/ypcrts/fqdn"
     pypi = "fqdn/fqdn-1.5.1.tar.gz"
+
+    license("MPL-2.0")
 
     version("1.5.1", sha256="105ed3677e767fb5ca086a0c1f4bb66ebc3c100be518f0e0d755d9eae164d89f")
 

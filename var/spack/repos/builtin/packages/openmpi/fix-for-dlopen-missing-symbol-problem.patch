@@ -1,0 +1,32 @@
+From 50731f03c1ae9d375bfc2771fc402d54fd22e276 Mon Sep 17 00:00:00 2001
+From: Howard Pritchard <howardp@lanl.gov>
+Date: Sat, 4 Nov 2023 13:24:15 -0600
+Subject: [PATCH] spack:fix for dlopen missing symbol problem
+
+related to https://github.com/spack/spack/pull/40725
+
+Signed-off-by: Howard Pritchard <howardp@lanl.gov>
+
+diff --git a/opal/mca/dl/dlopen/configure.m4 b/opal/mca/dl/dlopen/configure.m4
+index 07fda82001..4ae625b1fb 100644
+--- a/opal/mca/dl/dlopen/configure.m4
++++ b/opal/mca/dl/dlopen/configure.m4
+@@ -27,7 +27,7 @@ AC_DEFUN([MCA_opal_dl_dlopen_CONFIG],[
+     AC_CONFIG_FILES([opal/mca/dl/dlopen/Makefile])
+ 
+     OAC_CHECK_PACKAGE([dlopen],
+-              [dl_dlopen],
++              [opal_dl_dlopen],
+               [dlfcn.h],
+               [dl],
+               [dlopen],
+@@ -38,5 +38,5 @@ AC_DEFUN([MCA_opal_dl_dlopen_CONFIG],[
+           [$1],
+           [$2])
+ 
+-    AC_SUBST(dl_dlopen_LIBS)
++    AC_SUBST(opal_dl_dlopen_LIBS)
+ ])
+-- 
+2.39.3
+

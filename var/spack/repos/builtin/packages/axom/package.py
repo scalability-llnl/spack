@@ -1,9 +1,9 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
+import shutil
 import socket
 from os.path import join as pjoin
 
@@ -38,8 +38,13 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
     git = "https://github.com/LLNL/axom.git"
     tags = ["radiuss"]
 
+    test_requires_compiler = True
+
+    license("BSD-3-Clause")
+
     version("main", branch="main")
     version("develop", branch="develop")
+    version("0.9.0", tag="v0.9.0", commit="5f531595d941d16fa3b8583bfc347a845d9feb6d")
     version("0.8.1", tag="v0.8.1", commit="0da8a5b1be596887158ac2fcd321524ba5259e15")
     version("0.8.0", tag="v0.8.0", commit="71fab3262eb7e1aa44a04c21d072b77f06362f7b")
     version("0.7.0", tag="v0.7.0", commit="ea5158191181c137117ae37959879bdc8b107f35")
@@ -53,10 +58,15 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
     version("0.3.0", tag="v0.3.0", commit="20068ccab4b4f70055918b4f17960ec3ed6dbce8")
     version("0.2.9", tag="v0.2.9", commit="9e9a54ede3326817c05f35922738516e43b5ec3d")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # https://github.com/spack/spack/issues/31829
     patch("examples-oneapi.patch", when="@0.6.1 +examples %oneapi")
 
     patch("scr_examples_gtest.patch", when="@0.6.0:0.6.1")
+    patch("umpire_camp_blt_targets.patch", when="@=0.8.0 ^umpire@2023.06.0")
 
     root_cmakelists_dir = "src"
 
@@ -78,6 +88,13 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
     variant("mpi", default=True, description="Build MPI support")
     variant("openmp", default=True, description="Turn on OpenMP support.")
 
+    variant(
+        "profiling",
+        default=False,
+        when="@develop",
+        description="Build with hooks for Adiak/Caliper performance analysis",
+    )
+
     variant("mfem", default=False, description="Build with mfem")
     variant("hdf5", default=True, description="Build with hdf5")
     variant("lua", default=True, description="Build with Lua")
@@ -94,10 +111,12 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
     # -----------------------------------------------------------------------
     # Basics
     depends_on("cmake@3.14:", type="build")
+    depends_on("cmake@3.18:", type="build", when="@0.7.0:")
     depends_on("cmake@3.21:", type="build", when="+rocm")
 
     depends_on("blt", type="build")
-    depends_on("blt@0.5.1:", type="build", when="@0.6.2:")
+    depends_on("blt@0.5.1:0.5.3", type="build", when="@0.6.1:0.8")
+    depends_on("blt@0.6.2:", type="build", when="@0.9:")
 
     depends_on("mpi", when="+mpi")
 
@@ -115,44 +134,73 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
     depends_on("scr~fortran", when="+scr~fortran")
 
     with when("+umpire"):
-        depends_on("umpire@2022.03.0:", when="@0.7.0:")
+        depends_on("umpire")
+        depends_on("umpire@2024.02.0:", when="@0.9:")
+        depends_on("umpire@2022.03.0:2023.06", when="@0.7.0:0.8")
         depends_on("umpire@6.0.0", when="@0.6.0")
         depends_on("umpire@5:5.0.1", when="@:0.5.0")
-        depends_on("umpire +openmp", when="+openmp")
+        depends_on("umpire+openmp", when="+openmp")
 
     with when("+raja"):
-        depends_on("raja@2022.03.0:", when="@0.7.0:")
+        depends_on("raja")
+        depends_on("raja@2024.02.0:", when="@0.9:")
+        depends_on("raja@2022.03.0:2023.06", when="@0.7.0:0.8")
         depends_on("raja@0.14.0", when="@0.6.0")
         depends_on("raja@:0.13.0", when="@:0.5.0")
         depends_on("raja~openmp", when="~openmp")
         depends_on("raja+openmp", when="+openmp")
 
+    with when("+profiling"):
+        depends_on("adiak")
+        depends_on("caliper+adiak~papi")
+
+        depends_on("caliper+cuda", when="+cuda")
+        depends_on("caliper~cuda", when="~cuda")
+
+        depends_on("caliper+rocm", when="+rocm")
+        depends_on("caliper~rocm", when="~rocm")
+
+        for dep in ["adiak", "caliper"]:
+            depends_on(f"{dep}+mpi", when="+mpi")
+            depends_on(f"{dep}~mpi", when="~mpi")
+            depends_on(f"{dep}+shared", when="+shared")
+            depends_on(f"{dep}~shared", when="~shared")
+
     for val in CudaPackage.cuda_arch_values:
-        raja_cuda = "raja +cuda cuda_arch={0}".format(val)
-        umpire_cuda = "umpire +cuda cuda_arch={0}".format(val)
-        depends_on(raja_cuda, when="+{0}".format(raja_cuda))
-        depends_on(umpire_cuda, when="+{0}".format(umpire_cuda))
+        ext_cuda_dep = f"+cuda cuda_arch={val}"
+        depends_on(f"raja {ext_cuda_dep}", when=f"+raja {ext_cuda_dep}")
+        depends_on(f"umpire {ext_cuda_dep}", when=f"+umpire {ext_cuda_dep}")
+        depends_on(f"caliper {ext_cuda_dep}", when=f"+profiling {ext_cuda_dep}")
 
     for val in ROCmPackage.amdgpu_targets:
-        raja_rocm = "raja +rocm amdgpu_target={0}".format(val)
-        umpire_rocm = "umpire +rocm amdgpu_target={0}".format(val)
-        depends_on(raja_rocm, when="+{0}".format(raja_rocm))
-        depends_on(umpire_rocm, when="+{0}".format(umpire_rocm))
+        ext_rocm_dep = f"+rocm amdgpu_target={val}"
+        depends_on(f"raja {ext_rocm_dep}", when=f"+raja {ext_rocm_dep}")
+        depends_on(f"umpire {ext_rocm_dep}", when=f"+umpire {ext_rocm_dep}")
+        depends_on(f"caliper {ext_rocm_dep}", when=f"+profiling {ext_rocm_dep}")
 
-    depends_on("mfem", when="+mfem")
-    depends_on("mfem~mpi", when="+mfem~mpi")
+    depends_on("rocprim", when="+rocm")
+
+    with when("+mfem"):
+        depends_on("mfem+mpi", when="+mpi")
+        depends_on("mfem~mpi", when="~mpi")
+        depends_on("mfem@4.5.0:", when="@0.7.0:")
 
     depends_on("python", when="+python")
 
     # Devtools
-    depends_on("cppcheck", when="+devtools")
-    depends_on("doxygen", when="+devtools")
-    depends_on("graphviz", when="+devtools")
-    depends_on("python", when="+devtools")
-    depends_on("py-sphinx", when="+devtools")
-    depends_on("py-shroud", when="+devtools")
-    depends_on("llvm+clang@10.0.0", when="+devtools", type="build")
+    with when("+devtools"):
+        depends_on("cppcheck")
+        depends_on("doxygen")
+        depends_on("graphviz")
+        depends_on("python")
+        depends_on("py-sphinx")
+        depends_on("py-shroud")
+        depends_on("py-jsonschema")
+        depends_on("llvm+clang@10.0.0", type="build")
 
+    # -----------------------------------------------------------------------
+    # Conflicts
+    # -----------------------------------------------------------------------
     # Hard requirement after Axom 0.6.1
     conflicts("~cpp14", when="@0.6.2:")
 
@@ -194,11 +242,11 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
             # Are we on a LLNL system then strip node number
             hostname = hostname.rstrip("1234567890")
         special_case = ""
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             special_case += "_cuda"
-        if "~fortran" in self.spec:
+        if self.spec.satisfies("~fortran"):
             special_case += "_nofortran"
-        if "+rocm" in self.spec:
+        if self.spec.satisfies("+rocm"):
             special_case += "_hip"
         return "{0}-{1}-{2}@{3}{4}.cmake".format(
             hostname,
@@ -212,14 +260,17 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
         spec = self.spec
         entries = super().initconfig_compiler_entries()
 
-        if "+fortran" in spec:
+        if spec.satisfies("+fortran"):
             entries.append(cmake_cache_option("ENABLE_FORTRAN", True))
             if self.is_fortran_compiler("gfortran") and "clang" in self.compiler.cxx:
                 libdir = pjoin(os.path.dirname(os.path.dirname(self.compiler.cxx)), "lib")
                 flags = ""
                 for _libpath in [libdir, libdir + "64"]:
                     if os.path.exists(_libpath):
-                        flags += " -Wl,-rpath,{0}".format(_libpath)
+                        if spec.satisfies("^cuda"):
+                            flags += " -Xlinker -rpath -Xlinker {0}".format(_libpath)
+                        else:
+                            flags += " -Wl,-rpath,{0}".format(_libpath)
                 description = "Adds a missing libstdc++ rpath"
                 if flags:
                     entries.append(cmake_cache_string("BLT_EXE_LINKER_FLAGS", flags, description))
@@ -229,42 +280,41 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
         if "+cpp14" in spec and spec.satisfies("@:0.6.1"):
             entries.append(cmake_cache_string("BLT_CXX_STD", "c++14", ""))
 
+        # Add optimization flag workaround for Debug builds with cray compiler or newer HIP
+        if spec.satisfies("+rocm"):
+            entries.append(cmake_cache_string("CMAKE_CXX_FLAGS_DEBUG", "-O1 -g -DNDEBUG"))
+
         return entries
 
     def initconfig_hardware_entries(self):
         spec = self.spec
         entries = super().initconfig_hardware_entries()
 
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             entries.append(cmake_cache_option("ENABLE_CUDA", True))
-            entries.append(cmake_cache_option("CUDA_SEPARABLE_COMPILATION", True))
-
-            entries.append(cmake_cache_option("AXOM_ENABLE_ANNOTATIONS", True))
+            entries.append(cmake_cache_option("CMAKE_CUDA_SEPARABLE_COMPILATION", True))
 
             # CUDA_FLAGS
-            cudaflags = "-restrict --expt-extended-lambda "
+            cudaflags = "${CMAKE_CUDA_FLAGS} -restrict --expt-extended-lambda "
 
-            if not spec.satisfies("cuda_arch=none"):
-                cuda_arch = spec.variants["cuda_arch"].value[0]
-                entries.append(cmake_cache_string("CMAKE_CUDA_ARCHITECTURES", cuda_arch))
-                cudaflags += "-arch sm_${CMAKE_CUDA_ARCHITECTURES} "
-            else:
-                entries.append("# cuda_arch could not be determined\n\n")
+            # Pass through any cxxflags to the host compiler via nvcc's Xcompiler flag
+            host_cxx_flags = spec.compiler_flags["cxxflags"]
+            cudaflags += " ".join(["-Xcompiler=%s " % flag for flag in host_cxx_flags])
 
-            if spec.satisfies("^blt@:0.6.1"):
+            if spec.satisfies("^blt@:0.5.1"):
                 # This is handled internally by BLT now
-                if "+cpp14" in spec:
+                if spec.satisfies("+cpp14"):
                     cudaflags += " -std=c++14"
                 else:
                     cudaflags += " -std=c++11"
-            entries.append(cmake_cache_string("CMAKE_CUDA_FLAGS", cudaflags))
+            entries.append(cmake_cache_string("CMAKE_CUDA_FLAGS", cudaflags, force=True))
 
             entries.append("# nvcc does not like gtest's 'pthreads' flag\n")
             entries.append(cmake_cache_option("gtest_disable_pthreads", True))
 
-        if "+rocm" in spec:
+        if spec.satisfies("+rocm"):
             entries.append("#------------------{0}\n".format("-" * 60))
-            entries.append("# HIP\n")
+            entries.append("# Axom ROCm specifics\n")
             entries.append("#------------------{0}\n\n".format("-" * 60))
 
             entries.append(cmake_cache_option("ENABLE_HIP", True))
@@ -272,13 +322,20 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
             hip_root = spec["hip"].prefix
             rocm_root = hip_root + "/.."
 
-            entries.append(cmake_cache_string("HIP_ROOT_DIR", hip_root))
-            entries.append(cmake_cache_string("HIP_CLANG_PATH", rocm_root + "/llvm/bin"))
-
-            archs = self.spec.variants["amdgpu_target"].value
-            if archs != "none":
-                arch_str = ",".join(archs)
-                entries.append(cmake_cache_string("CMAKE_HIP_ARCHITECTURES", arch_str))
+            # Fix blt_hip getting HIP_CLANG_INCLUDE_PATH-NOTFOUND bad include directory
+            # TODO: verify that this is still needed and is indeed specific to LC
+            if (
+                self.spec.satisfies("%cce") or self.spec.satisfies("%clang")
+            ) and "toss_4" in self._get_sys_type(spec):
+                # Set the patch version to 0 if not already
+                clang_version = str(self.compiler.version)[:-1] + "0"
+                hip_clang_include_path = (
+                    rocm_root + "/llvm/lib/clang/" + clang_version + "/include"
+                )
+                if os.path.isdir(hip_clang_include_path):
+                    entries.append(
+                        cmake_cache_path("HIP_CLANG_INCLUDE_PATH", hip_clang_include_path)
+                    )
 
             # Fixes for mpi for rocm until wrapper paths are fixed
             # These flags are already part of the wrapped compilers on TOSS4 systems
@@ -289,9 +346,16 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
                 hip_link_flags += "-Wl,-rpath,{0}/../llvm/lib:{0}/lib ".format(hip_root)
                 hip_link_flags += "-lpgmath -lflang -lflangrti -lompstub -lamdhip64 "
 
+            # Remove extra link library for crayftn
+            if "+fortran" in spec and self.is_fortran_compiler("crayftn"):
+                entries.append(
+                    cmake_cache_string("BLT_CMAKE_IMPLICIT_LINK_LIBRARIES_EXCLUDE", "unwind")
+                )
+
             # Additional libraries for TOSS4
             hip_link_flags += " -L{0}/../lib64 -Wl,-rpath,{0}/../lib64 ".format(hip_root)
-            hip_link_flags += "-lhsakmt -lamd_comgr "
+            hip_link_flags += " -L{0}/../lib -Wl,-rpath,{0}/../lib ".format(hip_root)
+            hip_link_flags += "-lamd_comgr -lhsa-runtime64 "
 
             entries.append(cmake_cache_string("CMAKE_EXE_LINKER_FLAGS", hip_link_flags))
 
@@ -320,17 +384,34 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
 
             entries.append(cmake_cache_string("BLT_EXE_LINKER_FLAGS", linker_flags, description))
 
-            if "+shared" in spec:
+            if spec.satisfies("+shared"):
                 linker_flags = "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-rpath," + libdir
                 entries.append(
                     cmake_cache_string("CMAKE_SHARED_LINKER_FLAGS", linker_flags, description)
                 )
 
-            description = "Converts C-style comments to Fortran style " "in preprocessed files"
+            description = "Converts C-style comments to Fortran style in preprocessed files"
             entries.append(
                 cmake_cache_string(
                     "BLT_FORTRAN_FLAGS", "-WF,-C!  -qxlf2003=polymorphic", description
                 )
+            )
+
+        if (
+            "+openmp" in spec
+            and "clang" in self.compiler.cxx
+            and "+fortran" in spec
+            and self.is_fortran_compiler("xlf")
+        ):
+            openmp_gen_exp = (
+                "$<$<NOT:$<COMPILE_LANGUAGE:Fortran>>:"
+                "-fopenmp=libomp>;$<$<COMPILE_LANGUAGE:"
+                "Fortran>:-qsmp=omp>"
+            )
+
+            description = "Different OpenMP linker flag between CXX and Fortran"
+            entries.append(
+                cmake_cache_string("BLT_OPENMP_LINK_FLAGS", openmp_gen_exp, description)
             )
 
         if spec.satisfies("target=ppc64le:"):
@@ -358,35 +439,50 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
         spec = self.spec
         entries = super().initconfig_mpi_entries()
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             entries.append(cmake_cache_option("ENABLE_MPI", True))
             if spec["mpi"].name == "spectrum-mpi":
                 entries.append(cmake_cache_string("BLT_MPI_COMMAND_APPEND", "mpibind"))
+
+            # Replace /usr/bin/srun path with srun flux wrapper path on TOSS 4
+            # TODO: Remove this logic by adding `using_flux` case in
+            #  spack/lib/spack/spack/build_systems/cached_cmake.py:196 and remove hard-coded
+            #  path to srun in same file.
+            if "toss_4" in self._get_sys_type(spec):
+                srun_wrapper = which_string("srun")
+                mpi_exec_index = [
+                    index for index, entry in enumerate(entries) if "MPIEXEC_EXECUTABLE" in entry
+                ]
+                del entries[mpi_exec_index[0]]
+                entries.append(cmake_cache_path("MPIEXEC_EXECUTABLE", srun_wrapper))
         else:
             entries.append(cmake_cache_option("ENABLE_MPI", False))
 
         return entries
 
+    def find_path_replacement(self, path1, path2, path_replacements, name, entries):
+        root = os.path.commonprefix([path1, path2])
+        if root.endswith(os.path.sep):
+            root = root[: -len(os.path.sep)]
+        if root:
+            path_replacements[root] = "${" + name + "}"
+            entries.append(cmake_cache_path(name, root))
+
     def initconfig_package_entries(self):
         spec = self.spec
         entries = []
+        path_replacements = {}
 
         # TPL locations
         entries.append("#------------------{0}".format("-" * 60))
         entries.append("# TPLs")
         entries.append("#------------------{0}\n".format("-" * 60))
 
-        # Try to find the common prefix of the TPL directory, including the
-        # compiler. If found, we will use this in the TPL paths
-        compiler_str = str(spec.compiler).replace("@", "-")
-        prefix_paths = prefix.split(compiler_str)
-        path_replacements = {}
-
-        if len(prefix_paths) == 2:
-            tpl_root = os.path.realpath(pjoin(prefix_paths[0], compiler_str))
-            path_replacements[tpl_root] = "${TPL_ROOT}"
-            entries.append("# Root directory for generated TPLs\n")
-            entries.append(cmake_cache_path("TPL_ROOT", tpl_root))
+        # Try to find the common prefix of the TPL directory.
+        # If found, we will use this in the TPL paths
+        path1 = os.path.realpath(spec["conduit"].prefix)
+        path2 = os.path.realpath(self.prefix)
+        self.find_path_replacement(path1, path2, path_replacements, "TPL_ROOT", entries)
 
         conduit_dir = get_spec_path(spec, "conduit", path_replacements)
         entries.append(cmake_cache_path("CONDUIT_DIR", conduit_dir))
@@ -399,12 +495,19 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
             else:
                 entries.append("# %s not built\n" % dep.upper())
 
+        if spec.satisfies("+profiling"):
+            dep_dir = get_spec_path(spec, "adiak", path_replacements)
+            entries.append(cmake_cache_path("ADIAK_DIR", dep_dir))
+
+            dep_dir = get_spec_path(spec, "caliper", path_replacements)
+            entries.append(cmake_cache_path("CALIPER_DIR", dep_dir))
+
         if "+umpire" in spec and spec.satisfies("^camp"):
             dep_dir = get_spec_path(spec, "camp", path_replacements)
             entries.append(cmake_cache_path("CAMP_DIR", dep_dir))
 
         # SCR does not export it's targets so we need to pull in its dependencies
-        if "+scr" in spec:
+        if spec.satisfies("+scr"):
             dep_dir = get_spec_path(spec, "scr", path_replacements)
             entries.append(cmake_cache_path("SCR_DIR", dep_dir))
 
@@ -437,21 +540,17 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
         entries.append("#------------------{0}\n".format("-" * 60))
 
         # Add common prefix to path replacement list
-        if "+devtools" in spec:
+        if spec.satisfies("+devtools"):
             # Grab common devtools root and strip the trailing slash
             path1 = os.path.realpath(spec["cppcheck"].prefix)
             path2 = os.path.realpath(spec["doxygen"].prefix)
-            devtools_root = os.path.commonprefix([path1, path2])[:-1]
-            path_replacements[devtools_root] = "${DEVTOOLS_ROOT}"
-            entries.append("# Root directory for generated developer tools\n")
-            entries.append(cmake_cache_path("DEVTOOLS_ROOT", devtools_root))
+            self.find_path_replacement(path1, path2, path_replacements, "DEVTOOLS_ROOT", entries)
 
-        if "+devtools" in spec and "toss_4" not in self._get_sys_type(spec):
-            # Only turn on clangformat support if devtools is on and not TOSS4
+        if "+devtools" in spec and spec.satisfies("^llvm"):
             clang_fmt_path = spec["llvm"].prefix.bin.join("clang-format")
             entries.append(cmake_cache_path("CLANGFORMAT_EXECUTABLE", clang_fmt_path))
         else:
-            entries.append("# ClangFormat disabled due to disabled devtools\n")
+            entries.append("# ClangFormat disabled due to llvm and devtools not in spec\n")
             entries.append(cmake_cache_option("ENABLE_CLANGFORMAT", False))
 
         if "+python" in spec or "+devtools" in spec:
@@ -459,6 +558,11 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
             for key in path_replacements:
                 python_path = python_path.replace(key, path_replacements[key])
             entries.append(cmake_cache_path("PYTHON_EXECUTABLE", python_path))
+
+        if spec.satisfies("^py-jsonschema"):
+            jsonschema_dir = get_spec_path(spec, "py-jsonschema", path_replacements, use_bin=True)
+            jsonschema_path = os.path.join(jsonschema_dir, "jsonschema")
+            entries.append(cmake_cache_path("JSONSCHEMA_EXECUTABLE", jsonschema_path))
 
         enable_docs = spec.satisfies("^doxygen") or spec.satisfies("^py-sphinx")
         entries.append(cmake_cache_option("ENABLE_DOCS", enable_docs))
@@ -505,3 +609,39 @@ class Axom(CachedCMakePackage, CudaPackage, ROCmPackage):
                 'PROPERTIES LINKER_LANGUAGE CXX \n LINK_FLAGS "-fopenmp"',
                 "src/axom/quest/examples/CMakeLists.txt",
             )
+
+    @run_after("build")
+    @on_package_attributes(run_tests=True)
+    def build_test(self):
+        with working_dir(self.build_directory):
+            print("Running Axom Unit Tests...")
+            make("test")
+
+    @run_after("install")
+    @on_package_attributes(run_tests=True)
+    def test_install_using_cmake(self):
+        """build example with cmake and run"""
+        example_src_dir = join_path(self.prefix.examples.axom, "using-with-cmake")
+        example_stage_dir = "./cmake"
+        shutil.copytree(example_src_dir, example_stage_dir)
+        with working_dir(join_path(example_stage_dir, "build"), create=True):
+            cmake_args = ["-C ../host-config.cmake", example_src_dir]
+            cmake = self.spec["cmake"].command
+            cmake(*cmake_args)
+            make()
+            example = Executable("./example")
+            example()
+            make("clean")
+
+    @run_after("install")
+    @on_package_attributes(run_tests=True)
+    def test_install_using_make(self):
+        """build example with make and run"""
+        example_src_dir = join_path(self.prefix.examples.axom, "using-with-make")
+        example_stage_dir = "./make"
+        shutil.copytree(example_src_dir, example_stage_dir)
+        with working_dir(example_stage_dir, create=True):
+            make(f"AXOM_DIR={self.prefix}")
+            example = Executable("./example")
+            example()
+            make("clean")

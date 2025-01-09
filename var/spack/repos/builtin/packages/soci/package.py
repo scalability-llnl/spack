@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -10,8 +9,11 @@ class Soci(CMakePackage):
     """Official repository of the SOCI - The C++ Database Access Library"""
 
     homepage = "https://github.com/SOCI/soci"
-    url = "https://github.com/SOCI/soci/archive/v4.0.2.tar.gz"
+    url = "https://github.com/SOCI/soci/archive/v4.0.3.tar.gz"
 
+    license("BSL-1.0")
+
+    version("4.0.3", sha256="4b1ff9c8545c5d802fbe06ee6cd2886630e5c03bf740e269bb625b45cf934928")
     version("4.0.2", sha256="f293192a412ed82693d17dfe46e2734b140bff835bc3259e3cbd7c315e5e2d74")
     version("4.0.0", sha256="359b988d8cbe81357835317821919f7e270c0705e41951a92ac1627cb9fe8faf")
     version(
@@ -24,6 +26,8 @@ class Soci(CMakePackage):
         sha256="cf1a6130ebdf0b84d246da948874ab1312c317e2ec659ede732b688667c355f4",
         url="https://github.com/SOCI/soci/archive/3.2.2.tar.gz",
     )
+
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "cxxstd",

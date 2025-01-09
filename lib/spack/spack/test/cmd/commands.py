@@ -1,16 +1,15 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import filecmp
 import os
 import shutil
-import subprocess
 
 import pytest
 
 import spack.cmd
+import spack.cmd.commands
 import spack.main
 import spack.paths
 from spack.cmd.commands import _dest_to_fish_complete, _positional_to_subroutine
@@ -156,22 +155,6 @@ def test_update_with_header(tmpdir):
     commands("--update", str(update_file), "--header", str(filename))
 
 
-@pytest.mark.xfail
-def test_no_pipe_error():
-    """Make sure we don't see any pipe errors when piping output."""
-
-    proc = subprocess.Popen(
-        ["spack", "commands", "--format=rst"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
-
-    # Call close() on stdout to cause a broken pipe
-    proc.stdout.close()
-    proc.wait()
-    stderr = proc.stderr.read().decode("utf-8")
-
-    assert "Broken pipe" not in stderr
-
-
 def test_bash_completion():
     """Test the bash completion writer."""
     out1 = commands("--format=bash")
@@ -252,9 +235,9 @@ def test_update_completion_arg(shell, tmpdir, monkeypatch):
     # make a mock completion file missing the --update-completion argument
     real_args = spack.cmd.commands.update_completion_args
     shutil.copy(real_args[shell]["header"], mock_args[shell]["header"])
-    with open(real_args[shell]["update"]) as old:
+    with open(real_args[shell]["update"], encoding="utf-8") as old:
         old_file = old.read()
-        with open(mock_args[shell]["update"], "w") as mock:
+        with open(mock_args[shell]["update"], "w", encoding="utf-8") as mock:
             mock.write(old_file.replace("update-completion", ""))
 
     monkeypatch.setattr(spack.cmd.commands, "update_completion_args", mock_args)

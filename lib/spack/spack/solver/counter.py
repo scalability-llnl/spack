@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections
@@ -10,6 +9,7 @@ from llnl.util import lang
 import spack.deptypes as dt
 import spack.package_base
 import spack.repo
+import spack.spec
 
 PossibleDependencies = Set[str]
 
@@ -24,7 +24,13 @@ class Counter:
     """
 
     def __init__(self, specs: List["spack.spec.Spec"], tests: bool) -> None:
-        self.specs = specs
+        runtime_pkgs = spack.repo.PATH.packages_with_tags("runtime")
+        runtime_virtuals = set()
+        for x in runtime_pkgs:
+            pkg_class = spack.repo.PATH.get_pkg_class(x)
+            runtime_virtuals.update(pkg_class.provided_virtual_names())
+
+        self.specs = specs + [spack.spec.Spec(x) for x in runtime_pkgs]
 
         self.link_run_types: dt.DepFlag = dt.LINK | dt.RUN | dt.TEST
         self.all_types: dt.DepFlag = dt.ALL
@@ -33,7 +39,9 @@ class Counter:
             self.all_types = dt.LINK | dt.RUN | dt.BUILD
 
         self._possible_dependencies: PossibleDependencies = set()
-        self._possible_virtuals: Set[str] = set(x.name for x in specs if x.virtual)
+        self._possible_virtuals: Set[str] = (
+            set(x.name for x in specs if x.virtual) | runtime_virtuals
+        )
 
     def possible_dependencies(self) -> PossibleDependencies:
         """Returns the list of possible dependencies"""
@@ -117,7 +125,7 @@ class MinimalDuplicatesCounter(NoDuplicatesCounter):
         self._possible_dependencies = set(self._link_run) | set(self._total_build)
 
     def possible_packages_facts(self, gen, fn):
-        build_tools = set(spack.repo.PATH.packages_with_tags("build-tools"))
+        build_tools = spack.repo.PATH.packages_with_tags("build-tools")
         gen.h2("Packages with at most a single node")
         for package_name in sorted(self.possible_dependencies() - build_tools):
             gen.fact(fn.max_dupes(package_name, 1))
@@ -142,7 +150,7 @@ class MinimalDuplicatesCounter(NoDuplicatesCounter):
 
 class FullDuplicatesCounter(MinimalDuplicatesCounter):
     def possible_packages_facts(self, gen, fn):
-        build_tools = set(spack.repo.PATH.packages_with_tags("build-tools"))
+        build_tools = spack.repo.PATH.packages_with_tags("build-tools")
         counter = collections.Counter(
             list(self._link_run) + list(self._total_build) + list(self._direct_build)
         )

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -56,6 +55,9 @@ class Parallelmergetree(CMakePackage):
         commit="9cfb68fdf0f8e881a4bfd94ae5d3ae25c9e01ea6",
         submodules=True,
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("babelflow@1.1.0", when="@1.1.2")
     depends_on("babelflow@1.1.0", when="@1.1.1")

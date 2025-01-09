@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,7 @@ class RRcpparmadillo(RPackage):
 
     cran = "RcppArmadillo"
 
+    version("14.0.0-1", sha256="80c4d4fadc3ed92712affc50279de4c5f2e1f7ee777ad1f1b3f9f3e94a64ba90")
     version(
         "0.12.4.0.0", sha256="f6db54c465abc0a570a0da6f737d9fdf2187287fb235ce487b1903b5177482cb"
     )
@@ -59,3 +59,4 @@ class RRcpparmadillo(RPackage):
 
     depends_on("r@3.3.0:", type=("build", "run"), when="@0.8.500.0:")
     depends_on("r-rcpp@0.11.0:", type=("build", "run"))
+    depends_on("r-rcpp@1.0.8:", type=("build", "run"), when="@0.12.8.4.0:")

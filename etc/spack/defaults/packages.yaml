@@ -15,15 +15,20 @@
 # -------------------------------------------------------------------------
 packages:
   all:
-    compiler: [gcc, intel, pgi, clang, xl, nag, fj, aocc]
+    compiler: [gcc, clang, oneapi, xl, nag, fj, aocc]
     providers:
       awk: [gawk]
+      armci: [armcimpi]
       blas: [openblas, amdblis]
+      c: [gcc]
+      cxx: [gcc]
       D: [ldc]
       daal: [intel-oneapi-daal]
       elf: [elfutils]
       fftw-api: [fftw, amdfftw]
       flame: [libflame, amdlibflame]
+      fortran: [gcc]
+      fortran-rt: [gcc-runtime, intel-oneapi-runtime]
       fuse: [libfuse]
       gl: [glx, osmesa]
       glu: [mesa-glu, openglu]
@@ -34,9 +39,11 @@ packages:
       java: [openjdk, jdk, ibm-java]
       jpeg: [libjpeg-turbo, libjpeg]
       lapack: [openblas, amdlibflame]
-      libglx: [mesa+glx, mesa18+glx]
+      libc: [glibc, musl]
+      libgfortran: [gcc-runtime]
+      libglx: [mesa+glx]
+      libifcore: [intel-oneapi-runtime]
       libllvm: [llvm]
-      libosmesa: [mesa+osmesa, mesa18+osmesa]
       lua-lang: [lua, lua-luajit-openresty, lua-luajit]
       luajit: [lua-luajit-openresty, lua-luajit]
       mariadb-client: [mariadb-c-client, mariadb]
@@ -57,6 +64,8 @@ packages:
       tbb: [intel-tbb]
       unwind: [libunwind]
       uuid: [util-linux-uuid, libuuid]
+      wasi-sdk: [wasi-sdk-prebuilt]
+      xkbdata-api: [xkeyboard-config, xkbdata]
       xxd: [xxd-standalone, vim]
       yacc: [bison, byacc]
       ziglang: [zig]
@@ -64,3 +73,15 @@ packages:
     permissions:
       read: world
       write: user
+  cray-mpich:
+    buildable: false
+  cray-mvapich2:
+    buildable: false
+  egl:
+    buildable: false
+  fujitsu-mpi:
+    buildable: false
+  hpcx-mpi:
+    buildable: false
+  spectrum-mpi:
+    buildable: false

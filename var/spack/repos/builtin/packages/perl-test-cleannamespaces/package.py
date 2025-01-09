@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PerlTestCleannamespaces(PerlPackage):
 
     homepage = "https://metacpan.org/pod/Test::CleanNamespaces"
     url = "http://search.cpan.org/CPAN/authors/id/E/ET/ETHER/Test-CleanNamespaces-0.22.tar.gz"
+
+    license("Artistic-1.0")
 
     version("0.22", sha256="862a221994dd413b2f350450f22c96f57cac78784b1aca1a8fc763fc5449aaca")
 

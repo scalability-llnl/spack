@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,7 @@ class RPcapp(RPackage):
 
     cran = "pcaPP"
 
+    version("2.0-5", sha256="674faed967016a19f9d927506d6b3f4fc7ff2b2ab5679b2368429ee2c61b7c10")
     version("2.0-3", sha256="1aac554f039753bf9d026090e47d66b82bf3f1f75479ed0adefa3f7bbb55d603")
     version("2.0-2", sha256="a18b66974e0bfa5af6505acd777d04fd605b32f06009073488ee2f44280bb54b")
     version("2.0-1", sha256="9690e2f263162452d5a14bd8c52264cb70b317d30907411af4e5b6df4086121a")
@@ -28,4 +28,5 @@ class RPcapp(RPackage):
     version("1.9-60", sha256="9a4b471957ac39ed7c860e3165bf8e099b5b55cf814654adb58f9d19df2718e7")
     version("1.9-50", sha256="137637314fba6e11883c63b0475d8e50aa7f363e064baa1e70245f7692565b56")
 
+    depends_on("r@3.6.2:", type=("build", "run"), when="@2.0-4:")
     depends_on("r-mvtnorm", type=("build", "run"))

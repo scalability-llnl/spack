@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,7 +13,12 @@ class Migrate(AutotoolsPackage):
     homepage = "https://popgen.sc.fsu.edu/"
     url = "https://popgen.sc.fsu.edu/currentversions/migrate-3.6.11.src.tar.gz"
 
+    license("Unlicense")
+
     version("3.6.11", sha256="a9ba06a4e995a45b8d04037f5f2da23e1fe64a2f3565189bdd50c62c6fe01fb8")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("mpi", default=False, description="Build MPI binaries")
 

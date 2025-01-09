@@ -1,5 +1,4 @@
-.. Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-   Spack Project Developers. See the top-level COPYRIGHT file for details.
+.. Copyright Spack Project Developers. See COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -184,7 +183,7 @@ Style Tests
 
 Spack uses `Flake8 <http://flake8.pycqa.org/en/latest/>`_ to test for
 `PEP 8 <https://www.python.org/dev/peps/pep-0008/>`_ conformance and
-`mypy <https://mypy.readthedocs.io/en/stable/>` for type checking. PEP 8 is
+`mypy <https://mypy.readthedocs.io/en/stable/>`_ for type checking. PEP 8 is
 a series of style guides for Python that provide suggestions for everything
 from variable naming to indentation. In order to limit the number of PRs that
 were mostly style changes, we decided to enforce PEP 8 conformance. Your PR
@@ -315,6 +314,215 @@ is accepted. If you are editing the documentation, you should be running the
 documentation tests to make sure there are no errors. Documentation changes can result
 in some obfuscated warning messages. If you don't understand what they mean, feel free
 to ask when you submit your PR.
+
+.. _spack-builders-and-pipelines:
+
+^^^^^^^^^
+GitLab CI
+^^^^^^^^^
+
+""""""""""""""""""
+Build Cache Stacks
+""""""""""""""""""
+
+Spack welcomes the contribution of software stacks of interest to the community. These
+stacks are used to test package recipes and generate publicly available build caches.
+Spack uses GitLab CI for managing the orchestration of build jobs.
+
+GitLab Entry Point
+~~~~~~~~~~~~~~~~~~
+
+Add stack entrypoint to the ``share/spack/gitlab/cloud_pipelines/.gitlab-ci.yml``. There
+are two stages required for each new stack, the generation stage and the build stage.
+
+The generate stage is defined using the job template ``.generate`` configured with
+environment variables defining the name of the stack in ``SPACK_CI_STACK_NAME`` and the
+platform (``SPACK_TARGET_PLATFORM``) and architecture (``SPACK_TARGET_ARCH``) configuration,
+and the tags associated with the class of runners to build on.
+
+.. note::
+
+    The ``SPACK_CI_STACK_NAME`` must match the name of the directory containing the
+    stacks ``spack.yaml``.
+
+
+.. note::
+
+    The platform and architecture variables are specified in order to select the
+    correct configurations from the generic configurations used in Spack CI. The
+    configurations currently available are:
+
+    * ``.cray_rhel_zen4``
+    * ``.cray_sles_zen4``
+    * ``.darwin_aarch64``
+    * ``.darwin_x86_64``
+    * ``.linux_aarch64``
+    * ``.linux_icelake``
+    * ``.linux_neoverse_n1``
+    * ``.linux_neoverse_v1``
+    * ``.linux_neoverse_v2``
+    * ``.linux_power``
+    * ``.linux_skylake``
+    * ``.linux_x86_64``
+    * ``.linux_x86_64_v4``
+
+    New configurations can be added to accommodate new platforms and architectures.
+
+
+The build stage is defined as a trigger job that consumes the GitLab CI pipeline generated in
+the generate stage for this stack. Build stage jobs use the ``.build`` job template which
+handles the basic configuration.
+
+An example entry point for a new stack called ``my-super-cool-stack``
+
+.. code-block:: yaml
+
+    .my-super-cool-stack:
+      extends: [ ".linux_x86_64_v3" ]
+      variables:
+        SPACK_CI_STACK_NAME: my-super-cool-stack
+        tags: [ "all", "tags", "your", "job", "needs"]
+
+    my-super-cool-stack-generate:
+      extends: [ ".generate", ".my-super-cool-stack" ]
+      image: my-super-cool-stack-image:0.0.1
+
+    my-super-cool-stack-build:
+      extends: [ ".build", ".my-super-cool-stack" ]
+      trigger:
+        include:
+          - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
+            job: my-super-cool-stack-generate
+        strategy: depend
+      needs:
+        - artifacts: True
+          job: my-super-cool-stack-generate
+
+
+Stack Configuration
+~~~~~~~~~~~~~~~~~~~
+
+The stack configuration is a spack environment file with two additional sections added.
+Stack configurations should be located in ``share/spack/gitlab/cloud_pipelines/stacks/<stack_name>/spack.yaml``.
+
+The ``ci`` section is generally used to define stack specific mappings such as image or tags.
+For more information on what can go into the ``ci`` section refer to the docs on pipelines.
+
+The ``cdash`` section is used for defining where to upload the results of builds. Spack configures
+most of the details for posting pipeline results to
+`cdash.spack.io <https://cdash.spack.io/index.php?project=Spack+Testing>`_. The only
+requirement in the stack configuration is to define a ``build-group`` that is unique,
+this is usually the long name of the stack.
+
+An example stack that builds ``zlib``.
+
+.. code-block:: yaml
+
+    spack:
+      view: false
+      packages:
+        all:
+          require: ["%gcc", "target=x86_64_v3"]
+      specs:
+      - zlib
+
+      ci:
+        pipeline-gen
+        - build-job:
+            image: my-super-cool-stack-image:0.0.1
+
+      cdash:
+        build-group: My Super Cool Stack
+
+.. note::
+
+    The ``image`` used in the ``*-generate`` job must match exactly the ``image`` used in the ``build-job``.
+    When the images do not match the build job may fail.
+
+
+"""""""""""""""""""
+Registering Runners
+"""""""""""""""""""
+
+Contributing computational resources to Spack's CI build farm is one way to help expand the
+capabilities and offerings of the public Spack build caches. Currently, Spack utilizes linux runners
+from AWS, Google, and the University of Oregon (UO).
+
+Runners require three key peices:
+* Runner Registration Token
+* Accurate tags
+* OIDC Authentication script
+* GPG keys
+
+
+Minimum GitLab Runner Version: ``16.1.0``
+`Intallation instructions <https://docs.gitlab.com/runner/install/>`_
+
+Registration Token
+~~~~~~~~~~~~~~~~~~
+
+The first step to contribute new runners is to open an issue in the `spack infrastructure <https://github.com/spack/spack-infrastructure/issues/new?assignees=&labels=runner-registration&projects=&template=runner_registration.yml>`_
+project. This will be reported to the spack infrastructure team who will guide users through the process
+of registering new runners for Spack CI.
+
+The information needed to register a runner is the motivation for the new resources, a semi-detailed description of
+the runner, and finallly the point of contact for maintaining the software on the runner.
+
+The point of contact will then work with the infrastruture team to obtain runner registration token(s) for interacting with
+with Spack's GitLab instance. Once the runner is active, this point of contact will also be responsible for updating the
+GitLab runner software to keep pace with Spack's Gitlab.
+
+Tagging
+~~~~~~~
+
+In the initial stages of runner registration it is important to **exclude** the special tag ``spack``. This will prevent
+the new runner(s) from being picked up for production CI jobs while it is configured and evaluated. Once it is determined
+that the runner is ready for production use the ``spack`` tag will be added.
+
+Because gitlab has no concept of tag exclustion, runners that provide specialized resource also require specialized tags.
+For example, a basic CPU only x86_64 runner may have a tag ``x86_64`` associated with it. However, a runner containing an
+CUDA capable GPU may have the tag ``x86_64-cuda`` to denote that it should only be used for packages that will benefit from
+a CUDA capable resource.
+
+OIDC
+~~~~
+
+Spack runners use OIDC authentication for connecting to the appropriate AWS bucket
+which is used for coordinating the communication of binaries between build jobs. In
+order to configure OIDC authentication, Spack CI runners use a python script with minimal
+dependencies. This script can be configured for runners as seen here using the ``pre_build_script``.
+
+.. code-block:: toml
+
+    [[runners]]
+      pre_build_script = """
+      echo 'Executing Spack pre-build setup script'
+
+      for cmd in "${PY3:-}" python3 python; do
+        if command -v > /dev/null "$cmd"; then
+          export PY3="$(command -v "$cmd")"
+          break
+        fi
+      done
+
+      if [ -z "${PY3:-}" ]; then
+        echo "Unable to find python3 executable"
+        exit 1
+      fi
+
+      $PY3 -c "import urllib.request;urllib.request.urlretrieve('https://raw.githubusercontent.com/spack/spack-infrastructure/main/scripts/gitlab_runner_pre_build/pre_build.py', 'pre_build.py')"
+      $PY3 pre_build.py > envvars
+
+      . ./envvars
+      rm -f envvars
+      unset GITLAB_OIDC_TOKEN
+      """
+
+GPG Keys
+~~~~~~~~
+
+Runners that may be utilized for ``protected`` CI require the registration of an intermediate signing key that
+can be used to sign packages. For more information on package signing read :ref:`key_architecture`.
 
 --------
 Coverage

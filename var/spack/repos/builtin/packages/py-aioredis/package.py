@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PyAioredis(PythonPackage):
 
     homepage = "https://github.com/aio-libs/aioredis"
     pypi = "aioredis/aioredis-1.3.1.tar.gz"
+
+    license("MIT")
 
     version("1.3.1", sha256="15f8af30b044c771aee6787e5ec24694c048184c7b9e54c3b60c750a4b93273a")
 

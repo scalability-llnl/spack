@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,8 @@ class PyMkdocs(PythonPackage):
 
     homepage = "https://www.mkdocs.org/"
     pypi = "mkdocs/mkdocs-1.3.1.tar.gz"
+
+    license("BSD-2-Clause")
 
     version("1.3.1", sha256="a41a2ff25ce3bbacc953f9844ba07d106233cd76c88bac1f59cb1564ac0d87ed")
 

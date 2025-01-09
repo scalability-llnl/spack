@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,7 +15,12 @@ class Assimp(CMakePackage):
 
     maintainers("wdconinc")
 
+    license("BSD-3-Clause", checked_by="wdconinc")
+
     version("master", branch="master")
+    version("5.4.3", sha256="66dfbaee288f2bc43172440a55d0235dfc7bf885dda6435c038e8000e79582cb")
+    version("5.4.2", sha256="7414861a7b038e407b510e8b8c9e58d5bf8ca76c9dfe07a01d20af388ec5086a")
+    version("5.4.0", sha256="a90f77b0269addb2f381b00c09ad47710f2aab6b1d904f5e9a29953c30104d3f")
     version("5.3.1", sha256="a07666be71afe1ad4bc008c2336b7c688aca391271188eb9108d0c6db1be53f1")
     version("5.2.5", sha256="b5219e63ae31d895d60d98001ee5bb809fb2c7b2de1e7f78ceeb600063641e1a")
     version("5.2.4", sha256="6a4ff75dc727821f75ef529cea1c4fc0a7b5fc2e0a0b2ff2f6b7993fe6cb54ba")
@@ -36,6 +40,12 @@ class Assimp(CMakePackage):
 
     variant("shared", default=True, description="Enables the build of shared libraries")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
+    depends_on("cmake@3.10:", type="build", when="@5.1:")
+    depends_on("cmake@3.22:", type="build", when="@5.4:")
+
     depends_on("pkgconfig", type="build")
     depends_on("zlib-api")
 
@@ -44,10 +54,10 @@ class Assimp(CMakePackage):
 
     def cmake_args(self):
         args = [
-            "-DASSIMP_HUNTER_ENABLED=OFF",
-            "-DASSIMP_BUILD_ZLIB=OFF",
-            "-DASSIMP_BUILD_MINIZIP=OFF",
-            "-DASSIMP_BUILD_TESTS=OFF",
+            self.define("ASSIMP_HUNTER_ENABLED", False),
+            self.define("ASSIMP_BUILD_ZLIB", False),
+            self.define("ASSIMP_BUILD_MINIZIP", False),
+            self.define("ASSIMP_BUILD_TESTS", self.run_tests),
             self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
         ]
         return args
@@ -57,3 +67,12 @@ class Assimp(CMakePackage):
         if name == "cxxflags":
             flags.append(self.compiler.cxx11_flag)
         return (None, None, flags)
+
+    def check(self):
+        unit = Executable(join_path(self.build_directory, "bin", "unit"))
+        skipped_tests = [
+            "AssimpAPITest_aiMatrix3x3.aiMatrix3FromToTest",
+            "AssimpAPITest_aiMatrix4x4.aiMatrix4FromToTest",
+            "AssimpAPITest_aiQuaternion.aiQuaternionFromNormalizedQuaternionTest",
+        ]
+        unit(f"--gtest_filter=-{':'.join(skipped_tests)}")

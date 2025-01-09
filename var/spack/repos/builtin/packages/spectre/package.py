@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,7 +27,45 @@ class Spectre(CMakePackage):
 
     generator("ninja")
 
+    license("MIT")
+
     version("develop", branch="develop")
+    version(
+        "2024.12.16", sha256="ddd53fc6e5b42bca5d636862b69859ff7040ac243e097a4a6c0a8d0a8c58ffce"
+    )
+    version(
+        "2024.03.19", sha256="42a25c8827b56268d9826239cde521491be19318d83785b35cd0265a9f6a1f7c"
+    )
+    version(
+        "2024.09.29", sha256="b5e84b4564ad7cd2e069a24c6c472aab342753fe8393242eceba378b52226acb"
+    )
+    version(
+        "2024.09.16", sha256="2524d4e3cbe9206c0d8830fd6969dcf4cf53aefb26c882c6a743638611763171"
+    )
+    version(
+        "2024.08.03", sha256="18582b625b121c16cd9a1ec421c4ac6cb77bb252622a205b038306e75a466138"
+    )
+    version(
+        "2024.06.18", sha256="75ca22f3f9d59887b4ae40397fffc0ada9f218cbb23013e86e14deabb30490f7"
+    )
+    version(
+        "2024.06.05", sha256="7f1dcb5dc067a3977d1720ab655507f52821d898ea1e2b2a82c52dd9e246804f"
+    )
+    version(
+        "2024.05.11", sha256="be3a91011dd52adfe6f1263a1ee4bf8c51ac95c7d537ad934453997637e5d31a"
+    )
+    version(
+        "2024.04.12", sha256="2ca46e1c493225e9067546595b1bb234d8634de4974ba87a7b8f011e686b44b6"
+    )
+    version(
+        "2024.03.19", sha256="42a25c8827b56268d9826239cde521491be19318d83785b35cd0265a9f6a1f7c"
+    )
+    version(
+        "2024.02.05", sha256="cf5c4da473d665d0cac0a32562b1b8e8c0f1a77eebca8c3171e52cdf3056fdb3"
+    )
+    version(
+        "2023.12.08", sha256="662b4df6b6cdb097f9edcba869b3e05affeae485de8766ca66bf21399c39a9d8"
+    )
     version(
         "2023.10.11", sha256="f25d17bc80cc49ebdd81726326701fe9ecd2b6705d86e6e3d48d9e4a458c8aff"
     )
@@ -105,6 +142,10 @@ class Spectre(CMakePackage):
         "2021.12.15", sha256="4bfe9e27412e263ffdc6fcfcb84011f16d34a9fdd633ad7fc84a34c898f67e5c"
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     # Configuration variants
     variant(
         "executables",
@@ -126,7 +167,7 @@ class Spectre(CMakePackage):
         ),
         description="Executables to install",
     )
-    variant("python", default=False, description="Build Python bindings")
+    variant("python", default=True, description="Build Python bindings")
     variant("doc", default=False, description="Build documentation")
     # Build type and debug symbols:
     # - Both Debug and Release builds have debug symbols enabled by default in
@@ -149,6 +190,15 @@ class Spectre(CMakePackage):
         description="Which memory allocator to use",
     )
     variant(
+        "openmp",
+        default=False,
+        when="@2024.03.19:",
+        description=(
+            "Enable OpenMP parallelization in some parts of the code"
+            " (Python bindings and exporter)"
+        ),
+    )
+    variant(
         "formaline",
         default=True,
         description=(
@@ -161,15 +211,20 @@ class Spectre(CMakePackage):
     )
 
     # Compiler support
+    conflicts("%gcc@:8", when="@2022.06.14:")
     conflicts("%gcc@:6")
+    conflicts("%clang@:12", when="@2023.10.11:")
     conflicts("%clang@:7")
+    conflicts("%apple-clang@:12", when="@2023.10.11:")
     conflicts("%apple-clang@:10")
 
     # Build dependencies
+    depends_on("cmake@3.18:", when="@2023.02.09:", type="build")
     depends_on("cmake@3.12:", type="build")
     depends_on("python@2.7:", type="build")
 
     # Link dependencies
+    depends_on("charmpp@7.0.0:", when="@2022.09.02:")
     depends_on("charmpp@6.10.2:")
     depends_on("blaze@3.8")
     depends_on("boost@1.60:+math+program_options")
@@ -178,13 +233,14 @@ class Spectre(CMakePackage):
     depends_on("hdf5")
     depends_on("jemalloc", when="memory_allocator=jemalloc")
     depends_on("libsharp~mpi~openmp")
-    depends_on("libxsmm@1.16.1:")
+    depends_on("libxsmm@1.16.1:1")
     depends_on("blas")
     depends_on("lapack")
     depends_on("yaml-cpp@0.6:")
 
     # Test dependencies
-    depends_on("catch2@2.8:", type="test")
+    depends_on("catch2@3.4.0:3", when="@2023.08.18:", type="test")
+    depends_on("catch2@2.8:2", when="@:2023.07.29", type="test")
     depends_on("py-numpy@1.10:", type="test")
     depends_on("py-scipy", type="test")
     depends_on("py-h5py", type="test")
@@ -192,12 +248,19 @@ class Spectre(CMakePackage):
     # Python bindings
     with when("+python"):
         extends("python")
+        depends_on("python@3.8:", when="@2023.08.18:", type=("build", "run"))
         depends_on("python@3.7:", type=("build", "run"))
         depends_on("py-pybind11@2.6:", type="build")
+        depends_on("py-click", when="@2022.12.16:", type=("build", "run"))
+        depends_on("py-h5py@3.5.0:", type=("build", "run"))
+        depends_on("py-humanize", when="@2023.04.07:", type=("build", "run"))
+        depends_on("py-jinja2", when="@2023.07.29:", type=("build", "run"))
         depends_on("py-numpy@1.10:", type=("build", "run"))
         depends_on("py-scipy", type=("build", "run"))
         depends_on("py-matplotlib", type=("build", "run"))
-        depends_on("py-h5py", type=("build", "run"))
+        depends_on("py-pandas@1.5:1", when="@2023.04.07:", type=("build", "run"))
+        depends_on("py-pyyaml", type=("build", "run"))
+        depends_on("py-rich", when="@2022.12.16:", type=("build", "run"))
 
     # Docs
     with when("+doc"):
@@ -305,13 +368,13 @@ class Spectre(CMakePackage):
         args = [
             self.define("CHARM_ROOT", self.spec["charmpp"].prefix),
             self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
-            self.define("Python_EXECUTABLE", self.spec["python"].command.path),
             self.define_from_variant("BUILD_PYTHON_BINDINGS", "python"),
             self.define("BUILD_TESTING", self.run_tests),
             self.define_from_variant("BUILD_DOCS", "doc"),
             self.define("USE_GIT_HOOKS", False),
             self.define("USE_IWYU", False),
             self.define_from_variant("USE_FORMALINE", "formaline"),
+            self.define_from_variant("ENABLE_OPENMP", "openmp"),
             self.define_from_variant("MEMORY_ALLOCATOR").upper(),
             self.define_from_variant("ENABLE_PROFILING", "profiling"),
             self.define("USE_PCH", True),

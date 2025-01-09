@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PyWhey(PythonPackage):
 
     homepage = "https://github.com/repo-helper/whey"
     pypi = "whey/whey-0.0.24.tar.gz"
+
+    license("MIT")
 
     version("0.0.24", sha256="411905d85aa8aa239733818894e08dc20b682f0a3614f942aa35b430db568aa2")
 

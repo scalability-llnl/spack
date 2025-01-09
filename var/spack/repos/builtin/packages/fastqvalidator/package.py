@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,8 @@ class Fastqvalidator(MakefilePackage):
     git = "https://github.com/statgen/fastQValidator.git"
 
     version("2017-01-10", commit="6d619a34749e9d33c34ef0d3e0e87324ca77f320")
+
+    depends_on("cxx", type="build")  # generated
 
     resource(
         name="libStatGen",

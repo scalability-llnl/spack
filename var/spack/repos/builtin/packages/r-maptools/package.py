@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,7 @@ class RMaptools(RPackage):
 
     cran = "maptools"
 
+    version("1.1-8", sha256="5e8579e3f559161935f1dde622ece703eefa2a28a677ce553d7f27611e66e0f7")
     version(
         "1.1-6",
         sha256="d6a5df52db03b2231f21921b693c67f85df3c3b376181aa13ef4f21710f69308",

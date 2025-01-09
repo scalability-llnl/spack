@@ -1,18 +1,14 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 """Caches used by Spack to store data"""
 import os
-from typing import Union
 
 import llnl.util.lang
 from llnl.util.filesystem import mkdirp
-from llnl.util.symlink import symlink
 
 import spack.config
-import spack.error
 import spack.fetch_strategy
 import spack.paths
 import spack.util.file_cache
@@ -35,9 +31,7 @@ def _misc_cache():
 
 
 #: Spack's cache for small data
-MISC_CACHE: Union[
-    spack.util.file_cache.FileCache, llnl.util.lang.Singleton
-] = llnl.util.lang.Singleton(_misc_cache)
+MISC_CACHE: spack.util.file_cache.FileCache = llnl.util.lang.Singleton(_misc_cache)  # type: ignore
 
 
 def fetch_cache_location():
@@ -72,25 +66,6 @@ class MirrorCache:
         mkdirp(os.path.dirname(dst))
         fetcher.archive(dst)
 
-    def symlink(self, mirror_ref):
-        """Symlink a human readible path in our mirror to the actual
-        storage location."""
-
-        cosmetic_path = os.path.join(self.root, mirror_ref.cosmetic_path)
-        storage_path = os.path.join(self.root, mirror_ref.storage_path)
-        relative_dst = os.path.relpath(storage_path, start=os.path.dirname(cosmetic_path))
-
-        if not os.path.exists(cosmetic_path):
-            if os.path.lexists(cosmetic_path):
-                # In this case the link itself exists but it is broken: remove
-                # it and recreate it (in order to fix any symlinks broken prior
-                # to https://github.com/spack/spack/pull/13908)
-                os.unlink(cosmetic_path)
-            mkdirp(os.path.dirname(cosmetic_path))
-            symlink(relative_dst, cosmetic_path)
-
 
 #: Spack's local cache for downloaded source archives
-FETCH_CACHE: Union[
-    spack.fetch_strategy.FsCache, llnl.util.lang.Singleton
-] = llnl.util.lang.Singleton(_fetch_cache)
+FETCH_CACHE: spack.fetch_strategy.FsCache = llnl.util.lang.Singleton(_fetch_cache)  # type: ignore

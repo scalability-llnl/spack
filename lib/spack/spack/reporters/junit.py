@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os.path
@@ -24,7 +23,7 @@ class JUnit(Reporter):
             filename = filename + ".xml"
 
         report_data = {"specs": specs}
-        with open(filename, "w") as f:
+        with open(filename, "w", encoding="utf-8") as f:
             env = spack.tengine.make_environment()
             t = env.get_template(self._jinja_template)
             f.write(t.render(report_data))

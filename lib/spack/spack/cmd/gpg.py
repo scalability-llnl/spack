@@ -1,17 +1,18 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import argparse
 import os
+import tempfile
 
 import spack.binary_distribution
-import spack.cmd.common.arguments as arguments
-import spack.mirror
+import spack.mirrors.mirror
 import spack.paths
+import spack.stage
 import spack.util.gpg
 import spack.util.url
+from spack.cmd.common import arguments
 
 description = "handle GPG actions for spack"
 section = "packaging"
@@ -115,6 +116,7 @@ def setup_parser(subparser):
         help="URL of the mirror where keys will be published",
     )
     publish.add_argument(
+        "--update-index",
         "--rebuild-index",
         action="store_true",
         default=False,
@@ -214,15 +216,16 @@ def gpg_publish(args):
     mirror = None
     if args.directory:
         url = spack.util.url.path_to_file_url(args.directory)
-        mirror = spack.mirror.Mirror(url, url)
+        mirror = spack.mirrors.mirror.Mirror(url, url)
     elif args.mirror_name:
-        mirror = spack.mirror.MirrorCollection(binary=True).lookup(args.mirror_name)
+        mirror = spack.mirrors.mirror.MirrorCollection(binary=True).lookup(args.mirror_name)
     elif args.mirror_url:
-        mirror = spack.mirror.Mirror(args.mirror_url, args.mirror_url)
+        mirror = spack.mirrors.mirror.Mirror(args.mirror_url, args.mirror_url)
 
-    spack.binary_distribution.push_keys(
-        mirror, keys=args.keys, regenerate_index=args.rebuild_index
-    )
+    with tempfile.TemporaryDirectory(dir=spack.stage.get_stage_root()) as tmpdir:
+        spack.binary_distribution._url_push_keys(
+            mirror, keys=args.keys, tmpdir=tmpdir, update_index=args.update_index
+        )
 
 
 def gpg(parser, args):

@@ -1,11 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
 from spack.package import *
-from spack.variant import _ConditionalVariantValues
+from spack.variant import ConditionalVariantValues
 
 
 class Vecgeom(CMakePackage, CudaPackage):
@@ -21,100 +20,45 @@ class Vecgeom(CMakePackage, CudaPackage):
     maintainers("drbenmorgan", "sethrj")
 
     version("master", branch="master")
-    version("1.2.5", sha256="af76f0aac34ec3748120969b0fca0f899d91b25cb5727f2c022a6e8304e91327")
     version(
-        "1.2.4",
-        sha256="4f5d43a9cd34a5e0200c41547a438cbb1ed4439f5bb757857c5a225d708590ce",
+        "1.2.10",
+        url="https://gitlab.cern.ch/-/project/981/uploads/8e0a94013efdd1b2d4f44c3fbb10bcdf/VecGeom-v1.2.10.tar.gz",
+        sha256="3e0934842694452e4cb4a265428cb99af1ecc45f0e2d28a32dfeaa0634c21e2a",
+    )
+    version(
+        "1.2.9",
+        url="https://gitlab.cern.ch/-/project/981/uploads/55a89cafbf48a418bec68be42867d4bf/VecGeom-v1.2.9.tar.gz",
+        sha256="93ee9ce6f7b2d704e9b9db22fad68f81b8eaf17453452969fc47e93dba4bfaf4",
         deprecated=True,
     )
     version(
-        "1.2.3",
-        sha256="703e52d78b5b78e9f595bc76771659ab0cb09898ea32c50cfbde07d6d09ef1e1",
+        "1.2.8",
+        url="https://gitlab.cern.ch/VecGeom/VecGeom/uploads/db11697eb81d6f369e9ded1078de946b/VecGeom-v1.2.8.tar.gz",
+        sha256="769f59e8377f8268e253a9b2a3eee86868a9ebc1fa66c968b96e19c31440c12b",
         deprecated=True,
     )
     version(
-        "1.2.2",
-        sha256="887134d40fc9731138189299f0bd5e73485fbb95a96eb4124ce0854e4672291f",
+        "1.2.7",
+        url="https://gitlab.cern.ch/VecGeom/VecGeom/uploads/e4172cca4f6f731ef15e2780ecbb1645/VecGeom-v1.2.7.tar.gz",
+        sha256="d264c69b78bf431b9542be1f1af087517eac629da03cf2da62eb1e433fe06021",
         deprecated=True,
     )
     version(
-        "1.2.1",
-        sha256="2b47f0d23f6d25ca4fc0601b93a98167bbfb4b8aa6a1bba16d0391569e99e6f0",
+        "1.2.6",
+        url="https://gitlab.cern.ch/VecGeom/VecGeom/uploads/0b16aed9907cea62aa5f5914bec99a90/VecGeom-v1.2.6.tar.gz",
+        sha256="337f8846491930f3d8bfa4b45a1589d46e5d1d87f2d38c8f7006645c3aa90df8",
         deprecated=True,
     )
     version(
-        "1.2.0",
-        sha256="3448606fceb98ceb72d687d2d3b7ad44c67793d799def4ece9601b8e39c2868a",
+        "1.2.5",
+        url="https://gitlab.cern.ch/VecGeom/VecGeom/uploads/33b93e656c5bc49d81cfcba291f5be51/VecGeom-v1.2.5.tar.gz",
+        sha256="d79ea05125e4d03c5605e5ea232994c500841d207b4543ac3d84758adddc15a9",
         deprecated=True,
     )
-    version(
-        "1.1.20",
-        sha256="e1c75e480fc72bca8f8072ea00320878a9ae375eed7401628b15cddd097ed7fd",
-        deprecated=True,
-    )
-    version(
-        "1.1.19",
-        sha256="4c586b57fd4e30be044366c9be983249c7fa8bec629624523f5f69fd9caaa05b",
-        deprecated=True,
-    )
-    version(
-        "1.1.18",
-        sha256="2780640233a36e0d3c767140417015be1893c1ad695ccc0bd3ee0767bc9fbed8",
-        deprecated=True,
-    )
-    version(
-        "1.1.17",
-        sha256="2e95429b795311a6986320d785bedcd9dace9f8e7b7f6bd778d23a4ff23e0424",
-        deprecated=True,
-    )
-    version(
-        "1.1.16",
-        sha256="2fa636993156d9d06750586e8a1ac1701ae2be62dea07964e2369698ae521d02",
-        deprecated=True,
-    )
-    version(
-        "1.1.15",
-        sha256="0ee9897eb12d8d560dc0c9e56e8fdb78d0111f651a984df24e983da035bd1c70",
-        deprecated=True,
-    )
-    version(
-        "1.1.13",
-        sha256="6bb364cc74bdab2e64e2fe132debd7f1e192da0a103f5149df7ab25b7c19a205",
-        deprecated=True,
-    )
-    version(
-        "1.1.12",
-        sha256="fec4495aac4a9d583f076551da61a68b956bba1dd1ebe1cd48c00ef95c962049",
-        deprecated=True,
-    )
-    version(
-        "1.1.9",
-        sha256="a90e11bf83724300d1d7206e5fe89a7915c4ec6aae881587f18e282ac0f6ee8e",
-        deprecated=True,
-    )
-    version(
-        "1.1.8",
-        sha256="9c42206d788ec4b791571882f5ea8d2c591c938abe61c21cc5ec37bfea6bf768",
-        deprecated=True,
-    )
-    version(
-        "1.1.7",
-        sha256="cc79a0baa783b21ecc399c4e7cca925ca340e6aeb96e3b2cad45c141557519bf",
-        deprecated=True,
-    )
-    version(
-        "1.1.6",
-        sha256="c4806a6b67d01b40074b8cc6865d78574a6a1c573be51696f2ecdf98b9cb954a",
-        deprecated=True,
-    )
+    version("1.1.20", sha256="e1c75e480fc72bca8f8072ea00320878a9ae375eed7401628b15cddd097ed7fd")
     version(
         "1.1.5",
         sha256="da674f3bbc75c30f56c1a2d251fa8930c899f27fa64b03a36569924030d87b95",
-        deprecated=True,
-    )
-    version(
-        "1.1.3",
-        sha256="ada09e8b6b2fa6c058290302b2cb5a6c2e644192aab1623c31d18c6a2f4c01c8",
         deprecated=True,
     )
     version(
@@ -123,21 +67,13 @@ class Vecgeom(CMakePackage, CudaPackage):
         deprecated=True,
     )
     version(
-        "1.0.1",
-        sha256="1eae7ac9014c608e8d8db5568058b8c0fea1a1dc7a8f54157a3a1c997b6fd9eb",
-        deprecated=True,
-    )
-    version(
         "0.5.2",
         tag="v00.05.02",
         commit="a7e0828c915ff936a79e672d1dd84b087a323b51",
         deprecated=True,
     )
-    version(
-        "0.3.rc",
-        sha256="a87a9ea4ab126b59ff9c79182bc0911ead3d76dd197194742e2a35ccd341299d",
-        deprecated=True,
-    )
+
+    depends_on("cxx", type="build")
 
     _cxxstd_values = (conditional("11", "14", when="@:1.1"), "17", conditional("20", when="@1.2:"))
     variant(
@@ -175,7 +111,7 @@ class Vecgeom(CMakePackage, CudaPackage):
 
     def std_when(values):
         for v in values:
-            if isinstance(v, _ConditionalVariantValues):
+            if isinstance(v, ConditionalVariantValues):
                 for c in v:
                     yield (c.value, c.when)
             else:

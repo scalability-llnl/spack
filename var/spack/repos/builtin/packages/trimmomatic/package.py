@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,8 @@ class Trimmomatic(Package):
 
     homepage = "http://www.usadellab.org/cms/?page=trimmomatic"
     url = "http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.36.zip"
+
+    license("GPL-3.0-only")
 
     # Older version aren't explicitly made available, but the URL
     # works as we'd like it to, so...

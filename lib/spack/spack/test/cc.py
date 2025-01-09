@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,9 +12,8 @@ import pytest
 
 import spack.build_environment
 import spack.config
-import spack.spec
 from spack.paths import build_env_path
-from spack.util.environment import SYSTEM_DIRS, set_env
+from spack.util.environment import SYSTEM_DIR_CASE_ENTRY, set_env
 from spack.util.executable import Executable, ProcessError
 
 #
@@ -127,7 +125,7 @@ spack_cppflags = ["-g", "-O1", "-DVAR=VALUE"]
 spack_cflags = ["-Wall"]
 spack_cxxflags = ["-Werror"]
 spack_fflags = ["-w"]
-spack_ldflags = ["-L", "foo"]
+spack_ldflags = ["-Wl,--gc-sections", "-L", "foo"]
 spack_ldlibs = ["-lfoo"]
 
 lheaderpad = ["-Wl,-headerpad_max_install_names"]
@@ -159,7 +157,8 @@ def wrapper_environment(working_env):
         SPACK_DEBUG_LOG_ID="foo-hashabc",
         SPACK_COMPILER_SPEC="gcc@4.4.7",
         SPACK_SHORT_SPEC="foo@1.2 arch=linux-rhel6-x86_64 /hashabc",
-        SPACK_SYSTEM_DIRS=":".join(SYSTEM_DIRS),
+        SPACK_SYSTEM_DIRS=SYSTEM_DIR_CASE_ENTRY,
+        SPACK_MANAGED_DIRS="/path/to/spack-1/opt/spack/*|/path/to/spack-2/opt/spack/*",
         SPACK_CC_RPATH_ARG="-Wl,-rpath,",
         SPACK_CXX_RPATH_ARG="-Wl,-rpath,",
         SPACK_F77_RPATH_ARG="-Wl,-rpath,",
@@ -199,7 +198,7 @@ def check_args(cc, args, expected):
     """
     with set_env(SPACK_TEST_COMMAND="dump-args"):
         cc_modified_args = cc(*args, output=str).strip().split("\n")
-        assert expected == cc_modified_args
+        assert cc_modified_args == expected
 
 
 def check_args_contents(cc, args, must_contain, must_not_contain):
@@ -272,13 +271,49 @@ def test_ld_mode(wrapper_environment):
     assert dump_mode(ld, ["foo.o", "bar.o", "baz.o", "-o", "foo", "-Wl,-rpath,foo"]) == "ld"
 
 
+def test_ld_unterminated_rpath(wrapper_environment):
+    check_args(
+        ld,
+        ["foo.o", "bar.o", "baz.o", "-o", "foo", "-rpath"],
+        ["ld", "--disable-new-dtags", "foo.o", "bar.o", "baz.o", "-o", "foo", "-rpath"],
+    )
+
+
+def test_xlinker_unterminated_rpath(wrapper_environment):
+    check_args(
+        cc,
+        ["foo.o", "bar.o", "baz.o", "-o", "foo", "-Xlinker", "-rpath"],
+        [real_cc]
+        + target_args
+        + [
+            "-Wl,--disable-new-dtags",
+            "foo.o",
+            "bar.o",
+            "baz.o",
+            "-o",
+            "foo",
+            "-Xlinker",
+            "-rpath",
+        ],
+    )
+
+
+def test_wl_unterminated_rpath(wrapper_environment):
+    check_args(
+        cc,
+        ["foo.o", "bar.o", "baz.o", "-o", "foo", "-Wl,-rpath"],
+        [real_cc]
+        + target_args
+        + ["-Wl,--disable-new-dtags", "foo.o", "bar.o", "baz.o", "-o", "foo", "-Wl,-rpath"],
+    )
+
+
 def test_ld_flags(wrapper_environment, wrapper_flags):
     check_args(
         ld,
         test_args,
         ["ld"]
         + test_include_paths
-        + [spack_ldflags[i] + spack_ldflags[i + 1] for i in range(0, len(spack_ldflags), 2)]
         + test_library_paths
         + ["--disable-new-dtags"]
         + test_rpaths
@@ -306,13 +341,14 @@ def test_cc_flags(wrapper_environment, wrapper_flags):
         [real_cc]
         + target_args
         + test_include_paths
-        + [spack_ldflags[i] + spack_ldflags[i + 1] for i in range(0, len(spack_ldflags), 2)]
+        + ["-Lfoo"]
         + test_library_paths
         + ["-Wl,--disable-new-dtags"]
         + test_wl_rpaths
         + test_args_without_paths
         + spack_cppflags
         + spack_cflags
+        + ["-Wl,--gc-sections"]
         + spack_ldlibs,
     )
 
@@ -324,12 +360,13 @@ def test_cxx_flags(wrapper_environment, wrapper_flags):
         [real_cc]
         + target_args
         + test_include_paths
-        + [spack_ldflags[i] + spack_ldflags[i + 1] for i in range(0, len(spack_ldflags), 2)]
+        + ["-Lfoo"]
         + test_library_paths
         + ["-Wl,--disable-new-dtags"]
         + test_wl_rpaths
         + test_args_without_paths
         + spack_cppflags
+        + ["-Wl,--gc-sections"]
         + spack_ldlibs,
     )
 
@@ -341,15 +378,25 @@ def test_fc_flags(wrapper_environment, wrapper_flags):
         [real_cc]
         + target_args
         + test_include_paths
-        + [spack_ldflags[i] + spack_ldflags[i + 1] for i in range(0, len(spack_ldflags), 2)]
+        + ["-Lfoo"]
         + test_library_paths
         + ["-Wl,--disable-new-dtags"]
         + test_wl_rpaths
         + test_args_without_paths
         + spack_fflags
         + spack_cppflags
+        + ["-Wl,--gc-sections"]
         + spack_ldlibs,
     )
+
+
+def test_always_cflags(wrapper_environment, wrapper_flags):
+    with set_env(SPACK_ALWAYS_CFLAGS="-always1 -always2"):
+        check_args(
+            cc,
+            ["-v", "--cmd-line-v-opt"],
+            [real_cc] + ["-always1", "-always2"] + ["-v", "--cmd-line-v-opt"],
+        )
 
 
 def test_Wl_parsing(wrapper_environment):
@@ -825,14 +872,14 @@ def test_keep_and_replace(wrapper_environment):
         ),
         (
             "config:flags:keep_werror:specific",
-            ["-Werror", "-Werror=specific", "-bah"],
-            ["-Werror=specific", "-bah"],
+            ["-Werror", "-Werror=specific", "-Werror-specific2", "-bah"],
+            ["-Wno-error", "-Werror=specific", "-Werror-specific2", "-bah"],
             ["-Werror"],
         ),
         (
             "config:flags:keep_werror:none",
             ["-Werror", "-Werror=specific", "-bah"],
-            ["-bah", "-Wno-error", "-Wno-error=specific"],
+            ["-Wno-error", "-Wno-error=specific", "-bah"],
             ["-Werror", "-Werror=specific"],
         ),
         # check non-standard -Werror opts like -Werror-implicit-function-declaration
@@ -845,13 +892,13 @@ def test_keep_and_replace(wrapper_environment):
         (
             "config:flags:keep_werror:specific",
             ["-Werror", "-Werror-implicit-function-declaration", "-bah"],
-            ["-Werror-implicit-function-declaration", "-bah", "-Wno-error"],
+            ["-Wno-error", "-Werror-implicit-function-declaration", "-bah"],
             ["-Werror"],
         ),
         (
             "config:flags:keep_werror:none",
             ["-Werror", "-Werror-implicit-function-declaration", "-bah"],
-            ["-bah", "-Wno-error=implicit-function-declaration"],
+            ["-Wno-error", "-bah", "-Wno-error=implicit-function-declaration"],
             ["-Werror", "-Werror-implicit-function-declaration"],
         ),
     ],
@@ -907,3 +954,108 @@ def test_linker_strips_loopopt(wrapper_environment, wrapper_flags):
         result = cc(*(test_args + ["-loopopt=0", "-c", "x.c"]), output=str)
         result = result.strip().split("\n")
         assert "-loopopt=0" in result
+
+
+def test_spack_managed_dirs_are_prioritized(wrapper_environment):
+    # We have two different stores with 5 packages divided over them
+    pkg1 = "/path/to/spack-1/opt/spack/linux-ubuntu22.04-zen2/gcc-13.2.0/pkg-1.0-abcdef"
+    pkg2 = "/path/to/spack-1/opt/spack/linux-ubuntu22.04-zen2/gcc-13.2.0/pkg-2.0-abcdef"
+    pkg3 = "/path/to/spack-2/opt/spack/linux-ubuntu22.04-zen2/gcc-13.2.0/pkg-3.0-abcdef"
+    pkg4 = "/path/to/spack-2/opt/spack/linux-ubuntu22.04-zen2/gcc-13.2.0/pkg-4.0-abcdef"
+    pkg5 = "/path/to/spack-2/opt/spack/linux-ubuntu22.04-zen2/gcc-13.2.0/pkg-5.0-abcdef"
+
+    variables = {
+        # cppflags, ldflags from the command line, config or package.py take highest priority
+        "SPACK_CPPFLAGS": f"-I/usr/local/include -I/external-1/include -I{pkg1}/include",
+        "SPACK_LDFLAGS": f"-L/usr/local/lib -L/external-1/lib -L{pkg1}/lib "
+        f"-Wl,-rpath,/usr/local/lib -Wl,-rpath,/external-1/lib -Wl,-rpath,{pkg1}/lib",
+        # automatic -L, -Wl,-rpath, -I flags from dependencies -- on the spack side they are
+        # already partitioned into "spack owned prefixes" and "non-spack owned prefixes"
+        "SPACK_STORE_LINK_DIRS": f"{pkg4}/lib:{pkg5}/lib",
+        "SPACK_STORE_RPATH_DIRS": f"{pkg4}/lib:{pkg5}/lib",
+        "SPACK_STORE_INCLUDE_DIRS": f"{pkg4}/include:{pkg5}/include",
+        "SPACK_LINK_DIRS": "/external-3/lib:/external-4/lib",
+        "SPACK_RPATH_DIRS": "/external-3/lib:/external-4/lib",
+        "SPACK_INCLUDE_DIRS": "/external-3/include:/external-4/include",
+    }
+
+    with set_env(SPACK_TEST_COMMAND="dump-args", **variables):
+        effective_call = (
+            cc(
+                # system paths
+                "-I/usr/include",
+                "-L/usr/lib",
+                "-Wl,-rpath,/usr/lib",
+                # some other externals
+                "-I/external-2/include",
+                "-L/external-2/lib",
+                "-Wl,-rpath,/external-2/lib",
+                # relative paths are considered "spack managed" since they are in the stage dir
+                "-I..",
+                "-L..",
+                "-Wl,-rpath,..",  # pathological but simpler for the test.
+                # spack store paths
+                f"-I{pkg2}/include",
+                f"-I{pkg3}/include",
+                f"-L{pkg2}/lib",
+                f"-L{pkg3}/lib",
+                f"-Wl,-rpath,{pkg2}/lib",
+                f"-Wl,-rpath,{pkg3}/lib",
+                "hello.c",
+                "-o",
+                "hello",
+                output=str,
+            )
+            .strip()
+            .split("\n")
+        )
+
+    dash_I = [flag[2:] for flag in effective_call if flag.startswith("-I")]
+    dash_L = [flag[2:] for flag in effective_call if flag.startswith("-L")]
+    dash_Wl_rpath = [flag[11:] for flag in effective_call if flag.startswith("-Wl,-rpath")]
+
+    assert dash_I == [
+        # spack owned dirs from SPACK_*FLAGS
+        f"{pkg1}/include",
+        # spack owned dirs from command line & automatic flags for deps (in that order)]
+        "..",
+        f"{pkg2}/include",  # from command line
+        f"{pkg3}/include",  # from command line
+        f"{pkg4}/include",  # from SPACK_STORE_INCLUDE_DIRS
+        f"{pkg5}/include",  # from SPACK_STORE_INCLUDE_DIRS
+        # non-system dirs from SPACK_*FLAGS
+        "/external-1/include",
+        # non-system dirs from command line & automatic flags for deps (in that order)
+        "/external-2/include",  # from command line
+        "/external-3/include",  # from SPACK_INCLUDE_DIRS
+        "/external-4/include",  # from SPACK_INCLUDE_DIRS
+        # system dirs from SPACK_*FLAGS
+        "/usr/local/include",
+        # system dirs from command line
+        "/usr/include",
+    ]
+
+    assert (
+        dash_L
+        == dash_Wl_rpath
+        == [
+            # spack owned dirs from SPACK_*FLAGS
+            f"{pkg1}/lib",
+            # spack owned dirs from command line & automatic flags for deps (in that order)
+            "..",
+            f"{pkg2}/lib",  # from command line
+            f"{pkg3}/lib",  # from command line
+            f"{pkg4}/lib",  # from SPACK_STORE_LINK_DIRS
+            f"{pkg5}/lib",  # from SPACK_STORE_LINK_DIRS
+            # non-system dirs from SPACK_*FLAGS
+            "/external-1/lib",
+            # non-system dirs from command line & automatic flags for deps (in that order)
+            "/external-2/lib",  # from command line
+            "/external-3/lib",  # from SPACK_LINK_DIRS
+            "/external-4/lib",  # from SPACK_LINK_DIRS
+            # system dirs from SPACK_*FLAGS
+            "/usr/local/lib",
+            # system dirs from command line
+            "/usr/lib",
+        ]
+    )

@@ -1,0 +1,49 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 0001c4f..a2133de 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -49,6 +49,7 @@ project(gl2ps C)
+ 
+ option(ENABLE_ZLIB "Enable compression using ZLIB" ON)
+ option(ENABLE_PNG "Enable PNG support" ON)
++option(BUILD_SHARED_LIBS "Enable building shared libs" ON)
+ 
+ set(GL2PS_MAJOR_VERSION 1)
+ set(GL2PS_MINOR_VERSION 4)
+@@ -139,19 +140,17 @@ if(APPLE)
+ endif()
+ 
+ if(OPENGL_FOUND)
+-  add_library(lib STATIC gl2ps.c gl2ps.h)
+-  set_target_properties(lib PROPERTIES OUTPUT_NAME gl2ps)
++  add_library(gl2ps gl2ps.c gl2ps.h)
+ 
+-  add_library(shared SHARED gl2ps.c gl2ps.h)
+-  target_link_libraries(shared ${EXTERNAL_LIBRARIES})
+-  set_target_properties(shared PROPERTIES OUTPUT_NAME gl2ps
++  target_link_libraries(gl2ps ${EXTERNAL_LIBRARIES})
++  set_target_properties(gl2ps PROPERTIES OUTPUT_NAME gl2ps
+     VERSION ${GL2PS_MAJOR_VERSION}.${GL2PS_MINOR_VERSION}.${GL2PS_PATCH_VERSION}
+     SOVERSION ${GL2PS_MAJOR_VERSION})
+   if(WIN32 OR CYGWIN)
+-    set_target_properties(shared PROPERTIES
++    set_target_properties(gl2ps PROPERTIES
+         COMPILE_FLAGS "-DGL2PSDLL -DGL2PSDLL_EXPORTS")
+   endif()
+-  install(TARGETS lib shared RUNTIME DESTINATION bin
++  install(TARGETS gl2ps RUNTIME DESTINATION bin
+                              LIBRARY DESTINATION lib${LIB_SUFFIX}
+                              ARCHIVE DESTINATION lib${LIB_SUFFIX})
+ endif()
+@@ -171,9 +170,9 @@ install(FILES ${CMAKE_SOURCE_DIR}/gl2psTestSimple.c DESTINATION ${GL2PS_DOC})
+ 
+ if(GLUT_FOUND)
+   add_executable(gl2psTest WIN32 gl2psTest.c)
+-  target_link_libraries(gl2psTest lib ${EXTERNAL_LIBRARIES})
++  target_link_libraries(gl2psTest gl2ps ${EXTERNAL_LIBRARIES})
+   add_executable(gl2psTestSimple WIN32 gl2psTestSimple.c)
+-  target_link_libraries(gl2psTestSimple lib ${EXTERNAL_LIBRARIES})
++  target_link_libraries(gl2psTestSimple gl2ps ${EXTERNAL_LIBRARIES})
+ endif()
+ 
+ find_package(LATEX)

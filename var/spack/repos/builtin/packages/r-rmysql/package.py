@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,7 @@ class RRmysql(RPackage):
 
     cran = "RMySQL"
 
+    version("0.10.27", sha256="f1735b689cd9bdb9c776a16138eaa1f6c5cbdbab5c1d292e1240e3bbf105bfab")
     version("0.10.25", sha256="ed130f9bd80ea9fd5b4fdbb6fa094c35646354507de68eb3d19a3cbc8b5a4794")
     version("0.10.24", sha256="ca1b9aacab6d76866ba09210ae881c3a7555bd5144ea0a0a446fceff80637241")
     version("0.10.23", sha256="f4ac7ed4fba83749819c07ce32d53ee024cf1cedebbda3b832644bff9edf4a15")

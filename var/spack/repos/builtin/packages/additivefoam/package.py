@@ -1,12 +1,15 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import inspect
 import os
 
+import llnl.util.tty as tty
+
+import spack.pkg.builtin.openfoam as openfoam
 from spack.package import *
-from spack.pkg.builtin.openfoam import add_extra_files
+from spack.version import Version
 
 
 class Additivefoam(Package):
@@ -20,20 +23,46 @@ class Additivefoam(Package):
 
     tags = ["ecp"]
 
+    license("GPL-3.0-only")
+
     version("main", branch="main")
     version("1.0.0", sha256="abbdf1b0230cd2f26f526be76e973f508978611f404fe8ec4ecdd7d5df88724c")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("openfoam-org@10")
 
     common = ["spack-derived-Allwmake"]
-    assets = ["applications/Allwmake", "Allwmake"]
+    assets = [join_path("applications", "Allwmake"), "Allwmake"]
 
     build_script = "./spack-derived-Allwmake"
 
     phases = ["configure", "build", "install"]
 
+    def add_extra_files(self, common, local_prefix, local):
+        """Copy additional common and local files into the stage.source_path
+        from the openfoam/common and the package/assets directories,
+        respectively. Modified from `spack.pkg.builtin.openfoam.add_extra_files()`.
+        """
+        outdir = self.stage.source_path
+        indir = join_path(os.path.dirname(inspect.getfile(openfoam)), "common")
+        for f in common:
+            tty.info("Added file {0}".format(f))
+            openfoam.install(join_path(indir, f), join_path(outdir, f))
+
+        indir = join_path(self.package_dir, "assets", local_prefix)
+        for f in local:
+            tty.info("Added file {0}".format(f))
+            openfoam.install(join_path(indir, f), join_path(outdir, f))
+
     def patch(self):
-        add_extra_files(self, self.common, self.assets)
+        spec = self.spec
+        asset_dir = ""
+        if Version("main") in spec.versions:
+            asset_dir = "assets_main"
+        elif Version("1.0.0") in spec.versions:
+            asset_dir = "assets_1.0.0"
+        self.add_extra_files(self.common, asset_dir, self.assets)
 
     def configure(self, spec, prefix):
         pass

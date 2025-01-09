@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,9 @@ class Wt(CMakePackage):
 
     version("master", branch="master")
     version("3.3.7", sha256="054af8d62a7c158df62adc174a6a57610868470a07e7192ee7ce60a18552851d")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     # wt builds in parallel, but requires more than 5 GByte RAM per -j <njob>
     # which most machines do not provide and crash the build

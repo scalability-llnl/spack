@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,6 +24,9 @@ class CbtfKrell(CMakePackage):
     version("1.9.4", branch="1.9.4")
     version("1.9.3", branch="1.9.3")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     # MPI variants
     variant(
         "openmpi", default=False, description="Build mpi experiment collector for openmpi MPI.."
@@ -46,8 +48,7 @@ class CbtfKrell(CMakePackage):
     variant(
         "crayfe",
         default=False,
-        description="build only the FE tool using the runtime_dir \
-                         to point to target build.",
+        description="build only the FE tool using the runtime_dir to point to target build.",
     )
 
     # Dependencies for cbtf-krell

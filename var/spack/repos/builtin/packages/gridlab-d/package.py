@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,9 @@ class GridlabD(AutotoolsPackage):
     # Using only develop as other branches and releases did not build properly.
     version("develop", branch="develop")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("mysql", default=False, description="Enable MySQL support for Gridlab-D.")
     variant("helics", default=False, description="Enable Helics support for Gridlab-D.")
 
@@ -39,7 +41,7 @@ class GridlabD(AutotoolsPackage):
     def configure_args(self):
         args = []
 
-        if "+helics" in self.spec:
+        if self.spec.satisfies("+helics"):
             # Taken from
             # https://github.com/GMLC-TDC/HELICS-Tutorial/tree/master/setup
             args.append("--with-helics=" + self.spec["helics"].prefix)

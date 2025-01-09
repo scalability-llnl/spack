@@ -1,11 +1,11 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
 import hashlib
 import json
+import random
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -13,12 +13,13 @@ from urllib.request import Request
 
 import pytest
 
-import spack.mirror
+import spack.mirrors.mirror
 from spack.oci.image import Digest, ImageReference, default_config, default_manifest
 from spack.oci.oci import (
     copy_missing_layers,
     get_manifest_and_config,
     image_from_mirror,
+    list_tags,
     upload_blob,
     upload_manifest,
 )
@@ -472,7 +473,7 @@ def test_copy_missing_layers(tmpdir, config):
 
 
 def test_image_from_mirror():
-    mirror = spack.mirror.Mirror("oci://example.com/image")
+    mirror = spack.mirrors.mirror.Mirror("oci://example.com/image")
     assert image_from_mirror(mirror) == ImageReference.from_string("example.com/image")
 
 
@@ -509,25 +510,25 @@ def test_default_credentials_provider():
 
     mirrors = [
         # OCI mirror with push credentials
-        spack.mirror.Mirror(
+        spack.mirrors.mirror.Mirror(
             {"url": "oci://a.example.com/image", "push": {"access_pair": ["user.a", "pass.a"]}}
         ),
         # Not an OCI mirror
-        spack.mirror.Mirror(
+        spack.mirrors.mirror.Mirror(
             {"url": "https://b.example.com/image", "access_pair": ["user.b", "pass.b"]}
         ),
         # No credentials
-        spack.mirror.Mirror("oci://c.example.com/image"),
+        spack.mirrors.mirror.Mirror("oci://c.example.com/image"),
         # Top-level credentials
-        spack.mirror.Mirror(
+        spack.mirrors.mirror.Mirror(
             {"url": "oci://d.example.com/image", "access_pair": ["user.d", "pass.d"]}
         ),
         # Dockerhub short reference
-        spack.mirror.Mirror(
+        spack.mirrors.mirror.Mirror(
             {"url": "oci://user/image", "access_pair": ["dockerhub_user", "dockerhub_pass"]}
         ),
         # Localhost (not a dockerhub short reference)
-        spack.mirror.Mirror(
+        spack.mirrors.mirror.Mirror(
             {"url": "oci://localhost/image", "access_pair": ["user.localhost", "pass.localhost"]}
         ),
     ]
@@ -670,3 +671,31 @@ def test_retry(url, max_retries, expect_failure, expect_requests):
 
     assert len(server.requests) == expect_requests
     assert sleep_time == [2**i for i in range(expect_requests - 1)]
+
+
+def test_list_tags():
+    # Follows a relatively new rewording of the OCI distribution spec, which is not yet tagged.
+    # https://github.com/opencontainers/distribution-spec/commit/2ed79d930ecec11dd755dc8190409a3b10f01ca9
+    N = 20
+    urlopen = create_opener(InMemoryOCIRegistry("example.com", tags_per_page=5)).open
+    image = ImageReference.from_string("example.com/image")
+    to_tag = lambda i: f"tag-{i:02}"
+
+    # Create N tags in arbitrary order
+    _tags_to_create = [to_tag(i) for i in range(N)]
+    random.shuffle(_tags_to_create)
+    for tag in _tags_to_create:
+        upload_manifest(image.with_tag(tag), default_manifest(), tag=True, _urlopen=urlopen)
+
+    # list_tags should return all tags from all pages in order
+    tags = list_tags(image, urlopen)
+    assert len(tags) == N
+    assert [to_tag(i) for i in range(N)] == tags
+
+    # Test a single request, which should give the first 5 tags
+    assert json.loads(urlopen(image.tags_url()).read())["tags"] == [to_tag(i) for i in range(5)]
+
+    # Test response at an offset, which should exclude the `last` tag.
+    assert json.loads(urlopen(image.tags_url() + f"?last={to_tag(N - 3)}").read())["tags"] == [
+        to_tag(i) for i in range(N - 2, N)
+    ]

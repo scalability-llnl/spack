@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,9 @@ class RForecast(RPackage):
 
     cran = "forecast"
 
+    license("GPL-3.0-only")
+
+    version("8.23.0", sha256="ffc3d41138f498fb286f0ebfeb72d15f9f7a8e953abf3c351ebf95fc188a1880")
     version("8.21", sha256="fdd131795a9d3fb399d76a9aa66a0c276637caaa9ec0c75fbe386189d005c6c2")
     version("8.18", sha256="5920baa8d9d81988000d0e2edcea61c05126b5cb923cb5921a6fcd7bc312d8dd")
     version("8.16", sha256="9f01eb895a883a7e1e23725b167b46edc1b0b152fd4120278aaa5f7b2621767f")
@@ -37,5 +39,6 @@ class RForecast(RPackage):
     depends_on("r-timedate", type=("build", "run"))
     depends_on("r-tseries", type=("build", "run"))
     depends_on("r-urca", type=("build", "run"), when="@8.6:")
+    depends_on("r-withr", type=("build", "run"), when="@8.23.0:")
     depends_on("r-zoo", type=("build", "run"))
     depends_on("r-rcpparmadillo@0.2.35:", type=("build", "run"))

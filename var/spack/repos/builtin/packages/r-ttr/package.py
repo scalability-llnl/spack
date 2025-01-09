@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,7 @@ class RTtr(RPackage):
 
     cran = "TTR"
 
+    version("0.24.4", sha256="89732b9c359bae2f41cd23db649f0897c10fab0702d780c4c25a997322710284")
     version("0.24.3", sha256="4d9aef32647664be5cf965b05f21ed62cde9425fa87c21530852e05ef7aaba87")
     version("0.24.2", sha256="2587b988d9199474a19470b9b999b99133d0d8aa45410813e05c5f0ed763711b")
     version("0.23-4", sha256="eb17604da986213b3b924f0af65c3d089502a658a253ee34f6b8f6caccf6bfa2")

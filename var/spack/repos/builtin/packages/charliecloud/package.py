@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,7 +15,12 @@ class Charliecloud(AutotoolsPackage):
 
     tags = ["e4s"]
 
+    license("Apache-2.0")
+
     version("master", branch="master")
+    version("0.38", sha256="1a3766d57ff4db9c65fd5c561bbaac52476c9a19fa10c1554190912a03429b7a")
+    version("0.37", sha256="1fd8e7cd1dd09a001aead5e105e3234792c1a1e9e30417f495ab3f422ade7397")
+    version("0.36", sha256="b6b1a085d8ff82abc6d625ab990af3925c84fa08ec837828b383f329bd0b8e72")
     version("0.35", sha256="042f5be5ed8eda95f45230b4647510780142a50adb4e748be57e8dd8926b310e")
     version(
         "0.34",
@@ -98,14 +102,19 @@ class Charliecloud(AutotoolsPackage):
         deprecated=True,
         sha256="15ce63353afe1fc6bcc10979496a54fcd5628f997cb13c827c9fc7afb795bdc5",
     )
+
+    depends_on("c", type="build")  # generated
     variant("docs", default=False, description="Build man pages and html docs")
-    variant("squashfuse", default=False, description="Build with squashfuse support")
+    variant("squashfuse", default=True, description="Build with squashfuse support", when="@0.32:")
 
     # Autoconf.
     depends_on("m4", type="build")
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")
+
+    # pkg-config is required for 0.36 regardless of variant.
+    depends_on("pkgconfig", type="build", when="@0.36")
 
     # Image manipulation.
     depends_on("python@3.6:", type="run")
@@ -119,7 +128,8 @@ class Charliecloud(AutotoolsPackage):
     depends_on("py-sphinx-rtd-theme", type="build", when="+docs")
 
     # Bash automated testing harness (bats).
-    depends_on("bats@0.4.0", type="test")
+    depends_on("bats@0.4.0", when="@:0.32")
+    depends_on("bats@1.10.0:", when="@0.33:")
 
     # Require pip and wheel for git checkout builds (master).
     depends_on("py-pip@21.1.2:", type="build", when="@master")
@@ -128,27 +138,40 @@ class Charliecloud(AutotoolsPackage):
     # See https://github.com/spack/spack/pull/16049.
     conflicts("platform=darwin", msg="This package does not build on macOS")
 
-    # Squashfuse support
-    depends_on("squashfuse@0.1.105:", when="+squashfuse")
-    depends_on("squashfs", type="run", when="+squashfuse")
+    # Squashfuse support. For why this is so messy, see:
+    # https://github.com/hpc/charliecloud/issues/1696
+    # https://github.com/hpc/charliecloud/pull/1697
+    # https://github.com/hpc/charliecloud/pull/1784
+    #
+    # FIXME: the current variant and dependencies reflect
+    # Charliecloud's automatic mount/un-mounting requirements. A more manual
+    # approach with squashfuse could implemented in a different variant.
+    with when("+squashfuse"):
+        depends_on("libfuse@3:", type=("build", "run", "link"), when="@0.32:")
+        depends_on("pkgconfig", type="build", when="@0.37:")
+        depends_on("squashfuse@0.1.105:0.2.0,0.4.0:", type="link", when="@0.36:")
+        depends_on("squashfuse@0.1.105:0.2.0,0.4.0", type="link", when="@0.35")
+        depends_on("squashfuse@0.1.105", type="link", when="@0.32:0.34")
 
     def autoreconf(self, spec, prefix):
         which("bash")("autogen.sh")
 
     def configure_args(self):
-        args = []
-        py_path = self.spec["python"].command.path
-        args.append("--with-python={0}".format(py_path))
+        args = [f"--with-python={self.spec['python'].command.path}"]
 
-        if "+docs" in self.spec:
-            sphinx_bin = "{0}".format(self.spec["py-sphinx"].prefix.bin)
+        if self.spec.satisfies("+docs"):
+            sphinx_bin = f"{self.spec['py-sphinx'].prefix.bin}"
             args.append("--enable-html")
-            args.append("--with-sphinx-build={0}".format(sphinx_bin.join("sphinx-build")))
+            args.append(f"--with-sphinx-build={sphinx_bin.join('sphinx-build')}")
         else:
             args.append("--disable-html")
 
-        if "+squashfuse" in self.spec:
-            squashfuse_prefix = "{0}".format(self.spec["squashfuse"].prefix)
-            args.append("--with-libsquashfuse={0}".format(squashfuse_prefix))
+        if self.spec.satisfies("+squashfuse"):
+            args.append(f"--with-libsquashfuse={self.spec['squashfuse'].prefix}")
+        else:
+            args.append("--with-libsquashfuse=no")
 
         return args
+
+    # libexec/charliecloud/sotest/bin/sotest misses an rpath, but shouldn't be problematic.
+    unresolved_libraries = ["libsotest.so.*"]

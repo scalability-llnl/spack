@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PyBioblend(PythonPackage):
 
     homepage = "https://bioblend.readthedocs.io"
     pypi = "bioblend/bioblend-1.0.0.tar.gz"
+
+    license("MIT")
 
     version("1.0.0", sha256="3794288bbf891ae6edc1bcdd9618a3ae16b6ed4a04c946505f7e29f2f28898a5")
 

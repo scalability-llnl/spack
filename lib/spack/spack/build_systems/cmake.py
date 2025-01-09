@@ -1,25 +1,31 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections.abc
-import inspect
 import os
 import pathlib
 import platform
 import re
 import sys
-from typing import List, Optional, Tuple
+from itertools import chain
+from typing import Any, List, Optional, Tuple
 
 import llnl.util.filesystem as fs
+from llnl.util.lang import stable_partition
 
-import spack.build_environment
 import spack.builder
+import spack.deptypes as dt
+import spack.error
 import spack.package_base
+import spack.phase_callbacks
+import spack.spec
+import spack.util.prefix
+from spack import traverse
 from spack.directives import build_system, conflicts, depends_on, variant
 from spack.multimethod import when
+from spack.util.environment import filter_system_paths
 
-from ._checks import BaseBuilder, execute_build_time_tests
+from ._checks import BuilderWithDefaults, execute_build_time_tests
 
 # Regex to extract the primary generator from the CMake generator
 # string.
@@ -31,11 +37,95 @@ def _extract_primary_generator(generator):
     primary generator from the generator string which may contain an
     optional secondary generator.
     """
-    primary_generator = _primary_generator_extractor.match(generator).group(1)
-    return primary_generator
+    return _primary_generator_extractor.match(generator).group(1)
 
 
-def generator(*names: str, default: Optional[str] = None):
+def _maybe_set_python_hints(pkg: spack.package_base.PackageBase, args: List[str]) -> None:
+    """Set the PYTHON_EXECUTABLE, Python_EXECUTABLE, and Python3_EXECUTABLE CMake variables
+    if the package has Python as build or link dep and ``find_python_hints`` is set to True. See
+    ``find_python_hints`` for context."""
+    if not getattr(pkg, "find_python_hints", False) or not pkg.spec.dependencies(
+        "python", dt.BUILD | dt.LINK
+    ):
+        return
+    python_executable = pkg.spec["python"].command.path
+    args.extend(
+        [
+            define("PYTHON_EXECUTABLE", python_executable),
+            define("Python_EXECUTABLE", python_executable),
+            define("Python3_EXECUTABLE", python_executable),
+        ]
+    )
+
+
+def _supports_compilation_databases(pkg: spack.package_base.PackageBase) -> bool:
+    """Check if this package (and CMake) can support compilation databases."""
+
+    # CMAKE_EXPORT_COMPILE_COMMANDS only exists for CMake >= 3.5
+    if not pkg.spec.satisfies("^cmake@3.5:"):
+        return False
+
+    # CMAKE_EXPORT_COMPILE_COMMANDS is only implemented for Makefile and Ninja generators
+    if not (pkg.spec.satisfies("generator=make") or pkg.spec.satisfies("generator=ninja")):
+        return False
+
+    return True
+
+
+def _conditional_cmake_defaults(pkg: spack.package_base.PackageBase, args: List[str]) -> None:
+    """Set a few default defines for CMake, depending on its version."""
+    cmakes = pkg.spec.dependencies("cmake", dt.BUILD)
+
+    if len(cmakes) != 1:
+        return
+
+    cmake = cmakes[0]
+
+    # CMAKE_INTERPROCEDURAL_OPTIMIZATION only exists for CMake >= 3.9
+    try:
+        ipo = pkg.spec.variants["ipo"].value
+    except KeyError:
+        ipo = False
+
+    if cmake.satisfies("@3.9:"):
+        args.append(define("CMAKE_INTERPROCEDURAL_OPTIMIZATION", ipo))
+
+    # Disable Package Registry: export(PACKAGE) may put files in the user's home directory, and
+    # find_package may search there. This is not what we want.
+
+    # Do not populate CMake User Package Registry
+    if cmake.satisfies("@3.15:"):
+        # see https://cmake.org/cmake/help/latest/policy/CMP0090.html
+        args.append(define("CMAKE_POLICY_DEFAULT_CMP0090", "NEW"))
+    elif cmake.satisfies("@3.1:"):
+        # see https://cmake.org/cmake/help/latest/variable/CMAKE_EXPORT_NO_PACKAGE_REGISTRY.html
+        args.append(define("CMAKE_EXPORT_NO_PACKAGE_REGISTRY", True))
+
+    # Do not use CMake User/System Package Registry
+    # https://cmake.org/cmake/help/latest/manual/cmake-packages.7.html#disabling-the-package-registry
+    if cmake.satisfies("@3.16:"):
+        args.append(define("CMAKE_FIND_USE_PACKAGE_REGISTRY", False))
+    elif cmake.satisfies("@3.1:3.15"):
+        args.append(define("CMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY", False))
+        args.append(define("CMAKE_FIND_PACKAGE_NO_SYSTEM_PACKAGE_REGISTRY", False))
+
+    # Export a compilation database if supported.
+    if _supports_compilation_databases(pkg):
+        args.append(define("CMAKE_EXPORT_COMPILE_COMMANDS", True))
+
+    # Enable MACOSX_RPATH by default when cmake_minimum_required < 3
+    # https://cmake.org/cmake/help/latest/policy/CMP0042.html
+    if pkg.spec.satisfies("platform=darwin") and cmake.satisfies("@3:"):
+        args.append(define("CMAKE_POLICY_DEFAULT_CMP0042", "NEW"))
+
+    # Disable find package's config mode for versions of Boost that
+    # didn't provide it. See https://github.com/spack/spack/issues/20169
+    # and https://cmake.org/cmake/help/latest/module/FindBoost.html
+    if pkg.spec.satisfies("^boost@:1.69.0"):
+        args.append(define("Boost_NO_BOOST_CMAKE", True))
+
+
+def generator(*names: str, default: Optional[str] = None) -> None:
     """The build system generator to use.
 
     See ``cmake --help`` for a list of valid generators.
@@ -67,9 +157,31 @@ def generator(*names: str, default: Optional[str] = None):
         default=default,
         values=_values,
         description="the build system generator to use",
+        when="build_system=cmake",
     )
     for x in not_used:
         conflicts(f"generator={x}")
+
+
+def get_cmake_prefix_path(pkg: spack.package_base.PackageBase) -> List[str]:
+    """Obtain the CMAKE_PREFIX_PATH entries for a package, based on the cmake_prefix_path package
+    attribute of direct build/test and transitive link dependencies."""
+    edges = traverse.traverse_topo_edges_generator(
+        traverse.with_artificial_edges([pkg.spec]),
+        visitor=traverse.MixedDepthVisitor(
+            direct=dt.BUILD | dt.TEST, transitive=dt.LINK, key=traverse.by_dag_hash
+        ),
+        key=traverse.by_dag_hash,
+        root=False,
+        all_edges=False,  # cover all nodes, not all edges
+    )
+    ordered_specs = [edge.spec for edge in edges]
+    # Separate out externals so they do not shadow Spack prefixes
+    externals, spack_built = stable_partition((s for s in ordered_specs), lambda x: x.external)
+
+    return filter_system_paths(
+        path for spec in chain(spack_built, externals) for path in spec.package.cmake_prefix_paths
+    )
 
 
 class CMakePackage(spack.package_base.PackageBase):
@@ -85,6 +197,13 @@ class CMakePackage(spack.package_base.PackageBase):
 
     #: Legacy buildsystem attribute used to deserialize and install old specs
     legacy_buildsystem = "cmake"
+
+    #: When this package depends on Python and ``find_python_hints`` is set to True, pass the
+    #: defines {Python3,Python,PYTHON}_EXECUTABLE explicitly, so that CMake locates the right
+    #: Python in its builtin FindPython3, FindPython, and FindPythonInterp modules. Spack does
+    #: CMake's job because CMake's modules by default only search for Python versions known at the
+    #: time of release.
+    find_python_hints = True
 
     build_system("cmake")
 
@@ -156,15 +275,15 @@ class CMakePackage(spack.package_base.PackageBase):
 
     # Legacy methods (used by too many packages to change them,
     # need to forward to the builder)
-    def define(self, *args, **kwargs):
-        return self.builder.define(*args, **kwargs)
+    def define(self, cmake_var: str, value: Any) -> str:
+        return define(cmake_var, value)
 
-    def define_from_variant(self, *args, **kwargs):
-        return self.builder.define_from_variant(*args, **kwargs)
+    def define_from_variant(self, cmake_var: str, variant: Optional[str] = None) -> str:
+        return define_from_variant(self, cmake_var, variant)
 
 
 @spack.builder.builder("cmake")
-class CMakeBuilder(BaseBuilder):
+class CMakeBuilder(BuilderWithDefaults):
     """The cmake builder encodes the default way of building software with CMake. IT
     has three phases that can be overridden:
 
@@ -214,12 +333,15 @@ class CMakeBuilder(BaseBuilder):
     build_time_test_callbacks = ["check"]
 
     @property
-    def archive_files(self):
+    def archive_files(self) -> List[str]:
         """Files to archive for packages based on CMake"""
-        return [os.path.join(self.build_directory, "CMakeCache.txt")]
+        files = [os.path.join(self.build_directory, "CMakeCache.txt")]
+        if _supports_compilation_databases(self.pkg):
+            files.append(os.path.join(self.build_directory, "compile_commands.json"))
+        return files
 
     @property
-    def root_cmakelists_dir(self):
+    def root_cmakelists_dir(self) -> str:
         """The relative path to the directory containing CMakeLists.txt
 
         This path is relative to the root of the extracted tarball,
@@ -228,25 +350,28 @@ class CMakeBuilder(BaseBuilder):
         return self.pkg.stage.source_path
 
     @property
-    def generator(self):
+    def generator(self) -> str:
         if self.spec.satisfies("generator=make"):
             return "Unix Makefiles"
         if self.spec.satisfies("generator=ninja"):
             return "Ninja"
-        msg = f'{self.spec.format()} has an unsupported value for the "generator" variant'
-        raise ValueError(msg)
+        raise ValueError(
+            f'{self.spec.format()} has an unsupported value for the "generator" variant'
+        )
 
     @property
-    def std_cmake_args(self):
+    def std_cmake_args(self) -> List[str]:
         """Standard cmake arguments provided as a property for
         convenience of package writers
         """
-        std_cmake_args = CMakeBuilder.std_args(self.pkg, generator=self.generator)
-        std_cmake_args += getattr(self.pkg, "cmake_flag_args", [])
-        return std_cmake_args
+        args = CMakeBuilder.std_args(self.pkg, generator=self.generator)
+        args += getattr(self.pkg, "cmake_flag_args", [])
+        return args
 
     @staticmethod
-    def std_args(pkg, generator=None):
+    def std_args(
+        pkg: spack.package_base.PackageBase, generator: Optional[str] = None
+    ) -> List[str]:
         """Computes the standard cmake arguments for a generic package"""
         default_generator = "Ninja" if sys.platform == "win32" else "Unix Makefiles"
         generator = generator or default_generator
@@ -256,29 +381,29 @@ class CMakeBuilder(BaseBuilder):
             msg = "Invalid CMake generator: '{0}'\n".format(generator)
             msg += "CMakePackage currently supports the following "
             msg += "primary generators: '{0}'".format("', '".join(valid_primary_generators))
-            raise spack.package_base.InstallError(msg)
+            raise spack.error.InstallError(msg)
 
         try:
             build_type = pkg.spec.variants["build_type"].value
         except KeyError:
             build_type = "RelWithDebInfo"
 
-        try:
-            ipo = pkg.spec.variants["ipo"].value
-        except KeyError:
-            ipo = False
-
-        define = CMakeBuilder.define
         args = [
             "-G",
             generator,
             define("CMAKE_INSTALL_PREFIX", pathlib.Path(pkg.prefix).as_posix()),
+            define("CMAKE_INSTALL_RPATH_USE_LINK_PATH", True),
+            # only include the install prefix lib dirs; rpaths for deps are added by USE_LINK_PATH
+            define(
+                "CMAKE_INSTALL_RPATH",
+                [
+                    pathlib.Path(pkg.prefix, "lib").as_posix(),
+                    pathlib.Path(pkg.prefix, "lib64").as_posix(),
+                ],
+            ),
+            define("CMAKE_PREFIX_PATH", get_cmake_prefix_path(pkg)),
             define("CMAKE_BUILD_TYPE", build_type),
         ]
-
-        # CMAKE_INTERPROCEDURAL_OPTIMIZATION only exists for CMake >= 3.9
-        if pkg.spec.satisfies("^cmake@3.9:"):
-            args.append(define("CMAKE_INTERPROCEDURAL_OPTIMIZATION", ipo))
 
         if primary_generator == "Unix Makefiles":
             args.append(define("CMAKE_VERBOSE_MAKEFILE", True))
@@ -288,164 +413,37 @@ class CMakeBuilder(BaseBuilder):
                 [define("CMAKE_FIND_FRAMEWORK", "LAST"), define("CMAKE_FIND_APPBUNDLE", "LAST")]
             )
 
-        # Set up CMake rpath
-        args.extend(
-            [
-                define("CMAKE_INSTALL_RPATH_USE_LINK_PATH", True),
-                define("CMAKE_INSTALL_RPATH", spack.build_environment.get_rpaths(pkg)),
-                define("CMAKE_PREFIX_PATH", spack.build_environment.get_cmake_prefix_path(pkg)),
-            ]
-        )
+        _conditional_cmake_defaults(pkg, args)
+        _maybe_set_python_hints(pkg, args)
 
         return args
 
     @staticmethod
-    def define_cuda_architectures(pkg):
-        """Returns the str ``-DCMAKE_CUDA_ARCHITECTURES:STRING=(expanded cuda_arch)``.
-
-        ``cuda_arch`` is variant composed of a list of target CUDA architectures and
-        it is declared in the cuda package.
-
-        This method is no-op for cmake<3.18 and when ``cuda_arch`` variant is not set.
-
-        """
-        cmake_flag = str()
-        if "cuda_arch" in pkg.spec.variants and pkg.spec.satisfies("^cmake@3.18:"):
-            cmake_flag = CMakeBuilder.define(
-                "CMAKE_CUDA_ARCHITECTURES", pkg.spec.variants["cuda_arch"].value
-            )
-
-        return cmake_flag
+    def define_cuda_architectures(pkg: spack.package_base.PackageBase) -> str:
+        return define_cuda_architectures(pkg)
 
     @staticmethod
-    def define_hip_architectures(pkg):
-        """Returns the str ``-DCMAKE_HIP_ARCHITECTURES:STRING=(expanded amdgpu_target)``.
-
-        ``amdgpu_target`` is variant composed of a list of the target HIP
-        architectures and it is declared in the rocm package.
-
-        This method is no-op for cmake<3.18 and when ``amdgpu_target`` variant is
-        not set.
-
-        """
-        cmake_flag = str()
-        if "amdgpu_target" in pkg.spec.variants and pkg.spec.satisfies("^cmake@3.21:"):
-            cmake_flag = CMakeBuilder.define(
-                "CMAKE_HIP_ARCHITECTURES", pkg.spec.variants["amdgpu_target"].value
-            )
-
-        return cmake_flag
+    def define_hip_architectures(pkg: spack.package_base.PackageBase) -> str:
+        return define_hip_architectures(pkg)
 
     @staticmethod
-    def define(cmake_var, value):
-        """Return a CMake command line argument that defines a variable.
+    def define(cmake_var: str, value: Any) -> str:
+        return define(cmake_var, value)
 
-        The resulting argument will convert boolean values to OFF/ON
-        and lists/tuples to CMake semicolon-separated string lists. All other
-        values will be interpreted as strings.
-
-        Examples:
-
-            .. code-block:: python
-
-                [define('BUILD_SHARED_LIBS', True),
-                 define('CMAKE_CXX_STANDARD', 14),
-                 define('swr', ['avx', 'avx2'])]
-
-            will generate the following configuration options:
-
-            .. code-block:: console
-
-                ["-DBUILD_SHARED_LIBS:BOOL=ON",
-                 "-DCMAKE_CXX_STANDARD:STRING=14",
-                 "-DSWR:STRING=avx;avx2]
-
-        """
-        # Create a list of pairs. Each pair includes a configuration
-        # option and whether or not that option is activated
-        if isinstance(value, bool):
-            kind = "BOOL"
-            value = "ON" if value else "OFF"
-        else:
-            kind = "STRING"
-            if isinstance(value, collections.abc.Sequence) and not isinstance(value, str):
-                value = ";".join(str(v) for v in value)
-            else:
-                value = str(value)
-
-        return "".join(["-D", cmake_var, ":", kind, "=", value])
-
-    def define_from_variant(self, cmake_var, variant=None):
-        """Return a CMake command line argument from the given variant's value.
-
-        The optional ``variant`` argument defaults to the lower-case transform
-        of ``cmake_var``.
-
-        This utility function is similar to
-        :meth:`~spack.build_systems.autotools.AutotoolsBuilder.with_or_without`.
-
-        Examples:
-
-            Given a package with:
-
-            .. code-block:: python
-
-                variant('cxxstd', default='11', values=('11', '14'),
-                        multi=False, description='')
-                variant('shared', default=True, description='')
-                variant('swr', values=any_combination_of('avx', 'avx2'),
-                        description='')
-
-            calling this function like:
-
-            .. code-block:: python
-
-                [self.define_from_variant('BUILD_SHARED_LIBS', 'shared'),
-                 self.define_from_variant('CMAKE_CXX_STANDARD', 'cxxstd'),
-                 self.define_from_variant('SWR')]
-
-            will generate the following configuration options:
-
-            .. code-block:: console
-
-                ["-DBUILD_SHARED_LIBS:BOOL=ON",
-                 "-DCMAKE_CXX_STANDARD:STRING=14",
-                 "-DSWR:STRING=avx;avx2]
-
-            for ``<spec-name> cxxstd=14 +shared swr=avx,avx2``
-
-        Note: if the provided variant is conditional, and the condition is not met,
-                this function returns an empty string. CMake discards empty strings
-                provided on the command line.
-        """
-
-        if variant is None:
-            variant = cmake_var.lower()
-
-        if variant not in self.pkg.variants:
-            raise KeyError('"{0}" is not a variant of "{1}"'.format(variant, self.pkg.name))
-
-        if variant not in self.pkg.spec.variants:
-            return ""
-
-        value = self.pkg.spec.variants[variant].value
-        if isinstance(value, (tuple, list)):
-            # Sort multi-valued variants for reproducibility
-            value = sorted(value)
-
-        return self.define(cmake_var, value)
+    def define_from_variant(self, cmake_var: str, variant: Optional[str] = None) -> str:
+        return define_from_variant(self.pkg, cmake_var, variant)
 
     @property
-    def build_dirname(self):
+    def build_dirname(self) -> str:
         """Directory name to use when building the package."""
-        return "spack-build-%s" % self.pkg.spec.dag_hash(7)
+        return f"spack-build-{self.pkg.spec.dag_hash(7)}"
 
     @property
-    def build_directory(self):
+    def build_directory(self) -> str:
         """Full-path to the directory to use when building the package."""
         return os.path.join(self.pkg.stage.path, self.build_dirname)
 
-    def cmake_args(self):
+    def cmake_args(self) -> List[str]:
         """List of all the arguments that must be passed to cmake, except:
 
             * CMAKE_INSTALL_PREFIX
@@ -455,34 +453,56 @@ class CMakeBuilder(BaseBuilder):
         """
         return []
 
-    def cmake(self, pkg, spec, prefix):
+    def cmake(
+        self,
+        pkg: spack.package_base.PackageBase,
+        spec: spack.spec.Spec,
+        prefix: spack.util.prefix.Prefix,
+    ) -> None:
         """Runs ``cmake`` in the build directory"""
+
+        # skip cmake phase if it is an incremental develop build
+        if spec.is_develop and os.path.isfile(
+            os.path.join(self.build_directory, "CMakeCache.txt")
+        ):
+            return
+
         options = self.std_cmake_args
         options += self.cmake_args()
         options.append(os.path.abspath(self.root_cmakelists_dir))
         with fs.working_dir(self.build_directory, create=True):
-            inspect.getmodule(self.pkg).cmake(*options)
+            pkg.module.cmake(*options)
 
-    def build(self, pkg, spec, prefix):
+    def build(
+        self,
+        pkg: spack.package_base.PackageBase,
+        spec: spack.spec.Spec,
+        prefix: spack.util.prefix.Prefix,
+    ) -> None:
         """Make the build targets"""
         with fs.working_dir(self.build_directory):
             if self.generator == "Unix Makefiles":
-                inspect.getmodule(self.pkg).make(*self.build_targets)
+                pkg.module.make(*self.build_targets)
             elif self.generator == "Ninja":
                 self.build_targets.append("-v")
-                inspect.getmodule(self.pkg).ninja(*self.build_targets)
+                pkg.module.ninja(*self.build_targets)
 
-    def install(self, pkg, spec, prefix):
+    def install(
+        self,
+        pkg: spack.package_base.PackageBase,
+        spec: spack.spec.Spec,
+        prefix: spack.util.prefix.Prefix,
+    ) -> None:
         """Make the install targets"""
         with fs.working_dir(self.build_directory):
             if self.generator == "Unix Makefiles":
-                inspect.getmodule(self.pkg).make(*self.install_targets)
+                pkg.module.make(*self.install_targets)
             elif self.generator == "Ninja":
-                inspect.getmodule(self.pkg).ninja(*self.install_targets)
+                pkg.module.ninja(*self.install_targets)
 
-    spack.builder.run_after("build")(execute_build_time_tests)
+    spack.phase_callbacks.run_after("build")(execute_build_time_tests)
 
-    def check(self):
+    def check(self) -> None:
         """Search the CMake-generated files for the targets ``test`` and ``check``,
         and runs them if found.
         """
@@ -493,3 +513,133 @@ class CMakeBuilder(BaseBuilder):
             elif self.generator == "Ninja":
                 self.pkg._if_ninja_target_execute("test", jobs_env="CTEST_PARALLEL_LEVEL")
                 self.pkg._if_ninja_target_execute("check")
+
+
+def define(cmake_var: str, value: Any) -> str:
+    """Return a CMake command line argument that defines a variable.
+
+    The resulting argument will convert boolean values to OFF/ON and lists/tuples to CMake
+    semicolon-separated string lists. All other values will be interpreted as strings.
+
+    Examples:
+
+        .. code-block:: python
+
+            [define("BUILD_SHARED_LIBS", True),
+                define("CMAKE_CXX_STANDARD", 14),
+                define("swr", ["avx", "avx2"])]
+
+        will generate the following configuration options:
+
+        .. code-block:: console
+
+            ["-DBUILD_SHARED_LIBS:BOOL=ON",
+                "-DCMAKE_CXX_STANDARD:STRING=14",
+                "-DSWR:STRING=avx;avx2]
+
+    """
+    # Create a list of pairs. Each pair includes a configuration
+    # option and whether or not that option is activated
+    if isinstance(value, bool):
+        kind = "BOOL"
+        value = "ON" if value else "OFF"
+    else:
+        kind = "STRING"
+        if isinstance(value, collections.abc.Sequence) and not isinstance(value, str):
+            value = ";".join(str(v) for v in value)
+        else:
+            value = str(value)
+
+    return "".join(["-D", cmake_var, ":", kind, "=", value])
+
+
+def define_from_variant(
+    pkg: spack.package_base.PackageBase, cmake_var: str, variant: Optional[str] = None
+) -> str:
+    """Return a CMake command line argument from the given variant's value.
+
+    The optional ``variant`` argument defaults to the lower-case transform
+    of ``cmake_var``.
+
+    Examples:
+
+        Given a package with:
+
+        .. code-block:: python
+
+            variant("cxxstd", default="11", values=("11", "14"),
+                    multi=False, description="")
+            variant("shared", default=True, description="")
+            variant("swr", values=any_combination_of("avx", "avx2"),
+                    description="")
+
+        calling this function like:
+
+        .. code-block:: python
+
+            [
+                self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
+                self.define_from_variant("CMAKE_CXX_STANDARD", "cxxstd"),
+                self.define_from_variant("SWR"),
+            ]
+
+        will generate the following configuration options:
+
+        .. code-block:: console
+
+            [
+                "-DBUILD_SHARED_LIBS:BOOL=ON",
+                "-DCMAKE_CXX_STANDARD:STRING=14",
+                "-DSWR:STRING=avx;avx2",
+            ]
+
+        for ``<spec-name> cxxstd=14 +shared swr=avx,avx2``
+
+    Note: if the provided variant is conditional, and the condition is not met, this function
+        returns an empty string. CMake discards empty strings provided on the command line.
+    """
+    if variant is None:
+        variant = cmake_var.lower()
+
+    if not pkg.has_variant(variant):
+        raise KeyError('"{0}" is not a variant of "{1}"'.format(variant, pkg.name))
+
+    if variant not in pkg.spec.variants:
+        return ""
+
+    value = pkg.spec.variants[variant].value
+    if isinstance(value, (tuple, list)):
+        # Sort multi-valued variants for reproducibility
+        value = sorted(value)
+
+    return define(cmake_var, value)
+
+
+def define_hip_architectures(pkg: spack.package_base.PackageBase) -> str:
+    """Returns the str ``-DCMAKE_HIP_ARCHITECTURES:STRING=(expanded amdgpu_target)``.
+
+    ``amdgpu_target`` is variant composed of a list of the target HIP
+    architectures and it is declared in the rocm package.
+
+    This method is no-op for cmake<3.18 and when ``amdgpu_target`` variant is
+    not set.
+
+    """
+    if "amdgpu_target" in pkg.spec.variants and pkg.spec.satisfies("^cmake@3.21:"):
+        return define("CMAKE_HIP_ARCHITECTURES", pkg.spec.variants["amdgpu_target"].value)
+
+    return ""
+
+
+def define_cuda_architectures(pkg: spack.package_base.PackageBase) -> str:
+    """Returns the str ``-DCMAKE_CUDA_ARCHITECTURES:STRING=(expanded cuda_arch)``.
+
+    ``cuda_arch`` is variant composed of a list of target CUDA architectures and
+    it is declared in the cuda package.
+
+    This method is no-op for cmake<3.18 and when ``cuda_arch`` variant is not set.
+
+    """
+    if "cuda_arch" in pkg.spec.variants and pkg.spec.satisfies("^cmake@3.18:"):
+        return define("CMAKE_CUDA_ARCHITECTURES", pkg.spec.variants["cuda_arch"].value)
+    return ""

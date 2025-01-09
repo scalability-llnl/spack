@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,23 +13,33 @@ class Openfast(CMakePackage):
 
     maintainers("jrood-nrel")
 
+    license("Apache-2.0")
+
     version("develop", branch="dev")
     version("master", branch="main")
-    version("3.4.1", tag="v3.4.1", commit="18704086dad861ab13daf804825da7c4b8d59428")
-    version("3.4.0", tag="v3.4.0", commit="e8ec53f9c7f9d3f6a13bfb61dba12a0ca04d8a2f")
-    version("3.3.0", tag="v3.3.0", commit="5f3fb6ef74f48e75ca94000090737a41866fb264")
-    version("3.2.1", tag="v3.2.1", commit="08fffef240461a8334596179f1de462be43ad3e9")
-    version("3.2.0", tag="v3.2.0", commit="90a1ffb626baf398d89681b9422bdbfef11cd3ad")
-    version("3.1.0", tag="v3.1.0", commit="3456a645581456883e44d441eb285ed688e98797")
-    version("3.0.0", tag="v3.0.0", commit="42a5a8196529ae0349eda6d797a79461c2c03ff0")
-    version("2.6.0", tag="v2.6.0", commit="bbbb1ca7b28a4ba411613b5c85f5de02f8316754")
-    version("2.5.0", tag="v2.5.0", commit="718d46f707d78e85edf1b49d3b1a63e8e23e1aae")
-    version("2.4.0", tag="v2.4.0", commit="ff33ca1cf65f2e13c1de0ab78cc2396ec4a47ce0")
-    version("2.3.0", tag="v2.3.0", commit="f2419c5d1c23caad9146b95a103d89e9dcaefe30")
-    version("2.2.0", tag="v2.2.0", commit="e4faf27b774982df274b87c0570e4b58c4a13fe3")
-    version("2.1.0", tag="v2.1.0", commit="f147b80521eff90c19f065eabeceac13de39ac59")
-    version("2.0.0", tag="v2.0.0", commit="0769598a17e19b3ccd00a85cde389995f55024a8")
-    version("1.0.0", tag="v1.0.0", commit="e788b9b18bd5ed96ea59d4bc0812d461bc430cfe")
+    version("3.5.4", tag="v3.5.4")
+    version("3.5.3", tag="v3.5.3")
+    version("3.4.1", tag="v3.4.1")
+    version("3.4.0", tag="v3.4.0")
+    version("3.3.0", tag="v3.3.0")
+    version("3.2.1", tag="v3.2.1")
+    version("3.2.0", tag="v3.2.0")
+    version("3.1.0", tag="v3.1.0")
+    version("3.0.0", tag="v3.0.0")
+    version("2.6.0", tag="v2.6.0")
+    version("2.5.0", tag="v2.5.0")
+    version("2.4.0", tag="v2.4.0")
+    version("2.3.0", tag="v2.3.0")
+    version("2.2.0", tag="v2.2.0")
+    version("2.1.0", tag="v2.1.0")
+    version("2.0.0", tag="v2.0.0")
+    version("1.0.0", tag="v1.0.0")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
+    patch("hub_seg_fault.patch", when="@2.7:3.2")
 
     variant("shared", default=True, description="Build shared libraries")
     variant("double-precision", default=True, description="Treat REAL as double precision")
@@ -39,18 +48,21 @@ class Openfast(CMakePackage):
     variant("pic", default=True, description="Position independent code")
     variant("openmp", default=False, description="Enable OpenMP support")
     variant("netcdf", default=False, description="Enable NetCDF support")
+    variant("rosco", default=False, description="Build ROSCO controller")
+    variant("fastfarm", default=False, description="Enable FAST.Farm capabilities")
+    variant("fpe-trap", default=False, description="Enable FPE trap in compiler options")
 
-    # Dependencies for OpenFAST Fortran
     depends_on("blas")
     depends_on("lapack")
-
-    # Additional dependencies when compiling C++ library
     depends_on("mpi", when="+cxx")
-    depends_on("yaml-cpp", when="+cxx")
+    depends_on("yaml-cpp@0.6.0:0.6.3", when="+cxx")
     depends_on("hdf5+mpi+cxx+hl", when="+cxx")
     depends_on("zlib-api", when="+cxx")
     depends_on("libxml2", when="+cxx")
     depends_on("netcdf-c", when="+cxx+netcdf")
+    depends_on("rosco", when="+rosco")
+
+    conflicts("~cxx", when="+netcdf")
 
     def cmake_args(self):
         spec = self.spec
@@ -65,7 +77,10 @@ class Openfast(CMakePackage):
                 self.define_from_variant("DOUBLE_PRECISION", "double-precision"),
                 self.define_from_variant("USE_DLL_INTERFACE", "dll-interface"),
                 self.define_from_variant("BUILD_OPENFAST_CPP_API", "cxx"),
+                self.define_from_variant("BUILD_OPENFAST_CPP_DRIVER", "cxx"),
                 self.define_from_variant("CMAKE_POSITION_INDEPENDENT_CODE", "pic"),
+                self.define_from_variant("BUILD_FASTFARM", "fastfarm"),
+                self.define_from_variant("FPE_TRAP_ENABLED", "fpe-trap"),
             ]
         )
 

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -26,8 +25,20 @@ class Metis(CMakePackage, MakefilePackage):
     # not a metis developer, just package reviewer!
     maintainers("mthcrts")
 
+    license("Apache-2.0")
+
     version("5.1.0", sha256="76faebe03f6c963127dbb73c13eab58c9a3faeae48779f049066a21c087c5db2")
     version("4.0.3", sha256="5efa35de80703c1b2c4d0de080fafbcf4e0d363a21149a1ad2f96e0144841a55")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
+    variant(
+        "no_warning",
+        default=False,
+        description="Disable failed partition warning print on all ranks",
+    )
+    patch("no_warning.patch", when="@5:+no_warning")
 
     build_system(
         conditional("cmake", when="@5:"), conditional("makefile", when="@:4"), default="cmake"
@@ -96,12 +107,32 @@ class SetupEnvironment:
 
 class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder, SetupEnvironment):
     @property
-    def build_targets(self):
+    def compile_options(self):
         options = []
         if "+shared" in self.spec:
-            options.append("COPTIONS={0}".format(self.pkg.compiler.cc_pic_flag))
+            options.append(self.pkg.compiler.cc_pic_flag)
+        if self.spec.satisfies("%cce@17:"):
+            options.append("-std=c89")
+        return options
+
+    @property
+    def optimize_options(self):
+        options = []
         if "+debug" in self.spec:
-            options.append("OPTFLAGS=-g -O0")
+            options.extend(["-g", "-O0"])
+        else:
+            options.append("-O2")  # default in Makefile.in
+        return options
+
+    @property
+    def build_targets(self):
+        options = []
+        copts = self.compile_options
+        oopts = self.optimize_options
+        if copts:
+            options.append("COPTIONS={0}".format(" ".join(copts)))
+        if oopts:
+            options.append("OPTFLAGS={0}".format(" ".join(oopts)))
         return options
 
     def install(self, pkg, spec, prefix):
@@ -154,6 +185,8 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder, SetupEnviron
 
         # Set up and run tests on installation
         ccompile(
+            *self.compile_options,
+            *self.optimize_options,
             "-I%s" % prefix.include,
             "-L%s" % prefix.lib,
             (pkg.compiler.cc_rpath_arg + prefix.lib if "+shared" in spec else ""),

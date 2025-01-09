@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,8 @@ class PyKaggle(PythonPackage):
 
     homepage = "https://github.com/Kaggle/kaggle-api"
     pypi = "kaggle/kaggle-1.5.12.tar.gz"
+
+    license("Apache-2.0")
 
     version("1.5.12", sha256="b4d87d107bff743aaa805c2b382c3661c4c175cdb159656d4972be2a9cef42cb")
 

@@ -1,0 +1,37 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 7d6ef668..7a1c4702 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -222,11 +222,13 @@ endif(EXAGO_ENABLE_GPU)
+ if(EXAGO_ENABLE_PETSC)
+   include(FindPkgConfig)
+   # Include petsc package path in pkg_config_path
++  set(PKG_CONFIG_PATH_save $ENV{PKG_CONFIG_PATH})
+   set(ENV{PKG_CONFIG_PATH}
+       ${PETSC_DIR}/lib/pkgconfig:${PETSC_DIR}/${PETSC_ARCH}/lib/pkgconfig
+   )
+   pkg_check_modules(PETSC REQUIRED IMPORTED_TARGET PETSc)
+   set(EXAGO_HAVE_PETSC 1)
++  set(ENV{PKG_CONFIG_PATH} ${PKG_CONFIG_PATH_save})
+ endif()
+ 
+ # Set install rpath to the locations where EXAGO and PETSc libraries reside.
+@@ -394,12 +396,15 @@ else()
+   endif()
+ endif()
+ 
+-include(ExaGOCheckPython)
+ if(EXAGO_ENABLE_PYTHON)
++  include(ExaGOCheckPython)
+   # Build pybind11 target manually
+   add_subdirectory(tpl/pybind11)
+   add_subdirectory(interfaces/python)
+ endif()
+ 
+-# Build tests
+-add_subdirectory(tests)
++if(EXAGO_RUN_TESTS)
++  # Build tests
++  add_subdirectory(tests)
++endif()
++

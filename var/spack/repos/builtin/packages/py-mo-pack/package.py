@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PyMoPack(PythonPackage):
 
     homepage = "https://github.com/SciTools/mo_pack"
     url = "https://github.com/SciTools/mo_pack/archive/v0.2.0.tar.gz"
+
+    license("LGPL-3.0-only")
 
     version("0.2.0", sha256="4aa70e1f846b666670843bc2514435dedf7393203e88abaf74d48f8f2717a726")
 

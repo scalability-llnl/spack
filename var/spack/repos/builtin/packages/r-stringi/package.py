@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,9 @@ class RStringi(RPackage):
 
     cran = "stringi"
 
+    license("custom")
+
+    version("1.8.4", sha256="c219f8f64d1a2bfd4ca9528452d44d30db1899af14f4b9ef248412443bc669f3")
     version("1.7.12", sha256="efe8ac2900001f986a75db5641fbb24587a6d23de274a6a85c39dfa58921e009")
     version("1.7.8", sha256="538918b1cd6ed1d8a2dd5ab146ba800a088e99f93c52dcd82615b6e127478b1c")
     version("1.7.6", sha256="0ea3d5afec5701977ff53de9afbaceb53b00aa34f5fb641cadc1eeb7759119ec")
@@ -34,6 +36,7 @@ class RStringi(RPackage):
 
     depends_on("r@2.14:", type=("build", "run"))
     depends_on("r@3.1:", type=("build", "run"), when="@1.6.1:")
+    depends_on("r@3.4:", type=("build", "run"), when="@1.8.1:")
     depends_on("icu4c@52:")
     depends_on("icu4c@55:", when="@1.5.3:")
     # since version 1.6.1 there is also a SystemRequirement on C++11

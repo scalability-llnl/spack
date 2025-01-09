@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,9 @@ class RFda(RPackage):
 
     cran = "fda"
 
+    license("GPL-2.0-or-later")
+
+    version("6.1.8", sha256="ef8d858a2879491aa2c441d171ba14462bf27852d16e8420fa49aab83f42c407")
     version("6.0.5", sha256="14445776fc65284cd6cae98e5b4dd14c2626d96db5f78c0fcc6aabce5419b8f1")
     version("6.0.3", sha256="205814b9812664e8201221f99e0e8391aa49dba2ae287dc404c57c0c492477d3")
     version("5.5.1", sha256="dcaa2f6ae226d35855bc79c6967f60d45404b984c0afaec215b139c4b8dea23a")

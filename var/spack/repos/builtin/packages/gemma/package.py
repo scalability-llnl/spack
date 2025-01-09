@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,7 +15,11 @@ class Gemma(MakefilePackage):
 
     maintainers("snehring", "dlkuehn")
 
+    license("GPL-3.0-or-later")
+
     version("0.98.5", sha256="3ed336deee29e370f96ec8f1a240f7b62550e57dcd1694245ce7ec8f42241677")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("zlib-api")
     # openblas is the default

@@ -1,7 +1,8 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
+import os
 
 from spack.package import *
 
@@ -14,9 +15,13 @@ class Dbcsr(CMakePackage, CudaPackage, ROCmPackage):
     url = "https://github.com/cp2k/dbcsr/releases/download/v2.2.0/dbcsr-2.2.0.tar.gz"
     list_url = "https://github.com/cp2k/dbcsr/releases"
 
-    maintainers("dev-zero", "mtaillefumier")
+    maintainers("dev-zero", "mtaillefumier", "RMeli")
+
+    license("GPL-2.0-or-later")
 
     version("develop", branch="develop")
+    version("2.8.0", sha256="d55e4f052f28d1ed0faeaa07557241439243287a184d1fd27f875c8b9ca6bd96")
+    version("2.7.0", sha256="25c367b49fb108c5230bcfb127f05fc16deff2bb467f437023dfa6045aff66f6")
     version("2.6.0", sha256="c67b02ff9abc7c1f529af446a9f01f3ef9e5b0574f220259128da8d5ca7e9dc6")
     version("2.5.0", sha256="91fda9b2502e5d0a2a6cdd5a73ef096253cc7e75bd01ba5189a4726ad86aef08")
     version("2.4.1", sha256="b3d5ae62ca582b72707a2c932e8074a4f2f61d61085d97bd374213c70b8dbdcf")
@@ -25,6 +30,10 @@ class Dbcsr(CMakePackage, CudaPackage, ROCmPackage):
     version("2.2.0", sha256="245b0382ddc7b80f85af8288f75bd03d56ec51cdfb6968acb4931529b35173ec")
     version("2.1.0", sha256="9e58fd998f224632f356e479d18b5032570d00d87b86736b6a6ac2d03f8d4b3c")
     version("2.0.1", sha256="61d5531b661e1dab043353a1d67939ddcde3893d3dc7b0ab3d05074d448b485c")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("mpi", default=True, description="Compile with MPI")
     variant("openmp", default=False, description="Build with OpenMP support")
@@ -44,14 +53,21 @@ class Dbcsr(CMakePackage, CudaPackage, ROCmPackage):
             " with cuda_arch=35 for a K20x instead of a K40"
         ),
     )
+    variant("examples", default=True, description="Build examples")
 
     variant("opencl", default=False, description="Enable OpenCL backend")
     variant("mpi_f08", default=False, when="@2.6:", description="Use mpi F08 module")
 
+    variant("g2g", default=False, description="GPU-aware MPI with CUDA/HIP")
+    conflicts("+g2g", when="~cuda ~rocm", msg="GPU-aware MPI requires +cuda or +rocm")
+
     depends_on("blas")
     depends_on("lapack")
     depends_on("mpi", when="+mpi")
-    depends_on("libxsmm@1.11:~header-only", when="smm=libxsmm")
+
+    with when("smm=libxsmm"):
+        depends_on("libxsmm~header-only")
+        depends_on("libxsmm@1.11:1")
 
     depends_on("cmake@3.10:", type="build")
     depends_on("cmake@3.12:", type="build", when="@2.1:")
@@ -67,11 +83,14 @@ class Dbcsr(CMakePackage, CudaPackage, ROCmPackage):
 
     depends_on("opencl", when="+opencl")
 
+    # All examples require MPI
+    conflicts("+examples", when="~mpi", msg="Examples require MPI")
+
     # We only support specific gpu archs for which we have parameter files
     # for optimal kernels. Note that we don't override the parent class arch
     # properties, since the parent class defines constraints for different archs
     # Instead just mark all unsupported cuda archs as conflicting.
-    dbcsr_cuda_archs = ("35", "37", "60", "70", "80")
+    dbcsr_cuda_archs = ("35", "37", "60", "70", "80", "90")
     cuda_msg = "dbcsr only supports cuda_arch {0}".format(dbcsr_cuda_archs)
 
     for arch in CudaPackage.cuda_arch_values:
@@ -80,8 +99,8 @@ class Dbcsr(CMakePackage, CudaPackage, ROCmPackage):
 
     conflicts("+cuda", when="cuda_arch=none", msg=cuda_msg)
 
-    dbcsr_amdgpu_targets = {"gfx906", "gfx910", "gfx90a", "gfx90a:xnack-", "gfx90a:xnack+"}
-    amd_msg = "DBCSR only supports amdgpu_target {0}".format(dbcsr_amdgpu_targets)
+    dbcsr_amdgpu_targets = ("gfx906", "gfx910", "gfx90a", "gfx90a:xnack-", "gfx90a:xnack+")
+    amd_msg = f"DBCSR supports these AMD gpu targets:  {', '.join(dbcsr_amdgpu_targets)}"
 
     for arch in ROCmPackage.amdgpu_targets:
         if arch not in dbcsr_amdgpu_targets:
@@ -104,10 +123,22 @@ class Dbcsr(CMakePackage, CudaPackage, ROCmPackage):
         # to INTEGER(8)
         conflicts("^mpich@4.1:", when="@:2.5")
         conflicts("~mpi_f08", when="^mpich@4.1:")
-        depends_on("mpich+fortran", when="^mpich")
+        depends_on("mpich+fortran", when="^[virtuals=mpi] mpich")
 
     generator("ninja")
     depends_on("ninja@1.10:", type="build")
+
+    @when("+rocm")
+    def patch(self):
+        for directory, subdirectory, files in os.walk(os.getcwd()):
+            for i in files:
+                file_path = os.path.join(directory, i)
+                filter_file("USE ISO_C_BINDING", "USE,INTRINSIC :: ISO_C_BINDING", file_path)
+                filter_file("USE ISO_FORTRAN_ENV", "USE,INTRINSIC :: ISO_FORTRAN_ENV", file_path)
+                filter_file("USE omp_lib", "USE,INTRINSIC :: omp_lib", file_path)
+                filter_file("USE OMP_LIB", "USE,INTRINSIC :: OMP_LIB", file_path)
+                filter_file("USE iso_c_binding", "USE,INTRINSIC :: iso_c_binding", file_path)
+                filter_file("USE iso_fortran_env", "USE,INTRINSIC :: iso_fortran_env", file_path)
 
     def cmake_args(self):
         spec = self.spec
@@ -129,16 +160,25 @@ class Dbcsr(CMakePackage, CudaPackage, ROCmPackage):
             "-DLAPACK_FOUND=true",
             "-DLAPACK_LIBRARIES=%s" % (spec["lapack"].libs.joined(";")),
             self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
+            self.define_from_variant("WITH_EXAMPLES", "examples"),
+            self.define_from_variant("WITH_G2G", "g2g"),
         ]
 
         # Switch necessary as a result of a bug.
-        if "@2.1:2.2" in spec:
+        if spec.satisfies("@2.1:2.2"):
             args += ["-DBUILD_TESTING=ON"]
 
         if self.spec.satisfies("+cuda"):
             cuda_arch = self.spec.variants["cuda_arch"].value[0]
 
-            gpu_map = {"35": "K40", "37": "K80", "60": "P100", "70": "V100", "80": "A100"}
+            gpu_map = {
+                "35": "K40",
+                "37": "K80",
+                "60": "P100",
+                "70": "V100",
+                "80": "A100",
+                "90": "H100",
+            }
 
             gpuver = gpu_map[cuda_arch]
             if cuda_arch == "35" and self.spec.satisfies("+cuda_arch_35_k20x"):

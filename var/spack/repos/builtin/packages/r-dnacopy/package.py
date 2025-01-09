@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,3 +24,6 @@ class RDnacopy(RPackage):
     version("1.54.0", commit="fe2657936afbce8ee03221461dff4265e3ded4c4")
     version("1.52.0", commit="2632fbecec4cef3705b85676942a59188ae9bba4")
     version("1.50.1", commit="a20153029e28c009df813dbaf13d9f519fafa4e8")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated

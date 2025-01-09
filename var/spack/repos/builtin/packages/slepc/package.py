@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,6 +21,14 @@ class Slepc(Package, CudaPackage, ROCmPackage):
     test_requires_compiler = True
 
     version("main", branch="main")
+    version("3.22.2", sha256="b60e58b2fa5eb7db05ce5e3a585811b43b1cc7cf89c32266e37b05f0cefd8899")
+    version("3.22.1", sha256="badb5cb038d09dbf1cc8f34d194673ab011c69cc46888101955c786d21c8d8c9")
+    version("3.22.0", sha256="45eb4d085875b50108c91fd9168ed17bc9158cc3b1e530ac843b26d9981c3db0")
+    version("3.21.2", sha256="306fa649750509b3957b9f9311bff5dc1d20be5c5d494dd6472584c439b931f6")
+    version("3.21.1", sha256="beb33f0a15c3ce81744b15ad09ddf84dae70dbf3475c5ef032b8549ab87d6d8a")
+    version("3.21.0", sha256="782833f0caa6585509a837ccd470265c62a1bb56ba64e54c38bde6c63d92629e")
+    version("3.20.2", sha256="125258c87360e326675238eaeb21ce2fbb3f27f4eeb1c72062043931aea05493")
+    version("3.20.1", sha256="5a36b664895881d3858d0644f56bf7bb922bdab70d732fa11cbf6442fec11806")
     version("3.20.0", sha256="780c50260a9bc9b72776cb920774800c73832370938f1d48c2ea5c66d31b7380")
     version("3.19.2", sha256="ca7ed906795971fbe35f08ee251a26b86a4442a18609b878cba00835c9d62034")
     version("3.19.1", sha256="280737e9ef762d7f0079ad3ad29913215c799ebf124651c723c1972f71fbc0db")
@@ -43,17 +50,65 @@ class Slepc(Package, CudaPackage, ROCmPackage):
     version("3.14.2", sha256="3e54578dda1f4c54d35ac27d02f70a43f6837906cb7604dbcec0e033cfb264c8")
     version("3.14.1", sha256="cc78a15e34d26b3e6dde003d4a30064e595225f6185c1975bbd460cb5edd99c7")
     version("3.14.0", sha256="37f8bb270169d1d3f5d43756ac8929d56204e596bd7a78a7daff707513472e46")
-    version("3.13.4", sha256="ddc9d58e1a4413218f4e67ea3b255b330bd389d67f394403a27caedf45afa496")
-    version("3.13.3", sha256="23d179c22b4b2f22d29fa0ac0a62f5355a964d3bc245a667e9332347c5aa8f81")
-    version("3.13.2", sha256="04cb8306cb5d4d990509710d7f8ae949bdc2c7eb850930b8d0b0b5ca99f6c70d")
-    version("3.13.1", sha256="f4a5ede4ebdee5e15153ce31c1421209c7b794bd94be1430018615fb0838b879")
-    version("3.13.0", sha256="f1f3c2d13a1a6914e7bf4746d38761e107ea866f50927b639e4ad5918dd1e53b")
-    version("3.12.2", sha256="a586ce572a928ed87f04961850992a9b8e741677397cbaa3fb028323eddf4598")
-    version("3.12.1", sha256="a1cc2e93a81c9f6b86abd81022c9d64b0dc2161e77fb54b987f963bc292e286d")
-    version("3.12.0", sha256="872831d961cf76389fafb7553231ae1a6676555850c98ea0e893c06f596b2e9e")
-    version("3.11.2", sha256="cd6a73ac0c9f689c12f2987000a7a28fa7df53fdc069fb59a2bb148699e741dd")
-    version("3.11.1", sha256="4816070d4ecfeea6212c6944cee22dc7b4763df1eaf6ab7847cc5ac5132608fb")
-    version("3.11.0", sha256="bf29043c311fe2c549a25e2b0835095723a3eebc1dff288a233b32913b5762a2")
+    version(
+        "3.13.4",
+        sha256="ddc9d58e1a4413218f4e67ea3b255b330bd389d67f394403a27caedf45afa496",
+        deprecated=True,
+    )
+    version(
+        "3.13.3",
+        sha256="23d179c22b4b2f22d29fa0ac0a62f5355a964d3bc245a667e9332347c5aa8f81",
+        deprecated=True,
+    )
+    version(
+        "3.13.2",
+        sha256="04cb8306cb5d4d990509710d7f8ae949bdc2c7eb850930b8d0b0b5ca99f6c70d",
+        deprecated=True,
+    )
+    version(
+        "3.13.1",
+        sha256="f4a5ede4ebdee5e15153ce31c1421209c7b794bd94be1430018615fb0838b879",
+        deprecated=True,
+    )
+    version(
+        "3.13.0",
+        sha256="f1f3c2d13a1a6914e7bf4746d38761e107ea866f50927b639e4ad5918dd1e53b",
+        deprecated=True,
+    )
+    version(
+        "3.12.2",
+        sha256="a586ce572a928ed87f04961850992a9b8e741677397cbaa3fb028323eddf4598",
+        deprecated=True,
+    )
+    version(
+        "3.12.1",
+        sha256="a1cc2e93a81c9f6b86abd81022c9d64b0dc2161e77fb54b987f963bc292e286d",
+        deprecated=True,
+    )
+    version(
+        "3.12.0",
+        sha256="872831d961cf76389fafb7553231ae1a6676555850c98ea0e893c06f596b2e9e",
+        deprecated=True,
+    )
+    version(
+        "3.11.2",
+        sha256="cd6a73ac0c9f689c12f2987000a7a28fa7df53fdc069fb59a2bb148699e741dd",
+        deprecated=True,
+    )
+    version(
+        "3.11.1",
+        sha256="4816070d4ecfeea6212c6944cee22dc7b4763df1eaf6ab7847cc5ac5132608fb",
+        deprecated=True,
+    )
+    version(
+        "3.11.0",
+        sha256="bf29043c311fe2c549a25e2b0835095723a3eebc1dff288a233b32913b5762a2",
+        deprecated=True,
+    )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("arpack", default=True, description="Enables Arpack wrappers")
     variant("blopex", default=False, description="Enables BLOPEX wrappers")
@@ -64,7 +119,20 @@ class Slepc(Package, CudaPackage, ROCmPackage):
 
     # Cannot mix release and development versions of SLEPc and PETSc:
     depends_on("petsc@main", when="@main")
-    for ver in ["3.20", "3.19", "3.18", "3.17", "3.16", "3.15", "3.14", "3.13", "3.12", "3.11"]:
+    for ver in [
+        "3.22",
+        "3.21",
+        "3.20",
+        "3.19",
+        "3.18",
+        "3.17",
+        "3.16",
+        "3.15",
+        "3.14",
+        "3.13",
+        "3.12",
+        "3.11",
+    ]:
         depends_on(f"petsc@{ver}", when=f"@{ver}")
     depends_on("petsc+cuda", when="+cuda")
     depends_on("arpack-ng~mpi", when="+arpack^petsc~mpi~int64")

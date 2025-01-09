@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PyEmcee(PythonPackage):
 
     homepage = "https://dan.iel.fm/emcee/current/"
     pypi = "emcee/emcee-2.2.1.tar.gz"
+
+    license("MIT")
 
     version("3.1.1", sha256="48ffc6a7f5c51760b7a836056184c7286a9959ef81b45b977b02794f1210fb5c")
     version("3.0.2", sha256="035a44d7594fdd03efd10a522558cdfaa080e046ad75594d0bf2aec80ec35388")

@@ -1,5 +1,4 @@
-.. Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-   Spack Project Developers. See the top-level COPYRIGHT file for details.
+.. Copyright Spack Project Developers. See COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -59,7 +58,7 @@ Functional Example
 ------------------
 
 The simplest fully functional standalone example of a working pipeline can be
-examined live at this example `project <https://gitlab.com/scott.wittenburg/spack-pipeline-demo>`_
+examined live at this example `project <https://gitlab.com/spack/pipeline-quickstart>`_
 on gitlab.com.
 
 Here's the ``.gitlab-ci.yml`` file from that example that builds and runs the
@@ -67,39 +66,46 @@ pipeline:
 
 .. code-block:: yaml
 
-   stages: [generate, build]
+   stages: [ "generate", "build" ]
 
    variables:
-     SPACK_REPO: https://github.com/scottwittenburg/spack.git
-     SPACK_REF: pipelines-reproducible-builds
+     SPACK_REPOSITORY: "https://github.com/spack/spack.git"
+     SPACK_REF: "develop-2024-10-06"
+     SPACK_USER_CONFIG_PATH: ${CI_PROJECT_DIR}
+     SPACK_BACKTRACE: 1
 
    generate-pipeline:
-     stage: generate
      tags:
-       - docker
+       - saas-linux-small-amd64
+     stage: generate
      image:
-       name: ghcr.io/scottwittenburg/ecpe4s-ubuntu18.04-runner-x86_64:2020-09-01
-       entrypoint: [""]
-     before_script:
-       - git clone ${SPACK_REPO}
-       - pushd spack && git checkout ${SPACK_REF} && popd
-       - . "./spack/share/spack/setup-env.sh"
+       name: ghcr.io/spack/ubuntu20.04-runner-x86_64:2023-01-01
      script:
+       - git clone ${SPACK_REPOSITORY}
+       - cd spack && git checkout ${SPACK_REF} && cd ../
+       - . "./spack/share/spack/setup-env.sh"
+       - spack --version
        - spack env activate --without-view .
-       - spack -d ci generate
+       - spack -d -v --color=always
+         ci generate
+         --check-index-only
          --artifacts-root "${CI_PROJECT_DIR}/jobs_scratch_dir"
-         --output-file "${CI_PROJECT_DIR}/jobs_scratch_dir/pipeline.yml"
+         --output-file "${CI_PROJECT_DIR}/jobs_scratch_dir/cloud-ci-pipeline.yml"
      artifacts:
        paths:
          - "${CI_PROJECT_DIR}/jobs_scratch_dir"
 
-   build-jobs:
+   build-pipeline:
      stage: build
      trigger:
        include:
-         - artifact: "jobs_scratch_dir/pipeline.yml"
+         - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
            job: generate-pipeline
        strategy: depend
+     needs:
+       - artifacts: True
+         job: generate-pipeline
+
 
 The key thing to note above is that there are two jobs: The first job to run,
 ``generate-pipeline``, runs the ``spack ci generate`` command to generate a
@@ -114,82 +120,93 @@ And here's the spack environment built by the pipeline represented as a
    spack:
      view: false
      concretizer:
-       unify: false
+       unify: true
+       reuse: false
 
      definitions:
      - pkgs:
        - zlib
-       - bzip2
-     - arch:
-       - '%gcc@7.5.0 arch=linux-ubuntu18.04-x86_64'
+       - bzip2 ~debug
+     - compiler:
+       - '%gcc'
 
      specs:
      - matrix:
        - - $pkgs
-       - - $arch
-
-     mirrors: { "mirror": "s3://spack-public/mirror" }
+       - - $compiler
 
      ci:
-       enable-artifacts-buildcache: True
-       rebuild-index: False
+       target: gitlab
+
        pipeline-gen:
        - any-job:
-           before_script:
-             - git clone ${SPACK_REPO}
-             - pushd spack && git checkout ${SPACK_CHECKOUT_VERSION} && popd
-             - . "./spack/share/spack/setup-env.sh"
-       - build-job:
-           tags: [docker]
+           tags:
+             - saas-linux-small-amd64
            image:
-             name: ghcr.io/scottwittenburg/ecpe4s-ubuntu18.04-runner-x86_64:2020-09-01
-             entrypoint: [""]
+             name: ghcr.io/spack/ubuntu20.04-runner-x86_64:2023-01-01
+           before_script:
+           - git clone ${SPACK_REPOSITORY}
+           - cd spack && git checkout ${SPACK_REF} && cd ../
+           - . "./spack/share/spack/setup-env.sh"
+           - spack --version
+           - export SPACK_USER_CONFIG_PATH=${CI_PROJECT_DIR}
+           - spack config blame mirrors
 
-
-The elements of this file important to spack ci pipelines are described in more
-detail below, but there are a couple of things to note about the above working
-example:
 
 .. note::
-   There is no ``script`` attribute specified for here. The reason for this is
-   Spack CI will automatically generate reasonable default scripts. More
-   detail on what is in these scripts can be found below.
+   The use of ``reuse: false`` in spack environments used for pipelines is
+   almost always what you want, as without it your pipelines will not rebuild
+   packages even if package hashes have changed. This is due to the concretizer
+   strongly preferring known hashes when ``reuse: true``.
 
-   Also notice the ``before_script`` section. It is required when using any of the
-   default scripts to source the ``setup-env.sh`` script in order to inform
-   the default scripts where to find the ``spack`` executable.
+The ``ci`` section in the above environment file contains the bare minimum
+configuration required for ``spack ci generate`` to create a working pipeline.
+The ``target: gitlab`` tells spack that the desired pipeline output is for
+gitlab.  However, this isn't strictly required, as currently gitlab is the
+only possible output format for pipelines. The ``pipeline-gen`` section
+contains the key information needed to specify attributes for the generated
+jobs.  Notice that it contains a list which has only a single element in
+this case.  In real pipelines it will almost certainly have more elements,
+and in those cases, order is important: spack starts at the bottom of the
+list and works upwards when applying attributes.
 
-Normally ``enable-artifacts-buildcache`` is not recommended in production as it
-results in large binary artifacts getting transferred back and forth between
-gitlab and the runners.  But in this example on gitlab.com where there is no
-shared, persistent file system, and where no secrets are stored for giving
-permission to write to an S3 bucket, ``enabled-buildcache-artifacts`` is the only
-way to propagate binaries from jobs to their dependents.
+But in this simple case, we use only the special key ``any-job`` to
+indicate that spack should apply the specified attributes (``tags``, ``image``,
+and ``before_script``) to any job it generates.  This includes jobs for
+building/pushing all packages, a ``rebuild-index`` job at the end of the
+pipeline, as well as any ``noop`` jobs that might be needed by gitlab when
+no rebuilds are required.
 
-Also, it is usually a good idea to let the pipeline generate a final "rebuild the
-buildcache index" job, so that subsequent pipeline generation can quickly determine
-which specs are up to date and which need to be rebuilt (it's a good idea for other
-reasons as well, but those are out of scope for this discussion).  In this case we
-have disabled it (using ``rebuild-index: False``) because the index would only be
-generated in the artifacts mirror anyway, and consequently would not be available
-during subsequent pipeline runs.
+Something to note is that in this simple case, we rely on spack to
+generate a reasonable script for the package build jobs (it just creates
+a script that invokes ``spack ci rebuild``).
 
-.. note::
-   With the addition of reproducible builds (#22887) a previously working
-   pipeline will require some changes:
+Another thing to note is the use of the ``SPACK_USER_CONFIG_DIR`` environment
+variable in any generated jobs.  The purpose of this is to make spack
+aware of one final file in the example, the one that contains the mirror
+configuration.  This file, ``mirrors.yaml`` looks like this:
 
-   * In the build-jobs, the environment location changed.
-     This will typically show as a ``KeyError`` in the failing job. Be sure to
-     point to ``${SPACK_CONCRETE_ENV_DIR}``.
+.. code-block:: yaml
 
-   * When using ``include`` in your environment, be sure to make the included
-     files available in the build jobs. This means adding those files to the
-     artifact directory. Those files will also be missing in the reproducibility
-     artifact.
+   mirrors:
+     buildcache-destination:
+       url: oci://registry.gitlab.com/spack/pipeline-quickstart
+       binary: true
+       access_pair:
+         id_variable: CI_REGISTRY_USER
+         secret_variable: CI_REGISTRY_PASSWORD
 
-   * Because the location of the environment changed, including files with
-     relative path may have to be adapted to work both in the project context
-     (generation job) and in the concrete env dir context (build job).
+
+Note the name of the mirror is ``buildcache-destination``, which is required
+as of Spack 0.23 (see below for more information).  The mirror url simply
+points to the container registry associated with the project, while
+``id_variable`` and ``secret_variable`` refer to to environment variables
+containing the access credentials for the mirror.
+
+When spack builds packages for this example project, they will be pushed to
+the project container registry, where they will be available for subsequent
+jobs to install as dependencies, or for other pipelines to use to build runnable
+container images.
 
 -----------------------------------
 Spack commands supporting pipelines
@@ -252,17 +269,6 @@ the spec on the mirror.  If the remote buildcache index is out of date, which
 can easily happen if it is not updated frequently, this behavior ensures that
 spack has a way to know for certain about the status of any concrete spec on
 the remote mirror, but can slow down pipeline generation significantly.
-
-The ``--optimize`` argument is experimental and runs the generated pipeline
-document through a series of optimization passes designed to reduce the size
-of the generated file.
-
-The ``--dependencies`` is also experimental and disables what in Gitlab is
-referred to as DAG scheduling, internally using the ``dependencies`` keyword
-rather than ``needs`` to list dependency jobs.  The drawback of using this option
-is that before any job can begin, all jobs in previous stages must first
-complete.  The benefit is that Gitlab allows more dependencies to be listed
-when using ``dependencies`` instead of ``needs``.
 
 The optional ``--output-file`` argument should be an absolute path (including
 file name) to the generated pipeline, and if not given, the default is
@@ -427,15 +433,6 @@ Note, if an ``any-job`` section contains a script, this will not implicitly crea
 configuration with a ``script`` attribute. Specifying a signing job without a script
 does not create a signing job and the job configuration attributes will be ignored.
 Signing jobs are always assigned the runner tags ``aws``, ``protected``, and ``notary``.
-
-^^^^^^^^^^^^^^^^^
-Cleanup (cleanup)
-^^^^^^^^^^^^^^^^^
-
-When using ``temporary-storage-url-prefix`` the cleanup job will destroy the mirror
-created for the associated Gitlab pipeline. Cleanup jobs do not allow modifying the
-script, but do expect that the spack command is in the path and require a
-``before_script`` to be specified that sources the ``setup-env.sh`` script.
 
 .. _noop_jobs:
 
@@ -603,6 +600,77 @@ the attributes will be merged starting from the bottom match going up to the top
 
 In the case that no match is found in a submapping section, no additional attributes will be applied.
 
+
+^^^^^^^^^^^^^^^^^^^^^^^^
+Dynamic Mapping Sections
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+For large scale CI where cost optimization is required, dynamic mapping allows for the use of real-time
+mapping schemes served by a web service. This type of mapping does not support the ``-remove`` type
+behavior, but it does follow the rest of the merge rules for configurations.
+
+The dynamic mapping service needs to implement a single REST API interface for getting
+requests ``GET <URL>[:PORT][/PATH]?spec=<pkg_name@pkg_version +variant1+variant2%compiler@compiler_version>``.
+
+example request.
+
+.. code-block::
+
+  https://my-dyn-mapping.spack.io/allocation?spec=zlib-ng@2.1.6 +compat+opt+shared+pic+new_strategies arch=linux-ubuntu20.04-x86_64_v3%gcc@12.0.0
+
+
+With an example response the updates kubernetes request variables, overrides the max retries for gitlab,
+and prepends a note about the modifications made by the my-dyn-mapping.spack.io service.
+
+.. code-block::
+
+  200 OK
+
+  {
+    "variables":
+    {
+      "KUBERNETES_CPU_REQUEST": "500m",
+      "KUBERNETES_MEMORY_REQUEST": "2G",
+    },
+    "retry": { "max:": "1"}
+    "script+:":
+    [
+      "echo \"Job modified by my-dyn-mapping.spack.io\""
+    ]
+  }
+
+
+The ci.yaml configuration section takes the URL endpoint as well as a number of options to configure how responses are handled.
+
+It is possible to specify a list of allowed and ignored configuration attributes under ``allow`` and ``ignore``
+respectively. It is also possible to configure required attributes under ``required`` section.
+
+Options to configure the client timeout and SSL verification using the ``timeout`` and ``verify_ssl`` options.
+By default, the ``timeout`` is set to the option in ``config:timeout`` and ``veryify_ssl`` is set the the option in ``config::verify_ssl``.
+
+Passing header parameters to the request can be achieved through the ``header`` section. The values of the variables passed to the
+header may be environment variables that are expanded at runtime, such as a private token configured on the runner.
+
+Here is an example configuration pointing to ``my-dyn-mapping.spack.io/allocation``.
+
+
+.. code-block:: yaml
+
+  ci:
+  - dynamic-mapping:
+      endpoint: my-dyn-mapping.spack.io/allocation
+      timeout: 10
+      verify_ssl: True
+      header:
+        PRIVATE_TOKEN: ${MY_PRIVATE_TOKEN}
+        MY_CONFIG: "fuzz_allocation:false"
+      allow:
+      - variables
+      ignore:
+      - script
+      require: []
+
+
 ^^^^^^^^^^^^^
 Bootstrapping
 ^^^^^^^^^^^^^
@@ -674,25 +742,12 @@ build the package.
 
 When including a bootstrapping phase as in the example above, the result is that
 the bootstrapped compiler packages will be pushed to the binary mirror (and the
-local artifacts mirror) before the actual release specs are built. In this case,
-the jobs corresponding to subsequent release specs are configured to
-``install_missing_compilers``, so that if spack is asked to install a package
-with a compiler it doesn't know about, it can be quickly installed from the
-binary mirror first.
+local artifacts mirror) before the actual release specs are built.
 
 Since bootstrapping compilers is optional, those items can be left out of the
 environment/stack file, and in that case no bootstrapping will be done (only the
 specs will be staged for building) and the runners will be expected to already
 have all needed compilers installed and configured for spack to use.
-
-^^^^^^^^^^^^^^^^^^^
-Pipeline Buildcache
-^^^^^^^^^^^^^^^^^^^
-
-The ``enable-artifacts-buildcache`` key
-takes a boolean and determines whether the pipeline uses artifacts to store and
-pass along the buildcaches from one stage to the next (the default if you don't
-provide this option is ``False``).
 
 ^^^^^^^^^^^^^^^^
 Broken Specs URL
@@ -810,7 +865,7 @@ generated by ``spack ci generate``.  You also want your generated rebuild jobs
 .. code-block:: yaml
 
    spack:
-     ...
+     # ...
      ci:
        pipeline-gen:
        - build-job:

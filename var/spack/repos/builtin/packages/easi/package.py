@@ -1,7 +1,8 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
+import os
 
 from spack.package import *
 
@@ -14,11 +15,23 @@ class Easi(CMakePackage):
     homepage = "https://easyinit.readthedocs.io"
     git = "https://github.com/SeisSol/easi.git"
 
-    maintainers("ravil-mobile", "Thomas-Ulrich", "krenzland", "ThrudPrimrose")
+    maintainers("Thomas-Ulrich", "davschneller", "vikaskurapati")
 
-    version("develop", branch="master")
+    license("BSD-3-Clause")
+
+    version("master", branch="master")
+    version("1.5.0", tag="v1.5.0", commit="391698ab0072f66280d08441974c2bdb04a65ce0")
+    version("1.4.0", tag="v1.4.0", commit="0d8fcf936574d93ddbd1d9222d46a93d4b119231")
+    version("1.3.0", tag="v1.3.0", commit="99309a0fa78bf11d668c599b3ee469224f04d55b")
     version("1.2.0", tag="v1.2.0", commit="305a119338116a0ceac6b68b36841a50250d05b1")
     version("1.1.2", tag="v1.1.2", commit="4c87ef3b3dca9415d116ef102cb8de750ef7e1a0")
+
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
+    variant("python", default=True, description="Install python bindings")
+    extends("python", when="+python")
+    depends_on("mpi", when="+python")
 
     variant("asagi", default=True, description="build with ASAGI support")
     variant(
@@ -34,7 +47,9 @@ class Easi(CMakePackage):
 
     depends_on("impalajit@llvm-1.0.0", when="jit=impalajit-llvm")
     depends_on("lua@5.3.2", when="jit=lua")
-    depends_on("impalajit", when="jit=impalajit")
+    depends_on("impalajit@main", when="jit=impalajit")
+
+    depends_on("py-pybind11@2.6.2:", type="build", when="+python")
 
     conflicts("jit=impalajit", when="jit=impalajit-llvm")
     conflicts("jit=impalajit-llvm", when="jit=impalajit")
@@ -47,15 +62,25 @@ class Easi(CMakePackage):
     def cmake_args(self):
         args = []
         args.append(self.define_from_variant("ASAGI", "asagi"))
+        args.append(self.define_from_variant("PYTHON_BINDINGS", "python"))
+        self.define("PYBIND11_USE_FETCHCONTENT", False)
         spec = self.spec
-        if "jit=impalajit" in spec or "jit=impalajit-llvm" in spec:
+        if spec.satisfies("jit=impalajit") or spec.satisfies("jit=impalajit-llvm"):
             args.append(self.define("IMPALAJIT", True))
             backend_type = "llvm" if "jit=impalajit-llvm" in spec else "original"
             args.append(self.define("IMPALAJIT_BACKEND", backend_type))
         else:
             args.append(self.define("IMPALAJIT", False))
 
-        if "jit=lua" in spec:
+        if spec.satisfies("jit=lua"):
             args.append(self.define("LUA", True))
 
+        if spec.satisfies("+python"):
+            args += [self.define("easi_INSTALL_PYTHONDIR", python_platlib)]
+
         return args
+
+    def setup_run_environment(self, env):
+        if self.spec.satisfies("+python"):
+            full_path = os.path.join(python_platlib, "easilib/cmake/easi/python_wrapper")
+            env.prepend_path("PYTHONPATH", full_path)

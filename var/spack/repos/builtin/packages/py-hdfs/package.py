@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,6 +10,8 @@ class PyHdfs(PythonPackage):
 
     homepage = "https://hdfscli.readthedocs.io/en/latest/"
     pypi = "hdfs/hdfs-2.1.0.tar.gz"
+
+    license("MIT")
 
     version("2.1.0", sha256="a40fe99ccb03b5c3247b33a4110eb21b57405dd7c3f1b775e362e66c19b44bc6")
 

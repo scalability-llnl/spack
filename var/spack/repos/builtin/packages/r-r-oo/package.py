@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,7 @@ class RROo(RPackage):
 
     cran = "R.oo"
 
+    version("1.26.0", sha256="f7602b388c2216fbb4d1a31d4040ed92b40dc83d3e3746db7011637db4d44365")
     version("1.25.0", sha256="b8b19061774918ee7d9d4330c16c0ea505f7cd02d01343df1e8b2e4fb847beef")
     version("1.24.0", sha256="37a1dab8dd668ceba69a1ba36c0c60e9809e29b74bd56d1e8ed519e19c8e3bb6")
     version("1.23.0", sha256="f5124ce3dbb0a62e8ef1bfce2de2d1dc2f776e8c48fd8cac358f7f5feb592ea1")
@@ -28,3 +28,4 @@ class RROo(RPackage):
     depends_on("r-r-methodss3@1.7.1:", type=("build", "run"))
     depends_on("r-r-methodss3@1.8.0:", type=("build", "run"), when="@1.24.0:")
     depends_on("r-r-methodss3@1.8.1:", type=("build", "run"), when="@1.25.0:")
+    depends_on("r-r-methodss3@1.8.2:", type=("build", "run"), when="@1.26.0:")

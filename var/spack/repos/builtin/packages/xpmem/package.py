@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ class Xpmem(AutotoolsPackage):
 
     maintainers("skosukhin")
 
+    license("LGPL-2.1-or-later")
+
     version("master", branch="master")
 
     # Versions starting 2.6.4 are neither tagged nor released in the repo
@@ -32,6 +33,8 @@ class Xpmem(AutotoolsPackage):
     # Released versions:
     version("2.6.3", sha256="ee239a32269f33234cdbdb94db29c12287862934c0784328d34aff82a9fa8b54")
     version("2.6.2", sha256="2c1a93b4cb20ed73c2093435a7afec513e0e797aa1e49d4d964cc6bdae89d65b")
+
+    depends_on("c", type="build")  # generated
 
     variant("kernel-module", default=True, description="Enable building the kernel module")
 

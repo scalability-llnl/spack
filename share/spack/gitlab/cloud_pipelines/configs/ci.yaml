@@ -2,19 +2,17 @@ ci:
   target: gitlab
 
   broken-tests-packages:
-    - gptune
     - superlu-dist    # srun -n 4 hangs
     - papyrus
-
-  broken-specs-url: "https://dummy.io" # s3://spack-binaries/broken-specs"
 
   pipeline-gen:
   - build-job:
       before_script-:
-      - - spack list --count  # ensure that spack's cache is populated
+      - - cat /proc/loadavg || true
+        - cat /proc/meminfo | grep 'MemTotal\|MemFree' || true
+      - - touch ${SPACK_USER_CACHE_PATH}/cache/*/*  # bump mtime of cache so it is not invalidated
       - - spack env activate --without-view ${SPACK_CONCRETE_ENV_DIR}
         - spack compiler list
-        - if [ -n "$SPACK_BUILD_JOBS" ]; then spack config add "config:build_jobs:$SPACK_BUILD_JOBS"; fi
       - - mkdir -p ${SPACK_ARTIFACTS_ROOT}/user_data
         # AWS runners mount E4S public key (verification), UO runners mount public/private (signing/verification)
       - - k=$CI_GPG_KEY_ROOT/e4s.gpg; [[ -r $k ]] && spack gpg trust $k
@@ -23,15 +21,19 @@ ci:
         - k=$CI_GPG_KEY_ROOT/spack_public_key.gpg; [[ -r $k ]] && spack gpg trust $k
       script::
       - - spack config blame mirrors
-        - spack --color=always --backtrace ci rebuild --tests > >(tee ${SPACK_ARTIFACTS_ROOT}/user_data/pipeline_out.txt) 2> >(tee ${SPACK_ARTIFACTS_ROOT}/user_data/pipeline_err.txt >&2)
-      - - spack python ${CI_PROJECT_DIR}/share/spack/gitlab/cloud_pipelines/scripts/common/aggregate_package_logs.spack.py
-          --prefix /home/software/spack:${CI_PROJECT_DIR}
-          --log install_times.json
-          ${SPACK_ARTIFACTS_ROOT}/user_data/install_times.json
+        - spack --color=always --backtrace ci rebuild -j ${SPACK_BUILD_JOBS} --tests > >(tee ${SPACK_ARTIFACTS_ROOT}/user_data/pipeline_out.txt) 2> >(tee ${SPACK_ARTIFACTS_ROOT}/user_data/pipeline_err.txt >&2)
       after_script:
       - - cat /proc/loadavg || true
+        - cat /proc/meminfo | grep 'MemTotal\|MemFree' || true
+      - - time ./bin/spack python ${CI_PROJECT_DIR}/share/spack/gitlab/cloud_pipelines/scripts/common/aggregate_package_logs.spack.py
+          --prefix /home/software/spack:${CI_PROJECT_DIR}/opt/spack
+          --log install_times.json
+          ${SPACK_ARTIFACTS_ROOT}/user_data/install_times.json || true
       variables:
         CI_JOB_SIZE: "default"
+        SPACK_BUILD_JOBS: "4"
+        KUBERNETES_CPU_REQUEST: "4000m"
+        KUBERNETES_MEMORY_REQUEST: "16G"
         CI_GPG_KEY_ROOT: /mnt/key
         # SPACK_VERBOSE_SCRIPT: "1"
       id_tokens:
@@ -104,10 +106,15 @@ ci:
 
   - noop-job:
       tags: ["service"]
+      image: busybox:latest
       variables:
+        CI_OIDC_REQUIRED: 0
+        GIT_STRATEGY: "none"
         CI_JOB_SIZE: "small"
-        KUBERNETES_CPU_REQUEST: "500m"
-        KUBERNETES_MEMORY_REQUEST: "500M"
+        KUBERNETES_CPU_REQUEST: "100m"
+        KUBERNETES_MEMORY_REQUEST: "5M"
+      before_script:: []
+      after_script:: []
 
   - any-job:
       tags: ["spack"]
@@ -116,7 +123,7 @@ ci:
         # Disable local configs to avoid issues on shell runners
         SPACK_DISABLE_LOCAL_CONFIG: "1"
       before_script:
-      - - export SPACK_USER_CACHE_PATH="${CI_PROJECT_DIR}/_user_cache/"
+      - - export SPACK_USER_CACHE_PATH="${CI_PROJECT_DIR}/tmp/_user_cache/"
       - - uname -a || true
         - grep -E "vendor|model name" /proc/cpuinfo 2>/dev/null | sort -u || head -n10 /proc/cpuinfo 2>/dev/null || true
         - nproc || true

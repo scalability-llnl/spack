@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,8 @@ class RLinprog(RPackage):
     using the simplex algorithm."""
 
     cran = "linprog"
+
+    license("GPL-2.0-or-later")
 
     version("0.9-4", sha256="81a6aa2fdc075f12dc912794d0554f87705a8b872b99c89a90a69ee9ada864b4")
 

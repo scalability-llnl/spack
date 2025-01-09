@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PyShippinglabel(PythonPackage):
 
     homepage = "https://github.com/domdfcoding/shippinglabel"
     pypi = "shippinglabel/shippinglabel-1.5.0.tar.gz"
+
+    license("MIT")
 
     version("1.5.0", sha256="b2332bf29853e29f877dab21f17f2a8632fd2b48f5f32a6fa0b254a6fdd0a451")
 

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,12 +17,22 @@ class BigdftFutile(AutotoolsPackage, CudaPackage):
     git = "https://gitlab.com/l_sim/bigdft-suite.git"
 
     version("develop", branch="devel")
+    version("1.9.5", sha256="5fe51e92bb746569207295feebbcd154ce4f1b364a3981bace75c45e983b2741")
+    version("1.9.4", sha256="fa22115e6353e553d2277bf054eb73a4710e92dfeb1ed9c5bf245337187f393d")
+    version("1.9.3", sha256="f5f3da95d7552219f94366b4d2a524b2beac988fb2921673a65a128f9a8f0489")
     version("1.9.2", sha256="dc9e49b68f122a9886fa0ef09970f62e7ba21bb9ab1b86be9b7d7e22ed8fbe0f")
     version("1.9.1", sha256="3c334da26d2a201b572579fc1a7f8caad1cbf971e848a3e10d83bc4dc8c82e41")
     version("1.9.0", sha256="4500e505f5a29d213f678a91d00a10fef9dc00860ea4b3edf9280f33ed0d1ac8")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("mpi", default=True, description="Enable MPI support")
     variant("openmp", default=True, description="Enable OpenMP support")
+    variant(
+        "shared", default=True, description="Build shared libraries"
+    )  # Not default in bigdft, but is typically the default expectation
 
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
@@ -39,6 +48,14 @@ class BigdftFutile(AutotoolsPackage, CudaPackage):
 
     configure_directory = "futile"
 
+    # missing MPI_BOTTOM in fake mpif.h (generated when compiling without MPI support)
+    # similar issue (maybe others) also in 1.9.4 but this patch does not work for 1.9.4
+    patch(
+        "https://gitlab.com/l_sim/bigdft-suite/-/commit/ec7419011fa9fd815de77bfca8642973091fb64b.diff",
+        sha256="66c493e37fe7f7f9800ae7f49bb0172a5b2372a2ce0ee4c3bcb7ff5c59a3925c",
+        when="@1.9.5~mpi",
+    )
+
     def configure_args(self):
         spec = self.spec
         prefix = self.prefix
@@ -46,39 +63,41 @@ class BigdftFutile(AutotoolsPackage, CudaPackage):
         linalg = [spec["blas"].libs.ld_flags, spec["lapack"].libs.ld_flags]
 
         python_version = spec["python"].version.up_to(2)
-        pyyaml = join_path(spec["py-pyyaml"].prefix.lib, "python{0}".format(python_version))
+        pyyaml = join_path(spec["py-pyyaml"].prefix.lib, f"python{python_version}")
 
         openmp_flag = []
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             openmp_flag.append(self.compiler.openmp_flag)
 
         args = [
-            "FCFLAGS=%s" % " ".join(openmp_flag),
-            "--with-ext-linalg=%s" % " ".join(linalg),
-            "--with-yaml-path=%s" % spec["libyaml"].prefix,
-            "--with-pyyaml-path=%s" % pyyaml,
-            "--prefix=%s" % prefix,
+            f"FCFLAGS={' '.join(openmp_flag)}",
+            f"--with-ext-linalg={' '.join(linalg)}",
+            f"--with-yaml-path={spec['libyaml'].prefix}",
+            f"--with-pyyaml-path={pyyaml}",
+            f"--prefix={prefix}",
         ]
+        if spec.satisfies("+shared"):
+            args.append("--enable-dynamic-libraries")
 
-        if "+openmp" in spec:
+        if spec.satisfies("+openmp"):
             args.append("--with-openmp")
         else:
             args.append("--without-openmp")
 
-        if "+mpi" in spec:
-            args.append("CC=%s" % spec["mpi"].mpicc)
-            args.append("CXX=%s" % spec["mpi"].mpicxx)
-            args.append("FC=%s" % spec["mpi"].mpifc)
-            args.append("F90=%s" % spec["mpi"].mpifc)
-            args.append("F77=%s" % spec["mpi"].mpif77)
+        if spec.satisfies("+mpi"):
+            args.append(f"CC={spec['mpi'].mpicc}")
+            args.append(f"CXX={spec['mpi'].mpicxx}")
+            args.append(f"FC={spec['mpi'].mpifc}")
+            args.append(f"F90={spec['mpi'].mpifc}")
+            args.append(f"F77={spec['mpi'].mpif77}")
         else:
             args.append("--disable-mpi")
 
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             args.append("--enable-opencl")
-            args.append("--with-ocl-path=%s" % spec["cuda"].prefix)
+            args.append(f"--with-ocl-path={spec['cuda'].prefix}")
             args.append("--enable-cuda-gpu")
-            args.append("--with-cuda-path=%s" % spec["cuda"].prefix)
+            args.append(f"--with-cuda-path={spec['cuda'].prefix}")
 
         return args
 

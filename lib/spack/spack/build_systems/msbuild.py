@@ -1,8 +1,6 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import inspect
 from typing import List  # novm
 
 import llnl.util.filesystem as fs
@@ -11,7 +9,7 @@ import spack.builder
 import spack.package_base
 from spack.directives import build_system, conflicts
 
-from ._checks import BaseBuilder
+from ._checks import BuilderWithDefaults
 
 
 class MSBuildPackage(spack.package_base.PackageBase):
@@ -24,11 +22,10 @@ class MSBuildPackage(spack.package_base.PackageBase):
     build_system("msbuild")
     conflicts("platform=linux", when="build_system=msbuild")
     conflicts("platform=darwin", when="build_system=msbuild")
-    conflicts("platform=cray", when="build_system=msbuild")
 
 
 @spack.builder.builder("msbuild")
-class MSBuildBuilder(BaseBuilder):
+class MSBuildBuilder(BuilderWithDefaults):
     """The MSBuild builder encodes the most common way of building software with
     Mircosoft's MSBuild tool. It has two phases that can be overridden, if need be:
 
@@ -69,7 +66,7 @@ class MSBuildBuilder(BaseBuilder):
     @property
     def build_directory(self):
         """Return the directory containing the MSBuild solution or vcxproj."""
-        return self.pkg.stage.source_path
+        return fs.windows_sfn(self.pkg.stage.source_path)
 
     @property
     def toolchain_version(self):
@@ -105,7 +102,7 @@ class MSBuildBuilder(BaseBuilder):
     def build(self, pkg, spec, prefix):
         """Run "msbuild" on the build targets specified by the builder."""
         with fs.working_dir(self.build_directory):
-            inspect.getmodule(self.pkg).msbuild(
+            pkg.module.msbuild(
                 *self.std_msbuild_args,
                 *self.msbuild_args(),
                 self.define_targets(*self.build_targets),
@@ -115,6 +112,6 @@ class MSBuildBuilder(BaseBuilder):
         """Run "msbuild" on the install targets specified by the builder.
         This is INSTALL by default"""
         with fs.working_dir(self.build_directory):
-            inspect.getmodule(self.pkg).msbuild(
+            pkg.module.msbuild(
                 *self.msbuild_install_args(), self.define_targets(*self.install_targets)
             )

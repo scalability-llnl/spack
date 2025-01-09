@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,14 +24,16 @@ from .common import (
 )
 from .version_types import (
     ClosedOpenRange,
+    ConcreteVersion,
     GitVersion,
     StandardVersion,
     Version,
     VersionList,
     VersionRange,
+    VersionType,
+    _next_version,
+    _prev_version,
     from_string,
-    next_version,
-    prev_version,
     ver,
 )
 
@@ -40,21 +41,23 @@ from .version_types import (
 any_version: VersionList = VersionList([":"])
 
 __all__ = [
-    "Version",
-    "VersionRange",
-    "ver",
-    "from_string",
-    "is_git_version",
-    "infinity_versions",
-    "prev_version",
-    "next_version",
-    "VersionList",
     "ClosedOpenRange",
-    "StandardVersion",
-    "GitVersion",
-    "VersionError",
-    "VersionChecksumError",
-    "VersionLookupError",
+    "ConcreteVersion",
     "EmptyRangeError",
+    "GitVersion",
+    "StandardVersion",
+    "Version",
+    "VersionChecksumError",
+    "VersionError",
+    "VersionList",
+    "VersionLookupError",
+    "VersionRange",
+    "VersionType",
+    "_next_version",
+    "_prev_version",
     "any_version",
+    "from_string",
+    "infinity_versions",
+    "is_git_version",
+    "ver",
 ]

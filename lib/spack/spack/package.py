@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -10,6 +9,8 @@ Everything in this module is automatically imported into Spack package files.
 """
 from os import chdir, environ, getcwd, makedirs, mkdir, remove, removedirs
 from shutil import move, rmtree
+
+from spack.error import InstallError, NoHeadersError, NoLibrariesError
 
 # Emulate some shell commands for convenience
 env = environ
@@ -37,10 +38,13 @@ from spack.build_systems.cached_cmake import (
     cmake_cache_path,
     cmake_cache_string,
 )
+from spack.build_systems.cargo import CargoPackage
 from spack.build_systems.cmake import CMakePackage, generator
+from spack.build_systems.compiler import CompilerPackage
 from spack.build_systems.cuda import CudaPackage
 from spack.build_systems.generic import Package
 from spack.build_systems.gnu import GNUMirrorPackage
+from spack.build_systems.go import GoPackage
 from spack.build_systems.intel import IntelPackage
 from spack.build_systems.lua import LuaPackage
 from spack.build_systems.makefile import MakefilePackage
@@ -69,7 +73,8 @@ from spack.build_systems.sourceforge import SourceforgePackage
 from spack.build_systems.sourceware import SourcewarePackage
 from spack.build_systems.waf import WafPackage
 from spack.build_systems.xorg import XorgPackage
-from spack.builder import run_after, run_before
+from spack.builder import BaseBuilder
+from spack.config import determine_number_of_jobs
 from spack.deptypes import ALL_TYPES as all_deptypes
 from spack.directives import *
 from spack.install_test import (
@@ -81,12 +86,7 @@ from spack.install_test import (
     install_test_root,
     test_part,
 )
-from spack.installer import (
-    ExternalPackageError,
-    InstallError,
-    InstallLockError,
-    UpstreamPackageError,
-)
+from spack.installer import ExternalPackageError, InstallLockError, UpstreamPackageError
 from spack.mixins import filter_compiler_wrappers
 from spack.multimethod import default_args, when
 from spack.package_base import (
@@ -98,15 +98,12 @@ from spack.package_base import (
     install_dependency_symlinks,
     on_package_attributes,
 )
+from spack.package_completions import *
+from spack.phase_callbacks import run_after, run_before
 from spack.spec import InvalidSpecDetected, Spec
-from spack.util.cpus import determine_number_of_jobs
 from spack.util.executable import *
-from spack.variant import (
-    any_combination_of,
-    auto_or_any_combination_of,
-    conditional,
-    disjoint_sets,
-)
+from spack.util.filesystem import fix_darwin_install_name
+from spack.variant import any_combination_of, auto_or_any_combination_of, disjoint_sets
 from spack.version import Version, ver
 
 # These are just here for editor support; they will be replaced when the build env

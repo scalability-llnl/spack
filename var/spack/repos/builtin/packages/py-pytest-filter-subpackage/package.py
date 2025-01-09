@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,6 +10,8 @@ class PyPytestFilterSubpackage(PythonPackage):
 
     homepage = "https://github.com/astropy/pytest-filter-subpackage"
     pypi = "pytest-filter-subpackage/pytest-filter-subpackage-0.1.2.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("0.1.2", sha256="1faea36717803e524588d6c109d26d20d3b34422e8d6a96812758977dca01782")
 

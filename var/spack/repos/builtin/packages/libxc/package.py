@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -10,27 +9,33 @@ class Libxc(AutotoolsPackage, CudaPackage):
     """Libxc is a library of exchange-correlation functionals for
     density-functional theory."""
 
-    homepage = "https://tddft.org/programs/libxc/"
+    homepage = "https://libxc.gitlab.io"
     url = "https://gitlab.com/libxc/libxc/-/archive/6.1.0/libxc-6.1.0.tar.gz"
 
-    version("6.2.2", sha256="3b0523924579cf494cafc6fea92945257f35692b004217d3dfd3ea7ca780e8dc")
-    version("6.2.1", sha256="b5f3b4514db6bc4ccda1da90ac6176ea1f82e12241cc66427c58cbc4a5197b9b")
-    version("6.2.0", sha256="3d25878782b5f94e7e4d41bd6de27f98983584cd0be0c65e69a9ada986b56b4d")
-    version("6.1.0", sha256="f593745fa47ebfb9ddc467aaafdc2fa1275f0d7250c692ce9761389a90dd8eaf")
-    version("6.0.0", sha256="0c774e8e195dd92800b9adf3df5f5721e29acfe9af4b191a9937c7de4f9aa9f6")
-    version("5.2.3", sha256="7b7a96d8eeb472c7b8cca7ac38eae27e0a8113ef44dae5359b0eb12592b4bcf2")
-    version("5.1.7", sha256="1a818fdfe5c5f74270bc8ef0c59064e8feebcd66b8f642c08aecc1e7d125be34")
-    version("5.1.5", sha256="02e4615a22dc3ec87a23efbd3d9be5bfad2445337140bad1720699571c45c3f9")
-    version("5.1.3", sha256="0350defdd6c1b165e4cf19995f590eee6e0b9db95a6b221d28cecec40f4e85cd")
-    version("5.1.2", sha256="180d52b5552921d1fac8a10869dd30708c0fb41dc202a3bbee0e36f43872718a")
-    version("5.1.0", sha256="f67b6e518372871d9eed6e5dba77c3ab5ea030c229ba7a7d44bcf51f3258373f")
-    version("5.0.0", sha256="1cdc57930f7b57da4eb9b2c55a50ba1c2c385936ddaf5582fee830994461a892")
-    version("4.3.4", sha256="a8ee37ddc5079339854bd313272856c9d41a27802472ee9ae44b58ee9a298337")
-    version("4.3.2", sha256="bc159aea2537521998c7fb1199789e1be71e04c4b7758d58282622e347603a6f")
-    version("4.2.3", sha256="02e49e9ba7d21d18df17e9e57eae861e6ce05e65e966e1e832475aa09e344256")
-    version("3.0.0", sha256="5542b99042c09b2925f2e3700d769cda4fb411b476d446c833ea28c6bfa8792a")
-    version("2.2.2", sha256="6ca1d0bb5fdc341d59960707bc67f23ad54de8a6018e19e02eee2b16ea7cc642")
-    version("2.2.1", sha256="ade61c1fa4ed238edd56408fd8ee6c2e305a3d5753e160017e2a71817c98fd00")
+    license("MPL-2.0-no-copyleft-exception")
+
+    version("7.0.0", sha256="8d4e343041c9cd869833822f57744872076ae709a613c118d70605539fb13a77")
+    version("6.2.2", sha256="d1b65ef74615a1e539d87a0e6662f04baf3a2316706b4e2e686da3193b26b20f")
+    version("6.2.1", sha256="da96fc4f6e4221734986f49758b410ffe1d406efd3538761062a4af57a2bd272")
+    version("6.2.0", sha256="31edb72c69157b6c0beaff1f10cbbb6348ce7579ef81d8f286764e5ab61194d1")
+    version("6.1.0", sha256="9baf23501dca21b05fa22d8e2ffeb56f294abe19ba12584cb3f9b421ae719c5f")
+    version("6.0.0", sha256="48a5393984d95bf0dd05c5ffc94e77da938b7f321058fe250c3448c7a9392c88")
+    version("5.2.3", sha256="3e0b36b3b9986a621fd8850133408f6f567bd7db5636a32a68f7637e116e268c")
+    version("5.1.7", sha256="1d50e1a92e59b5f3c8e7408f8612f0fb0e953d4f159515b7d81485891f3a1bbc")
+    version("5.1.5", sha256="101d6ea9e013006deae074843f0d02ab2813e16734e47ff7b0551babc4497163")
+    version("5.1.3", sha256="76b2abd063b692ed7e60fb6dfdf5a54072378710ee91f2b352a4e311d9805e97")
+    version("5.1.2", sha256="ff13eef8184b6c61dac8933ee74fc05967de4a67489581bdc500f1ec63826aae")
+    version("5.1.0", sha256="e8d2b6eb2b46b356a27f0367a7665ff276d7f295da7c734e774ee66f82e56297")
+    version("5.0.0", sha256="6b3be3cf6daf6b3eddf32d4077276eb9169531b42f98c2ca28ac85b9ea408493")
+    version("4.3.4", sha256="2d5878dd69f0fb68c5e97f46426581eed2226d1d86e3080f9aa99af604c65647")
+    version("4.3.2", sha256="3bbe01971d0a43fb63b5c17d922388a39a3f0ae3bd37ae5f6fe31bca9ab63f3c")
+    version("4.2.3", sha256="869ca4967cd255097fd2dc31664f30607e81f5abcf5f9c89bd467dc0bf93e5aa")
+    version("3.0.0", sha256="df2362351280edaf2233f3b2c8eb8e6dd6c68105f152897a4cc629fa346a7396")
+    version("2.2.2", sha256="6ffaad40505dbe8f155049448554b54ea31d31babf74ccf6b7935bfe55eeafd8")
+    version("2.2.1", sha256="c8577ba1ddd5c28fd0aa7c579ae65ab990eb7cb51ecf9f8175f9251f6deb9a06")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("shared", default=True, description="Build shared libraries")
     variant("kxc", default=False, when="@5:", description="Build with third derivatives")
@@ -39,11 +44,10 @@ class Libxc(AutotoolsPackage, CudaPackage):
     conflicts("+shared +cuda", msg="Only ~shared supported with +cuda")
     conflicts("+cuda", when="@:4", msg="CUDA support only in libxc 5.0.0 and above")
 
-    # Remove this when the release tarballs become available for 6.0.0 and above.
-    with when("@6.0.0:"):
-        depends_on("autoconf", type="build")
-        depends_on("automake", type="build")
-        depends_on("libtool", type="build")
+    # Remove this if the release tarballs are available again.
+    depends_on("autoconf", type="build")
+    depends_on("automake", type="build")
+    depends_on("libtool", type="build")
 
     depends_on("perl", type="build")
 
@@ -54,17 +58,6 @@ class Libxc(AutotoolsPackage, CudaPackage):
         sha256="938113a697ee14988ccff153e1a8287fdb78072adc4f388a0af434261082fee5",
         when="@6.0.0",
     )
-
-    patch("nvhpc-configure.patch", when="%nvhpc")
-    patch("nvhpc-libtool.patch", when="@develop %nvhpc")
-
-    def url_for_version(self, version):
-        # The webserver at https://tddft.org/programs/libxc/download is unreliable,
-        # see https://gitlab.com/libxc/libxc/-/issues/453. The pre 6.0.0 release tarballs
-        # ar available in our source mirror, but the latest versions are not.
-        if version < Version("6"):
-            return f"https://www.tddft.org/programs/libxc/down/{version}/libxc-{version}.tar.gz"
-        return f"https://gitlab.com/libxc/libxc/-/archive/{version}/libxc-{version}.tar.gz"
 
     @property
     def libs(self):
@@ -102,14 +95,14 @@ class Libxc(AutotoolsPackage, CudaPackage):
         # https://gitlab.com/libxc/libxc/-/issues/430 (configure script does not ensure C99)
         # TODO: Switch to cmake since this is better supported
         env.append_flags("CFLAGS", self.compiler.c99_flag)
-        if "%intel" in self.spec:
+        if self.spec.satisfies("%intel"):
             if which("xiar"):
                 env.set("AR", "xiar")
 
-        if "%aocc" in self.spec:
+        if self.spec.satisfies("%aocc"):
             env.append_flags("FCFLAGS", "-fPIC")
 
-        if "+cuda" in self.spec:
+        if self.spec.satisfies("+cuda"):
             nvcc = self.spec["cuda"].prefix.bin.nvcc
             env.set("CCLD", "{0} -ccbin {1}".format(nvcc, spack_cc))
             env.set("CC", "{0} -x cu -ccbin {1}".format(nvcc, spack_cc))
@@ -123,16 +116,16 @@ class Libxc(AutotoolsPackage, CudaPackage):
         args = []
         args += self.enable_or_disable("shared")
         args += self.enable_or_disable("cuda")
-        if "+kxc" in self.spec:
+        if self.spec.satisfies("+kxc"):
             args.append("--enable-kxc")
-        if "+lxc" in self.spec:
+        if self.spec.satisfies("+lxc"):
             args.append("--enable-lxc")
         return args
 
     @run_after("configure")
     def patch_libtool(self):
         """AOCC support for LIBXC"""
-        if "%aocc" in self.spec:
+        if self.spec.satisfies("%aocc"):
             filter_file(
                 r"\$wl-soname \$wl\$soname",
                 r"-fuse-ld=ld -Wl,-soname,\$soname",

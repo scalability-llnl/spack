@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,9 @@ class EpicsBase(MakefilePackage):
     maintainers("glenn-horton-smith")
 
     version("7.0.6.1", sha256="8ff318f25e2b70df466f933636a2da85e4b0c841504b9e89857652a4786b6387")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("readline")
     depends_on("perl", type=("build", "run"))

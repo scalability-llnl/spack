@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class JettyProject(MavenPackage):
 
     homepage = "https://www.eclipse.org/jetty"
     url = "https://github.com/eclipse/jetty.project/archive/jetty-9.4.31.v20200723.tar.gz"
+
+    license("Apache-2.0")
 
     version(
         "9.4.31.v20200723",

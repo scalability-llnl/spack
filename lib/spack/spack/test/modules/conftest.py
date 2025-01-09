@@ -1,16 +1,13 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import pathlib
 
 import pytest
 
-import spack.config
-import spack.modules.common
-import spack.paths
+import spack.modules.lmod
+import spack.modules.tcl
 import spack.spec
-import spack.util.path
 
 
 @pytest.fixture()
@@ -18,12 +15,14 @@ def modulefile_content(request):
     """Returns a function that generates the content of a module file as a list of lines."""
     writer_cls = getattr(request.module, "writer_cls")
 
-    def _impl(spec_str, module_set_name="default", explicit=True):
-        spec = spack.spec.Spec(spec_str).concretized()
+    def _impl(spec_like, module_set_name="default", explicit=True):
+        if isinstance(spec_like, str):
+            spec_like = spack.spec.Spec(spec_like)
+        spec = spec_like.concretized()
         generator = writer_cls(spec, module_set_name, explicit)
         generator.write(overwrite=True)
         written_module = pathlib.Path(generator.layout.filename)
-        content = written_module.read_text().splitlines()
+        content = written_module.read_text(encoding="utf-8").splitlines()
         generator.remove()
         return content
 

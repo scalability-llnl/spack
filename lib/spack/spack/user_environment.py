@@ -1,20 +1,14 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
+import re
 import sys
-from contextlib import contextmanager
-from typing import Callable
-
-from llnl.util.lang import nullcontext
 
 import spack.build_environment
 import spack.config
-import spack.error
 import spack.spec
 import spack.util.environment as environment
-import spack.util.prefix as prefix
 from spack import traverse
 from spack.context import Context
 
@@ -70,20 +64,18 @@ def unconditional_environment_modifications(view):
     return env
 
 
-@contextmanager
-def projected_prefix(*specs: spack.spec.Spec, projection: Callable[[spack.spec.Spec], str]):
-    """Temporarily replace every Spec's prefix with projection(s)"""
-    prefixes = dict()
-    for s in traverse.traverse_nodes(specs, key=lambda s: s.dag_hash()):
-        if s.external:
-            continue
-        prefixes[s.dag_hash()] = s.prefix
-        s.prefix = prefix.Prefix(projection(s))
-
-    yield
-
-    for s in traverse.traverse_nodes(specs, key=lambda s: s.dag_hash()):
-        s.prefix = prefixes.get(s.dag_hash(), s.prefix)
+def project_env_mods(
+    *specs: spack.spec.Spec, view, env: environment.EnvironmentModifications
+) -> None:
+    """Given a list of environment modifications, project paths changes to the view."""
+    prefix_to_prefix = {s.prefix: view.get_projection_for_spec(s) for s in specs if not s.external}
+    # Avoid empty regex if all external
+    if not prefix_to_prefix:
+        return
+    prefix_regex = re.compile("|".join(re.escape(p) for p in prefix_to_prefix.keys()))
+    for mod in env.env_modifications:
+        if isinstance(mod, environment.NameValueModifier):
+            mod.value = prefix_regex.sub(lambda m: prefix_to_prefix[m.group(0)], mod.value)
 
 
 def environment_modifications_for_specs(
@@ -102,26 +94,25 @@ def environment_modifications_for_specs(
             been built on a different but compatible OS)
     """
     env = environment.EnvironmentModifications()
-    topo_ordered = traverse.traverse_nodes(specs, root=True, deptype=("run", "link"), order="topo")
+    topo_ordered = list(
+        traverse.traverse_nodes(specs, root=True, deptype=("run", "link"), order="topo")
+    )
 
+    # Static environment changes (prefix inspections)
+    for s in reversed(topo_ordered):
+        static = environment.inspect_path(
+            s.prefix, prefix_inspections(s.platform), exclude=environment.is_system_path
+        )
+        env.extend(static)
+
+    # Dynamic environment changes (setup_run_environment etc)
+    setup_context = spack.build_environment.SetupContext(*specs, context=Context.RUN)
+    if set_package_py_globals:
+        setup_context.set_all_package_py_globals()
+    env.extend(setup_context.get_env_modifications())
+
+    # Apply view projections if any.
     if view:
-        maybe_projected = projected_prefix(*specs, projection=view.get_projection_for_spec)
-    else:
-        maybe_projected = nullcontext()
-
-    with maybe_projected:
-        # Static environment changes (prefix inspections)
-        for s in reversed(list(topo_ordered)):
-            static = environment.inspect_path(
-                s.prefix, prefix_inspections(s.platform), exclude=environment.is_system_path
-            )
-            env.extend(static)
-
-        # Dynamic environment changes (setup_run_environment etc)
-        setup_context = spack.build_environment.SetupContext(*specs, context=Context.RUN)
-        if set_package_py_globals:
-            setup_context.set_all_package_py_globals()
-        dynamic = setup_context.get_env_modifications()
-        env.extend(dynamic)
+        project_env_mods(*topo_ordered, view=view, env=env)
 
     return env

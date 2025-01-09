@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,17 +11,18 @@ class NimrodAai(CMakePackage):
     enabled by modern Fortran.
     """
 
-    homepage = "https://gitlab.com/NIMRODteam/nimrod-abstract"
-    url = (
-        "https://gitlab.com/NIMRODteam/nimrod-abstract/-/archive/23.9/nimrod-abstract-23.9.tar.gz"
-    )
-    git = "https://gitlab.com/NIMRODteam/nimrod-abstract.git"
+    homepage = "https://gitlab.com/NIMRODteam/open/nimrod-abstract"
+    url = "https://gitlab.com/NIMRODteam/open/nimrod-abstract/-/archive/24.2/nimrod-abstract-24.2.tar.gz"
+    git = "https://gitlab.com/NIMRODteam/open/nimrod-abstract.git"
 
     maintainers("jacobrking")
 
     version("main", branch="main")
-    version("23.9", sha256="212d591c5a5e7a394b56a5cf2f92cc69feafc49dd5f042fa95eeb6441649390b")
-    version("23.6", sha256="1794b89a5a64ff2b3c548818b90d17eef85d819ba4f63a76c41a682d5b76c14f")
+    version("24.2", sha256="1dd4d51426f141c058e25cb29870eaf15e0edfb44d80df94e7c65c850ca78eda")
+    version("23.9", sha256="34f7ee00bbbe9a6d08304473e8893af9bd94af8dbd0bbd50b8b441057023e179")
+    version("23.6", sha256="de7e5c5cc2ad97dc0e66628d29c8153fa807821a316eb9aa8ee21a39c69df800")
+
+    depends_on("fortran", type="build")  # generated
 
     variant("debug", default=False, description="Whether to enable debug code")
     variant("openacc", default=False, description="Whether to enable OpenACC")
@@ -43,8 +43,8 @@ class NimrodAai(CMakePackage):
 
     depends_on("cmake", type="build")
     depends_on("mpi", when="+mpi")
-    depends_on("hdf5+fortran~mpi", type="build", when="~mpi")
-    depends_on("hdf5+fortran+mpi", type="build", when="+mpi")
+    depends_on("hdf5+fortran~mpi", when="~mpi")
+    depends_on("hdf5+fortran+mpi", when="+mpi")
 
     def cmake_args(self):
         args = [
@@ -68,5 +68,5 @@ class NimrodAai(CMakePackage):
     @run_after("build")
     @on_package_attributes(run_tests=True)
     def check(self):
-        with working_dir(self.builder.build_directory):
+        with working_dir(self.build_directory):
             ctest("--output-on-failure")

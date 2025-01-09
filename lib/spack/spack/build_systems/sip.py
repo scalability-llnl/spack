@@ -1,8 +1,6 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import inspect
 import os
 import re
 
@@ -12,11 +10,12 @@ from llnl.util.filesystem import find, working_dir
 import spack.builder
 import spack.install_test
 import spack.package_base
+import spack.phase_callbacks
 from spack.directives import build_system, depends_on, extends
 from spack.multimethod import when
 from spack.util.executable import Executable
 
-from ._checks import BaseBuilder, execute_install_time_tests
+from ._checks import BuilderWithDefaults, execute_install_time_tests
 
 
 class SIPPackage(spack.package_base.PackageBase):
@@ -86,14 +85,13 @@ class SIPPackage(spack.package_base.PackageBase):
 
     def python(self, *args, **kwargs):
         """The python ``Executable``."""
-        inspect.getmodule(self).python(*args, **kwargs)
+        self.pkg.module.python(*args, **kwargs)
 
     def test_imports(self):
         """Attempts to import modules of the installed package."""
 
         # Make sure we are importing the installed modules,
         # not the ones in the source directory
-        python = inspect.getmodule(self).python
         for module in self.import_modules:
             with spack.install_test.test_part(
                 self,
@@ -101,11 +99,11 @@ class SIPPackage(spack.package_base.PackageBase):
                 purpose="checking import of {0}".format(module),
                 work_dir="spack-test",
             ):
-                python("-c", "import {0}".format(module))
+                self.python("-c", "import {0}".format(module))
 
 
 @spack.builder.builder("sip")
-class SIPBuilder(BaseBuilder):
+class SIPBuilder(BuilderWithDefaults):
     """The SIP builder provides the following phases that can be overridden:
 
     * configure
@@ -136,8 +134,12 @@ class SIPBuilder(BaseBuilder):
         """Configure the package."""
 
         # https://www.riverbankcomputing.com/static/Docs/sip/command_line_tools.html
-        args = ["--verbose", "--target-dir", inspect.getmodule(self.pkg).python_platlib]
+        args = ["--verbose", "--target-dir", pkg.module.python_platlib]
         args.extend(self.configure_args())
+
+        # https://github.com/Python-SIP/sip/commit/cb0be6cb6e9b756b8b0db3136efb014f6fb9b766
+        if spec["py-sip"].satisfies("@6.1.0:"):
+            args.extend(["--scripts-dir", pkg.prefix.bin])
 
         sip_build = Executable(spec["py-sip"].prefix.bin.join("sip-build"))
         sip_build(*args)
@@ -151,7 +153,7 @@ class SIPBuilder(BaseBuilder):
         args = self.build_args()
 
         with working_dir(self.build_directory):
-            inspect.getmodule(self.pkg).make(*args)
+            pkg.module.make(*args)
 
     def build_args(self):
         """Arguments to pass to build."""
@@ -162,10 +164,10 @@ class SIPBuilder(BaseBuilder):
         args = self.install_args()
 
         with working_dir(self.build_directory):
-            inspect.getmodule(self.pkg).make("install", *args)
+            pkg.module.make("install", *args)
 
     def install_args(self):
         """Arguments to pass to install."""
         return []
 
-    spack.builder.run_after("install")(execute_install_time_tests)
+    spack.phase_callbacks.run_after("install")(execute_install_time_tests)

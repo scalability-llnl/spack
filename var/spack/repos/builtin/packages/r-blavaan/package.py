@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,9 @@ class RBlavaan(RPackage):
 
     cran = "blavaan"
 
+    license("GPL-3.0-or-later")
+
+    version("0.5-5", sha256="a8d3bc5e9d15a2e8496950e87ed3c6bc6d769e761ec068e1f063f2d255330b6d")
     version("0.4-7", sha256="43577264a1faff3cf98fce2c03b729816b40a82d36846458b8026b62da3008c3")
     version("0.4-3", sha256="a9f9f7b32aab7e7f179340c9f0f9d154b5fac51352c4fd590d317c201fe81b74")
     version("0.4-1", sha256="afb077d72f84ef0b6f45ef2ccb8335358042943c32a3472a9ca239ebca1c4aa4")
@@ -27,6 +29,7 @@ class RBlavaan(RPackage):
     depends_on("r-lavaan@0.6-7:", type=("build", "run"), when="@0.3-18:")
     depends_on("r-lavaan@0.6-10:", type=("build", "run"), when="@0.4-1:")
     depends_on("r-lavaan@0.6-14:", type=("build", "run"), when="@0.4-7:")
+    depends_on("r-lavaan@0.6-17:", type=("build", "run"), when="@0.5-3:")
     depends_on("r-rcpp@0.12.15:", type=("build", "run"))
     depends_on("r-coda", type=("build", "run"))
     depends_on("r-mnormt", type=("build", "run"))
@@ -34,6 +37,7 @@ class RBlavaan(RPackage):
     depends_on("r-loo@2.0:", type=("build", "run"))
     depends_on("r-rstan@2.19.2:", type=("build", "run"))
     depends_on("r-rstan@2.21.2:", type=("build", "run"), when="@0.3-18:")
+    depends_on("r-rstan@2.26.0:", type=("build", "run"), when="@0.5-2:")
     depends_on("r-rstantools@1.5.0:", type=("build", "run"))
     depends_on("r-rcppparallel@5.0.1:", type=("build", "run"))
     depends_on("r-bayesplot", type=("build", "run"))
@@ -41,6 +45,7 @@ class RBlavaan(RPackage):
     depends_on("r-future-apply", type=("build", "run"))
     depends_on("r-tmvnsim", type=("build", "run"), when="@0.3-18:")
     depends_on("r-stanheaders@2.18.1:", type=("build", "run"))
+    depends_on("r-stanheaders@2.26.0:", type=("build", "run"), when="@0.5-2:")
     depends_on("r-bh@1.69.0:", type=("build", "run"))
     depends_on("r-rcppeigen@0.3.3.4.0:", type=("build", "run"))
     depends_on("gmake", type="build")

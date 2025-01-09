@@ -1,5 +1,4 @@
-# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,8 @@ class PyPynvtx(PythonPackage):
     maintainers("DaxLynch")
 
     version("0.3.3", sha256="8877b2d90bbf9d279d517a80a8f35a0a0a8179ebabf0729e806798a84bee6c72")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("py-setuptools@40.8:", type="build")
     depends_on("py-pybind11", type=("build", "link", "run"))

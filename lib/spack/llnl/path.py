@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Path primitives that just require Python standard library."""
@@ -42,11 +41,6 @@ def convert_to_posix_path(path: str) -> str:
     return format_os_path(path, mode=Path.unix)
 
 
-def convert_to_windows_path(path: str) -> str:
-    """Converts the input path to Windows style."""
-    return format_os_path(path, mode=Path.windows)
-
-
 def convert_to_platform_path(path: str) -> str:
     """Converts the input path to the current platform's native style."""
     return format_os_path(path, mode=Path.platform_path)
@@ -71,7 +65,7 @@ def path_to_os_path(*parameters: str) -> List[str]:
     return result
 
 
-def system_path_filter(_func=None, arg_slice: Optional[slice] = None):
+def _system_path_filter(_func=None, arg_slice: Optional[slice] = None):
     """Filters function arguments to account for platform path separators.
     Optional slicing range can be specified to select specific arguments
 
@@ -103,3 +97,20 @@ def system_path_filter(_func=None, arg_slice: Optional[slice] = None):
     if _func:
         return holder_func(_func)
     return holder_func
+
+
+def _noop_decorator(_func=None, arg_slice: Optional[slice] = None):
+    return _func if _func else lambda x: x
+
+
+if sys.platform == "win32":
+    system_path_filter = _system_path_filter
+else:
+    system_path_filter = _noop_decorator
+
+
+def sanitize_win_longpath(path: str) -> str:
+    """Strip Windows extended path prefix from strings
+    Returns sanitized string.
+    no-op if extended path prefix is not present"""
+    return path.lstrip("\\\\?\\")

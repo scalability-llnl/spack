@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -9,6 +8,7 @@ import os
 import pytest
 
 import spack.directives
+import spack.directives_meta
 import spack.paths
 import spack.repo
 import spack.util.package_hash as ph
@@ -211,13 +211,13 @@ class HasManyDirectives:
 
 {directives}
 """.format(
-    directives="\n".join("    %s()" % name for name in spack.directives.directive_names)
+    directives="\n".join("    %s()" % name for name in spack.directives_meta.directive_names)
 )
 
 
 def test_remove_all_directives():
     """Ensure all directives are removed from packages before hashing."""
-    for name in spack.directives.directive_names:
+    for name in spack.directives_meta.directive_names:
         assert name in many_directives
 
     tree = ast.parse(many_directives)
@@ -225,7 +225,7 @@ def test_remove_all_directives():
     tree = ph.RemoveDirectives(spec).visit(tree)
     unparsed = unparse(tree, py_ver_consistent=True)
 
-    for name in spack.directives.directive_names:
+    for name in spack.directives_meta.directive_names:
         assert name not in unparsed
 
 
@@ -337,15 +337,15 @@ def test_remove_complex_package_logic_filtered():
         ("grads", "rrlmwml3f2frdnqavmro3ias66h5b2ce"),
         ("llvm", "nufffum5dabmaf4l5tpfcblnbfjknvd3"),
         # has @when("@4.1.0") and raw unicode literals
-        ("mfem", "lbhr43gm5zdye2yhqznucxb4sg6vhryl"),
-        ("mfem@4.0.0", "lbhr43gm5zdye2yhqznucxb4sg6vhryl"),
-        ("mfem@4.1.0", "vjdjdgjt6nyo7ited2seki5epggw5gza"),
+        ("mfem", "whwftpqbjvzncmb52oz6izkanbha2uji"),
+        ("mfem@4.0.0", "whwftpqbjvzncmb52oz6izkanbha2uji"),
+        ("mfem@4.1.0", "bpi7of3xelo7fr3ta2lm6bmiruijnxcg"),
         # has @when("@1.5.0:")
         ("py-torch", "qs7djgqn7dy7r3ps4g7hv2pjvjk4qkhd"),
         ("py-torch@1.0", "qs7djgqn7dy7r3ps4g7hv2pjvjk4qkhd"),
         ("py-torch@1.6", "p4ine4hc6f2ik2f2wyuwieslqbozll5w"),
         # has a print with multiple arguments
-        ("legion", "efpfd2c4pzhsbyc3o7plqcmtwm6b57yh"),
+        ("legion", "bq2etsik5l6pbryxmbhfhzynci56ruy4"),
         # has nested `with when()` blocks and loops
         ("trilinos", "vqrgscjrla4hi7bllink7v6v6dwxgc2p"),
     ],
@@ -364,7 +364,7 @@ def test_package_hash_consistency(package_spec, expected_hash):
     """
     spec = Spec(package_spec)
     filename = os.path.join(datadir, "%s.txt" % spec.name)
-    with open(filename) as f:
+    with open(filename, "rb") as f:
         source = f.read()
     h = ph.package_hash(spec, source=source)
     assert expected_hash == h

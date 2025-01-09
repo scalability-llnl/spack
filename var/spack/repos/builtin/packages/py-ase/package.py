@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,9 @@ class PyAse(PythonPackage):
     homepage = "https://wiki.fysik.dtu.dk/ase/"
     pypi = "ase/ase-3.13.0.tar.gz"
 
+    license("LGPL-2.1-or-later")
+
+    version("3.23.0", sha256="91a2aa31d89bd90b0efdfe4a7e84264f32828b2abfc9f38e65e041ad76fec8ae")
     version("3.21.1", sha256="78b01d88529d5f604e76bc64be102d48f058ca50faad72ac740d717545711c7b")
     version("3.21.0", sha256="2c561e9b767cf16fc8ce198ea9326d77c6b67d33a85f44b68455e23466a64608")
     version("3.20.1", sha256="72c81f21b6adb907595fce8d883c0231301cbd8e9f6e5ce8e98bab927054daca")
@@ -30,8 +32,12 @@ class PyAse(PythonPackage):
     depends_on("python@2.6:", type=("build", "run"), when="@:3.15.0")
     depends_on("python@3.5:", type=("build", "run"), when="@3.18.0:")
     depends_on("python@3.6:", type=("build", "run"), when="@3.20.0:")
+    depends_on("python@3.8:", type=("build", "run"), when="@3.23.0:")
     depends_on("py-numpy@1.11.3:", type=("build", "run"))
+    depends_on("py-numpy@1.18.5:", type=("build", "run"), when="@3.23.0:")
     depends_on("py-matplotlib@2.0.0:", type=("build", "run"))
+    depends_on("py-matplotlib@3.3.4:", type=("build", "run"), when="@3.23.0:")
     depends_on("py-scipy@0.18.1:", type=("build", "run"))
+    depends_on("py-scipy@1.6.0:", type=("build", "run"), when="@3.23.0:")
     depends_on("py-flask", type=("build", "run"), when="@:3.18.0")
     depends_on("py-setuptools", type="build")

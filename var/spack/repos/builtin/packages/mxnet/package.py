@@ -1,8 +1,8 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -14,7 +14,7 @@ class Mxnet(CMakePackage, CudaPackage, PythonExtension):
     list_url = "https://mxnet.apache.org/get_started/download"
     git = "https://github.com/apache/mxnet.git"
 
-    maintainers("adamjstewart")
+    license("Apache-2.0")
 
     version("master", branch="master", submodules=True)
     version("1.9.1", sha256="11ea61328174d8c29b96f341977e03deb0bf4b0c37ace658f93e38d9eb8c9322")
@@ -22,6 +22,9 @@ class Mxnet(CMakePackage, CudaPackage, PythonExtension):
     version("1.8.0", sha256="95aff985895aba409c08d5514510ae38b88490cfb6281ab3a5ff0f5826c8db54")
     version("1.7.0", sha256="1d20c9be7d16ccb4e830e9ee3406796efaf96b0d93414d676337b64bc59ced18")
     version("1.6.0", sha256="01eb06069c90f33469c7354946261b0a94824bbaf819fd5d5a7318e8ee596def")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant(
         "build_type",
@@ -57,9 +60,7 @@ class Mxnet(CMakePackage, CudaPackage, PythonExtension):
     depends_on("py-cython", when="+python", type="build")
     depends_on("py-numpy@1.17:", when="@2.0.0:+python", type=("build", "run"))
     depends_on("py-numpy@1.16.1:1", when="@1.6:1.8.0+python", type=("build", "run"))
-    depends_on("py-numpy@1.8.2:1.15.0", when="@1.3.0+python", type=("build", "run"))
     depends_on("py-requests@2.20.0:2", when="@1.6:+python", type=("build", "run"))
-    depends_on("py-requests@2.18.4:2.18", when="@1.3.0+python", type=("build", "run"))
     depends_on("py-graphviz@0.8.1:0.8", when="+python", type=("build", "run"))
 
     conflicts("+cudnn", when="~cuda")
@@ -125,5 +126,4 @@ class Mxnet(CMakePackage, CudaPackage, PythonExtension):
     def install_python(self):
         if "+python" in self.spec:
             with working_dir("python"):
-                args = std_pip_args + ["--prefix=" + prefix, "."]
-                pip(*args)
+                pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")

@@ -1,8 +1,9 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import spack.build_systems.autotools
+import spack.build_systems.cmake
 from spack.package import *
 
 
@@ -12,6 +13,9 @@ class Libssh2(AutotoolsPackage, CMakePackage):
     homepage = "https://www.libssh2.org/"
     url = "https://www.libssh2.org/download/libssh2-1.7.0.tar.gz"
 
+    license("BSD-3-Clause")
+
+    version("1.11.1", sha256="d9ec76cbe34db98eec3539fe2c899d26b0c837cb3eb466a56b0f109cabf658f7")
     version("1.11.0", sha256="3736161e41e2693324deb38c26cfdc3efe6209d634ba4258db1cecff6a5ad461")
     version("1.10.0", sha256="2d64e90f3ded394b91d3a2e774ca203a4179f69aebee03003e5a6fa621e41d51")
     version("1.9.0", sha256="d5fb8bd563305fd1074dda90bd053fb2d29fc4bce048d182f96eaa466dfadafd")
@@ -20,6 +24,8 @@ class Libssh2(AutotoolsPackage, CMakePackage):
     version(
         "1.4.3", sha256="eac6f85f9df9db2e6386906a6227eb2cd7b3245739561cad7d6dc1d5d021b96d"
     )  # CentOS7
+
+    depends_on("c", type="build")
 
     build_system("autotools", "cmake", default="autotools")
 
@@ -48,7 +54,7 @@ class Libssh2(AutotoolsPackage, CMakePackage):
     # and fails to prepend the -L flags, which is causing issues in libgit2, as
     # it tries to locate e.g. libssl in the dirs of the pc file's -L flags, and
     # cannot find the lib.
-    patch("pr-1114.patch", when="@1.7:")
+    patch("pr-1114.patch", when="@1.7:1.11.0")
 
 
 class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
@@ -72,14 +78,27 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
 
 class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
     def configure_args(self):
-        args = ["--disable-tests", "--disable-docker-tests", "--disable-examples-build"]
-        args += self.enable_or_disable("shared")
+        args = [
+            "--disable-tests",
+            "--disable-docker-tests",
+            "--disable-examples-build",
+            "--without-libgcrypt",
+            "--without-wincng",
+            *self.enable_or_disable("shared"),
+        ]
 
         crypto = self.spec.variants["crypto"].value
 
-        if crypto == "openssl":
-            args.append(f"--with-libssl-prefix={self.spec['openssl'].prefix}")
-        elif crypto == "mbedtls":
-            args.append(f"--with-libmbedcrypto-prefix={self.spec['mbedtls'].prefix}")
+        if self.spec.satisfies("@1.9:"):
+            # single flag for all crypto backends
+            args.append(f"--with-crypto={crypto}")
+        else:
+            # one flag per crypto backend
+            if crypto == "openssl":
+                args.append(f"--with-libssl-prefix={self.spec['openssl'].prefix}")
+                args.append("--without-mbedtls")
+            elif crypto == "mbedtls":
+                args.append(f"--with-libmbedcrypto-prefix={self.spec['mbedtls'].prefix}")
+                args.append("--without-openssl")
 
         return args

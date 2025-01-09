@@ -1,8 +1,8 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -35,8 +35,7 @@ class Sourmash(PythonPackage):
         cargo = Executable("cargo")
         cargo("build", "--release")
         # install python package
-        args = std_pip_args + ["--prefix=" + prefix, "."]
-        pip(*args)
+        pip(*PythonPipBuilder.std_args(self), f"--prefix={prefix}", ".")
         # move sourmash.so into expected place
         site_packages = join_path(python_platlib, "sourmash")
         lib_ext = "dylib" if spec.platform == "Darwin" else "so"

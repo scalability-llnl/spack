@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,6 +10,9 @@ from spack.package import *
 _versions = [
     # LAPACK++,     BLAS++
     ["master", "master"],
+    ["2024.10.26", "2024.10.26"],
+    ["2024.05.31", "2024.05.31"],
+    ["2023.11.05", "2023.11.05"],
     ["2023.08.25", "2023.08.25"],
     ["2023.06.00", "2023.06.00"],
     ["2022.07.00", "2022.07.00"],
@@ -32,7 +34,18 @@ class Lapackpp(CMakePackage, CudaPackage, ROCmPackage):
     url = "https://github.com/icl-utk-edu/lapackpp/releases/download/v2023.01.00/lapackpp-2023.01.00.tar.gz"
     maintainers("teonnik", "Sely85", "G-Ragghianti", "mgates3")
 
+    license("BSD-3-Clause")
+
     version("master", branch="master")
+    version(
+        "2024.10.26", sha256="67f81f585a7ac89b779c79297cab75cc23d2492cb5055c2348381ebdb751821d"
+    )
+    version(
+        "2024.05.31", sha256="093646d492a4c2c6b4d7001effb559c80da7fa31fd5ba517a6d686ca8c78cd99"
+    )
+    version(
+        "2023.11.05", sha256="9a505ef4e76504b6714cc19eb1b58939694f9ab51427a5bb915b016d615570ca"
+    )
     version(
         "2023.08.25", sha256="9effdd616a4a183a9b37c2ad33c85ddd3d6071b183e8c35e02243fbaa7333d4d"
     )
@@ -57,6 +70,8 @@ class Lapackpp(CMakePackage, CudaPackage, ROCmPackage):
     version(
         "2020.10.00", sha256="5f6ab3bd3794711818a3a50198efd29571520bf455e13ffa8ba50fa8376d7d1a"
     )
+
+    depends_on("cxx", type="build")  # generated
 
     variant("shared", default=True, description="Build shared library")
     variant("sycl", default=False, description="Build support for the SYCL backend")
@@ -92,15 +107,15 @@ class Lapackpp(CMakePackage, CudaPackage, ROCmPackage):
 
         backend = "none"
         if self.version >= Version("2022.07.00"):
-            if "+cuda" in spec:
+            if spec.satisfies("+cuda"):
                 backend = "cuda"
-            if "+rocm" in spec:
+            if spec.satisfies("+rocm"):
                 backend = "hip"
-            if "+sycl" in spec:
+            if spec.satisfies("+sycl"):
                 backend = "sycl"
 
         args = [
-            "-DBUILD_SHARED_LIBS=%s" % ("+shared" in spec),
+            "-DBUILD_SHARED_LIBS=%s" % spec.satisfies("+shared"),
             "-Dbuild_tests=%s" % self.run_tests,
             "-DLAPACK_LIBRARIES=%s" % spec["lapack"].libs.joined(";"),
             "-Dgpu_backend=%s" % backend,
@@ -113,8 +128,8 @@ class Lapackpp(CMakePackage, CudaPackage, ROCmPackage):
 
     def check(self):
         # If the tester fails to build, ensure that the check() fails.
-        if os.path.isfile(join_path(self.builder.build_directory, "test", "tester")):
-            with working_dir(self.builder.build_directory):
+        if os.path.isfile(join_path(self.build_directory, "test", "tester")):
+            with working_dir(self.build_directory):
                 make("check")
         else:
             raise Exception("The tester was not built!")

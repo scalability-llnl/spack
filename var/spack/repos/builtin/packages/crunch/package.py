@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,8 +15,12 @@ class Crunch(CMakePackage):
     # fix compilation bugs. If these commits are ever merged into upstream, we can switch to that.
     git = "https://github.com/rouault/crunch.git"
 
+    license("Zlib")
+
     # No stable releases since 2012
     version("master", branch="build_fixes")
+
+    depends_on("cxx", type="build")  # generated
 
     depends_on("cmake@3.5:", type="build")
 

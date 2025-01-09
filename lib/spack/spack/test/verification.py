@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,7 +24,7 @@ def test_link_manifest_entry(tmpdir):
     # Test that symlinks are properly checked against the manifest.
     # Test that the appropriate errors are generated when the check fails.
     file = str(tmpdir.join("file"))
-    open(file, "a").close()
+    open(file, "a", encoding="utf-8").close()
     link = str(tmpdir.join("link"))
     os.symlink(file, link)
 
@@ -37,7 +36,7 @@ def test_link_manifest_entry(tmpdir):
     assert not results.has_errors()
 
     file2 = str(tmpdir.join("file2"))
-    open(file2, "a").close()
+    open(file2, "a", encoding="utf-8").close()
     os.remove(link)
     os.symlink(file2, link)
 
@@ -75,7 +74,7 @@ def test_file_manifest_entry(tmpdir):
     new_str = "The file has changed"
 
     file = str(tmpdir.join("dir"))
-    with open(file, "w") as f:
+    with open(file, "w", encoding="utf-8") as f:
         f.write(orig_str)
 
     data = spack.verify.create_manifest_entry(file)
@@ -93,7 +92,7 @@ def test_file_manifest_entry(tmpdir):
     assert file in results.errors
     assert results.errors[file] == ["mode"]
 
-    with open(file, "w") as f:
+    with open(file, "w", encoding="utf-8") as f:
         f.write(new_str)
 
     data["mode"] = os.stat(file).st_mode
@@ -114,7 +113,7 @@ def test_check_chmod_manifest_entry(tmpdir):
     # Check that the verification properly identifies errors for files whose
     # permissions have been modified.
     file = str(tmpdir.join("dir"))
-    with open(file, "w") as f:
+    with open(file, "w", encoding="utf-8") as f:
         f.write("This is a file")
 
     data = spack.verify.create_manifest_entry(file)
@@ -149,7 +148,7 @@ def test_check_prefix_manifest(tmpdir):
         fs.mkdirp(d)
 
     file = os.path.join(other_dir, "file")
-    with open(file, "w") as f:
+    with open(file, "w", encoding="utf-8") as f:
         f.write("I'm a little file short and stout")
 
     link = os.path.join(bin_dir, "run")
@@ -161,7 +160,7 @@ def test_check_prefix_manifest(tmpdir):
 
     os.remove(link)
     malware = os.path.join(metadata_dir, "hiddenmalware")
-    with open(malware, "w") as f:
+    with open(malware, "w", encoding="utf-8") as f:
         f.write("Foul evil deeds")
 
     results = spack.verify.check_spec_manifest(spec)
@@ -177,7 +176,7 @@ def test_check_prefix_manifest(tmpdir):
         spack.store.STORE.layout.metadata_dir,
         spack.store.STORE.layout.manifest_file_name,
     )
-    with open(manifest_file, "w") as f:
+    with open(manifest_file, "w", encoding="utf-8") as f:
         f.write("{This) string is not proper json")
 
     results = spack.verify.check_spec_manifest(spec)
@@ -195,21 +194,21 @@ def test_single_file_verification(tmpdir):
     fs.mkdirp(filedir)
     fs.mkdirp(metadir)
 
-    with open(filepath, "w") as f:
+    with open(filepath, "w", encoding="utf-8") as f:
         f.write("I'm a file")
 
     data = spack.verify.create_manifest_entry(filepath)
 
     manifest_file = os.path.join(metadir, spack.store.STORE.layout.manifest_file_name)
 
-    with open(manifest_file, "w") as f:
+    with open(manifest_file, "w", encoding="utf-8") as f:
         sjson.dump({filepath: data}, f)
 
     results = spack.verify.check_file_manifest(filepath)
     assert not results.has_errors()
 
     os.utime(filepath, (0, 0))
-    with open(filepath, "w") as f:
+    with open(filepath, "w", encoding="utf-8") as f:
         f.write("I changed.")
 
     results = spack.verify.check_file_manifest(filepath)

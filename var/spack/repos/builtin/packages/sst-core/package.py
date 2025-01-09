@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,10 +13,15 @@ class SstCore(AutotoolsPackage):
 
     homepage = "https://github.com/sstsimulator"
     git = "https://github.com/sstsimulator/sst-core.git"
-    url = "https://github.com/sstsimulator/sst-core/releases/download/v13.0.0_Final/sstcore-13.0.0.tar.gz"
+    url = "https://github.com/sstsimulator/sst-core/releases/download/v14.1.0_Final/sstcore-14.1.0.tar.gz"
 
     maintainers("berquist", "naromero77")
 
+    license("BSD-3-Clause")
+
+    version("14.1.0", sha256="9d17c37d1ebdff8d8eb10ab0084eb901c78a7c5a76db15189e3d7fc318fd6f9d")
+    version("14.0.0", sha256="fadc7ee99472ff3ac5d4b3f3e507123e32bd9fb89c4c6b48fbd2dca8aeb8b8d6")
+    version("13.1.0", sha256="0a44c62ee0b18a20a3cb089f4e0d43e293dc5adc6c3fa7639d40986cf5b9854c")
     version("13.0.0", sha256="c9d868dcdd75d59bef7c73146709a3b2a52a78f0df5ec2c3dc9f21434c51d935")
     version("12.1.0", sha256="f7530226643439678e2f4183ec4dbadf7750411bdaa44d9443887f81feb97574")
     version("12.0.1", sha256="8662a778354e587e55b909725943dd5bb01d55121b1abc1a384a4eea161e9f5a")
@@ -38,6 +42,8 @@ class SstCore(AutotoolsPackage):
     version("develop", branch="devel")
     version("master", branch="master")
 
+    depends_on("cxx", type="build")  # generated
+
     variant(
         "pdes_mpi",
         default=True,
@@ -51,6 +57,13 @@ class SstCore(AutotoolsPackage):
     )
     variant("hdf5", default=False, description="Build support for HDF5 statistic output")
     variant("zlib", default=False, description="Build support for ZLIB compression")
+    # Starting with 0bc4832f3f87aa78d1efd3e15743eb059dc03250 and then 14.0.0.
+    variant(
+        "curses",
+        default=True,
+        when="@develop,master",
+        description="Build support for interactive sst-info",
+    )
 
     variant("trackevents", default=False, description="Enable event and activity tracking")
     variant(
@@ -61,21 +74,24 @@ class SstCore(AutotoolsPackage):
     variant("preview", default=False, description="Preview build with deprecated features removed")
     variant("profile", default=False, description="Enable performance profiling of core features")
 
-    depends_on("python", type=("build", "run", "link"))
+    depends_on("python@:3.11", type=("build", "run", "link"))
     depends_on("mpi", when="+pdes_mpi")
     depends_on("zoltan", when="+zoltan")
     depends_on("hdf5", when="+hdf5")
     depends_on("zlib-api", when="+zlib")
-
-    depends_on("autoconf@1.68:", type="build")
-    depends_on("automake@1.11.1:", type="build")
-    depends_on("libtool@1.2.4:", type="build")
-    depends_on("m4", type="build", when="@master:")
     depends_on("gettext")
+    depends_on("ncurses", when="+curses")
+
+    for version_name in ("master", "develop"):
+        depends_on("autoconf@1.68:", type="build", when="@{}".format(version_name))
+        depends_on("automake@1.11.1:", type="build", when="@{}".format(version_name))
+        depends_on("libtool@1.2.4:", type="build", when="@{}".format(version_name))
+        depends_on("m4", type="build", when="@{}".format(version_name))
 
     # force out-of-source builds
     build_directory = "spack-build"
 
+    @when("@develop,master")
     def autoreconf(self, spec, prefix):
         bash = which("bash")
         bash("autogen.sh")
@@ -88,6 +104,8 @@ class SstCore(AutotoolsPackage):
             args.append("--with-hdf5=%s" % self.spec["hdf5"].prefix)
         if "+zlib" in self.spec:
             args.append("--with-zlib=%s" % self.spec["zlib-api"].prefix)
+        if "+curses" in self.spec:
+            args.append("--with-curses={}".format(self.spec["ncurses"].prefix))
 
         if "+pdes_mpi" in self.spec:
             args.append("--enable-mpi")

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -237,7 +236,6 @@ def colify_table(
 def colified(
     elts: List[Any],
     cols: int = 0,
-    output: Optional[IO] = None,
     indent: int = 0,
     padding: int = 2,
     tty: Optional[bool] = None,

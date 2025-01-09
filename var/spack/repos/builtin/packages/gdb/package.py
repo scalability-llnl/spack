@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,12 @@ class Gdb(AutotoolsPackage, GNUMirrorPackage):
 
     maintainers("robertu94")
 
+    license("GPL-3.0-or-later AND LGPL-3.0-or-later")
+
+    version("15.2", sha256="9d16bc2539a2a20dc3ef99b48b8414d51c51305c8577eb7a1da00996f6dea223")
+    version("14.2", sha256="2de5174762e959a5e529e20c20d88a04735469d8fffd98f61664e70b341dc47c")
+    version("14.1", sha256="683e63182fb72bd5d8db32ab388143796370a8e3e71c26bc264effb487db7927")
+    version("13.2", sha256="7ead13d9e19fa0c57bb19104e1a5f67eefa9fc79f2e6360de491e8fddeda1e30")
     version("13.1", sha256="4cc3d7143d6d54d289d227b1e7289dbc0fa4cbd46131ab87136e1ea831cf46d4")
     version("12.1", sha256="87296a3a9727356b56712c793704082d5df0ff36a34ca9ec9734fc9a8bdfdaab")
     version("11.2", sha256="b558b66084835e43b6361f60d60d314c487447419cdf53adf83a87020c367290")
@@ -37,6 +42,10 @@ class Gdb(AutotoolsPackage, GNUMirrorPackage):
     version("7.12.1", sha256="142057eacecfb929d52b561eb47a1103c7d504cec3f659dd8a5ae7bc378f7e77")
     version("7.11.1", sha256="57e9e9aa3172ee16aa1e9c66fef08b4393b51872cc153e3f1ffdf18a57440586")
     version("7.10.1", sha256="ff14f8050e6484508c73cbfa63731e57901478490ca1672dc0b5e2b03f6af622")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("python", default=True, description="Compile with Python support", when="@8.2:")
     variant("xz", default=True, description="Compile with lzma support")
@@ -74,17 +83,23 @@ class Gdb(AutotoolsPackage, GNUMirrorPackage):
     depends_on("texinfo", type="build")
 
     # Optional dependencies
-    depends_on("python", when="+python", type=("build", "link", "run"))
-    # gdb@9.2 will segmentation fault if it builds with python@3.9.
-    # https://bugzilla.redhat.com/show_bug.cgi?id=1829702
-    depends_on("python@:3.8", when="@:9.2+python", type=("build", "link", "run"))
+    with when("+python"), default_args(type=("build", "link", "run")):
+        depends_on("python")
+        # gdb@9.2 will segmentation fault if it builds with python@3.9.
+        # https://bugzilla.redhat.com/show_bug.cgi?id=1829702
+        depends_on("python@:3.8", when="@:9.2")
+        # pyOS_ReadlineTState became private API in cpython commit
+        # d228825e08883fc13f35eb91435f95d32524931c
+        depends_on("python@:3.12", when="@:14.2")
     depends_on("xz", when="+xz")
     depends_on("zlib-api")
     depends_on("zstd", when="@13.1:")
+    depends_on("pkgconfig", type="build", when="@13.1:")
     depends_on("source-highlight", when="+source-highlight")
     depends_on("ncurses", when="+tui")
     depends_on("gmp", when="@11.1:")
     depends_on("elfutils@0.179:+debuginfod", when="@10.1:+debuginfod")
+    depends_on("mpfr@4.2:", when="@14:")
 
     build_directory = "spack-build"
 
@@ -106,7 +121,7 @@ class Gdb(AutotoolsPackage, GNUMirrorPackage):
         if self.spec.version >= Version("11.1"):
             args.append("--with-gmp={}".format(self.spec["gmp"].prefix))
 
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             args.append("--with-python={}".format(self.spec["python"].command))
             args.append("LDFLAGS={}".format(self.spec["python"].libs.ld_flags))
 
@@ -114,7 +129,7 @@ class Gdb(AutotoolsPackage, GNUMirrorPackage):
 
     @run_after("install")
     def gdbinit(self):
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             tool = self.spec["python"].command.path + "-gdb.py"
             if os.path.exists(tool):
                 mkdir(self.prefix.etc)

@@ -1,11 +1,8 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
-
-from llnl.util import tty
 
 from spack.package import *
 from spack.pkg.builtin.blis import BlisBase
@@ -23,7 +20,7 @@ class Amdblis(BlisBase):
     LICENSING INFORMATION: By downloading, installing and using this software,
     you agree to the terms and conditions of the AMD AOCL-BLIS license
     agreement.  You may obtain a copy of this license agreement from
-    https://www.amd.com/en/developer/aocl/dense/eula/blas-4-1-eula.html
+    https://www.amd.com/en/developer/aocl/dense/eula/blas-4-2-eula.html
     https://www.amd.com/en/developer/aocl/dense/eula/blas-eula.html
     """
 
@@ -34,6 +31,16 @@ class Amdblis(BlisBase):
 
     maintainers("amd-toolchain-support")
 
+    requires("target=x86_64:", msg="AMD blis available only on x86_64")
+
+    license("BSD-3-Clause")
+
+    version(
+        "5.0",
+        sha256="5abb34972b88b2839709d0af8785662bc651c7806ccfa41d386d93c900169bc2",
+        preferred=True,
+    )
+    version("4.2", sha256="0e1baf850ba0e6f99e79f64bbb0a59fcb838ddb5028e24527f52b407c3c62963")
     version("4.1", sha256="a05c6c7d359232580d1d599696053ad0beeedf50f3b88d5d22ee7d34375ab577")
     version("4.0", sha256="cddd31176834a932753ac0fc4c76332868feab3e9ac607fa197d8b44c1e74a41")
     version("3.2", sha256="5a400ee4fc324e224e12f73cc37b915a00f92b400443b15ce3350278ad46fff6")
@@ -42,25 +49,20 @@ class Amdblis(BlisBase):
     version("3.0", sha256="ac848c040cd6c3550fe49148dbdf109216cad72d3235763ee7ee8134e1528517")
     version("2.2", sha256="e1feb60ac919cf6d233c43c424f6a8a11eab2c62c2c6e3f2652c15ee9063c0c9")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("ilp64", default=False, when="@3.0.1:", description="ILP64 support")
     variant("aocl_gemm", default=False, when="@4.1:", description="aocl_gemm support")
     variant("suphandling", default=True, description="Small Unpacked Kernel handling")
 
+    variant("logging", default=False, description="Enable AOCL DTL Logging")
+    variant("tracing", default=False, description="Enable AOCL DTL Tracing")
+
     def configure_args(self):
         spec = self.spec
         args = super().configure_args()
-
-        if not (
-            spec.satisfies(r"%aocc@3.2:4.1")
-            or spec.satisfies(r"%gcc@12.2:13.1")
-            or spec.satisfies(r"%clang@15:16")
-        ):
-            tty.warn(
-                "AOCL has been tested to work with the following compilers\
-                    versions - gcc@12.2:13.1, aocc@3.2:4.1, and clang@15:16\
-                    see the following aocl userguide for details: \
-                    https://www.amd.com/content/dam/amd/en/documents/developer/version-4-1-documents/aocl/aocl-4-1-user-guide.pdf"
-            )
 
         if spec.satisfies("+ilp64"):
             args.append("--blas-int-size=64")
@@ -83,8 +85,22 @@ class Amdblis(BlisBase):
         elif spec.satisfies("@3.0.1: %aocc"):
             args.append("--complex-return=intel")
 
-        if spec.satisfies("@3.1:"):
+        if spec.satisfies("@3.1"):
             args.append("--disable-aocl-dynamic")
+
+        if spec.satisfies("+logging"):
+            filter_file(
+                "#define AOCL_DTL_LOG_ENABLE         0",
+                "#define AOCL_DTL_LOG_ENABLE         1",
+                f"{self.stage.source_path}/aocl_dtl/aocldtlcf.h",
+            )
+
+        if spec.satisfies("+tracing"):
+            filter_file(
+                "#define AOCL_DTL_TRACE_ENABLE       0",
+                "#define AOCL_DTL_TRACE_ENABLE       1",
+                f"{self.stage.source_path}/aocl_dtl/aocldtlcf.h",
+            )
 
         return args
 
@@ -95,3 +111,12 @@ class Amdblis(BlisBase):
                 os.symlink("libblis-mt.a", "libblis.a")
             if os.path.isfile("libblis-mt.so"):
                 os.symlink("libblis-mt.so", "libblis.so")
+
+    @property
+    def libs(self):
+        return find_libraries(
+            ["libblis"] if self.spec.satisfies("threads=none") else ["libblis-mt"],
+            root=self.prefix,
+            shared=self.spec.satisfies("libs=shared"),
+            recursive=True,
+        )

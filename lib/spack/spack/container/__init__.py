@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Package that provides functions and classes to
@@ -33,7 +32,7 @@ def validate(configuration_file):
     """
     import jsonschema
 
-    with open(configuration_file) as f:
+    with open(configuration_file, encoding="utf-8") as f:
         config = syaml.load(f)
 
     # Ensure we have a "container" attribute with sensible defaults set

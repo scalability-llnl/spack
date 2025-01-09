@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,6 +10,8 @@ class Pipx(PythonPackage):
 
     homepage = "https://pypa.github.io/pipx/"
     pypi = "pipx/pipx-1.2.0.tar.gz"
+
+    license("MIT")
 
     version("1.2.0", sha256="d1908041d24d525cafebeb177efb686133d719499cb55c54f596c95add579286")
 

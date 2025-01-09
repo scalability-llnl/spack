@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,23 +10,26 @@ class Libunwind(AutotoolsPackage):
     the call-chain of a program."""
 
     homepage = "https://www.nongnu.org/libunwind/"
-    url = "http://download.savannah.gnu.org/releases/libunwind/libunwind-1.1.tar.gz"
+    url = "https://github.com/libunwind/libunwind/releases/download/v0.0.0/libunwind-0.0.0.tar.gz"
     git = "https://github.com/libunwind/libunwind"
     maintainers("mwkrentel")
 
+    license("MIT")
+
     version("master", branch="master")
+    version("1.8-stable", branch="v1.8-stable")
+    version("1.8.1", sha256="ddf0e32dd5fafe5283198d37e4bf9decf7ba1770b6e7e006c33e6df79e6a6157")
+    version("1.7-stable", branch="v1.7-stable")
+    version("1.7.2", sha256="a18a6a24307443a8ace7a8acc2ce79fbbe6826cd0edf98d6326d0225d6a5d6e6")
     version("1.6-stable", branch="v1.6-stable")
     version("1.6.2", sha256="4a6aec666991fb45d0889c44aede8ad6eb108071c3554fcdff671f9c94794976")
-    version("1.5-stable", branch="v1.5-stable")
     version("1.5.0", sha256="90337653d92d4a13de590781371c604f9031cdb50520366aa1e3a91e1efb1017")
     version("1.4.0", sha256="df59c931bd4d7ebfd83ee481c943edf015138089b8e50abed8d9c57ba9338435")
     version("1.3.1", sha256="43997a3939b6ccdf2f669b50fdb8a4d3205374728c2923ddc2354c65260214f8")
     version("1.2.1", sha256="3f3ecb90e28cbe53fba7a4a27ccce7aad188d3210bb1964a923a731a27a75acb")
-    version(
-        "1.1",
-        sha256="9dfe0fcae2a866de9d3942c66995e4b460230446887dbdab302d41a8aee8d09a",
-        deprecated=True,
-    )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("docs", default=True, description="Build man page")
     variant(
@@ -78,7 +80,7 @@ class Libunwind(AutotoolsPackage):
 
     # The libunwind releases contain the autotools generated files,
     # but the git repo snapshots do not.
-    reconf_versions = "@master,1.5-stable,1.6-stable"
+    reconf_versions = "@master,1.6-stable,1.7-stable,1.8-stable"
     depends_on("autoconf", type="build", when=reconf_versions)
     depends_on("automake", type="build", when=reconf_versions)
     depends_on("libtool", type="build", when=reconf_versions)
@@ -89,7 +91,20 @@ class Libunwind(AutotoolsPackage):
 
     conflicts("platform=darwin", msg="Non-GNU libunwind needs ELF libraries Darwin does not have")
 
+    # Introduced in https://github.com/libunwind/libunwind/pull/555, fixed in
+    # https://github.com/libunwind/libunwind/pull/723
+    conflicts("target=ppc64:", when="@1.8")
+    conflicts("target=ppc64le:", when="@1.8")
+
+    conflicts("target=aarch64:", when="@1.8:")
+
     provides("unwind")
+
+    def url_for_version(self, version):
+        if version == Version("1.5.0"):
+            return f"https://github.com/libunwind/libunwind/releases/download/v{version.up_to(2)}/libunwind-{version}.tar.gz"
+        else:
+            return super().url_for_version(version)
 
     def flag_handler(self, name, flags):
         wrapper_flags = []
@@ -103,7 +118,7 @@ class Libunwind(AutotoolsPackage):
             ):
                 wrapper_flags.append("-fcommon")
 
-            if "+pic" in self.spec:
+            if self.spec.satisfies("+pic"):
                 wrapper_flags.append(self.compiler.cc_pic_flag)
 
         return (wrapper_flags, None, flags)

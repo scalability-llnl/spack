@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,6 +24,8 @@ class SeqGen(MakefilePackage):
     url = "https://github.com/rambaut/Seq-Gen/archive/refs/tags/1.3.4.tar.gz"
 
     version("1.3.4", sha256="092ec2255ce656a02b2c3012c32443c7d8e38c692f165fb155b304ca030cbb59")
+
+    depends_on("c", type="build")  # generated
 
     build_directory = "source"
 

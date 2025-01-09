@@ -1,5 +1,4 @@
-.. Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-   Spack Project Developers. See the top-level COPYRIGHT file for details.
+.. Copyright Spack Project Developers. See COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -124,7 +123,7 @@ are wrong, you can provide the names yourself by overriding
 
 .. code-block:: python
 
-   import_modules = ['PyQt5']
+   import_modules = ["PyQt5"]
 
 
 These tests often catch missing dependencies and non-RPATHed

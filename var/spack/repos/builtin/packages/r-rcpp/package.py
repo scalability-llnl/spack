@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,9 @@ class RRcpp(RPackage):
 
     cran = "Rcpp"
 
+    version("1.0.13", sha256="21fec650c113e57935fd86c7d1be190811f1ae036c1ee203bfbbf3ad5cdb22ce")
+    version("1.0.12", sha256="0c7359cc43beee02761aa3df2baccede1182d29d28c9cd49964b609305062bd0")
+    version("1.0.11", sha256="df757c3068599c6c05367900bcad93547ba3422d59802dbaca20fd74d4d2fa5f")
     version("1.0.10", sha256="1e65e24a9981251ab5fc4f9fd65fe4eab4ba0255be3400a8c5abe20b62b5d546")
     version("1.0.9", sha256="807cec06dc4a96d54904360f6144466f084a7ed411ce5d2eea486a9b3c229176")
     version("1.0.8.3", sha256="9da5b84cdaf56e972b41e669d496b1ece2e91bcd435505c68b9f2bd98375f8bf")
@@ -44,6 +46,9 @@ class RRcpp(RPackage):
     version("0.12.9", sha256="f0bd0df28ded09cb3cb5c2a348e2f81d1a2bf0b2248e9aecd67aeeeaeabbcd5e")
     version("0.12.6", sha256="1bb54e03b817a3d6ab5917f1bbf5250c6b33f61e466628a378022ed65a010141")
     version("0.12.5", sha256="13449481c91b5271b34d81f462864864c1905bb05021781eee11c36fdafa80ef")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     # leave the r dependency also for newer versions
     # (not listed in Description for @1.0.5:)

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,8 @@ class Tabix(MakefilePackage):
     git = "https://github.com/samtools/tabix.git"
 
     version("2013-12-16", commit="1ae158ac79b459f5feeed7490c67519b14ce9f35")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("perl", type=("build", "run"))
     depends_on("python", type=("build", "run"))

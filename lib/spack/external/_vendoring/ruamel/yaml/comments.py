@@ -497,7 +497,7 @@ class CommentedBase:
                   Tag.attrib, merge_attrib]:
             if hasattr(self, a):
                 if memo is not None:
-                    setattr(t, a, copy.deepcopy(getattr(self, a, memo)))
+                    setattr(t, a, copy.deepcopy(getattr(self, a), memo))
                 else:
                     setattr(t, a, getattr(self, a))
         # fmt: on

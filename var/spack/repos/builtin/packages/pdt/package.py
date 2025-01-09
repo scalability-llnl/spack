@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,9 @@ class Pdt(AutotoolsPackage):
 
     tags = ["e4s"]
 
+    license("GPL-2.0-only")
+
+    version("3.25.2", sha256="01c2d403bc6672b2b264a182c325806541066c5ed5713878eb598f5506428cbe")
     version("3.25.1", sha256="0b6f8a6b8769c181b2ae6cae7298f04b8e3e3d68066f598ed24574e19500bc97")
     version("3.25", sha256="1037628d854edfeded3d847150d3e8fbd3774e8146407ce32f5021c80f6299be")
     version("3.24", sha256="4a2bb31f3f7f2e52ed49d9b7189ade05170a4386ef76771280a06e8b3ca97ab2")
@@ -35,6 +37,9 @@ class Pdt(AutotoolsPackage):
     version("3.19", sha256="d57234077e2e999f2acf9860ea84369a4694b50cc17fa6728e5255dc5f4a2160")
     version("3.18.1", sha256="d06c2d1793fadebf169752511e5046d7e02cf3fead6135a35c34b1fee6d6d3b2")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     variant("pic", default=False, description="Builds with pic")
 
     patch("cray_configure.patch", when="%cce")
@@ -45,18 +50,21 @@ class Pdt(AutotoolsPackage):
             filter_file(r"PDT_GXX=g\+\+ ", r"PDT_GXX=clang++ ", "ductape/Makefile")
 
     def configure(self, spec, prefix):
-        options = ["-prefix=%s" % prefix]
-        if self.compiler.name == "xl":
+        options = [f"-prefix={prefix}"]
+        if spec.satisfies("%xl"):
             options.append("-XLC")
-        elif self.compiler.name == "intel" or self.compiler.name == "oneapi":
+        elif spec.satisfies("%intel"):
             options.append("-icpc")
-        elif self.compiler.name == "pgi":
-            options.append("-pgCC")
-        elif self.compiler.name == "gcc":
+        elif spec.satisfies("%oneapi"):
+            if spec.satisfies("@3.25.2:"):
+                options.append("-icpx")
+            else:
+                options.append("-icpc")
+        elif spec.satisfies("%gcc"):
             options.append("-GNU")
-        elif self.compiler.name == "clang" or self.compiler.name == "apple-clang":
+        elif spec.satisfies("%clang") or spec.satisfies("%apple-clang") or spec.satisfies("%aocc"):
             options.append("-clang")
-        elif self.compiler.name == "cce":
+        elif spec.satisfies("%cce"):
             options.append("-CC")
         else:
             raise InstallError("Unknown/unsupported compiler family: " + self.compiler.name)

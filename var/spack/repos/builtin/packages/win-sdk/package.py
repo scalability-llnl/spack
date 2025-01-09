@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,7 +18,7 @@ class WinSdk(Package):
 
     homepage = "https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/"
     has_code = False
-    tags = ["windows"]
+    tags = ["windows", "windows-system"]
 
     # The sdk has many libraries and executables. Record one for detection purposes
     libraries = ["rcdll.dll"]
@@ -55,7 +54,7 @@ class WinSdk(Package):
 
     # For now we don't support Windows development env
     # on other platforms
-    for plat in ["linux", "darwin", "cray"]:
+    for plat in ["linux", "darwin"]:
         conflicts("platform=%s" % plat)
 
     @classmethod
@@ -82,12 +81,10 @@ class WinSdk(Package):
 
     def install(self, spec, prefix):
         raise RuntimeError(
-            "This package is not installable from Spack\
-            and should be installed on the system prior to Spack use.\
-                If not installed this package should be installed via\
-                    the Visual Studio installer in order to use the \
-                        MSVC compiler on Windows."
-            "If absolutely neccesary this SDK can be installed directly from Microsoft\
-                but this approach is not recommended unless you know what you're doing \
-                    or if you're on Windows 11 you have no choice for the moment."
+            "This package is not installable from Spack and should be installed on the system "
+            "prior to Spack use. If not installed this package should be installed via the Visual "
+            "Studio installer in order to use the MSVC compiler on Windows. If absolutely "
+            "necessary this SDK can be installed directly from Microsoft but this approach is not "
+            "recommended unless you know what you're doing or if you're on Windows 11 you have no "
+            "choice for the moment."
         )

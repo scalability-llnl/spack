@@ -1,16 +1,14 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import inspect
-
 from llnl.util.filesystem import working_dir
 
 import spack.builder
 import spack.package_base
+import spack.phase_callbacks
 from spack.directives import build_system, depends_on
 
-from ._checks import BaseBuilder, execute_build_time_tests, execute_install_time_tests
+from ._checks import BuilderWithDefaults, execute_build_time_tests, execute_install_time_tests
 
 
 class WafPackage(spack.package_base.PackageBase):
@@ -32,7 +30,7 @@ class WafPackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("waf")
-class WafBuilder(BaseBuilder):
+class WafBuilder(BuilderWithDefaults):
     """The WAF builder provides the following phases that can be overridden:
 
     * configure
@@ -90,11 +88,11 @@ class WafBuilder(BaseBuilder):
 
     def python(self, *args, **kwargs):
         """The python ``Executable``."""
-        inspect.getmodule(self.pkg).python(*args, **kwargs)
+        self.pkg.module.python(*args, **kwargs)
 
     def waf(self, *args, **kwargs):
         """Runs the waf ``Executable``."""
-        jobs = inspect.getmodule(self.pkg).make_jobs
+        jobs = self.pkg.module.make_jobs
 
         with working_dir(self.build_directory):
             self.python("waf", "-j{0}".format(jobs), *args, **kwargs)
@@ -138,7 +136,7 @@ class WafBuilder(BaseBuilder):
         """
         pass
 
-    spack.builder.run_after("build")(execute_build_time_tests)
+    spack.phase_callbacks.run_after("build")(execute_build_time_tests)
 
     def install_test(self):
         """Run unit tests after install.
@@ -148,4 +146,4 @@ class WafBuilder(BaseBuilder):
         """
         pass
 
-    spack.builder.run_after("install")(execute_install_time_tests)
+    spack.phase_callbacks.run_after("install")(execute_install_time_tests)

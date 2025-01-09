@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class Openscenegraph(CMakePackage):
 
     maintainers("aumuell")
 
+    license("LGPL-2.1-or-later")
+
     version("master", branch="master")
     version("stable", branch="OpenSceneGraph-3.6")
     version("3.6.5", sha256="aea196550f02974d6d09291c5d83b51ca6a03b3767e234a8c0e21322927d1e12")
@@ -26,6 +27,9 @@ class Openscenegraph(CMakePackage):
     version("3.4.0", sha256="0d5efe12b923130d14a6fce5866675d7625fcfb1c004c9f9b10034b9feb61ac2")
     version("3.2.3", sha256="a1ecc6524197024834e1277916922b32f30246cb583e27ed19bf3bf889534362")
     version("3.1.5", sha256="dddecf2b33302076712100af59b880e7647bc595a9a7cc99186e98d6e0eaeb5c")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("shared", default=True, description="Builds a shared version of the library")
     variant("apps", default=False, description="Build OpenSceneGraph tools")
@@ -53,8 +57,8 @@ class Openscenegraph(CMakePackage):
     )  # Qt windowing system was moved into separate osgQt project
     depends_on("qt@4:", when="@3.2:3.5.4")
     depends_on("qt@:4", when="@:3.1")
-    depends_on("libxinerama")
-    depends_on("libxrandr")
+    depends_on("libxinerama", when="platform=linux")
+    depends_on("libxrandr", when="platform=linux")
     depends_on("libpng")
     depends_on("jasper")
     depends_on("libtiff")
@@ -72,11 +76,19 @@ class Openscenegraph(CMakePackage):
     depends_on("poppler+glib", when="+pdf")
     depends_on("librsvg", when="+svg")
 
-    depends_on("ffmpeg@:4", when="+ffmpeg")
-    depends_on("ffmpeg+avresample", when="^ffmpeg@:4")
-    # https://github.com/openscenegraph/OpenSceneGraph/issues/167
-    depends_on("ffmpeg@:2", when="@:3.4.0+ffmpeg")
+    with when("+ffmpeg"):
+        depends_on("ffmpeg")
+        requires("^ffmpeg +avresample", when="^ffmpeg@:4")
+        # https://github.com/openscenegraph/OpenSceneGraph/issues/167
+        depends_on("ffmpeg@:2", when="@:3.4.0")
 
+    # patch submitted for inclusion in OpenSceneGraph for extending compatibility
+    # with ffmpeg from versions up to 4 to versions 5 & 6
+    patch(
+        "https://github.com/openscenegraph/OpenSceneGraph/commit/759620a3b7b787c960a7e414ba26ab5497817d40.patch?full_index=1",
+        sha256="1e6daf0d15e916b69d62519a0ca4f8a722fe2144cbdab7dd182eaffb141e3c1a",
+        when="@3.6:",
+    )
     patch("glibc-jasper.patch", when="@3.4%gcc")
     # from gentoo: https://raw.githubusercontent.com/gentoo/gentoo/9523b20c27d12dd72d1fd5ced3ba4995099925a2/dev-games/openscenegraph/files/openscenegraph-3.6.5-openexr3.patch
     patch("openscenegraph-3.6.5-openexr3.patch", when="@3.6:")

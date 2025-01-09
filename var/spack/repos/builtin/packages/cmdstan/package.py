@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,7 +11,13 @@ class Cmdstan(MakefilePackage):
     homepage = "https://mc-stan.org/users/interfaces/cmdstan"
     url = "https://github.com/stan-dev/cmdstan/releases/download/v2.30.1/cmdstan-2.30.1.tar.gz"
 
+    license("BSD-3-Clause")
+
     version("2.30.1", sha256="bab76dcefa7f4c955595c0bf0496770507fc6ab0df5896e8cf8c2db0a17eedb9")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("threads", default=True, description="enable thread support")
     variant("opencl", default=False, description="enable OpenCl support")
@@ -26,12 +31,12 @@ class Cmdstan(MakefilePackage):
     filter_compiler_wrappers("local", relative_root="make")
 
     def edit(self, spec, prefix):
-        if spec.compiler.name == "intel":
+        if spec.satisfies("%intel"):
             cxx_type = "icc"
         else:
             cxx_type = spec.compiler.name
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             cxx = spec["mpi"].mpicxx
         else:
             cxx = spack_cxx
@@ -47,13 +52,13 @@ class Cmdstan(MakefilePackage):
             "TBB_CXX_TYPE={0}\n".format(cxx_type),
         ]
 
-        if "+threads" in spec:
+        if spec.satisfies("+threads"):
             make_options.append("STAN_THREADS=true\n")
 
-        if "+opencl" in spec:
+        if spec.satisfies("+opencl"):
             make_options.append("STAN_OPENCL=true\n")
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             make_options.append("STAN_MPI=true\n")
 
         filepath = join_path(self.stage.source_path, "make", "local")

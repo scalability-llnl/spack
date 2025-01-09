@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PyUbiquerg(PythonPackage):
 
     homepage = "https://github.com/pepkit/ubiquerg"
     pypi = "ubiquerg/ubiquerg-0.6.2.tar.gz"
+
+    license("BSD-2-Clause")
 
     version("0.6.2", sha256="a9b1388799d4c366f956e0c912819099ad8f6cd0e5d890923cdde197f80d14cf")
 

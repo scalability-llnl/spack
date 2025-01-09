@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,8 @@ class PyStatsmodels(PythonPackage):
     pypi = "statsmodels/statsmodels-0.8.0.tar.gz"
     git = "https://github.com/statsmodels/statsmodels.git"
 
+    license("BSD-3-Clause")
+
     version("0.14.0", sha256="6875c7d689e966d948f15eb816ab5616f4928706b180cf470fd5907ab6f647a4")
     version("0.13.5", sha256="593526acae1c0fda0ea6c48439f67c3943094c542fe769f8b90fe9e6c6cc4871")
     version("0.13.2", sha256="77dc292c9939c036a476f1770f9d08976b05437daa229928da73231147cde7d4")
@@ -25,6 +26,9 @@ class PyStatsmodels(PythonPackage):
     version("0.12.1", sha256="a271b4ccec190148dccda25f0cbdcbf871f408fc1394a10a7dc1af4a62b91c8e")
     version("0.10.2", sha256="9cd2194c6642a8754e85f9a6e6912cdf996bebf6ff715d3cc67f65dadfd37cc9")
     version("0.10.1", sha256="320659a80f916c2edf9dfbe83512d9004bb562b72eedb7d9374562038697fa10")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("python@3.8:", when="@0.14:", type=("build", "link", "run"))
     depends_on("python", type=("build", "link", "run"))
@@ -49,6 +53,8 @@ class PyStatsmodels(PythonPackage):
     depends_on("py-numpy@1.17:", when="@0.13:", type=("build", "link", "run"))
     depends_on("py-numpy@1.15:", when="@0.12.1:", type=("build", "link", "run"))
     depends_on("py-numpy@1.11:", when="@0.10.1:", type=("build", "link", "run"))
+    # https://github.com/statsmodels/statsmodels/issues/9194
+    depends_on("py-numpy@:1", when="@:0.14.1", type=("build", "link", "run"))
     depends_on("py-scipy@1.4:", when="@0.13.5:", type=("build", "run"))
     conflicts("^py-scipy@1.9.2")
     depends_on("py-scipy@1.3:", when="@0.13:", type=("build", "run"))

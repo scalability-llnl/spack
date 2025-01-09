@@ -1,9 +1,7 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import spack.builder
 from spack.build_systems import autotools, cmake
 from spack.package import *
 
@@ -23,6 +21,12 @@ class Proj(CMakePackage, AutotoolsPackage):
     # Many packages that depend on proj do not yet support the newer API.
     # See https://github.com/OSGeo/PROJ/wiki/proj.h-adoption-status
 
+    license("MIT")
+
+    version("9.4.1", sha256="ffe20170ee2b952207adf8a195e2141eab12cda181e49fdeb54425d98c7171d7")
+    version("9.4.0", sha256="3643b19b1622fe6b2e3113bdb623969f5117984b39f173b4e3fb19a8833bd216")
+    version("9.3.1", sha256="b0f919cb9e1f42f803a3e616c2b63a78e4d81ecfaed80978d570d3a5e29d10bc")
+    version("9.3.0", sha256="91a3695a004ea28db0448a34460bed4cc3b130e5c7d74339ec999efdab0e547d")
     version("9.2.1", sha256="15ebf4afa8744b9e6fccb5d571fc9f338dc3adcf99907d9e62d1af815d4971a1")
     version("9.2.0", sha256="dea816f5aa732ae6b2ee3977b9bdb28b1d848cf56a1aad8faf6708b89f0ed50e")
     version("9.1.1", sha256="003cd4010e52bb5eb8f7de1c143753aa830c8902b6ed01209f294846e40e6d39")
@@ -39,7 +43,11 @@ class Proj(CMakePackage, AutotoolsPackage):
     version("7.2.0", sha256="2957798e5fe295ff96a2af1889d0428e486363d210889422f76dd744f7885763")
     version("7.1.0", sha256="876151e2279346f6bdbc63bd59790b48733496a957bccd5e51b640fdd26eaa8d")
     version("7.0.1", sha256="a7026d39c9c80d51565cfc4b33d22631c11e491004e19020b3ff5a0791e1779f")
-    version("7.0.0", sha256="ee0e14c1bd2f9429b1a28999240304c0342ed739ebaea3d4ff44c585b1097be8")
+    version(
+        "7.0.0",
+        sha256="ee0e14c1bd2f9429b1a28999240304c0342ed739ebaea3d4ff44c585b1097be8",
+        deprecated=True,
+    )
     version("6.3.2", sha256="cb776a70f40c35579ae4ba04fb4a388c1d1ce025a1df6171350dc19f25b80311")
     version("6.3.1", sha256="6de0112778438dcae30fcc6942dee472ce31399b9e5a2b67e8642529868c86f8")
     version("6.2.0", sha256="b300c0f872f632ad7f8eb60725edbf14f0f8f52db740a3ab23e7b94f1cd22a50")
@@ -50,12 +58,27 @@ class Proj(CMakePackage, AutotoolsPackage):
     version("5.0.1", sha256="a792f78897482ed2c4e2af4e8a1a02e294c64e32b591a635c5294cb9d49fdc8c")
     version("4.9.2", sha256="60bf9ad1ed1c18158e652dfff97865ba6fb2b67f1511bc8dceae4b3c7e657796")
     version("4.9.1", sha256="fca0388f3f8bc5a1a803d2f6ff30017532367992b30cf144f2d39be88f36c319")
-    version("4.8.0", sha256="2db2dbf0fece8d9880679154e0d6d1ce7c694dd8e08b4d091028093d87a9d1b5")
-    version("4.7.0", sha256="fc5440002a496532bfaf423c28bdfaf9e26cc96c84ccefcdefde911efbd98986")
-    version("4.6.1", sha256="76d174edd4fdb4c49c1c0ed8308a469216c01e7177a4510b1b303ef3c5f97b47")
+    version(
+        "4.8.0",
+        sha256="2db2dbf0fece8d9880679154e0d6d1ce7c694dd8e08b4d091028093d87a9d1b5",
+        deprecated=True,
+    )
+    version(
+        "4.7.0",
+        sha256="fc5440002a496532bfaf423c28bdfaf9e26cc96c84ccefcdefde911efbd98986",
+        deprecated=True,
+    )
+    version(
+        "4.6.1",
+        sha256="76d174edd4fdb4c49c1c0ed8308a469216c01e7177a4510b1b303ef3c5f97b47",
+        deprecated=True,
+    )
 
-    variant("tiff", default=True, description="Enable TIFF support")
-    variant("curl", default=True, description="Enable curl support")
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
+    variant("tiff", default=True, when="@7:", description="Enable TIFF support")
+    variant("curl", default=True, when="@7:", description="Enable curl support")
     variant("shared", default=True, description="Enable shared libraries")
     variant("pic", default=False, description="Enable position-independent code (PIC)")
 
@@ -82,11 +105,19 @@ class Proj(CMakePackage, AutotoolsPackage):
     patch(
         "https://github.com/OSGeo/PROJ/commit/3f38a67a354a3a1e5cca97793b9a43860c380d95.patch?full_index=1",
         sha256="dc620ff1bbcc0ef4130d53a40a8693a1e2e72ebf83bd6289f1139d0f1aad2a40",
-        when="@7:7.2.1",
+        when="@6.2:9.1",
     )
 
     # https://proj.org/install.html#build-requirements
     with when("build_system=cmake"):
+        # https://github.com/OSGeo/PROJ/pull/3374
+        patch("proj-8-tiff.patch", when="@8:9.1")
+        patch("proj-7-tiff.patch", when="@7")
+        # https://github.com/spack/spack/pull/41065
+        patch("proj.cmakelists.5.0.patch", when="@5.0")
+        patch("proj.cmakelists.5.1.patch", when="@5.1:5.2")
+
+        depends_on("cmake@3.16:", when="@9.4:", type="build")
         depends_on("cmake@3.9:", when="@6:", type="build")
         depends_on("cmake@3.5:", when="@5", type="build")
         depends_on("cmake@2.6:", when="@:4", type="build")
@@ -111,14 +142,8 @@ class Proj(CMakePackage, AutotoolsPackage):
         # * https://rasterio.readthedocs.io/en/latest/faq.html
         env.set("PROJ_LIB", self.prefix.share.proj)
 
-    def setup_dependent_run_environment(self, env, dependent_spec):
-        self.setup_run_environment(env)
 
-
-class BaseBuilder(metaclass=spack.builder.PhaseCallbacksMeta):
-    def setup_dependent_build_environment(self, env, dependent_spec):
-        self.pkg.setup_run_environment(env)
-
+class AnyBuilder(BaseBuilder):
     def setup_build_environment(self, env):
         env.set("PROJ_LIB", join_path(self.pkg.stage.source_path, "nad"))
 
@@ -127,20 +152,30 @@ class BaseBuilder(metaclass=spack.builder.PhaseCallbacksMeta):
         install_tree(join_path("share", "proj"), self.prefix.share.proj)
 
 
-class CMakeBuilder(BaseBuilder, cmake.CMakeBuilder):
+class CMakeBuilder(AnyBuilder, cmake.CMakeBuilder):
     def cmake_args(self):
+        shared_arg = "BUILD_SHARED_LIBS" if self.spec.satisfies("@7:") else "BUILD_LIBPROJ_SHARED"
         args = [
             self.define_from_variant("ENABLE_TIFF", "tiff"),
             self.define_from_variant("ENABLE_CURL", "curl"),
-            self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
+            self.define_from_variant(shared_arg, "shared"),
+            # projsync needs curl
+            self.define_from_variant("BUILD_PROJSYNC", "curl"),
             self.define_from_variant("CMAKE_POSITION_INDEPENDENT_CODE", "pic"),
         ]
         if self.spec.satisfies("@6:") and self.pkg.run_tests:
             args.append(self.define("USE_EXTERNAL_GTEST", True))
+        if self.spec.satisfies("@7:"):
+            test_flag = "BUILD_TESTING"
+        elif self.spec.satisfies("@5.1:"):
+            test_flag = "PROJ_TESTS"
+        else:
+            test_flag = "PROJ4_TESTS"
+        args.append(self.define(test_flag, self.pkg.run_tests))
         return args
 
 
-class AutotoolsBuilder(BaseBuilder, autotools.AutotoolsBuilder):
+class AutotoolsBuilder(AnyBuilder, autotools.AutotoolsBuilder):
     def configure_args(self):
         args = []
 

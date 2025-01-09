@@ -1,11 +1,11 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import spack.main
 import spack.repo
 import spack.spec
+from spack.installer import PackageInstaller
 
 tags = spack.main.SpackCommand("tags")
 
@@ -48,7 +48,7 @@ def test_tags_no_tags(monkeypatch):
 
 def test_tags_installed(install_mockery, mock_fetch):
     s = spack.spec.Spec("mpich").concretized()
-    s.package.do_install()
+    PackageInstaller([s.package], explicit=True, fake=True).install()
 
     out = tags("-i")
     for tag in ["tag1", "tag2"]:

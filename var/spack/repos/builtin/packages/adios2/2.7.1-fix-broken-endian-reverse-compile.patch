@@ -1,0 +1,23 @@
+From 5aed0d5c3ecb7afbd56a786243b2bc8811e0fbdd Mon Sep 17 00:00:00 2001
+From: Axel Huebl <axel.huebl@plasma.ninja>
+Date: Fri, 14 May 2021 18:22:19 -0700
+Subject: [PATCH] Fix Broken Endinage Reverse Compile
+
+Add right type in comparison.
+---
+ source/adios2/helper/adiosMemory.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/source/adios2/helper/adiosMemory.cpp b/source/adios2/helper/adiosMemory.cpp
+index c3a4246a91..3bf8c89adc 100644
+--- a/source/adios2/helper/adiosMemory.cpp
++++ b/source/adios2/helper/adiosMemory.cpp
+@@ -29,7 +29,7 @@ void CopyPayloadStride(const char *src, const size_t payloadStride, char *dest,
+ #ifdef ADIOS2_HAVE_ENDIAN_REVERSE
+     if (endianReverse)
+     {
+-        if (destType == "")
++        if (destType == DataType::None)
+         {
+         }
+ #define declare_type(T)                                                        \

@@ -1,8 +1,8 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 from spack.pkg.builtin.boost import Boost
 
@@ -18,7 +18,10 @@ class Fenics(CMakePackage):
     homepage = "https://fenicsproject.org/"
     git = "https://bitbucket.org/fenics-project/dolfin.git"
     url = "https://bitbucket.org/fenics-project/dolfin/downloads/dolfin-2019.1.0.post0.tar.gz"
+    maintainers("chrisrichardson", "garth-wells", "jhale")
 
+    license("LGPL-3.0-only")
+    version("master", branch="master")
     version(
         "2019.1.0.post0", sha256="61abdcdb13684ba2a3ba4afb7ea6c7907aa0896a46439d3af7e8848483d4392f"
     )
@@ -36,6 +39,8 @@ class Fenics(CMakePackage):
         sha256="c6760996660a476f77889e11e4a0bc117cc774be0eec777b02a7f01d9ce7f43d",
         deprecated=True,
     )
+
+    depends_on("cxx", type="build")  # generated
 
     dolfin_versions = ["2019.1.0", "2018.1.0", "2017.2.0", "2016.2.0"]
 
@@ -88,7 +93,9 @@ class Fenics(CMakePackage):
     # fenics python package dependencies
     for ver in dolfin_versions:
         wver = "@" + ver
+
         depends_on("py-fenics-fiat{0}".format(wver), type=("build", "run"), when=wver + "+python")
+
         if Version(ver) < Version("2018.1.0"):
             depends_on(
                 "py-fenics-instant{0}".format(wver), type=("build", "run"), when=wver + "+python"
@@ -97,10 +104,17 @@ class Fenics(CMakePackage):
             depends_on(
                 "py-fenics-dijitso{0}".format(wver), type=("build", "run"), when=wver + "+python"
             )
+
         depends_on("py-fenics-ufl{0}".format(wver), type=("build", "run"), when=wver + "+python")
         if ver in ["2019.1.0", "2017.2.0"]:
             wver = "@" + ver + ".post0"
         depends_on("py-fenics-ffc{0}".format(wver), type=("build", "run"), when=wver + "+python")
+
+    # Adding special case for master
+    depends_on("py-fenics-fiat@2019.1.0", type=("build", "run"), when="@master+python")
+    depends_on("py-fenics-dijitso@master", type=("build", "run"), when="@master+python")
+    depends_on("py-fenics-ufl-legacy@main", type=("build", "run"), when="@master+python")
+    depends_on("py-fenics-ffc@master", type=("build", "run"), when="@master+python")
 
     # package dependencies
     depends_on("python@3.5:", type=("build", "run"), when="+python")
@@ -144,7 +158,7 @@ class Fenics(CMakePackage):
     depends_on("py-sphinx@1.0.1:", when="+doc", type="build")
 
     def cmake_args(self):
-        args = [
+        return [
             self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
             self.define("DOLFIN_SKIP_BUILD_TESTS", True),
             self.define_from_variant("DOLFIN_ENABLE_OPENMP", "openmp"),
@@ -168,11 +182,6 @@ class Fenics(CMakePackage):
             self.define_from_variant("DOLFIN_ENABLE_ZLIB", "zlib"),
         ]
 
-        if "+python" in self.spec:
-            args.append(self.define("PYTHON_EXECUTABLE", self.spec["python"].command.path))
-
-        return args
-
     # set environment for bulding python interface
     def setup_build_environment(self, env):
         env.set("DOLFIN_DIR", self.prefix)
@@ -183,7 +192,6 @@ class Fenics(CMakePackage):
     # build python interface of dolfin
     @run_after("install")
     def install_python_interface(self):
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             with working_dir("python"):
-                args = std_pip_args + ["--prefix=" + self.prefix, "."]
-                pip(*args)
+                pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")

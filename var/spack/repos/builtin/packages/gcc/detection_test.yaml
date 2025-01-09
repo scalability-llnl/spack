@@ -1,38 +1,121 @@
 paths:
-  # Ubuntu 18.04, system compilers without Fortran
-  - layout:
-      - executables:
-        - "bin/gcc"
-        - "bin/g++"
-        script: "echo 7.5.0"
-    results:
-      - spec: "gcc@7.5.0 languages=c,c++"
-  # Mock a version < 7 of GCC that requires -dumpversion and
-  # errors with -dumpfullversion
-  - layout:
-      - executables:
-        - "bin/gcc-5"
-        - "bin/g++-5"
-        - "bin/gfortran-5"
-        script: |
-          if [[ "$1" == "-dumpversion" ]] ; then
-            echo "5.5.0"
-          else
-            echo "gcc-5: fatal error: no input files"
-            echo "compilation terminated."
-            exit 1
-          fi
-    results:
-      - spec: "gcc@5.5.0 languages=c,c++,fortran"
-  # Multiple compilers present at the same time
-  - layout:
-      - executables:
-        - "bin/x86_64-linux-gnu-gcc-6"
-        script: 'echo 6.5.0'
-      - executables:
-        - "bin/x86_64-linux-gnu-gcc-10"
-        - "bin/x86_64-linux-gnu-g++-10"
-        script: "echo 10.1.0"
-    results:
-      - spec: "gcc@6.5.0 languages=c"
-      - spec: "gcc@10.1.0 languages=c,c++"
+# Ubuntu 20.04, system compilers without Fortran. This
+# test also covers which flags are expected to be used
+# during the detection of gcc.
+- layout:
+  - executables:
+    - "bin/gcc"
+    - "bin/g++"
+    script: |
+      if [ "$1" = "-dumpversion" ] ; then
+        echo "9"
+      elif [ "$1" = "-dumpfullversion" ] ; then
+        echo "9.4.0"
+      elif [ "$1" = "--version" ] ; then
+        echo "gcc (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0"
+        echo "Copyright (C) 2019 Free Software Foundation, Inc."
+        echo "This is free software; see the source for copying conditions.  There is NO"
+        echo "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+      else
+        echo "mock executable got an unexpected flag: $1"
+        exit 1
+      fi
+  platforms: ["darwin", "linux"]
+  results:
+  - spec: "gcc@9.4.0 languages=c,c++"
+    extra_attributes:
+      compilers:
+        c: ".*/bin/gcc"
+        cxx: ".*/bin/g\\+\\+"
+
+# Mock a version < 7 of GCC that requires -dumpversion and
+# errors with -dumpfullversion
+- layout:
+  - executables:
+    - "bin/gcc-5"
+    - "bin/g++-5"
+    - "bin/gfortran-5"
+    script: |
+      if [ "$1" = "-dumpversion" ] ; then
+        echo "5.5.0"
+      else
+        echo "gcc-5: fatal error: no input files"
+        echo "compilation terminated."
+        exit 1
+      fi
+  platforms: ["darwin", "linux"]
+  results:
+  - spec: "gcc@5.5.0 languages=c,c++,fortran"
+    extra_attributes:
+      compilers:
+        c: ".*/bin/gcc-5$"
+        cxx: ".*/bin/g[+][+]-5$"
+        fortran: ".*/bin/gfortran-5$"
+
+# Apple clang under disguise as gcc should not be detected
+- layout:
+  - executables:
+    - "bin/gcc"
+    script: |
+      if [ "$1" = "-dumpversion" ] ; then
+        echo "15.0.0"
+      elif [ "$1" = "-dumpfullversion" ] ; then
+        echo "clang: error: no input files" >&2
+        exit 1
+      elif [ "$1" = "--version" ] ; then
+        echo "Apple clang version 15.0.0 (clang-1500.3.9.4)"
+        echo "Target: x86_64-apple-darwin23.4.0"
+        echo "Thread model: posix"
+        echo "InstalledDir: /Library/Developer/CommandLineTools/usr/bin"
+      else
+        echo "mock executable got an unexpected flag: $1"
+        exit 1
+      fi
+  platforms: ["darwin"]
+  results: []
+
+# Mingw cross compiler on linux should not be detected
+- layout:
+  - executables:
+    - "bin/i686-w64-mingw32-gcc"
+    script: |
+      if [ "$1" = "-dumpversion" ] ; then
+        echo "9.3-win32"
+      elif [ "$1" = "-dumpfullversion" ] ; then
+        echo "9.3-win32" 
+      elif [ "$1" = "--version" ] ; then
+        echo "i686-w64-mingw32-gcc (GCC) 9.3-win32 20200320"
+        echo "Copyright (C) 2019 Free Software Foundation, Inc."
+        echo "This is free software; see the source for copying conditions.  There is NO"
+        echo "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+      else
+        echo "mock executable got an unexpected flag: $1"
+        exit 1
+      fi
+  platforms: [linux]
+  results: []
+
+# Homebrew GCC should be detected
+- layout:
+  - executables:
+    - "bin/gcc-14"
+    script: |
+      if [ "$1" = "-dumpversion" ] ; then
+        echo "14"
+      elif [ "$1" = "-dumpfullversion" ] ; then
+        echo "14.1.0" 
+      elif [ "$1" = "--version" ] ; then
+        echo "gcc-14 (Homebrew GCC 14.1.0_2) 14.1.0"
+        echo "Copyright (C) 2024 Free Software Foundation, Inc."
+        echo "This is free software; see the source for copying conditions.  There is NO"
+        echo "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+      else
+        echo "mock executable got an unexpected flag: $1"
+        exit 1
+      fi
+  platforms: [darwin]
+  results:
+    - spec: "gcc@14.1.0 languages=c"
+      extra_attributes:
+        compilers:
+          c: ".*/bin/gcc-14$"

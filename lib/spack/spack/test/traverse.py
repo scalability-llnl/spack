@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,9 +19,8 @@ def create_dag(nodes, edges):
     """
     specs = {name: Spec(name) for name in nodes}
     for parent, child, deptypes in edges:
-        specs[parent].add_dependency_edge(
-            specs[child], depflag=dt.canonicalize(deptypes), virtuals=()
-        )
+        depflag = deptypes if isinstance(deptypes, dt.DepFlag) else dt.canonicalize(deptypes)
+        specs[parent].add_dependency_edge(specs[child], depflag=depflag, virtuals=())
     return specs
 
 
@@ -272,6 +270,29 @@ def test_breadth_first_versus_depth_first_tree(abstract_specs_chain):
     ]
 
 
+@pytest.mark.parametrize("cover", ["nodes", "edges"])
+@pytest.mark.parametrize("depth_first", [True, False])
+def test_tree_traversal_with_key(cover, depth_first, abstract_specs_chain):
+    """Compare two multisource traversals of the same DAG. In one case the DAG consists of unique
+    Spec instances, in the second case there are identical copies of nodes and edges. Traversal
+    should be equivalent when nodes are identified by dag_hash."""
+    a = abstract_specs_chain["chain-a"]
+    c = abstract_specs_chain["chain-c"]
+    kwargs = {"cover": cover, "depth_first": depth_first}
+    dag_hash = lambda s: s.dag_hash()
+
+    # Traverse DAG spanned by a unique set of Spec instances
+    first = traverse.traverse_tree([a, c], key=id, **kwargs)
+
+    # Traverse equivalent DAG with copies of Spec instances included, keyed by dag hash.
+    second = traverse.traverse_tree([a, c.copy()], key=dag_hash, **kwargs)
+
+    # Check that the same nodes are discovered at the same depth
+    node_at_depth_first = [(depth, dag_hash(edge.spec)) for (depth, edge) in first]
+    node_at_depth_second = [(depth, dag_hash(edge.spec)) for (depth, edge) in second]
+    assert node_at_depth_first == node_at_depth_second
+
+
 def test_breadth_first_versus_depth_first_printing(abstract_specs_chain):
     """Test breadth-first versus depth-first tree printing."""
     s = abstract_specs_chain["chain-a"]
@@ -395,3 +416,97 @@ def test_traverse_edges_topo(abstract_specs_toposort):
         out_edge_indices = [i for (i, (parent, child)) in enumerate(edges) if node == parent]
         if in_edge_indices and out_edge_indices:
             assert max(in_edge_indices) < min(out_edge_indices)
+
+
+def test_traverse_nodes_no_deps(abstract_specs_dtuse):
+    """Traversing nodes without deps should be the same as deduplicating the input specs. This may
+    not look useful, but can be used to avoid a branch on the call site in which it's otherwise
+    easy to forget to deduplicate input specs."""
+    inputs = [
+        abstract_specs_dtuse["dtuse"],
+        abstract_specs_dtuse["dtlink5"],
+        abstract_specs_dtuse["dtuse"],  # <- duplicate
+    ]
+    outputs = [x for x in traverse.traverse_nodes(inputs, deptype=dt.NONE)]
+    assert outputs == [abstract_specs_dtuse["dtuse"], abstract_specs_dtuse["dtlink5"]]
+
+
+@pytest.mark.parametrize("cover", ["nodes", "edges"])
+def test_topo_is_bfs_for_trees(cover):
+    """For trees, both DFS and BFS produce a topological order, but BFS is the most sensible for
+    our applications, where we typically want to avoid that transitive dependencies shadow direct
+    depenencies in global search paths, etc. This test ensures that for trees, the default topo
+    order coincides with BFS."""
+    binary_tree = create_dag(
+        nodes=["A", "B", "C", "D", "E", "F", "G"],
+        edges=(
+            ("A", "B", "all"),
+            ("A", "C", "all"),
+            ("B", "D", "all"),
+            ("B", "E", "all"),
+            ("C", "F", "all"),
+            ("C", "G", "all"),
+        ),
+    )
+
+    assert list(traverse.traverse_nodes([binary_tree["A"]], order="topo", cover=cover)) == list(
+        traverse.traverse_nodes([binary_tree["A"]], order="breadth", cover=cover)
+    )
+
+
+@pytest.mark.parametrize("roots", [["A"], ["A", "B"], ["B", "A"], ["A", "B", "A"]])
+@pytest.mark.parametrize("order", ["breadth", "post", "pre"])
+@pytest.mark.parametrize("include_root", [True, False])
+def test_mixed_depth_visitor(roots, order, include_root):
+    """Test that the MixedDepthVisitor lists unique edges that are reachable either directly from
+    roots through build type edges, or transitively through link type edges. The tests ensures that
+    unique edges are listed exactly once."""
+    my_graph = create_dag(
+        nodes=["A", "B", "C", "D", "E", "F", "G", "H", "I"],
+        edges=(
+            ("A", "B", dt.LINK | dt.RUN),
+            ("A", "C", dt.BUILD),
+            ("A", "D", dt.BUILD | dt.RUN),
+            ("A", "H", dt.LINK),
+            ("A", "I", dt.RUN),
+            ("B", "D", dt.BUILD | dt.LINK),
+            ("C", "E", dt.BUILD | dt.LINK | dt.RUN),
+            ("D", "F", dt.LINK),
+            ("D", "G", dt.BUILD | dt.RUN),
+            ("H", "B", dt.LINK),
+        ),
+    )
+    starting_points = traverse.with_artificial_edges([my_graph[root] for root in roots])
+    visitor = traverse.MixedDepthVisitor(direct=dt.BUILD, transitive=dt.LINK)
+
+    if order == "pre":
+        edges = traverse.traverse_depth_first_edges_generator(
+            starting_points, visitor, post_order=False, root=include_root
+        )
+    elif order == "post":
+        edges = traverse.traverse_depth_first_edges_generator(
+            starting_points, visitor, post_order=True, root=include_root
+        )
+    elif order == "breadth":
+        edges = traverse.traverse_breadth_first_edges_generator(
+            starting_points, visitor, root=include_root
+        )
+
+    artificial_edges = [(None, root) for root in roots] if include_root else []
+    simple_edges = [
+        (None if edge.parent is None else edge.parent.name, edge.spec.name) for edge in edges
+    ]
+
+    # make sure that every edge is listed exactly once and that the right edges are listed
+    assert len(simple_edges) == len(set(simple_edges))
+    assert set(simple_edges) == {
+        # the roots
+        *artificial_edges,
+        ("A", "B"),
+        ("A", "C"),
+        ("A", "D"),
+        ("A", "H"),
+        ("B", "D"),
+        ("D", "F"),
+        ("H", "B"),
+    }

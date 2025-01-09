@@ -1,14 +1,31 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import glob
 import os
 
+from llnl.util.symlink import readlink
+
 import spack.build_environment
 from spack.package import *
-from spack.util.executable import Executable
+
+# This is the template for a pkgconfig file for rpm
+# https://github.com/guix-mirror/guix/raw/dcaf70897a0bad38a4638a2905aaa3c46b1f1402/gnu/packages/patches/lua-pkgconfig.patch
+_LUA_PC_TEMPLATE = """prefix={0}
+libdir={0}/lib
+includedir={0}/include
+bindir={0}/bin
+INSTALL_LMOD={0}/share/lua/{1}
+INSTALL_CMOD={0}/lib/lua/{1}
+INTERPRETER=${{bindir}}/lua
+COMPILER=${{bindir}}/luac
+Name: Lua
+Description: A powerful, fast, lightweight, embeddable scripting language
+Version: {2}
+Libs: -L${{libdir}} -llua -lm
+Cflags: -I${{includedir}}
+"""
 
 
 class LuaImplPackage(MakefilePackage):
@@ -62,8 +79,8 @@ class LuaImplPackage(MakefilePackage):
 
     resource(
         name="luarocks",
-        url="https://luarocks.github.io/luarocks/releases/" "luarocks-3.8.0.tar.gz",
-        sha256="56ab9b90f5acbc42eb7a94cf482e6c058a63e8a1effdf572b8b2a6323a06d923",
+        url="https://luarocks.github.io/luarocks/releases/luarocks-3.11.1.tar.gz",
+        sha256="c3fb3d960dffb2b2fe9de7e3cb004dc4d0b34bb3d342578af84f84325c669102",
         destination="luarocks",
         placement="luarocks",
     )
@@ -79,7 +96,7 @@ class LuaImplPackage(MakefilePackage):
                 assert len(luajits) >= 1
                 luajit = luajits[0]
                 if os.path.islink(luajit):
-                    luajit = os.readlink(luajit)
+                    luajit = readlink(luajit)
                 symlink(luajit, "lua")
 
         with working_dir(self.prefix.include):
@@ -200,6 +217,7 @@ class Lua(LuaImplPackage):
     homepage = "https://www.lua.org"
     url = "https://www.lua.org/ftp/lua-5.3.4.tar.gz"
 
+    version("5.4.6", sha256="7d5ea1b9cb6aa0b59ca3dde1c6adcb57ef83a1ba8e5432c0ecd06bf439b3ad88")
     version("5.4.4", sha256="164c7849653b80ae67bec4b7473b884bf5cc8d2dca05653475ec2ed27b9ebf61")
     version("5.4.3", sha256="f8612276169e3bfcbcfb8f226195bfc6e466fe13042f1076cbde92b7ec96bbfb")
     version("5.4.2", sha256="11570d97e9d7303c0a59567ed1ac7c648340cd0db10d5fd594c09223ef2f524f")
@@ -220,7 +238,9 @@ class Lua(LuaImplPackage):
     version("5.1.4", sha256="b038e225eaf2a5b57c9bcc35cd13aa8c6c8288ef493d52970c9545074098af3a")
     version("5.1.3", sha256="6b5df2edaa5e02bf1a2d85e1442b2e329493b30b0c0780f77199d24f087d296d")
 
-    variant("pcfile", default=False, description="Add patch for lua.pc generation")
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("shared", default=True, description="Builds a shared version of the library")
 
     provides("lua-lang@5.1", when="@5.1:5.1.99")
@@ -230,12 +250,6 @@ class Lua(LuaImplPackage):
 
     depends_on("ncurses+termlib")
     depends_on("readline")
-
-    patch(
-        "http://lua.2524044.n2.nabble.com/attachment/7666421/0/pkg-config.patch",
-        sha256="208316c2564bdd5343fa522f3b230d84bd164058957059838df7df56876cb4ae",
-        when="+pcfile @:5.3.9999",
-    )
 
     def build(self, spec, prefix):
         if spec.satisfies("platform=darwin"):
@@ -253,7 +267,7 @@ class Lua(LuaImplPackage):
     def install(self, spec, prefix):
         make("INSTALL_TOP=%s" % prefix, "install")
 
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             static_to_shared_library(
                 join_path(prefix.lib, "liblua.a"),
                 arguments=["-lm", "-ldl"],
@@ -263,7 +277,7 @@ class Lua(LuaImplPackage):
 
         # compatibility with ax_lua.m4 from autoconf-archive
         # https://www.gnu.org/software/autoconf-archive/ax_lua.html
-        if "+shared" in spec:
+        if spec.satisfies("+shared"):
             with working_dir(prefix.lib):
                 # e.g., liblua.so.5.1.5
                 src_path = "liblua.{0}.{1}".format(dso_suffix, str(self.version.up_to(3)))
@@ -283,10 +297,10 @@ class Lua(LuaImplPackage):
                         os.symlink(src_path, dest_path)
 
     @run_after("install")
-    def link_pkg_config(self):
-        if "+pcfile" in self.spec:
-            versioned_pc_file_name = "lua{0}.pc".format(self.version.up_to(2))
-            symlink(
-                join_path(self.prefix.lib, "pkgconfig", versioned_pc_file_name),
-                join_path(self.prefix.lib, "pkgconfig", "lua.pc"),
-            )
+    def generate_pkg_config(self):
+        mkdirp(self.prefix.lib.pkgconfig)
+        versioned_pc_file_name = "lua{0}.pc".format(self.version.up_to(2))
+        versioned_pc_file_path = join_path(self.prefix.lib.pkgconfig, versioned_pc_file_name)
+        with open(versioned_pc_file_path, "w") as pcfile:
+            pcfile.write(_LUA_PC_TEMPLATE.format(self.prefix, self.version.up_to(2), self.version))
+        symlink(versioned_pc_file_path, join_path(self.prefix.lib.pkgconfig, "lua.pc"))

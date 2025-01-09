@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -8,6 +7,7 @@
 # The AutotoolsPackage causes zlib to fail to build with PGI
 import glob
 import os
+import re
 
 import spack.build_systems.generic
 import spack.build_systems.makefile
@@ -24,6 +24,10 @@ class Zlib(MakefilePackage, Package):
     url = "http://zlib.net/fossils/zlib-1.2.11.tar.gz"
     git = "https://github.com/madler/zlib.git"
 
+    tags = ["core-packages"]
+    libraries = ["libz", "zlib", "zlibstatic", "zlibd", "zlibstaticd"]
+
+    version("1.3.1", sha256="9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23")
     version("1.3", sha256="ff0ba4c292013dbc27530b3a81e1f9a813cd39de01ca5e0f8bf355702efa593e")
     version("1.2.13", sha256="b3a24de97a8fdbc835b9833169501030b8977031bcb54b3b3ac13740f846ab30")
     version(
@@ -47,6 +51,9 @@ class Zlib(MakefilePackage, Package):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     build_system("makefile", conditional("generic", when="platform=windows"), default="makefile")
 
     variant("pic", default=True, description="Produce position-independent code (for shared libs)")
@@ -61,6 +68,18 @@ class Zlib(MakefilePackage, Package):
     provides("zlib-api")
 
     license("Zlib")
+
+    @classmethod
+    def determine_version(cls, lib):
+        for library in cls.libraries:
+            for ext in library_extensions:
+                if ext == "dylib":
+                    pattern = re.compile(rf"{library}\.(\d+\.\d+\.\d+)\.{ext}")
+                else:
+                    pattern = re.compile(rf"{library}\.{ext}\.(\d+\.\d+\.\d+)")
+                    match = re.search(pattern, lib)
+                    if match:
+                        return match.group(1)
 
     @property
     def libs(self):
@@ -95,7 +114,7 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder, SetupEnviron
             # script but patch the makefile for all the aforementioned compilers, given the
             # importance of the package, we try to be conservative for now and do the patching only
             # for compilers that will not produce a correct shared library otherwise.
-            if self.spec.compiler.name in ["nvhpc"]:
+            if self.spec.satisfies("%nvhpc"):
                 if "~pic" in self.spec:
                     # In this case, we should build the static library without PIC, therefore we
                     # don't append the respective compiler flag to CFLAGS in the build environment.
@@ -105,9 +124,8 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder, SetupEnviron
                         r"\1 {0}".format(self.pkg.compiler.cc_pic_flag),
                         "Makefile",
                     )
-                if any(self.spec.satisfies("platform={0}".format(p)) for p in ["linux", "cray"]):
+                if self.spec.satisfies("platform=linux"):
                     # Without the following, the shared library will not have a soname entry.
-                    # Currently, we support linux and cray platforms only.
                     filter_file(
                         r"^(LDSHARED *= *).*$",
                         # Note that we should use '-Wl,` and not self.pkg.compiler.linker_arg

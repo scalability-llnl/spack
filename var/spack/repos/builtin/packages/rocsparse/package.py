@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,12 +14,12 @@ class Rocsparse(CMakePackage):
     and toolchains. rocSPARSE is created using the HIP programming
     language and optimized for AMD's latest discrete GPUs."""
 
-    homepage = "https://github.com/ROCmSoftwarePlatform/rocSPARSE"
-    git = "https://github.com/ROCmSoftwarePlatform/rocSPARSE.git"
-    url = "https://github.com/ROCmSoftwarePlatform/rocSPARSE/archive/rocm-5.5.0.tar.gz"
+    homepage = "https://github.com/ROCm/rocSPARSE"
+    git = "https://github.com/ROCm/rocSPARSE.git"
+    url = "https://github.com/ROCm/rocSPARSE/archive/rocm-6.2.4.tar.gz"
     tags = ["rocm"]
 
-    maintainers("cgmb", "srekolam", "renjithravindrankannath")
+    maintainers("cgmb", "srekolam", "renjithravindrankannath", "afzpatel")
     libraries = ["librocsparse"]
 
     amdgpu_targets = ROCmPackage.amdgpu_targets
@@ -32,113 +31,41 @@ class Rocsparse(CMakePackage):
         sticky=True,
     )
     variant("test", default=False, description="Build rocsparse-test client")
+    variant("asan", default=False, description="Build with address-sanitizer enabled or disabled")
 
+    conflicts("+asan", when="os=rhel9")
+    conflicts("+asan", when="os=centos7")
+    conflicts("+asan", when="os=centos8")
+
+    license("MIT")
+    version("6.3.0", sha256="38aaf1cc55f57566a3056a970f73f40a9a4930583d6e57fc9c7745a127029227")
+    version("6.2.4", sha256="1f86c2d439e777cd17724269da66997d351b3a1b83f44143361e9c77d80e2370")
+    version("6.2.1", sha256="4691d689db0a03fc950dbc9d88471752f6d17f5382a4bd2f7e23dfb43fc7074c")
+    version("6.2.0", sha256="d07357d180423cedbabc849983a2d4d79b0e9f4c9b5e07d4993043e646fe6df9")
+    version("6.1.2", sha256="e8989c28085275e7c044b19fd2bc86d8493ce6a1b8545126f787722c535fe6eb")
+    version("6.1.1", sha256="9ac2bf84962cfdf24e4fa68e6f1d91ffdad5d5a5287ecdaddf331e6073ba57b3")
+    version("6.1.0", sha256="d69d9b0079159abb2d7514f8f45a41bb2cbcaf8b52e600e794aca3facf274b5e")
+    version("6.0.2", sha256="00292eb7efe5719a65960bdbe391ba8e0ce610487eea11397aad6a14b11e12cd")
+    version("6.0.0", sha256="bdc618677ec78830c6af315d61194d6ab8532345b8daeeb115aca96f274d4ca4")
+    version("5.7.1", sha256="4c09b182b371124675d4057246021b5ed45e2833fdbf265b37a9b06b668baf0a")
+    version("5.7.0", sha256="a42f0eb531b015b719e2bdcdff0cfb214e9894f73107966260f26931f982ecbc")
     version("5.6.1", sha256="6a50a64354507f1374e1a86aa7f5c07d1aaa96ac193ac292c279153087bb5d54")
     version("5.6.0", sha256="5797db3deb4a532e691447e3e8c923b93bd9fe4c468f3a88f00cecd80bebcae4")
     version("5.5.1", sha256="1dd2d18898dfebdf898e8fe7d1c1198e8f8451fd70ff12a1990ec1419cf359e1")
     version("5.5.0", sha256="cbee79b637691bc710c1c83fbaa91db7498d38d4df873be23e28ed5617acde72")
-    version("5.4.3", sha256="9fb633f235eb0567cc54fae6bdc779f16bf0bb4e6f5bdddb40312c6d11ca8478")
-    version("5.4.0", sha256="c8f0e920a8ec15b9ae40564c68191363356cc4d793c16247bb6e11ef5293ed11")
-    version("5.3.3", sha256="4204035e952e20ada4526a94989e8e5c76c04574176fe63a021522862461c800")
-    version("5.3.0", sha256="521ca0e7b52f26edbff8507eb1479dc26019f456756d884d7b8b192c3ea518e8")
-    version("5.2.3", sha256="6da3f3303a8ada94c4dbff4b42ee33a2e2883a908ee21c41cb2aa7180382026a")
-    version("5.2.1", sha256="01f3535442740221edad2cde0a20b2499c807f6733d5016b33c47f34a5a55c49")
-    version("5.2.0", sha256="7ed929af16d2502135024a6463997d9a95f03899b8a33aa95db7029575c89572")
-    version("5.1.3", sha256="ef9641045b36c9aacc87e4fe7717b41b1e29d97e21432678dce7aca633a8edc2")
-    version("5.1.0", sha256="a2f0f8cb02b95993480bd7264fc65e8b11464a90b86f2dcd0dd82a2e6d4bd704")
-    version(
-        "5.0.2",
-        sha256="c9d9e1b7859e1c5aa5050f5dfdf86245cbd7c1296c0ce60d9ca5f3e22a9b748b",
-        deprecated=True,
-    )
-    version(
-        "5.0.0",
-        sha256="6d352bf27dbed08e5115a58815aa76c59eb2008ec9dcc921aadf2efe20115d2a",
-        deprecated=True,
-    )
-    version(
-        "4.5.2",
-        sha256="e37af2cd097e239a55a278df534183b5591ef4d985fe1a268a229bd11ada6599",
-        deprecated=True,
-    )
-    version(
-        "4.5.0",
-        sha256="b120e9e17e7e141caee4c8c4288c9d1902bad0cec2ea76458d3ba11343376938",
-        deprecated=True,
-    )
-    version(
-        "4.3.1",
-        sha256="fa5ea64f71e1cfbebe41618cc183f501b387824a6dc58486ab1214d7af5cbef2",
-        deprecated=True,
-    )
-    version(
-        "4.3.0",
-        sha256="1a8109bdc8863b3acfe991449360c9361cae7cabdbe753c553bc57872cd0ad5e",
-        deprecated=True,
-    )
-    version(
-        "4.2.0",
-        sha256="8a86ed49d278e234c82e406a1430dc28f50d416f8f1065cf5bdf25cc5721129c",
-        deprecated=True,
-    )
-    version(
-        "4.1.0",
-        sha256="7514968ed2342dc274acce8b269c128a6aa96cce769a37fd3880b5269c2ed17f",
-        deprecated=True,
-    )
-    version(
-        "4.0.0",
-        sha256="2b41bc6623d204ad7f351a902810f34cd32b762d1bf59081dbb00f83e689a794",
-        deprecated=True,
-    )
-    version(
-        "3.10.0",
-        sha256="8325828c5d7818dfb45e03b5f1572a573cc21964d596aaaa33b7469817b03abd",
-        deprecated=True,
-    )
-    version(
-        "3.9.0",
-        sha256="7b8f952d0c7f8ac2f3bb60879ab420fabbfafb0885a3d8464d5b4c191e97dec6",
-        deprecated=True,
-    )
-    version(
-        "3.8.0",
-        sha256="a5d085fffe05a7ac7f5658075d9782b9b02d0c5c3e2c1807dad266c3a61141fd",
-        deprecated=True,
-    )
-    version(
-        "3.7.0",
-        sha256="db561ae5e8ee117f7c539a9ef6ee49c13b82ba9f702b22c76e741cca245386a9",
-        deprecated=True,
-    )
-    version(
-        "3.5.0",
-        sha256="9ca6bae7da78abbb47143c3d77ff4a8cd7d63979875fc7ebc46b400769fd9cb5",
-        deprecated=True,
-    )
+    with default_args(deprecated=True):
+        version("5.4.3", sha256="9fb633f235eb0567cc54fae6bdc779f16bf0bb4e6f5bdddb40312c6d11ca8478")
+        version("5.4.0", sha256="c8f0e920a8ec15b9ae40564c68191363356cc4d793c16247bb6e11ef5293ed11")
+        version("5.3.3", sha256="4204035e952e20ada4526a94989e8e5c76c04574176fe63a021522862461c800")
+        version("5.3.0", sha256="521ca0e7b52f26edbff8507eb1479dc26019f456756d884d7b8b192c3ea518e8")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("cmake@3.5:", type="build")
 
     for ver in [
-        "3.5.0",
-        "3.7.0",
-        "3.8.0",
-        "3.9.0",
-        "3.10.0",
-        "4.0.0",
-        "4.1.0",
-        "4.2.0",
-        "4.3.0",
-        "4.3.1",
-        "4.5.0",
-        "4.5.2",
-        "5.0.0",
-        "5.0.2",
-        "5.1.0",
-        "5.1.3",
-        "5.2.0",
-        "5.2.1",
-        "5.2.3",
         "5.3.0",
         "5.3.3",
         "5.4.0",
@@ -147,18 +74,26 @@ class Rocsparse(CMakePackage):
         "5.5.1",
         "5.6.0",
         "5.6.1",
+        "5.7.0",
+        "5.7.1",
+        "6.0.0",
+        "6.0.2",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.2.0",
+        "6.2.1",
+        "6.2.4",
+        "6.3.0",
     ]:
-        depends_on("hip@" + ver, when="@" + ver)
-        depends_on("rocprim@" + ver, when="@" + ver)
-        depends_on("rocm-cmake@%s:" % ver, type="build", when="@" + ver)
+        depends_on(f"hip@{ver}", when=f"@{ver}")
+        depends_on(f"rocprim@{ver}", when=f"@{ver}")
+        depends_on(f"rocm-cmake@{ver}:", type="build", when=f"@{ver}")
 
     # Add option so Spack can manage downloaded test matricies as resources.
-    patch("0001-set-mtx-directory.patch", when="@4.5.0:5.3 +test")
+    patch("0001-set-mtx-directory.patch", when="@:5.3 +test")
     # Enable use of Spack-provided Python.
-    patch("0002-fix-gentest-shebang.patch", when="@4.5.0:5.3 +test")
-    # Fix build for most Radeon 5000 and Radeon 6000 series GPUs.
-    patch("0003-fix-navi-1x-rocm-4.5.patch", when="@4.5.0:5.1")
-    patch("0003-fix-navi-1x-rocm-5.2.patch", when="@5.2")
+    patch("0002-fix-gentest-shebang.patch", when="@:5.3 +test")
 
     depends_on("googletest@1.11.0:", when="@5.1.0: +test")
     depends_on("googletest@1.10.0:", when="+test")
@@ -311,24 +246,32 @@ class Rocsparse(CMakePackage):
             destination="mtx",
         )
 
-    def check(self):
+    @run_after("build")
+    def check_build(self):
         if self.spec.satisfies("+test"):
-            exe = join_path(self.build_directory, "clients", "staging", "rocsparse-test")
-            self.run_test(exe, options=["--gtest_filter=*quick*:*pre_checkin*-*known_bug*"])
+            exe = Executable(
+                join_path(self.build_directory, "clients", "staging", "rocsparse-test")
+            )
+            exe("--gtest_filter=*quick*:*pre_checkin*-*known_bug*")
 
     def setup_build_environment(self, env):
         env.set("CXX", self.spec["hip"].hipcc)
+        if self.spec.satisfies("+asan"):
+            env.set("CC", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang")
+            env.set("CXX", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang++")
+            env.set("ASAN_OPTIONS", "detect_leaks=0")
+            env.set("CFLAGS", "-fsanitize=address -shared-libasan")
+            env.set("CXXFLAGS", "-fsanitize=address -shared-libasan")
+            env.set("LDFLAGS", "-fuse-ld=lld")
 
     @classmethod
     def determine_version(cls, lib):
         match = re.search(r"lib\S*\.so\.\d+\.\d+\.(\d)(\d\d)(\d\d)", lib)
         if match:
-            ver = "{0}.{1}.{2}".format(
+            return "{0}.{1}.{2}".format(
                 int(match.group(1)), int(match.group(2)), int(match.group(3))
             )
-        else:
-            ver = None
-        return ver
+        return None
 
     def cmake_args(self):
         args = [

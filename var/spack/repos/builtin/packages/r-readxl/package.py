@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,9 @@ class RReadxl(RPackage):
 
     cran = "readxl"
 
+    license("MIT")
+
+    version("1.4.3", sha256="7efebbcdefeb8523633db62b3eeb6ea2e4e81e3d010d8b2adb134011c09a5948")
     version("1.4.2", sha256="387304e2c5be0dca4861ec0232f0d92cc1882b660ca917f8f2a8a4ae858aba11")
     version("1.4.1", sha256="f6bebb7f940fb21baacd60345b7075c77eb1d026466c55e6a36148de680da1fa")
     version("1.4.0", sha256="ab9239c249f79b649f7665a612b3dbf4b774ab633115e6dee41091a8cb2491f7")
@@ -26,6 +28,7 @@ class RReadxl(RPackage):
 
     depends_on("r@3.4:", type=("build", "run"), when="@1.4.0:")
     depends_on("r@3.5:", type=("build", "run"), when="@1.4.2:")
+    depends_on("r@3.6:", type=("build", "run"), when="@1.4.3:")
     depends_on("r-cellranger", type=("build", "run"))
     depends_on("r-tibble@1.3.1:", type=("build", "run"))
     depends_on("r-tibble@2.0.1:", type=("build", "run"), when="@1.4.0:")

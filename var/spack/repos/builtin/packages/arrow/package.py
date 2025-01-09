@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,18 @@ class Arrow(CMakePackage, CudaPackage):
     homepage = "https://arrow.apache.org"
     url = "https://github.com/apache/arrow/archive/apache-arrow-0.9.0.tar.gz"
 
+    license("Apache-2.0")
+
+    version("18.0.0", sha256="9c473f2c9914c59ab571761c9497cf0e5cfd3ea335f7782ccc6121f5cb99ae9b")
+    version("16.1.0", sha256="9762d9ecc13d09de2a03f9c625a74db0d645cb012de1e9a10dfed0b4ddc09524")
+    version("15.0.2", sha256="4735b349845bff1fe95ed11abbfed204eb092cabc37523aa13a80cb830fe5b5e")
+    version("14.0.2", sha256="07cdb4da6795487c800526b2865c150ab7d80b8512a31793e6a7147c8ccd270f")
+    version("14.0.1", sha256="a48e54a09d58168bc04d86b13e7dab04f0aaba18a6f7e4dadf3e9c7bb835c8f1")
+    version("14.0.0", sha256="39e3388bbaba23faa7a5e8a82ebba7fe4c38ace2c394d6a3f26559715b30f401")
+    version("13.0.0", sha256="99c27e6a517c750f29c3e6b264836e31251bb8e978dbbf11316680ca3eb8ebda")
+    version("12.0.1", sha256="f01b76a42ceb30409e7b1953ef64379297dd0c08502547cae6aaafd2c4a4d92e")
+    version("12.0.0", sha256="f25901c486e1e79cde8b78b3e7b1d889919f942549996003a7341a8ee86addaa")
+    version("11.0.0", sha256="4a8c0c3d5b39ca81f4a636a41863f1cf5e0ed199f994bf5ead0854ca037eb741")
     version("10.0.1", sha256="28c3e0402bc1c3c1e047b6e26cedb8d1d89b2b9497d576af24b0b700eef11701")
     version("9.0.0", sha256="bb187b4b0af8dcc027fffed3700a7b891c9f76c9b63ad8925b4afb8257a2bb1b")
     version("8.0.0", sha256="19ece12de48e51ce4287d2dee00dc358fbc5ff02f41629d16076f77b8579e272")
@@ -30,13 +41,24 @@ class Arrow(CMakePackage, CudaPackage):
     version("0.9.0", sha256="65f89a3910b6df02ac71e4d4283db9b02c5b3f1e627346c7b6a5982ae994af91")
     version("0.8.0", sha256="c61a60c298c30546fc0b418a35be66ef330fb81b06c49928acca7f1a34671d54")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     depends_on("boost@1.60: +filesystem +system")
+    depends_on("brotli", when="+brotli")
+    depends_on("bzip2", when="+bz2")
     depends_on("cmake@3.2.0:", type="build")
     depends_on("flatbuffers")
+    conflicts("%gcc@14", when="@:15.0.1")  # https://github.com/apache/arrow/issues/40009
     depends_on("llvm@:11 +clang", when="+gandiva @:3", type="build")
     depends_on("llvm@:12 +clang", when="+gandiva @:4", type="build")
     depends_on("llvm@:13 +clang", when="+gandiva @:7", type="build")
-    depends_on("llvm@:14 +clang", when="+gandiva @8:", type="build")
+    depends_on("llvm@:14 +clang", when="+gandiva @:9", type="build")
+    depends_on("llvm@:15 +clang", when="+gandiva @:11", type="build")
+    depends_on("llvm@:16 +clang", when="+gandiva @:13", type="build")
+    depends_on("llvm@:17 +clang", when="+gandiva @:15.0.1", type="build")
+    depends_on("llvm@:18.1 +clang", when="+gandiva @:16.0.1", type="build")
+    depends_on("llvm@:19.1 +clang", when="+gandiva", type="build")
     depends_on("lz4", when="+lz4")
     depends_on("ninja", type="build")
     depends_on("openssl", when="+gandiva @6.0.0:")
@@ -63,6 +85,7 @@ class Arrow(CMakePackage, CudaPackage):
     depends_on("zstd", when="@:8")
 
     variant("brotli", default=False, description="Build support for Brotli compression")
+    variant("bz2", default=False, description="Build support for bzip2 compression")
     variant(
         "build_type",
         default="Release",
@@ -143,6 +166,7 @@ class Arrow(CMakePackage, CudaPackage):
         args.append(self.define_from_variant("ARROW_PYTHON", "python"))
         args.append(self.define_from_variant("ARROW_TENSORFLOW", "tensorflow"))
         args.append(self.define_from_variant("ARROW_WITH_BROTLI", "brotli"))
+        args.append(self.define_from_variant("ARROW_WITH_BZ2", "bz2"))
         args.append(self.define_from_variant("ARROW_WITH_LZ4", "lz4"))
         args.append(self.define_from_variant("ARROW_WITH_SNAPPY", "snappy"))
         args.append(self.define_from_variant("ARROW_WITH_ZLIB", "zlib"))
