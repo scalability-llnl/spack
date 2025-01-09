@@ -9,16 +9,17 @@ import pytest
 
 import spack.paths
 from spack.compiler import _parse_non_system_link_dirs
+from spack.util.path import abstract_path, fs_path
 
 drive = ""
 if sys.platform == "win32":
     match = re.search(r"[A-Za-z]:", spack.paths.test_path)
     if match:
         drive = match.group()
-root = drive + os.sep
+root = abstract_path(drive + os.sep)
 
 #: directory with sample compiler data
-datadir = os.path.join(spack.paths.test_path, "data", "compiler_verbose_output")
+datadir = abstract_path(spack.paths.test_path, "data", "compiler_verbose_output")
 
 
 @pytest.fixture(autouse=True)
@@ -29,7 +30,7 @@ def allow_nonexistent_paths(monkeypatch):
 
 
 def check_link_paths(filename, paths):
-    with open(os.path.join(datadir, filename), encoding="utf-8") as file:
+    with open(datadir / filename, encoding="utf-8") as file:
         output = file.read()
     detected_paths = _parse_non_system_link_dirs(output)
 
@@ -46,24 +47,20 @@ def check_link_paths(filename, paths):
 
 
 def test_icc16_link_paths():
-    prefix = os.path.join(root, "usr", "tce", "packages")
+    prefix = root / "usr" / "tce" / "packages"
     check_link_paths(
         "icc-16.0.3.txt",
         [
-            os.path.join(
-                prefix,
-                "intel",
-                "intel-16.0.3",
-                "compilers_and_libraries_2016.3.210",
-                "linux",
-                "compiler",
-                "lib",
-                "intel64_lin",
-            ),
-            os.path.join(
-                prefix, "gcc", "gcc-4.9.3", "lib64", "gcc", "x86_64-unknown-linux-gnu", "4.9.3"
-            ),
-            os.path.join(prefix, "gcc", "gcc-4.9.3", "lib64"),
+            fs_path(prefix /
+                    "intel" /
+                    "intel-16.0.3" /
+                    "compilers_and_libraries_2016.3.210" /
+                    "linux" /
+                    "compiler" /
+                    "lib" /
+                    "intel64_lin"),
+            fs_path(prefix / "gcc" / "gcc-4.9.3" / "lib64" / "gcc" / "x86_64-unknown-linux-gnu" / "4.9.3"),
+            fs_path(prefix / "gcc" / "gcc-4.9.3" / "lib64"),
         ],
     )
 
@@ -80,36 +77,36 @@ def test_xl_link_paths():
     check_link_paths(
         "xl-13.1.5.txt",
         [
-            os.path.join(root, "opt", "ibm", "xlsmp", "4.1.5", "lib"),
-            os.path.join(root, "opt", "ibm", "xlmass", "8.1.5", "lib"),
-            os.path.join(root, "opt", "ibm", "xlC", "13.1.5", "lib"),
+            fs_path(root / "opt" / "ibm" / "xlsmp" / "4.1.5" / "lib"),
+            fs_path(root / "opt" / "ibm" / "xlmass" / "8.1.5" / "lib"),
+            fs_path(root / "opt" / "ibm" / "xlC" / "13.1.5" / "lib"),
         ],
     )
 
 
 def test_cce_link_paths():
-    gcc = os.path.join(root, "opt", "gcc")
-    cray = os.path.join(root, "opt", "cray")
+    gcc = root / "opt" / "gcc"
+    cray = root / "opt" / "cray"
     check_link_paths(
         "cce-8.6.5.txt",
         [
-            os.path.join(gcc, "6.1.0", "snos", "lib64"),
-            os.path.join(cray, "dmapp", "default", "lib64"),
-            os.path.join(cray, "pe", "mpt", "7.7.0", "gni", "mpich-cray", "8.6", "lib"),
-            os.path.join(cray, "pe", "libsci", "17.12.1", "CRAY", "8.6", "x86_64", "lib"),
-            os.path.join(cray, "rca", "2.2.16-6.0.5.0_15.34__g5e09e6d.ari", "lib64"),
-            os.path.join(cray, "pe", "pmi", "5.0.13", "lib64"),
-            os.path.join(cray, "xpmem", "2.2.4-6.0.5.0_4.8__g35d5e73.ari", "lib64"),
-            os.path.join(cray, "dmapp", "7.1.1-6.0.5.0_49.8__g1125556.ari", "lib64"),
-            os.path.join(cray, "ugni", "6.0.14-6.0.5.0_16.9__g19583bb.ari", "lib64"),
-            os.path.join(cray, "udreg", "2.3.2-6.0.5.0_13.12__ga14955a.ari", "lib64"),
-            os.path.join(cray, "alps", "6.5.28-6.0.5.0_18.6__g13a91b6.ari", "lib64"),
-            os.path.join(cray, "pe", "atp", "2.1.1", "libApp"),
-            os.path.join(cray, "pe", "cce", "8.6.5", "cce", "x86_64", "lib"),
-            os.path.join(cray, "wlm_detect", "1.3.2-6.0.5.0_3.1__g388ccd5.ari", "lib64"),
-            os.path.join(gcc, "6.1.0", "snos", "lib", "gcc", "x86_64-suse-linux", "6.1.0"),
-            os.path.join(
-                cray, "pe", "cce", "8.6.5", "binutils", "x86_64", "x86_64-unknown-linux-gnu", "lib"
+            fs_path(gcc / "6.1.0" / "snos" / "lib64"),
+            fs_path(cray / "dmapp" / "default" / "lib64"),
+            fs_path(cray / "pe" / "mpt" / "7.7.0" / "gni" / "mpich-cray" / "8.6" / "lib"),
+            fs_path(cray / "pe" / "libsci" / "17.12.1" / "CRAY" / "8.6" / "x86_64" / "lib"),
+            fs_path(cray / "rca" / "2.2.16-6.0.5.0_15.34__g5e09e6d.ari" / "lib64"),
+            fs_path(cray / "pe" / "pmi" / "5.0.13" / "lib64"),
+            fs_path(cray / "xpmem" / "2.2.4-6.0.5.0_4.8__g35d5e73.ari" / "lib64"),
+            fs_path(cray / "dmapp" / "7.1.1-6.0.5.0_49.8__g1125556.ari" / "lib64"),
+            fs_path(cray / "ugni" / "6.0.14-6.0.5.0_16.9__g19583bb.ari" / "lib64"),
+            fs_path(cray / "udreg" / "2.3.2-6.0.5.0_13.12__ga14955a.ari" / "lib64"),
+            fs_path(cray / "alps" / "6.5.28-6.0.5.0_18.6__g13a91b6.ari" / "lib64"),
+            fs_path(cray / "pe" / "atp" / "2.1.1" / "libApp"),
+            fs_path(cray / "pe" / "cce" / "8.6.5" / "cce" / "x86_64" / "lib"),
+            fs_path(cray / "wlm_detect" / "1.3.2-6.0.5.0_3.1__g388ccd5.ari" / "lib64"),
+            fs_path(gcc / "6.1.0" / "snos" / "lib" / "gcc" / "x86_64-suse-linux" / "6.1.0"),
+            fs_path(
+                cray / "pe" / "cce" / "8.6.5" / "binutils" / "x86_64" / "x86_64-unknown-linux-gnu" / "lib"
             ),
         ],
     )
@@ -119,19 +116,18 @@ def test_clang_apple_ld_link_paths():
     check_link_paths(
         "clang-9.0.0-apple-ld.txt",
         [
-            os.path.join(
-                root,
-                "Applications",
-                "Xcode.app",
-                "Contents",
-                "Developer",
-                "Platforms",
-                "MacOSX.platform",
-                "Developer",
-                "SDKs",
-                "MacOSX10.13.sdk",
-                "usr",
-                "lib",
+            fs_path(root /
+                "Applications" /
+                "Xcode.app" /
+                "Contents" /
+                "Developer" /
+                "Platforms" /
+                "MacOSX.platform" /
+                "Developer" /
+                "SDKs" /
+                "MacOSX10.13.sdk" /
+                "usr" /
+                "lib"
             )
         ],
     )
@@ -142,23 +138,14 @@ def test_nag_mixed_gcc_gnu_ld_link_paths():
     # is used for the rpath detection. The reference compiler output is a
     # result of
     # '/path/to/gcc/bin/g++ -Wl,-v ./main.c'.
-    prefix = os.path.join(
-        root,
-        "scratch",
-        "local1",
-        "spack",
-        "opt",
-        "spack",
-        "gcc-6.3.0-haswell",
-        "gcc-6.5.0-4sdjgrs",
-    )
+    prefix = root / "scratch" / "local1" / "spack" / "opt" / "spack" / "gcc-6.3.0-haswell" / "gcc-6.5.0-4sdjgrs"
 
     check_link_paths(
         "collect2-6.3.0-gnu-ld.txt",
         [
-            os.path.join(prefix, "lib", "gcc", "x86_64-pc-linux-gnu", "6.5.0"),
-            os.path.join(prefix, "lib64"),
-            os.path.join(prefix, "lib"),
+            fs_path(prefix / "lib" / "gcc" / "x86_64-pc-linux-gnu" / "6.5.0"),
+            fs_path(prefix / "lib64"),
+            fs_path(prefix / "lib"),
         ],
     )
 
@@ -168,36 +155,27 @@ def test_nag_link_paths():
     # and therefore 'fc' is used for the rpath detection). The reference
     # compiler output is a result of
     # 'nagfor -Wc=/path/to/gcc/bin/gcc -Wl,-v ./main.c'.
-    prefix = os.path.join(
-        root,
-        "scratch",
-        "local1",
-        "spack",
-        "opt",
-        "spack",
-        "gcc-6.3.0-haswell",
-        "gcc-6.5.0-4sdjgrs",
-    )
+    prefix = root / "scratch" / "local1" / "spack" / "opt" / "spack" / "gcc-6.3.0-haswell" / "gcc-6.5.0-4sdjgrs"
 
     check_link_paths(
         "nag-6.2-gcc-6.5.0.txt",
         [
-            os.path.join(prefix, "lib", "gcc", "x86_64-pc-linux-gnu", "6.5.0"),
-            os.path.join(prefix, "lib64"),
-            os.path.join(prefix, "lib"),
+            fs_path(prefix / "lib" / "gcc" / "x86_64-pc-linux-gnu" / "6.5.0"),
+            fs_path(prefix / "lib64"),
+            fs_path(prefix / "lib"),
         ],
     )
 
 
 def test_obscure_parsing_rules():
     paths = [
-        os.path.join(root, "first", "path"),
-        os.path.join(root, "second", "path"),
-        os.path.join(root, "third", "path"),
+        fs_path(root / "first" / "path"),
+        fs_path(root / "second" / "path"),
+        fs_path(root / "third" / "path"),
     ]
 
     # TODO: add a comment explaining why this happens
     if sys.platform == "win32":
-        paths.remove(os.path.join(root, "second", "path"))
+        paths.remove(fs_path(root / "second" / "path"))
 
     check_link_paths("obscure-parsing-rules.txt", paths)
