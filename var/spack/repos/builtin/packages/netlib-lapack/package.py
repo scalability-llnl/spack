@@ -73,7 +73,8 @@ class NetlibLapack(CMakePackage):
 
     # netlib-lapack is the reference implementation of LAPACK
     for ver in [
-        "3.12.1" "3.12.0",
+        "3.12.1",
+        "3.12.0",
         "3.11.0",
         "3.10.1",
         "3.10.0",
