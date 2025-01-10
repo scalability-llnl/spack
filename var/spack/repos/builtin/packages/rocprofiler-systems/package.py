@@ -19,7 +19,7 @@ class RocprofilerSystems(CMakePackage):
     version("amd-mainline", branch="amd-mainline", submodules=True)
     version("amd-staging", branch="amd-staging", submodules=True)
     version(
-        "6.3.1",
+        "rocm-6.3.1",
         git="https://github.com/ROCm/rocprofiler-systems",
         tag="rocm-6.3.1",
         commit="04a84dd0b0df3dfd61f7765696e0e474ec29f10b",
@@ -27,7 +27,7 @@ class RocprofilerSystems(CMakePackage):
     )
 
     version(
-        "6.3.0",
+        "rocm-6.3.0",
         git="https://github.com/ROCm/rocprofiler-systems",
         tag="rocm-6.3.0",
         commit="71a5e271b5e07efd2948fb6e7b451db5e8e40cb8",
@@ -101,10 +101,10 @@ class RocprofilerSystems(CMakePackage):
     depends_on("libtool", when="+rocm")
     with when("+rocm"):
         for ver in ["6.3.0", "6.3.1"]:
-            depends_on(f"rocm-smi-lib@{ver}", when=f"@{ver}")
-            depends_on(f"hip@{ver}", when=f"@{ver}")
-            depends_on(f"roctracer-dev@{ver}", when=f"@{ver}")
-            depends_on(f"rocprofiler-dev@{ver}", when=f"@{ver}")
+            depends_on(f"rocm-smi-lib@{ver}", when=f"@rocm-{ver}")
+            depends_on(f"hip@{ver}", when=f"@rocm-{ver}")
+            depends_on(f"roctracer-dev@{ver}", when=f"@rocm-{ver}")
+            depends_on(f"rocprofiler-dev@{ver}", when=f"@rocm-{ver}")
 
     def cmake_args(self):
         spec = self.spec
