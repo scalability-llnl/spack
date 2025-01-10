@@ -1144,12 +1144,12 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
                 with open(os.path.join(self.prefix.bin, cfg), "w") as f:
                     print(gcc_install_dir_flag, file=f)
 
-    def llvm_config(self, *args, **kwargs):
+    def llvm_config(self, *args, result=None, **kwargs):
         lc = Executable(self.prefix.bin.join("llvm-config"))
         if not kwargs.get("output"):
             kwargs["output"] = str
         ret = lc(*args, **kwargs)
-        if kwargs.get("result") == "list":
+        if result == "list":
             return ret.split()
         else:
             return ret

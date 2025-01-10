@@ -3061,7 +3061,7 @@ class Spec:
         for spec in self.traverse():
             spec._cached_hash(ht.dag_hash)
 
-    def concretized(self, tests: Union[bool, Iterable[str]] = False) -> "spack.spec.Spec":
+    def concretized(self, tests: Union[bool, Iterable[str]] = False) -> "Spec":
         """This is a non-destructive version of concretize().
 
         First clones, then returns a concrete version of this package
