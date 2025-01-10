@@ -1095,13 +1095,12 @@ class PriorityOrderedMapping(Mapping[KT, VT]):
     """
 
     _data: Dict[KT, VT]
-    _priorities: List[Tuple[int, int, KT]]
+    _priorities: List[Tuple[int, KT]]
 
     def __init__(self) -> None:
         self._data = {}
-        # Tuple of (priority, insertion id, key)
+        # Tuple of (priority, key)
         self._priorities = []
-        self._counter = itertools.count()
 
     def __getitem__(self, key: KT) -> VT:
         return self._data[key]
@@ -1111,14 +1110,14 @@ class PriorityOrderedMapping(Mapping[KT, VT]):
 
     def __iter__(self):
         def iter_fn():
-            for *_, key in sorted(self._priorities):
+            for *_, key in self._priorities:
                 yield key
 
         return iter_fn()
 
     def __reversed__(self):
         def iter_fn():
-            for *_, key in sorted(self._priorities, key=lambda x: (-x[0], -x[1])):
+            for *_, key in reversed(self._priorities):
                 yield key
 
         return iter_fn()
@@ -1131,7 +1130,7 @@ class PriorityOrderedMapping(Mapping[KT, VT]):
         """Iterates over values from the highest priority, to the lowest."""
 
         def iter_fn():
-            for *_, key in sorted(self._priorities, key=lambda x: (-x[0], -x[1])):
+            for *_, key in reversed(self._priorities):
                 yield self._data[key]
 
         return iter_fn()
@@ -1141,9 +1140,6 @@ class PriorityOrderedMapping(Mapping[KT, VT]):
             return 0
         result, *_ = self._priorities[-1]
         return result
-
-    def _new_id(self) -> int:
-        return next(self._counter)
 
     def add(self, key: KT, *, value: VT, priority: Optional[int] = None) -> None:
         """Adds a key/value pair to the mapping, with a specific priority.
@@ -1160,8 +1156,9 @@ class PriorityOrderedMapping(Mapping[KT, VT]):
         if key in self._data:
             self.remove(key)
 
-        self._priorities.append((priority, self._new_id(), key))
-        self._priorities.sort(key=lambda x: (x[0], x[1]))
+        self._priorities.append((priority, key))
+        # We rely on sort being stable
+        self._priorities.sort(key=lambda x: x[0])
         self._data[key] = value
         assert len(self._data) == len(self._priorities)
 
@@ -1178,6 +1175,6 @@ class PriorityOrderedMapping(Mapping[KT, VT]):
             raise KeyError(f"cannot find {key}")
 
         popped_item = self._data.pop(key)
-        self._priorities = [(p, i, k) for p, i, k in self._priorities if k != key]
+        self._priorities = [(p, k) for p, k in self._priorities if k != key]
         assert len(self._data) == len(self._priorities)
         return popped_item
