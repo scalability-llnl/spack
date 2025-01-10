@@ -5,7 +5,7 @@
 """Schema for configuration merged into one file.
 
 .. literalinclude:: _spack_root/lib/spack/spack/schema/merged.py
-   :lines: 33-
+   :lines: 32-
 """
 from typing import Any, Dict
 
