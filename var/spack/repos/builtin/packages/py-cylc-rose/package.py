@@ -17,7 +17,8 @@ class PyCylcRose(PythonPackage):
 
     license("GPL-3.0-only")
 
-    # 1.4.2 not on PyPI server?
+    # Version 1.4.2 is available at PyPI, but not at the URL that is considered canonical by Spack
+    # https://github.com/spack/spack/issues/48479
     version("1.4.2", commit="8deda0480afed8cf92cfdf7938fc78d0aaf0c0e4")
     version("1.3.0", sha256="017072b69d7a50fa6d309a911d2428743b07c095f308529b36b1b787ebe7ab88")
 

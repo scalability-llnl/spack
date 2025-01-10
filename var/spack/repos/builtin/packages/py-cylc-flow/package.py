@@ -17,7 +17,8 @@ class PyCylcFlow(PythonPackage):
 
     license("GPL-3.0-only")
 
-    # 8.3.6 not on PyPI server?
+    # Version 8.3.6 is available at PyPI, but not at the URL that is considered canonical by Spack
+    # https://github.com/spack/spack/issues/48479
     version("8.3.6", commit="7f63b43164638e27636b992b14b3fa088b692b94")
     version("8.2.3", sha256="dd5bea9e4b8dad00edd9c3459a38fb778e5a073da58ad2725bc9b84ad718e073")
     version("8.2.0", sha256="cbe35e0d72d1ca36f28a4cebe9b9040a3445a74253bc94051a3c906cf179ded0")
