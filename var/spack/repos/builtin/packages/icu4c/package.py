@@ -125,7 +125,7 @@ class MSBuildBuilder(spack.build_systems.msbuild.MSBuildBuilder):
     @property
     def build_directory(self):
         solution_path = pathlib.Path(self.pkg.stage.source_path)
-        if self.spec.satsifies("@:67"):
+        if self.spec.satisfies("@:67"):
             solution_path = solution_path / "icu"
         solution_path = solution_path / "source" / "allinone"
         return str(solution_path)
