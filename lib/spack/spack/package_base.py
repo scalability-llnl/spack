@@ -768,8 +768,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         super().__init__()
 
     def __getitem__(self, key: str) -> "PackageBase":
-        result = self.spec[key].package
-        return result
+        return self.spec[key].package
 
     @classmethod
     def dependency_names(cls):
