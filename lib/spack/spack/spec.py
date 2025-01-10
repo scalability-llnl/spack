@@ -1937,7 +1937,7 @@ class Spec:
 
     @property
     def long_spec(self):
-        """Returns a version of the spec with the dependencies completely
+        """Returns a string of the spec with the dependencies completely
         enumerated."""
         root_str = [self.format()]
         sorted_dependencies = sorted(
