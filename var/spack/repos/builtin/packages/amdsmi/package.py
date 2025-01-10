@@ -43,10 +43,10 @@ class Amdsmi(CMakePackage):
     depends_on("libdrm")
     depends_on("py-pyyaml")
     patch(
-            "https://github.com/ROCm/amdsmi/commit/2858e51b4e8ff124ed67e23e0cd131e8b2140fae.patch?full_index=1",
-            sha256="1cac40d057cb19f0cfac83ea427c8e98f7808be9a2778cd53cdbf963910798e8",
-            when="@6.2",
-        )
+        "https://github.com/ROCm/amdsmi/commit/2858e51b4e8ff124ed67e23e0cd131e8b2140fae.patch?full_index=1",
+        sha256="1cac40d057cb19f0cfac83ea427c8e98f7808be9a2778cd53cdbf963910798e8",
+        when="@6.2",
+    )
 
     @classmethod
     def determine_version(cls, lib):
