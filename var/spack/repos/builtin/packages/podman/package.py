@@ -30,6 +30,8 @@ class Podman(Package):
     # issue was fixed as of 4.4.0
     patch("markdown-utf8.diff", when="@4:4.3.1")
 
+    variant("fuse", default=False, description="Use recommended fuse-overlayfs storage driver")
+
     depends_on("go", type="build")
     depends_on("go-md2man", type="build")
     depends_on("pkgconfig", type="build")
@@ -41,6 +43,7 @@ class Podman(Package):
     depends_on("libassuan")
     depends_on("libgpg-error")
     depends_on("libseccomp")
+    depends_on("fuse-overlayfs", type="run", when="+fuse")
 
     def patch(self):
         defs = FileFilter("vendor/github.com/containers/common/pkg/config/default.go")
