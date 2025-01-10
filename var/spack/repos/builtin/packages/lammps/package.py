@@ -399,12 +399,23 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
 
     depends_on("cxx", type="build")
 
-    # mdi, scafacos, ml-quip, qmmm require C, but not available in Spack
-    for c_pkg in ("adios", "atc", "awpmd", "ml-pod", "electrode", "kim", "h5md", "tools", "rheo"):
+    # mdi, scafacos, qmmm require C, but not available in Spack
+    for c_pkg in (
+        "adios",
+        "atc",
+        "awpmd",
+        "ml-pod",
+        "ml-quip",
+        "electrode",
+        "kim",
+        "h5md",
+        "tools",
+        "rheo",
+    ):
         depends_on("c", type="build", when=f"+{c_pkg}")
 
-    # scafacos, ml-quip require Fortran, but not available in Spack
-    for fc_pkg in ("kim",):
+    # scafacos, require Fortran, but not available in Spack
+    for fc_pkg in ("kim", "ml-quip"):
         depends_on("fortran", type="build", when=f"+{fc_pkg}")
 
     stable_versions = {
@@ -503,6 +514,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         "ml-hdnnp": {"when": "@20210702:"},
         "ml-iap": {"when": "@20210702:"},
         "ml-pod": {"when": "@20221222:"},
+        "ml-quip": {"when": "@20210702:"},
         "ml-rann": {"when": "@20210702:"},
         "ml-snap": {"when": "@20210702:"},
         "ml-uf3": {"when": "@20240627:"},
@@ -584,9 +596,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         "yaff": {"when": "@20210702:"},
         # "mdi": {"when": "@20210702:"}, no mdi package
         # "ml-pace": {"when": "@20210702:"}, no pace package
-        # "ml-quip": {"when": "@20210702:"}, no quip package
         # "scafacos": {"when": "@20210702:"}, no scafacos package
-        # "user-quip": {"when": "@20190201:20210527"}, no quip package
         # "user-scafacos": {"when": "@20180905:20210527"}, no scafacos package
     }
 
@@ -683,8 +693,10 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
     depends_on("netcdf-c+mpi", when="+netcdf")
     depends_on("blas", when="+user-atc")
     depends_on("blas", when="+atc")
+    depends_on("blas", when="+ml-quip")
     depends_on("lapack", when="+user-atc")
     depends_on("lapack", when="+atc")
+    depends_on("lapack", when="+ml-quip")
     depends_on("opencl", when="+opencl")
     depends_on("latte@1.0.1", when="@:20180222+latte")
     depends_on("latte@1.1.1:", when="@20180316:20180628+latte")
@@ -724,6 +736,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
     depends_on("py-numpy", when="+python", type=("build", "run"))
     depends_on("py-mpi4py", when="+python+mpi", type=("build", "run"))
     depends_on("py-setuptools@42:", when="@20220217:+python", type=("build", "run"))
+    depends_on("quip", when="+ml-quip", type="build")
     for _n2p2_cond in ("+user-hdnnp", "+ml-hdnnp"):
         with when(_n2p2_cond):
             depends_on("n2p2@2.1.4:")
