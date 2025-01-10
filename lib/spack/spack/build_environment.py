@@ -248,13 +248,13 @@ class MakeExecutable(Executable):
             args = (f"-j{jobs}",) + args
 
         if jobs_env:
-            # Caller wants us to set an environment variable to
-            # control the parallelism.
+            # Caller wants us to set an environment variable to control the parallelism
             jobs_env_jobs = get_effective_jobs(
                 self.jobs, parallel=parallel, supports_jobserver=jobs_env_supports_jobserver
             )
             if jobs_env_jobs is not None:
-                kwargs["extra_env"] = {jobs_env: str(jobs_env_jobs)}
+                extra_env = kwargs.setdefault("extra_env", {})
+                extra_env.update({jobs_env: str(jobs_env_jobs)})
 
         return super().__call__(*args, **kwargs)
 
