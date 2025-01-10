@@ -591,32 +591,18 @@ def file_matches(f: IO[bytes], regex: llnl.util.lang.PatternBytes) -> bool:
         f.seek(0)
 
 
-def deps_to_relocate(spec):
-    """Return the transitive link and direct run dependencies of the spec.
-
-    This is a special traversal for dependencies we need to consider when relocating a package.
-
-    Package binaries, scripts, and other files may refer to the prefixes of  dependencies, so
-    we need to rewrite those locations when dependencies are in a different place at install time
-    than they were at build time.
-
-    This traversal covers transitive link dependencies and direct run dependencies because:
-
-    1. Spack adds RPATHs for transitive link dependencies so that packages can find needed
-       dependency libraries.
-    2. Packages may call any of their *direct* run dependencies (and may bake their paths into
-       binaries or scripts), so we also need to search for run dependency prefixes when relocating.
-
-    This returns a deduplicated list of transitive link dependencies and direct run dependencies.
-    """
-    deps = [
+def specs_to_relocate(spec: spack.spec.Spec) -> List[spack.spec.Spec]:
+    """Return the set of specs that may be referenced in the install prefix of the provided spec.
+    We currently include non-external transitive link and direct run dependencies."""
+    specs = [
         s
         for s in itertools.chain(
-            spec.traverse(root=True, deptype="link"), spec.dependencies(deptype="run")
+            spec.traverse(root=True, deptype="link", order="breadth", key=traverse.by_dag_hash),
+            spec.dependencies(deptype="run"),
         )
         if not s.external
     ]
-    return llnl.util.lang.dedupe(deps, key=lambda s: s.dag_hash())
+    return list(llnl.util.lang.dedupe(specs, key=lambda s: s.dag_hash()))
 
 
 def get_buildinfo_dict(spec):
@@ -630,7 +616,7 @@ def get_buildinfo_dict(spec):
         # "relocate_binaries": [],
         # "relocate_links": [],
         "hardlinks_deduped": True,
-        "hash_to_prefix": {d.dag_hash(): str(d.prefix) for d in deps_to_relocate(spec)},
+        "hash_to_prefix": {d.dag_hash(): str(d.prefix) for d in specs_to_relocate(spec)},
     }
 
 
@@ -1112,7 +1098,7 @@ def _exists_in_buildcache(spec: spack.spec.Spec, tmpdir: str, out_url: str) -> E
 
 
 def prefixes_to_relocate(spec):
-    prefixes = [s.prefix for s in deps_to_relocate(spec)]
+    prefixes = [s.prefix for s in specs_to_relocate(spec)]
     prefixes.append(spack.hooks.sbang.sbang_install_path())
     prefixes.append(str(spack.store.STORE.layout.root))
     return prefixes
@@ -2234,7 +2220,7 @@ def relocate_package(spec):
     # An analog in this algorithm is any spec that shares a name or provides the same virtuals
     # in the context of the relevant root spec. This ensures that the analog for a spec s
     # is the spec that s replaced when we spliced.
-    relocation_specs = deps_to_relocate(spec)
+    relocation_specs = specs_to_relocate(spec)
     build_spec_ids = set(id(s) for s in spec.build_spec.traverse(deptype=dt.ALL & ~dt.BUILD))
     for s in relocation_specs:
         analog = s

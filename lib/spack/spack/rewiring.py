@@ -48,7 +48,7 @@ def rewire_node(spec, explicit):
     # spec
     prefix_to_prefix = {spec.build_spec.prefix: spec.prefix}
     build_spec_ids = set(id(s) for s in spec.build_spec.traverse(deptype=dt.ALL & ~dt.BUILD))
-    for s in bindist.deps_to_relocate(spec):
+    for s in bindist.specs_to_relocate(spec):
         analog = s
         if id(s) not in build_spec_ids:
             analogs = [
