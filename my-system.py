@@ -25,9 +25,25 @@ def _dump_section(section, stream):
 
 
 def _system_pickles(dst):
-    data = [spack.platforms.host(), archspec.cpu.host(), spack.solver.asp.all_libcs()]
+    import spack.compilers
+    import spack.config
+
+    compiler_save_libc = dict()
+    for cmp in spack.compilers.all_compilers_from(spack.config.CONFIG):
+        if spack.solver.asp.using_libc_compatibility() and cmp.default_libc:
+            compiler_save_libc[str(cmp.spec)] = cmp.default_libc
+
+    data = [spack.platforms.host(), archspec.cpu.host(), spack.solver.asp.all_libcs(), compiler_save_libc]
     with open(dst, "wb") as f:
         pickle.dump(data, f)
+
+
+class MapLibc:
+    def __init__(self, compiler_save_libc):
+        self.compiler_save_libc = compiler_save_libc
+
+    def simulate_default_libc(self, obj):
+        return self.compiler_save_libc.get(str(obj.spec), None)
 
 
 def _simulate_system(state_dir):
@@ -35,14 +51,16 @@ def _simulate_system(state_dir):
 
     import spack.platforms
     import spack.solver.asp
+    import spack.compiler
 
     with open(os.path.join(state_dir, "arch.pkl"), "rb") as f:
-        # [spack.platforms.host(), archspec.cpu.host(), spack.solver.asp.all_libcs()]
+        # [spack.platforms.host(), archspec.cpu.host(), spack.solver.asp.all_libcs(), compiler_save_libc]
         data = pickle.load(f)
         spack.platforms.host = lambda: data[0]
         archspec.cpu.host = lambda: data[1]
         spack.solver.asp.all_libcs = lambda: data[2]
         spack.solver.asp.c_compiler_runs = lambda x: True
+        spack.compiler.Compiler.default_libc = MapLibc(data[3]).simulate_default_libc
 
 
 def _make_env(dst_dir):
