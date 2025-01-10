@@ -666,7 +666,7 @@ class ConcretizationCache:
                     lines_to_prune = f.readlines(prune_count)
                     for line in lines_to_prune:
                         sha, cache_entry_bytes = self._sanitize_read(line)
-                        cache_path = self.root / sha[:2] / sha
+                        cache_path = self._cache_path_from_hash(sha)
                         if self._safe_remove(cache_path):
                             entry_count -= 1
                             manifest_bytes -= int(cache_entry_bytes)
@@ -745,11 +745,16 @@ class ConcretizationCache:
         prefix = prob_digest[:2]
         return prefix, prob_digest
 
-    def _cache_path(self, problem: str) -> pathlib.Path:
+    def _cache_path_from_problem(self, problem: str) -> pathlib.Path:
         """Returns a Path object representing the path to the cache
         entry for the given problem"""
         prefix, digest = self._prefix_digest(problem)
         return self.root / prefix / digest
+
+    def _cache_path_from_hash(self, hash: str) -> pathlib.Path:
+        """Returns a Path object representing the cache entry
+        corresponding to the given sha256 hash"""
+        return self.root / hash[:2] / hash
 
     def _update_manifest(self, cache_path: pathlib.Path, bytes_written: int):
         self._cache_manifest.touch(exist_ok=True)
@@ -830,7 +835,7 @@ class ConcretizationCache:
         problem.
         """
         import pdb; pdb.set_trace()
-        cache_path = self._cache_path(problem)
+        cache_path = self._cache_path_from_problem(problem)
         with self._create_cache_entry(cache_path):
             cache_dict = {"results": result.to_dict(), "statistics": statistics}
             self._safe_write(cache_path, json.dumps(cache_dict))
@@ -843,7 +848,7 @@ class ConcretizationCache:
         Python objects cached on disk representing the concretization results and statistics
         or returns none if no cache entry was found.
         """
-        cache_path = self._cache_path(problem)
+        cache_path = self._cache_path_from_problem(problem)
         result = self._results_from_cache(cache_path)
         statistics = self._stats_from_cache(cache_path)
         if result and statistics:
@@ -854,7 +859,7 @@ class ConcretizationCache:
 
     def remove(self, problem: str) -> bool:
         """Removes cache entry associated with problem"""
-        cache_path = self._cache_path(problem)
+        cache_path = self._cache_path_from_problem(problem)
         return self._safe_remove(cache_path)
 
     def destroy(self) -> None:
