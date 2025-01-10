@@ -106,7 +106,7 @@ class Dyninst(CMakePackage):
         ]
 
         # Make sure Dyninst doesn't try to build its own dependencies outside of Spack
-        if spec.satisfies("@10.2.0:12.3.0"):
+        if spec.satisfies("@10.2.0:"):
             args.append(self.define("STERILE_BUILD", True))
 
         return args
