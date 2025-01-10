@@ -74,6 +74,6 @@ class Vbfnlo(AutotoolsPackage):
 
         return args
 
-    @when("@3.0.0beta3:~doc")
+    @when("@3: ~doc")
     def patch(self):
         filter_file("lib src doc", "lib src", "Makefile.am")
