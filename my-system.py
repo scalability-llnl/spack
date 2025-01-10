@@ -85,6 +85,11 @@ def generate(args):
 
 def use(args):
     import spack.main
+
+    import spack.bootstrap as bootstrap
+    with bootstrap.ensure_bootstrap_configuration():
+        bootstrap.ensure_clingo_importable_or_raise()
+
     _simulate_system(args.source)
     e = ev.Environment(args.source)
     with e:
