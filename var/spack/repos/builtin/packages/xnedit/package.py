@@ -24,6 +24,8 @@ class Xnedit(MakefilePackage):
 
     maintainers("davekeeshan")
 
+    license("GPL-2.0-or-later")
+
     version("1.6.1", sha256="46489fa3017f5e40da810170b33c681affd3cd4dff1dbd0f8a4c51f8285ca5c4")
     version("1.6.0", sha256="197e635fc1aa8e4ff2dcd2375efac597975f04170c3eace3280c4054bbbc57ac")
     version("1.5.3", sha256="89421abbcb91f27e122b874769ca60021802735ea527fc6ae5b3d50061f81120")
