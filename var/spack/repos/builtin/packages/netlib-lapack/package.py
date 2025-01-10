@@ -22,6 +22,11 @@ class NetlibLapack(CMakePackage):
     license("BSD-3-Clause-Open-MPI")
 
     version(
+        "3.12.1",
+        sha256="2ca6407a001a474d4d4d35f3a61550156050c48016d949f0da0529c0aa052422",
+        url="https://github.com/Reference-LAPACK/lapack/archive/refs/tags/v3.12.1.tar.gz",
+    )
+    version(
         "3.12.0",
         sha256="eac9570f8e0ad6f30ce4b963f4f033f0f643e7c3912fc9ee6cd99120675ad48b",
         url="https://github.com/Reference-LAPACK/lapack/archive/refs/tags/v3.12.0.tar.gz",
@@ -68,7 +73,7 @@ class NetlibLapack(CMakePackage):
 
     # netlib-lapack is the reference implementation of LAPACK
     for ver in [
-        "3.12.0",
+        "3.12.1" "3.12.0",
         "3.11.0",
         "3.10.1",
         "3.10.0",
@@ -121,7 +126,7 @@ class NetlibLapack(CMakePackage):
     provides("lapack")
 
     depends_on("c", type="build")
-    depends_on("cxx", type="build")
+    depends_on("cxx", type="build", when="@:3.12.0")
     depends_on("fortran", type="build")
     depends_on("blas", when="+external-blas")
     depends_on("netlib-xblas+fortran+plain_blas", when="+xblas")
