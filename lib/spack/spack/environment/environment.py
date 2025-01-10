@@ -1518,9 +1518,6 @@ class Environment:
         return new_user_specs, kept_user_specs, specs_to_concretize
 
     def _concretize_together_where_possible(self, tests: bool = False) -> Sequence[SpecPair]:
-        # # Avoid cyclic dependency
-        # import spack.solver.asp
-
         # Exit early if the set of concretized specs is the set of user specs
         new_user_specs, _, specs_to_concretize = self._get_specs_to_concretize()
         if not new_user_specs:
