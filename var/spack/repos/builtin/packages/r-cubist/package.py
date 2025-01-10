@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,7 @@ class RCubist(RPackage):
 
     cran = "Cubist"
 
+    version("0.4.4", sha256="51d5fff104b69de75e08a3e14eaf67ff13ffda5be4b60f79236793475c241590")
     version("0.4.2.1", sha256="f07afed59019a3febc04acc3e58728e42b42910940a1d529f9fc482931d09157")
     version("0.4.0", sha256="3a1f74d44300e3a38a10e3693fc019cfcca221d62d7c416abebb20811e965578")
     version("0.3.0", sha256="88a76e7f858a8e978a73a97ce6a3504201d889517b39ce862cef734dcf9eb263")

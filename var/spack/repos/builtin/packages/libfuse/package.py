@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,9 @@ class Libfuse(MesonPackage):
     homepage = "https://github.com/libfuse/libfuse"
     url = "https://github.com/libfuse/libfuse/releases/download/fuse-2.9.9/fuse-2.9.9.tar.gz"
 
+    keep_werror = "all"
+
+    version("3.16.2", sha256="1bc306be1a1f4f6c8965fbdd79c9ccca021fdc4b277d501483a711cbd7dbcd6c")
     version("3.11.0", sha256="25a00226d2d449c15b2f08467d6d5ebbb2a428260c4ab773721c32adbc6da072")
     version("3.10.5", sha256="e73f75e58da59a0e333d337c105093c496c0fd7356ef3a5a540f560697c9c4e6")
     version("3.10.4", sha256="bfcb2520fd83db29e9fefd57d3abd5285f38ad484739aeee8e03fbec9b2d984a")
@@ -27,6 +29,9 @@ class Libfuse(MesonPackage):
     version("3.9.3", sha256="0f8f7ad9cc6667c6751efa425dd0a665dcc9d75f0b7fc0cb5b85141a514110e9")
     version("3.9.2", sha256="b4409255cbda6f6975ca330f5b04cb335b823a95ddd8c812c3d224ec53478fc0")
     version("2.9.9", sha256="d0e69d5d608cc22ff4843791ad097f554dd32540ddc9bed7638cc6fea7c1b4b5")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     def url_for_version(self, version):
         if version < Version("3.0.0"):
@@ -65,7 +70,7 @@ class Libfuse(MesonPackage):
     conflicts("platform=darwin", msg="libfuse does not support OS-X, use macfuse instead")
 
     # Drops the install script which does system configuration
-    patch("0001-Do-not-run-install-script.patch", when="@3: ~system_install")
+    patch("0001-Do-not-run-install-script.patch", when="@3:3.11 ~system_install")
     patch(
         "https://src.fedoraproject.org/rpms/fuse3/raw/0519b7bf17c4dd1b31ee704d49f8ed94aa5ba6ab/f/fuse3-gcc11.patch",
         sha256="3ad6719d2393b46615b5787e71778917a7a6aaa189ba3c3e0fc16d110a8414ec",
@@ -100,21 +105,24 @@ class Libfuse(MesonPackage):
     def meson_args(self):
         args = []
 
-        if "+utils" in self.spec:
+        if self.spec.satisfies("+utils"):
             args.append("-Dutils=true")
             args.append("-Dexamples=true")
         else:
             args.append("-Dutils=false")
             args.append("-Dexamples=false")
 
-        if "+useroot" in self.spec:
+        if self.spec.satisfies("+useroot"):
             args.append("-Duseroot=true")
         else:
             args.append("-Duseroot=false")
 
-        if "~system_install" in self.spec:
+        if self.spec.satisfies("~system_install"):
             # Fix meson's setup if meson does not have the host system's udev package:
             args.append("-Dudevrulesdir={0}".format(self.prefix.etc.rules.d))
+
+            if self.spec.satisfies("@3.12:"):
+                args.append("-Dinitscriptdir=")
         else:
             # Likewise, but with +system_install, it may install to /lib/udev/rules.d:
             args.append("-Dudevrulesdir={0}".format("/lib/udev/rules.d"))
@@ -138,10 +146,14 @@ class Libfuse(MesonPackage):
         ]
 
         args.append(
-            "--enable-static" if "default_library=static" in self.spec else "--disable-static"
+            "--enable-static"
+            if self.spec.satisfies("default_library=static")
+            else "--disable-static"
         )
         args.append(
-            "--enable-shared" if "default_library=shared" in self.spec else "--disable-shared"
+            "--enable-shared"
+            if self.spec.satisfies("default_library=shared")
+            else "--disable-shared"
         )
 
         configure(*args)

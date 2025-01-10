@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,7 @@ class RGoogleauthr(RPackage):
 
     cran = "googleAuthR"
 
+    version("2.0.2", sha256="fd55c85b5f78aa52b6e5cabd4143162cb497ab7288c8db3676acf58a0f393996")
     version("2.0.1", sha256="9b19a63bc250151674f20b27389baa95c10cc62dc7c3c0ff12a8d684bdb8a14b")
     version("2.0.0", sha256="ba504baf3bde2e1b3e988bee7602df5765cc6ca542cf0ab76a782c4e60966feb")
 

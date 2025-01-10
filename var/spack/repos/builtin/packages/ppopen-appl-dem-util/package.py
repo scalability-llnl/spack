@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,8 @@ class PpopenApplDemUtil(MakefilePackage):
     git = "https://github.com/Post-Peta-Crest/ppOpenHPC.git"
 
     version("master", branch="APPL/DEM")
+
+    depends_on("fortran", type="build")  # generated
 
     depends_on("mpi")
 

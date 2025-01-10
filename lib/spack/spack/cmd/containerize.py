@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -10,7 +9,7 @@ import llnl.util.tty
 import spack.container
 import spack.container.images
 
-description = "creates recipes to build images for different" " container runtimes"
+description = "creates recipes to build images for different container runtimes"
 section = "container"
 level = "long"
 

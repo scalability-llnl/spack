@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,6 +10,9 @@ class RClue(RPackage):
 
     cran = "clue"
 
+    license("GPL-2.0-only")
+
+    version("0.3-65", sha256="bdf8fdd35fb2b1c65d09766da79d930fa664a00aa497f03b636400eecb623ef8")
     version("0.3-64", sha256="f45cb7a84c87ddca2b9f7c2ea9505016d002e6fda23322e6d57466c7a4de28af")
     version("0.3-62", sha256="575a3fa2c4aa1ae5c7e35f4462f2f331d291d87916aa12f0d11f61988d5e1ed2")
     version("0.3-61", sha256="71311b16ce380fd9a8834be95b55b3d1b47e4ee2b8acb35b8d481138c314dc31")

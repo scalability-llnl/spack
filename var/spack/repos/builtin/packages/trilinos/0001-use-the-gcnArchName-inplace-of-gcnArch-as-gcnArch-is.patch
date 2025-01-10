@@ -1,0 +1,26 @@
+From e7fa7ea37423d3d17d77334ac849c5df00feb20e Mon Sep 17 00:00:00 2001
+From: sreenivasa murthy kolam <sreenivasamurthy.kolam@amd.com>
+Date: Tue, 16 Jan 2024 10:09:34 +0000
+Subject: [PATCH] use the gcnArchName inplace of gcnArch as gcnArch is
+ deprecated from rocm-6.0.0
+
+---
+ packages/kokkos/core/src/HIP/Kokkos_HIP_Instance.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/packages/kokkos/core/src/HIP/Kokkos_HIP_Instance.cpp b/packages/kokkos/core/src/HIP/Kokkos_HIP_Instance.cpp
+index 7840ad9..882d143 100644
+--- a/packages/kokkos/core/src/HIP/Kokkos_HIP_Instance.cpp
++++ b/packages/kokkos/core/src/HIP/Kokkos_HIP_Instance.cpp
+@@ -86,7 +86,7 @@ void HIPInternal::print_configuration(std::ostream &s) const {
+     KOKKOS_IMPL_HIP_SAFE_CALL(hipGetDeviceProperties(&hipProp, i));
+ 
+     s << "Kokkos::HIP[ " << i << " ] "
+-      << "gcnArch " << hipProp.gcnArch << ", Total Global Memory: "
++      << "gcnArchName " << hipProp.gcnArchName << ", Total Global Memory: "
+       << ::Kokkos::Impl::human_memory_size(hipProp.totalGlobalMem)
+       << ", Shared Memory per Block: "
+       << ::Kokkos::Impl::human_memory_size(hipProp.sharedMemPerBlock);
+-- 
+2.39.3
+

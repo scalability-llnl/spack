@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -103,9 +102,9 @@ def hello_world_with_module_in_root(extension_creator):
 
     @contextlib.contextmanager
     def _hwwmir(extension_name=None):
-        with extension_creator(
-            extension_name
-        ) if extension_name else extension_creator() as extension:
+        with (
+            extension_creator(extension_name) if extension_name else extension_creator()
+        ) as extension:
             # Note that the namespace of the extension is derived from the
             # fixture.
             extension.add_command(
@@ -210,7 +209,7 @@ def test_missing_command():
     """Ensure that we raise the expected exception if the desired command is
     not present.
     """
-    with pytest.raises(spack.extensions.CommandNotFoundError):
+    with pytest.raises(spack.cmd.CommandNotFoundError):
         spack.cmd.get_module("no-such-command")
 
 
@@ -220,9 +219,9 @@ def test_missing_command():
         ("/my/bad/extension", spack.extensions.ExtensionNamingError),
         ("", spack.extensions.ExtensionNamingError),
         ("/my/bad/spack--extra-hyphen", spack.extensions.ExtensionNamingError),
-        ("/my/good/spack-extension", spack.extensions.CommandNotFoundError),
-        ("/my/still/good/spack-extension/", spack.extensions.CommandNotFoundError),
-        ("/my/spack-hyphenated-extension", spack.extensions.CommandNotFoundError),
+        ("/my/good/spack-extension", spack.cmd.CommandNotFoundError),
+        ("/my/still/good/spack-extension/", spack.cmd.CommandNotFoundError),
+        ("/my/spack-hyphenated-extension", spack.cmd.CommandNotFoundError),
     ],
     ids=["no_stem", "vacuous", "leading_hyphen", "basic_good", "trailing_slash", "hyphenated"],
 )

@@ -4,15 +4,17 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Detection of CPU microarchitectures"""
 import collections
-import functools
 import os
 import platform
 import re
+import struct
 import subprocess
 import warnings
+from typing import Dict, List, Optional, Set, Tuple, Union
 
-from .microarchitecture import generic_microarchitecture, TARGETS
-from .schema import TARGETS_JSON
+from ..vendor.cpuid.cpuid import CPUID
+from .microarchitecture import TARGETS, Microarchitecture, generic_microarchitecture
+from .schema import CPUID_JSON, TARGETS_JSON
 
 #: Mapping from operating systems to chain of commands
 #: to obtain a dictionary of raw info on the current cpu
@@ -22,43 +24,51 @@ INFO_FACTORY = collections.defaultdict(list)
 #: functions checking the compatibility of the host with a given target
 COMPATIBILITY_CHECKS = {}
 
+# Constants for commonly used architectures
+X86_64 = "x86_64"
+AARCH64 = "aarch64"
+PPC64LE = "ppc64le"
+PPC64 = "ppc64"
+RISCV64 = "riscv64"
 
-def info_dict(operating_system):
-    """Decorator to mark functions that are meant to return raw info on
-    the current cpu.
+
+def detection(operating_system: str):
+    """Decorator to mark functions that are meant to return partial information on the current cpu.
 
     Args:
-        operating_system (str or tuple): operating system for which the marked
-            function is a viable factory of raw info dictionaries.
+        operating_system: operating system where this function can be used.
     """
 
     def decorator(factory):
         INFO_FACTORY[operating_system].append(factory)
-
-        @functools.wraps(factory)
-        def _impl():
-            info = factory()
-
-            # Check that info contains a few mandatory fields
-            msg = 'field "{0}" is missing from raw info dictionary'
-            assert "vendor_id" in info, msg.format("vendor_id")
-            assert "flags" in info, msg.format("flags")
-            assert "model" in info, msg.format("model")
-            assert "model_name" in info, msg.format("model_name")
-
-            return info
-
-        return _impl
+        return factory
 
     return decorator
 
 
-@info_dict(operating_system="Linux")
-def proc_cpuinfo():
-    """Returns a raw info dictionary by parsing the first entry of
-    ``/proc/cpuinfo``
-    """
-    info = {}
+def partial_uarch(
+    name: str = "",
+    vendor: str = "",
+    features: Optional[Set[str]] = None,
+    generation: int = 0,
+    cpu_part: str = "",
+) -> Microarchitecture:
+    """Construct a partial microarchitecture, from information gathered during system scan."""
+    return Microarchitecture(
+        name=name,
+        parents=[],
+        vendor=vendor,
+        features=features or set(),
+        compilers={},
+        generation=generation,
+        cpu_part=cpu_part,
+    )
+
+
+@detection(operating_system="Linux")
+def proc_cpuinfo() -> Microarchitecture:
+    """Returns a partial Microarchitecture, obtained from scanning ``/proc/cpuinfo``"""
+    data = {}
     with open("/proc/cpuinfo") as file:  # pylint: disable=unspecified-encoding
         for line in file:
             key, separator, value = line.partition(":")
@@ -70,11 +80,122 @@ def proc_cpuinfo():
             #
             # we are on a blank line separating two cpus. Exit early as
             # we want to read just the first entry in /proc/cpuinfo
-            if separator != ":" and info:
+            if separator != ":" and data:
                 break
 
-            info[key.strip()] = value.strip()
-    return info
+            data[key.strip()] = value.strip()
+
+    architecture = _machine()
+    if architecture == X86_64:
+        return partial_uarch(
+            vendor=data.get("vendor_id", "generic"), features=_feature_set(data, key="flags")
+        )
+
+    if architecture == AARCH64:
+        return partial_uarch(
+            vendor=_canonicalize_aarch64_vendor(data),
+            features=_feature_set(data, key="Features"),
+            cpu_part=data.get("CPU part", ""),
+        )
+
+    if architecture in (PPC64LE, PPC64):
+        generation_match = re.search(r"POWER(\d+)", data.get("cpu", ""))
+        try:
+            generation = int(generation_match.group(1))
+        except AttributeError:
+            # There might be no match under emulated environments. For instance
+            # emulating a ppc64le with QEMU and Docker still reports the host
+            # /proc/cpuinfo and not a Power
+            generation = 0
+        return partial_uarch(generation=generation)
+
+    if architecture == RISCV64:
+        if data.get("uarch") == "sifive,u74-mc":
+            data["uarch"] = "u74mc"
+        return partial_uarch(name=data.get("uarch", RISCV64))
+
+    return generic_microarchitecture(architecture)
+
+
+class CpuidInfoCollector:
+    """Collects the information we need on the host CPU from cpuid"""
+
+    # pylint: disable=too-few-public-methods
+    def __init__(self):
+        self.cpuid = CPUID()
+
+        registers = self.cpuid.registers_for(**CPUID_JSON["vendor"]["input"])
+        self.highest_basic_support = registers.eax
+        self.vendor = struct.pack("III", registers.ebx, registers.edx, registers.ecx).decode(
+            "utf-8"
+        )
+
+        registers = self.cpuid.registers_for(**CPUID_JSON["highest_extension_support"]["input"])
+        self.highest_extension_support = registers.eax
+
+        self.features = self._features()
+
+    def _features(self):
+        result = set()
+
+        def check_features(data):
+            registers = self.cpuid.registers_for(**data["input"])
+            for feature_check in data["bits"]:
+                current = getattr(registers, feature_check["register"])
+                if self._is_bit_set(current, feature_check["bit"]):
+                    result.add(feature_check["name"])
+
+        for call_data in CPUID_JSON["flags"]:
+            if call_data["input"]["eax"] > self.highest_basic_support:
+                continue
+            check_features(call_data)
+
+        for call_data in CPUID_JSON["extension-flags"]:
+            if call_data["input"]["eax"] > self.highest_extension_support:
+                continue
+            check_features(call_data)
+
+        return result
+
+    def _is_bit_set(self, register: int, bit: int) -> bool:
+        mask = 1 << bit
+        return register & mask > 0
+
+    def brand_string(self) -> Optional[str]:
+        """Returns the brand string, if available."""
+        if self.highest_extension_support < 0x80000004:
+            return None
+
+        r1 = self.cpuid.registers_for(eax=0x80000002, ecx=0)
+        r2 = self.cpuid.registers_for(eax=0x80000003, ecx=0)
+        r3 = self.cpuid.registers_for(eax=0x80000004, ecx=0)
+        result = struct.pack(
+            "IIIIIIIIIIII",
+            r1.eax,
+            r1.ebx,
+            r1.ecx,
+            r1.edx,
+            r2.eax,
+            r2.ebx,
+            r2.ecx,
+            r2.edx,
+            r3.eax,
+            r3.ebx,
+            r3.ecx,
+            r3.edx,
+        ).decode("utf-8")
+        return result.strip("\x00")
+
+
+@detection(operating_system="Windows")
+def cpuid_info():
+    """Returns a partial Microarchitecture, obtained from running the cpuid instruction"""
+    architecture = _machine()
+    if architecture == X86_64:
+        data = CpuidInfoCollector()
+        return partial_uarch(vendor=data.vendor, features=data.features)
+
+    return generic_microarchitecture(architecture)
 
 
 def _check_output(args, env):
@@ -83,13 +204,24 @@ def _check_output(args, env):
     return str(output.decode("utf-8"))
 
 
+WINDOWS_MAPPING = {
+    "AMD64": X86_64,
+    "ARM64": AARCH64,
+}
+
+
 def _machine():
-    """ "Return the machine architecture we are on"""
+    """Return the machine architecture we are on"""
     operating_system = platform.system()
 
-    # If we are not on Darwin, trust what Python tells us
-    if operating_system != "Darwin":
+    # If we are not on Darwin or Windows, trust what Python tells us
+    if operating_system not in ("Darwin", "Windows"):
         return platform.machine()
+
+    # Normalize windows specific names
+    if operating_system == "Windows":
+        platform_machine = platform.machine()
+        return WINDOWS_MAPPING.get(platform_machine, platform_machine)
 
     # On Darwin it might happen that we are on M1, but using an interpreter
     # built for x86_64. In that case "platform.machine() == 'x86_64'", so we
@@ -103,54 +235,47 @@ def _machine():
     if "Apple" in output:
         # Note that a native Python interpreter on Apple M1 would return
         # "arm64" instead of "aarch64". Here we normalize to the latter.
-        return "aarch64"
+        return AARCH64
 
-    return "x86_64"
+    return X86_64
 
 
-@info_dict(operating_system="Darwin")
-def sysctl_info_dict():
+@detection(operating_system="Darwin")
+def sysctl_info() -> Microarchitecture:
     """Returns a raw info dictionary parsing the output of sysctl."""
     child_environment = _ensure_bin_usrbin_in_path()
 
-    def sysctl(*args):
+    def sysctl(*args: str) -> str:
         return _check_output(["sysctl"] + list(args), env=child_environment).strip()
 
-    if _machine() == "x86_64":
-        flags = (
-            sysctl("-n", "machdep.cpu.features").lower()
-            + " "
-            + sysctl("-n", "machdep.cpu.leaf7_features").lower()
+    if _machine() == X86_64:
+        features = (
+            f'{sysctl("-n", "machdep.cpu.features").lower()} '
+            f'{sysctl("-n", "machdep.cpu.leaf7_features").lower()}'
         )
-        info = {
-            "vendor_id": sysctl("-n", "machdep.cpu.vendor"),
-            "flags": flags,
-            "model": sysctl("-n", "machdep.cpu.model"),
-            "model name": sysctl("-n", "machdep.cpu.brand_string"),
-        }
-    else:
-        model = "unknown"
-        model_str = sysctl("-n", "machdep.cpu.brand_string").lower()
-        if "m2" in model_str:
-            model = "m2"
-        elif "m1" in model_str:
-            model = "m1"
-        elif "apple" in model_str:
-            model = "m1"
+        features = set(features.split())
 
-        info = {
-            "vendor_id": "Apple",
-            "flags": [],
-            "model": model,
-            "CPU implementer": "Apple",
-            "model name": sysctl("-n", "machdep.cpu.brand_string"),
-        }
-    return info
+        # Flags detected on Darwin turned to their linux counterpart
+        for darwin_flag, linux_flag in TARGETS_JSON["conversions"]["darwin_flags"].items():
+            if darwin_flag in features:
+                features.update(linux_flag.split())
+
+        return partial_uarch(vendor=sysctl("-n", "machdep.cpu.vendor"), features=features)
+
+    model = "unknown"
+    model_str = sysctl("-n", "machdep.cpu.brand_string").lower()
+    if "m2" in model_str:
+        model = "m2"
+    elif "m1" in model_str:
+        model = "m1"
+    elif "apple" in model_str:
+        model = "m1"
+
+    return partial_uarch(name=model, vendor="Apple")
 
 
 def _ensure_bin_usrbin_in_path():
-    # Make sure that /sbin and /usr/sbin are in PATH as sysctl is
-    # usually found there
+    # Make sure that /sbin and /usr/sbin are in PATH as sysctl is usually found there
     child_environment = dict(os.environ.items())
     search_paths = child_environment.get("PATH", "").split(os.pathsep)
     for additional_path in ("/sbin", "/usr/sbin"):
@@ -160,22 +285,10 @@ def _ensure_bin_usrbin_in_path():
     return child_environment
 
 
-def adjust_raw_flags(info):
-    """Adjust the flags detected on the system to homogenize
-    slightly different representations.
-    """
-    # Flags detected on Darwin turned to their linux counterpart
-    flags = info.get("flags", [])
-    d2l = TARGETS_JSON["conversions"]["darwin_flags"]
-    for darwin_flag, linux_flag in d2l.items():
-        if darwin_flag in flags:
-            info["flags"] += " " + linux_flag
-
-
-def adjust_raw_vendor(info):
-    """Adjust the vendor field to make it human readable"""
-    if "CPU implementer" not in info:
-        return
+def _canonicalize_aarch64_vendor(data: Dict[str, str]) -> str:
+    """Adjust the vendor field to make it human-readable"""
+    if "CPU implementer" not in data:
+        return "generic"
 
     # Mapping numeric codes to vendor (ARM). This list is a merge from
     # different sources:
@@ -185,43 +298,37 @@ def adjust_raw_vendor(info):
     # https://github.com/gcc-mirror/gcc/blob/master/gcc/config/aarch64/aarch64-cores.def
     # https://patchwork.kernel.org/patch/10524949/
     arm_vendors = TARGETS_JSON["conversions"]["arm_vendors"]
-    arm_code = info["CPU implementer"]
-    if arm_code in arm_vendors:
-        info["CPU implementer"] = arm_vendors[arm_code]
+    arm_code = data["CPU implementer"]
+    return arm_vendors.get(arm_code, arm_code)
 
 
-def raw_info_dictionary():
-    """Returns a dictionary with information on the cpu of the current host.
+def _feature_set(data: Dict[str, str], key: str) -> Set[str]:
+    return set(data.get(key, "").split())
 
-    This function calls all the viable factories one after the other until
-    there's one that is able to produce the requested information.
+
+def detected_info() -> Microarchitecture:
+    """Returns a partial Microarchitecture with information on the CPU of the current host.
+
+    This function calls all the viable factories one after the other until there's one that is
+    able to produce the requested information. Falls-back to a generic microarchitecture, if none
+    of the calls succeed.
     """
     # pylint: disable=broad-except
-    info = {}
     for factory in INFO_FACTORY[platform.system()]:
         try:
-            info = factory()
+            return factory()
         except Exception as exc:
             warnings.warn(str(exc))
 
-        if info:
-            adjust_raw_flags(info)
-            adjust_raw_vendor(info)
-            break
-
-    return info
+    return generic_microarchitecture(_machine())
 
 
-def compatible_microarchitectures(info):
-    """Returns an unordered list of known micro-architectures that are
-    compatible with the info dictionary passed as argument.
-
-    Args:
-        info (dict): dictionary containing information on the host cpu
+def compatible_microarchitectures(info: Microarchitecture) -> List[Microarchitecture]:
+    """Returns an unordered list of known micro-architectures that are compatible with the
+    partial Microarchitecture passed as input.
     """
     architecture_family = _machine()
-    # If a tester is not registered, be conservative and assume no known
-    # target is compatible with the host
+    # If a tester is not registered, assume no known target is compatible with the host
     tester = COMPATIBILITY_CHECKS.get(architecture_family, lambda x, y: False)
     return [x for x in TARGETS.values() if tester(info, x)] or [
         generic_microarchitecture(architecture_family)
@@ -230,8 +337,8 @@ def compatible_microarchitectures(info):
 
 def host():
     """Detects the host micro-architecture and returns it."""
-    # Retrieve a dictionary with raw information on the host's cpu
-    info = raw_info_dictionary()
+    # Retrieve information on the host's cpu
+    info = detected_info()
 
     # Get a list of possible candidates for this micro-architecture
     candidates = compatible_microarchitectures(info)
@@ -243,6 +350,10 @@ def host():
     # Get the best generic micro-architecture
     generic_candidates = [c for c in candidates if c.vendor == "generic"]
     best_generic = max(generic_candidates, key=sorting_fn)
+
+    # Relevant for AArch64. Filter on "cpu_part" if we have any match
+    if info.cpu_part != "" and any(c for c in candidates if info.cpu_part == c.cpu_part):
+        candidates = [c for c in candidates if info.cpu_part == c.cpu_part]
 
     # Filter the candidates to be descendant of the best generic candidate.
     # This is to avoid that the lack of a niche feature that can be disabled
@@ -258,16 +369,15 @@ def host():
     return max(candidates, key=sorting_fn)
 
 
-def compatibility_check(architecture_family):
+def compatibility_check(architecture_family: Union[str, Tuple[str, ...]]):
     """Decorator to register a function as a proper compatibility check.
 
-    A compatibility check function takes the raw info dictionary as a first
-    argument and an arbitrary target as the second argument. It returns True
-    if the target is compatible with the info dictionary, False otherwise.
+    A compatibility check function takes a partial Microarchitecture object as a first argument,
+    and an arbitrary target Microarchitecture as the second argument. It returns True if the
+    target is compatible with first argument, False otherwise.
 
     Args:
-        architecture_family (str or tuple): architecture family for which
-            this test can be used, e.g. x86_64 or ppc64le etc.
+        architecture_family: architecture family for which this test can be used
     """
     # Turn the argument into something iterable
     if isinstance(architecture_family, str):
@@ -280,86 +390,70 @@ def compatibility_check(architecture_family):
     return decorator
 
 
-@compatibility_check(architecture_family=("ppc64le", "ppc64"))
+@compatibility_check(architecture_family=(PPC64LE, PPC64))
 def compatibility_check_for_power(info, target):
     """Compatibility check for PPC64 and PPC64LE architectures."""
-    basename = platform.machine()
-    generation_match = re.search(r"POWER(\d+)", info.get("cpu", ""))
-    try:
-        generation = int(generation_match.group(1))
-    except AttributeError:
-        # There might be no match under emulated environments. For instance
-        # emulating a ppc64le with QEMU and Docker still reports the host
-        # /proc/cpuinfo and not a Power
-        generation = 0
-
     # We can use a target if it descends from our machine type and our
     # generation (9 for POWER9, etc) is at least its generation.
-    arch_root = TARGETS[basename]
+    arch_root = TARGETS[_machine()]
     return (
         target == arch_root or arch_root in target.ancestors
-    ) and target.generation <= generation
+    ) and target.generation <= info.generation
 
 
-@compatibility_check(architecture_family="x86_64")
+@compatibility_check(architecture_family=X86_64)
 def compatibility_check_for_x86_64(info, target):
     """Compatibility check for x86_64 architectures."""
-    basename = "x86_64"
-    vendor = info.get("vendor_id", "generic")
-    features = set(info.get("flags", "").split())
-
     # We can use a target if it descends from our machine type, is from our
     # vendor, and we have all of its features
-    arch_root = TARGETS[basename]
+    arch_root = TARGETS[X86_64]
     return (
         (target == arch_root or arch_root in target.ancestors)
-        and target.vendor in (vendor, "generic")
-        and target.features.issubset(features)
+        and target.vendor in (info.vendor, "generic")
+        and target.features.issubset(info.features)
     )
 
 
-@compatibility_check(architecture_family="aarch64")
+@compatibility_check(architecture_family=AARCH64)
 def compatibility_check_for_aarch64(info, target):
     """Compatibility check for AARCH64 architectures."""
-    basename = "aarch64"
-    features = set(info.get("Features", "").split())
-    vendor = info.get("CPU implementer", "generic")
-
-    # At the moment it's not clear how to detect compatibility with
+    # At the moment, it's not clear how to detect compatibility with
     # a specific version of the architecture
-    if target.vendor == "generic" and target.name != "aarch64":
+    if target.vendor == "generic" and target.name != AARCH64:
         return False
 
-    arch_root = TARGETS[basename]
+    arch_root = TARGETS[AARCH64]
     arch_root_and_vendor = arch_root == target.family and target.vendor in (
-        vendor,
+        info.vendor,
         "generic",
     )
 
     # On macOS it seems impossible to get all the CPU features
     # with syctl info, but for ARM we can get the exact model
     if platform.system() == "Darwin":
-        model_key = info.get("model", basename)
-        model = TARGETS[model_key]
+        model = TARGETS[info.name]
         return arch_root_and_vendor and (target == model or target in model.ancestors)
 
-    return arch_root_and_vendor and target.features.issubset(features)
+    return arch_root_and_vendor and target.features.issubset(info.features)
 
 
-@compatibility_check(architecture_family="riscv64")
+@compatibility_check(architecture_family=RISCV64)
 def compatibility_check_for_riscv64(info, target):
     """Compatibility check for riscv64 architectures."""
-    basename = "riscv64"
-    uarch = info.get("uarch")
-
-    # sifive unmatched board
-    if uarch == "sifive,u74-mc":
-        uarch = "u74mc"
-    # catch-all for unknown uarchs
-    else:
-        uarch = "riscv64"
-
-    arch_root = TARGETS[basename]
+    arch_root = TARGETS[RISCV64]
     return (target == arch_root or arch_root in target.ancestors) and (
-        target == uarch or target.vendor == "generic"
+        target.name == info.name or target.vendor == "generic"
     )
+
+
+def brand_string() -> Optional[str]:
+    """Returns the brand string of the host, if detected, or None."""
+    if platform.system() == "Darwin":
+        return _check_output(
+            ["sysctl", "-n", "machdep.cpu.brand_string"], env=_ensure_bin_usrbin_in_path()
+        ).strip()
+
+    if host().family == X86_64:
+        return CpuidInfoCollector().brand_string()
+
+    return None

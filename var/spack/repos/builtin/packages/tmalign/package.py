@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,7 +26,7 @@ class Tmalign(Package):
         deprecated=True,
     )
 
-    variant("fast-math", default=False, when="@20220412:")
+    variant("fast-math", default=False, description="Enable fast math", when="@20220412:")
 
     with when("@20220412:"):
         phases = ["build", "install"]

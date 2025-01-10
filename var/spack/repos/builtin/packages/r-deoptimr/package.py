@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,7 @@ class RDeoptimr(RPackage):
 
     cran = "DEoptimR"
 
+    version("1.1-3", sha256="8dd8a61b07b02022493d7021dc62ef2c4dc2d596cff897846713c5f8dd784694")
     version("1.0-12", sha256="6136f98031bceaa691c5725222eca2d0f750a7b7fb60216480633635a9613d79")
     version("1.0-11", sha256="1874b30f4b75f9bfa891986598f1ebe1fce27fdced14f8f417d3535cac08165b")
     version("1.0-10", sha256="774f7ba0ac9c73aaab4567024b98afdb58098905726e72bceeeb9e380e782ad5")

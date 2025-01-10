@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,9 @@ class RTidygraph(RPackage):
 
     cran = "tidygraph"
 
+    license("MIT")
+
+    version("1.3.1", sha256="aac1d4bb9396081bbeecbde11a3cd1a26a56bd6b1f608a628b359cb37c18ac1a")
     version("1.2.3", sha256="b09c06b12583ae57edd1ec01e61a0e1b7a4b82358361fb28a6046dbece475687")
     version("1.2.2", sha256="d555cad6b5b56bd2edaa29950a0fd15942e972db21561bfd5cd64fd9a8936470")
     version("1.2.1", sha256="2fbdc2db18c5ad48c72f14d2d04111f4b0d4c434ad87c280eda3bcb98673ad36")
@@ -28,6 +30,8 @@ class RTidygraph(RPackage):
     depends_on("r-dplyr@0.8.5:", type=("build", "run"), when="@1.2.0:")
     depends_on("r-igraph", type=("build", "run"))
     depends_on("r-igraph@1.3.0:", type=("build", "run"), when="@1.2.3:")
+    depends_on("r-igraph@2.0.0:", type=("build", "run"), when="@1.3.1:")
+    depends_on("r-lifecycle", type=("build", "run"), when="@1.3.0:")
     depends_on("r-magrittr", type=("build", "run"))
     depends_on("r-rlang", type=("build", "run"))
     depends_on("r-r6", type=("build", "run"))

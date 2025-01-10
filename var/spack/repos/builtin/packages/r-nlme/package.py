@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,9 @@ class RNlme(RPackage):
 
     cran = "nlme"
 
+    license("GPL-2.0-or-later")
+
+    version("3.1-166", sha256="237a14ee8d78755b11a7efe234b95be40b46fbdd1b4aaf463f6d532be1909762")
     version("3.1-162", sha256="ba6da2575554afa2614c4cba9971f8a9f8a07622d201284cb78899f3d6a2dc67")
     version("3.1-160", sha256="d4454623194876b083774c662fd223bc3b9e8325824cb758b8adecd5dc0d8a08")
     version("3.1-159", sha256="9bb05f5c3146e2d75078e668821485a3e9ca246fd5d7db2ef1963d3735d919bf")
@@ -30,4 +32,5 @@ class RNlme(RPackage):
     depends_on("r@3.3.0:", type=("build", "run"), when="@3.1-131.1")
     depends_on("r@3.5.0:", type=("build", "run"), when="@3.1-134:3.1-135")
     depends_on("r@3.4.0:", type=("build", "run"), when="@3.1-135.5:")
+    depends_on("r@3.6.0:", type=("build", "run"), when="@3.1-165:")
     depends_on("r-lattice", type=("build", "run"))

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,9 @@ class RMice(RPackage):
 
     cran = "mice"
 
+    license("GPL-2.0-or-later")
+
+    version("3.16.0", sha256="29f0285185a540337e9dde2357690c82d174f115be701ee2f0a7083173a44040")
     version("3.15.0", sha256="3d64dd260e3dce9c4c2f7be8c99f3063769df9ccfd3a0fc827c2de0ac842e87b")
     version("3.14.0", sha256="f87bb73d8bfee36c6bf4f15779c59ff6b70c70ca25b1388b4ee236757276d605")
     version("3.12.0", sha256="575d9e650d5fc8cd66c0b5a2f1e659605052b26d61f772fff5eed81b414ef144")
@@ -34,9 +36,13 @@ class RMice(RPackage):
     depends_on("r-broom", type=("build", "run"))
     depends_on("r-dplyr", type=("build", "run"))
     depends_on("r-generics", type=("build", "run"), when="@3.12.0:")
+    depends_on("r-glmnet", type=("build", "run"), when="@3.16.0:")
     depends_on("r-lattice", type=("build", "run"))
+    depends_on("r-mitml", type=("build", "run"), when="@3.16.0:")
+    depends_on("r-nnet", type=("build", "run"), when="@3.16.0:")
     depends_on("r-rcpp", type=("build", "run"))
     depends_on("r-rlang", type=("build", "run"))
+    depends_on("r-rpart", type=("build", "run"), when="@3.16.0:")
     depends_on("r-tidyr", type=("build", "run"), when="@3.12.0:")
     depends_on("r-cpp11", type=("build", "run"), when="@3.12.0:")
 

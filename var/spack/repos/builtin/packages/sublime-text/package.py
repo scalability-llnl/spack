@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,10 +10,11 @@ class SublimeText(Package):
     prose."""
 
     homepage = "https://www.sublimetext.com/"
-    url = "https://download.sublimetext.com/sublime_text_build_4143_x64.tar.xz"
+    url = "https://download.sublimetext.com/sublime_text_build_4152_x64.tar.xz"
 
     maintainers("LRWeber")
 
+    version("4.4152", sha256="6ede3c83519959897041c6506e850753c19962603b71bd9f73a625ae1e4d3554")
     version("4.4143", sha256="7de862c38d19367414117110328dded754ac709fed54c8cc5cb0737c894c073c")
     version(
         "3.2.2.3211", sha256="0b3c8ca5e6df376c3c24a4b9ac2e3b391333f73b229bc6e87d0b4a5f636d74ee"

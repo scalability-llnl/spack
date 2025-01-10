@@ -1,0 +1,24 @@
+diff --git a/hw/xfree86/common/xf86Xinput.c b/hw/xfree86/common/xf86Xinput.c
+index 39de498a372c468b67013bb43488ef3201c267d4..136bf50ff9de77ad68e1933572de3efd0d9d786d 100644
+--- a/hw/xfree86/common/xf86Xinput.c
++++ b/hw/xfree86/common/xf86Xinput.c
+@@ -84,6 +84,7 @@
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <unistd.h>
++#include <sys/sysmacros.h>
+ #ifdef HAVE_SYS_MKDEV_H
+ #include <sys/mkdev.h>          /* for major() & minor() on Solaris */
+ #endif
+diff --git a/hw/xfree86/os-support/linux/lnx_init.c b/hw/xfree86/os-support/linux/lnx_init.c
+index dbf497ca2ebdc09e2ee28ec9d72ea335b43c947b..9e5ddcd503d370f733b4fc66bd0532f903f94a1c 100644
+--- a/hw/xfree86/os-support/linux/lnx_init.c
++++ b/hw/xfree86/os-support/linux/lnx_init.c
+@@ -38,6 +38,7 @@
+ #include "xf86_OSlib.h"
+ 
+ #include <sys/stat.h>
++#include <sys/sysmacros.h>
+ 
+ #ifndef K_OFF
+ #define K_OFF 0x4

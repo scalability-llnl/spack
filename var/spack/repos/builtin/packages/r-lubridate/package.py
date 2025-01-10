@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,9 @@ class RLubridate(RPackage):
 
     cran = "lubridate"
 
+    license("GPL-2.0-or-later")
+
+    version("1.9.3", sha256="2b6e1406d231b0a14d60b99cc406d159fea5465a5694725ad25343f12cf37fff")
     version("1.9.2", sha256="8976431a4affe989261cbaa5e09cd44bb42a3b16eed59a42c1698da34c6544a7")
     version("1.9.0", sha256="b936041f8a71894ef930cfff61b45833e0dd148b5b16697f4f541d25b31a903a")
     version("1.8.0", sha256="87d66efdb1f3d680db381d7e40a202d35645865a0542e2f270ef008a19002ba5")

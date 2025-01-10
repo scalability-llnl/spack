@@ -1,5 +1,4 @@
-.. Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-   Spack Project Developers. See the top-level COPYRIGHT file for details.
+.. Copyright Spack Project Developers. See COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -178,12 +177,8 @@ Spec-related modules
   Contains :class:`~spack.spec.Spec`. Also implements most of the logic for concretization
   of specs.
 
-:mod:`spack.parser`
-  Contains :class:`~spack.parser.SpecParser` and functions related to parsing specs.
-
-:mod:`spack.concretize`
-  Contains :class:`~spack.concretize.Concretizer` implementation,
-  which allows site administrators to change Spack's :ref:`concretization-policies`.
+:mod:`spack.spec_parser`
+  Contains :class:`~spack.spec_parser.SpecParser` and functions related to parsing specs.
 
 :mod:`spack.version`
   Implements a simple :class:`~spack.version.Version` class with simple
@@ -337,13 +332,9 @@ inserting them at different places in the spack code base. Whenever a hook
 type triggers by way of a function call, we find all the hooks of that type,
 and run them.
 
-Spack defines hooks by way of a module at ``lib/spack/spack/hooks`` where we can define
-types of hooks in the ``__init__.py``, and then python files in that folder
-can use hook functions. The files are automatically parsed, so if you write
-a new file for some integration (e.g., ``lib/spack/spack/hooks/myintegration.py``
-you can then write hook functions in that file that will be automatically detected,
-and run whenever your hook is called. This section will cover the basic kind
-of hooks, and how to write them.
+Spack defines hooks by way of a module in the ``lib/spack/spack/hooks`` directory.
+This module has to be registered in ``__init__.py`` so that Spack is aware of it.
+This section will cover the basic kind of hooks, and how to write them.
 
 ^^^^^^^^^^^^^^
 Types of Hooks
@@ -357,91 +348,23 @@ If there is a hook that you would like and is missing, you can propose to add a 
 ``pre_install(spec)``
 """""""""""""""""""""
 
-A ``pre_install`` hook is run within an install subprocess, directly before
-the install starts. It expects a single argument of a spec, and is run in
-a multiprocessing subprocess. Note that if you see ``pre_install`` functions associated with packages these are not hooks
-as we have defined them here, but rather callback functions associated with
-a package install.
+A ``pre_install`` hook is run within the install subprocess, directly before the install starts.
+It expects a single argument of a spec.
 
 
-""""""""""""""""""""""
-``post_install(spec)``
-""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""
+``post_install(spec, explicit=None)``
+"""""""""""""""""""""""""""""""""""""
 
-A ``post_install`` hook is run within an install subprocess, directly after
-the install finishes, but before the build stage is removed. If you
-write one of these hooks, you should expect it to accept a spec as the only
-argument. This is run in a multiprocessing subprocess. This ``post_install`` is
-also seen in packages, but in this context not related to the hooks described
-here.
+A ``post_install`` hook is run within the install subprocess, directly after the install finishes,
+but before the build stage is removed and the spec is registered in the database. It expects two
+arguments: spec and an optional boolean indicating whether this spec is being installed explicitly.
 
+""""""""""""""""""""""""""""""""""""""""""""""""""""
+``pre_uninstall(spec)`` and ``post_uninstall(spec)``
+""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-""""""""""""""""""""""""""
-``on_install_start(spec)``
-""""""""""""""""""""""""""
-
-This hook is run at the beginning of ``lib/spack/spack/installer.py``,
-in the install function of a ``PackageInstaller``,
-and importantly is not part of a build process, but before it. This is when
-we have just newly grabbed the task, and are preparing to install. If you
-write a hook of this type, you should provide the spec to it.
-
-.. code-block:: python
-
-    def on_install_start(spec):
-        """On start of an install, we want to...
-        """
-        print('on_install_start')
-
-
-""""""""""""""""""""""""""""
-``on_install_success(spec)``
-""""""""""""""""""""""""""""
-
-This hook is run on a successful install, and is also run inside the build
-process, akin to ``post_install``. The main difference is that this hook
-is run outside of the context of the stage directory, meaning after the
-build stage has been removed and the user is alerted that the install was
-successful. If you need to write a hook that is run on success of a particular
-phase, you should use ``on_phase_success``.
-
-""""""""""""""""""""""""""""
-``on_install_failure(spec)``
-""""""""""""""""""""""""""""
-
-This hook is run given an install failure that happens outside of the build
-subprocess, but somewhere in ``installer.py`` when something else goes wrong.
-If you need to write a hook that is relevant to a failure within a build
-process, you would want to instead use ``on_phase_failure``.
-
-
-"""""""""""""""""""""""""""
-``on_install_cancel(spec)``
-"""""""""""""""""""""""""""
-
-The same, but triggered if a spec install is cancelled for any reason.
-
-
-"""""""""""""""""""""""""""""""""""""""""""""""
-``on_phase_success(pkg, phase_name, log_file)``
-"""""""""""""""""""""""""""""""""""""""""""""""
-
-This hook is run within the install subprocess, and specifically when a phase
-successfully finishes. Since we are interested in the package, the name of
-the phase, and any output from it, we require:
-
- - **pkg**: the package variable, which also has the attached spec at ``pkg.spec``
- - **phase_name**: the name of the phase that was successful (e.g., configure)
- - **log_file**: the path to the file with output, in case you need to inspect or otherwise interact with it.
-
-"""""""""""""""""""""""""""""""""""""""""""""
-``on_phase_error(pkg, phase_name, log_file)``
-"""""""""""""""""""""""""""""""""""""""""""""
-
-In the case of an error during a phase, we might want to trigger some event
-with a hook, and this is the purpose of this particular hook. Akin to
-``on_phase_success`` we require the same variables - the package that failed,
-the name of the phase, and the log file where we might find errors.
+These hooks are currently used for cleaning up module files after uninstall.
 
 
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -620,11 +543,11 @@ With either interpreter you can run a single command:
 
 .. code-block:: console
 
-   $ spack python -c 'import distro; distro.linux_distribution()'
-   ('Ubuntu', '18.04', 'Bionic Beaver')
+   $ spack python -c 'from spack.spec import Spec; Spec("python").concretized()'
+   ...
 
-   $ spack python -i ipython -c 'import distro; distro.linux_distribution()'
-   Out[1]: ('Ubuntu', '18.04', 'Bionic Beaver')
+   $ spack python -i ipython -c 'from spack.spec import Spec; Spec("python").concretized()'
+   Out[1]: ...
 
 or a file:
 
@@ -784,27 +707,27 @@ Release branches
 ^^^^^^^^^^^^^^^^
 
 There are currently two types of Spack releases: :ref:`major releases
-<major-releases>` (``0.17.0``, ``0.18.0``, etc.) and :ref:`point releases
-<point-releases>` (``0.17.1``, ``0.17.2``, ``0.17.3``, etc.). Here is a
+<major-releases>` (``0.21.0``, ``0.22.0``, etc.) and :ref:`patch releases
+<patch-releases>` (``0.22.1``, ``0.22.2``, ``0.22.3``, etc.). Here is a
 diagram of how Spack release branches work::
 
-    o    branch: develop  (latest version, v0.19.0.dev0)
+    o    branch: develop  (latest version, v0.23.0.dev0)
     |
     o
-    | o  branch: releases/v0.18, tag: v0.18.1
+    | o  branch: releases/v0.22, tag: v0.22.1
     o |
-    | o  tag: v0.18.0
+    | o  tag: v0.22.0
     o |
     | o
     |/
     o
     |
     o
-    | o  branch: releases/v0.17, tag: v0.17.2
+    | o  branch: releases/v0.21, tag: v0.21.2
     o |
-    | o  tag: v0.17.1
+    | o  tag: v0.21.1
     o |
-    | o  tag: v0.17.0
+    | o  tag: v0.21.0
     o |
     | o
     |/
@@ -815,8 +738,8 @@ requests target ``develop``. The ``develop`` branch will report that its
 version is that of the next **major** release with a ``.dev0`` suffix.
 
 Each Spack release series also has a corresponding branch, e.g.
-``releases/v0.18`` has ``0.18.x`` versions of Spack, and
-``releases/v0.17`` has ``0.17.x`` versions. A major release is the first
+``releases/v0.22`` has ``v0.22.x`` versions of Spack, and
+``releases/v0.21`` has ``v0.21.x`` versions. A major release is the first
 tagged version on a release branch. Minor releases are back-ported from
 develop onto release branches. This is typically done by cherry-picking
 bugfix commits off of ``develop``.
@@ -846,27 +769,40 @@ for more details.
 Scheduling work for releases
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-We schedule work for releases by creating `GitHub projects
-<https://github.com/spack/spack/projects>`_. At any time, there may be
-several open release projects. For example, below are two releases (from
-some past version of the page linked above):
+We schedule work for **major releases** through `milestones
+<https://github.com/spack/spack/milestones>`_ and `GitHub Projects
+<https://github.com/spack/spack/projects>`_, while **patch releases** use `labels
+<https://github.com/spack/spack/labels>`_.
 
-.. image:: images/projects.png
+There is only one milestone open at a time. Its name corresponds to the next major version, for
+example ``v0.23``. Important issues and pull requests should be assigned to this milestone by
+core developers, so that they are not forgotten at the time of release. The milestone is closed
+when the release is made, and a new milestone is created for the next major release.
 
-This image shows one release in progress for ``0.15.1`` and another for
-``0.16.0``. Each of these releases has a project board containing issues
-and pull requests. GitHub shows a status bar with completed work in
-green, work in progress in purple, and work not started yet in gray, so
-it's fairly easy to see progress.
+Bug reports in GitHub issues are automatically labelled ``bug`` and ``triage``. Spack developers
+assign one of the labels ``impact-low``, ``impact-medium`` or ``impact-high``. This will make the
+issue appear in the `Triaged bugs <https://github.com/orgs/spack/projects/6>`_ project board.
+Important issues should be assigned to the next milestone as well, so they appear at the top of
+the project board.
 
-Spack's project boards are not firm commitments so we move work between
-releases frequently. If we need to make a release and some tasks are not
-yet done, we will simply move them to the next minor or major release, rather
-than delaying the release to complete them.
+Spack's milestones are not firm commitments so we move work between releases frequently. If we
+need to make a release and some tasks are not yet done, we will simply move them to the next major
+release milestone, rather than delaying the release to complete them.
 
-For more on using GitHub project boards, see `GitHub's documentation
-<https://docs.github.com/en/github/managing-your-work-on-github/about-project-boards>`_.
+^^^^^^^^^^^^^^^^^^^^^
+Backporting bug fixes
+^^^^^^^^^^^^^^^^^^^^^
 
+When a bug is fixed in the ``develop`` branch, it is often necessary to backport the fix to one
+(or more) of the ``release/vX.Y`` branches. Only the release manager is responsible for doing
+backports, but Spack maintainers are responsible for labelling pull requests (and issues if no bug
+fix is available yet) with ``vX.Y.Z`` labels. The label should correspond to the next patch version
+that the bug fix should be backported to.
+
+Backports are done publicly by the release manager using a pull request named ``Backports vX.Y.Z``.
+This pull request is opened from the ``backports/vX.Y.Z`` branch, targets the ``releases/vX.Y``
+branch and contains a (growing) list of cherry-picked commits from the ``develop`` branch.
+Typically there are one or two backport pull requests open at any given time.
 
 .. _major-releases:
 
@@ -874,25 +810,21 @@ For more on using GitHub project boards, see `GitHub's documentation
 Making major releases
 ^^^^^^^^^^^^^^^^^^^^^
 
-Assuming a project board has already been created and all required work
-completed, the steps to make the major release are:
+Assuming all required work from the milestone is completed, the steps to make the major release
+are:
 
-#. Create two new project boards:
+#. `Create a new milestone <https://github.com/spack/spack/milestones>`_ for the next major
+   release.
 
-   * One for the next major release
-   * One for the next point release
+#. `Create a new label <https://github.com/spack/spack/labels>`_ for the next patch release.
 
-#. Move any optional tasks that are not done to one of the new project boards.
-
-   In general, small bugfixes should go to the next point release. Major
-   features, refactors, and changes that could affect concretization should
-   go in the next major release.
+#. Move any optional tasks that are not done to the next milestone.
 
 #. Create a branch for the release, based on ``develop``:
 
    .. code-block:: console
 
-      $ git checkout -b releases/v0.15 develop
+      $ git checkout -b releases/v0.23 develop
 
    For a version ``vX.Y.Z``, the branch's name should be
    ``releases/vX.Y``. That is, you should create a ``releases/vX.Y``
@@ -928,8 +860,8 @@ completed, the steps to make the major release are:
 
    Create a pull request targeting the ``develop`` branch, bumping the major
    version in ``lib/spack/spack/__init__.py`` with a ``dev0`` release segment.
-   For instance when you have just released ``v0.15.0``, set the version
-   to ``(0, 16, 0, 'dev0')`` on ``develop``.
+   For instance when you have just released ``v0.23.0``, set the version
+   to ``(0, 24, 0, 'dev0')`` on ``develop``.
 
 #. Follow the steps in :ref:`publishing-releases`.
 
@@ -938,82 +870,52 @@ completed, the steps to make the major release are:
 #. Follow the steps in :ref:`announcing-releases`.
 
 
-.. _point-releases:
+.. _patch-releases:
 
 ^^^^^^^^^^^^^^^^^^^^^
-Making point releases
+Making patch releases
 ^^^^^^^^^^^^^^^^^^^^^
 
-Assuming a project board has already been created and all required work
-completed, the steps to make the point release are:
+To make the patch release process both efficient and transparent, we use a *backports pull request*
+which contains cherry-picked commits from the ``develop`` branch. The majority of the work is to
+cherry-pick the bug fixes, which ideally should be done as soon as they land on ``develop``:
+this ensures cherry-picking happens in order, and makes conflicts easier to resolve since the
+changes are fresh in the mind of the developer.
 
-#. Create a new project board for the next point release.
+The backports pull request is always titled ``Backports vX.Y.Z`` and is labelled ``backports``. It
+is opened from a branch named ``backports/vX.Y.Z`` and targets the ``releases/vX.Y`` branch.
 
-#. Move any optional tasks that are not done to the next project board.
+Whenever a pull request labelled ``vX.Y.Z`` is merged, cherry-pick the associated squashed commit
+on ``develop`` to the ``backports/vX.Y.Z`` branch. For pull requests that were rebased (or not
+squashed), cherry-pick each associated commit individually. Never force push to the
+``backports/vX.Y.Z`` branch.
 
-#. Check out the release branch (it should already exist).
+.. warning::
 
-    For the ``X.Y.Z`` release, the release branch is called ``releases/vX.Y``.
-    For ``v0.15.1``, you would check out ``releases/v0.15``:
+   Sometimes you may **still** get merge conflicts even if you have
+   cherry-picked all the commits in order. This generally means there
+   is some other intervening pull request that the one you're trying
+   to pick depends on. In these cases, you'll need to make a judgment
+   call regarding those pull requests.  Consider the number of affected
+   files and/or the resulting differences.
 
-   .. code-block:: console
+   1. If the changes are small, you might just cherry-pick it.
 
-      $ git checkout releases/v0.15
+   2. If the changes are large, then you may decide that this fix is not
+      worth including in a patch release, in which case you should remove
+      the label from the pull request. Remember that large, manual backports
+      are seldom the right choice for a patch release.
 
-#. If a pull request to the release branch named ``Backports vX.Y.Z`` is not already
-   in the project, create it. This pull request ought to be created as early as
-   possible when working on a release project, so that we can build the release
-   commits incrementally, and identify potential conflicts at an early stage.
+When all commits are cherry-picked in the ``backports/vX.Y.Z`` branch, make the patch
+release as follows:
 
-#. Cherry-pick each pull request in the ``Done`` column of the release
-   project board onto the ``Backports vX.Y.Z`` pull request.
+#. `Create a new label <https://github.com/spack/spack/labels>`_ ``vX.Y.{Z+1}`` for the next patch
+   release.
 
-   This is **usually** fairly simple since we squash the commits from the
-   vast majority of pull requests. That means there is only one commit
-   per pull request to cherry-pick. For example, `this pull request
-   <https://github.com/spack/spack/pull/15777>`_ has three commits, but
-   they were squashed into a single commit on merge. You can see the
-   commit that was created here:
+#. Replace the label ``vX.Y.Z`` with ``vX.Y.{Z+1}`` for all PRs and issues that are not done.
 
-   .. image:: images/pr-commit.png
-
-   You can easily cherry pick it like this (assuming you already have the
-   release branch checked out):
-
-   .. code-block:: console
-
-      $ git cherry-pick 7e46da7
-
-   For pull requests that were rebased (or not squashed), you'll need to
-   cherry-pick each associated commit individually.
-
-   .. warning::
-
-      It is important to cherry-pick commits in the order they happened,
-      otherwise you can get conflicts while cherry-picking. When
-      cherry-picking look at the merge date,
-      **not** the number of the pull request or the date it was opened.
-
-      Sometimes you may **still** get merge conflicts even if you have
-      cherry-picked all the commits in order. This generally means there
-      is some other intervening pull request that the one you're trying
-      to pick depends on. In these cases, you'll need to make a judgment
-      call regarding those pull requests.  Consider the number of affected
-      files and or the resulting differences.
-
-      1. If the dependency changes are small, you might just cherry-pick it,
-         too. If you do this, add the task to the release board.
-
-      2. If the changes are large, then you may decide that this fix is not
-         worth including in a point release, in which case you should remove
-         the task from the release project.
-
-      3. You can always decide to manually back-port the fix to the release
-         branch if neither of the above options makes sense, but this can
-         require a lot of work. It's seldom the right choice.
-
-#. When all the commits from the project board are cherry-picked into
-   the ``Backports vX.Y.Z`` pull request, you can push a commit to:
+#. Manually push a single commit with commit message ``Set version to vX.Y.Z`` to the
+   ``backports/vX.Y.Z`` branch, that both bumps the Spack version number and updates the changelog:
 
    1. Bump the version in ``lib/spack/spack/__init__.py``.
    2. Update ``CHANGELOG.md`` with a list of the changes.
@@ -1022,20 +924,22 @@ completed, the steps to make the point release are:
    release branch. See `the changelog from 0.14.1
    <https://github.com/spack/spack/commit/ff0abb9838121522321df2a054d18e54b566b44a>`_.
 
-#. Merge the ``Backports vX.Y.Z`` PR with the **Rebase and merge** strategy. This
-   is needed to keep track in the release branch of all the commits that were
-   cherry-picked.
-
-#. Make sure CI passes on the release branch, including:
+#. Make sure CI passes on the **backports pull request**, including:
 
    * Regular unit tests
    * Build tests
    * The E4S pipeline at `gitlab.spack.io <https://gitlab.spack.io>`_
 
-   If CI does not pass, you'll need to figure out why, and make changes
-   to the release branch until it does. You can make more commits, modify
-   or remove cherry-picked commits, or cherry-pick **more** from
-   ``develop`` to make this happen.
+#. Merge the ``Backports vX.Y.Z`` PR with the **Rebase and merge** strategy. This
+   is needed to keep track in the release branch of all the commits that were
+   cherry-picked.
+
+#. Make sure CI passes on the last commit of the **release branch**.
+
+#. In the rare case you need to include additional commits in the patch release after the backports
+   PR is merged, it is best to delete the last commit ``Set version to vX.Y.Z`` from the release
+   branch with a single force push, open a new backports PR named ``Backports vX.Y.Z (2)``, and
+   repeat the process. Avoid repeated force pushes to the release branch.
 
 #. Follow the steps in :ref:`publishing-releases`.
 
@@ -1110,25 +1014,31 @@ Updating `releases/latest`
 
 If the new release is the **highest** Spack release yet, you should
 also tag it as ``releases/latest``. For example, suppose the highest
-release is currently ``0.15.3``:
+release is currently ``0.22.3``:
 
-* If you are releasing ``0.15.4`` or ``0.16.0``, then you should tag
-  it with ``releases/latest``, as these are higher than ``0.15.3``.
+* If you are releasing ``0.22.4`` or ``0.23.0``, then you should tag
+  it with ``releases/latest``, as these are higher than ``0.22.3``.
 
 * If you are making a new release of an **older** major version of
-  Spack, e.g. ``0.14.4``, then you should not tag it as
+  Spack, e.g. ``0.21.4``, then you should not tag it as
   ``releases/latest`` (as there are newer major versions).
 
-To tag ``releases/latest``, do this:
+To do so, first fetch the latest tag created on GitHub, since you may not have it locally:
 
 .. code-block:: console
 
-   $ git checkout releases/vX.Y     # vX.Y is the new release's branch
-   $ git tag --force releases/latest
-   $ git push --force --tags
+   $ git fetch --force git@github.com:spack/spack vX.Y.Z
 
-The ``--force`` argument to ``git tag`` makes ``git`` overwrite the existing
-``releases/latest`` tag with the new one.
+Then tag ``vX.Y.Z`` as ``releases/latest`` and push the individual tag to GitHub.
+
+.. code-block:: console
+
+   $ git tag --force releases/latest vX.Y.Z
+   $ git push --force git@github.com:spack/spack releases/latest
+
+The ``--force`` argument to ``git tag`` makes ``git`` overwrite the existing ``releases/latest``
+tag with the new one. Do **not** use the ``--tags`` flag when pushing, since this will push *all*
+local tags.
 
 
 .. _announcing-releases:
@@ -1139,9 +1049,9 @@ Announcing a release
 
 We announce releases in all of the major Spack communication channels.
 Publishing the release takes care of GitHub. The remaining channels are
-Twitter, Slack, and the mailing list. Here are the steps:
+X, Slack, and the mailing list. Here are the steps:
 
-#. Announce the release on Twitter.
+#. Announce the release on X.
 
    * Compose the tweet on the ``@spackpm`` account per the
      ``spack-twitter`` slack channel.

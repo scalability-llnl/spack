@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,8 +23,8 @@ class AtomDft(MakefilePackage):
     @property
     def build_targets(self):
         return [
-            "XMLF90_ROOT=%s" % self.spec["xmlf90"].prefix,
-            "GRIDXC_ROOT=%s" % self.spec["libgridxc"].prefix,
+            f"XMLF90_ROOT={self.spec['xmlf90'].prefix}",
+            f"GRIDXC_ROOT={self.spec['libgridxc'].prefix}",
             "FC=fc",
         ]
 

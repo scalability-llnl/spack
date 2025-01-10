@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,9 @@ class RHttr(RPackage):
 
     cran = "httr"
 
+    license("MIT")
+
+    version("1.4.7", sha256="1555e6c2fb67bd38ff11b479f74aa287b2d93f4add487aec53b836ff07de3a3a")
     version("1.4.5", sha256="f93bac7f882b0df099abca47dd5aae3686fb3cd2d3e9926fcd639bcddff76f6c")
     version("1.4.4", sha256="41d82523f3ee260d409a7b5ae4136190cbc5aecbc270b40ed7064f83e7f5435d")
     version("1.4.3", sha256="9a8613fa96173ac910c021391af1ced4d0609169049c802cf7cdfe1c40897c6a")
@@ -30,6 +32,7 @@ class RHttr(RPackage):
     depends_on("r@3.2:", type=("build", "run"), when="@1.4.1:")
     depends_on("r@3.5:", type=("build", "run"), when="@1.4.5:")
     depends_on("r-curl@3.0.0:", type=("build", "run"))
+    depends_on("r-curl@5.0.2:", type=("build", "run"), when="@1.4.7:")
     depends_on("r-jsonlite", type=("build", "run"))
     depends_on("r-mime", type=("build", "run"))
     depends_on("r-openssl@0.8:", type=("build", "run"))

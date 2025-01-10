@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,9 @@ class RScatterplot3d(RPackage):
 
     cran = "scatterplot3d"
 
+    license("GPL-2.0-only")
+
+    version("0.3-44", sha256="1c9c08348c3ed925f59df40cb73accc9e1a169ccfb1e8571f105f40fa98e6ec2")
     version("0.3-43", sha256="90d7bfb535b76008768306ea9209adfb48e0e07f36eabbb59ab6ddb6522f16a5")
     version("0.3-42", sha256="a9fedde70e1a846c4dcafbff20f115425206d507896d12c2b21ff052556c5216")
     version("0.3-41", sha256="4c8326b70a3b2d37126ca806771d71e5e9fe1201cfbe5b0d5a0a83c3d2c75d94")

@@ -1,0 +1,17 @@
+diff --git a/modules/openfast-library/src/FAST_Solver.f90 b/modules/openfast-library/src/FAST_Solver.f90
+index 364d0b78..10056965 100644
+--- a/modules/openfast-library/src/FAST_Solver.f90
++++ b/modules/openfast-library/src/FAST_Solver.f90
+@@ -607,9 +607,9 @@ SUBROUTINE AD_InputSolve_IfW( p_FAST, u_AD, y_IfW, y_OpFM, ErrStat, ErrMsg )
+       end if
+
+       if (u_AD%rotors(1)%NacelleMotion%NNodes > 0) then
+-         u_AD%rotors(1)%InflowOnNacelle(1) = y_OpFM%u(node)
+-         u_AD%rotors(1)%InflowOnNacelle(2) = y_OpFM%v(node)
+-         u_AD%rotors(1)%InflowOnNacelle(3) = y_OpFM%w(node)
++         u_AD%rotors(1)%InflowOnNacelle(1) = y_OpFM%u(1)
++         u_AD%rotors(1)%InflowOnNacelle(2) = y_OpFM%v(1)
++         u_AD%rotors(1)%InflowOnNacelle(3) = y_OpFM%w(1)
+          node = node + 1
+       else
+          u_AD%rotors(1)%InflowOnNacelle = 0.0_ReKi

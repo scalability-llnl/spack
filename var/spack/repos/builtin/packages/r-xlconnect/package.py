@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,7 @@ class RXlconnect(RPackage):
 
     cran = "XLConnect"
 
+    version("1.0.10", sha256="e3c267cb1e6a6fb3a9fb132e60649182ee7a28e4e9188c72786fb843aad6e2b4")
     version("1.0.7", sha256="821dba231c3c3147455e7525119b51e5dc001984c638b7ce519d0974b32de677")
     version("1.0.6", sha256="b233b9f74d1464b78d5dd28bd8a1fa46ca6254518da2d3bda3c978a3f4aaa4f9")
     version("1.0.5", sha256="975c2ef57f28ccfac79ae5d285b7e82e60791fb121052616c10bc52e2bca16ad")

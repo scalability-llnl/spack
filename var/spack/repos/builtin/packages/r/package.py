@@ -1,10 +1,8 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
-import re
 
 from spack.package import *
 
@@ -17,13 +15,21 @@ class R(AutotoolsPackage):
     Please consult the R project homepage for further information."""
 
     homepage = "https://www.r-project.org"
-    url = "https://cloud.r-project.org/src/base/R-3/R-3.4.3.tar.gz"
+    url = "https://cloud.r-project.org/src/base/R-4/R-4.4.0.tar.gz"
 
     extendable = True
 
-    maintainers("glennpj")
+    executables = ["^R$"]
 
+    license("GPL-2.0-or-later")
+
+    version("4.4.1", sha256="b4cb675deaaeb7299d3b265d218cde43f192951ce5b89b7bb1a5148a36b2d94d")
+    version("4.4.0", sha256="ace4125f9b976d2c53bcc5fca30c75e30d4edc401584859cbadb080e72b5f030")
+    version("4.3.3", sha256="80851231393b85bf3877ee9e39b282e750ed864c5ec60cbd68e6e139f0520330")
+    version("4.3.2", sha256="b3f5760ac2eee8026a3f0eefcb25b47723d978038eee8e844762094c860c452a")
+    version("4.3.1", sha256="8dd0bf24f1023c6f618c3b317383d291b4a494f40d73b983ac22ffea99e4ba99")
     version("4.3.0", sha256="45dcc48b6cf27d361020f77fde1a39209e997b81402b3663ca1c010056a6a609")
+    version("4.2.3", sha256="55e4a9a6d43be314e2c03d0266a6fa5444afdce50b303bfc3b82b3979516e074")
     version("4.2.2", sha256="0ff62b42ec51afa5713caee7c4fde7a0c45940ba39bef8c5c9487fef0c953df5")
     version("4.2.1", sha256="4d52db486d27848e54613d4ee977ad952ec08ce17807e1b525b10cd4436c643f")
     version("4.2.0", sha256="38eab7719b7ad095388f06aa090c5a2b202791945de60d3e2bb0eab1f5097488")
@@ -62,39 +68,45 @@ class R(AutotoolsPackage):
     version("3.1.3", sha256="07e98323935baa38079204bfb9414a029704bb9c0ca5ab317020ae521a377312")
     version("3.1.2", sha256="bcd150afcae0e02f6efb5f35a6ab72432be82e849ec52ce0bb89d8c342a8fa7a")
 
-    variant(
-        "external-lapack", default=False, description="Links to externally installed BLAS/LAPACK"
-    )
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
+
     variant("X", default=False, description="Enable X11 support (TCLTK, PNG, JPEG, TIFF, CAIRO)")
     variant("memory_profiling", default=False, description="Enable memory profiling")
     variant("rmath", default=False, description="Build standalone Rmath library")
 
-    depends_on("blas", when="+external-lapack")
-    depends_on("lapack", when="+external-lapack")
+    depends_on("blas")
+    depends_on("lapack")
+
     depends_on("bzip2")
-    # R didn't anticipate the celebratory
-    # non-breaking major version bump of curl 8.
-    depends_on("curl+libidn2@:7")
+    depends_on("curl+libidn2")
+    # R didn't anticipate the celebratory non-breaking major version bump of curl 8.
+    depends_on("curl@:7", when="@:4.2")
     depends_on("icu4c")
     depends_on("java")
+    depends_on("libtirpc")
     depends_on("ncurses")
     depends_on("pcre", when="@:3.6.3")
     depends_on("pcre2", when="@4:")
     depends_on("readline")
     depends_on("xz")
     depends_on("which", type=("build", "run"))
-    depends_on("zlib@1.2.5:")
+    depends_on("zlib-api")
+    depends_on("zlib@1.2.5:", when="^[virtuals=zlib-api] zlib")
     depends_on("texinfo", type="build")
-    depends_on("cairo+X+gobject+pdf", when="+X")
-    depends_on("pango+X", when="+X")
-    depends_on("harfbuzz+graphite2", when="+X")
-    depends_on("jpeg", when="+X")
-    depends_on("libpng", when="+X")
-    depends_on("libtiff", when="+X")
-    depends_on("libx11", when="+X")
-    depends_on("libxmu", when="+X")
-    depends_on("libxt", when="+X")
-    depends_on("tk", when="+X")
+
+    with when("+X"):
+        depends_on("cairo+X+gobject+pdf")
+        depends_on("pango+X")
+        depends_on("harfbuzz+graphite2")
+        depends_on("jpeg")
+        depends_on("libpng")
+        depends_on("libtiff")
+        depends_on("libx11")
+        depends_on("libxmu")
+        depends_on("libxt")
+        depends_on("tk")
 
     patch("zlib.patch", when="@:3.3.2")
 
@@ -103,6 +115,37 @@ class R(AutotoolsPackage):
     # Until the Fujitsu compiler resolves this problem,
     # temporary fix to lower the optimization level.
     patch("change_optflags_tmp.patch", when="%fj@4.1.0")
+
+    # Make R use a symlink to which in Sys.which, otherwise an absolute path
+    # gets stored as compressed byte code, which is not relocatable
+    patch("relocate-which.patch")
+
+    # CVE-2024-27322 Patch only needed in R 4.3.3 and below; doesn't apply to R older than 3.5.0.
+    patch(
+        "https://github.com/r-devel/r-svn/commit/f7c46500f455eb4edfc3656c3fa20af61b16abb7.patch?full_index=1",
+        sha256="56c77763cb104aa9cb63420e585da63cb2c23bc03fa3ef9d088044eeff9d7380",
+        when="@3.5.0:4.3.3",
+    )
+
+    build_directory = "spack-build"
+
+    @classmethod
+    def determine_version(cls, exe):
+        output = Executable(exe)("--version", output=str, error=str)
+        # R version 4.3.3 (2024-02-29) -- "Angel Food Cake"
+        match = re.search(r"^R version ([^\s]+)", output)
+        return match.group(1) if match else None
+
+    @classmethod
+    def determine_variants(cls, exes, version):
+        variants = []
+        for exe in exes:
+            output = Executable(exe)("CMD", "config", "--all", output=str, error=str)
+
+            if "-lX11" in output:
+                variants.append("+X")
+
+        return variants
 
     # R custom URL version
     def url_for_version(self, version):
@@ -117,7 +160,7 @@ class R(AutotoolsPackage):
     @run_after("install")
     def install_rmath(self):
         if "+rmath" in self.spec:
-            with working_dir("src/nmath/standalone"):
+            with working_dir(join_path(self.build_directory, "src", "nmath", "standalone")):
                 make()
                 make("install", parallel=False)
 
@@ -125,31 +168,33 @@ class R(AutotoolsPackage):
         spec = self.spec
         prefix = self.prefix
 
+        extra_rpath = join_path(prefix, "rlib", "R", "lib")
+
+        blas_flags: str = spec["blas"].libs.ld_flags
+        lapack_flags: str = spec["lapack"].libs.ld_flags
+
+        # R uses LAPACK in Fortran, which requires libmkl_gf_* when gfortran is used.
+        # TODO: cleaning this up seem to require both compilers as dependencies and use variants.
+        if spec["lapack"].name in INTEL_MATH_LIBRARIES and "gfortran" in self.compiler.fc:
+            xlp64 = "ilp64" if spec["lapack"].satisfies("+ilp64") else "lp64"
+            blas_flags = blas_flags.replace(f"mkl_intel_{xlp64}", f"mkl_gf_{xlp64}")
+            lapack_flags = lapack_flags.replace(f"mkl_intel_{xlp64}", f"mkl_gf_{xlp64}")
+
         config_args = [
             "--with-internal-tzcode",
             "--libdir={0}".format(join_path(prefix, "rlib")),
             "--enable-R-shlib",
-            "--enable-BLAS-shlib",
             "--enable-R-framework=no",
             "--without-recommended-packages",
-            "LDFLAGS=-L{0} -Wl,-rpath,{0}".format(join_path(prefix, "rlib", "R", "lib")),
+            f"LDFLAGS=-Wl,-rpath,{extra_rpath}",
+            f"--with-blas={blas_flags}",
+            f"--with-lapack={lapack_flags}",
+            # cannot disable docs with a normal configure option
+            "ac_cv_path_PDFLATEX=",
+            "ac_cv_path_PDFTEX=",
+            "ac_cv_path_TEX=",
+            "ac_cv_path_TEXI2DVI=",
         ]
-
-        if "+external-lapack" in spec:
-            if "^mkl" in spec and "gfortran" in self.compiler.fc:
-                mkl_re = re.compile(r"(mkl_)intel(_i?lp64\b)")
-                config_args.extend(
-                    [
-                        mkl_re.sub(
-                            r"\g<1>gf\g<2>", "--with-blas={0}".format(spec["blas"].libs.ld_flags)
-                        ),
-                        "--with-lapack",
-                    ]
-                )
-            else:
-                config_args.extend(
-                    ["--with-blas={0}".format(spec["blas"].libs.ld_flags), "--with-lapack"]
-                )
 
         if "+X" in spec:
             config_args.append("--with-cairo")
@@ -187,6 +232,20 @@ class R(AutotoolsPackage):
 
     @run_after("install")
     def copy_makeconf(self):
+        # Ensure full library flags are included in Makeconf
+        for _lib, _pkg in [
+            ("lzma", "xz"),
+            ("bz2", "bzip2"),
+            ("z", "zlib-api"),
+            ("tirpc", "libtirpc"),
+            ("icuuc", "icu4c"),
+        ]:
+            filter_file(
+                f"-l{_lib}",
+                f"-L{self.spec[_pkg].libs.directories[0]} -l{_lib}",
+                join_path(self.etcdir, "Makeconf"),
+            )
+
         # Make a copy of Makeconf because it will be needed to properly build R
         # dependencies in Spack.
         src_makeconf = join_path(self.etcdir, "Makeconf")
@@ -252,8 +311,3 @@ class R(AutotoolsPackage):
 
         # Add variable for library directry
         module.r_lib_dir = join_path(dependent_spec.prefix, self.r_lib_dir)
-
-        # Make the site packages directory for extensions, if it does not exist
-        # already.
-        if dependent_spec.package.is_extension:
-            mkdirp(module.r_lib_dir)

@@ -1,0 +1,22 @@
+From 15c0b2449136ffbdbdc6049a4a9553cf8c045e2c Mon Sep 17 00:00:00 2001
+From: Richard Berger <rberger@lanl.gov>
+Date: Mon, 22 Jan 2024 16:07:16 -0700
+Subject: [PATCH] hydra: slurm hostlist_t should be used as pointer
+
+---
+ src/pm/hydra/tools/bootstrap/external/slurm_query_node_list.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/pm/hydra/tools/bootstrap/external/slurm_query_node_list.c b/src/pm/hydra/tools/bootstrap/external/slurm_query_node_list.c
+index 869d38b7a..953e8aa2d 100644
+--- a/src/pm/hydra/tools/bootstrap/external/slurm_query_node_list.c
++++ b/src/pm/hydra/tools/bootstrap/external/slurm_query_node_list.c
+@@ -25,7 +25,7 @@ static struct HYD_node *global_node_list = NULL;
+ #if defined(HAVE_SLURM)
+ static HYD_status list_to_nodes(char *str)
+ {
+-    hostlist_t hostlist;
++    hostlist_t *hostlist;
+     char *host;
+     int k = 0;
+     HYD_status status = HYD_SUCCESS;

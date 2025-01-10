@@ -1,11 +1,9 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 import stat
-import sys
 
 import pytest
 
@@ -13,7 +11,7 @@ import llnl.util.filesystem as fs
 
 from spack.util.file_permissions import InvalidPermissionsError, set_permissions
 
-pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="chmod unsupported on Windows")
+pytestmark = pytest.mark.not_on_windows("chmod unsupported on Windows")
 
 
 def ensure_known_group(path):

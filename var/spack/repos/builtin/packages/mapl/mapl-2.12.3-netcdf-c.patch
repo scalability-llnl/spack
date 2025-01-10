@@ -1,0 +1,31 @@
+--- a/CMakeLists.txt	2022-06-23 10:37:36.000000000 -0600
++++ b/CMakeLists.txt	2022-06-23 10:38:44.000000000 -0600
+@@ -103,7 +103,7 @@
+ ecbuild_declare_project()
+ 
+ if (NOT Baselibs_FOUND)
+-  find_package(NetCDF REQUIRED Fortran)
++  find_package(NetCDF REQUIRED C Fortran)
+   add_definitions(-DHAS_NETCDF4)
+   add_definitions(-DHAS_NETCDF3)
+   add_definitions(-DNETCDF_NEED_NF_MPIIO)
+--- a/pfio/CMakeLists.txt	2022-06-23 10:37:41.000000000 -0600
++++ b/pfio/CMakeLists.txt	2022-06-23 10:38:13.000000000 -0600
+@@ -91,7 +91,7 @@
+   StringVectorUtil.F90
+   )
+ 
+-esma_add_library (${this} SRCS ${srcs} DEPENDENCIES MAPL.shared MAPL.profiler NetCDF::NetCDF_Fortran TYPE ${MAPL_LIBRARY_TYPE})
++esma_add_library (${this} SRCS ${srcs} DEPENDENCIES MAPL.shared MAPL.profiler NetCDF::NetCDF_Fortran NetCDF::NetCDF_C TYPE ${MAPL_LIBRARY_TYPE})
+ target_link_libraries (${this} PUBLIC GFTL_SHARED::gftl-shared PRIVATE MPI::MPI_Fortran)
+ # CMake has an OpenMP issue with NAG Fortran: https://gitlab.kitware.com/cmake/cmake/-/issues/21280
+ if (NOT CMAKE_Fortran_COMPILER_ID MATCHES "NAG")
+@@ -129,7 +129,7 @@
+ ecbuild_add_executable (
+   TARGET pfio_writer.x
+   SOURCES pfio_writer.F90
+-  LIBS ${this} NetCDF::NetCDF_Fortran MPI::MPI_Fortran)
++  LIBS ${this} NetCDF::NetCDF_Fortran NetCDF::NetCDF_C MPI::MPI_Fortran)
+ set_target_properties (pfio_writer.x PROPERTIES Fortran_MODULE_DIRECTORY ${include_${this}})
+ 
+ #--------------------

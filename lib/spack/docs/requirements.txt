@@ -1,13 +1,13 @@
-# These dependencies should be installed using pip in order
-# to build the documentation.
-
-sphinx>=3.4,!=4.1.2,!=5.1.0
-sphinxcontrib-programoutput
-sphinx-design
-sphinx-rtd-theme
-python-levenshtein
-# Restrict to docutils <0.17 to workaround a list rendering issue in sphinx.
-# https://stackoverflow.com/questions/67542699
-docutils <0.17
-pygments <2.13
-urllib3 <2
+sphinx==8.1.3
+sphinxcontrib-programoutput==0.18
+sphinx_design==0.6.1
+sphinx-rtd-theme==3.0.2
+python-levenshtein==0.26.1
+docutils==0.21.2
+pygments==2.19.1
+urllib3==2.3.0
+pytest==8.3.4
+isort==5.13.2
+black==24.10.0
+flake8==7.1.1
+mypy==1.11.1

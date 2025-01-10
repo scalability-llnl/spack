@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,8 @@ class RGenetics(RPackage):
     linkage disequilibrium, ..."""
 
     cran = "genetics"
+
+    license("GPL-2.0-or-later")
 
     version("1.3.8.1.3", sha256="fef2c95f6a57f32b3cf4acf003480439462bb28297c501c617de307bfeee9252")
     version("1.3.8.1.2", sha256="30cb67de2e901578fd802deb7fbfea6c93024c9fb6ea66cad88430a3a2a51eec")

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,7 @@ class RTimedate(RPackage):
 
     cran = "timeDate"
 
+    version("4032.109", sha256="402841bda47e8c31f49773de2ff5447e9780bc7c8af5fb18be9287b546fcb958")
     version("4022.108", sha256="a5949b4fe2f6bdff751fc0793df8e3150cc25c078d48a28c066c10a6c4bfceef")
     version("4021.106", sha256="14adf1ec6cbd80f11a243fa66ea943725a7a4c75923ae2d8e424235d500b10e2")
     version("3043.102", sha256="377cba03cddab8c6992e31d0683c1db3a73afa9834eee3e95b3b0723f02d7473")

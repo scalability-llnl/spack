@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,9 @@ class RSpdep(RPackage):
 
     cran = "spdep"
 
+    license("GPL-2.0-or-later")
+
+    version("1.3-5", sha256="ba8efa06ddbc12408f4f6d4c85606d84922131d9c05953e0b23b81f03e56e626")
     version("1.2-8", sha256="8d9fb4cb10d1035526ad6d9f7a11972efb0e3137dcff176d73df6ebfe96c9190")
     version("1.2-7", sha256="9dac594825bf2d0aa31e845bfec05d8ce206327840fe455391741dbbdf9c9eea")
     version("1.2-4", sha256="a9f4d5af56efb1a2bcd3e85fe4d0e8a42896a2c30a790b2487e1ebadf398a677")
@@ -35,6 +37,7 @@ class RSpdep(RPackage):
     depends_on("r@3.3.0:", type=("build", "run"), when="@0.7-8:")
     depends_on("r-sp@1.0:", type=("build", "run"))
     depends_on("r-spdata@0.2.6.0:", type=("build", "run"), when="@1.0-2:")
+    depends_on("r-spdata@2.3.1:", type=("build", "run"), when="@1.3-5:")
     depends_on("r-sf", type=("build", "run"), when="@1.0-2:")
     depends_on("r-deldir", type=("build", "run"))
     depends_on("r-boot@1.3-1:", type=("build", "run"))

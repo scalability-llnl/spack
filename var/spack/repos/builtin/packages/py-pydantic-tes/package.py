@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PyPydanticTes(PythonPackage):
 
     homepage = "https://github.com/jmchilton/pydantic-tes"
     pypi = "pydantic-tes/pydantic-tes-0.1.5.tar.gz"
+
+    license("MIT")
 
     version("0.1.5", sha256="557cc77bdbeae86a6bd155af2d0aeaa5050cd9e3f7d9b17b817f14dd814a7423")
 

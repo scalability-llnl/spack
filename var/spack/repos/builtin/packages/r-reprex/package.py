@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,9 @@ class RReprex(RPackage):
 
     cran = "reprex"
 
+    license("MIT")
+
+    version("2.1.1", sha256="c860368cbc7ef90ea786fb61ab6fa42cd89b5258be48652abc20ad414001879c")
     version("2.0.2", sha256="a85b16e26112364a65c886efea050df08c17aadf1411fd14ec27d9ef13e87092")
     version("2.0.1", sha256="0e6d8667cacb63135476a766fba3a4f91e5ad86274ea66d2b1e6d773b5ca6426")
     version("0.3.0", sha256="203c2ae6343f6ff887e7a5a3f5d20bae465f6e8d9745c982479f5385f4effb6c")
@@ -30,6 +32,7 @@ class RReprex(RPackage):
     depends_on("r@3.1:", type=("build", "run"), when="@0.2.0:")
     depends_on("r@3.3:", type=("build", "run"), when="@1:")
     depends_on("r@3.4:", type=("build", "run"), when="@2.0.2:")
+    depends_on("r@3.6:", type=("build", "run"), when="@2.1.0:")
     depends_on("r-callr@2.0.0:", type=("build", "run"))
     depends_on("r-callr@3.3.1:", type=("build", "run"), when="@1:")
     depends_on("r-callr@3.6.0:", type=("build", "run"), when="@2:")

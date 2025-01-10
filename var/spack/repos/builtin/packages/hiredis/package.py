@@ -1,8 +1,9 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import spack.build_systems.cmake
+import spack.build_systems.makefile
 from spack.package import *
 
 
@@ -15,6 +16,8 @@ class Hiredis(MakefilePackage, CMakePackage):
 
     maintainers("lpottier", "rblake-llnl")
 
+    license("BSD-3-Clause")
+
     version("1.1.0", sha256="fe6d21741ec7f3fc9df409d921f47dfc73a4d8ff64f4ac6f1d95f951bf7f53d6")
     version("1.0.2", sha256="e0ab696e2f07deb4252dda45b703d09854e53b9703c7d52182ce5a22616c3819")
     version("1.0.1", sha256="a420df40775ac7b4b46550dd4df78ffe6620616333496a17c9c9fc556815ba4b")
@@ -23,6 +26,9 @@ class Hiredis(MakefilePackage, CMakePackage):
     version("0.14.0", sha256="042f965e182b80693015839a9d0278ae73fae5d5d09d8bf6d0e6a39a8c4393bd")
     version("0.13.3", sha256="717e6fc8dc2819bef522deaca516de9e51b9dfa68fe393b7db5c3b6079196f78")
     version("0.13.2", sha256="b0cf73ebe039fe25ecaaa881acdda8bdc393ed997e049b04fc20865835953694")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     build_system(
         conditional("cmake", when="@1:"), conditional("makefile", when="@:0"), default="cmake"
@@ -41,13 +47,17 @@ class Hiredis(MakefilePackage, CMakePackage):
 class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
     @property
     def build_targets(self):
-        use_ssl = 1 if "+ssl" in self.spec else 0
-        run_test_async = 1 if "+test_async" in self.spec else 0
+        use_ssl = 1 if self.spec.satisfies("+ssl") else 0
+        run_test_async = 1 if self.spec.satisfies("+test_async") else 0
         return ["USE_SSL={0}".format(use_ssl), "TEST_ASYNC={0}".format(run_test_async)]
 
     def install(self, pkg, spec, prefix):
         make("PREFIX={0}".format(prefix), "install")
-        if "+test" in self.spec or "+test_async" in self.spec or "+test_ssl" in self.spec:
+        if (
+            self.spec.satisfies("+test")
+            or self.spec.satisfies("+test_async")
+            or self.spec.satisfies("+test_ssl")
+        ):
             make("PREFIX={0}".format(prefix), "test")
 
     @run_after("install")
@@ -58,9 +68,9 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
 
 class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
     def cmake_args(self):
-        build_test = not ("+test" in self.spec)
-        ssl_test = ("+test_ssl" in self.spec) and ("+test" in self.spec)
-        async_test = ("+test_async" in self.spec) and ("+test" in self.spec)
+        build_test = not self.spec.satisfies("+test")
+        ssl_test = self.spec.satisfies("+test_ssl") and self.spec.satisfies("+test")
+        async_test = self.spec.satisfies("+test_async") and self.spec.satisfies("+test")
 
         args = [
             self.define_from_variant("ENABLE_SSL", "ssl"),

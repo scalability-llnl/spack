@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,8 +12,6 @@ get tests done quickly, not to avoid high CPU usage.
 
 Note: The functionality in this module is unsupported on Windows
 """
-from __future__ import print_function
-
 import multiprocessing
 import os
 import re
@@ -36,7 +33,7 @@ except ImportError:
     pass
 
 
-class ProcessController(object):
+class ProcessController:
     """Wrapper around some fundamental process control operations.
 
     This allows one process (the controller) to drive another (the
@@ -157,7 +154,7 @@ class ProcessController(object):
         self.wait(lambda: "T" not in self.proc_status())
 
 
-class PseudoShell(object):
+class PseudoShell:
     """Sets up controller and minion processes with a PTY.
 
     You can create a ``PseudoShell`` if you want to test how some

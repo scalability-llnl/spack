@@ -1,0 +1,34 @@
+--- a/src/programs/ctffind/ctffind.cpp	2023-06-02 16:47:21.975662000 +0200
++++ b/src/programs/ctffind/ctffind.cpp	2023-06-02 16:48:06.565418037 +0200
+@@ -267,11 +267,11 @@
+ float FindRotationalAlignmentBetweenTwoStacksOfImages(Image *self, Image *other_image, int number_of_images, float search_half_range, float search_step_size, float minimum_radius, float maximum_radius);
+ void ComputeImagesWithNumberOfExtremaAndCTFValues(CTF *ctf, Image *number_of_extrema, Image *ctf_values);
+ int ReturnSpectrumBinNumber(int number_of_bins, float number_of_extrema_profile[], Image *number_of_extrema, long address, Image *ctf_values, float ctf_values_profile[]);
+-bool ComputeRotationalAverageOfPowerSpectrum( Image *spectrum, CTF *ctf, Image *number_of_extrema, Image *ctf_values, int number_of_bins, double spatial_frequency[], double average[], double average_fit[], double average_renormalized[], float number_of_extrema_profile[], float ctf_values_profile[]);
++void ComputeRotationalAverageOfPowerSpectrum( Image *spectrum, CTF *ctf, Image *number_of_extrema, Image *ctf_values, int number_of_bins, double spatial_frequency[], double average[], double average_fit[], double average_renormalized[], float number_of_extrema_profile[], float ctf_values_profile[]);
+ void ComputeEquiPhaseAverageOfPowerSpectrum( Image *spectrum, CTF *ctf, Curve *epa_pre_max, Curve *epa_post_max);
+ void OverlayCTF( Image *spectrum, CTF *ctf, Image *number_of_extrema, Image *ctf_values, int number_of_bins_in_1d_spectra, double spatial_frequency[], double rotational_average_astig[], float number_of_extrema_profile[], float ctf_values_profile[], Curve *equiphase_average_pre_max, Curve *equiphase_average_post_max);
+ void ComputeFRCBetween1DSpectrumAndFit( int number_of_bins, double average[], double fit[], float number_of_extrema_profile[], double frc[], double frc_sigma[], int first_fit_bin);
+-bool RescaleSpectrumAndRotationalAverage( Image *spectrum, Image *number_of_extrema, Image *ctf_values, int number_of_bins, double spatial_frequency[], double average[], double average_fit[], float number_of_extrema_profile[], float ctf_values_profile[], int last_bin_without_aliasing, int last_bin_with_good_fit );
++void RescaleSpectrumAndRotationalAverage( Image *spectrum, Image *number_of_extrema, Image *ctf_values, int number_of_bins, double spatial_frequency[], double average[], double average_fit[], float number_of_extrema_profile[], float ctf_values_profile[], int last_bin_without_aliasing, int last_bin_with_good_fit );
+ void Renormalize1DSpectrumForFRC( int number_of_bins, double average[], double fit[], float number_of_extrema_profile[]);
+ float ReturnAzimuthToUseFor1DPlots(CTF *ctf);
+ 
+@@ -2419,7 +2419,7 @@
+ 
+ // Rescale the spectrum and its 1D rotational avereage so that the peaks and troughs are at 0.0 and 1.0. The location of peaks and troughs are worked out
+ // by parsing the suppilied 1D average_fit array
+-bool RescaleSpectrumAndRotationalAverage( Image *spectrum, Image *number_of_extrema, Image *ctf_values, int number_of_bins, double spatial_frequency[], double average[], double average_fit[], float number_of_extrema_profile[], float ctf_values_profile[], int last_bin_without_aliasing, int last_bin_with_good_fit )
++void RescaleSpectrumAndRotationalAverage( Image *spectrum, Image *number_of_extrema, Image *ctf_values, int number_of_bins, double spatial_frequency[], double average[], double average_fit[], float number_of_extrema_profile[], float ctf_values_profile[], int last_bin_without_aliasing, int last_bin_with_good_fit )
+ {
+ 	MyDebugAssertTrue(spectrum->is_in_memory, "Spectrum memory not allocated");
+ 	MyDebugAssertTrue(number_of_bins > 1,"Bad number of bins: %i\n",number_of_bins);
+@@ -2762,7 +2762,7 @@
+ }
+ 
+ //
+-bool ComputeRotationalAverageOfPowerSpectrum( Image *spectrum, CTF *ctf, Image *number_of_extrema, Image *ctf_values, int number_of_bins, double spatial_frequency[], double average[], double average_fit[], double average_rank[], float number_of_extrema_profile[], float ctf_values_profile[])
++void ComputeRotationalAverageOfPowerSpectrum( Image *spectrum, CTF *ctf, Image *number_of_extrema, Image *ctf_values, int number_of_bins, double spatial_frequency[], double average[], double average_fit[], double average_rank[], float number_of_extrema_profile[], float ctf_values_profile[])
+ {
+ 	MyDebugAssertTrue(spectrum->is_in_memory, "Spectrum memory not allocated");
+ 	MyDebugAssertTrue(number_of_extrema->is_in_memory,"Number of extrema image not allocated");

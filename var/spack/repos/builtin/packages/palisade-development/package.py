@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,9 +27,19 @@ class PalisadeDevelopment(CMakePackage):
     git = "https://gitlab.com/palisade/palisade-development.git"
     maintainers("wohlbier")
 
+    license("BSD-2-Clause")
+
     version("feature-fixed-point-encoding", branch="feature-fixed-point-encoding", submodules=True)
-    version("fppe-logreg-v1.0", tag="fppe-logreg-v1.0", submodules=True)
+    version(
+        "fppe-logreg-v1.0",
+        tag="fppe-logreg-v1.0",
+        commit="5ccb14ffffd65e70db048e143ec2350b97a20d40",
+        submodules=True,
+    )
     version("master", branch="master", preferred=True, submodules=True)
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("shared", default=True, description="Build shared library.")
     variant("static", default=True, description="Build static library.")

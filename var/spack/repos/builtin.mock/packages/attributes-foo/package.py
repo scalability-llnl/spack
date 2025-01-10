@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import sys
@@ -44,7 +43,7 @@ class AttributesFoo(BundlePackage):
     # Header provided by the bar virutal package
     @property
     def bar_headers(self):
-        return find_headers("bar/bar", root=self.home.include, recursive=False)
+        return find_headers("bar", root=self.home.include, recursive=True)
 
     # Libary provided by the bar virtual package
     @property
@@ -59,7 +58,7 @@ class AttributesFoo(BundlePackage):
     # Header provided by the baz virtual package
     @property
     def baz_headers(self):
-        return find_headers("baz/baz", root=self.baz_home.include, recursive=False)
+        return find_headers("baz", root=self.baz_home.include, recursive=True)
 
     # Library provided by the baz virtual package
     @property

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,7 @@ class RBiocmanager(RPackage):
 
     cran = "BiocManager"
 
+    version("1.30.24", sha256="645c423bb144dbd476cb308678bd36e06c1a3494115f157166dd3f59955ec7d1")
     version("1.30.20", sha256="b9e72d7687abbd785a69fecb530ec86ad92257a6be95b8e15953b193a516d5ea")
     version("1.30.19", sha256="6897ab1c58ab2fa3108e22d70bc4150c683bb4ac29355ba7886b88acc30c18e2")
     version("1.30.18", sha256="f763126b45614e1b83260da5311923eac50db24002f3c22fa5f667434a5b5c35")

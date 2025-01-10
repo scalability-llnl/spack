@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,6 +24,9 @@ class RSandwich(RPackage):
 
     cran = "sandwich"
 
+    license("GPL-2.0-only OR GPL-3.0-only")
+
+    version("3.1-0", sha256="96b0e105ee50391a1fd286e9556ba6669f08565fa30788b1a21bc861b0a023fa")
     version("3.0-2", sha256="6e30b6b554eb19430a60c45a8132fb7918ddb0013577bf6a62caeb163bdfe2b4")
     version("3.0-1", sha256="f6584b7084f3223bbc0c4722f53280496be73849747819b0cb4e8f3910284a89")
     version("3.0-0", sha256="828fe53b5e09db5015efd529b2db4dcd40251bce110fea7b0b219fa9ac36d529")

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,7 @@ class RRpartPlot(RPackage):
 
     cran = "rpart.plot"
 
+    version("3.1.2", sha256="3dca2a5d1a8e5eb5129fd6efce9c5f6b2fa241bfb65f2a8823a8db89f4b422b2")
     version("3.1.1", sha256="30736240058df21a96d10912a091d938f821d521a3bc4efb9aa4ef6fb233024d")
     version("3.1.0", sha256="2aaba0c0cabbc17aca9085248b0ad74ee7ff2b8f729e020e84b3917de174c15e")
     version("3.0.9", sha256="1150f5e9899b3b31b17160617cd99c3ad340c8361aeb229264a7a3a3a28015a4")

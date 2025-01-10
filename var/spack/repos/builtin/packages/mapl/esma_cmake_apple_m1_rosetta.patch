@@ -1,0 +1,17 @@
+diff --git a/compiler/flags/GNU_Fortran.cmake b/compiler/flags/GNU_Fortran.cmake
+index 6329d3c..1014b9c 100644
+--- a/ESMA_cmake/compiler/flags/GNU_Fortran.cmake
++++ b/ESMA_cmake/compiler/flags/GNU_Fortran.cmake
+@@ -131,6 +131,12 @@ elseif (${proc_decription} MATCHES "Intel")
+   set (GNU_NATIVE_ARCH "native")
+   set (PREFER_AVX128 "-mprefer-avx128")
+   set (NO_FMA "-mno-fma")
++elseif (${proc_decription} MATCHES "Apple M1" AND ${CMAKE_HOST_SYSTEM_PROCESSOR} MATCHES "x86_64")
++   # Rosetta 2 emulator of x86_64 architecture on Apple Silicon
++   set (GNU_TARGET_ARCH "westmere")
++   set (GNU_NATIVE_ARCH "native")
++   set (PREFER_AVX128 "-mprefer-avx128")
++   set (NO_FMA "-mno-fma")
+ else ()
+   message(FATAL_ERROR "Unknown processor. Please file an issue at https://github.com/GEOS-ESM/ESMA_cmake")
+ endif ()

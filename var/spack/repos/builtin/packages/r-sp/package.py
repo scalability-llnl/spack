@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,9 @@ class RSp(RPackage):
 
     cran = "sp"
 
+    license("GPL-2.0-or-later")
+
+    version("2.1-4", sha256="e185e7fb61d2d7dbc50fd765a93e170fa778083a653588db1f5e99d019479f0a")
     version("1.6-0", sha256="f5977fbe80e7dee8e95d41fe0ef9d87c2c984422bb529ea5211fd38a13f9fcda")
     version("1.5-1", sha256="69b9eab481d389bbb736d2adcf50c180aca248c3ffc4ebda8ffe2accc5f229df")
     version("1.5-0", sha256="939a06adf78ec8de7a663d6ca5bba426780852b357773446b00cc298200ff81c")
@@ -27,4 +29,6 @@ class RSp(RPackage):
     version("1.2-3", sha256="58b3a9e395ca664ee61b20b480be4eb61576daca44c3d3f6f9a943bb0155879a")
 
     depends_on("r@3.0.0:", type=("build", "run"))
+    depends_on("r@3.2.0:", type=("build", "run"), when="@2.0-0:")
+    depends_on("r@3.5.0:", type=("build", "run"), when="@2.1-0:")
     depends_on("r-lattice", type=("build", "run"))

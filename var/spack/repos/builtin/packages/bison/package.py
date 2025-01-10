@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,8 @@ class Bison(AutotoolsPackage, GNUMirrorPackage):
     tags = ["build-tools"]
 
     executables = ["^bison$"]
+
+    license("GPL-3.0-or-later")
 
     version("3.8.2", sha256="06c9e13bdf7eb24d4ceb6b59205a4f67c2c7e7213119644430fe82fbd14a0abb")
     version("3.8.1", sha256="ce318a47196155fb7c26912b513102f3d0e14757c2e495e34608757b61339c5c")
@@ -48,22 +49,33 @@ class Bison(AutotoolsPackage, GNUMirrorPackage):
     version("3.0.4", sha256="b67fd2daae7a64b5ba862c66c07c1addb9e6b1b05c5f2049392cfd8a2172952e")
     version("2.7", sha256="19bbe7374fd602f7a6654c131c21a15aebdc06cc89493e8ff250cb7f9ed0a831")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
+    variant("color", default=False, description="Enable experimental colored output", when="@3.4:")
+
     # https://lists.gnu.org/archive/html/bug-bison/2019-08/msg00008.html
     patch("parallel.patch", when="@3.4.2")
 
     provides("yacc")
 
+    depends_on("gettext", when="+color")
+    depends_on("m4@1.4.6:", type=("build", "run"))
     depends_on("diffutils", type="build")
-    depends_on("m4", type=("build", "run"))
-    depends_on("perl", type="build")
 
-    patch("pgi.patch", when="@3.0.4")
     # The NVIDIA compilers do not currently support some GNU builtins.
     # Detect this case and use the fallback path.
     patch("nvhpc-3.6.patch", when="@3.6.0:3.6 %nvhpc")
     patch("nvhpc-3.7.patch", when="@3.7.0:3.7 %nvhpc")
 
     conflicts("%intel@:14", when="@3.4.2:", msg="Intel 14 has immature C11 support")
+    conflicts(
+        "%oneapi",
+        msg=(
+            "bison is likely miscompiled by oneapi compilers, "
+            "see https://github.com/spack/spack/issues/37172"
+        ),
+    )
 
     if sys.platform == "darwin" and macos_version() >= Version("10.13"):
         patch("secure_snprintf.patch", level=0, when="@3.0.4")

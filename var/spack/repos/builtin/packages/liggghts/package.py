@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,7 +15,15 @@ class Liggghts(MakefilePackage):
     url = "https://github.com/CFDEMproject/LIGGGHTS-PUBLIC/archive/3.8.0.tar.gz"
     git = "ssh://git@github.com/CFDEMproject/LIGGGHTS-PUBLIC.git"
 
+    maintainers("SofiaXu")
+
+    license("GPL-2.0-only")
+
     version("3.8.0", sha256="9cb2e6596f584463ac2f80e3ff7b9588b7e3638c44324635b6329df87b90ab03")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("mpi", default=True, description="Enable MPI support")
     variant("jpeg", default=True, description="Enable JPEG support")
@@ -27,8 +34,14 @@ class Liggghts(MakefilePackage):
     depends_on("vtk@6.1.0:8.2.0")
     depends_on("mpi", when="+mpi")
     depends_on("jpeg", when="+jpeg")
-    depends_on("zlib", when="+gzip")
-
+    depends_on("zlib-api", when="+gzip")
+    # patch for makefile test code
+    patch("makefile.patch")
+    # patch for clang and oneapi
+    patch("makefile-llvm-based-compiler.patch", when="%clang")
+    patch("makefile-llvm-based-compiler.patch", when="%oneapi")
+    # C++17 support
+    patch("cpp-17.patch")
     build_directory = "src"
     build_targets = ["auto"]
 
@@ -53,11 +66,11 @@ class Liggghts(MakefilePackage):
         )
         makefile.filter(r"^#(VTK_LIB_USR=-L).*", r"\1{0}".format(vtk.prefix.lib))
 
-        if "+mpi" in spec:
+        if spec.satisfies("+mpi"):
             mpi = spec["mpi"]
-            makefile.filter(r"^#(MPICXX_USER=).*", r"\1{0}".format(mpi.mpicxx))
-            makefile.filter(r"^#(MPI_INC_USER=).*", r"\1{0}".format(mpi.prefix.include))
-            makefile.filter(r"^#(MPI_LIB_USER=).*", r"\1{0}".format(mpi.prefix.lib))
+            makefile.filter(r"^#(MPICXX_USR=).*", r"\1{0}".format(mpi.mpicxx))
+            makefile.filter(r"^#(MPI_INC_USR=).*", r"\1{0}".format(mpi.prefix.include))
+            makefile.filter(r"^#(MPI_LIB_USR=).*", r"\1{0}".format(mpi.prefix.lib))
         else:
             makefile.filter(r"^(USE_MPI = ).*", r'\1"OFF"')
             # Set path to C++ compiler.
@@ -67,19 +80,19 @@ class Liggghts(MakefilePackage):
             # builds using its own target!
             makefile_auto.filter(r"^(.+)(EXTRA_ADDLIBS.*mpi_stubs.*)", r"\1#\2")
 
-        if "+jpeg" in spec:
+        if spec.satisfies("+jpeg"):
             jpeg = spec["jpeg"]
             makefile.filter(r"^(USE_JPG = ).*", r'\1"ON"')
-            makefile.filter(r"^#(JPG_INC_USER=-I).*", r"\1{0}".format(jpeg.prefix.include))
-            makefile.filter(r"^#(JPG_LIB_USER=-L).*", r"\1{0}".format(jpeg.prefix.lib))
+            makefile.filter(r"^#(JPG_INC_USR=-I).*", r"\1{0}".format(jpeg.prefix.include))
+            makefile.filter(r"^#(JPG_LIB_USR=-L).*", r"\1{0}".format(jpeg.prefix.lib))
 
-        if "+gzip" in spec:
+        if spec.satisfies("+gzip"):
             makefile.filter(r"^(USE_GZIP = ).*", r'\1"ON"')
 
-        if "+debug" in spec:
+        if spec.satisfies("+debug"):
             makefile.filter(r"^(USE_DEBUG = ).*", r'\1"ON"')
 
-        if "+profile" in spec:
+        if spec.satisfies("+profile"):
             makefile.filter(r"^(USE_PROFILE = ).*", r'\1"ON"')
 
         # Enable debug output of Makefile.auto in the log file

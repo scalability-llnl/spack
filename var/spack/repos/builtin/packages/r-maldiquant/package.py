@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,7 @@ class RMaldiquant(RPackage):
 
     cran = "MALDIquant"
 
+    version("1.22.3", sha256="fd094f0ea1a163ad1bd290e789ad827a76075d82ae5ce8a8e53a7095a7479383")
     version("1.22.1", sha256="0a52a55dbe76a7e7ca50c5555fea4381eeda0c215c66e420d8dc9bfd2992411c")
     version("1.21", sha256="0771f82034aa6a77af67f3572c900987b7e6b578d04d707c6e06689d021a2ff8")
     version("1.19.3", sha256="a730327c1f8d053d29e558636736b7b66d0671a009e0004720b869d2c76ff32c")

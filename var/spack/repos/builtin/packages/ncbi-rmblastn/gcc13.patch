@@ -1,0 +1,10 @@
+--- c++/include/util/impl/compile_time_bits.hpp	2023-01-05 15:04:14.000000000 +0000
++++ c++/include/util/impl/compile_time_bits.hpp.patched	2023-06-14 10:38:16.316603211 +0100
+@@ -39,6 +39,7 @@
+ #include <limits>
+ #include <stdexcept>
+ #include <array>
++#include <cstdint>
+ 
+ // forward declarations to avoid unnecessary includes
+ namespace ncbi

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import spack.build_systems.autotools
@@ -56,6 +55,10 @@ class ArpackNg(CMakePackage, AutotoolsPackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("shared", default=True, description="Enables the build of shared libraries")
     variant("mpi", default=True, description="Activates MPI support")
     variant("icb", default=False, when="@3.6:", description="Activates iso_c_binding support")
@@ -89,16 +92,15 @@ class ArpackNg(CMakePackage, AutotoolsPackage):
 
     def flag_handler(self, name, flags):
         spec = self.spec
-        iflags = []
         if name == "cflags":
             if spec.satisfies("%oneapi"):
-                iflags.append("-Wno-error=implicit-function-declaration")
+                flags.append("-Wno-error=implicit-function-declaration")
 
         if name == "fflags":
             if self.spec.satisfies("%cce"):
-                iflags.append("-hnopattern")
+                flags.append("-hnopattern")
 
-        return (iflags, None, None)
+        return (flags, None, None)
 
     @property
     def libs(self):
@@ -106,7 +108,7 @@ class ArpackNg(CMakePackage, AutotoolsPackage):
         # query_parameters = self.spec.last_query.extra_parameters
         libraries = ["libarpack"]
 
-        if "+mpi" in self.spec:
+        if self.spec.satisfies("+mpi"):
             libraries = ["libparpack"] + libraries
 
         return find_libraries(libraries, root=self.prefix, shared=True, recursive=True)
@@ -150,14 +152,14 @@ class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
         options = (
             self.enable_or_disable("mpi")
             + [
-                "--with-blas={0}".format(spec["blas"].libs.ld_flags),
-                "--with-lapack={0}".format(spec["lapack"].libs.ld_flags),
+                f"--with-blas={spec['blas'].libs.ld_flags}",
+                f"--with-lapack={spec['lapack'].libs.ld_flags}",
             ]
             + self.enable_or_disable("shared")
         )
 
-        if "+mpi" in spec:
-            options.append("F77={0}".format(spec["mpi"].mpif77))
+        if spec.satisfies("+mpi"):
+            options.append(f"F77={spec['mpi'].mpif77}")
 
         return options
 

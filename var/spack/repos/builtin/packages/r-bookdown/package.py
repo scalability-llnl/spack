@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,9 @@ class RBookdown(RPackage):
 
     cran = "bookdown"
 
+    license("GPL-3.0-only")
+
+    version("0.40", sha256="58df4a044704b6c42a397f4e430a7fc8f6171bad1447872119aceafd158eac39")
     version("0.33", sha256="2288e1d0c383e6ab49202a18db6cc1a04c3adc1b25da646cc46167bc6c2892c3")
     version("0.29", sha256="5b4e3dc44a5c6574e3d9e19ebe7897d3ddcf6eaffe8214e1d272b545929ff723")
     version("0.26", sha256="c6207288cb72ea7c555cbad449c61278e94b742cac1f610879fb3f2d60b2b185")
@@ -39,6 +41,7 @@ class RBookdown(RPackage):
     depends_on("r-xfun@0.13:", type=("build", "run"), when="@0.21:")
     depends_on("r-xfun@0.22:", type=("build", "run"), when="@0.24:")
     depends_on("r-xfun@0.29:", type=("build", "run"), when="@0.26:")
+    depends_on("r-xfun@0.39:", type=("build", "run"), when="@0.34:")
     depends_on("r-tinytex@0.12:", type=("build", "run"), when="@0.12:")
     depends_on("r-yaml@2.1.14:", type=("build", "run"))
     depends_on("r-yaml@2.1.19:", type=("build", "run"), when="@0.21:")

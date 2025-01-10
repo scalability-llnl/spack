@@ -1,0 +1,73 @@
+From be6649803d199c33bb6abcaab57074dca066f1c0 Mon Sep 17 00:00:00 2001
+From: Vicente Adolfo Bolea Sanchez <vicente.bolea@kitware.com>
+Date: Fri, 2 Aug 2024 17:43:54 -0400
+Subject: [PATCH] ci,thrust: fix typo thrust dependency with kokkos
+
+---
+ CMakeLists.txt                           | 14 ++++++++++++--
+ README.md                                |  1 +
+ vtkm/cont/kokkos/internal/CMakeLists.txt |  8 +++++++-
+ 3 files changed, 20 insertions(+), 3 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 561bee9835..46d1cfc37c 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -264,11 +264,21 @@ include(VTKmWrappers)
+ 
+ # By default: Set VTKm_ENABLE_KOKKOS_THRUST to ON if VTKm_ENABLE_KOKKOS is ON, otherwise
+ # disable it (or if the user explicitly turns this option OFF)
+-cmake_dependent_option(VTKm_ENABLE_KOKKOS_THRUST "Enable Kokkos thrust support (only valid with CUDA and HIP)"
+-  ON "VTKm_ENABLE_KOKKOS;Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_HIP" OFF)
++cmake_dependent_option(
++  VTKm_ENABLE_KOKKOS_THRUST
++  "Enable Kokkos thrust support (only valid with CUDA and HIP)"
++  ON
++  "VTKm_ENABLE_KOKKOS;Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_HIP; NOT Kokkos_ENABLE_HIP AND CMAKE_VERSION VERSION_LESS 3.24"
++  OFF
++)
+ 
+ # CUDA already provides thrust
+ if (VTKm_ENABLE_KOKKOS_THRUST AND TARGET vtkm_kokkos_hip)
++  if (CMAKE_VERSION VERSION_LESS 3.24)
++    message(FATAL_ERROR "VTKm_ENABLE_KOKKOS_THRUST=ON with HIP needs CMAKE >= 3.24")
++  endif()
++  # This policy is needed for LINK_ONLY to work in LINK_LIBRARIES.
++  cmake_policy(SET CMP0131 NEW)
+   find_package(rocthrust REQUIRED CONFIG)
+ endif()
+ 
+diff --git a/README.md b/README.md
+index aad908b955..8f5512a7e6 100644
+--- a/README.md
++++ b/README.md
+@@ -76,6 +76,7 @@ VTK-m Requires:
+   + [CMake](http://www.cmake.org/download/)
+       + CMake 3.12+
+       + CMake 3.13+ (for CUDA support)
++      + CMake 3.24+ (for ROCM+THRUST support)
+ 
+ Optional dependencies are:
+ 
+diff --git a/vtkm/cont/kokkos/internal/CMakeLists.txt b/vtkm/cont/kokkos/internal/CMakeLists.txt
+index 7777005f3e..210d9ed25c 100644
+--- a/vtkm/cont/kokkos/internal/CMakeLists.txt
++++ b/vtkm/cont/kokkos/internal/CMakeLists.txt
+@@ -35,7 +35,13 @@ if (TARGET vtkm_kokkos)
+     set_source_files_properties(${sources} TARGET_DIRECTORY vtkm_cont PROPERTIES LANGUAGE HIP)
+     kokkos_compilation(SOURCE ${sources})
+     if (VTKm_ENABLE_KOKKOS_THRUST)
+-      target_link_libraries(vtkm_cont PRIVATE $<$<LINK_LANGUAGE:CUDA>:roc::rocthrust>)
++      # rocthrust does not wrap its compile defs/ops/dirs with $<$<COMPILE_LANGUAGE:HIP>.
++      # We need this workaround since we mix CXX and HIP source files in vtkm_cont.
++      target_link_libraries(vtkm_cont
++        PRIVATE
++          $<$<COMPILE_LANGUAGE:HIP>:roc::rocthrust>
++          $<LINK_ONLY:roc::rocthrust>
++      )
+     endif()
+   endif()
+ 
+-- 
+2.35.3
+

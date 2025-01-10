@@ -1,8 +1,8 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 from spack.pkg.builtin.boost import Boost
 
@@ -23,6 +23,12 @@ class Sgpp(SConsPackage):
     version("3.3.0", sha256="ca4d5b79f315b425ce69b04940c141451a76848bf1bd7b96067217304c68e2d4")
     version("3.2.0", sha256="dab83587fd447f92ed8546eacaac6b8cbe65b8db5e860218c0fa2e42f776962d")
 
+    depends_on("cxx", type="build")  # generated
+    # Note: Older versions of SGpp required Python 2 (and offered Python 2 bindings) and have
+    # thus been removed from this list as Spack now requires Python 3.
+    # The last spack release with support for Python 2 is v0.19 - there, the spack package
+    # still supports SGpp versions 3.1.0 and 3.0.0 if required.
+
     # Patches with bugfixes that are necessary to build old SGpp versions
     # with spack. Patches are submitted upstream, but need to applied
     # for versions too old to include them as they will not be
@@ -42,8 +48,15 @@ class Sgpp(SConsPackage):
     # Fixes compilation with AVX512 and datadriven
     # Fixed in SGpp in PR https://github.com/SGpp/SGpp/pull/229
     patch("avx512_datadriven_compilation.patch", when="@:3.3.0+datadriven")
+    # The distutils deprecation warning in python 3.10/3.11 caused the sgpp build system
+    # to complain about missing headers (due to a path check not working anymore)
+    # See issue https://github.com/SGpp/SGpp/issues/263 and https://github.com/SGpp/SGpp/pull/266
+    patch("disable_disutils_deprecation_warning.patch", when="@:3.4.0 ^python@3.10:3.11")
+    # SGpp does not contain aarch64 support as of yet. To make it work still, this patch adds
+    # simple build system support for it.
+    patch("for_aarch64.patch", when="target=aarch64:")
 
-    variant("python", default=True, description="Provide Python bindings for SGpp", when="@3.2:")
+    variant("python", default=True, description="Provide Python bindings for SGpp")
     variant("optimization", default=True, description="Builds the optimization module of SGpp")
     variant("pde", default=True, description="Builds the datadriven module of SGpp")
     variant("quadrature", default=True, description="Builds the datadriven module of SGpp")
@@ -56,36 +69,31 @@ class Sgpp(SConsPackage):
     )
     variant("mpi", default=False, description="Enables support for MPI-distributed operations")
 
-    # Java variant deactivated due to spack issue #987
-    # variant('java', default=False,
-    #         description='Provide Java bindings for SGpp')
-    # depends_on('swig@3:', when='+java', type=('build'))
-    # extends('openjdk', when='+java')
-
     # Mandatory dependencies
-    depends_on("scons", type=("build"))
-    depends_on("scons@3:", when="@3.2.0:", type=("build"))
-    depends_on("zlib", type=("link"))
+    depends_on("scons@3:", type="build")
+    depends_on("zlib-api", type="link")
     # Python dependencies
     extends("python", when="+python")
     depends_on("py-pip", when="+python", type="build")
     depends_on("py-wheel", when="+python", type="build")
-    depends_on("py-setuptools", when="+python", type=("build"))
-    depends_on("python@3.7:", when="+python", type=("build", "run"))
-    depends_on("swig@3:", when="+python", type=("build"))
+    depends_on("py-setuptools", type="build")
+    # Older SGpp releases (:3.4.0) do not support python 3.12 due to them using distutils
+    depends_on("python@3.7:3.11", type=("build", "run"), when="@:3.4.0")
+    # SGpp@master works with newer python versions (3.12:) as well
+    depends_on("python@3.7:", type=("build", "run"))
+    # Newest swig version 4.1 seems to cause problem -> limit to 3:4.0 for now
+    depends_on("swig@3:4.0", when="+python", type="build")
     depends_on("py-numpy@1.17:", when="+python", type=("build", "run"))
     depends_on("py-scipy@1.3:", when="+python", type=("build", "run"))
     # OpenCL dependency
     depends_on("opencl@1.1:", when="+opencl", type=("build", "run"))
     # MPI dependency
     depends_on("mpi", when="+mpi", type=("build", "run"))
-    # Testing requires boost test
-    depends_on("boost+test", type=("test"))
 
     # TODO: replace this with an explicit list of components of Boost,
     # for instance depends_on('boost +filesystem')
     # See https://github.com/spack/spack/pull/22303 for reference
-    depends_on(Boost.with_default_variants, type=("test"))
+    depends_on(Boost.with_default_variants, type="test")
 
     # Compiler with C++11 support is required
     conflicts("%gcc@:4.8.4", msg="Compiler with c++11 support is required!")
@@ -105,15 +113,12 @@ class Sgpp(SConsPackage):
     conflicts("+misc", when="-solver")
     conflicts("+misc", when="-optimization")
     conflicts("+misc", when="-pde")
-    conflicts("+misc", when="@1.0.0:3.1.0", msg="The misc module was introduced in version 3.2.0")
     # Combigrid module requirements (for 3.2.0 or older)
     # newer combigrids have no dependencies
     conflicts("+combigrid", when="@1.0.0:3.2.0~optimization")
     conflicts("+combigrid", when="@1.0.0:3.2.0~pde")
     conflicts("+combigrid", when="@1.0.0:3.2.0~solver")
     conflicts("+combigrid", when="@1.0.0:3.2.0~quadrature")
-
-    patch("for_aarch64.patch", when="target=aarch64:")
 
     def build_args(self, spec, prefix):
         # Testing parameters
@@ -138,9 +143,7 @@ class Sgpp(SConsPackage):
         # Generate swig bindings?
         self.args.append("SG_PYTHON={0}".format("1" if "+python" in spec else "0"))
 
-        # Java variant deactivated due to spack issue #987
-        # self.args.append('SG_JAVA={0}'.format(
-        #     '1' if '+java' in spec else '0'))
+        # Java bindings are now deprecated within SGpp
         self.args.append("SG_JAVA=0")
 
         # Which modules to build?
@@ -150,10 +153,7 @@ class Sgpp(SConsPackage):
         self.args.append("SG_DATADRIVEN={0}".format("1" if "+datadriven" in spec else "0"))
         self.args.append("SG_COMBIGRID={0}".format("1" if "+combigrid" in spec else "0"))
         self.args.append("SG_SOLVER={0}".format("1" if "+solver" in spec else "0"))
-
-        # Misc flag did not exist in older versions
-        if not spec.satisfies("@1.0.0:3.2.0"):
-            self.args.append("SG_MISC={0}".format("1" if "+misc" in spec else "0"))
+        self.args.append("SG_MISC={0}".format("1" if "+misc" in spec else "0"))
 
         # SIMD scons parameter (pick according to simd spec)
         if "avx512" in self.spec.target:
@@ -179,10 +179,15 @@ class Sgpp(SConsPackage):
         else:
             self.args.append("CXX={0}".format(self.compiler.cxx))
 
+        # Parallel builds do not seem to work without this:
+        self.args.append("-j{0}".format(make_jobs))
+        return self.args
+
+    def install_args(self, spec, prefix):
+        # SGpp expects the same args for the install and build commands
         return self.args
 
     @run_after("install")
     def python_install(self):
         if "+python" in self.spec:
-            args = std_pip_args + ["--prefix=" + self.prefix, "."]
-            pip(*args)
+            pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")

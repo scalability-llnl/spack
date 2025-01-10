@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PyAiosignal(PythonPackage):
 
     homepage = "https://aiosignal.readthedocs.io/"
     pypi = "aiosignal/aiosignal-1.2.0.tar.gz"
+
+    license("Apache-2.0")
 
     version("1.2.0", sha256="78ed67db6c7b7ced4f98e495e572106d5c432a93e1ddd1bf475e1dc05f5b7df2")
 

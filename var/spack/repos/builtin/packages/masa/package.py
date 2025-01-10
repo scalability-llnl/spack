@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,17 +15,30 @@ class Masa(AutotoolsPackage):
     homepage = "https://github.com/manufactured-solutions/MASA"
     git = "https://github.com/manufactured-solutions/MASA.git"
 
+    license("LGPL-2.1-or-later")
+
     version("master", branch="master")
+    version("0.51.0", tag="0.51.0")
+    version("0.50.0", tag="0.50.0")
+    version("0.44.0", tag="0.44.0")
+    version("0.43.1", tag="0.43.1")
+    version("0.43.0", tag="0.43.0")
+    version("0.42.0", tag="0.42.0")
 
-    variant("fortran", default=True, description="Compile with Fortran interfaces")
-    variant("python", default=True, description="Compile with Python interfaces")
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build", when="+fortran")
 
+    variant("fortran", default=False, description="Compile with Fortran interfaces")
+    variant("python", default=False, description="Compile with Python interfaces")
+
+    depends_on("gettext")
+    depends_on("metaphysicl")
+    depends_on("python")
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")
-    depends_on("swig", type="build")
-    depends_on("python", when="+python")
-    depends_on("metaphysicl")
+    depends_on("swig", type="build", when="+python")
 
     def configure_args(self):
         options = []

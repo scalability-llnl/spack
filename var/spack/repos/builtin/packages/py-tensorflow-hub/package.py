@@ -1,10 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import tempfile
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -17,12 +17,15 @@ class PyTensorflowHub(Package):
 
     maintainers("aweits")
 
+    license("Apache-2.0")
+
     version("0.12.0", sha256="b192ef3a9a6cbeaee46142d64b47b979828dbf41fc56d48c6587e08f6b596446")
     version("0.11.0", sha256="4715a4212b45531a7c25ada7207d850467d1b5480f1940f16623f8770ad64df4")
 
     extends("python")
 
-    depends_on("bazel", type="build")
+    # TODO: Directories have changed in Bazel 7, need to update manual install logic
+    depends_on("bazel@:6", type="build")
     depends_on("py-pip", type="build")
     depends_on("py-wheel", type="build")
     depends_on("py-setuptools", type="build")
@@ -49,14 +52,7 @@ class PyTensorflowHub(Package):
             "--jobs={0}".format(make_jobs),
             # Enable verbose output for failures
             "--verbose_failures",
-            # Show (formatted) subcommands being executed
-            "--subcommands=pretty_print",
             "--spawn_strategy=local",
-            # Ask bazel to explain what it's up to
-            # Needs a filename as argument
-            "--explain=explainlogfile.txt",
-            # Increase verbosity of explanation,
-            "--verbose_explanations",
             # bazel uses system PYTHONPATH instead of spack paths
             "--action_env",
             "PYTHONPATH={0}".format(env["PYTHONPATH"]),
@@ -82,8 +78,7 @@ class PyTensorflowHub(Package):
         )
 
         with working_dir(insttmp_path):
-            args = std_pip_args + ["--prefix=" + prefix, "."]
-            pip(*args)
+            pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")
 
         remove_linked_tree(tmp_path)
         remove_linked_tree(insttmp_path)

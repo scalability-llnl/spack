@@ -1,5 +1,4 @@
-# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -267,7 +266,7 @@ class BinaryStringReplacementError(spack.error.SpackError):
             old_len (str): original length of the file
             new_len (str): length of the file after substitution
         """
-        super(BinaryStringReplacementError, self).__init__(
+        super().__init__(
             "Doing a binary string replacement in %s failed.\n"
             "The size of the file changed from %s to %s\n"
             "when it should have remanined the same." % (file_path, old_len, new_len)
@@ -280,13 +279,13 @@ class BinaryTextReplaceError(spack.error.SpackError):
             " To fix this, compile with more padding "
             "(config:install_tree:padded_length), or install to a shorter prefix."
         )
-        super(BinaryTextReplaceError, self).__init__(msg)
+        super().__init__(msg)
 
 
 class CannotGrowString(BinaryTextReplaceError):
     def __init__(self, old, new):
         msg = "Cannot replace {!r} with {!r} because the new prefix is longer.".format(old, new)
-        super(CannotGrowString, self).__init__(msg)
+        super().__init__(msg)
 
 
 class CannotShrinkCString(BinaryTextReplaceError):
@@ -298,4 +297,4 @@ class CannotShrinkCString(BinaryTextReplaceError):
         msg = "Cannot replace {!r} with {!r} in the C-string {!r}.".format(
             old, new, full_old_string
         )
-        super(CannotShrinkCString, self).__init__(msg)
+        super().__init__(msg)

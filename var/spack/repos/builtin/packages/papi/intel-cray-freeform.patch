@@ -1,0 +1,43 @@
+diff -Naur papi-7.0.1-orig/src/components/sde/tests/Makefile papi-7.0.1/src/components/sde/tests/Makefile
+--- papi-7.0.1-orig/src/components/sde/tests/Makefile	2023-06-19 14:27:44.224943877 -0400
++++ papi-7.0.1/src/components/sde/tests/Makefile	2023-06-19 16:25:16.749303194 -0400
+@@ -1,12 +1,17 @@
+ NAME=sde
+ include ../../Makefile_comp_tests.target
+ INCLUDE += -I$(datadir)/sde_lib -I..
++
++intel_compilers := ifort ifx
++cray_compilers := ftn crayftn
+ ifeq ($(notdir $(F77)),gfortran)
+ 	FFLAGS +=-ffree-form -ffree-line-length-none
+ else ifeq ($(notdir $(F77)),flang)
+ 	FFLAGS +=-ffree-form
+-else
++else ifneq ($(findstring $(notdir $(F77)),$(intel_compilers)),)
+ 	FFLAGS +=-free
++else ifneq ($(findstring $(notdir $(F77)),$(cray_compilers)),)
++	FFLAGS +=-ffree
+ endif
+ FFLAGS +=-g
+ CFLAGS +=-g
+diff -Naur papi-7.0.1-orig/src/components/sysdetect/tests/Makefile papi-7.0.1/src/components/sysdetect/tests/Makefile
+--- papi-7.0.1-orig/src/components/sysdetect/tests/Makefile	2023-06-19 14:27:44.220943888 -0400
++++ papi-7.0.1/src/components/sysdetect/tests/Makefile	2023-06-19 16:25:43.213238526 -0400
+@@ -19,12 +19,16 @@
+     FTESTS =
+ endif
+ 
++intel_compilers := ifort ifx
++cray_compilers := ftn crayftn
+ ifeq ($(notdir $(F77)),gfortran)
+     FFLAGS +=-ffree-form -ffree-line-length-none
+ else ifeq ($(notdir $(F77)),flang)
+     FFLAGS +=-ffree-form
+-else
++else ifneq ($(findstring $(notdir $(F77)),$(intel_compilers)),)
+     FFLAGS +=-free
++else ifneq ($(findstring $(notdir $(F77)),$(cray_compilers)),)
++    FFLAGS +=-ffree
+ endif
+ 
+ TESTS = query_device_simple \

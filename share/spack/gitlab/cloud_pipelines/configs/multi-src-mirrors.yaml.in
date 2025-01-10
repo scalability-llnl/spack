@@ -1,0 +1,16 @@
+mirrors:
+  buildcache-source:
+    fetch: ${PROTECTED_MIRROR_FETCH_DOMAIN}/${PR_TARGET_REF_NAME}/${SPACK_CI_STACK_NAME}
+    push: ${PROTECTED_MIRROR_PUSH_DOMAIN}/${PR_TARGET_REF_NAME}/${SPACK_CI_STACK_NAME}
+    source: False
+    binary: True
+  buildcache-destination:
+    fetch: ${PR_MIRROR_FETCH_DOMAIN}/${CI_COMMIT_REF_NAME}/${SPACK_CI_STACK_NAME}
+    push: ${PR_MIRROR_PUSH_DOMAIN}/${CI_COMMIT_REF_NAME}/${SPACK_CI_STACK_NAME}
+    source: False
+    binary: True
+  buildcache-shared:
+    fetch: ${PR_MIRROR_FETCH_DOMAIN}/shared_pr_mirror/${SPACK_CI_STACK_NAME}
+    push: ${PR_MIRROR_PUSH_DOMAIN}/shared_pr_mirror/${SPACK_CI_STACK_NAME}
+    source: False
+    binary: True

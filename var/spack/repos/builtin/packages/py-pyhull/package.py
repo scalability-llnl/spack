@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,7 +16,11 @@ class PyPyhull(PythonPackage):
 
     maintainers("meyersbs")
 
+    license("MIT")
+
     version("2015.2.1", sha256="d2ff0aa3298b548287587609a24f4e2aae7f7b8b1df152a90cd313260abc3a24")
+
+    depends_on("c", type="build")  # generated
 
     # From setup.py:
     depends_on("py-setuptools", type="build")

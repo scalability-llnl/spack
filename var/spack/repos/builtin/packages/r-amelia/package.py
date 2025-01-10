@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,6 +26,7 @@ class RAmelia(RPackage):
 
     cran = "Amelia"
 
+    version("1.8.2", sha256="4fb24a247ca20ba942e854f21e366fbbaf8fbcabc99efbb537511a10a732fc3e")
     version("1.8.1", sha256="120ce62a2acfc845dbeb155ce3f33b41ebad324bc73693a918a95194a9fc47e4")
     version("1.8.0", sha256="3ec1d5a68dac601b354227916aa8ec72fa1216b603dd887aae2b24cb69b5995e")
     version("1.7.6", sha256="63c08d374aaf78af46c34dc78da719b3085e58d9fabdc76c6460d5193a621bea")

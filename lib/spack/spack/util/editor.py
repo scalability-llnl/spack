@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -61,7 +60,7 @@ def executable(exe: str, args: List[str]) -> int:
     return cmd.returncode
 
 
-def editor(*args: List[str], exec_fn: Callable[[str, List[str]], int] = os.execv) -> bool:
+def editor(*args: str, exec_fn: Callable[[str, List[str]], int] = os.execv) -> bool:
     """Invoke the user's editor.
 
     This will try to execute the following, in order:

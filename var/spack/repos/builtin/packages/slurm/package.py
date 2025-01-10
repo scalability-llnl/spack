@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,7 +25,18 @@ class Slurm(AutotoolsPackage):
     homepage = "https://slurm.schedmd.com"
     url = "https://github.com/SchedMD/slurm/archive/slurm-21-08-8-2.tar.gz"
 
+    license("GPL-2.0-or-later")
+
+    version("23-11-1-1", sha256="31506df24c6d24e0ea0329cac1395ab9b645bbde1518f5c469f7711df5e22c11")
+    version("23-11-0-1", sha256="3780773a80b73ea2edb4353318b4220188f4eda92c31ab3a2bdd3a4fdec76be9")
+    version("23-02-7-1", sha256="3f60ad5b5a492312d1febb9f9167caa3aee7f8438bb032590a993f5a65c5e4db")
+    version("23-02-6-1", sha256="ed44d4e591c0f91874d535cb8c9ea67dd2a38bfa4e96fa6c71687293f6a1d3bb")
+    version("23-02-5-1", sha256="4fee743a34514d8fe487080048256f5ee032374ed5f42d0eae342110dcd59edf")
+    version("23-02-4-1", sha256="7290143a71ce2797d0df3423f08396fd5c0ae4504749ff372d6860b2d6a3a1b0")
+    version("23-02-3-1", sha256="c41747e4484011cf376d6d4bc73b6c4696cdc0f7db4f64174f111bb9f53fb603")
+    version("23-02-2-1", sha256="71edcf187a7d68176cca06143adf98e8f332d42cdf000cb534b03b13834ad537")
     version("23-02-1-1", sha256="d827553496ee9158bbf6a862b563cfd48566e6d815ad2f8349950fe6f04934da")
+    version("22-05-9-1", sha256="c9aaa2362b5bf7a4745c8bf90e8dd2ca50802f1241dd1f5220aec8448c09b514")
     version("22-05-8-1", sha256="8c8f6a26a5d51e6c63773f2e02653eb724540ee8b360125c8d7732314ce737d6")
     version("22-05-7-1", sha256="2ad7e8a415d54d45977ab64b4e73c891154d2f41a04505fedf6f8d3df385acb1")
     version("21-08-8-2", sha256="876d7dfa716990d7e579cfb9c6ffc123258e03a1450e993ade596d2ee90afcdd")
@@ -111,6 +121,8 @@ class Slurm(AutotoolsPackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+
     variant("gtk", default=False, description="Enable GTK+ support")
     variant("mariadb", default=False, description="Use MariaDB instead of MySQL")
 
@@ -125,6 +137,10 @@ class Slurm(AutotoolsPackage):
         description="Set system configuration path (possibly /etc/slurm)",
     )
     variant("restd", default=False, description="Enable the slurmrestd server")
+    variant("nvml", default=False, description="Enable NVML autodetection")
+    variant("cgroup", default=False, description="Enable cgroup plugin")
+    variant("pam", default=False, description="Enable PAM support")
+    variant("rsmi", default=False, description="Enable ROCm SMI support")
 
     # TODO: add variant for BG/Q and Cray support
 
@@ -140,7 +156,7 @@ class Slurm(AutotoolsPackage):
     depends_on("openssl")
     depends_on("pkgconfig", type="build")
     depends_on("readline", when="+readline")
-    depends_on("zlib")
+    depends_on("zlib-api")
 
     depends_on("gtkplus", when="+gtk")
     depends_on("hdf5", when="+hdf5")
@@ -151,6 +167,11 @@ class Slurm(AutotoolsPackage):
     depends_on("http-parser", when="+restd")
     depends_on("libyaml", when="+restd")
     depends_on("libjwt", when="+restd")
+
+    depends_on("cuda", when="+nvml")
+    depends_on("dbus", when="+cgroup")
+    depends_on("linux-pam", when="+pam")
+    depends_on("rocm-smi-lib", when="+rsmi")
 
     executables = ["^srun$", "^salloc$"]
 
@@ -178,7 +199,7 @@ class Slurm(AutotoolsPackage):
             "--with-lz4={0}".format(spec["lz4"].prefix),
             "--with-munge={0}".format(spec["munge"].prefix),
             "--with-ssl={0}".format(spec["openssl"].prefix),
-            "--with-zlib={0}".format(spec["zlib"].prefix),
+            "--with-zlib={0}".format(spec["zlib-api"].prefix),
         ]
 
         if "~gtk" in spec:
@@ -208,6 +229,15 @@ class Slurm(AutotoolsPackage):
             args.append("--with-pmix={0}".format(spec["pmix"].prefix))
         else:
             args.append("--without-pmix")
+
+        if spec.satisfies("+nvml"):
+            args.append(f"--with-nvml={spec['cuda'].prefix}")
+
+        if spec.satisfies("+pam"):
+            args.append(f"--with-pam_dir={spec['linux-pam'].prefix}")
+
+        if spec.satisfies("+rsmi"):
+            args.append(f"--with-rsmi={spec['rocm-smi-lib'].prefix}")
 
         sysconfdir = spec.variants["sysconfdir"].value
         if sysconfdir != "PREFIX/etc":

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,8 @@ class RFactoextra(RPackage):
     visualization."""
 
     cran = "factoextra"
+
+    license("GPL-2.0-only")
 
     version("1.0.7", sha256="624ff01c74933352aca55966f8a052b1ccc878f52c2c307e47f88e0665db94aa")
     version("1.0.5", sha256="8177a3f5107883ae248b2cd0afa388a1794741f5155a9455b3883788cf44d5d0")

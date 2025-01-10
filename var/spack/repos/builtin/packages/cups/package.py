@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,13 +13,28 @@ class Cups(AutotoolsPackage):
     install."""
 
     homepage = "https://www.cups.org/"
-    url = "https://github.com/apple/cups/releases/download/v2.2.3/cups-2.2.3-source.tar.gz"
+    url = (
+        "https://github.com/OpenPrinting/cups/releases/download/v2.4.10/cups-2.4.10-source.tar.gz"
+    )
 
-    version("2.3.3", sha256="261fd948bce8647b6d5cb2a1784f0c24cc52b5c4e827b71d726020bcc502f3ee")
-    version("2.2.3", sha256="66701fe15838f2c892052c913bde1ba106bbee2e0a953c955a62ecacce76885f")
+    license("Apache-2.0", checked_by="wdconinc")
+
+    version("2.4.11", sha256="9a88fe1da3a29a917c3fc67ce6eb3178399d68e1a548c6d86c70d9b13651fd71")
+    version("2.4.10", sha256="d75757c2bc0f7a28b02ee4d52ca9e4b1aa1ba2affe16b985854f5336940e5ad7")
+    with default_args(deprecated=True):
+        # https://nvd.nist.gov/vuln/detail/CVE-2023-4504
+        version("2.3.3", sha256="261fd948bce8647b6d5cb2a1784f0c24cc52b5c4e827b71d726020bcc502f3ee")
+        version("2.2.3", sha256="66701fe15838f2c892052c913bde1ba106bbee2e0a953c955a62ecacce76885f")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("pkgconfig", type="build")
 
     depends_on("gnutls")
-    depends_on("pkgconfig", type="build")
+
+    def url_for_version(self, version):
+        org = "apple" if version < Version("2.4") else "OpenPrinting"
+        return f"https://github.com/{org}/cups/releases/download/v{version}/cups-{version}-source.tar.gz"
 
     def configure_args(self):
         args = ["--enable-gnutls", "--with-components=core"]

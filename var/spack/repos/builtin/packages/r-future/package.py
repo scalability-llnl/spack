@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,6 +25,9 @@ class RFuture(RPackage):
 
     cran = "future"
 
+    license("LGPL-2.1-or-later")
+
+    version("1.34.0", sha256="5839d4fd1f8beb1b18b27a7c50c1eb2bb5d80acd926b1bce9323637c8b2dfa5d")
     version("1.32.0", sha256="d5bb74512d069745184dd580a36449dc0b50d95b1cbbbc1605db82de596f2f76")
     version("1.29.0", sha256="856d1fd51d2f998c6572490c49fdcc27e5f3e0c1ade75eecdbf64a2cd0954373")
     version("1.28.0", sha256="6fdda66acd9a255e5baa70ff5dacd3c57ab2ecc2d87fd6abeebdfb939c051bf6")
@@ -50,3 +52,4 @@ class RFuture(RPackage):
     depends_on("r-parallelly@1.30.0:", type=("build", "run"), when="@1.24.0:")
     depends_on("r-parallelly@1.32.1:", type=("build", "run"), when="@1.28.0:")
     depends_on("r-parallelly@1.34.0:", type=("build", "run"), when="@1.32.0:")
+    depends_on("r-parallelly@1.38.0:", type=("build", "run"), when="@1.34.0:")

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,7 @@ class RAffyrnadegradation(RPackage):
 
     bioc = "AffyRNADegradation"
 
+    version("1.46.0", commit="431ae61c9b3809829697ef71672c57171d93311e")
     version("1.44.0", commit="63881f41fc67cc7322b189446dcffb4e1060e303")
     version("1.42.0", commit="5775f41f538b3c8ee4d07d38cec1b49c548cebe6")
     version("1.40.0", commit="8539a91ee464d692a267bb17c91dc1ef9a231f41")

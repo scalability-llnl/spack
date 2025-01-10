@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -10,6 +9,8 @@ class PyPytestPep8(PythonPackage):
     """pytest plugin for efficiently checking PEP8 compliance"""
 
     pypi = "pytest-pep8/pytest-pep8-1.0.6.tar.gz"
+
+    license("MIT")
 
     version("1.0.6", sha256="032ef7e5fa3ac30f4458c73e05bb67b0f036a8a5cb418a534b3170f89f120318")
 

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,7 @@ class RKlar(RPackage):
 
     cran = "klaR"
 
+    version("1.7-3", sha256="d36c041c017cdb5ba3dbf7fb61d5ce3908d8e780eb2912fc99471394fcb8e3e5")
     version("1.7-2", sha256="8035c3edb8257973184ad5a2109fc7c77c32da913cb9dd0c2f1c373e6fccbd61")
     version("1.7-1", sha256="0354bafb1a202bc439660ecfcfe78359bc2881a69d15ff64afa049e4eb171d25")
     version("1.7-0", sha256="b4795250ef19fd1b5e1b9a59343fd01159a33dbdbb504a06258220e37a718198")

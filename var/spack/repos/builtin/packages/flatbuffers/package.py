@@ -1,8 +1,8 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -12,6 +12,10 @@ class Flatbuffers(CMakePackage):
     homepage = "https://google.github.io/flatbuffers/"
     url = "https://github.com/google/flatbuffers/archive/v1.9.0.tar.gz"
 
+    license("Apache-2.0")
+
+    version("24.3.25", sha256="4157c5cacdb59737c5d627e47ac26b140e9ee28b1102f812b36068aab728c1ed")
+    version("24.3.7", sha256="bfff9d2150fcff88f844e8c608b02b2a0e94c92aea39b04c0624783464304784")
     version("2.0.6", sha256="e2dc24985a85b278dd06313481a9ca051d048f9474e0f199e372fea3ea4248c9")
     version("2.0.0", sha256="9ddb9031798f4f8754d00fca2f1a68ecf9d0f83dfac7239af1311e4fd9a565c4")
     version("1.12.0", sha256="62f2223fb9181d1d6338451375628975775f7522185266cd5296571ac152bc45")
@@ -19,6 +23,8 @@ class Flatbuffers(CMakePackage):
     version("1.10.0", sha256="3714e3db8c51e43028e10ad7adffb9a36fc4aa5b1a363c2d0c4303dd1be59a7c")
     version("1.9.0", sha256="5ca5491e4260cacae30f1a5786d109230db3f3a6e5a0eb45d0d0608293d247e3")
     version("1.8.0", sha256="c45029c0a0f1a88d416af143e34de96b3091642722aa2d8c090916c6d1498c2e")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("shared", default=True, description="Build shared instead of static libraries")
     variant("python", default=False, description="Build with python support")
@@ -50,18 +56,15 @@ class Flatbuffers(CMakePackage):
 
     @run_after("install")
     def python_install(self):
-        if "+python" in self.spec:
+        if self.spec.satisfies("+python"):
             pydir = join_path(self.stage.source_path, "python")
             with working_dir(pydir):
-                args = std_pip_args + ["--prefix=" + self.prefix, "."]
-                pip(*args)
+                pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")
 
     def cmake_args(self):
         args = []
         args.append(self.define_from_variant("FLATBUFFERS_BUILD_SHAREDLIB", "shared"))
-        args.append(
-            "-DFLATBUFFERS_BUILD_FLATLIB={0}".format("ON" if "+shared" not in self.spec else "OFF")
-        )
+        args.append(f"-DFLATBUFFERS_BUILD_FLATLIB={'ON' if '+shared' not in self.spec else 'OFF'}")
         if "darwin" in self.spec.architecture:
             args.append("-DCMAKE_MACOSX_RPATH=ON")
         return args

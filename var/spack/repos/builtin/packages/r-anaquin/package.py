@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,7 @@ class RAnaquin(RPackage):
 
     bioc = "Anaquin"
 
+    version("2.24.0", commit="0eefabdc4036b98505032c460d08375839b1fc3e")
     version("2.22.0", commit="d848a9bd7bf9d1d62202cc477300bf1a65b3e36c")
     version("2.20.0", commit="61598dd3430b09b57f31d7d550ea95126a2d73c8")
     version("2.18.0", commit="c8e3df3e299c32daac0dda23cea59a18673d886b")

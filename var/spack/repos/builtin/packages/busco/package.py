@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,8 @@ class Busco(PythonPackage):
     url = "https://gitlab.com/api/v4/projects/ezlab%2Fbusco/repository/archive.tar.gz?sha=2.0.1"
     git = "https://gitlab.com/ezlab/busco.git"
     maintainers("snehring")
+
+    license("MIT")
 
     version("5.4.3", sha256="8b92dcc32691f7c1629aaaa7bd54f96073273ba7de5a3a8586fe552c51a9d36a")
     version("4.1.3", sha256="08ded26aeb4f6aef791cd88524c3c00792a054c7672ea05219f468d495e7b072")
@@ -44,14 +45,14 @@ class Busco(PythonPackage):
         if self.spec.satisfies("@4.1.3:"):
             install_tree("bin", prefix.bin)
             install_tree("config", prefix.config)
-            super(Busco, self).install(spec, prefix)
+            super().install(spec, prefix)
         if self.spec.satisfies("@3.0.1"):
             with working_dir("scripts"):
                 mkdirp(prefix.bin)
                 install("generate_plot.py", prefix.bin)
                 install("run_BUSCO.py", prefix.bin)
             install_tree("config", prefix.config)
-            super(Busco, self).install(spec, prefix)
+            super().install(spec, prefix)
         if self.spec.satisfies("@2.0.1"):
             mkdirp(prefix.bin)
             install("BUSCO.py", prefix.bin)

@@ -1,0 +1,89 @@
+paths:
+- layout:
+  - executables:
+    - "bin/intel64/icc"
+    script: |
+      echo "icc (ICC) 18.0.5 20180823"
+      echo "Copyright (C) 1985-2018 Intel Corporation.  All rights reserved."
+  - executables:
+    - "bin/intel64/icpc"
+    script: |
+      echo "icpc (ICC) 18.0.5 20180823"
+      echo "Copyright (C) 1985-2018 Intel Corporation.  All rights reserved."
+  - executables:
+    - "bin/intel64/ifort"
+    script: |
+      echo "ifort (IFORT) 18.0.5 20180823"
+      echo "Copyright (C) 1985-2018 Intel Corporation.  All rights reserved."
+  platforms: [linux]
+  results:
+  - spec: 'intel-oneapi-compilers-classic@18.0.5'
+    extra_attributes:
+      compilers:
+        c: ".*/bin/intel64/icc"
+        cxx: ".*/bin/intel64/icpc"
+        fortran: ".*/bin/intel64/ifort"
+- layout:
+  - executables:
+    - "bin/icc"
+    script: |
+      echo "icc (ICC) 18.0.5 20180823"
+      echo "Copyright (C) 1985-2018 Intel Corporation.  All rights reserved."
+  - executables:
+    - "bin/icpc"
+    script: |
+      echo "icpc (ICC) 18.0.5 20180823"
+      echo "Copyright (C) 1985-2018 Intel Corporation.  All rights reserved."
+  - executables:
+    - "bin/ifort"
+    script: |
+      echo "ifort (IFORT) 18.0.5 20180823"
+      echo "Copyright (C) 1985-2018 Intel Corporation.  All rights reserved."
+  platforms: [linux]
+  results:
+  - spec: 'intel-oneapi-compilers-classic@18.0.5'
+    extra_attributes:
+      compilers:
+        c: ".*/bin/icc"
+        cxx: ".*/bin/icpc"
+        fortran: ".*/bin/ifort"
+- layout:
+  - executables:
+    - "compiler/18.0.5/linux/bin/intel64/icc"
+    script: |
+      echo "icc (ICC) 18.0.5 20180823"
+      echo "Copyright (C) 1985-2018 Intel Corporation.  All rights reserved."
+  - executables:
+    - "compiler/18.0.5/linux/bin/intel64/icpc"
+    script: |
+      echo "icpc (ICC) 18.0.5 20180823"
+      echo "Copyright (C) 1985-2018 Intel Corporation.  All rights reserved."
+  - executables:
+    - "compiler/18.0.5/linux/bin/intel64/ifort"
+    script: |
+      echo "ifort (IFORT) 18.0.5 20180823"
+      echo "Copyright (C) 1985-2018 Intel Corporation.  All rights reserved."
+  platforms: [linux]
+  results:
+  - spec: 'intel-oneapi-compilers-classic@18.0.5'
+    extra_attributes:
+      compilers:
+        c: ".*compiler/18.0.5/linux/bin/intel64/icc"
+        cxx: ".*compiler/18.0.5/linux/bin/intel64/icpc"
+        fortran: ".*compiler/18.0.5/linux/bin/intel64/ifort"
+- layout: # oneapi compiler is not detected as classic
+  - executables:
+    - "compiler/18.0.5/linux/bin/icx"
+    - "compiler/18.0.5/linux/bin/icpx"
+    script: |
+      echo "Intel(R) oneAPI DPC++ Compiler 2021.2.0 (2021.2.0.20210317)"
+      echo "Target: x86_64-unknown-linux-gnu"
+      echo "Thread model: posix"
+      echo "InstalledDir: /made/up/path",
+  - executables:
+    - "compiler/18.0.5/linux/bin/ifx"
+    script: |
+      echo "ifx (IFORT) 2021.1.2 Beta 20201214"
+      echo "Copyright (C) 1985-2020 Intel Corporation.  All rights reserved."
+  platforms: [linux]
+  results: []

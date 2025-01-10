@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from typing import List
@@ -22,8 +21,12 @@ class Remhos(MakefilePackage):
 
     maintainers("v-dobrev", "tzanio", "vladotomov")
 
+    license("BSD-2-Clause")
+
     version("develop", branch="master")
     version("1.0", sha256="e60464a867fe5b1fd694fbb37bb51773723427f071c0ae26852a2804c08bbb32")
+
+    depends_on("cxx", type="build")  # generated
 
     variant("metis", default=True, description="Enable/disable METIS support")
 
@@ -35,14 +38,11 @@ class Remhos(MakefilePackage):
 
     @property
     def build_targets(self):
-        targets = []
-        spec = self.spec
-
-        targets.append("MFEM_DIR=%s" % spec["mfem"].prefix)
-        targets.append("CONFIG_MK=%s" % spec["mfem"].package.config_mk)
-        targets.append("TEST_MK=%s" % spec["mfem"].package.test_mk)
-
-        return targets
+        return [
+            f"MFEM_DIR={self['mfem'].prefix}",
+            f"CONFIG_MK={self['mfem'].config_mk}",
+            f"TEST_MK={self['mfem'].test_mk}",
+        ]
 
     # See lib/spack/spack/build_systems/makefile.py
     def check(self):

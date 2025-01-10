@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,7 @@ class RDiagrammer(RPackage):
 
     cran = "DiagrammeR"
 
+    version("1.0.11", sha256="e873e3d6e198232408161661001ddcb04c9a56065bb4703c925e538462f4c4df")
     version("1.0.9", sha256="64a426fe27110dddd8b0c1223ae4c397a2e553ae5e81ddd4ff67c026cfc40abf")
     version("1.0.8", sha256="b9157b26215edda4fe0a1b9330a597d5b01a5d7e660a9832f593b87c584dd233")
     version("1.0.7", sha256="6af291a7136657b9f7c67b96cd7f3afe99662cf5a477ebbb213a6c53df623050")
@@ -28,10 +28,10 @@ class RDiagrammer(RPackage):
 
     depends_on("r@3.2.0:", type=("build", "run"), when="@0.9.2:")
     depends_on("r@3.5.0:", type=("build", "run"), when="@1.0.7")
+    depends_on("r-cli", type=("build", "run"), when="@1.0.11:")
     depends_on("r-dplyr@0.7.4:", type=("build", "run"), when="@1.0.0:")
     depends_on("r-dplyr@0.7.6:", type=("build", "run"), when="@1.0.6.1:")
     depends_on("r-dplyr@1.0.7:", type=("build", "run"), when="@1.0.7:")
-    depends_on("r-downloader@0.4:", type=("build", "run"), when="@1.0.0:")
     depends_on("r-glue@1.2.0:", type=("build", "run"), when="@1.0.0:")
     depends_on("r-glue@1.3.0:", type=("build", "run"), when="@1.0.6.1:")
     depends_on("r-glue@1.5.0:", type=("build", "run"), when="@1.0.7:")
@@ -43,8 +43,7 @@ class RDiagrammer(RPackage):
     depends_on("r-igraph@1.1.2:", type=("build", "run"))
     depends_on("r-igraph@1.2.2:", type=("build", "run"), when="@1.0.6.1:")
     depends_on("r-igraph@1.2.11:", type=("build", "run"), when="@1.0.7:")
-    depends_on("r-influencer@0.1.0:", type=("build", "run"))
-    depends_on("r-influencer@0.1.0.1:", type=("build", "run"), when="@1.0.7:")
+    depends_on("r-igraph@1.4.0:", type=("build", "run"), when="@1.0.11:")
     depends_on("r-magrittr@1.5:", type=("build", "run"), when="@1.0.0:")
     depends_on("r-purrr@0.2.4:", type=("build", "run"), when="@1.0.0:")
     depends_on("r-purrr@0.2.5:", type=("build", "run"), when="@1.0.6.1:")
@@ -55,6 +54,7 @@ class RDiagrammer(RPackage):
     depends_on("r-rlang@0.2.0:", type=("build", "run"), when="@1.0.0:")
     depends_on("r-rlang@0.2.2:", type=("build", "run"), when="@1.0.6.1:")
     depends_on("r-rlang@0.4:", type=("build", "run"), when="@1.0.7:")
+    depends_on("r-rlang@1.1.0:", type=("build", "run"), when="@1.0.11:")
     depends_on("r-rstudioapi@0.7:", type=("build", "run"))
     depends_on("r-scales@0.5.0:", type=("build", "run"))
     depends_on("r-scales@1.0.0:", type=("build", "run"), when="@1.0.6.1:")
@@ -67,11 +67,15 @@ class RDiagrammer(RPackage):
     depends_on("r-tidyr@0.8.0:", type=("build", "run"), when="@1.0.0:")
     depends_on("r-tidyr@0.8.1:", type=("build", "run"), when="@1.0.6.1:")
     depends_on("r-tidyr@1.1:", type=("build", "run"), when="@1.0.7:")
-    depends_on("r-viridis@0.5.0:", type=("build", "run"), when="@1.0.0:")
-    depends_on("r-viridis@0.5.1:", type=("build", "run"), when="@1.0.6.1:")
-    depends_on("r-viridis@0.6.2:", type=("build", "run"), when="@1.0.7:")
+    depends_on("r-viridislite@0.4.2:", type=("build", "run"), when="@1.0.11:")
     depends_on("r-visnetwork@2.0.3:", type=("build", "run"))
     depends_on("r-visnetwork@2.0.4:", type=("build", "run"), when="@1.0.6.1:")
     depends_on("r-visnetwork@2.1.0:", type=("build", "run"), when="@1.0.7:")
 
+    depends_on("r-downloader@0.4:", type=("build", "run"), when="@1.0.0:1.0.10")
+    depends_on("r-influencer@0.1.0:", type=("build", "run"), when="@:1.0.9")
+    depends_on("r-influencer@0.1.0.1:", type=("build", "run"), when="@1.0.7:1.0.9")
+    depends_on("r-viridis@0.5.0:", type=("build", "run"), when="@1.0.0:1.0.10")
+    depends_on("r-viridis@0.5.1:", type=("build", "run"), when="@1.0.6.1:1.0.10")
+    depends_on("r-viridis@0.6.2:", type=("build", "run"), when="@1.0.7:1.0.10")
     depends_on("r-rgexf@0.15.3:", type=("build", "run"), when="@1.0.0:1.0.1")

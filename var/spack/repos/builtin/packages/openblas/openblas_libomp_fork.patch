@@ -1,0 +1,13 @@
+diff --git a/utest/Makefile b/utest/Makefile
+index f99035440c..eab9046574 100644
+--- a/utest/Makefile
++++ b/utest/Makefile
+@@ -29,8 +29,11 @@ ifeq ($(OSNAME), $(filter $(OSNAME),Linux CYGWIN_NT))
+ ifneq ($(USE_OPENMP), 1)
+ OBJS += test_fork.o
+ endif
++# LLVM's libomp throws an assertion when running the post fork test
++ifneq ($(C_COMPILER), CLANG)
+ OBJS += test_post_fork.o
+ endif
++endif

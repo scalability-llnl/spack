@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,8 +12,10 @@ class PyProv(PythonPackage):
     PROV-O (RDF)
     """
 
-    homepage = "prov.readthedocs.io/"
+    homepage = "https://prov.readthedocs.io/"
     pypi = "prov/prov-2.0.0.tar.gz"
+
+    license("MIT")
 
     version("2.0.0", sha256="b6438f2195ecb9f6e8279b58971e02bc51814599b5d5383366eef91d867422ee")
     version("1.5.1", sha256="7a2d72b0df43cd9c6e374d815c8ce3cd5ca371d54f98f837853ac9fcc98aee4c")

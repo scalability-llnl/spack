@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,7 @@ class RBiostrings(RPackage):
 
     bioc = "Biostrings"
 
+    version("2.68.0", commit="f28b7838fb8321a9956506b3d2f4af2740bca124")
     version("2.66.0", commit="3470ca7da798971e2c3a595d8dc8d0d86f14dc53")
     version("2.64.1", commit="ffe263e958463bd1edb5d5d9316cfd89905be53c")
     version("2.64.0", commit="c7ad3c7af607bc8fe4a5e1c37f09e6c9bf70b4f6")
@@ -25,6 +25,8 @@ class RBiostrings(RPackage):
     version("2.48.0", commit="aa3599a7d259d658014d087b86d71ab1deb5f12b")
     version("2.46.0", commit="3bf6978c155498b50607d1bb471d1687d185a0fa")
     version("2.44.2", commit="e4a2b320fb21c5cab3ece7b3c6fecaedfb1e5200")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r@2.8.0:", type=("build", "run"))
     depends_on("r@3.5.0:", type=("build", "run"), when="@2.50.2:")

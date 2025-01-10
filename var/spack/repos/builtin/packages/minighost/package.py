@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,8 @@ class Minighost(MakefilePackage):
     url = "https://downloads.mantevo.org/releaseTarballs/miniapps/MiniGhost/miniGhost_1.0.1.tar.gz"
 
     tags = ["proxy-app"]
+
+    license("LGPL-3.0-only")
 
     version("1.0.1", sha256="713f305559d892923cde0ad3cbc53c7cefc52a684f65275ccc9fb0b1d049cccc")
 
@@ -49,8 +50,6 @@ class Minighost(MakefilePackage):
             targets.append("COMPILER_SUITE=cray")
         elif "%intel" in self.spec:
             targets.append("COMPILER_SUITE=intel")
-        elif "%pgi" in self.spec:
-            targets.append("COMPILER_SUITE=pgi")
 
         return targets
 

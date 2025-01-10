@@ -17,12 +17,11 @@ spack:
       - axom
       - blt
       - caliper
-      #- care  ## ~benchmarks ~examples ~tests
-      #- chai  ## ~benchmarks ~examples ~tests
+      - care  # ~benchmarks ~examples ~tests
+      - chai  # ~examples
       - conduit  # ^hdf5+shared
       - flux-core
       #- flux-sched
-      #- glvis   # ^mesa-glu@9.0.0 ^mesa18~llvm  # same issue w/chai
       - hypre
       - lbann
       - lvarray ~tests  # per Spack issue #23192  # ~examples
@@ -32,6 +31,7 @@ spack:
       - py-merlin
       - py-shroud
       - raja # ~examples  # ~tests
+      - raja-perf
       - samrai
       - scr
       - sundials
@@ -39,9 +39,6 @@ spack:
       #- visit   # ^mesa-glu@9.0.0
       - xbraid
       - zfp
-
-  mirrors:
-    mirror: "s3://spack-binaries/develop/radiuss"
 
   specs:
   - matrix:

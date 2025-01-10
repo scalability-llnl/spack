@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,7 @@ class RExperimenthub(RPackage):
 
     bioc = "ExperimentHub"
 
+    version("2.8.0", commit="f25c854c51878844098290a05936cb35b235f30e")
     version("2.6.0", commit="557ba29720bce85902a85445dd0435b7356cdd7f")
     version("2.4.0", commit="bdce35d3a89e8633cc395f28991e6b5d1eccbe8e")
     version("2.2.1", commit="4e10686fa72baefef5d2990f41a7c44c527a7a7d")
@@ -29,5 +29,5 @@ class RExperimenthub(RPackage):
     depends_on("r-biocfilecache@1.5.1:", type=("build", "run"))
     depends_on("r-s4vectors", type=("build", "run"))
     depends_on("r-biocmanager", type=("build", "run"))
-    depends_on("r-curl", type=("build", "run"))
     depends_on("r-rappdirs", type=("build", "run"))
+    depends_on("r-curl", type=("build", "run"), when="@:2.6.0")

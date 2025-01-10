@@ -1,0 +1,28 @@
+commit abef54185d43c0900bcde289a4436fea0790b9a7
+Author: Jonas Thies <16190001+jthies@users.noreply.github.com>
+Date:   Tue Sep 19 17:42:57 2023 +0200
+
+    cfwrapper script: do not use 'rU' mode when opening a file (fixes #246)
+
+diff --git a/fortran_bindings/cfwrapper.py.in b/fortran_bindings/cfwrapper.py.in
+index 9a2539d3..60808a5d 100755
+--- a/fortran_bindings/cfwrapper.py.in
++++ b/fortran_bindings/cfwrapper.py.in
+@@ -264,7 +264,7 @@ for library_path in PATH_DICT:
+         for c_file_name in directory[2]:
+             if (c_file_name.find(".CFWRAPPER_SKIP.") != -1):
+                 continue
+-            whole_file = open(directory[0] + "/" + c_file_name, 'rU', 
++            whole_file = open(directory[0] + "/" + c_file_name, 'r', 
+                               errors='replace').read()
+             enum_types = re.findall("(?ms)^typedef enum.*?}\s?(\w+);", whole_file)
+             phist_enums += enum_types
+@@ -338,7 +338,7 @@ for library_path in PATH_DICT:
+             if c_file_name in ["gstdio.h", "giochannel.h"]:
+                 continue    # Go to next file
+ 
+-            whole_file_original = open(directory[0] + "/" + c_file_name, 'rU', 
++            whole_file_original = open(directory[0] + "/" + c_file_name, 'r', 
+                                        errors='replace').read()
+             whole_file = whole_file_original
+             nb_files += 1

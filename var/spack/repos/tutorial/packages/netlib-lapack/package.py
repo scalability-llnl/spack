@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -170,19 +169,19 @@ class NetlibLapack(CMakePackage):
     @when("+shared")
     def cmake(self, spec, prefix):
         for self._building_shared in (False, True):
-            super(NetlibLapack, self).cmake(spec, prefix)
+            super().cmake(spec, prefix)
 
     @when("+shared")
     def build(self, spec, prefix):
         for self._building_shared in (False, True):
-            super(NetlibLapack, self).build(spec, prefix)
+            super().build(spec, prefix)
 
     @when("+shared")
     def install(self, spec, prefix):
         for self._building_shared in (False, True):
-            super(NetlibLapack, self).install(spec, prefix)
+            super().install(spec, prefix)
 
     @when("+shared")
     def check(self):
         for self._building_shared in (False, True):
-            super(NetlibLapack, self).check()
+            super().check()

@@ -1,7 +1,7 @@
 {% extends "container/bootstrap-base.dockerfile" %}
 {% block install_os_packages %}
-RUN yum update -y \
- && yum install -y \
+RUN dnf update -y \
+ && dnf install -y \
         bzip2 \
         curl \
         file \
@@ -23,6 +23,6 @@ RUN yum update -y \
         unzip \
         zstd \
  && pip3 install boto3 \
- && rm -rf /var/cache/yum \
- && yum clean all
+ && rm -rf /var/cache/dnf \
+ && dnf clean all
 {% endblock %}

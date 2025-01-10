@@ -1,0 +1,40 @@
+diff --git a/core/XdmfHDF5Controller.hpp b/core/XdmfHDF5Controller.hpp
+index c5c15d0a..496cc80d 100644
+--- a/core/XdmfHDF5Controller.hpp
++++ b/core/XdmfHDF5Controller.hpp
+@@ -27,13 +27,14 @@
+ // C Compatible Includes
+ #include "XdmfCore.hpp"
+ #include "XdmfHeavyDataController.hpp"
++#include <cstdint>
+ 
+ // So that hdf5 does not need to be included in the header files
+ // It would add a dependancy to programs that use Xdmf
+ #ifndef _H5Ipublic_H
+   #ifndef XDMF_HID_T
+   #define XDMF_HID_T
+-    typedef int hid_t;
++    typedef int64_t hid_t;
+   #endif
+ #endif
+ 
+diff --git a/core/XdmfHDF5Writer.hpp b/core/XdmfHDF5Writer.hpp
+index cfbec6f4..f83aa0de 100644
+--- a/core/XdmfHDF5Writer.hpp
++++ b/core/XdmfHDF5Writer.hpp
+@@ -28,13 +28,14 @@
+ #include "XdmfCore.hpp"
+ #include "XdmfHeavyDataWriter.hpp"
+ #include "XdmfHeavyDataController.hpp"
++#include <cstdint>
+ 
+ // So that hdf5 does not need to be included in the header files
+ // It would add a dependancy to programs that use Xdmf
+ #ifndef _H5Ipublic_H
+   #ifndef XDMF_HID_T
+   #define XDMF_HID_T
+-    typedef int hid_t;
++    typedef int64_t hid_t;
+   #endif
+ #endif
+ 

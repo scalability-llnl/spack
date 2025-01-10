@@ -4,7 +4,7 @@ tcl:
   all:
     autoload: none
     filter:
-      environment_blacklist:
+      exclude_env_vars:
         - CMAKE_PREFIX_PATH
     environment:
       set:

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,8 +11,30 @@ class PyTorchmetrics(PythonPackage):
     homepage = "https://github.com/PyTorchLightning/metrics"
     pypi = "torchmetrics/torchmetrics-0.3.1.tar.gz"
 
+    license("Apache-2.0")
     maintainers("adamjstewart")
 
+    version("1.6.1", sha256="a5dc236694b392180949fdd0a0fcf2b57135c8b600e557c725e077eb41e53e64")
+    version("1.6.0", sha256="aebba248708fb90def20cccba6f55bddd134a58de43fb22b0c5ca0f3a89fa984")
+    version("1.5.2", sha256="2d0e4957af0ea76438d2779fe1a626d8cba6cda8607eadb54267598153e7ea63")
+    version("1.5.1", sha256="9701632cf811bc460abf07bd7b971b79c1ae9c8231e03d495b53a0975e43fe07")
+    version("1.5.0", sha256="c18e68bab4104ad7d2285af601ddc6dc04f9f3b7cafaa8ad13fa1dcc539e33b6")
+    version("1.4.3", sha256="5554a19167e91f543afe82ff58a01059c8eec854359ad22896449c2c8fb0ad89")
+    version("1.4.2", sha256="7a40cbec85e5645090812b87601696b4adf158294ec8c407ae58a71710938b87")
+    version("1.4.0", sha256="0b1e5acdcc9beb05bfe369d3d56cfa5b143f060ebfd6079d19ccc59ba46465b3")
+    version("1.3.2", sha256="0a67694a4c4265eeb54cda741eaf5cb1f3a71da74b7e7e6215ad156c9f2379f6")
+    version("1.3.1", sha256="8d371f7597a1a5eb02d5f2ed59642d6fef09093926997ce91e18b1147cc8defa")
+    version(
+        "1.3.0",
+        sha256="e8ac3adcc61e7a847d0504b0a0e0a3b7f57796178b239c6fafb5d20c0c9460ac",
+        deprecated=True,
+    )  # Yanked
+    version("1.2.1", sha256="217387738f84939c39b534b20d4983e737cc448d27aaa5340e0327948d97ca3e")
+    version("1.2.0", sha256="7eb28340bde45e13187a9ad54a4a7010a50417815d8181a5df6131f116ffe1b7")
+    version("1.1.1", sha256="65ea34205c0506eecfd06b98f63f4d2a2c5c0e17367cf324e1747adc854c80a5")
+    version("1.1.0", sha256="94b51aeb3d5ff55503fa47086bbc2af9e26efabb840e2d3c2381db9623dda5fd")
+    version("1.0.3", sha256="1c20ea2f0db434334e88da6c015ddf936d43379bfb403e9dc2a7272b0eab453c")
+    version("1.0.2", sha256="537989d02337814e621a45232eeb1eacfd4700a66c2b5161d19ca2158246e075")
     version("0.11.4", sha256="1fe45a14b44dd65d90199017dd5a4b5a128d56a8a311da7916c402c18c671494")
     version("0.11.3", sha256="6a2bcc17361f0e4c1668c92595b12ef30ccf9ef1d03263bee7c6136a882afe30")
     version("0.11.2", sha256="5a1f5fff9b1fb695bbcab6442d768e2e9b9535d00f4b4dea9ce03d40c866be07")
@@ -32,11 +53,35 @@ class PyTorchmetrics(PythonPackage):
     version("0.3.1", sha256="78f4057db53f7c219fdf9ec9eed151adad18dd43488a44e5c780806d218e3f1d")
     version("0.2.0", sha256="481a28759acd2d77cc088acba6bc7dc4a356c7cb767da2e1495e91e612e2d548")
 
+    variant("image", default=False, description="image support", when="@0.11.2:")
+
+    # setup.py
     depends_on("py-setuptools", type="build")
-    depends_on("py-numpy@1.17.2:", when="@0.4:", type=("build", "run"))
-    depends_on("py-numpy", when="@0.3:", type=("build", "run"))
-    depends_on("py-torch@1.8.1:", when="@0.11:", type=("build", "run"))
-    depends_on("py-torch@1.3.1:", type=("build", "run"))
-    depends_on("py-pydeprecate@0.3", when="@0.7:0.8", type=("build", "run"))
-    depends_on("py-packaging", when="@0.3:", type=("build", "run"))
-    depends_on("py-typing-extensions", when="@0.9: ^python@:3.8", type=("build", "run"))
+
+    # requirements/base.txt (upper bound is removed during processing)
+    with default_args(type=("build", "run")):
+        depends_on("py-numpy@1.20.1:", when="@1:")
+        depends_on("py-numpy@1.17.2:", when="@0.4:")
+        depends_on("py-numpy", when="@0.3:")
+        depends_on("py-packaging@17.2:", when="@1.2.1:")
+        depends_on("py-packaging", when="@0.3:1.1.0")
+        depends_on("py-torch@2:", when="@1.6:")
+        depends_on("py-torch@1.10:", when="@1.3:")
+        depends_on("py-torch@1.8.1:", when="@0.11:")
+        depends_on("py-torch@1.3.1:")
+        depends_on("py-typing-extensions", when="@0.9: ^python@:3.8")
+        depends_on("py-lightning-utilities@0.8:", when="@1.1:")
+        depends_on("py-lightning-utilities@0.7:", when="@1:")
+
+        with when("+image"):
+            depends_on("py-scipy@1.0.1:")
+            depends_on("py-torchvision@0.15.1:", when="@1.6:")
+            depends_on("py-torchvision@0.8:")
+            depends_on("py-torch-fidelity")
+
+        # Historical dependencies
+        depends_on("py-pretty-errors@1.2.25", when="@1.4.0")
+        depends_on("py-pydeprecate@0.3", when="@0.7:0.8")
+
+        with when("+image"):
+            depends_on("py-lpips", when="@:1.2.0")

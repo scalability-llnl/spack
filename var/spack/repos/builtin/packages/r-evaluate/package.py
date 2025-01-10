@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,9 @@ class REvaluate(RPackage):
 
     cran = "evaluate"
 
+    license("MIT")
+
+    version("0.24.0", sha256="e23d764a58e7525257d57da4ccfee9d6f63b5b3c18bf01c76818ec8c9c587fd6")
     version("0.20", sha256="35f5d9e85603600b58960923d591c5ca1115153febba7c612867d8b5598afff0")
     version("0.18", sha256="7f4eecdc97ac286d5c7a39c454fe6798da38ef634bf9305c595faa8facb2bf36")
     version("0.17", sha256="49c743c94cb967911af0e5555861a3762cd840b98578882671b583cff86ba963")
@@ -24,5 +26,6 @@ class REvaluate(RPackage):
     version("0.9", sha256="e8118c9d6ec479c0e712913848404431b6b6c0282f3c131acaf9a677ab5fc6ae")
 
     depends_on("r@3.0.2:", type=("build", "run"))
+    depends_on("r@4.0.0:", type=("build", "run"), when="@0.24.0:")
 
     depends_on("r-stringr@0.6.2:", type=("build", "run"), when="@:0.11")

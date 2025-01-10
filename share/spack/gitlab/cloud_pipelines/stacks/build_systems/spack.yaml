@@ -13,6 +13,7 @@ spack:
       - openjpeg  # CMakePackage
       - r-rcpp  # RPackage
       - ruby-rake  # RubyPackage
+      - perl-data-dumper # PerlPackage
     - arch:
       - '%gcc'
 
@@ -20,8 +21,6 @@ spack:
     - matrix:
         - - $default_specs
         - - $arch
-
-  mirrors: { "mirror": "s3://spack-binaries/develop/build_systems" }
 
   cdash:
     build-group: Build Systems

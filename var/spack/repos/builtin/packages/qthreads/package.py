@@ -1,7 +1,8 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
+import os
 
 from spack.package import *
 
@@ -29,19 +30,22 @@ class Qthreads(AutotoolsPackage):
 
     homepage = "http://www.cs.sandia.gov/qthreads/"
 
-    url = "https://github.com/Qthreads/qthreads/releases/download/1.10/qthread-1.10.tar.bz2"
     test_requires_compiler = True
-    test_base_path = "test/basics/"
-    test_list = ["hello_world_multi", "hello_world"]
+    test_base_path = join_path("test", "basics")
 
     tags = ["e4s"]
 
-    version("1.16", sha256="0a95e20b08cb486de6c33bff16590f41e444ca64ab738aee697ef982fbb021d8")
+    version("1.18", sha256="d1a808b35d3af0012194a8f3afe72241dfcffca7e88a7104fa02a46c73022880")
+    version("1.17", sha256="b17efb3c94c2027b8edd759584f4b1fa1e2725f1878a7a098d7bc58ad38d82f1")
+    version("1.16", sha256="923d58f3ecf7d838a18c3616948ea32ddace7196c6805518d052c51a27219970")
     version("1.15", sha256="3ac2dc24debff004a2998933de5724b1e14e1ae262fa9942acbb01f77819a23b")
     version("1.14", sha256="16f15e5b2e35b6329a857d24c283a1e43cd49921ee49a1446d4f31bf9c6f5cf9")
     version("1.12", sha256="2c13a5f6f45bc2f22038d272be2e748e027649d3343a9f824da9e86a88b594c9")
     version("1.11", sha256="dbde6c7cb7de7e89921e47363d09cecaebf775c9d090496c2be8350355055571")
     version("1.10", sha256="29fbc2e54bcbc814c1be13049790ee98c505f22f22ccee34b7c29a4295475656")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     patch("restrict.patch", when="@:1.10")
     patch("trap.patch", when="@:1.10")
@@ -65,6 +69,19 @@ class Qthreads(AutotoolsPackage):
 
     depends_on("hwloc@1.0:1", when="@:1.15 +hwloc")
     depends_on("hwloc@1.5:2", when="@1.16: +hwloc")
+
+    def url_for_version(self, version):
+        # if version is greater than 1.17, use new default
+        if version >= Version("1.17"):
+            url_fmt = (
+                "https://github.com/Qthreads/qthreads/releases/download/{0}/qthread-{0}.tar.gz"
+            )
+        # otherwise, use .bz2 file format
+        else:
+            url_fmt = (
+                "https://github.com/Qthreads/qthreads/releases/download/{0}/qthread-{0}.tar.bz2"
+            )
+        return url_fmt.format(version)
 
     def configure_args(self):
         spec = self.spec
@@ -96,44 +113,35 @@ class Qthreads(AutotoolsPackage):
     def setup_build_tests(self):
         """Copy the build test files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        tests = self.test_list
-        relative_test_dir = self.test_base_path
-        files_to_cpy = []
-        header = "test/argparsing.h"
-        for test in tests:
-            test_path = join_path(relative_test_dir, test + ".c")
-            files_to_cpy.append(test_path)
-        files_to_cpy.append(header)
-        self.cache_extra_test_sources(files_to_cpy)
+        cache_extra_test_sources(self, [join_path("test", "argparsing.h"), self.test_base_path])
 
-    def build_tests(self):
-        """Build and run the added smoke (install) test."""
-        tests = self.test_list
-        relative_test_dir = self.test_base_path
+    def _build_and_run_test(self, test):
+        """Build and run the test."""
+        test_root = install_test_root(self)
+        options = [
+            f"-I{self.prefix.include}",
+            f"-I{join_path(test_root, 'test')}",
+            join_path(test_root, self.test_base_path, f"{test}.c"),
+            "-o",
+            test,
+            f"-L{self.prefix.lib}",
+            "-lqthread",
+            f"{self.compiler.cc_rpath_arg}{self.prefix.lib}",
+        ]
+        cc = which(os.environ["CC"])
+        cc(*options)
 
-        for test in tests:
-            options = [
-                "-I{0}".format(self.prefix.include),
-                "-I{0}".format(self.install_test_root + "/test"),
-                join_path(self.install_test_root, relative_test_dir, test + ".c"),
-                "-o",
-                test,
-                "-L{0}".format(self.prefix.lib),
-                "-lqthread",
-                "{0}{1}".format(self.compiler.cc_rpath_arg, self.prefix.lib),
-            ]
-            reason = "test:{0}: Checking ability to link to the library.".format(test)
-            self.run_test("cc", options, [], installed=False, purpose=reason)
+        exe = which(join_path(".", test))
+        exe()
 
-    def run_tests(self):
-        tests = self.test_list
-        # Now run the program
-        for test in tests:
-            reason = "test:{0}: Checking ability to execute.".format(test)
-            self.run_test(test, [], purpose=reason)
+    def test_hello_world(self):
+        """build and run hello_world"""
+        self._build_and_run_test("hello_world")
 
-    def test(self):
-        # Build
-        self.build_tests()
-        # Run test programs pulled from the build
-        self.run_tests()
+    def test_hello_world_multi(self):
+        """build and run hello_world_multi"""
+        self._build_and_run_test("hello_world_multi")
+
+    def test_qthread_id(self):
+        """build and run qthread_id"""
+        self._build_and_run_test("qthread_id")

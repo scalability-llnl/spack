@@ -1,0 +1,11 @@
+diff --git a/CMake/FindLZMA.cmake b/CMake/FindLZMA.cmake
+index 213ab18df1..c9e693800b 100644
+--- a/CMake/FindLZMA.cmake
++++ b/CMake/FindLZMA.cmake
+@@ -1,5 +1,5 @@
+ 
+-find_library(LZMA_LIBRARIES NAMES lzma)
++find_library(LZMA_LIBRARIES NAMES lzma liblzma)
+ find_path(LZMA_INCLUDE_DIRS NAMES lzma.h)
+ 
+ include(FindPackageHandleStandardArgs)

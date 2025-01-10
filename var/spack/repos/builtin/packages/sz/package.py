@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import spack.build_systems.autotools
@@ -18,6 +17,8 @@ class Sz(CMakePackage, AutotoolsPackage):
     tags = ["e4s"]
 
     version("master", branch="master")
+    version("2.1.12.5", sha256="32a820daf6019156a777300389d2392e4498a5c9daffce7be754cd0a5ba8729c")
+    version("2.1.12.4", sha256="4ae242e8821a96b7a4571bb5df6a3c78742d375f80cccbd5d46c4bac255b3c08")
     version("2.1.12.2", sha256="427e263e1fed1b0a56e13e0aff8e6a19c6d78d5f35dd16856876c70ab6066dc6")
     version("2.1.12", sha256="3712b2cd7170d1511569e48a208f02dfb72ecd7ad053c321e2880b9083e150de")
     version("2.1.11.1", sha256="e6fa5c969b012782b1e5e9fbd1cd7d1c0ace908d9ec982e78b2910ec5c2161ac")
@@ -44,12 +45,18 @@ class Sz(CMakePackage, AutotoolsPackage):
     version("1.4.10.0", sha256="cf23cf1ffd7c69c3d3128ae9c356b6acdc03a38f92c02db5d9bfc04f3fabc506")
     version("1.4.9.2", sha256="9dc785274d068d04c2836955fc93518a9797bfd409b46fea5733294b7c7c18f8")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build", when="+fortran")
+
     build_system(
         conditional("autotools", when="@:2.1.8.0"),
         conditional("cmake", when="@2.1.8.1:"),
         default="cmake",
     )
 
+    variant("openmp", default=False, description="build the multithreaded version using openmp")
+    variant("examples", default=False, description="build examples")
     variant("python", default=False, description="builds the python wrapper")
     variant("netcdf", default=False, description="build the netcdf reader")
     variant("hdf5", default=False, description="build the hdf5 filter")
@@ -64,7 +71,7 @@ class Sz(CMakePackage, AutotoolsPackage):
     # with Fujitsu compiler.
     patch("fix_optimization.patch", when="@2.0.2.0:%fj")
 
-    depends_on("zlib")
+    depends_on("zlib-api")
     depends_on("zstd")
 
     extends("python", when="+python")
@@ -76,93 +83,86 @@ class Sz(CMakePackage, AutotoolsPackage):
     depends_on("cmake@3.13:", type="build")
     depends_on("cunit", type="test")
 
+    conflicts("%clang@15:", when="@:2.1.12.4+hdf5")
+
     patch("ctags-only-if-requested.patch", when="@2.1.8.1:2.1.8.3")
+
+    # Windows requires numerous commits that only exist on master at the moment
+    conflicts("platform=windows", when="@:2.1.12.5")
+
+    def flag_handler(self, name, flags):
+        if name == "cflags":
+            if self.spec.satisfies("%oneapi"):
+                flags.append("-Wno-error=implicit-function-declaration")
+        return (flags, None, None)
 
     def setup_run_environment(self, env):
         if "+hdf5" in self.spec:
             env.prepend_path("HDF5_PLUGIN_PATH", self.prefix.lib64)
 
-    def _test_2d_float(self):
-        """This test performs simple 2D compression/decompression (float)"""
+    def test_2d_float(self):
+        """Run simple 2D compression/decompression"""
         test_data_dir = self.test_suite.current_test_data_dir
 
-        filename = "testfloat_8_8_128.dat"
-        orifile = test_data_dir.join(filename)
+        exe = which(self.prefix.bin.sz)
+        if exe is None:
+            raise SkipTest(f"sz is not installed for version {self.version}")
 
-        exe = "sz"
-        reason = "testing 2D compression of {0}".format(exe)
-        options = ["-z", "-f", "-i", orifile, "-M", "REL", "-R", "1E-3", "-2", "8", "1024"]
+        with working_dir(test_data_dir):
+            filename = "testfloat_8_8_128.dat"
+            orifile = test_data_dir.join(filename)
+            with test_part(
+                self, "test_2d_float_compression", purpose="testing 2D compression of sz"
+            ):
+                options = ["-z", "-f", "-i", orifile, "-M", "REL", "-R", "1E-3", "-2", "8", "1024"]
+                exe(*options)
 
-        self.run_test(
-            exe,
-            options,
-            [],
-            installed=True,
-            purpose=reason,
-            skip_missing=True,
-            work_dir=test_data_dir,
-        )
+            filename = "testfloat_8_8_128.dat.sz"
+            decfile = test_data_dir.join(filename)
 
-        filename = "testfloat_8_8_128.dat.sz"
-        decfile = test_data_dir.join(filename)
+            with test_part(
+                self, "test_2d_float_decompression", purpose="testing 2D decompression of sz"
+            ):
+                options = ["-x", "-f", "-i", orifile, "-s", decfile, "-2", "8", "1024", "-a"]
+                exe(*options)
 
-        reason = "testing 2D decompression of {0}".format(exe)
-        options = ["-x", "-f", "-i", orifile, "-s", decfile, "-2", "8", "1024", "-a"]
-
-        self.run_test(
-            exe,
-            options,
-            [],
-            installed=True,
-            purpose=reason,
-            skip_missing=True,
-            work_dir=test_data_dir,
-        )
-
-    def _test_3d_float(self):
-        """This test performs simple 3D compression/decompression (float)"""
-
+    def test_3d_float(self):
+        """Run simple 3D compression/decompression"""
         test_data_dir = self.test_suite.current_test_data_dir
 
-        filename = "testfloat_8_8_128.dat"
-        orifile = test_data_dir.join(filename)
+        exe = which(self.prefix.bin.sz)
+        if exe is None:
+            raise SkipTest(f"sz is not installed for version {self.version}")
 
-        exe = "sz"
-        reason = "testing 3D compression of {0}".format(exe)
-        options = ["-z", "-f", "-i", orifile, "-M", "REL", "-R", "1E-3", "-3", "8", "8", "128"]
+        with working_dir(test_data_dir):
+            filename = "testfloat_8_8_128.dat"
+            orifile = test_data_dir.join(filename)
+            with test_part(
+                self, "test_3d_float_compression", purpose="testing 3D compression of sz"
+            ):
+                options = [
+                    "-z",
+                    "-f",
+                    "-i",
+                    orifile,
+                    "-M",
+                    "REL",
+                    "-R",
+                    "1E-3",
+                    "-3",
+                    "8",
+                    "8",
+                    "128",
+                ]
+                exe(*options)
 
-        self.run_test(
-            exe,
-            options,
-            [],
-            installed=True,
-            purpose=reason,
-            skip_missing=True,
-            work_dir=test_data_dir,
-        )
-
-        filename = "testfloat_8_8_128.dat.sz"
-        decfile = test_data_dir.join(filename)
-
-        reason = "testing 3D decompression of {0}".format(exe)
-        options = ["-x", "-f", "-i", orifile, "-s", decfile, "-3", "8", "8", "128", "-a"]
-
-        self.run_test(
-            exe,
-            options,
-            [],
-            installed=True,
-            purpose=reason,
-            skip_missing=True,
-            work_dir=test_data_dir,
-        )
-
-    def test(self):
-        """Perform smoke tests on the installed package"""
-        # run 2D compression and decompression (float)
-        self._test_2d_float()
-        # run 3D compression and decompression (float)
-        self._test_3d_float()
+            filename = "testfloat_8_8_128.dat.sz"
+            decfile = test_data_dir.join(filename)
+            with test_part(
+                self, "test_3d_float_decompression", purpose="testing 3D decompression of sz"
+            ):
+                options = ["-x", "-f", "-i", orifile, "-s", decfile, "-3", "8", "8", "128", "-a"]
+                exe(*options)
 
 
 class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
@@ -191,6 +191,8 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
             self.define_from_variant("BUILD_STATS", "stats"),
             self.define("BUILD_TESTS", self.pkg.run_tests),
             self.define_from_variant("BUILD_PYTHON_WRAPPER", "python"),
+            self.define_from_variant("BUILD_OPENMP", "openmp"),
+            self.define_from_variant("BUILD_SZ_EXAMPLES", "examples"),
         ]
 
         if "+python" in self.spec:

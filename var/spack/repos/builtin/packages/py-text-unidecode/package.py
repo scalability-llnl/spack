@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PyTextUnidecode(PythonPackage):
 
     homepage = "https://github.com/kmike/text-unidecode/"
     pypi = "text-unidecode/text-unidecode-1.3.tar.gz"
+
+    license("Artistic-1.0-Perl")
 
     version("1.3", sha256="bad6603bb14d279193107714b288be206cac565dfa49aa5b105294dd5c4aab93")
 

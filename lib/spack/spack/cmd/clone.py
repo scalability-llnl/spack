@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -48,7 +47,7 @@ def get_origin_info(remote):
         )
     except ProcessError:
         origin_url = _SPACK_UPSTREAM
-        tty.warn("No git repository found; " "using default upstream URL: %s" % origin_url)
+        tty.warn("No git repository found; using default upstream URL: %s" % origin_url)
     return (origin_url.strip(), branch.strip())
 
 
@@ -69,7 +68,7 @@ def clone(parser, args):
     files_in_the_way = os.listdir(prefix)
     if files_in_the_way:
         tty.die(
-            "There are already files there! " "Delete these files before boostrapping spack.",
+            "There are already files there! Delete these files before boostrapping spack.",
             *files_in_the_way,
         )
 

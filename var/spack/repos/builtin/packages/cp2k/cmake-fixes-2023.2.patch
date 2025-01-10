@@ -1,0 +1,714 @@
+From b75eb217115820059aba26d1ff1a8657e3841e7d Mon Sep 17 00:00:00 2001
+From: Mathieu Taillefumier <mathieu.taillefumier@free.fr>
+Date: Mon, 23 Oct 2023 15:50:44 +0200
+Subject: [PATCH] cmake-fixes-2023.2
+
+---
+ CMakeLists.txt            |  63 +++++++-----
+ cmake/FindBlas.cmake      | 174 +++++++++++++++++-----------------
+ cmake/FindLapack.cmake    |  47 ++++-----
+ cmake/cp2k.pc.in          |  19 ----
+ cmake/cp2kConfig.cmake.in | 195 ++++++++++++++++++++------------------
+ cmake/libcp2k.pc.in       |  11 +++
+ src/CMakeLists.txt        |  18 ++--
+ 7 files changed, 276 insertions(+), 251 deletions(-)
+ delete mode 100644 cmake/cp2k.pc.in
+ create mode 100644 cmake/libcp2k.pc.in
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 3f81c7b52..f2d85d033 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -49,7 +49,8 @@ if(NOT DEFINED CMAKE_CUDA_STANDARD)
+ endif()
+ 
+ # set language and standard
+-set(CMAKE_CXX_STANDARD 11)
++set(CMAKE_CXX_STANDARD 14)
++set(CMAKE_C_STANDARD 11)
+ 
+ find_package(PkgConfig)
+ 
+@@ -108,6 +109,10 @@ option(CP2K_USE_LIBXSMM "Use libxsmm for small gemms (supports x86 platforms)"
+        OFF)
+ option(CP2K_BUILD_DBCSR "Duild dbcsr at the same time than cp2k." OFF)
+ option(BUILD_SHARED_LIBS "Build cp2k shared library" ON)
++option(
++  CP2K_USE_FFTW3_WITH_MKL
++  "If set to ON use the original implementation of fftw3 instead of the MKL implementation."
++  OFF)
+ 
+ cmake_dependent_option(CP2K_ENABLE_ELPA_OPENMP_SUPPORT
+                        "Enable elpa openmp support" ON "CP2K_USE_ELPA" OFF)
+@@ -115,8 +120,8 @@ cmake_dependent_option(CP2K_ENABLE_FFTW3_OPENMP_SUPPORT
+                        "Enable FFTW openmp support" ON "CP2K_USE_FFTW3" OFF)
+ cmake_dependent_option(CP2K_ENABLE_FFTW3_THREADS_SUPPORT
+                        "Enable FFTW THREADS support" OFF "CP2K_USE_FFTW3" OFF)
+-cmake_dependent_option(CP2K_ENABLE_F08_MPI "Enable MPI Fortran 2008 interface"
+-                       OFF "CP2K_USE_MPI" OFF)
++cmake_dependent_option(CP2K_USE_MPI_F08 "Enable MPI Fortran 2008 interface" OFF
++                       "CP2K_USE_MPI" OFF)
+ 
+ cmake_dependent_option(
+   DBCSR_USE_ACCEL
+@@ -527,7 +532,7 @@ if(CP2K_USE_ACCEL MATCHES "CUDA")
+   endif()
+ 
+   set(CP2K_USE_CUDA ON)
+-  message(STATUS ``"-- CUDA compiler and libraries found")
++  message(STATUS "-- CUDA compiler and libraries found")
+ elseif(CP2K_USE_ACCEL MATCHES "HIP")
+   enable_language(HIP)
+   # Find hip
+@@ -620,27 +625,36 @@ endif()
+ 
+ # FFTW3
+ 
++set(CP2K_USE_FFTW3_ OFF)
+ if(CP2K_USE_FFTW3)
+-  find_package(Fftw REQUIRED)
+-  if(CP2K_ENABLE_FFTW3_THREADS_SUPPORT AND CP2K_ENABLE_FFTW3_OPENMP_SUPPORT)
+-    message(
+-      FATAL_ERROR
+-        "Fftw3 threads and openmp supports can not be used at the same time")
+-  endif()
++  if(CP2K_USE_FFTW3_WITH_MKL OR NOT CP2K_BLAS_VENDOR MATCHES "MKL")
++    find_package(Fftw REQUIRED)
++    if(CP2K_ENABLE_FFTW3_THREADS_SUPPORT AND CP2K_ENABLE_FFTW3_OPENMP_SUPPORT)
++      message(
++        FATAL_ERROR
++          "Fftw3 threads and openmp supports can not be used at the same time")
++    endif()
+ 
+-  if((CP2K_ENABLE_FFTW3_THREADS_SUPPORT) AND (NOT TARGET
+-                                              CP2K::FFTW3::fftw3_threads))
+-    message(
+-      FATAL_ERROR
+-        "fftw3 was compiled without multithreading support (--enable-threads option in fftw build system)."
+-    )
+-  endif()
++    if((CP2K_ENABLE_FFTW3_THREADS_SUPPORT) AND (NOT TARGET
++                                                CP2K::FFTW3::fftw3_threads))
++      message(
++        FATAL_ERROR
++          "fftw3 was compiled without multithreading support (--enable-threads option in fftw build system)."
++      )
++    endif()
+ 
+-  if((CP2K_ENABLE_FFTW3_OPENMP_SUPPORT) AND (NOT TARGET CP2K::FFTW3::fftw3_omp))
+-    message(
+-      FATAL_ERROR
+-        "fftw3 was compiled without openmp support  (--enable-openmp option in fftw build system)."
+-    )
++    if((CP2K_ENABLE_FFTW3_OPENMP_SUPPORT) AND (NOT TARGET CP2K::FFTW3::fftw3_omp
++                                              ))
++      message(
++        FATAL_ERROR
++          "fftw3 was compiled without openmp support  (--enable-openmp option in fftw build system)."
++      )
++    endif()
++    # we use this variable later on to include the fftw target whenever mkl is
++    # found or not
++    set(CP2K_USE_FFTW3_ ON)
++  else()
++    message("-- Using the MKL implementation of FFTW3.")
+   endif()
+ endif()
+ 
+@@ -748,7 +762,7 @@ add_subdirectory(src)
+ include(GNUInstallDirs)
+ 
+ get_target_property(CP2K_LIBS cp2k_link_libs INTERFACE_LINK_LIBRARIES)
+-configure_file(cmake/cp2k.pc.in cp2k.pc @ONLY)
++configure_file(cmake/libcp2k.pc.in libcp2k.pc @ONLY)
+ 
+ message(
+   STATUS "--------------------------------------------------------------------")
+@@ -1039,6 +1053,9 @@ install(FILES "${PROJECT_BINARY_DIR}/cp2kConfig.cmake"
+               "${PROJECT_BINARY_DIR}/cp2kConfigVersion.cmake"
+         DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/cp2k")
+ 
++install(FILES "${PROJECT_BINARY_DIR}/libcp2k.pc"
++        DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
++
+ install(
+   DIRECTORY "${PROJECT_SOURCE_DIR}/cmake"
+   DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/cp2k"
+diff --git a/cmake/FindBlas.cmake b/cmake/FindBlas.cmake
+index 6e5fb7824..335cbd964 100644
+--- a/cmake/FindBlas.cmake
++++ b/cmake/FindBlas.cmake
+@@ -15,104 +15,108 @@ if(NOT
+     OR CMAKE_Fortran_COMPILER_LOADED))
+   message(FATAL_ERROR "FindBLAS requires Fortran, C, or C++ to be enabled.")
+ endif()
++if(NOT CP2K_CONFIG_PACKAGE)
++  set(CP2K_BLAS_VENDOR_LIST
++      "auto"
++      "MKL"
++      "OpenBLAS"
++      "SCI"
++      "GenericBLAS"
++      "Armpl"
++      "FlexiBLAS"
++      "Atlas"
++      "NVHPCBlas"
++      "CUSTOM")
++
++  set(__BLAS_VENDOR_LIST ${CP2K_BLAS_VENDOR_LIST})
++  list(REMOVE_ITEM __BLAS_VENDOR_LIST "auto")
++  list(REMOVE_ITEM __BLAS_VENDOR_LIST "CUSTOM")
++
++  # set(CP2K_BLAS_VENDOR "auto" CACHE STRING "Blas library for computations on
++  # host")
++  set_property(CACHE CP2K_BLAS_VENDOR PROPERTY STRINGS ${CP2K_BLAS_VENDOR_LIST})
++
++  if(NOT ${CP2K_BLAS_VENDOR} IN_LIST CP2K_BLAS_VENDOR_LIST)
++    message(FATAL_ERROR "Invalid Host BLAS backend")
++  endif()
+ 
+-set(CP2K_BLAS_VENDOR_LIST
+-    "auto"
+-    "MKL"
+-    "OpenBLAS"
+-    "SCI"
+-    "GenericBLAS"
+-    "Armpl"
+-    "FlexiBLAS"
+-    "Atlas"
+-    "NVHPCBlas"
+-    "CUSTOM")
+-
+-set(__BLAS_VENDOR_LIST ${CP2K_BLAS_VENDOR_LIST})
+-list(REMOVE_ITEM __BLAS_VENDOR_LIST "auto")
+-list(REMOVE_ITEM __BLAS_VENDOR_LIST "CUSTOM")
+-
+-# set(CP2K_BLAS_VENDOR "auto" CACHE STRING "Blas library for computations on
+-# host")
+-set_property(CACHE CP2K_BLAS_VENDOR PROPERTY STRINGS ${CP2K_BLAS_VENDOR_LIST})
+-
+-if(NOT ${CP2K_BLAS_VENDOR} IN_LIST CP2K_BLAS_VENDOR_LIST)
+-  message(FATAL_ERROR "Invalid Host BLAS backend")
+-endif()
+-
+-set(CP2K_BLAS_THREAD_LIST "sequential" "thread" "gnu-thread" "intel-thread"
+-                          "tbb-thread" "openmp")
+-
+-set(CP2K_BLAS_THREADING
+-    "sequential"
+-    CACHE STRING "threaded blas library")
+-set_property(CACHE CP2K_BLAS_THREADING PROPERTY STRINGS
+-                                                ${CP2K_BLAS_THREAD_LIST})
+-
+-if(NOT ${CP2K_BLAS_THREADING} IN_LIST CP2K_BLAS_THREAD_LIST)
+-  message(FATAL_ERROR "Invalid threaded BLAS backend")
+-endif()
++  set(CP2K_BLAS_THREAD_LIST "sequential" "thread" "gnu-thread" "intel-thread"
++                            "tbb-thread" "openmp")
+ 
+-set(CP2K_BLAS_INTERFACE_BITS_LIST "32bits" "64bits")
+-set(CP2K_BLAS_INTERFACE
+-    "32bits"
+-    CACHE STRING
+-          "32 bits integers are used for indices, matrices and vectors sizes")
+-set_property(CACHE CP2K_BLAS_INTERFACE
+-             PROPERTY STRINGS ${CP2K_BLAS_INTERFACE_BITS_LIST})
+-
+-if(NOT ${CP2K_BLAS_INTERFACE} IN_LIST CP2K_BLAS_INTERFACE_BITS_LIST)
+-  message(
+-    FATAL_ERROR
+-      "Invalid parameters. Blas and lapack can exist in two flavors 32 or 64 bits interfaces (relevant mostly for mkl)"
+-  )
+-endif()
++  set(CP2K_BLAS_THREADING
++      "sequential"
++      CACHE STRING "threaded blas library")
++  set_property(CACHE CP2K_BLAS_THREADING PROPERTY STRINGS
++                                                  ${CP2K_BLAS_THREAD_LIST})
+ 
+-set(CP2K_BLAS_FOUND FALSE)
++  if(NOT ${CP2K_BLAS_THREADING} IN_LIST CP2K_BLAS_THREAD_LIST)
++    message(FATAL_ERROR "Invalid threaded BLAS backend")
++  endif()
+ 
+-# first check for a specific implementation if requested
++  set(CP2K_BLAS_INTERFACE_BITS_LIST "32bits" "64bits")
++  set(CP2K_BLAS_INTERFACE
++      "32bits"
++      CACHE STRING
++            "32 bits integers are used for indices, matrices and vectors sizes")
++  set_property(CACHE CP2K_BLAS_INTERFACE
++               PROPERTY STRINGS ${CP2K_BLAS_INTERFACE_BITS_LIST})
+ 
+-if(NOT CP2K_BLAS_VENDOR MATCHES "auto|CUSTOM")
+-  find_package(${CP2K_BLAS_VENDOR} REQUIRED)
+-  if(TARGET CP2K::BLAS::${CP2K_BLAS_VENDOR}::blas)
+-    get_target_property(
+-      CP2K_BLAS_INCLUDE_DIRS CP2K::BLAS::${CP2K_BLAS_VENDOR}::blas
+-      INTERFACE_INCLUDE_DIRECTORIES)
+-    get_target_property(
+-      CP2K_BLAS_LINK_LIBRARIES CP2K::BLAS::${CP2K_BLAS_VENDOR}::blas
+-      INTERFACE_LINK_LIBRARIES)
+-    set(CP2K_BLAS_FOUND TRUE)
+-  endif()
+-else()
+-  if(CP2K_BLAS_VENDOR MATCHES "CUSTOM" AND NOT DEFINED CP2K_BLAS_LINK_LIBRARIES)
++  if(NOT ${CP2K_BLAS_INTERFACE} IN_LIST CP2K_BLAS_INTERFACE_BITS_LIST)
+     message(
+       FATAL_ERROR
+-        "Setting CP2K_BLAS_VENDOR=CUSTOM imply setting CP2K_BLAS_LINK_LIBRARIES\n and CP2K_LAPACK_LINK_LIBRARIES to the right libraries. See the README_cmake.md for more details"
++        "Invalid parameters. Blas and lapack can exist in two flavors 32 or 64 bits interfaces (relevant mostly for mkl)"
+     )
+   endif()
+ 
+-  if(DEFINED CP2K_BLAS_LINK_LIBRARIES)
+-    set(CP2K_BLAS_FOUND TRUE)
++  set(CP2K_BLAS_FOUND FALSE)
++
++  # first check for a specific implementation if requested
++
++  if(NOT CP2K_BLAS_VENDOR MATCHES "auto|CUSTOM")
++    find_package(${CP2K_BLAS_VENDOR} REQUIRED)
++    if(TARGET CP2K::BLAS::${CP2K_BLAS_VENDOR}::blas)
++      get_target_property(
++        CP2K_BLAS_INCLUDE_DIRS CP2K::BLAS::${CP2K_BLAS_VENDOR}::blas
++        INTERFACE_INCLUDE_DIRECTORIES)
++      get_target_property(
++        CP2K_BLAS_LINK_LIBRARIES CP2K::BLAS::${CP2K_BLAS_VENDOR}::blas
++        INTERFACE_LINK_LIBRARIES)
++      set(CP2K_BLAS_FOUND TRUE)
++    endif()
+   else()
+-    # search for any blas implementation and exit immediately if one is found.
+-    # we could also give a full list of found implementation and let the user
+-    # choose which implementation to use
+-    foreach(_libs ${__BLAS_VENDOR_LIST})
+-      # I exclude the first item of the list
+-      find_package(${_libs})
+-      if(TARGET CP2K::BLAS::${_libs}::blas)
+-        get_target_property(CP2K_BLAS_INCLUDE_DIRS CP2K::BLAS::${_libs}::blas
+-                            INTERFACE_INCLUDE_DIRECTORIES)
+-        get_target_property(CP2K_BLAS_LINK_LIBRARIES CP2K::BLAS::${_libs}::blas
+-                            INTERFACE_LINK_LIBRARIES)
+-        set(CP2K_BLAS_VENDOR "${_libs}")
+-        set(CP2K_BLAS_FOUND TRUE)
+-        break()
+-      endif()
+-    endforeach()
++    if(CP2K_BLAS_VENDOR MATCHES "CUSTOM" AND NOT DEFINED
++                                             CP2K_BLAS_LINK_LIBRARIES)
++      message(
++        FATAL_ERROR
++          "Setting CP2K_BLAS_VENDOR=CUSTOM imply setting CP2K_BLAS_LINK_LIBRARIES\n and CP2K_LAPACK_LINK_LIBRARIES to the right libraries. See the README_cmake.md for more details"
++      )
++    endif()
++
++    if(DEFINED CP2K_BLAS_LINK_LIBRARIES)
++      set(CP2K_BLAS_FOUND TRUE)
++    else()
++      # search for any blas implementation and exit immediately if one is found.
++      # we could also give a full list of found implementation and let the user
++      # choose which implementation to use
++      foreach(_libs ${__BLAS_VENDOR_LIST})
++        # I exclude the first item of the list
++        find_package(${_libs})
++        if(TARGET CP2K::BLAS::${_libs}::blas)
++          get_target_property(CP2K_BLAS_INCLUDE_DIRS CP2K::BLAS::${_libs}::blas
++                              INTERFACE_INCLUDE_DIRECTORIES)
++          get_target_property(
++            CP2K_BLAS_LINK_LIBRARIES CP2K::BLAS::${_libs}::blas
++            INTERFACE_LINK_LIBRARIES)
++          set(CP2K_BLAS_VENDOR "${_libs}")
++          set(CP2K_BLAS_FOUND TRUE)
++          break()
++        endif()
++      endforeach()
++    endif()
+   endif()
++else()
++  set(CP2K_BLAS_FOUND ON)
+ endif()
+-
+ # we exclude the CP2K_BLAS_INCLUDE_DIRS from the list of mandatory variables as
+ # having the fortran interface is usually enough. C, C++ and others languages
+ # might require this information though
+diff --git a/cmake/FindLapack.cmake b/cmake/FindLapack.cmake
+index 966e0d78d..77a1e0425 100644
+--- a/cmake/FindLapack.cmake
++++ b/cmake/FindLapack.cmake
+@@ -20,33 +20,34 @@ include(FindPackageHandleStandardArgs)
+ find_package(PkgConfig)
+ find_package(Blas REQUIRED)
+ 
+-if(CP2K_BLAS_FOUND)
+-  # LAPACK in the Intel MKL 10+ library?
+-  if(CP2K_BLAS_VENDOR MATCHES "MKL|OpenBLAS|Armpl|SCI|FlexiBLAS|NVHPC")
+-    # we just need to create the interface that's all
+-    set(CP2K_LAPACK_FOUND TRUE)
+-    get_target_property(CP2K_LAPACK_INCLUDE_DIRS CP2K::BLAS::blas
+-                        INTERFACE_INCLUDE_DIRECTORIES)
+-    get_target_property(CP2K_LAPACK_LINK_LIBRARIES CP2K::BLAS::blas
+-                        INTERFACE_LINK_LIBRARIES)
+-  else()
+-    # we might get lucky to find a pkgconfig package for lapack (fedora provides
+-    # one for instance)
+-    if(PKG_CONFIG_FOUND)
+-      pkg_check_modules(CP2K_LAPACK lapack)
+-    endif()
++if(NOT CP2K_CONFIG_PACKAGE)
++  if(CP2K_BLAS_FOUND)
++    # LAPACK in the Intel MKL 10+ library?
++    if(CP2K_BLAS_VENDOR MATCHES "MKL|OpenBLAS|Armpl|SCI|FlexiBLAS|NVHPC")
++      # we just need to create the interface that's all
++      set(CP2K_LAPACK_FOUND TRUE)
++      get_target_property(CP2K_LAPACK_INCLUDE_DIRS CP2K::BLAS::blas
++                          INTERFACE_INCLUDE_DIRECTORIES)
++      get_target_property(CP2K_LAPACK_LINK_LIBRARIES CP2K::BLAS::blas
++                          INTERFACE_LINK_LIBRARIES)
++    else()
++      # we might get lucky to find a pkgconfig package for lapack (fedora
++      # provides one for instance)
++      if(PKG_CONFIG_FOUND)
++        pkg_check_modules(CP2K_LAPACK lapack)
++      endif()
+ 
+-    if(NOT CP2K_LAPACK_FOUND)
+-      find_library(
+-        CP2K_LAPACK_LINK_LIBRARIES
+-        NAMES "lapack" "lapack64"
+-        PATH_SUFFIXES "openblas" "openblas64" "openblas-pthread"
+-                      "openblas-openmp" "lib" "lib64"
+-        NO_DEFAULT_PATH)
++      if(NOT CP2K_LAPACK_FOUND)
++        find_library(
++          CP2K_LAPACK_LINK_LIBRARIES
++          NAMES "lapack" "lapack64"
++          PATH_SUFFIXES "openblas" "openblas64" "openblas-pthread"
++                        "openblas-openmp" "lib" "lib64"
++          NO_DEFAULT_PATH)
++      endif()
+     endif()
+   endif()
+ endif()
+-
+ # check if found
+ find_package_handle_standard_args(Lapack
+                                   REQUIRED_VARS CP2K_LAPACK_LINK_LIBRARIES)
+diff --git a/cmake/cp2k.pc.in b/cmake/cp2k.pc.in
+deleted file mode 100644
+index 5b4a09566..000000000
+--- a/cmake/cp2k.pc.in
++++ /dev/null
+@@ -1,19 +0,0 @@
+-# this template is filled-in by CMake `configure_file(... @ONLY)`
+-# the `@....@` are filled in by CMake configure_file(), 
+-# from variables set in your CMakeLists.txt or by CMake itself
+-#
+-# Good tutoral for understanding .pc files: 
+-# https://people.freedesktop.org/~dbn/pkg-config-guide.html
+-
+-prefix="@CMAKE_INSTALL_PREFIX@"
+-exec_prefix="${prefix}"
+-libdir="${prefix}/lib"
+-includedir="${prefix}/include"
+-
+-Name: @PROJECT_NAME@
+-Description: @CMAKE_PROJECT_DESCRIPTION@
+-URL: @CMAKE_PROJECT_HOMEPAGE_URL@
+-Version: @PROJECT_VERSION@
+-Cflags: -I"${includedir}"
+-Libs: -L"${libdir}" -lcp2k -lcp2k_dbm -lcp2k_grid -lcp2k_offload
+-#Libs.private: -L"${libdir}" @CP2K_LIBS@
+\ No newline at end of file
+diff --git a/cmake/cp2kConfig.cmake.in b/cmake/cp2kConfig.cmake.in
+index a3acd4744..1c310e19b 100644
+--- a/cmake/cp2kConfig.cmake.in
++++ b/cmake/cp2kConfig.cmake.in
+@@ -5,112 +5,121 @@
+ #!   SPDX-License-Identifier: GPL-2.0-or-later                                                     !
+ #!-------------------------------------------------------------------------------------------------!
+ 
+-
+ cmake_minimum_required(VERSION 3.22)
++include(CMakeFindDependencyMacro)
++
++if(NOT TARGET cp2k::cp2k)
++  set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/modules"
++                        ${CMAKE_MODULE_PATH})
++
++  # store CXX compiler id. Used in MKL package.
++  set(CP2K_CXX_COMPILER_ID @CMAKE_CXX_COMPILER_ID@)
++  if(NOT ${CMAKE_CXX_COMPILER_ID})
++    set(CMAKE_CXX_COMPILER_ID ${CP2K_CXX_COMPILER_ID})
++  endif()
++
++  set(CP2K_BLAS_VENDOR @CP2K_BLAS_VENDOR@)
++  set(CP2K_SCALAPACK_VENDOR @CP2K_SCALAPACK_VENDOR@)
++  set(CP2K_BLAS_LINK_LIBRARIES @CP2K_BLAS_LINK_LIBRARIES@)
++  set(CP2K_LAPACK_LINK_LIBRARIES @CP2K_LAPACK_LINK_LIBRARIES@)
++  set(CP2K_SCALAPACK_LINK_LIBRARIES @CP2K_SCALAPACK_LINK_LIBRARIES@)
++
++  set(CP2K_CONFIG_PACKAGE ON)
++  find_dependency(Lapack REQUIRED)
++
++  # define lapack and blas TARGETS
++
++  if(@CP2K_USE_MPI@)
++    find_dependency(SCALAPACK REQUIRED)
++  endif()
++  unset(CP2K_CONFIG_PACKAGE)
++
++  set(cp2k_VERSION @cp2k_VERSION@)
++
++  find_dependency(DBCSR 2.5 REQUIRED)
++
++  if(@CP2K_USE_LIBXSMM@)
++    find_dependency(LibXSMM REQUIRED)
++  endif()
++
++  if(@CP2K_USE_HIP@)
++    # Find hip
++    find_dependency(hipfft REQUIRED IMPORTED CONFIG)
++    find_dependency(hipblas REQUIRED IMPORTED CONFIG)
++  endif()
++
++  if(@CP2K_USE_CUDA@)
++    find_dependency(CUDAToolkit REQUIRED)
++  endif()
++  if(@CP2K_USE_ELPA@)
++    find_dependency(Elpa REQUIRED)
++  endif()
++
++  if(@CP2K_USE_LIBXC@)
++    find_dependency(LibXC 6 REQUIRED EXACT)
++  endif()
++
++  if(@CP2K_USE_COSMA@)
++    find_dependency(cosma REQUIRED)
++  endif()
++
++  if(@CP2K_USE_MPI@)
++    find_dependency(MPI REQUIRED)
++  endif()
++
++  if(@CP2K_USE_FFTW3@ OR @CP2K_USE_FFTW3_WITH_MKL@)
++    find_dependency(Fftw REQUIRED)
++  endif()
++  
++  # QUIP
++  if(@CP2K_USE_QUIP@)
++    find_dependency(Quip REQUIRED)
++  endif()
+ 
+-# store CXX compiler id. Used in MKL package.
+-set(SIRIUS_CXX_COMPILER_ID @CMAKE_CXX_COMPILER_ID@)
+-if(NOT ${CMAKE_CXX_COMPILER_ID})
+-  set(CMAKE_CXX_COMPILER_ID ${SIRIUS_CXX_COMPILER_ID})
+-endif()
+-
+-set(CP2K_BLAS_VENDOR @CP2K_BLAS_VENDOR@)
+-set(CP2K_SCALAPACK_VENDOR @CP2K_SCALAPACK_VENDOR@)
+-
+-if (@CP2K_BLAS_VENDOR@ MATCHES "CUSTOM")
+-   set(CP2K_BLAS_LINK_LIBRARIES @CP2K_BLAS_LINK_LIBRARIES@)
+-   set(CP2K_LAPACK_LINK_LIBRARIES @CP2K_LAPACK_LINK_LIBRARIES@)
+-endif()
+-
+-if (@CP2K_SCALAPACK_VENDOR@ MATCHES "CUSTOM")
+-   set(CP2K_SCALAPACK_LINK_LIBRARIES @CP2K_SCALAPACK_LINK_LIBRARIES@)
+-endif()
+-
+-find_package(Lapack REQUIRED)
+-find_package(DBCSR 2.4 REQUIRED)
+-
+-if(@CP2K_USE_LIBXSMM@
+-  find_package(LibXSMM REQUIRED)
+-endif()
+-
+-if (@@CP2K_USE_HIP@)
+-  # Find hip
+-  find_package(hipfft REQUIRED IMPORTED CONFIG)
+-  find_package(hipblas REQUIRED IMPORTED CONFIG)
+-endif()
+-
+-if (@@CP2K_USE_CUDA@)
+-  find_package(CUDAToolkit REQUIRED)
+-endif()
+-if(@CP2K_USE_ELPA@)
+-  find_package(Elpa REQUIRED)
+-endif()
+-
+-if(@CP2K_USE_LIBXC@)
+-  find_package(LibXC 6 REQUIRED EXACT)
+-endif()
+-
+-if(@CP2K_USE_COSMA@)
+-  find_package(cosma REQUIRED)
+-endif()
++  # libint
+ 
+-if (@@CP2K_USE_MPI@)
+-  find_package(MPI REQUIRED)
+-  find_package(SCALAPACK REQUIRED)
+-endif()
++  if(@CP2K_USE_LIBINT2@)
++    find_dependency(Libint2 REQUIRED)
++  endif()
+ 
+-if(@CP2K_USE_FFTW3@)
+-  find_package(Fftw REQUIRED)
+-endif()
+-  # QUIP
+-if(@CP2K_USE_QUIP@)
+-  find_package(Quip REQUIRED)
+-endif()
++  # spglib
+ 
+-# libint
++  if(@CP2K_USE_SPGLIB@)
++    find_dependency(LibSPG REQUIRED)
++  endif()
+ 
+-if(@CP2K_USE_LIBINT2@)
+-  find_package(Libint2 REQUIRED)
+-endif()
++  if(@CP2K_USE_SPLA@)
++    find_dependency(SPLA REQUIRED)
++  endif()
+ 
+-# spglib
++  if(@CP2K_USE_SIRIUS@)
++    find_dependency(sirius REQUIRED)
++  endif()
+ 
+-if(@CP2K_USE_SPGLIB@)
+-  find_package(LibSPG REQUIRED)
+-endif()
++  if(@CP2K_USE_SUPERLU@)
++    find_dependency(SuperLU REQUIRED)
++  endif()
+ 
+-if(@CP2K_USE_SPLA@)
+-  find_package(SPLA REQUIRED)
+-endif()
++  if(@CP2K_USE_METIS@)
++    find_dependency(Metis)
++  endif()
+ 
+-if(@CP2K_USE_SIRIUS@)
+-  find_package(sirius REQUIRED)
+-endif()
+-
+-if(@CP2K_USE_SUPERLU@)
+-  find_package(SuperLU REQUIRED)
+-endif()
++  if(@CP2K_USE_PEXSI@)
++    # PEXSI 1.2 uses cmake as build system
++    find_dependency(PEXSI REQUIRED)
++  endif()
+ 
+-if(@CP2K_USE_PARMETIS@)
+-  find_package(Metis)
+-endif()
++  if(@CP2K_USE_PLUMED@)
++    find_dependency(Plumed REQUIRED)
++  endif()
+ 
+-if(@CP2K_USE_PTSCOTCH@)
+-  find_package(Ptscotch REQUIRED)
+-endif()
++  if(@CP2K_USE_LIBTORCH@)
++    find_dependency(Torch REQUIRED)
++  endif()
+ 
+-if(@CP2K_USE_PEXSI@)
+-  # PEXSI 1.2 uses cmake as build system
+-  find_package(PEXSI REQUIRED)
+-endif()
++  include("${CMAKE_CURRENT_LIST_DIR}/cp2kTargets.cmake")
+ 
+-if(@CP2K_USE_PLUMED@)
+-  find_package(Plumed REQUIRED)
+-endif()
++  # Clean-up module path.
++  list(REMOVE_ITEM CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/modules")
+ 
+-if(@CP2K_USE_LIBTORCH@)
+-  find_package(Torch REQUIRED)
+ endif()
+-
+-# Include SIRIUS target
+-include("${CMAKE_CURRENT_LIST_DIR}/cp2kTargets.cmake")
+diff --git a/cmake/libcp2k.pc.in b/cmake/libcp2k.pc.in
+new file mode 100644
+index 000000000..618af55e2
+--- /dev/null
++++ b/cmake/libcp2k.pc.in
+@@ -0,0 +1,11 @@
++prefix="@CMAKE_INSTALL_PREFIX@"
++exec_prefix="${prefix}"
++libdir="${prefix}/@CMAKE_INSTALL_LIBDIR@"
++includedir="${prefix}/@CMAKE_INSTALL_INCLUDEDIR@"
++
++Name: @PROJECT_NAME@
++Description: @CMAKE_PROJECT_DESCRIPTION@
++URL: @CMAKE_PROJECT_HOMEPAGE_URL@
++Version: @PROJECT_VERSION@
++Cflags: -I"${includedir}/cp2k" -I"${includedir}/cp2k/@CMAKE_Fortran_COMPILER_ID@-@CMAKE_Fortran_COMPILER_VERSION@"
++Libs: -L"${libdir}" -lcp2k
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index dbc955885..1178101ad 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -1536,9 +1536,9 @@ target_link_libraries(
+     $<$<BOOL:${CP2K_USE_SPGLIB}>:CP2K::LIBSPG::libspg>
+     $<$<BOOL:${CP2K_USE_LIBXC}>:CP2K::Libxc::xc>
+     $<$<BOOL:${CP2K_USE_ELPA}>:CP2K::ELPA::elpa>
+-    $<$<BOOL:${CP2K_USE_FFTW3}>:CP2K::FFTW3::fftw3>
+-    $<$<BOOL:${CP2K_ENABLE_FFTW3_THREADS_SUPPORT}>:CP2K::FFTW3::fftw3_threads>
+-    $<$<BOOL:${CP2K_ENABLE_FFTW3_OPENMP_SUPPORT}>:CP2K::FFTW3::fftw3_omp>
++    $<$<BOOL:${CP2K_USE_FFTW3_}>:CP2K::FFTW3::fftw3>
++    $<$<AND:$<BOOL:${CP2K_ENABLE_FFTW3_THREADS_SUPPORT}>,$<BOOL:${CP2K_USE_FFTW3_}>>:CP2K::FFTW3::fftw3_threads>
++    $<$<AND:$<BOOL:${CP2K_ENABLE_FFTW3_OPENMP_SUPPORT}>,$<BOOL:${CP2K_USE_FFTW3_}>>:CP2K::FFTW3::fftw3_omp>
+     $<$<BOOL:${CP2K_USE_SPLA}>:SPLA::spla>
+     $<$<BOOL:${CP2K_USE_LIBINT2}>:CP2K::Libint2::int2>
+     $<$<BOOL:${CP2K_USE_TORCH}>:${TORCH_LIBRARIES}>
+@@ -1555,7 +1555,7 @@ target_compile_definitions(
+   cp2k
+   PUBLIC $<$<BOOL:${CP2K_USE_MPI}>:__parallel>
+          $<$<BOOL:${CP2K_USE_MPI}>:__SCALAPACK>
+-         $<$<BOOL:${CP2K_ENABLE_F08_MPI}>:__MPI_08>
++         $<$<BOOL:${CP2K_USE_MPI_F08}>:__MPI_F08>
+          __COMPILE_DATE=\"${CP2K_TIMESTAMP}\"
+          __COMPILE_HOST=\"${CP2K_HOST_NAME}\"
+          __COMPILE_REVISION=\"${CP2K_GIT_HASH}\"
+@@ -1577,7 +1577,7 @@ target_compile_definitions(
+          $<$<BOOL:${CP2K_USE_SPLA_GEMM_OFFLOADING}>:__OFFLOAD_GEMM>
+          $<$<BOOL:${CP2K_USE_ELPA}>:__ELPA>
+          $<$<BOOL:${CP2K_USE_LIBXC}>:__LIBXC>
+-         $<$<BOOL:${CP2K_USE_FFTW3}>:__FFTW3>
++         $<$<BOOL:${CP2K_USE_FFTW3_}>:__FFTW3>
+          $<$<BOOL:${CP2K_USE_LIBINT2}>:__LIBINT>
+          $<$<BOOL:${CP2K_USE_PEXSI}>:__LIBPEXSI>
+          $<$<BOOL:${CP2K_USE_LIBTORCH}>:__LIBTORCH>
+@@ -1774,12 +1774,14 @@ install(
+   EXPORT cp2k_targets
+   FILE cp2kTargets.cmake
+   NAMESPACE cp2k::
+-  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/cp2k")
++  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
+ 
+-install(FILES start/libcp2k.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/cp2k")
++install(FILES start/libcp2k.h
++        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}")
+ 
+ install(
+   DIRECTORY "${PROJECT_BINARY_DIR}/src/mod_files"
+-  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/cp2k"
++  DESTINATION
++    "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}/${CMAKE_Fortran_COMPILER_ID}-${CMAKE_Fortran_COMPILER_VERSION}"
+   FILES_MATCHING
+   PATTERN "*.mod")
+-- 
+2.41.0
+

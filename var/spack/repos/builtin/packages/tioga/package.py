@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import sys
@@ -15,10 +14,17 @@ class Tioga(CMakePackage):
 
     maintainers("jrood-nrel")
 
-    # The original TIOGA repo has possibly been abandoned,
+    license("LGPL-3.0-only")
+
+    # The original TIOGA repo has been abandoned,
     # so work on TIOGA has continued in the Exawind project
     version("develop", git="https://github.com/Exawind/tioga.git", branch="exawind")
+    version("1.2.0", git="https://github.com/Exawind/tioga.git", tag="v1.2.0")
+    version("1.1.0", git="https://github.com/Exawind/tioga.git", tag="v1.1.0")
+    version("1.0.0", git="https://github.com/Exawind/tioga.git", tag="v1.0.0")
     version("master", branch="master")
+
+    depends_on("cxx", type="build")
 
     variant("shared", default=sys.platform != "darwin", description="Build shared libraries")
     variant("pic", default=True, description="Position independent code")

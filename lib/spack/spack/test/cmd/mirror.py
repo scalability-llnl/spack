@@ -1,20 +1,22 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
-import sys
 
 import pytest
 
 import spack.cmd.mirror
 import spack.config
 import spack.environment as ev
+import spack.error
+import spack.mirrors.utils
 import spack.spec
 import spack.util.url as url_util
+import spack.version
 from spack.main import SpackCommand, SpackCommandError
 
+config = SpackCommand("config")
 mirror = SpackCommand("mirror")
 env = SpackCommand("env")
 add = SpackCommand("add")
@@ -23,7 +25,7 @@ install = SpackCommand("install")
 buildcache = SpackCommand("buildcache")
 uninstall = SpackCommand("uninstall")
 
-pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="does not run on windows")
+pytestmark = pytest.mark.not_on_windows("does not run on windows")
 
 
 @pytest.mark.disable_clean_stage_check
@@ -36,8 +38,8 @@ def test_regression_8083(tmpdir, capfd, mock_packages, mock_fetch, config):
 
 
 @pytest.mark.regression("12345")
-def test_mirror_from_env(tmpdir, mock_packages, mock_fetch, config, mutable_mock_env_path):
-    mirror_dir = str(tmpdir)
+def test_mirror_from_env(tmp_path, mock_packages, mock_fetch, mutable_mock_env_path):
+    mirror_dir = str(tmp_path / "mirror")
     env_name = "test"
 
     env("create", env_name)
@@ -61,7 +63,7 @@ def source_for_pkg_with_hash(mock_packages, tmpdir):
     s = spack.spec.Spec("trivial-pkg-with-valid-hash").concretized()
     local_url_basename = os.path.basename(s.package.url)
     local_path = os.path.join(str(tmpdir), local_url_basename)
-    with open(local_path, "w") as f:
+    with open(local_path, "w", encoding="utf-8") as f:
         f.write(s.package.hashed_content)
     local_url = url_util.path_to_file_url(local_path)
     s.package.versions[spack.version.Version("1.0")]["url"] = local_url
@@ -71,14 +73,14 @@ def test_mirror_skip_unstable(tmpdir_factory, mock_packages, config, source_for_
     mirror_dir = str(tmpdir_factory.mktemp("mirror-dir"))
 
     specs = [spack.spec.Spec(x).concretized() for x in ["git-test", "trivial-pkg-with-valid-hash"]]
-    spack.mirror.create(mirror_dir, specs, skip_unstable_versions=True)
+    spack.mirrors.utils.create(mirror_dir, specs, skip_unstable_versions=True)
 
     assert set(os.listdir(mirror_dir)) - set(["_source-cache"]) == set(
         ["trivial-pkg-with-valid-hash"]
     )
 
 
-class MockMirrorArgs(object):
+class MockMirrorArgs:
     def __init__(
         self,
         specs=None,
@@ -89,6 +91,7 @@ class MockMirrorArgs(object):
         exclude_file=None,
         exclude_specs=None,
         directory=None,
+        private=False,
     ):
         self.specs = specs or []
         self.all = all
@@ -97,6 +100,7 @@ class MockMirrorArgs(object):
         self.dependencies = dependencies
         self.exclude_file = exclude_file
         self.exclude_specs = exclude_specs
+        self.private = private
         self.directory = directory
 
 
@@ -105,7 +109,7 @@ def test_exclude_specs(mock_packages, config):
         specs=["mpich"], versions_per_spec="all", exclude_specs="mpich@3.0.1:3.0.2 mpich@1.0"
     )
 
-    mirror_specs = spack.cmd.mirror.concrete_specs_from_user(args)
+    mirror_specs, _ = spack.cmd.mirror._specs_and_action(args)
     expected_include = set(
         spack.spec.Spec(x).concretized() for x in ["mpich@3.0.3", "mpich@3.0.4", "mpich@3.0"]
     )
@@ -114,9 +118,22 @@ def test_exclude_specs(mock_packages, config):
     assert not any(spec.satisfies(y) for spec in mirror_specs for y in expected_exclude)
 
 
+def test_exclude_specs_public_mirror(mock_packages, config):
+    args = MockMirrorArgs(
+        specs=["no-redistribute-dependent"],
+        versions_per_spec="all",
+        dependencies=True,
+        private=False,
+    )
+
+    mirror_specs, _ = spack.cmd.mirror._specs_and_action(args)
+    assert not any(s.name == "no-redistribute" for s in mirror_specs)
+    assert any(s.name == "no-redistribute-dependent" for s in mirror_specs)
+
+
 def test_exclude_file(mock_packages, tmpdir, config):
     exclude_path = os.path.join(str(tmpdir), "test-exclude.txt")
-    with open(exclude_path, "w") as exclude_file:
+    with open(exclude_path, "w", encoding="utf-8") as exclude_file:
         exclude_file.write(
             """\
 mpich@3.0.1:3.0.2
@@ -126,7 +143,7 @@ mpich@1.0
 
     args = MockMirrorArgs(specs=["mpich"], versions_per_spec="all", exclude_file=exclude_path)
 
-    mirror_specs = spack.cmd.mirror.concrete_specs_from_user(args)
+    mirror_specs, _ = spack.cmd.mirror._specs_and_action(args)
     expected_include = set(
         spack.spec.Spec(x).concretized() for x in ["mpich@3.0.3", "mpich@3.0.4", "mpich@3.0"]
     )
@@ -149,7 +166,7 @@ def test_mirror_crud(mutable_config, capsys):
         assert "No changes made" in output
 
         output = mirror("set-url", "--push", "mirror", "s3://spack-public")
-        assert "Changed (push) url" in output
+        assert not output
 
         # no-op
         output = mirror("set-url", "--push", "mirror", "s3://spack-public")
@@ -164,19 +181,121 @@ def test_mirror_crud(mutable_config, capsys):
         output = mirror("remove", "mirror")
         assert "Removed mirror" in output
 
-        # Test S3 connection info id/key
-        mirror(
-            "add",
-            "--s3-access-key-id",
-            "foo",
-            "--s3-access-key-secret",
-            "bar",
-            "mirror",
-            "s3://spack-public",
-        )
+        # Test S3 connection info token as variable
+        mirror("add", "--s3-access-token-variable", "aaaaaazzzzz", "mirror", "s3://spack-public")
 
         output = mirror("remove", "mirror")
         assert "Removed mirror" in output
+
+        def do_add_set_seturl_access_pair(
+            id_arg, secret_arg, mirror_name="mirror", mirror_url="s3://spack-public"
+        ):
+            # Test S3 connection info id/key
+            output = mirror("add", id_arg, "foo", secret_arg, "bar", mirror_name, mirror_url)
+            if "variable" not in secret_arg:
+                assert (
+                    f"Configuring mirror secrets as plain text with {secret_arg} is deprecated. "
+                    in output
+                )
+
+            output = config("blame", "mirrors")
+            assert all([x in output for x in ("foo", "bar", mirror_name, mirror_url)])
+            # Mirror access_pair deprecation warning should not be in blame output
+            assert "support for plain text secrets" not in output
+
+            output = mirror("set", id_arg, "foo_set", secret_arg, "bar_set", mirror_name)
+            if "variable" not in secret_arg:
+                assert "support for plain text secrets" in output
+            output = config("blame", "mirrors")
+            assert all([x in output for x in ("foo_set", "bar_set", mirror_name, mirror_url)])
+            if "variable" not in secret_arg:
+                output = mirror(
+                    "set", id_arg, "foo_set", secret_arg + "-variable", "bar_set_var", mirror_name
+                )
+                assert "support for plain text secrets" not in output
+                output = config("blame", "mirrors")
+                assert all(
+                    [x in output for x in ("foo_set", "bar_set_var", mirror_name, mirror_url)]
+                )
+
+            output = mirror(
+                "set-url",
+                id_arg,
+                "foo_set_url",
+                secret_arg,
+                "bar_set_url",
+                "--push",
+                mirror_name,
+                mirror_url + "-push",
+            )
+            output = config("blame", "mirrors")
+            assert all(
+                [
+                    x in output
+                    for x in ("foo_set_url", "bar_set_url", mirror_name, mirror_url + "-push")
+                ]
+            )
+
+            output = mirror("set", id_arg, "a", mirror_name)
+            assert "No changes made to mirror" not in output
+
+            output = mirror("set", secret_arg, "b", mirror_name)
+            assert "No changes made to mirror" not in output
+
+            output = mirror("set-url", id_arg, "c", mirror_name, mirror_url)
+            assert "No changes made to mirror" not in output
+
+            output = mirror("set-url", secret_arg, "d", mirror_name, mirror_url)
+            assert "No changes made to mirror" not in output
+
+            output = mirror("remove", mirror_name)
+            assert "Removed mirror" in output
+
+            output = mirror("add", id_arg, "foo", mirror_name, mirror_url)
+            assert "Expected both parts of the access pair to be specified. " in output
+
+            output = mirror("set-url", id_arg, "bar", mirror_name, mirror_url)
+            assert "Expected both parts of the access pair to be specified. " in output
+
+            output = mirror("set", id_arg, "bar", mirror_name)
+            assert "Expected both parts of the access pair to be specified. " in output
+
+            output = mirror("remove", mirror_name)
+            assert "Removed mirror" in output
+
+            output = mirror("add", secret_arg, "bar", mirror_name, mirror_url)
+            assert "Expected both parts of the access pair to be specified. " in output
+
+            output = mirror("set-url", secret_arg, "bar", mirror_name, mirror_url)
+            assert "Expected both parts of the access pair to be specified. " in output
+
+            output = mirror("set", secret_arg, "bar", mirror_name)
+            assert "Expected both parts of the access pair to be specified. " in output
+
+            output = mirror("remove", mirror_name)
+            assert "Removed mirror" in output
+
+            output = mirror("list")
+            assert "No mirrors configured" in output
+
+        do_add_set_seturl_access_pair("--s3-access-key-id", "--s3-access-key-secret")
+        do_add_set_seturl_access_pair("--s3-access-key-id", "--s3-access-key-secret-variable")
+        do_add_set_seturl_access_pair(
+            "--s3-access-key-id-variable", "--s3-access-key-secret-variable"
+        )
+        with pytest.raises(
+            spack.error.SpackError, match="Cannot add mirror with a variable id and text secret"
+        ):
+            do_add_set_seturl_access_pair("--s3-access-key-id-variable", "--s3-access-key-secret")
+
+        # Test OCI connection info user/password
+        do_add_set_seturl_access_pair("--oci-username", "--oci-password")
+        do_add_set_seturl_access_pair("--oci-username", "--oci-password-variable")
+        do_add_set_seturl_access_pair("--oci-username-variable", "--oci-password-variable")
+        with pytest.raises(
+            spack.error.SpackError, match="Cannot add mirror with a variable id and text secret"
+        ):
+            do_add_set_seturl_access_pair("--s3-access-key-id-variable", "--s3-access-key-secret")
 
         # Test S3 connection info with endpoint URL
         mirror(
@@ -201,6 +320,9 @@ def test_mirror_crud(mutable_config, capsys):
         output = mirror("remove", "mirror")
         assert "Removed mirror" in output
 
+        output = mirror("list")
+        assert "No mirrors configured" in output
+
 
 def test_mirror_nonexisting(mutable_config):
     with pytest.raises(SpackCommandError):
@@ -218,13 +340,7 @@ def test_mirror_name_collision(mutable_config):
 
 
 def test_mirror_destroy(
-    install_mockery_mutable_config,
-    mock_packages,
-    mock_fetch,
-    mock_archive,
-    mutable_config,
-    monkeypatch,
-    tmpdir,
+    install_mockery, mock_packages, mock_fetch, mock_archive, mutable_config, monkeypatch, tmpdir
 ):
     # Create a temp mirror directory for buildcache usage
     mirror_dir = tmpdir.join("mirror_dir")
@@ -235,7 +351,7 @@ def test_mirror_destroy(
 
     # Put a binary package in a buildcache
     install("--no-cache", spec_name)
-    buildcache("push", "-u", "-a", "-f", "-d", mirror_dir.strpath, spec_name)
+    buildcache("push", "-u", "-f", mirror_dir.strpath, spec_name)
 
     contents = os.listdir(mirror_dir.strpath)
     assert "build_cache" in contents
@@ -245,7 +361,7 @@ def test_mirror_destroy(
 
     assert not os.path.exists(mirror_dir.strpath)
 
-    buildcache("push", "-u", "-a", "-f", "-d", mirror_dir.strpath, spec_name)
+    buildcache("push", "-u", "-f", mirror_dir.strpath, spec_name)
 
     contents = os.listdir(mirror_dir.strpath)
     assert "build_cache" in contents
@@ -260,14 +376,12 @@ def test_mirror_destroy(
 
 
 @pytest.mark.usefixtures("mock_packages")
-class TestMirrorCreate(object):
+class TestMirrorCreate:
     @pytest.mark.regression("31736", "31985")
     def test_all_specs_with_all_versions_dont_concretize(self):
-        args = MockMirrorArgs(exclude_file=None, exclude_specs=None)
-        specs = spack.cmd.mirror.all_specs_with_all_versions(
-            selection_fn=spack.cmd.mirror.not_excluded_fn(args)
-        )
-        assert all(not s.concrete for s in specs)
+        args = MockMirrorArgs(all=True, exclude_file=None, exclude_specs=None)
+        mirror_specs, _ = spack.cmd.mirror._specs_and_action(args)
+        assert all(not s.concrete for s in mirror_specs)
 
     @pytest.mark.parametrize(
         "cli_args,error_str",
@@ -325,8 +439,8 @@ class TestMirrorCreate(object):
         ],
     )
     def test_exclude_specs_from_user(self, cli_args, not_expected, config):
-        specs = spack.cmd.mirror.concrete_specs_from_user(MockMirrorArgs(**cli_args))
-        assert not any(s.satisfies(y) for s in specs for y in not_expected)
+        mirror_specs, _ = spack.cmd.mirror._specs_and_action(MockMirrorArgs(**cli_args))
+        assert not any(s.satisfies(y) for s in mirror_specs for y in not_expected)
 
     @pytest.mark.parametrize("abstract_specs", [("bowtie", "callpath")])
     def test_specs_from_cli_are_the_same_as_from_file(self, abstract_specs, config, tmpdir):
@@ -348,3 +462,87 @@ class TestMirrorCreate(object):
         args = MockMirrorArgs(specs=input_specs, versions_per_spec=nversions)
         specs = spack.cmd.mirror.concrete_specs_from_user(args)
         assert all(s.concrete for s in specs)
+
+
+def test_mirror_type(mutable_config):
+    """Test the mirror set command"""
+    mirror("add", "example", "--type", "binary", "http://example.com")
+    assert spack.config.get("mirrors:example") == {
+        "url": "http://example.com",
+        "source": False,
+        "binary": True,
+    }
+
+    mirror("set", "example", "--type", "source")
+    assert spack.config.get("mirrors:example") == {
+        "url": "http://example.com",
+        "source": True,
+        "binary": False,
+    }
+
+    mirror("set", "example", "--type", "binary")
+    assert spack.config.get("mirrors:example") == {
+        "url": "http://example.com",
+        "source": False,
+        "binary": True,
+    }
+    mirror("set", "example", "--type", "binary", "--type", "source")
+    assert spack.config.get("mirrors:example") == {
+        "url": "http://example.com",
+        "source": True,
+        "binary": True,
+    }
+
+
+def test_mirror_set_2(mutable_config):
+    """Test the mirror set command"""
+    mirror("add", "example", "http://example.com")
+    mirror(
+        "set",
+        "example",
+        "--push",
+        "--url",
+        "http://example2.com",
+        "--s3-access-key-id",
+        "username",
+        "--s3-access-key-secret",
+        "password",
+    )
+
+    assert spack.config.get("mirrors:example") == {
+        "url": "http://example.com",
+        "push": {"url": "http://example2.com", "access_pair": ["username", "password"]},
+    }
+
+
+def test_mirror_add_set_signed(mutable_config):
+    mirror("add", "--signed", "example", "http://example.com")
+    assert spack.config.get("mirrors:example") == {"url": "http://example.com", "signed": True}
+    mirror("set", "--unsigned", "example")
+    assert spack.config.get("mirrors:example") == {"url": "http://example.com", "signed": False}
+    mirror("set", "--signed", "example")
+    assert spack.config.get("mirrors:example") == {"url": "http://example.com", "signed": True}
+
+
+def test_mirror_add_set_autopush(mutable_config):
+    # Add mirror without autopush
+    mirror("add", "example", "http://example.com")
+    assert spack.config.get("mirrors:example") == "http://example.com"
+    mirror("set", "--no-autopush", "example")
+    assert spack.config.get("mirrors:example") == {"url": "http://example.com", "autopush": False}
+    mirror("set", "--autopush", "example")
+    assert spack.config.get("mirrors:example") == {"url": "http://example.com", "autopush": True}
+    mirror("set", "--no-autopush", "example")
+    assert spack.config.get("mirrors:example") == {"url": "http://example.com", "autopush": False}
+    mirror("remove", "example")
+
+    # Add mirror with autopush
+    mirror("add", "--autopush", "example", "http://example.com")
+    assert spack.config.get("mirrors:example") == {"url": "http://example.com", "autopush": True}
+    mirror("set", "--autopush", "example")
+    assert spack.config.get("mirrors:example") == {"url": "http://example.com", "autopush": True}
+    mirror("set", "--no-autopush", "example")
+    assert spack.config.get("mirrors:example") == {"url": "http://example.com", "autopush": False}
+    mirror("set", "--autopush", "example")
+    assert spack.config.get("mirrors:example") == {"url": "http://example.com", "autopush": True}
+    mirror("remove", "example")

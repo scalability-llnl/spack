@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -61,73 +60,59 @@ class OpenfoamOrg(Package):
     and owner of the OPENFOAM trademark.
     """
 
+    maintainers("kjrstory")
     homepage = "https://www.openfoam.org/"
     baseurl = "https://github.com/OpenFOAM"
-    url = "https://github.com/OpenFOAM/OpenFOAM-4.x/archive/version-4.1.tar.gz"
+    url = "https://github.com/OpenFOAM/OpenFOAM-6/archive/version-6.tar.gz"
     git = "https://github.com/OpenFOAM/OpenFOAM-dev.git"
 
+    license("GPL-3.0-or-later")
+
     version("develop", branch="master")
-    version(
-        "10",
-        sha256="59d712ba798ca44b989b6ac50bcb7c534eeccb82bcf961e10ec19fc8d84000cf",
-        url=baseurl + "/OpenFOAM-10/archive/version-10.tar.gz",
-    )
-    version(
-        "9",
-        sha256="0c48fb56e2fbb4dd534112811364d3b2dc12106e670a6486b361e4f864b435ee",
-        url=baseurl + "/OpenFOAM-9/archive/version-9.tar.gz",
-    )
-    version(
-        "8",
-        sha256="94ba11cbaaa12fbb5b356e01758df403ac8832d69da309a5d79f76f42eb008fc",
-        url=baseurl + "/OpenFOAM-8/archive/version-8.tar.gz",
-    )
-    version(
-        "7",
-        sha256="12389cf092dc032372617785822a597aee434a50a62db2a520ab35ba5a7548b5",
-        url=baseurl + "/OpenFOAM-7/archive/version-7.tar.gz",
-    )
-    version(
-        "6",
-        sha256="32a6af4120e691ca2df29c5b9bd7bc7a3e11208947f9bccf6087cfff5492f025",
-        url=baseurl + "/OpenFOAM-6/archive/version-6.tar.gz",
-    )
-    version(
-        "5.0",
-        sha256="9057d6a8bb9fa18802881feba215215699065e0b3c5cdd0c0e84cb29c9916c89",
-        url=baseurl + "/OpenFOAM-5.x/archive/version-5.0.tar.gz",
-    )
-    version(
-        "4.1",
-        sha256="2de18de64e7abdb1b649ad8e9d2d58b77a2b188fb5bcb6f7c2a038282081fd31",
-        url=baseurl + "/OpenFOAM-4.x/archive/version-4.1.tar.gz",
-    )
-    version(
-        "2.4.0",
-        sha256="9529aa7441b64210c400c019dcb2e0410fcfd62a6f62d23b6c5994c4753c4465",
-        url=baseurl + "/OpenFOAM-2.4.x/archive/version-2.4.0.tar.gz",
-    )
+    version("11", sha256="ebc0f86ead699abba61290ba8aac5b730aa93256e675d1d93a5d5f116d51e0c0")
+    version("10", sha256="59d712ba798ca44b989b6ac50bcb7c534eeccb82bcf961e10ec19fc8d84000cf")
+    version("9", sha256="0c48fb56e2fbb4dd534112811364d3b2dc12106e670a6486b361e4f864b435ee")
+    version("8", sha256="94ba11cbaaa12fbb5b356e01758df403ac8832d69da309a5d79f76f42eb008fc")
+    version("7", sha256="12389cf092dc032372617785822a597aee434a50a62db2a520ab35ba5a7548b5")
+    version("6", sha256="32a6af4120e691ca2df29c5b9bd7bc7a3e11208947f9bccf6087cfff5492f025")
+    version("5.0", sha256="9057d6a8bb9fa18802881feba215215699065e0b3c5cdd0c0e84cb29c9916c89")
+    version("4.1", sha256="2de18de64e7abdb1b649ad8e9d2d58b77a2b188fb5bcb6f7c2a038282081fd31")
+    version("2.4.0", sha256="9529aa7441b64210c400c019dcb2e0410fcfd62a6f62d23b6c5994c4753c4465")
     version(
         "2.3.1",
         sha256="2bbcf4d5932397c2087a9b6d7eeee6d2b1350c8ea4f455415f05e7cd94d9e5ba",
         url="http://downloads.sourceforge.net/foam/OpenFOAM-2.3.1.tgz",
     )
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     variant("int64", default=False, description="Compile with 64-bit label")
-    variant("float32", default=False, description="Compile with 32-bit scalar (single-precision)")
     variant(
         "source", default=True, description="Install library/application sources and tutorials"
     )
     variant("metis", default=False, description="With metis decomposition")
+    variant("scotch", default=True, description="With scotch/ptscotch decomposition")
+    variant("zoltan", default=False, description="Enable Zoltan renumbering and decomposition")
+    variant(
+        "precision",
+        default="dp",
+        description="Precision option",
+        values=("sp", "dp", conditional("lp", when="@6:")),
+        multi=False,
+    )
 
     depends_on("mpi")
-    depends_on("zlib")
+    depends_on("zlib-api")
     depends_on("flex")
     depends_on("cmake", type="build")
+    # The setSet tool (removed in version 10) depends on readline
+    depends_on("readline", when="@:9")
 
     # Require scotch with ptscotch - corresponds to standard OpenFOAM setup
-    depends_on("scotch~metis+mpi~int64", when="~int64")
-    depends_on("scotch~metis+mpi+int64", when="+int64")
+    depends_on("scotch~metis+mpi~int64", when="+scotch~int64")
+    depends_on("scotch~metis+mpi+int64", when="+scotch+int64")
+    depends_on("zoltan+shared", when="+zoltan")
 
     depends_on("metis@5:", when="+metis")
     depends_on("metis+int64", when="+metis+int64")
@@ -142,7 +127,7 @@ class OpenfoamOrg(Package):
         sha256="05d17e17f94e6fe8188a9c0b91ed34c9b62259414589d908c152a4c40fe6b7e2",
         when="@7",
     )
-    patch("50-etc.patch", when="@5.0:5.9")
+    patch("50-etc.patch", when="@5.0")
     patch("41-etc.patch", when="@4.1")
     patch("41-site.patch", when="@4.1:")
     patch("240-etc.patch", when="@:2.4.0")
@@ -171,6 +156,25 @@ class OpenfoamOrg(Package):
     #
 
     # Some user config settings
+
+    def url_for_version(self, version):
+        """If the version number is 5.0 or lower, the returned URL includes
+        the ".x" suffix in the OpenFOAM directory name to reflect
+        the old directory naming convention for these versions.
+
+        """
+        if version == Version("2.3.1"):
+            return "http://downloads.sourceforge.net/foam/OpenFOAM-2.3.1.tgz"
+        elif version <= Version("5.0"):
+            version_prefix = str(version.up_to(-1)) + ".x"
+        else:
+            version_prefix = version
+
+        url = "https://github.com/OpenFOAM/OpenFOAM-{}/archive/version-{}.tar.gz".format(
+            version_prefix, version
+        )
+        return url
+
     @property
     def config(self):
         settings = {
@@ -239,8 +243,24 @@ class OpenfoamOrg(Package):
         # to build correctly!
         parent = os.path.dirname(self.stage.source_path)
         original = os.path.basename(self.stage.source_path)
-        target = "OpenFOAM-{0}".format(self.version)
-        # Could also grep through etc/bashrc for WM_PROJECT_VERSION
+
+        # Grep for WM_PROJECT_VERSION in etc/bashrc
+        #   e.g. "export WM_PROJECT_VERSION=5.x"
+        #
+        # note: WM_PROJECT is assumed to be OpenFOAM and the project folder is assumed to
+        #       be "OpenFOAM-${WM_PROJECT_VERSION}"
+        target = None
+        with open(join_path(self.stage.source_path, "etc/bashrc"), "r") as bashrc_file:
+            import re
+
+            for line in bashrc_file.readlines():
+                m = re.match("export WM_PROJECT_VERSION=(.*)", line)
+                if m:
+                    target = f"OpenFOAM-{m.group(1)}"
+                    break
+        if target is None:
+            raise InstallError("Failed to infer projet directory name from build script.")
+
         with working_dir(parent):
             if original != target and not os.path.lexists(target):
                 os.rename(original, target)
@@ -265,6 +285,13 @@ class OpenfoamOrg(Package):
         rewrite_environ_files(  # Adjust etc/bashrc and etc/cshrc
             edits, posix=join_path("etc", "bashrc"), cshell=join_path("etc", "cshrc")
         )
+        if self.spec.satisfies("@10:") and "+zoltan" in self.spec:
+            filter_file("libzoltan.a", "libzoltan.so", join_path("src", "renumber", "Allwmake"))
+            filter_file(
+                "libzoltan.a",
+                "libzoltan.so",
+                join_path("src", "parallel", "decompose", "Allwmake"),
+            )
 
     def configure(self, spec, prefix):
         """Make adjustments to the OpenFOAM configuration files in their various
@@ -294,17 +321,28 @@ class OpenfoamOrg(Package):
         self.etc_config = {
             "CGAL": {},
             "scotch": {},
+            "zoltan": {},
             "metis": {},
             "paraview": [],
             "gperftools": [],  # Currently unused
         }
 
-        if True:
+        if "+scotch" in spec:
             self.etc_config["scotch"] = {
                 "SCOTCH_ARCH_PATH": spec["scotch"].prefix,
                 # For src/parallel/decompose/Allwmake
                 "SCOTCH_VERSION": "scotch-{0}".format(spec["scotch"].version),
             }
+
+        if "+zoltan" in spec:
+            if spec.satisfies("@:9"):
+                self.etc_prefs["ZOLTAN_ARCH_PATH"] = spec["zoltan"].prefix
+                self.etc_prefs["ZOLTAN_VERSION"] = "Zoltan-{0}".format(spec["zoltan"].version)
+            else:
+                self.etc_config["zoltan"] = {
+                    "ZOLTAN_ARCH_PATH": spec["zoltan"].prefix,
+                    "ZOLTAN_VERSION": "Zoltan-{0}".format(spec["zoltan"].version),
+                }
 
         if "+metis" in spec:
             self.etc_config["metis"] = {"METIS_ARCH_PATH": spec["metis"].prefix}
@@ -426,6 +464,14 @@ class OpenfoamOrg(Package):
 
 class OpenfoamOrgArch(OpenfoamArch):
     """An openfoam-org variant of OpenfoamArch"""
+
+    def __init__(self, spec, **kwargs):
+        super().__init__(spec, **kwargs)
+        if "precision=lp" in spec:
+            self.precision_option = "LP"
+        elif "precision=sp" in spec:
+            self.precision_option = "SP"
+        self.update_options()
 
     def update_arch(self, spec):
         """Handle differences in WM_ARCH naming"""

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,8 @@ class RPheatmap(RPackage):
     appearance."""
 
     cran = "pheatmap"
+
+    license("GPL-2.0-only")
 
     version("1.0.12", sha256="579d96ee0417203b85417780eca921969cda3acc210c859bf9dfeff11539b0c1")
 

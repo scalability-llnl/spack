@@ -1,0 +1,240 @@
+diff --git a/src/MAKE/Makefile.auto b/src/MAKE/Makefile.auto
+index dde9e72..239f886 100644
+--- a/src/MAKE/Makefile.auto
++++ b/src/MAKE/Makefile.auto
+@@ -440,12 +440,12 @@ ifeq ($(USE_MPI), "ON")
+         TMP_INC = -I$(MPI_INC)
+     endif
+     # We assume that the compiler supports #pragma message
+-    TMP := $(shell $(ECHO) '\#include <mpi.h> \n \#if defined(MPICH) \n \#pragma message "MPICH" \n \#elif defined(OPEN_MPI) \n \#pragma message "OpenMPI" \n \#else \n \#pragma message "Unknown" \n \#endif' > $(TMPFILE) && $(MPICXX) $(OPT_LVL) $(PROF_FLAG) $(TMP_INC) -xc++ -E $(TMPFILE) 2> /dev/null | grep pragma | grep -m 1 message || echo -1)
++    TMP := $(shell $(ECHO) '#include <mpi.h> \n #if defined(MPICH) \n #pragma message "MPICH" \n #elif defined(OPEN_MPI) \n #pragma message "OpenMPI" \n #else \n #pragma message "Unknown" \n #endif' > $(TMPFILE) && $(MPICXX) $(OPT_LVL) $(PROF_FLAG) $(TMP_INC) -xc++ -E $(TMPFILE) 2> /dev/null | grep pragma | grep -m 1 message || echo -1)
+     # See if compilation has worked out
+     ifeq ($(TMP), -1)
+         # Maybe it failed because of the optimization as -Og is not known
+         ifeq ($(USE_DEBUG), "ON")
+-            TMP := $(shell $(ECHO) '\#include <mpi.h> \n \#if defined(MPICH) \n \#pragma message "MPICH" \n \#elif defined(OPEN_MPI) \n \#pragma message "OpenMPI" \n \#else \n \#pragma message "Unknown" \n \#endif' > $(TMPFILE) && $(MPICXX) -O0 -g $(PROF_FLAG) $(TMP_INC) -xc++ -E $(TMPFILE) 2> /dev/null | grep pragma | grep -m 1 message || echo -1)
++            TMP := $(shell $(ECHO) '#include <mpi.h> \n #if defined(MPICH) \n #pragma message "MPICH" \n #elif defined(OPEN_MPI) \n #pragma message "OpenMPI" \n #else \n #pragma message "Unknown" \n #endif' > $(TMPFILE) && $(MPICXX) -O0 -g $(PROF_FLAG) $(TMP_INC) -xc++ -E $(TMPFILE) 2> /dev/null | grep pragma | grep -m 1 message || echo -1)
+             ifeq ($(TMP), -1)
+                 $(error 'Could not compile a simple MPI example (testing with -Og and -O0). Test was done with MPI_INC="$(TMP_INC)" and MPICXX="$(MPICXX)"')
+             else
+@@ -566,7 +566,7 @@ else
+         $(shell $(ECHO) "#Compiling with mpi stubs" >> $(AUTO_LOG_FILE))
+         $(shell $(ECHO) "#Command: $(CXX) $(EXTRA_INC) $(EXTRA_LIB) $(EXTRA_ADDLIBS) -xc++ $(LDFLAGS) $(CCFLAGS) -o /dev/null $(TMPFILE)")
+     endif
+-    TMP := $(shell $(ECHO) '\#include <mpi.h> \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_INC) $(EXTRA_LIB) $(EXTRA_ADDLIBS) -xc++ $(LDFLAGS) $(CCFLAGS) -o /dev/null $(TMPFILE) 2>> $(AUTO_LOG_FILE) && echo 0 || echo -1)
++    TMP := $(shell $(ECHO) '#include <mpi.h> \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_INC) $(EXTRA_LIB) $(EXTRA_ADDLIBS) -xc++ $(LDFLAGS) $(CCFLAGS) -o /dev/null $(TMPFILE) 2>> $(AUTO_LOG_FILE) && echo 0 || echo -1)
+     ifeq ($(TMP), -1)
+         $(error 'Could not compile a simple c++ example. Please make sure that you have run "make stubs" before compiling LIGGGHTS itself. Test was done with CXX=$(CXX), EXTRA_INC=$(EXTRA_INC), EXTRA_LIB=$(EXTRA_LIB) and EXTRA_ADDLIBS=$(EXTRA_ADDLIBS).')
+     endif
+@@ -595,7 +595,7 @@ endif
+ HAVE_MATH_SPECIAL_FUNCS = 0
+ # For c++17 this is included without any further defines
+ ifeq ($(CXXVERSION),17)
+-    TMP := $(shell $(ECHO) '\#include <cmath> \n int main(){ std::beta(1,1); }' > $(TMPFILE) && $(CXX) $(EXTRA_INC) $(EXTRA_LIB) $(EXTRA_ADDLIBS) -xc++ $(LDFLAGS) $(CCFLAGS) -o /dev/null $(TMPFILE) 2> /dev/null && echo 0 || echo -1)
++    TMP := $(shell $(ECHO) '#include <cmath> \n int main(){ std::beta(1,1); }' > $(TMPFILE) && $(CXX) $(EXTRA_INC) $(EXTRA_LIB) $(EXTRA_ADDLIBS) -xc++ $(LDFLAGS) $(CCFLAGS) -o /dev/null $(TMPFILE) 2> /dev/null && echo 0 || echo -1)
+     ifeq ($(TMP),0)
+         HAVE_MATH_SPECIAL_FUNCS = 1
+     endif
+@@ -604,14 +604,14 @@ ifeq ($(CXXVERSION),17)
+ else
+     # For c++11 we need to check if ISO 29124:2010 is supported
+     ifeq ($(CXXVERSION),11)
+-        TMP := $(shell $(ECHO) '\#define __STDCPP_WANT_MATH_SPEC_FUNCS__ 1 \n \#include <cmath> \n \#if !defined(__STDCPP_MATH_SPEC_FUNCS__) || __STDCPP_MATH_SPEC_FUNCS__ < 201003L \n \#error "STOP" \n \#endif \n int main(){ std::beta(1,1); }' > $(TMPFILE) && $(CXX) $(EXTRA_INC) $(EXTRA_LIB) $(EXTRA_ADDLIBS) -xc++ $(LDFLAGS) $(CCFLAGS) -o /dev/null $(TMPFILE) 2> /dev/null && echo 0 || echo -1)
++        TMP := $(shell $(ECHO) '#define __STDCPP_WANT_MATH_SPEC_FUNCS__ 1 \n #include <cmath> \n #if !defined(__STDCPP_MATH_SPEC_FUNCS__) || __STDCPP_MATH_SPEC_FUNCS__ < 201003L \n #error "STOP" \n #endif \n int main(){ std::beta(1,1); }' > $(TMPFILE) && $(CXX) $(EXTRA_INC) $(EXTRA_LIB) $(EXTRA_ADDLIBS) -xc++ $(LDFLAGS) $(CCFLAGS) -o /dev/null $(TMPFILE) 2> /dev/null && echo 0 || echo -1)
+         ifeq ($(TMP),0)
+             HAVE_MATH_SPECIAL_FUNCS = 1
+         endif
+     endif
+ endif
+ ifeq ($(HAVE_MATH_SPECIAL_FUNCS),0)
+-    TMP := $(shell $(ECHO) '\#include <tr1/cmath> \n int main(){ std::tr1::beta(1,1); }' > $(TMPFILE) && $(CXX) $(EXTRA_INC) $(EXTRA_LIB) $(EXTRA_ADDLIBS) -xc++ $(LDFLAGS) $(CCFLAGS) -o /dev/null $(TMPFILE) 2> /dev/null && echo 0 || echo -1)
++    TMP := $(shell $(ECHO) '#include <tr1/cmath> \n int main(){ std::tr1::beta(1,1); }' > $(TMPFILE) && $(CXX) $(EXTRA_INC) $(EXTRA_LIB) $(EXTRA_ADDLIBS) -xc++ $(LDFLAGS) $(CCFLAGS) -o /dev/null $(TMPFILE) 2> /dev/null && echo 0 || echo -1)
+     HAVE_TR1_CMATH = 0
+     ifeq ($(TMP),0)
+         HAVE_TR1_CMATH = 1
+@@ -729,7 +729,7 @@ ifeq ($(USE_VTK), "ON")
+         $(shell $(ECHO) "#vtk major version detection" >> $(AUTO_LOG_FILE))
+     endif
+     # note we assume here that our compiler supports #pragma message
+-    VTK_TMP := $(shell $(ECHO) '\#include <vtkVersion.h> \n \#define XSTR(x) STR(x) \n \#define STR(x) \#x \n \#pragma message XSTR(VTK_MAJOR_VERSION)' > $(TMPFILE) && $(CXX) -Wno-deprecated -E $(VTK_INC) -xc++ $(TMPFILE) 2>> $(AUTO_LOG_FILE) | tee -a $(AUTO_LOG_FILE) | grep "pragma" | grep "message" || echo -1)
++    VTK_TMP := $(shell $(ECHO) '#include <vtkVersion.h> \n #define XSTR(x) STR(x) \n #define STR(x) #x \n #pragma message XSTR(VTK_MAJOR_VERSION)' > $(TMPFILE) && $(CXX) -Wno-deprecated -E $(VTK_INC) -xc++ $(TMPFILE) 2>> $(AUTO_LOG_FILE) | tee -a $(AUTO_LOG_FILE) | grep "pragma" | grep "message" || echo -1)
+     ifeq ($(AUTO_DEBUG),1)
+         $(shell $(ECHO) "#vtk major version detection result: $(VTK_TMP)" >> $(AUTO_LOG_FILE))
+     endif
+@@ -744,7 +744,7 @@ ifeq ($(USE_VTK), "ON")
+         ifeq ($(VTK_INC),-I)
+             VTK_INC =
+         endif
+-        VTK_TMP := $(shell $(ECHO) '\#include <vtkVersion.h> \n \#define XSTR(x) STR(x) \n \#define STR(x) \#x \n \#pragma message XSTR(VTK_MAJOR_VERSION)' > $(TMPFILE) && $(CXX) -Wno-deprecated -E $(VTK_INC) -xc++ $(TMPFILE) 2>> $(AUTO_LOG_FILE) | tee -a $(AUTO_LOG_FILE) | grep "pragma" | grep "message" || echo -1)
++        VTK_TMP := $(shell $(ECHO) '#include <vtkVersion.h> \n #define XSTR(x) STR(x) \n #define STR(x) #x \n #pragma message XSTR(VTK_MAJOR_VERSION)' > $(TMPFILE) && $(CXX) -Wno-deprecated -E $(VTK_INC) -xc++ $(TMPFILE) 2>> $(AUTO_LOG_FILE) | tee -a $(AUTO_LOG_FILE) | grep "pragma" | grep "message" || echo -1)
+         ifeq ($(AUTO_DEBUG),1)
+             $(shell $(ECHO) "#vtk major version detection result (lib): $(VTK_TMP)" >> $(AUTO_LOG_FILE))
+         endif
+@@ -797,7 +797,7 @@ ifeq ($(USE_VTK), "ON")
+                 # At this stage we now have VTK downloaded. Next we need to compile it
+                 $(info VTK has been downloaded and will be compiled now. This can take several minutes.)
+                 OBJDIR := $(PWD)
+-                TMP := $(shell $(ECHO) '\#!/bin/bash \n cd "$(OBJDIR)/$(LIB_PATH)/vtk" \n mkdir -p build \n cd src \n git checkout $(VTK_VERSION_TAG) &>> $(AUTO_LOG_FILE) \n cd ../build \n cmake -DBUILD_TESTING:BOOL=OFF -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX=../install -DModule_vtkIOMPIParallel:BOOL=ON -DVTK_Group_MPI:BOOL=ON -DVTK_Group_Rendering:BOOL=OFF -DVTK_RENDERING_BACKEND:STRING=None -DVTK_USE_X:BOOL=OFF -DModule_vtkIOMPIImage:BOOL=ON -DModule_vtkParallelMPI:BOOL=ON ../src &>> $(AUTO_LOG_FILE) \n make &>> $(AUTO_LOG_FILE) \n make install &>> $(AUTO_LOG_FILE)' > $(TMPFILE))
++                TMP := $(shell $(ECHO) '#!/bin/bash \n cd "$(OBJDIR)/$(LIB_PATH)/vtk" \n mkdir -p build \n cd src \n git checkout $(VTK_VERSION_TAG) &>> $(AUTO_LOG_FILE) \n cd ../build \n cmake -DBUILD_TESTING:BOOL=OFF -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX=../install -DModule_vtkIOMPIParallel:BOOL=ON -DVTK_Group_MPI:BOOL=ON -DVTK_Group_Rendering:BOOL=OFF -DVTK_RENDERING_BACKEND:STRING=None -DVTK_USE_X:BOOL=OFF -DModule_vtkIOMPIImage:BOOL=ON -DModule_vtkParallelMPI:BOOL=ON ../src &>> $(AUTO_LOG_FILE) \n make &>> $(AUTO_LOG_FILE) \n make install &>> $(AUTO_LOG_FILE)' > $(TMPFILE))
+                 TMP := $(shell bash $(TMPFILE) && echo 0 || echo -1)
+                 ifeq ($(TMP), -1)
+                     $(error 'Compilation of vtk failed. Please install it manually')
+@@ -807,7 +807,7 @@ ifeq ($(USE_VTK), "ON")
+                 ifeq ($(VTK_INC),-I)
+                     VTK_INC =
+                 endif
+-                VTK_TMP := $(shell $(ECHO) '\#include <vtkVersion.h> \n \#define XSTR(x) STR(x) \n \#define STR(x) \#x \n \#pragma message XSTR(VTK_MAJOR_VERSION)' > $(TMPFILE) && $(CXX) -Wno-deprecated -E $(VTK_INC) -xc++ $(TMPFILE) 2>> $(AUTO_LOG_FILE) | tee -a $(AUTO_LOG_FILE) | grep "pragma" | grep "message" || echo -1)
++                VTK_TMP := $(shell $(ECHO) '#include <vtkVersion.h> \n #define XSTR(x) STR(x) \n #define STR(x) #x \n #pragma message XSTR(VTK_MAJOR_VERSION)' > $(TMPFILE) && $(CXX) -Wno-deprecated -E $(VTK_INC) -xc++ $(TMPFILE) 2>> $(AUTO_LOG_FILE) | tee -a $(AUTO_LOG_FILE) | grep "pragma" | grep "message" || echo -1)
+                 ifeq ($(AUTO_DEBUG),1)
+                     $(shell $(ECHO) "#vtk major version detection result (lib): $(VTK_TMP)" >> $(AUTO_LOG_FILE))
+                 endif
+@@ -826,7 +826,7 @@ ifeq ($(USE_VTK), "ON")
+     ifeq ($(AUTO_DEBUG),1)
+         $(shell $(ECHO) "#vtk_major_version: $(VTK_MAJOR_VERSION)" >> $(AUTO_LOG_FILE))
+     endif
+-    VTK_TMP := $(shell $(ECHO) '\#include <vtkVersion.h> \n \#define XSTR(x) STR(x) \n \#define STR(x) \#x \n \#pragma message XSTR(VTK_MINOR_VERSION)' > $(TMPFILE) && $(CXX) -Wno-deprecated -E $(VTK_INC) -xc++ $(TMPFILE) 2>> $(AUTO_LOG_FILE) | tee -a $(AUTO_LOG_FILE) | grep "pragma" | grep "message" || echo -1)
++    VTK_TMP := $(shell $(ECHO) '#include <vtkVersion.h> \n #define XSTR(x) STR(x) \n #define STR(x) #x \n #pragma message XSTR(VTK_MINOR_VERSION)' > $(TMPFILE) && $(CXX) -Wno-deprecated -E $(VTK_INC) -xc++ $(TMPFILE) 2>> $(AUTO_LOG_FILE) | tee -a $(AUTO_LOG_FILE) | grep "pragma" | grep "message" || echo -1)
+     ifeq ($(VTK_TMP), -1)
+         $(error Could not obtain VTK_MINOR_VERSION)
+     endif
+@@ -885,7 +885,7 @@ ifeq ($(USE_VTK), "ON")
+                 VTK_LIB =
+             endif
+         endif
+-        TMP := $(shell $(ECHO) '\#include <vtkVersion.h> \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_LIB) $(VTK_LIB) $(VTK_INC) $(EXTRA_ADDLIBS) -lvtkCommon$(VTK_APPENDIX_5) $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) 2> /dev/null && echo 0 || echo -1)
++        TMP := $(shell $(ECHO) '#include <vtkVersion.h> \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_LIB) $(VTK_LIB) $(VTK_INC) $(EXTRA_ADDLIBS) -lvtkCommon$(VTK_APPENDIX_5) $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) 2> /dev/null && echo 0 || echo -1)
+         ifeq ($(TMP), -1)
+             ifeq ($(VTK_LIB_SET), 0)
+                 VTK_LIB := -L$(dir $(shell find $(VTK_BASE_PATH)/lib* -name 'libvtkCommon.so' | tail -n 1))
+@@ -893,7 +893,7 @@ ifeq ($(USE_VTK), "ON")
+                     VTK_LIB =
+                 endif
+             endif
+-            TMP := $(shell $(ECHO) '\#include <vtkVersion.h> \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_LIB) $(VTK_LIB) $(VTK_INC) $(EXTRA_ADDLIBS) -lvtkCommon $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) 2> /dev/null && echo 0 || echo -1)
++            TMP := $(shell $(ECHO) '#include <vtkVersion.h> \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_LIB) $(VTK_LIB) $(VTK_INC) $(EXTRA_ADDLIBS) -lvtkCommon $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) 2> /dev/null && echo 0 || echo -1)
+             ifeq ($(TMP), -1)
+                 $(error 'Could not determine suitable appendix of VTK library with VTK_INC="$(VTK_INC)", VTK_LIB="$(VTK_LIB)" and VTK_APPENDIX="$(VTK_APPENDIX)"')
+             else
+@@ -924,7 +924,7 @@ ifeq ($(USE_VTK), "ON")
+             $(shell $(ECHO) "#vtk_lib: $(VTK_LIB)" >> $(AUTO_LOG_FILE))
+             $(shell $(ECHO) "#appendix command: $(CXX) $(EXTRA_LIB) $(VTK_LIB) $(VTK_INC) $(EXTRA_ADDLIBS) -lvtksys$(VTK_APPENDIX) $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE)" >> $(AUTO_LOG_FILE))
+         endif
+-        TMP := $(shell $(ECHO) '\#include <vtkVersion.h> \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_LIB) $(VTK_LIB) $(VTK_INC) $(EXTRA_ADDLIBS) -lvtksys$(VTK_APPENDIX) $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) 2>> $(AUTO_LOG_FILE) && echo 0 || echo -1)
++        TMP := $(shell $(ECHO) '#include <vtkVersion.h> \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_LIB) $(VTK_LIB) $(VTK_INC) $(EXTRA_ADDLIBS) -lvtksys$(VTK_APPENDIX) $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) 2>> $(AUTO_LOG_FILE) && echo 0 || echo -1)
+         ifeq ($(TMP), -1)
+             ifeq ($(AUTO_DEBUG),1)
+                 $(shell $(ECHO) "#attempting without appendix" >> $(AUTO_LOG_FILE))
+@@ -935,7 +935,7 @@ ifeq ($(USE_VTK), "ON")
+                     VTK_LIB =
+                 endif
+             endif
+-            TMP := $(shell $(ECHO) '\#include <vtkVersion.h> \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_LIB) $(VTK_LIB) $(VTK_INC) $(EXTRA_ADDLIBS) -lvtksys $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) 2>> $(AUTO_LOG_FILE) && echo 0 || echo -1)
++            TMP := $(shell $(ECHO) '#include <vtkVersion.h> \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_LIB) $(VTK_LIB) $(VTK_INC) $(EXTRA_ADDLIBS) -lvtksys $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) 2>> $(AUTO_LOG_FILE) && echo 0 || echo -1)
+             ifeq ($(TMP), -1)
+                 $(error 'Could not determine suitable appendix of VTK library with VTK_INC="$(VTK_INC)", VTK_LIB="$(VTK_LIB)" and VTK_APPENDIX="$(VTK_APPENDIX)"')
+             else
+@@ -1025,9 +1025,9 @@ ifeq ($(USE_VTK), "ON")
+         $(shell $(ECHO) "#vtk_addlibs: $(VTK_ADDLIBS)" >> $(AUTO_LOG_FILE))
+         $(shell $(ECHO) "#vtk_rpath: $(VTK_RPATH)" >> $(AUTO_LOG_FILE))
+         $(shell $(ECHO) "#vtk compile test:" >> $(AUTO_LOG_FILE))
+-        TMP := $(shell $(ECHO) "\#include <vtkVersion.h> \n int main(){}" > $(TMPFILE) && $(CXX) $(VTK_RPATH) $(EXTRA_LIB) $(VTK_LIB) $(VTK_INC) $(EXTRA_ADDLIBS) $(VTK_ADDLIBS) $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) &>> $(AUTO_LOG_FILE))
++        TMP := $(shell $(ECHO) "#include <vtkVersion.h> \n int main(){}" > $(TMPFILE) && $(CXX) $(VTK_RPATH) $(EXTRA_LIB) $(VTK_LIB) $(VTK_INC) $(EXTRA_ADDLIBS) $(VTK_ADDLIBS) $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) &>> $(AUTO_LOG_FILE))
+     endif
+-    TMP := $(shell $(ECHO) '\#include <vtkVersion.h> \n int main(){}' > $(TMPFILE) && $(CXX) $(VTK_RPATH) $(EXTRA_LIB) $(VTK_LIB) $(VTK_INC) $(EXTRA_ADDLIBS) $(VTK_ADDLIBS) $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) 2> /dev/null && echo 0 || echo -1)
++    TMP := $(shell $(ECHO) '#include <vtkVersion.h> \n int main(){}' > $(TMPFILE) && $(CXX) $(VTK_RPATH) $(EXTRA_LIB) $(VTK_LIB) $(VTK_INC) $(EXTRA_ADDLIBS) $(VTK_ADDLIBS) $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) 2> /dev/null && echo 0 || echo -1)
+     ifeq ($(TMP), -1)
+         $(error 'Could not compile VTK example with VTK_INC="$(VTK_INC)", VTK_LIB="$(VTK_LIB)" and VTK_ADDLIBS="$(VTK_ADDLIBS)"')
+     endif
+@@ -1057,7 +1057,7 @@ ifeq ($(USE_SUPERQUADRICS), "ON")
+     ifeq ($(REQUIRE_BOOST),1)
+         BOOST_INC ?= $(BOOST_INC_USR)
+         # Include test
+-        TMP := $(shell $(ECHO) '\#include "boost/math/special_functions/beta.hpp" \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_LIB) $(BOOST_INC) $(EXTRA_ADDLIBS) $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) 2> /dev/null && echo 0 || echo -1)
++        TMP := $(shell $(ECHO) '#include "boost/math/special_functions/beta.hpp" \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_LIB) $(BOOST_INC) $(EXTRA_ADDLIBS) $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) 2> /dev/null && echo 0 || echo -1)
+         ifeq ($(TMP), -1)
+             $(error 'Could not compile boost example with BOOST_INC="$(BOOST_INC)" as boost/math/special_functions/beta.hpp could not be found')
+         endif
+@@ -1082,7 +1082,7 @@ ifeq ($(USE_JPG), "ON")
+         $(shell $(ECHO) "#JPG_ADDLIBS: $(JPG_ADDLIBS)" >> $(AUTO_LOG_FILE))
+         $(shell $(ECHO) "jpg compile test:" >> $(AUTO_LOG_FILE))
+     endif
+-    TMP := $(shell $(ECHO) '\#include <cstdlib> \n \#include <cstdio> \n \#include <jpeglib.h> \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_LIB) $(JPG_INC) $(EXTRA_ADDLIBS) $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) 2>> $(AUTO_LOG_FILE) && echo 0 || echo -1)
++    TMP := $(shell $(ECHO) '#include <cstdlib> \n #include <cstdio> \n #include <jpeglib.h> \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_LIB) $(JPG_INC) $(EXTRA_ADDLIBS) $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) 2>> $(AUTO_LOG_FILE) && echo 0 || echo -1)
+     ifeq ($(TMP), -1)
+         $(error 'Could not compile jpg example with JPG_INC="$(JPG_INC)"')
+     endif
+@@ -1090,7 +1090,7 @@ ifeq ($(USE_JPG), "ON")
+         $(shell $(ECHO) "jpg link test:" >> $(AUTO_LOG_FILE))
+     endif
+     # Linking test
+-    TMP := $(shell $(ECHO) '\#include <cstdlib> \n \#include <cstdio> \n \#include <jpeglib.h> \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_LIB) $(JPG_LIB) $(JPG_INC) $(EXTRA_ADDLIBS) $(JPG_ADDLIBS) $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) 2>> $(AUTO_LOG_FILE) && echo 0 || echo -1)
++    TMP := $(shell $(ECHO) '#include <cstdlib> \n #include <cstdio> \n #include <jpeglib.h> \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_LIB) $(JPG_LIB) $(JPG_INC) $(EXTRA_ADDLIBS) $(JPG_ADDLIBS) $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) 2>> $(AUTO_LOG_FILE) && echo 0 || echo -1)
+     ifeq ($(TMP), -1)
+         $(error 'Could not compile and link jpg example with JPG_INC="$(JPG_INC)", JPG_LIB="$(JPG_LIB)" and JPG_ADDLIBS="$(JPG_ADDLIBS)"')
+     endif
+@@ -1119,7 +1119,7 @@ ifeq ($(USE_CONVEX), "ON")
+     CONVEX_ADDLIBS += -lccd
+     # Test settings
+     # Link test
+-    TMP := $(shell $(ECHO) '\#include "ccd/ccd.h" \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_LIB) $(CONVEX_LIB) $(CONVEX_INC) $(EXTRA_ADDLIBS) $(CONVEX_ADDLIBS) $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) 2> /dev/null && echo 0 || echo -1)
++    TMP := $(shell $(ECHO) '#include "ccd/ccd.h" \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_LIB) $(CONVEX_LIB) $(CONVEX_INC) $(EXTRA_ADDLIBS) $(CONVEX_ADDLIBS) $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) 2> /dev/null && echo 0 || echo -1)
+     # Automatic download and compilation if AUTODOWNLOAD_CONVEX is set
+     ifeq ($(TMP), -1)
+         ifeq ($(AUTOINSTALL_CONVEX), "ON")
+@@ -1168,7 +1168,7 @@ ifeq ($(USE_CONVEX), "ON")
+             endif
+             # At this stage we now have libccd downloaded. Next we need to compile it
+             OBJDIR := $(PWD)
+-            TMP := $(shell $(ECHO) '\#!/bin/bash \n cd "$(OBJDIR)/$(LIB_PATH)/libccd/src" \n make PREFIX="$(PWD)/../../" USE_DOUBLE=yes &> /dev/null' > $(TMPFILE))
++            TMP := $(shell $(ECHO) '#!/bin/bash \n cd "$(OBJDIR)/$(LIB_PATH)/libccd/src" \n make PREFIX="$(PWD)/../../" USE_DOUBLE=yes &> /dev/null' > $(TMPFILE))
+             TMP := $(shell bash $(TMPFILE) && echo 0 || echo -1)
+             ifeq ($(TMP), -1)
+                 $(error 'Compilation of libccd failed. Please install it manually')
+@@ -1178,12 +1178,12 @@ ifeq ($(USE_CONVEX), "ON")
+         endif
+     endif
+     # Include test
+-    TMP := $(shell $(ECHO) '\#include "ccd/ccd.h" \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_LIB) $(CONVEX_INC) $(EXTRA_ADDLIBS) $(CCFLAGS) -xc++ -E $(TMPFILE) 2> /dev/null && echo 0 || echo -1)
++    TMP := $(shell $(ECHO) '#include "ccd/ccd.h" \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_LIB) $(CONVEX_INC) $(EXTRA_ADDLIBS) $(CCFLAGS) -xc++ -E $(TMPFILE) 2> /dev/null && echo 0 || echo -1)
+     ifeq ($(TMP), -1)
+         $(error 'Could not compile Convex (libccd) example with CONVEX_INC="$(CONVEX_INC)"')
+     endif
+     # Link test
+-    TMP := $(shell $(ECHO) '\#include "ccd/ccd.h" \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_LIB) $(CONVEX_LIB) $(CONVEX_INC) $(EXTRA_ADDLIBS) $(CONVEX_ADDLIBS) $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) 2> /dev/null && echo 0 || echo -1)
++    TMP := $(shell $(ECHO) '#include "ccd/ccd.h" \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_LIB) $(CONVEX_LIB) $(CONVEX_INC) $(EXTRA_ADDLIBS) $(CONVEX_ADDLIBS) $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) 2> /dev/null && echo 0 || echo -1)
+     ifeq ($(TMP), -1)
+         $(error 'Could not compile and link Convex (libccd) example with CONVEX_INC="$(CONVEX_INC)", CONVEX_LIB="$(CONVEX_LIB)" and CONVEX_ADDLIBS="$(CONVEX_ADDLIBS)"')
+     endif
+@@ -1210,7 +1210,7 @@ ifeq ($(USE_MFEM), "ON")
+     MFEM_LIB ?= -L$(LIB_PATH)/mfem
+     MFEM_ADDLIBS += -lmfem
+     # Link test
+-    TMP := $(shell $(ECHO) '\#include "mfem.hpp" \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_LIB) $(MFEM_INC) $(MFEM_LIB) $(EXTRA_ADDLIBS) $(MFEM_ADDLIBS) $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) 2> /dev/null && echo 0 || echo -1)
++    TMP := $(shell $(ECHO) '#include "mfem.hpp" \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_LIB) $(MFEM_INC) $(MFEM_LIB) $(EXTRA_ADDLIBS) $(MFEM_ADDLIBS) $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) 2> /dev/null && echo 0 || echo -1)
+     ifeq ($(TMP), -1)
+         ifeq ($(AUTOINSTALL_MFEM), "ON")
+             $(info 'Could not compile MFEM example. As AUTOINSTALL_MFEM is set to "ON". MFEM will now be automatically downloaded to ../lib/mfem')
+@@ -1257,7 +1257,7 @@ ifeq ($(USE_MFEM), "ON")
+             # At this stage we now have MFEM downloaded. Next we need to compile it
+             TMP := $(shell ls $(LIB_PATH)/mfem/libmfem.a && echo 0 || echo -1)
+             ifeq ($(TMP), -1)
+-                TMP := $(shell $(ECHO) '\#!/bin/bash \n cd $(LIB_PATH)/mfem \n make config \n make all -j 4' > $(TMPFILE))
++                TMP := $(shell $(ECHO) '#!/bin/bash \n cd $(LIB_PATH)/mfem \n make config \n make all -j 4' > $(TMPFILE))
+                 TMP := $(shell bash $(TMPFILE) && echo 0 || echo -1)
+                 ifeq ($(TMP), -1)
+                     $(error 'Compilation of MFEM failed. Please install it manually')
+@@ -1270,12 +1270,12 @@ ifeq ($(USE_MFEM), "ON")
+ 
+ 
+     # Include test
+-    TMP := $(shell $(ECHO) '\#include "mfem.hpp" \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_LIB) $(MFEM_INC) $(EXTRA_ADDLIBS) $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) 2> /dev/null && echo 0 || echo -1)
++    TMP := $(shell $(ECHO) '#include "mfem.hpp" \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_LIB) $(MFEM_INC) $(EXTRA_ADDLIBS) $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) 2> /dev/null && echo 0 || echo -1)
+     ifeq ($(TMP), -1)
+         $(error 'Could not compile MFEM example with MFEM_INC="$(MFEM_INC)"')
+     endif
+     # Link test
+-    TMP := $(shell $(ECHO) '\#include "mfem.hpp" \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_LIB) $(MFEM_INC) $(MFEM_LIB) $(EXTRA_ADDLIBS) $(MFEM_ADDLIBS) $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) 2> /dev/null && echo 0 || echo -1)
++    TMP := $(shell $(ECHO) '#include "mfem.hpp" \n int main(){}' > $(TMPFILE) && $(CXX) $(EXTRA_LIB) $(MFEM_INC) $(MFEM_LIB) $(EXTRA_ADDLIBS) $(MFEM_ADDLIBS) $(CCFLAGS) -xc++ -o /dev/null $(TMPFILE) 2> /dev/null && echo 0 || echo -1)
+     ifeq ($(TMP), -1)
+         $(error 'Could not compile and link MFEM example. Test was done with MFEM_INC="$(MFEM_INC)", MFEM_LIB="$(MFEM_LIB)" and MFEM_ADDLIBS="$(MFEM_ADDLIBS)"')
+     endif

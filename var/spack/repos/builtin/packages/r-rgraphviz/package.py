@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,7 @@ class RRgraphviz(RPackage):
 
     bioc = "Rgraphviz"
 
+    version("2.44.0", commit="1a1540d66afa0b5a693eee2acac8ad96cfc0a2e6")
     version("2.42.0", commit="f6877441ab256876ef6a62c2e6faf980c2190b20")
     version("2.40.0", commit="d864c9741c9177bc627cca1198673be2b1bfbc3e")
     version("2.38.0", commit="004de09a5b171211aff6cbaa1969ab8e3a5d6c61")
@@ -23,6 +23,9 @@ class RRgraphviz(RPackage):
     version("2.24.0", commit="7d1fb00afed0d44e32b4a46f10137ab34f100577")
     version("2.22.0", commit="5b8ebbf9b38574c08959dd4632e802b3fbccc121")
     version("2.20.0", commit="eface6298150667bb22eac672f1a45e52fbf8c90")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("r+X", type=("build", "run"))
     depends_on("r@2.6.0:", type=("build", "run"))

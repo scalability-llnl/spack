@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class Drishti(PythonPackage):
 
     maintainers("jeanbez", "sbyna")
 
+    license("BSD-3-Clause-LBNL")
+
     version("master", branch="master")
 
     version("0.6", sha256="f1883e48de4a863f284f9c54febd2b04d04456848aea3e34c355310a3336e3b8")
@@ -25,6 +26,7 @@ class Drishti(PythonPackage):
     version("0.4", sha256="bbbb272b4f6f44ae762f6cba28a2c589e15608691c559af0cc2f552590335d7b")
 
     # NOTE: py-darshan requires libdarshan-util.so to be loaded in the path
+    depends_on("c", type="build")  # generated
     depends_on("darshan-util", type=("run", "test", "link"))
 
     depends_on("py-pandas", type=("build", "run"))

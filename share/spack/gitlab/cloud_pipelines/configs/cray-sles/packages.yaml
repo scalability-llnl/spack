@@ -1,0 +1,16 @@
+packages:
+  # EXTERNALS
+  cray-mpich:
+    buildable: false
+    externals:
+    - spec: cray-mpich@8.1.25 %gcc
+      prefix: /opt/cray/pe/mpich/8.1.25/ofi/gnu/9.1/
+      modules:
+      - cray-mpich/8.1.25
+  cray-libsci:
+    buildable: false
+    externals:
+    - spec: cray-libsci@23.02.1.1 %gcc
+      prefix: /opt/cray/pe/libsci/23.02.1.1/GNU/9.1/x86_64/
+      modules:
+      - cray-libsci/23.02.1.1

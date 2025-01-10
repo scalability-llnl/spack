@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,7 @@ class RGwmodel(RPackage):
 
     cran = "GWmodel"
 
+    version("2.3-3", sha256="5f69d000d7ffba491f1dafbad5ec0b5fcbbdb28831092252a8b409163d6ad33c")
     version("2.2-9", sha256="3696e0f24994df4f393dbcb2e74bc0808704b80e1203247be3911fc3bcdb5f18")
     version("2.2-8", sha256="5b1890dbf75502e89b651efd9158be77b3cfa764a5717f9889f438ed2b0a4da2")
     version("2.2-2", sha256="4e2b221b85fbc828ffc4f057c137ded849afcaac2a75c27d2d6d0a6db17f8a06")
@@ -32,14 +32,18 @@ class RGwmodel(RPackage):
     version("2.0-9", sha256="b479af2c19d4aec30f1883d00193d52e342c609c1badcb51cc0344e4404cffa7")
 
     depends_on("r@3.0.0:", type=("build", "run"))
-    depends_on("r-maptools@0.5-2:", type=("build", "run"))
     depends_on("r-robustbase", type=("build", "run"))
+    depends_on("r-sf", type=("build", "run"), when="@2.3-1:")
     depends_on("r-sp", type=("build", "run"))
-    depends_on("r-sp@1.4-0:", type=("build", "run"), when="@2.2-2:")
-    depends_on("r-rcpp", type=("build", "run"))
+    depends_on("r-sp@1.4-0.1:", type=("build", "run"), when="@2.2-0:")
     depends_on("r-spatialreg", type=("build", "run"))
     depends_on("r-spacetime", type=("build", "run"))
     depends_on("r-spdep", type=("build", "run"))
     depends_on("r-fnn", type=("build", "run"), when="@2.1-1:")
+    depends_on("r-rcpp", type=("build", "run"))
+    depends_on("r-rcpp@1.0.12:", type=("build", "run"), when="@2.3-3:")
     depends_on("r-rcpparmadillo", type=("build", "run"))
+    depends_on("r-rcppeigen", type=("build", "run"), when="@2.3-3:")
     depends_on("gmake", type="build")
+
+    depends_on("r-maptools@0.5-2:", type=("build", "run"), when="@:2.2")

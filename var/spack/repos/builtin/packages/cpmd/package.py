@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,7 +13,12 @@ class Cpmd(MakefilePackage):
     homepage = "https://www.cpmd.org/wordpress/"
     url = "https://github.com/CPMD-code/CPMD/archive/refs/tags/4.3.tar.gz"
 
+    license("MIT")
+
     version("4.3", sha256="e0290f9da0d255f90a612e60662b14a97ca53003f89073c6af84fa7bc8739f65")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("omp", description="Enables the use of OMP instructions", default=False)
     variant("mpi", description="Build with MPI support", default=False)
@@ -36,6 +40,7 @@ class Cpmd(MakefilePackage):
         else:
             fc = spack_fc
             cc = spack_cc
+            cp.filter(r"FFLAGS='([^']*)'", "FFLAGS='\\1 -fallow-argument-mismatch'")
 
         cp.filter("FC=.+", "FC='{0}'".format(fc))
         cp.filter("CC=.+", "CC='{0}'".format(cc))
@@ -71,7 +76,8 @@ class Cpmd(MakefilePackage):
     def install(self, spec, prefix):
         install_tree(".", prefix)
 
-    def test(self):
+    def test_cpmd(self):
+        """check cpmd.x outputs"""
         test_dir = self.test_suite.current_test_data_dir
         test_file = join_path(test_dir, "1-h2o-pbc-geoopt.inp")
         opts = []
@@ -83,9 +89,12 @@ class Cpmd(MakefilePackage):
             exe_name = "cpmd.x"
         opts.append(test_file)
         opts.append(test_dir)
+        cpmd = which(exe_name)
+        out = cpmd(*opts, output=str.split, error=str.split)
+
         expected = [
             "2       1        H        O              1.84444     0.97604",
             "3       1        H        O              1.84444     0.97604",
             "2   1   3         H     O     H              103.8663",
         ]
-        self.run_test(exe_name, options=opts, expected=expected)
+        check_outputs(expected, out)

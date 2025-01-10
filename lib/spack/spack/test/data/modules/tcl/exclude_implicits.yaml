@@ -1,6 +1,9 @@
+# DEPRECATED: remove this in ?
+# See `hide_implicits.yaml` for the new syntax
 enable:
   - tcl
 tcl:
   exclude_implicits: true
+  hash_length: 0
   all:
     autoload: direct

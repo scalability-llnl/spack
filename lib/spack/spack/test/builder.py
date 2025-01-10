@@ -1,15 +1,16 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os.path
-import sys
 
 import pytest
 
 from llnl.util.filesystem import touch
 
+import spack.builder
 import spack.paths
+import spack.repo
+import spack.spec
 
 
 @pytest.fixture()
@@ -106,10 +107,7 @@ def test_old_style_compatibility_with_super(spec_str, method_name, expected):
     assert value == expected
 
 
-@pytest.mark.skipif(
-    sys.platform == "win32",
-    reason="log_ouput cannot currently be used outside of subprocess on Windows",
-)
+@pytest.mark.not_on_windows("log_ouput cannot currently be used outside of subprocess on Windows")
 @pytest.mark.regression("33928")
 @pytest.mark.usefixtures("builder_test_repository", "config", "working_env")
 @pytest.mark.disable_clean_stage_check
@@ -153,7 +151,7 @@ def test_monkey_patching_test_log_file():
 
 # Windows context manager's __exit__ fails with ValueError ("I/O operation
 # on closed file").
-@pytest.mark.skipif(sys.platform == "win32", reason="Does not run on windows")
+@pytest.mark.not_on_windows("Does not run on windows")
 def test_install_time_test_callback(tmpdir, config, mock_packages, mock_stage):
     """Confirm able to run stand-alone test as a post-install callback."""
     s = spack.spec.Spec("py-test-callback").concretized()
@@ -165,6 +163,23 @@ def test_install_time_test_callback(tmpdir, config, mock_packages, mock_stage):
     for phase_fn in builder:
         phase_fn.execute()
 
-    with open(s.package.tester.test_log_file, "r") as f:
+    with open(s.package.tester.test_log_file, "r", encoding="utf-8") as f:
         results = f.read().replace("\n", " ")
         assert "PyTestCallback test" in results
+
+
+@pytest.mark.regression("43097")
+@pytest.mark.usefixtures("builder_test_repository", "config")
+def test_mixins_with_builders(working_env):
+    """Tests that run_after and run_before callbacks are accumulated correctly,
+    when mixins are used with builders.
+    """
+    s = spack.spec.Spec("builder-and-mixins").concretized()
+    builder = spack.builder.create(s.package)
+
+    # Check that callbacks added by the mixin are in the list
+    assert any(fn.__name__ == "before_install" for _, fn in builder.run_before_callbacks)
+    assert any(fn.__name__ == "after_install" for _, fn in builder.run_after_callbacks)
+
+    # Check that callback from the GenericBuilder are in the list too
+    assert any(fn.__name__ == "sanity_check_prefix" for _, fn in builder.run_after_callbacks)

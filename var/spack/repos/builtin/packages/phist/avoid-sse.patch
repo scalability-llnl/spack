@@ -1,0 +1,346 @@
+commit eaef462cc07509fe8f380fbf520a2617b910b139
+Author: Jonas Thies <16190001+jthies@users.noreply.github.com>
+Date:   Sun Jul 9 21:33:30 2023 +0200
+
+    exit early from builtin kernels requiring SSE so that they are not compiled if it is not available
+    (this broke phist compilation on ARM systems, even though we never called these kernels if SSE was disabled)
+
+diff --git a/src/kernels/builtin/axpy_kernels_nt.c b/src/kernels/builtin/axpy_kernels_nt.c
+index 64d5fbd0..17c5024a 100644
+--- a/src/kernels/builtin/axpy_kernels_nt.c
++++ b/src/kernels/builtin/axpy_kernels_nt.c
+@@ -19,7 +19,9 @@
+ #endif
+ #include <stdint.h>
+ #include <stdio.h>
++#ifdef PHIST_HAVE_SSE
+ #include <emmintrin.h>
++#endif
+ #include <stdlib.h>
+ 
+ static inline _Bool is_aligned(const void *restrict pointer, size_t byte_count)
+@@ -30,6 +32,10 @@ static inline _Bool is_aligned(const void *restrict pointer, size_t byte_count)
+ 
+ void daxpy_nt_2_c(int nrows, const double *restrict alpha, const double *restrict x, double *restrict y)
+ {
++#ifndef PHIST_HAVE_SSE
++  printf("%s: must not be called on platforms without SSE.", __FUNCTION__);
++  exit(1);
++#else
+   if( !is_aligned(y,16) )
+   {
+     printf("%s: not aligned %lx\n", __FUNCTION__, (uintptr_t)(void*)y);
+@@ -54,11 +60,16 @@ void daxpy_nt_2_c(int nrows, const double *restrict alpha, const double *restric
+     // non-temporal store
+     _mm_stream_pd(y+2*i, y_);
+   }
++#endif
+ }
+ 
+ 
+ void daxpy_nt_4_c(int nrows, const double *restrict alpha, const double *restrict x, double *restrict y)
+ {
++#ifndef PHIST_HAVE_SSE
++  printf("%s: must not be called on platforms without SSE.", __FUNCTION__);
++  exit(1);
++#else
+   if( !is_aligned(y,16) )
+   {
+     printf("%s: not aligned %lx\n", __FUNCTION__, (uintptr_t)(void*)y);
+@@ -86,11 +97,16 @@ void daxpy_nt_4_c(int nrows, const double *restrict alpha, const double *restric
+       _mm_stream_pd(y+4*i+2*k, y_);
+     }
+   }
++#endif
+ }
+ 
+ 
+ void daxpy_nt_8_c(int nrows, const double *restrict alpha, const double *restrict x, double *restrict y)
+ {
++#ifndef PHIST_HAVE_SSE
++  printf("%s: must not be called on platforms without SSE.", __FUNCTION__);
++  exit(1);
++#else
+   if( !is_aligned(y,16) )
+   {
+     printf("%s: not aligned %lx\n", __FUNCTION__, (uintptr_t)(void*)y);
+@@ -118,11 +134,16 @@ void daxpy_nt_8_c(int nrows, const double *restrict alpha, const double *restric
+       _mm_stream_pd(y+8*i+2*k, y_);
+     }
+   }
++#endif
+ }
+ 
+ 
+ void daxpy_nt_strided_2_c(int nrows, const double *restrict alpha, const double *restrict x, int ldx, double *restrict y, int ldy)
+ {
++#ifndef PHIST_HAVE_SSE
++  printf("%s: must not be called on platforms without SSE.", __FUNCTION__);
++  exit(1);
++#else
+   if( !is_aligned(y,16) )
+   {
+     printf("%s: not aligned %lx\n", __FUNCTION__, (uintptr_t)(void*)y);
+@@ -140,11 +161,16 @@ void daxpy_nt_strided_2_c(int nrows, const double *restrict alpha, const double
+     // non-temporal store
+     _mm_stream_pd(y+ldy*i, y_);
+   }
++#endif
+ }
+ 
+ 
+ void daxpy_nt_strided_4_c(int nrows, const double *restrict alpha, const double *restrict x, int ldx, double *restrict y, int ldy)
+ {
++#ifndef PHIST_HAVE_SSE
++  printf("%s: must not be called on platforms without SSE.", __FUNCTION__);
++  exit(1);
++#else
+   if( !is_aligned(y,16) || ldy % 2 != 0 )
+   {
+     printf("%s: not aligned %lx\n", __FUNCTION__, (uintptr_t)(void*)y);
+@@ -165,11 +191,16 @@ void daxpy_nt_strided_4_c(int nrows, const double *restrict alpha, const double
+       _mm_stream_pd(y+ldy*i+2*k, y_);
+     }
+   }
++#endif
+ }
+ 
+ 
+ void daxpy_nt_strided_8_c(int nrows, const double *restrict alpha, const double *restrict x, int ldx, double *restrict y, int ldy)
+ {
++#ifndef PHIST_HAVE_SSE
++  printf("%s: must not be called on platforms without SSE.", __FUNCTION__);
++  exit(1);
++#else
+   if( !is_aligned(y,16) || ldy % 2 != 0 )
+   {
+     printf("%s: not aligned %lx\n", __FUNCTION__, (uintptr_t)(void*)y);
+@@ -190,11 +221,16 @@ void daxpy_nt_strided_8_c(int nrows, const double *restrict alpha, const double
+       _mm_stream_pd(y+ldy*i+2*k, y_);
+     }
+   }
++#endif
+ }
+ 
+ 
+ void dcopy_general_nt_c(int nrows, int nvec, const double *restrict x, int ldx, double *restrict y, int ldy)
+ {
++#ifndef PHIST_HAVE_SSE
++  printf("%s: must not be called on platforms without SSE.", __FUNCTION__);
++  exit(1);
++#else
+   if( nvec % 2 != 0 )
+   {
+     printf("%s: not aligned %lx\n", __FUNCTION__, (uintptr_t)(void*)x);
+@@ -217,5 +253,6 @@ void dcopy_general_nt_c(int nrows, int nvec, const double *restrict x, int ldx,
+       _mm_stream_pd(y+i*ldy+2*j, tmp);
+     }
+   }
++#endif
+ }
+ 
+diff --git a/src/kernels/builtin/spmvm_kernels_nt.c b/src/kernels/builtin/spmvm_kernels_nt.c
+index d4d30bff..5d858878 100644
+--- a/src/kernels/builtin/spmvm_kernels_nt.c
++++ b/src/kernels/builtin/spmvm_kernels_nt.c
+@@ -19,7 +19,9 @@
+ #endif
+ #include <stdint.h>
+ #include <stdio.h>
++#ifdef PHIST_HAVE_SSE
+ #include <emmintrin.h>
++#endif
+ #include <stdlib.h>
+ 
+ #ifdef PHIST_HIGH_PRECISION_KERNELS
+@@ -35,6 +37,10 @@ static inline _Bool is_aligned(const void *restrict pointer, size_t byte_count)
+ void dspmvm_nt_1_c(int nrows, double alpha, const long *restrict row_ptr, const long *restrict halo_ptr, const int *restrict col_idx, const double *restrict val,
+                  const double *restrict shifts, const double *restrict rhsv, const double *restrict halo, double *restrict lhsv)
+ {
++#ifndef PHIST_HAVE_SSE
++  printf("%s: must not be called on platforms without SSE.", __FUNCTION__);
++  exit(1);
++#else
+   if( !is_aligned(lhsv,16) )
+   {
+     printf("%s: not aligned %lx\n", __FUNCTION__, (uintptr_t)(void*)lhsv);
+@@ -123,7 +129,7 @@ void dspmvm_nt_1_c(int nrows, double alpha, const long *restrict row_ptr, const
+ #endif
+ 
+   // last row
+-#ifdef PHIST_HIGH_PRECISION_KERNELS
++# ifdef PHIST_HIGH_PRECISION_KERNELS
+   if( nrows % 2 != 0 )
+   {
+     double lhs, lhsC;
+@@ -136,7 +142,7 @@ void dspmvm_nt_1_c(int nrows, double alpha, const long *restrict row_ptr, const
+ 
+     lhsv[nrows-1] = alpha*(lhs+lhsC);
+   }
+-#else
++# else
+   if( nrows % 2 != 0 )
+   {
+     lhsv[nrows-1] = shifts[0]*rhsv[nrows-1];
+@@ -146,6 +152,7 @@ void dspmvm_nt_1_c(int nrows, double alpha, const long *restrict row_ptr, const
+       lhsv[nrows-1] += val[j]*halo[ (col_idx[j]-1) ];
+     lhsv[nrows-1] *= alpha;
+   }
++# endif
+ #endif
+ }
+ 
+@@ -153,6 +160,10 @@ void dspmvm_nt_1_c(int nrows, double alpha, const long *restrict row_ptr, const
+ void dspmvm_nt_2_c(int nrows, double alpha, const long *restrict row_ptr, const long *restrict halo_ptr, const int *restrict col_idx, const double *restrict val,
+                  const double *restrict shifts, const double *restrict rhsv, const double *restrict halo, double *restrict lhsv, int ldl)
+ {
++#ifndef PHIST_HAVE_SSE
++  printf("%s: must not be called on platforms without SSE.", __FUNCTION__);
++  exit(1);
++#else
+   if( !is_aligned(lhsv,32) || ldl % 2 != 0 )
+   {
+     printf("%s: not aligned %lx\n", __FUNCTION__, (uintptr_t)(void*)lhsv);
+@@ -176,7 +187,7 @@ void dspmvm_nt_2_c(int nrows, double alpha, const long *restrict row_ptr, const
+   __m128d shifts_ = _mm_loadu_pd(shifts);
+   __m128d alpha_ = _mm_set1_pd(alpha);
+ 
+-#ifdef PHIST_HIGH_PRECISION_KERNELS
++# ifdef PHIST_HIGH_PRECISION_KERNELS
+ #pragma omp parallel for schedule(static)
+   for(int i = 0; i < nrows; i++)
+   {
+@@ -204,7 +215,7 @@ void dspmvm_nt_2_c(int nrows, double alpha, const long *restrict row_ptr, const
+     // non-temporal store
+     _mm_stream_pd(lhsv+i*ldl, lhs);
+   }
+-#else
++# else
+ #pragma omp parallel for schedule(static)
+   for(int i = 0; i < nrows; i++)
+   {
+@@ -232,16 +243,21 @@ void dspmvm_nt_2_c(int nrows, double alpha, const long *restrict row_ptr, const
+     // multiply with alpha
+     __m128d alpha_ = _mm_set1_pd(alpha);
+     lhs_ = _mm_mul_pd(alpha_,lhs_);
+- 
++
+     // non-temporal store
+     _mm_stream_pd(lhsv+i*ldl, lhs_);
+   }
++# endif
+ #endif
+ }
+ 
+ void dspmvm_nt_4_c(int nrows, double alpha, const long *restrict row_ptr, const long *restrict halo_ptr, const int *restrict col_idx, const double *restrict val,
+                  const double *restrict shifts, const double *restrict rhsv, const double *restrict halo, double *restrict lhsv, int ldl)
+ {
++#ifndef PHIST_HAVE_SSE
++  printf("%s: must not be called on platforms without SSE.", __FUNCTION__);
++  exit(1);
++#else
+   if( !is_aligned(lhsv,32) || ldl % 4 != 0 )
+   {
+     printf("%s: lhsv not aligned %lx\n", __FUNCTION__, (uintptr_t)(void*)lhsv);
+@@ -261,7 +277,7 @@ void dspmvm_nt_4_c(int nrows, double alpha, const long *restrict row_ptr, const
+   }
+ 
+ 
+-#ifdef PHIST_HIGH_PRECISION_KERNELS
++# ifdef PHIST_HIGH_PRECISION_KERNELS
+ 
+   __m256d shifts_ = _mm256_loadu_pd(shifts);
+   __m256d alpha_ = _mm256_set1_pd(alpha);
+@@ -294,7 +310,7 @@ void dspmvm_nt_4_c(int nrows, double alpha, const long *restrict row_ptr, const
+     _mm256_stream_pd(lhsv+i*ldl, lhs);
+   }
+ 
+-#else
++# else
+ 
+   __m128d shifts_[2];
+   shifts_[0] = _mm_loadu_pd(shifts);
+@@ -341,6 +357,7 @@ void dspmvm_nt_4_c(int nrows, double alpha, const long *restrict row_ptr, const
+     }
+   }
+ 
++# endif
+ #endif
+ }
+ 
+@@ -348,6 +365,10 @@ void dspmvm_nt_4_c(int nrows, double alpha, const long *restrict row_ptr, const
+ void dspmvm_nt_8_c(int nrows, double alpha, const long *restrict row_ptr, const long *restrict halo_ptr, const int *restrict col_idx, const double *restrict val,
+                  const double *restrict shifts, const double *restrict rhsv, const double *restrict halo, double *restrict lhsv, int ldl)
+ {
++#ifndef PHIST_HAVE_SSE
++  printf("%s: must not be called on platforms without SSE.", __FUNCTION__);
++  exit(1);
++#else
+   if( !is_aligned(lhsv,16) || ldl % 2 != 0 )
+   {
+     printf("%s: not aligned %lx\n", __FUNCTION__, (uintptr_t)(void*)lhsv);
+@@ -412,12 +433,17 @@ void dspmvm_nt_8_c(int nrows, double alpha, const long *restrict row_ptr, const
+       _mm_stream_pd(lhsv+i*ldl+2*k, lhs_[k]);
+     }
+   }
++#endif
+ }
+ 
+ 
+ void dspmvm_nt_strided_2_c(int nrows, double alpha, const long *restrict row_ptr, const long *restrict halo_ptr, const int *restrict col_idx, const double *restrict val,
+                          const double *restrict shifts, const double *restrict rhsv, int ldr, const double *restrict halo, double *restrict lhsv, int ldl)
+ {
++#ifndef PHIST_HAVE_SSE
++  printf("%s: must not be called on platforms without SSE.", __FUNCTION__);
++  exit(1);
++#else
+   if( !is_aligned(lhsv,16) || ldl % 2 != 0 )
+   {
+     printf("%s: not aligned %lx\n", __FUNCTION__, (uintptr_t)(void*)lhsv);
+@@ -460,15 +486,20 @@ void dspmvm_nt_strided_2_c(int nrows, double alpha, const long *restrict row_ptr
+     // multiply with alpha
+     __m128d alpha_ = _mm_set1_pd(alpha);
+     lhs_ = _mm_mul_pd(alpha_,lhs_);
+- 
++
+     // non-temporal store
+     _mm_stream_pd(lhsv+i*ldl, lhs_);
+   }
++#endif
+ }
+ 
+ void dspmvm_nt_strided_4_c(int nrows, double alpha, const long *restrict row_ptr, const long *restrict halo_ptr, const int *restrict col_idx, const double *restrict val,
+                          const double *restrict shifts, const double *restrict rhsv, int ldr, const double *restrict halo, double *restrict lhsv, int ldl)
+ {
++#ifndef PHIST_HAVE_SSE
++  printf("%s: must not be called on platforms without SSE.", __FUNCTION__);
++  exit(1);
++#else
+   if( !is_aligned(lhsv,16) || ldl % 2 != 0 )
+   {
+     printf("%s: not aligned %lx\n", __FUNCTION__, (uintptr_t)(void*)lhsv);
+@@ -526,11 +557,16 @@ void dspmvm_nt_strided_4_c(int nrows, double alpha, const long *restrict row_ptr
+       _mm_stream_pd(lhsv+i*ldl+2*k, lhs_[k]);
+     }
+   }
++#endif
+ }
+ 
+ void dspmvm_nt_strided_8_c(int nrows, double alpha, const long *restrict row_ptr, const long *restrict halo_ptr, const int *restrict col_idx, const double *restrict val,
+                          const double *restrict shifts, const double *restrict rhsv, int ldr, const double *restrict halo, double *restrict lhsv, int ldl)
+ {
++#ifndef PHIST_HAVE_SSE
++  printf("%s: must not be called on platforms without SSE.", __FUNCTION__);
++  exit(1);
++#else
+   if( !is_aligned(lhsv,16) || ldl % 2 != 0 )
+   {
+     printf("%s: not aligned %lx\n", __FUNCTION__, (uintptr_t)(void*)lhsv);
+@@ -589,6 +625,7 @@ void dspmvm_nt_strided_8_c(int nrows, double alpha, const long *restrict row_ptr
+       _mm_stream_pd(lhsv+i*ldl+2*k, lhs_[k]);
+     }
+   }
++#endif
+ }
+ 
+ 

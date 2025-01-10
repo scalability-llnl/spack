@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PyBoto3(PythonPackage):
     homepage = "https://github.com/boto/boto3"
     pypi = "boto3/boto3-1.10.44.tar.gz"
 
+    version("1.34.162", sha256="873f8f5d2f6f85f1018cbb0535b03cceddc7b655b61f66a0a56995238804f41f")
+    version("1.34.44", sha256="86bcf79a56631609a9f8023fe8f53e2869702bdd4c9047c6d9f091eb39c9b0fa")
     version("1.26.26", sha256="a2349d436db6f6aa1e0def5501e4884572eb6f008f35063a359a6fa8ba3539b7")
     version("1.25.5", sha256="aec7db139429fe0f3fbe723170461192b0483b0070114a4b56351e374e0f294d")
     version("1.24.96", sha256="6b8899542cff82becceb3498a2240bf77c96def0515b0a31f7f6a9d5b92e7a3d")
@@ -36,6 +37,8 @@ class PyBoto3(PythonPackage):
     depends_on("python@2.6:", when="@1.9:", type=("build", "run"))
     depends_on("py-setuptools", type="build")
 
+    depends_on("py-botocore@1.34.162:1.34", when="@1.34.162", type=("build", "run"))
+    depends_on("py-botocore@1.34.44:1.34", when="@1.34.44", type=("build", "run"))
     depends_on("py-botocore@1.29.26:1.29", when="@1.26", type=("build", "run"))
     depends_on("py-botocore@1.28.5:1.28", when="@1.25", type=("build", "run"))
     depends_on("py-botocore@1.27.96:1.27", when="@1.24", type=("build", "run"))
@@ -52,7 +55,12 @@ class PyBoto3(PythonPackage):
     depends_on("py-jmespath@0.7.1:0", when="@:1.20", type=("build", "run"))
     depends_on("py-jmespath@0.7.1:1", type=("build", "run"))
 
-    depends_on("py-s3transfer@0.6", when="@1.24:", type=("build", "run"))
+    depends_on("py-s3transfer@0.10", when="@1.34.6:", type=("build", "run"))
+    depends_on("py-s3transfer@0.9", when="@1.34:1.34.5", type=("build", "run"))
+    depends_on("py-s3transfer@0.8.2:0.8", when="@1.33.4:1.33", type=("build", "run"))
+    depends_on("py-s3transfer@0.8", when="@1.29.7:1.33.3", type=("build", "run"))
+    depends_on("py-s3transfer@0.7", when="@1.28.55:1.29.6", type=("build", "run"))
+    depends_on("py-s3transfer@0.6", when="@1.24:1.28.54", type=("build", "run"))
     depends_on("py-s3transfer@0.5", when="@1.18:1.23", type=("build", "run"))
     depends_on("py-s3transfer@0.3", when="@1.17", type=("build", "run"))
     depends_on("py-s3transfer@0.2", when="@:1.10", type=("build", "run"))

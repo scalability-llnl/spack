@@ -1,9 +1,6 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-from __future__ import print_function
 
 import argparse
 from collections import defaultdict
@@ -56,11 +53,11 @@ def setup_parser(subparser):
 
 def packages_to_maintainers(package_names=None):
     if not package_names:
-        package_names = spack.repo.path.all_package_names()
+        package_names = spack.repo.PATH.all_package_names()
 
     pkg_to_users = defaultdict(lambda: set())
     for name in package_names:
-        cls = spack.repo.path.get_pkg_class(name)
+        cls = spack.repo.PATH.get_pkg_class(name)
         for user in cls.maintainers:
             pkg_to_users[name].add(user)
 
@@ -69,8 +66,8 @@ def packages_to_maintainers(package_names=None):
 
 def maintainers_to_packages(users=None):
     user_to_pkgs = defaultdict(lambda: [])
-    for name in spack.repo.path.all_package_names():
-        cls = spack.repo.path.get_pkg_class(name)
+    for name in spack.repo.PATH.all_package_names():
+        cls = spack.repo.PATH.get_pkg_class(name)
         for user in cls.maintainers:
             lower_users = [u.lower() for u in users]
             if not users or user.lower() in lower_users:
@@ -82,8 +79,8 @@ def maintainers_to_packages(users=None):
 def maintained_packages():
     maintained = []
     unmaintained = []
-    for name in spack.repo.path.all_package_names():
-        cls = spack.repo.path.get_pkg_class(name)
+    for name in spack.repo.PATH.all_package_names():
+        cls = spack.repo.PATH.get_pkg_class(name)
         if cls.maintainers:
             maintained.append(name)
         else:

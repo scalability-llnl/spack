@@ -1,0 +1,1459 @@
+diff -urN aocl-scalapack-4.0/PBLAS/TESTING/pcblastst.f aocl-scalapack-4.0.a/PBLAS/TESTING/pcblastst.f
+--- aocl-scalapack-4.0/PBLAS/TESTING/pcblastst.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/PBLAS/TESTING/pcblastst.f	2023-05-13 12:32:33.101012202 -0500
+@@ -3530,7 +3530,7 @@
+ *
+       IF( MYCOL.EQ.ICURCOL .OR. COLREP ) THEN
+ *
+-         DO 40 H = 0, JB-1
++         DO H = 0, JB-1
+             IB = DESCA( IMB_ ) - IA  + 1
+             IF( IB.LE.0 )
+      $         IB = ( ( -IB ) / DESCA( MB_ ) + 1 ) * DESCA( MB_ ) + IB
+@@ -3561,7 +3561,7 @@
+ *
+             II = IIA
+             ICURROW = IAROW
+-   40    CONTINUE
++   40    END DO
+ *
+          JJ = JJ + JB
+ *
+@@ -3574,7 +3574,7 @@
+       DO 90 J = JN+1, JA+N-1, DESCA( NB_ )
+          JB = MIN(  DESCA( NB_ ), JA+N-J )
+          IF( MYCOL.EQ.ICURCOL .OR. COLREP ) THEN
+-            DO 80 H = 0, JB-1
++            DO H = 0, JB-1
+                IB = DESCA( IMB_ ) - IA  + 1
+                IF( IB.LE.0 )
+      $            IB = ( ( -IB ) / DESCA( MB_ ) + 1 )*DESCA( MB_ ) + IB
+@@ -3606,7 +3606,7 @@
+ *
+                II = IIA
+                ICURROW = IAROW
+-   80       CONTINUE
++   80       END DO
+ *
+             JJ = JJ + JB
+          END IF
+@@ -9586,7 +9586,7 @@
+      $   JB = ( (-JB) / DESCA( NB_ ) + 1 ) * DESCA( NB_ ) + JB
+       JB = MIN( JB, N )
+       JN = JA+JB-1
+-      DO 60 H = 0, JB-1
++      DO H = 0, JB-1
+          IB = DESCA( IMB_ ) - IA + 1
+          IF( IB.LE.0 )
+      $      IB = ( (-IB) / DESCA( MB_ ) + 1 ) * DESCA( MB_ ) + IB
+@@ -9656,7 +9656,7 @@
+ *
+          II = IIA
+          ICURROW = IAROW
+-   60 CONTINUE
++   60 END DO
+ *
+       IF( MYCOL.EQ.ICURCOL )
+      $   JJ = JJ + JB
+@@ -9668,7 +9668,7 @@
+ *
+       DO 130 J = JN+1, JA+N-1, DESCA( NB_ )
+          JB = MIN(  DESCA( NB_ ), JA+N-J )
+-         DO 120 H = 0, JB-1
++         DO H = 0, JB-1
+             IB = DESCA( IMB_ )-IA+1
+             IF( IB.LE.0 )
+      $         IB = ( (-IB) / DESCA( MB_ ) + 1 ) * DESCA( MB_ ) + IB
+@@ -9738,7 +9738,7 @@
+ *
+             II = IIA
+             ICURROW = IAROW
+-  120    CONTINUE
++  120    END DO
+ *
+          IF( MYCOL.EQ.ICURCOL )
+      $      JJ = JJ + JB
+diff -urN aocl-scalapack-4.0/PBLAS/TESTING/pdblastst.f aocl-scalapack-4.0.a/PBLAS/TESTING/pdblastst.f
+--- aocl-scalapack-4.0/PBLAS/TESTING/pdblastst.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/PBLAS/TESTING/pdblastst.f	2023-05-13 12:33:15.052873951 -0500
+@@ -3524,7 +3524,7 @@
+ *
+       IF( MYCOL.EQ.ICURCOL .OR. COLREP ) THEN
+ *
+-         DO 40 H = 0, JB-1
++         DO H = 0, JB-1
+             IB = DESCA( IMB_ ) - IA  + 1
+             IF( IB.LE.0 )
+      $         IB = ( ( -IB ) / DESCA( MB_ ) + 1 ) * DESCA( MB_ ) + IB
+@@ -3555,7 +3555,7 @@
+ *
+             II = IIA
+             ICURROW = IAROW
+-   40    CONTINUE
++   40    END DO
+ *
+          JJ = JJ + JB
+ *
+@@ -3568,7 +3568,7 @@
+       DO 90 J = JN+1, JA+N-1, DESCA( NB_ )
+          JB = MIN(  DESCA( NB_ ), JA+N-J )
+          IF( MYCOL.EQ.ICURCOL .OR. COLREP ) THEN
+-            DO 80 H = 0, JB-1
++            DO H = 0, JB-1
+                IB = DESCA( IMB_ ) - IA  + 1
+                IF( IB.LE.0 )
+      $            IB = ( ( -IB ) / DESCA( MB_ ) + 1 )*DESCA( MB_ ) + IB
+@@ -3600,7 +3600,7 @@
+ *
+                II = IIA
+                ICURROW = IAROW
+-   80       CONTINUE
++   80       END DO
+ *
+             JJ = JJ + JB
+          END IF
+@@ -8918,7 +8918,7 @@
+      $   JB = ( (-JB) / DESCA( NB_ ) + 1 ) * DESCA( NB_ ) + JB
+       JB = MIN( JB, N )
+       JN = JA+JB-1
+-      DO 60 H = 0, JB-1
++      DO H = 0, JB-1
+          IB = DESCA( IMB_ ) - IA + 1
+          IF( IB.LE.0 )
+      $      IB = ( (-IB) / DESCA( MB_ ) + 1 ) * DESCA( MB_ ) + IB
+@@ -8982,7 +8982,7 @@
+ *
+          II = IIA
+          ICURROW = IAROW
+-   60 CONTINUE
++   60 END DO
+ *
+       IF( MYCOL.EQ.ICURCOL )
+      $   JJ = JJ + JB
+@@ -8994,7 +8994,7 @@
+ *
+       DO 130 J = JN+1, JA+N-1, DESCA( NB_ )
+          JB = MIN(  DESCA( NB_ ), JA+N-J )
+-         DO 120 H = 0, JB-1
++         DO H = 0, JB-1
+             IB = DESCA( IMB_ )-IA+1
+             IF( IB.LE.0 )
+      $         IB = ( (-IB) / DESCA( MB_ ) + 1 ) * DESCA( MB_ ) + IB
+@@ -9058,7 +9058,7 @@
+ *
+             II = IIA
+             ICURROW = IAROW
+-  120    CONTINUE
++  120    END DO
+ *
+          IF( MYCOL.EQ.ICURCOL )
+      $      JJ = JJ + JB
+diff -urN aocl-scalapack-4.0/PBLAS/TESTING/psblastst.f aocl-scalapack-4.0.a/PBLAS/TESTING/psblastst.f
+--- aocl-scalapack-4.0/PBLAS/TESTING/psblastst.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/PBLAS/TESTING/psblastst.f	2023-05-13 12:33:56.413724041 -0500
+@@ -3524,7 +3524,7 @@
+ *
+       IF( MYCOL.EQ.ICURCOL .OR. COLREP ) THEN
+ *
+-         DO 40 H = 0, JB-1
++         DO H = 0, JB-1
+             IB = DESCA( IMB_ ) - IA  + 1
+             IF( IB.LE.0 )
+      $         IB = ( ( -IB ) / DESCA( MB_ ) + 1 ) * DESCA( MB_ ) + IB
+@@ -3555,7 +3555,7 @@
+ *
+             II = IIA
+             ICURROW = IAROW
+-   40    CONTINUE
++   40    END DO
+ *
+          JJ = JJ + JB
+ *
+@@ -3568,7 +3568,7 @@
+       DO 90 J = JN+1, JA+N-1, DESCA( NB_ )
+          JB = MIN(  DESCA( NB_ ), JA+N-J )
+          IF( MYCOL.EQ.ICURCOL .OR. COLREP ) THEN
+-            DO 80 H = 0, JB-1
++            DO H = 0, JB-1
+                IB = DESCA( IMB_ ) - IA  + 1
+                IF( IB.LE.0 )
+      $            IB = ( ( -IB ) / DESCA( MB_ ) + 1 )*DESCA( MB_ ) + IB
+@@ -3600,7 +3600,7 @@
+ *
+                II = IIA
+                ICURROW = IAROW
+-   80       CONTINUE
++   80       END DO
+ *
+             JJ = JJ + JB
+          END IF
+@@ -8920,7 +8920,7 @@
+      $   JB = ( (-JB) / DESCA( NB_ ) + 1 ) * DESCA( NB_ ) + JB
+       JB = MIN( JB, N )
+       JN = JA+JB-1
+-      DO 60 H = 0, JB-1
++      DO H = 0, JB-1
+          IB = DESCA( IMB_ ) - IA + 1
+          IF( IB.LE.0 )
+      $      IB = ( (-IB) / DESCA( MB_ ) + 1 ) * DESCA( MB_ ) + IB
+@@ -8984,7 +8984,7 @@
+ *
+          II = IIA
+          ICURROW = IAROW
+-   60 CONTINUE
++   60 END DO
+ *
+       IF( MYCOL.EQ.ICURCOL )
+      $   JJ = JJ + JB
+@@ -8996,7 +8996,7 @@
+ *
+       DO 130 J = JN+1, JA+N-1, DESCA( NB_ )
+          JB = MIN(  DESCA( NB_ ), JA+N-J )
+-         DO 120 H = 0, JB-1
++         DO H = 0, JB-1
+             IB = DESCA( IMB_ )-IA+1
+             IF( IB.LE.0 )
+      $         IB = ( (-IB) / DESCA( MB_ ) + 1 ) * DESCA( MB_ ) + IB
+@@ -9060,7 +9060,7 @@
+ *
+             II = IIA
+             ICURROW = IAROW
+-  120    CONTINUE
++  120    END DO
+ *
+          IF( MYCOL.EQ.ICURCOL )
+      $      JJ = JJ + JB
+diff -urN aocl-scalapack-4.0/PBLAS/TESTING/pzblastst.f aocl-scalapack-4.0.a/PBLAS/TESTING/pzblastst.f
+--- aocl-scalapack-4.0/PBLAS/TESTING/pzblastst.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/PBLAS/TESTING/pzblastst.f	2023-05-13 12:34:31.725450989 -0500
+@@ -3530,7 +3530,7 @@
+ *
+       IF( MYCOL.EQ.ICURCOL .OR. COLREP ) THEN
+ *
+-         DO 40 H = 0, JB-1
++         DO H = 0, JB-1
+             IB = DESCA( IMB_ ) - IA  + 1
+             IF( IB.LE.0 )
+      $         IB = ( ( -IB ) / DESCA( MB_ ) + 1 ) * DESCA( MB_ ) + IB
+@@ -3561,7 +3561,7 @@
+ *
+             II = IIA
+             ICURROW = IAROW
+-   40    CONTINUE
++   40    END DO
+ *
+          JJ = JJ + JB
+ *
+@@ -3574,7 +3574,7 @@
+       DO 90 J = JN+1, JA+N-1, DESCA( NB_ )
+          JB = MIN(  DESCA( NB_ ), JA+N-J )
+          IF( MYCOL.EQ.ICURCOL .OR. COLREP ) THEN
+-            DO 80 H = 0, JB-1
++            DO H = 0, JB-1
+                IB = DESCA( IMB_ ) - IA  + 1
+                IF( IB.LE.0 )
+      $            IB = ( ( -IB ) / DESCA( MB_ ) + 1 )*DESCA( MB_ ) + IB
+@@ -3606,7 +3606,7 @@
+ *
+                II = IIA
+                ICURROW = IAROW
+-   80       CONTINUE
++   80       END DO
+ *
+             JJ = JJ + JB
+          END IF
+@@ -9588,7 +9588,7 @@
+      $   JB = ( (-JB) / DESCA( NB_ ) + 1 ) * DESCA( NB_ ) + JB
+       JB = MIN( JB, N )
+       JN = JA+JB-1
+-      DO 60 H = 0, JB-1
++      DO H = 0, JB-1
+          IB = DESCA( IMB_ ) - IA + 1
+          IF( IB.LE.0 )
+      $      IB = ( (-IB) / DESCA( MB_ ) + 1 ) * DESCA( MB_ ) + IB
+@@ -9658,7 +9658,7 @@
+ *
+          II = IIA
+          ICURROW = IAROW
+-   60 CONTINUE
++   60 END DO
+ *
+       IF( MYCOL.EQ.ICURCOL )
+      $   JJ = JJ + JB
+@@ -9670,7 +9670,7 @@
+ *
+       DO 130 J = JN+1, JA+N-1, DESCA( NB_ )
+          JB = MIN(  DESCA( NB_ ), JA+N-J )
+-         DO 120 H = 0, JB-1
++         DO H = 0, JB-1
+             IB = DESCA( IMB_ )-IA+1
+             IF( IB.LE.0 )
+      $         IB = ( (-IB) / DESCA( MB_ ) + 1 ) * DESCA( MB_ ) + IB
+@@ -9740,7 +9740,7 @@
+ *
+             II = IIA
+             ICURROW = IAROW
+-  120    CONTINUE
++  120    END DO
+ *
+          IF( MYCOL.EQ.ICURCOL )
+      $      JJ = JJ + JB
+diff -urN aocl-scalapack-4.0/SRC/CMakeLists.txt aocl-scalapack-4.0.a/SRC/CMakeLists.txt
+--- aocl-scalapack-4.0/SRC/CMakeLists.txt	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/SRC/CMakeLists.txt	2023-05-13 13:04:13.525220791 -0500
+@@ -99,8 +99,8 @@
+    pdgelq2.f pdgelqf.f pdgels.f  pdgeql2.f pdgeqlf.f pdgeqpf.f pdgeqr2.f 
+    pdgeqrf.f pdgerfs.f pdgerq2.f pdgerqf.f                               
+    pdgesv.f  pdgesvd.f pdgesvx.f pdgetf2.f pdgetrf.f pdgetri.f pdgetrs.f 
+-   pdggqrf.f pdggrqf.f pdlabrd.f pdgetf2K.f pdupdate.f pdgetrf0.f
+-   pdgetrfla.f         pdgetf2_comm.f          icopypv.f
++   pdggqrf.f pdggrqf.f pdlabrd.f pdgetrf0.f
++             pdgetf2_comm.f      icopypv.f
+    pdlacon.f pdlacp2.f pdlacpy.f pdlahrd.f pdlange.f pdlanhs.f pdlansy.f 
+    pdlantr.f pdlapiv.f pdlapv2.f pdlaqge.f pdlaqsy.f pdlarf.f  pdlarfb.f 
+    pdlarfg.f pdlarft.f pdlase2.f pdlaset.f pdlascl.f pdlassq.f pdlaswp.f 
+diff -urN aocl-scalapack-4.0/SRC/icopypv.f aocl-scalapack-4.0.a/SRC/icopypv.f
+--- aocl-scalapack-4.0/SRC/icopypv.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/SRC/icopypv.f	2023-05-13 13:00:35.204701618 -0500
+@@ -75,7 +75,7 @@
+ *     .. Parameters ..
+       INTEGER            I, IACOL, IAROW, ICTXT,
+      $                   J, MN, MYCOL, MYROW, NPCOL, NPROW
+-      PARAMETER          ( CTXT_ = 2 )
++      INTEGER,PARAMETER :: CTXT_ = 2
+ *     ..
+ *     .. External Subroutines ..
+       EXTERNAL           BLACS_ABORT, BLACS_GRIDINFO, CHK1MAT, IGEBR2D,
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pcdbdriver.f aocl-scalapack-4.0.a/TESTING/LIN/pcdbdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pcdbdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pcdbdriver.f	2023-05-13 13:09:30.282786496 -0500
+@@ -552,7 +552,7 @@
+ *
+ *              Loop over the different values for NRHS
+ *
+-               DO 20 HH = 1, NNR
++               DO HH = 1, NNR
+ *
+                   IERR( 1 ) = 0
+ *
+@@ -876,7 +876,7 @@
+      $                            TMFLOPS2, PASSED
+ *
+                      END IF
+-   20          CONTINUE
++   20          END DO
+ *
+ *
+    30       CONTINUE
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pcdtdriver.f aocl-scalapack-4.0.a/TESTING/LIN/pcdtdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pcdtdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pcdtdriver.f	2023-05-13 13:09:43.763067570 -0500
+@@ -545,7 +545,7 @@
+ *
+ *              Loop over the different values for NRHS
+ *
+-               DO 20 HH = 1, NNR
++               DO HH = 1, NNR
+ *
+                   IERR( 1 ) = 0
+ *
+@@ -877,7 +877,7 @@
+      $                            TMFLOPS2, PASSED
+ *
+                      END IF
+-   20          CONTINUE
++   20          END DO
+ *
+ *
+    30       CONTINUE
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pcgbdriver.f aocl-scalapack-4.0.a/TESTING/LIN/pcgbdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pcgbdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pcgbdriver.f	2023-05-13 13:09:57.636356839 -0500
+@@ -564,7 +564,7 @@
+ *
+ *              Loop over the different values for NRHS
+ *
+-               DO 20 HH = 1, NNR
++               DO HH = 1, NNR
+ *
+                   IERR( 1 ) = 0
+ *
+@@ -888,7 +888,7 @@
+      $                            TMFLOPS2, PASSED
+ *
+                      END IF
+-   20          CONTINUE
++   20          END DO
+ *
+ *
+    30       CONTINUE
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pclltdriver.f aocl-scalapack-4.0.a/TESTING/LIN/pclltdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pclltdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pclltdriver.f	2023-05-13 13:10:07.068553508 -0500
+@@ -487,7 +487,7 @@
+ *
+ *              Loop over the different values for NRHS
+ *
+-               DO 20 HH = 1, NNR
++               DO HH = 1, NNR
+ *
+                   NRHS = NRVAL( HH )
+ *
+@@ -843,7 +843,7 @@
+ *
+                      END IF
+    10             CONTINUE
+-   20          CONTINUE
++   20          END DO
+ *
+                IF( CHECK .AND. SRESID.GT.THRESH ) THEN
+ *
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pclsdriver.f aocl-scalapack-4.0.a/TESTING/LIN/pclsdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pclsdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pclsdriver.f	2023-05-13 13:10:34.924134319 -0500
+@@ -374,7 +374,7 @@
+ *
+ *                    Loop over the different values for NRHS
+ *
+-                     DO 40 HH =  1, NNR
++                     DO HH =  1, NNR
+ *
+                         NRHS = NRVAL( HH )
+ *
+@@ -1038,7 +1038,7 @@
+      $                                  TMFLOPS, PASSED
+                            END IF
+    30                   CONTINUE
+-   40                CONTINUE
++   40                END DO
+    50             CONTINUE
+    60          CONTINUE
+    70       CONTINUE
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pcludriver.f aocl-scalapack-4.0.a/TESTING/LIN/pcludriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pcludriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pcludriver.f	2023-05-13 13:10:48.332413896 -0500
+@@ -614,7 +614,7 @@
+ *
+ *                 Loop over the different values for NRHS
+ *
+-                  DO 20 HH = 1, NNR
++                  DO HH = 1, NNR
+ *
+                      NRHS = NRVAL( HH )
+ *
+@@ -990,7 +990,7 @@
+      $                               PASSED
+                         END IF
+    10                CONTINUE
+-   20             CONTINUE
++   20             END DO
+ *
+                   IF( CHECK.AND.( SRESID.GT.THRESH ) ) THEN
+ *
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pcpbdriver.f aocl-scalapack-4.0.a/TESTING/LIN/pcpbdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pcpbdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pcpbdriver.f	2023-05-13 13:10:59.963656414 -0500
+@@ -531,7 +531,7 @@
+ *
+ *              Loop over the different values for NRHS
+ *
+-               DO 20 HH = 1, NNR
++               DO HH = 1, NNR
+ *
+                   IERR( 1 ) = 0
+ *
+@@ -834,7 +834,7 @@
+      $                            TMFLOPS2, PASSED
+ *
+                      END IF
+-   20          CONTINUE
++   20          END DO
+ *
+ *
+    30       CONTINUE
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pcptdriver.f aocl-scalapack-4.0.a/TESTING/LIN/pcptdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pcptdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pcptdriver.f	2023-05-13 13:19:00.445674845 -0500
+@@ -505,10 +505,10 @@
+ *              For SPD Tridiagonal complex matrices, diagonal is stored
+ *                as a real. Thus, compact D into half the space
+ *
+-        DO 10  H=1, NUMROC(N,NB,MYCOL,0,NPCOL)/2
++        DO H=1, NUMROC(N,NB,MYCOL,0,NPCOL)/2
+                   MEM( IPA+INT_TEMP+H-1 ) = MEM( IPA+INT_TEMP+2*H-2 )
+      $               +MEM( IPA+INT_TEMP+2*H-1 )*( 0.0E+0, 1.0E+0 )
+-   10   CONTINUE
++   10   END DO
+                IF( 2*(NUMROC(N,NB,MYCOL,0,NPCOL)/2).NE.
+      $               NUMROC(N,NB,MYCOL,0,NPCOL) ) THEN
+                   H=NUMROC(N,NB,MYCOL,0,NPCOL)/2+1
+@@ -550,7 +550,7 @@
+ *
+ *              Loop over the different values for NRHS
+ *
+-               DO 20 HH = 1, NNR
++               DO HH = 1, NNR
+ *
+                   IERR( 1 ) = 0
+ *
+@@ -860,7 +860,7 @@
+      $                            TMFLOPS2, PASSED
+ *
+                      END IF
+-   20          CONTINUE
++   20          END DO
+ *
+ *
+    30       CONTINUE
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pddbdriver.f aocl-scalapack-4.0.a/TESTING/LIN/pddbdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pddbdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pddbdriver.f	2023-05-13 13:08:04.798008071 -0500
+@@ -544,7 +544,7 @@
+ *
+ *              Loop over the different values for NRHS
+ *
+-               DO 20 HH = 1, NNR
++               DO HH = 1, NNR
+ *
+                   IERR( 1 ) = 0
+ *
+@@ -860,7 +860,7 @@
+      $                            TMFLOPS2, PASSED
+ *
+                      END IF
+-   20          CONTINUE
++   20          END DO
+ *
+ *
+    30       CONTINUE
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pddtdriver.f aocl-scalapack-4.0.a/TESTING/LIN/pddtdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pddtdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pddtdriver.f	2023-05-13 13:11:20.509084801 -0500
+@@ -542,7 +542,7 @@
+ *
+ *              Loop over the different values for NRHS
+ *
+-               DO 20 HH = 1, NNR
++               DO HH = 1, NNR
+ *
+                   IERR( 1 ) = 0
+ *
+@@ -866,7 +866,7 @@
+      $                            TMFLOPS2, PASSED
+ *
+                      END IF
+-   20          CONTINUE
++   20          END DO
+ *
+ *
+    30       CONTINUE
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pdgbdriver.f aocl-scalapack-4.0.a/TESTING/LIN/pdgbdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pdgbdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pdgbdriver.f	2023-05-13 13:11:33.069346692 -0500
+@@ -562,7 +562,7 @@
+ *
+ *              Loop over the different values for NRHS
+ *
+-               DO 20 HH = 1, NNR
++               DO HH = 1, NNR
+ *
+                   IERR( 1 ) = 0
+ *
+@@ -878,7 +878,7 @@
+      $                            TMFLOPS2, PASSED
+ *
+                      END IF
+-   20          CONTINUE
++   20          END DO
+ *
+ *
+    30       CONTINUE
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pdlltdriver.f aocl-scalapack-4.0.a/TESTING/LIN/pdlltdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pdlltdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pdlltdriver.f	2023-05-13 13:11:44.660588379 -0500
+@@ -487,7 +487,7 @@
+ *
+ *              Loop over the different values for NRHS
+ *
+-               DO 20 HH = 1, NNR
++               DO HH = 1, NNR
+ *
+                   NRHS = NRVAL( HH )
+ *
+@@ -843,7 +843,7 @@
+ *
+                      END IF
+    10             CONTINUE
+-   20          CONTINUE
++   20          END DO
+ *
+                IF( CHECK .AND. SRESID.GT.THRESH ) THEN
+ *
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pdlsdriver.f aocl-scalapack-4.0.a/TESTING/LIN/pdlsdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pdlsdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pdlsdriver.f	2023-05-13 13:11:56.287830817 -0500
+@@ -371,7 +371,7 @@
+ *
+ *                    Loop over the different values for NRHS
+ *
+-                     DO 40 HH =  1, NNR
++                     DO HH =  1, NNR
+ *
+                         NRHS = NRVAL( HH )
+ *
+@@ -1033,7 +1033,7 @@
+      $                                  TMFLOPS, PASSED
+                            END IF
+    30                   CONTINUE
+-   40                CONTINUE
++   40                END DO
+    50             CONTINUE
+    60          CONTINUE
+    70       CONTINUE
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pdludriver.f aocl-scalapack-4.0.a/TESTING/LIN/pdludriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pdludriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pdludriver.f	2023-05-13 13:12:07.670068146 -0500
+@@ -615,7 +615,7 @@
+ *
+ *                 Loop over the different values for NRHS
+ *
+-                  DO 20 HH = 1, NNR
++                  DO HH = 1, NNR
+ *
+                      NRHS = NRVAL( HH )
+ *
+@@ -991,7 +991,7 @@
+      $                               PASSED
+                         END IF
+    10                CONTINUE
+-   20             CONTINUE
++   20             END DO
+ *
+                   IF( CHECK.AND.( SRESID.GT.THRESH ) ) THEN
+ *
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pdpbdriver.f aocl-scalapack-4.0.a/TESTING/LIN/pdpbdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pdpbdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pdpbdriver.f	2023-05-13 13:12:17.111265004 -0500
+@@ -528,7 +528,7 @@
+ *
+ *              Loop over the different values for NRHS
+ *
+-               DO 20 HH = 1, NNR
++               DO HH = 1, NNR
+ *
+                   IERR( 1 ) = 0
+ *
+@@ -827,7 +827,7 @@
+      $                            TMFLOPS2, PASSED
+ *
+                      END IF
+-   20          CONTINUE
++   20          END DO
+ *
+ *
+    30       CONTINUE
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pdptdriver.f aocl-scalapack-4.0.a/TESTING/LIN/pdptdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pdptdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pdptdriver.f	2023-05-13 13:12:27.001471220 -0500
+@@ -533,7 +533,7 @@
+ *
+ *              Loop over the different values for NRHS
+ *
+-               DO 20 HH = 1, NNR
++               DO HH = 1, NNR
+ *
+                   IERR( 1 ) = 0
+ *
+@@ -839,7 +839,7 @@
+      $                            TMFLOPS2, PASSED
+ *
+                      END IF
+-   20          CONTINUE
++   20          END DO
+ *
+ *
+    30       CONTINUE
+diff -urN aocl-scalapack-4.0/TESTING/LIN/psdbdriver.f aocl-scalapack-4.0.a/TESTING/LIN/psdbdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/psdbdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/psdbdriver.f	2023-05-13 13:12:36.062660154 -0500
+@@ -543,7 +543,7 @@
+ *
+ *              Loop over the different values for NRHS
+ *
+-               DO 20 HH = 1, NNR
++               DO HH = 1, NNR
+ *
+                   IERR( 1 ) = 0
+ *
+@@ -859,7 +859,7 @@
+      $                            TMFLOPS2, PASSED
+ *
+                      END IF
+-   20          CONTINUE
++   20          END DO
+ *
+ *
+    30       CONTINUE
+diff -urN aocl-scalapack-4.0/TESTING/LIN/psdtdriver.f aocl-scalapack-4.0.a/TESTING/LIN/psdtdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/psdtdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/psdtdriver.f	2023-05-13 13:12:44.822842810 -0500
+@@ -541,7 +541,7 @@
+ *
+ *              Loop over the different values for NRHS
+ *
+-               DO 20 HH = 1, NNR
++               DO HH = 1, NNR
+ *
+                   IERR( 1 ) = 0
+ *
+@@ -865,7 +865,7 @@
+      $                            TMFLOPS2, PASSED
+ *
+                      END IF
+-   20          CONTINUE
++   20          END DO
+ *
+ *
+    30       CONTINUE
+diff -urN aocl-scalapack-4.0/TESTING/LIN/psgbdriver.f aocl-scalapack-4.0.a/TESTING/LIN/psgbdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/psgbdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/psgbdriver.f	2023-05-13 13:12:54.198038291 -0500
+@@ -561,7 +561,7 @@
+ *
+ *              Loop over the different values for NRHS
+ *
+-               DO 20 HH = 1, NNR
++               DO HH = 1, NNR
+ *
+                   IERR( 1 ) = 0
+ *
+@@ -877,7 +877,7 @@
+      $                            TMFLOPS2, PASSED
+ *
+                      END IF
+-   20          CONTINUE
++   20          END DO
+ *
+ *
+    30       CONTINUE
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pslltdriver.f aocl-scalapack-4.0.a/TESTING/LIN/pslltdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pslltdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pslltdriver.f	2023-05-13 13:13:05.375271347 -0500
+@@ -487,7 +487,7 @@
+ *
+ *              Loop over the different values for NRHS
+ *
+-               DO 20 HH = 1, NNR
++               DO HH = 1, NNR
+ *
+                   NRHS = NRVAL( HH )
+ *
+@@ -843,7 +843,7 @@
+ *
+                      END IF
+    10             CONTINUE
+-   20          CONTINUE
++   20          END DO
+ *
+                IF( CHECK .AND. SRESID.GT.THRESH ) THEN
+ *
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pslsdriver.f aocl-scalapack-4.0.a/TESTING/LIN/pslsdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pslsdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pslsdriver.f	2023-05-13 13:13:16.854510696 -0500
+@@ -370,7 +370,7 @@
+ *
+ *                    Loop over the different values for NRHS
+ *
+-                     DO 40 HH =  1, NNR
++                     DO HH =  1, NNR
+ *
+                         NRHS = NRVAL( HH )
+ *
+@@ -1032,7 +1032,7 @@
+      $                                  TMFLOPS, PASSED
+                            END IF
+    30                   CONTINUE
+-   40                CONTINUE
++   40                END DO
+    50             CONTINUE
+    60          CONTINUE
+    70       CONTINUE
+diff -urN aocl-scalapack-4.0/TESTING/LIN/psludriver.f aocl-scalapack-4.0.a/TESTING/LIN/psludriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/psludriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/psludriver.f	2023-05-13 13:13:50.751217470 -0500
+@@ -604,7 +604,7 @@
+ *
+ *                 Loop over the different values for NRHS
+ *
+-                  DO 20 HH = 1, NNR
++                  DO HH = 1, NNR
+ *
+                      NRHS = NRVAL( HH )
+ *
+@@ -980,7 +980,7 @@
+      $                               PASSED
+                         END IF
+    10                CONTINUE
+-   20             CONTINUE
++   20             END DO
+ *
+                   IF( CHECK.AND.( SRESID.GT.THRESH ) ) THEN
+ *
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pspbdriver.f aocl-scalapack-4.0.a/TESTING/LIN/pspbdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pspbdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pspbdriver.f	2023-05-13 13:14:00.485420435 -0500
+@@ -527,7 +527,7 @@
+ *
+ *              Loop over the different values for NRHS
+ *
+-               DO 20 HH = 1, NNR
++               DO HH = 1, NNR
+ *
+                   IERR( 1 ) = 0
+ *
+@@ -826,7 +826,7 @@
+      $                            TMFLOPS2, PASSED
+ *
+                      END IF
+-   20          CONTINUE
++   20          END DO
+ *
+ *
+    30       CONTINUE
+diff -urN aocl-scalapack-4.0/TESTING/LIN/psptdriver.f aocl-scalapack-4.0.a/TESTING/LIN/psptdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/psptdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/psptdriver.f	2023-05-13 13:14:10.085620608 -0500
+@@ -532,7 +532,7 @@
+ *
+ *              Loop over the different values for NRHS
+ *
+-               DO 20 HH = 1, NNR
++               DO HH = 1, NNR
+ *
+                   IERR( 1 ) = 0
+ *
+@@ -838,7 +838,7 @@
+      $                            TMFLOPS2, PASSED
+ *
+                      END IF
+-   20          CONTINUE
++   20          END DO
+ *
+ *
+    30       CONTINUE
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pzdbdriver.f aocl-scalapack-4.0.a/TESTING/LIN/pzdbdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pzdbdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pzdbdriver.f	2023-05-13 13:14:20.446836646 -0500
+@@ -547,7 +547,7 @@
+ *
+ *              Loop over the different values for NRHS
+ *
+-               DO 20 HH = 1, NNR
++               DO HH = 1, NNR
+ *
+                   IERR( 1 ) = 0
+ *
+@@ -871,7 +871,7 @@
+      $                            TMFLOPS2, PASSED
+ *
+                      END IF
+-   20          CONTINUE
++   20          END DO
+ *
+ *
+    30       CONTINUE
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pzdtdriver.f aocl-scalapack-4.0.a/TESTING/LIN/pzdtdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pzdtdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pzdtdriver.f	2023-05-13 13:14:30.888054354 -0500
+@@ -545,7 +545,7 @@
+ *
+ *              Loop over the different values for NRHS
+ *
+-               DO 20 HH = 1, NNR
++               DO HH = 1, NNR
+ *
+                   IERR( 1 ) = 0
+ *
+@@ -877,7 +877,7 @@
+      $                            TMFLOPS2, PASSED
+ *
+                      END IF
+-   20          CONTINUE
++   20          END DO
+ *
+ *
+    30       CONTINUE
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pzgbdriver.f aocl-scalapack-4.0.a/TESTING/LIN/pzgbdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pzgbdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pzgbdriver.f	2023-05-13 13:14:42.399294375 -0500
+@@ -565,7 +565,7 @@
+ *
+ *              Loop over the different values for NRHS
+ *
+-               DO 20 HH = 1, NNR
++               DO HH = 1, NNR
+ *
+                   IERR( 1 ) = 0
+ *
+@@ -889,7 +889,7 @@
+      $                            TMFLOPS2, PASSED
+ *
+                      END IF
+-   20          CONTINUE
++   20          END DO
+ *
+ *
+    30       CONTINUE
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pzlltdriver.f aocl-scalapack-4.0.a/TESTING/LIN/pzlltdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pzlltdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pzlltdriver.f	2023-05-13 13:14:52.103496713 -0500
+@@ -485,7 +485,7 @@
+ *
+ *              Loop over the different values for NRHS
+ *
+-               DO 20 HH = 1, NNR
++               DO HH = 1, NNR
+ *
+                   NRHS = NRVAL( HH )
+ *
+@@ -841,7 +841,7 @@
+ *
+                      END IF
+    10             CONTINUE
+-   20          CONTINUE
++   20          END DO
+ *
+                IF( CHECK .AND. SRESID.GT.THRESH ) THEN
+ *
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pzlsdriver.f aocl-scalapack-4.0.a/TESTING/LIN/pzlsdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pzlsdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pzlsdriver.f	2023-05-13 13:15:03.839741423 -0500
+@@ -373,7 +373,7 @@
+ *
+ *                    Loop over the different values for NRHS
+ *
+-                     DO 40 HH =  1, NNR
++                     DO HH =  1, NNR
+ *
+                         NRHS = NRVAL( HH )
+ *
+@@ -1037,7 +1037,7 @@
+      $                                  TMFLOPS, PASSED
+                            END IF
+    30                   CONTINUE
+-   40                CONTINUE
++   40                END DO
+    50             CONTINUE
+    60          CONTINUE
+    70       CONTINUE
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pzludriver.f aocl-scalapack-4.0.a/TESTING/LIN/pzludriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pzludriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pzludriver.f	2023-05-13 13:15:16.529006006 -0500
+@@ -612,7 +612,7 @@
+ *
+ *                 Loop over the different values for NRHS
+ *
+-                  DO 20 HH = 1, NNR
++                  DO HH = 1, NNR
+ *
+                      NRHS = NRVAL( HH )
+ *
+@@ -988,7 +988,7 @@
+      $                               PASSED
+                         END IF
+    10                CONTINUE
+-   20             CONTINUE
++   20             END DO
+ *
+                   IF( CHECK.AND.( SRESID.GT.THRESH ) ) THEN
+ *
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pzpbdriver.f aocl-scalapack-4.0.a/TESTING/LIN/pzpbdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pzpbdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pzpbdriver.f	2023-05-13 13:15:26.328210325 -0500
+@@ -531,7 +531,7 @@
+ *
+ *              Loop over the different values for NRHS
+ *
+-               DO 20 HH = 1, NNR
++               DO HH = 1, NNR
+ *
+                   IERR( 1 ) = 0
+ *
+@@ -834,7 +834,7 @@
+      $                            TMFLOPS2, PASSED
+ *
+                      END IF
+-   20          CONTINUE
++   20          END DO
+ *
+ *
+    30       CONTINUE
+diff -urN aocl-scalapack-4.0/TESTING/LIN/pzptdriver.f aocl-scalapack-4.0.a/TESTING/LIN/pzptdriver.f
+--- aocl-scalapack-4.0/TESTING/LIN/pzptdriver.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TESTING/LIN/pzptdriver.f	2023-05-13 13:19:09.725868346 -0500
+@@ -504,10 +504,10 @@
+ *              For SPD Tridiagonal complex matrices, diagonal is stored
+ *                as a real. Thus, compact D into half the space
+ *
+-        DO 10  H=1, NUMROC(N,NB,MYCOL,0,NPCOL)/2
++        DO H=1, NUMROC(N,NB,MYCOL,0,NPCOL)/2
+                   MEM( IPA+INT_TEMP+H-1 ) = MEM( IPA+INT_TEMP+2*H-2 )
+      $               +MEM( IPA+INT_TEMP+2*H-1 )*( 0.0D+0, 1.0D+0 )
+-   10   CONTINUE
++   10   END DO
+                IF( 2*(NUMROC(N,NB,MYCOL,0,NPCOL)/2).NE.
+      $               NUMROC(N,NB,MYCOL,0,NPCOL) ) THEN
+                   H=NUMROC(N,NB,MYCOL,0,NPCOL)/2+1
+@@ -549,7 +549,7 @@
+ *
+ *              Loop over the different values for NRHS
+ *
+-               DO 20 HH = 1, NNR
++               DO HH = 1, NNR
+ *
+                   IERR( 1 ) = 0
+ *
+@@ -859,7 +859,7 @@
+      $                            TMFLOPS2, PASSED
+ *
+                      END IF
+-   20          CONTINUE
++   20          END DO
+ *
+ *
+    30       CONTINUE
+diff -urN aocl-scalapack-4.0/TOOLS/pclaprnt.f aocl-scalapack-4.0.a/TOOLS/pclaprnt.f
+--- aocl-scalapack-4.0/TOOLS/pclaprnt.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TOOLS/pclaprnt.f	2023-05-13 12:34:57.291977317 -0500
+@@ -162,7 +162,7 @@
+ *
+       JN = MIN( ICEIL( JA, DESCA( NB_ ) ) * DESCA( NB_ ), JA+N-1 )
+       JB = JN-JA+1
+-      DO 60 H = 0, JB-1
++      DO H = 0, JB-1
+          IN = MIN( ICEIL( IA, DESCA( MB_ ) ) * DESCA( MB_ ), IA+M-1 )
+          IB = IN-IA+1
+          IF( ICURROW.EQ.IRPRNT .AND. ICURCOL.EQ.ICPRNT ) THEN
+@@ -228,7 +228,7 @@
+ *
+         II = IIA
+         ICURROW = IAROW
+-   60 CONTINUE
++   60 END DO
+ *
+       IF( MYCOL.EQ.ICURCOL )
+      $   JJ = JJ + JB
+@@ -239,7 +239,7 @@
+ *
+       DO 130 J = JN+1, JA+N-1, DESCA( NB_ )
+          JB = MIN(  DESCA( NB_ ), JA+N-J )
+-         DO 120 H = 0, JB-1
++         DO H = 0, JB-1
+             IN = MIN( ICEIL( IA, DESCA( MB_ ) ) * DESCA( MB_ ), IA+M-1 )
+             IB = IN-IA+1
+             IF( ICURROW.EQ.IRPRNT .AND. ICURCOL.EQ.ICPRNT ) THEN
+@@ -305,7 +305,7 @@
+ *
+             II = IIA
+             ICURROW = IAROW
+-  120    CONTINUE
++  120    END DO
+ *
+          IF( MYCOL.EQ.ICURCOL )
+      $      JJ = JJ + JB
+diff -urN aocl-scalapack-4.0/TOOLS/pclaread.f aocl-scalapack-4.0.a/TOOLS/pclaread.f
+--- aocl-scalapack-4.0/TOOLS/pclaread.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TOOLS/pclaread.f	2023-05-13 12:35:16.251367625 -0500
+@@ -95,7 +95,7 @@
+ *
+       DO 50 J = 1, N, DESCA( NB_ )
+          JB = MIN(  DESCA( NB_ ), N-J+1 )
+-         DO 40 H = 0, JB-1
++         DO H = 0, JB-1
+ *
+ *           Loop over block of rows
+ *
+@@ -128,7 +128,7 @@
+ *
+             II = 1
+             ICURROW = DESCA( RSRC_ )
+-   40    CONTINUE
++   40    END DO
+ *
+          IF( MYCOL.EQ.ICURCOL )
+      $      JJ = JJ + JB
+diff -urN aocl-scalapack-4.0/TOOLS/pclawrite.f aocl-scalapack-4.0.a/TOOLS/pclawrite.f
+--- aocl-scalapack-4.0/TOOLS/pclawrite.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TOOLS/pclawrite.f	2023-05-13 12:35:35.428762427 -0500
+@@ -77,7 +77,7 @@
+ *
+       JN = MIN( ICEIL( JA, DESCA( NB_ ) ) * DESCA( NB_ ), JA+N-1 )
+       JB = JN-JA+1
+-      DO 60 H = 0, JB-1
++      DO H = 0, JB-1
+          IN = MIN( ICEIL( IA, DESCA( MB_ ) ) * DESCA( MB_ ), IA+M-1 )
+          IB = IN-IA+1
+          IF( ICURROW.EQ.IRWRIT .AND. ICURCOL.EQ.ICWRIT ) THEN
+@@ -137,7 +137,7 @@
+ *
+         II = IIA
+         ICURROW = IAROW
+-   60 CONTINUE
++   60 END DO
+ *
+       IF( MYCOL.EQ.ICURCOL )
+      $   JJ = JJ + JB
+@@ -148,7 +148,7 @@
+ *
+       DO 130 J = JN+1, JA+N-1, DESCA( NB_ )
+          JB = MIN(  DESCA( NB_ ), JA+N-J )
+-         DO 120 H = 0, JB-1
++         DO H = 0, JB-1
+             IN = MIN( ICEIL( IA, DESCA( MB_ ) ) * DESCA( MB_ ), IA+M-1 )
+             IB = IN-IA+1
+             IF( ICURROW.EQ.IRWRIT .AND. ICURCOL.EQ.ICWRIT ) THEN
+@@ -210,7 +210,7 @@
+ *
+             II = IIA
+             ICURROW = IAROW
+-  120    CONTINUE
++  120    END DO
+ *
+          IF( MYCOL.EQ.ICURCOL )
+      $      JJ = JJ + JB
+diff -urN aocl-scalapack-4.0/TOOLS/pdlaprnt.f aocl-scalapack-4.0.a/TOOLS/pdlaprnt.f
+--- aocl-scalapack-4.0/TOOLS/pdlaprnt.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TOOLS/pdlaprnt.f	2023-05-13 12:35:56.637199031 -0500
+@@ -162,7 +162,7 @@
+ *
+       JN = MIN( ICEIL( JA, DESCA( NB_ ) ) * DESCA( NB_ ), JA+N-1 )
+       JB = JN-JA+1
+-      DO 60 H = 0, JB-1
++      DO H = 0, JB-1
+          IN = MIN( ICEIL( IA, DESCA( MB_ ) ) * DESCA( MB_ ), IA+M-1 )
+          IB = IN-IA+1
+          IF( ICURROW.EQ.IRPRNT .AND. ICURCOL.EQ.ICPRNT ) THEN
+@@ -222,7 +222,7 @@
+ *
+         II = IIA
+         ICURROW = IAROW
+-   60 CONTINUE
++   60 END DO
+ *
+       IF( MYCOL.EQ.ICURCOL )
+      $   JJ = JJ + JB
+@@ -233,7 +233,7 @@
+ *
+       DO 130 J = JN+1, JA+N-1, DESCA( NB_ )
+          JB = MIN(  DESCA( NB_ ), JA+N-J )
+-         DO 120 H = 0, JB-1
++         DO H = 0, JB-1
+             IN = MIN( ICEIL( IA, DESCA( MB_ ) ) * DESCA( MB_ ), IA+M-1 )
+             IB = IN-IA+1
+             IF( ICURROW.EQ.IRPRNT .AND. ICURCOL.EQ.ICPRNT ) THEN
+@@ -293,7 +293,7 @@
+ *
+             II = IIA
+             ICURROW = IAROW
+-  120    CONTINUE
++  120    END DO
+ *
+          IF( MYCOL.EQ.ICURCOL )
+      $      JJ = JJ + JB
+diff -urN aocl-scalapack-4.0/TOOLS/pdlaread.f aocl-scalapack-4.0.a/TOOLS/pdlaread.f
+--- aocl-scalapack-4.0/TOOLS/pdlaread.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TOOLS/pdlaread.f	2023-05-13 12:36:07.683426435 -0500
+@@ -94,7 +94,7 @@
+ *
+       DO 50 J = 1, N, DESCA( NB_ )
+          JB = MIN(  DESCA( NB_ ), N-J+1 )
+-         DO 40 H = 0, JB-1
++         DO H = 0, JB-1
+ *
+ *           Loop over block of rows
+ *
+@@ -125,7 +125,7 @@
+ *
+             II = 1
+             ICURROW = DESCA( RSRC_ )
+-   40    CONTINUE
++   40    END DO
+ *
+          IF( MYCOL.EQ.ICURCOL )
+      $      JJ = JJ + JB
+diff -urN aocl-scalapack-4.0/TOOLS/pdlawrite.f aocl-scalapack-4.0.a/TOOLS/pdlawrite.f
+--- aocl-scalapack-4.0/TOOLS/pdlawrite.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TOOLS/pdlawrite.f	2023-05-13 12:36:25.980803115 -0500
+@@ -77,7 +77,7 @@
+ *
+       JN = MIN( ICEIL( JA, DESCA( NB_ ) ) * DESCA( NB_ ), JA+N-1 )
+       JB = JN-JA+1
+-      DO 60 H = 0, JB-1
++      DO H = 0, JB-1
+          IN = MIN( ICEIL( IA, DESCA( MB_ ) ) * DESCA( MB_ ), IA+M-1 )
+          IB = IN-IA+1
+          IF( ICURROW.EQ.IRWRIT .AND. ICURCOL.EQ.ICWRIT ) THEN
+@@ -133,7 +133,7 @@
+ *
+         II = IIA
+         ICURROW = IAROW
+-   60 CONTINUE
++   60 END DO
+ *
+       IF( MYCOL.EQ.ICURCOL )
+      $   JJ = JJ + JB
+@@ -144,7 +144,7 @@
+ *
+       DO 130 J = JN+1, JA+N-1, DESCA( NB_ )
+          JB = MIN(  DESCA( NB_ ), JA+N-J )
+-         DO 120 H = 0, JB-1
++         DO H = 0, JB-1
+             IN = MIN( ICEIL( IA, DESCA( MB_ ) ) * DESCA( MB_ ), IA+M-1 )
+             IB = IN-IA+1
+             IF( ICURROW.EQ.IRWRIT .AND. ICURCOL.EQ.ICWRIT ) THEN
+@@ -200,7 +200,7 @@
+ *
+             II = IIA
+             ICURROW = IAROW
+-  120    CONTINUE
++  120    END DO
+ *
+          IF( MYCOL.EQ.ICURCOL )
+      $      JJ = JJ + JB
+diff -urN aocl-scalapack-4.0/TOOLS/pilaprnt.f aocl-scalapack-4.0.a/TOOLS/pilaprnt.f
+--- aocl-scalapack-4.0/TOOLS/pilaprnt.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TOOLS/pilaprnt.f	2023-05-13 12:22:11.627246250 -0500
+@@ -162,7 +162,7 @@
+ *
+       JN = MIN( ICEIL( JA, DESCA( NB_ ) ) * DESCA( NB_ ), JA+N-1 )
+       JB = JN-JA+1
+-      DO 60 H = 0, JB-1
++      DO  H = 0, JB-1
+          IN = MIN( ICEIL( IA, DESCA( MB_ ) ) * DESCA( MB_ ), IA+M-1 )
+          IB = IN-IA+1
+          IF( ICURROW.EQ.IRPRNT .AND. ICURCOL.EQ.ICPRNT ) THEN
+@@ -222,7 +222,7 @@
+ *
+         II = IIA
+         ICURROW = IAROW
+-   60 CONTINUE
++      END DO
+ *
+       IF( MYCOL.EQ.ICURCOL )
+      $   JJ = JJ + JB
+@@ -233,7 +233,7 @@
+ *
+       DO 130 J = JN+1, JA+N-1, DESCA( NB_ )
+          JB = MIN(  DESCA( NB_ ), JA+N-J )
+-         DO 120 H = 0, JB-1
++         DO H = 0, JB-1
+             IN = MIN( ICEIL( IA, DESCA( MB_ ) ) * DESCA( MB_ ), IA+M-1 )
+             IB = IN-IA+1
+             IF( ICURROW.EQ.IRPRNT .AND. ICURCOL.EQ.ICPRNT ) THEN
+@@ -293,7 +293,7 @@
+ *
+             II = IIA
+             ICURROW = IAROW
+-  120    CONTINUE
++         END DO
+ *
+          IF( MYCOL.EQ.ICURCOL )
+      $      JJ = JJ + JB
+diff -urN aocl-scalapack-4.0/TOOLS/pslaprnt.f aocl-scalapack-4.0.a/TOOLS/pslaprnt.f
+--- aocl-scalapack-4.0/TOOLS/pslaprnt.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TOOLS/pslaprnt.f	2023-05-13 12:36:44.549185377 -0500
+@@ -162,7 +162,7 @@
+ *
+       JN = MIN( ICEIL( JA, DESCA( NB_ ) ) * DESCA( NB_ ), JA+N-1 )
+       JB = JN-JA+1
+-      DO 60 H = 0, JB-1
++      DO H = 0, JB-1
+          IN = MIN( ICEIL( IA, DESCA( MB_ ) ) * DESCA( MB_ ), IA+M-1 )
+          IB = IN-IA+1
+          IF( ICURROW.EQ.IRPRNT .AND. ICURCOL.EQ.ICPRNT ) THEN
+@@ -222,7 +222,7 @@
+ *
+         II = IIA
+         ICURROW = IAROW
+-   60 CONTINUE
++   60 END DO
+ *
+       IF( MYCOL.EQ.ICURCOL )
+      $   JJ = JJ + JB
+@@ -233,7 +233,7 @@
+ *
+       DO 130 J = JN+1, JA+N-1, DESCA( NB_ )
+          JB = MIN(  DESCA( NB_ ), JA+N-J )
+-         DO 120 H = 0, JB-1
++         DO H = 0, JB-1
+             IN = MIN( ICEIL( IA, DESCA( MB_ ) ) * DESCA( MB_ ), IA+M-1 )
+             IB = IN-IA+1
+             IF( ICURROW.EQ.IRPRNT .AND. ICURCOL.EQ.ICPRNT ) THEN
+@@ -293,7 +293,7 @@
+ *
+             II = IIA
+             ICURROW = IAROW
+-  120    CONTINUE
++  120    END DO
+ *
+          IF( MYCOL.EQ.ICURCOL )
+      $      JJ = JJ + JB
+diff -urN aocl-scalapack-4.0/TOOLS/pslaread.f aocl-scalapack-4.0.a/TOOLS/pslaread.f
+--- aocl-scalapack-4.0/TOOLS/pslaread.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TOOLS/pslaread.f	2023-05-13 12:36:55.734415640 -0500
+@@ -94,7 +94,7 @@
+ *
+       DO 50 J = 1, N, DESCA( NB_ )
+          JB = MIN(  DESCA( NB_ ), N-J+1 )
+-         DO 40 H = 0, JB-1
++         DO H = 0, JB-1
+ *
+ *           Loop over block of rows
+ *
+@@ -125,7 +125,7 @@
+ *
+             II = 1
+             ICURROW = DESCA( RSRC_ )
+-   40    CONTINUE
++   40    END DO
+ *
+          IF( MYCOL.EQ.ICURCOL )
+      $      JJ = JJ + JB
+diff -urN aocl-scalapack-4.0/TOOLS/pslawrite.f aocl-scalapack-4.0.a/TOOLS/pslawrite.f
+--- aocl-scalapack-4.0/TOOLS/pslawrite.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TOOLS/pslawrite.f	2023-05-13 12:37:18.124876586 -0500
+@@ -77,7 +77,7 @@
+ *
+       JN = MIN( ICEIL( JA, DESCA( NB_ ) ) * DESCA( NB_ ), JA+N-1 )
+       JB = JN-JA+1
+-      DO 60 H = 0, JB-1
++      DO H = 0, JB-1
+          IN = MIN( ICEIL( IA, DESCA( MB_ ) ) * DESCA( MB_ ), IA+M-1 )
+          IB = IN-IA+1
+          IF( ICURROW.EQ.IRWRIT .AND. ICURCOL.EQ.ICWRIT ) THEN
+@@ -133,7 +133,7 @@
+ *
+         II = IIA
+         ICURROW = IAROW
+-   60 CONTINUE
++   60 END DO
+ *
+       IF( MYCOL.EQ.ICURCOL )
+      $   JJ = JJ + JB
+@@ -144,7 +144,7 @@
+ *
+       DO 130 J = JN+1, JA+N-1, DESCA( NB_ )
+          JB = MIN(  DESCA( NB_ ), JA+N-J )
+-         DO 120 H = 0, JB-1
++         DO H = 0, JB-1
+             IN = MIN( ICEIL( IA, DESCA( MB_ ) ) * DESCA( MB_ ), IA+M-1 )
+             IB = IN-IA+1
+             IF( ICURROW.EQ.IRWRIT .AND. ICURCOL.EQ.ICWRIT ) THEN
+@@ -200,7 +200,7 @@
+ *
+             II = IIA
+             ICURROW = IAROW
+-  120    CONTINUE
++  120    END DO
+ *
+          IF( MYCOL.EQ.ICURCOL )
+      $      JJ = JJ + JB
+diff -urN aocl-scalapack-4.0/TOOLS/pzlaprnt.f aocl-scalapack-4.0.a/TOOLS/pzlaprnt.f
+--- aocl-scalapack-4.0/TOOLS/pzlaprnt.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TOOLS/pzlaprnt.f	2023-05-13 12:37:37.150268256 -0500
+@@ -162,7 +162,7 @@
+ *
+       JN = MIN( ICEIL( JA, DESCA( NB_ ) ) * DESCA( NB_ ), JA+N-1 )
+       JB = JN-JA+1
+-      DO 60 H = 0, JB-1
++      DO H = 0, JB-1
+          IN = MIN( ICEIL( IA, DESCA( MB_ ) ) * DESCA( MB_ ), IA+M-1 )
+          IB = IN-IA+1
+          IF( ICURROW.EQ.IRPRNT .AND. ICURCOL.EQ.ICPRNT ) THEN
+@@ -228,7 +228,7 @@
+ *
+         II = IIA
+         ICURROW = IAROW
+-   60 CONTINUE
++   60 END DO
+ *
+       IF( MYCOL.EQ.ICURCOL )
+      $   JJ = JJ + JB
+@@ -239,7 +239,7 @@
+ *
+       DO 130 J = JN+1, JA+N-1, DESCA( NB_ )
+          JB = MIN(  DESCA( NB_ ), JA+N-J )
+-         DO 120 H = 0, JB-1
++         DO H = 0, JB-1
+             IN = MIN( ICEIL( IA, DESCA( MB_ ) ) * DESCA( MB_ ), IA+M-1 )
+             IB = IN-IA+1
+             IF( ICURROW.EQ.IRPRNT .AND. ICURCOL.EQ.ICPRNT ) THEN
+@@ -305,7 +305,7 @@
+ *
+             II = IIA
+             ICURROW = IAROW
+-  120    CONTINUE
++  120    END DO
+ *
+          IF( MYCOL.EQ.ICURCOL )
+      $      JJ = JJ + JB
+diff -urN aocl-scalapack-4.0/TOOLS/pzlaread.f aocl-scalapack-4.0.a/TOOLS/pzlaread.f
+--- aocl-scalapack-4.0/TOOLS/pzlaread.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TOOLS/pzlaread.f	2023-05-13 12:37:46.765466199 -0500
+@@ -95,7 +95,7 @@
+ *
+       DO 50 J = 1, N, DESCA( NB_ )
+          JB = MIN(  DESCA( NB_ ), N-J+1 )
+-         DO 40 H = 0, JB-1
++         DO H = 0, JB-1
+ *
+ *           Loop over block of rows
+ *
+@@ -128,7 +128,7 @@
+ *
+             II = 1
+             ICURROW = DESCA( RSRC_ )
+-   40    CONTINUE
++   40    END DO
+ *
+          IF( MYCOL.EQ.ICURCOL )
+      $      JJ = JJ + JB
+diff -urN aocl-scalapack-4.0/TOOLS/pzlawrite.f aocl-scalapack-4.0.a/TOOLS/pzlawrite.f
+--- aocl-scalapack-4.0/TOOLS/pzlawrite.f	2022-11-13 09:31:10.000000000 -0600
++++ aocl-scalapack-4.0.a/TOOLS/pzlawrite.f	2023-05-13 12:38:12.069987133 -0500
+@@ -77,7 +77,7 @@
+ *
+       JN = MIN( ICEIL( JA, DESCA( NB_ ) ) * DESCA( NB_ ), JA+N-1 )
+       JB = JN-JA+1
+-      DO 60 H = 0, JB-1
++      DO H = 0, JB-1
+          IN = MIN( ICEIL( IA, DESCA( MB_ ) ) * DESCA( MB_ ), IA+M-1 )
+          IB = IN-IA+1
+          IF( ICURROW.EQ.IRWRIT .AND. ICURCOL.EQ.ICWRIT ) THEN
+@@ -137,7 +137,7 @@
+ *
+         II = IIA
+         ICURROW = IAROW
+-   60 CONTINUE
++   60 END DO
+ *
+       IF( MYCOL.EQ.ICURCOL )
+      $   JJ = JJ + JB
+@@ -148,7 +148,7 @@
+ *
+       DO 130 J = JN+1, JA+N-1, DESCA( NB_ )
+          JB = MIN(  DESCA( NB_ ), JA+N-J )
+-         DO 120 H = 0, JB-1
++         DO H = 0, JB-1
+             IN = MIN( ICEIL( IA, DESCA( MB_ ) ) * DESCA( MB_ ), IA+M-1 )
+             IB = IN-IA+1
+             IF( ICURROW.EQ.IRWRIT .AND. ICURCOL.EQ.ICWRIT ) THEN
+@@ -210,7 +210,7 @@
+ *
+             II = IIA
+             ICURROW = IAROW
+-  120    CONTINUE
++  120    END DO
+ *
+          IF( MYCOL.EQ.ICURCOL )
+      $      JJ = JJ + JB

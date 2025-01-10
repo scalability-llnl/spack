@@ -1,0 +1,39 @@
+diff --git a/src/callbacks/memory_profiler.cpp b/src/callbacks/memory_profiler.cpp
+index 0d5cec5d2..6f40705af 100644
+--- a/src/callbacks/memory_profiler.cpp
++++ b/src/callbacks/memory_profiler.cpp
+@@ -158,7 +158,10 @@ struct MemUsage
+   size_t total_mem;
+ 
+   MemUsage(const std::string& r, size_t m) : report(r), total_mem(m) {}
+-  bool operator<(const MemUsage& other) { return total_mem < other.total_mem; }
++  bool operator<(const MemUsage& other) const
++  {
++    return total_mem < other.total_mem;
++  }
+ };
+ } // namespace
+ 
+diff --git a/src/optimizers/adam.cpp b/src/optimizers/adam.cpp
+index d00dfbe7c..1d9ad3949 100644
+--- a/src/optimizers/adam.cpp
++++ b/src/optimizers/adam.cpp
+@@ -34,14 +34,12 @@
+ 
+ namespace lbann {
+ 
+-#if defined (LBANN_HAS_ROCM) && defined (LBANN_HAS_GPU_FP16)
++#if defined(LBANN_HAS_ROCM) && defined(LBANN_HAS_GPU_FP16)
+ namespace {
+-bool isfinite(fp16 const& x)
+-{
+-  return std::isfinite(float(x));
+-}
+-}
++bool isfinite(fp16 const& x) { return std::isfinite(float(x)); }
++} // namespace
+ #endif
++using std::isfinite;
+ 
+ template <typename TensorDataType>
+ adam<TensorDataType>::adam(TensorDataType learning_rate,

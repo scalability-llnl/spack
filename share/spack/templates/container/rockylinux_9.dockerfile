@@ -1,9 +1,9 @@
 {% extends "container/bootstrap-base.dockerfile" %}
 {% block install_os_packages %}
-RUN yum update -y \
- && yum install -y epel-release \
- && yum update -y \
- && yum --enablerepo epel install -y \
+RUN dnf update -y \
+ && dnf install -y epel-release \
+ && dnf update -y \
+ && dnf --enablerepo epel install -y \
         bzip2 \
         curl-minimal \
         file \
@@ -26,6 +26,6 @@ RUN yum update -y \
         xz \
         zstd \
  && pip3 install boto3 \
- && rm -rf /var/cache/yum \
- && yum clean all
+ && rm -rf /var/cache/dnf \
+ && dnf clean all
 {% endblock %}

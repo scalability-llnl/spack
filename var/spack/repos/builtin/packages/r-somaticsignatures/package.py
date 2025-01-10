@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,9 @@ class RSomaticsignatures(RPackage):
 
     bioc = "SomaticSignatures"
 
+    license("MIT")
+
+    version("2.36.0", commit="26ce72c1fc771f711796eccee0a24c1070d33066")
     version("2.34.0", commit="249b1ef7cef3c94cfb96cc8aa2a16e00c2bd5d1f")
     version("2.32.0", commit="444d37661d147618f6830fd5de01a83ddf2a694d")
     version("2.30.0", commit="03f7ad707f6530fa7f62093f808884b6e83b0526")

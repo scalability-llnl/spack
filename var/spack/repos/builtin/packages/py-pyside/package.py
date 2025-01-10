@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,22 +22,30 @@ class PyPyside(PythonPackage):
     # Meanwhile, developers have moved onto pyside2 (for Qt5),
     # and show little interest in certifying PySide 1.2.4 for Python.
     version(
-        "1.2.4", sha256="1421bc1bf612c396070de9e1ffe227c07c1f3129278bc7d30c754b5146be2433"
+        "1.2.4",
+        sha256="1421bc1bf612c396070de9e1ffe227c07c1f3129278bc7d30c754b5146be2433",
+        deprecated=True,
     )  # rpath problems
 
-    # v1.2.2 does not work with Python3
     version(
         "1.2.2",
         sha256="53129fd85e133ef630144c0598d25c451eab72019cdcb1012f2aec773a3f25be",
-        preferred=True,
+        deprecated=True,
     )
 
-    depends_on("cmake", type="build")
+    depends_on("cxx", type="build")  # generated
 
+    # to prevent error: 'PyTypeObject' {aka 'struct _typeobject'} has no member
+    # named 'tp_print'
+    depends_on("python@:3.8", type=("build", "run"))
     depends_on("py-setuptools", type="build")
+    # in newer pip versions --install-option does not exist
+    depends_on("py-pip@:23.0", type="build")
+    depends_on("cmake@2.6:", type="build")
+
     depends_on("py-sphinx", type=("build", "run"))
     depends_on("py-sphinx@:3.5.0", type=("build", "run"), when="@:1.2.2")
-    depends_on("qt@4.5:4.9")
+    depends_on("qt@4.6:4.8")
     depends_on("libxml2@2.6.32:")
     depends_on("libxslt@1.1.19:")
 
@@ -56,6 +63,9 @@ class PyPyside(PythonPackage):
             "popenasync.py",
         )
         filter_file("^    if subprocess.mswindows:", "    if mswindows:", "popenasync.py")
+
+        # Remove check for python version because the above patch adds support for newer versions
+        filter_file("^check_allowed_python_version()", "", "setup.py")
 
         # Add Spack's standard CMake args to the sub-builds.
         # They're called BY setup.py so we have to patch it.
@@ -81,15 +91,6 @@ class PyPyside(PythonPackage):
         # TODO: rpath handling for PySide 1.2.4 still doesn't work.
         # PySide can't find the Shiboken library, even though it comes
         # bundled with it and is installed in the same directory.
-
-        # PySide does not provide official support for
-        # Python 3.5, but it should work fine
-        filter_file(
-            "'Programming Language :: Python :: 3.4'",
-            "'Programming Language :: Python :: 3.4',\r\n        "
-            "'Programming Language :: Python :: 3.5'",
-            "setup.py",
-        )
 
     def install_options(self, spec, prefix):
         return ["--jobs={0}".format(make_jobs)]

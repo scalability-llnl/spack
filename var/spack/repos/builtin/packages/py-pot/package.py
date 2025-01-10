@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,7 +15,11 @@ class PyPot(PythonPackage):
     homepage = "https://github.com/PythonOT/POT"
     pypi = "POT/POT-0.7.0.tar.gz"
 
+    license("MIT")
+
     version("0.7.0", sha256="d4ac2bc8791f049a3166820d51e218d6c299885449b735eafef8d18c76d4ad06")
+
+    depends_on("cxx", type="build")  # generated
 
     # Avoid that CC and CXX are overridden with g++ in setup.py.
     patch("175.patch", when="@0.7.0")

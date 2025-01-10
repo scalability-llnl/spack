@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,7 @@ class RMatrixstats(RPackage):
 
     cran = "matrixStats"
 
+    version("1.3.0", sha256="413ee607d95b243c514b4a7c4944c2caea1fb264d27c96ff547c3939f893245a")
     version("0.63.0", sha256="c000b60421742eb035ff4ceedd3e588a79e4b28985484f0c81361e5a6c351f5f")
     version("0.62.0", sha256="85e2016b6dd20cbfe32d38a2ef2578ae80e688d9a3590aefd1d2f4bf4bd44eca")
     version("0.61.0", sha256="dbd3c0ec59b1ae62ff9b4c2c90c4687cbd680d1796f6fdd672319458d4d2fd9a")

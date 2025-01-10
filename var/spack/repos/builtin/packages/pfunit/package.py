@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,13 @@ class Pfunit(CMakePackage):
 
     maintainers("mathomp4", "tclune")
 
+    version("4.10.0", sha256="ee5e899dfb786bac46e3629b272d120920bafdb7f6a677980fc345f6acda0f99")
+    version("4.9.0", sha256="caea019f623d4e02dd3e8442cee88e6087b4c431a2628e9ec2de55b527b51ab6")
+    version("4.8.0", sha256="b5c66ab949fd23bee5c3b4d93069254f7ea40decb8d21f622fd6aa45ee68ef10")
+    version("4.7.4", sha256="ac850e33ea99c283f503f75293bf238b4b601885d7adba333066e6185dad5c04")
+    version("4.7.3", sha256="247239298b55e847417b7830183d7fc62cca93dc92c8ec7c0067784b7ce34544")
+    version("4.7.2", sha256="3142a1e56b7d127fdc9589cf6deff8505174129834a6a268d0ce7e296f51ab02")
+    version("4.7.1", sha256="64de3eb9f364b57ef6df81ba33400dfd4dcebca6eb5d0e9b7955ed8156e29165")
     version("4.7.0", sha256="5faf52d0ab8589b3cd3ea488b34a65dc931f70c07aaa7bf4f209b18af2b38e4e")
     version("4.6.3", sha256="a43a64c4338be57fdbe1cae1a89e277196f10931bc1f73418a463e05e5e7b2d1")
     version("4.6.2", sha256="fd302a1f7a131b38e18bc31ede69a216e580c640152e5e313f5a1e084669a950")
@@ -71,6 +77,9 @@ class Pfunit(CMakePackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")
+    depends_on("fortran", type="build")
+
     variant("mpi", default=False, description="Enable MPI")
     variant(
         "use_comm_world",
@@ -85,11 +94,11 @@ class Pfunit(CMakePackage):
 
     # The maximum rank of an array in the Fortran 2008 standard is 15
     max_rank = 15
-    allowed_array_ranks = tuple(str(i) for i in range(1, max_rank + 1))
+    allowed_array_ranks = tuple(str(i) for i in range(3, max_rank + 1))
 
     variant(
         "max_array_rank",
-        default=5,
+        default="5",
         values=allowed_array_ranks,
         description="Max rank for assertion overloads (higher values may be slower to build)",
     )
@@ -107,6 +116,7 @@ class Pfunit(CMakePackage):
     depends_on("mpi", when="+mpi")
     depends_on("esmf", when="+esmf")
     depends_on("m4", when="@4.1.5:", type="build")
+    depends_on("fargparse@1.8.0:", when="@4.10.0:")
     depends_on("fargparse", when="@4:")
     depends_on("cmake@3.12:", type="build")
 
@@ -119,6 +129,11 @@ class Pfunit(CMakePackage):
     )
 
     conflicts("%gcc@:8.3.9", when="@4.0.0:", msg="pFUnit requires GCC 8.4.0 or newer")
+
+    # pfunit only works with the Fujitsu compiler from 4.9.0 onwards
+    conflicts(
+        "%fj", when="@:4.8.0", msg="pfunit only works with the Fujitsu compiler from 4.9.0 onwards"
+    )
 
     patch("mpi-test.patch", when="+use_comm_world")
 
@@ -147,7 +162,6 @@ class Pfunit(CMakePackage):
     def cmake_args(self):
         spec = self.spec
         args = [
-            self.define("Python_EXECUTABLE", spec["python"].command),
             self.define("BUILD_SHARED_LIBS", False),
             self.define("CMAKE_Fortran_MODULE_DIRECTORY", spec.prefix.include),
             self.define_from_variant("ENABLE_BUILD_DOXYGEN", "docs"),
@@ -210,7 +224,6 @@ class Pfunit(CMakePackage):
             "%gcc": "GNU",
             "%clang": "GNU",
             "%intel": "Intel",
-            "%pgi": "PGI",
             "%nag": "NAG",
             "%cce": "Cray",
         }

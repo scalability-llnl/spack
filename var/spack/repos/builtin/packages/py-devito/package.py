@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,50 +15,51 @@ class PyDevito(PythonPackage):
     """
 
     homepage = "https://www.devitoproject.org/"
-    pypi = "devito/devito-4.6.2.tar.gz"
+    pypi = "devito/devito-4.8.1.tar.gz"
 
-    version("4.6.2", sha256="39c2210a192ad69953b4f8d93440ffd72b07d739c4fe2290e2b182adfb7e143f")
+    license("MIT")
+
+    version("4.8.1", sha256="56d0957a3226ed2a81c408107a614f04faa896d42c83a8b2bd1c8b1100adf51d")
 
     variant("mpi", default=False, description="Enable MPI support")
-    variant("matplotlib", default=False, description="Enable matplolib support")
-    variant("ipyparallel", default=False, description="Enable ipyparallel support")
-    variant("pandas", default=False, description="Enable pandas support")
+    variant("optional", default=False, description="Enable matplolib & pandas support")
 
     depends_on("py-pip@9.0.1:", type="build")
     depends_on("py-setuptools", type="build")
 
-    depends_on("py-numpy@1.16:", type=("build", "run"))
-    depends_on("py-sympy@1.7:1.9", type=("build", "run"))
+    depends_on("py-numpy@1.17:", type=("build", "run"))
+    depends_on("py-sympy@1.9:1.11", type=("build", "run"))
     depends_on("py-scipy", type=("build", "run"))
     depends_on("py-flake8@2.1.0:", type=("build", "run"))
     depends_on("py-nbval", type=("build", "run"))
     depends_on("py-cached-property", type=("build", "run"))
     depends_on("py-psutil@5.1.0:5", type=("build", "run"))
-    depends_on("py-py-cpuinfo@:8", type=("build", "run"))
+    depends_on("py-py-cpuinfo@:9", type=("build", "run"))
     depends_on("py-cgen@2020.1:", type=("build", "run"))
     depends_on("py-codepy@2019.1:", type=("build", "run"))
     depends_on("py-click@:8", type=("build", "run"))
-    depends_on("py-codecov", type=("build", "run"))
     depends_on("py-multidict", type=("build", "run"))
     depends_on("py-anytree@2.4.3:2.8", type=("build", "run"))
     depends_on("py-pyrevolve@2.1.3:", type=("build", "run"))
-    depends_on("py-distributed@:2022.2", type=("build", "run"))
-    depends_on("py-pytest@3.6:6", type=("build", "run"))
+    depends_on("py-distributed@:2023.3", type=("build", "run"))
+    depends_on("py-pytest@7.2:7", type=("build", "run"))
     depends_on("py-pytest-runner", type=("build", "run"))
     depends_on("py-pytest-cov", type=("build", "run"))
 
-    # requirements-mpi.tct
-    depends_on("py-mpi4py", type=("build", "run"), when="+mpi")
+    # requirements-mpi.txt
+    depends_on("py-mpi4py@:3", type=("build", "run"), when="+mpi")
+    depends_on("py-ipyparallel@:8.5", type=("build", "run"), when="+mpi")
 
     # requirements-optional.txt
-    depends_on("py-matplotlib", type=("build", "run"), when="+matplotlib")
-    depends_on("py-ipyparallel", type=("build", "run"), when="+ipyparallel")
-    depends_on("py-pandas", type=("build", "run"), when="+pandas")
+    depends_on("py-matplotlib", type=("build", "run"), when="+optional")
+    depends_on("py-pandas", type=("build", "run"), when="+optional")
 
-    depends_on("mpi", type=("build", "run"))
+    depends_on("mpi", type=("build", "run"), when="+mpi")
 
     depends_on("intel-parallel-studio", type="run", when="%intel@:2021.1.1")
     depends_on("intel-oneapi-compilers", type="run", when="%intel@2021.1.2:")
+
+    patch("4.8.1.patch", when="@4.8.1")
 
     @run_before("install")
     def add_examples_dir(self):

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PyGhpImport(PythonPackage):
 
     homepage = "https://github.com/c-w/ghp-import"
     pypi = "ghp-import/ghp-import-2.1.0.tar.gz"
+
+    license("Apache-2.0")
 
     version("2.1.0", sha256="9c535c4c61193c2df8871222567d7fd7e5014d835f97dc7b7439069e2413d343")
 

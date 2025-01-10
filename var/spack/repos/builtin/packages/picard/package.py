@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,8 +21,20 @@ class Picard(Package):
         "https://github.com/broadinstitute/picard/releases/download/{0}/picard-tools-{0}.zip"
     )
 
+    license("GPL-2.0-or-later")
+
     # They started distributing a single jar file at v2.6.0, prior to
     # that it was a .zip file with multiple .jar and .so files
+    version(
+        "3.1.1",
+        sha256="15c79f51fd0ac001049f9dd7b9bac1dbdf759dcb0230a89c7f6d1f246e8bbab4",
+        expand=False,
+    )
+    version(
+        "3.0.0",
+        sha256="0d5e28ab301fad3b02030d01923888129ba82c5f722ac5ccb2d418ab76ac5499",
+        expand=False,
+    )
     version(
         "2.26.2",
         sha256="99fab1699a735fd048a05975a243774f1cc99e87a9b28311d4aa872d06390474",
@@ -151,7 +162,10 @@ class Picard(Package):
     )
     version("1.140", sha256="0d27287217413db6b846284c617d502eaa578662dcb054a7017083eab9c54438")
 
-    depends_on("java@8:", type="run")
+    variant("parameters", default=False, description="get java parameters in the adapter script")
+
+    depends_on("java@17:", type="run", when="@3.0.0:")
+    depends_on("java@8:", type="run", when="@:2.27.5")
 
     def install(self, spec, prefix):
         mkdirp(prefix.bin)
@@ -163,7 +177,12 @@ class Picard(Package):
 
         # Set up a helper script to call java on the jar file,
         # explicitly codes the path for java and the jar file.
-        script_sh = join_path(os.path.dirname(__file__), "picard.sh")
+
+        script_sh = join_path(
+            os.path.dirname(__file__),
+            "picard_with_parameters.sh" if "+parameters" in spec else "picard.sh",
+        )
+
         script = prefix.bin.picard
         install(script_sh, script)
         set_executable(script)

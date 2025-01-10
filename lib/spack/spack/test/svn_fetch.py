@@ -1,17 +1,14 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
-import sys
 
 import pytest
 
 from llnl.util.filesystem import mkdirp, touch, working_dir
 
 import spack.config
-import spack.repo
 from spack.fetch_strategy import SvnFetchStrategy
 from spack.spec import Spec
 from spack.stage import Stage
@@ -22,7 +19,7 @@ pytestmark = [
     pytest.mark.skipif(
         not which("svn") or not which("svnadmin"), reason="requires subversion to be installed"
     ),
-    pytest.mark.skipif(sys.platform == "win32", reason="does not run on windows"),
+    pytest.mark.not_on_windows("does not run on windows"),
 ]
 
 

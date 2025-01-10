@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PyWeblogo(PythonPackage):
 
     homepage = "http://weblogo.threeplusone.com"
     pypi = "weblogo/weblogo-3.6.0.tar.gz"
+
+    license("MIT")
 
     version("3.6.0", sha256="af5a9f065581f18d71bd7c22b160c1e443932f22cab992d439d3dc8757c80a85")
     version("3.5.0", sha256="84e39ee7c4f70efea55d6a92b3efdc4d2602b3d32a793f98865bca35e6bd1133")

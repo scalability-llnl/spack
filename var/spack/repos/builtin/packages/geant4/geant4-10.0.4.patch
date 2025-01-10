@@ -1,0 +1,31 @@
+diff -Naur a/cmake/Modules/Geant4MakeRules_cxx.cmake b/cmake/Modules/Geant4MakeRules_cxx.cmake
+--- a/cmake/Modules/Geant4MakeRules_cxx.cmake	2016-06-10 12:04:27
++++ b/cmake/Modules/Geant4MakeRules_cxx.cmake	2023-12-04 16:49:28
+@@ -51,7 +51,7 @@
+   elseif(_gnucxx_version VERSION_LESS 4.7)
+     set(_CXXSTDS "c++98" "c++0x")
+   else()
+-    set(_CXXSTDS "c++98" "c++0x" "c++11")
++    set(_CXXSTDS "c++98" "c++0x" "c++11" "c++14")
+   endif()
+
+   set(CXXSTD_IS_AVAILABLE ${_CXXSTDS} PARENT_SCOPE)
+diff -Naur a/source/visualization/HepRep/sources.cmake b/source/visualization/HepRep/sources.cmake
+--- a/source/visualization/HepRep/sources.cmake	2016-06-10 12:04:27
++++ b/source/visualization/HepRep/sources.cmake	2023-12-04 16:12:32
+@@ -71,13 +71,13 @@
+     G4HepRepMessenger.cc
+     G4HepRepSceneHandler.cc
+     G4HepRepViewer.cc
+-    GZIPOutputStream.cc
++    gzipoutputstream.cc
+     GZIPOutputStreamBuffer.cc
+     IndentPrintWriter.cc
+     XMLHepRepFactory.cc
+     XMLHepRepWriter.cc
+     XMLWriter.cc
+-    ZipOutputStream.cc
++    zipoutputstream.cc
+     ZipOutputStreamBuffer.cc
+   GRANULAR_DEPENDENCIES
+     G4csg

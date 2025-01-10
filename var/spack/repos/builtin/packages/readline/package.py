@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,16 +17,32 @@ class Readline(AutotoolsPackage, GNUMirrorPackage):
     # URL must remain http:// so Spack can bootstrap curl
     gnu_mirror_path = "readline/readline-8.0.tar.gz"
 
+    license("GPL-3.0-or-later")
+
     version("8.2", sha256="3feb7171f16a84ee82ca18a36d7b9be109a52c04f492a053331d7d1095007c35")
     version("8.1", sha256="f8ceb4ee131e3232226a17f51b164afc46cd0b9e6cef344be87c65962cb82b02")
     version("8.0", sha256="e339f51971478d369f8a053a330a190781acb9864cf4c541060f12078948e461")
     version("7.0", sha256="750d437185286f40a369e1e4f4764eda932b9459b5ec9a731628393dd3d32334")
     version("6.3", sha256="56ba6071b9462f980c5a72ab0023893b65ba6debb4eeb475d7a563dc65cafd43")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("ncurses")
 
     patches = [
         ("8.2", "001", "bbf97f1ec40a929edab5aa81998c1e2ef435436c597754916e6a5868f273aff7"),
+        ("8.2", "002", "e06503822c62f7bc0d9f387d4c78c09e0ce56e53872011363c74786c7cd4c053"),
+        ("8.2", "003", "24f587ba46b46ed2b1868ccaf9947504feba154bb8faabd4adaea63ef7e6acb0"),
+        ("8.2", "004", "79572eeaeb82afdc6869d7ad4cba9d4f519b1218070e17fa90bbecd49bd525ac"),
+        ("8.2", "005", "622ba387dae5c185afb4b9b20634804e5f6c1c6e5e87ebee7c35a8f065114c99"),
+        ("8.2", "006", "c7b45ff8c0d24d81482e6e0677e81563d13c74241f7b86c4de00d239bc81f5a1"),
+        ("8.2", "007", "5911a5b980d7900aabdbee483f86dab7056851e6400efb002776a0a4a1bab6f6"),
+        ("8.2", "008", "a177edc9d8c9f82e8c19d0630ab351f3fd1b201d655a1ddb5d51c4cee197b26a"),
+        ("8.2", "009", "3d9885e692e1998523fd5c61f558cecd2aafd67a07bd3bfe1d7ad5a31777a116"),
+        ("8.2", "010", "758e2ec65a0c214cfe6161f5cde3c5af4377c67d820ea01d13de3ca165f67b4c"),
+        ("8.2", "011", "e0013d907f3a9e6482cc0934de1bd82ee3c3c4fd07a9646aa9899af237544dd7"),
+        ("8.2", "012", "6c8adf8ed4a2ca629f7fd11301ed6293a6248c9da0c674f86217df715efccbd3"),
+        ("8.2", "013", "1ea434957d6ec3a7b61763f1f3552dad0ebdd6754d65888b5cd6d80db3a788a8"),
         ("8.1", "001", "682a465a68633650565c43d59f0b8cdf149c13a874682d3c20cb4af6709b9144"),
         ("8.1", "002", "e55be055a68cb0719b0ccb5edc9a74edcc1d1f689e8a501525b3bc5ebad325dc"),
         ("8.0", "001", "d8e5e98933cf5756f862243c0601cb69d3667bb33f2c7b751fe4e40b2c3fd069"),

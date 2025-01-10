@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -10,6 +9,10 @@ integrate GCS Blob storage with spack buildcache.
 
 import os
 import sys
+import urllib.parse
+import urllib.response
+from urllib.error import URLError
+from urllib.request import BaseHandler
 
 import llnl.util.tty as tty
 
@@ -34,7 +37,7 @@ def gcs_client():
     return storage_client
 
 
-class GCSBucket(object):
+class GCSBucket:
     """GCS Bucket Object
     Create a wrapper object for a GCS Bucket. Provides methods to wrap spack
     related tasks, such as destroy.
@@ -153,7 +156,7 @@ class GCSBucket(object):
             sys.exit(1)
 
 
-class GCSBlob(object):
+class GCSBlob:
     """GCS Blob object
 
     Wraps some blob methods for spack functionality
@@ -222,3 +225,21 @@ class GCSBlob(object):
         }
 
         return headers
+
+
+def gcs_open(req, *args, **kwargs):
+    """Open a reader stream to a blob object on GCS"""
+    url = urllib.parse.urlparse(req.get_full_url())
+    gcsblob = GCSBlob(url)
+
+    if not gcsblob.exists():
+        raise URLError("GCS blob {0} does not exist".format(gcsblob.blob_path))
+    stream = gcsblob.get_blob_byte_stream()
+    headers = gcsblob.get_blob_headers()
+
+    return urllib.response.addinfourl(stream, headers, url)
+
+
+class GCSHandler(BaseHandler):
+    def gs_open(self, req):
+        return gcs_open(req)

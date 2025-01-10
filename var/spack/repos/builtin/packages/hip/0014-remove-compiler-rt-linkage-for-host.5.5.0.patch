@@ -1,0 +1,58 @@
+From 6df478bfeeb646ecabba503b8170ced65a5e74cf Mon Sep 17 00:00:00 2001
+From: sreenivasa murthy kolam <sreenivasamurthy.kolam@amd.com>
+Date: Mon, 22 May 2023 10:25:48 +0000
+Subject: [PATCH] update the llvm-path and rocm-info path based on install
+ prefix for llvm-amdgpu and rocminfo;remove compiler rt builtin linkage for
+ host
+
+---
+ bin/hipcc.pl               | 10 +++++++---
+ hipamd/hip-config.cmake.in |  1 -
+ 2 files changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/bin/hipcc.pl b/bin/hipcc.pl
+index 2cd3752..2af14d2 100644
+--- a/bin/hipcc.pl
++++ b/bin/hipcc.pl
+@@ -170,11 +170,14 @@ if ($HIP_PLATFORM eq "amd") {
+     if($isWindows) {
+         $execExtension = ".exe";
+     }
+-    $HIPCC="$HIP_CLANG_PATH/clang++" . $execExtension;
++    # llvm_path is set inside the hip recipe
++    $LLVM_PATH= $ENV{'LLVM_PATH'};
++    $HIPCC="${LLVM_PATH}/bin/clang++" . $execExtension;
+ 
+     # If $HIPCC clang++ is not compiled, use clang instead
+     if ( ! -e $HIPCC ) {
+-        $HIPCC="$HIP_CLANG_PATH/clang" . $execExtension;
++	$LLVM_PATH= $ENV{'LLVM_PATH'};
++        $HIPCC="${LLVM_PATH}/bin/clang" . $execExtension;
+         $HIPLDFLAGS = "--driver-mode=g++";
+     }
+     # to avoid using dk linker or MSVC linker
+@@ -493,7 +496,8 @@ if($HIP_PLATFORM eq "amd"){
+             $targetsStr = $ENV{HCC_AMDGPU_TARGET};
+         } elsif (not $isWindows) {
+             # Else try using rocm_agent_enumerator
+-            $ROCM_AGENT_ENUM = "${ROCM_PATH}/bin/rocm_agent_enumerator";
++	    $ROCMINFO_PATH = $ENV{'ROCMINFO_PATH'} // $ROCMINFO_PATH;
++            $ROCM_AGENT_ENUM = "${ROCMINFO_PATH}/bin/rocm_agent_enumerator";
+             $targetsStr = `${ROCM_AGENT_ENUM} -t GPU`;
+             $targetsStr =~ s/\n/,/g;
+         }
+diff --git a/hipamd/hip-config.cmake.in b/hipamd/hip-config.cmake.in
+index 7c4fe7f..4f2dc19 100755
+--- a/hipamd/hip-config.cmake.in
++++ b/hipamd/hip-config.cmake.in
+@@ -253,7 +253,6 @@ if(HIP_COMPILER STREQUAL "clang")
+   # Add support for __fp16 and _Float16, explicitly link with compiler-rt
+   if( "${CLANGRT_BUILTINS_FETCH_EXIT_CODE}" STREQUAL "0" )
+     # CLANG_RT Builtins found Successfully Set interface link libraries property
+-    set_property(TARGET hip::host APPEND PROPERTY INTERFACE_LINK_LIBRARIES "${CLANGRT_BUILTINS}")
+     set_property(TARGET hip::device APPEND PROPERTY INTERFACE_LINK_LIBRARIES "${CLANGRT_BUILTINS}")
+   else()
+     message(STATUS "clangrt builtins lib not found: ${CLANGRT_BUILTINS_FETCH_EXIT_CODE}")
+-- 
+2.17.1
+

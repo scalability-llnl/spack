@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,9 @@ class RRstan(RPackage):
 
     cran = "rstan"
 
+    license("GPL-3.0-or-later")
+
+    version("2.32.6", sha256="3390d00191bbd3b0739dd19fe437b99a041a6b04be208877b48419d1348a1a70")
     version("2.21.8", sha256="b2d4edc315419037970c9fa2e8740b934966d88d40548152811f3d4a28475075")
     version("2.21.7", sha256="4495221310d390925b665c32e05ffabd3ae8857225bda65131a7ed2be41d6d45")
     version("2.21.5", sha256="86e4fe562d8ddcd0b02336f35a420fa8786dd21de7ca2bebb4ed6e9c252bb9ea")
@@ -36,18 +38,29 @@ class RRstan(RPackage):
     depends_on("r@3.4.0:", type=("build", "run"), when="@2.18.1:")
     depends_on("r-stanheaders@2.18.1:", type=("build", "run"))
     depends_on("r-stanheaders@2.21.0:", type=("build", "run"), when="@2.21.2:")
+    depends_on("r-stanheaders@2.32.0:", type=("build", "run"), when="@2.26.23:")
     depends_on("r-ggplot2@2.0.0:", type=("build", "run"))
     depends_on("r-ggplot2@3.0.0:", type=("build", "run"), when="@2.21.2:")
+    depends_on("r-ggplot2@3.3.5:", type=("build", "run"), when="@2.26.23:")
     depends_on("r-inline", type=("build", "run"))
+    depends_on("r-inline@0.3.19:", type=("build", "run"), when="@2.26.23:")
     depends_on("r-gridextra@2.0.0:", type=("build", "run"))
+    depends_on("r-gridextra@2.3:", type=("build", "run"), when="@2.26.23:")
     depends_on("r-rcpp@0.12.0:", type=("build", "run"))
+    depends_on("r-rcpp@1.0.7:", type=("build", "run"), when="@2.26.23:")
     depends_on("r-rcppparallel@5.0.1:", type=("build", "run"), when="@2.21.2:")
+    depends_on("r-rcppparallel@5.1.4:", type=("build", "run"), when="@2.26.23:")
     depends_on("r-loo@2.0.0:", type=("build", "run"), when="@2.18:")
     depends_on("r-loo@2.3.0:", type=("build", "run"), when="@2.21.2:")
+    depends_on("r-loo@2.4.1:", type=("build", "run"), when="@2.26.23:")
     depends_on("r-pkgbuild", type=("build", "run"), when="@2.18:")
+    depends_on("r-pkgbuild@1.2.0:", type=("build", "run"), when="@2.26.23:")
+    depends_on("r-quickjsr", type=("build", "run"), when="@2.26.23:")
     depends_on("r-rcppeigen@0.3.3.3.0:", type=("build", "run"))
+    depends_on("r-rcppeigen@0.3.4.0.0:", type=("build", "run"), when="@2.26.23:")
     depends_on("r-bh@1.69.0:", type=("build", "run"))
     depends_on("r-bh@1.72.0-2:", type=("build", "run"), when="@2.21.2:")
+    depends_on("r-bh@1.75.0-0:", type=("build", "run"), when="@2.26.23:")
     depends_on("gmake", type="build")
     depends_on("pandoc", type="build")
 

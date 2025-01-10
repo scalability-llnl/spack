@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -40,11 +39,22 @@ class Lvarray(CMakePackage, CudaPackage):
 
     maintainers("corbett5")
 
+    license("BSD-3-Clause")
+
     version("develop", branch="develop", submodules=False)
     version("main", branch="main", submodules=False)
-    version("0.2.2", tag="v0.2.2", submodules=False)
-    version("0.2.1", tag="v0.2.1", submodules=False)
-    version("0.1.0", tag="v0.1.0", submodules=True)
+    version(
+        "0.2.2", tag="v0.2.2", commit="3f7bacf5a4e967d4628b860132f5c29673314d3a", submodules=False
+    )
+    version(
+        "0.2.1", tag="v0.2.1", commit="3fece6bbbeb172442275d1ad1a52d6b54cd53163", submodules=False
+    )
+    version(
+        "0.1.0", tag="v0.1.0", commit="0bf5f7d077de4a08f58db24baed207f9dba95f6e", submodules=True
+    )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("shared", default=True, description="Build Shared Libs")
     variant("umpire", default=False, description="Build Umpire support")
@@ -94,7 +104,7 @@ class Lvarray(CMakePackage, CudaPackage):
 
     @run_after("build")
     def build_docs(self):
-        if "+docs" in self.spec:
+        if self.spec.satisfies("+docs"):
             with working_dir(self.build_directory):
                 make("docs")
 
@@ -107,7 +117,7 @@ class Lvarray(CMakePackage, CudaPackage):
 
     def _get_host_config_path(self, spec):
         var = ""
-        if "+cuda" in spec:
+        if spec.satisfies("+cuda"):
             var = "-".join([var, "cuda"])
 
         hostname = socket.gethostname().rstrip("1234567890")
@@ -171,7 +181,7 @@ class Lvarray(CMakePackage, CudaPackage):
             cfg.write("# CMake executable path: %s\n" % cmake_exe)
             cfg.write("#{0}\n\n".format("-" * 80))
 
-            if "blt" in spec:
+            if spec.satisfies("^blt"):
                 cfg.write(cmake_cache_entry("BLT_SOURCE_DIR", spec["blt"].prefix))
 
             #######################
@@ -188,7 +198,7 @@ class Lvarray(CMakePackage, CudaPackage):
             cflags = " ".join(spec.compiler_flags["cflags"])
             cxxflags = " ".join(spec.compiler_flags["cxxflags"])
 
-            if "%intel" in spec:
+            if spec.satisfies("%intel"):
                 cflags += " -qoverride-limits"
                 cxxflags += " -qoverride-limits"
 
@@ -205,10 +215,10 @@ class Lvarray(CMakePackage, CudaPackage):
             debug_flags = "-O0 -g"
             cfg.write(cmake_cache_string("CMAKE_CXX_FLAGS_DEBUG", debug_flags))
 
-            if "%clang arch=linux-rhel7-ppc64le" in spec:
+            if spec.satisfies("%clang arch=linux-rhel7-ppc64le"):
                 cfg.write(cmake_cache_entry("CMAKE_EXE_LINKER_FLAGS", "-Wl,--no-toc-optimize"))
 
-            if "+cuda" in spec:
+            if spec.satisfies("+cuda"):
                 cfg.write("#{0}\n".format("-" * 80))
                 cfg.write("# Cuda\n")
                 cfg.write("#{0}\n\n".format("-" * 80))
@@ -268,7 +278,7 @@ class Lvarray(CMakePackage, CudaPackage):
             cfg.write("# Umpire\n")
             cfg.write("#{0}\n\n".format("-" * 80))
 
-            if "+umpire" in spec:
+            if spec.satisfies("+umpire"):
                 cfg.write(cmake_cache_option("ENABLE_UMPIRE", True))
                 cfg.write(cmake_cache_entry("UMPIRE_DIR", spec["umpire"].prefix))
             else:
@@ -278,7 +288,7 @@ class Lvarray(CMakePackage, CudaPackage):
             cfg.write("# CHAI\n")
             cfg.write("#{0}\n\n".format("-" * 80))
 
-            if "+chai" in spec:
+            if spec.satisfies("+chai"):
                 cfg.write(cmake_cache_option("ENABLE_CHAI", True))
                 cfg.write(cmake_cache_entry("CHAI_DIR", spec["chai"].prefix))
             else:
@@ -288,7 +298,7 @@ class Lvarray(CMakePackage, CudaPackage):
             cfg.write("# Caliper\n")
             cfg.write("#{0}\n\n".format("-" * 80))
 
-            if "+caliper" in spec:
+            if spec.satisfies("+caliper"):
                 cfg.write("#{0}\n".format("-" * 80))
                 cfg.write("# Caliper\n")
                 cfg.write("#{0}\n\n".format("-" * 80))
@@ -301,7 +311,7 @@ class Lvarray(CMakePackage, CudaPackage):
             cfg.write("#{0}\n".format("-" * 80))
             cfg.write("# Python\n")
             cfg.write("#{0}\n\n".format("-" * 80))
-            if "+pylvarray" in spec:
+            if spec.satisfies("+pylvarray"):
                 cfg.write(cmake_cache_option("ENABLE_PYLVARRAY", True))
                 python_exe = os.path.join(spec["python"].prefix.bin, "python3")
                 cfg.write(cmake_cache_entry("Python3_EXECUTABLE", python_exe))
@@ -311,7 +321,7 @@ class Lvarray(CMakePackage, CudaPackage):
             cfg.write("#{0}\n".format("-" * 80))
             cfg.write("# Documentation\n")
             cfg.write("#{0}\n\n".format("-" * 80))
-            if "+docs" in spec:
+            if spec.satisfies("+docs"):
                 cfg.write(cmake_cache_option("ENABLE_DOCS", True))
                 sphinx_dir = spec["py-sphinx"].prefix
                 cfg.write(
@@ -332,7 +342,7 @@ class Lvarray(CMakePackage, CudaPackage):
             cfg.write("#{0}\n".format("-" * 80))
             cfg.write("# addr2line\n")
             cfg.write("#{0}\n\n".format("-" * 80))
-            cfg.write(cmake_cache_option("ENABLE_ADDR2LINE", "+addr2line" in spec))
+            cfg.write(cmake_cache_option("ENABLE_ADDR2LINE", spec.satisfies("+addr2line")))
 
             cfg.write("#{0}\n".format("-" * 80))
             cfg.write("# Other\n")
@@ -348,14 +358,14 @@ class Lvarray(CMakePackage, CudaPackage):
         # Shared libs
         options.append(self.define_from_variant("BUILD_SHARED_LIBS", "shared"))
 
-        if "~tests~examples~benchmarks" in spec:
+        if spec.satisfies("~tests~examples~benchmarks"):
             options.append("-DENABLE_TESTS=OFF")
         else:
             options.append("-DENABLE_TESTS=ON")
 
-        if "~test" in spec:
+        if spec.satisfies("~test"):
             options.append("-DDISABLE_UNIT_TESTS=ON")
-        elif "+tests" in spec and ("%intel" in spec or "%xl" in spec):
+        elif spec.satisfies("+tests") and (spec.satisfies("%intel") or spec.satisfies("%xl")):
             warnings.warn(
                 "The LvArray unit tests take an excessive amount of"
                 " time to build with the Intel or IBM compilers."

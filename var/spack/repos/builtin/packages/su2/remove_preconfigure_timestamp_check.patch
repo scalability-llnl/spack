@@ -1,0 +1,13 @@
+--- a/meson.build       2022-12-20 21:08:29.000000000 +0900
++++ b/meson.build       2023-05-19 03:24:08.870966665 +0900
+@@ -6,10 +6,6 @@
+                           'c_std=c99',
+                           'cpp_std=c++11'])
+
+-fsmod = import('fs')
+-if not fsmod.exists('su2preconfig.timestamp')
+-  error('SU2 must be (pre-)configured with the extended Meson script (./meson.py) or with the ./preconfigure.py script in the SU2 root directory.')
+-endif
+
+ pymod = import('python')
+ python = pymod.find_installation()

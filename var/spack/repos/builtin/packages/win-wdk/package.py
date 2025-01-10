@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,7 +17,7 @@ class WinWdk(Package):
     """
 
     homepage = "https://learn.microsoft.com/en-us/windows-hardware/drivers/"
-    tags = ["windows"]
+    tags = ["windows", "windows-system"]
 
     # The wdk has many libraries and executables. Record one for detection purposes
     libraries = ["mmos.lib"]
@@ -66,7 +65,9 @@ class WinWdk(Package):
         expand=False,
     )
 
-    variant("plat", values=("x64", "x86", "arm", "arm64"), default="x64")
+    variant(
+        "plat", values=("x64", "x86", "arm", "arm64"), default="x64", description="Toolchain arch"
+    )
 
     # need one to one dep on SDK per https://github.com/MicrosoftDocs/windows-driver-docs/issues/1550
     # additionally, the WDK needs to be paired with a version of the Windows SDK
@@ -79,7 +80,7 @@ class WinWdk(Package):
     depends_on("win-sdk@10.0.15063", when="@10.0.15063")
     depends_on("win-sdk@10.0.14393", when="@10.0.14393")
 
-    for plat in ["linux", "darwin", "cray"]:
+    for plat in ["linux", "darwin"]:
         conflicts("platform=%s" % plat)
 
     @classmethod
@@ -131,7 +132,7 @@ class WinWdk(Package):
             except ProcessError as pe:
                 reg = winreg.WindowsRegistryView(
                     "SOFTWARE\\Microsoft\\Windows Kits\\Installed Roots",
-                    root_key=spack.util.windows_registry.HKEY_LOCAL_MACHINE,
+                    root_key=spack.util.windows_registry.HKEY.HKEY_LOCAL_MACHINE,
                 )
                 if not reg:
                     # No Kits are available, failure was genuine

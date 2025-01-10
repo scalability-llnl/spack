@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,7 @@ class RBeachmat(RPackage):
 
     bioc = "beachmat"
 
+    version("2.16.0", commit="4cc8e50dcae767a2ef84ffc7a581ea182f05f300")
     version("2.14.0", commit="5a4b85f4a22f3447f12d03157ab95de73f6137c6")
     version("2.12.0", commit="3e6af145bdcdf0a0b722d8256ba1a38b8a36b2f5")
     version("2.10.0", commit="b7cc532d4a5b26d9073135cc9945258ea08e5079")
@@ -26,6 +26,8 @@ class RBeachmat(RPackage):
     version("1.2.1", commit="ebae81772045a314e568c2f7d73ea3b27e7bf7d8")
     version("1.0.2", commit="6bd57b91d6428ac916f46572d685d3cb01a757f7")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("r@3.4:", type=("build", "run"))
     depends_on("r@3.5:", type=("build", "run"), when="@1.2.1:1.4.0")
     depends_on("r-delayedarray", type=("build", "run"))
@@ -34,7 +36,7 @@ class RBeachmat(RPackage):
     depends_on("r-delayedarray@0.15.14:", type=("build", "run"), when="@2.6.4")
     depends_on("r-biocgenerics", type=("build", "run"), when="@1.4.0:")
     depends_on("r-matrix", type=("build", "run"), when="@2.6.4:")
-    depends_on("r-rcpp@0.12.14:", type=("build", "run"), when="@1.0.2:1.4.0")
+    depends_on("r-rcpp@0.12.14:", type=("build", "run"), when="@1.0.2:")
     depends_on("r-rcpp", type=("build", "run"), when="@2.10.0:")
 
     depends_on("r-rhdf5lib", type=("build", "run"), when="@1.0.2:1.4.0")

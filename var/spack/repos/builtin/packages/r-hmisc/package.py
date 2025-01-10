@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,7 @@ class RHmisc(RPackage):
 
     cran = "Hmisc"
 
+    version("5.1-3", sha256="3c61772ff7a78ca5855189faa810c74117dc5df240103adc6e90eb94e9c605eb")
     version("5.0-1", sha256="db390f8f8a150cb5cffb812e9609a8e8632ceae0dc198528f190fd670ba8fa59")
     version("4.7-1", sha256="325d571a68b2198eabd258a8d86143cac659ffa70e474088a18e9b58ab882e7f")
     version("4.7-0", sha256="29ec2d9ca11c790c350e93323126bef4f498c69c41c31bb335fd04671e0f87bd")
@@ -26,6 +26,7 @@ class RHmisc(RPackage):
     version("4.2-0", sha256="9e9614673288dd00295f250fa0bf96fc9e9fed692c69bf97691081c1a01411d9")
     version("4.1-1", sha256="991db21cdf73ffbf5b0239a4876b2e76fd243ea33528afd88dc968792f281498")
 
+    depends_on("r@4.1.0:", type=("build", "run"), when="@5.1-2:")
     depends_on("r-formula", type=("build", "run"))
     depends_on("r-ggplot2@2.2:", type=("build", "run"))
     depends_on("r-cluster", type=("build", "run"))

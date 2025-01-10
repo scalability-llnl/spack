@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,8 @@ class Bwa(Package):
     homepage = "https://github.com/lh3/bwa"
     url = "https://github.com/lh3/bwa/releases/download/v0.7.15/bwa-0.7.15.tar.bz2"
 
+    license("GPL-3.0-only")
+
     version("0.7.17", sha256="de1b4d4e745c0b7fc3e107b5155a51ac063011d33a5d82696331ecf4bed8d0fd")
     version("0.7.15", sha256="2f56afefa49acc9bf45f12edb58e412565086cc20be098b8bf15ec07de8c0515")
     version("0.7.13", sha256="559b3c63266e5d5351f7665268263dbb9592f3c1c4569e7a4a75a15f17f0aedc")
@@ -23,7 +24,9 @@ class Bwa(Package):
         url="https://github.com/lh3/bwa/archive/0.7.12.tar.gz",
     )
 
-    depends_on("zlib")
+    depends_on("c", type="build")  # generated
+
+    depends_on("zlib-api")
     depends_on("sse2neon", when="target=aarch64:")
 
     patch(
@@ -33,7 +36,7 @@ class Bwa(Package):
     )
 
     def install(self, spec, prefix):
-        zlib_inc_path = spec["zlib"].prefix.include
+        zlib_inc_path = spec["zlib-api"].prefix.include
         if platform.machine() == "aarch64":
             sse2neon_inc_path = spec["sse2neon"].prefix.include
             filter_file(
@@ -43,7 +46,7 @@ class Bwa(Package):
             )
         else:
             filter_file(r"^INCLUDES=", "INCLUDES=-I%s" % zlib_inc_path, "Makefile")
-        filter_file(r"^LIBS=", "LIBS=-L%s " % spec["zlib"].prefix.lib, "Makefile")
+        filter_file(r"^LIBS=", "LIBS=-L%s " % spec["zlib-api"].prefix.lib, "Makefile")
         # use spack C compiler
         filter_file("^CC=.*", "CC={0}".format(spack_cc), "Makefile")
         # fix gcc 10+ errors

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,10 @@ class RShiny(RPackage):
 
     cran = "shiny"
 
+    license("GPL-3.0-only OR custom")
+
+    version("1.9.1", sha256="854b6a214f127d652de2e0e02d675fd53209b058c11911f56f8d41382ba654e3")
+    version("1.8.1.1", sha256="a38d5fb5d750e2c2091ce9101f138c1f9bc7009bbb195227a3519c5d97e36753")
     version("1.7.4", sha256="bbfcdd7375013b8f59248b3f3f4e752acd445feb25179f3f7f65cd69614da4b5")
     version("1.7.3", sha256="b8ca9a39fa69ea9b270a7e9037198d95122c79bd493b865d909d343dd3523ada")
     version("1.7.2", sha256="23b5bfee8d597b4147e07c89391a735361cd9f69abeecfd9bd38a14d35fe6252")
@@ -49,12 +52,15 @@ class RShiny(RPackage):
     depends_on("r-rlang@0.4.10:", type=("build", "run"), when="@1.7.1:")
     depends_on("r-fastmap@1.0.0:", type=("build", "run"), when="@1.5.0:")
     depends_on("r-fastmap@1.1.0:", type=("build", "run"), when="@1.7.1:")
+    depends_on("r-fastmap@1.1.1:", type=("build", "run"), when="@1.7.5:")
     depends_on("r-withr", type=("build", "run"), when="@1.5.0:")
     depends_on("r-commonmark@1.7:", type=("build", "run"), when="@1.5.0:")
     depends_on("r-glue@1.3.2:", type=("build", "run"), when="@1.5.0:")
     depends_on("r-bslib@0.3.0:", type=("build", "run"), when="@1.7.1:")
+    depends_on("r-bslib@0.6.0:", type=("build", "run"), when="@1.9.0:")
     depends_on("r-cachem", type=("build", "run"), when="@1.7.1:")
-    depends_on("r-ellipsis", type=("build", "run"), when="@1.7.1:")
+    depends_on("r-cachem@1.1.0:", type=("build", "run"), when="@1.9.0:")
     depends_on("r-lifecycle@0.2.0:", type=("build", "run"), when="@1.7.1:")
 
     depends_on("r-digest", type=("build", "run"), when="@:1.5.0")
+    depends_on("r-ellipsis", type=("build", "run"), when="@1.7.1:1.8.0")

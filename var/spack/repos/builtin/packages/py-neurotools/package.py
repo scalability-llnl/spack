@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PyNeurotools(PythonPackage):
 
     homepage = "http://neuralensemble.org/NeuroTools"
     pypi = "neurotools/NeuroTools-0.3.1.tar.gz"
+
+    license("GPL-2.0-or-later")
 
     version("0.3.1", sha256="a459420fc0e9ff6b59af28716ddb0c75d11a63b8db80a5f4844e0d7a90c2c653")
 

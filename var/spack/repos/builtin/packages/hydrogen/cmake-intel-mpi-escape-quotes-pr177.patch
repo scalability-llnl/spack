@@ -1,0 +1,12 @@
+diff -ruN spack-src/CMakeLists.txt spack-src-patched/CMakeLists.txt
+--- spack-src/CMakeLists.txt	2023-11-07 21:54:14.000000000 +0000
++++ spack-src-patched/CMakeLists.txt	2024-01-26 19:32:52.140539356 +0000
+@@ -515,7 +515,7 @@
+ # docs (which has the advantage that preprocessing will take
+ # "{,hydrogen_}config.h" into consideration).
+ configure_file("${PROJECT_SOURCE_DIR}/cmake/configure_files/config.h.in"
+-  "${PROJECT_BINARY_DIR}/include/El/config.h")
++  "${PROJECT_BINARY_DIR}/include/El/config.h" ESCAPE_QUOTES)
+ configure_file("${PROJECT_SOURCE_DIR}/cmake/configure_files/hydrogen_config.h.in"
+   "${PROJECT_BINARY_DIR}/include/El/hydrogen_config.h")
+ configure_file("${PROJECT_SOURCE_DIR}/doxy/Doxyfile.in"

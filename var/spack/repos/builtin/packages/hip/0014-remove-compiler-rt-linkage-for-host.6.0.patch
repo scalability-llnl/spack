@@ -1,0 +1,30 @@
+diff --git a/clr/hipamd/CMakeLists.txt b/clr/hipamd/CMakeLists.txt
+index 7ad3001..aaf6ad0 100755
+--- a/clr/hipamd/CMakeLists.txt
++++ b/clr/hipamd/CMakeLists.txt
+@@ -297,16 +297,6 @@ if(HIP_RUNTIME STREQUAL "rocclr")
+    add_subdirectory(src)
+ endif()
+ 
+-# Download libamdhip64.so.5
+-if(HIP_PLATFORM STREQUAL "amd")
+-    if(NOT WIN32)
+-        execute_process(COMMAND sh -c "${CMAKE_CURRENT_SOURCE_DIR}/download_libamhip64_v5.sh" WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND_ECHO STDERR RESULT_VARIABLE DWLD_HIP_SO_RC)
+-        if (DWLD_HIP_SO_RC AND NOT DWLD_HIP_SO_RC EQUAL 0)
+-            message(FATAL_ERROR "Failed to download libamdhip64.so.5")
+-        endif()
+-    endif()
+-endif()
+-
+ # Build doxygen documentation
+ find_program(DOXYGEN_EXE doxygen)
+ if(DOXYGEN_EXE)
+@@ -408,8 +398,6 @@ if (NOT ${HIPCC_BIN_DIR} STREQUAL "")
+   install(PROGRAMS ${HIPCC_BIN_DIR}/hipcc.pl DESTINATION bin)
+   install(PROGRAMS ${HIPCC_BIN_DIR}/hipconfig.pl DESTINATION bin)
+   install(PROGRAMS ${HIPCC_BIN_DIR}/hipvars.pm DESTINATION bin)
+-  install(PROGRAMS ${HIPCC_BIN_DIR}/hipcc.bat DESTINATION bin)
+-  install(PROGRAMS ${HIPCC_BIN_DIR}/hipconfig.bat DESTINATION bin)
+ endif()
+ 
+ #############################

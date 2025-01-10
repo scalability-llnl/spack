@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,11 +12,12 @@ class RBiocgenerics(RPackage):
 
     bioc = "BiocGenerics"
 
+    version("0.46.0", commit="a90f0c5976a24417e47e009ba602fc98515ac9ab")
     version("0.44.0", commit="d7cd9c19958bd8d4573d980494188fa15ab16e45")
     version("0.42.0", commit="3582d47b836387afc08157f3d6a5013fd64334ed")
     version("0.40.0", commit="0bc1e0ed4d20c7101cd782a14f6373e27478acfc")
     version("0.36.0", commit="0d5d169d7d64d648a22f9043837c93bc784e71ed")
-    version("0.34.0", commit="f7c2020")
+    version("0.34.0", commit="f7c2020b6fb06ade6d70b4de17672735edfa45df")
     version("0.30.0", commit="fc7c3af4a5635a30988a062ed09332c13ca1d1a8")
     version("0.28.0", commit="041fc496504f2ab1d4d863fffb23372db214394b")
     version("0.26.0", commit="5b2a6df639e48c3cd53789e0b174aec9dda6b67d")

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import shutil
@@ -11,16 +10,22 @@ class Ucx(AutotoolsPackage, CudaPackage):
     """a communication library implementing high-performance messaging for
     MPI/PGAS frameworks"""
 
-    homepage = "http://www.openucx.org"
+    homepage = "https://www.openucx.org"
     url = "https://github.com/openucx/ucx/releases/download/v1.3.1/ucx-1.3.1.tar.gz"
     git = "https://github.com/openucx/ucx.git"
 
     maintainers("hppritcha")
 
+    license("BSD-3-Clause")
+
     # Current
-    version("1.14.0", sha256="9bd95e2059de5dece9dddd049aacfca3d21bfca025748a6a0b1be4486e28afdd")
+    version("1.17.0", sha256="34658e282f99f89ce7a991c542e9727552734ac6ad408c52f22b4c2653b04276")
 
     # Still supported
+    version("1.16.0", sha256="f73770d3b583c91aba5fb07557e655ead0786e057018bfe42f0ebe8716e9d28c")
+    version("1.15.0", sha256="4b202087076bc1c98f9249144f0c277a8ea88ad4ca6f404f94baa9cb3aebda6d")
+    version("1.14.1", sha256="baa0634cafb269a3112f626eb226bcd2ca8c9fcf0fec3b8e2a3553baad5f77aa")
+    version("1.14.0", sha256="9bd95e2059de5dece9dddd049aacfca3d21bfca025748a6a0b1be4486e28afdd")
     version("1.13.1", sha256="efc37829b68e131d2acc82a3fd4334bfd611156a756837ffeb650ab9a9dd3828")
     version("1.13.0", sha256="8a3881f21fe2788113789f5bae1c8174e931f7542de0a934322a96ef354e5e3d")
 
@@ -49,6 +54,9 @@ class Ucx(AutotoolsPackage, CudaPackage):
     version("1.2.1", sha256="fc63760601c03ff60a2531ec3c6637e98f5b743576eb410f245839c84a0ad617")
     version("1.2.0", sha256="1e1a62d6d0f89ce59e384b0b5b30b416b8fd8d7cedec4182a5319d0dfddf649c")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+
     simd_values = ("avx", "sse41", "sse42")
 
     variant("assertions", default=False, description="Enable assertions")
@@ -71,6 +79,7 @@ class Ucx(AutotoolsPackage, CudaPackage):
         description="Build shared libs, static libs or both",
     )
     variant("logging", default=False, description="Enable logging")
+    variant("numa", default=True, when="@:1.14", description="Enable NUMA support")
     variant("openmp", default=True, description="Use OpenMP")
     variant(
         "opt",
@@ -85,6 +94,7 @@ class Ucx(AutotoolsPackage, CudaPackage):
     variant("rocm", default=False, description="Enable ROCm support")
     variant(
         "simd",
+        description="SIMD features",
         values=disjoint_sets(("auto",), simd_values)
         .with_default("auto")
         .with_non_feature_values("auto"),
@@ -125,12 +135,13 @@ class Ucx(AutotoolsPackage, CudaPackage):
     depends_on("knem", when="+knem")
     depends_on("libfuse@3:", when="+vfs")
     depends_on("maven", when="+java")
-    depends_on("numactl")
+    depends_on("numactl", when="+numa")
     depends_on("pkgconfig", type="build")
     depends_on("rdma-core", when="+rdmacm")
     depends_on("rdma-core", when="+verbs")
     depends_on("xpmem", when="+xpmem")
     depends_on("hip", when="+rocm")
+    depends_on("hsa-rocr-dev", when="+rocm")
 
     conflicts("+gdrcopy", when="~cuda", msg="gdrcopy currently requires cuda support")
     conflicts("+rocm", when="+gdrcopy", msg="gdrcopy > 2.0 does not support rocm")
@@ -153,6 +164,9 @@ class Ucx(AutotoolsPackage, CudaPackage):
                 "-L$with_rocm/hip/lib -L$with_rocm/lib", "$ROCM_LDFLAGS", "configure", string=True
             )
 
+            if self.spec.satisfies("@:1.15 ^hip@6:"):
+                filter_file("HIP_PLATFORM_HCC", "HIP_PLATFORM_AMD", "configure", string=True)
+
     @when("@1.9-dev")
     def autoreconf(self, spec, prefix):
         Executable("./autogen.sh")()
@@ -161,6 +175,7 @@ class Ucx(AutotoolsPackage, CudaPackage):
         spec = self.spec
         args = ["--without-go", "--disable-doxygen-doc"]  # todo  # todo
 
+        args += self.enable_or_disable("numa")
         args += self.enable_or_disable("assertions")
         args.append("--enable-compiler-opt=" + self.spec.variants["opt"].value)
         args += self.with_or_without("java", activation_value="prefix")

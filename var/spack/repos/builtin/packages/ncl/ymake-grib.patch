@@ -1,0 +1,11 @@
+--- a/config/ymake
++++ b/config/ymake
+@@ -226,7 +226,7 @@
+ else if (-e "yMakefile") then
+         set ymakefile="yMakefile"
+         set outfile = "Makefile"
+-else
++else if (! -e "makefile") then
+         echo "$0 : no y(mM)akefile found" > /dev/tty
+         exit 1
+ endif

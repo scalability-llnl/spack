@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,9 @@ class Cblas(Package):
         sha256="0f6354fd67fabd909baf57ced2ef84e962db58fae126e4f41b21dd4fec60a2a3",
         url="https://www.netlib.org/blas/blast-forum/cblas.tgz",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("blas")
     parallel = False

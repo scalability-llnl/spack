@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,8 +22,14 @@ class Zoltan(AutotoolsPackage):
     homepage = "https://sandialabs.github.io/Zoltan/"
     url = "https://github.com/sandialabs/Zoltan/archive/v3.83.tar.gz"
 
+    license("Unlicense")
+
     version("3.901", sha256="030c22d9f7532d3076e40cba1f03a63b2ee961d8cc9a35149af4a3684922a910")
     version("3.83", sha256="17320a9f08e47f30f6f3846a74d15bfea6f3c1b937ca93c0ab759ca02c40e56c")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     patch("notparallel.patch", when="@3.8")
 
@@ -82,6 +87,11 @@ class Zoltan(AutotoolsPackage):
         with working_dir(self.configure_directory):
             autoreconf("-ivf")
 
+    def flag_handler(self, name, flags):
+        if self.spec.satisfies("%gcc@14:") and name == "cflags":
+            flags.append("-Wno-error=incompatible-pointer-types")
+        return self.build_system_flags(name, flags)
+
     def configure_args(self):
         spec = self.spec
 
@@ -92,9 +102,10 @@ class Zoltan(AutotoolsPackage):
         config_cflags = ["-O0" if "+debug" in spec else "-O3", "-g" if "+debug" in spec else ""]
 
         config_ldflags = []
+        config_libs = []
+        config_incdirs = []
+
         # PGI runtime libraries
-        if "%pgi" in spec:
-            config_ldflags.append("-pgf90libs")
         # NVHPC runtime libraries
         if "%nvhpc" in spec:
             config_ldflags.append("-fortranlibs")
@@ -102,9 +113,12 @@ class Zoltan(AutotoolsPackage):
             config_args.extend(["RANLIB=echo", "--with-ar=$(CXX) -shared $(LDFLAGS) -o"])
             config_cflags.append(self.compiler.cc_pic_flag)
             if spec.satisfies("%gcc"):
-                config_args.append("--with-libs=-lgfortran")
-            if spec.satisfies("%intel"):
-                config_args.append("--with-libs=-lifcore")
+                config_libs.append("-lgfortran")
+                # Although adding to config_libs _should_ suffice, it does not
+                # Add to ldflags as well
+                config_ldflags.append("-lgfortran")
+            if spec.satisfies("%intel") or spec.satisfies("%oneapi"):
+                config_libs.append("-lifcore")
 
         if "+int64" in spec:
             config_args.append("--with-id-type=ulong")
@@ -116,10 +130,16 @@ class Zoltan(AutotoolsPackage):
                     "--with-parmetis",
                     "--with-parmetis-libdir={0}".format(parmetis_prefix.lib),
                     "--with-parmetis-incdir={0}".format(parmetis_prefix.include),
-                    "--with-incdirs=-I{0}".format(spec["metis"].prefix.include),
-                    "--with-ldflags=-L{0}".format(spec["metis"].prefix.lib),
                 ]
             )
+            config_ldflags.append("-L{0}".format(spec["metis"].prefix.lib))
+            config_incdirs.append("-I{0}".format(spec["metis"].prefix.include))
+            config_libs.append("-lparmetis")
+            config_libs.append("-lmetis")
+            # Although appending to config_libs _should_ suffice, it does not
+            # Add them to ldflags as well
+            config_ldflags.append("-lparmetis")
+            config_ldflags.append("-lmetis")
             if "+int64" in spec["metis"]:
                 config_args.append("--with-id-type=ulong")
             else:
@@ -143,19 +163,26 @@ class Zoltan(AutotoolsPackage):
                 config_args.extend(["FC={0}".format(spec["mpi"].mpifc)])
 
         config_fcflags = config_cflags[:]
+        config_cxxflags = config_cflags[:]
+
         if spec.satisfies("%gcc@10:+fortran"):
             config_fcflags.append("-fallow-argument-mismatch")
+
         # NOTE: Early versions of Zoltan come packaged with a few embedded
         # library packages (e.g. ParMETIS, Scotch), which messes with Spack's
         # ability to descend directly into the package's source directory.
-        config_args.extend(
-            [
-                "--with-cflags={0}".format(" ".join(config_cflags)),
-                "--with-cxxflags={0}".format(" ".join(config_cflags)),
-                "--with-fcflags={0}".format(" ".join(config_fcflags)),
-                "--with-ldflags={0}".format(" ".join(config_ldflags)),
-            ]
-        )
+        if config_cflags:
+            config_args.append("--with-cflags={0}".format(" ".join(config_cflags)))
+        if config_cxxflags:
+            config_args.append("--with-cxxflags={0}".format(" ".join(config_cxxflags)))
+        if config_fcflags:
+            config_args.append("--with-fcflags={0}".format(" ".join(config_fcflags)))
+        if config_ldflags:
+            config_args.append("--with-ldflags={0}".format(" ".join(config_ldflags)))
+        if config_libs:
+            config_args.append("--with-libs={0}".format(" ".join(config_libs)))
+        if config_incdirs:
+            config_args.append("--with-incdirs={0}".format(" ".join(config_incdirs)))
         return config_args
 
     # NOTE: Unfortunately, Zoltan doesn't provide any configuration

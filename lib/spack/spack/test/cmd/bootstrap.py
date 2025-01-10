@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os.path
@@ -7,13 +6,15 @@ import sys
 
 import pytest
 
+from llnl.path import convert_to_posix_path
+
 import spack.bootstrap
 import spack.bootstrap.core
 import spack.config
 import spack.environment as ev
 import spack.main
-import spack.mirror
-from spack.util.path import convert_to_posix_path
+import spack.mirrors.utils
+import spack.spec
 
 _bootstrap = spack.main.SpackCommand("bootstrap")
 
@@ -50,7 +51,7 @@ def test_reset_in_file_scopes(mutable_config, scopes):
     bootstrap_yaml_files = []
     for s in scopes:
         _bootstrap("disable", "--scope={0}".format(s))
-        scope_path = spack.config.config.scopes[s].path
+        scope_path = spack.config.CONFIG.scopes[s].path
         bootstrap_yaml = os.path.join(scope_path, "bootstrap.yaml")
         assert os.path.exists(bootstrap_yaml)
         bootstrap_yaml_files.append(bootstrap_yaml)
@@ -80,7 +81,7 @@ def test_reset_in_environment(mutable_mock_env_path, mutable_config):
 def test_reset_in_file_scopes_overwrites_backup_files(mutable_config):
     # Create a bootstrap.yaml with some config
     _bootstrap("disable", "--scope=site")
-    scope_path = spack.config.config.scopes["site"].path
+    scope_path = spack.config.CONFIG.scopes["site"].path
     bootstrap_yaml = os.path.join(scope_path, "bootstrap.yaml")
     assert os.path.exists(bootstrap_yaml)
 
@@ -99,7 +100,7 @@ def test_reset_in_file_scopes_overwrites_backup_files(mutable_config):
     assert os.path.exists(backup_file)
 
 
-def test_list_sources(capsys):
+def test_list_sources(config, capsys):
     # Get the merged list and ensure we get our defaults
     with capsys.disabled():
         output = _bootstrap("list")
@@ -168,20 +169,20 @@ def test_remove_and_add_a_source(mutable_config):
     assert not sources
 
     # Add it back and check we restored the initial state
-    _bootstrap("add", "github-actions", "$spack/share/spack/bootstrap/github-actions-v0.3")
+    _bootstrap("add", "github-actions", "$spack/share/spack/bootstrap/github-actions-v0.6")
     sources = spack.bootstrap.core.bootstrapping_sources()
     assert len(sources) == 1
 
 
 @pytest.mark.maybeslow
-@pytest.mark.skipif(sys.platform == "win32", reason="Not supported on Windows (yet)")
+@pytest.mark.not_on_windows("Not supported on Windows (yet)")
 def test_bootstrap_mirror_metadata(mutable_config, linux_os, monkeypatch, tmpdir):
     """Test that `spack bootstrap mirror` creates a folder that can be ingested by
     `spack bootstrap add`. Here we don't download data, since that would be an
     expensive operation for a unit test.
     """
-    old_create = spack.mirror.create
-    monkeypatch.setattr(spack.mirror, "create", lambda p, s: old_create(p, []))
+    old_create = spack.mirrors.utils.create
+    monkeypatch.setattr(spack.mirrors.utils, "create", lambda p, s: old_create(p, []))
     monkeypatch.setattr(spack.spec.Spec, "concretized", lambda p: p)
 
     # Create the mirror in a temporary folder

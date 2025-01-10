@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -32,12 +31,19 @@ class RAdabag(RPackage):
 
     cran = "adabag"
 
+    license("GPL-2.0-or-later")
+
+    version("5.0", sha256="ec58756fda2e64753d21e28d9e27ed34f28020045b199a58dcea06a3e2c3d60e")
     version("4.2", sha256="47019eb8cefc8372996fbb2642f64d4a91d7cedc192690a8d8be6e7e03cd3c81")
     version("4.1", sha256="ff938c36122cdf58a71a59a6bf79a3c7816966ee7cc4907c4a0a3c0732e3d028")
 
+    depends_on("r@4.0.0:", type=("build", "run"), when="@5.0:")
     depends_on("r-rpart", type=("build", "run"))
     depends_on("r-caret", type=("build", "run"))
-    depends_on("r-foreach", type=("build", "run"))
+    depends_on("r-consrank@2.1.3:", type=("build", "run"), when="@5.0:")
     depends_on("r-doparallel", type=("build", "run"))
+    depends_on("r-dplyr", type=("build", "run"), when="@5.0:")
+    depends_on("r-foreach", type=("build", "run"))
+    depends_on("r-tidyr", type=("build", "run"), when="@5.0:")
 
     depends_on("r-mlbench", type=("build", "run"), when="@:4.1")

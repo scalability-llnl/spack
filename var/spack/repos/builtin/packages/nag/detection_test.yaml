@@ -1,0 +1,13 @@
+paths:
+- layout:
+  - executables:
+    - bin/nagfor
+    script: |
+      echo "NAG Fortran Compiler Release 6.0(Hibiya) Build 1037"
+      echo "Product NPL6A60NA for x86-64 Linux"
+  platforms: [linux]
+  results:
+  - spec: nag@6.0.1037
+    extra_attributes:
+      compilers:
+        fortran: ".*/bin/nagfor"

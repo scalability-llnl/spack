@@ -1,0 +1,48 @@
+diff --git a/cmake/Modules/G4CMakeUtilities.cmake b/cmake/Modules/G4CMakeUtilities.cmake
+index 16f7b3c8c0..84acfcd5e7 100644
+--- a/cmake/Modules/G4CMakeUtilities.cmake
++++ b/cmake/Modules/G4CMakeUtilities.cmake
+@@ -221,6 +221,21 @@ function(geant4_export_package_variables _file)
+       get_property(__var_value CACHE ${__var} PROPERTY VALUE)
+       get_property(__var_type CACHE ${__var} PROPERTY TYPE)
+       get_property(__var_help CACHE ${__var} PROPERTY HELPSTRING)
++      # Variable may not be in cache, only local (canonical case being EXPAT_LIBRARY since CMake 3.27)
++      # We still need to account for these because they may be required to be in the CACHE at least set in
++      # earlier versions.
++      # 1. Variable may not be in cache, only local (canonical case being EXPAT_LIBRARY since CMake 3.27)
++      #    We still need to account for these because they may be required to be in the CACHE at least set in
++      #    earlier versions.
++      # 2. Depending on CMake version, variable may be in cache but unitialized, here we want the local value
++      if(((NOT __var_value) AND (NOT __var_type) AND (NOT __var_help)) OR (__var_type STREQUAL "UNINITIALIZED"))
++        set(__var_value ${${__var}})
++        # TODO: set type based on whether it looks like a bool or path, but PATH almost invariably what we save
++        # Only important in cmake GUI and if value needs to be changed, which we don't if package cache is used
++        set(__var_type PATH)
++        set(__var_help "no documentation, not a cache value")
++      endif()
++
+       list(APPEND __local_build_setting "geant4_set_and_check_package_variable(${__var} \"${__var_value}\" ${__var_type} \"${__var_help}\")")
+     endforeach()
+ 
+diff --git a/cmake/Modules/G4OptionalComponents.cmake b/cmake/Modules/G4OptionalComponents.cmake
+index 7b3a1f9836..f503a2994a 100644
+--- a/cmake/Modules/G4OptionalComponents.cmake
++++ b/cmake/Modules/G4OptionalComponents.cmake
+@@ -78,6 +78,8 @@ else()
+       unset(EXPAT_FOUND)
+       unset(EXPAT_INCLUDE_DIR CACHE)
+       unset(EXPAT_LIBRARY CACHE)
++      unset(EXPAT_LIBRARY_RELEASE CACHE)
++      unset(EXPAT_LIBRARY_DEBUG CACHE)
+       message(FATAL_ERROR
+ "Detected system expat header and library:
+ EXPAT_INCLUDE_DIR = ${__badexpat_include_dir}
+@@ -88,7 +90,7 @@ Set the above CMake variables to point to an expat install of the required versi
+ 
+     # Backward compatibility for sources.cmake using the variable
+     set(EXPAT_LIBRARIES EXPAT::EXPAT)
+-    geant4_save_package_variables(EXPAT EXPAT_INCLUDE_DIR EXPAT_LIBRARY)
++    geant4_save_package_variables(EXPAT EXPAT_INCLUDE_DIR EXPAT_LIBRARY EXPAT_LIBRARY_RELEASE EXPAT_LIBRARY_DEBUG)
+   else()
+     set(EXPAT_FOUND TRUE)
+     set(GEANT4_USE_BUILTIN_EXPAT TRUE)

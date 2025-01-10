@@ -1,0 +1,20 @@
+diff --git a/setup.py b/setup.py
+index 198cc92..2e07495 100644
+--- a/setup.py
++++ b/setup.py
+@@ -23,7 +23,6 @@ from   qmdist.command.build_py import build_py
+ from   qmdist.command.build_scripts import build_scripts
+ from   qmdist.command.build_doc import *
+ from   qmdist.command.install_lib import install_lib
+-from   qmdist.command.bdist_wininst import bdist_wininst
+ from   qmdist.command.check import check
+ import sys, os, os.path, glob, shutil
+ 
+@@ -66,7 +65,6 @@ setup(name="qmtest",
+                 'build_ref_manual': build_ref_manual,
+                 'build_man_page': build_man_page,
+                 'install_lib': install_lib,
+-                'bdist_wininst' : bdist_wininst,
+                 'check': check},
+ 
+       packages=('qm',

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,12 +10,17 @@ class Chameleon(CMakePackage, CudaPackage):
     """Dense Linear Algebra for Scalable Multi-core Architectures and GPGPUs"""
 
     homepage = "https://gitlab.inria.fr/solverstack/chameleon"
-    url = "https://gitlab.inria.fr/solverstack/chameleon/uploads/b299d6037d7636c6be16108c89bc2aab/chameleon-1.1.0.tar.gz"
+    url = "https://gitlab.inria.fr/api/v4/projects/616/packages/generic/source/v1.2.0/chameleon-1.2.0.tar.gz"
     git = "https://gitlab.inria.fr/solverstack/chameleon.git"
     maintainers("fpruvost")
 
     version("master", branch="master", submodules=True)
+    version("1.2.0", sha256="b8988ecbff19c603ae9f61441653c21bba18d040bee9bb83f7fc9077043e50b4")
     version("1.1.0", sha256="e64d0438dfaf5effb3740e53f3ab017d12744b85a138b2ef702a81df559126df")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # cmake's specific
     variant("shared", default=True, description="Build chameleon as a shared library")
@@ -48,6 +52,7 @@ class Chameleon(CMakePackage, CudaPackage):
     depends_on("pkgconfig", type="build")
 
     with when("runtime=starpu"):
+        depends_on("starpu@1.3", when="@1.1.0")
         depends_on("starpu")
         depends_on("starpu~mpi", when="~mpi")
         depends_on("starpu+mpi", when="+mpi")
@@ -108,14 +113,14 @@ class Chameleon(CMakePackage, CudaPackage):
             )
 
         if spec.satisfies("~simgrid"):
-            if "^intel-mkl" in spec or "^intel-parallel-studio+mkl" in spec:
-                if "threads=none" in spec:
+            if spec.satisfies("^intel-mkl") or spec.satisfies("^intel-parallel-studio+mkl"):
+                if spec.satisfies("threads=none"):
                     args.extend([self.define("BLA_VENDOR", "Intel10_64lp_seq")])
                 else:
                     args.extend([self.define("BLA_VENDOR", "Intel10_64lp")])
-            elif "^netlib-lapack" in spec:
+            elif spec.satisfies("^netlib-lapack"):
                 args.extend([self.define("BLA_VENDOR", "Generic")])
-            elif "^openblas" in spec:
+            elif spec.satisfies("^openblas"):
                 args.extend([self.define("BLA_VENDOR", "OpenBLAS")])
 
         return args

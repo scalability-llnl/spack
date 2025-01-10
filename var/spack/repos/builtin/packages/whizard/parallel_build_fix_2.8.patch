@@ -1,0 +1,14 @@
+diff --git a/circe2/src/Makefile.am b/circe2/src/Makefile.am
+index 9c9a3232..22de723b 100644
+--- a/circe2/src/Makefile.am
++++ b/circe2/src/Makefile.am
+@@ -237,5 +237,8 @@ Makefile.depend_ocaml: $(CIRCE2_SRC) $(CIRCE2TOOL_SRC)
+ 	echo lexer.cmx: lexer.cmi parser.cmx >>$@
+ 	echo parser.cmo: parser.cmi syntax.cmi >>$@
+ 	echo parser.cmx: parser.cmi syntax.cmi syntax.cmx >>$@
++	echo bigarray_compat.cmi: bigarray_compat.mli >> $@
++	echo bigarray_compat.cmo: bigarray_compat.cmi >> $@
++	echo bigarray_compat.cmx: bigarray_compat.cmi >> $@
+ 
+ DISTCLEANFILES += Makefile.depend_ocaml
+

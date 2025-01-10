@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,9 @@ class RTidyselect(RPackage):
 
     cran = "tidyselect"
 
+    license("MIT")
+
+    version("1.2.1", sha256="169e97ba0bbfbcdf4a80534322751f87a04370310c40e27f04aac6525d45903c")
     version("1.2.0", sha256="538d26b727e37d618e2efd3b00836048f103112a03e6994bf07a02392e269e3b")
     version("1.1.2", sha256="0389a3b15417954a30d6d692f6ebdd3d0f318cb94a5c9b05365df2f4ea1d8270")
     version("1.1.1", sha256="18eb6a6746196a81ce19ee6cbf1db0c33f494177b97e2419312ef25a00ae486b")
@@ -36,10 +38,11 @@ class RTidyselect(RPackage):
     depends_on("r-vctrs@0.2.2:", type=("build", "run"), when="@1.1.0:")
     depends_on("r-vctrs@0.3.0:", type=("build", "run"), when="@1.1.1:")
     depends_on("r-vctrs@0.4.1:", type=("build", "run"), when="@1.2.0:")
+    depends_on("r-vctrs@0.5.2:", type=("build", "run"), when="@1.2.1:")
 
     depends_on("r-rcpp@0.12.0:", type=("build", "run"), when="@:0.2.5")
     depends_on("r-cli@3.3.0:", type=("build", "run"), when="@1.2.0:")
     depends_on("r-ellipsis", type=("build", "run"), when="@1.1.0:1.1.2")
 
-    depends_on("r-purrr", type=("build", "run"))
+    depends_on("r-purrr", type=("build", "run"), when="@:1.1.2")
     depends_on("r-purrr@0.3.2:", type=("build", "run"), when="@1.1.0:1.1.2")

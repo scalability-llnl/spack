@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,9 +13,14 @@ class H5bench(CMakePackage):
 
     maintainers("jeanbez", "sbyna")
 
+    tags = ["e4s"]
+
+    license("BSD-3-Clause-LBNL")
+
     version("latest", branch="master", submodules=True)
     version("develop", branch="develop", submodules=True)
 
+    version("1.4", commit="67a3e6d91508e5ab77db79c6187b2eb3c96119e0", submodules=True)
     version("1.3", commit="ec75a466a77c337b4252c0afe1055c7fbe841e16", submodules=True)
     version(
         "1.2", commit="866af6777573d20740d02acc47a9080de093e4ad", submodules=True, deprecated=True
@@ -27,6 +31,10 @@ class H5bench(CMakePackage):
     version(
         "1.0", commit="9d3438c1bc66c5976279ef203bd11a8d48ade724", submodules=True, deprecated=True
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("metadata", default=False, when="@1.2:", description="Enables metadata benchmark")
     variant("amrex", default=False, when="@1.2:", description="Enables AMReX benchmark")
@@ -58,3 +66,30 @@ class H5bench(CMakePackage):
         ]
 
         return args
+
+    @run_after("install")
+    def setup_build_tests(self):
+        launcher = self.mpi_launcher()
+        filename = "samples/sync-write-1d-contig-contig.json"
+        filter_file("mpirun", f"{launcher}", filename)
+        filter_file(r"-n 2", "-n 1 --timeout 240", filename)
+
+        """Copy the example source files after the package is installed to an
+        install test subdirectory for use during `spack test run`."""
+        cache_extra_test_sources(self, ["tests", "samples"])
+
+    def mpi_launcher(self):
+        commands = ["mpirun", "mpiexec"]
+
+        return which(*commands, path=[self.spec["mpi"].prefix.bin]) or which(*commands)
+
+    def test_help(self):
+        """Run h5bench help."""
+        h5bench = which(self.prefix.bin.h5bench)
+        h5bench("-h")
+
+    def test_h5bench(self):
+        """Run h5bench synchronous write test."""
+        with working_dir(self.test_suite.current_test_cache_dir):
+            h5bench = which(self.prefix.bin.h5bench)
+            h5bench("--debug", "--abort", "samples/sync-write-1d-contig-contig.json")

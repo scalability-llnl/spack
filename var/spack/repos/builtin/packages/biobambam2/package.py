@@ -1,7 +1,8 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
+import os
 
 from spack.package import *
 
@@ -18,6 +19,8 @@ class Biobambam2(AutotoolsPackage):
         url="https://gitlab.com/german.tischler/biobambam2/-/archive/2.0.177-release-20201112105453/biobambam2-2.0.177-release-20201112105453.tar.gz",
     )
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")
@@ -27,28 +30,25 @@ class Biobambam2(AutotoolsPackage):
     test_src_dir = "test"
 
     def configure_args(self):
-        args = ["--with-libmaus2={0}".format(self.spec["libmaus2"].prefix)]
+        args = [f"--with-libmaus2={self.spec['libmaus2'].prefix}"]
         return args
-
-    def _fix_shortsort(self):
-        """Fix the testshortsort.sh file copied during installation."""
-        test_dir = join_path(self.install_test_root, self.test_src_dir)
-        filter_file("../src/", "", join_path(test_dir, "testshortsort.sh"))
 
     @run_after("install")
     def cache_test_sources(self):
         """Copy the test source files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources(self.test_src_dir)
-        self._fix_shortsort()
+        cache_extra_test_sources(self, self.test_src_dir)
 
-    def test(self):
-        """Perform stand-alone/smoke test on installed package."""
+        # Fix test scripts to run installed binaries
+        scripts_dir = join_path(install_test_root(self), self.test_src_dir)
+        for path in os.listdir(scripts_dir):
+            if path.endswith(".sh"):
+                filter_file(r"../src/", r"", join_path(scripts_dir, path))
+
+    def test_short_sort(self):
+        """run testshortsort.sh to check alignments sorted by coordinate"""
         test_dir = join_path(self.test_suite.current_test_cache_dir, self.test_src_dir)
-        self.run_test(
-            "sh",
-            ["testshortsort.sh"],
-            expected="Alignments sorted by coordinate.",
-            purpose="test: checking alignments",
-            work_dir=test_dir,
-        )
+        with working_dir(test_dir):
+            sh = which("sh")
+            out = sh("testshortsort.sh", output=str.split, error=str.split)
+            assert "Alignments sorted by coordinate." in out

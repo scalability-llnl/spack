@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PyNgsTools(PythonPackage):
 
     homepage = "https://github.com/Lioscro/ngs-tools"
     pypi = "ngs-tools/ngs-tools-1.8.1.tar.gz"
+
+    license("MIT")
 
     version("1.8.1", sha256="59d606d6c3ff3024e5e1ccad947c4d7608098fca105762e344742e16aa2f0de3")
 

@@ -1,26 +1,23 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import glob
-import itertools
 import os
-import re
 import sys
 
-from archspec.cpu import UnsupportedMicroarchitecture
+import archspec.cpu
 
 import llnl.util.tty as tty
-from llnl.util.lang import classproperty
+from llnl.util.symlink import readlink
 
+import spack.compiler
 import spack.platforms
-import spack.util.executable
-from spack.build_environment import dso_suffix
+import spack.util.libc
 from spack.operating_systems.mac_os import macos_sdk_path, macos_version
 from spack.package import *
 
 
-class Gcc(AutotoolsPackage, GNUMirrorPackage):
+class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
     """The GNU Compiler Collection includes front ends for C, C++, Objective-C,
     Fortran, Ada, and Go, as well as libraries for these languages."""
 
@@ -33,18 +30,33 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
 
     maintainers("michaelkuhn", "alalazo")
 
+    license("GPL-2.0-or-later AND LGPL-2.1-or-later")
+
+    provides("c")
+    provides("cxx")
+    provides("fortran")
+
     version("master", branch="master")
 
+    version("14.2.0", sha256="a7b39bc69cbf9e25826c5a60ab26477001f7c08d85cec04bc0e29cabed6f3cc9")
+    version("14.1.0", sha256="e283c654987afe3de9d8080bc0bd79534b5ca0d681a73a11ff2b5d3767426840")
+
+    version("13.3.0", sha256="0845e9621c9543a13f484e94584a49ffc0129970e9914624235fc1d061a0c083")
+    version("13.2.0", sha256="e275e76442a6067341a27f04c5c6b83d8613144004c0413528863dc6b5c743da")
     version("13.1.0", sha256="61d684f0aa5e76ac6585ad8898a2427aade8979ed5e7f85492286c4dfc13ee86")
 
+    version("12.4.0", sha256="704f652604ccbccb14bdabf3478c9511c89788b12cb3bbffded37341916a9175")
     version("12.3.0", sha256="949a5d4f99e786421a93b532b22ffab5578de7321369975b91aec97adfda8c3b")
     version("12.2.0", sha256="e549cf9cf3594a00e27b6589d4322d70e0720cdd213f39beb4181e06926230ff")
     version("12.1.0", sha256="62fd634889f31c02b64af2c468f064b47ad1ca78411c45abe6ac4b5f8dd19c7b")
 
+    version("11.5.0", sha256="a6e21868ead545cf87f0c01f84276e4b5281d672098591c1c896241f09363478")
+    version("11.4.0", sha256="3f2db222b007e8a4a23cd5ba56726ef08e8b1f1eb2055ee72c1402cea73a8dd9")
     version("11.3.0", sha256="b47cf2818691f5b1e21df2bb38c795fac2cfbd640ede2d0a5e1c89e338a3ac39")
     version("11.2.0", sha256="d08edc536b54c372a1010ff6619dd274c0f1603aa49212ba20f7aa2cda36fa8b")
     version("11.1.0", sha256="4c4a6fb8a8396059241c2e674b85b351c26a5d678274007f076957afa1cc9ddf")
 
+    version("10.5.0", sha256="25109543fdf46f397c347b5d8b7a2c7e5694a5a51cce4b9c6e1ea8a71ca307c1")
     version("10.4.0", sha256="c9297d5bcd7cb43f3dfc2fed5389e948c9312fd962ef6a4ce455cff963ebe4f1")
     version("10.3.0", sha256="64f404c1a650f27fc33da242e1f2df54952e3963a49e06e73f6940f3223ac344")
     version("10.2.0", sha256="b8dd4368bb9c7f0b98188317ee0254dd8cc99d1e3a18d0ff146c855fe16c1d8c")
@@ -90,6 +102,9 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
     version("4.6.4", sha256="35af16afa0b67af9b8eb15cafb76d2bc5f568540552522f5dc2c88dd45d977e8")
     version("4.5.4", sha256="eef3f0456db8c3d992cbb51d5d32558190bc14f3bc19383dd93acc27acc6befc")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+
     # We specifically do not add 'all' variant here because:
     # (i) Ada, D, Go, Jit, and Objective-C++ are not default languages.
     # In that respect, the name 'all' is rather misleading.
@@ -123,6 +138,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
         description="Compilers and runtime libraries to build",
     )
     variant("binutils", default=False, description="Build via binutils")
+    variant("mold", default=False, description="Use mold as the linker by default", when="@12:")
     variant(
         "piclibs", default=False, description="Build PIC versions of libgfortran.a and libstdc++.a"
     )
@@ -179,7 +195,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
         depends_on("isl@0.15:0.20", when="@9:9.9")
         depends_on("isl@0.15:", when="@10:")
 
-    depends_on("zlib", when="@6:")
+    depends_on("zlib-api", when="@6:")
     depends_on("zstd", when="@10:")
     depends_on("diffutils", type="build")
     depends_on("iconv", when="platform=darwin")
@@ -187,6 +203,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
     depends_on(
         "binutils+gas+ld+plugins~libiberty", when="+binutils", type=("build", "link", "run")
     )
+    depends_on("mold", when="+mold")
     depends_on("zip", type="build", when="languages=java")
 
     # The server is sometimes a bit slow to respond
@@ -304,14 +321,10 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
             destination="newlibsource",
             fetch_options=timeout,
         )
-        # nvptx-tools does not seem to work as a dependency,
-        # but does fine when the source is inside the gcc build directory
-        # nvptx-tools doesn't have any releases, so grabbing the last commit
-        resource(
-            name="nvptx-tools",
-            git="https://github.com/MentorEmbedded/nvptx-tools",
-            commit="d0524fbdc86dfca068db5a21cc78ac255b335be5",
-        )
+
+        nvptx_tools_ver = "2023-09-13"
+        depends_on("nvptx-tools@" + nvptx_tools_ver, type="build")
+
         # NVPTX offloading supported in 7 and later by limited languages
         conflicts("@:6", msg="NVPTX only supported in gcc 7 and above")
         conflicts("languages=ada")
@@ -334,11 +347,11 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
     #   on XCode 12.5
     conflicts("+bootstrap", when="@:11.1 %apple-clang@12.0.5")
 
-    # aarch64/M1 is supported in GCC 11.3-12.2
-    conflicts(
-        "@:11.2,12.3:",
+    # aarch64/M1 is supported in GCC 11.3-12.2 and 13
+    requires(
+        "@11.3,12.2,13.1:",
         when="target=aarch64: platform=darwin",
-        msg="Only GCC 11.3-12.2 support macOS M1 (aarch64)",
+        msg="Only GCC 11.3-12.2, 13.1+ support macOS M1 (aarch64)",
     )
 
     # Newer binutils than RHEL's is required to run `as` on some instructions
@@ -392,25 +405,72 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
                 when="@11.2.0",
             )
 
-        # Apple M1 support, created from branch of Darwin maintainer for GCC:
-        # https://github.com/iains/gcc-11-branch
+        # aarch64-darwin support from Iain Sandoe's branch
         patch(
-            "https://raw.githubusercontent.com/Homebrew/formula-patches/22dec3fc/gcc/gcc-11.3.0-arm.diff",
-            sha256="e02006b7ec917cc1390645d95735a6a866caed0dfe506d5bef742f7862cab218",
-            when="@11.3.0 target=aarch64:",
-        )
-        # https://github.com/iains/gcc-12-branch
-        patch(
-            "https://raw.githubusercontent.com/Homebrew/formula-patches/76677f2b/gcc/gcc-12.1.0-arm.diff",
-            sha256="a000f1d9cb1dd98c7c4ef00df31435cd5d712d2f9d037ddc044f8bf82a16cf35",
-            when="@12.1.0 target=aarch64:",
+            "https://github.com/iains/gcc-14-branch/compare/04696df09633baf97cdbbdd6e9929b9d472161d3..gcc-14.2-darwin-r2.patch?full_index=1",
+            sha256="01ea668489f3f0fb2439060f6c333c4c17ef4c19c4c4e6e6aa4b8ea493e97685",
+            when="@14.2.0 target=aarch64:",
         )
         patch(
-            "https://raw.githubusercontent.com/Homebrew/formula-patches/1d184289/gcc/gcc-12.2.0-arm.diff",
-            sha256="a7843b5c6bf1401e40c20c72af69c8f6fc9754ae980bb4a5f0540220b3dcb62d",
+            "https://github.com/iains/gcc-14-branch/compare/cd0059a1976303638cea95f216de129334fc04d1..gcc-14.1-darwin-r1.patch?full_index=1",
+            sha256="159cc2a1077ad5d9a3cca87880cd977b8202d8fb464a6ec7b53804475d21a682",
+            when="@14.1.0 target=aarch64:",
+        )
+
+        patch(
+            "https://github.com/iains/gcc-13-branch/compare/b71f1de6e9cf7181a288c0f39f9b1ef6580cf5c8..gcc-13.3-darwin-r1.patch?full_index=1",
+            sha256="d957520afc286ac46aa3c4bf9b64618d02ca0bf1466f32321b5d6beec6a396eb",
+            when="@13.3.0 target=aarch64:",
+        )
+        patch(
+            "https://github.com/iains/gcc-13-branch/compare/c891d8dc23e1a46ad9f3e757d09e57b500d40044..gcc-13.2-darwin-r0.patch?full_index=1",
+            sha256="6a49d1074d7dd2e3b76e61613a0f143c668ed648fb8d9d48ed76a6b127815c88",
+            when="@13.2.0 target=aarch64:",
+        )
+        patch(
+            "https://github.com/iains/gcc-13-branch/compare/cc035c5d8672f87dc8c2756d9f8367903aa72d93..gcc-13.1-darwin-r0.patch?full_index=1",
+            sha256="36d2c04d487edb6792b48dedae6936f8b864b6f969bd3fd03763e072d471c022",
+            when="@13.1.0 target=aarch64:",
+        )
+
+        patch(
+            "https://github.com/iains/gcc-12-branch/compare/2bada4bc59bed4be34fab463bdb3c3ebfd2b41bb..gcc-12.4-darwin-r0.patch?full_index=1",
+            sha256="e242adf240a62ed3005da75a9e304bda980b84ce497f124b4bddc819ee821e2a",
+            when="@12.4.0 target=aarch64:",
+        )
+        patch(
+            "https://github.com/iains/gcc-12-branch/compare/8fc1a49c9312b05d925b7d21f1d2145d70818151..gcc-12.3-darwin-r0.patch?full_index=1",
+            sha256="1ebac2010eb9ced33cf46a8d8378193671ed6830f262219aa3428de5bc9fd668",
+            when="@12.3.0 target=aarch64:",
+        )
+        patch(
+            "https://github.com/iains/gcc-12-branch/compare/2ee5e4300186a92ad73f1a1a64cb918dc76c8d67..gcc-12.2-darwin-r0.patch?full_index=1",
+            sha256="16d5203ddb97cd43d6c1e9c34e0f681154aed1d127f2324b2a50006b92960cfd",
             when="@12.2.0 target=aarch64:",
         )
-        conflicts("+bootstrap", when="@11.3.0 target=aarch64:")
+        patch(
+            "https://github.com/iains/gcc-12-branch/compare/1ea978e3066ac565a1ec28a96a4d61eaf38e2726..gcc-12.1-darwin-r1.patch?full_index=1",
+            sha256="b0a811e33c3451ebd1882eac4e2b4b32ce0b60cfa0b8ccf8c5fda7b24327c820",
+            when="@12.1.0 target=aarch64:",
+        )
+
+        patch(
+            "https://github.com/iains/gcc-11-branch/compare/5cc4c42a0d4de08715c2eef8715ad5b2e92a23b6..gcc-11.5-darwin-r0.patch?full_index=1",
+            sha256="6c92190a9acabd6be13bd42ca675f59f44be050a7121214abeaea99d898db30c",
+            when="@11.5.0 target=aarch64:",
+        )
+        patch(
+            "https://github.com/iains/gcc-11-branch/compare/ff4bf326d03e750a8d4905ea49425fe7d15a04b8..gcc-11.4-darwin-r0.patch?full_index=1",
+            sha256="05810e5cdb052c06490f7d987c66a13d47ae7bd2eb285a3a881ad4aa6dd0d13f",
+            when="@11.4.0 target=aarch64:",
+        )
+        patch(
+            "https://github.com/iains/gcc-11-branch/compare/2d280e7eafc086e9df85f50ed1a6526d6a3a204d..gcc-11.3-darwin-r2.patch?full_index=1",
+            sha256="a8097c232dfb21b0e02f3d99e3c3e47443db3982dafbb584938ac1a9a4afd33d",
+            when="@11.3.0 target=aarch64:",
+        )
+
+        conflicts("+bootstrap", when="@11.3.0,13.1: target=aarch64:")
 
         # Use -headerpad_max_install_names in the build,
         # otherwise updated load commands won't fit in the Mach-O header.
@@ -441,8 +501,8 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
 
     # Backport libsanitizer patch for glibc >= 2.36
     # https://reviews.llvm.org/D129471
-    patch("glibc-2.36-libsanitizer-gcc-5-9.patch", when="@5.1:5.5,6.1:6.5,7.1:7.5,8.1:8.5,9.1:9.5")
-    patch("glibc-2.36-libsanitizer-gcc-10-12.patch", when="@10.1:10.4,11.1:11.3,12.1.0")
+    patch("glibc-2.36-libsanitizer-gcc-5-9.patch", when="@5:9")
+    patch("glibc-2.36-libsanitizer-gcc-10-12.patch", when="@10:10.4,11:11.3,12.1.0")
 
     # Older versions do not compile with newer versions of glibc
     # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=81712
@@ -472,97 +532,68 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
     patch(
         "https://github.com/gcc-mirror/gcc/commit/423cd47cfc9640ba3d6811b780e8a0b94b704dcb.patch?full_index=1",
         sha256="0d136226eb07bc43f1b15284f48bd252e3748a0426b5d7ac9084ebc406e15490",
-        when="@9.5.0:11.2",
+        when="@9.5.0:10.4.0,11.1.0:11.2.0",
+    )
+
+    # patch ICE on aarch64 in tree-vect-slp, cf: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=111478
+    # patch taken from releases/gcc-12 branch
+    patch(
+        "https://github.com/gcc-mirror/gcc/commit/9d033155254ac6df5f47ab32896dbf336f991589.patch?full_index=1",
+        sha256="8b76fe575ef095b48ac45e8b56544c331663f840ce4b63abdb61510bf3647597",
+        when="@12.3.0 target=aarch64:",
+    )
+    # patch taken from releases/gcc-13 branch
+    patch(
+        "https://github.com/gcc-mirror/gcc/commit/7c67939ec384425a3d7383dfb4fb39aa7e9ad20a.patch?full_index=1",
+        sha256="f0826d7a9c9808af40f3434918f24ad942f1c6a6daec73f11cf52c544cf5fc01",
+        when="@13.2.0 target=aarch64:",
     )
 
     build_directory = "spack-build"
 
-    @classproperty
-    def executables(cls):
-        names = [r"gcc", r"[^\w]?g\+\+", r"gfortran", r"gdc", r"gccgo"]
-        suffixes = [r"", r"-mp-\d+\.\d", r"-\d+\.\d", r"-\d+", r"\d\d"]
-        return [r"".join(x) for x in itertools.product(names, suffixes)]
+    compiler_languages = ["c", "cxx", "fortran", "d", "go"]
+
+    @property
+    def supported_languages(self):
+        # This weirdness is because it could be called on an abstract spec
+        if "languages" not in self.spec.variants:
+            return self.compiler_languages
+        return [x for x in self.compiler_languages if x in self.spec.variants["languages"].value]
+
+    c_names = ["gcc"]
+    cxx_names = ["g++"]
+    fortran_names = ["gfortran"]
+    d_names = ["gdc"]
+    go_names = ["gccgo"]
+    compiler_suffixes = [r"-mp-\d+(?:\.\d+)?", r"-\d+(?:\.\d+)?", r"\d\d"]
+    compiler_version_regex = r"([0-9.]+)"
+    compiler_version_argument = ("-dumpfullversion", "-dumpversion")
 
     @classmethod
     def filter_detected_exes(cls, prefix, exes_in_prefix):
-        result = []
-        for exe in exes_in_prefix:
-            # On systems like Ubuntu we might get multiple executables
-            # with the string "gcc" in them. See:
-            # https://helpmanual.io/packages/apt/gcc/
-            basename = os.path.basename(exe)
-            substring_to_be_filtered = [
-                "c99-gcc",
-                "c89-gcc",
-                "-nm",
-                "-ar",
-                "ranlib",
-                "clang",  # clang++ matches g++ -> clan[g++]
-            ]
-            if any(x in basename for x in substring_to_be_filtered):
-                continue
-            # Filter out links in favor of real executables on
-            # all systems but Cray
-            host_platform = str(spack.platforms.host())
-            if os.path.islink(exe) and host_platform != "cray":
-                continue
-
-            result.append(exe)
-
-        return result
-
-    @classmethod
-    def determine_version(cls, exe):
-        try:
-            output = spack.compiler.get_compiler_version_output(exe, "--version")
-        except Exception:
-            output = ""
         # Apple's gcc is actually apple clang, so skip it.
-        # Users can add it manually to compilers.yaml at their own risk.
-        if "Apple" in output:
-            return None
+        if str(spack.platforms.host()) == "darwin":
+            not_apple_clang = []
+            for exe in exes_in_prefix:
+                try:
+                    output = spack.compiler.get_compiler_version_output(exe, "--version")
+                except Exception:
+                    output = ""
+                if "clang version" in output:
+                    continue
+                not_apple_clang.append(exe)
+            return not_apple_clang
 
-        version_regex = re.compile(r"([\d\.]+)")
-        for vargs in ("-dumpfullversion", "-dumpversion"):
-            try:
-                output = spack.compiler.get_compiler_version_output(exe, vargs)
-                match = version_regex.search(output)
-                if match:
-                    return match.group(1)
-            except spack.util.executable.ProcessError:
-                pass
-            except Exception as e:
-                tty.debug(e)
-
-        return None
+        return exes_in_prefix
 
     @classmethod
     def determine_variants(cls, exes, version_str):
-        languages, compilers = set(), {}
-        # There are often at least two copies (not symlinks) of each compiler executable in the
-        # same directory: one with a canonical name, e.g. "gfortran", and another one with the
-        # target prefix, e.g. "x86_64-pc-linux-gnu-gfortran". There also might be a copy of "gcc"
-        # with the version suffix, e.g. "x86_64-pc-linux-gnu-gcc-6.3.0". To ensure the consistency
-        # of values in the "compilers" dictionary (i.e. we prefer all of them to reference copies
-        # with canonical names if possible), we iterate over the executables in the reversed sorted
-        # order:
-        for exe in sorted(exes, reverse=True):
-            basename = os.path.basename(exe)
-            if "g++" in basename:
-                languages.add("c++")
-                compilers["cxx"] = exe
-            elif "gfortran" in basename:
-                languages.add("fortran")
-                compilers["fortran"] = exe
-            elif "gcc" in basename:
-                languages.add("c")
-                compilers["c"] = exe
-            elif "gccgo" in basename:
-                languages.add("go")
-                compilers["go"] = exe
-            elif "gdc" in basename:
-                languages.add("d")
-                compilers["d"] = exe
+        compilers = cls.determine_compiler_paths(exes=exes)
+
+        languages = set()
+        translation = {"cxx": "c++"}
+        for lang, compiler in compilers.items():
+            languages.add(translation.get(lang, lang))
         variant_str = "languages={0}".format(",".join(languages))
         return variant_str, {"compilers": compilers}
 
@@ -592,7 +623,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
         if self.spec.external:
             return self.spec.extra_attributes["compilers"].get("c", None)
         result = None
-        if "languages=c" in self.spec:
+        if self.spec.satisfies("languages=c"):
             result = str(self.spec.prefix.bin.gcc)
         return result
 
@@ -603,7 +634,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
         if self.spec.external:
             return self.spec.extra_attributes["compilers"].get("cxx", None)
         result = None
-        if "languages=c++" in self.spec:
+        if self.spec.satisfies("languages=c++"):
             result = os.path.join(self.spec.prefix.bin, "g++")
         return result
 
@@ -614,7 +645,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
         if self.spec.external:
             return self.spec.extra_attributes["compilers"].get("fortran", None)
         result = None
-        if "languages=fortran" in self.spec:
+        if self.spec.satisfies("languages=fortran"):
             result = str(self.spec.prefix.bin.gfortran)
         return result
 
@@ -627,7 +658,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
             "7.1.0"
         ):
             self.gnu_mirror_path = self.gnu_mirror_path.replace("xz", "bz2")
-        return super(Gcc, self).url_for_version(version)
+        return super().url_for_version(version)
 
     def patch(self):
         spec = self.spec
@@ -649,9 +680,11 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
 
         # Use installed libz
         if self.version >= Version("6"):
-            filter_file("@zlibdir@", "-L{0}".format(spec["zlib"].prefix.lib), "gcc/Makefile.in")
             filter_file(
-                "@zlibinc@", "-I{0}".format(spec["zlib"].prefix.include), "gcc/Makefile.in"
+                "@zlibdir@", "-L{0}".format(spec["zlib-api"].prefix.lib), "gcc/Makefile.in"
+            )
+            filter_file(
+                "@zlibinc@", "-I{0}".format(spec["zlib-api"].prefix.include), "gcc/Makefile.in"
             )
 
         if spec.satisfies("+nvptx"):
@@ -676,11 +709,11 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
         """Get the right (but pessimistic) architecture specific flags supported by
         both host gcc and to-be-built gcc. For example: gcc@7 %gcc@12 target=znver3
         should pick -march=znver1, since that's what gcc@7 supports."""
-        archs = [spec.target] + spec.target.ancestors
-        for arch in archs:
+        microarchitectures = [spec.target] + spec.target.ancestors
+        for uarch in microarchitectures:
             try:
-                return arch.optimization_flags("gcc", spec.version)
-            except UnsupportedMicroarchitecture:
+                return uarch.optimization_flags("gcc", str(spec.version))
+            except archspec.cpu.UnsupportedMicroarchitecture:
                 pass
         # no arch specific flags in common, unlikely to happen.
         return ""
@@ -708,7 +741,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
         if "+bootstrap %gcc" in self.spec and self.spec.target.family != "aarch64":
             flags += " " + self.get_common_target_flags(self.spec)
 
-        if "+bootstrap" in self.spec:
+        if self.spec.satisfies("+bootstrap"):
             variables = ["BOOT_CFLAGS", "CFLAGS_FOR_TARGET", "CXXFLAGS_FOR_TARGET"]
         else:
             variables = ["CFLAGS", "CXXFLAGS"]
@@ -749,12 +782,12 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
         if self.version >= Version("6"):
             options.append("--with-system-zlib")
 
-        if "zstd" in spec:
+        if spec.satisfies("^zstd"):
             options.append("--with-zstd-include={0}".format(spec["zstd"].headers.directories[0]))
             options.append("--with-zstd-lib={0}".format(spec["zstd"].libs.directories[0]))
 
         # Enabling language "jit" requires --enable-host-shared.
-        if "languages=jit" in spec:
+        if spec.satisfies("languages=jit"):
             options.append("--enable-host-shared")
 
         # Binutils
@@ -768,6 +801,11 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
                     "--with-as=" + binutils.join("as"),
                 ]
             )
+        elif spec.satisfies("%apple-clang@15:"):
+            # https://github.com/iains/gcc-darwin-arm64/issues/117
+            # https://github.com/iains/gcc-12-branch/issues/22
+            # https://github.com/iains/gcc-13-branch/issues/8
+            options.append("--with-ld=/Library/Developer/CommandLineTools/usr/bin/ld-classic")
 
         # enable_bootstrap
         if spec.satisfies("+bootstrap"):
@@ -824,7 +862,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
         options.append("--with-boot-ldflags=" + boot_ldflags)
         options.append("--with-build-config=spack")
 
-        if "languages=d" in spec:
+        if spec.satisfies("languages=d"):
             # Phobos is the standard library for the D Programming Language. The documentation says
             # that on some targets, 'libphobos' is not enabled by default, but compiles and works
             # if '--enable-libphobos' is used. Specifics are documented for affected targets.
@@ -837,6 +875,28 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
                 options.append("GDC={0}".format(self.detect_gdc()))
 
         return options
+
+    # Copy nvptx-tools into the GCC install prefix
+    def copy_nvptx_tools(self):
+        nvptx_tools_bin_path = self.spec["nvptx-tools"].prefix.bin
+        gcc_bin_path = self.prefix.bin
+        mkdirp(gcc_bin_path)
+        copy_list = ["as", "ld", "nm", "run", "run-single"]
+        for file in copy_list:
+            fullname = f"nvptx-none-{file}"
+            copy(join_path(nvptx_tools_bin_path, fullname), join_path(gcc_bin_path, fullname))
+        link_list = ["ar", "ranlib"]
+        for file in link_list:
+            fullname = f"nvptx-none-{file}"
+            orig_target = readlink(join_path(nvptx_tools_bin_path, fullname))
+            symlink(orig_target, join_path(gcc_bin_path, fullname))
+        util_dir_path = join_path(self.prefix, "nvptx-none", "bin")
+        mkdirp(util_dir_path)
+        util_list = ["ar", "as", "ld", "nm", "ranlib"]
+        for file in util_list:
+            rel_target = join_path("..", "..", "bin", f"nvptx-none-{file}")
+            dest_link = join_path(util_dir_path, file)
+            symlink(rel_target, dest_link)
 
     # run configure/make/make(install) for the nvptx-none target
     # before running the host compiler phases
@@ -860,11 +920,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
             "--with-cuda-driver-lib={0}".format(spec["cuda"].libs.directories[0]),
         ]
 
-        with working_dir("nvptx-tools"):
-            configure = Executable("./configure")
-            configure(*options)
-            make()
-            make("install")
+        self.copy_nvptx_tools()
 
         pattern = join_path(self.stage.source_path, "newlibsource", "*")
         files = glob.glob(pattern)
@@ -893,116 +949,75 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
 
     @property
     def build_targets(self):
-        if "+profiled" in self.spec:
+        if self.spec.satisfies("+profiled"):
             return ["profiledbootstrap"]
         return []
 
     @property
     def install_targets(self):
-        if "+strip" in self.spec:
+        if self.spec.satisfies("+strip"):
             return ["install-strip"]
         return ["install"]
 
     @property
     def spec_dir(self):
         # e.g. lib/gcc/x86_64-unknown-linux-gnu/4.9.2
-        spec_dir = glob.glob("{0}/gcc/*/*".format(self.prefix.lib))
+        spec_dir = glob.glob(f"{self.prefix.lib}/gcc/*/*")
         return spec_dir[0] if spec_dir else None
 
     @run_after("install")
-    def write_rpath_specs(self):
-        """Generate a spec file so the linker adds a rpath to the libs
-        the compiler used to build the executable.
-
-        .. caution::
-
-           The custom spec file by default with *always* pass ``-Wl,-rpath
-           ...`` to the linker, which will cause the linker to *ignore* the
-           value of ``LD_RUN_PATH``, which otherwise would be saved to the
-           binary as the default rpath. See the mitigation below for how to
-           temporarily disable this behavior.
-
-        Structure the specs file so that users can define a custom spec file
-        to suppress the spack-linked rpaths to facilitate rpath adjustment
-        for relocatable binaries. The custom spec file
-        :file:`{norpath}.spec` will have a single
-        line followed by two blanks lines::
-
-            *link_libgcc_rpath:
-
-
-
-        It can be passed to the GCC linker using the argument
-        ``--specs=norpath.spec`` to disable the automatic rpath and restore
-        the behavior of ``LD_RUN_PATH``."""
+    def write_specs_file(self):
+        """(1) inject an rpath to its runtime library dir, (2) add a default programs search path
+        to <binutils>/bin."""
         if not self.spec_dir:
-            tty.warn(
-                "Could not install specs for {0}.".format(self.spec.format("{name}{@version}"))
-            )
+            tty.warn(f"Could not install specs for {self.spec.format('{name}{@version}')}.")
             return
-
-        gcc = self.spec["gcc"].command
-        lines = gcc("-dumpspecs", output=str).splitlines(True)
-        specs_file = join_path(self.spec_dir, "specs")
-
-        # Save a backup
-        with open(specs_file + ".orig", "w") as out:
-            out.writelines(lines)
 
         # Find which directories have shared libraries
-        rpath_libdirs = []
-        for dir in ["lib", "lib64"]:
+        for dir in ["lib64", "lib"]:
             libdir = join_path(self.prefix, dir)
-            if glob.glob(join_path(libdir, "*." + dso_suffix)):
-                rpath_libdirs.append(libdir)
-
-        if not rpath_libdirs:
-            # No shared libraries
+            if glob.glob(join_path(libdir, "libgcc_s.*")):
+                rpath_dir = libdir
+                break
+        else:
             tty.warn("No dynamic libraries found in lib/lib64")
-            return
+            rpath_dir = None
 
-        # Overwrite the specs file
-        with open(specs_file, "w") as out:
-            for line in lines:
-                out.write(line)
-                if line.startswith("*link_libgcc:"):
-                    # Insert at start of line following link_libgcc, which gets
-                    # inserted into every call to the linker
-                    out.write("%(link_libgcc_rpath) ")
+        specs_file = join_path(self.spec_dir, "specs")
+        with open(specs_file, "w") as f:
+            # can't extend the builtins without dumping them first
+            f.write(self.spec["gcc"].command("-dumpspecs", output=str, error=os.devnull).strip())
 
-            # Add easily-overridable rpath string at the end
-            out.write("*link_libgcc_rpath:\n")
-            out.write(" ".join("-rpath " + lib for lib in rpath_libdirs))
-            out.write("\n")
+            f.write("\n\n# Generated by Spack\n\n")
+
+            # rpath
+            if rpath_dir:
+                f.write(f"*link_libgcc:\n+ -rpath {rpath_dir}\n\n")
+
+            # programs search path
+            if self.spec.satisfies("+binutils"):
+                f.write(f"*self_spec:\n+ -B{self.spec['binutils'].prefix.bin}\n\n")
+
+            # set -fuse-ld=mold as the default linker when +mold
+            if self.spec.satisfies("+mold"):
+                f.write(
+                    f"*self_spec:\n+ -B{self.spec['mold'].prefix.bin} "
+                    "%{!fuse-ld*:-fuse-ld=mold}\n\n"
+                )
+
         set_install_permissions(specs_file)
-        tty.info("Wrote new spec file to {0}".format(specs_file))
+        tty.info(f"Wrote new spec file to {specs_file}")
 
     def setup_run_environment(self, env):
-        # Search prefix directory for possibly modified compiler names
-        from spack.compilers.gcc import Gcc as Compiler
+        if self.spec.satisfies("languages=c"):
+            env.set("CC", self.cc)
 
-        # Get the contents of the installed binary directory
-        bin_path = self.spec.prefix.bin
+        if self.spec.satisfies("languages=c++"):
+            env.set("CXX", self.cxx)
 
-        if not os.path.isdir(bin_path):
-            return
-
-        bin_contents = os.listdir(bin_path)
-
-        # Find the first non-symlink compiler binary present for each language
-        for lang in ["cc", "cxx", "fc", "f77"]:
-            for filename, regexp in itertools.product(bin_contents, Compiler.search_regexps(lang)):
-                if not regexp.match(filename):
-                    continue
-
-                abspath = os.path.join(bin_path, filename)
-                if os.path.islink(abspath):
-                    continue
-
-                # Set the proper environment variable
-                env.set(lang.upper(), abspath)
-                # Stop searching filename/regex combos for this language
-                break
+        if self.spec.satisfies("languages=fortran"):
+            env.set("FC", self.fortran)
+            env.set("F77", self.fortran)
 
     def detect_gdc(self):
         """Detect and return the path to GDC that belongs to the same instance of GCC that is used
@@ -1015,11 +1030,11 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
         """
         # Detect GCC package in the directory of the GCC compiler
         # or in the $PATH if self.compiler.cc is not an absolute path:
-        from spack.detection import by_executable
+        from spack.detection import by_path
 
         compiler_dir = os.path.dirname(self.compiler.cc)
-        detected_packages = by_executable(
-            [self.__class__], path_hints=([compiler_dir] if os.path.isdir(compiler_dir) else None)
+        detected_packages = by_path(
+            [self.name], path_hints=([compiler_dir] if os.path.isdir(compiler_dir) else None)
         )
 
         # We consider only packages that satisfy the following constraint:
@@ -1089,3 +1104,110 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
                         ),
                     ),
                 )
+
+    @classmethod
+    def runtime_constraints(cls, *, spec, pkg):
+        """Callback function to inject runtime-related rules into the solver.
+
+        Rule-injection is obtained through method calls of the ``pkg`` argument.
+
+        Documentation for this function is temporary. When the API will be in its final state,
+        we'll document the behavior at https://spack.readthedocs.io/en/latest/
+
+        Args:
+            spec: spec that will inject runtime dependencies
+            pkg: object used to forward information to the solver
+        """
+        pkg("*").depends_on(
+            "gcc-runtime",
+            when="%gcc",
+            type="link",
+            description="If any package uses %gcc, it depends on gcc-runtime",
+        )
+        pkg("*").depends_on(
+            f"gcc-runtime@{str(spec.version)}:",
+            when=f"%{str(spec)}",
+            type="link",
+            description=f"If any package uses %{str(spec)}, "
+            f"it depends on gcc-runtime@{str(spec.version)}:",
+        )
+
+        gfortran_str = "libgfortran@5"
+        if spec.satisfies("gcc@:6"):
+            gfortran_str = "libgfortran@3"
+        elif spec.satisfies("gcc@7"):
+            gfortran_str = "libgfortran@4"
+
+        for fortran_virtual in ("fortran-rt", gfortran_str):
+            pkg("*").depends_on(
+                fortran_virtual,
+                when=f"%{str(spec)}",
+                languages=["fortran"],
+                type="link",
+                description=f"Add a dependency on '{gfortran_str}' for nodes compiled with "
+                f"{str(spec)} and using the 'fortran' language",
+            )
+        # The version of gcc-runtime is the same as the %gcc used to "compile" it
+        pkg("gcc-runtime").requires(f"@={str(spec.version)}", when=f"%{str(spec)}")
+
+        # If a node used %gcc@X.Y its dependencies must use gcc-runtime@:X.Y
+        # (technically @:X is broader than ... <= @=X but this should work in practice)
+        pkg("*").propagate(f"%gcc@:{str(spec.version)}", when=f"%{str(spec)}")
+
+    def _post_buildcache_install_hook(self):
+        if not self.spec.satisfies("platform=linux"):
+            return
+
+        # Setting up the runtime environment shouldn't be necessary here.
+        relocation_args = []
+        gcc = self.spec["gcc"].command
+        specs_file = os.path.join(self.spec_dir, "specs")
+        dryrun = gcc("test.c", "-###", output=os.devnull, error=str).strip()
+        if not dryrun:
+            tty.warn(f"Cannot relocate {specs_file}, compiler might not be working properly")
+            return
+        dynamic_linker = spack.util.libc.parse_dynamic_linker(dryrun)
+        if not dynamic_linker:
+            tty.warn(f"Cannot relocate {specs_file}, compiler might not be working properly")
+            return
+
+        libc = spack.util.libc.libc_from_dynamic_linker(dynamic_linker)
+
+        # We search for crt1.o ourselves because `gcc -print-prile-name=crt1.o` can give a rather
+        # convoluted relative path from a different prefix.
+        startfile_prefix = spack.util.libc.startfile_prefix(libc.external_path, dynamic_linker)
+
+        gcc_can_locate = lambda p: os.path.isabs(
+            gcc(f"-print-file-name={p}", output=str, error=os.devnull).strip()
+        )
+
+        if not gcc_can_locate("crt1.o"):
+            relocation_args.append(f"-B{startfile_prefix}")
+
+        # libc headers may also be in a multiarch subdir.
+        header_dir = spack.util.libc.libc_include_dir_from_startfile_prefix(
+            libc.external_path, startfile_prefix
+        )
+        if header_dir and all(
+            os.path.exists(os.path.join(header_dir, h))
+            for h in libc.package_class.representative_headers
+        ):
+            relocation_args.append(f"-idirafter {header_dir}")
+        else:
+            tty.warn(
+                f"Cannot relocate {specs_file} include directories, "
+                f"compiler might not be working properly"
+            )
+
+        # Delete current spec files.
+        try:
+            os.unlink(specs_file)
+        except OSError:
+            pass
+
+        # Write a new one and append flags for libc
+        self.write_specs_file()
+
+        if relocation_args:
+            with open(specs_file, "a") as f:
+                f.write(f"*self_spec:\n+ {' '.join(relocation_args)}\n\n")

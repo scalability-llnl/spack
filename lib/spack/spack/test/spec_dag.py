@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """
@@ -7,12 +6,12 @@ These tests check Spec DAG operations using dummy packages.
 """
 import pytest
 
+import spack.deptypes as dt
 import spack.error
-import spack.package_base
-import spack.parser
 import spack.repo
 import spack.util.hash as hashutil
-from spack.dependency import Dependency, all_deptypes, canonical_deptype
+import spack.version
+from spack.dependency import Dependency
 from spack.spec import Spec
 
 
@@ -37,20 +36,20 @@ def set_dependency(saved_deps, monkeypatch):
     for a package in the ``saved_deps`` fixture.
     """
 
-    def _mock(pkg_name, spec, deptypes=all_deptypes):
+    def _mock(pkg_name, spec):
         """Alters dependence information for a package.
 
         Adds a dependency on <spec> to pkg. Use this to mock up constraints.
         """
         spec = Spec(spec)
         # Save original dependencies before making any changes.
-        pkg_cls = spack.repo.path.get_pkg_class(pkg_name)
+        pkg_cls = spack.repo.PATH.get_pkg_class(pkg_name)
         if pkg_name not in saved_deps:
             saved_deps[pkg_name] = (pkg_cls, pkg_cls.dependencies.copy())
 
         cond = Spec(pkg_cls.name)
-        dependency = Dependency(pkg_cls, spec, type=deptypes)
-        monkeypatch.setitem(pkg_cls.dependencies, spec.name, {cond: dependency})
+        dependency = Dependency(pkg_cls, spec)
+        monkeypatch.setitem(pkg_cls.dependencies, cond, {spec.name: dependency})
 
     return _mock
 
@@ -93,9 +92,6 @@ def test_installed_deps(monkeypatch, mock_packages):
     constrain ``a``'s dependency on ``d``.
 
     """
-    if spack.config.get("config:concretizer") == "original":
-        pytest.xfail("fails with the original concretizer and full hashes")
-
     # see installed-deps-[abcde] test packages.
     #     a
     #    / \
@@ -125,7 +121,7 @@ def test_installed_deps(monkeypatch, mock_packages):
     # use the installed C.  It should *not* force A to use the installed D
     # *if* we're doing a fresh installation.
     a_spec = Spec(a)
-    a_spec._add_dependency(c_spec, deptypes=("build", "link"))
+    a_spec._add_dependency(c_spec, depflag=dt.BUILD | dt.LINK, virtuals=())
     a_spec.concretize()
     assert spack.version.Version("2") == a_spec[c][d].version
     assert spack.version.Version("2") == a_spec[e].version
@@ -139,19 +135,19 @@ def test_specify_preinstalled_dep(tmpdir, monkeypatch):
     transitive dependency that is only supplied by the preinstalled package.
     """
     builder = spack.repo.MockRepositoryBuilder(tmpdir)
-    builder.add_package("c")
-    builder.add_package("b", dependencies=[("c", None, None)])
-    builder.add_package("a", dependencies=[("b", None, None)])
+    builder.add_package("pkg-c")
+    builder.add_package("pkg-b", dependencies=[("pkg-c", None, None)])
+    builder.add_package("pkg-a", dependencies=[("pkg-b", None, None)])
 
     with spack.repo.use_repositories(builder.root):
-        b_spec = Spec("b").concretized()
-        monkeypatch.setattr(Spec, "installed", property(lambda x: x.name != "a"))
+        b_spec = Spec("pkg-b").concretized()
+        monkeypatch.setattr(Spec, "installed", property(lambda x: x.name != "pkg-a"))
 
-        a_spec = Spec("a")
-        a_spec._add_dependency(b_spec, deptypes=("build", "link"))
+        a_spec = Spec("pkg-a")
+        a_spec._add_dependency(b_spec, depflag=dt.BUILD | dt.LINK, virtuals=())
         a_spec.concretize()
 
-        assert set(x.name for x in a_spec.traverse()) == set(["a", "b", "c"])
+        assert {x.name for x in a_spec.traverse()} == {"pkg-a", "pkg-b", "pkg-c"}
 
 
 @pytest.mark.usefixtures("config")
@@ -177,21 +173,18 @@ def test_conditional_dep_with_user_constraints(tmpdir, spec_str, expr_str, expec
 
 
 @pytest.mark.usefixtures("mutable_mock_repo", "config")
-class TestSpecDag(object):
+class TestSpecDag:
     def test_conflicting_package_constraints(self, set_dependency):
         set_dependency("mpileaks", "mpich@1.0")
         set_dependency("callpath", "mpich@2.0")
 
         spec = Spec("mpileaks ^mpich ^callpath ^dyninst ^libelf ^libdwarf")
 
-        # TODO: try to do something to show that the issue was with
-        # TODO: the user's input or with package inconsistencies.
-        with pytest.raises(spack.spec.UnsatisfiableVersionSpecError):
-            spec.normalize()
+        with pytest.raises(spack.error.UnsatisfiableSpecError):
+            spec.concretize()
 
     def test_preorder_node_traversal(self):
-        dag = Spec("mpileaks ^zmpi")
-        dag.normalize()
+        dag = Spec("mpileaks ^zmpi").concretized()
 
         names = ["mpileaks", "callpath", "dyninst", "libdwarf", "libelf", "zmpi", "fake"]
         pairs = list(zip([0, 1, 2, 3, 4, 2, 3], names))
@@ -203,8 +196,7 @@ class TestSpecDag(object):
         assert [(x, y.name) for x, y in traversal] == pairs
 
     def test_preorder_edge_traversal(self):
-        dag = Spec("mpileaks ^zmpi")
-        dag.normalize()
+        dag = Spec("mpileaks ^zmpi").concretized()
 
         names = [
             "mpileaks",
@@ -226,8 +218,7 @@ class TestSpecDag(object):
         assert [(x, y.name) for x, y in traversal] == pairs
 
     def test_preorder_path_traversal(self):
-        dag = Spec("mpileaks ^zmpi")
-        dag.normalize()
+        dag = Spec("mpileaks ^zmpi").concretized()
 
         names = [
             "mpileaks",
@@ -250,8 +241,7 @@ class TestSpecDag(object):
         assert [(x, y.name) for x, y in traversal] == pairs
 
     def test_postorder_node_traversal(self):
-        dag = Spec("mpileaks ^zmpi")
-        dag.normalize()
+        dag = Spec("mpileaks ^zmpi").concretized()
 
         names = ["libelf", "libdwarf", "dyninst", "fake", "zmpi", "callpath", "mpileaks"]
         pairs = list(zip([4, 3, 2, 3, 2, 1, 0], names))
@@ -263,8 +253,7 @@ class TestSpecDag(object):
         assert [(x, y.name) for x, y in traversal] == pairs
 
     def test_postorder_edge_traversal(self):
-        dag = Spec("mpileaks ^zmpi")
-        dag.normalize()
+        dag = Spec("mpileaks ^zmpi").concretized()
 
         names = [
             "libelf",
@@ -286,8 +275,7 @@ class TestSpecDag(object):
         assert [(x, y.name) for x, y in traversal] == pairs
 
     def test_postorder_path_traversal(self):
-        dag = Spec("mpileaks ^zmpi")
-        dag.normalize()
+        dag = Spec("mpileaks ^zmpi").concretized()
 
         names = [
             "libelf",
@@ -309,63 +297,6 @@ class TestSpecDag(object):
         traversal = dag.traverse(cover="paths", depth=True, order="post")
         assert [(x, y.name) for x, y in traversal] == pairs
 
-    def test_conflicting_spec_constraints(self):
-        mpileaks = Spec("mpileaks ^mpich ^callpath ^dyninst ^libelf ^libdwarf")
-
-        # Normalize then add conflicting constraints to the DAG (this is an
-        # extremely unlikely scenario, but we test for it anyway)
-        mpileaks.normalize()
-
-        mpileaks.edges_to_dependencies(name="mpich")[0].spec = Spec("mpich@1.0")
-
-        mpileaks.edges_to_dependencies(name="callpath")[0].spec.edges_to_dependencies(
-            name="mpich"
-        )[0].spec = Spec("mpich@2.0")
-
-        with pytest.raises(spack.spec.InconsistentSpecError):
-            mpileaks.flat_dependencies(copy=False)
-
-    def test_normalize_twice(self):
-        """Make sure normalize can be run twice on the same spec,
-        and that it is idempotent."""
-        spec = Spec("mpileaks")
-        spec.normalize()
-        n1 = spec.copy()
-
-        spec.normalize()
-        assert n1 == spec
-
-    def test_normalize_a_lot(self):
-        spec = Spec("mpileaks")
-        spec.normalize()
-        spec.normalize()
-        spec.normalize()
-        spec.normalize()
-
-    def test_normalize_with_virtual_spec(self):
-        dag = Spec.from_literal(
-            {
-                "mpileaks": {
-                    "callpath": {
-                        "dyninst": {"libdwarf": {"libelf": None}, "libelf": None},
-                        "mpi": None,
-                    },
-                    "mpi": None,
-                }
-            }
-        )
-        dag.normalize()
-
-        # make sure nothing with the same name occurs twice
-        counts = {}
-        for spec in dag.traverse(key=id):
-            if spec.name not in counts:
-                counts[spec.name] = 0
-            counts[spec.name] += 1
-
-        for name in counts:
-            assert counts[name] == 1
-
     def test_dependents_and_dependencies_are_correct(self):
         spec = Spec.from_literal(
             {
@@ -378,36 +309,26 @@ class TestSpecDag(object):
                 }
             }
         )
-
         check_links(spec)
-        spec.normalize()
+        spec.concretize()
         check_links(spec)
 
-    def test_unsatisfiable_version(self, set_dependency):
-        set_dependency("mpileaks", "mpich@1.0")
-        spec = Spec("mpileaks ^mpich@2.0 ^callpath ^dyninst ^libelf ^libdwarf")
-        with pytest.raises(spack.spec.UnsatisfiableVersionSpecError):
-            spec.normalize()
-
-    def test_unsatisfiable_compiler(self, set_dependency):
-        set_dependency("mpileaks", "mpich%gcc")
-        spec = Spec("mpileaks ^mpich%intel ^callpath ^dyninst ^libelf" " ^libdwarf")
-        with pytest.raises(spack.spec.UnsatisfiableCompilerSpecError):
-            spec.normalize()
-
-    def test_unsatisfiable_compiler_version(self, set_dependency):
-        set_dependency("mpileaks", "mpich%gcc@4.6")
-        spec = Spec("mpileaks ^mpich%gcc@4.5 ^callpath ^dyninst ^libelf" " ^libdwarf")
-        with pytest.raises(spack.spec.UnsatisfiableCompilerSpecError):
-            spec.normalize()
-
-    def test_unsatisfiable_architecture(self, set_dependency):
-        set_dependency("mpileaks", "mpich platform=test target=be")
-        spec = Spec(
-            "mpileaks ^mpich platform=test target=fe ^callpath" " ^dyninst ^libelf ^libdwarf"
-        )
-        with pytest.raises(spack.spec.UnsatisfiableArchitectureSpecError):
-            spec.normalize()
+    @pytest.mark.parametrize(
+        "constraint_str,spec_str",
+        [
+            ("mpich@1.0", "mpileaks ^mpich@2.0"),
+            ("mpich%gcc", "mpileaks ^mpich%intel"),
+            ("mpich%gcc@4.6", "mpileaks ^mpich%gcc@4.5"),
+            ("mpich platform=test target=be", "mpileaks ^mpich platform=test target=fe"),
+        ],
+    )
+    def test_unsatisfiable_cases(self, set_dependency, constraint_str, spec_str):
+        """Tests that synthetic cases of conflicting requirements raise an UnsatisfiableSpecError
+        when concretizing.
+        """
+        set_dependency("mpileaks", constraint_str)
+        with pytest.raises(spack.error.UnsatisfiableSpecError):
+            Spec(spec_str).concretize()
 
     @pytest.mark.parametrize(
         "spec_str", ["libelf ^mpich", "libelf ^libdwarf", "mpich ^dyninst ^libelf"]
@@ -452,105 +373,6 @@ class TestSpecDag(object):
         assert not flip_flat.eq_dag(flip_dag)
         assert not dag.eq_dag(flip_dag)
 
-    def test_normalize_mpileaks(self):
-        # Spec parsed in from a string
-        spec = Spec.from_literal(
-            {"mpileaks ^mpich ^callpath ^dyninst ^libelf@1.8.11 ^libdwarf": None}
-        )
-
-        # What that spec should look like after parsing
-        expected_flat = Spec.from_literal(
-            {
-                "mpileaks": {
-                    "mpich": None,
-                    "callpath": None,
-                    "dyninst": None,
-                    "libelf@1.8.11": None,
-                    "libdwarf": None,
-                }
-            }
-        )
-
-        # What it should look like after normalization
-        mpich = Spec("mpich")
-        libelf = Spec("libelf@1.8.11")
-        expected_normalized = Spec.from_literal(
-            {
-                "mpileaks": {
-                    "callpath": {
-                        "dyninst": {"libdwarf": {libelf: None}, libelf: None},
-                        mpich: None,
-                    },
-                    mpich: None,
-                }
-            }
-        )
-
-        # Similar to normalized spec, but now with copies of the same
-        # libelf node.  Normalization should result in a single unique
-        # node for each package, so this is the wrong DAG.
-        non_unique_nodes = Spec.from_literal(
-            {
-                "mpileaks": {
-                    "callpath": {
-                        "dyninst": {"libdwarf": {"libelf@1.8.11": None}, "libelf@1.8.11": None},
-                        mpich: None,
-                    },
-                    mpich: None,
-                }
-            },
-            normal=False,
-        )
-
-        # All specs here should be equal under regular equality
-        specs = (spec, expected_flat, expected_normalized, non_unique_nodes)
-        for lhs, rhs in zip(specs, specs):
-            assert lhs == rhs
-            assert str(lhs) == str(rhs)
-
-        # Test that equal and equal_dag are doing the right thing
-        assert spec == expected_flat
-        assert spec.eq_dag(expected_flat)
-
-        # Normalized has different DAG structure, so NOT equal.
-        assert spec != expected_normalized
-        assert not spec.eq_dag(expected_normalized)
-
-        # Again, different DAG structure so not equal.
-        assert spec != non_unique_nodes
-        assert not spec.eq_dag(non_unique_nodes)
-
-        spec.normalize()
-
-        # After normalizing, spec_dag_equal should match the normalized spec.
-        assert spec != expected_flat
-        assert not spec.eq_dag(expected_flat)
-
-        # verify DAG structure without deptypes.
-        assert spec.eq_dag(expected_normalized, deptypes=False)
-        assert not spec.eq_dag(non_unique_nodes, deptypes=False)
-
-        assert not spec.eq_dag(expected_normalized, deptypes=True)
-        assert not spec.eq_dag(non_unique_nodes, deptypes=True)
-
-    def test_normalize_with_virtual_package(self):
-        spec = Spec("mpileaks ^mpi ^libelf@1.8.11 ^libdwarf")
-        spec.normalize()
-
-        expected_normalized = Spec.from_literal(
-            {
-                "mpileaks": {
-                    "callpath": {
-                        "dyninst": {"libdwarf": {"libelf@1.8.11": None}, "libelf@1.8.11": None},
-                        "mpi": None,
-                    },
-                    "mpi": None,
-                }
-            }
-        )
-
-        assert str(spec) == str(expected_normalized)
-
     def test_contains(self):
         spec = Spec("mpileaks ^mpi ^libelf@1.8.11 ^libdwarf")
         assert Spec("mpi") in spec
@@ -568,22 +390,7 @@ class TestSpecDag(object):
 
         assert orig == copy
         assert orig.eq_dag(copy)
-        assert orig._normal == copy._normal
         assert orig._concrete == copy._concrete
-
-        # ensure no shared nodes bt/w orig and copy.
-        orig_ids = set(id(s) for s in orig.traverse())
-        copy_ids = set(id(s) for s in copy.traverse())
-        assert not orig_ids.intersection(copy_ids)
-
-    def test_copy_normalized(self):
-        orig = Spec("mpileaks")
-        orig.normalize()
-        copy = orig.copy()
-        check_links(copy)
-
-        assert orig == copy
-        assert orig.eq_dag(copy)
 
         # ensure no shared nodes bt/w orig and copy.
         orig_ids = set(id(s) for s in orig.traverse())
@@ -599,7 +406,6 @@ class TestSpecDag(object):
 
         assert orig == copy
         assert orig.eq_dag(copy)
-        assert orig._normal == copy._normal
         assert orig._concrete == copy._concrete
 
         # ensure no shared nodes bt/w orig and copy.
@@ -650,63 +456,53 @@ class TestSpecDag(object):
         run3 -b-> build3
     """
 
-    def test_deptype_traversal(self):
-        dag = Spec("dtuse")
-        dag.normalize()
-
-        names = [
-            "dtuse",
-            "dttop",
-            "dtbuild1",
-            "dtbuild2",
-            "dtlink2",
-            "dtlink1",
-            "dtlink3",
-            "dtlink4",
-        ]
-
-        traversal = dag.traverse(deptype=("build", "link"))
-        assert [x.name for x in traversal] == names
-
-    def test_deptype_traversal_with_builddeps(self):
-        dag = Spec("dttop")
-        dag.normalize()
-
-        names = ["dttop", "dtbuild1", "dtbuild2", "dtlink2", "dtlink1", "dtlink3", "dtlink4"]
-
-        traversal = dag.traverse(deptype=("build", "link"))
-        assert [x.name for x in traversal] == names
-
-    def test_deptype_traversal_full(self):
-        dag = Spec("dttop")
-        dag.normalize()
-
-        names = [
-            "dttop",
-            "dtbuild1",
-            "dtbuild2",
-            "dtlink2",
-            "dtrun2",
-            "dtlink1",
-            "dtlink3",
-            "dtlink4",
-            "dtrun1",
-            "dtlink5",
-            "dtrun3",
-            "dtbuild3",
-        ]
-
-        traversal = dag.traverse(deptype=all)
-        assert [x.name for x in traversal] == names
-
-    def test_deptype_traversal_run(self):
-        dag = Spec("dttop")
-        dag.normalize()
-
-        names = ["dttop", "dtrun1", "dtrun3"]
-
-        traversal = dag.traverse(deptype="run")
-        assert [x.name for x in traversal] == names
+    @pytest.mark.parametrize(
+        "spec_str,deptypes,expected",
+        [
+            (
+                "dtuse",
+                ("build", "link"),
+                [
+                    "dtuse",
+                    "dttop",
+                    "dtbuild1",
+                    "dtbuild2",
+                    "dtlink2",
+                    "dtlink1",
+                    "dtlink3",
+                    "dtlink4",
+                ],
+            ),
+            (
+                "dttop",
+                ("build", "link"),
+                ["dttop", "dtbuild1", "dtbuild2", "dtlink2", "dtlink1", "dtlink3", "dtlink4"],
+            ),
+            (
+                "dttop",
+                all,
+                [
+                    "dttop",
+                    "dtbuild1",
+                    "dtbuild2",
+                    "dtlink2",
+                    "dtrun2",
+                    "dtlink1",
+                    "dtlink3",
+                    "dtlink4",
+                    "dtrun1",
+                    "dtlink5",
+                    "dtrun3",
+                    "dtbuild3",
+                ],
+            ),
+            ("dttop", "run", ["dttop", "dtrun1", "dtrun3"]),
+        ],
+    )
+    def test_deptype_traversal(self, spec_str, deptypes, expected):
+        dag = Spec(spec_str).concretized()
+        traversal = dag.traverse(deptype=deptypes)
+        assert [x.name for x in traversal] == expected
 
     def test_hash_bits(self):
         """Ensure getting first n bits of a base32-encoded DAG hash works."""
@@ -790,13 +586,13 @@ class TestSpecDag(object):
             {"a": {"b": {"c:build": None}, "d": {"e:build,link": {"f:run": None}}}}
         )
 
-        assert s["b"].edges_to_dependencies(name="c")[0].deptypes == ("build",)
-        assert s["d"].edges_to_dependencies(name="e")[0].deptypes == ("build", "link")
-        assert s["e"].edges_to_dependencies(name="f")[0].deptypes == ("run",)
+        assert s["b"].edges_to_dependencies(name="c")[0].depflag == dt.BUILD
+        assert s["d"].edges_to_dependencies(name="e")[0].depflag == dt.BUILD | dt.LINK
+        assert s["e"].edges_to_dependencies(name="f")[0].depflag == dt.RUN
 
-        assert s["c"].edges_from_dependents(name="b")[0].deptypes == ("build",)
-        assert s["e"].edges_from_dependents(name="d")[0].deptypes == ("build", "link")
-        assert s["f"].edges_from_dependents(name="e")[0].deptypes == ("run",)
+        assert s["c"].edges_from_dependents(name="b")[0].depflag == dt.BUILD
+        assert s["e"].edges_from_dependents(name="d")[0].depflag == dt.BUILD | dt.LINK
+        assert s["f"].edges_from_dependents(name="e")[0].depflag == dt.RUN
 
     def check_diamond_deptypes(self, spec):
         """Validate deptypes in dt-diamond spec.
@@ -805,44 +601,22 @@ class TestSpecDag(object):
         depend on the same dependency in different ways.
 
         """
-        assert spec["dt-diamond"].edges_to_dependencies(name="dt-diamond-left")[0].deptypes == (
-            "build",
-            "link",
+        assert (
+            spec["dt-diamond"].edges_to_dependencies(name="dt-diamond-left")[0].depflag
+            == dt.BUILD | dt.LINK
         )
-
-        assert spec["dt-diamond"].edges_to_dependencies(name="dt-diamond-right")[0].deptypes == (
-            "build",
-            "link",
+        assert (
+            spec["dt-diamond"].edges_to_dependencies(name="dt-diamond-right")[0].depflag
+            == dt.BUILD | dt.LINK
         )
-
-        assert spec["dt-diamond-left"].edges_to_dependencies(name="dt-diamond-bottom")[
-            0
-        ].deptypes == ("build",)
-
-        assert spec["dt-diamond-right"].edges_to_dependencies(name="dt-diamond-bottom")[
-            0
-        ].deptypes == ("build", "link", "run")
-
-    def check_diamond_normalized_dag(self, spec):
-        dag = Spec.from_literal(
-            {
-                "dt-diamond": {
-                    "dt-diamond-left:build,link": {"dt-diamond-bottom:build": None},
-                    "dt-diamond-right:build,link": {"dt-diamond-bottom:build,link,run": None},
-                }
-            }
+        assert (
+            spec["dt-diamond-left"].edges_to_dependencies(name="dt-diamond-bottom")[0].depflag
+            == dt.BUILD
         )
-
-        assert spec.eq_dag(dag)
-
-    def test_normalize_diamond_deptypes(self):
-        """Ensure that dependency types are preserved even if the same thing is
-        depended on in two different ways."""
-        s = Spec("dt-diamond")
-        s.normalize()
-
-        self.check_diamond_deptypes(s)
-        self.check_diamond_normalized_dag(s)
+        assert (
+            spec["dt-diamond-right"].edges_to_dependencies(name="dt-diamond-bottom")[0].depflag
+            == dt.BUILD | dt.LINK | dt.RUN
+        )
 
     def test_concretize_deptypes(self):
         """Ensure that dependency types are preserved after concretization."""
@@ -852,21 +626,10 @@ class TestSpecDag(object):
 
     def test_copy_deptypes(self):
         """Ensure that dependency types are preserved by spec copy."""
-        s1 = Spec("dt-diamond")
-        s1.normalize()
+        s1 = Spec("dt-diamond").concretized()
         self.check_diamond_deptypes(s1)
-        self.check_diamond_normalized_dag(s1)
-
         s2 = s1.copy()
-        self.check_diamond_normalized_dag(s2)
         self.check_diamond_deptypes(s2)
-
-        s3 = Spec("dt-diamond")
-        s3.concretize()
-        self.check_diamond_deptypes(s3)
-
-        s4 = s3.copy()
-        self.check_diamond_deptypes(s4)
 
     def test_getitem_query(self):
         s = Spec("mpileaks")
@@ -914,52 +677,56 @@ class TestSpecDag(object):
 
     def test_canonical_deptype(self):
         # special values
-        assert canonical_deptype(all) == all_deptypes
-        assert canonical_deptype("all") == all_deptypes
+        assert dt.canonicalize(all) == dt.ALL
+        assert dt.canonicalize("all") == dt.ALL
 
         with pytest.raises(ValueError):
-            canonical_deptype(None)
+            dt.canonicalize(None)
         with pytest.raises(ValueError):
-            canonical_deptype([None])
+            dt.canonicalize([None])
 
-        # everything in all_deptypes is canonical
-        for v in all_deptypes:
-            assert canonical_deptype(v) == (v,)
+        # everything in all_types is canonical
+        for v in dt.ALL_TYPES:
+            assert dt.canonicalize(v) == dt.flag_from_string(v)
 
         # tuples
-        assert canonical_deptype(("build",)) == ("build",)
-        assert canonical_deptype(("build", "link", "run")) == ("build", "link", "run")
-        assert canonical_deptype(("build", "link")) == ("build", "link")
-        assert canonical_deptype(("build", "run")) == ("build", "run")
+        assert dt.canonicalize(("build",)) == dt.BUILD
+        assert dt.canonicalize(("build", "link", "run")) == dt.BUILD | dt.LINK | dt.RUN
+        assert dt.canonicalize(("build", "link")) == dt.BUILD | dt.LINK
+        assert dt.canonicalize(("build", "run")) == dt.BUILD | dt.RUN
 
         # lists
-        assert canonical_deptype(["build", "link", "run"]) == ("build", "link", "run")
-        assert canonical_deptype(["build", "link"]) == ("build", "link")
-        assert canonical_deptype(["build", "run"]) == ("build", "run")
+        assert dt.canonicalize(["build", "link", "run"]) == dt.BUILD | dt.LINK | dt.RUN
+        assert dt.canonicalize(["build", "link"]) == dt.BUILD | dt.LINK
+        assert dt.canonicalize(["build", "run"]) == dt.BUILD | dt.RUN
 
         # sorting
-        assert canonical_deptype(("run", "build", "link")) == ("build", "link", "run")
-        assert canonical_deptype(("run", "link", "build")) == ("build", "link", "run")
-        assert canonical_deptype(("run", "link")) == ("link", "run")
-        assert canonical_deptype(("link", "build")) == ("build", "link")
+        assert dt.canonicalize(("run", "build", "link")) == dt.BUILD | dt.LINK | dt.RUN
+        assert dt.canonicalize(("run", "link", "build")) == dt.BUILD | dt.LINK | dt.RUN
+        assert dt.canonicalize(("run", "link")) == dt.LINK | dt.RUN
+        assert dt.canonicalize(("link", "build")) == dt.BUILD | dt.LINK
+
+        # deduplication
+        assert dt.canonicalize(("run", "run", "link")) == dt.RUN | dt.LINK
+        assert dt.canonicalize(("run", "link", "link")) == dt.RUN | dt.LINK
 
         # can't put 'all' in tuple or list
         with pytest.raises(ValueError):
-            canonical_deptype(["all"])
+            dt.canonicalize(["all"])
         with pytest.raises(ValueError):
-            canonical_deptype(("all",))
+            dt.canonicalize(("all",))
 
         # invalid values
         with pytest.raises(ValueError):
-            canonical_deptype("foo")
+            dt.canonicalize("foo")
         with pytest.raises(ValueError):
-            canonical_deptype(("foo", "bar"))
+            dt.canonicalize(("foo", "bar"))
         with pytest.raises(ValueError):
-            canonical_deptype(("foo",))
+            dt.canonicalize(("foo",))
 
     def test_invalid_literal_spec(self):
         # Can't give type 'build' to a top-level spec
-        with pytest.raises(spack.parser.SpecSyntaxError):
+        with pytest.raises(spack.error.SpecSyntaxError):
             Spec.from_literal({"foo:build": None})
 
         # Can't use more than one ':' separator
@@ -974,31 +741,98 @@ class TestSpecDag(object):
         out = s.tree(deptypes=("link", "run"))
         assert "version-test-pkg" not in out
 
+    @pytest.mark.parametrize(
+        "query,expected_length,expected_satisfies",
+        [
+            ({"virtuals": ["mpi"]}, 1, ["mpich", "mpi"]),
+            ({"depflag": dt.BUILD}, 2, ["mpich", "mpi", "callpath"]),
+            ({"depflag": dt.BUILD, "virtuals": ["mpi"]}, 1, ["mpich", "mpi"]),
+            ({"depflag": dt.LINK}, 2, ["mpich", "mpi", "callpath"]),
+            ({"depflag": dt.BUILD | dt.LINK}, 2, ["mpich", "mpi", "callpath"]),
+            ({"virtuals": ["lapack"]}, 0, []),
+        ],
+    )
+    def test_query_dependency_edges(
+        self, default_mock_concretization, query, expected_length, expected_satisfies
+    ):
+        """Tests querying edges to dependencies on the following DAG:
+
+        [    ]  mpileaks@=2.3
+        [bl  ]      ^callpath@=1.0
+        [bl  ]          ^dyninst@=8.2
+        [bl  ]              ^libdwarf@=20130729
+        [bl  ]              ^libelf@=0.8.13
+        [bl  ]      ^mpich@=3.0.4
+        """
+        mpileaks = default_mock_concretization("mpileaks")
+        edges = mpileaks.edges_to_dependencies(**query)
+        assert len(edges) == expected_length
+        for constraint in expected_satisfies:
+            assert any(x.spec.satisfies(constraint) for x in edges)
+
+    def test_query_dependents_edges(self, default_mock_concretization):
+        """Tests querying edges from dependents"""
+        mpileaks = default_mock_concretization("mpileaks")
+        mpich = mpileaks["mpich"]
+
+        # Recover the root with 2 different queries
+        edges_of_link_type = mpich.edges_from_dependents(depflag=dt.LINK)
+        edges_with_mpi = mpich.edges_from_dependents(virtuals=["mpi"])
+        assert edges_with_mpi == edges_of_link_type
+
+        # Check a node dependend upon by 2 parents
+        assert len(mpileaks["libelf"].edges_from_dependents(depflag=dt.LINK)) == 2
+
+
+def test_tree_cover_nodes_reduce_deptype():
+    """Test that tree output with deptypes sticks to the sub-dag of interest, instead of looking
+    at in-edges from nodes not reachable from the root."""
+    a, b, c, d = Spec("a"), Spec("b"), Spec("c"), Spec("d")
+    a.add_dependency_edge(d, depflag=dt.BUILD, virtuals=())
+    a.add_dependency_edge(b, depflag=dt.LINK, virtuals=())
+    b.add_dependency_edge(d, depflag=dt.LINK, virtuals=())
+    c.add_dependency_edge(d, depflag=dt.RUN | dt.TEST, virtuals=())
+    assert (
+        a.tree(cover="nodes", show_types=True)
+        == """\
+[    ]  a
+[ l  ]      ^b
+[bl  ]      ^d
+"""
+    )
+    assert (
+        c.tree(cover="nodes", show_types=True)
+        == """\
+[    ]  c
+[  rt]      ^d
+"""
+    )
+
 
 def test_synthetic_construction_of_split_dependencies_from_same_package(mock_packages, config):
     # Construct in a synthetic way (i.e. without using the solver)
     # the following spec:
     #
-    #          b
+    #        pkg-b
     #  build /   \ link,run
-    #    c@2.0   c@1.0
+    #  pkg-c@2.0   pkg-c@1.0
     #
     # To demonstrate that a spec can now hold two direct
     # dependencies from the same package
-    root = Spec("b").concretized()
-    link_run_spec = Spec("c@=1.0").concretized()
-    build_spec = Spec("c@=2.0").concretized()
+    root = Spec("pkg-b").concretized()
+    link_run_spec = Spec("pkg-c@=1.0").concretized()
+    build_spec = Spec("pkg-c@=2.0").concretized()
 
-    root.add_dependency_edge(link_run_spec, deptypes="link")
-    root.add_dependency_edge(link_run_spec, deptypes="run")
-    root.add_dependency_edge(build_spec, deptypes="build")
+    root.add_dependency_edge(link_run_spec, depflag=dt.LINK, virtuals=())
+    root.add_dependency_edge(link_run_spec, depflag=dt.RUN, virtuals=())
+    root.add_dependency_edge(build_spec, depflag=dt.BUILD, virtuals=())
 
     # Check dependencies from the perspective of root
     assert len(root.dependencies()) == 2
-    assert all(x.name == "c" for x in root.dependencies())
+    assert all(x.name == "pkg-c" for x in root.dependencies())
 
-    assert "@2.0" in root.dependencies(name="c", deptype="build")[0]
-    assert "@1.0" in root.dependencies(name="c", deptype=("link", "run"))[0]
+    assert "@2.0" in root.dependencies(name="pkg-c", deptype=dt.BUILD)[0]
+    assert "@1.0" in root.dependencies(name="pkg-c", deptype=dt.LINK | dt.RUN)[0]
 
     # Check parent from the perspective of the dependencies
     assert len(build_spec.dependents()) == 1
@@ -1010,62 +844,63 @@ def test_synthetic_construction_of_split_dependencies_from_same_package(mock_pac
 def test_synthetic_construction_bootstrapping(mock_packages, config):
     # Construct the following spec:
     #
-    #  b@2.0
+    #  pkg-b@2.0
     #    | build
-    #  b@1.0
+    #  pkg-b@1.0
     #
-    root = Spec("b@=2.0").concretized()
-    bootstrap = Spec("b@=1.0").concretized()
+    root = Spec("pkg-b@=2.0").concretized()
+    bootstrap = Spec("pkg-b@=1.0").concretized()
 
-    root.add_dependency_edge(bootstrap, deptypes="build")
+    root.add_dependency_edge(bootstrap, depflag=dt.BUILD, virtuals=())
 
     assert len(root.dependencies()) == 1
-    assert root.dependencies()[0].name == "b"
-    assert root.name == "b"
+    assert root.dependencies()[0].name == "pkg-b"
+    assert root.name == "pkg-b"
 
 
 def test_addition_of_different_deptypes_in_multiple_calls(mock_packages, config):
     # Construct the following spec:
     #
-    #  b@2.0
+    #  pkg-b@2.0
     #    | build,link,run
-    #  b@1.0
+    #  pkg-b@1.0
     #
     # with three calls and check we always have a single edge
-    root = Spec("b@=2.0").concretized()
-    bootstrap = Spec("b@=1.0").concretized()
+    root = Spec("pkg-b@=2.0").concretized()
+    bootstrap = Spec("pkg-b@=1.0").concretized()
 
-    for current_deptype in ("build", "link", "run"):
-        root.add_dependency_edge(bootstrap, deptypes=current_deptype)
+    for current_depflag in (dt.BUILD, dt.LINK, dt.RUN):
+        root.add_dependency_edge(bootstrap, depflag=current_depflag, virtuals=())
 
         # Check edges in dependencies
         assert len(root.edges_to_dependencies()) == 1
-        forward_edge = root.edges_to_dependencies(deptype=current_deptype)[0]
-        assert current_deptype in forward_edge.deptypes
+        forward_edge = root.edges_to_dependencies(depflag=current_depflag)[0]
+        assert current_depflag & forward_edge.depflag
         assert id(forward_edge.parent) == id(root)
         assert id(forward_edge.spec) == id(bootstrap)
 
         # Check edges from dependents
         assert len(bootstrap.edges_from_dependents()) == 1
-        backward_edge = bootstrap.edges_from_dependents(deptype=current_deptype)[0]
-        assert current_deptype in backward_edge.deptypes
+        backward_edge = bootstrap.edges_from_dependents(depflag=current_depflag)[0]
+        assert current_depflag & backward_edge.depflag
         assert id(backward_edge.parent) == id(root)
         assert id(backward_edge.spec) == id(bootstrap)
 
 
 @pytest.mark.parametrize(
-    "c1_deptypes,c2_deptypes", [("link", ("build", "link")), (("link", "run"), ("build", "link"))]
+    "c1_depflag,c2_depflag",
+    [(dt.LINK, dt.BUILD | dt.LINK), (dt.LINK | dt.RUN, dt.BUILD | dt.LINK)],
 )
 def test_adding_same_deptype_with_the_same_name_raises(
-    mock_packages, config, c1_deptypes, c2_deptypes
+    mock_packages, config, c1_depflag, c2_depflag
 ):
-    p = Spec("b@=2.0").concretized()
-    c1 = Spec("b@=1.0").concretized()
-    c2 = Spec("b@=2.0").concretized()
+    p = Spec("pkg-b@=2.0").concretized()
+    c1 = Spec("pkg-b@=1.0").concretized()
+    c2 = Spec("pkg-b@=2.0").concretized()
 
-    p.add_dependency_edge(c1, deptypes=c1_deptypes)
+    p.add_dependency_edge(c1, depflag=c1_depflag, virtuals=())
     with pytest.raises(spack.error.SpackError):
-        p.add_dependency_edge(c2, deptypes=c2_deptypes)
+        p.add_dependency_edge(c2, depflag=c2_depflag, virtuals=())
 
 
 @pytest.mark.regression("33499")
@@ -1084,16 +919,16 @@ def test_indexing_prefers_direct_or_transitive_link_deps():
     z3_flavor_1 = Spec("z3 +through_a1")
     z3_flavor_2 = Spec("z3 +through_z1")
 
-    root.add_dependency_edge(a1, deptypes=("build", "run", "test"))
+    root.add_dependency_edge(a1, depflag=dt.BUILD | dt.RUN | dt.TEST, virtuals=())
 
     # unique package as a dep of a build/run/test type dep.
-    a1.add_dependency_edge(a2, deptypes="all")
-    a1.add_dependency_edge(z3_flavor_1, deptypes="all")
+    a1.add_dependency_edge(a2, depflag=dt.ALL, virtuals=())
+    a1.add_dependency_edge(z3_flavor_1, depflag=dt.ALL, virtuals=())
 
     # chain of link type deps root -> z1 -> z2 -> z3
-    root.add_dependency_edge(z1, deptypes="link")
-    z1.add_dependency_edge(z2, deptypes="link")
-    z2.add_dependency_edge(z3_flavor_2, deptypes="link")
+    root.add_dependency_edge(z1, depflag=dt.LINK, virtuals=())
+    z1.add_dependency_edge(z2, depflag=dt.LINK, virtuals=())
+    z2.add_dependency_edge(z3_flavor_2, depflag=dt.LINK, virtuals=())
 
     # Indexing should prefer the link-type dep.
     assert "through_z1" in root["z3"].variants
@@ -1101,3 +936,23 @@ def test_indexing_prefers_direct_or_transitive_link_deps():
 
     # Ensure that the full DAG is still searched
     assert root["a2"]
+
+
+def test_getitem_sticks_to_subdag():
+    """Test that indexing on Spec by virtual does not traverse outside the dag, which happens in
+    the unlikely case someone would rewrite __getitem__ in terms of edges_from_dependents instead
+    of edges_to_dependencies."""
+    x, y, z = Spec("x"), Spec("y"), Spec("z")
+    x.add_dependency_edge(z, depflag=dt.LINK, virtuals=("virtual",))
+    y.add_dependency_edge(z, depflag=dt.LINK, virtuals=())
+    assert x["virtual"].name == "z"
+    with pytest.raises(KeyError):
+        y["virtual"]
+
+
+def test_getitem_finds_transitive_virtual():
+    x, y, z = Spec("x"), Spec("y"), Spec("z")
+    x.add_dependency_edge(z, depflag=dt.LINK, virtuals=())
+    x.add_dependency_edge(y, depflag=dt.LINK, virtuals=())
+    y.add_dependency_edge(z, depflag=dt.LINK, virtuals=("virtual",))
+    assert x["virtual"].name == "z"

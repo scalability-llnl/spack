@@ -101,18 +101,18 @@ config:
   verify_ssl: true
 
 
+  # This is where custom certs for proxy/firewall are stored.
+  # It can be a path or environment variable. To match ssl env configuration
+  # the default is the environment variable SSL_CERT_FILE
+  ssl_certs: $SSL_CERT_FILE
+
+
   # Suppress gpg warnings from binary package verification
   # Only suppresses warnings, gpg failure will still fail the install
   # Potential rationale to set True: users have already explicitly trusted the
   # gpg key they are using, and may not want to see repeated warnings that it
   # is self-signed or something of the sort.
   suppress_gpg_warnings: false
-
-
-  # If set to true, Spack will attempt to build any compiler on the spec
-  # that is not already available. If set to False, Spack will only use
-  # compilers already configured in compilers.yaml
-  install_missing_compilers: false
 
 
   # If set to true, Spack will always check checksums after downloading
@@ -164,23 +164,6 @@ config:
   # If set to true, Spack will use ccache to cache C compiles.
   ccache: false
 
-
-  # The concretization algorithm to use in Spack. Options are:
-  #
-  #   'clingo': Uses a logic solver under the hood to solve DAGs with full
-  #       backtracking and optimization for user preferences. Spack will
-  #       try to bootstrap the logic solver, if not already available.
-  #
-  #   'original': Spack's original greedy, fixed-point concretizer. This
-  #       algorithm can make decisions too early and will not backtrack
-  #       sufficiently for many specs. This will soon be deprecated in
-  #       favor of clingo.
-  #
-  # See `concretizer.yaml` for more settings you can fine-tune when
-  # using clingo.
-  concretizer: clingo
-
-
   # How long to wait to lock the Spack installation database. This lock is used
   # when Spack needs to manage its own package metadata and all operations are
   # expected to complete within the default time limit. The timeout should
@@ -211,15 +194,22 @@ config:
     # executables with many dependencies, in particular on slow filesystems.
     bind: false
 
+    # Controls the handling of missing dynamic libraries after installation.
+    # Options are ignore (default), warn, or error. If set to error, the
+    # installation fails if installed binaries reference dynamic libraries that
+    # are not found in their specified rpaths.
+    missing_library_policy: ignore
+
 
   # Set to 'false' to allow installation on filesystems that doesn't allow setgid bit
   # manipulation by unprivileged user (e.g. AFS)
   allow_sgid: true
 
-  # Whether to set the terminal title to display status information during
-  # building and installing packages. This gives information about Spack's
-  # current progress as well as the current and total number of packages.
-  terminal_title: false
+  # Whether to show status information during building and installing packages.
+  # This gives information about Spack's current progress as well as the current
+  # and total number of packages. Information is shown both in the terminal
+  # title and inline.
+  install_status: true
 
   # Number of seconds a buildcache's index.json is cached locally before probing
   # for updates, within a single Spack invocation. Defaults to 10 minutes.
@@ -228,3 +218,11 @@ config:
   flags:
     # Whether to keep -Werror flags active in package builds.
     keep_werror: 'none'
+
+  # A mapping of aliases that can be used to define new commands. For instance,
+  # `sp: spec -I` will define a new command `sp` that will execute `spec` with
+  # the `-I` argument. Aliases cannot override existing commands.
+  aliases:
+    concretise: concretize
+    containerise: containerize
+    rm: remove

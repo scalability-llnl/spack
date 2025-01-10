@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,10 +10,14 @@ class PyVermin(PythonPackage):
     """Concurrently detect the minimum Python versions needed to run code."""
 
     homepage = "https://github.com/netromdk/vermin"
-    url = "https://github.com/netromdk/vermin/archive/v1.5.1.tar.gz"
+    url = "https://github.com/netromdk/vermin/archive/v1.6.0.tar.gz"
 
     maintainers("netromdk")
 
+    license("MIT")
+
+    version("1.6.0", sha256="31200b1e674e064c7473484372db2743f5abbf1409d994880486bca5bcf05bec")
+    version("1.5.2", sha256="e4b6ca6f3e71b0d83a179dc4a4ba50682f60474cf8c948ba9f82e330f219ff4a")
     version("1.5.1", sha256="2d1c7601d054da9fa5c5eb6c817c714235f9d484b74011f7f86c98f0a25e93ea")
     version("1.5.0", sha256="77207385c9cea1f02053a8f2e7f2e8c945394cf37c44c70ce217cada077a2d17")
     version("1.4.2", sha256="c9a69420b610bfb25d5a2abd7da6edf0ae4329481a857ef6c5d71f602ed5c63d")
@@ -37,8 +40,7 @@ class PyVermin(PythonPackage):
     version("0.10.4", sha256="bd765b84679fb3756b26f462d2aab4af3183fb65862520afc1517f6b39dea8bf")
     version("0.10.0", sha256="3458a4d084bba5c95fd7208888aaf0e324a07ee092786ee4e5529f539ab4951f")
 
-    depends_on("python@2.7:", type=("build", "run"))
-    depends_on("py-setuptools", type=("build", "run"))
+    depends_on("py-setuptools", type=("build"))
 
     @run_after("install")
     @on_package_attributes(run_tests=True)

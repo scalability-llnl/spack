@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import re
@@ -21,11 +20,11 @@ def test_build_and_run_images(minimal_configuration):
 
     # Test the output of run property
     run = writer.run
-    assert run.image == "ubuntu:18.04"
+    assert run.image == "ubuntu:22.04"
 
     # Test the output of the build property
     build = writer.build
-    assert build.image == "spack/ubuntu-bionic:latest"
+    assert build.image == "spack/ubuntu-jammy:develop"
 
 
 def test_packages(minimal_configuration):
@@ -80,23 +79,6 @@ def test_strip_is_set_from_config(minimal_configuration):
     minimal_configuration["spack"]["container"]["strip"] = False
     writer = writers.create(minimal_configuration)
     assert writer.strip is False
-
-
-def test_extra_instructions_is_set_from_config(minimal_configuration):
-    writer = writers.create(minimal_configuration)
-    assert writer.extra_instructions == (None, None)
-
-    test_line = "RUN echo Hello world!"
-    e = minimal_configuration["spack"]["container"]
-    e["extra_instructions"] = {}
-    e["extra_instructions"]["build"] = test_line
-    writer = writers.create(minimal_configuration)
-    assert writer.extra_instructions == (test_line, None)
-
-    e["extra_instructions"]["final"] = test_line
-    del e["extra_instructions"]["build"]
-    writer = writers.create(minimal_configuration)
-    assert writer.extra_instructions == (None, test_line)
 
 
 def test_custom_base_images(minimal_configuration):

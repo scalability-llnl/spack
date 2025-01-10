@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,8 @@ class GslLite(CMakePackage):
 
     maintainers("AlexanderRichert-NOAA", "climbfuji", "edwardhartnett", "Hang-Lei-NOAA")
 
+    license("MIT")
+
     version("0.41.0", sha256="4682d8a60260321b92555760be3b9caab60e2a71f95eddbdfb91e557ee93302a")
     version("0.40.0", commit="d6c8af99a1d95b3db36f26b4f22dc3bad89952de")
     version("0.39.0", commit="d0903fa87ff579c30f608bc363582e6563570342")
@@ -26,13 +27,29 @@ class GslLite(CMakePackage):
     version("0.36.0", sha256="c052cc4547b33cedee6f000393a7005915c45c6c06b35518d203db117f75c71c")
     version("0.34.0", sha256="a7d5b2672b78704ca03df9ef65bc274d8f8cacad3ca950365eef9e25b50324c5")
 
-    variant("tests", default=False)
-    variant("cuda_tests", default=False)
-    variant("examples", default=False)
-    variant("static_analysis_demos", default=False)
-    variant("cmake_export_package_registry", default=False)
-    variant("compat_header", default=False)
-    variant("legacy_headers", default=False)
+    depends_on("cxx", type="build")  # generated
+
+    variant("tests", default=False, description="Build and perform gsl-lite tests")
+    variant("cuda_tests", default=False, description="Build and perform gsl-lite CUDA tests")
+    variant("examples", default=False, description="Build gsl-lite examples")
+    variant(
+        "static_analysis_demos",
+        default=False,
+        description="Build and perform gsl-lite static analysis demos",
+    )
+    variant(
+        "cmake_export_package_registry",
+        default=False,
+        description="Export build directory to CMake user package registry",
+    )
+    variant(
+        "compat_header", default=False, description="Install MS-GSL compatibility header <gsl/gsl>"
+    )
+    variant(
+        "legacy_headers",
+        default=False,
+        description="Install legacy headers <gsl.h>, <gsl.hpp>, <gsl/gsl-lite.h>",
+    )
 
     def cmake_args(self):
         args = [

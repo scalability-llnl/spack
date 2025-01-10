@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Set, unset or modify environment variables."""
@@ -10,21 +9,16 @@ import json
 import os
 import os.path
 import pickle
-import platform
 import re
-import socket
+import shlex
+import subprocess
 import sys
 from functools import wraps
-from typing import Any, Callable, Dict, List, MutableMapping, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, MutableMapping, Optional, Tuple, Union
 
+from llnl.path import path_to_os_path, system_path_filter
 from llnl.util import tty
 from llnl.util.lang import dedupe
-
-import spack.platforms
-import spack.spec
-
-from .executable import Executable, which
-from .path import path_to_os_path, system_path_filter
 
 if sys.platform == "win32":
     SYSTEM_PATHS = [
@@ -41,12 +35,15 @@ else:
 
 SYSTEM_DIRS = [os.path.join(p, s) for s in SUFFIXES for p in SYSTEM_PATHS] + SYSTEM_PATHS
 
+#: used in the compiler wrapper's `/usr/lib|/usr/lib64|...)` case entry
+SYSTEM_DIR_CASE_ENTRY = "|".join(sorted(f'"{d}{suff}"' for d in SYSTEM_DIRS for suff in ("", "/")))
 
 _SHELL_SET_STRINGS = {
     "sh": "export {0}={1};\n",
     "csh": "setenv {0} {1};\n",
     "fish": "set -gx {0} {1};\n",
     "bat": 'set "{0}={1}"\n',
+    "pwsh": "$Env:{0}='{1}'\n",
 }
 
 
@@ -55,6 +52,7 @@ _SHELL_UNSET_STRINGS = {
     "csh": "unsetenv {0};\n",
     "fish": "set -e {0};\n",
     "bat": 'set "{0}="\n',
+    "pwsh": "Set-Item -Path Env:{0}\n",
 }
 
 
@@ -62,26 +60,6 @@ TRACING_ENABLED = False
 
 Path = str
 ModificationList = List[Union["NameModifier", "NameValueModifier"]]
-
-
-_find_unsafe = re.compile(r"[^\w@%+=:,./-]", re.ASCII).search
-
-
-def double_quote_escape(s):
-    """Return a shell-escaped version of the string *s*.
-
-    This is similar to how shlex.quote works, but it escapes with double quotes
-    instead of single quotes, to allow environment variable expansion within
-    quoted strings.
-    """
-    if not s:
-        return '""'
-    if _find_unsafe(s) is None:
-        return s
-
-    # use double quotes, and escape double quotes in the string
-    # the string $"b is then quoted as "$\"b"
-    return '"' + s.replace('"', r"\"") + '"'
 
 
 def system_env_normalize(func):
@@ -111,7 +89,7 @@ def is_system_path(path: Path) -> bool:
     return bool(path) and (os.path.normpath(path) in SYSTEM_DIRS)
 
 
-def filter_system_paths(paths: List[Path]) -> List[Path]:
+def filter_system_paths(paths: Iterable[Path]) -> List[Path]:
     """Returns a copy of the input where system paths are filtered out."""
     return [p for p in paths if not is_system_path(p)]
 
@@ -171,14 +149,27 @@ def path_put_first(var_name: str, directories: List[Path]):
 BASH_FUNCTION_FINDER = re.compile(r"BASH_FUNC_(.*?)\(\)")
 
 
-def _env_var_to_source_line(var: str, val: str) -> str:
+def _win_env_var_to_set_line(var: str, val: str) -> str:
+    is_pwsh = os.environ.get("SPACK_SHELL", None) == "pwsh"
+    env_set_phrase = f"$Env:{var}={val}" if is_pwsh else f'set "{var}={val}"'
+    return env_set_phrase
+
+
+def _nix_env_var_to_source_line(var: str, val: str) -> str:
     if var.startswith("BASH_FUNC"):
         source_line = "function {fname}{decl}; export -f {fname}".format(
             fname=BASH_FUNCTION_FINDER.sub(r"\1", var), decl=val
         )
     else:
-        source_line = f"{var}={double_quote_escape(val)}; export {var}"
+        source_line = f"{var}={shlex.quote(val)}; export {var}"
     return source_line
+
+
+def _env_var_to_source_line(var: str, val: str) -> str:
+    if sys.platform == "win32":
+        return _win_env_var_to_set_line(var, val)
+    else:
+        return _nix_env_var_to_source_line(var, val)
 
 
 @system_path_filter(arg_slice=slice(1))
@@ -193,7 +184,7 @@ def dump_environment(path: Path, environment: Optional[MutableMapping[str, str]]
     hidden_vars = {"PS1", "PWD", "OLDPWD", "TERM_SESSION_ID"}
 
     file_descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-    with os.fdopen(file_descriptor, "w") as env_file:
+    with os.fdopen(file_descriptor, "w", encoding="utf-8") as env_file:
         for var, val in sorted(use_env.items()):
             env_file.write(
                 "".join(
@@ -207,43 +198,6 @@ def pickle_environment(path: Path, environment: Optional[Dict[str, str]] = None)
     """Pickle an environment dictionary to a file."""
     with open(path, "wb") as pickle_file:
         pickle.dump(dict(environment if environment else os.environ), pickle_file, protocol=2)
-
-
-def get_host_environment_metadata() -> Dict[str, str]:
-    """Get the host environment, reduce to a subset that we can store in
-    the install directory, and add the spack version.
-    """
-    import spack.main
-
-    environ = get_host_environment()
-    return {
-        "host_os": environ["os"],
-        "platform": environ["platform"],
-        "host_target": environ["target"],
-        "hostname": environ["hostname"],
-        "spack_version": spack.main.get_version(),
-        "kernel_version": platform.version(),
-    }
-
-
-def get_host_environment() -> Dict[str, Any]:
-    """Return a dictionary (lookup) with host information (not including the
-    os.environ).
-    """
-    host_platform = spack.platforms.host()
-    host_target = host_platform.target("default_target")
-    host_os = host_platform.operating_system("default_os")
-    arch_fmt = "platform={0} os={1} target={2}"
-    arch_spec = spack.spec.Spec(arch_fmt.format(host_platform, host_os, host_target))
-    return {
-        "target": str(host_target),
-        "os": str(host_os),
-        "platform": str(host_platform),
-        "arch": arch_spec,
-        "architecture": arch_spec,
-        "arch_str": str(arch_spec),
-        "hostname": socket.gethostname(),
-    }
 
 
 @contextlib.contextmanager
@@ -340,13 +294,20 @@ class NameValueModifier:
 
 
 class SetEnv(NameValueModifier):
-    __slots__ = ("force",)
+    __slots__ = ("force", "raw")
 
     def __init__(
-        self, name: str, value: str, *, trace: Optional[Trace] = None, force: bool = False
+        self,
+        name: str,
+        value: str,
+        *,
+        trace: Optional[Trace] = None,
+        force: bool = False,
+        raw: bool = False,
     ):
         super().__init__(name, value, trace=trace)
         self.force = force
+        self.raw = raw
 
     def execute(self, env: MutableMapping[str, str]):
         tty.debug(f"SetEnv: {self.name}={str(self.value)}", level=3)
@@ -407,7 +368,7 @@ class RemovePath(NameValueModifier):
     def execute(self, env: MutableMapping[str, str]):
         tty.debug(f"RemovePath: {self.name}-{str(self.value)}", level=3)
         environment_value = env.get(self.name, "")
-        directories = environment_value.split(self.separator) if environment_value else []
+        directories = environment_value.split(self.separator)
         directories = [
             path_to_os_path(os.path.normpath(x)).pop()
             for x in directories
@@ -490,15 +451,16 @@ class EnvironmentModifications:
         return Trace(filename=filename, lineno=lineno, context=current_context)
 
     @system_env_normalize
-    def set(self, name: str, value: str, *, force: bool = False):
+    def set(self, name: str, value: str, *, force: bool = False, raw: bool = False):
         """Stores a request to set an environment variable.
 
         Args:
             name: name of the environment variable
             value: value of the environment variable
             force: if True, audit will not consider this modification a warning
+            raw: if True, format of value string is skipped
         """
-        item = SetEnv(name, value, trace=self._trace(), force=force)
+        item = SetEnv(name, value, trace=self._trace(), force=force, raw=raw)
         self.env_modifications.append(item)
 
     @system_env_normalize
@@ -615,6 +577,14 @@ class EnvironmentModifications:
             modifications[item.name].append(item)
         return modifications
 
+    def drop(self, *name) -> bool:
+        """Drop all modifications to the variable with the given name."""
+        old_mods = self.env_modifications
+        new_mods = [x for x in self.env_modifications if x.name not in name]
+        self.env_modifications = new_mods
+
+        return len(old_mods) != len(new_mods)
+
     def is_unset(self, variable_name: str) -> bool:
         """Returns True if the last modification to a variable is to unset it, False otherwise."""
         modifications = self.group_by_name()
@@ -653,8 +623,8 @@ class EnvironmentModifications:
             elif isinstance(envmod, AppendFlagsEnv):
                 rev.remove_flags(envmod.name, envmod.value)
             else:
-                tty.warn(
-                    f"Skipping reversal of unreversable operation {type(envmod)} {envmod.name}"
+                tty.debug(
+                    f"Skipping reversal of irreversible operation {type(envmod)} {envmod.name}"
                 )
 
         return rev
@@ -674,7 +644,7 @@ class EnvironmentModifications:
 
     def shell_modifications(
         self,
-        shell: str = "sh",
+        shell: str = "sh" if sys.platform != "win32" else os.environ.get("SPACK_SHELL", "bat"),
         explicit: bool = False,
         env: Optional[MutableMapping[str, str]] = None,
     ) -> str:
@@ -688,8 +658,8 @@ class EnvironmentModifications:
             for modifier in actions:
                 modifier.execute(new_env)
 
-        if "MANPATH" in new_env and not new_env["MANPATH"].endswith(":"):
-            new_env["MANPATH"] += ":"
+        if "MANPATH" in new_env and not new_env["MANPATH"].endswith(os.pathsep):
+            new_env["MANPATH"] += os.pathsep
 
         cmds = ""
 
@@ -700,12 +670,10 @@ class EnvironmentModifications:
                 if new is None:
                     cmds += _SHELL_UNSET_STRINGS[shell].format(name)
                 else:
-                    if sys.platform != "win32":
-                        cmd = _SHELL_SET_STRINGS[shell].format(
-                            name, double_quote_escape(new_env[name])
-                        )
-                    else:
-                        cmd = _SHELL_SET_STRINGS[shell].format(name, new_env[name])
+                    value = new_env[name]
+                    if shell not in ("bat", "pwsh"):
+                        value = shlex.quote(value)
+                    cmd = _SHELL_SET_STRINGS[shell].format(name, value)
                     cmds += cmd
         return cmds
 
@@ -728,9 +696,9 @@ class EnvironmentModifications:
                 (default: ``&> /dev/null``)
             concatenate_on_success (str): operator used to execute a command
                 only when the previous command succeeds (default: ``&&``)
-            exclude ([str or re]): ignore any modifications of these
+            exclude ([str or re.Pattern[str]]): ignore any modifications of these
                 variables (default: [])
-            include ([str or re]): always respect modifications of these
+            include ([str or re.Pattern[str]]): always respect modifications of these
                 variables (default: []). Supersedes any excluded variables.
             clean (bool): in addition to removing empty entries,
                 also remove duplicate entries (default: False).
@@ -757,16 +725,21 @@ class EnvironmentModifications:
                 "PS1",
                 "PS2",
                 "ENV",
-                # Environment modules v4
+                # Environment Modules or Lmod
                 "LOADEDMODULES",
                 "_LMFILES_",
-                "BASH_FUNC_module()",
                 "MODULEPATH",
-                "MODULES_(.*)",
-                r"(\w*)_mod(quar|share)",
-                # Lmod configuration
-                r"LMOD_(.*)",
                 "MODULERCFILE",
+                "BASH_FUNC_ml()",
+                "BASH_FUNC_module()",
+                # Environment Modules-specific configuration
+                "MODULESHOME",
+                "BASH_FUNC__module_raw()",
+                r"MODULES_(.*)",
+                r"__MODULES_(.*)",
+                r"(\w*)_mod(quar|share)",
+                # Lmod-specific configuration
+                r"LMOD_(.*)",
             ]
         )
 
@@ -1038,8 +1011,8 @@ def environment_after_sourcing_files(
 
     Keyword Args:
         env (dict): the initial environment (default: current environment)
-        shell (str): the shell to use (default: ``/bin/bash``)
-        shell_options (str): options passed to the shell (default: ``-c``)
+        shell (str): the shell to use (default: ``/bin/bash`` or ``cmd.exe`` (Windows))
+        shell_options (str): options passed to the shell (default: ``-c`` or ``/C`` (Windows))
         source_command (str): the command to run (default: ``source``)
         suppress_output (str): redirect used to suppress output of command
             (default: ``&> /dev/null``)
@@ -1047,33 +1020,41 @@ def environment_after_sourcing_files(
             only when the previous command succeeds (default: ``&&``)
     """
     # Set the shell executable that will be used to source files
-    shell_cmd = kwargs.get("shell", "/bin/bash")
-    shell_options = kwargs.get("shell_options", "-c")
-    source_command = kwargs.get("source_command", "source")
-    suppress_output = kwargs.get("suppress_output", "&> /dev/null")
+    if sys.platform == "win32":
+        shell_cmd = kwargs.get("shell", "cmd.exe")
+        shell_options = kwargs.get("shell_options", "/C")
+        suppress_output = kwargs.get("suppress_output", "")
+        source_command = kwargs.get("source_command", "")
+    else:
+        shell_cmd = kwargs.get("shell", "/bin/bash")
+        shell_options = kwargs.get("shell_options", "-c")
+        suppress_output = kwargs.get("suppress_output", "&> /dev/null")
+        source_command = kwargs.get("source_command", "source")
     concatenate_on_success = kwargs.get("concatenate_on_success", "&&")
 
-    shell = Executable(" ".join([shell_cmd, shell_options]))
-
     def _source_single_file(file_and_args, environment):
+        shell_options_list = shell_options.split()
+
         source_file = [source_command]
         source_file.extend(x for x in file_and_args)
         source_file = " ".join(source_file)
 
-        # If the environment contains 'python' use it, if not
-        # go with sys.executable. Below we just need a working
-        # Python interpreter, not necessarily sys.executable.
-        python_cmd = which("python3", "python", "python2")
-        python_cmd = python_cmd.path if python_cmd else sys.executable
-
         dump_cmd = "import os, json; print(json.dumps(dict(os.environ)))"
-        dump_environment_cmd = python_cmd + f' -E -c "{dump_cmd}"'
+        dump_environment_cmd = sys.executable + f' -E -c "{dump_cmd}"'
 
         # Try to source the file
         source_file_arguments = " ".join(
             [source_file, suppress_output, concatenate_on_success, dump_environment_cmd]
         )
-        output = shell(source_file_arguments, output=str, env=environment, ignore_quotes=True)
+
+        with subprocess.Popen(
+            [shell_cmd, *shell_options_list, source_file_arguments],
+            env=environment,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        ) as shell:
+            output, _ = shell.communicate()
+
         return json.loads(output)
 
     current_environment = kwargs.get("env", dict(os.environ))

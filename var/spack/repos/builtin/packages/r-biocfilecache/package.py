@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,7 @@ class RBiocfilecache(RPackage):
 
     bioc = "BiocFileCache"
 
+    version("2.8.0", commit="d088b3224bcee4661d954c77fe38ba8c45ecc51a")
     version("2.6.0", commit="f5b8368c1402b15e8db8eab59217f1176e902e6f")
     version("2.4.0", commit="2c00eee40d95fddad223f115f959b09e1a14f75d")
     version("2.2.1", commit="cc912123408803193bf37395f4d18baa8dcd6f47")
@@ -31,7 +31,7 @@ class RBiocfilecache(RPackage):
     depends_on("r-dbplyr@1.0.0:", type=("build", "run"), when="@1.2.3:")
     depends_on("r-rsqlite", type=("build", "run"))
     depends_on("r-dbi", type=("build", "run"))
-    depends_on("r-rappdirs", type=("build", "run"))
     depends_on("r-filelock", type=("build", "run"), when="@2.2.1:")
     depends_on("r-curl", type=("build", "run"), when="@1.6.0:")
     depends_on("r-httr", type=("build", "run"))
+    depends_on("r-rappdirs", type=("build", "run"), when="@:2.6.0")

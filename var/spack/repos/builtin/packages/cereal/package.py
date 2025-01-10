@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,8 @@ class Cereal(CMakePackage):
     homepage = "https://uscilab.github.io/cereal/"
     url = "https://github.com/USCiLab/cereal/archive/v1.3.2.tar.gz"
 
+    license("BSD-3-Clause")
+
     version("1.3.2", sha256="16a7ad9b31ba5880dac55d62b5d6f243c3ebc8d46a3514149e56b5e7ea81f85f")
     version("1.3.1", sha256="65ea6ddda98f4274f5c10fb3e07b2269ccdd1e5cbb227be6a2fd78b8f382c976")
     version("1.3.0", sha256="329ea3e3130b026c03a4acc50e168e7daff4e6e661bc6a7dfec0d77b570851d5")
@@ -30,6 +31,9 @@ class Cereal(CMakePackage):
     version("1.1.0", sha256="69113debdac9de561f499af4cf7755b2e8c3afa92649b8178b34a7c6bbe4f12f")
     version("1.0.0", sha256="51c31c84d4c9e410e56d8bfc3424076b3234f11aa349ac8cda3db9f18118c125")
     version("0.9.1", sha256="2a99722df9c3d0f75267f732808a4d7e564cb5a35318a3d1c00086e2ef139385")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     patch("Boost.patch", when="@:1.3.0")
     patch("Boost2.patch", when="@1.2.2:1.3.0")

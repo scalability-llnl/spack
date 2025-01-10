@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -37,6 +36,9 @@ class Wgrib2(MakefilePackage):
         sha256="d7f1a4f9872922c62b3c7818c022465532cca1f5666b75d3ac5735f0b2747793",
         extension="tar.gz",
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("netcdf3", default=True, description="Link in netcdf3 library to write netcdf3 files")
     variant(
@@ -113,13 +115,14 @@ class Wgrib2(MakefilePackage):
 
     # Use Spack compiler wrapper flags
     def inject_flags(self, name, flags):
+        spec = self.spec
         if name == "cflags":
-            if self.spec.compiler.name == "apple-clang":
+            if spec.satisfies("%apple-clang"):
                 flags.append("-Wno-error=implicit-function-declaration")
 
             # When mixing Clang/gfortran need to link to -lgfortran
             # Find this by searching for gfortran/../lib
-            if self.spec.compiler.name in ["apple-clang", "clang"]:
+            if spec.satisfies("%apple-clang") or spec.satisfies("%clang"):
                 if "gfortran" in self.compiler.fc:
                     output = Executable(self.compiler.fc)("-###", output=str, error=str)
                     libdir = re.search("--libdir=(.+?) ", output).group(1)
@@ -150,9 +153,10 @@ class Wgrib2(MakefilePackage):
             makefile.filter(r"^%s=.*" % makefile_option, "{}={}".format(makefile_option, value))
 
     def setup_build_environment(self, env):
-        if self.spec.compiler.name in "intel":
+        spec = self.spec
+        if spec.satisfies("%oneapi") or spec.satisfies("%intel"):
             comp_sys = "intel_linux"
-        elif self.spec.compiler.name in ["gcc", "clang", "apple-clang"]:
+        elif spec.satisfies("%gcc") or spec.satisfies("%clang") or spec.satisfies("%apple-clang"):
             comp_sys = "gnu_linux"
 
         env.set("COMP_SYS", comp_sys)

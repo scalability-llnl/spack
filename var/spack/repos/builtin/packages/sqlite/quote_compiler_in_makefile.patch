@@ -1,0 +1,13 @@
+diff --git a/Makefile.msc b/Makefile.msc
+index 95f0eee0d..8fc173e98 100644
+--- a/Makefile.msc
++++ b/Makefile.msc
+@@ -441,6 +441,8 @@ PROGRAMFILES_X86 = $(PROGRAMFILES_X86:\\=\)
+ #
+ !IFNDEF CC
+ CC = cl.exe
++!ELSE
++CC = "$(CC)"
+ !ENDIF
+ 
+ # Check for the predefined command macro CSC.  This should point to a working

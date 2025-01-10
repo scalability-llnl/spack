@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,8 @@ class Libtool(AutotoolsPackage, GNUMirrorPackage):
 
     homepage = "https://www.gnu.org/software/libtool/"
     gnu_mirror_path = "libtool/libtool-2.4.6.tar.gz"
+
+    license("LGPL-2.0-or-later AND GPL-2.0-or-later")
 
     version(
         "develop",
@@ -30,7 +31,15 @@ class Libtool(AutotoolsPackage, GNUMirrorPackage):
         deprecated=True,
     )
 
+    depends_on("c", type="build")  # generated
+
     depends_on("m4@1.4.6:", type="build")
+
+    # the following are places in which libtool depends on findutils
+    # https://github.com/autotools-mirror/libtool/blob/v2.4.7/build-aux/ltmain.in#L3296
+    # https://github.com/autotools-mirror/libtool/blob/v2.4.6/build-aux/ltmain.in#L3278
+    # https://github.com/autotools-mirror/libtool/blob/v2.4.2/libltdl/config/ltmain.m4sh#L3028
+    depends_on("findutils", type="run")
 
     with when("@2.4.2"):
         depends_on("autoconf", type="build")

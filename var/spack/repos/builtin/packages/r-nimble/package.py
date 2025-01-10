@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,6 +25,9 @@ class RNimble(RPackage):
 
     cran = "nimble"
 
+    license("BSD-3-Clause OR GPL-2.0-or-later")
+
+    version("1.2.1", sha256="2e8571e73e5b7553ee84db376444c18e211d4ba542ed415004c5128cb6802587")
     version("0.13.1", sha256="dc70caab64a8a4e44fb13fa6d67f6f2a0453fa684669e24718758bb2a8cf8530")
     version("0.12.2", sha256="2af7a3ab159a7f0b3b4b139da1db45be4b602f2c0e115cb0403b060ab0101a1b")
     version("0.12.1", sha256="3520f3212a48c8cbe08a6a8e57b3a72180594f7c09f647d1daf417c9857867d8")
@@ -36,5 +38,7 @@ class RNimble(RPackage):
     depends_on("r@3.1.2:", type=("build", "run"))
     depends_on("r-igraph", type=("build", "run"))
     depends_on("r-coda", type=("build", "run"))
+    depends_on("r-numderiv", type=("build", "run"), when="@1.2.1:")
+    depends_on("r-pracma", type=("build", "run"), when="@1.2.1:")
     depends_on("r-r6", type=("build", "run"))
     depends_on("gmake", type="build")

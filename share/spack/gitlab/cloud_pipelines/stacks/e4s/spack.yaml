@@ -1,54 +1,45 @@
 spack:
   view: false
+
+  concretizer:
+    reuse: false
+    unify: false
+
   packages:
     all:
-      compiler: [gcc@11.1.0]
+      require: '%gcc target=x86_64_v3'
       providers:
         blas: [openblas]
         mpi: [mpich]
-      require: target=x86_64_v3
-      variants: +mpi amdgpu_target=gfx90a cuda_arch=80
-    tbb:
-      require: "intel-tbb"
+      variants: +mpi
     binutils:
       variants: +ld +gold +headers +libiberty ~nls
-    boost:
-      variants: +python +filesystem +iostreams +system
-    cuda:
-      version: [11.7.0]
-    elfutils:
-      variants: +bzip2 ~nls +xz
     hdf5:
       variants: +fortran +hl +shared
     libfabric:
       variants: fabrics=sockets,tcp,udp,rxm
     libunwind:
       variants: +pic +xz
-    mpich:
-      variants: ~wrapperrpath
-    ncurses:
-      variants: +termlib
     openblas:
       variants: threads=openmp
+    trilinos:
+      variants: +amesos +amesos2 +anasazi +aztec +belos +boost +epetra +epetraext
+        +ifpack +ifpack2 +intrepid +intrepid2 +isorropia +kokkos +ml +minitensor +muelu
+        +nox +piro +phalanx +rol +rythmos +sacado +stk +shards +shylu +stokhos +stratimikos
+        +teko +tempus +tpetra +trilinoscouplings +zoltan +zoltan2 +superlu-dist gotype=long_long
+    mpi:
+      require: mpich
+    mpich:
+      require: '~wrapperrpath ~hwloc target=x86_64_v3'
+    tbb:
+      require: intel-tbb
+    vtk-m:
+      require: "+examples target=x86_64_v3"
+    visit:
+      require: "~gui target=x86_64_v3"
     paraview:
       # Don't build GUI support or GLX rendering for HPC/container deployments
-      require: "@5.11 ~qt+osmesa"
-    python:
-      version: [3.8.13]
-    trilinos:
-      require:
-      - one_of: [+amesos +amesos2 +anasazi +aztec +boost +epetra +epetraext +ifpack
-            +intrepid +intrepid2 +isorropia +kokkos +minitensor +nox +piro +phalanx
-            +rol +rythmos +sacado +stk +shards +stratimikos +tempus +tpetra
-            +trilinoscouplings +zoltan]
-      - one_of: [gotype=long_long, gotype=all]
-      - one_of: [~ml ~muelu ~zoltan2 ~teko, +ml +muelu +zoltan2 +teko]
-      - one_of: [+superlu-dist, ~superlu-dist]
-      - one_of: [+shylu, ~shylu]
-    xz:
-      variants: +pic
-    mesa:
-      version: [21.3.8]
+      require: "+examples ~qt ^[virtuals=gl] osmesa target=x86_64_v3"
 
   specs:
   # CPU
@@ -57,47 +48,62 @@ spack:
   - aml
   - amrex
   - arborx
-  - archer
   - argobots
   - axom
   - bolt
-  - bricks
+  - boost
+  - bricks ~cuda
   - butterflypack
-  - boost +python +filesystem +iostreams +system
   - cabana
   - caliper
-  - chai ~benchmarks ~tests
+  - chai
+  - chapel ~rocm ~cuda
   - charliecloud
   - conduit
+  - cp2k +mpi
   - datatransferkit
+  - dealii ~vtk # https://github.com/spack/spack/pull/45554#issuecomment-2457255720
+  - drishti
+  - dxt-explorer
   - dyninst
-  - ecp-data-vis-sdk ~cuda ~rocm +adios2 +ascent +cinema +darshan +faodel +hdf5 +paraview +pnetcdf +sz +unifyfs +veloc ~visit +vtkm +zfp ^hdf5@1.14
+  - e4s-cl
+  - ecp-data-vis-sdk ~cuda ~rocm +adios2 +ascent +cinema +darshan +faodel +hdf5 +paraview +pnetcdf +sz +unifyfs +veloc +visit +vtkm +zfp # 
   - exaworks
+  - fftx
   - flecsi
   - flit
   - flux-core
   - fortrilinos
+  - fpm
   - gasnet
+  - geopm-runtime
   - ginkgo
   - globalarrays
+  - glvis
   - gmp
   - gotcha
-  - gptune
+  - gptune ~mpispawn
+  - gromacs +cp2k ^cp2k +dlaf build_system=cmake
   - h5bench
   - hdf5-vol-async
   - hdf5-vol-cache
   - hdf5-vol-log
   - heffte +fftw
   - hpctoolkit
-  - hpx max_cpu_count=512 networking=mpi
+  - hpx networking=mpi
   - hypre
+  - julia ^llvm ~clang ~gold ~polly targets=amdgpu,bpf,nvptx,webassembly
   - kokkos +openmp
   - kokkos-kernels +openmp
-  - lammps
+  - laghos
+  - lammps +amoeba +asphere +bocs +body +bpm +brownian +cg-dna +cg-spica +class2 +colloid +colvars +compress +coreshell +dielectric +diffraction +dipole +dpd-basic +dpd-meso +dpd-react +dpd-smooth +drude +eff +electrode +extra-compute +extra-dump +extra-fix +extra-molecule +extra-pair +fep +granular +interlayer +kspace +lepton +machdyn +manybody +mc +meam +mesont +misc +ml-iap +ml-pod +ml-snap +mofff +molecule +openmp-package +opt +orient +peri +phonon +plugin +poems +qeq +reaction +reaxff +replica +rigid +shock +sph +spin +srd +tally +uef +voronoi +yaff
+  - lbann
   - legion
   - libnrm
+  - libpressio +bitgrooming +bzip2 ~cuda ~cusz +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp
   - libquo
   - libunwind
+  - loki
   - mercury
   - metall
   - mfem
@@ -106,10 +112,14 @@ spack:
   - mpifileutils ~xattr
   - nccmp
   - nco
+  - nekbone +mpi
+  - netcdf-fortran
   - netlib-scalapack
   - nrm
   - nvhpc
+  - nwchem
   - omega-h
+  - openfoam
   - openmpi
   - openpmd-api
   - papi
@@ -121,18 +131,17 @@ spack:
   - plasma
   - plumed
   - precice
+  - pruners-ninja
   - pumi
-  - py-h5py +mpi
-  - py-h5py ~mpi
+  - py-amrex
+  - py-h5py
   - py-jupyterhub
-  - py-libensemble +mpi +nlopt
+  - py-libensemble
   - py-petsc4py
-  - py-warpx ^warpx dims=2
-  - py-warpx ^warpx dims=3
-  - py-warpx ^warpx dims=rz
   - qthreads scheduler=distrib
   - quantum-espresso
   - raja
+  - rempi
   - scr
   - slate ~cuda
   - slepc
@@ -141,103 +150,225 @@ spack:
   - sundials
   - superlu
   - superlu-dist
-  - swig
   - swig@4.0.2-fortran
   - sz3
   - tasmanian
-  - tau +mpi +python
-  - trilinos@13.0.1 +belos +ifpack2 +stokhos
+  - tau +mpi +python +syscall
+  - trilinos +amesos +amesos2 +anasazi +aztec +belos +boost +epetra +epetraext +ifpack +ifpack2 +intrepid +intrepid2 +isorropia +kokkos +ml +minitensor +muelu +nox +piro +phalanx +rol +rythmos +sacado +stk +shards +shylu +stokhos +stratimikos +teko +tempus +tpetra +trilinoscouplings +zoltan +zoltan2 +superlu-dist gotype=long_long
   - turbine
   - umap
   - umpire
   - upcxx
   - variorum
-  - veloc
   - wannier90
-  - xyce +mpi +shared +pymi +pymi_static_tpls ^trilinos~shylu
+  - wps
+  - wrf
+  - xyce +mpi +shared +pymi +pymi_static_tpls
+  # INCLUDED IN ECP DAV CPU
+  - adios2
+  - ascent
+  - darshan-runtime
+  - darshan-util
+  - faodel
+  - hdf5
+  - libcatalyst
+  - parallel-netcdf
+  - paraview
+  - py-cinemasci
+  - sz
+  - unifyfs
+  - veloc
+  - visit                           # silo: https://github.com/spack/spack/issues/39538
+  - vtk-m
+  - warpx +python
+  - zfp
+  # --
+  # - nek5000 +mpi +visit             # nek5000: KeyError: 'No spec with name visit in nek5000@19.0/4mtjged6gb5yqgzlpjftjxxasqwqdysh'
 
-  # CUDA
-  - amrex +cuda
-  - arborx +cuda ^kokkos +wrapper
+  # PYTHON PACKAGES
+  - opencv +python3
+  - py-horovod
+  - py-jax
+  - py-jupyterlab
+  - py-matplotlib
+  - py-mpi4py
+  - py-notebook
+  - py-numba
+  - py-numpy
+  - py-openai
+  - py-pandas
+  - py-plotly
+  - py-pooch
+  - py-pytest
+  - py-scikit-learn
+  - py-scipy
+  - py-seaborn
+  - py-tensorflow
+  - py-torch
+  - py-deephyper
+
+  # CUDA NOARCH
   - bricks +cuda
-  - cabana +cuda ^kokkos +wrapper +cuda_lambda +cuda
-  - caliper +cuda
-  - chai ~benchmarks ~tests +cuda ^umpire ~shared
-  - cusz +cuda
-  - dealii +cuda
-  - ecp-data-vis-sdk +cuda ~ascent +adios2 +hdf5 +paraview +sz +vtkm +zfp  ^hdf5@1.14 # Removing ascent because RAJA build failure
-  - flecsi +cuda
   - flux-core +cuda
-  - ginkgo +cuda
-  - heffte +cuda
   - hpctoolkit +cuda
-  - hpx max_cpu_count=512 +cuda
-  - hypre +cuda
-  - kokkos +wrapper +cuda
-  - kokkos-kernels +cuda ^kokkos +wrapper +cuda
-  - magma +cuda
-  - mfem +cuda
-  - mgard +serial +openmp +timing +unstructured +cuda
-  - omega-h +cuda
+  - legion +cuda
   - papi +cuda
-  - petsc +cuda
-  - py-torch +cuda
-  - raja +cuda
-  - slate +cuda
-  - slepc +cuda
-  - strumpack ~slate +cuda
-  - sundials +cuda
-  - superlu-dist +cuda
-  - tasmanian +cuda
-  - tau +mpi +cuda
-  - "trilinos@13.4.0: +belos +ifpack2 +stokhos +cuda"
-  - umpire ~shared +cuda
+  - tau +mpi +cuda +syscall
 
-  # ROCm
-  - amrex +rocm
-  - arborx +rocm
-  - cabana +rocm
-  - caliper +rocm
-  - chai ~benchmarks +rocm
-  - ecp-data-vis-sdk +adios2 +hdf5 +paraview +pnetcdf +sz +vtkm +zfp +rocm ^hdf5@1.14 # Excludes ascent for now due to C++ standard issues
-  - gasnet +rocm
-  - ginkgo +rocm
-  - heffte +rocm
+  # CUDA 80
+  - amrex +cuda cuda_arch=80
+  - arborx +cuda cuda_arch=80 ^kokkos +wrapper
+  - axom +cuda cuda_arch=80
+  - cabana +cuda cuda_arch=80 ^kokkos +wrapper +cuda_lambda +cuda cuda_arch=80
+  - caliper +cuda cuda_arch=80
+  - chai +cuda cuda_arch=80 ^umpire ~shared
+  - chapel +cuda cuda_arch=80
+  - cusz +cuda cuda_arch=80
+  - dealii +cuda cuda_arch=80
+  - ecp-data-vis-sdk ~rocm +adios2 ~ascent +hdf5 +vtkm +zfp ~paraview +cuda cuda_arch=80 # +paraview: FAILED: VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/vtkm/filter/flow/CMakeFiles/vtkm_filter_flow.dir/StreamSurface.cxx.o
+  - exago +mpi +python +raja +hiop ~rocm +cuda cuda_arch=80 ~ipopt ^hiop@1.0.0 ~sparse +mpi +raja ~rocm +cuda cuda_arch=80
+  - fftx +cuda cuda_arch=80
+  - flecsi +cuda cuda_arch=80
+  - ginkgo +cuda cuda_arch=80
+  - gromacs +cuda cuda_arch=80
+  - heffte +cuda cuda_arch=80
+  - hpx +cuda cuda_arch=80
+  - hypre +cuda cuda_arch=80
+  - kokkos +wrapper +cuda cuda_arch=80
+  - kokkos-kernels +cuda cuda_arch=80 ^kokkos +wrapper +cuda cuda_arch=80
+  - libpressio +bitgrooming +bzip2 +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp +json +remote +netcdf +cusz +mgard +cuda cuda_arch=80 ^cusz +cuda cuda_arch=80
+  - magma +cuda cuda_arch=80
+  - mfem +cuda cuda_arch=80
+  - mgard +serial +openmp +timing +unstructured +cuda cuda_arch=80
+  - omega-h +cuda cuda_arch=80
+  - parsec +cuda cuda_arch=80
+  - petsc +cuda cuda_arch=80
+  - py-torch +cuda cuda_arch=80
+  - raja +cuda cuda_arch=80
+  - slate +cuda cuda_arch=80
+  - slepc +cuda cuda_arch=80
+  - strumpack ~slate +cuda cuda_arch=80
+  - sundials +cuda cuda_arch=80
+  - superlu-dist +cuda cuda_arch=80
+  - tasmanian +cuda cuda_arch=80
+  - trilinos +cuda cuda_arch=80
+  - umpire ~shared +cuda cuda_arch=80
+  # INCLUDED IN ECP DAV CUDA
+  - adios2 +cuda cuda_arch=80
+  # - ascent +cuda cuda_arch=80     # ascent: https://github.com/spack/spack/issues/38045
+  # - paraview +cuda cuda_arch=80   # paraview: FAILED: VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/vtkm/filter/flow/CMakeFiles/vtkm_filter_flow.dir/StreamSurface.cxx.o
+  - vtk-m +cuda cuda_arch=80
+  - zfp +cuda cuda_arch=80
+  # --
+  # - lammps +cuda cuda_arch=80     # lammps: needs NVIDIA driver
+  # - lbann +cuda cuda_arch=80      # dihydrogen: hydrogen/device/gpu/CUB.hpp:41:5: error: reference to 'CachingDeviceAllocator' is ambiguous
+  # - upcxx +cuda cuda_arch=80      # upcxx: needs NVIDIA driver
+
+  # CUDA 90
+  - amrex +cuda cuda_arch=90
+  - arborx +cuda cuda_arch=90 ^kokkos +wrapper
+  - axom +cuda cuda_arch=90
+  - cabana +cuda cuda_arch=90 ^kokkos +wrapper +cuda_lambda +cuda cuda_arch=90
+  - caliper +cuda cuda_arch=90
+  - chai +cuda cuda_arch=90 ^umpire ~shared
+  - chapel +cuda cuda_arch=90
+  - cusz +cuda cuda_arch=90
+  - ecp-data-vis-sdk ~rocm +adios2 ~ascent +hdf5 +vtkm +zfp ~paraview +cuda cuda_arch=90 # +paraview: issue with cuda@12; +ascent: # ascent: https://github.com/spack/spack/issues/38045; +paraview: VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/vtkm/exec/cuda/internal/ExecutionPolicy.h(121): error: namespace "thrust" has no member "sort"
+  - fftx +cuda cuda_arch=90
+  - flecsi +cuda cuda_arch=90
+  - ginkgo +cuda cuda_arch=90
+  - gromacs +cuda cuda_arch=90
+  - heffte +cuda cuda_arch=90
+  - hpx +cuda cuda_arch=90
+  - hypre +cuda cuda_arch=90
+  - kokkos +wrapper +cuda cuda_arch=90
+  - kokkos-kernels +cuda cuda_arch=90 ^kokkos +wrapper +cuda cuda_arch=90
+  - libpressio +bitgrooming +bzip2 +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp +json +remote +netcdf +cusz +mgard +cuda cuda_arch=90 ^cusz +cuda cuda_arch=90
+  - magma +cuda cuda_arch=90
+  - mfem +cuda cuda_arch=90
+  - mgard +serial +openmp +timing +unstructured +cuda cuda_arch=90
+  - omega-h +cuda cuda_arch=90
+  - parsec +cuda cuda_arch=90
+  - petsc +cuda cuda_arch=90
+  - py-torch +cuda cuda_arch=90
+  - raja +cuda cuda_arch=90
+  - slate +cuda cuda_arch=90
+  - slepc +cuda cuda_arch=90
+  - strumpack ~slate +cuda cuda_arch=90
+  - sundials +cuda cuda_arch=90
+  - superlu-dist +cuda cuda_arch=90
+  - tasmanian +cuda cuda_arch=90
+  - trilinos +cuda cuda_arch=90
+  - umpire ~shared +cuda cuda_arch=90
+  # INCLUDED IN ECP DAV CUDA
+  - adios2 +cuda cuda_arch=90
+  # - ascent +cuda cuda_arch=90       # ascent: https://github.com/spack/spack/issues/38045
+  # - paraview +cuda cuda_arch=90     # paraview: Cannot satisfy 'cuda@:11' and 'cuda@12.0:
+  - vtk-m +cuda cuda_arch=90
+  - zfp +cuda cuda_arch=90
+  # --
+  # - dealii +cuda cuda_arch=90       # dealii: conflicts with '+cuda ^cuda@12:'; dealii: https://github.com/spack/spack/issues/39532
+  # - lammps +cuda cuda_arch=90       # lammps: needs NVIDIA driver
+  # - lbann +cuda cuda_arch=90       # dihydrogen: hydrogen/device/gpu/CUB.hpp:41:5: error: reference to 'CachingDeviceAllocator' is ambiguous
+  # - upcxx +cuda cuda_arch=90        # upcxx: needs NVIDIA driver
+
+  # ROCM NOARCH
   - hpctoolkit +rocm
-  - hpx max_cpu_count=512 +rocm
-  - hypre +rocm
-  - kokkos +rocm
-  - magma ~cuda +rocm
-  - mfem +rocm
-  - papi +rocm
-  - petsc +rocm
-  - raja ~openmp +rocm
-  - slate +rocm
-  - slepc +rocm ^petsc +rocm
-  - strumpack ~slate +rocm
-  - sundials +rocm
-  - superlu-dist +rocm
-  - tasmanian ~openmp +rocm
-  - tau +mpi +rocm
-  - "trilinos@13.4.0: +belos ~ifpack2 ~stokhos +rocm"
-  - umpire +rocm
-  - upcxx +rocm
+  - tau +mpi +rocm +syscall           # tau: has issue with `spack env depfile` build
 
-  # CPU failures
-  #- geopm                        # /usr/include/x86_64-linux-gnu/bits/string_fortified.h:95:10: error:'__builtin_strncpy' specified bound 512 equals destination size [-Werror=stringop-truncation]
-  #- loki                         # ../include/loki/Singleton.h:158:14: warning: 'template<class> class std::auto_ptr' is deprecated: use 'std::unique_ptr' instead [-Wdeprecated-declarations]
-  #- pruners-ninja                # test/ninja_test_util.c:34: multiple definition of `a';
-  #- rempi                        # rempi_message_manager.h:53:3: error: 'string' does not name a type
+  # ROCM 90a
+  - adios2 +kokkos +rocm amdgpu_target=gfx90a
+  - amrex +rocm amdgpu_target=gfx90a
+  - arborx +rocm amdgpu_target=gfx90a
+  - cabana +rocm amdgpu_target=gfx90a
+  - caliper +rocm amdgpu_target=gfx90a
+  - chai +rocm amdgpu_target=gfx90a
+  - ecp-data-vis-sdk ~paraview +vtkm +rocm amdgpu_target=gfx90a # +paraview: CMake Error at VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/CMakeLists.txt:272 (find_package): Could not find a package configuration file provided by "rocthrust" with any of the following names: rocthrustConfig.cmake rocthrust-config.cmake
+  - gasnet +rocm amdgpu_target=gfx90a
+  - ginkgo +rocm amdgpu_target=gfx90a
+  - heffte +rocm amdgpu_target=gfx90a
+  - hpx +rocm amdgpu_target=gfx90a
+  - hypre +rocm amdgpu_target=gfx90a
+  - kokkos +rocm amdgpu_target=gfx90a
+  - lammps +rocm amdgpu_target=gfx90a
+  - legion +rocm amdgpu_target=gfx90a
+  - magma ~cuda +rocm amdgpu_target=gfx90a
+  - mfem +rocm amdgpu_target=gfx90a
+  - raja ~openmp +rocm amdgpu_target=gfx90a
+  - slate +rocm amdgpu_target=gfx90a
+  - strumpack ~slate +rocm amdgpu_target=gfx90a
+  - sundials +rocm amdgpu_target=gfx90a
+  - superlu-dist +rocm amdgpu_target=gfx90a
+  - tasmanian ~openmp +rocm amdgpu_target=gfx90a
+  - trilinos +amesos +amesos2 +anasazi +aztec +belos +boost +epetra +epetraext +ifpack ~ifpack2 +intrepid +intrepid2 +isorropia +kokkos +ml +minitensor +muelu +nox +piro +phalanx +rol +rythmos +sacado +stk +shards +shylu ~stokhos +stratimikos +teko +tempus +tpetra +trilinoscouplings +zoltan +zoltan2 +superlu-dist gotype=long_long +rocm amdgpu_target=gfx90a
+  - umpire +rocm amdgpu_target=gfx90a
+  - upcxx +rocm amdgpu_target=gfx90a
+  # INCLUDED IN ECP DAV ROCM
+  # - hdf5
+  # - hdf5-vol-async
+  # - hdf5-vol-cache
+  # - hdf5-vol-log
+  # - libcatalyst
+  # - paraview +rocm amdgpu_target=gfx90a # paraview: CMake Error at VTK/ThirdParty/vtkm/vtkvtkm/vtk-m/CMakeLists.txt:272 (find_package): Could not find a package configuration file provided by "rocthrust" with any of the following names: rocthrustConfig.cmake rocthrust-config.cmake
+  - vtk-m ~openmp +rocm amdgpu_target=gfx90a  # vtk-m: https://github.com/spack/spack/issues/40268
+  # --
+  # - chapel +rocm amdgpu_target=gfx90a         # chapel: lld: error: undefined symbol: llvm.amdgcn.readfirstlane.i32
+  # - exago +mpi +python +raja +hiop +rocm amdgpu_target=gfx90a ~ipopt cxxflags="-Wno-error=non-pod-varargs" ^hiop ~sparse +mpi +raja +rocm amdgpu_target=gfx90a # hiop: CMake Error at cmake/FindHiopHipLibraries.cmake:23 (find_package); By not providing "Findhipfft.cmake" in CMAKE_MODULE_PATH this project has asked CMake to find a package configuration file provided by "hipfft", but CMake did not find one.
+  # - fftx +rocm amdgpu_target=gfx90a           # fftx: https://github.com/spack/spack/issues/47034
+  # - lbann ~cuda +rocm amdgpu_target=gfx90a    # concretize: Cannot select a single "version" for package "hiptt"
+  # - papi +rocm amdgpu_target=gfx90a           # papi: https://github.com/spack/spack/issues/27898
+  # - petsc +rocm amdgpu_target=gfx90a          # petsc: hipblas-6.3.0-brvfa2h47yfpawguzbiac6ijtj3b6bcn/include/hipblas/hipblas.h:40:10: fatal error: 'hipblas-common/hipblas-common.h' file not found
+  # - slepc +rocm amdgpu_target=gfx90a ^petsc +rocm amdgpu_target=gfx90a # slepc: ERROR: Unable to link with PETSc
 
-  # CUDA failures
-  #- parsec +cuda                 # parsec/mca/device/cuda/transfer.c:168: multiple definition of `parsec_CUDA_d2h_max_flows';
-
-  mirrors: { "mirror": "s3://spack-binaries/develop/e4s" }
+  # - cp2k +mpi +cuda cuda_arch=80            # cp2k: libxsmm_gemm.c:238: undefined reference to `sgemv_'
+  # - cp2k +mpi +cuda cuda_arch=90            # cp2k: libxsmm_gemm.c:238: undefined reference to `sgemv_'
+  # - cp2k +mpi +rocm amdgpu_target=gfx908    # cp2k: exts/build_dbcsr//Makefile:290: calculate_norms.o] Error 127 (ignored)
+  # - cp2k +mpi +rocm amdgpu_target=gfx90a    # cp2k: exts/build_dbcsr//Makefile:290: calculate_norms.o] Error 127 (ignored)
 
   ci:
     pipeline-gen:
     - build-job:
-        image: "ecpe4s/ubuntu20.04-runner-x86_64:2023-01-01"
+        image: ghcr.io/spack/spack/ubuntu22.04-runner-amd64-gcc-11.4:2024.03.01
 
   cdash:
     build-group: E4S

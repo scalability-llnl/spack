@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,9 @@ class Tcoffee(MakefilePackage):
     git = "https://github.com/cbcrg/tcoffee.git"
 
     version("2017-08-17", commit="f389b558e91d0f82e7db934d9a79ce285f853a71")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("perl", type=("build", "run"))
     depends_on("blast-plus")

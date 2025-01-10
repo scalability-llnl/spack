@@ -1,12 +1,14 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
+import urllib.error
 import urllib.parse
+import urllib.request
+import urllib.response
+from io import BufferedReader, BytesIO, IOBase
 from typing import Any, Dict, Tuple
 
-import spack
 import spack.config
 
 #: Map (mirror name, method) tuples to s3 client instances.
@@ -22,7 +24,7 @@ def get_s3_session(url, method="fetch"):
     from botocore.exceptions import ClientError
 
     # Circular dependency
-    from spack.mirror import MirrorCollection
+    from spack.mirrors.mirror import MirrorCollection
 
     global s3_client_cache
 
@@ -84,27 +86,24 @@ def _parse_s3_endpoint_url(endpoint_url):
 def get_mirror_s3_connection_info(mirror, method):
     """Create s3 config for session/client from a Mirror instance (or just set defaults
     when no mirror is given.)"""
-    from spack.mirror import Mirror
+    from spack.mirrors.mirror import Mirror
 
     s3_connection = {}
     s3_client_args = {"use_ssl": spack.config.get("config:verify_ssl")}
 
     # access token
     if isinstance(mirror, Mirror):
-        access_token = mirror.get_access_token(method)
-        if access_token:
-            s3_connection["aws_session_token"] = access_token
+        credentials = mirror.get_credentials(method)
+        if credentials:
+            if "access_token" in credentials:
+                s3_connection["aws_session_token"] = credentials["access_token"]
 
-        # access pair
-        access_pair = mirror.get_access_pair(method)
-        if access_pair and access_pair[0] and access_pair[1]:
-            s3_connection["aws_access_key_id"] = access_pair[0]
-            s3_connection["aws_secret_access_key"] = access_pair[1]
+            if "access_pair" in credentials:
+                s3_connection["aws_access_key_id"] = credentials["access_pair"][0]
+                s3_connection["aws_secret_access_key"] = credentials["access_pair"][1]
 
-        # profile
-        profile = mirror.get_profile(method)
-        if profile:
-            s3_connection["profile_name"] = profile
+            if "profile" in credentials:
+                s3_connection["profile_name"] = credentials["profile"]
 
         # endpoint url
         endpoint_url = mirror.get_endpoint_url(method) or os.environ.get("S3_ENDPOINT_URL")
@@ -114,4 +113,72 @@ def get_mirror_s3_connection_info(mirror, method):
     if endpoint_url:
         s3_client_args["endpoint_url"] = _parse_s3_endpoint_url(endpoint_url)
 
-    return (s3_connection, s3_client_args)
+    return s3_connection, s3_client_args
+
+
+# NOTE(opadron): Workaround issue in boto where its StreamingBody
+# implementation is missing several APIs expected from IOBase.  These missing
+# APIs prevent the streams returned by boto from being passed as-are along to
+# urllib.
+#
+# https://github.com/boto/botocore/issues/879
+# https://github.com/python/cpython/pull/3249
+class WrapStream(BufferedReader):
+    def __init__(self, raw):
+        # In botocore >=1.23.47, StreamingBody inherits from IOBase, so we
+        # only add missing attributes in older versions.
+        # https://github.com/boto/botocore/commit/a624815eabac50442ed7404f3c4f2664cd0aa784
+        if not isinstance(raw, IOBase):
+            raw.readable = lambda: True
+            raw.writable = lambda: False
+            raw.seekable = lambda: False
+            raw.closed = False
+            raw.flush = lambda: None
+        super().__init__(raw)
+
+    def detach(self):
+        self.raw = None
+
+    def read(self, *args, **kwargs):
+        return self.raw.read(*args, **kwargs)
+
+    def __getattr__(self, key):
+        return getattr(self.raw, key)
+
+
+def _s3_open(url, method="GET"):
+    parsed = urllib.parse.urlparse(url)
+    s3 = get_s3_session(url, method="fetch")
+
+    bucket = parsed.netloc
+    key = parsed.path
+
+    if key.startswith("/"):
+        key = key[1:]
+
+    if method not in ("GET", "HEAD"):
+        raise urllib.error.URLError(
+            "Only GET and HEAD verbs are currently supported for the s3:// scheme"
+        )
+
+    try:
+        if method == "GET":
+            obj = s3.get_object(Bucket=bucket, Key=key)
+            # NOTE(opadron): Apply workaround here (see above)
+            stream = WrapStream(obj["Body"])
+        elif method == "HEAD":
+            obj = s3.head_object(Bucket=bucket, Key=key)
+            stream = BytesIO()
+    except s3.ClientError as e:
+        raise urllib.error.URLError(e) from e
+
+    headers = obj["ResponseMetadata"]["HTTPHeaders"]
+
+    return url, headers, stream
+
+
+class UrllibS3Handler(urllib.request.BaseHandler):
+    def s3_open(self, req):
+        orig_url = req.get_full_url()
+        url, headers, stream = _s3_open(orig_url, method=req.get_method())
+        return urllib.response.addinfourl(stream, headers, url)

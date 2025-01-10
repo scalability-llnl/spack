@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,7 +15,15 @@ class Libgit2(CMakePackage):
     homepage = "https://libgit2.github.com/"
     url = "https://github.com/libgit2/libgit2/archive/v0.26.0.tar.gz"
 
+    version("1.8.0", sha256="9e1d6a880d59026b675456fbb1593c724c68d73c34c0d214d6eb848e9bbd8ae4")
+    version("1.7.2", sha256="de384e29d7efc9330c6cdb126ebf88342b5025d920dcb7c645defad85195ea7f")
+    version("1.7.0", sha256="d9d0f84a86bf98b73e68997f5c1543cc5067d0ca9c7a5acaba3e8d117ecefef3")
     version("1.6.4", sha256="d25866a4ee275a64f65be2d9a663680a5cf1ed87b7ee4c534997562c828e500d")
+    version("1.6.3", sha256="a8e2a09835eabb24ace2fd597a78af182e1e199a894e99a90e4c87c849fcd9c4")
+    version("1.6.2", sha256="d557fbf35557bb5df53cbf38ae0081edb4a36494ec0d19741fa673e509245f8f")
+    version("1.6.1", sha256="25f7d3e2e7f398477a6e18271c5a68510853d0fe826a6287811cebccf92e773f")
+    version("1.5.2", sha256="57638ac0e319078f56a7e17570be754515e5b1276d3750904b4214c92e8fa196")
+    version("1.5.1", sha256="7074f1e2697992b82402501182db254fe62d64877b12f6e4c64656516f4cde88")
     version("1.5.0", sha256="8de872a0f201b33d9522b817c92e14edb4efad18dae95cf156cf240b2efff93e")
     version("1.4.4", sha256="e9923e9916a32f54c661d55d79c28fa304cb23617639e68bff9f94d3e18f2d4b")
     version("1.4.3", sha256="f48b961e463a9e4e7e7e58b21a0fb5a9b2a1d24d9ba4d15870a0c9b8ad965163")
@@ -58,6 +65,8 @@ class Libgit2(CMakePackage):
     version("0.26.1", sha256="68cd0f8ee9e0ca84dcf0f0267d0a8297471d3365622d22d3da67c57165bb0722")
     version("0.26.0", sha256="6a62393e0ceb37d02fe0d5707713f504e7acac9006ef33da1e88960bd78b6eac")
 
+    depends_on("c", type="build")  # generated
+
     # Backends
     variant(
         "https",
@@ -77,11 +86,11 @@ class Libgit2(CMakePackage):
     depends_on("cmake@2.8:", type="build", when="@:0.28")
     depends_on("cmake@3.5:", type="build", when="@0.99:")
     depends_on("pkgconfig", type="build")
+    depends_on("python", type="test")
 
     # Runtime Dependencies
     depends_on("libssh2", when="+ssh")
     depends_on("openssl", when="https=system platform=linux")
-    depends_on("openssl", when="https=system platform=cray")
     depends_on("openssl", when="https=openssl")
     depends_on("curl", when="+curl")
     depends_on("pcre", when="@0.99:")
@@ -95,27 +104,28 @@ class Libgit2(CMakePackage):
 
     def cmake_args(self):
         args = []
-        if "https=system" in self.spec:
-            if "platform=linux" in self.spec or "platform=cray" in self.spec:
+        if self.spec.satisfies("https=system"):
+            if self.spec.satisfies("platform=linux"):
                 args.append("-DUSE_HTTPS=OpenSSL")
-            elif "platform=darwin" in self.spec:
+            elif self.spec.satisfies("platform=darwin"):
                 args.append("-DUSE_HTTPS=SecureTransport")
             else:
                 # Let CMake try to find an HTTPS implementation. Mileage on
                 # your platform may vary
                 args.append("-DUSE_HTTPS=ON")
-        elif "https=openssl" in self.spec:
+        elif self.spec.satisfies("https=openssl"):
             args.append("-DUSE_HTTPS=OpenSSL")
         else:
             args.append("-DUSE_HTTPS=OFF")
 
-        args.append("-DUSE_SSH={0}".format("ON" if "+ssh" in self.spec else "OFF"))
+        args.append(f"-DUSE_SSH={'ON' if '+ssh' in self.spec else 'OFF'}")
 
         # The curl backed is not supported after 0.27.x
-        if "@:0.27 +curl" in self.spec:
-            args.append("-DCURL={0}".format("ON" if "+curl" in self.spec else "OFF"))
+        if self.spec.satisfies("@:0.27 +curl"):
+            args.append(f"-DCURL={'ON' if '+curl' in self.spec else 'OFF'}")
 
         # Control tests
         args.append(self.define("BUILD_CLAR", self.run_tests))
+        args.append(self.define("BUILD_TESTS", self.run_tests))
 
         return args

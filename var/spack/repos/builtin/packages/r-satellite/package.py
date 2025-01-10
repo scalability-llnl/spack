@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,9 @@ class RSatellite(RPackage):
 
     cran = "satellite"
 
+    license("MIT")
+
+    version("1.0.5", sha256="3e4c382f905eb0b2d84f03423af2960854e5cf94905a373c6ba3f41a2b72a1ad")
     version("1.0.4", sha256="99e79577a70489930c32da46ac26453af53e21c2d3a99f51fbf1f55f2d80dc7c")
     version("1.0.2", sha256="6447476bd31216e5abe504221e465677954d07419b4174ab4f4e4f7a197969c5")
 

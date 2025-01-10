@@ -1,19 +1,17 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-from __future__ import print_function
-
-import contextlib
+import concurrent.futures
 import multiprocessing
 import os
 import sys
 import traceback
+from typing import Optional
 
-from .cpus import cpus_available
+import spack.config
 
 
-class ErrorFromWorker(object):
+class ErrorFromWorker:
     """Wrapper class to report an error from a worker process"""
 
     def __init__(self, exc_cls, exc, tb):
@@ -39,7 +37,7 @@ class ErrorFromWorker(object):
         return self.error_message
 
 
-class Task(object):
+class Task:
     """Wrapped task that trap every Exception and return it as an
     ErrorFromWorker object.
 
@@ -58,79 +56,55 @@ class Task(object):
         return value
 
 
-def raise_if_errors(*results, **kwargs):
-    """Analyze results from worker Processes to search for ErrorFromWorker
-    objects. If found print all of them and raise an exception.
+def imap_unordered(
+    f, list_of_args, *, processes: int, maxtaskperchild: Optional[int] = None, debug=False
+):
+    """Wrapper around multiprocessing.Pool.imap_unordered.
 
     Args:
-        *results: results from worker processes
-        debug: if True show complete stacktraces
-
-    Raise:
-        RuntimeError: if ErrorFromWorker objects are in the results
-    """
-    debug = kwargs.get("debug", False)  # This can be a keyword only arg in Python 3
-    errors = [x for x in results if isinstance(x, ErrorFromWorker)]
-    if not errors:
-        return
-
-    msg = "\n".join([error.stacktrace if debug else str(error) for error in errors])
-
-    error_fmt = "{0}"
-    if len(errors) > 1 and not debug:
-        error_fmt = "errors occurred during concretization of the environment:\n{0}"
-
-    raise RuntimeError(error_fmt.format(msg))
-
-
-@contextlib.contextmanager
-def pool(*args, **kwargs):
-    """Context manager to start and terminate a pool of processes, similar to the
-    default one provided in Python 3.X
-
-    Arguments are forwarded to the multiprocessing.Pool.__init__ method.
-    """
-    try:
-        p = multiprocessing.Pool(*args, **kwargs)
-        yield p
-    finally:
-        p.terminate()
-        p.join()
-
-
-def num_processes(max_processes=None):
-    """Return the number of processes in a pool.
-
-    Currently the function return the minimum between the maximum number
-    of processes and the cpus available.
-
-    When a maximum number of processes is not specified return the cpus available.
-
-    Args:
-        max_processes (int or None): maximum number of processes allowed
-    """
-    max_processes or cpus_available()
-    return min(cpus_available(), max_processes)
-
-
-def parallel_map(func, arguments, max_processes=None, debug=False):
-    """Map a task object to the list of arguments, return the list of results.
-
-    Args:
-        func (Task): user defined task object
-        arguments (list): list of arguments for the task
-        max_processes (int or None): maximum number of processes allowed
-        debug (bool): if False, raise an exception containing just the error messages
+        f: function to apply
+        list_of_args: list of tuples of args for the task
+        processes: maximum number of processes allowed
+        debug: if False, raise an exception containing just the error messages
             from workers, if True an exception with complete stacktraces
+        maxtaskperchild: number of tasks to be executed by a child before being
+            killed and substituted
 
     Raises:
         RuntimeError: if any error occurred in the worker processes
     """
-    task_wrapper = Task(func)
-    if sys.platform != "darwin" and sys.platform != "win32":
-        with pool(processes=num_processes(max_processes=max_processes)) as p:
-            results = p.map(task_wrapper, arguments)
-    else:
-        results = list(map(task_wrapper, arguments))
-    raise_if_errors(*results, debug=debug)
-    return results
+    if sys.platform in ("darwin", "win32") or len(list_of_args) == 1:
+        yield from map(f, list_of_args)
+        return
+
+    with multiprocessing.Pool(processes, maxtasksperchild=maxtaskperchild) as p:
+        for result in p.imap_unordered(Task(f), list_of_args):
+            if isinstance(result, ErrorFromWorker):
+                raise RuntimeError(result.stacktrace if debug else str(result))
+            yield result
+
+
+class SequentialExecutor(concurrent.futures.Executor):
+    """Executor that runs tasks sequentially in the current thread."""
+
+    def submit(self, fn, *args, **kwargs):
+        """Submit a function to be executed."""
+        future = concurrent.futures.Future()
+        try:
+            future.set_result(fn(*args, **kwargs))
+        except Exception as e:
+            future.set_exception(e)
+        return future
+
+
+def make_concurrent_executor(
+    jobs: Optional[int] = None, *, require_fork: bool = True
+) -> concurrent.futures.Executor:
+    """Create a concurrent executor. If require_fork is True, then the executor is sequential
+    if the platform does not enable forking as the default start method. Effectively
+    require_fork=True makes the executor sequential in the current process on Windows, macOS, and
+    Linux from Python 3.14+ (which changes defaults)"""
+    if require_fork and multiprocessing.get_start_method() != "fork":
+        return SequentialExecutor()
+    jobs = jobs or spack.config.determine_number_of_jobs(parallel=True)
+    return concurrent.futures.ProcessPoolExecutor(jobs)

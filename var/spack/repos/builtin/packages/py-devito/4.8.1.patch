@@ -1,0 +1,15 @@
+--- a/requirements-mpi.txt      1970-01-01 01:00:00.000000000 +0100
++++ b/requirements-mpi.txt      2023-05-25 16:18:04.000000000 +0200
+@@ -0,0 +1,2 @@
++mpi4py<4.0
++ipyparallel<8.6
+diff -Nur a/requirements-nvidia.txt b/requirements-nvidia.txt
+--- a/requirements-nvidia.txt   1970-01-01 01:00:00.000000000 +0100
++++ b/requirements-nvidia.txt   2023-05-25 16:17:56.000000000 +0200
+@@ -0,0 +1,6 @@
++cupy-cuda110
++dask-cuda
++jupyterlab>=3
++jupyterlab-nvdashboard
++dask_labextension
++fsspec

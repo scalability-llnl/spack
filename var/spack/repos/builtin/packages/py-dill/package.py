@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,6 +10,8 @@ class PyDill(PythonPackage):
 
     homepage = "https://github.com/uqfoundation/dill"
     pypi = "dill/dill-0.2.7.tar.gz"
+
+    license("BSD-3-Clause")
 
     version("0.3.6", sha256="e5db55f3687856d8fbdab002ed78544e1c4559a130302693d839dfe8f93f2373")
     version("0.3.5.1", sha256="d75e41f3eff1eee599d738e76ba8f4ad98ea229db8b085318aa2b3333a208c86")

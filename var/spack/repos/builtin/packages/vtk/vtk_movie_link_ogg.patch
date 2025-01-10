@@ -1,0 +1,12 @@
+diff --git a/IO/Movie/module.cmake b/IO/Movie/module.cmake
+index 4275171403..dd1efc3dd9 100644
+--- a/IO/Movie/module.cmake
++++ b/IO/Movie/module.cmake
+@@ -1,6 +1,6 @@
+ if(NOT CMAKE_C_COMPILER_ID STREQUAL "XL")
+   if(NOT ${CMAKE_CROSSCOMPILING})
+-    set(vtkIOMovie_vtkoggtheora vtktheora)
++    set(vtkIOMovie_vtkoggtheora vtkogg vtktheora)
+   endif()
+ endif()
+ vtk_module(vtkIOMovie

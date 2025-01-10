@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,9 @@ class RGooglesheets4(RPackage):
 
     cran = "googlesheets4"
 
+    license("MIT")
+
+    version("1.1.1", sha256="c5cc63348c54b9de8492e7b12b249245746ea1ff33e306f12431f4fc9386fccf")
     version("1.1.0", sha256="50e15543bef5b8d8cda36f6ea8a1d59b256d889cd3cedddc91f00ae30c8c8ec9")
     version("1.0.1", sha256="284ecbce98944093cb065c1b0b32074eae7b45fd74b87d7815c7ca6deca76591")
     version("1.0.0", sha256="0a107d76aac99d6db48d97ce55810c1412b2197f457b8476f676169a36c7cc7a")
@@ -26,12 +28,13 @@ class RGooglesheets4(RPackage):
     depends_on("r@3.3:", type=("build", "run"))
     depends_on("r@3.4:", type=("build", "run"), when="@1.0.1:")
     depends_on("r@3.5:", type=("build", "run"), when="@1.1.0:")
+    depends_on("r@3.6:", type=("build", "run"), when="@1.1.1:")
     depends_on("r-cellranger", type=("build", "run"))
     depends_on("r-cli@3.0.0:", type=("build", "run"))
     depends_on("r-curl", type=("build", "run"))
-    depends_on("r-gargle@1.2.0", type=("build", "run"))
-    depends_on("r-gargle@1.2.0:", type=("build", "run"), when="@1.0.1:")
+    depends_on("r-gargle@1.2.0:", type=("build", "run"), when="@1.0.0:")
     depends_on("r-gargle@1.3.0:", type=("build", "run"), when="@1.1.0:")
+    depends_on("r-gargle@1.5.0:", type=("build", "run"), when="@1.1.1:")
     depends_on("r-glue@1.3.0:", type=("build", "run"))
     depends_on("r-googledrive@2.0.0:", type=("build", "run"))
     depends_on("r-googledrive@2.1.0:", type=("build", "run"), when="@1.1.0:")

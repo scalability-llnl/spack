@@ -1,12 +1,12 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
+from spack.pkg.builtin.mpich import MpichEnvironmentModifications
 
 
-class CrayMvapich2(Package):
+class CrayMvapich2(MpichEnvironmentModifications, Package):
     """Cray/HPE packaging of MVAPICH2 for HPE Apollo systems"""
 
     homepage = "https://docs.nersc.gov/development/compilers/wrappers/"
@@ -26,32 +26,13 @@ class CrayMvapich2(Package):
 
     provides("mpi@3")
 
+    requires("platform=linux", msg="Cray MVAPICH2 is only available on Cray")
+
     def setup_run_environment(self, env):
-        env.set("MPICC", spack_cc)
-        env.set("MPICXX", spack_cxx)
-        env.set("MPIF77", spack_fc)
-        env.set("MPIF90", spack_fc)
-
-    def setup_dependent_build_environment(self, env, dependent_spec):
-        self.setup_run_environment(env)
-
-        env.set("MPICH_CC", spack_cc)
-        env.set("MPICH_CXX", spack_cxx)
-        env.set("MPICH_F77", spack_f77)
-        env.set("MPICH_F90", spack_fc)
-        env.set("MPICH_FC", spack_fc)
-
-    def setup_dependent_package(self, module, dependent_spec):
-        spec = self.spec
-        spec.mpicc = spack_cc
-        spec.mpicxx = spack_cxx
-        spec.mpifc = spack_fc
-        spec.mpif77 = spack_f77
-
-        spec.mpicxx_shared_libs = [
-            join_path(self.prefix.lib, "libmpicxx.{0}".format(dso_suffix)),
-            join_path(self.prefix.lib, "libmpi.{0}".format(dso_suffix)),
-        ]
+        env.set("MPICC", self.compiler.cc)
+        env.set("MPICXX", self.compiler.cxx)
+        env.set("MPIFC", self.compiler.fc)
+        env.set("MPIF77", self.compiler.f77)
 
     def install(self, spec, prefix):
         raise InstallError(

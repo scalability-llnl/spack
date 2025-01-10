@@ -1,10 +1,11 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 
+import spack.compilers
+import spack.spec
 from spack.package import *
 
 
@@ -17,15 +18,37 @@ class Claw(CMakePackage):
     git = "https://github.com/claw-project/claw-compiler.git"
     maintainers("clementval", "skosukhin")
 
-    version("2.0.3", tag="v2.0.3", submodules=True)
-    version("2.0.2", tag="v2.0.2", submodules=True)
-    version("2.0.1", tag="v2.0.1", submodules=True)
-    version("2.0", tag="v2.0", submodules=True)
-    version("1.2.3", tag="v1.2.3", submodules=True)
-    version("1.2.2", tag="v1.2.2", submodules=True)
-    version("1.2.1", tag="v1.2.1", submodules=True)
-    version("1.2.0", tag="v1.2.0", submodules=True)
-    version("1.1.0", tag="v1.1.0", submodules=True)
+    license("BSD-2-Clause")
+
+    version(
+        "2.0.3", tag="v2.0.3", commit="4d8bc7a794af3651b8b61501388fc00096b23a85", submodules=True
+    )
+    version(
+        "2.0.2", tag="v2.0.2", commit="8c012d58484d8caf79a4fe45597dc74b4367421c", submodules=True
+    )
+    version(
+        "2.0.1", tag="v2.0.1", commit="f5acc929df74ce66a328aa4eda9cc9664f699b91", submodules=True
+    )
+    version("2.0", tag="v2.0", commit="53e705b8bfce40a5c5636e8194a7622e337cf4f5", submodules=True)
+    version(
+        "1.2.3", tag="v1.2.3", commit="eaf5e5fb39150090e51bec1763170ce5c5355198", submodules=True
+    )
+    version(
+        "1.2.2", tag="v1.2.2", commit="fc27a267eef9f412dd6353dc0b358a05b3fb3e16", submodules=True
+    )
+    version(
+        "1.2.1", tag="v1.2.1", commit="939989ab52edb5c292476e729608725654d0a59a", submodules=True
+    )
+    version(
+        "1.2.0", tag="v1.2.0", commit="fc9c50fe02be97b910ff9c7015064f89be88a3a2", submodules=True
+    )
+    version(
+        "1.1.0", tag="v1.1.0", commit="16b165a443b11b025a77cad830b1280b8c9bcf01", submodules=True
+    )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("cmake@3.0:", type="build")
     depends_on("ant@1.9:", type="build")

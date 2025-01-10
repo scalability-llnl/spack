@@ -1,8 +1,6 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import inspect
 from typing import List  # novm
 
 import llnl.util.filesystem as fs
@@ -11,7 +9,7 @@ import spack.builder
 import spack.package_base
 from spack.directives import build_system, conflicts
 
-from ._checks import BaseBuilder
+from ._checks import BuilderWithDefaults
 
 
 class NMakePackage(spack.package_base.PackageBase):
@@ -24,11 +22,10 @@ class NMakePackage(spack.package_base.PackageBase):
     build_system("nmake")
     conflicts("platform=linux", when="build_system=nmake")
     conflicts("platform=darwin", when="build_system=nmake")
-    conflicts("platform=cray", when="build_system=nmake")
 
 
 @spack.builder.builder("nmake")
-class NMakeBuilder(BaseBuilder):
+class NMakeBuilder(BuilderWithDefaults):
     """The NMake builder encodes the most common way of building software with
     Mircosoft's NMake tool. It has two phases that can be overridden, if need be:
 
@@ -77,7 +74,11 @@ class NMakeBuilder(BaseBuilder):
     @property
     def build_directory(self):
         """Return the directory containing the makefile."""
-        return self.pkg.stage.source_path if not self.makefile_root else self.makefile_root
+        return (
+            fs.windows_sfn(self.pkg.stage.source_path)
+            if not self.makefile_root
+            else fs.windows_sfn(self.makefile_root)
+        )
 
     @property
     def std_nmake_args(self):
@@ -95,7 +96,7 @@ class NMakeBuilder(BaseBuilder):
         return self.stage.source_path
 
     @property
-    def nmakefile_name(self):
+    def makefile_name(self):
         """Name of the current makefile. This is currently an empty value.
         If a project defines this value, it will be used with the /f argument
         to provide nmake an explicit makefile. This is usefule in scenarios where
@@ -126,12 +127,10 @@ class NMakeBuilder(BaseBuilder):
         """Run "nmake" on the build targets specified by the builder."""
         opts = self.std_nmake_args
         opts += self.nmake_args()
-        if self.nmakefile_name:
-            opts.append("/f {}".format(self.nmakefile_name))
+        if self.makefile_name:
+            opts.append("/F{}".format(self.makefile_name))
         with fs.working_dir(self.build_directory):
-            inspect.getmodule(self.pkg).nmake(
-                *opts, *self.build_targets, ignore_quotes=self.ignore_quotes
-            )
+            pkg.module.nmake(*opts, *self.build_targets, ignore_quotes=self.ignore_quotes)
 
     def install(self, pkg, spec, prefix):
         """Run "nmake" on the install targets specified by the builder.
@@ -139,10 +138,8 @@ class NMakeBuilder(BaseBuilder):
         opts = self.std_nmake_args
         opts += self.nmake_args()
         opts += self.nmake_install_args()
-        if self.nmakefile_name:
-            opts.append("/f {}".format(self.nmakefile_name))
-        opts.append(self.define("PREFIX", prefix))
+        if self.makefile_name:
+            opts.append("/F{}".format(self.makefile_name))
+        opts.append(self.define("PREFIX", fs.windows_sfn(prefix)))
         with fs.working_dir(self.build_directory):
-            inspect.getmodule(self.pkg).nmake(
-                *opts, *self.install_targets, ignore_quotes=self.ignore_quotes
-            )
+            pkg.module.nmake(*opts, *self.install_targets, ignore_quotes=self.ignore_quotes)

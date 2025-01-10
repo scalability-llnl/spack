@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,7 +11,10 @@ class PyNbdime(PythonPackage):
     homepage = "https://nbdime.readthedocs.io/"
     pypi = "nbdime/nbdime-3.1.1.tar.gz"
 
-    version("3.1.1", sha256="67767320e971374f701a175aa59abd3a554723039d39fae908e72d16330d648b")
+    version("3.2.1", sha256="31409a30f848ffc6b32540697e82d5a0a1b84dcc32716ca74e78bcc4b457c453")
+    with default_args(deprecated=True):
+        # https://nvd.nist.gov/vuln/detail/CVE-2021-41134
+        version("3.1.1", sha256="67767320e971374f701a175aa59abd3a554723039d39fae908e72d16330d648b")
 
     depends_on("python@3.6:", type=("build", "run"))
     depends_on("py-setuptools@40.8.0:", type="build")

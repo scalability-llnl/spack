@@ -1,278 +1,250 @@
 spack:
   view: false
-  compilers:
-  - compiler:
-      spec: dpcpp@2023.0.0
-      paths:
-        cc: /opt/intel/oneapi/compiler/2023.0.0/linux/bin/icx
-        cxx: /opt/intel/oneapi/compiler/2023.0.0/linux/bin/dpcpp
-        f77: /opt/intel/oneapi/compiler/2023.0.0/linux/bin/ifx
-        fc: /opt/intel/oneapi/compiler/2023.0.0/linux/bin/ifx
-      flags: {}
-      operating_system: ubuntu20.04
-      target: x86_64
-      modules: [compiler]
-      environment:
-        prepend_path:
-          LD_LIBRARY_PATH: /opt/intel/oneapi/compiler/2023.0.0/linux/compiler/lib/intel64_lin
-      extra_rpaths: []
-  - compiler:
-      spec: oneapi@2023.0.0
-      paths:
-        cc: /opt/intel/oneapi/compiler/2023.0.0/linux/bin/icx
-        cxx: /opt/intel/oneapi/compiler/2023.0.0/linux/bin/icpx
-        f77: /opt/intel/oneapi/compiler/2023.0.0/linux/bin/ifx
-        fc: /opt/intel/oneapi/compiler/2023.0.0/linux/bin/ifx
-      flags: {}
-      operating_system: ubuntu20.04
-      target: x86_64
-      modules: [compiler]
-      environment:
-        prepend_path:
-          LD_LIBRARY_PATH: /opt/intel/oneapi/compiler/2023.0.0/linux/compiler/lib/intel64_lin
-      extra_rpaths: []
-  - compiler:
-      spec: gcc@11.1.0
-      paths:
-        cc: /usr/bin/gcc
-        cxx: /usr/bin/g++
-        f77: /usr/bin/gfortran
-        fc: /usr/bin/gfortran
-      flags: {}
-      operating_system: ubuntu20.04
-      target: x86_64
-      modules: []
-      environment: {}
-      extra_rpaths: []
+
+  concretizer:
+    reuse: false
+    unify: false
 
   packages:
     all:
-      require: '%oneapi'
+      require:
+      - "target=x86_64_v3"
+      - "%oneapi"
       providers:
         blas: [openblas]
-        mpi: [mpich]
-      target: [x86_64]
+        tbb: [intel-tbb]
       variants: +mpi
+    gl:
+      require: osmesa
     elfutils:
-      variants: +bzip2 ~nls +xz
+      variants: ~nls
+    gcc-runtime:
+      require: "%gcc target=x86_64_v3"
     hdf5:
       variants: +fortran +hl +shared
     libfabric:
       variants: fabrics=sockets,tcp,udp,rxm
     libunwind:
       variants: +pic +xz
-    mpich:
-      variants: ~wrapperrpath
     ncurses:
       variants: +termlib
     openblas:
       variants: threads=openmp
-    python:
-      version: [3.8.13]
     trilinos:
       variants: +amesos +amesos2 +anasazi +aztec +belos +boost +epetra +epetraext
         +ifpack +ifpack2 +intrepid +intrepid2 +isorropia +kokkos +ml +minitensor +muelu
         +nox +piro +phalanx +rol +rythmos +sacado +stk +shards +shylu +stokhos +stratimikos
         +teko +tempus +tpetra +trilinoscouplings +zoltan +zoltan2 +superlu-dist gotype=long_long
-    vtk-m:
-      require: ~openmp
     xz:
       variants: +pic
-    mesa:
-      version: [21.3.8]
-
-    binutils:
-      require: '%gcc'
-      variants: +ld +gold +headers +libiberty ~nls
-    bison:
-      require: '%gcc'
-    krb5:
-      require: '%gcc'
-    llvm:
-      require: '%gcc'
-    m4:
-      require: '%gcc'
-    openssh:
-      require: '%gcc'
-    papi:
-      require: '%gcc'
-    py-scipy:
-      require: '%gcc'
-    ruby:
-      require: '%gcc'
-    rust:
-      require: '%gcc'
+    mpi:
+      require: 'mpich@4: target=x86_64_v3'
+    mpich:
+      require: '~wrapperrpath ~hwloc target=x86_64_v3'
     unzip:
-      require: '%gcc'
+      require: '%gcc target=x86_64_v3'
+    binutils:
+      require: '%gcc target=x86_64_v3'
+      variants: +ld +gold +headers +libiberty ~nls
+    llvm:
+      require: '%gcc target=x86_64_v3'
+    ruby:
+      require: '%gcc target=x86_64_v3'
+    rust:
+      require: '%gcc target=x86_64_v3'
+    krb5:
+      require: '%gcc target=x86_64_v3'
+    papi:
+      require: '%gcc target=x86_64_v3'
+    openssh:
+      require: '%gcc target=x86_64_v3'
+    dyninst:
+      require: "%gcc target=x86_64_v3"
+    bison:
+      require: '%gcc target=x86_64_v3'
+    paraview:
+      require: "+examples %oneapi target=x86_64_v3"
 
   specs:
   # CPU
   - adios
-  - adios2
   - alquimia
   - aml
-  - arborx
-  - archer
-  - argobots
-  - ascent
   - amrex
+  - arborx
+  - argobots
   - axom
   - bolt
+  - boost
+  - bricks ~cuda
   - butterflypack
   - cabana
   - caliper
-  - chai ~benchmarks ~tests
+  - chai
+  - charliecloud
   - conduit
-  - darshan-runtime
-  - darshan-util
   - datatransferkit
-  - faodel
+  - dealii ~vtk ~taskflow cflags=-O0 cxxflags=-O0 # +vtk +taskflow: ^taskflow: CMake Error at CMakeLists.txt:81 (message): Taskflow currently supports the following compilers: g++ v7.0 or above, clang++ v6.0 or above; use -O0 to work around compiler failure
+  - drishti
+  - dxt-explorer
+  - ecp-data-vis-sdk ~cuda ~rocm +adios2 ~ascent +cinema +darshan +faodel +hdf5 +paraview +pnetcdf +sz +unifyfs +veloc ~visit +vtkm +zfp # +ascent: fides: fides/xgc/XGCCommon.cxx:233:10: error: no member named 'iota' in namespace 'std'; +visit: visit_vtk/lightweight/vtkSkewLookupTable.C:32:10: error: cannot initialize return object of type 'unsigned char *' with an rvalue of type 'const unsigned char *'
+  - exaworks
+  - flecsi
   - flit
+  - flux-core
   - fortrilinos
   - gasnet
+  - ginkgo
   - globalarrays
+  - glvis ^llvm
   - gmp
   - gotcha
-  - hdf5 +fortran +hl +shared
+  - gptune ~mpispawn
+  - gromacs
+  - h5bench
+  - hdf5-vol-async
+  - hdf5-vol-cache
+  - hdf5-vol-log
   - heffte +fftw
+  - hpx networking=mpi
   - hypre
-  - kokkos-kernels +openmp
   - kokkos +openmp
+  - kokkos-kernels +openmp
+  - laghos
   - lammps
   - legion
   - libnrm
+  - libpressio +bitgrooming +bzip2 ~cuda ~cusz +fpzip +hdf5 +libdistributed +lua +openmp +python +sz +sz3 +unix +zfp
   - libquo
   - libunwind
   - loki
   - mercury
   - metall
   - mfem
+  - mgard +serial +openmp +timing +unstructured ~cuda
   - mpark-variant
   - mpifileutils ~xattr
   - nccmp
   - nco
   - netlib-scalapack
+  - nrm
+  - nwchem
   - omega-h
+  - openfoam
   - openmpi
   - openpmd-api
   - papi
   - papyrus
-  - parallel-netcdf
   - parsec ~cuda
   - pdt
   - petsc
-  - plasma
+  - phist
   - plumed
   - precice
+  - pruners-ninja
   - pumi
+  - py-amrex ~ipo                   # oneAPI 2024.2.0 builds do not support IPO/LTO says CMake, even though pybind11 strongly encourages it
+  - py-h5py
+  - py-jupyterhub
   - py-libensemble
   - py-petsc4py
   - qthreads scheduler=distrib
   - raja
   - rempi
+  - scr
   - slate ~cuda
   - slepc
   - stc
   - strumpack ~slate
   - sundials
-  - superlu-dist
   - superlu
-  - swig
-  - sz
+  - superlu-dist
+  - swig@4.0.2-fortran
+  - sz3
   - tasmanian
-  - trilinos@13.0.1 +amesos +amesos2 +anasazi +aztec +belos +boost +epetra +epetraext
-    +ifpack +ifpack2 +intrepid +intrepid2 +isorropia +kokkos +ml +minitensor +muelu
-    +nox +piro +phalanx +rol +rythmos +sacado +stk +shards +shylu +stokhos +stratimikos
-    +teko +tempus +tpetra +trilinoscouplings +zoltan +zoltan2 +superlu-dist gotype=long_long
+  - tau +mpi +python +syscall
+  - trilinos +amesos +amesos2 +anasazi +aztec +belos +boost +epetra +epetraext +ifpack +ifpack2 +intrepid +intrepid2 +isorropia +kokkos +ml +minitensor +muelu +nox +piro +phalanx +rol +rythmos +sacado +stk +shards +shylu +stokhos +stratimikos +teko +tempus +tpetra +trilinoscouplings +zoltan +zoltan2 +superlu-dist gotype=long_long
   - turbine
   - umap
   - umpire
-  - unifyfs
   - upcxx
-  - veloc
-  - vtk-m ~openmp # can't build +openmp w/ %oneapi: https://github.com/spack/spack/issues/31830
+  - variorum
   - wannier90
+  - wrf
+  - xyce +mpi +shared +pymi +pymi_static_tpls
+  # INCLUDED IN ECP DAV CPU
+  - adios2
+  - ascent
+  - darshan-runtime
+  - darshan-util
+  - faodel
+  - hdf5
+  - libcatalyst
+  - parallel-netcdf
+  - paraview
+  - py-cinemasci
+  - sz
+  - unifyfs
+  - veloc
+  # - visit                                                 # visit: +visit: visit_vtk/lightweight/vtkSkewLookupTable.C:32:10: error: cannot initialize return object of type 'unsigned char *' with an rvalue of type 'const unsigned char *'
+  - vtk-m ~openmp
+  - warpx +python ~python_ipo ^py-amrex ~ipo                # oneAPI 2024.2.0 builds do not support IPO/LTO says CMake, even though pybind11 strongly encourages it
   - zfp
+  # --
+  # - chapel ~cuda ~rocm                                    # llvm: closures.c:(.text+0x305e): undefined reference to `_intel_fast_memset'
+  # - cp2k +mpi                                             # dbcsr: dbcsr_api.F(973): #error: incomplete macro call DBCSR_ABORT.
+  # - fftx                                                  # fftx: https://github.com/spack/spack/issues/47048
+  # - geopm-runtime                                         # libelf: configure: error: installation or configuration problem: C compiler cannot create executables.
+  # - hpctoolkit                                            # dyninst@13.0.0%gcc: libiberty/./d-demangle.c:142: undefined reference to `_intel_fast_memcpy'
+  # - lbann                                                 # 2024.2 internal compiler error
+  # - plasma                                                # 2024.2 internal compiler error
+  # - quantum-espresso                                      # quantum-espresso: external/mbd/src/mbd_c_api.F90(392): error #6645: The name of the module procedure conflicts with a name in the encompassing scoping unit.   [F_C_STRING]
+  # - wps                                                   # wps: InstallError: Compiler not recognized nor supported.
+
+  # PYTHON PACKAGES
+  - opencv +python3
+  - py-jupyterlab
+  - py-mpi4py
+  - py-notebook
+  - py-numba
+  - py-numpy
+  - py-openai
+  - py-pandas
+  - py-plotly
+  - py-pooch
+  - py-pytest
+  - py-scikit-learn
+  - py-scipy
+  - py-seaborn
+  # - py-horovod      # error
+  # - py-jax          # error
+  # - py-matplotlib   # error
+  # - py-tensorflow   # error
+  # - py-torch        # error
 
   # GPU
-  - aml +ze
-  - arborx +sycl ^kokkos +sycl +openmp std=17 +tests +examples
-  - cabana +sycl ^kokkos +sycl +openmp std=17 +tests +examples
-  - kokkos +sycl +openmp std=17 +tests +examples %oneapi
-  - kokkos-kernels build_type=Release ^kokkos +sycl +openmp std=17 +tests +examples %oneapi
-
-  # CPU FAILURES
-  # - bricks                                    # bricks
-  # - charliecloud                              # charliecloud
-  # - dyninst                                   # old intel-tbb
-  # - exaworks                                  # py-setuptools-scm
-  # - flux-core                                 # py-setuptools-scm
-  # - geopm                                     # geopm
-  # - ginkgo                                    # ginkgo
-  # - gptune                                    # py-scipy@1.3.3
-  # - h5bench                                   # h5bench
-  # - hpctoolkit                                # dyninst
-  # - hpx max_cpu_count=512 networking=mpi      # boost cxxstd=17
-  # - nrm                                       # py-scipy
-  # - paraview +qt                              # qt
-  # - phist                                     # phist
-  # - pruners-ninja                             # pruners-ninja
-  # - py-cinemasci                              # py-scipy@1.3.3, py-setuptools-scm
-  # - py-jupyterhub                             # py-setuptools-scm
-  # - py-warpx ^warpx dims=2                    # py-scipy@1.5.4
-  # - py-warpx ^warpx dims=3                    # py-scipy@1.5.4
-  # - py-warpx ^warpx dims=rz                   # py-scipy@1.5.4
-  # - scr                                       # libyogrt
-  # - swig@4.0.2-fortran                        # swig
-  # - tau +mpi +python                          # tau
-  # - variorum                                  # variorum
+  - aml +level_zero
+  - amrex +sycl
+  - arborx +sycl ^kokkos +sycl +openmp cxxstd=17 +examples
+  - cabana +sycl ^kokkos +sycl +openmp cxxstd=17 +examples
+  - ginkgo +sycl
+  - heffte +sycl
+  - kokkos +sycl +openmp cxxstd=17 +examples
+  - kokkos-kernels build_type=Release %oneapi ^kokkos +sycl +openmp cxxstd=17 +examples
+  - petsc +sycl
+  - sundials +sycl cxxstd=17 +examples-install
+  - tau +mpi +opencl +level_zero ~pdt +syscall                # requires libdrm.so to be installed
+  - upcxx +level_zero
+  - warpx ~qed +python ~python_ipo compute=sycl ^py-amrex ~ipo  # qed for https://github.com/ECP-WarpX/picsar/pull/53 prior to 24.09 release; ~ipo for oneAPI 2024.2.0 GPU builds do not support IPO/LTO says CMake, even though pybind11 strongly encourages it
   # --
-  # amrex: /opt/intel/oneapi/compiler/2023.0.0/linux/bin-llvm/../include/sycl/detail/defines_elementary.hpp:52:40: note: expanded from macro '__SYCL2020_DEPRECATED'
-  # amrex: /opt/intel/oneapi/compiler/2023.0.0/linux/bin-llvm/../include/sycl/detail/defines_elementary.hpp:52:40: note: expanded from macro '__SYCL2020_DEPRECATED'
-  # binutils: gold/powerpc.cc:3590: undefined reference to `gold::Sized_symbol<64>::Value_type gold::Symbol_table::compute_final_value<64>(gold::Sized_symbol<64> const*, gold::Symbol_table::Compute_final_value_status*) const'
-  # boost cxxstd=17: ./boost/mpl/aux_/integral_wrapper.hpp:73:31: error: integer value -1 is outside the valid range of values [0, 3] for this enumeration type [-Wenum-constexpr-conversion]
-  # bricks: cc1plus: error: bad value ('OFF') for '-mtune=' switch
-  # charliecloud: autoreconf phase: RuntimeError: configure script not found in ...
-  # flux-sched: include/yaml-cpp/emitter.h:164:9: error: comparison with NaN always evaluates to false in fast floating point modes [-Werror,-Wtautological-constant-compare]
-  # flux-sched: include/yaml-cpp/emitter.h:171:24: error: comparison with infinity always evaluates to false in fast floating point modes [-Werror,-Wtautological-constant-compare]
-  # ginkgo: icpx: error: clang frontend command failed with exit code 139
-  # h5bench: commons/h5bench_util.h:196: multiple definition of `has_vol_async';
-  # intel-tbb: clang++clang++clang++clang++clang++clang++clang++: : : : : : : clang++error: : unknown argument: '-flifetime-dse=1'
-  # libyogrt: configure: error: slurm is not in specified location!
-  # phist: fortran_bindings/test/kernels.F90(63): error #8284: If the actual argument is scalar, the dummy argument shall be scalar unless the actual argument is of type character or is an element of an array that is not assumed shape, pointer, or polymorphic.   [ARGV]
-  # pruners-ninja: test/ninja_test_util.c:34: multiple definition of `a';
-  # py-cryptography: ??
-  # py-scipy@1.3.3: gcc: error: unrecognized command-line option '-fp-model=strict'
-  # py-scipy@1.5.4: gcc: error: unrecognized command-line option '-fp-model=strict'
-  # py-setuptools-scm: ??
-  # ruby: limits.c:415:34: error: invalid suffix 'D' on floating constant
-  # rust: /usr/bin/ld: /opt/intel/oneapi/compiler/2022.1.0/linux/bin-llvm/../compiler/lib/intel64_lin/libimf.a(libm_feature_flag.o): in function `__libm_feature_flag_init': libm_feature_flag.c:(.text+0x25): undefined reference to `__intel_cpu_feature_indicator_x'
-  # swig@4.0.2-fortran: /spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-11.1.0/m4-1.4.19-p3otmjixpi6zibdsyoqib5dpzfshq3nj/bin/m4:/spack/opt/spack/linux-ubuntu20.04-x86_64/oneapi-2023.0.0/bison-3.8.2-xca2sot4jhd72hvj2m2b3ajchagczvau/share/bison/skeletons/yacc.c:420: undefined macro `b4_symbol(103, tag)'
-  # tau: Error: Unable to identify ifort lib directory
-  # variorum: ld: Intel/CMakeFiles/variorum_intel.dir/msr_core.c.o:(.bss+0x0): multiple definition of `g_platform'; CMakeFiles/variorum.dir/config_architecture.c.o:(.bss+0x0): first defined here
-  # vtk-m +openmp: clang++: error: clang frontend command failed with exit code 139 (use -v to see invocation)
+  # - hpctoolkit +level_zero                                  # dyninst@12.3.0%gcc: /usr/bin/ld: libiberty/./d-demangle.c:142: undefined reference to `_intel_fast_memcpy'; can't mix intel-tbb@%oneapi with dyninst%gcc
+  # - slate +sycl                                             # slate: ifx: error #10426: option '-fopenmp-targets' requires '-fiopenmp'
 
-  # GPU FAILURES
-  # - amrex +sycl                           # amrex
-  # - ginkgo +oneapi                        # ginkgo
-  # - hpctoolkit +level_zero                # dyninst
-  # - sundials +sycl cxxstd=17              # sundials
-  # - tau +mpi +opencl +level_zero ~pdt     # tau
-  # --
-
-  # SKIPPED
-  # - flecsi                                # dependency pfunit marks oneapi as an unsupported compiler
-
-  mirrors: { "mirror": "s3://spack-binaries/develop/e4s-oneapi" }
 
   ci:
     pipeline-gen:
     - build-job:
-        image: ecpe4s/ubuntu20.04-runner-x86_64-oneapi:2023-01-01
-        before_script:
-        - - . /bootstrap/runner/view/lmod/lmod/init/bash
-          - module use /opt/intel/oneapi/modulefiles
-          - module load compiler
+        image: ghcr.io/spack/spack/ubuntu22.04-runner-amd64-oneapi-2024.2:2024.09.06
 
   cdash:
     build-group: E4S OneAPI

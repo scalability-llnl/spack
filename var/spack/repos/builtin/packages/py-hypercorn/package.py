@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PyHypercorn(PythonPackage):
 
     homepage = "https://gitlab.com/pgjones/hypercorn/"
     pypi = "Hypercorn/Hypercorn-0.13.2.tar.gz"
+
+    license("MIT")
 
     version("0.13.2", sha256="6307be5cbdf6ba411967d4661202dc4f79bd511b5d318bc4eed88b09418427f8")
 

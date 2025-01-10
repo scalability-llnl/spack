@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,7 @@ class RDelayedarray(RPackage):
 
     bioc = "DelayedArray"
 
+    version("0.26.0", commit="e3bdae96838a8ed45f18697f072f3c4ec011aa03")
     version("0.24.0", commit="68ee3d0626c234ee1e9248a6cb95b901e4b3ad90")
     version("0.22.0", commit="4a5afd117b189b40bd409c7aff60e09d41797472")
     version("0.20.0", commit="829b52916ec54bb4f1a3c6f06c9955f3e28b3592")
@@ -29,6 +29,8 @@ class RDelayedarray(RPackage):
     version("0.6.6", commit="bdb0ac0eee71edd40ccca4808f618fa77f595a64")
     version("0.4.1", commit="ffe932ef8c255614340e4856fc6e0b44128a27a1")
     version("0.2.7", commit="909c2ce1665ebae2543172ead50abbe10bd42bc4")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r@3.4:", type=("build", "run"))
     depends_on("r@4.0.0:", type=("build", "run"), when="@0.20.0:")

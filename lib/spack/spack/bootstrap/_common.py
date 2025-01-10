@@ -1,9 +1,10 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Common basic functions used through the spack.bootstrap package"""
 import fnmatch
+import glob
+import importlib
 import os.path
 import re
 import sys
@@ -16,6 +17,7 @@ import archspec.cpu
 import llnl.util.filesystem as fs
 from llnl.util import tty
 
+import spack.platforms
 import spack.store
 import spack.util.environment
 import spack.util.executable
@@ -27,7 +29,7 @@ QueryInfo = Dict[str, "spack.spec.Spec"]
 
 def _python_import(module: str) -> bool:
     try:
-        __import__(module)
+        importlib.import_module(module)
     except ImportError:
         return False
     return True
@@ -50,14 +52,27 @@ def _try_import_from_store(
         # We have to run as part of this python interpreter
         query_spec += " ^" + spec_for_current_python()
 
-    installed_specs = spack.store.db.query(query_spec, installed=True)
+    installed_specs = spack.store.STORE.db.query(query_spec, installed=True)
 
     for candidate_spec in installed_specs:
-        pkg = candidate_spec["python"].package
-        module_paths = [
-            os.path.join(candidate_spec.prefix, pkg.purelib),
-            os.path.join(candidate_spec.prefix, pkg.platlib),
-        ]
+        # previously bootstrapped specs may not have a python-venv dependency.
+        if candidate_spec.dependencies("python-venv"):
+            python, *_ = candidate_spec.dependencies("python-venv")
+        else:
+            python, *_ = candidate_spec.dependencies("python")
+
+        # if python is installed, ask it for the layout
+        if python.installed:
+            module_paths = [
+                os.path.join(candidate_spec.prefix, python.package.purelib),
+                os.path.join(candidate_spec.prefix, python.package.platlib),
+            ]
+        # otherwise search for the site-packages directory
+        # (clingo from binaries with truncated python-venv runtime)
+        else:
+            module_paths = glob.glob(
+                os.path.join(candidate_spec.prefix, "lib", "python*", "site-packages")
+            )
         path_before = list(sys.path)
 
         # NOTE: try module_paths first and last, last allows an existing version in path
@@ -183,7 +198,7 @@ def _executables_in_store(
     executables_str = ", ".join(executables)
     msg = "[BOOTSTRAP EXECUTABLES {0}] Try installed specs with query '{1}'"
     tty.debug(msg.format(executables_str, query_spec))
-    installed_specs = spack.store.db.query(query_spec, installed=True)
+    installed_specs = spack.store.STORE.db.query(query_spec, installed=True)
     if installed_specs:
         for concrete_spec in installed_specs:
             bin_dir = concrete_spec.prefix.bin
@@ -206,17 +221,20 @@ def _root_spec(spec_str: str) -> str:
     """Add a proper compiler and target to a spec used during bootstrapping.
 
     Args:
-        spec_str (str): spec to be bootstrapped. Must be without compiler and target.
+        spec_str: spec to be bootstrapped. Must be without compiler and target.
     """
-    # Add a proper compiler hint to the root spec. We use GCC for
-    # everything but MacOS and Windows.
-    if str(spack.platforms.host()) == "darwin":
-        spec_str += " %apple-clang"
-    elif str(spack.platforms.host()) == "windows":
-        spec_str += " %msvc"
-    else:
-        spec_str += " %gcc"
+    # Add a compiler and platform requirement to the root spec.
+    platform = str(spack.platforms.host())
 
+    if platform == "darwin":
+        spec_str += " %apple-clang"
+    elif platform == "windows":
+        spec_str += " %msvc"
+    elif platform == "linux":
+        spec_str += " %gcc"
+    elif platform == "freebsd":
+        spec_str += " %clang"
+    spec_str += f" platform={platform}"
     target = archspec.cpu.host().family
     spec_str += f" target={target}"
 

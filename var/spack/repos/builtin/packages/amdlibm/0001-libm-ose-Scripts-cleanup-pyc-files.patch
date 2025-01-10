@@ -325,7 +325,7 @@ index c2f8c8e..eb89a73 100644
  from . import Compiler
  class Gcc(Compiler):
 -    def __init__(self, prod_mode):
--        super(Gcc, self).__init__(prod_mode)
+-        super().__init__(prod_mode)
 -
 -        warnings_cxx  = [
 -            '-Wctor-dtor-privacy',
@@ -334,7 +334,7 @@ index c2f8c8e..eb89a73 100644
 -            '-Wold-style-cast',
 -            '-Woverloaded-virtual',
 +    def __init__(self, prod_mode, bvars = None, opts = None):
-+        super(Gcc, self).__init__(prod_mode, bvars, opts)
++        super().__init__(prod_mode, bvars, opts)
 +        self.cmd = 'gcc'
 +        self.cxxcmd = 'g++'
 +        self.compile_flags_debug = [
@@ -474,13 +474,13 @@ index 0e4c346..b39d341 100644
  
  class LLVM(Compiler):
 -    def __init__(self, prod_mode):
--        super(LLVM, self).__init__(prod_mode)
+-        super().__init__(prod_mode)
 -
 -        compile_flags_release = [
 -            # fp-contract needed to generate FMA instructions
 -            '-ffp-contract=fast',
 +    def __init__(self, prod_mode, bvars = None, opts = None):
-+        super(LLVM, self).__init__(prod_mode, bvars, opts)
++        super().__init__(prod_mode, bvars, opts)
 +        self.cmd = 'clang'
 +        self.cxxcmd = 'clang++'
 +        self.compile_flags_debug = [

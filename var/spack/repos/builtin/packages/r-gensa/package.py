@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,7 @@ class RGensa(RPackage):
 
     cran = "GenSA"
 
+    version("1.1.14", sha256="66e455bb0e66d3c04af84d9dddc9b89f40b4cf9fe9ad1cf0714bcf30aa1b6837")
     version("1.1.8", sha256="375e87541eb6b098584afccab361dc28ff09d03cf1d062ff970208e294eca216")
     version("1.1.7", sha256="9d99d3d0a4b7770c3c3a6de44206811272d78ab94481713a8c369f7d6ae7b80f")
 

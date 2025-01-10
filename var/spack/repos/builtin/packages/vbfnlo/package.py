@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,7 +16,10 @@ class Vbfnlo(AutotoolsPackage):
 
     tags = ["hep"]
 
+    license("GPL-2.0-only")
+
     # The commented out versions exist, but are not tested
+    version("3.0", sha256="b9df02603e4f801f866360c720191a29afdb958d0bd4369ea7d810e761503e51")
     version(
         "3.0.0beta5", sha256="777a3dedb365ea9abc38848a60f30d325da3799cbad69fa308664b94a8c31a90"
     )
@@ -36,7 +38,9 @@ class Vbfnlo(AutotoolsPackage):
         sha256="13e33d73d8a8ef64094621f87e6f94e01712e76cc19a86298d0b52cfcb9decca",
         preferred=True,
     )
-    # version('2.7.0',      sha256='0e96c0912599e3000fffec5305700b947b604a7b06c7975851503f445311e4ef')
+
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     # Documentation is broken on some systems:
     # See https://github.com/vbfnlo/vbfnlo/issues/2
@@ -50,6 +54,8 @@ class Vbfnlo(AutotoolsPackage):
     depends_on("autoconf", type="build")
     depends_on("m4", type="build")
     depends_on("libtool", type="build")
+    # needed as tcsh is hardcoded in m4/vbfnlo.m4, could be patched out in the future
+    depends_on("tcsh", type="build")
 
     @when("@2.7.1")
     def setup_build_environment(self, env):

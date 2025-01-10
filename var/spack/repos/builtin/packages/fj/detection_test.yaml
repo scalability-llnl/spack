@@ -1,0 +1,27 @@
+paths:
+- layout:
+  - executables:
+    - "bin/fcc"
+    script: |
+      echo "fcc (FCC) 4.0.0a 20190314"
+      echo "simulating gcc version 6.1"
+      echo "Copyright FUJITSU LIMITED 2019"
+  - executables:
+    - "bin/FCC"
+    script: |
+      echo "FCC (FCC) 4.0.0a 20190314"
+      echo "simulating gcc version 6.1"
+      echo "Copyright FUJITSU LIMITED 2019"
+  - executables:
+    - "bin/frt"
+    script: |
+      echo "frt (FRT) 4.0.0a 20190314"
+      echo "Copyright FUJITSU LIMITED 2019"
+  platforms: [linux]
+  results:
+  - spec: fj@4.0.0a
+    extra_attributes:
+      compilers:
+        c: ".*/bin/fcc"
+        cxx: ".*/bin/FCC"
+        fortran: ".*/bin/frt"

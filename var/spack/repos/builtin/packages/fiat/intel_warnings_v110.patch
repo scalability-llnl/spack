@@ -1,0 +1,39 @@
+--- a/cmake/fiat_compiler_warnings.cmake
++++ b/cmake/fiat_compiler_warnings.cmake
+@@ -5,12 +5,14 @@ if(HAVE_WARNINGS)
+   ecbuild_add_c_flags("-Wextra"                                NO_FAIL)
+   ecbuild_add_c_flags("-Wno-unused-parameter"                  NO_FAIL)
+   ecbuild_add_c_flags("-Wno-unused-variable"                   NO_FAIL)
+-  ecbuild_add_c_flags("-Wno-gnu-zero-variadic-macro-arguments" NO_FAIL)
++  if (CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
++    ecbuild_add_c_flags("-Wno-gnu-zero-variadic-macro-arguments" NO_FAIL)
++  endif()
+ endif()
+
+ # Always disable some warnings
+ ecbuild_add_c_flags("-Wno-deprecated-declarations" NO_FAIL)
+-if( CMAKE_C_COMPILER_ID MATCHES Intel )
+-  ecbuild_add_c_flags("-diag-disable=279")   # controlling expression is constant
+-  ecbuild_add_c_flags("-diag-disable=11076") # inline limits
+-endif()
++#if( CMAKE_C_COMPILER_ID MATCHES Intel )
++#  ecbuild_add_c_flags("-diag-disable=279")   # controlling expression is constant
++#  ecbuild_add_c_flags("-diag-disable=11076") # inline limits
++#endif()
+--- a/src/fiat/CMakeLists.txt
++++ b/src/fiat/CMakeLists.txt
+@@ -26,10 +26,10 @@ endif()
+
+ ### Compilation flags
+
+-if( CMAKE_Fortran_COMPILER_ID MATCHES "Intel" )
+-  ## To disable checking of argument correctness of dummy mpi symbols
+-  ecbuild_add_fortran_flags( -nowarn nointerfaces )
+-endif()
++#if( CMAKE_Fortran_COMPILER_ID MATCHES "Intel" )
++#  ## To disable checking of argument correctness of dummy mpi symbols
++#  ecbuild_add_fortran_flags( -nowarn nointerfaces )
++#endif()
+
+ if( CMAKE_Fortran_COMPILER_ID MATCHES "GNU" )
+   ecbuild_add_fortran_flags( -ffree-line-length-none )

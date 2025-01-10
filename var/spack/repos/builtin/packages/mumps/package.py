@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,9 +12,16 @@ from spack.package import *
 class Mumps(Package):
     """MUMPS: a MUltifrontal Massively Parallel sparse direct Solver"""
 
-    homepage = "https://graal.ens-lyon.fr/MUMPS/index.php"
-    url = "https://graal.ens-lyon.fr/MUMPS/MUMPS_5.5.1.tar.gz"
+    homepage = "https://mumps-solver.org/index.php"
+    url = "https://mumps-solver.org/MUMPS_5.5.1.tar.gz"
 
+    maintainers("jcortial-safran")
+
+    version("5.7.3", sha256="84a47f7c4231b9efdf4d4f631a2cae2bdd9adeaabc088261d15af040143ed112")
+    version("5.7.2", sha256="1362d377ce7422fc886c55212b4a4d2c381918b5ca4478f682a22d0627a8fbf8")
+    version("5.6.2", sha256="13a2c1aff2bd1aa92fe84b7b35d88f43434019963ca09ef7e8c90821a8f1d59a")
+    version("5.6.1", sha256="1920426d543e34d377604070fde93b8d102aa38ebdf53300cbce9e15f92e2896")
+    version("5.6.0", sha256="3e08c1bdea7aaaba303d3cf03059f3b4336fa49bef93f4260f478f067f518289")
     version("5.5.1", sha256="1abff294fa47ee4cfd50dfd5c595942b72ebfcedce08142a75a99ab35014fa15")
     version("5.5.0", sha256="e54d17c5e42a36c40607a03279e0704d239d71d38503aab68ef3bfe0a9a79c13")
     version("5.4.1", sha256="93034a1a9fe0876307136dcde7e98e9086e199de76f1c47da822e7d4de987fa8")
@@ -30,6 +36,9 @@ class Mumps(Package):
     # version('5.0.1', sha256='50355b2e67873e2239b4998a46f2bbf83f70cdad6517730ab287ae3aae9340a0',
     #         url='http://pkgs.fedoraproject.org/repo/pkgs/MUMPS/MUMPS_5.0.1.tar.gz/md5/b477573fdcc87babe861f62316833db0/MUMPS_5.0.1.tar.gz')
     version("5.0.1", sha256="50355b2e67873e2239b4998a46f2bbf83f70cdad6517730ab287ae3aae9340a0")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("mpi", default=True, description="Compile MUMPS with MPI support")
     variant("scotch", default=False, description="Activate Scotch as a possible ordering library")
@@ -130,16 +139,18 @@ class Mumps(Package):
                 [
                     "IMETIS = -I%s" % self.spec["parmetis"].prefix.include,
                     (
-                        "LMETIS = -L%s -l%s -L%s -l%s"
-                        % (
-                            self.spec["parmetis"].prefix.lib,
-                            "parmetis",
-                            self.spec["metis"].prefix.lib,
-                            "metis",
+                        (
+                            "LMETIS = -L%s -l%s -L%s -l%s"
+                            % (
+                                self.spec["parmetis"].prefix.lib,
+                                "parmetis",
+                                self.spec["metis"].prefix.lib,
+                                "metis",
+                            )
                         )
-                    )
-                    if not shared
-                    else "LMETIS =",
+                        if not shared
+                        else "LMETIS ="
+                    ),
                 ]
             )
 
@@ -148,9 +159,11 @@ class Mumps(Package):
             makefile_conf.extend(
                 [
                     "IMETIS = -I%s" % self.spec["metis"].prefix.include,
-                    ("LMETIS = -L%s -l%s" % (self.spec["metis"].prefix.lib, "metis"))
-                    if not shared
-                    else "LMETIS =",
+                    (
+                        ("LMETIS = -L%s -l%s" % (self.spec["metis"].prefix.lib, "metis"))
+                        if not shared
+                        else "LMETIS ="
+                    ),
                 ]
             )
 
@@ -160,7 +173,6 @@ class Mumps(Package):
 
         # Determine which compiler suite we are using
         using_gcc = self.compiler.name == "gcc"
-        using_pgi = self.compiler.name == "pgi"
         using_nvhpc = self.compiler.name == "nvhpc"
         using_intel = self.compiler.name == "intel"
         using_oneapi = self.compiler.name == "oneapi"
@@ -223,7 +235,7 @@ class Mumps(Package):
         # As of version 5.2.0, MUMPS is able to take advantage
         # of the GEMMT BLAS extension. MKL and amdblis are the only
         # known BLAS implementation supported.
-        if "@5.2.0: ^mkl" in self.spec:
+        if self.spec["blas"].name in INTEL_MATH_LIBRARIES and self.spec.satisfies("@5.2.0:"):
             optf.append("-DGEMMT_AVAILABLE")
 
         if "@5.2.0: ^amdblis@3.0:" in self.spec:
@@ -273,7 +285,7 @@ class Mumps(Package):
 
         # TODO: change the value to the correct one according to the
         # compiler possible values are -DAdd_, -DAdd__ and/or -DUPPER
-        if using_intel or using_oneapi or using_pgi or using_nvhpc or using_fj:
+        if using_intel or using_oneapi or using_nvhpc or using_fj:
             # Intel, PGI, and Fujitsu Fortran compiler provides
             # the main() function so C examples linked with the Fortran
             # compiler require a hack defined by _DMAIN_COMP

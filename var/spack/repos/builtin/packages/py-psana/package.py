@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,9 @@ class PyPsana(PythonPackage):
     maintainers("valmar")
 
     version("3.3.37", sha256="127a5ae44c9272039708bd877849a3af354ce881fde093a2fc6fe0550b698b72")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     patch("setup.patch")
 
@@ -38,6 +40,7 @@ class PyPsana(PythonPackage):
     depends_on("opencv", type=("build", "run"))
     depends_on("py-scikit-learn", type=("build", "run"))
     depends_on("py-pyabel", type=("build", "run"))
+    depends_on("py-prometheus-client", type=("build", "run"))
     depends_on("xtcdata", type=("build", "run", "link"))
     depends_on("psalg", type=("build", "run", "link"))
 

@@ -1,15 +1,13 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import sys
+import os
 
 import pytest
 
 from llnl.util.filesystem import working_dir
 
-import spack.cmd
 import spack.paths
 import spack.util.spack_json as sjson
 from spack.main import SpackCommand
@@ -35,11 +33,10 @@ def test_blame_by_percent(mock_packages):
     assert "EMAIL" in out
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="Not supported on Windows (yet)")
 def test_blame_file(mock_packages):
     """Sanity check the blame command to make sure it works."""
     with working_dir(spack.paths.prefix):
-        out = blame("bin/spack")
+        out = blame(os.path.join("bin", "spack"))
     assert "LAST_COMMIT" in out
     assert "AUTHOR" in out
     assert "EMAIL" in out
@@ -68,7 +65,7 @@ def test_blame_json(mock_packages):
         assert key in loaded["authors"][0]
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="git hangs")
+@pytest.mark.not_on_windows("git hangs")
 def test_blame_by_git(mock_packages, capfd):
     """Sanity check the blame command to make sure it works."""
     with capfd.disabled():

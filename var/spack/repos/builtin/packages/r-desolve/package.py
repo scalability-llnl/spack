@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,6 +22,7 @@ class RDesolve(RPackage):
 
     cran = "deSolve"
 
+    version("1.40", sha256="8c09ae6bb6875b569b9844eede30b790f39fc227f5c9d045fa63ce1b22f500ef")
     version("1.35", sha256="96f17f497713754f84ff56c3538c6d05b9f5229f9a2a32aafec7d7cdc721d488")
     version("1.34", sha256="2254305f44dde22ac685fef4c60e29a0608af0197c803107365d1d80b75c9f21")
     version("1.33", sha256="71de979e05ce7e472308ac5218e97efe976051364ba579b10940dc1fe4c8b684")

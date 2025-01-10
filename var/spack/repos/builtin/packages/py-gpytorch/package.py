@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,6 +16,9 @@ class PyGpytorch(PythonPackage):
 
     maintainers("adamjstewart", "meyersbs")
 
+    license("MIT")
+
+    version("1.13", sha256="f4a488633a2a7a4ab37d12553d1d1dd39690043dbceef14ca428b7d5f89f73ba")
     version("1.10", sha256="6dc978ab9fbf220a845a4f1ea13104180fc50e6934081f421b37f6120afb7f18")
     version("1.9.1", sha256="0bdbba6f6d5957a0f43ef6dc7fec39c47e8a55f632ca33760c6189f259b3ccc3")
     version("1.9.0", sha256="a0608184c18a1f518d6a102473427abf00f5351421e12a934530953f6887b34b")
@@ -28,21 +30,28 @@ class PyGpytorch(PythonPackage):
     version("1.2.0", sha256="fcb216e0c1f128a41c91065766508e91e487d6ffadf212a51677d8014aefca84")
     version("1.1.1", sha256="76bd455db2f17af5425f73acfaa6d61b8adb1f07ad4881c0fa22673f84fb571a")
 
-    depends_on("python@3.8:", when="@1.9:", type=("build", "run"))
-    depends_on("python@3.7:", when="@1.7:", type=("build", "run"))
-    depends_on("python@3.6:", type=("build", "run"))
-    depends_on("py-setuptools", type="build")
-    depends_on("py-setuptools-scm", when="@1.9:", type="build")
-    depends_on("py-torch@1.11:", when="@1.9:", type=("build", "run"))
-    depends_on("py-torch@1.10:", when="@1.7:", type=("build", "run"))
-    depends_on("py-torch@1.9:", when="@1.6:", type=("build", "run"))
-    depends_on("py-torch@1.8.1:", when="@1.5:", type=("build", "run"))
-    depends_on("py-torch@1.7:", when="@1.3:", type=("build", "run"))
-    depends_on("py-torch@1.6:", when="@1.2:", type=("build", "run"))
-    depends_on("py-torch@1.5:", type=("build", "run"))
-    depends_on("py-scikit-learn", when="@1.2:", type=("build", "run"))
-    depends_on("py-linear-operator@0.1.1:", when="@1.9:", type=("build", "run"))
-    depends_on("py-linear-operator@0.2.0:", when="@1.9.1:", type=("build", "run"))
-    depends_on("py-linear-operator@0.4.0:", when="@1.10:", type=("build", "run"))
-    depends_on("py-numpy", when="@1.7:1.8", type=("build", "run"))
-    depends_on("py-scipy", when="@1.2:1.8", type=("build", "run"))
+    with default_args(type="build"):
+        depends_on("py-setuptools")
+        depends_on("py-setuptools-scm", when="@1.9:")
+
+    with default_args(type=("build", "run")):
+        depends_on("py-torch@2:", when="@1.13:")
+        depends_on("py-torch@1.11:", when="@1.9:")
+        depends_on("py-torch@1.10:", when="@1.7:")
+        depends_on("py-torch@1.9:", when="@1.6:")
+        depends_on("py-torch@1.8.1:", when="@1.5:")
+        depends_on("py-torch@1.7:", when="@1.3:")
+        depends_on("py-torch@1.6:", when="@1.2:")
+        depends_on("py-torch@1.5:")
+        depends_on("py-jaxtyping@0.2.19", when="@1.13:")
+        depends_on("py-mpmath@0.19:1.3", when="@1.12:")
+        depends_on("py-scikit-learn", when="@1.2:")
+        depends_on("py-scipy@1.6:", when="@1.13:")
+        depends_on("py-scipy", when="@1.2:1.8")
+        depends_on("py-linear-operator@0.5.3:", when="@1.13:")
+        depends_on("py-linear-operator@0.1.1:", when="@1.9:")
+        depends_on("py-linear-operator@0.2.0:", when="@1.9.1:")
+        depends_on("py-linear-operator@0.4.0:", when="@1.10:")
+
+        # Historical dependencies
+        depends_on("py-numpy", when="@1.7:1.8")

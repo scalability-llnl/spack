@@ -1,5 +1,4 @@
-.. Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-   Spack Project Developers. See the top-level COPYRIGHT file for details.
+.. Copyright Spack Project Developers. See COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -63,8 +62,8 @@ run package-specific unit tests.
 .. code-block:: python
 
    def installtest(self):
-       with working_dir('test'):
-           pytest = which('py.test')
+       with working_dir("test"):
+           pytest = which("py.test")
            pytest()
 
 
@@ -93,7 +92,7 @@ the following dependency automatically:
 
 .. code-block:: python
 
-   depends_on('python@2.5:', type='build')
+   depends_on("python@2.5:", type="build")
 
 
 Waf only supports Python 2.5 and up.
@@ -113,7 +112,7 @@ phase, you can use:
        args = []
 
        if self.run_tests:
-           args.append('--test')
+           args.append("--test")
 
        return args
 

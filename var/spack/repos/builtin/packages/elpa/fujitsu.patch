@@ -1,0 +1,65 @@
+From 8bda2149e4398bb6e6b66e601151966c91f9ec78 Mon Sep 17 00:00:00 2001
+From: m-shunji <m.shunji@fujitsu.com>
+Date: Wed, 13 Sep 2023 17:58:26 +0900
+Subject: [PATCH] Fix compile error in disabling openmp
+
+---
+ src/elpa_impl_math_template.F90 | 6 +++---
+ test/Fortran/test_autotune.F90  | 4 ++--
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/src/elpa_impl_math_template.F90 b/src/elpa_impl_math_template.F90
+index f87a0ad..b41c0c3 100644
+--- a/src/elpa_impl_math_template.F90
++++ b/src/elpa_impl_math_template.F90
+@@ -888,10 +888,10 @@
+ #endif
+ #ifdef COMPLEXCASE
+ #ifdef DOUBLE_PRECISION_COMPLEX
+-                    & !bind(C, name="elpa_solve_tridiagonal_dc")
++                    bind(C, name="elpa_solve_tridiagonal_dc")
+ #endif
+ #ifdef SINGLE_PRECISION_COMPLEX
+-                    & !bind(C, name="elpa_solve_tridiagonal_fc")
++                    bind(C, name="elpa_solve_tridiagonal_fc")
+ #endif
+ #endif
+ 
+@@ -913,4 +913,4 @@
+               &ELPA_IMPL_SUFFIX&
+               & (self, d, e, q, error)
+     end subroutine
+-    
+\ No newline at end of file
++    
+diff --git a/test/Fortran/test_autotune.F90 b/test/Fortran/test_autotune.F90
+index 4662564..5355ab3 100644
+--- a/test/Fortran/test_autotune.F90
++++ b/test/Fortran/test_autotune.F90
+@@ -312,8 +312,8 @@ program test
+      status = check_correctness_analytic(na, nev, ev, z, nblk, myid, np_rows, np_cols, my_prow, my_pcol, &
+                                          .true., .true., print_times=.false.)
+      a(:,:) = as(:,:)
+-     call e%autotune_print_state(tune_state)
+-     call e%autotune_save_state(tune_state, "saved_state_"//trim(iter_string)//".txt")
++     call e%autotune_print_state(tune_state, error_elpa)
++     call e%autotune_save_state(tune_state, "saved_state_"//trim(iter_string)//".txt", error_elpa)
+    end do
+ 
+    !! set and print the autotuned-settings
+-- 
+1.8.3.1
+diff --git a/manual_cpp b/manual_cpp
+index 6f74a79..dbdfc65 100755
+--- a/manual_cpp
++++ b/manual_cpp
+@@ -46,7 +46,7 @@ elif len(files) == 0:
+ elif len(files) == 1:
+     file, = files
+ 
+-tmp_filename = "manually_preprocessed_" + file.replace("/", "_")
++tmp_filename = "manually_preprocessed_" + file.replace("/", "_").replace("-", "_")
+ 
+ try:
+     output = args.index("-o")
+

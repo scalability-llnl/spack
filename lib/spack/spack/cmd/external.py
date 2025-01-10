@@ -1,24 +1,26 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-from __future__ import print_function
-
 import argparse
 import errno
 import os
+import re
 import sys
+from typing import List, Optional, Set
 
 import llnl.util.tty as tty
 import llnl.util.tty.colify as colify
 
 import spack
 import spack.cmd
-import spack.cmd.common.arguments
+import spack.config
 import spack.cray_manifest as cray_manifest
 import spack.detection
 import spack.error
-import spack.util.environment
+import spack.package_base
+import spack.repo
+import spack.spec
+from spack.cmd.common import arguments
 
 description = "manage external packages in Spack configuration"
 section = "config"
@@ -27,9 +29,6 @@ level = "short"
 
 def setup_parser(subparser):
     sp = subparser.add_subparsers(metavar="SUBCOMMAND", dest="external_command")
-
-    scopes = spack.config.scopes()
-    scopes_metavar = spack.config.scopes_metavar
 
     find_parser = sp.add_parser("find", help="add external packages to packages.yaml")
     find_parser.add_argument(
@@ -44,19 +43,18 @@ def setup_parser(subparser):
         "--path",
         default=None,
         action="append",
-        help="Alternative search paths for finding externals. May be repeated",
+        help="one or more alternative search paths for finding externals",
     )
     find_parser.add_argument(
         "--scope",
-        choices=scopes,
-        metavar=scopes_metavar,
-        default=spack.config.default_modify_scope("packages"),
+        action=arguments.ConfigScope,
+        default=lambda: spack.config.default_modify_scope("packages"),
         help="configuration scope to modify",
     )
     find_parser.add_argument(
         "--all", action="store_true", help="search for all packages that Spack knows about"
     )
-    spack.cmd.common.arguments.add_common_arguments(find_parser, ["tags"])
+    arguments.add_common_arguments(find_parser, ["tags", "jobs"])
     find_parser.add_argument("packages", nargs=argparse.REMAINDER)
     find_parser.epilog = (
         'The search is by default on packages tagged with the "build-tools" or '
@@ -68,16 +66,20 @@ def setup_parser(subparser):
 
     read_cray_manifest = sp.add_parser(
         "read-cray-manifest",
-        help=(
-            "consume a Spack-compatible description of externally-installed "
-            "packages, including dependency relationships"
-        ),
+        help="consume a Spack-compatible description of externally-installed packages, including "
+        "dependency relationships",
     )
     read_cray_manifest.add_argument(
         "--file", default=None, help="specify a location other than the default"
     )
     read_cray_manifest.add_argument(
         "--directory", default=None, help="specify a directory storing a group of manifest files"
+    )
+    read_cray_manifest.add_argument(
+        "--ignore-default-dir",
+        action="store_true",
+        default=False,
+        help="ignore the default directory of manifest files",
     )
     read_cray_manifest.add_argument(
         "--dry-run",
@@ -88,7 +90,7 @@ def setup_parser(subparser):
     read_cray_manifest.add_argument(
         "--fail-on-error",
         action="store_true",
-        help=("if a manifest file cannot be parsed, fail and report the " "full stack trace"),
+        help="if a manifest file cannot be parsed, fail and report the full stack trace",
     )
 
 
@@ -107,68 +109,79 @@ def external_find(args):
             # For most exceptions, just print a warning and continue.
             # Note that KeyboardInterrupt does not subclass Exception
             # (so CTRL-C will terminate the program as expected).
-            skip_msg = "Skipping manifest and continuing with other external " "checks"
+            skip_msg = "Skipping manifest and continuing with other external checks"
             if (isinstance(e, IOError) or isinstance(e, OSError)) and e.errno in [
                 errno.EPERM,
                 errno.EACCES,
             ]:
                 # The manifest file does not have sufficient permissions enabled:
                 # print a warning and keep going
-                tty.warn("Unable to read manifest due to insufficient " "permissions.", skip_msg)
+                tty.warn("Unable to read manifest due to insufficient permissions.", skip_msg)
             else:
                 tty.warn("Unable to read manifest, unexpected error: {0}".format(str(e)), skip_msg)
 
-    # If the user didn't specify anything, search for build tools by default
-    if not args.tags and not args.all and not args.packages:
-        args.tags = ["core-packages", "build-tools"]
+    # Outside the Cray manifest, the search is done by tag for performance reasons,
+    # since tags are cached.
 
     # If the user specified both --all and --tag, then --all has precedence
-    if args.all and args.tags:
-        args.tags = []
+    if args.all or args.packages:
+        # Each detectable package has at least the detectable tag
+        args.tags = ["detectable"]
+    elif not args.tags:
+        # If the user didn't specify anything, search for build tools by default
+        args.tags = ["core-packages", "build-tools"]
 
-    # Construct the list of possible packages to be detected
-    pkg_cls_to_check = []
+    candidate_packages = packages_to_search_for(
+        names=args.packages, tags=args.tags, exclude=args.exclude
+    )
+    detected_packages = spack.detection.by_path(
+        candidate_packages, path_hints=args.path, max_workers=args.jobs
+    )
 
-    # Add the packages that have been required explicitly
-    if args.packages:
-        pkg_cls_to_check = [spack.repo.path.get_pkg_class(pkg) for pkg in args.packages]
-        if args.tags:
-            allowed = set(spack.repo.path.packages_with_tags(*args.tags))
-            pkg_cls_to_check = [x for x in pkg_cls_to_check if x.name in allowed]
-
-    if args.tags and not pkg_cls_to_check:
-        # If we arrived here we didn't have any explicit package passed
-        # as argument, which means to search all packages.
-        # Since tags are cached it's much faster to construct what we need
-        # to search directly, rather than filtering after the fact
-        pkg_cls_to_check = [
-            spack.repo.path.get_pkg_class(pkg_name)
-            for tag in args.tags
-            for pkg_name in spack.repo.path.packages_with_tags(tag)
-        ]
-        pkg_cls_to_check = list(set(pkg_cls_to_check))
-
-    # If the list of packages is empty, search for every possible package
-    if not args.tags and not pkg_cls_to_check:
-        pkg_cls_to_check = list(spack.repo.path.all_package_classes())
-
-    # If the user specified any packages to exclude from external find, add them here
-    if args.exclude:
-        pkg_cls_to_check = [pkg for pkg in pkg_cls_to_check if pkg.name not in args.exclude]
-
-    detected_packages = spack.detection.by_executable(pkg_cls_to_check, path_hints=args.path)
-    detected_packages.update(spack.detection.by_library(pkg_cls_to_check, path_hints=args.path))
-
-    new_entries = spack.detection.update_configuration(
+    new_specs = spack.detection.update_configuration(
         detected_packages, scope=args.scope, buildable=not args.not_buildable
     )
-    if new_entries:
-        path = spack.config.config.get_config_filename(args.scope, "packages")
-        msg = "The following specs have been detected on this system " "and added to {0}"
-        tty.msg(msg.format(path))
-        spack.cmd.display_specs(new_entries)
+
+    # If the user runs `spack external find --not-buildable mpich` we also mark `mpi` non-buildable
+    # to avoid that the concretizer picks a different mpi provider.
+    if new_specs and args.not_buildable:
+        virtuals: Set[str] = {
+            virtual.name
+            for new_spec in new_specs
+            for virtual_specs in spack.repo.PATH.get_pkg_class(new_spec.name).provided.values()
+            for virtual in virtual_specs
+        }
+        new_virtuals = spack.detection.set_virtuals_nonbuildable(virtuals, scope=args.scope)
+        new_specs.extend(spack.spec.Spec(name) for name in new_virtuals)
+
+    if new_specs:
+        path = spack.config.CONFIG.get_config_filename(args.scope, "packages")
+        tty.msg(f"The following specs have been detected on this system and added to {path}")
+        spack.cmd.display_specs(new_specs)
     else:
         tty.msg("No new external packages detected")
+
+
+def packages_to_search_for(
+    *, names: Optional[List[str]], tags: List[str], exclude: Optional[List[str]]
+):
+    result = list(
+        {pkg for tag in tags for pkg in spack.repo.PATH.packages_with_tags(tag, full=True)}
+    )
+
+    if names:
+        # Match both fully qualified and unqualified
+        parts = [rf"(^{x}$|[.]{x}$)" for x in names]
+        select_re = re.compile("|".join(parts))
+        result = [x for x in result if select_re.search(x)]
+
+    if exclude:
+        # Match both fully qualified and unqualified
+        parts = [rf"(^{x}$|[.]{x}$)" for x in exclude]
+        select_re = re.compile("|".join(parts))
+        result = [x for x in result if not select_re.search(x)]
+
+    return result
 
 
 def external_read_cray_manifest(args):
@@ -177,11 +190,16 @@ def external_read_cray_manifest(args):
         manifest_directory=args.directory,
         dry_run=args.dry_run,
         fail_on_error=args.fail_on_error,
+        ignore_default_dir=args.ignore_default_dir,
     )
 
 
 def _collect_and_consume_cray_manifest_files(
-    manifest_file=None, manifest_directory=None, dry_run=False, fail_on_error=False
+    manifest_file=None,
+    manifest_directory=None,
+    dry_run=False,
+    fail_on_error=False,
+    ignore_default_dir=False,
 ):
     manifest_files = []
     if manifest_file:
@@ -191,7 +209,7 @@ def _collect_and_consume_cray_manifest_files(
     if manifest_directory:
         manifest_dirs.append(manifest_directory)
 
-    if os.path.isdir(cray_manifest.default_path):
+    if not ignore_default_dir and os.path.isdir(cray_manifest.default_path):
         tty.debug(
             "Cray manifest path {0} exists: collecting all files to read.".format(
                 cray_manifest.default_path
@@ -227,12 +245,12 @@ def _collect_and_consume_cray_manifest_files(
             if fail_on_error:
                 raise
             else:
-                tty.warn("Failure reading manifest file: {0}" "\n\t{1}".format(path, str(e)))
+                tty.warn("Failure reading manifest file: {0}\n\t{1}".format(path, str(e)))
 
 
 def external_list(args):
     # Trigger a read of all packages, might take a long time.
-    list(spack.repo.path.all_package_classes())
+    list(spack.repo.PATH.all_package_classes())
     # Print all the detectable packages
     tty.msg("Detectable packages per repository")
     for namespace, pkgs in sorted(spack.package_base.detectable_packages.items()):

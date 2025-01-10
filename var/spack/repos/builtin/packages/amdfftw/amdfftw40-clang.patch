@@ -1,0 +1,11 @@
+diff -Nur amd-fftw-4.0/kernel/cpy2d-pair.c amd-fftw-4.0-new/kernel/cpy2d-pair.c
+--- amd-fftw-4.0/kernel/cpy2d-pair.c	2022-11-11 16:52:26.000000000 +0530
++++ amd-fftw-4.0-new/kernel/cpy2d-pair.c	2023-05-12 00:09:10.408511128 +0530
+@@ -21,6 +21,7 @@
+ 
+ /* out of place copy routines for pairs of isomorphic 2D arrays */
+ #include "kernel/ifftw.h"
++#include <string.h>
+ 
+ #ifdef AMD_OPT_ALL
+ #include "immintrin.h"

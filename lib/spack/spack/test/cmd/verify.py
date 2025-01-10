@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,19 +21,19 @@ def test_single_file_verify_cmd(tmpdir):
     # Test the verify command interface to verifying a single file.
     filedir = os.path.join(str(tmpdir), "a", "b", "c", "d")
     filepath = os.path.join(filedir, "file")
-    metadir = os.path.join(str(tmpdir), spack.store.layout.metadata_dir)
+    metadir = os.path.join(str(tmpdir), spack.store.STORE.layout.metadata_dir)
 
     fs.mkdirp(filedir)
     fs.mkdirp(metadir)
 
-    with open(filepath, "w") as f:
+    with open(filepath, "w", encoding="utf-8") as f:
         f.write("I'm a file")
 
     data = spack.verify.create_manifest_entry(filepath)
 
-    manifest_file = os.path.join(metadir, spack.store.layout.manifest_file_name)
+    manifest_file = os.path.join(metadir, spack.store.STORE.layout.manifest_file_name)
 
-    with open(manifest_file, "w") as f:
+    with open(manifest_file, "w", encoding="utf-8") as f:
         sjson.dump({filepath: data}, f)
 
     results = verify("-f", filepath, fail_on_error=False)
@@ -42,7 +41,7 @@ def test_single_file_verify_cmd(tmpdir):
     assert not results
 
     os.utime(filepath, (0, 0))
-    with open(filepath, "w") as f:
+    with open(filepath, "w", encoding="utf-8") as f:
         f.write("I changed.")
 
     results = verify("-f", filepath, fail_on_error=False)
@@ -63,9 +62,7 @@ def test_single_file_verify_cmd(tmpdir):
     assert sorted(errors) == sorted(expected)
 
 
-def test_single_spec_verify_cmd(
-    tmpdir, mock_packages, mock_archive, mock_fetch, config, install_mockery
-):
+def test_single_spec_verify_cmd(tmpdir, mock_packages, mock_archive, mock_fetch, install_mockery):
     # Test the verify command interface to verify a single spec
     install("libelf")
     s = spack.spec.Spec("libelf").concretized()
@@ -76,7 +73,7 @@ def test_single_spec_verify_cmd(
     assert not results
 
     new_file = os.path.join(prefix, "new_file_for_verify_test")
-    with open(new_file, "w") as f:
+    with open(new_file, "w", encoding="utf-8") as f:
         f.write("New file")
 
     results = verify("/%s" % hash, fail_on_error=False)

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,5 +13,4 @@ class OpenblasWithLapack(Package):
 
     version("0.2.15", md5="b1190f3d3471685f17cfd1ec1d252ac9")
 
-    provides("lapack")
-    provides("blas")
+    provides("lapack", "blas")

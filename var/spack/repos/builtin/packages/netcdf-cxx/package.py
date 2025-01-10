@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,7 +14,14 @@ class NetcdfCxx(AutotoolsPackage):
     homepage = "https://www.unidata.ucar.edu/software/netcdf"
     url = "https://downloads.unidata.ucar.edu/netcdf-cxx/4.2/netcdf-cxx-4.2.tar.gz"
 
+    maintainers("climbfuji")
+
+    license("NetCDF")
+
     version("4.2", sha256="95ed6ab49a0ee001255eac4e44aacb5ca4ea96ba850c08337a3e4c9a0872ccd1")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     depends_on("netcdf-c")
 

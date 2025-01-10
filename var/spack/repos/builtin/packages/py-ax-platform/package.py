@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,8 @@ class PyAxPlatform(PythonPackage):
     pypi = "ax-platform/ax-platform-0.3.1.tar.gz"
 
     maintainers("meyersbs")
+
+    license("MIT")
 
     version("0.3.1", sha256="0bad1d16155560fdd8644308d2771edf7fd977ad41fea15a7ecf3f224bc36517")
 

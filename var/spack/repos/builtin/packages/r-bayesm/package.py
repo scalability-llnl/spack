@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -31,6 +30,9 @@ class RBayesm(RPackage):
 
     cran = "bayesm"
 
+    license("GPL-2.0-or-later")
+
+    version("3.1-6", sha256="17d72b9cdc090845f98e7a04640380d0baef8bc23d1487c8f64dc192fdb93cb5")
     version("3.1-5", sha256="f223074ca41ede293b48350eac77a565e034f0f8cf3dd72d0e1d126cc58047a2")
     version("3.1-4", sha256="061b216c62bc72eab8d646ad4075f2f78823f9913344a781fa53ea7cf4a48f94")
     version("3.1-3", sha256="51e4827eca8cd4cf3626f3c2282543df7c392b3ffb843f4bfb386fe104642a10")

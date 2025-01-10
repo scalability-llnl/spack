@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -19,4 +18,4 @@ class ManyVirtualConsumer(Package):
     # This directive is an example of imposing a constraint on a
     # dependency is that dependency is in the DAG. This pattern
     # is mainly used with virtual providers.
-    depends_on("low-priority-provider@1.0", when="^low-priority-provider")
+    depends_on("low-priority-provider@1.0", when="^[virtuals=mpi,lapack] low-priority-provider")

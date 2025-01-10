@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,16 +16,14 @@ level = "long"
 
 
 def setup_parser(subparser):
-    subparser.epilog = (
-        "If called without argument returns " "the list of all valid virtual packages"
-    )
+    subparser.epilog = "If called without argument returns the list of all valid virtual packages"
     subparser.add_argument(
         "virtual_package", nargs="*", help="find packages that provide this virtual package"
     )
 
 
 def providers(parser, args):
-    valid_virtuals = sorted(spack.repo.path.provider_index.providers.keys())
+    valid_virtuals = sorted(spack.repo.PATH.provider_index.providers.keys())
 
     buffer = io.StringIO()
     isatty = sys.stdout.isatty()
@@ -55,5 +52,5 @@ def providers(parser, args):
     for spec in specs:
         if sys.stdout.isatty():
             print("{0}:".format(spec))
-        spack.cmd.display_specs(sorted(spack.repo.path.providers_for(spec)))
+        spack.cmd.display_specs(sorted(spack.repo.PATH.providers_for(spec)))
         print("")

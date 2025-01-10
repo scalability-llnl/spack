@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -27,6 +26,9 @@ class Fortrilinos(CMakePackage):
     tags = ["e4s"]
     test_requires_compiler = True
 
+    license("BSD-3-Clause")
+
+    version("2.3.0", sha256="7be5efecaea61ad773d3fe182aa28735ebc3e7af821e1805ad284e4ed4e31a49")
     version("2.2.0", sha256="9e73fc71066bfaf7cde040e1467baf7a1ec797ff2874add49f9741e93f9fffb5")
     version("2.1.0", sha256="2c62bb6106ae86a804497d549080cb6877c5d860b6bf2e72ec5cbcbbe63e3b5b")
     version("2.0.1", sha256="291a62c885cd4ffd76cbebafa02789649bd4fa73f1005cf8da51fd153acb9e1a")
@@ -46,13 +48,17 @@ class Fortrilinos(CMakePackage):
     )
     version("master", branch="master")
 
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("hl", default=True, description="Build high-level Trilinos wrappers")
     variant("shared", default=True, description="Build shared libraries")
 
     # Trilinos version dependencies
-    depends_on("trilinos@13.4.0:13.4", when="@2.2.0:2.2")
-    depends_on("trilinos@13.2.0:13.2", when="@2.1.0:2.1")
-    depends_on("trilinos@13.0.0:13.2", when="@2.0.0:2.0")
+    depends_on("trilinos@14.0", when="@2.3")
+    depends_on("trilinos@13.4", when="@2.2")
+    depends_on("trilinos@13.2", when="@2.1.0:2.1")
+    depends_on("trilinos@13:13.2", when="@2.0")
     depends_on("trilinos@12.18.1", when="@2.0.dev3")
     depends_on("trilinos@12.18.1", when="@2.0.dev2")
 
@@ -89,7 +95,7 @@ class Fortrilinos(CMakePackage):
     def setup_smoke_tests(self):
         """Copy the example source files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources([self.examples_src_dir])
+        cache_extra_test_sources(self, [self.examples_src_dir])
 
     def test_installation(self):
         """build and run ctest against the installed software"""

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,9 @@ class RYaml(RPackage):
 
     cran = "yaml"
 
+    license("BSD-3-Clause")
+
+    version("2.3.10", sha256="e236d42d366e361d4855aa4f520260debd53a31e4786442b94770b045da02a6d")
     version("2.3.7", sha256="d20cb219e0f9c48aba02f132f81cfa9ecda5e22c925e36726840218ed56680ab")
     version("2.3.6", sha256="5dd19d8d6654ef2e4ccd6216ce8e96ca5185ae6143f95194955f6908a6e1ba26")
     version("2.3.5", sha256="3edf6c0554a0e184a25e8bec5721a2e66b4ab0dceb3737428e22705e52eb5140")

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,8 @@ class PyNeovimRemote(PythonPackage):
     pypi = "neovim-remote/neovim-remote-2.4.0.tar.gz"
 
     maintainers("trws")
+
+    license("MIT")
 
     version("2.4.0", sha256="f199ebb61c3decf462feed4e7d467094ed38d8afaf43620736b5983a12fe2427")
 

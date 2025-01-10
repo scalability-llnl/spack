@@ -1,18 +1,16 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-from __future__ import print_function
-
 import argparse
 
 import llnl.util.tty as tty
 
+import spack.cmd
 import spack.environment as ev
 import spack.store
 import spack.verify
 
-description = "Check that all spack packages are on disk as installed"
+description = "check that all spack packages are on disk as installed"
 section = "admin"
 level = "long"
 
@@ -21,14 +19,14 @@ def setup_parser(subparser):
     setup_parser.parser = subparser
 
     subparser.add_argument(
-        "-l", "--local", action="store_true", help="Verify only locally installed packages"
+        "-l", "--local", action="store_true", help="verify only locally installed packages"
     )
     subparser.add_argument(
-        "-j", "--json", action="store_true", help="Ouptut json-formatted errors"
+        "-j", "--json", action="store_true", help="ouptut json-formatted errors"
     )
-    subparser.add_argument("-a", "--all", action="store_true", help="Verify all packages")
+    subparser.add_argument("-a", "--all", action="store_true", help="verify all packages")
     subparser.add_argument(
-        "specs_or_files", nargs=argparse.REMAINDER, help="Specs or files to verify"
+        "specs_or_files", nargs=argparse.REMAINDER, help="specs or files to verify"
     )
 
     type = subparser.add_mutually_exclusive_group()
@@ -39,7 +37,7 @@ def setup_parser(subparser):
         const="specs",
         dest="type",
         default="specs",
-        help="Treat entries as specs (default)",
+        help="treat entries as specs (default)",
     )
     type.add_argument(
         "-f",
@@ -48,7 +46,7 @@ def setup_parser(subparser):
         const="files",
         dest="type",
         default="specs",
-        help="Treat entries as absolute filenames. Cannot be used with '-a'",
+        help="treat entries as absolute filenames\n\ncannot be used with '-a'",
     )
 
 
@@ -73,7 +71,7 @@ def verify(parser, args):
         spec_args = spack.cmd.parse_specs(args.specs_or_files)
 
     if args.all:
-        query = spack.store.db.query_local if local else spack.store.db.query
+        query = spack.store.STORE.db.query_local if local else spack.store.STORE.db.query
 
         # construct spec list
         if spec_args:

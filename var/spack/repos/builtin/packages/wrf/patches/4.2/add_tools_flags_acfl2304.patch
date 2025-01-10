@@ -1,0 +1,19 @@
+*** a/arch/postamble	2023-04-01 15:35:41.729081823 +0000
+--- b/arch/postamble	2023-04-02 07:30:17.031503636 +0000
+*************** INCLUDE_MODULES =    $(MODULE_SRCH_FLAG)
+*** 56,62 ****
+                        -I$(NETCDFFPATH)/include \
+                        CONFIGURE_RTTOV_INC CONFIGURE_CTSM_INC
+  REGISTRY        =    Registry
+! CC_TOOLS_CFLAGS = CONFIGURE_NMM_CORE
+  
+  LIB             =    $(LIB_BUNDLED) $(LIB_EXTERNAL) $(LIB_LOCAL) $(LIB_WRF_HYDRO) CONFIGURE_CTSM_LIB
+  LDFLAGS         =    $(OMP) $(FCFLAGS) $(LDFLAGS_LOCAL) CONFIGURE_LDFLAGS
+--- 56,62 ----
+                        -I$(NETCDFFPATH)/include \
+                        CONFIGURE_RTTOV_INC CONFIGURE_CTSM_INC
+  REGISTRY        =    Registry
+! CC_TOOLS_CFLAGS = CONFIGURE_NMM_CORE $(CFLAGS_LOCAL)
+  
+  LIB             =    $(LIB_BUNDLED) $(LIB_EXTERNAL) $(LIB_LOCAL) $(LIB_WRF_HYDRO) CONFIGURE_CTSM_LIB
+  LDFLAGS         =    $(OMP) $(FCFLAGS) $(LDFLAGS_LOCAL) CONFIGURE_LDFLAGS

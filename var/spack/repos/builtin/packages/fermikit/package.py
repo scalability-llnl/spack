@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,7 +14,9 @@ class Fermikit(MakefilePackage):
 
     version("2017-11-7", commit="bf9c7112221577ba110665bddca8f1987250bdc7", submodules=True)
 
-    depends_on("zlib")
+    depends_on("c", type="build")  # generated
+
+    depends_on("zlib-api")
     depends_on("sse2neon", when="target=aarch64:")
 
     patch("ksw_for_aarch64.patch", when="target=aarch64:")

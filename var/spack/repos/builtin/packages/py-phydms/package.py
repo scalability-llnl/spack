@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,10 +12,14 @@ class PyPhydms(PythonPackage):
     codon models (ExpCM) for phylogenetic inference and the detection of
     biologically interesting selection."""
 
-    homepage = "http://jbloomlab.github.io/phydms"
+    homepage = "https://jbloomlab.github.io/phydms"
     pypi = "phydms/phydms-2.4.1.tar.gz"
 
+    license("GPL-3.0-or-later")
+
     version("2.4.1", sha256="04eb50bdb07907214050d19214d9bc8cf2002e24ca30fbe6e0f23f013d584d5c")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("python@3.5:", type=("build", "run"))
     depends_on("py-setuptools", type="build")

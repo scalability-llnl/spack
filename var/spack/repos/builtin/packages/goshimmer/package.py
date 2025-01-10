@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,13 +13,15 @@ class Goshimmer(Package):
 
     maintainers("bernhardkaindl")
 
+    license("BSD-2-Clause")
+
     version("0.8.0", sha256="ec515deebf0dd35ff76cd98addae9cfcbf4758ab9eb72eb0f6ff4654f2658980")
 
     depends_on("go@1.16:", type="build")
     depends_on("snappy")
     depends_on("rocksdb")
     depends_on("zstd")
-    depends_on("zlib")
+    depends_on("zlib-api")
     depends_on("lz4")
 
     @property

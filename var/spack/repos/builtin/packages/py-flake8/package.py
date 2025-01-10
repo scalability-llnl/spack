@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,9 @@ class PyFlake8(PythonPackage):
     homepage = "https://github.com/PyCQA/flake8"
     pypi = "flake8/flake8-4.0.1.tar.gz"
 
+    license("MIT")
+
+    version("6.1.0", sha256="d5b3857f07c030bdb5bf41c7f53799571d75c4491748a3adcd47de929e34cd23")
     version("6.0.0", sha256="c61007e76655af75e6785a931f452915b371dc48f56efd765247c8fe68f2b181")
     version("5.0.4", sha256="6fbe320aad8d6b95cec8b8e47bc933004678dc63095be98528b7bdd2a9f510db")
     version("5.0.2", sha256="9cc32bc0c5d16eacc014c7ec6f0e9565fd81df66c2092c3c9df06e3c1ac95e5d")
@@ -42,6 +44,11 @@ class PyFlake8(PythonPackage):
     # error codes within each minor release:
     # http://flake8.pycqa.org/en/latest/faq.html#why-does-flake8-use-ranges-for-its-dependencies
     # http://flake8.pycqa.org/en/latest/internal/releases.html#releasing-flake8
+
+    # Flake8 6.1.X
+    depends_on("py-mccabe@0.7", when="@6.1", type=("build", "run"))
+    depends_on("py-pycodestyle@2.11", when="@6.1", type=("build", "run"))
+    depends_on("py-pyflakes@3.1", when="@6.1", type=("build", "run"))
 
     # Flake8 6.0.X
     depends_on("py-mccabe@0.7", when="@6.0", type=("build", "run"))

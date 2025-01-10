@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,7 @@ class RGenomicalignments(RPackage):
 
     bioc = "GenomicAlignments"
 
+    version("1.36.0", commit="cdc1aa49f14d3effe2540380a04fe1fc72c00f04")
     version("1.34.0", commit="c6eb78079c8aa21d47c95b3d16a606e8c2c5d799")
     version("1.32.1", commit="2553580d0b8a8a5fd7835c1446616b39f707b8a9")
     version("1.32.0", commit="7a660a914a04e2eb0758082b6f64c4124a887ef3")
@@ -26,6 +26,8 @@ class RGenomicalignments(RPackage):
     version("1.16.0", commit="db032a459e5cf05a2a5c2059662a541827112974")
     version("1.14.2", commit="57b0b35d8b36069d4d94af86af051f0129b28eef")
     version("1.12.2", commit="b5d6f19e4a89b6c1c3e9e58e5ea4eb13870874ef")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("r@2.10:", type=("build", "run"))
     depends_on("r@4.0.0:", type=("build", "run"), when="@1.30.0:")

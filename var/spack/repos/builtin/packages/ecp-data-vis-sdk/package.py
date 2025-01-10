@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -102,12 +101,12 @@ class EcpDataVisSdk(BundlePackage, CudaPackage, ROCmPackage):
     amdgpu_target_variants = ["amdgpu_target={0}".format(x) for x in ROCmPackage.amdgpu_targets]
 
     dav_sdk_depends_on(
-        "adios2+shared+mpi+python+blosc+sst+ssc+dataman",
+        "adios2+shared+mpi+python+sst+dataman",
         when="+adios2",
         propagate=["cuda", "hdf5", "sz", "zfp", "fortran"] + cuda_arch_variants,
     )
 
-    dav_sdk_depends_on("darshan-runtime+mpi", when="+darshan", propagate=["hdf5"])
+    dav_sdk_depends_on("darshan-runtime+mpi", when="+darshan")
     dav_sdk_depends_on("darshan-util", when="+darshan")
 
     dav_sdk_depends_on("faodel+shared+mpi network=libfabric", when="+faodel", propagate=["hdf5"])
@@ -141,7 +140,7 @@ class EcpDataVisSdk(BundlePackage, CudaPackage, ROCmPackage):
     dav_sdk_depends_on("parallel-netcdf+shared", when="+pnetcdf", propagate=["fortran"])
 
     dav_sdk_depends_on("unifyfs", when="+unifyfs ")
-    conflicts("unifyfs@develop")
+    conflicts("^unifyfs@develop")
 
     dav_sdk_depends_on("veloc", when="+veloc")
 
@@ -161,22 +160,22 @@ class EcpDataVisSdk(BundlePackage, CudaPackage, ROCmPackage):
 
     # Need to explicitly turn off conduit hdf5_compat in order to build
     # hdf5@1.12 which is required for SDK
-    depends_on("ascent ^conduit ~hdf5_compat", when="+ascent +hdf5")
+    depends_on("conduit ~hdf5_compat", when="+ascent +hdf5")
     # Disable configuring with @develop. This should be removed after ascent
     # releases 0.8 and ascent can build with conduit@0.8: and vtk-m@1.7:
-    conflicts("ascent@develop", when="+ascent")
+    conflicts("^ascent@develop", when="+ascent")
 
     depends_on("py-cinemasci", when="+cinema")
 
     # ParaView needs @5.11: in order to use CUDA/ROCM, therefore it is the minimum
     # required version since GPU capability is desired for ECP
     dav_sdk_depends_on(
-        "paraview@5.11:+mpi+openpmd+python+kits+shared+catalyst+libcatalyst+raytracing",
+        "paraview@5.11:+mpi+openpmd+python+kits+shared+catalyst+libcatalyst" " use_vtkm=on",
         when="+paraview",
         propagate=["adios2", "cuda", "hdf5", "rocm"] + amdgpu_target_variants + cuda_arch_variants,
     )
     dav_sdk_depends_on("libcatalyst@2:+mpi", when="+paraview")
-    conflicts("paraview@master", when="+paraview")
+    conflicts("^paraview@master", when="+paraview")
 
     dav_sdk_depends_on("visit+mpi+python+silo", when="+visit", propagate=["hdf5", "adios2"])
 
@@ -187,7 +186,7 @@ class EcpDataVisSdk(BundlePackage, CudaPackage, ROCmPackage):
     )
     # TODO: When Ascent is updated to use VTK-m >= 1.8 move examples to
     # the main spec.
-    depends_on("vtk-m+examples", when="+vtkm ^vtk-m@1.8:")
+    conflicts("^vtk-m~examples", when="+vtkm ^vtk-m@1.8:")
     depends_on("vtk-m+openmp", when="~rocm+vtkm")
     depends_on("vtk-m~openmp", when="+rocm+vtkm")
 

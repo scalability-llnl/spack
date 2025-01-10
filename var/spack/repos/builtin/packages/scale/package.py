@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ class Scale(MakefilePackage):
 
     maintainers("t-yamaura")
 
+    license("BSD-2-Clause")
+
     version(
         "5.4.4",
         sha256="7d0ec4069c15d8b9ec7166f32c9a2eda772d975a8e08e420e6b16891ceebb316",
@@ -27,6 +28,9 @@ class Scale(MakefilePackage):
     )
     version("5.3.6", sha256="3ab0d42cdb16eee568c65b880899e861e464e92088ceb525066c726f31d04848")
     version("5.2.6", sha256="e63141d05810e3f41fc89c9eb15e2319d753832adabdac8f7c8dd7acc0f5f8ed")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("mpi@2:", type=("build", "link", "run"))
     depends_on("netcdf-c")
@@ -46,8 +50,6 @@ class Scale(MakefilePackage):
             scale_sys_str = "Linux64-gnu-ompi"
         elif self.spec.satisfies("platform=linux %intel"):
             scale_sys_str = "Linux64-intel-impi"
-        elif self.spec.satisfies("platform=linux %pgi"):
-            scale_sys_str = "Linux64-pgi-ompi"
         elif self.spec.satisfies("platform=linux target=arm %gcc"):
             scale_sys_str = "LinuxARM-gnu-ompi"
         elif self.spec.satisfies("platform=linux target=a64fx %fj"):

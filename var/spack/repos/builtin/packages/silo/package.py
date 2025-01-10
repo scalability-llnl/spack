@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,8 +11,22 @@ class Silo(AutotoolsPackage):
     data to binary, disk files."""
 
     homepage = "https://wci.llnl.gov/simulation/computer-codes/silo"
+    git = "https://github.com/LLNL/Silo.git"
     url = "https://wci.llnl.gov/sites/wci/files/2021-01/silo-4.10.2.tgz"
+    maintainers("patrickb314")
 
+    version("main", branch="main")
+    version(
+        "4.11.1",
+        preferred=True,
+        sha256="49eddc00304aa4a19074b099559edbdcaa3532c98df32f99aa62b9ec3ea7cee2",
+        url="https://github.com/LLNL/Silo/releases/download/4.11.1/silo-4.11.1.tar.xz",
+    )
+    version(
+        "4.11.1-bsd",
+        sha256="51ccfdf3c09dfc98c7858a0a6f08cc3b2a07ee3c4142ee6482ba7b24e314c2aa",
+        url="https://github.com/LLNL/Silo/releases/download/4.11.1/silo-4.11.1-bsd.tar.xz",
+    )
     version(
         "4.11",
         sha256="ab936c1f4fc158d9fdc4415965f7d9def7f4abeca596fe5a25bd8485654898ac",
@@ -37,6 +50,11 @@ class Silo(AutotoolsPackage):
     version("4.9", sha256="90f3d069963d859c142809cfcb034bc83eb951f61ac02ccb967fc8e8d0409854")
     version("4.8", sha256="c430c1d33fcb9bc136a99ad473d535d6763bd1357b704a915ba7b1081d58fb21")
 
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
+    variant("python", default=True, description="Enable Python support")
     variant("fortran", default=True, description="Enable Fortran support")
     variant("shared", default=True, description="Build shared libraries")
     variant("silex", default=False, description="Builds Silex, a GUI for viewing Silo files")
@@ -46,6 +64,8 @@ class Silo(AutotoolsPackage):
     variant("hzip", default=True, description="Enable hzip support")
     variant("fpzip", default=True, description="Enable fpzip support")
 
+    depends_on("python", type=("build", "link"), when="+python")
+    depends_on("perl", type="build")
     depends_on("m4", type="build", when="+shared")
     depends_on("autoconf", type="build", when="+shared")
     depends_on("autoconf-archive", type="build", when="+shared")
@@ -59,7 +79,7 @@ class Silo(AutotoolsPackage):
     # Xmu dependency is required on Ubuntu 18-20
     depends_on("libxmu", when="+silex")
     depends_on("readline")
-    depends_on("zlib")
+    depends_on("zlib-api")
 
     patch("remove-mpiposix.patch", when="@4.8:4.10.2")
 
@@ -67,27 +87,29 @@ class Silo(AutotoolsPackage):
     patch("H5FD_class_t-terminate.patch", when="@:4.10.2-bsd")
 
     # H5EPR_SEMI_COLON.patch was fixed in current dev
-    # patch("H5EPR_SEMI_COLON.patch", when="@:4.11-bsd")
-    patch("H5EPR_SEMI_COLON.patch")
+    patch("H5EPR_SEMI_COLON.patch", when="@:4.11-bsd")
 
     # Fix missing F77 init, fixed in 4.9
     patch("48-configure-f77.patch", when="@:4.8")
 
     # The previously used AX_CHECK_COMPILER_FLAGS macro was dropped from
     # autoconf-archive in 2011
-    patch("configure-AX_CHECK_COMPILE_FLAG.patch")
+    patch("configure-AX_CHECK_COMPILE_FLAG.patch", when="@:4.11-bsd")
 
     # API changes in hdf5-1.13 cause breakage
     # See https://github.com/LLNL/Silo/pull/260
-    patch("hdf5-113.patch", when="@4.11: +hdf5 ^hdf5@1.13:")
-    conflicts("hdf5@1.13:", when="@:4.10.2-bsd")
+    patch("hdf5-113.patch", when="@4.11:4.11-bsd +hdf5 ^hdf5@1.13:")
+    conflicts("^hdf5@1.13:", when="@:4.10.2-bsd")
 
     # hzip and fpzip are not available in the BSD releases
     conflicts("+hzip", when="@4.10.2-bsd,4.11-bsd")
     conflicts("+fpzip", when="@4.10.2-bsd,4.11-bsd")
 
     # zfp include missing
-    patch("zfp_error.patch", when="@4.11 +hdf5")
+    patch("zfp_error.patch", when="@4.11:4.11-bsd +hdf5")
+
+    # use /usr/bin/env perl for portability
+    patch("mkinc-usr-bin-env-perl.patch", when="@:4.11-bsd")
 
     def flag_handler(self, name, flags):
         spec = self.spec
@@ -95,7 +117,6 @@ class Silo(AutotoolsPackage):
             if "+hdf5" in spec:
                 if spec["hdf5"].satisfies("~shared"):
                     flags.append("-ldl")
-            flags.append(spec["readline"].libs.search_flags)
 
         if "+pic" in spec:
             if name == "cflags":
@@ -105,6 +126,11 @@ class Silo(AutotoolsPackage):
             elif name == "fcflags":
                 flags.append(self.compiler.fc_pic_flag)
         if name == "cflags" or name == "cxxflags":
+            if spec.satisfies("%oneapi"):
+                flags.append("-Wno-error=int")
+                flags.append("-Wno-error=int-conversion")
+            if spec.satisfies("+python"):
+                flags.append(f"-I {spec['python'].headers.directories[0]}")
             if "+hdf5" in spec:
                 # @:4.10 can use up to the 1.10 API
                 if "@:4.10" in spec:
@@ -119,12 +145,18 @@ class Silo(AutotoolsPackage):
                     # presented with an HDF5 API consistent with the HDF5 version.
                     # Use the latest even-numbered API version, i.e. v1.13.1 uses
                     # API v1.12
-                    maj_ver = int(spec["hdf5"].version[0])
-                    min_ver = int(spec["hdf5"].version[1])
+
+                    # hdf5 support branches have a `develop` prefix
+                    if "develop" in str(spec["hdf5"].version):
+                        maj_ver = int(spec["hdf5"].version[1])
+                        min_ver = int(spec["hdf5"].version[2])
+                    else:
+                        maj_ver = int(spec["hdf5"].version[0])
+                        min_ver = int(spec["hdf5"].version[1])
                     min_apiver = int(min_ver / 2) * 2
                     flags.append("-DH5_USE_{0}{1}_API".format(maj_ver, min_apiver))
 
-            if spec.compiler.name in ["clang", "apple-clang"]:
+            if spec.satisfies("%clang") or spec.satisfies("%apple-clang"):
                 flags.append("-Wno-implicit-function-declaration")
         return (flags, None, None)
 
@@ -176,18 +208,18 @@ class Silo(AutotoolsPackage):
 
     def configure_args(self):
         spec = self.spec
-        config_args = [
-            "--enable-install-lite-headers",
-            "--enable-fortran" if "+fortran" in spec else "--disable-fortran",
-            "--enable-silex" if "+silex" in spec else "--disable-silex",
-            "--enable-shared" if "+shared" in spec else "--disable-shared",
-            "--enable-hzip" if "+hzip" in spec else "--disable-hzip",
-            "--enable-fpzip" if "+fpzip" in spec else "--disable-fpzip",
-        ]
+        config_args = ["--enable-install-lite-headers"]
+
+        config_args.extend(self.enable_or_disable("pythonmodule", variant="python"))
+        config_args.extend(self.enable_or_disable("fortran"))
+        config_args.extend(self.enable_or_disable("silex"))
+        config_args.extend(self.enable_or_disable("shared"))
+        config_args.extend(self.enable_or_disable("hzip"))
+        config_args.extend(self.enable_or_disable("fpzip"))
 
         # Do not specify the prefix of zlib if it is in a system directory
         # (see https://github.com/spack/spack/pull/21900).
-        zlib_prefix = self.spec["zlib"].prefix
+        zlib_prefix = self.spec["zlib-api"].prefix
         if is_system_path(zlib_prefix):
             config_args.append("--with-zlib=yes")
         else:

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,23 +19,34 @@ class Scotch(CMakePackage, MakefilePackage):
 
     maintainers("pghysels")
 
+    version("7.0.4", sha256="8ef4719d6a3356e9c4ca7fefd7e2ac40deb69779a5c116f44da75d13b3d2c2c3")
     version("7.0.3", sha256="5b5351f0ffd6fcae9ae7eafeccaa5a25602845b9ffd1afb104db932dd4d4f3c5")
     version("7.0.1", sha256="0618e9bc33c02172ea7351600fce4fccd32fe00b3359c4aabb5e415f17c06fed")
     version("6.1.3", sha256="4e54f056199e6c23d46581d448fcfe2285987e5554a0aa527f7931684ef2809e")
     version("6.1.2", sha256="9c2c75c75f716914a2bd1c15dffac0e29a2f8069b2df1ad2b6207c984b699450")
-    version("6.1.1", sha256="39052f59ff474a4a69cefc25cf3caf8429400889deba010ee6403ca188f8b311")
-    version("6.1.0", sha256="a3bc3fa3b243fcb52f8d68de4272562a0328afb18a96f535724d284e36730485")
-    version("6.0.10", sha256="fd8b707b8200823312a1571d97d3776ff3dfd3280cfa4b6e38987153cea5dbda")
-    version("6.0.9", sha256="622b4143cf01c480bb15708b3651b29c25e4aeb00c8c6447ff196aca2eca5c93")
-    version("6.0.8", sha256="0ba3f145026174304f910c8770a3cbb034f213c91d939573751cfbb4fd46d45e")
-    version("6.0.6", sha256="686f0cad88d033fe71c8b781735ff742b73a1d82a65b8b1586526d69729ac4cf")
+    version("6.1.1", sha256="14daf151399fc67f83fd3ff2933854f5e8d2207c7d35dd66a05660bf0bbd583c")
+    version("6.1.0", sha256="4fe537f608f0fe39ec78807f90203f9cca1181deb16bfa93b7d4cd440e01bbd1")
+    version("6.0.10", sha256="e5542b6102b5616f0f5c6619e3e9d52f9d0e48cb991e9b30670f598deeac0553")
+    version("6.0.9", sha256="b9bc86c50b65781eb416663e938d57555373c2517ea8b9acf680fd3acde0cb0c")
+    version("6.0.8", sha256="9457c1e7c30f073686cc217345b5a96af4166d6abbf148af84cdbab4e144b299")
+    version("6.0.6", sha256="e932b4c04636fcf5d21b9a76376868de052c9b000bdaf96f8967dcec61bdaa10")
     version("6.0.5a", sha256="5b21b95e33acd5409d682fa7253cefbdffa8db82875549476c006d8cbe7c556f")
     version("6.0.4", sha256="f53f4d71a8345ba15e2dd4e102a35fd83915abf50ea73e1bf6efe1bc2b4220c7")
     version("6.0.3", sha256="6461cc9f28319a9dbe6cc10e28c0cbe90b4b25e205723c3edcde9a3ff974d6d8")
     version("6.0.0", sha256="8206127d038bda868dda5c5a7f60ef8224f2e368298fbb01bf13fa250e378dd4")
     version("5.1.10b", sha256="54c9e7fafefd49d8b2017d179d4f11a655abe10365961583baaddc4eeb6a9add")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
+
     build_system(conditional("cmake", when="@7:"), "makefile", default="cmake")
+    variant("threads", default=True, description="use POSIX Pthreads within Scotch and PT-Scotch")
+    variant(
+        "mpi_thread",
+        default=False,
+        description="use multi-threaded algorithms in conjunction with MPI",
+    )
     variant("mpi", default=True, description="Compile parallel libraries")
     variant("compression", default=True, description="May use compressed files")
     variant("esmumps", default=False, description="Compile esmumps (needed by mumps)")
@@ -45,6 +55,7 @@ class Scotch(CMakePackage, MakefilePackage):
         "metis", default=False, description="Expose vendored METIS/ParMETIS libraries and wrappers"
     )
     variant("int64", default=False, description="Use int64_t for SCOTCH_Num typedef")
+    variant("noarch", default=False, description="Unset SPACK_TARGET_ARGS")
     variant(
         "link_error_lib",
         default=False,
@@ -54,9 +65,9 @@ class Scotch(CMakePackage, MakefilePackage):
 
     # Does not build with flex 2.6.[23]
     depends_on("flex@:2.6.1,2.6.4:", type="build")
-    depends_on("bison", type="build")
+    depends_on("bison@3.4:", type="build")
     depends_on("mpi", when="+mpi")
-    depends_on("zlib", when="+compression")
+    depends_on("zlib-api", when="+compression")
 
     # Version-specific patches
     patch("nonthreaded-6.0.4.patch", when="@6.0.4")
@@ -66,10 +77,13 @@ class Scotch(CMakePackage, MakefilePackage):
     patch("libscotchmetis-return-6.0.5a.patch", when="@6.0.5a")
     patch("libscotch-scotcherr-link-7.0.1.patch", when="@7.0.1 +link_error_lib")
 
+    # Avoid OpenMPI segfaults by using MPI_Comm_F2C for parmetis communicator
+    patch("parmetis-mpi.patch", when="@6.1.1:7.0.3 +metis ^openmpi")
+
     # Vendored dependency of METIS/ParMETIS conflicts with standard
     # installations
-    conflicts("^metis", when="+metis")
-    conflicts("^parmetis", when="+metis")
+    conflicts("metis", when="+metis")
+    conflicts("parmetis", when="+metis")
 
     parallel = False
 
@@ -101,7 +115,7 @@ class Scotch(CMakePackage, MakefilePackage):
 
         scotchlibs = find_libraries(libraries, root=self.prefix, recursive=True, shared=shared)
         if "+compression" in self.spec:
-            zlibs = self.spec["zlib"].libs
+            zlibs = self.spec["zlib-api"].libs
 
         return scotchlibs + zlibs
 
@@ -115,14 +129,18 @@ class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
             self.define_from_variant("BUILD_LIBESMUMPS", "esmumps"),
             self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
             self.define_from_variant("BUILD_PTSCOTCH", "mpi"),
+            self.define_from_variant("THREADS", "threads"),
+            self.define_from_variant("MPI_THREAD_MULTIPLE", "mpi_thread"),
         ]
-
-        # TODO should we enable/disable THREADS?
 
         if "+int64" in spec:
             args.append("-DINTSIZE=64")
 
         return args
+
+    @when("+noarch")
+    def setup_build_environment(self, env):
+        env.unset("SPACK_TARGET_ARGS")
 
 
 class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
@@ -205,7 +223,7 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
 
         if "+compression" in self.spec:
             cflags.append("-DCOMMON_FILE_COMPRESS_GZ")
-            ldflags.append(" {0} ".format(self.spec["zlib"].libs.joined()))
+            ldflags.append(" {0} ".format(self.spec["zlib-api"].libs.joined()))
 
         cflags.append("-DCOMMON_PTHREAD")
 

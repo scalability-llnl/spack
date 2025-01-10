@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,29 +13,35 @@ class Libceed(MakefilePackage, CudaPackage, ROCmPackage):
 
     maintainers("jedbrown", "v-dobrev", "tzanio", "jeremylt")
 
+    license("BSD-2-Clause")
+
     version("develop", branch="main")
-    version("0.11.0", tag="v0.11.0")
-    version("0.10.1", tag="v0.10.1")
-    version("0.9", tag="v0.9.0")
-    version("0.8", tag="v0.8")
-    version("0.7", tag="v0.7")
+    version("0.12.0", tag="v0.12.0", commit="4018a20a98d451fac24765d3ddb936861647ce8d")
+    version("0.11.0", tag="v0.11.0", commit="8ec64e9ae9d5df169dba8c8ee61d8ec8907b8f80")
+    version("0.10.1", tag="v0.10.1", commit="74532b27052d94e943eb8bc76257fbd710103614")
+    version("0.9", tag="v0.9.0", commit="d66340f5aae79e564186ab7514a1cd08b3a1b06b")
+    version("0.8", tag="v0.8", commit="e8f234590eddcce2220edb1d6e979af7a3c35f82")
+    version("0.7", tag="v0.7", commit="0bc92be5158efcbeb80d3d59240233bf5b2f748c")
     version(
         "0.6", commit="c7f533e01e2f3f6720fbf37aac2af2ffed225f60"
     )  # tag v0.6 + small portability fixes
-    version("0.5", tag="v0.5")
-    version("0.4", tag="v0.4")
-    version("0.2", tag="v0.2")
-    version("0.1", tag="v0.1")
+    version("0.5", tag="v0.5", commit="12804ff7ea2ac608ae5494437379e4f626cf5cb7")
+    version("0.4", tag="v0.4", commit="40b9dad77dea06a1608fa8b93a0d8b9c993ee43d")
+    version("0.2", tag="v0.2", commit="113004cb41757b819325a4b3a8a7dfcea5156531")
+    version("0.1", tag="v0.1", commit="74e0540e2478136394f75869675056eb6aba67cc")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("occa", default=False, description="Enable OCCA backends")
     variant("debug", default=False, description="Enable debug build")
     variant("libxsmm", default=False, description="Enable LIBXSMM backend", when="@0.3:")
     variant("magma", default=False, description="Enable MAGMA backend", when="@0.6:")
 
-    conflicts("+rocm", when="@:0.6")
+    conflicts("+rocm", when="@:0.7")
 
     with when("+rocm"):
-        depends_on("hip@3.8.0", when="@0.7:0.7.99")
         depends_on("hip@3.8.0:", when="@0.8:")
         depends_on("hipblas@3.8.0:", when="@0.8:")
 
@@ -70,12 +75,12 @@ class Libceed(MakefilePackage, CudaPackage, ROCmPackage):
         # Use verbose building output
         makeopts = ["V=1"]
 
-        if "@:0.2" in spec:
-            makeopts += ["NDEBUG=%s" % ("" if "+debug" in spec else "1")]
+        if spec.satisfies("@:0.2"):
+            makeopts += ["NDEBUG=%s" % ("" if spec.satisfies("+debug") else "1")]
 
-        elif "@0.4:" in spec:
+        elif spec.satisfies("@0.4:"):
             # Determine options based on the compiler:
-            if "+debug" in spec:
+            if spec.satisfies("+debug"):
                 opt = "-g"
             elif compiler.name == "gcc":
                 opt = "-O3 -g -ffp-contract=fast"
@@ -108,7 +113,7 @@ class Libceed(MakefilePackage, CudaPackage, ROCmPackage):
             if spec.satisfies("@:0.7") and "avx" in self.spec.target:
                 makeopts.append("AVX=1")
 
-            if "+cuda" in spec:
+            if spec.satisfies("+cuda"):
                 makeopts += ["CUDA_DIR=%s" % spec["cuda"].prefix]
                 makeopts += ["CUDA_ARCH=sm_%s" % spec.variants["cuda_arch"].value]
                 if spec.satisfies("@:0.4"):
@@ -122,17 +127,17 @@ class Libceed(MakefilePackage, CudaPackage, ROCmPackage):
                 # Disable CUDA auto-detection:
                 makeopts += ["CUDA_DIR=/disable-cuda"]
 
-            if "+rocm" in spec:
+            if spec.satisfies("+rocm"):
                 makeopts += ["HIP_DIR=%s" % spec["hip"].prefix]
                 amdgpu_target = ",".join(spec.variants["amdgpu_target"].value)
                 makeopts += ["HIP_ARCH=%s" % amdgpu_target]
                 if spec.satisfies("@0.8"):
                     makeopts += ["HIPBLAS_DIR=%s" % spec["hipblas"].prefix]
 
-            if "+libxsmm" in spec:
+            if spec.satisfies("+libxsmm"):
                 makeopts += ["XSMM_DIR=%s" % spec["libxsmm"].prefix]
 
-            if "+magma" in spec:
+            if spec.satisfies("+magma"):
                 makeopts += ["MAGMA_DIR=%s" % spec["magma"].prefix]
 
         return makeopts

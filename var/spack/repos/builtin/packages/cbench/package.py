@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,6 +17,10 @@ class Cbench(MakefilePackage):
     list_depth = 1
 
     version("1.3.0", sha256="b40fdafd14869b86819e5906a107b0735290a1e58bae229d8166514a72f58732")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     depends_on("mpi")
     depends_on("blas")
@@ -43,7 +46,7 @@ class Cbench(MakefilePackage):
         env.set("MPIHOME", self.spec["mpi"].prefix)
 
         # Pick the compiler collection/chain you want to compile with.
-        # Examples include: intel, gcc, pgi.
+        # Examples include: intel, gcc.
         env.set("COMPILERCOLLECTION", self.compiler.name)
 
         # Linking flags for BLAS/LAPACK and FFTW

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import numbers
@@ -40,6 +39,8 @@ class Pythia6(CMakePackage):
         url="https://pythia.org/download/pythia6/pythia6428-split.tgz",
         sha256="01cbff47e99365b5e46f6d62c1735d3cae1932c4710604850d59f538cb758020",
     )
+
+    depends_on("fortran", type="build")  # generated
 
     # Root's TPythia6 interface requires extra sources to be built into
     # the Pythia6 library.
@@ -88,16 +89,19 @@ class Pythia6(CMakePackage):
         "main73.f": "567db2d1a66896ce5103ffa7e10742442b0e934088883e91339536e0249772c4",
         "main75.f": "b850986c43a5af1e7d13b66d22b01584e3c68bb338be32eac39e31f971b80be4",
         "main77.f": "0679852c4f35719531ad38dc1dbb374b884181eb5e483c36d8867ccb449177a4",
-        "main78.f": "5babc59fe6a0bd57d97ec398cf01745bc9b72ce6ce0711e934d53c7821e21912",
+        "main78.f": "09ed4b065d2c7ad439d4083d048a3a8f469963c1bb191811857c88f56ef07a5d",
         "main79.f": "27ca84d6d0877f3605cbc1b865c3e1f571e7d2c9301094a4122e726a903dbead",
-        "main81.f": "b02fecd1cd0f9ba16eaae53e9da0ba602569fdf0e46856cccdfb4c5b7ba33e8b",
-        "ttbar.lhe": "db772b69ab4e0300d973b57414523ac8e7fa8535eac49ee52a6b69b1c131983d",
+        # Following files were not transferred to the new pythia.org website
+        # https://web.archive.org/web/20150215042950/http://pythia6.hepforge.org/examples/main81.f
+        # "main81.f": "b02fecd1cd0f9ba16eaae53e9da0ba602569fdf0e46856cccdfb4c5b7ba33e8b",
+        # https://web.archive.org/web/20150215042950/http://pythia6.hepforge.org/examples/ttbar.lhe
+        # "ttbar.lhe": "db772b69ab4e0300d973b57414523ac8e7fa8535eac49ee52a6b69b1c131983d",
     }
 
     for example, checksum in examples.items():
         resource(
             name=example,
-            url="http://pythiasix.hepforge.org/examples/{0}".format(example),
+            url="https://pythia.org/download/pythia6/{0}".format(example),
             sha256=checksum,
             expand=False,
             destination="example",
@@ -106,9 +110,9 @@ class Pythia6(CMakePackage):
 
     # Docs.
     docs = {
-        "http://www.hepforge.org/archive/pythiasix/update_notes-6.4.28.txt": "a229be4ba9a4eb65a9d53600a5f388b620038d56694c6cb4671c2be224b67751",
-        "http://home.thep.lu.se/~torbjorn/pythia6/lutp0613man2.pdf": "03d637310ea80f0d7aea761492bd38452c602890d8cf913a1ec9edacd79fa43d",
-        "https://pythiasix.hepforge.org/pythia6-announcement.txt": "2a52def41f0c93e32e0db58dbcf072b987ebfbd32e42ccfc1f9382fcf65f1271",
+        "https://pythia.org/download/pythia6/pythia6428.update": "a229be4ba9a4eb65a9d53600a5f388b620038d56694c6cb4671c2be224b67751",
+        "https://pythia.org/download/pythia6/lutp0613man2.pdf": "03d637310ea80f0d7aea761492bd38452c602890d8cf913a1ec9edacd79fa43d",
+        "https://pythia.org/download/misc/pythia6plans.txt": "1befc8c6e641051a97a53ba4df7f890bf0c4d6ba9e0774c03df69b0fef481d89",
     }
 
     for docurl, checksum in docs.items():
@@ -133,9 +137,7 @@ class Pythia6(CMakePackage):
         # Use our provided CMakeLists.txt. The Makefile provided with
         # the source is GCC (gfortran) specific, and would have required
         # additional patching for the +root variant.
-        llnl.util.filesystem.copy(
-            os.path.join(os.path.dirname(__file__), "CMakeLists.txt"), self.stage.source_path
-        )
+        copy(os.path.join(os.path.dirname(__file__), "CMakeLists.txt"), self.stage.source_path)
         # Apply the variant value at the relevant place in the source.
         filter_file(
             r"^(\s+PARAMETER\s*\(\s*NMXHEP\s*=\s*)\d+",

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,9 @@ class RLme4(RPackage):
 
     cran = "lme4"
 
+    license("GPL-2.0-or-later")
+
+    version("1.1-35.5", sha256="7d6664db7ea96429562efe1058da58985d779d6fe79ec6f4e86ba68047135170")
     version("1.1-33", sha256="d956a5ed7cbcc016114a836bad89acf6cdafcd0f82a7d85e3805ced936b40910")
     version("1.1-31", sha256="5affd1e33d3fece5ec0a6c7663eb12328e64147f8aa92675ce6453c4fe72edfd")
     version("1.1-30", sha256="fdabdfc4b64cff05ae9506a766c948a953eeb6db71761f9401b36d6d9979300f")
@@ -30,7 +32,9 @@ class RLme4(RPackage):
     depends_on("r@3.0.2:", type=("build", "run"))
     depends_on("r@3.2.0:", type=("build", "run"), when="@1.1-16:")
     depends_on("r@3.5.0:", type=("build", "run"), when="@1.1-31:")
+    depends_on("r@3.6.0:", type=("build", "run"), when="@1.1-35.5:")
     depends_on("r-matrix@1.2-1:", type=("build", "run"))
+    depends_on("r-matrix@1.2-3:", type=("build", "run"), when="@1.1-35.5:")
     depends_on("r-mass", type=("build", "run"))
     depends_on("r-lattice", type=("build", "run"))
     depends_on("r-boot", type=("build", "run"), when="@1.1-21:")
@@ -39,5 +43,6 @@ class RLme4(RPackage):
     depends_on("r-nloptr@1.0.4:", type=("build", "run"))
     depends_on("r-rcpp@0.10.5:", type=("build", "run"))
     depends_on("r-rcppeigen", type=("build", "run"))
+    depends_on("r-rcppeigen@0.3.3.9.4:", type=("build", "run"), when="@1.1-35.1:")
 
     depends_on("r-statmod", type=("build", "run"), when="@1.1-26")

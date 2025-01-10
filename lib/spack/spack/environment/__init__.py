@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """This package implements Spack environments.
@@ -34,6 +33,9 @@ contents have.  Lockfiles are JSON-formatted and their top-level sections are:
       * ``spec``: a string representation of the abstract spec that was concretized
 
   4. ``concrete_specs``: a dictionary containing the specs in the environment.
+  5. ``include_concrete`` (dictionary): an optional dictionary that includes the roots
+     and concrete specs from the included environments, keyed by the path to that
+     environment
 
 Compatibility
 -------------
@@ -50,8 +52,10 @@ upgrade Spack to use them.
      - ``v2``
      - ``v3``
      - ``v4``
+     - ``v5``
    * - ``v0.12:0.14``
      - ✅
+     -
      -
      -
      -
@@ -60,12 +64,21 @@ upgrade Spack to use them.
      - ✅
      -
      -
+     -
    * - ``v0.17``
      - ✅
      - ✅
      - ✅
      -
+     -
    * - ``v0.18:``
+     - ✅
+     - ✅
+     - ✅
+     - ✅
+     -
+   * - ``v0.22:``
+     - ✅
      - ✅
      - ✅
      - ✅
@@ -334,10 +347,124 @@ the commit or version.
             }
         }
     }
+
+
+Version 5
+---------
+
+Version 5 doesn't change the top-level lockfile format, but an optional dictionary is
+added. The dictionary has the ``root`` and ``concrete_specs`` of the included
+environments, which are keyed by the path to that environment. Since this is optional
+if the environment does not have any included environments ``include_concrete`` will
+not be a part of the lockfile.
+
+.. code-block:: json
+
+    {
+        "_meta": {
+            "file-type": "spack-lockfile",
+            "lockfile-version": 5,
+            "specfile-version": 3
+        },
+        "roots": [
+            {
+                "hash": "<dag_hash 1>",
+                "spec": "<abstract spec 1>"
+            },
+            {
+                "hash": "<dag_hash 2>",
+                "spec": "<abstract spec 2>"
+            }
+        ],
+        "concrete_specs": {
+            "<dag_hash 1>": {
+                "... <spec dict attributes> ...": { },
+                "dependencies": [
+                    {
+                        "name": "depname_1",
+                        "hash": "<dag_hash for depname_1>",
+                        "type": ["build", "link"]
+                    },
+                    {
+                        "name": "depname_2",
+                        "hash": "<dag_hash for depname_2>",
+                        "type": ["build", "link"]
+                    }
+                ],
+                "hash": "<dag_hash 1>",
+            },
+            "<daghash 2>": {
+                "... <spec dict attributes> ...": { },
+                "dependencies": [
+                    {
+                        "name": "depname_3",
+                        "hash": "<dag_hash for depname_3>",
+                        "type": ["build", "link"]
+                    },
+                    {
+                        "name": "depname_4",
+                        "hash": "<dag_hash for depname_4>",
+                        "type": ["build", "link"]
+                    }
+                ],
+                "hash": "<dag_hash 2>"
+            }
+        }
+        "include_concrete": {
+            "<path to environment>": {
+                "roots": [
+                    {
+                        "hash": "<dag_hash 1>",
+                        "spec": "<abstract spec 1>"
+                    },
+                    {
+                        "hash": "<dag_hash 2>",
+                        "spec": "<abstract spec 2>"
+                    }
+                ],
+                "concrete_specs": {
+                    "<dag_hash 1>": {
+                        "... <spec dict attributes> ...": { },
+                        "dependencies": [
+                            {
+                                "name": "depname_1",
+                                "hash": "<dag_hash for depname_1>",
+                                "type": ["build", "link"]
+                            },
+                            {
+                                "name": "depname_2",
+                                "hash": "<dag_hash for depname_2>",
+                                "type": ["build", "link"]
+                            }
+                        ],
+                        "hash": "<dag_hash 1>",
+                    },
+                    "<daghash 2>": {
+                        "... <spec dict attributes> ...": { },
+                        "dependencies": [
+                            {
+                                "name": "depname_3",
+                                "hash": "<dag_hash for depname_3>",
+                                "type": ["build", "link"]
+                            },
+                            {
+                                "name": "depname_4",
+                                "hash": "<dag_hash for depname_4>",
+                                "type": ["build", "link"]
+                            }
+                        ],
+                        "hash": "<dag_hash 2>"
+                    }
+                }
+            }
+        }
+    }
 """
 
 from .environment import (
+    TOP_LEVEL_KEY,
     Environment,
+    SpackEnvironmentConfigError,
     SpackEnvironmentError,
     SpackEnvironmentViewError,
     activate,
@@ -345,7 +472,7 @@ from .environment import (
     active_environment,
     all_environment_names,
     all_environments,
-    config_dict,
+    as_env_dir,
     create,
     create_in_dir,
     deactivate,
@@ -353,6 +480,8 @@ from .environment import (
     default_view_name,
     display_specs,
     environment_dir_from_name,
+    environment_from_name_or_dir,
+    environment_path_scopes,
     exists,
     initialize_environment_dir,
     installed_specs,
@@ -365,11 +494,14 @@ from .environment import (
     read,
     root,
     spack_env_var,
+    spack_env_view_var,
     update_yaml,
 )
 
 __all__ = [
+    "TOP_LEVEL_KEY",
     "Environment",
+    "SpackEnvironmentConfigError",
     "SpackEnvironmentError",
     "SpackEnvironmentViewError",
     "activate",
@@ -377,7 +509,7 @@ __all__ = [
     "active_environment",
     "all_environment_names",
     "all_environments",
-    "config_dict",
+    "as_env_dir",
     "create",
     "create_in_dir",
     "deactivate",
@@ -385,6 +517,8 @@ __all__ = [
     "default_view_name",
     "display_specs",
     "environment_dir_from_name",
+    "environment_from_name_or_dir",
+    "environment_path_scopes",
     "exists",
     "initialize_environment_dir",
     "installed_specs",
@@ -397,5 +531,6 @@ __all__ = [
     "read",
     "root",
     "spack_env_var",
+    "spack_env_view_var",
     "update_yaml",
 ]

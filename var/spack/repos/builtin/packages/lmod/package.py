@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from glob import glob
@@ -21,8 +20,13 @@ class Lmod(AutotoolsPackage):
     homepage = "https://www.tacc.utexas.edu/research-development/tacc-projects/lmod"
     url = "https://github.com/TACC/Lmod/archive/8.5.6.tar.gz"
 
+    license("MIT")
+
+    version("8.7.55", sha256="f85ed9b55c23afb563fa99c7201037628be016e8d88a1aa8dba4632c0ab450bd")
+    version("8.7.37", sha256="171529152fedfbb3c45d27937b0eaa1ee62b5e5cdac3086f44a6d56e5d1d7da4")
     version("8.7.24", sha256="8451267652059b6507b652e1b563929ecf9b689ffb20830642085eb6a55bd539")
     version("8.7.20", sha256="c04deff7d2ca354610a362459a7aa9a1c642a095e45a4b0bb2471bb3254e85f4")
+    version("8.7.18", sha256="b9912caca1557dd0c17113bceb1a4952e0ae75331d38df6361601db3f80366af")
     version("8.7.2", sha256="5f44f3783496d2d597ced7531e1714c740dbb2883a7d16fde362135fb0b0fd96")
     version("8.6.18", sha256="3db1c665c35fb8beb78c02e40d56accd361d82b715df70b2a995bcb10fbc2c80")
     version("8.6.5", sha256="4a1823264187340be11104d82f8226905daa8149186fa8615dfc742b6d19c2ce")
@@ -50,6 +54,8 @@ class Lmod(AutotoolsPackage):
     version("6.4.5", sha256="741744a2837c9d92fceeccfebdc8e07ce4f4b7e56f67b214d317955bbd8786b7")
     version("6.4.1", sha256="a260b4e42269a80b517c066ba8484658362ea095e80767a2376bbe33d9b070a5")
     version("6.3.7", sha256="55ddb52cbdc0e2e389b3405229336df9aabfa582c874f5df2559ea264e2ee4ae")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("lua+shared@5.1:")
     depends_on("lua-luaposix", type=("build", "run"))
@@ -82,14 +88,15 @@ class Lmod(AutotoolsPackage):
                 filter_file(r"^#!.*tclsh", "#!@path_to_tclsh@", tclscript)
 
     def configure_args(self):
+        spec = self.spec
         args = []
 
-        if "+auto_swap" in self.spec:
+        if spec.satisfies("+auto_swap"):
             args.append("--with-autoSwap=yes")
         else:
             args.append("--with-autoSwap=no")
 
-        if "+redirect" in self.spec:
+        if spec.satisfies("+redirect"):
             args.append("--with-redirect=yes")
         else:
             args.append("--with-redirect=no")

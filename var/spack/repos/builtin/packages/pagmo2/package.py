@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,8 +16,13 @@ class Pagmo2(CMakePackage):
     git = "https://github.com/esa/pagmo2.git"
     maintainers("liuyangzhuan")
 
+    license("LGPL-3.0-or-later")
+
     version("master", branch="master")
     version("2.18.0", sha256="5ad40bf3aa91857a808d6b632d9e1020341a33f1a4115d7a2b78b78fd063ae31")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     depends_on("boost+system+serialization+thread")
     depends_on("intel-tbb")

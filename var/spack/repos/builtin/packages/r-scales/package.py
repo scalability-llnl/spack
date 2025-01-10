@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,9 @@ class RScales(RPackage):
 
     cran = "scales"
 
+    license("MIT")
+
+    version("1.3.0", sha256="b33e0f6b44259551ce02befd52eac53602509fbfdd903920620c658c50f35888")
     version("1.2.1", sha256="59453e6dbdafee93dfb101e4d86048a62a12898134259d3ef02d65aeec57ed08")
     version("1.2.0", sha256="185d50240e6b3e84d36ec7fbca6aef7a85db7c8c1b0dde51d4af28d363ce02df")
     version("1.1.1", sha256="40b2b66522f1f314a20fd09426011b0cdc9d16b23ee2e765fe1930292dd03705")
@@ -25,7 +27,10 @@ class RScales(RPackage):
     depends_on("r@2.13:", type=("build", "run"))
     depends_on("r@3.1:", type=("build", "run"), when="@1.0.0:")
     depends_on("r@3.2:", type=("build", "run"), when="@1.1.1:")
+    depends_on("r@3.6:", type=("build", "run"), when="@1.3.0:")
+    depends_on("r-cli", type=("build", "run"), when="@1.3.0:")
     depends_on("r-farver@2.0.3:", type=("build", "run"), when="@1.1.1:")
+    depends_on("r-glue", type=("build", "run"), when="@1.3.0:")
     depends_on("r-labeling", type=("build", "run"))
     depends_on("r-lifecycle", type=("build", "run"), when="@1.1.1:")
     depends_on("r-munsell@0.5:", type=("build", "run"))

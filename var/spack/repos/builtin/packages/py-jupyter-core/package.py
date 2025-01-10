@@ -1,7 +1,8 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
+import os
 
 from spack.package import *
 
@@ -12,6 +13,8 @@ class PyJupyterCore(PythonPackage):
     homepage = "https://jupyter-core.readthedocs.io/"
     pypi = "jupyter-core/jupyter_core-4.6.0.tar.gz"
     git = "https://github.com/jupyter/jupyter_core.git"
+
+    license("BSD-3-Clause")
 
     version("5.3.0", sha256="6db75be0c83edbf1b7c9f91ec266a9a24ef945da630f3120e1a0046dc13713fc")
     version("5.1.0", sha256="a5ae7c09c55c0b26f692ec69323ba2b62e8d7295354d20f6cd57b749de4a05bf")
@@ -43,3 +46,10 @@ class PyJupyterCore(PythonPackage):
 
     # Historical dependencies
     depends_on("py-setuptools", when="@:4.9.2", type=("build", "run"))
+
+    def setup_dependent_run_environment(self, env, dependent_spec):
+        # https://docs.jupyter.org/en/stable/use/jupyter-directories.html
+        if os.path.exists(dependent_spec.prefix.etc.jupyter):
+            env.prepend_path("JUPYTER_CONFIG_PATH", dependent_spec.prefix.etc.jupyter)
+        if os.path.exists(dependent_spec.prefix.share.jupyter):
+            env.prepend_path("JUPYTER_PATH", dependent_spec.prefix.share.jupyter)

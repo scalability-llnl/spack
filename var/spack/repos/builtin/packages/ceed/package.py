@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -201,10 +200,6 @@ class Ceed(BundlePackage, CudaPackage, ROCmPackage):
     # and +mumps:
     depends_on("petsc@3.11.1+mpi+hypre+suite-sparse+mumps+double~int64", when="@2.0.0+petsc+mfem")
     depends_on("hpgmg@0.4+fe", when="@2.0.0+petsc")
-    # ceed-1.0
-    # The mfem petsc examples need the petsc variants +hypre, +suite-sparse,
-    # and +mumps:
-    depends_on("hpgmg@a0a5510df23b+fe", when="@1.0.0+petsc")
 
     # MAGMA
     # ceed 5.0
@@ -244,7 +239,7 @@ class Ceed(BundlePackage, CudaPackage, ROCmPackage):
 
     # Omega_h
     # ceed-5.0
-    depends_on("omega-h@scorec.10.1.0", when="@5.0.0+omega-h")
+    depends_on("omega-h@10.1.0", when="@5.0.0+omega-h")
     depends_on("omega-h~trilinos", when="@5.0.0+omega-h+quickbuild")
 
     # MFEM, Laghos, Remhos
@@ -313,8 +308,8 @@ class Ceed(BundlePackage, CudaPackage, ROCmPackage):
     depends_on("suite-sparse@:5.1.0", when="@2.0.0%gcc@:4.8+mfem+petsc")
 
     # ceed-1.0
-    depends_on("mfem@3.3.2+mpi+examples+miniapps", when="@1.0.0+mfem~petsc")
-    depends_on("mfem@3.3.2+mpi+petsc+examples+miniapps", when="@1.0.0+mfem+petsc")
+    depends_on("mfem@3.3.2+mpi+examples+miniapps", when="@1.0.0+mfem")
+    depends_on("mfem@3.3.2+mpi+petsc+examples+miniapps", when="@1.0.0+mfem")
     depends_on("laghos@1.0", when="@1.0.0+mfem")
     # The next line seems to be necessary because the concretizer somehow
     # decides that mfem requires 'hypre+internal-superlu' even though the mfem
@@ -324,4 +319,4 @@ class Ceed(BundlePackage, CudaPackage, ROCmPackage):
     depends_on("hypre~internal-superlu", when="@1.0.0+mfem")
 
     # If using gcc version <= 4.8 build suite-sparse version <= 5.1.0
-    depends_on("suite-sparse@:5.1.0", when="@1.0.0%gcc@:4.8+mfem+petsc")
+    depends_on("suite-sparse@:5.1.0", when="@1.0.0%gcc@:4.8+mfem")

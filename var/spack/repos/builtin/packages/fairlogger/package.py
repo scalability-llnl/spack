@@ -1,7 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-#   Spack Project Developers. See the top-level COPYRIGHT file for details.
-# Copyright 2020 GSI Helmholtz Centre for Heavy Ion Research GmbH,
-#   Darmstadt, Germany
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -80,6 +77,8 @@ class Fairlogger(CMakePackage):
         sha256="2fc266a6e494adda40837be406aef8d9838f385ffd64fbfafb1164833906b4e0",
         deprecated=True,
     )
+
+    depends_on("cxx", type="build")  # generated
 
     generator("make", "ninja", default="ninja")
 

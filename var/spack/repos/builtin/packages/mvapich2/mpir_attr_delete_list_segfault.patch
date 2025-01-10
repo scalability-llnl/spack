@@ -1,0 +1,18 @@
+--- a/src/mpi/attr/attrutil.c
++++ b/src/mpi/attr/attrutil.c
+@@ -266,6 +266,7 @@
+ 	   corresponding keyval */
+ 	/* Still to do: capture any error returns but continue to 
+ 	   process attributes */
++    if (p->keyval) {
+ 	mpi_errno = MPIR_Call_attr_delete( handle, p );
+ 
+ 	/* We must also remove the keyval reference.  If the keyval
+@@ -282,6 +283,7 @@
+ 		MPIU_Handle_obj_free( &MPID_Keyval_mem, p->keyval );
+ 	    }
+ 	}
++	}
+ 	
+ 	MPIU_Handle_obj_free( &MPID_Attr_mem, p );
+ 	

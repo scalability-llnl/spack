@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,8 @@ class PyKmodes(PythonPackage):
 
     homepage = "https://github.com/nicodv/kmodes"
     pypi = "kmodes/kmodes-0.10.1.tar.gz"
+
+    license("MIT")
 
     version("0.10.1", sha256="3222c2f672a6356be353955c02d1e38472d9f6074744b4ffb0c058e8c2235ea1")
 

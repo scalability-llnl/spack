@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,7 @@ class ROligoclasses(RPackage):
 
     bioc = "oligoClasses"
 
+    version("1.62.0", commit="2de6126d2a98f78d6dc80ffeef8bc76782a6dbdf")
     version("1.60.0", commit="cf9d76c2551ad061d8b882ff1dc0a5cadc64a8a7")
     version("1.58.0", commit="5544e937913bb0df54c66d738d279c38efeb30cd")
     version("1.56.0", commit="6e6c7b4ba54095d1d3c44c081839f57af9261cbf")

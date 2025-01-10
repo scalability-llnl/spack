@@ -1,9 +1,6 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-from __future__ import print_function
 
 import os.path
 import shutil
@@ -12,11 +9,12 @@ import llnl.util.tty as tty
 from llnl.util.filesystem import working_dir
 
 import spack
-import spack.cmd.common.arguments as arguments
+import spack.cmd
 import spack.config
 import spack.paths
 import spack.util.git
 import spack.util.gpg
+from spack.cmd.common import arguments
 from spack.util.spack_yaml import syaml_dict
 
 description = "set up spack for our tutorial (WARNING: modifies config!)"
@@ -25,7 +23,7 @@ level = "long"
 
 
 # tutorial configuration parameters
-tutorial_branch = "releases/v0.20"
+tutorial_branch = "releases/v0.23"
 tutorial_mirror = "file:///mirror"
 tutorial_key = os.path.join(spack.paths.share_path, "keys", "tutorial.pub")
 

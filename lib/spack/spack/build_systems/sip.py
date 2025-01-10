@@ -1,20 +1,21 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import inspect
 import os
 import re
 
 import llnl.util.tty as tty
-from llnl.util.filesystem import find, join_path, working_dir
+from llnl.util.filesystem import find, working_dir
 
 import spack.builder
+import spack.install_test
 import spack.package_base
+import spack.phase_callbacks
 from spack.directives import build_system, depends_on, extends
 from spack.multimethod import when
+from spack.util.executable import Executable
 
-from ._checks import BaseBuilder, execute_install_time_tests
+from ._checks import BuilderWithDefaults, execute_install_time_tests
 
 
 class SIPPackage(spack.package_base.PackageBase):
@@ -30,17 +31,16 @@ class SIPPackage(spack.package_base.PackageBase):
     #: Name of private sip module to install alongside package
     sip_module = "sip"
 
-    #: Callback names for install-time test
-    install_time_test_callbacks = ["test"]
+    #: Callback names for install-time testing
+    install_time_test_callbacks = ["test_imports"]
     #: Legacy buildsystem attribute used to deserialize and install old specs
     legacy_buildsystem = "sip"
 
     build_system("sip")
 
     with when("build_system=sip"):
-        extends("python")
-        depends_on("qt")
-        depends_on("py-sip")
+        extends("python", type=("build", "link", "run"))
+        depends_on("py-sip", type="build")
 
     @property
     def import_modules(self):
@@ -85,24 +85,25 @@ class SIPPackage(spack.package_base.PackageBase):
 
     def python(self, *args, **kwargs):
         """The python ``Executable``."""
-        inspect.getmodule(self).python(*args, **kwargs)
+        self.pkg.module.python(*args, **kwargs)
 
-    def test(self):
+    def test_imports(self):
         """Attempts to import modules of the installed package."""
 
         # Make sure we are importing the installed modules,
         # not the ones in the source directory
         for module in self.import_modules:
-            self.run_test(
-                inspect.getmodule(self).python.path,
-                ["-c", "import {0}".format(module)],
+            with spack.install_test.test_part(
+                self,
+                "test_imports_{0}".format(module),
                 purpose="checking import of {0}".format(module),
                 work_dir="spack-test",
-            )
+            ):
+                self.python("-c", "import {0}".format(module))
 
 
 @spack.builder.builder("sip")
-class SIPBuilder(BaseBuilder):
+class SIPBuilder(BuilderWithDefaults):
     """The SIP builder provides the following phases that can be overridden:
 
     * configure
@@ -110,13 +111,13 @@ class SIPBuilder(BaseBuilder):
     * install
 
     The configure phase already adds a set of default flags. To see more
-    options, run ``python configure.py --help``.
+    options, run ``sip-build --help``.
     """
 
     phases = ("configure", "build", "install")
 
     #: Names associated with package methods in the old build-system format
-    legacy_methods = ("configure_file", "configure_args", "build_args", "install_args")
+    legacy_methods = ("configure_args", "build_args", "install_args")
 
     #: Names associated with package attributes in the old build-system format
     legacy_attributes = (
@@ -127,34 +128,21 @@ class SIPBuilder(BaseBuilder):
         "build_directory",
     )
 
-    def configure_file(self):
-        """Returns the name of the configure file to use."""
-        return "configure.py"
+    build_directory = "build"
 
     def configure(self, pkg, spec, prefix):
         """Configure the package."""
-        configure = self.configure_file()
 
-        args = self.configure_args()
+        # https://www.riverbankcomputing.com/static/Docs/sip/command_line_tools.html
+        args = ["--verbose", "--target-dir", pkg.module.python_platlib]
+        args.extend(self.configure_args())
 
-        args.extend(
-            [
-                "--verbose",
-                "--confirm-license",
-                "--qmake",
-                spec["qt"].prefix.bin.qmake,
-                "--sip",
-                spec["py-sip"].prefix.bin.sip,
-                "--sip-incdir",
-                join_path(spec["py-sip"].prefix, spec["python"].package.include),
-                "--bindir",
-                prefix.bin,
-                "--destdir",
-                inspect.getmodule(self.pkg).python_platlib,
-            ]
-        )
+        # https://github.com/Python-SIP/sip/commit/cb0be6cb6e9b756b8b0db3136efb014f6fb9b766
+        if spec["py-sip"].satisfies("@6.1.0:"):
+            args.extend(["--scripts-dir", pkg.prefix.bin])
 
-        self.pkg.python(configure, *args)
+        sip_build = Executable(spec["py-sip"].prefix.bin.join("sip-build"))
+        sip_build(*args)
 
     def configure_args(self):
         """Arguments to pass to configure."""
@@ -164,7 +152,8 @@ class SIPBuilder(BaseBuilder):
         """Build the package."""
         args = self.build_args()
 
-        inspect.getmodule(self.pkg).make(*args)
+        with working_dir(self.build_directory):
+            pkg.module.make(*args)
 
     def build_args(self):
         """Arguments to pass to build."""
@@ -174,21 +163,11 @@ class SIPBuilder(BaseBuilder):
         """Install the package."""
         args = self.install_args()
 
-        inspect.getmodule(self.pkg).make("install", parallel=False, *args)
+        with working_dir(self.build_directory):
+            pkg.module.make("install", *args)
 
     def install_args(self):
         """Arguments to pass to install."""
         return []
 
-    spack.builder.run_after("install")(execute_install_time_tests)
-
-    @spack.builder.run_after("install")
-    def extend_path_setup(self):
-        # See github issue #14121 and PR #15297
-        module = self.pkg.spec["py-sip"].variants["module"].value
-        if module != "sip":
-            module = module.split(".")[0]
-            with working_dir(inspect.getmodule(self.pkg).python_platlib):
-                with open(os.path.join(module, "__init__.py"), "a") as f:
-                    f.write("from pkgutil import extend_path\n")
-                    f.write("__path__ = extend_path(__path__, __name__)\n")
+    spack.phase_callbacks.run_after("install")(execute_install_time_tests)

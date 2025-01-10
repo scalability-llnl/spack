@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -41,11 +40,16 @@ class ScalapackBase(CMakePackage):
     patch("fix-build-macos.patch", when="@2.2.0")
 
     def flag_handler(self, name, flags):
-        iflags = []
-        if name == "fflags":
+        if name == "cflags":
             if self.spec.satisfies("%cce"):
-                iflags.append("-hnopattern")
-        return (iflags, None, None)
+                flags.append("-Wno-error=implicit-function-declaration")
+            if self.spec.satisfies("%gcc@14:"):
+                # https://bugzilla.redhat.com/show_bug.cgi?id=2178710
+                flags.append("-std=gnu89")
+        elif name == "fflags":
+            if self.spec.satisfies("%cce"):
+                flags.append("-hnopattern")
+        return (flags, None, None)
 
     @property
     def libs(self):
@@ -87,6 +91,8 @@ class ScalapackBase(CMakePackage):
             or spec.satisfies("%apple-clang")
             or spec.satisfies("%oneapi")
             or spec.satisfies("%arm")
+            or spec.satisfies("%cce")
+            or spec.satisfies("%rocmcc")
         ):
             c_flags.append("-Wno-error=implicit-function-declaration")
 
@@ -108,12 +114,21 @@ class NetlibScalapack(ScalapackBase):
 
     homepage = "https://www.netlib.org/scalapack/"
     url = "https://www.netlib.org/scalapack/scalapack-2.0.2.tgz"
+    git = "https://github.com/Reference-ScaLAPACK/scalapack"
     tags = ["e4s"]
+
+    maintainers("etiennemlb")
+
+    license("BSD-3-Clause-Open-MPI")
 
     version("2.2.0", sha256="40b9406c20735a9a3009d863318cb8d3e496fb073d201c5463df810e01ab2a57")
     version("2.1.0", sha256="61d9216cf81d246944720cfce96255878a3f85dec13b9351f1fa0fd6768220a6")
     version("2.0.2", sha256="0c74aeae690fe5ee4db7926f49c5d0bb69ce09eea75beb915e00bba07530395c")
     version("2.0.1", sha256="a9b34278d4e10b40cbe084c6d87d09af8845e874250719bfbbc497b2a88bfde1")
     version("2.0.0", sha256="e51fbd9c3ef3a0dbd81385b868e2355900148eea689bf915c5383d72daf73114")
+    version("master", branch="master")
+
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
     # versions before 2.0.0 are not using cmake and requires blacs as
     # a separated package

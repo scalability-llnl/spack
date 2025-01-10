@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,11 @@ class PyBeautifulsoup4(PythonPackage):
     homepage = "https://www.crummy.com/software/BeautifulSoup"
     pypi = "beautifulsoup4/beautifulsoup4-4.8.0.tar.gz"
 
+    # Requires pytest
+    skip_modules = ["bs4.tests"]
+
+    version("4.12.3", sha256="74e3d1928edc070d21748185c46e3fb33490f22f52a3addee9aee0f4f7781051")
+    version("4.12.2", sha256="492bbc69dca35d12daac71c4db1bfff0c876c00ef4a2ffacce226d4638eb72da")
     version("4.11.1", sha256="ad9aa55b65ef2808eb405f46cf74df7fcb7044d5cbc26487f96eb2ef2e436693")
     version("4.10.0", sha256="c23ad23c521d818955a4151a67d81580319d4bf548d3d49f4223ae041ff98891")
     version("4.9.3", sha256="84729e322ad1d5b4d25f805bfa05b902dd96450f43842c4e99067d5e1369eb25")
@@ -25,11 +29,13 @@ class PyBeautifulsoup4(PythonPackage):
     variant("lxml", default=False, description="Enable lxml parser")
     variant("html5lib", default=False, description="Enable html5lib parser")
 
-    depends_on("python@3.6:", when="@4.11.0:", type=("build", "run"))
-    depends_on("python@3:", when="@4.10.0:", type=("build", "run"))
-    depends_on("py-setuptools", type="build")
+    depends_on("py-hatchling", when="@4.12.1:", type="build")
+    depends_on("py-setuptools", when="@:4.12.0", type="build")
+
     depends_on("py-soupsieve@1.3:", when="@4.9.0:", type=("build", "run"))
     depends_on("py-soupsieve@1.2:", when="@4.7.0:", type=("build", "run"))
 
     depends_on("py-lxml", when="+lxml", type=("build", "run"))
     depends_on("py-html5lib", when="+html5lib", type=("build", "run"))
+
+    depends_on("py-pytest", type="test")

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -11,6 +10,8 @@ class PyPydap(PythonPackage):
 
     homepage = "https://www.pydap.org/en/latest/"
     pypi = "Pydap/Pydap-3.2.2.tar.gz"
+
+    license("MIT")
 
     version("3.2.2", sha256="86326642e24f421595a74b0f9986da76d7932b277768f501fe214d72592bdc40")
 

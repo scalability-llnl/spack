@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,6 +24,9 @@ class RRms(RPackage):
 
     cran = "rms"
 
+    license("GPL-2.0-or-later")
+
+    version("6.8-1", sha256="9d38545749430763c242bae1181ce24a7f6f6b244e4c69348ab200b83925596a")
     version("6.6-0", sha256="f3abadb94339f3aedadd27e1aceade069bcb53c94bf246626b0dc94b16b6625c")
     version("6.3-0", sha256="6c41eb670daf5e4391cc2f2a19e20a591f90769c124300a7ccf555820140d3f9")
     version("6.2-0", sha256="10d58cbfe39fb434223834e29e5248c9384cded23e6267cfc99367d0f5ee24b6")
@@ -36,9 +38,11 @@ class RRms(RPackage):
     version("5.1-1", sha256="c489948df5c434b40bcf5288844f5b4e08d157f36939d09230c1600f88d1bfe3")
 
     depends_on("r@3.5.0:", type=("build", "run"))
+    depends_on("r@4.1.0:", type=("build", "run"), when="@6.8-0:")
     depends_on("r-hmisc@4.3-0:", type=("build", "run"))
     depends_on("r-hmisc@4.7-0:", type=("build", "run"), when="@6.3-0:")
     depends_on("r-hmisc@4.8-0:", type=("build", "run"), when="@6.6-0:")
+    depends_on("r-hmisc@5.1-0:", type=("build", "run"), when="@6.8-0:")
     depends_on("r-survival@3.1-6:", type=("build", "run"))
     depends_on("r-survival@3.1-12:", type=("build", "run"), when="@6.1-0:")
     depends_on("r-ggplot2@2.2:", type=("build", "run"))
@@ -54,6 +58,7 @@ class RRms(RPackage):
     depends_on("r-cluster", type=("build", "run"), when="@6.1-0:")
     depends_on("r-digest", type=("build", "run"), when="@6.1-0:")
     depends_on("r-knitr", type=("build", "run"), when="@6.6-0:")
-    depends_on("r-kableextra", type=("build", "run"), when="@6.6-0:")
     depends_on("r-colorspace", type=("build", "run"), when="@6.6-0:")
     depends_on("r-lattice", type=("build", "run"), when="@:6.3-0")
+
+    depends_on("r-kableextra", type=("build", "run"), when="@6.6-0:6.7-0")

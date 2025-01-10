@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -13,6 +12,7 @@ class RSpatstatData(RPackage):
 
     cran = "spatstat.data"
 
+    version("3.1-2", sha256="9b9b416303b8040f723400f3dc454cda75cff1d958660767e7b824503b490b77")
     version("3.0-1", sha256="8eeb4b1de356e9cef42f58b5e0fc7ced2a476a1306e09395ba97253b22dd5300")
     version("3.0-0", sha256="cff9058a88489020a4a05b9576cd452f37fa9b42084873c474d06931f5187057")
     version("2.2-0", sha256="d3943bb4f6509d60bf68e79ce4533c5ec5261f411da6b0ef5238c124fc37c3e5")
@@ -27,4 +27,5 @@ class RSpatstatData(RPackage):
     depends_on("r-spatstat-utils@2.1-0:", type=("build", "run"), when="@2.1-2:")
     depends_on("r-spatstat-utils@3.0-0:", type=("build", "run"), when="@3.0-0:")
     depends_on("r-spatstat-utils@3.0-2:", type=("build", "run"), when="@3.0-1:")
+    depends_on("r-spatstat-utils@3.0-5:", type=("build", "run"), when="@3.1-2:")
     depends_on("r-matrix", type=("build", "run"))

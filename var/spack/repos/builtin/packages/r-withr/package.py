@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,9 @@ class RWithr(RPackage):
 
     cran = "withr"
 
+    license("MIT")
+
+    version("3.0.1", sha256="d573f1ac2f733c7dd89669feb495d68f1f15d7a9774473c2e46a9848945a3841")
     version("2.5.0", sha256="37317b3ed790a08407072993a05ab255f6305f95a12a16e0e28aa6aa80fc8bc0")
     version("2.4.3", sha256="9bdac7459ccc6c2d599ecfd132a7f0aa68d958942d9fe7dbb0442c9eda129d4c")
     version("2.4.2", sha256="48f96a4cb780cf6fd5fbbea1f1eb04ea3102d7a4a644cae1ed1e91139dcbbac8")
@@ -27,3 +29,4 @@ class RWithr(RPackage):
 
     depends_on("r@3.0.2:", type=("build", "run"))
     depends_on("r@3.2.0:", type=("build", "run"), when="@2.2:")
+    depends_on("r@3.6.0:", type=("build", "run"), when="@3.0.1:")

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,7 @@ class RAnnotationhub(RPackage):
 
     bioc = "AnnotationHub"
 
+    version("3.8.0", commit="975022dd33706824bd02f67cc9c3a42f3567f4a5")
     version("3.6.0", commit="3315a73b7803a92412ed18209dd37b378195b86f")
     version("3.4.0", commit="e74e54ca44f50c2c15c60f8620e3d1721f8f5b6d")
     version("3.2.1", commit="ad1dfe86f0b0ea4711cc9cdb89e073e8794ec9aa")

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,13 +14,15 @@ class Cnvnator(MakefilePackage):
 
     version("0.3.3", sha256="58c5acf61f9a1e5febf546c196f8917a5e084b729e5c4cfd3eba83471b3fe5c1")
 
+    depends_on("cxx", type="build")  # generated
+
     depends_on("samtools@:1.13")
     depends_on("htslib")
     depends_on("root")
     depends_on("bzip2")
     depends_on("curl")
     depends_on("xz")
-    depends_on("zlib")
+    depends_on("zlib-api")
     depends_on("libdeflate")
     depends_on("openssl")
 
@@ -42,7 +43,7 @@ class Cnvnator(MakefilePackage):
 
         # Link more libs
         ldflags = [
-            spec["zlib"].libs.ld_flags,
+            spec["zlib-api"].libs.ld_flags,
             spec["bzip2"].libs.ld_flags,
             spec["curl"].libs.ld_flags,
             spec["xz"].libs.ld_flags,

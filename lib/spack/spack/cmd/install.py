@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -10,20 +9,18 @@ import sys
 from typing import List
 
 import llnl.util.filesystem as fs
+from llnl.string import plural
 from llnl.util import lang, tty
 
-import spack.build_environment
 import spack.cmd
-import spack.cmd.common.arguments as arguments
 import spack.config
 import spack.environment as ev
-import spack.fetch_strategy
-import spack.package_base
 import spack.paths
 import spack.report
 import spack.spec
 import spack.store
-from spack.error import SpackError
+from spack.cmd.common import arguments
+from spack.error import InstallError, SpackError
 from spack.installer import PackageInstaller
 
 description = "build and install packages"
@@ -61,7 +58,6 @@ def install_kwargs_from_args(args):
         "dependencies_use_cache": cache_opt(args.use_cache, dep_use_bc),
         "dependencies_cache_only": cache_opt(args.cache_only, dep_use_bc),
         "include_build_deps": args.include_build_deps,
-        "explicit": True,  # Use true as a default for install command
         "stop_at": args.until,
         "unsigned": args.unsigned,
         "install_deps": ("dependencies" in args.things_to_install),
@@ -75,10 +71,9 @@ def setup_parser(subparser):
         default="package,dependencies",
         dest="things_to_install",
         choices=["package", "dependencies"],
-        help="""select the mode of installation.
-the default is to install the package along with all its dependencies.
-alternatively one can decide to install only the package or only
-the dependencies""",
+        help="select the mode of installation\n\n"
+        "default is to install the package along with all its dependencies. "
+        "alternatively, one can decide to install only the package or only the dependencies",
     )
     subparser.add_argument(
         "-u",
@@ -143,12 +138,11 @@ the dependencies""",
         type=arguments.use_buildcache,
         default="package:auto,dependencies:auto",
         metavar="[{auto,only,never},][package:{auto,only,never},][dependencies:{auto,only,never}]",
-        help="""select the mode of buildcache for the 'package' and 'dependencies'.
-Default: package:auto,dependencies:auto
-- `auto` behaves like --use-cache
-- `only` behaves like --cache-only
-- `never` behaves like --no-cache
-""",
+        help="select the mode of buildcache for the 'package' and 'dependencies'\n\n"
+        "default: package:auto,dependencies:auto\n\n"
+        "- `auto` behaves like --use-cache\n"
+        "- `only` behaves like --cache-only\n"
+        "- `never` behaves like --no-cache",
     )
 
     subparser.add_argument(
@@ -156,16 +150,16 @@ Default: package:auto,dependencies:auto
         action="store_true",
         dest="include_build_deps",
         default=False,
-        help="""include build deps when installing from cache,
-which is useful for CI pipeline troubleshooting""",
+        help="include build deps when installing from cache, "
+        "useful for CI pipeline troubleshooting",
     )
 
     subparser.add_argument(
         "--no-check-signature",
         action="store_true",
         dest="unsigned",
-        default=False,
-        help="do not check signatures of binary packages",
+        default=None,
+        help="do not check signatures of binary packages (override mirror config)",
     )
     subparser.add_argument(
         "--show-log-on-error",
@@ -178,7 +172,7 @@ which is useful for CI pipeline troubleshooting""",
         dest="install_source",
         help="install source files in prefix",
     )
-    arguments.add_common_arguments(subparser, ["no_checksum", "deprecated"])
+    arguments.add_common_arguments(subparser, ["no_checksum"])
     subparser.add_argument(
         "-v",
         "--verbose",
@@ -186,7 +180,7 @@ which is useful for CI pipeline troubleshooting""",
         dest="install_verbose",
         help="display verbose build output while installing",
     )
-    subparser.add_argument("--fake", action="store_true", help="fake install for debug purposes.")
+    subparser.add_argument("--fake", action="store_true", help="fake install for debug purposes")
     subparser.add_argument(
         "--only-concrete",
         action="store_true",
@@ -199,14 +193,13 @@ which is useful for CI pipeline troubleshooting""",
         "--add",
         action="store_true",
         default=False,
-        help="""(with environment) add spec to the environment as a root.""",
+        help="(with environment) add spec to the environment as a root",
     )
     updateenv_group.add_argument(
         "--no-add",
         action="store_false",
         dest="add",
-        help="""(with environment) do not add spec to the environment as a
-root (the default behavior).""",
+        help="(with environment) do not add spec to the environment as a root",
     )
 
     subparser.add_argument(
@@ -216,7 +209,7 @@ root (the default behavior).""",
         default=[],
         dest="specfiles",
         metavar="SPEC_YAML_FILE",
-        help="install from file. Read specs to install from .yaml files",
+        help="read specs to install from .yaml files",
     )
 
     cd_group = subparser.add_mutually_exclusive_group()
@@ -227,19 +220,12 @@ root (the default behavior).""",
         "--test",
         default=None,
         choices=["root", "all"],
-        help="""If 'root' is chosen, run package tests during
-installation for top-level packages (but skip tests for dependencies).
-if 'all' is chosen, run package tests during installation for all
-packages. If neither are chosen, don't run tests for any packages.""",
+        help="run tests on only root packages or all packages",
     )
     arguments.add_common_arguments(subparser, ["log_format"])
+    subparser.add_argument("--log-file", default=None, help="filename for the log file")
     subparser.add_argument(
-        "--log-file",
-        default=None,
-        help="filename for the log file. if not passed a default will be used",
-    )
-    subparser.add_argument(
-        "--help-cdash", action="store_true", help="Show usage instructions for CDash reporting"
+        "--help-cdash", action="store_true", help="show usage instructions for CDash reporting"
     )
     arguments.add_cdash_args(subparser, False)
     arguments.add_common_arguments(subparser, ["yes_to_all", "spec"])
@@ -250,8 +236,7 @@ def default_log_file(spec):
     """Computes the default filename for the log file and creates
     the corresponding directory if not present
     """
-    fmt = "test-{x.name}-{x.version}-{hash}.xml"
-    basename = fmt.format(x=spec, hash=spec.dag_hash())
+    basename = spec.format_path("test-{name}-{version}-{hash}.xml")
     dirname = fs.os.path.join(spack.paths.reports_path, "junit")
     fs.mkdirp(dirname)
     return fs.os.path.join(dirname, basename)
@@ -276,11 +261,11 @@ def require_user_confirmation_for_overwrite(concrete_specs, args):
     if args.yes_to_all:
         return
 
-    installed = list(filter(lambda x: x, map(spack.store.db.query_one, concrete_specs)))
+    installed = list(filter(lambda x: x, map(spack.store.STORE.db.query_one, concrete_specs)))
     display_args = {"long": True, "show_flags": True, "variants": True}
 
     if installed:
-        tty.msg("The following package specs will be " "reinstalled:\n")
+        tty.msg("The following package specs will be reinstalled:\n")
         spack.cmd.display_specs(installed, **display_args)
 
     not_installed = list(filter(lambda x: x not in installed, concrete_specs))
@@ -298,14 +283,14 @@ def require_user_confirmation_for_overwrite(concrete_specs, args):
         tty.die("Reinstallation aborted.")
 
 
-def _dump_log_on_error(e: spack.build_environment.InstallError):
+def _dump_log_on_error(e: InstallError):
     e.print_context()
     assert e.pkg, "Expected InstallError to include the associated package"
-    if not os.path.exists(e.pkg.build_log_path):
+    if not os.path.exists(e.pkg.log_path):
         tty.error("'spack install' created no log.")
     else:
         sys.stderr.write("Full build log:\n")
-        with open(e.pkg.build_log_path, errors="replace") as log:
+        with open(e.pkg.log_path, errors="replace", encoding="utf-8") as log:
             shutil.copyfileobj(log, sys.stderr)
 
 
@@ -337,9 +322,6 @@ def install(parser, args):
     if args.no_checksum:
         spack.config.set("config:checksum", False, scope="command_line")
 
-    if args.deprecated:
-        spack.config.set("config:deprecated", True, scope="command_line")
-
     if args.log_file and not args.log_format:
         msg = "the '--log-format' must be specified when using '--log-file'"
         tty.die(msg)
@@ -366,7 +348,7 @@ def install(parser, args):
             install_with_active_env(env, args, install_kwargs, reporter_factory)
         else:
             install_without_active_env(args, install_kwargs, reporter_factory)
-    except spack.build_environment.InstallError as e:
+    except InstallError as e:
         if args.show_log_on_error:
             _dump_log_on_error(e)
         raise
@@ -390,7 +372,9 @@ def _maybe_add_and_concretize(args, env, specs):
         # `spack concretize`
         tests = compute_tests_install_kwargs(env.user_specs, args.test)
         concretized_specs = env.concretize(tests=tests)
-        ev.display_specs(concretized_specs)
+        if concretized_specs:
+            tty.msg(f"Concretized {plural(len(concretized_specs), 'spec')}")
+            ev.display_specs([concrete for _, concrete in concretized_specs])
 
         # save view regeneration for later, so that we only do it
         # once, as it can be slow.
@@ -434,10 +418,9 @@ def install_with_active_env(env: ev.Environment, args, install_kwargs, reporter_
         with reporter_factory(specs_to_install):
             env.install_specs(specs_to_install, **install_kwargs)
     finally:
-        # TODO: this is doing way too much to trigger
-        # views and modules to be generated.
-        with env.write_transaction():
-            env.write(regenerate=True)
+        if env.views:
+            with env.write_transaction():
+                env.write(regenerate=True)
 
 
 def concrete_specs_from_cli(args, install_kwargs):
@@ -461,7 +444,7 @@ def concrete_specs_from_file(args):
     """Return the list of concrete specs read from files."""
     result = []
     for file in args.specfiles:
-        with open(file, "r") as f:
+        with open(file, "r", encoding="utf-8") as f:
             if file.endswith("yaml") or file.endswith("yml"):
                 s = spack.spec.Spec.from_yaml(f)
             else:
@@ -488,6 +471,7 @@ def install_without_active_env(args, install_kwargs, reporter_factory):
             require_user_confirmation_for_overwrite(concrete_specs, args)
             install_kwargs["overwrite"] = [spec.dag_hash() for spec in concrete_specs]
 
-        installs = [(s.package, install_kwargs) for s in concrete_specs]
-        builder = PackageInstaller(installs)
+        installs = [s.package for s in concrete_specs]
+        install_kwargs["explicit"] = [s.dag_hash() for s in concrete_specs]
+        builder = PackageInstaller(installs, **install_kwargs)
         builder.install()

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -47,9 +46,17 @@ class GitAnnex(Package):
     # - $ git annex whereis git-annex/linux/current/git-annex-standalone-arm64.tar.gz
     #     -> gives web url
 
+    skip_version_audit = ["platform=darwin", "platform=windows"]
+
+    license("AGPL-3.0-or-later")
+
     if platform.system() == "Linux" and platform.machine() == "aarch64":
         # git-annex-standalone-arm64.tar.gz
-
+        version(
+            "10.20230408",
+            sha256="4efc0636eae3a8e55ccbdd638339b00f39d5691a8f44874dcb0b90ce1425cc47",
+            url="https://downloads.kitenet.net/.git/annex/objects/V8/52/SHA256E-s66738845--4efc0636eae3a8e55ccbdd638339b00f39d5691a8f44874dcb0b90ce1425cc47.tar.gz/SHA256E-s66738845--4efc0636eae3a8e55ccbdd638339b00f39d5691a8f44874dcb0b90ce1425cc47.tar.gz",
+        )
         # release 10.20220223 was not properly updated for arm64 upstream
         version(
             "10.20220121",
@@ -67,6 +74,11 @@ class GitAnnex(Package):
 
     elif platform.system() == "Linux":
         # git-annex-standalone-amd64.tar.gz
+        version(
+            "10.20230408",
+            sha256="5c322c5c5b35e5835bb94c97be143d2717de1e8fb66f7b037720f7dd1d9cc71f",
+            url="https://downloads.kitenet.net/.git/annex/objects/79/22/SHA256E-s54263192--5c322c5c5b35e5835bb94c97be143d2717de1e8fb66f7b037720f7dd1d9cc71f.tar.gz/SHA256E-s54263192--5c322c5c5b35e5835bb94c97be143d2717de1e8fb66f7b037720f7dd1d9cc71f.tar.gz",
+        )
         version(
             "10.20220223",
             sha256="498a877e040f20e032879d026a78aa86b74f2652774efe3e8b81f054ca1f4485",
@@ -111,7 +123,7 @@ class GitAnnex(Package):
     def install(self, spec, prefix):
         install_tree(".", prefix.bin)
 
-        if "~standalone" in spec:
+        if spec.satisfies("~standalone"):
             # use git provided by spack instead of the one in the package
             git_files = ["git", "git-receive-pack", "git-shell", "git-upload-pack"]
             for i in git_files:

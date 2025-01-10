@@ -1,22 +1,24 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os.path
 import re
-import sys
 
 import pytest
 
 import spack.config
 import spack.main
 import spack.modules
+import spack.modules.lmod
+import spack.repo
+import spack.spec
 import spack.store
+from spack.installer import PackageInstaller
 
 module = spack.main.SpackCommand("module")
 
-pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="does not run on windows")
+pytestmark = pytest.mark.not_on_windows("does not run on windows")
 
 
 #: make sure module files are generated for all the tests here
@@ -140,7 +142,7 @@ def test_find_recursive():
 
 
 @pytest.mark.db
-def test_find_recursive_excluded(database, module_configuration):
+def test_find_recursive_excluded(mutable_database, module_configuration):
     module_configuration("exclude")
 
     module("lmod", "refresh", "-y", "--delete-tree")
@@ -148,7 +150,7 @@ def test_find_recursive_excluded(database, module_configuration):
 
 
 @pytest.mark.db
-def test_loads_recursive_excluded(database, module_configuration):
+def test_loads_recursive_excluded(mutable_database, module_configuration):
     module_configuration("exclude")
 
     module("lmod", "refresh", "-y", "--delete-tree")
@@ -179,11 +181,11 @@ def test_setdefault_command(mutable_database, mutable_config):
         }
     }
     spack.config.set("modules", data)
-    # Install two different versions of a package
-    other_spec, preferred = "a@1.0", "a@2.0"
+    # Install two different versions of pkg-a
+    other_spec, preferred = "pkg-a@1.0", "pkg-a@2.0"
 
-    spack.spec.Spec(other_spec).concretized().package.do_install(fake=True)
-    spack.spec.Spec(preferred).concretized().package.do_install(fake=True)
+    specs = [spack.spec.Spec(other_spec).concretized(), spack.spec.Spec(preferred).concretized()]
+    PackageInstaller([s.package for s in specs], explicit=True, fake=True).install()
 
     writers = {
         preferred: writer_cls(spack.spec.Spec(preferred).concretized(), "default"),

@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -33,6 +32,9 @@ class RSpatialreg(RPackage):
 
     cran = "spatialreg"
 
+    license("GPL-2.0-only")
+
+    version("1.3-5", sha256="eefeaa2f22d3652a23c30c8ff81364f419634e466cdb0c2d9c7bcef9287b00c4")
     version("1.2-8", sha256="150cb77ca09800d93af7de37440072d59ac7e41acb45ab42fc1c0e59edd7f9de")
     version("1.2-6", sha256="9b384117a31ab5fe830325b3eacbec5eb9d40bf0e9ca3c75ea15ca6b78fbd41d")
     version("1.2-3", sha256="09e0e65f043975d5c1d4be99ef9f29cf0790e962dcde9b7e45a7027d268fce22")
@@ -42,12 +44,15 @@ class RSpatialreg(RPackage):
 
     depends_on("r@3.3.0:", type=("build", "run"))
     depends_on("r-spdata", type=("build", "run"))
+    depends_on("r-spdata@2.3.1:", type=("build", "run"), when="@1.3-4:")
     depends_on("r-matrix", type=("build", "run"))
     depends_on("r-sf", type=("build", "run"), when="@1.2-1:")
     depends_on("r-spdep", type=("build", "run"))
-    depends_on("r-expm", type=("build", "run"))
+    depends_on("r-spdep@1.3-1:", type=("build", "run"), when="@1.3-1:")
+    depends_on("r-expm", type=("build", "run"), when="@:1.2-10")
     depends_on("r-coda", type=("build", "run"))
     depends_on("r-mass", type=("build", "run"))
+    depends_on("r-multcomp", type=("build", "run"), when="@1.2-9:")
     depends_on("r-boot", type=("build", "run"))
     depends_on("r-learnbayes", type=("build", "run"))
     depends_on("r-nlme", type=("build", "run"))
