@@ -26,8 +26,8 @@ class PyNvitop(PythonPackage):
     depends_on("py-termcolor@1.0.0:", type=("build", "run"))
     depends_on("python@3.7:", type=("build", "run"))
     depends_on("py-setuptools", type="build")
-    depends_on("py-colorama@0.4:", when="platform=windows", type=("build", "run"))
 
-    # Windows support would require this extra package to be available in spack.
+    # Windows support would require the package py-windows-curses to be available in spack.
+    # depends_on("py-colorama@0.4:", when="platform=windows", type=("build", "run"))
     # depends_on("py-windows-curses@2.2.0:", when="platform=windows", type=("build", "run"))
     conflicts("platform=windows")
