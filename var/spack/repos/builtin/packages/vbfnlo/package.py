@@ -20,6 +20,7 @@ class Vbfnlo(AutotoolsPackage):
 
     version("3.0", sha256="b9df02603e4f801f866360c720191a29afdb958d0bd4369ea7d810e761503e51")
     with default_args(deprecated=True):
+        # deprecate beta versions which are such that they are preferred over 3.0
         version(
             "3.0.0beta5", sha256="777a3dedb365ea9abc38848a60f30d325da3799cbad69fa308664b94a8c31a90"
         )
@@ -35,11 +36,7 @@ class Vbfnlo(AutotoolsPackage):
         version(
             "3.0.0beta1", sha256="19f0bf7e4c93b0f287d2531d6802c114a78eb46cde28ea820b2a074a5819c7ca"
         )
-    version(
-        "2.7.1",
-        sha256="13e33d73d8a8ef64094621f87e6f94e01712e76cc19a86298d0b52cfcb9decca",
-        preferred=True,
-    )
+    version("2.7.1", sha256="13e33d73d8a8ef64094621f87e6f94e01712e76cc19a86298d0b52cfcb9decca")
 
     depends_on("cxx", type="build")  # generated
     depends_on("fortran", type="build")  # generated
