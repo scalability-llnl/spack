@@ -7,7 +7,7 @@ import itertools
 import os.path
 import re
 import sys
-import subprocess
+
 from spack.package import *
 
 
@@ -55,7 +55,7 @@ class MvapichPlus(AutotoolsPackage):
     variant(
         "nvidia_arch",
         default="Volta",
-        values=("Volta", "Ampere","Hopper"),
+        values=("Volta", "Ampere", "Hopper"),
         multi=False,
         description="Nvidia GPU Arch",
     )
@@ -111,7 +111,7 @@ class MvapichPlus(AutotoolsPackage):
     depends_on("zlib-api")
     depends_on("libpciaccess", when=(sys.platform != "darwin"))
     depends_on("libxml2")
-    depends_on("cuda", when="+cuda",type=("build", "link"))
+    depends_on("cuda", when="+cuda", type=("build", "link"))
     depends_on("libfabric", when="netmod=ofi")
     depends_on("slurm", when="process_managers=slurm")
     depends_on("ucx", when="netmod=ucx")
@@ -142,7 +142,8 @@ class MvapichPlus(AutotoolsPackage):
             output = Executable(exe)("-a", output=str, error=str)
             match = re.search(r"^MVAPICH2 (\S+)", output)
         return match.group(1) if match else None
-  @property
+
+    @property
     def libs(self):
         query_parameters = self.spec.last_query.extra_parameters
         libraries = ["libmpi"]
@@ -169,7 +170,7 @@ class MvapichPlus(AutotoolsPackage):
         if "process_managers=slurm" in spec:
             opts = [
                 "--with-pm=slurm",
-        #        "--with-pmi=simple",
+                #        "--with-pmi=simple",
                 "--with-slurm={0}".format(spec["slurm"].prefix),
                 "CFLAGS=-I{0}/include/slurm".format(spec["slurm"].prefix),
             ]
@@ -218,25 +219,25 @@ class MvapichPlus(AutotoolsPackage):
         env.unset("F90")
         env.unset("F90FLAGS")
         if "+cuda" in self.spec:
-            env.prepend_path("PATH",self.spec["cuda"].prefix+"/bin")
-            env.prepend_path("LIBRARY_PATH", self.spec["cuda"].prefix+"/lib")
-            env.prepend_path("LD_LIBRARY_PATH", self.spec["cuda"].prefix+"/lib")
-            env.prepend_path("LIBRARY_PATH", self.spec["cuda"].prefix+"/lib64")
-            env.prepend_path("LD_LIBRARY_PATH", self.spec["cuda"].prefix+"/lib64")
-            env.prepend_path("C_INCLUDE_PATH", self.spec["cuda"].prefix+"/include")
-            env.append_path("CPATH", self.spec["cuda"].prefix+"/include")
-            env.prepend_path("CPLUS_INCLUDE_PATH", self.spec["cuda"].prefix+"/include")
+            env.prepend_path("PATH", self.spec["cuda"].prefix + "/bin")
+            env.prepend_path("LIBRARY_PATH", self.spec["cuda"].prefix + "/lib")
+            env.prepend_path("LD_LIBRARY_PATH", self.spec["cuda"].prefix + "/lib")
+            env.prepend_path("LIBRARY_PATH", self.spec["cuda"].prefix + "/lib64")
+            env.prepend_path("LD_LIBRARY_PATH", self.spec["cuda"].prefix + "/lib64")
+            env.prepend_path("C_INCLUDE_PATH", self.spec["cuda"].prefix + "/include")
+            env.append_path("CPATH", self.spec["cuda"].prefix + "/include")
+            env.prepend_path("CPLUS_INCLUDE_PATH", self.spec["cuda"].prefix + "/include")
             env.set("CUDA_HOME", self.spec["cuda"].prefix)
             env.set("CUDA_ROOT", self.spec["cuda"].prefix)
         if "+rocm" in self.spec:
-            env.prepend_path("PATH",self.spec["hip"].prefix+"/bin")
-            env.prepend_path("LIBRARY_PATH", self.spec["hip"].prefix+"/lib")
-            env.prepend_path("LD_LIBRARY_PATH", self.spec["hip"].prefix+"/lib")
-            env.prepend_path("LIBRARY_PATH", self.spec["hip"].prefix+"/lib64")
-            env.prepend_path("LD_LIBRARY_PATH", self.spec["hip"].prefix+"/lib64")
-            env.prepend_path("C_INCLUDE_PATH", self.spec["hip"].prefix+"/include")
-            env.append_path("CPATH", self.spec["hip"].prefix+"/include")
-            env.prepend_path("CPLUS_INCLUDE_PATH", self.spec["hip"].prefix+"/include")
+            env.prepend_path("PATH", self.spec["hip"].prefix + "/bin")
+            env.prepend_path("LIBRARY_PATH", self.spec["hip"].prefix + "/lib")
+            env.prepend_path("LD_LIBRARY_PATH", self.spec["hip"].prefix + "/lib")
+            env.prepend_path("LIBRARY_PATH", self.spec["hip"].prefix + "/lib64")
+            env.prepend_path("LD_LIBRARY_PATH", self.spec["hip"].prefix + "/lib64")
+            env.prepend_path("C_INCLUDE_PATH", self.spec["hip"].prefix + "/include")
+            env.append_path("CPATH", self.spec["hip"].prefix + "/include")
+            env.prepend_path("CPLUS_INCLUDE_PATH", self.spec["hip"].prefix + "/include")
             env.set("CUDA_HOME", self.spec["hip"].prefix)
             env.set("CUDA_ROOT", self.spec["hip"].prefix)
 
@@ -312,7 +313,7 @@ class MvapichPlus(AutotoolsPackage):
         ]
 
         args.extend(self.enable_or_disable("alloca"))
-        #args.append("--with-pmi=" + spec.variants["pmi_version"].value)
+        # args.append("--with-pmi=" + spec.variants["pmi_version"].value)
 
         if "+debug" in self.spec:
             args.extend(
@@ -328,16 +329,31 @@ class MvapichPlus(AutotoolsPackage):
         else:
             args.append("--enable-fast=all")
         if "+cuda" in self.spec:
-            gpu_map={"Volta":"70","Ampere":"80","Hopper":"90"}
-            args.extend(["--enable-cuda", "--with-cuda={0}".format(spec["cuda"].prefix),'NVCCFLAGS=-gencode=arch=compute_{0},code=sm_{0}'.format(gpu_map[spec.variants['nvidia_arch'].value]),'CFLAGS=-I{0}'.format(spec["cuda"].prefix+"/include"),'CXXFLAGS=-I{0}'.format(spec["cuda"].prefix+"/include")])
+            gpu_map = {"Volta": "70", "Ampere": "80", "Hopper": "90"}
+            args.extend(
+                [
+                    "--enable-cuda",
+                    "--with-cuda={0}".format(spec["cuda"].prefix),
+                    "NVCCFLAGS=-gencode=arch=compute_{0},code=sm_{0}".format(
+                        gpu_map[spec.variants["nvidia_arch"].value]
+                    ),
+                    "CFLAGS=-I{0}".format(spec["cuda"].prefix + "/include"),
+                    "CXXFLAGS=-I{0}".format(spec["cuda"].prefix + "/include"),
+                ]
+            )
         if "+rocm" in self.spec:
-            args.extend(["--enable-rocm", "--with-rocm={0}".format(spec["hip"].prefix),"--enable-hip=basic"])
+            args.extend(
+                [
+                    "--enable-rocm",
+                    "--with-rocm={0}".format(spec["hip"].prefix),
+                    "--enable-hip=basic",
+                ]
+            )
 
         if "+regcache" in self.spec:
             args.append("--enable-registration-cache")
         else:
             args.append("--disable-registration-cache")
-
 
         ld = ""
         for path in itertools.chain(self.compiler.extra_rpaths, self.compiler.implicit_rpaths()):
@@ -348,4 +364,3 @@ class MvapichPlus(AutotoolsPackage):
         args.extend(self.network_options)
         args.extend(self.file_system_options)
         return args
-                                                                                                                                                            
