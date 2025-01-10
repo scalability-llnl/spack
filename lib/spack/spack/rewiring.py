@@ -77,25 +77,9 @@ def rewire_node(spec, explicit):
     ]
     if bins_to_relocate:
         if "macho" in platform.binary_formats:
-            relocate.relocate_macho_binaries(
-                bins_to_relocate,
-                str(spack.store.STORE.layout.root),
-                str(spack.store.STORE.layout.root),
-                prefix_to_prefix,
-                False,
-                spec.build_spec.prefix,
-                spec.prefix,
-            )
+            relocate.relocate_macho_binaries(bins_to_relocate, prefix_to_prefix)
         if "elf" in platform.binary_formats:
-            relocate.relocate_elf_binaries(
-                bins_to_relocate,
-                str(spack.store.STORE.layout.root),
-                str(spack.store.STORE.layout.root),
-                prefix_to_prefix,
-                False,
-                spec.build_spec.prefix,
-                spec.prefix,
-            )
+            relocate.relocate_elf_binaries(bins_to_relocate, prefix_to_prefix)
         relocate.relocate_text_bin(binaries=bins_to_relocate, prefixes=prefix_to_prefix)
     shutil.rmtree(tempdir)
     install_manifest = os.path.join(
