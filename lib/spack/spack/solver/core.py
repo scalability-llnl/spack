@@ -141,6 +141,7 @@ def clingo() -> ModuleType:
     if clingo_mod is not None:
         return _set_clingo_module_cache(clingo_mod)
 
+    #import pdb; pdb.set_trace()
     clingo_mod = _bootstrap_clingo()
     return _set_clingo_module_cache(clingo_mod)
 
@@ -207,6 +208,7 @@ def _bootstrap_clingo() -> ModuleType:
     import spack.bootstrap
 
     with spack.bootstrap.ensure_bootstrap_configuration():
+        #import pdb; pdb.set_trace()
         spack.bootstrap.ensure_clingo_importable_or_raise()
         clingo_mod = importlib.import_module("clingo")
 

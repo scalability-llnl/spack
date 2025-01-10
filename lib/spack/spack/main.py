@@ -993,6 +993,8 @@ def _main(argv=None):
 
     with bootstrap_context:
         if args.simulated_system:
+            #import spack.bootstrap as bootstrap
+            #bootstrap.ensure_clingo_importable_or_raise()
             _simulate_system(args.simulated_system)
         return finish_parse_and_run(parser, cmd_name, args, env_format_error)
 
