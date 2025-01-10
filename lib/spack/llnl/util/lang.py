@@ -1109,18 +1109,10 @@ class PriorityOrderedMapping(Mapping[KT, VT]):
         return len(self._data)
 
     def __iter__(self):
-        def iter_fn():
-            for *_, key in self._priorities:
-                yield key
-
-        return iter_fn()
+        yield from (key for _, key in self._priorities)
 
     def __reversed__(self):
-        def iter_fn():
-            for *_, key in reversed(self._priorities):
-                yield key
-
-        return iter_fn()
+        yield from (key for _, key in reversed(self._priorities))
 
     def reversed_keys(self):
         """Iterates over keys from the highest priority, to the lowest."""
@@ -1128,17 +1120,12 @@ class PriorityOrderedMapping(Mapping[KT, VT]):
 
     def reversed_values(self):
         """Iterates over values from the highest priority, to the lowest."""
-
-        def iter_fn():
-            for *_, key in reversed(self._priorities):
-                yield self._data[key]
-
-        return iter_fn()
+        yield from (self._data[key] for _, key in reversed(self._priorities))
 
     def _highest_priority(self) -> int:
         if not self._priorities:
             return 0
-        result, *_ = self._priorities[-1]
+        result, _ = self._priorities[-1]
         return result
 
     def add(self, key: KT, *, value: VT, priority: Optional[int] = None) -> None:
