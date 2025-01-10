@@ -26,6 +26,12 @@ class Minimap2(PythonPackage):
     version("2.10", sha256="52b36f726ec00bfca4a2ffc23036d1a2b5f96f0aae5a92fd826be6680c481c20")
     version("2.2", sha256="7e8683aa74c4454a8cfe3821f405c4439082e24c152b4b834fdb56a117ecaed9")
 
+    variant(
+        "js_engine",
+        values=any_combination_of("node-js", "k8").prohibit_empty_set().with_default("k8"),
+        description="List of javascript engines for which support is enabled",
+    )
+
     depends_on("c", type="build")  # generated
 
     conflicts("target=aarch64:", when="@:2.10")
@@ -34,7 +40,9 @@ class Minimap2(PythonPackage):
     depends_on("py-cython", type="build")
 
     variant("jstools", default=False, description="Include Javascript tools (paftools)")
-    depends_on("k8", type="run", when="+jstools")
+
+    depends_on("k8", type="run", when="js_engine=k8 +jstools")
+    depends_on("node-js", type="run", when="js_engine=node-js +jstools")
 
     @run_after("install")
     def install_minimap2(self):
@@ -44,4 +52,6 @@ class Minimap2(PythonPackage):
         make(*make_arg)
         mkdirp(prefix.bin)
         install("minimap2", prefix.bin)
+        if self.spec.satisfies("js_engine=node"):
+            filter_file(r"k8", "node", "./misc/*.js")
         install("misc/*.js", prefix.bin)

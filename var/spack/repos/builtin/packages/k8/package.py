@@ -14,6 +14,7 @@ class K8(Package):
     homepage = "https://github.com/attractivechaos/k8"
     url = "https://github.com/attractivechaos/k8/releases/download/v0.2.4/k8-0.2.4.tar.bz2"
 
+    version("1.0", sha256="61504dad2d63404bf523d3f8d0a8bfd72ec78aa7bd79bdf9291a4f629cfb9c02")
     version("0.2.4", sha256="da8a99c7f1ce7f0cb23ff07ce10510e770686b906d5431442a5439743c0b3c47")
 
     depends_on("cxx", type="build")  # generated
