@@ -51,7 +51,6 @@ import spack.util.git
 import spack.util.url as url_util
 import spack.util.web as web_util
 import spack.version
-import spack.version.git_ref_lookup
 from spack.util.compression import decompressor_for
 from spack.util.executable import CommandNotFoundError, Executable, which
 
@@ -1573,6 +1572,7 @@ def _from_merged_attrs(fetcher, pkg, version):
 def for_package_version(pkg, version=None):
     """Determine a fetch strategy based on the arguments supplied to
     version() in the package description."""
+    import spack.version.git_ref_lookup
 
     # No-code packages have a custom fetch strategy to work around issues
     # with resource staging.

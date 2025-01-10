@@ -9,6 +9,7 @@ import pytest
 
 from llnl.util.filesystem import join_path, mkdirp, touch
 
+import spack.compilers
 import spack.config
 import spack.install_test
 import spack.spec
@@ -524,3 +525,18 @@ def test_packagetest_fails(mock_packages):
     pkg = MyPackage(s)
     with pytest.raises(ValueError, match="require a concrete package"):
         spack.install_test.PackageTest(pkg)
+
+
+def test_package_test_no_compilers(mock_packages, config, monkeypatch, capfd):
+    s = spack.spec.Spec("libdwarf").concretized()
+
+    def compilers(compiler, arch_spec):
+        return None
+
+    monkeypatch.setattr(spack.compilers, "compilers_for_spec", compilers)
+
+    s.package.test_requires_compiler = True
+    s.package.tester.stand_alone_tests()
+    error = capfd.readouterr()[1]
+    assert "Skipping tests for package" in error
+    assert "test requires missing compiler" in error

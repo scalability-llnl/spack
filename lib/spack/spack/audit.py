@@ -52,7 +52,6 @@ from urllib.request import urlopen
 import llnl.util.lang
 from llnl.string import plural
 
-import spack.builder
 import spack.config
 import spack.fetch_strategy
 import spack.patch
@@ -714,6 +713,8 @@ def _ensure_all_packages_use_sha256_checksums(pkgs, error_cls):
 @package_properties
 def _ensure_env_methods_are_ported_to_builders(pkgs, error_cls):
     """Ensure that methods modifying the build environment are ported to builder classes."""
+    import spack.builder
+
     errors = []
     for pkg_name in pkgs:
         pkg_cls = spack.repo.PATH.get_pkg_class(pkg_name)

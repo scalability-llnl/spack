@@ -16,12 +16,13 @@ from typing import Callable, List, Optional, Tuple, Type, TypeVar, Union
 
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
-import llnl.util.tty.log
+import llnl.util.tty.log as log
 from llnl.string import plural
 from llnl.util.lang import nullcontext
 from llnl.util.tty.color import colorize
 
 import spack.build_environment
+import spack.compilers
 import spack.config
 import spack.error
 import spack.package_base
@@ -44,12 +45,8 @@ test_suite_filename = "test_suite.lock"
 #: Name of the test suite results (summary) file
 results_filename = "results.txt"
 
-#: Name of the Spack install phase-time test log file
-spack_install_test_log = "install-time-test-log.txt"
-
 
 ListOrStringType = Union[str, List[str]]
-LogType = Union[llnl.util.tty.log.nixlog, llnl.util.tty.log.winlog]
 
 Pb = TypeVar("Pb", bound="spack.package_base.PackageBase")
 PackageObjectOrClass = Union[Pb, Type[Pb]]
@@ -206,22 +203,6 @@ def install_test_root(pkg: Pb):
     return os.path.join(pkg.metadata_dir, "test")
 
 
-def print_message(logger: LogType, msg: str, verbose: bool = False):
-    """Print the message to the log, optionally echoing.
-
-    Args:
-        logger: instance of the output logger (e.g. nixlog or winlog)
-        msg: message being output
-        verbose: ``True`` displays verbose output, ``False`` suppresses
-            it (``False`` is default)
-    """
-    if verbose:
-        with logger.force_echo():
-            tty.info(msg, format="g")
-    else:
-        tty.info(msg, format="g")
-
-
 def overall_status(current_status: "TestStatus", substatuses: List["TestStatus"]) -> "TestStatus":
     """Determine the overall status based on the current and associated sub status values.
 
@@ -268,26 +249,29 @@ class PackageTest:
         self.test_log_file: str
         self.pkg_id: str
 
-        if pkg.test_suite:
+        if self.pkg.test_suite is not None:
             # Running stand-alone tests
-            self.test_log_file = pkg.test_suite.log_file_for_spec(pkg.spec)
-            self.tested_file = pkg.test_suite.tested_file_for_spec(pkg.spec)
-            self.pkg_id = pkg.test_suite.test_pkg_id(pkg.spec)
+            suite = self.pkg.test_suite
+            self.test_log_file = suite.log_file_for_spec(pkg.spec)  # type: ignore[union-attr]
+            self.tested_file = suite.tested_file_for_spec(pkg.spec)  # type: ignore[union-attr]
+            self.pkg_id = suite.test_pkg_id(pkg.spec)  # type: ignore[union-attr]
         else:
             # Running phase-time tests for a single package whose results are
             # retained in the package's stage directory.
-            pkg.test_suite = TestSuite([pkg.spec])
-            self.test_log_file = fs.join_path(pkg.stage.path, spack_install_test_log)
+            self.pkg.test_suite = TestSuite([pkg.spec])
+            self.test_log_file = fs.join_path(
+                pkg.stage.path, spack.build_environment.install_test_log
+            )
             self.pkg_id = pkg.spec.format("{name}-{version}-{hash:7}")
 
         # Internal logger for test part processing
         self._logger = None
 
     @property
-    def logger(self) -> Optional[LogType]:
+    def logger(self) -> Optional[log.LogType]:
         """The current logger or, if none, sets to one."""
         if not self._logger:
-            self._logger = llnl.util.tty.log.log_output(self.test_log_file)
+            self._logger = log.log_output(self.test_log_file)
 
         return self._logger
 
@@ -304,7 +288,7 @@ class PackageTest:
         fs.touch(self.test_log_file)  # Otherwise log_parse complains
         fs.set_install_permissions(self.test_log_file)
 
-        with llnl.util.tty.log.log_output(self.test_log_file, verbose) as self._logger:
+        with log.log_output(self.test_log_file, verbose) as self._logger:
             with self.logger.force_echo():  # type: ignore[union-attr]
                 tty.msg("Testing package " + colorize(r"@*g{" + self.pkg_id + r"}"))
 
@@ -320,7 +304,7 @@ class PackageTest:
 
     @property
     def archived_install_test_log(self) -> str:
-        return fs.join_path(self.pkg.metadata_dir, spack_install_test_log)
+        return fs.join_path(self.pkg.metadata_dir, spack.build_environment.install_test_log)
 
     def archive_install_test_log(self, dest_dir: str):
         if os.path.exists(self.test_log_file):
@@ -329,6 +313,13 @@ class PackageTest:
     def add_failure(self, exception: Exception, msg: str):
         """Add the failure details to the current list."""
         self.test_failures.append((exception, msg))
+
+    def set_current_specs(self, base_spec: spack.spec.Spec, test_spec: spack.spec.Spec):
+        # Ignore union-attr check for test_suite since the constructor of this
+        # class ensures it is always not None.
+        test_suite = self.pkg.test_suite
+        test_suite.current_base_spec = base_spec  # type: ignore[union-attr]
+        test_suite.current_test_spec = test_spec  # type: ignore[union-attr]
 
     def status(self, name: str, status: "TestStatus", msg: Optional[str] = None):
         """Track and print the test status for the test part name."""
@@ -351,56 +342,54 @@ class PackageTest:
         self.test_parts[part_name] = status
         self.counts[status] += 1
 
-    def phase_tests(self, builder, phase_name: str, method_names: List[str]):
-        """Execute the builder's package phase-time tests.
+    def handle_failures(self):
+        """Raise exception if any failures were collected during testing
 
-        Args:
-            builder: builder for package being tested
-            phase_name: the name of the build-time phase (e.g., ``build``, ``install``)
-            method_names: phase-specific callback method names
+        Raises:
+            TestFailure: test failures were collected
         """
-        verbose = tty.is_verbose()
-        fail_fast = spack.config.get("config:fail_fast", False)
+        if self.test_failures:
+            raise TestFailure(self.test_failures)
 
-        with self.test_logger(verbose=verbose, externals=False) as logger:
-            # Report running each of the methods in the build log
-            print_message(logger, f"Running {phase_name}-time tests", verbose)
-            builder.pkg.test_suite.current_test_spec = builder.pkg.spec
-            builder.pkg.test_suite.current_base_spec = builder.pkg.spec
-
-            have_tests = any(name.startswith("test_") for name in method_names)
-            if have_tests:
-                copy_test_files(builder.pkg, builder.pkg.spec)
-
-            for name in method_names:
-                try:
-                    fn = getattr(builder, name, None) or getattr(builder.pkg, name)
-                except AttributeError as e:
-                    print_message(logger, f"RUN-TESTS: method not implemented [{name}]", verbose)
-                    self.add_failure(e, f"RUN-TESTS: method not implemented [{name}]")
-                    if fail_fast:
-                        break
-                    continue
-
-                print_message(logger, f"RUN-TESTS: {phase_name}-time tests [{name}]", verbose)
-                fn()
-
-            if have_tests:
-                print_message(logger, "Completed testing", verbose)
-
-            # Raise any collected failures here
-            if self.test_failures:
-                raise TestFailure(self.test_failures)
-
-    def stand_alone_tests(self, kwargs):
+    def stand_alone_tests(self, dirty=False, externals=False):
         """Run the package's stand-alone tests.
 
         Args:
             kwargs (dict): arguments to be used by the test process
-        """
-        import spack.build_environment
 
-        spack.build_environment.start_build_process(self.pkg, test_process, kwargs)
+        Raises:
+            AttributeError: required test_requires_compiler attribute is missing
+        """
+        pkg = self.pkg
+        spec = pkg.spec
+        pkg_spec = spec.format("{name}-{version}-{hash:7}")
+
+        if not hasattr(pkg, "test_requires_compiler"):
+            raise AttributeError(
+                f"Cannot run tests for {pkg_spec}: missing required "
+                "test_requires_compiler attribute"
+            )
+
+        if pkg.test_requires_compiler:
+            compilers = spack.compilers.compilers_for_spec(
+                spec.compiler, arch_spec=spec.architecture
+            )
+            if not compilers:
+                tty.error(
+                    f"Skipping tests for package {pkg_spec}\n"
+                    f"Package test requires missing compiler {spec.compiler}"
+                )
+                return
+
+        kwargs = {
+            "dirty": dirty,
+            "fake": False,
+            "context": "test",
+            "externals": externals,
+            "verbose": tty.is_verbose(),
+        }
+
+        spack.build_environment.start_build_process(pkg, test_process, kwargs)
 
     def parts(self) -> int:
         """The total number of (checked) test parts."""
@@ -692,10 +681,9 @@ def process_test_parts(pkg: Pb, test_specs: List[spack.spec.Spec], verbose: bool
                 ):
                     test_fn(pkg)
 
-        # If fail-fast was on, we error out above
-        # If we collect errors, raise them in batch here
-        if tester.test_failures:
-            raise TestFailure(tester.test_failures)
+        # If fail-fast was on, we errored out above
+        # If we collected errors, raise them in batch here
+        tester.handle_failures()
 
     finally:
         if tester.ran_tests():
@@ -721,12 +709,12 @@ def test_process(pkg: Pb, kwargs):
 
     with pkg.tester.test_logger(verbose, externals) as logger:
         if pkg.spec.external and not externals:
-            print_message(logger, "Skipped tests for external package", verbose)
+            log.print_message(logger, "Skipped tests for external package", verbose)
             pkg.tester.status(pkg.spec.name, TestStatus.SKIPPED)
             return
 
         if not pkg.spec.installed:
-            print_message(logger, "Skipped not installed package", verbose)
+            log.print_message(logger, "Skipped not installed package", verbose)
             pkg.tester.status(pkg.spec.name, TestStatus.SKIPPED)
             return
 
@@ -851,7 +839,7 @@ class TestSuite:
         # even if they contain the same spec
         self.specs = [spec.copy() for spec in specs]
         self.current_test_spec = None  # spec currently tested, can be virtual
-        self.current_base_spec = None  # spec currently running do_test
+        self.current_base_spec = None  # spec currently running tests
 
         self.alias = alias
         self._hash = None
@@ -875,6 +863,10 @@ class TestSuite:
             self._hash = b32_hash
         return self._hash
 
+    def set_current_specs(self, base_spec: spack.spec.Spec, test_spec: spack.spec.Spec):
+        self.current_base_spec = base_spec
+        self.current_test_spec = test_spec
+
     def __call__(self, *args, **kwargs):
         self.write_reproducibility_data()
 
@@ -884,18 +876,16 @@ class TestSuite:
         externals = kwargs.get("externals", False)
 
         for spec in self.specs:
+            pkg = spec.package
             try:
-                if spec.package.test_suite:
+                if pkg.test_suite:
                     raise TestSuiteSpecError(
-                        "Package {} cannot be run in two test suites at once".format(
-                            spec.package.name
-                        )
+                        f"Package {pkg.name} cannot be run in two test suites at once"
                     )
 
                 # Set up the test suite to know which test is running
-                spec.package.test_suite = self
-                self.current_base_spec = spec
-                self.current_test_spec = spec
+                pkg.test_suite = self
+                self.set_current_specs(spec, spec)
 
                 # setup per-test directory in the stage dir
                 test_dir = self.test_dir_for_spec(spec)
@@ -904,7 +894,7 @@ class TestSuite:
                 fs.mkdirp(test_dir)
 
                 # run the package tests
-                spec.package.do_test(dirty=dirty, externals=externals)
+                pkg.tester.stand_alone_tests(dirty=dirty, externals=externals)
 
                 # Clean up on success
                 if remove_directory:
@@ -938,8 +928,7 @@ class TestSuite:
 
             finally:
                 spec.package.test_suite = None
-                self.current_test_spec = None
-                self.current_base_spec = None
+                self.set_current_specs(None, None)
 
         write_test_summary(self.counts)
 

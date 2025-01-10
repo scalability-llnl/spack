@@ -203,7 +203,7 @@ class BuildInfoCollector(InfoCollector):
 
 
 class TestInfoCollector(InfoCollector):
-    """Collect information for the PackageBase.do_test method.
+    """Collect information for the PackageTest.stand_alone_tests method.
 
     Args:
         specs: specs whose install information will be recorded
@@ -213,7 +213,7 @@ class TestInfoCollector(InfoCollector):
     dir: str
 
     def __init__(self, specs: List[spack.spec.Spec], record_directory: str):
-        super().__init__(spack.package_base.PackageBase, "do_test", specs)
+        super().__init__(spack.install_test.PackageTest, "stand_alone_tests", specs)
         self.dir = record_directory
 
     def on_success(self, pkg, kwargs, package_record):
@@ -232,7 +232,7 @@ class TestInfoCollector(InfoCollector):
             return f"Cannot open log for {pkg.spec.cshort_spec}"
 
     def extract_package_from_signature(self, instance, *args, **kwargs):
-        return instance
+        return instance.pkg
 
 
 @contextlib.contextmanager

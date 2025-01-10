@@ -7,7 +7,12 @@ import copy
 import functools
 from typing import Dict, List, Optional, Tuple, Type
 
+import llnl.util.tty as tty
+import llnl.util.tty.log as log
+
+import spack.config
 import spack.error
+import spack.install_test
 import spack.multimethod
 import spack.package_base
 import spack.phase_callbacks
@@ -121,11 +126,16 @@ def _create(pkg: spack.package_base.PackageBase) -> "Builder":
                 new_cls_name,
                 bases,
                 {
+                    # boolean to indicate whether install-time tests are run
                     "run_tests": property(lambda x: x.wrapped_package_object.run_tests),
+                    # boolean to indicate whether the package's stand-alone tests
+                    # require a compiler
                     "test_requires_compiler": property(
                         lambda x: x.wrapped_package_object.test_requires_compiler
                     ),
+                    # TestSuite instance the spec is a part of
                     "test_suite": property(lambda x: x.wrapped_package_object.test_suite),
+                    # PackageTest instance to manage the spec's testing
                     "tester": property(lambda x: x.wrapped_package_object.tester),
                 },
             )
@@ -480,7 +490,7 @@ class BaseBuilder(metaclass=BuilderMeta):
 
 class Builder(BaseBuilder, collections.abc.Sequence):
     """A builder is a class that, given a package object (i.e. associated with concrete spec),
-    knows how to install it.
+    knows how to install it and perform install-time checks.
 
     The builder behaves like a sequence, and when iterated over return the "phases" of the
     installation in the correct order.
@@ -517,3 +527,52 @@ class Builder(BaseBuilder, collections.abc.Sequence):
 
     def __len__(self):
         return len(self.phases)
+
+    def phase_tests(self, phase_name: str, method_names: List[str]):
+        """Execute the package's phase-time tests.
+
+        This process uses the same test setup and logging used for
+        stand-alone tests for consistency.
+
+        Args:
+            phase_name: the name of the build-time phase (e.g., ``build``, ``install``)
+            method_names: phase-specific callback method names
+        """
+        verbose = tty.is_verbose()
+        fail_fast = spack.config.get("config:fail_fast", False)
+
+        tester = self.pkg.tester
+        with tester.test_logger(verbose=verbose, externals=False) as logger:
+            # Report running each of the methods in the build log
+            log.print_message(logger, f"Running {phase_name}-time tests", verbose)
+            tester.set_current_specs(self.pkg.spec, self.pkg.spec)
+
+            have_tests = any(name.startswith("test_") for name in method_names)
+            if have_tests:
+                spack.install_test.copy_test_files(self.pkg, self.pkg.spec)
+
+            for name in method_names:
+                try:
+                    # Prefer the method in the package over the builder's.
+                    # We need this primarily to pick up arbitrarily named test
+                    # methods but also some build-time checks.
+                    fn = getattr(self.pkg, name, getattr(self, name))
+
+                    msg = f"RUN-TESTS: {phase_name}-time tests [{name}]"
+                    log.print_message(logger, msg, verbose)
+
+                    fn()
+
+                except AttributeError as e:
+                    msg = f"RUN-TESTS: method not implemented [{name}]"
+                    log.print_message(logger, msg, verbose)
+
+                    tester.add_failure(e, msg)
+                    if fail_fast:
+                        break
+
+            if have_tests:
+                log.print_message(logger, "Completed testing", verbose)
+
+            # Raise exception if any failures encountered
+            tester.handle_failures()

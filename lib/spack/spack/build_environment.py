@@ -77,7 +77,6 @@ import spack.util.libc
 from spack import traverse
 from spack.context import Context
 from spack.error import InstallError, NoHeadersError, NoLibrariesError
-from spack.install_test import spack_install_test_log
 from spack.util.environment import (
     SYSTEM_DIR_CASE_ENTRY,
     EnvironmentModifications,
@@ -129,6 +128,9 @@ else:
     dso_suffix = "so"
 
 stat_suffix = "lib" if sys.platform == "win32" else "a"
+
+#: Name of the install phase-time test log file
+install_test_log = "install-time-test-log.txt"
 
 
 def jobserver_enabled():
@@ -1525,7 +1527,7 @@ class ChildError(InstallError):
 
         # Also output the test log path IF it exists
         if self.context != "test" and have_log:
-            test_log = join_path(os.path.dirname(self.log_name), spack_install_test_log)
+            test_log = join_path(os.path.dirname(self.log_name), install_test_log)
             if os.path.isfile(test_log):
                 out.write("\nSee test log for details:\n")
                 out.write("  {0}\n".format(test_log))

@@ -111,7 +111,7 @@ def execute_build_time_tests(builder: spack.builder.Builder):
     if not builder.pkg.run_tests or not builder.build_time_test_callbacks:
         return
 
-    builder.pkg.tester.phase_tests(builder, "build", builder.build_time_test_callbacks)
+    builder.phase_tests("build", builder.build_time_test_callbacks)
 
 
 def execute_install_time_tests(builder: spack.builder.Builder):
@@ -124,7 +124,7 @@ def execute_install_time_tests(builder: spack.builder.Builder):
     if not builder.pkg.run_tests or not builder.install_time_test_callbacks:
         return
 
-    builder.pkg.tester.phase_tests(builder, "install", builder.install_time_test_callbacks)
+    builder.phase_tests("install", builder.install_time_test_callbacks)
 
 
 class BuilderWithDefaults(spack.builder.Builder):

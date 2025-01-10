@@ -16,7 +16,6 @@ import pytest
 
 import llnl.util.filesystem as fs
 
-import spack.compilers
 import spack.deptypes as dt
 import spack.error
 import spack.install_test
@@ -262,7 +261,7 @@ def test_package_tester_fails():
     s = spack.spec.Spec("pkg-a")
     pkg = BaseTestPackage(s)
     with pytest.raises(ValueError, match="without concrete version"):
-        pkg.tester()
+        pkg.tester
 
 
 def test_package_fetcher_fails():
@@ -270,18 +269,3 @@ def test_package_fetcher_fails():
     pkg = BaseTestPackage(s)
     with pytest.raises(ValueError, match="without concrete version"):
         pkg.fetcher
-
-
-def test_package_test_no_compilers(mock_packages, monkeypatch, capfd):
-    def compilers(compiler, arch_spec):
-        return None
-
-    monkeypatch.setattr(spack.compilers, "compilers_for_spec", compilers)
-
-    s = spack.spec.Spec("pkg-a")
-    pkg = BaseTestPackage(s)
-    pkg.test_requires_compiler = True
-    pkg.do_test()
-    error = capfd.readouterr()[1]
-    assert "Skipping tests for package" in error
-    assert "test requires missing compiler" in error

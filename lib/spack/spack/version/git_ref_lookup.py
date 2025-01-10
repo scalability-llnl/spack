@@ -10,7 +10,6 @@ from typing import Dict, Optional, Tuple
 from llnl.util.filesystem import mkdirp, working_dir
 
 import spack.caches
-import spack.fetch_strategy
 import spack.paths
 import spack.repo
 import spack.util.executable
@@ -85,6 +84,8 @@ class GitRefLookup(AbstractRefLookup):
 
     @property
     def fetcher(self):
+        import spack.fetch_strategy
+
         if not self._fetcher:
             # We require the full git repository history
             fetcher = spack.fetch_strategy.GitFetchStrategy(git=self.pkg.git)

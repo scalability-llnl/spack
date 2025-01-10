@@ -20,7 +20,7 @@ from contextlib import contextmanager
 from multiprocessing.connection import Connection
 from threading import Thread
 from types import ModuleType
-from typing import Callable, Optional
+from typing import Callable, Optional, Union
 
 import llnl.util.tty as tty
 
@@ -1027,3 +1027,22 @@ def _retry(function):
 
 def _input_available(f):
     return f in select.select([f], [], [], 0)[0]
+
+
+LogType = Union[nixlog, winlog]
+
+
+def print_message(logger: LogType, msg: str, verbose: bool = False):
+    """Print the message to the log, optionally echoing.
+
+    Args:
+        logger: instance of the output logger (e.g. nixlog or winlog)
+        msg: message being output
+        verbose: ``True`` displays verbose output, ``False`` suppresses
+            it (``False`` is default)
+    """
+    if verbose:
+        with logger.force_echo():
+            tty.info(msg, format="g")
+    else:
+        tty.info(msg, format="g")
