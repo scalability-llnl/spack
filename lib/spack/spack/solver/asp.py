@@ -834,7 +834,6 @@ class ConcretizationCache:
         Hash membership is computed based on the sha256 of the provided asp
         problem.
         """
-        import pdb; pdb.set_trace()
         cache_path = self._cache_path_from_problem(problem)
         with self._create_cache_entry(cache_path):
             cache_dict = {"results": result.to_dict(), "statistics": statistics}
