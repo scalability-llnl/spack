@@ -20,9 +20,9 @@ __all__ = ["Executable", "which", "which_string", "ProcessError"]
 class Executable:
     """Class representing a program that can be run on the command line."""
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: Union[str, Path]) -> None:
         file_path = str(Path(name))
-        if sys.platform != "win32" and name.startswith("."):
+        if sys.platform != "win32" and isinstance(name, str) and name.startswith("."):
             # pathlib strips the ./ from relative paths so it must be added back
             file_path = os.path.join(".", file_path)
 
