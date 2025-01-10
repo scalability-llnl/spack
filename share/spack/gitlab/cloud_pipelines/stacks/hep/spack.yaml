@@ -46,6 +46,9 @@ spack:
   - lhapdf +python
   - madgraph5amc
   - opendatadetector
+  - pandoramonitoring
+  - pandorapfa
+  - pandorasdk
   - podio +rntuple +sio
   - py-uproot +lz4 +xrootd +zstd
   - pythia8 +evtgen +fastjet +hdf5 +hepmc +hepmc3 +lhapdf ~madgraph5amc +python +rivet ~root # pythia8 and root circularly depend
