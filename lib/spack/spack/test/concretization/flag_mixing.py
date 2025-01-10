@@ -5,6 +5,7 @@ import pathlib
 
 import pytest
 
+import spack.concretize
 import spack.config
 import spack.environment as ev
 import spack.paths
