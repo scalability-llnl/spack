@@ -44,7 +44,19 @@ from collections import defaultdict
 from enum import Flag, auto
 from itertools import chain
 from multiprocessing.connection import Connection
-from typing import Callable, Dict, List, Optional, Set, Tuple
+from typing import (
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    TextIO,
+    Tuple,
+    Type,
+    Union,
+    overload,
+)
 
 import archspec.cpu
 
@@ -154,6 +166,63 @@ class MakeExecutable(Executable):
         super().__init__(name)
         self.supports_jobserver = supports_jobserver
         self.jobs = jobs
+
+    @overload
+    def __call__(
+        self,
+        *args: str,
+        parallel: bool = ...,
+        jobs_env: Optional[str] = ...,
+        jobs_env_supports_jobserver: bool = ...,
+        fail_on_error: bool = ...,
+        ignore_errors: Union[int, Sequence[int]] = ...,
+        ignore_quotes: Optional[bool] = ...,
+        timeout: Optional[int] = ...,
+        env: Optional[Union[Dict[str, str], EnvironmentModifications]] = ...,
+        extra_env: Optional[Union[Dict[str, str], EnvironmentModifications]] = ...,
+        input: Optional[TextIO] = ...,
+        output: Union[Optional[TextIO], str] = ...,
+        error: Union[Optional[TextIO], str] = ...,
+        _dump_env: Optional[Dict[str, str]] = ...,
+    ) -> None: ...
+
+    @overload
+    def __call__(
+        self,
+        *args: str,
+        parallel: bool = ...,
+        jobs_env: Optional[str] = ...,
+        jobs_env_supports_jobserver: bool = ...,
+        fail_on_error: bool = ...,
+        ignore_errors: Union[int, Sequence[int]] = ...,
+        ignore_quotes: Optional[bool] = ...,
+        timeout: Optional[int] = ...,
+        env: Optional[Union[Dict[str, str], EnvironmentModifications]] = ...,
+        extra_env: Optional[Union[Dict[str, str], EnvironmentModifications]] = ...,
+        input: Optional[TextIO] = ...,
+        output: Union[Type[str], Callable] = ...,
+        error: Union[Optional[TextIO], str, Type[str], Callable] = ...,
+        _dump_env: Optional[Dict[str, str]] = ...,
+    ) -> str: ...
+
+    @overload
+    def __call__(
+        self,
+        *args: str,
+        parallel: bool = ...,
+        jobs_env: Optional[str] = ...,
+        jobs_env_supports_jobserver: bool = ...,
+        fail_on_error: bool = ...,
+        ignore_errors: Union[int, Sequence[int]] = ...,
+        ignore_quotes: Optional[bool] = ...,
+        timeout: Optional[int] = ...,
+        env: Optional[Union[Dict[str, str], EnvironmentModifications]] = ...,
+        extra_env: Optional[Union[Dict[str, str], EnvironmentModifications]] = ...,
+        input: Optional[TextIO] = ...,
+        output: Union[Optional[TextIO], str, Type[str], Callable] = ...,
+        error: Union[Type[str], Callable] = ...,
+        _dump_env: Optional[Dict[str, str]] = ...,
+    ) -> str: ...
 
     def __call__(
         self,
