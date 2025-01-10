@@ -42,6 +42,7 @@ def _simulate_system(state_dir):
         spack.platforms.host = lambda: data[0]
         archspec.cpu.host = lambda: data[1]
         spack.solver.asp.all_libcs = lambda: data[2]
+        spack.solver.asp.c_compiler_runs = lambda x: True
 
 
 def _make_env(dst_dir):
