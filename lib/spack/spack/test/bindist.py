@@ -515,7 +515,7 @@ def test_update_sbang(tmp_path, temporary_mirror, mock_fetch, install_mockery):
         new_prefix, new_sbang_shebang = s.prefix, sbang.sbang_shebang_line()
         assert old_prefix != new_prefix
         assert old_sbang_shebang != new_sbang_shebang
-        PackageInstaller([s.package], cache_only=True).install()
+        PackageInstaller([s.package], cache_only=True, unsigned=True).install()
 
         # Check that the sbang line refers to the new install tree
         new_contents = f"""\
