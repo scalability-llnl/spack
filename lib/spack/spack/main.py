@@ -997,20 +997,6 @@ def _main(argv=None):
         return finish_parse_and_run(parser, cmd_name, args, env_format_error)
 
 
-def _simulate_system(state_dir):
-    import pickle
-
-    import spack.platforms
-    import spack.solver.asp
-
-    with open(os.path.join(state_dir, "arch.pkl"), "rb") as f:
-        # [spack.platforms.host(), archspec.cpu.host(), spack.solver.asp.all_libcs()]
-        data = pickle.load(f)
-        spack.platforms.host = lambda: data[0]
-        archspec.cpu.host = lambda: data[1]
-        spack.solver.asp.all_libcs = lambda: data[2]
-
-
 def finish_parse_and_run(parser, cmd_name, main_args, env_format_error):
     """Finish parsing after we know the command to run."""
     # add the found command to the parser and re-run then re-parse
