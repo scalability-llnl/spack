@@ -25,6 +25,7 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
     license("BSD-3-Clause")
 
     version("develop", branch="development")
+    version("25.01", sha256="29eb35cf67d66b0fd0654282454c210abfadf27fcff8478b256e3196f237c74f")
     version("24.12", sha256="ca4b41ac73fabb9cf3600b530c9823eb3625f337d9b7b9699c1089e81c67fc67")
     version("24.11", sha256="31cc37b39f15e02252875815f6066046fc56a479bf459362b9889b0d6a202df6")
     version("24.10", sha256="a2d15e417bd7c41963749338e884d939c80c5f2fcae3279fe3f1b463e3e4208a")
@@ -151,6 +152,8 @@ class Amrex(CMakePackage, CudaPackage, ROCmPackage):
 
     # Build dependencies
     depends_on("mpi", when="+mpi")
+    with when("+linear_solvers"):
+        depends_on("rocsparse", when="@25.01: +rocm")
     with when("+fft"):
         depends_on("rocfft", when="+rocm")
         depends_on("fftw@3", when="~cuda ~rocm ~sycl")

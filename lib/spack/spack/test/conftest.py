@@ -635,11 +635,6 @@ def ensure_debug(monkeypatch):
     tty.set_debug(current_debug_level)
 
 
-@pytest.fixture(autouse=sys.platform == "win32", scope="session")
-def platform_config():
-    spack.config.add_default_platform_scope(spack.platforms.real_host().name)
-
-
 @pytest.fixture
 def default_config():
     """Isolates the default configuration from the user configs.

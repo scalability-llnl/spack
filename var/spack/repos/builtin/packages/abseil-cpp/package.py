@@ -93,7 +93,7 @@ class AbseilCpp(CMakePackage):
     depends_on("cmake@3.5:", when="@20190312:", type="build")
     depends_on("cmake@3.1:", type="build")
 
-    depends_on("googletest", type="build", when="@20220623:")
+    depends_on("googletest~absl", type="test", when="@20220623:")
 
     def cmake_args(self):
         run_tests = self.run_tests and self.spec.satisfies("@20220623:")
