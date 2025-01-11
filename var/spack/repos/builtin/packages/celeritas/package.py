@@ -81,13 +81,19 @@ class Celeritas(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("py-breathe", type="build", when="+doc")
     depends_on("py-sphinx", type="build", when="+doc")
 
+    with when("+cuda"):
+        depends_on("thrust")
+    with when("+rocm"):
+        depends_on("rocthrust")
+
     for _std in _cxxstd_values:
         depends_on("geant4 cxxstd=" + _std, when="+geant4 cxxstd=" + _std)
         depends_on("root cxxstd=" + _std, when="+root cxxstd=" + _std)
         depends_on("vecgeom cxxstd=" + _std, when="+vecgeom cxxstd=" + _std)
 
+    depends_on("vecgeom +cuda cuda_arch=none", when="+vecgeom +cuda cuda_arch=none")
     for _arch in CudaPackage.cuda_arch_values:
-        depends_on("vecgeom+cuda cuda_arch=" + _arch, when="+vecgeom +cuda cuda_arch=" + _arch)
+        depends_on(f"vecgeom +cuda cuda_arch={_arch}", when=f"+vecgeom +cuda cuda_arch={_arch}")
 
     conflicts("+rocm", when="+cuda", msg="AMD and NVIDIA accelerators are incompatible")
     conflicts("+rocm", when="+vecgeom", msg="HIP support is only available with ORANGE")
