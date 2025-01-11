@@ -424,6 +424,10 @@ class Acts(CMakePackage, CudaPackage):
         for _scalar in _scalar_values:
             depends_on(f"detray scalar={_scalar}", when=f"scalar={_scalar}")
 
+    # ACTS enables certain options anyway based on other options
+    conflicts("~svg", when="+traccc")
+    conflicts("~json", when="+traccc")
+
     # ACTS has been using C++17 for a while, which precludes use of old GCC
     conflicts("%gcc@:7", when="@0.23:")
     # When using C++20, disable gcc 9 and lower.
