@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,18 +17,12 @@ class PyMdi(PythonPackage):
 
     homepage = "https://molssi-mdi.github.io/MDI_Library"
     git = "https://github.com/MolSSI-MDI/MDI_Library.git"
-    url = "https://github.com/MolSSI-MDI/MDI_Library/archive/refs/tags/v1.4.30.tar.gz"
 
-    maintainers("hjjvandam")
+    maintainers("hjjvandam", "rbberger")
 
     license("BSD-3-Clause", checked_by="hjjvandam")
 
-    version(
-        "1.4.30",
-        sha256="96681171b3735cb1c413311ff44fbcb4401841ffcdbf0c1f395e737a5fab52e8",
-        extension="tar.gz",
-        url="https://codeload.github.com/MolSSI-MDI/MDI_Library/tar.gz/refs/tags/v1.4.30",
-    )
+    version("1.4.33", tag="v1.4.33", commit="f479f18f8d036bd675ba628365dd5f6f0cff1c21")
 
     # pip silently replaces distutils with setuptools
     depends_on("py-setuptools", type="build")
