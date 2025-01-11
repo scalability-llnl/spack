@@ -41,7 +41,7 @@ class Dpmjet(MakefilePackage):
         continuation = "\n     &"
         old = "^        DATDir = 'dpmdata/'"
         new = f"        DATDir = '{datadir}'"
-        new_wrapped = [new[i:i+columns] for i in range(0, len(new), columns)]
+        new_wrapped = [new[i : i + columns] for i in range(0, len(new), columns)]
         datini.filter(old, continuation.join(new_wrapped))
         datini.filter("LENDir = 8", f"LENDir = {len(datadir)}")
 
