@@ -76,7 +76,7 @@ class GccRuntime(Package):
 
     def _get_libraries_macho(self):
         """Same as _get_libraries_elf but for Mach-O binaries"""
-        cc = Executable(self.spec["gcc"].package.cc)
+        cc = Executable(self["gcc"].cc)
         path_and_install_name = []
 
         for name in self.LIBRARIES:

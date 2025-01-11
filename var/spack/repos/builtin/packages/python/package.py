@@ -597,7 +597,7 @@ class Python(Package):
         config_args.append("--without-ensurepip")
 
         if "+pic" in spec:
-            cflags.append(self.spec["c"].package.pic_flag)
+            cflags.append(self["c"].pic_flag)
 
         if "+ssl" in spec:
             config_args.append("--with-openssl={0}".format(spec["openssl"].prefix))
@@ -715,9 +715,9 @@ class Python(Package):
 
         filenames = [self.get_sysconfigdata_name(), self.config_vars["makefile_filename"]]
 
-        filter_file(spack_cc, self.spec["c"].package.cc, *filenames, **kwargs)
+        filter_file(spack_cc, self["c"].cc, *filenames, **kwargs)
         if spack_cxx:
-            filter_file(spack_cxx, self.spec["cxx"].package.cxx, *filenames, **kwargs)
+            filter_file(spack_cxx, self["cxx"].cxx, *filenames, **kwargs)
 
     @run_after("install")
     def symlink(self):
