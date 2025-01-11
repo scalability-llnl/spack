@@ -101,15 +101,16 @@ spack:
   - yoda +root
 
   # CUDA NOARCH
-  - celeritas +cuda +vecgeom
   - root +cuda +cudnn +tmva-gpu
 
   # CUDA 80
   - acts +cuda +traccc cuda_arch=80
+  - celeritas +cuda +vecgeom cuda_arch=80
   - vecgeom +cuda cuda_arch=80
 
   # CUDA 90
   - acts +cuda +traccc cuda_arch=90
+  - celeritas +cuda +vecgeom cuda_arch=90
   - vecgeom +cuda cuda_arch=90
 
   # ROCm 90a
