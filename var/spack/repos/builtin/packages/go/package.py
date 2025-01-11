@@ -98,8 +98,8 @@ class Go(Package):
     def setup_build_environment(self, env):
         # We need to set CC/CXX_FOR_TARGET, otherwise cgo will use the
         # internal Spack wrappers and fail.
-        env.set("CC_FOR_TARGET", self.spec["c"].package.cc)
-        env.set("CXX_FOR_TARGET", self.spec["cxx"].package.cxx)
+        env.set("CC_FOR_TARGET", self["c"].cc)
+        env.set("CXX_FOR_TARGET", self["cxx"].cxx)
         env.set("GOMAXPROCS", make_jobs)
 
     def build(self, spec, prefix):
