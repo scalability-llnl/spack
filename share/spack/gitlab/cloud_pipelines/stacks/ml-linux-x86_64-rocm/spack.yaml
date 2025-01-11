@@ -17,7 +17,7 @@ spack:
       - ~cuda
       - +rocm
       - amdgpu_target=gfx90a
-      - flash_attention
+      - ~flash_attention
 
   specs:
     # Horovod
