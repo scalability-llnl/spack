@@ -27,6 +27,7 @@ from typing import List, Tuple
 
 import archspec.cpu
 
+import llnl.util.filesystem as fs
 import llnl.util.lang
 import llnl.util.tty as tty
 import llnl.util.tty.colify
@@ -48,6 +49,7 @@ import spack.util.debug
 import spack.util.environment
 import spack.util.lock
 import spack.util.path
+from spack.caches import misc_cache_location
 
 #: names of profile statistics
 stat_names = pstats.Stats.sort_arg_dict_default
@@ -590,29 +592,18 @@ def update_config_with_includes():
     if not includes:
         return
 
-    to_add = list()
+    # TODO: Should the cache be a configuration option? Reside elsewhere?
+    include_cache_dir = fs.join_path(misc_cache_location(), "includes")
     for entry in includes:
-        info = spack.config.included_path(entry)
-        include_path = info.path
-        optional = info.optional
-        when = info.when
+        scope = spack.config.include_path_scope(
+            spack.config.included_path(entry),
+            "include",
+            include_cache_dir,
+            None,  # TODO: should relative paths be supported here?
+        )
 
-        include_path = spack.util.path.canonicalize_path(include_path)
-        if not os.path.exists(include_path) and not optional:
-            raise ValueError(
-                f"Specified include path does not exist and is not optional: {include_path}"
-            )
-
-        activate = (not when) or spack.spec.eval_conditional(when)
-        if activate and os.path.exists(include_path):
-            to_add.append(include_path)
-
-    scopes = spack.config.scopes_from_paths(
-        to_add, "include", config_stage_dir=None, relative_root=None
-    )
-
-    for scope in scopes:
-        spack.config.CONFIG.push_scope(scope)
+        if scope is not None:
+            spack.config.CONFIG.push_scope(scope)
 
 
 def _invoke_command(command, parser, args, unknown_args):

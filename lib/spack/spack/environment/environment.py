@@ -2897,10 +2897,8 @@ class EnvironmentManifestFile(collections.abc.Mapping):
     def __str__(self):
         return str(self.manifest_file)
 
-    # TODO (next include PR): refactor optional/conditional include handling
-    # TODO (next include PR): revisit use of spack.util.path.canonicalize_path
     @property
-    def included_config_scopes(self) -> List[spack.config.ConfigScope]:
+    def included_config_scopes(self) -> Optional[List[spack.config.ConfigScope]]:
         """List of included configuration scopes from the manifest.
 
         Scopes are listed in the YAML file in order from highest to
@@ -2922,27 +2920,19 @@ class EnvironmentManifestFile(collections.abc.Mapping):
         if not includes:
             return []
 
-        include_paths = list()
-        required_paths = list()
+        name_prefix = f"env:{self.name}"
+        scopes = []
         for entry in includes:
-            info = spack.config.included_path(entry)
-            path = info.path
-            optional = info.optional
-            when = info.when
+            scopes.append(
+                spack.config.include_path_scope(
+                    spack.config.included_path(entry),
+                    name_prefix,
+                    self.config_stage_dir,
+                    self.manifest_dir,
+                )
+            )
 
-            if not optional:
-                required_paths.append(path)
-
-            if (not when) or spack.spec.eval_conditional(when):
-                include_paths.append(path)
-
-        return spack.config.scopes_from_paths(
-            include_paths,
-            f"env:{self.name}",
-            self.config_stage_dir,
-            self.manifest_dir,
-            required_paths,
-        )
+        return scopes
 
     @property
     def env_config_scopes(self) -> List[spack.config.ConfigScope]:
