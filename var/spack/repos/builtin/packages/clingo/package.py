@@ -100,7 +100,7 @@ class Clingo(CMakePackage):
 
     def cmake_args(self):
         try:
-            self.spec["cxx"].package.standard_flag(language="cxx", standard="14")
+            self["cxx"].standard_flag(language="cxx", standard="14")
         except UnsupportedCompilerFlag:
             InstallError("clingo requires a C++14-compliant C++ compiler")
 

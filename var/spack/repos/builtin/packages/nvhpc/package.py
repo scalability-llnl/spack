@@ -530,11 +530,11 @@ class Nvhpc(Package, CompilerPackage):
 
         makelocalrc_args = [
             "-gcc",
-            spec["gcc"].package.cc,
+            self["gcc"].cc,
             "-gpp",
-            spec["gcc"].package.cxx,
+            self["gcc"].cxx,
             "-g77",
-            spec["gcc"].package.fortran,
+            self["gcc"].fortran,
             "-x",
             compilers_bin,
         ]
