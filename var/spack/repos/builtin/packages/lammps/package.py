@@ -729,7 +729,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
     depends_on("eigen@3:", when="+machdyn")
     depends_on("py-cython", when="+mliap+python", type="build")
     depends_on("py-cython", when="+ml-iap+python", type="build")
-    depends_on("py-mdi", when="+mdi", type="build")
+    depends_on("py-mdi", when="+mdi", type=("build", "run"))
     depends_on("py-pip", when="+python", type="build")
     depends_on("py-wheel", when="+python", type="build")
     depends_on("py-build", when="+python", type="build")
