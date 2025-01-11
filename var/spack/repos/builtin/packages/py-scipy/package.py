@@ -262,11 +262,11 @@ class PyScipy(PythonPackage):
 
         # Pick up BLAS/LAPACK from numpy
         if self.spec.satisfies("@:1.8"):
-            self.spec["py-numpy"].package.setup_build_environment(env)
+            self["py-numpy"].setup_build_environment(env)
 
     @when("@1.9:")
     def config_settings(self, spec, prefix):
-        blas, lapack = self.spec["py-numpy"].package.blas_lapack_pkg_config()
+        blas, lapack = self["py-numpy"].blas_lapack_pkg_config()
 
         if spec.satisfies("%aocc") or spec.satisfies("%clang@18:"):
             fortran_std = "none"
@@ -284,10 +284,9 @@ class PyScipy(PythonPackage):
             },
         }
 
-    @when("@:1.8")
-    @run_before("install")
+    @run_before("install", when="@:1.8")
     def set_blas_lapack(self):
-        self.spec["py-numpy"].package.blas_lapack_site_cfg()
+        self["py-numpy"].blas_lapack_site_cfg()
 
     @run_after("install")
     @on_package_attributes(run_tests=True)

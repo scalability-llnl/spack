@@ -80,14 +80,14 @@ class CrayMpich(MpichEnvironmentModifications, Package, CudaPackage, ROCmPackage
             return
 
         if self.spec.dependencies(virtuals=("c",)):
-            env.set("MPICC", self.spec["c"].package.cc)
+            env.set("MPICC", self["c"].cc)
 
         if self.spec.dependencies(virtuals=("cxx",)):
-            env.set("MPICXX", self.spec["cxx"].package.cxx)
+            env.set("MPICXX", self["cxx"].cxx)
 
         if self.spec.dependencies(virtuals=("fortran",)):
-            env.set("MPIFC", self.spec["fortran"].package.fc)
-            env.set("MPIF77", self.spec["fortran"].package.fc)
+            env.set("MPIFC", self["fortran"].fc)
+            env.set("MPIF77", self["fortran"].fc)
 
     def setup_dependent_package(self, module, dependent_spec):
         spec = self.spec

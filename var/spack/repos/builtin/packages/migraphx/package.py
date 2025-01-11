@@ -133,8 +133,7 @@ class Migraphx(CMakePackage):
         """Include the python include path to the
         CMake based on current spec
         """
-        python = self.spec["python"]
-        return [self.define("Python_INCLUDE_DIR", python.package.config_vars["include"])]
+        return [self.define("Python_INCLUDE_DIR", self["python"].config_vars["include"])]
 
     @classmethod
     def determine_version(cls, lib):

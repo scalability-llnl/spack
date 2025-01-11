@@ -49,7 +49,7 @@ class Pdftk(MakefilePackage):
         vars = [
             ("VERSUFF", "-%s" % gcc_version),
             ("CXX", compiler.cxx),
-            ("GCJ", spec["eclipse-gcj-parser"].package.gcj),
+            ("GCJ", self["eclipse-gcj-parser"].gcj),
             ("GCJH", join_path(gcc_base, "bin", "gcjh")),
             ("GJAR", join_path(gcc_base, "bin", "gjar")),
             ("LIBGCJ", join_path(gcc_base, "share", "java", "libgcj-{0}.jar".format(gcc_version))),

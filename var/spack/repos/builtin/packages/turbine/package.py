@@ -63,7 +63,7 @@ class Turbine(AutotoolsPackage):
         ]
 
         if self.spec.satisfies("^intel-oneapi-mpi"):
-            args.append("--with-mpi=" + self.spec["intel-oneapi-mpi"].package.component_prefix)
+            args.append("--with-mpi=" + self["intel-oneapi-mpi"].component_prefix)
         else:
             args.append("--with-mpi=" + self.spec["mpi"].prefix)
 
