@@ -337,7 +337,7 @@ class Perl(Package):  # Perl doesn't use Autotools, it should subclass Package
     def nmake_arguments(self):
         args = []
         if self.spec.satisfies("%msvc"):
-            args.append("CCTYPE=%s" % self.spec["msvc"].package.short_msvc_version)
+            args.append("CCTYPE=%s" % self["msvc"].short_msvc_version)
         else:
             raise RuntimeError("Perl unsupported for non MSVC compilers on Windows")
         args.append("INST_TOP=%s" % windows_sfn(self.prefix.replace("/", "\\")))
@@ -384,7 +384,7 @@ class Perl(Package):  # Perl doesn't use Autotools, it should subclass Package
         # https://github.com/spack/spack/pull/3081 and
         # https://github.com/spack/spack/pull/4416
         if spec.satisfies("%intel"):
-            config_args.append("-Accflags={0}".format(self.spec["cc"].package.pic_flag))
+            config_args.append("-Accflags={0}".format(self["c"].pic_flag))
 
         if "+shared" in spec:
             config_args.append("-Duseshrplib")
@@ -546,7 +546,7 @@ class Perl(Package):  # Perl doesn't use Autotools, it should subclass Package
             "-MModule::Loaded", "-MConfig", "-e", "print is_loaded(Config)", output=str
         )
 
-        c_compiler = self.spec["c"].package.cc
+        c_compiler = self["c"].cc
         with self.make_briefly_writable(config_dot_pm):
             match = "cc *=>.*"
             substitute = "cc => '{cc}',".format(cc=c_compiler)
