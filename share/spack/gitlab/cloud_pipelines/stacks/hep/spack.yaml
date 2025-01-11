@@ -112,8 +112,8 @@ spack:
   - acts +cuda +traccc cuda_arch=90
   - vecgeom +cuda cuda_arch=90
 
-  # ROCm NOARCH
-  - celeritas +rocm ~vecgeom  # only available with ORANGE
+  # ROCm 90a
+  - celeritas +rocm amdgpu_target=gfx90a ~vecgeom  # only available with ORANGE
 
   ci:
     pipeline-gen:
