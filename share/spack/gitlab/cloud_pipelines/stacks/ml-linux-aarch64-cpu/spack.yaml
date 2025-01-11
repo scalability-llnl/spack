@@ -8,6 +8,12 @@ spack:
       - ~rocm
     mpi:
       require: openmpi
+    py-torch:
+      require:
+      - target=aarch64
+      - ~cuda
+      - ~rocm
+      - ~flash_attention
 
   specs:
     # Horovod

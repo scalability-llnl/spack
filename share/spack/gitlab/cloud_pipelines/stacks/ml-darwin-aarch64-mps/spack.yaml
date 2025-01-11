@@ -12,6 +12,13 @@ spack:
       require: openmpi
     openblas:
       require: ~fortran
+    py-torch:
+      require:
+      - target=aarch64
+      - +mps
+      - ~cuda
+      - ~rocm
+      - ~flash_attention
 
   specs:
   # Horovod
