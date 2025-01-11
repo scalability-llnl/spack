@@ -13,9 +13,18 @@ spack:
         mpi: [mpich]
         tbb: [intel-tbb]
       variants: +mpi
+    acts:
+      require: +analysis +dd4hep +edm4hep +examples +fatras +geant4 +hepmc3 +podio +pythia8 +python +tgeo cxxstd=20
+    celeritas:
+      require: +geant4 +hepmc3 +openmp +root +shared cxxstd=20
+    root:
+      require: +davix +dcache +examples +fftw +fits +fortran +gdml +graphviz +gsl +http +math +minuit +mlp +mysql +opengl +postgres +pythia8 +python +r +roofit +root7 +rpath ~shadow +spectrum +sqlite +ssl +tbb +threads +tmva +tmva-cpu +unuran +vc +vdt +veccore +webgui +x +xml +xrootd
+    vecgeom:
+      require: +gdml +geant4 +root
 
     # Mark geant4 data as external to prevent wasting bandwidth on GB-scale files
     geant4-data:
+      buildable: false
       externals:
         - spec: geant4-data@11.3.0
           prefix: /usr
@@ -30,12 +39,12 @@ spack:
 
   specs:
   # CPU
-  - acts +analysis +dd4hep +edm4hep +examples +fatras +geant4 +hepmc3 +podio +pythia8 +python +tgeo cxxstd=20
+  - acts ~cuda
   #- agile  # fails on c++>11 compiler
   - alpgen
   - ampt
   - apfel +lhapdf +python
-  - celeritas +geant4 +hepmc3 +openmp +root +shared +vecgeom cxxstd=20
+  - celeritas ~cuda ~rocm +vecgeom
   - cepgen
   - cernlib +shared
   - collier
@@ -82,14 +91,29 @@ spack:
   - py-vector
   - pythia8 +evtgen +fastjet +hdf5 +hepmc +hepmc3 +lhapdf ~madgraph5amc +python +rivet ~root # pythia8 and root circularly depend
   - rivet hepmc=3
-  - root +davix +dcache +examples +fftw +fits +fortran +gdml +graphviz +gsl +http +math +minuit +mlp +mysql +opengl +postgres +pythia8 +python +r +roofit +root7 +rpath ~shadow +spectrum +sqlite +ssl +tbb +threads +tmva +unuran +vc +vdt +veccore +webgui +x +xml +xrootd
+  - root ~cuda
   - sherpa +analysis ~blackhat +gzip +hepmc3 +hepmc3root +lhapdf +lhole +openloops +pythia ~python ~recola ~rivet +root +ufo cxxstd=20
   - tauola +hepmc3 +lhapdf cxxstd=20
   - thepeg hepmc=3 ~rivet
-  - vecgeom +gdml +geant4 +root
+  - vecgeom ~cuda
   - whizard +fastjet +gosam hepmc=3 +lcio +lhapdf +openloops +openmp +pythia8
   - xrootd +davix +http +krb5 +python +readline +scitokens-cpp
   - yoda +root
+
+  # CUDA NOARCH
+  - celeritas +cuda +vecgeom
+  - root +cuda +cudnn +tmva-gpu
+
+  # CUDA 80
+  - acts +cuda +traccc cuda_arch=80
+  - vecgeom +cuda cuda_arch=80
+
+  # CUDA 90
+  - acts +cuda +traccc cuda_arch=90
+  - vecgeom +cuda cuda_arch=90
+
+  # ROCm NOARCH
+  - celeritas +rocm ~vecgeom  # only available with ORANGE
 
   ci:
     pipeline-gen:
