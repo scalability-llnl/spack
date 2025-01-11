@@ -14,7 +14,7 @@ spack:
         tbb: [intel-tbb]
       variants: +mpi
     acts:
-      require: +analysis +dd4hep +edm4hep +examples +fatras +geant4 +hepmc3 +podio +pythia8 +python +tgeo cxxstd=20
+      require: +analysis +dd4hep +edm4hep +examples +fatras +geant4 +hepmc3 +podio +pythia8 +python ~svg +tgeo cxxstd=20
     celeritas:
       require: +geant4 +hepmc3 +openmp +root +shared cxxstd=20
     root:
