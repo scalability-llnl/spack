@@ -792,24 +792,46 @@ def _add_platform_scope(cfg: Configuration, name: str, path: str, writable: bool
 skip_restage_warning = list()
 
 
-def scopes_from_paths(
-    includes: List[str],
+#: Data class for the relevance of an optional path conditioned on either
+#: a spec and or explicitly specified as optional.
+class OptionalPath(NamedTuple):
+    path: str
+    when: str
+    optional: bool
+
+
+def included_path(entry: Union[str, dict]) -> OptionalPath:
+    """Convert the included path entry into a standard form.
+
+    Args:
+        entry: include configuration entry
+
+    Returns: converted entry, where an empty ``when`` means the path is
+        not conditionally included
+    """
+    if isinstance(entry, str):
+        return OptionalPath(path=entry, when="", optional=False)
+
+    path = entry["path"]
+    when = entry.get("when", "")
+    optional = entry.get("optional", False)
+    return OptionalPath(path=path, when=when, optional=optional)
+
+
+def include_path_scope(
+    include: OptionalPath,
     name_prefix: str,
     config_stage_dir: str,
     relative_root: Optional[Union[pathlib.Path, str]] = None,
-    required: List[str] = [],
-) -> List[ConfigScope]:
-    """Load included config scopes
-
-    Scopes are added in reverse order so that highest-precedence scopes are last.
+) -> Optional[ConfigScope]:
+    """Instantiate an appropriate configuration scope for the given path.
 
     Args:
-        includes: list of paths to be included
-        name_prefix: environment's name prefix
-        config_stage_dir: path to directory to be used to stage remote includes
+        include: optional include path
+        name_prefix: configuration scope name prefix
+        config_stage_dir: path to directory to be used to stage remote paths
         relative_root: path to root directory for relative paths or ``None``
-            if relative paths are not supported
-        required: list of paths that are required
+            if relative paths are not allowed
 
     Raises:
         ValueError: included path has an unsupported URL scheme, is required
@@ -819,12 +841,12 @@ def scopes_from_paths(
     import urllib.parse
     import urllib.request
 
-    scopes: List[ConfigScope] = []
+    import spack.spec
 
-    missing = []
-    for i, orig_path in enumerate(reversed(includes)):
-        # allow paths to contain spack config/environment variables, etc.
-        config_path = substitute_path_variables(orig_path)
+    if (not include.when) or spack.spec.eval_conditional(include.when):
+        # Allow paths (and URLs) to contain spack config/environment variables,
+        # etc.
+        config_path = substitute_path_variables(include.path)
         include_url = urllib.parse.urlparse(config_path)
 
         # If scheme is not valid, config_path is not a url
@@ -836,11 +858,18 @@ def scopes_from_paths(
 
             # Any other URL should be fetched.
             elif include_url.scheme in ("http", "https", "ftp"):
+                assert (
+                    config_stage_dir is not None
+                ), "Local stage directory is required to cache remote files"
+
                 # Stage any remote configuration file(s)
                 staged_configs = (
                     os.listdir(config_stage_dir) if os.path.exists(config_stage_dir) else []
                 )
+                tty.debug(f"Remote staged files in {config_stage_dir} are: {staged_configs}")
                 remote_path = urllib.request.url2pathname(include_url.path)
+                # TODO Should we be supporting multiple remote files with the
+                # TODO same base name (e.g. config.py)?
                 basename = os.path.basename(remote_path)
                 if basename in staged_configs:
                     # Do NOT re-stage configuration files over existing
@@ -848,9 +877,9 @@ def scopes_from_paths(
                     # losing changes (e.g., from 'spack config update').
                     if remote_path not in skip_restage_warning:
                         tty.warn(
-                            f"Will not re-stage configuration from {remote_path} "
+                            f"Will not (re-)stage configuration from {include.path} "
                             "to avoid losing changes to the already staged file of "
-                            "the same name."
+                            f"the same name (i.e., in {staged_configs})."
                         )
                         skip_restage_warning.append(remote_path)
 
@@ -872,9 +901,10 @@ def scopes_from_paths(
 
             elif include_url.scheme:
                 raise ValueError(
-                    f"Unsupported URL scheme ({include_url.scheme}) for "
-                    f"environment include: {config_path}"
+                    f"Unsupported URL scheme ({include_url.scheme}) for " f"include: {config_path}"
                 )
+
+        # TODO: Should we allow relative paths for global include.yaml files?
 
         # Treat relative paths as relative to relative_root. If not provided,
         # then relative paths are considered unsupported so raise an exception.
@@ -888,24 +918,18 @@ def scopes_from_paths(
             # directories are treated as regular ConfigScopes
             config_name = f"{name_prefix}:{os.path.basename(config_path)}"
             tty.debug(f"Creating DirectoryConfigScope {config_name} for '{config_path}'")
-            scopes.append(DirectoryConfigScope(config_name, config_path))
-        elif os.path.exists(config_path):
+            return DirectoryConfigScope(config_name, config_path)
+
+        if os.path.exists(config_path):
             # files are assumed to be SingleFileScopes
             config_name = f"{name_prefix}:{config_path}"
             tty.debug(f"Creating SingleFileScope {config_name} for '{config_path}'")
-            scopes.append(SingleFileScope(config_name, config_path, spack.schema.merged.schema))
-        elif orig_path in required:
-            raise ValueError(f"Required include path does not exist: {orig_path}")
-        else:
-            missing.append(config_path)
-            continue
+            return SingleFileScope(config_name, config_path, spack.schema.merged.schema)
 
-    if missing:
-        msg = f"Detected {len(missing)} optional missing include path(s):"
-        msg += "\n   {0}".format("\n   ".join(missing))
-        tty.warn(msg)
+        if not include.optional:
+            raise ValueError(f"Required path does not exist: {include.path}")
 
-    return scopes
+    return None
 
 
 def config_paths_from_entry_points() -> List[Tuple[str, str]]:
@@ -1660,8 +1684,8 @@ def fetch_remote_configs(url: str, dest_dir: str, skip_existing: bool = True) ->
         basename = os.path.basename(config_url)
         if skip_existing and basename in existing_files:
             tty.warn(
-                f"Will not fetch configuration from {config_url} since a "
-                f"version already exists in {dest_dir}"
+                f"Will not (re-)fetch configuration from {config_url} since a "
+                f"version of {basename} already exists in {dest_dir}."
             )
             path = os.path.join(dest_dir, basename)
         else:
@@ -1729,32 +1753,6 @@ def determine_number_of_jobs(
         pass
 
     return min(max_cpus, cfg.get("config:build_jobs", 16))
-
-
-#: Data class for the relevance of an optional path conditioned on either
-#: a spec and or explicitly specified as optional.
-class OptionalPath(NamedTuple):
-    path: str
-    when: str
-    optional: bool
-
-
-def included_path(entry: Union[str, dict]) -> OptionalPath:
-    """Convert the included path entry into a standard form.
-
-    Args:
-        entry: include configuration entry
-
-    Returns: converted entry, where an empty ``when`` means the path is
-        not conditionally included
-    """
-    if isinstance(entry, str):
-        return OptionalPath(path=entry, when="", optional=False)
-
-    path = entry["path"]
-    when = entry.get("when", "")
-    optional = entry.get("optional", False)
-    return OptionalPath(path=path, when=when, optional=optional)
 
 
 class ConfigSectionError(spack.error.ConfigError):
