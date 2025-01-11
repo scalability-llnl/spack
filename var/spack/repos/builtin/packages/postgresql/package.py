@@ -65,8 +65,8 @@ class Postgresql(AutotoolsPackage):
     variant("xml", default=False, description="Build with XML support.")
     variant("icu", default=True, description="Build with ICU support.", when="@16:")
 
-    depends_on("icu4c", when="@16: +icu")
-    depends_on("pkgconfig", when="@16: +icu", type="build")
+    depends_on("icu4c", when="+icu")
+    depends_on("pkgconfig", when="+icu", type="build")
     depends_on("readline", when="lineedit=readline")
     depends_on("libedit", when="lineedit=libedit")
     depends_on("openssl")
