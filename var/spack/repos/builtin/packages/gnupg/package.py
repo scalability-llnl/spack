@@ -48,17 +48,23 @@ class Gnupg(AutotoolsPackage):
     depends_on("libgpg-error@1.24:", when="@2:")
     depends_on("libgpg-error@1.41:", when="@2.3:")
     depends_on("libgpg-error@1.46:", when="@2.4:")
+    # https://github.com/gpg/gnupg/commit/d78131490edd7f7db142702b8144bc30e65dbd8d
+    depends_on("libgpg-error@1.50:", when="@2.5:")
+    # https://github.com/gpg/gnupg/commit/c3bab200d97460028d842d76484b4c08fb947fef
+    depends_on("libgpg-error@1.51:", when="@2.5.2:")
 
     depends_on("libgcrypt@1.7.0:", when="@2:")
     depends_on("libgcrypt@1.9.1:", when="@2.3:")
+    # https://github.com/gpg/gnupg/commit/f305e703d51079a17bcfc15d54f4c5f591dcff56
+    depends_on("libgcrypt@1.11:", when="@2.5:")
 
     depends_on("libksba@1.3.4:", when="@2:")
     depends_on("libksba@1.6.3:", when="@2.4:")
 
+    depends_on("libassuan@:2", when="@:2.4.3")
+    depends_on("libassuan@2.5:", when="@2.2.15:")
     # https://github.com/gpg/gnupg/commit/0d20b79ab79819f6177737a61e886d4820e475e2
     depends_on("libassuan@3:", when="@2.5.0:")
-    depends_on("libassuan@2.5:", when="@2.2.15:")
-    depends_on("libassuan@:2", when="@:2.4.3")
 
     depends_on("pinentry", type="run", when="@2:")
     depends_on("iconv", when="@2:")
