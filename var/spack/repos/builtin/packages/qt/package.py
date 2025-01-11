@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import itertools
@@ -33,6 +32,7 @@ class Qt(Package):
 
     license("LGPL-3.0-only")
 
+    version("5.15.16", sha256="efa99827027782974356aceff8a52bd3d2a8a93a54dd0db4cca41b5e35f1041c")
     version("5.15.15", sha256="b423c30fe3ace7402e5301afbb464febfb3da33d6282a37a665be1e51502335e")
     version("5.15.14", sha256="fdd3a4f197d2c800ee0085c721f4bef60951cbda9e9c46e525d1412f74264ed7")
     version("5.15.13", sha256="9550ec8fc758d3d8d9090e261329700ddcd712e2dda97e5fcfeabfac22bea2ca")
@@ -183,6 +183,16 @@ class Qt(Package):
     # limit of 256 used by teh generated code with the prefix path as string literals
     # causing qt to fail in ci.  This increases that limit to 1024.
     patch("qt59-qtbase-qtconfig256.patch", working_dir="qtbase", when="@5.9:5")
+
+    # with gcc@14: RapidJSON fails to build
+    # https://github.com/Tencent/rapidjson/issues/2277
+    # https://github.com/Tencent/rapidjson/pull/719
+    patch(
+        "https://patch-diff.githubusercontent.com/raw/Tencent/rapidjson/pull/719.patch?full_index=1",
+        sha256="ce341a69d6c17852fddd5469b6aabe995fd5e3830379c12746a18c3ae858e0e1",
+        working_dir="qtlocation/src/3rdparty/mapbox-gl-native/deps/rapidjson/1.1.0",
+        when="@5.9.2: %gcc@14:",
+    )
 
     conflicts("%gcc@10:", when="@5.9:5.12.6 +opengl")
     conflicts("%gcc@11:", when="@5.8")

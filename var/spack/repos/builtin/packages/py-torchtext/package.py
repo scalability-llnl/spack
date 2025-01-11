@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -39,8 +38,9 @@ class PyTorchtext(PythonPackage):
     version("0.10.0", tag="v0.10.0", commit="4da1de36247aa06622088e78508e0e38a4392e38")
     version("0.9.2", tag="v0.9.2", commit="22e5ee7548a85190eee78e8ed6c8911ec2c53035")
     version("0.8.1", tag="v0.8.1", commit="0f911ec35ab020983efbf36b8c14415651e98618")
-    version("0.6.0", tag="0.6.0", commit="3a54c7f52584f201c17ca7489b52b812152612dc")
-    version("0.5.0", tag="0.5.0", commit="0169cde2f1d446ae886ef0be07e9a673585ed256")
+    with default_args(deprecated=True):
+        version("0.6.0", tag="0.6.0", commit="3a54c7f52584f201c17ca7489b52b812152612dc")
+        version("0.5.0", tag="0.5.0", commit="0169cde2f1d446ae886ef0be07e9a673585ed256")
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated

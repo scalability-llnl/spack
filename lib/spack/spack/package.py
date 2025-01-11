@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -103,7 +102,7 @@ from spack.package_completions import *
 from spack.phase_callbacks import run_after, run_before
 from spack.spec import InvalidSpecDetected, Spec
 from spack.util.executable import *
-from spack.util.filesystem import file_command, fix_darwin_install_name, mime_type
+from spack.util.filesystem import fix_darwin_install_name
 from spack.variant import any_combination_of, auto_or_any_combination_of, disjoint_sets
 from spack.version import Version, ver
 

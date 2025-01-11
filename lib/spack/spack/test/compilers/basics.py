@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Test basic behavior of compilers in Spack"""
@@ -183,7 +182,7 @@ def test_compile_dummy_c_source_no_verbose_flag():
 @pytest.mark.enable_compiler_execution
 def test_compile_dummy_c_source_load_env(working_env, monkeypatch, tmpdir):
     gcc = str(tmpdir.join("gcc"))
-    with open(gcc, "w") as f:
+    with open(gcc, "w", encoding="utf-8") as f:
         f.write(
             f"""#!/bin/sh
 if [ "$ENV_SET" = "1" ] && [ "$MODULE_LOADED" = "1" ]; then
@@ -644,7 +643,7 @@ def test_compiler_get_real_version(working_env, monkeypatch, tmpdir):
 
     # Create compiler
     gcc = str(tmpdir.join("gcc"))
-    with open(gcc, "w") as f:
+    with open(gcc, "w", encoding="utf-8") as f:
         f.write(
             """#!/bin/sh
 if [ "$CMP_ON" = "1" ]; then
@@ -734,7 +733,7 @@ def test_compiler_get_real_version_fails(working_env, monkeypatch, tmpdir):
 
     # Create compiler
     gcc = str(tmpdir.join("gcc"))
-    with open(gcc, "w") as f:
+    with open(gcc, "w", encoding="utf-8") as f:
         f.write(
             """#!/bin/sh
 if [ "$CMP_ON" = "1" ]; then
@@ -786,7 +785,7 @@ fi
 def test_compiler_flags_use_real_version(working_env, monkeypatch, tmpdir):
     # Create compiler
     gcc = str(tmpdir.join("gcc"))
-    with open(gcc, "w") as f:
+    with open(gcc, "w", encoding="utf-8") as f:
         f.write(
             """#!/bin/sh
 echo "4.4.4"
@@ -921,7 +920,7 @@ def test_compiler_output_caching(tmp_path):
     assert b._get_real_version_count == 0
 
     # Cache schema change should be handled gracefully.
-    with open(cache.cache.cache_path(cache.name), "w") as f:
+    with open(cache.cache.cache_path(cache.name), "w", encoding="utf-8") as f:
         for k in cache._data:
             cache._data[k] = "corrupted entry"
         f.write(json.dumps(cache._data))
@@ -932,7 +931,7 @@ def test_compiler_output_caching(tmp_path):
     assert cache.get(c).real_version == "1.0.0"
 
     # Cache corruption should be handled gracefully.
-    with open(cache.cache.cache_path(cache.name), "w") as f:
+    with open(cache.cache.cache_path(cache.name), "w", encoding="utf-8") as f:
         f.write("corrupted cache")
 
     d = MockCompilerWithoutExecutables()

@@ -1,12 +1,11 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """High-level functions to concretize list of specs"""
 import sys
 import time
 from contextlib import contextmanager
-from typing import Iterable, Optional, Sequence, Tuple, Union
+from typing import Iterable, List, Optional, Sequence, Tuple, Union
 
 import llnl.util.tty as tty
 
@@ -36,6 +35,7 @@ def enable_compiler_existence_check():
     CHECK_COMPILER_EXISTENCE = saved
 
 
+SpecPairInput = Tuple[Spec, Optional[Spec]]
 SpecPair = Tuple[Spec, Spec]
 SpecLike = Union[Spec, str]
 TestsType = Union[bool, Iterable[str]]
@@ -60,8 +60,8 @@ def concretize_specs_together(
 
 
 def concretize_together(
-    spec_list: Sequence[SpecPair], tests: TestsType = False
-) -> Sequence[SpecPair]:
+    spec_list: Sequence[SpecPairInput], tests: TestsType = False
+) -> List[SpecPair]:
     """Given a number of specs as input, tries to concretize them together.
 
     Args:
@@ -77,8 +77,8 @@ def concretize_together(
 
 
 def concretize_together_when_possible(
-    spec_list: Sequence[SpecPair], tests: TestsType = False
-) -> Sequence[SpecPair]:
+    spec_list: Sequence[SpecPairInput], tests: TestsType = False
+) -> List[SpecPair]:
     """Given a number of specs as input, tries to concretize them together to the extent possible.
 
     See documentation for ``unify: when_possible`` concretization for the precise definition of
@@ -114,8 +114,8 @@ def concretize_together_when_possible(
 
 
 def concretize_separately(
-    spec_list: Sequence[SpecPair], tests: TestsType = False
-) -> Sequence[SpecPair]:
+    spec_list: Sequence[SpecPairInput], tests: TestsType = False
+) -> List[SpecPair]:
     """Concretizes the input specs separately from each other.
 
     Args:

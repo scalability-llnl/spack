@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Spack's installation tracking database.
@@ -760,7 +759,7 @@ class Database:
         Does not do any locking.
         """
         try:
-            with open(filename, "r") as f:
+            with open(filename, "r", encoding="utf-8") as f:
                 # In the future we may use a stream of JSON objects, hence `raw_decode` for compat.
                 fdata, _ = JSONDecoder().raw_decode(f.read())
         except Exception as e:
@@ -1031,12 +1030,12 @@ class Database:
 
         # Write a temporary database file them move it into place
         try:
-            with open(temp_file, "w") as f:
+            with open(temp_file, "w", encoding="utf-8") as f:
                 self._write_to_file(f)
             fs.rename(temp_file, self._index_path)
 
             if _use_uuid:
-                with open(self._verifier_path, "w") as f:
+                with open(self._verifier_path, "w", encoding="utf-8") as f:
                     new_verifier = str(uuid.uuid4())
                     f.write(new_verifier)
                     self.last_seen_verifier = new_verifier
@@ -1053,7 +1052,7 @@ class Database:
             current_verifier = ""
             if _use_uuid:
                 try:
-                    with open(self._verifier_path, "r") as f:
+                    with open(self._verifier_path, "r", encoding="utf-8") as f:
                         current_verifier = f.read()
                 except BaseException:
                     pass
@@ -1331,7 +1330,7 @@ class Database:
     def installed_relatives(
         self,
         spec: "spack.spec.Spec",
-        direction: str = "children",
+        direction: tr.DirectionType = "children",
         transitive: bool = True,
         deptype: Union[dt.DepFlag, dt.DepTypes] = dt.ALL,
     ) -> Set["spack.spec.Spec"]:

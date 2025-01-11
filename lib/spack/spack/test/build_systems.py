@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -177,16 +176,16 @@ class TestAutotoolsPackage:
         s = Spec("autotools-config-replacement +patch_config_files +gnuconfig").concretized()
         PackageInstaller([s.package]).install()
 
-        with open(os.path.join(s.prefix.broken, "config.sub")) as f:
+        with open(os.path.join(s.prefix.broken, "config.sub"), encoding="utf-8") as f:
             assert "gnuconfig version of config.sub" in f.read()
 
-        with open(os.path.join(s.prefix.broken, "config.guess")) as f:
+        with open(os.path.join(s.prefix.broken, "config.guess"), encoding="utf-8") as f:
             assert "gnuconfig version of config.guess" in f.read()
 
-        with open(os.path.join(s.prefix.working, "config.sub")) as f:
+        with open(os.path.join(s.prefix.working, "config.sub"), encoding="utf-8") as f:
             assert "gnuconfig version of config.sub" not in f.read()
 
-        with open(os.path.join(s.prefix.working, "config.guess")) as f:
+        with open(os.path.join(s.prefix.working, "config.guess"), encoding="utf-8") as f:
             assert "gnuconfig version of config.guess" not in f.read()
 
     def test_autotools_gnuconfig_replacement_disabled(self, mutable_database):
@@ -196,16 +195,16 @@ class TestAutotoolsPackage:
         s = Spec("autotools-config-replacement ~patch_config_files +gnuconfig").concretized()
         PackageInstaller([s.package]).install()
 
-        with open(os.path.join(s.prefix.broken, "config.sub")) as f:
+        with open(os.path.join(s.prefix.broken, "config.sub"), encoding="utf-8") as f:
             assert "gnuconfig version of config.sub" not in f.read()
 
-        with open(os.path.join(s.prefix.broken, "config.guess")) as f:
+        with open(os.path.join(s.prefix.broken, "config.guess"), encoding="utf-8") as f:
             assert "gnuconfig version of config.guess" not in f.read()
 
-        with open(os.path.join(s.prefix.working, "config.sub")) as f:
+        with open(os.path.join(s.prefix.working, "config.sub"), encoding="utf-8") as f:
             assert "gnuconfig version of config.sub" not in f.read()
 
-        with open(os.path.join(s.prefix.working, "config.guess")) as f:
+        with open(os.path.join(s.prefix.working, "config.guess"), encoding="utf-8") as f:
             assert "gnuconfig version of config.guess" not in f.read()
 
     @pytest.mark.disable_clean_stage_check
@@ -234,7 +233,7 @@ class TestAutotoolsPackage:
         """
         env_dir = str(tmpdir.ensure("env", dir=True))
         gnuconfig_dir = str(tmpdir.ensure("gnuconfig", dir=True))  # empty dir
-        with open(os.path.join(env_dir, "spack.yaml"), "w") as f:
+        with open(os.path.join(env_dir, "spack.yaml"), "w", encoding="utf-8") as f:
             f.write(
                 """\
 spack:
