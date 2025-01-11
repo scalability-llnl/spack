@@ -1819,12 +1819,6 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         Returns:
             bool: True if 'target' is found, else False
         """
-        # Prevent altering LC_ALL for 'make' outside this function
-        make = copy.deepcopy(self.module.make)
-
-        # Use English locale for missing target message comparison
-        make.add_default_env("LC_ALL", "C")
-
         # Check if we have a Makefile
         for makefile in ["GNUmakefile", "Makefile", "makefile"]:
             if os.path.exists(makefile):
@@ -1832,6 +1826,12 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         else:
             tty.debug("No Makefile found in the build directory")
             return False
+
+        # Prevent altering LC_ALL for 'make' outside this function
+        make = copy.deepcopy(self.module.make)
+
+        # Use English locale for missing target message comparison
+        make.add_default_env("LC_ALL", "C")
 
         # Check if 'target' is a valid target.
         #
