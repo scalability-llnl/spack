@@ -397,9 +397,6 @@ def make_argument_parser(**kwargs):
     )
     parser.add_argument("--timestamp", action="store_true", help="add a timestamp to tty output")
     parser.add_argument("--pdb", action="store_true", help="run spack under the pdb debugger")
-    parser.add_argument(
-        "--simulated-system", action="store", default=None, help="simulate a system"
-    )
 
     env_group = parser.add_mutually_exclusive_group()
     env_group.add_argument(
@@ -991,8 +988,6 @@ def _main(argv=None):
         bootstrap_context = bootstrap.ensure_bootstrap_configuration()
 
     with bootstrap_context:
-        if args.simulated_system:
-            _simulate_system(args.simulated_system)
         return finish_parse_and_run(parser, cmd_name, args, env_format_error)
 
 
