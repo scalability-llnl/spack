@@ -104,4 +104,7 @@ class PyRadicalUtils(PythonPackage):
     depends_on("py-pyzmq", type=("build", "run"))
     depends_on("py-regex", type=("build", "run"))
     depends_on("py-setproctitle", type=("build", "run"))
-    depends_on("py-setuptools", type="build")
+    with default_args(type="build"):
+        depends_on("py-setuptools")
+        # https://github.com/radical-cybertools/radical.utils/issues/403
+        depends_on("py-setuptools@:69.2", when="@:1.51")
