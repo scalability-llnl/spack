@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -117,6 +116,7 @@ class Slepc(Package, CudaPackage, ROCmPackage):
 
     # NOTE: make sure PETSc and SLEPc use the same python.
     depends_on("python@2.6:2.8,3.4:", type="build")
+    depends_on("gmake", type="build")
 
     # Cannot mix release and development versions of SLEPc and PETSc:
     depends_on("petsc@main", when="@main")

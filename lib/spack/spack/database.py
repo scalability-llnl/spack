@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Spack's installation tracking database.
@@ -1331,7 +1330,7 @@ class Database:
     def installed_relatives(
         self,
         spec: "spack.spec.Spec",
-        direction: str = "children",
+        direction: tr.DirectionType = "children",
         transitive: bool = True,
         deptype: Union[dt.DepFlag, dt.DepTypes] = dt.ALL,
     ) -> Set["spack.spec.Spec"]:

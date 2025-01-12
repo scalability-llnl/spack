@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -143,7 +142,7 @@ class Root(CMakePackage):
     patch(
         "https://github.com/root-project/root/commit/2f00d6df258906c1f6fe848135a88b836db3077f.patch?full_index=1",
         sha256="8da36032082e65ae246c03558a4c3fd67b157d1d0c6d20adac9de263279d1db6",
-        when="@6.28:6.28.12",
+        when="@6.28.6:6.28.12",
     )
     patch(
         "https://github.com/root-project/root/commit/14838b35600b08278e69bc3d8d8669773bc11399.patch?full_index=1",
@@ -452,6 +451,8 @@ class Root(CMakePackage):
     conflicts(
         "cxxstd=20", when="@:6.28.02", msg="C++20 support requires root version at least 6.28.04"
     )
+
+    conflicts("%gcc@:10", when="cxxstd=20")
 
     # See https://github.com/root-project/root/issues/11128
     conflicts("%clang@16:", when="@:6.26.07", msg="clang 16+ support was added in root 6.26.08")
@@ -869,6 +870,6 @@ class Root(CMakePackage):
         # automatically prepending dependent package library paths to
         # ROOT_LIBRARY_PATH (for @6.26:) or LD_LIBRARY_PATH (for older
         # versions).
-        for lib_path in (dependent_spec.prefix.lib, dependent_spec.prefix.lib64):
+        for lib_path in [dependent_spec.prefix.lib, dependent_spec.prefix.lib64]:
             if os.path.exists(lib_path):
                 env.prepend_path(self.root_library_path, lib_path)

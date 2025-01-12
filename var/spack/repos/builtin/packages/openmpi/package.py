@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -33,6 +32,7 @@ class Openmpi(AutotoolsPackage, CudaPackage):
     url = "https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.0.tar.bz2"
     list_url = "https://www.open-mpi.org/software/ompi/"
     git = "https://github.com/open-mpi/ompi.git"
+    cxxname = "mpic++"
 
     maintainers("hppritcha", "naughtont3")
 
@@ -886,7 +886,7 @@ with '-Wl,-commons,use_dylibs' and without
         # Because MPI is both a runtime and a compiler, we have to setup the
         # compiler components as part of the run environment.
         env.set("MPICC", join_path(self.prefix.bin, "mpicc"))
-        env.set("MPICXX", join_path(self.prefix.bin, "mpic++"))
+        env.set("MPICXX", join_path(self.prefix.bin, self.cxxname))
         env.set("MPIF77", join_path(self.prefix.bin, "mpif77"))
         env.set("MPIF90", join_path(self.prefix.bin, "mpif90"))
         # Open MPI also has had mpifort since v1.7, so we can set MPIFC to that
@@ -928,13 +928,9 @@ with '-Wl,-commons,use_dylibs' and without
 
     def setup_dependent_package(self, module, dependent_spec):
         self.spec.mpicc = join_path(self.prefix.bin, "mpicc")
-        self.spec.mpicxx = join_path(self.prefix.bin, "mpic++")
+        self.spec.mpicxx = join_path(self.prefix.bin, self.cxxname)
         self.spec.mpifc = join_path(self.prefix.bin, "mpif90")
         self.spec.mpif77 = join_path(self.prefix.bin, "mpif77")
-        self.spec.mpicxx_shared_libs = [
-            join_path(self.prefix.lib, "libmpi_cxx.{0}".format(dso_suffix)),
-            join_path(self.prefix.lib, "libmpi.{0}".format(dso_suffix)),
-        ]
 
     # Most of the following with_or_without methods might seem redundant
     # because Spack compiler wrapper adds the required -I and -L flags, which
