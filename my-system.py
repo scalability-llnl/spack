@@ -60,7 +60,7 @@ def _simulate_system(state_dir):
         archspec.cpu.host = lambda: data[1]
         spack.solver.asp.all_libcs = lambda: data[2]
         spack.solver.asp.c_compiler_runs = lambda x: True
-        spack.compiler.Compiler.default_libc = MapLibc(data[3]).simulate_default_libc
+        spack.compiler.Compiler._simulated_libc = data[3]
 
 
 def _make_env(dst_dir):
