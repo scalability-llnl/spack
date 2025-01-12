@@ -100,7 +100,6 @@ class Upcxx(Package, CudaPackage, ROCmPackage):
     )
     # Do NOT add older versions here.
     # UPC++ releases over 2 years old are not supported.
-    
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
     depends_on("gmake", type="build")
