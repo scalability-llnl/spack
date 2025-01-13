@@ -208,6 +208,8 @@ class Qt(Package):
             depends_on("assimp@5.0.0:5", when="@5.5:+opengl")
             depends_on("sqlite+column_metadata", when="+sql", type=("build", "run"))
             depends_on("inputproto", when="@:5.8")
+            depends_on("gmake", type="build")
+
     for plat in ["linux", "freebsd"]:
         with when(f"platform={plat} +gui"):
             depends_on("fontconfig")

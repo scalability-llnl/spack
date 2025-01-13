@@ -64,6 +64,9 @@ class Lmod(AutotoolsPackage):
 
     depends_on("bc", type="build", when="@8.7.10:")
 
+    # GNU sed is required instead of bsd sed on macOS
+    depends_on("sed", type="build", when="platform=darwin")
+
     variant("auto_swap", default=True, description="Auto swapping of compilers, etc.")
     variant(
         "redirect", default=False, description="Redirect messages to stdout (instead of stderr)"
@@ -79,13 +82,20 @@ class Lmod(AutotoolsPackage):
         env.append_path("LUA_PATH", stage_lua_path.format(version=self.version), separator=";")
 
     def patch(self):
-        """The tcl scripts should use the tclsh that was discovered
-        by the configure script.  Touch up their #! lines so that the
-        sed in the Makefile's install step has something to work on.
-        Requires the change in the associated patch file.fg"""
+        # The tcl scripts should use the tclsh that was discovered by the configure script.
+        # Touch up their #! lines so that the sed in the Makefile's install step has something to
+        # work on. Requires the change in the associated patch file.fg
         if self.spec.version <= Version("6.4.3"):
             for tclscript in glob("src/*.tcl"):
                 filter_file(r"^#!.*tclsh", "#!@path_to_tclsh@", tclscript)
+
+        # The build system hard-codes gsed on macOS, but that's a homebrew thing. We just have
+        # plain sed from the sed dependency. See https://github.com/TACC/Lmod/issues/742.
+        if self.spec.satisfies("platform=darwin"):
+            if self.spec.satisfies("@8.5.21:"):
+                filter_file("SED=gsed", "SED=sed", "rt/common_funcs.sh", string=True)
+            if self.spec.satisfies("@8.2:"):
+                filter_file(r"SED\s*:?=\s*gsed", "SED := sed", "Makefile.in")
 
     def configure_args(self):
         spec = self.spec
