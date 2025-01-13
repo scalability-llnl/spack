@@ -514,6 +514,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         "misc": {},
         "ml-hdnnp": {"when": "@20210702:"},
         "ml-iap": {"when": "@20210702:"},
+        "ml-pace": {"when": "@20210702:"},
         "ml-pod": {"when": "@20221222:"},
         "ml-rann": {"when": "@20210702:"},
         "ml-snap": {"when": "@20210702:"},
@@ -594,7 +595,6 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         "voronoi": {},
         "vtk": {"when": "@20210702:"},
         "yaff": {"when": "@20210702:"},
-        # "ml-pace": {"when": "@20210702:"}, no pace package
         # "ml-quip": {"when": "@20210702:"}, no quip package
         # "scafacos": {"when": "@20210702:"}, no scafacos package
         # "user-quip": {"when": "@20190201:20210527"}, no quip package
@@ -727,6 +727,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
     depends_on("plumed", when="+plumed")
     depends_on("eigen@3:", when="+user-smd")
     depends_on("eigen@3:", when="+machdyn")
+    depends_on("pace", when="+ml-pace", type="build")
     depends_on("py-cython", when="+mliap+python", type="build")
     depends_on("py-cython", when="+ml-iap+python", type="build")
     depends_on("py-mdi", when="+mdi", type=("build", "run"))
