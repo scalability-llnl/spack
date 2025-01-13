@@ -25,10 +25,15 @@ class Qemacs(MakefilePackage):
     depends_on("which", type="build")
 
     variant("docs", default=False, description="Build documentation")
+    variant("plugins", default=False, description="Enable plugin support")
     variant("X", default=False, description="Build with X11 support")
     variant("png", default=True, when="+X", description="Build with PNG support")
     variant("xshm", default=True, when="+X", description="Build with XShm support")
     variant("xv", default=True, when="+X", description="Build with X Video support")
+
+    conflicts("+docs", when="platform=freebsd")
+    conflicts("+plugins", when="platform=freebsd")
+    conflicts("+plugins", when="platform=darwin")
 
     depends_on("texi2html", type="build", when="+docs")
     depends_on("libx11", type="link", when="+X")
@@ -42,11 +47,11 @@ class Qemacs(MakefilePackage):
     def edit(self, spec, prefix):
         Executable("./configure")(
             "--prefix=" + prefix,
+            "--" + ("enable" if spec.satisfies("+plugins") else "disable") + "-plugins",
             "--" + ("enable" if spec.satisfies("+X") else "disable") + "-x11",
             "--" + ("enable" if spec.satisfies("+png") else "disable") + "-png",
             "--" + ("enable" if spec.satisfies("+xshm") else "disable") + "-xshm",
             "--" + ("enable" if spec.satisfies("+xv") else "disable") + "-xv",
-            "--enable-plugins",
             "--disable-tiny",  # Currently broken
             "--disable-html",  # Currently broken
             "--disable-ffmpeg",  # Currently broken
