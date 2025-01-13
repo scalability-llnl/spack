@@ -42,6 +42,7 @@ class Thrift(Package):
     variant("java", default=False, description="Build support for java")
     variant("python", default=True, description="Build support for python")
 
+    depends_on("gmake", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
