@@ -19,7 +19,7 @@ _versions = {
         ),
         "zyp": (
             "9d885380631a5b04444b09f30e0390f5a34e9940759ea16a97dd9f10bcb2fe87",
-            "https://repo.radeon.com/rocm/zyp/6.3.1/main/hsa-amd-aqlprofile-1.0.0.60301-sles155.48.x86_64.rpm"
+            "https://repo.radeon.com/rocm/zyp/6.3.1/main/hsa-amd-aqlprofile-1.0.0.60301-sles155.48.x86_64.rpm",
         ),
     },
     "6.3.0": {
