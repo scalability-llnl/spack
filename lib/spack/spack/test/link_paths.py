@@ -51,15 +51,25 @@ def test_icc16_link_paths():
     check_link_paths(
         "icc-16.0.3.txt",
         [
-            fs_path(prefix /
-                    "intel" /
-                    "intel-16.0.3" /
-                    "compilers_and_libraries_2016.3.210" /
-                    "linux" /
-                    "compiler" /
-                    "lib" /
-                    "intel64_lin"),
-            fs_path(prefix / "gcc" / "gcc-4.9.3" / "lib64" / "gcc" / "x86_64-unknown-linux-gnu" / "4.9.3"),
+            fs_path(
+                prefix
+                / "intel"
+                / "intel-16.0.3"
+                / "compilers_and_libraries_2016.3.210"
+                / "linux"
+                / "compiler"
+                / "lib"
+                / "intel64_lin"
+            ),
+            fs_path(
+                prefix
+                / "gcc"
+                / "gcc-4.9.3"
+                / "lib64"
+                / "gcc"
+                / "x86_64-unknown-linux-gnu"
+                / "4.9.3"
+            ),
             fs_path(prefix / "gcc" / "gcc-4.9.3" / "lib64"),
         ],
     )
@@ -106,7 +116,14 @@ def test_cce_link_paths():
             fs_path(cray / "wlm_detect" / "1.3.2-6.0.5.0_3.1__g388ccd5.ari" / "lib64"),
             fs_path(gcc / "6.1.0" / "snos" / "lib" / "gcc" / "x86_64-suse-linux" / "6.1.0"),
             fs_path(
-                cray / "pe" / "cce" / "8.6.5" / "binutils" / "x86_64" / "x86_64-unknown-linux-gnu" / "lib"
+                cray
+                / "pe"
+                / "cce"
+                / "8.6.5"
+                / "binutils"
+                / "x86_64"
+                / "x86_64-unknown-linux-gnu"
+                / "lib"
             ),
         ],
     )
@@ -116,18 +133,19 @@ def test_clang_apple_ld_link_paths():
     check_link_paths(
         "clang-9.0.0-apple-ld.txt",
         [
-            fs_path(root /
-                "Applications" /
-                "Xcode.app" /
-                "Contents" /
-                "Developer" /
-                "Platforms" /
-                "MacOSX.platform" /
-                "Developer" /
-                "SDKs" /
-                "MacOSX10.13.sdk" /
-                "usr" /
-                "lib"
+            fs_path(
+                root
+                / "Applications"
+                / "Xcode.app"
+                / "Contents"
+                / "Developer"
+                / "Platforms"
+                / "MacOSX.platform"
+                / "Developer"
+                / "SDKs"
+                / "MacOSX10.13.sdk"
+                / "usr"
+                / "lib"
             )
         ],
     )
@@ -138,7 +156,16 @@ def test_nag_mixed_gcc_gnu_ld_link_paths():
     # is used for the rpath detection. The reference compiler output is a
     # result of
     # '/path/to/gcc/bin/g++ -Wl,-v ./main.c'.
-    prefix = root / "scratch" / "local1" / "spack" / "opt" / "spack" / "gcc-6.3.0-haswell" / "gcc-6.5.0-4sdjgrs"
+    prefix = (
+        root
+        / "scratch"
+        / "local1"
+        / "spack"
+        / "opt"
+        / "spack"
+        / "gcc-6.3.0-haswell"
+        / "gcc-6.5.0-4sdjgrs"
+    )
 
     check_link_paths(
         "collect2-6.3.0-gnu-ld.txt",
@@ -155,7 +182,16 @@ def test_nag_link_paths():
     # and therefore 'fc' is used for the rpath detection). The reference
     # compiler output is a result of
     # 'nagfor -Wc=/path/to/gcc/bin/gcc -Wl,-v ./main.c'.
-    prefix = root / "scratch" / "local1" / "spack" / "opt" / "spack" / "gcc-6.3.0-haswell" / "gcc-6.5.0-4sdjgrs"
+    prefix = (
+        root
+        / "scratch"
+        / "local1"
+        / "spack"
+        / "opt"
+        / "spack"
+        / "gcc-6.3.0-haswell"
+        / "gcc-6.5.0-4sdjgrs"
+    )
 
     check_link_paths(
         "nag-6.2-gcc-6.5.0.txt",

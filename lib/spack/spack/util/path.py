@@ -201,7 +201,7 @@ def concrete_path(*path_strings):
 
 def fs_path(path):
     """Return underlying path representation of path-like object.
-    
+
     If parameter is str or byte, it is returned unchanged. If path-like object it
     returns underlying representation. Otherwise, a TypeError will be raised."""
     return os.fspath(path)
