@@ -48,7 +48,18 @@ spack:
   - madgraph5amc
   - opendatadetector
   - podio +rntuple +sio
+  - py-awkward
+  - py-boost-histogram
+  - py-hepunits
+  - py-hist
+  - py-histbook
+  - py-histoprint
+  - py-iminuit
+  - py-mplhep
+  - py-particle
+  - py-uhi
   - py-uproot +lz4 +xrootd +zstd
+  - py-vector
   - pythia8 +evtgen +fastjet +hdf5 +hepmc +hepmc3 +lhapdf ~madgraph5amc +python +rivet ~root # pythia8 and root circularly depend
   - rivet hepmc=3
   - root +davix +dcache +examples +fftw +fits +fortran +gdml +graphviz +gsl +http +math +minuit +mlp +mysql +opengl +postgres +pythia8 +python +r +roofit +root7 +rpath ~shadow +spectrum +sqlite +ssl +tbb +threads +tmva +unuran +vc +vdt +veccore +webgui +x +xml +xrootd
