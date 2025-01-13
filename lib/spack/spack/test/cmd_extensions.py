@@ -12,6 +12,7 @@ import spack.cmd
 import spack.config
 import spack.extensions
 import spack.main
+from spack.util.path import concrete_path, fs_path
 
 
 class Extension:
@@ -255,11 +256,12 @@ def test_get_command_paths(config):
     extensions = ("extension-1", "extension-2")
     ext_paths = []
     expected_cmd_paths = []
+    test_path = concrete_path("my", "path", "to")
     for ext in extensions:
-        ext_path = os.path.join("my", "path", "to", "spack-" + ext)
-        ext_paths.append(ext_path)
-        path = os.path.join(ext_path, spack.cmd.python_name(ext), "cmd")
-        path = os.path.abspath(path)
+        ext_path = test_path / ("spack-" + ext)
+        ext_paths.append(fs_path(ext_path))
+        path = ext_path / spack.cmd.python_name(ext) / "cmd"
+        path = path.absolute()
         expected_cmd_paths.append(path)
 
     with spack.config.override("config:extensions", ext_paths):
