@@ -14,7 +14,7 @@ from llnl.util.filesystem import mkdirp
 import spack.config as config
 import spack.environment as ev
 import spack.platforms
-import spack.solver.asp
+import spack.solver.asp  # noqa: F401
 import spack.util.spack_yaml as syaml
 
 
