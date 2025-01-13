@@ -20,7 +20,7 @@ spack:
     root:
       require: +davix +dcache +examples +fftw +fits +fortran +gdml +graphviz +gsl +http +math +minuit +mlp +mysql +opengl +postgres +pythia8 +python +r +roofit +root7 +rpath ~shadow +spectrum +sqlite +ssl +tbb +threads +tmva +tmva-cpu +unuran +vc +vdt +veccore +webgui +x +xml +xrootd cxxstd=20
     vecgeom:
-      require: +gdml +geant4 +root
+      require: +gdml +geant4 +root +shared cxxstd=20
 
     # Mark geant4 data as external to prevent wasting bandwidth on GB-scale files
     geant4-data:
