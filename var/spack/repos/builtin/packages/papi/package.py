@@ -101,7 +101,7 @@ class Papi(AutotoolsPackage, ROCmPackage):
     # 7.1.0 erroneously adds -ffree-form for all fortran compilers
     patch("sysdetect-free-form-fix.patch", when="@7.1.0")
     patch("crayftn-fixes.patch", when="@6.0.0:%cce@9:")
-    patch("intel-oneapi-compiler-fixes.patch", when="@6.0.0:%oneapi")
+    patch("intel-oneapi-compiler-fixes.patch", when="@6.0.0:7.0.1%oneapi")
     patch("intel-cray-freeform.patch", when="@7.0.1")
     patch("spack-hip-path.patch", when="@7.0.1")
 
