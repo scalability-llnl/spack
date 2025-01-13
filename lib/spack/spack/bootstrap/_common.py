@@ -217,7 +217,9 @@ def _executables_in_store(
             ):
                 spack.util.environment.path_put_first("PATH", [bin_dir])
                 if query_info is not None:
-                    query_info["command"] = spack.util.executable.which(*executables, path=bin_dir)
+                    query_info["command"] = spack.util.executable.which(
+                        *executables, path=bin_dir, required=True
+                    )
                     query_info["spec"] = concrete_spec
                 return True
     return False
