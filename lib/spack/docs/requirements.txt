@@ -4,7 +4,7 @@ sphinx_design==0.6.1
 sphinx-rtd-theme==3.0.2
 python-levenshtein==0.26.1
 docutils==0.21.2
-pygments==2.18.0
+pygments==2.19.1
 urllib3==2.3.0
 pytest==8.3.4
 isort==5.13.2

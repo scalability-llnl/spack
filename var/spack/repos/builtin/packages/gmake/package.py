@@ -96,5 +96,6 @@ class Gmake(Package, GNUMirrorPackage):
 
     def setup_dependent_package(self, module, dspec):
         module.make = MakeExecutable(
-            self.spec.prefix.bin.make, determine_number_of_jobs(parallel=dspec.package.parallel)
+            self.spec.prefix.bin.make,
+            jobs=determine_number_of_jobs(parallel=dspec.package.parallel),
         )

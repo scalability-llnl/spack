@@ -22,4 +22,4 @@ class Gocryptfs(GoPackage):
     depends_on("c", type="build")  # generated
 
     depends_on("openssl")
-    depends_on("pkg-config", type="build")
+    depends_on("pkgconfig", type="build")
