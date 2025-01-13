@@ -24,8 +24,6 @@ class PyMdi(PythonPackage):
 
     version("1.4.33", tag="v1.4.33", commit="f479f18f8d036bd675ba628365dd5f6f0cff1c21")
 
-    # pip silently replaces distutils with setuptools
-    depends_on("py-setuptools", type="build")
-    depends_on("py-wheel", type="build")
+    depends_on("py-setuptools@42:", type="build")
     depends_on("py-packaging", type="build")
-    depends_on("cmake", type="build")
+    depends_on("cmake@3.5:", type="build")
