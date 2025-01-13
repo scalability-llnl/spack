@@ -7,7 +7,7 @@ import sys
 from spack.package import *
 
 
-class Gaudi(CMakePackage, CUDAPackage):
+class Gaudi(CMakePackage, CudaPackage):
     """An experiment-independent HEP event data processing framework"""
 
     homepage = "https://gaudi.web.cern.ch/gaudi/"
