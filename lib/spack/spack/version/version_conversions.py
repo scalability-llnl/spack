@@ -4,8 +4,9 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
 
+import spack.repo
 import spack.util.git
-import spack.version as vn
+from .version_types import GitVersion, StandardVersion, Version
 from spack.util.executable import ProcessError
 
 from .common import COMMIT_VERSION
@@ -75,7 +76,7 @@ def convert_standard_to_git_version(version, package_class_name):
             )
 
         new_version_str = f"git.{hash}={str(version)}"
-        return vn.GitVersion(new_version_str)
+        return GitVersion(new_version_str)
     else:
         return None
 
@@ -83,8 +84,8 @@ def convert_standard_to_git_version(version, package_class_name):
 def maximally_resolved_version(version, package_class_name):
     """Transparent pass through of version conversion"""
     # ensure conversion
-    version = vn.Version(version)
-    if isinstance(version, vn.StandardVersion):
+    version = Version(version)
+    if isinstance(version, StandardVersion):
         new_version = convert_standard_to_git_version(version, package_class_name)
         if new_version:
             return new_version

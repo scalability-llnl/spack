@@ -23,6 +23,7 @@ import spack.deptypes as dt
 import spack.detection
 import spack.error
 import spack.hash_types as ht
+import spack.package_base
 import spack.paths
 import spack.platforms
 import spack.platforms.test

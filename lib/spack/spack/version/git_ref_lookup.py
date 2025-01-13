@@ -88,7 +88,6 @@ class GitRefLookup(AbstractRefLookup):
         if not self._fetcher:
             # We require the full git repository history
             fetcher = spack.fetch_strategy.GitFetchStrategy(git=self.pkg.git)
-            breakpoint()
             fetcher.get_full_repo = True
             self._fetcher = fetcher
         return self._fetcher
