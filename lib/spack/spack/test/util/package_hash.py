@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -365,7 +364,7 @@ def test_package_hash_consistency(package_spec, expected_hash):
     """
     spec = Spec(package_spec)
     filename = os.path.join(datadir, "%s.txt" % spec.name)
-    with open(filename) as f:
+    with open(filename, "rb") as f:
         source = f.read()
     h = ph.package_hash(spec, source=source)
     assert expected_hash == h

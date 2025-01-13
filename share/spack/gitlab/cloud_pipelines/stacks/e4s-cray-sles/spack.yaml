@@ -8,6 +8,10 @@ spack:
     reuse: false
     unify: false
 
+  config:
+    shared_linking:
+      missing_library_policy: ignore  # due to use of externals
+
   packages:
     all:
       require: '%gcc'
@@ -44,8 +48,6 @@ spack:
     paraview:
       # Don't build GUI support or GLX rendering for HPC/container deployments
       require: "@5.11 ~qt ^[virtuals=gl] osmesa"
-    python:
-      version: [3.8.13]
     trilinos:
       require:
       - one_of: [+amesos +amesos2 +anasazi +aztec +boost +epetra +epetraext +ifpack

@@ -1,0 +1,85 @@
+spack:
+  view: false
+  packages:
+    all:
+      require: target=aarch64
+  concretizer:
+    unify: true
+    reuse: false
+  definitions:
+  - default_specs:
+      # editors
+    - neovim~no_luajit
+    - py-pynvim
+    - emacs+json+native+treesitter   # note, pulls in gcc
+      # - tree-sitter is a dep, should also have cli but no package
+    - nano   # just in case
+      # tags and scope search helpers
+    - universal-ctags   # only maintained ctags, works better with c++
+    - direnv
+      # runtimes and compilers
+    - python
+    - llvm+link_llvm_dylib~lld~lldb~polly+python build_type=MinSizeRel   # for clangd, clang-format
+    - node-js   # for editor plugins etc., pyright language server
+    - npm
+    - cmake
+    - libtool
+    - go   # to build fzf, gh, hub
+    - rust+dev   # fd, ripgrep, hyperfine, exa, rust-analyzer
+    - binutils+ld+gold+plugins   # support linking with built gcc
+      # styling and lints
+    - astyle
+    - cppcheck
+    - uncrustify
+    - py-fprettify
+    - py-fortran-language-server
+    - py-python-lsp-server
+      # cli dev tools
+    - ripgrep
+    - gh
+    - fd
+    # - bfs # liburing: /usr/include/linux/ipv6.h:19:8: error: redefinition of 'struct in6_pktinfo'
+    - fzf
+    - tree
+    - jq
+    - py-yq
+    - hub
+    - ncdu
+    - eza
+    - lsd
+    - hyperfine
+    - htop
+    - tmux
+    - ccache
+      # ensure we can use a jobserver build and do this fast
+    - gmake
+    - ninja   # should be @kitware, can't be because of meson requirement
+    - openssl certs=system     # must be this, system external does not work
+    - libtree
+    - patchelf
+    - sed
+    - which
+    - elfutils
+    - fontconfig
+    - font-util
+    - gdb
+    - flex
+    - graphviz
+    - doxygen
+    - meson
+
+  - arch:
+    - '%gcc target=aarch64'
+
+  specs:
+  - matrix:
+    - - $default_specs
+    - - $arch
+
+  ci:
+    pipeline-gen:
+    - build-job:
+        image: ghcr.io/spack/aarch64-linux-gnu:v2024-12-18
+
+  cdash:
+    build-group: Developer Tools aarch64-linux-gnu

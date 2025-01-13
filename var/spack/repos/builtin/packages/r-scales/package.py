@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,7 +27,10 @@ class RScales(RPackage):
     depends_on("r@2.13:", type=("build", "run"))
     depends_on("r@3.1:", type=("build", "run"), when="@1.0.0:")
     depends_on("r@3.2:", type=("build", "run"), when="@1.1.1:")
+    depends_on("r@3.6:", type=("build", "run"), when="@1.3.0:")
+    depends_on("r-cli", type=("build", "run"), when="@1.3.0:")
     depends_on("r-farver@2.0.3:", type=("build", "run"), when="@1.1.1:")
+    depends_on("r-glue", type=("build", "run"), when="@1.3.0:")
     depends_on("r-labeling", type=("build", "run"))
     depends_on("r-lifecycle", type=("build", "run"), when="@1.1.1:")
     depends_on("r-munsell@0.5:", type=("build", "run"))

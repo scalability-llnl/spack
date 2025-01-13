@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -893,6 +892,18 @@ class Openfoam(Package):
                 f for f in glob.glob(join_path("..", self.archbin, "*")) if os.path.isfile(f)
             ]:
                 os.symlink(f, os.path.basename(f))
+
+    # Executables like decomposePar require interface libraries for optional dependencies, but if
+    # the dependency is missing, an dummy library is used and put in lib/dummy. Allow this until
+    # the https://develop.openfoam.com/Development/openfoam/-/issues/3283 is resolved.
+    unresolved_libraries = [
+        "libkahipDecomp.so",
+        "libmetisDecomp.so",
+        "libMGridGen.so",
+        "libPstream.so",
+        "libptscotchDecomp.so",
+        "libscotchDecomp.so",
+    ]
 
 
 # -----------------------------------------------------------------------------

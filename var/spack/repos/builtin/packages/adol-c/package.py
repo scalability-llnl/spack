@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -153,3 +152,8 @@ class AdolC(AutotoolsPackage):
                     join_path(source_directory, "ADOL-C", "examples", "additional_examples")
                 ):
                     Executable("./checkpointing/checkpointing")()
+
+    @property
+    def libs(self):
+        """The name of the library differs from the package name => own libs handling."""
+        return find_libraries(["libadolc"], root=self.prefix, shared=True, recursive=True)

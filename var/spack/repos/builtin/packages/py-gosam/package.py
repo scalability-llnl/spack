@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,11 @@ class PyGosam(Package):
 
     license("GPL-3.0-only")
 
+    version(
+        "2.1.2",
+        url="https://github.com/gudrunhe/gosam/releases/download/2.1.2/gosam-2.1.2+c307997.tar.gz",
+        sha256="53601ab203c3d572764439018f976baff9c83b87abe1fcbbe15c07caf174680c",
+    )
     version(
         "2.1.1",
         url="https://github.com/gudrunhe/gosam/releases/download/2.1.1/gosam-2.1.1-4b98559.tar.gz",

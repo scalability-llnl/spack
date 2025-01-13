@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -85,10 +84,10 @@ class Openvdb(CMakePackage):
                 pyso = "pyopenvdb.dylib"
             else:
                 pyso = "pyopenvdb.so"
-            pyver = "python{0}".format(spec["python"].package.version.up_to(2))
+            pyver = f"python{self['python'].version.up_to(2)}"
 
-            src = prefix.lib.join(pyver).join(pyso)
+            src = self.prefix.lib.join(pyver).join(pyso)
             if not os.path.isfile(src):
-                src = prefix.lib64.join(pyver).join(pyso)
+                src = self.prefix.lib64.join(pyver).join(pyso)
             assert os.path.isfile(src)
             os.rename(src, os.path.join(python_platlib, pyso))

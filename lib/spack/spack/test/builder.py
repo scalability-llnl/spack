@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os.path
@@ -164,7 +163,7 @@ def test_install_time_test_callback(tmpdir, config, mock_packages, mock_stage):
     for phase_fn in builder:
         phase_fn.execute()
 
-    with open(s.package.tester.test_log_file, "r") as f:
+    with open(s.package.tester.test_log_file, "r", encoding="utf-8") as f:
         results = f.read().replace("\n", " ")
         assert "PyTestCallback test" in results
 

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -168,7 +167,7 @@ def test_fetch(
             assert os.path.exists("configure")
             assert is_exe("configure")
 
-            with open("configure") as f:
+            with open("configure", encoding="utf-8") as f:
                 contents = f.read()
             assert contents.startswith("#!/bin/sh")
             assert "echo Building..." in contents

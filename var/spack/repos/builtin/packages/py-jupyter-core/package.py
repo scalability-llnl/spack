@@ -1,7 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
+import os
 
 from spack.package import *
 
@@ -45,3 +46,10 @@ class PyJupyterCore(PythonPackage):
 
     # Historical dependencies
     depends_on("py-setuptools", when="@:4.9.2", type=("build", "run"))
+
+    def setup_dependent_run_environment(self, env, dependent_spec):
+        # https://docs.jupyter.org/en/stable/use/jupyter-directories.html
+        if os.path.exists(dependent_spec.prefix.etc.jupyter):
+            env.prepend_path("JUPYTER_CONFIG_PATH", dependent_spec.prefix.etc.jupyter)
+        if os.path.exists(dependent_spec.prefix.share.jupyter):
+            env.prepend_path("JUPYTER_PATH", dependent_spec.prefix.share.jupyter)

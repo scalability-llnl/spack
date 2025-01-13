@@ -1,0 +1,11 @@
+--- spack-src/configure.bak     2017-12-27 20:57:00.000000000 +0900
++++ spack-src/configure 2020-09-28 17:04:51.030223443 +0900
+@@ -193,7 +193,7 @@
+ if test "$gccish" -ne 0
+ then
+     CC="${CC-$cc}"
+-    CFLAGS="${CFLAGS--O2 -Wall -Wextra -Wundef}"
++    CFLAGS="${CFLAGS--O2 -Wall -Wextra -Wundef -DPNG_ARM_NEON_OPT=0}"
+ else
+     CC="${CC-cc}"
+     CFLAGS="${CFLAGS--O}"

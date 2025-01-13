@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Classes and functions to register audit checks for various parts of
@@ -571,8 +570,13 @@ def _search_for_deprecated_package_methods(pkgs, error_cls):
 @package_properties
 def _ensure_all_package_names_are_lowercase(pkgs, error_cls):
     """Ensure package names are lowercase and consistent"""
+    reserved_names = ("all",)
     badname_regex, errors = re.compile(r"[_A-Z]"), []
     for pkg_name in pkgs:
+        if pkg_name in reserved_names:
+            error_msg = f"The name '{pkg_name}' is reserved, and cannot be used for packages"
+            errors.append(error_cls(error_msg, []))
+
         if badname_regex.search(pkg_name):
             error_msg = f"Package name '{pkg_name}' should be lowercase and must not contain '_'"
             errors.append(error_cls(error_msg, []))
@@ -651,7 +655,7 @@ def _ensure_docstring_and_no_fixme(pkgs, error_cls):
     for pkg_name in pkgs:
         details = []
         filename = spack.repo.PATH.filename_for_package_name(pkg_name)
-        with open(filename, "r") as package_file:
+        with open(filename, "r", encoding="utf-8") as package_file:
             for i, line in enumerate(package_file):
                 pattern = next((r for r in fixme_regexes if r.search(line)), None)
                 if pattern:
@@ -688,19 +692,19 @@ def _ensure_all_packages_use_sha256_checksums(pkgs, error_cls):
                     return h, True
             return None, False
 
-        error_msg = "Package '{}' does not use sha256 checksum".format(pkg_name)
+        error_msg = f"Package '{pkg_name}' does not use sha256 checksum"
         details = []
         for v, args in pkg.versions.items():
             fetcher = spack.fetch_strategy.for_package_version(pkg, v)
             digest, is_bad = invalid_sha256_digest(fetcher)
             if is_bad:
-                details.append("{}@{} uses {}".format(pkg_name, v, digest))
+                details.append(f"{pkg_name}@{v} uses {digest}")
 
         for _, resources in pkg.resources.items():
             for resource in resources:
                 digest, is_bad = invalid_sha256_digest(resource.fetcher)
                 if is_bad:
-                    details.append("Resource in '{}' uses {}".format(pkg_name, digest))
+                    details.append(f"Resource in '{pkg_name}' uses {digest}")
         if details:
             errors.append(error_cls(error_msg, details))
 
@@ -714,17 +718,16 @@ def _ensure_env_methods_are_ported_to_builders(pkgs, error_cls):
     for pkg_name in pkgs:
         pkg_cls = spack.repo.PATH.get_pkg_class(pkg_name)
 
-        # values are either Value objects (for conditional values) or the values themselves
+        # values are either ConditionalValue objects or the values themselves
         build_system_names = set(
-            v.value if isinstance(v, spack.variant.Value) else v
+            v.value if isinstance(v, spack.variant.ConditionalValue) else v
             for _, variant in pkg_cls.variant_definitions("build_system")
             for v in variant.values
         )
         builder_cls_names = [spack.builder.BUILDER_CLS[x].__name__ for x in build_system_names]
 
-        module = pkg_cls.module
         has_builders_in_package_py = any(
-            getattr(module, name, False) for name in builder_cls_names
+            spack.builder.get_builder_class(pkg_cls, name) for name in builder_cls_names
         )
         if not has_builders_in_package_py:
             continue
@@ -805,8 +808,8 @@ def _uses_deprecated_globals(pkgs, error_cls):
             continue
 
         file = spack.repo.PATH.filename_for_package_name(pkg_name)
-        tree = ast.parse(open(file).read())
-        visitor = DeprecatedMagicGlobals(("std_cmake_args",))
+        tree = ast.parse(open(file, "rb").read())
+        visitor = DeprecatedMagicGlobals(("std_cmake_args", "std_meson_args", "std_pip_args"))
         visitor.visit(tree)
         if visitor.references_to_globals:
             errors.append(
@@ -1005,20 +1008,6 @@ def _issues_in_depends_on_directive(pkgs, error_cls):
 
         for when, deps_by_name in pkg_cls.dependencies.items():
             for dep_name, dep in deps_by_name.items():
-                # Check if there are nested dependencies declared. We don't want directives like:
-                #
-                #     depends_on('foo+bar ^fee+baz')
-                #
-                # but we'd like to have two dependencies listed instead.
-                nested_dependencies = dep.spec.dependencies()
-                if nested_dependencies:
-                    summary = f"{pkg_name}: nested dependency declaration '{dep.spec}'"
-                    ndir = len(nested_dependencies) + 1
-                    details = [
-                        f"split depends_on('{dep.spec}', when='{when}') into {ndir} directives",
-                        f"in {filename}",
-                    ]
-                    errors.append(error_cls(summary=summary, details=details))
 
                 def check_virtual_with_variants(spec, msg):
                     if not spec.virtual or not spec.variants:

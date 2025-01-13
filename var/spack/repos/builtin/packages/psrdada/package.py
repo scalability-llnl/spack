@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -26,7 +25,7 @@ class Psrdada(AutotoolsPackage, CudaPackage):
     depends_on("automake", type="build")
     depends_on("libtool", type="build")
     depends_on("nasm", type="build")
-    depends_on("pkgconf", type="build")
+    depends_on("pkgconfig", type="build")
     depends_on("fftw@3.3:", type="build")
     depends_on("python")
     depends_on("cuda", type="build")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -125,8 +124,6 @@ class Elk(MakefilePackage):
             flags = "-O3 -ffast-math -funroll-loops"
             if spec.satisfies("%gcc@10:"):
                 flags += " -fallow-argument-mismatch "
-        elif self.compiler.name == "pgi":
-            flags = "-O3 -lpthread"
         elif self.compiler.name == "g95":
             flags = "-O3 -fno-second-underscore"
         elif self.compiler.name == "nag":

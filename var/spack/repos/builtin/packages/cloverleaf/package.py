@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -96,10 +95,6 @@ class Cloverleaf(MakefilePackage):
             targets.append("CFLAGS_INTEL=")
         elif self.spec.satisfies("%aocc"):
             targets.append("COMPILER=AOCC")
-        elif self.spec.satisfies("%pgi"):
-            targets.append("COMPILER=PGI")
-            targets.append("FLAGS_PGI=")
-            targets.append("CFLAGS_PGI=")
         elif self.spec.satisfies("%xl"):
             targets.append("COMPILER=XLF")
             targets.append("FLAGS_XLF=")

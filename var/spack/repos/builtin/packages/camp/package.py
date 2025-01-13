@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -54,7 +53,8 @@ class Camp(CMakePackage, CudaPackage, ROCmPackage):
     version("0.2.2", sha256="194d38b57e50e3494482a7f94940b27f37a2bee8291f2574d64db342b981d819")
     version("0.1.0", sha256="fd4f0f2a60b82a12a1d9f943f8893dc6fe770db493f8fae5ef6f7d0c439bebcc")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     # TODO: figure out gtest dependency and then set this default True.
     variant("tests", default=False, description="Build tests")
@@ -62,7 +62,8 @@ class Camp(CMakePackage, CudaPackage, ROCmPackage):
     variant("omptarget", default=False, description="Build with OpenMP Target support")
     variant("sycl", default=False, description="Build with Sycl support")
 
-    depends_on("cub", when="+cuda")
+    with when("+cuda"):
+        depends_on("cub", when="^cuda@:10")
 
     depends_on("blt", type="build")
     depends_on("blt@0.6.2:", type="build", when="@2024.02.1:")
@@ -107,7 +108,7 @@ class Camp(CMakePackage, CudaPackage, ROCmPackage):
         if spec.satisfies("+rocm"):
             options.append("-DHIP_ROOT_DIR={0}".format(spec["hip"].prefix))
 
-            archs = self.spec.variants["amdgpu_target"].value
+            archs = ";".join(self.spec.variants["amdgpu_target"].value)
             options.append("-DCMAKE_HIP_ARCHITECTURES={0}".format(archs))
             options.append("-DGPU_TARGETS={0}".format(archs))
             options.append("-DAMDGPU_TARGETS={0}".format(archs))

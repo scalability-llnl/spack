@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -240,7 +239,7 @@ class Ceed(BundlePackage, CudaPackage, ROCmPackage):
 
     # Omega_h
     # ceed-5.0
-    depends_on("omega-h@scorec.10.1.0", when="@5.0.0+omega-h")
+    depends_on("omega-h@10.1.0", when="@5.0.0+omega-h")
     depends_on("omega-h~trilinos", when="@5.0.0+omega-h+quickbuild")
 
     # MFEM, Laghos, Remhos

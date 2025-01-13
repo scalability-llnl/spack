@@ -1,0 +1,3 @@
+concretizer:
+  targets:
+    granularity: generic

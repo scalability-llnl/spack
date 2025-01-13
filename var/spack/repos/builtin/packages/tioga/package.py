@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import sys
@@ -25,8 +24,7 @@ class Tioga(CMakePackage):
     version("1.0.0", git="https://github.com/Exawind/tioga.git", tag="v1.0.0")
     version("master", branch="master")
 
-    depends_on("cxx", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("cxx", type="build")
 
     variant("shared", default=sys.platform != "darwin", description="Build shared libraries")
     variant("pic", default=True, description="Position independent code")

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Check the database is functioning properly, both in memory and in its file."""
@@ -34,6 +33,7 @@ import spack.repo
 import spack.spec
 import spack.store
 import spack.version as vn
+from spack.enums import InstallRecordStatus
 from spack.installer import PackageInstaller
 from spack.schema.database_index import schema
 from spack.util.executable import Executable
@@ -48,14 +48,14 @@ def upstream_and_downstream_db(tmpdir, gen_mock_layout):
     upstream_write_db = spack.database.Database(mock_db_root, layout=upstream_layout)
     upstream_db = spack.database.Database(mock_db_root, is_upstream=True, layout=upstream_layout)
     # Generate initial DB file to avoid reindex
-    with open(upstream_write_db._index_path, "w") as db_file:
+    with open(upstream_write_db._index_path, "w", encoding="utf-8") as db_file:
         upstream_write_db._write_to_file(db_file)
 
     downstream_db_root = str(tmpdir.mkdir("mock_downstream_db_root"))
     downstream_db = spack.database.Database(
         downstream_db_root, upstream_dbs=[upstream_db], layout=gen_mock_layout("/b/")
     )
-    with open(downstream_db._index_path, "w") as db_file:
+    with open(downstream_db._index_path, "w", encoding="utf-8") as db_file:
         downstream_db._write_to_file(db_file)
 
     yield upstream_write_db, upstream_db, downstream_db
@@ -292,7 +292,7 @@ def _print_ref_counts():
     recs = []
 
     def add_rec(spec):
-        cspecs = spack.store.STORE.db.query(spec, installed=any)
+        cspecs = spack.store.STORE.db.query(spec, installed=InstallRecordStatus.ANY)
 
         if not cspecs:
             recs.append("[ %-7s ] %-20s-" % ("", spec))
@@ -324,7 +324,7 @@ def _print_ref_counts():
 
 def _check_merkleiness():
     """Ensure the spack database is a valid merkle graph."""
-    all_specs = spack.store.STORE.db.query(installed=any)
+    all_specs = spack.store.STORE.db.query(installed=InstallRecordStatus.ANY)
 
     seen = {}
     for spec in all_specs:
@@ -445,7 +445,7 @@ def test_005_db_exists(database):
     if sys.platform != "win32":
         assert os.path.exists(str(lock_file))
 
-    with open(index_file) as fd:
+    with open(index_file, encoding="utf-8") as fd:
         index_object = json.load(fd)
         jsonschema.validate(index_object, schema)
 
@@ -617,7 +617,7 @@ def test_080_root_ref_counts(mutable_database):
     mutable_database.remove("mpileaks ^mpich")
 
     # record no longer in DB
-    assert mutable_database.query("mpileaks ^mpich", installed=any) == []
+    assert mutable_database.query("mpileaks ^mpich", installed=InstallRecordStatus.ANY) == []
 
     # record's deps have updated ref_counts
     assert mutable_database.get_record("callpath ^mpich").ref_count == 0
@@ -627,7 +627,7 @@ def test_080_root_ref_counts(mutable_database):
     mutable_database.add(rec.spec)
 
     # record is present again
-    assert len(mutable_database.query("mpileaks ^mpich", installed=any)) == 1
+    assert len(mutable_database.query("mpileaks ^mpich", installed=InstallRecordStatus.ANY)) == 1
 
     # dependencies have ref counts updated
     assert mutable_database.get_record("callpath ^mpich").ref_count == 1
@@ -643,18 +643,21 @@ def test_090_non_root_ref_counts(mutable_database):
 
     # record still in DB but marked uninstalled
     assert mutable_database.query("callpath ^mpich", installed=True) == []
-    assert len(mutable_database.query("callpath ^mpich", installed=any)) == 1
+    assert len(mutable_database.query("callpath ^mpich", installed=InstallRecordStatus.ANY)) == 1
 
     # record and its deps have same ref_counts
-    assert mutable_database.get_record("callpath ^mpich", installed=any).ref_count == 1
+    assert (
+        mutable_database.get_record("callpath ^mpich", installed=InstallRecordStatus.ANY).ref_count
+        == 1
+    )
     assert mutable_database.get_record("mpich").ref_count == 2
 
     # remove only dependent of uninstalled callpath record
     mutable_database.remove("mpileaks ^mpich")
 
     # record and parent are completely gone.
-    assert mutable_database.query("mpileaks ^mpich", installed=any) == []
-    assert mutable_database.query("callpath ^mpich", installed=any) == []
+    assert mutable_database.query("mpileaks ^mpich", installed=InstallRecordStatus.ANY) == []
+    assert mutable_database.query("callpath ^mpich", installed=InstallRecordStatus.ANY) == []
 
     # mpich ref count updated properly.
     mpich_rec = mutable_database.get_record("mpich")
@@ -668,14 +671,14 @@ def test_100_no_write_with_exception_on_remove(database):
             raise Exception()
 
     with database.read_transaction():
-        assert len(database.query("mpileaks ^zmpi", installed=any)) == 1
+        assert len(database.query("mpileaks ^zmpi", installed=InstallRecordStatus.ANY)) == 1
 
     with pytest.raises(Exception):
         fail_while_writing()
 
     # reload DB and make sure zmpi is still there.
     with database.read_transaction():
-        assert len(database.query("mpileaks ^zmpi", installed=any)) == 1
+        assert len(database.query("mpileaks ^zmpi", installed=InstallRecordStatus.ANY)) == 1
 
 
 def test_110_no_write_with_exception_on_install(database):
@@ -685,14 +688,14 @@ def test_110_no_write_with_exception_on_install(database):
             raise Exception()
 
     with database.read_transaction():
-        assert database.query("cmake", installed=any) == []
+        assert database.query("cmake", installed=InstallRecordStatus.ANY) == []
 
     with pytest.raises(Exception):
         fail_while_writing()
 
     # reload DB and make sure cmake was not written.
     with database.read_transaction():
-        assert database.query("cmake", installed=any) == []
+        assert database.query("cmake", installed=InstallRecordStatus.ANY) == []
 
 
 def test_115_reindex_with_packages_not_in_repo(mutable_database, tmpdir):
@@ -738,7 +741,7 @@ def test_regression_issue_8036(mutable_database, usr_folder_exists):
 
 @pytest.mark.regression("11118")
 def test_old_external_entries_prefix(mutable_database):
-    with open(spack.store.STORE.db._index_path, "r") as f:
+    with open(spack.store.STORE.db._index_path, "r", encoding="utf-8") as f:
         db_obj = json.loads(f.read())
 
     jsonschema.validate(db_obj, schema)
@@ -748,10 +751,10 @@ def test_old_external_entries_prefix(mutable_database):
 
     db_obj["database"]["installs"][s.dag_hash()]["path"] = "None"
 
-    with open(spack.store.STORE.db._index_path, "w") as f:
+    with open(spack.store.STORE.db._index_path, "w", encoding="utf-8") as f:
         f.write(json.dumps(db_obj))
     if _use_uuid:
-        with open(spack.store.STORE.db._verifier_path, "w") as f:
+        with open(spack.store.STORE.db._verifier_path, "w", encoding="utf-8") as f:
             f.write(str(uuid.uuid4()))
 
     record = spack.store.STORE.db.get_record(s)
@@ -1115,7 +1118,7 @@ def test_database_read_works_with_trailing_data(tmp_path, default_mock_concretiz
     assert spec in specs_in_db
 
     # Append anything to the end of the database file
-    with open(db._index_path, "a") as f:
+    with open(db._index_path, "a", encoding="utf-8") as f:
         f.write(json.dumps({"hello": "world"}))
 
     # Read the database and check that it ignores the trailing data
@@ -1126,7 +1129,7 @@ def test_database_errors_with_just_a_version_key(tmp_path):
     root = str(tmp_path)
     db = spack.database.Database(root)
     next_version = f"{spack.database._DB_VERSION}.next"
-    with open(db._index_path, "w") as f:
+    with open(db._index_path, "w", encoding="utf-8") as f:
         f.write(json.dumps({"database": {"version": next_version}}))
 
     with pytest.raises(spack.database.InvalidDatabaseVersionError):

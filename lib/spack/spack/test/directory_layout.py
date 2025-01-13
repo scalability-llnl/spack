@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -128,7 +127,7 @@ def test_read_and_write_spec(temporary_store, config, mock_packages):
         assert spec_from_file.concrete
 
         # Ensure that specs that come out "normal" are really normal.
-        with open(spec_path) as spec_file:
+        with open(spec_path, encoding="utf-8") as spec_file:
             read_separately = Spec.from_yaml(spec_file.read())
 
         # TODO: revise this when build deps are in dag_hash

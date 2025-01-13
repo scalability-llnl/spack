@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -243,6 +242,7 @@ class Warpx(CMakePackage, PythonExtension):
     variant("shared", default=True, description="Build a shared version of the library")
     variant("tprof", default=True, description="Enable tiny profiling features")
 
+    depends_on("c", type="build")
     depends_on("cxx", type="build")
 
     for v in ["24.10", "24.08", "develop"]:

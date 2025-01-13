@@ -1,0 +1,26 @@
+diff --git a/source/g3tog4/include/G3EleTable.hh b/source/g3tog4/include/G3EleTable.hh
+index 0ab9c4fd566..18c6f73fde6 100644
+--- a/source/g3tog4/include/G3EleTable.hh
++++ b/source/g3tog4/include/G3EleTable.hh
+@@ -56,7 +56,7 @@ public:  // with description
+ private:
+
+   void LoadUp();
+-  G4int parse(G4double& Z, char* name, char* sym, G4double& A); 
++  G4int parse(G4double& Z, char (&name)[20], char (&sym)[3], G4double& A);
+
+ private:
+
+diff --git a/source/g3tog4/src/G3EleTable.cc b/source/g3tog4/src/G3EleTable.cc
+index cecc494b201..a2f3af3d6a2 100644
+--- a/source/g3tog4/src/G3EleTable.cc
++++ b/source/g3tog4/src/G3EleTable.cc
+@@ -64,7 +64,7 @@ G3EleTable::GetEle(G4double Z){
+ }
+
+ G4int 
+-G3EleTable::parse(G4double& Z, char* name, char* sym, G4double& A){ 
++G3EleTable::parse(G4double& Z, char (&name)[20], char (&sym)[3], G4double& A){
+  G4int rc = 0;
+   if (Z>0 && Z <=_MaxEle){
+     G4int z = (G4int) Z-1;

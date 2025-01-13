@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,7 +13,8 @@ import spack.cmd
 import spack.config
 import spack.deptypes as dt
 import spack.environment as ev
-import spack.mirror
+import spack.mirrors.mirror
+import spack.mirrors.utils
 import spack.reporters
 import spack.spec
 import spack.store
@@ -168,7 +168,7 @@ def _cdash_reporter(namespace):
             else:
                 packages = []
                 for file in args.specfiles:
-                    with open(file, "r") as f:
+                    with open(file, "r", encoding="utf-8") as f:
                         s = spack.spec.Spec.from_yaml(f)
                         packages.append(s.format())
             return packages
@@ -528,6 +528,7 @@ class ConfigSetAction(argparse.Action):
         # the const from the constructor or a value from the CLI.
         # Note that this is only called if the argument is actually
         # specified on the command line.
+        spack.config.CONFIG.ensure_scope_ordering()
         spack.config.set(self.config_path, self.const, scope="command_line")
 
 
@@ -581,23 +582,51 @@ def add_concretizer_args(subparser):
 
 
 def add_connection_args(subparser, add_help):
-    subparser.add_argument(
-        "--s3-access-key-id", help="ID string to use to connect to this S3 mirror"
+    def add_argument_string_or_variable(parser, arg: str, *, deprecate_str: bool = True, **kwargs):
+        group = parser.add_mutually_exclusive_group()
+        group.add_argument(arg, **kwargs)
+        # Update help string
+        if "help" in kwargs:
+            kwargs["help"] = "environment variable containing " + kwargs["help"]
+        group.add_argument(arg + "-variable", **kwargs)
+
+    s3_connection_parser = subparser.add_argument_group("S3 Connection")
+
+    add_argument_string_or_variable(
+        s3_connection_parser,
+        "--s3-access-key-id",
+        help="ID string to use to connect to this S3 mirror",
     )
-    subparser.add_argument(
-        "--s3-access-key-secret", help="secret string to use to connect to this S3 mirror"
+    add_argument_string_or_variable(
+        s3_connection_parser,
+        "--s3-access-key-secret",
+        help="secret string to use to connect to this S3 mirror",
     )
-    subparser.add_argument(
-        "--s3-access-token", help="access token to use to connect to this S3 mirror"
+    add_argument_string_or_variable(
+        s3_connection_parser,
+        "--s3-access-token",
+        help="access token to use to connect to this S3 mirror",
     )
-    subparser.add_argument(
+    s3_connection_parser.add_argument(
         "--s3-profile", help="S3 profile name to use to connect to this S3 mirror", default=None
     )
-    subparser.add_argument(
+    s3_connection_parser.add_argument(
         "--s3-endpoint-url", help="endpoint URL to use to connect to this S3 mirror"
     )
-    subparser.add_argument("--oci-username", help="username to use to connect to this OCI mirror")
-    subparser.add_argument("--oci-password", help="password to use to connect to this OCI mirror")
+
+    oci_connection_parser = subparser.add_argument_group("OCI Connection")
+
+    add_argument_string_or_variable(
+        oci_connection_parser,
+        "--oci-username",
+        deprecate_str=False,
+        help="username to use to connect to this OCI mirror",
+    )
+    add_argument_string_or_variable(
+        oci_connection_parser,
+        "--oci-password",
+        help="password to use to connect to this OCI mirror",
+    )
 
 
 def use_buildcache(cli_arg_value):
@@ -661,31 +690,31 @@ def mirror_name_or_url(m):
 
     # If there's a \ or / in the name, it's interpreted as a path or url.
     if "/" in m or "\\" in m or m in (".", ".."):
-        return spack.mirror.Mirror(m)
+        return spack.mirrors.mirror.Mirror(m)
 
     # Otherwise, the named mirror is required to exist.
     try:
-        return spack.mirror.require_mirror_name(m)
+        return spack.mirrors.utils.require_mirror_name(m)
     except ValueError as e:
         raise argparse.ArgumentTypeError(f"{e}. Did you mean {os.path.join('.', m)}?") from e
 
 
 def mirror_url(url):
     try:
-        return spack.mirror.Mirror.from_url(url)
+        return spack.mirrors.mirror.Mirror.from_url(url)
     except ValueError as e:
         raise argparse.ArgumentTypeError(str(e)) from e
 
 
 def mirror_directory(path):
     try:
-        return spack.mirror.Mirror.from_local_path(path)
+        return spack.mirrors.mirror.Mirror.from_local_path(path)
     except ValueError as e:
         raise argparse.ArgumentTypeError(str(e)) from e
 
 
 def mirror_name(name):
     try:
-        return spack.mirror.require_mirror_name(name)
+        return spack.mirrors.utils.require_mirror_name(name)
     except ValueError as e:
         raise argparse.ArgumentTypeError(str(e)) from e

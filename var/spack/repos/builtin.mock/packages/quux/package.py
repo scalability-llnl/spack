@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -89,13 +88,13 @@ const int quux_version_minor = %s;
 """
         mkdirp("%s/quux" % prefix.include)
         mkdirp("%s/quux" % self.stage.source_path)
-        with open("%s/quux_version.h" % self.stage.source_path, "w") as f:
+        with open("%s/quux_version.h" % self.stage.source_path, "w", encoding="utf-8") as f:
             f.write(quux_version_h % (self.version[0], self.version[1:]))
-        with open("%s/quux/quux.cc" % self.stage.source_path, "w") as f:
+        with open("%s/quux/quux.cc" % self.stage.source_path, "w", encoding="utf-8") as f:
             f.write(quux_cc % (prefix.config))
-        with open("%s/quux/quux.h" % self.stage.source_path, "w") as f:
+        with open("%s/quux/quux.h" % self.stage.source_path, "w", encoding="utf-8") as f:
             f.write(quux_h)
-        with open("%s/quux/quuxifier.cc" % self.stage.source_path, "w") as f:
+        with open("%s/quux/quuxifier.cc" % self.stage.source_path, "w", encoding="utf-8") as f:
             f.write(quuxifier_cc)
         gpp = which(
             "g++",

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,3 +18,4 @@ class Gfal2Util(PythonPackage):
     version("1.9.0", sha256="9a5194b7ac80381c0787ec7c2405cc3e060fc03bb99e80bbeb388ec3675cb13d")
 
     depends_on("py-setuptools", type="build")
+    depends_on("py-gfal2-python", type=("build", "run"))

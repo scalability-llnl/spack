@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -253,7 +252,7 @@ def add_versions_to_package(pkg: PackageBase, version_lines: str, is_batch: bool
         if match:
             new_versions.append((Version(match.group(1)), ver_line))
 
-    with open(filename, "r+") as f:
+    with open(filename, "r+", encoding="utf-8") as f:
         contents = f.read()
         split_contents = version_statement_re.split(contents)
 

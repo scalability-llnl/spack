@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -32,7 +31,7 @@ class Pnfft(AutotoolsPackage):
     @property
     def fftw_selected_precisions(self):
         if not self._fftw_precisions:
-            self._fftw_precisions = self.spec["fftw"].package.selected_precisions
+            self._fftw_precisions = self["fftw"].selected_precisions
         return self._fftw_precisions
 
     def configure(self, spec, prefix):

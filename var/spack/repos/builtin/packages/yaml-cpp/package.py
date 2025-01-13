@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -28,7 +27,8 @@ class YamlCpp(CMakePackage):
     version("0.5.3", sha256="decc5beabb86e8ed9ebeb04358d5363a5c4f72d458b2c788cb2f3ac9c19467b2")
     version("0.3.0", sha256="ab8d0e07aa14f10224ed6682065569761f363ec44bc36fcdb2946f6d38fe5a89")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("shared", default=True, description="Build shared instead of static libraries")
     variant("pic", default=True, description="Build with position independent code")

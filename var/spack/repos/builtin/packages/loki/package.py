@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,8 @@ class Loki(MakefilePackage):
 
     def flag_handler(self, name, flags):
         if name == "cxxflags":
+            if self.spec.satisfies("%oneapi@2025:"):
+                flags.append("-Wno-error=missing-template-arg-list-after-template-kw")
             if self.spec.satisfies("%oneapi@2023.0.0:"):
                 flags.append("-Wno-error=dynamic-exception-spec")
             if self.spec.satisfies("@0.1.7 %gcc@11:"):

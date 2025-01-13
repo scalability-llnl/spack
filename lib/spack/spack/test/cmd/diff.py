@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ find_cmd = spack.main.SpackCommand("find")
 _p1 = (
     "p1",
     """\
+from spack.package import *
+
 class P1(Package):
     version("1.0")
 
@@ -35,6 +36,8 @@ class P1(Package):
 _p2 = (
     "p2",
     """\
+from spack.package import *
+
 class P2(Package):
     version("1.0")
 
@@ -48,6 +51,8 @@ class P2(Package):
 _p3 = (
     "p3",
     """\
+from spack.package import *
+
 class P3(Package):
     version("1.0")
 
@@ -58,6 +63,8 @@ class P3(Package):
 _i1 = (
     "i1",
     """\
+from spack.package import *
+
 class I1(Package):
     version("1.0")
 
@@ -73,6 +80,8 @@ class I1(Package):
 _i2 = (
     "i2",
     """\
+from spack.package import *
+
 class I2(Package):
     version("1.0")
 
@@ -89,6 +98,8 @@ class I2(Package):
 _p4 = (
     "p4",
     """\
+from spack.package import *
+
 class P4(Package):
     version("1.0")
 

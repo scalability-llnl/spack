@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,6 +14,7 @@ class PySnakemakeInterfaceReportPlugins(PythonPackage):
 
     license("MIT")
 
+    version("1.1.0", sha256="b1ee444b2fca51225cf8a102f8e56633791d01433cd00cf07a1d9713a12313a5")
     version("1.0.0", sha256="02311cdc4bebab2a1c28469b5e6d5c6ac6e9c66998ad4e4b3229f1472127490f")
 
     depends_on("py-snakemake-interface-common@1.16:1", type=("build", "run"))

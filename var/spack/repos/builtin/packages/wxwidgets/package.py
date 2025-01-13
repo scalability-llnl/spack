@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -35,11 +34,12 @@ class Wxwidgets(AutotoolsPackage):
     depends_on("cxx", type="build")  # generated
 
     variant("opengl", default=False, description="Enable OpenGL support")
+    variant("gui", default=True, description="Enable GUI support.")
 
     patch("math_include.patch", when="@3.0.1:3.0.2")
 
     depends_on("pkgconfig", type="build")
-    depends_on("gtkplus")
+    depends_on("gtkplus", when="+gui")
     depends_on("mesa-glu", when="+opengl")
 
     @when("@:3.0.2")
@@ -52,6 +52,8 @@ class Wxwidgets(AutotoolsPackage):
 
         if self.spec.satisfies("+opengl"):
             options.append("--with-opengl")
+        if not self.spec.satisfies("+gui"):
+            options.append("--disable-gui")
 
         # see https://trac.wxwidgets.org/ticket/17639
         if spec.satisfies("@:3.1.0") and sys.platform == "darwin":

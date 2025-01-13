@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -161,7 +160,7 @@ def try_enable_terminal_color_on_windows():
             )
             # Use conout$ here to handle a redirectired stdout/get active console associated
             # with spack
-            with open(r"\\.\CONOUT$", "w") as conout:
+            with open(r"\\.\CONOUT$", "w", encoding="utf-8") as conout:
                 # Link above would use kernel32.GetStdHandle(-11) however this would not handle
                 # a redirected stdout appropriately, so we always refer to the current CONSOLE out
                 # which is defined as conout$ on Windows.

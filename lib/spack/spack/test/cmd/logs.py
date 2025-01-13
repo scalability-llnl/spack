@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -35,7 +34,7 @@ def stdout_as_buffered_text_stream():
     original_stdout = sys.stdout
 
     with tempfile.TemporaryFile(mode="w+b") as tf:
-        sys.stdout = TextIOWrapper(tf)
+        sys.stdout = TextIOWrapper(tf, encoding="utf-8")
         try:
             yield tf
         finally:

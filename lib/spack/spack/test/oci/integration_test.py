@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -23,7 +22,7 @@ import spack.error
 import spack.oci.opener
 import spack.spec
 from spack.main import SpackCommand
-from spack.oci.image import Digest, ImageReference, default_config, default_manifest, default_tag
+from spack.oci.image import Digest, ImageReference, default_config, default_manifest
 from spack.oci.oci import blob_exists, get_manifest_and_config, upload_blob, upload_manifest
 from spack.test.oci.mock_registry import DummyServer, InMemoryOCIRegistry, create_opener
 from spack.util.archive import gzip_compressed_tarfile
@@ -139,7 +138,7 @@ def test_buildcache_push_with_base_image_command(mutable_database, tmpdir):
         # Save the config file
         config["rootfs"]["diff_ids"] = [str(tar_digest)]
         config_file = tmpdir.join("config.json")
-        with open(config_file, "w") as f:
+        with open(config_file, "w", encoding="utf-8") as f:
             f.write(json.dumps(config))
 
         config_digest = Digest.from_sha256(
@@ -336,7 +335,7 @@ def test_best_effort_upload(mutable_database: spack.database.Database, monkeypat
 
         # Verify that manifests of mpich/libdwarf are missing due to upload failure.
         for name in without_manifest:
-            tagged_img = image.with_tag(default_tag(mpileaks[name]))
+            tagged_img = image.with_tag(spack.binary_distribution._oci_default_tag(mpileaks[name]))
             with pytest.raises(urllib.error.HTTPError, match="404"):
                 get_manifest_and_config(tagged_img)
 
@@ -352,7 +351,9 @@ def test_best_effort_upload(mutable_database: spack.database.Database, monkeypat
                 continue
 
             # This should not raise a 404.
-            manifest, _ = get_manifest_and_config(image.with_tag(default_tag(s)))
+            manifest, _ = get_manifest_and_config(
+                image.with_tag(spack.binary_distribution._oci_default_tag(s))
+            )
 
             # Collect layer digests
             pkg_to_all_digests[s.name] = {layer["digest"] for layer in manifest["layers"]}

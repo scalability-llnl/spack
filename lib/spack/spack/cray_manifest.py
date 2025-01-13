@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -211,7 +210,7 @@ def entries_to_specs(entries):
 def read(path, apply_updates):
     decode_exception_type = json.decoder.JSONDecodeError
     try:
-        with open(path, "r") as json_file:
+        with open(path, "r", encoding="utf-8") as json_file:
             json_data = json.load(json_file)
 
         jsonschema.validate(json_data, manifest_schema)

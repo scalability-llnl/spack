@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,7 @@ class Direnv(GoPackage):
 
     license("MIT")
 
+    version("2.35.0", sha256="a7aaec49d1b305f0745dad364af967fb3dc9bb5befc9f29d268d528b5a474e57")
     version("2.34.0", sha256="3d7067e71500e95d69eac86a271a6b6fc3f2f2817ba0e9a589524bf3e73e007c")
     version("2.33.0", sha256="8ef18051aa6bdcd6b59f04f02acdd0b78849b8ddbdbd372d4957af7889c903ea")
     version("2.32.3", sha256="c66f6d1000f28f919c6106b5dcdd0a0e54fb553602c63c60bf59d9bbdf8bd33c")

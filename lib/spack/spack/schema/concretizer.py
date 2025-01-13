@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Schema for concretizer.yaml configuration file.
@@ -33,8 +32,14 @@ properties: Dict[str, Any] = {
                                     "properties": {
                                         "type": {
                                             "type": "string",
-                                            "enum": ["local", "buildcache", "external"],
+                                            "enum": [
+                                                "local",
+                                                "buildcache",
+                                                "external",
+                                                "environment",
+                                            ],
                                         },
+                                        "path": {"type": "string"},
                                         "include": LIST_OF_SPECS,
                                         "exclude": LIST_OF_SPECS,
                                     },
@@ -72,7 +77,8 @@ properties: Dict[str, Any] = {
                                 "transitive": {"type": "boolean", "default": False},
                             },
                         },
-                    }
+                    },
+                    "automatic": {"type": "boolean"},
                 },
             },
             "duplicates": {
@@ -81,6 +87,8 @@ properties: Dict[str, Any] = {
                     "strategy": {"type": "string", "enum": ["none", "minimal", "full"]}
                 },
             },
+            "timeout": {"type": "integer", "minimum": 0},
+            "error_on_timeout": {"type": "boolean"},
             "os_compatible": {"type": "object", "additionalProperties": {"type": "array"}},
         },
     }

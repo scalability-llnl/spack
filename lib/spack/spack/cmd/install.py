@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -291,7 +290,7 @@ def _dump_log_on_error(e: InstallError):
         tty.error("'spack install' created no log.")
     else:
         sys.stderr.write("Full build log:\n")
-        with open(e.pkg.log_path, errors="replace") as log:
+        with open(e.pkg.log_path, errors="replace", encoding="utf-8") as log:
             shutil.copyfileobj(log, sys.stderr)
 
 
@@ -445,7 +444,7 @@ def concrete_specs_from_file(args):
     """Return the list of concrete specs read from files."""
     result = []
     for file in args.specfiles:
-        with open(file, "r") as f:
+        with open(file, "r", encoding="utf-8") as f:
             if file.endswith("yaml") or file.endswith("yml"):
                 s = spack.spec.Spec.from_yaml(f)
             else:

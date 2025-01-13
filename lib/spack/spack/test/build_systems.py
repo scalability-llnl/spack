@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -15,12 +14,13 @@ import llnl.util.filesystem as fs
 
 import spack.build_systems.autotools
 import spack.build_systems.cmake
+import spack.builder
 import spack.environment
 import spack.error
 import spack.paths
 import spack.platforms
 import spack.platforms.test
-from spack.build_environment import ChildError, setup_package
+from spack.build_environment import ChildError, MakeExecutable, setup_package
 from spack.installer import PackageInstaller
 from spack.spec import Spec
 from spack.util.executable import which
@@ -29,10 +29,12 @@ DATA_PATH = os.path.join(spack.paths.test_path, "data")
 
 
 @pytest.fixture()
-def concretize_and_setup(default_mock_concretization):
+def concretize_and_setup(default_mock_concretization, monkeypatch):
     def _func(spec_str):
         s = default_mock_concretization(spec_str)
         setup_package(s.package, False)
+        monkeypatch.setattr(s.package.module, "make", MakeExecutable("make", jobs=1))
+        monkeypatch.setattr(s.package.module, "ninja", MakeExecutable("ninja", jobs=1))
         return s
 
     return _func
@@ -149,7 +151,7 @@ class TestAutotoolsPackage:
 
         # Assert the libtool archive is not there and we have
         # a log of removed files
-        assert not os.path.exists(s.package.builder.libtool_archive_file)
+        assert not os.path.exists(spack.builder.create(s.package).libtool_archive_file)
         search_directory = os.path.join(s.prefix, ".spack")
         libtool_deletion_log = fs.find(search_directory, "removed_la_files.txt", recursive=True)
         assert libtool_deletion_log
@@ -160,11 +162,13 @@ class TestAutotoolsPackage:
         # Install a package that creates a mock libtool archive,
         # patch its package to preserve the installation
         s = Spec("libtool-deletion").concretized()
-        monkeypatch.setattr(type(s.package.builder), "install_libtool_archives", True)
+        monkeypatch.setattr(
+            type(spack.builder.create(s.package)), "install_libtool_archives", True
+        )
         PackageInstaller([s.package], explicit=True).install()
 
         # Assert libtool archives are installed
-        assert os.path.exists(s.package.builder.libtool_archive_file)
+        assert os.path.exists(spack.builder.create(s.package).libtool_archive_file)
 
     def test_autotools_gnuconfig_replacement(self, mutable_database):
         """
@@ -174,16 +178,16 @@ class TestAutotoolsPackage:
         s = Spec("autotools-config-replacement +patch_config_files +gnuconfig").concretized()
         PackageInstaller([s.package]).install()
 
-        with open(os.path.join(s.prefix.broken, "config.sub")) as f:
+        with open(os.path.join(s.prefix.broken, "config.sub"), encoding="utf-8") as f:
             assert "gnuconfig version of config.sub" in f.read()
 
-        with open(os.path.join(s.prefix.broken, "config.guess")) as f:
+        with open(os.path.join(s.prefix.broken, "config.guess"), encoding="utf-8") as f:
             assert "gnuconfig version of config.guess" in f.read()
 
-        with open(os.path.join(s.prefix.working, "config.sub")) as f:
+        with open(os.path.join(s.prefix.working, "config.sub"), encoding="utf-8") as f:
             assert "gnuconfig version of config.sub" not in f.read()
 
-        with open(os.path.join(s.prefix.working, "config.guess")) as f:
+        with open(os.path.join(s.prefix.working, "config.guess"), encoding="utf-8") as f:
             assert "gnuconfig version of config.guess" not in f.read()
 
     def test_autotools_gnuconfig_replacement_disabled(self, mutable_database):
@@ -193,16 +197,16 @@ class TestAutotoolsPackage:
         s = Spec("autotools-config-replacement ~patch_config_files +gnuconfig").concretized()
         PackageInstaller([s.package]).install()
 
-        with open(os.path.join(s.prefix.broken, "config.sub")) as f:
+        with open(os.path.join(s.prefix.broken, "config.sub"), encoding="utf-8") as f:
             assert "gnuconfig version of config.sub" not in f.read()
 
-        with open(os.path.join(s.prefix.broken, "config.guess")) as f:
+        with open(os.path.join(s.prefix.broken, "config.guess"), encoding="utf-8") as f:
             assert "gnuconfig version of config.guess" not in f.read()
 
-        with open(os.path.join(s.prefix.working, "config.sub")) as f:
+        with open(os.path.join(s.prefix.working, "config.sub"), encoding="utf-8") as f:
             assert "gnuconfig version of config.sub" not in f.read()
 
-        with open(os.path.join(s.prefix.working, "config.guess")) as f:
+        with open(os.path.join(s.prefix.working, "config.guess"), encoding="utf-8") as f:
             assert "gnuconfig version of config.guess" not in f.read()
 
     @pytest.mark.disable_clean_stage_check
@@ -231,7 +235,7 @@ class TestAutotoolsPackage:
         """
         env_dir = str(tmpdir.ensure("env", dir=True))
         gnuconfig_dir = str(tmpdir.ensure("gnuconfig", dir=True))  # empty dir
-        with open(os.path.join(env_dir, "spack.yaml"), "w") as f:
+        with open(os.path.join(env_dir, "spack.yaml"), "w", encoding="utf-8") as f:
             f.write(
                 """\
 spack:
@@ -261,7 +265,7 @@ class TestCMakePackage:
         # Call the function on a CMakePackage instance
         s = default_mock_concretization("cmake-client")
         expected = spack.build_systems.cmake.CMakeBuilder.std_args(s.package)
-        assert s.package.builder.std_cmake_args == expected
+        assert spack.builder.create(s.package).std_cmake_args == expected
 
         # Call it on another kind of package
         s = default_mock_concretization("mpich")
@@ -381,7 +385,9 @@ def test_autotools_args_from_conditional_variant(default_mock_concretization):
     is not met. When this is the case, the variant is not set in the spec."""
     s = default_mock_concretization("autotools-conditional-variants-test")
     assert "example" not in s.variants
-    assert len(s.package.builder._activate_or_not("example", "enable", "disable")) == 0
+    assert (
+        len(spack.builder.create(s.package)._activate_or_not("example", "enable", "disable")) == 0
+    )
 
 
 def test_autoreconf_search_path_args_multiple(default_mock_concretization, tmpdir):

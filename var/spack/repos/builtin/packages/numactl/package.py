@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -50,13 +49,6 @@ class Numactl(AutotoolsPackage):
 
     @when("%nvhpc")
     def patch(self):
-        self._nvhpc_patch()
-
-    @when("%pgi@20:")
-    def patch(self):
-        self._nvhpc_patch()
-
-    def _nvhpc_patch(self):
         # Remove flags not recognized by the NVIDIA compiler
         filter_file("-ffast-math -funroll-loops", "", "Makefile.am")
         filter_file("-std=gnu99", "-c99", "Makefile.am")

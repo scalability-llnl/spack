@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -47,8 +46,6 @@ class Wi4mpi(CMakePackage):
             compiler = "INTEL"
         elif "%clang" in self.spec:
             compiler = "LLVM"
-        elif "%pgi" in self.spec:
-            compiler = "PGI"
         else:
             tty.error("Could not determine compiler used")
         wi4mpi_build_type = "RELEASE"

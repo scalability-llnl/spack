@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -45,7 +44,7 @@ class Rsbench(MakefilePackage):
             cflags += " -ffast-math "
         elif spec.satisfies("%intel"):
             cflags += " -xhost -ansi-alias -no-prec-div "
-        elif spec.satisfies("%pgi") or spec.satisfies("%nvhpc"):
+        elif spec.satisfies("%nvhpc"):
             cflags += " -fastsse "
         elif spec.satisfies("%arm"):
             cflags += " -ffast-math "

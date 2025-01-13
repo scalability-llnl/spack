@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -93,6 +92,7 @@ class Precice(CMakePackage):
     depends_on("boost@:1.72", when="@:2.0.2")
     depends_on("boost@:1.74", when="@:2.1.1")
     depends_on("boost@:1.78", when="@:2.3.0")
+    depends_on("boost@:1.86", when="@:3.1.2")
 
     depends_on("eigen@3.2:")
     depends_on("eigen@3.4:", when="@3.2:")
@@ -116,7 +116,6 @@ class Precice(CMakePackage):
     conflicts("%apple-clang@:5")
     conflicts("%clang@:3.7")
     conflicts("%intel@:16")
-    conflicts("%pgi@:17.3")
 
     def xsdk_tpl_args(self):
         return [

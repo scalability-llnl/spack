@@ -70,7 +70,7 @@ Tutorial
 ----------------
 
 We maintain a
-[**hands-on tutorial**](https://spack.readthedocs.io/en/latest/tutorial.html).
+[**hands-on tutorial**](https://spack-tutorial.readthedocs.io/).
 It covers basic to advanced usage, packaging, developer features, and large HPC
 deployments.  You can do all of the exercises on your own laptop using a
 Docker container.

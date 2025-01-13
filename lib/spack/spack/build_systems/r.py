@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from typing import Optional, Tuple
@@ -95,7 +94,7 @@ class RPackage(Package):
         if cls.cran:
             return f"https://cloud.r-project.org/src/contrib/Archive/{cls.cran}/"
 
-    @property
-    def git(self):
-        if self.bioc:
-            return f"https://git.bioconductor.org/packages/{self.bioc}"
+    @lang.classproperty
+    def git(cls):
+        if cls.bioc:
+            return f"https://git.bioconductor.org/packages/{cls.bioc}"

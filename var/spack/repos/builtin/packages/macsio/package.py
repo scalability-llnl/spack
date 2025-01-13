@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,7 +19,8 @@ class Macsio(CMakePackage):
     version("1.1", sha256="a86249b0f10647c0b631773db69568388094605ec1a0af149d9e61e95e6961ec")
     version("1.0", sha256="1dd0df28f9f31510329d5874c1519c745b5c6bec12e102cea3e9f4b05e5d3072")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant("mpi", default=True, description="Build MPI plugin")
     variant("silo", default=False, description="Build with SILO plugin")

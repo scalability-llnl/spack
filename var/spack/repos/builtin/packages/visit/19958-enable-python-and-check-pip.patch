@@ -1,0 +1,60 @@
+diff --git a/src/CMake/FindVisItPython.cmake b/src/CMake/FindVisItPython.cmake
+index f8fca9f730..76ab1f54ca 100644
+--- a/src/CMake/FindVisItPython.cmake
++++ b/src/CMake/FindVisItPython.cmake
+@@ -280,6 +280,13 @@ if(PYTHONINTERP_FOUND)
+         endif()
+     endif()
+ 
++    # Ensure pip module is avaiable
++    execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c" "import sys; import pip; sys.stdout.write(pip.__version__)"
++                    OUTPUT_VARIABLE PYTHON_PIP_VERSION
++                    ERROR_VARIABLE  ERROR_FINDING_PYTHON_PIP_MODULE
++                    COMMAND_ERROR_IS_FATAL ANY)
++    message(STATUS "PYTHON_PIP_VERSION:       ${PYTHON_PIP_VERSION}")
++
+     if(NOT EXISTS ${PYTHON_LIBRARY})
+         message(FATAL_ERROR "Failed to find main library using PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}")
+     endif()
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 422bef895f..dacbaf0552 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -1226,15 +1226,17 @@ if(NOT VISIT_DBIO_ONLY)
+     endif()
+ endif()
+ 
++# Configure python CLI extensions
++if(VISIT_PYTHON_SCRIPTING AND PYTHONLIBS_FOUND)
++    if(NOT VISIT_STATIC)
++        add_subdirectory(visitpy)
++    endif()
++endif()
++
+ if(NOT VISIT_SERVER_COMPONENTS_ONLY AND NOT VISIT_ENGINE_ONLY AND NOT VISIT_DBIO_ONLY)
+     add_subdirectory(vtkqt)
+     add_subdirectory(winutil)
+     add_subdirectory(gui)
+-    if(VISIT_PYTHON_SCRIPTING AND PYTHONLIBS_FOUND)
+-        if(NOT VISIT_STATIC)
+-            add_subdirectory(visitpy)
+-        endif()
+-    endif()
+     # always add java subdir, so code gen targets can be active even
+     # if java is not enabled
+     add_subdirectory(java)
+diff --git a/src/viewer/CMakeLists.txt b/src/viewer/CMakeLists.txt
+index e47b0f271a..be9b2486ca 100644
+--- a/src/viewer/CMakeLists.txt
++++ b/src/viewer/CMakeLists.txt
+@@ -11,9 +11,9 @@
+ 
+ ADD_SUBDIRECTORY(rpc)
+ ADD_SUBDIRECTORY(core)
++ADD_SUBDIRECTORY(proxy)
+ 
+ IF(NOT VISIT_SERVER_COMPONENTS_ONLY AND NOT VISIT_ENGINE_ONLY AND NOT VISIT_DBIO_ONLY)
+-    ADD_SUBDIRECTORY(proxy)
+     ADD_SUBDIRECTORY(subjectproxy)
+     IF(NOT VISIT_STATIC)
+         # "main" is handled from the top level in the static case so it can be

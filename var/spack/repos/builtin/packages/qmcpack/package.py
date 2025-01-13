@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -145,7 +144,6 @@ class Qmcpack(CMakePackage, CudaPackage):
     cpp14_warning = "QMCPACK v3.6.0 or later requires a " "compiler with support for C++14"
     conflicts("%gcc@:4", when="@3.6.0:", msg=cpp14_warning)
     conflicts("%intel@:17", when="@3.6.0:", msg=cpp14_warning)
-    conflicts("%pgi@:17", when="@3.6.0:", msg=cpp14_warning)
     conflicts("%clang@:3.4", when="@3.6.0:", msg=cpp14_warning)
 
     conflicts("+afqmc", when="@:3.6.0", msg="AFQMC not recommended before v3.7")
@@ -167,7 +165,6 @@ class Qmcpack(CMakePackage, CudaPackage):
         "Intel compiler when linking against Intel MKL"
     )
     conflicts("%gcc", when="@:3.4.0 ^intel-mkl", msg=mkl_warning)
-    conflicts("%pgi", when="@:3.4.0 ^intel-mkl", msg=mkl_warning)
     conflicts("%llvm", when="@:3.4.0 ^intel-mkl", msg=mkl_warning)
 
     # Dependencies match those in the QMCPACK manual.

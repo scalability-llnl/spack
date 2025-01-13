@@ -1,0 +1,11 @@
+diff --git a/dataflowAPI/src/AbslocInterface.C b/dataflowAPI/src/AbslocInterface.C
+index 9d7ad000c..582e64004 100644
+--- a/dataflowAPI/src/AbslocInterface.C
++++ b/dataflowAPI/src/AbslocInterface.C
+@@ -29,6 +29,7 @@
+  */
+ 
+ 
++#include <deque>
+ #include "Absloc.h"
+ #include "AbslocInterface.h"

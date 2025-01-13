@@ -1,8 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -101,5 +101,4 @@ class Tamaas(SConsPackage):
         scons("install-lib", *args)
 
         if spec.satisfies("+python"):
-            args = ["-m", "pip"] + std_pip_args + ["--prefix=" + prefix, "build-release/python"]
-            python(*args)
+            pip(*PythonPipBuilder.std_args(self), f"--prefix={prefix}", "build-release/python")

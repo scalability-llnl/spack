@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -30,3 +29,6 @@ class PyRiver(PythonPackage):
     depends_on("py-numpy@1.22:", type=("build", "run"))
     depends_on("py-scipy@1.5:", type=("build", "run"))
     depends_on("py-pandas@1.3:", type=("build", "run"))
+
+    # https://github.com/online-ml/river/pull/1632
+    depends_on("py-numpy@:1", when="@:0.21", type=("build", "run"))

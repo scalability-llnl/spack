@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -547,14 +546,14 @@ def test_combine_phase_logs(tmpdir):
     # Create and write to dummy phase log files
     for log_file in log_files:
         phase_log_file = os.path.join(str(tmpdir), log_file)
-        with open(phase_log_file, "w") as plf:
+        with open(phase_log_file, "w", encoding="utf-8") as plf:
             plf.write("Output from %s\n" % log_file)
         phase_log_files.append(phase_log_file)
 
     # This is the output log we will combine them into
     combined_log = os.path.join(str(tmpdir), "combined-out.txt")
     inst.combine_phase_logs(phase_log_files, combined_log)
-    with open(combined_log, "r") as log_file:
+    with open(combined_log, "r", encoding="utf-8") as log_file:
         out = log_file.read()
 
     # Ensure each phase log file is represented
@@ -644,13 +643,12 @@ def test_prepare_for_install_on_installed(install_mockery, monkeypatch):
 def test_installer_init_requests(install_mockery):
     """Test of installer initial requests."""
     spec_name = "dependent-install"
-    with spack.config.override("config:install_missing_compilers", True):
-        installer = create_installer([spec_name], {})
+    installer = create_installer([spec_name], {})
 
-        # There is only one explicit request in this case
-        assert len(installer.build_requests) == 1
-        request = installer.build_requests[0]
-        assert request.pkg.name == spec_name
+    # There is only one explicit request in this case
+    assert len(installer.build_requests) == 1
+    request = installer.build_requests[0]
+    assert request.pkg.name == spec_name
 
 
 @pytest.mark.parametrize("transitive", [True, False])
@@ -743,21 +741,20 @@ def test_install_task_requeue_build_specs(install_mockery, monkeypatch, capfd):
 
     # Set the configuration to ensure _requeue_with_build_spec_tasks actually
     # does something.
-    with spack.config.override("config:install_missing_compilers", True):
-        installer = create_installer(["depb"], {})
-        installer._init_queue()
-        request = installer.build_requests[0]
-        task = create_build_task(request.pkg)
+    installer = create_installer(["depb"], {})
+    installer._init_queue()
+    request = installer.build_requests[0]
+    task = create_build_task(request.pkg)
 
-        # Drop one of the specs so its task is missing before _install_task
-        popped_task = installer._pop_task()
-        assert inst.package_id(popped_task.pkg.spec) not in installer.build_tasks
+    # Drop one of the specs so its task is missing before _install_task
+    popped_task = installer._pop_task()
+    assert inst.package_id(popped_task.pkg.spec) not in installer.build_tasks
 
-        monkeypatch.setattr(task, "execute", _missing)
-        installer._install_task(task, None)
+    monkeypatch.setattr(task, "execute", _missing)
+    installer._install_task(task, None)
 
-        # Ensure the dropped task/spec was added back by _install_task
-        assert inst.package_id(popped_task.pkg.spec) in installer.build_tasks
+    # Ensure the dropped task/spec was added back by _install_task
+    assert inst.package_id(popped_task.pkg.spec) in installer.build_tasks
 
 
 def test_release_lock_write_n_exception(install_mockery, tmpdir, capsys):

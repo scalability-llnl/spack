@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -54,23 +53,91 @@ class Bazel(Package):
     version("4.1.0", sha256="f377d755c96a50f6bd2f423562598d822f43356783330a0b780ad442864d6eeb")
     version("4.0.0", sha256="d350f80e70654932db252db380d2ec0144a00e86f8d9f2b4c799ffdb48e9cdd1")
     version("3.7.2", sha256="de255bb42163a915312df9f4b86e5b874b46d9e8d4b72604b5123c3a845ed9b1")
-    version("3.7.1", sha256="c9244e5905df6b0190113e26082c72d58b56b1b0dec66d076f083ce4089b0307")
-    version("3.7.0", sha256="63873623917c756d1be49ff4d5fc23049736180e6b9a7d5236c6f204eddae3cc")
-    version("3.6.0", sha256="3a18f24febb5203f11b0985b27e120ac623058d1d5ca79cd6df992e67d57240a")
-    version("3.5.1", sha256="67eae714578b22d24192b0eb3a2d35b07578bbd57a33c50f1e74f8acd6378b3c")
-    version("3.5.0", sha256="334429059cf82e222ca8a9d9dbbd26f8e1eb308613463c2b8655dd4201b127ec")
-    version("3.4.1", sha256="27af1f11c8f23436915925b25cf6e1fb07fccf2d2a193a307c93437c60f63ba8")
-    version("3.4.0", sha256="7583abf8905ba9dd5394294e815e8873635ac4e5067e63392e8a33b397e450d8")
-    version("3.3.1", sha256="e0f1f43c65c4e0a38522b37e81f6129d8a1f7cd3d8884847be306544a7492747")
-    version("3.3.0", sha256="05a03960de09d5775839c5766ad8a0a30f261feaba5fa53ce3e49168d1eee826")
-    version("3.2.0", sha256="44ec129436f6de45f2230e14100104919443a1364c2491f5601666b358738bfa")
-    version("3.1.0", sha256="d7f40d0cac95a06cea6cb5b7f7769085257caebc3ee84269dd9298da760d5615")
-    version("3.0.0", sha256="530f5132e0a50da7ebb0ed08d9b6f1ddfd0d7d9b5d0beb2df5d687a4c8daf6b3")
-    version("2.2.0", sha256="9379878a834d105a47a87d3d7b981852dd9f64bc16620eacd564b48533e169a7")
-    version("2.1.1", sha256="83f67f28f4e47ff69043307d1791c9bffe83949e84165d49058b84eded932647")
-    version("2.1.0", sha256="3371cd9050989173a3b27364668328653a65653a50a85c320adc53953b4d5f46")
-    version("2.0.1", sha256="a863ed9e6fc420fbd92e63a12fe1a5b9be1a7a36f11f61f1fdc582c813bbe543")
-    version("2.0.0", sha256="724da3c656f68e787a86ebb9844773aa1c2e3a873cc39462a8f1b336153d6cbb")
+    version(
+        "3.7.1",
+        sha256="c9244e5905df6b0190113e26082c72d58b56b1b0dec66d076f083ce4089b0307",
+        deprecated=True,
+    )
+    version(
+        "3.7.0",
+        sha256="63873623917c756d1be49ff4d5fc23049736180e6b9a7d5236c6f204eddae3cc",
+        deprecated=True,
+    )
+    version(
+        "3.6.0",
+        sha256="3a18f24febb5203f11b0985b27e120ac623058d1d5ca79cd6df992e67d57240a",
+        deprecated=True,
+    )
+    version(
+        "3.5.1",
+        sha256="67eae714578b22d24192b0eb3a2d35b07578bbd57a33c50f1e74f8acd6378b3c",
+        deprecated=True,
+    )
+    version(
+        "3.5.0",
+        sha256="334429059cf82e222ca8a9d9dbbd26f8e1eb308613463c2b8655dd4201b127ec",
+        deprecated=True,
+    )
+    version(
+        "3.4.1",
+        sha256="27af1f11c8f23436915925b25cf6e1fb07fccf2d2a193a307c93437c60f63ba8",
+        deprecated=True,
+    )
+    version(
+        "3.4.0",
+        sha256="7583abf8905ba9dd5394294e815e8873635ac4e5067e63392e8a33b397e450d8",
+        deprecated=True,
+    )
+    version(
+        "3.3.1",
+        sha256="e0f1f43c65c4e0a38522b37e81f6129d8a1f7cd3d8884847be306544a7492747",
+        deprecated=True,
+    )
+    version(
+        "3.3.0",
+        sha256="05a03960de09d5775839c5766ad8a0a30f261feaba5fa53ce3e49168d1eee826",
+        deprecated=True,
+    )
+    version(
+        "3.2.0",
+        sha256="44ec129436f6de45f2230e14100104919443a1364c2491f5601666b358738bfa",
+        deprecated=True,
+    )
+    version(
+        "3.1.0",
+        sha256="d7f40d0cac95a06cea6cb5b7f7769085257caebc3ee84269dd9298da760d5615",
+        deprecated=True,
+    )
+    version(
+        "3.0.0",
+        sha256="530f5132e0a50da7ebb0ed08d9b6f1ddfd0d7d9b5d0beb2df5d687a4c8daf6b3",
+        deprecated=True,
+    )
+    version(
+        "2.2.0",
+        sha256="9379878a834d105a47a87d3d7b981852dd9f64bc16620eacd564b48533e169a7",
+        deprecated=True,
+    )
+    version(
+        "2.1.1",
+        sha256="83f67f28f4e47ff69043307d1791c9bffe83949e84165d49058b84eded932647",
+        deprecated=True,
+    )
+    version(
+        "2.1.0",
+        sha256="3371cd9050989173a3b27364668328653a65653a50a85c320adc53953b4d5f46",
+        deprecated=True,
+    )
+    version(
+        "2.0.1",
+        sha256="a863ed9e6fc420fbd92e63a12fe1a5b9be1a7a36f11f61f1fdc582c813bbe543",
+        deprecated=True,
+    )
+    version(
+        "2.0.0",
+        sha256="724da3c656f68e787a86ebb9844773aa1c2e3a873cc39462a8f1b336153d6cbb",
+        deprecated=True,
+    )
 
     variant(
         "nodepfail",

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -30,8 +29,11 @@ class IsaacServer(CMakePackage):
 
     depends_on("cxx", type="build")  # generated
 
-    # variant('gstreamer', default=False, description= \
-    #         'Support for RTP streams, e.g. to Twitch or Youtube')
+    # variant(
+    #     "gstreamer",
+    #     default=False,
+    #     description="Support for RTP streams, e.g. to Twitch or Youtube"
+    # )
 
     depends_on("cmake@3.3:", type="build")
     depends_on("jpeg", type="link")

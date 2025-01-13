@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import errno
@@ -16,6 +15,7 @@ from typing import Callable, Dict, Generator, Iterable, List, Optional, Set
 
 import llnl.string
 import llnl.util.lang
+import llnl.util.symlink
 import llnl.util.tty as tty
 from llnl.util.filesystem import (
     can_access,
@@ -33,7 +33,8 @@ from llnl.util.tty.color import colorize
 import spack.caches
 import spack.config
 import spack.error
-import spack.mirror
+import spack.mirrors.layout
+import spack.mirrors.utils
 import spack.resource
 import spack.spec
 import spack.util.crypto
@@ -352,8 +353,8 @@ class Stage(LockableStagingDir):
         url_or_fetch_strategy,
         *,
         name=None,
-        mirror_paths: Optional["spack.mirror.MirrorLayout"] = None,
-        mirrors: Optional[Iterable["spack.mirror.Mirror"]] = None,
+        mirror_paths: Optional["spack.mirrors.layout.MirrorLayout"] = None,
+        mirrors: Optional[Iterable["spack.mirrors.mirror.Mirror"]] = None,
         keep=False,
         path=None,
         lock=True,
@@ -487,7 +488,7 @@ class Stage(LockableStagingDir):
             # Insert fetchers in the order that the URLs are provided.
             fetchers[:0] = (
                 fs.from_url_scheme(
-                    url_util.join(mirror.fetch_url, self.mirror_layout.path),
+                    url_util.join(mirror.fetch_url, *self.mirror_layout.path.split(os.sep)),
                     checksum=digest,
                     expand=expand,
                     extension=extension,
@@ -600,7 +601,7 @@ class Stage(LockableStagingDir):
         spack.caches.FETCH_CACHE.store(self.fetcher, self.mirror_layout.path)
 
     def cache_mirror(
-        self, mirror: "spack.caches.MirrorCache", stats: "spack.mirror.MirrorStats"
+        self, mirror: "spack.caches.MirrorCache", stats: "spack.mirrors.utils.MirrorStats"
     ) -> None:
         """Perform a fetch if the resource is not already cached
 
@@ -990,7 +991,7 @@ def interactive_version_filter(
             editor(filepath, exec_fn=executable)
 
             # Read back in
-            with open(filepath, "r") as f:
+            with open(filepath, "r", encoding="utf-8") as f:
                 orig_url_dict, url_dict = url_dict, {}
                 for line in f:
                     line = line.strip()

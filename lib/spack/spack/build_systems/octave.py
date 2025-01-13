@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import spack.builder
@@ -7,7 +6,7 @@ import spack.package_base
 from spack.directives import build_system, extends
 from spack.multimethod import when
 
-from ._checks import BaseBuilder
+from ._checks import BuilderWithDefaults
 
 
 class OctavePackage(spack.package_base.PackageBase):
@@ -29,7 +28,7 @@ class OctavePackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("octave")
-class OctaveBuilder(BaseBuilder):
+class OctaveBuilder(BuilderWithDefaults):
     """The octave builder provides the following phases that can be overridden:
 
     1. :py:meth:`~.OctaveBuilder.install`

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -75,7 +74,7 @@ class LuaBuilder(spack.builder.Builder):
                 table_entries.append(self._generate_tree_line(d.name, d.prefix))
 
         path = self._luarocks_config_path()
-        with open(path, "w") as config:
+        with open(path, "w", encoding="utf-8") as config:
             config.write(
                 """
                 deps_mode="all"

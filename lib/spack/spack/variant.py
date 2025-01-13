@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,8 +17,8 @@ import llnl.util.lang as lang
 import llnl.util.tty.color
 
 import spack.error as error
-import spack.parser
 import spack.spec
+import spack.spec_parser
 
 #: These are variant names used by Spack internally; packages can't use them
 reserved_names = [
@@ -251,7 +250,7 @@ def implicit_variant_conversion(method):
     def convert(self, other):
         # We don't care if types are different as long as I can convert other to type(self)
         try:
-            other = type(self)(other.name, other._original_value)
+            other = type(self)(other.name, other._original_value, propagate=other.propagate)
         except (error.SpecError, ValueError):
             return False
         return method(self, other)
@@ -266,7 +265,7 @@ def _flatten(values) -> Collection:
 
     flattened: List = []
     for item in values:
-        if isinstance(item, _ConditionalVariantValues):
+        if isinstance(item, ConditionalVariantValues):
             flattened.extend(item)
         else:
             flattened.append(item)
@@ -307,19 +306,21 @@ class AbstractVariant:
         self.value = value
 
     @staticmethod
-    def from_node_dict(name: str, value: Union[str, List[str]]) -> "AbstractVariant":
+    def from_node_dict(
+        name: str, value: Union[str, List[str]], *, propagate: bool = False
+    ) -> "AbstractVariant":
         """Reconstruct a variant from a node dict."""
         if isinstance(value, list):
             # read multi-value variants in and be faithful to the YAML
-            mvar = MultiValuedVariant(name, ())
+            mvar = MultiValuedVariant(name, (), propagate=propagate)
             mvar._value = tuple(value)
             mvar._original_value = mvar._value
             return mvar
 
         elif str(value).upper() == "TRUE" or str(value).upper() == "FALSE":
-            return BoolValuedVariant(name, value)
+            return BoolValuedVariant(name, value, propagate=propagate)
 
-        return SingleValuedVariant(name, value)
+        return SingleValuedVariant(name, value, propagate=propagate)
 
     def yaml_entry(self) -> Tuple[str, SerializedValueType]:
         """Returns a key, value tuple suitable to be an entry in a yaml dict.
@@ -376,6 +377,7 @@ class AbstractVariant:
 
     def _cmp_iter(self) -> Iterable:
         yield self.name
+        yield self.propagate
         yield from (str(v) for v in self.value_as_tuple)
 
     def copy(self) -> "AbstractVariant":
@@ -451,6 +453,7 @@ class AbstractVariant:
             values.remove("*")
 
         self._value_setter(",".join(str(v) for v in values))
+        self.propagate = self.propagate and other.propagate
         return old_value != self.value
 
     def __contains__(self, item: Union[str, bool]) -> bool:
@@ -461,7 +464,7 @@ class AbstractVariant:
 
     def __str__(self) -> str:
         delim = "==" if self.propagate else "="
-        values = spack.parser.quote_if_needed(",".join(str(v) for v in self.value_as_tuple))
+        values = spack.spec_parser.quote_if_needed(",".join(str(v) for v in self.value_as_tuple))
         return f"{self.name}{delim}{values}"
 
 
@@ -510,7 +513,7 @@ class MultiValuedVariant(AbstractVariant):
             values_str = ",".join(str(x) for x in self.value_as_tuple)
 
         delim = "==" if self.propagate else "="
-        return f"{self.name}{delim}{spack.parser.quote_if_needed(values_str)}"
+        return f"{self.name}{delim}{spack.spec_parser.quote_if_needed(values_str)}"
 
 
 class SingleValuedVariant(AbstractVariant):
@@ -555,6 +558,7 @@ class SingleValuedVariant(AbstractVariant):
 
         if self.value != other.value:
             raise UnsatisfiableVariantSpecError(other.value, self.value)
+        self.propagate = self.propagate and other.propagate
         return False
 
     def __contains__(self, item: ValueType) -> bool:
@@ -566,7 +570,7 @@ class SingleValuedVariant(AbstractVariant):
 
     def __str__(self) -> str:
         delim = "==" if self.propagate else "="
-        return f"{self.name}{delim}{spack.parser.quote_if_needed(str(self.value))}"
+        return f"{self.name}{delim}{spack.spec_parser.quote_if_needed(str(self.value))}"
 
 
 class BoolValuedVariant(SingleValuedVariant):
@@ -770,18 +774,21 @@ def disjoint_sets(*sets):
 
 
 @functools.total_ordering
-class Value:
-    """Conditional value that might be used in variants."""
+class ConditionalValue:
+    """Conditional value for a variant."""
 
     value: Any
-    when: Optional["spack.spec.Spec"]  # optional b/c we need to know about disabled values
+
+    # optional because statically disabled values (when=False) are set to None
+    # when=True results in spack.spec.Spec()
+    when: Optional["spack.spec.Spec"]
 
     def __init__(self, value: Any, when: Optional["spack.spec.Spec"]):
         self.value = value
         self.when = when
 
     def __repr__(self):
-        return f"Value({self.value}, when={self.when})"
+        return f"ConditionalValue({self.value}, when={self.when})"
 
     def __str__(self):
         return str(self.value)
@@ -825,7 +832,7 @@ def prevalidate_variant_value(
         only if the variant is a reserved variant.
     """
     # don't validate wildcards or variants with reserved names
-    if variant.value == ("*",) or variant.name in reserved_names:
+    if variant.value == ("*",) or variant.name in reserved_names or variant.propagate:
         return []
 
     # raise if there is no definition at all
@@ -879,15 +886,8 @@ def prevalidate_variant_value(
     )
 
 
-class _ConditionalVariantValues(lang.TypedMutableSequence):
+class ConditionalVariantValues(lang.TypedMutableSequence):
     """A list, just with a different type"""
-
-
-def conditional(*values: List[Any], when: Optional["spack.directives.WhenType"] = None):
-    """Conditional values that can be used in variant declarations."""
-    # _make_when_spec returns None when the condition is statically false.
-    when = spack.directives._make_when_spec(when)
-    return _ConditionalVariantValues([Value(x, when=when) for x in values])
 
 
 class DuplicateVariantError(error.SpecError):

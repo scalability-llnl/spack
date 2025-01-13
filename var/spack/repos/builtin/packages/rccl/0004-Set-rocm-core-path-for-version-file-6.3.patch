@@ -1,0 +1,21 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 966c5cc..4ed09e8 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -166,7 +166,7 @@ message(STATUS "${COMPILER_EXE_NAME} HIP version:    ${hip_version_string}")
+ 
+ ## Check for ROCm version
+ execute_process(
+-  COMMAND         bash "-c" "cat ${ROCM_PATH}/.info/version"
++  COMMAND         bash "-c" "cat $ENV{ROCMCORE_PATH}/.info/version"
+   OUTPUT_VARIABLE rocm_version_string
+ )
+ string(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" rocm_version_matches ${rocm_version_string})
+@@ -645,6 +645,7 @@ target_include_directories(rccl PRIVATE ${HIPIFY_DIR}/src/device/network/unpack)
+ target_include_directories(rccl PRIVATE ${HIPIFY_DIR}/gensrc)
+ target_include_directories(rccl PRIVATE ${HSA_INCLUDE_PATH})
+ target_include_directories(rccl PRIVATE ${ROCM_SMI_INCLUDE_DIR})
++target_include_directories(rccl PRIVATE $ENV{ROCMCORE_PATH}/include)
+ if(DEMANGLE_DIR)
+   target_include_directories(rccl PRIVATE ${DEMANGLE_DIR})
+ endif()

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -17,7 +16,7 @@ from spack.util.lock import Lock, ReadTransaction, WriteTransaction
 
 def _maybe_open(path: str) -> Optional[IO[str]]:
     try:
-        return open(path, "r")
+        return open(path, "r", encoding="utf-8")
     except OSError as e:
         if e.errno != errno.ENOENT:
             raise
@@ -46,7 +45,7 @@ class WriteContextManager:
     def __enter__(self) -> Tuple[Optional[IO[str]], IO[str]]:
         """Return (old_file, new_file) file objects, where old_file is optional."""
         self.old_file = _maybe_open(self.path)
-        self.new_file = open(self.tmp_path, "w")
+        self.new_file = open(self.tmp_path, "w", encoding="utf-8")
         return self.old_file, self.new_file
 
     def __exit__(self, type, value, traceback):

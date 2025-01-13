@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections.abc
@@ -10,7 +9,7 @@ from typing import Tuple
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
 
-import spack.builder
+import spack.phase_callbacks
 
 from .cmake import CMakeBuilder, CMakePackage
 
@@ -192,7 +191,10 @@ class CachedCMakeBuilder(CMakeBuilder):
 
         entries.append(cmake_cache_path("MPI_C_COMPILER", spec["mpi"].mpicc))
         entries.append(cmake_cache_path("MPI_CXX_COMPILER", spec["mpi"].mpicxx))
-        entries.append(cmake_cache_path("MPI_Fortran_COMPILER", spec["mpi"].mpifc))
+
+        # not all MPIs have Fortran wrappers
+        if hasattr(spec["mpi"], "mpifc"):
+            entries.append(cmake_cache_path("MPI_Fortran_COMPILER", spec["mpi"].mpifc))
 
         # Check for slurm
         using_slurm = False
@@ -296,7 +298,14 @@ class CachedCMakeBuilder(CMakeBuilder):
     def std_initconfig_entries(self):
         cmake_prefix_path_env = os.environ["CMAKE_PREFIX_PATH"]
         cmake_prefix_path = cmake_prefix_path_env.replace(os.pathsep, ";")
-
+        complete_rpath_list = ";".join(
+            [
+                self.pkg.spec.prefix.lib,
+                self.pkg.spec.prefix.lib64,
+                *os.environ.get("SPACK_COMPILER_EXTRA_RPATHS", "").split(":"),
+                *os.environ.get("SPACK_COMPILER_IMPLICIT_RPATHS", "").split(":"),
+            ]
+        )
         return [
             "#------------------{0}".format("-" * 60),
             "# !!!! This is a generated file, edit at own risk !!!!",
@@ -305,6 +314,8 @@ class CachedCMakeBuilder(CMakeBuilder):
             "#------------------{0}\n".format("-" * 60),
             cmake_cache_string("CMAKE_PREFIX_PATH", cmake_prefix_path),
             cmake_cache_string("CMAKE_INSTALL_RPATH_USE_LINK_PATH", "ON"),
+            cmake_cache_string("CMAKE_BUILD_RPATH", complete_rpath_list),
+            cmake_cache_string("CMAKE_INSTALL_RPATH", complete_rpath_list),
             self.define_cmake_cache_from_variant("CMAKE_BUILD_TYPE", "build_type"),
         ]
 
@@ -321,7 +332,7 @@ class CachedCMakeBuilder(CMakeBuilder):
             + self.initconfig_package_entries()
         )
 
-        with open(self.cache_name, "w") as f:
+        with open(self.cache_name, "w", encoding="utf-8") as f:
             for entry in cache_entries:
                 f.write("%s\n" % entry)
             f.write("\n")
@@ -332,7 +343,7 @@ class CachedCMakeBuilder(CMakeBuilder):
         args.extend(["-C", self.cache_path])
         return args
 
-    @spack.builder.run_after("install")
+    @spack.phase_callbacks.run_after("install")
     def install_cmake_cache(self):
         fs.mkdirp(self.pkg.spec.prefix.share.cmake)
         fs.install(self.cache_path, self.pkg.spec.prefix.share.cmake)

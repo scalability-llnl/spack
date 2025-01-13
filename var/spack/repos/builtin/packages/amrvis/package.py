@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -57,7 +56,7 @@ class Amrvis(MakefilePackage):
 
     # Only doing gcc and clang at the moment.
     # Intel currently fails searching for mpiicc, mpiicpc, etc.
-    for comp in ["%intel", "%cce", "%nag", "%pgi", "%xl", "%xl_r"]:
+    for comp in ["%intel", "%cce", "%nag", "%xl", "%xl_r"]:
         conflicts(comp, msg="Amrvis currently only builds with gcc and clang")
 
     # Need to clone AMReX into Amrvis because Amrvis uses AMReX's source

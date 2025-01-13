@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,6 +24,18 @@ class IntelOneapiVtune(IntelOneApiLibraryPackageWithSdk):
 
     homepage = "https://software.intel.com/content/www/us/en/develop/tools/oneapi/components/vtune-profiler.html"
 
+    version(
+        "2025.0.1",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/1277cea4-34b7-4221-bdbc-4f47a9a5592d/intel-vtune-2025.0.1.16_offline.sh",
+        sha256="e0917aab901018d2786df2fcfbaea2bf9c4ff7d5b7f9413e9f3d6860bb743f82",
+        expand=False,
+    )
+    version(
+        "2025.0.0",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/e7797b12-ce87-4df0-aa09-df4a272fc5d9/intel-vtune-2025.0.0.1130_offline.sh",
+        sha256="6742e5c6b1cd6e4efb794bde5d995ba738be1a991ac84678e0efca04fc080074",
+        expand=False,
+    )
     version(
         "2024.3.0",
         url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/d7e1fdb1-cfc7-40fb-bf46-3719e9372d67/l_oneapi_vtune_p_2024.3.0.31_offline.sh",

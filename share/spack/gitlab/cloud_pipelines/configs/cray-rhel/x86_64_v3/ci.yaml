@@ -1,0 +1,4 @@
+ci:
+  pipeline-gen:
+  - build-job:
+      tags: ["cray-rhel-x86_64_v3"]

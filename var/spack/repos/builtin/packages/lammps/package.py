@@ -1,11 +1,11 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import datetime as dt
 import os
 
 from spack.build_environment import optimization_flags
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -475,6 +475,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         "drude": {"when": "@20210702:"},
         "eff": {"when": "@20210702:"},
         "electrode": {"when": "@20220504:"},
+        "extra-command": {"when": "@20240829:"},
         "extra-compute": {"when": "@20210728:"},
         "extra-dump": {"when": "@20210728:"},
         "extra-fix": {"when": "@20210728:"},
@@ -501,6 +502,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         "misc": {},
         "ml-hdnnp": {"when": "@20210702:"},
         "ml-iap": {"when": "@20210702:"},
+        "ml-pace": {"when": "@20210702:"},
         "ml-pod": {"when": "@20221222:"},
         "ml-rann": {"when": "@20210702:"},
         "ml-snap": {"when": "@20210702:"},
@@ -582,7 +584,6 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         "vtk": {"when": "@20210702:"},
         "yaff": {"when": "@20210702:"},
         # "mdi": {"when": "@20210702:"}, no mdi package
-        # "ml-pace": {"when": "@20210702:"}, no pace package
         # "ml-quip": {"when": "@20210702:"}, no quip package
         # "scafacos": {"when": "@20210702:"}, no scafacos package
         # "user-quip": {"when": "@20190201:20210527"}, no quip package
@@ -642,6 +643,13 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         multi=False,
     )
     variant(
+        "heffte",
+        default=False,
+        when="+kspace @20240207:",
+        description="Use heffte as distubuted FFT engine",
+    )
+
+    variant(
         "fft_kokkos",
         default="fftw3",
         when="@20240417: +kspace+kokkos",
@@ -663,6 +671,9 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
     depends_on("mpi", when="+mpi")
     depends_on("mpi", when="+mpiio")
     depends_on("fftw-api@3", when="+kspace fft=fftw3")
+    depends_on("heffte", when="+heffte")
+    depends_on("heffte+fftw", when="+heffte fft=fftw3")
+    depends_on("heffte+mkl", when="+heffte fft=mkl")
     depends_on("mkl", when="+kspace fft=mkl")
     depends_on("hipfft", when="+kokkos+kspace+rocm fft_kokkos=hipfft")
     depends_on("fftw-api@3", when="+kokkos+kspace fft_kokkos=fftw3")
@@ -705,6 +716,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
     depends_on("plumed", when="+plumed")
     depends_on("eigen@3:", when="+user-smd")
     depends_on("eigen@3:", when="+machdyn")
+    depends_on("pace", when="+ml-pace", type="build")
     depends_on("py-cython", when="+mliap+python", type="build")
     depends_on("py-cython", when="+ml-iap+python", type="build")
     depends_on("py-pip", when="+python", type="build")
@@ -927,6 +939,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
 
         if spec.satisfies("+kspace"):
             args.append(self.define_from_variant("FFT", "fft"))
+            args.append(self.define_from_variant("FFT_USE_HEFFTE", "heffte"))
             if spec.satisfies("fft=fftw3 ^armpl-gcc") or spec.satisfies("fft=fftw3 ^acfl"):
                 args.append(self.define("FFTW3_LIBRARY", self.spec["fftw-api"].libs[0]))
                 args.append(
@@ -992,5 +1005,4 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
                 os.environ["LAMMPS_VERSION_FILE"] = join_path(
                     self.stage.source_path, "src", "version.h"
                 )
-                args = std_pip_args + ["--prefix=" + self.prefix, "."]
-                pip(*args)
+                pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")
