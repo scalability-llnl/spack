@@ -92,6 +92,7 @@ class Precice(CMakePackage):
     depends_on("boost@:1.72", when="@:2.0.2")
     depends_on("boost@:1.74", when="@:2.1.1")
     depends_on("boost@:1.78", when="@:2.3.0")
+    depends_on("boost@:1.86", when="@:3.1.2")
 
     depends_on("eigen@3.2:")
     depends_on("eigen@3.4:", when="@3.2:")
