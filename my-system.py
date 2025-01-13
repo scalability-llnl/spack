@@ -43,14 +43,6 @@ def _system_pickles(dst):
         pickle.dump(data, f)
 
 
-class MapLibc:
-    def __init__(self, compiler_save_libc):
-        self.compiler_save_libc = compiler_save_libc
-
-    def simulate_default_libc(self, obj):
-        return self.compiler_save_libc.get(str(obj.spec), None)
-
-
 def _simulate_system(state_dir):
     import pickle
 
