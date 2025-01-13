@@ -6,6 +6,7 @@ import os
 
 import pytest
 
+import spack.binary_distribution as bindist
 import spack.cmd.mirror
 import spack.concretize
 import spack.config
@@ -356,8 +357,10 @@ def test_mirror_destroy(
     install("--no-cache", spec_name)
     buildcache("push", "-u", "-f", mirror_dir.strpath, spec_name)
 
+    blobs_path = bindist.buildcache_relative_blobs_path()
+
     contents = os.listdir(mirror_dir.strpath)
-    assert "build_cache" in contents
+    assert blobs_path in contents
 
     # Destroy mirror by name
     mirror("destroy", "-m", "atest")
@@ -367,7 +370,7 @@ def test_mirror_destroy(
     buildcache("push", "-u", "-f", mirror_dir.strpath, spec_name)
 
     contents = os.listdir(mirror_dir.strpath)
-    assert "build_cache" in contents
+    assert blobs_path in contents
 
     # Destroy mirror by url
     mirror("destroy", "--mirror-url", mirror_url)

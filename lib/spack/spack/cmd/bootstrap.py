@@ -20,6 +20,7 @@ import spack.mirrors.utils
 import spack.stage
 import spack.util.path
 import spack.util.spack_yaml
+from spack.binary_distribution import buildcache_relative_specs_path
 from spack.cmd.common import arguments
 
 description = "manage bootstrap configuration"
@@ -410,7 +411,7 @@ def _mirror(args):
         stage.create()
         stage.fetch()
         stage.expand_archive()
-        build_cache_dir = os.path.join(stage.source_path, "build_cache")
+        build_cache_dir = os.path.join(stage.source_path, buildcache_relative_specs_path())
         shutil.move(build_cache_dir, mirror_dir)
         llnl.util.tty.set_msg_enabled(True)
 

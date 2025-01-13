@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import os
+import shutil
 
 import pytest
 
@@ -37,12 +37,7 @@ def test_build_tarball_overwrite(install_mockery, mock_fetch, monkeypatch, tmp_p
         assert not skipped
 
     # Remove the tarball, which should cause push to push.
-    os.remove(
-        tmp_path
-        / bd.BUILD_CACHE_RELATIVE_PATH
-        / bd.tarball_directory_name(spec)
-        / bd.tarball_name(spec, ".spack")
-    )
+    shutil.rmtree(tmp_path / bd.buildcache_relative_blobs_path())
 
     with bd.make_uploader(mirror) as uploader:
         skipped = uploader.push_or_raise(specs)

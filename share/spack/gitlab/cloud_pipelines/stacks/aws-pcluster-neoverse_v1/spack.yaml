@@ -28,8 +28,9 @@ spack:
     - signing-job:
         before_script:
             # Do not distribute Intel & ARM binaries
-        - - for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/ | grep intel-oneapi | awk '{print $4}' | sed -e 's?^.*build_cache/??g'); do aws s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/$i; done
-          - for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/ | grep armpl | awk '{print $4}' | sed -e 's?^.*build_cache/??g'); do aws s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/build_cache/$i; done
+        - - export SPECS_PATH=${SPACK_BUILDCACHE_RELATIVE_SPECS_PATH}
+          - for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/${SPECS_PATH}/ | grep intel-oneapi | awk '{print $4}' | sed -e "s?^.*${SPECS_PATH}/??g"); do aws s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/${SPECS_PATH}/$i; done
+          - for i in $(aws s3 ls --recursive ${SPACK_REMOTE_MIRROR_OVERRIDE}/${SPECS_PATH}/ | grep armpl | awk '{print $4}' | sed -e "s?^.*${SPECS_PATH}/??g"); do aws s3 rm ${SPACK_REMOTE_MIRROR_OVERRIDE}/${SPECS_PATH}/$i; done
   cdash:
     build-group: AWS Packages
   config:

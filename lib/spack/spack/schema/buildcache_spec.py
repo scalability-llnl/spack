@@ -24,6 +24,9 @@ properties: Dict[str, Any] = {
         "properties": {"hash_algorithm": {"type": "string"}, "hash": {"type": "string"}},
     },
     "buildcache_layout_version": {"type": "number"},
+    "archive_size": {"type": "number"},
+    "archive_timestamp": {"type": "string"},
+    "archive_compression": {"type": "string"},
 }
 
 schema = {

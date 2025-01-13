@@ -8,6 +8,7 @@ import pytest
 
 import llnl.util.filesystem as fs
 
+import spack.binary_distribution as bindist
 import spack.util.executable
 import spack.util.gpg
 from spack.main import SpackCommand
@@ -172,23 +173,25 @@ def test_gpg(tmpdir, mutable_config, mock_gnupghome):
     # Verification should now succeed again.
     gpg("verify", str(test_path))
 
+    relative_keys_path = bindist.buildcache_relative_keys_path()
+
     # Publish the keys using a directory path
     test_path = tmpdir.join("dir_cache")
-    os.makedirs("%s" % test_path)
+    os.makedirs(f"{test_path}")
     gpg("publish", "--rebuild-index", "-d", str(test_path))
-    assert os.path.exists("%s/build_cache/_pgp/index.json" % test_path)
+    assert os.path.exists(f"{test_path}/{relative_keys_path}/index.json")
 
     # Publish the keys using a mirror url
     test_path = tmpdir.join("url_cache")
-    os.makedirs("%s" % test_path)
-    test_url = "file://%s" % test_path
+    os.makedirs(f"{test_path}")
+    test_url = f"file://{test_path}"
     gpg("publish", "--rebuild-index", "--mirror-url", test_url)
-    assert os.path.exists("%s/build_cache/_pgp/index.json" % test_path)
+    assert os.path.exists(f"{test_path}/{relative_keys_path}/index.json")
 
     # Publish the keys using a mirror name
     test_path = tmpdir.join("named_cache")
-    os.makedirs("%s" % test_path)
-    mirror_url = "file://%s" % test_path
+    os.makedirs(f"{test_path}")
+    mirror_url = f"file://{test_path}"
     mirror("add", "gpg", mirror_url)
     gpg("publish", "--rebuild-index", "-m", "gpg")
-    assert os.path.exists("%s/build_cache/_pgp/index.json" % test_path)
+    assert os.path.exists(f"{test_path}/{relative_keys_path}/index.json")

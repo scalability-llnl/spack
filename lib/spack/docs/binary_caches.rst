@@ -45,10 +45,13 @@ provided binary cache, which can be a local directory or a remote URL.
 Here is an example where a build cache is created in a local directory named
 "spack-cache", to which we push the "ninja" spec:
 
+ninja-1.12.1-vmvycib6vmiofkdqgrblo7zsvp7odwut
+
 .. code-block:: console
 
     $ spack buildcache push ./spack-cache ninja
-    ==> Pushing binary packages to file:///home/spackuser/spack/spack-cache/build_cache
+    ==> Pushed ninja@1.12.1/vmvycib
+    ==> Pushed ninja@1.12.1/vmvycibto file:///home/spackuser/spack/spack-cache
 
 Note that ``ninja`` must be installed locally for this to work.
 
@@ -345,18 +348,18 @@ which lets you get started quickly. See the following resources for more informa
 
 Create tarball of installed Spack package and all dependencies.
 Tarballs are checksummed and signed if gpg2 is available.
-Places them in a directory ``build_cache`` that can be copied to a mirror.
-Commands like ``spack buildcache install`` will search Spack mirrors for build_cache to get the list of build caches.
+Places them in a versioned specs directory (e.g. ``v3/specs``) that can be copied to a mirror.
+Commands like ``spack buildcache install`` will search Spack mirrors to get the list of build caches.
 
 ==============  ========================================================================================================================
 Arguments       Description
 ==============  ========================================================================================================================
 ``<specs>``     list of partial specs or hashes with a leading ``/`` to match from installed packages and used for creating build caches
-``-d <path>``   directory in which ``build_cache`` directory is created, defaults to ``.``
-``-f``          overwrite ``.spack`` file in ``build_cache`` directory if it exists
+``-d <path>``   directory in which ``v3/specs`` directory is created, defaults to ``.``
+``-f``          overwrite compressed tarball and spec metadata files if they already exist
 ``-k <key>``    the key to sign package with. In the case where multiple keys exist, the package will be unsigned unless ``-k`` is used.
 ``-r``          make paths in binaries relative before creating tarball
-``-y``          answer yes to all create unsigned ``build_cache`` questions
+``-y``          answer yes to all questions about creating unsigned build caches
 ==============  ========================================================================================================================
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^

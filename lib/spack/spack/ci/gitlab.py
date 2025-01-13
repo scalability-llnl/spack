@@ -292,6 +292,9 @@ def generate_gitlab_yaml(pipeline: PipelineDag, spack_ci: SpackCIConfig, options
     )
     maybe_generate_manifest(pipeline, options, manifest_path)
 
+    relative_specs_path = bindist.buildcache_relative_specs_path()
+    relative_keys_path = bindist.buildcache_relative_keys_path()
+
     if options.pipeline_type == PipelineType.COPY_ONLY:
         stage_names.append("copy")
         sync_job = copy.deepcopy(spack_ci_ir["jobs"]["copy"]["attributes"])
@@ -301,9 +304,12 @@ def generate_gitlab_yaml(pipeline: PipelineDag, spack_ci: SpackCIConfig, options
         if "variables" not in sync_job:
             sync_job["variables"] = {}
 
-        sync_job["variables"][
-            "SPACK_COPY_ONLY_DESTINATION"
-        ] = options.buildcache_destination.fetch_url
+        sync_job["variables"].update(
+            {
+                "SPACK_COPY_ONLY_DESTINATION": options.buildcache_destination.fetch_url,
+                "SPACK_BUILDCACHE_RELATIVE_KEYS_PATH": relative_keys_path,
+            }
+        )
 
         pipeline_mirrors = spack.mirrors.mirror.MirrorCollection(binary=True)
         if "buildcache-source" not in pipeline_mirrors:
@@ -333,9 +339,13 @@ def generate_gitlab_yaml(pipeline: PipelineDag, spack_ci: SpackCIConfig, options
             signing_job["interruptible"] = True
             if "variables" not in signing_job:
                 signing_job["variables"] = {}
-            signing_job["variables"][
-                "SPACK_BUILDCACHE_DESTINATION"
-            ] = options.buildcache_destination.push_url
+            signing_job["variables"].update(
+                {
+                    "SPACK_BUILDCACHE_DESTINATION": options.buildcache_destination.push_url,
+                    "SPACK_BUILDCACHE_RELATIVE_SPECS_PATH": relative_specs_path,
+                    "SPACK_BUILDCACHE_RELATIVE_KEYS_PATH": relative_keys_path,
+                }
+            )
             signing_job["dependencies"] = []
 
             output_object["sign-pkgs"] = signing_job

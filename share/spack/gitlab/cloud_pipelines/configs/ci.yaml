@@ -44,10 +44,12 @@ ci:
       image: { "name": "ghcr.io/spack/notary:latest", "entrypoint": [""] }
       tags: ["aws"]
       script:
-      - - aws s3 sync --exclude "*" --include "*spec.json*" ${SPACK_BUILDCACHE_DESTINATION}/build_cache /tmp
+      - - export BUILD_CACHE="${SPACK_BUILDCACHE_DESTINATION}/${SPACK_BUILDCACHE_RELATIVE_SPECS_PATH}"
+        - export BUILD_CACHE_KEYS="${SPACK_BUILDCACHE_DESTINATION}/${SPACK_BUILDCACHE_RELATIVE_KEYS_PATH}"
+        - aws s3 sync --exclude "*" --include "*spec.json*" ${BUILD_CACHE} /tmp
         - /sign.sh
-        - aws s3 sync --exclude "*" --include "*spec.json.sig*" /tmp ${SPACK_BUILDCACHE_DESTINATION}/build_cache
-        - aws s3 cp /tmp/public_keys ${SPACK_BUILDCACHE_DESTINATION}/build_cache/_pgp --recursive --exclude "*" --include "*.pub"
+        - aws s3 sync --exclude "*" --include "*spec.json.sig*" /tmp ${BUILD_CACHE}
+        - aws s3 cp /tmp/public_keys ${BUILD_CACHE_KEYS} --recursive --exclude "*" --include "*.pub"
       id_tokens:
         GITLAB_OIDC_TOKEN:
           aud: "${OIDC_TOKEN_AUDIENCE}"
@@ -64,7 +66,8 @@ ci:
         - echo Copying environment specs from ${SPACK_COPY_ONLY_SOURCE} to ${SPACK_COPY_ONLY_DESTINATION}
         - spack buildcache sync "${SPACK_COPY_ONLY_SOURCE}" "${SPACK_COPY_ONLY_DESTINATION}"
         - curl -fLsS https://spack.github.io/keys/spack-public-binary-key.pub -o /tmp/spack-public-binary-key.pub
-        - aws s3 cp /tmp/spack-public-binary-key.pub "${SPACK_COPY_ONLY_DESTINATION}/build_cache/_pgp/spack-public-binary-key.pub"
+        - export BUILD_CACHE_KEYS="${SPACK_COPY_ONLY_DESTINATION}/${SPACK_BUILDCACHE_RELATIVE_KEYS_PATH}"
+        - aws s3 cp /tmp/spack-public-binary-key.pub "${BUILD_CACHE_KEYS}/spack-public-binary-key.pub"
         - spack buildcache update-index --keys "${SPACK_COPY_ONLY_DESTINATION}"
       when: "always"
       retry:
