@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -72,7 +71,7 @@ class PySip(PythonPackage):
             "--sip-module={0}".format(spec.variants["module"].value),
             "--bindir={0}".format(prefix.bin),
             "--destdir={0}".format(python_platlib),
-            "--incdir={0}".format(join_path(prefix, spec["python"].package.include)),
+            "--incdir={0}".format(join_path(prefix, self["python"].include)),
             "--sipdir={0}".format(prefix.share.sip),
             "--stubsdir={0}".format(python_platlib),
         ]

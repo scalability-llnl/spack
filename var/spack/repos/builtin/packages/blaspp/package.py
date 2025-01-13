@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -117,8 +116,8 @@ class Blaspp(CMakePackage, CudaPackage, ROCmPackage):
 
     def check(self):
         # If the tester fails to build, ensure that the check() fails.
-        if os.path.isfile(join_path(self.builder.build_directory, "test", "tester")):
-            with working_dir(self.builder.build_directory):
+        if os.path.isfile(join_path(self.build_directory, "test", "tester")):
+            with working_dir(self.build_directory):
                 make("check")
         else:
             raise Exception("The tester was not built!")

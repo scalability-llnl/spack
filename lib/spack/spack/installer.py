@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """This module encapsulates package installation functionality.
@@ -50,12 +49,13 @@ from llnl.util.tty.log import log_output
 
 import spack.binary_distribution as binary_distribution
 import spack.build_environment
+import spack.builder
 import spack.config
 import spack.database
 import spack.deptypes as dt
 import spack.error
 import spack.hooks
-import spack.mirror
+import spack.mirrors.mirror
 import spack.package_base
 import spack.package_prefs as prefs
 import spack.repo
@@ -104,7 +104,7 @@ class BuildStatus(enum.Enum):
 def _write_timer_json(pkg, timer, cache):
     extra_attributes = {"name": pkg.name, "cache": cache, "hash": pkg.spec.dag_hash()}
     try:
-        with open(pkg.times_log_path, "w") as timelog:
+        with open(pkg.times_log_path, "w", encoding="utf-8") as timelog:
             timer.write_json(timelog, extra_attributes=extra_attributes)
     except Exception as e:
         tty.debug(str(e))
@@ -212,7 +212,7 @@ def _check_last_phase(pkg: "spack.package_base.PackageBase") -> None:
     Raises:
         ``BadInstallPhase`` if stop_before or last phase is invalid
     """
-    phases = pkg.builder.phases  # type: ignore[attr-defined]
+    phases = spack.builder.create(pkg).phases  # type: ignore[attr-defined]
     if pkg.stop_before_phase and pkg.stop_before_phase not in phases:  # type: ignore[attr-defined]
         raise BadInstallPhase(pkg.name, pkg.stop_before_phase)  # type: ignore[attr-defined]
 
@@ -490,7 +490,7 @@ def _try_install_from_binary_cache(
         timer: timer to keep track of binary install phases.
     """
     # Early exit if no binary mirrors are configured.
-    if not spack.mirror.MirrorCollection(binary=True):
+    if not spack.mirrors.mirror.MirrorCollection(binary=True):
         return False
 
     tty.debug(f"Searching for binary cache of {package_id(pkg.spec)}")
@@ -539,7 +539,7 @@ def dump_packages(spec: "spack.spec.Spec", path: str) -> None:
     # Note that we copy them in as they are in the *install* directory
     # NOT as they are in the repository, because we want a snapshot of
     # how *this* particular build was done.
-    for node in spec.traverse(deptype=all):
+    for node in spec.traverse(deptype="all"):
         if node is not spec:
             # Locate the dependency package in the install tree and find
             # its provenance information.
@@ -661,7 +661,7 @@ def log(pkg: "spack.package_base.PackageBase") -> None:
             spack.store.STORE.layout.metadata_path(pkg.spec), "archived-files"
         )
 
-        for glob_expr in pkg.builder.archive_files:
+        for glob_expr in spack.builder.create(pkg).archive_files:
             # Check that we are trying to copy things that are
             # in the stage tree (not arbitrary files)
             abs_expr = os.path.realpath(glob_expr)
@@ -691,7 +691,7 @@ def log(pkg: "spack.package_base.PackageBase") -> None:
         if errors.getvalue():
             error_file = os.path.join(target_dir, "errors.txt")
             fs.mkdirp(target_dir)
-            with open(error_file, "w") as err:
+            with open(error_file, "w", encoding="utf-8") as err:
                 err.write(errors.getvalue())
             tty.warn(f"Errors occurred when archiving files.\n\tSee: {error_file}")
 
@@ -2394,7 +2394,6 @@ class BuildProcessInstaller:
         fs.install_tree(pkg.stage.source_path, src_target)
 
     def _real_install(self) -> None:
-        import spack.builder
 
         pkg = self.pkg
 
@@ -2405,7 +2404,7 @@ class BuildProcessInstaller:
 
             # Save just the changes to the environment.  This file can be
             # safely installed, since it does not contain secret variables.
-            with open(pkg.env_mods_path, "w") as env_mods_file:
+            with open(pkg.env_mods_path, "w", encoding="utf-8") as env_mods_file:
                 mods = self.env_mods.shell_modifications(explicit=True, env=self.unmodified_env)
                 env_mods_file.write(mods)
 
@@ -2414,7 +2413,7 @@ class BuildProcessInstaller:
                     configure_args = getattr(pkg, attr)()
                     configure_args = " ".join(configure_args)
 
-                    with open(pkg.configure_args_path, "w") as args_file:
+                    with open(pkg.configure_args_path, "w", encoding="utf-8") as args_file:
                         args_file.write(configure_args)
 
                     break

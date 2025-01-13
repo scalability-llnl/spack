@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -30,6 +29,7 @@ class Boost(Package):
     license("BSL-1.0")
 
     version("develop", branch="develop", submodules=True)
+    version("1.87.0", sha256="af57be25cb4c4f4b413ed692fe378affb4352ea50fbe294a11ef548f4d527d89")
     version("1.86.0", sha256="1bed88e40401b2cb7a1f76d4bab499e352fa4d0c5f31c0dbae64e24d34d7513b")
     version("1.85.0", sha256="7009fe1faa1697476bdc7027703a2badb84e849b7b0baad5086b087b971f8617")
     version("1.84.0", sha256="cc4b893acf645c9d4b698e9a0f08ca8846aa5d6c68275c14c3e7949c24109454")
@@ -288,6 +288,9 @@ class Boost(Package):
     # boost-python in 1.72.0 broken with cxxstd=98
     conflicts("cxxstd=98", when="+mpi+python @1.72.0")
 
+    # boost-mpi depends on boost-python since 1.87.0
+    conflicts("~python", when="+mpi @1.87.0:")
+
     # Container's Extended Allocators were not added until 1.56.0
     conflicts("+container", when="@:1.55")
 
@@ -329,11 +332,6 @@ class Boost(Package):
 
     # Patch fix from https://svn.boost.org/trac/boost/ticket/10125
     patch("call_once_variadic.patch", when="@1.54.0:1.55%gcc@5.0:")
-
-    # Patch fix for PGI compiler
-    patch("boost_1.67.0_pgi.patch", when="@1.67.0:1.68%pgi")
-    patch("boost_1.63.0_pgi.patch", when="@1.63.0%pgi")
-    patch("boost_1.63.0_pgi_17.4_workaround.patch", when="@1.63.0%pgi@17.4")
 
     # Patch to override the PGI toolset when using the NVIDIA compilers
     patch("nvhpc-1.74.patch", when="@1.74.0:1.75%nvhpc")
@@ -446,6 +444,14 @@ class Boost(Package):
         when="@1.82.0 platform=windows",
     )
 
+    # https://github.com/boostorg/context/pull/280
+    patch(
+        "https://github.com/boostorg/context/commit/d11cbccc87da5d6d41c04f3949e18d49c43e62fc.patch?full_index=1",
+        sha256="e2d37f9e35e8e238977de9af32604a8e1c2648d153df1d568935a20216b5c67f",
+        when="@1.87.0",
+        working_dir="libs/context",
+    )
+
     def patch(self):
         # Disable SSSE3 and AVX2 when using the NVIDIA compiler
         if self.spec.satisfies("%nvhpc"):
@@ -453,7 +459,6 @@ class Boost(Package):
             filter_file("<define>BOOST_LOG_USE_AVX2", "", "libs/log/build/Jamfile.v2")
             filter_file("dump_ssse3", "", "libs/log/build/Jamfile.v2")
             filter_file("<define>BOOST_LOG_USE_SSSE3", "", "libs/log/build/Jamfile.v2")
-
             filter_file("-fast", "-O1", "tools/build/src/tools/pgi.jam")
             filter_file("-fast", "-O1", "tools/build/src/engine/build.sh")
 
@@ -484,7 +489,6 @@ class Boost(Package):
             "%arm": "clang",
             "%xl": "xlcpp",
             "%xl_r": "xlcpp",
-            "%pgi": "pgi",
             "%nvhpc": "pgi",
             "%fj": "clang",
         }
@@ -829,18 +833,6 @@ class Boost(Package):
 
     def setup_run_environment(self, env):
         env.set("BOOST_ROOT", self.prefix)
-
-    def setup_dependent_package(self, module, dependent_spec):
-        # Disable find package's config mode for versions of Boost that
-        # didn't provide it. See https://github.com/spack/spack/issues/20169
-        # and https://cmake.org/cmake/help/latest/module/FindBoost.html
-        if self.spec.satisfies("boost@:1.69.0") and dependent_spec.satisfies("build_system=cmake"):
-            args_fn = type(dependent_spec.package.builder).cmake_args
-
-            def _cmake_args(self):
-                return ["-DBoost_NO_BOOST_CMAKE=ON"] + args_fn(self)
-
-            type(dependent_spec.package.builder).cmake_args = _cmake_args
 
     def setup_dependent_build_environment(self, env, dependent_spec):
         if "+context" in self.spec and "context-impl" in self.spec.variants:

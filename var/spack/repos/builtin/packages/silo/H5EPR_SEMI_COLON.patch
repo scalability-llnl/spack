@@ -1,50 +1,38 @@
 diff --git a/src/hdf5_drv/H5FDsilo.c b/src/hdf5_drv/H5FDsilo.c
+index 840dfd0..0153e18 100644
 --- a/src/hdf5_drv/H5FDsilo.c
 +++ b/src/hdf5_drv/H5FDsilo.c
-@@ -243,6 +243,12 @@
-     return tmp;
- }
- 
-+#if HDF5_VERSION_GE(1,10,8)
-+#define H5EPR_SEMI_COLON ;
-+#else
-+#define H5EPR_SEMI_COLON
-+#endif
-+
- 
- #ifdef H5_HAVE_SNPRINTF
- #define H5E_PUSH_HELPER(Func,Cls,Maj,Min,Msg,Ret,Errno)			\
-@@ -252,13 +258,13 @@
+@@ -255,13 +255,13 @@ static const char *flavors(H5F_mem_t m)
          snprintf(msg, sizeof(msg), Msg "(errno=%d, \"%s\")",	\
              Errno, strerror(Errno));					\
      ret_value = Ret;							\
 -    H5Epush_ret(Func, Cls, Maj, Min, msg, Ret)				\
-+    H5Epush_ret(Func, Cls, Maj, Min, msg, Ret) H5EPR_SEMI_COLON		\
++    H5Epush_ret(Func, Cls, Maj, Min, msg, Ret) ;				\
  }
  #else
  #define H5E_PUSH_HELPER(Func,Cls,Maj,Min,Msg,Ret,Errno)			\
  {									\
      ret_value = Ret;							\
 -    H5Epush_ret(Func, Cls, Maj, Min, Msg, Ret)				\
-+    H5Epush_ret(Func, Cls, Maj, Min, Msg, Ret) H5EPR_SEMI_COLON		\
++    H5Epush_ret(Func, Cls, Maj, Min, Msg, Ret) ;				\
  }
  #endif
  
-@@ -1355,7 +1368,7 @@
+@@ -1308,7 +1308,7 @@ H5FD_silo_sb_encode(H5FD_t *_file, char *name/*out*/,
      assert(sizeof(hsize_t)<=8);
      memcpy(p, &file->block_size, sizeof(hsize_t));
      if (H5Tconvert(H5T_NATIVE_HSIZE, H5T_STD_U64LE, 1, buf+8, NULL, H5P_DEFAULT)<0)
 -        H5Epush_ret(func, H5E_ERR_CLS, H5E_DATATYPE, H5E_CANTCONVERT, "can't convert superblock info", -1)
-+        H5Epush_ret(func, H5E_ERR_CLS, H5E_DATATYPE, H5E_CANTCONVERT, "can't convert superblock info", -1) H5EPR_SEMI_COLON
++        H5Epush_ret(func, H5E_ERR_CLS, H5E_DATATYPE, H5E_CANTCONVERT, "can't convert superblock info", -1) ;
  
      return 0;
  }
-@@ -1383,14 +1396,14 @@
+@@ -1336,14 +1336,14 @@ H5FD_silo_sb_decode(H5FD_t *_file, const char *name, const unsigned char *buf)
  
      /* Make sure the name/version number is correct */
      if (strcmp(name, "LLNLsilo"))
 -        H5Epush_ret(func, H5E_ERR_CLS, H5E_FILE, H5E_BADVALUE, "invalid silo superblock", -1)
-+        H5Epush_ret(func, H5E_ERR_CLS, H5E_FILE, H5E_BADVALUE, "invalid silo superblock", -1) H5EPR_SEMI_COLON
++        H5Epush_ret(func, H5E_ERR_CLS, H5E_FILE, H5E_BADVALUE, "invalid silo superblock", -1) ;
  
      buf += 8;
      /* Decode block size */
@@ -52,7 +40,7 @@ diff --git a/src/hdf5_drv/H5FDsilo.c b/src/hdf5_drv/H5FDsilo.c
      memcpy(x, buf, 8);
      if (H5Tconvert(H5T_STD_U64LE, H5T_NATIVE_HSIZE, 1, x, NULL, H5P_DEFAULT)<0)
 -        H5Epush_ret(func, H5E_ERR_CLS, H5E_DATATYPE, H5E_CANTCONVERT, "can't convert superblock info", -1)
-+        H5Epush_ret(func, H5E_ERR_CLS, H5E_DATATYPE, H5E_CANTCONVERT, "can't convert superblock info", -1) H5EPR_SEMI_COLON
++        H5Epush_ret(func, H5E_ERR_CLS, H5E_DATATYPE, H5E_CANTCONVERT, "can't convert superblock info", -1) ;
      ap = (hsize_t*)x;
      /*file->block_size = *ap; ignore stored value for now */
  

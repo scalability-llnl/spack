@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """
@@ -59,7 +58,21 @@ import platform
 import re
 import socket
 import warnings
-from typing import Any, Callable, Dict, List, Match, Optional, Set, Tuple, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Match,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+    overload,
+)
+
+from typing_extensions import Literal
 
 import archspec.cpu
 
@@ -77,14 +90,14 @@ import spack.config
 import spack.deptypes as dt
 import spack.error
 import spack.hash_types as ht
-import spack.parser
 import spack.paths
 import spack.platforms
 import spack.provider_index
 import spack.repo
 import spack.solver
+import spack.spec_parser
 import spack.store
-import spack.traverse as traverse
+import spack.traverse
 import spack.util.executable
 import spack.util.hash
 import spack.util.module_cmd as md
@@ -94,6 +107,8 @@ import spack.util.spack_yaml as syaml
 import spack.variant as vt
 import spack.version as vn
 import spack.version.git_ref_lookup
+
+from .enums import InstallRecordStatus
 
 __all__ = [
     "CompilerSpec",
@@ -610,7 +625,7 @@ class CompilerSpec:
             # If there is one argument, it's either another CompilerSpec
             # to copy or a string to parse
             if isinstance(arg, str):
-                spec = spack.parser.parse_one_or_raise(f"%{arg}")
+                spec = spack.spec_parser.parse_one_or_raise(f"%{arg}")
                 self.name = spec.compiler.name
                 self.versions = spec.compiler.versions
 
@@ -948,11 +963,13 @@ class FlagMap(lang.HashableMap):
         for flag_type, flags in sorted_items:
             normal = [f for f in flags if not f.propagate]
             if normal:
-                result += f" {flag_type}={spack.parser.quote_if_needed(' '.join(normal))}"
+                value = spack.spec_parser.quote_if_needed(" ".join(normal))
+                result += f" {flag_type}={value}"
 
             propagated = [f for f in flags if f.propagate]
             if propagated:
-                result += f" {flag_type}=={spack.parser.quote_if_needed(' '.join(propagated))}"
+                value = spack.spec_parser.quote_if_needed(" ".join(propagated))
+                result += f" {flag_type}=={value}"
 
         # TODO: somehow add this space only if something follows in Spec.format()
         if sorted_items:
@@ -1336,16 +1353,16 @@ def tree(
     depth: bool = False,
     hashes: bool = False,
     hashlen: Optional[int] = None,
-    cover: str = "nodes",
+    cover: spack.traverse.CoverType = "nodes",
     indent: int = 0,
     format: str = DEFAULT_FORMAT,
-    deptypes: Union[Tuple[str, ...], str] = "all",
+    deptypes: Union[dt.DepFlag, dt.DepTypes] = dt.ALL,
     show_types: bool = False,
     depth_first: bool = False,
     recurse_dependencies: bool = True,
     status_fn: Optional[Callable[["Spec"], InstallStatus]] = None,
     prefix: Optional[Callable[["Spec"], str]] = None,
-    key=id,
+    key: Callable[["Spec"], Any] = id,
 ) -> str:
     """Prints out specs and their dependencies, tree-formatted with indentation.
 
@@ -1377,11 +1394,16 @@ def tree(
     # reduce deptypes over all in-edges when covering nodes
     if show_types and cover == "nodes":
         deptype_lookup: Dict[str, dt.DepFlag] = collections.defaultdict(dt.DepFlag)
-        for edge in traverse.traverse_edges(specs, cover="edges", deptype=deptypes, root=False):
+        for edge in spack.traverse.traverse_edges(
+            specs, cover="edges", deptype=deptypes, root=False
+        ):
             deptype_lookup[edge.spec.dag_hash()] |= edge.depflag
 
-    for d, dep_spec in traverse.traverse_tree(
-        sorted(specs), cover=cover, deptype=deptypes, depth_first=depth_first, key=key
+    # SupportsRichComparisonT issue with List[Spec]
+    sorted_specs: List["Spec"] = sorted(specs)  # type: ignore[type-var]
+
+    for d, dep_spec in spack.traverse.traverse_tree(
+        sorted_specs, cover=cover, deptype=deptypes, depth_first=depth_first, key=key
     ):
         node = dep_spec.spec
 
@@ -1429,10 +1451,6 @@ def tree(
 
 @lang.lazy_lexicographic_ordering(set_hash=False)
 class Spec:
-    #: Cache for spec's prefix, computed lazily in the corresponding property
-    _prefix = None
-    abstract_hash = None
-
     @staticmethod
     def default_arch():
         """Return an anonymous spec for the default architecture"""
@@ -1440,27 +1458,17 @@ class Spec:
         s.architecture = ArchSpec.default_arch()
         return s
 
-    def __init__(
-        self,
-        spec_like=None,
-        normal=False,
-        concrete=False,
-        external_path=None,
-        external_modules=None,
-    ):
+    def __init__(self, spec_like=None, *, external_path=None, external_modules=None):
         """Create a new Spec.
 
         Arguments:
-            spec_like (optional string): if not provided, we initialize
-                an anonymous Spec that matches any Spec object; if
-                provided we parse this as a Spec string.
+            spec_like: if not provided, we initialize an anonymous Spec that matches any Spec;
+                if provided we parse this as a Spec string, or we copy the provided Spec.
 
         Keyword arguments:
-        # assign special fields from constructor
-        self._normal = normal
-        self._concrete = concrete
-        self.external_path = external_path
-        self.external_module = external_module
+            external_path: prefix, if this is a spec for an external package
+            external_modules: list of external modules, if this is an external package
+                using modules.
         """
         # Copy if spec_like is a Spec.
         if isinstance(spec_like, Spec):
@@ -1477,10 +1485,14 @@ class Spec:
         self._dependents = _EdgeMap(store_by_child=False)
         self._dependencies = _EdgeMap(store_by_child=True)
         self.namespace = None
+        self.abstract_hash = None
 
         # initial values for all spec hash types
         for h in ht.hashes:
             setattr(self, h.attr, None)
+
+        # cache for spec's prefix, computed lazily by prefix property
+        self._prefix = None
 
         # Python __hash__ is handled separately from the cached spec hashes
         self._dunder_hash = None
@@ -1488,15 +1500,11 @@ class Spec:
         # cache of package for this spec
         self._package = None
 
-        # Most of these are internal implementation details that can be
-        # set by internal Spack calls in the constructor.
-        #
-        # For example, Specs are by default not assumed to be normal, but
-        # in some cases we've read them from a file want to assume
-        # normal.  This allows us to manipulate specs that Spack doesn't
-        # have package.py files for.
-        self._normal = normal
-        self._concrete = concrete
+        # whether the spec is concrete or not; set at the end of concretization
+        self._concrete = False
+
+        # External detection details that can be set by internal Spack calls
+        # in the constructor.
         self._external_path = external_path
         self.external_modules = Spec._format_module_list(external_modules)
 
@@ -1511,7 +1519,7 @@ class Spec:
         self._build_spec = None
 
         if isinstance(spec_like, str):
-            spack.parser.parse_one_or_raise(spec_like, self)
+            spack.spec_parser.parse_one_or_raise(spec_like, self)
 
         elif spec_like is not None:
             raise TypeError("Can't make spec out of %s" % type(spec_like))
@@ -1938,13 +1946,111 @@ class Spec:
         upstream, _ = spack.store.STORE.db.query_by_spec_hash(self.dag_hash())
         return upstream
 
-    def traverse(self, **kwargs):
-        """Shorthand for :meth:`~spack.traverse.traverse_nodes`"""
-        return traverse.traverse_nodes([self], **kwargs)
+    @overload
+    def traverse(
+        self,
+        *,
+        root: bool = ...,
+        order: spack.traverse.OrderType = ...,
+        cover: spack.traverse.CoverType = ...,
+        direction: spack.traverse.DirectionType = ...,
+        deptype: Union[dt.DepFlag, dt.DepTypes] = ...,
+        depth: Literal[False] = False,
+        key: Callable[["Spec"], Any] = ...,
+        visited: Optional[Set[Any]] = ...,
+    ) -> Iterable["Spec"]: ...
 
-    def traverse_edges(self, **kwargs):
+    @overload
+    def traverse(
+        self,
+        *,
+        root: bool = ...,
+        order: spack.traverse.OrderType = ...,
+        cover: spack.traverse.CoverType = ...,
+        direction: spack.traverse.DirectionType = ...,
+        deptype: Union[dt.DepFlag, dt.DepTypes] = ...,
+        depth: Literal[True],
+        key: Callable[["Spec"], Any] = ...,
+        visited: Optional[Set[Any]] = ...,
+    ) -> Iterable[Tuple[int, "Spec"]]: ...
+
+    def traverse(
+        self,
+        *,
+        root: bool = True,
+        order: spack.traverse.OrderType = "pre",
+        cover: spack.traverse.CoverType = "nodes",
+        direction: spack.traverse.DirectionType = "children",
+        deptype: Union[dt.DepFlag, dt.DepTypes] = "all",
+        depth: bool = False,
+        key: Callable[["Spec"], Any] = id,
+        visited: Optional[Set[Any]] = None,
+    ) -> Iterable[Union["Spec", Tuple[int, "Spec"]]]:
+        """Shorthand for :meth:`~spack.traverse.traverse_nodes`"""
+        return spack.traverse.traverse_nodes(
+            [self],
+            root=root,
+            order=order,
+            cover=cover,
+            direction=direction,
+            deptype=deptype,
+            depth=depth,
+            key=key,
+            visited=visited,
+        )
+
+    @overload
+    def traverse_edges(
+        self,
+        *,
+        root: bool = ...,
+        order: spack.traverse.OrderType = ...,
+        cover: spack.traverse.CoverType = ...,
+        direction: spack.traverse.DirectionType = ...,
+        deptype: Union[dt.DepFlag, dt.DepTypes] = ...,
+        depth: Literal[False] = False,
+        key: Callable[["Spec"], Any] = ...,
+        visited: Optional[Set[Any]] = ...,
+    ) -> Iterable[DependencySpec]: ...
+
+    @overload
+    def traverse_edges(
+        self,
+        *,
+        root: bool = ...,
+        order: spack.traverse.OrderType = ...,
+        cover: spack.traverse.CoverType = ...,
+        direction: spack.traverse.DirectionType = ...,
+        deptype: Union[dt.DepFlag, dt.DepTypes] = ...,
+        depth: Literal[True],
+        key: Callable[["Spec"], Any] = ...,
+        visited: Optional[Set[Any]] = ...,
+    ) -> Iterable[Tuple[int, DependencySpec]]: ...
+
+    def traverse_edges(
+        self,
+        *,
+        root: bool = True,
+        order: spack.traverse.OrderType = "pre",
+        cover: spack.traverse.CoverType = "nodes",
+        direction: spack.traverse.DirectionType = "children",
+        deptype: Union[dt.DepFlag, dt.DepTypes] = "all",
+        depth: bool = False,
+        key: Callable[["Spec"], Any] = id,
+        visited: Optional[Set[Any]] = None,
+    ) -> Iterable[Union[DependencySpec, Tuple[int, DependencySpec]]]:
         """Shorthand for :meth:`~spack.traverse.traverse_edges`"""
-        return traverse.traverse_edges([self], **kwargs)
+        return spack.traverse.traverse_edges(
+            [self],
+            root=root,
+            order=order,
+            cover=cover,
+            direction=direction,
+            deptype=deptype,
+            depth=depth,
+            key=key,
+            visited=visited,
+        )
 
     @property
     def short_spec(self):
@@ -2071,7 +2177,7 @@ class Spec:
         # First env, then store, then binary cache
         matches = (
             (active_env.all_matching_specs(self) if active_env else [])
-            or spack.store.STORE.db.query(self, installed=any)
+            or spack.store.STORE.db.query(self, installed=InstallRecordStatus.ANY)
             or spack.binary_distribution.BinaryCacheQuery(True)(self)
         )
 
@@ -2406,7 +2512,7 @@ class Spec:
     @staticmethod
     def from_specfile(path):
         """Construct a spec from a JSON or YAML spec file path"""
-        with open(path, "r") as fd:
+        with open(path, "r", encoding="utf-8") as fd:
             file_content = fd.read()
             if path.endswith(".json"):
                 return Spec.from_json(file_content)
@@ -2828,7 +2934,7 @@ class Spec:
             msg += "    For each package listed, choose another spec\n"
             raise SpecDeprecatedError(msg)
 
-    def concretize(self, tests: Union[bool, List[str]] = False) -> None:
+    def concretize(self, tests: Union[bool, Iterable[str]] = False) -> None:
         """Concretize the current spec.
 
         Args:
@@ -2872,7 +2978,6 @@ class Spec:
         """Mark just this spec (not dependencies) concrete."""
         if (not value) and self.concrete and self.installed:
             return
-        self._normal = value
         self._concrete = value
         self._validate_version()
 
@@ -2907,7 +3012,7 @@ class Spec:
             if (not value) and s.concrete and s.installed:
                 continue
             elif not value:
-                s.clear_cached_hashes()
+                s.clear_caches()
             s._mark_root_concrete(value)
 
     def _finalize_concretization(self):
@@ -2956,7 +3061,7 @@ class Spec:
         for spec in self.traverse():
             spec._cached_hash(ht.dag_hash)
 
-    def concretized(self, tests=False):
+    def concretized(self, tests: Union[bool, Iterable[str]] = False) -> "Spec":
         """This is a non-destructive version of concretize().
 
         First clones, then returns a concrete version of this package
@@ -3020,7 +3125,12 @@ class Spec:
         pkg_variants = pkg_cls.variant_names()
         # reserved names are variants that may be set on any package
         # but are not necessarily recorded by the package's class
-        not_existing = set(spec.variants) - (set(pkg_variants) | set(vt.reserved_names))
+        propagate_variants = [name for name, variant in spec.variants.items() if variant.propagate]
+
+        not_existing = set(spec.variants) - (
+            set(pkg_variants) | set(vt.reserved_names) | set(propagate_variants)
+        )
+
         if not_existing:
             raise vt.UnknownVariantError(
                 f"No such variant {not_existing} for spec: '{spec}'", list(not_existing)
@@ -3047,6 +3157,10 @@ class Spec:
                 raise spack.error.UnsatisfiableSpecError(self, other, "constrain a concrete spec")
 
         other = self._autospec(other)
+        if other.concrete and other.satisfies(self):
+            self._dup(other)
+            return True
+
         if other.abstract_hash:
             if not self.abstract_hash or other.abstract_hash.startswith(self.abstract_hash):
                 self.abstract_hash = other.abstract_hash
@@ -3525,7 +3639,6 @@ class Spec:
                 and self.architecture != other.architecture
                 and self.compiler != other.compiler
                 and self.variants != other.variants
-                and self._normal != other._normal
                 and self.concrete != other.concrete
                 and self.external_path != other.external_path
                 and self.external_modules != other.external_modules
@@ -3571,20 +3684,17 @@ class Spec:
                 depflag = dt.canonicalize(deps)
             self._dup_deps(other, depflag)
 
+        self._prefix = other._prefix
         self._concrete = other._concrete
 
         self.abstract_hash = other.abstract_hash
 
         if self._concrete:
             self._dunder_hash = other._dunder_hash
-            self._normal = other._normal
             for h in ht.hashes:
                 setattr(self, h.attr, getattr(other, h.attr, None))
         else:
             self._dunder_hash = None
-            # Note, we could use other._normal if we are copying all deps, but
-            # always set it False here to avoid the complexity of checking
-            self._normal = False
             for h in ht.hashes:
                 setattr(self, h.attr, None)
 
@@ -4112,10 +4222,10 @@ class Spec:
         depth: bool = False,
         hashes: bool = False,
         hashlen: Optional[int] = None,
-        cover: str = "nodes",
+        cover: spack.traverse.CoverType = "nodes",
         indent: int = 0,
         format: str = DEFAULT_FORMAT,
-        deptypes: Union[Tuple[str, ...], str] = "all",
+        deptypes: Union[dt.DepTypes, dt.DepFlag] = dt.ALL,
         show_types: bool = False,
         depth_first: bool = False,
         recurse_dependencies: bool = True,
@@ -4247,7 +4357,7 @@ class Spec:
         for ancestor in ancestors_in_context:
             # Only set it if it hasn't been spliced before
             ancestor._build_spec = ancestor._build_spec or ancestor.copy()
-            ancestor.clear_cached_hashes(ignore=(ht.package_hash.attr,))
+            ancestor.clear_caches(ignore=(ht.package_hash.attr,))
             for edge in ancestor.edges_to_dependencies(depflag=dt.BUILD):
                 if edge.depflag & ~dt.BUILD:
                     edge.depflag &= ~dt.BUILD
@@ -4441,7 +4551,7 @@ class Spec:
 
         return spec
 
-    def clear_cached_hashes(self, ignore=()):
+    def clear_caches(self, ignore=()):
         """
         Clears all cached hashes in a Spec, while preserving other properties.
         """
@@ -4449,7 +4559,9 @@ class Spec:
             if h.attr not in ignore:
                 if hasattr(self, h.attr):
                     setattr(self, h.attr, None)
-        self._dunder_hash = None
+        for attr in ("_dunder_hash", "_prefix"):
+            if attr not in ignore:
+                setattr(self, attr, None)
 
     def __hash__(self):
         # If the spec is concrete, we leverage the process hash and just use
@@ -4525,8 +4637,69 @@ class VariantMap(lang.HashableMap):
         # Set the item
         super().__setitem__(vspec.name, vspec)
 
-    def satisfies(self, other):
-        return all(k in self and self[k].satisfies(other[k]) for k in other)
+    def partition_variants(self):
+        non_prop, prop = lang.stable_partition(self.values(), lambda x: not x.propagate)
+        # Just return the names
+        non_prop = [x.name for x in non_prop]
+        prop = [x.name for x in prop]
+        return non_prop, prop
+
+    def satisfies(self, other: "VariantMap") -> bool:
+        if self.spec.concrete:
+            return self._satisfies_when_self_concrete(other)
+        return self._satisfies_when_self_abstract(other)
+
+    def _satisfies_when_self_concrete(self, other: "VariantMap") -> bool:
+        non_propagating, propagating = other.partition_variants()
+        result = all(
+            name in self and self[name].satisfies(other[name]) for name in non_propagating
+        )
+        if not propagating:
+            return result
+
+        for node in self.spec.traverse():
+            if not all(
+                node.variants[name].satisfies(other[name])
+                for name in propagating
+                if name in node.variants
+            ):
+                return False
+        return result
+
+    def _satisfies_when_self_abstract(self, other: "VariantMap") -> bool:
+        other_non_propagating, other_propagating = other.partition_variants()
+        self_non_propagating, self_propagating = self.partition_variants()
+
+        # First check variants without propagation set
+        result = all(
+            name in self_non_propagating
+            and (self[name].propagate or self[name].satisfies(other[name]))
+            for name in other_non_propagating
+        )
+        if result is False or (not other_propagating and not self_propagating):
+            return result
+
+        # Check that self doesn't contradict variants propagated by other
+        if other_propagating:
+            for node in self.spec.traverse():
+                if not all(
+                    node.variants[name].satisfies(other[name])
+                    for name in other_propagating
+                    if name in node.variants
+                ):
+                    return False
+
+        # Check that other doesn't contradict variants propagated by self
+        if self_propagating:
+            for node in other.spec.traverse():
+                if not all(
+                    node.variants[name].satisfies(self[name])
+                    for name in self_propagating
+                    if name in node.variants
+                ):
+                    return False
+
+        return result
 
     def intersects(self, other):
         return all(self[k].intersects(other[k]) for k in other if k in self)
@@ -5021,7 +5194,7 @@ def save_dependency_specfiles(root: Spec, output_directory: str, dependencies: L
 
         json_path = os.path.join(output_directory, f"{spec.name}.json")
 
-        with open(json_path, "w") as fd:
+        with open(json_path, "w", encoding="utf-8") as fd:
             fd.write(spec.to_json(hash=ht.dag_hash))
 
 
