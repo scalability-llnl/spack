@@ -18,7 +18,7 @@ spack:
     celeritas:
       require: +geant4 +hepmc3 +openmp +root +shared cxxstd=20
     root:
-      require: +davix +dcache +examples +fftw +fits +fortran +gdml +graphviz +gsl +http +math +minuit +mlp +mysql +opengl +postgres +pythia8 +python +r +roofit +root7 +rpath ~shadow +spectrum +sqlite +ssl +tbb +threads +tmva +tmva-cpu +unuran +vc +vdt +veccore +webgui +x +xml +xrootd
+      require: +davix +dcache +examples +fftw +fits +fortran +gdml +graphviz +gsl +http +math +minuit +mlp +mysql +opengl +postgres +pythia8 +python +r +roofit +root7 +rpath ~shadow +spectrum +sqlite +ssl +tbb +threads +tmva +tmva-cpu +unuran +vc +vdt +veccore +webgui +x +xml +xrootd cxxstd=20
     vecgeom:
       require: +gdml +geant4 +root
 
