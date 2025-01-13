@@ -422,9 +422,6 @@ class FailureTracker:
     #: root directory of the failure tracker
     dir: pathlib.Path
 
-    #: whether the root directory has been created
-    created: bool
-
     #: File for locking particular concrete spec hashes
     locker: SpecLocker
 
