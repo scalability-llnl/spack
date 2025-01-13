@@ -597,6 +597,10 @@ class Hip(CMakePackage):
             # should find llvm-amdgpu
             self.define("LLVM_ROOT", self.spec["llvm-amdgpu"].prefix),
             self.define("Clang_ROOT", self.spec["llvm-amdgpu"].prefix),
+            # Use the new behaviour of the policy CMP0074
+            # (https://cmake.org/cmake/help/latest/policy/CMP0074.html) which will search
+            # "prefixes specified by the <PackageName>_ROOT CMake variable".
+            self.define("CMAKE_POLICY_DEFAULT_CMP0074", "NEW"),
         ]
         if self.spec.satisfies("+rocm"):
             args.append(self.define("HSA_PATH", self.spec["hsa-rocr-dev"].prefix))
