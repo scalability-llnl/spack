@@ -7,7 +7,7 @@ import sys
 from spack.package import *
 
 
-class Gaudi(CMakePackage):
+class Gaudi(CMakePackage, CUDAPackage):
     """An experiment-independent HEP event data processing framework"""
 
     homepage = "https://gaudi.web.cern.ch/gaudi/"
@@ -17,6 +17,7 @@ class Gaudi(CMakePackage):
     tags = ["hep"]
 
     version("master", branch="master")
+    version("39.2", sha256="9697f5092df49187e3d30256c821a4400534e77ddaa2d976ba4bb22745c904d6")
     version("39.1", sha256="acdeddcc2383a127b1ad4b0bdaf9f1c6699b64105e0c1d8095c560c96c157885")
     version("39.0", sha256="faa3653e2e6c769292c0592e3fc35cd98a2820bd6fc0c967cac565808b927262")
     version("38.3", sha256="47e8c65ea446656d2dae54a32205525e08257778cf80f9f029cd244d6650486e")
@@ -46,6 +47,7 @@ class Gaudi(CMakePackage):
     depends_on("cxx", type="build")
 
     conflicts("%gcc@:10", when="@39:", msg="Gaudi needs a c++20 capable compiler for this version")
+    conflicts("+cuda", when="@:39.1", msg="Gaudi CUDA is only available in version 39.2 and later")
 
     maintainers("drbenmorgan", "vvolkl", "jmcarcell")
 
@@ -150,6 +152,7 @@ class Gaudi(CMakePackage):
             self.define_from_variant("GAUDI_BUILD_EXAMPLES", "examples"),
             self.define_from_variant("GAUDI_USE_AIDA", "aida"),
             self.define_from_variant("GAUDI_USE_CPPUNIT", "cppunit"),
+            self.define_from_variant("GAUDI_USE_CUDA", "cuda"),
             self.define_from_variant("GAUDI_ENABLE_GAUDIALG", "gaudialg"),
             self.define_from_variant("GAUDI_USE_GPERFTOOLS", "gperftools"),
             self.define_from_variant("GAUDI_USE_HEPPDT", "heppdt"),
