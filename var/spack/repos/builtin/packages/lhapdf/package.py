@@ -61,7 +61,7 @@ class Lhapdf(AutotoolsPackage):
         args = ["FCFLAGS=-O3", "CFLAGS=-O3", "CXXFLAGS=-O3"]
 
         if self.spec.satisfies("@6.5.5:"):
-            args.append(f"--with-yaml-cpp={self.spec.prefix['yaml-cpp']}")
+            args.append(f"--with-yaml-cpp={self.spec['yaml-cpp'].prefix}")
 
         if self.spec.satisfies("+python"):
             args.append(
