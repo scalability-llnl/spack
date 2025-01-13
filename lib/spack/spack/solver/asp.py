@@ -2710,8 +2710,7 @@ class SpackSolverSetup:
         if env:
             dev_specs = tuple(
                 spack.spec.Spec(info["spec"]).constrained(
-                    "dev_path=%s"
-                    % spack.util.path.canonicalize_path(info["path"], default_wd=env.path)
+                    f'dev_path="{spack.util.path.canonicalize_path(info["path"], default_wd=env.path)}"'
                 )
                 for name, info in env.dev_specs.items()
             )
