@@ -70,6 +70,14 @@ class Spdlog(CMakePackage):
         when="@1.11.0 ^fmt@10:",
     )
 
+    # spdlog@1.15.0 with fmt@11  https://github.com/gabime/spdlog/pull/3314
+    patch(
+        "https://github.com/gabime/spdlog/commit/96a8f6250cbf4e8c76387c614f666710a2fa9bad.patch?full_index=1",
+        sha256="5ed92f4c131fd31eb3d28390615ecff3ade3789cdecfd3db18cadb07cc8095e3",
+        when="@1.12.0:1.15.0",
+    )
+    conflicts("^fmt@11.1:", when="@:1.11")
+
     def cmake_args(self):
         args = []
 
