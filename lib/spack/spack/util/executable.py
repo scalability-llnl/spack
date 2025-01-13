@@ -342,7 +342,7 @@ class Executable:
 
 @overload
 def which_string(
-    *args: str, path: Optional[Union[List[str], str]] = ..., required: Literal[True] = ...
+    *args: str, path: Optional[Union[List[str], str]] = ..., required: Literal[True]
 ) -> str: ...
 
 
@@ -407,7 +407,7 @@ def which_string(
 
 @overload
 def which(
-    *args: str, path: Optional[Union[List[str], str]] = ..., required: Literal[True] = ...
+    *args: str, path: Optional[Union[List[str], str]] = ..., required: Literal[True]
 ) -> Executable: ...
 
 
