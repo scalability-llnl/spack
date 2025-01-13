@@ -47,6 +47,9 @@ spack:
   - lhapdf +python
   - madgraph5amc
   - opendatadetector
+  - pandoramonitoring
+  - pandorapfa
+  - pandorasdk
   - podio +rntuple +sio
   - py-awkward
   - py-boost-histogram
