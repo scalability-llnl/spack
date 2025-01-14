@@ -31,7 +31,7 @@ spack:
   specs:
   # CPU
   - acts +analysis +dd4hep +edm4hep +examples +fatras +geant4 +hepmc3 +podio +pythia8 +python +tgeo cxxstd=20
-  - agile
+  #- agile  # fails on c++>11 compiler
   - alpgen
   - ampt
   - apfel +lhapdf +python
