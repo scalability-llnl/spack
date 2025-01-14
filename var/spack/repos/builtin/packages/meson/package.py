@@ -179,6 +179,8 @@ class Meson(PythonPackage):
         # https://github.com/pybind/pybind11/issues/595
         if self.spec.satisfies("platform=darwin"):
             env.set("STRIP", "strip -x")
+        if self.spec.satisfies("platform=windows"):
+            env.prepend_path("PATH", self.spec.prefix.scripts)
 
     def _meson_bin_dir(self):
         bin_dir = self.spec.prefix.bin
