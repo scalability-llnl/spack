@@ -14,22 +14,6 @@ from spack.installer import PackageInstaller
 from spack.spec import Spec
 
 
-class CacheManager:
-    def __init__(self, specs: List[str]) -> None:
-        self.req_specs = specs
-        self.concr_specs: List[Spec]
-        self.concr_specs = []
-
-    def __enter__(self):
-        self.concr_specs = [spack.concretize.concretize_one(s) for s in self.req_specs]
-        for s in self.concr_specs:
-            PackageInstaller([s.package], fake=True, explicit=True).install()
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        for s in self.concr_specs:
-            s.package.do_uninstall()
-
-
 def _make_specs_non_buildable(specs: List[str]):
     output_config = {}
     for spec in specs:
@@ -39,9 +23,20 @@ def _make_specs_non_buildable(specs: List[str]):
 
 @pytest.fixture
 def splicing_setup(
-    mutable_database, mock_packages, mutable_config, do_not_check_runtimes_on_reuse
+    mutable_database,
+    mock_packages,
+    mutable_config,
+    do_not_check_runtimes_on_reuse,
+    install_mockery,
 ):
+    """Returns a function that concretizes and installs a list of spec strings"""
     mutable_config.set("concretizer:reuse", True)
+
+    def _impl(specs_str):
+        concrete_specs = [Spec(s).concretized() for s in specs_str]
+        PackageInstaller([s.package for s in concrete_specs], fake=True, explicit=True).install()
+
+    return _impl
 
 
 def _enable_splicing():
@@ -52,61 +47,65 @@ def _has_build_dependency(spec: Spec, name: str):
     return any(s.name == name for s in spec.dependencies(None, dt.BUILD))
 
 
-def test_simple_reuse(splicing_setup):
-    with CacheManager(["splice-z@1.0.0+compat"]):
-        spack.config.set("packages", _make_specs_non_buildable(["splice-z"]))
-        assert spack.concretize.concretize_one("splice-z").satisfies(Spec("splice-z"))
+def test_simple_reuse(splicing_setup, mutable_config):
+    splicing_setup(["splice-z@1.0.0+compat"])
+    mutable_config.set("packages", _make_specs_non_buildable(["splice-z"]))
+    assert spack.concretize.concretize_one("splice-z").satisfies(Spec("splice-z"))
 
 
-def test_simple_dep_reuse(splicing_setup):
-    with CacheManager(["splice-z@1.0.0+compat"]):
-        spack.config.set("packages", _make_specs_non_buildable(["splice-z"]))
-        assert spack.concretize.concretize_one("splice-h@1").satisfies(Spec("splice-h@1"))
+def test_simple_dep_reuse(splicing_setup, mutable_config):
+    splicing_setup(["splice-z@1.0.0+compat"])
+    mutable_config.set("packages", _make_specs_non_buildable(["splice-z"]))
+    assert spack.concretize.concretize_one("splice-h@1").satisfies(Spec("splice-h@1"))
 
 
-def test_splice_installed_hash(splicing_setup):
-    cache = [
-        "splice-t@1 ^splice-h@1.0.0+compat ^splice-z@1.0.0",
-        "splice-h@1.0.2+compat ^splice-z@1.0.0",
-    ]
-    with CacheManager(cache):
-        packages_config = _make_specs_non_buildable(["splice-t", "splice-h"])
-        spack.config.set("packages", packages_config)
-        goal_spec = Spec("splice-t@1 ^splice-h@1.0.2+compat ^splice-z@1.0.0")
-        with pytest.raises(Exception):
-            spack.concretize.concretize_one(goal_spec)
-        _enable_splicing()
-        assert spack.concretize.concretize_one(goal_spec).satisfies(goal_spec)
+def test_splice_installed_hash(splicing_setup, mutable_config):
+    splicing_setup(
+        [
+            "splice-t@1 ^splice-h@1.0.0+compat ^splice-z@1.0.0",
+            "splice-h@1.0.2+compat ^splice-z@1.0.0",
+        ]
+    )
+    packages_config = _make_specs_non_buildable(["splice-t", "splice-h"])
+    mutable_config.set("packages", packages_config)
+
+    goal_spec = Spec("splice-t@1 ^splice-h@1.0.2+compat ^splice-z@1.0.0")
+    with pytest.raises(Exception):
+        spack.concretize.concretize_one(goal_spec)
+    _enable_splicing()
+    assert spack.concretize.concretize_one(goal_spec).satisfies(goal_spec)
 
 
-def test_splice_build_splice_node(splicing_setup):
-    with CacheManager(["splice-t@1 ^splice-h@1.0.0+compat ^splice-z@1.0.0+compat"]):
-        spack.config.set("packages", _make_specs_non_buildable(["splice-t"]))
-        goal_spec = Spec("splice-t@1 ^splice-h@1.0.2+compat ^splice-z@1.0.0+compat")
-        with pytest.raises(Exception):
-            spack.concretize.concretize_one(goal_spec)
-        _enable_splicing()
-        assert spack.concretize.concretize_one(goal_spec).satisfies(goal_spec)
+def test_splice_build_splice_node(splicing_setup, mutable_config):
+    splicing_setup(["splice-t@1 ^splice-h@1.0.0+compat ^splice-z@1.0.0+compat"])
+    mutable_config.set("packages", _make_specs_non_buildable(["splice-t"]))
+
+    goal_spec = Spec("splice-t@1 ^splice-h@1.0.2+compat ^splice-z@1.0.0+compat")
+    with pytest.raises(Exception):
+        spack.concretize.concretize_one(goal_spec)
+    _enable_splicing()
+    assert spack.concretize.concretize_one(goal_spec).satisfies(goal_spec)
 
 
-def test_double_splice(splicing_setup):
+def test_double_splice(splicing_setup, mutable_config):
     cache = [
         "splice-t@1 ^splice-h@1.0.0+compat ^splice-z@1.0.0+compat",
         "splice-h@1.0.2+compat ^splice-z@1.0.1+compat",
         "splice-z@1.0.2+compat",
     ]
-    with CacheManager(cache):
-        freeze_builds_config = _make_specs_non_buildable(["splice-t", "splice-h", "splice-z"])
-        spack.config.set("packages", freeze_builds_config)
-        goal_spec = Spec("splice-t@1 ^splice-h@1.0.2+compat ^splice-z@1.0.2+compat")
-        with pytest.raises(Exception):
-            spack.concretize.concretize_one(goal_spec)
-        _enable_splicing()
-        assert spack.concretize.concretize_one(goal_spec).satisfies(goal_spec)
+    splicing_setup(cache)
+    freeze_builds_config = _make_specs_non_buildable(["splice-t", "splice-h", "splice-z"])
+    mutable_config.set("packages", freeze_builds_config)
+
+    goal_spec = Spec("splice-t@1 ^splice-h@1.0.2+compat ^splice-z@1.0.2+compat")
+    with pytest.raises(Exception):
+        spack.concretize.concretize_one(goal_spec)
+    _enable_splicing()
+    assert spack.concretize.concretize_one(goal_spec).satisfies(goal_spec)
 
 
 # The next two tests are mirrors of one another
-def test_virtual_multi_splices_in(splicing_setup):
+def test_virtual_multi_splices_in(splicing_setup, mutable_config):
     cache = [
         "depends-on-virtual-with-abi ^virtual-abi-1",
         "depends-on-virtual-with-abi ^virtual-abi-2",
@@ -115,17 +114,19 @@ def test_virtual_multi_splices_in(splicing_setup):
         "depends-on-virtual-with-abi ^virtual-abi-multi abi=one",
         "depends-on-virtual-with-abi ^virtual-abi-multi abi=two",
     ]
-    with CacheManager(cache):
-        spack.config.set("packages", _make_specs_non_buildable(["depends-on-virtual-with-abi"]))
-        for gs in goal_specs:
-            with pytest.raises(Exception):
-                spack.concretize.concretize_one(gs)
-        _enable_splicing()
-        for gs in goal_specs:
-            assert spack.concretize.concretize_one(gs).satisfies(gs)
+    splicing_setup(cache)
+    mutable_config.set("packages", _make_specs_non_buildable(["depends-on-virtual-with-abi"]))
+
+    for gs in goal_specs:
+        with pytest.raises(Exception):
+            spack.concretize.concretize_one(gs)
+
+    _enable_splicing()
+    for gs in goal_specs:
+        assert spack.concretize.concretize_one(gs).satisfies(gs)
 
 
-def test_virtual_multi_can_be_spliced(splicing_setup):
+def test_virtual_multi_can_be_spliced(splicing_setup, mutable_config):
     cache = [
         "depends-on-virtual-with-abi ^virtual-abi-multi abi=one",
         "depends-on-virtual-with-abi ^virtual-abi-multi abi=two",
@@ -134,17 +135,20 @@ def test_virtual_multi_can_be_spliced(splicing_setup):
         "depends-on-virtual-with-abi ^virtual-abi-1",
         "depends-on-virtual-with-abi ^virtual-abi-2",
     ]
-    with CacheManager(cache):
-        spack.config.set("packages", _make_specs_non_buildable(["depends-on-virtual-with-abi"]))
-        for gs in goal_specs:
-            with pytest.raises(Exception):
-                spack.concretize.concretize_one(gs)
-        _enable_splicing()
-        for gs in goal_specs:
-            assert spack.concretize.concretize_one(gs).satisfies(gs)
+    splicing_setup(cache)
+    mutable_config.set("packages", _make_specs_non_buildable(["depends-on-virtual-with-abi"]))
 
 
-def test_manyvariant_star_matching_variant_splice(splicing_setup):
+    for gs in goal_specs:
+        with pytest.raises(Exception):
+            spack.concretize.concretize_one(gs)
+
+    _enable_splicing()
+    for gs in goal_specs:
+        assert spack.concretize.concretize_one(gs).satisfies(gs)
+
+
+def test_manyvariant_star_matching_variant_splice(splicing_setup, mutable_config):
     cache = [
         # can_splice("manyvariants@1.0.0", when="@1.0.1", match_variants="*")
         "depends-on-manyvariants ^manyvariants@1.0.0+a+b c=v1 d=v2",
@@ -154,18 +158,20 @@ def test_manyvariant_star_matching_variant_splice(splicing_setup):
         Spec("depends-on-manyvariants ^manyvariants@1.0.1+a+b c=v1 d=v2"),
         Spec("depends-on-manyvariants ^manyvariants@1.0.1~a~b c=v3 d=v3"),
     ]
-    with CacheManager(cache):
-        freeze_build_config = {"depends-on-manyvariants": {"buildable": False}}
-        spack.config.set("packages", freeze_build_config)
-        for goal in goal_specs:
-            with pytest.raises(Exception):
-                spack.concretize.concretize_one(goal)
-        _enable_splicing()
-        for goal in goal_specs:
-            assert spack.concretize.concretize_one(goal).satisfies(goal)
+    splicing_setup(cache)
+    freeze_build_config = {"depends-on-manyvariants": {"buildable": False}}
+    mutable_config.set("packages", freeze_build_config)
+
+    for goal in goal_specs:
+        with pytest.raises(Exception):
+            spack.concretize.concretize_one(goal)
+
+    _enable_splicing()
+    for goal in goal_specs:
+        assert spack.concretize.concretize_one(goal).satisfies(goal)
 
 
-def test_manyvariant_limited_matching(splicing_setup):
+def test_manyvariant_limited_matching(splicing_setup, mutable_config):
     cache = [
         # can_splice("manyvariants@2.0.0+a~b", when="@2.0.1~a+b", match_variants=["c", "d"])
         "depends-on-manyvariants@2.0 ^manyvariants@2.0.0+a~b c=v3 d=v2",
@@ -176,18 +182,20 @@ def test_manyvariant_limited_matching(splicing_setup):
         Spec("depends-on-manyvariants@2.0 ^manyvariants@2.0.1~a+b c=v3 d=v2"),
         Spec("depends-on-manyvariants@2.0 ^manyvariants@2.0.1+a+b c=v3 d=v3"),
     ]
-    with CacheManager(cache):
-        freeze_build_config = {"depends-on-manyvariants": {"buildable": False}}
-        spack.config.set("packages", freeze_build_config)
-        for s in goal_specs:
-            with pytest.raises(Exception):
-                spack.concretize.concretize_one(s)
-        _enable_splicing()
-        for s in goal_specs:
-            assert spack.concretize.concretize_one(s).satisfies(s)
+    splicing_setup(cache)
+    freeze_build_config = {"depends-on-manyvariants": {"buildable": False}}
+    mutable_config.set("packages", freeze_build_config)
+
+    for s in goal_specs:
+        with pytest.raises(Exception):
+            spack.concretize.concretize_one(s)
+
+    _enable_splicing()
+    for s in goal_specs:
+        assert spack.concretize.concretize_one(s).satisfies(s)
 
 
-def test_external_splice_same_name(splicing_setup):
+def test_external_splice_same_name(splicing_setup, mutable_config):
     cache = [
         "splice-h@1.0.0 ^splice-z@1.0.0+compat",
         "splice-t@1.0 ^splice-h@1.0.1 ^splice-z@1.0.1+compat",
@@ -199,41 +207,44 @@ def test_external_splice_same_name(splicing_setup):
         Spec("splice-h@1.0.0 ^splice-z@1.0.2"),
         Spec("splice-t@1.0 ^splice-h@1.0.1 ^splice-z@1.0.2"),
     ]
-    with CacheManager(cache):
-        spack.config.set("packages", packages_yaml)
-        _enable_splicing()
-        for s in goal_specs:
-            assert spack.concretize.concretize_one(s).satisfies(s)
+    splicing_setup(cache)
+    mutable_config.set("packages", packages_yaml)
+
+    _enable_splicing()
+    for s in goal_specs:
+        assert spack.concretize.concretize_one(s).satisfies(s)
 
 
 def test_spliced_build_deps_only_in_build_spec(splicing_setup):
     cache = ["splice-t@1.0 ^splice-h@1.0.1 ^splice-z@1.0.0"]
     goal_spec = Spec("splice-t@1.0 ^splice-h@1.0.2 ^splice-z@1.0.0")
 
-    with CacheManager(cache):
-        _enable_splicing()
-        concr_goal = spack.concretize.concretize_one(goal_spec)
-        build_spec = concr_goal._build_spec
-        # Spec has been spliced
-        assert build_spec is not None
-        # Build spec has spliced build dependencies
-        assert _has_build_dependency(build_spec, "splice-h")
-        assert _has_build_dependency(build_spec, "splice-z")
-        # Spliced build dependencies are removed
-        assert len(concr_goal.dependencies(None, dt.BUILD)) == 0
+    splicing_setup(cache)
+
+    _enable_splicing()
+    concr_goal = spack.concretize.concretize_one(goal_spec)
+    build_spec = concr_goal._build_spec
+    # Spec has been spliced
+    assert build_spec is not None
+    # Build spec has spliced build dependencies
+    assert _has_build_dependency(build_spec, "splice-h")
+    assert _has_build_dependency(build_spec, "splice-z")
+    # Spliced build dependencies are removed
+    assert len(concr_goal.dependencies(None, dt.BUILD)) == 0
 
 
-def test_spliced_transitive_dependency(splicing_setup):
+def test_spliced_transitive_dependency(splicing_setup, mutable_config):
     cache = ["splice-depends-on-t@1.0 ^splice-h@1.0.1"]
     goal_spec = Spec("splice-depends-on-t^splice-h@1.0.2")
 
-    with CacheManager(cache):
-        spack.config.set("packages", _make_specs_non_buildable(["splice-depends-on-t"]))
-        _enable_splicing()
-        concr_goal = spack.concretize.concretize_one(goal_spec)
-        # Spec has been spliced
-        assert concr_goal._build_spec is not None
-        assert concr_goal["splice-t"]._build_spec is not None
-        assert concr_goal.satisfies(goal_spec)
-        # Spliced build dependencies are removed
-        assert len(concr_goal.dependencies(None, dt.BUILD)) == 0
+    splicing_setup(cache)
+    mutable_config.set("packages", _make_specs_non_buildable(["splice-depends-on-t"]))
+
+    _enable_splicing()
+    concr_goal = spack.concretize.concretize_one(goal_spec)
+    # Spec has been spliced
+    assert concr_goal._build_spec is not None
+    assert concr_goal["splice-t"]._build_spec is not None
+    assert concr_goal.satisfies(goal_spec)
+    # Spliced build dependencies are removed
+    assert len(concr_goal.dependencies(None, dt.BUILD)) == 0
