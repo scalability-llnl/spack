@@ -296,6 +296,14 @@ class NMakeBuilder(spack.build_systems.nmake.NMakeBuilder):
     def makefile_name(self):
         return "Makefile.msc"
 
+    def setup_build_environment(self, env):
+        # setting CL does not override the compiler
+        # in MSVC, it allows for the specification
+        # of extra/common arguments
+        # here we use it to inject options for the compiler
+        # rather than patching sqlite's build
+        env.set("CL", "/utf-8")
+
     def nmake_args(self):
         enable_fts = "1" if "+fts" in self.spec else "0"
         enable_rtree = "1" if "+rtree" in self.spec else "0"
