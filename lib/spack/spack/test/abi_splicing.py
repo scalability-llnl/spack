@@ -32,7 +32,7 @@ def splicing_setup(
     """Returns a function that concretizes and installs a list of spec strings"""
     mutable_config.set("concretizer:reuse", True)
 
-    def _impl(specs_str):
+    def _impl(*specs_str):
         concrete_specs = [Spec(s).concretized() for s in specs_str]
         PackageInstaller([s.package for s in concrete_specs], fake=True, explicit=True).install()
 
@@ -44,23 +44,21 @@ def _enable_splicing():
 
 
 def test_simple_reuse(splicing_setup, mutable_config):
-    splicing_setup(["splice-z@1.0.0+compat"])
+    splicing_setup("splice-z@1.0.0+compat")
     mutable_config.set("packages", _make_specs_non_buildable(["splice-z"]))
-    assert spack.concretize.concretize_one("splice-z").satisfies(Spec("splice-z"))
+    assert spack.concretize.concretize_one("splice-z").satisfies("splice-z")
 
 
 def test_simple_dep_reuse(splicing_setup, mutable_config):
-    splicing_setup(["splice-z@1.0.0+compat"])
+    splicing_setup("splice-z@1.0.0+compat")
     mutable_config.set("packages", _make_specs_non_buildable(["splice-z"]))
-    assert spack.concretize.concretize_one("splice-h@1").satisfies(Spec("splice-h@1"))
+    assert spack.concretize.concretize_one("splice-h@1").satisfies("splice-h@1")
 
 
 def test_splice_installed_hash(splicing_setup, mutable_config):
     splicing_setup(
-        [
-            "splice-t@1 ^splice-h@1.0.0+compat ^splice-z@1.0.0",
-            "splice-h@1.0.2+compat ^splice-z@1.0.0",
-        ]
+        "splice-t@1 ^splice-h@1.0.0+compat ^splice-z@1.0.0",
+        "splice-h@1.0.2+compat ^splice-z@1.0.0",
     )
     packages_config = _make_specs_non_buildable(["splice-t", "splice-h"])
     mutable_config.set("packages", packages_config)
@@ -73,7 +71,7 @@ def test_splice_installed_hash(splicing_setup, mutable_config):
 
 
 def test_splice_build_splice_node(splicing_setup, mutable_config):
-    splicing_setup(["splice-t@1 ^splice-h@1.0.0+compat ^splice-z@1.0.0+compat"])
+    splicing_setup("splice-t@1 ^splice-h@1.0.0+compat ^splice-z@1.0.0+compat")
     mutable_config.set("packages", _make_specs_non_buildable(["splice-t"]))
 
     goal_spec = Spec("splice-t@1 ^splice-h@1.0.2+compat ^splice-z@1.0.0+compat")
@@ -84,12 +82,11 @@ def test_splice_build_splice_node(splicing_setup, mutable_config):
 
 
 def test_double_splice(splicing_setup, mutable_config):
-    cache = [
+    splicing_setup(
         "splice-t@1 ^splice-h@1.0.0+compat ^splice-z@1.0.0+compat",
         "splice-h@1.0.2+compat ^splice-z@1.0.1+compat",
         "splice-z@1.0.2+compat",
-    ]
-    splicing_setup(cache)
+    )
     freeze_builds_config = _make_specs_non_buildable(["splice-t", "splice-h", "splice-z"])
     mutable_config.set("packages", freeze_builds_config)
 
@@ -102,15 +99,13 @@ def test_double_splice(splicing_setup, mutable_config):
 
 # The next two tests are mirrors of one another
 def test_virtual_multi_splices_in(splicing_setup, mutable_config):
-    cache = [
-        "depends-on-virtual-with-abi ^virtual-abi-1",
-        "depends-on-virtual-with-abi ^virtual-abi-2",
-    ]
     goal_specs = [
         "depends-on-virtual-with-abi ^virtual-abi-multi abi=one",
         "depends-on-virtual-with-abi ^virtual-abi-multi abi=two",
     ]
-    splicing_setup(cache)
+    splicing_setup(
+        "depends-on-virtual-with-abi ^virtual-abi-1", "depends-on-virtual-with-abi ^virtual-abi-2"
+    )
     mutable_config.set("packages", _make_specs_non_buildable(["depends-on-virtual-with-abi"]))
 
     for gs in goal_specs:
@@ -123,15 +118,14 @@ def test_virtual_multi_splices_in(splicing_setup, mutable_config):
 
 
 def test_virtual_multi_can_be_spliced(splicing_setup, mutable_config):
-    cache = [
-        "depends-on-virtual-with-abi ^virtual-abi-multi abi=one",
-        "depends-on-virtual-with-abi ^virtual-abi-multi abi=two",
-    ]
     goal_specs = [
         "depends-on-virtual-with-abi ^virtual-abi-1",
         "depends-on-virtual-with-abi ^virtual-abi-2",
     ]
-    splicing_setup(cache)
+    splicing_setup(
+        "depends-on-virtual-with-abi ^virtual-abi-multi abi=one",
+        "depends-on-virtual-with-abi ^virtual-abi-multi abi=two",
+    )
     mutable_config.set("packages", _make_specs_non_buildable(["depends-on-virtual-with-abi"]))
 
 
@@ -145,16 +139,15 @@ def test_virtual_multi_can_be_spliced(splicing_setup, mutable_config):
 
 
 def test_manyvariant_star_matching_variant_splice(splicing_setup, mutable_config):
-    cache = [
-        # can_splice("manyvariants@1.0.0", when="@1.0.1", match_variants="*")
-        "depends-on-manyvariants ^manyvariants@1.0.0+a+b c=v1 d=v2",
-        "depends-on-manyvariants ^manyvariants@1.0.0~a~b c=v3 d=v3",
-    ]
     goal_specs = [
         Spec("depends-on-manyvariants ^manyvariants@1.0.1+a+b c=v1 d=v2"),
         Spec("depends-on-manyvariants ^manyvariants@1.0.1~a~b c=v3 d=v3"),
     ]
-    splicing_setup(cache)
+    splicing_setup(
+        # can_splice("manyvariants@1.0.0", when="@1.0.1", match_variants="*")
+        "depends-on-manyvariants ^manyvariants@1.0.0+a+b c=v1 d=v2",
+        "depends-on-manyvariants ^manyvariants@1.0.0~a~b c=v3 d=v3",
+    )
     freeze_build_config = {"depends-on-manyvariants": {"buildable": False}}
     mutable_config.set("packages", freeze_build_config)
 
@@ -168,17 +161,16 @@ def test_manyvariant_star_matching_variant_splice(splicing_setup, mutable_config
 
 
 def test_manyvariant_limited_matching(splicing_setup, mutable_config):
-    cache = [
-        # can_splice("manyvariants@2.0.0+a~b", when="@2.0.1~a+b", match_variants=["c", "d"])
-        "depends-on-manyvariants@2.0 ^manyvariants@2.0.0+a~b c=v3 d=v2",
-        # can_splice("manyvariants@2.0.0 c=v1 d=v1", when="@2.0.1+a+b")
-        "depends-on-manyvariants@2.0 ^manyvariants@2.0.0~a~b c=v1 d=v1",
-    ]
     goal_specs = [
         Spec("depends-on-manyvariants@2.0 ^manyvariants@2.0.1~a+b c=v3 d=v2"),
         Spec("depends-on-manyvariants@2.0 ^manyvariants@2.0.1+a+b c=v3 d=v3"),
     ]
-    splicing_setup(cache)
+    splicing_setup(
+        # can_splice("manyvariants@2.0.0+a~b", when="@2.0.1~a+b", match_variants=["c", "d"])
+        "depends-on-manyvariants@2.0 ^manyvariants@2.0.0+a~b c=v3 d=v2",
+        # can_splice("manyvariants@2.0.0 c=v1 d=v1", when="@2.0.1+a+b")
+        "depends-on-manyvariants@2.0 ^manyvariants@2.0.0~a~b c=v1 d=v1",
+    )
     freeze_build_config = {"depends-on-manyvariants": {"buildable": False}}
     mutable_config.set("packages", freeze_build_config)
 
@@ -192,19 +184,18 @@ def test_manyvariant_limited_matching(splicing_setup, mutable_config):
 
 
 def test_external_splice_same_name(splicing_setup, mutable_config):
-    cache = [
-        "splice-h@1.0.0 ^splice-z@1.0.0+compat",
-        "splice-t@1.0 ^splice-h@1.0.1 ^splice-z@1.0.1+compat",
-    ]
-    packages_yaml = {
-        "splice-z": {"externals": [{"spec": "splice-z@1.0.2+compat", "prefix": "/usr"}]}
-    }
     goal_specs = [
         Spec("splice-h@1.0.0 ^splice-z@1.0.2"),
         Spec("splice-t@1.0 ^splice-h@1.0.1 ^splice-z@1.0.2"),
     ]
-    splicing_setup(cache)
-    mutable_config.set("packages", packages_yaml)
+    splicing_setup(
+        "splice-h@1.0.0 ^splice-z@1.0.0+compat",
+        "splice-t@1.0 ^splice-h@1.0.1 ^splice-z@1.0.1+compat",
+    )
+    mutable_config.set(
+        "packages",
+        {"splice-z": {"externals": [{"spec": "splice-z@1.0.2+compat", "prefix": "/usr"}]}},
+    )
 
     _enable_splicing()
     for s in goal_specs:
@@ -212,10 +203,8 @@ def test_external_splice_same_name(splicing_setup, mutable_config):
 
 
 def test_spliced_build_deps_only_in_build_spec(splicing_setup):
-    cache = ["splice-t@1.0 ^splice-h@1.0.1 ^splice-z@1.0.0"]
     goal_spec = Spec("splice-t@1.0 ^splice-h@1.0.2 ^splice-z@1.0.0")
-
-    splicing_setup(cache)
+    splicing_setup("splice-t@1.0 ^splice-h@1.0.1 ^splice-z@1.0.0")
 
     _enable_splicing()
     concr_goal = spack.concretize.concretize_one(goal_spec)
@@ -230,10 +219,8 @@ def test_spliced_build_deps_only_in_build_spec(splicing_setup):
 
 
 def test_spliced_transitive_dependency(splicing_setup, mutable_config):
-    cache = ["splice-depends-on-t@1.0 ^splice-h@1.0.1"]
     goal_spec = Spec("splice-depends-on-t^splice-h@1.0.2")
-
-    splicing_setup(cache)
+    splicing_setup("splice-depends-on-t@1.0 ^splice-h@1.0.1")
     mutable_config.set("packages", _make_specs_non_buildable(["splice-depends-on-t"]))
 
     _enable_splicing()
