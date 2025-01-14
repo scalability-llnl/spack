@@ -231,11 +231,18 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("mpi", when="+mpi")
     conflicts("mpi", when="~mpi")
 
+    depends_on("qmake", when="@5.12.0:+qt")
+    depends_on("qt", when="@5.3.0:5.11+qt")
+    with when("^[virtuals=qmake] qt-base"):
+        depends_on("qt-base+gui+network+widgets")
+        depends_on("qt-base+opengl", when="+opengl2")
+        depends_on("qt-base~opengl", when="~opengl2")
+        depends_on("qt-5compat")
+    with when("^[virtuals=qmake] qt"):
+        depends_on("qt+opengl", when="+opengl2")
+        depends_on("qt~opengl", when="~opengl2")
     depends_on("qt@:4", when="@:5.2.0+qt")
     depends_on("qt+sql", when="+qt")
-    with when("+qt"):
-        depends_on("qt+opengl", when="@5.3.0:+opengl2")
-        depends_on("qt~opengl", when="@5.3.0:~opengl2")
 
     depends_on("gl@3.2:", when="+opengl2")
     depends_on("gl@1.2:", when="~opengl2")
@@ -589,7 +596,7 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
         # The assumed qt version changed to QT5 (as of paraview 5.2.1),
         # so explicitly specify which QT major version is actually being used
         if spec.satisfies("+qt"):
-            cmake_args.extend(["-DPARAVIEW_QT_VERSION=%s" % spec["qt"].version[0]])
+            cmake_args.extend(["-DPARAVIEW_QT_VERSION=%s" % spec["qmake"].version[0]])
             if IS_WINDOWS:
                 # Windows does not currently support Qt Quick
                 cmake_args.append("-DVTK_MODULE_ENABLE_VTK_GUISupportQtQuick:STRING=NO")
