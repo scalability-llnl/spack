@@ -35,6 +35,7 @@ from llnl.util.filesystem import copy_tree, mkdirp, remove_linked_tree, touchp, 
 import spack.binary_distribution
 import spack.bootstrap.core
 import spack.caches
+import spack.compilers.config
 import spack.compilers.libraries
 import spack.concretize
 import spack.config
@@ -2141,3 +2142,13 @@ def wrapper_dir(install_mockery):
     wrapper_pkg = wrapper.package
     PackageInstaller([wrapper_pkg], explicit=True).install()
     return wrapper_pkg.bin_dir()
+
+
+def _noop(*args, **kwargs):
+    pass
+
+
+@pytest.fixture(autouse=True)
+def no_compilers_init(monkeypatch):
+    """Disables automatic compiler initialization"""
+    monkeypatch.setattr(spack.compilers.config, "_init_packages_yaml", _noop)

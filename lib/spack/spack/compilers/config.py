@@ -18,6 +18,7 @@ import llnl.util.tty as tty
 
 import spack.config
 import spack.detection
+import spack.detection.path
 import spack.error
 import spack.platforms
 import spack.repo
@@ -124,10 +125,32 @@ def all_compilers(
     compilers = all_compilers_from(configuration=spack.config.CONFIG, scope=scope)
 
     if not compilers and init_config:
-        find_compilers(scope=scope)
+        _init_packages_yaml(spack.config.CONFIG, scope=scope)
         compilers = all_compilers_from(configuration=spack.config.CONFIG, scope=scope)
 
     return compilers
+
+
+def _init_packages_yaml(
+    configuration: "spack.config.ConfigurationType", *, scope: Optional[str]
+) -> None:
+    # Try importing from compilers.yaml
+    legacy_compilers = CompilerFactory.from_compilers_yaml(configuration, scope=scope)
+    if legacy_compilers:
+        by_name: Dict[str, List[spack.spec.Spec]] = {}
+        for legacy in legacy_compilers:
+            by_name.setdefault(legacy.name, []).append(legacy)
+        spack.detection.update_configuration(by_name, buildable=True, scope=scope)
+        warnings.warn("compilers have been automatically converted from existing 'compilers.yaml'")
+        return
+
+    # Look for compilers in PATH
+    new_compilers = find_compilers(scope=scope)
+    if not new_compilers:
+        raise NoAvailableCompilerError(
+            "no compiler configured, and Spack cannot find working compilers in PATH"
+        )
+    warnings.warn("compilers have been configured automatically from PATH inspection")
 
 
 def all_compilers_from(
@@ -141,19 +164,6 @@ def all_compilers_from(
             configuration is used.
     """
     compilers = CompilerFactory.from_packages_yaml(configuration, scope=scope)
-
-    if os.environ.get("SPACK_EXPERIMENTAL_DEPRECATE_COMPILERS_YAML") != "1":
-        legacy_compilers = CompilerFactory.from_compilers_yaml(configuration, scope=scope)
-        if legacy_compilers:
-            # FIXME (compiler as nodes): write how to update the file. Maybe an ad-hoc command
-            warnings.warn(
-                "Some compilers are still defined in 'compilers.yaml', which has been deprecated "
-                "in v0.23. Those configuration files will be ignored from Spack v0.25.\n"
-            )
-            for legacy in legacy_compilers:
-                if not any(c.satisfies(f"{legacy.name}@{legacy.versions}") for c in compilers):
-                    compilers.append(legacy)
-
     return compilers
 
 
@@ -299,7 +309,6 @@ class CompilerFactory:
     """Class aggregating all ways of constructing a list of compiler specs from config entries."""
 
     _PACKAGES_YAML_CACHE: Dict[str, Optional["spack.spec.Spec"]] = {}
-    _COMPILERS_YAML_CACHE: Dict[str, List["spack.spec.Spec"]] = {}
     _GENERIC_TARGET = None
 
     @staticmethod
@@ -370,22 +379,28 @@ class CompilerFactory:
         """Returns a list of external specs, corresponding to a compiler entry
         from compilers.yaml.
         """
-        from spack.detection.path import ExecutablesFinder
-
         # FIXME (compiler as nodes): should we look at targets too?
         result = []
         candidate_paths = [x for x in compiler_dict["paths"].values() if x is not None]
-        finder = ExecutablesFinder()
+        finder = spack.detection.path.ExecutablesFinder()
 
         for pkg_name in spack.repo.PATH.packages_with_tags("compiler"):
             pkg_cls = spack.repo.PATH.get_pkg_class(pkg_name)
             pattern = re.compile(r"|".join(finder.search_patterns(pkg=pkg_cls)))
             filtered_paths = [x for x in candidate_paths if pattern.search(os.path.basename(x))]
             detected = finder.detect_specs(pkg=pkg_cls, paths=filtered_paths)
+            for s in detected:
+                for key in ("flags", "environment", "extra_rpaths"):
+                    if key in compiler_dict:
+                        s.extra_attributes[key] = compiler_dict[key]
+
+                if "modules" in compiler_dict:
+                    s.external_modules = list(compiler_dict["modules"])
+
             result.extend(detected)
 
-        for item in result:
-            CompilerFactory._finalize_external_concretization(item)
+        # for item in result:
+        #    CompilerFactory._finalize_external_concretization(item)
 
         return result
 
@@ -396,16 +411,14 @@ class CompilerFactory:
         """Returns the compiler specs defined in the "compilers" section of the configuration"""
         result: List["spack.spec.Spec"] = []
         for item in configuration.get("compilers", scope=scope):
-            key = str(item)
-            if key not in CompilerFactory._COMPILERS_YAML_CACHE:
-                CompilerFactory._COMPILERS_YAML_CACHE[key] = CompilerFactory.from_legacy_yaml(
-                    item["compiler"]
-                )
-
-            result.extend(CompilerFactory._COMPILERS_YAML_CACHE[key])
+            result.extend(CompilerFactory.from_legacy_yaml(item["compiler"]))
         return result
 
 
 class UnknownCompilerError(spack.error.SpackError):
     def __init__(self, compiler_name):
         super().__init__(f"Spack doesn't support the requested compiler: {compiler_name}")
+
+
+class NoAvailableCompilerError(spack.error.SpackError):
+    pass
