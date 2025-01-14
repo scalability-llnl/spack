@@ -35,6 +35,7 @@ def install_specs(
     def _impl(*specs_str):
         concrete_specs = [Spec(s).concretized() for s in specs_str]
         PackageInstaller([s.package for s in concrete_specs], fake=True, explicit=True).install()
+        return concrete_specs
 
     return _impl
 
@@ -43,16 +44,13 @@ def _enable_splicing():
     spack.config.set("concretizer:splice", {"automatic": True})
 
 
-def test_simple_reuse(install_specs, mutable_config):
-    install_specs("splice-z@1.0.0+compat")
+@pytest.mark.parametrize("spec_str", ["splice-z", "splice-h@1"])
+def test_spec_reuse(spec_str, install_specs, mutable_config):
+    """Tests reuse of splice-z, without splicing, as a root and as a dependency of splice-h"""
+    splice_z = install_specs("splice-z@1.0.0+compat")[0]
     mutable_config.set("packages", _make_specs_non_buildable(["splice-z"]))
-    assert spack.concretize.concretize_one("splice-z").satisfies("splice-z")
-
-
-def test_simple_dep_reuse(install_specs, mutable_config):
-    install_specs("splice-z@1.0.0+compat")
-    mutable_config.set("packages", _make_specs_non_buildable(["splice-z"]))
-    assert spack.concretize.concretize_one("splice-h@1").satisfies("splice-h@1")
+    concrete = spack.concretize.concretize_one(spec_str)
+    assert concrete["splice-z"].satisfies(splice_z)
 
 
 def test_splice_installed_hash(install_specs, mutable_config):
