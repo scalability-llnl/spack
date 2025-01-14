@@ -23,7 +23,7 @@ import urllib.parse
 import urllib.request
 import warnings
 from contextlib import closing
-from typing import IO, Dict, Iterable, List, NamedTuple, Optional, Set, Tuple, Union
+from typing import IO, Callable, Dict, Iterable, List, NamedTuple, Optional, Set, Tuple, Union
 
 import llnl.util.filesystem as fsys
 import llnl.util.lang
@@ -669,19 +669,24 @@ def sign_specfile(key: str, specfile_path: str) -> str:
 
 
 def _read_specs_and_push_index(
-    file_list, read_method, cache_prefix, db: BuildCacheDatabase, temp_dir, concurrency
+    file_list: List[str],
+    read_method: Callable,
+    cache_prefix: str,
+    db: BuildCacheDatabase,
+    temp_dir: str,
+    concurrency: int,
 ):
     """Read all the specs listed in the provided list, using thread given thread parallelism,
         generate the index, and push it to the mirror.
 
     Args:
-        file_list (list(str)): List of urls or file paths pointing at spec files to read
+        file_list: List of urls or file paths pointing at spec files to read
         read_method: A function taking a single argument, either a url or a file path,
             and which reads the spec file at that location, and returns the spec.
-        cache_prefix (str): prefix of the build cache on s3 where index should be pushed.
+        cache_prefix: prefix of the build cache on s3 where index should be pushed.
         db: A spack database used for adding specs and then writing the index.
-        temp_dir (str): Location to write index.json and hash for pushing
-        concurrency (int): Number of parallel processes to use when fetching
+        temp_dir: Location to write index.json and hash for pushing
+        concurrency: Number of parallel processes to use when fetching
     """
     for file in file_list:
         contents = read_method(file)
@@ -861,9 +866,12 @@ def _url_generate_package_index(url: str, tmpdir: str, concurrency: int = 32):
     tty.debug(f"Retrieving spec descriptor files from {url} to build index")
 
     db = BuildCacheDatabase(tmpdir)
+    db._write()
 
     try:
-        _read_specs_and_push_index(file_list, read_fn, url, db, db.database_directory, concurrency)
+        _read_specs_and_push_index(
+            file_list, read_fn, url, db, str(db.database_directory), concurrency
+        )
     except Exception as e:
         raise GenerateIndexError(f"Encountered problem pushing package index to {url}: {e}") from e
 
