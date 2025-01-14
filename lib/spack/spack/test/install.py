@@ -274,7 +274,7 @@ def install_upstream(tmpdir_factory, gen_mock_layout, install_mockery):
         for spec_str in specs:
             prepared_db.add(Spec(spec_str).concretized())
         downstream_root = str(tmpdir_factory.mktemp("mock_downstream_db_root"))
-        return downstream_root, upstream_layout
+        return downstream_root, upstream_layout, prepared_db
 
     return _install_upstream
 
@@ -283,7 +283,7 @@ def test_installed_upstream_external(install_upstream, mock_fetch):
     """Check that when a dependency package is recorded as installed in
     an upstream database that it is not reinstalled.
     """
-    store_root, _ = install_upstream("externaltool")
+    store_root, _, _ = install_upstream("externaltool")
     with spack.store.use_store(store_root):
         dependent = Spec("externaltest")
         dependent.concretize()
@@ -302,7 +302,7 @@ def test_installed_upstream(install_upstream, mock_fetch):
     """Check that when a dependency package is recorded as installed in
     an upstream database that it is not reinstalled.
     """
-    store_root, upstream_layout = install_upstream("dependency-install")
+    store_root, upstream_layout, _ = install_upstream("dependency-install")
     with spack.store.use_store(store_root):
         dependency = Spec("dependency-install").concretized()
         dependent = Spec("dependent-install").concretized()
@@ -315,6 +315,31 @@ def test_installed_upstream(install_upstream, mock_fetch):
 
         assert not os.path.exists(new_dependency.prefix)
         assert os.path.exists(dependent.prefix)
+
+
+def test_uninstalled_upstream(install_upstream, mock_fetch):
+    """A dependency has a record in an upstream DB, but it is not
+    actually installed in that upstream.
+    """
+    store_root, _, upstream_db = install_upstream("dependency-install")
+    with spack.store.use_store(store_root):
+        dependent = spack.spec.Spec("dependent-install").concretized()
+
+        dependency = dependent["dependency-install"]
+        assert dependency.installed_upstream
+
+        with upstream_db.write_transaction():
+            _, record = upstream_db.query_by_spec_hash(dependency.dag_hash())
+            record.installed = False
+
+    with spack.store.use_store(store_root):
+        # Re-read the Database so in-memory state reflects updated
+        # upstream
+        assert not dependency.installed_upstream
+
+        dependent.package.do_install()
+
+        assert os.path.exists(dependency.prefix)
 
 
 @pytest.mark.disable_clean_stage_check
