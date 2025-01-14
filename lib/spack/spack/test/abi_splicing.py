@@ -11,6 +11,7 @@ import spack.concretize
 import spack.config
 import spack.deptypes as dt
 from spack.installer import PackageInstaller
+from spack.solver.asp import SolverError
 from spack.spec import Spec
 
 
@@ -62,7 +63,7 @@ def test_splice_installed_hash(install_specs, mutable_config):
     mutable_config.set("packages", packages_config)
 
     goal_spec = Spec("splice-t@1 ^splice-h@1.0.2+compat ^splice-z@1.0.0")
-    with pytest.raises(Exception):
+    with pytest.raises(SolverError):
         spack.concretize.concretize_one(goal_spec)
     _enable_splicing()
     assert spack.concretize.concretize_one(goal_spec).satisfies(goal_spec)
@@ -73,7 +74,7 @@ def test_splice_build_splice_node(install_specs, mutable_config):
     mutable_config.set("packages", _make_specs_non_buildable(["splice-t"]))
 
     goal_spec = Spec("splice-t@1 ^splice-h@1.0.2+compat ^splice-z@1.0.0+compat")
-    with pytest.raises(Exception):
+    with pytest.raises(SolverError):
         spack.concretize.concretize_one(goal_spec)
     _enable_splicing()
     assert spack.concretize.concretize_one(goal_spec).satisfies(goal_spec)
@@ -89,7 +90,7 @@ def test_double_splice(install_specs, mutable_config):
     mutable_config.set("packages", freeze_builds_config)
 
     goal_spec = Spec("splice-t@1 ^splice-h@1.0.2+compat ^splice-z@1.0.2+compat")
-    with pytest.raises(Exception):
+    with pytest.raises(SolverError):
         spack.concretize.concretize_one(goal_spec)
     _enable_splicing()
     assert spack.concretize.concretize_one(goal_spec).satisfies(goal_spec)
@@ -107,7 +108,7 @@ def test_virtual_multi_splices_in(install_specs, mutable_config):
     mutable_config.set("packages", _make_specs_non_buildable(["depends-on-virtual-with-abi"]))
 
     for gs in goal_specs:
-        with pytest.raises(Exception):
+        with pytest.raises(SolverError):
             spack.concretize.concretize_one(gs)
 
     _enable_splicing()
@@ -126,9 +127,8 @@ def test_virtual_multi_can_be_spliced(install_specs, mutable_config):
     )
     mutable_config.set("packages", _make_specs_non_buildable(["depends-on-virtual-with-abi"]))
 
-
     for gs in goal_specs:
-        with pytest.raises(Exception):
+        with pytest.raises(SolverError):
             spack.concretize.concretize_one(gs)
 
     _enable_splicing()
@@ -150,7 +150,7 @@ def test_manyvariant_star_matching_variant_splice(install_specs, mutable_config)
     mutable_config.set("packages", freeze_build_config)
 
     for goal in goal_specs:
-        with pytest.raises(Exception):
+        with pytest.raises(SolverError):
             spack.concretize.concretize_one(goal)
 
     _enable_splicing()
@@ -173,7 +173,7 @@ def test_manyvariant_limited_matching(install_specs, mutable_config):
     mutable_config.set("packages", freeze_build_config)
 
     for s in goal_specs:
-        with pytest.raises(Exception):
+        with pytest.raises(SolverError):
             spack.concretize.concretize_one(s)
 
     _enable_splicing()
