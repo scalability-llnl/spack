@@ -12,6 +12,7 @@ class QtSvg(QtPackage):
     two-dimensional vector graphics. Qt provides classes for rendering and
     displaying SVG drawings in widgets and on other paint devices."""
 
+    homepage = QtPackage.get_homepage(__qualname__)
     url = QtPackage.get_url(__qualname__)
     list_url = QtPackage.get_list_url(__qualname__)
 

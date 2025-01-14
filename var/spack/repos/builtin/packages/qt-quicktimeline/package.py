@@ -10,6 +10,7 @@ from spack.pkg.builtin.qt_base import QtBase, QtPackage
 class QtQuicktimeline(QtPackage):
     """Module for keyframe-based timeline construction."""
 
+    homepage = QtPackage.get_homepage(__qualname__)
     url = QtPackage.get_url(__qualname__)
     list_url = QtPackage.get_list_url(__qualname__)
 
