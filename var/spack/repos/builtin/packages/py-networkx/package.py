@@ -15,6 +15,12 @@ class PyNetworkx(PythonPackage):
 
     license("BSD-3-Clause")
 
+    version("3.4.2", sha256="307c3669428c5362aab27c8a1260aa8f47c4e91d3891f48be0141738d8d053e1")
+    version("3.4.1", sha256="f9df45e85b78f5bd010993e897b4f1fdb242c11e015b101bd951e5c0e29982d8")
+    version("3.4", sha256="1269b90f8f0d3a4095f016f49650f35ac169729f49b69d0572b2bb142748162b")
+    version("3.3", sha256="0c127d8b2f4865f59ae9cb8aafcd60b5c70f3241ebd66f7defad7c4ab90126c9")
+    version("3.2.1", sha256="9f1bb5cf3409bf324e0a722c20bdb4c20ee39bf1c30ce8ae499c8502b0b5e0c6")
+    version("3.2", sha256="bda29edf392d9bfa5602034c767d28549214ec45f620081f0b74dc036a1fbbc1")
     version("3.1", sha256="de346335408f84de0eada6ff9fafafff9bcda11f0a0dfaa931133debb146ab61")
     version("3.0", sha256="9a9992345353618ae98339c2b63d8201c381c2944f38a2ab49cb45a4c667e412")
     version("2.8.6", sha256="bd2b7730300860cbd2dafe8e5af89ff5c9a65c3975b352799d87a6238b4301a6")
@@ -47,13 +53,25 @@ class PyNetworkx(PythonPackage):
 
     with when("+default"):
         # From requirements/default.txt
+        # push numpy up to 2
+        depends_on("py-numpy@1.24:", when="@3.4:", type=("build", "run"))
+        depends_on("py-numpy@1.23:", when="@3.3:", type=("build", "run"))
+        depends_on("py-numpy@1.22:", when="@3.2:", type=("build", "run"))
         depends_on("py-numpy@1.20:", when="@3:", type=("build", "run"))
         depends_on("py-numpy@1.19:", when="@2.8.6:", type=("build", "run"))
         # https://github.com/networkx/networkx/pull/7390
         depends_on("py-numpy@:1", when="@:3.2", type=("build", "run"))
+        depends_on("py-scipy@1.11.2:", when="@3.2:", type=("build", "run"))
         depends_on("py-scipy@1.8:", when="@2.8.6:", type=("build", "run"))
+        depends_on("py-matplotlib@3.8:", when="@3.4:", type=("build", "run"))
+        depends_on("py-matplotlib@3.5:", when="@3.2:", type=("build", "run"))
         depends_on("py-matplotlib@3.4:", when="@2.8.6:", type=("build", "run"))
+        depends_on("py-pandas@2.0:", when="@3.4:", type=("build", "run"))
+        depends_on("py-pandas@1.4:", when="@3.2:", type=("build", "run"))
         depends_on("py-pandas@1.3:", when="@2.8.6:", type=("build", "run"))
+        depends_on("py-setuptools@61.2:", when="@3.2:", type=("build", "run"))
+        depends_on("python@3.10:", when="@3.3:", type=("build", "run"))
+        depends_on("python@3.8:", when="@2.7:", type=("build", "run"))
 
         # Historical dependencies
         depends_on("py-decorator@4.3.0:4", when="@2.5.1:2.5", type=("build", "run"))
