@@ -35,14 +35,13 @@ class OpenradiossEngine(CMakePackage):
     variant("debug", default=False, description="Debug Option")
     variant("static_link", default=True, description="Static_link Option")
 
-    depends_on("openmpi", when="+mpi")
+    depends_on("mpi", when="+mpi")
     depends_on("cmake@2.8:", type="build")
     depends_on("perl", type="build")
     depends_on("python", type="build")
 
     requires(
         "%gcc",
-        "%intel",
         "%oneapi",
         "%aocc",
         "%arm",
@@ -50,6 +49,10 @@ class OpenradiossEngine(CMakePackage):
         msg="Openradioss-starter can be built using GNU Fortran, Intel Fortran, AOCC, "
         "or Armflang compilers only.",
     )
+    requires("^intel-oneapi-mpi", "^openmpi", policy="one_of", when="+mpi %oneapi")
+    requires("^openmpi", when="+mpi %gcc")
+    requires("^openmpi", when="+mpi %arm")
+    requires("^openmpi", when="+mpi %aocc")
 
     build_directory = "engine"
     root_cmakelists_dir = "engine"
@@ -58,7 +61,6 @@ class OpenradiossEngine(CMakePackage):
     def compiler_name(self):
         compiler_mapping = {
             "aocc": "linux64_AOCC",
-            "intel": "linux64_intel",
             "oneapi": "linux64_intel",
             "gcc": "linux64_gf",
             "arm": "linuxa64",
@@ -85,7 +87,10 @@ class OpenradiossEngine(CMakePackage):
             args.append(self.define("precision", "dp"))
 
         if "+mpi" in self.spec:
-            args.append(self.define("MPI", "ompi"))
+            if self.spec["mpi"].name == "openmpi":
+                args.append(self.define("MPI", "ompi"))
+            elif self.spec["mpi"].name == "intel-oneapi-mpi":
+                args.append(self.define("MPI", "impi"))
             args.append(self.define("mpi_root", self.spec["mpi"].prefix))
             args.append(self.define("mpi_incdir", self.spec["mpi"].prefix.include))
             args.append(self.define("mpi_libdir", self.spec["mpi"].prefix.lib))
@@ -93,7 +98,13 @@ class OpenradiossEngine(CMakePackage):
             args.append(self.define("MPI", "smp"))
 
         exec_file = f"engine_{self.compiler_name}"
-        exec_file += "_ompi" if "+mpi" in self.spec else ""
+        if "+mpi" in self.spec:
+            if self.spec["mpi"].name == "openmpi":
+                exec_file += "_ompi"
+            elif self.spec["mpi"].name == "intel-oneapi-mpi":
+                exec_file += "_impi"
+        if "+sp" in self.spec:
+            exec_file += "_sp"
         args.append(self.define("EXEC_NAME", exec_file))
 
         return args
@@ -102,7 +113,13 @@ class OpenradiossEngine(CMakePackage):
         mkdirp(join_path(prefix, "exec"))
 
         exec_file = f"engine_{self.compiler_name}"
-        exec_file += "_ompi" if "+mpi" in self.spec else ""
+        if "+mpi" in self.spec:
+            if spec["mpi"].name == "openmpi":
+                exec_file += "_ompi"
+            elif spec["mpi"].name == "intel-oneapi-mpi":
+                exec_file += "_impi"
+        if "+sp" in self.spec:
+            exec_file += "_sp"
 
         install(
             join_path(self.stage.source_path, "engine", exec_file),
