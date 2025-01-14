@@ -83,6 +83,7 @@ properties: Dict[str, Any] = {
             "dirty": {"type": "boolean"},
             "build_language": {"type": "string"},
             "build_jobs": {"type": "integer", "minimum": 1},
+            "build_nice": {"anyOf": [{"type": "integer"}, {"type": "null"}]},
             "ccache": {"type": "boolean"},
             "db_lock_timeout": {"type": "integer", "minimum": 1},
             "package_lock_timeout": {
