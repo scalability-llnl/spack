@@ -14,6 +14,9 @@ class PyAttrs(PythonPackage):
 
     license("MIT")
 
+    version("24.2.0", sha256="5cfb1b9148b5b086569baec03f20d7b6bf3bcacc9a42bebf87ffaaca362f6346")
+    version("24.1.0", sha256="adbdec84af72d38be7628e353a09b6a6790d15cd71819f6e9d7b0faa8a125745")
+    version("23.2.0", sha256="935dc3b529c262f6cf76e50877d35a4bd3c1de194fd41f47a2b7ae8f19971f30")
     version("23.1.0", sha256="6279836d581513a26f1bf235f9acd333bc9115683f14f7e8fae46c98fc50e015")
     version("22.2.0", sha256="c9227bfc2f01993c03f68db37d1d15c9690188323c067c641f1a35ca58185f99")
     version("22.1.0", sha256="29adc2665447e5191d0e7c568fde78b21f9672d344281d0c6e1ab085429b22b6")
