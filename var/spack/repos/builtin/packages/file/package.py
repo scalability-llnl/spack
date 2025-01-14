@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import re
+import sys
 
 from spack.package import *
 
@@ -38,6 +39,9 @@ class File(AutotoolsPackage):
     depends_on("xz", when="@5.38:")
     depends_on("zlib-api")
     depends_on("zstd", when="@5.44:")
+
+    if sys.platform != "win32":
+        provides("file-util")
 
     @classmethod
     def determine_version(cls, exe):

@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import re
+import sys
 
 from spack.package import *
 
@@ -77,6 +78,9 @@ class Gnupg(AutotoolsPackage):
     conflicts("%gcc@10:", when="@:1")
 
     executables = ["^gpg$", "^gpg-agent$"]
+
+    if sys.platform != "win32":
+        provides("gpg")
 
     @classmethod
     def determine_version(cls, exe):
