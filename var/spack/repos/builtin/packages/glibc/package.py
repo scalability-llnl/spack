@@ -31,6 +31,7 @@ class Glibc(AutotoolsPackage, GNUMirrorPackage):
     provides("iconv")
 
     version("master", branch="master")
+    version("2.40", sha256="2abc038f5022949cb67e996c3cae0e7764f99b009f0b9b7fd954dfc6577b599e")
     version("2.39", sha256="97f84f3b7588cd54093a6f6389b0c1a81e70d99708d74963a2e3eab7c7dc942d")
     version("2.38", sha256="16e51e0455e288f03380b436e41d5927c60945abd86d0c9852b84be57dd6ed5e")
     version("2.37", sha256="e3a790c2f84eed5c5d569ed6172c253c607dd3962135437da413aa39aa4fd352")
