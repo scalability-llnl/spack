@@ -41,7 +41,7 @@ def setup_parser(subparser):
         action="store_false",
         default=True,
         dest="expand_virtuals",
-        help="do not expand virtual dependencies",
+        help="do not expand virtual dependencies" "(Default behavior)\n",
     )
     arguments.add_common_arguments(subparser, ["spec"])
 

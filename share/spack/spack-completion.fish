@@ -1356,7 +1356,7 @@ complete -c spack -n '__fish_spack_using_command dependencies' -s t -l transitiv
 complete -c spack -n '__fish_spack_using_command dependencies' -l deptype -r -f -a deptype
 complete -c spack -n '__fish_spack_using_command dependencies' -l deptype -r -d 'comma-separated list of deptypes to traverse (default=build,link,run,test)'
 complete -c spack -n '__fish_spack_using_command dependencies' -s V -l no-expand-virtuals -f -a expand_virtuals
-complete -c spack -n '__fish_spack_using_command dependencies' -s V -l no-expand-virtuals -d 'do not expand virtual dependencies'
+complete -c spack -n '__fish_spack_using_command dependencies' -s V -l no-expand-virtuals -d 'do not expand virtual dependencies(Default behavior)'
 
 # spack dependents
 set -g __fish_spack_optspecs_spack_dependents h/help i/installed t/transitive
@@ -1378,7 +1378,7 @@ complete -c spack -n '__fish_spack_using_command deprecate' -s y -l yes-to-all -
 complete -c spack -n '__fish_spack_using_command deprecate' -s d -l dependencies -f -a dependencies
 complete -c spack -n '__fish_spack_using_command deprecate' -s d -l dependencies -d 'deprecate dependencies (default)'
 complete -c spack -n '__fish_spack_using_command deprecate' -s D -l no-dependencies -f -a dependencies
-complete -c spack -n '__fish_spack_using_command deprecate' -s D -l no-dependencies -d 'do not deprecate dependencies'
+complete -c spack -n '__fish_spack_using_command deprecate' -s D -l no-dependencies -d 'do not deprecate dependencies(Default behavior)'
 complete -c spack -n '__fish_spack_using_command deprecate' -s i -l install-deprecator -f -a install
 complete -c spack -n '__fish_spack_using_command deprecate' -s i -l install-deprecator -d 'concretize and install deprecator spec'
 complete -c spack -n '__fish_spack_using_command deprecate' -s I -l no-install-deprecator -f -a install
@@ -1674,7 +1674,7 @@ complete -c spack -n '__fish_spack_using_command env depfile' -s h -l help -d 's
 complete -c spack -n '__fish_spack_using_command env depfile' -l make-prefix -l make-target-prefix -r -f -a make_prefix
 complete -c spack -n '__fish_spack_using_command env depfile' -l make-prefix -l make-target-prefix -r -d 'prefix Makefile targets/variables with <TARGET>/<name>,'
 complete -c spack -n '__fish_spack_using_command env depfile' -l make-disable-jobserver -f -a jobserver
-complete -c spack -n '__fish_spack_using_command env depfile' -l make-disable-jobserver -d 'disable POSIX jobserver support'
+complete -c spack -n '__fish_spack_using_command env depfile' -l make-disable-jobserver -d 'disable POSIX jobserver support(Default behavior)'
 complete -c spack -n '__fish_spack_using_command env depfile' -l use-buildcache -r -f -a use_buildcache
 complete -c spack -n '__fish_spack_using_command env depfile' -l use-buildcache -r -d 'use `only` to prune redundant build dependencies'
 complete -c spack -n '__fish_spack_using_command env depfile' -s o -l output -r -f -a output
@@ -1927,7 +1927,7 @@ set -g __fish_spack_optspecs_spack_gpg_list h/help trusted signing
 complete -c spack -n '__fish_spack_using_command gpg list' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command gpg list' -s h -l help -d 'show this help message and exit'
 complete -c spack -n '__fish_spack_using_command gpg list' -l trusted -f -a trusted
-complete -c spack -n '__fish_spack_using_command gpg list' -l trusted -d 'list trusted keys'
+complete -c spack -n '__fish_spack_using_command gpg list' -l trusted -d 'list trusted keys (default)'
 complete -c spack -n '__fish_spack_using_command gpg list' -l signing -f -a signing
 complete -c spack -n '__fish_spack_using_command gpg list' -l signing -d 'list keys which may be used for signing'
 
@@ -2041,7 +2041,7 @@ complete -c spack -n '__fish_spack_using_command install' -l dont-restage -d 'if
 complete -c spack -n '__fish_spack_using_command install' -l use-cache -f -a use_cache
 complete -c spack -n '__fish_spack_using_command install' -l use-cache -d 'check for pre-built Spack packages in mirrors (default)'
 complete -c spack -n '__fish_spack_using_command install' -l no-cache -f -a use_cache
-complete -c spack -n '__fish_spack_using_command install' -l no-cache -d 'do not check for pre-built Spack packages in mirrors'
+complete -c spack -n '__fish_spack_using_command install' -l no-cache -d 'do not check for pre-built Spack packages in mirrors (default)'
 complete -c spack -n '__fish_spack_using_command install' -l cache-only -f -a cache_only
 complete -c spack -n '__fish_spack_using_command install' -l cache-only -d 'only install package from binary mirrors'
 complete -c spack -n '__fish_spack_using_command install' -l use-buildcache -r -f -a use_buildcache
@@ -2823,7 +2823,7 @@ complete -c spack -n '__fish_spack_using_command solve' -s N -l namespaces -d 's
 complete -c spack -n '__fish_spack_using_command solve' -s I -l install-status -f -a install_status
 complete -c spack -n '__fish_spack_using_command solve' -s I -l install-status -d 'show install status of packages'
 complete -c spack -n '__fish_spack_using_command solve' -l no-install-status -f -a install_status
-complete -c spack -n '__fish_spack_using_command solve' -l no-install-status -d 'do not show install status annotations'
+complete -c spack -n '__fish_spack_using_command solve' -l no-install-status -d 'do not show install status annotations (Default behavior)'
 complete -c spack -n '__fish_spack_using_command solve' -s y -l yaml -f -a format
 complete -c spack -n '__fish_spack_using_command solve' -s y -l yaml -d 'print concrete spec as YAML'
 complete -c spack -n '__fish_spack_using_command solve' -s j -l json -f -a format
@@ -2857,7 +2857,7 @@ complete -c spack -n '__fish_spack_using_command spec' -s N -l namespaces -d 'sh
 complete -c spack -n '__fish_spack_using_command spec' -s I -l install-status -f -a install_status
 complete -c spack -n '__fish_spack_using_command spec' -s I -l install-status -d 'show install status of packages'
 complete -c spack -n '__fish_spack_using_command spec' -l no-install-status -f -a install_status
-complete -c spack -n '__fish_spack_using_command spec' -l no-install-status -d 'do not show install status annotations'
+complete -c spack -n '__fish_spack_using_command spec' -l no-install-status -d 'do not show install status annotations (Default behavior)'
 complete -c spack -n '__fish_spack_using_command spec' -s y -l yaml -f -a format
 complete -c spack -n '__fish_spack_using_command spec' -s y -l yaml -d 'print concrete spec as YAML'
 complete -c spack -n '__fish_spack_using_command spec' -s j -l json -f -a format
@@ -2911,7 +2911,7 @@ complete -c spack -n '__fish_spack_using_command style' -s a -l all -d 'check al
 complete -c spack -n '__fish_spack_using_command style' -s r -l root-relative -f -a root_relative
 complete -c spack -n '__fish_spack_using_command style' -s r -l root-relative -d 'print root-relative paths (default: cwd-relative)'
 complete -c spack -n '__fish_spack_using_command style' -s U -l no-untracked -f -a untracked
-complete -c spack -n '__fish_spack_using_command style' -s U -l no-untracked -d 'exclude untracked files from checks'
+complete -c spack -n '__fish_spack_using_command style' -s U -l no-untracked -d 'exclude untracked files from checks (default)'
 complete -c spack -n '__fish_spack_using_command style' -s f -l fix -f -a fix
 complete -c spack -n '__fish_spack_using_command style' -s f -l fix -d 'format automatically if possible (e.g., with isort, black)'
 complete -c spack -n '__fish_spack_using_command style' -l root -r -f -a root
