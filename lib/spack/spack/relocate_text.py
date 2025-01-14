@@ -208,7 +208,7 @@ class BinaryFilePrefixReplacer(PrefixReplacer):
         # but it's nasty to deal with matches across boundaries, so let's stick to
         # something simple.
 
-        modified = True
+        modified = False
 
         for match in self.regex.finditer(f.read()):
             # The matching prefix (old) and its replacement (new)
