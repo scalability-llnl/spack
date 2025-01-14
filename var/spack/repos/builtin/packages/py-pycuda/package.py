@@ -24,6 +24,26 @@ class PyPycuda(PythonPackage):
 
     depends_on("cxx", type="build")  # generated
 
+    # TODO: replace this with an explicit list of components of Boost,
+    # for instance depends_on('boost +filesystem')
+    # See https://github.com/spack/spack/pull/22303 for reference
+    depends_on(Boost.with_default_variants)
+    depends_on("python@3.6:3", type=("build", "run"), when="@2020.1:")
+    depends_on("python@3.8:3", type=("build", "run"), when="@2024.1.2:")
+    depends_on("boost+python")
+    depends_on("cuda", type=("build", "run"))
+    depends_on("cuda@:8.0.61", when="@2016.1.2")
+    depends_on("py-appdirs@1.4.0:", type=("build", "run"))
+    depends_on("py-decorator@3.2.0:", type=("build", "run"), when="@:2020.1")
+    depends_on("py-mako", type=("build", "run"))
+    depends_on("py-numpy@1.6:", type=("build", "run"))
+    depends_on("py-numpy@1.24:", type=("build", "run"), when="@2024.1.2:")
+    depends_on("py-platformdirs@2.2.0:", type=("build", "run"), when="@2024.1.2")
+    depends_on("py-pytools@2011.2:", type=("build", "run"))
+    depends_on("py-setuptools", type="build")
+    depends_on("py-six", type="run", when="@:2020.1")
+    depends_on("py-pytools@2011.2:", type=("build", "run"), when="@2024.1.2")
+
     @run_before("install")
     def configure(self):
         pyver = self.spec["python"].version.up_to(2).joined
@@ -35,20 +55,3 @@ class PyPycuda(PythonPackage):
             "--boost-python-libname={0}".format(boostlib),
         ]
         python("configure.py", *configure_args)
-
-    depends_on("py-setuptools", type="build")
-    depends_on("cuda")
-    depends_on("boost+python")
-    # TODO: replace this with an explicit list of components of Boost,
-    # for instance depends_on('boost +filesystem')
-    # See https://github.com/spack/spack/pull/22303 for reference
-    depends_on(Boost.with_default_variants)
-    depends_on("python@3.6:3", type=("build", "run"), when="@2020.1:")
-    depends_on("py-numpy@1.6:", type=("build", "run"))
-    depends_on("py-pytools@2011.2:", type=("build", "run"))
-    depends_on("py-six", type="run", when="@:2020.1")
-    depends_on("py-decorator@3.2.0:", type=("build", "run"), when="@:2020.1")
-    depends_on("py-appdirs@1.4.0:", type=("build", "run"))
-    depends_on("py-mako", type=("build", "run"))
-
-    depends_on("cuda@:8.0.61", when="@2016.1.2")
