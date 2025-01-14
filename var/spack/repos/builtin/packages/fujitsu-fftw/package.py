@@ -32,6 +32,7 @@ class FujitsuFftw(FftwBase):
     homepage = "https://github.com/fujitsu/fftw3"
     url = "https://github.com/fujitsu/fftw3/archive/sve-v1.0.0.tar.gz"
 
+    version("1.1.1", sha256="d5ac7354e8d1a4ac221de51dc5a4336a3a4ad9a31091b34b675cc556057186e1")
     version("1.1.0", sha256="47b01a20846802041a9533a115f816b973cc9b15b3e827a2f0caffaae34a6c9d")
     version("1.0.0", sha256="b5931e352355d8d1ffeb215922f4b96de11b8585c423fceeaffbf3d5436f6f2f")
 
@@ -41,6 +42,9 @@ class FujitsuFftw(FftwBase):
     variant("shared", default=True, description="Builds a shared version of the library")
     variant("openmp", default=True, description="Enable OpenMP support")
     variant("debug", default=False, description="Builds a debug version of the library")
+    variant(
+        "fortranwrap", default=False, when="@1.1.1:", description="Builds a fortran wrap library"
+    )
 
     depends_on("texinfo")
 
@@ -53,6 +57,9 @@ class FujitsuFftw(FftwBase):
         msg="ARM-SVE vector instructions only works in single or double precision",
     )
     requires("%fj")
+
+    # In spack, an absolute path to the compiler is specified in CC.
+    patch("fujitsu-fftw111.patch", when="@1.1.1 %fj")
 
     def autoreconf(self, spec, prefix):
         if spec.target != "a64fx":
@@ -67,7 +74,7 @@ class FujitsuFftw(FftwBase):
         """Configure function"""
         # Base options
         options = [
-            "CFLAGS=-Ofast",
+            "CFLAGS=-Ofast -ffj-no-fast-matmul",
             "FFLAGS=-Kfast",
             "--enable-sve",
             "--enable-armv8-cntvct-el0",
@@ -107,9 +114,25 @@ class FujitsuFftw(FftwBase):
             "quad": ["--enable-quad-precision"],
         }
 
+        enable_linkfortran = [""]
+        if "+fortranwrap" in spec:
+            enable_linkfortran.append("--enable-linkfortran")
+
         # Different precisions must be configured and compiled one at a time
         configure = Executable("../configure")
         for precision in self.selected_precisions:
             opts = (enable_precision[precision] or []) + options[:]
-            with working_dir(precision, create=True):
-                configure(*opts)
+            for num, option in enumerate(enable_linkfortran):
+                opts.append(option)
+                with working_dir(precision + str(num), create=True):
+                    configure(*opts)
+
+    def for_each_precision_make(self, *targets):
+        create_fortranlib = 1
+        if "+fortranwrap" in self.spec:
+            create_fortranlib += 1
+
+        for precision in self.selected_precisions:
+            for num in range(create_fortranlib):
+                with working_dir(precision + str(num)):
+                    make(*targets)
