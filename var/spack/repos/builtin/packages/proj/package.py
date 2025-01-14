@@ -163,15 +163,16 @@ class CMakeBuilder(AnyBuilder, cmake.CMakeBuilder):
             self.define_from_variant("BUILD_PROJSYNC", "curl"),
             self.define_from_variant("CMAKE_POSITION_INDEPENDENT_CODE", "pic"),
         ]
-        if self.spec.satisfies("@6:") and self.pkg.run_tests:
-            args.append(self.define("USE_EXTERNAL_GTEST", True))
-        if self.spec.satisfies("@7:"):
-            test_flag = "BUILD_TESTING"
-        elif self.spec.satisfies("@5.1:"):
-            test_flag = "PROJ_TESTS"
-        else:
-            test_flag = "PROJ4_TESTS"
-        args.append(self.define(test_flag, self.pkg.run_tests))
+        if self.pkg.run_tests:
+            if self.spec.satisfies("@6:"):
+                args.append(self.define("USE_EXTERNAL_GTEST", True))
+            if self.spec.satisfies("@7:"):
+                test_flag = "BUILD_TESTING"
+            elif self.spec.satisfies("@5.1:"):
+                test_flag = "PROJ_TESTS"
+            else:
+                test_flag = "PROJ4_TESTS"
+            args.append(self.define(test_flag, self.pkg.run_tests))
         return args
 
 
