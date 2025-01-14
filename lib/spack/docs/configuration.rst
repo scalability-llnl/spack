@@ -696,3 +696,59 @@ With these settings, if you want to isolate Spack in a CI environment, you can d
 
   export SPACK_DISABLE_LOCAL_CONFIG=true
   export SPACK_USER_CACHE_PATH=/tmp/spack
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Multiarch, shared filesystems
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Shared filesystems at facilities with a variety of machines with different architectures
+leads to needing to install software through spack that supports multiple architectures
+from a single filesystem layout. Normally, this is quite straightforward as spack delineates
+packages by architecture/compiler/etc. and can generate modules that are platform-specific.
+One area where additional support is needed is in overriding local configurations at the
+user- and system-level. For example, a user would like a local spack installation for doing
+CI or a systems integration team wants to support spack chaining for their users on such a
+file system.
+
+One way to manage this is to create a simple directory structure that stores a separate
+spack installation for each machine. For example,
+
+.. code-block:: console
+
+    $HOME/workspace
+    |-- machine-x86_64-skylake
+    |   |-- spack
+    |-- machine-ppc64le-Power9
+    |   |-- spack
+    `-- machine-aarch64
+        |-- spack
+
+Each installation can then be transparently loaded via a login script like ``.bashrc``. This
+often is just a small extension to the script as many users are already utilizing this mechanism
+to do per-machine module loading.
+
+.. code-block:: console
+
+  host=$(hostname)
+  export SPACK_ROOT=$HOME/workspace/$host/spack
+  export SPACK_USER_CONFIG_PATH=$HOME/workspace/$host
+  export SPACK_USER_CACHE_PATH=$SPACK_ROOT/.spack
+  alias spack="$SPACK_ROOT/bin/spack -C $SPACK_USER_CONFIG_PATH"
+
+  case $host in
+    machine-x86_64-skylake)
+      export MODULEPATH=$SPACK_ROOT/share/spack/<your/x86/module/path>:$MODULEPATH
+      module load bar   # a system module
+      spack load foo    # a spack module
+    ;;
+    machine-ppc64le-Power9)
+      export MODULEPATH=$SPACK_ROOT/share/spack/<your/Power9/module/path>:$MODULEPATH
+      module load bar   # a system module
+      spack load foo    # a spack module
+    ;;
+    machine-aarch64)
+      export MODULEPATH=$SPACK_ROOT/share/spack/<your/aarch64/module/path>:$MODULEPATH
+      module load bar   # a system module
+      spack load foo    # a spack module
+    ;;
+  esac
