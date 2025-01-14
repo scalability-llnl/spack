@@ -36,13 +36,15 @@ spack:
   - ampt
   - apfel +lhapdf +python
   - celeritas +geant4 +hepmc3 +openmp +root +shared +vecgeom cxxstd=20
+  - cepgen
+  - cernlib +shared
   - collier +shared +pic
   - dd4hep +ddalign +ddcad +ddcond +dddetectors +dddigi +ddeve +ddg4 +ddrec +edm4hep +hepmc3 +lcio +utilityapps +xercesc
   - delphes +pythia8
   - dpmjet
   - edm4hep
   - evtgen +hepmc3 +photos +pythia8 +sherpa +tauola
-  - fastjet
+  - fastjet plugins=all
   - feynhiggs
   - fjcontrib
   - garfieldpp
@@ -55,6 +57,7 @@ spack:
   - hztool
   - lcio -examples ~jar +rootdict  # Note: lcio +examples ^ncurses -termlib, which leads to conflicts
   - lhapdf +python
+  - lhapdfsets sets=default
   - madgraph5amc
   - njet
   - opendatadetector
@@ -64,6 +67,7 @@ spack:
   - pandorasdk
   - photos +hepmc3
   - podio +rntuple +sio
+  - professor
   - py-awkward
   - py-boost-histogram
   - py-hepunits
@@ -81,10 +85,11 @@ spack:
   - root +davix +dcache +examples +fftw +fits +fortran +gdml +graphviz +gsl +http +math +minuit +mlp +mysql +opengl +postgres +pythia8 +python +r +roofit +root7 +rpath ~shadow +spectrum +sqlite +ssl +tbb +threads +tmva +unuran +vc +vdt +veccore +webgui +x +xml +xrootd
   - sherpa +analysis ~blackhat +gzip +hepmc3 +hepmc3root +lhapdf +lhole +openloops +pythia ~python ~recola ~rivet +root +ufo
   - tauola +hepmc3 +lhapdf cxxstd=20
-  - thepeg ~rivet
+  - thepeg hepmc=3 ~rivet
   - vecgeom +gdml +geant4 +root
   - whizard +fastjet +gosam hepmc=3 +lcio +lhapdf +openloops +openmp +pythia8
   - xrootd +davix +http +krb5 +python +readline +scitokens-cpp
+  - yoda +root
 
   ci:
     pipeline-gen:
