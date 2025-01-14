@@ -83,7 +83,7 @@ class Crtm(CMakePackage):
     depends_on("fortran", type="build")  # generated
 
     def url_for_version(self, version):
-        if self.spec.satisfies("@v3") or version >= Version("3.0.0"):
+        if version > Version("v3") or version >= Version("3"):
             fmtversion = str(version).replace("-build", "+build")
             return f"https://github.com/JCSDA/CRTMv3/archive/refs/tags/{fmtversion}.tar.gz"
         else:
