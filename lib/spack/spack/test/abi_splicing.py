@@ -10,7 +10,6 @@ import pytest
 import spack.concretize
 import spack.config
 import spack.deptypes as dt
-import spack.solver.asp
 from spack.installer import PackageInstaller
 from spack.spec import Spec
 
@@ -31,12 +30,6 @@ class CacheManager:
             s.package.do_uninstall()
 
 
-# MacOS and Windows only work if you pass this function pointer rather than a
-# closure
-def _mock_has_runtime_dependencies(_x):
-    return True
-
-
 def _make_specs_non_buildable(specs: List[str]):
     output_config = {}
     for spec in specs:
@@ -45,11 +38,10 @@ def _make_specs_non_buildable(specs: List[str]):
 
 
 @pytest.fixture
-def splicing_setup(mutable_database, mock_packages, monkeypatch):
-    spack.config.set("concretizer:reuse", True)
-    monkeypatch.setattr(
-        spack.solver.asp, "_has_runtime_dependencies", _mock_has_runtime_dependencies
-    )
+def splicing_setup(
+    mutable_database, mock_packages, mutable_config, do_not_check_runtimes_on_reuse
+):
+    mutable_config.set("concretizer:reuse", True)
 
 
 def _enable_splicing():
