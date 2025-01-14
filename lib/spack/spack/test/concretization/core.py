@@ -695,7 +695,7 @@ class TestConcretize:
         assert spec.satisfies("^second-dependency-foo-bar-fee +fee")
         assert not spec.satisfies("parent-foo-bar +fee")
 
-    def test_no_matching_compiler_specs(self, mock_low_high_config):
+    def test_no_matching_compiler_specs(self):
         s = Spec("pkg-a %gcc@0.0.0")
         with pytest.raises(spack.solver.asp.UnsatisfiableSpecError):
             spack.concretize.concretize_one(s)
