@@ -7,7 +7,7 @@ _spack_env_set() {
     VARNAME = $1
     VALUE = $2
 
-    export ${${VARNAME}}=${VALUE}
+    export $VARNAME="$VALUE"
 }
 
 # _spack_env_unset VARNAME
@@ -35,12 +35,15 @@ _spack_env_append() {
 #
 # Prepend VALUE to the flag list in variable VARNAME.
 # The list in VARNAME is separated by the SEP character.
-_spack_env_prepend() {
+_spack_env_prepend() { # if not exporting then use lowercase
     VARNAME = $1
     VALUE = $2
-    SEP = $3
+    SEP = $3 # how to set if no $3
 
-    export ${${VARNAME}}=${VALUE}${SEP}${${VARNAME}}
+    if [[ -z "$VARNAME" ]]; then
+        export VARNAME=${VALUE}
+    else
+        export ${${VARNAME}} =${VALUE}${SEP}${${VARNAME}}
     # Should the result be a string? Might need quotes
 }
 
@@ -53,12 +56,13 @@ _spack_env_remove() {
     VALUE = $2
     SEP = $3
 
-    if [ ${${VARNAME}} == ${VALUE} ];
+    if [ ${${VARNAME}} == ${VALUE}${SEP}];
     then
         ${${VARNAME}} = ""
 
     else
         echo "Find a way to remove the VALUE"
+        # ${${VARNAME}} = ${VARNAME/${VALUE}/""}
     fi
 }
 

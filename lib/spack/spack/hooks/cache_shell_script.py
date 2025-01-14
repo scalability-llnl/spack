@@ -25,8 +25,9 @@ def post_install(spec, explicit=None):
     if sys.platform == "win32":
         shells_avail.extend(["bat", "pwsh"])
 
+    env_mods = uenv.environment_modifications_for_specs(spec)
+
     for shell in shells_avail:
-        env_mods = uenv.environment_modifications_for_specs(spec)
         mods = env_mods.shell_modifications(shell)
 
         shell_script_path = os.path.join(spec.prefix, ".spack", f"{spec.name}_shell.{shell}")
