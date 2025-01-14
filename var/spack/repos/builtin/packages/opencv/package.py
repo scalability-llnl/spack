@@ -733,6 +733,7 @@ class Opencv(CMakePackage, CudaPackage):
 
     # Other (variants)
     variant("shared", default=True, description="Enables the build of shared libraries")
+    variant("pkgconfig", default=False, description="Generate .pc file for pkg-config build tool")
     variant("powerpc", default=False, description="Enable PowerPC for GCC")
     variant(
         "fast-math",
@@ -928,6 +929,7 @@ class Opencv(CMakePackage, CudaPackage):
             [
                 self.define("ENABLE_CONFIG_VERIFICATION", True),
                 self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
+                self.define_from_variant("OPENCV_GENERATE_PKGCONFIG", "pkgconfig"),
                 self.define("ENABLE_PRECOMPILED_HEADERS", False),
                 self.define_from_variant("WITH_LAPACK", "lapack"),
                 self.define_from_variant("ENABLE_POWERPC", "powerpc"),
