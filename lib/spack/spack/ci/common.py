@@ -392,6 +392,7 @@ class PipelineOptions:
         pipeline_type: Optional[PipelineType] = None,
         require_signing: bool = False,
         cdash_handler: Optional["CDashHandler"] = None,
+        dynamic_stack: bool = False,
     ):
         """
         Args:
@@ -411,6 +412,7 @@ class PipelineOptions:
             pipeline_type: Type of pipeline running (optional)
             require_signing: Require buildcache to be signed (fail w/out signing key)
             cdash_handler: Object for communicating build information with CDash
+            dynamic_stack: Generate the specs in the environment dynamically
         """
         self.env = env
         self.buildcache_destination = buildcache_destination
@@ -428,6 +430,7 @@ class PipelineOptions:
         self.pipeline_type = pipeline_type
         self.require_signing = require_signing
         self.cdash_handler = cdash_handler
+        self.dynamic_stack = dynamic_stack
 
 
 class PipelineNode:
