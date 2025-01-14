@@ -20,7 +20,9 @@ class Purify(CMakePackage):
     maintainers("tkoskela", "mmcleod89", "20DM")
     license("GPL-2.0")
 
+    version("5.0.0", sha256="64e150427c94f6edfcc5a630f14c8939db73349ff7b32f43504ce8211b5fd6fa")
     version("4.2.0", sha256="4d674007efc727628839fb6c8864e74f22adb39ee6405d3dab273f65b31b37e6")
+    version("dev", branch="development")
 
     variant("tests", default=True, description="Build tests")
     variant("openmp", default=True, description="Enable multithreading with OpenMP")

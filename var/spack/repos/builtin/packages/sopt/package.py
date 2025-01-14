@@ -20,7 +20,9 @@ class Sopt(CMakePackage):
     maintainers("tkoskela", "mmcleod89", "20DM")
     license("GPL-2.0")
 
+    version("5.0.0", sha256="96df31c55d1154543b276ce8040029ec34339ff4ef3612834d569a7053c83806")
     version("4.2.0", sha256="25e579722f8e049d37c9155affa57ec2f38a2f8414c9cf430da2b7bafc86907b")
+    version("dev", branch="development")
 
     variant("tests", default=False, description="Build tests")
     variant("examples", default=False, description="Build examples")
