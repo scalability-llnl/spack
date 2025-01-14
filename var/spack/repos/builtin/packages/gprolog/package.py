@@ -17,6 +17,7 @@ class Gprolog(Package):
     version("1.4.5", sha256="bfdcf00e051e0628b4f9af9d6638d4fde6ad793401e58a5619d1cc6105618c7c")
 
     depends_on("c", type="build")  # generated
+    depends_on("gmake", type="build")
 
     parallel = False
 

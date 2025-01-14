@@ -55,6 +55,7 @@ class PySip(PythonPackage):
         depends_on("python@:3.11", type=("build", "link", "run"))
         depends_on("flex", type="build")
         depends_on("bison", type="build")
+    depends_on("gmake", type="build")
 
     def url_for_version(self, version):
         if version < Version("5"):

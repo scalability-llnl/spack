@@ -41,6 +41,7 @@ class PyVermin(PythonPackage):
     version("0.10.0", sha256="3458a4d084bba5c95fd7208888aaf0e324a07ee092786ee4e5529f539ab4951f")
 
     depends_on("py-setuptools", type=("build"))
+    depends_on("gmake", type="build")
 
     @run_after("install")
     @on_package_attributes(run_tests=True)

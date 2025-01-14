@@ -23,6 +23,7 @@ class Cdd(Package):
     depends_on("c", type="build")  # generated
 
     depends_on("libtool", type="build")
+    depends_on("gmake", type="build")
 
     patch("Makefile.spack.patch")
 
