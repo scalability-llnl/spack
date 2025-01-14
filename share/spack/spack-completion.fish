@@ -1443,14 +1443,26 @@ complete -c spack -n '__fish_spack_using_command develop' -s f -l force -r -f -a
 complete -c spack -n '__fish_spack_using_command develop' -s f -l force -r -d 'remove any files or directories that block cloning source code'
 
 # spack diff
-set -g __fish_spack_optspecs_spack_diff h/help json first a/attribute= ignore=
+set -g __fish_spack_optspecs_spack_diff h/help U/fresh reuse fresh-roots deprecated json find first concretize a/attribute= ignore=
 complete -c spack -n '__fish_spack_using_command_pos_remainder 0 diff' -f -a '(__fish_spack_installed_specs)'
 complete -c spack -n '__fish_spack_using_command diff' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command diff' -s h -l help -d 'show this help message and exit'
+complete -c spack -n '__fish_spack_using_command diff' -s U -l fresh -f -a concretizer_reuse
+complete -c spack -n '__fish_spack_using_command diff' -s U -l fresh -d 'do not reuse installed deps; build newest configuration'
+complete -c spack -n '__fish_spack_using_command diff' -l reuse -f -a concretizer_reuse
+complete -c spack -n '__fish_spack_using_command diff' -l reuse -d 'reuse installed packages/buildcaches when possible'
+complete -c spack -n '__fish_spack_using_command diff' -l fresh-roots -l reuse-deps -f -a concretizer_reuse
+complete -c spack -n '__fish_spack_using_command diff' -l fresh-roots -l reuse-deps -d 'concretize with fresh roots and reused dependencies'
+complete -c spack -n '__fish_spack_using_command diff' -l deprecated -f -a config_deprecated
+complete -c spack -n '__fish_spack_using_command diff' -l deprecated -d 'allow concretizer to select deprecated versions'
 complete -c spack -n '__fish_spack_using_command diff' -l json -f -a dump_json
 complete -c spack -n '__fish_spack_using_command diff' -l json -d 'dump json output instead of pretty printing'
-complete -c spack -n '__fish_spack_using_command diff' -l first -f -a load_first
-complete -c spack -n '__fish_spack_using_command diff' -l first -d 'load the first match if multiple packages match the spec'
+complete -c spack -n '__fish_spack_using_command diff' -l find -f -a mode
+complete -c spack -n '__fish_spack_using_command diff' -l find -d 'find a single installed spec'
+complete -c spack -n '__fish_spack_using_command diff' -l first -f -a mode
+complete -c spack -n '__fish_spack_using_command diff' -l first -d 'find the first installed spec'
+complete -c spack -n '__fish_spack_using_command diff' -l concretize -f -a mode
+complete -c spack -n '__fish_spack_using_command diff' -l concretize -d 'concretize the spec (see concretizer arguments)'
 complete -c spack -n '__fish_spack_using_command diff' -s a -l attribute -r -f -a attribute
 complete -c spack -n '__fish_spack_using_command diff' -s a -l attribute -r -d 'select the attributes to show (defaults to all)'
 complete -c spack -n '__fish_spack_using_command diff' -l ignore -r -f -a ignore

@@ -261,3 +261,17 @@ def test_load_first(install_mockery, mock_fetch, mock_archive, mock_packages):
 
     assert ["hash", "mpileaks %s" % no_debug_hash] in result["b_not_a"]
     assert ["variant_value", "mpileaks debug False"] in result["b_not_a"]
+
+
+def test_concretize(install_mockery, mock_fetch, mock_archive, mock_packages):
+    assert "No differences" in diff_cmd("--concretize", "mpileaks", "mpileaks")
+
+    with spack.config.override("concretizer:reuse", False):
+        spec = spack.spec.Spec("mpileaks+debug").concretized()
+        spec.package.do_install()
+        specstr = spec.format("{name}{/hash}")
+
+    out = diff_cmd("--concretize", "--fresh", "mpileaks+debug", specstr)
+    assert "No differences" in out
+    out = diff_cmd("--concretize", "--fresh", "mpileaks", specstr)
+    assert "variant_value" in out
