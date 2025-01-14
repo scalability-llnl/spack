@@ -1,0 +1,12 @@
+diff --git a/build/unix/elfhack/relrhack.cpp b/build/unix/elfhack/relrhack.cpp
+index c55103e..37ada57 100644
+--- a/build/unix/elfhack/relrhack.cpp
++++ b/build/unix/elfhack/relrhack.cpp
+@@ -11,6 +11,7 @@
+ // More in-depth background on https://glandium.org/blog/?p=4297
+ 
+ #include "relrhack.h"
++#include <array>
+ #include <algorithm>
+ #include <cstdio>
+ #include <cstring>
