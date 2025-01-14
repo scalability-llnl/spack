@@ -50,8 +50,12 @@ case "$mode" in
         #   COPY spack.yaml .
         #   RUN spack install  # <- Spack is loaded and ready to use.
         #                      # No manual initialization necessary.
+        #   RUN <<EOT          # Supports multi-line scripts.
+        #   spack install      # Will fail on first error (set -e).
+        #   spack buildcache push
+        #   EOT
         . $SPACK_ROOT/share/spack/setup-env.sh
-        exec bash -c "$*"
+        exec bash -e -c "$*"
         ;;
 
     "interactiveshell")
