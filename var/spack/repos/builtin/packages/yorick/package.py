@@ -30,6 +30,7 @@ class Yorick(Package):
     variant("X", default=False, description="Enable X11 support")
 
     depends_on("libx11", when="+X")
+    depends_on("gmake", type="build")
 
     extendable = True
 

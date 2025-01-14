@@ -27,6 +27,7 @@ class Kubernetes(Package):
     depends_on("bash", type="build")
     depends_on("go", type="build")
     depends_on("go@1.23:", type="build", when="@1.32:")
+    depends_on("gmake", type="build")
 
     phases = ["build", "install"]
 
