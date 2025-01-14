@@ -20,7 +20,7 @@ class Sopt(CMakePackage):
     maintainers("tkoskela", "mmcleod89", "20DM")
     license("GPL-2.0")
 
-    version("5.0.0", sha256="96df31c55d1154543b276ce8040029ec34339ff4ef3612834d569a7053c83806")
+    version("5.0.0", sha256="ccc0eba228877f56af7712ad49c13abf7e432d364298f2bc86b577a199a2e9c4")
     version("4.2.0", sha256="25e579722f8e049d37c9155affa57ec2f38a2f8414c9cf430da2b7bafc86907b")
     version("dev", branch="development")
 
@@ -39,7 +39,6 @@ class Sopt(CMakePackage):
     depends_on("mpi", when="+mpi")
     depends_on("catch2@3.4:3", when="+tests")
     depends_on("benchmark@1.8~performance_counters", when="+benchmarks")
-    depends_on("onnx@1.16:", when="+onnxrt")
     depends_on("py-onnxruntime@1.17.1:", when="+onnxrt")
     depends_on("doxygen@1.8:1.12+graphviz", when="+docs")
 
