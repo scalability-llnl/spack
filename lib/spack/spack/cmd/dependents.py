@@ -35,6 +35,7 @@ def setup_parser(subparser):
         default=False,
         help="show all transitive dependents",
     )
+    arguments.add_common_arguments(subparser, ["deptype"])
     arguments.add_common_arguments(subparser, ["spec"])
 
 
@@ -96,7 +97,9 @@ def dependents(parser, args):
         format_string = "{name}{@version}{%compiler}{/hash:7}"
         if sys.stdout.isatty():
             tty.msg("Dependents of %s" % spec.cformat(format_string))
-        deps = spack.store.STORE.db.installed_relatives(spec, "parents", args.transitive)
+        deps = spack.store.STORE.db.installed_relatives(
+            spec, "parents", args.transitive, deptype=args.deptype
+        )
         if deps:
             spack.cmd.display_specs(deps, long=True)
         else:
