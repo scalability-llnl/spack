@@ -70,7 +70,7 @@ def guess_core_compilers(name, store=False) -> List[spack.spec.Spec]:
         List of found core compilers
     """
     core_compilers = []
-    for compiler in spack.compilers.config.all_compilers():
+    for compiler in spack.compilers.config.all_compilers(init_config=False):
         try:
             cc_dir = pathlib.Path(compiler.package.cc).parent
             is_system_compiler = str(cc_dir) in spack.util.environment.SYSTEM_DIRS
