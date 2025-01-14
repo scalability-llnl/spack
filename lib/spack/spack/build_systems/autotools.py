@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -182,10 +181,7 @@ class AutotoolsBuilder(BuilderWithDefaults):
     @property
     def _removed_la_files_log(self) -> str:
         """File containing the list of removed libtool archives"""
-        build_dir = self.build_directory
-        if not os.path.isabs(self.build_directory):
-            build_dir = os.path.join(self.pkg.stage.path, build_dir)
-        return os.path.join(build_dir, "removed_la_files.txt")
+        return os.path.join(self.build_directory, "removed_la_files.txt")
 
     @property
     def archive_files(self) -> List[str]:
@@ -523,7 +519,12 @@ To resolve this problem, please try the following:
     @property
     def build_directory(self) -> str:
         """Override to provide another place to build the package"""
-        return self.configure_directory
+        # Handle the case where the configure directory is set to a non-absolute path
+        # Non-absolute paths are always relative to the staging source path
+        build_dir = self.configure_directory
+        if not os.path.isabs(build_dir):
+            build_dir = os.path.join(self.pkg.stage.source_path, build_dir)
+        return build_dir
 
     @spack.phase_callbacks.run_before("autoreconf")
     def delete_configure_to_force_update(self) -> None:
@@ -836,7 +837,7 @@ To resolve this problem, please try the following:
         libtool_files = fs.find(str(self.pkg.prefix), "*.la", recursive=True)
         with fs.safe_remove(*libtool_files):
             fs.mkdirp(os.path.dirname(self._removed_la_files_log))
-            with open(self._removed_la_files_log, mode="w") as f:
+            with open(self._removed_la_files_log, mode="w", encoding="utf-8") as f:
                 f.write("\n".join(libtool_files))
 
     def setup_build_environment(self, env):

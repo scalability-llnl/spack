@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import argparse
@@ -223,7 +222,7 @@ def test_install_overwrite(mock_packages, mock_archive, mock_fetch, install_mock
 
     # Modify the first installation to be sure the content is not the same
     # as the one after we reinstalled
-    with open(os.path.join(spec.prefix, "only_in_old"), "w") as f:
+    with open(os.path.join(spec.prefix, "only_in_old"), "w", encoding="utf-8") as f:
         f.write("This content is here to differentiate installations.")
 
     bad_md5 = fs.hash_directory(spec.prefix, ignore=ignores)
@@ -267,7 +266,7 @@ def test_install_commit(mock_git_version_info, install_mockery, mock_packages, m
     # Ensure first commit file contents were written
     installed = os.listdir(spec.prefix.bin)
     assert filename in installed
-    with open(spec.prefix.bin.join(filename), "r") as f:
+    with open(spec.prefix.bin.join(filename), "r", encoding="utf-8") as f:
         content = f.read().strip()
     assert content == "[0]"  # contents are weird for another test
 
@@ -307,9 +306,9 @@ def test_install_overwrite_multiple(mock_packages, mock_archive, mock_fetch, ins
 
     # Modify the first installation to be sure the content is not the same
     # as the one after we reinstalled
-    with open(os.path.join(libdwarf.prefix, "only_in_old"), "w") as f:
+    with open(os.path.join(libdwarf.prefix, "only_in_old"), "w", encoding="utf-8") as f:
         f.write("This content is here to differentiate installations.")
-    with open(os.path.join(cmake.prefix, "only_in_old"), "w") as f:
+    with open(os.path.join(cmake.prefix, "only_in_old"), "w", encoding="utf-8") as f:
         f.write("This content is here to differentiate installations.")
 
     bad_libdwarf_md5 = fs.hash_directory(libdwarf.prefix, ignore=ld_ignores)
@@ -338,10 +337,10 @@ def test_install_conflicts(conflict_spec):
 
 
 @pytest.mark.usefixtures("mock_packages", "mock_archive", "mock_fetch", "install_mockery")
-def test_install_invalid_spec(invalid_spec):
+def test_install_invalid_spec():
     # Make sure that invalid specs raise a SpackError
-    with pytest.raises(SpecSyntaxError, match="unexpected tokens"):
-        install(invalid_spec)
+    with pytest.raises(SpecSyntaxError, match="unexpected characters"):
+        install("conflict%~")
 
 
 @pytest.mark.usefixtures("noop_install", "mock_packages", "config")
@@ -619,7 +618,7 @@ def test_cdash_install_from_spec_json(
         pkg_spec = Spec("pkg-a")
         pkg_spec.concretize()
 
-        with open(spec_json_path, "w") as fd:
+        with open(spec_json_path, "w", encoding="utf-8") as fd:
             fd.write(pkg_spec.to_json(hash=ht.dag_hash))
 
         install(
@@ -839,7 +838,7 @@ def test_install_no_add_in_env(tmpdir, mock_fetch, install_mockery, mutable_mock
         # Make sure we can install a concrete dependency spec from a spec.json
         # file on disk, and the spec is installed but not added as a root
         mpi_spec_json_path = tmpdir.join("{0}.json".format(mpi_spec.name))
-        with open(mpi_spec_json_path.strpath, "w") as fd:
+        with open(mpi_spec_json_path.strpath, "w", encoding="utf-8") as fd:
             fd.write(mpi_spec.to_json(hash=ht.dag_hash))
 
         install("-f", mpi_spec_json_path.strpath)
@@ -904,7 +903,7 @@ def test_cdash_configure_warning(tmpdir, mock_fetch, install_mockery, capfd):
         spec = Spec("configure-warning").concretized()
         spec.clear_dependencies()
         specfile = "./spec.json"
-        with open(specfile, "w") as f:
+        with open(specfile, "w", encoding="utf-8") as f:
             f.write(spec.to_json())
         print(spec.to_json())
         install("--log-file=cdash_reports", "--log-format=cdash", specfile)

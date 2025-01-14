@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -31,6 +30,7 @@ class Lrslib(Package):
     # depends_on("boost")
     depends_on("gmp")
     depends_on("libtool", type="build")
+    depends_on("gmake", type="build")
 
     patch("Makefile.spack.patch")
     # Ref: https://github.com/mkoeppe/lrslib/commit/2e8c5bd6c06430151faea5910f44aa032c4178a9
