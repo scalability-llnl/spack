@@ -100,6 +100,9 @@ def environment_modifications_for_specs(
 
     # Static environment changes (prefix inspections)
     for s in reversed(topo_ordered):
+        for p in getattr(s.package, "cmake_prefix_paths", []):
+            env.prepend_path("CMAKE_PREFIX_PATH", p)
+
         static = environment.inspect_path(
             s.prefix, prefix_inspections(s.platform), exclude=environment.is_system_path
         )
