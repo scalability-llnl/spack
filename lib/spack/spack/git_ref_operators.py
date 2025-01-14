@@ -6,9 +6,8 @@ import os
 
 import spack.repo
 import spack.util.git
-from spack.version import GitVersion, StandardVersion, Version
 from spack.util.executable import ProcessError
-
+from spack.version import GitVersion, StandardVersion, Version
 
 
 class GitBranch:

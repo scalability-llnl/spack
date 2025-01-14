@@ -716,7 +716,6 @@ class GitFetchStrategy(VCSFetchStrategy):
     git_version_re = r"git version (\S+)"
 
     def __init__(self, **kwargs):
-
         self.commit: Optional[str] = None
         self.tag: Optional[str] = None
         self.branch: Optional[str] = None

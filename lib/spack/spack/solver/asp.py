@@ -46,8 +46,8 @@ import spack.util.timer
 import spack.variant as vt
 import spack.version as vn
 import spack.version.git_ref_lookup
-from spack.git_ref_operators import maximally_resolved_version
 from spack import traverse
+from spack.git_ref_operators import maximally_resolved_version
 
 from .core import (
     AspFunction,
