@@ -13,6 +13,7 @@ class Libfuse(MesonPackage):
     Userspace) interface"""
 
     homepage = "https://github.com/libfuse/libfuse"
+    maintainer = ["bernhardkaindl"]
     url = "https://github.com/libfuse/libfuse/releases/download/fuse-2.9.9/fuse-2.9.9.tar.gz"
 
     keep_werror = "all"
@@ -95,13 +96,25 @@ class Libfuse(MesonPackage):
         when="@:2",
     )
 
-    executables = ["^fusermount3?$"]
+    libraries = ["libfuse", "libfuse3"]
 
     @classmethod
-    def determine_version(cls, exe):
-        output = Executable(exe)("--version", output=str, error=str)
-        match = re.search(r"^fusermount.*version: (\S+)", output)
-        return match.group(1) if match else None
+    def determine_version(cls, lib):
+        # When checking the .so lib, we can get the version from the realpath's extension
+        if lib.endswith(".so"):
+            match = re.search(r"lib\S*\.so\.(\d+)\.(\d+)\.(\d+)", os.path.realpath(lib))
+            if match:
+                return f"{match.group(1)}.{match.group(2)}.{match.group(3)}"
+        # Otherwise or if no match, we have to get the version from the matching pkgconfig file
+        if lib.endswith(".so") or lib.endswith(".a"):
+            pkgconfig = f"{os.path.dirname(lib)}/pkgconfig/{os.path.basename(lib)[3:][:-2]}.pc"
+            try:
+                with open(pkgconfig) as pc:
+                    return re.search(r"Version: (\S+)", pc.read()).group(1)
+            except FileNotFoundError:
+                return None
+        # Linking needs .so/.a (and headers for compiling sources would then also be missing)
+        return None
 
     def meson_args(self):
         args = []
