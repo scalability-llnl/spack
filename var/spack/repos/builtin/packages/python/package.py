@@ -684,6 +684,7 @@ class Python(Package):
             else:
                 options = getattr(self, "configure_flag_args", [])
                 options += ["--prefix={0}".format(prefix)]
+                options += ["--libdir={0}".format(prefix.lib)]
                 options += self.configure_args()
                 configure(*options)
 
