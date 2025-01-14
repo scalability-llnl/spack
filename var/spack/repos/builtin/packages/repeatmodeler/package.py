@@ -45,6 +45,46 @@ class Repeatmodeler(Package):
     depends_on("blat", type="run", when="@2.0.4:")
     depends_on("ltr-retriever", type="run", when="@2.0.4:")
 
+    def patch(self):
+        file_list = [
+            "BuildDatabase",
+            "Job.pm",
+            "LTRPipeline",
+            "MultAln.pm",
+            "NeedlemanWunschGotohAlgorithm.pm",
+            "Refiner",
+            "RepeatClassifier",
+            "RepeatModeler",
+            "RepeatUtil.pm",
+            "RepModelConfig.pm",
+            "SeedAlignmentCollection.pm",
+            "SeedAlignment.pm",
+            "SequenceSimilarityMatrix.pm",
+            "Task.pm",
+            "ThreadedJob.pm",
+            "ThreadedTaskSimple.pm",
+            "TRFMask",
+            "util/alignAndCallConsensus.pl",
+            "util/align.pl",
+            "util/AutoRunBlocker.pl",
+            "util/bestwindow.pl",
+            "util/Blocker.pl",
+            "util/ClusterPartialMatchingSubs.pl",
+            "util/CntSubst",
+            "util/extendFlankingSeqs.pl",
+            "util/fasta-trf-filter.pl",
+            "util/generateSeedAlignments.pl",
+            "util/Linup",
+            "util/renameIds.pl",
+            "util/resolveIndels.pl",
+            "util/rmblast.pl",
+            "util/TSD.pl",
+            "util/viewMSA.pl",
+            "util/visualizeAlignPNG.pl",
+        ]
+        for f in file_list:
+            filter_file("^#!/usr/bin/perl.*$", "#!/usr/bin/env perl", f, ignore_absent=True)
+
     def install(self, spec, prefix):
         # interactive configuration script
         if spec.satisfies("@1.0.11"):
