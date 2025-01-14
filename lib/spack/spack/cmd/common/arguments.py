@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -169,7 +168,7 @@ def _cdash_reporter(namespace):
             else:
                 packages = []
                 for file in args.specfiles:
-                    with open(file, "r") as f:
+                    with open(file, "r", encoding="utf-8") as f:
                         s = spack.spec.Spec.from_yaml(f)
                         packages.append(s.format())
             return packages
@@ -529,6 +528,7 @@ class ConfigSetAction(argparse.Action):
         # the const from the constructor or a value from the CLI.
         # Note that this is only called if the argument is actually
         # specified on the command line.
+        spack.config.CONFIG.ensure_scope_ordering()
         spack.config.set(self.config_path, self.const, scope="command_line")
 
 

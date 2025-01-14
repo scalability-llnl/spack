@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -57,6 +56,7 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
     license("Apache-2.0")
 
     version("main", branch="main")
+    version("19.1.6", sha256="f07fdcbb27b2b67aa95e5ddadf45406b33228481c250e65175066d36536a1ee2")
     version("19.1.5", sha256="e2204b9903cd9d7ee833a2f56a18bef40a33df4793e31cc090906b32cbd8a1f5")
     version("19.1.4", sha256="010e1fd3cabee8799bd2f8a6fbc68f28207494f315cf9da7057a2820f79fd531")
     version("19.1.3", sha256="e5106e2bef341b3f5e41340e4b6c6a58259f4021ad801acf14e88f1a84567b05")
@@ -1144,15 +1144,26 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
                 with open(os.path.join(self.prefix.bin, cfg), "w") as f:
                     print(gcc_install_dir_flag, file=f)
 
-    def llvm_config(self, *args, **kwargs):
+    def llvm_config(self, *args, result=None, **kwargs):
         lc = Executable(self.prefix.bin.join("llvm-config"))
         if not kwargs.get("output"):
             kwargs["output"] = str
         ret = lc(*args, **kwargs)
-        if kwargs.get("result") == "list":
+        if result == "list":
             return ret.split()
         else:
             return ret
+
+    @property
+    def unresolved_libraries(self):
+        # libomptarget at 14 and older has a hard-coded rpath that lacks hwloc's path
+        # https://github.com/llvm/llvm-project/commit/dc52712a063241bd0d3a0473b4e7ed870e41921f
+        if self.spec.satisfies("@:14 +libomptarget"):
+            return ["*"]
+
+        # TODO: for newer llvm there are still issues with runtimes for omp we
+        # have to add rpaths to `bin/llvm-omp-*` and `share/gdb/python/ompd/ompdModule.so`.
+        return ["libpython*.so.*", "libomp.so*", "libomptarget*.so*", "libunwind.so.*"]
 
 
 def get_gcc_install_dir_flag(spec: Spec, compiler) -> Optional[str]:

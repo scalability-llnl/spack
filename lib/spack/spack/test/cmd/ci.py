@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import json
@@ -66,10 +65,10 @@ def mock_git_repo(git, tmpdir):
     with working_dir(repo_path):
         git("init")
 
-        with open("README.md", "w") as f:
+        with open("README.md", "w", encoding="utf-8") as f:
             f.write("# Introduction")
 
-        with open(".gitlab-ci.yml", "w") as f:
+        with open(".gitlab-ci.yml", "w", encoding="utf-8") as f:
             f.write(
                 """
 testjob:
@@ -484,7 +483,7 @@ def create_rebuild_env(
     ci_pipeline_url = "https://some.domain/group/project/-/pipelines/7"
 
     env_dir.mkdir(parents=True)
-    with open(env_dir / "spack.yaml", "w") as f:
+    with open(env_dir / "spack.yaml", "w", encoding="utf-8") as f:
         f.write(
             f"""
 spack:
@@ -687,7 +686,7 @@ def test_ci_nothing_to_rebuild(
     mirror_dir = scratch / "mirror"
     mirror_url = mirror_dir.as_uri()
 
-    with open(tmp_path / "spack.yaml", "w") as f:
+    with open(tmp_path / "spack.yaml", "w", encoding="utf-8") as f:
         f.write(
             f"""
 spack:
@@ -755,7 +754,7 @@ def test_push_to_build_cache(
     ci.import_signing_key(_signing_key())
 
     with working_dir(tmp_path):
-        with open("spack.yaml", "w") as f:
+        with open("spack.yaml", "w", encoding="utf-8") as f:
             f.write(
                 f"""\
 spack:
@@ -793,7 +792,7 @@ spack:
             concrete_spec = list(current_env.roots())[0]
             spec_json = concrete_spec.to_json(hash=ht.dag_hash)
             json_path = str(tmp_path / "spec.json")
-            with open(json_path, "w") as ypfd:
+            with open(json_path, "w", encoding="utf-8") as ypfd:
                 ypfd.write(spec_json)
 
             for s in concrete_spec.traverse():
@@ -805,7 +804,7 @@ spack:
             outputfile_pruned = str(tmp_path / "pruned_pipeline.yml")
             ci_cmd("generate", "--output-file", outputfile_pruned)
 
-            with open(outputfile_pruned) as f:
+            with open(outputfile_pruned, encoding="utf-8") as f:
                 contents = f.read()
                 yaml_contents = syaml.load(contents)
                 # Make sure there are no other spec jobs or rebuild-index
@@ -825,7 +824,7 @@ spack:
             ci_cmd("generate", "--no-prune-dag", "--output-file", outputfile_not_pruned)
 
             # Test the --no-prune-dag option of spack ci generate
-            with open(outputfile_not_pruned) as f:
+            with open(outputfile_not_pruned, encoding="utf-8") as f:
                 contents = f.read()
                 yaml_contents = syaml.load(contents)
 
@@ -847,7 +846,7 @@ spack:
 
             # Test generating buildcache index while we have bin mirror
             buildcache_cmd("update-index", mirror_url)
-            with open(mirror_dir / "build_cache" / "index.json") as idx_fd:
+            with open(mirror_dir / "build_cache" / "index.json", encoding="utf-8") as idx_fd:
                 index_object = json.load(idx_fd)
                 jsonschema.validate(index_object, db_idx_schema)
 
@@ -856,7 +855,7 @@ spack:
             # Also test buildcache_spec schema
             for file_name in os.listdir(mirror_dir / "build_cache"):
                 if file_name.endswith(".spec.json.sig"):
-                    with open(mirror_dir / "build_cache" / file_name) as f:
+                    with open(mirror_dir / "build_cache" / file_name, encoding="utf-8") as f:
                         spec_dict = Spec.extract_json_from_clearsig(f.read())
                         jsonschema.validate(spec_dict, specfile_schema)
 
@@ -1034,7 +1033,7 @@ def test_ci_rebuild_index(
     mirror_dir = scratch / "mirror"
     mirror_url = mirror_dir.as_uri()
 
-    with open(tmp_path / "spack.yaml", "w") as f:
+    with open(tmp_path / "spack.yaml", "w", encoding="utf-8") as f:
         f.write(
             f"""
 spack:
@@ -1058,14 +1057,14 @@ spack:
         env_cmd("create", "test", "./spack.yaml")
         with ev.read("test"):
             concrete_spec = Spec("callpath").concretized()
-            with open(tmp_path / "spec.json", "w") as f:
+            with open(tmp_path / "spec.json", "w", encoding="utf-8") as f:
                 f.write(concrete_spec.to_json(hash=ht.dag_hash))
 
             install_cmd("--add", "-f", str(tmp_path / "spec.json"))
             buildcache_cmd("push", "-u", "-f", mirror_url, "callpath")
             ci_cmd("rebuild-index")
 
-            with open(mirror_dir / "build_cache" / "index.json") as f:
+            with open(mirror_dir / "build_cache" / "index.json", encoding="utf-8") as f:
                 jsonschema.validate(json.load(f), db_idx_schema)
 
 
@@ -1137,7 +1136,7 @@ def test_ci_subcommands_without_mirror(
     mock_binary_index,
 ):
     """Make sure we catch if there is not a mirror and report an error"""
-    with open(tmp_path / "spack.yaml", "w") as f:
+    with open(tmp_path / "spack.yaml", "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -1197,7 +1196,7 @@ def test_ci_generate_read_broken_specs_url(
     )
 
     # Test that `spack ci generate` notices this broken spec and fails.
-    with open(tmp_path / "spack.yaml", "w") as f:
+    with open(tmp_path / "spack.yaml", "w", encoding="utf-8") as f:
         f.write(
             f"""\
 spack:
@@ -1297,7 +1296,7 @@ def test_ci_reproduce(
     repro_dir = tmp_path / "repro_dir"
     image_name = "org/image:tag"
 
-    with open(tmp_path / "spack.yaml", "w") as f:
+    with open(tmp_path / "spack.yaml", "w", encoding="utf-8") as f:
         f.write(
             f"""
 spack:
@@ -1326,7 +1325,7 @@ spack:
         repro_dir.mkdir()
 
         job_spec = env.concrete_roots()[0]
-        with open(repro_dir / "archivefiles.json", "w") as f:
+        with open(repro_dir / "archivefiles.json", "w", encoding="utf-8") as f:
             f.write(job_spec.to_json(hash=ht.dag_hash))
 
         artifacts_root = repro_dir / "scratch_dir"
@@ -1342,7 +1341,7 @@ spack:
 
         job_name = gitlab_generator.get_job_name(job_spec)
 
-        with open(repro_dir / "repro.json", "w") as f:
+        with open(repro_dir / "repro.json", "w", encoding="utf-8") as f:
             f.write(
                 json.dumps(
                     {
@@ -1353,10 +1352,10 @@ spack:
                 )
             )
 
-        with open(repro_dir / "install.sh", "w") as f:
+        with open(repro_dir / "install.sh", "w", encoding="utf-8") as f:
             f.write("#!/bin/sh\n\n#fake install\nspack install blah\n")
 
-        with open(repro_dir / "spack_info.txt", "w") as f:
+        with open(repro_dir / "spack_info.txt", "w", encoding="utf-8") as f:
             f.write(f"\nMerge {last_two_git_commits[1]} into {last_two_git_commits[0]}\n\n")
 
     def fake_download_and_extract_artifacts(url, work_dir):
@@ -1484,7 +1483,7 @@ def test_ci_generate_mirror_config(
 ):
     """Make sure the correct mirror gets used as the buildcache destination"""
     fst, snd = (tmp_path / "first").as_uri(), (tmp_path / "second").as_uri()
-    with open(tmp_path / "spack.yaml", "w") as f:
+    with open(tmp_path / "spack.yaml", "w", encoding="utf-8") as f:
         f.write(
             f"""\
 spack:
@@ -1508,7 +1507,7 @@ spack:
     with ev.Environment(tmp_path):
         ci_cmd("generate", "--output-file", str(tmp_path / ".gitlab-ci.yml"))
 
-    with open(tmp_path / ".gitlab-ci.yml") as f:
+    with open(tmp_path / ".gitlab-ci.yml", encoding="utf-8") as f:
         pipeline_doc = syaml.load(f)
         assert fst not in pipeline_doc["rebuild-index"]["script"][0]
         assert snd in pipeline_doc["rebuild-index"]["script"][0]
@@ -1516,7 +1515,7 @@ spack:
 
 def dynamic_mapping_setup(tmpdir):
     filename = str(tmpdir.join("spack.yaml"))
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -1592,7 +1591,7 @@ def test_ci_dynamic_mapping_full(
         with ev.read("test"):
             ci_cmd("generate", "--output-file", outputfile)
 
-            with open(outputfile) as of:
+            with open(outputfile, encoding="utf-8") as of:
                 pipeline_doc = syaml.load(of.read())
                 assert label in pipeline_doc
                 job = pipeline_doc[label]
@@ -1684,7 +1683,7 @@ spack:
 """
     _, output_file, _ = ci_generate_test(spack_yaml_contents)
 
-    with open(output_file) as of:
+    with open(output_file, encoding="utf-8") as of:
         pipeline_doc = syaml.load(of.read())
 
     expected_keys = ["copy", "rebuild-index", "stages", "variables", "workflow"]
@@ -1716,7 +1715,7 @@ spack:
     assert os.path.exists(pipeline_manifest_path)
     assert os.path.isfile(pipeline_manifest_path)
 
-    with open(pipeline_manifest_path) as fd:
+    with open(pipeline_manifest_path, encoding="utf-8") as fd:
         manifest_data = json.load(fd)
 
     with ev.read("test") as active_env:
@@ -1732,7 +1731,7 @@ def generate_unittest_pipeline(
     """Define a custom pipeline generator for the target 'unittestgenerator'."""
     output_file = options.output_file
     assert output_file is not None
-    with open(output_file, "w") as fd:
+    with open(output_file, "w", encoding="utf-8") as fd:
         fd.write("unittestpipeline\n")
         for _, node in pipeline.traverse_nodes(direction="children"):
             release_spec = node.spec
@@ -1771,7 +1770,7 @@ spack:
 """
     _, output_file, _ = ci_generate_test(spack_yaml_contents, "--no-prune-externals")
 
-    with open(output_file) as of:
+    with open(output_file, encoding="utf-8") as of:
         pipeline_doc = of.read()
 
     assert pipeline_doc.startswith("unittestpipeline")

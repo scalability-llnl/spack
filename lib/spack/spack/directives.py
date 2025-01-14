@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -296,6 +295,13 @@ def _depends_on(
     # this is where we actually add the dependency to this package
     deps_by_name = pkg.dependencies.setdefault(when_spec, {})
     dependency = deps_by_name.get(spec.name)
+
+    if spec.dependencies():
+        raise DirectiveError(
+            f"the '^' sigil cannot be used in 'depends_on' directives. Please reformulate "
+            f"the directive below as multiple directives:\n\n"
+            f'\tdepends_on("{spec}", when="{when_spec}")\n'
+        )
 
     if not dependency:
         dependency = Dependency(pkg, spec, depflag=depflag)

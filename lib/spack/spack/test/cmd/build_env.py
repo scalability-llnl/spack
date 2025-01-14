@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import pickle
@@ -40,7 +39,7 @@ _out_file = "env.out"
 def test_dump(shell_as, shell, tmpdir):
     with tmpdir.as_cwd():
         build_env("--dump", _out_file, "zlib")
-        with open(_out_file) as f:
+        with open(_out_file, encoding="utf-8") as f:
             if shell == "pwsh":
                 assert any(line.startswith("$Env:PATH") for line in f.readlines())
             elif shell == "bat":

@@ -14,10 +14,10 @@ default:
   image: { "name": "ghcr.io/spack/e4s-ubuntu-18.04:v2021-10-18", "entrypoint": [""] }
 
 # CI Platform-Arch
-.cray_rhel_zen4:
+.cray_rhel_x86_64_v3:
   variables:
     SPACK_TARGET_PLATFORM: "cray-rhel"
-    SPACK_TARGET_ARCH: "zen4"
+    SPACK_TARGET_ARCH: "x86_64_v3"
 
 .cray_sles_zen4:
   variables:
@@ -145,7 +145,7 @@ default:
       --config-scope "${SPACK_CI_CONFIG_ROOT}"
       --config-scope "${SPACK_CI_CONFIG_ROOT}/${SPACK_TARGET_PLATFORM}"
       --config-scope "${SPACK_CI_CONFIG_ROOT}/${SPACK_TARGET_PLATFORM}/${SPACK_TARGET_ARCH}"
-      ci generate --check-index-only
+      ci generate --check-index-only -j ${SPACK_CONCRETIZE_JOBS}
       --artifacts-root "${CI_PROJECT_DIR}/jobs_scratch_dir"
       --output-file "${CI_PROJECT_DIR}/jobs_scratch_dir/cloud-ci-pipeline.yml"
   artifacts:
@@ -155,7 +155,8 @@ default:
       - "${CI_PROJECT_DIR}/tmp/_user_cache/cache/providers"
       - "${CI_PROJECT_DIR}/tmp/_user_cache/cache/tags"
   variables:
-    KUBERNETES_CPU_REQUEST: 4000m
+    SPACK_CONCRETIZE_JOBS: 8
+    KUBERNETES_CPU_REQUEST: 8000m
     KUBERNETES_MEMORY_REQUEST: 16G
     # avoid moving targets like branches and tags
     SPACK_CONCRETIZER_REQUIRE_CHECKSUM: 1
@@ -306,29 +307,6 @@ e4s-neoverse-v2-build:
       job: e4s-neoverse-v2-generate
 
 ########################################
-# E4S Neoverse V1 pipeline
-########################################
-.e4s-neoverse_v1:
-  extends: [ ".linux_neoverse_v1" ]
-  variables:
-    SPACK_CI_STACK_NAME: e4s-neoverse_v1
-
-e4s-neoverse_v1-generate:
-  extends: [ ".e4s-neoverse_v1", ".generate-neoverse_v1" ]
-  image: ghcr.io/spack/spack/ubuntu22.04-runner-arm64-gcc-11.4:2024.03.01
-
-e4s-neoverse_v1-build:
-  extends: [ ".e4s-neoverse_v1", ".build" ]
-  trigger:
-    include:
-      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
-        job: e4s-neoverse_v1-generate
-    strategy: depend
-  needs:
-    - artifacts: True
-      job: e4s-neoverse_v1-generate
-
-########################################
 # E4S ROCm External pipeline
 ########################################
 .e4s-rocm-external:
@@ -350,29 +328,6 @@ e4s-rocm-external-build:
   needs:
     - artifacts: True
       job: e4s-rocm-external-generate
-
-########################################
-# GPU Testing Pipeline
-########################################
-# .gpu-tests:
-#   extends: [ ".linux_x86_64_v3" ]
-#   variables:
-#     SPACK_CI_STACK_NAME: gpu-tests
-
-# gpu-tests-generate:
-#   extends: [ ".gpu-tests", ".generate-x86_64"]
-#   image: ghcr.io/spack/ubuntu20.04-runner-x86_64:2023-01-01
-
-# gpu-tests-build:
-#   extends: [ ".gpu-tests", ".build" ]
-#   trigger:
-#     include:
-#       - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
-#         job: gpu-tests-generate
-#     strategy: depend
-#   needs:
-#     - artifacts: True
-#       job: gpu-tests-generate
 
 ########################################
 # E4S OneAPI Pipeline
@@ -411,6 +366,9 @@ e4s-oneapi-build:
 
 e4s-power-generate:
   extends: [ ".e4s-power", ".generate-x86_64", ".e4s-power-generate-tags-and-image"]
+  variables:
+    # Override concretization pool for metal runners
+    SPACK_CONCRETIZE_JOBS: 16
 
 e4s-power-build:
   extends: [ ".e4s-power", ".build" ]
@@ -447,27 +405,50 @@ build_systems-build:
 
 ###########################################
 # Build tests for different developer tools
-# manylinux2014
 ###########################################
-.developer-tools-manylinux2014:
+.developer-tools-x86_64_v3-linux-gnu:
   extends: [ ".linux_x86_64_v3" ]
   variables:
-    SPACK_CI_STACK_NAME: developer-tools-manylinux2014
+    SPACK_CI_STACK_NAME: developer-tools-x86_64_v3-linux-gnu
 
-developer-tools-manylinux2014-generate:
-  extends: [ ".developer-tools-manylinux2014", ".generate-x86_64"]
-  image:  ghcr.io/spack/spack/manylinux2014:2024.03.28
+developer-tools-x86_64_v3-linux-gnu-generate:
+  extends: [ ".developer-tools-x86_64_v3-linux-gnu", ".generate-x86_64"]
+  image:  ghcr.io/spack/x86_64_v3-linux-gnu:2024-12-12
 
-developer-tools-manylinux2014-build:
-  extends: [ ".developer-tools-manylinux2014", ".build" ]
+developer-tools-x86_64_v3-linux-gnu-build:
+  extends: [ ".developer-tools-x86_64_v3-linux-gnu", ".build" ]
   trigger:
     include:
       - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
-        job: developer-tools-manylinux2014-generate
+        job: developer-tools-x86_64_v3-linux-gnu-generate
     strategy: depend
   needs:
     - artifacts: True
-      job: developer-tools-manylinux2014-generate
+      job: developer-tools-x86_64_v3-linux-gnu-generate
+
+###########################################
+# Build tests for different developer tools
+# aarch64
+###########################################
+.developer-tools-aarch64-linux-gnu:
+  extends: [ ".linux_aarch64" ]
+  variables:
+    SPACK_CI_STACK_NAME: developer-tools-aarch64-linux-gnu
+
+developer-tools-aarch64-linux-gnu-generate:
+  extends: [ ".developer-tools-aarch64-linux-gnu", ".generate-aarch64"]
+  image:  ghcr.io/spack/aarch64-linux-gnu:v2024-12-18
+
+developer-tools-aarch64-linux-gnu-build:
+  extends: [ ".developer-tools-aarch64-linux-gnu", ".build" ]
+  trigger:
+    include:
+      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
+        job: developer-tools-aarch64-linux-gnu-generate
+    strategy: depend
+  needs:
+    - artifacts: True
+      job: developer-tools-aarch64-linux-gnu-generate
 
 ###########################################
 # Build tests for different developer tools
@@ -479,7 +460,7 @@ developer-tools-manylinux2014-build:
     SPACK_CI_STACK_NAME: developer-tools-darwin
 
 developer-tools-darwin-generate:
-  tags: [ "macos-ventura", "apple-clang-15", "aarch64-macos" ]
+  tags: [ "macos-sonoma", "apple-clang-16", "aarch64-macos" ]
   extends: [ ".developer-tools-darwin", ".generate-base"]
 
 developer-tools-darwin-build:
@@ -790,7 +771,7 @@ ml-linux-aarch64-cuda-build:
     SPACK_CI_STACK_NAME: ml-darwin-aarch64-mps
 
 ml-darwin-aarch64-mps-generate:
-  tags: [ "macos-ventura", "apple-clang-15", "aarch64-macos" ]
+  tags: [ "macos-sonoma", "apple-clang-16", "aarch64-macos" ]
   extends: [ ".ml-darwin-aarch64-mps", ".generate-base"]
 
 ml-darwin-aarch64-mps-build:
@@ -803,6 +784,29 @@ ml-darwin-aarch64-mps-build:
   needs:
     - artifacts: True
       job: ml-darwin-aarch64-mps-generate
+
+########################################
+# High Energy Physics (HEP) - Linux x86_64 (CPU)
+########################################
+.hep:
+  extends: [ ".linux_x86_64_v3" ]
+  variables:
+    SPACK_CI_STACK_NAME: hep
+
+hep-generate:
+  extends: [ ".hep", ".generate-x86_64"]
+  image: ghcr.io/spack/spack/ubuntu22.04-runner-amd64-gcc-11.4:2024.03.01
+
+hep-build:
+  extends: [ ".hep", ".build" ]
+  trigger:
+    include:
+      - artifact: jobs_scratch_dir/cloud-ci-pipeline.yml
+        job: hep-generate
+    strategy: depend
+  needs:
+    - artifacts: True
+      job: hep-generate
 
 ########################################
 # AWS ParallelCluster
@@ -861,6 +865,10 @@ aws-pcluster-build-neoverse_v1:
 # Cray definitions
 .generate-cray:
   extends: [ ".generate-common", ".base-job" ]
+  variables:
+    # Override concretization pool for metal runners
+    SPACK_CONCRETIZE_JOBS: 16
+
   before_script:
     - echo $PATH
     - module avail
@@ -876,7 +884,7 @@ aws-pcluster-build-neoverse_v1:
     - cat /proc/meminfo | grep 'MemTotal\|MemFree' || true
 
 .generate-cray-rhel:
-  tags: [ "cray-rhel-zen4", "public" ]
+  tags: [ "cray-rhel-x86_64_v3", "public" ]
   extends: [ ".generate-cray" ]
 
 .generate-cray-sles:
@@ -888,7 +896,7 @@ aws-pcluster-build-neoverse_v1:
 # E4S - Cray RHEL
 #######################################
 .e4s-cray-rhel:
-  extends: [ ".cray_rhel_zen4" ]
+  extends: [ ".cray_rhel_x86_64_v3" ]
   variables:
     SPACK_CI_STACK_NAME: e4s-cray-rhel
 
@@ -896,7 +904,6 @@ e4s-cray-rhel-generate:
   extends: [ ".generate-cray-rhel", ".e4s-cray-rhel" ]
 
 e4s-cray-rhel-build:
-  allow_failure: true  # libsci_cray.so broken, misses DT_NEEDED for libdl.so
   extends: [ ".build", ".e4s-cray-rhel" ]
   trigger:
     include:
@@ -915,10 +922,10 @@ e4s-cray-rhel-build:
   variables:
     SPACK_CI_STACK_NAME: e4s-cray-sles
 
-e4s-cray-sles-generate:
+.e4s-cray-sles-generate:
   extends: [ ".generate-cray-sles", ".e4s-cray-sles" ]
 
-e4s-cray-sles-build:
+.e4s-cray-sles-build:
   allow_failure: true  # libsci_cray.so broken, misses DT_NEEDED for libdl.so
   extends: [ ".build", ".e4s-cray-sles" ]
   trigger:
@@ -937,6 +944,10 @@ e4s-cray-sles-build:
   extends: [".win64-msvc2019"]
   variables:
     SPACK_CI_STACK_NAME: windows-vis
+    # TODO: windows runners are currently m5.2xlarge with a max 8 vCPU and 32GiB MEM
+    # setting request to half of the available allocation to allow room for overhead.
+    KUBERNETES_CPU_REQUEST: 4000m
+    KUBERNETES_MEMORY_REQUEST: 16G
 
 windows-vis-generate:
   extends: [ ".generate-win64", ".windows-vis" ]
@@ -984,7 +995,7 @@ bootstrap-x86_64-linux-gnu-build:
     SPACK_CI_STACK_NAME: bootstrap-aarch64-darwin
 
 bootstrap-aarch64-darwin-generate:
-  tags: [macos-ventura, apple-clang-15, aarch64-macos]
+  tags: [ "macos-sonoma", "apple-clang-16", "aarch64-macos" ]
   extends: [.bootstrap-aarch64-darwin, .generate-base]
 
 bootstrap-aarch64-darwin-build:

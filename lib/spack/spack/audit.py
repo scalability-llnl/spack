@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Classes and functions to register audit checks for various parts of
@@ -656,7 +655,7 @@ def _ensure_docstring_and_no_fixme(pkgs, error_cls):
     for pkg_name in pkgs:
         details = []
         filename = spack.repo.PATH.filename_for_package_name(pkg_name)
-        with open(filename, "r") as package_file:
+        with open(filename, "r", encoding="utf-8") as package_file:
             for i, line in enumerate(package_file):
                 pattern = next((r for r in fixme_regexes if r.search(line)), None)
                 if pattern:
@@ -809,7 +808,7 @@ def _uses_deprecated_globals(pkgs, error_cls):
             continue
 
         file = spack.repo.PATH.filename_for_package_name(pkg_name)
-        tree = ast.parse(open(file).read())
+        tree = ast.parse(open(file, "rb").read())
         visitor = DeprecatedMagicGlobals(("std_cmake_args", "std_meson_args", "std_pip_args"))
         visitor.visit(tree)
         if visitor.references_to_globals:
@@ -1009,20 +1008,6 @@ def _issues_in_depends_on_directive(pkgs, error_cls):
 
         for when, deps_by_name in pkg_cls.dependencies.items():
             for dep_name, dep in deps_by_name.items():
-                # Check if there are nested dependencies declared. We don't want directives like:
-                #
-                #     depends_on('foo+bar ^fee+baz')
-                #
-                # but we'd like to have two dependencies listed instead.
-                nested_dependencies = dep.spec.dependencies()
-                if nested_dependencies:
-                    summary = f"{pkg_name}: nested dependency declaration '{dep.spec}'"
-                    ndir = len(nested_dependencies) + 1
-                    details = [
-                        f"split depends_on('{dep.spec}', when='{when}') into {ndir} directives",
-                        f"in {filename}",
-                    ]
-                    errors.append(error_cls(summary=summary, details=details))
 
                 def check_virtual_with_variants(spec, msg):
                     if not spec.virtual or not spec.variants:

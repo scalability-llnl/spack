@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -40,8 +39,16 @@ class PyRasterio(PythonPackage):
     version("1.3.0", sha256="90171035e5b201cdb85a9abd60181426366040d4ca44706958db982a030f8dc4")
     version("1.2.10", sha256="6062456047ba6494fe18bd0da98a383b6fad5306b16cd52a22e76c59172a2b5f")
     version("1.2.3", sha256="d8c345e01052b70ac3bbbe100c83def813c0ab19f7412c2c98e553d03720c1c5")
-    version("1.1.8", sha256="f7cac7e2ecf65b4b1eb78c994c63bd429b67dc679b0bc0ecfe487d3d5bf88fd5")
-    version("1.1.5", sha256="ebe75c71f9257c780615caaec8ef81fa4602702cf9290a65c213e1639284acc9")
+    version(
+        "1.1.8",
+        sha256="f7cac7e2ecf65b4b1eb78c994c63bd429b67dc679b0bc0ecfe487d3d5bf88fd5",
+        deprecated=True,
+    )
+    version(
+        "1.1.5",
+        sha256="ebe75c71f9257c780615caaec8ef81fa4602702cf9290a65c213e1639284acc9",
+        deprecated=True,
+    )
 
     # From pyproject.toml
     with default_args(type="build"):

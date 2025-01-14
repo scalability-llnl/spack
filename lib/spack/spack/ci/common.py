@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import codecs
@@ -129,7 +128,7 @@ def update_env_scopes(
     environment, by reading the yaml, adding the missing includes, and writing the
     updated yaml back to the same location.
     """
-    with open(env.manifest_path, "r") as env_fd:
+    with open(env.manifest_path, "r", encoding="utf-8") as env_fd:
         env_yaml_root = syaml.load(env_fd)
 
     # Add config scopes to environment
@@ -143,7 +142,7 @@ def update_env_scopes(
         ensure_expected_target_path(i) if transform_windows_paths else i for i in env_includes
     ]
 
-    with open(output_file, "w") as fd:
+    with open(output_file, "w", encoding="utf-8") as fd:
         syaml.dump_config(env_yaml_root, fd, default_flow_style=False)
 
 
@@ -186,7 +185,7 @@ def write_pipeline_manifest(specs, src_prefix, dest_prefix, output_file):
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
 
-    with open(output_file, "w") as fd:
+    with open(output_file, "w", encoding="utf-8") as fd:
         fd.write(json.dumps(buildcache_copies))
 
 
@@ -217,7 +216,7 @@ class CDashHandler:
             "--cdash-upload-url",
             win_quote(self.upload_url),
             "--cdash-build",
-            win_quote(self.build_name),
+            win_quote(self.build_name()),
             "--cdash-site",
             win_quote(self.site),
             "--cdash-buildstamp",
@@ -233,8 +232,10 @@ class CDashHandler:
 
         Returns: (str) given spec's CDash build name."""
         if spec:
-            build_name = f"{spec.name}@{spec.version}%{spec.compiler} \
-hash={spec.dag_hash()} arch={spec.architecture} ({self.build_group})"
+            build_name = (
+                f"{spec.name}@{spec.version}%{spec.compiler} "
+                f"hash={spec.dag_hash()} arch={spec.architecture} ({self.build_group})"
+            )
             tty.debug(f"Generated CDash build name ({build_name}) from the {spec.name}")
             return build_name
 
@@ -351,7 +352,7 @@ hash={spec.dag_hash()} arch={spec.architecture} ({self.build_group})"
         configuration = CDashConfiguration(
             upload_url=self.upload_url,
             packages=[spec.name],
-            build=self.build_name,
+            build=self.build_name(),
             site=self.site,
             buildstamp=self.build_stamp,
             track=None,

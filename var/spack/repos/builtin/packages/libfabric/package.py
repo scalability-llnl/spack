@@ -1,12 +1,10 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
 import re
 
-import spack.platforms.cray
 from spack.package import *
 
 
@@ -69,7 +67,7 @@ class Libfabric(AutotoolsPackage, CudaPackage):
     depends_on("c", type="build")  # generated
 
     fabrics = (
-        conditional("cxi", when=spack.platforms.cray.slingshot_network()),
+        "cxi",
         "efa",
         "gni",
         "mlx",
@@ -89,9 +87,6 @@ class Libfabric(AutotoolsPackage, CudaPackage):
         "verbs",
         "xpmem",
     )
-
-    # CXI is a closed source package and only exists when an external.
-    conflicts("fabrics=cxi")
 
     variant(
         "fabrics",
@@ -132,11 +127,14 @@ class Libfabric(AutotoolsPackage, CudaPackage):
     depends_on("numactl", when="fabrics=opx")
     depends_on("liburing@2.1:", when="+uring")
     depends_on("oneapi-level-zero", when="+level_zero")
+    depends_on("libcxi", when="fabrics=cxi")
 
     depends_on("m4", when="@main", type="build")
     depends_on("autoconf", when="@main", type="build")
     depends_on("automake", when="@main", type="build")
     depends_on("libtool", when="@main", type="build")
+    depends_on("json-c", when="fabrics=cxi")
+    depends_on("curl", when="fabrics=cxi")
 
     conflicts("@1.9.0", when="platform=darwin", msg="This distribution is missing critical files")
     conflicts("fabrics=opx", when="@:1.14.99")
@@ -208,6 +206,13 @@ class Libfabric(AutotoolsPackage, CudaPackage):
                 args.append(f"--enable-{fabric}")
             else:
                 args.append(f"--disable-{fabric}")
+
+        if self.spec.satisfies("fabrics=cxi"):
+            args.append(f"--with-json-c={self.spec['json-c'].prefix}")
+            args.append(f"--with-curl={self.spec['curl'].prefix}")
+            args.append(f"--with-cassini-headers={self.spec['cassini-headers'].prefix.include}")
+            args.append(f"--with-cxi-uapi-headers={self.spec['cxi-driver'].prefix.include}")
+            args.append(f"--enable-cxi={self.spec['libcxi'].prefix}")
 
         return args
 

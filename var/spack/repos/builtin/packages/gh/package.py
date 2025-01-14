@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -57,6 +56,20 @@ class Gh(GoPackage):
     def build_args(self):
         args = super().build_args
         args.extend(["-trimpath", "./cmd/gh"])
+        return args
+
+    @property
+    def check_args(self):
+        args = super().check_args
+        skip_tests = (
+            "TestHasNoActiveToken|TestTokenStoredIn.*|"
+            "TestSwitchUser.*|TestSwitchClears.*|"
+            "TestTokenWorksRightAfterMigration|"
+            "Test_loginRun.*|Test_logoutRun.*|Test_refreshRun.*|"
+            "Test_setupGitRun.*|Test_CheckAuth|TestSwitchRun.*|"
+            "Test_statusRun.*|TestTokenRun.*"
+        )
+        args.extend([f"-skip={skip_tests}", "./..."])
         return args
 
     @run_after("install")

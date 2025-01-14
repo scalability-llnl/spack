@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -547,14 +546,14 @@ def test_combine_phase_logs(tmpdir):
     # Create and write to dummy phase log files
     for log_file in log_files:
         phase_log_file = os.path.join(str(tmpdir), log_file)
-        with open(phase_log_file, "w") as plf:
+        with open(phase_log_file, "w", encoding="utf-8") as plf:
             plf.write("Output from %s\n" % log_file)
         phase_log_files.append(phase_log_file)
 
     # This is the output log we will combine them into
     combined_log = os.path.join(str(tmpdir), "combined-out.txt")
     inst.combine_phase_logs(phase_log_files, combined_log)
-    with open(combined_log, "r") as log_file:
+    with open(combined_log, "r", encoding="utf-8") as log_file:
         out = log_file.read()
 
     # Ensure each phase log file is represented

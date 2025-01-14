@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -63,18 +62,6 @@ spack_gpg = spack.main.SpackCommand("gpg")
 spack_compiler = spack.main.SpackCommand("compiler")
 
 PushResult = namedtuple("PushResult", "success url")
-
-
-class TemporaryDirectory:
-    def __init__(self):
-        self.temporary_directory = tempfile.mkdtemp()
-
-    def __enter__(self):
-        return self.temporary_directory
-
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        shutil.rmtree(self.temporary_directory)
-        return False
 
 
 def get_change_revisions():
@@ -525,9 +512,9 @@ def import_signing_key(base64_signing_key):
     if isinstance(decoded_key, bytes):
         decoded_key = decoded_key.decode("utf8")
 
-    with TemporaryDirectory() as tmpdir:
+    with tempfile.TemporaryDirectory() as tmpdir:
         sign_key_path = os.path.join(tmpdir, "signing_key")
-        with open(sign_key_path, "w") as fd:
+        with open(sign_key_path, "w", encoding="utf-8") as fd:
             fd.write(decoded_key)
 
         key_import_output = spack_gpg("trust", sign_key_path, output=str)
@@ -636,7 +623,7 @@ def download_and_extract_artifacts(url, work_dir):
         url (str): Complete url to artifacts.zip file
         work_dir (str): Path to destination where artifacts should be extracted
     """
-    tty.msg(f"Fetching artifacts from: {url}\n")
+    tty.msg(f"Fetching artifacts from: {url}")
 
     headers = {"Content-Type": "application/zip"}
 
@@ -706,8 +693,8 @@ def setup_spack_repro_version(repro_dir, checkout_commit, merge_commit=None):
     """
     # figure out the path to the spack git version being used for the
     # reproduction
-    print(f"checkout_commit: {checkout_commit}")
-    print(f"merge_commit: {merge_commit}")
+    tty.info(f"checkout_commit: {checkout_commit}")
+    tty.info(f"merge_commit: {merge_commit}")
 
     dot_git_path = os.path.join(spack.paths.prefix, ".git")
     if not os.path.exists(dot_git_path):
@@ -822,7 +809,7 @@ def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime):
     # but rather somewhere else and exported it as an artifact from
     # that location, we won't be able to find it.
     for yf in yaml_files:
-        with open(yf) as y_fd:
+        with open(yf, encoding="utf-8") as y_fd:
             yaml_obj = syaml.load(y_fd)
             if "variables" in yaml_obj and "stages" in yaml_obj:
                 pipeline_yaml = yaml_obj
@@ -856,7 +843,7 @@ def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime):
     # job from the generated pipeline file.
     repro_file = fs.find(work_dir, "repro.json")[0]
     repro_details = None
-    with open(repro_file) as fd:
+    with open(repro_file, encoding="utf-8") as fd:
         repro_details = json.load(fd)
 
     repro_dir = os.path.dirname(repro_file)
@@ -865,7 +852,7 @@ def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime):
     # Find the spack info text file that should contain the git log
     # of the HEAD commit used during the CI build
     spack_info_file = fs.find(work_dir, "spack_info.txt")[0]
-    with open(spack_info_file) as fd:
+    with open(spack_info_file, encoding="utf-8") as fd:
         spack_info = fd.read()
 
     # Access the specific job configuration
@@ -953,7 +940,7 @@ def reproduce_ci_job(url, work_dir, autostart, gpg_url, runtime):
             "Failed to automatically setup the tested version of spack "
             "in your local reproduction directory."
         )
-        print(setup_msg)
+        tty.info(setup_msg)
 
     # In cases where CI build was run on a shell runner, it might be useful
     # to see what tags were applied to the job so the user knows what shell
@@ -1123,7 +1110,7 @@ if ($LASTEXITCODE -ne 0){{
     script_content.append(full_command)
     script_content.append("\n")
 
-    with open(script, "w") as fd:
+    with open(script, "w", encoding="utf-8") as fd:
         for line in script_content:
             fd.write(line)
 
@@ -1198,7 +1185,7 @@ def write_broken_spec(url, pkg_name, stack_name, job_url, pipeline_url, spec_dic
     }
 
     try:
-        with open(file_path, "w") as fd:
+        with open(file_path, "w", encoding="utf-8") as fd:
             syaml.dump(broken_spec_details, fd)
         web_util.push_to_url(
             file_path, url, keep_original=False, extra_args={"ContentType": "text/plain"}

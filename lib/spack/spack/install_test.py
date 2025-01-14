@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import base64
@@ -81,7 +80,7 @@ def get_escaped_text_output(filename: str) -> List[str]:
     Returns:
         escaped text lines read from the file
     """
-    with open(filename) as f:
+    with open(filename, encoding="utf-8") as f:
         # Ensure special characters are escaped as needed
         expected = f.read()
 
@@ -458,7 +457,7 @@ class PackageTest:
             elif self.counts[TestStatus.PASSED] > 0:
                 status = TestStatus.PASSED
 
-        with open(self.tested_file, "w") as f:
+        with open(self.tested_file, "w", encoding="utf-8") as f:
             f.write(f"{status.value}\n")
 
 
@@ -502,7 +501,7 @@ def test_part(pkg: Pb, test_name: str, purpose: str, work_dir: str = ".", verbos
             for i, entry in enumerate(stack):
                 filename, lineno, function, text = entry
                 if spack.repo.is_package_file(filename):
-                    with open(filename) as f:
+                    with open(filename, encoding="utf-8") as f:
                         lines = f.readlines()
                     new_lineno = lineno - 2
                     text = lines[new_lineno]
@@ -822,7 +821,7 @@ def get_test_suite(name: str) -> Optional["TestSuite"]:
 
 def write_test_suite_file(suite):
     """Write the test suite to its (JSON) lock file."""
-    with open(suite.stage.join(test_suite_filename), "w") as f:
+    with open(suite.stage.join(test_suite_filename), "w", encoding="utf-8") as f:
         sjson.dump(suite.to_dict(), stream=f)
 
 
@@ -977,7 +976,7 @@ class TestSuite:
                 status = TestStatus.NO_TESTS
             return status
 
-        with open(tests_status_file, "r") as f:
+        with open(tests_status_file, "r", encoding="utf-8") as f:
             value = (f.read()).strip("\n")
             return TestStatus(int(value)) if value else TestStatus.NO_TESTS
 
@@ -1179,7 +1178,7 @@ class TestSuite:
             BaseException: sjson.SpackJSONError if problem parsing the file
         """
         try:
-            with open(filename) as f:
+            with open(filename, encoding="utf-8") as f:
                 data = sjson.load(f)
                 test_suite = TestSuite.from_dict(data)
                 content_hash = os.path.basename(os.path.dirname(filename))
@@ -1196,7 +1195,7 @@ def _add_msg_to_file(filename, msg):
         filename (str): path to the file
         msg (str): message to be appended to the file
     """
-    with open(filename, "a+") as f:
+    with open(filename, "a+", encoding="utf-8") as f:
         f.write(f"{msg}\n")
 
 

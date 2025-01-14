@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -157,7 +156,7 @@ def test_pipeline_dag(config, tmpdir):
 def test_import_signing_key(mock_gnupghome):
     signing_key_dir = spack_paths.mock_gpg_keys_path
     signing_key_path = os.path.join(signing_key_dir, "package-signing-key")
-    with open(signing_key_path) as fd:
+    with open(signing_key_path, encoding="utf-8") as fd:
         signing_key = fd.read()
 
     # Just make sure this does not raise any exceptions
@@ -519,7 +518,7 @@ def test_ci_skipped_report(tmpdir, mock_packages, config):
     reports = [name for name in tmpdir.listdir() if str(name).endswith("Testing.xml")]
     assert len(reports) == 1
     expected = f"Skipped {pkg} package"
-    with open(reports[0], "r") as f:
+    with open(reports[0], "r", encoding="utf-8") as f:
         have = [0, 0]
         for line in f:
             if expected in line:

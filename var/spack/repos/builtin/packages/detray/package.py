@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ class Detray(CMakePackage):
 
     license("MPL-2.0", checked_by="stephenswat")
 
+    version("0.87.0", sha256="2d4a76432dd6ddbfc00b88b5d482072e471fefc264b60748bb1f9a123963576e")
+    version("0.86.0", sha256="98350c94e8a2395b8712b7102fd449536857e8158b38a96cc913c79b70301170")
     version("0.85.0", sha256="a0121a27fd08243d4a6aab060e8ab379ad5129e96775b45f6a683835767fa8e7")
     version("0.84.0", sha256="b1d133a97dc90b1513f8c1ef235ceaa542d80243028a41f59a79300c7d71eb25")
     version("0.83.0", sha256="c870a0459d1f9284750f6afbb97c759392e636b56d107f32b9bc891df717a0fe")
@@ -77,6 +78,7 @@ class Detray(CMakePackage):
     depends_on("acts-algebra-plugins +vc", when="+vc")
     depends_on("acts-algebra-plugins +eigen", when="+eigen")
     depends_on("acts-algebra-plugins +smatrix", when="+smatrix")
+    depends_on("acts-algebra-plugins@0.26.0:", when="@0.87:")
 
     # Detray imposes requirements on the C++ standard values used by Algebra
     # Plugins.

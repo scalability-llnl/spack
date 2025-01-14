@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -762,7 +761,7 @@ class winlog:
             self.reader = open(self.logfile, mode="rb+")
 
             # Dup stdout so we can still write to it after redirection
-            self.echo_writer = open(os.dup(sys.stdout.fileno()), "w")
+            self.echo_writer = open(os.dup(sys.stdout.fileno()), "w", encoding=sys.stdout.encoding)
             # Redirect stdout and stderr to write to logfile
             self.stderr.redirect_stream(self.writer.fileno())
             self.stdout.redirect_stream(self.writer.fileno())

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -468,7 +467,7 @@ def specs_from_text_file(filename, concretize=False):
         concretize (bool): if True concretize the specs before returning
             the list.
     """
-    with open(filename, "r") as f:
+    with open(filename, "r", encoding="utf-8") as f:
         specs_in_file = f.readlines()
         specs_in_file = [s.strip() for s in specs_in_file]
     return spack.cmd.parse_specs(" ".join(specs_in_file), concretize=concretize)

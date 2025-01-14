@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import argparse
@@ -731,7 +730,7 @@ def manifest_copy(manifest_file_list, dest_mirror=None):
     deduped_manifest = {}
 
     for manifest_path in manifest_file_list:
-        with open(manifest_path) as fd:
+        with open(manifest_path, encoding="utf-8") as fd:
             manifest = json.loads(fd.read())
             for spec_hash, copy_list in manifest.items():
                 # Last duplicate hash wins

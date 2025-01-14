@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """This module contains jsonschema files for all of Spack's YAML formats."""
@@ -26,14 +25,14 @@ def _make_validator():
         """Check if the attributes on instance are valid specs."""
         import jsonschema
 
-        import spack.parser
+        import spack.spec_parser
 
         if not validator.is_type(instance, "object"):
             return
 
         for spec_str in instance:
             try:
-                spack.parser.parse(spec_str)
+                spack.spec_parser.parse(spec_str)
             except SpecSyntaxError as e:
                 yield jsonschema.ValidationError(str(e))
 

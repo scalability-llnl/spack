@@ -1,5 +1,4 @@
-.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-   Spack Project Developers. See the top-level COPYRIGHT file for details.
+.. Copyright Spack Project Developers. See COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -178,8 +177,8 @@ Spec-related modules
   Contains :class:`~spack.spec.Spec`. Also implements most of the logic for concretization
   of specs.
 
-:mod:`spack.parser`
-  Contains :class:`~spack.parser.SpecParser` and functions related to parsing specs.
+:mod:`spack.spec_parser`
+  Contains :class:`~spack.spec_parser.SpecParser` and functions related to parsing specs.
 
 :mod:`spack.version`
   Implements a simple :class:`~spack.version.Version` class with simple

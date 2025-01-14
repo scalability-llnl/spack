@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -64,7 +63,7 @@ def source_for_pkg_with_hash(mock_packages, tmpdir):
     s = spack.spec.Spec("trivial-pkg-with-valid-hash").concretized()
     local_url_basename = os.path.basename(s.package.url)
     local_path = os.path.join(str(tmpdir), local_url_basename)
-    with open(local_path, "w") as f:
+    with open(local_path, "w", encoding="utf-8") as f:
         f.write(s.package.hashed_content)
     local_url = url_util.path_to_file_url(local_path)
     s.package.versions[spack.version.Version("1.0")]["url"] = local_url
@@ -134,7 +133,7 @@ def test_exclude_specs_public_mirror(mock_packages, config):
 
 def test_exclude_file(mock_packages, tmpdir, config):
     exclude_path = os.path.join(str(tmpdir), "test-exclude.txt")
-    with open(exclude_path, "w") as exclude_file:
+    with open(exclude_path, "w", encoding="utf-8") as exclude_file:
         exclude_file.write(
             """\
 mpich@3.0.1:3.0.2

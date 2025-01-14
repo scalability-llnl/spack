@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -72,7 +71,7 @@ def write_config_file(tmpdir):
 def env_yaml(tmpdir):
     """Return a sample env.yaml for test purposes"""
     env_yaml = str(tmpdir.join("env.yaml"))
-    with open(env_yaml, "w") as f:
+    with open(env_yaml, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -280,8 +279,10 @@ def test_add_config_path(mutable_config):
     assert "gcc" in compilers
 
     # Try quotes to escape brackets
-    path = "config:install_tree:projections:cmake:\
-'{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}'"
+    path = (
+        "config:install_tree:projections:cmake:"
+        "'{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}'"
+    )
     spack.config.add(path)
     set_value = spack.config.get("config")["install_tree"]["projections"]["cmake"]
     assert set_value == "{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}"
@@ -779,7 +780,7 @@ def get_config_error(filename, schema, yaml_string):
 
     Fail if there is no ConfigFormatError
     """
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(yaml_string)
 
     # parse and return error, or fail.
@@ -848,73 +849,6 @@ def test_bad_config_section(mock_low_high_config):
         spack.config.get("foobar")
 
 
-def test_bad_command_line_scopes(tmp_path, config):
-    cfg = spack.config.Configuration()
-    file_path = tmp_path / "file_instead_of_dir"
-    non_existing_path = tmp_path / "non_existing_dir"
-
-    file_path.write_text("")
-
-    with pytest.raises(spack.error.ConfigError):
-        spack.config._add_command_line_scopes(cfg, [str(file_path)])
-
-    with pytest.raises(spack.error.ConfigError):
-        spack.config._add_command_line_scopes(cfg, [str(non_existing_path)])
-
-
-def test_add_command_line_scopes(tmpdir, mutable_config):
-    config_yaml = str(tmpdir.join("config.yaml"))
-    with open(config_yaml, "w") as f:
-        f.write(
-            """\
-config:
-    verify_ssl: False
-    dirty: False
-"""
-        )
-
-    spack.config._add_command_line_scopes(mutable_config, [str(tmpdir)])
-    assert mutable_config.get("config:verify_ssl") is False
-    assert mutable_config.get("config:dirty") is False
-
-
-def test_add_command_line_scope_env(tmp_path, mutable_mock_env_path):
-    """Test whether --config-scope <env> works, either by name or path."""
-    managed_env = ev.create("example").manifest_path
-
-    with open(managed_env, "w") as f:
-        f.write(
-            """\
-spack:
-  config:
-    install_tree:
-      root: /tmp/first
-"""
-        )
-
-    with open(tmp_path / "spack.yaml", "w") as f:
-        f.write(
-            """\
-spack:
-  config:
-    install_tree:
-      root: /tmp/second
-"""
-        )
-
-    config = spack.config.Configuration()
-    spack.config._add_command_line_scopes(config, ["example", str(tmp_path)])
-    assert len(config.scopes) == 2
-    assert config.get("config:install_tree:root") == "/tmp/second"
-
-    config = spack.config.Configuration()
-    spack.config._add_command_line_scopes(config, [str(tmp_path), "example"])
-    assert len(config.scopes) == 2
-    assert config.get("config:install_tree:root") == "/tmp/first"
-
-    assert ev.active_environment() is None  # shouldn't cause an environment to be activated
-
-
 def test_nested_override():
     """Ensure proper scope naming of nested overrides."""
     base_name = spack.config._OVERRIDES_BASE_NAME
@@ -963,7 +897,7 @@ def test_alternate_override(monkeypatch):
 
 def test_immutable_scope(tmpdir):
     config_yaml = str(tmpdir.join("config.yaml"))
-    with open(config_yaml, "w") as f:
+    with open(config_yaml, "w", encoding="utf-8") as f:
         f.write(
             """\
 config:
@@ -1005,7 +939,7 @@ def test_single_file_scope_section_override(tmpdir, config):
     "::" syntax).
     """
     env_yaml = str(tmpdir.join("env.yaml"))
-    with open(env_yaml, "w") as f:
+    with open(env_yaml, "w", encoding="utf-8") as f:
         f.write(
             """\
 spack:
@@ -1377,7 +1311,7 @@ def test_config_fetch_remote_configs(
         # be the basename of the file so this check leverages that feature. If
         # that changes, then this check will need to change accordingly.
         element = "{0}:".format(os.path.splitext(os.path.basename(filename))[0])
-        with open(filename, "r") as fd:
+        with open(filename, "r", encoding="utf-8") as fd:
             for line in fd:
                 if element in line:
                     return True
@@ -1436,7 +1370,7 @@ def test_config_fetch_remote_configs_skip(
     required and not skipping if replacing it."""
 
     def check_contents(filename, expected):
-        with open(filename, "r") as fd:
+        with open(filename, "r", encoding="utf-8") as fd:
             lines = fd.readlines()
             if expected:
                 assert lines[0] == "compilers:"
@@ -1480,7 +1414,7 @@ def test_config_file_read_invalid_yaml(tmpdir, mutable_empty_config):
     """Test reading a configuration file with invalid (unparseable) YAML
     raises a ConfigFileError."""
     filename = join_path(tmpdir.strpath, "test.yaml")
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write("spack:\nview")
 
     with pytest.raises(spack.config.ConfigFileError, match="parsing YAML"):
@@ -1508,3 +1442,30 @@ def test_config_path_dsl(path, it_should_work, expected_parsed):
     else:
         with pytest.raises(ValueError):
             spack.config.ConfigPath._validate(path)
+
+
+@pytest.mark.regression("48254")
+def test_env_activation_preserves_config_scopes(mutable_mock_env_path):
+    """Check that the "command_line" scope remains the highest priority scope, when we activate,
+    or deactivate, environments.
+    """
+    expected_cl_scope = spack.config.CONFIG.highest()
+    assert expected_cl_scope.name == "command_line"
+
+    # Creating an environment pushes a new scope
+    ev.create("test")
+    with ev.read("test"):
+        assert spack.config.CONFIG.highest() == expected_cl_scope
+
+        # No active environment pops the scope
+        with ev.no_active_environment():
+            assert spack.config.CONFIG.highest() == expected_cl_scope
+        assert spack.config.CONFIG.highest() == expected_cl_scope
+
+        # Switch the environment to another one
+        ev.create("test-2")
+        with ev.read("test-2"):
+            assert spack.config.CONFIG.highest() == expected_cl_scope
+        assert spack.config.CONFIG.highest() == expected_cl_scope
+
+    assert spack.config.CONFIG.highest() == expected_cl_scope

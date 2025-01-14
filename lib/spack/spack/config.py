@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """This module implements Spack's configuration file handling.
@@ -179,7 +178,7 @@ class DirectoryConfigScope(ConfigScope):
 
         try:
             filesystem.mkdirp(self.path)
-            with open(filename, "w") as f:
+            with open(filename, "w", encoding="utf-8") as f:
                 syaml.dump_config(data, stream=f, default_flow_style=False)
         except (syaml.SpackYAMLError, OSError) as e:
             raise ConfigFileError(f"cannot write to '{filename}'") from e
@@ -314,7 +313,7 @@ class SingleFileScope(ConfigScope):
             filesystem.mkdirp(parent)
 
             tmp = os.path.join(parent, f".{os.path.basename(self.path)}.tmp")
-            with open(tmp, "w") as f:
+            with open(tmp, "w", encoding="utf-8") as f:
                 syaml.dump_config(data_to_write, stream=f, default_flow_style=False)
             filesystem.rename(tmp, self.path)
 
@@ -430,6 +429,19 @@ class Configuration:
     def ensure_unwrapped(self) -> "Configuration":
         """Ensure we unwrap this object from any dynamic wrapper (like Singleton)"""
         return self
+
+    def highest(self) -> ConfigScope:
+        """Scope with highest precedence"""
+        return next(reversed(self.scopes.values()))  # type: ignore
+
+    @_config_mutator
+    def ensure_scope_ordering(self):
+        """Ensure that scope order matches documented precedent"""
+        # FIXME: We also need to consider that custom configurations and other orderings
+        # may not be preserved correctly
+        if "command_line" in self.scopes:
+            # TODO (when dropping python 3.6): self.scopes.move_to_end
+            self.scopes["command_line"] = self.remove_scope("command_line")
 
     @_config_mutator
     def push_scope(self, scope: ConfigScope) -> None:
@@ -790,30 +802,6 @@ def config_paths_from_entry_points() -> List[Tuple[str, str]]:
     return config_paths
 
 
-def _add_command_line_scopes(cfg: Configuration, command_line_scopes: List[str]) -> None:
-    """Add additional scopes from the --config-scope argument, either envs or dirs."""
-    import spack.environment.environment as env  # circular import
-
-    for i, path in enumerate(command_line_scopes):
-        name = f"cmd_scope_{i}"
-
-        if env.exists(path):  # managed environment
-            manifest = env.EnvironmentManifestFile(env.root(path))
-        elif env.is_env_dir(path):  # anonymous environment
-            manifest = env.EnvironmentManifestFile(path)
-        elif os.path.isdir(path):  # directory with config files
-            cfg.push_scope(DirectoryConfigScope(name, path, writable=False))
-            _add_platform_scope(cfg, name, path, writable=False)
-            continue
-        else:
-            raise spack.error.ConfigError(f"Invalid configuration scope: {path}")
-
-        for scope in manifest.env_config_scopes:
-            scope.name = f"{name}:{scope.name}"
-            scope.writable = False
-            cfg.push_scope(scope)
-
-
 def create() -> Configuration:
     """Singleton Configuration instance.
 
@@ -963,12 +951,6 @@ def set(path: str, value: Any, scope: Optional[str] = None) -> None:
     return CONFIG.set(path, value, scope)
 
 
-def add_default_platform_scope(platform: str) -> None:
-    plat_name = os.path.join("defaults", platform)
-    plat_path = os.path.join(CONFIGURATION_DEFAULTS_PATH[1], platform)
-    CONFIG.push_scope(DirectoryConfigScope(plat_name, plat_path))
-
-
 def scopes() -> Dict[str, ConfigScope]:
     """Convenience function to get list of configuration scopes."""
     return CONFIG.scopes
@@ -1093,7 +1075,7 @@ def read_config_file(
     # schema when it's not necessary) while allowing us to validate against a
     # known schema when the top-level key could be incorrect.
     try:
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             tty.debug(f"Reading config from file {path}")
             data = syaml.load_config(f)
 

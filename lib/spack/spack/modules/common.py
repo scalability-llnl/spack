@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Here we consolidate the logic for creating an abstract description
@@ -228,7 +227,7 @@ def generate_module_index(root, modules, overwrite=False):
     if overwrite or not os.path.exists(index_path):
         entries = syaml.syaml_dict()
     else:
-        with open(index_path) as index_file:
+        with open(index_path, encoding="utf-8") as index_file:
             yaml_content = syaml.load(index_file)
             entries = yaml_content["module_index"]
 
@@ -237,7 +236,7 @@ def generate_module_index(root, modules, overwrite=False):
         entries[m.spec.dag_hash()] = entry
     index = {"module_index": entries}
     llnl.util.filesystem.mkdirp(root)
-    with open(index_path, "w") as index_file:
+    with open(index_path, "w", encoding="utf-8") as index_file:
         syaml.dump(index, default_flow_style=False, stream=index_file)
 
 
@@ -257,7 +256,7 @@ def read_module_index(root):
     index_path = os.path.join(root, "module-index.yaml")
     if not os.path.exists(index_path):
         return {}
-    with open(index_path) as index_file:
+    with open(index_path, encoding="utf-8") as index_file:
         return _read_module_index(index_file)
 
 
@@ -606,7 +605,7 @@ class BaseContext(tengine.Context):
             return msg
 
         if os.path.exists(pkg.install_configure_args_path):
-            with open(pkg.install_configure_args_path) as args_file:
+            with open(pkg.install_configure_args_path, encoding="utf-8") as args_file:
                 return spack.util.path.padding_filter(args_file.read())
 
         # Returning a false-like value makes the default templates skip
@@ -901,7 +900,7 @@ class BaseModuleFileWriter:
         # Render the template
         text = template.render(context)
         # Write it to file
-        with open(self.layout.filename, "w") as f:
+        with open(self.layout.filename, "w", encoding="utf-8") as f:
             f.write(text)
 
         # Set the file permissions of the module to match that of the package
@@ -940,7 +939,7 @@ class BaseModuleFileWriter:
 
         if modulerc_exists:
             # retrieve modulerc content
-            with open(modulerc_path) as f:
+            with open(modulerc_path, encoding="utf-8") as f:
                 content = f.readlines()
                 content = "".join(content).split("\n")
                 # remove last empty item if any
@@ -975,7 +974,7 @@ class BaseModuleFileWriter:
             elif content != self.modulerc_header:
                 # ensure file ends with a newline character
                 content.append("")
-                with open(modulerc_path, "w") as f:
+                with open(modulerc_path, "w", encoding="utf-8") as f:
                     f.write("\n".join(content))
 
     def remove(self):

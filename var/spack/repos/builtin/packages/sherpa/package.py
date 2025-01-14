@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -208,11 +207,11 @@ class AutotoolsBuilder(spack.build_systems.autotools.AutotoolsBuilder):
 
         return args
 
-    def install(self, spec, prefix):
+    def install(self, pkg, spec, prefix):
         # Make sure the path to the provided libtool is used instead of the system one
         filter_file(
             r"autoreconf -fi",
-            f"autoreconf -fi -I {self.spec['libtool'].prefix.share.aclocal}",
+            f"autoreconf -fi -I {pkg.spec['libtool'].prefix.share.aclocal}",
             "AMEGIC++/Main/makelibs",
         )
         make("install")

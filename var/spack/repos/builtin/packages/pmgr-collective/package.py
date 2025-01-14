@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -16,6 +15,7 @@ class PmgrCollective(Package):
     version("1.0", sha256="c8022d1128ce5e8f637166af6e55c13700e665550e468b8cdb1531441c6bb7f5")
 
     depends_on("c", type="build")  # generated
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         make('PREFIX="' + prefix + '"')

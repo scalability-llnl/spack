@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,12 +23,11 @@ import spack.config  # breaks a cycle.
 import spack.environment as ev
 import spack.error
 import spack.extensions
-import spack.parser
 import spack.paths
 import spack.repo
 import spack.spec
+import spack.spec_parser
 import spack.store
-import spack.token
 import spack.traverse as traverse
 import spack.user_environment as uenv
 import spack.util.spack_json as sjson
@@ -164,16 +162,18 @@ def quote_kvp(string: str) -> str:
     or ``name==``, and we assume the rest of the argument is the value. This covers the
     common cases of passign flags, e.g., ``cflags="-O2 -g"`` on the command line.
     """
-    match = spack.parser.SPLIT_KVP.match(string)
+    match = spack.spec_parser.SPLIT_KVP.match(string)
     if not match:
         return string
 
     key, delim, value = match.groups()
-    return f"{key}{delim}{spack.token.quote_if_needed(value)}"
+    return f"{key}{delim}{spack.spec_parser.quote_if_needed(value)}"
 
 
 def parse_specs(
-    args: Union[str, List[str]], concretize: bool = False, tests: bool = False
+    args: Union[str, List[str]],
+    concretize: bool = False,
+    tests: spack.concretize.TestsType = False,
 ) -> List[spack.spec.Spec]:
     """Convenience function for parsing arguments from specs.  Handles common
     exceptions and dies if there are errors.
@@ -181,15 +181,17 @@ def parse_specs(
     args = [args] if isinstance(args, str) else args
     arg_string = " ".join([quote_kvp(arg) for arg in args])
 
-    specs = spack.parser.parse(arg_string)
+    specs = spack.spec_parser.parse(arg_string)
     if not concretize:
         return specs
 
-    to_concretize = [(s, None) for s in specs]
+    to_concretize: List[spack.concretize.SpecPairInput] = [(s, None) for s in specs]
     return _concretize_spec_pairs(to_concretize, tests=tests)
 
 
-def _concretize_spec_pairs(to_concretize, tests=False):
+def _concretize_spec_pairs(
+    to_concretize: List[spack.concretize.SpecPairInput], tests: spack.concretize.TestsType = False
+) -> List[spack.spec.Spec]:
     """Helper method that concretizes abstract specs from a list of abstract,concrete pairs.
 
     Any spec with a concrete spec associated with it will concretize to that spec. Any spec
@@ -200,7 +202,7 @@ def _concretize_spec_pairs(to_concretize, tests=False):
     # Special case for concretizing a single spec
     if len(to_concretize) == 1:
         abstract, concrete = to_concretize[0]
-        return [concrete or abstract.concretized()]
+        return [concrete or abstract.concretized(tests=tests)]
 
     # Special case if every spec is either concrete or has an abstract hash
     if all(
