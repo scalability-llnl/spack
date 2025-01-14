@@ -108,6 +108,7 @@ class Ffmpeg(AutotoolsPackage):
     depends_on("fontconfig", when="+drawtext")
     depends_on("freetype", when="+drawtext")
     depends_on("fribidi", when="+drawtext")
+    depends_on("harfbuzz", when="+drawtext @7:")
     depends_on("lame", when="+libmp3lame")
     depends_on("libssh", when="+libssh")
     depends_on("libvorbis", when="+libvorbis")
@@ -210,6 +211,9 @@ class Ffmpeg(AutotoolsPackage):
 
         if spec.satisfies("@2.3:"):
             drawtext_opts.append("libfribidi")
+
+        if spec.satisfies("@7:"):
+            drawtext_opts.append("libharfbuzz")
 
         config_args += self.enable_or_disable_meta("drawtext", drawtext_opts)
 
