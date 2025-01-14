@@ -5,8 +5,8 @@
 from spack.package import *
 
 
-class Depb(AutotoolsPackage):
-    """Simple package with one build dependency"""
+class Depb(Package):
+    """Simple package with one direct dependency"""
 
     homepage = "http://www.example.com"
     url = "http://www.example.com/a-1.0.tar.gz"
@@ -17,5 +17,5 @@ class Depb(AutotoolsPackage):
 
     def install(self, spec, prefix):
         # sanity_check_prefix requires something in the install directory
-        # Test requires overriding the one provided by `AutotoolsPackage`
+        # `Package` does not define an `install` method by default
         mkdirp(prefix.bin)
