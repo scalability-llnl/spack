@@ -155,8 +155,7 @@ SPEC_FORMAT_RE = re.compile(
     r"(})?"  # finish format string with non-escaped close brace }, or missing if not present
     r"|"
     # OPTION 3: mismatched close brace (option 2 would consume a matched open brace)
-    r"(})"  # brace
-    r")",
+    r"(})" r")",  # brace
     re.IGNORECASE,
 )
 
@@ -5238,6 +5237,21 @@ def get_host_environment() -> Dict[str, Any]:
         "arch_str": str(arch_spec),
         "hostname": socket.gethostname(),
     }
+
+
+class DagCountVisitor:
+    """Class for counting the number of specs encountered during traversal."""
+
+    def __init__(self, depflag: int):
+        self.depflag: int = depflag
+        self.number: int = 0
+
+    def accept(self, item: traverse.EdgeAndDepth) -> bool:
+        self.number += 1
+        return True
+
+    def neighbors(self, item: traverse.EdgeAndDepth):
+        return item.edge.spec.edges_to_dependencies(depflag=self.depflag)
 
 
 class SpecParseError(spack.error.SpecError):

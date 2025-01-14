@@ -102,17 +102,26 @@ class InfoCollector:
                 # installed explicitly will also be installed as a
                 # dependency of another spec. In this case append to both
                 # spec reports.
+                added = []
                 for current_spec in llnl.util.lang.dedupe([pkg.spec.root, pkg.spec]):
                     name = name_fmt.format(current_spec.name, current_spec.dag_hash(length=7))
                     try:
                         item = next((x for x in self.specs if x["name"] == name))
                         item["packages"].append(package)
+                        added.append(item)
                     except StopIteration:
                         pass
 
                 start_time = time.time()
                 try:
                     value = wrapped_fn(instance, *args, **kwargs)
+
+                    # If we are requeuing the task, it neither succeeded nor failed
+                    # remove the package so we don't count it (yet) in either category
+                    if value in spack.installer.requeue_results:
+                        for item in added:
+                            item["packages"].remove(package)
+
                     package["stdout"] = self.fetch_log(pkg)
                     package["installed_from_binary_cache"] = pkg.installed_from_binary_cache
                     self.on_success(pkg, kwargs, package)
