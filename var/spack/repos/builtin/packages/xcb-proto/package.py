@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import sys
+
 from spack.package import *
 
 
@@ -40,6 +42,20 @@ class XcbProto(AutotoolsPackage, XorgPackage):
         deprecated=True,
     )
 
-    extends("python")
+    variant(
+        "use_spack_interpreter",
+        default=False,
+        description="Use the interpreter running spack to configure",
+    )
+
+    depends_on("python", type="build", when="~use_spack_interpreter")
 
     patch("xcb-proto-1.12-schema-1.patch", when="@1.12")
+
+    @when("+use_spack_interpreter")
+    def setup_build_environment(self, env):
+        env.set("PYTHON", sys.executable)
+
+    @when("+use_spack_interpreter")
+    def configure_args(self):
+        return [f"--with-python_prefix={self.prefix}", f"--with-python_exec_prefix={self.prefix}"]
