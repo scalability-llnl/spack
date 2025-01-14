@@ -391,6 +391,12 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
         skylake = set(["skylake", "skylake_avx512"])
         available_targets = set(available_targets) | skylake | openblas_arch
 
+        # Apple M2
+        # https://github.com/xianyi/OpenBLAS/issues/3995#issuecomment-1503592445
+        if microarch.name == "m2":
+            args.append("TARGET=VORTEX")
+            return args
+
         # Find closest ancestor that is known to build in blas
         if microarch.name not in available_targets:
             for microarch in microarch.ancestors:
