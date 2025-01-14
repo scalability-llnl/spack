@@ -51,8 +51,7 @@ class Crtm(CMakePackage):
     license("CC0-1.0")
 
     version(
-        "v3.1.1-build1",
-        sha256="1ed49e594da5d3769cbaa52cc7fc19c1bb0325ee6324f6057227c31e2d95ca67",
+        "v3.1.1-build1", sha256="1ed49e594da5d3769cbaa52cc7fc19c1bb0325ee6324f6057227c31e2d95ca67"
     )
     version(
         "v3.1.0-skylabv8",
