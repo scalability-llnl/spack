@@ -5,11 +5,11 @@ import os
 
 import llnl.util.filesystem as fs
 
-from spack.build_systems import autotools, nmake
+from spack.build_systems import autotools, cmake, nmake
 from spack.package import *
 
 
-class Libxml2(AutotoolsPackage, NMakePackage):
+class Libxml2(AutotoolsPackage, CMakePackage, NMakePackage):
     """Libxml2 is the XML C parser and toolkit developed for the Gnome
     project (but usable outside of the Gnome platform), it is free
     software available under the MIT License."""
@@ -106,7 +106,12 @@ class Libxml2(AutotoolsPackage, NMakePackage):
         sha256="5dc43fed02b443d2563a502a52caafe39477c06fc30b70f786d5ed3eb5aea88d",
         when="@2.9.11:2.9.14",
     )
-    build_system(conditional("nmake", when="platform=windows"), "autotools", default="autotools")
+    build_system(
+        conditional("nmake", when="platform=windows"),
+        conditional("cmake", when="@2.11:"),
+        "autotools",
+        default="autotools",
+    )
 
     def flag_handler(self, name, flags):
         if name == "cflags" and self.spec.satisfies("+pic"):
@@ -259,6 +264,18 @@ class AutotoolsBuilder(AnyBuilder, autotools.AutotoolsBuilder):
         # PIC setting is taken care of above by self.flag_handler()
         args.append("--without-pic")
 
+        return args
+
+
+class CMakeBuilder(AnyBuilder, cmake.CMakeBuilder):
+    def cmake_args(self):
+        args = [
+            self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
+            self.define_from_variant("LIBXML2_WITH_PYTHON", "python"),
+            self.define("LIBXML2_WITH_LZMA", True),
+            self.define("LIBXML2_WITH_ZLIB", True),
+            self.define("LIBXML2_WITH_TESTS", True),
+        ]
         return args
 
 
