@@ -362,6 +362,12 @@ class Perl(Package):  # Perl doesn't use Autotools, it should subclass Package
             "-Dprefix={0}".format(prefix),
             "-Dlocincpth=" + self.spec["gdbm"].prefix.include,
             "-Dloclibpth=" + self.spec["gdbm"].prefix.lib,
+            # Resolve issues with /usr/local and/or /usr/share paths
+            # being modified due to Configure script guesses
+            # See: https://github.com/spack/spack/issues/35222
+            "-Dinstallscript={0}/bin".format(prefix),
+            "-Dscriptdir={0}/bin".format(prefix),
+            "-Dscriptdirexp={0}/bin".format(prefix),
         ]
 
         # Extensions are installed into their private tree via
