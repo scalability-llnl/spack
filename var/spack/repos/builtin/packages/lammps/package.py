@@ -741,6 +741,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
             depends_on("n2p2@2.1.4:")
             depends_on("n2p2+shared", when="+lib")
     depends_on("scafacos", when="+scafacos")
+    depends_on("scafacos cflags=-fPIC cxxflags=-fPIC fflags=-fPIC", when="+scafacos+lib")
     depends_on("vtk", when="+user-vtk")
     depends_on("vtk", when="+vtk")
     depends_on("hipcub", when="~kokkos +rocm")
