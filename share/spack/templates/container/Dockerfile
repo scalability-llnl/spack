@@ -21,10 +21,11 @@ set -o noclobber \
 {{ manifest }} > {{ paths.environment }}/spack.yaml
 
 # Install the software, remove unnecessary deps
+RUN --mount=type=secret,id=spack_mirrors,target=/root/.spack/mirrors.yaml,required=false \
 {% if depfile %}
-RUN cd {{ paths.environment }} && spack env activate . && spack concretize && spack env depfile -o Makefile && make -j $(nproc) && spack gc -y
+  cd {{ paths.environment }} && spack env activate . && spack concretize && spack env depfile -o Makefile && make -j $(nproc) && spack gc -y
 {% else %}
-RUN cd {{ paths.environment }} && spack env activate . && spack install --fail-fast && spack gc -y
+  cd {{ paths.environment }} && spack env activate . && spack install --fail-fast && spack gc -y
 {% endif %}
 {% if strip %}
 
