@@ -1,0 +1,35 @@
+diff --git a/libclingo/CMakeLists.txt b/libclingo/CMakeLists.txt
+index 041fd6f0..e8c4caf6 100644
+--- a/libclingo/CMakeLists.txt
++++ b/libclingo/CMakeLists.txt
+@@ -50,6 +50,19 @@ target_include_directories(libclingo
+     PRIVATE
+     "$<BUILD_INTERFACE:${CLASP_SOURCE_DIR}/app>")
+ target_compile_definitions(libclingo PRIVATE CLINGO_BUILD_LIBRARY)
++
++# Hide private symbols on Linux.
++include(CheckCSourceCompiles)
++file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/version.map" "{ global: f; local: *;};")
++set(CMAKE_REQUIRED_FLAGS_SAVE ${CMAKE_REQUIRED_FLAGS})
++set(CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS} "-Wl,--version-script='${CMAKE_CURRENT_BINARY_DIR}/version.map'")
++check_c_source_compiles("void f(void) {} int main(void) {return 0;}" HAVE_LD_VERSION_SCRIPT)
++set(CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS_SAVE})
++file(REMOVE "${CMAKE_CURRENT_BINARY_DIR}/version.map")
++if(HAVE_LD_VERSION_SCRIPT)
++set_target_properties(libclingo PROPERTIES LINK_FLAGS "-Wl,--version-script='${CMAKE_CURRENT_SOURCE_DIR}/clingo.map'")
++endif()
++
+ if (NOT CLINGO_BUILD_SHARED)
+     target_compile_definitions(libclingo PUBLIC CLINGO_NO_VISIBILITY)
+ else()
+diff --git a/libclingo/clingo.map b/libclingo/clingo.map
+new file mode 100644
+index 00000000..a665456c
+--- /dev/null
++++ b/libclingo/clingo.map
+@@ -0,0 +1,4 @@
++{
++    global: clingo_*; gringo_*; g_clingo_*;
++    local: *;
++};
+\ No newline at end of file

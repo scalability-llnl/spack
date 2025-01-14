@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -50,6 +49,17 @@ class CargoBuilder(BuilderWithDefaults):
 
     phases = ("build", "install")
 
+    #: Names associated with package methods in the old build-system format
+    legacy_methods = ("check", "installcheck")
+
+    #: Names associated with package attributes in the old build-system format
+    legacy_attributes = (
+        "build_args",
+        "check_args",
+        "build_directory",
+        "install_time_test_callbacks",
+    )
+
     #: Callback names for install-time test
     install_time_test_callbacks = ["check"]
 
@@ -61,12 +71,15 @@ class CargoBuilder(BuilderWithDefaults):
     @property
     def build_args(self):
         """Arguments for ``cargo build``."""
-        return []
+        return ["-j", str(self.pkg.module.make_jobs)]
 
     @property
     def check_args(self):
         """Argument for ``cargo test`` during check phase"""
         return []
+
+    def setup_build_environment(self, env):
+        env.set("CARGO_HOME", self.stage.path)
 
     def build(self, pkg, spec, prefix):
         """Runs ``cargo install`` in the source directory"""

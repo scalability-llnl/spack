@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -94,7 +93,7 @@ def ipython_interpreter(args):
     if "PYTHONSTARTUP" in os.environ:
         startup_file = os.environ["PYTHONSTARTUP"]
         if os.path.isfile(startup_file):
-            with open(startup_file) as startup:
+            with open(startup_file, encoding="utf-8") as startup:
                 exec(startup.read())
 
     # IPython can also support running a script OR command, not both
@@ -126,7 +125,7 @@ def python_interpreter(args):
         if "PYTHONSTARTUP" in os.environ:
             startup_file = os.environ["PYTHONSTARTUP"]
             if os.path.isfile(startup_file):
-                with open(startup_file) as startup:
+                with open(startup_file, encoding="utf-8") as startup:
                     console.runsource(startup.read(), startup_file, "exec")
         if args.python_command:
             propagate_exceptions_from(console)

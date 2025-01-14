@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,6 +23,16 @@ from spack.package import *
 #    format returned by platform.system() and 'arch' by platform.machine()
 
 _versions = {
+    "12.6.3": {
+        "Linux-aarch64": (
+            "213ea63a6357020978a8b0a79a8c9d12a2a5941afa1cdc69d5a3f933fa8bed04",
+            "https://developer.download.nvidia.com/compute/cuda/12.6.3/local_installers/cuda_12.6.3_560.35.05_linux_sbsa.run",
+        ),
+        "Linux-x86_64": (
+            "81d60e48044796d7883aa8a049afe6501b843f2c45639b3703b2378de30d55d3",
+            "https://developer.download.nvidia.com/compute/cuda/12.6.3/local_installers/cuda_12.6.3_560.35.05_linux.run",
+        ),
+    },
     "12.6.2": {
         "Linux-aarch64": (
             "2249408848b705c18b9eadfb5161b52e4e36fcc5753647329cce93db141e5466",
@@ -808,3 +817,6 @@ class Cuda(Package):
 
     # Avoid binding stub libraries by absolute path
     non_bindable_shared_objects = ["stubs"]
+
+    # contains precompiled binaries without rpaths
+    unresolved_libraries = ["*"]

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -192,10 +191,14 @@ class Adios2(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("mgard@2023-01-10:", when="@2.9: +mgard")
 
     extends("python", when="+python")
-    depends_on("python@2.7:2.8,3.5:", when="@:2.4.0 +python", type=("build", "run"))
-    depends_on("python@2.7:2.8,3.5:", when="@:2.4.0", type="test")
-    depends_on("python@3.5:", when="@2.5.0: +python", type=("build", "run"))
-    depends_on("python@3.5:", when="@2.5.0:", type="test")
+    depends_on("python", when="+python", type=("build", "run"))
+    depends_on("python@2.7:2.8,3.5:3.10", when="@:2.4.0 +python", type=("build", "run"))
+    depends_on("python@3.5:3.10", when="@2.5.0:2.7 +python", type=("build", "run"))
+
+    depends_on("python", type="test")
+    depends_on("python@2.7:2.8,3.5:3.10", when="@:2.4.0", type="test")
+    depends_on("python@3.5:3.10", when="@2.5.0:2.7", type="test")
+
     depends_on("py-numpy@1.6.1:", when="+python", type=("build", "run"))
     depends_on("py-mpi4py@2.0.0:", when="+mpi +python", type=("build", "run"))
     depends_on("aws-sdk-cpp", when="+aws")

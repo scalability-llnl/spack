@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -65,6 +64,7 @@ class Fleur(Package):
     depends_on("spfft+fortran+openmp", when="+spfft+openmp")
     depends_on("elpa~openmp", when="+elpa~openmp")
     depends_on("elpa+openmp", when="+elpa+openmp")
+    depends_on("gmake", type="build")
 
     conflicts("%intel@:16.0.4", msg="ifort version <16.0 will most probably not work correctly")
     conflicts("%gcc@:6.3.0", msg="gfortran is known to work with versions newer than v6.3")

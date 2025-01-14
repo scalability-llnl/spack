@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -30,6 +29,9 @@ class Perl(Package):  # Perl doesn't use Autotools, it should subclass Package
     license("Artistic-1.0-Perl OR GPL-1.0-or-later")
 
     executables = [r"^perl(-?\d+.*)?$"]
+
+    # TODO: resolve the circular dependency between perl and libxcrypt.
+    unresolved_libraries = ["libcrypt.so.*"]
 
     # see https://www.cpan.org/src/README.html for
     # explanation of version numbering scheme

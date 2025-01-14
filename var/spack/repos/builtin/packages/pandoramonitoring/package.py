@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -8,9 +7,8 @@ from spack.package import *
 
 
 class Pandoramonitoring(CMakePackage):
-    """Metadata package to bring together and build multiple Pandora libraries.
-    NOTE: for proper version control with spack, this should be broken up and
-    the subpackages installed individually."""
+    """ROOT-based Event Visualisation Environment for Pandora with
+    tree-writing functionality"""
 
     url = "https://github.com/PandoraPFA/PandoraMonitoring/archive/v03-04-00.tar.gz"
     homepage = "https://github.com/PandoraPFA/PandoraMonitoring"
