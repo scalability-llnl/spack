@@ -271,7 +271,7 @@ under the ``container`` attribute of environments:
        # Sets the base images for the stages where Spack builds the
        # software or where the software gets installed after being built..
        images:
-         os: "centos:7"
+         os: "almalinux:9"
          spack: develop
 
        # Whether or not to strip binaries
@@ -322,32 +322,33 @@ following ``spack.yaml``:
 
      container:
        images:
-         os: centos:7
-         spack: 0.15.4
+         os: almalinux:9
+         spack: 0.22.0
 
-uses ``spack/centos7:0.15.4``  and ``centos:7`` for the stages where the
+uses ``spack/almalinux9:0.22.0``  and ``almalinux:9`` for the stages where the
 software is respectively built and installed:
 
 .. code-block:: docker
 
    # Build stage with Spack pre-installed and ready to be used
-   FROM spack/centos7:0.15.4 as builder
+   FROM spack/almalinux9:0.22.0 AS builder
 
    # What we want to install and how we want to install it
    # is specified in a manifest file (spack.yaml)
-   RUN mkdir /opt/spack-environment \
-   &&  (echo "spack:" \
-   &&   echo "  specs:" \
-   &&   echo "  - gromacs+mpi" \
-   &&   echo "  - mpich" \
-   &&   echo "  concretizer:" \
-   &&   echo "    unify: true" \
-   &&   echo "  config:" \
-   &&   echo "    install_tree: /opt/software" \
-   &&   echo "  view: /opt/view") > /opt/spack-environment/spack.yaml
+   RUN mkdir -p /opt/spack-environment && \
+   set -o noclobber \
+   &&  (echo spack: \
+   &&   echo '  specs:' \
+   &&   echo '  - gromacs+mpi' \
+   &&   echo '  - mpich' \
+   &&   echo '  concretizer:' \
+   &&   echo '    unify: true' \
+   &&   echo '  config:' \
+   &&   echo '    install_tree: /opt/software' \
+   &&   echo '  view: /opt/views/view') > /opt/spack-environment/spack.yaml
    [ ... ]
    # Bare OS image to run the installed executables
-   FROM centos:7
+   FROM quay.io/almalinuxorg/almalinux:9
 
    COPY --from=builder /opt/spack-environment /opt/spack-environment
    COPY --from=builder /opt/software /opt/software
