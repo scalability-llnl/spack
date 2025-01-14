@@ -2053,6 +2053,20 @@ class Spec:
         )
 
     @property
+    def long_spec(self):
+        """Returns a string of the spec with the dependencies completely
+        enumerated."""
+        root_str = [self.format()]
+        sorted_dependencies = sorted(
+            self.traverse(root=False), key=lambda x: (x.name, x.abstract_hash)
+        )
+        sorted_dependencies = [
+            d.format("{edge_attributes} " + DEFAULT_FORMAT) for d in sorted_dependencies
+        ]
+        spec_str = " ^".join(root_str + sorted_dependencies)
+        return spec_str.strip()
+
+    @property
     def short_spec(self):
         """Returns a version of the spec with the dependencies hashed
         instead of completely enumerated."""
@@ -4165,15 +4179,7 @@ class Spec:
         if not self._dependencies:
             return self.format()
 
-        root_str = [self.format()]
-        sorted_dependencies = sorted(
-            self.traverse(root=False), key=lambda x: (x.name, x.abstract_hash)
-        )
-        sorted_dependencies = [
-            d.format("{edge_attributes} " + DEFAULT_FORMAT) for d in sorted_dependencies
-        ]
-        spec_str = " ^".join(root_str + sorted_dependencies)
-        return spec_str.strip()
+        return self.long_spec
 
     @property
     def colored_str(self):
