@@ -18,6 +18,7 @@ class Dmtcp(AutotoolsPackage):
 
     maintainers("karya0")
     version("main", branch="main")
+    version("3.1.2", sha256="560691a4a3efa2b583af2976145fc356b2a24d78c2476c338bc85a0e1f457aee")
     version("3.0.0", sha256="2c7e95e1dbc55db33433bfee48a65f274298e98f246a36ab6dad1e0694750d37")
     version("2.6.0", sha256="3ed62a86dd0cb9c828b93ee8c7c852d6f9c96a0efa48bcfe867521adf7bced68")
     version("2.5.2", sha256="0e3e5e15bd401b7b6937f2b678cd7d6a252eab0a143d5740b89cc3bebb4282be")
@@ -25,3 +26,10 @@ class Dmtcp(AutotoolsPackage):
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
     patch("for_aarch64.patch", when="@2.6.0 target=aarch64:")
+
+    def url_for_version(self, version):
+        root = self.url.rsplit("/", 1)[0]
+        if version > Version("3.0.0"):
+            return "{0}/v{1}.tar.gz".format(root, str(version))
+        else:
+            return "{0}/{1}.tar.gz".format(root, str(version))
