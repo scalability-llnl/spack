@@ -43,10 +43,6 @@ def _enable_splicing():
     spack.config.set("concretizer:splice", {"automatic": True})
 
 
-def _has_build_dependency(spec: Spec, name: str):
-    return any(s.name == name for s in spec.dependencies(None, dt.BUILD))
-
-
 def test_simple_reuse(splicing_setup, mutable_config):
     splicing_setup(["splice-z@1.0.0+compat"])
     mutable_config.set("packages", _make_specs_non_buildable(["splice-z"]))
@@ -227,8 +223,8 @@ def test_spliced_build_deps_only_in_build_spec(splicing_setup):
     # Spec has been spliced
     assert build_spec is not None
     # Build spec has spliced build dependencies
-    assert _has_build_dependency(build_spec, "splice-h")
-    assert _has_build_dependency(build_spec, "splice-z")
+    assert build_spec.dependencies("splice-h", dt.BUILD)
+    assert build_spec.dependencies("splice-z", dt.BUILD)
     # Spliced build dependencies are removed
     assert len(concr_goal.dependencies(None, dt.BUILD)) == 0
 
