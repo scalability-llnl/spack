@@ -13,6 +13,7 @@ class PyMlflow(PythonPackage):
 
     license("Apache-2.0")
 
+    version("2.8.0", sha256="75bdc7768ba950aa5c98dd4792a74ec372a4ac2b86d714ee565af18ebede4524")
     version("2.0.1", sha256="7ce6caf3c6acb022d6f5ce8a0995a92be1db524ae16aade1f83da661cdf993de")
     version("1.17.0", sha256="4898c58899e3101e09e2b37cf5bee7db04c5d73389a56942d3ef5a5e4396799e")
 
