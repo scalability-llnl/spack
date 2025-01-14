@@ -15,6 +15,11 @@ class PyPytestBenchmark(PythonPackage):
     license("BSD-2-Clause")
 
     version("3.2.3", sha256="ad4314d093a3089701b24c80a05121994c7765ce373478c8f4ba8d23c9ba9528")
+    version(
+        "3.4.1",
+        sha256="40e263f912de5a81d891619032983557d62a3d85843f9a9f30b98baea0cd7b47",
+        preferred=True,
+    )
 
     depends_on("python@2.7:2.8,3.5:", type=("build", "run"))
     depends_on("py-setuptools", type="build")
