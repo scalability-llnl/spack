@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -11,8 +10,9 @@ from llnl.util.lang import memoized
 import spack.builder
 import spack.package_base
 import spack.phase_callbacks
-from spack.directives import build_system, extends
+from spack.directives import build_system, depends_on, extends
 from spack.install_test import SkipTest, test_part
+from spack.multimethod import when
 from spack.util.executable import Executable
 
 from ._checks import BuilderWithDefaults, execute_build_time_tests
@@ -29,7 +29,9 @@ class PerlPackage(spack.package_base.PackageBase):
 
     build_system("perl")
 
-    extends("perl", when="build_system=perl")
+    with when("build_system=perl"):
+        extends("perl")
+        depends_on("gmake", type="build")
 
     @property
     @memoized

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -40,6 +39,7 @@ class Ferret(Package):
     depends_on("zlib-api")
     depends_on("libx11")
     depends_on("curl")
+    depends_on("gmake", type="build")
 
     # Make Java dependency optional with older versions of Ferret
     patch(

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -280,8 +279,10 @@ def test_add_config_path(mutable_config):
     assert "gcc" in compilers
 
     # Try quotes to escape brackets
-    path = "config:install_tree:projections:cmake:\
-'{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}'"
+    path = (
+        "config:install_tree:projections:cmake:"
+        "'{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}'"
+    )
     spack.config.add(path)
     set_value = spack.config.get("config")["install_tree"]["projections"]["cmake"]
     assert set_value == "{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}"
@@ -1441,3 +1442,30 @@ def test_config_path_dsl(path, it_should_work, expected_parsed):
     else:
         with pytest.raises(ValueError):
             spack.config.ConfigPath._validate(path)
+
+
+@pytest.mark.regression("48254")
+def test_env_activation_preserves_config_scopes(mutable_mock_env_path):
+    """Check that the "command_line" scope remains the highest priority scope, when we activate,
+    or deactivate, environments.
+    """
+    expected_cl_scope = spack.config.CONFIG.highest()
+    assert expected_cl_scope.name == "command_line"
+
+    # Creating an environment pushes a new scope
+    ev.create("test")
+    with ev.read("test"):
+        assert spack.config.CONFIG.highest() == expected_cl_scope
+
+        # No active environment pops the scope
+        with ev.no_active_environment():
+            assert spack.config.CONFIG.highest() == expected_cl_scope
+        assert spack.config.CONFIG.highest() == expected_cl_scope
+
+        # Switch the environment to another one
+        ev.create("test-2")
+        with ev.read("test-2"):
+            assert spack.config.CONFIG.highest() == expected_cl_scope
+        assert spack.config.CONFIG.highest() == expected_cl_scope
+
+    assert spack.config.CONFIG.highest() == expected_cl_scope
