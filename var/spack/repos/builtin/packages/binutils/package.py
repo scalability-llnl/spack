@@ -4,6 +4,7 @@
 import os
 import pathlib
 import re
+import sys
 
 import spack.build_systems.autotools
 from spack.package import *
@@ -97,7 +98,11 @@ class Binutils(AutotoolsPackage, GNUMirrorPackage):
     # --disable-ld flag
     variant("gold", default=False, when="+ld", description="build the gold linker")
     variant("libiberty", default=False, description="Also install libiberty.")
-    variant("nls", default=False, description="Enable Native Language Support")
+    # libc does not provide libintl on macOS and therefore needs gettext to
+    # provide libintl.  Therefore change to a sensible default for macOS.
+    variant(
+        "nls", default=(sys.platform == "darwin"), description="Enable Native Language Support"
+    )
     variant("headers", default=False, description="Install extra headers (e.g. ELF)")
     variant("lto", default=False, description="Enable lto.")
     variant(
