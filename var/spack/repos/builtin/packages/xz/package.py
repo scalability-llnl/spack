@@ -54,9 +54,9 @@ class Xz(MSBuildPackage, AutotoolsPackage, SourceforgePackage):
         description="Build shared libs, static libs or both",
     )
 
-    # xz-5.2.7/src/liblzma/common/common.h:56 uses attribute __symver__ instead of
-    # __asm__(.symver) for newer GCC releases.
-    conflicts("%intel", when="@5.2.7", msg="icc does not support attribute __symver__")
+    # NVHPC has problems with unions that contain pointers that are not the first members:
+    patch("nvhpc_union_ptr.patch", when="@5.4.0:%nvhpc")
+
     conflicts("platform=windows", when="+pic")  # no pic on Windows
     # prior to 5.2.3, build system is for MinGW only, not currently supported by Spack
     conflicts("platform=windows", when="@:5.2.3")
@@ -64,9 +64,15 @@ class Xz(MSBuildPackage, AutotoolsPackage, SourceforgePackage):
     build_system(conditional("msbuild", when="platform=windows"), "autotools", default="autotools")
 
     def flag_handler(self, name, flags):
-        if name == "cflags" and "+pic" in self.spec:
-            flags.append(self.compiler.cc_pic_flag)
-        return (flags, None, None)
+        config_flags = None
+        if name == "cflags":
+            if "+pic" in self.spec:
+                flags.append(self.compiler.cc_pic_flag)
+            if self.builder.build_system == "autotools" and self.compiler.name == "nvhpc":
+                # Override the default '-g -O2' to make the tests pass ('-O' is the same as '-O2'
+                # but without the SIMD vectorization):
+                config_flags = ["-g", "-O"]
+        return flags, None, config_flags
 
     @property
     def libs(self):
@@ -86,7 +92,37 @@ class Xz(MSBuildPackage, AutotoolsPackage, SourceforgePackage):
 
 class AutotoolsBuilder(AutotoolsBuilder):
     def configure_args(self):
-        return self.enable_or_disable("libs")
+        args = self.enable_or_disable("libs")
+
+        # NVHPC compiler cannot handle the 'linux' symbol versioning introduced in xz@5.2.7. It
+        # became impossible to switch to the 'generic' one in xz@5.2.9 (see method
+        # override_symbol_versions below). The respective workaround for Intel is implemented
+        # upstream starting xz@5.2.8:
+        if any(self.spec.satisfies(s) for s in ["@5.2.7:5.2.8%nvhpc", "@5.2.7%intel"]):
+            args.append("--enable-symbol-versions=generic")
+
+        return args
+
+    @run_after("configure")
+    def override_symbol_versions(self):
+        # NVHPC compiler cannot handle the 'linux' symbol versioning, which gets automatically
+        # enabled when the shared libraries are enabled starting xz@5.2.9. It's not possible to
+        # switch to the 'generic' one with the configure option anymore. Therefore, we have to
+        # patch the config.status file produced by the configure stage.
+        if not (
+            self.spec.satisfies("@5.2.9:%nvhpc libs=shared")
+            and self.spec.platform in ["linux", "cray"]
+        ):
+            return
+
+        config_status = join_path(self.build_directory, "config.status")
+        filter_file(
+            r'^(S\["COND_SYMVERS_(?:GENERIC_TRUE|LINUX_FALSE)"\])="#"$', r'\1=""', config_status
+        )
+        filter_file(
+            r'^(S\["COND_SYMVERS_(?:GENERIC_FALSE|LINUX_TRUE)"\])=""$', r'\1="#"', config_status
+        )
+        filter_file(r'^D\["HAVE_SYMBOL_VERSIONS_LINUX"\]=.*$', "", config_status)
 
     @run_after("install")
     def darwin_fix(self):
