@@ -90,7 +90,7 @@ class Libtool(AutotoolsPackage, GNUMirrorPackage):
             filter_file("-fno-builtin", "-Mnobuiltin", "libltdl/configure")
 
     def setup_dependent_build_environment(self, env, dependent_spec):
-        env.append_path("ACLOCAL_PATH", self.prefix.share.aclocal)
+        env.prepend_path("ACLOCAL_PATH", self.prefix.share.aclocal)
 
     def setup_dependent_package(self, module, dependent_spec):
         # Automake is very likely to be a build dependency, so we add
