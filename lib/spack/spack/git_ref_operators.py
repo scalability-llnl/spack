@@ -4,10 +4,15 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
 
+import spack.error
 import spack.repo
 import spack.util.git
 from spack.util.executable import ProcessError
 from spack.version import GitVersion, StandardVersion, Version
+
+
+class GitRefFetchError(spack.error.SpackError):
+    pass
 
 
 class GitBranch:
@@ -25,7 +30,10 @@ class GitTag:
 
 
 def associated_git_ref(version, package_class):
-    """Retrieve the branch or tag associated with the version and return the relevant git information for querying the git repo/remote"""
+    """
+    Retrieve the branch or tag associated with the version
+    and return the relevant git information for querying the git repo/remote
+    """
     version_dict = package_class.versions.get(version, {})
 
     git_address = version_dict.get("git", None) or getattr(package_class, "git", None)
@@ -62,7 +70,7 @@ def convert_standard_to_git_version(version, package_class_name):
         try:
             hash = retrieve_latest_git_hash(git_ref)
         except (ProcessError, ValueError, AssertionError):
-            raise InternalConcretizerError(
+            raise GitRefFetchError(
                 (
                     "Failure to fetch git sha when running"
                     f" `git ls-remote {git_ref.address} {git_ref.name}`\n"
