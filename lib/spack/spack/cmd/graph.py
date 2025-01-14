@@ -8,7 +8,7 @@ import spack.config
 import spack.environment as ev
 import spack.store
 from spack.cmd.common import arguments
-from spack.graph import DAGWithDependencyTypes, SimpleDAG, graph_ascii, graph_dot, static_graph_dot
+from spack.graph import DotGraph, MermaidGraph, DAGWithDependencyTypes, SimpleDAG, graph_ascii, graph_dot, static_graph_dot
 
 description = "generate graphs of package dependency relationships"
 section = "basic"
@@ -31,6 +31,9 @@ in the lockfile.
     )
     method.add_argument(
         "-d", "--dot", action="store_true", help="generate graph in dot format and print to stdout"
+    )
+    method.add_argument(
+        "-m", "--mermaid", action="store_true", help="generate graph in mermaid format and print to stdout"
     )
 
     subparser.add_argument(
@@ -84,10 +87,14 @@ def graph(parser, args):
         static_graph_dot(specs, depflag=args.deptype)
         return
 
-    if args.dot:
-        builder = SimpleDAG()
+    if args.dot or args.mermaid:
+        if args.dot:
+            graph = DotGraph()
+        if args.mermaid:
+            graph = MermaidGraph()
+        builder = SimpleDAG(graph=graph)
         if args.color:
-            builder = DAGWithDependencyTypes()
+            builder = DAGWithDependencyTypes(graph=graph)
         graph_dot(specs, builder=builder, depflag=args.deptype)
         return
 
