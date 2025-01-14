@@ -6,10 +6,9 @@ import os
 
 import spack.repo
 import spack.util.git
-from .version_types import GitVersion, StandardVersion, Version
+from spack.version import GitVersion, StandardVersion, Version, COMMIT_VERSION
 from spack.util.executable import ProcessError
 
-from .common import COMMIT_VERSION
 
 
 class GitBranch:
@@ -26,7 +25,7 @@ class GitTag:
         self.flag = "-t"
 
 
-def _associated_git_ref(version, package_class):
+def associated_git_ref(version, package_class):
     """Retrieve the branch or tag associated with the version and return the relevant git information for querying the git repo/remote"""
     version_dict = package_class.versions.get(version, {})
 
@@ -42,7 +41,7 @@ def _associated_git_ref(version, package_class):
     return None
 
 
-def _retrieve_latest_git_hash(git_ref):
+def retrieve_latest_git_hash(git_ref):
     """Get the git hash associated with a tag or branch"""
     # remote git operations can sometimes have banners so we must parse the output for a sha
     query = spack.util.git.git(required=True)(
@@ -60,10 +59,10 @@ def convert_standard_to_git_version(version, package_class_name):
     This function will assign the Git commit sha to a version if it has a branch or tag
     """
     pkg_class = spack.repo.PATH.get_pkg_class(package_class_name)
-    git_ref = _associated_git_ref(version, pkg_class)
+    git_ref = associated_git_ref(version, pkg_class)
     if git_ref:
         try:
-            hash = _retrieve_latest_git_hash(git_ref)
+            hash = retrieve_latest_git_hash(git_ref)
         except (ProcessError, ValueError, AssertionError):
             raise InternalConcretizerError(
                 (

@@ -46,6 +46,7 @@ import spack.util.timer
 import spack.variant as vt
 import spack.version as vn
 import spack.version.git_ref_lookup
+from spack.git_ref_operators import maximally_resolved_version
 from spack import traverse
 
 from .core import (
@@ -3477,7 +3478,7 @@ class SpecBuilder:
     def version(self, node, version):
         pkg_name = self._specs[node].name
         self._specs[node].versions = vn.VersionList(
-            [vn.maximally_resolved_version(version, pkg_name)]
+            [maximally_resolved_version(version, pkg_name)]
         )
 
     def node_compiler_version(self, node, compiler, version):
