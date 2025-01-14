@@ -637,6 +637,8 @@ def mirror_create(args):
 
     # When no directory is provided, the source dir is used
     path = args.directory or spack.caches.fetch_cache_location()
+    if not args.jobs:
+        args.jobs = spack.config.determine_number_of_jobs(parallel=True)
 
     mirror_specs, mirror_fn = _specs_and_action(args)
     mirror_fn(
@@ -723,7 +725,5 @@ def mirror(parser, args):
 
     if args.no_checksum:
         spack.config.set("config:checksum", False, scope="command_line")
-    if not args.jobs:
-        args.jobs = spack.config.determine_number_of_jobs(parallel=True)
 
     action[args.mirror_command](args)
