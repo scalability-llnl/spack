@@ -39,6 +39,7 @@ class Ferret(Package):
     depends_on("zlib-api")
     depends_on("libx11")
     depends_on("curl")
+    depends_on("gmake", type="build")
 
     # Make Java dependency optional with older versions of Ferret
     patch(

@@ -33,6 +33,7 @@ class Lrzip(Package):
     depends_on("lzo")
     depends_on("zlib-api")
     depends_on("bzip2")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         set_executable("./autogen.sh")
