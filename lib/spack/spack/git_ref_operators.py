@@ -6,7 +6,7 @@ import os
 
 import spack.repo
 import spack.util.git
-from spack.version import GitVersion, StandardVersion, Version, COMMIT_VERSION
+from spack.version import GitVersion, StandardVersion, Version
 from spack.util.executable import ProcessError
 
 
@@ -48,7 +48,6 @@ def retrieve_latest_git_hash(git_ref):
         "ls-remote", git_ref.flag, git_ref.address, git_ref.name, output=str, error=os.devnull
     )
     sha, ref = query.strip().split()
-    assert COMMIT_VERSION.match(sha)
     return sha
 
 
