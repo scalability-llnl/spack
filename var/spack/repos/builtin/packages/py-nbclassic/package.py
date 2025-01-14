@@ -18,6 +18,7 @@ class PyNbclassic(PythonPackage):
     version("0.4.8", sha256="c74d8a500f8e058d46b576a41e5bc640711e1032cf7541dde5f73ea49497e283")
     version("0.3.5", sha256="99444dd63103af23c788d9b5172992f12caf8c3098dd5a35c787f0df31490c29")
     version("0.3.1", sha256="f920f8d09849bea7950e1017ff3bd101763a8d68f565a51ce053572e65aa7947")
+    variant("rebuild", default=True, description="CI rebuild")
 
     depends_on("python@3.7:", type=("build", "run"))
     depends_on("py-setuptools", type="build")
