@@ -3044,11 +3044,14 @@ spack:
         with ev.read("test"):
             install()
 
-        shell = env("activate", "--sh", "test")
-        assert "ENVAR_SET_IN_ENV_LOAD=True" in shell
+        test_env = ev.read("test")
 
-        shell = env("deactivate", "--sh")
-        assert "ENVAR_SET_IN_ENV_LOAD" not in shell
+        output = env("activate", "--sh", "test")
+        assert "ENVAR_SET_IN_ENV_LOAD=True" in output
+
+        with test_env:
+            output = env("deactivate", "--sh")
+            assert "ENVAR_SET_IN_ENV_LOAD" not in output
 
 
 def test_stack_view_no_activate_without_default(
