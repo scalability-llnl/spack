@@ -10,11 +10,15 @@ class Hcoll(Package):
     is a MPI-integrated software package that utilizes CORE-Direct technology
     for implementing the MPI collective communications."""
 
-    homepage = "https://www.mellanox.com/products/fca"
+    homepage = "https://developer.nvidia.com/networking/hpc-x"
     has_code = False
 
     # To get the version number
     # grep HCOLL_VERNO_STRING path/include/hcoll/api/hcoll_version.h
+    version("4.8.3230")  # HPC-X 2.21, UCX 1.18
+    version("4.8.3228")  # HPC-X 2.20, UCX 1.17
+    version("4.8.3227")  # HPC-X 2.18/2.19, UCX 1.16/1.17
+    version("4.8.3223")  # HPC-X 2.16/2.17, UCX 1.15/1.16
     version("4.8.3221")  # HPC-X 2.14/2.15, UCX 1.15
     version("4.8.3220")  # HPC-X 2.13, UCX 1.14
     version("4.8.3217")  # HPC-X 2.12, UCX 1.14
@@ -24,6 +28,10 @@ class Hcoll(Package):
     version("3.9.1927")
 
     # ucx throws warnings when running alongside the wrong version of hcoll
+    requires("ucx@1.18", when="@4.8.3230")
+    requires("ucx@1.17", when="@4.8.3228")
+    requires("ucx@1.16:1.17", when="@4.8.3227")
+    requires("ucx@1.15:1.16", when="@4.8.3223")
     requires("ucx@1.15", when="@4.8.3221")
     requires("ucx@1.14", when="@4.8.3217:4.8.3220")
     requires("ucx@1.13", when="@4.7.3208")
