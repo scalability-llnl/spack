@@ -10,6 +10,7 @@ import llnl.util.tty as tty
 import spack.build_environment
 import spack.cmd
 import spack.cmd.common.arguments
+import spack.concretize
 import spack.config
 import spack.repo
 from spack.cmd.common import arguments
@@ -114,7 +115,7 @@ def dev_build(self, args):
 
     # Forces the build to run out of the source directory.
     spec.constrain("dev_path=%s" % source_path)
-    spec.concretize()
+    spec = spack.concretize.concretize_one(spec)
 
     if spec.installed:
         tty.error("Already installed in %s" % spec.prefix)

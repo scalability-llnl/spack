@@ -7,6 +7,7 @@ import os
 
 import pytest
 
+import spack.concretize
 import spack.directives
 import spack.directives_meta
 import spack.paths
@@ -91,8 +92,8 @@ def test_all_same_but_install(mock_packages, config):
 
 
 def test_content_hash_all_same_but_patch_contents(mock_packages, config):
-    spec1 = Spec("hash-test1@1.1").concretized()
-    spec2 = Spec("hash-test2@1.1").concretized()
+    spec1 = spack.concretize.concretize_one("hash-test1@1.1")
+    spec2 = spack.concretize.concretize_one("hash-test2@1.1")
     compare_hash_sans_name(False, spec1, spec2)
 
 
@@ -117,8 +118,8 @@ def test_content_hash_not_concretized(mock_packages, config):
 
 
 def test_content_hash_different_variants(mock_packages, config):
-    spec1 = Spec("hash-test1@1.2 +variantx").concretized()
-    spec2 = Spec("hash-test2@1.2 ~variantx").concretized()
+    spec1 = spack.concretize.concretize_one("hash-test1@1.2 +variantx")
+    spec2 = spack.concretize.concretize_one("hash-test2@1.2 ~variantx")
     compare_hash_sans_name(True, spec1, spec2)
 
 
@@ -132,19 +133,19 @@ def test_content_hash_cannot_get_details_from_ast(mock_packages, config):
     differ where Spack includes a phase on account of AST-examination
     failure.
     """
-    spec3 = Spec("hash-test1@1.7").concretized()
-    spec4 = Spec("hash-test3@1.7").concretized()
+    spec3 = spack.concretize.concretize_one("hash-test1@1.7")
+    spec4 = spack.concretize.concretize_one("hash-test3@1.7")
     compare_hash_sans_name(False, spec3, spec4)
 
 
 def test_content_hash_all_same_but_archive_hash(mock_packages, config):
-    spec1 = Spec("hash-test1@1.3").concretized()
-    spec2 = Spec("hash-test2@1.3").concretized()
+    spec1 = spack.concretize.concretize_one("hash-test1@1.3")
+    spec2 = spack.concretize.concretize_one("hash-test2@1.3")
     compare_hash_sans_name(False, spec1, spec2)
 
 
 def test_content_hash_parse_dynamic_function_call(mock_packages, config):
-    spec = Spec("hash-test4").concretized()
+    spec = spack.concretize.concretize_one("hash-test4")
     spec.package.content_hash()
 
 

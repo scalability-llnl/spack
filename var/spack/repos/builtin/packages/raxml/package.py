@@ -26,6 +26,7 @@ class Raxml(Package):
     variant("pthreads", default=False, description="Enable pthreads version")
 
     depends_on("mpi", when="+mpi")
+    depends_on("gmake", type="build")
 
     patch("nox86.patch")
 

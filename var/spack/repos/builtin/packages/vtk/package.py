@@ -24,10 +24,11 @@ class Vtk(CMakePackage):
     license("BSD-3-Clause")
 
     version(
-        "9.3.1",
-        sha256="8354ec084ea0d2dc3d23dbe4243823c4bfc270382d0ce8d658939fd50061cab8",
+        "9.4.1",
+        sha256="c253b0c8d002aaf98871c6d0cb76afc4936c301b72358a08d5f3f72ef8bc4529",
         preferred=True,
     )
+    version("9.3.1", sha256="8354ec084ea0d2dc3d23dbe4243823c4bfc270382d0ce8d658939fd50061cab8")
     version("9.2.6", sha256="06fc8d49c4e56f498c40fcb38a563ed8d4ec31358d0101e8988f0bb4d539dd12")
     version("9.2.2", sha256="1c5b0a2be71fac96ff4831af69e350f7a0ea3168981f790c000709dcf9121075")
     version("9.1.0", sha256="8fed42f4f8f1eb8083107b68eaa9ad71da07110161a3116ad807f43e5ca5ce96")
@@ -200,6 +201,8 @@ class Vtk(CMakePackage):
         depends_on("seacas+mpi", when="+mpi")
         depends_on("seacas~mpi", when="~mpi")
         depends_on("seacas@2021-05-12:")
+    with when("@9.4:"):
+        depends_on("seacas@2024-06-27:")
 
     # seacas@2023-05-30 does not provide needed SEACASIoss_INCLUDE_DIRS:
     # CMake Error at CMake/vtkModule.cmake:5552 (message):
@@ -302,6 +305,7 @@ class Vtk(CMakePackage):
                     "-DVTK_MODULE_USE_EXTERNAL_VTK_fast_float:BOOL=OFF",
                     "-DVTK_MODULE_USE_EXTERNAL_VTK_libharu:BOOL=OFF",
                     "-DVTK_MODULE_USE_EXTERNAL_VTK_pegtl:BOOL=OFF",
+                    "-DVTK_MODULE_USE_EXTERNAL_VTK_token:BOOL=OFF",
                     "-DHDF5_ROOT={0}".format(spec["hdf5"].prefix),
                 ]
             )

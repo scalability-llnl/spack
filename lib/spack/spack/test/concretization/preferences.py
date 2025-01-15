@@ -7,6 +7,7 @@ import stat
 
 import pytest
 
+import spack.concretize
 import spack.config
 import spack.package_prefs
 import spack.repo
@@ -46,7 +47,7 @@ callpath:
 
 
 def concretize(abstract_spec):
-    return Spec(abstract_spec).concretized()
+    return spack.concretize.concretize_one(abstract_spec)
 
 
 def update_packages(pkgname, section, value):
@@ -111,7 +112,7 @@ class TestConcretizePreferences:
     def test_preferred_compilers(self, compiler_str, spec_str):
         """Test preferred compilers are applied correctly"""
         update_packages("all", "compiler", [compiler_str])
-        spec = spack.spec.Spec(spec_str).concretized()
+        spec = spack.concretize.concretize_one(spec_str)
         assert spec.compiler == CompilerSpec(compiler_str)
 
     def test_preferred_target(self, mutable_mock_repo):
@@ -213,15 +214,13 @@ mpileaks:
 
     def test_preferred(self):
         """ "Test packages with some version marked as preferred=True"""
-        spec = Spec("python")
-        spec.concretize()
+        spec = spack.concretize.concretize_one("python")
         assert spec.version == Version("2.7.11")
 
         # now add packages.yaml with versions other than preferred
         # ensure that once config is in place, non-preferred version is used
         update_packages("python", "version", ["3.5.0"])
-        spec = Spec("python")
-        spec.concretize()
+        spec = spack.concretize.concretize_one("python")
         assert spec.version == Version("3.5.0")
 
     def test_preferred_undefined_raises(self):
@@ -229,7 +228,7 @@ mpileaks:
         update_packages("python", "version", ["3.5.0.1"])
         spec = Spec("python")
         with pytest.raises(ConfigError):
-            spec.concretize()
+            spack.concretize.concretize_one(spec)
 
     def test_preferred_truncated(self):
         """Versions without "=" are treated as version ranges: if there is
@@ -237,35 +236,29 @@ mpileaks:
         (don't define a new version).
         """
         update_packages("python", "version", ["3.5"])
-        spec = Spec("python")
-        spec.concretize()
+        spec = spack.concretize.concretize_one("python")
         assert spec.satisfies("@3.5.1")
 
     def test_develop(self):
         """Test concretization with develop-like versions"""
-        spec = Spec("develop-test")
-        spec.concretize()
+        spec = spack.concretize.concretize_one("develop-test")
         assert spec.version == Version("0.2.15")
-        spec = Spec("develop-test2")
-        spec.concretize()
+        spec = spack.concretize.concretize_one("develop-test2")
         assert spec.version == Version("0.2.15")
 
         # now add packages.yaml with develop-like versions
         # ensure that once config is in place, develop-like version is used
         update_packages("develop-test", "version", ["develop"])
-        spec = Spec("develop-test")
-        spec.concretize()
+        spec = spack.concretize.concretize_one("develop-test")
         assert spec.version == Version("develop")
 
         update_packages("develop-test2", "version", ["0.2.15.develop"])
-        spec = Spec("develop-test2")
-        spec.concretize()
+        spec = spack.concretize.concretize_one("develop-test2")
         assert spec.version == Version("0.2.15.develop")
 
     def test_external_mpi(self):
         # make sure this doesn't give us an external first.
-        spec = Spec("mpi")
-        spec.concretize()
+        spec = spack.concretize.concretize_one("mpi")
         assert not spec["mpi"].external
 
         # load config
@@ -284,8 +277,7 @@ mpich:
         spack.config.set("packages", conf, scope="concretize")
 
         # ensure that once config is in place, external is used
-        spec = Spec("mpi")
-        spec.concretize()
+        spec = spack.concretize.concretize_one("mpi")
         assert spec["mpich"].external_path == os.path.sep + os.path.join("dummy", "path")
 
     def test_external_module(self, monkeypatch):
@@ -300,8 +292,7 @@ mpich:
 
         monkeypatch.setattr(spack.util.module_cmd, "module", mock_module)
 
-        spec = Spec("mpi")
-        spec.concretize()
+        spec = spack.concretize.concretize_one("mpi")
         assert not spec["mpi"].external
 
         # load config
@@ -320,8 +311,7 @@ mpi:
         spack.config.set("packages", conf, scope="concretize")
 
         # ensure that once config is in place, external is used
-        spec = Spec("mpi")
-        spec.concretize()
+        spec = spack.concretize.concretize_one("mpi")
         assert spec["mpich"].external_path == os.path.sep + os.path.join("dummy", "path")
 
     def test_buildable_false(self):
@@ -467,7 +457,7 @@ mpich:
         """Test that a package doesn't prefer pulling in an
         external to using the default value of a variant.
         """
-        s = Spec("vdefault-or-external-root").concretized()
+        s = spack.concretize.concretize_one("vdefault-or-external-root")
 
         assert "~external" in s["vdefault-or-external"]
         assert "externaltool" not in s
@@ -479,7 +469,7 @@ mpich:
         that makes the overall version score even or better and maybe
         has a better score in some lower priority criteria.
         """
-        s = Spec("version-test-root").concretized()
+        s = spack.concretize.concretize_one("version-test-root")
 
         assert s.satisfies("^version-test-pkg@2.4.6")
         assert "version-test-dependency-preferred" not in s
@@ -497,13 +487,13 @@ mpich:
         with spack.config.override(
             "packages:all", {"providers": {"somevirtual": ["some-virtual-preferred"]}}
         ):
-            s = Spec("somevirtual").concretized()
+            s = spack.concretize.concretize_one("somevirtual")
             assert s.name == "some-virtual-preferred"
 
     @pytest.mark.regression("26721,19736")
     def test_sticky_variant_accounts_for_packages_yaml(self):
         with spack.config.override("packages:sticky-variant", {"variants": "+allow-gcc"}):
-            s = Spec("sticky-variant %gcc").concretized()
+            s = spack.concretize.concretize_one("sticky-variant %gcc")
             assert s.satisfies("%gcc") and s.satisfies("+allow-gcc")
 
     @pytest.mark.regression("41134")
@@ -512,5 +502,5 @@ mpich:
         packages.yaml doesn't fail with an error.
         """
         with spack.config.override("packages:all", {"variants": "+foo"}):
-            s = Spec("pkg-a").concretized()
+            s = spack.concretize.concretize_one("pkg-a")
             assert s.satisfies("foo=bar")

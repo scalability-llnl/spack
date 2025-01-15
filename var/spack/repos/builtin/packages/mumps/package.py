@@ -73,6 +73,7 @@ class Mumps(Package):
     depends_on("lapack")
     depends_on("scalapack", when="+mpi")
     depends_on("mpi", when="+mpi")
+    depends_on("gmake", type="build")
 
     patch("examples.patch", when="@5.1.1%clang^spectrum-mpi")
     patch("gfortran8.patch", when="@5.1.2")

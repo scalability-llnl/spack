@@ -29,6 +29,7 @@ class PyPydmd(PythonPackage):
     depends_on("texlive", type="build", when="+docs")
     depends_on("py-sphinx@1.4.0:1.4", type="build", when="+docs")
     depends_on("py-sphinx-rtd-theme", type="build", when="+docs")
+    depends_on("gmake", type="build")
 
     # https://github.com/mathLab/PyDMD/pull/133
     patch("isuue-133.patch", when="@0.3")
