@@ -217,22 +217,37 @@ def test_manyvariant_matching_variant_splice(
 
 
 def test_external_splice_same_name(install_specs, mutable_config):
-    goal_specs = [
-        Spec("splice-h@1.0.0 ^splice-z@1.0.2"),
-        Spec("splice-t@1.0 ^splice-h@1.0.1 ^splice-z@1.0.2"),
-    ]
-    install_specs(
+    """Tests that externals can be spliced for non-external specs"""
+    original_splice_h, original_splice_t = install_specs(
         "splice-h@1.0.0 ^splice-z@1.0.0+compat",
         "splice-t@1.0 ^splice-h@1.0.1 ^splice-z@1.0.1+compat",
     )
+    mutable_config.set("packages", _make_specs_non_buildable(["splice-t", "splice-h"]))
     mutable_config.set(
         "packages",
-        {"splice-z": {"externals": [{"spec": "splice-z@1.0.2+compat", "prefix": "/usr"}]}},
+        {
+            "splice-z": {
+                "externals": [{"spec": "splice-z@1.0.2+compat", "prefix": "/usr"}],
+                "buildable": False,
+            }
+        },
     )
 
     _enable_splicing()
-    for s in goal_specs:
-        assert spack.concretize.concretize_one(s).satisfies(s)
+    concrete_splice_h = spack.concretize.concretize_one("splice-h@1.0.0 ^splice-z@1.0.2")
+    concrete_splice_t = spack.concretize.concretize_one(
+        "splice-t@1.0 ^splice-h@1.0.1 ^splice-z@1.0.2"
+    )
+
+    assert concrete_splice_h.dag_hash() != original_splice_h.dag_hash()
+    assert concrete_splice_h.build_spec.dag_hash() == original_splice_h.dag_hash()
+    assert concrete_splice_h["splice-z"].external
+
+    assert concrete_splice_t.dag_hash() != original_splice_t.dag_hash()
+    assert concrete_splice_t.build_spec.dag_hash() == original_splice_t.dag_hash()
+    assert concrete_splice_t["splice-z"].external
+
+    assert concrete_splice_t["splice-z"].dag_hash() == concrete_splice_h["splice-z"].dag_hash()
 
 
 def test_spliced_build_deps_only_in_build_spec(install_specs):
