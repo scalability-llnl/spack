@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """This is where most of the action happens in Spack.
@@ -24,8 +23,9 @@ import textwrap
 import time
 import traceback
 import typing
-import warnings
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, Type, TypeVar, Union
+
+from typing_extensions import Literal
 
 import llnl.util.filesystem as fsys
 import llnl.util.tty as tty
@@ -40,7 +40,8 @@ import spack.directives_meta
 import spack.error
 import spack.fetch_strategy as fs
 import spack.hooks
-import spack.mirror
+import spack.mirrors.layout
+import spack.mirrors.mirror
 import spack.multimethod
 import spack.patch
 import spack.phase_callbacks
@@ -54,9 +55,11 @@ import spack.util.web
 import spack.variant
 from spack.error import InstallError, NoURLError, PackageError
 from spack.filesystem_view import YamlFilesystemView
+from spack.resource import Resource
 from spack.solver.version_order import concretization_version_order
 from spack.stage import DevelopStage, ResourceStage, Stage, StageComposite, compute_stage_name
 from spack.util.package_hash import package_hash
+from spack.util.typing import SupportsRichComparison
 from spack.version import GitVersion, StandardVersion
 
 FLAG_HANDLER_RETURN_TYPE = Tuple[
@@ -82,32 +85,6 @@ _spack_configure_argsfile = "spack-configure-args.txt"
 
 #: Filename of json with total build and phase times (seconds)
 spack_times_log = "install_times.json"
-
-
-def deprecated_version(pkg: "PackageBase", version: Union[str, StandardVersion]) -> bool:
-    """Return True iff the version is deprecated.
-
-    Arguments:
-        pkg: The package whose version is to be checked.
-        version: The version being checked
-    """
-    if not isinstance(version, StandardVersion):
-        version = StandardVersion.from_string(version)
-
-    details = pkg.versions.get(version)
-    return details is not None and details.get("deprecated", False)
-
-
-def preferred_version(pkg: "PackageBase"):
-    """
-    Returns a sorted list of the preferred versions of the package.
-
-    Arguments:
-        pkg: The package whose versions are to be assessed.
-    """
-
-    version, _ = max(pkg.versions.items(), key=concretization_version_order)
-    return version
 
 
 class WindowsRPath:
@@ -414,59 +391,77 @@ class PackageViewMixin:
 
 Pb = TypeVar("Pb", bound="PackageBase")
 
-WhenDict = Dict[spack.spec.Spec, Dict[str, Any]]
-NameValuesDict = Dict[str, List[Any]]
-NameWhenDict = Dict[str, Dict[spack.spec.Spec, List[Any]]]
+# Some typedefs for dealing with when-indexed dictionaries
+#
+# Many of the dictionaries on PackageBase are of the form:
+# { Spec: { K: V } }
+#
+# K might be a variant name, a version, etc. V is a definition of some Spack object.
+# The methods below transform these types of dictionaries.
+K = TypeVar("K", bound=SupportsRichComparison)
+V = TypeVar("V")
 
 
-def _by_name(
-    when_indexed_dictionary: WhenDict, when: bool = False
-) -> Union[NameValuesDict, NameWhenDict]:
-    """Convert a dict of dicts keyed by when/name into a dict of lists keyed by name.
+def _by_subkey(
+    when_indexed_dictionary: Dict[spack.spec.Spec, Dict[K, V]], when: bool = False
+) -> Dict[K, Union[List[V], Dict[spack.spec.Spec, List[V]]]]:
+    """Convert a dict of dicts keyed by when/subkey into a dict of lists keyed by subkey.
 
     Optional Arguments:
         when: if ``True``, don't discared the ``when`` specs; return a 2-level dictionary
-            keyed by name and when spec.
+            keyed by subkey and when spec.
     """
     # very hard to define this type to be conditional on `when`
-    all_by_name: Dict[str, Any] = {}
+    all_by_subkey: Dict[K, Any] = {}
 
-    for when_spec, by_name in when_indexed_dictionary.items():
-        for name, value in by_name.items():
+    for when_spec, by_key in when_indexed_dictionary.items():
+        for key, value in by_key.items():
             if when:
-                when_dict = all_by_name.setdefault(name, {})
+                when_dict = all_by_subkey.setdefault(key, {})
                 when_dict.setdefault(when_spec, []).append(value)
             else:
-                all_by_name.setdefault(name, []).append(value)
+                all_by_subkey.setdefault(key, []).append(value)
 
     # this needs to preserve the insertion order of whens
-    return dict(sorted(all_by_name.items()))
+    return dict(sorted(all_by_subkey.items()))
 
 
-def _names(when_indexed_dictionary: WhenDict) -> List[str]:
+def _subkeys(when_indexed_dictionary: Dict[spack.spec.Spec, Dict[K, V]]) -> List[K]:
     """Get sorted names from dicts keyed by when/name."""
-    all_names = set()
-    for when, by_name in when_indexed_dictionary.items():
-        for name in by_name:
-            all_names.add(name)
+    all_keys = set()
+    for when, by_key in when_indexed_dictionary.items():
+        for key in by_key:
+            all_keys.add(key)
 
-    return sorted(all_names)
-
-
-WhenVariantList = List[Tuple[spack.spec.Spec, spack.variant.Variant]]
+    return sorted(all_keys)
 
 
-def _remove_overridden_vdefs(variant_defs: WhenVariantList) -> None:
-    """Remove variant defs from the list if their when specs are satisfied by later ones.
+def _has_subkey(when_indexed_dictionary: Dict[spack.spec.Spec, Dict[K, V]], key: K) -> bool:
+    return any(key in dictionary for dictionary in when_indexed_dictionary.values())
 
-    Any such variant definitions are *always* overridden by their successor, as it will
-    match everything the predecessor matches, and the solver will prefer it because of
-    its higher precedence.
 
-    We can just remove these defs from variant definitions and avoid putting them in the
-    solver. This is also useful for, e.g., `spack info`, where we don't want to show a
-    variant from a superclass if it is always overridden by a variant defined in a
-    subclass.
+def _num_definitions(when_indexed_dictionary: Dict[spack.spec.Spec, Dict[K, V]]) -> int:
+    return sum(len(dictionary) for dictionary in when_indexed_dictionary.values())
+
+
+def _precedence(obj) -> int:
+    """Get either a 'precedence' attribute or item from an object."""
+    precedence = getattr(obj, "precedence", None)
+    if precedence is None:
+        raise KeyError(f"Couldn't get precedence from {type(obj)}")
+    return precedence
+
+
+def _remove_overridden_defs(defs: List[Tuple[spack.spec.Spec, Any]]) -> None:
+    """Remove definitions from the list if their when specs are satisfied by later ones.
+
+    Any such definitions are *always* overridden by their successor, as they will
+    match everything the predecessor matches, and the solver will prefer them because of
+    their higher precedence.
+
+    We can just remove these defs and avoid putting them in the solver. This is also
+    useful for, e.g., `spack info`, where we don't want to show a variant from a
+    superclass if it is always overridden by a variant defined in a subclass.
 
     Example::
 
@@ -484,12 +479,31 @@ def _remove_overridden_vdefs(variant_defs: WhenVariantList) -> None:
 
     """
     i = 0
-    while i < len(variant_defs):
-        when, vdef = variant_defs[i]
-        if any(when.satisfies(successor) for successor, _ in variant_defs[i + 1 :]):
-            del variant_defs[i]
+    while i < len(defs):
+        when, _ = defs[i]
+        if any(when.satisfies(successor) for successor, _ in defs[i + 1 :]):
+            del defs[i]
         else:
             i += 1
+
+
+def _definitions(
+    when_indexed_dictionary: Dict[spack.spec.Spec, Dict[K, V]], key: K
+) -> List[Tuple[spack.spec.Spec, V]]:
+    """Iterator over (when_spec, Value) for all values with a particular Key."""
+    # construct a list of defs sorted by precedence
+    defs: List[Tuple[spack.spec.Spec, V]] = []
+    for when, values_by_key in when_indexed_dictionary.items():
+        value_def = values_by_key.get(key)
+        if value_def:
+            defs.append((when, value_def))
+
+    # With multiple definitions, ensure precedence order and simplify overrides
+    if len(defs) > 1:
+        defs.sort(key=lambda v: _precedence(v[1]))
+        _remove_overridden_defs(defs)
+
+    return defs
 
 
 #: Store whether a given Spec source/binary should not be redistributed.
@@ -585,6 +599,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
     # Declare versions dictionary as placeholder for values.
     # This allows analysis tools to correctly interpret the class attributes.
     versions: dict
+    resources: Dict[spack.spec.Spec, List[Resource]]
     dependencies: Dict[spack.spec.Spec, Dict[str, spack.dependency.Dependency]]
     conflicts: Dict[spack.spec.Spec, List[Tuple[spack.spec.Spec, Optional[str]]]]
     requirements: Dict[
@@ -595,6 +610,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
     patches: Dict[spack.spec.Spec, List[spack.patch.Patch]]
     variants: Dict[spack.spec.Spec, Dict[str, spack.variant.Variant]]
     languages: Dict[spack.spec.Spec, Set[str]]
+    licenses: Dict[spack.spec.Spec, str]
     splice_specs: Dict[spack.spec.Spec, Tuple[spack.spec.Spec, Union[None, str, List[str]]]]
 
     #: Store whether a given Spec source/binary should not be redistributed.
@@ -629,6 +645,14 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
     #: ``["libcuda.so", "stubs"]`` will ensure libcuda.so and all libraries in the
     #: stubs directory are not bound by path."""
     non_bindable_shared_objects: List[str] = []
+
+    #: List of fnmatch patterns of library file names (specifically DT_NEEDED entries) that are not
+    #: expected to be locatable in RPATHs. Generally this is a problem, and Spack install with
+    #: config:shared_linking:strict will cause install failures if such libraries are found.
+    #: However, in certain cases it can be hard if not impossible to avoid accidental linking
+    #: against system libraries; until that is resolved, this attribute can be used to suppress
+    #: errors.
+    unresolved_libraries: List[str] = []
 
     #: List of prefix-relative file paths (or a single path). If these do
     #: not exist after install, or if they exist but are not files,
@@ -745,44 +769,32 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
 
     @classmethod
     def dependency_names(cls):
-        return _names(cls.dependencies)
+        return _subkeys(cls.dependencies)
 
     @classmethod
     def dependencies_by_name(cls, when: bool = False):
-        return _by_name(cls.dependencies, when=when)
+        return _by_subkey(cls.dependencies, when=when)
 
     # Accessors for variants
-    # External code workingw with Variants should go through the methods below
+    # External code working with Variants should go through the methods below
 
     @classmethod
     def variant_names(cls) -> List[str]:
-        return _names(cls.variants)
+        return _subkeys(cls.variants)
 
     @classmethod
     def has_variant(cls, name) -> bool:
-        return any(name in dictionary for dictionary in cls.variants.values())
+        return _has_subkey(cls.variants, name)
 
     @classmethod
     def num_variant_definitions(cls) -> int:
         """Total number of variant definitions in this class so far."""
-        return sum(len(variants_by_name) for variants_by_name in cls.variants.values())
+        return _num_definitions(cls.variants)
 
     @classmethod
-    def variant_definitions(cls, name: str) -> WhenVariantList:
+    def variant_definitions(cls, name: str) -> List[Tuple[spack.spec.Spec, spack.variant.Variant]]:
         """Iterator over (when_spec, Variant) for all variant definitions for a particular name."""
-        # construct a list of defs sorted by precedence
-        defs: WhenVariantList = []
-        for when, variants_by_name in cls.variants.items():
-            variant_def = variants_by_name.get(name)
-            if variant_def:
-                defs.append((when, variant_def))
-
-        # With multiple definitions, ensure precedence order and simplify overrides
-        if len(defs) > 1:
-            defs.sort(key=lambda v: v[1].precedence)
-            _remove_overridden_vdefs(defs)
-
-        return defs
+        return _definitions(cls.variants, name)
 
     @classmethod
     def variant_items(cls) -> Iterable[Tuple[spack.spec.Spec, Dict[str, spack.variant.Variant]]]:
@@ -998,10 +1010,8 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
                 return False
         return True
 
-    # NOTE: return type should be Optional[Literal['all', 'specific', 'none']] in
-    # Python 3.8+, but we still support 3.6.
     @property
-    def keep_werror(self) -> Optional[str]:
+    def keep_werror(self) -> Optional[Literal["all", "specific", "none"]]:
         """Keep ``-Werror`` flags, matches ``config:flags:keep_werror`` to override config.
 
         Valid return values are:
@@ -1184,10 +1194,10 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
             root=root_stage,
             resource=resource,
             name=self._resource_stage(resource),
-            mirror_paths=spack.mirror.default_mirror_layout(
+            mirror_paths=spack.mirrors.layout.default_mirror_layout(
                 resource.fetcher, os.path.join(self.name, pretty_resource_name)
             ),
-            mirrors=spack.mirror.MirrorCollection(source=True).values(),
+            mirrors=spack.mirrors.mirror.MirrorCollection(source=True).values(),
             path=self.path,
         )
 
@@ -1199,7 +1209,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         # Construct a mirror path (TODO: get this out of package.py)
         format_string = "{name}-{version}"
         pretty_name = self.spec.format_path(format_string)
-        mirror_paths = spack.mirror.default_mirror_layout(
+        mirror_paths = spack.mirrors.layout.default_mirror_layout(
             fetcher, os.path.join(self.name, pretty_name), self.spec
         )
         # Construct a path where the stage should build..
@@ -1208,7 +1218,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         stage = Stage(
             fetcher,
             mirror_paths=mirror_paths,
-            mirrors=spack.mirror.MirrorCollection(source=True).values(),
+            mirrors=spack.mirrors.mirror.MirrorCollection(source=True).values(),
             name=stage_name,
             path=self.path,
             search_fn=self._download_search,
@@ -1358,24 +1368,6 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         if not self._tester:
             self._tester = spack.install_test.PackageTest(self)
         return self._tester
-
-    @property
-    def installed(self):
-        msg = (
-            'the "PackageBase.installed" property is deprecated and will be '
-            'removed in Spack v0.19, use "Spec.installed" instead'
-        )
-        warnings.warn(msg)
-        return self.spec.installed
-
-    @property
-    def installed_upstream(self):
-        msg = (
-            'the "PackageBase.installed_upstream" property is deprecated and will '
-            'be removed in Spack v0.19, use "Spec.installed_upstream" instead'
-        )
-        warnings.warn(msg)
-        return self.spec.installed_upstream
 
     @property
     def fetcher(self):
@@ -1754,7 +1746,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
 
         return patches
 
-    def content_hash(self, content=None):
+    def content_hash(self, content: Optional[bytes] = None) -> str:
         """Create a hash based on the artifacts and patches used to build this package.
 
         This includes:
@@ -2377,6 +2369,32 @@ def possible_dependencies(
         )
 
     return visited
+
+
+def deprecated_version(pkg: PackageBase, version: Union[str, StandardVersion]) -> bool:
+    """Return True iff the version is deprecated.
+
+    Arguments:
+        pkg: The package whose version is to be checked.
+        version: The version being checked
+    """
+    if not isinstance(version, StandardVersion):
+        version = StandardVersion.from_string(version)
+
+    details = pkg.versions.get(version)
+    return details is not None and details.get("deprecated", False)
+
+
+def preferred_version(pkg: PackageBase):
+    """
+    Returns a sorted list of the preferred versions of the package.
+
+    Arguments:
+        pkg: The package whose versions are to be assessed.
+    """
+
+    version, _ = max(pkg.versions.items(), key=concretization_version_order)
+    return version
 
 
 class PackageStillNeededError(InstallError):

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Manages the details on the images used in the various stages."""
@@ -27,7 +26,7 @@ def data():
     if not _data:
         json_dir = os.path.abspath(os.path.dirname(__file__))
         json_file = os.path.join(json_dir, "images.json")
-        with open(json_file) as f:
+        with open(json_file, encoding="utf-8") as f:
             _data = json.load(f)
     return _data
 

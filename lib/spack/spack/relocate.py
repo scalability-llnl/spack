@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections
@@ -13,6 +12,7 @@ from typing import List, Optional
 import macholib.mach_o
 import macholib.MachO
 
+import llnl.util.filesystem as fs
 import llnl.util.lang
 import llnl.util.tty as tty
 from llnl.util.lang import memoized
@@ -22,7 +22,6 @@ import spack.error
 import spack.store
 import spack.util.elf as elf
 import spack.util.executable as executable
-import spack.util.filesystem as ssys
 
 from .relocate_text import BinaryFilePrefixReplacer, TextFilePrefixReplacer
 
@@ -275,10 +274,10 @@ def modify_macho_object(cur_path, rpaths, deps, idpath, paths_to_paths):
 
     # Deduplicate and flatten
     args = list(itertools.chain.from_iterable(llnl.util.lang.dedupe(args)))
+    install_name_tool = executable.Executable("install_name_tool")
     if args:
-        args.append(str(cur_path))
-        install_name_tool = executable.Executable("install_name_tool")
-        install_name_tool(*args)
+        with fs.edit_in_place_through_temporary_file(cur_path) as temp_path:
+            install_name_tool(*args, temp_path)
 
 
 def macholib_get_paths(cur_path):
@@ -347,32 +346,6 @@ def _set_elf_rpaths_and_interpreter(
     except executable.ProcessError as e:
         tty.warn(str(e))
         return None
-
-
-def needs_binary_relocation(m_type, m_subtype):
-    """Returns True if the file with MIME type/subtype passed as arguments
-    needs binary relocation, False otherwise.
-
-    Args:
-        m_type (str): MIME type of the file
-        m_subtype (str): MIME subtype of the file
-    """
-    subtypes = ("x-executable", "x-sharedlib", "x-mach-binary", "x-pie-executable")
-    if m_type == "application":
-        if m_subtype in subtypes:
-            return True
-    return False
-
-
-def needs_text_relocation(m_type, m_subtype):
-    """Returns True if the file with MIME type/subtype passed as arguments
-    needs text relocation, False otherwise.
-
-    Args:
-        m_type (str): MIME type of the file
-        m_subtype (str): MIME subtype of the file
-    """
-    return m_type == "text"
 
 
 def relocate_macho_binaries(
@@ -622,30 +595,46 @@ def relocate_text_bin(binaries, prefixes):
     return BinaryFilePrefixReplacer.from_strings_or_bytes(prefixes).apply(binaries)
 
 
-def is_binary(filename):
-    """Returns true if a file is binary, False otherwise
+def is_macho_magic(magic: bytes) -> bool:
+    return (
+        # In order of popularity: 64-bit mach-o le/be, 32-bit mach-o le/be.
+        magic.startswith(b"\xCF\xFA\xED\xFE")
+        or magic.startswith(b"\xFE\xED\xFA\xCF")
+        or magic.startswith(b"\xCE\xFA\xED\xFE")
+        or magic.startswith(b"\xFE\xED\xFA\xCE")
+        # universal binaries: 0xcafebabe be (most common?) or 0xbebafeca le (not sure if exists).
+        # Here we need to disambiguate mach-o and JVM class files. In mach-o the next 4 bytes are
+        # the number of binaries; in JVM class files it's the java version number. We assume there
+        # are less than 10 binaries in a universal binary.
+        or (magic.startswith(b"\xCA\xFE\xBA\xBE") and int.from_bytes(magic[4:8], "big") < 10)
+        or (magic.startswith(b"\xBE\xBA\xFE\xCA") and int.from_bytes(magic[4:8], "little") < 10)
+    )
 
-    Args:
-        filename: file to be tested
 
-    Returns:
-        True or False
-    """
-    m_type, _ = ssys.mime_type(filename)
+def is_elf_magic(magic: bytes) -> bool:
+    return magic.startswith(b"\x7FELF")
 
-    msg = "[{0}] -> ".format(filename)
-    if m_type == "application":
-        tty.debug(msg + "BINARY FILE")
-        return True
 
-    tty.debug(msg + "TEXT FILE")
-    return False
+def is_binary(filename: str) -> bool:
+    """Returns true iff a file is likely binary"""
+    with open(filename, "rb") as f:
+        magic = f.read(8)
+
+    return is_macho_magic(magic) or is_elf_magic(magic)
 
 
 # Memoize this due to repeated calls to libraries in the same directory.
 @llnl.util.lang.memoized
 def _exists_dir(dirname):
     return os.path.isdir(dirname)
+
+
+def is_macho_binary(path):
+    try:
+        with open(path, "rb") as f:
+            return is_macho_magic(f.read(4))
+    except OSError:
+        return False
 
 
 def fixup_macos_rpath(root, filename):
@@ -659,7 +648,8 @@ def fixup_macos_rpath(root, filename):
         True if fixups were applied, else False
     """
     abspath = os.path.join(root, filename)
-    if ssys.mime_type(abspath) != ("application", "x-mach-binary"):
+
+    if not is_macho_binary(abspath):
         return False
 
     # Get Mach-O header commands
@@ -717,8 +707,8 @@ def fixup_macos_rpath(root, filename):
         # No fixes needed
         return False
 
-    args.append(abspath)
-    executable.Executable("install_name_tool")(*args)
+    with fs.edit_in_place_through_temporary_file(abspath) as temp_path:
+        executable.Executable("install_name_tool")(*args, temp_path)
     return True
 
 

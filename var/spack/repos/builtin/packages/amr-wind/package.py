@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,11 @@ class AmrWind(CMakePackage, CudaPackage, ROCmPackage):
     license("BSD-3-Clause")
 
     version("main", branch="main", submodules=True)
+    version("3.3.1", tag="v3.3.1", submodules=True)
+    version("3.3.0", tag="v3.3.0", submodules=True)
+    version("3.2.3", tag="v3.2.3", submodules=True)
+    version("3.2.2", tag="v3.2.2", submodules=True)
+    version("3.2.1", tag="v3.2.1", submodules=True)
     version("3.2.0", tag="v3.2.0", submodules=True)
     version("3.1.7", tag="v3.1.7", submodules=True)
     version("3.1.6", tag="v3.1.6", submodules=True)
@@ -77,6 +81,7 @@ class AmrWind(CMakePackage, CudaPackage, ROCmPackage):
     variant(
         "waves2amr", default=False, description="Enable Waves2AMR support for ocean wave input"
     )
+    variant("fft", default=False, description="Enable FFT support for MAC projection")
 
     depends_on("mpi", when="+mpi")
     depends_on("hdf5~mpi", when="+hdf5~mpi")
@@ -102,6 +107,7 @@ class AmrWind(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("helics@:3.3.2", when="+helics")
     depends_on("helics@:3.3.2+mpi", when="+helics+mpi")
     depends_on("fftw", when="@2.1: +waves2amr")
+    depends_on("fftw", when="@3.3.1: +fft")
 
     for arch in CudaPackage.cuda_arch_values:
         depends_on("hypre+cuda cuda_arch=%s" % arch, when="+cuda+hypre cuda_arch=%s" % arch)
@@ -137,13 +143,14 @@ class AmrWind(CMakePackage, CudaPackage, ROCmPackage):
             "rocm",
             "tests",
             "tiny_profile",
+            "fft",
+            "helics",
+            "umpire",
+            "sycl",
         ]
         args = [self.define_from_variant("AMR_WIND_ENABLE_%s" % v.upper(), v) for v in vs]
 
-        args += [
-            define("AMR_WIND_ENABLE_ALL_WARNINGS", True),
-            self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
-        ]
+        args += [self.define_from_variant("BUILD_SHARED_LIBS", "shared")]
 
         if spec.satisfies("+mpi"):
             args.append(define("MPI_HOME", spec["mpi"].prefix))
@@ -164,19 +171,19 @@ class AmrWind(CMakePackage, CudaPackage, ROCmPackage):
             args.append("-DAMReX_AMD_ARCH=" + ";".join(str(x) for x in targets))
 
         if spec.satisfies("+umpire"):
-            args.append(self.define_from_variant("AMR_WIND_ENABLE_UMPIRE", "umpire"))
             args.append(define("UMPIRE_DIR", spec["umpire"].prefix))
 
         if spec.satisfies("+helics"):
-            args.append(self.define_from_variant("AMR_WIND_ENABLE_HELICS", "helics"))
             args.append(define("HELICS_DIR", spec["helics"].prefix))
 
         if spec.satisfies("+waves2amr"):
             args.append(self.define_from_variant("AMR_WIND_ENABLE_W2A", "waves2amr"))
             args.append(define("FFTW_DIR", spec["fftw"].prefix))
 
+        if spec.satisfies("+fft"):
+            args.append(define("FFTW_DIR", spec["fftw"].prefix))
+
         if spec.satisfies("+sycl"):
-            args.append(define("AMR_WIND_ENABLE_SYCL", True))
             requires(
                 "%dpcpp",
                 "%oneapi",

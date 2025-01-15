@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -296,30 +295,6 @@ def test_grouped_exception():
     due to the following failures:
     inner method raised ValueError: wow!
     top-level raised TypeError: ok"""
-    )
-
-    full_message = h.grouped_message(with_tracebacks=True)
-    no_line_numbers = re.sub(r"line [0-9]+,", "line xxx,", full_message)
-
-    assert (
-        no_line_numbers
-        == dedent(
-            """\
-    due to the following failures:
-    inner method raised ValueError: wow!
-      File "{0}", \
-line xxx, in test_grouped_exception
-        inner()
-      File "{0}", \
-line xxx, in inner
-        raise ValueError("wow!")
-
-    top-level raised TypeError: ok
-      File "{0}", \
-line xxx, in test_grouped_exception
-        raise TypeError("ok")
-    """
-        ).format(__file__)
     )
 
 

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -12,6 +11,7 @@ from llnl.util.lang import classproperty
 
 import spack.compilers
 from spack.build_systems.cmake import get_cmake_prefix_path
+from spack.operating_systems.mac_os import macos_sdk_path
 from spack.package import *
 from spack.package_base import PackageBase
 
@@ -56,6 +56,8 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
     license("Apache-2.0")
 
     version("main", branch="main")
+    version("19.1.5", sha256="e2204b9903cd9d7ee833a2f56a18bef40a33df4793e31cc090906b32cbd8a1f5")
+    version("19.1.4", sha256="010e1fd3cabee8799bd2f8a6fbc68f28207494f315cf9da7057a2820f79fd531")
     version("19.1.3", sha256="e5106e2bef341b3f5e41340e4b6c6a58259f4021ad801acf14e88f1a84567b05")
     version("19.1.2", sha256="622cb6c5e95a3bb7e9876c4696a65671f235bd836cfd0c096b272f6c2ada41e7")
     version("19.1.1", sha256="115dfd98a353d05bffdab3f80db22f159da48aca0124e8c416f437adcd54b77f")
@@ -821,6 +823,10 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
                     os.symlink(bin, sym)
             env.prepend_path("PATH", self.stage.path)
 
+        if self.spec.satisfies("platform=darwin"):
+            # set the SDKROOT so the bootstrap compiler finds its C++ headers
+            env.set("SDKROOT", macos_sdk_path())
+
     def setup_run_environment(self, env):
         if self.spec.satisfies("+clang"):
             env.set("CC", join_path(self.spec.prefix.bin, "clang"))
@@ -1017,7 +1023,20 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
         # Enable building with CLT [and not require full Xcode]
         # https://github.com/llvm/llvm-project/issues/57037
         if self.spec.satisfies("@15.0.0: platform=darwin"):
-            cmake_args.append(define("BUILTINS_CMAKE_ARGS", "-DCOMPILER_RT_ENABLE_IOS=OFF"))
+            cmake_args.append(
+                define(
+                    "BUILTINS_CMAKE_ARGS",
+                    ";".join(
+                        [f"-DCOMPILER_RT_ENABLE_{os}=OFF" for os in ("IOS", "WATCHOS", "TVOS")]
+                    ),
+                )
+            )
+
+        if self.spec.satisfies("platform=darwin"):
+            cmake_args.append(define("LLVM_ENABLE_LIBCXX", True))
+            cmake_args.append(define("DEFAULT_SYSROOT", macos_sdk_path()))
+            # without this libc++ headers are not fond during compiler-rt build
+            cmake_args.append(define("LLVM_BUILD_EXTERNAL_COMPILER_RT", True))
 
         # Semicolon seperated list of projects to enable
         cmake_args.append(define("LLVM_ENABLE_PROJECTS", projects))
@@ -1133,6 +1152,17 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
             return ret.split()
         else:
             return ret
+
+    @property
+    def unresolved_libraries(self):
+        # libomptarget at 14 and older has a hard-coded rpath that lacks hwloc's path
+        # https://github.com/llvm/llvm-project/commit/dc52712a063241bd0d3a0473b4e7ed870e41921f
+        if self.spec.satisfies("@:14 +libomptarget"):
+            return ["*"]
+
+        # TODO: for newer llvm there are still issues with runtimes for omp we
+        # have to add rpaths to `bin/llvm-omp-*` and `share/gdb/python/ompd/ompdModule.so`.
+        return ["libpython*.so.*", "libomp.so*", "libomptarget*.so*", "libunwind.so.*"]
 
 
 def get_gcc_install_dir_flag(spec: Spec, compiler) -> Optional[str]:

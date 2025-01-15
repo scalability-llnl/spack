@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -9,7 +8,7 @@ import re
 import shutil
 import sys
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import llnl.util.filesystem as fs
 from llnl.util.symlink import readlink
@@ -18,7 +17,6 @@ import spack.config
 import spack.hash_types as ht
 import spack.projections
 import spack.spec
-import spack.store
 import spack.util.spack_json as sjson
 from spack.error import SpackError
 
@@ -70,10 +68,9 @@ def specs_from_metadata_dirs(root: str) -> List["spack.spec.Spec"]:
 
 
 class DirectoryLayout:
-    """A directory layout is used to associate unique paths with specs.
-    Different installations are going to want different layouts for their
-    install, and they can use this to customize the nesting structure of
-    spack installs. The default layout is:
+    """A directory layout is used to associate unique paths with specs. Different installations are
+    going to want different layouts for their install, and they can use this to customize the
+    nesting structure of spack installs. The default layout is:
 
     * <install root>/
 
@@ -83,35 +80,30 @@ class DirectoryLayout:
 
           * <name>-<version>-<hash>
 
-    The hash here is a SHA-1 hash for the full DAG plus the build
-    spec.
+    The installation directory projections can be modified with the projections argument."""
 
-    The installation directory projections can be modified with the
-    projections argument.
-    """
-
-    def __init__(self, root, **kwargs):
+    def __init__(
+        self,
+        root,
+        *,
+        projections: Optional[Dict[str, str]] = None,
+        hash_length: Optional[int] = None,
+    ) -> None:
         self.root = root
-        self.check_upstream = True
-        projections = kwargs.get("projections") or default_projections
-        self.projections = dict(
-            (key, projection.lower()) for key, projection in projections.items()
-        )
+        projections = projections or default_projections
+        self.projections = {key: projection.lower() for key, projection in projections.items()}
 
         # apply hash length as appropriate
-        self.hash_length = kwargs.get("hash_length", None)
+        self.hash_length = hash_length
         if self.hash_length is not None:
             for when_spec, projection in self.projections.items():
                 if "{hash}" not in projection:
-                    if "{hash" in projection:
-                        raise InvalidDirectoryLayoutParametersError(
-                            "Conflicting options for installation layout hash" " length"
-                        )
-                    else:
-                        raise InvalidDirectoryLayoutParametersError(
-                            "Cannot specify hash length when the hash is not"
-                            " part of all install_tree projections"
-                        )
+                    raise InvalidDirectoryLayoutParametersError(
+                        "Conflicting options for installation layout hash length"
+                        if "{hash" in projection
+                        else "Cannot specify hash length when the hash is not part of all "
+                        "install_tree projections"
+                    )
                 self.projections[when_spec] = projection.replace(
                     "{hash}", "{hash:%d}" % self.hash_length
                 )
@@ -141,7 +133,7 @@ class DirectoryLayout:
     def write_spec(self, spec, path):
         """Write a spec out to a file."""
         _check_concrete(spec)
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             # The hash of the projection is the DAG hash which contains
             # the full provenance, so it's availabe if we want it later
             spec.to_json(f, hash=ht.dag_hash)
@@ -153,13 +145,13 @@ class DirectoryLayout:
         """
         env_file = self.env_metadata_path(spec)
         environ = spack.spec.get_host_environment_metadata()
-        with open(env_file, "w") as fd:
+        with open(env_file, "w", encoding="utf-8") as fd:
             sjson.dump(environ, fd)
 
     def read_spec(self, path):
         """Read the contents of a file and parse them as a spec"""
         try:
-            with open(path) as f:
+            with open(path, encoding="utf-8") as f:
                 extension = os.path.splitext(path)[-1].lower()
                 if extension == ".json":
                     spec = spack.spec.Spec.from_json(f)
@@ -280,13 +272,6 @@ class DirectoryLayout:
 
         if spec.external:
             return spec.external_path
-        if self.check_upstream:
-            upstream, record = spack.store.STORE.db.query_by_spec_hash(spec.dag_hash())
-            if upstream:
-                raise SpackError(
-                    "Internal error: attempted to call path_for_spec on"
-                    " upstream-installed package."
-                )
 
         path = self.relative_path_for_spec(spec)
         assert not path.startswith(self.root)

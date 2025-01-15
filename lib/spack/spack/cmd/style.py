@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import argparse
@@ -15,6 +14,7 @@ import llnl.util.tty.color as color
 from llnl.util.filesystem import working_dir
 
 import spack.paths
+import spack.repo
 import spack.util.git
 from spack.util.executable import Executable, which
 
@@ -38,7 +38,7 @@ exclude_directories = [os.path.relpath(spack.paths.external_path, spack.paths.pr
 #: double-check the results of other tools (if, e.g., --fix was provided)
 #: The list maps an executable name to a method to ensure the tool is
 #: bootstrapped or present in the environment.
-tool_names = ["import-check", "isort", "black", "flake8", "mypy"]
+tool_names = ["import", "isort", "black", "flake8", "mypy"]
 
 #: warnings to ignore in mypy
 mypy_ignores = [
@@ -323,8 +323,6 @@ def run_isort(isort_cmd, file_list, args):
 
     packages_isort_args = (
         "--rm",
-        "spack",
-        "--rm",
         "spack.pkgkit",
         "--rm",
         "spack.package_defs",
@@ -370,10 +368,19 @@ def run_black(black_cmd, file_list, args):
 
 def _module_part(root: str, expr: str):
     parts = expr.split(".")
+    # spack.pkg is for repositories, don't try to resolve it here.
+    if ".".join(parts[:2]) == spack.repo.ROOT_PYTHON_NAMESPACE:
+        return None
     while parts:
         f1 = os.path.join(root, "lib", "spack", *parts) + ".py"
         f2 = os.path.join(root, "lib", "spack", *parts, "__init__.py")
-        if os.path.exists(f1) or os.path.exists(f2):
+
+        if (
+            os.path.exists(f1)
+            # ensure case sensitive match
+            and f"{parts[-1]}.py" in os.listdir(os.path.dirname(f1))
+            or os.path.exists(f2)
+        ):
             return ".".join(parts)
         parts.pop()
     return None
@@ -389,7 +396,7 @@ def _run_import_check(
     out=sys.stdout,
 ):
     if sys.version_info < (3, 9):
-        print("import-check requires Python 3.9 or later")
+        print("import check requires Python 3.9 or later")
         return 0
 
     is_use = re.compile(r"(?<!from )(?<!import )(?:llnl|spack)\.[a-zA-Z0-9_\.]+")
@@ -407,8 +414,8 @@ def _run_import_check(
         pretty_path = file if root_relative else cwd_relative(file, root, working_dir)
 
         try:
-            with open(file, "r") as f:
-                contents = open(file, "r").read()
+            with open(file, "r", encoding="utf-8") as f:
+                contents = f.read()
             parsed = ast.parse(contents)
         except Exception:
             exit_code = 1
@@ -431,15 +438,16 @@ def _run_import_check(
             module = _module_part(root, m.group(0))
             if not module or module in to_add:
                 continue
-            if f"import {module}" not in filtered_contents:
-                to_add.add(module)
-                exit_code = 1
-                print(f"{pretty_path}: missing import: {module}", file=out)
+            if re.search(rf"import {re.escape(module)}\b(?!\.)", contents):
+                continue
+            to_add.add(module)
+            exit_code = 1
+            print(f"{pretty_path}: missing import: {module} ({m.group(0)})", file=out)
 
         if not fix or not to_add and not to_remove:
             continue
 
-        with open(file, "r") as f:
+        with open(file, "r", encoding="utf-8") as f:
             lines = f.readlines()
 
         if to_add:
@@ -459,13 +467,13 @@ def _run_import_check(
         for statement in to_remove:
             new_contents = new_contents.replace(f"{statement}\n", "")
 
-        with open(file, "w") as f:
+        with open(file, "w", encoding="utf-8") as f:
             f.write(new_contents)
 
     return exit_code
 
 
-@tool("import-check", external=False)
+@tool("import", external=False)
 def run_import_check(import_check_cmd, file_list, args):
     exit_code = _run_import_check(
         file_list,
@@ -474,7 +482,7 @@ def run_import_check(import_check_cmd, file_list, args):
         root=args.root,
         working_dir=args.initial_working_dir,
     )
-    print_tool_result("import-check", exit_code)
+    print_tool_result("import", exit_code)
     return exit_code
 
 
