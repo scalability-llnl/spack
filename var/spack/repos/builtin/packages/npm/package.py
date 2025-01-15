@@ -53,7 +53,7 @@ class Npm(Package):
     @classmethod
     def determine_version(cls, exe):
         output = Executable(exe)("--version", output=str, error=str).strip()
-        match = re.search(r"([\d.]+)", output)
+        match = re.match(r"([\d.]+)\s*", output)
         return match.group(1) if match else None
 
     @when("@6")
