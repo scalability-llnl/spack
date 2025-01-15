@@ -48,7 +48,6 @@ import spack.store
 import spack.util.debug
 import spack.util.environment
 import spack.util.lock
-import spack.util.path
 from spack.caches import misc_cache_location
 
 #: names of profile statistics
