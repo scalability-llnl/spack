@@ -44,7 +44,19 @@ from collections import defaultdict
 from enum import Flag, auto
 from itertools import chain
 from multiprocessing.connection import Connection
-from typing import Callable, Dict, List, Optional, Set, Tuple
+from typing import (
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    TextIO,
+    Tuple,
+    Type,
+    Union,
+    overload,
+)
 
 import archspec.cpu
 
@@ -146,46 +158,126 @@ def get_effective_jobs(jobs, parallel=True, supports_jobserver=False):
 
 
 class MakeExecutable(Executable):
-    """Special callable executable object for make so the user can specify
-    parallelism options on a per-invocation basis.  Specifying
-    'parallel' to the call will override whatever the package's
-    global setting is, so you can either default to true or false and
-    override particular calls. Specifying 'jobs_env' to a particular
-    call will name an environment variable which will be set to the
-    parallelism level (without affecting the normal invocation with
-    -j).
+    """Special callable executable object for make so the user can specify parallelism options
+    on a per-invocation basis.
     """
 
-    def __init__(self, name, jobs, **kwargs):
-        supports_jobserver = kwargs.pop("supports_jobserver", True)
-        super().__init__(name, **kwargs)
+    def __init__(self, name: str, *, jobs: int, supports_jobserver: bool = True) -> None:
+        super().__init__(name)
         self.supports_jobserver = supports_jobserver
         self.jobs = jobs
 
-    def __call__(self, *args, **kwargs):
-        """parallel, and jobs_env from kwargs are swallowed and used here;
-        remaining arguments are passed through to the superclass.
-        """
-        parallel = kwargs.pop("parallel", True)
-        jobs_env = kwargs.pop("jobs_env", None)
-        jobs_env_supports_jobserver = kwargs.pop("jobs_env_supports_jobserver", False)
+    @overload
+    def __call__(
+        self,
+        *args: str,
+        parallel: bool = ...,
+        jobs_env: Optional[str] = ...,
+        jobs_env_supports_jobserver: bool = ...,
+        fail_on_error: bool = ...,
+        ignore_errors: Union[int, Sequence[int]] = ...,
+        ignore_quotes: Optional[bool] = ...,
+        timeout: Optional[int] = ...,
+        env: Optional[Union[Dict[str, str], EnvironmentModifications]] = ...,
+        extra_env: Optional[Union[Dict[str, str], EnvironmentModifications]] = ...,
+        input: Optional[TextIO] = ...,
+        output: Union[Optional[TextIO], str] = ...,
+        error: Union[Optional[TextIO], str] = ...,
+        _dump_env: Optional[Dict[str, str]] = ...,
+    ) -> None: ...
 
+    @overload
+    def __call__(
+        self,
+        *args: str,
+        parallel: bool = ...,
+        jobs_env: Optional[str] = ...,
+        jobs_env_supports_jobserver: bool = ...,
+        fail_on_error: bool = ...,
+        ignore_errors: Union[int, Sequence[int]] = ...,
+        ignore_quotes: Optional[bool] = ...,
+        timeout: Optional[int] = ...,
+        env: Optional[Union[Dict[str, str], EnvironmentModifications]] = ...,
+        extra_env: Optional[Union[Dict[str, str], EnvironmentModifications]] = ...,
+        input: Optional[TextIO] = ...,
+        output: Union[Type[str], Callable] = ...,
+        error: Union[Optional[TextIO], str, Type[str], Callable] = ...,
+        _dump_env: Optional[Dict[str, str]] = ...,
+    ) -> str: ...
+
+    @overload
+    def __call__(
+        self,
+        *args: str,
+        parallel: bool = ...,
+        jobs_env: Optional[str] = ...,
+        jobs_env_supports_jobserver: bool = ...,
+        fail_on_error: bool = ...,
+        ignore_errors: Union[int, Sequence[int]] = ...,
+        ignore_quotes: Optional[bool] = ...,
+        timeout: Optional[int] = ...,
+        env: Optional[Union[Dict[str, str], EnvironmentModifications]] = ...,
+        extra_env: Optional[Union[Dict[str, str], EnvironmentModifications]] = ...,
+        input: Optional[TextIO] = ...,
+        output: Union[Optional[TextIO], str, Type[str], Callable] = ...,
+        error: Union[Type[str], Callable] = ...,
+        _dump_env: Optional[Dict[str, str]] = ...,
+    ) -> str: ...
+
+    def __call__(
+        self,
+        *args: str,
+        parallel: bool = True,
+        jobs_env: Optional[str] = None,
+        jobs_env_supports_jobserver: bool = False,
+        **kwargs,
+    ) -> Optional[str]:
+        """Runs this "make" executable in a subprocess.
+
+        Args:
+            parallel: if False, parallelism is disabled
+            jobs_env: environment variable that will be set to the current level of parallelism
+            jobs_env_supports_jobserver: whether the jobs env supports a job server
+
+        For all the other **kwargs, refer to the base class.
+        """
         jobs = get_effective_jobs(
             self.jobs, parallel=parallel, supports_jobserver=self.supports_jobserver
         )
         if jobs is not None:
-            args = ("-j{0}".format(jobs),) + args
+            args = (f"-j{jobs}",) + args
 
         if jobs_env:
-            # Caller wants us to set an environment variable to
-            # control the parallelism.
+            # Caller wants us to set an environment variable to control the parallelism
             jobs_env_jobs = get_effective_jobs(
                 self.jobs, parallel=parallel, supports_jobserver=jobs_env_supports_jobserver
             )
             if jobs_env_jobs is not None:
-                kwargs["extra_env"] = {jobs_env: str(jobs_env_jobs)}
+                extra_env = kwargs.setdefault("extra_env", {})
+                extra_env.update({jobs_env: str(jobs_env_jobs)})
 
         return super().__call__(*args, **kwargs)
+
+
+class UndeclaredDependencyError(spack.error.SpackError):
+    """Raised if a dependency is invoking an executable through a module global, without
+    declaring a dependency on it.
+    """
+
+
+class DeprecatedExecutable:
+    def __init__(self, pkg: str, exe: str, exe_pkg: str) -> None:
+        self.pkg = pkg
+        self.exe = exe
+        self.exe_pkg = exe_pkg
+
+    def __call__(self, *args, **kwargs):
+        raise UndeclaredDependencyError(
+            f"{self.pkg} is using {self.exe} without declaring a dependency on {self.exe_pkg}"
+        )
+
+    def add_default_env(self, key: str, value: str):
+        self.__call__()
 
 
 def clean_environment():
@@ -621,10 +713,9 @@ def set_package_py_globals(pkg, context: Context = Context.BUILD):
         module.std_meson_args = spack.build_systems.meson.MesonBuilder.std_args(pkg)
         module.std_pip_args = spack.build_systems.python.PythonPipBuilder.std_args(pkg)
 
-    # TODO: make these build deps that can be installed if not found.
-    module.make = MakeExecutable("make", jobs)
-    module.gmake = MakeExecutable("gmake", jobs)
-    module.ninja = MakeExecutable("ninja", jobs, supports_jobserver=False)
+    module.make = DeprecatedExecutable(pkg.name, "make", "gmake")
+    module.gmake = DeprecatedExecutable(pkg.name, "gmake", "gmake")
+    module.ninja = DeprecatedExecutable(pkg.name, "ninja", "ninja")
     # TODO: johnwparent: add package or builder support to define these build tools
     # for now there is no entrypoint for builders to define these on their
     # own

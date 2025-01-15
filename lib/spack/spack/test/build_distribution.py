@@ -8,15 +8,15 @@ import os.path
 import pytest
 
 import spack.binary_distribution as bd
+import spack.concretize
 import spack.mirrors.mirror
-import spack.spec
 from spack.installer import PackageInstaller
 
 pytestmark = pytest.mark.not_on_windows("does not run on windows")
 
 
 def test_build_tarball_overwrite(install_mockery, mock_fetch, monkeypatch, tmp_path):
-    spec = spack.spec.Spec("trivial-install-test-package").concretized()
+    spec = spack.concretize.concretize_one("trivial-install-test-package")
     PackageInstaller([spec.package], fake=True).install()
 
     specs = [spec]

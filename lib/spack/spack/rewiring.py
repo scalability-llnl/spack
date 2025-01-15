@@ -48,7 +48,7 @@ def rewire_node(spec, explicit):
     # spec
     prefix_to_prefix = {spec.build_spec.prefix: spec.prefix}
     build_spec_ids = set(id(s) for s in spec.build_spec.traverse(deptype=dt.ALL & ~dt.BUILD))
-    for s in bindist.deps_to_relocate(spec):
+    for s in bindist.specs_to_relocate(spec):
         analog = s
         if id(s) not in build_spec_ids:
             analogs = [
@@ -77,25 +77,9 @@ def rewire_node(spec, explicit):
     ]
     if bins_to_relocate:
         if "macho" in platform.binary_formats:
-            relocate.relocate_macho_binaries(
-                bins_to_relocate,
-                str(spack.store.STORE.layout.root),
-                str(spack.store.STORE.layout.root),
-                prefix_to_prefix,
-                False,
-                spec.build_spec.prefix,
-                spec.prefix,
-            )
+            relocate.relocate_macho_binaries(bins_to_relocate, prefix_to_prefix)
         if "elf" in platform.binary_formats:
-            relocate.relocate_elf_binaries(
-                bins_to_relocate,
-                str(spack.store.STORE.layout.root),
-                str(spack.store.STORE.layout.root),
-                prefix_to_prefix,
-                False,
-                spec.build_spec.prefix,
-                spec.prefix,
-            )
+            relocate.relocate_elf_binaries(bins_to_relocate, prefix_to_prefix)
         relocate.relocate_text_bin(binaries=bins_to_relocate, prefixes=prefix_to_prefix)
     shutil.rmtree(tempdir)
     install_manifest = os.path.join(

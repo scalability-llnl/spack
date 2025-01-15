@@ -18,6 +18,7 @@ class Porta(Package):
     version("1.4.1", sha256="21e3784f46f4f2154100a0c39cbd9211a26e513ffe0c9f70ab75a3bb2810b059")
 
     depends_on("libtool", type="build")
+    depends_on("gmake", type="build")
 
     patch("Makefile.spack.patch")
 
