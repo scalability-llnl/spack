@@ -24,7 +24,5 @@ class Multicharge(CMakePackage):
     depends_on("mctc-lib")
 
     def cmake_args(self):
-        args = [
-            self.define_from_variant("WITH_OpenMP", "openmp"),
-        ]
+        args = [self.define_from_variant("WITH_OpenMP", "openmp")]
         return args
