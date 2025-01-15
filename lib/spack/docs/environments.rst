@@ -469,6 +469,48 @@ The supplied location will become the build-directory for that package in all fu
     developers to only redirect the build directory if they understand their package's
     build-system.
 
+When doing active development it can often be nice to work inside the build environment
+to run tests, and compile the code natively (i.e. run ``make`` or ``ninja``) without the
+overhead of calling ``spack install``.
+
+The spack command ``build-env`` allows users to run processes inside the build environment
+or to dive directly into it.  An additional convenience alias is ``spack dev-dive [spec]``.
+This will navigate to the package's build directory and then launch a subshell with the
+build environment active.  Users can query if they are currently in a build environment
+subshell by running ``spack build-env --status``.  When users are finished exploring or 
+working in the subshell they can call ``exit`` to leave the build subshell.
+
+.. code-block:: console
+
+   # create and setup a spack environment for development
+   # ====
+   $ spack env activate --temp
+   $ spack add zlib-ng
+   $ spack stage -p $SPACK_ENV zlib-ng
+   $ spack develop zlib-ng
+   
+   # build and make changes
+   # =====
+   $ spack install -u autoreconf zlib-ng
+   # [ fails ]
+   $ spack dev-dive zlib-ng
+   # prompt changed, confirm the location is the build directory
+   zlib-ng-build-env $ pwd
+   /private/var/folders/ln/1_3kxbwd35s_ylsjlm3zmqmc00307v/T/spack-ne8_m488/zlib-ng
+   # confirm build-env in case we forget where we are in subshell hierarchy
+   zlib-ng-build-env $ spack build-env --status
+   ==> In build env zlib-ng-wrsaadvkbg7rjj7kfjw5rhdrrfdswcmm
+   # [ fix code ]
+   zlib-ng-build-env $ make -j6
+   # [ builds  now ]
+   zlib-ng-build-env $ exit
+
+   # exit subshell and rebuild environment 
+   # ====
+   $ spack build-env --status
+   ==> build environment not detected
+   $ spack install
+
 ^^^^^^^
 Loading
 ^^^^^^^

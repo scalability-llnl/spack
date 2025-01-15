@@ -1,13 +1,18 @@
 # Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import os
 import pickle
+import subprocess
 import sys
 
 import pytest
 
 import spack.error
+from spack.cmd.common.env_utility import run_command_in_subshell
+from spack.context import Context
 from spack.main import SpackCommand
+from spack.spec import Spec
 
 build_env = SpackCommand("build-env")
 
@@ -55,6 +60,31 @@ def test_pickle(tmpdir):
         environment = pickle.load(open(_out_file, "rb"))
         assert isinstance(environment, dict)
         assert "PATH" in environment
+
+
+# TODO params [i, b, c] require a spec that has proceeded with a directory
+# TODO praram [e] requires an active env
+@pytest.mark.parametrize("cd_key", ["r", "spack-root"])
+@pytest.mark.usefixtures("config", "mock_packages", "working_env")
+def test_cd(cd_key, tmpdir, monkeypatch, capfd):
+    """test that a subshell will navigate using spack cd before running commands"""
+    cmd = "pwd" if sys.platform != "win32" else 'powershell.exe -Command "& {(Get-Location).Path}"'
+
+    def mock_execvp(_, args):
+        """os.execvp will kill take over the pytest process when it is successful"""
+        result = subprocess.check_output(args, universal_newlines=True)
+        print(result)
+
+    with tmpdir.as_cwd():
+        monkeypatch.setattr(os, "execvp", mock_execvp)
+
+        pwd = os.getcwd()
+        spec = Spec("zlib").concretized()
+        run_command_in_subshell(spec, Context.BUILD, [cmd], cd_arg=cd_key)
+
+        output = capfd.readouterr()
+        assert pwd not in output.out
+        assert output.err == ""
 
 
 def test_failure_when_uninstalled_deps(config, mock_packages):

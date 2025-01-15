@@ -7037,7 +7037,34 @@ provide them after the spec argument to ``spack build-env``:
    $ spack build-env mpileaks@1.1%intel ./configure
 
 This will cd to the build directory and then run ``configure`` in the
-package's build environment.
+package's build environment. This could also be done in one command as follows.
+
+.. code-block:: console
+
+   $ spack build-env --cd build-dir mpileaks@1.1%intel ./configure
+
+Furthermore, ``spack build-env`` has the ability to dive into the build environment
+in a subshell to allow you to work natively without polluting your current shell.
+
+.. code-block:: console
+
+   $ spack build-env --cd build-dir --dive mpileaks@1.1%intel
+   mpileaks-build-env $ ./configure
+
+Note that the command prompt changed for this case. This will happen automatically
+if a Bourne or C-Shell to indicate that the user is in the build environment subshell.
+While automatic prompt changes only occur for a selection of shells, any shell can 
+query if they are in the build environment with the ``spack build-env --status``
+flag.
+
+.. code-block:: console
+
+   $ spack build-env --dive mpileaks@1.1%intel
+   $ spack build-env --status
+   ==> In build env mpileaks-wrsaadvkbg7rjj7kfjw5rhdrrfdswcmm
+   $ exit
+   $ spack build-env --status
+   ==> build environment not detected
 
 .. _cmd-spack-location:
 

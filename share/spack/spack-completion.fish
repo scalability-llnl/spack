@@ -352,7 +352,8 @@ complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a arch -d 'print ar
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a audit -d 'audit configuration files, packages, etc.'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a blame -d 'show contributors to packages'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a bootstrap -d 'manage bootstrap configuration'
-complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a build-env -d 'run a command in a spec'"'"'s install environment, or dump its environment to screen or file'
+complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a build-env -d 'use a spec'"'"'s build environment to run a command, dump to screen or file, or dive into it'
+complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a dev-dive -d 'use a spec'"'"'s build environment to run a command, dump to screen or file, or dive into it'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a buildcache -d 'create, download and install binary packages'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a cd -d 'cd to spack directories in the shell'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a change -d 'change an existing spec in an environment'
@@ -374,7 +375,7 @@ complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a deconcretize -d '
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a dependencies -d 'show dependencies of a package'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a dependents -d 'show packages that depend on another'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a deprecate -d 'replace one package with another via symlinks'
-complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a dev-build -d 'developer build: build from code in current working directory'
+complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a dev-build -d 'developer build: build from user managed code'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a develop -d 'add a spec to an environment'"'"'s dev-build information'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a diff -d 'compare two specs'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a docs -d 'open spack documentation in a web browser'
@@ -393,7 +394,7 @@ complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a install -d 'build
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a license -d 'list and check license headers on files in spack'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a list -d 'list and search available packages'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a load -d 'add package to the user environment'
-complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a location -d 'print out locations of packages and spack directories'
+complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a location -d 'location = str out locations of packages and spack directories'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a log-parse -d 'filter errors and warnings from build logs'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a logs -d 'print out logs for packages'
 complete -c spack -n '__fish_spack_using_command_pos 0 ' -f -a maintainers -d 'get information about package maintainers'
@@ -663,7 +664,7 @@ complete -c spack -n '__fish_spack_using_command bootstrap mirror' -l dev -f -a 
 complete -c spack -n '__fish_spack_using_command bootstrap mirror' -l dev -d 'download dev dependencies too'
 
 # spack build-env
-set -g __fish_spack_optspecs_spack_build_env h/help clean dirty U/fresh reuse fresh-roots deprecated dump= pickle=
+set -g __fish_spack_optspecs_spack_build_env h/help clean dirty U/fresh reuse fresh-roots deprecated dump= pickle= d/dive c/cd= status
 complete -c spack -n '__fish_spack_using_command_pos_remainder 0 build-env' -f -a '(__fish_spack_build_env_spec)'
 complete -c spack -n '__fish_spack_using_command build-env' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command build-env' -s h -l help -d 'show this help message and exit'
@@ -683,6 +684,40 @@ complete -c spack -n '__fish_spack_using_command build-env' -l dump -r -f -a dum
 complete -c spack -n '__fish_spack_using_command build-env' -l dump -r -d 'dump a source-able environment to FILE'
 complete -c spack -n '__fish_spack_using_command build-env' -l pickle -r -f -a pickle
 complete -c spack -n '__fish_spack_using_command build-env' -l pickle -r -d 'dump a pickled source-able environment to FILE'
+complete -c spack -n '__fish_spack_using_command build-env' -s d -l dive -f -a dive
+complete -c spack -n '__fish_spack_using_command build-env' -s d -l dive -d 'dive into the build-env in a subshell'
+complete -c spack -n '__fish_spack_using_command build-env' -s c -l cd -r -f -a cd
+complete -c spack -n '__fish_spack_using_command build-env' -s c -l cd -r -d 'location to dive to or run command from (takes arguments from '"'"'spack cd'"'"')'
+complete -c spack -n '__fish_spack_using_command build-env' -l status -f -a status
+complete -c spack -n '__fish_spack_using_command build-env' -l status -d 'check shell for an active build environment'
+
+# spack dev-dive
+set -g __fish_spack_optspecs_spack_dev_dive h/help clean dirty U/fresh reuse fresh-roots deprecated dump= pickle= d/dive c/cd= status
+
+complete -c spack -n '__fish_spack_using_command dev-dive' -s h -l help -f -a help
+complete -c spack -n '__fish_spack_using_command dev-dive' -s h -l help -d 'show this help message and exit'
+complete -c spack -n '__fish_spack_using_command dev-dive' -l clean -f -a dirty
+complete -c spack -n '__fish_spack_using_command dev-dive' -l clean -d 'unset harmful variables in the build environment (default)'
+complete -c spack -n '__fish_spack_using_command dev-dive' -l dirty -f -a dirty
+complete -c spack -n '__fish_spack_using_command dev-dive' -l dirty -d 'preserve user environment in spack'"'"'s build environment (danger!)'
+complete -c spack -n '__fish_spack_using_command dev-dive' -s U -l fresh -f -a concretizer_reuse
+complete -c spack -n '__fish_spack_using_command dev-dive' -s U -l fresh -d 'do not reuse installed deps; build newest configuration'
+complete -c spack -n '__fish_spack_using_command dev-dive' -l reuse -f -a concretizer_reuse
+complete -c spack -n '__fish_spack_using_command dev-dive' -l reuse -d 'reuse installed packages/buildcaches when possible'
+complete -c spack -n '__fish_spack_using_command dev-dive' -l fresh-roots -l reuse-deps -f -a concretizer_reuse
+complete -c spack -n '__fish_spack_using_command dev-dive' -l fresh-roots -l reuse-deps -d 'concretize with fresh roots and reused dependencies'
+complete -c spack -n '__fish_spack_using_command dev-dive' -l deprecated -f -a config_deprecated
+complete -c spack -n '__fish_spack_using_command dev-dive' -l deprecated -d 'allow concretizer to select deprecated versions'
+complete -c spack -n '__fish_spack_using_command dev-dive' -l dump -r -f -a dump
+complete -c spack -n '__fish_spack_using_command dev-dive' -l dump -r -d 'dump a source-able environment to FILE'
+complete -c spack -n '__fish_spack_using_command dev-dive' -l pickle -r -f -a pickle
+complete -c spack -n '__fish_spack_using_command dev-dive' -l pickle -r -d 'dump a pickled source-able environment to FILE'
+complete -c spack -n '__fish_spack_using_command dev-dive' -s d -l dive -f -a dive
+complete -c spack -n '__fish_spack_using_command dev-dive' -s d -l dive -d 'dive into the build-env in a subshell'
+complete -c spack -n '__fish_spack_using_command dev-dive' -s c -l cd -r -f -a cd
+complete -c spack -n '__fish_spack_using_command dev-dive' -s c -l cd -r -d 'location to dive to or run command from (takes arguments from '"'"'spack cd'"'"')'
+complete -c spack -n '__fish_spack_using_command dev-dive' -l status -f -a status
+complete -c spack -n '__fish_spack_using_command dev-dive' -l status -d 'check shell for an active build environment'
 
 # spack buildcache
 set -g __fish_spack_optspecs_spack_buildcache h/help
@@ -1387,7 +1422,7 @@ complete -c spack -n '__fish_spack_using_command deprecate' -s l -l link-type -r
 complete -c spack -n '__fish_spack_using_command deprecate' -s l -l link-type -r -d '(deprecated)'
 
 # spack dev-build
-set -g __fish_spack_optspecs_spack_dev_build h/help j/jobs= n/no-checksum d/source-path= i/ignore-dependencies keep-prefix skip-patch q/quiet drop-in= test= b/before= u/until= clean dirty U/fresh reuse fresh-roots deprecated
+set -g __fish_spack_optspecs_spack_dev_build h/help j/jobs= n/no-checksum d/source-path= i/ignore-dependencies keep-prefix skip-patch q/quiet D/drop-in= p/prompt test= b/before= u/until= clean dirty U/fresh reuse fresh-roots deprecated
 complete -c spack -n '__fish_spack_using_command_pos_remainder 0 dev-build' -f -k -a '(__fish_spack_specs)'
 complete -c spack -n '__fish_spack_using_command dev-build' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command dev-build' -s h -l help -d 'show this help message and exit'
@@ -1396,7 +1431,7 @@ complete -c spack -n '__fish_spack_using_command dev-build' -s j -l jobs -r -d '
 complete -c spack -n '__fish_spack_using_command dev-build' -s n -l no-checksum -f -a no_checksum
 complete -c spack -n '__fish_spack_using_command dev-build' -s n -l no-checksum -d 'do not use checksums to verify downloaded files (unsafe)'
 complete -c spack -n '__fish_spack_using_command dev-build' -s d -l source-path -r -f -a source_path
-complete -c spack -n '__fish_spack_using_command dev-build' -s d -l source-path -r -d 'path to source directory (defaults to the current directory)'
+complete -c spack -n '__fish_spack_using_command dev-build' -s d -l source-path -r -d 'path to source directory (defaults to the current directory). ignored when using an active environment since the path is determined by the develop section of the environment manifest.'
 complete -c spack -n '__fish_spack_using_command dev-build' -s i -l ignore-dependencies -f -a ignore_deps
 complete -c spack -n '__fish_spack_using_command dev-build' -s i -l ignore-dependencies -d 'do not try to install dependencies of requested packages'
 complete -c spack -n '__fish_spack_using_command dev-build' -l keep-prefix -f -a keep_prefix
@@ -1405,8 +1440,10 @@ complete -c spack -n '__fish_spack_using_command dev-build' -l skip-patch -f -a 
 complete -c spack -n '__fish_spack_using_command dev-build' -l skip-patch -d 'skip patching for the developer build'
 complete -c spack -n '__fish_spack_using_command dev-build' -s q -l quiet -f -a quiet
 complete -c spack -n '__fish_spack_using_command dev-build' -s q -l quiet -d 'do not display verbose build output while installing'
-complete -c spack -n '__fish_spack_using_command dev-build' -l drop-in -r -f -a shell
-complete -c spack -n '__fish_spack_using_command dev-build' -l drop-in -r -d 'drop into a build environment in a new shell, e.g., bash'
+complete -c spack -n '__fish_spack_using_command dev-build' -s D -l drop-in -r -f -a shell
+complete -c spack -n '__fish_spack_using_command dev-build' -s D -l drop-in -r -d 'drop into a build environment in a new shell, e.g., bash'
+complete -c spack -n '__fish_spack_using_command dev-build' -s p -l prompt -f -a prompt
+complete -c spack -n '__fish_spack_using_command dev-build' -s p -l prompt -d 'change the prompt when droping into the build-env'
 complete -c spack -n '__fish_spack_using_command dev-build' -l test -r -f -a 'root all'
 complete -c spack -n '__fish_spack_using_command dev-build' -l test -r -d 'run tests on only root packages or all packages'
 complete -c spack -n '__fish_spack_using_command dev-build' -s b -l before -r -f -a before
@@ -3014,7 +3051,7 @@ complete -c spack -n '__fish_spack_using_command test remove' -s y -l yes-to-all
 complete -c spack -n '__fish_spack_using_command test remove' -s y -l yes-to-all -d 'assume "yes" is the answer to every confirmation request'
 
 # spack test-env
-set -g __fish_spack_optspecs_spack_test_env h/help clean dirty U/fresh reuse fresh-roots deprecated dump= pickle=
+set -g __fish_spack_optspecs_spack_test_env h/help clean dirty U/fresh reuse fresh-roots deprecated dump= pickle= d/dive c/cd= status
 complete -c spack -n '__fish_spack_using_command_pos_remainder 0 test-env' -f -a '(__fish_spack_build_env_spec)'
 complete -c spack -n '__fish_spack_using_command test-env' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command test-env' -s h -l help -d 'show this help message and exit'
@@ -3034,6 +3071,12 @@ complete -c spack -n '__fish_spack_using_command test-env' -l dump -r -f -a dump
 complete -c spack -n '__fish_spack_using_command test-env' -l dump -r -d 'dump a source-able environment to FILE'
 complete -c spack -n '__fish_spack_using_command test-env' -l pickle -r -f -a pickle
 complete -c spack -n '__fish_spack_using_command test-env' -l pickle -r -d 'dump a pickled source-able environment to FILE'
+complete -c spack -n '__fish_spack_using_command test-env' -s d -l dive -f -a dive
+complete -c spack -n '__fish_spack_using_command test-env' -s d -l dive -d 'dive into the build-env in a subshell'
+complete -c spack -n '__fish_spack_using_command test-env' -s c -l cd -r -f -a cd
+complete -c spack -n '__fish_spack_using_command test-env' -s c -l cd -r -d 'location to dive to or run command from (takes arguments from '"'"'spack cd'"'"')'
+complete -c spack -n '__fish_spack_using_command test-env' -l status -f -a status
+complete -c spack -n '__fish_spack_using_command test-env' -l status -d 'check shell for an active build environment'
 
 # spack tutorial
 set -g __fish_spack_optspecs_spack_tutorial h/help y/yes-to-all

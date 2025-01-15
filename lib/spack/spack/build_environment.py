@@ -946,6 +946,8 @@ def setup_package(pkg, dirty, context: Context = Context.BUILD):
 
     load_external_modules(pkg)
 
+    env_mods.set("SPACK_BUILD_ENV", f"{pkg.spec.name}-{pkg.spec.dag_hash()}")
+
     # Make sure nothing's strange about the Spack environment.
     validate(env_mods, tty.warn)
     env_mods.apply_modifications()

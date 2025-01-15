@@ -9,12 +9,15 @@ import llnl.util.tty as tty
 import spack.cmd
 import spack.deptypes as dt
 import spack.error
+import spack.prompt
 import spack.spec
 import spack.store
 from spack import build_environment, traverse
 from spack.cmd.common import arguments
+from spack.cmd.location import location_emulator
 from spack.context import Context
 from spack.util.environment import dump_environment, pickle_environment
+from spack.util.shell_detection import active_shell_type
 
 
 def setup_parser(subparser):
@@ -24,6 +27,17 @@ def setup_parser(subparser):
     subparser.add_argument("--dump", metavar="FILE", help="dump a source-able environment to FILE")
     subparser.add_argument(
         "--pickle", metavar="FILE", help="dump a pickled source-able environment to FILE"
+    )
+    subparser.add_argument(
+        "-d", "--dive", action="store_true", help="dive into the build-env in a subshell"
+    )
+    subparser.add_argument(
+        "-c",
+        "--cd",
+        help="location to dive to or run command from (takes arguments from 'spack cd')",
+    )
+    subparser.add_argument(
+        "--status", action="store_true", help="check shell for an active build environment"
     )
     subparser.add_argument(
         "spec",
@@ -74,7 +88,38 @@ class AreDepsInstalledVisitor:
         return item.edge.spec.edges_to_dependencies(depflag=depflag)
 
 
+def run_command_in_subshell(
+    spec, context, cmd, prompt=False, dirty=False, cd_arg=None, shell=active_shell_type()
+):
+    mods = build_environment.setup_package(spec.package, dirty, context)
+
+    if prompt:
+        mods.extend(spack.prompt.prompt_modifications(f"{spec.name}-{str(context)}-env", shell))
+    mods.apply_modifications()
+
+    if cd_arg:
+        prefix = "-" if len(cd_arg) == 1 else "--"
+        loc_args = [f"{prefix}{cd_arg}"]
+
+        # don't add spec for cd if using env since spec hash is not the env
+        if not (cd_arg == "e" or cd_arg == "env"):
+            loc_args.append(f"/{spec.dag_hash()}")
+
+        location = location_emulator(*loc_args)
+        os.chdir(location)
+
+    os.execvp(cmd[0], cmd)
+
+
 def emulate_env_utility(cmd_name, context: Context, args):
+    if args.status:
+        context_var = os.environ.get(f"SPACK_{str(context).upper()}_ENV", None)
+        if context_var:
+            tty.msg(f"In {str(context)} env {context_var}")
+        else:
+            tty.msg(f"{str(context)} environment not detected")
+        exit(0)
+
     if not args.spec:
         tty.die("spack %s requires a spec." % cmd_name)
 
@@ -91,6 +136,12 @@ def emulate_env_utility(cmd_name, context: Context, args):
         spec = args.spec[0]
         cmd = args.spec[1:]
 
+    if args.dive:
+        if cmd:
+            tty.die("--dive and additional commands can't be run together")
+        else:
+            cmd = [active_shell_type()]
+
     if not spec:
         tty.die("spack %s requires a spec." % cmd_name)
 
@@ -105,6 +156,7 @@ def emulate_env_utility(cmd_name, context: Context, args):
     visitor = AreDepsInstalledVisitor(context=context)
 
     # Mass install check needs read transaction.
+    # FIXME: this command is slow
     with spack.store.STORE.db.read_transaction():
         traverse.traverse_breadth_first_with_visitor([spec], traverse.CoverNodesVisitor(visitor))
 
@@ -122,7 +174,11 @@ def emulate_env_utility(cmd_name, context: Context, args):
             ),
         )
 
-    build_environment.setup_package(spec.package, args.dirty, context)
+    if cmd:
+        run_command_in_subshell(spec, context, cmd, prompt=args.dive, cd_arg=args.cd)
+    else:
+        # setup build env if no command to run
+        build_environment.setup_package(spec.package, args.dirty, context)
 
     if args.dump:
         # Dump a source-able environment to a text file.
@@ -133,10 +189,6 @@ def emulate_env_utility(cmd_name, context: Context, args):
         # Dump a source-able environment to a pickle file.
         tty.msg("Pickling a source-able environment to {0}".format(args.pickle))
         pickle_environment(args.pickle)
-
-    if cmd:
-        # Execute the command with the new environment
-        os.execvp(cmd[0], cmd)
 
     elif not bool(args.pickle or args.dump):
         # If no command or dump/pickle option then act like the "env" command
