@@ -10,7 +10,9 @@ import re
 import sys
 import sysconfig
 import warnings
-from typing import Dict, Optional, Sequence, Union
+from typing import Optional, Sequence, Union
+
+from typing_extensions import TypedDict
 
 import archspec.cpu
 
@@ -18,13 +20,17 @@ import llnl.util.filesystem as fs
 from llnl.util import tty
 
 import spack.platforms
+import spack.spec
 import spack.store
 import spack.util.environment
 import spack.util.executable
 
 from .config import spec_for_current_python
 
-QueryInfo = Dict[str, "spack.spec.Spec"]
+
+class QueryInfo(TypedDict, total=False):
+    spec: spack.spec.Spec
+    command: spack.util.executable.Executable
 
 
 def _python_import(module: str) -> bool:
@@ -211,7 +217,9 @@ def _executables_in_store(
             ):
                 spack.util.environment.path_put_first("PATH", [bin_dir])
                 if query_info is not None:
-                    query_info["command"] = spack.util.executable.which(*executables, path=bin_dir)
+                    query_info["command"] = spack.util.executable.which(
+                        *executables, path=bin_dir, required=True
+                    )
                     query_info["spec"] = concrete_spec
                 return True
     return False

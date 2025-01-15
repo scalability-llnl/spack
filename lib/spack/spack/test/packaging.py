@@ -20,6 +20,7 @@ from llnl.util.symlink import readlink, symlink
 
 import spack.binary_distribution as bindist
 import spack.cmd.buildcache as buildcache
+import spack.concretize
 import spack.config
 import spack.error
 import spack.fetch_strategy
@@ -32,7 +33,6 @@ from spack.fetch_strategy import URLFetchStrategy
 from spack.installer import PackageInstaller
 from spack.paths import mock_gpg_keys_path
 from spack.relocate import macho_find_paths, relocate_links, relocate_text
-from spack.spec import Spec
 
 pytestmark = pytest.mark.not_on_windows("does not run on windows")
 
@@ -40,7 +40,7 @@ pytestmark = pytest.mark.not_on_windows("does not run on windows")
 @pytest.mark.usefixtures("install_mockery", "mock_gnupghome")
 def test_buildcache(mock_archive, tmp_path, monkeypatch, mutable_config):
     # Install a test package
-    spec = Spec("trivial-install-test-package").concretized()
+    spec = spack.concretize.concretize_one("trivial-install-test-package")
     monkeypatch.setattr(spec.package, "fetcher", URLFetchStrategy(url=mock_archive.url))
     PackageInstaller([spec.package], explicit=True).install()
     pkghash = "/" + str(spec.dag_hash(7))

@@ -36,6 +36,7 @@ import spack.bootstrap.core
 import spack.caches
 import spack.compiler
 import spack.compilers
+import spack.concretize
 import spack.config
 import spack.directives_meta
 import spack.environment as ev
@@ -849,7 +850,7 @@ def _populate(mock_db):
     """
 
     def _install(spec):
-        s = spack.spec.Spec(spec).concretized()
+        s = spack.concretize.concretize_one(spec)
         PackageInstaller([s.package], fake=True, explicit=True).install()
 
     _install("mpileaks ^mpich")
@@ -1983,7 +1984,9 @@ def default_mock_concretization(config, mock_packages, concretized_specs_cache):
     def _func(spec_str, tests=False):
         key = spec_str, tests
         if key not in concretized_specs_cache:
-            concretized_specs_cache[key] = spack.spec.Spec(spec_str).concretized(tests=tests)
+            concretized_specs_cache[key] = spack.concretize.concretize_one(
+                spack.spec.Spec(spec_str), tests=tests
+            )
         return concretized_specs_cache[key].copy()
 
     return _func
