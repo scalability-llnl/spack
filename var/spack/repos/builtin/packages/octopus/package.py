@@ -22,6 +22,8 @@ class Octopus(AutotoolsPackage, CudaPackage):
 
     license("Apache-2.0")
 
+    version("15.1", sha256="6c4deb535ddfcdcdf6f26764b38fb1ad05faa9b418ec18d5d93f8d1040165bda")
+    version("15.0", sha256="d339721d06155b3470f5a798c5b1eb3fe6252fa8c4b2a4efe27ed715f60a4313")
     version("14.1", sha256="6955f4020e69f038650a24509ff19ef35de4fd34e181539f92fa432db9b66ca7")
     version("14.0", sha256="3cf6ef571ff97cc2c226016815d2ac4aa1e00ae3fb0cc693e0aff5620b80373e")
     version("13.0", sha256="b4d0fd496c31a9c4aa4677360e631765049373131e61f396b00048235057aeb1")
@@ -46,6 +48,13 @@ class Octopus(AutotoolsPackage, CudaPackage):
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
     depends_on("fortran", type="build")  # generated
+
+    # To compile Octopus 15 with gcc, we need at least gcc 11.3:
+    conflicts(
+        "%gcc@:11.2",
+        when="@15:",
+        msg="GCC version must be at least 11.3 for Octopus version 15 or newer",
+    )
 
     variant("mpi", default=True, description="Build with MPI support")
     variant("scalapack", default=False, when="+mpi", description="Compile with Scalapack")
@@ -98,8 +107,8 @@ class Octopus(AutotoolsPackage, CudaPackage):
     depends_on("libxc@2:2", when="@:5")
     depends_on("libxc@2:3", when="@6:7")
     depends_on("libxc@2:4", when="@8:9")
-    depends_on("libxc@5.1.0:", when="@10:")
-    depends_on("libxc@5.1.0:", when="@develop")
+    depends_on("libxc@5.1.0:6", when="@10:")
+    depends_on("libxc@5.1.0:6", when="@develop")
     depends_on("netcdf-fortran", when="+netcdf")  # NetCDF fortran lib without mpi variant
     with when("+mpi"):  # list all the parallel dependencies
         depends_on("fftw@3:+mpi+openmp", when="@8:9")  # FFT library

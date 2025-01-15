@@ -29,5 +29,7 @@ class Gnat(Package):
         url="http://mirrors.cdn.adacore.com/art/5739cefdc7a447658e0b016b",
     )
 
+    depends_on("gmake", type="build")
+
     def install(self, spec, prefix):
         make("ins-all", "prefix={0}".format(prefix))

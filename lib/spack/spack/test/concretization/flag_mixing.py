@@ -5,6 +5,7 @@ import pathlib
 
 import pytest
 
+import spack.concretize
 import spack.config
 import spack.environment as ev
 import spack.paths
@@ -94,6 +95,18 @@ def test_mix_spec_and_compiler_cfg(concretize_scope, test_repo):
 
     s1 = Spec('y %gcc@12.100.100 cflags="-O2"').concretized()
     assert s1.satisfies('cflags="-Wall -O2"')
+
+
+def test_pkg_flags_from_compiler_and_none(concretize_scope, mock_packages):
+    conf_str = _compiler_cfg_one_entry_with_cflags("-Wall")
+    update_concretize_scope(conf_str, "compilers")
+
+    s1 = Spec("cmake%gcc@12.100.100")
+    s2 = Spec("cmake-client^cmake%clang")
+    concrete = dict(spack.concretize.concretize_together([(s1, None), (s2, None)]))
+
+    assert concrete[s1].compiler_flags["cflags"] == ["-Wall"]
+    assert concrete[s2].compiler_flags["cflags"] == []
 
 
 @pytest.mark.parametrize(

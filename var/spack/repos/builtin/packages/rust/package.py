@@ -93,6 +93,7 @@ class Rust(Package):
     depends_on("rust-bootstrap@1.74:1.75", type="build", when="@1.75")
     depends_on("rust-bootstrap@1.77:1.78", type="build", when="@1.78")
     depends_on("rust-bootstrap@1.80:1.81", type="build", when="@1.81")
+    depends_on("rust-bootstrap@1.82:1.83", type="build", when="@1.83")
 
     # src/llvm-project/llvm/cmake/modules/CheckCompilerVersion.cmake
     conflicts("%gcc@:7.3", when="@1.73:", msg="Host GCC version must be at least 7.4")
@@ -206,10 +207,10 @@ class Rust(Package):
         configure(*flags)
 
     def build(self, spec, prefix):
-        python("./x.py", "build")
+        python("./x.py", "build", "-j", str(make_jobs))
 
     def install(self, spec, prefix):
-        python("./x.py", "install")
+        python("./x.py", "install", "-j", str(make_jobs))
 
     # known issue: https://github.com/rust-lang/rust/issues/132604
     unresolved_libraries = ["libz.so.*"]

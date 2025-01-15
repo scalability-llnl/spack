@@ -635,11 +635,6 @@ def ensure_debug(monkeypatch):
     tty.set_debug(current_debug_level)
 
 
-@pytest.fixture(autouse=sys.platform == "win32", scope="session")
-def platform_config():
-    spack.config.add_default_platform_scope(spack.platforms.real_host().name)
-
-
 @pytest.fixture
 def default_config():
     """Isolates the default configuration from the user configs.
@@ -892,20 +887,25 @@ def mock_store(
     """
     store_path, store_cache = _store_dir_and_cache
 
+    # Make the DB filesystem read-only to ensure constructors don't modify anything in it.
+    # We want Spack to be able to point to a DB on a read-only filesystem easily.
+    store_path.chmod(mode=0o555, rec=1)
+
     # If the cache does not exist populate the store and create it
     if not os.path.exists(str(store_cache.join(".spack-db"))):
         with spack.config.use_configuration(*mock_configuration_scopes):
             with spack.store.use_store(str(store_path)) as store:
                 with spack.repo.use_repositories(mock_repo_path):
+                    # make the DB filesystem writable only while we populate it
+                    store_path.chmod(mode=0o755, rec=1)
                     _populate(store.db)
-        copy_tree(str(store_path), str(store_cache))
+                    store_path.chmod(mode=0o555, rec=1)
 
-    # Make the DB filesystem read-only to ensure we can't modify entries
-    store_path.join(".spack-db").chmod(mode=0o555, rec=1)
+        store_cache.chmod(mode=0o755, rec=1)
+        copy_tree(str(store_path), str(store_cache))
+        store_cache.chmod(mode=0o555, rec=1)
 
     yield store_path
-
-    store_path.join(".spack-db").chmod(mode=0o755, rec=1)
 
 
 @pytest.fixture(scope="function")
@@ -932,7 +932,7 @@ def mutable_database(database_mutable_config, _store_dir_and_cache):
     """
     # Make the database writeable, as we are going to modify it
     store_path, store_cache = _store_dir_and_cache
-    store_path.join(".spack-db").chmod(mode=0o755, rec=1)
+    store_path.chmod(mode=0o755, rec=1)
 
     yield database_mutable_config
 
@@ -940,7 +940,7 @@ def mutable_database(database_mutable_config, _store_dir_and_cache):
     # the store and making the database read-only
     store_path.remove(rec=1)
     copy_tree(str(store_cache), str(store_path))
-    store_path.join(".spack-db").chmod(mode=0o555, rec=1)
+    store_path.chmod(mode=0o555, rec=1)
 
 
 @pytest.fixture()
@@ -1044,7 +1044,8 @@ def temporary_store(tmpdir, request):
     temporary_store_path = tmpdir.join("opt")
     with spack.store.use_store(str(temporary_store_path)) as s:
         yield s
-    temporary_store_path.remove()
+    if temporary_store_path.exists():
+        temporary_store_path.remove()
 
 
 @pytest.fixture()

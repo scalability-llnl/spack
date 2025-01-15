@@ -26,6 +26,7 @@ class Astral(Package):
 
     depends_on("java@11", type=("build", "run"))
     depends_on("zip", type="build")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         make = Executable("./make.sh")

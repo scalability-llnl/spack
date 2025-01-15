@@ -3540,15 +3540,13 @@ class SpecBuilder:
         )
         cmd_specs = dict((s.name, s) for spec in self._command_line_specs for s in spec.traverse())
 
-        for spec in self._specs.values():
+        for node, spec in self._specs.items():
             # if bootstrapping, compiler is not in config and has no flags
             flagmap_from_compiler = {}
             if spec.compiler in compilers:
                 flagmap_from_compiler = compilers[spec.compiler].flags
 
             for flag_type in spec.compiler_flags.valid_compiler_flags():
-                node = SpecBuilder.make_node(pkg=spec.name)
-
                 ordered_flags = []
 
                 # 1. Put compiler flags first

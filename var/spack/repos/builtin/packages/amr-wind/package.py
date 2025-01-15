@@ -194,4 +194,7 @@ class AmrWind(CMakePackage, CudaPackage, ROCmPackage):
                 ),
             )
 
+        if spec.satisfies("+openfast"):
+            args.append(define("AMR_WIND_OPENFAST_VERSION", spec["openfast"].version))
+
         return args
