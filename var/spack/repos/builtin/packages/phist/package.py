@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -323,7 +322,7 @@ class Phist(CMakePackage):
                 tty.warn("========================== %s =======================" % hint)
                 try:
                     make("check")
-                except spack.util.executable.ProcessError:
+                except ProcessError:
                     raise InstallError("run-test of phist ^mpich: Hint: " + hint)
             else:
                 make("check")

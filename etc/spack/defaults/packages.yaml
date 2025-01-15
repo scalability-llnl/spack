@@ -40,9 +40,9 @@ packages:
       jpeg: [libjpeg-turbo, libjpeg]
       lapack: [openblas, amdlibflame]
       libc: [glibc, musl]
-      libgfortran: [ gcc-runtime ]
+      libgfortran: [gcc-runtime]
       libglx: [mesa+glx]
-      libifcore: [ intel-oneapi-runtime ]
+      libifcore: [intel-oneapi-runtime]
       libllvm: [llvm]
       lua-lang: [lua, lua-luajit-openresty, lua-luajit]
       luajit: [lua-luajit-openresty, lua-luajit]
@@ -65,6 +65,7 @@ packages:
       unwind: [libunwind]
       uuid: [util-linux-uuid, libuuid]
       wasi-sdk: [wasi-sdk-prebuilt]
+      xkbdata-api: [xkeyboard-config, xkbdata]
       xxd: [xxd-standalone, vim]
       yacc: [bison, byacc]
       ziglang: [zig]
@@ -75,6 +76,8 @@ packages:
   cray-mpich:
     buildable: false
   cray-mvapich2:
+    buildable: false
+  egl:
     buildable: false
   fujitsu-mpi:
     buildable: false

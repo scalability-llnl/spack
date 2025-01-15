@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -63,7 +62,6 @@ class Itk(CMakePackage):
     depends_on("eigen")
     depends_on("expat")
     depends_on("fftw-api")
-    depends_on("googletest")
     depends_on("hdf5+cxx+hl")
     depends_on("jpeg")
     depends_on("libpng")
@@ -79,8 +77,11 @@ class Itk(CMakePackage):
     def cmake_args(self):
         use_mkl = self.spec["fftw-api"].name in INTEL_MATH_LIBRARIES
         args = [
+            self.define("BUILD_TESTING", False),
             self.define("BUILD_SHARED_LIBS", True),
             self.define("ITK_USE_SYSTEM_LIBRARIES", True),
+            # https://github.com/InsightSoftwareConsortium/ITK/issues/303
+            self.define("ITK_USE_SYSTEM_GOOGLETEST", False),
             self.define("ITK_USE_MKL", use_mkl),
             self.define_from_variant("Module_ITKReview", "review"),
             self.define_from_variant("Module_RTK", "rtk"),

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -70,7 +69,7 @@ class Assimp(CMakePackage):
         return (None, None, flags)
 
     def check(self):
-        unit = Executable(join_path(self.builder.build_directory, "bin", "unit"))
+        unit = Executable(join_path(self.build_directory, "bin", "unit"))
         skipped_tests = [
             "AssimpAPITest_aiMatrix3x3.aiMatrix3FromToTest",
             "AssimpAPITest_aiMatrix4x4.aiMatrix4FromToTest",

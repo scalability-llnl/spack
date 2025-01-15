@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -64,7 +63,6 @@ class Bison(AutotoolsPackage, GNUMirrorPackage):
     depends_on("m4@1.4.6:", type=("build", "run"))
     depends_on("diffutils", type="build")
 
-    patch("pgi.patch", when="@3.0.4")
     # The NVIDIA compilers do not currently support some GNU builtins.
     # Detect this case and use the fallback path.
     patch("nvhpc-3.6.patch", when="@3.6.0:3.6 %nvhpc")

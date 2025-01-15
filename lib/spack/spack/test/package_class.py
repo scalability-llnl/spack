@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,7 @@ import spack.compilers
 import spack.deptypes as dt
 import spack.error
 import spack.install_test
+import spack.package
 import spack.package_base
 import spack.repo
 import spack.spec
@@ -285,3 +285,16 @@ def test_package_test_no_compilers(mock_packages, monkeypatch, capfd):
     error = capfd.readouterr()[1]
     assert "Skipping tests for package" in error
     assert "test requires missing compiler" in error
+
+
+def test_package_subscript(default_mock_concretization):
+    """Tests that we can use the subscript notation on packages, and that it returns a package"""
+    root = default_mock_concretization("mpileaks")
+    root_pkg = root.package
+
+    # Subscript of a virtual
+    assert isinstance(root_pkg["mpi"], spack.package_base.PackageBase)
+
+    # Subscript on concrete
+    for d in root.traverse():
+        assert isinstance(root_pkg[d.name], spack.package_base.PackageBase)

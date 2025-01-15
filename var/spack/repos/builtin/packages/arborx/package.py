@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -38,7 +37,7 @@ class Arborx(CMakePackage, CudaPackage, ROCmPackage):
         deprecated=True,
     )
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("cxx", type="build")
 
     # Allowed C++ standard
     variant(
@@ -63,7 +62,7 @@ class Arborx(CMakePackage, CudaPackage, ROCmPackage):
     for backend in kokkos_backends:
         deflt, descr = kokkos_backends[backend]
         variant(backend.lower(), default=deflt, description=descr)
-    variant("trilinos", default=False, description="use Kokkos from Trilinos")
+    variant("trilinos", default=False, when="@:1.5", description="use Kokkos from Trilinos")
 
     depends_on("cmake@3.12:", type="build")
     depends_on("cmake@3.16:", type="build", when="@1.0:")
@@ -77,8 +76,8 @@ class Arborx(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("kokkos@3.6.00:", when="@1.3~trilinos")
     depends_on("kokkos@3.7.01:", when="@1.4:1.4.1~trilinos")
     depends_on("kokkos@4.0.00:", when="@1.5~trilinos")
-    depends_on("kokkos@4.1.00:", when="@1.6~trilinos")
-    depends_on("kokkos@4.2.00:", when="@1.7:~trilinos")
+    depends_on("kokkos@4.1.00:", when="@1.6")
+    depends_on("kokkos@4.2.00:", when="@1.7:")
     for backend in kokkos_backends:
         depends_on("kokkos+%s" % backend.lower(), when="~trilinos+%s" % backend.lower())
 
@@ -96,8 +95,9 @@ class Arborx(CMakePackage, CudaPackage, ROCmPackage):
     conflicts("^kokkos", when="+trilinos")
     depends_on("kokkos+cuda_lambda", when="~trilinos+cuda")
 
-    # Trilinos/Kokkos
+    # Trilinos with internal Kokkos
     # Notes:
+    # - starting with Trilinos 14.4, Trilinos' spack package uses external Kokkos
     # - current version of Trilinos package does not allow disabling Serial
     # - current version of Trilinos package does not allow enabling CUDA
     depends_on("trilinos+kokkos", when="+trilinos")
@@ -106,18 +106,16 @@ class Arborx(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("trilinos@13.4.0:", when="@1.3+trilinos")
     depends_on("trilinos@14.0.0:", when="@1.4:1.4.1+trilinos")
     depends_on("trilinos@14.2.0:", when="@1.5+trilinos")
-    depends_on("trilinos@14.4.0:", when="@1.6+trilinos")
-    depends_on("trilinos@15.1.0:", when="@1.7:+trilinos")
     patch("trilinos14.0-kokkos-major-version.patch", when="@1.4+trilinos ^trilinos@14.0.0")
     conflicts("~serial", when="+trilinos")
 
     def cmake_args(self):
         spec = self.spec
 
-        if "~trilinos" in spec:
-            kokkos_spec = spec["kokkos"]
-        else:
+        if "+trilinos" in spec:
             kokkos_spec = spec["trilinos"]
+        else:
+            kokkos_spec = spec["kokkos"]
 
         options = [
             f"-DKokkos_ROOT={kokkos_spec.prefix}",

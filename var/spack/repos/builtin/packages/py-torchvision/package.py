@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,7 @@ class PyTorchvision(PythonPackage):
     license("BSD-3-Clause")
 
     version("main", branch="main")
+    version("0.20.1", sha256="7e08c7f56e2c89859310e53d898f72bccc4987cd83e08cfd6303513da15a9e71")
     version("0.20.0", sha256="b59d9896c5c957c6db0018754bbd17d079c5102b82b9be0b438553b40a7b6029")
     version("0.19.1", sha256="083e75c467285595ec3eb3c7aa8493c19e53d7eb42f13046fb56a07c8897e5a8")
     version("0.19.0", sha256="4c499d0a412b5a21d55ac3c0a37e80ecd7e1f002f2a7b6b3b38a2de2544acbb6")
@@ -47,13 +47,38 @@ class PyTorchvision(PythonPackage):
     version("0.9.1", sha256="79964773729880e0eee0e6af13f336041121d4cc8491a3e2c0e5f184cac8a718")
     version("0.9.0", sha256="9351ed92aded632f8c7f59dfadac13c191a834babe682f5785ea47e6fcf6b472")
     version("0.8.2", sha256="9a866c3c8feb23b3221ce261e6153fc65a98ce9ceaa71ccad017016945c178bf")
-    version("0.8.1", sha256="c46734c679c99f93e5c06654f4295a05a6afe6c00a35ebd26a2cce507ae1ccbd")
-    version("0.8.0", sha256="b5f040faffbfc7bac8d4687d8665bd1196937334589b3fb5fcf15bb69ca25391")
-    version("0.7.0", sha256="fa0a6f44a50451115d1499b3f2aa597e0092a07afce1068750260fa7dd2c85cb")
-    version("0.6.1", sha256="8173680a976c833640ecbd0d7e6f0a11047bf8833433e2147180efc905e48656")
-    version("0.6.0", sha256="02de11b3abe6882de4032ce86dab9c7794cbc84369b44d04e667486580f0f1f7")
-    version("0.5.0", sha256="eb9afc93df3d174d975ee0914057a9522f5272310b4d56c150b955c287a4d74d")
+    version(
+        "0.8.1",
+        sha256="c46734c679c99f93e5c06654f4295a05a6afe6c00a35ebd26a2cce507ae1ccbd",
+        deprecated=True,
+    )
+    version(
+        "0.8.0",
+        sha256="b5f040faffbfc7bac8d4687d8665bd1196937334589b3fb5fcf15bb69ca25391",
+        deprecated=True,
+    )
+    version(
+        "0.7.0",
+        sha256="fa0a6f44a50451115d1499b3f2aa597e0092a07afce1068750260fa7dd2c85cb",
+        deprecated=True,
+    )
+    version(
+        "0.6.1",
+        sha256="8173680a976c833640ecbd0d7e6f0a11047bf8833433e2147180efc905e48656",
+        deprecated=True,
+    )
+    version(
+        "0.6.0",
+        sha256="02de11b3abe6882de4032ce86dab9c7794cbc84369b44d04e667486580f0f1f7",
+        deprecated=True,
+    )
+    version(
+        "0.5.0",
+        sha256="eb9afc93df3d174d975ee0914057a9522f5272310b4d56c150b955c287a4d74d",
+        deprecated=True,
+    )
 
+    depends_on("c", type="build")
     depends_on("cxx", type="build")
 
     desc = "Enable support for native encoding/decoding of {} formats in torchvision.io"
@@ -72,7 +97,7 @@ class PyTorchvision(PythonPackage):
 
     with default_args(type=("build", "link", "run")):
         # Based on PyPI wheel availability
-        depends_on("python@3.9:3.12", when="@0.20:")
+        depends_on("python@3.9:3.13", when="@0.20:")
         depends_on("python@3.8:3.12", when="@0.17:0.19")
         depends_on("python@3.8:3.11", when="@0.15:0.16")
         depends_on("python@:3.10", when="@0.12:0.14")
@@ -81,6 +106,7 @@ class PyTorchvision(PythonPackage):
 
         # https://github.com/pytorch/vision#installation
         depends_on("py-torch@main", when="@main")
+        depends_on("py-torch@2.5.1", when="@0.20.1")
         depends_on("py-torch@2.5.0", when="@0.20.0")
         depends_on("py-torch@2.4.1", when="@0.19.1")
         depends_on("py-torch@2.4.0", when="@0.19.0")

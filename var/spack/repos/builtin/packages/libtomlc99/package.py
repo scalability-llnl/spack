@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -29,6 +28,7 @@ class Libtomlc99(Package):
     version("0.2019.03.06", commit="bd76f1276ee5f5df0eb064f1842af5ad1737cf1e")
 
     depends_on("c", type="build")  # generated
+    depends_on("gmake", type="build")
 
     variant("debug", default=False, description="Build with debug enabled.")
 

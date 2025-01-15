@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -9,6 +8,7 @@ import sys
 
 import llnl.util.filesystem as fs
 
+import spack.util.environment
 from spack.package import *
 
 
@@ -85,6 +85,8 @@ class Papi(AutotoolsPackage, ROCmPackage):
     conflicts("%gcc@8:", when="@5.3.0", msg="Requires GCC version less than 8.0")
     conflicts("+sde", when="@:5", msg="Software defined events (SDE) added in 6.0.0")
     conflicts("^cuda", when="@:5", msg="CUDA support for versions < 6.0.0 not implemented")
+    # https://github.com/icl-utk-edu/papi/pull/205
+    conflicts("^cuda@12.4:", when="@:7.1")
     conflicts("%cce", when="@7.1:", msg="-ffree-form flag not recognized")
 
     conflicts("@=6.0.0", when="+static_tools", msg="Static tools cannot build on version 6.0.0")
@@ -99,7 +101,7 @@ class Papi(AutotoolsPackage, ROCmPackage):
     # 7.1.0 erroneously adds -ffree-form for all fortran compilers
     patch("sysdetect-free-form-fix.patch", when="@7.1.0")
     patch("crayftn-fixes.patch", when="@6.0.0:%cce@9:")
-    patch("intel-oneapi-compiler-fixes.patch", when="@6.0.0:%oneapi")
+    patch("intel-oneapi-compiler-fixes.patch", when="@6.0.0:7.0.1%oneapi")
     patch("intel-cray-freeform.patch", when="@7.0.1")
     patch("spack-hip-path.patch", when="@7.0.1")
 

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import spack.environment as ev
@@ -15,7 +14,7 @@ def test_undevelop(tmpdir, mutable_config, mock_packages, mutable_mock_env_path)
     # setup environment
     envdir = tmpdir.mkdir("env")
     with envdir.as_cwd():
-        with open("spack.yaml", "w") as f:
+        with open("spack.yaml", "w", encoding="utf-8") as f:
             f.write(
                 """\
 spack:
@@ -44,7 +43,7 @@ def test_undevelop_nonexistent(tmpdir, mutable_config, mock_packages, mutable_mo
     # setup environment
     envdir = tmpdir.mkdir("env")
     with envdir.as_cwd():
-        with open("spack.yaml", "w") as f:
+        with open("spack.yaml", "w", encoding="utf-8") as f:
             f.write(
                 """\
 spack:

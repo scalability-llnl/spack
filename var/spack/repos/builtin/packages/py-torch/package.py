@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -25,6 +24,7 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     maintainers("adamjstewart")
 
     version("main", branch="main")
+    version("2.5.1", tag="v2.5.1", commit="a8d6afb511a69687bbb2b7e88a3cf67917e1697e")
     version("2.5.0", tag="v2.5.0", commit="32f585d9346e316e554c8d9bf7548af9f62141fc")
     version("2.4.1", tag="v2.4.1", commit="ee1b6804381c57161c477caa380a840a84167676")
     version("2.4.0", tag="v2.4.0", commit="d990dada86a8ad94882b5c23e859b88c0c255bda")
@@ -52,11 +52,21 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     version("1.8.1", tag="v1.8.1", commit="56b43f4fec1f76953f15a627694d4bba34588969")
     version("1.8.0", tag="v1.8.0", commit="37c1f4a7fef115d719104e871d0cf39434aa9d56")
     version("1.7.1", tag="v1.7.1", commit="57bffc3a8e4fee0cce31e1ff1f662ccf7b16db57")
-    version("1.7.0", tag="v1.7.0", commit="e85d494707b835c12165976b8442af54b9afcb26")
-    version("1.6.0", tag="v1.6.0", commit="b31f58de6fa8bbda5353b3c77d9be4914399724d")
-    version("1.5.1", tag="v1.5.1", commit="3c31d73c875d9a4a6ea8a843b9a0d1b19fbe36f3")
-    version("1.5.0", tag="v1.5.0", commit="4ff3872a2099993bf7e8c588f7182f3df777205b")
-    version("1.4.1", tag="v1.4.1", commit="74044638f755cd8667bedc73da4dbda4aa64c948")
+    version(
+        "1.7.0", tag="v1.7.0", commit="e85d494707b835c12165976b8442af54b9afcb26", deprecated=True
+    )
+    version(
+        "1.6.0", tag="v1.6.0", commit="b31f58de6fa8bbda5353b3c77d9be4914399724d", deprecated=True
+    )
+    version(
+        "1.5.1", tag="v1.5.1", commit="3c31d73c875d9a4a6ea8a843b9a0d1b19fbe36f3", deprecated=True
+    )
+    version(
+        "1.5.0", tag="v1.5.0", commit="4ff3872a2099993bf7e8c588f7182f3df777205b", deprecated=True
+    )
+    version(
+        "1.4.1", tag="v1.4.1", commit="74044638f755cd8667bedc73da4dbda4aa64c948", deprecated=True
+    )
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
@@ -97,7 +107,6 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     variant("ucc", default=False, description="Use UCC", when="@1.13: +distributed")
     variant("gloo", default=True, description="Use Gloo", when="+distributed")
     variant("tensorpipe", default=True, description="Use TensorPipe", when="@1.6: +distributed")
-    variant("onnx_ml", default=True, description="Enable traditional ONNX ML API", when="@1.5:")
     variant(
         "breakpad",
         default=True,
@@ -187,7 +196,8 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     # depends_on("xnnpack@2021-02-22", when="@1.8:1.9+xnnpack")
     # depends_on("xnnpack@2020-03-23", when="@1.6:1.7+xnnpack")
     depends_on("benchmark", when="@1.6:+test")
-    depends_on("cpuinfo@2024-08-30", when="@2.5:")
+    depends_on("cpuinfo@2024-09-06", when="@2.5.1:")
+    depends_on("cpuinfo@2024-08-30", when="@2.5.0")
     depends_on("cpuinfo@2023-11-04", when="@2.3:2.4")
     depends_on("cpuinfo@2023-01-13", when="@2.1:2.2")
     depends_on("cpuinfo@2022-08-19", when="@1.13:2.0")
@@ -206,16 +216,16 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
     depends_on("gloo+libuv", when="@1.6: platform=darwin")
     depends_on("nccl", when="+nccl+cuda")
     # https://github.com/pytorch/pytorch/issues/60331
-    # depends_on("onnx@1.16.0", when="@2.3:+onnx_ml")
-    # depends_on("onnx@1.15.0", when="@2.2+onnx_ml")
-    # depends_on("onnx@1.14.1", when="@2.1+onnx_ml")
-    # depends_on("onnx@1.13.1", when="@2.0+onnx_ml")
-    # depends_on("onnx@1.12.0", when="@1.13:1+onnx_ml")
-    # depends_on("onnx@1.11.0", when="@1.12+onnx_ml")
-    # depends_on("onnx@1.10.1_2021-10-08", when="@1.11+onnx_ml")
-    # depends_on("onnx@1.10.1", when="@1.10+onnx_ml")
-    # depends_on("onnx@1.8.0_2020-11-03", when="@1.8:1.9+onnx_ml")
-    # depends_on("onnx@1.7.0_2020-05-31", when="@1.6:1.7+onnx_ml")
+    # depends_on("onnx@1.16.0", when="@2.3:")
+    # depends_on("onnx@1.15.0", when="@2.2")
+    # depends_on("onnx@1.14.1", when="@2.1")
+    # depends_on("onnx@1.13.1", when="@2.0")
+    # depends_on("onnx@1.12.0", when="@1.13:1")
+    # depends_on("onnx@1.11.0", when="@1.12")
+    # depends_on("onnx@1.10.1_2021-10-08", when="@1.11")
+    # depends_on("onnx@1.10.1", when="@1.10")
+    # depends_on("onnx@1.8.0_2020-11-03", when="@1.8:1.9")
+    # depends_on("onnx@1.7.0_2020-05-31", when="@1.6:1.7")
     with when("~custom-protobuf"):
         depends_on("protobuf@3.13.0", when="@1.10:")
         depends_on("protobuf@3.11.4", when="@1.6:1.9")
@@ -611,11 +621,6 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
             env.set("DEBUG", "ON")
         else:
             env.set("DEBUG", "OFF")
-
-        if "+onnx_ml" in self.spec:
-            env.set("ONNX_ML", "ON")
-        elif "~onnx_ml" in self.spec:
-            env.set("ONNX_ML", "OFF")
 
         if not self.spec.satisfies("@main"):
             env.set("PYTORCH_BUILD_VERSION", self.version)

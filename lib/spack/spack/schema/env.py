@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,6 +18,8 @@ from .spec_list import spec_list_schema
 #: Top level key in a manifest file
 TOP_LEVEL_KEY = "spack"
 
+include_concrete = {"type": "array", "default": [], "items": {"type": "string"}}
+
 properties: Dict[str, Any] = {
     "spack": {
         "type": "object",
@@ -31,7 +32,7 @@ properties: Dict[str, Any] = {
             {
                 "include": {"type": "array", "default": [], "items": {"type": "string"}},
                 "specs": spec_list_schema,
-                "include_concrete": {"type": "array", "default": [], "items": {"type": "string"}},
+                "include_concrete": include_concrete,
             },
         ),
     }

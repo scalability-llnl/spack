@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import numbers
@@ -762,7 +761,7 @@ def test_disjoint_set_fluent_methods():
 @pytest.mark.regression("32694")
 @pytest.mark.parametrize("other", [True, False])
 def test_conditional_value_comparable_to_bool(other):
-    value = spack.variant.Value("98", when="@1.0")
+    value = spack.variant.ConditionalValue("98", when=Spec("@1.0"))
     comparison = value == other
     assert comparison is False
 

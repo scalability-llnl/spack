@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -10,11 +9,13 @@ from llnl.util.lang import memoized
 
 import spack.builder
 import spack.package_base
-from spack.directives import build_system, extends
+import spack.phase_callbacks
+from spack.directives import build_system, depends_on, extends
 from spack.install_test import SkipTest, test_part
+from spack.multimethod import when
 from spack.util.executable import Executable
 
-from ._checks import BaseBuilder, execute_build_time_tests
+from ._checks import BuilderWithDefaults, execute_build_time_tests
 
 
 class PerlPackage(spack.package_base.PackageBase):
@@ -28,7 +29,9 @@ class PerlPackage(spack.package_base.PackageBase):
 
     build_system("perl")
 
-    extends("perl", when="build_system=perl")
+    with when("build_system=perl"):
+        extends("perl")
+        depends_on("gmake", type="build")
 
     @property
     @memoized
@@ -84,7 +87,7 @@ class PerlPackage(spack.package_base.PackageBase):
 
 
 @spack.builder.builder("perl")
-class PerlBuilder(BaseBuilder):
+class PerlBuilder(BuilderWithDefaults):
     """The perl builder provides four phases that can be overridden, if required:
 
         1. :py:meth:`~.PerlBuilder.configure`
@@ -163,7 +166,7 @@ class PerlBuilder(BaseBuilder):
     # Build.PL may be too long causing the build to fail. Patching the shebang
     # does not happen until after install so set '/usr/bin/env perl' here in
     # the Build script.
-    @spack.builder.run_after("configure")
+    @spack.phase_callbacks.run_after("configure")
     def fix_shebang(self):
         if self.build_method == "Build.PL":
             pattern = "#!{0}".format(self.spec["perl"].command.path)
@@ -175,7 +178,7 @@ class PerlBuilder(BaseBuilder):
         self.build_executable()
 
     # Ensure that tests run after build (if requested):
-    spack.builder.run_after("build")(execute_build_time_tests)
+    spack.phase_callbacks.run_after("build")(execute_build_time_tests)
 
     def check(self):
         """Runs built-in tests of a Perl package."""

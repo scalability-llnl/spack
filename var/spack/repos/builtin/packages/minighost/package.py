@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -51,8 +50,6 @@ class Minighost(MakefilePackage):
             targets.append("COMPILER_SUITE=cray")
         elif "%intel" in self.spec:
             targets.append("COMPILER_SUITE=intel")
-        elif "%pgi" in self.spec:
-            targets.append("COMPILER_SUITE=pgi")
 
         return targets
 

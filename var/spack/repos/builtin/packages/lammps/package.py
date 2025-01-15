@@ -1,11 +1,11 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import datetime as dt
 import os
 
 from spack.build_environment import optimization_flags
+from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
@@ -399,12 +399,23 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
 
     depends_on("cxx", type="build")
 
-    # mdi, scafacos, ml-quip, qmmm require C, but not available in Spack
-    for c_pkg in ("adios", "atc", "awpmd", "ml-pod", "electrode", "kim", "h5md", "tools", "rheo"):
+    # ml-quip, qmmm require C, but not available in Spack
+    for c_pkg in (
+        "adios",
+        "atc",
+        "awpmd",
+        "electrode",
+        "h5md",
+        "kim",
+        "ml-pod",
+        "rheo",
+        "scafacos",
+        "tools",
+    ):
         depends_on("c", type="build", when=f"+{c_pkg}")
 
-    # scafacos, ml-quip require Fortran, but not available in Spack
-    for fc_pkg in ("kim",):
+    # ml-quip require Fortran, but not available in Spack
+    for fc_pkg in ("kim", "scafacos"):
         depends_on("fortran", type="build", when=f"+{fc_pkg}")
 
     stable_versions = {
@@ -475,6 +486,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         "drude": {"when": "@20210702:"},
         "eff": {"when": "@20210702:"},
         "electrode": {"when": "@20220504:"},
+        "extra-command": {"when": "@20240829:"},
         "extra-compute": {"when": "@20210728:"},
         "extra-dump": {"when": "@20210728:"},
         "extra-fix": {"when": "@20210728:"},
@@ -495,12 +507,14 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         "manifold": {"when": "@20210702:"},
         "manybody": {"default": True},
         "mc": {},
+        "mdi": {"when": "@20210702:"},
         "meam": {"when": "@:20181212,20210702:"},
         "mesont": {"when": "@20210702:"},
         "mgpt": {"when": "@20210702:"},
         "misc": {},
         "ml-hdnnp": {"when": "@20210702:"},
         "ml-iap": {"when": "@20210702:"},
+        "ml-pace": {"when": "@20210702:"},
         "ml-pod": {"when": "@20221222:"},
         "ml-rann": {"when": "@20210702:"},
         "ml-snap": {"when": "@20210702:"},
@@ -529,6 +543,7 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         "rheo": {"when": "@20240829:"},
         "replica": {},
         "rigid": {"default": True},
+        "scafacos": {"when": "@20210702:"},
         "shock": {},
         "smtbq": {"when": "@20210702:"},
         "snap": {"when": "@:20210527"},
@@ -581,12 +596,8 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         "voronoi": {},
         "vtk": {"when": "@20210702:"},
         "yaff": {"when": "@20210702:"},
-        # "mdi": {"when": "@20210702:"}, no mdi package
-        # "ml-pace": {"when": "@20210702:"}, no pace package
         # "ml-quip": {"when": "@20210702:"}, no quip package
-        # "scafacos": {"when": "@20210702:"}, no scafacos package
         # "user-quip": {"when": "@20190201:20210527"}, no quip package
-        # "user-scafacos": {"when": "@20180905:20210527"}, no scafacos package
     }
 
     for pkg_name, pkg_options in supported_packages.items():
@@ -715,8 +726,10 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
     depends_on("plumed", when="+plumed")
     depends_on("eigen@3:", when="+user-smd")
     depends_on("eigen@3:", when="+machdyn")
+    depends_on("pace", when="+ml-pace", type="build")
     depends_on("py-cython", when="+mliap+python", type="build")
     depends_on("py-cython", when="+ml-iap+python", type="build")
+    depends_on("py-mdi", when="+mdi", type=("build", "run"))
     depends_on("py-pip", when="+python", type="build")
     depends_on("py-wheel", when="+python", type="build")
     depends_on("py-build", when="+python", type="build")
@@ -727,6 +740,8 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
         with when(_n2p2_cond):
             depends_on("n2p2@2.1.4:")
             depends_on("n2p2+shared", when="+lib")
+    depends_on("scafacos", when="+scafacos")
+    depends_on("scafacos cflags=-fPIC cxxflags=-fPIC fflags=-fPIC", when="+scafacos+lib")
     depends_on("vtk", when="+user-vtk")
     depends_on("vtk", when="+vtk")
     depends_on("hipcub", when="~kokkos +rocm")
@@ -1003,5 +1018,4 @@ class Lammps(CMakePackage, CudaPackage, ROCmPackage, PythonExtension):
                 os.environ["LAMMPS_VERSION_FILE"] = join_path(
                     self.stage.source_path, "src", "version.h"
                 )
-                args = std_pip_args + ["--prefix=" + self.prefix, "."]
-                pip(*args)
+                pip(*PythonPipBuilder.std_args(self), f"--prefix={self.prefix}", ".")
