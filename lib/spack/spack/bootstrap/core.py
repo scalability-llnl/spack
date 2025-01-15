@@ -48,7 +48,13 @@ import spack.util.spack_yaml
 import spack.version
 from spack.installer import PackageInstaller
 
-from ._common import _executables_in_store, _python_import, _root_spec, _try_import_from_store
+from ._common import (
+    QueryInfo,
+    _executables_in_store,
+    _python_import,
+    _root_spec,
+    _try_import_from_store,
+)
 from .clingo import ClingoBootstrapConcretizer
 from .config import spack_python_interpreter, spec_for_current_python
 
@@ -135,7 +141,7 @@ class BuildcacheBootstrapper(Bootstrapper):
 
     def __init__(self, conf) -> None:
         super().__init__(conf)
-        self.last_search: Optional[ConfigDictionary] = None
+        self.last_search: Optional[QueryInfo] = None
         self.config_scope_name = f"bootstrap_buildcache-{uuid.uuid4()}"
 
     @staticmethod
@@ -212,14 +218,14 @@ class BuildcacheBootstrapper(Bootstrapper):
                 for _, pkg_hash, pkg_sha256 in item["binaries"]:
                     self._install_by_hash(pkg_hash, pkg_sha256, bincache_platform)
 
-                info: ConfigDictionary = {}
+                info: QueryInfo = {}
                 if test_fn(query_spec=abstract_spec, query_info=info):
                     self.last_search = info
                     return True
         return False
 
     def try_import(self, module: str, abstract_spec_str: str) -> bool:
-        info: ConfigDictionary
+        info: QueryInfo
         test_fn, info = functools.partial(_try_import_from_store, module), {}
         if test_fn(query_spec=abstract_spec_str, query_info=info):
             return True
@@ -232,7 +238,7 @@ class BuildcacheBootstrapper(Bootstrapper):
         return self._install_and_test(abstract_spec, bincache_platform, data, test_fn)
 
     def try_search_path(self, executables: Tuple[str], abstract_spec_str: str) -> bool:
-        info: ConfigDictionary
+        info: QueryInfo
         test_fn, info = functools.partial(_executables_in_store, executables), {}
         if test_fn(query_spec=abstract_spec_str, query_info=info):
             self.last_search = info
@@ -250,11 +256,11 @@ class SourceBootstrapper(Bootstrapper):
 
     def __init__(self, conf) -> None:
         super().__init__(conf)
-        self.last_search: Optional[ConfigDictionary] = None
+        self.last_search: Optional[QueryInfo] = None
         self.config_scope_name = f"bootstrap_source-{uuid.uuid4()}"
 
     def try_import(self, module: str, abstract_spec_str: str) -> bool:
-        info: ConfigDictionary = {}
+        info: QueryInfo = {}
         if _try_import_from_store(module, abstract_spec_str, query_info=info):
             self.last_search = info
             return True
@@ -289,7 +295,7 @@ class SourceBootstrapper(Bootstrapper):
         return False
 
     def try_search_path(self, executables: Tuple[str], abstract_spec_str: str) -> bool:
-        info: ConfigDictionary = {}
+        info: QueryInfo = {}
         if _executables_in_store(executables, abstract_spec_str, query_info=info):
             self.last_search = info
             return True
@@ -415,6 +421,7 @@ def ensure_executables_in_path_or_raise(
                     current_bootstrapper.last_search["spec"],
                     current_bootstrapper.last_search["command"],
                 )
+                assert cmd is not None, "expected an Executable"
                 cmd.add_default_envmod(
                     spack.user_environment.environment_modifications_for_specs(
                         concrete_spec, set_package_py_globals=False
