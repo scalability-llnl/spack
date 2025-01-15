@@ -98,11 +98,21 @@ def test_mix_spec_and_compiler_cfg(concretize_scope, test_repo):
 
 
 def test_pkg_flags_from_compiler_and_none(concretize_scope, mock_packages):
-    conf_str = _compiler_cfg_one_entry_with_cflags("-Wall")
-    update_concretize_scope(conf_str, "compilers")
+    packages_yaml = f"""
+{_compiler_cfg_one_entry_with_cflags("-Wall")}
+  llvm:
+    externals:
+    - spec: llvm+clang@19.1.0
+      prefix: /fake
+      extra_attributes:
+        compilers:
+          c: /fake/bin/clang
+          cxx: /fake/bin/clang++
+"""
+    update_concretize_scope(packages_yaml, "packages")
 
     s1 = spack.spec.Spec("cmake%gcc@12.100.100")
-    s2 = spack.spec.Spec("cmake-client^cmake%clang")
+    s2 = spack.spec.Spec("cmake-client^cmake%clang@19.1.0")
     concrete = dict(spack.concretize.concretize_together([(s1, None), (s2, None)]))
 
     assert concrete[s1].compiler_flags["cflags"] == ["-Wall"]
