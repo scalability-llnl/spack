@@ -3653,6 +3653,7 @@ class SpecBuilder:
             ):
                 continue
             new_spec = spec.copy(deps=False)
+            new_spec.clear_caches(ignore=("package_hash",))
             new_spec.build_spec = spec
             for edge in spec.edges_to_dependencies():
                 depflag = edge.depflag & ~dt.BUILD
