@@ -4,6 +4,7 @@
 import os
 import re
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -26,7 +27,7 @@ datadir = abstract_path(spack.paths.test_path, "data", "compiler_verbose_output"
 def allow_nonexistent_paths(monkeypatch):
     # Allow nonexistent paths to be detected as part of the output
     # for testing purposes.
-    monkeypatch.setattr(os.path, "isdir", lambda x: True)
+    monkeypatch.setattr(Path, "is_dir", lambda x: True)
 
 
 def check_link_paths(filename, paths):
