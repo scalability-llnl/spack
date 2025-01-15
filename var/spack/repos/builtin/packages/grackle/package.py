@@ -32,6 +32,7 @@ class Grackle(Package):
     depends_on("tcsh", type="build")
     depends_on("mpi")
     depends_on("hdf5+mpi")
+    depends_on("gmake", type="build")
 
     parallel = False
 

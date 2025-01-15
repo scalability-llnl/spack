@@ -16,6 +16,8 @@ class PyNumba(PythonPackage):
 
     license("BSD-2-Clause")
 
+    version("0.60.0", sha256="5df6158e5584eece5fc83294b949fd30b9f1125df7708862205217e068aabf16")
+    version("0.59.1", sha256="76f69132b96028d2774ed20415e8c528a34e3299a40581bae178f0994a2f370b")
     version("0.58.1", sha256="487ded0633efccd9ca3a46364b40006dbdaca0f95e99b8b83e778d1195ebcbaa")
     version("0.57.0", sha256="2af6d81067a5bdc13960c6d2519dbabbf4d5d597cf75d640c5aeaefd48c6420a")
     version("0.56.4", sha256="32d9fef412c81483d7efe0ceb6cf4d3310fde8b624a9cecca00f790573ac96ee")
@@ -44,13 +46,15 @@ class PyNumba(PythonPackage):
 
     variant("tbb", default=False, description="Build with Intel Threading Building Blocks")
 
-    depends_on("python@3.8:3.11", when="@0.57:", type=("build", "run"))
+    depends_on("python@3.9:3.12", when="@0.59:", type=("build", "run"))
+    depends_on("python@3.8:3.11", when="@0.57:0.58", type=("build", "run"))
     depends_on("python@3.7:3.10", when="@0.55:0.56", type=("build", "run"))
     depends_on("python@3.7:3.9", when="@0.54", type=("build", "run"))
     depends_on("python@3.6:3.9", when="@0.53", type=("build", "run"))
     depends_on("python@3.6:3.8", when="@0.52", type=("build", "run"))
     depends_on("python@3.6:3.8", when="@0.48:0.51", type=("build", "run"))
-    depends_on("py-numpy@1.22:1.26", when="@0.58.1:", type=("build", "run"))
+    depends_on("py-numpy@2.0", when="@0.60:", type=("build", "run"))
+    depends_on("py-numpy@1.22:1.26", when="@0.58.1:0.59", type=("build", "run"))
     depends_on("py-numpy@1.21:1.25", when="@0.58.0", type=("build", "run"))
     depends_on("py-numpy@1.21:1.24", when="@0.57", type=("build", "run"))
     depends_on("py-numpy@1.18:1.23", when="@0.56.1:0.56.4", type=("build", "run"))
@@ -59,6 +63,8 @@ class PyNumba(PythonPackage):
     depends_on("py-numpy@1.17:1.20", when="@0.54", type=("build", "run"))
     depends_on("py-numpy@1.15:1.20", when="@0.48:0.53", type=("build", "run"))
     depends_on("py-setuptools", type=("build", "run"))
+    depends_on("py-llvmlite@0.43", when="@0.60", type=("build", "run"))
+    depends_on("py-llvmlite@0.42", when="@0.59", type=("build", "run"))
     depends_on("py-llvmlite@0.41", when="@0.58", type=("build", "run"))
     depends_on("py-llvmlite@0.40", when="@0.57", type=("build", "run"))
     depends_on("py-llvmlite@0.39", when="@0.56", type=("build", "run"))

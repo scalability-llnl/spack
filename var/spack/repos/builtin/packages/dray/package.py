@@ -109,6 +109,7 @@ class Dray(Package, CudaPackage):
     depends_on("mfem+conduit~threadsafe")
     depends_on("mfem+shared", when="+shared")
     depends_on("mfem~shared", when="~shared")
+    depends_on("gmake", type="build")
 
     def setup_build_environment(self, env):
         env.set("CTEST_OUTPUT_ON_FAILURE", "1")

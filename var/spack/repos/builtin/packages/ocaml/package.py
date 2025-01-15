@@ -45,6 +45,7 @@ class Ocaml(Package):
         when="@:4.11.0 %clang@11:",
     )
     depends_on("ncurses")
+    depends_on("gmake", type="build")
 
     sanity_check_file = ["bin/ocaml"]
 

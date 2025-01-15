@@ -21,6 +21,7 @@ class Hipsparselt(CMakePackage, ROCmPackage):
     maintainers("srekolam", "afzpatel", "renjithravindrankannath")
 
     license("MIT")
+    version("6.3.0", sha256="f67ed4900101686596add37824d0628f1e71cf6a30d827a0519b3c3657f63ac3")
     version("6.2.4", sha256="7b007b346f89fac9214ad8541b3276105ce1cac14d6f95a8a504b5a5381c8184")
     version("6.2.1", sha256="a23287bc759442aebaccce0306f5e3938865240e13553847356c25c54214a0d4")
     version("6.2.0", sha256="a25a3ce0ed3cc616b1a4e38bfdd5e68463bb9fe791a56d1367b8a6373bb63d12")
@@ -46,9 +47,10 @@ class Hipsparselt(CMakePackage, ROCmPackage):
     )
     variant("asan", default=False, description="Build with address-sanitizer enabled or disabled")
 
-    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4"]:
+    for ver in ["6.0.0", "6.0.2", "6.1.0", "6.1.1", "6.1.2", "6.2.0", "6.2.1", "6.2.4", "6.3.0"]:
         depends_on(f"hip@{ver}", when=f"@{ver}")
         depends_on(f"hipsparse@{ver}", when=f"@{ver}")
+        depends_on(f"llvm-amdgpu@{ver}", when=f"@{ver}")
         depends_on(f"rocm-openmp-extras@{ver}", when=f"@{ver}", type="test")
 
     depends_on("cmake@3.5:", type="build")
@@ -61,6 +63,7 @@ class Hipsparselt(CMakePackage, ROCmPackage):
     depends_on("py-joblib")
     depends_on("googletest@1.10.0:", type="test")
     depends_on("netlib-lapack@3.7.1:", type="test")
+    depends_on("rocm-smi-lib@6.3.0", when="@6.3.0")
 
     patch("0001-update-llvm-path-add-hipsparse-include-dir-for-spack.patch", when="@6.0")
     # Below patch sets the proper path for clang++,lld and clang-offload-blunder inside the
@@ -68,9 +71,20 @@ class Hipsparselt(CMakePackage, ROCmPackage):
     # for 6.1.0 release.
     patch("0001-update-llvm-path-add-hipsparse-include-dir-for-spack-6.1.patch", when="@6.1")
     patch("0001-update-llvm-path-add-hipsparse-include-dir-for-spack-6.2.patch", when="@6.2")
+    patch("0001-update-llvm-path-add-hipsparse-include-dir-for-spack-6.3.patch", when="@6.3")
 
     def setup_build_environment(self, env):
         env.set("CXX", self.spec["hip"].hipcc)
+        env.set("TENSILE_ROCM_ASSEMBLER_PATH", f"{self.spec['llvm-amdgpu'].prefix}/bin/clang++")
+        env.set(
+            "TENSILE_ROCM_OFFLOAD_BUNDLER_PATH",
+            f"{self.spec['llvm-amdgpu'].prefix}/bin/clang-offload-bundler",
+        )
+        env.set(
+            "ROCM_AGENT_ENUMERATOR_PATH",
+            f"{self.spec['rocminfo'].prefix}/bin/rocm_agent_enumerator",
+        )
+        env.set("ROCM_SMI_PATH", f"{self.spec['rocm-smi-lib'].prefix}/bin/rocm-smi")
 
     def cmake_args(self):
         args = [

@@ -28,6 +28,7 @@ from llnl.util.symlink import readlink
 import spack.binary_distribution as bindist
 import spack.caches
 import spack.compilers
+import spack.concretize
 import spack.config
 import spack.fetch_strategy
 import spack.hooks.sbang as sbang
@@ -36,13 +37,13 @@ import spack.mirrors.mirror
 import spack.oci.image
 import spack.paths
 import spack.spec
-import spack.stage
 import spack.store
 import spack.util.gpg
 import spack.util.spack_yaml as syaml
 import spack.util.url as url_util
 import spack.util.web as web_util
 from spack.binary_distribution import CannotListKeys, GenerateIndexError
+from spack.installer import PackageInstaller
 from spack.paths import test_path
 from spack.spec import Spec
 
@@ -205,8 +206,9 @@ def test_default_rpaths_create_install_default_layout(temporary_mirror_dir):
     Test the creation and installation of buildcaches with default rpaths
     into the default directory layout scheme.
     """
-    gspec, cspec = Spec("garply").concretized(), Spec("corge").concretized()
-    sy_spec = Spec("symly").concretized()
+    gspec = spack.concretize.concretize_one("garply")
+    cspec = spack.concretize.concretize_one("corge")
+    sy_spec = spack.concretize.concretize_one("symly")
 
     # Install 'corge' without using a cache
     install_cmd("--no-cache", cspec.name)
@@ -253,9 +255,9 @@ def test_default_rpaths_install_nondefault_layout(temporary_mirror_dir):
     Test the creation and installation of buildcaches with default rpaths
     into the non-default directory layout scheme.
     """
-    cspec = Spec("corge").concretized()
+    cspec = spack.concretize.concretize_one("corge")
     # This guy tests for symlink relocation
-    sy_spec = Spec("symly").concretized()
+    sy_spec = spack.concretize.concretize_one("symly")
 
     # Install some packages with dependent packages
     # test install in non-default install path scheme
@@ -276,7 +278,8 @@ def test_relative_rpaths_install_default_layout(temporary_mirror_dir):
     Test the creation and installation of buildcaches with relative
     rpaths into the default directory layout scheme.
     """
-    gspec, cspec = Spec("garply").concretized(), Spec("corge").concretized()
+    gspec = spack.concretize.concretize_one("garply")
+    cspec = spack.concretize.concretize_one("corge")
 
     # Install buildcache created with relativized rpaths
     buildcache_cmd("install", "-uf", cspec.name)
@@ -305,7 +308,7 @@ def test_relative_rpaths_install_nondefault(temporary_mirror_dir):
     Test the installation of buildcaches with relativized rpaths
     into the non-default directory layout scheme.
     """
-    cspec = Spec("corge").concretized()
+    cspec = spack.concretize.concretize_one("corge")
 
     # Test install in non-default install path scheme and relative path
     buildcache_cmd("install", "-uf", cspec.name)
@@ -358,7 +361,8 @@ def test_built_spec_cache(temporary_mirror_dir):
     that cache from a buildcache index."""
     buildcache_cmd("list", "-a", "-l")
 
-    gspec, cspec = Spec("garply").concretized(), Spec("corge").concretized()
+    gspec = spack.concretize.concretize_one("garply")
+    cspec = spack.concretize.concretize_one("corge")
 
     for s in [gspec, cspec]:
         results = bindist.get_mirrors_for_spec(s)
@@ -381,7 +385,7 @@ def test_spec_needs_rebuild(monkeypatch, tmpdir):
     mirror_dir = tmpdir.join("mirror_dir")
     mirror_url = url_util.path_to_file_url(mirror_dir.strpath)
 
-    s = Spec("libdwarf").concretized()
+    s = spack.concretize.concretize_one("libdwarf")
 
     # Install a package
     install_cmd(s.name)
@@ -410,7 +414,7 @@ def test_generate_index_missing(monkeypatch, tmpdir, mutable_config):
     mirror_url = url_util.path_to_file_url(mirror_dir.strpath)
     spack.config.set("mirrors", {"test": mirror_url})
 
-    s = Spec("libdwarf").concretized()
+    s = spack.concretize.concretize_one("libdwarf")
 
     # Install a package
     install_cmd("--no-cache", s.name)
@@ -492,74 +496,40 @@ def test_generate_indices_exception(monkeypatch, tmp_path, capfd):
     assert f"Encountered problem listing packages at {url}" in capfd.readouterr().err
 
 
-@pytest.mark.usefixtures("mock_fetch", "install_mockery")
-def test_update_sbang(tmpdir, temporary_mirror):
-    """Test the creation and installation of buildcaches with default rpaths
-    into the non-default directory layout scheme, triggering an update of the
-    sbang.
-    """
-    spec_str = "old-sbang"
-    # Concretize a package with some old-fashioned sbang lines.
-    old_spec = Spec(spec_str).concretized()
-    old_spec_hash_str = "/{0}".format(old_spec.dag_hash())
+def test_update_sbang(tmp_path, temporary_mirror, mock_fetch, install_mockery):
+    """Test relocation of the sbang shebang line in a package script"""
+    s = spack.concretize.concretize_one("old-sbang")
+    PackageInstaller([s.package]).install()
+    old_prefix, old_sbang_shebang = s.prefix, sbang.sbang_shebang_line()
+    old_contents = f"""\
+{old_sbang_shebang}
+#!/usr/bin/env python3
 
-    # Need a fake mirror with *function* scope.
-    mirror_dir = temporary_mirror
-
-    # Assume all commands will concretize old_spec the same way.
-    install_cmd("--no-cache", old_spec.name)
+{s.prefix.bin}
+"""
+    with open(os.path.join(s.prefix.bin, "script.sh"), encoding="utf-8") as f:
+        assert f.read() == old_contents
 
     # Create a buildcache with the installed spec.
-    buildcache_cmd("push", "-u", mirror_dir, old_spec_hash_str)
-
-    # Need to force an update of the buildcache index
-    buildcache_cmd("update-index", mirror_dir)
-
-    # Uninstall the original package.
-    uninstall_cmd("-y", old_spec_hash_str)
+    buildcache_cmd("push", "--update-index", "--unsigned", temporary_mirror, f"/{s.dag_hash()}")
 
     # Switch the store to the new install tree locations
-    newtree_dir = tmpdir.join("newtree")
-    with spack.store.use_store(str(newtree_dir)):
-        new_spec = Spec("old-sbang").concretized()
-        assert new_spec.dag_hash() == old_spec.dag_hash()
+    with spack.store.use_store(str(tmp_path)):
+        s._prefix = None  # clear the cached old prefix
+        new_prefix, new_sbang_shebang = s.prefix, sbang.sbang_shebang_line()
+        assert old_prefix != new_prefix
+        assert old_sbang_shebang != new_sbang_shebang
+        PackageInstaller([s.package], cache_only=True, unsigned=True).install()
 
-        # Install package from buildcache
-        buildcache_cmd("install", "-u", "-f", new_spec.name)
+        # Check that the sbang line refers to the new install tree
+        new_contents = f"""\
+{sbang.sbang_shebang_line()}
+#!/usr/bin/env python3
 
-        # Continue blowing away caches
-        bindist.clear_spec_cache()
-        spack.stage.purge()
-
-        # test that the sbang was updated by the move
-        sbang_style_1_expected = """{0}
-#!/usr/bin/env python
-
-{1}
-""".format(
-            sbang.sbang_shebang_line(), new_spec.prefix.bin
-        )
-        sbang_style_2_expected = """{0}
-#!/usr/bin/env python
-
-{1}
-""".format(
-            sbang.sbang_shebang_line(), new_spec.prefix.bin
-        )
-
-        installed_script_style_1_path = new_spec.prefix.bin.join("sbang-style-1.sh")
-        assert (
-            sbang_style_1_expected
-            == open(str(installed_script_style_1_path), encoding="utf-8").read()
-        )
-
-        installed_script_style_2_path = new_spec.prefix.bin.join("sbang-style-2.sh")
-        assert (
-            sbang_style_2_expected
-            == open(str(installed_script_style_2_path), encoding="utf-8").read()
-        )
-
-        uninstall_cmd("-y", "/%s" % new_spec.dag_hash())
+{s.prefix.bin}
+"""
+        with open(os.path.join(s.prefix.bin, "script.sh"), encoding="utf-8") as f:
+            assert f.read() == new_contents
 
 
 @pytest.mark.skipif(
