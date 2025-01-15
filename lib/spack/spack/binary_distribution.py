@@ -23,7 +23,7 @@ import urllib.parse
 import urllib.request
 import warnings
 from contextlib import closing
-from typing import IO, Dict, Iterable, List, NamedTuple, Optional, Set, Tuple, Union
+from typing import IO, Callable, Dict, Iterable, List, NamedTuple, Optional, Set, Tuple, Union
 
 import llnl.util.filesystem as fsys
 import llnl.util.lang
@@ -591,32 +591,18 @@ def file_matches(f: IO[bytes], regex: llnl.util.lang.PatternBytes) -> bool:
         f.seek(0)
 
 
-def deps_to_relocate(spec):
-    """Return the transitive link and direct run dependencies of the spec.
-
-    This is a special traversal for dependencies we need to consider when relocating a package.
-
-    Package binaries, scripts, and other files may refer to the prefixes of  dependencies, so
-    we need to rewrite those locations when dependencies are in a different place at install time
-    than they were at build time.
-
-    This traversal covers transitive link dependencies and direct run dependencies because:
-
-    1. Spack adds RPATHs for transitive link dependencies so that packages can find needed
-       dependency libraries.
-    2. Packages may call any of their *direct* run dependencies (and may bake their paths into
-       binaries or scripts), so we also need to search for run dependency prefixes when relocating.
-
-    This returns a deduplicated list of transitive link dependencies and direct run dependencies.
-    """
-    deps = [
+def specs_to_relocate(spec: spack.spec.Spec) -> List[spack.spec.Spec]:
+    """Return the set of specs that may be referenced in the install prefix of the provided spec.
+    We currently include non-external transitive link and direct run dependencies."""
+    specs = [
         s
         for s in itertools.chain(
-            spec.traverse(root=True, deptype="link"), spec.dependencies(deptype="run")
+            spec.traverse(root=True, deptype="link", order="breadth", key=traverse.by_dag_hash),
+            spec.dependencies(deptype="run"),
         )
         if not s.external
     ]
-    return llnl.util.lang.dedupe(deps, key=lambda s: s.dag_hash())
+    return list(llnl.util.lang.dedupe(specs, key=lambda s: s.dag_hash()))
 
 
 def get_buildinfo_dict(spec):
@@ -630,7 +616,7 @@ def get_buildinfo_dict(spec):
         # "relocate_binaries": [],
         # "relocate_links": [],
         "hardlinks_deduped": True,
-        "hash_to_prefix": {d.dag_hash(): str(d.prefix) for d in deps_to_relocate(spec)},
+        "hash_to_prefix": {d.dag_hash(): str(d.prefix) for d in specs_to_relocate(spec)},
     }
 
 
@@ -683,19 +669,24 @@ def sign_specfile(key: str, specfile_path: str) -> str:
 
 
 def _read_specs_and_push_index(
-    file_list, read_method, cache_prefix, db: BuildCacheDatabase, temp_dir, concurrency
+    file_list: List[str],
+    read_method: Callable,
+    cache_prefix: str,
+    db: BuildCacheDatabase,
+    temp_dir: str,
+    concurrency: int,
 ):
     """Read all the specs listed in the provided list, using thread given thread parallelism,
         generate the index, and push it to the mirror.
 
     Args:
-        file_list (list(str)): List of urls or file paths pointing at spec files to read
+        file_list: List of urls or file paths pointing at spec files to read
         read_method: A function taking a single argument, either a url or a file path,
             and which reads the spec file at that location, and returns the spec.
-        cache_prefix (str): prefix of the build cache on s3 where index should be pushed.
+        cache_prefix: prefix of the build cache on s3 where index should be pushed.
         db: A spack database used for adding specs and then writing the index.
-        temp_dir (str): Location to write index.json and hash for pushing
-        concurrency (int): Number of parallel processes to use when fetching
+        temp_dir: Location to write index.json and hash for pushing
+        concurrency: Number of parallel processes to use when fetching
     """
     for file in file_list:
         contents = read_method(file)
@@ -875,9 +866,12 @@ def _url_generate_package_index(url: str, tmpdir: str, concurrency: int = 32):
     tty.debug(f"Retrieving spec descriptor files from {url} to build index")
 
     db = BuildCacheDatabase(tmpdir)
+    db._write()
 
     try:
-        _read_specs_and_push_index(file_list, read_fn, url, db, db.database_directory, concurrency)
+        _read_specs_and_push_index(
+            file_list, read_fn, url, db, str(db.database_directory), concurrency
+        )
     except Exception as e:
         raise GenerateIndexError(f"Encountered problem pushing package index to {url}: {e}") from e
 
@@ -1112,7 +1106,7 @@ def _exists_in_buildcache(spec: spack.spec.Spec, tmpdir: str, out_url: str) -> E
 
 
 def prefixes_to_relocate(spec):
-    prefixes = [s.prefix for s in deps_to_relocate(spec)]
+    prefixes = [s.prefix for s in specs_to_relocate(spec)]
     prefixes.append(spack.hooks.sbang.sbang_install_path())
     prefixes.append(str(spack.store.STORE.layout.root))
     return prefixes
@@ -2139,10 +2133,9 @@ def download_tarball(spec, unsigned: Optional[bool] = False, mirrors_for_spec=No
 
 
 def dedupe_hardlinks_if_necessary(root, buildinfo):
-    """Updates a buildinfo dict for old archives that did
-    not dedupe hardlinks. De-duping hardlinks is necessary
-    when relocating files in parallel and in-place. This
-    means we must preserve inodes when relocating."""
+    """Updates a buildinfo dict for old archives that did not dedupe hardlinks. De-duping hardlinks
+    is necessary when relocating files in parallel and in-place. This means we must preserve inodes
+    when relocating."""
 
     # New archives don't need this.
     if buildinfo.get("hardlinks_deduped", False):
@@ -2171,65 +2164,47 @@ def dedupe_hardlinks_if_necessary(root, buildinfo):
         buildinfo[key] = new_list
 
 
-def relocate_package(spec):
-    """
-    Relocate the given package
-    """
-    workdir = str(spec.prefix)
-    buildinfo = read_buildinfo_file(workdir)
-    new_layout_root = str(spack.store.STORE.layout.root)
-    new_prefix = str(spec.prefix)
-    new_rel_prefix = str(os.path.relpath(new_prefix, new_layout_root))
-    new_spack_prefix = str(spack.paths.prefix)
-
-    old_sbang_install_path = None
-    if "sbang_install_path" in buildinfo:
-        old_sbang_install_path = str(buildinfo["sbang_install_path"])
+def relocate_package(spec: spack.spec.Spec) -> None:
+    """Relocate binaries and text files in the given spec prefix, based on its buildinfo file."""
+    buildinfo = read_buildinfo_file(spec.prefix)
     old_layout_root = str(buildinfo["buildpath"])
-    old_spack_prefix = str(buildinfo.get("spackprefix"))
-    old_rel_prefix = buildinfo.get("relative_prefix")
-    old_prefix = os.path.join(old_layout_root, old_rel_prefix)
-    rel = buildinfo.get("relative_rpaths", False)
 
-    # In the past prefix_to_hash was the default and externals were not dropped, so prefixes
-    # were not unique.
+    # Warn about old style tarballs created with the --rel flag (removed in Spack v0.20)
+    if buildinfo.get("relative_rpaths", False):
+        tty.warn(
+            f"Tarball for {spec} uses relative rpaths, which can cause library loading issues."
+        )
+
+    # In Spack 0.19 and older prefix_to_hash was the default and externals were not dropped, so
+    # prefixes were not unique.
     if "hash_to_prefix" in buildinfo:
         hash_to_old_prefix = buildinfo["hash_to_prefix"]
     elif "prefix_to_hash" in buildinfo:
-        hash_to_old_prefix = dict((v, k) for (k, v) in buildinfo["prefix_to_hash"].items())
+        hash_to_old_prefix = {v: k for (k, v) in buildinfo["prefix_to_hash"].items()}
     else:
-        hash_to_old_prefix = dict()
+        raise NewLayoutException(
+            "Package tarball was created from an install prefix with a different directory layout "
+            "and an older buildcache create implementation. It cannot be relocated."
+        )
 
-    if old_rel_prefix != new_rel_prefix and not hash_to_old_prefix:
-        msg = "Package tarball was created from an install "
-        msg += "prefix with a different directory layout and an older "
-        msg += "buildcache create implementation. It cannot be relocated."
-        raise NewLayoutException(msg)
+    prefix_to_prefix = {}
 
-    # Spurious replacements (e.g. sbang) will cause issues with binaries
-    # For example, the new sbang can be longer than the old one.
-    # Hence 2 dictionaries are maintained here.
-    prefix_to_prefix_text = collections.OrderedDict()
-    prefix_to_prefix_bin = collections.OrderedDict()
+    if "sbang_install_path" in buildinfo:
+        old_sbang_install_path = str(buildinfo["sbang_install_path"])
+        prefix_to_prefix[old_sbang_install_path] = spack.hooks.sbang.sbang_install_path()
 
-    if old_sbang_install_path:
-        install_path = spack.hooks.sbang.sbang_install_path()
-        prefix_to_prefix_text[old_sbang_install_path] = install_path
+    # First match specific prefix paths. Possibly the *local* install prefix of some dependency is
+    # in an upstream, so we cannot assume the original spack store root can be mapped uniformly to
+    # the new spack store root.
 
-    # First match specific prefix paths. Possibly the *local* install prefix
-    # of some dependency is in an upstream, so we cannot assume the original
-    # spack store root can be mapped uniformly to the new spack store root.
-    #
-    # If the spec is spliced, we need to handle the simultaneous mapping
-    # from the old install_tree to the new install_tree and from the build_spec
-    # to the spliced spec.
-    # Because foo.build_spec is foo for any non-spliced spec, we can simplify
-    # by checking for spliced-in nodes by checking for nodes not in the build_spec
-    # without any explicit check for whether the spec is spliced.
-    # An analog in this algorithm is any spec that shares a name or provides the same virtuals
-    # in the context of the relevant root spec. This ensures that the analog for a spec s
-    # is the spec that s replaced when we spliced.
-    relocation_specs = deps_to_relocate(spec)
+    # If the spec is spliced, we need to handle the simultaneous mapping from the old install_tree
+    # to the new install_tree and from the build_spec to the spliced spec. Because foo.build_spec
+    # is foo for any non-spliced spec, we can simplify by checking for spliced-in nodes by checking
+    # for nodes not in the build_spec without any explicit check for whether the spec is spliced.
+    # An analog in this algorithm is any spec that shares a name or provides the same virtuals in
+    # the context of the relevant root spec. This ensures that the analog for a spec s is the spec
+    # that s replaced when we spliced.
+    relocation_specs = specs_to_relocate(spec)
     build_spec_ids = set(id(s) for s in spec.build_spec.traverse(deptype=dt.ALL & ~dt.BUILD))
     for s in relocation_specs:
         analog = s
@@ -2248,98 +2223,48 @@ def relocate_package(spec):
         lookup_dag_hash = analog.dag_hash()
         if lookup_dag_hash in hash_to_old_prefix:
             old_dep_prefix = hash_to_old_prefix[lookup_dag_hash]
-            prefix_to_prefix_bin[old_dep_prefix] = str(s.prefix)
-            prefix_to_prefix_text[old_dep_prefix] = str(s.prefix)
+            prefix_to_prefix[old_dep_prefix] = str(s.prefix)
 
     # Only then add the generic fallback of install prefix -> install prefix.
-    prefix_to_prefix_text[old_prefix] = new_prefix
-    prefix_to_prefix_bin[old_prefix] = new_prefix
-    prefix_to_prefix_text[old_layout_root] = new_layout_root
-    prefix_to_prefix_bin[old_layout_root] = new_layout_root
+    prefix_to_prefix[old_layout_root] = str(spack.store.STORE.layout.root)
 
-    # This is vestigial code for the *old* location of sbang. Previously,
-    # sbang was a bash script, and it lived in the spack prefix. It is
-    # now a POSIX script that lives in the install prefix. Old packages
-    # will have the old sbang location in their shebangs.
-    orig_sbang = "#!/bin/bash {0}/bin/sbang".format(old_spack_prefix)
-    new_sbang = spack.hooks.sbang.sbang_shebang_line()
-    prefix_to_prefix_text[orig_sbang] = new_sbang
+    # Delete identity mappings from prefix_to_prefix
+    prefix_to_prefix = {k: v for k, v in prefix_to_prefix.items() if k != v}
 
-    tty.debug("Relocating package from", "%s to %s." % (old_layout_root, new_layout_root))
+    # If there's nothing to relocate, we're done.
+    if not prefix_to_prefix:
+        return
 
-    # Old archives maybe have hardlinks repeated.
-    dedupe_hardlinks_if_necessary(workdir, buildinfo)
+    for old, new in prefix_to_prefix.items():
+        tty.debug(f"Relocating: {old} => {new}.")
 
-    def is_backup_file(file):
-        return file.endswith("~")
+    # Old archives may have hardlinks repeated.
+    dedupe_hardlinks_if_necessary(spec.prefix, buildinfo)
 
     # Text files containing the prefix text
-    text_names = list()
-    for filename in buildinfo["relocate_textfiles"]:
-        text_name = os.path.join(workdir, filename)
-        # Don't add backup files generated by filter_file during install step.
-        if not is_backup_file(text_name):
-            text_names.append(text_name)
+    textfiles = [os.path.join(spec.prefix, f) for f in buildinfo["relocate_textfiles"]]
+    binaries = [os.path.join(spec.prefix, f) for f in buildinfo.get("relocate_binaries")]
+    links = [os.path.join(spec.prefix, f) for f in buildinfo.get("relocate_links", [])]
 
-    # If we are not installing back to the same install tree do the relocation
-    if old_prefix != new_prefix:
-        files_to_relocate = [
-            os.path.join(workdir, filename) for filename in buildinfo.get("relocate_binaries")
-        ]
-        # If the buildcache was not created with relativized rpaths
-        # do the relocation of path in binaries
-        platform = spack.platforms.by_name(spec.platform)
-        if "macho" in platform.binary_formats:
-            relocate.relocate_macho_binaries(
-                files_to_relocate,
-                old_layout_root,
-                new_layout_root,
-                prefix_to_prefix_bin,
-                rel,
-                old_prefix,
-                new_prefix,
-            )
-        elif "elf" in platform.binary_formats and not rel:
-            # The new ELF dynamic section relocation logic only handles absolute to
-            # absolute relocation.
-            relocate.new_relocate_elf_binaries(files_to_relocate, prefix_to_prefix_bin)
-        elif "elf" in platform.binary_formats and rel:
-            relocate.relocate_elf_binaries(
-                files_to_relocate,
-                old_layout_root,
-                new_layout_root,
-                prefix_to_prefix_bin,
-                rel,
-                old_prefix,
-                new_prefix,
-            )
+    platform = spack.platforms.by_name(spec.platform)
+    if "macho" in platform.binary_formats:
+        relocate.relocate_macho_binaries(binaries, prefix_to_prefix)
+    elif "elf" in platform.binary_formats:
+        relocate.relocate_elf_binaries(binaries, prefix_to_prefix)
 
-        # Relocate links to the new install prefix
-        links = [os.path.join(workdir, f) for f in buildinfo.get("relocate_links", [])]
-        relocate.relocate_links(links, prefix_to_prefix_bin)
+    relocate.relocate_links(links, prefix_to_prefix)
+    relocate.relocate_text(textfiles, prefix_to_prefix)
+    changed_files = relocate.relocate_text_bin(binaries, prefix_to_prefix)
 
-        # For all buildcaches
-        # relocate the install prefixes in text files including dependencies
-        relocate.relocate_text(text_names, prefix_to_prefix_text)
-
-        # relocate the install prefixes in binary files including dependencies
-        changed_files = relocate.relocate_text_bin(files_to_relocate, prefix_to_prefix_bin)
-
-        # Add ad-hoc signatures to patched macho files when on macOS.
-        if "macho" in platform.binary_formats and sys.platform == "darwin":
-            codesign = which("codesign")
-            if not codesign:
-                return
-            for binary in changed_files:
-                # preserve the original inode by running codesign on a copy
-                with fsys.edit_in_place_through_temporary_file(binary) as tmp_binary:
-                    codesign("-fs-", tmp_binary)
-
-    # If we are installing back to the same location
-    # relocate the sbang location if the spack directory changed
-    else:
-        if old_spack_prefix != new_spack_prefix:
-            relocate.relocate_text(text_names, prefix_to_prefix_text)
+    # Add ad-hoc signatures to patched macho files when on macOS.
+    if "macho" in platform.binary_formats and sys.platform == "darwin":
+        codesign = which("codesign")
+        if not codesign:
+            return
+        for binary in changed_files:
+            # preserve the original inode by running codesign on a copy
+            with fsys.edit_in_place_through_temporary_file(binary) as tmp_binary:
+                codesign("-fs-", tmp_binary)
 
 
 def _extract_inner_tarball(spec, filename, extract_to, signature_required: bool, remote_checksum):

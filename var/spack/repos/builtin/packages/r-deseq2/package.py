@@ -13,9 +13,11 @@ class RDeseq2(RPackage):
     sequencing assays and test for differential expression based on a model
     using the negative binomial distribution."""
 
-    homepage = "https://bioconductor.org/packages/DESeq2"
-    git = "https://git.bioconductor.org/packages/DESeq2.git"
+    bioc = "DESeq2"
 
+    version("1.46.0", commit="4887eb42fa96fcc234118ead8ffd11032a8f08bb")
+    version("1.44.0", commit="5facd3093468ce2e75a2b742b1533efee13e5818")
+    version("1.42.0", commit="17a39b5296cb3d897f1e2a9aa4bebbdefb13b46a")
     version("1.40.0", commit="c4962c3b16546e552fbc1a712258e4e21ff44241")
     version("1.38.0", commit="0e059f425d4ce6a5203685a4ad434f15bbd6e211")
     version("1.36.0", commit="2800b78ae52c0600f7e603c54af59beed3a2ed17")

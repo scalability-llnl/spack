@@ -17,7 +17,7 @@ class PyWxpython(PythonPackage):
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
 
-    depends_on("wxwidgets")
+    depends_on("wxwidgets +gui")
 
     # Needed for the build.py script
     depends_on("py-setuptools", type="build")

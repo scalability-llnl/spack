@@ -12,8 +12,8 @@ class Bdsim(CMakePackage):
     interaction with the accelerator material"""
 
     homepage = "http://www.pp.rhul.ac.uk/bdsim/manual/index.html"
-    url = "https://bitbucket.org/jairhul/bdsim/get/v1.6.0.tar.gz"
-    git = "https://bitbucket.org/jairhul/bdsim/src/master/"
+    url = "https://github.com/bdsim-collaboration/bdsim/archive/refs/tags/v1.7.7.tar.gz"
+    git = "https://github.com/bdsim-collaboration/bdsim.git"
 
     tags = ["hep"]
 
@@ -22,9 +22,10 @@ class Bdsim(CMakePackage):
     license("GPL-3.0-or-later")
 
     version("master", branch="master")
-    version("1.7.6", sha256="92f53aa0a9fbd3cafd218f9e58ae4d1e7115733e641191c1658243fefb436600")
-    version("1.7.0", sha256="713ce3c9d94f340ca774ce1803e0c4f992b904dbc28ce4129713abe883e98683")
-    version("1.6.0", sha256="e3241d2d097cb4e22249e315c1474da9b3657b9c6893232d9f9e543a5323f717")
+    version("1.7.7", sha256="8923a197c97984e32651f877c35c3f759ca8d20b661aaec200b83dbd72e4d7d9")
+    version("1.7.6", sha256="7740d9fb3bcc9856a36b74130fae68def878d86c6f7e4a54c9d7a2db8dd770bc")
+    version("1.7.0", sha256="519bdede40470907d3305556ed5cf9523a2d7c0446db764338741d0ca43a86b4")
+    version("1.6.0", sha256="c0149a68d3c2436e036e8f71a13a251a2d88afe51e4387fe43ebd31a96bb3d7d")
 
     depends_on("cxx", type="build")  # generated
 
@@ -36,9 +37,4 @@ class Bdsim(CMakePackage):
     depends_on("flex")
     depends_on("bison")
 
-    patch("c++-standard.patch", when="@:1.7.6")
-
-    def cmake_args(self):
-        args = []
-        args.append(f"-DCMAKE_CXX_STANDARD={self.spec['root'].variants['cxxstd'].value}")
-        return args
+    # The C++ standard is set to be the same as the one used for ROOT
