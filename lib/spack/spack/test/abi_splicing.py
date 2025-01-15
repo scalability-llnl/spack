@@ -54,8 +54,10 @@ def test_spec_reuse(spec_str, install_specs, mutable_config):
     assert concrete["splice-z"].satisfies(splice_z)
 
 
+@pytest.mark.regression("48578")
 def test_splice_installed_hash(install_specs, mutable_config):
-    install_specs(
+    """Tests splicing the dependency of an installed spec, for another installed spec"""
+    splice_t, splice_h = install_specs(
         "splice-t@1 ^splice-h@1.0.0+compat ^splice-z@1.0.0",
         "splice-h@1.0.2+compat ^splice-z@1.0.0",
     )
@@ -66,8 +68,17 @@ def test_splice_installed_hash(install_specs, mutable_config):
     with pytest.raises(SolverError):
         spack.concretize.concretize_one(goal_spec)
     _enable_splicing()
-    assert spack.concretize.concretize_one(goal_spec).satisfies(goal_spec)
+    concrete = spack.concretize.concretize_one(goal_spec)
 
+    # splice-t has a dependency that is changing, thus its hash should be different
+    assert concrete.dag_hash() != splice_t.dag_hash()
+    assert concrete.build_spec.satisfies(splice_t)
+    assert not concrete.satisfies(splice_t)
+
+    # splice-h is reused, so the hash should stay the same
+    assert concrete["splice-h"].satisfies(splice_h)
+    assert concrete["splice-h"].build_spec.satisfies(splice_h)
+    assert concrete["splice-h"].dag_hash() == splice_h.dag_hash()
 
 def test_splice_build_splice_node(install_specs, mutable_config):
     install_specs("splice-t@1 ^splice-h@1.0.0+compat ^splice-z@1.0.0+compat")
