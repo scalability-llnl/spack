@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,7 +20,7 @@ import spack.error
 import spack.paths
 import spack.platforms
 import spack.platforms.test
-from spack.build_environment import ChildError, setup_package
+from spack.build_environment import ChildError, MakeExecutable, setup_package
 from spack.installer import PackageInstaller
 from spack.spec import Spec
 from spack.util.executable import which
@@ -30,10 +29,12 @@ DATA_PATH = os.path.join(spack.paths.test_path, "data")
 
 
 @pytest.fixture()
-def concretize_and_setup(default_mock_concretization):
+def concretize_and_setup(default_mock_concretization, monkeypatch):
     def _func(spec_str):
         s = default_mock_concretization(spec_str)
         setup_package(s.package, False)
+        monkeypatch.setattr(s.package.module, "make", MakeExecutable("make", jobs=1))
+        monkeypatch.setattr(s.package.module, "ninja", MakeExecutable("ninja", jobs=1))
         return s
 
     return _func

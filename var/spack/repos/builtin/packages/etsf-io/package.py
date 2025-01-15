@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from spack.package import *
@@ -28,6 +27,7 @@ class EtsfIo(Package):
 
     depends_on("netcdf-fortran")
     depends_on("hdf5+mpi~cxx", when="+mpi")  # required for NetCDF-4 support
+    depends_on("gmake", type="build")
 
     patch("tests_module.patch")
     patch("tests_init.patch")

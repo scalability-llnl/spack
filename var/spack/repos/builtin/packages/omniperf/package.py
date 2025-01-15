@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -31,7 +30,7 @@ class Omniperf(CMakePackage):
     depends_on("py-pyyaml")
     depends_on("py-matplotlib")
     depends_on("py-pandas@1.4.3:")
-    depends_on("py-numpy@1.17.5")
+    depends_on("py-numpy@1.17.5:")
     depends_on("py-pymongo")
     depends_on("py-tabulate")
     depends_on("py-tqdm")

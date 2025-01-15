@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,6 +13,10 @@ debug = 0
 
 #: whether to show a backtrace when an error is printed, enabled with --backtrace.
 SHOW_BACKTRACE = False
+
+
+class SpackAPIWarning(UserWarning):
+    """Warning that formats with file and line number."""
 
 
 class SpackError(Exception):
