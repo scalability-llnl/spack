@@ -202,7 +202,7 @@ def _concretize_spec_pairs(
     # Special case for concretizing a single spec
     if len(to_concretize) == 1:
         abstract, concrete = to_concretize[0]
-        return [concrete or abstract.concretized(tests=tests)]
+        return [concrete or spack.concretize.concretize_one(abstract, tests=tests)]
 
     # Special case if every spec is either concrete or has an abstract hash
     if all(
@@ -254,9 +254,9 @@ def matching_spec_from_env(spec):
     """
     env = ev.active_environment()
     if env:
-        return env.matching_spec(spec) or spec.concretized()
+        return env.matching_spec(spec) or spack.concretize.concretize_one(spec)
     else:
-        return spec.concretized()
+        return spack.concretize.concretize_one(spec)
 
 
 def matching_specs_from_env(specs):

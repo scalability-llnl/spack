@@ -34,6 +34,7 @@ from llnl.util import tty
 from llnl.util.lang import GroupedExceptionHandler
 
 import spack.binary_distribution
+import spack.concretize
 import spack.config
 import spack.detection
 import spack.mirrors.mirror
@@ -270,10 +271,10 @@ class SourceBootstrapper(Bootstrapper):
                 bootstrapper = ClingoBootstrapConcretizer(configuration=spack.config.CONFIG)
                 concrete_spec = bootstrapper.concretize()
             else:
-                concrete_spec = spack.spec.Spec(
+                abstract_spec = spack.spec.Spec(
                     abstract_spec_str + " ^" + spec_for_current_python()
                 )
-                concrete_spec.concretize()
+                concrete_spec = spack.concretize.concretize_one(abstract_spec)
 
         msg = "[BOOTSTRAP MODULE {0}] Try installing '{1}' from sources"
         tty.debug(msg.format(module, abstract_spec_str))
@@ -299,7 +300,7 @@ class SourceBootstrapper(Bootstrapper):
         # might reduce compilation time by a fair amount
         _add_externals_if_missing()
 
-        concrete_spec = spack.spec.Spec(abstract_spec_str).concretized()
+        concrete_spec = spack.concretize.concretize_one(abstract_spec_str)
         msg = "[BOOTSTRAP] Try installing '{0}' from sources"
         tty.debug(msg.format(abstract_spec_str))
         with spack.config.override(self.mirror_scope):
