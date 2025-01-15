@@ -5,7 +5,7 @@
 from spack.package import *
 
 
-class Dftd4(MesonPackage):
+class Dftd4(MesonPackage, CMakePackage):
     """Generally Applicable Atomic-Charge Dependent London Dispersion Correction"""
 
     homepage = "https://www.chemie.uni-bonn.de/pctc/mulliken-center/software/dftd4"
@@ -15,6 +15,8 @@ class Dftd4(MesonPackage):
     maintainers("awvwgk")
 
     license("LGPL-3.0-only")
+
+    build_system("cmake", "meson", default="mason")
 
     version("main", branch="main")
     version("3.7.0", sha256="4e8749df6852bf863d5d1831780a2d30e9ac4afcfebbbfe5f6a6a73d06d6c6ee")
@@ -26,22 +28,38 @@ class Dftd4(MesonPackage):
     version("3.1.0", sha256="b652aa7cbf8d087c91bcf80f2d5801459ecf89c5d4176ebb39e963ee740ed54b")
     version("3.0.0", sha256="a7539d68d48d851bf37b79e37ea907c9da5eee908d0aa58a0a7dc15f04f8bc35")
 
-    depends_on("c", type="build")  # generated
-    depends_on("fortran", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("fortran", type="build")
 
     variant("openmp", default=True, description="Use OpenMP parallelisation")
-    variant("python", default=False, description="Build Python extension module")
+    variant(
+        "python",
+        default=False,
+        when="build_system=meson",
+        description="Build Python extension module",
+    )
+
+    depends_on("meson@0.57.1:", type="build", when="build_system=meson")  # mesonbuild/meson#8377
 
     depends_on("blas")
     depends_on("lapack")
-    depends_on("mctc-lib")
-    depends_on("meson@0.57.1:", type="build")  # mesonbuild/meson#8377
     depends_on("pkgconfig", type="build")
+
     depends_on("py-cffi", when="+python")
     depends_on("python@3.6:", when="+python")
 
+    depends_on("mctc-lib build_system=cmake", when="build_system=cmake")
+    depends_on("multicharge", when="build_system=cmake")
+
     extends("python", when="+python")
 
+    def url_for_version(self, version):
+        if version <= Version("3.6.0"):
+            return f"https://github.com/dftd4/dftd4/releases/download/v{version}/dftd4-{version}-source.tar.xz"
+        return super().url_for_version(version)
+
+
+class MesonBuilder(spack.build_systems.meson.MesonBuilder):
     def meson_args(self):
         lapack = self.spec["lapack"].libs.names[0]
         if lapack == "lapack":
@@ -57,7 +75,7 @@ class Dftd4(MesonPackage):
             "-Dpython={0}".format(str("+python" in self.spec).lower()),
         ]
 
-    def url_for_version(self, version):
-        if version <= Version("3.6.0"):
-            return f"https://github.com/dftd4/dftd4/releases/download/v{version}/dftd4-{version}-source.tar.xz"
-        return super().url_for_version(version)
+
+class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
+    def cmake_args(self):
+        return [self.define_from_variant("WITH_OPENMP", "openmp")]
