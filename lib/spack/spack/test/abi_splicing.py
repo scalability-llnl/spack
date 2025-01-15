@@ -251,31 +251,34 @@ def test_external_splice_same_name(install_specs, mutable_config):
 
 
 def test_spliced_build_deps_only_in_build_spec(install_specs):
-    goal_spec = Spec("splice-t@1.0 ^splice-h@1.0.2 ^splice-z@1.0.0")
+    """Tests that build specs are not reported in the spliced spec"""
     install_specs("splice-t@1.0 ^splice-h@1.0.1 ^splice-z@1.0.0")
 
     _enable_splicing()
-    concr_goal = spack.concretize.concretize_one(goal_spec)
-    build_spec = concr_goal._build_spec
+    spliced = spack.concretize.concretize_one("splice-t@1.0 ^splice-h@1.0.2 ^splice-z@1.0.0")
+    build_spec = spliced.build_spec
+
     # Spec has been spliced
-    assert build_spec is not None
+    assert build_spec.dag_hash() != spliced.dag_hash()
     # Build spec has spliced build dependencies
     assert build_spec.dependencies("splice-h", dt.BUILD)
     assert build_spec.dependencies("splice-z", dt.BUILD)
     # Spliced build dependencies are removed
-    assert len(concr_goal.dependencies(None, dt.BUILD)) == 0
+    assert len(spliced.dependencies(None, dt.BUILD)) == 0
 
 
 def test_spliced_transitive_dependency(install_specs, mutable_config):
-    goal_spec = Spec("splice-depends-on-t^splice-h@1.0.2")
+    """Tests that build specs are not reported, even for spliced transitive dependencies"""
     install_specs("splice-depends-on-t@1.0 ^splice-h@1.0.1")
     mutable_config.set("packages", _make_specs_non_buildable(["splice-depends-on-t"]))
 
     _enable_splicing()
-    concr_goal = spack.concretize.concretize_one(goal_spec)
+    spliced = spack.concretize.concretize_one("splice-depends-on-t^splice-h@1.0.2")
+
     # Spec has been spliced
-    assert concr_goal._build_spec is not None
-    assert concr_goal["splice-t"]._build_spec is not None
-    assert concr_goal.satisfies(goal_spec)
+    assert spliced.build_spec.dag_hash() != spliced.dag_hash()
+    assert spliced["splice-t"].build_spec.dag_hash() != spliced["splice-t"].dag_hash()
+
     # Spliced build dependencies are removed
-    assert len(concr_goal.dependencies(None, dt.BUILD)) == 0
+    assert len(spliced.dependencies(None, dt.BUILD)) == 0
+    assert len(spliced["splice-t"].dependencies(None, dt.BUILD)) == 0
