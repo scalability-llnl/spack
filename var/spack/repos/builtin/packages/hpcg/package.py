@@ -68,6 +68,7 @@ class Hpcg(AutotoolsPackage):
             and not spec.satisfies("%arm")
             and not spec.satisfies("%intel")
             and not spec.satisfies("%oneapi")
+            and not spec.satisfies("%fj")
             and not spec.satisfies("%clang")
         ):
             CXXFLAGS += " -ftree-vectorizer-verbose=0 "
