@@ -490,6 +490,21 @@ class StandardVersion(ConcreteVersion):
         """
         return self[:index]
 
+    @property
+    def up_to_1(self):
+        """The version truncated to the first component."""
+        return self.up_to(1)
+
+    @property
+    def up_to_2(self):
+        """The version truncated to the first two components."""
+        return self.up_to(2)
+
+    @property
+    def up_to_3(self):
+        """The version truncated to the first three components."""
+        return self.up_to(3)
+
 
 _STANDARD_VERSION_TYPEMIN = StandardVersion("", ((), (ALPHA,)), ("",))
 
