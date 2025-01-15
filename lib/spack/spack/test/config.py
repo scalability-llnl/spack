@@ -1117,8 +1117,16 @@ def test_internal_config_list_override(mock_low_high_config, write_config_file):
 def test_set_section_override(mock_low_high_config, write_config_file):
     write_config_file("config", config_merge_list, "low")
     wanted_list = config_override_list["config"]["build_stage:"]
+
+    # Ensure test validity:
+    assert wanted_list != mock_low_high_config.get("config:build_stage")
+
+    # Test both bare section with full value and section override in path
     with spack.config.override("config::build_stage", wanted_list):
         assert mock_low_high_config.get("config:build_stage") == wanted_list
+    with spack.config.override("config::", {"build_stage": wanted_list}):
+        assert mock_low_high_config.get("config:build_stage") == wanted_list
+
     assert config_merge_list["config"]["build_stage"] == mock_low_high_config.get(
         "config:build_stage"
     )
