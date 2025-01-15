@@ -1,11 +1,13 @@
 # Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import abc
 import collections
 import collections.abc
 import copy
 import enum
 import functools
+import hashlib
 import itertools
 import os
 import pathlib
@@ -66,8 +68,6 @@ from .requirements import RequirementKind, RequirementParser, RequirementRule
 from .version_order import concretization_version_order
 
 GitOrStandardVersion = Union[spack.version.GitVersion, spack.version.StandardVersion]
-
-TransformFunction = Callable[["spack.spec.Spec", List[AspFunction]], List[AspFunction]]
 
 #: Enable the addition of a runtime node
 WITH_RUNTIME = sys.platform != "win32"
@@ -887,7 +887,9 @@ class PyclingoDriver:
         if result.satisfiable:
             timer.start("construct_specs")
             # get the best model
-            builder = SpecBuilder(specs, hash_lookup=setup.reusable_and_possible)
+            builder = SpecBuilder(
+                specs, hash_lookup=setup.reusable_and_possible, external_lookup=setup.external_map
+            )
             min_cost, best_model = min(models)
 
             # first check for errors
@@ -1014,10 +1016,67 @@ class ConcreteSpecsByHash(collections.abc.Mapping):
         return iter(self.data)
 
 
+class TransformFunction(abc.ABC):
+    @property
+    def stable_function_id(self):
+        components = [self.__class__.__name__]
+        components.extend(getattr(self, "elements", []))
+        return "/".join(str(x) for x in components)
+
+    def __hash__(self):
+        return hash(self.stable_function_id)
+
+    def __eq__(self, other):
+        return self.stable_function_id == other.stable_function_id
+
+    @abc.abstractmethod
+    def __call__(self, spec: spack.spec.Spec, facts: List[AspFunction]) -> List[AspFunction]:
+        pass
+
+
 # types for condition caching in solver setup
 ConditionSpecKey = Tuple[str, Optional[TransformFunction]]
 ConditionIdFunctionPair = Tuple[int, List[AspFunction]]
 ConditionSpecCache = Dict[str, Dict[ConditionSpecKey, ConditionIdFunctionPair]]
+
+
+class track_dependencies(TransformFunction):
+    def __call__(self, input_spec: spack.spec.Spec, requirements: List[AspFunction]):
+        return requirements + [fn.attr("track_dependencies", input_spec.name)]
+
+
+class dependency_holds(TransformFunction):
+    def __init__(self, pkg, depflag):
+        self.pkg = pkg
+        self.depflag = depflag
+        str_flagtypes = list(
+            sorted(dt.flag_to_string(t) for t in dt.ALL_FLAGS if t & self.depflag)
+        )
+        self.elements = (pkg.name, ":".join(str_flagtypes))
+
+    def __call__(self, input_spec: spack.spec.Spec, requirements: List[AspFunction]):
+        return remove_node(input_spec, requirements) + [
+            fn.attr("dependency_holds", self.pkg.name, input_spec.name, dt.flag_to_string(t))
+            for t in dt.ALL_FLAGS
+            if t & self.depflag
+        ]
+
+
+class rm_node(TransformFunction):
+    def __call__(self, spec: spack.spec.Spec, facts: List[AspFunction]):
+        return remove_node(spec, facts)
+
+
+class external_imposition(TransformFunction):
+    def __init__(self, spec, external_id):
+        self.spec = spec
+        self.elements = (spec,)
+        self.external_id = external_id
+
+    def __call__(self, input_spec: spack.spec.Spec, requirements: List[AspFunction]):
+        return requirements + [
+            fn.attr("external_conditions_hold", input_spec.name, self.external_id)
+        ]
 
 
 class ConstraintOrigin(enum.Enum):
@@ -1144,7 +1203,6 @@ class SpackSolverSetup:
 
         self.reusable_and_possible: ConcreteSpecsByHash = ConcreteSpecsByHash()
 
-        self._id_counter: Iterator[int] = itertools.count()
         self._trigger_cache: ConditionSpecCache = collections.defaultdict(dict)
         self._effect_cache: ConditionSpecCache = collections.defaultdict(dict)
 
@@ -1166,6 +1224,23 @@ class SpackSolverSetup:
 
         # If true, we have to load the code for synthesizing splices
         self.enable_splicing: bool = spack.config.CONFIG.get("concretizer:splice:automatic")
+
+        self.generated_ids: Set[str] = set()
+
+    def new_id(self, elements, fail_on_error=True):
+        full_str = "-".join(str(x) for x in elements)
+        sha = hashlib.sha256()
+        sha.update(full_str.encode())
+        uniq_id = sha.hexdigest()[:8]
+        if uniq_id in self.generated_ids:
+            if fail_on_error:
+                raise InternalConcretizerError(
+                    f"Attempt to generate same ID twice ({uniq_id}): {full_str}"
+                )
+            else:
+                return None
+        self.generated_ids.add(uniq_id)
+        return uniq_id
 
     def pkg_version_rules(self, pkg):
         """Output declared versions of a package.
@@ -1234,7 +1309,12 @@ class SpackSolverSetup:
     def conflict_rules(self, pkg):
         for when_spec, conflict_specs in pkg.conflicts.items():
             when_spec_msg = "conflict constraint %s" % str(when_spec)
-            when_spec_id = self.condition(when_spec, required_name=pkg.name, msg=when_spec_msg)
+            when_spec_id = self.condition(
+                when_spec,
+                required_name=pkg.name,
+                msg=when_spec_msg,
+                id_context=["conflict-when", pkg.name] + list(conflict_specs),
+            )
 
             for conflict_spec, conflict_msg in conflict_specs:
                 conflict_spec = spack.spec.Spec(conflict_spec)
@@ -1253,6 +1333,7 @@ class SpackSolverSetup:
                     conflict_spec,
                     required_name=conflict_spec.name or pkg.name,
                     msg=conflict_spec_msg,
+                    id_context=["conflict", pkg.name, when_spec, conflict_spec],
                 )
                 self.gen.fact(
                     fn.pkg_fact(
@@ -1266,7 +1347,9 @@ class SpackSolverSetup:
             condition_msg = f"{pkg.name} needs the {', '.join(sorted(languages))} language"
             if when_spec != spack.spec.Spec():
                 condition_msg += f" when {when_spec}"
-            condition_id = self.condition(when_spec, required_name=pkg.name, msg=condition_msg)
+            condition_id = self.condition(
+                when_spec, required_name=pkg.name, msg=condition_msg, id_context=["lang"]
+            )
             for language in sorted(languages):
                 self.gen.fact(fn.pkg_fact(pkg.name, fn.language(condition_id, language)))
         self.gen.newline()
@@ -1284,7 +1367,7 @@ class SpackSolverSetup:
         """Facts about available compilers."""
 
         self.gen.h2("Available compilers")
-        for compiler_id, compiler in enumerate(self.possible_compilers):
+        for compiler_weight, (compiler_id, compiler) in enumerate(self.possible_compilers):
             self.gen.fact(fn.compiler_id(compiler_id))
             self.gen.fact(fn.compiler_name(compiler_id, compiler.spec.name))
             self.gen.fact(fn.compiler_version(compiler_id, compiler.spec.version))
@@ -1305,7 +1388,7 @@ class SpackSolverSetup:
             if compiler.available:
                 self.gen.fact(fn.compiler_available(compiler_id))
 
-            self.gen.fact(fn.compiler_weight(compiler_id, compiler_id))
+            self.gen.fact(fn.compiler_weight(compiler_id, compiler_weight))
             self.gen.newline()
 
     def package_requirement_rules(self, pkg):
@@ -1339,12 +1422,6 @@ class SpackSolverSetup:
         # splices
         if self.enable_splicing:
             self.package_splice_rules(pkg)
-
-        # virtual preferences
-        self.virtual_preferences(
-            pkg.name,
-            lambda v, p, i: self.gen.fact(fn.pkg_fact(pkg.name, fn.provider_preference(v, p, i))),
-        )
 
         self.package_requirement_rules(pkg)
 
@@ -1393,10 +1470,12 @@ class SpackSolverSetup:
     ):
         pkg_fact = lambda f: self.gen.fact(fn.pkg_fact(pkg.name, f))
 
+        # TODO: it looks like the integer IDs are in this case required
+        # for weighting purposes
         # Every variant id has a unique definition (conditional or unconditional), and
         # higher variant id definitions take precedence when variants intersect.
-        vid = next(self._id_counter)
 
+        vid = self.new_id(["variant", pkg.name, variant_def, when])
         # used to find a variant id from its variant definition (for variant values on specs)
         self.variant_ids_by_def_id[id(variant_def)] = vid
 
@@ -1406,7 +1485,12 @@ class SpackSolverSetup:
         else:
             # conditional variant
             msg = f"Package {pkg.name} has variant '{name}' when {when}"
-            cond_id = self.condition(when, required_name=pkg.name, msg=msg)
+            # TODO: it seems like id_context shouldn't be required here. Without this
+            # we will get an error because 'build_type' *and* 'generator' are conditioned
+            # on build_system=cmake. It seems like we should be able to generate one
+            # condition that determines both outcomes. Outside-of/before these changes
+            # Spack was generating distinct condition IDs in both cases though.
+            cond_id = self.condition(when, required_name=pkg.name, msg=msg, id_context=[name])
             pkg_fact(fn.variant_condition(name, vid, cond_id))
 
         # record type so we can construct the variant when we read it back in
@@ -1427,7 +1511,8 @@ class SpackSolverSetup:
 
         elif isinstance(values, vt.DisjointSetsOfValues):
             union = set()
-            for sid, s in enumerate(values.sets):
+            for s in values.sets:
+                sid = self.new_id(["disjoint-sets-variant", pkg.name, name] + list(sorted(s)))
                 for value in s:
                     pkg_fact(fn.variant_value_from_disjoint_sets(vid, value, sid))
                 union.update(s)
@@ -1458,6 +1543,7 @@ class SpackSolverSetup:
                     required_name=pkg.name,
                     imposed_name=pkg.name,
                     msg=f"{pkg.name} variant {name} has value '{value.value}' when {value.when}",
+                    id_context=["variant"],
                 )
             else:
                 vstring = f"{name}='{value.value}'"
@@ -1469,11 +1555,13 @@ class SpackSolverSetup:
                     variant_has_value,
                     required_name=pkg.name,
                     msg=f"invalid variant value: {vstring}",
+                    id_context=["invalid-variant"],
                 )
                 constraint_id = self.condition(
                     spack.spec.Spec(),
                     required_name=pkg.name,
                     msg="empty (total) conflict constraint",
+                    id_context=["variant-conflict"],
                 )
                 msg = f"variant value {vstring} is conditionally disabled"
                 pkg_fact(fn.conflict(trigger_id, constraint_id, msg))
@@ -1482,7 +1570,7 @@ class SpackSolverSetup:
 
     def define_auto_variant(self, name: str, multi: bool):
         self.gen.h3(f"Special variant: {name}")
-        vid = next(self._id_counter)
+        vid = self.new_id(["auto_variant", name])
         self.gen.fact(fn.auto_variant(name, vid))
         self.gen.fact(
             fn.variant_type(
@@ -1502,6 +1590,7 @@ class SpackSolverSetup:
         cache: ConditionSpecCache,
         body: bool,
         context: ConditionIdContext,
+        id_context: Optional[List] = None,
     ) -> int:
         """Get the id for one half of a condition (either a trigger or an imposed constraint).
 
@@ -1520,10 +1609,17 @@ class SpackSolverSetup:
         if result:
             return result[0]
 
-        cond_id = next(self._id_counter)
+        if context.transform:
+            transform_id = context.transform.stable_function_id
+        else:
+            transform_id = None
+        id_context = id_context or []
+        cond_id = self.new_id(["_get_condition_id", named_cond, transform_id] + id_context)
+
         requirements = self.spec_clauses(named_cond, body=body, context=context)
         if context.transform:
             requirements = context.transform(named_cond, requirements)
+
         pkg_cache[named_cond_key] = (cond_id, requirements)
 
         return cond_id
@@ -1537,6 +1633,7 @@ class SpackSolverSetup:
         imposed_name: Optional[str] = None,
         msg: Optional[str] = None,
         context: Optional[ConditionContext] = None,
+        id_context: Optional[List] = None,
     ):
         """Generate facts for a dependency or virtual provider condition.
 
@@ -1557,9 +1654,11 @@ class SpackSolverSetup:
         if not required_name:
             raise ValueError(f"Must provide a name for anonymous condition: '{required_spec}'")
 
+        id_context = id_context or []
+
         if not context:
             context = ConditionContext()
-            context.transform_imposed = remove_node
+            context.transform_imposed = rm_node()
 
         if imposed_spec:
             imposed_name = imposed_spec.name or imposed_name
@@ -1570,11 +1669,17 @@ class SpackSolverSetup:
             # Check if we can emit the requirements before updating the condition ID counter.
             # In this way, if a condition can't be emitted but the exception is handled in the
             # caller, we won't emit partial facts.
-
-            condition_id = next(self._id_counter)
+            condition_id = self.new_id(
+                ["condition", required_spec, required_name, imposed_spec, imposed_name]
+                + id_context
+            )
             requirement_context = context.requirement_context()
             trigger_id = self._get_condition_id(
-                required_spec, cache=self._trigger_cache, body=True, context=requirement_context
+                required_spec,
+                cache=self._trigger_cache,
+                body=True,
+                context=requirement_context,
+                id_context=id_context,
             )
             self.gen.fact(fn.pkg_fact(required_spec.name, fn.condition(condition_id)))
             self.gen.fact(fn.condition_reason(condition_id, msg))
@@ -1586,7 +1691,11 @@ class SpackSolverSetup:
 
             impose_context = context.impose_context()
             effect_id = self._get_condition_id(
-                imposed_spec, cache=self._effect_cache, body=False, context=impose_context
+                imposed_spec,
+                cache=self._effect_cache,
+                body=False,
+                context=impose_context,
+                id_context=id_context,
             )
             self.gen.fact(
                 fn.pkg_fact(required_spec.name, fn.condition_effect(condition_id, effect_id))
@@ -1614,7 +1723,13 @@ class SpackSolverSetup:
                     continue
 
                 msg = f"{pkg.name} provides {vpkg} when {when}"
-                condition_id = self.condition(when, vpkg, required_name=pkg.name, msg=msg)
+                condition_id = self.condition(
+                    when,
+                    vpkg,
+                    required_name=pkg.name,
+                    msg=msg,
+                    id_context=["provided-when", pkg.name, when, vpkg],
+                )
                 self.gen.fact(
                     fn.pkg_fact(when.name, fn.provider_condition(condition_id, vpkg.name))
                 )
@@ -1622,9 +1737,15 @@ class SpackSolverSetup:
 
         for when, sets_of_virtuals in pkg.provided_together.items():
             condition_id = self.condition(
-                when, required_name=pkg.name, msg="Virtuals are provided together"
+                when,
+                required_name=pkg.name,
+                msg="Virtuals are provided together",
+                id_context=["provided-together", pkg.name, when],
             )
-            for set_id, virtuals_together in enumerate(sets_of_virtuals):
+            for virtuals_together in sets_of_virtuals:
+                set_id = self.new_id(
+                    ["virtuals-together", pkg.name, when, sorted(virtuals_together)]
+                )
                 for name in virtuals_together:
                     self.gen.fact(
                         fn.pkg_fact(pkg.name, fn.provided_together(condition_id, set_id, name))
@@ -1655,26 +1776,21 @@ class SpackSolverSetup:
                 else:
                     pass
 
-                def track_dependencies(input_spec, requirements):
-                    return requirements + [fn.attr("track_dependencies", input_spec.name)]
-
-                def dependency_holds(input_spec, requirements):
-                    return remove_node(input_spec, requirements) + [
-                        fn.attr(
-                            "dependency_holds", pkg.name, input_spec.name, dt.flag_to_string(t)
-                        )
-                        for t in dt.ALL_FLAGS
-                        if t & depflag
-                    ]
-
                 context = ConditionContext()
                 context.source = ConstraintOrigin.append_type_suffix(
                     pkg.name, ConstraintOrigin.DEPENDS_ON
                 )
-                context.transform_required = track_dependencies
-                context.transform_imposed = dependency_holds
+                context.transform_required = track_dependencies()
+                context.transform_imposed = dependency_holds(pkg, depflag)
 
-                self.condition(cond, dep.spec, required_name=pkg.name, msg=msg, context=context)
+                self.condition(
+                    cond,
+                    dep.spec,
+                    required_name=pkg.name,
+                    msg=msg,
+                    context=context,
+                    id_context=["dep-rule"],
+                )
 
                 self.gen.newline()
 
@@ -1774,15 +1890,15 @@ class SpackSolverSetup:
             if vspec not in self.possible_virtuals:
                 continue
 
-            for i, provider in enumerate(providers):
+            for provider_weight, provider in enumerate(providers):
                 provider_name = spack.spec.Spec(provider).name
-                func(vspec, provider_name, i)
+                func(vspec, provider_name, provider_weight)
             self.gen.newline()
 
     def provider_defaults(self):
         self.gen.h2("Default virtual providers")
         self.virtual_preferences(
-            "all", lambda v, p, i: self.gen.fact(fn.default_provider_preference(v, p, i))
+            "all", lambda v, p, w: self.gen.fact(fn.default_provider_preference(v, p, w))
         )
 
     def provider_requirements(self):
@@ -1800,7 +1916,12 @@ class SpackSolverSetup:
         Args:
             rules: rules for which we want facts to be emitted
         """
-        for requirement_grp_id, rule in enumerate(rules):
+        for rule in rules:
+            requirement_grp_id = self.new_id(
+                ["requirement-grp-id", rule.pkg_name, rule.policy, rule.kind.name]
+                + list(rule.requirements)
+                + [rule.condition]
+            )
             virtual = rule.kind == RequirementKind.VIRTUAL
 
             pkg_name, policy, requirement_grp = rule.pkg_name, rule.policy, rule.requirements
@@ -1811,7 +1932,10 @@ class SpackSolverSetup:
                 msg = f"condition to activate requirement {requirement_grp_id}"
                 try:
                     main_condition_id = self.condition(
-                        rule.condition, required_name=pkg_name, msg=msg
+                        rule.condition,
+                        required_name=pkg_name,
+                        msg=msg,
+                        id_context=["requirement-grp-cnd", pkg_name, requirement_grp_id],
                     )
                 except Exception as e:
                     if rule.kind != RequirementKind.DEFAULT:
@@ -1846,7 +1970,7 @@ class SpackSolverSetup:
                         pkg_name, ConstraintOrigin.REQUIRE
                     )
                     if not virtual:
-                        context.transform_imposed = remove_node
+                        context.transform_imposed = rm_node()
                     # else: for virtuals we want to emit "node" and
                     # "virtual_node" in imposed specs
 
@@ -1856,6 +1980,7 @@ class SpackSolverSetup:
                         required_name=pkg_name,
                         msg=f"{input_spec} is a requirement for package {pkg_name}",
                         context=context,
+                        id_context=["requirement-grp-member", pkg_name, requirement_grp_id],
                     )
                 except Exception as e:
                     # Do not raise if the rule comes from the 'all' subsection, since usability
@@ -1902,6 +2027,7 @@ class SpackSolverSetup:
                     )
                 )
 
+        self.external_map = dict()
         for pkg_name, data in packages_yaml.items():
             if pkg_name == "all":
                 continue
@@ -1914,6 +2040,9 @@ class SpackSolverSetup:
             if pkg_name not in self.pkgs:
                 continue
 
+            pkg_ext_map = dict()
+            self.external_map[pkg_name] = pkg_ext_map
+
             # Check if the external package is buildable. If it is
             # not then "external(<pkg>)" is a fact, unless we can
             # reuse an already installed spec.
@@ -1923,9 +2052,24 @@ class SpackSolverSetup:
 
             # Read a list of all the specs for this package
             externals = data.get("externals", [])
-            candidate_specs = [
-                spack.spec.parse_with_version_concrete(x["spec"]) for x in externals
-            ]
+            candidate_specs = list()
+            seen = set()
+            parsed_to_id = dict()
+            for pkg_ext_data in externals:
+                input_spec = pkg_ext_data["spec"]
+                spec = spack.spec.parse_with_version_concrete(input_spec)
+                if spec in seen:
+                    # There may be duplicate external entries: skip them
+                    # for now, (but it might be worth warning about them).
+                    # This favors whatever entry comes first according to
+                    # the merged config, which is assumed to be stable.
+                    continue
+                candidate_specs.append(spec)
+                seen.add(spec)
+                # TODO: this should refactor to more-identifiably draw from
+                # the ID used by external_imposition
+                pkg_ext_map[str(input_spec)] = pkg_ext_data
+                parsed_to_id[spec] = str(input_spec)
 
             selected_externals = set()
             if spec_filters:
@@ -1948,15 +2092,12 @@ class SpackSolverSetup:
                     warnings.warn(f"cannot use the external spec {spec}: needs a concrete version")
                     continue
 
-                def external_imposition(input_spec, requirements):
-                    return requirements + [
-                        fn.attr("external_conditions_hold", input_spec.name, local_idx)
-                    ]
-
                 try:
                     context = ConditionContext()
-                    context.transform_imposed = external_imposition
-                    self.condition(spec, spec, msg=msg, context=context)
+                    context.transform_imposed = external_imposition(
+                        spec, external_id=parsed_to_id[spec]
+                    )
+                    self.condition(spec, spec, msg=msg, context=context, id_context=["external"])
                 except (spack.error.SpecError, RuntimeError) as e:
                     warnings.warn(f"while setting up external spec {spec}: {e}")
                     continue
@@ -1967,10 +2108,9 @@ class SpackSolverSetup:
             # Order the external versions to prefer more recent versions
             # even if specs in packages.yaml are not ordered that way
             external_versions = [
-                (v, idx, external_id)
-                for idx, (v, external_id) in enumerate(sorted(external_versions, reverse=True))
+                (v, idx) for idx, (v, _) in enumerate(sorted(external_versions, reverse=True))
             ]
-            for version, idx, external_id in external_versions:
+            for version, idx in external_versions:
                 self.declared_versions[pkg_name].append(
                     DeclaredVersion(version=version, idx=idx, origin=Provenance.EXTERNAL)
                 )
@@ -2391,8 +2531,8 @@ class SpackSolverSetup:
         ordered_oses = sorted(all_oses, key=keyfun, reverse=True)
 
         # output the preference order of OS's for the concretizer to choose
-        for i, os_name in enumerate(ordered_oses):
-            self.gen.fact(fn.os(os_name, i))
+        for weight, os_name in enumerate(ordered_oses):
+            self.gen.fact(fn.os(os_name, weight))
 
     def target_defaults(self, specs):
         """Add facts about targets and target compatibility."""
@@ -2444,7 +2584,7 @@ class SpackSolverSetup:
                         candidate_targets.append(ancestor)
 
         best_targets = {uarch.family.name}
-        for compiler_id, known_compiler in enumerate(self.possible_compilers):
+        for compiler_id, known_compiler in self.possible_compilers:
             if not known_compiler.available:
                 continue
 
@@ -2552,7 +2692,7 @@ class SpackSolverSetup:
 
     def define_compiler_version_constraints(self):
         for constraint in sorted(self.compiler_version_constraints):
-            for compiler_id, compiler in enumerate(self.possible_compilers):
+            for compiler_id, compiler in self.possible_compilers:
                 if compiler.spec.satisfies(constraint):
                     self.gen.fact(
                         fn.compiler_version_satisfies(
@@ -2727,7 +2867,15 @@ class SpackSolverSetup:
                 self.register_concrete_spec(reusable_spec, self.pkgs)
         self.concrete_specs()
 
-        self.possible_compilers = compiler_parser.possible_compilers()
+        self.possible_compilers = list()
+        for compiler in compiler_parser.possible_compilers():
+            compiler_id = self.new_id(
+                ["compiler-id", compiler.spec, compiler.os, compiler.target], fail_on_error=False
+            )
+            if not compiler_id:
+                # TODO: in this case we are adding the same compiler twice
+                continue
+            self.possible_compilers.append((compiler_id, compiler))
 
         self.gen.h1("Generic statements on possible packages")
         node_counter.possible_packages_facts(self.gen, fn)
@@ -2783,7 +2931,12 @@ class SpackSolverSetup:
         self.gen.h1("Develop specs")
         # Inject dev_path from environment
         for ds in dev_specs:
-            self.condition(spack.spec.Spec(ds.name), ds, msg="%s is a develop spec" % ds.name)
+            self.condition(
+                spack.spec.Spec(ds.name),
+                ds,
+                msg="%s is a develop spec" % ds.name,
+                id_context=["dev-spec"],
+            )
             self.trigger_rules()
             self.effect_rules()
 
@@ -2834,7 +2987,7 @@ class SpackSolverSetup:
         """Define the constraints to be imposed on the runtimes"""
         recorder = RuntimePropertyRecorder(self)
 
-        for compiler in self.possible_compilers:
+        for _, compiler in self.possible_compilers:
             compiler_with_different_cls_names = {
                 "oneapi": "intel-oneapi-compilers",
                 "clang": "llvm",
@@ -2869,10 +3022,11 @@ class SpackSolverSetup:
         recorder.consume_facts()
 
     def literal_specs(self, specs):
+        specs = list(llnl.util.lang.dedupe(specs))
         for spec in specs:
             self.gen.h2("Spec: %s" % str(spec))
-            condition_id = next(self._id_counter)
-            trigger_id = next(self._id_counter)
+            condition_id = self.new_id(["condition", spec])
+            trigger_id = self.new_id(["trigger", spec])
 
             # Special condition triggered by "literal_solved"
             self.gen.fact(fn.literal(trigger_id))
@@ -2884,7 +3038,7 @@ class SpackSolverSetup:
             if imposed_spec_key in cache:
                 effect_id, requirements = cache[imposed_spec_key]
             else:
-                effect_id = next(self._id_counter)
+                effect_id = self.new_id(["effect", spec])
                 context = SourceContext()
                 context.source = "literal"
                 requirements = self.spec_clauses(spec, context=context)
@@ -3417,7 +3571,7 @@ class SpecBuilder:
         """
         return NodeArgument(id="0", pkg=pkg)
 
-    def __init__(self, specs, hash_lookup=None):
+    def __init__(self, specs, hash_lookup=None, external_lookup=None):
         self._specs: Dict[NodeArgument, spack.spec.Spec] = {}
 
         # Matches parent nodes to splice node
@@ -3431,6 +3585,7 @@ class SpecBuilder:
         # Pass in as arguments reusable specs and plug them in
         # from this dictionary during reconstruction
         self._hash_lookup = hash_lookup or ConcreteSpecsByHash()
+        self._external_lookup = external_lookup or {}
 
     def hash(self, node, h):
         if node not in self._specs:
@@ -3485,10 +3640,9 @@ class SpecBuilder:
             node_flag.flag_type, node_flag.flag, False, node_flag.flag_group, node_flag.source
         )
 
-    def external_spec_selected(self, node, idx):
+    def external_spec_selected(self, node, external_id):
         """This means that the external spec and index idx has been selected for this package."""
-        packages_yaml = _external_config_with_implicit_externals(spack.config.CONFIG)
-        spec_info = packages_yaml[node.pkg]["externals"][int(idx)]
+        spec_info = self._external_lookup[node.pkg][external_id]
         self._specs[node].external_path = spec_info.get("prefix", None)
         self._specs[node].external_modules = spack.spec.Spec._format_module_list(
             spec_info.get("modules", None)
@@ -4209,14 +4363,14 @@ class Solver:
         specs = [s.lookup_hash() for s in specs]
         reusable_specs = self._check_input_and_extract_concrete_specs(specs)
         reusable_specs.extend(self.selector.reusable_specs(specs))
-        setup = SpackSolverSetup(tests=tests)
-
-        # Tell clingo that we don't have to solve all the inputs at once
-        setup.concretize_everything = False
 
         input_specs = specs
         output = OutputConfiguration(timers=timers, stats=stats, out=out, setup_only=False)
         while True:
+            setup = SpackSolverSetup(tests=tests)
+            # Tell clingo that we don't have to solve all the inputs at once
+            setup.concretize_everything = False
+
             result, _, _ = self.driver.solve(
                 setup,
                 input_specs,
