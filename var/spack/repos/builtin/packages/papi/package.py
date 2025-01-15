@@ -229,6 +229,7 @@ class Papi(AutotoolsPackage, ROCmPackage):
             raise SkipTest("Skipping smoke tests, directory doesn't exist")
         with working_dir(test_dir, create=False):
             with spack.util.environment.set_env(PAPIROOT=self.prefix):
+                make = self.spec["gmake"].command
                 make()
                 exe_simple = which("simple")
                 exe_simple()
