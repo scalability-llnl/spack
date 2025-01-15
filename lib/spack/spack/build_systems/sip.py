@@ -11,6 +11,8 @@ import spack.builder
 import spack.install_test
 import spack.package_base
 import spack.phase_callbacks
+import spack.spec
+import spack.util.prefix
 from spack.directives import build_system, depends_on, extends
 from spack.multimethod import when
 from spack.util.executable import Executable
@@ -130,7 +132,9 @@ class SIPBuilder(BuilderWithDefaults):
 
     build_directory = "build"
 
-    def configure(self, pkg, spec, prefix):
+    def configure(
+        self, pkg: SIPPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Configure the package."""
 
         # https://www.riverbankcomputing.com/static/Docs/sip/command_line_tools.html
@@ -148,7 +152,9 @@ class SIPBuilder(BuilderWithDefaults):
         """Arguments to pass to configure."""
         return []
 
-    def build(self, pkg, spec, prefix):
+    def build(
+        self, pkg: SIPPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Build the package."""
         args = self.build_args()
 
@@ -159,7 +165,9 @@ class SIPBuilder(BuilderWithDefaults):
         """Arguments to pass to build."""
         return []
 
-    def install(self, pkg, spec, prefix):
+    def install(
+        self, pkg: SIPPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Install the package."""
         args = self.install_args()
 

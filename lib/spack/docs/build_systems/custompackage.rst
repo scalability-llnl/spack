@@ -56,13 +56,13 @@ If you look at the ``perl`` package, you'll see:
 
 .. code-block:: python
 
-   phases = ["configure", "build", "install"]
+   phases = ("configure", "build", "install")
 
 Similarly, ``cmake`` defines:
 
 .. code-block:: python
 
-   phases = ["bootstrap", "build", "install"]
+   phases = ("bootstrap", "build", "install")
 
 If we look at the ``cmake`` example, this tells Spack's ``PackageBase``
 class to run the ``bootstrap``, ``build``, and ``install`` functions
