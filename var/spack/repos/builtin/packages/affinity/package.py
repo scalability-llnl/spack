@@ -6,7 +6,7 @@
 from spack.package import *
 
 
-class Affinity(CMakePackage):
+class Affinity(CMakePackage, CudaPackage, ROCmPackage):
     """Simple applications for determining Linux thread and gpu affinity."""
 
     homepage = "https://github.com/bcumming/affinity"
@@ -20,7 +20,6 @@ class Affinity(CMakePackage):
     variant("cuda", default=False, description="Build CUDA support.")
     variant("rocm", default=False, description="Build ROCm support.")
     variant("mpi", default=True, description="Build MPI support.")
-
 
     depends_on("cuda", when="+cuda")
     depends_on("hip", when="+rocm")
