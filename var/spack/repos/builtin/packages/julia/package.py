@@ -452,7 +452,7 @@ class Julia(MakefilePackage):
         downloads_dir = downloads_glob[0]
 
         for patch in sorted(glob.glob("downloads-patch-*/*")):
-            Executable("patch")("-s", "-p1", "-i", patch, "-d", downloads_dir)
+            Executable("patch")("-s", "-p1", "-i", os.path.abspath(patch), "-d", downloads_dir)
 
     # julia's sys/package images are lacking rpaths, but this is fine because julia dlopen's them
     # at which point their dependencies are already loaded. ccalllazyfoo.so is from tests.
