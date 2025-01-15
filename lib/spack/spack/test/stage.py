@@ -7,6 +7,7 @@ import collections
 import errno
 import getpass
 import os
+import pathlib
 import shutil
 import stat
 import sys
@@ -905,15 +906,25 @@ class TestDevelopStage:
         mock_packages,
         mutable_mock_env_path,
         mock_fetch,
+        monkeypatch
     ):
+        def fail(*args):
+            raise ValueError("This function should not be called")
+        monkeypatch.setattr(spack.cmd.develop, "_retrieve_develop_source", fail)
+
         develop = spack.main.SpackCommand("develop")
         env = spack.main.SpackCommand("env")
         add = spack.main.SpackCommand("add")
+        mirror = spack.main.SpackCommand("mirror")
 
         the_mirror = tmpdir.join("test-mirror")
         the_mirror.ensure(dir=True)
+        mirror_path = pathlib.Path(the_mirror).as_posix()
 
-        spack.config.set("mirrors", {"test": {"binary": False, "url": f"file://{the_mirror}"}})
+        # Note the third '/': that is important for Windows paths with a drive.
+        # For such paths, a URL needs the preceding '/' to indicate that for
+        # "C:/path/to/something", "C:" is not a netloc
+        mirror("add", "test", f"file:///{mirror_path}")
 
         devtree, srcdir = develop_path
 
