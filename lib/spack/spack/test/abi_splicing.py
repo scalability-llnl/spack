@@ -171,49 +171,49 @@ def test_virtual_multi_splices_in(original_spec, goal_spec, install_specs, mutab
     assert spliced["virtual-with-abi"].name != spliced.build_spec["virtual-with-abi"].name
 
 
-def test_manyvariant_star_matching_variant_splice(install_specs, mutable_config):
-    goal_specs = [
-        Spec("depends-on-manyvariants ^manyvariants@1.0.1+a+b c=v1 d=v2"),
-        Spec("depends-on-manyvariants ^manyvariants@1.0.1~a~b c=v3 d=v3"),
-    ]
-    install_specs(
+@pytest.mark.parametrize(
+    "original_spec,goal_spec",
+    [
         # can_splice("manyvariants@1.0.0", when="@1.0.1", match_variants="*")
-        "depends-on-manyvariants ^manyvariants@1.0.0+a+b c=v1 d=v2",
-        "depends-on-manyvariants ^manyvariants@1.0.0~a~b c=v3 d=v3",
-    )
-    freeze_build_config = {"depends-on-manyvariants": {"buildable": False}}
-    mutable_config.set("packages", freeze_build_config)
-
-    for goal in goal_specs:
-        with pytest.raises(SolverError):
-            spack.concretize.concretize_one(goal)
-
-    _enable_splicing()
-    for goal in goal_specs:
-        assert spack.concretize.concretize_one(goal).satisfies(goal)
-
-
-def test_manyvariant_limited_matching(install_specs, mutable_config):
-    goal_specs = [
-        Spec("depends-on-manyvariants@2.0 ^manyvariants@2.0.1~a+b c=v3 d=v2"),
-        Spec("depends-on-manyvariants@2.0 ^manyvariants@2.0.1+a+b c=v3 d=v3"),
-    ]
-    install_specs(
+        (
+            "depends-on-manyvariants ^manyvariants@1.0.0+a+b c=v1 d=v2",
+            "depends-on-manyvariants ^manyvariants@1.0.1+a+b c=v1 d=v2",
+        ),
+        (
+            "depends-on-manyvariants ^manyvariants@1.0.0~a~b c=v3 d=v3",
+            "depends-on-manyvariants ^manyvariants@1.0.1~a~b c=v3 d=v3",
+        ),
         # can_splice("manyvariants@2.0.0+a~b", when="@2.0.1~a+b", match_variants=["c", "d"])
-        "depends-on-manyvariants@2.0 ^manyvariants@2.0.0+a~b c=v3 d=v2",
+        (
+            "depends-on-manyvariants@2.0 ^manyvariants@2.0.0+a~b c=v3 d=v2",
+            "depends-on-manyvariants@2.0 ^manyvariants@2.0.1~a+b c=v3 d=v2",
+        ),
         # can_splice("manyvariants@2.0.0 c=v1 d=v1", when="@2.0.1+a+b")
-        "depends-on-manyvariants@2.0 ^manyvariants@2.0.0~a~b c=v1 d=v1",
-    )
-    freeze_build_config = {"depends-on-manyvariants": {"buildable": False}}
-    mutable_config.set("packages", freeze_build_config)
+        (
+            "depends-on-manyvariants@2.0 ^manyvariants@2.0.0~a~b c=v1 d=v1",
+            "depends-on-manyvariants@2.0 ^manyvariants@2.0.1+a+b c=v3 d=v3",
+        ),
+    ],
+)
+def test_manyvariant_matching_variant_splice(
+    original_spec, goal_spec, install_specs, mutable_config
+):
+    """Tests splicing with different kind of matching on variants"""
+    original = install_specs(original_spec)[0]
+    mutable_config.set("packages", {"depends-on-manyvariants": {"buildable": False}})
 
-    for s in goal_specs:
-        with pytest.raises(SolverError):
-            spack.concretize.concretize_one(s)
+    with pytest.raises(SolverError):
+        spack.concretize.concretize_one(goal_spec)
 
     _enable_splicing()
-    for s in goal_specs:
-        assert spack.concretize.concretize_one(s).satisfies(s)
+    spliced = spack.concretize.concretize_one(goal_spec)
+
+    assert spliced.dag_hash() != original.dag_hash()
+    assert spliced.build_spec.dag_hash() == original.dag_hash()
+
+    # The spliced 'manyvariants' is yet to be built
+    assert spliced["manyvariants"].dag_hash() != original["manyvariants"].dag_hash()
+    assert spliced["manyvariants"].build_spec.dag_hash() == spliced["manyvariants"].dag_hash()
 
 
 def test_external_splice_same_name(install_specs, mutable_config):
