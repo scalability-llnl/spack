@@ -16,7 +16,7 @@ class MctcLib(MesonPackage, CMakePackage):
 
     license("Apache-2.0")
 
-    build_system("cmake", "meson", default="mason")
+    build_system("cmake", "meson", default="meson")
 
     version("main", branch="main")
     version("0.3.1", sha256="a5032a0bbbbacc952037c5215b71aa6b438767a84bafb60fda25ba43c8835513")
