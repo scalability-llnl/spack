@@ -24,7 +24,7 @@ class PyVirtualenvwrapper(PythonPackage):
     version("4.8.2", sha256="18d8e4c500c4c4ee794f704e050cf2bbb492537532a4521d1047e7dd1ee4e374")
 
     depends_on("python@2.6:")
-    depends_on("py-pbr", type="build", when="@4.8.4:")
+    depends_on("py-pbr", type="build", when="@4.8")
     depends_on("py-virtualenv", type=("build", "run"))
     depends_on("py-virtualenv-clone", type=("build", "run"))
     depends_on("py-stevedore", type=("build", "run"))
