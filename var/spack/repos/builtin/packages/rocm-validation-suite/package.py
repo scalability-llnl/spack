@@ -62,7 +62,7 @@ class RocmValidationSuite(CMakePackage):
     patch("009-replacing-rocm-path-with-package-path.patch", when="@6.0")
     patch("009-replacing-rocm-path-with-package-path-6.1.patch", when="@6.1:6.2.0")
     patch("009-replacing-rocm-path-with-package-path-6.2.1.patch", when="@6.2.1:6.2.4")
-    patch("009-replacing-rocm-path-with-package-path-6.3.patch", when="@6.3.0")
+    patch("009-replacing-rocm-path-with-package-path-6.3.patch", when="@6.3.0:")
     depends_on("cmake@3.5:", type="build")
     depends_on("zlib-api", type="link")
     depends_on("yaml-cpp~shared")
