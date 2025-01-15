@@ -132,44 +132,43 @@ def test_double_splice(install_specs, mutable_config):
     assert concrete["splice-z"].dag_hash() == splice_z.dag_hash()
 
 
-# The next two tests are mirrors of one another
-def test_virtual_multi_splices_in(install_specs, mutable_config):
-    goal_specs = [
-        "depends-on-virtual-with-abi ^virtual-abi-multi abi=one",
-        "depends-on-virtual-with-abi ^virtual-abi-multi abi=two",
-    ]
-    install_specs(
-        "depends-on-virtual-with-abi ^virtual-abi-1", "depends-on-virtual-with-abi ^virtual-abi-2"
-    )
+@pytest.mark.parametrize(
+    "original_spec,goal_spec",
+    [
+        # `virtual-abi-1` can be spliced for `virtual-abi-multi abi=one` and vice-versa
+        (
+            "depends-on-virtual-with-abi ^virtual-abi-1",
+            "depends-on-virtual-with-abi ^virtual-abi-multi abi=one",
+        ),
+        (
+            "depends-on-virtual-with-abi ^virtual-abi-multi abi=one",
+            "depends-on-virtual-with-abi ^virtual-abi-1",
+        ),
+        # `virtual-abi-2` can be spliced for `virtual-abi-multi abi=two` and vice-versa
+        (
+            "depends-on-virtual-with-abi ^virtual-abi-2",
+            "depends-on-virtual-with-abi ^virtual-abi-multi abi=two",
+        ),
+        (
+            "depends-on-virtual-with-abi ^virtual-abi-multi abi=two",
+            "depends-on-virtual-with-abi ^virtual-abi-2",
+        ),
+    ],
+)
+def test_virtual_multi_splices_in(original_spec, goal_spec, install_specs, mutable_config):
+    """Tests that we can splice a virtual dependency with a different, but compatible, provider."""
+    original = install_specs(original_spec)[0]
     mutable_config.set("packages", _make_specs_non_buildable(["depends-on-virtual-with-abi"]))
 
-    for gs in goal_specs:
-        with pytest.raises(SolverError):
-            spack.concretize.concretize_one(gs)
+    with pytest.raises(SolverError):
+        spack.concretize.concretize_one(goal_spec)
 
     _enable_splicing()
-    for gs in goal_specs:
-        assert spack.concretize.concretize_one(gs).satisfies(gs)
+    spliced = spack.concretize.concretize_one(goal_spec)
 
-
-def test_virtual_multi_can_be_spliced(install_specs, mutable_config):
-    goal_specs = [
-        "depends-on-virtual-with-abi ^virtual-abi-1",
-        "depends-on-virtual-with-abi ^virtual-abi-2",
-    ]
-    install_specs(
-        "depends-on-virtual-with-abi ^virtual-abi-multi abi=one",
-        "depends-on-virtual-with-abi ^virtual-abi-multi abi=two",
-    )
-    mutable_config.set("packages", _make_specs_non_buildable(["depends-on-virtual-with-abi"]))
-
-    for gs in goal_specs:
-        with pytest.raises(SolverError):
-            spack.concretize.concretize_one(gs)
-
-    _enable_splicing()
-    for gs in goal_specs:
-        assert spack.concretize.concretize_one(gs).satisfies(gs)
+    assert spliced.dag_hash() != original.dag_hash()
+    assert spliced.build_spec.dag_hash() == original.dag_hash()
+    assert spliced["virtual-with-abi"].name != spliced.build_spec["virtual-with-abi"].name
 
 
 def test_manyvariant_star_matching_variant_splice(install_specs, mutable_config):
