@@ -7,10 +7,10 @@ import argparse
 import pytest
 
 import spack.cmd.checksum
+import spack.concretize
 import spack.error
 import spack.package_base
 import spack.repo
-import spack.spec
 import spack.stage
 import spack.util.web
 from spack.main import SpackCommand
@@ -308,7 +308,7 @@ def test_checksum_url(mock_packages, config):
 
 
 def test_checksum_verification_fails(default_mock_concretization, capsys, can_fetch_versions):
-    spec = spack.spec.Spec("zlib").concretized()
+    spec = spack.concretize.concretize_one("zlib")
     pkg = spec.package
     versions = list(pkg.versions.keys())
     version_hashes = {versions[0]: "abadhash", Version("0.1"): "123456789"}

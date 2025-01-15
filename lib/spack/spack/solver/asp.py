@@ -67,7 +67,7 @@ from .version_order import concretization_version_order
 
 GitOrStandardVersion = Union[spack.version.GitVersion, spack.version.StandardVersion]
 
-TransformFunction = Callable[["spack.spec.Spec", List[AspFunction]], List[AspFunction]]
+TransformFunction = Callable[[spack.spec.Spec, List[AspFunction]], List[AspFunction]]
 
 #: Enable the addition of a runtime node
 WITH_RUNTIME = sys.platform != "win32"
@@ -127,8 +127,8 @@ class Provenance(enum.IntEnum):
 
 @contextmanager
 def named_spec(
-    spec: Optional["spack.spec.Spec"], name: Optional[str]
-) -> Iterator[Optional["spack.spec.Spec"]]:
+    spec: Optional[spack.spec.Spec], name: Optional[str]
+) -> Iterator[Optional[spack.spec.Spec]]:
     """Context manager to temporarily set the name of a spec"""
     if spec is None or name is None:
         yield spec
@@ -747,11 +747,11 @@ class ErrorHandler:
 class KnownCompiler(NamedTuple):
     """Data class to collect information on compilers"""
 
-    spec: "spack.spec.Spec"
+    spec: spack.spec.Spec
     os: str
     target: str
     available: bool
-    compiler_obj: Optional["spack.compiler.Compiler"]
+    compiler_obj: Optional[spack.compiler.Compiler]
 
     def _key(self):
         return self.spec, self.os, self.target
@@ -1386,7 +1386,7 @@ class SpackSolverSetup:
 
     def define_variant(
         self,
-        pkg: "Type[spack.package_base.PackageBase]",
+        pkg: Type[spack.package_base.PackageBase],
         name: str,
         when: spack.spec.Spec,
         variant_def: vt.Variant,
@@ -1490,7 +1490,7 @@ class SpackSolverSetup:
             )
         )
 
-    def variant_rules(self, pkg: "Type[spack.package_base.PackageBase]"):
+    def variant_rules(self, pkg: Type[spack.package_base.PackageBase]):
         for name in pkg.variant_names():
             self.gen.h3(f"Variant {name} in package {pkg.name}")
             for when, variant_def in pkg.variant_definitions(name):
@@ -1681,8 +1681,8 @@ class SpackSolverSetup:
     def _gen_match_variant_splice_constraints(
         self,
         pkg,
-        cond_spec: "spack.spec.Spec",
-        splice_spec: "spack.spec.Spec",
+        cond_spec: spack.spec.Spec,
+        splice_spec: spack.spec.Spec,
         hash_asp_var: "AspVar",
         splice_node,
         match_variants: List[str],
@@ -2977,7 +2977,7 @@ class SpackSolverSetup:
             for s in spec_group[key]:
                 yield _spec_with_default_name(s, pkg_name)
 
-    def pkg_class(self, pkg_name: str) -> typing.Type["spack.package_base.PackageBase"]:
+    def pkg_class(self, pkg_name: str) -> typing.Type[spack.package_base.PackageBase]:
         request = pkg_name
         if pkg_name in self.explicitly_required_namespaces:
             namespace = self.explicitly_required_namespaces[pkg_name]
@@ -3096,7 +3096,7 @@ class CompilerParser:
 
             self.compilers.add(candidate)
 
-    def with_input_specs(self, input_specs: List["spack.spec.Spec"]) -> "CompilerParser":
+    def with_input_specs(self, input_specs: List[spack.spec.Spec]) -> "CompilerParser":
         """Accounts for input specs when building the list of possible compilers.
 
         Args:
@@ -3136,7 +3136,7 @@ class CompilerParser:
 
         return self
 
-    def add_compiler_from_concrete_spec(self, spec: "spack.spec.Spec") -> None:
+    def add_compiler_from_concrete_spec(self, spec: spack.spec.Spec) -> None:
         """Account for compilers that are coming from concrete specs, through reuse.
 
         Args:
