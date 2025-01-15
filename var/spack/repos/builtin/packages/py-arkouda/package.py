@@ -1,7 +1,6 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
-# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)s
 
 from spack.package import *
 
@@ -15,14 +14,14 @@ class PyArkouda(PythonPackage):
     url = "https://github.com/Bears-R-Us/arkouda/archive/refs/tags/v2024.10.02.tar.gz"
     git = "https://github.com/Bears-R-Us/arkouda.git"
 
+    # See https://spdx.org/licenses/ for a list.
+    license("MIT")
+
     test_requires_compiler = True
 
     # A list of GitHub accounts to notify when the package is updated.
     # TODO: add arkouda devs github account
     maintainers("arezaii")
-
-    # See https://spdx.org/licenses/ for a list.
-    license("MIT")
 
     version("master", branch="master")
 
