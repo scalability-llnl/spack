@@ -8,12 +8,12 @@ import pytest
 
 import llnl.util.filesystem as fs
 
+import spack.concretize
 import spack.config
 import spack.database
 import spack.environment as ev
 import spack.main
 import spack.schema.config
-import spack.spec
 import spack.store
 import spack.util.spack_yaml as syaml
 
@@ -593,8 +593,7 @@ def test_config_prefer_upstream(
     prepared_db = spack.database.Database(mock_db_root, layout=gen_mock_layout("/a/"))
 
     for spec in ["hdf5 +mpi", "hdf5 ~mpi", "boost+debug~icu+graph", "dependency-install", "patch"]:
-        dep = spack.spec.Spec(spec)
-        dep.concretize()
+        dep = spack.concretize.concretize_one(spec)
         prepared_db.add(dep)
 
     downstream_db_root = str(tmpdir_factory.mktemp("mock_downstream_db_root"))

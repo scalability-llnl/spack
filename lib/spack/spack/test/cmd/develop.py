@@ -8,6 +8,7 @@ import pytest
 
 import llnl.util.filesystem as fs
 
+import spack.concretize
 import spack.config
 import spack.environment as ev
 import spack.package_base
@@ -138,7 +139,8 @@ class TestDevelop:
             self.check_develop(e, spack.spec.Spec("mpich@=1.0"), path)
 
             # Check modifications actually worked
-            assert spack.spec.Spec("mpich@1.0").concretized().satisfies("dev_path=%s" % abspath)
+            result = spack.concretize.concretize_one("mpich@1.0")
+            assert result.satisfies("dev_path=%s" % abspath)
 
     def test_develop_canonicalize_path_no_args(self, monkeypatch):
         env("create", "test")
@@ -165,7 +167,8 @@ class TestDevelop:
             self.check_develop(e, spack.spec.Spec("mpich@=1.0"), path)
 
             # Check modifications actually worked
-            assert spack.spec.Spec("mpich@1.0").concretized().satisfies("dev_path=%s" % abspath)
+            result = spack.concretize.concretize_one("mpich@1.0")
+            assert result.satisfies("dev_path=%s" % abspath)
 
 
 def _git_commit_list(git_repo_dir):
@@ -190,7 +193,7 @@ def test_develop_full_git_repo(
         spack.package_base.PackageBase, "git", "file://%s" % repo_path, raising=False
     )
 
-    spec = spack.spec.Spec("git-test-commit@1.2").concretized()
+    spec = spack.concretize.concretize_one("git-test-commit@1.2")
     try:
         spec.package.do_stage()
         commits = _git_commit_list(spec.package.stage[0].source_path)

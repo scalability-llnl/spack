@@ -235,6 +235,7 @@ class KokkosLegacy(Package):
 
     # generate_makefile.bash calls cmake
     depends_on("cmake@3.10:", type="build")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         generate = which(join_path(self.stage.source_path, "generate_makefile.bash"))
