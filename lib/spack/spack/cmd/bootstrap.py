@@ -345,9 +345,8 @@ def _add(args):
     # paths (urls) with absolute paths.
     with open(file, mode="r", encoding="utf-8") as f:
         metadata = spack.util.spack_yaml.load(stream=f)
-    metadata['info']['url'] = spack.util.path.canonicalize_path(
-        metadata['info']['url'],
-        default_wd=metadata_dir
+    metadata["info"]["url"] = spack.util.path.canonicalize_path(
+        metadata["info"]["url"], default_wd=metadata_dir
     )
     with open(file, mode="w", encoding="utf-8") as f:
         spack.util.spack_yaml.dump(metadata, stream=f)

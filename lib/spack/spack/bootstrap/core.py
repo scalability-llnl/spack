@@ -526,7 +526,8 @@ def ensure_patchelf_in_path_or_raise() -> spack.util.executable.Executable:
 
 def re2c_root_spec() -> str:
     """Return the root spec used to bootstrap re2c"""
-    return _root_spec("re2c@3.0:")
+    return _root_spec("re2c@=3.0")
+
 
 def ensure_winsdk_external_or_raise() -> None:
     """Ensure the Windows SDK + WGL are available on system
