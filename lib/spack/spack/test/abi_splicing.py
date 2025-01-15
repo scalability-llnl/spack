@@ -81,14 +81,25 @@ def test_splice_installed_hash(install_specs, mutable_config):
     assert concrete["splice-h"].dag_hash() == splice_h.dag_hash()
 
 def test_splice_build_splice_node(install_specs, mutable_config):
-    install_specs("splice-t@1 ^splice-h@1.0.0+compat ^splice-z@1.0.0+compat")
+    """Tests splicing the dependency of an installed spec, for a spec that is yet to be built"""
+    splice_t = install_specs("splice-t@1 ^splice-h@1.0.0+compat ^splice-z@1.0.0+compat")[0]
     mutable_config.set("packages", _make_specs_non_buildable(["splice-t"]))
 
     goal_spec = Spec("splice-t@1 ^splice-h@1.0.2+compat ^splice-z@1.0.0+compat")
     with pytest.raises(SolverError):
         spack.concretize.concretize_one(goal_spec)
+
     _enable_splicing()
-    assert spack.concretize.concretize_one(goal_spec).satisfies(goal_spec)
+    concrete =  spack.concretize.concretize_one(goal_spec)
+
+    # splice-t has a dependency that is changing, thus its hash should be different
+    assert concrete.dag_hash() != splice_t.dag_hash()
+    assert concrete.build_spec.satisfies(splice_t)
+    assert not concrete.satisfies(splice_t)
+
+    # splice-h should be different
+    assert concrete["splice-h"].dag_hash() != splice_t["splice-h"].dag_hash()
+    assert concrete["splice-h"].build_spec.dag_hash() == concrete["splice-h"].dag_hash()
 
 
 def test_double_splice(install_specs, mutable_config):
