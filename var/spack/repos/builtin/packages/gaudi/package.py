@@ -183,7 +183,6 @@ class Gaudi(CMakePackage):
             # but may replace LD_LIBRARY_PATH in the future
             env.prepend_path("GAUDI_PLUGIN_PATH", lib_path)
 
-
     def url_for_version(self, version):
         major = str(version[0])
         minor = str(version[1])
