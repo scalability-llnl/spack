@@ -22,7 +22,7 @@ import spack.environment
 import spack.error
 import spack.fetch_strategy
 import spack.main
-import spack.mirror
+import spack.mirrors.utils
 import spack.stage
 import spack.util.compression
 import spack.util.executable
@@ -823,8 +823,11 @@ def _create_tree_from_dir_recursive(path):
             tree[name] = _create_tree_from_dir_recursive(sub_path)
         return tree
     else:
-        with open(path, "r", encoding="utf-8") as f:
-            content = f.read() or None
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                content = f.read() or None
+        except UnicodeDecodeError:
+            raise ValueError(f"Test error: {path} is not utf-8")
         return content
 
 
@@ -879,7 +882,7 @@ class TestDevelopStage:
             "test-stage", srcdir, reference_link="link-to-stage", mirror_id=name_of_archive
         )
         cache = spack.caches.MirrorCache(root=dst_cache, skip_unstable_versions=False)
-        stats = spack.mirror.MirrorStats()
+        stats = spack.mirrors.utils.MirrorStats()
         stage.cache_mirror(cache, stats)
 
         the_resulting_archive = os.path.join(dst_cache, "develop", name_of_archive + ".tar.gz")
@@ -920,7 +923,7 @@ class TestDevelopStage:
             "test-stage", srcdir, reference_link="link-to-stage", mirror_id=dev_id
         )
         cache = spack.caches.MirrorCache(root=the_mirror, skip_unstable_versions=False)
-        stats = spack.mirror.MirrorStats()
+        stats = spack.mirrors.utils.MirrorStats()
         stage.cache_mirror(cache, stats)
 
         env("create", "test")

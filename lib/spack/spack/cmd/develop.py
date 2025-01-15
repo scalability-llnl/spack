@@ -10,7 +10,7 @@ import llnl.util.tty as tty
 import spack.cmd
 import spack.config
 import spack.fetch_strategy
-import spack.mirror
+import spack.mirrors.mirror
 import spack.repo
 import spack.spec
 import spack.stage
@@ -72,7 +72,7 @@ def _retrieve_develop_from_cache(spec, dst):
     Other than this check, mirrors are generally bypassed when
     retrieving source for developed packages.
     """
-    mirrors = spack.mirror.MirrorCollection(source=True).values()
+    mirrors = spack.mirrors.mirror.MirrorCollection(source=True).values()
     # Note: stages have a notion of one "main" download site, with
     # possibly many alternatives. It doesn't quite fit the model of
     # cached `spack develop` packages
