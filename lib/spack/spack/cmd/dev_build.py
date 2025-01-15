@@ -113,7 +113,7 @@ def dev_build(self, args):
     source_path = os.path.abspath(source_path)
 
     # Forces the build to run out of the source directory.
-    spec.constrain("dev_path=%s" % source_path)
+    spec.constrain(f'dev_path="{source_path}"')
     spec.concretize()
 
     if spec.installed:
