@@ -12,7 +12,7 @@ import spack.cmd
 import spack.config
 import spack.extensions
 import spack.main
-from spack.util.path import concrete_path, fs_path
+from spack.util.path import abstract_path, concrete_path, fs_path
 
 
 class Extension:
@@ -270,12 +270,12 @@ def test_get_command_paths(config):
 
 def test_variable_in_extension_path(config, working_env):
     """Test variables in extension paths."""
-    os.environ["_MY_VAR"] = os.path.join("my", "var")
-    ext_paths = [os.path.join("~", "${_MY_VAR}", "spack-extension-1")]
+    os.environ["_MY_VAR"] = fs_path(abstract_path("my", "var"))
+    ext_paths = [fs_path(abstract_path("~", "${_MY_VAR}", "spack-extension-1"))]
     # Home env variable is USERPROFILE on Windows
     home_env = "USERPROFILE" if sys.platform == "win32" else "HOME"
     expected_ext_paths = [
-        os.path.join(os.environ[home_env], os.environ["_MY_VAR"], "spack-extension-1")
+        fs_path(abstract_path(os.environ[home_env], os.environ["_MY_VAR"], "spack-extension-1"))
     ]
     with spack.config.override("config:extensions", ext_paths):
         assert spack.extensions.get_extension_paths() == expected_ext_paths

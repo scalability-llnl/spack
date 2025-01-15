@@ -4,7 +4,6 @@
 """Service functions and classes to implement the hooks
 for Spack's command extensions.
 """
-import glob
 import importlib
 import os
 import re
@@ -109,18 +108,16 @@ def ensure_extension_loaded(extension, *, path):
     ensure_package_creation(extension + ".cmd")
 
 
-def load_extension(name: str) -> str:
+def load_extension(name: str) -> Path:
     """Loads a single extension into the 'spack.extensions' package.
 
     Args:
         name: name of the extension
     """
-    extension_root = path_for_extension(name, paths=get_extension_paths())
+    extension_root = concrete_path(path_for_extension(name, paths=get_extension_paths()))
     ensure_extension_loaded(name, path=extension_root)
-    commands = glob.glob(
-        os.path.join(extension_root, extension_name(extension_root), "cmd", "*.py")
-    )
-    commands = [os.path.basename(x).rstrip(".py") for x in commands]
+    commands = (extension_root / extension_name(extension_root) / "cmd" / "*.py").glob("*")
+    commands = [x.name.rstrip(".py") for x in commands]
     for command in commands:
         load_command_extension(command, extension_root)
     return extension_root
