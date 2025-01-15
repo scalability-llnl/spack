@@ -12,7 +12,7 @@ class PyVirtualenvwrapper(PythonPackage):
     workflow, making it easier to work on more than one project at a time
     without introducing conflicts in their dependencies."""
 
-    homepage = "https://bitbucket.org/virtualenvwrapper/virtualenvwrapper.git"
+    homepage = "https://github.com/python-virtualenvwrapper/virtualenvwrapper"
     pypi = "virtualenvwrapper/virtualenvwrapper-4.8.2.tar.gz"
 
     license("MIT")
