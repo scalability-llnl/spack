@@ -86,7 +86,6 @@ import llnl.util.tty.color as clr
 import spack
 import spack.compiler
 import spack.compilers
-import spack.config
 import spack.deptypes as dt
 import spack.error
 import spack.hash_types as ht
@@ -94,7 +93,6 @@ import spack.paths
 import spack.platforms
 import spack.provider_index
 import spack.repo
-import spack.solver
 import spack.spec_parser
 import spack.store
 import spack.traverse
@@ -2053,6 +2051,20 @@ class Spec:
         )
 
     @property
+    def long_spec(self):
+        """Returns a string of the spec with the dependencies completely
+        enumerated."""
+        root_str = [self.format()]
+        sorted_dependencies = sorted(
+            self.traverse(root=False), key=lambda x: (x.name, x.abstract_hash)
+        )
+        sorted_dependencies = [
+            d.format("{edge_attributes} " + DEFAULT_FORMAT) for d in sorted_dependencies
+        ]
+        spec_str = " ^".join(root_str + sorted_dependencies)
+        return spec_str.strip()
+
+    @property
     def short_spec(self):
         """Returns a version of the spec with the dependencies hashed
         instead of completely enumerated."""
@@ -2935,44 +2947,16 @@ class Spec:
             raise SpecDeprecatedError(msg)
 
     def concretize(self, tests: Union[bool, Iterable[str]] = False) -> None:
-        """Concretize the current spec.
+        from spack.concretize import concretize_one
 
-        Args:
-            tests: if False disregard 'test' dependencies, if a list of names activate them for
-                the packages in the list, if True activate 'test' dependencies for all packages.
-        """
-        import spack.solver.asp
+        warnings.warn(
+            "`Spec.concretize` is deprecated and will be removed in version 1.0.0. Use "
+            "`spack.concretize.concretize_one` instead.",
+            category=spack.error.SpackAPIWarning,
+            stacklevel=2,
+        )
 
-        self.replace_hash()
-
-        for node in self.traverse():
-            if not node.name:
-                raise spack.error.SpecError(
-                    f"Spec {node} has no name; cannot concretize an anonymous spec"
-                )
-
-        if self._concrete:
-            return
-
-        allow_deprecated = spack.config.get("config:deprecated", False)
-        solver = spack.solver.asp.Solver()
-        result = solver.solve([self], tests=tests, allow_deprecated=allow_deprecated)
-
-        # take the best answer
-        opt, i, answer = min(result.answers)
-        name = self.name
-        # TODO: Consolidate this code with similar code in solve.py
-        if self.virtual:
-            providers = [spec.name for spec in answer.values() if spec.package.provides(name)]
-            name = providers[0]
-
-        node = spack.solver.asp.SpecBuilder.make_node(pkg=name)
-        assert (
-            node in answer
-        ), f"cannot find {name} in the list of specs {','.join([n.pkg for n in answer.keys()])}"
-
-        concretized = answer[node]
-        self._dup(concretized)
+        self._dup(concretize_one(self, tests))
 
     def _mark_root_concrete(self, value=True):
         """Mark just this spec (not dependencies) concrete."""
@@ -3062,19 +3046,16 @@ class Spec:
             spec._cached_hash(ht.dag_hash)
 
     def concretized(self, tests: Union[bool, Iterable[str]] = False) -> "Spec":
-        """This is a non-destructive version of concretize().
+        from spack.concretize import concretize_one
 
-        First clones, then returns a concrete version of this package
-        without modifying this package.
+        warnings.warn(
+            "`Spec.concretized` is deprecated and will be removed in version 1.0.0. Use "
+            "`spack.concretize.concretize_one` instead.",
+            category=spack.error.SpackAPIWarning,
+            stacklevel=2,
+        )
 
-        Args:
-            tests (bool or list): if False disregard 'test' dependencies,
-                if a list of names activate them for the packages in the list,
-                if True activate 'test' dependencies for all packages.
-        """
-        clone = self.copy()
-        clone.concretize(tests=tests)
-        return clone
+        return concretize_one(self, tests)
 
     def index(self, deptype="all"):
         """Return a dictionary that points to all the dependencies in this
@@ -4165,15 +4146,7 @@ class Spec:
         if not self._dependencies:
             return self.format()
 
-        root_str = [self.format()]
-        sorted_dependencies = sorted(
-            self.traverse(root=False), key=lambda x: (x.name, x.abstract_hash)
-        )
-        sorted_dependencies = [
-            d.format("{edge_attributes} " + DEFAULT_FORMAT) for d in sorted_dependencies
-        ]
-        spec_str = " ^".join(root_str + sorted_dependencies)
-        return spec_str.strip()
+        return self.long_spec
 
     @property
     def colored_str(self):

@@ -9,13 +9,12 @@ import pytest
 import llnl.util.filesystem as fs
 
 import spack.ci as ci
+import spack.concretize
 import spack.environment as ev
 import spack.error
 import spack.paths as spack_paths
 import spack.repo as repo
-import spack.spec
 import spack.util.git
-from spack.spec import Spec
 
 pytestmark = [pytest.mark.usefixtures("mock_packages")]
 
@@ -54,7 +53,7 @@ def test_pipeline_dag(config, tmpdir):
     builder.add_package("pkg-a", dependencies=[("pkg-b", None, None), ("pkg-c", None, None)])
 
     with repo.use_repositories(builder.root):
-        spec_a = Spec("pkg-a").concretized()
+        spec_a = spack.concretize.concretize_one("pkg-a")
 
         key_a = ci.common.PipelineDag.key(spec_a)
         key_b = ci.common.PipelineDag.key(spec_a["pkg-b"])
@@ -449,7 +448,7 @@ def test_ci_run_standalone_tests_not_installed_junit(
     log_file = tmp_path / "junit.xml"
     args = {
         "log_file": str(log_file),
-        "job_spec": spack.spec.Spec("printing-package").concretized(),
+        "job_spec": spack.concretize.concretize_one("printing-package"),
         "repro_dir": str(repro_dir),
         "fail_fast": True,
     }
@@ -468,7 +467,7 @@ def test_ci_run_standalone_tests_not_installed_cdash(
     log_file = tmp_path / "junit.xml"
     args = {
         "log_file": str(log_file),
-        "job_spec": spack.spec.Spec("printing-package").concretized(),
+        "job_spec": spack.concretize.concretize_one("printing-package"),
         "repro_dir": str(repro_dir),
     }
 
@@ -501,7 +500,7 @@ def test_ci_run_standalone_tests_not_installed_cdash(
 def test_ci_skipped_report(tmpdir, mock_packages, config):
     """Test explicit skipping of report as well as CI's 'package' arg."""
     pkg = "trivial-smoke-test"
-    spec = spack.spec.Spec(pkg).concretized()
+    spec = spack.concretize.concretize_one(pkg)
     ci_cdash = {
         "url": "file://fake",
         "build-group": "fake-group",

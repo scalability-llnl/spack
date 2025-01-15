@@ -22,6 +22,7 @@ class Mpigraph(Package):
     version("0.0.1")
 
     depends_on("mpi")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         mkdirp(prefix.bin)

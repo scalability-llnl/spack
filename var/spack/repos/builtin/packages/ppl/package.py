@@ -31,6 +31,7 @@ class Ppl(Package):
     depends_on("cxx", type="build")  # generated
 
     depends_on("gmp")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         configure("--prefix=%s" % prefix, "--with-gmp=%s" % spec["gmp"].prefix)
