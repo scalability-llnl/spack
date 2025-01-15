@@ -121,6 +121,7 @@ class Ncl(Package):
     depends_on("udunits", when="+udunits2")
     depends_on("jasper@:2", when="+grib")
     depends_on("gsl", when="+eemd")
+    depends_on("gmake", type="build")
 
     # We need src files of triangle to appear in ncl's src tree if we want
     # triangle's features.

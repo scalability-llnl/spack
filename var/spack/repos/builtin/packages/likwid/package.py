@@ -106,6 +106,7 @@ class Likwid(Package):
     # depends_on('gnuplot', type='run')
 
     depends_on("perl", type=("build", "run"))
+    depends_on("gmake", type="build")
 
     def patch(self):
         files = glob.glob("perl/*.*") + glob.glob("bench/perl/*.*")

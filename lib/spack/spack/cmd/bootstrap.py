@@ -14,9 +14,9 @@ import spack
 import spack.bootstrap
 import spack.bootstrap.config
 import spack.bootstrap.core
+import spack.concretize
 import spack.config
 import spack.mirrors.utils
-import spack.spec
 import spack.stage
 import spack.util.path
 import spack.util.spack_yaml
@@ -397,7 +397,7 @@ def _mirror(args):
         llnl.util.tty.msg(msg.format(spec_str, mirror_dir))
         # Suppress tty from the call below for terser messages
         llnl.util.tty.set_msg_enabled(False)
-        spec = spack.spec.Spec(spec_str).concretized()
+        spec = spack.concretize.concretize_one(spec_str)
         for node in spec.traverse():
             spack.mirrors.utils.create(mirror_dir, [node])
         llnl.util.tty.set_msg_enabled(True)
