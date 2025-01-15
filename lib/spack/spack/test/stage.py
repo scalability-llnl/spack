@@ -18,6 +18,7 @@ from llnl.util.filesystem import getuid, mkdirp, partition_path, touch, working_
 from llnl.util.symlink import readlink
 
 import spack.caches
+import spack.cmd.develop
 import spack.config
 import spack.environment
 import spack.error
@@ -906,10 +907,11 @@ class TestDevelopStage:
         mock_packages,
         mutable_mock_env_path,
         mock_fetch,
-        monkeypatch
+        monkeypatch,
     ):
         def fail(*args):
             raise ValueError("This function should not be called")
+
         monkeypatch.setattr(spack.cmd.develop, "_retrieve_develop_source", fail)
 
         develop = spack.main.SpackCommand("develop")
