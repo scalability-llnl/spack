@@ -864,7 +864,7 @@ class DevelopStage(LockableStagingDir):
         tty.debug("Sources for Develop stages are not cached")
 
     def cache_mirror(
-        self, mirror: "spack.caches.MirrorCache", stats: "spack.mirror.MirrorStats"
+        self, mirror: "spack.caches.MirrorCache", stats: "spack.mirrors.utils.MirrorStats"
     ) -> None:
         import llnl.util.filesystem
 
