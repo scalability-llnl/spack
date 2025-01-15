@@ -35,12 +35,7 @@ def setup_parser(subparser):
 def concretize(parser, args):
     env = spack.cmd.require_active_env(cmd_name="concretize")
 
-    if args.test == "all":
-        tests = True
-    elif args.test == "root":
-        tests = [spec.name for spec in env.user_specs]
-    else:
-        tests = False
+    tests = spack.cmd.test_settings(args.test, env.user_specs)
 
     with env.write_transaction():
         concretized_specs = env.concretize(force=args.force, tests=tests)

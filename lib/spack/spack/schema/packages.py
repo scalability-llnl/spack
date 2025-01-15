@@ -157,6 +157,17 @@ properties: Dict[str, Any] = {
                     },
                     "buildable": {"type": "boolean", "default": True},
                     "permissions": permissions,
+                    "install_args": {
+                        "type": "object",
+                        "default": {},
+                        "properties": {},
+                        "additionalProperties": True,
+                        "patternProperties": {
+                            "^(test|overwrite|package_cache_only|dependencies_cache_only)": {
+                                "not": {}
+                            }
+                        },
+                    },
                     # If 'get_full_repo' is promoted to a Package-level
                     # attribute, it could be useful to set it here
                     "package_attributes": package_attributes,
