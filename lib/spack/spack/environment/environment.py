@@ -3015,7 +3015,7 @@ class EnvironmentManifestFile(collections.abc.Mapping):
         if missing:
             msg = "Detected {0} missing include path(s):".format(len(missing))
             msg += "\n   {0}".format("\n   ".join(missing))
-            raise spack.config.ConfigFileError(msg)
+            tty.warn(msg)
 
         return scopes
 
