@@ -16,7 +16,7 @@ class Dftd4(MesonPackage, CMakePackage):
 
     license("LGPL-3.0-only")
 
-    build_system("cmake", "meson", default="mason")
+    build_system("cmake", "meson", default="meson")
 
     version("main", branch="main")
     version("3.7.0", sha256="4e8749df6852bf863d5d1831780a2d30e9ac4afcfebbbfe5f6a6a73d06d6c6ee")
