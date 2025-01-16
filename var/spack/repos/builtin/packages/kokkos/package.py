@@ -274,12 +274,21 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         "{0} is not supported; "
         "Kokkos supports the following AMD GPU targets: " + ", ".join(amdgpu_arch_map.keys())
     )
+    amd_um_support_conflict_msg = (
+        "{0} is not supported; "
+        "Kokkos supports the following AMD GPU targets with unified memory: "
+        + ", ".join(amdgpu_um_arch_map.keys())
+    )
     for arch in ROCmPackage.amdgpu_targets:
         if arch not in amdgpu_arch_map:
             conflicts(
-                "+rocm",
-                when="amdgpu_target={0}".format(arch),
-                msg=amd_support_conflict_msg.format(arch),
+                "+rocm", when=f"amdgpu_target={arch}", msg=amd_support_conflict_msg.format(arch)
+            )
+        if arch not in amdgpu_um_arch_map:
+            conflicts(
+                "+rocm+unified_memory",
+                when=f"amdgpu_target={arch}",
+                msg=amd_um_support_conflict_msg.format(arch),
             )
 
     intel_gpu_arches = (
