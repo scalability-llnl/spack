@@ -1,0 +1,35 @@
+commit ba58b4edc86dfcf0b2bdb9f3c910a2181a21060a
+Author: Jade Abraham <jade.abraham@hpe.com>
+Date:   Mon Nov 25 08:19:07 2024 -0800
+
+    fix make check for gpu
+    
+    Signed-off-by: Jade Abraham <jade.abraham@hpe.com>
+
+diff --git a/util/test/checkChplInstall b/util/test/checkChplInstall
+index e0e82a471e..5b1c638835 100755
+--- a/util/test/checkChplInstall
++++ b/util/test/checkChplInstall
+@@ -213,12 +213,18 @@ else
+ fi
+ 
+ # Find number of locales and .good file
++NUMLOCALES=1
++GOOD=${TEST_DIR}/${TEST_JOB}.good
+ if [ ${chpl_comm} == "none" ]; then
+-    NUMLOCALES=1
+-    GOOD=${TEST_DIR}/${TEST_JOB}.comm-none.good
++    # use comm-none specific good file if it exists
++    if [ -f ${TEST_DIR}/${TEST_JOB}.comm-none.good ]; then
++        GOOD=${TEST_DIR}/${TEST_JOB}.comm-none.good
++    fi
+ else
+-    NUMLOCALES="$(cat ${TEST_DIR}/NUMLOCALES)"
+-    GOOD=${TEST_DIR}/${TEST_JOB}.good
++    # use specific NUMLOCALES if it exists
++    if [ -f ${TEST_DIR}/NUMLOCALES ]; then
++      NUMLOCALES="$(cat ${TEST_DIR}/NUMLOCALES)"
++    fi
+ fi
+ 
+ # Check for valid launchers
