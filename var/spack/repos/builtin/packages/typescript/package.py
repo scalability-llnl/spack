@@ -3,8 +3,10 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
-from spack.package import *
 import re
+
+from spack.package import *
+
 
 class Typescript(Package):
     """TypeScript is a superset of JavaScript that compiles to clean JavaScript output."""
@@ -20,7 +22,6 @@ class Typescript(Package):
 
     depends_on("node-js", type=("build", "link", "run"))
     depends_on("npm", type="build")
-
 
     executables = ["^tsc$"]
 
