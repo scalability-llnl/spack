@@ -40,14 +40,11 @@ def _resolve_collected_splices(
     Returns a dict mapping original specs to their resolved counterparts
     """
 
-    def splice_topo_cmp(s1: Spec, s2: Spec):
-        """This function can be used to sort a list of specs into "reverse
-        splice-topological order". This order imposes the additional requirement
-        on reverse-topo order that any spec which will be spliced into a parent
-        comes before the parent it will be spliced into. This order ensures that
-        transitive splices will be executed in the correct order.
-
-        This assumes that the specs are already sorted in reverse topo-order
+    def splice_cmp(s1: Spec, s2: Spec):
+        """This function can be used to sort a list of specs such that that any
+        spec which will be spliced into a parent comes after the parent it will
+        be spliced into. This order ensures that transitive splices will be
+        executed in the correct order.
         """
 
         s1_splices = splices.get(s1, [])
@@ -61,10 +58,11 @@ def _resolve_collected_splices(
 
     already_resolved: Dict[Spec, Spec] = {}
     # create a mapping from dag hash to an integer representing position in reverse topo order.
-    reverse_topo_order = reversed(list(traverse_nodes(specs, order="topo", key=by_dag_hash)))
-    splice_order = sorted(reverse_topo_order, key=cmp_to_key(splice_topo_cmp))
-    splice_lookup = {spec.dag_hash(): index for index, spec in enumerate(splice_order)}
-
+    splice_order = sorted(specs, key=cmp_to_key(splice_cmp))
+    reverse_topo_order = reversed(
+        list(traverse_nodes(splice_order, order="topo", key=by_dag_hash))
+    )
+    splice_lookup = {spec.dag_hash(): index for index, spec in enumerate(reverse_topo_order)}
     # iterate over specs, children before parents
 
     for spec in sorted(specs, key=lambda x: splice_lookup[x.dag_hash()]):
