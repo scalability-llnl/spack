@@ -3630,10 +3630,6 @@ class Spec:
         self.name = other.name
         self.versions = other.versions.copy()
         self.architecture = other.architecture.copy() if other.architecture else None
-
-        if hasattr(other, "compiler_annotation"):
-            self.compiler_annotation = other.compiler_annotation
-
         self.compiler_flags = other.compiler_flags.copy()
         self.compiler_flags.spec = self
         self.variants = other.variants.copy()
