@@ -8,9 +8,9 @@ import pytest
 from llnl.util.filesystem import touch
 
 import spack.builder
+import spack.concretize
 import spack.paths
 import spack.repo
-import spack.spec
 
 
 @pytest.fixture()
@@ -78,7 +78,7 @@ def builder_test_repository():
 @pytest.mark.disable_clean_stage_check
 def test_callbacks_and_installation_procedure(spec_str, expected_values, working_env):
     """Test the correct execution of callbacks and installation procedures for packages."""
-    s = spack.spec.Spec(spec_str).concretized()
+    s = spack.concretize.concretize_one(spec_str)
     builder = spack.builder.create(s.package)
     for phase_fn in builder:
         phase_fn.execute()
@@ -101,7 +101,7 @@ def test_callbacks_and_installation_procedure(spec_str, expected_values, working
     ],
 )
 def test_old_style_compatibility_with_super(spec_str, method_name, expected):
-    s = spack.spec.Spec(spec_str).concretized()
+    s = spack.concretize.concretize_one(spec_str)
     builder = spack.builder.create(s.package)
     value = getattr(builder, method_name)()
     assert value == expected
@@ -112,7 +112,7 @@ def test_old_style_compatibility_with_super(spec_str, method_name, expected):
 @pytest.mark.usefixtures("builder_test_repository", "config", "working_env")
 @pytest.mark.disable_clean_stage_check
 def test_build_time_tests_are_executed_from_default_builder():
-    s = spack.spec.Spec("old-style-autotools").concretized()
+    s = spack.concretize.concretize_one("old-style-autotools")
     builder = spack.builder.create(s.package)
     builder.pkg.run_tests = True
     for phase_fn in builder:
@@ -126,7 +126,7 @@ def test_build_time_tests_are_executed_from_default_builder():
 @pytest.mark.usefixtures("builder_test_repository", "config", "working_env")
 def test_monkey_patching_wrapped_pkg():
     """Confirm 'run_tests' is accessible through wrappers."""
-    s = spack.spec.Spec("old-style-autotools").concretized()
+    s = spack.concretize.concretize_one("old-style-autotools")
     builder = spack.builder.create(s.package)
     assert s.package.run_tests is False
     assert builder.pkg.run_tests is False
@@ -141,7 +141,7 @@ def test_monkey_patching_wrapped_pkg():
 @pytest.mark.usefixtures("builder_test_repository", "config", "working_env")
 def test_monkey_patching_test_log_file():
     """Confirm 'test_log_file' is accessible through wrappers."""
-    s = spack.spec.Spec("old-style-autotools").concretized()
+    s = spack.concretize.concretize_one("old-style-autotools")
     builder = spack.builder.create(s.package)
 
     s.package.tester.test_log_file = "/some/file"
@@ -154,7 +154,7 @@ def test_monkey_patching_test_log_file():
 @pytest.mark.not_on_windows("Does not run on windows")
 def test_install_time_test_callback(tmpdir, config, mock_packages, mock_stage):
     """Confirm able to run stand-alone test as a post-install callback."""
-    s = spack.spec.Spec("py-test-callback").concretized()
+    s = spack.concretize.concretize_one("py-test-callback")
     builder = spack.builder.create(s.package)
     builder.pkg.run_tests = True
     s.package.tester.test_log_file = tmpdir.join("install_test.log")
@@ -174,7 +174,7 @@ def test_mixins_with_builders(working_env):
     """Tests that run_after and run_before callbacks are accumulated correctly,
     when mixins are used with builders.
     """
-    s = spack.spec.Spec("builder-and-mixins").concretized()
+    s = spack.concretize.concretize_one("builder-and-mixins")
     builder = spack.builder.create(s.package)
 
     # Check that callbacks added by the mixin are in the list

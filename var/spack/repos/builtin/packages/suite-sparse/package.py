@@ -66,6 +66,8 @@ class SuiteSparse(Package):
     # Support for TBB has been removed in version 5.11
     variant("tbb", default=False, description="Build with Intel TBB", when="@4.5.3:5.10")
 
+    depends_on("gmake", type="build")
+
     depends_on("blas")
     depends_on("lapack")
     depends_on("cuda", when="+cuda")

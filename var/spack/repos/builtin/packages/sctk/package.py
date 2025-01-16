@@ -38,6 +38,7 @@ class Sctk(Package):
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         make("config")
