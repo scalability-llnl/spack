@@ -62,8 +62,12 @@ class Mesa(MesonPackage):
     depends_on("flex", type="build")
     depends_on("gettext", type="build")
     # Upperbound on 3.11 because distutils is used for checking py-mako
-    depends_on("python@3:3.11", type="build")
+    # See issue https://gitlab.freedesktop.org/mesa/mesa/-/issues/9943
+    # This was fixed with commit 92cdf6cb5f25f632350d8ca0d9451b0e87194ca3
+    # and incorporated into 23.3
+    depends_on("python@:3.11", when="@:23.2", type="build")
     depends_on("py-mako@0.8.0:", type="build")
+    depends_on("py-packaging", type="build", when="@23.3:")
     depends_on("unwind")
     depends_on("expat")
     depends_on("zlib-api")
