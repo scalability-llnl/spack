@@ -18,6 +18,8 @@ class PyD2to1(PythonPackage):
     )
     version("0.2.12", sha256="04ab9f3ac255d367ecda1eb59379e5031816740c3a3eda95d0dba9f6bb3b7ca4")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
-    depends_on("py-setuptools", type="build")
+    # d2to1/core.py
+    # from setuptools.dist import _get_unpatched
+    depends_on("py-setuptools@:67", type=("build", "run"))
