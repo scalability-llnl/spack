@@ -307,7 +307,7 @@ class SetEnv(NameValueModifier):
         env[self.name] = str(self.value)
 
     def _cache_str(self):
-        return (f"_spack_env_set {self.name} {str(self.value)}")
+        return f"_spack_env_set {self.name} {str(self.value)}"
 
 
 class AppendFlagsEnv(NameValueModifier):
@@ -319,7 +319,7 @@ class AppendFlagsEnv(NameValueModifier):
             env[self.name] = str(self.value)
 
     def _cache_str(self):
-        return (f"_spack_env_append {self.name} {str(self.value)} {self.separator}")
+        return f"_spack_env_append {self.name} {str(self.value)} {self.separator}"
 
 
 class UnsetEnv(NameModifier):
@@ -329,7 +329,7 @@ class UnsetEnv(NameModifier):
         env.pop(self.name, None)
 
     def _cache_str(self):
-        return(f"_spack_env_unset {self.name}")
+        return f"_spack_env_unset {self.name}"
 
 
 class RemoveFlagsEnv(NameValueModifier):
@@ -341,7 +341,7 @@ class RemoveFlagsEnv(NameValueModifier):
         env[self.name] = self.separator.join(flags)
 
     def _cache_str(self):
-        return(f"_spack_env_remove {self.name} {str(self.value)} {self.separator}")
+        return f"_spack_env_remove {self.name} {str(self.value)} {self.separator}"
 
 
 class SetPath(NameValueModifier):
@@ -351,7 +351,7 @@ class SetPath(NameValueModifier):
         env[self.name] = string_path
 
     def _cache_str(self):
-        return(f"_spack_env_set {self.name} {str(self.value)} {self.separator}")
+        return f"_spack_env_set {self.name} {str(self.value)} {self.separator}"
 
 
 class AppendPath(NameValueModifier):
@@ -364,7 +364,7 @@ class AppendPath(NameValueModifier):
 
     def _cache_str(self):
         value = path_to_os_path(os.path.normpath(self.value)).pop()
-        return(f"_spack_env_append {self.name} {value} {self.separator}")
+        return f"_spack_env_append {self.name} {value} {self.separator}"
 
 
 class PrependPath(NameValueModifier):
@@ -377,7 +377,7 @@ class PrependPath(NameValueModifier):
 
     def _cache_str(self):
         value = path_to_os_path(os.path.normpath(self.value)).pop()
-        return(f"_spack_env_prepend {self.name} {value} {self.separator}")
+        return f"_spack_env_prepend {self.name} {value} {self.separator}"
 
 
 class RemovePath(NameValueModifier):
@@ -394,7 +394,7 @@ class RemovePath(NameValueModifier):
 
     def _cache_str(self):
         value = path_to_os_path(os.path.normpath(self.value)).pop()
-        return(f"_spack_env_remove {self.name} {value} {self.separator}")
+        return f"_spack_env_remove {self.name} {value} {self.separator}"
 
 
 class PruneDuplicatePaths(NameModifier):
@@ -408,7 +408,7 @@ class PruneDuplicatePaths(NameModifier):
         env[self.name] = self.separator.join(directories)
 
     def _cache_str(self):
-        return(f"_spack_env_prune_duplicates {self.name} {self.separator}")
+        return f"_spack_env_prune_duplicates {self.name} {self.separator}"
 
 
 class EnvironmentModifications:
@@ -642,7 +642,6 @@ class EnvironmentModifications:
             for modifier in actions:
                 modifier.execute(env)
 
-
     def shell_modifications(
         self,
         shell: str = "sh" if sys.platform != "win32" else os.environ.get("SPACK_SHELL", "bat"),
@@ -679,7 +678,7 @@ class EnvironmentModifications:
         #             cmd = _SHELL_SET_STRINGS[shell].format(name, value)
         #             cmds += cmd
         # All commands, regardless if there are new or not, need to be saved
-        return cache_commands #cmds
+        return cache_commands  # cmds
 
     @staticmethod
     def from_sourcing_file(

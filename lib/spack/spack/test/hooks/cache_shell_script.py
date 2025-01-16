@@ -3,8 +3,9 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
-import pytest
 import sys
+
+import pytest
 
 from spack.main import SpackCommand
 from spack.spec import Spec
@@ -16,8 +17,13 @@ install = SpackCommand("install")
 @pytest.mark.parametrize(
     "shell,set_command",
     (
-        [("sh", "export %s=%s"), ("csh", "setenv %s %s"), ("fish", "set %s %s"),
-         ("bat", 'set "%s=%s"'), ("pwsh", "$Env %s %s")]
+        [
+            ("sh", "export %s=%s"),
+            ("csh", "setenv %s %s"),
+            ("fish", "set %s %s"),
+            ("bat", 'set "%s=%s"'),
+            ("pwsh", "$Env %s %s"),
+        ]
         if sys.platform == "win32"
         else [("sh", "export %s=%s"), ("csh", "setenv %s %s"), ("fish", "set %s %s")]
     ),
@@ -41,8 +47,13 @@ def test_install_shell_cached(
 @pytest.mark.parametrize(
     "shell,set_command",
     (
-        [("sh", "export %s=%s"), ("csh", "setenv %s %s"), ("fish", "set %s %s"),
-         ("bat", 'set "%s=%s"'), ("pwsh", "$Env %s %s")]
+        [
+            ("sh", "export %s=%s"),
+            ("csh", "setenv %s %s"),
+            ("fish", "set %s %s"),
+            ("bat", 'set "%s=%s"'),
+            ("pwsh", "$Env %s %s"),
+        ]
         if sys.platform == "win32"
         else [("sh", "export %s=%s"), ("csh", "setenv %s %s"), ("fish", "set %s %s")]
     ),
@@ -62,10 +73,10 @@ def test_install_with_individual_shell_scripts(
 
     install(callpath_spec.name)
 
-    path_to_dyninst = os.path.join(dyninst_spec.prefix, ".spack",
-                                   f"{dyninst_spec.name}_shell.{shell}")
-    path_to_mpich = os.path.join(mpich_spec.prefix, ".spack",
-                                 f"{mpich_spec.name}_shell.{shell}")
+    path_to_dyninst = os.path.join(
+        dyninst_spec.prefix, ".spack", f"{dyninst_spec.name}_shell.{shell}"
+    )
+    path_to_mpich = os.path.join(mpich_spec.prefix, ".spack", f"{mpich_spec.name}_shell.{shell}")
 
     with open(path_to_dyninst, "r") as f:
         dyninst_shell = f.read()
@@ -80,8 +91,13 @@ def test_install_with_individual_shell_scripts(
 @pytest.mark.parametrize(
     "shell,set_command",
     (
-        [("sh", "export %s=%s"), ("csh", "setenv %s %s"), ("fish", "set %s %s"),
-         ("bat", 'set "%s=%s"'), ("pwsh", "$Env %s %s")]
+        [
+            ("sh", "export %s=%s"),
+            ("csh", "setenv %s %s"),
+            ("fish", "set %s %s"),
+            ("bat", 'set "%s=%s"'),
+            ("pwsh", "$Env %s %s"),
+        ]
         if sys.platform == "win32"
         else [("sh", "export %s=%s"), ("csh", "setenv %s %s"), ("fish", "set %s %s")]
     ),
@@ -101,10 +117,10 @@ def test_install_multiple_specs(
     install(dyninst_spec.name, hypre_spec.name)
 
     # no overlap in shell sc
-    path_to_dyninst = os.path.join(dyninst_spec.prefix, ".spack",
-                                   f"{dyninst_spec.name}_shell.{shell}")
-    path_to_hypre = os.path.join(hypre_spec.prefix, ".spack",
-                                 f"{hypre_spec.name}_shell.{shell}")
+    path_to_dyninst = os.path.join(
+        dyninst_spec.prefix, ".spack", f"{dyninst_spec.name}_shell.{shell}"
+    )
+    path_to_hypre = os.path.join(hypre_spec.prefix, ".spack", f"{hypre_spec.name}_shell.{shell}")
 
     with open(path_to_dyninst, "r") as f:
         dyninst_shell = f.read()
