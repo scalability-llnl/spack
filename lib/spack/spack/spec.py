@@ -3591,25 +3591,16 @@ class Spec:
 
         return self._patches
 
-    def _dup(self, other, deps: Union[bool, dt.DepTypes, dt.DepFlag] = True, cleardeps=True):
-        """Copy the spec other into self.  This is an overwriting
-        copy. It does not copy any dependents (parents), but by default
-        copies dependencies.
-
-        To duplicate an entire DAG, call _dup() on the root of the DAG.
+    def _dup(self, other: "Spec", deps: Union[bool, dt.DepTypes, dt.DepFlag] = True) -> bool:
+        """Copies "other" into self, by overwriting all attributes.
 
         Args:
-            other (Spec): spec to be copied onto ``self``
-            deps: if True copies all the dependencies. If
-                False copies None. If deptype/depflag, copy matching types.
-            cleardeps (bool): if True clears the dependencies of ``self``,
-                before possibly copying the dependencies of ``other`` onto
-                ``self``
+            other: spec to be copied onto ``self``
+            deps: if True copies all the dependencies. If False copies None.
+                If deptype, or depflag, copy matching types.
 
         Returns:
-            True if ``self`` changed because of the copy operation,
-            False otherwise.
-
+            True if ``self`` changed because of the copy operation, False otherwise.
         """
         # We don't count dependencies as changes here
         changed = True
@@ -3634,13 +3625,14 @@ class Spec:
         self.versions = other.versions.copy()
         self.architecture = other.architecture.copy() if other.architecture else None
         self.compiler = other.compiler.copy() if other.compiler else None
-        if cleardeps:
-            self._dependents = _EdgeMap(store_by_child=False)
-            self._dependencies = _EdgeMap(store_by_child=True)
         self.compiler_flags = other.compiler_flags.copy()
         self.compiler_flags.spec = self
         self.variants = other.variants.copy()
         self._build_spec = other._build_spec
+
+        # Clear dependencies
+        self._dependents = _EdgeMap(store_by_child=False)
+        self._dependencies = _EdgeMap(store_by_child=True)
 
         # FIXME: we manage _patches_in_order_of_appearance specially here
         # to keep it from leaking out of spec.py, but we should figure
@@ -4524,7 +4516,7 @@ class Spec:
 
         return spec
 
-    def clear_caches(self, ignore=()):
+    def clear_caches(self, ignore: Tuple[str, ...] = ()) -> None:
         """
         Clears all cached hashes in a Spec, while preserving other properties.
         """
