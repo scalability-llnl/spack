@@ -76,23 +76,6 @@ def setup_parser(subparser):
     )
 
 
-def read_cached_shell_script(specs, shell):
-    """Does a thing
-
-    Args:
-        spec:
-        shell:
-    """
-
-    env = environment.EnvironmentModifications()
-    for spec in specs:
-        shell_script_path = os.path.join(spec.prefix, ".spack", f"{spec.name}_shell.{shell}")
-
-        with open(shell_script_path, "r") as f:
-            shell_script = f.read()
-
-        env.cache_shell_modifications(shell, shell_script)
-
 def load(parser, args):
     env = ev.active_environment()
 
@@ -121,8 +104,15 @@ def load(parser, args):
 
     with spack.store.STORE.db.read_transaction():
         shell = args.shell if args.shell else os.environ.get("SPACK_SHELL")
-        env_mod = uenv.environment_modifications_for_specs(*specs)
 
-        read_cached_shell_script(specs, shell)
+    cmds = ""
 
-        # sys.stdout.write(cmds)
+    for spec in specs:
+        shell_script_file = os.path.join(spec.prefix, ".spack", f"{spec.name}_shell.{shell}")
+
+        # source shell_script_file
+
+        with open(shell_script_file, "r") as f:
+            cmds += f.read()
+
+    sys.stdout.write(cmds)

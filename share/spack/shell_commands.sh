@@ -14,9 +14,11 @@ _spack_env_set() {
 #
 # Unset VARNAME in the environment.
 _spack_env_unset() {
-    VARNAME = $1
+    VARNAME="$1"
 
-    export ${${VARNAME}}=""
+    # check if VARNAME exists
+
+    unset "$VARNAME"
 }
 
 # _spack_env_append VARNAME VALUE SEP
@@ -29,6 +31,7 @@ _spack_env_append() {
     SEP = $3
 
     export ${${VARNAME}}=${${VARNAME}}${SEP}${VALUE}
+    # going to need to use eval for nested braces
 }
 
 # _spack_env_prepend VARNAME VALUE SEP
@@ -44,6 +47,7 @@ _spack_env_prepend() { # if not exporting then use lowercase
         export VARNAME=${VALUE}
     else
         export ${${VARNAME}} =${VALUE}${SEP}${${VARNAME}}
+    fi
     # Should the result be a string? Might need quotes
 }
 
@@ -72,4 +76,6 @@ _spack_env_remove() {
 # VARNAME, preserving precedence.
 #
 # The list in VARNAME is separated by the SEP character.
-_spack_env_prune_duplicates() {}
+_spack_env_prune_duplicates() {
+    echo
+}
