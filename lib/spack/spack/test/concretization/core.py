@@ -3241,7 +3241,7 @@ def test_spec_unification(unify, mutable_config, mock_packages):
 
 
 def test_concretize_dev_path_with_at_symbol_in_env(tmpdir, mock_packages):
-    spec_like = "zlib@2.0"
+    spec_like = "trivial-smoke-test@1.0"
     spec = Spec(spec_like)
     add = SpackCommand("add")
     develop = SpackCommand("develop")
