@@ -16,7 +16,7 @@ class Multicharge(CMakePackage):
 
     license("Apache-2.0", checked_by="RMeli")
 
-    version("0.3.0", md5="7586576a425e4f3c74e5644049d100d7")
+    version("0.3.0", sha256="e8f6615d445264798b12d2854e25c93938373dc149bb79e6eddd23fc4309749d")
 
     variant("openmp", default=True, description="Enable OpenMP support")
 
