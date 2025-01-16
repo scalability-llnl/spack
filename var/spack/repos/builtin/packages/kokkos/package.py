@@ -269,6 +269,9 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         "gfx1030": "navi1030",
         "gfx1100": "navi1100",
     }
+    amdgpu_um_arch_map = {
+        "gfx942": "amd_gfx942_apu",
+    }
     amd_support_conflict_msg = (
         "{0} is not supported; "
         "Kokkos supports the following AMD GPU targets: " + ", ".join(amdgpu_arch_map.keys())
@@ -295,6 +298,12 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         default="none",
         values=("none",) + intel_gpu_arches,
         description="Intel GPU architecture",
+    )
+    variant(
+        "unified_memory",
+        default=False,
+        description="Enable unified memory on supported architectures",
+        when="@4.5:"
     )
 
     for dev, (dflt, desc) in devices_variants.items():
@@ -453,7 +462,10 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
             for amdgpu_target in spec.variants["amdgpu_target"].value:
                 if amdgpu_target != "none":
                     if amdgpu_target in self.amdgpu_arch_map:
-                        spack_microarches.append(self.amdgpu_arch_map[amdgpu_target])
+                        if spec.satisfies("+unified_memory") and amdgpu_target in self.amdgpu_um_arch_map:
+                            spack_microarches.append(self.amdgpu_um_arch_map[amdgpu_target])
+                        else:
+                            spack_microarches.append(self.amdgpu_arch_map[amdgpu_target])
                     else:
                         # Note that conflict declarations should prevent
                         # choosing an unsupported AMD GPU target
