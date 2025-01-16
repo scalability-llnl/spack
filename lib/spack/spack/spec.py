@@ -2964,8 +2964,9 @@ class Spec:
 
     def _mark_root_concrete(self, value=True):
         """Mark just this spec (not dependencies) concrete."""
+        if value is True:
+            self._validate_version()
         self._concrete = value
-        self._validate_version()
 
     def _validate_version(self):
         # Specs that were concretized with just a git sha as version, without associated
