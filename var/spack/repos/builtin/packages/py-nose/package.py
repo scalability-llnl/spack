@@ -17,4 +17,4 @@ class PyNose(PythonPackage):
     version("1.3.6", sha256="f61e0909a743eed37b1207e38a8e7b4a2fe0a82185e36f2be252ef1b3f901758")
     version("1.3.4", sha256="76bc63a4e2d5e5a0df77ca7d18f0f56e2c46cfb62b71103ba92a92c79fab1e03")
 
-    depends_on("py-setuptools@:57", type="build")
+    depends_on("py-setuptools", type="build")
