@@ -248,7 +248,7 @@ def compiler_output(
     # not just executable name. If we don't do this, and the path changes
     # (e.g., during testing), we can get incorrect results.
     if not os.path.isabs(compiler_path):
-        compiler_path = spack.util.executable.which_string(compiler_path, required=True)
+        compiler_path = spack.util.executable.which_string(str(compiler_path), required=True)
 
     return _compiler_output(
         compiler_path, version_argument=version_argument, ignore_errors=ignore_errors
