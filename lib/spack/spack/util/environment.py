@@ -308,11 +308,11 @@ class SetEnv(NameValueModifier):
 
     def _cache_str(self):
         value = str(self.value)
-        return (f"_spack_env_set: {self.name} {value}")
+        return (f"_spack_env_set {self.name} {value}")
 
     def shell_command(self):  # Actually call the script
         value = str(self.value)
-        print(f"_spack_env_set: {self.name} {value}")
+        print(f"_spack_env_set {self.name} {value}")
 
 
 class AppendFlagsEnv(NameValueModifier):
@@ -325,11 +325,11 @@ class AppendFlagsEnv(NameValueModifier):
 
     def _cache_str(self):
         value = str(self.value)
-        return (f"_spack_env_append: {self.name} {value} {self.separator}")
+        return (f"_spack_env_append_flag {self.name} {value} {self.separator}")
 
     def shell_command(self):  # Actually call the script
         value = str(self.value)
-        print(f"_spack_env_append: {self.name} {value} {self.separator}")
+        print(f"_spack_env_append {self.name} {value} {self.separator}")
 
 
 class UnsetEnv(NameModifier):
@@ -339,10 +339,10 @@ class UnsetEnv(NameModifier):
         env.pop(self.name, None)
 
     def _cache_str(self):
-        return(f"_spack_env_unset: {self.name}")
+        return(f"_spack_env_unset {self.name}")
 
     def shell_command(self):  # Actually call the script
-        print(f"_spack_env_unset: {self.name}")
+        print(f"_spack_env_unset {self.name}")
 
 
 class RemoveFlagsEnv(NameValueModifier):
@@ -355,11 +355,11 @@ class RemoveFlagsEnv(NameValueModifier):
 
     def _cache_str(self):
         value = str(self.value)
-        return(f"_spack_env_remove: {self.name} {value} {self.separator}")
+        return(f"_spack_env_remove_flag {self.name} {value} {self.separator}")
 
     def shell_command(self):  # Actually call the script
         value = str(self.value)
-        print(f"_spack_env_remove: {self.name} {value} {self.separator}")
+        print(f"_spack_env_remove {self.name} {value} {self.separator}")
 
 
 class SetPath(NameValueModifier):
@@ -370,11 +370,11 @@ class SetPath(NameValueModifier):
 
     def _cache_str(self):
         value = str(self.value)
-        return(f"_spack_env_set: {self.name} {value}")
+        return(f"_spack_env_set_path {self.name} {value} {self.separator}")
 
     def shell_command(self):  # Actually call the script
         value = str(self.value)
-        print(f"_spack_env_set: {self.name} {value}")
+        print(f"_spack_env_set_path {self.name} {value} {self.separator}")
 
 
 class AppendPath(NameValueModifier):
@@ -387,11 +387,11 @@ class AppendPath(NameValueModifier):
 
     def _cache_str(self):
         value = str(self.value)
-        return(f"_spack_env_append: {self.name} {value} {self.separator}")
+        return(f"_spack_env_append_path {self.name} {value} {self.separator}")
 
     def shell_command(self): # Actually call the script
         value = str(self.value)
-        print(f"_spack_env_append: {self.name} {value} {self.separator}")
+        print(f"_spack_env_append {self.name} {value} {self.separator}")
 
 
 class PrependPath(NameValueModifier):
@@ -404,11 +404,11 @@ class PrependPath(NameValueModifier):
 
     def _cache_str(self):
         value = str(self.value)
-        return(f"_spack_env_prepend: {self.name} {value} {self.separator}")
+        return(f"_spack_env_prepend_path {self.name} {value} {self.separator}")
 
     def shell_command(self):  # Actually call the script
         value = str(self.value)
-        print(f"_spack_env_prepend: {self.name} {value} {self.separator}")
+        print(f"_spack_env_prepend {self.name} {value} {self.separator}")
 
 
 class RemovePath(NameValueModifier):
@@ -425,11 +425,11 @@ class RemovePath(NameValueModifier):
 
     def _cache_str(self):
         value = str(self.value)
-        return(f"_spack_env_remove: {self.name} {value} {self.separator}")
+        return(f"_spack_env_remove_path {self.name} {value} {self.separator}")
 
     def shell_command(self):  # Actually call the script
         value = str(self.value)
-        print(f"_spack_env_remove: {self.name} {value} {self.separator}")
+        print(f"_spack_env_remove {self.name} {value} {self.separator}")
 
 
 class PruneDuplicatePaths(NameModifier):
@@ -443,12 +443,10 @@ class PruneDuplicatePaths(NameModifier):
         env[self.name] = self.separator.join(directories)
 
     def _cache_str(self):
-        value = str(self.value)
-        return(f"_spack_env_prune_duplicates: {self.name} {value} {self.separator}")
+        return(f"_spack_env_prune_duplicates {self.name} {self.separator}")
 
     def shell_command(self):  # Actually call the script
-        value = str(self.value)
-        print(f"_spack_env_prune_duplicates: {self.name} {value} {self.separator}")
+        print(f"_spack_env_prune_duplicates {self.name} {self.separator}")
 
 
 class EnvironmentModifications:
@@ -682,13 +680,38 @@ class EnvironmentModifications:
             for modifier in actions:
                 modifier.execute(env)
 
-    # def cache_shell_modifications(
-    #   self,
-    #   shell: str = os.environ.get("SPACK_SHELL")
-    #   modifications: str
-    # ):
-    #    for line in (modifications.items():
-    #        # execute
+    def cache_shell_modifications(
+        self,
+        shell: str,
+        modifications_str: str
+    ):
+        """"""
+        for line in (modifications_str.splitlines()):
+            # execute
+            info = line.split(" ")
+
+            if "remove_path" in info[0]:
+                self.remove_path(info[1], info[2], info[3])
+            elif "set_path" in info[0]:
+                self.set_path(info[1], info[2], info[3])
+            elif "append_path" in info[0]:
+                self.append_path(info[1], info[2], info[3])
+            elif "prepend" in info[0]:
+                self.prepend_path(info[1], info[2], info[3])
+            elif "remove" in info[0]:
+                self.remove_flags(info[1], info[2], info[3])
+            elif "set" in info[0]:
+                self.set(info[1], info[2])
+            elif "append" in info[0]:
+                self.append_flags(info[1], info[2], info[3])
+            elif "unset" in info[0]:
+                self.unset(info[1])
+            else:
+                self.prune_duplicate_paths(info[1], info[2])
+
+        for mod in self.env_modifications:
+            mod.shell_command()
+        print(f"cache_shell_mods: {self.env_modifications}")
 
     def shell_modifications(
         self,
@@ -704,7 +727,7 @@ class EnvironmentModifications:
 
         cache_commands = ""
 
-        for _, actions in sorted(modifications.items()):
+        for name, actions in sorted(modifications.items()):
             for modifier in actions:
                 modifier.execute(new_env)
                 cache_commands += f"{modifier._cache_str()}\n"
@@ -824,7 +847,6 @@ class EnvironmentModifications:
         # Fill the EnvironmentModifications instance
         env = EnvironmentModifications()
         # New variables
-        print("from_environment_diff")
         new_variables = list(set(after) - set(before))
         # Variables that have been unset
         unset_variables = list(set(before) - set(after))
@@ -855,7 +877,6 @@ class EnvironmentModifications:
                 env.prepend_path(variable_name, after[variable_name])
             else:
                 # We just need to set the variable to the new value
-                print("from_environment_diff")
                 env.set(variable_name, after[variable_name])
 
         for variable_name in unset_variables:
@@ -916,7 +937,6 @@ class EnvironmentModifications:
                         env.prepend_path(variable_name, item)
             else:
                 # We just need to set the variable to the new value
-                print("from_environment_diff")
                 env.set(variable_name, value_after)
 
         return env

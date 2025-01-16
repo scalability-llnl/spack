@@ -10,6 +10,7 @@ import spack.cmd.common
 import spack.environment as ev
 import spack.store
 import spack.user_environment as uenv
+import spack.util.environment as environment
 from spack.cmd.common import arguments
 
 description = "add package to the user environment"
@@ -75,6 +76,23 @@ def setup_parser(subparser):
     )
 
 
+def read_cached_shell_script(specs, shell):
+    """Does a thing
+
+    Args:
+        spec:
+        shell:
+    """
+
+    env = environment.EnvironmentModifications()
+    for spec in specs:
+        shell_script_path = os.path.join(spec.prefix, ".spack", f"{spec.name}_shell.{shell}")
+
+        with open(shell_script_path, "r") as f:
+            shell_script = f.read()
+
+        env.cache_shell_modifications(shell, shell_script)
+
 def load(parser, args):
     env = ev.active_environment()
 
@@ -104,13 +122,7 @@ def load(parser, args):
     with spack.store.STORE.db.read_transaction():
         shell = args.shell if args.shell else os.environ.get("SPACK_SHELL")
         env_mod = uenv.environment_modifications_for_specs(*specs)
-        for spec in specs:
-            shell_script_path = os.path.join(spec.prefix, ".spack", f"{spec.name}_shell.{shell}")
 
-            # find out if shell script is outdated?
-            # read and execute shell script
+        read_cached_shell_script(specs, shell)
 
-            env_mod.prepend_path(uenv.spack_loaded_hashes_var, spec.dag_hash())
-        cmds = env_mod.shell_modifications(shell)
-
-        sys.stdout.write(cmds)
+        # sys.stdout.write(cmds)
