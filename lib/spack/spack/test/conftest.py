@@ -338,6 +338,12 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(skip_as_slow)
 
 
+@pytest.fixture(scope="function")
+def no_concretization_cache():
+    """Disables the use of the concretization cache"""
+    with spack.config.override("config:enable_concretization_cache", False):
+        yield
+
 #
 # These fixtures are applied to all tests
 #
