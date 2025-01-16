@@ -169,7 +169,7 @@ properties: Dict[str, Any] = {
                             "modules": {"type": "array", "items": {"type": "string"}},
                             "extra_attributes": {
                                 "type": "object",
-                                "additionalProperties": True,
+                                "additionalProperties": {"type": "string"},
                                 "properties": {
                                     "compilers": {
                                         "type": "object",
