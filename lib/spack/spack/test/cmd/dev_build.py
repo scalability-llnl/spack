@@ -192,7 +192,6 @@ def test_dev_build_can_parse_path_with_at_symbol(tmpdir, install_mockery):
     assert spec.package.filename in os.listdir(spec.prefix)
 
 
-
 def test_dev_build_env(tmpdir, install_mockery, mutable_mock_env_path):
     """Test Spack does dev builds for packages in develop section of env."""
     # setup dev-build-test-install package for dev build
