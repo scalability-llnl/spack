@@ -67,7 +67,7 @@ def _make_validator():
             yield jsonschema.ValidationError("\n".join(errors))
 
     return jsonschema.validators.extend(
-        jsonschema.Draft4Validator,
+        jsonschema.Draft7Validator,
         {"validate_spec": _validate_spec, "deprecatedProperties": _deprecated_properties},
     )
 
