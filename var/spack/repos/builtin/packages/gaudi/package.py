@@ -169,6 +169,14 @@ class Gaudi(CMakePackage):
             args.append(self.define("GAUDI_CXX_STANDARD", "20"))
         return args
 
+    @property
+    def gaudi_library_path(self):
+        # Where possible, we do not use LD_LIBRARY_PATH as that is non-portable
+        # and pollutes the standard library-loading mechanisms on Linux systems.
+        # TODO: this may be GAUDI_LIBRARY_PATH on newer versions of Gaudi on
+        # macOS.
+        return "LD_LIBRARY_PATH"
+
     def setup_run_environment(self, env):
         # environment as in Gaudi.xenv
         env.prepend_path("PATH", self.prefix.scripts)
@@ -178,7 +186,7 @@ class Gaudi(CMakePackage):
 
         # ...but Gaudi additionally requires a path variable about itself
         for lib_path in [self.prefix.lib, self.prefix.lib64]:
-            env.prepend_path("LD_LIBRARY_PATH", lib_path)
+            env.prepend_path(self.gaudi_library_path, lib_path)
 
     def url_for_version(self, version):
         major = str(version[0])

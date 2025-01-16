@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
+from spack.util.environment import EnvironmentModifications
 
 
 class Dd4hep(CMakePackage):
@@ -194,14 +195,35 @@ class Dd4hep(CMakePackage):
         args.append(self.define("DD4HEP_BUILD_PACKAGES", " ".join(enabled_packages)))
         return args
 
-    def setup_run_environment(self, env):
+    @property
+    def dd4hep_library_path(self) -> str:
+        # Where possible, we do not use LD_LIBRARY_PATH as that is non-portable
+        # and pollutes the standard library-loading mechanisms on Linux systems.
+        # Unfortunately for now DD4HEP doesn't have a better alternative.
+        # TODO: this may need to be "PATH" on windows and "DYLD_LIBRARY_PATH"
+        # on macOS, but it's not clear.
+        return "LD_LIBRARY_PATH"
+
+    def setup_run_environment(self, env: EnvironmentModifications):
         # used p.ex. in ddsim to find DDDetectors dir
         env.set("DD4hepINSTALL", self.prefix)
         env.set("DD4HEP", self.prefix.examples)
         env.set("DD4hep_DIR", self.prefix)
         env.set("DD4hep_ROOT", self.prefix)
-        if len(self.libs.directories) > 0:
-            env.prepend_path("LD_LIBRARY_PATH", self.libs.directories[0])
+
+        # DD4HEP installs components that it has to find by using a library
+        # path
+        for d in self.libs.directories:
+            env.prepend_path(self.dd4hep_library_path, d)
+
+        # Note: ROOT dependency automatically sets up ROOT environment vars
+
+    def setup_dependent_run_environment(self, env: EnvironmentModifications, dependent_spec: Spec):
+        # For dependents that define plugins, DD4HEP needs to know their
+        # location.
+        for d in [dependent_spec.prefix.lib, dependent_spec.prefix.lib64]:
+            if os.path.exists(d):
+                env.prepend_path(self.dd4hep_library_path, d)
 
     def url_for_version(self, version):
         # dd4hep releases are dashes and padded with a leading zero

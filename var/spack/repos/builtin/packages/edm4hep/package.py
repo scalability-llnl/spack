@@ -102,7 +102,7 @@ class Edm4hep(CMakePackage):
         return args
 
     def setup_run_environment(self, env):
-        env.prepend_path("LD_LIBRARY_PATH", self.spec["edm4hep"].libs.directories[0])
+        # Note: ROOT dependency automatically sets up ROOT environment vars
         if self.spec.satisfies("@:0.10.5"):
             env.prepend_path("PYTHONPATH", self.prefix.python)
 

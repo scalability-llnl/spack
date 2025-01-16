@@ -146,27 +146,16 @@ class Podio(CMakePackage):
             # After 0.99 podio installs its python bindings into a more standard place
             env.prepend_path("PYTHONPATH", self.prefix.python)
 
-        env.prepend_path("LD_LIBRARY_PATH", self.spec["podio"].libs.directories[0])
+        # Note: ROOT dependency automatically sets up ROOT environment vars
+
         if "+sio" in self.spec:
             # sio needs to be on LD_LIBRARY_PATH for ROOT to be able to
             # dynamicaly load the python bindings library
             env.prepend_path("LD_LIBRARY_PATH", self.spec["sio"].libs.directories[0])
 
-        # Frame header needs to be available for python bindings
-        env.prepend_path("ROOT_INCLUDE_PATH", self.prefix.include)
-
     def setup_dependent_build_environment(self, env, dependent_spec):
-        if self.spec.satisfies("@:0.99"):
-            env.prepend_path("PYTHONPATH", self.prefix.python)
-
-        env.prepend_path("LD_LIBRARY_PATH", self.spec["podio"].libs.directories[0])
-        env.prepend_path("ROOT_INCLUDE_PATH", self.prefix.include)
-        if self.spec.satisfies("+sio @0.17:"):
-            # sio needs to be on LD_LIBRARY_PATH for ROOT to be able to
-            # dynamicaly load the python libraries also in dependent build
-            # environments since the import structure has changed with
-            # podio@0.17
-            env.prepend_path("LD_LIBRARY_PATH", self.spec["sio"].libs.directories[0])
+        # Set python path, root paths
+        self.setup_run_environment(env)
 
     def url_for_version(self, version):
         """Translate version numbers to ilcsoft conventions.
