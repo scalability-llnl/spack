@@ -583,7 +583,6 @@ class Result:
     @staticmethod
     def from_dict(obj: dict):
         """Returns Result object from compatible dictionary"""
-
         def _dict_to_node_argument(dict):
             id = dict["id"]
             pkg = dict["pkg"]
@@ -593,7 +592,10 @@ class Result:
             return spack.spec.Spec(spec_str)
 
         def _dict_to_spec(spec_dict):
-            return spack.spec.Spec.from_dict(spec_dict)
+            loaded_spec = spack.spec.Spec.from_dict(spec_dict)
+            spack.spec.Spec.ensure_external_path_if_external(loaded_spec)
+            spack.spec.Spec.ensure_no_deprecated(loaded_spec)
+            return loaded_spec
 
         asp = obj.get("asp")
         spec_list = obj.get("abstract_specs")
@@ -1169,7 +1171,10 @@ class PyclingoDriver:
             with open(ctrl_file, "r+", encoding="utf-8") as f:
                 problem_repr += "\n" + f.read()
 
-        result, concretization_stats = CONC_CACHE.fetch(problem_repr)
+        result = None
+        if spack.config.get("config:enable_concreization_cache", True):
+            result, concretization_stats = CONC_CACHE.fetch(problem_repr)
+
         timer.stop("cache-check")
         if not result:
             timer.start("load")
@@ -1771,8 +1776,8 @@ class SpackSolverSetup:
 
         elif isinstance(values, vt.DisjointSetsOfValues):
             union = set()
-            for sid, s in enumerate(values.sets):
-                for value in s:
+            for sid, s in enumerate(sorted(values.sets)):
+                for value in sorted(s):
                     pkg_fact(fn.variant_value_from_disjoint_sets(vid, value, sid))
                 union.update(s)
             values = union
