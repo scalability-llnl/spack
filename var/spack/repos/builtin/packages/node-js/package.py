@@ -138,7 +138,7 @@ class NodeJs(Package):
     # and https://github.com/nodejs/node/issues/53633
     patch("fix-broken-gcc12-pr53728.patch", when="@22.2:22.5")
 
-    executables = ["node"]
+    executables = ["^node$"]
 
     @classmethod
     def determine_version(cls, exe):

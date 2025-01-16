@@ -48,7 +48,7 @@ class Npm(Package):
         when="@6",
     )
 
-    executables = ["npm"]
+    executables = ["^npm$"]
 
     @classmethod
     def determine_version(cls, exe):
