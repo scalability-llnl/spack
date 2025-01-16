@@ -1048,7 +1048,11 @@ class Environment:
 
     def _process_concrete_includes(self):
         """Extract and load into memory included concrete spec data."""
-        self.included_concrete_envs = self.manifest[TOP_LEVEL_KEY].get(included_concrete_name, [])
+        _included_concrete_envs = self.manifest[TOP_LEVEL_KEY].get(included_concrete_name, [])
+        # Expand config and environment variables
+        self.included_concrete_envs = [
+            spack.util.path.canonicalize_path(_env) for _env in _included_concrete_envs
+        ]
 
         if self.included_concrete_envs:
             if os.path.exists(self.lock_path):
