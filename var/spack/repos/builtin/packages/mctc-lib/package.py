@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack.buils_systems import cmake, meson
+from spack.build_systems import cmake, meson
 from spack.package import *
 
 
@@ -33,11 +33,11 @@ class MctcLib(MesonPackage, CMakePackage):
     depends_on("pkgconfig", type="build")
 
 
-class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
+class CMakeBuilder(cmake.CMakeBuilder):
     def cmake_args(self):
         return [self.define_from_variant("WITH_JSON", "json")]
 
 
-class MesonBuilder(spack.build_systems.meson.MesonBuilder):
+class MesonBuilder(meson.MesonBuilder):
     def meson_args(self):
         return ["-Djson={0}".format("enabled" if "+json" in self.spec else "disabled")]

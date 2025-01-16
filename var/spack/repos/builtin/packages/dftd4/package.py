@@ -60,7 +60,7 @@ class Dftd4(MesonPackage, CMakePackage):
         return super().url_for_version(version)
 
 
-class MesonBuilder(spack.build_systems.meson.MesonBuilder):
+class MesonBuilder(meson.MesonBuilder):
     def meson_args(self):
         lapack = self.spec["lapack"].libs.names[0]
         if lapack == "lapack":
@@ -77,6 +77,6 @@ class MesonBuilder(spack.build_systems.meson.MesonBuilder):
         ]
 
 
-class CMakeBuilder(spack.build_systems.cmake.CMakeBuilder):
+class CMakeBuilder(cmake.CMakeBuilder):
     def cmake_args(self):
         return [self.define_from_variant("WITH_OPENMP", "openmp")]
