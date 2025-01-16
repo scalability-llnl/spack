@@ -1,0 +1,43 @@
+diff --git a/inst/tools/2d_map.R b/inst/tools/2d_map.R
+index 7b73f01..950380a 100755
+--- a/inst/tools/2d_map.R
++++ b/inst/tools/2d_map.R
+@@ -1,4 +1,4 @@
+-#!/usr/bin/Rscript
++#!/usr/bin/env Rscript
+ # Print the MPI Owner distribution considering a 2D structure of data
+ 
+ library(starvz)
+diff --git a/inst/tools/phase1-workflow.R b/inst/tools/phase1-workflow.R
+index 4485d2a..e903618 100755
+--- a/inst/tools/phase1-workflow.R
++++ b/inst/tools/phase1-workflow.R
+@@ -1,4 +1,4 @@
+-#!/usr/bin/Rscript
++#!/usr/bin/env Rscript
+ library(starvz)
+ 
+ ##############################
+diff --git a/inst/tools/phase2-memsnaps.R b/inst/tools/phase2-memsnaps.R
+index b199d3c..ba5347a 100755
+--- a/inst/tools/phase2-memsnaps.R
++++ b/inst/tools/phase2-memsnaps.R
+@@ -1,4 +1,4 @@
+-#!/usr/bin/Rscript
++#!/usr/bin/env Rscript
+ # Call function memsnaps from start to end with informed steps
+ 
+ library(starvz)
+diff --git a/inst/tools/phase2-workflow.R b/inst/tools/phase2-workflow.R
+index e2d4f08..2e2d5b9 100755
+--- a/inst/tools/phase2-workflow.R
++++ b/inst/tools/phase2-workflow.R
+@@ -1,4 +1,4 @@
+-#!/usr/bin/Rscript
++#!/usr/bin/env Rscript
+ library(starvz)
+ library(ggplot2)
+ 
+-- 
+2.37.2
+
