@@ -90,8 +90,12 @@ class Bootstrapper:
         self.name = conf["name"]
         self.metadata_dir = spack.util.path.canonicalize_path(conf["metadata"])
 
-        # Promote (relative) paths to file urls
-        self.url = spack.mirrors.mirror.Mirror(conf["info"]["url"]).fetch_url
+        # Check for relative paths, and turn them into absolute paths
+        # root is the metadata_dir
+        maybe_url = conf["info"]["url"]
+        if spack.util.url.is_path_instead_of_url(maybe_url) and not os.path.isabs(maybe_url):
+            maybe_url = os.path.join(self.metadata_dir, maybe_url)
+        self.url = spack.mirrors.mirror.Mirror(maybe_url).fetch_url
 
     @property
     def mirror_scope(self) -> spack.config.InternalConfigScope:
@@ -525,11 +529,6 @@ def ensure_patchelf_in_path_or_raise() -> spack.util.executable.Executable:
         )
 
 
-def re2c_root_spec() -> str:
-    """Return the root spec used to bootstrap re2c"""
-    return _root_spec("re2c@=3.0")
-
-
 def ensure_winsdk_external_or_raise() -> None:
     """Ensure the Windows SDK + WGL are available on system
     If both of these package are found, the Spack user or bootstrap
@@ -574,7 +573,7 @@ def ensure_core_dependencies() -> None:
 
 def all_core_root_specs() -> List[str]:
     """Return a list of all the core root specs that may be used to bootstrap Spack"""
-    return [clingo_root_spec(), gnupg_root_spec(), patchelf_root_spec(), re2c_root_spec()]
+    return [clingo_root_spec(), gnupg_root_spec(), patchelf_root_spec()]
 
 
 def bootstrapping_sources(scope: Optional[str] = None):
