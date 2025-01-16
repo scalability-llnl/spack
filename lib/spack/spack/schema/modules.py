@@ -22,9 +22,6 @@ spec_regex = (
     r"include|exclude|projections|naming_scheme|core_compilers|all)(^\w[\w-]*)"
 )
 
-#: Matches a valid name for a module set
-valid_module_set_name = r"^(?!prefix_inspections$)\w[\w-]*$"
-
 #: Matches an anonymous spec, i.e. a spec without a root name
 anonymous_spec_regex = r"^[\^@%+~]"
 
@@ -145,7 +142,6 @@ module_config_properties = {
 properties: Dict[str, Any] = {
     "modules": {
         "type": "object",
-        "additionalProperties": False,
         "properties": {
             "prefix_inspections": {
                 "type": "object",
@@ -156,13 +152,11 @@ properties: Dict[str, Any] = {
                 },
             }
         },
-        "patternProperties": {
-            valid_module_set_name: {
-                "type": "object",
-                "default": {},
-                "additionalProperties": False,
-                "properties": module_config_properties,
-            }
+        "additionalProperties": {
+            "type": "object",
+            "default": {},
+            "additionalProperties": False,
+            "properties": module_config_properties,
         },
     }
 }
