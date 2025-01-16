@@ -57,6 +57,7 @@ def test_mirror_from_env(tmp_path, mock_packages, mock_fetch, mutable_mock_env_p
         expected = ["%s.tar.gz" % spec.format("{name}-{version}")]
         assert mirror_res == expected
 
+
 def test_mirror_from_env_parallel(tmp_path, mock_packages, mock_fetch, mutable_mock_env_path):
     mirror_dir = str(tmp_path / "mirror")
     env_name = "test-parallel"
@@ -75,6 +76,7 @@ def test_mirror_from_env_parallel(tmp_path, mock_packages, mock_fetch, mutable_m
         mirror_res = os.listdir(os.path.join(mirror_dir, spec.name))
         expected = ["%s.tar.gz" % spec.format("{name}-{version}")]
         assert mirror_res == expected
+
 
 @pytest.fixture
 def source_for_pkg_with_hash(mock_packages, tmpdir):
