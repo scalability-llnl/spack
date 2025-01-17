@@ -58,7 +58,20 @@ class Nccl(MakefilePackage, CudaPackage):
 
     variant("cuda", default=True, description="Build with CUDA")
 
-    depends_on("rdma-core")
+    # Make verbs default but package like aws-ofi-nccl can be used instead which loads
+    # another library to use instead at runtime.
+    variant(
+        "fabrics",
+        values=disjoint_sets(
+            ("auto"),
+            (
+                "verbs",
+            ),  # supported transports
+        ).with_default("verbs").with_non_feature_values("auto"),
+        description="List of fabrics that are enabled; " "'auto' lets nccl determine at runtime",
+    )
+
+    depends_on("rdma-core", when="fabrics=verbs", type="run")
 
     # https://github.com/NVIDIA/nccl/issues/244
     patch("so_reuseport.patch", when="@2.3.7-1:2.4.8-1")
