@@ -135,7 +135,14 @@ class Nim(Package):
 
         # Alpine Linux pthread musl stub causes type errors on newer compilers
         if "alpine" in self.spec.os and not self.spec.satisfies("@devel"):
-            with open("lib/std/typedthreads.nim", "a") as f:
+            if self.spec.satisfies("@1.9.3:"):
+                pthreadModule = "lib/std/private/threadtypes.nim"
+            elif self.spec.satisfies("@=0.19.6"):
+                pthreadModule = "lib/system/threads.nim"
+            else:
+                pthreadModule = "lib/system/threadlocalstorage.nim"
+
+            with open(pthreadModule, "a") as f:
                 f.write('\n{.passC: "-Wno-incompatible-pointer-types".}\n')
                 f.write('{.passC: "-Wno-int-conversion".}\n')
 
