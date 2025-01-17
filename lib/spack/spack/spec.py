@@ -2332,11 +2332,16 @@ class Spec:
             )
 
         if self.external:
+            if self.extra_attributes:
+                extra_attributes = syaml.sorted_dict(self.extra_attributes)
+            else:
+                extra_attributes = None
+
             d["external"] = syaml.syaml_dict(
                 [
                     ("path", self.external_path),
                     ("module", self.external_modules),
-                    ("extra_attributes", self.extra_attributes),
+                    ("extra_attributes", extra_attributes),
                 ]
             )
 
