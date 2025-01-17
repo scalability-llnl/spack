@@ -34,7 +34,7 @@ def _make_validator():
                 spack.spec_parser.parse(spec_str)
             except SpecSyntaxError:
                 yield jsonschema.ValidationError(
-                    f"the key '{spec_str}' must be a valid spec, and is not"
+                    f"the key '{spec_str}' is not a valid spec"
                 )
 
     def _deprecated_properties(validator, deprecated, instance, schema):
