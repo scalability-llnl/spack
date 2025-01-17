@@ -1,0 +1,12 @@
+diff --git a/src/io/nc4_data_output.cpp b/src/io/nc4_data_output.cpp
+index 0fc0e67..2bf95bc 100755
+--- a/src/io/nc4_data_output.cpp
++++ b/src/io/nc4_data_output.cpp
+@@ -14,6 +14,7 @@
+ #include "mesh_values.hpp"
+ 
+ #include <limits.h>
++#include <float.h>
+ #define X_FLOAT_MAX     FLT_MAX
+ #define X_FLOAT_MIN     FLT_MIN
+ #define X_SHORT_MAX     SHRT_MAX
