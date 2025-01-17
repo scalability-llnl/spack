@@ -2392,7 +2392,13 @@ class TestConcretize:
 
     @pytest.mark.parametrize("transitive", [True, False])
     def test_explicit_splices(
-        self, mutable_config, database_mutable_config, mock_packages, transitive, capfd, no_concretization_cache
+        self,
+        mutable_config,
+        database_mutable_config,
+        mock_packages,
+        transitive,
+        capfd,
+        no_concretization_cache,
     ):
         mpich_spec = database_mutable_config.query("mpich")[0]
         splice_info = {
