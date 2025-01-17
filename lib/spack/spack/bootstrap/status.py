@@ -1,10 +1,9 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Query the status of bootstrapping on this machine"""
-import platform
-from typing import List, Optional, Sequence, Tuple, Union
+import sys
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import spack.util.executable
 
@@ -72,7 +71,7 @@ def _core_requirements() -> List[RequiredResponseType]:
         "bzip2": _missing("bzip2", "required to compress/decompress code archives"),
         "git": _missing("git", "required to fetch/manage git repositories"),
     }
-    if platform.system().lower() == "linux":
+    if sys.platform == "linux":
         _core_system_exes["xz"] = _missing("xz", "required to compress/decompress code archives")
 
     # Executables that are not bootstrapped yet
@@ -87,17 +86,16 @@ def _core_requirements() -> List[RequiredResponseType]:
 
 
 def _buildcache_requirements() -> List[RequiredResponseType]:
-    _buildcache_exes = {
-        "file": _missing("file", "required to analyze files for buildcaches", system_only=False),
-        ("gpg2", "gpg"): _missing("gpg2", "required to sign/verify buildcaches", False),
+    _buildcache_exes: Dict[ExecutablesType, str] = {
+        ("gpg2", "gpg"): _missing("gpg2", "required to sign/verify buildcaches", False)
     }
-    if platform.system().lower() == "darwin":
+    if sys.platform == "darwin":
         _buildcache_exes["otool"] = _missing("otool", "required to relocate binaries")
 
     # Executables that are not bootstrapped yet
     result = [_required_system_executable(exe, msg) for exe, msg in _buildcache_exes.items()]
 
-    if platform.system().lower() == "linux":
+    if sys.platform == "linux":
         result.append(
             _required_executable(
                 "patchelf",

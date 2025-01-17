@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -19,12 +18,13 @@ class Nim(Package):
     url = "https://nim-lang.org/download/nim-2.2.0.tar.xz"
     git = "https://github.com/nim-lang/Nim.git"
 
-    license("MIT")
+    license("MIT", checked_by="Buldram")
 
     maintainers("Buldram")
 
     version("devel", branch="devel")
     version("2.2.0", sha256="ce9842849c9760e487ecdd1cdadf7c0f2844cafae605401c7c72ae257644893c")
+    version("2.0.14", sha256="d420b955833294b7861e3fb65021dac26d1c19c528c4d6e139ccd379e2c15a43")
     version("2.0.12", sha256="c4887949c5eb8d7f9a9f56f0aeb2bf2140fabf0aee0f0580a319e2a09815733a")
     version("2.0.4", sha256="71526bd07439dc8e378fa1a6eb407eda1298f1f3d4df4476dca0e3ca3cbe3f09")
     version("1.6.20", sha256="ffed047504d1fcaf610f0dd7cf3e027be91a292b0c9c51161504c2f3b984ffb9")
@@ -58,8 +58,8 @@ class Nim(Package):
         "sqlite", default=False, when="@0:1.7.3", description="Install SQLite for std/db_sqlite"
     )
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     depends_on("gmake", type="build", when="@devel,0.20:")
     depends_on("pcre", type="link")
@@ -141,8 +141,7 @@ class Nim(Package):
             make()
 
         else:
-            bash = which("bash")
-            bash("./build.sh")
+            Executable("./build.sh")()
 
         nim = Executable(join_path("bin", "nim"))
         # Separate nimcache allows parallel compilation of different versions of the Nim compiler
@@ -159,7 +158,6 @@ class Nim(Package):
     def install(self, spec, prefix):
         filter_file("1/nim", "1", "install.sh")
 
-        bash = which("bash")
-        bash("./install.sh", prefix)
+        Executable("./install.sh")(prefix)
 
         install_tree("bin", prefix.bin)

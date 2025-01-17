@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -32,10 +31,10 @@ class Libquo(AutotoolsPackage):
 
     depends_on("mpi")
 
-    depends_on("m4", when="@develop", type="build")
-    depends_on("autoconf", when="@develop", type="build")
-    depends_on("automake", when="@develop", type="build")
-    depends_on("libtool", when="@develop", type="build")
+    depends_on("m4", type="build")
+    depends_on("autoconf", type="build")
+    depends_on("automake", type="build")
+    depends_on("libtool", type="build")
 
     @when("@develop")
     def autoreconf(self, spec, prefix):
@@ -47,5 +46,4 @@ class Libquo(AutotoolsPackage):
             f"CC={self.spec['mpi'].mpicc}",
             f"FC={self.spec['mpi'].mpifc}",
             # hwloc is vendored
-            "--disable-levelzero",
         ]

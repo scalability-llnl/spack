@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -64,7 +63,7 @@ class PyTorchNvidiaApex(PythonPackage, CudaPackage):
         depends_on("py-setuptools")
         depends_on("py-packaging")
         depends_on("py-pip")
-    with default_args(type=("build", "run")):
+    with default_args(type=("build", "link", "run")):
         depends_on("python@3:")
         depends_on("py-torch@0.4:")
         for _arch in CudaPackage.cuda_arch_values:

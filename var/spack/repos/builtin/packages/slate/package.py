@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -7,10 +6,10 @@ from spack.package import *
 
 
 class Slate(CMakePackage, CudaPackage, ROCmPackage):
-    """The Software for Linear Algebra Targeting Exascale (SLATE) project is
-    to provide fundamental dense linear algebra capabilities to the US
+    """The Software for Linear Algebra Targeting Exascale (SLATE) project
+    provides fundamental dense linear algebra capabilities to the US
     Department of Energy and to the high-performance computing (HPC) community
-    at large. To this end, SLATE will provide basic dense matrix operations
+    at large. To this end, SLATE provides basic dense matrix operations
     (e.g., matrix multiplication, rank-k update, triangular solve), linear
     systems solvers, least square solvers, singular value and eigenvalue
     solvers."""

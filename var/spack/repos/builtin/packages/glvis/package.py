@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -154,7 +153,7 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
             "CC={0}".format(env["CC"]),
             "PREFIX={0}".format(self.spec.prefix.bin),
             "MFEM_DIR={0}".format(self.spec["mfem"].prefix),
-            "CONFIG_MK={0}".format(self.spec["mfem"].package.config_mk),
+            "CONFIG_MK={0}".format(self.pkg["mfem"].config_mk),
         ]
 
         # https://github.com/spack/spack/issues/42839
