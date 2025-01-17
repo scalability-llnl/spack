@@ -6,7 +6,7 @@ from spack.build_systems.python import PythonPipBuilder
 from spack.package import *
 
 
-class PyOnnxruntime(CMakePackage, PythonExtension, ROCmPackage):
+class PyOnnxruntime(CMakePackage, PythonExtension, ROCmPackage, CudaPackage):
     """ONNX Runtime is a performance-focused complete scoring
     engine for Open Neural Network Exchange (ONNX) models, with
     an open extensible architecture to continually address the
@@ -32,8 +32,6 @@ class PyOnnxruntime(CMakePackage, PythonExtension, ROCmPackage):
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
-
-    variant("cuda", default=False, description="Build with CUDA support")
 
     # cmake/CMakeLists.txt
     depends_on("cmake@3.26:", when="@1.17:", type="build")
