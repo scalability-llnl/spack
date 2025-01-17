@@ -4,6 +4,7 @@
 import base64
 import hashlib
 import os
+import pathlib
 import stat
 from typing import Any, Dict
 
@@ -108,11 +109,13 @@ def check_file_manifest(filename):
     dirname = os.path.dirname(filename)
 
     results = VerificationResults()
-    while spack.store.STORE.layout.metadata_dir not in os.listdir(dirname):
-        if dirname == os.path.sep:
-            results.add_error(filename, "not owned by any package")
-            return results
-        dirname = os.path.dirname(dirname)
+    for dir in pathlib.Path(filename).parents:
+        if spack.store.STORE.layout.metadata_dir in os.listdir(dir):
+            dirname = dir
+            break
+    if spack.store.STORE.layout.metadata_dir not in os.listdir(dir):
+        results.add_error(filename, "not owned by any package")
+        return results
 
     manifest_file = os.path.join(
         dirname, spack.store.STORE.layout.metadata_dir, spack.store.STORE.layout.manifest_file_name

@@ -82,7 +82,7 @@ def test_write_and_remove_cache_file(file_cache):
     # assert os.path.exists(file_cache._lock_path('test.yaml'))
 
 
-@pytest.mark.not_on_windows("Not supported on Windows (yet)")
+@pytest.mark.not_on_windows("chmod unsupported on Windows")
 def test_cache_init_entry_fails(file_cache):
     """Test init_entry failures."""
     relpath = fs.join_path("test-dir", "read-only-file.txt")
