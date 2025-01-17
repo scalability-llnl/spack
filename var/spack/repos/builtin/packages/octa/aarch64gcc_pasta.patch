@@ -1,0 +1,11 @@
+--- spack-src.org/ENGINES/PASTA/PASTA/src/Makefile	2020-04-02 12:24:30.000000000 +0900
++++ spack-src/ENGINES/PASTA/PASTA/src/Makefile	2023-12-04 12:31:11.000000000 +0900
+@@ -34,7 +34,7 @@
+ #--- Linux ---
+ 
+ ifeq ($(UNAME),Linux)
+-  ARCH = linux_64
++  ARCH = linux_aarch64
+   CXX = g++
+ endif
+ 

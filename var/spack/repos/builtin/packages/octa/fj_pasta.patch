@@ -1,0 +1,31 @@
+--- spack_src/ENGINES/PASTA/PASTA/src/Makefile.org	2023-06-23 14:11:53.000000000 +0900
++++ spack_src/ENGINES/PASTA/PASTA/src/Makefile	2023-09-22 14:42:34.000000000 +0900
+@@ -34,8 +34,8 @@ UNAME = $(shell uname)
+ #--- Linux ---
+ 
+ ifeq ($(UNAME),Linux)
+-  ARCH = linux_64
+-  CXX = g++
++  ARCH = linux_aarch64
++  CXX = FCC
+ endif
+ 
+ #--- Cygwin ---
+@@ -101,7 +101,7 @@ BUILD_DIR = $(BUILD_TOP)/$(ARCH)
+ #-------------------------------------------------------------------------
+ # compiler and linker options
+ 
+-OPTS = -O3 -std=gnu++98
++OPTS = -Kfast -lstdc++
+ INCLUDES = -Itools -Itools/dSFMT -Iudf
+ DSFMT_FLAGS = -DDSFMT_MEXP=19937
+ LIBS = -lplatform -lm
+@@ -111,7 +111,7 @@ ifeq ($(ARCH),win64)
+ endif
+ 
+ CXXFLAGS = $(OPTS) $(DSFMT_FLAGS) -I$(PF_INC_DIR) $(INCLUDES)
+-LDFLAGS = -L$(PF_LIB_DIR)  $(LIBS) $(STATIC_FLAG)
++LDFLAGS = -Kfast -lstdc++ -L$(PF_LIB_DIR)  $(LIBS) $(STATIC_FLAG)
+ 
+ #==============================================================================
+ 
