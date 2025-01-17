@@ -749,7 +749,7 @@ class KnownCompiler(NamedTuple):
 
     spec: spack.spec.Spec
     os: str
-    target: str
+    target: Optional[str]
     available: bool
     compiler_obj: Optional[spack.compiler.Compiler]
 
@@ -1132,7 +1132,7 @@ class SpackSolverSetup:
             set
         )
 
-        self.possible_compilers: List = []
+        self.possible_compilers: List[KnownCompiler] = []
         self.possible_oses: Set = set()
         self.variant_values_from_specs: Set = set()
         self.version_constraints: Set = set()
