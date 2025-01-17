@@ -24,6 +24,9 @@ SOCKET_DIR = None
 #: GNUPGHOME environment variable in the context of this Python module
 GNUPGHOME = None
 
+CLEARSIGN = "clearsign"
+DETACHED_SIG = "detach"
+
 
 def clear():
     """Reset the global state to uninitialized."""
