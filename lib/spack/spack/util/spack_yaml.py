@@ -33,21 +33,19 @@ __all__ = ["load", "dump", "SpackYAMLError"]
 
 # Make new classes so we can add custom attributes.
 class syaml_dict(dict):
-    def __repr__(self):
-        mappings = (f"{k!r}: {v!r}" for k, v in self.items())
-        return "{%s}" % ", ".join(mappings)
+    pass
 
 
 class syaml_list(list):
-    __repr__ = list.__repr__
+    pass
 
 
 class syaml_str(str):
-    __repr__ = str.__repr__
+    pass
 
 
 class syaml_int(int):
-    __repr__ = int.__repr__
+    pass
 
 
 #: mapping from syaml type -> primitive type
