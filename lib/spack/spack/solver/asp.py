@@ -549,7 +549,7 @@ class Result:
                 msg += "\n\t(No candidate specs from solver)"
         return msg
 
-    def to_dict(self, test:bool=False) -> dict:
+    def to_dict(self, test: bool = False) -> dict:
         """Produces dict representation of Result object
 
         Does not include anything related to unsatisfiability as we
@@ -831,7 +831,7 @@ class ConcretizationCache:
                 self._safe_remove(entry)
                 self._safe_remove(entry.parent)
 
-    def store(self, problem: str, result: Result, statistics: List, test: bool=False):
+    def store(self, problem: str, result: Result, statistics: List, test: bool = False):
         """Creates entry in concretization cache for problem if none exists,
         storing the concretization Result object and statistics in the cache
         as serialized json joined as a single file.
@@ -1174,7 +1174,7 @@ class PyclingoDriver:
                 problem_repr += "\n" + f.read()
 
         result = None
-        if spack.config.get("config:enable_concreization_cache", True):
+        if spack.config.get("config:enable_concretization_cache", True):
             result, concretization_stats = CONC_CACHE.fetch(problem_repr)
 
         timer.stop("cache-check")

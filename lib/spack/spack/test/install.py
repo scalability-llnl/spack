@@ -392,7 +392,7 @@ def test_uninstall_by_spec_errors(mutable_database):
 
 
 @pytest.mark.disable_clean_stage_check
-def test_nosource_pkg_install(install_mockery, mock_fetch, mock_packages, capfd, ensure_debug):
+def test_nosource_pkg_install(install_mockery, mock_fetch, mock_packages, capfd, ensure_debug, no_concretization_cache):
     """Test install phases with the nosource package."""
     spec = spack.concretize.concretize_one("nosource")
     pkg = spec.package
