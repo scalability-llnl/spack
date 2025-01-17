@@ -80,6 +80,7 @@ class BlastPlus(AutotoolsPackage):
     depends_on("pcre", when="+pcre")
 
     depends_on("python", when="+python")
+    depends_on("py-setuptools", when="+python", type="build")
     depends_on("perl", when="+perl")
 
     depends_on("lmdb", when="@2.7.1:")
