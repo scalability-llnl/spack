@@ -188,7 +188,8 @@ class EcpDataVisSdk(BundlePackage, CudaPackage, ROCmPackage):
     # the main spec.
     conflicts("^vtk-m~examples", when="+vtkm ^vtk-m@1.8:")
     depends_on("vtk-m+openmp", when="~rocm+vtkm")
-    depends_on("vtk-m~openmp", when="+rocm+vtkm")
+    depends_on("vtk-m+openmp", when="+rocm+vtkm ^hip@5.2:")
+    depends_on("vtk-m~openmp", when="+rocm+vtkm ^hip@:5.1")
 
     # +python is currently broken in sz
     # dav_sdk_depends_on('sz+shared+python+random_access',

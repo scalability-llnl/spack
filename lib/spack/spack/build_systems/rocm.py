@@ -141,6 +141,7 @@ class ROCmPackage(PackageBase):
     )
 
     depends_on("llvm-amdgpu", when="+rocm")
+    depends_on("rocm-openmp-extras", when="+rocm")
     depends_on("hsa-rocr-dev", when="+rocm")
     depends_on("hip +rocm", when="+rocm")
 
