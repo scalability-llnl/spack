@@ -9,16 +9,67 @@
 # Following line is a shell no-op, and starts a multi-line Python comment.
 # See https://stackoverflow.com/a/47886254
 """:"
-# prefer SPACK_PYTHON environment variable, python3, python, then python2
-SPACK_PREFERRED_PYTHONS="python3 python python2 /usr/libexec/platform-python"
-for cmd in "${SPACK_PYTHON:-}" ${SPACK_PREFERRED_PYTHONS}; do
-    if command -v > /dev/null "$cmd"; then
-        export SPACK_PYTHON="$(command -v "$cmd")"
+# prefer SPACK_PYTHON environment variable if set.
+if test ! -z "$SPACK_PYTHON"; then
+    if command -v "$SPACK_PYTHON" > /dev/null; then
+        export SPACK_PYTHON=`command -v "$cmd"`
         exec "${SPACK_PYTHON}" "$0" "$@"
     fi
-done
+fi
+# We now must try to find a python in the path that is not one that Spack
+# itself has installed. Spack installed pythons can be elliminated by looking
+# if the parent directory of sys.prefix is '._view' while
+# sys.prefix != sys.base_prefix (from a python virtual environment).
+#
+# For the prefered pythons, we will first try each one till we find one
+# suitable. If none are found, we will use which or whereis on them in
+# order to find a fallback.
+SPACK_PREFERRED_PYTHONS="python3 python /usr/libexec/platform-python "\
+"/usr/bin/python3 /usr/bin/python"
+PYTHON_CHECK_CMD="import sys, os.path; print(sys.prefix != sys.base_prefix "\
+"or os.path.basename(os.path.dirname(sys.prefix)) != '._view')"
 
-echo "==> Error: spack could not find a python interpreter!" >&2
+for cmd in ${SPACK_PREFERRED_PYTHONS}; do
+    if command -v > /dev/null "$cmd"; then
+        IS_NOT_FROM_SPACK=`$cmd -c "$PYTHON_CHECK_CMD" 2>/dev/null`
+        if test True = "$IS_NOT_FROM_SPACK"; then
+            export SPACK_PYTHON=`command -v "$cmd"`
+            exec "${SPACK_PYTHON}" "$0" "$@"
+        fi
+    fi
+done
+# Try finding fallbacks and trying them if the command 'which' is available.
+# Otherwise, we will try the same using whereis.
+if command -v which > /dev/null; then
+    for base_cmd in ${SPACK_PREFERRED_PYTHONS}; do
+        for cmd in `which -a $base_cmd 2>/dev/null`; do
+            if command -v > /dev/null "$cmd"; then
+                IS_NOT_FROM_SPACK=`$cmd -c "$PYTHON_CHECK_CMD" 2>/dev/null`
+                if test True = "$IS_NOT_FROM_SPACK"; then
+                    export SPACK_PYTHON=`command -v "$cmd"`
+                    exec "${SPACK_PYTHON}" "$0" "$@"
+                fi
+            fi
+        done
+    done
+elif command -v which > /dev/null; then
+    for base_cmd in ${SPACK_PREFERRED_PYTHONS}; do
+        for cmd in `whereis $base_cmd 2>/dev/null`; do
+            if test "$cmd" != "$base_cmd:" -a -f "$cmd" -a -x "$cmd"; then
+                if command -v > /dev/null "$cmd"; then
+                    IS_NOT_FROM_SPACK=`$cmd -c "$PYTHON_CHECK_CMD" 2>/dev/null`
+                    if test True = "$IS_NOT_FROM_SPACK"; then
+                        export SPACK_PYTHON=`command -v "$cmd"`
+                        exec "${SPACK_PYTHON}" "$0" "$@"
+                    fi
+                fi
+            fi
+        done
+    done
+fi
+
+echo "==> Error: spack could not find a python interpreter! Adjust your "\
+"PATH or set SPACK_PYTHON to a python command/path to set one manually." >&2
 exit 1
 ":"""
 # Line above is a shell no-op, and ends a python multi-line comment.
