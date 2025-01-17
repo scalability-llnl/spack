@@ -183,7 +183,7 @@ class CrayMpich(MpichEnvironmentModifications, Package, CudaPackage, ROCmPackage
                 gtl_root = os.path.join(mpi_root, "gtl", "lib")
 
                 gtl_shared_libraries = find_libraries(
-                    [gtl_kind[2]], root=gtl_root, shared=True, recursive=False
+                    [gtl_lib], root=gtl_root, shared=True, recursive=False
                 )
 
                 if len(gtl_shared_libraries) != 1:
