@@ -1,0 +1,22 @@
+spack:
+  view: false
+  packages:
+    all:
+      require: '%gcc target=aarch64'
+  concretizer:
+    unify: when_possible
+    reuse: false
+
+  specs:
+  - gcc@13:13.9
+  - gcc@14:14.9
+  - llvm@18:18.9
+  - llvm@19:19.9 +flang
+
+  ci:
+    pipeline-gen:
+    - build-job:
+        image: ghcr.io/spack/aarch64-linux-gnu:v2024-12-18
+
+  cdash:
+    build-group: Developer Tools aarch64-linux-gnu
