@@ -68,6 +68,12 @@ class Nim(Package):
     depends_on("openssl@1", type="link", when="@0:1.6.9")
     depends_on("sqlite@3:", type="link", when="+sqlite")
 
+    # Fix pthread type for musl
+    patch(
+        "https://gitlab.alpinelinux.org/alpine/aports/-/raw/6e27319df1057acfccba2e5f2b1c70d4afd18a8f/community/nim/nim-pthreads-fix-define.patch",
+        sha256="c69d6e511d0076bf9731e17abd2b9dc2c5de97d266200a17d199dec5297593f4",
+        when="@1.9.3:2.2.0 ^[virtuals=libc] musl",
+    )
     # CVE-2021-46872
     patch(
         "https://github.com/nim-lang/Nim/commit/17522d6ae1444614be78b1002005513105f2893f.patch?full_index=1",
@@ -132,19 +138,6 @@ class Nim(Package):
         append_rpath("lib/wrappers/openssl.nim", spec["openssl"].libs.directories)
         if spec.satisfies("+sqlite"):
             append_rpath("lib/wrappers/sqlite3.nim", spec["sqlite"].libs.directories)
-
-        # Alpine Linux pthread musl stub causes type errors on newer compilers
-        if "alpine" in self.spec.os and not self.spec.satisfies("@devel"):
-            if self.spec.satisfies("@1.9.3:"):
-                pthreadModule = "lib/std/private/threadtypes.nim"
-            elif self.spec.satisfies("@=0.19.6"):
-                pthreadModule = "lib/system/threads.nim"
-            else:
-                pthreadModule = "lib/system/threadlocalstorage.nim"
-
-            with open(pthreadModule, "a") as f:
-                f.write('\n{.passC: "-Wno-incompatible-pointer-types".}\n')
-                f.write('{.passC: "-Wno-int-conversion".}\n')
 
     def build(self, spec, prefix):
         if spec.satisfies("@devel"):
