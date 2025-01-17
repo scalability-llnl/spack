@@ -48,7 +48,10 @@ class Gaudi(CMakePackage, CudaPackage):
 
     conflicts("%gcc@:10", when="@39:", msg="Gaudi needs a c++20 capable compiler for this version")
     conflicts("+cuda", when="@:39.1", msg="Gaudi CUDA is only available in version 39.2 and later")
-    conflicts("%gcc@:12", when="+cuda", msg="Gaudi CUDA requires gcc-13.1 or later")
+
+    # Require %gcc@13 for <format> header
+    conflicts("%gcc@:12", when="+cuda @39.2:", msg="GaudiCUDA requires gcc-13.1 or later")
+    conflicts("%gcc@:12", when="+unwind @39.2:", msg="GaudiProfiling requires gcc-13.1 or later")
 
     maintainers("drbenmorgan", "vvolkl", "jmcarcell")
 
