@@ -32,8 +32,7 @@ __all__ = ["load", "dump", "SpackYAMLError"]
 
 
 # Make new classes so we can add custom attributes.
-# Also, use OrderedDict instead of just dict.
-class syaml_dict(collections.OrderedDict):
+class syaml_dict(dict):
     def __repr__(self):
         mappings = (f"{k!r}: {v!r}" for k, v in self.items())
         return "{%s}" % ", ".join(mappings)
