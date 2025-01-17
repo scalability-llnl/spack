@@ -137,6 +137,13 @@ class NodeJs(Package):
     # and https://github.com/nodejs/node/issues/53633
     patch("fix-broken-gcc12-pr53728.patch", when="@22.2:22.5")
 
+    # https://github.com/nodejs/node/issues/55596
+    # This patch is not sufficient, however, therefore
+    # add a conflict with this particular version of gcc
+    # until https://github.com/spack/spack/issues/48492 is resolved
+    patch("wasm-compiler-gcc11p2.patch", when="@21: %gcc@11.2")
+    conflicts("%gcc@11.2", when="@21:")
+
     def setup_build_environment(self, env):
         # Force use of experimental Python 3 support
         env.set("PYTHON", self.spec["python"].command.path)
