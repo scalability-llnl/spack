@@ -71,6 +71,12 @@ class Spdlog(CMakePackage):
     )
 
     # spdlog@1.15.0 with fmt@11  https://github.com/gabime/spdlog/pull/3314
+    # (with https://github.com/gabime/spdlog/pull/3301 as a prerequisite)
+    patch(
+        "https://github.com/gabime/spdlog/commit/276ee5f5c0eb13626bd367b006ace5eae9526d8a.patch?full_index=1",
+        sha256="7491e085df3f456b14d3df99629282e2d82105e2fe5d75024fb8f230affddd19",
+        when="@1.12.0:1.15.0",
+    )
     patch(
         "https://github.com/gabime/spdlog/commit/96a8f6250cbf4e8c76387c614f666710a2fa9bad.patch?full_index=1",
         sha256="5ed92f4c131fd31eb3d28390615ecff3ade3789cdecfd3db18cadb07cc8095e3",
