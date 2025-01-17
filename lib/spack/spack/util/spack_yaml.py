@@ -11,8 +11,6 @@
   default unorderd dict.
 
 """
-import collections
-import collections.abc
 import ctypes
 import enum
 import functools
