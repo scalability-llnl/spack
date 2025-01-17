@@ -85,7 +85,10 @@ gpg_path = os.path.join(opt_path, "spack", "gpg")
 # setting `SPACK_USER_CACHE_PATH`. Otherwise it defaults to ~/.spack.
 #
 def _get_user_cache_path():
-    return os.path.expanduser(os.getenv("SPACK_USER_CACHE_PATH") or "~%s.spack" % os.sep)
+    default_cache_path = (
+        var_path if "SPACK_DISABLE_LOCAL_CONFIG" in os.environ else "~%s.spack" % os.sep
+    )
+    return os.path.expanduser(os.getenv("SPACK_USER_CACHE_PATH") or default_cache_path)
 
 
 user_cache_path = str(PurePath(_get_user_cache_path()))
