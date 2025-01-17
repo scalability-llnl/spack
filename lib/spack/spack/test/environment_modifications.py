@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
+import sys
 
 import pytest
 
@@ -20,6 +21,32 @@ from spack.util.environment import (
 )
 
 datadir = os.path.join(spack_root, "lib", "spack", "spack", "test", "data")
+
+driver = "C:\\" if sys.platform == "win32" else "/"
+shell_extension = ".bat" if sys.platform == "win32" else ".sh"
+
+# Returns a list of paths, including system ones
+miscellaneous_paths = [
+    "/usr/local/Cellar/gcc/5.3.0/lib",
+    "/usr/local/lib",
+    "/usr/local",
+    "/usr/local/include",
+    "/usr/local/lib64",
+    "/usr/local/opt/some-package/lib",
+    "/usr/opt/lib",
+    "/usr/local/../bin",
+    "/lib",
+    "/",
+    "/usr",
+    "/usr/",
+    "/usr/bin",
+    "/bin64",
+    "/lib64",
+    "/include",
+    "/include/",
+    "/opt/some-package/include",
+    "/opt/some-package/local/..",
+]
 
 
 def test_inspect_path(tmpdir):
@@ -61,6 +88,16 @@ def test_exclude_paths_from_inspection():
     assert len(env) == 0
 
 
+def make_pathlist(paths):
+    """Makes a fake list of platform specific paths"""
+    return os.pathsep.join(
+        [
+            driver + os.path.join(*path) if isinstance(path, list) else driver + path
+            for path in paths
+        ]
+    )
+
+
 @pytest.fixture()
 def prepare_environment_for_tests(working_env):
     """Sets a few dummy variables in the current environment, that will be
@@ -68,9 +105,21 @@ def prepare_environment_for_tests(working_env):
     """
     os.environ["UNSET_ME"] = "foo"
     os.environ["EMPTY_PATH_LIST"] = ""
-    os.environ["PATH_LIST"] = "/path/second:/path/third"
-    os.environ["REMOVE_PATH_LIST"] = "/a/b:/duplicate:/a/c:/remove/this:/a/d:/duplicate/:/f/g"
-    os.environ["PATH_LIST_WITH_SYSTEM_PATHS"] = "/usr/include:" + os.environ["REMOVE_PATH_LIST"]
+    os.environ["PATH_LIST"] = make_pathlist([["path", "second"], ["path", "third"]])
+    os.environ["REMOVE_PATH_LIST"] = make_pathlist(
+        [
+            ["a", "b"],
+            ["duplicate"],
+            ["a", "c"],
+            ["remove", "this"],
+            ["a", "d"],
+            ["duplicate"],
+            ["f", "g"],
+        ]
+    )
+    os.environ["PATH_LIST_WITH_SYSTEM_PATHS"] = os.environ["REMOVE_PATH_LIST"] + make_pathlist(
+        [["usr", "include"]]
+    )
     os.environ["PATH_LIST_WITH_DUPLICATES"] = os.environ["REMOVE_PATH_LIST"]
 
 
@@ -81,39 +130,13 @@ def env(prepare_environment_for_tests):
 
 
 @pytest.fixture
-def miscellaneous_paths():
-    """Returns a list of paths, including system ones."""
-    return [
-        "/usr/local/Cellar/gcc/5.3.0/lib",
-        "/usr/local/lib",
-        "/usr/local",
-        "/usr/local/include",
-        "/usr/local/lib64",
-        "/usr/local/opt/some-package/lib",
-        "/usr/opt/lib",
-        "/usr/local/../bin",
-        "/lib",
-        "/",
-        "/usr",
-        "/usr/",
-        "/usr/bin",
-        "/bin64",
-        "/lib64",
-        "/include",
-        "/include/",
-        "/opt/some-package/include",
-        "/opt/some-package/local/..",
-    ]
-
-
-@pytest.fixture
 def files_to_be_sourced():
     """Returns a list of files to be sourced"""
     return [
-        os.path.join(datadir, "sourceme_first.sh"),
-        os.path.join(datadir, "sourceme_second.sh"),
-        os.path.join(datadir, "sourceme_parameters.sh"),
-        os.path.join(datadir, "sourceme_unicode.sh"),
+        os.path.join(datadir, "sourceme_first" + shell_extension),
+        os.path.join(datadir, "sourceme_second" + shell_extension),
+        os.path.join(datadir, "sourceme_parameters" + shell_extension),
+        os.path.join(datadir, "sourceme_unicode" + shell_extension),
     ]
 
 
@@ -157,75 +180,155 @@ def test_unset(env):
         os.environ["UNSET_ME"]
 
 
-@pytest.mark.not_on_windows("Not supported on Windows (yet)")
-def test_filter_system_paths(miscellaneous_paths):
+@pytest.mark.parametrize(
+    "miscellaneous_system_paths, expected",
+    [
+        # Windows Paths
+        (
+            [
+                "C:\\",
+                "C:\\Program Files",
+                "C:\\Program Files (x86)",
+                "C:\\Users",
+                "C:\\ProgramData",
+                "C:\\dev\\spack_window",
+            ],
+            (
+                ["C:\\dev\\spack_window"]
+                if sys.platform == "win32"
+                else [
+                    "C:\\",
+                    "C:\\Program Files",
+                    "C:\\Program Files (x86)",
+                    "C:\\Users",
+                    "C:\\ProgramData",
+                    "C:\\dev\\spack_window",
+                ]
+            ),
+        ),
+        # Windows and Mac Paths
+        (
+            [
+                "C:\\",
+                "C:\\Program Files",
+                "C:\\Program Files (x86)",
+                "C:\\Users",
+                "C:\\ProgramData",
+                "C:\\dev\\spack_window",
+                "/usr/bin",
+                "/bin64",
+                "/lib64",
+                "C:\\dev\\spack_window\\lib",
+            ],
+            (
+                [
+                    "C:\\dev\\spack_window",
+                    "/usr/bin",
+                    "/bin64",
+                    "/lib64",
+                    "C:\\dev\\spack_window\\lib",
+                ]
+                if sys.platform == "win32"
+                else [
+                    "C:\\",
+                    "C:\\Program Files",
+                    "C:\\Program Files (x86)",
+                    "C:\\Users",
+                    "C:\\ProgramData",
+                    "C:\\dev\\spack_window",
+                    "C:\\dev\\spack_window\\lib",
+                ]
+            ),
+        ),
+        # Mac Paths
+        (
+            miscellaneous_paths,
+            (
+                miscellaneous_paths
+                if sys.platform == "win32"
+                else [
+                    "/usr/local/Cellar/gcc/5.3.0/lib",
+                    "/usr/local/opt/some-package/lib",
+                    "/usr/opt/lib",
+                    "/opt/some-package/include",
+                    "/opt/some-package/local/..",
+                ]
+            ),
+        ),
+    ],
+)
+def test_filter_system_paths(miscellaneous_system_paths, expected):
     """Tests that the filtering of system paths works as expected."""
-    filtered = filter_system_paths(miscellaneous_paths)
-    expected = [
-        "/usr/local/Cellar/gcc/5.3.0/lib",
-        "/usr/local/opt/some-package/lib",
-        "/usr/opt/lib",
-        "/opt/some-package/include",
-        "/opt/some-package/local/..",
-    ]
+    filtered = filter_system_paths(miscellaneous_system_paths)
     assert filtered == expected
 
 
-# TODO 27021
-@pytest.mark.not_on_windows("Not supported on Windows (yet)")
-def test_set_path(env):
+@pytest.mark.parametrize("name,elements,separator", [("A", ["foo", "bar", "baz"], os.pathsep)])
+def test_set_path(env, name, elements, separator):
     """Tests setting paths in an environment variable."""
 
-    # Check setting paths with the default separator
-    env.set_path("A", ["foo", "bar", "baz"])
+    # Check setting paths with a specific separator
+    env.set_path(name, elements, separator=separator)
     env.apply_modifications()
 
-    assert "foo:bar:baz" == os.environ["A"]
-
-    env.set_path("B", ["foo", "bar", "baz"], separator=";")
-    env.apply_modifications()
-
-    assert "foo;bar;baz" == os.environ["B"]
+    expected = os.pathsep.join(elements)
+    assert expected == os.environ[name]
 
 
-@pytest.mark.not_on_windows("Not supported on Windows (yet)")
-def test_path_manipulation(env):
+@pytest.mark.parametrize(
+    "path_name,elements,expected",
+    [
+        (
+            "PATH_LIST",
+            ["first", "fourth", "last"],
+            make_pathlist(
+                [
+                    ["path", "first"],
+                    ["path", "second"],
+                    ["path", "third"],
+                    ["path", "fourth"],
+                    ["path", "last"],
+                ]
+            ),
+        ),
+        (
+            "EMPTY_PATH_LIST",
+            ["first", "middle", "last"],
+            make_pathlist([["path", "first"], ["path", "middle"], ["path", "last"]]),
+        ),
+        (
+            "NEWLY_CREATED_PATH_LIST",
+            ["first", "middle", "last"],
+            make_pathlist([["path", "first"], ["path", "middle"], ["path", "last"]]),
+        ),
+    ],
+)
+def test_path_manipulation(env, path_name, elements, expected):
     """Tests manipulating list of paths in the environment."""
 
-    env.append_path("PATH_LIST", "/path/last")
-    env.prepend_path("PATH_LIST", "/path/first")
+    env.prepend_path(path_name, driver + os.path.join("path", elements[0]))
+    env.append_path(path_name, driver + os.path.join("path", elements[1]))
+    env.append_path(path_name, driver + os.path.join("path", elements[2]))
 
-    env.append_path("EMPTY_PATH_LIST", "/path/middle")
-    env.append_path("EMPTY_PATH_LIST", "/path/last")
-    env.prepend_path("EMPTY_PATH_LIST", "/path/first")
-
-    env.append_path("NEWLY_CREATED_PATH_LIST", "/path/middle")
-    env.append_path("NEWLY_CREATED_PATH_LIST", "/path/last")
-    env.prepend_path("NEWLY_CREATED_PATH_LIST", "/path/first")
-
-    env.remove_path("REMOVE_PATH_LIST", "/remove/this")
-    env.remove_path("REMOVE_PATH_LIST", "/duplicate/")
+    env.remove_path("REMOVE_PATH_LIST", driver + os.path.join("remove", "this"))
+    env.remove_path("REMOVE_PATH_LIST", driver + "duplicate" + os.sep)
 
     env.deprioritize_system_paths("PATH_LIST_WITH_SYSTEM_PATHS")
     env.prune_duplicate_paths("PATH_LIST_WITH_DUPLICATES")
 
     env.apply_modifications()
 
-    expected = "/path/first:/path/second:/path/third:/path/last"
-    assert os.environ["PATH_LIST"] == expected
+    assert os.environ[path_name] == expected
+    assert os.environ["REMOVE_PATH_LIST"] == make_pathlist(
+        [["a", "b"], ["a", "c"], ["a", "d"], ["f", "g"]]
+    )
 
-    expected = "/path/first:/path/middle:/path/last"
-    assert os.environ["EMPTY_PATH_LIST"] == expected
+    assert not os.environ["PATH_LIST_WITH_SYSTEM_PATHS"].startswith(
+        make_pathlist([["usr", "include" + os.pathsep]])
+    )
+    assert os.environ["PATH_LIST_WITH_SYSTEM_PATHS"].endswith(make_pathlist([["usr", "include"]]))
 
-    expected = "/path/first:/path/middle:/path/last"
-    assert os.environ["NEWLY_CREATED_PATH_LIST"] == expected
-
-    assert os.environ["REMOVE_PATH_LIST"] == "/a/b:/a/c:/a/d:/f/g"
-
-    assert not os.environ["PATH_LIST_WITH_SYSTEM_PATHS"].startswith("/usr/include:")
-    assert os.environ["PATH_LIST_WITH_SYSTEM_PATHS"].endswith(":/usr/include")
-
-    assert os.environ["PATH_LIST_WITH_DUPLICATES"].count("/duplicate") == 1
+    assert os.environ["PATH_LIST_WITH_DUPLICATES"].count(driver + "duplicate") == 1
 
 
 def test_extend(env):
@@ -242,7 +345,6 @@ def test_extend(env):
         assert x is y
 
 
-@pytest.mark.not_on_windows("Not supported on Windows (yet)")
 @pytest.mark.usefixtures("prepare_environment_for_tests")
 def test_source_files(files_to_be_sourced):
     """Tests the construction of a list of environment modifications that are
@@ -250,7 +352,7 @@ def test_source_files(files_to_be_sourced):
     """
     env = EnvironmentModifications()
     for filename in files_to_be_sourced:
-        if filename.endswith("sourceme_parameters.sh"):
+        if filename.endswith("sourceme_parameters" + shell_extension):
             env.extend(EnvironmentModifications.from_sourcing_file(filename, "intel64"))
         else:
             env.extend(EnvironmentModifications.from_sourcing_file(filename))
@@ -283,11 +385,11 @@ def test_source_files(files_to_be_sourced):
 
     assert len(modifications["PATH_LIST"]) == 3
     assert isinstance(modifications["PATH_LIST"][0], RemovePath)
-    assert modifications["PATH_LIST"][0].value == "/path/third"
+    assert modifications["PATH_LIST"][0].value == driver + os.path.join("path", "third")
     assert isinstance(modifications["PATH_LIST"][1], AppendPath)
-    assert modifications["PATH_LIST"][1].value == "/path/fourth"
+    assert modifications["PATH_LIST"][1].value == driver + os.path.join("path", "fourth")
     assert isinstance(modifications["PATH_LIST"][2], PrependPath)
-    assert modifications["PATH_LIST"][2].value == "/path/first"
+    assert modifications["PATH_LIST"][2].value == driver + os.path.join("path", "first")
 
 
 @pytest.mark.regression("8345")
@@ -306,42 +408,53 @@ def test_preserve_environment(prepare_environment_for_tests):
 
     assert "NOT_SET" not in os.environ
     assert os.environ["UNSET_ME"] == "foo"
-    assert os.environ["PATH_LIST"] == "/path/second:/path/third"
+    assert os.environ["PATH_LIST"] == make_pathlist([["path", "second"], ["path", "third"]])
 
 
-@pytest.mark.not_on_windows("Not supported on Windows (yet)")
 @pytest.mark.parametrize(
     "files,expected,deleted",
     [
         # Sets two variables
         (
-            (os.path.join(datadir, "sourceme_first.sh"),),
+            (os.path.join(datadir, "sourceme_first" + shell_extension),),
             {"NEW_VAR": "new", "UNSET_ME": "overridden"},
             [],
         ),
         # Check if we can set a variable to different values depending
         # on command line parameters
-        ((os.path.join(datadir, "sourceme_parameters.sh"),), {"FOO": "default"}, []),
-        (([os.path.join(datadir, "sourceme_parameters.sh"), "intel64"],), {"FOO": "intel64"}, []),
+        (
+            (os.path.join(datadir, "sourceme_parameters" + shell_extension),),
+            {"FOO": "default"},
+            [],
+        ),
+        (
+            ([os.path.join(datadir, "sourceme_parameters" + shell_extension), "intel64"],),
+            {"FOO": "intel64"},
+            [],
+        ),
         # Check unsetting variables
         (
-            (os.path.join(datadir, "sourceme_second.sh"),),
-            {"PATH_LIST": "/path/first:/path/second:/path/fourth"},
+            (os.path.join(datadir, "sourceme_second" + shell_extension),),
+            {
+                "PATH_LIST": make_pathlist(
+                    [["path", "first"], ["path", "second"], ["path", "fourth"]]
+                )
+            },
             ["EMPTY_PATH_LIST"],
         ),
         # Check that order of sourcing matters
         (
             (
-                os.path.join(datadir, "sourceme_unset.sh"),
-                os.path.join(datadir, "sourceme_first.sh"),
+                os.path.join(datadir, "sourceme_unset" + shell_extension),
+                os.path.join(datadir, "sourceme_first" + shell_extension),
             ),
             {"NEW_VAR": "new", "UNSET_ME": "overridden"},
             [],
         ),
         (
             (
-                os.path.join(datadir, "sourceme_first.sh"),
-                os.path.join(datadir, "sourceme_unset.sh"),
+                os.path.join(datadir, "sourceme_first" + shell_extension),
+                os.path.join(datadir, "sourceme_unset" + shell_extension),
             ),
             {"NEW_VAR": "new"},
             ["UNSET_ME"],
@@ -439,34 +552,34 @@ def test_sanitize_regex(env, exclude, include, expected, deleted):
         ({"FOO": "foo"}, {}, [environment.UnsetEnv("FOO")]),
         # Append paths to an environment variable
         (
-            {"FOO_PATH": "/a/path"},
-            {"FOO_PATH": "/a/path:/b/path"},
-            [environment.AppendPath("FOO_PATH", "/b/path")],
+            {"FOO_PATH": make_pathlist([["a", "path"]])},
+            {"FOO_PATH": make_pathlist([["a", "path"], ["b", "path"]])},
+            [environment.AppendPath("FOO_PATH", make_pathlist([["b", "path"]]))],
         ),
         (
             {},
-            {"FOO_PATH": "/a/path" + os.sep + "/b/path"},
-            [environment.AppendPath("FOO_PATH", "/a/path" + os.sep + "/b/path")],
+            {"FOO_PATH": make_pathlist([["a", "path"], ["b", "path"]])},
+            [environment.AppendPath("FOO_PATH", make_pathlist([["a", "path"], ["b", "path"]]))],
         ),
         (
-            {"FOO_PATH": "/a/path:/b/path"},
-            {"FOO_PATH": "/b/path"},
-            [environment.RemovePath("FOO_PATH", "/a/path")],
+            {"FOO_PATH": make_pathlist([["a", "path"], ["b", "path"]])},
+            {"FOO_PATH": make_pathlist([["b", "path"]])},
+            [environment.RemovePath("FOO_PATH", make_pathlist([["a", "path"]]))],
         ),
         (
-            {"FOO_PATH": "/a/path:/b/path"},
-            {"FOO_PATH": "/a/path:/c/path"},
+            {"FOO_PATH": make_pathlist([["a", "path"], ["b", "path"]])},
+            {"FOO_PATH": make_pathlist([["a", "path"], ["c", "path"]])},
             [
-                environment.RemovePath("FOO_PATH", "/b/path"),
-                environment.AppendPath("FOO_PATH", "/c/path"),
+                environment.RemovePath("FOO_PATH", make_pathlist([["b", "path"]])),
+                environment.AppendPath("FOO_PATH", make_pathlist([["c", "path"]])),
             ],
         ),
         (
-            {"FOO_PATH": "/a/path:/b/path"},
-            {"FOO_PATH": "/c/path:/a/path"},
+            {"FOO_PATH": make_pathlist([["a", "path"], ["b", "path"]])},
+            {"FOO_PATH": make_pathlist([["c", "path"], ["a", "path"]])},
             [
-                environment.RemovePath("FOO_PATH", "/b/path"),
-                environment.PrependPath("FOO_PATH", "/c/path"),
+                environment.RemovePath("FOO_PATH", make_pathlist([["b", "path"]])),
+                environment.PrependPath("FOO_PATH", make_pathlist([["c", "path"]])),
             ],
         ),
         # Modify two variables in the same environment
@@ -496,11 +609,10 @@ def test_exclude_lmod_variables():
     assert not any(x.startswith("LMOD_") for x in modifications)
 
 
-@pytest.mark.not_on_windows("Not supported on Windows (yet)")
 @pytest.mark.regression("13504")
 def test_exclude_modules_variables():
     # Construct the list of environment modifications
-    file = os.path.join(datadir, "sourceme_modules.sh")
+    file = os.path.join(datadir, "sourceme_modules" + shell_extension)
     env = EnvironmentModifications.from_sourcing_file(file)
 
     # Check that variables related to modules are not in there
