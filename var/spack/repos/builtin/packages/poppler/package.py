@@ -13,6 +13,8 @@ class Poppler(CMakePackage):
     list_url = "https://poppler.freedesktop.org/releases.html"
     git = "https://gitlab.freedesktop.org/poppler/poppler.git"
 
+    maintainers("cessenat")
+
     license("GPL-2.0-or-later")
 
     version("master", branch="master")
