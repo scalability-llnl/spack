@@ -212,7 +212,7 @@ def get_template_dirs():
     in extensions.
     """
     extension_dirs = get_extension_paths()
-    extensions = [os.path.join(x, "templates") for x in extension_dirs]
+    extensions = [fs_path(abstract_path(x, "templates")) for x in extension_dirs]
     return extensions
 
 
