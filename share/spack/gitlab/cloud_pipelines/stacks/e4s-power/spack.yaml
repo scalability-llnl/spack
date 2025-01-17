@@ -7,44 +7,54 @@ spack:
 
   packages:
     all:
-      require: "%gcc@9.4.0 target=ppc64le"
-      compiler: [gcc@9.4.0]
-      providers:
-        blas: [openblas]
-        mpi: [mpich]
-      variants: +mpi cuda_arch=70
-    binutils:
-      variants: +ld +gold +headers +libiberty ~nls
-    hdf5:
-      variants: +fortran +hl +shared
-    libfabric:
-      variants: fabrics=sockets,tcp,udp,rxm
-    openblas:
-      variants: threads=openmp
-    trilinos:
-      variants: +amesos +amesos2 +anasazi +aztec +belos +boost +epetra +epetraext
-        +ifpack +ifpack2 +intrepid +intrepid2 +isorropia +kokkos +ml +minitensor +muelu
-        +nox +piro +phalanx +rol +rythmos +sacado +stk +shards +shylu +stokhos +stratimikos
-        +teko +tempus +tpetra +trilinoscouplings +zoltan +zoltan2 +superlu-dist gotype=long_long
-    xz:
-      variants: +pic
+      require:
+      - "%gcc@9.4.0"
+      - target=ppc64le
+      prefer:
+      - "+mpi"
+      - "+pic"
+      - "cuda_arch=70"
+
+    blas:
+      require:
+      - openblas threads=openmp
+
     mpi:
-      require: mpich
-    mpich:
-      require: '~wrapperrpath ~hwloc %gcc@9.4.0 target=ppc64le'
-    ncurses:
-      require: '@6.3 +termlib %gcc@9.4.0 target=ppc64le'
-    faodel:
-      require: "~tcmalloc %gcc@9.4.0 target=ppc64le"
+      require:
+      - mpich~wrapperrpath ~hwloc
+
     tbb:
-      require: intel-tbb
+      require:
+      - intel-tbb
+
+    binutils:
+      prefer:
+      - +ld +gold +headers +libiberty ~nls
+
+    hdf5:
+      prefer:
+      - "+fortran +hl +shared +mpi"
+
+    libfabric:
+      prefer:
+      - fabrics=sockets,tcp,udp,rxm
+
+    ncurses:
+      prefer:
+      - '@6.3 +termlib'
+
+    faodel:
+      prefer:
+      - "~tcmalloc"
+
     vtk-m:
       require: "+examples %gcc@9.4.0 target=ppc64le"
+
     cuda:
       require: "@11.4.4 %gcc@9.4.0 target=ppc64le"
+
     paraview:
       require: "+examples %gcc@9.4.0 target=ppc64le"
-
 
   specs:
   # CPU
