@@ -48,6 +48,7 @@ class Gaudi(CMakePackage, CudaPackage):
 
     conflicts("%gcc@:10", when="@39:", msg="Gaudi needs a c++20 capable compiler for this version")
     conflicts("+cuda", when="@:39.1", msg="Gaudi CUDA is only available in version 39.2 and later")
+    conflicts("%gcc@:12", when="+cuda", msg="Gaudi CUDA requires gcc-13.1 or later")
 
     maintainers("drbenmorgan", "vvolkl", "jmcarcell")
 
@@ -144,6 +145,10 @@ class Gaudi(CMakePackage, CudaPackage):
         # ensure an empty pytest.ini is present to prevent finding one
         # accidentally in a higher directory than the stage directory
         touch("pytest.ini")
+
+        # ensure <fmt/format.h> is included instead of <format> for 39.2
+        if self.spec.satisfies("@39.2"):
+            filter_file("<format>", "<fmt/format.h>", "GaudiSvc/src/THistSvc/THistSvc.cpp")
 
     def cmake_args(self):
         args = [
