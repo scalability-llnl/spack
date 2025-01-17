@@ -50,6 +50,14 @@ class Lz4(CMakePackage, MakefilePackage):
     )
     variant("pic", default=True, description="Enable position-independent code (PIC)")
 
+    # Patches issue where Lz4's CMake interface was failing to export
+    # include useage requirements properly
+    patch(
+        "https://github.com/lz4/lz4/commit/38cc73c9c70a4954571a5faaedc9b87302a0ab9f.patch?full_index=1",
+        sha256="afbca100e5c4fcd2759f8c463e59b6c5a29742461b7e0f9e7ebd2d7606b8528b",
+        when="@1.9.3:1.10",
+    )
+
     def url_for_version(self, version):
         url = "https://github.com/lz4/lz4/archive"
 

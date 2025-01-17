@@ -43,6 +43,12 @@ class CBlosc(CMakePackage):
     depends_on("zstd")
     depends_on("lz4")
 
+    # enables c-blosc to properly engage lz4's config module
+    patch(
+        "https://patch-diff.githubusercontent.com/raw/Blosc/c-blosc/pull/386.patch?full_index=1",
+        sha256="fe26e1f13eaa526f5eb2c80ea3c69986a026189d278c66391112169b5b74c05a",
+        when="@1.21.2:",
+    )
     patch("gcc.patch", when="@1.12.1:1.17.0")
     patch("test_forksafe.patch", when="@1.15.0:1.17.0%intel")
 
