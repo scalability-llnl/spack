@@ -29,7 +29,7 @@ class Purify(CMakePackage):
     variant("benchmarks", default=False, description="Build benchmarks")
     variant("docs", default=False, description="Enable multithreading with OpenMP")
     variant("coverage", default=False, description="Enable code coverage")
-    variant("onnxrt", default=False, description="Build with Tensorflow support using onnx")
+    variant("onnxrt", when="@5.0.0:", default=False, description="Build with Tensorflow support using onnx in SOPT")
 
     depends_on("cmake@3")
     depends_on("eigen@3.4:3")
