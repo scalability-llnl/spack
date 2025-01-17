@@ -307,6 +307,10 @@ supported, and netmod is ignored if device is ch3:sock.""",
     depends_on("findutils", type="build")
     depends_on("pkgconfig", type="build")
 
+    # Perl is required since at 3.4 at the latest
+    # https://github.com/pmodels/mpich/blob/v3.4/confdb/cmd_prefix_config_h.pl
+    depends_on("perl", type="build", when="@3.4:")
+
     depends_on("hwloc@2.0.0:", when="@3.3: +hwloc")
 
     depends_on("libfabric", when="netmod=ofi")
