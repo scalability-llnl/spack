@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import os
+
 from spack.package import *
 
 
@@ -60,39 +62,13 @@ class Postgis(AutotoolsPackage):
     def configure_args(self):
         args = []
         args.append("--with-sfcgal=" + str(self.spec["sfcgal"].prefix.bin) + "/sfcgal-config")
+        args.append("--with-protobufdir=" + self.spec["protobuf-c"].prefix)
         if "+gui" in self.spec:
             args.append("--with-gui")
         return args
 
-    # By default package installs under postgresql prefix.
-    # Apparently this is a known bug:
-    # https://postgis.net/docs/postgis_installation.html
-    # The following modifacations that fixed this issue are found in
-    # Guix recipe for postgis.
-    # https://git.savannah.gnu.org/cgit/guix.git/tree/gnu/packages/geo.scm#n720
-
-    def build(self, spec, prefix):
-        make(
-            "bindir=" + prefix.bin,
-            "libdir=" + prefix.lib,
-            "pkglibdir=" + prefix.lib,
-            "datadir=" + prefix.share,
-            "docdir=" + prefix.share.doc,
-        )
-
-    def install(self, spec, prefix):
-        make(
-            "install",
-            "bindir=" + prefix.bin,
-            "libdir=" + prefix.lib,
-            "pkglibdir=" + prefix.lib,
-            "datadir=" + prefix.share,
-            "docdir=" + prefix.share.doc,
-        )
-
-    @run_before("build")
-    def fix_raster_bindir(self):
-        makefile = FileFilter("raster/loader/Makefile")
-        makefile.filter("$(DESTDIR)$(PGSQL_BINDIR)", self.prefix.bin, string=True)
-        makefile = FileFilter("raster/scripts/Makefile")
-        makefile.filter("$(DESTDIR)$(PGSQL_BINDIR)", self.prefix.bin, string=True)
+    @run_after("install")
+    def satisfy_sanity_check(self):
+        # sanity_check_prefix requires something in the install directory,
+        # but PostGIS is installed in PostgreSQL's install directory.
+        os.symlink(self.spec["postgresql"].prefix, self.prefix.postgresql)
