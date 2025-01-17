@@ -226,6 +226,11 @@ class Hpx(CMakePackage, CudaPackage, ROCmPackage):
     def cmake_args(self):
         spec, args = self.spec, []
 
+        if "networking=mpi" in spec:
+            args.append(self.define("CMAKE_C_COMPILER", spec["mpi"].mpicc))
+            args.append(self.define("CMAKE_CXX_COMPILER", spec["mpi"].mpicxx))
+            args.append(self.define("CMAKE_Fortran_COMPILER", spec["mpi"].mpifc))
+
         format_max_cpu_count = lambda max_cpu_count: (
             "" if max_cpu_count == "auto" else max_cpu_count
         )
