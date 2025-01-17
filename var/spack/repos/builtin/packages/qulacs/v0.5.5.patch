@@ -1,0 +1,102 @@
+diff -uprN a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt	2023-02-02 16:42:26.000000000 +0900
++++ b/CMakeLists.txt	2023-02-10 13:53:51.000000000 +0900
+@@ -126,33 +126,33 @@ message(STATUS "Boost found at ${Boost_I
+ set(EIGEN_BUILD_DIR   ${CMAKE_BINARY_DIR}/eigen)
+ set(EIGEN_INSTALL_DIR ${CMAKE_SOURCE_DIR}/include)
+ set(EIGEN_INCLUDE_DIR ${EIGEN_INSTALL_DIR})
+-ExternalProject_Add(
+-    eigen
+-    URL https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.gz
+-    PREFIX ${EIGEN_BUILD_DIR}
+-    CONFIGURE_COMMAND ""
+-    BUILD_COMMAND ""
+-    INSTALL_COMMAND
+-      ${CMAKE_COMMAND} -E copy_directory ${EIGEN_BUILD_DIR}/src/eigen/Eigen ${EIGEN_INCLUDE_DIR}/Eigen
+-      && ${CMAKE_COMMAND} -E copy_directory ${EIGEN_BUILD_DIR}/src/eigen/unsupported ${EIGEN_INCLUDE_DIR}/unsupported
+-    TEST_COMMAND ""
+-)
++#ExternalProject_Add(
++#    eigen
++#    URL https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.gz
++#    PREFIX ${EIGEN_BUILD_DIR}
++#    CONFIGURE_COMMAND ""
++#    BUILD_COMMAND ""
++#    INSTALL_COMMAND
++#      ${CMAKE_COMMAND} -E copy_directory ${EIGEN_BUILD_DIR}/src/eigen/Eigen ${EIGEN_INCLUDE_DIR}/Eigen
++#      && ${CMAKE_COMMAND} -E copy_directory ${EIGEN_BUILD_DIR}/src/eigen/unsupported ${EIGEN_INCLUDE_DIR}/unsupported
++#    TEST_COMMAND ""
++#)
+ include_directories(SYSTEM ${EIGEN_INCLUDE_DIR})
+ 
+ # Cereal
+ set(CEREAL_BUILD_DIR   ${CMAKE_BINARY_DIR}/cereal)
+ set(CEREAL_INSTALL_DIR ${CMAKE_SOURCE_DIR}/include)
+ set(CEREAL_INCLUDE_DIR ${CEREAL_INSTALL_DIR})
+-ExternalProject_Add(
+-    Cereal
+-    URL https://github.com/USCiLab/cereal/archive/v1.3.0.tar.gz
+-    PREFIX ${CEREAL_BUILD_DIR}
+-    CONFIGURE_COMMAND ""
+-    BUILD_COMMAND ""
+-    INSTALL_COMMAND
+-      ${CMAKE_COMMAND} -E copy_directory ${CEREAL_BUILD_DIR}/src/Cereal/include ${CEREAL_INCLUDE_DIR}
+-    TEST_COMMAND ""
+-)
++#ExternalProject_Add(
++#    Cereal
++#    URL https://github.com/USCiLab/cereal/archive/v1.3.0.tar.gz
++#    PREFIX ${CEREAL_BUILD_DIR}
++#    CONFIGURE_COMMAND ""
++#    BUILD_COMMAND ""
++#    INSTALL_COMMAND
++#      ${CMAKE_COMMAND} -E copy_directory ${CEREAL_BUILD_DIR}/src/Cereal/include ${CEREAL_INCLUDE_DIR}
++#    TEST_COMMAND ""
++#)
+ include_directories(SYSTEM ${CEREAL_INCLUDE_DIR})
+ 
+ # Google test
+@@ -486,5 +486,5 @@ if(USE_PYTHON)
+ endif()
+ 
+ #dependency setting for ExternalProject
+-add_dependencies(qulacs_core Cereal)
+-add_dependencies(qulacs_core eigen)
++#add_dependencies(qulacs_core Cereal)
++#add_dependencies(qulacs_core eigen)
+diff -uprN a/src/cppsim/CMakeLists.txt b/src/cppsim/CMakeLists.txt
+--- a/src/cppsim/CMakeLists.txt	2023-02-02 16:42:26.000000000 +0900
++++ b/src/cppsim/CMakeLists.txt	2023-02-10 10:39:30.000000000 +0900
+@@ -9,10 +9,10 @@ add_library(cppsim_static STATIC ${CPPSI
+ add_library(cppsim_shared SHARED ${CPPSIM_SRC})
+ target_link_libraries(cppsim_static csim_static)
+ target_link_libraries(cppsim_shared csim_static)
+-add_dependencies(cppsim_static eigen)
+-add_dependencies(cppsim_shared eigen)
+-add_dependencies(cppsim_static Cereal)
+-add_dependencies(cppsim_shared Cereal)
++#add_dependencies(cppsim_static eigen)
++#add_dependencies(cppsim_shared eigen)
++#add_dependencies(cppsim_static Cereal)
++#add_dependencies(cppsim_shared Cereal)
+ 
+ if (USE_GPU)
+     target_link_libraries(cppsim_static gpusim_static)
+diff -uprN a/src/csim/CMakeLists.txt b/src/csim/CMakeLists.txt
+--- a/src/csim/CMakeLists.txt	2023-02-02 16:42:26.000000000 +0900
++++ b/src/csim/CMakeLists.txt	2023-02-09 21:55:57.000000000 +0900
+@@ -17,10 +17,10 @@ add_library(csim_static STATIC ${CSIM_SR
+ add_library(csim_shared SHARED ${CSIM_SRC})
+ #target_link_libraries(csim_static eigen)
+ #target_link_libraries(csim_shared eigen)
+-add_dependencies(csim_static eigen)
+-add_dependencies(csim_shared eigen)
+-add_dependencies(csim_static Cereal)
+-add_dependencies(csim_shared Cereal)
++#add_dependencies(csim_static eigen)
++#add_dependencies(csim_shared eigen)
++#add_dependencies(csim_static Cereal)
++#add_dependencies(csim_shared Cereal)
+ 
+ if (MSVC)
+     set_target_properties(csim_static PROPERTIES LINKER_LANGUAGE CXX)

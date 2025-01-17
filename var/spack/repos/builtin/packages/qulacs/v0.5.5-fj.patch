@@ -1,0 +1,28 @@
+diff -uprN a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt	2023-02-10 13:53:51.000000000 +0900
++++ b/CMakeLists.txt	2023-02-10 16:08:41.000000000 +0900
+@@ -54,7 +54,7 @@ elseif (${CMAKE_CXX_COMPILER_ID} STREQUA
+ 	if(${MSVC_VERSION} VERSION_LESS 1900)
+ 		message(FATAL_ERROR "MSVC >= 2015 is required.")
+ 	endif()
+-elseif ((${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang") OR (${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang"))
++elseif ((${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang") OR (${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang") OR (${CMAKE_CXX_COMPILER_ID} STREQUAL "FujitsuClang"))
+ 	set(DEFAULT_USE_OMP No)
+ 	if(${COVERAGE})
+ 		message(FATAL_ERROR "Coverage is not supported for clang. Do not set COVERAGE=Yes on this environment.")
+diff -uprN a/script/build_fcc.sh b/script/build_fcc.sh
+--- a/script/build_fcc.sh	1970-01-01 09:00:00.000000000 +0900
++++ b/script/build_fcc.sh	2023-02-07 18:54:21.000000000 +0900
+@@ -0,0 +1,12 @@
++#!/bin/sh
++
++set -eux
++
++GCC_COMMAND=fcc
++GXX_COMMAND=FCC
++
++mkdir -p ./build
++cd ./build
++cmake -G "Unix Makefiles" -D CMAKE_C_COMPILER=$GCC_COMMAND -D CMAKE_CXX_COMPILER=$GXX_COMMAND -D CMAKE_BUILD_TYPE=Release -D USE_GPU:STR=No -D USE_TEST="${USE_TEST:-No}" -D USE_OMP:STR=No -D PYTHON_EXECUTABLE=$PYTHONHOME/bin/python ..
++make -j $(nproc)
++cd ../
