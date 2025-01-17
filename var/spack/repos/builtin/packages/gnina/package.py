@@ -3,8 +3,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from hashlib import sha256
-
 from spack.package import *
 
 
