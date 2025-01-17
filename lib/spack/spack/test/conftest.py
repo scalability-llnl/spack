@@ -344,6 +344,7 @@ def no_concretization_cache():
     with spack.config.override("config:enable_concretization_cache", False):
         yield
 
+
 #
 # These fixtures are applied to all tests
 #

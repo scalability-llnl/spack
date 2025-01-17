@@ -583,6 +583,7 @@ class Result:
     @staticmethod
     def from_dict(obj: dict):
         """Returns Result object from compatible dictionary"""
+
         def _dict_to_node_argument(dict):
             id = dict["id"]
             pkg = dict["pkg"]
