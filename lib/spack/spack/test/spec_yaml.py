@@ -291,7 +291,7 @@ def test_hashes_use_no_python_dicts(module):
 def reverse_all_dicts(data):
     """Descend into data and reverse all the dictionaries"""
     if isinstance(data, dict):
-        return type(data)((k, reverse_all_dicts(v)) for k, v in reversed(data.items()))
+        return type(data)((k, reverse_all_dicts(v)) for k, v in reversed(list(data.items())))
     elif isinstance(data, (list, tuple)):
         return type(data)(reverse_all_dicts(elt) for elt in data)
     return data
