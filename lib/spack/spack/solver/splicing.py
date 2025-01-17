@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 from functools import cmp_to_key
-from typing import Dict, List
+from typing import Dict, List, NamedTuple
 
 import spack.deptypes as dt
 from spack.spec import Spec

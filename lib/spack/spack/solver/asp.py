@@ -1741,7 +1741,7 @@ class SpackSolverSetup:
                     if any(
                         v in cond.variants or v in spec_to_splice.variants for v in match_variants
                     ):
-                        raise Exception(
+                        raise spack.error.PackageError(
                             "Overlap between match_variants and explicitly set variants"
                         )
                     variant_constraints = self._gen_match_variant_splice_constraints(
