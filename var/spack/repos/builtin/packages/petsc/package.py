@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
@@ -302,7 +301,8 @@ class Petsc(Package, CudaPackage, ROCmPackage):
     # older versions of petsc did not support mumps when +int64
     conflicts("+mumps", when="@:3.12+int64")
 
-    filter_compiler_wrappers("petscvariables", relative_root="lib/petsc/conf")
+    filter_compiler_wrappers("petscvariables", "reconfigure*.py", relative_root="lib/petsc/conf")
+    filter_compiler_wrappers("petsc.pc", "PETSc.pc", relative_root="lib/pkgconfig")
 
     @run_before("configure")
     def check_fortran_compiler(self):
@@ -612,8 +612,8 @@ class Petsc(Package, CudaPackage, ROCmPackage):
             ("superlu-dist", "superlu_dist", True, True),
             ("scotch", "ptscotch", True, True),
             (
-                "suite-sparse:umfpack,klu,cholmod,btf,ccolamd,colamd,camd,amd, \
-                suitesparseconfig,spqr",
+                "suite-sparse:umfpack,klu,cholmod,btf,ccolamd,colamd,camd,amd,"
+                "suitesparseconfig,spqr",
                 "suitesparse",
                 True,
                 True,

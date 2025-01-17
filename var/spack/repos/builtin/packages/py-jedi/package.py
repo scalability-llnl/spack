@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -96,11 +95,14 @@ class PyJedi(PythonPackage):
     )
 
     with default_args(type=("build", "run")):
-        depends_on("python@3.5:3.9", when="@0.17.1:")
-        depends_on("python@3.6:3.10", when="@0.18.1:")
-        depends_on("python@3.6:3.11", when="@0.19.0:")
-        depends_on("python@3.6:3.12", when="@0.19.1:")
-        depends_on("python@3.6:3.13", when="@0.19.2:")
+        depends_on("python@3.5:", when="@0.17.1:")
+        depends_on("python@3.6:", when="@0.18.1:")
+
+        depends_on("python@:3.9", when="@:0.17.1")
+        depends_on("python@:3.10", when="@:0.18.1")
+        depends_on("python@:3.11", when="@:0.19.0")
+        depends_on("python@:3.12", when="@:0.19.1")
+        depends_on("python@:3.13", when="@0.19.2:")
 
         depends_on("py-setuptools")
 
