@@ -12,7 +12,7 @@ class Totalview(Package):
     '."""
 
     homepage = "https://totalview.io"
-    maintainers("dshrader", "petertea", "suzannepaterno", "elliebinkley")
+    maintainers("dshrader", "suzannepaterno")
     license_required = True
     license_comment = "#"
     license_files = ["tv_license/license.lic"]
@@ -21,6 +21,24 @@ class Totalview(Package):
     # As the install of Totalview is via multiple tarballs, the base install
     # will be the documentation.  The architecture-specific tarballs are added
     # as resources dependent on the specific architecture used.
+
+    version(
+        "2024.4-x86-64",
+        sha256="9735ab672c53397370f41212bc9f5d0e2a5cf63335d812406137b954ba3c4672",
+        url="https://dslwuu69twiif.cloudfront.net/totalview/2024.4/totalview_2024.4.2_linux_x86-64.tar",
+    )
+
+    version(
+        "2024.4-powerle",
+        sha256="02741b35a774331f007b590368d776bd76e5ecc2cdd693b8518975cfc0d1db57",
+        url="https://dslwuu69twiif.cloudfront.net/totalview/2024.4/totalview_2024.4.2_linux_powerle.tar",
+    )
+
+    version(
+        "2024.4-linux-arm64",
+        sha256="0eb74718d86923d9fefed006b21cecad678355554b3295e0899b7ed9aafd388d",
+        url="https://dslwuu69twiif.cloudfront.net/totalview/2024.4/totalview_2024.4.2_linux_arm64.tar",
+    )
 
     version(
         "2024.3-x86-64",
