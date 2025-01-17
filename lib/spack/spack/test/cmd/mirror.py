@@ -26,8 +26,6 @@ install = SpackCommand("install")
 buildcache = SpackCommand("buildcache")
 uninstall = SpackCommand("uninstall")
 
-pytestmark = pytest.mark.not_on_windows("does not run on windows")
-
 
 @pytest.mark.disable_clean_stage_check
 @pytest.mark.regression("8083")
@@ -347,7 +345,7 @@ def test_mirror_destroy(
 ):
     # Create a temp mirror directory for buildcache usage
     mirror_dir = tmpdir.join("mirror_dir")
-    mirror_url = "file://{0}".format(mirror_dir.strpath)
+    mirror_url = "file:///{0}".format(mirror_dir.strpath)
     mirror("add", "atest", mirror_url)
 
     spec_name = "libdwarf"
