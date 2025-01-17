@@ -178,8 +178,8 @@ class Slurm(AutotoolsPackage):
     @classmethod
     def determine_version(cls, exe):
         output = Executable(exe)("--version", output=str).rstrip()
-        match = re.search(r"slurm\s*([0-9.]+)", output)
-        return match.group(1) if match else None
+        match = re.search(r"slurm\s*([0-9.]+)|slurm-wlm\s*([0-9.]+)", output)
+        return (match.group(1) or match.group(2)) if match else None
 
     def flag_handler(self, name, flags):
         wrapper_flags = None
