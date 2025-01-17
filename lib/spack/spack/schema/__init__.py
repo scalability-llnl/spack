@@ -33,8 +33,10 @@ def _make_validator():
         for spec_str in instance:
             try:
                 spack.spec_parser.parse(spec_str)
-            except SpecSyntaxError as e:
-                yield jsonschema.ValidationError(str(e))
+            except SpecSyntaxError:
+                yield jsonschema.ValidationError(
+                    f"the key '{spec_str}' must be a valid spec, and is not"
+                )
 
     def _deprecated_properties(validator, deprecated, instance, schema):
         if not (validator.is_type(instance, "object") or validator.is_type(instance, "array")):
