@@ -1,0 +1,164 @@
+--- a/src/search.h
++++ b/src/search.h
+@@ -31,9 +31,9 @@
+ #include "uthash.h"
+ #include "util.h"
+ 
+-size_t alpha_skip_lookup[256];
+-size_t *find_skip_lookup;
+-uint8_t h_table[H_SIZE] __attribute__((aligned(64)));
++extern size_t alpha_skip_lookup[256];
++extern size_t *find_skip_lookup;
++extern uint8_t h_table[H_SIZE] __attribute__((aligned(64)));
+ 
+ struct work_queue_t {
+     char *path;
+@@ -41,12 +41,12 @@
+ };
+ typedef struct work_queue_t work_queue_t;
+ 
+-work_queue_t *work_queue;
+-work_queue_t *work_queue_tail;
+-int done_adding_files;
+-pthread_cond_t files_ready;
+-pthread_mutex_t stats_mtx;
+-pthread_mutex_t work_queue_mtx;
++extern work_queue_t *work_queue;
++extern work_queue_t *work_queue_tail;
++extern int done_adding_files;
++extern pthread_cond_t files_ready;
++extern pthread_mutex_t stats_mtx;
++extern pthread_mutex_t work_queue_mtx;
+ 
+ 
+ /* For symlink loop detection */
+@@ -64,7 +64,7 @@
+     UT_hash_handle hh;
+ } symdir_t;
+ 
+-symdir_t *symhash;
++extern symdir_t *symhash;
+ 
+ void search_buf(const char *buf, const size_t buf_len,
+                 const char *dir_full_path);
+--- a/src/search.c
++++ b/src/search.c
+@@ -2,6 +2,19 @@
+ #include "print.h"
+ #include "scandir.h"
+ 
++ size_t alpha_skip_lookup[256];
++ size_t *find_skip_lookup;
++ uint8_t h_table[H_SIZE] __attribute__((aligned(64)));
++
++ work_queue_t *work_queue;
++ work_queue_t *work_queue_tail;
++ int done_adding_files;
++ pthread_cond_t files_ready;
++ pthread_mutex_t stats_mtx;
++ pthread_mutex_t work_queue_mtx;
++
++ symdir_t *symhash;
++
+ void search_buf(const char *buf, const size_t buf_len,
+                 const char *dir_full_path) {
+     int binary = -1; /* 1 = yes, 0 = no, -1 = don't know */
+--- a/src/log.c
++++ b/src/log.c
+@@ -4,6 +4,8 @@
+ #include "log.h"
+ #include "util.h"
+ 
++pthread_mutex_t print_mtx;
++
+ static enum log_level log_threshold = LOG_LEVEL_ERR;
+ 
+ void set_log_level(enum log_level threshold) {
+--- a/src/log.h
++++ b/src/log.h
+@@ -9,7 +9,7 @@
+ #include <pthread.h>
+ #endif
+ 
+-pthread_mutex_t print_mtx;
++extern pthread_mutex_t print_mtx;
+ 
+ enum log_level {
+     LOG_LEVEL_DEBUG = 10,
+--- a/src/options.h
++++ b/src/options.h
+@@ -91,7 +91,7 @@
+ } cli_options;
+ 
+ /* global options. parse_options gives it sane values, everything else reads from it */
+-cli_options opts;
++extern cli_options opts;
+ 
+ typedef struct option option_t;
+ 
+--- a/src/options.c
++++ b/src/options.c
+@@ -16,6 +16,8 @@
+ #include "print.h"
+ #include "util.h"
+ 
++cli_options opts;
++
+ const char *color_line_number = "\033[1;33m"; /* bold yellow */
+ const char *color_match = "\033[30;43m";      /* black with yellow background */
+ const char *color_path = "\033[1;32m";        /* bold green */
+--- a/src/util.h
++++ b/src/util.h
+@@ -12,7 +12,7 @@
+ #include "log.h"
+ #include "options.h"
+ 
+-FILE *out_fd;
++extern FILE *out_fd;
+ 
+ #ifndef TRUE
+ #define TRUE 1
+@@ -51,7 +51,7 @@
+ } ag_stats;
+ 
+ 
+-ag_stats stats;
++extern ag_stats stats;
+ 
+ /* Union to translate between chars and words without violating strict aliasing */
+ typedef union {
+--- a/src/util.c
++++ b/src/util.c
+@@ -15,6 +15,10 @@
+ #define getc_unlocked(x) getc(x)
+ #endif
+ 
++FILE *out_fd;
++
++ag_stats stats;
++
+ #define CHECK_AND_RETURN(ptr)             \
+     if (ptr == NULL) {                    \
+         die("Memory allocation failed."); \
+--- a/src/ignore.c
++++ b/src/ignore.c
+@@ -22,6 +22,8 @@
+ 
+ /* TODO: build a huge-ass list of files we want to ignore by default (build cache stuff, pyc files, etc) */
+ 
++ignores *root_ignores;
++
+ const char *evil_hardcoded_ignore_files[] = {
+     ".",
+     "..",
+--- a/src/ignore.h
++++ b/src/ignore.h
+@@ -29,7 +29,7 @@
+ };
+ typedef struct ignores ignores;
+ 
+-ignores *root_ignores;
++extern ignores *root_ignores;
+ 
+ extern const char *evil_hardcoded_ignore_files[];
+ extern const char *ignore_pattern_files[];

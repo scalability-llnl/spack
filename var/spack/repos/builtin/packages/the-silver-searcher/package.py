@@ -24,3 +24,6 @@ class TheSilverSearcher(AutotoolsPackage):
     depends_on("xz")
     depends_on("zlib-api")
     depends_on("pkgconfig", type="build")
+
+    # https://github.com/spack/spack/issues/25664
+    patch("fno-common.patch", when="@2.2.0")
