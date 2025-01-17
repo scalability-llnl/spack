@@ -6,6 +6,8 @@ import copy
 import typing
 import warnings
 
+import jsonschema
+
 import llnl.util.lang
 
 from spack.error import SpecSyntaxError
@@ -19,12 +21,9 @@ class DeprecationMessage(typing.NamedTuple):
 # jsonschema is imported lazily as it is heavy to import
 # and increases the start-up time
 def _make_validator():
-    import jsonschema
 
     def _validate_spec(validator, is_spec, instance, schema):
         """Check if the attributes on instance are valid specs."""
-        import jsonschema
-
         import spack.spec_parser
 
         if not validator.is_type(instance, "object"):
