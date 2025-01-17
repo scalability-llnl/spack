@@ -49,7 +49,7 @@ class Alps(CMakePackage):
         args.append("-DCMAKE_CXX_FLAGS={0}".format(self.compiler.cxx14_flag + " -fpermissive"))
         return args
 
-    @run_after('install'):
+    @run_after('install')
     def relocate_python_stuff(self):
         pyalps_dir = join(python_platlib, 'pyalps')
         with working_dir(self.prefix):
