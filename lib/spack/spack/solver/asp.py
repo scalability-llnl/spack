@@ -38,6 +38,7 @@ import spack.config
 import spack.deptypes as dt
 import spack.environment as ev
 import spack.error
+import spack.hash_types as ht
 import spack.package_base
 import spack.package_prefs
 import spack.paths
@@ -548,7 +549,7 @@ class Result:
                 msg += "\n\t(No candidate specs from solver)"
         return msg
 
-    def to_dict(self) -> dict:
+    def to_dict(self, test:bool=False) -> dict:
         """Produces dict representation of Result object
 
         Does not include anything related to unsatisfiability as we
@@ -557,6 +558,7 @@ class Result:
         serial_node_arg = (
             lambda node_dict: f"""{{"id": "{node_dict.id}", "pkg": "{node_dict.pkg}"}}"""
         )
+        spec_hash_type = ht.process_hash if test else ht.dag_hash
         ret = dict()
         ret["asp"] = self.asp
         ret["criteria"] = self.criteria
@@ -570,14 +572,14 @@ class Result:
             serial_answer = answer[:2]
             serial_answer_dict = {}
             for node, spec in answer[2].items():
-                serial_answer_dict[serial_node_arg(node)] = spec.to_dict()
+                serial_answer_dict[serial_node_arg(node)] = spec.to_dict(hash=spec_hash_type)
             serial_answer = serial_answer + (serial_answer_dict,)
             serial_answers.append(serial_answer)
         ret["answers"] = serial_answers
         ret["specs_by_input"] = {}
         input_specs = {} if not self.specs_by_input else self.specs_by_input
         for input, spec in input_specs.items():
-            ret["specs_by_input"][str(input)] = spec.to_dict()
+            ret["specs_by_input"][str(input)] = spec.to_dict(hash=spec_hash_type)
         return ret
 
     @staticmethod
@@ -829,7 +831,7 @@ class ConcretizationCache:
                 self._safe_remove(entry)
                 self._safe_remove(entry.parent)
 
-    def store(self, problem: str, result: Result, statistics: List):
+    def store(self, problem: str, result: Result, statistics: List, test: bool=False):
         """Creates entry in concretization cache for problem if none exists,
         storing the concretization Result object and statistics in the cache
         as serialized json joined as a single file.
@@ -839,7 +841,7 @@ class ConcretizationCache:
         """
         cache_path = self._cache_path_from_problem(problem)
         with self._create_cache_entry(cache_path):
-            cache_dict = {"results": result.to_dict(), "statistics": statistics}
+            cache_dict = {"results": result.to_dict(test=test), "statistics": statistics}
             self._safe_write(cache_path, json.dumps(cache_dict))
         self.cleanup()
 
@@ -1141,7 +1143,6 @@ class PyclingoDriver:
         if sys.platform == "win32":
             tty.debug("Ensuring basic dependencies {win-sdk, wgl} available")
             spack.bootstrap.core.ensure_winsdk_external_or_raise()
-
         control_files = ["concretize.lp", "heuristic.lp", "display.lp"]
         if not setup.concretize_everything:
             control_files.append("when_possible.lp")
@@ -1227,6 +1228,7 @@ class PyclingoDriver:
 
                 solve_result = handle.get()
             timer.stop("solve")
+
             # once done, construct the solve result
             result = Result(specs)
             result.satisfiable = solve_result.satisfiable
@@ -1275,7 +1277,7 @@ class PyclingoDriver:
                     f"https://github.com/spack/spack/issues\n\t{unsolved_str}"
                 )
 
-            CONC_CACHE.store(problem_repr, result, self.control.statistics)
+            CONC_CACHE.store(problem_repr, result, self.control.statistics, test=setup.tests)
             concretization_stats = self.control.statistics
         if output.timers:
             timer.write_tty()
@@ -1724,7 +1726,7 @@ class SpackSolverSetup:
             return
 
         self.gen.h2("Imposed requirements")
-        for name in self._effect_cache:
+        for name in sorted(self._effect_cache):
             cache = self._effect_cache[name]
             for (spec_str, _), (effect_id, requirements) in cache.items():
                 self.gen.fact(fn.pkg_fact(name, fn.effect_id(effect_id)))
@@ -1974,7 +1976,7 @@ class SpackSolverSetup:
             condition_id = self.condition(
                 when, required_name=pkg.name, msg="Virtuals are provided together"
             )
-            for set_id, virtuals_together in enumerate(sets_of_virtuals):
+            for set_id, virtuals_together in enumerate(sorted(sets_of_virtuals)):
                 for name in sorted(virtuals_together):
                     self.gen.fact(
                         fn.pkg_fact(pkg.name, fn.provided_together(condition_id, set_id, name))
@@ -2082,7 +2084,7 @@ class SpackSolverSetup:
                     for map in pkg.variants.values():
                         for k in map:
                             filt_match_variants.add(k)
-                    filt_match_variants = list(filt_match_variants)
+                    filt_match_variants = sorted(filt_match_variants)
                     variant_constraints = self._gen_match_variant_splice_constraints(
                         pkg, cond, spec_to_splice, hash_var, splice_node, filt_match_variants
                     )
@@ -3221,7 +3223,7 @@ class SpackSolverSetup:
         recorder.consume_facts()
 
     def literal_specs(self, specs):
-        for spec in specs:
+        for spec in sorted(specs):
             self.gen.h2("Spec: %s" % str(spec))
             condition_id = next(self._id_counter)
             trigger_id = next(self._id_counter)
