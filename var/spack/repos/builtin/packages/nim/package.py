@@ -133,18 +133,11 @@ class Nim(Package):
         if spec.satisfies("+sqlite"):
             append_rpath("lib/wrappers/sqlite3.nim", spec["sqlite"].libs.directories)
 
-    def flag_handler(self, name, flags):
-        if name == "cflags":
-            ## Alpine Linux pthread musl stub causes type mismatches
-            strict_compilers = ["%gcc@14:", "%clang@15:", "%apple-clang@15:", "%oneapi", "%cce"]
-            if (
-                "alpine" in self.spec.os
-                and not self.spec.satisfies("@devel")
-                and any(self.spec.satisfies(compiler) for compiler in strict_compilers)
-            ):
-                flags.append("-Wno-incompatible-pointer-types")
-                flags.append("-Wno-int-conversion")
-        return (flags, None, None)
+        # Alpine Linux pthread musl stub causes type errors on newer compilers
+        if "alpine" in self.spec.os and not self.spec.satisfies("@devel"):
+            with open("lib/std/typedthreads.nim", "a") as f:
+                f.write('\n{.passC: "-Wno-incompatible-pointer-types".}\n')
+                f.write('{.passC: "-Wno-int-conversion".}\n')
 
     def build(self, spec, prefix):
         if spec.satisfies("@devel"):
