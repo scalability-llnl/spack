@@ -23,6 +23,7 @@ class PyWxpython(PythonPackage):
 
     # Needed for the build.py script
     depends_on("py-setuptools", type="build")
+    depends_on("py-setuptools@:75", type="build", when="@:4.1")  # deprecated license-file
     depends_on("py-pathlib2", type="build")
 
     # Needed at runtime
