@@ -48,7 +48,7 @@ module_file_configuration = {
 
 projections_scheme = spack.schema.projections.properties["projections"]
 
-module_type_configuration = {
+module_type_configuration: Dict = {
     "type": "object",
     "default": {},
     "validate_spec": True,
