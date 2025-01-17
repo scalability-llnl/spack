@@ -69,6 +69,7 @@ import spack.util.spack_yaml as syaml
 from spack.util.cpus import cpus_available
 from spack.util.path import substitute_path_variables
 from spack.util.url import validate_scheme
+from spack.util.web import RemoteFileError, fetch_remote_files
 
 #: Dict from section names -> schema for that section
 SECTION_SCHEMAS: Dict[str, Any] = {
@@ -879,7 +880,7 @@ def include_path_scope(
                         tty.warn(
                             f"Will not (re-)stage configuration from {include.path} "
                             "to avoid losing changes to the already staged file of "
-                            f"the same name (i.e., in {staged_configs})."
+                            f"the same name in {config_stage_dir}"
                         )
                         skip_restage_warning.append(remote_path)
 
@@ -890,9 +891,13 @@ def include_path_scope(
                     if basename.endswith(".yaml"):
                         config_path = os.path.join(config_path, basename)
                 else:
-                    staged_path = fetch_remote_configs(
-                        config_path, str(config_stage_dir), skip_existing=True
-                    )
+                    try:
+                        staged_path = fetch_remote_files(
+                            config_path, ".yaml", str(config_stage_dir), skip_existing=True
+                        )
+                    except (RemoteFileError, ValueError):
+                        staged_path = None
+
                     if not staged_path:
                         raise ConfigFileError(
                             f"Unable to fetch remote configuration {config_path}"
@@ -1603,101 +1608,6 @@ def _config_from(scopes_or_paths: List[Union[ConfigScope, str]]) -> Configuratio
 
     configuration = Configuration(*scopes)
     return configuration
-
-
-def raw_github_gitlab_url(url: str) -> str:
-    """Transform a github URL to the raw form to avoid undesirable html.
-
-    Args:
-        url: url to be converted to raw form
-
-    Returns:
-        Raw github/gitlab url or the original url
-    """
-    # Note we rely on GitHub to redirect the 'raw' URL returned here to the
-    # actual URL under https://raw.githubusercontent.com/ with '/blob'
-    # removed and or, '/blame' if needed.
-    if "github" in url or "gitlab" in url:
-        return url.replace("/blob/", "/raw/")
-
-    return url
-
-
-def collect_urls(base_url: str) -> list:
-    """Return a list of configuration URLs.
-
-    Arguments:
-        base_url: URL for a configuration (yaml) file or a directory
-            containing yaml file(s)
-
-    Returns:
-        List of configuration file(s) or empty list if none
-    """
-    import spack.util.web as web_util  # circular import
-
-    if not base_url:
-        return []
-
-    extension = ".yaml"
-
-    if base_url.endswith(extension):
-        return [base_url]
-
-    # Collect configuration URLs if the base_url is a "directory".
-    _, links = web_util.spider(base_url, 0)
-    return [link for link in links if link.endswith(extension)]
-
-
-def fetch_remote_configs(url: str, dest_dir: str, skip_existing: bool = True) -> str:
-    """Retrieve configuration file(s) at the specified URL.
-
-    Arguments:
-        url: URL for a configuration (yaml) file or a directory containing
-            yaml file(s)
-        dest_dir: destination directory
-        skip_existing: Skip files that already exist in dest_dir if
-            ``True``; otherwise, replace those files
-
-    Returns:
-        Path to the corresponding file if URL is or contains a
-        single file and it is the only file in the destination directory or
-        the root (dest_dir) directory if multiple configuration files exist
-        or are retrieved.
-    """
-    import spack.util.web as web_util  # circular import
-
-    def _fetch_file(url):
-        raw = raw_github_gitlab_url(url)
-        tty.debug(f"Reading config from url {raw}")
-        return web_util.fetch_url_text(raw, dest_dir=dest_dir)
-
-    if not url:
-        raise ConfigFileError("Cannot retrieve configuration without a URL")
-
-    # Return the local path to the cached configuration file OR to the
-    # directory containing the cached configuration files.
-    config_links = collect_urls(url)
-    existing_files = os.listdir(dest_dir) if os.path.isdir(dest_dir) else []
-
-    paths = []
-    for config_url in config_links:
-        basename = os.path.basename(config_url)
-        if skip_existing and basename in existing_files:
-            tty.warn(
-                f"Will not (re-)fetch configuration from {config_url} since a "
-                f"version of {basename} already exists in {dest_dir}."
-            )
-            path = os.path.join(dest_dir, basename)
-        else:
-            path = _fetch_file(config_url)
-
-        if path:
-            paths.append(path)
-
-    if paths:
-        return dest_dir if len(paths) > 1 else paths[0]
-
-    raise ConfigFileError(f"Cannot retrieve configuration (yaml) from {url}")
 
 
 def get_mark_from_yaml_data(obj):
