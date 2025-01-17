@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from hashlib import sha256
+
 from spack.package import *
 
 
@@ -80,8 +82,16 @@ class Gnina(CMakePackage, CudaPackage):
     depends_on("hdf5+cxx+hl~mpi", when="@:1.1")
     depends_on("openblas~fortran", when="@:1.1")
 
-    patch("PR280-v1.3.patch", when="@1.3")
-    patch("PR282-v1.3.patch", when="@1.3")
+    patch(
+        "https://patch-diff.githubusercontent.com/raw/gnina/gnina/pull/280.patch?full_index=1",
+        when="@1.3",
+        sha256="88d1760423cedfdb992409b0bfe3f9939ab5900f52074364db9ad8b87f4845d4",
+    )
+    patch(
+        "https://patch-diff.githubusercontent.com/raw/gnina/gnina/pull/282.patch?full_index=1",
+        when="@1.3",
+        sha256="6a1db3d63039a11ecc6e753b325962773e0084673d54a0d93a503bca8b08fb9e",
+    )
 
     def cmake_args(self):
         args = []
@@ -93,6 +103,6 @@ class Gnina(CMakePackage, CudaPackage):
             args.append(f"-DRDKIT_INCLUDE_DIR={self.spec['rdkit'].prefix.include.rdkit}")
 
         if self.spec.satisfies("@1.3:"):
-            args.append(self.define("GNINA_FORCE_EXTERNAL_LIBS", True)
+            args.append(self.define("GNINA_FORCE_EXTERNAL_LIBS", True))
 
         return args
