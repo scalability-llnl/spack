@@ -14,11 +14,13 @@ import subprocess
 import sys
 import tempfile
 from datetime import date
+from typing import Optional
 
 import llnl.util.tty as tty
 from llnl.util.lang import memoized
 
 import spack.util.spack_yaml as syaml
+from spack.util.environment import INITIAL_ENVIRONMENT, FrozenEnvironment
 
 __all__ = ["substitute_config_variables", "substitute_path_variables", "canonicalize_path"]
 
@@ -188,11 +190,25 @@ def substitute_config_variables(path):
     return re.sub(r"(\$\w+\b|\$\{\w+\})", repl, path)
 
 
-def substitute_path_variables(path):
+def substitute_path_variables(path, env=None):
     """Substitute config vars, expand environment vars, expand user home."""
     path = substitute_config_variables(path)
     path = os.path.expandvars(path)
     path = os.path.expanduser(path)
+
+    # Check for unexpanded vars which may be the result of a cleaned environment.
+    # Ignore $SSL_CERT_FILE since that's often not set but is in the config files
+    # by default.
+    if "$" in path.replace("$SSL_CERT_FILE", ""):
+        tty.warn(
+            (
+                f"Path '{path}' appears to contain unexpanded environment variables. "
+                "This sometimes occurs if your config file uses variable names that are "
+                "cleaned before package installation, or if an expected environment "
+                "variable is not set."
+            )
+        )
+
     return path
 
 
@@ -235,7 +251,9 @@ def add_padding(path, length):
     return os.path.join(path, padding)
 
 
-def canonicalize_path(path, default_wd=None):
+def canonicalize_path(
+    path, default_wd=None, env: Optional[FrozenEnvironment] = INITIAL_ENVIRONMENT
+):
     """Same as substitute_path_variables, but also take absolute path.
 
     If the string is a yaml object with file annotations, make absolute paths
@@ -248,23 +266,31 @@ def canonicalize_path(path, default_wd=None):
     Returns:
         (str): An absolute path with path variable substitution
     """
-    # Get file in which path was written in case we need to make it absolute
-    # relative to that path.
-    filename = None
-    if isinstance(path, syaml.syaml_str):
-        filename = os.path.dirname(path._start_mark.name)
-        assert path._start_mark.name == path._end_mark.name
 
-    path = substitute_path_variables(path)
-    if not os.path.isabs(path):
-        if filename:
-            path = os.path.join(filename, path)
-        else:
-            base = default_wd or os.getcwd()
-            path = os.path.join(base, path)
-            tty.debug("Using working directory %s as base for abspath" % base)
+    def _canonicalize_path(path, default_wd=None):
+        # Get file in which path was written in case we need to make it absolute
+        # relative to that path.
+        filename = None
+        if isinstance(path, syaml.syaml_str):
+            filename = os.path.dirname(path._start_mark.name)
+            assert path._start_mark.name == path._end_mark.name
 
-    return os.path.normpath(path)
+        path = substitute_path_variables(path)
+        if not os.path.isabs(path):
+            if filename:
+                path = os.path.join(filename, path)
+            else:
+                base = default_wd or os.getcwd()
+                path = os.path.join(base, path)
+                tty.debug("Using working directory %s as base for abspath" % base)
+
+        return os.path.normpath(path)
+
+    if env:
+        with env:
+            return _canonicalize_path(path, default_wd)
+    else:
+        return _canonicalize_path(path, default_wd)
 
 
 def longest_prefix_re(string, capture=True):

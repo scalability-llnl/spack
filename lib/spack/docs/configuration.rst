@@ -527,7 +527,21 @@ Environment variables
 After Spack-specific variables are evaluated, environment variables are
 expanded. These are formatted like Spack-specific variables, e.g.,
 ``${varname}``. You can use this to insert environment variables in your
-Spack configuration.
+Spack configuration. 
+
+Spack will not replace environment variables that 
+are not set. In addition, if an environment variable is removed during 
+a clean environment install, Spack will sometimes not expand the removed 
+environment variable. For consistency, avoid using environment variables 
+and variable patterns described in the 
+`clean_environment function <https://github.com/spack/spack/blob/develop/lib/spack/spack/build_environment.py>`_.
+
+Environment variables that may be cleaned include:
+
+* common build variables, such as ``LIBRARY_PATH`` and ``CPATH``.
+* common runtime variables, such as ``LD_LIBRARY_PATH``.
+* compiler variables, such as ``CC`` and ``MPICC``.
+* variables that end in ``_ROOT``
 
 ^^^^^^^^^^^^^^^^^^^^^
 User home directories
