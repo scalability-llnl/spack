@@ -21,7 +21,6 @@ class DeprecationMessage(typing.NamedTuple):
 # jsonschema is imported lazily as it is heavy to import
 # and increases the start-up time
 def _make_validator():
-
     def _validate_spec(validator, is_spec, instance, schema):
         """Check if the attributes on instance are valid specs."""
         import spack.spec_parser
@@ -33,9 +32,7 @@ def _make_validator():
             try:
                 spack.spec_parser.parse(spec_str)
             except SpecSyntaxError:
-                yield jsonschema.ValidationError(
-                    f"the key '{spec_str}' is not a valid spec"
-                )
+                yield jsonschema.ValidationError(f"the key '{spec_str}' is not a valid spec")
 
     def _deprecated_properties(validator, deprecated, instance, schema):
         if not (validator.is_type(instance, "object") or validator.is_type(instance, "array")):
