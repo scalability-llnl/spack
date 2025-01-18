@@ -4,7 +4,6 @@
 
 import spack.store
 from spack.package import *
-from spack.pkg.builtin.boost import Boost
 
 
 class CbtfKrell(CMakePackage):
@@ -24,8 +23,10 @@ class CbtfKrell(CMakePackage):
     version("1.9.4", branch="1.9.4")
     version("1.9.3", branch="1.9.3")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    # See https://github.com/spack/spack/pull/47133#pullrequestreview-2430991688 and below:
+    conflicts("%gcc@10:")
 
     # MPI variants
     variant(
@@ -54,6 +55,8 @@ class CbtfKrell(CMakePackage):
     # Dependencies for cbtf-krell
     depends_on("cmake@3.0.2:", type="build")
 
+    depends_on("gotcha")
+
     # For rpcgen
     depends_on("rpcsvc-proto", type="build")
 
@@ -64,12 +67,7 @@ class CbtfKrell(CMakePackage):
     depends_on("binutils@2.32")
 
     # For boost
-    depends_on("boost@1.70.0:")
-
-    # TODO: replace this with an explicit list of components of Boost,
-    # for instance depends_on('boost +filesystem')
-    # See https://github.com/spack/spack/pull/22303 for reference
-    depends_on(Boost.with_default_variants)
+    depends_on("boost@1.70.0:+filesystem+graph+program_options+python+test+thread")
 
     # For Dyninst
     depends_on("dyninst@10.1.0", when="@develop")
