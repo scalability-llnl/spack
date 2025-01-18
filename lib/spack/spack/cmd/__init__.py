@@ -297,7 +297,7 @@ def disambiguate_spec(
 
 def disambiguate_spec_from_hashes(
     spec: spack.spec.Spec,
-    hashes: List[str],
+    hashes: Optional[List[str]],
     local: bool = False,
     installed: Union[bool, InstallRecordStatus] = True,
     first: bool = False,

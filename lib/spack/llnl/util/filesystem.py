@@ -1740,8 +1740,7 @@ def find(
 
 
 def _log_file_access_issue(e: OSError, path: str) -> None:
-    errno_name = errno.errorcode.get(e.errno, "UNKNOWN")
-    tty.debug(f"find must skip {path}: {errno_name} {e}")
+    tty.debug(f"find must skip {path}: {e}")
 
 
 def _file_id(s: os.stat_result) -> Tuple[int, int]:
