@@ -16,3 +16,11 @@ class Affinity(CMakePackage, CudaPackage):
     maintainers("bcumming", "nhanford")
 
     license("BSD-3-Clause", checked_by="nhanford")
+
+    variant("mpi", default=False, description="Build MPI support")
+    variant("rocm", default=False, description="Build ROCm Support")
+
+    depends_on("mpi", when="+mpi")
+    depends_on("hip", when="+rocm")
+    depends_on("mpi", when="+mpi")
+    depends_on("mpi", when="^cuda")
