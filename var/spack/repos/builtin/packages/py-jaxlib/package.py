@@ -40,6 +40,7 @@ class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
     license("Apache-2.0")
     maintainers("adamjstewart", "jonas-eschle")
 
+    version("0.5.0", sha256="04cc2eeb2e7ce1916674cea03a7d75a59d583ddb779d5104e103a2798a283ce9")
     version("0.4.38", sha256="ca1e63c488d505b9c92e81499e8b06cc1977319c50d64a0e58adbd2dae1a625c")
     version("0.4.37", sha256="17a8444a931f26edda8ccbc921ab71c6bf46857287b1db186deebd357e526870")
     version("0.4.36", sha256="442bfdf491b509995aa160361e23a9db488d5b97c87e6648cc733501b06eda77")
@@ -108,19 +109,21 @@ class PyJaxlib(PythonPackage, CudaPackage, ROCmPackage):
         depends_on("py-build", when="@0.4.14:")
 
     with default_args(type=("build", "run")):
+        # Based on PyPI wheels
         depends_on("python@3.10:", when="@0.4.31:")
         depends_on("python@3.9:", when="@0.4.14:")
         depends_on("python@3.8:", when="@0.4.6:")
-        # Based on PyPI wheels
         depends_on("python@:3.13")
         depends_on("python@:3.12", when="@:0.4.33")
         depends_on("python@:3.11", when="@:0.4.16")
 
         # jaxlib/setup.py
+        depends_on("py-scipy@1.11.1:", when="@0.5:")
         depends_on("py-scipy@1.10:", when="@0.4.31:")
         depends_on("py-scipy@1.9:", when="@0.4.19:")
         depends_on("py-scipy@1.7:", when="@0.4.7:")
         depends_on("py-scipy@1.5:")
+        depends_on("py-numpy@1.25:", when="@0.5:")
         depends_on("py-numpy@1.24:", when="@0.4.31:")
         depends_on("py-numpy@1.22:", when="@0.4.14:")
         depends_on("py-numpy@1.21:", when="@0.4.7:")
