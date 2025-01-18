@@ -191,6 +191,9 @@ class Hiop(CMakePackage, CudaPackage, ROCmPackage):
                 ]
             )
 
+        with when("+cuda @0.7.1:"):
+            args.extend([self.define_from_variant("HIOP_USE_RESOLVE", "cusolver_lu")])
+
         args.extend(
             [
                 self.define("HIOP_BUILD_STATIC", True),
@@ -210,7 +213,6 @@ class Hiop(CMakePackage, CudaPackage, ROCmPackage):
                 self.define_from_variant("HIOP_USE_COINHSL", "sparse"),
                 self.define_from_variant("HIOP_TEST_WITH_BSUB", "jsrun"),
                 self.define_from_variant("HIOP_USE_GINKGO", "ginkgo"),
-                self.define_from_variant("HIOP_USE_RESOLVE", "cusolver_lu"),
             ]
         )
 
