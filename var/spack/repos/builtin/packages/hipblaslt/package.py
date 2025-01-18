@@ -28,6 +28,7 @@ class Hipblaslt(CMakePackage):
 
     depends_on("c", type="build")
     depends_on("cxx", type="build")
+    depends_on("cmake@3.25.2:", type="build", when="@6.3.0:")
 
     amdgpu_targets = ROCmPackage.amdgpu_targets
 
