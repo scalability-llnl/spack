@@ -9,7 +9,6 @@ import re
 from glob import glob
 
 import llnl.util.tty as tty
-from llnl.util.filesystem import find_all_libraries
 
 from spack.package import *
 
@@ -798,12 +797,6 @@ class Cuda(Package):
             arguments.append("--toolkitpath=%s" % prefix)  # Where to install
 
         install_shell(*arguments)
-
-        # XLA expects all libraries to be symlinked in a lib directory
-        # https://github.com/openxla/xla/blob/main/docs/hermetic_cuda.md
-        os.makedirs(prefix.lib, exist_ok=True)
-        for lib in find_all_libraries(prefix, recursive=True):
-            symlink(lib, prefix.lib.join(os.path.basename(lib)))
 
         try:
             os.remove("/tmp/cuda-installer.log")
