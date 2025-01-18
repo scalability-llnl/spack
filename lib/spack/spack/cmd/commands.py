@@ -560,6 +560,8 @@ class FishCompletionWriter(ArgparseWriter):
 
         for idx, (args, choices, nargs, help) in enumerate(positionals):
             # Make sure we always get same order of output
+            if not help:  # this means SUPPRESS was used.
+                choices = None
             if isinstance(choices, dict):
                 choices = sorted(choices.keys())
             elif isinstance(choices, (set, frozenset)):

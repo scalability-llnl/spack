@@ -134,9 +134,9 @@ end
 
 function __fish_spack_bootstrap_names
     if set -q __fish_spack_flag_scope
-        spack bootstrap list --scope $__fish_spack_flag_scope | string replace -rf -- '^Name: (\w+).*?$' '$1'
+        spack bootstrap list --scope $__fish_spack_flag_scope
     else
-        spack bootstrap list | string replace -rf -- '^Name: (\w+).*?$' '$1'
+        spack bootstrap list
     end
 end
 

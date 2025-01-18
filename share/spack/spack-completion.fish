@@ -134,9 +134,9 @@ end
 
 function __fish_spack_bootstrap_names
     if set -q __fish_spack_flag_scope
-        spack bootstrap list --scope $__fish_spack_flag_scope | string replace -rf -- '^Name: (\w+).*?$' '$1'
+        spack bootstrap list --scope $__fish_spack_flag_scope
     else
-        spack bootstrap list | string replace -rf -- '^Name: (\w+).*?$' '$1'
+        spack bootstrap list
     end
 end
 
@@ -648,7 +648,7 @@ complete -c spack -n '__fish_spack_using_command bootstrap add' -l trust -d 'ena
 
 # spack bootstrap remove
 set -g __fish_spack_optspecs_spack_bootstrap_remove h/help
-complete -c spack -n '__fish_spack_using_command_pos 0 bootstrap remove' -f -a '(__fish_spack_bootstrap_names)'
+complete -c spack -n '__fish_spack_using_command_pos_remainder 0 bootstrap remove' -f -a '(__fish_spack_bootstrap_names)'
 complete -c spack -n '__fish_spack_using_command bootstrap remove' -s h -l help -f -a help
 complete -c spack -n '__fish_spack_using_command bootstrap remove' -s h -l help -d 'show this help message and exit'
 

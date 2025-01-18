@@ -1,6 +1,7 @@
 # Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import argparse
 import os.path
 import shutil
 import sys
@@ -66,13 +67,21 @@ SOURCE_METADATA = {
 }
 
 
+class AllSources:
+    """Iterator for bootstrapping sources. Every __iter__ call uses current config, which is robust
+    in tests."""
+
+    def __iter__(self):
+        yield from (s["name"] for s in spack.bootstrap.core.bootstrapping_sources())
+
+
 def _add_scope_option(parser):
     parser.add_argument(
         "--scope", action=arguments.ConfigScope, help="configuration scope to read/modify"
     )
 
 
-def setup_parser(subparser):
+def setup_parser(subparser: argparse.ArgumentParser):
     sp = subparser.add_subparsers(dest="subcommand")
 
     now = sp.add_parser("now", help="Spack ready, right now!")
@@ -121,7 +130,9 @@ def setup_parser(subparser):
     add.add_argument("metadata_dir", help="directory where to find metadata files")
 
     remove = sp.add_parser("remove", help="remove a bootstrapping source")
-    remove.add_argument("name", help="name of the source to be removed")
+    remove.add_argument(
+        "name", nargs="+", choices=AllSources(), help=argparse.SUPPRESS, metavar="name"
+    )
 
     mirror = sp.add_parser("mirror", help="create a local mirror to bootstrap Spack")
     mirror.add_argument(
@@ -196,6 +207,11 @@ def _root(args):
 
 def _list(args):
     sources = spack.bootstrap.core.bootstrapping_sources(scope=args.scope)
+    if not sys.stdout.isatty():
+        for source in sources:
+            print(source["name"])
+        return
+
     if not sources:
         llnl.util.tty.msg("No method available for bootstrapping Spack's dependencies")
         return
@@ -355,31 +371,35 @@ def _add(args):
 
 
 def _remove(args):
-    initial_sources = spack.bootstrap.core.bootstrapping_sources()
-    names = [s["name"] for s in initial_sources]
-    if args.name not in names:
-        msg = (
-            'cannot find any bootstrapping source named "{0}". '
-            "Run `spack bootstrap list` to see available sources."
+    configured = set(AllSources())
+    removable = set(args.name)
+    unknown = removable - configured
+
+    if unknown:
+        if not configured:
+            raise RuntimeError("no bootstrapping sources are configured")
+        unknown_str = ", ".join(f'"{name}"' for name in removable)
+        known_str = ", ".join(f'"{name}"' for name in configured)
+        raise RuntimeError(
+            f"cannot find any bootstrapping source named {unknown_str}. "
+            f"Choose from {known_str}."
         )
-        raise RuntimeError(msg.format(args.name))
 
     for current_scope in spack.config.scopes():
         sources = spack.config.get("bootstrap:sources", scope=current_scope) or []
-        if args.name in [s["name"] for s in sources]:
-            sources = [s for s in sources if s["name"] != args.name]
-            spack.config.set("bootstrap:sources", sources, scope=current_scope)
-            msg = (
-                'Removed the bootstrapping source named "{0}" from the '
-                '"{1}" configuration scope.'
-            )
-            llnl.util.tty.msg(msg.format(args.name, current_scope))
         trusted = spack.config.get("bootstrap:trusted", scope=current_scope) or []
-        if args.name in trusted:
-            trusted.pop(args.name)
-            spack.config.set("bootstrap:trusted", trusted, scope=current_scope)
-            msg = 'Deleting information on "{0}" from list of trusted sources'
-            llnl.util.tty.msg(msg.format(args.name))
+        for name in removable:
+            if any(name == s["name"] for s in sources):
+                sources = [s for s in sources if s["name"] != name]
+                spack.config.set("bootstrap:sources", sources, scope=current_scope)
+                llnl.util.tty.msg(
+                    f'Removed the bootstrapping source named "{name}" from the '
+                    f'"{current_scope}" configuration scope.'
+                )
+            if name in trusted:
+                trusted.pop(name)
+                spack.config.set("bootstrap:trusted", trusted, scope=current_scope)
+                llnl.util.tty.msg(f'Deleting information on "{name}" from list of trusted sources')
 
 
 def _mirror(args):
