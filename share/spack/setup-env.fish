@@ -527,10 +527,10 @@ function spack_runner -d "Runner function for the `spack` wrapper"
                         # as argument (otherwise it will be confused as a blank
                         # string input!)
                         if test -n "$__sp_remaining_args"
-                            command spack env $sp_arg $__sp_remaining_args
+                            command spack $sp_flags env $sp_arg $__sp_remaining_args
                             return
                         else
-                            command spack env $sp_arg
+                            command spack $sp_flags env $sp_arg
                             return
                         end
                 end
