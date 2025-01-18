@@ -13,7 +13,7 @@ class Damaris(CMakePackage):
 
     homepage = "https://project.inria.fr/damaris/"
     git = "https://gitlab.inria.fr/Damaris/damaris.git"
-    maintainers("jcbowden")
+    maintainers("endamlabin")
 
     license("LGPL-3.0-or-later")
 
