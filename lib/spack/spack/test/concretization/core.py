@@ -3122,14 +3122,13 @@ def test_concretization_version_order():
         ),
     ],
 )
-@pytest.mark.usefixtures("mutable_database", "mock_store")
+@pytest.mark.usefixtures("mutable_database", "mock_store", "do_not_check_runtimes_on_reuse")
 @pytest.mark.not_on_windows("Expected length is different on Windows")
 def test_filtering_reused_specs(
-    roots, reuse_yaml, expected, not_expected, expected_length, mutable_config, monkeypatch
+    roots, reuse_yaml, expected, not_expected, expected_length, mutable_config
 ):
     """Tests that we can select which specs are to be reused, using constraints as filters"""
     # Assume all specs have a runtime dependency
-    monkeypatch.setattr(spack.solver.asp, "_has_runtime_dependencies", lambda x: True)
     mutable_config.set("concretizer:reuse", reuse_yaml)
     selector = spack.solver.asp.ReusableSpecsSelector(mutable_config)
     specs = selector.reusable_specs(roots)
@@ -3149,10 +3148,11 @@ def test_filtering_reused_specs(
     [({"from": [{"type": "local"}]}, 17), ({"from": [{"type": "buildcache"}]}, 0)],
 )
 @pytest.mark.not_on_windows("Expected length is different on Windows")
-def test_selecting_reused_sources(reuse_yaml, expected_length, mutable_config, monkeypatch):
+def test_selecting_reused_sources(
+    reuse_yaml, expected_length, mutable_config, do_not_check_runtimes_on_reuse
+):
     """Tests that we can turn on/off sources of reusable specs"""
     # Assume all specs have a runtime dependency
-    monkeypatch.setattr(spack.solver.asp, "_has_runtime_dependencies", lambda x: True)
     mutable_config.set("concretizer:reuse", reuse_yaml)
     selector = spack.solver.asp.ReusableSpecsSelector(mutable_config)
     specs = selector.reusable_specs(["mpileaks"])

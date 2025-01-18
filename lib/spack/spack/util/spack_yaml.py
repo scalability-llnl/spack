@@ -448,20 +448,13 @@ def _dump_annotated(handler, data, stream=None):
         return getvalue()
 
 
-def sorted_dict(dict_like):
-    """Return an ordered dict with all the fields sorted recursively.
-
-    Args:
-        dict_like (dict): dictionary to be sorted
-
-    Returns:
-        dictionary sorted recursively
-    """
-    result = syaml_dict(sorted(dict_like.items()))
-    for key, value in result.items():
-        if isinstance(value, collections.abc.Mapping):
-            result[key] = sorted_dict(value)
-    return result
+def sorted_dict(data):
+    """Descend into data and sort all dictionary keys."""
+    if isinstance(data, dict):
+        return type(data)((k, sorted_dict(v)) for k, v in sorted(data.items()))
+    elif isinstance(data, (list, tuple)):
+        return type(data)(sorted_dict(v) for v in data)
+    return data
 
 
 def extract_comments(data):
