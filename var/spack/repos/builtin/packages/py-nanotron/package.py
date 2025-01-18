@@ -19,6 +19,8 @@ class PyNanotron(PythonPackage):
     version("main", branch="main")
     version("0.4", sha256="7ea378eb1b6b16c93a3021fcfd71dd73bd14d826126eae215e2b02e05cd6a120")
 
+    variant("examples", default=True, description="Build with example scripts support")
+
     depends_on("python@3.6:3.11")
 
     depends_on("py-setuptools", type="build")
@@ -30,3 +32,6 @@ class PyNanotron(PythonPackage):
     depends_on("py-dacite", type=("build", "run"))
     depends_on("py-tqdm", type=("build", "run"))
     depends_on("py-datasets", type=("build", "run"), when="@0.5:")
+
+    depends_on("py-transformers", type=("build", "run"), when="+examples")
+    depends_on("py-flash-attn", type=("build", "run"), when="+examples")
