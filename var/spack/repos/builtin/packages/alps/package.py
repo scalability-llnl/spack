@@ -78,7 +78,8 @@ class Alps(CMakePackage):
         args.append(
             "-DCMAKE_CXX_FLAGS={0}".format(
                 self.compiler.cxx14_flag
-                + " -fpermissive -DBOOST_NO_AUTO_PTR -DBOOST_FILESYSTEM_NO_CXX20_ATOMIC_REF -DBOOST_TIMER_ENABLE_DEPRECATED"
+                + " -fpermissive -DBOOST_NO_AUTO_PTR -DBOOST_FILESYSTEM_NO_CXX20_ATOMIC_REF"
+                + " -DBOOST_TIMER_ENABLE_DEPRECATED"
             )
         )
         args.append(
