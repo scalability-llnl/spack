@@ -18,7 +18,7 @@ class Alps(CMakePackage):
 
     maintainers("Sinan81")
 
-    license("BSL-1.0", checked_by="github_user1")
+    license("BSL-1.0", checked_by="Sinan81")
 
     version(
         "2.3.3-beta.6", sha256="eb0c8115b034dd7a9dd585d277c4f86904ba374cdbdd130545aca1c432583b68"
