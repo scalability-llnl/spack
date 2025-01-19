@@ -5,7 +5,7 @@
 
 
 from spack.package import *
-from spack.spec import Spec
+
 
 class Alps(CMakePackage):
     """Algorithms for Physics Simulations
@@ -16,9 +16,7 @@ class Alps(CMakePackage):
     homepage = "https://github.com/ALPSim/ALPS"
     url = "https://github.com/ALPSim/ALPS/archive/refs/tags/v2.3.3-beta.5.tar.gz"
 
-    # FIXME: Add a list of GitHub accounts to
-    # notify when the package is updated.
-    # maintainers("github_user1", "github_user2")
+    maintainers("Sinan81")
 
     license("BSL-1.0", checked_by="github_user1")
 
@@ -47,8 +45,8 @@ class Alps(CMakePackage):
     # def get_boost_source(self): .. etc
     # it didn't work on first glance
     resources = {
-    # version, shasum
-    "1.87.0", "af57be25cb4c4f4b413ed692fe378affb4352ea50fbe294a11ef548f4d527d89",
+    # boost version, shasum
+    "1.87.0": "af57be25cb4c4f4b413ed692fe378affb4352ea50fbe294a11ef548f4d527d89",
     "1.86.0": "1bed88e40401b2cb7a1f76d4bab499e352fa4d0c5f31c0dbae64e24d34d7513b",
     "1.85.0": "7009fe1faa1697476bdc7027703a2badb84e849b7b0baad5086b087b971f8617",
     "1.84.0": "cc4b893acf645c9d4b698e9a0f08ca8846aa5d6c68275c14c3e7949c24109454",
@@ -72,7 +70,7 @@ class Alps(CMakePackage):
 
     def cmake_args(self):
         args = []
-        # Don't use Boost_ROOT_DIR option is replaced by Boost_SRC_DIR as of 2.3.3-beta.6
+        # Boost_ROOT_DIR option is replaced by Boost_SRC_DIR as of 2.3.3-beta.6
         args.append("-DCMAKE_CXX_FLAGS={0}".format(self.compiler.cxx14_flag + " -fpermissive -DBOOST_NO_AUTO_PTR -DBOOST_FILESYSTEM_NO_CXX20_ATOMIC_REF -DBOOST_TIMER_ENABLE_DEPRECATED"))
         args.append("-DBoost_SRC_DIR={0}".format(join_path(self.stage.source_path,"boost_source_files")))
         return args
