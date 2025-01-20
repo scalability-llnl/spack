@@ -21,8 +21,7 @@ GPU_MAP = {
     "gfx906": "Mi50",
     "gfx908": "Mi100",
     "gfx90a": "Mi250",
-    "gfx90a:xnack-": "Mi250",
-    "gfx90a:xnack+": "Mi250",
+    "gfx942": "Mi300",
 }
 
 
@@ -39,7 +38,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     git = "https://github.com/cp2k/cp2k.git"
     list_url = "https://github.com/cp2k/cp2k/releases"
 
-    maintainers("dev-zero", "mtaillefumier")
+    maintainers("dev-zero", "mtaillefumier", "msimberg", "RMeli")
 
     license("GPL-2.0-or-later")
 
@@ -117,7 +116,18 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     variant("pytorch", default=False, description="Enable libtorch support")
     variant("quip", default=False, description="Enable quip support")
     variant("mpi_f08", default=False, description="Use MPI F08 module")
-
+    variant(
+        "unified_memory",
+        default=False,
+        description="Enable unified memory support on Mi250 and Mi300 GPUs",
+        when="+rocm",
+    )
+    variant(
+        "spla_gemm_offloading",
+        default=False,
+        description="Enable spla gemm offloading support",
+        when="+spla",
+    )
     variant(
         "enable_regtests",
         default=False,
@@ -278,6 +288,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
         depends_on("sirius@7.4:7.5", when="@2023.2")
         depends_on("sirius@7.5:", when="@2024.1:")
         depends_on("sirius@7.6: +pugixml", when="@2024.2:")
+
     with when("+libvori"):
         depends_on("libvori@201219:", when="@8.1")
         depends_on("libvori@210412:", when="@8.2:")
@@ -321,13 +332,16 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
 
     conflicts("~openmp", when="@8:", msg="Building without OpenMP is not supported in CP2K 8+")
 
+    if (not when("+cuda")) or (not when("+rocm")):
+        conflicts("spla_gemm_offloading")
+
     # We only support specific cuda_archs for which we have parameter files
     # for optimal kernels. Note that we don't override the cuda_archs property
     # from the parent class, since the parent class defines constraints for all
     # versions. Instead just mark all unsupported cuda archs as conflicting.
 
     supported_cuda_arch_list = ("35", "37", "60", "70", "80", "90")
-    supported_rocm_arch_list = ("gfx906", "gfx908", "gfx90a", "gfx90a:xnack-", "gfx90a:xnack+")
+    supported_rocm_arch_list = ("gfx906", "gfx908", "gfx90a", "gfx942")
     cuda_msg = "cp2k only supports cuda_arch {0}".format(supported_cuda_arch_list)
     rocm_msg = "cp2k only supports amdgpu_target {0}".format(supported_rocm_arch_list)
 
@@ -344,7 +358,6 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
         for arch in ROCmPackage.amdgpu_targets:
             if arch not in supported_rocm_arch_list:
                 conflicts("+rocm", when="amdgpu_target={0}".format(arch), msg=rocm_msg)
-
     # Fix 2- and 3-center integral calls to libint
     patch(
         "https://github.com/cp2k/cp2k/commit/5eaf864ed2bd21fb1b05a9173bb77a815ad4deda.patch?full_index=1",
@@ -993,9 +1006,10 @@ class CMakeBuilder(cmake.CMakeBuilder):
             self.define_from_variant("CP2K_USE_PLUMED", "plumed"),
             self.define_from_variant("CP2K_USE_SPGLIB", "spglib"),
             self.define_from_variant("CP2K_USE_VORI", "libvori"),
-            self.define_from_variant("CP2K_USE_SPLA", "spla"),
             self.define_from_variant("CP2K_USE_QUIP", "quip"),
             self.define_from_variant("CP2K_USE_MPI_F08", "mpi_f08"),
+            self.define_from_variant("CP2K_USE_UNIFIED_MEMORY", "unified_memory"),
+            self.define_from_variant("CP2K_USE_SPLA_GEMM_OFFLOADING", "spla_gemm_offloading"),
         ]
 
         # we force the use elpa openmp threading support. might need to be revisited though
@@ -1005,9 +1019,6 @@ class CMakeBuilder(cmake.CMakeBuilder):
                 ("+elpa +openmp" in spec) or ("^elpa +openmp" in spec),
             )
         ]
-
-        if "spla" in spec and (spec.satisfies("+cuda") or spec.satisfies("+rocm")):
-            args += ["-DCP2K_USE_SPLA_GEMM_OFFLOADING=ON"]
 
         args += ["-DCP2K_USE_FFTW3=ON"]
 
