@@ -225,4 +225,4 @@ def test_yaml_directory_layout_build_path(tmpdir, default_mock_concretization):
     spec = default_mock_concretization("python")
     layout = DirectoryLayout(str(tmpdir))
     rel_path = os.path.join(layout.metadata_dir, layout.packages_dir)
-    assert layout.build_packages_path(spec) == os.path.join(spec.prefix, rel_path)
+    assert layout.build_packages_path(spec) == Path(spec.prefix, rel_path)

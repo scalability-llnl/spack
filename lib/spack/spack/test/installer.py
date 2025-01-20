@@ -30,6 +30,7 @@ import spack.store
 import spack.util.lock as lk
 from spack.installer import PackageInstaller
 from spack.main import SpackCommand
+from spack.util.path import abstract_path, concrete_path, fs_path
 
 
 def _mock_repo(root, namespace):
@@ -427,7 +428,8 @@ def test_fake_install(install_mockery):
 
     pkg = spec.package
     inst._do_fake_install(pkg)
-    assert os.path.isdir(pkg.prefix.lib)
+    lib = concrete_path(pkg.prefix.lib)
+    assert lib.is_dir()
 
 
 def test_dump_packages_deps_ok(install_mockery, tmpdir, mock_packages):
@@ -438,11 +440,11 @@ def test_dump_packages_deps_ok(install_mockery, tmpdir, mock_packages):
     inst.dump_packages(spec, str(tmpdir))
 
     repo = mock_packages.repos[0]
-    dest_pkg = repo.filename_for_package_name(spec_name)
-    assert os.path.isfile(dest_pkg)
+    dest_pkg = concrete_path(repo.filename_for_package_name(spec_name))
+    assert dest_pkg.is_file()
 
 
-def test_dump_packages_deps_errs(install_mockery, tmpdir, monkeypatch, capsys):
+def test_dump_packages_deps_errs(install_mockery, tmp_path, monkeypatch, capsys):
     """Test error paths for dump_packages with dependencies."""
     orig_bpp = spack.store.STORE.layout.build_packages_path
     orig_dirname = spack.repo.Repo.dirname_for_package_name
@@ -452,7 +454,7 @@ def test_dump_packages_deps_errs(install_mockery, tmpdir, monkeypatch, capsys):
         # Perform the original function
         source = orig_bpp(spec)
         # Mock the required directory structure for the repository
-        _mock_repo(os.path.join(source, spec.namespace), spec.namespace)
+        _mock_repo(fs_path(source / spec.namespace), spec.namespace)
         return source
 
     def _repoerr(repo, name):
@@ -466,18 +468,17 @@ def test_dump_packages_deps_errs(install_mockery, tmpdir, monkeypatch, capsys):
     monkeypatch.setattr(spack.store.STORE.layout, "build_packages_path", bpp_path)
 
     spec = spack.concretize.concretize_one("simple-inheritance")
-    path = str(tmpdir)
 
     # The call to install_tree will raise the exception since not mocking
     # creation of dependency package files within *install* directories.
     with pytest.raises(IOError, match=path if sys.platform != "win32" else ""):
-        inst.dump_packages(spec, path)
+        inst.dump_packages(spec, tmp_path)
 
     # Now try the error path, which requires the mock directory structure
     # above
     monkeypatch.setattr(spack.repo.Repo, "dirname_for_package_name", _repoerr)
     with pytest.raises(spack.repo.RepoError, match=repo_err_msg):
-        inst.dump_packages(spec, path)
+        inst.dump_packages(spec, tmp_path)
 
     out = str(capsys.readouterr()[1])
     assert "Couldn't copy in provenance for cmake" in out
@@ -502,11 +503,11 @@ def test_clear_failures_success(tmpdir):
     assert len(os.listdir(failures.dir)) == 0
 
     # Ensure the core directory and failure lock file still exist
-    assert os.path.isdir(failures.dir)
+    assert concrete_path(failures.dir).is_dir()
 
     # Locks on windows are a no-op
     if sys.platform != "win32":
-        assert os.path.isfile(failures.locker.lock_path)
+        assert concrete_path(failures.locker.lock_path).is_file()
 
 
 @pytest.mark.not_on_windows("chmod does not prevent removal on Win")
@@ -529,7 +530,7 @@ def test_clear_failures_errs(tmpdir, capsys):
     failures.dir.chmod(0o750)
 
 
-def test_combine_phase_logs(tmpdir):
+def test_combine_phase_logs(tmp_path):
     """Write temporary files, and assert that combine phase logs works
     to combine them into one file. We aren't currently using this function,
     but it's available when the logs are refactored to be written separately.
@@ -539,13 +540,13 @@ def test_combine_phase_logs(tmpdir):
 
     # Create and write to dummy phase log files
     for log_file in log_files:
-        phase_log_file = os.path.join(str(tmpdir), log_file)
+        phase_log_file = tmp_path / log_file
         with open(phase_log_file, "w", encoding="utf-8") as plf:
             plf.write("Output from %s\n" % log_file)
         phase_log_files.append(phase_log_file)
 
     # This is the output log we will combine them into
-    combined_log = os.path.join(str(tmpdir), "combined-out.txt")
+    combined_log = tmp_path / "combined-out.txt"
     inst.combine_phase_logs(phase_log_files, combined_log)
     with open(combined_log, "r", encoding="utf-8") as log_file:
         out = log_file.read()
@@ -1183,7 +1184,7 @@ def test_overwrite_install_backup_success(temporary_store, config, mock_packages
     task = installer._pop_task()
 
     # Make sure the install prefix exists with some trivial file
-    installed_file = os.path.join(task.pkg.prefix, "some_file")
+    installed_file = concrete_path(task.pkg.prefix, "some_file")
     fs.touchp(installed_file)
 
     class InstallerThatWipesThePrefixDir:
@@ -1210,7 +1211,7 @@ def test_overwrite_install_backup_success(temporary_store, config, mock_packages
     # Make sure the package is not marked uninstalled and the original dir
     # is back.
     assert not fake_db.called
-    assert os.path.exists(installed_file)
+    assert installed_file.exists()
 
 
 def test_overwrite_install_backup_failure(temporary_store, config, mock_packages, tmpdir):
@@ -1243,7 +1244,7 @@ def test_overwrite_install_backup_failure(temporary_store, config, mock_packages
     task = installer._pop_task()
 
     # Make sure the install prefix exists
-    installed_file = os.path.join(task.pkg.prefix, "some_file")
+    installed_file = concrete_path(task.pkg.prefix, "some_file")
     fs.touchp(installed_file)
 
     fake_installer = InstallerThatAccidentallyDeletesTheBackupDir()
