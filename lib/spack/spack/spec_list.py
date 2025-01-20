@@ -5,6 +5,7 @@ import itertools
 from typing import List
 
 import spack.spec
+import spack.spec_lookup
 import spack.variant
 from spack.error import SpackError
 from spack.spec import Spec
@@ -230,7 +231,7 @@ def _expand_matrix_constraints(matrix_config):
             pass
 
         # Resolve abstract hashes for exclusion criteria
-        if any(test_spec.lookup_hash().satisfies(x) for x in excludes):
+        if any(spack.spec_lookup.lookup_hash(test_spec).satisfies(x) for x in excludes):
             continue
 
         if sigil:
