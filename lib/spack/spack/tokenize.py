@@ -50,7 +50,6 @@ class Tokenizer:
     def __init__(self, tokens: Type[TokenBase]):
         self.tokens = tokens
         self.regex = re.compile("|".join(f"(?P<{token}>{token.regex})" for token in tokens))
-        self.full_match = True
 
     def tokenize(self, text: str) -> Generator[Token, None, None]:
         if not text:
