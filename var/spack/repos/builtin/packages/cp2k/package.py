@@ -20,7 +20,7 @@ GPU_MAP = {
     "gfx906": "Mi50",
     "gfx908": "Mi100",
     "gfx90a": "Mi250",
-    "gfx942": "Mi300"
+    "gfx942": "Mi300",
 }
 
 
@@ -124,7 +124,12 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
         description="Enable unified memory support on Mi250 and Mi300 GPUs",
         when="+rocm",
     )
-    variant("spla_gemm_offloading", default=False, description="Enable spla gemm offloading support", when="+spla")
+    variant(
+        "spla_gemm_offloading",
+        default=False,
+        description="Enable spla gemm offloading support",
+        when="+spla",
+    )
     variant(
         "enable_regtests",
         default=False,
@@ -335,7 +340,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
 
     conflicts("~openmp", when="@8:", msg="Building without OpenMP is not supported in CP2K 8+")
 
-    if ((not when("+cuda")) or (not when("+rocm"))):
+    if (not when("+cuda")) or (not when("+rocm")):
         conflicts("spla_gemm_offloading")
 
     # We only support specific cuda_archs for which we have parameter files
@@ -344,16 +349,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     # versions. Instead just mark all unsupported cuda archs as conflicting.
 
     supported_cuda_arch_list = ("35", "37", "60", "70", "80", "90")
-    supported_rocm_arch_list = (
-        "gfx906",
-        "gfx908",
-        "gfx90a",
-        "gfx942",
-        "gfx90a:xnack-",
-        "gfx90a:xnack+",
-        "gfx942:xnack-",
-        "gfx942:xnack+",
-    )
+    supported_rocm_arch_list = ("gfx906", "gfx908", "gfx90a", "gfx942")
     cuda_msg = "cp2k only supports cuda_arch {0}".format(supported_cuda_arch_list)
     rocm_msg = "cp2k only supports amdgpu_target {0}".format(supported_rocm_arch_list)
 
@@ -370,8 +366,6 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
         for arch in ROCmPackage.amdgpu_targets:
             if arch not in supported_rocm_arch_list:
                 conflicts("+rocm", when="amdgpu_target={0}".format(arch), msg=rocm_msg)
-            if arch not in ["gfx90a:xnack-", "gfx90a:xnack+", "gfx942:xnack-", "gfx942:xnack+"]:
-                conflicts("+unified_memory")
     # Fix 2- and 3-center integral calls to libint
     patch(
         "https://github.com/cp2k/cp2k/commit/5eaf864ed2bd21fb1b05a9173bb77a815ad4deda.patch?full_index=1",
@@ -1011,7 +1005,7 @@ class CMakeBuilder(cmake.CMakeBuilder):
             if len(spec.variants["amdgpu_target"].value) > 1:
                 raise InstallError("CP2K supports only one amdgpu_target at a time.")
             else:
-                gpu_ver = GPU_MAP[spec.variants["amdgpu_target"].value[0]]
+            gpu_ver = GPU_MAP[spec.variants["amdgpu_target"].value[0]]
                 args += [
                     self.define("CP2K_USE_ACCEL", "HIP"),
                     self.define("CP2K_WITH_GPU", gpu_ver),
@@ -1037,8 +1031,7 @@ class CMakeBuilder(cmake.CMakeBuilder):
             self.define_from_variant("CP2K_USE_MPI_F08", "mpi_f08"),
             self.define_from_variant("CP2K_USE_LIBSMEAGOL", "smeagol"),
             self.define_from_variant("CP2K_USE_UNIFIED_MEMORY", "unified_memory"),
-            self.define_from_variant("CP2K_USE_SPLA", "spla"),
-            self.define_from_variant("CP2K_USE_SPLA_GEMM_OFFLOADING", "spla_gemm_offloading")
+            self.define_from_variant("CP2K_USE_SPLA_GEMM_OFFLOADING", "spla_gemm_offloading"),
         ]
 
         # we force the use elpa openmp threading support. might need to be revisited though
