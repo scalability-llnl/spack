@@ -2118,20 +2118,20 @@ class Spec:
         return self.cformat(spec_format)
 
     @property
-    def prefix(self):
+    def prefix(self) -> spack.util.prefix.Prefix:
         if not self._concrete:
-            raise spack.error.SpecError("Spec is not concrete: " + str(self))
+            raise spack.error.SpecError(f"Spec is not concrete: {self}")
 
         if self._prefix is None:
-            upstream, record = spack.store.STORE.db.query_by_spec_hash(self.dag_hash())
+            _, record = spack.store.STORE.db.query_by_spec_hash(self.dag_hash())
             if record and record.path:
-                self.prefix = record.path
+                self.set_prefix(record.path)
             else:
-                self.prefix = spack.store.STORE.layout.path_for_spec(self)
+                self.set_prefix(spack.store.STORE.layout.path_for_spec(self))
+        assert self._prefix is not None
         return self._prefix
 
-    @prefix.setter
-    def prefix(self, value):
+    def set_prefix(self, value: str) -> None:
         self._prefix = spack.util.prefix.Prefix(llnl.path.convert_to_platform_path(value))
 
     def spec_hash(self, hash):
@@ -2737,7 +2737,7 @@ class Spec:
         return spec_builder(spec_dict)
 
     @staticmethod
-    def from_dict(data):
+    def from_dict(data) -> "Spec":
         """Construct a spec from JSON/YAML.
 
         Args:
@@ -2760,7 +2760,7 @@ class Spec:
         return spec
 
     @staticmethod
-    def from_yaml(stream):
+    def from_yaml(stream) -> "Spec":
         """Construct a spec from YAML.
 
         Args:
@@ -2770,7 +2770,7 @@ class Spec:
         return Spec.from_dict(data)
 
     @staticmethod
-    def from_json(stream):
+    def from_json(stream) -> "Spec":
         """Construct a spec from JSON.
 
         Args:
@@ -2780,7 +2780,7 @@ class Spec:
             data = sjson.load(stream)
             return Spec.from_dict(data)
         except Exception as e:
-            raise sjson.SpackJSONError("error parsing JSON spec:", str(e)) from e
+            raise sjson.SpackJSONError("error parsing JSON spec:", e) from e
 
     @staticmethod
     def extract_json_from_clearsig(data):
