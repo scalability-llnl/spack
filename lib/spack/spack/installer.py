@@ -526,7 +526,7 @@ def combine_phase_logs(phase_log_files: List[str], log_path: str) -> None:
                 shutil.copyfileobj(phase_log, log_file)
 
 
-def dump_packages(spec: "spack.spec.Spec", path: str | Path) -> None:
+def dump_packages(spec: "spack.spec.Spec", path: str) -> None:
     """
     Dump all package information for a spec and its dependencies.
 
