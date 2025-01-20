@@ -452,13 +452,13 @@ def add_cdash_args(subparser, add_help):
         cdash_help["track"] = argparse.SUPPRESS
         cdash_help["buildstamp"] = argparse.SUPPRESS
 
-    subparser.add_argument("--cdash-upload-url", default=None, help=cdash_help["upload-url"])
-    subparser.add_argument("--cdash-build", default=None, help=cdash_help["build"])
-    subparser.add_argument("--cdash-site", default=None, help=cdash_help["site"])
+    subparser.add_argument("--cdash-upload-url", default=spack.config.get("cdash:upload-url"), help=cdash_help["upload-url"])
+    subparser.add_argument("--cdash-build", default=spack.config.get("cdash:build"), help=cdash_help["build"])
+    subparser.add_argument("--cdash-site", default=spack.config.get("cdash:site"), help=cdash_help["site"])
 
     cdash_subgroup = subparser.add_mutually_exclusive_group()
-    cdash_subgroup.add_argument("--cdash-track", default="Experimental", help=cdash_help["track"])
-    cdash_subgroup.add_argument("--cdash-buildstamp", default=None, help=cdash_help["buildstamp"])
+    cdash_subgroup.add_argument("--cdash-track", default=spack.config.get("cdash:track", "Experimental"), help=cdash_help["track"])
+    cdash_subgroup.add_argument("--cdash-buildstamp", default=spack.config.get("cdash:buildstamp"), help=cdash_help["buildstamp"])
 
 
 def print_cdash_help():
