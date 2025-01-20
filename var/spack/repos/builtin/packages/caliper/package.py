@@ -113,6 +113,10 @@ class Caliper(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     depends_on("papi@5.3:5", when="@:2.2 +papi")
     depends_on("papi@5.3:", when="@2.3: +papi")
+    # TODO change the 'when' argument for the next release of Caliper
+    # TODO remove when issues with PAPI using RDPMC for topdown counters on
+    #      Sapphire Rapids is fixed
+    depends_on("papi@7.1.0: ~rdpmc", when="@master +papi target=sapphirerapids")
 
     depends_on("libpfm4@4.8:4", when="+libpfm")
 
@@ -209,6 +213,14 @@ class Caliper(CachedCMakePackage, CudaPackage, ROCmPackage):
             entries.append(cmake_cache_path("adiak_DIR", spec["adiak"].prefix))
         if spec.satisfies("+papi"):
             entries.append(cmake_cache_path("PAPI_PREFIX", spec["papi"].prefix))
+            if spec["papi"].satisfies("@6.0.0:"):
+                entries.append(
+                    cmake_cache_option("WITH_PAPI_RDPMC", spec["papi"].satisfies("+rdpmc"))
+                )
+            else:
+                # The rdpmc toggle for PAPI was added in version 6.0.0
+                # We can safely assume that the feature is enabled in older versions
+                entries.append(cmake_cache_option("WITH_PAPI_RDPMC", True))
         if spec.satisfies("+libdw"):
             entries.append(cmake_cache_path("LIBDW_PREFIX", spec["elfutils"].prefix))
         if spec.satisfies("+libpfm"):
@@ -239,6 +251,7 @@ class Caliper(CachedCMakePackage, CudaPackage, ROCmPackage):
         entries.append(cmake_cache_option("WITH_VARIORUM", spec.satisfies("+variorum")))
         entries.append(cmake_cache_option("WITH_VTUNE", spec.satisfies("+vtune")))
         entries.append(cmake_cache_option("WITH_PYTHON_BINDINGS", spec.satisfies("+python")))
+        entries.append(cmake_cache_option("WITH_ARCH", str(spec.target)))
 
         # -DWITH_CALLPATH was renamed -DWITH_LIBUNWIND in 2.5
         callpath_flag = "LIBUNWIND" if spec.satisfies("@2.5:") else "CALLPATH"
