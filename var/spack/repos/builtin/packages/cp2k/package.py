@@ -119,7 +119,8 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     variant("dftd4", when="@2024.2:", default=False, description="Enable DFT-D4 support")
     variant("mpi_f08", default=False, description="Use MPI F08 module")
     variant("smeagol", default=False, description="Enable libsmeagol support", when="@2025.2:")
-
+    variant("grpp", default=False, description="Enable libgrrp support")
+    variant("trexio", default=False, description="Enable Trex-IO support", when="+grpp")
     variant(
         "enable_regtests",
         default=False,
@@ -164,6 +165,11 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     depends_on("blas")
     depends_on("lapack")
     depends_on("fftw-api@3")
+
+    depends_on("grpp", when="+grpp")
+    depends_on("trexio", when="+trexio")
+    # trexio does not depend on grpp but cp2k support of trexio requires it
+    depends_on("grpp", when="+trexio")
 
     # Force openmp propagation on some providers of blas / fftw-api
     with when("+openmp"):
@@ -1018,6 +1024,8 @@ class CMakeBuilder(cmake.CMakeBuilder):
             self.define_from_variant("CP2K_USE_DFTD4", "dftd4"),
             self.define_from_variant("CP2K_USE_MPI_F08", "mpi_f08"),
             self.define_from_variant("CP2K_USE_LIBSMEAGOL", "smeagol"),
+            self.define_from_variant("CP2K_USE_TREXIO", "trexio"),
+            self.define_from_variant("CP2K_USE_GRPP", "grpp"),
         ]
 
         # we force the use elpa openmp threading support. might need to be revisited though
