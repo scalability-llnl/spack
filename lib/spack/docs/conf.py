@@ -223,6 +223,10 @@ nitpick_ignore = [
     ("py:class", "spack.compiler.CompilerCache"),
     # TypeVar that is not handled correctly
     ("py:class", "llnl.util.lang.T"),
+    ("py:class", "llnl.util.lang.KT"),
+    ("py:class", "llnl.util.lang.VT"),
+    ("py:obj", "llnl.util.lang.KT"),
+    ("py:obj", "llnl.util.lang.VT"),
 ]
 
 # The reST default role (used for this markup: `text`) to use for all documents.
