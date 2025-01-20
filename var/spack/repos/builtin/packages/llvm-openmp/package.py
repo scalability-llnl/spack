@@ -46,7 +46,23 @@ class LlvmOpenmp(CMakePackage):
     depends_on("cxx", type="build")  # generated
     depends_on("fortran", type="build")  # generated
 
-    variant("multicompat", default=True, description="Support the GNU OpenMP runtime interface.")
+    variant(
+        "multicompat",
+        default=False,
+        description="Support gomp and the Intel openMP runtime library.",
+    )
+
+    # variant for building llvm-openmp as a stand alone library
+    variant(
+        "standalone",
+        default=False,
+        description="Build LLVM openmp libomp library as standalone library.",
+    )
+
+    # variant for building libomptarget
+    variant(
+        "libomptarget", default=True, description="Enable building libomptarget for offloading"
+    )
 
     depends_on("cmake@3.13.4:", when="@12:", type="build")
     depends_on("cmake@2.8:", type="build")
@@ -77,8 +93,26 @@ class LlvmOpenmp(CMakePackage):
     def cmake_args(self):
         cmake_args = []
         # Add optional support for both Intel and gcc compilers
+
         if self.spec.satisfies("+multicompat"):
             cmake_args.append("-DKMP_GOMP_COMPAT=1")
+            # Disable LIBOMP_INSTALL_ALIASES, otherwise the library is installed
+            # as libgomp alias which can conflict with GCC's libgomp.
+            cmake_args.append("-DLIBOMP_INSTALL_ALIASES=OFF")
+
+        # Build llvm-openmp-ompt as a stand alone library
+        # CMAKE rpath variable prevents standalone error
+        # where this package wants the llvm tools path
+        if "+standalone" in self.spec:
+            cmake_args.extend(
+                [
+                    "-DOPENMP_STANDALONE_BUILD=true",
+                    "-DCMAKE_BUILD_WITH_INSTALL_RPATH=true",
+                    "-DLIBOMP_USE_DEBUGGER=false",
+                ]
+            )
+
+        cmake_args.append(self.define_from_variant("OPENMP_ENABLE_LIBOMPTARGET", "libomptarget"))
         return cmake_args
 
     @property
