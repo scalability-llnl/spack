@@ -89,10 +89,10 @@ def view_copy(
     if stat.S_ISLNK(src_stat.st_mode):
         spack.relocate.relocate_links(links=[dst], prefix_to_prefix=prefix_to_projection)
     elif spack.relocate.is_binary(dst):
-        spack.relocate.relocate_text_bin(binaries=[dst], prefixes=prefix_to_projection)
+        spack.relocate.relocate_text_bin(binaries=[dst], prefix_to_prefix=prefix_to_projection)
     else:
         prefix_to_projection[spack.store.STORE.layout.root] = view._root
-        spack.relocate.relocate_text(files=[dst], prefixes=prefix_to_projection)
+        spack.relocate.relocate_text(files=[dst], prefix_to_prefix=prefix_to_projection)
 
     # The os module on Windows does not have a chown function.
     if sys.platform != "win32":

@@ -2166,7 +2166,8 @@ def dedupe_hardlinks_if_necessary(root, buildinfo):
 
 def relocate_package(spec: spack.spec.Spec) -> None:
     """Relocate binaries and text files in the given spec prefix, based on its buildinfo file."""
-    buildinfo = read_buildinfo_file(spec.prefix)
+    spec_prefix = str(spec.prefix)
+    buildinfo = read_buildinfo_file(spec_prefix)
     old_layout_root = str(buildinfo["buildpath"])
 
     # Warn about old style tarballs created with the --rel flag (removed in Spack v0.20)
@@ -2187,7 +2188,7 @@ def relocate_package(spec: spack.spec.Spec) -> None:
             "and an older buildcache create implementation. It cannot be relocated."
         )
 
-    prefix_to_prefix = {}
+    prefix_to_prefix: Dict[str, str] = {}
 
     if "sbang_install_path" in buildinfo:
         old_sbang_install_path = str(buildinfo["sbang_install_path"])
@@ -2239,12 +2240,12 @@ def relocate_package(spec: spack.spec.Spec) -> None:
         tty.debug(f"Relocating: {old} => {new}.")
 
     # Old archives may have hardlinks repeated.
-    dedupe_hardlinks_if_necessary(spec.prefix, buildinfo)
+    dedupe_hardlinks_if_necessary(spec_prefix, buildinfo)
 
     # Text files containing the prefix text
-    textfiles = [os.path.join(spec.prefix, f) for f in buildinfo["relocate_textfiles"]]
-    binaries = [os.path.join(spec.prefix, f) for f in buildinfo.get("relocate_binaries")]
-    links = [os.path.join(spec.prefix, f) for f in buildinfo.get("relocate_links", [])]
+    textfiles = [os.path.join(spec_prefix, f) for f in buildinfo["relocate_textfiles"]]
+    binaries = [os.path.join(spec_prefix, f) for f in buildinfo.get("relocate_binaries")]
+    links = [os.path.join(spec_prefix, f) for f in buildinfo.get("relocate_links", [])]
 
     platform = spack.platforms.by_name(spec.platform)
     if "macho" in platform.binary_formats:
