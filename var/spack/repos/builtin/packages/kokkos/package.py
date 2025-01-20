@@ -7,7 +7,7 @@ import llnl.util.lang as lang
 
 import spack.build_systems.cmake
 from spack.package import *
-
+from spack.util.prefix import Prefix
 
 class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
     """Kokkos implements a programming model in C++ for writing performance
@@ -545,3 +545,50 @@ class Kokkos(CMakePackage, CudaPackage, ROCmPackage):
         make = which("make")
         make()
         make(cmake_path, "test")
+
+    def get_paths(self):
+        rocm_spec = self.spec["hip"]
+        rocm_prefix = Prefix(rocm_spec.prefix)
+
+        paths = {
+            "hip-path": rocm_spec.prefix,
+            "rocm-path": rocm_spec.prefix,
+            "rocm-device-libs": rocm_spec.prefix, #rocm_prefix, #elf.spec["llvm-amdgpu"].prefix,
+            "llvm-amdgpu": rocm_prefix.llvm,
+            "hsa-rocr-dev": rocm_prefix.hsa,
+        }
+        paths["bitcode"] = paths["rocm-device-libs"].amdgcn.bitcode
+
+        return paths
+
+    def set_variables(self, env):
+        if self.spec.satisfies("+rocm"):
+            # Note: do not use self.spec[name] here, since not all dependencies
+            # have defined prefixes when hip is marked as external.
+            paths = self.get_paths()
+
+            # Used in hipcc, but only useful when hip is external, since only then
+            # there is a common prefix /opt/rocm-x.y.z.
+            env.set("ROCM_PATH", paths["rocm-path"])
+            # Just the prefix of hip (used in hipcc)
+            env.set("HIP_PATH", paths["hip-path"])
+            env.set("HIP_DEVICE_LIB_PATH", paths["bitcode"])
+            env.set("HIP_CLANG_PATH", paths["llvm-amdgpu"].bin)
+            env.set("HSA_PATH", paths["hsa-rocr-dev"])
+            env.set("DEVICE_LIB_PATH", paths["bitcode"])
+            env.set("LLVM_PATH", paths["llvm-amdgpu"])
+
+            env.append_path(
+                "HIPCC_COMPILE_FLAGS_APPEND",
+                "--rocm-path={0}".format(paths["rocm-path"]),
+                separator=" ",
+            )
+
+
+    def setup_build_environment(self, env):
+        if self.spec.satisfies("+rocm"):
+            self.set_variables(env)
+
+    def setup_run_environment(self, env):
+        if self.spec.satisfies("+rocm"):
+            self.set_variables(env)
