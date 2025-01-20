@@ -10,6 +10,8 @@ from llnl.util.lang import memoized
 import spack.builder
 import spack.package_base
 import spack.phase_callbacks
+import spack.spec
+import spack.util.prefix
 from spack.directives import build_system, depends_on, extends
 from spack.install_test import SkipTest, test_part
 from spack.multimethod import when
@@ -149,7 +151,9 @@ class PerlBuilder(BuilderWithDefaults):
         """
         return []
 
-    def configure(self, pkg, spec, prefix):
+    def configure(
+        self, pkg: PerlPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Run Makefile.PL or Build.PL with arguments consisting of
         an appropriate installation base directory followed by the
         list returned by :py:meth:`~.PerlBuilder.configure_args`.
@@ -173,7 +177,9 @@ class PerlBuilder(BuilderWithDefaults):
             repl = "#!/usr/bin/env perl"
             filter_file(pattern, repl, "Build", backup=False)
 
-    def build(self, pkg, spec, prefix):
+    def build(
+        self, pkg: PerlPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Builds a Perl package."""
         self.build_executable()
 
@@ -184,6 +190,8 @@ class PerlBuilder(BuilderWithDefaults):
         """Runs built-in tests of a Perl package."""
         self.build_executable("test")
 
-    def install(self, pkg, spec, prefix):
+    def install(
+        self, pkg: PerlPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Installs a Perl package."""
         self.build_executable("install")

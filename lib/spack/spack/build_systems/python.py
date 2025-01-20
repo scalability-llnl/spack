@@ -28,6 +28,7 @@ import spack.platforms
 import spack.repo
 import spack.spec
 import spack.store
+import spack.util.prefix
 from spack.directives import build_system, depends_on, extends
 from spack.error import NoHeadersError, NoLibrariesError
 from spack.install_test import test_part

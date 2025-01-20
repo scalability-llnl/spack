@@ -454,10 +454,7 @@ class CMakeBuilder(BuilderWithDefaults):
         return []
 
     def cmake(
-        self,
-        pkg: spack.package_base.PackageBase,
-        spec: spack.spec.Spec,
-        prefix: spack.util.prefix.Prefix,
+        self, pkg: CMakePackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
     ) -> None:
         """Runs ``cmake`` in the build directory"""
 
@@ -474,10 +471,7 @@ class CMakeBuilder(BuilderWithDefaults):
             pkg.module.cmake(*options)
 
     def build(
-        self,
-        pkg: spack.package_base.PackageBase,
-        spec: spack.spec.Spec,
-        prefix: spack.util.prefix.Prefix,
+        self, pkg: CMakePackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
     ) -> None:
         """Make the build targets"""
         with fs.working_dir(self.build_directory):
@@ -488,10 +482,7 @@ class CMakeBuilder(BuilderWithDefaults):
                 pkg.module.ninja(*self.build_targets)
 
     def install(
-        self,
-        pkg: spack.package_base.PackageBase,
-        spec: spack.spec.Spec,
-        prefix: spack.util.prefix.Prefix,
+        self, pkg: CMakePackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
     ) -> None:
         """Make the install targets"""
         with fs.working_dir(self.build_directory):

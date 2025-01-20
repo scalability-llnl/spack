@@ -98,29 +98,20 @@ class MakefileBuilder(BuilderWithDefaults):
         return self.pkg.stage.source_path
 
     def edit(
-        self,
-        pkg: spack.package_base.PackageBase,
-        spec: spack.spec.Spec,
-        prefix: spack.util.prefix.Prefix,
+        self, pkg: MakefilePackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
     ) -> None:
         """Edit the Makefile before calling make. The default is a no-op."""
         pass
 
     def build(
-        self,
-        pkg: spack.package_base.PackageBase,
-        spec: spack.spec.Spec,
-        prefix: spack.util.prefix.Prefix,
+        self, pkg: MakefilePackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
     ) -> None:
         """Run "make" on the build targets specified by the builder."""
         with fs.working_dir(self.build_directory):
             pkg.module.make(*self.build_targets)
 
     def install(
-        self,
-        pkg: spack.package_base.PackageBase,
-        spec: spack.spec.Spec,
-        prefix: spack.util.prefix.Prefix,
+        self, pkg: MakefilePackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
     ) -> None:
         """Run "make" on the install targets specified by the builder."""
         with fs.working_dir(self.build_directory):
