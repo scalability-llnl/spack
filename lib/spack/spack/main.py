@@ -44,6 +44,7 @@ import spack.platforms
 import spack.repo
 import spack.spec
 import spack.store
+import spack.trace
 import spack.util.debug
 import spack.util.environment
 import spack.util.lock
@@ -499,6 +500,16 @@ def make_argument_parser(**kwargs):
     parser.add_argument(
         "--print-shell-vars", action="store", help="print info needed by setup-env.*sh"
     )
+    parser.add_argument(
+        "--disable-end-user-config",
+        action="store_true",
+        help="Disable system config scope for end users",
+    )
+    parser.add_argument(
+        "--warn-writes-into-spack",
+        action="store_true",
+        help="Warn when Spack tries to write into its own prefix",
+    )
 
     return parser
 
@@ -565,6 +576,9 @@ def setup_main_options(args):
     # when to use color (takes always, auto, or never)
     if args.color is not None:
         color.set_color_when(args.color)
+
+    if args.disable_end_user_config:
+        spack.config.end_user_system_scope = False
 
 
 def allows_unknown_args(command):
@@ -978,6 +992,9 @@ def _main(argv=None):
     # Try to load the particular command the caller asked for.
     cmd_name = args.command[0]
     cmd_name, args.command = resolve_alias(cmd_name, args.command)
+
+    if args.warn_writes_into_spack:
+        spack.trace.warn_writes_into_spack()
 
     # set up a bootstrap context, if asked.
     # bootstrap context needs to include parsing the command, b/c things

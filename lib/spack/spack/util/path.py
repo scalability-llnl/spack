@@ -65,6 +65,7 @@ def replacements():
         "user": lambda: get_user(),
         "tempdir": lambda: tempfile.gettempdir(),
         "user_cache_path": lambda: spack.paths.user_cache_path,
+        "per_spack_user": lambda: spack.paths.per_spack_user_root,
         "architecture": lambda: arch,
         "arch": lambda: arch,
         "platform": lambda: arch.platform,
@@ -160,6 +161,7 @@ def substitute_config_variables(path):
     - $tempdir             Default temporary directory returned by tempfile.gettempdir()
     - $user                The current user's username
     - $user_cache_path     The user cache directory (~/.spack, unless overridden)
+    - $per_spack_user      Each Spack install has its own dir in ~
     - $architecture        The spack architecture triple for the current system
     - $arch                The spack architecture triple for the current system
     - $platform            The spack platform for the current system
