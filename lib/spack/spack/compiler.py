@@ -272,6 +272,8 @@ class Compiler:
     def opt_flags(self):
         return ["-O", "-O0", "-O1", "-O2", "-O3"]
 
+    _simulated_libc = None
+
     def __init__(
         self,
         cspec,
@@ -427,6 +429,9 @@ class Compiler:
     @property
     def default_libc(self) -> Optional["spack.spec.Spec"]:
         """Determine libc targeted by the compiler from link line"""
+        if Compiler._simulated_libc:
+            return Compiler._simulated_libc.get(str(self.spec), None)
+
         # technically this should be testing the target platform of the compiler, but we don't have
         # that, so stick to host platform for now.
         if sys.platform in ("darwin", "win32"):
