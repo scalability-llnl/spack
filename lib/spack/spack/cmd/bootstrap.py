@@ -436,6 +436,7 @@ def _mirror(args):
         shutil.copy(spack.util.path.canonicalize_path(GNUPG_JSON), abs_directory)
         shutil.copy(spack.util.path.canonicalize_path(PATCHELF_JSON), abs_directory)
         instructions += cmd.format("local-binaries", rel_directory)
+        instructions += "% spack buildcache update-index <final-path>/bootstrap_cache\n"
     print(instructions)
 
 
