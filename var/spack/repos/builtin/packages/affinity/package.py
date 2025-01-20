@@ -23,4 +23,4 @@ class Affinity(CMakePackage, CudaPackage):
     depends_on("mpi", when="+mpi")
     depends_on("hip", when="+rocm")
     depends_on("mpi", when="+mpi")
-    depends_on("mpi", when="^cuda")
+    depends_on("mpi", when="+cuda")
