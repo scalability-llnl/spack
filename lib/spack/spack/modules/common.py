@@ -490,6 +490,10 @@ class BaseConfiguration:
         """
         return self.conf.get("verbose")
 
+    @property
+    def custom_code_block(self):
+        return self.conf.get("custom_code_block")
+
 
 class BaseFileLayout:
     """Provides information on the layout of module files. Needs to be
@@ -763,6 +767,10 @@ class BaseContext(tengine.Context):
     def verbose(self):
         """Verbosity level."""
         return self.conf.verbose
+
+    @tengine.context_property
+    def custom_code_block(self):
+        return self.conf.custom_code_block
 
 
 class BaseModuleFileWriter:
