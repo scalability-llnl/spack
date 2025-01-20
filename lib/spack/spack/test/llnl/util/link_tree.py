@@ -13,6 +13,7 @@ from llnl.util.filesystem import mkdirp, touchp, visit_directory_tree, working_d
 from llnl.util.link_tree import DestinationMergeVisitor, LinkTree, SourceMergeVisitor
 from llnl.util.symlink import _windows_can_symlink, islink, readlink, symlink
 
+from spack.filesystem_view import is_folder_on_case_insensitive_filesystem
 from spack.stage import Stage
 
 
@@ -396,3 +397,257 @@ def test_source_merge_visitor_does_deals_with_dangling_symlinks(tmp_path: pathli
 
     # The first file encountered should be listed.
     assert visitor.files == {str(tmp_path / "view" / "file"): (str(tmp_path / "dir_a"), "file")}
+
+
+# Mocks for the os.path.exists function. Implemented fairly generically to not
+# tailor too much to the implementaion of
+# is_folder_on_case_insensitive_filesystem (should be a detail)
+def _iter_path_components(path: str):
+    drive, path = os.path.splitdrive(path)
+    if path.startswith(os.sep):
+        root = os.sep
+        path = path[len(os.sep) :]
+    else:
+        root = ""
+    parts = path.split(os.sep)
+    for i in range(len(parts)):
+        yield os.path.split(drive + root + os.path.join(*parts[: i + 1]))
+
+
+def _mock_exists_case_insensitive(path: str):
+    for head, tail in _iter_path_components(path):
+        contents = [c.lower() for c in os.listdir(head)]
+        if tail.lower() not in contents:
+            return False
+    return True
+
+
+def _mock_exists_case_sensitive(path: str):
+    for head, tail in _iter_path_components(path):
+        contents = os.listdir(head)
+        if tail not in contents:
+            return False
+    return True
+
+
+def test_is_folder_on_case_sensitive_filesystem(tmp_path: pathlib.Path, monkeypatch):
+    # we need to mock out both case sensitive and case insensitive cases since
+    # we could be running on either
+
+    with monkeypatch.context() as m:
+        m.setattr(os.path, "exists", _mock_exists_case_insensitive)
+        assert is_folder_on_case_insensitive_filesystem(str(tmp_path))
+
+    with monkeypatch.context() as m:
+        m.setattr(os.path, "exists", _mock_exists_case_sensitive)
+        assert not is_folder_on_case_insensitive_filesystem(str(tmp_path))
+
+
+def test_source_visitor_no_path_normalization(tmp_path: pathlib.Path):
+    src = str(tmp_path / "a")
+
+    a = SourceMergeVisitor(normalize_paths=False)
+    a.visit_file(src, "file", 0)
+    a.visit_file(src, "FILE", 0)
+    assert len(a.files) == 2
+    assert len(a.directories) == 0
+    assert "file" in a.files and "FILE" in a.files
+    assert len(a.file_conflicts) == 0
+
+    a = SourceMergeVisitor(normalize_paths=False)
+    a.visit_file(src, "file", 0)
+    a.before_visit_dir(src, "FILE", 0)
+    assert len(a.files) == 1
+    assert "file" in a.files and "FILE" not in a.files
+    assert len(a.directories) == 1
+    assert "FILE" in a.directories
+    assert len(a.fatal_conflicts) == 0
+    assert len(a.file_conflicts) == 0
+
+    # without normalization, order doesn't matter
+    a = SourceMergeVisitor(normalize_paths=False)
+    a.before_visit_dir(src, "FILE", 0)
+    a.visit_file(src, "file", 0)
+    assert len(a.files) == 1
+    assert "file" in a.files and "FILE" not in a.files
+    assert len(a.directories) == 1
+    assert "FILE" in a.directories
+    assert len(a.fatal_conflicts) == 0
+    assert len(a.file_conflicts) == 0
+
+    a = SourceMergeVisitor(normalize_paths=False)
+    a.before_visit_dir(src, "FILE", 0)
+    a.before_visit_dir(src, "file", 0)
+    assert len(a.files) == 0
+    assert len(a.directories) == 2
+    assert "FILE" in a.directories and "file" in a.directories
+    assert len(a.fatal_conflicts) == 0
+    assert len(a.file_conflicts) == 0
+
+
+def test_source_visitor_path_normalization(tmp_path: pathlib.Path, monkeypatch):
+    src = str(tmp_path / "a")
+
+    # file conflict with os.path.samefile reporting it's NOT the same file
+    a = SourceMergeVisitor(normalize_paths=True)
+    a.visit_file(src, "file", 0)
+    a.visit_file(src, "FILE", 0)
+    assert a.files
+    assert len(a.files) == 1
+    # first file wins
+    assert "file" in a.files
+    # this is a conflict since the files are reported to be distinct
+    assert len(a.file_conflicts) == 1
+    assert "FILE" in [c.dst for c in a.file_conflicts]
+
+    # file conflict with os.path.samefile reporting it's the same file
+    a = SourceMergeVisitor(normalize_paths=True)
+    a.visit_file(src, "file", 0)
+    with monkeypatch.context() as m:
+
+        def true(*_):
+            return True
+
+        m.setattr(os.path, "samefile", true)
+        a.visit_file(src, "FILE", 0)
+    assert a.files
+    assert len(a.files) == 1
+    # second file wins
+    assert "FILE" in a.files
+    # not a conflict
+    assert len(a.file_conflicts) == 0
+
+    a = SourceMergeVisitor(normalize_paths=True)
+    a.visit_file(src, "file", 0)
+    a.before_visit_dir(src, "FILE", 0)
+    assert a.files
+    assert len(a.files) == 1
+    assert "file" in a.files
+    assert len(a.directories) == 0
+    assert len(a.fatal_conflicts) == 1
+    conflicts = [c.dst for c in a.fatal_conflicts]
+    assert "FILE" in conflicts
+
+    a = SourceMergeVisitor(normalize_paths=True)
+    a.before_visit_dir(src, "FILE", 0)
+    a.visit_file(src, "file", 0)
+    assert len(a.directories) == 1
+    assert "FILE" in a.directories
+    assert len(a.files) == 0
+    assert len(a.fatal_conflicts) == 1
+    conflicts = [c.dst for c in a.fatal_conflicts]
+    assert "file" in conflicts
+
+    a = SourceMergeVisitor(normalize_paths=True)
+    a.before_visit_dir(src, "FILE", 0)
+    a.before_visit_dir(src, "file", 0)
+    assert len(a.directories) == 1
+    # first dir wins
+    assert "FILE" in a.directories
+    assert len(a.files) == 0
+    assert len(a.fatal_conflicts) == 0
+
+
+def test_destination_visitor_no_path_normalization(tmp_path: pathlib.Path):
+    src = str(tmp_path / "a")
+    dest = str(tmp_path / "b")
+
+    src_visitor = SourceMergeVisitor(normalize_paths=False)
+    src_visitor.visit_file(src, "file", 0)
+    assert len(src_visitor.files) == 1
+    assert len(src_visitor.directories) == 0
+    assert "file" in src_visitor.files
+
+    dest_visitor = DestinationMergeVisitor(src_visitor)
+    dest_visitor.visit_file(dest, "FILE", 0)
+    # not a conflict, since normalization is off
+    assert len(dest_visitor.src.files) == 1
+    assert len(dest_visitor.src.directories) == 0
+    assert "file" in dest_visitor.src.files
+    assert len(dest_visitor.src.fatal_conflicts) == 0
+    assert len(dest_visitor.src.file_conflicts) == 0
+
+    src_visitor = SourceMergeVisitor(normalize_paths=False)
+    src_visitor.visit_file(src, "file", 0)
+    dest_visitor = DestinationMergeVisitor(src_visitor)
+    dest_visitor.before_visit_dir(dest, "FILE", 0)
+    assert len(dest_visitor.src.files) == 1
+    assert "file" in dest_visitor.src.files
+    assert len(dest_visitor.src.directories) == 0
+    assert len(dest_visitor.src.fatal_conflicts) == 0
+    assert len(dest_visitor.src.file_conflicts) == 0
+
+    # not insensitive, order does not matter
+    src_visitor = SourceMergeVisitor(normalize_paths=False)
+    src_visitor.before_visit_dir(src, "file", 0)
+    dest_visitor = DestinationMergeVisitor(src_visitor)
+    dest_visitor.visit_file(dest, "FILE", 0)
+    assert len(dest_visitor.src.files) == 0
+    assert len(dest_visitor.src.directories) == 1
+    assert "file" in dest_visitor.src.directories
+    assert len(dest_visitor.src.fatal_conflicts) == 0
+    assert len(dest_visitor.src.file_conflicts) == 0
+
+    src_visitor = SourceMergeVisitor(normalize_paths=False)
+    src_visitor.before_visit_dir(src, "file", 0)
+    dest_visitor = DestinationMergeVisitor(src_visitor)
+    dest_visitor.before_visit_dir(dest, "FILE", 0)
+    assert len(dest_visitor.src.files) == 0
+    assert len(dest_visitor.src.directories) == 1
+    assert "file" in dest_visitor.src.directories
+    assert len(dest_visitor.src.fatal_conflicts) == 0
+    assert len(dest_visitor.src.file_conflicts) == 0
+
+
+def test_destination_visitor_path_normalization(tmp_path: pathlib.Path):
+    src = str(tmp_path / "a")
+    dest = str(tmp_path / "b")
+
+    src_visitor = SourceMergeVisitor(normalize_paths=True)
+    src_visitor.visit_file(src, "file", 0)
+    assert len(src_visitor.files) == 1
+    assert len(src_visitor.directories) == 0
+    assert "file" in src_visitor.files
+
+    dest_visitor = DestinationMergeVisitor(src_visitor)
+    dest_visitor.visit_file(dest, "FILE", 0)
+    # not a conflict, since normalization is off
+    assert len(dest_visitor.src.files) == 1
+    assert len(dest_visitor.src.directories) == 0
+    assert "file" in dest_visitor.src.files
+    assert len(dest_visitor.src.fatal_conflicts) == 1
+    assert "FILE" in [c.dst for c in dest_visitor.src.fatal_conflicts]
+    assert len(dest_visitor.src.file_conflicts) == 0
+
+    src_visitor = SourceMergeVisitor(normalize_paths=True)
+    src_visitor.visit_file(src, "file", 0)
+    dest_visitor = DestinationMergeVisitor(src_visitor)
+    dest_visitor.before_visit_dir(dest, "FILE", 0)
+    assert len(dest_visitor.src.files) == 1
+    assert "file" in dest_visitor.src.files
+    assert len(dest_visitor.src.directories) == 0
+    assert len(dest_visitor.src.fatal_conflicts) == 1
+    assert "FILE" in [c.dst for c in dest_visitor.src.fatal_conflicts]
+    assert len(dest_visitor.src.file_conflicts) == 0
+
+    src_visitor = SourceMergeVisitor(normalize_paths=True)
+    src_visitor.before_visit_dir(src, "file", 0)
+    dest_visitor = DestinationMergeVisitor(src_visitor)
+    dest_visitor.visit_file(dest, "FILE", 0)
+    assert len(dest_visitor.src.files) == 0
+    assert len(dest_visitor.src.directories) == 1
+    assert "file" in dest_visitor.src.directories
+    assert len(dest_visitor.src.fatal_conflicts) == 1
+    assert "FILE" in [c.dst for c in dest_visitor.src.fatal_conflicts]
+    assert len(dest_visitor.src.file_conflicts) == 0
+
+    src_visitor = SourceMergeVisitor(normalize_paths=True)
+    src_visitor.before_visit_dir(src, "file", 0)
+    dest_visitor = DestinationMergeVisitor(src_visitor)
+    dest_visitor.before_visit_dir(dest, "FILE", 0)
+    assert len(dest_visitor.src.files) == 0
+    # this removes the mkdir action, no directory left over
+    assert len(dest_visitor.src.directories) == 0
+    # but it's also not a conflict
+    assert len(dest_visitor.src.fatal_conflicts) == 0
+    assert len(dest_visitor.src.file_conflicts) == 0
