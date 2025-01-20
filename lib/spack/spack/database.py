@@ -1051,7 +1051,9 @@ class Database:
             self._state_is_inconsistent = True
             return
 
-        temp_file = self._index_path.parent / f"{self._index_path.name}.{_getfqdn()}.{os.getpid()}.temp"
+        temp_file = (
+            self._index_path.parent / f"{self._index_path.name}.{_getfqdn()}.{os.getpid()}.temp"
+        )
 
         # Write a temporary database file them move it into place
         try:
