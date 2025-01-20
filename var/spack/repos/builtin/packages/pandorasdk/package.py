@@ -38,7 +38,9 @@ class Pandorasdk(CMakePackage):
     def cmake_args(self):
         args = [
             self.define("CMAKE_MODULE_PATH", self.spec["pandorapfa"].prefix.cmakemodules),
-            self.define("CMAKE_CXX_FLAGS", f"-Wno-error -std=c++{self.spec.variants['cxxstd'].value}"),
+            self.define(
+                "CMAKE_CXX_FLAGS", f"-Wno-error -std=c++{self.spec.variants['cxxstd'].value}"
+            ),
         ]
         return args
 
