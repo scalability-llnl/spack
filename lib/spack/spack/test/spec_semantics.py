@@ -1971,3 +1971,25 @@ def test_equality_discriminate_on_propagation(lhs, rhs):
 
 def test_comparison_multivalued_variants():
     assert Spec("x=a") < Spec("x=a,b") < Spec("x==a,b") < Spec("x==a,b,c")
+
+
+@pytest.mark.regression("47973")
+@pytest.mark.parametrize("spec_str", ["mpileaks", "callpath"])
+def test_consistency_internal_concretization_api(default_mock_concretization, spec_str):
+    """Tests that marking a spec non-concrete, and making it concrete again, doesn't affect the
+    hashes computed on the concrete spec.
+    """
+    s = default_mock_concretization(spec_str)
+    dag_hashes, process_hashes, package_hashes = set(), set(), set()
+    for _ in range(5):
+        dag_hashes.add(s.dag_hash())
+        process_hashes.add(s.process_hash())
+        package_hashes.add(s.package_hash())
+        # Mark it not concrete, and clear hash caches
+        s._mark_concrete(False)
+        # Mark it concrete again
+        s._finalize_concretization()
+
+    assert len(dag_hashes) == 1
+    assert len(process_hashes) == 1
+    assert len(package_hashes) == 1
