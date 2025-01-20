@@ -8,7 +8,6 @@ import os
 import llnl.util.tty as tty
 
 from spack.package import *
-from spack.pkg.builtin.boost import Boost
 
 
 # This application uses cmake to build, but they wrap it with a
@@ -32,18 +31,23 @@ class Bcl2fastq2(Package):
 
     conflicts("platform=darwin", msg="malloc.h/etc requirements break build on macs")
 
-    depends_on("boost@1.54.0:1.55")
+    # Pulled from the fallback vendored-build of boost
+    # TODO: supporting boost > 1.54 will require patching bcl2fastq/src/cxx/lib/io/Xml.cpp
+    # as described in https://gist.github.com/jblachly/f8dc0f328d66659d9ee005548a5a2d2e
+    depends_on("boost@1.54")
 
-    # TODO: replace this with an explicit list of components of Boost,
-    # for instance depends_on('boost +filesystem')
-    # See https://github.com/spack/spack/pull/22303 for reference
-    depends_on(Boost.with_default_variants)
-    depends_on("cmake@2.8.9:", type="build")
+    # The boost default variants no longer work for older version of boost
+    depends_on(
+        "boost+chrono+date_time+filesystem+iostreams+program_options+regex"
+        "+serialization+system+thread+timer"
+    )
+    with default_args(type="build"):
+        depends_on("cmake@2.8.9:")
+        depends_on("gmake")
     depends_on("libxml2@2.7.8")
     depends_on("libxslt@1.1.26~crypto")
     depends_on("libgcrypt")
     depends_on("zlib-api")
-    depends_on("gmake", type="build")
 
     # Their cmake macros don't set the flag when they find a library
     # that makes them happy.
