@@ -17,6 +17,8 @@ class Openfast(CMakePackage):
 
     version("develop", branch="dev")
     version("master", branch="main")
+    version("4.0.0", tag="v4.0.0")
+    version("3.5.5", tag="v3.5.5")
     version("3.5.4", tag="v3.5.4")
     version("3.5.3", tag="v3.5.3")
     version("3.4.1", tag="v3.4.1")

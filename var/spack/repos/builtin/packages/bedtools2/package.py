@@ -33,6 +33,7 @@ class Bedtools2(Package):
     depends_on("bzip2", when="@2.29:")
     depends_on("xz", when="@2.29:")
     depends_on("python", type="build")
+    depends_on("gmake", type="build")
 
     patch("bedtools-gcc13.patch", level=1, when="@2.27:2.31.0%gcc@13:")
 

@@ -10,6 +10,7 @@ from llnl.path import convert_to_posix_path
 
 import spack.bootstrap
 import spack.bootstrap.core
+import spack.concretize
 import spack.config
 import spack.environment as ev
 import spack.main
@@ -183,7 +184,7 @@ def test_bootstrap_mirror_metadata(mutable_config, linux_os, monkeypatch, tmpdir
     """
     old_create = spack.mirrors.utils.create
     monkeypatch.setattr(spack.mirrors.utils, "create", lambda p, s: old_create(p, []))
-    monkeypatch.setattr(spack.spec.Spec, "concretized", lambda p: p)
+    monkeypatch.setattr(spack.concretize, "concretize_one", lambda p: spack.spec.Spec(p))
 
     # Create the mirror in a temporary folder
     compilers = [

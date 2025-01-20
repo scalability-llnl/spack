@@ -53,6 +53,7 @@ class PyDaskMl(PythonPackage):
 
     depends_on("py-xgboost+dask", type=("build", "run"), when="+docs")
     depends_on("py-xgboost+dask", type=("build", "run"), when="+xgboost")
+    depends_on("gmake", type="build")
 
     patch("xgboost_dependency.patch")
 

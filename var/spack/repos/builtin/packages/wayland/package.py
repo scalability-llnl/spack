@@ -30,6 +30,8 @@ class Wayland(MesonPackage, AutotoolsPackage):
 
     license("MIT")
 
+    version("1.23.1", sha256="158ec49af498f2558c7fbf7e8b070d010d4e270cc6076003a18a6c813f87e244")
+    version("1.23.0", sha256="7c5c28fa73f22d1c5021e17e1148f29ab17bf8b776a406f1c4489d3e2992ec3a")
     version("1.22.0", sha256="bbca9c906a8fb8992409ebf51812f19e2a784b2c169d4b784cdd753b4bb448ef")
     version("1.21.0", sha256="53b7fa67142e653820030ec049971bcb5e84ac99e05cba5bcb9cb55f43fae4b3")
     version("1.20.0", sha256="20523cd6f2c18c3c86725467157c6221e19de76fbfad944042a2d494af3c7a92")
@@ -49,6 +51,7 @@ class Wayland(MesonPackage, AutotoolsPackage):
 
     with when("build_system=meson"):
         depends_on("meson@0.56.0:", type="build")
+        depends_on("meson@0.57.0:", type="build", when="@1.23:")
 
     depends_on("pkgconfig", type="build")
     depends_on("libxml2")

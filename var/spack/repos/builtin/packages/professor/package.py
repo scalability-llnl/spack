@@ -31,6 +31,7 @@ class Professor(Package):
     depends_on("py-matplotlib")
     depends_on("py-matplotlib backend=wx", when="+interactive")
     depends_on("root")
+    depends_on("gmake", type="build")
 
     extends("python")
 

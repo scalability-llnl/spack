@@ -17,6 +17,7 @@ import pytest
 import llnl.util.filesystem as fs
 
 import spack.compilers
+import spack.concretize
 import spack.deptypes as dt
 import spack.error
 import spack.install_test
@@ -166,8 +167,7 @@ def setup_install_test(source_paths, test_root):
 )
 def test_cache_extra_sources(install_mockery, spec, sources, extras, expect):
     """Test the package's cache extra test sources helper function."""
-    s = spack.spec.Spec(spec).concretized()
-    s.package.spec.concretize()
+    s = spack.concretize.concretize_one(spec)
 
     source_path = s.package.stage.source_path
     srcs = [fs.join_path(source_path, src) for src in sources]
@@ -205,8 +205,7 @@ def test_cache_extra_sources(install_mockery, spec, sources, extras, expect):
 
 
 def test_cache_extra_sources_fails(install_mockery):
-    s = spack.spec.Spec("pkg-a").concretized()
-    s.package.spec.concretize()
+    s = spack.concretize.concretize_one("pkg-a")
 
     with pytest.raises(InstallError) as exc_info:
         spack.install_test.cache_extra_test_sources(s.package, ["/a/b", "no-such-file"])
@@ -285,3 +284,16 @@ def test_package_test_no_compilers(mock_packages, monkeypatch, capfd):
     error = capfd.readouterr()[1]
     assert "Skipping tests for package" in error
     assert "test requires missing compiler" in error
+
+
+def test_package_subscript(default_mock_concretization):
+    """Tests that we can use the subscript notation on packages, and that it returns a package"""
+    root = default_mock_concretization("mpileaks")
+    root_pkg = root.package
+
+    # Subscript of a virtual
+    assert isinstance(root_pkg["mpi"], spack.package_base.PackageBase)
+
+    # Subscript on concrete
+    for d in root.traverse():
+        assert isinstance(root_pkg[d.name], spack.package_base.PackageBase)

@@ -749,11 +749,17 @@ class UnsupportedCompilerFlag(spack.error.SpackError):
 class CompilerCacheEntry:
     """Deserialized cache entry for a compiler"""
 
-    __slots__ = ["c_compiler_output", "real_version"]
+    __slots__ = ("c_compiler_output", "real_version")
 
     def __init__(self, c_compiler_output: Optional[str], real_version: str):
         self.c_compiler_output = c_compiler_output
         self.real_version = real_version
+
+    @property
+    def empty(self) -> bool:
+        """Sometimes the compiler is temporarily broken, preventing us from getting output. The
+        call site determines if that is a problem."""
+        return self.c_compiler_output is None
 
     @classmethod
     def from_dict(cls, data: Dict[str, Optional[str]]):
@@ -792,9 +798,10 @@ class FileCompilerCache(CompilerCache):
         self.cache.init_entry(self.name)
         self._data: Dict[str, Dict[str, Optional[str]]] = {}
 
-    def _get_entry(self, key: str) -> Optional[CompilerCacheEntry]:
+    def _get_entry(self, key: str, *, allow_empty: bool) -> Optional[CompilerCacheEntry]:
         try:
-            return CompilerCacheEntry.from_dict(self._data[key])
+            entry = CompilerCacheEntry.from_dict(self._data[key])
+            return entry if allow_empty or not entry.empty else None
         except ValueError:
             del self._data[key]
         except KeyError:
@@ -812,7 +819,7 @@ class FileCompilerCache(CompilerCache):
             self._data = {}
 
         key = self._key(compiler)
-        value = self._get_entry(key)
+        value = self._get_entry(key, allow_empty=False)
         if value is not None:
             return value
 
@@ -826,7 +833,7 @@ class FileCompilerCache(CompilerCache):
                 self._data = {}
 
             # Use cache entry that may have been created by another process in the meantime.
-            entry = self._get_entry(key)
+            entry = self._get_entry(key, allow_empty=True)
 
             # Finally compute the cache entry
             if entry is None:

@@ -45,6 +45,7 @@ class Ocaml(Package):
         when="@:4.11.0 %clang@11:",
     )
     depends_on("ncurses")
+    depends_on("gmake", type="build")
 
     sanity_check_file = ["bin/ocaml"]
 
@@ -78,7 +79,10 @@ class Ocaml(Package):
                     string=True,
                 )
 
-        configure(*(base_args), f"CC={self.compiler.cc}")
+        if self.spec.satisfies("@4.8.0:"):
+            base_args += [f"CC={self.compiler.cc}"]
+
+        configure(*(base_args))
 
         make("world.opt")
         make("install", "PREFIX={0}".format(prefix))

@@ -34,6 +34,7 @@ class SuperluMt(Package):
 
     # NOTE: must link with a single-threaded BLAS library
     depends_on("blas", when="+blas")
+    depends_on("gmake", type="build")
 
     # Cannot be built in parallel
     parallel = False

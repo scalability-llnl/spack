@@ -179,7 +179,9 @@ class Pythia8(AutotoolsPackage):
             args.append("--with-yoda=" + self.spec["yoda"].prefix)
 
         args += self.with_or_without("python", activation_value="prefix")
-        args += self.with_or_without("openmp", activation_value="prefix", variant="openmpi")
+        args += self.with_or_without(
+            "openmp", activation_value=lambda x: self.spec["openmpi"].prefix, variant="openmpi"
+        )
         args += self.with_or_without("mpich", activation_value="prefix")
         args += self.with_or_without("hdf5", activation_value="prefix")
 

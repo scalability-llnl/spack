@@ -140,6 +140,7 @@ class Reframe(Package):
     # documentation dependencies
     depends_on("py-sphinx", when="+docs", type="build")
     depends_on("py-sphinx-rtd-theme", when="+docs", type="build")
+    depends_on("gmake", type="build")
 
     # sanity check
     sanity_check_is_file = ["bin/reframe"]
