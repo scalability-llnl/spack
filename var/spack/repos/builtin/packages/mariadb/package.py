@@ -18,22 +18,92 @@ class Mariadb(CMakePackage):
     """
 
     homepage = "https://mariadb.org/about/"
-    url = "http://ftp.hosteurope.de/mirror/archive.mariadb.org/mariadb-10.2.8/source/mariadb-10.2.8.tar.gz"
+    url = "https://mirror.rackspace.com/mariadb/mariadb-11.6.2/source/mariadb-11.6.2.tar.gz"
 
     license("GPL-2.0-or-later")
 
-    version("11.3.2", sha256="5570778f0a2c27af726c751cda1a943f3f8de96d11d107791be5b44a0ce3fb5c")
-    version("10.9.6", sha256="fe6f5287fccc6a65b8bbccae09e841e05dc076fcc13017078854ca387eab8ae9")
-    version("10.8.8", sha256="8de1a151842976a492d6331b543d0ed87259febbbc03b9ebce07c80d754d6361")
-    version("10.8.2", sha256="14e0f7f8817a41bbcb5ebdd2345a9bd44035fde7db45c028b6d4c35887ae956c")
-    version("10.4.12", sha256="fef1e1d38aa253dd8a51006bd15aad184912fce31c446bb69434fcde735aa208")
-    version("10.4.8", sha256="10cc2c3bdb76733c9c6fd1e3c6c860d8b4282c85926da7d472d2a0e00fffca9b")
-    version("10.4.7", sha256="c8e6a6d0bb4f22c416ed675d24682a3ecfa383c5283efee70c8edf131374d817")
-    version("10.2.8", sha256="8dd250fe79f085e26f52ac448fbdb7af2a161f735fae3aed210680b9f2492393")
-    version("10.1.23", sha256="54d8114e24bfa5e3ebdc7d69e071ad1471912847ea481b227d204f9d644300bf")
-    version("5.5.56", sha256="950c3422cb262b16ce133caadbc342219f50f9b45dcc71b8db78fc376a971726")
-    version("10.1.14", sha256="18e71974a059a268a3f28281599607344d548714ade823d575576121f76ada13")
-    version("5.5.49", sha256="2c82f2af71b88a7940d5ff647498ed78922c92e88004942caa213131e20f4706")
+    # Latest stable release (as of 2025-02-10)
+    version("11.6.2", sha256="7bad85bd1c77168afcae5db1396c0c52044dc044f7eae6fff5ac3cd4dec89bbd")
+
+    # LTS releases (as of 2025-02-10)
+    version("11.4.5", sha256="ff6595f8c482f9921e39b97fa1122377a69f0dcbd92553c6b9032cbf0e9b5354")
+    version("10.11.11", sha256="6f29d4d7e40fc49af4a0fe608984509ef2d153df3cd8afe4359dce3ca0e27890")
+    version("10.6.21", sha256="8d7f97169b3ba2044858965b8cfc254364400df43e905042f92e24b8fa7b0d96")
+    version("10.5.28", sha256="0b5070208da0116640f20bd085f1136527f998cc23268715bcbf352e7b7f3cc1")
+
+    # Superseded and deprecated
+    version(
+        "11.3.2",
+        sha256="5570778f0a2c27af726c751cda1a943f3f8de96d11d107791be5b44a0ce3fb5c",
+        url="https://ftp.hosteurope.de/mirror/archive.mariadb.org/mariadb-11.3.2/source/mariadb-11.3.2.tar.gz",
+        deprecated=True,
+    )
+    version(
+        "10.9.6",
+        sha256="fe6f5287fccc6a65b8bbccae09e841e05dc076fcc13017078854ca387eab8ae9",
+        url="https://ftp.hosteurope.de/mirror/archive.mariadb.org/mariadb-10.9.6/source/mariadb-10.9.6.tar.gz",
+        deprecated=True,
+    )
+    version(
+        "10.8.8",
+        sha256="8de1a151842976a492d6331b543d0ed87259febbbc03b9ebce07c80d754d6361",
+        url="https://ftp.hosteurope.de/mirror/archive.mariadb.org/mariadb-10.8.8/source/mariadb-10.8.8.tar.gz",
+        deprecated=True,
+    )
+    version(
+        "10.8.2",
+        sha256="14e0f7f8817a41bbcb5ebdd2345a9bd44035fde7db45c028b6d4c35887ae956c",
+        url="https://ftp.hosteurope.de/mirror/archive.mariadb.org/mariadb-10.8.2/source/mariadb-10.8.2.tar.gz",
+        deprecated=True,
+    )
+    version(
+        "10.4.12",
+        sha256="fef1e1d38aa253dd8a51006bd15aad184912fce31c446bb69434fcde735aa208",
+        url="https://ftp.hosteurope.de/mirror/archive.mariadb.org/mariadb-10.4.12/source/mariadb-10.4.12.tar.gz",
+        deprecated=True,
+    )
+    version(
+        "10.4.8",
+        sha256="10cc2c3bdb76733c9c6fd1e3c6c860d8b4282c85926da7d472d2a0e00fffca9b",
+        url="https://ftp.hosteurope.de/mirror/archive.mariadb.org/mariadb-10.4.8/source/mariadb-10.4.8.tar.gz",
+        deprecated=True,
+    )
+    version(
+        "10.4.7",
+        sha256="c8e6a6d0bb4f22c416ed675d24682a3ecfa383c5283efee70c8edf131374d817",
+        url="https://ftp.hosteurope.de/mirror/archive.mariadb.org/mariadb-10.4.7/source/mariadb-10.4.7.tar.gz",
+        deprecated=True,
+    )
+    version(
+        "10.2.8",
+        sha256="8dd250fe79f085e26f52ac448fbdb7af2a161f735fae3aed210680b9f2492393",
+        url="https://ftp.hosteurope.de/mirror/archive.mariadb.org/mariadb-10.2.8/source/mariadb-10.2.8.tar.gz",
+        deprecated=True,
+    )
+    version(
+        "10.1.23",
+        sha256="54d8114e24bfa5e3ebdc7d69e071ad1471912847ea481b227d204f9d644300bf",
+        url="https://ftp.hosteurope.de/mirror/archive.mariadb.org/mariadb-10.1.23/source/mariadb-10.1.23.tar.gz",
+        deprecated=True,
+    )
+    version(
+        "10.1.14",
+        sha256="18e71974a059a268a3f28281599607344d548714ade823d575576121f76ada13",
+        url="https://ftp.hosteurope.de/mirror/archive.mariadb.org/mariadb-10.1.14/source/mariadb-10.1.14.tar.gz",
+        deprecated=True,
+    )
+    version(
+        "5.5.56",
+        sha256="950c3422cb262b16ce133caadbc342219f50f9b45dcc71b8db78fc376a971726",
+        url="https://ftp.hosteurope.de/mirror/archive.mariadb.org/mariadb-5.5.56/source/mariadb-5.5.56.tar.gz",
+        deprecated=True,
+    )
+    version(
+        "5.5.49",
+        sha256="2c82f2af71b88a7940d5ff647498ed78922c92e88004942caa213131e20f4706",
+        url="https://ftp.hosteurope.de/mirror/archive.mariadb.org/mariadb-5.5.49/source/mariadb-5.5.49.tar.gz",
+        deprecated=True,
+    )
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
@@ -41,7 +111,7 @@ class Mariadb(CMakePackage):
     variant(
         "nonblocking",
         default=True,
-        description="Allow non blocking " "operations in the mariadb client library.",
+        description="Allow non blocking operations in the mariadb client library.",
     )
 
     provides("mariadb-client")
@@ -79,6 +149,14 @@ class Mariadb(CMakePackage):
         working_dir="libmariadb",
         when="@10.2.8:10.4.12",
     )
+
+    # libxml 2.12 build issue with older mariaDB: https://jira.mariadb.org/browse/MDEV-33439
+    conflicts("libxml2@2.12:", when="@5.5")
+    conflicts("libxml2@2.12:", when="@10.1")
+    conflicts("libxml2@2.12:", when="@10.2")
+    conflicts("libxml2@2.12:", when="@10.4.0:10.4.33")
+    conflicts("libxml2@2.12:", when="@10.5.0:10.5.24")
+    conflicts("libxml2@2.12:", when="@11.3")
 
     def cmake_args(self):
         args = []
