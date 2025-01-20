@@ -127,17 +127,15 @@ def test_dev_build_before_until(tmpdir, install_mockery):
         assert not_installed in out
 
 
-def print_spack_cc(*args):
-    # Eat arguments and print environment variable to test
-    print(os.environ.get("CC", ""))
+def _print_spack_short_spec(*args):
+    print(f"SPACK_SHORT_SPEC={os.environ['SPACK_SHORT_SPEC']}")
 
 
-# FIXME (compiler as nodes): revisit this test
-# def test_dev_build_drop_in(tmpdir, mock_packages, monkeypatch, install_mockery, working_env):
-#     monkeypatch.setattr(os, "execvp", print_spack_cc)
-#     with tmpdir.as_cwd():
-#         output = dev_build("-b", "edit", "--drop-in", "sh", "dev-build-test-install@0.0.0")
-#         assert os.path.join("lib", "spack", "env") in output
+def test_dev_build_drop_in(tmpdir, mock_packages, monkeypatch, install_mockery, working_env):
+    monkeypatch.setattr(os, "execvp", _print_spack_short_spec)
+    with tmpdir.as_cwd():
+        output = dev_build("-b", "edit", "--drop-in", "sh", "dev-build-test-install@0.0.0")
+        assert "SPACK_SHORT_SPEC=dev-build-test-install@0.0.0" in output
 
 
 def test_dev_build_fails_already_installed(tmpdir, install_mockery):
