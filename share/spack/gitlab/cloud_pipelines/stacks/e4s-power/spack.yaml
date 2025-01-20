@@ -7,8 +7,9 @@ spack:
 
   packages:
     all:
-      require: "%gcc@9.4.0 target=ppc64le"
-      compiler: [gcc@9.4.0]
+      prefer:
+      - "%gcc@9.4.0"
+      - target=ppc64le
       providers:
         blas: [openblas]
         mpi: [mpich]
@@ -31,19 +32,25 @@ spack:
     mpi:
       require: mpich
     mpich:
-      require: '~wrapperrpath ~hwloc %gcc@9.4.0 target=ppc64le'
+      require:
+      - '~wrapperrpath ~hwloc'
     ncurses:
-      require: '@6.3 +termlib %gcc@9.4.0 target=ppc64le'
+      require:
+      - '@6.3 +termlib'
     faodel:
-      require: "~tcmalloc %gcc@9.4.0 target=ppc64le"
+      require:
+      - "~tcmalloc"
     tbb:
       require: intel-tbb
     vtk-m:
-      require: "+examples %gcc@9.4.0 target=ppc64le"
+      require:
+      - "+examples"
     cuda:
-      require: "@11.4.4 %gcc@9.4.0 target=ppc64le"
+      require:
+      - "@11.4.4"
     paraview:
-      require: "+examples %gcc@9.4.0 target=ppc64le"
+      require:
+      - "+examples"
 
 
   specs:

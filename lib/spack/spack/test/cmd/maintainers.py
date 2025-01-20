@@ -11,7 +11,13 @@ import spack.repo
 
 maintainers = spack.main.SpackCommand("maintainers")
 
-MAINTAINED_PACKAGES = ["maintainers-1", "maintainers-2", "maintainers-3", "py-extension1"]
+MAINTAINED_PACKAGES = [
+    "gcc-runtime",
+    "maintainers-1",
+    "maintainers-2",
+    "maintainers-3",
+    "py-extension1",
+]
 
 
 def split(output):
@@ -34,6 +40,8 @@ def test_all(mock_packages, capfd):
     with capfd.disabled():
         out = split(maintainers("--all"))
     assert out == [
+        "gcc-runtime:",
+        "haampie",
         "maintainers-1:",
         "user1,",
         "user2",
@@ -59,6 +67,8 @@ def test_all_by_user(mock_packages, capfd):
     with capfd.disabled():
         out = split(maintainers("--all", "--by-user"))
     assert out == [
+        "haampie:",
+        "gcc-runtime",
         "user0:",
         "maintainers-3",
         "user1:",

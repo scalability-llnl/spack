@@ -140,7 +140,7 @@ default:
       --config-scope "${SPACK_CI_CONFIG_ROOT}"
       --config-scope "${SPACK_CI_CONFIG_ROOT}/${SPACK_TARGET_PLATFORM}"
       --config-scope "${SPACK_CI_CONFIG_ROOT}/${SPACK_TARGET_PLATFORM}/${SPACK_TARGET_ARCH}"
-      config blame > "${CI_PROJECT_DIR}/jobs_scratch_dir/spack.yaml.blame"
+      config blame | tee "${CI_PROJECT_DIR}/jobs_scratch_dir/spack.yaml.blame"
     - spack -v  --color=always
       --config-scope "${SPACK_CI_CONFIG_ROOT}"
       --config-scope "${SPACK_CI_CONFIG_ROOT}/${SPACK_TARGET_PLATFORM}"

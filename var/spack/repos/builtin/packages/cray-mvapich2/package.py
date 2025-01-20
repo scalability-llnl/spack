@@ -29,10 +29,15 @@ class CrayMvapich2(MpichEnvironmentModifications, Package):
     requires("platform=linux", msg="Cray MVAPICH2 is only available on Cray")
 
     def setup_run_environment(self, env):
-        env.set("MPICC", self.compiler.cc)
-        env.set("MPICXX", self.compiler.cxx)
-        env.set("MPIFC", self.compiler.fc)
-        env.set("MPIF77", self.compiler.f77)
+        if self.spec.dependencies(virtuals=("c",)):
+            env.set("MPICC", self["c"].cc)
+
+        if self.spec.dependencies(virtuals=("cxx",)):
+            env.set("MPICXX", self["cxx"].cxx)
+
+        if self.spec.dependencies(virtuals=("fortran",)):
+            env.set("MPIFC", self["fortran"].fc)
+            env.set("MPIF77", self["fortran"].fc)
 
     def install(self, spec, prefix):
         raise InstallError(

@@ -10,3 +10,6 @@ class PkgA(Package):
 
     version("1.0")
     depends_on("pkg-b")
+
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")

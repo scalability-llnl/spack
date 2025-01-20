@@ -6,6 +6,7 @@ import json
 import os
 import traceback
 import warnings
+from typing import Any, Dict, Iterable, List, Optional
 
 import jsonschema
 import jsonschema.exceptions
@@ -13,7 +14,7 @@ import jsonschema.exceptions
 import llnl.util.tty as tty
 
 import spack.cmd
-import spack.compilers
+import spack.compilers.config
 import spack.deptypes as dt
 import spack.error
 import spack.hash_types as hash_types
@@ -21,78 +22,89 @@ import spack.platforms
 import spack.repo
 import spack.spec
 import spack.store
+from spack.detection.path import ExecutablesFinder
 from spack.schema.cray_manifest import schema as manifest_schema
 
 #: Cray systems can store a Spack-compatible description of system
 #: packages here.
 default_path = "/opt/cray/pe/cpe-descriptive-manifest/"
 
-compiler_name_translation = {"nvidia": "nvhpc", "rocm": "rocmcc"}
+COMPILER_NAME_TRANSLATION = {"nvidia": "nvhpc", "rocm": "llvm-amdgpu", "clang": "llvm"}
 
 
 def translated_compiler_name(manifest_compiler_name):
     """
     When creating a Compiler object, Spack expects a name matching
-    one of the classes in `spack.compilers`. Names in the Cray manifest
+    one of the classes in `spack.compilers.config`. Names in the Cray manifest
     may differ; for cases where we know the name refers to a compiler in
     Spack, this function translates it automatically.
 
     This function will raise an error if there is no recorded translation
     and the name doesn't match a known compiler name.
     """
-    if manifest_compiler_name in compiler_name_translation:
-        return compiler_name_translation[manifest_compiler_name]
-    elif manifest_compiler_name in spack.compilers.supported_compilers():
+    if manifest_compiler_name in COMPILER_NAME_TRANSLATION:
+        return COMPILER_NAME_TRANSLATION[manifest_compiler_name]
+    elif manifest_compiler_name in spack.compilers.config.supported_compilers():
         return manifest_compiler_name
     else:
-        raise spack.compilers.UnknownCompilerError(
-            "Manifest parsing - unknown compiler: {0}".format(manifest_compiler_name)
+        raise spack.compilers.config.UnknownCompilerError(
+            f"[CRAY MANIFEST] unknown compiler: {manifest_compiler_name}"
         )
 
 
-def compiler_from_entry(entry: dict, manifest_path: str):
+def compiler_from_entry(entry: dict, *, manifest_path: str) -> Optional[spack.spec.Spec]:
     # Note that manifest_path is only passed here to compose a
     # useful warning message when paths appear to be missing.
     compiler_name = translated_compiler_name(entry["name"])
-
-    if "prefix" in entry:
-        prefix = entry["prefix"]
-        paths = dict(
-            (lang, os.path.join(prefix, relpath))
-            for (lang, relpath) in entry["executables"].items()
-        )
-    else:
-        paths = entry["executables"]
+    paths = extract_compiler_paths(entry)
 
     # Do a check for missing paths. Note that this isn't possible for
     # all compiler entries, since their "paths" might actually be
     # exe names like "cc" that depend on modules being loaded. Cray
     # manifest entries are always paths though.
-    missing_paths = []
-    for path in paths.values():
-        if not os.path.exists(path):
-            missing_paths.append(path)
-
-    # to instantiate a compiler class we may need a concrete version:
-    version = "={}".format(entry["version"])
-    arch = entry["arch"]
-    operating_system = arch["os"]
-    target = arch["target"]
-
-    compiler_cls = spack.compilers.class_for_compiler_name(compiler_name)
-    spec = spack.spec.CompilerSpec(compiler_cls.name, version)
-    path_list = [paths.get(x, None) for x in ("cc", "cxx", "f77", "fc")]
-
+    missing_paths = [x for x in paths if not os.path.exists(x)]
     if missing_paths:
         warnings.warn(
             "Manifest entry refers to nonexistent paths:\n\t"
             + "\n\t".join(missing_paths)
-            + f"\nfor {str(spec)}"
+            + f"\nfor {entry['name']}@{entry['version']}"
             + f"\nin {manifest_path}"
             + "\nPlease report this issue"
         )
 
-    return compiler_cls(spec, operating_system, target, path_list)
+    try:
+        compiler_spec = compiler_spec_from_paths(pkg_name=compiler_name, compiler_paths=paths)
+    except spack.error.SpackError as e:
+        tty.debug(f"[CRAY MANIFEST] {e}")
+        return None
+
+    compiler_spec.constrain(
+        f"platform=linux os={entry['arch']['os']} target={entry['arch']['target']}"
+    )
+    return compiler_spec
+
+
+def compiler_spec_from_paths(*, pkg_name: str, compiler_paths: Iterable[str]) -> spack.spec.Spec:
+    """Returns the external spec associated with a series of compilers, if any."""
+    pkg_cls = spack.repo.PATH.get_pkg_class(pkg_name)
+    finder = ExecutablesFinder()
+    specs = finder.detect_specs(pkg=pkg_cls, paths=compiler_paths)
+
+    if not specs or len(specs) > 1:
+        raise CrayCompilerDetectionError(
+            message=f"cannot detect a single {pkg_name} compiler for Cray manifest entry",
+            long_message=f"Analyzed paths are: {', '.join(compiler_paths)}",
+        )
+
+    return specs[0]
+
+
+def extract_compiler_paths(entry: Dict[str, Any]) -> List[str]:
+    """Returns the paths to compiler executables, from a dictionary entry in the Cray manifest."""
+    paths = list(entry["executables"].values())
+    if "prefix" in entry:
+        paths = [os.path.join(entry["prefix"], relpath) for relpath in paths]
+    return paths
 
 
 def spec_from_entry(entry):
@@ -120,7 +132,7 @@ def spec_from_entry(entry):
             version=entry["compiler"]["version"],
         )
 
-    spec_format = "{name}@={version} {compiler} {arch}"
+    spec_format = "{name}@={version} {arch}"
     spec_str = spec_format.format(
         name=entry["name"], version=entry["version"], compiler=compiler_str, arch=arch_str
     )
@@ -181,6 +193,7 @@ def entries_to_specs(entries):
     for entry in entries:
         try:
             spec = spec_from_entry(entry)
+            assert spec.concrete, f"{spec} is not concrete"
             spec_dict[spec._hash] = spec
         except spack.repo.UnknownPackageError:
             tty.debug("Omitting package {0}: no corresponding repo package".format(entry["name"]))
@@ -219,28 +232,43 @@ def read(path, apply_updates):
 
     specs = entries_to_specs(json_data["specs"])
     tty.debug("{0}: {1} specs read from manifest".format(path, str(len(specs))))
-    compilers = list()
+    compilers = []
     if "compilers" in json_data:
-        compilers.extend(compiler_from_entry(x, path) for x in json_data["compilers"])
-    tty.debug("{0}: {1} compilers read from manifest".format(path, str(len(compilers))))
-    # Filter out the compilers that already appear in the configuration
-    compilers = spack.compilers.select_new_compilers(compilers)
-    if apply_updates and compilers:
-        for compiler in compilers:
+        for x in json_data["compilers"]:
+            # We don't want to fail reading the manifest, if a single compiler fails
             try:
-                spack.compilers.add_compilers_to_config([compiler])
+                candidate = compiler_from_entry(x, manifest_path=path)
             except Exception:
-                warnings.warn(
-                    f"Could not add compiler {str(compiler.spec)}: "
-                    f"\n\tfrom manifest: {path}"
-                    "\nPlease reexecute with 'spack -d' and include the stack trace"
-                )
-                tty.debug(f"Include this\n{traceback.format_exc()}")
+                candidate = None
+
+            if candidate is None:
+                continue
+
+            compilers.append(candidate)
+    tty.debug(f"{path}: {str(len(compilers))} compilers read from manifest")
+    # Filter out the compilers that already appear in the configuration
+    compilers = spack.compilers.config.select_new_compilers(compilers)
+    if apply_updates and compilers:
+        try:
+            spack.compilers.config.add_compiler_to_config(compilers)
+        except Exception:
+            warnings.warn(
+                f"Could not add compilers from manifest: {path}"
+                "\nPlease reexecute with 'spack -d' and include the stack trace"
+            )
+            tty.debug(f"Include this\n{traceback.format_exc()}")
     if apply_updates:
         for spec in specs.values():
+            assert spec.concrete, f"{spec} is not concrete"
             spack.store.STORE.db.add(spec)
 
 
 class ManifestValidationError(spack.error.SpackError):
     def __init__(self, msg, long_msg=None):
         super().__init__(msg, long_msg)
+
+
+class CrayCompilerDetectionError(spack.error.SpackError):
+    """Raised if a compiler, listed in the Cray manifest, cannot be detected correctly based on
+    the paths provided.
+    """

@@ -303,9 +303,7 @@ class Conduit(CMakePackage):
         # if on llnl systems, we can use the SYS_TYPE
         if "SYS_TYPE" in env:
             sys_type = env["SYS_TYPE"]
-        host_config_path = "{0}-{1}-{2}-conduit-{3}.cmake".format(
-            socket.gethostname(), sys_type, spec.compiler, spec.dag_hash()
-        )
+        host_config_path = f"{socket.gethostname()}-{sys_type}-conduit-{spec.dag_hash()}.cmake"
 
         dest_dir = self.stage.source_path
         host_config_path = os.path.abspath(join_path(dest_dir, host_config_path))

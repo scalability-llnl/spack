@@ -17,8 +17,6 @@ import spack.spec
 from spack.environment.environment import ViewDescriptor
 from spack.version import Version
 
-pytestmark = [pytest.mark.usefixtures("enable_runtimes")]
-
 
 def _concretize_with_reuse(*, root_str, reused_str):
     reused_spec = spack.concretize.concretize_one(reused_str)
@@ -34,14 +32,6 @@ def runtime_repo(mutable_config):
     repo = os.path.join(spack.paths.repos_path, "compiler_runtime.test")
     with spack.repo.use_repositories(repo) as mock_repo:
         yield mock_repo
-
-
-@pytest.fixture
-def enable_runtimes():
-    original = spack.solver.asp.WITH_RUNTIME
-    spack.solver.asp.WITH_RUNTIME = True
-    yield
-    spack.solver.asp.WITH_RUNTIME = original
 
 
 def test_correct_gcc_runtime_is_injected_as_dependency(runtime_repo):
@@ -103,7 +93,7 @@ def test_external_nodes_do_not_have_runtimes(runtime_repo, mutable_config, tmp_p
             "pkg-a%gcc@10.2.1",
             "pkg-b%gcc@9.4.0 target=x86_64",
             {
-                "pkg-a": "gcc-runtime@10.2.1 target=x86_64",
+                "pkg-a": "gcc-runtime@10.2.1 target=core2",
                 "pkg-b": "gcc-runtime@9.4.0 target=x86_64",
             },
             2,
@@ -123,7 +113,7 @@ def test_reusing_specs_with_gcc_runtime(root_str, reused_str, expected, nruntime
     root, reused_spec = _concretize_with_reuse(root_str=root_str, reused_str=reused_str)
 
     runtime_a = root.dependencies("gcc-runtime")[0]
-    assert runtime_a.satisfies(expected["pkg-a"])
+    assert runtime_a.satisfies(expected["pkg-a"]), runtime_a.tree()
     runtime_b = root["pkg-b"].dependencies("gcc-runtime")[0]
     assert runtime_b.satisfies(expected["pkg-b"])
 

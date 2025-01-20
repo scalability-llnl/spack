@@ -18,6 +18,8 @@ class Openblas(Package):
 
     variant("shared", default=True, description="Build shared libraries")
 
+    depends_on("c", type="build")
+
     # See #20019 for this conflict
     conflicts("%gcc@:4.4", when="@0.2.14:")
 

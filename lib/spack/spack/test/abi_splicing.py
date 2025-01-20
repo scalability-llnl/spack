@@ -11,7 +11,7 @@ import spack.concretize
 import spack.config
 import spack.deptypes as dt
 from spack.installer import PackageInstaller
-from spack.solver.asp import SolverError
+from spack.solver.asp import SolverError, UnsatisfiableSpecError
 from spack.spec import Spec
 
 
@@ -65,7 +65,7 @@ def test_splice_installed_hash(install_specs, mutable_config):
     mutable_config.set("packages", packages_config)
 
     goal_spec = "splice-t@1 ^splice-h@1.0.2+compat ^splice-z@1.0.0"
-    with pytest.raises(SolverError):
+    with pytest.raises(UnsatisfiableSpecError):
         spack.concretize.concretize_one(goal_spec)
     _enable_splicing()
     concrete = spack.concretize.concretize_one(goal_spec)
@@ -87,7 +87,7 @@ def test_splice_build_splice_node(install_specs, mutable_config):
     mutable_config.set("packages", _make_specs_non_buildable(["splice-t"]))
 
     goal_spec = "splice-t@1 ^splice-h@1.0.2+compat ^splice-z@1.0.0+compat"
-    with pytest.raises(SolverError):
+    with pytest.raises(UnsatisfiableSpecError):
         spack.concretize.concretize_one(goal_spec)
 
     _enable_splicing()
@@ -113,7 +113,7 @@ def test_double_splice(install_specs, mutable_config):
     mutable_config.set("packages", _make_specs_non_buildable(["splice-t", "splice-h", "splice-z"]))
 
     goal_spec = "splice-t@1 ^splice-h@1.0.2+compat ^splice-z@1.0.2+compat"
-    with pytest.raises(SolverError):
+    with pytest.raises(UnsatisfiableSpecError):
         spack.concretize.concretize_one(goal_spec)
 
     _enable_splicing()
@@ -202,7 +202,7 @@ def test_manyvariant_matching_variant_splice(
     original = install_specs(original_spec)[0]
     mutable_config.set("packages", {"depends-on-manyvariants": {"buildable": False}})
 
-    with pytest.raises(SolverError):
+    with pytest.raises((UnsatisfiableSpecError, SolverError)):
         spack.concretize.concretize_one(goal_spec)
 
     _enable_splicing()

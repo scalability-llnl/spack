@@ -5,7 +5,7 @@ import re
 
 import llnl.util.tty as tty
 
-import spack.compiler
+import spack.build_systems.compiler
 from spack.package import *
 
 
@@ -236,7 +236,9 @@ class Intel(IntelPackage):
     def determine_version(cls, exe):
         version_regex = re.compile(r"\((?:IFORT|ICC)\) ([^ ]+)")
         try:
-            output = spack.compiler.get_compiler_version_output(exe, "--version")
+            output = spack.build_systems.compiler.compiler_output(
+                exe, version_argument="--version"
+            )
             match = version_regex.search(output)
             if match:
                 return match.group(1)

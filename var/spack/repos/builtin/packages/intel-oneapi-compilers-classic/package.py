@@ -108,3 +108,15 @@ class IntelOneapiCompilersClassic(Package, CompilerPackage):
                 link_tree.merge(dest_path)
             else:
                 os.symlink(src_path, dest_path)
+
+    def _cc_path(self):
+        return str(self.prefix.bin.icc)
+
+    def _cxx_path(self):
+        return str(self.prefix.bin.icpc)
+
+    def _fortran_path(self):
+        return str(self.prefix.bin.ifort)
+
+    def archspec_name(self):
+        return "intel"

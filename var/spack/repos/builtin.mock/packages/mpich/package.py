@@ -26,6 +26,10 @@ class Mpich(Package):
     provides("mpi@:3", when="@3:")
     provides("mpi@:1", when="@:1")
 
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
+
     def install(self, spec, prefix):
         touch(prefix.mpich)
 

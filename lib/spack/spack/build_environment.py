@@ -36,7 +36,6 @@ import io
 import multiprocessing
 import os
 import re
-import stat
 import sys
 import traceback
 import types
@@ -71,7 +70,7 @@ import spack.build_systems.cmake
 import spack.build_systems.meson
 import spack.build_systems.python
 import spack.builder
-import spack.compilers
+import spack.compilers.libraries
 import spack.config
 import spack.deptypes as dt
 import spack.error
@@ -85,7 +84,6 @@ import spack.stage
 import spack.store
 import spack.subprocess_context
 import spack.util.executable
-import spack.util.libc
 from spack import traverse
 from spack.context import Context
 from spack.error import InstallError, NoHeadersError, NoLibrariesError
@@ -93,6 +91,7 @@ from spack.install_test import spack_install_test_log
 from spack.util.environment import (
     SYSTEM_DIR_CASE_ENTRY,
     EnvironmentModifications,
+    PrependPath,
     env_flag,
     filter_system_paths,
     get_path,
@@ -388,61 +387,9 @@ def _add_werror_handling(keep_werror, env):
     env.set("SPACK_COMPILER_FLAGS_REPLACE", " ".join(["|".join(item) for item in replace_flags]))
 
 
-def set_compiler_environment_variables(pkg, env):
+def set_wrapper_environment_variables_for_flags(pkg, env):
     assert pkg.spec.concrete
-    compiler = pkg.compiler
     spec = pkg.spec
-
-    # Make sure the executables for this compiler exist
-    compiler.verify_executables()
-
-    # Set compiler variables used by CMake and autotools
-    assert all(key in compiler.link_paths for key in ("cc", "cxx", "f77", "fc"))
-
-    # Populate an object with the list of environment modifications
-    # and return it
-    # TODO : add additional kwargs for better diagnostics, like requestor,
-    # ttyout, ttyerr, etc.
-    link_dir = spack.paths.build_env_path
-
-    # Set SPACK compiler variables so that our wrapper knows what to
-    # call.  If there is no compiler configured then use a default
-    # wrapper which will emit an error if it is used.
-    if compiler.cc:
-        env.set("SPACK_CC", compiler.cc)
-        env.set("CC", os.path.join(link_dir, compiler.link_paths["cc"]))
-    else:
-        env.set("CC", os.path.join(link_dir, "cc"))
-    if compiler.cxx:
-        env.set("SPACK_CXX", compiler.cxx)
-        env.set("CXX", os.path.join(link_dir, compiler.link_paths["cxx"]))
-    else:
-        env.set("CC", os.path.join(link_dir, "c++"))
-    if compiler.f77:
-        env.set("SPACK_F77", compiler.f77)
-        env.set("F77", os.path.join(link_dir, compiler.link_paths["f77"]))
-    else:
-        env.set("F77", os.path.join(link_dir, "f77"))
-    if compiler.fc:
-        env.set("SPACK_FC", compiler.fc)
-        env.set("FC", os.path.join(link_dir, compiler.link_paths["fc"]))
-    else:
-        env.set("FC", os.path.join(link_dir, "fc"))
-
-    # Set SPACK compiler rpath flags so that our wrapper knows what to use
-    env.set("SPACK_CC_RPATH_ARG", compiler.cc_rpath_arg)
-    env.set("SPACK_CXX_RPATH_ARG", compiler.cxx_rpath_arg)
-    env.set("SPACK_F77_RPATH_ARG", compiler.f77_rpath_arg)
-    env.set("SPACK_FC_RPATH_ARG", compiler.fc_rpath_arg)
-    env.set("SPACK_LINKER_ARG", compiler.linker_arg)
-
-    # Check whether we want to force RPATH or RUNPATH
-    if spack.config.get("config:shared_linking:type") == "rpath":
-        env.set("SPACK_DTAGS_TO_STRIP", compiler.enable_new_dtags)
-        env.set("SPACK_DTAGS_TO_ADD", compiler.disable_new_dtags)
-    else:
-        env.set("SPACK_DTAGS_TO_STRIP", compiler.disable_new_dtags)
-        env.set("SPACK_DTAGS_TO_ADD", compiler.enable_new_dtags)
 
     if pkg.keep_werror is not None:
         keep_werror = pkg.keep_werror
@@ -450,10 +397,6 @@ def set_compiler_environment_variables(pkg, env):
         keep_werror = spack.config.get("config:flags:keep_werror")
 
     _add_werror_handling(keep_werror, env)
-
-    # Set the target parameters that the compiler will add
-    isa_arg = optimization_flags(compiler, spec.target)
-    env.set("SPACK_TARGET_ARGS", isa_arg)
 
     # Trap spack-tracked compiler flags as appropriate.
     # env_flags are easy to accidentally override.
@@ -487,73 +430,21 @@ def set_compiler_environment_variables(pkg, env):
             # implicit variables
             env.set(flag.upper(), " ".join(f for f in env_flags[flag]))
     pkg.flags_to_build_system_args(build_system_flags)
-
-    env.set("SPACK_COMPILER_SPEC", str(spec.compiler))
-
     env.set("SPACK_SYSTEM_DIRS", SYSTEM_DIR_CASE_ENTRY)
-
-    compiler.setup_custom_environment(pkg, env)
-
     return env
 
 
 def optimization_flags(compiler, target):
-    if spack.compilers.is_mixed_toolchain(compiler):
-        msg = (
-            "microarchitecture specific optimizations are not "
-            "supported yet on mixed compiler toolchains [check"
-            f" {compiler.name}@{compiler.version} for further details]"
-        )
-        tty.debug(msg)
-        return ""
-
     # Try to check if the current compiler comes with a version number or
     # has an unexpected suffix. If so, treat it as a compiler with a
     # custom spec.
-    compiler_version = compiler.version
-    version_number, suffix = archspec.cpu.version_components(compiler.version)
-    if not version_number or suffix:
-        try:
-            compiler_version = compiler.real_version
-        except spack.util.executable.ProcessError as e:
-            # log this and just return compiler.version instead
-            tty.debug(str(e))
-
+    version_number, _ = archspec.cpu.version_components(compiler.version.dotted_numeric_string)
     try:
-        result = target.optimization_flags(compiler.name, compiler_version.dotted_numeric_string)
+        result = target.optimization_flags(compiler.name, version_number)
     except (ValueError, archspec.cpu.UnsupportedMicroarchitecture):
         result = ""
 
     return result
-
-
-class FilterDefaultDynamicLinkerSearchPaths:
-    """Remove rpaths to directories that are default search paths of the dynamic linker."""
-
-    def __init__(self, dynamic_linker: Optional[str]) -> None:
-        # Identify directories by (inode, device) tuple, which handles symlinks too.
-        self.default_path_identifiers: Set[Tuple[int, int]] = set()
-        if not dynamic_linker:
-            return
-        for path in spack.util.libc.default_search_paths_from_dynamic_linker(dynamic_linker):
-            try:
-                s = os.stat(path)
-                if stat.S_ISDIR(s.st_mode):
-                    self.default_path_identifiers.add((s.st_ino, s.st_dev))
-            except OSError:
-                continue
-
-    def is_dynamic_loader_default_path(self, p: str) -> bool:
-        try:
-            s = os.stat(p)
-            return (s.st_ino, s.st_dev) in self.default_path_identifiers
-        except OSError:
-            return False
-
-    def __call__(self, dirs: List[str]) -> List[str]:
-        if not self.default_path_identifiers:
-            return dirs
-        return [p for p in dirs if not self.is_dynamic_loader_default_path(p)]
 
 
 def set_wrapper_variables(pkg, env):
@@ -564,39 +455,8 @@ def set_wrapper_variables(pkg, env):
     this function computes these options in a manner that is intended to match the DAG traversal
     order in `SetupContext`. TODO: this is not the case yet, we're using post order, SetupContext
     is using topo order."""
-    # Set environment variables if specified for
-    # the given compiler
-    compiler = pkg.compiler
-    env.extend(spack.schema.environment.parse(compiler.environment))
-
-    if compiler.extra_rpaths:
-        extra_rpaths = ":".join(compiler.extra_rpaths)
-        env.set("SPACK_COMPILER_EXTRA_RPATHS", extra_rpaths)
-
-    # Add spack build environment path with compiler wrappers first in
-    # the path. We add the compiler wrapper path, which includes default
-    # wrappers (cc, c++, f77, f90), AND a subdirectory containing
-    # compiler-specific symlinks.  The latter ensures that builds that
-    # are sensitive to the *name* of the compiler see the right name when
-    # we're building with the wrappers.
-    #
-    # Conflicts on case-insensitive systems (like "CC" and "cc") are
-    # handled by putting one in the <build_env_path>/case-insensitive
-    # directory.  Add that to the path too.
-    env_paths = []
-    compiler_specific = os.path.join(
-        spack.paths.build_env_path, os.path.dirname(pkg.compiler.link_paths["cc"])
-    )
-    for item in [spack.paths.build_env_path, compiler_specific]:
-        env_paths.append(item)
-        ci = os.path.join(item, "case-insensitive")
-        if os.path.isdir(ci):
-            env_paths.append(ci)
-
-    tty.debug("Adding compiler bin/ paths: " + " ".join(env_paths))
-    for item in env_paths:
-        env.prepend_path("PATH", item)
-    env.set_path(SPACK_ENV_PATH, env_paths)
+    # Set compiler flags injected from the spec
+    set_wrapper_environment_variables_for_flags(pkg, env)
 
     # Working directory for the spack command itself, for debug logs.
     if spack.config.get("config:debug"):
@@ -662,22 +522,15 @@ def set_wrapper_variables(pkg, env):
         lib_path = os.path.join(pkg.prefix, libdir)
         rpath_dirs.insert(0, lib_path)
 
-    filter_default_dynamic_linker_search_paths = FilterDefaultDynamicLinkerSearchPaths(
-        pkg.compiler.default_dynamic_linker
-    )
-
     # TODO: filter_system_paths is again wrong (and probably unnecessary due to the is_system_path
     # branch above). link_dirs should be filtered with entries from _parse_link_paths.
     link_dirs = list(dedupe(filter_system_paths(link_dirs)))
     include_dirs = list(dedupe(filter_system_paths(include_dirs)))
     rpath_dirs = list(dedupe(filter_system_paths(rpath_dirs)))
-    rpath_dirs = filter_default_dynamic_linker_search_paths(rpath_dirs)
 
-    # TODO: implicit_rpaths is prefiltered by is_system_path, that should be removed in favor of
-    # just this filter.
-    implicit_rpaths = filter_default_dynamic_linker_search_paths(pkg.compiler.implicit_rpaths())
-    if implicit_rpaths:
-        env.set("SPACK_COMPILER_IMPLICIT_RPATHS", ":".join(implicit_rpaths))
+    default_dynamic_linker_filter = spack.compilers.libraries.dynamic_linker_filter_for(pkg.spec)
+    if default_dynamic_linker_filter:
+        rpath_dirs = default_dynamic_linker_filter(rpath_dirs)
 
     # Spack managed directories include the stage, store and upstream stores. We extend this with
     # their real paths to make it more robust (e.g. /tmp vs /private/tmp on macOS).
@@ -728,26 +581,6 @@ def set_package_py_globals(pkg, context: Context = Context.BUILD):
     # Find the configure script in the archive path
     # Don't use which for this; we want to find it in the current dir.
     module.configure = Executable("./configure")
-
-    # Put spack compiler paths in module scope. (Some packages use it
-    # in setup_run_environment etc, so don't put it context == build)
-    link_dir = spack.paths.build_env_path
-    pkg_compiler = None
-    try:
-        pkg_compiler = pkg.compiler
-    except spack.compilers.NoCompilerForSpecError as e:
-        tty.debug(f"cannot set 'spack_cc': {str(e)}")
-
-    if pkg_compiler is not None:
-        module.spack_cc = os.path.join(link_dir, pkg_compiler.link_paths["cc"])
-        module.spack_cxx = os.path.join(link_dir, pkg_compiler.link_paths["cxx"])
-        module.spack_f77 = os.path.join(link_dir, pkg_compiler.link_paths["f77"])
-        module.spack_fc = os.path.join(link_dir, pkg_compiler.link_paths["fc"])
-    else:
-        module.spack_cc = None
-        module.spack_cxx = None
-        module.spack_f77 = None
-        module.spack_fc = None
 
     # Useful directories within the prefix are encapsulated in
     # a Prefix object.
@@ -914,7 +747,6 @@ def setup_package(pkg, dirty, context: Context = Context.BUILD):
         context == Context.TEST and pkg.test_requires_compiler
     )
     if need_compiler:
-        set_compiler_environment_variables(pkg, env_mods)
         set_wrapper_variables(pkg, env_mods)
 
     # Platform specific setup goes before package specific setup. This is for setting
@@ -925,6 +757,11 @@ def setup_package(pkg, dirty, context: Context = Context.BUILD):
     tty.debug("setup_package: grabbing modifications from dependencies")
     env_mods.extend(setup_context.get_env_modifications())
     tty.debug("setup_package: collected all modifications from dependencies")
+
+    tty.debug("setup_package: adding compiler wrappers paths")
+    for x in env_mods.group_by_name()["SPACK_ENV_PATH"]:
+        assert isinstance(x, PrependPath), "unexpected setting used for SPACK_ENV_PATH"
+        env_mods.prepend_path("PATH", x.value)
 
     if context == Context.TEST:
         env_mods.prepend_path("PATH", ".")
@@ -939,11 +776,6 @@ def setup_package(pkg, dirty, context: Context = Context.BUILD):
 
     # Load modules on an already clean environment, just before applying Spack's
     # own environment modifications. This ensures Spack controls CC/CXX/... variables.
-    if need_compiler:
-        tty.debug("setup_package: loading compiler modules")
-        for mod in pkg.compiler.modules:
-            load_module(mod)
-
     load_external_modules(pkg)
 
     # Make sure nothing's strange about the Spack environment.

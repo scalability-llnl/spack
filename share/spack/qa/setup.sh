@@ -30,7 +30,8 @@ if [[ "$COVERAGE" == "true" ]]; then
     bashcov=$(realpath ${QA_DIR}/bashcov)
 
     # instrument scripts requiring shell coverage
-    sed -i "s@#\!/bin/bash@#\!${bashcov}@" "$SPACK_ROOT/lib/spack/env/cc"
+    # FIXME (compiler as nodes): do we want shell coverage on this one ?
+    #sed -i "s@#\!/bin/bash@#\!${bashcov}@" "$SPACK_ROOT/lib/spack/env/cc"
     if [ "$(uname -o)" != "Darwin" ]; then
         # On darwin, #! interpreters must be binaries, so no sbang for bashcov
         sed -i "s@#\!/bin/sh@#\!${bashcov}@"   "$SPACK_ROOT/bin/sbang"

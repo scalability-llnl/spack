@@ -88,7 +88,7 @@ class MSBuildBuilder(MSBuildBuilder):
         # devenv is needed to convert ancient MSbuild project to modern
         # msbuild project so MSBuild versions older than 2010 can build this
         # project
-        devenv_path = os.path.join(self.pkg.compiler.vs_root, "Common7", "IDE")
+        devenv_path = os.path.join(self.pkg["msvc"].vs_root, "Common7", "IDE")
         env.prepend_path("PATH", devenv_path)
 
     @property

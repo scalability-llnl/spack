@@ -14,13 +14,10 @@ reindex = SpackCommand("reindex")
 
 
 def test_reindex_basic(mock_packages, mock_archive, mock_fetch, install_mockery):
-    install("libelf@0.8.13")
-    install("libelf@0.8.12")
-
+    install("--fake", "libelf@0.8.13")
+    install("--fake", "libelf@0.8.12")
     all_installed = spack.store.STORE.db.query()
-
     reindex()
-
     assert spack.store.STORE.db.query() == all_installed
 
 
@@ -35,23 +32,19 @@ def _clear_db(tmp_path):
 
 
 def test_reindex_db_deleted(mock_packages, mock_archive, mock_fetch, install_mockery, tmp_path):
-    install("libelf@0.8.13")
-    install("libelf@0.8.12")
-
+    install("--fake", "libelf@0.8.13")
+    install("--fake", "libelf@0.8.12")
     all_installed = spack.store.STORE.db.query()
-
     _clear_db(tmp_path)
-
     reindex()
-
     assert spack.store.STORE.db.query() == all_installed
 
 
 def test_reindex_with_deprecated_packages(
     mock_packages, mock_archive, mock_fetch, install_mockery, tmp_path
 ):
-    install("libelf@0.8.13")
-    install("libelf@0.8.12")
+    install("--fake", "libelf@0.8.13")
+    install("--fake", "libelf@0.8.12")
 
     deprecate("-y", "libelf@0.8.12", "libelf@0.8.13")
 

@@ -7,8 +7,9 @@ import sys
 
 import pytest
 
+import spack.compilers.libraries
 import spack.paths
-from spack.compiler import _parse_non_system_link_dirs
+from spack.compilers.libraries import parse_non_system_link_dirs
 
 drive = ""
 if sys.platform == "win32":
@@ -25,13 +26,13 @@ datadir = os.path.join(spack.paths.test_path, "data", "compiler_verbose_output")
 def allow_nonexistent_paths(monkeypatch):
     # Allow nonexistent paths to be detected as part of the output
     # for testing purposes.
-    monkeypatch.setattr(os.path, "isdir", lambda x: True)
+    monkeypatch.setattr(spack.compilers.libraries, "filter_non_existing_dirs", lambda x: x)
 
 
 def check_link_paths(filename, paths):
     with open(os.path.join(datadir, filename), encoding="utf-8") as file:
         output = file.read()
-    detected_paths = _parse_non_system_link_dirs(output)
+    detected_paths = parse_non_system_link_dirs(output)
 
     actual = detected_paths
     expected = paths

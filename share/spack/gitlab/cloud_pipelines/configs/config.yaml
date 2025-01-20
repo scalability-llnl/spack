@@ -6,5 +6,4 @@ config:
     root: /home/software/spack
     padded_length: 256
     projections:
-      all: '{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}'
-
+      all: "{architecture.platform}-{architecture.target}/{name}-{version}-{hash}"

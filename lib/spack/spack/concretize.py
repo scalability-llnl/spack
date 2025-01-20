@@ -4,36 +4,17 @@
 """High-level functions to concretize list of specs"""
 import sys
 import time
-from contextlib import contextmanager
 from typing import Iterable, List, Optional, Sequence, Tuple, Union
 
 import llnl.util.tty as tty
 
 import spack.compilers
+import spack.compilers.config
 import spack.config
 import spack.error
 import spack.repo
 import spack.util.parallel
 from spack.spec import ArchSpec, CompilerSpec, Spec
-
-CHECK_COMPILER_EXISTENCE = True
-
-
-@contextmanager
-def disable_compiler_existence_check():
-    global CHECK_COMPILER_EXISTENCE
-    CHECK_COMPILER_EXISTENCE, saved = False, CHECK_COMPILER_EXISTENCE
-    yield
-    CHECK_COMPILER_EXISTENCE = saved
-
-
-@contextmanager
-def enable_compiler_existence_check():
-    global CHECK_COMPILER_EXISTENCE
-    CHECK_COMPILER_EXISTENCE, saved = True, CHECK_COMPILER_EXISTENCE
-    yield
-    CHECK_COMPILER_EXISTENCE = saved
-
 
 SpecPairInput = Tuple[Spec, Optional[Spec]]
 SpecPair = Tuple[Spec, Spec]
@@ -143,7 +124,7 @@ def concretize_separately(
 
     # Ensure we have compilers in compilers.yaml to avoid that
     # processes try to write the config file in parallel
-    _ = spack.compilers.all_compilers_config(spack.config.CONFIG)
+    _ = spack.compilers.config.all_compilers_from(spack.config.CONFIG)
 
     # Early return if there is nothing to do
     if len(args) == 0:

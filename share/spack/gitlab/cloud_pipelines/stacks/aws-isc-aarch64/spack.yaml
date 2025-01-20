@@ -57,34 +57,22 @@ spack:
 
   - compiler_specs:
     - gcc@11.2
-    # Licensing OK?
-    # - intel-oneapi-compilers@2022.1
-    # - nvhpc
 
   - app_specs:
     - bwa
 # Depends on simde which requires newer compiler?
     #- bowtie2
-    # Requires x86_64 specific ASM
-    #- cistem
-    - cromwell
-    - fastqc
     - flux-sched
     - flux-core
     - flux-pmix
-    - gatk
     - gromacs
     - lammps
     - wrf build_type=dm+sm
     - mfem
     - mpas-model ^parallelio+pnetcdf
-    - nextflow
     - octave
     - openfoam
     - osu-micro-benchmarks
-    - parallel
-    # - paraview
-    - picard
     - quantum-espresso
     - raja
 # Depends on bowtie2 -> simde which requires newer compiler?
@@ -94,12 +82,9 @@ spack:
     - salmon
     - samtools
     - seqtk
-    - snakemake
     - star
     # Requires gcc@9:
     #- ufs-weather-model
-# requires LLVM which fails without constraint
-    #- visit
 
   - lib_specs:
     - openmpi fabrics=ofi
@@ -113,7 +98,6 @@ spack:
 
   - target:
     - target=aarch64
-
 
   specs:
 
@@ -130,7 +114,10 @@ spack:
   - matrix:
     - - $compiler_specs
     - - $compiler
-    - - $target
+
+  - matrix:
+    - [cromwell, fastqc, gatk, nextflow, parallel, picard, snakemake]
+    - [$target]
 
   ci:
     pipeline-gen:

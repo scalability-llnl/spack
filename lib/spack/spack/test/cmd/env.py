@@ -1698,7 +1698,10 @@ def test_stage(mock_stage, mock_fetch, install_mockery):
         spec = spack.concretize.concretize_one(spec)
         for dep in spec.traverse():
             stage_name = f"{stage_prefix}{dep.name}-{dep.version}-{dep.dag_hash()}"
-            assert os.path.isdir(os.path.join(root, stage_name))
+            if dep.external:
+                assert not os.path.exists(os.path.join(root, stage_name))
+            else:
+                assert os.path.isdir(os.path.join(root, stage_name))
 
     check_stage("mpileaks")
     check_stage("zmpi")

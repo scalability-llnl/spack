@@ -15,11 +15,13 @@ from typing import Dict, Optional, Tuple
 
 import archspec.cpu
 
-import spack.compiler
-import spack.compilers
+import spack.compilers.config
+import spack.compilers.libraries
+import spack.config
 import spack.platforms
 import spack.spec
 import spack.traverse
+import spack.version
 
 from .config import spec_for_current_python
 
@@ -38,7 +40,7 @@ class ClingoBootstrapConcretizer:
 
         self.external_cmake, self.external_bison = self._externals_from_yaml(configuration)
 
-    def _valid_compiler_or_raise(self) -> "spack.compiler.Compiler":
+    def _valid_compiler_or_raise(self):
         if str(self.host_platform) == "linux":
             compiler_name = "gcc"
         elif str(self.host_platform) == "darwin":
@@ -46,17 +48,30 @@ class ClingoBootstrapConcretizer:
         elif str(self.host_platform) == "windows":
             compiler_name = "msvc"
         elif str(self.host_platform) == "freebsd":
-            compiler_name = "clang"
+            compiler_name = "llvm"
         else:
             raise RuntimeError(f"Cannot bootstrap clingo from sources on {self.host_platform}")
-        candidates = spack.compilers.compilers_for_spec(
-            compiler_name, arch_spec=self.host_architecture
-        )
+
+        candidates = [
+            x
+            for x in spack.compilers.config.CompilerFactory.from_packages_yaml(spack.config.CONFIG)
+            if x.name == compiler_name
+        ]
         if not candidates:
             raise RuntimeError(
                 f"Cannot find any version of {compiler_name} to bootstrap clingo from sources"
             )
-        candidates.sort(key=lambda x: x.spec.version, reverse=True)
+        candidates.sort(key=lambda x: x.version, reverse=True)
+        best = candidates[0]
+        # Get compilers for bootstrapping from the 'builtin' repository
+        best.namespace = "builtin"
+        # If the compiler does not support C++ 14, fail with a legible error message
+        try:
+            _ = best.package.standard_flag(language="cxx", standard="14")
+        except RuntimeError as e:
+            raise RuntimeError(
+                "cannot find a compiler supporting C++ 14 [needed to bootstrap clingo]"
+            ) from e
         return candidates[0]
 
     def _externals_from_yaml(
@@ -73,9 +88,6 @@ class ClingoBootstrapConcretizer:
             for candidate in candidates:
                 s = spack.spec.Spec(candidate["spec"], external_path=candidate["prefix"])
                 if not s.satisfies(requirements[pkg_name]):
-                    continue
-
-                if not s.intersects(f"%{self.host_compiler.spec}"):
                     continue
 
                 if not s.intersects(f"arch={self.host_architecture}"):
@@ -110,11 +122,14 @@ class ClingoBootstrapConcretizer:
         # Tweak it to conform to the host architecture
         for node in s.traverse():
             node.architecture.os = str(self.host_os)
-            node.compiler = self.host_compiler.spec
             node.architecture = self.host_architecture
 
             if node.name == "gcc-runtime":
-                node.versions = self.host_compiler.spec.versions
+                node.versions = self.host_compiler.versions
+
+        # Can't use re2c@3.1 with Python 3.6
+        if self.host_python.satisfies("@3.6"):
+            s["re2c"].versions.versions = [spack.version.from_string("=2.2")]
 
         for edge in spack.traverse.traverse_edges([s], cover="edges"):
             if edge.spec.name == "python":
@@ -125,6 +140,9 @@ class ClingoBootstrapConcretizer:
 
             if edge.spec.name == "cmake" and self.external_cmake:
                 edge.spec = self.external_cmake
+
+            if edge.spec.name == self.host_compiler.name:
+                edge.spec = self.host_compiler
 
             if "libc" in edge.virtuals:
                 edge.spec = self.host_libc
@@ -141,12 +159,12 @@ class ClingoBootstrapConcretizer:
         return self._external_spec(result)
 
     def libc_external_spec(self) -> "spack.spec.Spec":
-        result = self.host_compiler.default_libc
+        detector = spack.compilers.libraries.CompilerPropertyDetector(self.host_compiler)
+        result = detector.default_libc()
         return self._external_spec(result)
 
     def _external_spec(self, initial_spec) -> "spack.spec.Spec":
         initial_spec.namespace = "builtin"
-        initial_spec.compiler = self.host_compiler.spec
         initial_spec.architecture = self.host_architecture
         for flag_type in spack.spec.FlagMap.valid_compiler_flags():
             initial_spec.compiler_flags[flag_type] = []

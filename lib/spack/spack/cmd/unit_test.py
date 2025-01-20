@@ -216,7 +216,7 @@ def unit_test(parser, args, unknown_args):
     # Ensure clingo is available before switching to the
     # mock configuration used by unit tests
     with spack.bootstrap.ensure_bootstrap_configuration():
-        spack.bootstrap.ensure_core_dependencies()
+        spack.bootstrap.ensure_clingo_importable_or_raise()
         if pytest is None:
             spack.bootstrap.ensure_environment_dependencies()
             import pytest

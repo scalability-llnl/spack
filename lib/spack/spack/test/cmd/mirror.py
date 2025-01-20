@@ -353,7 +353,7 @@ def test_mirror_destroy(
     spec_name = "libdwarf"
 
     # Put a binary package in a buildcache
-    install("--no-cache", spec_name)
+    install("--fake", "--no-cache", spec_name)
     buildcache("push", "-u", "-f", mirror_dir.strpath, spec_name)
 
     contents = os.listdir(mirror_dir.strpath)

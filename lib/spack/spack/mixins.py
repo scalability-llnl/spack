@@ -70,12 +70,16 @@ def filter_compiler_wrappers(*files, **kwargs):
 
         x = llnl.util.filesystem.FileFilter(*abs_files)
 
-        compiler_vars = [
-            ("CC", pkg.compiler.cc),
-            ("CXX", pkg.compiler.cxx),
-            ("F77", pkg.compiler.f77),
-            ("FC", pkg.compiler.fc),
-        ]
+        compiler_vars = []
+        if "c" in pkg.spec:
+            compiler_vars.append(("CC", pkg.spec["c"].package.cc))
+
+        if "cxx" in pkg.spec:
+            compiler_vars.append(("CXX", pkg.spec["cxx"].package.cxx))
+
+        if "fortran" in pkg.spec:
+            compiler_vars.append(("FC", pkg.spec["fortran"].package.fortran))
+            compiler_vars.append(("F77", pkg.spec["fortran"].package.fortran))
 
         # Some paths to the compiler wrappers might be substrings of the others.
         # For example:
@@ -103,7 +107,11 @@ def filter_compiler_wrappers(*files, **kwargs):
             x.filter(wrapper_path, compiler_path, **filter_kwargs)
 
         # Remove this linking flag if present (it turns RPATH into RUNPATH)
-        x.filter("{0}--enable-new-dtags".format(pkg.compiler.linker_arg), "", **filter_kwargs)
+        for compiler_lang in ("c", "cxx", "fortran"):
+            if compiler_lang not in pkg.spec:
+                continue
+            compiler_pkg = pkg.spec[compiler_lang].package
+            x.filter(f"{compiler_pkg.linker_arg}--enable-new-dtags", "", **filter_kwargs)
 
         # NAG compiler is usually mixed with GCC, which has a different
         # prefix for linker arguments.

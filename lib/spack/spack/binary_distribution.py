@@ -625,7 +625,14 @@ def tarball_directory_name(spec):
     Return name of the tarball directory according to the convention
     <os>-<architecture>/<compiler>/<package>-<version>/
     """
-    return spec.format_path("{architecture}/{compiler.name}-{compiler.version}/{name}-{version}")
+    if spec.original_spec_format() < 5:
+        compiler = spec.annotations.compiler_node_attribute
+        assert compiler is not None, "a compiler spec is expected"
+        return spec.format_path(
+            f"{spec.architecture}/{compiler.name}-{compiler.version}/{spec.name}-{spec.version}"
+        )
+
+    return spec.format_path(f"{spec.architecture.platform}/{spec.name}-{spec.version}")
 
 
 def tarball_name(spec, ext):
@@ -633,9 +640,17 @@ def tarball_name(spec, ext):
     Return the name of the tarfile according to the convention
     <os>-<architecture>-<package>-<dag_hash><ext>
     """
-    spec_formatted = spec.format_path(
-        "{architecture}-{compiler.name}-{compiler.version}-{name}-{version}-{hash}"
-    )
+    if spec.original_spec_format() < 5:
+        compiler = spec.annotations.compiler_node_attribute
+        assert compiler is not None, "a compiler spec is expected"
+        spec_formatted = (
+            f"{spec.architecture}-{compiler.name}-{compiler.version}-{spec.name}"
+            f"-{spec.version}-{spec.dag_hash()}"
+        )
+    else:
+        spec_formatted = (
+            f"{spec.architecture.platform}-{spec.name}-{spec.version}-{spec.dag_hash()}"
+        )
     return f"{spec_formatted}{ext}"
 
 

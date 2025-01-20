@@ -17,6 +17,8 @@ class Llvm(Package, CompilerPackage):
         "clang", default=True, description="Build the LLVM C/C++/Objective-C compiler frontend"
     )
 
+    provides("c", "cxx", when="+clang")
+
     c_names = ["clang"]
     cxx_names = ["clang++"]
     fortran_names = ["flang"]
@@ -27,3 +29,36 @@ class Llvm(Package, CompilerPackage):
         with open(prefix.bin.gcc, "w", encoding="utf-8") as f:
             f.write('#!/bin/bash\necho "%s"' % str(spec.version))
         set_executable(prefix.bin.gcc)
+
+    @property
+    def cc(self):
+        msg = "cannot retrieve C compiler [spec is not concrete]"
+        assert self.spec.concrete, msg
+        if self.spec.external:
+            return self.spec.extra_attributes["compilers"].get("c", None)
+        result = None
+        if "+clang" in self.spec:
+            result = os.path.join(self.spec.prefix.bin, "clang")
+        return result
+
+    @property
+    def cxx(self):
+        msg = "cannot retrieve C++ compiler [spec is not concrete]"
+        assert self.spec.concrete, msg
+        if self.spec.external:
+            return self.spec.extra_attributes["compilers"].get("cxx", None)
+        result = None
+        if "+clang" in self.spec:
+            result = os.path.join(self.spec.prefix.bin, "clang++")
+        return result
+
+    @property
+    def fortan(self):
+        msg = "cannot retrieve Fortran compiler [spec is not concrete]"
+        assert self.spec.concrete, msg
+        if self.spec.external:
+            return self.spec.extra_attributes["compilers"].get("fc", None)
+        result = None
+        if "+flang" in self.spec:
+            result = os.path.join(self.spec.prefix.bin, "flang")
+        return result
