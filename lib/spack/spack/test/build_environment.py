@@ -388,7 +388,7 @@ def test_wrapper_variables(
     root = spack.concretize.concretize_one("dt-diamond")
 
     for s in root.traverse():
-        s.prefix = "/{0}-prefix/".format(s.name)
+        s.set_prefix(f"/{s.name}-prefix/")
 
     dep_pkg = root["dt-diamond-left"].package
     dep_lib_paths = ["/test/path/to/ex1.so", "/test/path/to/subdir/ex2.so"]
@@ -396,7 +396,7 @@ def test_wrapper_variables(
     dep_libs = LibraryList(dep_lib_paths)
 
     dep2_pkg = root["dt-diamond-right"].package
-    dep2_pkg.spec.prefix = str(installation_dir_with_headers)
+    dep2_pkg.spec.set_prefix(str(installation_dir_with_headers))
 
     setattr(dep_pkg, "libs", dep_libs)
     try:

@@ -9,7 +9,7 @@ import re
 import shutil
 import stat
 import sys
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict, List, Optional
 
 from typing_extensions import Literal
 
@@ -77,7 +77,7 @@ def view_copy(
 
     # Order of this dict is somewhat irrelevant
     prefix_to_projection = {
-        s.prefix: view.get_projection_for_spec(s)
+        str(s.prefix): view.get_projection_for_spec(s)
         for s in spec.traverse(root=True, order="breadth")
         if not s.external
     }
@@ -184,7 +184,7 @@ class FilesystemView:
     def link(self, src: str, dst: str, spec: Optional[spack.spec.Spec] = None) -> None:
         self._link(src, dst, self, spec)
 
-    def add_specs(self, *specs, **kwargs):
+    def add_specs(self, *specs: spack.spec.Spec, **kwargs) -> None:
         """
         Add given specs to view.
 
@@ -199,19 +199,19 @@ class FilesystemView:
         """
         raise NotImplementedError
 
-    def add_standalone(self, spec):
+    def add_standalone(self, spec: spack.spec.Spec) -> bool:
         """
         Add (link) a standalone package into this view.
         """
         raise NotImplementedError
 
-    def check_added(self, spec):
+    def check_added(self, spec: spack.spec.Spec) -> bool:
         """
         Check if the given concrete spec is active in this view.
         """
         raise NotImplementedError
 
-    def remove_specs(self, *specs, **kwargs):
+    def remove_specs(self, *specs: spack.spec.Spec, **kwargs) -> None:
         """
         Removes given specs from view.
 
@@ -230,25 +230,25 @@ class FilesystemView:
         """
         raise NotImplementedError
 
-    def remove_standalone(self, spec):
+    def remove_standalone(self, spec: spack.spec.Spec) -> None:
         """
         Remove (unlink) a standalone package from this view.
         """
         raise NotImplementedError
 
-    def get_projection_for_spec(self, spec):
+    def get_projection_for_spec(self, spec: spack.spec.Spec) -> str:
         """
         Get the projection in this view for a spec.
         """
         raise NotImplementedError
 
-    def get_all_specs(self):
+    def get_all_specs(self) -> List[spack.spec.Spec]:
         """
         Get all specs currently active in this view.
         """
         raise NotImplementedError
 
-    def get_spec(self, spec):
+    def get_spec(self, spec: spack.spec.Spec) -> Optional[spack.spec.Spec]:
         """
         Return the actual spec linked in this view (i.e. do not look it up
         in the database by name).
@@ -262,7 +262,7 @@ class FilesystemView:
         """
         raise NotImplementedError
 
-    def print_status(self, *specs, **kwargs):
+    def print_status(self, *specs: spack.spec.Spec, **kwargs) -> None:
         """
         Print a short summary about the given specs, detailing whether..
             * ..they are active in the view.
@@ -693,7 +693,7 @@ class SimpleFilesystemView(FilesystemView):
                 raise ConflictingSpecsError(current_spec, conflicting_spec)
             seen[metadata_dir] = current_spec
 
-    def add_specs(self, *specs: spack.spec.Spec) -> None:
+    def add_specs(self, *specs, **kwargs) -> None:
         """Link a root-to-leaf topologically ordered list of specs into the view."""
         assert all((s.concrete for s in specs))
         if len(specs) == 0:
@@ -827,7 +827,7 @@ class SimpleFilesystemView(FilesystemView):
 #####################
 # utility functions #
 #####################
-def get_spec_from_file(filename):
+def get_spec_from_file(filename) -> Optional[spack.spec.Spec]:
     try:
         with open(filename, "r", encoding="utf-8") as f:
             return spack.spec.Spec.from_yaml(f)
