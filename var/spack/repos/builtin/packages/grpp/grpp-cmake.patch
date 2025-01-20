@@ -1,0 +1,164 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b5cc84f..efd61cf 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -6,12 +6,29 @@
+ #
+ 
+ cmake_minimum_required(VERSION 3.19)
+-project(test_libgrpp_c.x C)
+-project(test_libgrpp_f90.x Fortran)
++
++include(CMakeDependentOption)
++include(CMakePackageConfigHelpers)
++ 
++set(VERSION_MAJOR 2023)
++set(VERSION_MINOR 12)
++set(VERSION_PATCH 25)
++
++project(libgrpp
++        DESCRIPTION "A library for the evaluation of molecular integrals of the generalized relativistic pseudopotential operator (GRPP) over Gaussian functions."
++        HOMEPAGE_URL https://github.com/aoleynichenko/libgrpp
++        VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}
++        LANGUAGES Fortran C)
+ 
+ set(CMAKE_C_STANDARD 11)
+ find_package(OpenMP)
+ 
++# imply -O3 -DNDEBUG, can be changed with cmake -DCMAKE_BUILD_TYPE=DEBUG,etc....
++
++set(CMAKE_BUILD_TYPE Release)
++
++set(libgrpp_APIVERSION ${libgrpp_VERSION_MAJOR}.${libgrpp_VERSION_MINOR})
++
+ add_subdirectory(libgrpp)
+ 
+ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS} -O3")
+@@ -43,10 +60,9 @@ add_executable(test_libgrpp_f90.x
+         test_libgrpp_f90/libgrpp.f90
+         )
+ 
+-target_link_libraries(test_libgrpp_c.x libgrpp -lm ${OpenMP_C_LIBRARIES}) # -pg)
+-target_link_libraries(test_libgrpp_f90.x libgrpp -lm ${OpenMP_C_LIBRARIES})
+-
+-
++target_link_libraries(test_libgrpp_c.x grpp OpenMP::OpenMP_C m)
++target_link_libraries(test_libgrpp_f90.x grpp OpenMP::OpenMP_Fortran m)
++set_target_properties(test_libgrpp_f90.x PROPERTIES Fortran_MODULE_DIRECTORY "fortran_modules")
+ # enable testing functionality
+ enable_testing()
+ 
+@@ -63,3 +79,42 @@ add_test(NAME UO2    WORKING_DIRECTORY ../test/UO2    COMMAND bash run_test.sh)
+ foreach (t KCs)
+     set_property(TEST ${t} PROPERTY ENVIRONMENT "PATH=${CMAKE_BINARY_DIR}:$ENV{PATH}")
+ endforeach ()
++
++include(GNUInstallDirs)
++
++write_basic_package_version_file(
++  "${PROJECT_BINARY_DIR}/grppConfigVersion.cmake"
++  VERSION "${libgrpp_VERSION}"
++  COMPATIBILITY SameMajorVersion)
++
++if(NOT CMAKE_INSTALL_Fortran_MODULES)
++  set(CMAKE_INSTALL_Fortran_MODULES "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}"
++  )
++endif()
++
++configure_file("${PROJECT_SOURCE_DIR}/cmake/grppConfig.cmake.in"
++               "${PROJECT_BINARY_DIR}/grppConfig.cmake" @ONLY)
++
++configure_file(cmake/libgrpp.pc.in libgrpp.pc @ONLY)
++
++install(FILES "${PROJECT_BINARY_DIR}/grppConfig.cmake"
++              "${PROJECT_BINARY_DIR}/grppConfigVersion.cmake"
++	      DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
++
++install(FILES "${PROJECT_BINARY_DIR}/libgrpp.pc"
++        DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
++
++
++
++install(
++  DIRECTORY "${PROJECT_BINARY_DIR}/fortran_modules"
++  DESTINATION "${CMAKE_INSTALL_Fortran_MODULES}/${CMAKE_Fortran_COMPILER_ID}-${CMAKE_Fortran_COMPILER_VERSION}"
++  FILES_MATCHING
++  PATTERN "*.mod")
++
++install(
++  DIRECTORY "${PROJECT_SOURCE_DIR}/libgrpp"
++	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
++	FILES_MATCHING
++	PATTERN "*.h")
++
+diff --git a/cmake/grppConfig.cmake.in b/cmake/grppConfig.cmake.in
+new file mode 100644
+index 0000000..ce54dc2
+--- /dev/null
++++ b/cmake/grppConfig.cmake.in
+@@ -0,0 +1,6 @@
++cmake_minimum_required(VERSION 3.19)
++include(CMakeFindDependencyMacro)
++
++if(NOT TARGET grpp::grpp)
++  include("${CMAKE_CURRENT_LIST_DIR}/grppTargets.cmake")
++endif()
+diff --git a/cmake/libgrpp.pc.in b/cmake/libgrpp.pc.in
+new file mode 100644
+index 0000000..dfa3a9b
+--- /dev/null
++++ b/cmake/libgrpp.pc.in
+@@ -0,0 +1,11 @@
++prefix="@CMAKE_INSTALL_PREFIX@"
++exec_prefix="${prefix}"
++libdir="${prefix}/@CMAKE_INSTALL_LIBDIR@"
++includedir="${prefix}/@CMAKE_INSTALL_INCLUDEDIR@"
++
++Name: @PROJECT_NAME@
++Description: @CMAKE_PROJECT_DESCRIPTION@
++URL: @CMAKE_PROJECT_HOMEPAGE_URL@
++Version: @PROJECT_VERSION@
++Cflags: -I"${includedir}/libgrpp" -I"${includedir}/libgrpp/@CMAKE_Fortran_COMPILER_ID@-@CMAKE_Fortran_COMPILER_VERSION@/fortran_modules"
++Libs: -L"${libdir}" -lgrpp
+diff --git a/libgrpp/CMakeLists.txt b/libgrpp/CMakeLists.txt
+index f579f7b..ad3408c 100644
+--- a/libgrpp/CMakeLists.txt
++++ b/libgrpp/CMakeLists.txt
+@@ -5,16 +5,7 @@
+ #  Copyright (C) 2021-2023 Alexander Oleynichenko
+ #
+ 
+-cmake_minimum_required(VERSION 3.19)
+-project(libgrpp C)
+-
+-set(CMAKE_C_STANDARD 11)
+-
+-find_package(OpenMP)
+-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS} -O3")
+-#add_compile_options(-pg)
+-
+-add_library(libgrpp
++add_library(grpp
+         angular_integrals.c
+         binomial.c
+         diff_gaussian.c
+@@ -53,4 +44,18 @@ add_library(libgrpp
+         utils.c
+ )
+ 
+-target_link_libraries(libgrpp -lm)
++set_target_properties(grpp PROPERTIES POSITION_INDEPENDENT_CODE ON
++                                      VERSION ${grpp_VERSION}
++                                      SOVERSION ${grpp_APIVERSION})
++include(GNUInstallDirs)
++install(
++  TARGETS grpp
++  EXPORT libgrpp_targets
++  LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}")
++
++install(EXPORT libgrpp_targets
++        FILE grppTargets.cmake
++        NAMESPACE grpp::
++        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
++
++
