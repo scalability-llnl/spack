@@ -547,7 +547,10 @@ virtual_condition_holds(node(Y, A2), Virtual)
 % if a package is assigned a hash, it's concrete.
 concrete(PackageNode) :- attr("hash", PackageNode, _), attr("node", PackageNode).
 
-:- concrete(PackageNode), depends_on(PackageNode, DependencyNode), not concrete(DependencyNode).
+:- concrete(PackageNode),
+   depends_on(PackageNode, DependencyNode),
+   not concrete(DependencyNode),
+   not abi_splice_conditions_hold(_, DependencyNode, _, _).
 
 %-----------------------------------------------------------------------------
 % Dependency semantics
@@ -591,6 +594,13 @@ virtual_edge_needed(ParentNode, ChildNode, node(X, Virtual)) :-
    concrete(ChildNode),
    provider(ChildNode, node(X, Virtual)),
    attr("virtual_on_edge", ParentNode, ChildNode, Virtual).
+
+virtual_edge_needed(ParentNode, ChildNode, node(X, Virtual)) :-
+   concrete(ParentNode),
+   abi_splice_conditions_hold(_, ChildNode, _, _),
+   provider(ChildNode, node(X, Virtual)),
+   attr("virtual_on_edge", ParentNode, ChildNode, Virtual).
+
 
 edge_needed(ParentNode, ChildNode)      :- virtual_edge_needed(ParentNode, ChildNode, _).
 provider_needed(ChildNode, VirtualNode) :- virtual_edge_needed(_, ChildNode, VirtualNode).
