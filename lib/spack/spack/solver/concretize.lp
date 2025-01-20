@@ -414,6 +414,9 @@ imposed_packages(ID, A1) :- imposed_constraint(ID, _, A1, _, _).
 imposed_packages(ID, A1) :- imposed_constraint(ID, _, A1, _, _, _).
 imposed_packages(ID, A1) :- imposed_constraint(ID, "depends_on", _, A1, _).
 
+% If X/A1 is part of the condition_set of NodeID/Package,
+% an EffectID is being imposed for A1,
+% NodeID/Package (i.e. the root) is triggered,
 imposed_nodes(EffectID, node(NodeID, Package), node(X, A1))
   :- pkg_fact(Package, condition_trigger(ID, TriggerID)),
      pkg_fact(Package, condition_effect(ID, EffectID)),
