@@ -7,9 +7,9 @@ from spack.package import *
 
 
 class Grpp(CMakePackage):
-    """ GRPP: A library for the evaluation of molecular integrals
-       of the generalized relativistic pseudopotential operator
-       (GRPP) over Gaussian functions."""
+    """GRPP: A library for the evaluation of molecular integrals
+    of the generalized relativistic pseudopotential operator
+    (GRPP) over Gaussian functions."""
 
     #
     # The package has no official version and did not see a lot
