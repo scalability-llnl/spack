@@ -39,7 +39,7 @@ class Pandorasdk(CMakePackage):
         args = [
             self.define("CMAKE_MODULE_PATH", self.spec["pandorapfa"].prefix.cmakemodules),
             self.define("CMAKE_CXX_FLAGS", "-Wno-error"),
-            self.define("CMAKE_CXX_STANDARD", self.spec.variants['cxxstd'].value),
+            self.define("CMAKE_CXX_STANDARD", self.spec.variants["cxxstd"].value),
         ]
         return args
 
