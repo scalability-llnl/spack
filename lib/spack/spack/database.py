@@ -1060,7 +1060,7 @@ class Database:
             self._state_is_inconsistent = True
             return
 
-        temp_file = str(self._index_path) + (".%s.%s.temp" % (_getfqdn(), os.getpid()))
+        temp_file = self._index_path.parent / f"{self._index_path.name}.{_getfqdn()}.{os.getpid()}.temp"
 
         # Write a temporary database file them move it into place
         try:
@@ -1076,8 +1076,8 @@ class Database:
         except BaseException as e:
             tty.debug(e)
             # Clean up temp file if something goes wrong.
-            if os.path.exists(temp_file):
-                os.remove(temp_file)
+            if temp_file.exists():
+                temp_file.unlink()
             raise
 
     def _read(self):
