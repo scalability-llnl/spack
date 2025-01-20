@@ -20,11 +20,7 @@ GPU_MAP = {
     "gfx906": "Mi50",
     "gfx908": "Mi100",
     "gfx90a": "Mi250",
-    "gfx942": "Mi300",
-    "gfx90a:xnack-": "Mi250",
-    "gfx90a:xnack+": "Mi250",
-    "gfx942:xnack-": "Mi300",
-    "gfx942:xnack+": "Mi300",
+    "gfx942": "Mi300"
 }
 
 
@@ -128,6 +124,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
         description="Enable unified memory support on Mi250 and Mi300 GPUs",
         when="+rocm",
     )
+    variant("spla_gemm_offloading", default=False, description="Enable spla gemm offloading support", when="+spla")
     variant(
         "enable_regtests",
         default=False,
@@ -337,6 +334,9 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     )
 
     conflicts("~openmp", when="@8:", msg="Building without OpenMP is not supported in CP2K 8+")
+
+    if ((not when("+cuda")) or (not when("+rocm"))):
+        conflicts("spla_gemm_offloading")
 
     # We only support specific cuda_archs for which we have parameter files
     # for optimal kernels. Note that we don't override the cuda_archs property
@@ -1037,6 +1037,8 @@ class CMakeBuilder(cmake.CMakeBuilder):
             self.define_from_variant("CP2K_USE_MPI_F08", "mpi_f08"),
             self.define_from_variant("CP2K_USE_LIBSMEAGOL", "smeagol"),
             self.define_from_variant("CP2K_USE_UNIFIED_MEMORY", "unified_memory"),
+            self.define_from_variant("CP2K_USE_SPLA", "spla"),
+            self.define_from_variant("CP2K_USE_SPLA_GEMM_OFFLOADING", "spla_gemm_offloading")
         ]
 
         # we force the use elpa openmp threading support. might need to be revisited though
@@ -1046,12 +1048,6 @@ class CMakeBuilder(cmake.CMakeBuilder):
                 ("+elpa +openmp" in spec) or ("^elpa +openmp" in spec),
             )
         ]
-
-        if "spla" in spec and (spec.satisfies("+cuda") or spec.satisfies("+rocm")):
-            args += [
-                "-DCP2K_USE_SPLA_GEMM_OFFLOADING=ON",
-                self.define_from_variant("CP2K_USE_SPLA", "spla"),
-            ]
 
         args += ["-DCP2K_USE_FFTW3=ON"]
 
