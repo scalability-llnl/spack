@@ -5,6 +5,7 @@
 import contextlib
 import os
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -12,6 +13,7 @@ import spack.cmd
 import spack.config
 import spack.extensions
 import spack.main
+from spack.util.path import abstract_path, concrete_path, fs_path
 
 
 class Extension:
@@ -225,17 +227,19 @@ def test_missing_command():
     ],
     ids=["no_stem", "vacuous", "leading_hyphen", "basic_good", "trailing_slash", "hyphenated"],
 )
-def test_extension_naming(tmpdir, extension_path, expected_exception, config):
+def test_extension_naming(tmp_path, extension_path, expected_exception, config):
     """Ensure that we are correctly validating configured extension paths
     for conformity with the rules: the basename should match
     ``spack-<name>``; <name> may have embedded hyphens but not begin with one.
     """
     # NOTE: if the directory is a valid extension directory name the "vacuous" test will
     # fail because it resolves to current working directory
-    with tmpdir.as_cwd():
-        with spack.config.override("config:extensions", [extension_path]):
-            with pytest.raises(expected_exception):
-                spack.cmd.get_module("no-such-command")
+    cwd = Path.cwd()
+    os.chdir(tmp_path)
+    with spack.config.override("config:extensions", [extension_path]):
+        with pytest.raises(expected_exception):
+            spack.cmd.get_module("no-such-command")
+    os.chdir(cwd)
 
 
 def test_missing_command_function(extension_creator, capsys):
@@ -255,11 +259,12 @@ def test_get_command_paths(config):
     extensions = ("extension-1", "extension-2")
     ext_paths = []
     expected_cmd_paths = []
+    test_path = concrete_path("my", "path", "to")
     for ext in extensions:
-        ext_path = os.path.join("my", "path", "to", "spack-" + ext)
-        ext_paths.append(ext_path)
-        path = os.path.join(ext_path, spack.cmd.python_name(ext), "cmd")
-        path = os.path.abspath(path)
+        ext_path = test_path / ("spack-" + ext)
+        ext_paths.append(fs_path(ext_path))
+        path = ext_path / spack.cmd.python_name(ext) / "cmd"
+        path = path.absolute()
         expected_cmd_paths.append(path)
 
     with spack.config.override("config:extensions", ext_paths):
@@ -268,12 +273,12 @@ def test_get_command_paths(config):
 
 def test_variable_in_extension_path(config, working_env):
     """Test variables in extension paths."""
-    os.environ["_MY_VAR"] = os.path.join("my", "var")
-    ext_paths = [os.path.join("~", "${_MY_VAR}", "spack-extension-1")]
+    os.environ["_MY_VAR"] = fs_path(abstract_path("my", "var"))
+    ext_paths = [fs_path(abstract_path("~", "${_MY_VAR}", "spack-extension-1"))]
     # Home env variable is USERPROFILE on Windows
     home_env = "USERPROFILE" if sys.platform == "win32" else "HOME"
     expected_ext_paths = [
-        os.path.join(os.environ[home_env], os.environ["_MY_VAR"], "spack-extension-1")
+        fs_path(abstract_path(os.environ[home_env], os.environ["_MY_VAR"], "spack-extension-1"))
     ]
     with spack.config.override("config:extensions", ext_paths):
         assert spack.extensions.get_extension_paths() == expected_ext_paths

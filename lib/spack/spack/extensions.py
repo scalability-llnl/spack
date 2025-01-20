@@ -4,7 +4,6 @@
 """Service functions and classes to implement the hooks
 for Spack's command extensions.
 """
-import glob
 import importlib
 import os
 import re
@@ -18,6 +17,7 @@ import llnl.util.lang
 import spack.config
 import spack.error
 import spack.util.path
+from spack.util.path import abstract_path, concrete_path, fs_path
 
 _extension_regexp = re.compile(r"spack-(\w[-\w]*)$")
 
@@ -39,7 +39,7 @@ def extension_name(path):
          ExtensionNamingError: if path does not match the expected format
              for a Spack command extension.
     """
-    regexp_match = re.search(_extension_regexp, os.path.basename(os.path.normpath(path)))
+    regexp_match = re.search(_extension_regexp, abstract_path(os.path.normpath(path)).name)
     if not regexp_match:
         raise ExtensionNamingError(path)
     return regexp_match.group(1)
@@ -67,10 +67,10 @@ def load_command_extension(command, path):
 
     # Compute the absolute path of the file to be loaded, along with the
     # name of the python module where it will be stored
-    cmd_path = os.path.join(path, extension, "cmd", python_name + ".py")
+    cmd_path = concrete_path(path, extension, "cmd", python_name + ".py")
 
     # Short circuit if the command source file does not exist
-    if not os.path.exists(cmd_path):
+    if not cmd_path.exists():
         return None
 
     ensure_extension_loaded(extension, path=path)
@@ -88,9 +88,9 @@ def ensure_extension_loaded(extension, *, path):
             return
 
         parts = [path] + name.split(".") + ["__init__.py"]
-        init_file = os.path.join(*parts)
-        if os.path.exists(init_file):
-            m = llnl.util.lang.load_module_from_file(package_name, init_file)
+        init_file = concrete_path(*parts)
+        if init_file.exists():
+            m = llnl.util.lang.load_module_from_file(package_name, fs_path(init_file))
         else:
             m = types.ModuleType(package_name)
 
@@ -99,7 +99,7 @@ def ensure_extension_loaded(extension, *, path):
         #
         # https://docs.python.org/3/reference/import.html#package-path-rules
         #
-        m.__path__ = [os.path.dirname(init_file)]
+        m.__path__ = [fs_path(init_file.parent)]
         sys.modules[package_name] = m
 
     # Create a searchable package for both the root folder of the extension
@@ -108,18 +108,16 @@ def ensure_extension_loaded(extension, *, path):
     ensure_package_creation(extension + ".cmd")
 
 
-def load_extension(name: str) -> str:
+def load_extension(name: str) -> Path:
     """Loads a single extension into the 'spack.extensions' package.
 
     Args:
         name: name of the extension
     """
-    extension_root = path_for_extension(name, paths=get_extension_paths())
+    extension_root = concrete_path(path_for_extension(name, paths=get_extension_paths()))
     ensure_extension_loaded(name, path=extension_root)
-    commands = glob.glob(
-        os.path.join(extension_root, extension_name(extension_root), "cmd", "*.py")
-    )
-    commands = [os.path.basename(x).rstrip(".py") for x in commands]
+    commands = (extension_root / extension_name(extension_root) / "cmd" / "*.py").glob("*")
+    commands = [x.name.rstrip(".py") for x in commands]
     for command in commands:
         load_command_extension(command, extension_root)
     return extension_root
@@ -166,8 +164,9 @@ def get_command_paths():
     extension_paths = get_extension_paths()
 
     for path in extension_paths:
+        path = concrete_path(path)
         extension = _python_name(extension_name(path))
-        command_paths.append(os.path.join(path, extension, "cmd"))
+        command_paths.append(path / extension / "cmd")
 
     return command_paths
 
@@ -213,7 +212,7 @@ def get_template_dirs():
     in extensions.
     """
     extension_dirs = get_extension_paths()
-    extensions = [os.path.join(x, "templates") for x in extension_dirs]
+    extensions = [fs_path(abstract_path(x, "templates")) for x in extension_dirs]
     return extensions
 
 
