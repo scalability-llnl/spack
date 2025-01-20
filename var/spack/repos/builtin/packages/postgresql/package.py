@@ -20,6 +20,7 @@ class Postgresql(AutotoolsPackage):
 
     license("PostgreSQL")
 
+    version("17.2", sha256="82ef27c0af3751695d7f64e2d963583005fbb6a0c3df63d0e4b42211d7021164")
     version("16.4", sha256="971766d645aa73e93b9ef4e3be44201b4f45b5477095b049125403f9f3386d6f")
     version("16.3", sha256="331963d5d3dc4caf4216a049fa40b66d6bcb8c730615859411b9518764e60585")
     version("15.8", sha256="4403515f9a69eeb3efebc98f30b8c696122bfdf895e92b3b23f5b8e769edcb6a")
@@ -74,6 +75,8 @@ class Postgresql(AutotoolsPackage):
     depends_on("perl+opcode", when="+perl")
     depends_on("python", when="+python")
     depends_on("libxml2", when="+xml")
+    depends_on("flex", when="@17:")
+    depends_on("bison", when="@17:")
     depends_on("pkgconfig", when="+xml", type="build")
 
     @property
