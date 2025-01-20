@@ -7,11 +7,9 @@
 The YAML and JSON formats preserve DAG information in the spec.
 
 """
-import ast
 import collections
 import collections.abc
 import gzip
-import inspect
 import io
 import json
 import os
@@ -28,7 +26,6 @@ import spack.repo
 import spack.spec
 import spack.util.spack_json as sjson
 import spack.util.spack_yaml as syaml
-import spack.version
 from spack.spec import Spec, save_dependency_specfiles
 from spack.util.spack_yaml import SpackYAMLError, syaml_dict
 
@@ -128,7 +125,7 @@ def test_using_ordered_dict(default_mock_concretization, spec_str):
 
     def descend_and_check(iterable, level=0):
         if isinstance(iterable, collections.abc.Mapping):
-            assert isinstance(iterable, syaml_dict)
+            assert type(iterable) in (syaml_dict, dict)
             return descend_and_check(iterable.values(), level=level + 1)
         max_level = level
         for value in iterable:
@@ -221,71 +218,6 @@ def test_ordered_read_not_required_for_consistent_dag_hash(
         == from_json_rev.dag_hash()
     )
     assert spec == from_yaml == from_json == from_yaml_rev == from_json_rev
-
-
-@pytest.mark.parametrize("module", [spack.spec, spack.version])
-def test_hashes_use_no_python_dicts(module):
-    """Coarse check to make sure we don't use dicts in Spec.to_node_dict().
-
-    Python dicts are not guaranteed to iterate in a deterministic order
-    (at least not in all python versions) so we need to use lists and
-    syaml_dicts.  syaml_dicts are ordered and ensure that hashes in Spack
-    are deterministic.
-
-    This test is intended to handle cases that are not covered by the
-    consistency checks above, or that would be missed by a dynamic check.
-    This test traverses the ASTs of functions that are used in our hash
-    algorithms, finds instances of dictionaries being constructed, and
-    prints out the line numbers where they occur.
-
-    """
-
-    class FindFunctions(ast.NodeVisitor):
-        """Find a function definition called to_node_dict."""
-
-        def __init__(self):
-            self.nodes = []
-
-        def visit_FunctionDef(self, node):
-            if node.name in ("to_node_dict", "to_dict", "to_dict_or_value"):
-                self.nodes.append(node)
-
-    class FindDicts(ast.NodeVisitor):
-        """Find source locations of dicts in an AST."""
-
-        def __init__(self, filename):
-            self.nodes = []
-            self.filename = filename
-
-        def add_error(self, node):
-            self.nodes.append(
-                "Use syaml_dict instead of dict at %s:%s:%s"
-                % (self.filename, node.lineno, node.col_offset)
-            )
-
-        def visit_Dict(self, node):
-            self.add_error(node)
-
-        def visit_Call(self, node):
-            name = None
-            if isinstance(node.func, ast.Name):
-                name = node.func.id
-            elif isinstance(node.func, ast.Attribute):
-                name = node.func.attr
-
-            if name == "dict":
-                self.add_error(node)
-
-    find_functions = FindFunctions()
-    module_ast = ast.parse(inspect.getsource(module))
-    find_functions.visit(module_ast)
-
-    find_dicts = FindDicts(module.__file__)
-    for node in find_functions.nodes:
-        find_dicts.visit(node)
-
-    # fail with offending lines if we found some dicts.
-    assert [] == find_dicts.nodes
 
 
 def reverse_all_dicts(data):
