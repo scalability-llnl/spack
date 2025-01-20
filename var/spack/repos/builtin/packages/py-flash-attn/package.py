@@ -14,7 +14,7 @@ class PyFlashAttn(PythonPackage):
     pypi = "flash-attn/flash_attn-0.0.0.tar.gz"
     git = "https://github.com/Dao-AILab/flash-attention.git"
 
-    maintainers("aurianer")
+    maintainers("aurianer", "thomas-bouvier")
 
     license("BSD")
 
@@ -41,6 +41,7 @@ class PyFlashAttn(PythonPackage):
     with default_args(type=("build", "run")):
         depends_on("py-torch+cuda")
         depends_on("py-einops")
+        depends_on("py-triton")
 
     with default_args(type=("build", "link", "run")):
         depends_on("py-pybind11")

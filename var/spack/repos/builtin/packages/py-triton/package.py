@@ -8,9 +8,9 @@ from spack.package import *
 class PyTriton(PythonPackage):
     """A language and compiler for custom Deep Learning operations."""
 
-    homepage = "https://github.com/openai/triton"
-    url = "https://github.com/openai/triton/archive/refs/tags/v2.1.0.tar.gz"
-    git = "https://github.com/openai/triton.git"
+    homepage = "https://github.com/triton-lang/triton"
+    url = "https://github.com/triton-lang/triton/archive/refs/tags/v2.1.0.tar.gz"
+    git = "https://github.com/triton-lang/triton.git"
 
     license("MIT")
 
