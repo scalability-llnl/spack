@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import os
 import sys
 
 import spack.cmd
@@ -9,6 +10,7 @@ import spack.cmd.common
 import spack.environment as ev
 import spack.store
 import spack.user_environment as uenv
+import spack.util.environment as environment
 from spack.cmd.common import arguments
 
 description = "add package to the user environment"
@@ -96,10 +98,21 @@ def load(parser, args):
         )
         return 1
 
-    with spack.store.STORE.db.read_transaction():
-        env_mod = uenv.environment_modifications_for_specs(*specs)
-        for spec in specs:
-            env_mod.prepend_path(uenv.spack_loaded_hashes_var, spec.dag_hash())
-        cmds = env_mod.shell_modifications(args.shell)
+    # Check if spec's pkg.py file was changed
+    # (modification date - os.path.get_end_time?)
+    # var/spack/envirnonments/env-name/.spack-env
 
-        sys.stdout.write(cmds)
+    with spack.store.STORE.db.read_transaction():
+        shell = args.shell if args.shell else os.environ.get("SPACK_SHELL")
+
+    cmds = ""
+
+    for spec in specs:
+        shell_script_file = os.path.join(spec.prefix, ".spack", f"{spec.name}_shell.{shell}")
+
+        # source shell_script_file
+
+        with open(shell_script_file, "r") as f:
+            cmds += f.read()
+
+    sys.stdout.write(cmds)

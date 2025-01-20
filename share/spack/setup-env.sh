@@ -305,6 +305,9 @@ else
 fi
 _spack_pathadd PATH "${_sp_prefix%/}/bin"
 
+# Set shell being used
+export SPACK_SHELL="sh"
+
 #
 # Check whether a function of the given name is defined
 #
@@ -395,3 +398,6 @@ fi
 # done: unset sentinel variable as we're no longer initializing
 unset _sp_initializing
 export _sp_initializing
+
+# TODO: There is probably a better place to put this
+source $_sp_share_dir/shell_commands.sh
