@@ -208,7 +208,7 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
             with spack.util.environment.set_env(PKG_CONFIG_PATH=pkg_config_path):
                 make = self.spec["gmake"].command
                 CC = "hipcc" if self.spec.satisfies("+rocm") else self.spec.compiler.cc
-                make("c")
+                make("c", f"CC={CC}")
                 tests = [
                     ("example_sparse", "sparse solver"),
                     ("example_sparse_operator", "sparse operator"),
