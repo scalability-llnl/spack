@@ -32,9 +32,11 @@ import contextlib
 import copy
 import functools
 import os
+import os.path
+import pathlib
 import re
 import sys
-from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Generator, List, NamedTuple, Optional, Tuple, Union
 
 import jsonschema
 
@@ -42,7 +44,6 @@ from llnl.util import filesystem, lang, tty
 
 import spack.error
 import spack.paths
-import spack.platforms
 import spack.schema
 import spack.schema.bootstrap
 import spack.schema.cdash
@@ -53,6 +54,8 @@ import spack.schema.config
 import spack.schema.definitions
 import spack.schema.develop
 import spack.schema.env
+import spack.schema.include
+import spack.schema.merged
 import spack.schema.mirrors
 import spack.schema.modules
 import spack.schema.packages
@@ -62,14 +65,17 @@ import spack.schema.view
 
 # Hacked yaml for configuration files preserves line numbers.
 import spack.util.spack_yaml as syaml
-import spack.util.web as web_util
 from spack.util.cpus import cpus_available
+from spack.util.path import substitute_path_variables
+from spack.util.url import validate_scheme
+from spack.util.web import RemoteFileError, fetch_remote_files
 
 #: Dict from section names -> schema for that section
 SECTION_SCHEMAS: Dict[str, Any] = {
     "compilers": spack.schema.compilers.schema,
     "concretizer": spack.schema.concretizer.schema,
     "definitions": spack.schema.definitions.schema,
+    "include": spack.schema.include.schema,
     "view": spack.schema.view.schema,
     "develop": spack.schema.develop.schema,
     "mirrors": spack.schema.mirrors.schema,
@@ -772,11 +778,161 @@ def override(
 
 def _add_platform_scope(cfg: Configuration, name: str, path: str, writable: bool = True) -> None:
     """Add a platform-specific subdirectory for the current platform."""
+    import spack.platforms  # circular dependency
+
     platform = spack.platforms.host().name
     scope = DirectoryConfigScope(
         f"{name}/{platform}", os.path.join(path, platform), writable=writable
     )
     cfg.push_scope(scope)
+
+
+# Track staged paths so can avoid repeating the warning during processing
+skip_restage_warning = list()
+
+
+#: Data class for the relevance of an optional path conditioned on either
+#: a spec and or explicitly specified as optional.
+class OptionalPath(NamedTuple):
+    path: str
+    when: str
+    optional: bool
+
+
+def included_path(entry: Union[str, dict]) -> OptionalPath:
+    """Convert the included path entry into a standard form.
+
+    Args:
+        entry: include configuration entry
+
+    Returns: converted entry, where an empty ``when`` means the path is
+        not conditionally included
+    """
+    if isinstance(entry, str):
+        return OptionalPath(path=entry, when="", optional=False)
+
+    path = entry["path"]
+    when = entry.get("when", "")
+    optional = entry.get("optional", False)
+    return OptionalPath(path=path, when=when, optional=optional)
+
+
+def include_path_scope(
+    include: OptionalPath,
+    name_prefix: str,
+    config_stage_dir: str,
+    relative_root: Optional[Union[pathlib.Path, str]] = None,
+) -> Optional[ConfigScope]:
+    """Instantiate an appropriate configuration scope for the given path.
+
+    Args:
+        include: optional include path
+        name_prefix: configuration scope name prefix
+        config_stage_dir: path to directory to be used to stage remote paths
+        relative_root: path to root directory for relative paths or ``None``
+            if relative paths are not allowed
+
+    Raises:
+        ValueError: included path has an unsupported URL scheme, is required
+            but does not exist, or is not allowed to be relative
+        ConfigFileError: unable to access remote configuration file(s)
+    """
+    import urllib.parse
+    import urllib.request
+
+    import spack.spec
+
+    if (not include.when) or spack.spec.eval_conditional(include.when):
+        # Allow paths (and URLs) to contain spack config/environment variables,
+        # etc.
+        config_path = substitute_path_variables(include.path)
+        include_url = urllib.parse.urlparse(config_path)
+
+        # If scheme is not valid, config_path is not a url
+        # of a type Spack is generally aware
+        if validate_scheme(include_url.scheme):
+            # Transform file:// URLs to direct includes.
+            if include_url.scheme == "file":
+                config_path = urllib.request.url2pathname(include_url.path)
+
+            # Any other URL should be fetched.
+            elif include_url.scheme in ("http", "https", "ftp"):
+                assert (
+                    config_stage_dir is not None
+                ), "Local stage directory is required to cache remote files"
+
+                # Stage any remote configuration file(s)
+                staged_configs = (
+                    os.listdir(config_stage_dir) if os.path.exists(config_stage_dir) else []
+                )
+                tty.debug(f"Remote staged files in {config_stage_dir} are: {staged_configs}")
+                remote_path = urllib.request.url2pathname(include_url.path)
+                # TODO Should we be supporting multiple remote files with the
+                # TODO same base name (e.g. config.py)?
+                basename = os.path.basename(remote_path)
+                if basename in staged_configs:
+                    # Do NOT re-stage configuration files over existing
+                    # ones with the same name since there is a risk of
+                    # losing changes (e.g., from 'spack config update').
+                    if remote_path not in skip_restage_warning:
+                        tty.warn(
+                            f"Will not (re-)stage configuration from {include.path} "
+                            "to avoid losing changes to the already staged file of "
+                            f"the same name in {config_stage_dir}"
+                        )
+                        skip_restage_warning.append(remote_path)
+
+                    # Recognize the configuration stage directory
+                    # is flattened to ensure a single copy of each
+                    # configuration file.
+                    config_path = config_stage_dir
+                    if basename.endswith(".yaml"):
+                        config_path = os.path.join(config_path, basename)
+                else:
+                    try:
+                        staged_path = fetch_remote_files(
+                            config_path, ".yaml", str(config_stage_dir), skip_existing=True
+                        )
+                    except (RemoteFileError, ValueError):
+                        staged_path = None
+
+                    if not staged_path:
+                        raise ConfigFileError(
+                            f"Unable to fetch remote configuration {config_path}"
+                        )
+                    config_path = staged_path
+
+            elif include_url.scheme:
+                raise ValueError(
+                    f"Unsupported URL scheme ({include_url.scheme}) for " f"include: {config_path}"
+                )
+
+        # TODO: Should we allow relative paths for global include.yaml files?
+
+        # Treat relative paths as relative to relative_root. If not provided,
+        # then relative paths are considered unsupported so raise an exception.
+        if not os.path.isabs(config_path):
+            if relative_root is None:
+                raise ValueError(f"include: has an unsupported relative path {config_path}")
+            cfg_path = os.path.join(relative_root, config_path)
+            config_path = os.path.normpath(os.path.realpath(cfg_path))
+
+        if os.path.isdir(config_path):
+            # directories are treated as regular ConfigScopes
+            config_name = f"{name_prefix}:{os.path.basename(config_path)}"
+            tty.debug(f"Creating DirectoryConfigScope {config_name} for '{config_path}'")
+            return DirectoryConfigScope(config_name, config_path)
+
+        if os.path.exists(config_path):
+            # files are assumed to be SingleFileScopes
+            config_name = f"{name_prefix}:{config_path}"
+            tty.debug(f"Creating SingleFileScope {config_name} for '{config_path}'")
+            return SingleFileScope(config_name, config_path, spack.schema.merged.schema)
+
+        if not include.optional:
+            raise ValueError(f"Required path does not exist: {include.path}")
+
+    return None
 
 
 def config_paths_from_entry_points() -> List[Tuple[str, str]]:
@@ -1450,98 +1606,6 @@ def _config_from(scopes_or_paths: List[Union[ConfigScope, str]]) -> Configuratio
 
     configuration = Configuration(*scopes)
     return configuration
-
-
-def raw_github_gitlab_url(url: str) -> str:
-    """Transform a github URL to the raw form to avoid undesirable html.
-
-    Args:
-        url: url to be converted to raw form
-
-    Returns:
-        Raw github/gitlab url or the original url
-    """
-    # Note we rely on GitHub to redirect the 'raw' URL returned here to the
-    # actual URL under https://raw.githubusercontent.com/ with '/blob'
-    # removed and or, '/blame' if needed.
-    if "github" in url or "gitlab" in url:
-        return url.replace("/blob/", "/raw/")
-
-    return url
-
-
-def collect_urls(base_url: str) -> list:
-    """Return a list of configuration URLs.
-
-    Arguments:
-        base_url: URL for a configuration (yaml) file or a directory
-            containing yaml file(s)
-
-    Returns:
-        List of configuration file(s) or empty list if none
-    """
-    if not base_url:
-        return []
-
-    extension = ".yaml"
-
-    if base_url.endswith(extension):
-        return [base_url]
-
-    # Collect configuration URLs if the base_url is a "directory".
-    _, links = web_util.spider(base_url, 0)
-    return [link for link in links if link.endswith(extension)]
-
-
-def fetch_remote_configs(url: str, dest_dir: str, skip_existing: bool = True) -> str:
-    """Retrieve configuration file(s) at the specified URL.
-
-    Arguments:
-        url: URL for a configuration (yaml) file or a directory containing
-            yaml file(s)
-        dest_dir: destination directory
-        skip_existing: Skip files that already exist in dest_dir if
-            ``True``; otherwise, replace those files
-
-    Returns:
-        Path to the corresponding file if URL is or contains a
-        single file and it is the only file in the destination directory or
-        the root (dest_dir) directory if multiple configuration files exist
-        or are retrieved.
-    """
-
-    def _fetch_file(url):
-        raw = raw_github_gitlab_url(url)
-        tty.debug(f"Reading config from url {raw}")
-        return web_util.fetch_url_text(raw, dest_dir=dest_dir)
-
-    if not url:
-        raise ConfigFileError("Cannot retrieve configuration without a URL")
-
-    # Return the local path to the cached configuration file OR to the
-    # directory containing the cached configuration files.
-    config_links = collect_urls(url)
-    existing_files = os.listdir(dest_dir) if os.path.isdir(dest_dir) else []
-
-    paths = []
-    for config_url in config_links:
-        basename = os.path.basename(config_url)
-        if skip_existing and basename in existing_files:
-            tty.warn(
-                f"Will not fetch configuration from {config_url} since a "
-                f"version already exists in {dest_dir}"
-            )
-            path = os.path.join(dest_dir, basename)
-        else:
-            path = _fetch_file(config_url)
-
-        if path:
-            paths.append(path)
-
-    if paths:
-        return dest_dir if len(paths) > 1 else paths[0]
-
-    raise ConfigFileError(f"Cannot retrieve configuration (yaml) from {url}")
 
 
 def get_mark_from_yaml_data(obj):

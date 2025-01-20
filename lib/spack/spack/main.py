@@ -27,6 +27,7 @@ from typing import List, Tuple
 
 import archspec.cpu
 
+import llnl.util.filesystem as fs
 import llnl.util.lang
 import llnl.util.tty as tty
 import llnl.util.tty.colify
@@ -47,6 +48,7 @@ import spack.store
 import spack.util.debug
 import spack.util.environment
 import spack.util.lock
+from spack.caches import misc_cache_location
 
 #: names of profile statistics
 stat_names = pstats.Stats.sort_arg_dict_default
@@ -580,8 +582,33 @@ def allows_unknown_args(command):
     return argcount == 3 and varnames[2] == "unknown_args"
 
 
+def update_config_with_includes():
+    """The "config:" section of a Configuration can specify other
+    configurations to include. This does not handle recursive includes
+    (i.e. if an included config defines an "include:" section).
+    """
+    includes = spack.config.CONFIG.get("include")
+    if not includes:
+        return
+
+    # TODO: Should the cache be a configuration option? Reside elsewhere?
+    include_cache_dir = fs.join_path(misc_cache_location(), "includes")
+    for entry in includes:
+        scope = spack.config.include_path_scope(
+            spack.config.included_path(entry),
+            "include",
+            include_cache_dir,
+            None,  # TODO: should relative paths be supported here?
+        )
+
+        if scope is not None:
+            spack.config.CONFIG.push_scope(scope)
+
+
 def _invoke_command(command, parser, args, unknown_args):
     """Run a spack command *without* setting spack global options."""
+    update_config_with_includes()
+
     if allows_unknown_args(command):
         return_val = command(parser, args, unknown_args)
     else:
