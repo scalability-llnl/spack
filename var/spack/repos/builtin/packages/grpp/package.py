@@ -26,7 +26,7 @@ class Grpp(CMakePackage):
 
     build_system("cmake")
 
-    version("master", branch="main")
+    version("main", branch="main")
 
     depends_on("c", type="build")  # generated
     depends_on("fortran", type="build")  # generated
