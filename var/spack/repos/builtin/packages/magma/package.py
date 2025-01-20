@@ -61,6 +61,7 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
         "5.6.1",
         "5.7.0",
         "5.7.1",
+        "5.7.3",
         "6.0.0",
         "6.0.2",
         "6.1.0",
@@ -205,7 +206,8 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
         with working_dir(test_dir):
             pkg_config_path = self.prefix.lib.pkgconfig
             with spack.util.environment.set_env(PKG_CONFIG_PATH=pkg_config_path):
-
+                make = self.spec["gmake"].command
+                CC = "hipcc" if self.spec.satisfies("+rocm") else self.spec.compiler.cc
                 make("c")
                 tests = [
                     ("example_sparse", "sparse solver"),
@@ -230,6 +232,7 @@ class Magma(CMakePackage, CudaPackage, ROCmPackage):
         with working_dir(test_dir):
             pkg_config_path = self.prefix.lib.pkgconfig
             with spack.util.environment.set_env(PKG_CONFIG_PATH=pkg_config_path):
+                make = self.spec["gmake"].command
                 make("fortran")
                 example_f = which("example_f")
                 example_f()
