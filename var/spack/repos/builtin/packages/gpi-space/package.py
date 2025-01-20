@@ -68,13 +68,13 @@ class GpiSpace(CMakePackage):
         "boost@1.62.0:1.63.0"
         "+atomic +chrono +coroutine +context +date_time +filesystem +iostreams"
         " +program_options +random +regex +serialization +test +timer cxxstd=14",
-        when="@:23.06"
+        when="@:23.06",
     )
     depends_on(
         "boost@1.62.0:1.63.0"
         "+atomic +chrono +coroutine +context +date_time +filesystem +iostreams"
         " +program_options +random +regex +serialization +test +timer cxxstd=17",
-        when="@24.12:"
+        when="@24.12:",
     )
     depends_on("hwloc@1.10: +libudev ~libxml2 libs=static")
     depends_on("libssh2")
