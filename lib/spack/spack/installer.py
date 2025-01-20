@@ -37,7 +37,6 @@ import sys
 import time
 from collections import defaultdict
 from gzip import GzipFile
-from pathlib import Path
 from typing import Dict, Iterator, List, Optional, Set, Tuple, Union
 
 import llnl.util.filesystem as fs
@@ -526,7 +525,7 @@ def combine_phase_logs(phase_log_files: List[str], log_path: str) -> None:
                 shutil.copyfileobj(phase_log, log_file)
 
 
-def dump_packages(spec: "spack.spec.Spec", path: str | Path) -> None:
+def dump_packages(spec: "spack.spec.Spec", path: str) -> None:
     """
     Dump all package information for a spec and its dependencies.
 

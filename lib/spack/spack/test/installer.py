@@ -30,7 +30,7 @@ import spack.store
 import spack.util.lock as lk
 from spack.installer import PackageInstaller
 from spack.main import SpackCommand
-from spack.util.path import abstract_path, concrete_path, fs_path
+from spack.util.path import concrete_path, fs_path
 
 
 def _mock_repo(root, namespace):
@@ -471,7 +471,7 @@ def test_dump_packages_deps_errs(install_mockery, tmp_path, monkeypatch, capsys)
 
     # The call to install_tree will raise the exception since not mocking
     # creation of dependency package files within *install* directories.
-    with pytest.raises(IOError, match=path if sys.platform != "win32" else ""):
+    with pytest.raises(IOError, match=tmp_path if sys.platform != "win32" else ""):
         inst.dump_packages(spec, tmp_path)
 
     # Now try the error path, which requires the mock directory structure
