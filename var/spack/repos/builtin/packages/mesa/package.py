@@ -22,10 +22,11 @@ class Mesa(MesonPackage):
 
     version("main", branch="main")
     version(
-        "23.3.6",
-        sha256="cd3d6c60121dea73abbae99d399dc2facaecde1a8c6bd647e6d85410ff4b577b",
+        "24.2.7",
+        sha256="a0ce37228679647268a83b3652d859dcf23d6f6430d751489d4464f6de6459fd",
         preferred=True,
     )
+    version("23.3.6", sha256="cd3d6c60121dea73abbae99d399dc2facaecde1a8c6bd647e6d85410ff4b577b")
     version("23.2.1", sha256="64de0616fc2d801f929ab1ac2a4f16b3e2783c4309a724c8a259b20df8bbc1cc")
     version("23.1.9", sha256="295ba27c28146ed09214e8ce79afa1659edf9d142decc3c91f804552d64f7510")
     version("23.0.3", sha256="386362a5d80df3b096636b67f340e1ce67b705b44767d5bdd11d2ed1037192d5")
@@ -64,6 +65,7 @@ class Mesa(MesonPackage):
     # Upperbound on 3.11 because distutils is used for checking py-mako
     depends_on("python@3:3.11", type="build")
     depends_on("py-mako@0.8.0:", type="build")
+    depends_on("py-pyyaml", when="@24.2:", type="build")
     depends_on("unwind")
     depends_on("expat")
     depends_on("zlib-api")
@@ -196,7 +198,6 @@ class MesonBuilder(spack.build_systems.meson.MesonBuilder):
         args = [
             "-Dvulkan-drivers=",
             "-Dgallium-vdpau=disabled",
-            "-Dgallium-omx=disabled",
             "-Dgallium-va=disabled",
             "-Dgallium-xa=disabled",
             "-Dgallium-nine=false",
@@ -207,6 +208,9 @@ class MesonBuilder(spack.build_systems.meson.MesonBuilder):
         # gallium-xvmc was removed in @main and @2.23:
         if self.spec.satisfies("@:22.2"):
             args.append("-Dgallium-xvmc=disabled")
+        # the option 'gallium-omx' is present in @24.2.4 and removed in @main
+        if spec.satisfies("@:24.2.4"):
+            args.append("-Dgallium-omx=disabled")
 
         args_platforms = []
         args_gallium_drivers = ["swrast"]
@@ -245,10 +249,14 @@ class MesonBuilder(spack.build_systems.meson.MesonBuilder):
 
         if "+egl" in spec:
             num_frontends += 1
-            args.extend(["-Degl=enabled", "-Dgbm=enabled", "-Ddri3=enabled"])
+            args.extend(["-Degl=enabled", "-Dgbm=enabled"])
+            if spec.satisfies("@:24.2.4"):
+                args.extend(["-Ddri3=enabled"])
             args_platforms.append("surfaceless")
         else:
-            args.extend(["-Degl=disabled", "-Dgbm=disabled", "-Ddri3=disabled"])
+            args.extend(["-Degl=disabled", "-Dgbm=disabled"])
+            if spec.satisfies("@:24.2.4"):
+                args.extend(["-Ddri3=disabled"])
 
         args.append(opt_bool("+opengl" in spec, "opengl"))
         args.append(opt_enable("+opengles" in spec, "gles1"))
