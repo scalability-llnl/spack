@@ -26,6 +26,12 @@ class Pandoramonitoring(CMakePackage):
     depends_on("root@6.18.04: +x +opengl")
     depends_on("pandorasdk")
 
+    patch(
+        "https://github.com/PandoraPFA/PandoraMonitoring/pull/13.patch?full_index=1",
+        sha256="3a8f38c2158f151ba352368fe3241a61eab73fc51597c73afe72c92ad9af9e61",
+        when="@:3.6.0",
+    )
+
     def cmake_args(self):
         args = [
             self.define("CMAKE_MODULE_PATH", self.spec["pandorapfa"].prefix.cmakemodules),
