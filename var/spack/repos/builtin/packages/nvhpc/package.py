@@ -602,3 +602,7 @@ class Nvhpc(Package, CompilerPackage):
 
     # Avoid binding stub libraries by absolute path
     non_bindable_shared_objects = ["stubs"]
+
+    @property
+    def cmake_bla_vendor(self):
+        return "NVHPC"

@@ -120,6 +120,10 @@ class Amdlibflame(CMakePackage, LibflameBase):
             "libflame", root=self.prefix, shared="+shared" in self.spec, recursive=True
         )
 
+    @property
+    def cmake_bla_vendor(self):
+        return "AOCL"
+
     def flag_handler(self, name, flags):
         if name == "cflags":
             if (

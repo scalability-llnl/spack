@@ -29,5 +29,9 @@ class Flexiblas(CMakePackage):
     provides("blas")
     provides("lapack")
 
+    @property
+    def cmake_bla_vendor(self):
+        return "FlexiBLAS"
+
     def cmake_args(self):
         return [self.define("SYSCONFDIR", self.prefix.etc)]
