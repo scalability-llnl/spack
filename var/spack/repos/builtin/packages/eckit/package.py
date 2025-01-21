@@ -173,6 +173,10 @@ class Eckit(CMakePackage):
             # (the LAPACK backend is still built though):
             args.append(self.define("ENABLE_LAPACK", "linalg=lapack" in self.spec))
 
+        if self.spec.satisfies("linalg=lapack"):
+            if hasattr(self.spec["lapack"].package, "cmake_bla_vendor"):
+                args.append(self.define("BLA_VENDOR", self.spec["lapack"].package.cmake_bla_vendor))
+
         if "+admin" in self.spec and "+termlib" in self.spec["ncurses"]:
             # Make sure that libeckit_cmd is linked to a library that resolves 'setupterm',
             # 'tputs', etc. That is either libncurses (when 'ncurses~termlib') or libtinfo (when
