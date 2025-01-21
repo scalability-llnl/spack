@@ -17,6 +17,9 @@ class RGeoquery(RPackage):
 
     license("MIT")
 
+    version("2.74.0", commit="c85b1115cdee87515ed0d72bfde86f3986a0b2b7")
+    version("2.72.0", commit="4ab0516f8f78bcc3f6301fa7ff59945ca63a09a4")
+    version("2.70.0", commit="3f4687930fba296d8075ed56aab1db50e7a3a5da")
     version("2.68.0", commit="7995c579b068f98ebf3f1cd2cfd0575c3d73530c")
     version("2.66.0", commit="00a954e9f8223607b43cf112943ab575d03a0eb6")
     version("2.64.2", commit="e9b7f075a4a6a952660443ca93ed392d7a4fd6d7")
@@ -38,7 +41,13 @@ class RGeoquery(RPackage):
     depends_on("r-magrittr", type=("build", "run"), when="@2.46.15:")
     depends_on("r-limma", type=("build", "run"), when="@2.46.15:")
     depends_on("r-curl", type=("build", "run"), when="@2.64.2:")
+    depends_on("r-rentrez", type=("build", "run"), when="@2.65.3:")
     depends_on("r-r-utils", type=("build", "run"), when="@2.62.2:")
+    depends_on("r-stringr", type=("build", "run"), when="@2.73.2:")
+    depends_on("r-summarizedexperiment", type=("build", "run"), when="@2.73.2:")
+    depends_on("r-s4vectors", type=("build", "run"), when="@2.73.2:")
+    depends_on("r-rvest", type=("build", "run"), when="@2.73.2:")
+    depends_on("r-httr2", type=("build", "run"), when="@2.73.2:")
 
     depends_on("r-xml", type=("build", "run"), when="@2.42.0")
     depends_on("r-rcurl", type=("build", "run"), when="@2.42.0")

@@ -17,6 +17,9 @@ class RIranges(RPackage):
 
     bioc = "IRanges"
 
+    version("2.40.1", commit="535f07e5baf91f95672a4b727bbfdcc6dc27fd41")
+    version("2.38.1", commit="d4d8da9f470590d38d2a708ba00e7a00f8e70b60")
+    version("2.36.0", commit="1dabee374787b99c241dd8942cdf057f289398de")
     version("2.34.0", commit="dcddf934384e05dccffb2a8a808147c963ff0c3e")
     version("2.32.0", commit="2b5c9fc706c8cdc96f0c46508087863df1502f81")
     version("2.30.1", commit="ead506a14d6cc89ac2f14b55a4b04496755e4e50")
@@ -48,3 +51,4 @@ class RIranges(RPackage):
     depends_on("r-s4vectors@0.27.12:", type=("build", "run"), when="@2.24.1:")
     depends_on("r-s4vectors@0.29.19:", type=("build", "run"), when="@2.28.0:")
     depends_on("r-s4vectors@0.33.3:", type=("build", "run"), when="@2.30.0:")
+    depends_on("r-s4vectors@0.43.2:", type=("build", "run"), when="@2.39.2:")
