@@ -1,0 +1,11 @@
+--- a/setup.py
++++ b/setup.py
+@@ -392,7 +392,8 @@ if 'sdist' not in sys.argv[1:] and 'clean' not in sys.argv[1:] and '--version' n
+        (netcdf_lib_version > "4.4" and netcdf_lib_version < "4.5"):
+         has_cdf5_format = True
+
+-    has_parallel_support = check_has_parallel_support(inc_dirs)
++    #has_parallel_support = check_has_parallel_support(inc_dirs)
++    has_parallel_support = False
+     has_has_not = "has" if has_parallel_support else "does not have"
+     print(f"netcdf lib {has_has_not} parallel functions")

@@ -43,11 +43,9 @@ class PyNetcdf4(PythonPackage):
     # https://github.com/Unidata/netcdf4-python/pull/1317
     depends_on("py-numpy@:1", when="@:1.6", type=("build", "link", "run"))
     depends_on("py-mpi4py", when="+mpi", type=("build", "run"))
-    # These forced variant requests are due to py-netcdf4 build scripts
-    # https://github.com/spack/spack/pull/47824#discussion_r1882473998
-    depends_on("netcdf-c~mpi", when="~mpi")
+    depends_on("netcdf-c", when="~mpi")
     depends_on("netcdf-c+mpi", when="+mpi")
-    depends_on("hdf5@1.8.0:+hl~mpi", when="~mpi")
+    depends_on("hdf5@1.8.0:+hl", when="~mpi")
     depends_on("hdf5@1.8.0:+hl+mpi", when="+mpi")
 
     # The installation script tries to find hdf5 using pkg-config. However, the
@@ -56,6 +54,13 @@ class PyNetcdf4(PythonPackage):
     # Ubuntu/Debian package manager), it is definitely not what we need. The
     # following patch disables the usage of pkg-config at all.
     patch("disable_pkgconf.patch")
+
+    # Allow building py-netcdf4 ~mpi when netCDF was build with +mpi. This patch
+    # overrides the auto-decect feature (has_parallel_support) in setup.py. The
+    # logic in setup.py changed between 1.6.5 and 1.7.1, therefore this patch
+    # only works for versions 1.7.1 and later.
+    # https://github.com/Unidata/netcdf4-python/issues/1389
+    patch("nompi.patch", when="@1.7.1: ~mpi")
 
     # https://github.com/Unidata/netcdf4-python/pull/1322
     patch(
