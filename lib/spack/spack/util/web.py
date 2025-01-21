@@ -916,9 +916,6 @@ def fetch_remote_files(url: str, extension: str, dest_dir: str, skip_existing: b
     paths = []
     for file_url in links:
         local_path = local_cache_path(dest_dir, file_url)
-        if os.path.isfile(local_path):
-            with open(local_path, "r") as fd:
-                lines = fd.readlines()
         if skip_existing and os.path.isfile(local_path):
             tty.warn(
                 f"Will not (re-)fetch file from {file_url} since it already "

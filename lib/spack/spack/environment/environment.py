@@ -2898,7 +2898,7 @@ class EnvironmentManifestFile(collections.abc.Mapping):
         return str(self.manifest_file)
 
     @property
-    def included_config_scopes(self) -> Optional[List[spack.config.ConfigScope]]:
+    def included_config_scopes(self) -> List[spack.config.ConfigScope]:
         """List of included configuration scopes from the manifest.
 
         Scopes are listed in the YAML file in order from highest to
@@ -2921,16 +2921,16 @@ class EnvironmentManifestFile(collections.abc.Mapping):
             return []
 
         name_prefix = f"env:{self.name}"
-        scopes = []
+        scopes: List[spack.config.ConfigScope] = []
         for entry in includes:
-            scopes.append(
-                spack.config.include_path_scope(
-                    spack.config.included_path(entry),
-                    name_prefix,
-                    self.config_stage_dir,
-                    self.manifest_dir,
-                )
+            included_scope = spack.config.include_path_scope(
+                spack.config.included_path(entry),
+                name_prefix,
+                self.config_stage_dir,
+                self.manifest_dir,
             )
+            if included_scope is not None:
+                scopes.append(included_scope)
 
         return scopes
 
@@ -2941,7 +2941,7 @@ class EnvironmentManifestFile(collections.abc.Mapping):
         if self._config_scopes is not None:
             return self._config_scopes
 
-        scopes: List[spack.config.ConfigScope] = [
+        scopes: List[Union[spack.config.ConfigScope, spack.config.SingleFileScope]] = [
             *self.included_config_scopes,
             spack.config.SingleFileScope(
                 self.scope_name, str(self.manifest_file), schema, yaml_path=[TOP_LEVEL_KEY]
