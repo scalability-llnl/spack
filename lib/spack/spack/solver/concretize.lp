@@ -470,10 +470,11 @@ provider(ProviderNode, VirtualNode) :- attr("provider_set", ProviderNode, Virtua
 % root ^dep %compiler
 %
 % where "compiler" is a dependency of "dep", but is enforced by a condition imposed by "root"
-1 { attr("depends_on", node(min_dupe_id, A1), node(0..Y-1, A2), A3) : max_dupes(A2, Y) } 1
+1 { attr("depends_on", node(A1_DUPE_ID, A1), node(0..Y-1, A2), A3) : max_dupes(A2, Y) } 1
   :- impose(ID, RootNode),
      unification_set("root", RootNode),
-     unification_set("root", node(min_dupe_id, A1)),
+     condition_set(RootNode, node(A1_DUPE_ID, A1)),
+     not self_build_requirement(RootNode, node(A1_DUPE_ID, A1)),
      imposed_constraint(ID, "depends_on", A1, A2, A3),
      internal_error("Build deps must land in exactly one duplicate").
 

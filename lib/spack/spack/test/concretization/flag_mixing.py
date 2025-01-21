@@ -116,7 +116,7 @@ def test_pkg_flags_from_compiler_and_none(concretize_scope, mock_packages):
     concrete = dict(spack.concretize.concretize_together([(s1, None), (s2, None)]))
 
     assert concrete[s1].compiler_flags["cflags"] == ["-Wall"]
-    assert concrete[s2].compiler_flags["cflags"] == []
+    assert concrete[s2]["cmake"].compiler_flags["cflags"] == []
 
 
 @pytest.mark.parametrize(
