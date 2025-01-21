@@ -37,6 +37,11 @@ class Warpx(CMakePackage, PythonExtension):
 
     # CMake: No FFTW Needed for SYCL anymore
     patch(
+        "https://github.com/ECP-WarpX/WarpX/pull/5127.patch?full_index=1",
+        sha256="d2e112371582435399682bf7c1498e6ec04a36d62b2dbce329d566b862074c16",
+        when="@24.10",
+    )
+    patch(
         "https://github.com/ECP-WarpX/WarpX/pull/5380.patch?full_index=1",
         sha256="9ec092c7efc5b3aaec0d6cd383e681ad163358153b30b77fc49a4fba2a195d01",
         when="@24.10",
