@@ -823,6 +823,8 @@ def include_path_scope(
         relative_root: path to root directory for relative paths or ``None``
             if relative paths are not allowed
 
+    Returns: configuration scope
+
     Raises:
         ValueError: included path has an unsupported URL scheme, is required
             but does not exist, or is not allowed to be relative
