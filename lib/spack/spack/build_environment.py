@@ -91,6 +91,7 @@ from spack.install_test import spack_install_test_log
 from spack.util.environment import (
     SYSTEM_DIR_CASE_ENTRY,
     EnvironmentModifications,
+    ModificationList,
     PrependPath,
     env_flag,
     filter_system_paths,
@@ -761,9 +762,22 @@ def setup_package(pkg, dirty, context: Context = Context.BUILD):
     tty.debug("setup_package: collected all modifications from dependencies")
 
     tty.debug("setup_package: adding compiler wrappers paths")
-    for x in env_mods.group_by_name()["SPACK_ENV_PATH"]:
+    env_by_name = env_mods.group_by_name()
+    for x in env_by_name["SPACK_ENV_PATH"]:
         assert isinstance(x, PrependPath), "unexpected setting used for SPACK_ENV_PATH"
         env_mods.prepend_path("PATH", x.value)
+
+    # Check whether we want to force RPATH or RUNPATH
+    enable_var_name, disable_var_name = "SPACK_ENABLE_NEW_DTAGS", "SPACK_DISABLE_NEW_DTAGS"
+    if enable_var_name in env_by_name and disable_var_name in env_by_name:
+        enable_new_dtags = _extract_dtags_arg(env_by_name, var_name=enable_var_name)
+        disable_new_dtags = _extract_dtags_arg(env_by_name, var_name=disable_var_name)
+        if spack.config.CONFIG.get("config:shared_linking:type") == "rpath":
+            env_mods.set("SPACK_DTAGS_TO_STRIP", enable_new_dtags)
+            env_mods.set("SPACK_DTAGS_TO_ADD", disable_new_dtags)
+        else:
+            env_mods.set("SPACK_DTAGS_TO_STRIP", disable_new_dtags)
+            env_mods.set("SPACK_DTAGS_TO_ADD", enable_new_dtags)
 
     if context == Context.TEST:
         env_mods.prepend_path("PATH", ".")
@@ -787,6 +801,14 @@ def setup_package(pkg, dirty, context: Context = Context.BUILD):
     # Return all env modifications we controlled (excluding module related ones)
     env_base.extend(env_mods)
     return env_base
+
+
+def _extract_dtags_arg(env_by_name: Dict[str, ModificationList], *, var_name: str) -> str:
+    try:
+        enable_new_dtags = env_by_name[var_name][0].value  # type: ignore[union-attr]
+    except (KeyError, IndexError, AttributeError):
+        enable_new_dtags = ""
+    return enable_new_dtags
 
 
 class EnvironmentVisitor:
