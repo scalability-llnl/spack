@@ -5,6 +5,7 @@ from collections import namedtuple
 
 import pytest
 
+import spack.concretize
 import spack.directives
 import spack.repo
 import spack.spec
@@ -59,8 +60,8 @@ def test_constraints_from_context_are_merged(mock_packages):
 
 @pytest.mark.regression("27754")
 def test_extends_spec(config, mock_packages):
-    extender = spack.spec.Spec("extends-spec").concretized()
-    extendee = spack.spec.Spec("extendee").concretized()
+    extender = spack.concretize.concretize_one("extends-spec")
+    extendee = spack.concretize.concretize_one("extendee")
 
     assert extender.dependencies
     assert extender.package.extends(extendee)
@@ -206,7 +207,7 @@ def test_repo(_create_test_repo, monkeypatch, mock_stage):
 def test_redistribute_directive(test_repo, spec_str, distribute_src, distribute_bin):
     spec = spack.spec.Spec(spec_str)
     assert spec.package_class.redistribute_source(spec) == distribute_src
-    concretized_spec = spec.concretized()
+    concretized_spec = spack.concretize.concretize_one(spec)
     assert concretized_spec.package.redistribute_binary == distribute_bin
 
 

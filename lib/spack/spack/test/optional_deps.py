@@ -4,6 +4,7 @@
 
 import pytest
 
+import spack.concretize
 from spack.spec import Spec
 
 
@@ -72,14 +73,11 @@ def spec_and_expected(request):
 
 
 def test_default_variant(config, mock_packages):
-    spec = Spec("optional-dep-test-3")
-    spec.concretize()
+    spec = spack.concretize.concretize_one("optional-dep-test-3")
     assert "pkg-a" in spec
 
-    spec = Spec("optional-dep-test-3~var")
-    spec.concretize()
+    spec = spack.concretize.concretize_one("optional-dep-test-3~var")
     assert "pkg-a" in spec
 
-    spec = Spec("optional-dep-test-3+var")
-    spec.concretize()
+    spec = spack.concretize.concretize_one("optional-dep-test-3+var")
     assert "pkg-b" in spec

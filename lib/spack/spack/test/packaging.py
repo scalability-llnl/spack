@@ -20,6 +20,7 @@ from llnl.util.symlink import readlink, symlink
 
 import spack.binary_distribution as bindist
 import spack.cmd.buildcache as buildcache
+import spack.concretize
 import spack.config
 import spack.error
 import spack.fetch_strategy
@@ -31,8 +32,7 @@ import spack.util.url as url_util
 from spack.fetch_strategy import URLFetchStrategy
 from spack.installer import PackageInstaller
 from spack.paths import mock_gpg_keys_path
-from spack.relocate import macho_find_paths, relocate_links, relocate_text
-from spack.spec import Spec
+from spack.relocate import _macho_find_paths, relocate_links, relocate_text
 
 pytestmark = pytest.mark.not_on_windows("does not run on windows")
 
@@ -40,7 +40,7 @@ pytestmark = pytest.mark.not_on_windows("does not run on windows")
 @pytest.mark.usefixtures("install_mockery", "mock_gnupghome")
 def test_buildcache(mock_archive, tmp_path, monkeypatch, mutable_config):
     # Install a test package
-    spec = Spec("trivial-install-test-package").concretized()
+    spec = spack.concretize.concretize_one("trivial-install-test-package")
     monkeypatch.setattr(spec.package, "fetcher", URLFetchStrategy(url=mock_archive.url))
     PackageInstaller([spec.package], explicit=True).install()
     pkghash = "/" + str(spec.dag_hash(7))
@@ -287,7 +287,7 @@ def test_replace_paths(tmpdir):
         for prefix, hash in prefix2hash.items():
             prefix2prefix[prefix] = hash2prefix[hash]
 
-        out_dict = macho_find_paths(
+        out_dict = _macho_find_paths(
             [oldlibdir_a, oldlibdir_b, oldlibdir_c, oldlibdir_cc, oldlibdir_local],
             [
                 os.path.join(oldlibdir_a, libfile_a),
@@ -309,7 +309,7 @@ def test_replace_paths(tmpdir):
             os.path.join(oldlibdir_cc, libfile_c): os.path.join(libdir_cc, libfile_c),
         }
 
-        out_dict = macho_find_paths(
+        out_dict = _macho_find_paths(
             [oldlibdir_a, oldlibdir_b, oldlibdir_c, oldlibdir_cc, oldlibdir_local],
             [
                 os.path.join(oldlibdir_a, libfile_a),
@@ -332,7 +332,7 @@ def test_replace_paths(tmpdir):
             os.path.join(oldlibdir_cc, libfile_c): os.path.join(libdir_cc, libfile_c),
         }
 
-        out_dict = macho_find_paths(
+        out_dict = _macho_find_paths(
             [oldlibdir_a, oldlibdir_b, oldlibdir_c, oldlibdir_cc, oldlibdir_local],
             [
                 f"@rpath/{libfile_a}",
@@ -356,7 +356,7 @@ def test_replace_paths(tmpdir):
             libdir_local: libdir_local,
         }
 
-        out_dict = macho_find_paths(
+        out_dict = _macho_find_paths(
             [oldlibdir_a, oldlibdir_b, oldlibdir_d, oldlibdir_local],
             [f"@rpath/{libfile_a}", f"@rpath/{libfile_b}", f"@rpath/{libfile_loco}"],
             None,
@@ -465,7 +465,7 @@ def test_macho_relocation_with_changing_projection(relocation_dict):
     the two schemes, like /a/b/baz.
     """
     original_rpath = "/foo/bar/baz/abcdef"
-    result = macho_find_paths(
+    result = _macho_find_paths(
         [original_rpath], deps=[], idpath=None, prefix_to_prefix=relocation_dict
     )
     assert result[original_rpath] == "/a/b/c/abcdef"

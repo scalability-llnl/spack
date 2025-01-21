@@ -30,10 +30,12 @@ class CyrusSasl(AutotoolsPackage):
     )
     conflicts("%gcc@14:", when="@:2.1.26")
 
-    depends_on("c", type="build")  # generated
+    depends_on("c", type="build")
 
     depends_on("m4", type="build")
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")
     depends_on("groff", type="build")
+    depends_on("openssl", type="link")
+    depends_on("libxcrypt", type="link")

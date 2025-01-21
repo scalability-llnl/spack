@@ -7,7 +7,9 @@ import re
 import subprocess
 import sys
 from pathlib import Path, PurePath
-from typing import Callable, Dict, Optional, Sequence, TextIO, Type, Union, overload
+from typing import Callable, Dict, List, Optional, Sequence, TextIO, Type, Union, overload
+
+from typing_extensions import Literal
 
 import llnl.util.tty as tty
 
@@ -20,9 +22,9 @@ __all__ = ["Executable", "which", "which_string", "ProcessError"]
 class Executable:
     """Class representing a program that can be run on the command line."""
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: Union[str, Path]) -> None:
         file_path = str(Path(name))
-        if sys.platform != "win32" and name.startswith("."):
+        if sys.platform != "win32" and isinstance(name, str) and name.startswith("."):
             # pathlib strips the ./ from relative paths so it must be added back
             file_path = os.path.join(".", file_path)
 
@@ -338,10 +340,24 @@ class Executable:
         return " ".join(self.exe)
 
 
-def which_string(*args, **kwargs):
-    """Like ``which()``, but return a string instead of an ``Executable``."""
-    path = kwargs.get("path", os.environ.get("PATH", ""))
-    required = kwargs.get("required", False)
+@overload
+def which_string(
+    *args: str, path: Optional[Union[List[str], str]] = ..., required: Literal[True]
+) -> str: ...
+
+
+@overload
+def which_string(
+    *args: str, path: Optional[Union[List[str], str]] = ..., required: bool = ...
+) -> Optional[str]: ...
+
+
+def which_string(
+    *args: str, path: Optional[Union[List[str], str]] = None, required: bool = False
+) -> Optional[str]:
+    """Like ``which()``, but returns a string instead of an ``Executable``."""
+    if path is None:
+        path = os.environ.get("PATH", "")
 
     if isinstance(path, list):
         paths = [Path(str(x)) for x in path]
@@ -372,7 +388,6 @@ def which_string(*args, **kwargs):
             search_paths.insert(0, Path.cwd())
         search_paths = add_extra_search_paths(search_paths)
 
-        search_item = Path(search_item)
         candidate_items = get_candidate_items(Path(search_item))
 
         for candidate_item in candidate_items:
@@ -385,29 +400,41 @@ def which_string(*args, **kwargs):
                     pass
 
     if required:
-        raise CommandNotFoundError("spack requires '%s'. Make sure it is in your path." % args[0])
+        raise CommandNotFoundError(f"spack requires '{args[0]}'. Make sure it is in your path.")
 
     return None
 
 
-def which(*args, **kwargs):
+@overload
+def which(
+    *args: str, path: Optional[Union[List[str], str]] = ..., required: Literal[True]
+) -> Executable: ...
+
+
+@overload
+def which(
+    *args: str, path: Optional[Union[List[str], str]] = ..., required: bool = ...
+) -> Optional[Executable]: ...
+
+
+def which(
+    *args: str, path: Optional[Union[List[str], str]] = None, required: bool = False
+) -> Optional[Executable]:
     """Finds an executable in the path like command-line which.
 
     If given multiple executables, returns the first one that is found.
     If no executables are found, returns None.
 
     Parameters:
-        *args (str): One or more executables to search for
-
-    Keyword Arguments:
-        path (list or str): The path to search. Defaults to ``PATH``
-        required (bool): If set to True, raise an error if executable not found
+        *args: one or more executables to search for
+        path: the path to search. Defaults to ``PATH``
+        required: if set to True, raise an error if executable not found
 
     Returns:
         Executable: The first executable that is found in the path
     """
-    exe = which_string(*args, **kwargs)
-    return Executable(exe) if exe else None
+    exe = which_string(*args, path=path, required=required)
+    return Executable(exe) if exe is not None else None
 
 
 class ProcessError(spack.error.SpackError):
