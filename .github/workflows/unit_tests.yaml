@@ -192,6 +192,9 @@ jobs:
         name: coverage-clingo-cffi
         path: coverage
         include-hidden-files: true
+    - name: Setup tmate session
+      if: ${{ failure() }}
+      uses: mxschmitt/action-tmate@v3
   # Run unit tests on MacOS
   macos:
     runs-on: ${{ matrix.os }}
