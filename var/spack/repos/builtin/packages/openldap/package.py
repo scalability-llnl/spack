@@ -50,17 +50,22 @@ class Openldap(AutotoolsPackage):
     conflicts("~static", when="~shared")
 
     depends_on("icu4c", when="+icu")
-    depends_on("gnutls", when="~client_only tls=gnutls")
-    depends_on("openssl", when="~client_only tls=openssl")
-    depends_on("openssl@1.1.1:", when="~client_only tls=openssl @2.6.0:")
-    depends_on("unixodbc", when="~client_only")
-    depends_on("postgresql", when="~client_only")
-    depends_on("berkeley-db", when="~client_only")  # for slapd
+
+    with when("~client_only"):
+        depends_on("gnutls", when="tls=gnutls")
+        depends_on("openssl", when="tls=openssl")
+        depends_on("openssl@1.1.1:", when="tls=openssl @2.6.0:")
+        depends_on("unixodbc")
+        depends_on("postgresql")
+        depends_on("berkeley-db")  # for slapd
+        depends_on("libtool", type="link")  # links against libltdl
+        depends_on("libxcrypt", type="link")
+        depends_on("perl", when="~client_only+perl")  # for slapd
+        # depends_on('openslp', when='~client_only') # not avail. in spack yet
+        # depends_on('Pth', when='~client_only') # not avail. in spack yet
+
     # Recommended dependencies by Linux From Scratch
     depends_on("cyrus-sasl", when="+sasl")
-    # depends_on('openslp', when='~client_only') # not avail. in spack yet
-    # depends_on('Pth', when='~client_only') # not avail. in spack yet
-    depends_on("perl", when="~client_only+perl")  # for slapd
     depends_on("groff", type="build")
     depends_on("pkgconfig", type="build")
     depends_on("wiredtiger", when="@2.6.0:")
@@ -94,23 +99,20 @@ class Openldap(AutotoolsPackage):
             "--enable-backends=mod",
             "--disable-sql",
             "--enable-overlays=mod",
+            f"--with-tls={self.spec.variants['tls'].value}",
+            *self.enable_or_disable("static"),
+            *self.enable_or_disable("shared"),
+            *self.enable_or_disable("dynamic"),
+            *self.with_or_without("cyrus-sasl", variant="sasl"),
+            *self.enable_or_disable("perl"),
+            *self.enable_or_disable("wt"),
         ]
 
         if self.spec.satisfies("@:2.5"):
-            args.extend(("--disable-ndb", "--disable-shell", "--disable-bdb", "--disable-hdb"))
+            args += ["--disable-ndb", "--disable-shell", "--disable-bdb", "--disable-hdb"]
 
-        args += self.enable_or_disable("static")
-        args += self.enable_or_disable("shared")
-        args += self.enable_or_disable("dynamic")
-        args += self.with_or_without("cyrus-sasl", variant="sasl")
-        args.append("--with-tls=" + self.spec.variants["tls"].value)
         if self.spec.satisfies("@2.6.0: tls=gnutls"):
             args += ["--disable-autoca"]
-
-        if self.spec.satisfies("@2.5.0:"):
-            args += self.enable_or_disable("wt")
-
-        args += self.enable_or_disable("perl")
 
         return args
 

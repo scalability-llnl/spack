@@ -19,7 +19,7 @@ properties: Dict[str, Any] = {
         "items": {
             "type": "object",
             "properties": {"when": {"type": "string"}},
-            "patternProperties": {r"^(?!when$)\w*": spec_list_schema},
+            "additionalProperties": spec_list_schema,
         },
     }
 }

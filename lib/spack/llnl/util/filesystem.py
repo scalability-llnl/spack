@@ -75,7 +75,6 @@ __all__ = [
     "install_tree",
     "is_exe",
     "join_path",
-    "last_modification_time_recursive",
     "library_extensions",
     "mkdirp",
     "partition_path",
@@ -1470,15 +1469,36 @@ def set_executable(path):
 
 
 @system_path_filter
-def last_modification_time_recursive(path):
-    path = os.path.abspath(path)
-    times = [os.stat(path).st_mtime]
-    times.extend(
-        os.lstat(os.path.join(root, name)).st_mtime
-        for root, dirs, files in os.walk(path)
-        for name in dirs + files
-    )
-    return max(times)
+def recursive_mtime_greater_than(path: str, time: float) -> bool:
+    """Returns true if any file or dir recursively under `path` has mtime greater than `time`."""
+    # use bfs order to increase likelihood of early return
+    queue: Deque[str] = collections.deque()
+
+    if os.stat(path).st_mtime > time:
+        return True
+
+    while queue:
+        current = queue.popleft()
+
+        try:
+            entries = os.scandir(current)
+        except OSError:
+            continue
+
+        with entries:
+            for entry in entries:
+                try:
+                    st = entry.stat(follow_symlinks=False)
+                except OSError:
+                    continue
+
+                if st.st_mtime > time:
+                    return True
+
+                if entry.is_dir(follow_symlinks=False):
+                    queue.append(entry.path)
+
+    return False
 
 
 @system_path_filter
@@ -1740,8 +1760,7 @@ def find(
 
 
 def _log_file_access_issue(e: OSError, path: str) -> None:
-    errno_name = errno.errorcode.get(e.errno, "UNKNOWN")
-    tty.debug(f"find must skip {path}: {errno_name} {e}")
+    tty.debug(f"find must skip {path}: {e}")
 
 
 def _file_id(s: os.stat_result) -> Tuple[int, int]:
