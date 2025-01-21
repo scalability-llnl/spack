@@ -15,18 +15,20 @@ class Openloops(Package):
     at NLO QCD and NLO EW."""
 
     homepage = "https://openloops.hepforge.org/"
-    url = "https://openloops.hepforge.org/downloads?f=OpenLoops-2.1.1.tar.gz"
+    url = "https://gitlab.com/openloops/OpenLoops/-/archive/OpenLoops-2.1.3/OpenLoops-OpenLoops-2.1.3.tar.gz"
 
     tags = ["hep"]
 
     license("GPL-3.0-only")
-
-    version("2.1.2", sha256="f52575cae3d70b6b51a5d423e9cd0e076ed5961afcc015eec00987e64529a6ae")
-    version("2.1.1", sha256="f1c47ece812227eab584e2c695fef74423d2f212873f762b8658f728685bcb91")
+    version("2.1.3", sha256="b26ee805d63b781244a5bab4db09f4a7a5a5c9ed371ead0d5260f00a0a94b233")
+    version("2.1.2", sha256="4d62dc969eedef7861ccb3ecdb6de4646f0ec585c2d0436c2011e3dc9de78e54")
+    version("2.1.1", sha256="be79921a66ef070ceb1daa164baa5687ff0d29d02b6b0e5d212e14c6f65f00ab")
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
     depends_on("fortran", type="build")  # generated
+    # conflicts because there is a scons 3.5 in 2.1.2
+    conflicts("^python@:3.11", when="@:2.1.2")
 
     all_processes = [
         "tbln",
