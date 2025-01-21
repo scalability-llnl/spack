@@ -6,9 +6,10 @@ from spack.package import *
 
 
 class Alps(CMakePackage):
-    """Algorithms for Physics Simulations
-
-    Tags: Condensed Matter Physics, Computational Physics
+    """
+    The ALPS project (Algorithms and Libraries for Physics Simulations) aims at providing generic
+    parallel algorithms for classical and quantum lattice models and provides utility classes and
+    algorithm for many others.
     """
 
     homepage = "https://github.com/ALPSim/ALPS"
@@ -26,9 +27,10 @@ class Alps(CMakePackage):
     depends_on("cxx", type="build")
     depends_on("fortran", type="build")
 
-    depends_on(
-        "boost +chrono +date_time +filesystem +iostreams +mpi +numpy +program_options"
-        "+python +regex +serialization +system +test +thread +timer"
+    # update version constraint on every boost release after providing version & checksum info
+    # in resources dictionary below
+    depends_on("boost@:1.87 +chrono +date_time +filesystem +iostreams +mpi +numpy"
+        "+program_options +python +regex +serialization +system +test +thread +timer"
     )
     depends_on("fftw")
     depends_on("hdf5 ~mpi+hl")
@@ -67,8 +69,6 @@ class Alps(CMakePackage):
             destination="",
             placement="boost_source_files",
         )
-
-    conflicts("^boost@1.88:", msg="update resource list above for newer boost versions")
 
     def cmake_args(self):
         args = []
