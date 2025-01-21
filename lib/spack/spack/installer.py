@@ -275,7 +275,7 @@ def _do_fake_install(pkg: "spack.package_base.PackageBase") -> None:
     fs.mkdirp(pkg.prefix.bin)
     fs.touch(os.path.join(pkg.prefix.bin, command))
     if sys.platform != "win32":
-        chmod = which("chmod")
+        chmod = which("chmod", required=True)
         chmod("+x", os.path.join(pkg.prefix.bin, command))
 
     # Install fake header file
