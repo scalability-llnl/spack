@@ -468,11 +468,12 @@ def test_dump_packages_deps_errs(install_mockery, tmp_path, monkeypatch, capsys)
     monkeypatch.setattr(spack.store.STORE.layout, "build_packages_path", bpp_path)
 
     spec = spack.concretize.concretize_one("simple-inheritance")
+    path = str(tmp_path)
 
     # The call to install_tree will raise the exception since not mocking
     # creation of dependency package files within *install* directories.
-    with pytest.raises(IOError, match=tmp_path if sys.platform != "win32" else ""):
-        inst.dump_packages(spec, tmp_path)
+    with pytest.raises(IOError, match=path if sys.platform != "win32" else ""):
+        inst.dump_packages(spec, path)
 
     # Now try the error path, which requires the mock directory structure
     # above
