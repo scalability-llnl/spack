@@ -8,6 +8,7 @@
 import glob
 import os
 import re
+import sys
 
 import spack.build_systems.generic
 import spack.build_systems.makefile
@@ -84,7 +85,10 @@ class Zlib(MakefilePackage, Package):
     @property
     def libs(self):
         shared = "+shared" in self.spec
-        return find_libraries(["libz"], root=self.prefix, recursive=True, shared=shared)
+        libnames = ["libz"]
+        if sys.platform == "win32":
+            libnames.append("zdll" if shared else "zlib")
+        return find_libraries(libnames, root=self.prefix, recursive=True, shared=shared, runtime=False)
 
 
 class SetupEnvironment:
