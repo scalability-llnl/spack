@@ -94,14 +94,8 @@ class Ip(CMakePackage):
             args.append(self.define_from_variant("BUILD_DEPRECATED", "deprecated"))
 
         if self.spec.satisfies("@5.1:"):
-            # Use the LAPACK provider set by Spack even if the compiler supports native BLAS
-            bla_vendors = {"openblas": "OpenBLAS"}
-            lapack_provider = self.spec["lapack"].name
-            if lapack_provider in bla_vendors.keys():
-                bla_vendor = bla_vendors[lapack_provider]
-            else:
-                bla_vendor = "All"
-            args.append(self.define("BLA_VENDOR", bla_vendor))
+            if hasattr(self.spec["lapack"].package, "cmake_bla_vendor"):
+                args.append(self.define("BLA_VENDOR", self.spec["lapack"].package.cmake_bla_vendor))
 
         return args
 
