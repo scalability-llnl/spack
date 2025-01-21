@@ -8,7 +8,6 @@ import os
 import llnl.util.tty as tty
 
 from spack.package import *
-from spack.pkg.builtin.boost import Boost
 
 
 # This application uses cmake to build, but they wrap it with a
@@ -32,18 +31,20 @@ class Bcl2fastq2(Package):
 
     conflicts("platform=darwin", msg="malloc.h/etc requirements break build on macs")
 
+    # TODO: supporting boost >= 1.56.0 will require patching bcl2fastq/src/cxx/lib/io/Xml.cpp
+    # as described in https://gist.github.com/jblachly/f8dc0f328d66659d9ee005548a5a2d2e
     depends_on("boost@1.54.0:1.55")
-
-    # TODO: replace this with an explicit list of components of Boost,
-    # for instance depends_on('boost +filesystem')
-    # See https://github.com/spack/spack/pull/22303 for reference
-    depends_on(Boost.with_default_variants)
-    depends_on("cmake@2.8.9:", type="build")
+    depends_on(
+        "boost+chrono+date_time+filesystem+iostreams+program_options+regex"
+        "+serialization+system+timer+thread"
+    )
+    with default_args(type="build"):
+        depends_on("cmake@2.8.9:")
+        depends_on("gmake")
     depends_on("libxml2@2.7.8")
     depends_on("libxslt@1.1.26~crypto")
     depends_on("libgcrypt")
     depends_on("zlib-api")
-    depends_on("gmake", type="build")
 
     # Their cmake macros don't set the flag when they find a library
     # that makes them happy.
@@ -59,6 +60,7 @@ class Bcl2fastq2(Package):
     # v2.17.1.14 and v2.18.0.12 were available via HTTP.
     # v2.19.1.403 is only available via ftp.
     # who knows what the future will hold.
+    # v2.20.0.422 was available on ftp and is still accessible via HTTPS behind a login
     def url_for_version(self, version):
         url = "ftp://webdata2:webdata2@ussd-ftp.illumina.com/downloads/software/bcl2fastq/bcl2fastq2-v{0}-tar.zip"
         if version.string == "2.19.1.403":
@@ -84,7 +86,7 @@ class Bcl2fastq2(Package):
             # directory (i.e., self.stage.source_path).
             with working_dir(self.stage.path):
                 source_subdir = os.path.relpath(self.stage.source_path, self.stage.path)
-                files = glob.glob(os.path.join(source_subdir, "bcl2fastq2*.tar.gz"))
+                files = glob.glob(os.path.join(source_subdir, "bcl2fastq*.tar.gz"))
                 if len(files) == 1:
                     # Rename the tarball so it resides in self.stage.path
                     # alongside the original zip file before unpacking it.
@@ -114,5 +116,5 @@ class Bcl2fastq2(Package):
             "--prefix={0}".format(prefix),
             "--with-cmake={0}".format(join_path(spec["cmake"].prefix.bin, "cmake")),
         )
-        make()
+        make(parallel=True)
         make("install")
