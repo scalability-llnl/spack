@@ -160,8 +160,11 @@ class Binutils(AutotoolsPackage, GNUMirrorPackage):
 
     with when("platform=darwin"):
         conflicts("+gold", msg="Binutils cannot build linkers on macOS")
+        # 2.41 doesn't seem to have any problems.
         conflicts(
-            "libs=shared", when="@2.37:2.40", msg="https://github.com/spack/spack/issues/35817"
+            "libs=shared",
+            when="@2.37:2.40,2.42:",
+            msg="https://github.com/spack/spack/issues/35817",
         )
 
     conflicts(
