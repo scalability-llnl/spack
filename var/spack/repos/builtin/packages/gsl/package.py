@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import re
 
 from spack.package import *
 
@@ -15,6 +16,10 @@ class Gsl(AutotoolsPackage, GNUMirrorPackage):
 
     homepage = "https://www.gnu.org/software/gsl"
     gnu_mirror_path = "gsl/gsl-2.3.tar.gz"
+    maintainers("cessenat")
+
+    tags = ["hpc"]
+    executables = ["^gsl-config$"]
 
     license("GPL-3.0-or-later")
 
@@ -70,3 +75,9 @@ class Gsl(AutotoolsPackage, GNUMirrorPackage):
         # cmake looks for GSL_ROOT_DIR to find GSL so this helps pick the spack one
         # when there are multiple installations (e.g. a system one and a spack one)
         env.set("GSL_ROOT_DIR", self.prefix)
+
+    @classmethod
+    def determine_version(cls, exe):
+        output = Executable(exe)("--version", output=str, error=str)
+        match = re.search(r"\s*(\d[\d\.]+)", output)
+        return match.group(1) if match else None
