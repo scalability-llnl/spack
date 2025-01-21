@@ -29,6 +29,7 @@ class Self(CMakePackage):
     variant("examples", default=True, description="Enables build and installation of examples")
     variant("tests", default=False, description="Enables build and installation of unit tests")
 
+    depends_on("c", type="build")
     depends_on("cxx", type="build")
     depends_on("fortran", type="build")
     depends_on("ninja", type="build")
