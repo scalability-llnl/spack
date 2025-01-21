@@ -76,6 +76,7 @@ class Papi(AutotoolsPackage, ROCmPackage):
     depends_on("lm-sensors", when="+lmsensors")
     depends_on("cuda", when="+cuda")
     depends_on("cuda", when="+nvml")
+    depends_on("bc", when="+cuda", type="build")
     depends_on("hsa-rocr-dev", when="+rocm")
     depends_on("rocprofiler-dev", when="+rocm")
     depends_on("llvm-amdgpu", when="+rocm")
