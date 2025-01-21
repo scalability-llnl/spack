@@ -121,6 +121,8 @@ class NetlibScalapack(ScalapackBase):
 
     license("BSD-3-Clause-Open-MPI")
 
+    version("2.2.2", sha256="a2f0c9180a210bf7ffe126c9cb81099cf337da1a7120ddb4cbe4894eb7b7d022")
+    version("2.2.1", sha256="4aede775fdb28fa44b331875730bcd5bab130caaec225fadeccf424c8fcb55aa")
     version("2.2.0", sha256="40b9406c20735a9a3009d863318cb8d3e496fb073d201c5463df810e01ab2a57")
     version("2.1.0", sha256="61d9216cf81d246944720cfce96255878a3f85dec13b9351f1fa0fd6768220a6")
     version("2.0.2", sha256="0c74aeae690fe5ee4db7926f49c5d0bb69ce09eea75beb915e00bba07530395c")
