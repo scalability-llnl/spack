@@ -16,6 +16,7 @@ class PyPymc3(PythonPackage):
 
     license("Apache-2.0")
 
+    version("3.11.6", sha256="9e930a1cfd2ee558892b4d92af043696c65a622b64098332687fd75c78f10bce")
     version("3.8", sha256="1bb2915e4a29877c681ead13932b0b7d276f7f496e9c3f09ba96b977c99caf00")
 
     depends_on("python@3.5.4:", type=("build", "run"))
