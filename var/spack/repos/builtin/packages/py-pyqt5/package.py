@@ -20,6 +20,8 @@ class PyPyqt5(SIPPackage):
 
     depends_on("cxx", type="build")  # generated
 
+    depends_on("gmake", type="build")
+
     # pyproject.toml
     depends_on("py-sip@6.6.2:6", type="build")
     depends_on("py-pyqt-builder@1.14.1:1", type="build")
