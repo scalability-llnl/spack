@@ -95,7 +95,9 @@ class Ip(CMakePackage):
 
         if self.spec.satisfies("@5.1:"):
             if hasattr(self.spec["lapack"].package, "cmake_bla_vendor"):
-                args.append(self.define("BLA_VENDOR", self.spec["lapack"].package.cmake_bla_vendor))
+                args.append(
+                    self.define("BLA_VENDOR", self.spec["lapack"].package.cmake_bla_vendor)
+                )
 
         return args
 

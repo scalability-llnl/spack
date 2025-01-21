@@ -175,7 +175,9 @@ class Eckit(CMakePackage):
 
         if self.spec.satisfies("linalg=lapack"):
             if hasattr(self.spec["lapack"].package, "cmake_bla_vendor"):
-                args.append(self.define("BLA_VENDOR", self.spec["lapack"].package.cmake_bla_vendor))
+                args.append(
+                    self.define("BLA_VENDOR", self.spec["lapack"].package.cmake_bla_vendor)
+                )
 
         if "+admin" in self.spec and "+termlib" in self.spec["ncurses"]:
             # Make sure that libeckit_cmd is linked to a library that resolves 'setupterm',
