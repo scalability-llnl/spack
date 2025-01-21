@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -543,6 +542,7 @@ class SimmetrixSimmodsuite(Package):
 
     depends_on("mpi")
     depends_on("libtirpc", type="link")
+    depends_on("gmake", type="build")
 
     oslib = "x64_rhel8_gcc83"
 

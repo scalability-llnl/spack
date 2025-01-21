@@ -7,6 +7,4 @@ config:
     padded_length: 256
     projections:
       all: '{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}'
-  build_stage:
-  - $spack/tmp/stage
 

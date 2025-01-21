@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -280,8 +279,10 @@ def test_add_config_path(mutable_config):
     assert "gcc" in compilers
 
     # Try quotes to escape brackets
-    path = "config:install_tree:projections:cmake:\
-'{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}'"
+    path = (
+        "config:install_tree:projections:cmake:"
+        "'{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}'"
+    )
     spack.config.add(path)
     set_value = spack.config.get("config")["install_tree"]["projections"]["cmake"]
     assert set_value == "{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}"

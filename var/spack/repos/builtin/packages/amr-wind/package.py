@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -194,5 +193,8 @@ class AmrWind(CMakePackage, CudaPackage, ROCmPackage):
                     "or the oneAPI CXX (icpx) compiler."
                 ),
             )
+
+        if spec.satisfies("+openfast"):
+            args.append(define("AMR_WIND_OPENFAST_VERSION", spec["openfast"].version))
 
         return args

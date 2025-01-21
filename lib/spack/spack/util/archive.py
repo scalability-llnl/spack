@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import errno
@@ -173,10 +172,10 @@ def reproducible_tarfile_from_prefix(
     hardlink_to_tarinfo_name: Dict[Tuple[int, int], str] = dict()
 
     if include_parent_directories:
-        parent_dirs = reversed(pathlib.Path(prefix).parents)
+        parent_dirs = reversed(pathlib.PurePosixPath(path_to_name(prefix)).parents)
         next(parent_dirs)  # skip the root: slices are supported from python 3.10
         for parent_dir in parent_dirs:
-            dir_info = tarfile.TarInfo(path_to_name(str(parent_dir)))
+            dir_info = tarfile.TarInfo(str(parent_dir))
             dir_info.type = tarfile.DIRTYPE
             dir_info.mode = 0o755
             tar.addfile(dir_info)

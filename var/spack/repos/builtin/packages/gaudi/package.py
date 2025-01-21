@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -138,6 +137,11 @@ class Gaudi(CMakePackage):
 
     # The Intel VTune dependency is taken aside because it requires a license
     depends_on("intel-parallel-studio -mpi +vtune", when="+vtune")
+
+    def patch(self):
+        # ensure an empty pytest.ini is present to prevent finding one
+        # accidentally in a higher directory than the stage directory
+        touch("pytest.ini")
 
     def cmake_args(self):
         args = [

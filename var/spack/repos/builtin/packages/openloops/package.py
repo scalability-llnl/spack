@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -277,13 +276,13 @@ class Openloops(Package):
             if self.spec.satisfies("@2.1.1") and not is_intel:
                 f.write("gfortran_f_flags = -ffree-line-length-none " + "-fdollar-ok ")
                 if self.spec.target.family == "aarch64":
-                    f.write("-mcmodel=large\n")
+                    f.write("-mcmodel=small\n")
                 else:
                     f.write("-mcmodel=medium\n")
             if self.spec.satisfies("@2.1.2:") and not is_intel:
                 f.write("gfortran_f_flags = -ffree-line-length-none " + "-fdollar-ok\n")
                 if self.spec.target.family == "aarch64":
-                    f.write("cmodel = large\n")
+                    f.write("cmodel = small\n")
 
         if self.spec.satisfies("@:1 processes=lcg.coll"):
             copy(join_path(os.path.dirname(__file__), "sft1.coll"), "lcg.coll")
