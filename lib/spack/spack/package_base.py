@@ -767,6 +767,9 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         self.win_rpath = fsys.WindowsSimulatedRPath(self)
         super().__init__()
 
+    def __getitem__(self, key: str) -> "PackageBase":
+        return self.spec[key].package
+
     @classmethod
     def dependency_names(cls):
         return _subkeys(cls.dependencies)
@@ -1096,14 +1099,14 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         """
         pass
 
-    def detect_dev_src_change(self):
+    def detect_dev_src_change(self) -> bool:
         """
         Method for checking for source code changes to trigger rebuild/reinstall
         """
         dev_path_var = self.spec.variants.get("dev_path", None)
         _, record = spack.store.STORE.db.query_by_spec_hash(self.spec.dag_hash())
-        mtime = fsys.last_modification_time_recursive(dev_path_var.value)
-        return mtime > record.installation_time
+        assert dev_path_var and record, "dev_path variant and record must be present"
+        return fsys.recursive_mtime_greater_than(dev_path_var.value, record.installation_time)
 
     def all_urls_for_version(self, version: StandardVersion) -> List[str]:
         """Return all URLs derived from version_urls(), url, urls, and
@@ -1816,12 +1819,6 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         Returns:
             bool: True if 'target' is found, else False
         """
-        # Prevent altering LC_ALL for 'make' outside this function
-        make = copy.deepcopy(self.module.make)
-
-        # Use English locale for missing target message comparison
-        make.add_default_env("LC_ALL", "C")
-
         # Check if we have a Makefile
         for makefile in ["GNUmakefile", "Makefile", "makefile"]:
             if os.path.exists(makefile):
@@ -1829,6 +1826,12 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
         else:
             tty.debug("No Makefile found in the build directory")
             return False
+
+        # Prevent altering LC_ALL for 'make' outside this function
+        make = copy.deepcopy(self.module.make)
+
+        # Use English locale for missing target message comparison
+        make.add_default_env("LC_ALL", "C")
 
         # Check if 'target' is a valid target.
         #

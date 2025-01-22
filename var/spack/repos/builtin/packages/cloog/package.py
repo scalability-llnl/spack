@@ -25,6 +25,7 @@ class Cloog(Package):
 
     depends_on("gmp")
     depends_on("isl")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         configure(

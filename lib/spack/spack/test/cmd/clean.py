@@ -10,10 +10,8 @@ import llnl.util.filesystem as fs
 
 import spack.caches
 import spack.cmd.clean
-import spack.environment as ev
 import spack.main
 import spack.package_base
-import spack.spec
 import spack.stage
 import spack.store
 
@@ -67,20 +65,6 @@ def test_function_calls(command_line, effects, mock_calls_for_clean):
     # number of times
     for name in ["package"] + all_effects:
         assert mock_calls_for_clean[name] == (1 if name in effects else 0)
-
-
-def test_env_aware_clean(mock_stage, install_mockery, mutable_mock_env_path, monkeypatch):
-    e = ev.create("test", with_view=False)
-    e.add("mpileaks")
-    e.concretize()
-
-    def fail(*args, **kwargs):
-        raise Exception("This should not have been called")
-
-    monkeypatch.setattr(spack.spec.Spec, "concretize", fail)
-
-    with e:
-        clean("mpileaks")
 
 
 def test_remove_python_cache(tmpdir, monkeypatch):

@@ -20,6 +20,7 @@ class Spfft(CMakePackage, CudaPackage, ROCmPackage):
     version("develop", branch="develop")
     version("master", branch="master")
 
+    version("1.1.1", sha256="9aebb9b50adeaa989f531973a95fde0692def1134100e4c0a513b52b1d1ca0ce")
     version("1.1.0", sha256="231454a3142bc56249b1b551ac5175882311365509cc111d7ad0e91ed5537102")
     version("1.0.6", sha256="e1b927c61f8abbb4a9937653f917169e6253e8c40b850df491594310943ca14b")
     version("1.0.5", sha256="2a59d856286ea8559f00a32fc38f9f7546209cfa90112232a5288a69689a6e05")

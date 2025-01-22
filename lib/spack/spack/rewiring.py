@@ -48,7 +48,7 @@ def rewire_node(spec, explicit):
     # spec
     prefix_to_prefix = {spec.build_spec.prefix: spec.prefix}
     build_spec_ids = set(id(s) for s in spec.build_spec.traverse(deptype=dt.ALL & ~dt.BUILD))
-    for s in bindist.deps_to_relocate(spec):
+    for s in bindist.specs_to_relocate(spec):
         analog = s
         if id(s) not in build_spec_ids:
             analogs = [
@@ -69,7 +69,7 @@ def rewire_node(spec, explicit):
         os.path.join(spec.prefix, rel_path) for rel_path in buildinfo["relocate_textfiles"]
     ]
     if text_to_relocate:
-        relocate.relocate_text(files=text_to_relocate, prefixes=prefix_to_prefix)
+        relocate.relocate_text(files=text_to_relocate, prefix_to_prefix=prefix_to_prefix)
     links = [os.path.join(spec.prefix, f) for f in buildinfo["relocate_links"]]
     relocate.relocate_links(links, prefix_to_prefix)
     bins_to_relocate = [
@@ -77,26 +77,10 @@ def rewire_node(spec, explicit):
     ]
     if bins_to_relocate:
         if "macho" in platform.binary_formats:
-            relocate.relocate_macho_binaries(
-                bins_to_relocate,
-                str(spack.store.STORE.layout.root),
-                str(spack.store.STORE.layout.root),
-                prefix_to_prefix,
-                False,
-                spec.build_spec.prefix,
-                spec.prefix,
-            )
+            relocate.relocate_macho_binaries(bins_to_relocate, prefix_to_prefix)
         if "elf" in platform.binary_formats:
-            relocate.relocate_elf_binaries(
-                bins_to_relocate,
-                str(spack.store.STORE.layout.root),
-                str(spack.store.STORE.layout.root),
-                prefix_to_prefix,
-                False,
-                spec.build_spec.prefix,
-                spec.prefix,
-            )
-        relocate.relocate_text_bin(binaries=bins_to_relocate, prefixes=prefix_to_prefix)
+            relocate.relocate_elf_binaries(bins_to_relocate, prefix_to_prefix)
+        relocate.relocate_text_bin(binaries=bins_to_relocate, prefix_to_prefix=prefix_to_prefix)
     shutil.rmtree(tempdir)
     install_manifest = os.path.join(
         spec.prefix,

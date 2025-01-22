@@ -37,7 +37,7 @@ class BigdftChess(AutotoolsPackage, CudaPackage):
     depends_on("autoconf", type="build")
     depends_on("automake", type="build")
     depends_on("libtool", type="build")
-    depends_on("pkg-config", type="build")
+    depends_on("pkgconfig", type="build")
 
     depends_on("python@3.0:", type=("build", "run"))
 

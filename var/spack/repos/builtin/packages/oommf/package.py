@@ -113,6 +113,7 @@ class Oommf(Package):
     depends_on("tk", type=("build", "link", "test", "run"))
     depends_on("tcl", type=("build", "test", "run"))
     depends_on("xproto", type=("build"))
+    depends_on("gmake", type="build")
 
     # Compilation with clang does not work yet (gcc works fine, nothing else tested)
     # (https://github.com/spack/spack/pull/26933#pullrequestreview-789754233)

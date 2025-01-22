@@ -65,7 +65,8 @@ class Postgresql(AutotoolsPackage):
     variant("xml", default=False, description="Build with XML support.")
     variant("icu", default=True, description="Build with ICU support.", when="@16:")
 
-    depends_on("icu4c", when="@16: +icu")
+    depends_on("icu4c", when="+icu")
+    depends_on("pkgconfig", when="+icu", type="build")
     depends_on("readline", when="lineedit=readline")
     depends_on("libedit", when="lineedit=libedit")
     depends_on("openssl")
@@ -73,6 +74,7 @@ class Postgresql(AutotoolsPackage):
     depends_on("perl+opcode", when="+perl")
     depends_on("python", when="+python")
     depends_on("libxml2", when="+xml")
+    depends_on("pkgconfig", when="+xml", type="build")
 
     @property
     def command(self):

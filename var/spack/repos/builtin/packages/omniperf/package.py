@@ -30,7 +30,7 @@ class Omniperf(CMakePackage):
     depends_on("py-pyyaml")
     depends_on("py-matplotlib")
     depends_on("py-pandas@1.4.3:")
-    depends_on("py-numpy@1.17.5")
+    depends_on("py-numpy@1.17.5:")
     depends_on("py-pymongo")
     depends_on("py-tabulate")
     depends_on("py-tqdm")

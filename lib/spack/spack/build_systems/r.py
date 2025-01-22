@@ -94,7 +94,7 @@ class RPackage(Package):
         if cls.cran:
             return f"https://cloud.r-project.org/src/contrib/Archive/{cls.cran}/"
 
-    @property
-    def git(self):
-        if self.bioc:
-            return f"https://git.bioconductor.org/packages/{self.bioc}"
+    @lang.classproperty
+    def git(cls):
+        if cls.bioc:
+            return f"https://git.bioconductor.org/packages/{cls.bioc}"
