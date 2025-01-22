@@ -19,7 +19,6 @@ class Grpp(CMakePackage):
     homepage = "https://github.com/aoleynichenko/libgrpp"
     git = "https://github.com/aoleynichenko/libgrpp.git"
 
-    # notify when the package is updated.
     maintainers("mtaillefumier")
 
     license("BSD-3-Clause")
