@@ -26,7 +26,9 @@ class Grpp(CMakePackage):
     build_system("cmake")
 
     version("main", branch="main")
-    version("2023.12.25", commit="64d157f1dc95815096b1fd437a5851abeb3425929cf7b2092bf8262db9c5e33d")
+    version(
+        "2023.12.25", commit="64d157f1dc95815096b1fd437a5851abeb3425929cf7b2092bf8262db9c5e33d"
+    )
 
     depends_on("c", type="build")
     depends_on("fortran", type="build")
