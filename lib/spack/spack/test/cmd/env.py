@@ -1135,7 +1135,7 @@ spack:
 
 def test_with_config_bad_include_create(environment_from_manifest):
     """Confirm missing required include raises expected exception."""
-    err = "Required include path does not exist"
+    err = "Required path does not exist"
     with pytest.raises(ValueError, match=err):
         environment_from_manifest(
             """
@@ -1308,6 +1308,7 @@ spack:
 """
     )
 
+    mutable_config.set("config:misc_cache", str(tmp_path / "cache"))
     e = ev.Environment(tmp_path)
     with e:
         # List of requirements, flip a variant
