@@ -2,9 +2,11 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from contextlib import contextmanager
 import pytest
 
 import spack.config
+import spack.error
 import spack.repo
 import spack.util.spack_yaml as syaml
 from spack.main import SpackCommand
@@ -208,8 +210,6 @@ class W2(Package):
 
     variant("v1", default=True)
 
-    requires("~v1", when="@:2.0")
-
     depends_on("w1")
 """,
 )
@@ -337,23 +337,38 @@ def test_repo(_create_test_repo, monkeypatch, mock_stage):
         yield mock_repo_path
 
 
+@contextmanager
+def expect_failure_and_print():
+    got_an_error_as_expected = False
+    try:
+        yield
+    except spack.error.UnsatisfiableSpecError as e:
+        print(str(e))
+        got_an_error_as_expected = True
+    if not got_an_error_as_expected:
+        raise ValueError("A failure was supposed to occur in this context manager")
+
+
 # Error message is good
 def test_diamond_with_pkg_conflict1(concretize_scope, test_repo):
     Spec("x2").concretized()
     Spec("x3").concretized()
     Spec("x4").concretized()
 
-    Spec("x1").concretized()
+    with expect_failure_and_print():
+        Spec("x1").concretized()
 
 
 # Error message is good (has some redundancy though)
 def test_diamond_with_pkg_conflict2(concretize_scope, test_repo):
-    Spec("y1").concretized()
+    with expect_failure_and_print():
+        Spec("y1").concretized()
 
 
 # This error message is not so great
 def test_version_range_null(concretize_scope, test_repo):
-    Spec("x2@3:4").concretized()
+    with expect_failure_and_print():
+        Spec("x2@3:4").concretized()
 
 
 # This error message is hard to follow: neither z2 or z3
@@ -365,7 +380,8 @@ def test_null_variant_for_requested_version(concretize_scope, test_repo):
     # output = solve("--show=asp", "z1@1.1")
     # with open(, "w") as f:
     #    f.write(output)
-    Spec("z1@1.1").concretized()
+    with expect_failure_and_print():
+        Spec("z1@1.1").concretized()
 
 
 # Error message for requirement introduced in the package
@@ -375,8 +391,8 @@ def test_errmsg_requirements_1(concretize_scope, test_repo):
     # output = solve("--show=asp", "w4@:2.0 ^w3@2.1")
     # with open("/Users/scheibel1/Desktop/spack/spack/err-msg-asp/good-w.txt", "w") as f:
     #    f.write(output)
-
-    Spec("w4@:2.0 ^w3@2.1").concretized()
+    with expect_failure_and_print():
+        Spec("w4@:2.0 ^w3@2.1").concretized()
 
 
 # This error message is short. Would it be good if I encoded
@@ -390,19 +406,20 @@ packages:
       when: "@2.0"
 """
     len(conf_str)
-    # update_packages_config(conf_str)
+    update_packages_config(conf_str)
 
     # Spec("w4@2.0").concretized()
 
     # output = solve("--show=asp", "w4@2.0 ^w2+v1")
     # with open("/Users/scheibel1/Desktop/spack/spack/err-msg-asp/bad-w.txt", "w") as f:
     #    f.write(output)
-
-    Spec("w4@2.0 ^w2+v1").concretized()
+    with expect_failure_and_print():
+        Spec("w4@2.0 ^w2+v1").concretized()
 
 
 # Short error message: this reencodes test_errmsg_requirements_2
 # in terms of package `requires`, and demonstrates that the message
 # is still lacking in detail
 def test_errmsg_requirements_3(concretize_scope, test_repo):
-    Spec("t4@:2.0 ^t2+v1").concretized()
+    with expect_failure_and_print():
+        Spec("t4@:2.0 ^t2+v1").concretized()
