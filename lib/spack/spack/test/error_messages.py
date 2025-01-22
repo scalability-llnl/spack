@@ -273,8 +273,9 @@ class T2(Package):
 
     variant("v1", default=True)
 
-    # requires("~v1", when="@:2.0")
-    conflicts("+v1", when="@:2.0")
+    # Note, the error message is improved when a conflict is used
+    requires("~v1", when="@:2.0")
+    # conflicts("+v1", when="@:2.0")
 
     depends_on("t1")
 """,
