@@ -421,7 +421,7 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
         depends_on("kokkos-kernels@4.5.01", when="@master:")
         depends_on("kokkos-kernels@4.3.01", when="@16")
         depends_on("kokkos-kernels@4.2.01", when="@15.1:15")
-        depends_on("kokkos-kernels@4.1.00", when="@15.0")
+        depends_on("kokkos+openmp", when="+openmp")
 
         for a in CudaPackage.cuda_arch_values:
             arch_str = f"+cuda cuda_arch={a}"
@@ -906,7 +906,7 @@ class Trilinos(CMakePackage, CudaPackage, ROCmPackage):
         # External Kokkos
         if spec.satisfies("@14.4.0: +kokkos"):
             options.append(define_tpl_enable("Kokkos"))
-        if spec.satisfies("@15.0: +kokkos"):
+        if spec.satisfies("@15.1: +kokkos"):
             options.append(define_tpl_enable("KokkosKernels", True))
 
         # MPI settings
