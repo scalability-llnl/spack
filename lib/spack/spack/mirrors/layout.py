@@ -53,7 +53,7 @@ class DefaultLayout(MirrorLayout):
         alias_dir = alias.parent
         relative_dst = digest.relative_to(alias_dir, walk_up=True)
 
-        mkdirp(alias_dir)
+        mkdirp(os.fspath(alias_dir))
         tmp = f"{alias}.tmp"
         llnl.util.symlink.symlink(relative_dst, tmp)
 
