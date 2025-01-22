@@ -1356,14 +1356,8 @@ def _test_detection_by_executable(pkgs, debug_log, error_cls):
 
             def _compare_extra_attribute(_expected, _detected, *, _spec):
                 result = []
-                # Check items are of the same type
-                if not isinstance(_detected, type(_expected)):
-                    _summary = f'{pkg_name}: error when trying to detect "{_expected}"'
-                    _details = [f"{_detected} was detected instead"]
-                    return [error_cls(summary=_summary, details=_details)]
-
                 # If they are string expected is a regex
-                if isinstance(_expected, str):
+                if isinstance(_expected, str) and isinstance(_detected, str):
                     try:
                         _regex = re.compile(_expected)
                     except re.error:
@@ -1379,7 +1373,7 @@ def _test_detection_by_executable(pkgs, debug_log, error_cls):
                         _details = [f"{_detected} does not match the regex"]
                         return [error_cls(summary=_summary, details=_details)]
 
-                if isinstance(_expected, dict):
+                elif isinstance(_expected, dict) and isinstance(_detected, dict):
                     _not_detected = set(_expected.keys()) - set(_detected.keys())
                     if _not_detected:
                         _summary = f"{pkg_name}: cannot detect some attributes for spec {_spec}"
@@ -1394,6 +1388,10 @@ def _test_detection_by_executable(pkgs, debug_log, error_cls):
                         result.extend(
                             _compare_extra_attribute(_expected[_key], _detected[_key], _spec=_spec)
                         )
+                else:
+                    _summary = f'{pkg_name}: error when trying to detect "{_expected}"'
+                    _details = [f"{_detected} was detected instead"]
+                    return [error_cls(summary=_summary, details=_details)]
 
                 return result
 

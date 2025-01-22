@@ -36,6 +36,8 @@ import re
 import sys
 from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
 
+import jsonschema
+
 from llnl.util import filesystem, lang, tty
 
 import spack.error
@@ -1048,8 +1050,6 @@ def validate(
     This leverages the line information (start_mark, end_mark) stored
     on Spack YAML structures.
     """
-    import jsonschema
-
     try:
         spack.schema.Validator(schema).validate(data)
     except jsonschema.ValidationError as e:

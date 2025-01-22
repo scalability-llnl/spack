@@ -6,8 +6,7 @@ import itertools
 import os
 import re
 import sys
-from collections import OrderedDict
-from typing import List, Optional
+from typing import Dict, Iterable, List, Optional
 
 import macholib.mach_o
 import macholib.MachO
@@ -18,28 +17,11 @@ import llnl.util.tty as tty
 from llnl.util.lang import memoized
 from llnl.util.symlink import readlink, symlink
 
-import spack.error
 import spack.store
 import spack.util.elf as elf
 import spack.util.executable as executable
 
-from .relocate_text import BinaryFilePrefixReplacer, TextFilePrefixReplacer
-
-
-class InstallRootStringError(spack.error.SpackError):
-    def __init__(self, file_path, root_path):
-        """Signal that the relocated binary still has the original
-        Spack's store root string
-
-        Args:
-            file_path (str): path of the binary
-            root_path (str): original Spack's store root string
-        """
-        super().__init__(
-            "\n %s \ncontains string\n %s \n"
-            "after replacing it in rpaths.\n"
-            "Package should not be relocated.\n Use -a to override." % (file_path, root_path)
-        )
+from .relocate_text import BinaryFilePrefixReplacer, PrefixToPrefix, TextFilePrefixReplacer
 
 
 @memoized
@@ -58,7 +40,7 @@ def _decode_macho_data(bytestring):
     return bytestring.rstrip(b"\x00").decode("ascii")
 
 
-def macho_find_paths(orig_rpaths, deps, idpath, prefix_to_prefix):
+def _macho_find_paths(orig_rpaths, deps, idpath, prefix_to_prefix):
     """
     Inputs
     original rpaths from mach-o binaries
@@ -103,7 +85,7 @@ def macho_find_paths(orig_rpaths, deps, idpath, prefix_to_prefix):
     return paths_to_paths
 
 
-def modify_macho_object(cur_path, rpaths, deps, idpath, paths_to_paths):
+def _modify_macho_object(cur_path, rpaths, deps, idpath, paths_to_paths):
     """
     This function is used to make machO buildcaches on macOS by
     replacing old paths with new paths using install_name_tool
@@ -146,7 +128,7 @@ def modify_macho_object(cur_path, rpaths, deps, idpath, paths_to_paths):
             install_name_tool(*args, temp_path)
 
 
-def macholib_get_paths(cur_path):
+def _macholib_get_paths(cur_path):
     """Get rpaths, dependent libraries, and library id of mach-o objects."""
     headers = []
     try:
@@ -228,25 +210,25 @@ def relocate_macho_binaries(path_names, prefix_to_prefix):
         if path_name.endswith(".o"):
             continue
         # get the paths in the old prefix
-        rpaths, deps, idpath = macholib_get_paths(path_name)
+        rpaths, deps, idpath = _macholib_get_paths(path_name)
         # get the mapping of paths in the old prerix to the new prefix
-        paths_to_paths = macho_find_paths(rpaths, deps, idpath, prefix_to_prefix)
+        paths_to_paths = _macho_find_paths(rpaths, deps, idpath, prefix_to_prefix)
         # replace the old paths with new paths
-        modify_macho_object(path_name, rpaths, deps, idpath, paths_to_paths)
+        _modify_macho_object(path_name, rpaths, deps, idpath, paths_to_paths)
 
 
-def relocate_elf_binaries(binaries, prefix_to_prefix):
-    """Take a list of binaries, and an ordered dictionary of
-    prefix to prefix mapping, and update the rpaths accordingly."""
+def relocate_elf_binaries(binaries: Iterable[str], prefix_to_prefix: Dict[str, str]) -> None:
+    """Take a list of binaries, and an ordered prefix to prefix mapping, and update the rpaths
+    accordingly."""
 
     # Transform to binary string
-    prefix_to_prefix = OrderedDict(
-        (k.encode("utf-8"), v.encode("utf-8")) for (k, v) in prefix_to_prefix.items()
-    )
+    prefix_to_prefix_bin = {
+        k.encode("utf-8"): v.encode("utf-8") for k, v in prefix_to_prefix.items()
+    }
 
     for path in binaries:
         try:
-            elf.substitute_rpath_and_pt_interp_in_place_or_raise(path, prefix_to_prefix)
+            elf.substitute_rpath_and_pt_interp_in_place_or_raise(path, prefix_to_prefix_bin)
         except elf.ElfCStringUpdatesFailed as e:
             # Fall back to `patchelf --set-rpath ... --set-interpreter ...`
             rpaths = e.rpath.new_value.decode("utf-8").split(":") if e.rpath else []
@@ -254,13 +236,13 @@ def relocate_elf_binaries(binaries, prefix_to_prefix):
             _set_elf_rpaths_and_interpreter(path, rpaths=rpaths, interpreter=interpreter)
 
 
-def warn_if_link_cant_be_relocated(link, target):
+def _warn_if_link_cant_be_relocated(link: str, target: str):
     if not os.path.isabs(target):
         return
-    tty.warn('Symbolic link at "{}" to "{}" cannot be relocated'.format(link, target))
+    tty.warn(f'Symbolic link at "{link}" to "{target}" cannot be relocated')
 
 
-def relocate_links(links, prefix_to_prefix):
+def relocate_links(links: Iterable[str], prefix_to_prefix: Dict[str, str]) -> None:
     """Relocate links to a new install prefix."""
     regex = re.compile("|".join(re.escape(p) for p in prefix_to_prefix.keys()))
     for link in links:
@@ -269,7 +251,7 @@ def relocate_links(links, prefix_to_prefix):
 
         # No match.
         if match is None:
-            warn_if_link_cant_be_relocated(link, old_target)
+            _warn_if_link_cant_be_relocated(link, old_target)
             continue
 
         new_target = prefix_to_prefix[match.group()] + old_target[match.end() :]
@@ -277,32 +259,32 @@ def relocate_links(links, prefix_to_prefix):
         symlink(new_target, link)
 
 
-def relocate_text(files, prefixes):
+def relocate_text(files: Iterable[str], prefix_to_prefix: PrefixToPrefix) -> None:
     """Relocate text file from the original installation prefix to the
     new prefix.
 
     Relocation also affects the the path in Spack's sbang script.
 
     Args:
-        files (list): Text files to be relocated
-        prefixes (OrderedDict): String prefixes which need to be changed
+        files: Text files to be relocated
+        prefix_to_prefix: ordered prefix to prefix mapping
     """
-    TextFilePrefixReplacer.from_strings_or_bytes(prefixes).apply(files)
+    TextFilePrefixReplacer.from_strings_or_bytes(prefix_to_prefix).apply(files)
 
 
-def relocate_text_bin(binaries, prefixes):
+def relocate_text_bin(binaries: Iterable[str], prefix_to_prefix: PrefixToPrefix) -> List[str]:
     """Replace null terminated path strings hard-coded into binaries.
 
     The new install prefix must be shorter than the original one.
 
     Args:
-        binaries (list): binaries to be relocated
-        prefixes (OrderedDict): String prefixes which need to be changed.
+        binaries: paths to binaries to be relocated
+        prefix_to_prefix: ordered prefix to prefix mapping
 
     Raises:
       spack.relocate_text.BinaryTextReplaceError: when the new path is longer than the old path
     """
-    return BinaryFilePrefixReplacer.from_strings_or_bytes(prefixes).apply(binaries)
+    return BinaryFilePrefixReplacer.from_strings_or_bytes(prefix_to_prefix).apply(binaries)
 
 
 def is_macho_magic(magic: bytes) -> bool:
@@ -339,7 +321,7 @@ def _exists_dir(dirname):
     return os.path.isdir(dirname)
 
 
-def is_macho_binary(path):
+def is_macho_binary(path: str) -> bool:
     try:
         with open(path, "rb") as f:
             return is_macho_magic(f.read(4))
@@ -363,7 +345,7 @@ def fixup_macos_rpath(root, filename):
         return False
 
     # Get Mach-O header commands
-    (rpath_list, deps, id_dylib) = macholib_get_paths(abspath)
+    (rpath_list, deps, id_dylib) = _macholib_get_paths(abspath)
 
     # Convert rpaths list to (name -> number of occurrences)
     add_rpaths = set()

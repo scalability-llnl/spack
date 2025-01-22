@@ -356,6 +356,13 @@ To resolve this problem, please try the following:
             )
             # Support Libtool 2.4.2 and older:
             x.filter(regex=r'^(\s*test \$p = "-R")(; then\s*)$', repl=r'\1 || test x-l = x"$p"\2')
+            # Configure scripts generated with libtool < 2.5.4 have a faulty test for the
+            # -single_module linker flag. A deprecation warning makes it think the default is
+            # -multi_module, triggering it to use problematic linker flags (such as ld -r). The
+            # linker default is `-single_module` from (ancient) macOS 10.4, so override by setting
+            # `lt_cv_apple_cc_single_mod=yes`. See the fix in libtool commit
+            # 82f7f52123e4e7e50721049f7fa6f9b870e09c9d.
+            x.filter("lt_cv_apple_cc_single_mod=no", "lt_cv_apple_cc_single_mod=yes", string=True)
 
     @spack.phase_callbacks.run_after("configure")
     def _do_patch_libtool(self) -> None:
