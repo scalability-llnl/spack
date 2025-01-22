@@ -64,7 +64,6 @@ from .core import (
     parse_term,
 )
 from .input_analysis import create_counter, create_graph_analyzer
-from .libc import CompilerPropertyDetector
 from .requirements import RequirementKind, RequirementParser, RequirementRule
 from .version_order import concretization_version_order
 
@@ -1829,14 +1828,6 @@ class SpackSolverSetup:
         packages_yaml = _external_config_with_implicit_externals(spack.config.CONFIG)
         for pkg_name, data in packages_yaml.items():
             if pkg_name == "all":
-                continue
-
-            # package isn't a possible dependency and can't be in the solution
-            if pkg_name not in self.pkgs:
-                continue
-
-            # This package is not in the possible dependencies
-            if pkg_name not in self.pkgs:
                 continue
 
             # This package is not among possible dependencies
@@ -3978,9 +3969,8 @@ class Solver:
             for s in root.traverse():
                 candidates = s.edges_to_dependencies(depflag=dt.BUILD)
                 if candidates:
-                    virtuals = set()
-                    non_virtuals = spack.package_base.possible_dependencies(
-                        s, transitive=False, virtuals=virtuals
+                    non_virtuals, virtuals, _ = create_graph_analyzer().possible_dependencies(
+                        s, transitive=False, allowed_deps=dt.LINK | dt.RUN | dt.BUILD
                     )
                     possible_direct_deps = set(non_virtuals) | virtuals
                     not_possible = set(
@@ -4005,7 +3995,7 @@ class Solver:
                     continue
 
                 try:
-                    s.package_class
+                    spack.repo.PATH.get_pkg_class(s.fullname)
                 except spack.repo.UnknownPackageError:
                     raise UnsatisfiableSpecError(
                         f"cannot concretize '{root}', since '{s.name}' does not exist"
