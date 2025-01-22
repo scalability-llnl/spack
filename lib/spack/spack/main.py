@@ -591,14 +591,13 @@ def update_config_with_includes():
     if not includes:
         return
 
-    # TODO: Should the cache be a configuration option? Reside elsewhere?
     include_cache_dir = fs.join_path(misc_cache_location(), "includes")
     for entry in includes:
         scope = spack.config.include_path_scope(
             spack.config.included_path(entry),
             "include",
             include_cache_dir,
-            None,  # TODO: should relative paths be supported here?
+            spack.config.CONFIG.includes_source_root(entry),
         )
 
         if scope is not None:
