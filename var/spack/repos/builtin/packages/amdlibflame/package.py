@@ -122,7 +122,10 @@ class Amdlibflame(CMakePackage, LibflameBase):
 
     @property
     def cmake_bla_vendor(self):
-        return "AOCL"
+        if self.spec.satisfies("threads=none"):
+            return "AOCL"
+        else:
+            return "AOCL_mt"
 
     def flag_handler(self, name, flags):
         if name == "cflags":
