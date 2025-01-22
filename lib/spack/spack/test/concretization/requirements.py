@@ -787,7 +787,7 @@ compilers::
     assert s.satisfies("%gcc@12.0.0")
 
     # This package can only be compiled with clang
-    with pytest.raises(spack.error.SpackError, match="can only be compiled with Clang"):
+    with pytest.raises(spack.error.SpackError, match="Cannot set the required compiler.*clang"):
         spack.concretize.concretize_one("requires_clang")
 
 
