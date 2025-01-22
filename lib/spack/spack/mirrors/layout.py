@@ -51,7 +51,7 @@ class DefaultLayout(MirrorLayout):
         alias, digest = root / self.alias, root / self.digest_path
 
         alias_dir = alias.parent
-        relative_dst = digest.relative_to(alias_dir, walk_up=True)
+        relative_dst = os.path.relpath(digest, start=alias_dir)
 
         mkdirp(os.fspath(alias_dir))
         tmp = f"{alias}.tmp"
