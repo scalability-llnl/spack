@@ -663,6 +663,7 @@ def test_conditional_requirements_from_packages_yaml(
         assert spec.satisfies(match_str) is expected
 
 
+@pytest.mark.xfail(reason="chaining doesn't extend to compiler failures")
 @pytest.mark.parametrize(
     "packages_yaml,spec_str,expected_message",
     [

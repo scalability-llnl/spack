@@ -1851,11 +1851,14 @@ class SpackSolverSetup:
                     # else: for virtuals we want to emit "node" and
                     # "virtual_node" in imposed specs
 
+                    info_msg = f"{input_spec} is a requirement for package {pkg_name}"
+                    if rule.message:
+                        info_msg += f" ({rule.message})"
                     member_id = self.condition(
                         required_spec=when_spec,
                         imposed_spec=spec,
                         required_name=pkg_name,
-                        msg=f"{input_spec} is a requirement for package {pkg_name}",
+                        msg=info_msg,
                         context=context,
                     )
                 except Exception as e:
