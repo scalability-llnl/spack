@@ -898,7 +898,6 @@ def include_path_scope(
                     os.listdir(config_stage_dir) if os.path.exists(config_stage_dir) else []
                 )
                 tty.debug(f"Remote staged files in {config_stage_dir} are: {staged_configs}")
-                remote_path = urllib.request.url2pathname(include_url.path)
                 try:
                     staged_path = fetch_remote_files(
                         config_path, ".yaml", str(config_stage_dir), skip_existing=True
