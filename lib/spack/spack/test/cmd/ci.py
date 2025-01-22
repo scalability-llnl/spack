@@ -28,6 +28,7 @@ from spack.ci import gitlab as gitlab_generator
 from spack.ci.common import PipelineDag, PipelineOptions, SpackCIConfig
 from spack.ci.generator_registry import generator
 from spack.cmd.ci import FAILED_CREATE_BUILDCACHE_CODE
+from spack.database import INDEX_JSON_FILE
 from spack.schema.buildcache_spec import schema as specfile_schema
 from spack.schema.database_index import schema as db_idx_schema
 from spack.spec import Spec
@@ -847,7 +848,7 @@ spack:
 
             # Test generating buildcache index while we have bin mirror
             buildcache_cmd("update-index", mirror_url)
-            with open(mirror_dir / "build_cache" / "index.json", encoding="utf-8") as idx_fd:
+            with open(mirror_dir / "build_cache" / INDEX_JSON_FILE, encoding="utf-8") as idx_fd:
                 index_object = json.load(idx_fd)
                 jsonschema.validate(index_object, db_idx_schema)
 
@@ -1065,7 +1066,7 @@ spack:
             buildcache_cmd("push", "-u", "-f", mirror_url, "callpath")
             ci_cmd("rebuild-index")
 
-            with open(mirror_dir / "build_cache" / "index.json", encoding="utf-8") as f:
+            with open(mirror_dir / "build_cache" / INDEX_JSON_FILE, encoding="utf-8") as f:
                 jsonschema.validate(json.load(f), db_idx_schema)
 
 
