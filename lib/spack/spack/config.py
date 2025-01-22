@@ -173,6 +173,23 @@ class DirectoryConfigScope(ConfigScope):
             schema = SECTION_SCHEMAS[section]
             data = read_config_file(path, schema)
             self.sections[section] = data
+
+            # Save the sources of included configuration files to support
+            # relative paths.
+            if section == "include" and data is not None:
+                for included_path in data["include"]:
+                    path_str = str(included_path)
+                    if path_str in CONFIG.includes:
+                        # TODO: Is it always safe to assume the last processed
+                        # TODO: path conflict will always be highest priority?
+                        tty.warn(
+                            f"Duplicate include path '{path_str}' detected. "
+                            "Replacing initial source path "
+                            f" ('{CONFIG.includes[path_str]}') with '{path}'."
+                        )
+
+                    CONFIG.includes[str(included_path)] = path
+
         return self.sections[section]
 
     def _write_section(self, section: str) -> None:
@@ -435,6 +452,10 @@ class Configuration:
         for scope in scopes:
             self.push_scope(scope)
         self.format_updates: Dict[str, List[ConfigScope]] = collections.defaultdict(list)
+
+        # Track global include configuration file source paths since not
+        # otherwise available once includes are processed.
+        self.includes: Dict[str, str] = collections.defaultdict(str)
 
     def ensure_unwrapped(self) -> "Configuration":
         """Ensure we unwrap this object from any dynamic wrapper (like Singleton)"""
@@ -736,6 +757,17 @@ class Configuration:
         except (syaml.SpackYAMLError, OSError) as e:
             raise spack.error.ConfigError(f"cannot read '{section}' configuration") from e
 
+    def includes_source_root(self, path: str) -> Optional[str]:
+        """Return root directory for the included path
+
+        Args:
+            path: path as it appears under the includes configuration
+
+        Returns: root directory of the source file containing the include or ```None``
+        """
+
+        return os.path.dirname(self.includes[path]) if path in self.includes else None
+
 
 @contextlib.contextmanager
 def override(
@@ -789,10 +821,6 @@ def _add_platform_scope(cfg: Configuration, name: str, path: str, writable: bool
     cfg.push_scope(scope)
 
 
-# Track staged paths so can avoid repeating the warning during processing
-skip_restage_warning = list()
-
-
 #: Data class for the relevance of an optional path conditioned on either
 #: a spec and or explicitly specified as optional.
 class OptionalPath(NamedTuple):
@@ -838,7 +866,8 @@ def include_path_scope(
 
     Raises:
         ValueError: included path has an unsupported URL scheme, is required
-            but does not exist, or is not allowed to be relative
+            but does not exist, or is not allowed to be relative; configuration
+            stage directory argument is missing
         ConfigFileError: unable to access remote configuration file(s)
     """
     import urllib.parse
@@ -861,9 +890,8 @@ def include_path_scope(
 
             # Any other URL should be fetched.
             elif include_url.scheme in ("http", "https", "ftp"):
-                assert (
-                    config_stage_dir is not None
-                ), "Local stage directory is required to cache remote files"
+                if config_stage_dir is None:
+                    raise ValueError("Local stage directory is required to cache remote files")
 
                 # Stage any remote configuration file(s)
                 staged_configs = (
@@ -871,53 +899,29 @@ def include_path_scope(
                 )
                 tty.debug(f"Remote staged files in {config_stage_dir} are: {staged_configs}")
                 remote_path = urllib.request.url2pathname(include_url.path)
-                # TODO Should we be supporting multiple remote files with the
-                # TODO same base name (e.g. config.py)?
-                basename = os.path.basename(remote_path)
-                if basename in staged_configs:
-                    # Do NOT re-stage configuration files over existing
-                    # ones with the same name since there is a risk of
-                    # losing changes (e.g., from 'spack config update').
-                    if remote_path not in skip_restage_warning:
-                        tty.warn(
-                            f"Will not (re-)stage configuration from {include.path} "
-                            "to avoid losing changes to the already staged file of "
-                            f"the same name in {config_stage_dir}"
-                        )
-                        skip_restage_warning.append(remote_path)
+                try:
+                    staged_path = fetch_remote_files(
+                        config_path, ".yaml", str(config_stage_dir), skip_existing=True
+                    )
+                except (RemoteFileError, ValueError):
+                    staged_path = None
 
-                    # Recognize the configuration stage directory
-                    # is flattened to ensure a single copy of each
-                    # configuration file.
-                    config_path = config_stage_dir
-                    if basename.endswith(".yaml"):
-                        config_path = os.path.join(config_path, basename)
-                else:
-                    try:
-                        staged_path = fetch_remote_files(
-                            config_path, ".yaml", str(config_stage_dir), skip_existing=True
-                        )
-                    except (RemoteFileError, ValueError):
-                        staged_path = None
-
-                    if not staged_path:
-                        raise ConfigFileError(
-                            f"Unable to fetch remote configuration {config_path}"
-                        )
-                    config_path = staged_path
+                if not staged_path:
+                    raise ConfigFileError(f"Unable to fetch remote configuration {config_path}")
+                config_path = staged_path
 
             elif include_url.scheme:
                 raise ValueError(
-                    f"Unsupported URL scheme ({include_url.scheme}) for " f"include: {config_path}"
+                    f"Unsupported URL scheme ({include_url.scheme}) for include: {config_path}"
                 )
-
-        # TODO: Should we allow relative paths for global include.yaml files?
 
         # Treat relative paths as relative to relative_root. If not provided,
         # then relative paths are considered unsupported so raise an exception.
         if not os.path.isabs(config_path):
+            relative_root = relative_root or CONFIG.includes_source_root(include.path)
             if relative_root is None:
                 raise ValueError(f"include: has an unsupported relative path {config_path}")
+
             cfg_path = os.path.join(relative_root, config_path)
             config_path = os.path.normpath(os.path.realpath(cfg_path))
 
