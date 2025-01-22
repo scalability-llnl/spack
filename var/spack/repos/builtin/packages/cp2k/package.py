@@ -166,7 +166,7 @@ class Cp2k(MakefilePackage, CMakePackage, CudaPackage, ROCmPackage):
     depends_on("lapack")
     depends_on("fftw-api@3")
 
-    depends_on("grpp", when="+grpp")
+    depends_on("grpp@2023.12.25", when="+grpp")
     depends_on("trexio", when="+trexio")
     # trexio does not depend on grpp but cp2k support of trexio requires it
     depends_on("grpp", when="+trexio")
