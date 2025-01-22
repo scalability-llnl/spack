@@ -220,7 +220,6 @@ def test_develop_full_git_repo(
 
 def test_concretize_dev_path_with_at_symbol_in_env(mutable_mock_env_path, tmpdir, mock_packages):
     spec_like = "develop-test@develop"
-    spec = spack.spec.Spec(spec_like)
 
     develop_dir = tmpdir.mkdir("build@location")
     env("create", "test_at_sym")
