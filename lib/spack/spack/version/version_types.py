@@ -6,7 +6,6 @@ import re
 from bisect import bisect_left
 from typing import Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
-from spack.util.spack_yaml import syaml_dict
 from spack.util.typing import SupportsRichComparison
 
 from .common import (
@@ -1044,8 +1043,8 @@ class VersionList(VersionType):
     def to_dict(self) -> Dict:
         """Generate human-readable dict for YAML."""
         if self.concrete:
-            return syaml_dict([("version", str(self[0]))])
-        return syaml_dict([("versions", [str(v) for v in self])])
+            return {"version": str(self[0])}
+        return {"versions": [str(v) for v in self]}
 
     @staticmethod
     def from_dict(dictionary) -> "VersionList":
