@@ -157,7 +157,7 @@ class Nim(Package):
 
     def install(self, spec, prefix):
         filter_file("1/nim", "1", "install.sh")
-
         Executable("./install.sh")(prefix)
 
         install_tree("bin", prefix.bin)
+        install_tree("dist", join_path(prefix, "dist"))
