@@ -378,7 +378,7 @@ def test_errmsg_requirements_1(concretize_scope, test_repo):
 
 # This error message is short. Would it be good if I encoded
 # it in the package.py?
-def test_errmsg_requirements_cfg(concretize_scope, test_repo):
+def test_errmsg_requirements_2(concretize_scope, test_repo):
     conf_str = """\
 packages:
   w2:
@@ -398,7 +398,7 @@ packages:
     Spec("w4@2.0 ^w2+v1").concretized()
 
 
-# Short error message: this reencodes test_errmsg_requirements_cfg
+# Short error message: this reencodes test_errmsg_requirements_2
 # in terms of package `requires`, and demonstrates that the message
 # is still lacking in detail
 # (Jan. 9th update) something has changed so that this now generates
@@ -406,5 +406,5 @@ packages:
 # 2024
 # The error message is only good when the constraint is encoded as a
 # conflict and not as a requirement
-def test_errmsg_requirements_2(concretize_scope, test_repo):
+def test_errmsg_requirements_3(concretize_scope, test_repo):
     Spec("t4@:2.0 ^t2+v1").concretized()
