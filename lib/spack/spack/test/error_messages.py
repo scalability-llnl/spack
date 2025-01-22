@@ -368,7 +368,7 @@ def test_null_variant_for_requested_version(concretize_scope, test_repo):
 # Error message for requirement introduced in the package
 # definition seems OK: requirements generate `condition`s, which
 # should be traceable as condition causes in error_messages.lp
-def test_errmsg_requirements(concretize_scope, test_repo):
+def test_errmsg_requirements_1(concretize_scope, test_repo):
     # output = solve("--show=asp", "w4@:2.0 ^w3@2.1")
     # with open("/Users/scheibel1/Desktop/spack/spack/err-msg-asp/good-w.txt", "w") as f:
     #    f.write(output)
