@@ -769,7 +769,7 @@ requirement_group_satisfied(node(ID, Package), X) :-
   activate_requirement(node(ID, Package), X),
   requirement_group(Package, X).
 
-1 { impose(EffectID, node(ID, Package)) : requirement_group_member(Y, Package, X), pkg_fact(Package, condition_effect(Y, EffectID)) } :-
+1 { impose(EffectID, node(ID, Package)) : requirement_group_member(Y, Package, X), pkg_fact(Package, condition_effect(Y, EffectID)) } 1 :-
   requirement_policy(Package, X, "one_of"),
   activate_requirement(node(ID, Package), X),
   requirement_group(Package, X).
