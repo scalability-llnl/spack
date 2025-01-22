@@ -434,18 +434,19 @@ class TestConcretize:
         for constraint in not_expected:
             assert not root.satisfies(constraint)
 
-    @pytest.mark.xfail(reason="FIXME (compiler as nodes): flaky test, revisit")
     def test_mixing_compilers_only_affects_subdag(self):
         """Tests that, when we mix compilers, the one with lower penalty is used for nodes
         where the compiler is not forced.
         """
         spec = spack.concretize.concretize_one("dt-diamond%clang ^dt-diamond-bottom%gcc")
-
+        print(spec.tree())
         for x in spec.traverse(deptype=("link", "run")):
             if "c" not in x or not x.name.startswith("dt-diamond"):
                 continue
             expected_gcc = x.name != "dt-diamond"
-            assert bool(x.dependencies(name="llvm", deptype="build")) is not expected_gcc
+            assert (
+                bool(x.dependencies(name="llvm", deptype="build")) is not expected_gcc
+            ), x.long_spec
             assert bool(x.dependencies(name="gcc", deptype="build")) is expected_gcc
             assert x.satisfies("%clang") is not expected_gcc
             assert x.satisfies("%gcc") is expected_gcc
