@@ -1750,6 +1750,15 @@ opt_criterion(1, "edge wiring").
       depends_on(ParentNode, PackageNode)
 }.
 
+#minimize{ 0@201: #true }.
+#minimize{ 0@1: #true }.
+#minimize{
+    Weight@1,ParentNode,ProviderNode,Virtual
+    : provider_weight(ProviderNode, Virtual, Weight),
+      not attr("root", ProviderNode),
+      depends_on(ParentNode, ProviderNode)
+}.
+
 %-----------
 % Notes
 %-----------
