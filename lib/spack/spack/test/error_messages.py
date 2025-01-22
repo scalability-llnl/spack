@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from contextlib import contextmanager
+
 import pytest
 
 import spack.config
