@@ -42,10 +42,6 @@ class Alps(CMakePackage):
 
     extends("python")
 
-    # TODO get shasum info automatically from self.spec['boost'] somehow like
-    # @run_before("cmake")
-    # def get_boost_source(self): .. etc
-    # it didn't work on first glance
     resources = {
         # boost version, shasum
         "1.87.0": "af57be25cb4c4f4b413ed692fe378affb4352ea50fbe294a11ef548f4d527d89",
