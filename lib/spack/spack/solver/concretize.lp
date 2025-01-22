@@ -816,19 +816,6 @@ requirement_weight(node(ID, Package), Group, W) :-
   requirement_policy(Package, Group, "any_of"),
   requirement_group_satisfied(node(ID, Package), Group).
 
-%error(100, "cannot satisfy a requirement for package '{0}'.", Package) :-
-%  activate_requirement(node(ID, Package), X),
-%  requirement_group(Package, X),
-%  not requirement_message(Package, X, _),
-%  not requirement_group_satisfied(node(ID, Package), X).
-
-
-%error(10, Message) :-
-%  activate_requirement(node(ID, Package), X),
-%  requirement_group(Package, X),
-%  requirement_message(Package, X, Message),
-%  not requirement_group_satisfied(node(ID, Package), X).
-
 
 #defined requirement_group/2.
 #defined requirement_conditional/3.
