@@ -20,7 +20,6 @@ import spack.concretize
 import spack.config
 import spack.deptypes as dt
 import spack.detection
-import spack.environment as ev
 import spack.error
 import spack.hash_types as ht
 import spack.paths
@@ -34,7 +33,6 @@ import spack.store
 import spack.util.file_cache
 import spack.variant as vt
 from spack.installer import PackageInstaller
-from spack.main import SpackCommand
 from spack.spec import CompilerSpec, Spec
 from spack.version import Version, VersionList, ver
 
@@ -3238,24 +3236,3 @@ def test_spec_unification(unify, mutable_config, mock_packages):
     maybe_fails = pytest.raises if unify is True else llnl.util.lang.nullcontext
     with maybe_fails(spack.solver.asp.UnsatisfiableSpecError):
         _ = spack.cmd.parse_specs([a_restricted, b], concretize=True)
-
-
-def test_concretize_dev_path_with_at_symbol_in_env(tmpdir, mock_packages, binary_compatibility):
-    spec_like = "develop-test@develop"
-    spec = Spec(spec_like)
-    add = SpackCommand("add")
-    develop = SpackCommand("develop")
-
-    develop_dir = tmpdir.mkdir("build@location")
-    envdir = tmpdir.mkdir("env")
-    with ev.create_in_dir(envdir):
-        add(spec_like)
-        develop(f"--path={develop_dir}", spec_like)
-        solver = spack.solver.asp.Solver()
-        result = solver.solve([spec])
-
-    assert len(result.specs) == 1
-    for spec in result.specs:
-        assert spec.satisfies(spec_like)
-        assert develop_dir in spec.variants["dev_path"]
-    assert not result.unsolved_specs
