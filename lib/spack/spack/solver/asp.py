@@ -1869,13 +1869,30 @@ class SpackSolverSetup:
                     warnings.warn(f"cannot use the external spec {spec}: needs a concrete version")
                     continue
 
+                def external_requirement(input_spec, requirements):
+                    result = []
+                    for asp_fn in requirements:
+                        if asp_fn.args[0] == "depends_on":
+                            continue
+                        if asp_fn.args[1] != input_spec.name:
+                            continue
+                        result.append(asp_fn)
+                    return result
+
                 def external_imposition(input_spec, requirements):
-                    return requirements + [
-                        fn.attr("external_conditions_hold", input_spec.name, local_idx)
-                    ]
+                    result = []
+                    for asp_fn in requirements:
+                        if asp_fn.args[0] in ("depends_on", "build_requirement"):
+                            continue
+                        if asp_fn.args[1] != input_spec.name:
+                            continue
+                        result.append(asp_fn)
+                    result.append(fn.attr("external_conditions_hold", input_spec.name, local_idx))
+                    return result
 
                 try:
                     context = ConditionContext()
+                    context.transform_required = external_requirement
                     context.transform_imposed = external_imposition
                     self.condition(spec, spec, msg=msg, context=context)
                 except (spack.error.SpecError, RuntimeError) as e:
