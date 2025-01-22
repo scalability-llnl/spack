@@ -29,7 +29,8 @@ class Alps(CMakePackage):
 
     # update version constraint on every boost release after providing version & checksum info
     # in resources dictionary below
-    depends_on("boost@:1.87 +chrono +date_time +filesystem +iostreams +mpi +numpy"
+    depends_on(
+        "boost@:1.87 +chrono +date_time +filesystem +iostreams +mpi +numpy"
         "+program_options +python +regex +serialization +system +test +thread +timer"
     )
     depends_on("fftw")
