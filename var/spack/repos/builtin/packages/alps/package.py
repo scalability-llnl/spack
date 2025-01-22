@@ -43,7 +43,7 @@ class Alps(CMakePackage):
 
     extends("python")
 
-    # See https://github.com/ALPSim/ALPS/issues/6#issuecomment-2604912169 
+    # See https://github.com/ALPSim/ALPS/issues/6#issuecomment-2604912169
     # for why this is needed
     resources = {
         # boost version, shasum
