@@ -176,8 +176,8 @@ class W4(Package):
     # test_errmsg_requirements stresses these constraints and generates
     # a good error message: "w4@:2.0 ^w3@2.1"
     depends_on("w3")
-    # depends_on("w3+v1", when="@2.0") # EX1
-    depends_on("w3~v1", when="@2.0") # EX2
+    depends_on("w3+v1", when="@2.0") # EX1
+    # depends_on("w3~v1", when="@2.0") # EX2
 """,
 )
 
@@ -191,8 +191,8 @@ class W3(Package):
 
     variant("v1", default=True)
 
-    # requires("~v1", when="@2.1") # EX1
-    requires("+v1", when="@2.1") # EX2
+    requires("~v1", when="@2.1") # EX1
+    # requires("+v1", when="@2.1") # EX2
 
     depends_on("w1")
 """,

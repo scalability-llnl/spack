@@ -764,6 +764,29 @@ requirement_group_satisfied(node(ID, Package), X) :-
   activate_requirement(node(ID, Package), X),
   requirement_group(Package, X).
 
+% Trying to say "you must impose a req group member if the req
+% group is activated" - doesn't improve test_errmsg_requirements_1:EX1
+%1 { impose(EffectID, node(ID, Package)) : requirement_group_member(Y, Package, X), pkg_fact(Package, condition_effect(Y, EffectID)) } :-
+%  requirement_policy(Package, X, "any_of"),
+%  activate_requirement(node(ID, Package), X),
+%  requirement_group(Package, X).
+
+1 { impose(EffectID, node(ID, Package)) : requirement_group_member(Y, Package, X), pkg_fact(Package, condition_effect(Y, EffectID)) } :-
+  requirement_policy(Package, X, "any_of"),
+  activate_requirement(node(ID, Package), X),
+  requirement_group(Package, X).
+
+1 { impose(EffectID, node(ID, Package)) : requirement_group_member(Y, Package, X), pkg_fact(Package, condition_effect(Y, EffectID)) } :-
+  requirement_policy(Package, X, "one_of"),
+  activate_requirement(node(ID, Package), X),
+  requirement_group(Package, X).
+
+%{ impose(EffectID, node(ID, Package)) } :-
+%  pkg_fact(Package, condition_effect(Y, EffectID)),
+%  requirement_group_member(Y, Package, X),
+%  activate_requirement(node(ID, Package), X),
+%  requirement_group(Package, X).
+
 % Do not impose requirements, if the conditional requirement is not active
 do_not_impose(EffectID, node(ID, Package)) :-
   trigger_condition_holds(TriggerID, node(ID, Package)),
@@ -806,18 +829,18 @@ requirement_weight(node(ID, Package), Group, W) :-
   requirement_policy(Package, Group, "any_of"),
   requirement_group_satisfied(node(ID, Package), Group).
 
-error(100, "cannot satisfy a requirement for package '{0}'.", Package) :-
-  activate_requirement(node(ID, Package), X),
-  requirement_group(Package, X),
-  not requirement_message(Package, X, _),
-  not requirement_group_satisfied(node(ID, Package), X).
+%error(100, "cannot satisfy a requirement for package '{0}'.", Package) :-
+%  activate_requirement(node(ID, Package), X),
+%  requirement_group(Package, X),
+%  not requirement_message(Package, X, _),
+%  not requirement_group_satisfied(node(ID, Package), X).
 
 
-error(10, Message) :-
-  activate_requirement(node(ID, Package), X),
-  requirement_group(Package, X),
-  requirement_message(Package, X, Message),
-  not requirement_group_satisfied(node(ID, Package), X).
+%error(10, Message) :-
+%  activate_requirement(node(ID, Package), X),
+%  requirement_group(Package, X),
+%  requirement_message(Package, X, Message),
+%  not requirement_group_satisfied(node(ID, Package), X).
 
 
 #defined requirement_group/2.
