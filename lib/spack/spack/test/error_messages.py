@@ -227,7 +227,7 @@ class W1(Package):
 
 # Like the W* packages, but encodes the config requirements constraints
 # into the packages to see if that improves the error from
-# test_errmsg_requirements_cfg
+# test_errmsg_requirements_2
 _pkgt4 = (
     "t4",
     """\
