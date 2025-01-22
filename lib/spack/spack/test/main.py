@@ -19,6 +19,7 @@ import spack.paths
 import spack.platforms
 import spack.util.executable as exe
 import spack.util.git
+import spack.util.spack_yaml as syaml
 
 pytestmark = pytest.mark.not_on_windows(
     "Test functionality supported but tests are failing on Win"
@@ -240,3 +241,32 @@ packages:
     python_reqs = spack.config.get("packages")["python"]["require"]
     req_specs = set(x["spec"] for x in python_reqs)
     assert req_specs == set(["@3.11:", "+ssl", "+tk"])
+
+
+def test_include_duplicate_source(tmpdir, capsys, mutable_config):
+    """Confirm warning when multiple include.yaml files have the same path
+    and, at present, the first processed path takes precedence."""
+    include_list = {"include": ["./more.yaml"]}
+
+    site_filename = mutable_config.get_config_filename("site", "include")
+    user_filename = mutable_config.get_config_filename("user", "include")
+
+    def write_configs(include_path, more_data):
+        with open(include_path, "w", encoding="utf-8") as f:
+            syaml.dump_config(include_list, f)
+
+        more_path = fs.join_path(os.path.dirname(include_path), "more.yaml")
+        with open(more_path, "w", encoding="utf-8") as f:
+            syaml.dump_config(more_data, f)
+
+    site_more_config = {"config": {"debug": True}}
+    user_more_config = {"config": {"debug": False}}
+
+    write_configs(site_filename, site_more_config)
+    write_configs(user_filename, user_more_config)
+
+    spack.main.update_config_with_includes()
+    err = capsys.readouterr()[1]
+    assert "Duplicate include" in err
+
+    assert mutable_config.get("config:debug") == user_more_config["config"]["debug"]

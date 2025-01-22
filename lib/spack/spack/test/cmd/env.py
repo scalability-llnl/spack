@@ -1329,8 +1329,10 @@ def test_config_change_existing(mutable_mock_env_path, tmp_path, mock_packages, 
     included file scope.
     """
 
+    env_path = tmp_path / "test_config"
+    fs.mkdirp(env_path)
     included_file = "included-packages.yaml"
-    included_path = tmp_path / included_file
+    included_path = env_path / included_file
     with open(included_path, "w", encoding="utf-8") as f:
         f.write(
             """\
@@ -1346,7 +1348,7 @@ packages:
 """
         )
 
-    spack_yaml = tmp_path / ev.manifest_name
+    spack_yaml = env_path / ev.manifest_name
     spack_yaml.write_text(
         f"""\
 spack:
@@ -1361,7 +1363,7 @@ spack:
     )
 
     mutable_config.set("config:misc_cache", str(tmp_path / "cache"))
-    e = ev.Environment(tmp_path)
+    e = ev.Environment(env_path)
     with e:
         # List of requirements, flip a variant
         config("change", "packages:mpich:require:~debug")
