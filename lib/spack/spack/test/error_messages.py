@@ -404,10 +404,5 @@ packages:
 # Short error message: this reencodes test_errmsg_requirements_2
 # in terms of package `requires`, and demonstrates that the message
 # is still lacking in detail
-# (Jan. 9th update) something has changed so that this now generates
-# a good error message, this was not true for 14cb20e from Oct. 15th
-# 2024
-# The error message is only good when the constraint is encoded as a
-# conflict and not as a requirement
 def test_errmsg_requirements_3(concretize_scope, test_repo):
     Spec("t4@:2.0 ^t2+v1").concretized()
