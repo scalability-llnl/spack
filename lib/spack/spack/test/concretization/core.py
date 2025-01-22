@@ -3128,3 +3128,21 @@ def test_compiler_can_depend_on_themselves_to_build(config, mock_packages):
 
     gcc_used_to_build = s.dependencies(name="gcc", virtuals=("c",))
     assert len(gcc_used_to_build) == 1 and gcc_used_to_build[0].satisfies("gcc@9.4.0")
+
+
+def test_compiler_attribute_is_tolerated_in_externals(mutable_config, mock_packages, tmp_path):
+    """Tests that we don't error out if an external specifies a compiler, even though externals
+    don't have dependencies.
+    """
+    packages_yaml = syaml.load_config(
+        f"""
+packages:
+  cmake:
+    externals:
+    - spec: "cmake@3.27.4 %gcc@14.1.0"
+      prefix: {tmp_path}
+"""
+    )
+    mutable_config.set("packages", packages_yaml["packages"])
+    s = spack.concretize.concretize_one("cmake")
+    assert s.external and s.external_path == str(tmp_path)
