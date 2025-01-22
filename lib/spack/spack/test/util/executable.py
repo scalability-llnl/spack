@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -111,3 +110,11 @@ def test_which(tmpdir, monkeypatch):
         exe = ex.which("spack-test-exe")
         assert exe is not None
         assert exe.path == path
+
+
+def test_construct_from_pathlib(mock_executable):
+    """Tests that we can construct an executable from a pathlib.Path object"""
+    expected = "Hello world!"
+    path = mock_executable("hello", output=f"echo {expected}\n")
+    hello = ex.Executable(path)
+    assert expected in hello(output=str)

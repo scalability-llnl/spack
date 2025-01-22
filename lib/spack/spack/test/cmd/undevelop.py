@@ -1,9 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import spack.concretize
 import spack.environment as ev
-import spack.spec
 from spack.main import SpackCommand
 
 undevelop = SpackCommand("undevelop")
@@ -31,9 +30,9 @@ spack:
 
         env("create", "test", "./spack.yaml")
         with ev.read("test"):
-            before = spack.spec.Spec("mpich").concretized()
+            before = spack.concretize.concretize_one("mpich")
             undevelop("mpich")
-            after = spack.spec.Spec("mpich").concretized()
+            after = spack.concretize.concretize_one("mpich")
 
     # Removing dev spec from environment changes concretization
     assert before.satisfies("dev_path=*")

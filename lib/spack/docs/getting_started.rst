@@ -1,5 +1,4 @@
-.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-   Spack Project Developers. See the top-level COPYRIGHT file for details.
+.. Copyright Spack Project Developers. See COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -35,7 +34,7 @@ A build matrix showing which packages are working on which systems is shown belo
       .. code-block:: console
 
          apt update
-         apt install bzip2 ca-certificates file g++ gcc gfortran git gzip lsb-release patch python3 tar unzip xz-utils zstd
+         apt install bzip2 ca-certificates g++ gcc gfortran git gzip lsb-release patch python3 tar unzip xz-utils zstd
 
    .. tab-item:: RHEL
 
@@ -148,20 +147,22 @@ The first time you concretize a spec, Spack will bootstrap automatically:
    --------------------------------
    zlib@1.2.13%gcc@9.4.0+optimize+pic+shared build_system=makefile arch=linux-ubuntu20.04-icelake
 
+The default bootstrap behavior is to use pre-built binaries. You can verify the
+active bootstrap repositories with:
+
+.. command-output:: spack bootstrap list
+
 If for security concerns you cannot bootstrap ``clingo`` from pre-built
 binaries, you have to disable fetching the binaries we generated with Github Actions.
 
 .. code-block:: console
 
-   $ spack bootstrap disable github-actions-v0.4
-   ==> "github-actions-v0.4" is now disabled and will not be used for bootstrapping
-   $ spack bootstrap disable github-actions-v0.3
-   ==> "github-actions-v0.3" is now disabled and will not be used for bootstrapping
+   $ spack bootstrap disable github-actions-v0.6
+   ==> "github-actions-v0.6" is now disabled and will not be used for bootstrapping
+   $ spack bootstrap disable github-actions-v0.5
+   ==> "github-actions-v0.5" is now disabled and will not be used for bootstrapping
 
-You can verify that the new settings are effective with:
-
-.. command-output:: spack bootstrap list
-
+You can verify that the new settings are effective with ``spack bootstrap list``.
 
 .. note::
 

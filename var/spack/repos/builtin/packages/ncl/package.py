@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -122,6 +121,7 @@ class Ncl(Package):
     depends_on("udunits", when="+udunits2")
     depends_on("jasper@:2", when="+grib")
     depends_on("gsl", when="+eemd")
+    depends_on("gmake", type="build")
 
     # We need src files of triangle to appear in ncl's src tree if we want
     # triangle's features.

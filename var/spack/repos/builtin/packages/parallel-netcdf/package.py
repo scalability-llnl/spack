@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -107,8 +106,8 @@ class ParallelNetcdf(AutotoolsPackage):
         if libs:
             return libs
 
-        msg = f"Unable to recursively locate {'shared' if shared else 'static'} \
-{self.spec.name} libraries in {self.spec.prefix}"
+        msg = f"Unable to recursively locate {'shared' if shared else 'static'} "
+        msg += f"{self.spec.name} libraries in {self.spec.prefix}"
         raise NoLibrariesError(msg)
 
     @when("@master")
