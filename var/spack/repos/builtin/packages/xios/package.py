@@ -12,10 +12,15 @@ class Xios(Package):
     """XML-IO-SERVER library for IO management of climate models."""
 
     homepage = "https://forge.ipsl.jussieu.fr/ioserver/wiki"
-
-    version("develop", svn="http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk")
     version(
-        "2.5", revision=1860, svn="http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-2.5"
+        "2.6",
+        revision=2703,
+        svn="https://forge.ipsl.jussieu.fr/ioserver/svn/XIOS2/branches/xios-2.6",
+    )
+    version(
+        "2.5",
+        revision=1860,
+        svn="https://forge.ipsl.jussieu.fr/ioserver/svn/XIOS2/branches/xios-2.5",
     )
     version(
         "2.0", revision=1627, svn="http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/branchs/xios-2.0"
@@ -40,6 +45,7 @@ class Xios(Package):
     # followed by a character is broken (e.g. duration '1d'):
     patch("llvm_bug_17782.patch", when="@1.1: %apple-clang")
     patch("llvm_bug_17782.patch", when="@1.1: %clang")
+    patch("earcut_missing_include_2.6.patch", when="@2.6:")
 
     depends_on("netcdf-c+mpi")
     depends_on("netcdf-fortran")
@@ -131,7 +137,7 @@ OASIS_LIB=""
 %FCOMPILER      {MPIFC}
 %LINKER         {MPIFC}
 
-%BASE_CFLAGS    -ansi -w -D_GLIBCXX_USE_CXX11_ABI=0 \
+%BASE_CFLAGS    -std=c++11 -w -D_GLIBCXX_USE_CXX11_ABI=0 \
                 -I{BOOST_INC_DIR} -I{BLITZ_INC_DIR}
 %PROD_CFLAGS    -O3 -DBOOST_DISABLE_ASSERTS
 %DEV_CFLAGS     -g -O2
@@ -202,6 +208,8 @@ OASIS_LIB=""
             "--%s" % spec.variants["mode"].value,
             "--arch",
             "SPACK",
+            "--use_extern_boost",
+            "--use_extern_blitz",
             "--netcdf_lib",
             "netcdf4_par",
             "--job",
