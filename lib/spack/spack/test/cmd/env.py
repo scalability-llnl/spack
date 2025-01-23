@@ -1086,7 +1086,7 @@ spack:
         fs.touchp(e1_path / f)
 
     with pytest.raises(spack.config.ConfigFileError, match="Detected 1 missing include"):
-        e2 = _env_create("test2", init_file=e1_manifest)
+        _ = _env_create("test2", init_file=e1_manifest)
 
 
 def test_env_view_external_prefix(tmp_path, mutable_database, mock_packages):
