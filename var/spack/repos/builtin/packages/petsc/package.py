@@ -449,8 +449,8 @@ class Petsc(Package, CudaPackage, ROCmPackage):
     depends_on("kokkos", when="+kokkos")
     depends_on("kokkos~complex_align", when="+kokkos+complex")
     depends_on("kokkos-kernels", when="+kokkos")
-    conflicts("kokkos@4.5:", when="@:3.22")
-    conflicts("kokkos-kernels@4.5:", when="@:3.22")
+    conflicts("kokkos@4.5:", when="@:3.22 +kokkos")
+    conflicts("kokkos-kernels@4.5:", when="@:3.22 +kokkos")
     for cuda_arch in CudaPackage.cuda_arch_values:
         depends_on(
             "kokkos+cuda+cuda_lambda cuda_arch=%s" % cuda_arch,
