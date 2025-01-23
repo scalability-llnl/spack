@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os
+from pathlib import Path, PurePath
 
 import pytest
 
@@ -15,26 +16,25 @@ from spack.stage import Stage
 
 
 @pytest.mark.parametrize("_fetch_method", ["curl", "urllib"])
-def test_fetch_missing_cache(tmpdir, _fetch_method):
+def test_fetch_missing_cache(tmp_path, _fetch_method):
     """Ensure raise a missing cache file."""
-    testpath = str(tmpdir)
-    non_existing = os.path.join(testpath, "non-existing")
+    non_existing = tmp_path / "non-existing"
     with spack.config.override("config:url_fetch_method", _fetch_method):
         url = url_util.path_to_file_url(non_existing)
         fetcher = CacheURLFetchStrategy(url=url)
-        with Stage(fetcher, path=testpath):
+        with Stage(fetcher, path=str(tmp_path)):
             with pytest.raises(NoCacheError, match=r"No cache"):
                 fetcher.fetch()
 
 
 @pytest.mark.parametrize("_fetch_method", ["curl", "urllib"])
-def test_fetch(tmpdir, _fetch_method):
+def test_fetch(tmp_path, _fetch_method):
     """Ensure a fetch after expanding is effectively a no-op."""
-    cache_dir = tmpdir.join("cache")
-    stage_dir = tmpdir.join("stage")
+    cache_dir = tmp_path / "cache"
+    stage_dir = tmp_path / "stage"
     mkdirp(cache_dir)
     mkdirp(stage_dir)
-    cache = os.path.join(cache_dir, "cache.tar.gz")
+    cache = cache_dir / "cache.tar.gz"
     touch(cache)
     url = url_util.path_to_file_url(cache)
     with spack.config.override("config:url_fetch_method", _fetch_method):
