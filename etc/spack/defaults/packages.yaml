@@ -35,7 +35,7 @@ packages:
       glu: [mesa-glu, openglu]
       golang: [go, gcc]
       go-or-gccgo-bootstrap: [go-bootstrap, gcc]
-      hdf5: [hdf5_virt]
+      hdf5_virt: [hdf5]
       iconv: [libiconv]
       ipp: [intel-oneapi-ipp]
       java: [openjdk, jdk, ibm-java]
