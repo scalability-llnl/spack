@@ -190,6 +190,9 @@ class Gaudi(CMakePackage, CudaPackage):
         # ...but Gaudi additionally requires a path variable about itself
         for lib_path in [self.prefix.lib, self.prefix.lib64]:
             env.prepend_path("LD_LIBRARY_PATH", lib_path)
+            # GAUDI_PLUGIN_PATH currently only used on macos
+            # but may replace LD_LIBRARY_PATH in the future
+            env.prepend_path("GAUDI_PLUGIN_PATH", lib_path)
 
     def url_for_version(self, version):
         major = str(version[0])
