@@ -277,10 +277,13 @@ def _config_change_requires_scope(path, spec, scope, match_spec=None):
 
     changed = False
 
+    #spec.attach_git_version_lookup()
+
     def override_cfg_spec(spec_str):
         nonlocal changed
 
         init_spec = spack.spec.Spec(spec_str)
+        #init_spec.attach_git_version_lookup()
         # Overridden spec cannot be anonymous
         init_spec.name = spec.name
         if match_spec and not init_spec.satisfies(match_spec):
@@ -350,9 +353,10 @@ def _config_change(config_path, match_spec_str=None):
                 if spack.config.get(key_path, scope=scope):
                     ideal_scope_to_modify = scope
                     break
+            write_scope = ideal_scope_to_modify or spack.config.default_modify_scope()
 
             update_path = f"{key_path}:[{str(spec)}]"
-            spack.config.add(update_path, scope=ideal_scope_to_modify)
+            spack.config.add(update_path, scope=write_scope)
     else:
         raise ValueError("'config change' can currently only change 'require' sections")
 
