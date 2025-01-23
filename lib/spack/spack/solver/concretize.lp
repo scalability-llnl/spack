@@ -1270,6 +1270,13 @@ attr("node_version_satisfies", node(X, Runtime), VersionRange) :-
    attr("compatible_runtime", PackageNode, Runtime, VersionRange),
    concrete(PackageNode).
 
+% If a compiler package is depended on with type link, it's used as a library
+compiler_used_as_a_library(node(X, Child), Hash) :-
+  concrete(node(X, Child)),
+  attr("hash", node(X, Child), Hash),
+  compiler_package(Child), % Used to restrict grounding for this rule
+  attr("depends_on", _, node(X, Child), "link").
+
 %-----------------------------------------------------------------------------
 % Runtimes
 %-----------------------------------------------------------------------------
@@ -1375,11 +1382,11 @@ language("c").
 language("cxx").
 language("fortran").
 
-% FIXME (compiler as nodes): remove when we lift this constraint
-error(10, "Only external compilers are allowed for the {0} language", Language)
+error(10, "Only external, or concrete, compilers are allowed for the {0} language", Language)
   :- provider(ProviderNode, node(_, Language)),
      language(Language),
-     not external(ProviderNode).
+     not external(ProviderNode),
+     not concrete(ProviderNode).
 
 error(10, "{0} compiler '{2}@{3}' incompatible with 'target={1}'", Package, Target, Compiler, Version)
   :- attr("node_target", node(X, Package), Target),
@@ -1457,31 +1464,52 @@ hash_attr(Hash, "node_version_satisfies", PackageName, Constraint) :-
 % This recovers the exact semantics for hash reuse hash and depends_on are where
 % splices are decided, and virtual_on_edge can result in name-changes, which is
 % why they are all treated separately.
-imposed_constraint(Hash, Attr, PackageName) :-
-  hash_attr(Hash, Attr, PackageName).
-imposed_constraint(Hash, Attr, PackageName, A1) :-
-  hash_attr(Hash, Attr, PackageName, A1), Attr != "hash".
-imposed_constraint(Hash, Attr, PackageName, Arg1, Arg2) :-
-  hash_attr(Hash, Attr, PackageName, Arg1, Arg2),
+
+imposed_constraint(Hash, Attr, PackageName) :- hash_attr(Hash, Attr, PackageName), Attr != "virtual_node".
+
+imposed_constraint(Hash, Attr, PackageName, A1) :- hash_attr(Hash, Attr, PackageName, A1), Attr != "hash".
+
+imposed_constraint(Hash, Attr, PackageName, A1, A2) :-
+  hash_attr(Hash, Attr, PackageName, A1, A2),
   Attr != "depends_on",
   Attr != "virtual_on_edge".
-imposed_constraint(Hash, Attr, PackageName, A1, A2, A3) :-
-  hash_attr(Hash, Attr, PackageName, A1, A2, A3).
+
+imposed_constraint(Hash, Attr, PackageName, A1, A2, A3) :- hash_attr(Hash, Attr, PackageName, A1, A2, A3).
 imposed_constraint(Hash, "hash", PackageName, Hash) :- installed_hash(PackageName, Hash).
+
+% If a compiler is not used as a library, we just enforce "run" dependency, so we
+% can get by with a much smaller search space.
+avoid_compiler_link_dependency(Hash, DepName) :-
+  hash_attr(Hash, "depends_on", PackageName, DepName, "link"),
+  not hash_attr(Hash, "depends_on", PackageName, DepName, "run"),
+  hash_attr(Hash, "hash", DepName, DepHash),
+  compiler_package(PackageName),
+  not compiler_used_as_a_library(node(_, PackageName), Hash).
+
 % Without splicing, we simply recover the exact semantics
 imposed_constraint(ParentHash, "hash", ChildName, ChildHash) :-
   hash_attr(ParentHash, "hash", ChildName, ChildHash),
   ChildHash != ParentHash,
+  not avoid_compiler_link_dependency(ParentHash, ChildName),
   not abi_splice_conditions_hold(_, _, ChildName, ChildHash).
 
 imposed_constraint(Hash, "depends_on", PackageName, DepName, Type) :-
   hash_attr(Hash, "depends_on", PackageName, DepName, Type),
   hash_attr(Hash, "hash", DepName, DepHash),
+  not avoid_compiler_link_dependency(Hash, DepName),
   not attr("splice_at_hash", _, _, DepName, DepHash).
 
 imposed_constraint(Hash, "virtual_on_edge", PackageName, DepName, VirtName) :-
   hash_attr(Hash, "virtual_on_edge", PackageName, DepName, VirtName),
+  not avoid_compiler_link_dependency(Hash, DepName),
   not attr("splice_at_hash", _, _, DepName,_).
+
+imposed_constraint(Hash, "virtual_node", VirtName) :-
+  hash_attr(Hash, "virtual_on_edge", PackageName, DepName, VirtName),
+  hash_attr(Hash, "virtual_node", VirtName),
+  not avoid_compiler_link_dependency(Hash, DepName),
+  not attr("splice_at_hash", _, _, DepName,_).
+
 
 % Rules pertaining to attr("splice_at_hash") and abi_splice_conditions_hold will
 % be conditionally loaded from splices.lp
