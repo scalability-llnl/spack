@@ -95,7 +95,7 @@ def test_spack_entry_point_extension(tmp_path, mock_get_entry_points):
     if not found:
         raise ValueError("Did not find extension in %s" % ", ".join(extensions))
     root = spack.extensions.load_extension("myext")
-    assert root.samefile(my_ext)
+    assert os.path.samefile(root, my_ext)
     module = spack.extensions.get_module("spam")
     assert module is not None
 

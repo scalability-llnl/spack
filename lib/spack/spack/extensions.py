@@ -9,7 +9,7 @@ import os
 import re
 import sys
 import types
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import List
 
 import llnl.util.lang
@@ -17,7 +17,6 @@ import llnl.util.lang
 import spack.config
 import spack.error
 import spack.util.path
-from spack.util.path import abstract_path, concrete_path, fs_path
 
 _extension_regexp = re.compile(r"spack-(\w[-\w]*)$")
 
@@ -39,7 +38,7 @@ def extension_name(path):
          ExtensionNamingError: if path does not match the expected format
              for a Spack command extension.
     """
-    regexp_match = re.search(_extension_regexp, abstract_path(os.path.normpath(path)).name)
+    regexp_match = re.search(_extension_regexp, PurePath(os.path.normpath(path)).name)
     if not regexp_match:
         raise ExtensionNamingError(path)
     return regexp_match.group(1)
@@ -67,7 +66,7 @@ def load_command_extension(command, path):
 
     # Compute the absolute path of the file to be loaded, along with the
     # name of the python module where it will be stored
-    cmd_path = concrete_path(path, extension, "cmd", python_name + ".py")
+    cmd_path = Path(path, extension, "cmd", python_name + ".py")
 
     # Short circuit if the command source file does not exist
     if not cmd_path.exists():
@@ -88,9 +87,9 @@ def ensure_extension_loaded(extension, *, path):
             return
 
         parts = [path] + name.split(".") + ["__init__.py"]
-        init_file = concrete_path(*parts)
+        init_file = Path(*parts)
         if init_file.exists():
-            m = llnl.util.lang.load_module_from_file(package_name, fs_path(init_file))
+            m = llnl.util.lang.load_module_from_file(package_name, os.fspath(init_file))
         else:
             m = types.ModuleType(package_name)
 
@@ -99,7 +98,7 @@ def ensure_extension_loaded(extension, *, path):
         #
         # https://docs.python.org/3/reference/import.html#package-path-rules
         #
-        m.__path__ = [fs_path(init_file.parent)]
+        m.__path__ = [os.fspath(init_file.parent)]
         sys.modules[package_name] = m
 
     # Create a searchable package for both the root folder of the extension
@@ -114,7 +113,7 @@ def load_extension(name: str) -> Path:
     Args:
         name: name of the extension
     """
-    extension_root = concrete_path(path_for_extension(name, paths=get_extension_paths()))
+    extension_root = Path(path_for_extension(name, paths=get_extension_paths()))
     ensure_extension_loaded(name, path=extension_root)
     commands = (extension_root / extension_name(extension_root) / "cmd" / "*.py").glob("*")
     commands = [x.name.rstrip(".py") for x in commands]
@@ -164,7 +163,7 @@ def get_command_paths():
     extension_paths = get_extension_paths()
 
     for path in extension_paths:
-        path = concrete_path(path)
+        path = Path(path)
         extension = _python_name(extension_name(path))
         command_paths.append(path / extension / "cmd")
 
@@ -212,7 +211,7 @@ def get_template_dirs():
     in extensions.
     """
     extension_dirs = get_extension_paths()
-    extensions = [fs_path(abstract_path(x, "templates")) for x in extension_dirs]
+    extensions = [os.fspath(PurePath(x, "templates")) for x in extension_dirs]
     return extensions
 
 

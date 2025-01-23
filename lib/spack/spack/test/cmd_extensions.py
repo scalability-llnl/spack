@@ -5,7 +5,7 @@
 import contextlib
 import os
 import sys
-from pathlib import Path
+from pathlib import Path, PurePath
 
 import pytest
 
@@ -13,7 +13,6 @@ import spack.cmd
 import spack.config
 import spack.extensions
 import spack.main
-from spack.util.path import abstract_path, concrete_path, fs_path
 
 
 class Extension:
@@ -259,10 +258,10 @@ def test_get_command_paths(config):
     extensions = ("extension-1", "extension-2")
     ext_paths = []
     expected_cmd_paths = []
-    test_path = concrete_path("my", "path", "to")
+    test_path = Path("my", "path", "to")
     for ext in extensions:
         ext_path = test_path / ("spack-" + ext)
-        ext_paths.append(fs_path(ext_path))
+        ext_paths.append(os.fspath(ext_path))
         path = ext_path / spack.cmd.python_name(ext) / "cmd"
         path = path.absolute()
         expected_cmd_paths.append(path)
@@ -273,12 +272,12 @@ def test_get_command_paths(config):
 
 def test_variable_in_extension_path(config, working_env):
     """Test variables in extension paths."""
-    os.environ["_MY_VAR"] = fs_path(abstract_path("my", "var"))
-    ext_paths = [fs_path(abstract_path("~", "${_MY_VAR}", "spack-extension-1"))]
+    os.environ["_MY_VAR"] = os.fspath(PurePath("my", "var"))
+    ext_paths = [os.fspath(PurePath("~", "${_MY_VAR}", "spack-extension-1"))]
     # Home env variable is USERPROFILE on Windows
     home_env = "USERPROFILE" if sys.platform == "win32" else "HOME"
     expected_ext_paths = [
-        fs_path(abstract_path(os.environ[home_env], os.environ["_MY_VAR"], "spack-extension-1"))
+        os.fspath(PurePath(os.environ[home_env], os.environ["_MY_VAR"], "spack-extension-1"))
     ]
     with spack.config.override("config:extensions", ext_paths):
         assert spack.extensions.get_extension_paths() == expected_ext_paths
