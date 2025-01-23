@@ -145,7 +145,6 @@ class RocmOpencl(CMakePackage):
         "6.2.4",
         "6.3.0",
         "6.3.1",
-        "master",
     ]:
         depends_on(f"aqlprofile@{ver}", type="link", when=f"@{ver}")
 
