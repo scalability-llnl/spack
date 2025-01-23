@@ -1,11 +1,28 @@
 #!/bin/sh
 
+
+_value_in_varname () {
+    VARNAME="$1"
+    VALUE="$2"
+    SEP="$3"
+
+    if eval "[ -n \"\${${VARNAME}}\" ]"; then
+        if eval "[ \"\${${VARNAME}}\" == \"$VALUE\" ] ||
+            [ \"\${${VARNAME}}\" == ^\"$VALUE$SEP\"* ] ||
+            [ \"\${${VARNAME}}\" == *\"$SEP$VALUE$SEP\"* ] ||
+            [ \"\${${VARNAME}}\" == *\"$SEP$VALUE\" ]"; then
+            return 0
+        fi
+    fi
+    return 1
+}
+
 # _spack_env_set VARNAME VALUE
 #
 # Set the VARNAME variable to VALUE.
 _spack_env_set() {
-    VARNAME = $1
-    VALUE = $2
+    VARNAME="$1"
+    VALUE="$2"
 
     export $VARNAME="$VALUE"
 }
@@ -16,8 +33,6 @@ _spack_env_set() {
 _spack_env_unset() {
     VARNAME="$1"
 
-    # check if VARNAME exists
-
     unset "$VARNAME"
 }
 
@@ -26,12 +41,17 @@ _spack_env_unset() {
 # Append VALUE to the flag list in variable VARNAME.
 # The list in VARNAME is separated by the SEP character.
 _spack_env_append() {
-    VARNAME = $1
-    VALUE = $2
-    SEP = $3
+    VARNAME="$1"
+    VALUE="$2"
+    SEP="$3"
 
-    export ${${VARNAME}}=${${VARNAME}}${SEP}${VALUE}
-    # going to need to use eval for nested braces
+    if eval "[ -n \"\${${VARNAME}}\" ]"; then
+        if [ "$(_value_in_varname $VARNAME $VALUE)" == 1 ] ; then
+            eval "export $VARNAME=\${${VARNAME}}$SEP$VALUE"
+        fi
+    else
+        export $VARNAME="$VALUE"
+    fi
 }
 
 # _spack_env_prepend VARNAME VALUE SEP
@@ -39,29 +59,35 @@ _spack_env_append() {
 # Prepend VALUE to the flag list in variable VARNAME.
 # The list in VARNAME is separated by the SEP character.
 _spack_env_prepend() { # if not exporting then use lowercase
-    VARNAME = $1
-    VALUE = $2
-    SEP = $3 # how to set if no $3
+    VARNAME="$1"
+    VALUE="$2"
+    SEP="$3" # how to set if no $3
 
-    if [[ -z "$VARNAME" ]]; then
-        export VARNAME=${VALUE}
+   if eval "[ -n \"\${${VARNAME}}\" ]"; then
+        if [ "$(_value_in_varname $VARNAME $VALUE)" == 1 ] ; then
+            eval "export $VARNAME=$VALUE$SEP\${${VARNAME}}"
+        fi
     else
-        export ${${VARNAME}} =${VALUE}${SEP}${${VARNAME}}
+        export $VARNAME="$VALUE"
     fi
-    # Should the result be a string? Might need quotes
 }
 
 # _spack_env_remove VARNAME VALUE SEP
 #
 # Remove VALUE from the flag list in variable VARNAME.
 # The list in VARNAME is separated by the SEP character.
-_spack_env_remove() {
-    VARNAME = $1
-    VALUE = $2
-    SEP = $3
+_spack_env_remove() { # look into sed
+    VARNAME="$1"
+    VALUE="$2"
+    SEP="$3"
 
-    if [ ${${VARNAME}} == ${VALUE}${SEP}];
-    then
+    VARNAME_VALUE=\${${VARNAME}}
+
+
+    eval "echo \"${VARNAME_VALUE[@]/other*/}\""
+    eval echo "${VARNAME/\$VALUE}"
+
+    if [ $VARNAME == *"$VALUE"* ]; then
         ${${VARNAME}} = ""
 
     else

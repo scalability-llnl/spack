@@ -9,8 +9,6 @@ import spack.cmd
 import spack.cmd.common
 import spack.environment as ev
 import spack.store
-import spack.user_environment as uenv
-import spack.util.environment as environment
 from spack.cmd.common import arguments
 
 description = "add package to the user environment"

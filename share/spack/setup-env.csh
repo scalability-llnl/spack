@@ -85,4 +85,4 @@ end
 unsetenv _sp_initializing
 
 # Set shell being used
-export SPACK_SHELL="csh"
+setenv SPACK_SHELL="csh"
