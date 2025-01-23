@@ -548,19 +548,19 @@ class GitVersion(ConcreteVersion):
     sufficient.
     """
 
-    __slots__ = ["ref", "has_git_prefix", "is_commit", "_ref_lookup", "_ref_version"]
+    __slots__ = ["has_git_prefix", "commit_sha", "ref", "std_version", "_ref_lookup"]
 
     def __init__(self, string: str):
-        # WIP refactor
-        self.requested_ref: Optional[String] = None
+
+        # TODO will be required for concrete specs when commit lookup added
         self.commit_sha: Optional[String] = None
         self.std_version: Optional[StandardVersion] = None
 
+        # optional user supplied git ref
+        self.ref: Optional[String] = None
+
         # An object that can lookup git refs to compare them to versions
         self._ref_lookup: Optional[AbstractRefLookup] = None
-
-        # This is the effective version.
-        self._ref_version: Optional[StandardVersion]
 
         self.has_git_prefix = string.startswith("git.")
 
@@ -570,28 +570,27 @@ class GitVersion(ConcreteVersion):
         if "=" in normalized_string:
             # Store the git reference, and parse the user provided version.
             self.ref, spack_version = normalized_string.split("=")
-            self._ref_version = StandardVersion(
+            self.std_version = StandardVersion(
                 spack_version, *parse_string_components(spack_version)
             )
         else:
             # The ref_version is lazily attached after parsing, since we don't know what
             # package it applies to here.
-            self._ref_version = None
+            self.std_version = None
             self.ref = normalized_string
 
         # Used by fetcher
         self.is_commit: bool = len(self.ref) == 40 and bool(COMMIT_VERSION.match(self.ref))
 
-        self.requested_ref = self.ref
-        self.std_version = self._ref_version
+        # translations
         if self.is_commit:
             self.commit_sha = self.ref
 
     @property
     def ref_version(self) -> StandardVersion:
         # Return cached version if we have it
-        if self._ref_version is not None:
-            return self._ref_version
+        if self.std_version is not None:
+            return self.std_version
 
         if self.ref_lookup is None:
             raise VersionLookupError(
@@ -604,10 +603,10 @@ class GitVersion(ConcreteVersion):
         # Add a -git.<distance> suffix when we're not exactly on a tag
         if distance > 0:
             version_string += f"-git.{distance}"
-        self._ref_version = StandardVersion(
+        self.std_version = StandardVersion(
             version_string, *parse_string_components(version_string)
         )
-        return self._ref_version
+        return self.std_version
 
     def intersects(self, other: VersionType) -> bool:
         # For concrete things intersects = satisfies = equality

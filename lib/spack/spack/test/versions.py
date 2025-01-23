@@ -832,13 +832,13 @@ def test_git_versions_store_ref_requests(pre_equal, post_equal):
     v = Version(vstring)
 
     assert isinstance(v, GitVersion)
-    assert v.requested_ref == pre_equal
+    assert v.ref == pre_equal
 
     if post_equal:
         assert v.std_version == Version(post_equal)
 
     if v.is_commit:
-        assert v.requested_ref == v.commit_sha
+        assert v.ref == v.commit_sha
 
 @pytest.mark.parametrize(
     "vstring, eq_vstring, is_commit",
