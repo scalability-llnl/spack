@@ -42,7 +42,8 @@ import spack.util.gpg
 import spack.util.spack_yaml as syaml
 import spack.util.url as url_util
 import spack.util.web as web_util
-from spack.binary_distribution import CannotListKeys, GenerateIndexError
+from spack.binary_distribution import INDEX_HASH_FILE, CannotListKeys, GenerateIndexError
+from spack.database import INDEX_JSON_FILE
 from spack.installer import PackageInstaller
 from spack.paths import test_path
 from spack.spec import Spec
@@ -606,7 +607,7 @@ def test_etag_fetching_304():
     # handled as success, since it means the local cache is up-to-date.
     def response_304(request: urllib.request.Request):
         url = request.get_full_url()
-        if url == "https://www.example.com/build_cache/index.json":
+        if url == f"https://www.example.com/build_cache/{INDEX_JSON_FILE}":
             assert request.get_header("If-none-match") == '"112a8bbc1b3f7f185621c1ee335f0502"'
             raise urllib.error.HTTPError(
                 url, 304, "Not Modified", hdrs={}, fp=None  # type: ignore[arg-type]
@@ -628,7 +629,7 @@ def test_etag_fetching_200():
     # Test conditional fetch with etags. The remote has modified the file.
     def response_200(request: urllib.request.Request):
         url = request.get_full_url()
-        if url == "https://www.example.com/build_cache/index.json":
+        if url == f"https://www.example.com/build_cache/{INDEX_JSON_FILE}":
             assert request.get_header("If-none-match") == '"112a8bbc1b3f7f185621c1ee335f0502"'
             return urllib.response.addinfourl(
                 io.BytesIO(b"Result"),
@@ -679,7 +680,7 @@ def test_default_index_fetch_200():
 
     def urlopen(request: urllib.request.Request):
         url = request.get_full_url()
-        if url.endswith("index.json.hash"):
+        if url.endswith(INDEX_HASH_FILE):
             return urllib.response.addinfourl(  # type: ignore[arg-type]
                 io.BytesIO(index_json_hash.encode()),
                 headers={},  # type: ignore[arg-type]
@@ -687,7 +688,7 @@ def test_default_index_fetch_200():
                 code=200,
             )
 
-        elif url.endswith("index.json"):
+        elif url.endswith(INDEX_JSON_FILE):
             return urllib.response.addinfourl(
                 io.BytesIO(index_json.encode()),
                 headers={"Etag": '"59bcc3ad6775562f845953cf01624225"'},  # type: ignore[arg-type]
@@ -718,7 +719,7 @@ def test_default_index_dont_fetch_index_json_hash_if_no_local_hash():
 
     def urlopen(request: urllib.request.Request):
         url = request.get_full_url()
-        if url.endswith("index.json"):
+        if url.endswith(INDEX_JSON_FILE):
             return urllib.response.addinfourl(
                 io.BytesIO(index_json.encode()),
                 headers={"Etag": '"59bcc3ad6775562f845953cf01624225"'},  # type: ignore[arg-type]
@@ -747,7 +748,7 @@ def test_default_index_not_modified():
 
     def urlopen(request: urllib.request.Request):
         url = request.get_full_url()
-        if url.endswith("index.json.hash"):
+        if url.endswith(INDEX_HASH_FILE):
             return urllib.response.addinfourl(
                 io.BytesIO(index_json_hash.encode()),
                 headers={},  # type: ignore[arg-type]
@@ -792,7 +793,7 @@ def test_default_index_json_404():
 
     def urlopen(request: urllib.request.Request):
         url = request.get_full_url()
-        if url.endswith("index.json.hash"):
+        if url.endswith(INDEX_HASH_FILE):
             return urllib.response.addinfourl(
                 io.BytesIO(index_json_hash.encode()),
                 headers={},  # type: ignore[arg-type]
@@ -800,7 +801,7 @@ def test_default_index_json_404():
                 code=200,
             )
 
-        elif url.endswith("index.json"):
+        elif url.endswith(INDEX_JSON_FILE):
             raise urllib.error.HTTPError(
                 url,
                 code=404,
