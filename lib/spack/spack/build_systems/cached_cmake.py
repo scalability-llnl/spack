@@ -293,6 +293,13 @@ class CachedCMakeBuilder(CMakeBuilder):
                 entries.append(cmake_cache_string("AMDGPU_TARGETS", arch_str))
                 entries.append(cmake_cache_string("GPU_TARGETS", arch_str))
 
+            if spec.satisfies("%gcc"):
+                entries.append(
+                    cmake_cache_string(
+                        "CMAKE_HIP_FLAGS", f"--gcc-toolchain={self.pkg.compiler.prefix}"
+                    )
+                )
+
         return entries
 
     def std_initconfig_entries(self):
