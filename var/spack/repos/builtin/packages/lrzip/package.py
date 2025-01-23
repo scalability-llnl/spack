@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -34,6 +33,7 @@ class Lrzip(Package):
     depends_on("lzo")
     depends_on("zlib-api")
     depends_on("bzip2")
+    depends_on("gmake", type="build")
 
     def install(self, spec, prefix):
         set_executable("./autogen.sh")

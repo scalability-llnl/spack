@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -12,6 +11,7 @@ import pytest
 import spack
 import spack.platforms
 import spack.spec
+from spack.database import INDEX_JSON_FILE
 from spack.main import SpackCommand
 from spack.util.executable import which
 
@@ -37,7 +37,7 @@ def test_create_db_tarball(tmpdir, database):
         contents = tar("tzf", tarball_name, output=str)
 
         # DB file is included
-        assert "index.json" in contents
+        assert INDEX_JSON_FILE in contents
 
         # specfiles from all installs are included
         for spec in database.query():

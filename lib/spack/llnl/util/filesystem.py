@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import collections
@@ -24,6 +23,7 @@ from typing import (
     Callable,
     Deque,
     Dict,
+    Generator,
     Iterable,
     List,
     Match,
@@ -75,7 +75,6 @@ __all__ = [
     "install_tree",
     "is_exe",
     "join_path",
-    "last_modification_time_recursive",
     "library_extensions",
     "mkdirp",
     "partition_path",
@@ -300,35 +299,32 @@ def filter_file(
     ignore_absent: bool = False,
     start_at: Optional[str] = None,
     stop_at: Optional[str] = None,
+    encoding: Optional[str] = "utf-8",
 ) -> None:
     r"""Like sed, but uses python regular expressions.
 
-    Filters every line of each file through regex and replaces the file
-    with a filtered version.  Preserves mode of filtered files.
+    Filters every line of each file through regex and replaces the file with a filtered version.
+    Preserves mode of filtered files.
 
-    As with re.sub, ``repl`` can be either a string or a callable.
-    If it is a callable, it is passed the match object and should
-    return a suitable replacement string.  If it is a string, it
-    can contain ``\1``, ``\2``, etc. to represent back-substitution
-    as sed would allow.
+    As with re.sub, ``repl`` can be either a string or a callable. If it is a callable, it is
+    passed the match object and should return a suitable replacement string.  If it is a string, it
+    can contain ``\1``, ``\2``, etc. to represent back-substitution as sed would allow.
 
     Args:
-        regex (str): The regular expression to search for
-        repl (str): The string to replace matches with
-        *filenames: One or more files to search and replace
-        string (bool): Treat regex as a plain string. Default it False
-        backup (bool): Make backup file(s) suffixed with ``~``. Default is False
-        ignore_absent (bool): Ignore any files that don't exist.
-            Default is False
-        start_at (str): Marker used to start applying the replacements. If a
-            text line matches this marker filtering is started at the next line.
-            All contents before the marker and the marker itself are copied
-            verbatim. Default is to start filtering from the first line of the
-            file.
-        stop_at (str): Marker used to stop scanning the file further. If a text
-            line matches this marker filtering is stopped and the rest of the
-            file is copied verbatim. Default is to filter until the end of the
-            file.
+        regex: The regular expression to search for
+        repl: The string to replace matches with
+        *filenames: One or more files to search and replace string: Treat regex as a plain string.
+            Default it False backup: Make backup file(s) suffixed with ``~``. Default is False
+        ignore_absent: Ignore any files that don't exist. Default is False
+        start_at: Marker used to start applying the replacements. If a text line matches this
+            marker filtering is started at the next line. All contents before the marker and the
+            marker itself are copied verbatim. Default is to start filtering from the first line of
+            the file.
+        stop_at: Marker used to stop scanning the file further. If a text line matches this marker
+            filtering is stopped and the rest of the file is copied verbatim. Default is to filter
+            until the end of the file.
+        encoding: The encoding to use when reading and writing the files. Default is None, which
+            uses the system's default encoding.
     """
     # Allow strings to use \1, \2, etc. for replacement, like sed
     if not callable(repl):
@@ -344,72 +340,56 @@ def filter_file(
 
     if string:
         regex = re.escape(regex)
-    for filename in path_to_os_path(*filenames):
-        msg = 'FILTER FILE: {0} [replacing "{1}"]'
-        tty.debug(msg.format(filename, regex))
-
-        backup_filename = filename + "~"
-        tmp_filename = filename + ".spack~"
-
-        if ignore_absent and not os.path.exists(filename):
-            msg = 'FILTER FILE: file "{0}" not found. Skipping to next file.'
-            tty.debug(msg.format(filename))
+    regex_compiled = re.compile(regex)
+    for path in path_to_os_path(*filenames):
+        if ignore_absent and not os.path.exists(path):
+            tty.debug(f'FILTER FILE: file "{path}" not found. Skipping to next file.')
             continue
+        else:
+            tty.debug(f'FILTER FILE: {path} [replacing "{regex}"]')
 
-        # Create backup file. Don't overwrite an existing backup
-        # file in case this file is being filtered multiple times.
-        if not os.path.exists(backup_filename):
-            shutil.copy(filename, backup_filename)
+        fd, temp_path = tempfile.mkstemp(
+            prefix=f"{os.path.basename(path)}.", dir=os.path.dirname(path)
+        )
+        os.close(fd)
 
-        # Create a temporary file to read from. We cannot use backup_filename
-        # in case filter_file is invoked multiple times on the same file.
-        shutil.copy(filename, tmp_filename)
+        shutil.copy(path, temp_path)
+        errored = False
 
         try:
-            # Open as a text file and filter until the end of the file is
-            # reached, or we found a marker in the line if it was specified
-            #
-            # To avoid translating line endings (\n to \r\n and vice-versa)
-            # we force os.open to ignore translations and use the line endings
-            # the file comes with
-            with open(tmp_filename, mode="r", errors="surrogateescape", newline="") as input_file:
-                with open(filename, mode="w", errors="surrogateescape", newline="") as output_file:
-                    do_filtering = start_at is None
-                    # Using iter and readline is a workaround needed not to
-                    # disable input_file.tell(), which will happen if we call
-                    # input_file.next() implicitly via the for loop
-                    for line in iter(input_file.readline, ""):
-                        if stop_at is not None:
-                            current_position = input_file.tell()
+            # Open as a text file and filter until the end of the file is reached, or we found a
+            # marker in the line if it was specified. To avoid translating line endings (\n to
+            # \r\n and vice-versa) use newline="".
+            with open(
+                temp_path, mode="r", errors="surrogateescape", newline="", encoding=encoding
+            ) as input_file, open(
+                path, mode="w", errors="surrogateescape", newline="", encoding=encoding
+            ) as output_file:
+                if start_at is None and stop_at is None:  # common case, avoids branching in loop
+                    for line in input_file:
+                        output_file.write(re.sub(regex_compiled, repl, line))
+                else:
+                    # state is -1 before start_at; 0 between; 1 after stop_at
+                    state = 0 if start_at is None else -1
+                    for line in input_file:
+                        if state == 0:
                             if stop_at == line.strip():
-                                output_file.write(line)
-                                break
-                        if do_filtering:
-                            filtered_line = re.sub(regex, repl, line)
-                            output_file.write(filtered_line)
-                        else:
-                            do_filtering = start_at == line.strip()
-                            output_file.write(line)
-                    else:
-                        current_position = None
-
-            # If we stopped filtering at some point, reopen the file in
-            # binary mode and copy verbatim the remaining part
-            if current_position and stop_at:
-                with open(tmp_filename, mode="rb") as input_binary_buffer:
-                    input_binary_buffer.seek(current_position)
-                    with open(filename, mode="ab") as output_binary_buffer:
-                        output_binary_buffer.writelines(input_binary_buffer.readlines())
+                                state = 1
+                            else:
+                                line = re.sub(regex_compiled, repl, line)
+                        elif state == -1 and start_at == line.strip():
+                            state = 0
+                        output_file.write(line)
 
         except BaseException:
-            # clean up the original file on failure.
-            shutil.move(backup_filename, filename)
+            # restore the original file
+            os.rename(temp_path, path)
+            errored = True
             raise
 
         finally:
-            os.remove(tmp_filename)
-            if not backup and os.path.exists(backup_filename):
-                os.remove(backup_filename)
+            if not errored and not backup:
+                os.unlink(temp_path)
 
 
 class FileFilter:
@@ -1114,12 +1094,12 @@ def hash_directory(directory, ignore=[]):
 
 @contextmanager
 @system_path_filter
-def write_tmp_and_move(filename):
+def write_tmp_and_move(filename: str, *, encoding: Optional[str] = None):
     """Write to a temporary file, then move into place."""
     dirname = os.path.dirname(filename)
     basename = os.path.basename(filename)
     tmp = os.path.join(dirname, ".%s.tmp" % basename)
-    with open(tmp, "w") as f:
+    with open(tmp, "w", encoding=encoding) as f:
         yield f
     shutil.move(tmp, filename)
 
@@ -1489,15 +1469,36 @@ def set_executable(path):
 
 
 @system_path_filter
-def last_modification_time_recursive(path):
-    path = os.path.abspath(path)
-    times = [os.stat(path).st_mtime]
-    times.extend(
-        os.lstat(os.path.join(root, name)).st_mtime
-        for root, dirs, files in os.walk(path)
-        for name in dirs + files
-    )
-    return max(times)
+def recursive_mtime_greater_than(path: str, time: float) -> bool:
+    """Returns true if any file or dir recursively under `path` has mtime greater than `time`."""
+    # use bfs order to increase likelihood of early return
+    queue: Deque[str] = collections.deque()
+
+    if os.stat(path).st_mtime > time:
+        return True
+
+    while queue:
+        current = queue.popleft()
+
+        try:
+            entries = os.scandir(current)
+        except OSError:
+            continue
+
+        with entries:
+            for entry in entries:
+                try:
+                    st = entry.stat(follow_symlinks=False)
+                except OSError:
+                    continue
+
+                if st.st_mtime > time:
+                    return True
+
+                if entry.is_dir(follow_symlinks=False):
+                    queue.append(entry.path)
+
+    return False
 
 
 @system_path_filter
@@ -1759,8 +1760,7 @@ def find(
 
 
 def _log_file_access_issue(e: OSError, path: str) -> None:
-    errno_name = errno.errorcode.get(e.errno, "UNKNOWN")
-    tty.debug(f"find must skip {path}: {errno_name} {e}")
+    tty.debug(f"find must skip {path}: {e}")
 
 
 def _file_id(s: os.stat_result) -> Tuple[int, int]:
@@ -2773,22 +2773,6 @@ def prefixes(path):
 
 
 @system_path_filter
-def md5sum(file):
-    """Compute the MD5 sum of a file.
-
-    Args:
-        file (str): file to be checksummed
-
-    Returns:
-        MD5 sum of the file's content
-    """
-    md5 = hashlib.md5()
-    with open(file, "rb") as f:
-        md5.update(f.read())
-    return md5.digest()
-
-
-@system_path_filter
 def remove_directory_contents(dir):
     """Remove all contents of a directory."""
     if os.path.exists(dir):
@@ -2836,6 +2820,25 @@ def temporary_dir(
             yield tmp_dir
     finally:
         remove_directory_contents(tmp_dir)
+
+
+@contextmanager
+def edit_in_place_through_temporary_file(file_path: str) -> Generator[str, None, None]:
+    """Context manager for modifying ``file_path`` in place, preserving its inode and hardlinks,
+    for functions or external tools that do not support in-place editing. Notice that this function
+    is unsafe in that it works with paths instead of a file descriptors, but this is by design,
+    since we assume the call site will create a new inode at the same path."""
+    tmp_fd, tmp_path = tempfile.mkstemp(
+        dir=os.path.dirname(file_path), prefix=f"{os.path.basename(file_path)}."
+    )
+    # windows cannot replace a file with open fds, so close since the call site needs to replace.
+    os.close(tmp_fd)
+    try:
+        shutil.copyfile(file_path, tmp_path, follow_symlinks=True)
+        yield tmp_path
+        shutil.copyfile(tmp_path, file_path, follow_symlinks=True)
+    finally:
+        os.unlink(tmp_path)
 
 
 def filesummary(path, print_bytes=16) -> Tuple[int, bytes]:

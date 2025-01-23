@@ -1,5 +1,4 @@
-.. Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-   Spack Project Developers. See the top-level COPYRIGHT file for details.
+.. Copyright Spack Project Developers. See COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -38,9 +37,11 @@ just have to configure and OCI registry and run ``spack buildcache push``.
    spack -e . install
 
    # Configure the registry
-   spack -e . mirror add --oci-username ... --oci-password ... container-registry oci://example.com/name/image
+   spack -e . mirror add --oci-username-variable REGISTRY_USER \
+                         --oci-password-variable REGISTRY_TOKEN \
+                        container-registry oci://example.com/name/image
 
-   # Push the image
+   # Push the image (do set REGISTRY_USER and REGISTRY_TOKEN)
    spack -e . buildcache push --update-index --base-image ubuntu:22.04 --tag my_env container-registry
 
 The resulting container image can then be run as follows:

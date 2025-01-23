@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -49,6 +48,7 @@ class Cntk(Package):
     depends_on("nccl", when="+cuda")
     depends_on("cntk1bitsgd@c8b77d", when="+1bitsgd")
     depends_on("multiverso@143187", when="+asgd")
+    depends_on("gmake", type="build")
 
     # Patch CNTN's build process to use libs installed outside CNTK source tree
     # multiverso, kaldi, openfst

@@ -1,4 +1,6 @@
 ci:
   pipeline-gen:
+  - build-job:
+      tags: [ "macos-sonoma", "apple-clang-16", "aarch64-macos" ]
   - build-job-remove:
       image:: macos-run-on-metal
