@@ -13,7 +13,7 @@ class PyDacite(PythonPackage):
 
     license("MIT")
 
-    version("master")
+    version("master", branch="master")
     version("1.8.0", sha256="6257a5e505b61a8cafee7ef3ad08cf32ee9b885718f42395d017e0a9b4c6af65")
 
     depends_on("python@3.6:")
