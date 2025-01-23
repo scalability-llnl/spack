@@ -49,10 +49,6 @@ def compiler_config_files():
         if from_packages_yaml:
             config_files.append(configuration.get_config_filename(name, "packages"))
 
-        compiler_config = configuration.get("compilers", scope=name)
-        if compiler_config:
-            config_files.append(configuration.get_config_filename(name, "compilers"))
-
     return config_files
 
 
