@@ -1054,7 +1054,7 @@ spack:
     e1_path = tmp_path / "e1"
     e1_manifest = e1_path / "spack.yaml"
     fs.mkdirp(e1_path)
-    with open(e1_manifest, "w") as f:
+    with open(e1_manifest, "w", encoding="utf-8") as f:
         f.write(manifest)
 
     for f in files:
@@ -1079,7 +1079,7 @@ spack:
     e1_path = tmp_path / "e1_subdir" / "e1"
     e1_manifest = e1_path / "spack.yaml"
     fs.mkdirp(e1_path)
-    with open(e1_manifest, "w") as f:
+    with open(e1_manifest, "w", encoding="utf-8") as f:
         f.write(manifest)
 
     for f in files:
