@@ -75,14 +75,14 @@ class Spdlog(CMakePackage):
     patch(
         "https://github.com/gabime/spdlog/commit/276ee5f5c0eb13626bd367b006ace5eae9526d8a.patch?full_index=1",
         sha256="fd4cbb10a795a03c7182a4070056c2b004d47b120a86e1958ff82316627bb565",
-        when="@1.12.0:1.15.0",
+        when="@1.13.0:1.15.0",
     )
     patch(
         "https://github.com/gabime/spdlog/commit/96a8f6250cbf4e8c76387c614f666710a2fa9bad.patch?full_index=1",
         sha256="5ed92f4c131fd31eb3d28390615ecff3ade3789cdecfd3db18cadb07cc8095e3",
-        when="@1.12.0:1.15.0",
+        when="@1.13.0:1.15.0",
     )
-    conflicts("^fmt@11.1:", when="@:1.11")
+    conflicts("^fmt@11.1:", when="@:1.12")
 
     def cmake_args(self):
         args = []
