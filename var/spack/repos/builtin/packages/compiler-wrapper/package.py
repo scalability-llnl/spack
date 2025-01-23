@@ -51,8 +51,8 @@ class CompilerWrapper(Package):
 
     def bin_dir(self) -> pathlib.Path:
         # This adds an extra "spack" subdir, so that the script and symlinks don't get
-        # their way to the default view /bin directory in environment
-        return pathlib.Path(str(self.prefix)) / "spack" / "bin"
+        # their way to the default view
+        return pathlib.Path(str(self.prefix)) / "libexec" / "spack"
 
     def install(self, spec, prefix):
         if sys.platform == "win32":
