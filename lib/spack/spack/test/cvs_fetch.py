@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import os
+from pathlib import Path
 
 import pytest
 
@@ -53,21 +53,22 @@ def test_fetch(type_of_test, mock_cvs_repository, config, mutable_mock_repo):
             if test.date is not None:
                 assert get_date() <= test.date
 
-            file_path = os.path.join(spec.package.stage.source_path, test.file)
-            assert os.path.isdir(spec.package.stage.source_path)
-            assert os.path.isfile(file_path)
+            source_path = Path(spec.package.stage.source_path)
+            file_path = source_path / test.file
+            assert source_path.is_dir()
+            assert file_path.is_file()
 
-            os.unlink(file_path)
-            assert not os.path.isfile(file_path)
+            file_path.unlink()
+            assert not file_path.is_file()
 
-            untracked_file = "foobarbaz"
+            untracked_file = Path("foobarbaz")
             touch(untracked_file)
-            assert os.path.isfile(untracked_file)
+            assert untracked_file.is_file()
             spec.package.do_restage()
-            assert not os.path.isfile(untracked_file)
+            assert not untracked_file.is_file()
 
-            assert os.path.isdir(spec.package.stage.source_path)
-            assert os.path.isfile(file_path)
+            assert source_path.is_dir()
+            assert file_path.is_file()
 
 
 def test_cvs_extra_fetch(tmpdir):
