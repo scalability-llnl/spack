@@ -47,10 +47,20 @@ def activate_header(env, shell, prompt=None, view: Optional[str] = None):
         cmds += 'set "SPACK_ENV=%s"\n' % env.path
         if view:
             cmds += 'set "SPACK_ENV_VIEW=%s"\n' % view
+        if prompt:
+            # we're going to need to start a new prompt from the env... UGH
+            # cmds += f'IF NOT DEFINED OLD_SPACK_PROMPT SET "OLD_SPACK_PROMPT=%PROMPT%"'
+            cmds += f'set "PROMPT=[{prompt}] $P$G"\n'
     elif shell == "pwsh":
         cmds += "$Env:SPACK_ENV='%s'\n" % env.path
         if view:
             cmds += "$Env:SPACK_ENV_VIEW='%s'\n" % view
+        if prompt:
+            cmds += """function global:prompt {\n
+    $pth = $(Convert-Path $(Get-Location)) | Split-Path -leaf
+    $spack_prompt = "[{prompt}] PS $pth>"
+    if(!$Env:SPACK_OLD_PROMPT) {$Env:SPACK_OLD_PROMPT=$spack_prompt}
+    $spack_prompt}\n""".format(prompt=prompt)
     else:
         bash_color_prompt = colorize(f"@G{{{prompt}}}", color=True, enclose=True)
         zsh_color_prompt = colorize(f"@G{{{prompt}}}", color=True, enclose=False, zsh=True)
@@ -105,10 +115,14 @@ def deactivate_header(shell):
         cmds += 'set "SPACK_ENV="\n'
         cmds += 'set "SPACK_ENV_VIEW="\n'
         # TODO: despacktivate
-        # TODO: prompt
+        # cmds += 'IF %SPACK_OLD_PROMPT!="" set "PROMPT=%SPACK_OLD_PROMPT"'
     elif shell == "pwsh":
         cmds += "Set-Item -Path Env:SPACK_ENV\n"
         cmds += "Set-Item -Path Env:SPACK_ENV_VIEW\n"
+        cmds += """function global:prompt { 
+    $pth = $(Convert-Path $(Get-Location)) | Split-Path -leaf
+    "[spack] PS $pth>"
+}\n"""
     else:
         cmds += "if [ ! -z ${SPACK_ENV+x} ]; then\n"
         cmds += "unset SPACK_ENV; export SPACK_ENV;\n"
