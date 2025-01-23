@@ -142,8 +142,7 @@ def _parse_link_paths(string):
 class CompilerPropertyDetector:
 
     def __init__(self, compiler_spec: "spack.spec.Spec"):
-        assert compiler_spec.external, "only external compiler specs are allowed, so far"
-        assert compiler_spec.concrete, "only concrete compiler specs are allowed, so far"
+        assert compiler_spec.concrete, "only concrete compiler specs are allowed"
         self.spec = compiler_spec
         self.cache = COMPILER_CACHE
 
@@ -152,6 +151,11 @@ class CompilerPropertyDetector:
         """Sets the environment to run this compiler"""
         import spack.schema.environment
         import spack.util.module_cmd
+
+        # No modifications for Spack managed compilers
+        if not self.spec.external:
+            yield
+            return
 
         # Avoid modifying os.environ if possible.
         environment = self.spec.extra_attributes.get("environment", {})
@@ -178,7 +182,6 @@ class CompilerPropertyDetector:
             os.environ.update(backup_env)
 
     def _compile_dummy_c_source(self) -> Optional[str]:
-        assert self.spec.external, "only external compiler specs are allowed, so far"
         compiler_pkg = self.spec.package
         if getattr(compiler_pkg, "cc"):
             cc = compiler_pkg.cc
@@ -201,16 +204,16 @@ class CompilerPropertyDetector:
                 )
             cc_exe = spack.util.executable.Executable(cc)
 
-            # FIXME (compiler as nodes): this operation should be encapsulated somewhere else
-            compiler_flags = self.spec.extra_attributes.get("flags", {})
-            for flag_type in [
-                "cflags" if cc == compiler_pkg.cc else "cxxflags",
-                "cppflags",
-                "ldflags",
-            ]:
-                current_flags = compiler_flags.get(flag_type, "").strip()
-                if current_flags:
-                    cc_exe.add_default_arg(*current_flags.split(" "))
+            if self.spec.external:
+                compiler_flags = self.spec.extra_attributes.get("flags", {})
+                for flag_type in [
+                    "cflags" if cc == compiler_pkg.cc else "cxxflags",
+                    "cppflags",
+                    "ldflags",
+                ]:
+                    current_flags = compiler_flags.get(flag_type, "").strip()
+                    if current_flags:
+                        cc_exe.add_default_arg(*current_flags.split(" "))
 
             with self.compiler_environment():
                 return cc_exe("-v", fin, "-o", fout, output=str, error=str)
@@ -253,9 +256,6 @@ class CompilerPropertyDetector:
         link_dirs = parse_non_system_link_dirs(output)
         all_required_libs = list(self.spec.package.required_libs) + ["libc", "libc++", "libstdc++"]
         dynamic_linker = self.default_dynamic_linker()
-        # FIXME (compiler as nodes): is this needed ?
-        # if dynamic_linker is None:
-        #     return []
         result = DefaultDynamicLinkerFilter(dynamic_linker)(
             paths_containing_libs(link_dirs, all_required_libs)
         )
