@@ -191,6 +191,177 @@ class AutotoolsBuilder(BuilderWithDefaults):
             files.append(self._removed_la_files_log)
         return files
 
+    @property
+    def configure_directory(self) -> str:
+        """Return the directory where 'configure' resides."""
+        return self.pkg.stage.source_path
+
+    @property
+    def configure_abs_path(self) -> str:
+        # Absolute path to configure
+        configure_abs_path = os.path.join(os.path.abspath(self.configure_directory), "configure")
+        return configure_abs_path
+
+    @property
+    def build_directory(self) -> str:
+        """Override to provide another place to build the package"""
+        # Handle the case where the configure directory is set to a non-absolute path
+        # Non-absolute paths are always relative to the staging source path
+        build_dir = self.configure_directory
+        if not os.path.isabs(build_dir):
+            build_dir = os.path.join(self.pkg.stage.source_path, build_dir)
+        return build_dir
+
+    @property
+    def autoreconf_search_path_args(self) -> List[str]:
+        """Search path includes for autoreconf. Add an -I flag for all `aclocal` dirs
+        of build deps, skips the default path of automake, move external include
+        flags to the back, since they might pull in unrelated m4 files shadowing
+        spack dependencies."""
+        return _autoreconf_search_path_args(self.spec)
+
+    def autoreconf(
+        self, pkg: AutotoolsPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
+        """Not needed usually, configure should be already there"""
+
+        # If configure exists nothing needs to be done
+        if os.path.exists(self.configure_abs_path):
+            return
+
+        # Else try to regenerate it, which requires a few build dependencies
+        ensure_build_dependencies_or_raise(
+            spec=spec,
+            dependencies=["autoconf", "automake", "libtool"],
+            error_msg="Cannot generate configure",
+        )
+
+        tty.msg("Configure script not found: trying to generate it")
+        tty.warn("*********************************************************")
+        tty.warn("* If the default procedure fails, consider implementing *")
+        tty.warn("*        a custom AUTORECONF phase in the package       *")
+        tty.warn("*********************************************************")
+        with fs.working_dir(self.configure_directory):
+            # This line is what is needed most of the time
+            # --install, --verbose, --force
+            autoreconf_args = ["-ivf"]
+            autoreconf_args += self.autoreconf_search_path_args
+            autoreconf_args += self.autoreconf_extra_args
+            self.pkg.module.autoreconf(*autoreconf_args)
+
+    def configure(
+        self, pkg: AutotoolsPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
+        """Run "configure", with the arguments specified by the builder and an
+        appropriately set prefix.
+        """
+        options = getattr(self.pkg, "configure_flag_args", [])
+        options += ["--prefix={0}".format(prefix)]
+        options += self.configure_args()
+
+        with fs.working_dir(self.build_directory, create=True):
+            pkg.module.configure(*options)
+
+    def build(
+        self, pkg: AutotoolsPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
+        """Run "make" on the build targets specified by the builder."""
+        # See https://autotools.io/automake/silent.html
+        params = ["V=1"]
+        params += self.build_targets
+        with fs.working_dir(self.build_directory):
+            pkg.module.make(*params)
+
+    def install(
+        self, pkg: AutotoolsPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
+        """Run "make" on the install targets specified by the builder."""
+        with fs.working_dir(self.build_directory):
+            pkg.module.make(*self.install_targets)
+
+    def check(self) -> None:
+        """Run "make" on the ``test`` and ``check`` targets, if found."""
+        with fs.working_dir(self.build_directory):
+            self.pkg._if_make_target_execute("test")
+            self.pkg._if_make_target_execute("check")
+
+    def installcheck(self) -> None:
+        """Run "make" on the ``installcheck`` target, if found."""
+        with fs.working_dir(self.build_directory):
+            self.pkg._if_make_target_execute("installcheck")
+
+    def setup_build_environment(self, env):
+        if self.spec.platform == "darwin" and macos_version() >= Version("11"):
+            # Many configure files rely on matching '10.*' for macOS version
+            # detection and fail to add flags if it shows as version 11.
+            env.set("MACOSX_DEPLOYMENT_TARGET", "10.16")
+
+    def with_or_without(
+        self,
+        name: str,
+        activation_value: Optional[Union[Callable, str]] = None,
+        variant: Optional[str] = None,
+    ) -> List[str]:
+        """Inspects a variant and returns the arguments that activate
+        or deactivate the selected feature(s) for the configure options.
+
+        This function works on all type of variants. For bool-valued variants
+        it will return by default ``--with-{name}`` or ``--without-{name}``.
+        For other kinds of variants it will cycle over the allowed values and
+        return either ``--with-{value}`` or ``--without-{value}``.
+
+        If activation_value is given, then for each possible value of the
+        variant, the option ``--with-{value}=activation_value(value)`` or
+        ``--without-{value}`` will be added depending on whether or not
+        ``variant=value`` is in the spec.
+
+        Args:
+            name: name of a valid multi-valued variant
+            activation_value: callable that accepts a single value and returns the parameter to be
+                used leading to an entry of the type ``--with-{name}={parameter}``.
+
+                The special value "prefix" can also be assigned and will return
+                ``spec[name].prefix`` as activation parameter.
+
+        Returns:
+            list of arguments to configure
+        """
+        return self._activate_or_not(name, "with", "without", activation_value, variant)
+
+    def enable_or_disable(
+        self,
+        name: str,
+        activation_value: Optional[Union[Callable, str]] = None,
+        variant: Optional[str] = None,
+    ) -> List[str]:
+        """Same as
+        :meth:`~spack.build_systems.autotools.AutotoolsBuilder.with_or_without`
+        but substitute ``with`` with ``enable`` and ``without`` with ``disable``.
+
+        Args:
+            name: name of a valid multi-valued variant
+            activation_value: if present accepts a single value and returns the parameter to be
+                used leading to an entry of the type ``--enable-{name}={parameter}``
+
+                The special value "prefix" can also be assigned and will return
+                ``spec[name].prefix`` as activation parameter.
+
+        Returns:
+            list of arguments to configure
+        """
+        return self._activate_or_not(name, "enable", "disable", activation_value, variant)
+
+    def configure_args(self) -> List[str]:
+        """Return the list of all the arguments that must be passed to configure,
+        except ``--prefix`` which will be pre-pended to the list.
+        """
+        return []
+
+    @spack.phase_callbacks.run_before("autoreconf")
+    def _delete_configure_to_force_update(self) -> None:
+        if self.force_autoreconf:
+            fs.force_remove(self.configure_abs_path)
+
     @spack.phase_callbacks.run_after("autoreconf")
     def _do_patch_config_files(self) -> None:
         """Some packages ship with older config.guess/config.sub files and need to
@@ -302,6 +473,24 @@ To resolve this problem, please try the following:
             os.chmod(abs_path, stat.S_IWUSR)
             fs.copy(substitutes[name], abs_path)
             os.chmod(abs_path, mode)
+
+    @spack.phase_callbacks.run_after("autoreconf")
+    def _set_configure_or_die(self) -> None:
+        """Ensure the presence of a "configure" script, or raise. If the "configure"
+        is found, a module level attribute is set.
+
+        Raises:
+             RuntimeError: if the "configure" script is not found
+        """
+        # Check if the "configure" script is there. If not raise a RuntimeError.
+        if not os.path.exists(self.configure_abs_path):
+            msg = "configure script not found in {0}"
+            raise RuntimeError(msg.format(self.configure_directory))
+
+        # Monkey-patch the configure script in the corresponding module
+        globals_for_pkg = spack.build_environment.ModuleChangePropagator(self.pkg)
+        globals_for_pkg.configure = Executable(self.configure_abs_path)
+        globals_for_pkg.propagate_changes_to_mro()
 
     @spack.phase_callbacks.run_before("configure")
     def _patch_usr_bin_file(self) -> None:
@@ -512,130 +701,27 @@ To resolve this problem, please try the following:
                 stop_at=stop_at,
             )
 
-    @property
-    def configure_directory(self) -> str:
-        """Return the directory where 'configure' resides."""
-        return self.pkg.stage.source_path
+    spack.phase_callbacks.run_after("build")(execute_build_time_tests)
+    spack.phase_callbacks.run_after("install")(execute_install_time_tests)
 
-    @property
-    def configure_abs_path(self) -> str:
-        # Absolute path to configure
-        configure_abs_path = os.path.join(os.path.abspath(self.configure_directory), "configure")
-        return configure_abs_path
-
-    @property
-    def build_directory(self) -> str:
-        """Override to provide another place to build the package"""
-        # Handle the case where the configure directory is set to a non-absolute path
-        # Non-absolute paths are always relative to the staging source path
-        build_dir = self.configure_directory
-        if not os.path.isabs(build_dir):
-            build_dir = os.path.join(self.pkg.stage.source_path, build_dir)
-        return build_dir
-
-    @spack.phase_callbacks.run_before("autoreconf")
-    def _delete_configure_to_force_update(self) -> None:
-        if self.force_autoreconf:
-            fs.force_remove(self.configure_abs_path)
-
-    @property
-    def autoreconf_search_path_args(self) -> List[str]:
-        """Search path includes for autoreconf. Add an -I flag for all `aclocal` dirs
-        of build deps, skips the default path of automake, move external include
-        flags to the back, since they might pull in unrelated m4 files shadowing
-        spack dependencies."""
-        return _autoreconf_search_path_args(self.spec)
-
-    @spack.phase_callbacks.run_after("autoreconf")
-    def _set_configure_or_die(self) -> None:
-        """Ensure the presence of a "configure" script, or raise. If the "configure"
-        is found, a module level attribute is set.
-
-        Raises:
-             RuntimeError: if the "configure" script is not found
+    @spack.phase_callbacks.run_after("install")
+    def _remove_libtool_archives(self) -> None:
+        """Remove all .la files in prefix sub-folders if the package sets
+        ``install_libtool_archives`` to be False.
         """
-        # Check if the "configure" script is there. If not raise a RuntimeError.
-        if not os.path.exists(self.configure_abs_path):
-            msg = "configure script not found in {0}"
-            raise RuntimeError(msg.format(self.configure_directory))
-
-        # Monkey-patch the configure script in the corresponding module
-        globals_for_pkg = spack.build_environment.ModuleChangePropagator(self.pkg)
-        globals_for_pkg.configure = Executable(self.configure_abs_path)
-        globals_for_pkg.propagate_changes_to_mro()
-
-    def configure_args(self) -> List[str]:
-        """Return the list of all the arguments that must be passed to configure,
-        except ``--prefix`` which will be pre-pended to the list.
-        """
-        return []
-
-    def autoreconf(
-        self, pkg: AutotoolsPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
-    ) -> None:
-        """Not needed usually, configure should be already there"""
-
-        # If configure exists nothing needs to be done
-        if os.path.exists(self.configure_abs_path):
+        # If .la files are to be installed there's nothing to do
+        if self.install_libtool_archives:
             return
 
-        # Else try to regenerate it, which requires a few build dependencies
-        ensure_build_dependencies_or_raise(
-            spec=spec,
-            dependencies=["autoconf", "automake", "libtool"],
-            error_msg="Cannot generate configure",
-        )
+        # Remove the files and create a log of what was removed
+        libtool_files = fs.find(str(self.pkg.prefix), "*.la", recursive=True)
+        with fs.safe_remove(*libtool_files):
+            fs.mkdirp(os.path.dirname(self._removed_la_files_log))
+            with open(self._removed_la_files_log, mode="w", encoding="utf-8") as f:
+                f.write("\n".join(libtool_files))
 
-        tty.msg("Configure script not found: trying to generate it")
-        tty.warn("*********************************************************")
-        tty.warn("* If the default procedure fails, consider implementing *")
-        tty.warn("*        a custom AUTORECONF phase in the package       *")
-        tty.warn("*********************************************************")
-        with fs.working_dir(self.configure_directory):
-            # This line is what is needed most of the time
-            # --install, --verbose, --force
-            autoreconf_args = ["-ivf"]
-            autoreconf_args += self.autoreconf_search_path_args
-            autoreconf_args += self.autoreconf_extra_args
-            self.pkg.module.autoreconf(*autoreconf_args)
-
-    def configure(
-        self, pkg: AutotoolsPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
-    ) -> None:
-        """Run "configure", with the arguments specified by the builder and an
-        appropriately set prefix.
-        """
-        options = getattr(self.pkg, "configure_flag_args", [])
-        options += ["--prefix={0}".format(prefix)]
-        options += self.configure_args()
-
-        with fs.working_dir(self.build_directory, create=True):
-            pkg.module.configure(*options)
-
-    def build(
-        self, pkg: AutotoolsPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
-    ) -> None:
-        """Run "make" on the build targets specified by the builder."""
-        # See https://autotools.io/automake/silent.html
-        params = ["V=1"]
-        params += self.build_targets
-        with fs.working_dir(self.build_directory):
-            pkg.module.make(*params)
-
-    def install(
-        self, pkg: AutotoolsPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
-    ) -> None:
-        """Run "make" on the install targets specified by the builder."""
-        with fs.working_dir(self.build_directory):
-            pkg.module.make(*self.install_targets)
-
-    spack.phase_callbacks.run_after("build")(execute_build_time_tests)
-
-    def check(self) -> None:
-        """Run "make" on the ``test`` and ``check`` targets, if found."""
-        with fs.working_dir(self.build_directory):
-            self.pkg._if_make_target_execute("test")
-            self.pkg._if_make_target_execute("check")
+    # On macOS, force rpaths for shared library IDs and remove duplicate rpaths
+    spack.phase_callbacks.run_after("install", when="platform=darwin")(apply_macos_rpath_fixups)
 
     def _activate_or_not(
         self,
@@ -756,93 +842,6 @@ To resolve this problem, please try the following:
                 line_generator = _default_generator
             args.append(line_generator(activated))
         return args
-
-    def with_or_without(
-        self,
-        name: str,
-        activation_value: Optional[Union[Callable, str]] = None,
-        variant: Optional[str] = None,
-    ) -> List[str]:
-        """Inspects a variant and returns the arguments that activate
-        or deactivate the selected feature(s) for the configure options.
-
-        This function works on all type of variants. For bool-valued variants
-        it will return by default ``--with-{name}`` or ``--without-{name}``.
-        For other kinds of variants it will cycle over the allowed values and
-        return either ``--with-{value}`` or ``--without-{value}``.
-
-        If activation_value is given, then for each possible value of the
-        variant, the option ``--with-{value}=activation_value(value)`` or
-        ``--without-{value}`` will be added depending on whether or not
-        ``variant=value`` is in the spec.
-
-        Args:
-            name: name of a valid multi-valued variant
-            activation_value: callable that accepts a single value and returns the parameter to be
-                used leading to an entry of the type ``--with-{name}={parameter}``.
-
-                The special value "prefix" can also be assigned and will return
-                ``spec[name].prefix`` as activation parameter.
-
-        Returns:
-            list of arguments to configure
-        """
-        return self._activate_or_not(name, "with", "without", activation_value, variant)
-
-    def enable_or_disable(
-        self,
-        name: str,
-        activation_value: Optional[Union[Callable, str]] = None,
-        variant: Optional[str] = None,
-    ) -> List[str]:
-        """Same as
-        :meth:`~spack.build_systems.autotools.AutotoolsBuilder.with_or_without`
-        but substitute ``with`` with ``enable`` and ``without`` with ``disable``.
-
-        Args:
-            name: name of a valid multi-valued variant
-            activation_value: if present accepts a single value and returns the parameter to be
-                used leading to an entry of the type ``--enable-{name}={parameter}``
-
-                The special value "prefix" can also be assigned and will return
-                ``spec[name].prefix`` as activation parameter.
-
-        Returns:
-            list of arguments to configure
-        """
-        return self._activate_or_not(name, "enable", "disable", activation_value, variant)
-
-    spack.phase_callbacks.run_after("install")(execute_install_time_tests)
-
-    def installcheck(self) -> None:
-        """Run "make" on the ``installcheck`` target, if found."""
-        with fs.working_dir(self.build_directory):
-            self.pkg._if_make_target_execute("installcheck")
-
-    @spack.phase_callbacks.run_after("install")
-    def _remove_libtool_archives(self) -> None:
-        """Remove all .la files in prefix sub-folders if the package sets
-        ``install_libtool_archives`` to be False.
-        """
-        # If .la files are to be installed there's nothing to do
-        if self.install_libtool_archives:
-            return
-
-        # Remove the files and create a log of what was removed
-        libtool_files = fs.find(str(self.pkg.prefix), "*.la", recursive=True)
-        with fs.safe_remove(*libtool_files):
-            fs.mkdirp(os.path.dirname(self._removed_la_files_log))
-            with open(self._removed_la_files_log, mode="w", encoding="utf-8") as f:
-                f.write("\n".join(libtool_files))
-
-    def setup_build_environment(self, env):
-        if self.spec.platform == "darwin" and macos_version() >= Version("11"):
-            # Many configure files rely on matching '10.*' for macOS version
-            # detection and fail to add flags if it shows as version 11.
-            env.set("MACOSX_DEPLOYMENT_TARGET", "10.16")
-
-    # On macOS, force rpaths for shared library IDs and remove duplicate rpaths
-    spack.phase_callbacks.run_after("install", when="platform=darwin")(apply_macos_rpath_fixups)
 
 
 def _autoreconf_search_path_args(spec: spack.spec.Spec) -> List[str]:
