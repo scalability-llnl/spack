@@ -2,9 +2,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import os
-from pathlib import Path, PurePath
-
 import pytest
 
 from llnl.util.filesystem import mkdirp, touch
