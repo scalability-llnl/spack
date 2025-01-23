@@ -2637,26 +2637,31 @@ def initialize_environment_dir(
     # Copy relative path includes that live inside the environment dir
     try:
         manifest = EnvironmentManifestFile(environment_dir)
-    except Exception as e:
-        msg = f"cannot initialize environment, '{environment_dir}' from manifest"
-        raise SpackEnvironmentError(msg) from e
-    else:
-        includes = manifest[TOP_LEVEL_KEY].get("include", [])
-        for include in includes:
-            if os.path.isabs(include):
-                continue
+    except Exception:
+        # error handling for bad manifests is handled on other code paths
+        return
 
-            abspath = pathlib.Path(os.path.normpath(environment_dir / include))
-            if not abspath.is_relative_to(environment_dir):
-                # Warn that we are not copying relative path
-                msg = "Spack will not copy relative include path from outside environment"
-                msg += f" directory: {include}"
-                tty.warn(msg)
-                continue
+    includes = manifest[TOP_LEVEL_KEY].get("include", [])
+    for include in includes:
+        if os.path.isabs(include):
+            continue
 
-            orig_abspath = os.path.normpath(envfile.parent / include)
-            fs.touchp(abspath)
-            shutil.copy(orig_abspath, abspath)
+        abspath = pathlib.Path(os.path.normpath(environment_dir / include))
+        if not abspath.is_relative_to(environment_dir):
+            # Warn that we are not copying relative path
+            msg = "Spack will not copy relative include path from outside environment"
+            msg += f" directory: {include}"
+            tty.warn(msg)
+            continue
+
+        orig_abspath = os.path.normpath(envfile.parent / include)
+        if not os.path.exists(orig_abspath):
+            msg = f"Spack will not copy relative include path for nonexistent file: {include}"
+            tty.warn(msg)
+            continue
+
+        fs.touchp(abspath)
+        shutil.copy(orig_abspath, abspath)
 
 
 class EnvironmentManifestFile(collections.abc.Mapping):
