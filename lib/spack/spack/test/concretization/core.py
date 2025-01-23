@@ -3179,7 +3179,6 @@ def test_spec_filters(specs, include, exclude, expected):
     assert f.selected_specs() == expected
 
 
-@pytest.mark.only_clingo("Feature not implemented in the original concretizer")
 @pytest.mark.parametrize("git_ref,commit_index", [("main", 2), ("1.2", 0)])
 def test_git_ref_based_versions_pin_to_commits(
     git_ref,
@@ -3201,7 +3200,6 @@ def test_git_ref_based_versions_pin_to_commits(
     assert spec.format("{version}") == f"git.{commits[commit_index]}={git_ref}"
 
 
-@pytest.mark.only_clingo("Feature not implemented in the original concretizer")
 def test_versions_with_custom_git_ref_based_versions_pin_to_commits(
     mock_git_version_info, database, mock_packages, monkeypatch, do_not_check_runtimes_on_reuse
 ):
@@ -3241,7 +3239,6 @@ def test_versions_with_custom_git_ref_based_versions_pin_to_commits(
     assert spec.format("{version}") == f"git.{commits[2]}={str(version)}"
 
 
-@pytest.mark.only_clingo("clingo only reuse feature being tested")
 @pytest.mark.regression("38484")
 @pytest.mark.parametrize("input_version", ("git.2.1.5=2.1.5", "main"))
 def test_git_ref_version_can_be_reused(
@@ -3272,7 +3269,6 @@ def test_git_ref_version_can_be_reused(
 
 
 @pytest.mark.parametrize("standard_version", ["2.0.0", "2.1.5", "2.1.6"])
-@pytest.mark.only_clingo("clingo only reuse feature being tested")
 def test_reuse_prefers_standard_over_git_versions(
     standard_version, install_mockery, do_not_check_runtimes_on_reuse, monkeypatch
 ):
