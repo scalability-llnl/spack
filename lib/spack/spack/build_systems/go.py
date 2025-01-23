@@ -7,6 +7,8 @@ import llnl.util.filesystem as fs
 import spack.builder
 import spack.package_base
 import spack.phase_callbacks
+import spack.spec
+import spack.util.prefix
 from spack.directives import build_system, extends
 from spack.multimethod import when
 
@@ -88,12 +90,16 @@ class GoBuilder(BuilderWithDefaults):
         """Argument for ``go test`` during check phase"""
         return []
 
-    def build(self, pkg, spec, prefix):
+    def build(
+        self, pkg: GoPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Runs ``go build`` in the source directory"""
         with fs.working_dir(self.build_directory):
             pkg.module.go("build", *self.build_args)
 
-    def install(self, pkg, spec, prefix):
+    def install(
+        self, pkg: GoPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
+    ) -> None:
         """Install built binaries into prefix bin."""
         with fs.working_dir(self.build_directory):
             fs.mkdirp(prefix.bin)

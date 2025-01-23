@@ -91,6 +91,9 @@ BUILD_CACHE_KEYS_RELATIVE_PATH = "_pgp"
 CURRENT_BUILD_CACHE_LAYOUT_VERSION = 2
 
 
+INDEX_HASH_FILE = "index.json.hash"
+
+
 class BuildCacheDatabase(spack_db.Database):
     """A database for binary buildcaches.
 
@@ -502,7 +505,7 @@ class BinaryCacheIndex:
         scheme = urllib.parse.urlparse(mirror_url).scheme
 
         if scheme != "oci" and not web_util.url_exists(
-            url_util.join(mirror_url, BUILD_CACHE_RELATIVE_PATH, "index.json")
+            url_util.join(mirror_url, BUILD_CACHE_RELATIVE_PATH, spack_db.INDEX_JSON_FILE)
         ):
             return False
 
@@ -704,7 +707,7 @@ def _read_specs_and_push_index(
 
     # Now generate the index, compute its hash, and push the two files to
     # the mirror.
-    index_json_path = os.path.join(temp_dir, "index.json")
+    index_json_path = os.path.join(temp_dir, spack_db.INDEX_JSON_FILE)
     with open(index_json_path, "w", encoding="utf-8") as f:
         db._write_to_file(f)
 
@@ -714,14 +717,14 @@ def _read_specs_and_push_index(
         index_hash = compute_hash(index_string)
 
     # Write the hash out to a local file
-    index_hash_path = os.path.join(temp_dir, "index.json.hash")
+    index_hash_path = os.path.join(temp_dir, INDEX_HASH_FILE)
     with open(index_hash_path, "w", encoding="utf-8") as f:
         f.write(index_hash)
 
     # Push the index itself
     web_util.push_to_url(
         index_json_path,
-        url_util.join(cache_prefix, "index.json"),
+        url_util.join(cache_prefix, spack_db.INDEX_JSON_FILE),
         keep_original=False,
         extra_args={"ContentType": "application/json", "CacheControl": "no-cache"},
     )
@@ -729,7 +732,7 @@ def _read_specs_and_push_index(
     # Push the hash
     web_util.push_to_url(
         index_hash_path,
-        url_util.join(cache_prefix, "index.json.hash"),
+        url_util.join(cache_prefix, INDEX_HASH_FILE),
         keep_original=False,
         extra_args={"ContentType": "text/plain", "CacheControl": "no-cache"},
     )
@@ -1785,7 +1788,7 @@ def _oci_update_index(
         db.mark(spec, "in_buildcache", True)
 
     # Create the index.json file
-    index_json_path = os.path.join(tmpdir, "index.json")
+    index_json_path = os.path.join(tmpdir, spack_db.INDEX_JSON_FILE)
     with open(index_json_path, "w", encoding="utf-8") as f:
         db._write_to_file(f)
 
@@ -2166,7 +2169,8 @@ def dedupe_hardlinks_if_necessary(root, buildinfo):
 
 def relocate_package(spec: spack.spec.Spec) -> None:
     """Relocate binaries and text files in the given spec prefix, based on its buildinfo file."""
-    buildinfo = read_buildinfo_file(spec.prefix)
+    spec_prefix = str(spec.prefix)
+    buildinfo = read_buildinfo_file(spec_prefix)
     old_layout_root = str(buildinfo["buildpath"])
 
     # Warn about old style tarballs created with the --rel flag (removed in Spack v0.20)
@@ -2187,7 +2191,7 @@ def relocate_package(spec: spack.spec.Spec) -> None:
             "and an older buildcache create implementation. It cannot be relocated."
         )
 
-    prefix_to_prefix = {}
+    prefix_to_prefix: Dict[str, str] = {}
 
     if "sbang_install_path" in buildinfo:
         old_sbang_install_path = str(buildinfo["sbang_install_path"])
@@ -2239,12 +2243,12 @@ def relocate_package(spec: spack.spec.Spec) -> None:
         tty.debug(f"Relocating: {old} => {new}.")
 
     # Old archives may have hardlinks repeated.
-    dedupe_hardlinks_if_necessary(spec.prefix, buildinfo)
+    dedupe_hardlinks_if_necessary(spec_prefix, buildinfo)
 
     # Text files containing the prefix text
-    textfiles = [os.path.join(spec.prefix, f) for f in buildinfo["relocate_textfiles"]]
-    binaries = [os.path.join(spec.prefix, f) for f in buildinfo.get("relocate_binaries")]
-    links = [os.path.join(spec.prefix, f) for f in buildinfo.get("relocate_links", [])]
+    textfiles = [os.path.join(spec_prefix, f) for f in buildinfo["relocate_textfiles"]]
+    binaries = [os.path.join(spec_prefix, f) for f in buildinfo.get("relocate_binaries")]
+    links = [os.path.join(spec_prefix, f) for f in buildinfo.get("relocate_links", [])]
 
     platform = spack.platforms.by_name(spec.platform)
     if "macho" in platform.binary_formats:
@@ -2942,7 +2946,7 @@ class DefaultIndexFetcher:
 
     def get_remote_hash(self):
         # Failure to fetch index.json.hash is not fatal
-        url_index_hash = url_util.join(self.url, BUILD_CACHE_RELATIVE_PATH, "index.json.hash")
+        url_index_hash = url_util.join(self.url, BUILD_CACHE_RELATIVE_PATH, INDEX_HASH_FILE)
         try:
             response = self.urlopen(urllib.request.Request(url_index_hash, headers=self.headers))
         except (TimeoutError, urllib.error.URLError):
@@ -2963,7 +2967,7 @@ class DefaultIndexFetcher:
             return FetchIndexResult(etag=None, hash=None, data=None, fresh=True)
 
         # Otherwise, download index.json
-        url_index = url_util.join(self.url, BUILD_CACHE_RELATIVE_PATH, "index.json")
+        url_index = url_util.join(self.url, BUILD_CACHE_RELATIVE_PATH, spack_db.INDEX_JSON_FILE)
 
         try:
             response = self.urlopen(urllib.request.Request(url_index, headers=self.headers))
@@ -3007,7 +3011,7 @@ class EtagIndexFetcher:
 
     def conditional_fetch(self) -> FetchIndexResult:
         # Just do a conditional fetch immediately
-        url = url_util.join(self.url, BUILD_CACHE_RELATIVE_PATH, "index.json")
+        url = url_util.join(self.url, BUILD_CACHE_RELATIVE_PATH, spack_db.INDEX_JSON_FILE)
         headers = {"User-Agent": web_util.SPACK_USER_AGENT, "If-None-Match": f'"{self.etag}"'}
 
         try:

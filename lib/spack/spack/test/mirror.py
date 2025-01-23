@@ -11,6 +11,7 @@ from llnl.util.filesystem import working_dir
 from llnl.util.symlink import resolve_link_target_relative_to_the_link
 
 import spack.caches
+import spack.concretize
 import spack.config
 import spack.fetch_strategy
 import spack.mirrors.layout
@@ -43,7 +44,7 @@ def set_up_package(name, repository, url_attr):
     2. Point the package's version args at that repo.
     """
     # Set up packages to point at mock repos.
-    s = Spec(name).concretized()
+    s = spack.concretize.concretize_one(name)
     repos[name] = repository
 
     # change the fetch args of the first (only) version.
@@ -60,7 +61,7 @@ def check_mirror():
         mirrors = {"spack-mirror-test": url_util.path_to_file_url(mirror_root)}
         with spack.config.override("mirrors", mirrors):
             with spack.config.override("config:checksum", False):
-                specs = [Spec(x).concretized() for x in repos]
+                specs = [spack.concretize.concretize_one(x) for x in repos]
                 spack.mirrors.utils.create(mirror_root, specs)
 
             # Stage directory exists
@@ -77,7 +78,7 @@ def check_mirror():
 
             # Now try to fetch each package.
             for name, mock_repo in repos.items():
-                spec = Spec(name).concretized()
+                spec = spack.concretize.concretize_one(name)
                 pkg = spec.package
 
                 with spack.config.override("config:checksum", False):
@@ -212,13 +213,15 @@ def test_invalid_json_mirror_collection(invalid_json, error_message):
 
 
 def test_mirror_archive_paths_no_version(mock_packages, mock_archive):
-    spec = Spec("trivial-install-test-package@=nonexistingversion").concretized()
+    spec = spack.concretize.concretize_one(
+        Spec("trivial-install-test-package@=nonexistingversion")
+    )
     fetcher = spack.fetch_strategy.URLFetchStrategy(url=mock_archive.url)
     spack.mirrors.layout.default_mirror_layout(fetcher, "per-package-ref", spec)
 
 
 def test_mirror_with_url_patches(mock_packages, monkeypatch):
-    spec = Spec("patch-several-dependencies").concretized()
+    spec = spack.concretize.concretize_one("patch-several-dependencies")
     files_cached_in_mirror = set()
 
     def record_store(_class, fetcher, relative_dst, cosmetic_path=None):

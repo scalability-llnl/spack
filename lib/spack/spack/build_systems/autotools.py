@@ -356,6 +356,13 @@ To resolve this problem, please try the following:
             )
             # Support Libtool 2.4.2 and older:
             x.filter(regex=r'^(\s*test \$p = "-R")(; then\s*)$', repl=r'\1 || test x-l = x"$p"\2')
+            # Configure scripts generated with libtool < 2.5.4 have a faulty test for the
+            # -single_module linker flag. A deprecation warning makes it think the default is
+            # -multi_module, triggering it to use problematic linker flags (such as ld -r). The
+            # linker default is `-single_module` from (ancient) macOS 10.4, so override by setting
+            # `lt_cv_apple_cc_single_mod=yes`. See the fix in libtool commit
+            # 82f7f52123e4e7e50721049f7fa6f9b870e09c9d.
+            x.filter("lt_cv_apple_cc_single_mod=no", "lt_cv_apple_cc_single_mod=yes", string=True)
 
     @spack.phase_callbacks.run_after("configure")
     def _do_patch_libtool(self) -> None:
@@ -527,7 +534,7 @@ To resolve this problem, please try the following:
         return build_dir
 
     @spack.phase_callbacks.run_before("autoreconf")
-    def delete_configure_to_force_update(self) -> None:
+    def _delete_configure_to_force_update(self) -> None:
         if self.force_autoreconf:
             fs.force_remove(self.configure_abs_path)
 
@@ -540,7 +547,7 @@ To resolve this problem, please try the following:
         return _autoreconf_search_path_args(self.spec)
 
     @spack.phase_callbacks.run_after("autoreconf")
-    def set_configure_or_die(self) -> None:
+    def _set_configure_or_die(self) -> None:
         """Ensure the presence of a "configure" script, or raise. If the "configure"
         is found, a module level attribute is set.
 
@@ -564,10 +571,7 @@ To resolve this problem, please try the following:
         return []
 
     def autoreconf(
-        self,
-        pkg: spack.package_base.PackageBase,
-        spec: spack.spec.Spec,
-        prefix: spack.util.prefix.Prefix,
+        self, pkg: AutotoolsPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
     ) -> None:
         """Not needed usually, configure should be already there"""
 
@@ -596,10 +600,7 @@ To resolve this problem, please try the following:
             self.pkg.module.autoreconf(*autoreconf_args)
 
     def configure(
-        self,
-        pkg: spack.package_base.PackageBase,
-        spec: spack.spec.Spec,
-        prefix: spack.util.prefix.Prefix,
+        self, pkg: AutotoolsPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
     ) -> None:
         """Run "configure", with the arguments specified by the builder and an
         appropriately set prefix.
@@ -612,10 +613,7 @@ To resolve this problem, please try the following:
             pkg.module.configure(*options)
 
     def build(
-        self,
-        pkg: spack.package_base.PackageBase,
-        spec: spack.spec.Spec,
-        prefix: spack.util.prefix.Prefix,
+        self, pkg: AutotoolsPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
     ) -> None:
         """Run "make" on the build targets specified by the builder."""
         # See https://autotools.io/automake/silent.html
@@ -625,10 +623,7 @@ To resolve this problem, please try the following:
             pkg.module.make(*params)
 
     def install(
-        self,
-        pkg: spack.package_base.PackageBase,
-        spec: spack.spec.Spec,
-        prefix: spack.util.prefix.Prefix,
+        self, pkg: AutotoolsPackage, spec: spack.spec.Spec, prefix: spack.util.prefix.Prefix
     ) -> None:
         """Run "make" on the install targets specified by the builder."""
         with fs.working_dir(self.build_directory):
@@ -825,7 +820,7 @@ To resolve this problem, please try the following:
             self.pkg._if_make_target_execute("installcheck")
 
     @spack.phase_callbacks.run_after("install")
-    def remove_libtool_archives(self) -> None:
+    def _remove_libtool_archives(self) -> None:
         """Remove all .la files in prefix sub-folders if the package sets
         ``install_libtool_archives`` to be False.
         """

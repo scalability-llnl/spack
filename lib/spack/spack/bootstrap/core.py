@@ -34,8 +34,10 @@ from llnl.util import tty
 from llnl.util.lang import GroupedExceptionHandler
 
 import spack.binary_distribution
+import spack.concretize
 import spack.config
 import spack.detection
+import spack.error
 import spack.mirrors.mirror
 import spack.platforms
 import spack.spec
@@ -47,7 +49,13 @@ import spack.util.spack_yaml
 import spack.version
 from spack.installer import PackageInstaller
 
-from ._common import _executables_in_store, _python_import, _root_spec, _try_import_from_store
+from ._common import (
+    QueryInfo,
+    _executables_in_store,
+    _python_import,
+    _root_spec,
+    _try_import_from_store,
+)
 from .clingo import ClingoBootstrapConcretizer
 from .config import spack_python_interpreter, spec_for_current_python
 
@@ -134,7 +142,7 @@ class BuildcacheBootstrapper(Bootstrapper):
 
     def __init__(self, conf) -> None:
         super().__init__(conf)
-        self.last_search: Optional[ConfigDictionary] = None
+        self.last_search: Optional[QueryInfo] = None
         self.config_scope_name = f"bootstrap_buildcache-{uuid.uuid4()}"
 
     @staticmethod
@@ -211,14 +219,14 @@ class BuildcacheBootstrapper(Bootstrapper):
                 for _, pkg_hash, pkg_sha256 in item["binaries"]:
                     self._install_by_hash(pkg_hash, pkg_sha256, bincache_platform)
 
-                info: ConfigDictionary = {}
+                info: QueryInfo = {}
                 if test_fn(query_spec=abstract_spec, query_info=info):
                     self.last_search = info
                     return True
         return False
 
     def try_import(self, module: str, abstract_spec_str: str) -> bool:
-        info: ConfigDictionary
+        info: QueryInfo
         test_fn, info = functools.partial(_try_import_from_store, module), {}
         if test_fn(query_spec=abstract_spec_str, query_info=info):
             return True
@@ -231,7 +239,7 @@ class BuildcacheBootstrapper(Bootstrapper):
         return self._install_and_test(abstract_spec, bincache_platform, data, test_fn)
 
     def try_search_path(self, executables: Tuple[str], abstract_spec_str: str) -> bool:
-        info: ConfigDictionary
+        info: QueryInfo
         test_fn, info = functools.partial(_executables_in_store, executables), {}
         if test_fn(query_spec=abstract_spec_str, query_info=info):
             self.last_search = info
@@ -249,11 +257,11 @@ class SourceBootstrapper(Bootstrapper):
 
     def __init__(self, conf) -> None:
         super().__init__(conf)
-        self.last_search: Optional[ConfigDictionary] = None
+        self.last_search: Optional[QueryInfo] = None
         self.config_scope_name = f"bootstrap_source-{uuid.uuid4()}"
 
     def try_import(self, module: str, abstract_spec_str: str) -> bool:
-        info: ConfigDictionary = {}
+        info: QueryInfo = {}
         if _try_import_from_store(module, abstract_spec_str, query_info=info):
             self.last_search = info
             return True
@@ -270,10 +278,10 @@ class SourceBootstrapper(Bootstrapper):
                 bootstrapper = ClingoBootstrapConcretizer(configuration=spack.config.CONFIG)
                 concrete_spec = bootstrapper.concretize()
             else:
-                concrete_spec = spack.spec.Spec(
+                abstract_spec = spack.spec.Spec(
                     abstract_spec_str + " ^" + spec_for_current_python()
                 )
-                concrete_spec.concretize()
+                concrete_spec = spack.concretize.concretize_one(abstract_spec)
 
         msg = "[BOOTSTRAP MODULE {0}] Try installing '{1}' from sources"
         tty.debug(msg.format(module, abstract_spec_str))
@@ -288,7 +296,7 @@ class SourceBootstrapper(Bootstrapper):
         return False
 
     def try_search_path(self, executables: Tuple[str], abstract_spec_str: str) -> bool:
-        info: ConfigDictionary = {}
+        info: QueryInfo = {}
         if _executables_in_store(executables, abstract_spec_str, query_info=info):
             self.last_search = info
             return True
@@ -299,7 +307,7 @@ class SourceBootstrapper(Bootstrapper):
         # might reduce compilation time by a fair amount
         _add_externals_if_missing()
 
-        concrete_spec = spack.spec.Spec(abstract_spec_str).concretized()
+        concrete_spec = spack.concretize.concretize_one(abstract_spec_str)
         msg = "[BOOTSTRAP] Try installing '{0}' from sources"
         tty.debug(msg.format(abstract_spec_str))
         with spack.config.override(self.mirror_scope):
@@ -316,11 +324,9 @@ def create_bootstrapper(conf: ConfigDictionary):
     return _bootstrap_methods[btype](conf)
 
 
-def source_is_enabled_or_raise(conf: ConfigDictionary):
-    """Raise ValueError if the source is not enabled for bootstrapping"""
-    trusted, name = spack.config.get("bootstrap:trusted"), conf["name"]
-    if not trusted.get(name, False):
-        raise ValueError("source is not trusted")
+def source_is_enabled(conf: ConfigDictionary) -> bool:
+    """Returns true if the source is not enabled for bootstrapping"""
+    return spack.config.get("bootstrap:trusted").get(conf["name"], False)
 
 
 def ensure_module_importable_or_raise(module: str, abstract_spec: Optional[str] = None):
@@ -350,24 +356,23 @@ def ensure_module_importable_or_raise(module: str, abstract_spec: Optional[str] 
     exception_handler = GroupedExceptionHandler()
 
     for current_config in bootstrapping_sources():
+        if not source_is_enabled(current_config):
+            continue
         with exception_handler.forward(current_config["name"], Exception):
-            source_is_enabled_or_raise(current_config)
-            current_bootstrapper = create_bootstrapper(current_config)
-            if current_bootstrapper.try_import(module, abstract_spec):
+            if create_bootstrapper(current_config).try_import(module, abstract_spec):
                 return
 
-    assert exception_handler, (
-        f"expected at least one exception to have been raised at this point: "
-        f"while bootstrapping {module}"
-    )
     msg = f'cannot bootstrap the "{module}" Python module '
     if abstract_spec:
         msg += f'from spec "{abstract_spec}" '
-    if tty.is_debug():
+
+    if not exception_handler:
+        msg += ": no bootstrapping sources are enabled"
+    elif spack.error.debug or spack.error.SHOW_BACKTRACE:
         msg += exception_handler.grouped_message(with_tracebacks=True)
     else:
         msg += exception_handler.grouped_message(with_tracebacks=False)
-        msg += "\nRun `spack --debug ...` for more detailed errors"
+        msg += "\nRun `spack --backtrace ...` for more detailed errors"
     raise ImportError(msg)
 
 
@@ -405,8 +410,9 @@ def ensure_executables_in_path_or_raise(
     exception_handler = GroupedExceptionHandler()
 
     for current_config in bootstrapping_sources():
+        if not source_is_enabled(current_config):
+            continue
         with exception_handler.forward(current_config["name"], Exception):
-            source_is_enabled_or_raise(current_config)
             current_bootstrapper = create_bootstrapper(current_config)
             if current_bootstrapper.try_search_path(executables, abstract_spec):
                 # Additional environment variables needed
@@ -414,6 +420,7 @@ def ensure_executables_in_path_or_raise(
                     current_bootstrapper.last_search["spec"],
                     current_bootstrapper.last_search["command"],
                 )
+                assert cmd is not None, "expected an Executable"
                 cmd.add_default_envmod(
                     spack.user_environment.environment_modifications_for_specs(
                         concrete_spec, set_package_py_globals=False
@@ -421,18 +428,17 @@ def ensure_executables_in_path_or_raise(
                 )
                 return cmd
 
-    assert exception_handler, (
-        f"expected at least one exception to have been raised at this point: "
-        f"while bootstrapping {executables_str}"
-    )
     msg = f"cannot bootstrap any of the {executables_str} executables "
     if abstract_spec:
         msg += f'from spec "{abstract_spec}" '
-    if tty.is_debug():
+
+    if not exception_handler:
+        msg += ": no bootstrapping sources are enabled"
+    elif spack.error.debug or spack.error.SHOW_BACKTRACE:
         msg += exception_handler.grouped_message(with_tracebacks=True)
     else:
         msg += exception_handler.grouped_message(with_tracebacks=False)
-        msg += "\nRun `spack --debug ...` for more detailed errors"
+        msg += "\nRun `spack --backtrace ...` for more detailed errors"
     raise RuntimeError(msg)
 
 
