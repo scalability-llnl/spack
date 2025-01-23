@@ -173,7 +173,6 @@ class CompilerRemover:
     def __init__(self, configuration: "spack.config.ConfigurationType") -> None:
         self.configuration = configuration
         self.marked_packages_yaml: List[Tuple[str, Any]] = []
-        self.marked_compilers_yaml: List[Tuple[str, Any]] = []
 
     def mark_compilers(
         self, *, match: str, scope: Optional[str] = None
@@ -186,15 +185,11 @@ class CompilerRemover:
             scope: scope where to remove the compiler. If None, all writeable scopes are checked.
         """
         self.marked_packages_yaml = []
-        self.marked_compilers_yaml = []
         candidate_scopes = [scope]
         if scope is None:
             candidate_scopes = [x.name for x in self.configuration.writable_scopes]
 
-        all_removals = self._mark_in_packages_yaml(match, candidate_scopes)
-        all_removals.extend(self._mark_in_compilers_yaml(match, candidate_scopes))
-
-        return all_removals
+        return self._mark_in_packages_yaml(match, candidate_scopes)
 
     def _mark_in_packages_yaml(self, match, candidate_scopes):
         compiler_package_names = supported_compilers()
@@ -235,40 +230,12 @@ class CompilerRemover:
             )
         return all_removals
 
-    def _mark_in_compilers_yaml(self, match, candidate_scopes):
-        if os.environ.get("SPACK_EXPERIMENTAL_DEPRECATE_COMPILERS_YAML") == "1":
-            return []
-
-        all_removals = []
-        for current_scope in candidate_scopes:
-            compilers_yaml = self.configuration.get("compilers", scope=current_scope)
-            if not compilers_yaml:
-                continue
-
-            def _partition_match(entry):
-                external_specs = CompilerFactory.from_legacy_yaml(entry["compiler"])
-                return not any(x.satisfies(match) for x in external_specs)
-
-            to_keep, to_remove = llnl.util.lang.stable_partition(compilers_yaml, _partition_match)
-            if not to_remove:
-                continue
-
-            compilers_yaml[:] = to_keep
-            self.marked_compilers_yaml.append((current_scope, compilers_yaml))
-            for entry in to_remove:
-                all_removals.extend(CompilerFactory.from_legacy_yaml(entry["compiler"]))
-
-        return all_removals
-
     def flush(self):
         """Removes from configuration the specs that have been marked by the previous call
         of ``remove_compilers``.
         """
         for scope, packages_yaml in self.marked_packages_yaml:
             self.configuration.set("packages", packages_yaml, scope=scope)
-
-        for scope, compilers_yaml in self.marked_compilers_yaml:
-            self.configuration.set("compilers", compilers_yaml, scope=scope)
 
 
 def compilers_for_arch(
@@ -379,7 +346,6 @@ class CompilerFactory:
         """Returns a list of external specs, corresponding to a compiler entry
         from compilers.yaml.
         """
-        # FIXME (compiler as nodes): should we look at targets too?
         result = []
         candidate_paths = [x for x in compiler_dict["paths"].values() if x is not None]
         finder = spack.detection.path.ExecutablesFinder()
@@ -398,9 +364,6 @@ class CompilerFactory:
                     s.external_modules = list(compiler_dict["modules"])
 
             result.extend(detected)
-
-        # for item in result:
-        #    CompilerFactory._finalize_external_concretization(item)
 
         return result
 
