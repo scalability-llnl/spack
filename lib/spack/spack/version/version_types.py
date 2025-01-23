@@ -551,6 +551,11 @@ class GitVersion(ConcreteVersion):
     __slots__ = ["ref", "has_git_prefix", "is_commit", "_ref_lookup", "_ref_version"]
 
     def __init__(self, string: str):
+        # WIP refactor
+        self.requested_ref: Optional[String] = None
+        self.commit_sha: Optional[String] = None
+        self.std_version: Optional[StandardVersion] = None
+
         # An object that can lookup git refs to compare them to versions
         self._ref_lookup: Optional[AbstractRefLookup] = None
 
@@ -576,6 +581,11 @@ class GitVersion(ConcreteVersion):
 
         # Used by fetcher
         self.is_commit: bool = len(self.ref) == 40 and bool(COMMIT_VERSION.match(self.ref))
+
+        self.requested_ref = self.ref
+        self.std_version = self._ref_version
+        if self.is_commit:
+            self.commit_sha = self.ref
 
     @property
     def ref_version(self) -> StandardVersion:
