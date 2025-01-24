@@ -20,6 +20,8 @@ import spack.store
 import spack.util.spack_yaml as syaml
 from spack.cmd.common import arguments
 from spack.util.editor import editor
+from spack.version import any_version
+from spack.version.version_types import GitVersion
 
 description = "get and set configuration options"
 section = "config"
@@ -269,10 +271,6 @@ def _can_update_config_file(scope: spack.config.ConfigScope, cfg_file):
     return False
 
 
-from spack.version.version_types import GitVersion
-from spack.version import any_version
-
-
 def _config_change_requires_scope(path, spec, scope, match_spec=None):
     """Return whether or not anything changed."""
     require = spack.config.get(path, scope=scope)
@@ -285,13 +283,11 @@ def _config_change_requires_scope(path, spec, scope, match_spec=None):
     def assigns_git_version(x):
         return x.versions.concrete and isinstance(x.version, GitVersion)
 
-    version_update = constrains_version(spec)
-
     if spec.versions.concrete and isinstance(spec.version, GitVersion):
         test = spack.spec.Spec(spec.name)
         test.versions = spec.versions
         if test != spec:
-            raise ValueError(f"When setting @git. versions, the spec can only contain a version")
+            raise ValueError("When setting @git. versions, the spec can only contain a version")
 
     def specs_conflict(s1, s2):
         # If both specs have a version, and either one is a git version
@@ -317,7 +313,6 @@ def _config_change_requires_scope(path, spec, scope, match_spec=None):
         nonlocal changed
 
         init_spec = spack.spec.Spec(spec_str)
-        #init_spec.attach_git_version_lookup()
         # Overridden spec cannot be anonymous
         init_spec.name = spec.name
         if match_spec and not init_spec.satisfies(match_spec):
