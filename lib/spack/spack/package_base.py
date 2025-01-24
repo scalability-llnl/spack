@@ -22,7 +22,6 @@ import sys
 import textwrap
 import time
 import traceback
-import typing
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, Type, TypeVar, Union
 
 from typing_extensions import Literal
@@ -825,6 +824,7 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
     @classmethod
     def possible_dependencies(
         cls,
+        *,
         transitive: bool = True,
         expand_virtuals: bool = True,
         depflag: dt.DepFlag = dt.ALL,
@@ -915,7 +915,12 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
                     continue
 
                 dep_cls.possible_dependencies(
-                    transitive, expand_virtuals, depflag, visited, missing, virtuals
+                    transitive=transitive,
+                    expand_virtuals=expand_virtuals,
+                    depflag=depflag,
+                    visited=visited,
+                    missing=missing,
+                    virtuals=virtuals,
                 )
 
         return visited
@@ -2285,7 +2290,7 @@ build_system_flags = PackageBase.build_system_flags
 
 
 def possible_dependencies(
-    *pkg_or_spec: Union[str, spack.spec.Spec, typing.Type[PackageBase]],
+    *specs: Union[str, spack.spec.Spec],
     transitive: bool = True,
     expand_virtuals: bool = True,
     depflag: dt.DepFlag = dt.ALL,
@@ -2296,23 +2301,24 @@ def possible_dependencies(
 
     See ``PackageBase.possible_dependencies`` for details.
     """
-    packages = []
-    for pos in pkg_or_spec:
-        if isinstance(pos, PackageMeta) and issubclass(pos, PackageBase):
-            packages.append(pos)
+    packages: List[Tuple[spack.spec.Spec, Type[PackageBase]]] = []
+    for current_spec in specs:
+        if isinstance(current_spec, str):
+            current_spec = spack.spec.Spec(current_spec)
+
+        if spack.repo.PATH.is_virtual(current_spec.name):
+            packages.extend(
+                [
+                    (current_spec, p.package_class)
+                    for p in spack.repo.PATH.providers_for(current_spec.name)
+                ]
+            )
             continue
 
-        if not isinstance(pos, spack.spec.Spec):
-            pos = spack.spec.Spec(pos)
-
-        if spack.repo.PATH.is_virtual(pos.name):
-            packages.extend(p.package_class for p in spack.repo.PATH.providers_for(pos.name))
-            continue
-        else:
-            packages.append(pos.package_class)
+        packages.append((current_spec, current_spec.package_class))
 
     visited: Dict[str, Set[str]] = {}
-    for pkg in packages:
+    for input_spec, pkg in packages:
         pkg.possible_dependencies(
             visited=visited,
             transitive=transitive,
