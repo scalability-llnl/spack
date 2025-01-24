@@ -25,7 +25,6 @@ import copy
 import functools
 import http.client
 import os
-import os.path
 import re
 import shutil
 import urllib.error
