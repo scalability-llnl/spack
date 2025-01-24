@@ -1495,7 +1495,7 @@ spack:
 
 
 def test_env_with_included_configs_precedence(tmp_path):
-    """Test precendence of multiple included configuration files."""
+    """Test precedence of multiple included configuration files."""
     file1 = "high-config.yaml"
     file2 = "low-config.yaml"
 
