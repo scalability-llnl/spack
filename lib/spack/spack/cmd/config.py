@@ -269,11 +269,29 @@ def _can_update_config_file(scope: spack.config.ConfigScope, cfg_file):
     return False
 
 
+import spack.version.version_types
+
+
 def _config_change_requires_scope(path, spec, scope, match_spec=None):
     """Return whether or not anything changed."""
     require = spack.config.get(path, scope=scope)
     if not require:
         return False
+
+    if spec.versions.concrete and isinstance(spec.version, spack.version.version_types.GitVersion):
+        test = spack.spec.Spec(spec.name)
+        test.versions = spec.versions
+        if test != spec:
+            raise ValueError(f"When setting @git. versions, the spec can only contain a version")
+
+    def specs_conflict(s1, s2):
+        # If both specs have a version, and either one is a git version
+        # then they conflict
+
+        # Else if either spec has a git version, they don't conflict
+
+        # Else
+        return not s1.intersects(s2)
 
     changed = False
 
@@ -290,7 +308,7 @@ def _config_change_requires_scope(path, spec, scope, match_spec=None):
             # If there is a match_spec, don't change constraints that
             # don't match it
             return spec_str
-        elif not init_spec.intersects(spec):
+        elif specs_conflict(init_spec, spec):
             changed = True
             return str(spack.spec.Spec.override(init_spec, spec))
         else:
