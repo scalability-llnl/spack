@@ -344,6 +344,7 @@ def no_concretization_cache():
     with spack.config.override("config:enable_concretization_cache", False):
         yield
 
+
 @pytest.fixture(scope="function")
 def use_concretization_cache():
     """Enables the use of the concretization cache"""

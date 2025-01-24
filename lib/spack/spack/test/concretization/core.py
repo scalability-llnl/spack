@@ -2,8 +2,6 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import copy
-import io
-import multiprocessing
 import os
 import sys
 
@@ -2205,9 +2203,6 @@ class TestConcretize:
         # namespace and an external prefix before marking concrete
         assert spec["python"].satisfies(python)
 
-    # Python is present in the concretization cache at this point so the post-processing will not occur
-    # if there's a cache hit. This method expects that post-processing to occur but does not modify
-    # any specs or asp files to trigger a cache miss.
     def test_external_python_extension_find_dependency_from_detection(self, monkeypatch):
         """Test that python extensions have access to a python dependency
 
@@ -2271,10 +2266,6 @@ class TestConcretize:
         assert result.specs
 
     @pytest.mark.regression("38664")
-    # zlib is present in the concretization cache at this point so the post-processing that would
-    # raise the expected error will not occur.
-    # This method expects that post-processing to occur but does not modify
-    # any specs or asp files to trigger a cache miss and the re-execution of the post processing step
     def test_unsolved_specs_raises_error(self, monkeypatch, mock_packages):
         """Check that the solver raises an exception when input specs are not
         satisfied.
@@ -2399,12 +2390,7 @@ class TestConcretize:
 
     @pytest.mark.parametrize("transitive", [True, False])
     def test_explicit_splices(
-        self,
-        mutable_config,
-        database_mutable_config,
-        mock_packages,
-        transitive,
-        capfd,
+        self, mutable_config, database_mutable_config, mock_packages, transitive, capfd
     ):
         mpich_spec = database_mutable_config.query("mpich")[0]
         splice_info = {

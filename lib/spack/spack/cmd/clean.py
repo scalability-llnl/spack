@@ -12,7 +12,6 @@ import llnl.util.tty as tty
 import spack.caches
 import spack.cmd
 import spack.config
-import spack.solver.asp
 import spack.stage
 import spack.store
 import spack.util.path
