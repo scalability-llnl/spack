@@ -32,16 +32,12 @@ class Pumgen(CMakePackage):
         description="Use PUMI (Parallel Unstructured Mesh Infrastructure) Scorec, \
             instead of standalone PUMGen functions.",
     )
-    variant("with_netcdf", default=False, description="Support netcdf meshes")
 
     depends_on("mpi")
     # simmetrix (e.g. @2024.0-240616) currently does not
     # have a precompiled libSimPartitionWrapper-openmpi5.a
     depends_on("openmpi@:4", when="+with_simmetrix ^[virtuals=mpi] openmpi")
 
-    depends_on(
-        "netcdf-c +shared +mpi", when="+with_netcdf"
-    )  # NOTE: only tested with 4.4.0 version
     depends_on("hdf5@1.10: +shared +threadsafe +mpi")
     depends_on("simmetrix-simmodsuite", when="+with_simmetrix")
     depends_on(
@@ -61,7 +57,6 @@ class Pumgen(CMakePackage):
     def cmake_args(self):
         args = [
             self.define_from_variant("SIMMETRIX", "with_simmetrix"),
-            self.define_from_variant("NETCDF", "with_netcdf"),
             self.define_from_variant("SCOREC", "scorec"),
         ]
         if "simmetrix-simmodsuite" in self.spec:
