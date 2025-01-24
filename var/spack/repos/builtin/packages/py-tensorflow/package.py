@@ -447,14 +447,31 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
     conflicts("platform=darwin target=aarch64:", when="@:2.4")
     # https://github.com/tensorflow/tensorflow/pull/39225
     conflicts("target=aarch64:", when="@:2.2")
+
+    rocm_versions = [
+        "2.7.4-rocm-enhanced",
+        "2.11.0-rocm-enhanced",
+        "2.14-rocm-enhanced",
+        "2.16.1-rocm-enhanced",
+        "2.18.0-rocm-enhanced",
+    ]
+    rocm_conflicts = [
+        ":2.7.4-a",
+        "2.7.4.0:2.11.0-a",
+        "2.11.0.0:2.14-a",
+        "2.14-z:2.16.1-a",
+        "2.16.1-z:2.18.0-a",
+        "2.18.0-z:",
+    ]
     conflicts(
         "~rocm",
-        when="@2.7.4-rocm-enhanced,2.11.0-rocm-enhanced,2.14-rocm-enhanced,2.16.1-rocm-enhanced,2.18.0-rocm-enhanced",
+        when=f"@{','.join(rocm_versions)}",
     )
     conflicts(
         "+rocm",
-        when="@:2.7.4-a,2.7.4.0:2.11.0-a,2.11.0.0:2.14-a,2.14-z:2.16.1-a,2.16.1-z:2.18.0-a,2.18.0-z:",
+        when=f"@{','.join(rocm_conflicts)}",
     )
+
     # wheel 0.40 upgrades vendored packaging, trips over tensorflow-io-gcs-filesystem identifier
     conflicts("^py-wheel@0.40:", when="@2.11:2.13")
 
