@@ -4,9 +4,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 """Test the Environment class"""
-import sys
-
-import pytest
 
 import spack.database
 import spack.environment as ev
