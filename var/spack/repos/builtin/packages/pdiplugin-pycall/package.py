@@ -6,6 +6,7 @@
 from spack import *
 from spack.package import *
 
+
 class PdipluginPycall(CMakePackage):
     """pycall plugin for the PDI library"""
 

@@ -6,6 +6,7 @@
 from spack import *
 from spack.package import *
 
+
 class Zpp(PythonPackage):
     """ZPP, the Z Pre-Processor. ZPP transforms bash in a pre-processor for F90
     source files. It offers a set of functions specifically tailored to build
