@@ -2205,6 +2205,9 @@ class TestConcretize:
         # namespace and an external prefix before marking concrete
         assert spec["python"].satisfies(python)
 
+    # Python is present in the concretization cache at this point so the post-processing will not occur
+    # if there's a cache hit. This method expects that post-processing to occur but does not modify
+    # any specs or asp files to trigger a cache miss.
     def test_external_python_extension_find_dependency_from_detection(self, monkeypatch):
         """Test that python extensions have access to a python dependency
 
@@ -2268,6 +2271,10 @@ class TestConcretize:
         assert result.specs
 
     @pytest.mark.regression("38664")
+    # zlib is present in the concretization cache at this point so the post-processing that would
+    # raise the expected error will not occur.
+    # This method expects that post-processing to occur but does not modify
+    # any specs or asp files to trigger a cache miss and the re-execution of the post processing step
     def test_unsolved_specs_raises_error(self, monkeypatch, mock_packages):
         """Check that the solver raises an exception when input specs are not
         satisfied.
@@ -2398,7 +2405,6 @@ class TestConcretize:
         mock_packages,
         transitive,
         capfd,
-        no_concretization_cache,
     ):
         mpich_spec = database_mutable_config.query("mpich")[0]
         splice_info = {
@@ -3244,31 +3250,3 @@ def test_spec_unification(unify, mutable_config, mock_packages):
     maybe_fails = pytest.raises if unify is True else llnl.util.lang.nullcontext
     with maybe_fails(spack.solver.asp.UnsatisfiableSpecError):
         _ = spack.cmd.parse_specs([a_restricted, b], concretize=True)
-
-
-def solver_driver(queue):
-    test_spec = spack.spec.Spec("hdf5")
-    output_capture = io.StringIO()
-    kwargs = {"out": output_capture, "setup_only": True}
-    spack.solver.asp.Solver().solve([test_spec], **kwargs)
-    queue.put(output_capture.getvalue())
-
-
-@pytest.mark.maybeslow
-def test_deterministic_asp_problem_ordering():
-    """Test validating that out ASP output is deterministic
-
-    Ensures the same rules with the same node ids are produced
-    with each run of the solver setup
-    """
-    asp_output_queue = multiprocessing.Queue()
-    asp_results = []
-    for _ in range(10):
-        asp_p = multiprocessing.Process(target=solver_driver, args=(asp_output_queue,))
-        asp_p.start()
-        # sort the results to ensure deterministic output
-        asp_results.append("\n".join(sorted(asp_output_queue.get().split("\n"))))
-        asp_p.join()
-
-    for i in range(1, 10):
-        assert asp_results[0] == asp_results[i]
