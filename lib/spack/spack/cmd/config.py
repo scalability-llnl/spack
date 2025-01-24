@@ -307,7 +307,8 @@ def _config_change_requires_scope(path, spec, scope, match_spec=None):
         elif constrains_version(s2) and assigns_git_version(s2):
             return False
 
-        # Else
+        # At this point, neither spec assigns a git version, so we can safely
+        # call .intersects
         return not s1.intersects(s2)
 
     changed = False
