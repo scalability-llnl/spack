@@ -269,7 +269,8 @@ def _can_update_config_file(scope: spack.config.ConfigScope, cfg_file):
     return False
 
 
-import spack.version.version_types
+from spack.version.version_types import GitVersion
+from spack.version import any_version
 
 
 def _config_change_requires_scope(path, spec, scope, match_spec=None):
@@ -278,7 +279,15 @@ def _config_change_requires_scope(path, spec, scope, match_spec=None):
     if not require:
         return False
 
-    if spec.versions.concrete and isinstance(spec.version, spack.version.version_types.GitVersion):
+    def constrains_version(x):
+        return x.versions and x.versions != any_version
+
+    def assigns_git_version(x):
+        return x.versions.concrete and isinstance(x.version, GitVersion)
+
+    version_update = constrains_version(spec)
+
+    if spec.versions.concrete and isinstance(spec.version, GitVersion):
         test = spack.spec.Spec(spec.name)
         test.versions = spec.versions
         if test != spec:
@@ -287,15 +296,21 @@ def _config_change_requires_scope(path, spec, scope, match_spec=None):
     def specs_conflict(s1, s2):
         # If both specs have a version, and either one is a git version
         # then they conflict
-
+        if constrains_version(s1) and constrains_version(s2):
+            if assigns_git_version(s1):
+                return True
+            elif assigns_git_version(s2):
+                return True
         # Else if either spec has a git version, they don't conflict
+        elif constrains_version(s1) and assigns_git_version(s1):
+            return False
+        elif constrains_version(s2) and assigns_git_version(s2):
+            return False
 
         # Else
         return not s1.intersects(s2)
 
     changed = False
-
-    #spec.attach_git_version_lookup()
 
     def override_cfg_spec(spec_str):
         nonlocal changed
