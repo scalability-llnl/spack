@@ -19,7 +19,7 @@ class RocprofilerSystems(CMakePackage):
     version("amd-mainline", branch="amd-mainline", submodules=True)
     version("amd-staging", branch="amd-staging", submodules=True)
     version(
-        "rocm-6.3.1",
+        "6.3.1",
         git="https://github.com/ROCm/rocprofiler-systems",
         tag="rocm-6.3.1",
         commit="04a84dd0b0df3dfd61f7765696e0e474ec29f10b",
@@ -27,7 +27,7 @@ class RocprofilerSystems(CMakePackage):
     )
 
     version(
-        "rocm-6.3.0",
+        "6.3.0",
         git="https://github.com/ROCm/rocprofiler-systems",
         tag="rocm-6.3.0",
         commit="71a5e271b5e07efd2948fb6e7b451db5e8e40cb8",
@@ -101,35 +101,35 @@ class RocprofilerSystems(CMakePackage):
     depends_on("libtool", when="+rocm")
     with when("+rocm"):
         for ver in ["6.3.0", "6.3.1"]:
-            depends_on(f"rocm-smi-lib@{ver}", when=f"@rocm-{ver}")
-            depends_on(f"hip@{ver}", when=f"@rocm-{ver}")
-            depends_on(f"roctracer-dev@{ver}", when=f"@rocm-{ver}")
-            depends_on(f"rocprofiler-dev@{ver}", when=f"@rocm-{ver}")
+            depends_on(f"rocm-smi-lib@{ver}", when=f"@{ver}")
+            depends_on(f"hip@{ver}", when=f"@{ver}")
+            depends_on(f"roctracer-dev@{ver}", when=f"@{ver}")
+            depends_on(f"rocprofiler-dev@{ver}", when=f"@{ver}")
 
     def cmake_args(self):
         spec = self.spec
 
         args = [
             self.define("SPACK_BUILD", True),
-            self.define("OMNITRACE_BUILD_PAPI", False),
-            self.define("OMNITRACE_BUILD_PYTHON", True),
-            self.define("OMNITRACE_BUILD_DYNINST", False),
-            self.define("OMNITRACE_BUILD_LIBUNWIND", False),
-            self.define("OMNITRACE_BUILD_STATIC_LIBGCC", False),
-            self.define("OMNITRACE_BUILD_STATIC_LIBSTDCXX", False),
-            self.define_from_variant("OMNITRACE_BUILD_LTO", "ipo"),
-            self.define_from_variant("OMNITRACE_USE_HIP", "rocm"),
-            self.define_from_variant("OMNITRACE_USE_MPI", "mpi"),
-            self.define_from_variant("OMNITRACE_USE_OMPT", "ompt"),
-            self.define_from_variant("OMNITRACE_USE_PAPI", "papi"),
-            self.define_from_variant("OMNITRACE_USE_RCCL", "rocm"),
-            self.define_from_variant("OMNITRACE_USE_ROCM_SMI", "rocm"),
-            self.define_from_variant("OMNITRACE_USE_ROCTRACER", "rocm"),
-            self.define_from_variant("OMNITRACE_USE_ROCPROFILER", "rocm"),
-            self.define_from_variant("OMNITRACE_USE_PYTHON", "python"),
-            self.define_from_variant("OMNITRACE_USE_MPI_HEADERS", "mpi_headers"),
-            self.define_from_variant("OMNITRACE_STRIP_LIBRARIES", "strip"),
-            self.define_from_variant("OMNITRACE_INSTALL_PERFETTO_TOOLS", "perfetto_tools"),
+            self.define("ROCPROFSYS_BUILD_PAPI", False),
+            self.define("ROCPROFSYS_BUILD_PYTHON", True),
+            self.define("ROCPROFSYS_BUILD_DYNINST", False),
+            self.define("ROCPROFSYS_BUILD_LIBUNWIND", False),
+            self.define("ROCPROFSYS_BUILD_STATIC_LIBGCC", False),
+            self.define("ROCPROFSYS_BUILD_STATIC_LIBSTDCXX", False),
+            self.define_from_variant("ROCPROFSYS_BUILD_LTO", "ipo"),
+            self.define_from_variant("ROCPROFSYS_USE_HIP", "rocm"),
+            self.define_from_variant("ROCPROFSYS_USE_MPI", "mpi"),
+            self.define_from_variant("ROCPROFSYS_USE_OMPT", "ompt"),
+            self.define_from_variant("ROCPROFSYS_USE_PAPI", "papi"),
+            self.define_from_variant("ROCPROFSYS_USE_RCCL", "rocm"),
+            self.define_from_variant("ROCPROFSYS_USE_ROCM_SMI", "rocm"),
+            self.define_from_variant("ROCPROFSYS_USE_ROCTRACER", "rocm"),
+            self.define_from_variant("ROCPROFSYS_USE_ROCPROFILER", "rocm"),
+            self.define_from_variant("ROCPROFSYS_USE_PYTHON", "python"),
+            self.define_from_variant("ROCPROFSYS_USE_MPI_HEADERS", "mpi_headers"),
+            self.define_from_variant("ROCPROFSYS_STRIP_LIBRARIES", "strip"),
+            self.define_from_variant("ROCPROFSYS_INSTALL_PERFETTO_TOOLS", "perfetto_tools"),
             # timemory arguments
             self.define("TIMEMORY_UNITY_BUILD", False),
             self.define("TIMEMORY_BUILD_CALIPER", False),
@@ -145,7 +145,7 @@ class RocprofilerSystems(CMakePackage):
             args.append(self.define("MPI_C_COMPILER", spec["mpi"].mpicc))
             args.append(self.define("MPI_CXX_COMPILER", spec["mpi"].mpicxx))
 
-        if spec.satisfies("@rocm-6.3:"):
+        if spec.satisfies("@6.3:"):
             args.append(self.define("dl_LIBRARY", "dl"))
             args.append(
                 self.define("libunwind_INCLUDE_DIR", self.spec["libunwind"].prefix.include)
@@ -153,7 +153,7 @@ class RocprofilerSystems(CMakePackage):
         return args
 
     def flag_handler(self, name, flags):
-        if self.spec.satisfies("@rocm-6.3:"):
+        if self.spec.satisfies("@6.3:"):
             if name == "ldflags":
                 flags.append("-lintl")
         return (flags, None, None)
