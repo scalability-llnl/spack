@@ -145,7 +145,7 @@ class RocprofilerSystems(CMakePackage):
             args.append(self.define("MPI_C_COMPILER", spec["mpi"].mpicc))
             args.append(self.define("MPI_CXX_COMPILER", spec["mpi"].mpicxx))
 
-        if spec.satisfies("@6.3:"):
+        if spec.satisfies("@rocm-6.3:"):
             args.append(self.define("dl_LIBRARY", "dl"))
             args.append(
                 self.define("libunwind_INCLUDE_DIR", self.spec["libunwind"].prefix.include)
@@ -153,7 +153,7 @@ class RocprofilerSystems(CMakePackage):
         return args
 
     def flag_handler(self, name, flags):
-        if self.spec.satisfies("@6.3:"):
+        if self.spec.satisfies("@rocm-6.3:"):
             if name == "ldflags":
                 flags.append("-lintl")
         return (flags, None, None)
