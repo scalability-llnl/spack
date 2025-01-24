@@ -66,8 +66,8 @@ class Esmf(MakefilePackage, PythonExtension):
         deprecated=True,
     )
 
-    # For WCOSS2 (JCSDA repo only):
-    provides("esmf_virt")
+    # For module hierarchy (JCSDA repo only):
+    provides("esmf_virtual")
 
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated

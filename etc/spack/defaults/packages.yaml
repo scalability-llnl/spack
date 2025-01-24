@@ -25,7 +25,6 @@ packages:
       D: [ldc]
       daal: [intel-oneapi-daal]
       elf: [elfutils]
-      esmf_virt: [esmf]
       fftw-api: [fftw, amdfftw]
       flame: [libflame, amdlibflame]
       fortran: [gcc]
@@ -35,7 +34,6 @@ packages:
       glu: [mesa-glu, openglu]
       golang: [go, gcc]
       go-or-gccgo-bootstrap: [go-bootstrap, gcc]
-      hdf5_virt: [hdf5]
       iconv: [libiconv]
       ipp: [intel-oneapi-ipp]
       java: [openjdk, jdk, ibm-java]
@@ -53,13 +51,11 @@ packages:
       mpe: [mpe2]
       mpi: [openmpi, mpich]
       mysql-client: [mysql, mariadb-c-client]
-      netcdf_c_virt: [netcdf-c]
       opencl: [pocl]
       onedal: [intel-oneapi-dal]
       pbs: [openpbs, torque]
       pil: [py-pillow]
       pkgconfig: [pkgconf, pkg-config]
-      python_virt: [python]
       qmake: [qt-base, qt]
       rpc: [libtirpc]
       scalapack: [netlib-scalapack, amdscalapack]
@@ -73,6 +69,11 @@ packages:
       yacc: [bison, byacc]
       ziglang: [zig]
       zlib-api: [zlib-ng+compat, zlib]
+      # Dummy providers for module hierarchy (JCSDA repo only):
+      esmf_virtual: [esmf]
+      hdf5_virtual: [hdf5]
+      netcdf_c_virtual: [netcdf-c]
+      python_virtual: [python]
     permissions:
       read: world
       write: user
