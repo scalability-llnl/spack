@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -31,6 +30,7 @@ class Gdal(CMakePackage, AutotoolsPackage, PythonExtension):
     license("MIT")
     maintainers("adamjstewart")
 
+    version("3.10.1", sha256="9211eac72b53f5f85d23cf6d83ee20245c6d818733405024e71f2af41e5c5f91")
     version("3.10.0", sha256="af821a3bcf68cf085724c21c9b53605fd451d83af3c8854d8bf194638eb734a8")
     version("3.9.3", sha256="34a037852ffe6d2163f1b8948a1aa7019ff767148aea55876c1339b22ad751f1")
     version("3.9.2", sha256="bfbcc9f087f012c36151c20c79f8eac9529e1e5298fbded79cd5a1365f0b113a")

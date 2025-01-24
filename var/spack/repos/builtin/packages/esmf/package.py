@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -32,6 +31,7 @@ class Esmf(MakefilePackage, PythonExtension):
     # Develop is a special name for spack and is always considered the newest version
     version("develop", branch="develop")
     # generate chksum with 'spack checksum esmf@x.y.z'
+    version("8.8.0", sha256="f89327428aeef6ad34660b5b78f30d1c55ec67efb8f7df1991fdaa6b1eb3a27c")
     version("8.7.0", sha256="d7ab266e2af8c8b230721d4df59e61aa03c612a95cc39c07a2d5695746f21f56")
     version("8.6.1", sha256="dc270dcba1c0b317f5c9c6a32ab334cb79468dda283d1e395d98ed2a22866364")
     version("8.6.0", sha256="ed057eaddb158a3cce2afc0712b49353b7038b45b29aee86180f381457c0ebe7")
@@ -270,13 +270,18 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
         elif self.pkg.compiler.name == "intel" or self.pkg.compiler.name == "oneapi":
             env.set("ESMF_COMPILER", "intel")
         elif self.pkg.compiler.name in ["clang", "apple-clang"]:
-            env.set("ESMF_COMPILER", "gfortranclang")
-            with self.pkg.compiler.compiler_environment():
-                gfortran_major_version = int(
-                    spack.compiler.get_compiler_version_output(
-                        self.pkg.compiler.fc, "-dumpversion"
-                    ).split(".")[0]
-                )
+            if "flang" in self.pkg.compiler.fc:
+                env.set("ESMF_COMPILER", "llvm")
+            elif "gfortran" in self.pkg.compiler.fc:
+                env.set("ESMF_COMPILER", "gfortranclang")
+                with self.pkg.compiler.compiler_environment():
+                    gfortran_major_version = int(
+                        spack.compiler.get_compiler_version_output(
+                            self.pkg.compiler.fc, "-dumpversion"
+                        ).split(".")[0]
+                    )
+            else:
+                raise InstallError("Unsupported C/C++/Fortran compiler combination")
         elif self.pkg.compiler.name == "nag":
             env.set("ESMF_COMPILER", "nag")
         elif self.pkg.compiler.name == "nvhpc":
@@ -309,6 +314,7 @@ class MakefileBuilder(spack.build_systems.makefile.MakefileBuilder):
 
         if (
             self.pkg.compiler.name in ["gcc", "clang", "apple-clang"]
+            and "gfortran" in self.pkg.compiler.fc
             and gfortran_major_version >= 10
             and (self.spec.satisfies("@:8.2.99") or self.spec.satisfies("@8.3.0b09"))
         ):

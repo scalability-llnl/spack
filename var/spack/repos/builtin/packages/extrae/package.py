@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -82,7 +81,8 @@ class Extrae(AutotoolsPackage):
     depends_on("elf", type="link")
     depends_on("libxml2")
     depends_on("numactl")
-    depends_on("binutils+libiberty@:2.33")
+    depends_on("binutils+libiberty@:2.33", when="@:4.0.1")
+    depends_on("binutils+libiberty", when="@4.0.2:")
     depends_on("gettext")
     # gettext dependency added to find -lintl
     # https://www.gnu.org/software/gettext/FAQ.html#integrating_undefined

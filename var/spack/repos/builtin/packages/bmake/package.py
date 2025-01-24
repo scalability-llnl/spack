@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -21,6 +20,7 @@ class Bmake(Package):
     version("20171207", sha256="1703667e53a0498c0903b20612ebcbb41b886a94b238624cfeadd91a4111d39a")
 
     depends_on("c", type="build")  # generated
+    depends_on("gmake", type="build")
 
     def patch(self):
         # Do not pre-roff cat pages

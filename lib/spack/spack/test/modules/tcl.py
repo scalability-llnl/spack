@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -9,9 +8,9 @@ import pytest
 
 import archspec.cpu
 
+import spack.concretize
 import spack.modules.common
 import spack.modules.tcl
-import spack.spec
 
 mpich_spec_string = "mpich@3.0.4"
 mpileaks_spec_string = "mpileaks"
@@ -394,8 +393,7 @@ class TestTcl:
         assert len([x for x in content if "setenv FOOBAR" in x]) == 1
         assert len([x for x in content if "setenv FOOBAR {mpileaks}" in x]) == 1
 
-        spec = spack.spec.Spec("mpileaks")
-        spec.concretize()
+        spec = spack.concretize.concretize_one("mpileaks")
         content = modulefile_content(spec["callpath"])
 
         assert len([x for x in content if "setenv FOOBAR" in x]) == 1
@@ -469,14 +467,12 @@ class TestTcl:
         module_configuration("exclude_implicits")
 
         # mpileaks is defined as explicit with explicit argument set on writer
-        mpileaks_spec = spack.spec.Spec("mpileaks")
-        mpileaks_spec.concretize()
+        mpileaks_spec = spack.concretize.concretize_one("mpileaks")
         writer = writer_cls(mpileaks_spec, "default", True)
         assert not writer.conf.excluded
 
         # callpath is defined as implicit with explicit argument set on writer
-        callpath_spec = spack.spec.Spec("callpath")
-        callpath_spec.concretize()
+        callpath_spec = spack.concretize.concretize_one("callpath")
         writer = writer_cls(callpath_spec, "default", False)
         assert writer.conf.excluded
 
@@ -511,20 +507,20 @@ class TestTcl:
         """Tests the addition and removal of hide command in modulerc."""
         module_configuration("hide_implicits")
 
-        spec = spack.spec.Spec("mpileaks@2.3").concretized()
+        spec = spack.concretize.concretize_one("mpileaks@2.3")
 
         # mpileaks is defined as implicit, thus hide command should appear in modulerc
         writer = writer_cls(spec, "default", False)
         writer.write()
         assert os.path.exists(writer.layout.modulerc)
-        with open(writer.layout.modulerc) as f:
+        with open(writer.layout.modulerc, encoding="utf-8") as f:
             content = [line.strip() for line in f.readlines()]
         hide_implicit_mpileaks = f"module-hide --soft --hidden-loaded {writer.layout.use_name}"
         assert len([x for x in content if hide_implicit_mpileaks == x]) == 1
 
         # The direct dependencies are all implicit, and they should have depends-on with fixed
         # 7 character hash, even though the config is set to hash_length = 0.
-        with open(writer.layout.filename) as f:
+        with open(writer.layout.filename, encoding="utf-8") as f:
             depends_statements = [line.strip() for line in f.readlines() if "depends-on" in line]
             for dep in spec.dependencies(deptype=("link", "run")):
                 assert any(dep.dag_hash(7) in line for line in depends_statements)
@@ -534,7 +530,7 @@ class TestTcl:
         writer = writer_cls(spec, "default", True)
         writer.write()
         assert os.path.exists(writer.layout.modulerc)
-        with open(writer.layout.modulerc) as f:
+        with open(writer.layout.modulerc, encoding="utf-8") as f:
             content = [line.strip() for line in f.readlines()]
         assert hide_implicit_mpileaks in content  # old, implicit mpileaks is still hidden
         assert f"module-hide --soft --hidden-loaded {writer.layout.use_name}" not in content
@@ -558,14 +554,14 @@ class TestTcl:
         # three versions of mpileaks are implicit
         writer = writer_cls(spec, "default", False)
         writer.write(overwrite=True)
-        spec_alt1 = spack.spec.Spec("mpileaks@2.2").concretized()
-        spec_alt2 = spack.spec.Spec("mpileaks@2.1").concretized()
+        spec_alt1 = spack.concretize.concretize_one("mpileaks@2.2")
+        spec_alt2 = spack.concretize.concretize_one("mpileaks@2.1")
         writer_alt1 = writer_cls(spec_alt1, "default", False)
         writer_alt1.write(overwrite=True)
         writer_alt2 = writer_cls(spec_alt2, "default", False)
         writer_alt2.write(overwrite=True)
         assert os.path.exists(writer.layout.modulerc)
-        with open(writer.layout.modulerc) as f:
+        with open(writer.layout.modulerc, encoding="utf-8") as f:
             content = [line.strip() for line in f.readlines()]
         hide_cmd = f"module-hide --soft --hidden-loaded {writer.layout.use_name}"
         hide_cmd_alt1 = f"module-hide --soft --hidden-loaded {writer_alt1.layout.use_name}"
@@ -577,7 +573,7 @@ class TestTcl:
         # one version is removed
         writer_alt1.remove()
         assert os.path.exists(writer.layout.modulerc)
-        with open(writer.layout.modulerc) as f:
+        with open(writer.layout.modulerc, encoding="utf-8") as f:
             content = [line.strip() for line in f.readlines()]
         assert len([x for x in content if hide_cmd == x]) == 1
         assert len([x for x in content if hide_cmd_alt1 == x]) == 0

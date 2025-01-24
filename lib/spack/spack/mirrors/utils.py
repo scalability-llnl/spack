@@ -1,10 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os
 import os.path
-import sys
 import traceback
 
 import llnl.util.tty as tty
@@ -214,7 +212,9 @@ class MirrorStats:
         self.errors.add(self.current_spec)
 
 
-def create_mirror_from_package_object(pkg_obj, mirror_cache, mirror_stats):
+def create_mirror_from_package_object(
+    pkg_obj, mirror_cache: "spack.caches.MirrorCache", mirror_stats: MirrorStats
+) -> bool:
     """Add a single package object to a mirror.
 
     The package object is only required to have an associated spec
@@ -222,35 +222,30 @@ def create_mirror_from_package_object(pkg_obj, mirror_cache, mirror_stats):
 
     Args:
         pkg_obj (spack.package_base.PackageBase): package object with to be added.
-        mirror_cache (spack.caches.MirrorCache): mirror where to add the spec.
-        mirror_stats (spack.mirror.MirrorStats): statistics on the current mirror
+        mirror_cache: mirror where to add the spec.
+        mirror_stats: statistics on the current mirror
 
     Return:
         True if the spec was added successfully, False otherwise
     """
     tty.msg("Adding package {} to mirror".format(pkg_obj.spec.format("{name}{@version}")))
-    num_retries = 3
-    while num_retries > 0:
+    max_retries = 3
+    for num_retries in range(max_retries):
         try:
             # Includes patches and resources
             with pkg_obj.stage as pkg_stage:
                 pkg_stage.cache_mirror(mirror_cache, mirror_stats)
-            exception = None
             break
         except Exception as e:
-            exc_tuple = sys.exc_info()
-            exception = e
-        num_retries -= 1
-    if exception:
-        if spack.config.get("config:debug"):
-            traceback.print_exception(file=sys.stderr, *exc_tuple)
-        else:
-            tty.warn(
-                "Error while fetching %s" % pkg_obj.spec.cformat("{name}{@version}"),
-                getattr(exception, "message", exception),
-            )
-        mirror_stats.error()
-        return False
+            if num_retries + 1 == max_retries:
+                if spack.config.get("config:debug"):
+                    traceback.print_exc()
+                else:
+                    tty.warn(
+                        "Error while fetching %s" % pkg_obj.spec.format("{name}{@version}"), str(e)
+                    )
+                mirror_stats.error()
+                return False
     return True
 
 

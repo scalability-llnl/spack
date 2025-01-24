@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -22,7 +21,7 @@ class Eagle(MakefilePackage):
 
     depends_on("curl")
     depends_on("zlib-api")
-    depends_on("lzma")
+    depends_on("xz")
     depends_on("htslib")
 
     def edit(self, spec, prefix):

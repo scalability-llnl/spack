@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -44,9 +43,21 @@ class PySlepc4py(PythonPackage):
     version("3.15.2", sha256="c87135989c4d95b9c92a5b615a95eddc34b69dad9cc28b27d3cb7dfaec46177b")
     version("3.15.1", sha256="bcdab6d2101ae00e189f4b33072805358cee2dda806a6b6a8e3c2f1b9f619dfd")
     version("3.15.0", sha256="2f5f5cc25ab4dd3782046c65e97265b39be0cf9cc74c5c0100c3c580c3c32395")
-    version("3.13.0", sha256="780eff0eea1a5217642d23cd563786ef22df27e1d772a1b0bb4ccc5701df5ea5")
-    version("3.12.0", sha256="d8c06953b7d00f529a9a7fd016dfa8efdf1d05995baeea7688d1d59611f424f7")
-    version("3.11.0", sha256="1e591056beee209f585cd781e5fe88174cd2a61215716a71d9eaaf9411b6a775")
+    version(
+        "3.13.0",
+        sha256="780eff0eea1a5217642d23cd563786ef22df27e1d772a1b0bb4ccc5701df5ea5",
+        deprecated=True,
+    )
+    version(
+        "3.12.0",
+        sha256="d8c06953b7d00f529a9a7fd016dfa8efdf1d05995baeea7688d1d59611f424f7",
+        deprecated=True,
+    )
+    version(
+        "3.11.0",
+        sha256="1e591056beee209f585cd781e5fe88174cd2a61215716a71d9eaaf9411b6a775",
+        deprecated=True,
+    )
 
     patch("ldshared.patch", when="@:3.18")
 

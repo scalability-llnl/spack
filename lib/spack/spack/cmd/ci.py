@@ -1,12 +1,10 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import json
 import os
 import shutil
-import warnings
 from urllib.parse import urlparse, urlunparse
 
 import llnl.util.filesystem as fs
@@ -17,6 +15,7 @@ import spack.binary_distribution as bindist
 import spack.ci as spack_ci
 import spack.cmd
 import spack.cmd.buildcache as buildcache
+import spack.cmd.common.arguments
 import spack.config as cfg
 import spack.environment as ev
 import spack.hash_types as ht
@@ -62,22 +61,8 @@ def setup_parser(subparser):
         "path to the file where generated jobs file should be written. "
         "default is .gitlab-ci.yml in the root of the repository",
     )
-    generate.add_argument(
-        "--optimize",
-        action="store_true",
-        default=False,
-        help="(DEPRECATED) optimize the gitlab yaml file for size\n\n"
-        "run the generated document through a series of optimization passes "
-        "designed to reduce the size of the generated file",
-    )
-    generate.add_argument(
-        "--dependencies",
-        action="store_true",
-        default=False,
-        help="(DEPRECATED) disable DAG scheduling (use 'plain' dependencies)",
-    )
-    prune_group = generate.add_mutually_exclusive_group()
-    prune_group.add_argument(
+    prune_dag_group = generate.add_mutually_exclusive_group()
+    prune_dag_group.add_argument(
         "--prune-dag",
         action="store_true",
         dest="prune_dag",
@@ -85,13 +70,30 @@ def setup_parser(subparser):
         help="skip up-to-date specs\n\n"
         "do not generate jobs for specs that are up-to-date on the mirror",
     )
-    prune_group.add_argument(
+    prune_dag_group.add_argument(
         "--no-prune-dag",
         action="store_false",
         dest="prune_dag",
         default=True,
         help="process up-to-date specs\n\n"
         "generate jobs for specs even when they are up-to-date on the mirror",
+    )
+    prune_ext_group = generate.add_mutually_exclusive_group()
+    prune_ext_group.add_argument(
+        "--prune-externals",
+        action="store_true",
+        dest="prune_externals",
+        default=True,
+        help="skip external specs\n\n"
+        "do not generate jobs for specs that are marked as external",
+    )
+    prune_ext_group.add_argument(
+        "--no-prune-externals",
+        action="store_false",
+        dest="prune_externals",
+        default=True,
+        help="process external specs\n\n"
+        "generate jobs for specs even when they are marked as external",
     )
     generate.add_argument(
         "--check-index-only",
@@ -108,13 +110,17 @@ def setup_parser(subparser):
     )
     generate.add_argument(
         "--artifacts-root",
-        default=None,
+        default="jobs_scratch_dir",
         help="path to the root of the artifacts directory\n\n"
-        "if provided, concrete environment files (spack.yaml, spack.lock) will be generated under "
-        "this directory. their location will be passed to generated child jobs through the "
-        "SPACK_CONCRETE_ENVIRONMENT_PATH variable",
+        "The spack ci module assumes it will normally be run from within your project "
+        "directory, wherever that is checked out to run your ci.  The artifacts root directory "
+        "should specifiy a name that can safely be used for artifacts within your project "
+        "directory.",
     )
     generate.set_defaults(func=ci_generate)
+
+    spack.cmd.common.arguments.add_concretizer_args(generate)
+    spack.cmd.common.arguments.add_common_arguments(generate, ["jobs"])
 
     # Rebuild the buildcache index associated with the mirror in the
     # active, gitlab-enabled environment.
@@ -145,6 +151,7 @@ def setup_parser(subparser):
         help="stop stand-alone tests after the first failure",
     )
     rebuild.set_defaults(func=ci_rebuild)
+    spack.cmd.common.arguments.add_common_arguments(rebuild, ["jobs"])
 
     # Facilitate reproduction of a failed CI build job
     reproduce = subparsers.add_parser(
@@ -187,42 +194,8 @@ def ci_generate(args):
     before invoking this command. the value must be the CDash authorization token needed to create
     a build group and register all generated jobs under it
     """
-    if args.optimize:
-        warnings.warn(
-            "The --optimize option has been deprecated, and currently has no effect. "
-            "It will be removed in Spack v0.24."
-        )
-
-    if args.dependencies:
-        warnings.warn(
-            "The --dependencies option has been deprecated, and currently has no effect. "
-            "It will be removed in Spack v0.24."
-        )
-
     env = spack.cmd.require_active_env(cmd_name="ci generate")
-
-    output_file = args.output_file
-    prune_dag = args.prune_dag
-    index_only = args.index_only
-    artifacts_root = args.artifacts_root
-
-    if not output_file:
-        output_file = os.path.abspath(".gitlab-ci.yml")
-    else:
-        output_file_path = os.path.abspath(output_file)
-        gen_ci_dir = os.path.dirname(output_file_path)
-        if not os.path.exists(gen_ci_dir):
-            os.makedirs(gen_ci_dir)
-
-    # Generate the jobs
-    spack_ci.generate_gitlab_ci_yaml(
-        env,
-        True,
-        output_file,
-        prune_dag=prune_dag,
-        check_index_only=index_only,
-        artifacts_root=artifacts_root,
-    )
+    spack_ci.generate_pipeline(env, args)
 
 
 def ci_reindex(args):
@@ -387,7 +360,7 @@ def ci_rebuild(args):
     # Write this job's spec json into the reproduction directory, and it will
     # also be used in the generated "spack install" command to install the spec
     tty.debug("job concrete spec path: {0}".format(job_spec_json_path))
-    with open(job_spec_json_path, "w") as fd:
+    with open(job_spec_json_path, "w", encoding="utf-8") as fd:
         fd.write(job_spec.to_json(hash=ht.dag_hash))
 
     # Write some other details to aid in reproduction into an artifact
@@ -397,7 +370,7 @@ def ci_rebuild(args):
         "job_spec_json": job_spec_json_file,
         "ci_project_dir": ci_project_dir,
     }
-    with open(repro_file, "w") as fd:
+    with open(repro_file, "w", encoding="utf-8") as fd:
         fd.write(json.dumps(repro_details))
 
     # Write information about spack into an artifact in the repro dir
@@ -433,14 +406,19 @@ def ci_rebuild(args):
     if not config["verify_ssl"]:
         spack_cmd.append("-k")
 
-    install_args = [f'--use-buildcache={spack_ci.win_quote("package:never,dependencies:only")}']
+    install_args = [
+        f'--use-buildcache={spack_ci.common.win_quote("package:never,dependencies:only")}'
+    ]
 
     can_verify = spack_ci.can_verify_binaries()
     verify_binaries = can_verify and spack_is_pr_pipeline is False
     if not verify_binaries:
         install_args.append("--no-check-signature")
 
-    slash_hash = spack_ci.win_quote("/" + job_spec.dag_hash())
+    if args.jobs:
+        install_args.append(f"-j{args.jobs}")
+
+    slash_hash = spack_ci.common.win_quote("/" + job_spec.dag_hash())
 
     # Arguments when installing the root from sources
     deps_install_args = install_args + ["--only=dependencies"]
@@ -605,7 +583,7 @@ If this project does not have public pipelines, you will need to first:
 
     rebuild_timer.stop()
     try:
-        with open("install_timers.json", "w") as timelog:
+        with open("install_timers.json", "w", encoding="utf-8") as timelog:
             extra_attributes = {"name": ".ci-rebuild"}
             rebuild_timer.write_json(timelog, extra_attributes=extra_attributes)
     except Exception as e:

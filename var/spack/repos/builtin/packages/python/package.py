@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -60,7 +59,9 @@ class Python(Package):
 
     license("0BSD")
 
+    version("3.13.1", sha256="1513925a9f255ef0793dbf2f78bb4533c9f184bdd0ad19763fd7f47a400a7c55")
     version("3.13.0", sha256="12445c7b3db3126c41190bfdc1c8239c39c719404e844babbd015a1bc3fafcd4")
+    version("3.12.8", sha256="5978435c479a376648cb02854df3b892ace9ed7d32b1fead652712bee9d03a45")
     version("3.12.5", sha256="38dc4e2c261d49c661196066edbfb70fdb16be4a79cc8220c224dfeb5636d405")
     version("3.12.4", sha256="01b3c1c082196f3b33168d344a9c85fb07bfe0e7ecfe77fee4443420d1ce2ad9")
     version("3.12.3", sha256="a6b9459f45a6ebbbc1af44f5762623fa355a0c87208ed417628b379d762dddb0")
@@ -112,27 +113,47 @@ class Python(Package):
     version("3.9.2", sha256="7899e8a6f7946748830d66739f2d8f2b30214dad956e56b9ba216b3de5581519")
     version("3.9.1", sha256="29cb91ba038346da0bd9ab84a0a55a845d872c341a4da6879f462e94c741f117")
     version("3.9.0", sha256="df796b2dc8ef085edae2597a41c1c0a63625ebd92487adaef2fed22b567873e8")
-    version("3.8.19", sha256="c7fa55a36e5c7a19ec37d8f90f60a2197548908c9ac8b31e7c0dbffdd470eeac")
-    version("3.8.18", sha256="7c5df68bab1be81a52dea0cc2e2705ea00553b67107a301188383d7b57320b16")
-    version("3.8.17", sha256="def428fa6cf61b66bcde72e3d9f7d07d33b2e4226f04f9d6fce8384c055113ae")
-    version("3.8.16", sha256="71ca9d935637ed2feb59e90a368361dc91eca472a90acb1d344a2e8178ccaf10")
-    version("3.8.15", sha256="924d46999df82aa2eaa1de5ca51d6800ffb56b4bf52486a28f40634e3362abc4")
-    version("3.8.14", sha256="41f959c480c59211feb55d5a28851a56c7e22d02ef91035606ebb21011723c31")
-    version("3.8.13", sha256="903b92d76354366b1d9c4434d0c81643345cef87c1600adfa36095d7b00eede4")
-    version("3.8.12", sha256="316aa33f3b7707d041e73f246efedb297a70898c4b91f127f66dc8d80c596f1a")
-    version("3.8.11", sha256="b77464ea80cec14581b86aeb7fb2ff02830e0abc7bcdc752b7b4bdfcd8f3e393")
-    version("3.8.10", sha256="b37ac74d2cbad2590e7cd0dd2b3826c29afe89a734090a87bf8c03c45066cb65")
-    version("3.8.9", sha256="9779ec1df000bf86914cdd40860b88da56c1e61db59d37784beca14a259ac9e9")
-    version("3.8.8", sha256="76c0763f048e4f9b861d24da76b7dd5c7a3ba7ec086f40caedeea359263276f7")
-    version("3.8.7", sha256="20e5a04262f0af2eb9c19240d7ec368f385788bba2d8dfba7e74b20bab4d2bac")
-    version("3.8.6", sha256="313562ee9986dc369cd678011bdfd9800ef62fbf7b1496228a18f86b36428c21")
-    version("3.8.5", sha256="015115023c382eb6ab83d512762fe3c5502fa0c6c52ffebc4831c4e1a06ffc49")
-    version("3.8.4", sha256="32c4d9817ef11793da4d0d95b3191c4db81d2e45544614e8449255ca9ae3cc18")
-    version("3.8.3", sha256="6af6d4d2e010f9655518d0fc6738c7ff7069f10a4d2fbd55509e467f092a8b90")
-    version("3.8.2", sha256="e634a7a74776c2b89516b2e013dda1728c89c8149b9863b8cea21946daf9d561")
-    version("3.8.1", sha256="c7cfa39a43b994621b245e029769e9126caa2a93571cee2e743b213cceac35fb")
-    version("3.8.0", sha256="f1069ad3cae8e7ec467aa98a6565a62a48ef196cb8f1455a245a08db5e1792df")
     with default_args(deprecated=True):
+        version(
+            "3.8.19", sha256="c7fa55a36e5c7a19ec37d8f90f60a2197548908c9ac8b31e7c0dbffdd470eeac"
+        )
+        version(
+            "3.8.18", sha256="7c5df68bab1be81a52dea0cc2e2705ea00553b67107a301188383d7b57320b16"
+        )
+        version(
+            "3.8.17", sha256="def428fa6cf61b66bcde72e3d9f7d07d33b2e4226f04f9d6fce8384c055113ae"
+        )
+        version(
+            "3.8.16", sha256="71ca9d935637ed2feb59e90a368361dc91eca472a90acb1d344a2e8178ccaf10"
+        )
+        version(
+            "3.8.15", sha256="924d46999df82aa2eaa1de5ca51d6800ffb56b4bf52486a28f40634e3362abc4"
+        )
+        version(
+            "3.8.14", sha256="41f959c480c59211feb55d5a28851a56c7e22d02ef91035606ebb21011723c31"
+        )
+        version(
+            "3.8.13", sha256="903b92d76354366b1d9c4434d0c81643345cef87c1600adfa36095d7b00eede4"
+        )
+        version(
+            "3.8.12", sha256="316aa33f3b7707d041e73f246efedb297a70898c4b91f127f66dc8d80c596f1a"
+        )
+        version(
+            "3.8.11", sha256="b77464ea80cec14581b86aeb7fb2ff02830e0abc7bcdc752b7b4bdfcd8f3e393"
+        )
+        version(
+            "3.8.10", sha256="b37ac74d2cbad2590e7cd0dd2b3826c29afe89a734090a87bf8c03c45066cb65"
+        )
+        version("3.8.9", sha256="9779ec1df000bf86914cdd40860b88da56c1e61db59d37784beca14a259ac9e9")
+        version("3.8.8", sha256="76c0763f048e4f9b861d24da76b7dd5c7a3ba7ec086f40caedeea359263276f7")
+        version("3.8.7", sha256="20e5a04262f0af2eb9c19240d7ec368f385788bba2d8dfba7e74b20bab4d2bac")
+        version("3.8.6", sha256="313562ee9986dc369cd678011bdfd9800ef62fbf7b1496228a18f86b36428c21")
+        version("3.8.5", sha256="015115023c382eb6ab83d512762fe3c5502fa0c6c52ffebc4831c4e1a06ffc49")
+        version("3.8.4", sha256="32c4d9817ef11793da4d0d95b3191c4db81d2e45544614e8449255ca9ae3cc18")
+        version("3.8.3", sha256="6af6d4d2e010f9655518d0fc6738c7ff7069f10a4d2fbd55509e467f092a8b90")
+        version("3.8.2", sha256="e634a7a74776c2b89516b2e013dda1728c89c8149b9863b8cea21946daf9d561")
+        version("3.8.1", sha256="c7cfa39a43b994621b245e029769e9126caa2a93571cee2e743b213cceac35fb")
+        version("3.8.0", sha256="f1069ad3cae8e7ec467aa98a6565a62a48ef196cb8f1455a245a08db5e1792df")
         version(
             "3.7.17", sha256="fd50161bc2a04f4c22a0971ff0f3856d98b4bf294f89740a9f06b520aae63b49"
         )
@@ -344,7 +365,7 @@ class Python(Package):
                 variants += "~tix"
 
         # Some modules are platform-dependent
-        if sys.platform != "win32":
+        if sys.platform != "win32" and Version(version_str) < Version("3.13"):
             try:
                 python("-c", "import crypt", error=os.devnull)
                 variants += "+crypt"

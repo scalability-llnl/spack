@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -24,5 +23,5 @@ class SpliceZ(Package):
     can_splice("splice-z@1.0.0:1.0.1 +compat", when="@1.0.2 +compat")
 
     def install(self, spec, prefix):
-        with open(prefix.join("splice-z"), "w") as f:
+        with open(prefix.join("splice-z"), "w", encoding="utf-8") as f:
             f.write("splice-z: {0}".format(prefix))

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -20,6 +19,8 @@ class PySetuptools(Package, PythonExtension):
     # Requires railroad
     skip_modules = ["setuptools._vendor", "pkg_resources._vendor"]
 
+    version("75.8.0", sha256="e3982f444617239225d675215d51f6ba05f845d4eec313da4418fdbb56fb27e3")
+    version("75.3.0", sha256="f2504966861356aa38616760c0f66568e535562374995367b4e69c7143cf6bcd")
     version("69.2.0", sha256="c21c49fb1042386df081cb5d86759792ab89efca84cf114889191cd09aacc80c")
     version("69.1.1", sha256="02fa291a0471b3a18b2b2481ed902af520c69e8ae0919c13da936542754b4c56")
     version("69.0.3", sha256="385eb4edd9c9d5c17540511303e39a147ce2fc04bc55289c322b9e5904fe2c05")
@@ -47,18 +48,66 @@ class PySetuptools(Package, PythonExtension):
     version("44.1.1", sha256="27a714c09253134e60a6fa68130f78c7037e5562c4f21f8f318f2ae900d152d5")
     version("44.1.0", sha256="992728077ca19db6598072414fb83e0a284aca1253aaf2e24bb1e55ee6db1a30")
     version("43.0.0", sha256="a67faa51519ef28cd8261aff0e221b6e4c370f8fb8bada8aa3e7ad8945199963")
-    version("41.4.0", sha256="8d01f7ee4191d9fdcd9cc5796f75199deccb25b154eba82d44d6a042cf873670")
-    version("41.3.0", sha256="e9832acd9be6f3174f4c34b40e7d913a146727920cbef6465c1c1bd2d21a4ec4")
-    version("41.0.1", sha256="c7769ce668c7a333d84e17fe8b524b1c45e7ee9f7908ad0a73e1eda7e6a5aebf")
-    version("41.0.0", sha256="e67486071cd5cdeba783bd0b64f5f30784ff855b35071c8670551fd7fc52d4a1")
-    version("40.8.0", sha256="e8496c0079f3ac30052ffe69b679bd876c5265686127a3159cfa415669b7f9ab")
-    version("40.4.3", sha256="ce4137d58b444bac11a31d4e0c1805c69d89e8ed4e91fde1999674ecc2f6f9ff")
-    version("40.2.0", sha256="ea3796a48a207b46ea36a9d26de4d0cc87c953a683a7b314ea65d666930ea8e6")
-    version("39.2.0", sha256="8fca9275c89964f13da985c3656cb00ba029d7f3916b37990927ffdf264e7926")
-    version("39.0.1", sha256="8010754433e3211b9cdbbf784b50f30e80bf40fc6b05eb5f865fab83300599b8")
-    version("25.2.0", sha256="2845247c359bb91097ccf8f6be8a69edfa44847f3d2d5def39aa43c3d7f615ca")
-    version("20.7.0", sha256="8917a52aa3a389893221b173a89dae0471022d32bff3ebc31a1072988aa8039d")
-    version("20.6.7", sha256="9982ee4d279a2541dc1a7efee994ff9c535cfc05315e121e09df7f93da48c442")
+    version(
+        "41.4.0",
+        sha256="8d01f7ee4191d9fdcd9cc5796f75199deccb25b154eba82d44d6a042cf873670",
+        deprecated=True,
+    )
+    version(
+        "41.3.0",
+        sha256="e9832acd9be6f3174f4c34b40e7d913a146727920cbef6465c1c1bd2d21a4ec4",
+        deprecated=True,
+    )
+    version(
+        "41.0.1",
+        sha256="c7769ce668c7a333d84e17fe8b524b1c45e7ee9f7908ad0a73e1eda7e6a5aebf",
+        deprecated=True,
+    )
+    version(
+        "41.0.0",
+        sha256="e67486071cd5cdeba783bd0b64f5f30784ff855b35071c8670551fd7fc52d4a1",
+        deprecated=True,
+    )
+    version(
+        "40.8.0",
+        sha256="e8496c0079f3ac30052ffe69b679bd876c5265686127a3159cfa415669b7f9ab",
+        deprecated=True,
+    )
+    version(
+        "40.4.3",
+        sha256="ce4137d58b444bac11a31d4e0c1805c69d89e8ed4e91fde1999674ecc2f6f9ff",
+        deprecated=True,
+    )
+    version(
+        "40.2.0",
+        sha256="ea3796a48a207b46ea36a9d26de4d0cc87c953a683a7b314ea65d666930ea8e6",
+        deprecated=True,
+    )
+    version(
+        "39.2.0",
+        sha256="8fca9275c89964f13da985c3656cb00ba029d7f3916b37990927ffdf264e7926",
+        deprecated=True,
+    )
+    version(
+        "39.0.1",
+        sha256="8010754433e3211b9cdbbf784b50f30e80bf40fc6b05eb5f865fab83300599b8",
+        deprecated=True,
+    )
+    version(
+        "25.2.0",
+        sha256="2845247c359bb91097ccf8f6be8a69edfa44847f3d2d5def39aa43c3d7f615ca",
+        deprecated=True,
+    )
+    version(
+        "20.7.0",
+        sha256="8917a52aa3a389893221b173a89dae0471022d32bff3ebc31a1072988aa8039d",
+        deprecated=True,
+    )
+    version(
+        "20.6.7",
+        sha256="9982ee4d279a2541dc1a7efee994ff9c535cfc05315e121e09df7f93da48c442",
+        deprecated=True,
+    )
 
     extends("python")
 
