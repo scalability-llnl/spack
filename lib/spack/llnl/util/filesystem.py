@@ -1472,7 +1472,7 @@ def set_executable(path):
 def recursive_mtime_greater_than(path: str, time: float) -> bool:
     """Returns true if any file or dir recursively under `path` has mtime greater than `time`."""
     # use bfs order to increase likelihood of early return
-    queue: Deque[str] = collections.deque()
+    queue: Deque[str] = collections.deque(os.scandir(path))
 
     if os.stat(path).st_mtime > time:
         return True
