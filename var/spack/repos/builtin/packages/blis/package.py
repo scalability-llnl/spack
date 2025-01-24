@@ -143,3 +143,7 @@ class Blis(BlisBase):
     # Problems with permissions on installed libraries:
     # https://github.com/flame/blis/issues/343
     patch("Makefile_0.6.0.patch", when="@0.4.0:0.6.0")
+
+    @property
+    def cmake_bla_vendor(self):
+        return "FLAME"
