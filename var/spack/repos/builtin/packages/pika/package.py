@@ -149,8 +149,6 @@ class Pika(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("apex", when="+apex")
     depends_on("cuda@11:", when="+cuda")
     depends_on("hip@5.2:", when="@0.8: +rocm")
-    # https://github.com/pika-org/pika/issues/1238
-    conflicts("%gcc@13:", when="+rocm")
     depends_on("hipblas", when="@:0.8 +rocm")
     depends_on("mpi", when="+mpi")
     with when("+stdexec"):
