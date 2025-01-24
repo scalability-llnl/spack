@@ -57,11 +57,17 @@ def activate_header(env, shell, prompt=None, view: Optional[str] = None):
         if view:
             cmds += "$Env:SPACK_ENV_VIEW='%s'\n" % view
         if prompt:
-            cmds += """function global:prompt {\n
+            cmds += """@"
+function prompt {\n
+}"""
+            
+            """function prompt {\n
     $pth = $(Convert-Path $(Get-Location)) | Split-Path -leaf
-    $spack_prompt = "[{prompt}] PS $pth>"
-    if(!$Env:SPACK_OLD_PROMPT) {$Env:SPACK_OLD_PROMPT=$spack_prompt}
+    $spack_prompt = "[womp] PS $pth>"
+    if(!"$Env:SPACK_OLD_PROMPT") {$Env:SPACK_OLD_PROMPT=$spack_prompt}
     $spack_prompt}\n""".format(prompt=prompt)
+    """@"function prompt {$pth = $(Convert-Path $(Get-Location)) | Split-Path -leaf}; "[womp] PS $pth>""@"""
+
     else:
         bash_color_prompt = colorize(f"@G{{{prompt}}}", color=True, enclose=True)
         zsh_color_prompt = colorize(f"@G{{{prompt}}}", color=True, enclose=False, zsh=True)
