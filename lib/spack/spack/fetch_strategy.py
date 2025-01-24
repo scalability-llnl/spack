@@ -31,7 +31,7 @@ import shutil
 import urllib.error
 import urllib.parse
 import urllib.request
-from pathlib import PurePath
+from pathlib import Path, PurePath
 from typing import List, Optional
 
 import llnl.url
@@ -74,9 +74,10 @@ def _needs_stage(fun):
 
 def _ensure_one_stage_entry(stage_path):
     """Ensure there is only one stage entry in the stage path."""
+    stage_path = PurePath(stage_path)
     stage_entries = os.listdir(stage_path)
     assert len(stage_entries) == 1
-    return os.path.join(stage_path, stage_entries[0])
+    return os.fspath(stage_path / stage_entries[0])
 
 
 def fetcher(cls):
@@ -268,7 +269,7 @@ class URLFetchStrategy(FetchStrategy):
         # The filename is the digest. A directory is also created based on
         # truncating the digest to avoid creating a directory with too many
         # entries
-        return os.path.sep.join(["archive", self.digest[:2], self.digest])
+        return os.fspath(PurePath("archive", self.digest[:2], self.digest))
 
     @property
     def candidate_urls(self):
@@ -420,7 +421,7 @@ class URLFetchStrategy(FetchStrategy):
             )
             if not self.stage.expanded:
                 mkdirp(self.stage.source_path)
-            dest = os.path.join(self.stage.source_path, os.path.basename(self.archive_file))
+            dest = os.fspath(PurePath(self.stage.source_path, PurePath(self.archive_file).name))
             shutil.move(self.archive_file, dest)
             return
 
@@ -476,8 +477,9 @@ class URLFetchStrategy(FetchStrategy):
             )
 
         # Remove everything but the archive from the stage
-        for filename in os.listdir(self.stage.path):
-            abspath = os.path.join(self.stage.path, filename)
+        stage_path = Path(self.stage.path)
+        for file_path in stage_path.iterdir():
+            abspath = os.fspath(stage_path / file_path.name)
             if abspath != self.archive_file:
                 shutil.rmtree(abspath, ignore_errors=True)
 
@@ -497,10 +499,10 @@ class CacheURLFetchStrategy(URLFetchStrategy):
 
     @_needs_stage
     def fetch(self):
-        path = url_util.file_url_string_to_path(self.url)
+        path = Path(url_util.file_url_string_to_path(self.url))
 
         # check whether the cache file exists.
-        if not os.path.isfile(path):
+        if not path.is_file():
             raise NoCacheError(f"No cache of {path}")
 
         # remove old symlink if one is there.
@@ -654,7 +656,7 @@ class GoFetchStrategy(VCSFetchStrategy):
             except OSError:
                 pass
             env = dict(os.environ)
-            env["GOPATH"] = os.path.join(os.getcwd(), "go")
+            env["GOPATH"] = os.fspath(PurePath(Path.getcwd(), "go"))
             self.go("get", "-v", "-d", self.url, env=env)
 
     def archive(self, destination):
@@ -775,7 +777,7 @@ class GitFetchStrategy(VCSFetchStrategy):
     def mirror_id(self):
         if self.commit:
             repo_path = urllib.parse.urlparse(self.url).path
-            result = os.path.sep.join(["git", repo_path, self.commit])
+            result = os.fspath(PurePath("git", repo_path, self.commit))
             return result
 
     def _repo_info(self):
@@ -1101,7 +1103,7 @@ class CvsFetchStrategy(VCSFetchStrategy):
         elements = final.split("/")
         # Everything before the first slash is a port number
         elements = elements[1:]
-        result = os.path.sep.join(["cvs"] + elements)
+        result = os.fspath(PurePath("cvs", *elements))
         if self.branch:
             result += "%branch=" + self.branch
         if self.date:
@@ -1137,9 +1139,9 @@ class CvsFetchStrategy(VCSFetchStrategy):
             status = self.cvs("-qn", "update", output=str)
             for line in status.split("\n"):
                 if re.match(r"^[?]", line):
-                    path = line[2:].strip()
-                    if os.path.isfile(path):
-                        os.unlink(path)
+                    path = Path(line[2:].strip())
+                    if path.is_file():
+                        path.unlink()
 
     def archive(self, destination):
         super().archive(destination, exclude="CVS")
@@ -1198,8 +1200,8 @@ class SvnFetchStrategy(VCSFetchStrategy):
 
     def mirror_id(self):
         if self.revision:
-            repo_path = urllib.parse.urlparse(self.url).path
-            result = os.path.sep.join(["svn", repo_path, self.revision])
+            repo_path = PurePath(urllib.parse.urlparse(self.url).path)
+            result = os.fspath("svn" / repo_path / self.revision)
             return result
 
     @_needs_stage
@@ -1229,11 +1231,11 @@ class SvnFetchStrategy(VCSFetchStrategy):
             for line in status.split("\n"):
                 if not re.match("^[I?]", line):
                     continue
-                path = line[8:].strip()
-                if os.path.isfile(path):
-                    os.unlink(path)
-                elif os.path.isdir(path):
-                    shutil.rmtree(path, ignore_errors=True)
+                path = Path(line[8:].strip())
+                if path.is_file():
+                    path.unlink()
+                elif path.is_dir():
+                    shutil.rmtree(os.fspath(path), ignore_errors=True)
 
     def archive(self, destination):
         super().archive(destination, exclude=".svn")
@@ -1308,8 +1310,8 @@ class HgFetchStrategy(VCSFetchStrategy):
 
     def mirror_id(self):
         if self.revision:
-            repo_path = urllib.parse.urlparse(self.url).path
-            result = os.path.sep.join(["hg", repo_path, self.revision])
+            repo_path = PurePath(urllib.parse.urlparse(self.url).path)
+            result = os.fspath("hg" / repo_path / self.revision)
             return result
 
     @_needs_stage
@@ -1423,14 +1425,14 @@ class FetchAndVerifyExpandedFile(URLFetchStrategy):
         super().expand()
 
         # Ensure a single patch file.
-        src_dir = self.stage.source_path
+        src_dir = Path(self.stage.source_path)
         files = os.listdir(src_dir)
 
         if len(files) != 1:
             raise ChecksumError(self, f"Expected a single file in {src_dir}.")
 
         verify_checksum(
-            os.path.join(src_dir, files[0]), self.expanded_sha256, self.url, self._effective_url
+            os.fspath(src_dir / files[0]), self.expanded_sha256, self.url, self._effective_url
         )
 
 
@@ -1718,7 +1720,7 @@ def from_list_url(pkg):
 
 class FsCache:
     def __init__(self, root):
-        self.root = os.path.abspath(root)
+        self.root = os.fspath(Path(root).absolute())
 
     def store(self, fetcher, relative_dest):
         # skip fetchers that aren't cachable
@@ -1734,7 +1736,7 @@ class FsCache:
         fetcher.archive(dst)
 
     def fetcher(self, target_path: str, digest: Optional[str], **kwargs) -> CacheURLFetchStrategy:
-        path = os.path.join(self.root, target_path)
+        path = Path(self.root, target_path)
         url = url_util.path_to_file_url(path)
         return CacheURLFetchStrategy(url=url, checksum=digest, **kwargs)
 
