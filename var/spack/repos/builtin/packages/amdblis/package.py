@@ -120,3 +120,10 @@ class Amdblis(BlisBase):
             shared=self.spec.satisfies("libs=shared"),
             recursive=True,
         )
+
+    @property
+    def cmake_bla_vendor(self):
+        if self.spec.satisfies("threads=none"):
+            return "AOCL"
+        else:
+            return "AOCL_mt"
