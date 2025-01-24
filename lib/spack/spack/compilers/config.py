@@ -7,7 +7,6 @@ and configuring Spack to use multiple compilers.
 import os
 import re
 import sys
-import warnings
 from typing import Any, Dict, List, Optional, Tuple
 
 import archspec.cpu
@@ -137,7 +136,11 @@ def _init_packages_yaml(
         for legacy in legacy_compilers:
             by_name.setdefault(legacy.name, []).append(legacy)
         spack.detection.update_configuration(by_name, buildable=True, scope=scope)
-        warnings.warn("compilers have been automatically converted from existing 'compilers.yaml'")
+        tty.info(
+            "Compilers have been converted from 'compilers.yaml' and written to "
+            "'packages.yaml'. Use of 'compilers.yaml' is deprecated, and will be "
+            "ignored in future versions of Spack"
+        )
         return
 
     # Look for compilers in PATH
@@ -146,7 +149,7 @@ def _init_packages_yaml(
         raise NoAvailableCompilerError(
             "no compiler configured, and Spack cannot find working compilers in PATH"
         )
-    warnings.warn("compilers have been configured automatically from PATH inspection")
+    tty.info("Compilers have been configured automatically from PATH inspection")
 
 
 def all_compilers_from(
