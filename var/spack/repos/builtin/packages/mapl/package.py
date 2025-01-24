@@ -394,8 +394,14 @@ class Mapl(CMakePackage):
         # using ifx or ifort. If we are using ifx and the MAPL version is 2.50 or older
         # we need to raise an error
 
-        if self.spec.satisfies("@:2.50 %oneapi"):
-            if self.spec["fortran"].name == "ifx":
+        if self.spec.satisfies("%oneapi@:2025"):
+            # We now need to get which Fortran compiler is used here but there
+            # isn't an easy way like:
+            #   if self.spec["fortran"].name == "ifx":
+            # yet (see https://github.com/spack/spack/pull/45189)
+            # So we need to parse the output of $FC --version
+            output = spack.compiler.get_compiler_version_output(self.compiler.fc, "--version")
+            if "ifx" in output:
                 raise InstallError("MAPL versions 2.50 and older do not support ifx")
 
         # Scripts often need to know the MPI stack used to setup the environment.
