@@ -38,6 +38,12 @@ class Mapl(CMakePackage):
     version("develop", branch="develop")
     version("main", branch="main")
 
+    version("2.53.0", sha256="68c24e6c0e3340645b1fb685972c96ef80746d5a289572c9883e520680708ebe")
+    version("2.52.0", sha256="c30be3a6ed3fca40aea903e10ee51e2fb50b4ef2445fdc959d4871baf3c20585")
+    version("2.51.2", sha256="f6df2be24d0c113af3d0424b674d970621660bf11e59a699373f014a14d0716e")
+    version("2.51.1", sha256="337dba3980de1d5e603361ecf8f001c5bf99d0addecbeb5c207f3604183ca623")
+    version("2.51.0", sha256="56213d845f5287e599213aab1dea60bf6b64c29cd8093313639304b270c45676")
+    version("2.50.3", sha256="506f73d511b6a63645bbf953bf04f663da06f5069cb559340786e9fe8eeb170f")
     version("2.50.2", sha256="1c72f8598cf01bab6ef30c1f461444ba5a13f55c61164b7b3c15efb0cd1096c0")
     version("2.50.1", sha256="26dd7a3ec82d484d60a559bb90a20ad9a2a717af52c25b6a752dd971aeeb5075")
     version("2.50.0", sha256="12282e547936f667f85c95d466273dcbaccbd600add72fa5981c0c734ccb1f7d")
