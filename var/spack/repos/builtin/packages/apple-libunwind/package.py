@@ -12,12 +12,9 @@ class AppleLibunwind(Package):
 
     provides("unwind")
 
-    # The 'conflicts' directive only accepts valid spack specs;
-    # platforms cannot be negated -- 'platform!=darwin' is not a valid
-    # spec -- so expressing a conflict for any platform that isn't
-    # Darwin must be expressed by listing a conflict with every
-    # platform that isn't Darwin/macOS
+    # Only supported on 'platform=darwin'
     conflicts("platform=linux")
+    conflicts("platform=windows")
 
     # Override the fetcher method to throw a useful error message;
     # avoids GitHub issue (#7061) in which the opengl placeholder
@@ -43,35 +40,10 @@ class AppleLibunwind(Package):
     def fetcher(self):
         _ = self.fetcher
 
-    def install(self, spec, prefix):
-        # sanity_check_prefix requires something in the install directory
-        mkdirp(prefix.lib)
+    @property
+    def headers(self):
+        return HeaderList(join_path(self.prefix, "usr/include"))
 
     @property
     def libs(self):
-        """Export the Apple libunwind library. The Apple libunwind library
-        cannot be linked to directly using an absolute path; doing so
-        will cause the linker to throw an error 'cannot link directly
-        with /usr/lib/system/libunwind.dylib' and the linker will
-        suggest linking with System.framework instead. Linking to this
-        framework is equivalent to linking with libSystem.dylib, which
-        can be confirmed on a macOS system by executing at a terminal
-        the command `ls -l
-        /System/Library/Frameworks/System.Framework` -- the file
-        "System" is a symlink to `/usr/lib/libSystem.B.dylib`, and
-        `/usr/lib/libSystem.dylib` also symlinks to this file.
-
-        Running `otool -L /usr/lib/libSystem.dylib` confirms that
-        it will link dynamically to `/usr/lib/system/libunwind.dylib`.
-
-        """
-        libs = find_libraries("libSystem", self.prefix.lib, shared=True, recursive=False)
-        if libs:
-            return libs
-        return None
-
-    @property
-    def headers(self):
-        """Export the Apple libunwind header"""
-        hdrs = HeaderList(find(self.prefix.include, "libunwind.h", recursive=False))
-        return hdrs or None
+        return LibraryList(join_path(self.prefix, "usr/lib"))

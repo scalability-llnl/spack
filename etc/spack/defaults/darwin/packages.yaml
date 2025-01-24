@@ -42,7 +42,7 @@ packages:
     # Apple bundles libunwind version 35.3 with macOS 10.9 and later,
     # although the version number used here isn't critical
     - spec: apple-libunwind@35.3
-      prefix: /usr
+      prefix: /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
   apple-libuuid:
     buildable: false
     externals:
