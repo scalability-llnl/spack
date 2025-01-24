@@ -283,29 +283,36 @@ def _config_change_requires_scope(path, spec, scope, match_spec=None):
     def assigns_git_version(x):
         return x.versions.concrete and isinstance(x.version, GitVersion)
 
-    if spec.versions.concrete and isinstance(spec.version, GitVersion):
-        test = spack.spec.Spec(spec.name)
-        test.versions = spec.versions
-        if test != spec:
-            raise ValueError("When setting @git. versions, the spec can only contain a version")
+    def assigns_more_than_version(x):
+        test = spack.spec.Spec(x.name)
+        test.versions = x.versions
+        return test != x
 
-    def specs_conflict(s1, s2):
+    git_xor_other_err = "When setting @git. versions, the spec can only contain a version"
+
+    if spec.versions.concrete and isinstance(spec.version, GitVersion):
+        if assigns_more_than_version(spec):
+            raise ValueError(git_xor_other_err)
+
+    def _conflicts(x):
         # If both specs have a version, and either one is a git version
         # then they conflict
-        if constrains_version(s1) and constrains_version(s2):
-            if assigns_git_version(s1):
+        if constrains_version(spec) and constrains_version(x):
+            if assigns_git_version(spec):
                 return True
-            elif assigns_git_version(s2):
+            elif assigns_git_version(x):
                 return True
         # Else if either spec has a git version, they don't conflict
-        elif constrains_version(s1) and assigns_git_version(s1):
+        elif constrains_version(spec) and assigns_git_version(spec):
             return False
-        elif constrains_version(s2) and assigns_git_version(s2):
+        elif constrains_version(x) and assigns_git_version(x):
+            if assigns_more_than_version(x):
+                raise ValueError(git_xor_other_err)
             return False
 
         # At this point, neither spec assigns a git version, so we can safely
         # call .intersects
-        return not s1.intersects(s2)
+        return not spec.intersects(x)
 
     changed = False
 
@@ -319,7 +326,7 @@ def _config_change_requires_scope(path, spec, scope, match_spec=None):
             # If there is a match_spec, don't change constraints that
             # don't match it
             return spec_str
-        elif specs_conflict(init_spec, spec):
+        elif _conflicts(init_spec):
             changed = True
             return str(spack.spec.Spec.override(init_spec, spec))
         else:
