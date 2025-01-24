@@ -3042,14 +3042,14 @@ spack:
             install()
 
         test_env = ev.read("test")
-
         output = env("activate", "--sh", "test")
+
         assert "ENVAR_SET_IN_ENV_LOAD=True" in output
 
         with test_env:
-            output = env("deactivate", "--sh")
-            assert "ENVAR_SET_IN_ENV_LOAD" not in output
-
+            with spack.util.environment.set_env(ENVAR_SET_IN_ENV_LOAD="True"):
+                output = env("deactivate", "--sh")
+                assert "unset ENVAR_SET_IN_ENV_LOAD" in output
 
 def test_stack_view_no_activate_without_default(
     installed_environment, template_combinatorial_env, tmp_path
