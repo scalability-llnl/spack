@@ -304,6 +304,8 @@ def _config_change_requires_scope(path, spec, scope, match_spec=None):
                 return True
         # Else if either spec has a git version, they don't conflict
         elif constrains_version(spec) and assigns_git_version(spec):
+            # We know from above that if we are setting a git version,
+            # then we aren't setting anything else, so there is no conflict
             return False
         elif constrains_version(x) and assigns_git_version(x):
             if assigns_more_than_version(x):
