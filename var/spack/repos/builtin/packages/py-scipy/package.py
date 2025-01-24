@@ -185,9 +185,6 @@ class PyScipy(PythonPackage):
     # https://github.com/spack/spack/issues/48243
     conflicts("%intel", when="@1.14:", msg="SciPy 1.14: Use Intel LLVM instead of Intel Classic")
 
-    # https://github.com/spack/spack/issues/45718
-    conflicts("%aocc", msg="SciPy doesn't compile with AOCC yet")
-
     # https://github.com/scipy/scipy/issues/19831
     conflicts("^openblas@0.3.26:", when="@:1.12")
 
