@@ -131,10 +131,6 @@ def clean(parser, args):
         tty.msg("Removing cached information on repositories")
         spack.caches.MISC_CACHE.destroy()
 
-    if args.conc_cache:
-        tty.msg("Removing cached concretization results")
-        spack.solver.asp.CONC_CACHE.destroy()
-
     if args.python_cache:
         tty.msg("Removing python cache files")
         remove_python_cache()

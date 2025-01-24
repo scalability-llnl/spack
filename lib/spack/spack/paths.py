@@ -109,7 +109,7 @@ default_user_bootstrap_path = os.path.join(user_cache_path, "bootstrap")
 default_misc_cache_path = os.path.join(user_cache_path, "cache")
 
 #: concretization cache for Spack concretizations
-default_conc_cache_path = os.path.join(user_cache_path, "concretization")
+default_conc_cache_path = os.path.join(default_misc_cache_path, "concretization")
 
 # Below paths pull configuration from the host environment.
 #
