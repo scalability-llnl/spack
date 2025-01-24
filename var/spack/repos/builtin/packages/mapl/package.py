@@ -252,9 +252,11 @@ class Mapl(CMakePackage):
     conflicts("%gcc@13:", when="@:2.44")
 
     # MAPL can use ifx only from MAPL 2.51 onwards and only supports
-    # ifx 2025.0 and newer due to bugs in ifx
-    conflicts("%oneapi@:2024")
-    conflicts("%oneapi", when="@:2.50")
+    # ifx 2025.0 and newer due to bugs in ifx.
+    conflicts("%oneapi@2025:", when="@:2.50")
+    # NOTE there is a further check on oneapi in the cmake_args below
+    # that is hard to conflict since we don't know the fortran compiler
+    # at this point
 
     variant("flap", default=False, description="Build with FLAP support", when="@:2.39")
     variant("pflogger", default=True, description="Build with pFlogger support")
@@ -387,6 +389,14 @@ class Mapl(CMakePackage):
                 fflags.append("-fallow-argument-mismatch")
         if fflags:
             args.append(self.define("CMAKE_Fortran_FLAGS", " ".join(fflags)))
+
+        # If oneapi is used and it gets past the conflict above, we might be
+        # using ifx or ifort. If we are using ifx and the MAPL version is 2.50 or older
+        # we need to raise an error
+
+        if self.spec.satisfies("@:2.50 %oneapi"):
+            if self.spec["fortran"].name == "ifx":
+                raise InstallError("MAPL versions 2.50 and older do not support ifx")
 
         # Scripts often need to know the MPI stack used to setup the environment.
         # Normally, we can autodetect this, but building with Spack does not
