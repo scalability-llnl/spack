@@ -6,12 +6,6 @@
 from spack import *
 from spack.package import *
 
-try:
-    from spack.package import *
-except:
-    pass
-
-
 class Paraconf(CMakePackage):
     """Paraconf is a library that provides a simple query language to access a
     Yaml tree on top of libyaml."""
@@ -19,7 +13,7 @@ class Paraconf(CMakePackage):
     homepage = "https://github.com/pdidev/paraconf"
     url = "https://github.com/pdidev/paraconf/archive/1.0.0.tar.gz"
 
-    maintainers = ["jbigot"]
+    maintainers("jbigot")
 
     version("1.0.0", sha256="9336492c292088a7d97192f2b1fa306e11f6f32373ac75f29b9af7eecd5c0c11")
     version("0.4.16", sha256="d896cb5bbf1c6b311f6bed44263548c799265e1f22d50475aecbddc80b0db982")

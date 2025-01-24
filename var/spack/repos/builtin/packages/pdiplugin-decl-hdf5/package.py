@@ -6,11 +6,6 @@
 from spack import *
 from spack.package import *
 
-try:
-    from spack.package import *
-except:
-    pass
-
 
 class PdipluginDeclHdf5(CMakePackage):
     """Decl'HDF5 plugin enables one to read and write data from HDF5 files in a
@@ -21,7 +16,7 @@ class PdipluginDeclHdf5(CMakePackage):
     homepage = "https://pdi.dev"
     git = "https://github.com/pdidev/pdi.git"
 
-    maintainers = ["jbigot"]
+    maintainers("jbigot")
 
     version("develop", branch="main", no_cache=True)
     version("1.8.0", sha256="5d353bfa64f45ee4715b88bd30330030f79f2020cd6bede0ad9b8f9beddadea9")
@@ -91,10 +86,9 @@ class PdipluginDeclHdf5(CMakePackage):
     root_cmakelists_dir = "plugins/decl_hdf5"
 
     def url_for_version(self, version):
-        fixed = ""
         if version <= Version("1.7.1"):
             return (
-                f"https://gitlab.maisondelasimulation.fr/pdidev/pdi/-/archive/"
+                "https://gitlab.maisondelasimulation.fr/pdidev/pdi/-/archive/"
                 + f"{version}/pdi-{version}.tar.bz2"
             )
         return f"https://github.com/pdidev/pdi/archive/refs/tags/{version}.tar.gz"
