@@ -3051,6 +3051,7 @@ spack:
                 output = env("deactivate", "--sh")
                 assert "unset ENVAR_SET_IN_ENV_LOAD" in output
 
+
 def test_stack_view_no_activate_without_default(
     installed_environment, template_combinatorial_env, tmp_path
 ):
