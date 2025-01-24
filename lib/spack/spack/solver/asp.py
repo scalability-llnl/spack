@@ -73,6 +73,7 @@ GitOrStandardVersion = Union[spack.version.GitVersion, spack.version.StandardVer
 
 TransformFunction = Callable[[spack.spec.Spec, List[AspFunction]], List[AspFunction]]
 
+
 class OutputConfiguration(NamedTuple):
     """Data class that contains configuration on what a clingo solve should output."""
 
@@ -3025,7 +3026,9 @@ def possible_compilers(*, configuration) -> List["spack.spec.Spec"]:
             continue
 
         if c in result:
-            warnings.warn(f"duplicate {c} compiler found. Edit your packages.yaml to remove it.")
+            warnings.warn(
+                f"duplicate {c.long_spec} compiler found. Edit your packages.yaml to remove it."
+            )
             continue
 
         result.add(c)
