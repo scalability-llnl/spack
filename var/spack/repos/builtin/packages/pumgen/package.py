@@ -26,12 +26,6 @@ class Pumgen(CMakePackage):
         default=False,
         description="Use Simmetrix libraries, embedding mesh generation with Simmetrix in PUMGen",
     )
-    variant(
-        "scorec",
-        default=False,
-        description="Use PUMI (Parallel Unstructured Mesh Infrastructure) Scorec, \
-            instead of standalone PUMGen functions.",
-    )
 
     depends_on("mpi")
     # simmetrix (e.g. @2024.0-240616) currently does not
@@ -40,25 +34,19 @@ class Pumgen(CMakePackage):
 
     depends_on("hdf5@1.10: +shared +threadsafe +mpi")
     depends_on("simmetrix-simmodsuite", when="+with_simmetrix")
-    depends_on(
-        "pumi +int64 simmodsuite=base +zoltan ~fortran ~simmodsuite_version_check",
-        when="+with_simmetrix +scorec",
-    )
+
     with when("@1.0.1"):
         depends_on("pumi +int64 +zoltan ~fortran", when="~with_simmetrix")
         depends_on(
             "pumi +int64 simmodsuite=base +zoltan ~fortran ~simmodsuite_version_check",
             when="+with_simmetrix",
         )
+        depends_on("zoltan@3.83 +parmetis+int64 ~fortran +shared")
 
-    depends_on("zoltan@3.83 +parmetis+int64 ~fortran +shared")
     depends_on("easi@1.2: +asagi jit=impalajit,lua", when="+with_simmetrix")
 
     def cmake_args(self):
-        args = [
-            self.define_from_variant("SIMMETRIX", "with_simmetrix"),
-            self.define_from_variant("SCOREC", "scorec"),
-        ]
+        args = [self.define_from_variant("SIMMETRIX", "with_simmetrix")]
         if "simmetrix-simmodsuite" in self.spec:
             mpi_id = self.spec["mpi"].name + self.spec["mpi"].version.up_to(1).string
             args.append("-DSIM_MPI=" + mpi_id)
