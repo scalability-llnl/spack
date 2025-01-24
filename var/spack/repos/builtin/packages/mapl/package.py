@@ -400,7 +400,9 @@ class Mapl(CMakePackage):
             #   if self.spec["fortran"].name == "ifx":
             # yet (see https://github.com/spack/spack/pull/45189)
             # So we need to parse the output of $FC --version
-            output = spack.compiler.get_compiler_version_output(self.compiler.fc, "--version")
+            output = spack.compiler.get_compiler_version_output(
+                self.compiler.fc, "-diag-disable=10448 --version", ignore_errors=True
+            )
             if "ifx" in output:
                 raise InstallError("MAPL versions 2.50 and older do not support ifx")
 
