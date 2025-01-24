@@ -2125,15 +2125,7 @@ def configure_reuse(reuse_mode, combined_env) -> Optional[ev.Environment]:
         "from_environment_raise",
     ],
 )
-def test_env_include_concrete_reuse(monkeypatch, reuse_mode):
-
-    # The mock packages do not use the gcc-runtime
-    def mock_has_runtime_dependencies(*args, **kwargs):
-        return True
-
-    monkeypatch.setattr(
-        spack.solver.asp, "_has_runtime_dependencies", mock_has_runtime_dependencies
-    )
+def test_env_include_concrete_reuse(do_not_check_runtimes_on_reuse, reuse_mode):
     # The default mpi version is 3.x provided by mpich in the mock repo.
     # This test verifies that concretizing with an included concrete
     # environment with "concretizer:reuse:true" the included

@@ -26,6 +26,15 @@ class Pandoramonitoring(CMakePackage):
     depends_on("root@6.18.04: +x +opengl")
     depends_on("pandorasdk")
 
+    # https://github.com/PandoraPFA/PandoraMonitoring/pull/13
+    @when("@:3.6.0")
+    def patch(self):
+        filter_file(
+            "TTreeWrapper::Branch<T>::~Branch<T>",
+            "TTreeWrapper::Branch<T>::~Branch",
+            "src/TTreeWrapper.cc",
+        )
+
     def cmake_args(self):
         args = [
             self.define("CMAKE_MODULE_PATH", self.spec["pandorapfa"].prefix.cmakemodules),

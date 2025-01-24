@@ -11,6 +11,7 @@ import pytest
 import spack
 import spack.platforms
 import spack.spec
+from spack.database import INDEX_JSON_FILE
 from spack.main import SpackCommand
 from spack.util.executable import which
 
@@ -36,7 +37,7 @@ def test_create_db_tarball(tmpdir, database):
         contents = tar("tzf", tarball_name, output=str)
 
         # DB file is included
-        assert "index.json" in contents
+        assert INDEX_JSON_FILE in contents
 
         # specfiles from all installs are included
         for spec in database.query():

@@ -22,6 +22,7 @@ class Helics(CMakePackage):
     version("develop", branch="develop", submodules=True)
     version("main", branch="main", submodules=True)
     version("master", branch="main", submodules=True)
+    version("3.6.0", sha256="e111ac5d92e808f27e330afd1f8b8ca4d86adf6ccd74e3280f2d40fb3e0e2ce9")
     version("3.5.3", sha256="f9ace240510b18caf642f55d08f9009a9babb203fbc032ec7d7d8aa6fd5e1553")
     version("3.5.2", sha256="c2604694698a1e33c4a68f3d1c5ab0a228ef2bfca1b0d3bae94801dbd3b11048")
     version("3.5.1", sha256="546fc6e6a85de6ba841e4bd547b811cc81a67a22be5e212ccb54be139d740555")
@@ -88,8 +89,10 @@ class Helics(CMakePackage):
     depends_on("git", type="build", when="@master:")
     depends_on("cmake@3.4:", type="build", when="@:2")
     depends_on("cmake@3.10:", type="build", when="@3.0.0:3.2.1")
-    depends_on("cmake@3.11:", type="build", when="@3.3.0:")
-    depends_on("boost@1.70:", type="build", when="+boost")
+    depends_on("cmake@3.11:", type="build", when="@3.3.0:3.5.3")
+    depends_on("cmake@3.22:", type="build", when="@3.6.0:")
+    depends_on("boost@1.70:", type="build", when="@:3.5.3 +boost")
+    depends_on("boost@1.75:", type="build", when="@3.6.0: +boost")
 
     # TODO: replace this with an explicit list of components of Boost,
     # for instance depends_on('boost +filesystem')
@@ -105,11 +108,24 @@ class Helics(CMakePackage):
     depends_on("python@3:", when="@:2 +python")
 
     # Compiler restrictions based on C++ standard supported
-    conflicts("%gcc@:6", when="@3.0.0:", msg="HELICS 3+ cannot be built with GCC older than 7.0")
     conflicts(
-        "%clang@:4", when="@3.0.0:", msg="HELICS 3+ cannot be built with Clang older than 5.0"
+        "%gcc@:6", when="@3.0.0:3.5.3", msg="HELICS 3+ cannot be built with GCC older than 7.0"
     )
-    conflicts("%intel@:18", when="@3.0.0:", msg="HELICS 3+ cannot be built with ICC older than 19")
+    conflicts(
+        "%gcc@:11", when="@3.6.0:", msg="HELICS 3.6+ cannot be built with GCC older than 11.0"
+    )
+    conflicts(
+        "%clang@:4", when="@3.0.0:3.5.3", msg="HELICS 3+ cannot be built with Clang older than 5.0"
+    )
+    conflicts(
+        "%clang@:15", when="@3.6.0:", msg="HELICS 3.6+ cannot be built with Clang older than 15.0"
+    )
+    conflicts(
+        "%intel@:18", when="@3.0.0:3.5.3", msg="HELICS 3+ cannot be built with ICC older than 19"
+    )
+    conflicts(
+        "%intel@:21", when="@3.6.0:", msg="HELICS 3.6+ cannot be built with ICC older than 21"
+    )
 
     # OpenMPI doesn't work with HELICS <=2.4.1
     conflicts("^openmpi", when="@:2.4.1 +mpi")
@@ -174,9 +190,9 @@ class Helics(CMakePackage):
             # Python interface was removed from the main HELICS build in v3
             args.append(from_variant("BUILD_PYTHON_INTERFACE", "python"))
 
-        # GCC >=13
-        if spec.satisfies("%gcc@13:"):
-            # C++20 required when building with GCC>=13
+        # GCC >=13 or HELICS 3.6+
+        if spec.satisfies("%gcc@13:") or spec.satisfies("@3.6.0:"):
+            # C++20 required when building with GCC>=13 or HELICS 3.6+
             args.append("-DCMAKE_CXX_STANDARD=20")
 
         return args
