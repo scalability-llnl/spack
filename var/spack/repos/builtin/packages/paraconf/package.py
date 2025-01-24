@@ -6,6 +6,7 @@
 from spack import *
 from spack.package import *
 
+
 class Paraconf(CMakePackage):
     """Paraconf is a library that provides a simple query language to access a
     Yaml tree on top of libyaml."""

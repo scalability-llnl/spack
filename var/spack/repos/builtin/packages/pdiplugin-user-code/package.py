@@ -6,6 +6,7 @@
 from spack import *
 from spack.package import *
 
+
 class PdipluginUserCode(CMakePackage):
     """The user-code plugin for the PDI librarie enables one to call a
     user-defined function when a specified event occur or certain data becomes

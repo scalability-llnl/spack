@@ -6,6 +6,7 @@
 from spack import *
 from spack.package import *
 
+
 class PdipluginTrace(CMakePackage):
     """The trace plugin is intended to generate a trace of  what happens in PDI
     "data store"."""
