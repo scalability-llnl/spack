@@ -16,10 +16,6 @@ env = SpackCommand("env")
 add = SpackCommand("add")
 develop = SpackCommand("develop")
 
-pytestmark = pytest.mark.skipif(
-    sys.platform == "win32", reason="Environments are not supported on Windows yet"
-)
-
 
 def test_dev_use_git(tmpdir, mock_packages, mutable_database, mutable_mock_env_path, monkeypatch):
     existing_dev_path = tmpdir.ensure("dev-path", dir=True)
