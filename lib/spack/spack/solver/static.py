@@ -4,12 +4,41 @@
 """Static analysis to optimize input creation for clingo"""
 from typing import Dict, Optional, Set, Tuple
 
+import spack.config
 import spack.deptypes as dt
 import spack.repo
 import spack.spec
+import spack.store
+
+RUNTIME_TAG = "runtime"
+
+
+class Context:
+    """A full Spack context that can be passed around as an object"""
+
+    def __init__(self, *, configuration: spack.config.Configuration):
+        self.configuration = configuration
+        self.repo = spack.repo.create(configuration)
+        self.store = spack.store.create(configuration)
+
+    def runtime_pkgs(self) -> Tuple[Set[str], Set[str]]:
+        """Returns the runtime packages for this context, and the virtuals they may provide"""
+        runtime_pkgs = set(self.repo.packages_with_tags(RUNTIME_TAG))
+        runtime_virtuals = set()
+        for x in runtime_pkgs:
+            pkg_class = self.repo.get_pkg_class(x)
+            runtime_virtuals.update(pkg_class.provided_virtual_names())
+        return runtime_pkgs, runtime_virtuals
 
 
 class PossibleDependenciesAnalyzer:
+    @staticmethod
+    def from_config(configuration: spack.config.Configuration) -> "PossibleDependenciesAnalyzer":
+        return PossibleDependenciesAnalyzer(Context(configuration=configuration))
+
+    def __init__(self, context: Context):
+        self.context = context
+
     def possible_dependencies(
         self, *specs: spack.spec.Spec, allowed_deps: dt.DepFlag
     ) -> Tuple[Set[str], Set[str]]:

@@ -6,11 +6,12 @@ from typing import List, Set
 
 from llnl.util import lang
 
+import spack.config
 import spack.deptypes as dt
 import spack.repo
 import spack.spec
 
-from .static import PossibleDependenciesAnalyzer
+from .static import Context, PossibleDependenciesAnalyzer
 
 PossibleDependencies = Set[str]
 
@@ -25,14 +26,13 @@ class Counter:
     """
 
     def __init__(self, specs: List["spack.spec.Spec"], tests: bool) -> None:
-        runtime_pkgs = spack.repo.PATH.packages_with_tags("runtime")
-        runtime_virtuals = set()
-        for x in runtime_pkgs:
-            pkg_class = spack.repo.PATH.get_pkg_class(x)
-            runtime_virtuals.update(pkg_class.provided_virtual_names())
+        self.context = Context(configuration=spack.config.CONFIG)
+        self.analyzer = PossibleDependenciesAnalyzer(self.context)
+
+        runtime_pkgs, runtime_virtuals = self.context.runtime_pkgs()
 
         self.specs = specs + [spack.spec.Spec(x) for x in runtime_pkgs]
-        self.analyzer = PossibleDependenciesAnalyzer()
+        self.analyzer = PossibleDependenciesAnalyzer.from_config(spack.config.CONFIG)
 
         self.link_run_types: dt.DepFlag = dt.LINK | dt.RUN | dt.TEST
         self.all_types: dt.DepFlag = dt.ALL
