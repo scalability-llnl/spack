@@ -551,13 +551,12 @@ class GitVersion(ConcreteVersion):
     __slots__ = ["has_git_prefix", "commit_sha", "ref", "std_version", "_ref_lookup"]
 
     def __init__(self, string: str):
-
         # TODO will be required for concrete specs when commit lookup added
-        self.commit_sha: Optional[String] = None
+        self.commit_sha: Optional[str] = None
         self.std_version: Optional[StandardVersion] = None
 
         # optional user supplied git ref
-        self.ref: Optional[String] = None
+        self.ref: Optional[str] = None
 
         # An object that can lookup git refs to compare them to versions
         self._ref_lookup: Optional[AbstractRefLookup] = None
@@ -638,7 +637,9 @@ class GitVersion(ConcreteVersion):
         raise TypeError(f"'satisfies()' not supported for instances of {type(other)}")
 
     def __str__(self) -> str:
-        s = f"git.{self.ref}" if self.has_git_prefix else self.ref
+        s = ""
+        if self.ref:
+            s += f"git.{self.ref}" if self.has_git_prefix else self.ref
         # Note: the solver actually depends on str(...) to produce the effective version.
         # So when a lookup is attached, we require the resolved version to be printed.
         # But for standalone git versions that don't have a repo attached, it would still
@@ -660,6 +661,7 @@ class GitVersion(ConcreteVersion):
         return (
             isinstance(other, GitVersion)
             and self.ref == other.ref
+            # TODO(psakiev) this needs to chamge to commits when we turn on lookups
             and self.ref_version == other.ref_version
         )
 

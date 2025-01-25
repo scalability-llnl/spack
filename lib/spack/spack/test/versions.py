@@ -810,13 +810,10 @@ def test_version_list_with_range_and_concrete_version_is_not_concrete():
     v = VersionList([Version("3.1"), VersionRange(Version("3.1.1"), Version("3.1.2"))])
     assert not v.concrete
 
+
 @pytest.mark.parametrize(
-    "pre_equal, post_equal", (
-    ("foo", "develop"),
-    ("a"*40, "develop"),
-    ("a"*40, None),
-    ("v1.2.0", "1.2.0")
-    )
+    "pre_equal, post_equal",
+    (("foo", "develop"), ("a" * 40, "develop"), ("a" * 40, None), ("v1.2.0", "1.2.0")),
 )
 def test_git_versions_store_ref_requests(pre_equal, post_equal):
     """
@@ -839,6 +836,7 @@ def test_git_versions_store_ref_requests(pre_equal, post_equal):
 
     if v.is_commit:
         assert v.ref == v.commit_sha
+
 
 @pytest.mark.parametrize(
     "vstring, eq_vstring, is_commit",
