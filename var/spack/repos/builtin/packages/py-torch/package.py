@@ -508,7 +508,8 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
             filter_file(
                 r"-DINCLUDE_DIRECTORIES=${ROCM_INCLUDE_DIRS}",
                 "-DINCLUDE_DIRECTORIES={0}/include/rocm-core".format(
-                    self.spec["rocm-core"].prefix),
+                    self.spec["rocm-core"].prefix
+		),
                 "cmake/public/LoadHIP.cmake",
                 string=True,
             )
