@@ -39,6 +39,13 @@ class Context:
         return self.repo.is_virtual(name)
 
     @lang.memoized
+    def libc_pkgs(self) -> List[str]:
+        try:
+            return [x.name for x in self.providers_for("libc")]
+        except spack.repo.UnknownPackageError:
+            return []
+
+    @lang.memoized
     def providers_for(self, virtual_str: str) -> List[spack.spec.Spec]:
         candidates = self.repo.providers_for(virtual_str)
         result = []
@@ -62,7 +69,6 @@ class Context:
                 if not any(x.intersects(platform_condition) for x in requirements):
                     print(f"{pkg_name} is not for this platform")
                     return False
-
         return True
 
     @lang.memoized
@@ -111,16 +117,15 @@ class PossibleDependenciesAnalyzer:
         self.runtime_pkgs, self.runtime_virtuals = self.context.runtime_pkgs()
 
     def possible_dependencies(
-        self, *specs: spack.spec.Spec, allowed_deps: dt.DepFlag
+        self, *specs: spack.spec.Spec, allowed_deps: dt.DepFlag, transitive: bool = True, strict_depflag: bool = False
     ) -> Tuple[Set[str], Set[str]]:
         virtuals: Set[str] = set()
-
         packages = []
         for current_spec in specs:
             if isinstance(current_spec, str):
                 current_spec = spack.spec.Spec(current_spec)
 
-            if spack.repo.PATH.is_virtual(current_spec.name):
+            if self.context.repo.is_virtual(current_spec.name):
                 packages.extend(
                     [
                         (current_spec, p.package_class)
@@ -135,10 +140,11 @@ class PossibleDependenciesAnalyzer:
             self._possible_dependencies(
                 pkg_cls,
                 visited=visited,
-                transitive=True,
+                transitive=transitive,
                 expand_virtuals=True,
                 depflag=allowed_deps,
                 virtuals=virtuals,
+                strict_depflag=strict_depflag
             )
 
         virtuals.update(self.runtime_virtuals)
@@ -149,9 +155,10 @@ class PossibleDependenciesAnalyzer:
         self,
         pkg_cls,
         *,
-        transitive: bool = True,
+        transitive: bool,
         expand_virtuals: bool = True,
-        depflag: dt.DepFlag = dt.ALL,
+        depflag: dt.DepFlag,
+        strict_depflag: bool = False,
         visited: Optional[dict] = None,
         missing: Optional[dict] = None,
         virtuals: set,
@@ -196,12 +203,16 @@ class PossibleDependenciesAnalyzer:
 
         for name, conditions in pkg_cls.dependencies_by_name(when=True).items():
             # check whether this dependency could be of the type asked for
-            depflag_union = 0
-            for deplist in conditions.values():
-                for dep in deplist:
-                    depflag_union |= dep.depflag
-            if not (depflag & depflag_union):
-                continue
+            if strict_depflag is False:
+                depflag_union = 0
+                for deplist in conditions.values():
+                    for dep in deplist:
+                        depflag_union |= dep.depflag
+                if not (depflag & depflag_union):
+                    continue
+            else:
+                if all(dep.depflag != depflag for deplist in conditions.values() for dep in deplist):
+                    continue
 
             if self.context.is_virtual(name) and name in virtuals:
                 continue
