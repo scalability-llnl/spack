@@ -179,6 +179,9 @@ class PossibleDependenciesAnalyzer:
             if not (depflag & depflag_union):
                 continue
 
+            if self.context.is_virtual(name) and name in virtuals:
+                continue
+
             # expand virtuals if enabled, otherwise just stop at virtuals
             if self.context.is_virtual(name):
                 virtuals.add(name)
