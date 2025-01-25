@@ -47,6 +47,7 @@ import spack.store
 import spack.util.debug
 import spack.util.environment
 import spack.util.lock
+import spack.util.web_config as web_config
 from spack.caches import misc_cache_location
 
 from .enums import ConfigScopePriority
@@ -605,9 +606,15 @@ def update_config_with_includes():
         if scope is not None:
             spack.config.CONFIG.push_scope(scope)
 
+    # Make sure any includes that might affect web options are picked up
+    web_config.update(spack.config.CONFIG)
+
 
 def _invoke_command(command, parser, args, unknown_args):
     """Run a spack command *without* setting spack global options."""
+    # Ensure basic configuration options are reflected in web_config
+    web_config.update(spack.config.CONFIG)
+
     update_config_with_includes()
 
     if allows_unknown_args(command):

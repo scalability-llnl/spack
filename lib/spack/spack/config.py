@@ -66,10 +66,11 @@ import spack.schema.view
 
 # Hacked yaml for configuration files preserves line numbers.
 import spack.util.spack_yaml as syaml
+import spack.util.web_config as web_config
 from spack.util.cpus import cpus_available
 from spack.util.path import substitute_path_variables
 from spack.util.url import validate_scheme
-from spack.util.web import RemoteFileError, fetch_remote_files
+from spack.util.web import fetch_remote_files
 
 from .enums import ConfigScopePriority
 
@@ -922,7 +923,7 @@ def include_path_scope(
                     staged_path = fetch_remote_files(
                         config_path, ".yaml", str(config_stage_dir), skip_existing=True
                     )
-                except (RemoteFileError, ValueError):
+                except (spack.error.RemoteFileError, ValueError):
                     staged_path = None
 
                 if not staged_path:
@@ -1135,7 +1136,13 @@ def set(path: str, value: Any, scope: Optional[str] = None) -> None:
 
     Accepts the path syntax described in ``get()``.
     """
-    return CONFIG.set(path, value, scope)
+    result = CONFIG.set(path, value, scope)
+
+    # Ensure web configuration is up-to-date
+    if path.startswith("config:"):
+        web_config.update(CONFIG)
+
+    return result
 
 
 def scopes() -> lang.PriorityOrderedMapping[str, ConfigScope]:
