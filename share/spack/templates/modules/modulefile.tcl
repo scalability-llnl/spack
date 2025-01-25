@@ -51,6 +51,27 @@ conflict {{ name }}
 {% endfor %}
 {% endblock %}
 
+set decompose_path [split [module-info getenv PATH] ":"]
+set decompose_before {}
+set decompose_after {}
+set decompose_found 0
+set decompose_split_sentinel "spack-sentinel"
+
+module set-path SPACK_PATH $decompose_before
+
+foreach dir $decompose_path {
+    if {!$decompose_found && [string match $decompose_split_sentinel $dir]} {
+        set decompose_found 1
+    } elseif {$decompose_found} {
+        lappend $decompose_after $dir
+    } else {
+        lappend $decompose_before $dir
+    }
+}
+
+set decompose_before_path [join $decompose_before ":"]
+set decompose_after_path [join $decompose_after ":"]
+
 {% block environment %}
 {% for command_name, cmd in environment_modifications %}
 {% if command_name == 'PrependPath' %}
@@ -83,6 +104,9 @@ unsetenv {{ cmd.name }}
 append-path MANPATH {{ '{' }}{{ '}' }}
 {% endif %}
 {% endblock %}
+
+set combined_path [join [list $decompose_before_path $decompose_split_sentinel $decompose_after_path] ":"]
+module set-path PATH $combined_path
 
 {% block footer %}
 {# In case the module needs to be extended with custom Tcl code #}

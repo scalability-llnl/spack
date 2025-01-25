@@ -33,7 +33,7 @@ def prefix_inspections(platform):
         return inspections
 
     inspections = {
-        "bin": ["PATH"],
+        "bin": ["SPACK_PATH"],
         "man": ["MANPATH"],
         "share/man": ["MANPATH"],
         "share/aclocal": ["ACLOCAL_PATH"],
