@@ -361,7 +361,7 @@ class PyTorch(PythonPackage, CudaPackage, ROCmPackage):
         "https://github.com/ROCm/pytorch/commit/81b1b13beff255201ae0caa675fcbb8f71bceef9.patch?full_index=1",
         sha256="aac76b3636e71a44adabba96185c3ddac110f007a2c02c6fd6ac82ead361e395",
         when="@2.3: +rocm",
-
+    )
     # Fixes 'FindOpenMP.cmake'
     # to detect openmp settings used by Fujitsu compiler.
     patch("detect_omp_of_fujitsu_compiler.patch", when="%fj")
