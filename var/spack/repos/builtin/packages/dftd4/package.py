@@ -49,8 +49,9 @@ class Dftd4(MesonPackage, CMakePackage):
     depends_on("py-cffi", when="+python")
     depends_on("python@3.6:", when="+python")
 
-    depends_on("mctc-lib build_system=cmake", when="build_system=cmake")
-    depends_on("multicharge", when="build_system=cmake")
+    for build_system in ["cmake", "meson"]:
+        depends_on(f"mctc-lib build_system={build_system}", when=f"build_system={build_system}")
+        depends_on(f"multicharge build_system={build_system}", when=f"build_system={build_system}")
 
     extends("python", when="+python")
 
