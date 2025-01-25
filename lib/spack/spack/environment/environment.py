@@ -648,13 +648,13 @@ class GitRepoChangeDetector:
             raise Exception(
                 "Internal Spack error: update_current was not called before update_prior"
             )
-        with open(self.cache_state, "w") as f:
+        with open(self.cache_state, "w", encoding="utf-8") as f:
             f.write(self.current_hash)
 
     def prior_hash(self):
         if not self.cache_state.exists():
             return None
-        with open(self.cache_state, "r") as f:
+        with open(self.cache_state, "r", encoding="utf-8") as f:
             return f.read()
 
 
