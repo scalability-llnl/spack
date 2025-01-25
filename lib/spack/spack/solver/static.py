@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Static analysis to optimize input creation for clingo"""
-from typing import Dict, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 import spack.config
 import spack.deptypes as dt
@@ -29,6 +29,12 @@ class Context:
             pkg_class = self.repo.get_pkg_class(x)
             runtime_virtuals.update(pkg_class.provided_virtual_names())
         return runtime_pkgs, runtime_virtuals
+
+    def is_virtual(self, name: str) -> bool:
+        return self.repo.is_virtual(name)
+
+    def providers_for(self, name: str) -> List[spack.spec.Spec]:
+        return self.repo.providers_for(name)
 
 
 class PossibleDependenciesAnalyzer:
@@ -62,7 +68,7 @@ class PossibleDependenciesAnalyzer:
 
         visited = {}
         for input_spec, pkg_cls in packages:
-            PossibleDependenciesAnalyzer._possible_dependencies(
+            self._possible_dependencies(
                 pkg_cls,
                 visited=visited,
                 transitive=True,
@@ -75,8 +81,8 @@ class PossibleDependenciesAnalyzer:
         real_packages = set(visited) | self.runtime_pkgs
         return real_packages, virtuals
 
-    @staticmethod
     def _possible_dependencies(
+        self,
         pkg_cls,
         *,
         transitive: bool = True,
@@ -84,7 +90,7 @@ class PossibleDependenciesAnalyzer:
         depflag: dt.DepFlag = dt.ALL,
         visited: Optional[dict] = None,
         missing: Optional[dict] = None,
-        virtuals: Optional[set] = None,
+        virtuals: set,
     ) -> Dict[str, Set[str]]:
         """Return dict of possible dependencies of this package.
 
@@ -134,11 +140,10 @@ class PossibleDependenciesAnalyzer:
                 continue
 
             # expand virtuals if enabled, otherwise just stop at virtuals
-            if spack.repo.PATH.is_virtual(name):
-                if virtuals is not None:
-                    virtuals.add(name)
+            if self.context.is_virtual(name):
+                virtuals.add(name)
                 if expand_virtuals:
-                    providers = spack.repo.PATH.providers_for(name)
+                    providers = self.context.providers_for(name)
                     dep_names = [spec.name for spec in providers]
                 else:
                     visited.setdefault(pkg_cls.name, set()).add(name)
@@ -162,13 +167,13 @@ class PossibleDependenciesAnalyzer:
                     continue
 
                 try:
-                    dep_cls = spack.repo.PATH.get_pkg_class(dep_name)
+                    dep_cls = self.context.repo.get_pkg_class(dep_name)
                 except spack.repo.UnknownPackageError:
                     # log unknown packages
                     missing.setdefault(pkg_cls.name, set()).add(dep_name)
                     continue
 
-                PossibleDependenciesAnalyzer._possible_dependencies(
+                self._possible_dependencies(
                     dep_cls,
                     transitive=transitive,
                     expand_virtuals=expand_virtuals,
