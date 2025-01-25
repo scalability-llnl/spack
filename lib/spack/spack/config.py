@@ -69,8 +69,8 @@ import spack.util.spack_yaml as syaml
 import spack.util.web_config as web_config
 from spack.util.cpus import cpus_available
 from spack.util.path import substitute_path_variables
+from spack.util.remote_file_cache import fetch_remote_files
 from spack.util.url import validate_scheme
-from spack.util.web import fetch_remote_files
 
 from .enums import ConfigScopePriority
 
