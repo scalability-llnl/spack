@@ -51,7 +51,7 @@ conflict {{ name }}
 {% endfor %}
 {% endblock %}
 
-set decompose_path [split [module-info getenv PATH] ":"]
+set decompose_path [split [getenv PATH] ":"]
 set decompose_before {}
 set decompose_after {}
 set decompose_found 0
@@ -67,10 +67,15 @@ foreach dir $decompose_path {
     }
 }
 
+if {!$decompose_found} {
+    set decompose_after $decompose_before
+    set decompose_before {}
+}
+
 set decompose_before_path [join $decompose_before ":"]
 set decompose_after_path [join $decompose_after ":"]
 
-set-path PATH $decompose_before_path
+setenv PATH $decompose_before_path
 
 {% block environment %}
 {% for command_name, cmd in environment_modifications %}
