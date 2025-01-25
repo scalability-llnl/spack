@@ -243,30 +243,29 @@ packages:
     assert req_specs == set(["@3.11:", "+ssl", "+tk"])
 
 
-def test_include_duplicate_source(tmpdir, capsys, mutable_config):
-    """Confirm warning when multiple include.yaml files have the same path
-    and, at present, the first processed path takes precedence."""
-    include_list = {"include": ["./more.yaml"]}
+def test_include_duplicate_source(tmpdir, mutable_config):
+    """Check precedence when include.yaml files have the same path."""
+    include_yaml = "debug.yaml"
+    include_list = {"include": [f"./{include_yaml}"]}
 
+    system_filename = mutable_config.get_config_filename("system", "include")
     site_filename = mutable_config.get_config_filename("site", "include")
-    user_filename = mutable_config.get_config_filename("user", "include")
 
-    def write_configs(include_path, more_data):
+    def write_configs(include_path, debug_data):
+        fs.mkdirp(os.path.dirname(include_path))
         with open(include_path, "w", encoding="utf-8") as f:
             syaml.dump_config(include_list, f)
 
-        more_path = fs.join_path(os.path.dirname(include_path), "more.yaml")
-        with open(more_path, "w", encoding="utf-8") as f:
-            syaml.dump_config(more_data, f)
+        debug_path = fs.join_path(os.path.dirname(include_path), include_yaml)
+        with open(debug_path, "w", encoding="utf-8") as f:
+            syaml.dump_config(debug_data, f)
 
-    site_more_config = {"config": {"debug": True}}
-    user_more_config = {"config": {"debug": False}}
+    system_config = {"config": {"debug": False}}
+    write_configs(system_filename, system_config)
 
-    write_configs(site_filename, site_more_config)
-    write_configs(user_filename, user_more_config)
+    site_config = {"config": {"debug": True}}
+    write_configs(site_filename, site_config)
 
     spack.main.update_config_with_includes()
-    err = capsys.readouterr()[1]
-    assert "Duplicate include" in err
 
-    assert mutable_config.get("config:debug") == user_more_config["config"]["debug"]
+    assert mutable_config.get("config:debug") == site_config["config"]["debug"]
