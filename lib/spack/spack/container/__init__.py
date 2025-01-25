@@ -1,11 +1,12 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Package that provides functions and classes to
 generate container recipes from a Spack environment
 """
 import warnings
+
+import jsonschema
 
 import spack.environment as ev
 import spack.schema.env as env
@@ -31,8 +32,6 @@ def validate(configuration_file):
     Returns:
         A sanitized copy of the configuration stored in the input file
     """
-    import jsonschema
-
     with open(configuration_file, encoding="utf-8") as f:
         config = syaml.load(f)
 

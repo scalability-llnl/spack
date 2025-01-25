@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -8,7 +7,7 @@ import sys
 from spack.package import *
 
 
-class Gaudi(CMakePackage):
+class Gaudi(CMakePackage, CudaPackage):
     """An experiment-independent HEP event data processing framework"""
 
     homepage = "https://gaudi.web.cern.ch/gaudi/"
@@ -18,6 +17,8 @@ class Gaudi(CMakePackage):
     tags = ["hep"]
 
     version("master", branch="master")
+    version("39.2", sha256="9697f5092df49187e3d30256c821a4400534e77ddaa2d976ba4bb22745c904d6")
+    version("39.1", sha256="acdeddcc2383a127b1ad4b0bdaf9f1c6699b64105e0c1d8095c560c96c157885")
     version("39.0", sha256="faa3653e2e6c769292c0592e3fc35cd98a2820bd6fc0c967cac565808b927262")
     version("38.3", sha256="47e8c65ea446656d2dae54a32205525e08257778cf80f9f029cd244d6650486e")
     version("38.2", sha256="08759b1398336987ad991602e37079f0744e8d8e4e3d5df2d253b8dedf925068")
@@ -46,6 +47,11 @@ class Gaudi(CMakePackage):
     depends_on("cxx", type="build")
 
     conflicts("%gcc@:10", when="@39:", msg="Gaudi needs a c++20 capable compiler for this version")
+    conflicts("+cuda", when="@:39.1", msg="Gaudi CUDA is only available in version 39.2 and later")
+
+    # Require %gcc@13 for <format> header
+    conflicts("%gcc@:12", when="+cuda @39.2:", msg="GaudiCUDA requires gcc-13.1 or later")
+    conflicts("%gcc@:12", when="+unwind @39.2:", msg="GaudiProfiling requires gcc-13.1 or later")
 
     maintainers("drbenmorgan", "vvolkl", "jmcarcell")
 
@@ -138,12 +144,23 @@ class Gaudi(CMakePackage):
     # The Intel VTune dependency is taken aside because it requires a license
     depends_on("intel-parallel-studio -mpi +vtune", when="+vtune")
 
+    def patch(self):
+        # ensure an empty pytest.ini is present to prevent finding one
+        # accidentally in a higher directory than the stage directory
+        touch("pytest.ini")
+
+        # ensure <fmt/format.h> is included instead of <format> for 39.2
+        if self.spec.satisfies("@39.2"):
+            filter_file("<format>", "<fmt/format.h>", "GaudiSvc/src/THistSvc/THistSvc.cpp")
+
     def cmake_args(self):
         args = [
             # Note: gaudi only builds examples when testing enabled
             self.define("BUILD_TESTING", self.run_tests or self.spec.satisfies("+examples")),
+            self.define_from_variant("GAUDI_BUILD_EXAMPLES", "examples"),
             self.define_from_variant("GAUDI_USE_AIDA", "aida"),
             self.define_from_variant("GAUDI_USE_CPPUNIT", "cppunit"),
+            self.define_from_variant("GAUDI_USE_CUDA", "cuda"),
             self.define_from_variant("GAUDI_ENABLE_GAUDIALG", "gaudialg"),
             self.define_from_variant("GAUDI_USE_GPERFTOOLS", "gperftools"),
             self.define_from_variant("GAUDI_USE_HEPPDT", "heppdt"),
@@ -167,8 +184,15 @@ class Gaudi(CMakePackage):
         # environment as in Gaudi.xenv
         env.prepend_path("PATH", self.prefix.scripts)
         env.prepend_path("PYTHONPATH", self.prefix.python)
-        for d in self.libs.directories:
-            env.prepend_path("LD_LIBRARY_PATH", d)
+
+        # Note: ROOT dependency automatically sets up ROOT environment vars
+
+        # ...but Gaudi additionally requires a path variable about itself
+        for lib_path in [self.prefix.lib, self.prefix.lib64]:
+            env.prepend_path("LD_LIBRARY_PATH", lib_path)
+            # GAUDI_PLUGIN_PATH currently only used on macos
+            # but may replace LD_LIBRARY_PATH in the future
+            env.prepend_path("GAUDI_PLUGIN_PATH", lib_path)
 
     def url_for_version(self, version):
         major = str(version[0])

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """This module implements Spack's configuration file handling.
@@ -36,6 +35,8 @@ import os
 import re
 import sys
 from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
+
+import jsonschema
 
 from llnl.util import filesystem, lang, tty
 
@@ -430,6 +431,19 @@ class Configuration:
     def ensure_unwrapped(self) -> "Configuration":
         """Ensure we unwrap this object from any dynamic wrapper (like Singleton)"""
         return self
+
+    def highest(self) -> ConfigScope:
+        """Scope with highest precedence"""
+        return next(reversed(self.scopes.values()))  # type: ignore
+
+    @_config_mutator
+    def ensure_scope_ordering(self):
+        """Ensure that scope order matches documented precedent"""
+        # FIXME: We also need to consider that custom configurations and other orderings
+        # may not be preserved correctly
+        if "command_line" in self.scopes:
+            # TODO (when dropping python 3.6): self.scopes.move_to_end
+            self.scopes["command_line"] = self.remove_scope("command_line")
 
     @_config_mutator
     def push_scope(self, scope: ConfigScope) -> None:
@@ -939,12 +953,6 @@ def set(path: str, value: Any, scope: Optional[str] = None) -> None:
     return CONFIG.set(path, value, scope)
 
 
-def add_default_platform_scope(platform: str) -> None:
-    plat_name = os.path.join("defaults", platform)
-    plat_path = os.path.join(CONFIGURATION_DEFAULTS_PATH[1], platform)
-    CONFIG.push_scope(DirectoryConfigScope(plat_name, plat_path))
-
-
 def scopes() -> Dict[str, ConfigScope]:
     """Convenience function to get list of configuration scopes."""
     return CONFIG.scopes
@@ -1042,8 +1050,6 @@ def validate(
     This leverages the line information (start_mark, end_mark) stored
     on Spack YAML structures.
     """
-    import jsonschema
-
     try:
         spack.schema.Validator(schema).validate(data)
     except jsonschema.ValidationError as e:
