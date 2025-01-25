@@ -7,9 +7,10 @@ from typing import List, Set
 from llnl.util import lang
 
 import spack.deptypes as dt
-import spack.package_base
 import spack.repo
 import spack.spec
+
+from .static import PossibleDependenciesAnalyzer
 
 PossibleDependencies = Set[str]
 
@@ -31,6 +32,7 @@ class Counter:
             runtime_virtuals.update(pkg_class.provided_virtual_names())
 
         self.specs = specs + [spack.spec.Spec(x) for x in runtime_pkgs]
+        self.analyzer = PossibleDependenciesAnalyzer()
 
         self.link_run_types: dt.DepFlag = dt.LINK | dt.RUN | dt.TEST
         self.all_types: dt.DepFlag = dt.ALL
@@ -69,10 +71,10 @@ class Counter:
 
 class NoDuplicatesCounter(Counter):
     def _compute_cache_values(self):
-        result = spack.package_base.possible_dependencies(
-            *self.specs, virtuals=self._possible_virtuals, depflag=self.all_types
+        self._possible_dependencies, virtuals = self.analyzer.possible_dependencies(
+            *self.specs, allowed_deps=self.all_types
         )
-        self._possible_dependencies = set(result)
+        self._possible_virtuals.update(virtuals)
 
     def possible_packages_facts(self, gen, fn):
         gen.h2("Maximum number of nodes (packages)")
@@ -98,12 +100,11 @@ class MinimalDuplicatesCounter(NoDuplicatesCounter):
         self._link_run_virtuals: Set[str] = set()
 
     def _compute_cache_values(self):
-        self._link_run = set(
-            spack.package_base.possible_dependencies(
-                *self.specs, virtuals=self._possible_virtuals, depflag=self.link_run_types
-            )
+        self._link_run, virtuals = self.analyzer.possible_dependencies(
+            *self.specs, allowed_deps=self.link_run_types
         )
-        self._link_run_virtuals.update(self._possible_virtuals)
+        self._possible_virtuals.update(virtuals)
+        self._link_run_virtuals.update(virtuals)
         for x in self._link_run:
             build_dependencies = spack.repo.PATH.get_pkg_class(x).dependencies_of_type(dt.BUILD)
             virtuals, reals = lang.stable_partition(
@@ -117,11 +118,10 @@ class MinimalDuplicatesCounter(NoDuplicatesCounter):
 
             self._direct_build.update(reals)
 
-        self._total_build = set(
-            spack.package_base.possible_dependencies(
-                *self._direct_build, virtuals=self._possible_virtuals, depflag=self.all_types
-            )
+        self._total_build, virtuals = self.analyzer.possible_dependencies(
+            *self._direct_build, allowed_deps=self.all_types
         )
+        self._possible_virtuals.update(virtuals)
         self._possible_dependencies = set(self._link_run) | set(self._total_build)
 
     def possible_packages_facts(self, gen, fn):
