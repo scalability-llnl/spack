@@ -38,6 +38,7 @@ class PossibleDependenciesAnalyzer:
 
     def __init__(self, context: Context):
         self.context = context
+        self.runtime_pkgs, self.runtime_virtuals = self.context.runtime_pkgs()
 
     def possible_dependencies(
         self, *specs: spack.spec.Spec, allowed_deps: dt.DepFlag
@@ -70,7 +71,8 @@ class PossibleDependenciesAnalyzer:
                 virtuals=virtuals,
             )
 
-        real_packages = set(visited)
+        virtuals.update(self.runtime_virtuals)
+        real_packages = set(visited) | self.runtime_pkgs
         return real_packages, virtuals
 
     @staticmethod

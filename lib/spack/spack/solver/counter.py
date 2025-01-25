@@ -28,12 +28,7 @@ class Counter:
     def __init__(self, specs: List["spack.spec.Spec"], tests: bool) -> None:
         self.context = Context(configuration=spack.config.CONFIG)
         self.analyzer = PossibleDependenciesAnalyzer(self.context)
-
-        runtime_pkgs, runtime_virtuals = self.context.runtime_pkgs()
-
-        self.specs = specs + [spack.spec.Spec(x) for x in runtime_pkgs]
-        self.analyzer = PossibleDependenciesAnalyzer.from_config(spack.config.CONFIG)
-
+        self.specs = specs
         self.link_run_types: dt.DepFlag = dt.LINK | dt.RUN | dt.TEST
         self.all_types: dt.DepFlag = dt.ALL
         if not tests:
@@ -41,9 +36,7 @@ class Counter:
             self.all_types = dt.LINK | dt.RUN | dt.BUILD
 
         self._possible_dependencies: PossibleDependencies = set()
-        self._possible_virtuals: Set[str] = (
-            set(x.name for x in specs if x.virtual) | runtime_virtuals
-        )
+        self._possible_virtuals: Set[str] = set(x.name for x in specs if x.virtual)
 
     def possible_dependencies(self) -> PossibleDependencies:
         """Returns the list of possible dependencies"""
