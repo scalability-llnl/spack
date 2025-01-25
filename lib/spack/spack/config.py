@@ -174,21 +174,10 @@ class DirectoryConfigScope(ConfigScope):
             data = read_config_file(path, schema)
             self.sections[section] = data
 
-            # Save the sources of included configuration files to support
-            # relative paths.
             if section == "include" and data is not None:
-                for included_path in data["include"]:
-                    path_str = str(included_path)
-                    if path_str in CONFIG.includes:
-                        # TODO: Is it always safe to assume the last processed
-                        # TODO: path conflict will always be highest priority?
-                        tty.warn(
-                            f"Duplicate include path '{path_str}' detected. "
-                            "Replacing initial source path "
-                            f" ('{CONFIG.includes[path_str]}') with '{path}'."
-                        )
-
-                    CONFIG.includes[str(included_path)] = path
+                # Save the sources of included configuration files to support
+                # relative paths.
+                CONFIG.add_include_source(path, data["include"], self.name)
 
         return self.sections[section]
 
@@ -302,7 +291,13 @@ class SingleFileScope(ConfigScope):
             for section_key, data in section_data.items():
                 self.sections[section_key] = {section_key: data}
 
-        return self.sections.get(section, None)
+        data = self.sections.get(section, None)
+        if section == "include" and data is not None:
+            # Save the source of included configuration files to support
+            # relative paths.
+            CONFIG.add_include_source(self.path, data["include"], self.name)
+
+        return data
 
     def _write_section(self, section: str) -> None:
         if not self.writable:
@@ -453,9 +448,9 @@ class Configuration:
             self.push_scope(scope)
         self.format_updates: Dict[str, List[ConfigScope]] = collections.defaultdict(list)
 
-        # Track global include configuration file source paths since not
-        # otherwise available once includes are processed.
-        self.includes: Dict[str, str] = collections.defaultdict(str)
+        # Track configuration file source paths since not otherwise available
+        # once includes are processed.
+        self.includes_source: Dict[str, List[Tuple[str, str]]] = collections.defaultdict(list)
 
     def ensure_unwrapped(self) -> "Configuration":
         """Ensure we unwrap this object from any dynamic wrapper (like Singleton)"""
@@ -757,16 +752,52 @@ class Configuration:
         except (syaml.SpackYAMLError, OSError) as e:
             raise spack.error.ConfigError(f"cannot read '{section}' configuration") from e
 
-    def includes_source_root(self, path: str) -> Optional[str]:
+    def add_include_source(
+        self, source_path: Union[pathlib.Path, str], include_data: List[str], scope: Optional[str]
+    ) -> None:
+        """Save the path to the source for each include path
+
+        Args:
+            source_path: path to the source configuration file
+            include_data: includes list
+            scope: name of associated scope
+        """
+        source_str = str(source_path)
+        for include_path in include_data:
+            include_str = str(include_path)
+            # TODO: Should changes to scope affect this?
+            # TODO: When would the scope be empty?
+            if scope == "":
+                tty.warn(f"No scope name given for {source_path}, {include_data}")
+            entry = (scope or "", source_str)
+            self.includes_source[include_str].append(entry)
+
+    def includes_source_root(self, include_path: Union[pathlib.Path, str]) -> Optional[str]:
         """Return root directory for the included path
 
         Args:
-            path: path as it appears under the includes configuration
+            include_path: path as it appears under the includes configuration
 
-        Returns: root directory of the source file containing the include or ```None``
+        Returns: root directory of the source file containing the include or ``None``
         """
+        include_str = str(include_path)
+        sources = self.includes_source.get(include_str)
 
-        return os.path.dirname(self.includes[path]) if path in self.includes else None
+        if sources is None:
+            return None
+
+        if len(sources) > 1:
+            tty.debug(f"Detected multiple sources for {include_str}: {sources}")
+
+        # TODO: Is it sufficient to make sure the scope exists?
+        # TODO: Is this the way to handle precedence if/when multiple sources
+        # TODO:   for an include path exist?
+        for scope_name, source_path in sources:
+            scope = self.scopes.get(scope_name)
+            if scope is not None:
+                return os.path.dirname(source_path)
+
+        return None
 
 
 @contextlib.contextmanager
@@ -860,13 +891,13 @@ def include_path_scope(
         name_prefix: configuration scope name prefix
         config_stage_dir: path to directory to be used to stage remote paths
         relative_root: path to root directory for relative paths or ``None``
-            if relative paths are not allowed
+            if relative include paths not allowed
 
     Returns: configuration scope
 
     Raises:
         ValueError: included path has an unsupported URL scheme, is required
-            but does not exist, or is not allowed to be relative; configuration
+            but does not exist, or does not have a relative root; configuration
             stage directory argument is missing
         ConfigFileError: unable to access remote configuration file(s)
     """
@@ -915,11 +946,10 @@ def include_path_scope(
                 )
 
         # Treat relative paths as relative to relative_root. If not provided,
-        # then relative paths are considered unsupported so raise an exception.
+        # try to get the root from the included file.
         if not os.path.isabs(config_path):
-            relative_root = relative_root or CONFIG.includes_source_root(include.path)
             if relative_root is None:
-                raise ValueError(f"include: has an unsupported relative path {config_path}")
+                raise ValueError(f"include: no relative root is available for {config_path}")
 
             cfg_path = os.path.join(relative_root, config_path)
             config_path = os.path.normpath(os.path.realpath(cfg_path))
@@ -1051,6 +1081,11 @@ def add_from_file(filename: str, scope: Optional[str] = None) -> None:
 
             # We cannot call config.set directly (set is a type)
             CONFIG.set(section, new, scope)
+
+            if section == "include":
+                # Save the source of included configuration files to support
+                # relative paths.
+                CONFIG.add_include_source(filename, value, scope)
 
 
 def add(fullpath: str, scope: Optional[str] = None) -> None:

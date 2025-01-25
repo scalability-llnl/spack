@@ -591,13 +591,14 @@ def update_config_with_includes():
     if not includes:
         return
 
-    include_cache_dir = fs.join_path(misc_cache_location(), "includes")
+    # TODO: Does this properly handle precedence?
     for entry in includes:
+        optional_path = spack.config.included_path(entry)
         scope = spack.config.include_path_scope(
-            spack.config.included_path(entry),
+            optional_path,
             "include",
-            include_cache_dir,
-            spack.config.CONFIG.includes_source_root(entry),
+            fs.join_path(misc_cache_location(), "includes"),
+            spack.config.CONFIG.includes_source_root(optional_path.path),
         )
 
         if scope is not None:
