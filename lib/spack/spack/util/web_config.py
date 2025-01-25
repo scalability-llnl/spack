@@ -24,21 +24,26 @@ class WebConfig(NamedTuple):
     url_fetch_method: str
 
 
+def create(config: dict) -> WebConfig:
+    """Instantiate the configuration by passing spack.config.CONFIG."""
+    return WebConfig(
+        ssl_certs=config.get("config:ssl_certs"),
+        verify_ssl=config.get("config:verify_ssl", True),
+        connect_timeout=config.get("config:connect_timeout", 10),
+        url_fetch_method=config.get("config:url_fetch_method", "urllib"),
+    )
+
+
 def _create_global() -> WebConfig:
-    default_config = dict()
+    default_config: dict = dict()
     return create(default_config)
 
 
 CONFIG: WebConfig = llnl.util.lang.Singleton(_create_global)  # type: ignore
 
 
-def update(config: dict) -> WebConfig:
-    """Instantiate the configuration by passing spack.config.CONFIG."""
+def update(config: dict):
+    """Re-instantiate the configuration by passing spack.config.CONFIG."""
     global CONFIG
 
-    CONFIG = WebConfig(
-        ssl_certs=config.get("config:ssl_certs"),
-        verify_ssl=config.get("config:verify_ssl", True),
-        connect_timeout=config.get("config:connect_timeout", 10),
-        url_fetch_method=config.get("config:url_fetch_method", "urllib"),
-    )
+    CONFIG = create(config)
