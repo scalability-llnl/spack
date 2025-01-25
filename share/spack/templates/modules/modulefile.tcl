@@ -58,7 +58,6 @@ set decompose_found 0
 set decompose_split_sentinel "spack-sentinel"
 
 foreach dir $decompose_path {
-    ## puts "<----- $dir"
     if {!$decompose_found && [string match $decompose_split_sentinel $dir]} {
         set decompose_found 1
     } elseif {$decompose_found} {
@@ -68,9 +67,6 @@ foreach dir $decompose_path {
     }
 }
 
-##puts "<------- $decompose_after"
-##puts "<------- $decompose_before"
-
 if {!$decompose_found} {
     set decompose_after $decompose_before
     set decompose_before {}
@@ -78,11 +74,6 @@ if {!$decompose_found} {
 
 set decompose_before_path [join $decompose_before ":"]
 set decompose_after_path [join $decompose_after ":"]
-
-##set x [getenv PATH]
-##puts "<------- $x"
-##puts "<------- $decompose_after"
-##puts "<------- $decompose_before"
 
 setenv PATH $decompose_before_path
 
